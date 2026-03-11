@@ -11,6 +11,10 @@ const routes = [
   { path: "/demo", priority: 0.85, changeFrequency: "weekly" as const },
   { path: "/projetos", priority: 0.8, changeFrequency: "weekly" as const },
   { path: "/contato", priority: 0.7, changeFrequency: "monthly" as const },
+  { path: "/privacidade", priority: 0.5, changeFrequency: "yearly" as const },
+  { path: "/termos", priority: 0.5, changeFrequency: "yearly" as const },
+  { path: "/cookies", priority: 0.5, changeFrequency: "yearly" as const },
+  { path: "/sobre", priority: 0.6, changeFrequency: "monthly" as const },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

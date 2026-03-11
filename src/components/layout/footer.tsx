@@ -99,7 +99,27 @@ export function Footer() {
         </div>
 
         <div className="mt-10 border-t border-border pt-8">
-          <p className="text-center text-sm text-muted-foreground">
+          <nav
+            className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground"
+            aria-label="Legal e institucional"
+          >
+            <Link href="/sobre" className="hover:text-primary">
+              Sobre
+            </Link>
+            <Link href="/privacidade" className="hover:text-primary">
+              Política de Privacidade
+            </Link>
+            <Link href="/termos" className="hover:text-primary">
+              Termos de Uso
+            </Link>
+            <Link href="/cookies" className="hover:text-primary">
+              Cookies
+            </Link>
+            <Link href="/contato" className="hover:text-primary">
+              Contato
+            </Link>
+          </nav>
+          <p className="mt-4 text-center text-sm text-muted-foreground">
             © {currentYear} DevFlow Labs. Todos os direitos reservados.
           </p>
         </div>
