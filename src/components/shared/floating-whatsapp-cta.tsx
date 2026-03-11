@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { getWhatsAppUrl } from "@/lib/whatsapp";
+import { trackMetaContact } from "@/lib/meta-pixel";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_MESSAGE = "Olá! Gostaria de automatizar o atendimento do meu negócio no WhatsApp.";
@@ -17,6 +18,7 @@ export function FloatingWhatsAppCta() {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={trackMetaContact}
       className={cn(
         "fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full px-4 py-3 shadow-lg",
         "bg-[#25D366] text-white font-semibold text-sm",

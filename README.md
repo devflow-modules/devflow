@@ -1,36 +1,135 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DevFlow Labs
 
-## Getting Started
+Landing e funil de aquisição da **DevFlow Labs** — automação de atendimento no WhatsApp com IA, handoff humano e métricas operacionais.
 
-First, run the development server:
+**Software Engineering • Automation • AI Systems • WhatsApp Automation Platform**
+
+---
+
+## Stack
+
+- **Next.js 16** (App Router)
+- **React 19**
+- **TypeScript**
+- **Tailwind CSS v4**
+- **shadcn/ui**
+- **Lucide React**
+
+---
+
+## Início rápido
+
+### Pré-requisitos
+
+- Node.js 20+
+- pnpm (recomendado) ou npm/yarn
+
+### Instalação
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Clonar e entrar no projeto
+cd devflow
+
+# Instalar dependências
+pnpm install
+
+# Copiar variáveis de ambiente
+cp .env.example .env.local
+
+# Rodar em desenvolvimento
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build de produção
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm build
+pnpm start
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Variáveis de ambiente
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Configure no `.env.local`:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Variável | Obrigatória | Descrição |
+|----------|-------------|-----------|
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | Sim | Número do WhatsApp (ex: 5511999999999) |
+| `NEXT_PUBLIC_WHATSAPP_DEFAULT_TEXT` | Não | Mensagem padrão (default: "Olá, gostaria de mais informações.") |
+| `NEXT_PUBLIC_META_PIXEL_ID` | Não | Pixel do Meta Ads para tracking |
+| `NEXT_PUBLIC_GITHUB_URL` | Não | URL do GitHub (footer) |
+| `NEXT_PUBLIC_FUNKLAB_DEMO_URL` | Não | URL da demo do FunkLab (projetos) |
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Estrutura do projeto
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/                    # App Router (Next.js)
+│   ├── automacao-whatsapp-tabacaria/
+│   ├── automacao-whatsapp-restaurante/
+│   ├── demo/               # Simulação interativa
+│   ├── produtos/
+│   ├── projetos/
+│   └── contato/
+├── components/
+│   ├── layout/             # Header, Footer, Section
+│   ├── sections/           # Hero, ProblemList, ForWho, etc.
+│   ├── shared/             # WhatsAppCta, FloatingWhatsAppCta
+│   ├── ui/                 # Badge, FeatureCard, etc.
+│   └── analytics/          # Meta Pixel
+├── design-system/          # Tokens e documentação
+├── lib/                    # Utilitários (whatsapp, meta-pixel, projects)
+└── styles/                 # globals.css, tokens.css
+```
+
+---
+
+## Páginas principais
+
+| Rota | Descrição |
+|------|-----------|
+| `/` | Landing principal |
+| `/automacao-whatsapp-tabacaria` | Página nicho — tabacarias |
+| `/automacao-whatsapp-restaurante` | Página nicho — restaurantes |
+| `/demo` | Simulação interativa de atendimento |
+| `/produtos/whatsapp-platform` | Produto automação WhatsApp |
+| `/produtos/funklab-studio` | Produto FunkLab Studio |
+| `/projetos` | Portfólio de projetos |
+| `/contato` | Contato |
+
+---
+
+## Meta Ads
+
+O site está pronto para Meta Ads com:
+
+- **Meta Pixel** (PageView, ViewContent, Contact)
+- **Evento Contact** em todos os cliques de WhatsApp
+- **ViewContent** em páginas de nicho e demo
+
+Ver [docs/META_ADS.md](docs/META_ADS.md) para configuração.
+
+---
+
+## Deploy
+
+Recomendado: **Vercel**
+
+```bash
+# Deploy via Vercel CLI
+pnpm add -g vercel
+vercel
+```
+
+Configure as variáveis de ambiente no painel da Vercel.
+
+---
+
+## Licença
+
+Projeto privado — DevFlow Labs.

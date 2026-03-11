@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { FloatingWhatsAppCta } from "@/components/shared/floating-whatsapp-cta";
+import { MetaPixel } from "@/components/analytics/meta-pixel";
 import "./globals.css";
 
 const inter = Inter({
@@ -62,6 +63,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} font-sans flex min-h-screen flex-col antialiased`}
       >
+        <MetaPixel />
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
