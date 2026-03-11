@@ -7,6 +7,12 @@ const productLinks = [
   { href: "/produtos/whatsapp-platform", label: "Automação WhatsApp" },
 ];
 
+const segmentLinks = [
+  { href: "/automacao-whatsapp-tabacaria", label: "Tabacarias" },
+  { href: "/automacao-whatsapp-restaurante", label: "Restaurantes" },
+  { href: "/demo", label: "Demo" },
+];
+
 const projectLinks = [
   { href: "/projetos", label: "Projetos" },
   {
@@ -22,7 +28,7 @@ export function Footer() {
   return (
     <footer className="border-t border-border bg-muted/30">
       <div className="mx-auto max-w-[1200px] px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
           <div className="space-y-2">
             <Link
               href="/"
@@ -39,6 +45,22 @@ export function Footer() {
             <h3 className="text-sm font-semibold text-foreground">Produtos</h3>
             <ul className="mt-3 space-y-2">
               {productLinks.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className="text-sm text-muted-foreground transition-colors hover:text-primary"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <nav aria-label="Automação por segmento">
+            <h3 className="text-sm font-semibold text-foreground">Automação</h3>
+            <ul className="mt-3 space-y-2">
+              {segmentLinks.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}

@@ -5,8 +5,9 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { href: "/", label: "Início" },
   { href: "/produtos/whatsapp-platform", label: "WhatsApp" },
-  { href: "/produtos/funklab-studio", label: "FunkLab" },
-  { href: "/segmentos/tabacarias", label: "Tabacarias" },
+  { href: "/automacao-whatsapp-tabacaria", label: "Tabacarias" },
+  { href: "/automacao-whatsapp-restaurante", label: "Restaurantes" },
+  { href: "/demo", label: "Demo" },
   { href: "/projetos", label: "Projetos" },
   { href: "/contato", label: "Contato" },
 ];

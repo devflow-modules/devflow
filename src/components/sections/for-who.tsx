@@ -1,21 +1,26 @@
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const segments = [
   {
     title: "Restaurantes / delivery",
     description: "Automatize pedidos, horários e entrega.",
+    href: "/automacao-whatsapp-restaurante",
   },
   {
     title: "Tabacarias",
     description: "Respostas rápidas sobre produtos e pedidos.",
+    href: "/automacao-whatsapp-tabacaria",
   },
   {
     title: "Negócios locais",
     description: "Escale atendimento sem aumentar equipe.",
+    href: "/produtos/whatsapp-platform",
   },
   {
     title: "Operações digitais",
     description: "Atendimento automatizado + operação humana.",
+    href: "/produtos/whatsapp-platform",
   },
 ];
 
@@ -45,16 +50,17 @@ export function ForWho() {
 
         <div className="mx-auto mt-12 grid max-w-4xl gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {segments.map((segment) => (
-            <article
+            <Link
               key={segment.title}
+              href={segment.href}
               className={cn(
-                "rounded-xl border border-border bg-card p-6",
+                "block rounded-xl border border-border bg-card p-6",
                 "transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
               )}
             >
               <h3 className="font-semibold text-foreground">{segment.title}</h3>
               <p className="mt-2 text-sm text-slate-600">{segment.description}</p>
-            </article>
+            </Link>
           ))}
         </div>
       </div>
