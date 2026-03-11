@@ -121,12 +121,28 @@ Ver [docs/META_ADS.md](docs/META_ADS.md) para configuração.
 Recomendado: **Vercel**
 
 ```bash
-# Deploy via Vercel CLI
+# Instalar CLI e linkar
 pnpm add -g vercel
-vercel
+vercel link
+vercel env pull
+
+# Deploy Preview (teste, branch, PR)
+pnpm deploy:preview
+# ou: vercel
+
+# Deploy Production (site ao vivo)
+pnpm deploy:prod
+# ou: vercel --prod
 ```
 
-Configure as variáveis de ambiente no painel da Vercel.
+| Comando | Ambiente | Uso |
+|---------|----------|-----|
+| `vercel` | Preview | Testar antes de produção |
+| `vercel --prod` | Production | Publicar no domínio final |
+
+Git: push em `main` → produção. Push em outra branch ou PR → preview.
+
+Ver [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) para detalhes.
 
 ---
 

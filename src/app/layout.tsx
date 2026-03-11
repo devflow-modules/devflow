@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { FloatingWhatsAppCta } from "@/components/shared/floating-whatsapp-cta";
+import { Analytics } from "@vercel/analytics/next";
 import { MetaPixel } from "@/components/analytics/meta-pixel";
 import "./globals.css";
 
@@ -68,6 +69,7 @@ export default function RootLayout({
         <main className="flex-1">{children}</main>
         <Footer />
         <FloatingWhatsAppCta />
+        <Analytics />
       </body>
     </html>
   );
