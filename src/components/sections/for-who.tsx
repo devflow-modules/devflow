@@ -1,0 +1,63 @@
+import { cn } from "@/lib/utils";
+
+const segments = [
+  {
+    title: "Restaurantes / delivery",
+    description: "Automatize pedidos, horários e entrega.",
+  },
+  {
+    title: "Tabacarias",
+    description: "Respostas rápidas sobre produtos e pedidos.",
+  },
+  {
+    title: "Negócios locais",
+    description: "Escale atendimento sem aumentar equipe.",
+  },
+  {
+    title: "Operações digitais",
+    description: "Atendimento automatizado + operação humana.",
+  },
+];
+
+export function ForWho() {
+  return (
+    <section
+      id="para-quem"
+      className="py-24"
+      aria-labelledby="for-who-heading"
+    >
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center">
+          <div
+            className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary"
+            aria-hidden
+          />
+          <h2
+            id="for-who-heading"
+            className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+          >
+            Para quem é a DevFlow
+          </h2>
+          <p className="mt-3 text-slate-600">
+            Se você se identifica com um desses perfis, a DevFlow foi feita para você.
+          </p>
+        </div>
+
+        <div className="mx-auto mt-12 grid max-w-4xl gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {segments.map((segment) => (
+            <article
+              key={segment.title}
+              className={cn(
+                "rounded-xl border border-border bg-card p-6",
+                "transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+              )}
+            >
+              <h3 className="font-semibold text-foreground">{segment.title}</h3>
+              <p className="mt-2 text-sm text-slate-600">{segment.description}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}

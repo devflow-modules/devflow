@@ -1,0 +1,37 @@
+/**
+ * DevFlow Labs — Design System Tokens
+ * Tecnologia • Automação • Precisão • Sistemas
+ */
+
+:root {
+  /* Brand Primary */
+  --devflow-primary: #22c55e;
+  --devflow-primary-dark: #16a34a;
+  --devflow-primary-foreground: #ffffff;
+
+  /* Backgrounds */
+  --devflow-bg-dark: #0f172a;
+  --devflow-bg-light: #f8fafc;
+  --devflow-bg-alt: #f1f5f9;
+
+  /* Text */
+  --devflow-text-primary: #0f172a;
+  --devflow-text-secondary: #475569;
+  --devflow-text-muted: #64748b;
+  --devflow-text-light: #f8fafc;
+
+  /* Accent Tech */
+  --devflow-accent: #38bdf8;
+
+  /* UI */
+  --devflow-border: #cbd5e1;
+  --devflow-border-light: #e2e8f0;
+  --devflow-radius: 0.5rem;
+  --devflow-radius-lg: 0.75rem;
+  --devflow-radius-xl: 1rem;
+  --devflow-section-padding: 6rem;
+  --devflow-container-max: 1200px;
+  --devflow-card-gap: 1.5rem;
+  --devflow-shadow-card: 0 8px 30px rgba(0, 0, 0, 0.08);
+  --devflow-shadow-hero: 0 20px 60px rgba(0, 0, 0, 0.08);
+}
