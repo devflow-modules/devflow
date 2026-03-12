@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { getWhatsAppUrl } from "@/lib/whatsapp";
 import { trackCtaWhatsAppClick } from "@/lib/analytics";
@@ -27,12 +26,18 @@ export function WhatsAppCta({
 }: WhatsAppCtaProps) {
   const href = getWhatsAppUrl(text);
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    trackCtaWhatsAppClick(label);
+    setTimeout(() => window.open(href, "_blank", "noopener,noreferrer"), 150);
+  };
+
   return (
-    <Link
+    <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => trackCtaWhatsAppClick(label)}
+      onClick={handleClick}
       className={cn(
         "inline-flex items-center justify-center font-medium border border-transparent",
         "bg-[#25D366] text-white transition-all duration-200 hover:bg-[#20BD5A]",
@@ -43,6 +48,6 @@ export function WhatsAppCta({
     >
       <MessageCircle className="size-[1.125em] shrink-0" aria-hidden />
       {label}
-    </Link>
+    </a>
   );
 }

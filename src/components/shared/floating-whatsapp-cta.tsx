@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { getWhatsAppUrl } from "@/lib/whatsapp";
 import { trackCtaWhatsAppClick } from "@/lib/analytics";
@@ -13,12 +12,18 @@ export function FloatingWhatsAppCta() {
 
   if (!href || href === "#") return null;
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    trackCtaWhatsAppClick("floating");
+    setTimeout(() => window.open(href, "_blank", "noopener,noreferrer"), 150);
+  };
+
   return (
-    <Link
+    <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => trackCtaWhatsAppClick("floating")}
+      onClick={handleClick}
       className={cn(
         "fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full px-4 py-3 shadow-lg",
         "bg-[#25D366] text-white font-semibold text-sm",
@@ -29,6 +34,6 @@ export function FloatingWhatsAppCta() {
     >
       <MessageCircle className="size-5 shrink-0" />
       <span className="hidden sm:inline">Quero automatizar</span>
-    </Link>
+    </a>
   );
 }
