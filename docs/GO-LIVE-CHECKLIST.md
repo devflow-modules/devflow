@@ -15,6 +15,49 @@ Este checklist pode ser reutilizado como runbook para futuros produtos SaaS da D
 
 ---
 
+## 📊 Status atual (atualizado)
+
+### ✅ Feito
+
+| Item | Status |
+|------|--------|
+| URL pública (devflowlabs.com.br) | OK |
+| Schema.org (name, url, logo, sameAs) | OK — GitHub: gustavomarques00/devflow |
+| Deploy + build limpo | OK |
+| robots.txt e sitemap.xml | OK |
+| OG image | OK — preview validado no WhatsApp |
+| Domínio + SSL | OK |
+| Redirect www → root | OK |
+| Search Console | Verificado, sitemap processado |
+| Indexação solicitada | Home + páginas principais |
+| Footer institucional | CNPJ 60.517.335/0001-03, São Paulo — SP |
+
+### ⏳ Pendente (verificação manual)
+
+| Item | Como validar |
+|------|--------------|
+| Meta Pixel | Pixel Helper → clicar WhatsApp → evento Contact |
+| Tracking | DevTools → CTAs e scroll 50% |
+| Core Web Vitals | [PageSpeed Insights](https://pagespeed.web.dev/) — LCP < 2.5s |
+| Conversão 10s | Home em mobile/desktop — clareza em 10s |
+
+### 🚫 Bloqueado (aguardando chip)
+
+| Item | Próximo passo |
+|------|---------------|
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | Configurar na Vercel com número oficial |
+| Botão WhatsApp → conversa real | Testar após chip |
+| Cloud API + webhook | devflow-whatsapp-platform |
+
+### 📝 Não aplicável
+
+| Item | Motivo |
+|------|--------|
+| Speed Insights | Disponível apenas no Vercel Pro |
+| sameAs LinkedIn | Página ainda não criada |
+
+---
+
 ## 🚫 Obrigatório antes de lançar
 
 Sem isso, não considere o site oficialmente pronto:
@@ -54,15 +97,15 @@ Rode estes testes **em produção** (mobile + desktop):
 
 O site está **lançado** quando estes checks forem verdadeiros:
 
-- [ ] `NEXT_PUBLIC_WHATSAPP_NUMBER` configurado (formato: `5513999999999`, sem +, sem espaços)
-- [ ] Deploy novo feito (após envs)
-- [ ] Home funcionando em produção
-- [ ] Botões de contato (WhatsApp) funcionando
-- [ ] `/robots.txt` e `/sitemap.xml` funcionando
-- [ ] Metadados e OG funcionando
-- [ ] Domínio principal redirecionando corretamente (www / non-www)
-- [ ] Search Console configurado (verificação + sitemap)
-- [ ] Analytics capturando acesso (Vercel Analytics)
+- [ ] `NEXT_PUBLIC_WHATSAPP_NUMBER` configurado (formato: `5513999999999`, sem +, sem espaços) — **bloqueado: chip**
+- [x] Deploy novo feito (após envs)
+- [x] Home funcionando em produção
+- [ ] Botões de contato (WhatsApp) funcionando — **depende do número**
+- [x] `/robots.txt` e `/sitemap.xml` funcionando
+- [x] Metadados e OG funcionando
+- [x] Domínio principal redirecionando corretamente (www / non-www)
+- [x] Search Console configurado (verificação + sitemap + indexação solicitada)
+- [x] Analytics capturando acesso (Vercel Analytics)
 
 ---
 
@@ -84,13 +127,13 @@ Melhora o projeto, mas **não trava** o lançamento:
 
 ## 🔁 Ordem ideal de execução
 
-1. Configurar envs na Vercel
-2. Deploy em produção
-3. Validar botão WhatsApp
-4. Validar sitemap / robots
-5. Registrar Search Console
-6. Solicitar indexação da home
-7. Marcar site como **lançado** ✅
+1. Configurar envs na Vercel — **aguardando chip**
+2. Deploy em produção — ✅
+3. Validar botão WhatsApp — **aguardando número**
+4. Validar sitemap / robots — ✅
+5. Registrar Search Console — ✅
+6. Solicitar indexação da home e páginas principais — ✅
+7. Marcar site como **lançado** — **após chip + envs**
 
 ---
 

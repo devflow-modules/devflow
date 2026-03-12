@@ -69,10 +69,7 @@ const organizationSchema = {
   name: "DevFlow Labs",
   url: baseUrl,
   logo: `${baseUrl}/og-devflow.png`,
-  sameAs: [
-    "https://github.com/devflowlabs",
-    "https://linkedin.com/company/devflowlabs",
-  ],
+  sameAs: ["https://github.com/gustavomarques00/devflow"],
   contactPoint: {
     "@type": "ContactPoint",
     contactType: "customer service",
