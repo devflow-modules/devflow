@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
+import { trackCtaDemoClick } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 export function FinalCta() {
@@ -56,15 +59,20 @@ export function FinalCta() {
             Teste a automação de atendimento. Converse pelo WhatsApp ou veja a demonstração.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-4">
-            <WhatsAppCta label="Falar no WhatsApp" size="lg" />
+            <WhatsAppCta
+              label="Quero automatizar meu atendimento"
+              size="lg"
+              text="Olá, quero entender como funciona a automação da DevFlow."
+            />
             <Link
-              href="/segmentos/tabacarias"
+              href="/demo"
+              onClick={() => trackCtaDemoClick("final_cta")}
               className={cn(
                 "inline-flex items-center justify-center gap-2 h-12 rounded-lg border border-[#e2e8f0] px-5 text-base font-semibold",
                 "bg-white text-foreground transition-all duration-200 hover:bg-[#f1f5f9]"
               )}
             >
-              Ver demonstração
+              Ver uma conversa em ação
               <ArrowRight className="size-4" aria-hidden />
             </Link>
           </div>

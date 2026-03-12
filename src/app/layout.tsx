@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     template: "%s | DevFlow Labs",
   },
   description:
-    "DevFlow Labs — automação de atendimento no WhatsApp com métricas, handoff e controle da operação. Produtos SaaS e soluções digitais.",
+    "Automatize o atendimento do seu WhatsApp com IA, métricas e controle da operação. Ideal para negócios que recebem muitas mensagens.",
   keywords: [
     "automação",
     "WhatsApp",
@@ -40,17 +40,45 @@ export const metadata: Metadata = {
     siteName: "DevFlow Labs",
     title: "DevFlow Labs | Automação de Atendimento no WhatsApp",
     description:
-      "Automação de atendimento no WhatsApp com métricas, handoff e controle da operação. Produtos SaaS e soluções digitais.",
+      "Automatize o atendimento do seu WhatsApp com IA, métricas e controle da operação. Ideal para negócios que recebem muitas mensagens.",
+    images: [
+      {
+        url: `${baseUrl}/og-devflow.png`,
+        width: 1200,
+        height: 630,
+        alt: "DevFlow Labs Automação WhatsApp",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "DevFlow Labs | Automação de Atendimento no WhatsApp",
+    title: "DevFlow Labs | Automação WhatsApp",
     description:
-      "Automação de atendimento no WhatsApp com métricas, handoff e controle da operação. Produtos SaaS e soluções digitais.",
+      "Automatize o atendimento do seu WhatsApp com IA, métricas e controle da operação. Ideal para negócios que recebem muitas mensagens.",
+    images: [`${baseUrl}/og-devflow.png`],
   },
   robots: {
     index: true,
     follow: true,
+  },
+};
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "DevFlow Labs",
+  url: baseUrl,
+  logo: `${baseUrl}/og-devflow.png`,
+  sameAs: [
+    "https://github.com/devflowlabs",
+    "https://linkedin.com/company/devflowlabs",
+  ],
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "customer service",
+    availableLanguage: "Portuguese",
+    areaServed: "BR",
+    url: `${baseUrl}/contato`,
   },
 };
 
@@ -64,6 +92,12 @@ export default function RootLayout({
       <body
         className={`${inter.variable} font-sans flex min-h-screen flex-col antialiased`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
+        />
         <MetaPixel />
         <Header />
         <main className="flex-1">{children}</main>

@@ -1,14 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
+import { trackCtaDemoClick } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/", label: "Início" },
-  { href: "/produtos/whatsapp-platform", label: "WhatsApp" },
+  { href: "/automacao-whatsapp", label: "Automação WhatsApp" },
+  { href: "/chatbot-whatsapp", label: "Chatbot" },
   { href: "/automacao-whatsapp-tabacaria", label: "Tabacarias" },
   { href: "/automacao-whatsapp-restaurante", label: "Restaurantes" },
   { href: "/demo", label: "Demo" },
-  { href: "/projetos", label: "Projetos" },
+  { href: "/precos", label: "Preços" },
+  { href: "/blog", label: "Blog" },
   { href: "/contato", label: "Contato" },
 ];
 
@@ -44,8 +49,19 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-4">
-          <WhatsAppCta size="sm" />
+        <div className="flex items-center gap-3">
+          <Link
+            href="/demo"
+            onClick={() => trackCtaDemoClick("header")}
+            className="hidden text-sm font-medium text-slate-600 transition-colors hover:text-primary sm:inline-block"
+          >
+            Ver demo
+          </Link>
+          <WhatsAppCta
+            label="Fale no WhatsApp"
+            size="sm"
+            text="Olá, quero entender como funciona a automação."
+          />
         </div>
       </div>
     </header>

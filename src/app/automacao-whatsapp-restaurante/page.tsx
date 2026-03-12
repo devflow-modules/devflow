@@ -81,8 +81,13 @@ function MessageBubble({
   );
 }
 
+const baseUrl = "https://devflowlabs.com.br";
+
 export const metadata: Metadata = {
   title: "Automação de Pedidos no WhatsApp para Restaurantes | DevFlow Labs",
+  alternates: {
+    canonical: `${baseUrl}/automacao-whatsapp-restaurante`,
+  },
   description:
     "Automatize pedidos e atendimento do seu restaurante no WhatsApp. Cardápio automático, status do pedido, delivery. Piloto de 7 dias grátis.",
   keywords: [

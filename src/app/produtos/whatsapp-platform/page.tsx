@@ -83,8 +83,13 @@ const trustCards = [
   },
 ];
 
+const baseUrl = "https://devflowlabs.com.br";
+
 export const metadata: Metadata = {
   title: "DevFlow WhatsApp Platform",
+  alternates: {
+    canonical: `${baseUrl}/produtos/whatsapp-platform`,
+  },
   description:
     "Plataforma de automação de atendimento no WhatsApp com respostas automáticas, handoff inteligente, métricas e controle operacional. SaaS para escala.",
   openGraph: {
@@ -127,7 +132,7 @@ export default function WhatsAppPlatformPage() {
                 text="Quero saber mais sobre a DevFlow WhatsApp Platform."
               />
               <Link
-                href="/segmentos/tabacarias"
+                href="/automacao-whatsapp-tabacaria"
                 className={cn(
                   "inline-flex items-center justify-center gap-2 h-12 rounded-2xl border border-border px-5 text-base font-medium",
                   "bg-background text-foreground transition-colors hover:bg-muted"

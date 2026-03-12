@@ -1,43 +1,83 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Contato",
+  title: "Contato | DevFlow Labs",
   description:
-    "Entre em contato com a DevFlow Labs pelo WhatsApp. Automação de atendimento no WhatsApp e produtos SaaS.",
+    "Entre em contato com a DevFlow Labs pelo WhatsApp ou email. Automação de atendimento no WhatsApp e produtos SaaS.",
+  alternates: {
+    canonical: "https://devflowlabs.com.br/contato",
+  },
   openGraph: {
     title: "Contato | DevFlow Labs",
     description:
-      "Entre em contato com a DevFlow Labs pelo WhatsApp. Automação e produtos SaaS.",
+      "Entre em contato pelo WhatsApp ou email. Resposta rápida.",
     url: "https://devflowlabs.com.br/contato",
-  },
-  twitter: {
-    title: "Contato | DevFlow Labs",
-    description: "Entre em contato com a DevFlow Labs pelo WhatsApp.",
   },
 };
 
 export default function ContatoPage() {
   return (
-    <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-xl rounded-2xl border border-border bg-card p-8 sm:p-12">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-          Contato
-        </h1>
-        <p className="mt-4 text-muted-foreground">
-          Entre em contato pelo WhatsApp para conversarmos.
-        </p>
-        <div className="mt-6">
-          <WhatsAppCta label="Falar no WhatsApp" size="lg" />
+    <main className="py-16 sm:py-20">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-xl">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            Contato
+          </h1>
+          <p className="mt-4 text-slate-600">
+            Resposta rápida. Entre em contato pelo WhatsApp ou email.
+          </p>
+
+          <div className="mt-12 space-y-8">
+            <div className="rounded-xl border border-border bg-card p-6">
+              <h2 className="font-semibold text-foreground">WhatsApp</h2>
+              <p className="mt-2 text-sm text-slate-600">
+                Canal principal. Respondemos em poucos minutos em horário comercial.
+              </p>
+              <div className="mt-4">
+                <WhatsAppCta
+                  label="Falar no WhatsApp"
+                  size="lg"
+                  text="Olá, gostaria de falar com a equipe DevFlow Labs."
+                />
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-border bg-card p-6">
+              <h2 className="font-semibold text-foreground">E-mail</h2>
+              <p className="mt-2 text-sm text-slate-600">
+                Para propostas formais ou dúvidas que exigem documentação.
+              </p>
+              <a
+                href="mailto:contato@devflowlabs.com.br"
+                className="mt-4 inline-block font-medium text-primary hover:underline"
+              >
+                contato@devflowlabs.com.br
+              </a>
+            </div>
+
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-6">
+              <p className="text-sm font-medium text-foreground">
+                Resposta em até 24h (dias úteis).
+              </p>
+              <p className="mt-1 text-sm text-slate-600">
+                No WhatsApp, costumamos responder em minutos.
+              </p>
+            </div>
+          </div>
+
+          <p className="mt-12">
+            <Link
+              href="/"
+              className="text-sm font-medium text-slate-600 hover:text-foreground"
+            >
+              ← Voltar ao início
+            </Link>
+          </p>
         </div>
-        <Link
-          href="/"
-          className="mt-8 inline-block text-sm font-medium text-foreground underline-offset-4 hover:underline"
-        >
-          ← Voltar ao Início
-        </Link>
       </div>
-    </div>
+    </main>
   );
 }

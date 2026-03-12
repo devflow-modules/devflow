@@ -4,43 +4,45 @@ import { Check, MessageCircle } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
 import { cn } from "@/lib/utils";
 
+const baseUrl = "https://devflowlabs.com.br";
+
 const problems = [
   {
-    title: "Clientes perguntando produtos",
+    title: "Clientes perguntando produtos e preços",
     description:
-      "A mesma pergunta dezenas de vezes: tem essência X? Qual o preço? Entregam?",
+      "A mesma pergunta dezenas de vezes: tem produto X? Qual o valor?",
   },
   {
-    title: "Pedido e entrega repetidos",
+    title: "Horário e entrega repetidos",
     description:
-      "Horário, formas de pagamento, localização — respostas que poderiam ser automáticas.",
+      "Horário de funcionamento, formas de pagamento, delivery — respostas que poderiam ser automáticas.",
   },
   {
     title: "Equipe ocupada com o básico",
     description:
-      "Tempo da equipe em perguntas que um bot resolve, em vez de vender e operar.",
+      "Tempo da equipe em perguntas que um bot resolve, em vez de vender e atender presencialmente.",
   },
 ];
 
 const botAnswers = [
-  "Produtos e estoque",
+  "Produtos e preços",
   "Horário de funcionamento",
   "Entrega e delivery",
   "Formas de pagamento",
-  "Pedido automático",
+  "Estoque e disponibilidade",
   "Chamada de atendente",
 ];
 
 const demoMessages = [
-  { type: "user" as const, text: "Tem essência de morango?", time: "14:32" },
+  { type: "user" as const, text: "Tem esse produto em estoque?", time: "14:32" },
   {
     type: "bot" as const,
-    text: "Temos! Morango clássico e morango com menta. Qual você prefere? Também fazemos entrega.",
+    text: "Sim! Temos disponível. Quer saber o preço ou formas de entrega?",
     time: "14:32",
   },
   {
     type: "user" as const,
-    text: "Prefiro falar com um atendente",
+    text: "Quero falar com um atendente",
     time: "14:33",
   },
   {
@@ -81,29 +83,27 @@ function MessageBubble({
   );
 }
 
-const baseUrl = "https://devflowlabs.com.br";
-
 export const metadata: Metadata = {
-  title: "Automação de Atendimento para Tabacarias no WhatsApp | DevFlow Labs",
-  alternates: {
-    canonical: `${baseUrl}/automacao-whatsapp-tabacaria`,
-  },
+  title: "Automação de Atendimento para Lojas no WhatsApp | DevFlow Labs",
   description:
-    "Automatize atendimento da sua tabacaria no WhatsApp. Respostas automáticas para produtos, pedido, entrega e horário. Piloto de 7 dias grátis.",
+    "Automatize atendimento da sua loja no WhatsApp. Respostas automáticas para produtos, preços, horário e entrega. Piloto de 7 dias grátis.",
   keywords: [
-    "automação whatsapp tabacaria",
-    "chatbot tabacaria",
-    "atendimento automático tabacaria",
+    "automação whatsapp loja",
+    "chatbot loja",
+    "atendimento automático loja",
   ],
+  alternates: {
+    canonical: `${baseUrl}/automacao-whatsapp-loja`,
+  },
   openGraph: {
-    title: "Automação WhatsApp para Tabacarias | DevFlow Labs",
+    title: "Automação WhatsApp para Lojas | DevFlow Labs",
     description:
-      "Automatize atendimento da sua tabacaria no WhatsApp. Respostas para produtos, pedido e entrega.",
-    url: "https://devflowlabs.com.br/automacao-whatsapp-tabacaria",
+      "Automatize atendimento da sua loja no WhatsApp. Respostas para produtos, preços e entrega.",
+    url: `${baseUrl}/automacao-whatsapp-loja`,
   },
 };
 
-export default function AutomacaoWhatsAppTabacariaPage() {
+export default function AutomacaoWhatsAppLojaPage() {
   return (
     <main>
       <section
@@ -112,21 +112,25 @@ export default function AutomacaoWhatsAppTabacariaPage() {
       >
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
+            <div
+              className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary"
+              aria-hidden
+            />
             <h1
               id="hero-heading"
               className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
             >
-              Automação de atendimento para tabacarias no WhatsApp
+              Automação de atendimento para lojas no WhatsApp
             </h1>
             <p className="mt-4 text-lg text-slate-600">
-              Clientes perguntando produtos, pedido e entrega — respostas automáticas 24/7. Sua equipe foca em vender.
+              Clientes perguntando produtos, preços e entrega — respostas
+              automáticas 24/7. Sua equipe foca em vender.
             </p>
             <div className="mt-8">
               <WhatsAppCta
-                label="Quero automatizar minha tabacaria"
+                label="Quero automatizar minha loja"
                 size="lg"
-                text="Quero automatizar o atendimento da minha tabacaria no WhatsApp."
+                text="Quero automatizar o atendimento da minha loja no WhatsApp."
               />
             </div>
           </div>
@@ -169,7 +173,10 @@ export default function AutomacaoWhatsAppTabacariaPage() {
           >
             O que o bot responde automaticamente
           </h2>
-          <ul className="mx-auto mt-12 flex max-w-2xl flex-wrap justify-center gap-3" role="list">
+          <ul
+            className="mx-auto mt-12 flex max-w-2xl flex-wrap justify-center gap-3"
+            role="list"
+          >
             {botAnswers.map((item) => (
               <li
                 key={item}
@@ -194,7 +201,8 @@ export default function AutomacaoWhatsAppTabacariaPage() {
             Exemplo real de conversa
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-slate-600">
-            Cliente pergunta produto, bot responde. Quer atendente? Handoff na hora.
+            Cliente pergunta produto, bot responde. Quer atendente? Handoff na
+            hora.
           </p>
           <div className="mx-auto mt-12 max-w-md rounded-xl border border-border bg-card p-6 shadow-sm">
             <div className="mb-4 flex items-center gap-2">
@@ -208,7 +216,12 @@ export default function AutomacaoWhatsAppTabacariaPage() {
             </div>
             <div className="space-y-4 rounded-xl border border-border bg-muted/30 p-4">
               {demoMessages.map((msg, i) => (
-                <MessageBubble key={i} type={msg.type} text={msg.text} time={msg.time} />
+                <MessageBubble
+                  key={i}
+                  type={msg.type}
+                  text={msg.text}
+                  time={msg.time}
+                />
               ))}
             </div>
           </div>
@@ -230,21 +243,24 @@ export default function AutomacaoWhatsAppTabacariaPage() {
               id="cta-heading"
               className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
             >
-              Quer automatizar sua tabacaria?
+              Quer automatizar sua loja?
             </h2>
             <p className="mt-4 text-slate-600">
               Piloto de 7 dias para testar. Sem compromisso.
             </p>
             <div className="mt-8">
               <WhatsAppCta
-                label="Quero automatizar minha tabacaria"
+                label="Quero automatizar minha loja"
                 size="lg"
-                text="Quero automatizar o atendimento da minha tabacaria no WhatsApp."
+                text="Quero automatizar o atendimento da minha loja no WhatsApp."
               />
             </div>
             <p className="mt-6">
-              <Link href="/" className="text-sm text-slate-600 hover:text-foreground">
-                ← Voltar ao início
+              <Link
+                href="/automacao-whatsapp"
+                className="text-sm text-slate-600 hover:text-foreground"
+              >
+                ← Ver automação WhatsApp
               </Link>
             </p>
           </div>

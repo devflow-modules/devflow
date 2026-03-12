@@ -4,49 +4,55 @@ import { Check, MessageCircle } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
 import { cn } from "@/lib/utils";
 
+const baseUrl = "https://devflowlabs.com.br";
+
 const problems = [
   {
-    title: "Clientes perguntando produtos",
+    title: "Agendamentos e confirmações manuais",
     description:
-      "A mesma pergunta dezenas de vezes: tem essência X? Qual o preço? Entregam?",
+      "Pacientes ligando para agendar, confirmar ou remarcar. Tudo manual.",
   },
   {
-    title: "Pedido e entrega repetidos",
+    title: "Perguntas repetidas sobre horários",
     description:
-      "Horário, formas de pagamento, localização — respostas que poderiam ser automáticas.",
+      "Horário de funcionamento, convênios aceitos, documentos — mesma pergunta o dia todo.",
   },
   {
-    title: "Equipe ocupada com o básico",
+    title: "Recepcionista sobrecarregada",
     description:
-      "Tempo da equipe em perguntas que um bot resolve, em vez de vender e operar.",
+      "Tempo da recepção em perguntas que um bot resolve, em vez de atender presencialmente.",
   },
 ];
 
 const botAnswers = [
-  "Produtos e estoque",
+  "Agendamento e remarcação",
   "Horário de funcionamento",
-  "Entrega e delivery",
-  "Formas de pagamento",
-  "Pedido automático",
+  "Convênios aceitos",
+  "Documentos necessários",
+  "Preparo para exames",
   "Chamada de atendente",
 ];
 
 const demoMessages = [
-  { type: "user" as const, text: "Tem essência de morango?", time: "14:32" },
+  {
+    type: "user" as const,
+    text: "Quero agendar uma consulta",
+    time: "09:15",
+  },
   {
     type: "bot" as const,
-    text: "Temos! Morango clássico e morango com menta. Qual você prefere? Também fazemos entrega.",
-    time: "14:32",
+    text: "Ótimo! Qual especialidade? Temos disponibilidade para esta semana.",
+    time: "09:15",
   },
   {
     type: "user" as const,
-    text: "Prefiro falar com um atendente",
-    time: "14:33",
+    text: "Prefiro falar com a recepção",
+    time: "09:16",
   },
   {
     type: "bot" as const,
     text: "Conectando você com nossa equipe agora.",
-    time: "14:33",
+    time: "09:16",
   },
 ];
 
@@ -81,29 +87,28 @@ function MessageBubble({
   );
 }
 
-const baseUrl = "https://devflowlabs.com.br";
-
 export const metadata: Metadata = {
-  title: "Automação de Atendimento para Tabacarias no WhatsApp | DevFlow Labs",
-  alternates: {
-    canonical: `${baseUrl}/automacao-whatsapp-tabacaria`,
-  },
+  title: "Automação de Atendimento para Clínicas no WhatsApp | DevFlow Labs",
   description:
-    "Automatize atendimento da sua tabacaria no WhatsApp. Respostas automáticas para produtos, pedido, entrega e horário. Piloto de 7 dias grátis.",
+    "Automatize atendimento da sua clínica no WhatsApp. Agendamentos, confirmações, horários e convênios. Piloto de 7 dias grátis.",
   keywords: [
-    "automação whatsapp tabacaria",
-    "chatbot tabacaria",
-    "atendimento automático tabacaria",
+    "automação whatsapp clínica",
+    "chatbot clínica",
+    "atendimento automático clínica",
+    "agendamento whatsapp clínica",
   ],
+  alternates: {
+    canonical: `${baseUrl}/automacao-whatsapp-clinica`,
+  },
   openGraph: {
-    title: "Automação WhatsApp para Tabacarias | DevFlow Labs",
+    title: "Automação WhatsApp para Clínicas | DevFlow Labs",
     description:
-      "Automatize atendimento da sua tabacaria no WhatsApp. Respostas para produtos, pedido e entrega.",
-    url: "https://devflowlabs.com.br/automacao-whatsapp-tabacaria",
+      "Automatize atendimento da sua clínica no WhatsApp. Agendamentos, horários e convênios.",
+    url: `${baseUrl}/automacao-whatsapp-clinica`,
   },
 };
 
-export default function AutomacaoWhatsAppTabacariaPage() {
+export default function AutomacaoWhatsAppClinicaPage() {
   return (
     <main>
       <section
@@ -112,21 +117,25 @@ export default function AutomacaoWhatsAppTabacariaPage() {
       >
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
+            <div
+              className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary"
+              aria-hidden
+            />
             <h1
               id="hero-heading"
               className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
             >
-              Automação de atendimento para tabacarias no WhatsApp
+              Automação de atendimento para clínicas no WhatsApp
             </h1>
             <p className="mt-4 text-lg text-slate-600">
-              Clientes perguntando produtos, pedido e entrega — respostas automáticas 24/7. Sua equipe foca em vender.
+              Agendamentos, confirmações e perguntas frequentes — respostas
+              automáticas 24/7. Sua recepção foca em atender presencialmente.
             </p>
             <div className="mt-8">
               <WhatsAppCta
-                label="Quero automatizar minha tabacaria"
+                label="Quero automatizar minha clínica"
                 size="lg"
-                text="Quero automatizar o atendimento da minha tabacaria no WhatsApp."
+                text="Quero automatizar o atendimento da minha clínica no WhatsApp."
               />
             </div>
           </div>
@@ -142,7 +151,7 @@ export default function AutomacaoWhatsAppTabacariaPage() {
             Dores que a automação resolve
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-slate-600">
-            Se você vive isso, automação com handoff humano faz diferença.
+            Clínicas que usam WhatsApp sabem: volume de mensagens cresce rápido.
           </p>
           <div className="mx-auto mt-12 grid max-w-4xl gap-6 sm:grid-cols-3">
             {problems.map((p) => (
@@ -169,7 +178,10 @@ export default function AutomacaoWhatsAppTabacariaPage() {
           >
             O que o bot responde automaticamente
           </h2>
-          <ul className="mx-auto mt-12 flex max-w-2xl flex-wrap justify-center gap-3" role="list">
+          <ul
+            className="mx-auto mt-12 flex max-w-2xl flex-wrap justify-center gap-3"
+            role="list"
+          >
             {botAnswers.map((item) => (
               <li
                 key={item}
@@ -194,7 +206,8 @@ export default function AutomacaoWhatsAppTabacariaPage() {
             Exemplo real de conversa
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-slate-600">
-            Cliente pergunta produto, bot responde. Quer atendente? Handoff na hora.
+            Paciente quer agendar, bot responde. Precisa de atendente? Handoff
+            na hora.
           </p>
           <div className="mx-auto mt-12 max-w-md rounded-xl border border-border bg-card p-6 shadow-sm">
             <div className="mb-4 flex items-center gap-2">
@@ -208,7 +221,12 @@ export default function AutomacaoWhatsAppTabacariaPage() {
             </div>
             <div className="space-y-4 rounded-xl border border-border bg-muted/30 p-4">
               {demoMessages.map((msg, i) => (
-                <MessageBubble key={i} type={msg.type} text={msg.text} time={msg.time} />
+                <MessageBubble
+                  key={i}
+                  type={msg.type}
+                  text={msg.text}
+                  time={msg.time}
+                />
               ))}
             </div>
           </div>
@@ -230,21 +248,24 @@ export default function AutomacaoWhatsAppTabacariaPage() {
               id="cta-heading"
               className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
             >
-              Quer automatizar sua tabacaria?
+              Quer automatizar sua clínica?
             </h2>
             <p className="mt-4 text-slate-600">
               Piloto de 7 dias para testar. Sem compromisso.
             </p>
             <div className="mt-8">
               <WhatsAppCta
-                label="Quero automatizar minha tabacaria"
+                label="Quero automatizar minha clínica"
                 size="lg"
-                text="Quero automatizar o atendimento da minha tabacaria no WhatsApp."
+                text="Quero automatizar o atendimento da minha clínica no WhatsApp."
               />
             </div>
             <p className="mt-6">
-              <Link href="/" className="text-sm text-slate-600 hover:text-foreground">
-                ← Voltar ao início
+              <Link
+                href="/automacao-whatsapp"
+                className="text-sm text-slate-600 hover:text-foreground"
+              >
+                ← Ver automação WhatsApp
               </Link>
             </p>
           </div>

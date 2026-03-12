@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
 import { cn } from "@/lib/utils";
 
 const segments = [
   {
-    title: "Restaurantes / delivery",
+    title: "Restaurantes",
     description: "Automatize pedidos, horários e entrega.",
     href: "/automacao-whatsapp-restaurante",
   },
@@ -13,14 +14,14 @@ const segments = [
     href: "/automacao-whatsapp-tabacaria",
   },
   {
-    title: "Negócios locais",
-    description: "Escale atendimento sem aumentar equipe.",
-    href: "/produtos/whatsapp-platform",
+    title: "Lojas",
+    description: "Produtos, preços e estoque automatizados.",
+    href: "/automacao-whatsapp-loja",
   },
   {
-    title: "Operações digitais",
-    description: "Atendimento automatizado + operação humana.",
-    href: "/produtos/whatsapp-platform",
+    title: "Clínicas",
+    description: "Agendamentos, confirmações e convênios.",
+    href: "/automacao-whatsapp-clinica",
   },
 ];
 
@@ -62,6 +63,13 @@ export function ForWho() {
               <p className="mt-2 text-sm text-slate-600">{segment.description}</p>
             </Link>
           ))}
+        </div>
+        <div className="mx-auto mt-12 max-w-md text-center">
+          <WhatsAppCta
+            label="Quero ver no meu negócio"
+            size="default"
+            text="Olá, quero saber como a automação funciona para o meu tipo de negócio."
+          />
         </div>
       </div>
     </section>

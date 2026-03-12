@@ -158,3 +158,29 @@
 .btn-primary-devflow:hover {
   background-color: var(--devflow-primary-dark);
 }
+
+/* Blog article content */
+.blog-content h2 {
+  @apply mt-8 mb-4 text-xl font-semibold text-foreground;
+}
+.blog-content h3 {
+  @apply mt-6 mb-3 text-lg font-semibold text-foreground;
+}
+.blog-content p {
+  @apply mt-4 text-slate-700 leading-relaxed;
+}
+.blog-content p:first-of-type {
+  @apply mt-0;
+}
+.blog-content ul {
+  @apply mt-4 list-disc space-y-2 pl-6 text-slate-700;
+}
+.blog-content li {
+  @apply leading-relaxed;
+}
+.blog-content a {
+  @apply font-medium text-primary underline-offset-4 hover:underline;
+}
+.blog-content strong {
+  @apply font-semibold text-foreground;
+}

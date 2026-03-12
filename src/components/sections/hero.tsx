@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Check, ArrowRight, MessageCircle } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
+import { trackCtaDemoClick } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 const proofSocial = "Infraestrutura pronta para automação de atendimento • WhatsApp • IA • Operação humana";
@@ -130,14 +131,24 @@ export function Hero() {
                 id="hero-heading"
                 className="text-5xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl"
               >
-                Automação de atendimento no WhatsApp com métricas, handoff e
-                controle real da operação.
+                Automação Inteligente de Atendimento no WhatsApp
               </h1>
               <p className="text-base text-slate-600 sm:text-lg">
-                A DevFlow WhatsApp Platform automatiza conversas, mede métricas e
-                transfere para humanos quando precisa. Operação confiável para
-                quem quer escalar.
+                Empresas que recebem muitas mensagens perdem vendas todos os dias.
+                Automatize respostas, organize conversas e nunca deixe um cliente
+                sem retorno.
               </p>
+              <div className="flex flex-wrap gap-2 pt-2">
+                <span className="inline-flex items-center rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-foreground">
+                  Atendimento automático
+                </span>
+                <span className="inline-flex items-center rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-foreground">
+                  Qualificação de leads
+                </span>
+                <span className="inline-flex items-center rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-foreground">
+                  Integração WhatsApp Cloud API
+                </span>
+              </div>
             </div>
 
             <p className="text-xs font-medium text-slate-500">
@@ -145,17 +156,22 @@ export function Hero() {
             </p>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-              <WhatsAppCta label="Falar no WhatsApp" size="lg" />
               <Link
-                href="/segmentos/tabacarias"
+                href="/demo"
+                onClick={() => trackCtaDemoClick("hero")}
                 className={cn(
-                  "inline-flex items-center justify-center gap-2 h-12 rounded-lg border border-[#e2e8f0] px-5 text-base font-semibold",
-                  "bg-white text-foreground transition-all duration-200 hover:bg-[#f1f5f9]"
+                  "inline-flex items-center justify-center gap-2 h-14 rounded-xl px-6 text-lg font-semibold",
+                  "bg-primary text-primary-foreground transition-all duration-200 hover:bg-primary/90"
                 )}
               >
-                Ver solução para tabacarias
+                Ver uma conversa em ação
                 <ArrowRight className="size-4" aria-hidden />
               </Link>
+              <WhatsAppCta
+                label="Quero automatizar meu atendimento"
+                size="lg"
+                text="Olá, quero entender como funciona a automação."
+              />
             </div>
 
             <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2" role="list">
@@ -174,13 +190,16 @@ export function Hero() {
             </ul>
           </div>
 
-          {/* Coluna direita - card WhatsApp (mock premium) */}
+          {/* Coluna direita - mockup conversa realista */}
           <div
             className={cn(
               "rounded-xl border border-[#cbd5e1] bg-gradient-to-b from-white to-slate-50/80 p-4",
               "shadow-[0_20px_60px_rgba(0,0,0,0.1)] transition-all duration-200 sm:p-5 lg:p-6"
             )}
           >
+            <p className="mb-3 text-xs font-medium text-muted-foreground">
+              Exemplo real de conversa
+            </p>
             <div className="mb-4 flex items-center gap-3">
               <div className="relative flex size-12 shrink-0 items-center justify-center rounded-full border-2 border-primary/30 bg-primary/10">
                 <MessageCircle className="size-6 text-primary" />
@@ -213,7 +232,7 @@ export function Hero() {
                   <span className="size-2 animate-pulse rounded-full bg-slate-400" style={{ animationDelay: "150ms" }} />
                   <span className="size-2 animate-pulse rounded-full bg-slate-400" style={{ animationDelay: "300ms" }} />
                 </span>
-                digitando...
+                DevFlow Bot está digitando...
               </div>
             </div>
           </div>

@@ -16,8 +16,17 @@ const BOT_RESPONSES: Record<string, string> = {
   atendente: "Sem problemas! Conectando você com nossa equipe agora.",
   preço: "Os preços variam por item. Qual produto ou prato te interessa?",
   pagamento: "Aceitamos PIX, cartão e dinheiro. No delivery, PIX ou cartão.",
+  "quero ver preços": "Os preços variam por item. Qual produto ou prato te interessa? Ou prefere que eu conecte você com nossa equipe para uma proposta?",
+  "quero falar com humano": "Sem problemas! Conectando você com nossa equipe agora. Um atendente deve responder em instantes.",
+  "quero testar automação": "Esta conversa já é a demonstração! O bot respondeu automaticamente. Na operação real, sua equipe recebe o handoff quando o cliente pede. Quer ver o site completo? https://devflowlabs.com.br",
   default: "Ótima pergunta! Nossa equipe pode te ajudar com isso. Quer que eu conecte você com um atendente?",
 };
+
+const QUICK_CHOICES = [
+  { label: "Quero ver preços", value: "Quero ver preços" },
+  { label: "Quero falar com humano", value: "Quero falar com humano" },
+  { label: "Quero testar automação", value: "Quero testar automação" },
+];
 
 function getBotResponse(input: string): string {
   const lower = input.toLowerCase();
@@ -42,8 +51,8 @@ export default function DemoPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const handleSend = () => {
-    const trimmed = input.trim();
+  const sendMessage = (text: string) => {
+    const trimmed = text.trim();
     if (!trimmed) return;
 
     setMessages((prev) => [...prev, { type: "user", text: trimmed }]);
@@ -51,11 +60,13 @@ export default function DemoPage() {
     setIsTyping(true);
 
     setTimeout(() => {
-      const response = getBotResponse(trimmed);
+      const response = getBotResponse(trimmed.toLowerCase());
       setMessages((prev) => [...prev, { type: "bot", text: response }]);
       setIsTyping(false);
-    }, 800 + Math.random() * 400);
+    }, 1000 + Math.random() * 500);
   };
+
+  const handleSend = () => sendMessage(input);
 
   return (
     <main className="min-h-screen bg-[#f8fafc]">
@@ -114,14 +125,34 @@ export default function DemoPage() {
                 ))}
                 {isTyping && (
                   <div className="mb-3 flex justify-start">
-                    <div className="flex items-center gap-1 rounded-2xl rounded-tl-md border border-border bg-muted/50 px-4 py-2">
+                    <div className="flex items-center gap-2 rounded-2xl rounded-tl-md border border-border bg-muted/50 px-4 py-2">
                       <span className="size-2 animate-pulse rounded-full bg-slate-400" style={{ animationDelay: "0ms" }} />
                       <span className="size-2 animate-pulse rounded-full bg-slate-400" style={{ animationDelay: "150ms" }} />
                       <span className="size-2 animate-pulse rounded-full bg-slate-400" style={{ animationDelay: "300ms" }} />
+                      <span className="text-xs text-slate-500">DevFlow Bot está digitando...</span>
                     </div>
                   </div>
                 )}
                 <div ref={bottomRef} />
+              </div>
+
+              <div className="border-t border-border px-3 py-2">
+                <p className="mb-2 text-xs text-muted-foreground">Ou clique:</p>
+                <div className="flex flex-wrap gap-2">
+                  {QUICK_CHOICES.map((choice) => (
+                    <button
+                      key={choice.value}
+                      type="button"
+                      onClick={() => sendMessage(choice.value)}
+                      className={cn(
+                        "rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium",
+                        "text-foreground transition-colors hover:border-primary/50 hover:bg-primary/5"
+                      )}
+                    >
+                      {choice.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="flex gap-2 border-t border-border p-3">
@@ -150,12 +181,18 @@ export default function DemoPage() {
 
           <div className="mx-auto mt-12 max-w-md text-center">
             <p className="text-sm font-medium text-foreground">Pronto para automatizar de verdade?</p>
-            <div className="mt-4">
+            <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               <WhatsAppCta
-                label="Falar no WhatsApp"
+                label="Testar no WhatsApp"
                 size="lg"
                 text="Vi a demonstração e quero automatizar meu negócio."
               />
+              <Link
+                href="/automacao-whatsapp"
+                className="inline-flex items-center justify-center rounded-xl border border-border bg-background px-6 py-3 text-base font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                Ver automação
+              </Link>
             </div>
           </div>
 

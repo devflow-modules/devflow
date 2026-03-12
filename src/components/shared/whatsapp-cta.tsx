@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { getWhatsAppUrl } from "@/lib/whatsapp";
-import { trackMetaContact } from "@/lib/meta-pixel";
+import { trackCtaWhatsAppClick } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 interface WhatsAppCtaProps {
@@ -32,7 +32,7 @@ export function WhatsAppCta({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={trackMetaContact}
+      onClick={() => trackCtaWhatsAppClick(label)}
       className={cn(
         "inline-flex items-center justify-center font-medium border border-transparent",
         "bg-[#25D366] text-white transition-all duration-200 hover:bg-[#20BD5A]",

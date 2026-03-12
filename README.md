@@ -57,11 +57,16 @@ Configure no `.env.local`:
 
 | Variável | Obrigatória | Descrição |
 |----------|-------------|-----------|
-| `NEXT_PUBLIC_WHATSAPP_NUMBER` | Sim | Número do WhatsApp (ex: 5511999999999) |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | Sim | Número do WhatsApp (ex: 5513999999999) |
 | `NEXT_PUBLIC_WHATSAPP_DEFAULT_TEXT` | Não | Mensagem padrão (default: "Olá, gostaria de mais informações.") |
+| `WHATSAPP_ACCESS_TOKEN` | Webhook | Token da WhatsApp Cloud API |
+| `WHATSAPP_PHONE_NUMBER_ID` | Webhook | Phone Number ID do Meta |
+| `WHATSAPP_VERIFY_TOKEN` | Webhook | Token para verificação do webhook |
 | `NEXT_PUBLIC_META_PIXEL_ID` | Não | Pixel do Meta Ads para tracking |
 | `NEXT_PUBLIC_GITHUB_URL` | Não | URL do GitHub (footer) |
 | `NEXT_PUBLIC_FUNKLAB_DEMO_URL` | Não | URL da demo do FunkLab (projetos) |
+
+Ver [docs/WHATSAPP-SETUP.md](docs/WHATSAPP-SETUP.md) para configurar o robô WhatsApp.
 
 ---
 
@@ -70,12 +75,14 @@ Configure no `.env.local`:
 ```
 src/
 ├── app/                    # App Router (Next.js)
+│   ├── api/webhook/whatsapp/  # Webhook WhatsApp Cloud API
 │   ├── automacao-whatsapp-tabacaria/
 │   ├── automacao-whatsapp-restaurante/
 │   ├── demo/               # Simulação interativa
 │   ├── produtos/
 │   ├── projetos/
 │   └── contato/
+├── modules/whatsapp/       # Módulo robô WhatsApp (mensagens, parser, envio)
 ├── components/
 │   ├── layout/             # Header, Footer, Section
 │   ├── sections/           # Hero, ProblemList, ForWho, etc.
