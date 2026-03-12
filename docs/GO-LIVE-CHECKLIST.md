@@ -31,15 +31,14 @@ Este checklist pode ser reutilizado como runbook para futuros produtos SaaS da D
 | Search Console | Verificado, sitemap processado |
 | Indexação solicitada | Home + páginas principais |
 | Footer institucional | CNPJ 60.517.335/0001-03, São Paulo — SP |
+| Meta Pixel | OK — PageView + Contact + SubscribedButtonClick |
+| Core Web Vitals | OK — LCP 2.1s mobile / 0.5s desktop, CLS 0, TBT 80–90ms |
+| Tracking | OK — Meta Pixel Contact + PageView validados |
+| Conversão 10s | OK — teste manual em mobile/desktop |
 
-### ⏳ Pendente (verificação manual)
+### ⏳ Pendente
 
-| Item | Como validar |
-|------|--------------|
-| Meta Pixel | Pixel Helper → clicar WhatsApp → evento Contact |
-| Tracking | DevTools → CTAs e scroll 50% |
-| Core Web Vitals | [PageSpeed Insights](https://pagespeed.web.dev/) — LCP < 2.5s |
-| Conversão 10s | Home em mobile/desktop — clareza em 10s |
+*Nenhum item pendente. Bloqueios restantes abaixo.*
 
 ### 🚫 Bloqueado (aguardando chip)
 
