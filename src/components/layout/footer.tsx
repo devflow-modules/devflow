@@ -45,9 +45,9 @@ export function Footer() {
               Software Engineering • Automation • AI Systems • WhatsApp Automation Platform
             </p>
             <address className="not-italic text-sm text-slate-600 space-y-1">
-              <span>Santos — SP</span>
+              <span>São Paulo — SP</span>
               <br />
-              <span>CNPJ: 00.000.000/0001-00</span>
+              <span>CNPJ: 60.517.335/0001-03</span>
               <br />
               <a
                 href="mailto:contato@devflowlabs.com.br"
