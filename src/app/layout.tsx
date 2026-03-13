@@ -61,6 +61,9 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  other: {
+    "facebook-domain-verification": "f1d1q94bkf8laftdmk6yh0i0qnpnz4",
+  },
 };
 
 const organizationSchema = {
