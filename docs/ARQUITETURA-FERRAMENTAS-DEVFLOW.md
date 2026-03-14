@@ -136,7 +136,7 @@ Modelo de SEO forte: cluster de ferramentas financeiras sob um único domínio.
 | Camada              | Status      | Observação                                      |
 |---------------------|------------|--------------------------------------------------|
 | Integração marca/SEO| ✅ Concluída| Hub, canonicals, sitemap, menu, footer, vitrine  |
-| Integração produto  | ⏳ Pendente | App ainda via CTA externo; migração em sprint   |
+| Integração produto  | ✅ Concluída| Ferramentas nativas; sem CTA externo             |
 
 ---
 
@@ -208,7 +208,23 @@ app/ferramentas/financeiro
 
 ---
 
-## 11. Referências
+## 11. Projeto Vercel antigo — quando apagar?
+
+**Não apagar** enquanto o app real ainda não for migrado.
+
+**Só apagar** se estas 5 condições forem verdadeiras:
+
+- [ ] `/ferramentas/financeiro` contém o app real completo (não landing + CTA)
+- [ ] Não existe botão/link para `financeiro-pi-drab.vercel.app`
+- [ ] Nenhum fetch/API usa domínio do projeto antigo
+- [ ] Nenhum env da Vercel antiga é necessário
+- [ ] Rollback não será mais usado
+
+**Fase segura:** manter o projeto na Vercel como backup temporário, sem divulgação. Validar produção no DevFlow por 7–14 dias. Depois: remover links, backup final, apagar projeto.
+
+---
+
+## 12. Referências
 
 - Relatório de padrões: `docs/RELATORIO-PADROES-DESIGN-PARA-FINANCEIRO.md`
 - Projeto Financeiro: `../Financeiro` (monorepo)

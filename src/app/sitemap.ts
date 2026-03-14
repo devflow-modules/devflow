@@ -26,6 +26,7 @@ const routes = [
   { path: "/projetos", priority: 0.8, changeFrequency: "weekly" as const },
   { path: "/ferramentas", priority: 0.85, changeFrequency: "weekly" as const },
   { path: "/ferramentas/financeiro", priority: 0.8, changeFrequency: "weekly" as const },
+  { path: "/ferramentas/divisao-de-contas", priority: 0.8, changeFrequency: "weekly" as const },
   { path: "/contato", priority: 0.7, changeFrequency: "monthly" as const },
   { path: "/privacidade", priority: 0.5, changeFrequency: "yearly" as const },
   { path: "/termos", priority: 0.5, changeFrequency: "yearly" as const },

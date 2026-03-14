@@ -18,9 +18,9 @@ const TOOLS = [
     slug: "divisao-de-contas",
     title: "Divisão de contas",
     description: "Calcule o rateio de contas para casal, república ou família. Rateio proporcional por renda, sem discussão.",
-    href: "https://financeiro-pi-drab.vercel.app/ferramentas/divisao-de-contas",
+    href: "/ferramentas/divisao-de-contas",
     icon: PieChart,
-    external: true,
+    external: false,
   },
 ] as const;
 

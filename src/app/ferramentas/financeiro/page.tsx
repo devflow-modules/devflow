@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Section } from "@/components/layout/Section";
-import { Calculator } from "lucide-react";
+import { FinanceiroTools } from "@/components/financeiro/FinanceiroTools";
 
 const baseUrl = "https://devflowlabs.com.br";
 
@@ -18,6 +18,8 @@ export const metadata: Metadata = {
     "planejamento financeiro",
     "fluxo de caixa pessoal",
     "receitas e despesas",
+    "divisão de contas",
+    "projeção financeira",
   ],
   openGraph: {
     title: "Controle Financeiro Pessoal Online | DevFlow Labs",
@@ -35,7 +37,7 @@ const FAQ = [
   },
   {
     q: "É realmente grátis?",
-    a: "Sim. Você pode usar o painel e as ferramentas sem pagar nada.",
+    a: "Sim. Você pode usar as ferramentas sem pagar nada.",
   },
   {
     q: "Posso usar no celular?",
@@ -65,59 +67,33 @@ export default function FinanceiroPage() {
 
       <Section aria-label="Hero">
         <div className="mx-auto max-w-2xl">
-          <div
-            className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10"
-            aria-hidden
-          >
-            <Calculator className="size-6 text-primary" />
-          </div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Controle Financeiro Pessoal
           </h1>
-          <p className="mt-4 text-lg text-slate-600">
-            Organize receitas, despesas e planeje o mês. Ferramenta gratuita para
-            quem quer clareza sobre o dinheiro sem planilhas que quebram.
+          <p className="mt-4 text-lg text-muted-foreground">
+            Organize receitas, despesas e planeje o mês. Ferramentas gratuitas
+            para quem quer clareza sobre o dinheiro sem planilhas que quebram.
           </p>
-          <div className="mt-8 flex flex-wrap gap-4">
-            <a
-              href="https://financeiro-pi-drab.vercel.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-            >
-              Abrir ferramenta
-            </a>
-            <Link
-              href="/ferramentas"
-              className="inline-flex items-center justify-center rounded-lg border border-border px-6 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
-            >
-              Ver outras ferramentas
-            </Link>
-          </div>
+          <Link
+            href="/ferramentas"
+            className="mt-6 inline-flex items-center text-sm font-medium text-primary hover:underline"
+          >
+            ← Voltar ao hub de ferramentas
+          </Link>
         </div>
       </Section>
 
-      <Section alternate aria-labelledby="como-funciona">
+      <Section alternate aria-labelledby="ferramentas">
         <h2
-          id="como-funciona"
+          id="ferramentas"
           className="text-2xl font-semibold tracking-tight text-foreground"
         >
-          Como usar
+          Ferramentas
         </h2>
-        <ol className="mt-4 space-y-3 text-slate-600">
-          <li className="flex gap-3">
-            <span className="font-semibold text-primary">1.</span>
-            Preencha receitas e despesas do mês.
-          </li>
-          <li className="flex gap-3">
-            <span className="font-semibold text-primary">2.</span>
-            Veja o fluxo e o que sobra no fim do mês.
-          </li>
-          <li className="flex gap-3">
-            <span className="font-semibold text-primary">3.</span>
-            Crie conta para salvar e repetir quando precisar.
-          </li>
-        </ol>
+        <p className="mt-2 text-muted-foreground">
+          Use as calculadoras abaixo. Não precisa cadastrar.
+        </p>
+        <FinanceiroTools />
       </Section>
 
       <Section aria-labelledby="relacionado">
@@ -127,23 +103,20 @@ export default function FinanceiroPage() {
         >
           Ferramentas relacionadas
         </h2>
-        <p className="mt-2 text-slate-600">
-          Precisou dividir contas com alguém? Use nossa ferramenta de{" "}
-          <a
-            href="https://financeiro-pi-drab.vercel.app/ferramentas/divisao-de-contas"
-            target="_blank"
-            rel="noopener noreferrer"
+        <p className="mt-2 text-muted-foreground">
+          <Link
+            href="/ferramentas/divisao-de-contas"
             className="font-medium text-primary hover:underline"
           >
-            divisão de contas
-          </a>{" "}
-          para rateio proporcional por renda.
+            Divisão de contas
+          </Link>{" "}
+          — rateio proporcional por renda para casal, república ou família.
         </p>
         <Link
           href="/ferramentas"
           className="mt-4 inline-block text-sm font-medium text-primary hover:underline"
         >
-          ← Voltar ao hub de ferramentas
+          Ver todas as ferramentas
         </Link>
       </Section>
 
@@ -156,9 +129,12 @@ export default function FinanceiroPage() {
         </h2>
         <dl className="mt-6 space-y-4">
           {FAQ.map((item) => (
-            <div key={item.q} className="rounded-lg border border-border bg-card p-4">
+            <div
+              key={item.q}
+              className="rounded-lg border border-border bg-card p-4"
+            >
               <dt className="font-medium text-foreground">{item.q}</dt>
-              <dd className="mt-1 text-sm text-slate-600">{item.a}</dd>
+              <dd className="mt-1 text-sm text-muted-foreground">{item.a}</dd>
             </div>
           ))}
         </dl>
