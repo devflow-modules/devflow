@@ -86,19 +86,32 @@ export function ProjectsShowcase() {
                 ))}
               </div>
               <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-                <a
-                  href={project.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={cn(
-                    "inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-transparent",
-                    "bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground",
-                    "transition-all duration-200 hover:bg-[#16a34a]"
-                  )}
-                >
-                  Abrir aplicação
-                  <ExternalLink className="size-4" aria-hidden />
-                </a>
+                {project.url.startsWith("/") ? (
+                  <Link
+                    href={project.url}
+                    className={cn(
+                      "inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-transparent",
+                      "bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground",
+                      "transition-all duration-200 hover:bg-[#16a34a]"
+                    )}
+                  >
+                    Abrir aplicação
+                  </Link>
+                ) : (
+                  <a
+                    href={project.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      "inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-transparent",
+                      "bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground",
+                      "transition-all duration-200 hover:bg-[#16a34a]"
+                    )}
+                  >
+                    Abrir aplicação
+                    <ExternalLink className="size-4" aria-hidden />
+                  </a>
+                )}
                 <Link
                   href="/projetos"
                   className={cn(

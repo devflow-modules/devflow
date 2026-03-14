@@ -19,7 +19,7 @@ export const projects = [
     description:
       "Organize despesas, simule cenários e acompanhe o fluxo mensal. Ferramenta para quem quer clareza.",
     badges: ["SaaS", "Ferramentas financeiras"],
-    url: "https://financeiro-pi-drab.vercel.app/",
+    url: "/ferramentas/financeiro",
     theme: "finance" as const,
   },
 ] as const;

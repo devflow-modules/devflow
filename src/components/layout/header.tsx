@@ -13,6 +13,7 @@ const navItems = [
   { href: "/automacao-whatsapp-restaurante", label: "Restaurantes" },
   { href: "/demo", label: "Demo" },
   { href: "/precos", label: "Preços" },
+  { href: "/ferramentas", label: "Ferramentas" },
   { href: "/blog", label: "Blog" },
   { href: "/contato", label: "Contato" },
 ];

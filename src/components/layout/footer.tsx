@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 const productLinks = [
   { href: "/produtos/funklab-studio", label: "FunkLab Studio" },
   { href: "/produtos/whatsapp-platform", label: "Automação WhatsApp" },
+  { href: "/ferramentas", label: "Ferramentas" },
 ];
 
 const segmentLinks = [
