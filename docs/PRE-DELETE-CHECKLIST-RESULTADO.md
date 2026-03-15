@@ -10,10 +10,10 @@
 | Bloco | Status | Observação |
 |-------|--------|------------|
 | 1. Rotas | ✅ OK | Todas carregam; app redireciona para auth (307) quando não logado |
-| 2. APIs | ⚠️ Parcial | health ✅; me ✅ (401 sem auth); leads ❌ 500; dashboard/summary ✅ 401 |
-| 3. Banco | ⚠️ Falhou | `prisma migrate deploy` falhou: credenciais inválidas no DB |
+| 2. APIs | ⚠️ Parcial | health ✅; me ✅ (401 sem auth); leads ❌ 500 |
+| 3. Banco | ❌ Falhou | `prisma migrate deploy` → P1000 (auth failed) mesmo com Session Pooler |
 
-**Conclusão:** Rotas e auth (Supabase) OK. API de leads retorna 500. Migrations não aplicadas — autenticação do banco falhou localmente (verificar `DATABASE_URL` no Vercel e rodar migrate em produção).
+**Conclusão:** Rotas e Supabase Auth OK. Migrations não aplicadas — P1000 persiste com Session Pooler (IPv4). Lead capture em 500. Bloqueador: credenciais do banco.
 
 ---
 
@@ -26,13 +26,11 @@
 | `/ferramentas/financeiro/auth` | 200 | ✅ Login/cadastro |
 | `/ferramentas/divisao-de-contas` | 200 | ✅ Calculadora |
 | `/planilha-vs-app-financeiro` | 200 | ✅ Comparativo SEO |
-| `/ferramentas/financeiro/dashboard` | 307 | ✅ Redirect → `/ferramentas/financeiro/auth` (exige login) |
+| `/ferramentas/financeiro/dashboard` | 307 | ✅ Redirect → auth |
 | `/ferramentas/financeiro/expenses` | 307 | ✅ Redirect → auth |
 | `/ferramentas/financeiro/sources` | 307 | ✅ Redirect → auth |
 | `/ferramentas/financeiro/rules` | 307 | ✅ Redirect → auth |
 | `/ferramentas/financeiro/settings` | 307 | ✅ Redirect → auth |
-
-**Validado:** Todas carregam; rotas do app redirecionam corretamente para login quando não autenticado.
 
 ---
 
@@ -41,53 +39,54 @@
 | Método | Endpoint | HTTP | Resultado |
 |--------|----------|------|-----------|
 | GET | `/api/health` | 200 | ✅ OK |
-| POST | `/api/financeiro/leads` | 500 | ❌ "Não foi possível salvar" — provável falta de tabela ou conexão DB |
-| GET | `/api/me` | 401 | ✅ Correto sem sessão ("Não autenticado") |
-| GET | `/api/dashboard/summary?months=6` | 401 | ✅ Correto sem sessão |
-| POST | `/api/expenses` | 403 | ✅ Origin/Referer obrigatório (proteção CSRF) |
-| POST | `/api/incomes` | 403 | ✅ Origin/Referer obrigatório |
+| POST | `/api/financeiro/leads` | 500 | ❌ "Não foi possível salvar" |
+| GET | `/api/me` | 401 | ✅ Correto sem sessão |
 
-**Diagnóstico:** Supabase Auth funcionando (`/api/me` retorna 401 em vez de 500). Lead capture falha — Prisma não consegue gravar (tabela `FinanceiroLead` inexistente ou `DATABASE_URL` incorreta no Vercel).
+**Diagnóstico:** Leads falha porque migrations não foram aplicadas (tabela inexistente ou conexão quebrada).
 
 ---
 
-## 3. Banco e migrations ⚠️
+## 3. Banco e migrations ❌
 
 ```bash
 pnpm prisma migrate deploy
 ```
 
-**Resultado:** Falhou com `P1000: Authentication failed against database server`.
+**Resultado:** `P1000: Authentication failed` — host `aws-1-sa-east-1.pooler.supabase.com:5432` (Session Pooler, IPv4).
 
-- **Causa provável:** Credenciais em `.env.local` ou no Vercel incorretas (senha, encoding de caracteres especiais).
+- **Setup atual:** `directUrl` no schema; DIRECT_URL com Session Pooler.
+- **Causa provável:** Senha incorreta ou usuário/formato diferente para Session Pooler.
 - **Tabelas esperadas:** FinanceiroLead, Expense, Income, Household, Source, Rule, User, etc.
 
-**Ação necessária:**
-1. Conferir `DATABASE_URL` no Vercel (senha com `@` → `%40`).
-2. Rodar `pnpm prisma migrate deploy` contra o banco de produção (ou via job de deploy).
-3. Revalidar POST `/api/financeiro/leads`.
+**Ações recomendadas:**
+1. **Redefinir senha** no Supabase → Project Settings → Database → Reset database password.
+2. **Copiar novamente** a connection string do Session Pooler após reset.
+3. **URL-encode** caracteres especiais (`@` → `%40`).
+4. Rodar `pnpm prisma migrate deploy` novamente.
 
 ---
 
 ## Envs necessárias no Vercel
 
-| Variável | Status | Obrigatória para |
-|----------|--------|------------------|
-| `DATABASE_URL` | ⚠️ Verificar | Leads, /api/me, dashboard, expenses |
-| `NEXT_PUBLIC_SUPABASE_URL` | ✅ Configurada | Auth (login, sessão) |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` | ✅ Configurada | Auth |
+| Variável | Obrigatória para |
+|----------|------------------|
+| `DATABASE_URL` | Runtime (pooler 6543, `?pgbouncer=true`) |
+| `DIRECT_URL` | Migrations (Session Pooler 5432 ou direct 5432) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Auth |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` | Auth |
 
 ---
 
 ## Próximos passos
 
-1. **Validar** `DATABASE_URL` no Vercel (senha URL-encoded se tiver `@`, `#`, etc.).
-2. **Rodar** `pnpm prisma migrate deploy` em ambiente com `DATABASE_URL` válida.
-3. **Retestar** POST `/api/financeiro/leads` com `{"email":"test@test.com","source":"simulator"}`.
-4. Se leads retornar 200 → checklist 100% → seguir sequência segura de desligamento.
+1. Corrigir credenciais do banco (redefinir senha no Supabase se necessário).
+2. Rodar `pnpm prisma migrate deploy` com sucesso.
+3. Retestar POST `/api/financeiro/leads` → deve retornar 200.
+4. Reexecutar checklist completo.
+5. Se tudo OK → sequência segura de desligamento (rename projeto antigo → 24h → delete → tag).
 
 ---
 
 ## Pode apagar o projeto antigo?
 
-**Ainda não.** O lead capture precisa funcionar (POST `/api/financeiro/leads` → 200). Após corrigir `DATABASE_URL` e aplicar migrations, reexecutar o checklist.
+**Ainda não.** O lead capture precisa retornar 200 e as migrations precisam ser aplicadas. Após corrigir credenciais e rodar migrate com sucesso, reexecutar o checklist.
