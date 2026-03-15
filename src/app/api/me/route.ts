@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
       include: { household: true },
     });
 
-    const households = memberships.map((m) => ({
+    const households = memberships.map((m: { household: { id: string; name: string; slug: string }; role: string }) => ({
       id: m.household.id,
       name: m.household.name,
       slug: m.household.slug,
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     const activeHouseholdId = resolved.activeHouseholdId;
 
     const activeHousehold = activeHouseholdId
-      ? households.find((h) => h.id === activeHouseholdId) ?? null
+      ? households.find((h: { id: string }) => h.id === activeHouseholdId) ?? null
       : null;
 
     const response = sendSuccess({
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
       households,
       activeHousehold,
       activeMembershipRole: activeHouseholdId
-        ? (memberships.find((m) => m.householdId === activeHouseholdId)?.role ?? null)
+        ? (memberships.find((m: { householdId: string; role: string }) => m.householdId === activeHouseholdId)?.role ?? null)
         : null,
     });
 
