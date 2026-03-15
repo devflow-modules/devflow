@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { useHousehold } from "@/lib/financeiro/household/HouseholdProvider";
+import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvider";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/financeiro/Skeleton";
-import { MonthlyTrendChart } from "@/components/financeiro/MonthlyTrendChart";
-import { CashFlowProjectionChart } from "@/components/financeiro/CashFlowProjectionChart";
+import { Skeleton } from "@/modules/financeiro/components/Skeleton";
+import { MonthlyTrendChart } from "@/modules/financeiro/components/MonthlyTrendChart";
+import { CashFlowProjectionChart } from "@/modules/financeiro/components/CashFlowProjectionChart";
 import { toDateOnly } from "@/lib/dates";
-import { Breadcrumbs } from "@/components/financeiro/Breadcrumbs";
+import { Breadcrumbs } from "@/modules/financeiro/components/Breadcrumbs";
 
 type SourceRecord = { sourceType?: "PJ" | "PF" };
 type FinancialRecord = {

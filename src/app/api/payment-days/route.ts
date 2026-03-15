@@ -1,9 +1,11 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
-import { paymentDaySchema } from "@/lib/financeiro/schema";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { paymentDaySchema } from "@/modules/financeiro/schemas";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
+import { listPaymentDays } from "@/modules/financeiro/services/payment-days/listPaymentDays";
+import { createPaymentDay } from "@/modules/financeiro/services/payment-days/createPaymentDay";
 
 export async function GET(request: NextRequest) {
   const auth = await requireHouseholdMembership(request);
@@ -11,16 +13,7 @@ export async function GET(request: NextRequest) {
   const { householdId } = auth.context;
 
   try {
-
-    const days = await prisma.paymentDay.findMany({
-      where: {
-        source: {
-          householdId,
-        },
-      },
-      orderBy: { dayOfMonth: "asc" },
-    });
-
+    const days = await listPaymentDays(prisma, householdId);
     return sendSuccess(days);
   } catch (error) {
     console.error(error);
@@ -38,36 +31,15 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
     const parseResult = paymentDaySchema.safeParse(payload);
-
     if (!parseResult.success) {
       return sendError(parseResult.error.message, 400, parseResult.error.format());
     }
-
-    const { sourceId, cycleId, ...dayPayload } = parseResult.data;
-
-    const source = await prisma.source.findFirst({
-      where: { id: sourceId, householdId },
-    });
-    if (!source) {
-      return sendError("Fonte não encontrada ou não pertence à sua casa", 404);
+    const result = await createPaymentDay(prisma, householdId, parseResult.data);
+    if ("error" in result) {
+      if (result.error === "SOURCE_NOT_FOUND") return sendError("Fonte não encontrada ou não pertence à sua casa", 404);
+      return sendError("Ciclo não encontrado ou não pertence à sua casa", 404);
     }
-
-    if (cycleId) {
-      const cycle = await prisma.cycle.findFirst({
-        where: { id: cycleId, householdId },
-      });
-      if (!cycle) return sendError("Ciclo não encontrado ou não pertence à sua casa", 404);
-    }
-
-    const day = await prisma.paymentDay.create({
-      data: {
-        ...dayPayload,
-        source: { connect: { id: sourceId } },
-        ...(cycleId ? { cycle: { connect: { id: cycleId } } } : {}),
-      },
-    });
-
-    return sendSuccess(day, 201);
+    return sendSuccess(result.data, 201);
   } catch (error) {
     console.error(error);
     return sendError("Não foi possível criar o dia de recebimento", 500, error);

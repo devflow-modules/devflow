@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/financeiro/supabase/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError } from "@/lib/financeiro/api-response";
-
-const ACTIVE_HOUSEHOLD_COOKIE = "active_household_id";
+import { createClient } from "@/modules/financeiro/lib/supabase/server";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError } from "@/modules/financeiro/lib/api-response";
+import {
+  getActiveHouseholdCookieName,
+  getActiveHouseholdFromRequest,
+} from "@/modules/financeiro/adapters/cookies/householdCookie";
 
 export type AuthContext = {
   userId: string;
@@ -58,7 +60,7 @@ export async function requireHouseholdMembership(
     where: { userId: user.id },
     include: { household: true },
   });
-  const cookieStore = request.cookies.get(ACTIVE_HOUSEHOLD_COOKIE)?.value;
+  const cookieStore = getActiveHouseholdFromRequest(request);
   const activeHouseholdId =
     cookieStore && memberships.some((m: { householdId: string }) => m.householdId === cookieStore)
       ? cookieStore
@@ -156,6 +158,4 @@ export async function requireSessionOnly(
   };
 }
 
-export function getActiveHouseholdCookieName() {
-  return ACTIVE_HOUSEHOLD_COOKIE;
-}
+export { getActiveHouseholdCookieName };

@@ -1,10 +1,10 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { householdTransferOwnershipSchema } from "@/modules/financeiro/schemas";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
-import { AUDIT_ACTIONS, AUDIT_ENTITY, createAuditLog } from "@/lib/audit";
-import { householdTransferOwnershipSchema } from "@/lib/financeiro/schema";
+import { transferOwnership } from "@/modules/financeiro/services/households/transferOwnership";
 
 export async function POST(
   request: NextRequest,
@@ -20,73 +20,32 @@ export async function POST(
     if (householdId !== auth.context.householdId) {
       return sendError("Troque para esta casa antes de gerenciar membros", 403, undefined, "HOUSEHOLD_MISMATCH");
     }
-
     if (auth.context.membershipRole !== "OWNER") {
       return sendError("Apenas OWNER pode transferir a titularidade", 403, undefined, "OWNER_REQUIRED");
     }
-
     const payload = await request.json();
     const parsed = householdTransferOwnershipSchema.safeParse(payload);
     if (!parsed.success) {
       return sendError(parsed.error.message, 400, parsed.error.format());
     }
     const { newOwnerMembershipId } = parsed.data;
-
-    const callerMembership = await prisma.householdMembership.findFirst({
-      where: { userId: auth.context.userId, householdId },
-      include: { user: true },
+    const result = await transferOwnership(prisma, householdId, newOwnerMembershipId, {
+      userId: auth.context.userId,
+      householdId: auth.context.householdId,
     });
-    const newOwnerMembership = await prisma.householdMembership.findFirst({
-      where: { id: newOwnerMembershipId, householdId },
-      include: { user: true },
-    });
-
-    if (!callerMembership || callerMembership.role !== "OWNER") {
-      return sendError("Você não é OWNER desta casa", 403, undefined, "NOT_OWNER");
-    }
-    if (!newOwnerMembership) {
-      return sendError("Membro não encontrado nesta casa", 404, undefined, "NOT_FOUND");
-    }
-    if (newOwnerMembership.userId === auth.context.userId) {
-      return sendError("Escolha outro membro para transferir a titularidade", 400, undefined, "SAME_USER");
-    }
-    if (newOwnerMembership.role !== "MEMBER") {
+    if (!result.ok) {
+      if (result.code === "NOT_OWNER") return sendError("Você não é OWNER desta casa", 403, undefined, "NOT_OWNER");
+      if (result.code === "NOT_FOUND") return sendError("Membro não encontrado nesta casa", 404, undefined, "NOT_FOUND");
+      if (result.code === "SAME_USER") return sendError("Escolha outro membro para transferir a titularidade", 400, undefined, "SAME_USER");
       return sendError("O novo titular deve ser um MEMBER", 400, undefined, "TARGET_MUST_BE_MEMBER");
     }
-
-    await prisma.$transaction([
-      prisma.householdMembership.update({
-        where: { id: callerMembership.id },
-        data: { role: "MEMBER" },
-      }),
-      prisma.householdMembership.update({
-        where: { id: newOwnerMembershipId },
-        data: { role: "OWNER" },
-      }),
-    ]);
-
-    await createAuditLog(prisma, {
-      userId: auth.context.userId,
-      householdId,
-      action: AUDIT_ACTIONS.OWNERSHIP_TRANSFERRED,
-      entityType: AUDIT_ENTITY.MEMBERSHIP,
-      entityId: newOwnerMembershipId,
-      metadata: {
-        fromUserId: callerMembership.userId,
-        toUserId: newOwnerMembership.userId,
-        householdId,
-        fromMembershipId: callerMembership.id,
-        toMembershipId: newOwnerMembershipId,
-      },
-    });
-
     return sendSuccess(
       {
         householdId,
-        fromUserId: callerMembership.userId,
-        toUserId: newOwnerMembership.userId,
-        fromMembershipId: callerMembership.id,
-        toMembershipId: newOwnerMembershipId,
+        fromUserId: result.fromUserId,
+        toUserId: result.toUserId,
+        fromMembershipId: result.fromMembershipId,
+        toMembershipId: result.toMembershipId,
       },
       200,
       "Titularidade transferida"

@@ -1,11 +1,10 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
-import { incomeUpdateSchema } from "@/lib/financeiro/schema";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { incomeUpdateSchema } from "@/modules/financeiro/schemas";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
-import { AUDIT_ACTIONS, AUDIT_ENTITY, createAuditLog } from "@/lib/audit";
-import { dateInputToDate } from "@/lib/dates";
+import { updateIncome, deleteIncome } from "@/modules/financeiro/services/incomes";
 
 export async function PATCH(
   request: NextRequest,
@@ -15,47 +14,26 @@ export async function PATCH(
   if (sameOrigin) return sameOrigin;
   const auth = await requireHouseholdMembership(request);
   if (!auth.ok) return auth.response;
-  const { householdId } = auth.context;
+  const { householdId, userId } = auth.context;
 
   try {
     const { incomeId } = await params;
     const payload = await request.json();
-
     const parseResult = incomeUpdateSchema.safeParse(payload);
 
     if (!parseResult.success) {
       return sendError(parseResult.error.message, 400, parseResult.error.format());
     }
 
-    const data = {
-      ...parseResult.data,
-      ...(parseResult.data.receivedAt
-        ? { receivedAt: dateInputToDate(parseResult.data.receivedAt) }
-        : {}),
-    };
+    const updated = await updateIncome(
+      prisma,
+      incomeId,
+      householdId,
+      parseResult.data,
+      { userId, householdId }
+    );
 
-    const result = await prisma.income.updateMany({
-      where: { id: incomeId, householdId },
-      data,
-    });
-
-    if (result.count === 0) {
-      return sendError("Receita não encontrada", 404);
-    }
-
-    const updated = await prisma.income.findUnique({ where: { id: incomeId } });
-
-    if (updated) {
-      await createAuditLog(prisma, {
-        userId: auth.context.userId,
-        householdId,
-        action: AUDIT_ACTIONS.INCOME_UPDATED,
-        entityType: AUDIT_ENTITY.INCOME,
-        entityId: updated.id,
-        metadata: { amount: updated.amount, receivedAt: updated.receivedAt },
-      });
-    }
-
+    if (!updated) return sendError("Receita não encontrada", 404);
     return sendSuccess(updated);
   } catch (error) {
     console.error(error);
@@ -71,27 +49,16 @@ export async function DELETE(
   if (sameOrigin) return sameOrigin;
   const auth = await requireHouseholdMembership(request);
   if (!auth.ok) return auth.response;
-  const { householdId } = auth.context;
+  const { householdId, userId } = auth.context;
 
   try {
     const { incomeId } = await params;
-
-    const deleted = await prisma.income.deleteMany({
-      where: { id: incomeId, householdId },
-    });
-
-    if (deleted.count === 0) {
-      return sendError("Receita não encontrada", 404);
-    }
-
-    await createAuditLog(prisma, {
-      userId: auth.context.userId,
+    const deleted = await deleteIncome(prisma, incomeId, householdId, {
+      userId,
       householdId,
-      action: AUDIT_ACTIONS.INCOME_DELETED,
-      entityType: AUDIT_ENTITY.INCOME,
-      entityId: incomeId,
     });
 
+    if (!deleted) return sendError("Receita não encontrada", 404);
     return sendSuccess({ deleted: true });
   } catch (error) {
     console.error(error);

@@ -1,10 +1,11 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
-import { sourceUpdateSchema } from "@/lib/financeiro/schema";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { sourceUpdateSchema } from "@/modules/financeiro/schemas";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
-import { AUDIT_ACTIONS, AUDIT_ENTITY, createAuditLog } from "@/lib/audit";
+import { updateSource } from "@/modules/financeiro/services/sources/updateSource";
+import { deleteSource } from "@/modules/financeiro/services/sources/deleteSource";
 
 export async function PATCH(
   request: NextRequest,
@@ -14,40 +15,17 @@ export async function PATCH(
   if (sameOrigin) return sameOrigin;
   const auth = await requireHouseholdMembership(request);
   if (!auth.ok) return auth.response;
-  const { householdId } = auth.context;
+  const { householdId, userId } = auth.context;
 
   try {
     const { sourceId } = await params;
     const payload = await request.json();
-
     const parseResult = sourceUpdateSchema.safeParse(payload);
-
     if (!parseResult.success) {
       return sendError(parseResult.error.message, 400, parseResult.error.format());
     }
-
-    const source = await prisma.source.updateMany({
-      where: { id: sourceId, householdId },
-      data: parseResult.data,
-    });
-
-    if (source.count === 0) {
-      return sendError("Fonte não encontrada", 404);
-    }
-
-    const updated = await prisma.source.findUnique({ where: { id: sourceId } });
-
-    if (updated) {
-      await createAuditLog(prisma, {
-        userId: auth.context.userId,
-        householdId,
-        action: AUDIT_ACTIONS.SOURCE_UPDATED,
-        entityType: AUDIT_ENTITY.SOURCE,
-        entityId: updated.id,
-        metadata: { name: updated.name, sourceType: updated.sourceType },
-      });
-    }
-
+    const updated = await updateSource(prisma, sourceId, householdId, parseResult.data, { userId, householdId });
+    if (!updated) return sendError("Fonte não encontrada", 404);
     return sendSuccess(updated);
   } catch (error) {
     console.error(error);
@@ -63,27 +41,12 @@ export async function DELETE(
   if (sameOrigin) return sameOrigin;
   const auth = await requireHouseholdMembership(request);
   if (!auth.ok) return auth.response;
-  const { householdId } = auth.context;
+  const { householdId, userId } = auth.context;
 
   try {
     const { sourceId } = await params;
-
-    const deleted = await prisma.source.deleteMany({
-      where: { id: sourceId, householdId },
-    });
-
-    if (deleted.count === 0) {
-      return sendError("Fonte não encontrada", 404);
-    }
-
-    await createAuditLog(prisma, {
-      userId: auth.context.userId,
-      householdId,
-      action: AUDIT_ACTIONS.SOURCE_DELETED,
-      entityType: AUDIT_ENTITY.SOURCE,
-      entityId: sourceId,
-    });
-
+    const deleted = await deleteSource(prisma, sourceId, householdId, { userId, householdId });
+    if (!deleted) return sendError("Fonte não encontrada", 404);
     return sendSuccess({ deleted: true });
   } catch (error) {
     console.error(error);

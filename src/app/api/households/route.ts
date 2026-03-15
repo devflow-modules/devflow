@@ -1,14 +1,12 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
-import { householdCreateSchema } from "@/lib/financeiro/schema";
-import {
-  requireSessionOnly,
-  getActiveHouseholdCookieName,
-} from "@/app/api/_helpers/auth";
+import { BillingService } from "@/modules/billing";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { householdCreateSchema } from "@/modules/financeiro/schemas";
+import { requireSessionOnly } from "@/app/api/_helpers/auth";
+import { setActiveHouseholdCookie } from "@/modules/financeiro/adapters/cookies/householdCookie";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
-import { AUDIT_ACTIONS, AUDIT_ENTITY, createAuditLog } from "@/lib/audit";
-import { createMarketingEvent } from "@/lib/financeiro/marketing/service";
+import { createHousehold } from "@/modules/financeiro/services/households/createHousehold";
 
 export async function POST(request: NextRequest) {
   const sameOrigin = assertSameOrigin(request);
@@ -19,86 +17,39 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
     const parseResult = householdCreateSchema.safeParse(payload);
-
     if (!parseResult.success) {
       return sendError(parseResult.error.message, 400, parseResult.error.format());
     }
-
-    const { name, slug, timezone } = parseResult.data;
-
-    const existing = await prisma.household.findUnique({
-      where: { slug },
+    // BILLING_SOFT_CHECK: limite de casas por plano (removível)
+    const householdCount = await prisma.householdMembership.count({
+      where: { userId: auth.userId },
     });
-
-    if (existing) {
+    if (!BillingService.checkLimit(auth.userId, "households", householdCount)) {
+      return sendError(
+        "Limite de casas do seu plano atingido. Faça upgrade para criar mais.",
+        402,
+        { code: "HOUSEHOLD_LIMIT_REACHED" },
+        "HOUSEHOLD_LIMIT_REACHED"
+      );
+    }
+    const result = await createHousehold(prisma, parseResult.data, {
+      userId: auth.userId,
+      email: auth.email,
+    });
+    if (!result.ok) {
       return sendError(
         "Já existe uma casa com este identificador (slug). Tente outro (ex.: casa-marques-2).",
         409,
-        { slug },
+        { slug: result.slug },
         "SLUG_ALREADY_EXISTS"
       );
     }
-
-    const existingMemberships = await prisma.householdMembership.count({
-      where: { userId: auth.userId },
-    });
-
-    const household = await prisma.household.create({
-      data: {
-        name,
-        slug,
-        timezone: timezone ?? "America/Sao_Paulo",
-      },
-    });
-
-    await prisma.householdMembership.create({
-      data: {
-        userId: auth.userId,
-        householdId: household.id,
-        role: "OWNER",
-      },
-    });
-
-    await createAuditLog(prisma, {
-      userId: auth.userId,
-      householdId: household.id,
-      action: AUDIT_ACTIONS.HOUSEHOLD_CREATED,
-      entityType: AUDIT_ENTITY.HOUSEHOLD,
-      entityId: household.id,
-      metadata: { slug: household.slug, name: household.name },
-    });
-
-    if (existingMemberships === 0) {
-      const lead = await prisma.marketingLead.findUnique({
-        where: { email: auth.email },
-        select: { id: true },
-      });
-      await createMarketingEvent(prisma, {
-        leadId: lead?.id ?? null,
-        userId: auth.userId,
-        event: "onboarding_completed",
-      });
-      await createMarketingEvent(prisma, {
-        leadId: lead?.id ?? null,
-        userId: auth.userId,
-        event: "first_value",
-        payload: { householdId: household.id },
-      });
-    }
-
     const response = sendSuccess(
-      { id: household.id, name: household.name, slug: household.slug },
+      { id: result.household.id, name: result.household.name, slug: result.household.slug },
       201,
       "Casa criada"
     );
-    response.cookies.set(getActiveHouseholdCookieName(), household.id, {
-      path: "/",
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 365,
-    });
-
+    setActiveHouseholdCookie(response, result.household.id);
     return response;
   } catch (error) {
     console.error(error);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sendError } from "@/lib/financeiro/api-response";
+import { sendError } from "@/modules/financeiro/lib/api-response";
 
 /**
  * Verifica se a requisição vem do mesmo origin (mitigação CSRF).

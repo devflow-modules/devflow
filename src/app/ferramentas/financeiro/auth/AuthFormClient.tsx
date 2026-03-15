@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { authEmailSchema, authPasswordSchema } from "@/lib/financeiro/schema";
-import { createClient } from "@/lib/financeiro/supabase/client";
-import { cn } from "@/lib/financeiro/cn";
+import { trackSignupStartedClient } from "@/analytics/growth/trackClient";
+import { authEmailSchema, authPasswordSchema } from "@/modules/financeiro/schemas";
+import { createClient } from "@/modules/financeiro/lib/supabase/client";
+import { cn } from "@/modules/financeiro/lib/cn";
 import {
   cardStaticLight,
   focusRingLight,
-} from "@/lib/financeiro/primitives";
+} from "@/modules/financeiro/lib/primitives";
 
 const AUTH_BASE = "/ferramentas/financeiro/auth";
 
@@ -57,6 +58,7 @@ export function AuthFormClient() {
         return;
       }
 
+      trackSignupStartedClient();
       const { error } = await supabase.auth.signUp({
         email: parsedEmail,
         password: parsedPassword,

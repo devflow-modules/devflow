@@ -1,10 +1,11 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
-import { inviteAcceptSchema } from "@/lib/financeiro/schema";
-import { requireSessionOnly, getActiveHouseholdCookieName } from "@/app/api/_helpers/auth";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { inviteAcceptSchema } from "@/modules/financeiro/schemas";
+import { requireSessionOnly } from "@/app/api/_helpers/auth";
+import { setActiveHouseholdCookie } from "@/modules/financeiro/adapters/cookies/householdCookie";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
-import { AUDIT_ACTIONS, AUDIT_ENTITY, createAuditLog } from "@/lib/audit";
+import { acceptInvite } from "@/modules/financeiro/services/invites/acceptInvite";
 
 export async function POST(request: NextRequest) {
   const sameOrigin = assertSameOrigin(request);
@@ -15,64 +16,25 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
     const parseResult = inviteAcceptSchema.safeParse(payload);
-
     if (!parseResult.success) {
       return sendError(parseResult.error.message, 400, parseResult.error.format());
     }
-
-    const token = parseResult.data.token;
-    const invite = await prisma.invite.findUnique({ where: { token } });
-
-    if (!invite) return sendError("Convite inválido", 404, undefined, "INVITE_INVALID");
-    if (invite.acceptedAt) return sendError("Convite já foi utilizado", 409, undefined, "INVITE_USED");
-    if (invite.expiresAt.getTime() < Date.now()) return sendError("Convite expirado", 410, undefined, "INVITE_EXPIRED");
-
-    const authEmail = auth.email.trim().toLowerCase();
-    if (invite.email.trim().toLowerCase() !== authEmail) {
+    const result = await acceptInvite(prisma, parseResult.data.token, {
+      userId: auth.userId,
+      email: auth.email,
+    });
+    if (!result.ok) {
+      if (result.code === "INVITE_INVALID") return sendError("Convite inválido", 404, undefined, "INVITE_INVALID");
+      if (result.code === "INVITE_USED") return sendError("Convite já foi utilizado", 409, undefined, "INVITE_USED");
+      if (result.code === "INVITE_EXPIRED") return sendError("Convite expirado", 410, undefined, "INVITE_EXPIRED");
       return sendError("Este convite não é para o seu e-mail", 403, undefined, "INVITE_EMAIL_MISMATCH");
     }
-
-    const existing = await prisma.householdMembership.findFirst({
-      where: { userId: auth.userId, householdId: invite.householdId },
-    });
-
-    if (!existing) {
-      await prisma.householdMembership.create({
-        data: {
-          userId: auth.userId,
-          householdId: invite.householdId,
-          role: invite.role,
-        },
-      });
-    }
-
-    await prisma.invite.update({
-      where: { id: invite.id },
-      data: { acceptedAt: new Date(), acceptedByUserId: auth.userId },
-    });
-
-    await createAuditLog(prisma, {
-      userId: auth.userId,
-      householdId: invite.householdId,
-      action: AUDIT_ACTIONS.INVITE_ACCEPTED,
-      entityType: AUDIT_ENTITY.INVITE,
-      entityId: invite.id,
-      metadata: { email: invite.email, role: invite.role },
-    });
-
     const response = sendSuccess(
-      { householdId: invite.householdId, role: invite.role, accepted: true },
+      { householdId: result.householdId, role: result.role, accepted: true },
       200,
       "Convite aceito"
     );
-    response.cookies.set(getActiveHouseholdCookieName(), invite.householdId, {
-      path: "/",
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 365,
-    });
-
+    setActiveHouseholdCookie(response, result.householdId);
     return response;
   } catch (error) {
     console.error(error);

@@ -1,19 +1,18 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { cycleCreateSchema } from "@/modules/financeiro/schemas";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
-import { cycleCreateSchema } from "@/lib/financeiro/schema";
+import { listCycles } from "@/modules/financeiro/services/cycles/listCycles";
+import { createCycle } from "@/modules/financeiro/services/cycles/createCycle";
 
 export async function GET(request: NextRequest) {
   const auth = await requireHouseholdMembership(request);
   if (!auth.ok) return auth.response;
 
   try {
-    const cycles = await prisma.cycle.findMany({
-      where: { householdId: auth.context.householdId },
-      orderBy: [{ cycleType: "asc" }, { name: "asc" }],
-    });
+    const cycles = await listCycles(prisma, auth.context.householdId);
     return sendSuccess(cycles);
   } catch (error) {
     console.error(error);
@@ -33,18 +32,7 @@ export async function POST(request: NextRequest) {
     if (!parseResult.success) {
       return sendError(parseResult.error.message, 400, parseResult.error.format());
     }
-
-    const data = parseResult.data;
-    const cycle = await prisma.cycle.create({
-      data: {
-        householdId: auth.context.householdId,
-        name: data.name,
-        cycleType: data.cycleType,
-        anchorDay: data.anchorDay ?? null,
-        anchorWeekDay: data.anchorWeekDay ?? null,
-      },
-    });
-
+    const cycle = await createCycle(prisma, auth.context.householdId, parseResult.data);
     return sendSuccess(cycle, 201);
   } catch (error) {
     console.error(error);

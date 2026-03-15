@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { GrowthTrackVisitor } from "@/components/analytics/GrowthTrackVisitor";
 import { Section } from "@/components/layout/Section";
-import { SimuladorRapidoFinanceiro } from "@/components/financeiro/SimuladorRapidoFinanceiro";
-import { LeadCaptureForm } from "@/components/financeiro/LeadCaptureForm";
-import { FinanceiroTools } from "@/components/financeiro/FinanceiroTools";
+import { SimuladorRapidoFinanceiro } from "@/modules/financeiro/components/SimuladorRapidoFinanceiro";
+import { LeadCaptureForm } from "@/modules/financeiro/components/LeadCaptureForm";
+import { FinanceiroTools } from "@/modules/financeiro/components/FinanceiroTools";
 
 const baseUrl = "https://devflowlabs.com.br";
 
@@ -62,6 +63,7 @@ const softwareSchema = {
 export default function FinanceiroPage() {
   return (
     <div className="min-h-screen">
+      <GrowthTrackVisitor />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}

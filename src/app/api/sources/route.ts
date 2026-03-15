@@ -1,10 +1,11 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
-import { sourceCreateSchema } from "@/lib/financeiro/schema";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { sourceCreateSchema } from "@/modules/financeiro/schemas";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
-import { AUDIT_ACTIONS, AUDIT_ENTITY, createAuditLog } from "@/lib/audit";
+import { listSources } from "@/modules/financeiro/services/sources/listSources";
+import { createSource } from "@/modules/financeiro/services/sources/createSource";
 
 export async function GET(request: NextRequest) {
   const auth = await requireHouseholdMembership(request);
@@ -12,15 +13,7 @@ export async function GET(request: NextRequest) {
   const { householdId } = auth.context;
 
   try {
-
-    const sources = await prisma.source.findMany({
-      where: { householdId },
-      orderBy: { createdAt: "desc" },
-      include: {
-        paymentDays: { include: { cycle: true } },
-      },
-    });
-
+    const sources = await listSources(prisma, householdId);
     return sendSuccess(sources);
   } catch (error) {
     console.error(error);
@@ -33,33 +26,15 @@ export async function POST(request: NextRequest) {
   if (sameOrigin) return sameOrigin;
   const auth = await requireHouseholdMembership(request);
   if (!auth.ok) return auth.response;
-  const { householdId } = auth.context;
+  const { householdId, userId } = auth.context;
 
   try {
     const payload = await request.json();
-
     const parseResult = sourceCreateSchema.safeParse(payload);
-
     if (!parseResult.success) {
       return sendError(parseResult.error.message, 400, parseResult.error.format());
     }
-
-    const source = await prisma.source.create({
-      data: {
-        ...parseResult.data,
-        householdId,
-      },
-    });
-
-    await createAuditLog(prisma, {
-      userId: auth.context.userId,
-      householdId,
-      action: AUDIT_ACTIONS.SOURCE_CREATED,
-      entityType: AUDIT_ENTITY.SOURCE,
-      entityId: source.id,
-      metadata: { name: source.name, sourceType: source.sourceType },
-    });
-
+    const source = await createSource(prisma, householdId, parseResult.data, { userId, householdId });
     return sendSuccess(source, 201);
   } catch (error) {
     console.error(error);

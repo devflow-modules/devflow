@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Breadcrumbs } from "@/components/financeiro/Breadcrumbs";
-import { Skeleton } from "@/components/financeiro/Skeleton";
-import { useHousehold } from "@/lib/financeiro/household/HouseholdProvider";
-import { createClient } from "@/lib/financeiro/supabase/client";
-import { cn } from "@/lib/financeiro/cn";
-import { focusRingLight } from "@/lib/financeiro/primitives";
+import { Breadcrumbs } from "@/modules/financeiro/components/Breadcrumbs";
+import { Skeleton } from "@/modules/financeiro/components/Skeleton";
+import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvider";
+import { createClient } from "@/modules/financeiro/lib/supabase/client";
+import { cn } from "@/modules/financeiro/lib/cn";
+import { focusRingLight } from "@/modules/financeiro/lib/primitives";
 
 type Invite = { id: string; email: string; role: "MEMBER" | "OWNER"; expiresAt: string; createdAt: string };
 type Member = {

@@ -1,11 +1,10 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
-import { expenseCreateSchema } from "@/lib/financeiro/schema";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { expenseCreateSchema } from "@/modules/financeiro/schemas";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
-import { AUDIT_ACTIONS, AUDIT_ENTITY, createAuditLog } from "@/lib/audit";
-import { dateInputToDate } from "@/lib/dates";
+import { listExpenses, createExpense } from "@/modules/financeiro/services/expenses";
 
 export async function GET(request: NextRequest) {
   const auth = await requireHouseholdMembership(request);
@@ -13,13 +12,7 @@ export async function GET(request: NextRequest) {
   const { householdId } = auth.context;
 
   try {
-
-    const expenses = await prisma.expense.findMany({
-      where: { householdId },
-      orderBy: { dueDate: "asc" },
-      include: { source: true },
-    });
-
+    const expenses = await listExpenses(prisma, householdId);
     return sendSuccess(expenses);
   } catch (error) {
     console.error(error);
@@ -32,18 +25,18 @@ export async function POST(request: NextRequest) {
   if (sameOrigin) return sameOrigin;
   const auth = await requireHouseholdMembership(request);
   if (!auth.ok) return auth.response;
-  const { householdId } = auth.context;
+  const { householdId, userId } = auth.context;
 
   try {
     const payload = await request.json();
-
     const parseResult = expenseCreateSchema.safeParse(payload);
 
     if (!parseResult.success) {
       return sendError(parseResult.error.message, 400, parseResult.error.format());
     }
 
-    const hasPaidFields = parseResult.data.paidAt !== undefined || parseResult.data.paidAmount !== undefined;
+    const hasPaidFields =
+      parseResult.data.paidAt !== undefined || parseResult.data.paidAmount !== undefined;
     if (hasPaidFields && parseResult.data.status !== "PAID") {
       return sendError(
         "paidAt/paidAmount exigem status=PAID",
@@ -53,22 +46,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const expense = await prisma.expense.create({
-      data: {
-        ...parseResult.data,
-        dueDate: dateInputToDate(parseResult.data.dueDate),
-        ...(parseResult.data.paidAt ? { paidAt: dateInputToDate(parseResult.data.paidAt) } : {}),
-        householdId,
-      },
-    });
-
-    await createAuditLog(prisma, {
-      userId: auth.context.userId,
+    const expense = await createExpense(prisma, householdId, parseResult.data, {
+      userId,
       householdId,
-      action: AUDIT_ACTIONS.EXPENSE_CREATED,
-      entityType: AUDIT_ENTITY.EXPENSE,
-      entityId: expense.id,
-      metadata: { category: expense.category, amount: expense.amount },
     });
 
     return sendSuccess(expense, 201);

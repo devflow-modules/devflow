@@ -1,5 +1,5 @@
-import { sendSuccess } from "@/lib/financeiro/api-response";
-import { prisma } from "@/lib/financeiro/db";
+import { sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
 
 export async function GET() {
   try {

@@ -2,8 +2,8 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { householdCreateSchema } from "@/lib/financeiro/schema";
-import { cn } from "@/lib/financeiro/cn";
+import { householdCreateSchema } from "@/modules/financeiro/schemas";
+import { cn } from "@/modules/financeiro/lib/cn";
 import {
   btnPrimaryBase,
   btnPrimaryLight,
@@ -11,7 +11,7 @@ import {
   focusRingLight,
   h1,
   mutedTextLight,
-} from "@/lib/financeiro/primitives";
+} from "@/modules/financeiro/lib/primitives";
 
 export default function OnboardingPage() {
   const router = useRouter();

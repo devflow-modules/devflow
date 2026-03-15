@@ -7,11 +7,11 @@ import {
   expenseUpdateSchema,
   incomeCreateSchema,
   incomeUpdateSchema,
-} from "@/lib/financeiro/schema";
-import { useHousehold } from "@/lib/financeiro/household/HouseholdProvider";
-import { Skeleton } from "@/components/financeiro/Skeleton";
+} from "@/modules/financeiro/schemas";
+import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvider";
+import { Skeleton } from "@/modules/financeiro/components/Skeleton";
 import { formatDateOnlyPtBr, toDateOnly } from "@/lib/dates";
-import { Breadcrumbs } from "@/components/financeiro/Breadcrumbs";
+import { Breadcrumbs } from "@/modules/financeiro/components/Breadcrumbs";
 
 type FinancialSource = { id: string; name: string; sourceType: "PJ" | "PF" };
 type Income = {

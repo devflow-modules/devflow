@@ -1,18 +1,14 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/financeiro/supabase/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
-import { createMarketingEvent } from "@/lib/financeiro/marketing/service";
-import { resolveActiveHousehold } from "@/lib/financeiro/auth/activeHousehold";
-
-const ACTIVE_HOUSEHOLD_COOKIE = "active_household_id";
-const COOKIE_OPTIONS = {
-  path: "/",
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  maxAge: 60 * 60 * 24 * 365,
-};
+import { createClient } from "@/modules/financeiro/lib/supabase/server";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { createMarketingEvent } from "@/modules/financeiro/lib/marketing/service";
+import { resolveActiveHousehold } from "@/modules/financeiro/lib/auth/activeHousehold";
+import {
+  getActiveHouseholdFromRequest,
+  setActiveHouseholdCookie,
+  deleteActiveHouseholdCookie,
+} from "@/modules/financeiro/adapters/cookies/householdCookie";
 
 export async function GET(request: NextRequest) {
   try {
@@ -66,7 +62,7 @@ export async function GET(request: NextRequest) {
       role: m.role,
     }));
 
-    const cookieHouseholdId = request.cookies.get(ACTIVE_HOUSEHOLD_COOKIE)?.value ?? null;
+    const cookieHouseholdId = getActiveHouseholdFromRequest(request) ?? null;
     const resolved = resolveActiveHousehold({ cookieHouseholdId, memberships });
     const activeHouseholdId = resolved.activeHouseholdId;
 
@@ -88,9 +84,9 @@ export async function GET(request: NextRequest) {
     });
 
     if (resolved.action === "delete") {
-      response.cookies.delete(ACTIVE_HOUSEHOLD_COOKIE);
+      deleteActiveHouseholdCookie(response);
     } else if (resolved.action === "set") {
-      response.cookies.set(ACTIVE_HOUSEHOLD_COOKIE, resolved.cookieValue, COOKIE_OPTIONS);
+      setActiveHouseholdCookie(response, resolved.cookieValue);
     }
 
     return response;

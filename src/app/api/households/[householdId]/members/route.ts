@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
+import { listMembers } from "@/modules/financeiro/services/households/listMembers";
 
 export async function GET(
   request: NextRequest,
@@ -15,23 +16,7 @@ export async function GET(
     if (householdId !== auth.context.householdId) {
       return sendError("Troque para esta casa antes de gerenciar membros", 403, undefined, "HOUSEHOLD_MISMATCH");
     }
-
-    const memberships = await prisma.householdMembership.findMany({
-      where: { householdId },
-      include: { user: true },
-      orderBy: { createdAt: "asc" },
-    });
-
-    const members = memberships.map((m: { id: string; userId: string; user: { email: string; name: string | null }; role: string; createdAt: Date }) => ({
-      membershipId: m.id,
-      userId: m.userId,
-      email: m.user.email,
-      name: m.user.name,
-      role: m.role,
-      createdAt: m.createdAt,
-      isMe: m.userId === auth.context.userId,
-    }));
-
+    const { members } = await listMembers(prisma, householdId, auth.context.userId);
     return sendSuccess({
       householdId,
       members,

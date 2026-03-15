@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { createClient } from "@/lib/financeiro/supabase/client";
+import { createClient } from "@/modules/financeiro/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { trackSignupCompletedClient } from "@/analytics/growth/trackClient";
 
 const AUTH_BASE = "/ferramentas/financeiro/auth";
 
@@ -68,6 +69,10 @@ export default function AuthCallbackPage() {
             payload?.error?.message ?? "Não foi possível carregar sua conta. Tente novamente."
           );
           return;
+        }
+        const userId = payload.data?.id;
+        if (userId) {
+          trackSignupCompletedClient(userId);
         }
         const households = payload.data?.households ?? [];
         if (households.length === 0) {

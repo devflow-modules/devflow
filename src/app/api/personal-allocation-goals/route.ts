@@ -1,9 +1,11 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { personalAllocationGoalCreateSchema } from "@/modules/financeiro/schemas";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
-import { personalAllocationGoalCreateSchema } from "@/lib/financeiro/schema";
+import { getPersonalAllocationGoal } from "@/modules/financeiro/services/allocation-goals/getPersonalAllocationGoal";
+import { upsertPersonalAllocationGoal } from "@/modules/financeiro/services/allocation-goals/upsertPersonalAllocationGoal";
 
 function getYearMonthFromRequest(request: NextRequest) {
   const now = new Date();
@@ -20,16 +22,13 @@ export async function GET(request: NextRequest) {
 
   try {
     const { year, month } = getYearMonthFromRequest(request);
-    const goal = await prisma.personalAllocationGoal.findUnique({
-      where: {
-        userId_householdId_year_month: {
-          userId: auth.context.userId,
-          householdId: auth.context.householdId,
-          year,
-          month,
-        },
-      },
-    });
+    const goal = await getPersonalAllocationGoal(
+      prisma,
+      auth.context.userId,
+      auth.context.householdId,
+      year,
+      month
+    );
     return sendSuccess(goal);
   } catch (error) {
     console.error(error);
@@ -49,38 +48,12 @@ export async function POST(request: NextRequest) {
     if (!parseResult.success) {
       return sendError(parseResult.error.message, 400, parseResult.error.format());
     }
-
-    const data = parseResult.data;
-
-    const goal = await prisma.personalAllocationGoal.upsert({
-      where: {
-        userId_householdId_year_month: {
-          userId: auth.context.userId,
-          householdId: auth.context.householdId,
-          year: data.year,
-          month: data.month,
-        },
-      },
-      create: {
-        userId: auth.context.userId,
-        householdId: auth.context.householdId,
-        year: data.year,
-        month: data.month,
-        investmentPercent: data.investmentPercent,
-        savingsPercent: data.savingsPercent,
-        investmentAmount: data.investmentAmount,
-        savingsAmount: data.savingsAmount,
-        observations: data.observations,
-      },
-      update: {
-        investmentPercent: data.investmentPercent,
-        savingsPercent: data.savingsPercent,
-        investmentAmount: data.investmentAmount,
-        savingsAmount: data.savingsAmount,
-        observations: data.observations,
-      },
-    });
-
+    const goal = await upsertPersonalAllocationGoal(
+      prisma,
+      auth.context.userId,
+      auth.context.householdId,
+      parseResult.data
+    );
     return sendSuccess(goal, 201);
   } catch (error) {
     console.error(error);

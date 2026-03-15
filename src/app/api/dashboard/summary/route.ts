@@ -1,15 +1,8 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
-
-function startOfMonthUTC(date: Date) {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
-}
-
-function addMonthsUTC(date: Date, delta: number) {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + delta, 1));
-}
+import { getDashboardSummary } from "@/modules/financeiro/services/dashboard/getDashboardSummary";
 
 export async function GET(request: NextRequest) {
   const auth = await requireHouseholdMembership(request);
@@ -17,52 +10,12 @@ export async function GET(request: NextRequest) {
 
   try {
     const monthsParam = request.nextUrl.searchParams.get("months");
-    const months = monthsParam ? Math.max(1, Math.min(24, Number(monthsParam))) : 6;
+    const months = monthsParam ? Math.max(1, Math.min(24, Number(monthsParam))) : undefined;
 
-    const now = new Date();
-    const end = addMonthsUTC(startOfMonthUTC(now), 1);
-    const start = addMonthsUTC(startOfMonthUTC(now), -months + 1);
-
-    const [incomes, expenses] = await Promise.all([
-      prisma.income.findMany({
-        where: { householdId: auth.context.householdId, status: "RECEIVED", receivedAt: { gte: start, lt: end } },
-        select: { amount: true, receivedAt: true },
-      }),
-      prisma.expense.findMany({
-        where: { householdId: auth.context.householdId, dueDate: { gte: start, lt: end } },
-        select: { amount: true, dueDate: true, status: true },
-      }),
-    ]);
-
-    const buckets = Array.from({ length: months }).map((_, idx) => {
-      const d = addMonthsUTC(start, idx);
-      const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-      return { key, year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, incomes: 0, expenses: 0 };
+    const { series } = await getDashboardSummary(prisma, {
+      householdId: auth.context.householdId,
+      months,
     });
-    const byKey = new Map(buckets.map((b) => [b.key, b]));
-
-    for (const income of incomes) {
-      const d = income.receivedAt;
-      const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-      const bucket = byKey.get(key);
-      if (bucket) bucket.incomes += Number(income.amount ?? 0);
-    }
-
-    for (const expense of expenses) {
-      if (expense.status === "PAID") continue;
-      const d = expense.dueDate;
-      const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-      const bucket = byKey.get(key);
-      if (bucket) bucket.expenses += Number(expense.amount ?? 0);
-    }
-
-    const series = buckets.map((b) => ({
-      key: b.key,
-      label: `${String(b.month).padStart(2, "0")}/${String(b.year).slice(-2)}`,
-      incomes: Number(b.incomes.toFixed(2)),
-      expenses: Number(b.expenses.toFixed(2)),
-      balance: Number((b.incomes - b.expenses).toFixed(2)),
-    }));
 
     return sendSuccess({ series });
   } catch (error) {

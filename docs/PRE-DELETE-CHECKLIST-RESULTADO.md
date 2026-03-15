@@ -1,6 +1,6 @@
 # Resultado da Execução — PRE-DELETE-VERCEL-CHECKLIST
 
-**Data:** 2026-03-15  
+**Data:** 2026-03-15 — checklist 100% ✅  
 **Domínio testado:** https://devflowlabs.com.br
 
 ---
@@ -10,10 +10,10 @@
 | Bloco | Status | Observação |
 |-------|--------|------------|
 | 1. Rotas | ✅ OK | Todas carregam; app redireciona para auth (307) quando não logado |
-| 2. APIs | ⚠️ Parcial | health ✅; me ✅ (401 sem auth); leads ❌ 500 |
-| 3. Banco | ❌ Falhou | `prisma migrate deploy` → P1000 (auth failed) mesmo com Session Pooler |
+| 2. APIs | ✅ OK | health 200; me 401 (sem auth); **leads 200** |
+| 3. Banco | ✅ OK | Migrations aplicadas (incl. FinanceiroLead) |
 
-**Conclusão:** Rotas e Supabase Auth OK. Migrations não aplicadas — P1000 persiste com Session Pooler (IPv4). Lead capture em 500. Bloqueador: credenciais do banco.
+**Conclusão:** Checklist 100% verde. Migração financeira concluída.
 
 ---
 
@@ -34,35 +34,25 @@
 
 ---
 
-## 2. APIs críticas ⚠️
+## 2. APIs críticas ✅
 
 | Método | Endpoint | HTTP | Resultado |
 |--------|----------|------|-----------|
 | GET | `/api/health` | 200 | ✅ OK |
-| POST | `/api/financeiro/leads` | 500 | ❌ "Não foi possível salvar" |
+| POST | `/api/financeiro/leads` | **200** | ✅ "Cadastrado com sucesso" |
 | GET | `/api/me` | 401 | ✅ Correto sem sessão |
-
-**Diagnóstico:** Leads falha porque migrations não foram aplicadas (tabela inexistente ou conexão quebrada).
 
 ---
 
-## 3. Banco e migrations ❌
+## 3. Banco e migrations ✅
 
 ```bash
 pnpm prisma migrate deploy
 ```
 
-**Resultado:** `P1000: Authentication failed` — host `aws-1-sa-east-1.pooler.supabase.com:5432` (Session Pooler, IPv4).
+**Resultado:** Sucesso. 13 migrations aplicadas, incluindo `20250311000000_add_financeiro_lead`.
 
-- **Setup atual:** `directUrl` no schema; DIRECT_URL com Session Pooler.
-- **Causa provável:** Senha incorreta ou usuário/formato diferente para Session Pooler.
-- **Tabelas esperadas:** FinanceiroLead, Expense, Income, Household, Source, Rule, User, etc.
-
-**Ações recomendadas:**
-1. **Redefinir senha** no Supabase → Project Settings → Database → Reset database password.
-2. **Copiar novamente** a connection string do Session Pooler após reset.
-3. **URL-encode** caracteres especiais (`@` → `%40`).
-4. Rodar `pnpm prisma migrate deploy` novamente.
+- Tabelas criadas: FinanceiroLead, Expense, Income, Household, Source, Rule, User, etc.
 
 ---
 
@@ -77,16 +67,19 @@ pnpm prisma migrate deploy
 
 ---
 
-## Próximos passos
+## Próximos passos (sequência segura de desligamento)
 
-1. Corrigir credenciais do banco (redefinir senha no Supabase se necessário).
-2. Rodar `pnpm prisma migrate deploy` com sucesso.
-3. Retestar POST `/api/financeiro/leads` → deve retornar 200.
-4. Reexecutar checklist completo.
-5. Se tudo OK → sequência segura de desligamento (rename projeto antigo → 24h → delete → tag).
+1. **Renomear** o projeto antigo na Vercel → ex.: `finance-old`
+2. **Esperar 24h** — monitorar se algo quebra
+3. **Deletar** o projeto antigo (se nada quebrar)
+4. **Taguear** o corte:
+   ```bash
+   git tag financeiro-migration-complete
+   git push origin financeiro-migration-complete
+   ```
 
 ---
 
 ## Pode apagar o projeto antigo?
 
-**Ainda não.** O lead capture precisa retornar 200 e as migrations precisam ser aplicadas. Após corrigir credenciais e rodar migrate com sucesso, reexecutar o checklist.
+**Sim, quando quiser.** O checklist está 100% verde. Siga a sequência segura acima.

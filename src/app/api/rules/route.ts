@@ -1,10 +1,12 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
-import { ruleCreateSchema } from "@/lib/financeiro/schema";
+import { BillingService } from "@/modules/billing";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { ruleCreateSchema } from "@/modules/financeiro/schemas";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
-import { AUDIT_ACTIONS, AUDIT_ENTITY, createAuditLog } from "@/lib/audit";
+import { listRules } from "@/modules/financeiro/services/rules/listRules";
+import { createRule } from "@/modules/financeiro/services/rules/createRule";
 
 export async function GET(request: NextRequest) {
   const auth = await requireHouseholdMembership(request);
@@ -12,16 +14,7 @@ export async function GET(request: NextRequest) {
   const { householdId } = auth.context;
 
   try {
-
-    const rules = await prisma.rule.findMany({
-      where: { householdId },
-      include: {
-        ruleSources: {
-          include: { source: true },
-        },
-      },
-    });
-
+    const rules = await listRules(prisma, householdId);
     return sendSuccess(rules);
   } catch (error) {
     console.error(error);
@@ -34,43 +27,25 @@ export async function POST(request: NextRequest) {
   if (sameOrigin) return sameOrigin;
   const auth = await requireHouseholdMembership(request);
   if (!auth.ok) return auth.response;
-  const { householdId } = auth.context;
+  const { householdId, userId } = auth.context;
 
   try {
     const payload = await request.json();
-
     const parseResult = ruleCreateSchema.safeParse(payload);
-
     if (!parseResult.success) {
       return sendError(parseResult.error.message, 400, parseResult.error.format());
     }
-
-    const { sourceIds, ...rulePayload } = parseResult.data;
-
-    const rule = await prisma.rule.create({
-      data: {
-        ...rulePayload,
-        householdId,
-        ruleSources: {
-          create: sourceIds.map((sourceId) => ({ source: { connect: { id: sourceId } } })),
-        },
-      },
-      include: {
-        ruleSources: {
-          include: { source: true },
-        },
-      },
-    });
-
-    await createAuditLog(prisma, {
-      userId: auth.context.userId,
-      householdId,
-      action: AUDIT_ACTIONS.RULE_CREATED,
-      entityType: AUDIT_ENTITY.RULE,
-      entityId: rule.id,
-      metadata: { name: rule.name, ruleType: rule.ruleType },
-    });
-
+    // BILLING_SOFT_CHECK: limite de regras por plano (removível)
+    const existingRules = await listRules(prisma, householdId);
+    if (!BillingService.checkLimit(userId, "rules", existingRules.length)) {
+      return sendError(
+        "Limite de regras do seu plano atingido. Faça upgrade para criar mais.",
+        402,
+        { code: "RULE_LIMIT_REACHED" },
+        "RULE_LIMIT_REACHED"
+      );
+    }
+    const rule = await createRule(prisma, householdId, parseResult.data, { userId, householdId });
     return sendSuccess(rule, 201);
   } catch (error) {
     console.error(error);

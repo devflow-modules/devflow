@@ -3,8 +3,8 @@
 import { usePathname } from "next/navigation";
 import { Fragment } from "react";
 import { Toaster } from "sonner";
-import { HouseholdProvider } from "@/lib/financeiro/household/HouseholdProvider";
-import { AppShell } from "@/components/financeiro/AppShell";
+import { HouseholdProvider } from "@/modules/financeiro/lib/household/HouseholdProvider";
+import { AppShell } from "@/modules/financeiro/components/AppShell";
 
 const APP_ROUTES = [
   "/ferramentas/financeiro/dashboard",

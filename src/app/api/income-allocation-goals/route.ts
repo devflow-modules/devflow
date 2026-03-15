@@ -1,10 +1,11 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { incomeAllocationGoalCreateSchema } from "@/modules/financeiro/schemas";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
-import { incomeAllocationGoalCreateSchema } from "@/lib/financeiro/schema";
-import { createAuditLog } from "@/lib/audit";
+import { getIncomeAllocationGoal } from "@/modules/financeiro/services/allocation-goals/getIncomeAllocationGoal";
+import { upsertIncomeAllocationGoal } from "@/modules/financeiro/services/allocation-goals/upsertIncomeAllocationGoal";
 
 function getYearMonthFromRequest(request: NextRequest) {
   const now = new Date();
@@ -21,9 +22,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const { year, month } = getYearMonthFromRequest(request);
-    const goal = await prisma.incomeAllocationGoal.findUnique({
-      where: { householdId_year_month: { householdId: auth.context.householdId, year, month } },
-    });
+    const goal = await getIncomeAllocationGoal(prisma, auth.context.householdId, year, month);
     return sendSuccess(goal);
   } catch (error) {
     console.error(error);
@@ -47,41 +46,10 @@ export async function POST(request: NextRequest) {
     if (!parseResult.success) {
       return sendError(parseResult.error.message, 400, parseResult.error.format());
     }
-
-    const data = parseResult.data;
-
-    const goal = await prisma.incomeAllocationGoal.upsert({
-      where: {
-        householdId_year_month: { householdId: auth.context.householdId, year: data.year, month: data.month },
-      },
-      create: {
-        householdId: auth.context.householdId,
-        year: data.year,
-        month: data.month,
-        investmentPercent: data.investmentPercent,
-        savingsPercent: data.savingsPercent,
-        investmentAmount: data.investmentAmount,
-        savingsAmount: data.savingsAmount,
-        observations: data.observations,
-      },
-      update: {
-        investmentPercent: data.investmentPercent,
-        savingsPercent: data.savingsPercent,
-        investmentAmount: data.investmentAmount,
-        savingsAmount: data.savingsAmount,
-        observations: data.observations,
-      },
-    });
-
-    await createAuditLog(prisma, {
+    const goal = await upsertIncomeAllocationGoal(prisma, auth.context.householdId, parseResult.data, {
       userId: auth.context.userId,
       householdId: auth.context.householdId,
-      action: "INCOME_ALLOCATION_GOAL_UPSERTED",
-      entityType: "INCOME_ALLOCATION_GOAL",
-      entityId: goal.id,
-      metadata: { year: goal.year, month: goal.month },
     });
-
     return sendSuccess(goal, 201);
   } catch (error) {
     console.error(error);

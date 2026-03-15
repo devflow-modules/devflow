@@ -1,10 +1,14 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
-import { requireHouseholdMembership, getActiveHouseholdCookieName } from "@/app/api/_helpers/auth";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
+import {
+  setActiveHouseholdCookie,
+  deleteActiveHouseholdCookie,
+} from "@/modules/financeiro/adapters/cookies/householdCookie";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
-import { AUDIT_ACTIONS, AUDIT_ENTITY, createAuditLog } from "@/lib/audit";
-import { householdMemberRemoveSchema } from "@/lib/financeiro/schema";
+import { householdMemberRemoveSchema } from "@/modules/financeiro/schemas";
+import { removeMember } from "@/modules/financeiro/services/households/removeMember";
 
 export async function DELETE(
   request: NextRequest,
@@ -20,96 +24,37 @@ export async function DELETE(
     if (householdId !== auth.context.householdId) {
       return sendError("Troque para esta casa antes de gerenciar membros", 403, undefined, "HOUSEHOLD_MISMATCH");
     }
-
     const parsed = householdMemberRemoveSchema.safeParse({ membershipId: rawMembershipId });
     if (!parsed.success) {
       return sendError(parsed.error.message, 400, parsed.error.format());
     }
     const { membershipId } = parsed.data;
-
-    const membership = await prisma.householdMembership.findUnique({
-      where: { id: membershipId },
-      include: { user: true },
-    });
-
-    if (!membership || membership.householdId !== householdId) {
-      return sendError("Membro não encontrado", 404, undefined, "NOT_FOUND");
-    }
-
-    const isSelf = membership.userId === auth.context.userId;
-    const isOwner = auth.context.membershipRole === "OWNER";
-
-    if (!isSelf && !isOwner) {
-      return sendError("Apenas OWNER pode remover outros membros", 403, undefined, "FORBIDDEN");
-    }
-
-    if (isSelf && membership.role === "OWNER") {
-      return sendError(
-        "OWNER não pode sair da casa sem transferir a titularidade",
-        409,
-        undefined,
-        "OWNER_CANNOT_LEAVE"
-      );
-    }
-
-    // Prevent removing the last OWNER
-    if (membership.role === "OWNER") {
-      const ownersCount = await prisma.householdMembership.count({
-        where: { householdId, role: "OWNER", id: { not: membershipId } },
-      });
-      if (ownersCount === 0) {
-        return sendError("Não é possível remover o último OWNER da casa", 409, undefined, "LAST_OWNER");
-      }
-    }
-
-    await prisma.householdMembership.delete({ where: { id: membershipId } });
-
-    await createAuditLog(prisma, {
+    const result = await removeMember(prisma, householdId, membershipId, {
       userId: auth.context.userId,
-      householdId,
-      action: isSelf ? AUDIT_ACTIONS.MEMBER_LEFT : AUDIT_ACTIONS.MEMBER_REMOVED,
-      entityType: AUDIT_ENTITY.MEMBERSHIP,
-      entityId: membershipId,
-      metadata: {
-        removedUserId: membership.userId,
-        removedEmail: membership.user.email,
-        removedRole: membership.role,
-        byRole: auth.context.membershipRole,
-      },
+      householdId: auth.context.householdId,
+      membershipRole: auth.context.membershipRole,
     });
-
-    // If user left the active household, rotate cookie to another household (or clear)
-    let nextHouseholdId: string | null = null;
-    if (isSelf) {
-      const nextMembership = await prisma.householdMembership.findFirst({
-        where: { userId: auth.context.userId },
-        orderBy: { createdAt: "asc" },
-        select: { householdId: true },
-      });
-      nextHouseholdId = nextMembership?.householdId ?? null;
+    if (!result.ok) {
+      if (result.code === "NOT_FOUND") return sendError("Membro não encontrado", 404, undefined, "NOT_FOUND");
+      if (result.code === "FORBIDDEN") return sendError("Apenas OWNER pode remover outros membros", 403, undefined, "FORBIDDEN");
+      if (result.code === "OWNER_CANNOT_LEAVE") {
+        return sendError("OWNER não pode sair da casa sem transferir a titularidade", 409, undefined, "OWNER_CANNOT_LEAVE");
+      }
+      return sendError("Não é possível remover o último OWNER da casa", 409, undefined, "LAST_OWNER");
     }
-
     const response = sendSuccess({
       removed: true,
       membershipId,
-      isSelf,
-      nextHouseholdId,
+      isSelf: result.isSelf,
+      nextHouseholdId: result.nextHouseholdId,
     });
-
-    if (isSelf) {
-      if (nextHouseholdId) {
-        response.cookies.set(getActiveHouseholdCookieName(), nextHouseholdId, {
-          path: "/",
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          maxAge: 60 * 60 * 24 * 365,
-        });
+    if (result.isSelf) {
+      if (result.nextHouseholdId) {
+        setActiveHouseholdCookie(response, result.nextHouseholdId);
       } else {
-        response.cookies.delete(getActiveHouseholdCookieName());
+        deleteActiveHouseholdCookie(response);
       }
     }
-
     return response;
   } catch (error) {
     console.error(error);

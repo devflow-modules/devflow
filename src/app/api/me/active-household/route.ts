@@ -1,13 +1,14 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
-import { activeHouseholdSetSchema } from "@/lib/financeiro/schema";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { activeHouseholdSetSchema } from "@/modules/financeiro/schemas";
+import { requireSessionOnly } from "@/app/api/_helpers/auth";
 import {
-  requireSessionOnly,
-  getActiveHouseholdCookieName,
-} from "@/app/api/_helpers/auth";
+  getActiveHouseholdFromRequest,
+  setActiveHouseholdCookie,
+} from "@/modules/financeiro/adapters/cookies/householdCookie";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
-import { AUDIT_ACTIONS, AUDIT_ENTITY, createAuditLog } from "@/lib/audit";
+import { setActiveHousehold } from "@/modules/financeiro/services/households/setActiveHousehold";
 
 export async function POST(request: NextRequest) {
   const sameOrigin = assertSameOrigin(request);
@@ -22,35 +23,13 @@ export async function POST(request: NextRequest) {
       return sendError(parsed.error.message, 400, parsed.error.format());
     }
     const { householdId } = parsed.data;
-
-    const membership = await prisma.householdMembership.findFirst({
-      where: { userId: auth.userId, householdId },
-    });
-
-    if (!membership) {
+    const previousHouseholdId = getActiveHouseholdFromRequest(request) ?? null;
+    const result = await setActiveHousehold(prisma, auth.userId, householdId, previousHouseholdId);
+    if (!result.ok) {
       return sendError("Acesso negado a esta casa", 403);
     }
-
-    const previousHouseholdId = request.cookies.get(getActiveHouseholdCookieName())?.value ?? null;
-
-    await createAuditLog(prisma, {
-      userId: auth.userId,
-      householdId,
-      action: AUDIT_ACTIONS.ACTIVE_HOUSEHOLD_SET,
-      entityType: AUDIT_ENTITY.HOUSEHOLD,
-      entityId: householdId,
-      metadata: { previousHouseholdId },
-    });
-
     const response = sendSuccess({ activeHouseholdId: householdId });
-    response.cookies.set(getActiveHouseholdCookieName(), householdId, {
-      path: "/",
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 365,
-    });
-
+    setActiveHouseholdCookie(response, householdId);
     return response;
   } catch (error) {
     console.error(error);

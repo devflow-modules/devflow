@@ -1,10 +1,11 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { incomeAllocationGoalUpdateSchema } from "@/modules/financeiro/schemas";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
-import { incomeAllocationGoalUpdateSchema } from "@/lib/financeiro/schema";
-import { createAuditLog } from "@/lib/audit";
+import { updateIncomeAllocationGoal } from "@/modules/financeiro/services/allocation-goals/updateIncomeAllocationGoal";
+import { deleteIncomeAllocationGoal } from "@/modules/financeiro/services/allocation-goals/deleteIncomeAllocationGoal";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ goalId: string }> }) {
   const sameOrigin = assertSameOrigin(request);
@@ -23,25 +24,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (!parseResult.success) {
       return sendError(parseResult.error.message, 400, parseResult.error.format());
     }
-
-    const existing = await prisma.incomeAllocationGoal.findFirst({
-      where: { id: goalId, householdId: auth.context.householdId },
-    });
-    if (!existing) return sendError("Meta não encontrada", 404, undefined, "GOAL_NOT_FOUND");
-
-    const updated = await prisma.incomeAllocationGoal.update({
-      where: { id: goalId },
-      data: parseResult.data,
-    });
-
-    await createAuditLog(prisma, {
+    const updated = await updateIncomeAllocationGoal(prisma, goalId, auth.context.householdId, parseResult.data, {
       userId: auth.context.userId,
       householdId: auth.context.householdId,
-      action: "INCOME_ALLOCATION_GOAL_UPDATED",
-      entityType: "INCOME_ALLOCATION_GOAL",
-      entityId: updated.id,
     });
-
+    if (!updated) return sendError("Meta não encontrada", 404, undefined, "GOAL_NOT_FOUND");
     return sendSuccess(updated);
   } catch (error) {
     console.error(error);
@@ -61,21 +48,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
   try {
     const { goalId } = await params;
-
-    const deleted = await prisma.incomeAllocationGoal.deleteMany({
-      where: { id: goalId, householdId: auth.context.householdId },
-    });
-
-    if (deleted.count === 0) return sendError("Meta não encontrada", 404, undefined, "GOAL_NOT_FOUND");
-
-    await createAuditLog(prisma, {
+    const deleted = await deleteIncomeAllocationGoal(prisma, goalId, auth.context.householdId, {
       userId: auth.context.userId,
       householdId: auth.context.householdId,
-      action: "INCOME_ALLOCATION_GOAL_DELETED",
-      entityType: "INCOME_ALLOCATION_GOAL",
-      entityId: goalId,
     });
-
+    if (!deleted) return sendError("Meta não encontrada", 404, undefined, "GOAL_NOT_FOUND");
     return sendSuccess({ deleted: true });
   } catch (error) {
     console.error(error);

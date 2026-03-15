@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { GrowthTrackVisitor } from "@/components/analytics/GrowthTrackVisitor";
 import { Section } from "@/components/layout/Section";
-import { DividirContasTool } from "@/components/financeiro/DividirContasTool";
+import { DividirContasTool } from "@/modules/financeiro/components/DividirContasTool";
 
 const baseUrl = "https://devflowlabs.com.br";
 
@@ -42,6 +43,7 @@ const softwareSchema = {
 export default function DivisaoDeContasPage() {
   return (
     <div className="min-h-screen">
+      <GrowthTrackVisitor />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}

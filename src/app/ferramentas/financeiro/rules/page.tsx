@@ -2,10 +2,10 @@
 
 import { FormEvent, ReactNode, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ruleCreateSchema, ruleUpdateSchema } from "@/lib/financeiro/schema";
-import { useHousehold } from "@/lib/financeiro/household/HouseholdProvider";
-import { Skeleton } from "@/components/financeiro/Skeleton";
-import { Breadcrumbs } from "@/components/financeiro/Breadcrumbs";
+import { ruleCreateSchema, ruleUpdateSchema } from "@/modules/financeiro/schemas";
+import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvider";
+import { Skeleton } from "@/modules/financeiro/components/Skeleton";
+import { Breadcrumbs } from "@/modules/financeiro/components/Breadcrumbs";
 
 type Source = { id: string; name: string };
 type Rule = {

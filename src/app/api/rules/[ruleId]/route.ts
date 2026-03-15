@@ -1,60 +1,28 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
-import { ruleUpdateSchema } from "@/lib/financeiro/schema";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { ruleUpdateSchema } from "@/modules/financeiro/schemas";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
-import { AUDIT_ACTIONS, AUDIT_ENTITY, createAuditLog } from "@/lib/audit";
+import { updateRule } from "@/modules/financeiro/services/rules/updateRule";
+import { deleteRule } from "@/modules/financeiro/services/rules/deleteRule";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ ruleId: string }> }) {
   const sameOrigin = assertSameOrigin(request);
   if (sameOrigin) return sameOrigin;
   const auth = await requireHouseholdMembership(request);
   if (!auth.ok) return auth.response;
-  const { householdId } = auth.context;
+  const { householdId, userId } = auth.context;
 
   try {
     const { ruleId } = await params;
     const payload = await request.json();
-
     const parseResult = ruleUpdateSchema.safeParse(payload);
-
     if (!parseResult.success) {
       return sendError(parseResult.error.message, 400, parseResult.error.format());
     }
-
-    const existingRule = await prisma.rule.findFirst({
-      where: { id: ruleId, householdId },
-    });
-    if (!existingRule) return sendError("Regra não encontrada", 404);
-
-    const data: Record<string, unknown> = { ...parseResult.data };
-
-    if (data.sourceIds) {
-      data.ruleSources = {
-        deleteMany: {},
-        create: (data.sourceIds as string[]).map((sourceId: string) => ({ source: { connect: { id: sourceId } } })),
-      };
-      delete data.sourceIds;
-    }
-
-    const updated = await prisma.rule.update({
-      where: { id: ruleId },
-      data,
-      include: { ruleSources: { include: { source: true } } },
-    });
-
-    if (updated) {
-      await createAuditLog(prisma, {
-        userId: auth.context.userId,
-        householdId,
-        action: AUDIT_ACTIONS.RULE_UPDATED,
-        entityType: AUDIT_ENTITY.RULE,
-        entityId: updated.id,
-        metadata: { name: updated.name, ruleType: updated.ruleType },
-      });
-    }
-
+    const updated = await updateRule(prisma, ruleId, householdId, parseResult.data, { userId, householdId });
+    if (!updated) return sendError("Regra não encontrada", 404);
     return sendSuccess(updated);
   } catch (error) {
     console.error(error);
@@ -67,25 +35,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   if (sameOrigin) return sameOrigin;
   const auth = await requireHouseholdMembership(request);
   if (!auth.ok) return auth.response;
-  const { householdId } = auth.context;
+  const { householdId, userId } = auth.context;
 
   try {
     const { ruleId } = await params;
-
-    const deleted = await prisma.rule.deleteMany({ where: { id: ruleId, householdId } });
-
-    if (deleted.count === 0) {
-      return sendError("Regra não encontrada", 404);
-    }
-
-    await createAuditLog(prisma, {
-      userId: auth.context.userId,
-      householdId,
-      action: AUDIT_ACTIONS.RULE_DELETED,
-      entityType: AUDIT_ENTITY.RULE,
-      entityId: ruleId,
-    });
-
+    const deleted = await deleteRule(prisma, ruleId, householdId, { userId, householdId });
+    if (!deleted) return sendError("Regra não encontrada", 404);
     return sendSuccess({ deleted: true });
   } catch (error) {
     console.error(error);

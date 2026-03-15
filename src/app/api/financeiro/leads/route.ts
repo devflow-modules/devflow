@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/financeiro/db";
-import { financeiroLeadCreateSchema } from "@/lib/financeiro/schema";
-import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
+import { trackLeadSubmission } from "@/analytics/growth";
+import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
+import { financeiroLeadCreateSchema } from "@/modules/financeiro/schemas";
+import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { createLead } from "@/modules/financeiro/services/leads/createLead";
 
 export async function POST(request: Request) {
   try {
@@ -16,10 +17,14 @@ export async function POST(request: Request) {
       return sendError(typeof msg === "string" ? msg : "Dados inválidos", 400);
     }
 
-    const { email, source } = parsed.data;
+    await createLead(prisma, {
+      email: parsed.data.email,
+      source: parsed.data.source,
+    });
 
-    await prisma.financeiroLead.create({
-      data: { email: email.trim().toLowerCase(), source },
+    trackLeadSubmission({
+      sessionId: parsed.data.sessionId,
+      source: parsed.data.source,
     });
 
     return sendSuccess({ message: "Cadastrado com sucesso" });
