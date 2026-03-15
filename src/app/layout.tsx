@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
-import { FloatingWhatsAppCta } from "@/components/shared/floating-whatsapp-cta";
+import { BodyChrome } from "@/components/layout/body-chrome";
 import { Analytics } from "@vercel/analytics/next";
 import { MetaPixel } from "@/components/analytics/meta-pixel";
 import "./globals.css";
@@ -99,10 +97,7 @@ export default function RootLayout({
           }}
         />
         <MetaPixel />
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
-        <FloatingWhatsAppCta />
+        <BodyChrome>{children}</BodyChrome>
         <Analytics />
       </body>
     </html>

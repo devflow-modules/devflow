@@ -1,0 +1,343 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Household {
+  id                      String                    @id @default(cuid())
+  name                    String
+  slug                    String                    @unique
+  timezone                String                    @default("America/Sao_Paulo")
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  memberships             HouseholdMembership[]
+  invites                 Invite[]
+  auditLogs               AuditLog[]
+  sources                 Source[]
+  incomes                 Income[]
+  expenses                Expense[]
+  rules                   Rule[]
+  incomeAllocationGoals   IncomeAllocationGoal[]
+  personalAllocationGoals PersonalAllocationGoal[]
+  cycles                  Cycle[]
+}
+
+model User {
+  id                     String                   @id @default(cuid())
+  supabaseId             String?                  @unique
+  email                  String                   @unique
+  name                   String?
+  avatarUrl              String?
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  memberships            HouseholdMembership[]
+  acceptedInvites        Invite[]
+  auditLogs              AuditLog[]
+  marketingEvents        MarketingEvent[]
+  personalAllocationGoals PersonalAllocationGoal[]
+}
+
+enum MembershipRole {
+  OWNER
+  MEMBER
+}
+
+model HouseholdMembership {
+  id          String           @id @default(cuid())
+  userId      String
+  householdId String
+  role        MembershipRole   @default(MEMBER)
+  createdAt   DateTime         @default(now())
+  user        User             @relation(fields: [userId], references: [id])
+  household   Household        @relation(fields: [householdId], references: [id])
+  sources     Source[]
+  @@unique([userId, householdId])
+}
+
+model Invite {
+  id              String         @id @default(cuid())
+  householdId     String
+  email           String
+  role            MembershipRole @default(MEMBER)
+  token           String         @unique
+  expiresAt       DateTime
+  createdAt       DateTime       @default(now())
+  acceptedAt      DateTime?
+  acceptedByUserId String?
+
+  household       Household      @relation(fields: [householdId], references: [id])
+  acceptedBy      User?          @relation(fields: [acceptedByUserId], references: [id])
+
+  @@index([householdId, email])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  householdId String
+  userId      String
+  action      String
+  entityType  String
+  entityId    String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  household   Household @relation(fields: [householdId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+
+  @@index([householdId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model IncomeAllocationGoal {
+  id               String   @id @default(cuid())
+  householdId      String
+  year             Int
+  month            Int
+  investmentPercent Decimal? @db.Decimal(5, 2)
+  savingsPercent    Decimal? @db.Decimal(5, 2)
+  investmentAmount  Decimal? @db.Decimal(10, 2)
+  savingsAmount     Decimal? @db.Decimal(10, 2)
+  observations     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  household        Household @relation(fields: [householdId], references: [id])
+
+  @@unique([householdId, year, month])
+  @@index([householdId, year, month])
+}
+
+model PersonalAllocationGoal {
+  id                String    @id @default(cuid())
+  userId            String
+  householdId       String
+  year             Int
+  month            Int
+  investmentPercent Decimal?  @db.Decimal(5, 2)
+  savingsPercent    Decimal?  @db.Decimal(5, 2)
+  investmentAmount  Decimal?  @db.Decimal(10, 2)
+  savingsAmount     Decimal?  @db.Decimal(10, 2)
+  observations     String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  household         Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, householdId, year, month])
+  @@index([householdId, year, month])
+  @@index([userId, householdId, year, month])
+}
+
+enum SourceType {
+  PJ
+  PF
+}
+
+model Source {
+  id            String          @id @default(cuid())
+  householdId   String
+  membershipId  String?
+  name          String
+  sourceType    SourceType
+  description   String?
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  household     Household       @relation(fields: [householdId], references: [id])
+  membership    HouseholdMembership? @relation(fields: [membershipId], references: [id])
+  paymentDays   PaymentDay[]
+  incomes       Income[]
+  expenses      Expense[]
+  ruleSources   RuleSource[]
+}
+
+enum CycleType {
+  MONTHLY
+  WEEKLY
+}
+
+model Cycle {
+  id             String       @id @default(cuid())
+  householdId    String
+  name           String
+  cycleType      CycleType    @default(MONTHLY)
+  anchorDay      Int?         // 1-31 para MONTHLY: ciclo do dia N ao dia N-1 do mês seguinte
+  anchorWeekDay  Int?         // 0-6 para WEEKLY: 0=domingo, 1=segunda, ... 6=sábado (início do ciclo)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  household      Household    @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  paymentDays    PaymentDay[]
+
+  @@index([householdId])
+}
+
+model PaymentDay {
+  id        String   @id @default(cuid())
+  sourceId  String
+  dayOfMonth Int
+  description String?
+  cycleId   String?
+  source    Source   @relation(fields: [sourceId], references: [id])
+  cycle     Cycle?   @relation(fields: [cycleId], references: [id], onDelete: SetNull)
+}
+
+enum IncomeStatus {
+  SCHEDULED
+  RECEIVED
+}
+
+model Income {
+  id          String     @id @default(cuid())
+  householdId String
+  sourceId    String?
+  amount      Decimal    @db.Decimal(10, 2)
+  receivedAt  DateTime
+  isRecurring Boolean    @default(false)
+  status      IncomeStatus @default(RECEIVED)
+  notes       String?
+  household   Household  @relation(fields: [householdId], references: [id])
+  source      Source?    @relation(fields: [sourceId], references: [id])
+}
+
+enum ExpenseStatus {
+  PENDING
+  PAID
+  SCHEDULED
+}
+
+enum MarketingChannel {
+  EMAIL
+  WHATSAPP
+}
+
+enum MarketingMessageStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+model Expense {
+  id          String        @id @default(cuid())
+  householdId String
+  sourceId    String?
+  category    String
+  amount      Decimal       @db.Decimal(10, 2)
+  dueDate     DateTime
+  paidAmount  Decimal?      @db.Decimal(10, 2)
+  paidAt      DateTime?
+  isRecurring Boolean       @default(false)
+  status      ExpenseStatus @default(PENDING)
+  note        String?
+  household   Household     @relation(fields: [householdId], references: [id])
+  source      Source?       @relation(fields: [sourceId], references: [id])
+}
+
+model FinanceiroLead {
+  id        String   @id @default(cuid())
+  email     String
+  source    String
+  createdAt DateTime @default(now())
+
+  @@index([source])
+  @@index([createdAt])
+}
+
+model MarketingLead {
+  id                 String                     @id @default(cuid())
+  email              String                     @unique
+  whatsapp           String?
+  goal               String?
+  utmSource          String?
+  utmMedium          String?
+  utmCampaign        String?
+  landingPath        String?
+  referrer           String?
+  consentEmail       Boolean                    @default(false)
+  consentWhatsapp    Boolean                    @default(false)
+  consentTextVersion String
+  consentedAt        DateTime?
+  createdAt          DateTime                   @default(now())
+  updatedAt          DateTime                   @updatedAt
+  consents           MarketingConsent[]
+  events             MarketingEvent[]
+  schedules          MarketingMessageSchedule[]
+
+  @@index([createdAt])
+}
+
+model MarketingConsent {
+  id                 String           @id @default(cuid())
+  leadId             String
+  channel            MarketingChannel
+  consentTextVersion String
+  consentedAt        DateTime         @default(now())
+  ip                 String?
+  userAgent          String?
+  createdAt          DateTime         @default(now())
+  lead               MarketingLead    @relation(fields: [leadId], references: [id])
+
+  @@index([leadId])
+}
+
+model MarketingEvent {
+  id        String        @id @default(cuid())
+  leadId    String?
+  userId    String?
+  event     String
+  payload   Json?
+  createdAt DateTime      @default(now())
+  lead      MarketingLead? @relation(fields: [leadId], references: [id])
+  user      User?         @relation(fields: [userId], references: [id])
+
+  @@index([leadId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model MarketingMessageSchedule {
+  id           String                 @id @default(cuid())
+  leadId       String
+  channel      MarketingChannel
+  templateKey  String
+  status       MarketingMessageStatus @default(PENDING)
+  scheduledFor DateTime
+  sentAt       DateTime?
+  lastError    String?
+  createdAt    DateTime               @default(now())
+  lead         MarketingLead          @relation(fields: [leadId], references: [id])
+
+  @@index([leadId])
+  @@index([channel, status, scheduledFor])
+  @@unique([leadId, channel, templateKey])
+}
+
+enum RuleType {
+  CATEGORY_PERCENTAGE
+  FIXED_PER_MEMBER
+}
+
+model Rule {
+  id                 String        @id @default(cuid())
+  householdId        String
+  name               String
+  description        String?
+  ruleType           RuleType
+  percentage         Decimal?      @db.Decimal(5, 2)
+  fixedAmount        Decimal?      @db.Decimal(10, 2)
+  referenceCategory  String?
+  createdAt          DateTime      @default(now())
+  household          Household     @relation(fields: [householdId], references: [id])
+  ruleSources        RuleSource[]
+}
+
+model RuleSource {
+  id        String   @id @default(cuid())
+  ruleId    String
+  sourceId  String
+  share     Decimal? @db.Decimal(5, 2)
+  rule      Rule     @relation(fields: [ruleId], references: [id])
+  source    Source   @relation(fields: [sourceId], references: [id])
+}

@@ -1,0 +1,1 @@
+-- No schema change; baseline sync after reset (evita prompt "Enter a name for the new migration").

@@ -1,0 +1,100 @@
+import { NextRequest } from "next/server";
+import { prisma } from "@/lib/financeiro/db";
+import { sendError, sendSuccess } from "@/lib/financeiro/api-response";
+import { incomeUpdateSchema } from "@/lib/financeiro/schema";
+import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
+import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
+import { AUDIT_ACTIONS, AUDIT_ENTITY, createAuditLog } from "@/lib/audit";
+import { dateInputToDate } from "@/lib/dates";
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ incomeId: string }> }
+) {
+  const sameOrigin = assertSameOrigin(request);
+  if (sameOrigin) return sameOrigin;
+  const auth = await requireHouseholdMembership(request);
+  if (!auth.ok) return auth.response;
+  const { householdId } = auth.context;
+
+  try {
+    const { incomeId } = await params;
+    const payload = await request.json();
+
+    const parseResult = incomeUpdateSchema.safeParse(payload);
+
+    if (!parseResult.success) {
+      return sendError(parseResult.error.message, 400, parseResult.error.format());
+    }
+
+    const data = {
+      ...parseResult.data,
+      ...(parseResult.data.receivedAt
+        ? { receivedAt: dateInputToDate(parseResult.data.receivedAt) }
+        : {}),
+    };
+
+    const result = await prisma.income.updateMany({
+      where: { id: incomeId, householdId },
+      data,
+    });
+
+    if (result.count === 0) {
+      return sendError("Receita não encontrada", 404);
+    }
+
+    const updated = await prisma.income.findUnique({ where: { id: incomeId } });
+
+    if (updated) {
+      await createAuditLog(prisma, {
+        userId: auth.context.userId,
+        householdId,
+        action: AUDIT_ACTIONS.INCOME_UPDATED,
+        entityType: AUDIT_ENTITY.INCOME,
+        entityId: updated.id,
+        metadata: { amount: updated.amount, receivedAt: updated.receivedAt },
+      });
+    }
+
+    return sendSuccess(updated);
+  } catch (error) {
+    console.error(error);
+    return sendError("Não foi possível atualizar a receita", 500, error);
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ incomeId: string }> }
+) {
+  const sameOrigin = assertSameOrigin(request);
+  if (sameOrigin) return sameOrigin;
+  const auth = await requireHouseholdMembership(request);
+  if (!auth.ok) return auth.response;
+  const { householdId } = auth.context;
+
+  try {
+    const { incomeId } = await params;
+
+    const deleted = await prisma.income.deleteMany({
+      where: { id: incomeId, householdId },
+    });
+
+    if (deleted.count === 0) {
+      return sendError("Receita não encontrada", 404);
+    }
+
+    await createAuditLog(prisma, {
+      userId: auth.context.userId,
+      householdId,
+      action: AUDIT_ACTIONS.INCOME_DELETED,
+      entityType: AUDIT_ENTITY.INCOME,
+      entityId: incomeId,
+    });
+
+    return sendSuccess({ deleted: true });
+  } catch (error) {
+    console.error(error);
+    return sendError("Não foi possível remover a receita", 500, error);
+  }
+}

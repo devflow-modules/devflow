@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Section } from "@/components/layout/Section";
+import { SimuladorRapidoFinanceiro } from "@/components/financeiro/SimuladorRapidoFinanceiro";
+import { LeadCaptureForm } from "@/components/financeiro/LeadCaptureForm";
 import { FinanceiroTools } from "@/components/financeiro/FinanceiroTools";
 
 const baseUrl = "https://devflowlabs.com.br";
@@ -65,7 +67,23 @@ export default function FinanceiroPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
       />
 
-      <Section aria-label="Hero">
+      <Section aria-label="Simulador" className="py-16 sm:py-20">
+        <div className="mx-auto max-w-3xl">
+          <SimuladorRapidoFinanceiro />
+        </div>
+      </Section>
+
+      <Section aria-labelledby="lead-capture">
+        <div className="mx-auto max-w-2xl">
+          <LeadCaptureForm
+            source="simulator"
+            title="Receba novas ferramentas financeiras e melhorias"
+            buttonLabel="Quero receber"
+          />
+        </div>
+      </Section>
+
+      <Section alternate aria-label="Hero">
         <div className="mx-auto max-w-2xl">
           <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Controle Financeiro Pessoal
@@ -74,12 +92,26 @@ export default function FinanceiroPage() {
             Organize receitas, despesas e planeje o mês. Ferramentas gratuitas
             para quem quer clareza sobre o dinheiro sem planilhas que quebram.
           </p>
-          <Link
-            href="/ferramentas"
-            className="mt-6 inline-flex items-center text-sm font-medium text-primary hover:underline"
-          >
-            ← Voltar ao hub de ferramentas
-          </Link>
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Link
+              href="/ferramentas/financeiro/auth"
+              className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+            >
+              Entrar ou criar conta
+            </Link>
+            <Link
+              href="/planilha-vs-app-financeiro"
+              className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+            >
+              Planilha vs aplicativo financeiro
+            </Link>
+            <Link
+              href="/ferramentas"
+              className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+            >
+              ← Voltar ao hub
+            </Link>
+          </div>
         </div>
       </Section>
 
@@ -120,7 +152,7 @@ export default function FinanceiroPage() {
         </Link>
       </Section>
 
-      <Section alternate aria-labelledby="faq">
+      <Section aria-labelledby="faq">
         <h2
           id="faq"
           className="text-2xl font-semibold tracking-tight text-foreground"
@@ -138,6 +170,18 @@ export default function FinanceiroPage() {
             </div>
           ))}
         </dl>
+      </Section>
+
+      <Section alternate aria-labelledby="early-access">
+        <div className="mx-auto max-w-xl">
+          <LeadCaptureForm
+            source="early_access"
+            title="Estamos lançando novos recursos do Financeiro DevFlow"
+            description="Entre na lista de acesso antecipado"
+            buttonLabel="Quero participar"
+            variant="footer"
+          />
+        </div>
       </Section>
     </div>
   );
