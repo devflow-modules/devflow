@@ -60,7 +60,7 @@ export async function requireHouseholdMembership(
   });
   const cookieStore = request.cookies.get(ACTIVE_HOUSEHOLD_COOKIE)?.value;
   const activeHouseholdId =
-    cookieStore && memberships.some((m) => m.householdId === cookieStore)
+    cookieStore && memberships.some((m: { householdId: string }) => m.householdId === cookieStore)
       ? cookieStore
       : memberships[0]?.householdId ?? null;
 
@@ -88,7 +88,7 @@ export async function requireHouseholdMembership(
     };
   }
 
-  const membership = memberships.find((m) => m.householdId === activeHouseholdId);
+  const membership = memberships.find((m: { householdId: string }) => m.householdId === activeHouseholdId);
   if (!membership) {
     return {
       ok: false,
