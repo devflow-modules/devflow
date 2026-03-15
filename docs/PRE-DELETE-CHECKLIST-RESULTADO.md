@@ -1,6 +1,6 @@
 # Resultado da Execução — PRE-DELETE-VERCEL-CHECKLIST
 
-**Data:** 2025-03-14  
+**Data:** 2025-03-14 (atualizado)  
 **Domínio testado:** https://devflowlabs.com.br
 
 ---
@@ -9,66 +9,74 @@
 
 | Bloco | Status | Observação |
 |-------|--------|------------|
-| 1. Rotas | ❌ Falhou | Produção não tem o módulo financeiro completo |
-| 2. APIs | ❌ Falhou | APIs do financeiro retornam 404 |
-| 3. Banco | ⚠️ Não testado | DATABASE_URL não configurada localmente |
+| 1. Rotas | ✅ OK | Todas carregam 200 |
+| 2. APIs | ⚠️ Parcial | health OK; leads e me retornam 500 |
+| 3. Banco | ⚠️ Não validado | Depende de DATABASE_URL no Vercel |
 
-**Conclusão: NÃO apague o projeto antigo da Vercel.** A produção atual não contém o módulo financeiro migrado.
+**Conclusão:** Rotas OK. APIs que usam banco (leads, me) falham — provável ausência de `DATABASE_URL` ou migrations não aplicadas no banco de produção.
 
 ---
 
-## 1. Rotas em produção
+## 1. Rotas em produção ✅
 
 | Rota | HTTP | Resultado |
 |------|------|-----------|
-| `/ferramentas/financeiro` | 200 | ✅ Carrega (layout antigo, sem simulador) |
-| `/ferramentas/financeiro/auth` | 404 | ❌ Não encontrada |
-| `/ferramentas/financeiro/dashboard` | 404 | ❌ Não encontrada |
-| `/ferramentas/divisao-de-contas` | 200 | ✅ OK |
-| `/planilha-vs-app-financeiro` | 404 | ❌ Não encontrada |
-
-**Diagnóstico:** O deploy em produção parece ser uma versão anterior ao módulo financeiro completo. As rotas `auth`, `dashboard`, `expenses`, `sources`, `rules`, `settings` e `planilha-vs-app-financeiro` não existem na produção.
+| `/ferramentas/financeiro` | 200 | ✅ Landing + simulador + lead capture |
+| `/ferramentas/financeiro/auth` | 200 | ✅ Login/cadastro |
+| `/ferramentas/financeiro/dashboard` | 200 | ✅ AppShell, sidebar |
+| `/ferramentas/financeiro/expenses` | 200 | ✅ |
+| `/ferramentas/financeiro/sources` | 200 | ✅ |
+| `/ferramentas/financeiro/rules` | 200 | ✅ |
+| `/ferramentas/financeiro/settings` | 200 | ✅ |
+| `/ferramentas/divisao-de-contas` | 200 | ✅ |
+| `/planilha-vs-app-financeiro` | 200 | ✅ |
 
 ---
 
-## 2. APIs críticas
+## 2. APIs críticas ⚠️
 
 | Endpoint | HTTP | Resultado |
 |----------|------|-----------|
-| POST `/api/financeiro/leads` | 404 | ❌ Não encontrada |
-| GET `/api/health` | 404 | ❌ Não encontrada |
+| GET `/api/health` | 200 | ✅ OK |
+| POST `/api/financeiro/leads` | 500 | ❌ "Não foi possível salvar" |
+| GET `/api/me` | 500 | ❌ Esperado 401 sem auth; 500 indica erro de DB/Supabase |
 
-**Diagnóstico:** As API routes do financeiro não estão deployadas em produção.
+**Diagnóstico:** APIs que usam Prisma (leads) ou Supabase + Prisma (me) retornam 500. Provável causa:
+- `DATABASE_URL` não configurada no Vercel
+- Ou migrations não aplicadas no banco de produção (`FinanceiroLead` pode não existir)
 
 ---
 
-## 3. Banco e migrations
+## 3. Banco e migrations ⚠️
 
-- `pnpm prisma migrate status` → falhou: DATABASE_URL não configurada no ambiente local
-- Migration `20250311000000_add_financeiro_lead` existe no código
-- Tabela `FinanceiroLead` está no schema Prisma
+- Não foi possível validar remotamente.
+- **Ação necessária:** Em produção, com `DATABASE_URL` configurada:
+  1. Rodar `pnpm prisma migrate deploy`
+  2. Confirmar existência das tabelas (FinanceiroLead, Expense, etc.)
 
-**Ação necessária:** Rodar `pnpm prisma migrate deploy` no ambiente de produção (ou com DATABASE_URL de produção) após o próximo deploy.
+---
+
+## Envs necessárias no Vercel
+
+Para o checklist passar 100%:
+
+| Variável | Obrigatória para |
+|----------|------------------|
+| `DATABASE_URL` | Leads, /api/me, dashboard, expenses, etc. |
+| `NEXT_PUBLIC_SUPABASE_URL` | Auth (login, sessão) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Auth |
 
 ---
 
 ## Próximos passos
 
-Para o checklist passar:
-
-1. **Deploy do código atual** para produção (branch `main` ou o que estiver configurado na Vercel)
-2. **Configurar variáveis de ambiente** na Vercel:
-   - `DATABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-3. **Rodar migrations** após o deploy: `pnpm prisma migrate deploy` (ou via script de build)
-4. **Reexecutar o checklist** em produção
-5. Se tudo passar → renomear projeto antigo → esperar 24h → deletar → tag
+1. **Configurar** `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` no Vercel (Settings → Environment Variables)
+2. **Rodar** `pnpm prisma migrate deploy` contra o banco de produção
+3. **Reexecutar** testes de POST `/api/financeiro/leads` e GET `/api/me`
+4. Se APIs passarem → checklist 100% → seguir sequência segura de desligamento
 
 ---
 
-## Verificação local (dev)
+## Pode apagar o projeto antigo?
 
-- Build: ✅ Passa (`pnpm build`)
-- Rotas locais: 500 (middleware falha sem Supabase configurado)
-- Necessário `.env.local` com Supabase para testar localmente
+**Ainda não.** As APIs de banco precisam funcionar (leads, me). Após configurar envs e migrations, reexecutar o checklist.
