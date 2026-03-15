@@ -3,11 +3,11 @@ import { NextResponse, type NextRequest } from "next/server";
 
 type CookieOption = { name: string; value: string; options?: Record<string, unknown> };
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
 const protectedPaths = [
   "/ferramentas/financeiro/dashboard",
@@ -21,6 +21,10 @@ const isProtected = (pathname: string) =>
   protectedPaths.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
 export async function updateSession(request: NextRequest) {
+  if (!supabaseUrl || !supabaseKey) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(supabaseUrl, supabaseKey, {
