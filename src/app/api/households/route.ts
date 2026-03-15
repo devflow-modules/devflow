@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     const householdCount = await prisma.householdMembership.count({
       where: { userId: auth.userId },
     });
-    if (!BillingService.checkLimit(auth.userId, "households", householdCount)) {
+    if (!(await BillingService.checkLimit(auth.userId, "households", householdCount))) {
       return sendError(
         "Limite de casas do seu plano atingido. Faça upgrade para criar mais.",
         402,

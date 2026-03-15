@@ -1,19 +1,32 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 import { trackUpgradeClicked } from "@/modules/billing/billingAnalytics";
-type PlanIdPaid = "PRO" | "TEAM";
+import type { PlanId } from "@/modules/billing/plans";
 
 type Props = {
-  planId?: PlanIdPaid;
-  children?: React.ReactNode;
+  planId: PlanId;
+  isPro: boolean;
 };
 
-export function UpgradeCta({ planId = "PRO", children }: Props) {
+export function PricingPlanCta({ planId, isPro }: Props) {
   const [loading, setLoading] = useState(false);
 
+  if (planId === "FREE") {
+    return (
+      <Link
+        href="/ferramentas/financeiro"
+        className="inline-block w-full rounded-xl border border-border bg-background px-4 py-2.5 text-center text-sm font-medium text-foreground hover:bg-muted"
+      >
+        Começar grátis
+      </Link>
+    );
+  }
+
   const handleUpgrade = async () => {
-    trackUpgradeClicked({});
+    trackUpgradeClicked({ plan: planId });
     setLoading(true);
     try {
       const res = await fetch("/api/billing/checkout", {
@@ -46,9 +59,14 @@ export function UpgradeCta({ planId = "PRO", children }: Props) {
       type="button"
       onClick={handleUpgrade}
       disabled={loading}
-      className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-70"
+      className={cn(
+        "inline-block w-full rounded-xl px-4 py-2.5 text-center text-sm font-semibold disabled:opacity-70",
+        isPro
+          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+          : "border border-border bg-background text-foreground hover:bg-muted"
+      )}
     >
-      {loading ? "Redirecionando..." : children ?? "Upgrade para PRO"}
+      {loading ? "Redirecionando..." : "Fazer upgrade"}
     </button>
   );
 }

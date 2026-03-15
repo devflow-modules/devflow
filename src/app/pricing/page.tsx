@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Check } from "lucide-react";
 import { Plans, type PlanId } from "@/modules/billing/plans";
 import { PricingViewTracker } from "./PricingViewTracker";
+import { PricingPlanCta } from "./PricingPlanCta";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -76,26 +76,7 @@ export default function PricingPage() {
                   </li>
                 </ul>
                 <div className="mt-6">
-                  {id === "FREE" ? (
-                    <Link
-                      href="/ferramentas/financeiro"
-                      className="inline-block w-full rounded-xl border border-border bg-background px-4 py-2.5 text-center text-sm font-medium text-foreground hover:bg-muted"
-                    >
-                      Começar grátis
-                    </Link>
-                  ) : (
-                    <Link
-                      href="/upgrade"
-                      className={cn(
-                        "inline-block w-full rounded-xl px-4 py-2.5 text-center text-sm font-semibold",
-                        isPro
-                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                          : "border border-border bg-background text-foreground hover:bg-muted"
-                      )}
-                    >
-                      Fazer upgrade
-                    </Link>
-                  )}
+                  <PricingPlanCta planId={id} isPro={isPro} />
                 </div>
               </div>
             );
@@ -103,7 +84,7 @@ export default function PricingPage() {
         </div>
 
         <p className="mt-10 text-center text-sm text-muted-foreground">
-          Sem gateway de pagamento integrado ainda. Contato para planos PRO e TEAM.
+          Pagamento seguro via Stripe. Redirecionamos você ao checkout para PRO e TEAM.
         </p>
       </main>
     </div>

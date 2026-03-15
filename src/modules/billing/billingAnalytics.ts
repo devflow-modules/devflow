@@ -23,3 +23,24 @@ export function trackUpgradeClicked(context: BillingAnalyticsContext = {}): void
     console.info("[billing.analytics]", "billing.upgrade_clicked", context);
   }
 }
+
+export function trackCheckoutStarted(context: { userId?: string; planId?: string } = {}): void {
+  increment("devflow.billing.checkout_started");
+  if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
+    console.info("[billing.analytics]", "billing.checkout_started", context);
+  }
+}
+
+export function trackPaymentCompleted(context: { userId?: string; planId?: string } = {}): void {
+  increment("devflow.billing.payment_completed");
+  if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
+    console.info("[billing.analytics]", "billing.payment_completed", context);
+  }
+}
+
+export function trackSubscriptionCancelled(context: { userId?: string } = {}): void {
+  increment("devflow.billing.subscription_cancelled");
+  if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
+    console.info("[billing.analytics]", "billing.subscription_cancelled", context);
+  }
+}

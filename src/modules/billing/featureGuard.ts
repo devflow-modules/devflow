@@ -17,11 +17,11 @@ const FEATURE_TO_PLAN: Record<FeatureName, string> = {
   analytics: "PRO",
 };
 
-export function requireFeature(
+export async function requireFeature(
   userId: string,
   featureName: FeatureName
-): FeatureGuardError | null {
-  const hasAccess = BillingService.checkFeature(userId, featureName);
+): Promise<FeatureGuardError | null> {
+  const hasAccess = await BillingService.checkFeature(userId, featureName);
   if (hasAccess) return null;
   return {
     error: "feature_not_available",

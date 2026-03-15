@@ -1,44 +1,42 @@
 /**
  * Serviço de billing: plano do usuário, limites e features.
- * Inicialmente todos os usuários são FREE; preparado para persistência futura.
+ * Usa BillingRepository para persistência (tabela UserPlan).
  */
 
 import { Plans, type PlanId, type FeatureName, type LimitType } from "./plans";
+import * as BillingRepository from "./BillingRepository";
 
-/** Em memória: userId -> planId. Futuro: buscar de assinatura/DB. */
-const userPlans = new Map<string, PlanId>();
-
-function getUserPlan(userId: string): PlanId {
-  return userPlans.get(userId) ?? "FREE";
+export async function getUserPlan(userId: string): Promise<PlanId> {
+  return BillingRepository.getUserPlan(userId);
 }
 
-function setUserPlan(userId: string, planId: PlanId): void {
-  userPlans.set(userId, planId);
+export async function setUserPlan(userId: string, planId: PlanId): Promise<void> {
+  await BillingRepository.setUserPlan(userId, planId);
 }
 
-function resetUserPlan(userId: string): void {
-  userPlans.delete(userId);
+export async function resetUserPlan(userId: string): Promise<void> {
+  await BillingRepository.setUserPlan(userId, "FREE");
 }
 
-function checkFeature(userId: string, featureName: FeatureName): boolean {
-  const planId = getUserPlan(userId);
+export async function checkFeature(userId: string, featureName: FeatureName): Promise<boolean> {
+  const planId = await getUserPlan(userId);
   const plan = Plans[planId];
   return plan.features[featureName] === true;
 }
 
-function checkLimit(
+export async function checkLimit(
   userId: string,
   limitType: LimitType,
   currentCount: number
-): boolean {
-  const planId = getUserPlan(userId);
+): Promise<boolean> {
+  const planId = await getUserPlan(userId);
   const plan = Plans[planId];
   const max = limitType === "households" ? plan.maxHouseholds : plan.maxRules;
   return currentCount < max;
 }
 
-function getLimit(userId: string, limitType: LimitType): number {
-  const planId = getUserPlan(userId);
+export async function getLimit(userId: string, limitType: LimitType): Promise<number> {
+  const planId = await getUserPlan(userId);
   const plan = Plans[planId];
   return limitType === "households" ? plan.maxHouseholds : plan.maxRules;
 }

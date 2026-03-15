@@ -44,7 +44,7 @@ export default function UpgradePage() {
         </div>
 
         <p className="mt-8 text-center text-sm text-muted-foreground">
-          Pagamento em breve. Entre em contato para PRO ou TEAM.
+          Você será redirecionado ao checkout seguro para concluir o upgrade.
         </p>
         <p className="mt-2 text-center">
           <Link href="/pricing" className="text-sm text-primary hover:underline">

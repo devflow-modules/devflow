@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     }
     // BILLING_SOFT_CHECK: limite de regras por plano (removível)
     const existingRules = await listRules(prisma, householdId);
-    if (!BillingService.checkLimit(userId, "rules", existingRules.length)) {
+    if (!(await BillingService.checkLimit(userId, "rules", existingRules.length))) {
       return sendError(
         "Limite de regras do seu plano atingido. Faça upgrade para criar mais.",
         402,
