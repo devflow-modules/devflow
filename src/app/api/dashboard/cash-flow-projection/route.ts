@@ -95,11 +95,11 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    const activeSourceIds = new Set(sources.map((s) => s.id));
+    const activeSourceIds = new Set(sources.map((s: { id: string }) => s.id));
 
     // moving average of monthly sums (last N months) per source
     const { estimateBySource: incomeEstimateBySource } = computeMonthlyAverageBySource({
-      incomes: incomesForAverage.map((i) => ({
+      incomes: incomesForAverage.map((i: { sourceId: string | null; amount: unknown; receivedAt: Date }) => ({
         sourceId: i.sourceId,
         amount: Number(i.amount ?? 0),
         receivedAt: i.receivedAt,
