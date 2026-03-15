@@ -22,7 +22,7 @@ export async function GET(
       orderBy: { createdAt: "asc" },
     });
 
-    const members = memberships.map((m) => ({
+    const members = memberships.map((m: { id: string; userId: string; user: { email: string; name: string | null }; role: string; createdAt: Date }) => ({
       membershipId: m.id,
       userId: m.userId,
       email: m.user.email,
