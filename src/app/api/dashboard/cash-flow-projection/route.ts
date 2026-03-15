@@ -110,8 +110,15 @@ export async function GET(request: NextRequest) {
     });
 
     // starting balance up to 'from'
-    const totalIncomesBefore = incomesBefore.reduce((acc, i) => acc + Number(i.amount ?? 0), 0);
-    const totalExpensesBefore = expensesBefore.reduce((acc, e) => (e.status === "PAID" ? acc : acc + Number(e.amount ?? 0)), 0);
+    const totalIncomesBefore = incomesBefore.reduce(
+      (acc: number, i: { amount: unknown }) => acc + Number(i.amount ?? 0),
+      0
+    );
+    const totalExpensesBefore = expensesBefore.reduce(
+      (acc: number, e: { amount: unknown; status: string }) =>
+        e.status === "PAID" ? acc : acc + Number(e.amount ?? 0),
+      0
+    );
     const startingBalance = totalIncomesBefore - totalExpensesBefore;
 
     const expectedIncomeByDay = new Map<string, number>();
