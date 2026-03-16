@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { MetricsCard, MetricsSection, FunnelVisualization } from "@/components/admin/metrics";
+import {
+  MetricsCard,
+  MetricsSection,
+  FunnelVisualization,
+  PlanDistributionChart,
+} from "@/components/admin/metrics";
 import type { MetricsPayload } from "./actions";
 import { getMetrics } from "./actions";
 
@@ -9,6 +14,15 @@ type Props = { initialData: MetricsPayload };
 
 function get(g: Record<string, number>, key: string): number {
   return g[key] ?? 0;
+}
+
+function formatBRL(value: number): string {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function formatPct(value: number): string {
+  if (value === 0) return "0%";
+  return `${value.toFixed(2)}%`;
 }
 
 export function MetricsDashboardClient({ initialData }: Props) {
@@ -32,6 +46,7 @@ export function MetricsDashboardClient({ initialData }: Props) {
 
   const growth = data.growth.metrics;
   const finance = data.finance.metrics;
+  const revenue = data.revenue;
 
   const visitors = get(growth, "devflow.visitors.count");
   const simulator = get(growth, "devflow.simulator.usage");
@@ -73,7 +88,43 @@ export function MetricsDashboardClient({ initialData }: Props) {
         </button>
       </div>
 
-      <MetricsSection title="Finance Metrics">
+      {/* ------------------------------------------------------------------ */}
+      {/* Revenue                                                              */}
+      {/* ------------------------------------------------------------------ */}
+      <MetricsSection title="Revenue">
+        <MetricsCard label="MRR" value={formatBRL(revenue.totalMRR)} />
+        <MetricsCard label="ARR" value={formatBRL(revenue.totalARR)} />
+        <MetricsCard label="ARPU" value={formatBRL(revenue.arpu)} />
+        <MetricsCard label="Churn rate" value={formatPct(revenue.churnRate)} />
+        <MetricsCard label="Upgrade rate" value={formatPct(revenue.upgradeRate)} />
+        <MetricsCard label="MRR — PRO" value={formatBRL(revenue.proMRR)} />
+        <MetricsCard label="MRR — TEAM" value={formatBRL(revenue.teamMRR)} />
+      </MetricsSection>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Plan Distribution Chart                                              */}
+      {/* ------------------------------------------------------------------ */}
+      <section className="mt-10 space-y-4">
+        <h2 className="text-lg font-semibold text-foreground">Distribuição de Planos</h2>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <PlanDistributionChart
+            freeUsers={revenue.planDistribution.freeUsers}
+            proUsers={revenue.planDistribution.proUsers}
+            teamUsers={revenue.planDistribution.teamUsers}
+          />
+          <div className="grid grid-cols-2 gap-4 content-start">
+            <MetricsCard label="Usuários FREE" value={revenue.planDistribution.freeUsers} />
+            <MetricsCard label="Usuários PRO" value={revenue.planDistribution.proUsers} />
+            <MetricsCard label="Usuários TEAM" value={revenue.planDistribution.teamUsers} />
+            <MetricsCard label="Total pagantes" value={revenue.planDistribution.totalPaid} />
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Finance Metrics                                                       */}
+      {/* ------------------------------------------------------------------ */}
+      <MetricsSection title="Finance Metrics" className="mt-10">
         <MetricsCard label="Expenses created" value={get(finance, "finance.tool.expenses.usage")} />
         <MetricsCard label="Incomes created" value={get(finance, "finance.tool.incomes.usage")} />
         <MetricsCard label="Rules created" value={get(finance, "finance.feature.rules.created")} />
@@ -83,6 +134,9 @@ export function MetricsDashboardClient({ initialData }: Props) {
         <MetricsCard label="Incomes (domain)" value={get(finance, "finance.incomes.created.count")} />
       </MetricsSection>
 
+      {/* ------------------------------------------------------------------ */}
+      {/* Growth Funnel                                                         */}
+      {/* ------------------------------------------------------------------ */}
       <MetricsSection title="Growth Funnel" className="mt-10">
         <MetricsCard label="Visitors" value={visitors} />
         <MetricsCard label="Simulator usage" value={simulator} />
@@ -99,6 +153,9 @@ export function MetricsDashboardClient({ initialData }: Props) {
         </div>
       </section>
 
+      {/* ------------------------------------------------------------------ */}
+      {/* Activation                                                            */}
+      {/* ------------------------------------------------------------------ */}
       <MetricsSection title="Activation" className="mt-10">
         <MetricsCard label="First expense" value={activationExpense} />
         <MetricsCard label="First income" value={activationIncome} />
