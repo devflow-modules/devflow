@@ -51,6 +51,12 @@ export default function UpgradePage() {
             Ver todos os planos
           </Link>
         </p>
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          Já é assinante?{" "}
+          <Link href="/billing" className="text-primary hover:underline">
+            Gerencie sua assinatura
+          </Link>
+        </p>
       </main>
     </div>
   );

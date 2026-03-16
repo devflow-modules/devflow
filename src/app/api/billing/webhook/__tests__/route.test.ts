@@ -11,20 +11,32 @@ vi.mock("@/modules/billing/BillingService", () => ({
   },
 }));
 
+vi.mock("@/modules/billing/BillingProfileRepository", () => ({
+  upsertProfile: vi.fn().mockResolvedValue(undefined),
+  updateSubscriptionId: vi.fn().mockResolvedValue(undefined),
+  clearSubscriptionId: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock("@/modules/billing/billingAnalytics", () => ({
   trackPaymentCompleted: vi.fn(),
   trackSubscriptionCancelled: vi.fn(),
+  trackSubscriptionCancelledPortal: vi.fn(),
+  trackSubscriptionUpdatedPortal: vi.fn(),
 }));
 
 import { POST } from "../route";
 import { validateWebhook, parseWebhookEvent } from "@/modules/billing/adapters/payment/StripeAdapter";
 import { BillingService } from "@/modules/billing/BillingService";
+import * as BillingProfileRepository from "@/modules/billing/BillingProfileRepository";
 
 describe("POST /api/billing/webhook", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.mocked(validateWebhook).mockReset();
     vi.mocked(parseWebhookEvent).mockReset();
     vi.mocked(BillingService.setUserPlan).mockResolvedValue(undefined);
+    vi.mocked(BillingProfileRepository.upsertProfile).mockResolvedValue(undefined as never);
+    vi.mocked(BillingProfileRepository.clearSubscriptionId).mockResolvedValue(undefined);
   });
 
   it("retorna 400 quando stripe-signature está ausente", async () => {
@@ -51,7 +63,34 @@ describe("POST /api/billing/webhook", () => {
     expect(await res.text()).toBe("Invalid signature");
   });
 
-  it("retorna 200 e atualiza plano em checkout.session.completed", async () => {
+  it("atualiza plano e persiste profile em checkout.session.completed", async () => {
+    const fakeEvent = { type: "checkout.session.completed", data: {} };
+    vi.mocked(validateWebhook).mockReturnValue(fakeEvent as never);
+    vi.mocked(parseWebhookEvent).mockReturnValue({
+      type: "checkout.session.completed",
+      userId: "user-1",
+      planId: "PRO",
+      stripeCustomerId: "cus_123",
+      subscriptionId: "sub_456",
+    });
+
+    const req = new Request("http://localhost/api/billing/webhook", {
+      method: "POST",
+      headers: { "stripe-signature": "v1,valid" },
+      body: "{}",
+    });
+    const res = await POST(req as Parameters<typeof POST>[0]);
+
+    expect(res.status).toBe(200);
+    expect(BillingService.setUserPlan).toHaveBeenCalledWith("user-1", "PRO");
+    expect(BillingProfileRepository.upsertProfile).toHaveBeenCalledWith(
+      "user-1",
+      "cus_123",
+      "sub_456"
+    );
+  });
+
+  it("não chama upsertProfile quando stripeCustomerId está ausente", async () => {
     const fakeEvent = { type: "checkout.session.completed", data: {} };
     vi.mocked(validateWebhook).mockReturnValue(fakeEvent as never);
     vi.mocked(parseWebhookEvent).mockReturnValue({
@@ -65,18 +104,19 @@ describe("POST /api/billing/webhook", () => {
       headers: { "stripe-signature": "v1,valid" },
       body: "{}",
     });
-    const res = await POST(req as Parameters<typeof POST>[0]);
+    await POST(req as Parameters<typeof POST>[0]);
 
-    expect(res.status).toBe(200);
-    expect(BillingService.setUserPlan).toHaveBeenCalledWith("user-1", "PRO");
+    expect(BillingProfileRepository.upsertProfile).not.toHaveBeenCalled();
   });
 
-  it("retorna 200 e define FREE em customer.subscription.deleted", async () => {
+  it("define FREE e limpa subscriptionId em customer.subscription.deleted", async () => {
     const fakeEvent = { type: "customer.subscription.deleted", data: {} };
     vi.mocked(validateWebhook).mockReturnValue(fakeEvent as never);
     vi.mocked(parseWebhookEvent).mockReturnValue({
       type: "customer.subscription.deleted",
       userId: "user-1",
+      stripeCustomerId: "cus_123",
+      subscriptionId: "sub_456",
     });
 
     const req = new Request("http://localhost/api/billing/webhook", {
@@ -88,6 +128,7 @@ describe("POST /api/billing/webhook", () => {
 
     expect(res.status).toBe(200);
     expect(BillingService.setUserPlan).toHaveBeenCalledWith("user-1", "FREE");
+    expect(BillingProfileRepository.clearSubscriptionId).toHaveBeenCalledWith("user-1");
   });
 
   it("retorna 200 quando parseWebhookEvent retorna null", async () => {

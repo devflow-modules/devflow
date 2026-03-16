@@ -44,3 +44,31 @@ export function trackSubscriptionCancelled(context: { userId?: string } = {}): v
     console.info("[billing.analytics]", "billing.subscription_cancelled", context);
   }
 }
+
+export function trackSubscriptionManageClicked(context: BillingAnalyticsContext = {}): void {
+  increment("devflow.billing.subscription_manage_clicked");
+  if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
+    console.info("[billing.analytics]", "billing.subscription_manage_clicked", context);
+  }
+}
+
+export function trackCustomerPortalOpened(context: { userId?: string } = {}): void {
+  increment("devflow.billing.customer_portal_opened");
+  if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
+    console.info("[billing.analytics]", "billing.customer_portal_opened", context);
+  }
+}
+
+export function trackSubscriptionCancelledPortal(context: { userId?: string } = {}): void {
+  increment("devflow.billing.subscription_cancelled_portal");
+  if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
+    console.info("[billing.analytics]", "billing.subscription_cancelled_portal", context);
+  }
+}
+
+export function trackSubscriptionUpdatedPortal(context: { userId?: string; planId?: string } = {}): void {
+  increment("devflow.billing.subscription_updated_portal");
+  if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
+    console.info("[billing.analytics]", "billing.subscription_updated_portal", context);
+  }
+}

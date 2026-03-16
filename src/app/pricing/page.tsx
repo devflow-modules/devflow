@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Check } from "lucide-react";
 import { Plans, type PlanId } from "@/modules/billing/plans";
 import { PricingViewTracker } from "./PricingViewTracker";
@@ -85,6 +86,12 @@ export default function PricingPage() {
 
         <p className="mt-10 text-center text-sm text-muted-foreground">
           Pagamento seguro via Stripe. Redirecionamos você ao checkout para PRO e TEAM.
+        </p>
+        <p className="mt-3 text-center text-sm text-muted-foreground">
+          Já é assinante?{" "}
+          <Link href="/billing" className="text-primary hover:underline">
+            Gerencie sua assinatura
+          </Link>
         </p>
       </main>
     </div>

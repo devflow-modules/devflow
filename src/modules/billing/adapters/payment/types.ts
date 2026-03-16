@@ -22,10 +22,30 @@ export type WebhookParsedEvent = {
   userId?: string;
   planId?: PlanIdPaid;
   subscriptionId?: string;
+  stripeCustomerId?: string;
 };
 
 export type PaymentAdapter = {
   createCheckoutSession(params: CreateCheckoutParams): Promise<CreateCheckoutResult>;
   validateWebhook(signature: string, payload: string | Buffer): Promise<unknown>;
   parseWebhookEvent(payload: unknown): WebhookParsedEvent | null;
+};
+
+// ---------------------------------------------------------------------------
+// Customer Portal
+// ---------------------------------------------------------------------------
+
+export type CreateCustomerPortalParams = {
+  stripeCustomerId: string;
+  returnUrl: string;
+};
+
+export type CreateCustomerPortalResult = {
+  portalUrl: string;
+};
+
+export type CustomerPortalAdapter = {
+  createCustomerPortalSession(
+    params: CreateCustomerPortalParams
+  ): Promise<CreateCustomerPortalResult>;
 };

@@ -93,25 +93,36 @@ export function parseWebhookEvent(event: Stripe.Event): WebhookParsedEvent | nul
     const session = event.data.object as Stripe.Checkout.Session;
     const userId = (session.metadata?.userId ?? session.client_reference_id) as string | undefined;
     const planId = session.metadata?.planId as PlanIdPaid | undefined;
-    return { type, userId, planId };
+    const stripeCustomerId =
+      typeof session.customer === "string" ? session.customer : session.customer?.id;
+    const sub = session.subscription;
+    const subscriptionId = typeof sub === "string" ? sub : sub?.id;
+    return { type, userId, planId, stripeCustomerId, subscriptionId };
   }
 
   if (type === "invoice.payment_succeeded") {
     const invoice = event.data.object as Stripe.Invoice;
     const sub = invoice.subscription;
     const subscriptionId = typeof sub === "string" ? sub : sub?.id;
-    return { type, subscriptionId };
+    const stripeCustomerId =
+      typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+    return { type, subscriptionId, stripeCustomerId };
   }
 
   if (type === "customer.subscription.updated" || type === "customer.subscription.deleted") {
     const subscription = event.data.object as Stripe.Subscription;
     const userId = subscription.metadata?.userId as string | undefined;
     const planId = subscription.metadata?.planId as PlanIdPaid | undefined;
+    const stripeCustomerId =
+      typeof subscription.customer === "string"
+        ? subscription.customer
+        : subscription.customer?.id;
     return {
       type,
       userId,
       planId: type === "customer.subscription.deleted" ? undefined : planId,
       subscriptionId: subscription.id,
+      stripeCustomerId,
     };
   }
 

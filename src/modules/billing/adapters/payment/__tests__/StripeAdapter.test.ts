@@ -36,40 +36,51 @@ describe("StripeAdapter", () => {
   });
 
   describe("parseWebhookEvent", () => {
-    it("extrai userId e planId de checkout.session.completed", () => {
+    it("extrai userId, planId e stripeCustomerId de checkout.session.completed", () => {
       const event = {
         type: "checkout.session.completed",
         data: {
           object: {
             metadata: { userId: "user-1", planId: "PRO" },
             client_reference_id: "user-1",
+            customer: "cus_123",
+            subscription: "sub_456",
           },
         },
       } as Parameters<typeof parseWebhookEvent>[0];
       const parsed = parseWebhookEvent(event);
-      expect(parsed).toEqual({ type: "checkout.session.completed", userId: "user-1", planId: "PRO" });
+      expect(parsed).toEqual({
+        type: "checkout.session.completed",
+        userId: "user-1",
+        planId: "PRO",
+        stripeCustomerId: "cus_123",
+        subscriptionId: "sub_456",
+      });
     });
 
-    it("retorna subscriptionId em invoice.payment_succeeded", () => {
+    it("retorna subscriptionId e stripeCustomerId em invoice.payment_succeeded", () => {
       const event = {
         type: "invoice.payment_succeeded",
         data: {
           object: {
             subscription: "sub_123",
+            customer: "cus_abc",
           },
         },
       } as Parameters<typeof parseWebhookEvent>[0];
       const parsed = parseWebhookEvent(event);
       expect(parsed?.type).toBe("invoice.payment_succeeded");
       expect(parsed?.subscriptionId).toBe("sub_123");
+      expect(parsed?.stripeCustomerId).toBe("cus_abc");
     });
 
-    it("extrai userId e planId de customer.subscription.updated", () => {
+    it("extrai userId, planId e stripeCustomerId de customer.subscription.updated", () => {
       const event = {
         type: "customer.subscription.updated",
         data: {
           object: {
             id: "sub_123",
+            customer: "cus_123",
             metadata: { userId: "user-1", planId: "PRO" },
           },
         },
@@ -80,15 +91,17 @@ describe("StripeAdapter", () => {
         userId: "user-1",
         planId: "PRO",
         subscriptionId: "sub_123",
+        stripeCustomerId: "cus_123",
       });
     });
 
-    it("extrai userId de customer.subscription.deleted (planId undefined)", () => {
+    it("extrai userId e stripeCustomerId de customer.subscription.deleted (planId undefined)", () => {
       const event = {
         type: "customer.subscription.deleted",
         data: {
           object: {
             id: "sub_123",
+            customer: "cus_123",
             metadata: { userId: "user-1", planId: "PRO" },
           },
         },
@@ -98,6 +111,7 @@ describe("StripeAdapter", () => {
       expect(parsed?.userId).toBe("user-1");
       expect(parsed?.planId).toBeUndefined();
       expect(parsed?.subscriptionId).toBe("sub_123");
+      expect(parsed?.stripeCustomerId).toBe("cus_123");
     });
 
     it("retorna null para tipo de evento desconhecido", () => {
