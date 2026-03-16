@@ -72,3 +72,24 @@ export function trackSubscriptionUpdatedPortal(context: { userId?: string; planI
     console.info("[billing.analytics]", "billing.subscription_updated_portal", context);
   }
 }
+
+export function trackSubscriptionPendingCancellation(context: { userId?: string } = {}): void {
+  increment("devflow.billing.subscription_pending_cancellation");
+  if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
+    console.info("[billing.analytics]", "billing.subscription_pending_cancellation", context);
+  }
+}
+
+export function trackSubscriptionReactivated(context: { userId?: string } = {}): void {
+  increment("devflow.billing.subscription_reactivated");
+  if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
+    console.info("[billing.analytics]", "billing.subscription_reactivated", context);
+  }
+}
+
+export function trackCustomerUpdated(context: { stripeCustomerId?: string } = {}): void {
+  increment("devflow.billing.customer_updated");
+  if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
+    console.info("[billing.analytics]", "billing.customer_updated", context);
+  }
+}

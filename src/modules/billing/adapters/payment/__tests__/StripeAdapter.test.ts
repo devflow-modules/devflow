@@ -114,6 +114,38 @@ describe("StripeAdapter", () => {
       expect(parsed?.stripeCustomerId).toBe("cus_123");
     });
 
+    it("inclui cancelAtPeriodEnd em customer.subscription.updated", () => {
+      const event = {
+        type: "customer.subscription.updated",
+        data: {
+          object: {
+            id: "sub_123",
+            customer: "cus_123",
+            cancel_at_period_end: true,
+            metadata: { userId: "user-1" },
+          },
+        },
+      } as Parameters<typeof parseWebhookEvent>[0];
+      const parsed = parseWebhookEvent(event);
+      expect(parsed?.cancelAtPeriodEnd).toBe(true);
+    });
+
+    it("extrai customer.updated com stripeCustomerId e email", () => {
+      const event = {
+        type: "customer.updated",
+        data: {
+          object: {
+            id: "cus_abc",
+            email: "user@example.com",
+          },
+        },
+      } as Parameters<typeof parseWebhookEvent>[0];
+      const parsed = parseWebhookEvent(event);
+      expect(parsed?.type).toBe("customer.updated");
+      expect(parsed?.stripeCustomerId).toBe("cus_abc");
+      expect(parsed?.stripeCustomerEmail).toBe("user@example.com");
+    });
+
     it("retorna null para tipo de evento desconhecido", () => {
       const event = {
         type: "customer.created",

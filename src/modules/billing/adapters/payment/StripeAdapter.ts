@@ -123,6 +123,16 @@ export function parseWebhookEvent(event: Stripe.Event): WebhookParsedEvent | nul
       planId: type === "customer.subscription.deleted" ? undefined : planId,
       subscriptionId: subscription.id,
       stripeCustomerId,
+      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    };
+  }
+
+  if (type === "customer.updated") {
+    const customer = event.data.object as Stripe.Customer;
+    return {
+      type,
+      stripeCustomerId: customer.id,
+      stripeCustomerEmail: typeof customer.email === "string" ? customer.email : undefined,
     };
   }
 

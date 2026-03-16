@@ -23,6 +23,10 @@ export type WebhookParsedEvent = {
   planId?: PlanIdPaid;
   subscriptionId?: string;
   stripeCustomerId?: string;
+  /** true = cancelamento agendado para fim do período (não imediato) */
+  cancelAtPeriodEnd?: boolean;
+  /** email do customer (evento customer.updated) */
+  stripeCustomerEmail?: string;
 };
 
 export type PaymentAdapter = {
