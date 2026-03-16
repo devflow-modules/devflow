@@ -2,6 +2,7 @@ import { getReceitaWsBaseUrl } from "@/lib/config";
 import { findDadosCnpjByCnpj, upsertDadosCnpj } from "./dadosCnpjRepository";
 import { createConsulta, updateConsultaStatus, updateConsultaNome } from "./consultasRepository";
 import { hasSupabaseConfig } from "@/lib/supabase-server";
+import { findUserById, decrementRemainingQueries } from "@/modules/users";
 import { trackCnpjQueryRequested, trackCnpjCacheHit, trackCnpjCacheMiss, trackCnpjQueryCompleted } from "@/modules/analytics";
 import type { ConsultaStatus } from "@/lib/db/types";
 
@@ -38,9 +39,22 @@ function getCompanyName(data: Record<string, unknown>): string | null {
   return null;
 }
 
-export async function queryCnpj(cnpj: string, userCpf: string): Promise<ConsultaCnpjResult | { error: string; status?: number }> {
+export async function queryCnpj(
+  cnpj: string,
+  userCpf: string,
+  userId?: string
+): Promise<ConsultaCnpjResult | { error: string; status?: number }> {
   const digits = cnpj.replace(/\D/g, "");
   if (digits.length !== 14) return { error: "CNPJ inválido", status: 400 };
+
+  if (userId && hasSupabaseConfig()) {
+    const user = await findUserById(userId);
+    const remaining = user?.remaining_queries ?? 10;
+    if (user && remaining <= 0) {
+      return { error: "Saldo de consultas esgotado. Faça upgrade em Assinatura.", status: 403 };
+    }
+  }
+
   trackCnpjQueryRequested();
 
   let consultaId: string | null = null;
@@ -74,6 +88,7 @@ export async function queryCnpj(cnpj: string, userCpf: string): Promise<Consulta
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     const { status, data } = await fetchReceitaWs(digits);
     if (status === 200 && data && (data.status === "OK" || data.nome)) {
+      if (userId) await decrementRemainingQueries(userId);
       const nome = getCompanyName(data);
       if (hasSupabaseConfig() && consultaId && consultaRecord) {
         await upsertDadosCnpj(digits, data);

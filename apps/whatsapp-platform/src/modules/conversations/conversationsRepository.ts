@@ -42,6 +42,59 @@ export async function updateConversationStatus(
   if (error) throw new Error(`conversations.updateStatus: ${error.message}`);
 }
 
+export async function setConversationQueue(conversationId: string, queueId: string): Promise<void> {
+  const supabase = getSupabaseServiceClient();
+  const { error } = await supabase
+    .from("conversations")
+    .update({
+      queue_id: queueId,
+      status: "waiting_queue",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", conversationId);
+  if (error) throw new Error(`conversations.setQueue: ${error.message}`);
+}
+
+export async function assignConversationToAgent(
+  conversationId: string,
+  agentId: string
+): Promise<void> {
+  const supabase = getSupabaseServiceClient();
+  const { error: updErr } = await supabase
+    .from("conversations")
+    .update({
+      assigned_agent_id: agentId,
+      status: "assigned",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", conversationId);
+  if (updErr) throw new Error(`conversations.assign: ${updErr.message}`);
+  const { error: insErr } = await supabase.from("conversation_assignments").insert({
+    conversation_id: conversationId,
+    agent_id: agentId,
+  });
+  if (insErr) throw new Error(`conversation_assignments.insert: ${insErr.message}`);
+}
+
+export async function listConversationsByStatus(
+  tenantId: string,
+  status: ConversationStatus | ConversationStatus[],
+  limit: number
+): Promise<Conversation[]> {
+  const supabase = getSupabaseServiceClient();
+  let q = supabase
+    .from("conversations")
+    .select("*")
+    .eq("tenant_id", tenantId)
+    .order("last_message_at", { ascending: false })
+    .limit(limit);
+  if (Array.isArray(status)) q = q.in("status", status);
+  else q = q.eq("status", status);
+  const { data, error } = await q;
+  if (error) throw new Error(`conversations.listByStatus: ${error.message}`);
+  return (data ?? []) as Conversation[];
+}
+
 export async function touchConversationLastMessage(conversationId: string): Promise<void> {
   const supabase = getSupabaseServiceClient();
   const { error } = await supabase

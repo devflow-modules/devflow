@@ -9,4 +9,7 @@ export {
   getConversationById,
   listConversations,
   countConversations,
+  setConversationQueue,
+  assignConversationToAgent,
+  listConversationsByStatus,
 } from "./conversationsRepository";

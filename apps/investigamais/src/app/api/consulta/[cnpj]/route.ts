@@ -9,7 +9,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ cnp
   const { cnpj } = await context.params;
   if (!cnpj) return NextResponse.json({ error: "CNPJ obrigatório" }, { status: 400 });
   if (!hasSupabaseConfig()) return NextResponse.json({ error: "Serviço temporariamente indisponível" }, { status: 503 });
-  const result = await queryCnpj(decodeURIComponent(cnpj), auth.payload.cpf);
+  const result = await queryCnpj(decodeURIComponent(cnpj), auth.payload.cpf, auth.payload.sub);
   if ("error" in result) {
     const status = "status" in result ? result.status ?? 500 : 500;
     return NextResponse.json({ error: result.error }, { status });

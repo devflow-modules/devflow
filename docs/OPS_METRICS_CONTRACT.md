@@ -53,7 +53,17 @@ Products that do not have subscriptions may set `activeSubscriptions`, `pendingC
 
 ## Optional fields (reserved)
 
-The contract may be extended later with optional fields (e.g. `trialUsers`, `churnRate`). Products **MAY** include extra keys; the Ops dashboard **MUST** ignore unknown keys. Required keys **MUST** be present.
+The contract may be extended later with optional fields. Products **MAY** include extra keys; the Ops dashboard **MUST** ignore unknown keys. Required keys **MUST** be present.
+
+Optional keys already in use:
+
+| Field              | Description                          | Used by              |
+|--------------------|--------------------------------------|-----------------------|
+| `tenants`          | Total tenants/accounts               | whatsapp-platform     |
+| `conversations`    | Total conversations                  | whatsapp-platform     |
+| `messagesLast24h`  | Messages in the last 24 hours        | whatsapp-platform     |
+| `queries`          | Total queries (e.g. CNPJ lookups)    | investigamais         |
+| `cacheHitRate`     | Cache hit rate (0–100 or decimal)   | investigamais        |
 
 ## Implementation note
 

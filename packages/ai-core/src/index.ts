@@ -11,3 +11,4 @@ export * from "./classifyIntent";
 export * from "./formatResponse";
 export * from "./fallback";
 export * from "./promptBuilder";
+export * from "./llmProvider";

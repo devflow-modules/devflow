@@ -1,5 +1,7 @@
 export type UserRole = "cliente" | "operador" | "admin";
 
+export type PlanSlug = "free" | "standard" | "pro";
+
 export interface User {
   id: string;
   email: string;
@@ -13,6 +15,9 @@ export interface User {
   genero: string | null;
   role: UserRole;
   bonus_concedido_at: string | null;
+  plan?: PlanSlug;
+  remaining_queries?: number;
+  stripe_customer_id?: string | null;
   created_at: string;
   updated_at: string;
 }

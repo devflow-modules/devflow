@@ -257,6 +257,9 @@ importers:
       '@devflow/analytics-core':
         specifier: workspace:*
         version: link:../../packages/analytics-core
+      '@devflow/billing-core':
+        specifier: workspace:*
+        version: link:../../packages/billing-core
       '@devflow/ui':
         specifier: workspace:*
         version: link:../../packages/ui

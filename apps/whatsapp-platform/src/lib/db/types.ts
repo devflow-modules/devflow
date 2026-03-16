@@ -14,18 +14,58 @@ export interface Tenant {
   updated_at: string;
 }
 
+export interface Queue {
+  id: string;
+  tenant_id: string;
+  name: string;
+  slug: string;
+  settings: Record<string, unknown> | null;
+  max_size: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type AgentStatus = "available" | "busy" | "offline";
+
+export interface Agent {
+  id: string;
+  tenant_id: string;
+  name: string;
+  email: string | null;
+  status: AgentStatus;
+  settings: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ConversationAssignment {
+  id: string;
+  conversation_id: string;
+  agent_id: string;
+  assigned_at: string;
+  completed_at: string | null;
+}
+
 export interface Conversation {
   id: string;
   tenant_id: string;
   wa_from: string;
   status: ConversationStatus;
+  queue_id: string | null;
   assigned_agent_id: string | null;
   last_message_at: string;
   created_at: string;
   updated_at: string;
 }
 
-export type ConversationStatus = "open" | "waiting" | "assigned" | "resolved" | "closed";
+export type ConversationStatus =
+  | "open"
+  | "waiting_queue"
+  | "waiting"
+  | "assigned"
+  | "in_progress"
+  | "resolved"
+  | "closed";
 
 export interface Message {
   id: string;

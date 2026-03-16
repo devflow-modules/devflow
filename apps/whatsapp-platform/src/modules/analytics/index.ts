@@ -11,6 +11,8 @@ export const EVENTS = {
   conversationStarted: "whatsapp.conversation_started",
   conversationClosed: "whatsapp.conversation_closed",
   aiResponseGenerated: "whatsapp.ai_response_generated",
+  aiResponseGeneratedLlm: "whatsapp.ai_response_generated_llm",
+  aiFallbackUsed: "whatsapp.ai_fallback_used",
   messageSent: "whatsapp.message_sent",
   messageSendFailed: "whatsapp.message_send_failed",
   inboundMessageReceived: "whatsapp.inbound_message_received",
@@ -28,6 +30,12 @@ export function trackConversationClosed(): void {
 }
 export function trackAiResponseGenerated(): void {
   increment(EVENTS.aiResponseGenerated);
+}
+export function trackAiResponseGeneratedLlm(): void {
+  increment(EVENTS.aiResponseGeneratedLlm);
+}
+export function trackAiFallbackUsed(): void {
+  increment(EVENTS.aiFallbackUsed);
 }
 export function trackMessageSent(): void {
   increment(EVENTS.messageSent);

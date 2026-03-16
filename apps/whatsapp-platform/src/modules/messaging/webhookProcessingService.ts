@@ -8,7 +8,14 @@ import { insertMessage } from "./messagesRepository";
 import { insertWebhookLog } from "./webhookLogsRepository";
 import { sendReplyAndPersist } from "./sendMessageService";
 import { getReplyForMessage } from "@/modules/ai/ruleBasedReplies";
-import { trackInboundMessageReceived, trackConversationStarted } from "@/modules/analytics";
+import { generateAiReply } from "@/modules/ai/aiOrchestrator";
+import { createLlmProvider, isLlmConfigured } from "@devflow/ai-core";
+import {
+  trackInboundMessageReceived,
+  trackConversationStarted,
+  trackAiResponseGeneratedLlm,
+  trackAiFallbackUsed,
+} from "@/modules/analytics";
 import { hasSupabaseConfig } from "@/lib/supabase-server";
 import type { IncomingMessage } from "@devflow/whatsapp-core";
 
@@ -48,7 +55,25 @@ export async function processInboundMessage(input: ProcessInboundMessageInput): 
     conversationId = "no-db";
   }
 
-  const reply = getReplyForMessage(textBody);
+  const useLlm =
+    typeof process !== "undefined" &&
+    process.env.WHATSAPP_ENABLE_LLM === "true" &&
+    isLlmConfigured();
+
+  let reply: string;
+  if (useLlm) {
+    try {
+      const llm = createLlmProvider();
+      reply = await generateAiReply({ userMessage: textBody, llm });
+      trackAiResponseGeneratedLlm();
+    } catch {
+      reply = getReplyForMessage(textBody);
+      trackAiFallbackUsed();
+    }
+  } else {
+    reply = getReplyForMessage(textBody);
+  }
+
   try {
     if (hasSupabaseConfig() && conversationId !== "no-db") {
       await sendReplyAndPersist({

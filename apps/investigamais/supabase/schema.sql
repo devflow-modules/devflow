@@ -13,9 +13,16 @@ create table if not exists public.users (
   genero text,
   role text not null check (role in ('cliente','operador','admin')) default 'cliente',
   bonus_concedido_at timestamptz,
+  plan text not null default 'free' check (plan in ('free','standard','pro')),
+  remaining_queries int not null default 10 check (remaining_queries >= 0),
+  stripe_customer_id text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+comment on column public.users.plan is 'free: 10 consultas/mês; standard/pro: definido por billing';
+comment on column public.users.remaining_queries is 'Saldo de consultas no período atual';
+comment on column public.users.stripe_customer_id is 'Stripe Customer ID para portal e assinatura';
 
 create table if not exists public.consultas (
   id uuid primary key default gen_random_uuid(),

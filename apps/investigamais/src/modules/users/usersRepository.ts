@@ -1,6 +1,13 @@
 import { getSupabaseServiceClient } from "@/lib/supabase-server";
 import type { User } from "@/lib/db/types";
 
+export async function findUserById(id: string): Promise<User | null> {
+  const db = getSupabaseServiceClient();
+  const { data, error } = await db.from("users").select("*").eq("id", id).maybeSingle();
+  if (error) throw new Error(`users.findById: ${error.message}`);
+  return data as User | null;
+}
+
 export async function findUserByEmail(email: string): Promise<User | null> {
   const db = getSupabaseServiceClient();
   const { data, error } = await db.from("users").select("*").eq("email", email.toLowerCase().trim()).maybeSingle();
@@ -45,7 +52,7 @@ export async function createUser(insert: {
   return data as User;
 }
 
-export async function updateUser(id: string, updates: Partial<Pick<User, "nome" | "telefone" | "nascimento" | "cidade" | "uf" | "genero" | "bonus_concedido_at">>): Promise<User> {
+export async function updateUser(id: string, updates: Partial<Pick<User, "nome" | "telefone" | "nascimento" | "cidade" | "uf" | "genero" | "bonus_concedido_at" | "plan" | "remaining_queries" | "stripe_customer_id">>): Promise<User> {
   const db = getSupabaseServiceClient();
   const { data, error } = await db
     .from("users")
@@ -55,6 +62,22 @@ export async function updateUser(id: string, updates: Partial<Pick<User, "nome" 
     .single();
   if (error) throw new Error(`users.update: ${error.message}`);
   return data as User;
+}
+
+export async function decrementRemainingQueries(userId: string): Promise<{ remaining: number } | null> {
+  const db = getSupabaseServiceClient();
+  const { data: user, error: fetchErr } = await db.from("users").select("remaining_queries").eq("id", userId).single();
+  if (fetchErr || !user) return null;
+  const current = (user as { remaining_queries?: number }).remaining_queries ?? 0;
+  const next = Math.max(0, current - 1);
+  const { data: updated, error: updErr } = await db
+    .from("users")
+    .update({ remaining_queries: next, updated_at: new Date().toISOString() })
+    .eq("id", userId)
+    .select("remaining_queries")
+    .single();
+  if (updErr) throw new Error(`users.decrementQueries: ${updErr.message}`);
+  return { remaining: (updated as { remaining_queries: number }).remaining_queries };
 }
 
 export async function countUsers(): Promise<number> {
