@@ -1,0 +1,13 @@
+import Link from "next/link";
+
+export default function AgentsPage() {
+  return (
+    <div className="min-h-screen p-6">
+      <h1 className="text-2xl font-semibold mb-4">Agentes</h1>
+      <Link href="/dashboard" className="text-blue-600 underline">
+        Voltar ao Dashboard
+      </Link>
+      <p className="mt-4 text-gray-600">Gestão de agentes (em implementação).</p>
+    </div>
+  );
+}

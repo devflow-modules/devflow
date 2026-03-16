@@ -1,8 +1,13 @@
 /**
  * @devflow/whatsapp-core
- * Utilitários da API WhatsApp (Cloud API, webhooks, etc.).
- * A ser preenchido quando o app WhatsApp Platform for implementado.
+ * Tipos, normalização de webhook, adapter Cloud API, retry e status.
+ * Sem lógica por tenant.
  */
 
-// Placeholder até implementação
 export const WHATSAPP_CORE_VERSION = "0.0.1";
+
+export * from "./types";
+export * from "./normalize";
+export * from "./retry";
+export * from "./adapter";
+export * from "./status";
