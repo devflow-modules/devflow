@@ -1,0 +1,2 @@
+# Domain module: product-specific business logic, entities, use cases.
+# No imports from other apps; use packages and local modules only.

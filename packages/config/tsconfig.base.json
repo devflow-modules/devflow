@@ -15,7 +15,19 @@
     "jsx": "react-jsx",
     "incremental": true,
     "declaration": true,
-    "declarationMap": true
+    "declarationMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@devflow/ui": ["../ui/src"],
+      "@devflow/billing-core": ["../billing-core/src"],
+      "@devflow/analytics-core": ["../analytics-core/src"],
+      "@devflow/auth-core": ["../auth-core/src"],
+      "@devflow/supabase-utils": ["../supabase-utils/src"],
+      "@devflow/testing-utils": ["../testing-utils/src"],
+      "@devflow/config": ["."],
+      "@devflow/whatsapp-core": ["../whatsapp-core/src"],
+      "@devflow/ai-core": ["../ai-core/src"]
+    }
   },
   "exclude": ["node_modules"]
 }

@@ -1,0 +1,2 @@
+# Analytics module: productAnalytics.ts, event tracking for this product.
+# Use @devflow/analytics-core for primitives (increment, getCounters). See docs/PRODUCT_MODULE_PATTERN.md.

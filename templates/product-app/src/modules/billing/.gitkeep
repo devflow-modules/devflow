@@ -1,0 +1,2 @@
+# Billing module: BillingService, BillingRepository, plans.ts, featureGuard.
+# Use @devflow/billing-core for Stripe adapters only. See docs/PRODUCT_MODULE_PATTERN.md.

@@ -1,0 +1,2 @@
+# Auth module: authService, authRepository, session helpers.
+# Use @devflow/auth-core and @devflow/supabase-utils. See docs/PRODUCT_MODULE_PATTERN.md.

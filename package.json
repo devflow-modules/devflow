@@ -18,7 +18,8 @@
     "build:workspace": "turbo run build",
     "dev:workspace": "turbo run dev",
     "test:workspace": "turbo run test",
-    "lint:workspace": "turbo run lint"
+    "lint:workspace": "turbo run lint",
+    "create-product": "node scripts/create-product.mjs"
   },
   "dependencies": {
     "@devflow/analytics-core": "workspace:*",

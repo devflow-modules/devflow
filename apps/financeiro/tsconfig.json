@@ -23,9 +23,16 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"],
+      "@devflow/ui": ["../../packages/ui/src"],
+      "@devflow/billing-core": ["../../packages/billing-core/src"],
+      "@devflow/analytics-core": ["../../packages/analytics-core/src"],
+      "@devflow/auth-core": ["../../packages/auth-core/src"],
+      "@devflow/supabase-utils": ["../../packages/supabase-utils/src"],
+      "@devflow/testing-utils": ["../../packages/testing-utils/src"],
+      "@devflow/config": ["../../packages/config"],
+      "@devflow/whatsapp-core": ["../../packages/whatsapp-core/src"],
+      "@devflow/ai-core": ["../../packages/ai-core/src"]
     }
   },
   "include": [

@@ -1,0 +1,2 @@
+# App-level lib: utils, api-response helpers, product-specific helpers.
+# Shared utilities belong in packages/*.
