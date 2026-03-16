@@ -1,0 +1,18 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/ferramentas/layout,_N_T_/ferramentas/financeiro/layout,_N_T_/ferramentas/financeiro/invites/layout,_N_T_/ferramentas/financeiro/invites/accept/layout,_N_T_/ferramentas/financeiro/invites/accept/page,_N_T_/ferramentas/financeiro/invites/accept"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/ferramentas/financeiro/invites/accept/__PAGE__",
+    "/ferramentas/financeiro/invites/accept",
+    "/ferramentas/financeiro/invites",
+    "/ferramentas/financeiro",
+    "/ferramentas",
+    "/_index",
+    "/_head"
+  ]
+}

@@ -1,0 +1,3 @@
+module.exports=[82045,a=>{"use strict";var b=a.i(83739);function c({children:a}){return(0,b.jsx)("html",{lang:"pt-BR",children:(0,b.jsx)("body",{className:"min-h-screen font-sans antialiased",children:a})})}a.s(["default",()=>c,"metadata",0,{title:"Investiga+ | DevFlow",description:"Scaffold — produto em desenvolvimento.",robots:"noindex, nofollow"}])}];
+
+//# sourceMappingURL=apps_investigamais_src_app_layout_tsx_e81edd57._.js.map

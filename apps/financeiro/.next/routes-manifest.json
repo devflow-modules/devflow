@@ -1,0 +1,388 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/api/cycles/[cycleId]",
+      "regex": "^/api/cycles/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPcycleId": "nxtPcycleId"
+      },
+      "namedRegex": "^/api/cycles/(?<nxtPcycleId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/expenses/[expenseId]",
+      "regex": "^/api/expenses/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPexpenseId": "nxtPexpenseId"
+      },
+      "namedRegex": "^/api/expenses/(?<nxtPexpenseId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/households/[householdId]/members",
+      "regex": "^/api/households/([^/]+?)/members(?:/)?$",
+      "routeKeys": {
+        "nxtPhouseholdId": "nxtPhouseholdId"
+      },
+      "namedRegex": "^/api/households/(?<nxtPhouseholdId>[^/]+?)/members(?:/)?$"
+    },
+    {
+      "page": "/api/households/[householdId]/members/[membershipId]",
+      "regex": "^/api/households/([^/]+?)/members/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPhouseholdId": "nxtPhouseholdId",
+        "nxtPmembershipId": "nxtPmembershipId"
+      },
+      "namedRegex": "^/api/households/(?<nxtPhouseholdId>[^/]+?)/members/(?<nxtPmembershipId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/households/[householdId]/transfer-ownership",
+      "regex": "^/api/households/([^/]+?)/transfer\\-ownership(?:/)?$",
+      "routeKeys": {
+        "nxtPhouseholdId": "nxtPhouseholdId"
+      },
+      "namedRegex": "^/api/households/(?<nxtPhouseholdId>[^/]+?)/transfer\\-ownership(?:/)?$"
+    },
+    {
+      "page": "/api/income-allocation-goals/[goalId]",
+      "regex": "^/api/income\\-allocation\\-goals/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPgoalId": "nxtPgoalId"
+      },
+      "namedRegex": "^/api/income\\-allocation\\-goals/(?<nxtPgoalId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/incomes/[incomeId]",
+      "regex": "^/api/incomes/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPincomeId": "nxtPincomeId"
+      },
+      "namedRegex": "^/api/incomes/(?<nxtPincomeId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/invites/[inviteId]",
+      "regex": "^/api/invites/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPinviteId": "nxtPinviteId"
+      },
+      "namedRegex": "^/api/invites/(?<nxtPinviteId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/payment-days/[paymentDayId]",
+      "regex": "^/api/payment\\-days/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPpaymentDayId": "nxtPpaymentDayId"
+      },
+      "namedRegex": "^/api/payment\\-days/(?<nxtPpaymentDayId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/personal-allocation-goals/[goalId]",
+      "regex": "^/api/personal\\-allocation\\-goals/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPgoalId": "nxtPgoalId"
+      },
+      "namedRegex": "^/api/personal\\-allocation\\-goals/(?<nxtPgoalId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/rules/[ruleId]",
+      "regex": "^/api/rules/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPruleId": "nxtPruleId"
+      },
+      "namedRegex": "^/api/rules/(?<nxtPruleId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/sources/[sourceId]",
+      "regex": "^/api/sources/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPsourceId": "nxtPsourceId"
+      },
+      "namedRegex": "^/api/sources/(?<nxtPsourceId>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/admin/metrics",
+      "regex": "^/admin/metrics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/metrics(?:/)?$"
+    },
+    {
+      "page": "/api/admin/metrics",
+      "regex": "^/api/admin/metrics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/metrics(?:/)?$"
+    },
+    {
+      "page": "/api/admin/revenue",
+      "regex": "^/api/admin/revenue(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/revenue(?:/)?$"
+    },
+    {
+      "page": "/api/billing/checkout",
+      "regex": "^/api/billing/checkout(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/billing/checkout(?:/)?$"
+    },
+    {
+      "page": "/api/billing/customer-portal",
+      "regex": "^/api/billing/customer\\-portal(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/billing/customer\\-portal(?:/)?$"
+    },
+    {
+      "page": "/api/billing/webhook",
+      "regex": "^/api/billing/webhook(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/billing/webhook(?:/)?$"
+    },
+    {
+      "page": "/api/cycles",
+      "regex": "^/api/cycles(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/cycles(?:/)?$"
+    },
+    {
+      "page": "/api/dashboard/cash-flow-projection",
+      "regex": "^/api/dashboard/cash\\-flow\\-projection(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/dashboard/cash\\-flow\\-projection(?:/)?$"
+    },
+    {
+      "page": "/api/dashboard/summary",
+      "regex": "^/api/dashboard/summary(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/dashboard/summary(?:/)?$"
+    },
+    {
+      "page": "/api/expenses",
+      "regex": "^/api/expenses(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/expenses(?:/)?$"
+    },
+    {
+      "page": "/api/financeiro/leads",
+      "regex": "^/api/financeiro/leads(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/financeiro/leads(?:/)?$"
+    },
+    {
+      "page": "/api/health",
+      "regex": "^/api/health(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/health(?:/)?$"
+    },
+    {
+      "page": "/api/households",
+      "regex": "^/api/households(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/households(?:/)?$"
+    },
+    {
+      "page": "/api/income-allocation-goals",
+      "regex": "^/api/income\\-allocation\\-goals(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/income\\-allocation\\-goals(?:/)?$"
+    },
+    {
+      "page": "/api/incomes",
+      "regex": "^/api/incomes(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/incomes(?:/)?$"
+    },
+    {
+      "page": "/api/invites",
+      "regex": "^/api/invites(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/invites(?:/)?$"
+    },
+    {
+      "page": "/api/invites/accept",
+      "regex": "^/api/invites/accept(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/invites/accept(?:/)?$"
+    },
+    {
+      "page": "/api/me",
+      "regex": "^/api/me(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/me(?:/)?$"
+    },
+    {
+      "page": "/api/me/active-household",
+      "regex": "^/api/me/active\\-household(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/me/active\\-household(?:/)?$"
+    },
+    {
+      "page": "/api/payment-days",
+      "regex": "^/api/payment\\-days(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/payment\\-days(?:/)?$"
+    },
+    {
+      "page": "/api/personal-allocation-goals",
+      "regex": "^/api/personal\\-allocation\\-goals(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/personal\\-allocation\\-goals(?:/)?$"
+    },
+    {
+      "page": "/api/rules",
+      "regex": "^/api/rules(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/rules(?:/)?$"
+    },
+    {
+      "page": "/api/rules/allocations",
+      "regex": "^/api/rules/allocations(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/rules/allocations(?:/)?$"
+    },
+    {
+      "page": "/api/sources",
+      "regex": "^/api/sources(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sources(?:/)?$"
+    },
+    {
+      "page": "/billing",
+      "regex": "^/billing(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/billing(?:/)?$"
+    },
+    {
+      "page": "/ferramentas",
+      "regex": "^/ferramentas(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ferramentas(?:/)?$"
+    },
+    {
+      "page": "/ferramentas/divisao-de-contas",
+      "regex": "^/ferramentas/divisao\\-de\\-contas(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ferramentas/divisao\\-de\\-contas(?:/)?$"
+    },
+    {
+      "page": "/ferramentas/financeiro",
+      "regex": "^/ferramentas/financeiro(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ferramentas/financeiro(?:/)?$"
+    },
+    {
+      "page": "/ferramentas/financeiro/auth",
+      "regex": "^/ferramentas/financeiro/auth(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ferramentas/financeiro/auth(?:/)?$"
+    },
+    {
+      "page": "/ferramentas/financeiro/auth/callback",
+      "regex": "^/ferramentas/financeiro/auth/callback(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ferramentas/financeiro/auth/callback(?:/)?$"
+    },
+    {
+      "page": "/ferramentas/financeiro/dashboard",
+      "regex": "^/ferramentas/financeiro/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ferramentas/financeiro/dashboard(?:/)?$"
+    },
+    {
+      "page": "/ferramentas/financeiro/expenses",
+      "regex": "^/ferramentas/financeiro/expenses(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ferramentas/financeiro/expenses(?:/)?$"
+    },
+    {
+      "page": "/ferramentas/financeiro/invites/accept",
+      "regex": "^/ferramentas/financeiro/invites/accept(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ferramentas/financeiro/invites/accept(?:/)?$"
+    },
+    {
+      "page": "/ferramentas/financeiro/onboarding",
+      "regex": "^/ferramentas/financeiro/onboarding(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ferramentas/financeiro/onboarding(?:/)?$"
+    },
+    {
+      "page": "/ferramentas/financeiro/rules",
+      "regex": "^/ferramentas/financeiro/rules(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ferramentas/financeiro/rules(?:/)?$"
+    },
+    {
+      "page": "/ferramentas/financeiro/settings",
+      "regex": "^/ferramentas/financeiro/settings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ferramentas/financeiro/settings(?:/)?$"
+    },
+    {
+      "page": "/ferramentas/financeiro/sources",
+      "regex": "^/ferramentas/financeiro/sources(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ferramentas/financeiro/sources(?:/)?$"
+    },
+    {
+      "page": "/upgrade",
+      "regex": "^/upgrade(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/upgrade(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

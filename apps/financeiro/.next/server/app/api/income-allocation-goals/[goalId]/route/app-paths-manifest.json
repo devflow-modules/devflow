@@ -1,0 +1,3 @@
+{
+  "/api/income-allocation-goals/[goalId]/route": "app/api/income-allocation-goals/[goalId]/route.js"
+}

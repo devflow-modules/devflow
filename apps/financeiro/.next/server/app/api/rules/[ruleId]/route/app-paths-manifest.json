@@ -1,0 +1,3 @@
+{
+  "/api/rules/[ruleId]/route": "app/api/rules/[ruleId]/route.js"
+}

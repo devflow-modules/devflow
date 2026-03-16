@@ -1,0 +1,10 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/me/active-household/route.js")
+R.c("server/chunks/e3fa3_next_dist_esm_build_templates_app-route_cdf4ff11.js")
+R.c("server/chunks/518ff_zod_v3_external_4400f150.js")
+R.c("server/chunks/[root-of-the-server]__a0a5edf9._.js")
+R.c("server/chunks/[root-of-the-server]__bc481897._.js")
+R.c("server/chunks/e3fa3_next_f8a22071._.js")
+R.c("server/chunks/_39b28821._.js")
+R.c("server/chunks/97276__next-internal_server_app_api_me_active-household_route_actions_470ed547.js")
+R.m(15560)
+module.exports=R.m(15560).exports

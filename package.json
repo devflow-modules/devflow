@@ -2,6 +2,7 @@
   "name": "devflow",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.29.3",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
@@ -13,9 +14,16 @@
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "deploy:preview": "npx vercel",
-    "deploy:prod": "npx vercel --prod"
+    "deploy:prod": "npx vercel --prod",
+    "build:workspace": "turbo run build",
+    "dev:workspace": "turbo run dev",
+    "test:workspace": "turbo run test",
+    "lint:workspace": "turbo run lint"
   },
   "dependencies": {
+    "@devflow/analytics-core": "workspace:*",
+    "@devflow/billing-core": "workspace:*",
+    "@devflow/ui": "workspace:*",
     "@prisma/client": "^6.0.0",
     "stripe": "^17.0.0",
     "@supabase/ssr": "^0.5.0",
@@ -46,6 +54,7 @@
     "eslint-config-next": "16.1.6",
     "prisma": "^6.0.0",
     "tailwindcss": "^4",
+    "turbo": "^2.3.0",
     "typescript": "^5",
     "vitest": "^4.1.0"
   }

@@ -1,0 +1,3 @@
+{
+  "/api/households/[householdId]/transfer-ownership/route": "app/api/households/[householdId]/transfer-ownership/route.js"
+}

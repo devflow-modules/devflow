@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/ferramentas/layout,_N_T_/ferramentas/financeiro/layout,_N_T_/ferramentas/financeiro/dashboard/layout,_N_T_/ferramentas/financeiro/dashboard/page,_N_T_/ferramentas/financeiro/dashboard"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/ferramentas/financeiro/dashboard/__PAGE__",
+    "/ferramentas/financeiro/dashboard",
+    "/ferramentas/financeiro",
+    "/ferramentas",
+    "/_index",
+    "/_head"
+  ]
+}

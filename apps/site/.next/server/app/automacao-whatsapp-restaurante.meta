@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/automacao-whatsapp-restaurante/layout,_N_T_/automacao-whatsapp-restaurante/page,_N_T_/automacao-whatsapp-restaurante"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/automacao-whatsapp-restaurante/__PAGE__",
+    "/automacao-whatsapp-restaurante",
+    "/_index",
+    "/_head"
+  ]
+}
