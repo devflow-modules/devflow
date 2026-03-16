@@ -4,6 +4,7 @@ import { dateInputToDate } from "@/lib/dates";
 import { emit } from "@/modules/financeiro/events";
 
 export type UpdateExpenseInput = {
+  categoryId?: string | null;
   category?: string;
   amount?: number;
   dueDate?: string;
@@ -26,10 +27,31 @@ export async function updateExpense(
   data: UpdateExpenseInput,
   auditContext: AuditContext
 ) {
+  let categoryName: string | undefined;
+  if (data.categoryId !== undefined) {
+    if (data.categoryId) {
+      const cat = await prisma.category.findFirst({
+        where: { id: data.categoryId, householdId },
+        select: { name: true },
+      });
+      categoryName = cat?.name ?? "Outros";
+    } else {
+      categoryName = data.category ?? "Outros";
+    }
+  } else if (data.category !== undefined) {
+    categoryName = data.category;
+  }
+
   const updateData: Record<string, unknown> = {
-    ...data,
-    ...(data.dueDate ? { dueDate: dateInputToDate(data.dueDate) } : {}),
-    ...(data.paidAt ? { paidAt: dateInputToDate(data.paidAt) } : {}),
+    ...(data.amount !== undefined && { amount: data.amount }),
+    ...(data.dueDate && { dueDate: dateInputToDate(data.dueDate) }),
+    ...(data.paidAt !== undefined && { paidAt: data.paidAt ? dateInputToDate(data.paidAt) : null }),
+    ...(data.sourceId !== undefined && { sourceId: data.sourceId ?? null }),
+    ...(data.isRecurring !== undefined && { isRecurring: data.isRecurring }),
+    ...(data.status !== undefined && { status: data.status }),
+    ...(data.paidAmount !== undefined && { paidAmount: data.paidAmount ?? null }),
+    ...(data.categoryId !== undefined && { categoryId: data.categoryId ?? null }),
+    ...(categoryName !== undefined && { category: categoryName }),
   };
 
   if (data.status && data.status !== "PAID") {

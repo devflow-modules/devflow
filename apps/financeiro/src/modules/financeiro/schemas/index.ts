@@ -74,8 +74,23 @@ export const cycleCreateSchema = cycleBaseSchema.superRefine((data, ctx) => {
 
 export const cycleUpdateSchema = cycleBaseSchema.partial();
 
+export const categoryCreateSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default("#6366f1"),
+});
+export const categoryUpdateSchema = categoryCreateSchema.partial();
+
+export const budgetCreateSchema = z.object({
+  categoryId: z.string().cuid(),
+  monthlyLimit: z.number().positive("Limite mensal deve ser positivo"),
+});
+export const budgetUpdateSchema = z.object({
+  monthlyLimit: z.number().positive().optional(),
+});
+
 const expenseBaseSchema = z.object({
-  category: z.string().min(1),
+  categoryId: z.string().cuid().optional(),
+  category: z.string().min(1).optional(), // required when categoryId not set
   amount: z.number().positive(),
   dueDate: dateOnlyOrIsoSchema,
   status: expenseStatusSchema.optional(),
@@ -86,6 +101,9 @@ const expenseBaseSchema = z.object({
 });
 
 export const expenseCreateSchema = expenseBaseSchema.superRefine((data, ctx) => {
+  if (!data.categoryId && !(data.category && data.category.trim())) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Informe category ou categoryId", path: ["category"] });
+  }
   if (data.status === "PAID") {
     if (data.paidAmount === undefined) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "paidAmount é obrigatório quando status=PAID", path: ["paidAmount"] });

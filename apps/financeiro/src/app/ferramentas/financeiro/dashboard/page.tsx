@@ -36,6 +36,9 @@ type IncomeAllocationGoal = {
 type PersonalAllocationGoal = IncomeAllocationGoal;
 
 type CategoryBreakdown = { category: string; value: number; percentage: number };
+type OverviewCategoryBreakdown = { categoryId: string | null; categoryName: string; color: string | null; value: number; percentage: number };
+type BudgetProgressItem = { budgetId: string; categoryId: string; categoryName: string; color: string; spent: number; monthlyLimit: number; percent: number };
+type DashboardOverview = { totalSpent: number; categoryBreakdown: OverviewCategoryBreakdown[]; budgetProgress: BudgetProgressItem[] };
 type ProjectionMeta = {
   scenario?: "BASE" | "PESSIMISTIC" | "OPTIMISTIC";
   avgMonths?: number;
@@ -90,6 +93,8 @@ export default function DashboardPage() {
   const [chartsLoading, setChartsLoading] = useState(false);
   const [projectionScenario, setProjectionScenario] = useState<"BASE" | "PESSIMISTIC" | "OPTIMISTIC">("BASE");
   const [projectionHorizonMonths, setProjectionHorizonMonths] = useState<1 | 3 | 6 | 12>(1);
+  const [overview, setOverview] = useState<DashboardOverview | null>(null);
+  const [overviewLoading, setOverviewLoading] = useState(false);
 
   const fetchFinancials = async () => {
     if (!household?.id) return;
@@ -246,11 +251,27 @@ export default function DashboardPage() {
     }
   };
 
+  const loadOverview = async () => {
+    if (!household?.id) return;
+    setOverviewLoading(true);
+    try {
+      const res = await fetch("/api/dashboard/overview");
+      const payload = await res.json();
+      if (payload.success && payload.data) setOverview(payload.data);
+      else setOverview(null);
+    } catch {
+      setOverview(null);
+    } finally {
+      setOverviewLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (household?.id) {
       fetchFinancials();
       fetchRules();
       loadCharts();
+      loadOverview();
       loadGoal();
       loadPersonalGoal();
       if (activeMembershipRole === "OWNER") loadInvites();
@@ -364,7 +385,7 @@ export default function DashboardPage() {
           </p>
         </header>
 
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-px hover:shadow-md">
             <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Receitas</p>
             {isLoading ? (
@@ -379,6 +400,14 @@ export default function DashboardPage() {
               <Skeleton className="mt-3 h-8 w-32" />
             ) : (
               <p className="mt-2 text-3xl font-semibold text-foreground">{formatCurrency(totals.totalExpenses)}</p>
+            )}
+          </article>
+          <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Gasto no mês</p>
+            {overviewLoading ? (
+              <Skeleton className="mt-3 h-8 w-32" />
+            ) : (
+              <p className="mt-2 text-3xl font-semibold text-foreground">{formatCurrency(overview?.totalSpent ?? 0)}</p>
             )}
           </article>
           <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-px hover:shadow-md">
@@ -455,7 +484,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 className="rounded-2xl border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-foreground hover:bg-slate-50"
-                onClick={() => { fetchFinancials(); fetchRules(); }}
+                onClick={() => { fetchFinancials(); fetchRules(); loadOverview(); }}
               >
                 Atualizar
               </button>
@@ -783,31 +812,68 @@ export default function DashboardPage() {
         <section className="grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md lg:grid-cols-2">
           <div>
             <div className="flex items-center justify-between">
-              <h3 className="text-base uppercase tracking-[0.2em] text-muted-foreground">Fluxo por categoria</h3>
-              <span className="text-sm text-muted-foreground">Percentual + valor</span>
+              <h3 className="text-base uppercase tracking-[0.2em] text-muted-foreground">Fluxo por categoria (mês)</h3>
+              <span className="text-sm text-muted-foreground">Total gasto + %</span>
             </div>
             <div className="mt-4 space-y-3">
-              {isLoading ? (
+              {overviewLoading ? (
                 <div className="space-y-2">
                   <Skeleton className="h-4 w-1/3 rounded-xl" />
                   <Skeleton className="h-2 w-full rounded-xl" />
                   <Skeleton className="h-4 w-1/2 rounded-xl" />
                 </div>
-              ) : categoryBreakdown.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhuma despesa cadastrada para compor o gráfico.</p>
+              ) : (overview?.categoryBreakdown?.length ?? 0) === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhuma despesa no mês para compor o gráfico.</p>
               ) : (
-                categoryBreakdown.map((category) => (
-                  <div key={category.category} className="space-y-1">
-                    <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">{category.category}</p>
+                (overview?.categoryBreakdown ?? []).map((item) => (
+                  <div key={item.categoryId ?? item.categoryName} className="space-y-1">
+                    <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">{item.categoryName}</p>
                     <div className="relative h-2 rounded-full bg-slate-100">
                       <div
-                        className="absolute h-full rounded-full bg-primary"
-                        style={{ width: `${category.percentage}%` }}
+                        className="absolute h-full rounded-full"
+                        style={{
+                          width: `${item.percentage}%`,
+                          backgroundColor: item.color ?? "var(--primary)",
+                        }}
                       />
                     </div>
                     <p className="text-sm text-foreground">
-                      {formatCurrency(category.value)} · {category.percentage}%
+                      {formatCurrency(item.value)} · {item.percentage}%
                     </p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+          <div>
+            <h3 className="text-base uppercase tracking-[0.2em] text-muted-foreground">Orçamento do mês</h3>
+            <div className="mt-4 space-y-4">
+              {overviewLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-16 w-full rounded-xl" />
+                  <Skeleton className="h-16 w-full rounded-xl" />
+                </div>
+              ) : (overview?.budgetProgress?.length ?? 0) === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhum orçamento configurado. Crie categorias e defina limites em Configurações.</p>
+              ) : (
+                (overview?.budgetProgress ?? []).map((b) => (
+                  <div key={b.budgetId} className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium text-foreground" style={{ color: b.color }}>{b.categoryName}</span>
+                      <span className="text-muted-foreground">
+                        {formatCurrency(b.spent)} / {formatCurrency(b.monthlyLimit)}
+                      </span>
+                    </div>
+                    <div className="relative h-3 w-full overflow-hidden rounded-full bg-slate-100">
+                      <div
+                        className="absolute left-0 top-0 h-full rounded-full transition-all"
+                        style={{
+                          width: `${Math.min(100, b.percent)}%`,
+                          backgroundColor: b.percent > 100 ? "#dc2626" : b.color,
+                        }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">{b.percent.toFixed(0)}% do limite</p>
                   </div>
                 ))
               )}

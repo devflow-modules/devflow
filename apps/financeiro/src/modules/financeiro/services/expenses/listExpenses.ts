@@ -4,6 +4,6 @@ export async function listExpenses(prisma: PrismaClient, householdId: string) {
   return prisma.expense.findMany({
     where: { householdId },
     orderBy: { dueDate: "asc" },
-    include: { source: true },
+    include: { source: true, categoryRef: true },
   });
 }

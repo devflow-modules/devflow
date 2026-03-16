@@ -21,6 +21,8 @@ model Household {
   sources                 Source[]
   incomes                 Income[]
   expenses                Expense[]
+  categories              Category[]
+  budgets                 Budget[]
   rules                   Rule[]
   incomeAllocationGoals   IncomeAllocationGoal[]
   personalAllocationGoals PersonalAllocationGoal[]
@@ -242,11 +244,39 @@ enum MarketingMessageStatus {
   SKIPPED
 }
 
+model Category {
+  id          String    @id @default(cuid())
+  householdId String
+  name        String
+  color       String    @default("#6366f1")
+  createdAt   DateTime  @default(now())
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  expenses    Expense[]
+  budgets     Budget[]
+
+  @@index([householdId])
+}
+
+model Budget {
+  id            String   @id @default(cuid())
+  householdId   String
+  categoryId    String
+  monthlyLimit  Decimal  @db.Decimal(10, 2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  household     Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  category      Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([householdId, categoryId])
+  @@index([householdId])
+}
+
 model Expense {
   id          String        @id @default(cuid())
   householdId String
   sourceId    String?
-  category    String
+  categoryId  String?
+  category    String        // legacy: free text when categoryId is null
   amount      Decimal       @db.Decimal(10, 2)
   dueDate     DateTime
   paidAmount  Decimal?      @db.Decimal(10, 2)
@@ -256,6 +286,7 @@ model Expense {
   note        String?
   household   Household     @relation(fields: [householdId], references: [id])
   source      Source?       @relation(fields: [sourceId], references: [id])
+  categoryRef Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 }
 
 model FinanceiroLead {

@@ -6,7 +6,8 @@ import { trackFunnelFirst, trackToolUsage } from "@/modules/financeiro/adapters/
 import { emit } from "@/modules/financeiro/events";
 
 export type CreateExpenseInput = {
-  category: string;
+  categoryId?: string;
+  category?: string;
   amount: number;
   dueDate: string;
   status?: "PENDING" | "PAID" | "SCHEDULED";
@@ -27,12 +28,29 @@ export async function createExpense(
   data: CreateExpenseInput,
   auditContext: AuditContext
 ) {
+  let categoryName = data.category?.trim();
+  if (data.categoryId && !categoryName) {
+    const cat = await prisma.category.findFirst({
+      where: { id: data.categoryId, householdId },
+      select: { name: true },
+    });
+    categoryName = cat?.name ?? "Outros";
+  }
+  if (!categoryName) categoryName = "Outros";
+
   const expense = await prisma.expense.create({
     data: {
-      ...data,
-      dueDate: dateInputToDate(data.dueDate),
-      ...(data.paidAt ? { paidAt: dateInputToDate(data.paidAt) } : {}),
       householdId,
+      categoryId: data.categoryId ?? null,
+      category: categoryName,
+      amount: data.amount,
+      dueDate: dateInputToDate(data.dueDate),
+      sourceId: data.sourceId ?? null,
+      isRecurring: data.isRecurring ?? false,
+      status: data.status ?? "PENDING",
+      note: undefined,
+      paidAmount: data.paidAmount ?? null,
+      paidAt: data.paidAt ? dateInputToDate(data.paidAt) : null,
     },
   });
 

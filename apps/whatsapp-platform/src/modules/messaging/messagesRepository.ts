@@ -47,3 +47,35 @@ export async function countMessagesLast24h(tenantId?: string): Promise<number> {
   if (error) throw new Error(`messages.countLast24h: ${error.message}`);
   return count ?? 0;
 }
+
+export async function listMessagesByConversation(conversationId: string, limit = 100): Promise<Message[]> {
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("messages")
+    .select("*")
+    .eq("conversation_id", conversationId)
+    .order("created_at", { ascending: true })
+    .limit(limit);
+  if (error) throw new Error(`messages.listByConversation: ${error.message}`);
+  return (data ?? []) as Message[];
+}
+
+/** Retorna a última mensagem (body + created_at) por conversation_id. */
+export async function getLastMessageForConversationIds(
+  conversationIds: string[]
+): Promise<Map<string, { body: string; created_at: string }>> {
+  if (conversationIds.length === 0) return new Map();
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("messages")
+    .select("conversation_id, body, created_at")
+    .in("conversation_id", conversationIds)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(`messages.getLastForConversations: ${error.message}`);
+  const map = new Map<string, { body: string; created_at: string }>();
+  for (const row of data ?? []) {
+    const cid = (row as { conversation_id: string; body: string; created_at: string }).conversation_id;
+    if (!map.has(cid)) map.set(cid, { body: (row as { body: string }).body, created_at: (row as { created_at: string }).created_at });
+  }
+  return map;
+}

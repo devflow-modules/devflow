@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Section } from "@/components/layout/Section";
-import { Calculator, PieChart } from "lucide-react";
+import { Calculator, PieChart, Search } from "lucide-react";
 
 const baseUrl = "https://devflowlabs.com.br";
 
@@ -20,6 +20,14 @@ const TOOLS = [
     description: "Calcule o rateio de contas para casal, república ou família. Rateio proporcional por renda, sem discussão.",
     href: "/ferramentas/divisao-de-contas",
     icon: PieChart,
+    external: false,
+  },
+  {
+    slug: "consulta-cnpj",
+    title: "Consulta CNPJ",
+    description: "Consulte dados públicos de empresas na base da Receita Federal. Razão social, situação e endereço.",
+    href: "/ferramentas/consulta-cnpj",
+    icon: Search,
     external: false,
   },
 ] as const;
