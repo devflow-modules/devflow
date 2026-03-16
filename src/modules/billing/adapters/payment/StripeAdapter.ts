@@ -11,10 +11,18 @@ import type {
   PlanIdPaid,
 } from "./types";
 
+/**
+ * Em desenvolvimento, usa STRIPE_TEST_SECRET_KEY se disponível (cartões de teste).
+ * Em produção, usa STRIPE_SECRET_KEY (chave live).
+ */
 const getSecretKey = (): string => {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) throw new Error("STRIPE_SECRET_KEY is not set");
-  return key;
+  const isDev = process.env.NODE_ENV !== "production";
+  const testKey = process.env.STRIPE_TEST_SECRET_KEY;
+  const liveKey = process.env.STRIPE_SECRET_KEY;
+
+  if (isDev && testKey) return testKey;
+  if (liveKey) return liveKey;
+  throw new Error("STRIPE_SECRET_KEY is not set");
 };
 
 const getWebhookSecret = (): string => {
@@ -24,9 +32,13 @@ const getWebhookSecret = (): string => {
 };
 
 const getPriceId = (planId: PlanIdPaid): string => {
-  const envKey = planId === "PRO" ? "STRIPE_PRICE_PRO" : "STRIPE_PRICE_TEAM";
-  const priceId = process.env[envKey];
-  if (!priceId) throw new Error(`${envKey} is not set`);
+  const isDev = process.env.NODE_ENV !== "production";
+  const baseKey = planId === "PRO" ? "PRICE_PRO" : "PRICE_TEAM";
+  const testKey = `STRIPE_TEST_${baseKey}`;
+  const liveKey = `STRIPE_${baseKey}`;
+
+  const priceId = (isDev && process.env[testKey]) ? process.env[testKey] : process.env[liveKey];
+  if (!priceId) throw new Error(`${isDev ? testKey : liveKey} is not set`);
   return priceId;
 };
 
