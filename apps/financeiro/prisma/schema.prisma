@@ -27,6 +27,7 @@ model Household {
   incomeAllocationGoals   IncomeAllocationGoal[]
   personalAllocationGoals PersonalAllocationGoal[]
   cycles                  Cycle[]
+  monthSnapshots          MonthSnapshot[]
 }
 
 model User {
@@ -161,6 +162,12 @@ enum SourceType {
   PF
 }
 
+enum FinancialContext {
+  PERSONAL   // vida pessoal / PF
+  BUSINESS   // empresa / PJ
+  SHARED     // estúdio / sociedade
+}
+
 model Source {
   id            String          @id @default(cuid())
   householdId   String
@@ -214,16 +221,23 @@ enum IncomeStatus {
 }
 
 model Income {
-  id          String     @id @default(cuid())
-  householdId String
-  sourceId    String?
-  amount      Decimal    @db.Decimal(10, 2)
-  receivedAt  DateTime
-  isRecurring Boolean    @default(false)
-  status      IncomeStatus @default(RECEIVED)
-  notes       String?
-  household   Household  @relation(fields: [householdId], references: [id])
-  source      Source?    @relation(fields: [sourceId], references: [id])
+  id                 String           @id @default(cuid())
+  householdId        String
+  sourceId           String?
+  amount             Decimal          @db.Decimal(10, 2)
+  receivedAt         DateTime
+  isRecurring        Boolean          @default(false)
+  recurrenceParentId String?          // ID da receita-template que gerou esta instância
+  status             IncomeStatus     @default(RECEIVED)
+  notes              String?
+  context            FinancialContext @default(PERSONAL)
+  household          Household        @relation(fields: [householdId], references: [id])
+  source             Source?          @relation(fields: [sourceId], references: [id])
+  recurrenceChildren Income[]         @relation("IncomeRecurrenceTemplate")
+  recurrenceParent   Income?          @relation("IncomeRecurrenceTemplate", fields: [recurrenceParentId], references: [id], onDelete: SetNull)
+
+  @@index([householdId, context])
+  @@index([recurrenceParentId])
 }
 
 enum ExpenseStatus {
@@ -272,21 +286,49 @@ model Budget {
 }
 
 model Expense {
-  id          String        @id @default(cuid())
-  householdId String
-  sourceId    String?
-  categoryId  String?
-  category    String        // legacy: free text when categoryId is null
-  amount      Decimal       @db.Decimal(10, 2)
-  dueDate     DateTime
-  paidAmount  Decimal?      @db.Decimal(10, 2)
-  paidAt      DateTime?
-  isRecurring Boolean       @default(false)
-  status      ExpenseStatus @default(PENDING)
-  note        String?
-  household   Household     @relation(fields: [householdId], references: [id])
-  source      Source?       @relation(fields: [sourceId], references: [id])
-  categoryRef Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  id                 String           @id @default(cuid())
+  householdId        String
+  sourceId           String?
+  categoryId         String?
+  category           String           // legacy: free text when categoryId is null
+  amount             Decimal          @db.Decimal(10, 2)
+  dueDate            DateTime
+  paidAmount         Decimal?         @db.Decimal(10, 2)
+  paidAt             DateTime?
+  isRecurring        Boolean          @default(false)
+  recurrenceParentId String?          // ID da despesa-template que gerou esta instância
+  status             ExpenseStatus    @default(PENDING)
+  note               String?
+  context            FinancialContext @default(PERSONAL)
+  household          Household        @relation(fields: [householdId], references: [id])
+  source             Source?          @relation(fields: [sourceId], references: [id])
+  categoryRef        Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  recurrenceChildren Expense[]        @relation("RecurrenceTemplate")
+  recurrenceParent   Expense?         @relation("RecurrenceTemplate", fields: [recurrenceParentId], references: [id], onDelete: SetNull)
+
+  @@index([householdId, context])
+  @@index([householdId, dueDate])
+  @@index([householdId, isRecurring])
+  @@index([recurrenceParentId])
+}
+
+model MonthSnapshot {
+  id              String   @id @default(cuid())
+  householdId     String
+  year            Int
+  month           Int
+  totalIncomes    Decimal  @db.Decimal(10, 2)
+  totalExpenses   Decimal  @db.Decimal(10, 2)
+  balance         Decimal  @db.Decimal(10, 2)
+  pendingExpenses Decimal  @db.Decimal(10, 2) @default(0)
+  notes           String?
+  closedAt        DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  @@unique([householdId, year, month])
+  @@index([householdId, year, month])
 }
 
 model FinanceiroLead {

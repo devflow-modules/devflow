@@ -11,6 +11,8 @@ export type CreateIncomeInput = {
   receivedAt: string;
   isRecurring?: boolean;
   status?: "SCHEDULED" | "RECEIVED";
+  notes?: string;
+  context?: "PERSONAL" | "BUSINESS" | "SHARED";
 };
 
 export type AuditContext = {
@@ -27,8 +29,12 @@ export async function createIncome(
   const { sourceId, ...rest } = data;
   const income = await prisma.income.create({
     data: {
-      ...rest,
+      amount: rest.amount,
       receivedAt: dateInputToDate(rest.receivedAt),
+      isRecurring: rest.isRecurring ?? false,
+      status: rest.status ?? "RECEIVED",
+      notes: rest.notes ?? null,
+      context: rest.context ?? "PERSONAL",
       householdId,
       ...(sourceId ? { sourceId } : {}),
     },

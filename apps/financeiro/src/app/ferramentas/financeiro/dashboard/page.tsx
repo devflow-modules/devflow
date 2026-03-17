@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvider";
 import { toast } from "sonner";
 import { Skeleton } from "@/modules/financeiro/components/Skeleton";
@@ -9,6 +9,8 @@ import { MonthlyTrendChart } from "@/modules/financeiro/components/MonthlyTrendC
 import { CashFlowProjectionChart } from "@/modules/financeiro/components/CashFlowProjectionChart";
 import { toDateOnly } from "@/lib/dates";
 import { Breadcrumbs } from "@/modules/financeiro/components/Breadcrumbs";
+import { ContextSelector } from "@/modules/financeiro/components/ContextSelector";
+import type { ContextFilter } from "@/modules/financeiro/components/ContextSelector";
 
 type SourceRecord = { sourceType?: "PJ" | "PF" };
 type FinancialRecord = {
@@ -17,6 +19,7 @@ type FinancialRecord = {
   category?: string;
   receivedAt?: string;
   dueDate?: string;
+  context?: "PERSONAL" | "BUSINESS" | "SHARED";
   source?: SourceRecord | null;
 };
 type ApiSuccess<T> = { success: boolean; data: T };
@@ -95,6 +98,7 @@ export default function DashboardPage() {
   const [projectionHorizonMonths, setProjectionHorizonMonths] = useState<1 | 3 | 6 | 12>(1);
   const [overview, setOverview] = useState<DashboardOverview | null>(null);
   const [overviewLoading, setOverviewLoading] = useState(false);
+  const [contextFilter, setContextFilter] = useState<ContextFilter>("ALL");
 
   const fetchFinancials = async () => {
     if (!household?.id) return;
@@ -282,23 +286,32 @@ export default function DashboardPage() {
     if (household?.id) loadCharts();
   }, [projectionScenario, projectionHorizonMonths, household?.id]);
 
+  const filteredIncomes = useMemo(
+    () => contextFilter === "ALL" ? incomes : incomes.filter((r) => (r.context ?? "PERSONAL") === contextFilter),
+    [incomes, contextFilter]
+  );
+  const filteredExpenses = useMemo(
+    () => contextFilter === "ALL" ? expenses : expenses.filter((r) => (r.context ?? "PERSONAL") === contextFilter),
+    [expenses, contextFilter]
+  );
+
   const totals = useMemo(() => {
     const sumBySource = (records: FinancialRecord[], sourceType: SourceRecord["sourceType"]) =>
       records.reduce((acc, record) => (record.source?.sourceType === sourceType ? acc + Number(record.amount ?? 0) : acc), 0);
 
-    const totalIncomes = incomes.reduce((acc, record) => acc + Number(record.amount ?? 0), 0);
-    const totalExpenses = expenses.reduce((acc, record) => acc + Number(record.amount ?? 0), 0);
+    const totalIncomes = filteredIncomes.reduce((acc, record) => acc + Number(record.amount ?? 0), 0);
+    const totalExpenses = filteredExpenses.reduce((acc, record) => acc + Number(record.amount ?? 0), 0);
 
     return {
       totalIncomes,
       totalExpenses,
       balance: totalIncomes - totalExpenses,
-      pjIncomes: sumBySource(incomes, "PJ"),
-      pfIncomes: sumBySource(incomes, "PF"),
-      pjExpenses: sumBySource(expenses, "PJ"),
-      pfExpenses: sumBySource(expenses, "PF"),
+      pjIncomes: sumBySource(filteredIncomes, "PJ"),
+      pfIncomes: sumBySource(filteredIncomes, "PF"),
+      pjExpenses: sumBySource(filteredExpenses, "PJ"),
+      pfExpenses: sumBySource(filteredExpenses, "PF"),
     };
-  }, [incomes, expenses]);
+  }, [filteredIncomes, filteredExpenses]);
 
   const allocationSummary = useMemo(() => {
     const now = new Date();
@@ -306,7 +319,7 @@ export default function DashboardPage() {
     const month = now.getMonth();
     const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
 
-    const monthIncomeTotal = incomes.reduce((acc, record: FinancialRecord) => {
+    const monthIncomeTotal = filteredIncomes.reduce((acc, record: FinancialRecord) => {
       if (!record.receivedAt) return acc;
       const dateOnly = toDateOnly(record.receivedAt);
       if (dateOnly.slice(0, 7) !== monthKey) return acc;
@@ -323,10 +336,10 @@ export default function DashboardPage() {
     const remaining = monthIncomeTotal - investmentTarget - savingsTarget;
 
     return { monthIncomeTotal, investmentTarget, savingsTarget, remaining };
-  }, [incomes, goal]);
+  }, [filteredIncomes, goal]);
 
   const categoryBreakdown = useMemo(() => {
-    const totalsByCategory = expenses.reduce<Record<string, number>>((acc, expense) => {
+    const totalsByCategory = filteredExpenses.reduce<Record<string, number>>((acc, expense) => {
       const category = expense.category ?? "Outros";
       acc[category] = (acc[category] ?? 0) + Number(expense.amount ?? 0);
       return acc;
@@ -376,46 +389,71 @@ export default function DashboardPage() {
           </div>
         ) : null}
         <header className="space-y-3">
-          <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Dashboard</p>
-          <h1 className="text-4xl font-semibold leading-tight tracking-tight text-foreground md:text-5xl">
-            Resumo financeiro
-          </h1>
-          <p className="text-base text-muted-foreground">
-            Totais por origem (PJ/PF), gráficos e histórico rápido das regras aplicadas.
-          </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Dashboard</p>
+              <h1 className="text-3xl font-semibold leading-tight tracking-tight text-foreground md:text-4xl">
+                Resumo financeiro
+              </h1>
+            </div>
+            <ContextSelector value={contextFilter} onChange={setContextFilter} />
+          </div>
         </header>
 
+        {/* KPI cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-px hover:shadow-md">
-            <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Receitas</p>
+          <article className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
+            <p className="text-xs font-medium uppercase tracking-wider text-emerald-600">↑ Receitas</p>
             {isLoading ? (
               <Skeleton className="mt-3 h-8 w-32" />
             ) : (
-              <p className="mt-2 text-3xl font-semibold text-foreground">{formatCurrency(totals.totalIncomes)}</p>
+              <>
+                <p className="mt-1.5 text-2xl font-bold text-emerald-700">{formatCurrency(totals.totalIncomes)}</p>
+                <p className="mt-0.5 text-xs text-emerald-600/70">total acumulado</p>
+              </>
             )}
           </article>
-          <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Despesas</p>
+          <article className="rounded-2xl border border-red-100 bg-red-50 p-5 shadow-sm">
+            <p className="text-xs font-medium uppercase tracking-wider text-red-500">↓ Despesas</p>
             {isLoading ? (
               <Skeleton className="mt-3 h-8 w-32" />
             ) : (
-              <p className="mt-2 text-3xl font-semibold text-foreground">{formatCurrency(totals.totalExpenses)}</p>
+              <>
+                <p className="mt-1.5 text-2xl font-bold text-red-600">{formatCurrency(totals.totalExpenses)}</p>
+                <p className="mt-0.5 text-xs text-red-500/70">total acumulado</p>
+              </>
             )}
           </article>
-          <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Gasto no mês</p>
+          <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Gasto no mês</p>
             {overviewLoading ? (
               <Skeleton className="mt-3 h-8 w-32" />
             ) : (
-              <p className="mt-2 text-3xl font-semibold text-foreground">{formatCurrency(overview?.totalSpent ?? 0)}</p>
+              <>
+                <p className="mt-1.5 text-2xl font-bold text-foreground">{formatCurrency(overview?.totalSpent ?? 0)}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">mês corrente</p>
+              </>
             )}
           </article>
-          <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-px hover:shadow-md">
-            <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Saldo</p>
+          <article className={`rounded-2xl border p-5 shadow-sm ${
+            !isLoading && totals.balance < 0 ? "border-red-200 bg-red-50" : "border-indigo-100 bg-indigo-50"
+          }`}>
+            <p className={`text-xs font-medium uppercase tracking-wider ${
+              !isLoading && totals.balance < 0 ? "text-red-500" : "text-indigo-600"
+            }`}>
+              {totals.balance < 0 ? "⚠ Saldo negativo" : "= Saldo atual"}
+            </p>
             {isLoading ? (
               <Skeleton className="mt-3 h-8 w-32" />
             ) : (
-              <p className="mt-2 text-3xl font-semibold text-foreground">{formatCurrency(totals.balance)}</p>
+              <>
+                <p className={`mt-1.5 text-2xl font-bold ${totals.balance < 0 ? "text-red-600" : "text-indigo-700"}`}>
+                  {formatCurrency(totals.balance)}
+                </p>
+                <p className={`mt-0.5 text-xs ${totals.balance < 0 ? "text-red-500/70" : "text-indigo-600/70"}`}>
+                  receitas − despesas
+                </p>
+              </>
             )}
           </article>
         </div>
@@ -847,7 +885,7 @@ export default function DashboardPage() {
           </div>
           <div>
             <h3 className="text-base uppercase tracking-[0.2em] text-muted-foreground">Orçamento do mês</h3>
-            <div className="mt-4 space-y-4">
+            <div className="mt-4 space-y-3">
               {overviewLoading ? (
                 <div className="space-y-2">
                   <Skeleton className="h-16 w-full rounded-xl" />
@@ -856,26 +894,52 @@ export default function DashboardPage() {
               ) : (overview?.budgetProgress?.length ?? 0) === 0 ? (
                 <p className="text-sm text-muted-foreground">Nenhum orçamento configurado. Crie categorias e defina limites em Configurações.</p>
               ) : (
-                (overview?.budgetProgress ?? []).map((b) => (
-                  <div key={b.budgetId} className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span className="font-medium text-foreground" style={{ color: b.color }}>{b.categoryName}</span>
-                      <span className="text-muted-foreground">
-                        {formatCurrency(b.spent)} / {formatCurrency(b.monthlyLimit)}
-                      </span>
+                (overview?.budgetProgress ?? []).map((b) => {
+                  const isDanger = b.percent >= 100;
+                  const isWarning = !isDanger && b.percent >= 80;
+                  const barColor = isDanger ? "#dc2626" : isWarning ? "#f59e0b" : b.color;
+                  const bgClass = isDanger
+                    ? "border-red-200 bg-red-50"
+                    : isWarning
+                    ? "border-amber-200 bg-amber-50"
+                    : "border-slate-100 bg-slate-50";
+                  return (
+                    <div key={b.budgetId} className={`rounded-xl border p-3 ${bgClass}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className="h-2.5 w-2.5 shrink-0 rounded-full"
+                            style={{ backgroundColor: barColor }}
+                          />
+                          <span className="truncate text-sm font-medium text-foreground">{b.categoryName}</span>
+                          {isDanger && (
+                            <span className="shrink-0 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                              LIMITE!
+                            </span>
+                          )}
+                          {isWarning && (
+                            <span className="shrink-0 rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                              80%
+                            </span>
+                          )}
+                        </div>
+                        <span className={`shrink-0 text-xs font-semibold ${isDanger ? "text-red-600" : isWarning ? "text-amber-600" : "text-muted-foreground"}`}>
+                          {b.percent.toFixed(0)}%
+                        </span>
+                      </div>
+                      <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/60">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{ width: `${Math.min(100, b.percent)}%`, backgroundColor: barColor }}
+                        />
+                      </div>
+                      <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+                        <span>{formatCurrency(b.spent)} gasto</span>
+                        <span>limite {formatCurrency(b.monthlyLimit)}</span>
+                      </div>
                     </div>
-                    <div className="relative h-3 w-full overflow-hidden rounded-full bg-slate-100">
-                      <div
-                        className="absolute left-0 top-0 h-full rounded-full transition-all"
-                        style={{
-                          width: `${Math.min(100, b.percent)}%`,
-                          backgroundColor: b.percent > 100 ? "#dc2626" : b.color,
-                        }}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">{b.percent.toFixed(0)}% do limite</p>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
@@ -977,6 +1041,40 @@ export default function DashboardPage() {
               </details>
             </div>
           </div>
+        </section>
+
+        {/* Acesso rápido */}
+        <section className="grid gap-3 sm:grid-cols-3">
+          <Link
+            href="/ferramentas/financeiro/proximas-contas"
+            className="flex items-center gap-3 rounded-xl border border-amber-100 bg-amber-50 p-4 hover:bg-amber-100 transition-colors"
+          >
+            <span className="text-2xl">⏰</span>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Próximas Contas</p>
+              <p className="text-xs text-muted-foreground">Ver o que vence em breve</p>
+            </div>
+          </Link>
+          <Link
+            href="/ferramentas/financeiro/historico"
+            className="flex items-center gap-3 rounded-xl border border-indigo-100 bg-indigo-50 p-4 hover:bg-indigo-100 transition-colors"
+          >
+            <span className="text-2xl">📊</span>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Histórico de Meses</p>
+              <p className="text-xs text-muted-foreground">Fechar mês e ver evolução</p>
+            </div>
+          </Link>
+          <Link
+            href="/ferramentas/financeiro/importar"
+            className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50 p-4 hover:bg-emerald-100 transition-colors"
+          >
+            <span className="text-2xl">📥</span>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Importar CSV</p>
+              <p className="text-xs text-muted-foreground">Extrato bancário em segundos</p>
+            </div>
+          </Link>
         </section>
       </div>
     </div>

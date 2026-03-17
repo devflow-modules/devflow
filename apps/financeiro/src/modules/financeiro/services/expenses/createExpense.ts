@@ -15,6 +15,8 @@ export type CreateExpenseInput = {
   isRecurring?: boolean;
   paidAmount?: number;
   paidAt?: string;
+  note?: string;
+  context?: "PERSONAL" | "BUSINESS" | "SHARED";
 };
 
 export type AuditContext = {
@@ -48,9 +50,10 @@ export async function createExpense(
       sourceId: data.sourceId ?? null,
       isRecurring: data.isRecurring ?? false,
       status: data.status ?? "PENDING",
-      note: undefined,
+      note: data.note ?? null,
       paidAmount: data.paidAmount ?? null,
       paidAt: data.paidAt ? dateInputToDate(data.paidAt) : null,
+      context: data.context ?? "PERSONAL",
     },
   });
 

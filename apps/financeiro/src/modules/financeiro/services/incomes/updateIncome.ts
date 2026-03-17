@@ -8,6 +8,8 @@ export type UpdateIncomeInput = {
   receivedAt?: string;
   isRecurring?: boolean;
   status?: "SCHEDULED" | "RECEIVED";
+  notes?: string;
+  context?: "PERSONAL" | "BUSINESS" | "SHARED";
 };
 
 export type AuditContext = {

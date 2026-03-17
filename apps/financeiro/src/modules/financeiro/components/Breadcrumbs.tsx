@@ -12,10 +12,13 @@ type Crumb = { href: string; label: string };
 const LABELS_BY_PATH: Record<string, string> = {
   [`${BASE}/dashboard`]: "Dashboard",
   [`${BASE}/sources`]: "Fontes",
-  [`${BASE}/expenses`]: "Entradas e saídas",
+  [`${BASE}/expenses`]: "Lançamentos",
   [`${BASE}/rules`]: "Regras",
   [`${BASE}/settings`]: "Configurações",
   [`${BASE}/onboarding`]: "Onboarding",
+  [`${BASE}/proximas-contas`]: "Próximas Contas",
+  [`${BASE}/historico`]: "Histórico",
+  [`${BASE}/importar`]: "Importar CSV",
 };
 
 function titleize(segment: string) {

@@ -13,6 +13,8 @@ export type UpdateExpenseInput = {
   isRecurring?: boolean;
   paidAmount?: number;
   paidAt?: string;
+  note?: string;
+  context?: "PERSONAL" | "BUSINESS" | "SHARED";
 };
 
 export type AuditContext = {
@@ -52,6 +54,8 @@ export async function updateExpense(
     ...(data.paidAmount !== undefined && { paidAmount: data.paidAmount ?? null }),
     ...(data.categoryId !== undefined && { categoryId: data.categoryId ?? null }),
     ...(categoryName !== undefined && { category: categoryName }),
+    ...(data.note !== undefined && { note: data.note }),
+    ...(data.context !== undefined && { context: data.context }),
   };
 
   if (data.status && data.status !== "PAID") {

@@ -12,7 +12,16 @@ export async function GET(request: NextRequest) {
   const { householdId } = auth.context;
 
   try {
-    const incomes = await listIncomes(prisma, householdId);
+    const { searchParams } = new URL(request.url);
+    const context = searchParams.get("context") as "PERSONAL" | "BUSINESS" | "SHARED" | null;
+    const from = searchParams.get("from");
+    const to = searchParams.get("to");
+
+    const incomes = await listIncomes(prisma, householdId, {
+      ...(context && { context }),
+      ...(from && { from: new Date(from) }),
+      ...(to && { to: new Date(to) }),
+    });
     return sendSuccess(incomes);
   } catch (error) {
     console.error(error);

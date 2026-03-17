@@ -24,15 +24,19 @@ type SidebarProps = {
 
 const FULL_ITEMS: NavItem[] = [
   { href: `${BASE}/dashboard`, label: "Dashboard", short: "D" },
+  { href: `${BASE}/expenses`, label: "Lançamentos", short: "L" },
+  { href: `${BASE}/proximas-contas`, label: "Próximas Contas", short: "P" },
+  { href: `${BASE}/historico`, label: "Histórico", short: "H" },
   { href: `${BASE}/sources`, label: "Fontes", short: "F" },
-  { href: `${BASE}/expenses`, label: "Despesas", short: "E" },
   { href: `${BASE}/rules`, label: "Regras", short: "R" },
+  { href: `${BASE}/importar`, label: "Importar CSV", short: "I" },
   { href: `${BASE}/settings`, label: "Configurações", short: "C" },
 ];
 
 const MEMBER_ITEMS: NavItem[] = [
   { href: `${BASE}/dashboard`, label: "Resumo", short: "R" },
   { href: `${BASE}/expenses`, label: "Lançamentos", short: "L" },
+  { href: `${BASE}/proximas-contas`, label: "Próximas Contas", short: "P" },
   { href: `${BASE}/settings`, label: "Conta", short: "C" },
 ];
 

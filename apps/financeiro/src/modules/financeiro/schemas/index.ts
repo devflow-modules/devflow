@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+export const financialContextSchema = z.enum(["PERSONAL", "BUSINESS", "SHARED"]);
+export type FinancialContext = "PERSONAL" | "BUSINESS" | "SHARED";
+
+export const CONTEXT_LABELS: Record<FinancialContext, string> = {
+  PERSONAL: "Pessoal",
+  BUSINESS: "Empresa (PJ)",
+  SHARED: "Estúdio / Sociedade",
+};
+
 export const authEmailSchema = z
   .string()
   .trim()
@@ -98,6 +107,8 @@ const expenseBaseSchema = z.object({
   isRecurring: z.boolean().default(false).optional(),
   paidAmount: z.number().positive().optional(),
   paidAt: dateOnlyOrIsoSchema.optional(),
+  note: z.string().max(500).optional(),
+  context: financialContextSchema.optional().default("PERSONAL"),
 });
 
 export const expenseCreateSchema = expenseBaseSchema.superRefine((data, ctx) => {
@@ -131,6 +142,8 @@ export const incomeCreateSchema = z.object({
   receivedAt: dateOnlyOrIsoSchema,
   isRecurring: z.boolean().default(false).optional(),
   status: incomeStatusSchema.optional().default("RECEIVED"),
+  notes: z.string().max(500).optional(),
+  context: financialContextSchema.optional().default("PERSONAL"),
 });
 
 export const incomeUpdateSchema = incomeCreateSchema.partial();
