@@ -1,3 +1,0 @@
-module.exports=[6029,a=>{a.v({className:"inter_7b064e0d-module__MOT0tq__className",variable:"inter_7b064e0d-module__MOT0tq__variable"})},32851,a=>{"use strict";var b=a.i(83739),c=a.i(6029);let d={className:c.default.className,style:{fontFamily:"'Inter', 'Inter Fallback'",fontStyle:"normal"}};function e({children:a}){return(0,b.jsx)("html",{lang:"pt-BR",children:(0,b.jsx)("body",{className:`${d.variable} font-sans min-h-screen antialiased`,children:a})})}null!=c.default.variable&&(d.variable=c.default.variable),a.s(["default",()=>e,"metadata",0,{title:"Financeiro | DevFlow",description:"Controle financeiro e divisão de contas.",robots:"noindex, nofollow"}],32851)}];
-
-//# sourceMappingURL=%5Broot-of-the-server%5D__0b3d872e._.js.map
