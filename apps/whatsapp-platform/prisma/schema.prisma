@@ -1,4 +1,4 @@
-// WhatsApp Webhook API — Tenant, Conversation, Message
+// WhatsApp Platform — dedicated WhatsApp DB (same as whatsapp-webhook-api).
 datasource db {
   provider  = "postgresql"
   url       = env("WHATSAPP_DATABASE_URL")
@@ -7,34 +7,30 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 model Tenant {
   id                   String         @id @default(cuid())
   name                 String?        @map("name")
-  whatsappPhone        String?        @map("whatsapp_phone")   // normalized phone for resolution
+  whatsappPhone        String?        @map("whatsapp_phone")
   systemPrompt         String?        @map("system_prompt") @db.Text
   defaultPrompt        String?        @map("default_prompt") @db.Text
   businessType         String?        @map("business_type")
-  phoneNumberId        String?        @unique @map("phone_number_id")  // optional until onboarding step 1
+  phoneNumberId        String?        @unique @map("phone_number_id")
   displayPhoneNumber   String?        @map("display_phone_number")
-  accessToken          String?        @map("access_token")             // optional until onboarding step 1
-  apiKey               String?        @unique @map("api_key")   // for API key resolution
-  subdomain            String?        @unique @map("subdomain")  // for subdomain resolution
+  accessToken          String?        @map("access_token")
+  apiKey               String?        @unique @map("api_key")
+  subdomain            String?        @unique @map("subdomain")
   stripeCustomerId     String?        @map("stripe_customer_id")
-  plan                 String?        @map("plan")             // starter | pro
+  plan                 String?        @map("plan")
   activeUntil          DateTime?      @map("active_until")
-  aiDriver             String?        @map("ai_driver")        // ruleBased | openAI | claude
-  crmWebhookUrl        String?        @map("crm_webhook_url")
   createdAt            DateTime       @default(now()) @map("created_at")
   updatedAt            DateTime       @updatedAt @map("updated_at")
   users                User[]
   conversations        Conversation[]
   conversationQueues   ConversationQueue[]
   agentStatuses        AgentStatus[]
-
-  faqs                FAQ[]
+  faqs                 FAQ[]
 
   @@map("whatsapp_tenants")
 }
@@ -57,7 +53,7 @@ model MessageFeedback {
   id             String   @id @default(cuid())
   messageId      String   @map("message_id")
   conversationId String   @map("conversation_id")
-  rating         Int      // 1 or -1
+  rating         Int
   agentId        String?  @map("agent_id")
   createdAt      DateTime @default(now()) @map("created_at")
 
@@ -72,7 +68,7 @@ model User {
   email        String   @unique
   passwordHash String   @map("password_hash")
   name         String
-  role         String   // admin | agent
+  role         String
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
   tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -83,14 +79,14 @@ model User {
 }
 
 model Conversation {
-  id        String    @id @default(cuid())
-  tenantId  String    @map("tenant_id")
-  externalId String   @map("external_id") // e.g. wa_id (phone)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  messages  Message[]
-  queueEntries ConversationQueue[]
+  id            String              @id @default(cuid())
+  tenantId      String              @map("tenant_id")
+  externalId    String              @map("external_id")
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  messages      Message[]
+  queueEntries  ConversationQueue[]
 
   @@unique([tenantId, externalId])
   @@map("whatsapp_conversations")
@@ -110,13 +106,13 @@ model ConversationQueue {
 }
 
 model AgentStatus {
-  id                   String       @id @default(cuid())
-  tenantId              String       @map("tenant_id")
-  userId                String       @map("user_id")
-  status                String       // available | busy | offline
-  currentConversationId String?      @map("current_conversation_id")
-  updatedAt             DateTime     @updatedAt @map("updated_at")
-  tenant                Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id                    String   @id @default(cuid())
+  tenantId              String   @map("tenant_id")
+  userId                String   @map("user_id")
+  status                String
+  currentConversationId String?  @map("current_conversation_id")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, userId])
   @@index([tenantId, status])
@@ -124,15 +120,15 @@ model AgentStatus {
 }
 
 model Message {
-  id             String   @id @default(cuid())
-  conversationId String   @map("conversation_id")
-  sender         String   // "user" | "business" or wa_id
-  messageType    String   @map("message_type") // text, image, audio, etc.
-  content        String   @db.Text
-  timestamp      DateTime @default(now())
+  id             String       @id @default(cuid())
+  conversationId String       @map("conversation_id")
+  sender         String
+  messageType    String       @map("message_type")
+  content        String       @db.Text
+  timestamp      DateTime     @default(now())
   responseTimeMs Int?     @map("response_time_ms")
   agentId        String?  @map("agent_id")
-  intent         String?  @map("intent")
+  intent         String?      @map("intent")
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@index([conversationId, timestamp])
