@@ -123,6 +123,25 @@ export async function listConversations(tenantId: string, limit: number): Promis
   return (data ?? []) as Conversation[];
 }
 
+export async function listConversationsByDateRange(
+  tenantId: string,
+  from: string,
+  to: string,
+  limit = 5000
+): Promise<Conversation[]> {
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("conversations")
+    .select("*")
+    .eq("tenant_id", tenantId)
+    .gte("created_at", from)
+    .lte("created_at", to)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(`conversations.listByDateRange: ${error.message}`);
+  return (data ?? []) as Conversation[];
+}
+
 export async function countConversations(tenantId?: string): Promise<number> {
   const supabase = getSupabaseServiceClient();
   let q = supabase.from("conversations").select("*", { count: "exact", head: true });

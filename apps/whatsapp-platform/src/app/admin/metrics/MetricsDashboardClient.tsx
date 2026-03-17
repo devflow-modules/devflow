@@ -44,18 +44,41 @@ export function MetricsDashboardClient({ initialData }: Props) {
     { label: "Conversa encerrada", value: get(m, PREFIX + "conversation_closed"), key: "closed" },
   ];
 
+  const to = new Date().toISOString().slice(0, 10);
+  const from = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const exportConversationsUrl = `/api/admin/export/conversations?from=${from}&to=${to}`;
+  const exportMessagesUrl = `/api/admin/export/messages?from=${from}&to=${to}`;
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-bold text-foreground">Métricas internas — WhatsApp Platform</h1>
-        <button
-          type="button"
-          onClick={refresh}
-          disabled={loading}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
-        >
-          {loading ? "Atualizando…" : "Atualizar"}
-        </button>
+        <div className="flex gap-2 items-center">
+          <a
+            href={exportConversationsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Exportar conversas (CSV)
+          </a>
+          <a
+            href={exportMessagesUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Exportar mensagens (CSV)
+          </a>
+          <button
+            type="button"
+            onClick={refresh}
+            disabled={loading}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+          >
+            {loading ? "Atualizando…" : "Atualizar"}
+          </button>
+        </div>
       </div>
 
       <MetricsSection title="Métricas do produto">

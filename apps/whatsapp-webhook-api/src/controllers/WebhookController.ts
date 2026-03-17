@@ -10,6 +10,10 @@ import { queueService } from "../services/QueueService.js";
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN ?? "";
 
+function logStructured(obj: Record<string, unknown>): void {
+  console.log(JSON.stringify({ ts: new Date().toISOString(), ...obj }));
+}
+
 async function notifyCrmIfLead(
   tenant: { id: string; crmWebhookUrl?: string | null },
   phone: string,
@@ -76,12 +80,12 @@ export class WebhookController {
     const phoneNumberId = payload.phoneNumberId;
     const tenant = await tenantService.resolveTenant({ phoneNumberId });
     if (!tenant) {
-      console.error("[Webhook] Tenant not found for phone_number_id:", phoneNumberId);
+      logStructured({ event: "webhook.tenant_not_found", phoneNumberId });
       return;
     }
 
     for (const msg of payload.messages) {
-      const extracted = extractMessageContent(msg);
+      const extracted = extractTextContent(msg);
       if (!extracted) continue;
 
       const from = msg.from;
@@ -98,6 +102,13 @@ export class WebhookController {
           messageTimestamp,
         });
 
+        logStructured({
+          event: "webhook.inbound",
+          tenantId: tenant.id,
+          conversationId: context.conversationId,
+          from,
+        });
+
         if (extracted.messageType === "image" || extracted.messageType === "document") {
           continue;
         }
@@ -108,6 +119,16 @@ export class WebhookController {
         const payload = await aiService.generateResponse(intent, extracted.content, {
           recentMessages: context.recentMessages,
         }, aiOptions);
+
+        const responseSource = tenant.aiDriver && (tenant.aiDriver === "openAI" || tenant.aiDriver === "claude") ? "ai" : "ruleBased";
+        logStructured({
+          event: "webhook.response",
+          tenantId: tenant.id,
+          conversationId: context.conversationId,
+          intent,
+          escalate: payload.escalate,
+          responseSource,
+        });
 
         const responseText = payload.escalate
           ? `${payload.response}\n\n_Um atendente pode entrar em contato em breve._`
@@ -133,14 +154,37 @@ export class WebhookController {
         });
 
         if (payload.escalate) {
+          logStructured({
+            event: "webhook.escalated",
+            tenantId: tenant.id,
+            conversationId: context.conversationId,
+          });
           await queueService.enqueue({
             tenantId: tenant.id,
             conversationId: context.conversationId,
             priority: 0,
-          }).catch((e) => console.error("[Webhook] Enqueue failed:", e));
+          }).catch((e) => {
+            logStructured({ event: "webhook.enqueue_failed", tenantId: tenant.id, conversationId: context.conversationId, error: String(e) });
+          });
+          const availableAgent = await queueService.findAvailableAgent(tenant.id).catch(() => null);
+          if (availableAgent) {
+            logStructured({
+              event: "webhook.assign",
+              tenantId: tenant.id,
+              conversationId: context.conversationId,
+              userId: availableAgent.userId,
+            });
+            await queueService.assignConversationToAgent(tenant.id, context.conversationId, availableAgent.userId).catch((e) => {
+              logStructured({ event: "webhook.assign_failed", tenantId: tenant.id, conversationId: context.conversationId, error: String(e) });
+            });
+          }
         }
       } catch (err) {
-        console.error("[Webhook] Error processing message:", err);
+        logStructured({
+          event: "webhook.error",
+          tenantId: tenant.id,
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
     }
   }

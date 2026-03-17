@@ -6,6 +6,7 @@ export {
   insertMessage,
   countMessagesLast24h,
   listMessagesByConversation,
+  listMessagesInRange,
   getLastMessageForConversationIds,
 } from "./messagesRepository";
 export type { InsertMessageInput } from "./messagesRepository";

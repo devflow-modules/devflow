@@ -60,6 +60,26 @@ export async function listMessagesByConversation(conversationId: string, limit =
   return (data ?? []) as Message[];
 }
 
+export async function listMessagesInRange(
+  conversationIds: string[],
+  from: string,
+  to: string,
+  limit = 10000
+): Promise<Message[]> {
+  if (conversationIds.length === 0) return [];
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("messages")
+    .select("*")
+    .in("conversation_id", conversationIds)
+    .gte("created_at", from)
+    .lte("created_at", to)
+    .order("created_at", { ascending: true })
+    .limit(limit);
+  if (error) throw new Error(`messages.listInRange: ${error.message}`);
+  return (data ?? []) as Message[];
+}
+
 /** Retorna a última mensagem (body + created_at) por conversation_id. */
 export async function getLastMessageForConversationIds(
   conversationIds: string[]

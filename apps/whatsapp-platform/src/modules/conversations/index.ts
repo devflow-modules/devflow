@@ -8,6 +8,7 @@ export {
   touchConversationLastMessage,
   getConversationById,
   listConversations,
+  listConversationsByDateRange,
   countConversations,
   setConversationQueue,
   assignConversationToAgent,

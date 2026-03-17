@@ -1,15 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getAuthFromRequest } from "@/modules/auth";
 import { hasSupabaseConfig } from "@/lib/supabase-server";
-import { getConversationById } from "@/modules/conversations";
+import { getConversationById, updateConversationStatus } from "@/modules/conversations";
 import { getTenantById } from "@/modules/tenants";
 import { sendReplyAndPersist } from "@/modules/messaging";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await getAuthFromRequest(request);
+  if (!auth) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  }
+
   const { id } = await params;
   if (!id) {
     return NextResponse.json({ error: "Missing conversation id" }, { status: 400 });
@@ -32,7 +38,11 @@ export async function POST(
     if (!conversation) {
       return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
     }
-    const tenant = await getTenantById(conversation.tenant_id);
+    const convTenantId = (conversation as { tenant_id: string }).tenant_id;
+    if (convTenantId !== auth.payload.tenantId) {
+      return NextResponse.json({ error: "Acesso negado ao tenant" }, { status: 403 });
+    }
+    const tenant = await getTenantById(convTenantId);
     if (!tenant) {
       return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
     }
@@ -48,6 +58,7 @@ export async function POST(
       text,
       conversationId: id,
     });
+    await updateConversationStatus(id, "in_progress");
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[POST /api/admin/conversations/:id/send]", err);

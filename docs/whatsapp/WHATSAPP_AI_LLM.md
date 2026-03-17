@@ -7,8 +7,9 @@ Uso de modelos de linguagem (OpenAI/Anthropic) no produto WhatsApp Platform, com
 ## 1. Configuração
 
 - **@devflow/ai-core** exporta `createLlmProvider()` e `isLlmConfigured()`.
-- Provedor escolhido por env: `OPENAI_API_KEY` (OpenAI) ou `ANTHROPIC_API_KEY` (Anthropic).
-- No app WhatsApp, definir `WHATSAPP_ENABLE_LLM=true` para tentar LLM; caso contrário só regras.
+- O **motor de IA** é definido por tenant no campo `ai_driver` (Prisma: `aiDriver`): `ruleBased` (só regras), `openAI` ou `claude`.
+- No painel: **Configurações** (`/settings`) → selecionar "Motor de IA (respostas automáticas)" e salvar. O webhook usa esse valor ao processar mensagens do tenant.
+- Variáveis de ambiente no **serviço whatsapp-webhook-api**: `OPENAI_API_KEY` (para driver openAI) ou `ANTHROPIC_API_KEY` (para driver claude). Se não estiverem definidas, o webhook usa fallback por regras.
 
 ## 2. Variáveis de ambiente (WhatsApp)
 
