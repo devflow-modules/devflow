@@ -4,6 +4,8 @@
 **Modo:** CLEAN START (sem migração de dados).  
 **Financeiro:** Não alterado.
 
+**Deploy produção:** Ready (commit `0adec6a`, Production, Current).
+
 ---
 
 ## 1. Schema status
@@ -13,20 +15,17 @@
 | Migration única em `apps/whatsapp-webhook-api/prisma/migrations/` | OK — `20250311120000_whatsapp_schema` |
 | Tabelas criadas pela migration | OK — whatsapp_tenants, whatsapp_users, whatsapp_conversations, whatsapp_messages, whatsapp_faqs, whatsapp_conversation_queue, whatsapp_agent_status, whatsapp_message_feedback |
 | Prisma schema usa apenas WHATSAPP_DATABASE_URL e WHATSAPP_DIRECT_URL | OK (webhook-api e platform) |
-| **Aplicação no novo banco** | **Pendente — operador** |
+| **Aplicação no novo banco** | **Operador** — executar uma vez com envs WHATSAPP_* |
 
-**Comando para aplicar schema no novo banco (executar com envs apontando para o novo DB):**
+**Comando (uma vez, com WHATSAPP_* no ambiente):**
 
 ```bash
 cd apps/whatsapp-webhook-api
-export WHATSAPP_DATABASE_URL="<url-do-novo-projeto>"
-export WHATSAPP_DIRECT_URL="<direct-url-do-novo-projeto>"
+# WHATSAPP_DATABASE_URL e WHATSAPP_DIRECT_URL do .env.local ou export
 pnpm prisma migrate deploy
 ```
 
-**Confirmação pós-deploy:** Todas as 8 tabelas listadas acima existem no novo banco.
-
-**Status:** OK no código. Aplicação em produção depende de WHATSAPP_* no ambiente.
+**Confirmação:** Todas as 8 tabelas existem no novo banco (Supabase SQL Editor ou `\dt` no psql).
 
 ---
 
@@ -65,14 +64,11 @@ pnpm prisma migrate deploy
 
 ## 4. Deploy status
 
-**Ordem obrigatória:**
-
-1. whatsapp-webhook-api  
-2. whatsapp-platform  
-
-Após cada deploy: verificar logs, ausência de erros de conexão com DB e saúde da app.
-
-**Status:** Operador — executar deploys na ordem acima.
+| Item | Status |
+|------|--------|
+| Deploy Production | **OK** — Ready (Cb2fxaKb4, commit 0adec6a, 1m 7s) |
+| whatsapp-webhook-api + platform | Incluídos no monorepo / deploy único |
+| Logs / saúde | Operador — validar no dashboard Vercel |
 
 ---
 
@@ -177,13 +173,13 @@ No **banco compartilhado antigo**:
 
 | Entregável | Status |
 |------------|--------|
-| 1. Schema status | OK (código); aplicação no novo DB = operador |
+| 1. Schema status | OK (código); aplicação no novo DB = operador (1x) |
 | 2. Local validation | OK (generate, build, tests); boot local = operador |
-| 3. Deploy status | Operador (ordem: webhook-api → platform) |
-| 4. Flow validation | Checklist acima; preencher após cutover |
-| 5. Old DB write check | Operador (contagens antes/depois) |
-| 6. Migration status | **COMPLETE** quando todos os passos estiverem validados |
+| 3. Deploy status | **OK** — Production Ready (0adec6a, Cb2fxaKb4) |
+| 4. Flow validation | Checklist secção 5 — preencher após cutover |
+| 5. Old DB write check | Operador (contagens whatsapp_conversations/messages) |
+| 6. Migration status | **COMPLETE** quando: schema aplicado + fluxos PASS + zero writes no antigo |
 | 7. Anomalias | Nenhuma no código/build/tests |
-| 8. Rollback readiness | **READY** (documentado) |
+| 8. Rollback readiness | **READY** (Block 2 doc, secção 7) |
 
-**Constraints respeitados:** Financeiro não alterado; sem SQL destrutivo; passos validados no que é possível no repo; reversão documentada.
+**Constraints respeitados:** Financeiro não alterado; sem SQL destrutivo; reversão documentada.
