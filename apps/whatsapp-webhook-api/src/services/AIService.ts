@@ -13,6 +13,14 @@ import type {
   GenerateResponsePayload,
   ConversationMessage,
 } from "../types/ai.js";
+import { faqService } from "./FAQService.js";
+
+export type AIDriver = "ruleBased" | "openAI" | "claude";
+
+export type AIServiceOptions = {
+  driver?: AIDriver;
+  tenantId?: string;
+};
 
 const SUPPORT_INTENTS: SupportIntent[] = [
   "FAQ",
@@ -75,11 +83,12 @@ export class AIService {
    * Classifies the user message into one of: FAQ, SALES, MENU, LOCATION, HUMAN_SUPPORT.
    * Uses LLM when configured; otherwise rule-based keywords.
    */
-  async classifyIntent(message: string): Promise<ClassifyIntentResult> {
+  async classifyIntent(message: string, options?: AIServiceOptions): Promise<ClassifyIntentResult> {
     const trimmed = message?.trim() ?? "";
     if (!trimmed) return { intent: "FAQ", confidence: 0.3 };
 
-    if (isLlmConfigured()) {
+    const useLlm = options?.driver !== "ruleBased" && isLlmConfigured();
+    if (useLlm) {
       try {
         const llm = createLlmProvider();
         const messages = buildPrompt(CLASSIFY_SYSTEM, trimmed);
@@ -102,7 +111,8 @@ export class AIService {
   async generateResponse(
     intent: SupportIntent,
     message: string,
-    context: GenerateResponseContext
+    context: GenerateResponseContext,
+    options?: AIServiceOptions
   ): Promise<GenerateResponsePayload> {
     if (!safetyGuard(message)) {
       return {
@@ -111,6 +121,19 @@ export class AIService {
         confidence: 0.3,
         escalate: true,
       };
+    }
+
+    const tenantId = options?.tenantId;
+    if (intent === "FAQ" && tenantId) {
+      const faqMatch = await faqService.findMatch(tenantId, message);
+      if (faqMatch) {
+        return {
+          intent: "FAQ",
+          response: faqMatch.answer,
+          confidence: 0.8,
+          escalate: false,
+        };
+      }
     }
 
     const recentMessages = context.recentMessages ?? [];
@@ -128,7 +151,8 @@ export class AIService {
     let response: string;
     let confidence: number;
 
-    if (isLlmConfigured()) {
+    const useLlm = options?.driver !== "ruleBased" && isLlmConfigured();
+    if (useLlm) {
       try {
         const system = `${RESPONSE_SYSTEM}\n\nCurrent intent: ${intent}. Answer accordingly and keep it short. At the end of your reply add a single line: CONFIDENCE: <number between 0 and 1>.`;
         const llm = createLlmProvider();

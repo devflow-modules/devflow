@@ -1,5 +1,17 @@
-/**
- * Módulo auth — sessão e rotas protegidas.
- * Usa @devflow/auth-core e @devflow/supabase-utils.
- */
-export const AUTH_MODULE = "auth";
+export {
+  getTokenFromCookie,
+  buildSetCookieHeader,
+  buildClearCookieHeader,
+} from "./cookies";
+export {
+  hashPassword,
+  verifyPassword,
+  signToken,
+  verifyToken,
+  login,
+  findUserByEmail,
+  type JwtPayload,
+  type UserSafe,
+  type UserRole,
+} from "./authService";
+export { getAuthFromRequest, type AuthResult } from "./verifyToken";

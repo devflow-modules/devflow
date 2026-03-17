@@ -44,7 +44,9 @@ pnpm dev
 
 ## Multi-tenant
 
-Each **Tenant** has: `id`, `name`, `whatsapp_phone`, `system_prompt`, `business_type`, `phone_number_id`, `display_phone_number`, `access_token`, `api_key`, `subdomain`, `created_at`, `updated_at`.
+Each **Tenant** has: `id`, `name`, `whatsapp_phone`, `system_prompt`, `default_prompt`, `business_type`, `phone_number_id`, `display_phone_number`, `access_token`, `api_key`, `subdomain`, `stripe_customer_id`, `plan`, `active_until`, `ai_driver`, `crm_webhook_url`, `created_at`, `updated_at`.
+
+**User** (auth): `id`, `tenant_id`, `email`, `password_hash`, `name`, `role` (admin | agent). **ConversationQueue**: fila para HUMAN_SUPPORT. **AgentStatus**: `user_id`, `status` (available | busy | offline), `current_conversation_id`. **FAQ**: base de conhecimento por tenant. **MessageFeedback**: 👍/👎 em mensagens.
 
 **Middleware `resolveTenant()`** resolves the tenant from the request (and attaches it to `req.tenant`):
 
@@ -68,8 +70,14 @@ All conversations and messages are scoped by `tenant_id`. `ConversationService.l
 |----------|----------|-------------|
 | `DATABASE_URL` | Yes | PostgreSQL connection string |
 | `WHATSAPP_VERIFY_TOKEN` | Yes | Token for webhook subscription |
-| `WHATSAPP_PHONE_NUMBER_ID` | Yes | Cloud API phone number ID |
-| `WHATSAPP_ACCESS_TOKEN` | Yes | Cloud API access token |
+| `WHATSAPP_PHONE_NUMBER_ID` | Yes* | Cloud API phone number ID (*optional until onboarding) |
+| `WHATSAPP_ACCESS_TOKEN` | Yes* | Cloud API access token (*optional until onboarding) |
 | `WHATSAPP_DISPLAY_PHONE_NUMBER` | No | Display phone (e.g. +5511999999999) |
 | `PORT` | No | Server port (default 3005) |
-| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | No | For AIService LLM; otherwise fallback message only |
+| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | No | For AIService LLM; otherwise rule-based only |
+
+## Deploy
+
+- **Database**: run `prisma migrate deploy` (or `db push` in dev). Ensure `User`, `Tenant` (billing fields), `FAQ`, `ConversationQueue`, `AgentStatus`, `MessageFeedback` exist.
+- **Platform** (Next.js): configure `DATABASE_URL` (same DB), `JWT_SECRET`, `STRIPE_*`, `NEXT_PUBLIC_APP_URL`. Signup creates User + Tenant; Stripe webhook updates `plan` / `activeUntil`.
+- **Webhook**: set Meta app webhook URL to `https://your-api.com/webhooks/whatsapp`. Mídias: image/document saved as metadata; CRM: when intent SALES and `crm_webhook_url` set, POST lead to URL.

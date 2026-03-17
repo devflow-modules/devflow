@@ -12,6 +12,8 @@ export type ResolvedTenant = {
   accessToken: string;
   systemPrompt: string | null;
   businessType: string | null;
+  aiDriver?: string | null;
+  crmWebhookUrl?: string | null;
 };
 
 function normalizePhone(value: string): string {
@@ -59,7 +61,7 @@ export class TenantService {
       where: { phoneNumberId },
     });
 
-    if (fromDb) {
+    if (fromDb && fromDb.phoneNumberId != null && fromDb.accessToken != null) {
       return this.toResolved(fromDb);
     }
 
@@ -73,7 +75,7 @@ export class TenantService {
         },
         update: { accessToken: DEFAULT_ACCESS_TOKEN, updatedAt: new Date() },
       });
-      return this.toResolved(tenant);
+      if (tenant.phoneNumberId != null && tenant.accessToken != null) return this.toResolved(tenant);
     }
 
     return null;
@@ -86,7 +88,7 @@ export class TenantService {
     const tenant = await prisma.tenant.findFirst({
       where: { whatsappPhone: normalized },
     });
-    return tenant ? this.toResolved(tenant) : null;
+    return tenant ? this.toResolved(tenant) ?? null : null;
   }
 
   /** Resolve by API key (X-API-Key header or Authorization: Bearer <key>). */
@@ -96,7 +98,7 @@ export class TenantService {
     const tenant = await prisma.tenant.findUnique({
       where: { apiKey: key },
     });
-    return tenant ? this.toResolved(tenant) : null;
+    return tenant ? this.toResolved(tenant) ?? null : null;
   }
 
   /** Resolve by subdomain (e.g. tenant1 from Host: tenant1.example.com). */
@@ -106,18 +108,21 @@ export class TenantService {
     const tenant = await prisma.tenant.findUnique({
       where: { subdomain: slug },
     });
-    return tenant ? this.toResolved(tenant) : null;
+    return tenant ? this.toResolved(tenant) ?? null : null;
   }
 
   private toResolved(t: {
     id: string;
     name: string | null;
-    phoneNumberId: string;
+    phoneNumberId: string | null;
     displayPhoneNumber: string | null;
-    accessToken: string;
+    accessToken: string | null;
     systemPrompt: string | null;
     businessType: string | null;
-  }): ResolvedTenant {
+    aiDriver?: string | null;
+    crmWebhookUrl?: string | null;
+  }): ResolvedTenant | null {
+    if (t.phoneNumberId == null || t.accessToken == null) return null;
     return {
       id: t.id,
       name: t.name ?? null,
@@ -126,6 +131,8 @@ export class TenantService {
       accessToken: t.accessToken,
       systemPrompt: t.systemPrompt ?? null,
       businessType: t.businessType ?? null,
+      aiDriver: t.aiDriver ?? null,
+      crmWebhookUrl: t.crmWebhookUrl ?? null,
     };
   }
 }

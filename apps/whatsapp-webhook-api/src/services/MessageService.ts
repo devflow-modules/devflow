@@ -6,6 +6,9 @@ export type CreateMessageInput = {
   messageType: string;
   content: string;
   timestamp?: Date;
+  responseTimeMs?: number;
+  agentId?: string;
+  intent?: string;
 };
 
 export type ListByConversationOptions = {
@@ -22,6 +25,9 @@ export class MessageService {
         messageType: input.messageType,
         content: input.content,
         timestamp: input.timestamp ?? new Date(),
+        responseTimeMs: input.responseTimeMs ?? undefined,
+        agentId: input.agentId ?? undefined,
+        intent: input.intent ?? undefined,
       },
     });
   }

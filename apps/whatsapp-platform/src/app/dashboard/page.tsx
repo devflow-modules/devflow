@@ -4,6 +4,7 @@ import { hasSupabaseConfig } from "@/lib/supabase-server";
 import { listQueuesByTenant } from "@/modules/queues";
 import { listAgentsByTenant } from "@/modules/agents";
 import { listTenants } from "@/modules/tenants";
+import { MetricsSection } from "./MetricsSection";
 
 export default async function DashboardPage() {
   const metrics = await getOpsMetrics();
@@ -33,7 +34,7 @@ export default async function DashboardPage() {
         <Link href="/dashboard" className="text-blue-600 underline">
           Dashboard
         </Link>
-        <Link href="/conversations" className="text-blue-600 underline">
+        <Link href="/admin/conversations" className="text-blue-600 underline">
           Conversas
         </Link>
         <Link href="/agents" className="text-blue-600 underline">
@@ -44,6 +45,9 @@ export default async function DashboardPage() {
         </Link>
         <Link href="/settings" className="text-blue-600 underline">
           Configurações
+        </Link>
+        <Link href="/login" className="text-blue-600 underline">
+          Entrar
         </Link>
       </nav>
       <div className="mt-6 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
@@ -68,9 +72,7 @@ export default async function DashboardPage() {
           <p className="text-2xl font-semibold">{agentsCount}</p>
         </div>
       </div>
-      <p className="mt-4 text-sm text-gray-500">
-        Billing (users, assinaturas, MRR) não implementado para este produto.
-      </p>
+      <MetricsSection />
     </div>
   );
 }

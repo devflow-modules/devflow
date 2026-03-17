@@ -6,8 +6,33 @@ import { conversationService } from "../services/ConversationService.js";
 import { aiService } from "../services/AIService.js";
 import { whatsAppService } from "../services/WhatsAppService.js";
 import { messageService } from "../services/MessageService.js";
+import { queueService } from "../services/QueueService.js";
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN ?? "";
+
+async function notifyCrmIfLead(
+  tenant: { id: string; crmWebhookUrl?: string | null },
+  phone: string,
+  message: string,
+  intent: string
+): Promise<void> {
+  if (!tenant.crmWebhookUrl?.trim() || intent !== "SALES") return;
+  try {
+    await fetch(tenant.crmWebhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tenantId: tenant.id,
+        phone,
+        message,
+        intent,
+        source: "whatsapp",
+      }),
+    });
+  } catch (e) {
+    console.error("[Webhook] CRM webhook failed:", e);
+  }
+}
 
 function extractTextContent(msg: IncomingMessage): { messageType: string; content: string } | null {
   if (msg.type === "text" && (msg as { text?: { body?: string } }).text?.body) {
@@ -56,13 +81,14 @@ export class WebhookController {
     }
 
     for (const msg of payload.messages) {
-      const extracted = extractTextContent(msg);
+      const extracted = extractMessageContent(msg);
       if (!extracted) continue;
 
       const from = msg.from;
       const messageTimestamp = msg.timestamp ? new Date(Number(msg.timestamp) * 1000) : undefined;
 
       try {
+        const userMessageTime = messageTimestamp ?? new Date();
         const context = await conversationService.processInbound({
           tenantId: tenant.id,
           externalId: from,
@@ -72,10 +98,16 @@ export class WebhookController {
           messageTimestamp,
         });
 
-        const { intent } = await aiService.classifyIntent(extracted.content);
+        if (extracted.messageType === "image" || extracted.messageType === "document") {
+          continue;
+        }
+
+        const aiOptions = { tenantId: tenant.id, driver: tenant.aiDriver as "ruleBased" | "openAI" | "claude" | undefined };
+        const { intent } = await aiService.classifyIntent(extracted.content, aiOptions);
+        await notifyCrmIfLead(tenant, from, extracted.content, intent);
         const payload = await aiService.generateResponse(intent, extracted.content, {
           recentMessages: context.recentMessages,
-        });
+        }, aiOptions);
 
         const responseText = payload.escalate
           ? `${payload.response}\n\n_Um atendente pode entrar em contato em breve._`
@@ -88,13 +120,25 @@ export class WebhookController {
           text: responseText,
         });
 
+        const now = new Date();
+        const responseTimeMs = Math.round(now.getTime() - userMessageTime.getTime());
         await messageService.create({
           conversationId: context.conversationId,
           sender: "business",
           messageType: "text",
           content: responseText,
-          timestamp: new Date(),
+          timestamp: now,
+          responseTimeMs,
+          intent,
         });
+
+        if (payload.escalate) {
+          await queueService.enqueue({
+            tenantId: tenant.id,
+            conversationId: context.conversationId,
+            priority: 0,
+          }).catch((e) => console.error("[Webhook] Enqueue failed:", e));
+        }
       } catch (err) {
         console.error("[Webhook] Error processing message:", err);
       }
