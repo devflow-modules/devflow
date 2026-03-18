@@ -1,6 +1,6 @@
 # Shared — Monorepo e infra
 
-Documentação cross-project.
+Documentação cross-project. **Índice geral:** [../README.md](../README.md).
 
 ---
 

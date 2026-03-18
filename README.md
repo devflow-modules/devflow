@@ -48,6 +48,8 @@ pnpm dev
 
 Acesse [http://localhost:3000](http://localhost:3000).
 
+Toda a documentação técnica está em **[`docs/README.md`](docs/README.md)** (por produto: financeiro, WhatsApp, shared, etc.).
+
 ---
 
 ## Scripts
@@ -116,7 +118,7 @@ Robô de atendimento via WhatsApp Cloud API com:
 - Páginas de nicho para SEO (`/automacao-whatsapp-restaurante`, `-tabacaria`, etc.)
 - Meta Pixel integrado (PageView, ViewContent, Contact)
 
-Setup: [`docs/WHATSAPP-SETUP.md`](docs/WHATSAPP-SETUP.md)
+Setup: [`docs/whatsapp/WHATSAPP-SETUP.md`](docs/whatsapp/WHATSAPP-SETUP.md)
 
 ---
 
@@ -171,7 +173,7 @@ src/modules/financeiro/
 └── types/             # Tipos do domínio
 ```
 
-Documentação: [`docs/FINANCEIRO-MODULE-ARCHITECTURE.md`](docs/FINANCEIRO-MODULE-ARCHITECTURE.md)
+Documentação: [`docs/financeiro/FINANCEIRO-MODULE-ARCHITECTURE.md`](docs/financeiro/FINANCEIRO-MODULE-ARCHITECTURE.md)
 
 ---
 
@@ -190,7 +192,7 @@ Integração Stripe com arquitetura substituível (Lemon, Paddle, Mercado Pago):
 stripe listen --forward-to localhost:3000/api/billing/webhook
 ```
 
-Documentação: [`docs/DEVFLOW-PAYMENTS.md`](docs/DEVFLOW-PAYMENTS.md)
+Documentação: [`docs/shared/DEVFLOW-PAYMENTS.md`](docs/shared/DEVFLOW-PAYMENTS.md)
 
 ---
 
@@ -204,7 +206,7 @@ visitor_landed → simulator_used → lead_submitted → signup → household_cr
 
 Dashboard interno: `http://localhost:3000/admin/metrics`
 
-Documentação: [`docs/DEVFLOW-GROWTH-ANALYTICS.md`](docs/DEVFLOW-GROWTH-ANALYTICS.md)
+Documentação: [`docs/shared/DEVFLOW-GROWTH-ANALYTICS.md`](docs/shared/DEVFLOW-GROWTH-ANALYTICS.md)
 
 ---
 
@@ -232,32 +234,34 @@ Após deploy, registre o webhook Stripe no Dashboard:
 https://seu-dominio.vercel.app/api/billing/webhook
 ```
 
-Documentação: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
+Documentação: [`docs/shared/DEPLOYMENT.md`](docs/shared/DEPLOYMENT.md)
 
 ---
 
 ## Documentação
 
+**Índice completo:** [`docs/README.md`](docs/README.md) · rotas do ecossistema: [`docs/ecossistema/ROTAS-ECOSSISTEMA-DEVFLOWLABS.md`](docs/ecossistema/ROTAS-ECOSSISTEMA-DEVFLOWLABS.md)
+
 | Arquivo | Conteúdo |
 |---------|----------|
-| [`ARQUITETURA-FERRAMENTAS-DEVFLOW.md`](docs/ARQUITETURA-FERRAMENTAS-DEVFLOW.md) | DevFlow como hub de ferramentas |
-| [`FINANCEIRO-MODULE-ARCHITECTURE.md`](docs/FINANCEIRO-MODULE-ARCHITECTURE.md) | Arquitetura do módulo financeiro |
-| [`FINANCEIRO-API-MAP.md`](docs/FINANCEIRO-API-MAP.md) | Mapa de todas as APIs |
-| [`FINANCEIRO-DATA-MODEL.md`](docs/FINANCEIRO-DATA-MODEL.md) | Modelo de dados |
-| [`FINANCEIRO-DOMAIN-EVENTS.md`](docs/FINANCEIRO-DOMAIN-EVENTS.md) | Sistema de domain events |
-| [`FINANCEIRO-FEATURE-STANDARD.md`](docs/FINANCEIRO-FEATURE-STANDARD.md) | Padrão para novas features |
-| [`FINANCEIRO-APP-VS-GROWTH.md`](docs/FINANCEIRO-APP-VS-GROWTH.md) | Separação app vs. growth |
-| [`FINANCEIRO-PRODUCT-ANALYTICS.md`](docs/FINANCEIRO-PRODUCT-ANALYTICS.md) | Product analytics |
-| [`FINANCEIRO-PRODUCT-SPEC.md`](docs/FINANCEIRO-PRODUCT-SPEC.md) | Especificação do produto |
-| [`DEVFLOW-GROWTH-ANALYTICS.md`](docs/DEVFLOW-GROWTH-ANALYTICS.md) | Growth analytics end-to-end |
-| [`DEVFLOW-METRICS-DASHBOARD.md`](docs/DEVFLOW-METRICS-DASHBOARD.md) | Dashboard interno de métricas |
-| [`DEVFLOW-MONETIZATION.md`](docs/DEVFLOW-MONETIZATION.md) | Camada de monetização |
-| [`DEVFLOW-PAYMENTS.md`](docs/DEVFLOW-PAYMENTS.md) | Integração Stripe |
-| [`PRISMA-SUPABASE-SETUP.md`](docs/PRISMA-SUPABASE-SETUP.md) | Setup Prisma + Supabase |
-| [`RELATORIO-PADROES-DESIGN-PARA-FINANCEIRO.md`](docs/RELATORIO-PADROES-DESIGN-PARA-FINANCEIRO.md) | Padrões de design |
-| [`WHATSAPP-SETUP.md`](docs/WHATSAPP-SETUP.md) | Setup WhatsApp Cloud API |
-| [`META_ADS.md`](docs/META_ADS.md) | Configuração Meta Pixel / Meta Ads |
-| [`DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Deploy Vercel |
+| [`docs/shared/ARQUITETURA-FERRAMENTAS-DEVFLOW.md`](docs/shared/ARQUITETURA-FERRAMENTAS-DEVFLOW.md) | DevFlow como hub de ferramentas |
+| [`docs/financeiro/FINANCEIRO-MODULE-ARCHITECTURE.md`](docs/financeiro/FINANCEIRO-MODULE-ARCHITECTURE.md) | Arquitetura do módulo financeiro |
+| [`docs/financeiro/FINANCEIRO-API-MAP.md`](docs/financeiro/FINANCEIRO-API-MAP.md) | Mapa de todas as APIs |
+| [`docs/financeiro/FINANCEIRO-DATA-MODEL.md`](docs/financeiro/FINANCEIRO-DATA-MODEL.md) | Modelo de dados |
+| [`docs/financeiro/FINANCEIRO-DOMAIN-EVENTS.md`](docs/financeiro/FINANCEIRO-DOMAIN-EVENTS.md) | Sistema de domain events |
+| [`docs/financeiro/FINANCEIRO-FEATURE-STANDARD.md`](docs/financeiro/FINANCEIRO-FEATURE-STANDARD.md) | Padrão para novas features |
+| [`docs/financeiro/FINANCEIRO-APP-VS-GROWTH.md`](docs/financeiro/FINANCEIRO-APP-VS-GROWTH.md) | Separação app vs. growth |
+| [`docs/financeiro/FINANCEIRO-PRODUCT-ANALYTICS.md`](docs/financeiro/FINANCEIRO-PRODUCT-ANALYTICS.md) | Product analytics |
+| [`docs/financeiro/FINANCEIRO-PRODUCT-SPEC.md`](docs/financeiro/FINANCEIRO-PRODUCT-SPEC.md) | Especificação do produto |
+| [`docs/shared/DEVFLOW-GROWTH-ANALYTICS.md`](docs/shared/DEVFLOW-GROWTH-ANALYTICS.md) | Growth analytics end-to-end |
+| [`docs/shared/DEVFLOW-METRICS-DASHBOARD.md`](docs/shared/DEVFLOW-METRICS-DASHBOARD.md) | Dashboard interno de métricas |
+| [`docs/shared/DEVFLOW-MONETIZATION.md`](docs/shared/DEVFLOW-MONETIZATION.md) | Camada de monetização |
+| [`docs/shared/DEVFLOW-PAYMENTS.md`](docs/shared/DEVFLOW-PAYMENTS.md) | Integração Stripe |
+| [`docs/shared/PRISMA-SUPABASE-SETUP.md`](docs/shared/PRISMA-SUPABASE-SETUP.md) | Setup Prisma + Supabase |
+| [`docs/financeiro/RELATORIO-PADROES-DESIGN-PARA-FINANCEIRO.md`](docs/financeiro/RELATORIO-PADROES-DESIGN-PARA-FINANCEIRO.md) | Padrões de design |
+| [`docs/whatsapp/WHATSAPP-SETUP.md`](docs/whatsapp/WHATSAPP-SETUP.md) | Setup WhatsApp Cloud API |
+| [`docs/shared/META_ADS.md`](docs/shared/META_ADS.md) | Configuração Meta Pixel / Meta Ads |
+| [`docs/shared/DEPLOYMENT.md`](docs/shared/DEPLOYMENT.md) | Deploy Vercel |
 
 ---
 
