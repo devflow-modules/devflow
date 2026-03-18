@@ -38,6 +38,8 @@ export type PaymentWithSettlement = {
   createdAt: string;
   fromName: string;
   toName: string;
+  fromParticipantId: string;
+  toParticipantId: string;
 };
 
 export type ApplyPaymentResult =
@@ -303,6 +305,8 @@ export async function listPayments(
       createdAt: p.createdAt.toISOString(),
       fromName: p.settlement.fromParticipant.name,
       toName: p.settlement.toParticipant.name,
+      fromParticipantId: p.settlement.fromParticipantId,
+      toParticipantId: p.settlement.toParticipantId,
     };
   });
 }

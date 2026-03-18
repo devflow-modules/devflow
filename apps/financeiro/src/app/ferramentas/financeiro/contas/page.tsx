@@ -66,7 +66,7 @@ export default function ContasPage() {
       });
       const payload = await res.json();
       if (payload.success) {
-        toast.success("Conta criada");
+        toast.success("Conta criada. Agora adicione as pessoas que dividem gastos.");
         setShowCreate(false);
         setCreateName("");
         setCreateType("SHARED");
@@ -92,20 +92,26 @@ export default function ContasPage() {
     <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
       <Breadcrumbs />
       <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-xl font-bold text-slate-900">Contas</h1>
+        <div>
+          <h1 className="text-xl font-bold text-slate-900">Suas contas</h1>
+          <p className="mt-1 text-sm text-slate-600">
+            Cada conta é um grupo (casa, empresa, estúdio). Dentro você coloca pessoas e despesas.
+          </p>
+        </div>
         <button
           type="button"
           onClick={() => setShowCreate(true)}
           className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
         >
-          Nova conta
+          Criar conta
         </button>
       </div>
 
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-lg">
-            <h2 className="text-lg font-semibold text-slate-900">Nova conta</h2>
+            <h2 className="text-lg font-semibold text-slate-900">Criar conta</h2>
+            <p className="mt-1 text-sm text-slate-500">Ex.: “Casa”, “Minha empresa”, “Estúdio”.</p>
             <form onSubmit={handleCreate} className="mt-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700">Nome</label>
@@ -158,7 +164,10 @@ export default function ContasPage() {
         </div>
       ) : accounts.length === 0 ? (
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-600">
-          Nenhuma conta ainda. Crie uma conta (Casa, PJ, Studio) e adicione participantes com percentual de divisão.
+          <p className="font-medium text-slate-800">Nenhuma conta ainda</p>
+          <p className="mt-2 text-sm">
+            Crie uma conta para juntar despesas e ver quem precisa pagar quem. É rápido e você pode mudar depois.
+          </p>
         </div>
       ) : (
         <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

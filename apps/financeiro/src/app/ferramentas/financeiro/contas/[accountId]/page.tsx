@@ -9,6 +9,16 @@ import { Breadcrumbs } from "@/modules/financeiro/components/Breadcrumbs";
 import { Skeleton } from "@/modules/financeiro/components/Skeleton";
 import { CONTEXT_LABELS } from "@/modules/financeiro/schemas";
 import { expenseCreateSchema } from "@/modules/financeiro/schemas";
+import {
+  apiErrorMessageAmigavel,
+  linhaAcertoHumana,
+  linhaSugestaoHumana,
+  CONFIRMA_ESTORNO,
+  CONFIRMA_QUITADO,
+  CONFIRMA_FECHAR_MES,
+  MICRO_CONFIANCA,
+  INTRO_CONTA,
+} from "../contaHumanCopy";
 
 function newIdempotencyKey(): string {
   return typeof crypto !== "undefined" && crypto.randomUUID
@@ -16,19 +26,11 @@ function newIdempotencyKey(): string {
     : `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
-/** Mensagens de API legíveis (inclui código quando útil). */
-function apiErrorMessage(payload: { error?: { message?: string; code?: string } }): string {
-  const msg = payload.error?.message?.trim();
-  const code = payload.error?.code;
-  if (!msg) return "Não foi possível concluir. Verifique os dados ou tente de novo.";
-  if (code && code !== "ERROR" && code.length < 48) return `${msg} · ${code}`;
-  return msg;
-}
-
 type Participant = {
   id: string;
   name: string;
   defaultShare: number;
+  userId?: string | null;
 };
 
 type ExpenseSplit = {
@@ -59,6 +61,8 @@ type Account = {
 
 type SettlementItem = {
   id: string;
+  fromParticipantId: string;
+  toParticipantId: string;
   fromName: string;
   toName: string;
   amount: number;
@@ -80,6 +84,8 @@ type PaymentItem = {
   createdAt: string;
   fromName: string;
   toName: string;
+  fromParticipantId: string;
+  toParticipantId: string;
 };
 
 type TimelineEvent = {
@@ -132,6 +138,14 @@ export default function AccountDetailPage() {
   const [closingMonth, setClosingMonth] = useState(false);
   const [reversingPaymentId, setReversingPaymentId] = useState<string | null>(null);
   const [reopeningId, setReopeningId] = useState<string | null>(null);
+  const [meUserId, setMeUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/me")
+      .then((r) => r.json())
+      .then((p) => setMeUserId(p?.data?.user?.id ?? null))
+      .catch(() => setMeUserId(null));
+  }, []);
 
   const loadAccount = async () => {
     if (!accountId || !household?.id) return;
@@ -141,9 +155,10 @@ export default function AccountDetailPage() {
       const acc = payload.data;
       setAccount({
         ...acc,
-        participants: (acc.participants ?? []).map((p: Participant & { defaultShare: unknown }) => ({
+        participants: (acc.participants ?? []).map((p: Participant & { defaultShare: unknown; userId?: unknown }) => ({
           ...p,
           defaultShare: Number(p.defaultShare),
+          userId: (p.userId as string) ?? null,
         })),
         expenses: (acc.expenses ?? []).map((e: Expense & { amount: unknown }) => ({
           ...e,
@@ -193,6 +208,8 @@ export default function AccountDetailPage() {
           ...p,
           reversedTotal: Number(p.reversedTotal ?? 0),
           netAmount: Number(p.netAmount ?? p.amount),
+          fromParticipantId: p.fromParticipantId ?? "",
+          toParticipantId: p.toParticipantId ?? "",
         }))
       );
     }
@@ -237,23 +254,24 @@ export default function AccountDetailPage() {
       });
       const payload = await res.json();
       if (payload.success) {
-        toast.success("Liquidações geradas com sucesso");
+        toast.success("Acertos registrados. Agora você pode ir pagando aos poucos.");
         refreshDebts();
-      } else toast.error(apiErrorMessage(payload));
+      } else toast.error(apiErrorMessageAmigavel(payload));
     } finally {
       setLiquidating(false);
     }
   };
 
   const handleMarkPaid = async (settlementId: string) => {
+    if (typeof window !== "undefined" && !window.confirm(CONFIRMA_QUITADO)) return;
     setCompletingId(settlementId);
     try {
       const res = await fetch(`/api/settlements/${settlementId}/complete`, { method: "PATCH" });
       const payload = await res.json();
       if (payload.success) {
-        toast.success("Marcado como quitado");
+        toast.success("Acerto marcado como totalmente pago.");
         refreshDebts();
-      } else toast.error(apiErrorMessage(payload));
+      } else toast.error(apiErrorMessageAmigavel(payload));
     } finally {
       setCompletingId(null);
     }
@@ -275,12 +293,12 @@ export default function AccountDetailPage() {
       });
       const payload = await res.json();
       if (payload.success) {
-        toast.success("Pagamento registrado com sucesso");
+        toast.success("Pagamento registrado. Falta pagar foi atualizado.");
         setShowPaymentModal(null);
         setPaymentAmount("");
         refreshDebts();
       } else {
-        toast.error(apiErrorMessage(payload));
+        toast.error(apiErrorMessageAmigavel(payload));
       }
     } finally {
       setSubmittingPayment(false);
@@ -312,19 +330,20 @@ export default function AccountDetailPage() {
       });
       const payload = await res.json();
       if (payload.success) {
-        toast.success("Pagamento manual registrado");
+        toast.success("Acerto manual registrado.");
         setShowManualSettlement(false);
         setManualFromId("");
         setManualToId("");
         setManualAmount("");
         refreshDebts();
-      } else toast.error(apiErrorMessage(payload));
+      } else toast.error(apiErrorMessageAmigavel(payload));
     } finally {
       setSubmittingManual(false);
     }
   };
 
   const handleReversePayment = async (paymentId: string) => {
+    if (typeof window !== "undefined" && !window.confirm(CONFIRMA_ESTORNO)) return;
     setReversingPaymentId(paymentId);
     try {
       const res = await fetch(`/api/payments/${paymentId}/reverse`, {
@@ -334,9 +353,9 @@ export default function AccountDetailPage() {
       });
       const payload = await res.json();
       if (payload.success) {
-        toast.success("Estorno registrado com sucesso");
+        toast.success("Estorno feito com sucesso. O histórico foi atualizado.");
         refreshDebts();
-      } else toast.error(apiErrorMessage(payload));
+      } else toast.error(apiErrorMessageAmigavel(payload));
     } finally {
       setReversingPaymentId(null);
     }
@@ -348,9 +367,9 @@ export default function AccountDetailPage() {
       const res = await fetch(`/api/settlements/${settlementId}/reopen`, { method: "POST" });
       const payload = await res.json();
       if (payload.success) {
-        toast.success("Liquidação reaberta");
+        toast.success("Acerto reaberto. Você pode ajustar pagamentos de novo.");
         refreshDebts();
-      } else toast.error(apiErrorMessage(payload));
+      } else toast.error(apiErrorMessageAmigavel(payload));
     } finally {
       setReopeningId(null);
     }
@@ -362,9 +381,9 @@ export default function AccountDetailPage() {
       const res = await fetch(`/api/settlements/${settlementId}/finalize`, { method: "POST" });
       const payload = await res.json();
       if (payload.success) {
-        toast.success("Fechamento confirmado");
+        toast.success("Tudo certo — acerto fechado de novo.");
         refreshDebts();
-      } else toast.error(apiErrorMessage(payload));
+      } else toast.error(apiErrorMessageAmigavel(payload));
     } finally {
       setReopeningId(null);
     }
@@ -373,9 +392,10 @@ export default function AccountDetailPage() {
   const handleCloseMonth = async (e: FormEvent) => {
     e.preventDefault();
     if (!accountId || !/^\d{4}-\d{2}$/.test(closeMonthInput)) {
-      toast.error("Use o formato YYYY-MM");
+      toast.error("Use o mês no formato AAAA-MM (ex.: 2026-03)");
       return;
     }
+    if (typeof window !== "undefined" && !window.confirm(CONFIRMA_FECHAR_MES)) return;
     setClosingMonth(true);
     try {
       const res = await fetch(`/api/accounts/${accountId}/close-month`, {
@@ -385,8 +405,8 @@ export default function AccountDetailPage() {
       });
       const payload = await res.json();
       if (payload.success) {
-        toast.success(`Mês ${closeMonthInput} fechado — snapshot salvo`);
-      } else toast.error(apiErrorMessage(payload));
+        toast.success(`Mês ${closeMonthInput} guardado. Você pode consultar esse retrato quando quiser.`);
+      } else toast.error(apiErrorMessageAmigavel(payload));
     } finally {
       setClosingMonth(false);
     }
@@ -395,7 +415,7 @@ export default function AccountDetailPage() {
   function settlementStatusBadge(s: SettlementItem) {
     if (s.reopenedAt) {
       return (
-        <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-800">Reaberto</span>
+        <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-800">Em ajuste</span>
       );
     }
     if (s.status === "PENDING") {
@@ -412,15 +432,15 @@ export default function AccountDetailPage() {
   function timelineLabel(ev: TimelineEvent): string {
     switch (ev.type) {
       case "expense_created":
-        return `Despesa: ${ev.label ?? "—"} · R$ ${(ev.amount ?? 0).toFixed(2)}`;
+        return `Despesa “${ev.label ?? "—"}” · R$ ${(ev.amount ?? 0).toFixed(2)}`;
       case "settlement_created":
-        return `Liquidação: ${ev.fromName} → ${ev.toName} · R$ ${(ev.amount ?? 0).toFixed(2)}`;
+        return `Acerto entre ${ev.fromName} e ${ev.toName} · R$ ${(ev.amount ?? 0).toFixed(2)}`;
       case "payment_made":
-        return `Pagamento: ${ev.fromName} → ${ev.toName} · R$ ${(ev.amount ?? 0).toFixed(2)}`;
+        return `${ev.fromName} pagou R$ ${(ev.amount ?? 0).toFixed(2)} para ${ev.toName}`;
       case "payment_reversed":
-        return `Estorno: ${ev.fromName} → ${ev.toName} · R$ ${(ev.amount ?? 0).toFixed(2)}`;
+        return `Estorno de R$ ${(ev.amount ?? 0).toFixed(2)} (${ev.fromName} → ${ev.toName})`;
       case "settlement_completed":
-        return `Liquidação concluída: ${ev.fromName} → ${ev.toName}`;
+        return `Acerto quitado: ${ev.fromName} → ${ev.toName}`;
       default:
         return ev.type;
     }
@@ -454,7 +474,7 @@ export default function AccountDetailPage() {
       });
       const payload = await res.json();
       if (payload.success) {
-        toast.success("Despesa adicionada");
+        toast.success("Despesa salva.");
         setShowExpenseModal(false);
         setExpenseAmount("");
         setExpenseType("SHARED");
@@ -465,7 +485,7 @@ export default function AccountDetailPage() {
         loadAccount();
         loadBalances();
       } else {
-        toast.error(apiErrorMessage(payload));
+        toast.error(apiErrorMessageAmigavel(payload));
       }
     } finally {
       setSubmitting(false);
@@ -488,13 +508,13 @@ export default function AccountDetailPage() {
       });
       const payload = await res.json();
       if (payload.success) {
-        toast.success("Participante adicionado");
+        toast.success("Pessoa adicionada à conta.");
         setShowAddParticipant(false);
         setParticipantName("");
         setParticipantShare("0.5");
         loadAccount();
       } else {
-        toast.error(apiErrorMessage(payload));
+        toast.error(apiErrorMessageAmigavel(payload));
       }
     } finally {
       setSubmitting(false);
@@ -523,9 +543,9 @@ export default function AccountDetailPage() {
   if (!account) {
     return (
       <div className="min-h-screen bg-slate-50 p-4">
-        <p className="text-slate-600">Conta não encontrada.</p>
+        <p className="text-slate-600">Não achamos essa conta.</p>
         <Link href="/ferramentas/financeiro/contas" className="mt-2 text-primary underline">
-          Voltar às contas
+          Voltar para suas contas
         </Link>
       </div>
     );
@@ -544,40 +564,49 @@ export default function AccountDetailPage() {
           onClick={() => setShowExpenseModal(true)}
           className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
         >
-          Adicionar despesa
+          Nova despesa
         </button>
       </div>
 
-      {/* Saldos efetivos (despesas - pagamentos realizados) */}
+      <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-600">{INTRO_CONTA}</p>
+      <p className="mt-2 text-xs text-slate-500">{MICRO_CONFIANCA}</p>
+
       <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Saldos (após liquidações)</h2>
+        <h2 className="text-base font-semibold text-slate-900">Saldo atual (por pessoa)</h2>
+        <p className="mt-1 text-xs text-slate-500">
+          Positivo = a pessoa pagou mais do que “sua parte”; negativo = ainda deve. Depois dos acertos já feitos.
+        </p>
         <div className="mt-3 flex flex-wrap gap-4">
           {Object.entries(balances).map(([name, value]) => (
-            <div key={name} className="rounded-xl bg-slate-50 px-4 py-2">
-              <span className="font-medium text-slate-700">{name}</span>
-              <span className={value >= 0 ? " ml-2 text-green-600" : " ml-2 text-red-600"}>
+            <div key={name} className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+              <span className="block text-xs font-medium uppercase tracking-wide text-slate-500">{name}</span>
+              <span className={`mt-0.5 block text-lg font-bold tabular-nums ${value >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
                 {value >= 0 ? "+" : ""}R$ {value.toFixed(2)}
               </span>
             </div>
           ))}
           {Object.keys(balances).length === 0 && (
-            <p className="text-sm text-slate-500">Nenhuma despesa paga ainda.</p>
+            <p className="text-sm text-slate-600">
+              Nenhuma despesa paga nesta conta ainda. Adicione uma despesa e marque “já paguei” para ver os saldos.
+            </p>
           )}
         </div>
       </section>
 
-      {/* Quem deve para quem */}
       <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Quem deve para quem</h2>
+          <h2 className="text-base font-semibold text-slate-900">Quem precisa pagar quem</h2>
           <button
             type="button"
             onClick={() => setShowManualSettlement(true)}
             className="text-sm font-medium text-primary hover:underline"
           >
-            + Registrar pagamento manual
+            + Acerto manual
           </button>
         </div>
+        <p className="mt-1 text-xs text-slate-500">
+          Quem paga, quem recebe e quanto falta — em uma frase só, quando possível.
+        </p>
         {(() => {
           const openSettlements = settlements.filter((s) => s.status === "PENDING" || s.status === "PARTIAL");
           const completed = settlements.filter((s) => s.status === "COMPLETED");
@@ -588,9 +617,12 @@ export default function AccountDetailPage() {
             <>
               <div className="mt-3 space-y-3">
                 {list.length === 0 && (
-                  <p className="text-sm text-slate-500">
-                    Nenhuma dívida a liquidar. Saldos estão zerados ou não há despesas pagas.
-                  </p>
+                  <div className="rounded-xl border border-emerald-100 bg-emerald-50/80 px-4 py-5 text-center">
+                    <p className="font-semibold text-emerald-900">Tudo certo! Ninguém deve nada 🎉</p>
+                    <p className="mt-1 text-sm text-emerald-800">
+                      Quando houver despesas pagas e mais de uma pessoa na conta, os acertos aparecem aqui.
+                    </p>
+                  </div>
                 )}
                 {list.map((item, idx) => {
                   const isSettlement = "id" in item && "paidAmount" in item;
@@ -598,38 +630,51 @@ export default function AccountDetailPage() {
                   const paid = isSettlement ? (item as SettlementItem).paidAmount : 0;
                   const remaining = total - paid;
                   const status = isSettlement ? (item as SettlementItem).status : null;
+                  const st = item as SettlementItem;
+                  const sug = item as SuggestedTransfer;
+                  const frasePrincipal = isSettlement
+                    ? linhaAcertoHumana(
+                        st.fromName,
+                        st.toName,
+                        total,
+                        st.fromParticipantId ?? "",
+                        st.toParticipantId ?? "",
+                        account.participants,
+                        meUserId
+                      )
+                    : linhaSugestaoHumana(sug.from, sug.to, total, account.participants, meUserId);
                   return (
                     <div
                       key={"id" in item ? item.id : `s-${idx}`}
-                      className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3"
+                      className="rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm"
                     >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="text-sm font-medium text-slate-800">
-                          {"fromName" in item
-                            ? `${item.fromName} → ${item.toName}`
-                            : `${item.from} → ${item.to}`}
-                        </span>
-                        {isSettlement && settlementStatusBadge(item as SettlementItem)}
-                        {!isSettlement && (
-                          <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-600">Sugestão</span>
-                        )}
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <p className="max-w-xl text-base font-semibold leading-snug text-slate-900">{frasePrincipal}</p>
+                        <div className="flex shrink-0 flex-wrap items-center gap-1">
+                          {isSettlement && settlementStatusBadge(item as SettlementItem)}
+                          {!isSettlement && (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
+                              Só sugestão
+                            </span>
+                          )}
+                        </div>
                       </div>
                       {isSettlement && (paid > 0 || status === "PARTIAL") ? (
-                        <div className="mt-2 space-y-1 text-xs text-slate-600">
+                        <div className="mt-3 space-y-1 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
                           <div className="flex justify-between">
-                            <span>Total:</span>
-                            <span>R$ {total.toFixed(2)}</span>
+                            <span>Total do acerto</span>
+                            <span className="font-medium tabular-nums">R$ {total.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Pago:</span>
-                            <span className="text-green-600">R$ {paid.toFixed(2)}</span>
+                            <span>Já pago</span>
+                            <span className="font-medium tabular-nums text-emerald-700">R$ {paid.toFixed(2)}</span>
                           </div>
-                          <div className="flex justify-between font-medium">
-                            <span>Restante:</span>
-                            <span>R$ {Math.round(remaining * 100) / 100}</span>
+                          <div className="flex justify-between border-t border-slate-200 pt-1 font-semibold">
+                            <span>Falta pagar</span>
+                            <span className="tabular-nums text-slate-900">R$ {Math.round(remaining * 100) / 100}</span>
                           </div>
-                          {remaining > 0.01 && (
-                            <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                          {remaining > 0.01 && total > 0 && (
+                            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200">
                               <div
                                 className="h-full rounded-full bg-primary transition-all"
                                 style={{ width: `${Math.min(100, (paid / total) * 100)}%` }}
@@ -637,20 +682,20 @@ export default function AccountDetailPage() {
                             </div>
                           )}
                         </div>
-                      ) : (
-                        <p className="mt-1 text-sm text-slate-600">
-                          Total: R$ {total.toFixed(2)}
+                      ) : !isSettlement ? (
+                        <p className="mt-2 text-sm text-slate-600">
+                          Valor sugerido: <span className="font-semibold tabular-nums">R$ {total.toFixed(2)}</span>
                         </p>
-                      )}
+                      ) : null}
                       {"id" in item && (status === "PENDING" || status === "PARTIAL") && remaining > 0.01 && (
-                        <div className="mt-3 flex flex-wrap gap-2">
+                        <div className="mt-4 flex flex-wrap gap-2">
                           <button
                             type="button"
                             onClick={() => {
                               setShowPaymentModal(item.id);
                               setPaymentAmount(remaining.toFixed(2));
                             }}
-                            className="rounded-lg border border-primary bg-white px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/5"
+                            className="rounded-lg border-2 border-primary bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
                           >
                             Registrar pagamento
                           </button>
@@ -658,9 +703,9 @@ export default function AccountDetailPage() {
                             type="button"
                             disabled={completingId === item.id}
                             onClick={() => handleMarkPaid(item.id)}
-                            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                           >
-                            {completingId === item.id ? "…" : "Marcar como quitado"}
+                            {completingId === item.id ? "…" : "Marcar tudo como pago"}
                           </button>
                         </div>
                       )}
@@ -668,17 +713,17 @@ export default function AccountDetailPage() {
                         isSettlement &&
                         (item as SettlementItem).reopenedAt &&
                         (status === "PARTIAL" || status === "PENDING") && (
-                          <div className="mt-3">
-                            <p className="mb-1 text-xs text-violet-700">
-                              Valor quitado; confirme o fechamento quando não houver mais ajustes.
+                          <div className="mt-3 rounded-lg border border-violet-200 bg-violet-50/50 px-3 py-2">
+                            <p className="mb-2 text-xs text-violet-900">
+                              O valor já está quitado no total. Se não for mudar mais nada, confirme para fechar este acerto.
                             </p>
                             <button
                               type="button"
                               disabled={reopeningId === item.id}
                               onClick={() => handleFinalizeSettlement(item.id)}
-                              className="rounded-lg border border-violet-600 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-800 hover:bg-violet-100 disabled:opacity-50"
+                              className="rounded-lg bg-violet-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-800 disabled:opacity-50"
                             >
-                              {reopeningId === item.id ? "…" : "Confirmar fechamento"}
+                              {reopeningId === item.id ? "…" : "Confirmar acerto fechado"}
                             </button>
                           </div>
                         )}
@@ -693,14 +738,12 @@ export default function AccountDetailPage() {
                   onClick={handleLiquidarTudo}
                   className="mt-4 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
-                  {liquidating ? "Gerando…" : "Liquidar tudo"}
+                  {liquidating ? "Registrando…" : "Registrar estes acertos na lista"}
                 </button>
               )}
               {completed.length > 0 && (
                 <div className="mt-6 border-t border-slate-200 pt-4">
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Histórico de liquidações
-                  </h3>
+                  <h3 className="text-sm font-semibold text-slate-800">Acertos já quitados</h3>
                   <ul className="mt-2 space-y-1.5">
                     {completed.map((s) => (
                       <li
@@ -723,7 +766,7 @@ export default function AccountDetailPage() {
                             onClick={() => handleReopenSettlement(s.id)}
                             className="text-xs font-medium text-primary hover:underline disabled:opacity-50"
                           >
-                            Reabrir
+                            Reabrir acerto
                           </button>
                         </span>
                       </li>
@@ -733,9 +776,8 @@ export default function AccountDetailPage() {
               )}
               {payments.length > 0 && (
                 <div className="mt-6 border-t border-slate-200 pt-4">
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Histórico de pagamentos
-                  </h3>
+                  <h3 className="text-sm font-semibold text-slate-800">Pagamentos já registrados</h3>
+                  <p className="mt-0.5 text-xs text-slate-500">Cada linha é um pagamento feito de uma pessoa para outra.</p>
                   <ul className="mt-2 space-y-1.5">
                     {payments.map((p) => (
                       <li
@@ -747,8 +789,8 @@ export default function AccountDetailPage() {
                             {p.fromName} → {p.toName}: R$ {p.amount.toFixed(2)}
                           </span>
                           {(p.reversedTotal ?? 0) > 0 && (
-                            <span className="ml-2 text-xs text-amber-700">
-                              (estornado R$ {(p.reversedTotal ?? 0).toFixed(2)} · líq. R$ {(p.netAmount ?? p.amount).toFixed(2)})
+                            <span className="ml-2 text-xs text-amber-800">
+                              (estornou R$ {(p.reversedTotal ?? 0).toFixed(2)} · efetivo R$ {(p.netAmount ?? p.amount).toFixed(2)})
                             </span>
                           )}
                         </div>
@@ -763,7 +805,7 @@ export default function AccountDetailPage() {
                               onClick={() => handleReversePayment(p.id)}
                               className="text-xs font-medium text-amber-800 hover:underline disabled:opacity-50"
                             >
-                              {reversingPaymentId === p.id ? "…" : "Estornar"}
+                              {reversingPaymentId === p.id ? "…" : "Estornar pagamento"}
                             </button>
                           )}
                         </span>
@@ -777,15 +819,14 @@ export default function AccountDetailPage() {
         })()}
       </section>
 
-      {/* Fechamento mensal + linha do tempo */}
       <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Fechamento mensal</h2>
-        <p className="mt-1 text-xs text-slate-500">
-          Salva um snapshot dos saldos efetivos do mês (relatórios / auditoria). Não altera despesas nem pagamentos.
+        <h2 className="text-base font-semibold text-slate-900">Fechar mês</h2>
+        <p className="mt-1 text-xs text-slate-600">
+          Guardamos um retrato dos saldos daquele mês para você consultar depois. Nada some — despesas e pagamentos continuam iguais.
         </p>
         <form onSubmit={handleCloseMonth} className="mt-3 flex flex-wrap items-end gap-2">
           <div>
-            <label className="block text-xs font-medium text-slate-600">Mês (YYYY-MM)</label>
+            <label className="block text-xs font-medium text-slate-600">Mês (ex.: 2026-03)</label>
             <input
               type="text"
               value={closeMonthInput}
@@ -799,13 +840,14 @@ export default function AccountDetailPage() {
             disabled={closingMonth}
             className="rounded-xl bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-50"
           >
-            {closingMonth ? "Salvando…" : "Fechar mês"}
+            {closingMonth ? "Guardando…" : "Fechar este mês"}
           </button>
         </form>
         <div className="mt-6 border-t border-slate-200 pt-4">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Linha do tempo</h3>
+          <h3 className="text-sm font-semibold text-slate-800">Histórico</h3>
+          <p className="mt-0.5 text-xs text-slate-500">Tudo que aconteceu nesta conta, em ordem.</p>
           {timeline.length === 0 ? (
-            <p className="mt-2 text-sm text-slate-500">Sem eventos ainda.</p>
+            <p className="mt-2 text-sm text-slate-600">Nada registrado ainda. Comece adicionando uma despesa.</p>
           ) : (
             <ul className="mt-3 space-y-2">
               {timeline.map((ev) => (
@@ -824,21 +866,20 @@ export default function AccountDetailPage() {
         </div>
       </section>
 
-      {/* Participantes */}
       <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Participantes</h2>
+          <h2 className="text-base font-semibold text-slate-900">Pessoas nesta conta</h2>
           <button
             type="button"
             onClick={() => setShowAddParticipant(true)}
             className="text-sm font-medium text-primary hover:underline"
           >
-            + Adicionar
+            + Adicionar pessoa
           </button>
         </div>
         {account.participants.length === 0 ? (
           <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            Adicione ao menos um participante para registrar despesas compartilhadas e gerar liquidações corretas.
+            Adicione cada pessoa que divide gastos aqui. Assim o sistema sabe como dividir e quem acerta com quem.
           </p>
         ) : (
           <ul className="mt-3 space-y-2">
@@ -852,11 +893,12 @@ export default function AccountDetailPage() {
         )}
       </section>
 
-      {/* Despesas */}
       <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Despesas</h2>
+        <h2 className="text-base font-semibold text-slate-900">Despesas</h2>
         {account.expenses.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-500">Nenhuma despesa nesta conta.</p>
+          <p className="mt-3 text-sm text-slate-600">
+            Nenhuma despesa ainda. Toque em <strong>Nova despesa</strong> para começar — você pode marcar se já pagou.
+          </p>
         ) : (
           <ul className="mt-3 divide-y divide-slate-100">
             {account.expenses.map((exp) => (
@@ -885,7 +927,8 @@ export default function AccountDetailPage() {
       {showExpenseModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-lg">
-            <h2 className="text-lg font-semibold text-slate-900">Adicionar despesa</h2>
+            <h2 className="text-lg font-semibold text-slate-900">Nova despesa</h2>
+            <p className="mt-1 text-sm text-slate-500">Você pode corrigir depois se errar algum valor.</p>
             <form onSubmit={handleAddExpense} className="mt-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700">Categoria / Título</label>
@@ -938,7 +981,7 @@ export default function AccountDetailPage() {
                   className="h-4 w-4 rounded border-slate-300"
                 />
                 <label htmlFor="expensePaid" className="text-sm font-medium text-slate-700">
-                  Já paguei (entra no saldo)
+                  Já paguei — entra no saldo de quem pagou
                 </label>
               </div>
               {expenseType === "INDIVIDUAL" && (
@@ -996,7 +1039,7 @@ export default function AccountDetailPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700">Percentual (0 a 1, ex: 0.7 = 70%)</label>
+                <label className="block text-sm font-medium text-slate-700">Parte nas despesas compartilhadas (0,7 = 70%)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -1025,7 +1068,7 @@ export default function AccountDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-lg">
             <h2 className="text-lg font-semibold text-slate-900">Registrar pagamento</h2>
-            <p className="mt-1 text-sm text-slate-500">Informe o valor que foi pago.</p>
+            <p className="mt-1 text-sm text-slate-500">Quanto dessa dívida foi pago agora (pode ser em partes).</p>
             <form onSubmit={(e) => handleRegisterPayment(e, showPaymentModal)} className="mt-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700">Valor pago (R$)</label>
@@ -1064,8 +1107,8 @@ export default function AccountDetailPage() {
       {showManualSettlement && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-lg">
-            <h2 className="text-lg font-semibold text-slate-900">Registrar pagamento manual</h2>
-            <p className="mt-1 text-sm text-slate-500">Quem pagou para quem e qual valor.</p>
+            <h2 className="text-lg font-semibold text-slate-900">Acerto manual</h2>
+            <p className="mt-1 text-sm text-slate-500">Para quando alguém pagou outra pessoa e você quer registrar fora do automático.</p>
             <form onSubmit={handleManualSettlement} className="mt-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700">Quem pagou</label>

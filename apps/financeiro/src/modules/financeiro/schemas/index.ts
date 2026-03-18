@@ -4,9 +4,9 @@ export const financialContextSchema = z.enum(["PERSONAL", "BUSINESS", "SHARED"])
 export type FinancialContext = "PERSONAL" | "BUSINESS" | "SHARED";
 
 export const CONTEXT_LABELS: Record<FinancialContext, string> = {
-  PERSONAL: "Pessoal",
-  BUSINESS: "Empresa (PJ)",
-  SHARED: "Estúdio / Sociedade",
+  PERSONAL: "Só sua",
+  BUSINESS: "Empresa",
+  SHARED: "Várias pessoas juntas",
 };
 
 export const authEmailSchema = z
