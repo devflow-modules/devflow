@@ -16,7 +16,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:reset": "tsx prisma/seed.ts --reset",
     "seed:demo": "dotenv -e ../../.env.local -e .env -- tsx scripts/seed-financeiro-demo.ts",
-    "smoke": "tsx scripts/smoke-financeiro.ts"
+    "smoke": "tsx scripts/smoke-financeiro.ts",
+    "validate:supabase-user": "dotenv -e ../../.env.local -e .env -- tsx scripts/validate-user-supabase.ts"
   },
   "dependencies": {
     "@devflow/analytics-core": "workspace:*",

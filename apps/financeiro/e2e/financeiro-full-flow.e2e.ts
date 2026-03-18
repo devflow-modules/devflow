@@ -18,11 +18,14 @@ import {
   applyPayment,
   completeSettlement,
   listSettlements,
+  getAccount,
   getAccountTimeline,
   getEffectiveBalances,
   closeAccountMonth,
   reopenSettlement,
   finalizeSettlementAfterReopen,
+  listAccounts,
+  listPayments,
 } from "@/modules/financeiro/services/accounts";
 import { createExpense } from "@/modules/financeiro/services/expenses";
 import { reversePayment } from "@/modules/financeiro/services/accounts/reversePayment";
@@ -35,6 +38,9 @@ describe.runIf(run)("E2E Financeiro — fluxo completo (DB real)", () => {
   let householdId: string;
   let userId: string;
   let otherHouseholdId: string;
+  /** Household só com userB — simula “Usuário B” sem acesso a A */
+  let householdBIsolated: string;
+  let userBId: string;
 
   beforeAll(async () => {
     prisma = new PrismaClient({
@@ -65,11 +71,27 @@ describe.runIf(run)("E2E Financeiro — fluxo completo (DB real)", () => {
       },
     });
     otherHouseholdId = other.id;
+
+    const userB = await prisma.user.create({
+      data: {
+        email: `e2e-b-${suffix}@financeiro.test`,
+        name: "E2E User B",
+      },
+    });
+    userBId = userB.id;
+    const hhB = await prisma.household.create({
+      data: {
+        name: `E2E Household B only ${suffix}`,
+        slug: `e2e-bonly-${suffix}`,
+        memberships: { create: { userId: userBId, role: "OWNER" } },
+      },
+    });
+    householdBIsolated = hhB.id;
   });
 
   afterAll(async () => {
     if (!prisma) return;
-    for (const hid of [householdId, otherHouseholdId]) {
+    for (const hid of [householdId, otherHouseholdId, householdBIsolated]) {
       await prisma.expense.deleteMany({ where: { householdId: hid } });
       await prisma.account.deleteMany({ where: { householdId: hid } });
       await prisma.auditLog.deleteMany({ where: { householdId: hid } });
@@ -77,7 +99,7 @@ describe.runIf(run)("E2E Financeiro — fluxo completo (DB real)", () => {
       await prisma.householdMembership.deleteMany({ where: { householdId: hid } });
       await prisma.household.delete({ where: { id: hid } }).catch(() => {});
     }
-    await prisma.user.deleteMany({ where: { id: userId } });
+    await prisma.user.deleteMany({ where: { id: { in: [userId, userBId] } } });
     await prisma.$disconnect();
   });
 
@@ -156,6 +178,118 @@ describe.runIf(run)("E2E Financeiro — fluxo completo (DB real)", () => {
 
     const foreign = await listSettlements(prisma, accountId, otherHouseholdId);
     expect(foreign).toEqual([]);
+  });
+
+  it("Cenário Marques Soares: 70/30, R$200 pago por Gustavo → Alexia deve R$60; parcial; quitar; estornar R$30; fechar mês", async () => {
+    const acc = await createAccount(prisma, householdId, {
+      name: "Marques Soares",
+      type: "SHARED",
+    });
+    const gustavo = await addParticipant(prisma, acc.id, householdId, {
+      name: "Gustavo",
+      defaultShare: 0.7,
+    });
+    const alexia = await addParticipant(prisma, acc.id, householdId, {
+      name: "Alexia",
+      defaultShare: 0.3,
+    });
+    await createExpense(
+      prisma,
+      householdId,
+      {
+        accountId: acc.id,
+        category: "Almoço",
+        amount: 200,
+        dueDate: "2026-04-10",
+        status: "PAID",
+        paidAmount: 200,
+        paidAt: "2026-04-10",
+        expenseSplitType: "SHARED",
+        paidByParticipantId: gustavo!.id,
+        context: "SHARED",
+      },
+      { userId, householdId }
+    );
+    const settlements = await createSettlementsFromBalances(prisma, acc.id, householdId);
+    const st = settlements.find(
+      (s) => s.fromParticipantId === alexia!.id && s.toParticipantId === gustavo!.id
+    );
+    expect(st).toBeDefined();
+    expect(Math.abs(Number(st!.amount) - 60)).toBeLessThan(0.02);
+
+    const pay30a = await applyPayment(prisma, st!.id, 30, householdId);
+    expect(pay30a.ok).toBe(true);
+    const afterPartial = await prisma.settlement.findUnique({ where: { id: st!.id } });
+    expect(afterPartial!.status).toBe("PARTIAL");
+
+    const pay30b = await applyPayment(prisma, st!.id, 30, householdId);
+    expect(pay30b.ok).toBe(true);
+    const afterPaid = await prisma.settlement.findUnique({ where: { id: st!.id } });
+    expect(afterPaid!.status).toBe("COMPLETED");
+
+    const pays = await prisma.payment.findMany({
+      where: { settlementId: st!.id },
+      orderBy: { createdAt: "asc" },
+    });
+    expect(pays.length).toBe(2);
+    const rev = await reversePayment(prisma, pays[1]!.id, householdId, 30);
+    expect(rev.ok).toBe(true);
+    const afterRev = await prisma.settlement.findUnique({ where: { id: st!.id } });
+    expect(afterRev!.status).toBe("PARTIAL");
+
+    const closed = await closeAccountMonth(prisma, acc.id, householdId, "2026-04");
+    expect(closed.ok).toBe(true);
+    expect(closed.balances).toBeDefined();
+
+    const timeline = await getAccountTimeline(prisma, acc.id, householdId);
+    expect(timeline.length).toBeGreaterThan(3);
+  });
+
+  it("Isolamento household B (User B): não vê conta, settlements nem pagamentos de A", async () => {
+    const acc = await createAccount(prisma, householdId, {
+      name: "Conta exclusiva A",
+      type: "SHARED",
+    });
+    expect(await getAccount(prisma, acc.id, householdBIsolated)).toBeNull();
+    const accountsB = await listAccounts(prisma, householdBIsolated);
+    expect(accountsB.some((a) => a.id === acc.id)).toBe(false);
+
+    const p1 = await addParticipant(prisma, acc.id, householdId, {
+      name: "Membro1",
+      defaultShare: 0.5,
+    });
+    await addParticipant(prisma, acc.id, householdId, {
+      name: "Membro2",
+      defaultShare: 0.5,
+    });
+    await createExpense(
+      prisma,
+      householdId,
+      {
+        accountId: acc.id,
+        category: "X",
+        amount: 50,
+        dueDate: "2026-05-01",
+        status: "PAID",
+        paidAmount: 50,
+        paidAt: "2026-05-01",
+        expenseSplitType: "SHARED",
+        paidByParticipantId: p1!.id,
+        context: "SHARED",
+      },
+      { userId, householdId }
+    );
+    await createSettlementsFromBalances(prisma, acc.id, householdId);
+    const listA = await listSettlements(prisma, acc.id, householdId);
+    expect(listA.length).toBeGreaterThan(0);
+
+    expect(await listSettlements(prisma, acc.id, householdBIsolated)).toEqual([]);
+    expect(await listPayments(prisma, acc.id, householdBIsolated)).toEqual([]);
+
+    const expensesWrongHh = await prisma.expense.count({
+      where: { accountId: acc.id, householdId: householdBIsolated },
+    });
+    expect(expensesWrongHh).toBe(0);
   });
 
   it("idempotencyKey duplicada: unique no household", async () => {
