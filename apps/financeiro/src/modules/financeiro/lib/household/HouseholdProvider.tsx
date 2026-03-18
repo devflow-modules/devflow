@@ -23,6 +23,7 @@ const HouseholdContext = createContext<HouseholdContextValue | undefined>(undefi
 
 const protectedPaths = [
   "/ferramentas/financeiro/dashboard",
+  "/ferramentas/financeiro/contas",
   "/ferramentas/financeiro/sources",
   "/ferramentas/financeiro/expenses",
   "/ferramentas/financeiro/rules",

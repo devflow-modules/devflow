@@ -24,6 +24,7 @@ type SidebarProps = {
 
 const FULL_ITEMS: NavItem[] = [
   { href: `${BASE}/dashboard`, label: "Dashboard", short: "D" },
+  { href: `${BASE}/contas`, label: "Contas", short: "Ct" },
   { href: `${BASE}/expenses`, label: "Lançamentos", short: "L" },
   { href: `${BASE}/proximas-contas`, label: "Próximas Contas", short: "P" },
   { href: `${BASE}/historico`, label: "Histórico", short: "H" },
@@ -35,6 +36,7 @@ const FULL_ITEMS: NavItem[] = [
 
 const MEMBER_ITEMS: NavItem[] = [
   { href: `${BASE}/dashboard`, label: "Resumo", short: "R" },
+  { href: `${BASE}/contas`, label: "Contas", short: "Ct" },
   { href: `${BASE}/expenses`, label: "Lançamentos", short: "L" },
   { href: `${BASE}/proximas-contas`, label: "Próximas Contas", short: "P" },
   { href: `${BASE}/settings`, label: "Conta", short: "C" },

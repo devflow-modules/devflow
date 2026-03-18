@@ -4,6 +4,7 @@ import { dateInputToDate } from "@/lib/dates";
 import { trackFirstExpenseCreated } from "@/analytics/growth";
 import { trackFunnelFirst, trackToolUsage } from "@/modules/financeiro/adapters/productAnalytics";
 import { emit } from "@/modules/financeiro/events";
+import { calculateAndPersistExpenseSplit } from "@/modules/financeiro/services/accounts";
 
 export type CreateExpenseInput = {
   categoryId?: string;
@@ -17,6 +18,9 @@ export type CreateExpenseInput = {
   paidAt?: string;
   note?: string;
   context?: "PERSONAL" | "BUSINESS" | "SHARED";
+  accountId?: string;
+  expenseSplitType?: "SHARED" | "INDIVIDUAL";
+  paidByParticipantId?: string;
 };
 
 export type AuditContext = {
@@ -43,6 +47,7 @@ export async function createExpense(
   const expense = await prisma.expense.create({
     data: {
       householdId,
+      accountId: data.accountId ?? null,
       categoryId: data.categoryId ?? null,
       category: categoryName,
       amount: data.amount,
@@ -54,8 +59,14 @@ export async function createExpense(
       paidAmount: data.paidAmount ?? null,
       paidAt: data.paidAt ? dateInputToDate(data.paidAt) : null,
       context: data.context ?? "PERSONAL",
+      expenseSplitType: data.expenseSplitType ?? "SHARED",
+      paidByParticipantId: data.paidByParticipantId ?? null,
     },
   });
+
+  if (expense.accountId) {
+    await calculateAndPersistExpenseSplit(prisma, expense.id);
+  }
 
   await createAuditLog(prisma, {
     userId: auditContext.userId,

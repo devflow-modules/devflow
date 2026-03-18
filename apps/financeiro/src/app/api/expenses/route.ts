@@ -5,6 +5,7 @@ import { expenseCreateSchema } from "@/modules/financeiro/schemas";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
 import { listExpenses, createExpense } from "@/modules/financeiro/services/expenses";
+import { logFinanceEvent } from "@/modules/financeiro/lib/finance-logger";
 
 export async function GET(request: NextRequest) {
   const auth = await requireHouseholdMembership(request);
@@ -58,6 +59,16 @@ export async function POST(request: NextRequest) {
     const expense = await createExpense(prisma, householdId, parseResult.data, {
       userId,
       householdId,
+    });
+
+    logFinanceEvent({
+      action: "expense_created",
+      userId,
+      householdId,
+      accountId: expense.accountId ?? undefined,
+      expenseId: expense.id,
+      amount: Number(expense.amount),
+      meta: { category: expense.category, status: expense.status },
     });
 
     return sendSuccess(expense, 201);

@@ -28,6 +28,8 @@ model Household {
   personalAllocationGoals PersonalAllocationGoal[]
   cycles                  Cycle[]
   monthSnapshots          MonthSnapshot[]
+  accounts                Account[]
+  idempotencyRecords      IdempotencyRecord[]
 }
 
 model User {
@@ -285,31 +287,167 @@ model Budget {
   @@index([householdId])
 }
 
-model Expense {
+enum ExpenseSplitType {
+  SHARED    // divisão proporcional entre participantes da conta
+  INDIVIDUAL // 100% para um participante (ex.: luz só Gustavo)
+}
+
+model Account {
+  id          String              @id @default(cuid())
+  householdId String
+  name        String
+  type        FinancialContext    @default(PERSONAL) // personal | shared | business
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  household   Household           @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  participants AccountParticipant[]
+  expenses    Expense[]
+  settlements Settlement[]
+  snapshots   AccountSnapshot[]
+
+  @@index([householdId])
+}
+
+model IdempotencyRecord {
+  id          String    @id @default(cuid())
+  householdId String
+  key         String
+  response    Json
+  statusCode  Int       @default(200)
+  createdAt   DateTime  @default(now())
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  @@unique([householdId, key])
+  @@index([householdId])
+}
+
+model AccountSnapshot {
+  id        String   @id @default(cuid())
+  accountId String
+  month     String
+  balances  Json
+  createdAt DateTime @default(now())
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, month])
+  @@index([accountId])
+}
+
+enum SettlementStatus {
+  PENDING
+  PARTIAL   // paidAmount > 0 e paidAmount < amount
+  COMPLETED
+}
+
+model Settlement {
   id                 String           @id @default(cuid())
-  householdId        String
-  sourceId           String?
-  categoryId         String?
-  category           String           // legacy: free text when categoryId is null
+  accountId          String
+  fromParticipantId  String
+  toParticipantId   String
   amount             Decimal          @db.Decimal(10, 2)
-  dueDate            DateTime
-  paidAmount         Decimal?         @db.Decimal(10, 2)
-  paidAt             DateTime?
-  isRecurring        Boolean          @default(false)
-  recurrenceParentId String?          // ID da despesa-template que gerou esta instância
-  status             ExpenseStatus    @default(PENDING)
-  note               String?
-  context            FinancialContext @default(PERSONAL)
-  household          Household        @relation(fields: [householdId], references: [id])
-  source             Source?          @relation(fields: [sourceId], references: [id])
-  categoryRef        Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  recurrenceChildren Expense[]        @relation("RecurrenceTemplate")
-  recurrenceParent   Expense?         @relation("RecurrenceTemplate", fields: [recurrenceParentId], references: [id], onDelete: SetNull)
+  paidAmount         Decimal          @db.Decimal(10, 2) @default(0)
+  status             SettlementStatus @default(PENDING)
+  completedAt        DateTime?
+  reopenedAt         DateTime?        // reaberto para ajustes; impede auto-COMPLETED até finalizar
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  account            Account          @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  fromParticipant    AccountParticipant @relation("SettlementFrom", fields: [fromParticipantId], references: [id], onDelete: Cascade)
+  toParticipant      AccountParticipant @relation("SettlementTo", fields: [toParticipantId], references: [id], onDelete: Cascade)
+  payments           Payment[]
+
+  @@index([accountId])
+  @@index([fromParticipantId])
+  @@index([toParticipantId])
+  @@index([status])
+}
+
+model Payment {
+  id           String            @id @default(cuid())
+  settlementId String
+  amount       Decimal           @db.Decimal(10, 2)
+  createdAt    DateTime          @default(now())
+  settlement   Settlement        @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+  reversals    PaymentReversal[]
+
+  @@index([settlementId])
+}
+
+model PaymentReversal {
+  id        String   @id @default(cuid())
+  paymentId String
+  amount    Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  payment   Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+}
+
+model AccountParticipant {
+  id            String    @id @default(cuid())
+  accountId     String
+  name          String
+  defaultShare  Decimal   @db.Decimal(5, 4) // 0..1, ex: 0.7 = 70%
+  userId        String?   // opcional: vincula ao User do app (não unique: mesmo user em contas diferentes)
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  account          Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  expenseSplits    ExpenseSplit[]
+  expensesPaid     Expense[]    @relation("ExpensePaidBy")
+  settlementsFrom Settlement[]  @relation("SettlementFrom")
+  settlementsTo   Settlement[]  @relation("SettlementTo")
+
+  @@index([accountId])
+  @@index([userId])
+}
+
+model ExpenseSplit {
+  id             String   @id @default(cuid())
+  expenseId      String
+  participantId String
+  amount         Decimal  @db.Decimal(10, 2)
+  createdAt      DateTime @default(now())
+  expense        Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  participant    AccountParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, participantId])
+  @@index([expenseId])
+  @@index([participantId])
+}
+
+model Expense {
+  id                   String           @id @default(cuid())
+  householdId          String
+  accountId            String?          // quando preenchido: usa participantes da conta e split
+  sourceId             String?
+  categoryId           String?
+  category             String           // legacy: free text when categoryId is null
+  amount               Decimal          @db.Decimal(10, 2)
+  dueDate              DateTime
+  paidAmount           Decimal?         @db.Decimal(10, 2)
+  paidAt               DateTime?
+  isRecurring          Boolean          @default(false)
+  recurrenceParentId   String?          // ID da despesa-template que gerou esta instância
+  status               ExpenseStatus   @default(PENDING)
+  note                 String?
+  context              FinancialContext @default(PERSONAL)
+  expenseSplitType     ExpenseSplitType @default(SHARED) // shared = proporcional; individual = 100% paidByParticipantId
+  paidByParticipantId  String?          // quando individual: quem pagou (100%)
+  household            Household        @relation(fields: [householdId], references: [id])
+  account              Account?        @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  paidByParticipant    AccountParticipant? @relation("ExpensePaidBy", fields: [paidByParticipantId], references: [id], onDelete: SetNull)
+  source               Source?          @relation(fields: [sourceId], references: [id])
+  categoryRef          Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  recurrenceChildren   Expense[]        @relation("RecurrenceTemplate")
+  recurrenceParent     Expense?         @relation("RecurrenceTemplate", fields: [recurrenceParentId], references: [id], onDelete: SetNull)
+  splits               ExpenseSplit[]
 
   @@index([householdId, context])
   @@index([householdId, dueDate])
   @@index([householdId, isRecurring])
   @@index([recurrenceParentId])
+  @@index([accountId])
 }
 
 model MonthSnapshot {

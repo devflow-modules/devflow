@@ -109,6 +109,9 @@ const expenseBaseSchema = z.object({
   paidAt: dateOnlyOrIsoSchema.optional(),
   note: z.string().max(500).optional(),
   context: financialContextSchema.optional().default("PERSONAL"),
+  accountId: z.string().cuid().optional(),
+  expenseSplitType: z.enum(["SHARED", "INDIVIDUAL"]).optional().default("SHARED"),
+  paidByParticipantId: z.string().cuid().optional(),
 });
 
 export const expenseCreateSchema = expenseBaseSchema.superRefine((data, ctx) => {
@@ -123,6 +126,47 @@ export const expenseCreateSchema = expenseBaseSchema.superRefine((data, ctx) => 
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "paidAt é obrigatório quando status=PAID", path: ["paidAt"] });
     }
   }
+  if (data.expenseSplitType === "INDIVIDUAL" && data.accountId && !data.paidByParticipantId) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "paidByParticipantId é obrigatório quando tipo é INDIVIDUAL", path: ["paidByParticipantId"] });
+  }
+});
+
+export const accountCreateSchema = z.object({
+  name: z.string().min(1, "Nome da conta é obrigatório"),
+  type: financialContextSchema.default("PERSONAL"),
+});
+export const accountParticipantSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  defaultShare: z.number().min(0).max(1),
+  userId: z.string().cuid().optional(),
+});
+
+export const idempotencyKeySchema = z.string().min(8).max(200).optional();
+
+export const manualSettlementSchema = z.object({
+  fromParticipantId: z.string().cuid(),
+  toParticipantId: z.string().cuid(),
+  amount: z.number().positive("Valor deve ser positivo"),
+  idempotencyKey: idempotencyKeySchema,
+});
+
+export const settlementPaymentSchema = z.object({
+  amount: z.number().positive("Valor pago deve ser positivo"),
+  idempotencyKey: idempotencyKeySchema,
+});
+
+export const settlementsGenerateSchema = z.object({
+  idempotencyKey: idempotencyKeySchema,
+});
+
+export const paymentReverseSchema = z.object({
+  amount: z.number().positive().optional(),
+  idempotencyKey: idempotencyKeySchema,
+});
+
+export const closeAccountMonthSchema = z.object({
+  month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Use YYYY-MM"),
+  idempotencyKey: idempotencyKeySchema,
 });
 
 export const expenseUpdateSchema = expenseBaseSchema.partial().superRefine((data, ctx) => {

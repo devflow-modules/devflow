@@ -7,8 +7,8 @@ export type ApiSuccessPayload<T = unknown> = {
 export type ApiErrorPayload = {
   success: false;
   error: {
+    code: string;
     message: string;
-    code?: string;
     details?: unknown;
   };
 };
@@ -24,11 +24,11 @@ export function buildSuccessPayload<T = unknown>(
 
 export function buildErrorPayload(
   message: string,
-  code?: string,
+  code = "ERROR",
   details?: unknown
 ): ApiErrorPayload {
   return {
     success: false,
-    error: { message, code, details },
+    error: { code, message, ...(details !== undefined ? { details } : {}) },
   };
 }

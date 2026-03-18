@@ -11,6 +11,7 @@ type Crumb = { href: string; label: string };
 
 const LABELS_BY_PATH: Record<string, string> = {
   [`${BASE}/dashboard`]: "Dashboard",
+  [`${BASE}/contas`]: "Contas",
   [`${BASE}/sources`]: "Fontes",
   [`${BASE}/expenses`]: "Lançamentos",
   [`${BASE}/rules`]: "Regras",

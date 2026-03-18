@@ -8,12 +8,15 @@
     "start": "next start --port 3001",
     "lint": "eslint",
     "test": "vitest run",
+    "test:e2e": "vitest run e2e --config vitest.e2e.config.ts",
     "test:watch": "vitest",
     "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate": "dotenv -e ../../.env.local -e .env -- prisma migrate dev",
+    "db:migrate:deploy": "dotenv -e ../../.env.local -e .env -- prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
-    "db:seed:reset": "tsx prisma/seed.ts --reset"
+    "db:seed:reset": "tsx prisma/seed.ts --reset",
+    "seed:demo": "dotenv -e ../../.env.local -e .env -- tsx scripts/seed-financeiro-demo.ts",
+    "smoke": "tsx scripts/smoke-financeiro.ts"
   },
   "dependencies": {
     "@devflow/analytics-core": "workspace:*",
@@ -46,6 +49,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "dotenv-cli": "^8.0.0",
     "prisma": "^6.0.0",
     "tailwindcss": "^4",
     "typescript": "^5",
