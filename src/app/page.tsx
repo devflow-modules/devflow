@@ -1,49 +1,51 @@
 import type { Metadata } from "next";
-import { Hero } from "@/components/sections/hero";
 import { ScrollTracker } from "@/components/shared/scroll-tracker";
-import { ProblemList } from "@/components/sections/problem-list";
-import { AntesDepois } from "@/components/sections/antes-depois";
-import { ForWho } from "@/components/sections/for-who";
-import { HowItWorks } from "@/components/sections/how-it-works";
-import { AutomacaoFaz } from "@/components/sections/automacao-faz";
-import { Processo3Passos } from "@/components/sections/processo-3-passos";
-import { FeatureGrid } from "@/components/sections/feature-grid";
+
+// Novos componentes — posicionamento hub
+import { HeroV2 } from "@/components/sections/hero-v2";
+import { ToolsSection } from "@/components/sections/tools-section";
+import { ProductsSection } from "@/components/sections/products-section";
+import { ProblemSolutionSection } from "@/components/sections/problem-solution-section";
+import { HowItWorksHub } from "@/components/sections/how-it-works-hub";
+import { WhatsAppProductSection } from "@/components/sections/whatsapp-product-section";
+import { FinalCtaV2 } from "@/components/sections/final-cta-v2";
+
+// Seções existentes reaproveitadas
 import { Metrics } from "@/components/sections/metrics";
-import { ProjectsShowcase } from "@/components/sections/projects-showcase";
-import { Architecture } from "@/components/sections/architecture";
-import { IntegraHumano } from "@/components/sections/integra-humano";
-import { TechStack } from "@/components/sections/tech-stack";
-import { QuandoFazSentido } from "@/components/sections/quando-faz-sentido";
-import { Faq } from "@/components/sections/faq";
 import { ProofSocial } from "@/components/sections/proof-social";
-import { FinalCta } from "@/components/sections/final-cta";
+import { Faq } from "@/components/sections/faq";
 
 const baseUrl = "https://devflowlabs.com.br";
 
 export const metadata: Metadata = {
-  title: "DevFlow Labs | Automação de Atendimento no WhatsApp",
+  title: "DevFlow Labs | Plataforma de Ferramentas, Automação e SaaS",
   alternates: {
     canonical: baseUrl,
   },
   description:
-    "Automação de atendimento no WhatsApp, IA para WhatsApp, chatbot com handoff humano. Métricas, automação e operação real. DevFlow Labs — software engineering e digital products.",
+    "Ferramentas online, controle financeiro pessoal e automação de atendimento no WhatsApp. DevFlow Labs — plataforma de ferramentas e produtos SaaS para automatizar, organizar e escalar sua operação.",
   keywords: [
-    "automação de atendimento no WhatsApp",
+    "ferramentas online",
+    "controle financeiro pessoal",
+    "divisão de contas",
+    "consulta CNPJ",
+    "automação whatsapp",
+    "chatbot whatsapp",
+    "software atendimento whatsapp",
     "IA para WhatsApp",
     "chatbot com handoff humano",
-    "automação de atendimento para empresas",
     "DevFlow Labs",
   ],
   openGraph: {
-    title: "DevFlow Labs | Automação de Atendimento no WhatsApp",
+    title: "DevFlow Labs | Plataforma de Ferramentas, Automação e SaaS",
     description:
-      "Automação de atendimento no WhatsApp com métricas, handoff e controle real da operação. Produtos SaaS e soluções digitais.",
+      "Ferramentas online, controle financeiro e automação de atendimento no WhatsApp. Produtos SaaS e soluções digitais integradas.",
     url: "https://devflowlabs.com.br",
   },
   twitter: {
-    title: "DevFlow Labs | Automação de Atendimento no WhatsApp",
+    title: "DevFlow Labs | Plataforma de Ferramentas, Automação e SaaS",
     description:
-      "Automação de atendimento no WhatsApp com métricas, handoff e controle real da operação. Produtos SaaS e soluções digitais.",
+      "Ferramentas online, controle financeiro e automação de atendimento no WhatsApp. Produtos SaaS e soluções digitais integradas.",
   },
 };
 
@@ -51,23 +53,36 @@ export default function Home() {
   return (
     <>
       <ScrollTracker />
-      <Hero />
-      <ProblemList />
-      <AntesDepois />
-      <ForWho />
-      <HowItWorks />
-      <AutomacaoFaz />
-      <Processo3Passos />
-      <FeatureGrid />
+
+      {/* 1. Hero — plataforma hub */}
+      <HeroV2 />
+
+      {/* 2. Hub de ferramentas — prioridade máxima */}
+      <ToolsSection />
+
+      {/* 3. Nossos produtos */}
+      <ProductsSection />
+
+      {/* 4. Problema → Solução */}
+      <ProblemSolutionSection />
+
+      {/* 5. Como funciona */}
+      <HowItWorksHub />
+
+      {/* 6. WhatsApp Platform — reposicionado como "um dos produtos" */}
+      <WhatsAppProductSection />
+
+      {/* 7. Métricas — reaproveitado */}
       <Metrics />
-      <ProjectsShowcase />
-      <Architecture />
-      <IntegraHumano />
-      <TechStack />
-      <QuandoFazSentido />
-      <Faq />
+
+      {/* 8. Prova social — reaproveitado */}
       <ProofSocial />
-      <FinalCta />
+
+      {/* 9. FAQ — reaproveitado */}
+      <Faq />
+
+      {/* 10. CTA Final — novo */}
+      <FinalCtaV2 />
     </>
   );
 }

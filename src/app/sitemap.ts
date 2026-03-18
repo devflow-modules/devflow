@@ -1,4 +1,6 @@
 import type { MetadataRoute } from "next";
+import { seoPageSlugs } from "@/lib/seo/pages";
+import { growthPageSlugs } from "@/lib/seo/growth-pages";
 
 const baseUrl = "https://devflowlabs.com.br";
 
@@ -24,10 +26,11 @@ const routes = [
   { path: "/precos", priority: 0.85, changeFrequency: "weekly" as const },
   { path: "/blog", priority: 0.85, changeFrequency: "weekly" as const },
   { path: "/projetos", priority: 0.8, changeFrequency: "weekly" as const },
-  { path: "/ferramentas", priority: 0.85, changeFrequency: "weekly" as const },
-  { path: "/ferramentas/financeiro", priority: 0.8, changeFrequency: "weekly" as const },
+  { path: "/produtos", priority: 0.9, changeFrequency: "weekly" as const },
+  { path: "/ferramentas", priority: 0.9, changeFrequency: "weekly" as const },
+  { path: "/ferramentas/financeiro", priority: 0.85, changeFrequency: "weekly" as const },
   { path: "/ferramentas/divisao-de-contas", priority: 0.8, changeFrequency: "weekly" as const },
-  { path: "/planilha-vs-app-financeiro", priority: 0.75, changeFrequency: "weekly" as const },
+  { path: "/ferramentas/consulta-cnpj", priority: 0.8, changeFrequency: "weekly" as const },
   { path: "/contato", priority: 0.7, changeFrequency: "monthly" as const },
   { path: "/privacidade", priority: 0.5, changeFrequency: "yearly" as const },
   { path: "/termos", priority: 0.5, changeFrequency: "yearly" as const },
@@ -50,5 +53,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...mainRoutes, ...blogRoutes];
+  const programmaticSeoRoutes = seoPageSlugs.map((slug) => ({
+    url: `${baseUrl}/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.65,
+  }));
+
+  const growthRoutes = growthPageSlugs.map((slug) => ({
+    url: `${baseUrl}/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.78,
+  }));
+
+  return [...mainRoutes, ...blogRoutes, ...programmaticSeoRoutes, ...growthRoutes];
 }

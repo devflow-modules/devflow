@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Section } from "@/components/layout/Section";
+import { RelatedLinks } from "@/components/shared/related-links";
 import { Search, Building2, Calendar, Activity, MapPin, ExternalLink } from "lucide-react";
 
 const INVESTIGA_PLUS_URL = "https://investigamais.com.br";
@@ -168,6 +169,10 @@ export default function ConsultaCnpjPage() {
             </div>
           </div>
         )}
+      </Section>
+
+      <Section>
+        <RelatedLinks variant="ferramentas" title="Explore o ecossistema" />
       </Section>
     </div>
   );

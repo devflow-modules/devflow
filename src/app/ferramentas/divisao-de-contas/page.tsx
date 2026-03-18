@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { GrowthTrackVisitor } from "@/components/analytics/GrowthTrackVisitor";
 import { Section } from "@/components/layout/Section";
+import { RelatedLinks } from "@/components/shared/related-links";
 import { DividirContasTool } from "@/modules/financeiro/components/DividirContasTool";
 
 const baseUrl = "https://devflowlabs.com.br";
@@ -78,21 +79,7 @@ export default function DivisaoDeContasPage() {
       </Section>
 
       <Section aria-labelledby="relacionado">
-        <h2
-          id="relacionado"
-          className="text-2xl font-semibold tracking-tight text-foreground"
-        >
-          Outras ferramentas
-        </h2>
-        <p className="mt-2 text-muted-foreground">
-          <Link
-            href="/ferramentas/financeiro"
-            className="font-medium text-primary hover:underline"
-          >
-            Controle financeiro
-          </Link>{" "}
-          — projeção mensal, despesas fixas e mais.
-        </p>
+        <RelatedLinks variant="ferramentas" title="Explore o ecossistema" />
       </Section>
     </div>
   );

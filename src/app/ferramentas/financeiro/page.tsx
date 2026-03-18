@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { GrowthTrackVisitor } from "@/components/analytics/GrowthTrackVisitor";
 import { Section } from "@/components/layout/Section";
+import { RelatedLinks } from "@/components/shared/related-links";
 import { SimuladorRapidoFinanceiro } from "@/modules/financeiro/components/SimuladorRapidoFinanceiro";
 import { LeadCaptureForm } from "@/modules/financeiro/components/LeadCaptureForm";
 import { FinanceiroTools } from "@/modules/financeiro/components/FinanceiroTools";
@@ -184,6 +185,10 @@ export default function FinanceiroPage() {
             variant="footer"
           />
         </div>
+      </Section>
+
+      <Section>
+        <RelatedLinks variant="financeiro" title="Explore o ecossistema" />
       </Section>
     </div>
   );

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Check, ArrowRight, MessageCircle, Zap, UserRound } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
+import { RelatedLinks } from "@/components/shared/related-links";
 import { cn } from "@/lib/utils";
 
 const baseUrl = "https://devflowlabs.com.br";
@@ -284,6 +285,10 @@ export default function AutomacaoWhatsAppPage() {
           </div>
         </div>
       </section>
+
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 pb-16">
+        <RelatedLinks variant="automacao-whatsapp" title="Explore o ecossistema" />
+      </div>
     </main>
   );
 }

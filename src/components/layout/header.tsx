@@ -1,24 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
-import { trackCtaDemoClick } from "@/lib/analytics";
+import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/", label: "Início" },
-  { href: "/automacao-whatsapp", label: "Automação WhatsApp" },
-  { href: "/chatbot-whatsapp", label: "Chatbot" },
-  { href: "/automacao-whatsapp-tabacaria", label: "Tabacarias" },
-  { href: "/automacao-whatsapp-restaurante", label: "Restaurantes" },
-  { href: "/demo", label: "Demo" },
-  { href: "/precos", label: "Preços" },
   { href: "/ferramentas", label: "Ferramentas" },
+  { href: "/produtos", label: "Produtos" },
+  { href: "/automacao-whatsapp", label: "Automação WhatsApp" },
+  { href: "/projetos", label: "Projetos" },
   { href: "/blog", label: "Blog" },
   { href: "/contato", label: "Contato" },
 ];
 
 export function Header() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
     <header
       className={cn(
@@ -36,7 +34,7 @@ export function Header() {
         </Link>
 
         <nav
-          className="hidden items-center gap-8 md:flex"
+          className="hidden items-center gap-6 lg:flex lg:gap-8"
           aria-label="Navegação principal"
         >
           {navItems.map((item) => (
@@ -52,18 +50,67 @@ export function Header() {
 
         <div className="flex items-center gap-3">
           <Link
-            href="/demo"
-            onClick={() => trackCtaDemoClick("header")}
-            className="hidden text-sm font-medium text-slate-600 transition-colors hover:text-primary sm:inline-block"
+            href="/ferramentas"
+            className={cn(
+              "hidden lg:inline-flex items-center justify-center h-9 rounded-lg px-4 text-sm font-semibold",
+              "bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
+            )}
           >
-            Ver demo
+            Usar ferramentas
           </Link>
-          <WhatsAppCta
-            label="Fale no WhatsApp"
-            size="sm"
-            text="Olá, quero entender como funciona a automação."
-          />
+
+          {/* Mobile menu button */}
+          <button
+            type="button"
+            onClick={() => setMobileOpen((o) => !o)}
+            className="flex size-9 items-center justify-center rounded-lg border border-border bg-transparent text-slate-600 hover:bg-muted lg:hidden"
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-nav"
+            aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
+          >
+            {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
         </div>
+      </div>
+
+      {/* Mobile nav */}
+      <div
+        id="mobile-nav"
+        role="dialog"
+        aria-label="Menu de navegação"
+        className={cn(
+          "lg:hidden border-t border-border bg-background",
+          "transition-all duration-200 ease-out",
+          mobileOpen ? "block" : "hidden"
+        )}
+      >
+        <nav className="mx-auto max-w-[1200px] px-4 py-4 sm:px-6 lg:px-8" aria-label="Navegação mobile">
+          <ul className="flex flex-col gap-1" role="list">
+            {navItems.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="block rounded-lg px-4 py-3 text-sm font-medium text-slate-700 hover:bg-muted hover:text-primary"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+            <li className="mt-2 border-t border-border pt-2">
+              <Link
+                href="/ferramentas"
+                onClick={() => setMobileOpen(false)}
+                className={cn(
+                  "flex items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold",
+                  "bg-primary text-primary-foreground"
+                )}
+              >
+                Usar ferramentas
+              </Link>
+            </li>
+          </ul>
+        </nav>
       </div>
     </header>
   );
