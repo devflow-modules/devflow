@@ -12,14 +12,14 @@ const products = [
     title: "WhatsApp Platform",
     subtitle: "Automação de Atendimento",
     description:
-      "Automatize o atendimento no WhatsApp com IA, handoff humano e métricas operacionais em tempo real. Infraestrutura robusta para alto volume.",
+      "Cliente manda mensagem e recebe resposta na hora — 24h. Quando precisar de gente, passa pra sua equipe sem o cliente repetir tudo.",
     highlights: [
       "Automação 24/7 com IA",
       "Handoff para equipe humana",
       "Métricas operacionais",
       "WhatsApp Cloud API oficial",
     ],
-    cta: "Ver produto",
+    cta: "Começar agora",
     href: "/produtos/whatsapp-platform",
     external: false,
     accent: "border-primary/30",
@@ -33,14 +33,14 @@ const products = [
     title: "Sistema Financeiro",
     subtitle: "Gestão Financeira Completa",
     description:
-      "Controle total de receitas, despesas, orçamentos e fechamento mensal. Projetado para PF, PJ e sociedade.",
+      "Chega de planilha espalhada. Receitas, despesas, orçamento e fechamento do mês num lugar só — PF, PJ ou casal.",
     highlights: [
       "Múltiplos contextos",
       "Recorrência automática",
       "Fechamento mensal",
       "Importação CSV",
     ],
-    cta: "Acessar sistema",
+    cta: "Testar grátis",
     href: "/ferramentas/financeiro",
     external: false,
     accent: "border-blue-500/30",
@@ -60,7 +60,7 @@ const products = [
       "Notificação por e-mail",
       "Acesso antecipado",
     ],
-    cta: "Ser avisado",
+    cta: "Quero saber",
     href: "/contato",
     external: false,
     accent: "border-dashed border-slate-200",
@@ -83,10 +83,13 @@ export function ProductsSection() {
             id="products-heading"
             className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
           >
-            Nossos produtos
+            Quando ferramenta grátis não basta mais
           </h2>
           <p className="mt-3 text-slate-600">
-            Soluções completas para diferentes partes da sua operação.
+            Sistemas prontos pra operação que não para. Testar grátis onde der.
+          </p>
+          <p className="mx-auto mt-5 max-w-xl rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm font-semibold text-foreground">
+            Teste sem risco — se não fizer sentido, você não usa.
           </p>
         </div>
 
@@ -96,11 +99,11 @@ export function ProductsSection() {
             <article
               key={product.title}
               className={cn(
-                "flex flex-col rounded-2xl border bg-card p-6",
-                "transition-all duration-200",
+                "flex flex-col rounded-2xl border-2 bg-card p-6 shadow-sm",
+                "transition-all duration-300",
                 product.disabled
                   ? "opacity-70"
-                  : "hover:-translate-y-1 hover:shadow-lg",
+                  : "hover:-translate-y-1 hover:border-primary/20 hover:shadow-[0_16px_48px_rgba(15,23,42,0.1)]",
                 product.accent
               )}
             >
@@ -147,6 +150,11 @@ export function ProductsSection() {
                   <ArrowRight className="size-4" aria-hidden />
                 )}
               </Link>
+              {!product.disabled && (
+                <p className="mt-2 text-center text-[11px] text-slate-500">
+                  Sem cartão onde for grátis · Sem compromisso · Pode parar quando quiser
+                </p>
+              )}
             </article>
           ))}
         </div>

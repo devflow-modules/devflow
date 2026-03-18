@@ -61,10 +61,10 @@ export function ProblemSolutionSection() {
             id="problem-solution-heading"
             className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
           >
-            Pare de usar 10 ferramentas diferentes
+            Chega de app solto e planilha espalhada
           </h2>
           <p className="mt-3 text-slate-600">
-            Cada problema da sua operação tem uma solução integrada na DevFlow Labs.
+            Cada dor aqui embaixo tem resposta direta — ferramenta ou produto.
           </p>
         </div>
 

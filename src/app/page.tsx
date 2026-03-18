@@ -3,11 +3,15 @@ import { ScrollTracker } from "@/components/shared/scroll-tracker";
 
 // Novos componentes — posicionamento hub
 import { HeroV2 } from "@/components/sections/hero-v2";
+import { HubPillarsSection } from "@/components/sections/hub-pillars-section";
+import { WhereToStartSection } from "@/components/sections/where-to-start-section";
 import { ToolsSection } from "@/components/sections/tools-section";
 import { ProductsSection } from "@/components/sections/products-section";
 import { ProblemSolutionSection } from "@/components/sections/problem-solution-section";
 import { HowItWorksHub } from "@/components/sections/how-it-works-hub";
+import { ResultsSocialProofSection } from "@/components/sections/results-social-proof-section";
 import { WhatsAppProductSection } from "@/components/sections/whatsapp-product-section";
+import { AuthorityRealOpsSection } from "@/components/sections/authority-real-ops-section";
 import { FinalCtaV2 } from "@/components/sections/final-cta-v2";
 
 // Seções existentes reaproveitadas
@@ -57,7 +61,10 @@ export default function Home() {
       {/* 1. Hero — plataforma hub */}
       <HeroV2 />
 
-      {/* 2. Hub de ferramentas — prioridade máxima */}
+      <HubPillarsSection />
+
+      <WhereToStartSection />
+
       <ToolsSection />
 
       {/* 3. Nossos produtos */}
@@ -69,10 +76,12 @@ export default function Home() {
       {/* 5. Como funciona */}
       <HowItWorksHub />
 
-      {/* 6. WhatsApp Platform — reposicionado como "um dos produtos" */}
+      <ResultsSocialProofSection />
+
       <WhatsAppProductSection />
 
-      {/* 7. Métricas — reaproveitado */}
+      <AuthorityRealOpsSection />
+
       <Metrics />
 
       {/* 8. Prova social — reaproveitado */}

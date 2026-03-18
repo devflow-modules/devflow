@@ -1,6 +1,5 @@
 /**
  * Tracking de eventos — Vercel Analytics + Meta Pixel
- * Eventos: cta_whatsapp_click, cta_demo_click, cta_scroll_50
  */
 
 import { track } from "@vercel/analytics";
@@ -17,4 +16,32 @@ export function trackCtaDemoClick(source?: string): void {
 
 export function trackCtaScroll50(): void {
   track("cta_scroll_50");
+}
+
+/** Profundidade de scroll na home (25% / 50% / 75%) */
+export function trackScrollDepth(percent: 25 | 50 | 75): void {
+  track(`scroll_depth_${percent}`, { page: "home" });
+}
+
+/** CTAs da home — conversão */
+export function trackHomeCta(
+  action:
+    | "hero_tools"
+    | "hero_whatsapp"
+    | "hero_how_it_works"
+    | "hub_pillar_tools"
+    | "hub_pillar_products"
+    | "hub_pillar_automation"
+): void {
+  track("home_cta_click", { action });
+}
+
+/** Clique em card de ferramenta (home) */
+export function trackToolCardClick(toolId: string): void {
+  track("tool_card_click", { tool: toolId, page: "home" });
+}
+
+/** Cross-sell em páginas de ferramentas */
+export function trackCrossSell(target: "financeiro" | "whatsapp" | "produtos"): void {
+  track("cross_sell_click", { target });
 }

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { GrowthTrackVisitor } from "@/components/analytics/GrowthTrackVisitor";
 import { Section } from "@/components/layout/Section";
 import { RelatedLinks } from "@/components/shared/related-links";
+import { CrossSellBeyond } from "@/components/sections/cross-sell-beyond";
 import { SimuladorRapidoFinanceiro } from "@/modules/financeiro/components/SimuladorRapidoFinanceiro";
 import { LeadCaptureForm } from "@/modules/financeiro/components/LeadCaptureForm";
 import { FinanceiroTools } from "@/modules/financeiro/components/FinanceiroTools";
@@ -184,6 +185,12 @@ export default function FinanceiroPage() {
             buttonLabel="Quero participar"
             variant="footer"
           />
+        </div>
+      </Section>
+
+      <Section aria-label="Quer ir além — automação e produtos">
+        <div className="mx-auto max-w-4xl">
+          <CrossSellBeyond variant="financeiro-page" />
         </div>
       </Section>
 

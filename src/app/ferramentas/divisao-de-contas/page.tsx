@@ -3,6 +3,7 @@ import Link from "next/link";
 import { GrowthTrackVisitor } from "@/components/analytics/GrowthTrackVisitor";
 import { Section } from "@/components/layout/Section";
 import { RelatedLinks } from "@/components/shared/related-links";
+import { CrossSellBeyond } from "@/components/sections/cross-sell-beyond";
 import { DividirContasTool } from "@/modules/financeiro/components/DividirContasTool";
 
 const baseUrl = "https://devflowlabs.com.br";
@@ -76,6 +77,12 @@ export default function DivisaoDeContasPage() {
           Calculadora de divisão proporcional
         </h2>
         <DividirContasTool />
+      </Section>
+
+      <Section aria-label="Quer ir além — outros produtos DevFlow">
+        <div className="mx-auto max-w-4xl">
+          <CrossSellBeyond />
+        </div>
       </Section>
 
       <Section aria-labelledby="relacionado">

@@ -17,7 +17,7 @@ const PRODUCTS = [
     subtitle: "Atendimento automatizado e escalável",
     description:
       "Automatize respostas no WhatsApp com IA, handoff humano e métricas operacionais. Infraestrutura pronta para alto volume.",
-    cta: "Ver produto",
+    cta: "Começar agora",
     href: "/produtos/whatsapp-platform",
     disabled: false,
   },
@@ -30,7 +30,7 @@ const PRODUCTS = [
     subtitle: "Gestão completa da operação",
     description:
       "Controle de receitas, despesas, orçamentos e fechamento mensal. PF, PJ e sociedade.",
-    cta: "Acessar sistema",
+    cta: "Testar grátis",
     href: "/ferramentas/financeiro",
     disabled: false,
   },
@@ -83,16 +83,16 @@ export default function ProdutosPage() {
           <div className="mx-auto max-w-3xl text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary mb-6">
               <Package className="size-3.5" aria-hidden />
-              Nossos produtos
+              SaaS + automação
             </div>
             <h1
               id="produtos-heading"
               className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl"
             >
-              Produtos da DevFlow Labs
+              Quando você precisa de mais que ferramenta grátis
             </h1>
             <p className="mt-4 text-lg text-slate-600">
-              Sistemas e plataformas para automatizar, organizar e escalar operações.
+              WhatsApp no automático, financeiro completo — o que roda negócio de verdade.
             </p>
           </div>
         </div>
@@ -158,9 +158,9 @@ export default function ProdutosPage() {
       </section>
 
       <CtaBlock
-        title="Explore também as ferramentas"
-        subtitle="Ferramentas gratuitas que se conectam aos produtos."
-        primaryLabel="Ver ferramentas"
+        title="Quer resolver algo na hora, de graça?"
+        subtitle="CNPJ, divisão de contas, simuladores — abre e usa."
+        primaryLabel="Usar agora"
         primaryHref="/ferramentas"
       />
 

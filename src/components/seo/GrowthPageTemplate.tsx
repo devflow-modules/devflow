@@ -10,7 +10,7 @@ const TOOL_CONFIG = {
   financeiro: {
     href: "/ferramentas/financeiro",
     shortHref: "/ferramentas/financeiro",
-    label: "Acessar sistema financeiro",
+    label: "Testar grátis",
     shortLabel: "Financeiro DevFlow",
     icon: Wallet,
     bullets: [
@@ -255,11 +255,11 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
               </Link>
               <p className="mt-4 text-center text-sm text-muted-foreground sm:text-left">
                 <Link href="/ferramentas" className="font-medium text-primary hover:underline">
-                  Ver todas as ferramentas
+                  Usar agora
                 </Link>
                 {" · "}
                 <Link href="/produtos" className="font-medium text-primary hover:underline">
-                  Ver produtos
+                  Começar agora
                 </Link>
               </p>
             </div>
@@ -289,13 +289,13 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
                 href="/ferramentas"
                 className="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3.5 font-semibold text-primary-foreground hover:bg-primary/90"
               >
-                Ver ferramentas
+                Usar agora
               </Link>
               <Link
                 href="/produtos"
                 className="inline-flex items-center justify-center rounded-xl border border-border bg-white px-6 py-3.5 font-semibold hover:bg-slate-50"
               >
-                Ver produtos
+                Começar agora
               </Link>
             </div>
             <p className="mt-6 text-sm text-muted-foreground">

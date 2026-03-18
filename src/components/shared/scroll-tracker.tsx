@@ -1,30 +1,38 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { trackCtaScroll50 } from "@/lib/analytics";
+import { trackCtaScroll50, trackScrollDepth } from "@/lib/analytics";
+
+const MILESTONES = [25, 50, 75] as const;
 
 /**
- * Dispara cta_scroll_50 quando o usuário rola 50% da página.
- * Usado na home para medir engajamento.
+ * Dispara eventos de profundidade de scroll (25%, 50%, 75%) na home.
  */
 export function ScrollTracker() {
-  const fired = useRef(false);
+  const fired = useRef<Set<number>>(new Set());
 
   useEffect(() => {
-    if (fired.current) return;
-
     const handleScroll = () => {
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const scrollPercent = scrollHeight > 0 ? (window.scrollY / scrollHeight) * 100 : 0;
+      const scrollPercent =
+        scrollHeight > 0 ? (window.scrollY / scrollHeight) * 100 : 0;
 
-      if (scrollPercent >= 50) {
-        fired.current = true;
-        trackCtaScroll50();
+      for (const pct of MILESTONES) {
+        if (fired.current.has(pct)) continue;
+        if (scrollPercent >= pct - 2) {
+          fired.current.add(pct);
+          if (pct === 50) trackCtaScroll50();
+          trackScrollDepth(pct);
+        }
+      }
+
+      if (fired.current.size === MILESTONES.length) {
         window.removeEventListener("scroll", handleScroll);
       }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 

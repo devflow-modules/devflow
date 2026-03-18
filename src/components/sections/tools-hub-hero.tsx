@@ -34,33 +34,36 @@ export function ToolsHubHero() {
             id="tools-hub-heading"
             className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl"
           >
-            Ferramentas para automatizar, organizar e escalar sua operação
+            Tudo que você precisa num só hub — grátis pra começar
           </h1>
           <p className="mt-4 text-lg text-slate-600">
-            Use ferramentas práticas no dia a dia e conecte com os produtos da DevFlow Labs.
+            Menos planilha, menos app solto. Abre o browser e resolve.
           </p>
 
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
               href="/ferramentas/financeiro"
               className={cn(
-                "inline-flex items-center justify-center gap-2 h-12 rounded-xl px-6 text-base font-semibold",
+                "inline-flex items-center justify-center gap-2 h-12 rounded-xl px-6 text-base font-bold",
                 "bg-primary text-primary-foreground transition-all duration-200 hover:bg-primary/90"
               )}
             >
-              Acessar Financeiro
+              Testar grátis
               <ArrowRight className="size-4" aria-hidden />
             </Link>
             <Link
               href="/produtos"
               className={cn(
-                "inline-flex items-center justify-center gap-2 h-12 rounded-xl border border-border px-6 text-base font-semibold",
+                "inline-flex items-center justify-center gap-2 h-12 rounded-xl border-2 border-border px-6 text-base font-bold",
                 "bg-white text-foreground transition-all duration-200 hover:bg-slate-50"
               )}
             >
-              Ver produtos
+              Começar agora
             </Link>
           </div>
+          <p className="mt-4 text-sm text-slate-500">
+            Sem instalação · Leva menos de 1 minuto
+          </p>
         </div>
       </div>
     </section>

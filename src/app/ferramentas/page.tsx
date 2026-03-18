@@ -5,6 +5,7 @@ import { WhyUseSection } from "@/components/sections/why-use-section";
 import { ConnectedProductsSection } from "@/components/sections/connected-products-section";
 import { CtaBlock } from "@/components/sections/cta-block";
 import { RelatedLinks } from "@/components/shared/related-links";
+import { CrossSellBeyond } from "@/components/sections/cross-sell-beyond";
 import { Wallet, SplitSquareHorizontal, Building2, Sparkles } from "lucide-react";
 
 const baseUrl = "https://devflowlabs.com.br";
@@ -19,7 +20,7 @@ const TOOLS = [
     badgeColor: "bg-primary/10 text-primary border border-primary/30",
     title: "Financeiro",
     description: "Controle completo PF, PJ e sociedade. Receitas, despesas, orçamentos e fechamento mensal.",
-    cta: "Acessar sistema",
+    cta: "Testar grátis",
     href: "/ferramentas/financeiro",
     highlight: true,
   },
@@ -41,7 +42,7 @@ const TOOLS = [
     iconColor: "text-orange-500",
     title: "Consulta CNPJ",
     description: "Dados de empresas na base da Receita Federal em segundos.",
-    cta: "Consultar",
+    cta: "Usar agora",
     href: "/ferramentas/consulta-cnpj",
     highlight: false,
   },
@@ -119,11 +120,12 @@ export default function FerramentasPage() {
       <CtaBlock
         title="Próximo passo: conheça nossos produtos"
         subtitle="Sistemas e automações que se conectam às ferramentas."
-        primaryLabel="Ver produtos"
+        primaryLabel="Começar agora"
         primaryHref="/produtos"
       />
 
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 pb-16">
+      <div className="mx-auto max-w-[1200px] px-4 pb-16 sm:px-6 lg:px-8">
+        <CrossSellBeyond className="mb-12" />
         <RelatedLinks
           variant="ferramentas"
           title="Explore o ecossistema"

@@ -157,7 +157,7 @@ export function SeoPageTemplate({ page, relatedPages }: Props) {
                   "bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
                 )}
               >
-                Ver ferramentas
+                Usar agora
               </Link>
               <Link
                 href="/produtos"
@@ -166,7 +166,7 @@ export function SeoPageTemplate({ page, relatedPages }: Props) {
                   "bg-white text-foreground transition-colors hover:bg-slate-50"
                 )}
               >
-                Ver produtos
+                Começar agora
               </Link>
             </div>
           </div>
