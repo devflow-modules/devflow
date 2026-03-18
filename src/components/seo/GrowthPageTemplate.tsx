@@ -5,6 +5,16 @@ import { cn } from "@/lib/utils";
 import { ComparisonTable } from "./ComparisonTable";
 import { StepsSection } from "./StepsSection";
 import { RelatedPagesGrid } from "./RelatedPagesGrid";
+import { FaqSection, getDefaultFaqFromContent } from "./FaqSection";
+import { TrustSection } from "./TrustSection";
+
+const BASE_URL = "https://devflowlabs.com.br";
+
+const PILLAR_LABELS: Record<string, string> = {
+  "controle-financeiro-completo": "controle financeiro completo",
+  "como-organizar-financas-pessoais": "como organizar finanças pessoais",
+  "melhor-app-para-controlar-financas": "melhor app para controlar finanças",
+};
 
 const TOOL_CONFIG = {
   financeiro: {
@@ -64,9 +74,19 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
     h1: p.h1,
     description: p.description,
   }));
+  const faqItems = page.faq && page.faq.length >= 3 ? page.faq : getDefaultFaqFromContent(page.h1, page.intro);
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: page.h1,
+    description: page.description,
+    url: `${BASE_URL}/${page.slug}`,
+    publisher: { "@type": "Organization", name: "DevFlow Labs", url: BASE_URL },
+  };
 
   return (
     <div className="min-h-screen min-w-0 overflow-x-clip bg-gradient-to-b from-white to-slate-50">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       {/* Hero */}
       <section className="relative overflow-x-clip pt-10 pb-8 sm:pt-14 sm:pb-10 lg:pt-16 lg:pb-12">
         <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
@@ -106,6 +126,14 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
           <p className="mt-4 max-w-[720px] text-base leading-relaxed text-slate-600 sm:mt-6 sm:text-lg">
             {page.intro}
           </p>
+          {page.pillarSlug && (
+            <p className="mt-4 max-w-[720px] text-sm text-slate-600">
+              Para um guia completo, leia:{" "}
+              <Link href={`/${page.pillarSlug}`} className="font-medium text-primary underline-offset-4 hover:underline">
+                {PILLAR_LABELS[page.pillarSlug] ?? page.pillarSlug}
+              </Link>
+            </p>
+          )}
 
           <div className="mt-6 flex flex-col gap-2 text-sm sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-1">
             <Link
@@ -213,6 +241,31 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
         </div>
       </section>
 
+      {/* Extra sections (pilares: comparações, exemplos, checklist) */}
+      {page.extraSections && page.extraSections.length > 0 && (
+        <div className="border-t border-border bg-white">
+          {page.extraSections.map((sec, i) => (
+            <section
+              key={i}
+              className="py-10 sm:py-12"
+              aria-labelledby={`extra-heading-${i}`}
+            >
+              <div className="mx-auto max-w-[720px] px-4 sm:px-6 lg:px-8">
+                <h2
+                  id={`extra-heading-${i}`}
+                  className="text-lg font-semibold text-foreground sm:text-xl"
+                >
+                  {sec.title}
+                </h2>
+                <p className="mt-3 text-base leading-relaxed text-slate-700">
+                  {sec.content}
+                </p>
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+
       {/* Tool CTA */}
       <section
         className="border-t border-border bg-white py-14 sm:py-16"
@@ -266,6 +319,10 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
           </div>
         </div>
       </section>
+
+      <FaqSection items={faqItems} pageUrl={`/${page.slug}`} baseUrl={BASE_URL} />
+
+      <TrustSection toolHref={tool.href} toolLabel={tool.shortLabel} />
 
       <RelatedPagesGrid
         pages={relatedCards}

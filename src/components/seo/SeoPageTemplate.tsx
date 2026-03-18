@@ -1,10 +1,19 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import type { SeoPage } from "@/lib/seo/types";
+import type { SeoPage, SeoTool } from "@/lib/seo/types";
 import { cn } from "@/lib/utils";
 import { UseCaseSection } from "./UseCaseSection";
 import { ToolEmbedSection } from "./ToolEmbedSection";
 import { RelatedPagesGrid } from "./RelatedPagesGrid";
+import { FaqSection, getDefaultFaqFromContent } from "./FaqSection";
+import { TrustSection } from "./TrustSection";
+
+const BASE_URL = "https://devflowlabs.com.br";
+
+const SEO_TOOL_TRUST: Record<SeoTool, { href: string; label: string }> = {
+  divisao: { href: "/ferramentas/divisao-de-contas", label: "Divisão de contas" },
+  cnpj: { href: "/ferramentas/consulta-cnpj", label: "Consulta CNPJ" },
+};
 
 type Props = {
   page: SeoPage;
@@ -24,9 +33,19 @@ function problemParagraphs(page: SeoPage): [string, string] {
 
 export function SeoPageTemplate({ page, relatedPages }: Props) {
   const [para1, para2] = problemParagraphs(page);
+  const faqItems = page.faq && page.faq.length >= 3 ? page.faq : getDefaultFaqFromContent(page.h1, page.intro);
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: page.h1,
+    description: page.description,
+    url: `${BASE_URL}/${page.slug}`,
+    publisher: { "@type": "Organization", name: "DevFlow Labs", url: BASE_URL },
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       {/* Section 1 — Hero */}
       <section
         className="relative overflow-hidden pt-12 pb-10 sm:pt-16 sm:pb-14"
@@ -91,15 +110,28 @@ export function SeoPageTemplate({ page, relatedPages }: Props) {
           <div className="rounded-2xl border border-border bg-slate-50/80 p-6 sm:p-8">
             <p className="text-base leading-relaxed text-slate-700">{para1}</p>
             <p className="mt-4 text-base leading-relaxed text-slate-600">{para2}</p>
+            {page.internalLinkBlurb && (
+              <p className="mt-4 text-base leading-relaxed text-slate-600">
+                {page.internalLinkBlurb.before}
+                <Link href={`/${page.internalLinkBlurb.slug}`} className="font-medium text-primary hover:underline">
+                  {page.internalLinkBlurb.label}
+                </Link>
+                {page.internalLinkBlurb.after ?? ""}
+              </p>
+            )}
           </div>
           <p className="mt-6 text-center text-sm text-muted-foreground sm:text-left">
             Parte do{" "}
             <Link href="/ferramentas" className="font-medium text-primary hover:underline">
               hub de ferramentas
             </Link>{" "}
-            da DevFlow Labs — também conheça nossos{" "}
+            da DevFlow Labs — também{" "}
             <Link href="/produtos" className="font-medium text-primary hover:underline">
               produtos
+            </Link>{" "}
+            e{" "}
+            <Link href={`/ferramentas/${page.tool === "divisao" ? "divisao-de-contas" : "consulta-cnpj"}`} className="font-medium text-primary hover:underline">
+              {page.tool === "divisao" ? "divisão de contas" : "consulta CNPJ"}
             </Link>
             .
           </p>
@@ -111,13 +143,65 @@ export function SeoPageTemplate({ page, relatedPages }: Props) {
         <UseCaseSection page={page} />
       </div>
 
+      {/* Section 3b — Anti-thin: quando faz sentido, erros, exemplo, checklist */}
+      {(page.whenItMakesSense ?? page.commonMistakes ?? page.example ?? page.checklist) && (
+        <section className="border-t border-border bg-slate-50/60 py-12 sm:py-14" aria-labelledby="seo-deep-heading">
+          <div className="mx-auto max-w-[720px] px-4 sm:px-6 lg:px-8">
+            <h2 id="seo-deep-heading" className="sr-only">
+              Quando usar, erros comuns e exemplo
+            </h2>
+            {page.whenItMakesSense && (
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-foreground">Quando isso faz sentido?</h3>
+                <p className="mt-2 text-base leading-relaxed text-slate-700">{page.whenItMakesSense}</p>
+              </div>
+            )}
+            {page.commonMistakes && (
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-foreground">Erros comuns</h3>
+                <p className="mt-2 text-base leading-relaxed text-slate-700">{page.commonMistakes}</p>
+              </div>
+            )}
+            {page.example && (
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-foreground">Exemplo prático</h3>
+                <p className="mt-2 text-base leading-relaxed text-slate-700">{page.example}</p>
+              </div>
+            )}
+            {page.checklist && page.checklist.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">Checklist rápido</h3>
+                <ul className="mt-3 list-inside list-disc space-y-1.5 text-base leading-relaxed text-slate-700">
+                  {page.checklist.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Section 4 — Tool CTA */}
       <div className="bg-[#f8fafc]">
         <ToolEmbedSection page={page} />
       </div>
 
-      {/* Section 5 — Related */}
-      <RelatedPagesGrid pages={relatedPages} />
+      {/* Section 4b — FAQ (todas as páginas; schema FAQPage) */}
+      <FaqSection items={faqItems} pageUrl={`/${page.slug}`} baseUrl={BASE_URL} />
+
+      {/* Por que confiar no DevFlow — autoridade interna */}
+      <TrustSection
+        toolHref={SEO_TOOL_TRUST[page.tool].href}
+        toolLabel={SEO_TOOL_TRUST[page.tool].label}
+      />
+
+      {/* Section 5 — Páginas relacionadas (internal linking) */}
+      <RelatedPagesGrid
+        pages={relatedPages.map((p) => ({ slug: p.slug, h1: p.h1, description: p.description }))}
+        title="Páginas relacionadas"
+        subtitle="Guias e dicas do mesmo tema no ecossistema DevFlow Labs. Use os links com anchor text semântico para navegar."
+      />
 
       {/* Section 6 — Final CTA */}
       <section
