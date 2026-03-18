@@ -6,12 +6,12 @@ const pairs = [
     problem: {
       icon: MessageCircle,
       text: "Atendimento no WhatsApp desorganizado",
-      detail: "Mensagens sem resposta, clientes esperando horas, equipe sobrecarregada",
+      detail: "Mensagens paradas, fila crescendo",
     },
     solution: {
       label: "WhatsApp Platform",
-      text: "Automação 24/7 com handoff humano",
-      detail: "Bot responde na hora, encaminha para equipe quando necessário",
+      text: "Bot + humano no mesmo fluxo",
+      detail: "Resposta na hora; gente quando precisa",
       color: "text-primary",
       bg: "bg-primary/5 border-primary/20",
     },
@@ -20,12 +20,12 @@ const pairs = [
     problem: {
       icon: Wallet,
       text: "Controle financeiro em planilhas",
-      detail: "Dados espalhados, sem visão clara do saldo, erros manuais constantes",
+      detail: "Número nunca bate, tudo espalhado",
     },
     solution: {
       label: "Sistema Financeiro",
-      text: "Controle centralizado e inteligente",
-      detail: "Dashboard em tempo real, categorias, recorrência e fechamento mensal",
+      text: "Um painel, mês fechado",
+      detail: "Categorias, recorrência, visão clara",
       color: "text-blue-600",
       bg: "bg-blue-500/5 border-blue-500/20",
     },
@@ -34,12 +34,12 @@ const pairs = [
     problem: {
       icon: Database,
       text: "Dados de empresas difíceis de acessar",
-      detail: "Consultas lentas, informações desatualizadas, múltiplos sites para checar",
+      detail: "Site lento, dado velho",
     },
     solution: {
       label: "Ferramentas Integradas",
-      text: "Dados em segundos, sem complicação",
-      detail: "CNPJ, divisão de contas e muito mais — prontos para usar agora",
+      text: "Dado na hora",
+      detail: "CNPJ, rateio — abre e usa",
       color: "text-orange-500",
       bg: "bg-orange-500/5 border-orange-500/20",
     },
@@ -50,7 +50,7 @@ export function ProblemSolutionSection() {
   return (
     <section
       id="problema-solucao"
-      className="py-24 bg-white"
+      className="bg-white py-24 sm:py-28"
       aria-labelledby="problem-solution-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -63,13 +63,13 @@ export function ProblemSolutionSection() {
           >
             Chega de app solto e planilha espalhada
           </h2>
-          <p className="mt-3 text-slate-600">
-            Cada dor aqui embaixo tem resposta direta — ferramenta ou produto.
+          <p className="mt-3 text-slate-600">Dor de um lado. Caminho do outro.</p>
+          <p className="mt-3 text-sm text-slate-500">
+            O próximo passo é simples: escolha o par que combina com você.
           </p>
         </div>
 
-        {/* Pares problema → solução */}
-        <div className="mt-12 space-y-6">
+        <div className="mt-14 space-y-8">
           {pairs.map((pair, index) => (
             <div
               key={index}

@@ -56,17 +56,17 @@ export function RelatedLinks({
   return (
     <nav
       aria-label="Links relacionados"
-      className={cn("rounded-2xl border border-border bg-muted/30 p-6", className)}
+      className={cn("rounded-2xl border border-border bg-muted/30 p-4 sm:p-6", className)}
     >
       <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-      <ul className="mt-4 flex flex-wrap gap-3" role="list">
+      <ul className="mt-3 flex flex-col gap-2 sm:mt-4 sm:flex-row sm:flex-wrap sm:gap-3" role="list">
         {links.map((item) => {
           const Icon = item.icon;
           return (
-            <li key={item.href}>
+            <li key={item.href} className="min-w-0 sm:w-auto">
               <Link
                 href={item.href}
-                className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary sm:w-auto sm:justify-start"
               >
                 {Icon && <Icon className="size-4 shrink-0" aria-hidden />}
                 {item.label}

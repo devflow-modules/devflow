@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MessageCircle, Check, ArrowRight, Zap, UserRound, BarChart3, TrendingDown } from "lucide-react";
+import { Check, ArrowRight, Zap, UserRound, BarChart3 } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
 import { cn } from "@/lib/utils";
 
@@ -9,81 +9,71 @@ const features = [
   {
     icon: Zap,
     title: "Resposta na hora",
-    description: "Cliente não espera: FAQ, status e links automáticos 24 horas por dia.",
+    description: "FAQ, status, links — 24h sem você no celular.",
   },
   {
     icon: UserRound,
-    title: "Humano quando importa",
-    description: "Pediu atendente? A conversa vai para sua equipe sem o cliente repetir tudo.",
+    title: "Humano quando precisa",
+    description: "Cliente pede gente? A conversa vai pra equipe.",
   },
   {
     icon: BarChart3,
-    title: "Você vê o que está acontecendo",
-    description: "Volume, automação vs handoff — dados para decidir, não para decorar.",
+    title: "Números na mesa",
+    description: "Volume, bot vs humano — pra decidir, não pra decorar.",
   },
 ];
 
 const highlights = [
-  "WhatsApp Cloud API oficial (Meta)",
-  "Sem mensagem duplicada (dedupe)",
-  "Audit log com rastreio",
-  "Escala com a sua operação",
+  "API oficial Meta",
+  "Sem mensagem duplicada",
+  "Auditoria rastreável",
+  "Escala com a operação",
 ];
 
 export function WhatsAppProductSection() {
   return (
     <section
       id="automacao-whatsapp"
-      className="py-20 sm:py-28 bg-[#f1f5f9]"
+      className="bg-[#f1f5f9] py-24 sm:py-28"
       aria-labelledby="whatsapp-product-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+        <p className="mb-6 text-center text-sm font-medium text-slate-500 sm:text-left">
+          O próximo passo, se atendimento é seu gargalo:
+        </p>
         <div className="grid gap-14 lg:grid-cols-2 lg:gap-16 lg:items-center">
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-800">
-              <TrendingDown className="size-3.5" aria-hidden />
-              Cada minuto conta
-            </div>
-
+          <div className="space-y-8">
             <div>
               <h2
                 id="whatsapp-product-heading"
-                className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl"
+                className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
               >
-                Quantos clientes você já perdeu por não responder a tempo?
+                WhatsApp que responde sozinho — e escala com você
               </h2>
-              <p className="mt-4 text-lg text-slate-600">
-                Automatize seu WhatsApp, responda na hora e organize sua operação — sem parecer robô
-                gelado.
-              </p>
-              <p className="mt-3 text-sm font-semibold text-slate-800">
-                Clientes não esperam resposta — eles falam com o próximo negócio.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-5 py-4">
-              <p className="text-sm font-semibold text-amber-950">
-                Cada mensagem sem resposta é uma venda perdida. Cada cliente não respondido é dinheiro
-                que não entra.
+              <p className="mt-4 text-lg leading-relaxed text-slate-600">
+                Cliente não espera: quem demora, perde pra quem responde na hora.
+                <span className="mt-2 block text-base text-slate-700">
+                  Você ganha tempo; o automático cobre o repetitivo.
+                </span>
               </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-3">
               {features.map((feature) => (
                 <div
                   key={feature.title}
-                  className="rounded-2xl border border-border bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+                  className="rounded-2xl border border-border bg-white p-5 shadow-sm"
                 >
                   <div className="flex size-9 items-center justify-center rounded-xl bg-primary/12">
                     <feature.icon className="size-4 text-primary" aria-hidden />
                   </div>
                   <p className="mt-3 text-sm font-bold text-foreground">{feature.title}</p>
-                  <p className="mt-1 text-xs leading-relaxed text-slate-600">{feature.description}</p>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-600">{feature.description}</p>
                 </div>
               ))}
             </div>
 
-            <ul className="grid grid-cols-2 gap-2 sm:grid-cols-2" role="list">
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-2" role="list">
               {highlights.map((item) => (
                 <li key={item} className="flex items-center gap-2 text-sm text-slate-700">
                   <Check className="size-4 shrink-0 text-primary" aria-hidden />
@@ -92,37 +82,31 @@ export function WhatsAppProductSection() {
               ))}
             </ul>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <div className="space-y-4">
               <WhatsAppCta
                 label="Quero automatizar meu WhatsApp"
                 size="lg"
                 text="Olá, quero automatizar o atendimento da minha empresa no WhatsApp."
               />
+              <p className="text-xs text-slate-500">
+                Conversa sem custo · Sem compromisso nessa etapa
+              </p>
               <Link
                 href="/demo"
-                className={cn(
-                  "inline-flex items-center justify-center gap-2 h-14 rounded-xl border-2 border-border px-6 text-base font-bold",
-                  "bg-white transition-all hover:border-primary/30 hover:bg-slate-50"
-                )}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
               >
                 Ver demo ao vivo
-                <ArrowRight className="size-4" aria-hidden />
+                <ArrowRight className="size-3.5" aria-hidden />
               </Link>
             </div>
-            <p className="text-xs font-medium text-slate-600">
-              Sem cartão pra conversar · Sem compromisso na conversa · Você decide o próximo passo
-            </p>
-            <p className="text-xs text-slate-500">
-              Cada dia sem automatizar é tempo que seu concorrente usa pra te ultrapassar.
-            </p>
           </div>
 
-          <div className="space-y-4">
-            <div className="rounded-2xl border-2 border-border bg-white p-6 shadow-[0_12px_48px_rgba(0,0,0,0.08)]">
+          <div className="space-y-5">
+            <div className="rounded-2xl border-2 border-border bg-white p-6 shadow-[0_12px_48px_rgba(0,0,0,0.06)]">
               <div className="mb-4 flex items-center justify-between">
                 <p className="text-sm font-bold text-foreground">Painel — hoje</p>
                 <span className="rounded-full bg-primary/12 px-2.5 py-1 text-xs font-bold text-primary">
-                  Ao vivo
+                  Produção
                 </span>
               </div>
               <div className="grid grid-cols-3 gap-3">
@@ -139,7 +123,7 @@ export function WhatsAppProductSection() {
                   </div>
                 ))}
               </div>
-              <div className="mt-5 space-y-2">
+              <div className="mt-6 space-y-2">
                 <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                   Fila recente
                 </p>
@@ -164,9 +148,9 @@ export function WhatsAppProductSection() {
                 ))}
               </div>
             </div>
-            <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-center sm:text-left">
+            <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
               <p className="text-xs font-semibold text-primary">
-                Meta · API oficial · Pronto para produção
+                Sistema em produção com automações reais — API Meta, fila, handoff.
               </p>
             </div>
           </div>

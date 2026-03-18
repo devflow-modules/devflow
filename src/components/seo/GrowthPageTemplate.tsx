@@ -66,9 +66,9 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
   }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
+    <div className="min-h-screen min-w-0 overflow-x-clip bg-gradient-to-b from-white to-slate-50">
       {/* Hero */}
-      <section className="relative overflow-hidden pt-12 pb-10 sm:pt-16 sm:pb-12">
+      <section className="relative overflow-x-clip pt-10 pb-8 sm:pt-14 sm:pb-10 lg:pt-16 lg:pb-12">
         <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
           <div
             className="absolute -top-40 right-0 h-72 w-72 rounded-full opacity-20"
@@ -78,9 +78,9 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
             }}
           />
         </div>
-        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1200px] px-3 min-[400px]:px-4 sm:px-6 lg:px-8">
           <nav
-            className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground"
+            className="flex flex-wrap items-center gap-x-1 gap-y-1 text-xs text-muted-foreground sm:text-sm"
             aria-label="Breadcrumb"
           >
             <Link href="/" className="font-medium hover:text-primary">
@@ -91,23 +91,23 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
               Ferramentas
             </Link>
             <ChevronRight className="size-4 opacity-50" aria-hidden />
-            <span className="max-w-[min(100%,320px)] truncate text-foreground">
+            <span className="line-clamp-2 min-w-0 max-w-full text-foreground sm:max-w-[min(100%,420px)] sm:truncate">
               {page.h1}
             </span>
           </nav>
 
-          <div className="mt-6 inline-flex rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+          <div className="mt-4 inline-flex max-w-full rounded-full border border-primary/30 bg-primary/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary sm:mt-6 sm:px-3 sm:text-xs">
             {categoryLabel[page.category]}
           </div>
 
-          <h1 className="mt-4 max-w-[820px] text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-[2.5rem] lg:leading-tight">
+          <h1 className="mt-3 max-w-[820px] text-balance text-2xl font-bold tracking-tight text-foreground min-[400px]:text-[1.65rem] sm:mt-4 sm:text-4xl lg:text-[2.5rem] lg:leading-tight">
             {page.h1}
           </h1>
-          <p className="mt-6 max-w-[720px] text-lg leading-relaxed text-slate-600">
+          <p className="mt-4 max-w-[720px] text-base leading-relaxed text-slate-600 sm:mt-6 sm:text-lg">
             {page.intro}
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-3 text-sm">
+          <div className="mt-6 flex flex-col gap-2 text-sm sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-1">
             <Link
               href="/ferramentas"
               className="font-medium text-primary underline-offset-4 hover:underline"
@@ -245,7 +245,7 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
               <Link
                 href={tool.href}
                 className={cn(
-                  "mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-4 text-base font-semibold sm:w-auto",
+                  "mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-semibold sm:mt-8 sm:w-auto sm:px-6 sm:py-4 sm:text-base",
                   "bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
                 )}
               >
@@ -284,16 +284,16 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
             <p className="mt-3 text-slate-600">
               Ferramentas gratuitas e produtos para escalar operação e atendimento.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:justify-center">
               <Link
                 href="/ferramentas"
-                className="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3.5 font-semibold text-primary-foreground hover:bg-primary/90"
+                className="inline-flex min-h-12 items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground hover:bg-primary/90"
               >
                 Usar agora
               </Link>
               <Link
                 href="/produtos"
-                className="inline-flex items-center justify-center rounded-xl border border-border bg-white px-6 py-3.5 font-semibold hover:bg-slate-50"
+                className="inline-flex min-h-12 items-center justify-center rounded-xl border border-border bg-white px-6 py-3 font-semibold hover:bg-slate-50"
               >
                 Começar agora
               </Link>

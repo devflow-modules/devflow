@@ -4,18 +4,18 @@ import { cn } from "@/lib/utils";
 const points = [
   {
     icon: Plug,
-    title: "API de verdade",
-    text: "WhatsApp Cloud API da Meta — não é gambiarra de browser nem número clonado.",
+    title: "API Meta de verdade",
+    text: "Cloud API oficial — não é atalho nem número espelhado.",
   },
   {
     icon: Server,
-    title: "Conecta no que você já usa",
-    text: "Webhook, fila, handoff: fluxo pensado pra operação que recebe volume.",
+    title: "Plugado no seu fluxo",
+    text: "Webhook, fila, handoff: desenhado pra quem recebe volume.",
   },
   {
     icon: Radio,
-    title: "Rodando em produção",
-    text: "O mesmo stack que atende cliente real hoje — não slide de vendas.",
+    title: "Mesmo código em produção",
+    text: "Automações reais ativas hoje — não mockup de apresentação.",
   },
 ];
 
@@ -23,7 +23,7 @@ export function AuthorityRealOpsSection() {
   return (
     <section
       id="autoridade-operacao"
-      className="border-y border-border bg-slate-900 py-20 text-white sm:py-24"
+      className="border-y border-border bg-slate-900 py-24 text-white sm:py-28"
       aria-labelledby="authority-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -33,27 +33,27 @@ export function AuthorityRealOpsSection() {
             id="authority-heading"
             className="text-2xl font-bold tracking-tight sm:text-3xl"
           >
-            Construído por quem entende de operação real
+            Feito por quem opera de verdade
           </h2>
-          <p className="mt-3 text-sm text-slate-400 sm:text-base">
-            Nada de promessa vaga — é integração, API e coisa no ar.
+          <p className="mt-4 text-sm leading-relaxed text-slate-400 sm:text-base">
+            Infra validada em produção — não protótipo.
           </p>
         </div>
 
-        <ul className="mt-14 grid gap-6 sm:grid-cols-3" role="list">
+        <ul className="mt-16 grid gap-8 sm:grid-cols-3" role="list">
           {points.map((p) => (
             <li
               key={p.title}
               className={cn(
-                "rounded-2xl border border-white/10 bg-white/5 p-6",
-                "transition-colors hover:border-primary/40 hover:bg-white/[0.07]"
+                "rounded-2xl border border-white/10 bg-white/5 p-7",
+                "transition-colors hover:border-primary/35"
               )}
             >
               <div className="flex size-11 items-center justify-center rounded-xl bg-primary/20">
                 <p.icon className="size-6 text-primary" aria-hidden />
               </div>
-              <h3 className="mt-4 font-bold text-white">{p.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-400">{p.text}</p>
+              <h3 className="mt-5 font-bold text-white">{p.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-400">{p.text}</p>
             </li>
           ))}
         </ul>

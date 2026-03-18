@@ -12,14 +12,14 @@ const products = [
     title: "WhatsApp Platform",
     subtitle: "Automação de Atendimento",
     description:
-      "Cliente manda mensagem e recebe resposta na hora — 24h. Quando precisar de gente, passa pra sua equipe sem o cliente repetir tudo.",
+      "Resposta na hora, 24h. Gente entra só quando o cliente pede.",
     highlights: [
       "Automação 24/7 com IA",
       "Handoff para equipe humana",
       "Métricas operacionais",
       "WhatsApp Cloud API oficial",
     ],
-    cta: "Começar agora",
+    cta: "Começar agora (leva menos de 1 min)",
     href: "/produtos/whatsapp-platform",
     external: false,
     accent: "border-primary/30",
@@ -33,14 +33,14 @@ const products = [
     title: "Sistema Financeiro",
     subtitle: "Gestão Financeira Completa",
     description:
-      "Chega de planilha espalhada. Receitas, despesas, orçamento e fechamento do mês num lugar só — PF, PJ ou casal.",
+      "Receitas, despesas, mês fechado — PF, PJ ou casal. Num lugar só.",
     highlights: [
       "Múltiplos contextos",
       "Recorrência automática",
       "Fechamento mensal",
       "Importação CSV",
     ],
-    cta: "Testar grátis",
+    cta: "Testar grátis — sem cartão",
     href: "/ferramentas/financeiro",
     external: false,
     accent: "border-blue-500/30",
@@ -72,7 +72,7 @@ export function ProductsSection() {
   return (
     <section
       id="produtos"
-      className="py-24 bg-[#f8fafc]"
+      className="bg-[#f8fafc] py-24 sm:py-28"
       aria-labelledby="products-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -86,15 +86,17 @@ export function ProductsSection() {
             Quando ferramenta grátis não basta mais
           </h2>
           <p className="mt-3 text-slate-600">
-            Sistemas prontos pra operação que não para. Testar grátis onde der.
+            Quando precisa de mais que ferramenta avulsa.
           </p>
-          <p className="mx-auto mt-5 max-w-xl rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm font-semibold text-foreground">
-            Teste sem risco — se não fizer sentido, você não usa.
+          <p className="mt-4 text-sm font-medium text-primary/90">
+            Agora que você viu o rápido, veja o que escala.
+          </p>
+          <p className="mx-auto mt-6 max-w-lg text-sm text-slate-600">
+            Teste sem risco — não fez sentido, você não usa.
           </p>
         </div>
 
-        {/* Grid de produtos */}
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
             <article
               key={product.title}
@@ -150,14 +152,12 @@ export function ProductsSection() {
                   <ArrowRight className="size-4" aria-hidden />
                 )}
               </Link>
-              {!product.disabled && (
-                <p className="mt-2 text-center text-[11px] text-slate-500">
-                  Sem cartão onde for grátis · Sem compromisso · Pode parar quando quiser
-                </p>
-              )}
             </article>
           ))}
         </div>
+        <p className="mx-auto mt-10 max-w-md text-center text-xs text-slate-500">
+          Onde for grátis: sem cartão. Pode parar quando quiser.
+        </p>
       </div>
     </section>
   );

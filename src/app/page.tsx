@@ -3,6 +3,7 @@ import { ScrollTracker } from "@/components/shared/scroll-tracker";
 
 // Novos componentes — posicionamento hub
 import { HeroV2 } from "@/components/sections/hero-v2";
+import { TechnicalTrustStrip } from "@/components/sections/technical-trust-strip";
 import { HubPillarsSection } from "@/components/sections/hub-pillars-section";
 import { WhereToStartSection } from "@/components/sections/where-to-start-section";
 import { ToolsSection } from "@/components/sections/tools-section";
@@ -60,6 +61,8 @@ export default function Home() {
 
       {/* 1. Hero — plataforma hub */}
       <HeroV2 />
+
+      <TechnicalTrustStrip />
 
       <HubPillarsSection />
 

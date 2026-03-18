@@ -17,7 +17,7 @@ export function CrossSellBeyond({ className, variant = "default" }: Props) {
   return (
     <section
       className={cn(
-        "rounded-2xl border-2 border-dashed border-primary/25 bg-gradient-to-br from-primary/[0.04] to-slate-50 p-8 sm:p-10",
+        "rounded-2xl border-2 border-dashed border-primary/25 bg-gradient-to-br from-primary/[0.04] to-slate-50 p-5 sm:p-8 lg:p-10",
         className
       )}
       aria-labelledby="cross-sell-heading"
@@ -32,13 +32,13 @@ export function CrossSellBeyond({ className, variant = "default" }: Props) {
         Essas ferramentas resolvem mais ainda da sua operação.
       </p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+      <div className="mt-6 grid auto-rows-fr gap-4 sm:mt-8 sm:grid-cols-2">
         {!isFinanceiroPage && (
         <Link
           href="/ferramentas/financeiro"
           onClick={() => trackCrossSell("financeiro")}
           className={cn(
-            "group flex flex-col rounded-2xl border border-border bg-card p-6 text-left",
+            "group flex h-full min-h-0 flex-col rounded-2xl border border-border bg-card p-5 text-left sm:p-6",
             "shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg"
           )}
         >
@@ -62,7 +62,7 @@ export function CrossSellBeyond({ className, variant = "default" }: Props) {
           href="/automacao-whatsapp"
           onClick={() => trackCrossSell("whatsapp")}
           className={cn(
-            "group flex flex-col rounded-2xl border border-border bg-card p-6 text-left",
+            "group flex h-full min-h-0 flex-col rounded-2xl border border-border bg-card p-5 text-left sm:p-6",
             "shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/35 hover:shadow-lg"
           )}
         >
@@ -86,7 +86,7 @@ export function CrossSellBeyond({ className, variant = "default" }: Props) {
             href="/produtos"
             onClick={() => trackCrossSell("produtos")}
             className={cn(
-              "group flex flex-col rounded-2xl border border-border bg-card p-6 text-left",
+              "group flex h-full min-h-0 flex-col rounded-2xl border border-border bg-card p-5 text-left sm:p-6",
               "shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg"
             )}
           >
