@@ -43,6 +43,9 @@ export default async function DashboardPage() {
         <Link href="/queues" className="text-blue-600 underline">
           Filas
         </Link>
+        <Link href="/inbox" className="text-emerald-700 font-medium underline">
+          Inbox (atendimento)
+        </Link>
         <Link href="/settings" className="text-blue-600 underline">
           Configurações
         </Link>

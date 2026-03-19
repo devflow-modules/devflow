@@ -1,0 +1,52 @@
+export type InboxUser = { id: string; name: string; email: string };
+export type InboxTag = { id: string; name: string; color: string };
+
+export type WaInboxThreadRow = {
+  id: string;
+  phoneNumber: string;
+  contactName: string | null;
+  lastMessageAt: string;
+  unreadCount: number;
+  lastMessagePreview: string | null;
+  status: string;
+  priority?: string;
+  assignedToUser?: InboxUser | null;
+  threadTags?: { tag: InboxTag }[];
+  lastCustomerMessageAt?: string | null;
+  lastAgentReplyAt?: string | null;
+  firstResponseAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type WaInboxMessageRow = {
+  id: string;
+  waMessageId: string;
+  direction: "INBOUND" | "OUTBOUND";
+  fromNumber: string;
+  toNumber: string;
+  messageType: string;
+  contentText: string | null;
+  contentJson: unknown;
+  ts: string;
+  status: string;
+  errorCode: string | null;
+  errorMessage: string | null;
+  createdAt: string;
+};
+
+export type InboxConversationsFilter =
+  | "all"
+  | "assigned_to_me"
+  | "unassigned"
+  | "OPEN"
+  | "PENDING"
+  | "CLOSED";
+
+export const INBOX_QK = {
+  conversations: (filter?: InboxConversationsFilter) =>
+    filter ? (["inbox-conversations", filter] as const) : (["inbox-conversations"] as const),
+  messages: (threadId: string) => ["inbox-messages", threadId] as const,
+  tags: ["inbox-tags"] as const,
+  users: ["inbox-users"] as const,
+};

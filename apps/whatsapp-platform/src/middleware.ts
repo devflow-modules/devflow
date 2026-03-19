@@ -21,6 +21,25 @@ async function verifyJwt(token: string, secret: string): Promise<{ tenantId: str
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
+  if (path.startsWith("/inbox") || path.startsWith("/settings")) {
+    const secret = process.env.JWT_SECRET;
+    const token = request.cookies.get(JWT_COOKIE_NAME)?.value;
+    if (!secret) {
+      if (process.env.NODE_ENV === "development") return NextResponse.next();
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+    if (!token) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+    const payload = await verifyJwt(token, secret);
+    if (!payload) {
+      const res = NextResponse.redirect(new URL("/login", request.url));
+      res.cookies.delete(JWT_COOKIE_NAME);
+      return res;
+    }
+    return NextResponse.next();
+  }
+
   if (!path.startsWith("/admin")) return NextResponse.next();
   if (path === "/admin/login" || path === "/admin/login/") return NextResponse.next();
 

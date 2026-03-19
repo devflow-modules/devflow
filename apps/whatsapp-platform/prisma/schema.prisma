@@ -7,6 +7,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma-whatsapp"
 }
 
 model Tenant {
@@ -32,8 +33,254 @@ model Tenant {
   conversationQueues   ConversationQueue[]
   agentStatuses        AgentStatus[]
   faqs                 FAQ[]
+  waInboxThreads       WaInboxThread[]
+  waInboxMessages      WaInboxMessage[]
+  waInboxStatusHistory WaInboxStatusHistory[]
+  waInboxTags          WaInboxTag[]
+  aiAgentConfig        AiAgentConfig?
+  aiMessageLogs        AiMessageLog[]
+  usageEvents          UsageEvent[]
+  billingSubscription  BillingSubscription?
+  usageAggregates      UsageAggregate[]
 
   @@map("whatsapp_tenants")
+}
+
+enum UsageEventType {
+  MESSAGE_SENT
+  AI_RESPONSE
+}
+
+model UsageEvent {
+  id                   String         @id @default(cuid())
+  tenantId             String         @map("tenant_id")
+  type                 UsageEventType @map("type")
+  quantity             Int            @default(1) @map("quantity")
+  metadata             Json?          @map("metadata")
+  createdAt            DateTime       @default(now()) @map("created_at")
+  reportedToStripeAt   DateTime?      @map("reported_to_stripe_at")
+  stripeReportAttempts Int            @default(0) @map("stripe_report_attempts")
+  stripeReportLastError String?       @map("stripe_report_last_error") @db.VarChar(2000)
+  tenant               Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([tenantId, type, createdAt])
+  @@index([tenantId, reportedToStripeAt])
+  @@map("usage_events")
+}
+
+model BillingSubscription {
+  id                          String    @id @default(cuid())
+  tenantId                    String    @unique @map("tenant_id")
+  stripeCustomerId            String?   @map("stripe_customer_id")
+  stripeSubscriptionId        String?   @unique @map("stripe_subscription_id")
+  plan                        String    @map("plan")
+  status                      String    @map("status")
+  stripeMessagePriceId        String?   @map("stripe_message_price_id")
+  stripeAiPriceId             String?   @map("stripe_ai_price_id")
+  stripeSubscriptionItemMsgId String?   @map("stripe_subscription_item_msg_id")
+  stripeSubscriptionItemAiId  String?   @map("stripe_subscription_item_ai_id")
+  lastInvoiceId               String?   @map("last_invoice_id")
+  lastInvoiceStatus           String?   @map("last_invoice_status") @db.VarChar(64)
+  lastInvoiceAmountPaid       Int?      @map("last_invoice_amount_paid")
+  currentPeriodStart          DateTime? @map("current_period_start")
+  currentPeriodEnd            DateTime? @map("current_period_end")
+  cancelAtPeriodEnd           Boolean   @default(false) @map("cancel_at_period_end")
+  createdAt                   DateTime  @default(now()) @map("created_at")
+  updatedAt                   DateTime  @updatedAt @map("updated_at")
+  tenant                      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([stripeCustomerId])
+  @@map("billing_subscriptions")
+}
+
+model UsageAggregate {
+  id            String   @id @default(cuid())
+  tenantId      String   @map("tenant_id")
+  period        String   @map("period")
+  messagesCount Int      @default(0) @map("messages_count")
+  aiCount       Int      @default(0) @map("ai_count")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, period])
+  @@index([tenantId, period])
+  @@map("usage_aggregates")
+}
+
+enum AiAgentTone {
+  FRIENDLY
+  SALES
+  SUPPORT
+  NEUTRAL
+}
+
+model AiAgentConfig {
+  id                 String      @id @default(cuid())
+  tenantId           String      @unique @map("tenant_id")
+  enabled            Boolean     @default(false) @map("enabled")
+  systemPrompt       String      @default("") @map("system_prompt") @db.Text
+  tone               AiAgentTone @default(NEUTRAL) @map("tone")
+  maxTokens          Int         @default(512) @map("max_tokens")
+  temperature        Float       @default(0.7) @map("temperature")
+  fallbackToHuman    Boolean     @default(true) @map("fallback_to_human")
+  createdAt          DateTime    @default(now()) @map("created_at")
+  updatedAt          DateTime    @updatedAt @map("updated_at")
+  tenant             Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("ai_agent_configs")
+}
+
+model AiMessageLog {
+  id                   String   @id @default(cuid())
+  tenantId             String   @map("tenant_id")
+  waInboxThreadId      String?  @map("wa_inbox_thread_id")
+  inboundWaMessageId   String?  @map("inbound_wa_message_id")
+  outboundWaMessageId  String?  @map("outbound_wa_message_id")
+  promptUsed           String   @map("prompt_used") @db.Text
+  responseGenerated    String   @map("response_generated") @db.Text
+  tokensUsed           Int?     @map("tokens_used")
+  durationMs           Int?     @map("duration_ms")
+  errorMessage         String?  @map("error_message") @db.VarChar(2000)
+  createdAt            DateTime @default(now()) @map("created_at")
+  tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([inboundWaMessageId])
+  @@map("ai_message_logs")
+}
+
+// ─── Inbox Cloud API (multi-tenant, espelho operacional para UI) ───
+
+enum WaInboxThreadStatus {
+  OPEN
+  CLOSED
+  PENDING
+}
+
+enum WaInboxThreadPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum WaInboxDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum WaInboxMsgType {
+  TEXT
+  IMAGE
+  AUDIO
+  DOCUMENT
+  UNKNOWN
+}
+
+enum WaInboxDeliveryStatus {
+  RECEIVED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+model WaInboxThread {
+  id                     String                @id @default(cuid())
+  tenantId               String                @map("tenant_id")
+  phoneNumber            String                @map("phone_number")
+  contactName            String?               @map("contact_name")
+  lastMessageAt          DateTime              @default(now()) @map("last_message_at")
+  unreadCount            Int                   @default(0) @map("unread_count")
+  lastMessagePreview     String?               @map("last_message_preview") @db.VarChar(512)
+  status                 WaInboxThreadStatus   @default(OPEN)
+  priority               WaInboxThreadPriority @default(MEDIUM) @map("priority")
+  assignedToUserId       String?               @map("assigned_to_user_id")
+  lastCustomerMessageAt  DateTime?             @map("last_customer_message_at")
+  lastAgentReplyAt       DateTime?             @map("last_agent_reply_at")
+  firstResponseAt        DateTime?             @map("first_response_at")
+  createdAt              DateTime              @default(now()) @map("created_at")
+  updatedAt              DateTime              @updatedAt @map("updated_at")
+  tenant                 Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignedToUser         User?                 @relation("AssignedToUser", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  messages               WaInboxMessage[]
+  threadTags             WaInboxThreadTag[]
+
+  @@unique([tenantId, phoneNumber])
+  @@index([tenantId, lastMessageAt(sort: Desc)])
+  @@index([tenantId, status])
+  @@index([tenantId, assignedToUserId])
+  @@map("wa_inbox_threads")
+}
+
+model WaInboxTag {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  name      String   @map("name")
+  color     String   @default("#6b7280") @map("color") @db.VarChar(32)
+  createdAt DateTime @default(now()) @map("created_at")
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  threadTags WaInboxThreadTag[]
+
+  @@index([tenantId])
+  @@map("wa_inbox_tags")
+}
+
+model WaInboxThreadTag {
+  id        String        @id @default(cuid())
+  tenantId  String        @map("tenant_id")
+  threadId  String        @map("thread_id")
+  tagId     String        @map("tag_id")
+  createdAt DateTime      @default(now()) @map("created_at")
+  thread    WaInboxThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  tag       WaInboxTag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([threadId, tagId])
+  @@index([tenantId, threadId])
+  @@index([tenantId, tagId])
+  @@map("wa_inbox_thread_tags")
+}
+
+model WaInboxMessage {
+  id           String                 @id @default(cuid())
+  tenantId     String                 @map("tenant_id")
+  threadId     String                 @map("thread_id")
+  waMessageId  String                 @map("wa_message_id")
+  direction    WaInboxDirection
+  fromNumber   String                 @map("from_number")
+  toNumber     String                 @map("to_number")
+  messageType  WaInboxMsgType         @map("message_type")
+  contentText  String?                @map("content_text") @db.Text
+  contentJson  Json?                  @map("content_json")
+  ts           DateTime               @map("ts")
+  status       WaInboxDeliveryStatus
+  errorCode    String?                @map("error_code")
+  errorMessage String?                @map("error_message") @db.VarChar(2000)
+  rawPayload   Json                   @map("raw_payload")
+  createdAt    DateTime               @default(now()) @map("created_at")
+  tenant       Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  thread       WaInboxThread          @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  statusHistory WaInboxStatusHistory[]
+
+  @@unique([tenantId, waMessageId])
+  @@index([tenantId, threadId, ts])
+  @@map("wa_inbox_messages")
+}
+
+model WaInboxStatusHistory {
+  id         String                 @id @default(cuid())
+  tenantId   String                 @map("tenant_id")
+  messageId  String                 @map("message_id")
+  status     WaInboxDeliveryStatus
+  ts         DateTime               @default(now()) @map("ts")
+  rawPayload Json?                  @map("raw_payload")
+  createdAt  DateTime               @default(now()) @map("created_at")
+  tenant     Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  message    WaInboxMessage         @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, messageId, ts])
+  @@map("wa_inbox_status_history")
 }
 
 model FAQ {
@@ -64,15 +311,16 @@ model MessageFeedback {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  tenantId     String   @map("tenant_id")
-  email        String   @unique
-  passwordHash String   @map("password_hash")
-  name         String
-  role         String
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id                   String          @id @default(cuid())
+  tenantId              String          @map("tenant_id")
+  email                 String          @unique
+  passwordHash          String          @map("password_hash")
+  name                  String
+  role                  String
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt @map("updated_at")
+  tenant                Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignedInboxThreads  WaInboxThread[] @relation("AssignedToUser")
 
   @@index([tenantId])
   @@index([email])

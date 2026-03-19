@@ -107,6 +107,15 @@ export function SettingsTenantForm() {
       <Link href="/dashboard" className="text-blue-600 underline">
         Voltar ao Dashboard
       </Link>
+      <p className="mt-3">
+        <Link href="/settings/ai" className="text-blue-600 underline text-sm">
+          IA de atendimento automático →
+        </Link>
+        <br />
+        <Link href="/settings/billing" className="text-blue-600 underline text-sm">
+          Billing e uso →
+        </Link>
+      </p>
 
       <form onSubmit={handleSubmit} className="mt-6 max-w-md space-y-4">
         <div>

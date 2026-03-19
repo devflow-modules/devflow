@@ -1,0 +1,122 @@
+import { NextRequest, NextResponse } from "next/server";
+import { WhatsAppCloudAdapter } from "@devflow/whatsapp-core";
+import { getAuthFromRequest } from "@/modules/auth";
+import { waInboxCreateOutbound } from "@/modules/inbox";
+import { digitsOnly } from "@/modules/inbox/waInboxUtils";
+import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+import { checkUsageWithinLimits, trackUsage } from "@/modules/billing/usageService";
+import { UsageEventType } from "@/generated/prisma-whatsapp";
+
+const bodySchema = z.object({
+  text: z.string().min(1).max(4096),
+});
+
+export const dynamic = "force-dynamic";
+
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const auth = await getAuthFromRequest(request);
+  if (!auth) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  }
+
+  const { id: threadId } = await context.params;
+  if (!threadId?.trim()) {
+    return NextResponse.json({ error: "id obrigatório" }, { status: 400 });
+  }
+
+  let json: unknown;
+  try {
+    json = await request.json();
+  } catch {
+    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+  }
+
+  const parsed = bodySchema.safeParse(json);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "text inválido" }, { status: 400 });
+  }
+
+  const thread = await prisma.waInboxThread.findFirst({
+    where: { id: threadId, tenantId: auth.payload.tenantId },
+  });
+  if (!thread) {
+    return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 });
+  }
+
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: auth.payload.tenantId },
+  });
+  if (!tenant) {
+    return NextResponse.json({ error: "Tenant não encontrado" }, { status: 404 });
+  }
+
+  const limitCheck = await checkUsageWithinLimits(tenant.id, tenant.plan);
+  if (!limitCheck.ok) {
+    return NextResponse.json(
+      { success: false, error: { message: limitCheck.reason, code: "USAGE_LIMIT" } },
+      { status: 402 }
+    );
+  }
+
+  if (!tenant.phoneNumberId?.trim() || !tenant.accessToken?.trim()) {
+    return NextResponse.json(
+      {
+        error:
+          "WhatsApp não configurado: defina phoneNumberId e accessToken em Configurações.",
+      },
+      { status: 503 }
+    );
+  }
+
+  const to = thread.phoneNumber.replace(/\D/g, "");
+  if (to.length < 8) {
+    return NextResponse.json({ error: "Número do contato inválido" }, { status: 400 });
+  }
+
+  try {
+    const adapter = new WhatsAppCloudAdapter({ accessToken: tenant.accessToken });
+    const { messageId } = await adapter.sendText(tenant.phoneNumberId, {
+      to,
+      text: parsed.data.text,
+    });
+
+    await waInboxCreateOutbound({
+      tenantId: auth.payload.tenantId,
+      customerPhoneDigits: thread.phoneNumber.replace(/\D/g, ""),
+      waMessageId: messageId,
+      text: parsed.data.text,
+      businessDigits: digitsOnly(tenant.displayPhoneNumber ?? ""),
+    });
+
+    await prisma.waInboxThread.update({
+      where: { id: thread.id },
+      data: {
+        lastMessageAt: new Date(),
+        lastMessagePreview:
+          parsed.data.text.length > 200
+            ? parsed.data.text.slice(0, 199) + "\u2026"
+            : parsed.data.text,
+      },
+    });
+
+    trackUsage(auth.payload.tenantId, UsageEventType.MESSAGE_SENT, {
+      metadata: { source: "inbox_send", threadId: thread.id },
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: { messageId, waMessageId: messageId },
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[inbox/send]", e);
+    return NextResponse.json(
+      { success: false, error: { message: msg } },
+      { status: 502 }
+    );
+  }
+}

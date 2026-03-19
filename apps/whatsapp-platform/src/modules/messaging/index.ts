@@ -11,5 +11,10 @@ export {
 } from "./messagesRepository";
 export type { InsertMessageInput } from "./messagesRepository";
 export { insertWebhookLog } from "./webhookLogsRepository";
-export { sendReplyAndPersist } from "./sendMessageService";
-export { processInboundMessage, persistWebhookLog } from "./webhookProcessingService";
+export { sendReplyAndPersist, sendWebhookAutoReply } from "./sendMessageService";
+export {
+  processInboundMessage,
+  persistWebhookLog,
+  prepareInboundConversation,
+  processLegacyInboundAutoReply,
+} from "./webhookProcessingService";
