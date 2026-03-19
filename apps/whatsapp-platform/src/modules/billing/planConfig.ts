@@ -1,16 +1,19 @@
 /**
  * Preços e limites parametrizáveis por env (backend apenas).
+ * Delega limites de planos para plans.ts (fonte única).
  */
 
-export interface PlanLimits {
+import { getPlan, normalizePlan } from "./plans";
+
+export type PlanLimits = {
   messagesPerMonth: number | null;
   aiResponsesPerMonth: number | null;
-}
+  automationsPerMonth?: number | null;
+  users?: number | null;
+};
 
 export function normalizePlanKey(plan: string | null | undefined): string {
-  const p = (plan ?? "FREE").toLowerCase();
-  if (p === "starter") return "FREE";
-  return p.toUpperCase();
+  return normalizePlan(plan);
 }
 
 export function getUsageUnitPricesBrl(): { message: number; aiResponse: number } {
@@ -21,19 +24,16 @@ export function getUsageUnitPricesBrl(): { message: number; aiResponse: number }
 }
 
 export function getPlanLimits(plan: string | null | undefined): PlanLimits {
-  const key = normalizePlanKey(plan);
-  if (key === "FREE") {
-    return { messagesPerMonth: 500, aiResponsesPerMonth: 50 };
-  }
-  if (key === "PRO") {
-    return { messagesPerMonth: 10_000, aiResponsesPerMonth: 2000 };
-  }
-  if (key === "SCALE" || key === "TEAM") {
-    return { messagesPerMonth: null, aiResponsesPerMonth: null };
-  }
-  return { messagesPerMonth: 500, aiResponsesPerMonth: 50 };
+  const def = getPlan(plan);
+  const limits = def.limits;
+  return {
+    messagesPerMonth: limits.messagesPerMonth,
+    aiResponsesPerMonth: limits.aiCallsPerMonth,
+    automationsPerMonth: limits.automationsPerMonth,
+    users: limits.users,
+  };
 }
 
 export function isBillingEnforceLimits(): boolean {
-  return process.env.BILLING_ENFORCE_LIMITS === "true";
+  return process.env.BILLING_ENFORCE_LIMITS !== "false";
 }

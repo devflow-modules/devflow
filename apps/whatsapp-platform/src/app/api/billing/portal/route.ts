@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
   const baseUrl =
     process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin ?? "http://localhost:3004";
-  const returnUrl = `${baseUrl.replace(/\/$/, "")}/settings/billing`;
+  const returnUrl = `${baseUrl.replace(/\/$/, "")}/billing`;
 
   try {
     const { portalUrl } = await createBillingPortalSession(auth.payload.tenantId, returnUrl);

@@ -37,11 +37,16 @@ model Tenant {
   waInboxMessages      WaInboxMessage[]
   waInboxStatusHistory WaInboxStatusHistory[]
   waInboxTags          WaInboxTag[]
+  waInboxAuditLogs     WaInboxAuditLog[]
+  waAutomationRules    WaAutomationRule[]
+  waAutomationPlaybooks WaAutomationPlaybook[]
   aiAgentConfig        AiAgentConfig?
   aiMessageLogs        AiMessageLog[]
   usageEvents          UsageEvent[]
   billingSubscription  BillingSubscription?
   usageAggregates      UsageAggregate[]
+  tenantSubscription   TenantSubscription?
+  usageMetrics         UsageMetric[]
 
   @@map("whatsapp_tenants")
 }
@@ -107,6 +112,44 @@ model UsageAggregate {
   @@unique([tenantId, period])
   @@index([tenantId, period])
   @@map("usage_aggregates")
+}
+
+model TenantSubscription {
+  id                    String    @id @default(cuid())
+  tenantId              String    @unique @map("tenant_id")
+  plan                  String    @map("plan")
+  status                String    @map("status")
+  currentPeriodStart    DateTime? @map("current_period_start")
+  currentPeriodEnd      DateTime? @map("current_period_end")
+  stripeCustomerId      String?   @map("stripe_customer_id")
+  stripeSubscriptionId  String?   @map("stripe_subscription_id")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  tenant                Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("tenant_subscriptions")
+}
+
+enum UsageMetricType {
+  MESSAGES
+  AUTOMATIONS
+  AI_CALLS
+  USERS
+}
+
+model UsageMetric {
+  id         String          @id @default(cuid())
+  tenantId   String          @map("tenant_id")
+  metricType UsageMetricType @map("metric_type")
+  value      Int             @map("value")
+  period     String          @map("period")
+  createdAt  DateTime        @default(now()) @map("created_at")
+  tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, metricType, period])
+  @@index([tenantId, period])
+  @@map("usage_metrics")
 }
 
 enum AiAgentTone {
@@ -281,6 +324,51 @@ model WaInboxStatusHistory {
 
   @@index([tenantId, messageId, ts])
   @@map("wa_inbox_status_history")
+}
+
+model WaInboxAuditLog {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  threadId  String   @map("thread_id")
+  userId    String   @map("user_id")
+  action    String   @map("action")
+  metadata  Json?    @map("metadata")
+  createdAt DateTime @default(now()) @map("created_at")
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, threadId, createdAt(sort: Desc)])
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@map("wa_inbox_audit_logs")
+}
+
+model WaAutomationRule {
+  id          String   @id @default(cuid())
+  tenantId    String   @map("tenant_id")
+  name        String   @map("name")
+  isActive    Boolean  @default(true) @map("is_active")
+  triggerType String   @map("trigger_type")
+  conditions  Json     @map("conditions")
+  actions     Json     @map("actions")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, isActive, triggerType])
+  @@map("wa_automation_rules")
+}
+
+model WaAutomationPlaybook {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  name      String   @map("name")
+  isActive  Boolean  @default(true) @map("is_active")
+  steps     Json     @map("steps")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, isActive])
+  @@map("wa_automation_playbooks")
 }
 
 model FAQ {

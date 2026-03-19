@@ -1,15 +1,12 @@
-import { createCheckoutSession, createCustomerPortalSession } from "@devflow/billing-core";
-import type { PlanIdPaid } from "@devflow/billing-core";
+import { createCustomerPortalSession } from "@devflow/billing-core";
 import { prisma } from "@/lib/prisma";
+import { createCheckoutSession as createStripeCheckout, isStripeConfigured } from "@/modules/stripe";
 import { getUsageByPeriod, getStripeUsageSyncStats, periodYYYYMM } from "./usageService";
 import { isMeteredBillingConfigured } from "./stripeMeteredService";
 import { getPlanLimits, getUsageUnitPricesBrl, normalizePlanKey } from "./planConfig";
+import { getTenantPlan } from "./subscriptionService";
 
 export type CheckoutPlan = "PRO" | "SCALE";
-
-function checkoutPlanToStripePrice(plan: CheckoutPlan): PlanIdPaid {
-  return plan === "SCALE" ? "TEAM" : "PRO";
-}
 
 export async function createBillingCheckoutSession(
   tenantId: string,
@@ -17,11 +14,38 @@ export async function createBillingCheckoutSession(
   plan: CheckoutPlan,
   baseUrl: string
 ): Promise<{ checkoutUrl: string }> {
-  const stripePlan = checkoutPlanToStripePrice(plan);
+  if (isStripeConfigured()) {
+    const [tenantSub, billingSub, tenant] = await Promise.all([
+      prisma.tenantSubscription.findUnique({
+        where: { tenantId },
+        select: { stripeCustomerId: true },
+      }),
+      prisma.billingSubscription.findUnique({
+        where: { tenantId },
+        select: { stripeCustomerId: true },
+      }),
+      prisma.tenant.findUnique({
+        where: { id: tenantId },
+        select: { stripeCustomerId: true },
+      }),
+    ]);
+    const stripeCustomerId =
+      tenantSub?.stripeCustomerId ?? billingSub?.stripeCustomerId ?? tenant?.stripeCustomerId ?? null;
+    const result = await createStripeCheckout({
+      tenantId,
+      email,
+      plan,
+      successUrl: `${baseUrl.replace(/\/$/, "")}/billing?success=true`,
+      cancelUrl: `${baseUrl.replace(/\/$/, "")}/billing?canceled=true`,
+      stripeCustomerId,
+    });
+    return { checkoutUrl: result.checkoutUrl };
+  }
+  const { createCheckoutSession } = await import("@devflow/billing-core");
   const result = await createCheckoutSession({
     userId: tenantId,
     email,
-    planId: stripePlan,
+    planId: plan === "SCALE" ? "TEAM" : "PRO",
     successUrl: `${baseUrl.replace(/\/$/, "")}/settings/billing?checkout=success`,
     cancelUrl: `${baseUrl.replace(/\/$/, "")}/settings/billing?checkout=cancel`,
   });
@@ -32,11 +56,22 @@ export async function createBillingPortalSession(
   tenantId: string,
   returnUrl: string
 ): Promise<{ portalUrl: string }> {
-  const tenant = await prisma.tenant.findUnique({
-    where: { id: tenantId },
-    select: { stripeCustomerId: true },
-  });
-  const cid = tenant?.stripeCustomerId;
+  const [tenantSub, billingSub, tenant] = await Promise.all([
+    prisma.tenantSubscription.findUnique({
+      where: { tenantId },
+      select: { stripeCustomerId: true },
+    }),
+    prisma.billingSubscription.findUnique({
+      where: { tenantId },
+      select: { stripeCustomerId: true },
+    }),
+    prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { stripeCustomerId: true },
+    }),
+  ]);
+  const cid =
+    tenantSub?.stripeCustomerId ?? billingSub?.stripeCustomerId ?? tenant?.stripeCustomerId;
   if (!cid) {
     throw new Error("Cliente Stripe não encontrado. Faça upgrade primeiro.");
   }
@@ -63,7 +98,8 @@ export interface SubscriptionView {
 }
 
 export async function getSubscriptionView(tenantId: string): Promise<SubscriptionView> {
-  const [tenant, sub] = await Promise.all([
+  const [tenantSub, tenant, sub] = await Promise.all([
+    prisma.tenantSubscription.findUnique({ where: { tenantId } }),
     prisma.tenant.findUnique({
       where: { id: tenantId },
       select: { plan: true, stripeCustomerId: true, activeUntil: true },
@@ -71,16 +107,29 @@ export async function getSubscriptionView(tenantId: string): Promise<Subscriptio
     prisma.billingSubscription.findUnique({ where: { tenantId } }),
   ]);
 
-  const plan = sub?.plan ?? normalizePlanKey(tenant?.plan);
-  const status = sub?.status ?? (tenant?.stripeCustomerId ? "active" : "free");
+  const plan =
+    tenantSub?.plan ?? sub?.plan ?? normalizePlanKey(tenant?.plan);
+  const status =
+    tenantSub?.status ?? sub?.status ?? (tenant?.stripeCustomerId ? "active" : "free");
 
   return {
     plan,
     status,
-    stripeCustomerId: sub?.stripeCustomerId ?? tenant?.stripeCustomerId ?? null,
-    stripeSubscriptionId: sub?.stripeSubscriptionId ?? null,
-    currentPeriodStart: sub?.currentPeriodStart?.toISOString() ?? null,
-    currentPeriodEnd: sub?.currentPeriodEnd?.toISOString() ?? null,
+    stripeCustomerId:
+      tenantSub?.stripeCustomerId ??
+      sub?.stripeCustomerId ??
+      tenant?.stripeCustomerId ??
+      null,
+    stripeSubscriptionId:
+      tenantSub?.stripeSubscriptionId ?? sub?.stripeSubscriptionId ?? null,
+    currentPeriodStart:
+      tenantSub?.currentPeriodStart?.toISOString() ??
+      sub?.currentPeriodStart?.toISOString() ??
+      null,
+    currentPeriodEnd:
+      tenantSub?.currentPeriodEnd?.toISOString() ??
+      sub?.currentPeriodEnd?.toISOString() ??
+      null,
     cancelAtPeriodEnd: sub?.cancelAtPeriodEnd ?? false,
     activeUntil: tenant?.activeUntil?.toISOString() ?? null,
     meteredBillingConfigured: isMeteredBillingConfigured(),
@@ -107,12 +156,10 @@ export interface UsageDashboard {
 
 export async function getUsageDashboard(tenantId: string, period?: string): Promise<UsageDashboard> {
   const p = period ?? periodYYYYMM();
-  const usage = await getUsageByPeriod(tenantId, p);
-  const tenant = await prisma.tenant.findUnique({
-    where: { id: tenantId },
-    select: { plan: true },
-  });
-  const planKey = normalizePlanKey(tenant?.plan);
+  const [usage, planKey] = await Promise.all([
+    getUsageByPeriod(tenantId, p),
+    getTenantPlan(tenantId),
+  ]);
   const limits = getPlanLimits(planKey);
   const prices = getUsageUnitPricesBrl();
   const estimated =

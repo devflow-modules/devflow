@@ -1,51 +1,50 @@
-import Stripe from "stripe";
+import type Stripe from "stripe";
 import { NextRequest } from "next/server";
-import { validateWebhook, parseWebhookEvent } from "@devflow/billing-core";
-import { prisma } from "@/lib/prisma";
+import { getStripe } from "@/modules/stripe/stripeClient";
+import { validateWebhook, parseWebhookEvent } from "@/modules/stripe/stripeWebhook";
 import {
-  syncBillingSubscriptionFromStripe,
-  markSubscriptionPastDueByCustomerId,
-} from "@/modules/billing/billingStripeSync";
+  syncSubscriptionFromStripe,
+  markSubscriptionPastDue,
+} from "@/modules/stripe/stripeSyncService";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-function getStripe(): Stripe {
-  const key = process.env.STRIPE_SECRET_KEY ?? process.env.STRIPE_TEST_SECRET_KEY;
-  if (!key) throw new Error("STRIPE_SECRET_KEY or STRIPE_TEST_SECRET_KEY is required");
-  return new Stripe(key);
-}
-
-function getActiveUntilFromSubscription(subscription: Stripe.Subscription): Date | null {
-  if (subscription.current_period_end) {
-    return new Date(subscription.current_period_end * 1000);
-  }
-  return null;
+function mapPlanToLocal(plan?: string | null): string {
+  const p = (plan ?? "FREE").toUpperCase();
+  if (p === "TEAM") return "SCALE";
+  return p === "PRO" ? "PRO" : p === "SCALE" ? "SCALE" : "FREE";
 }
 
 async function resolveTenantId(
-  event: Stripe.Event,
-  parsed: ReturnType<typeof parseWebhookEvent>
+  parsed: { tenantId?: string; stripeCustomerId?: string } | null
 ): Promise<string | null> {
-  if (parsed?.userId) return parsed.userId;
-  let customerId = parsed?.stripeCustomerId;
-  if (!customerId && event.type.startsWith("invoice.")) {
-    const inv = event.data.object as Stripe.Invoice;
-    customerId =
-      typeof inv.customer === "string" ? inv.customer : inv.customer?.id ?? undefined;
-  }
-  if (!customerId && event.type === "customer.subscription.deleted") {
-    const sub = event.data.object as Stripe.Subscription;
-    const uid = sub.metadata?.userId as string | undefined;
-    if (uid) return uid;
-    customerId =
-      typeof sub.customer === "string" ? sub.customer : sub.customer?.id ?? undefined;
-  }
-  if (!customerId) return null;
+  if (!parsed) return null;
+  if (parsed.tenantId) return parsed.tenantId;
+  if (!parsed.stripeCustomerId) return null;
   const tenant = await prisma.tenant.findFirst({
-    where: { stripeCustomerId: customerId },
+    where: { stripeCustomerId: parsed.stripeCustomerId },
     select: { id: true },
   });
   return tenant?.id ?? null;
+}
+
+async function resolveTenantIdFromCustomer(stripeCustomerId: string): Promise<string | null> {
+  const [tenantByCustomer, tenantBySub, billingBySub] = await Promise.all([
+    prisma.tenant.findFirst({
+      where: { stripeCustomerId },
+      select: { id: true },
+    }),
+    prisma.tenantSubscription.findFirst({
+      where: { stripeCustomerId },
+      select: { tenantId: true },
+    }),
+    prisma.billingSubscription.findFirst({
+      where: { stripeCustomerId },
+      select: { tenantId: true },
+    }),
+  ]);
+  return tenantByCustomer?.id ?? tenantBySub?.tenantId ?? billingBySub?.tenantId ?? null;
 }
 
 export async function POST(request: NextRequest) {
@@ -68,6 +67,8 @@ export async function POST(request: NextRequest) {
     console.warn("[stripe/webhook] Invalid signature", err);
     return new Response("Invalid signature", { status: 400 });
   }
+
+  const parsed = parseWebhookEvent(event);
 
   if (
     event.type === "invoice.finalized" ||
@@ -99,7 +100,7 @@ export async function POST(request: NextRequest) {
       typeof inv.customer === "string" ? inv.customer : inv.customer?.id ?? undefined;
     if (cid) {
       try {
-        await markSubscriptionPastDueByCustomerId(cid);
+        await markSubscriptionPastDue(cid);
       } catch (e) {
         console.error("[stripe/webhook] past_due", e);
       }
@@ -107,68 +108,96 @@ export async function POST(request: NextRequest) {
     return new Response("OK", { status: 200 });
   }
 
-  const parsed = parseWebhookEvent(event);
-  const tenantId = await resolveTenantId(event, parsed);
-  if (!tenantId || !parsed) {
+  const tenantId =
+    parsed?.tenantId ?? (await resolveTenantId(parsed)) ?? null;
+
+  if (!tenantId && !parsed?.stripeCustomerId) {
     return new Response("OK", { status: 200 });
   }
 
   const stripe = getStripe();
 
-  function mapPlanFromStripe(p: string): string {
-    const x = p.toLowerCase();
-    return x === "team" ? "scale" : x;
-  }
-
   try {
-    if (parsed.type === "checkout.session.completed" && parsed.planId) {
+    if (
+      (event.type === "checkout.session.completed" || event.type === "customer.subscription.created") &&
+      parsed
+    ) {
+      const resolvedTenantId =
+        tenantId ?? (parsed.stripeCustomerId ? await resolveTenantIdFromCustomer(parsed.stripeCustomerId) : null);
+      if (!resolvedTenantId) {
+        return new Response("OK", { status: 200 });
+      }
+
+      const plan = mapPlanToLocal(parsed.plan);
       await prisma.tenant.update({
-        where: { id: tenantId },
+        where: { id: resolvedTenantId },
         data: {
-          plan: mapPlanFromStripe(parsed.planId),
+          plan: plan.toLowerCase(),
           stripeCustomerId: parsed.stripeCustomerId ?? undefined,
           activeUntil: null,
         },
       });
-      const subId = parsed.subscriptionId;
-      if (subId) {
-        const sub = await stripe.subscriptions.retrieve(subId);
-        const activeUntil = getActiveUntilFromSubscription(sub);
+
+      if (parsed.subscriptionId) {
+        const sub = await stripe.subscriptions.retrieve(parsed.subscriptionId);
+        const activeUntil = sub.current_period_end
+          ? new Date(sub.current_period_end * 1000)
+          : null;
         if (activeUntil) {
           await prisma.tenant.update({
-            where: { id: tenantId },
+            where: { id: resolvedTenantId },
             data: { activeUntil },
           });
         }
-        await syncBillingSubscriptionFromStripe(
-          tenantId,
+        await syncSubscriptionFromStripe(
+          resolvedTenantId,
           parsed.stripeCustomerId ?? null,
           sub
         );
       }
-    } else if (parsed.type === "customer.subscription.updated" && parsed.subscriptionId) {
+    } else if (
+      event.type === "customer.subscription.updated" &&
+      parsed?.subscriptionId
+    ) {
+      const resolvedTenantId =
+        tenantId ?? (parsed.stripeCustomerId ? await resolveTenantIdFromCustomer(parsed.stripeCustomerId) : null);
+      if (!resolvedTenantId) {
+        return new Response("OK", { status: 200 });
+      }
+
       const sub = await stripe.subscriptions.retrieve(parsed.subscriptionId);
-      const activeUntil = getActiveUntilFromSubscription(sub);
+      const plan = parsed.plan ? mapPlanToLocal(parsed.plan) : undefined;
+      const activeUntil = sub.current_period_end
+        ? new Date(sub.current_period_end * 1000)
+        : null;
+
       await prisma.tenant.update({
-        where: { id: tenantId },
+        where: { id: resolvedTenantId },
         data: {
-          plan: parsed.planId ? mapPlanFromStripe(parsed.planId) : undefined,
+          ...(plan ? { plan: plan.toLowerCase() } : {}),
           stripeCustomerId: parsed.stripeCustomerId ?? undefined,
           activeUntil: activeUntil ?? undefined,
         },
       });
-      await syncBillingSubscriptionFromStripe(
-        tenantId,
+      await syncSubscriptionFromStripe(
+        resolvedTenantId,
         parsed.stripeCustomerId ?? null,
         sub
       );
-    } else if (parsed.type === "customer.subscription.deleted") {
+    } else if (event.type === "customer.subscription.deleted") {
+      const resolvedTenantId =
+        tenantId ?? (parsed?.stripeCustomerId ? await resolveTenantIdFromCustomer(parsed.stripeCustomerId) : null);
+      if (!resolvedTenantId) {
+        return new Response("OK", { status: 200 });
+      }
+
       await prisma.tenant.update({
-        where: { id: tenantId },
+        where: { id: resolvedTenantId },
         data: { plan: "starter", activeUntil: null },
       });
+      await syncSubscriptionFromStripe(resolvedTenantId, null, null);
       await prisma.billingSubscription.updateMany({
-        where: { tenantId },
+        where: { tenantId: resolvedTenantId },
         data: {
           status: "canceled",
           stripeSubscriptionId: null,
@@ -177,17 +206,28 @@ export async function POST(request: NextRequest) {
           stripeSubscriptionItemAiId: null,
         },
       });
-    } else if (parsed.type === "invoice.payment_succeeded" && parsed.subscriptionId) {
+    } else if (
+      event.type === "invoice.payment_succeeded" &&
+      parsed?.subscriptionId
+    ) {
+      const resolvedTenantId =
+        tenantId ?? (parsed.stripeCustomerId ? await resolveTenantIdFromCustomer(parsed.stripeCustomerId) : null);
+      if (!resolvedTenantId) {
+        return new Response("OK", { status: 200 });
+      }
+
       const sub = await stripe.subscriptions.retrieve(parsed.subscriptionId);
-      const activeUntil = getActiveUntilFromSubscription(sub);
+      const activeUntil = sub.current_period_end
+        ? new Date(sub.current_period_end * 1000)
+        : null;
       if (activeUntil) {
         await prisma.tenant.update({
-          where: { id: tenantId },
+          where: { id: resolvedTenantId },
           data: { activeUntil },
         });
       }
-      await syncBillingSubscriptionFromStripe(
-        tenantId,
+      await syncSubscriptionFromStripe(
+        resolvedTenantId,
         parsed.stripeCustomerId ?? null,
         sub
       );
