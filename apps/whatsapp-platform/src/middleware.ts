@@ -21,7 +21,12 @@ async function verifyJwt(token: string, secret: string): Promise<{ tenantId: str
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
-  if (path.startsWith("/inbox") || path.startsWith("/settings")) {
+  if (
+    path.startsWith("/inbox") ||
+    path.startsWith("/settings") ||
+    path.startsWith("/billing") ||
+    path.startsWith("/dashboard/billing")
+  ) {
     const secret = process.env.JWT_SECRET;
     const token = request.cookies.get(JWT_COOKIE_NAME)?.value;
     if (!secret) {
@@ -46,8 +51,12 @@ export async function middleware(request: NextRequest) {
   const secret = process.env.JWT_SECRET;
   const token = request.cookies.get(JWT_COOKIE_NAME)?.value;
 
-  if (path.startsWith("/admin/metrics") && process.env.NODE_ENV === "production") {
-    const adminSecret = process.env.ADMIN_METRICS_SECRET;
+  if (
+    (path.startsWith("/admin/metrics") || path.startsWith("/admin/billing")) &&
+    process.env.NODE_ENV === "production"
+  ) {
+    const adminSecret =
+      process.env.WHATSAPP_ADMIN_METRICS_SECRET ?? process.env.ADMIN_METRICS_SECRET;
     const adminCookie = request.cookies.get(ADMIN_METRICS_COOKIE)?.value;
     if (adminSecret && adminCookie === adminSecret) return NextResponse.next();
   }

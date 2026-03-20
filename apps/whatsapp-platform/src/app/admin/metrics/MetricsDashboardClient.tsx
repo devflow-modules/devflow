@@ -111,6 +111,12 @@ export function MetricsDashboardClient({ initialData }: Props) {
         <h1 className="text-2xl font-bold text-foreground">Métricas internas — WhatsApp Platform</h1>
         <div className="flex gap-2 items-center">
           <a
+            href="/admin/billing"
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Billing e receita
+          </a>
+          <a
             href={exportConversationsUrl}
             target="_blank"
             rel="noopener noreferrer"

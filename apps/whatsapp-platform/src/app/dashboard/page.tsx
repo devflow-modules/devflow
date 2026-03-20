@@ -46,6 +46,12 @@ export default async function DashboardPage() {
         <Link href="/inbox" className="text-emerald-700 font-medium underline">
           Inbox (atendimento)
         </Link>
+        <Link href="/automation" className="text-blue-600 underline">
+          Automação
+        </Link>
+        <Link href="/dashboard/billing" className="text-blue-600 underline">
+          Billing
+        </Link>
         <Link href="/settings" className="text-blue-600 underline">
           Configurações
         </Link>
