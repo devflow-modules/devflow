@@ -10,6 +10,29 @@ generator client {
   output   = "../src/generated/prisma-whatsapp"
 }
 
+enum WhatsappPhoneNumberStatus {
+  PENDING
+  ACTIVE
+}
+
+model WhatsappPhoneNumber {
+  id                  String                   @id @default(cuid())
+  tenantId            String                   @map("tenant_id")
+  phoneNumberId       String                   @unique @map("phone_number_id")
+  displayPhoneNumber  String?                  @map("display_phone_number")
+  wabaId              String?                  @map("waba_id")
+  accessToken         String                   @map("access_token")
+  businessId          String?                  @map("business_id")
+  status              WhatsappPhoneNumberStatus @default(PENDING) @map("status")
+  createdAt           DateTime                 @default(now()) @map("created_at")
+  updatedAt           DateTime                 @updatedAt @map("updated_at")
+  tenant              Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([phoneNumberId])
+  @@map("whatsapp_phone_numbers")
+}
+
 model Tenant {
   id                   String         @id @default(cuid())
   name                 String?        @map("name")
@@ -28,6 +51,7 @@ model Tenant {
   aiDriver             String?        @map("ai_driver")  // ruleBased | openAI | claude
   createdAt            DateTime       @default(now()) @map("created_at")
   updatedAt            DateTime       @updatedAt @map("updated_at")
+  whatsappPhoneNumbers WhatsappPhoneNumber[]
   users                User[]
   conversations        Conversation[]
   conversationQueues   ConversationQueue[]
@@ -44,6 +68,7 @@ model Tenant {
   aiMessageLogs        AiMessageLog[]
   usageEvents          UsageEvent[]
   billingSubscription  BillingSubscription?
+  billingAuditLogs     BillingAuditLog[]
   usageAggregates      UsageAggregate[]
   tenantSubscription   TenantSubscription?
   usageMetrics         UsageMetric[]
@@ -91,12 +116,42 @@ model BillingSubscription {
   currentPeriodStart          DateTime? @map("current_period_start")
   currentPeriodEnd            DateTime? @map("current_period_end")
   cancelAtPeriodEnd           Boolean   @default(false) @map("cancel_at_period_end")
+  messagesIncludedUsed        Int       @default(0) @map("messages_included_used")
+  aiIncludedUsed              Int       @default(0) @map("ai_included_used")
+  messagesOverageSent         Int       @default(0) @map("messages_overage_sent")
+  aiOverageSent               Int       @default(0) @map("ai_overage_sent")
   createdAt                   DateTime  @default(now()) @map("created_at")
   updatedAt                   DateTime  @updatedAt @map("updated_at")
   tenant                      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([stripeCustomerId])
   @@map("billing_subscriptions")
+}
+
+model StripeWebhookEvent {
+  id         String   @id @default(cuid())
+  stripeEventId String @unique @map("stripe_event_id")
+  eventType  String   @map("event_type") @db.VarChar(128)
+  processedAt DateTime @default(now()) @map("processed_at")
+
+  @@index([stripeEventId])
+  @@map("stripe_webhook_events")
+}
+
+model BillingAuditLog {
+  id          String   @id @default(cuid())
+  tenantId    String   @map("tenant_id")
+  eventType   String   @map("event_type") @db.VarChar(128)
+  source      String   @map("source") @db.VarChar(32)
+  referenceId String?  @map("reference_id") @db.VarChar(256)
+  metadata    Json?    @map("metadata")
+  createdAt   DateTime @default(now()) @map("created_at")
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([source, eventType])
+  @@index([referenceId, eventType])
+  @@map("billing_audit_logs")
 }
 
 model UsageAggregate {

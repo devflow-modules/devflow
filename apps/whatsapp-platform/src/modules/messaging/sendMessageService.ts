@@ -26,6 +26,7 @@ export async function sendReplyAndPersist(input: SendReplyInput): Promise<{ mess
     to: input.to,
     text: input.text,
   });
+  console.info(`[WHATSAPP] outbound tenant=${input.tenant.id} wa_id=${input.to}`);
   await insertMessage({
     conversation_id: input.conversationId,
     direction: "outbound",
@@ -39,7 +40,7 @@ export async function sendReplyAndPersist(input: SendReplyInput): Promise<{ mess
     waMessageId: messageId,
     text: input.text,
     businessDigits: digitsOnly(input.tenant.displayPhoneNumber || ""),
-  }).catch((e) => console.error("[send] wa-inbox outbound", e));
+  }).catch((e) => console.error("[WHATSAPP][ERROR] wa-inbox outbound:", e));
   trackMessageSent();
   trackUsage(input.tenant.id, UsageEventType.MESSAGE_SENT, {
     metadata: { source: "sendReplyAndPersist", conversationId: input.conversationId },
@@ -59,13 +60,14 @@ export async function sendWebhookAutoReply(input: SendReplyInput): Promise<{ mes
     to: input.to,
     text: input.text,
   });
+  console.info(`[WHATSAPP] outbound tenant=${input.tenant.id} wa_id=${input.to}`);
   await waInboxCreateOutbound({
     tenantId: input.tenant.id,
     customerPhoneDigits: digitsOnly(input.to),
     waMessageId: messageId,
     text: input.text,
     businessDigits: digitsOnly(input.tenant.displayPhoneNumber || ""),
-  }).catch((e) => console.error("[sendWebhookAutoReply] wa-inbox outbound", e));
+  }).catch((e) => console.error("[WHATSAPP][ERROR] wa-inbox outbound:", e));
   trackMessageSent();
   trackUsage(input.tenant.id, UsageEventType.MESSAGE_SENT, {
     metadata: { source: "sendWebhookAutoReply" },

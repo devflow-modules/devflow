@@ -49,6 +49,9 @@ export default async function DashboardPage() {
         <Link href="/automation" className="text-blue-600 underline">
           Automação
         </Link>
+        <Link href="/dashboard/whatsapp" className="text-blue-600 underline">
+          WhatsApp
+        </Link>
         <Link href="/dashboard/billing" className="text-blue-600 underline">
           Billing
         </Link>
