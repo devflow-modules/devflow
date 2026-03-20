@@ -23,7 +23,8 @@ describe("revenueService", () => {
     const { getRevenueMetrics } = await import("../revenueService");
     const m = await getRevenueMetrics();
 
-    expect(m.mrr).toBe(29 + 29 + 79); // 137 (default PRO=29, SCALE=79)
+    // PRO=99, SCALE=249 (plans.ts defaults)
+    expect(m.mrr).toBe(99 + 99 + 249);
     expect(m.arr).toBe(m.mrr * 12);
     expect(m.activeSubscriptions).toBe(3);
   });
@@ -38,7 +39,8 @@ describe("revenueService", () => {
     const { getRevenueMetrics } = await import("../revenueService");
     const m = await getRevenueMetrics();
 
-    expect(m.arpu).toBe(29); // 58/2
+    // 2 PRO = 198, ARPU = 198/2 = 99
+    expect(m.arpu).toBe(99);
     expect(m.totalTenants).toBe(5);
   });
 
