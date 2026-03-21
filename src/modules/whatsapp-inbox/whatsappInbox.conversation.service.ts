@@ -1,8 +1,11 @@
 import type { PrismaClient } from "@prisma/client";
-import { prisma } from "@/modules/financeiro/lib/db";
 
-/** Transaction client type from actual Prisma instance (root schema with WhatsappConversation). */
-type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+/**
+ * Transaction client from prisma.$transaction (root schema: WhatsappConversation, WhatsappInboxMessage).
+ * Uses `any` to avoid Vercel/Prisma 6 generic type resolution - tx has correct delegates at runtime.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Tx = any;
 
 export async function findOrCreateConversationForInbound(
   tx: Tx,
