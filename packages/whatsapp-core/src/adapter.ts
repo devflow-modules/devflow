@@ -57,6 +57,10 @@ export class WhatsAppCloudAdapter {
       }
       const data = (await res.json()) as { messages?: Array<{ id: string }> };
       const messageId = data.messages?.[0]?.id ?? "";
+      console.log("[WHATSAPP][DEBUG] Graph API send success", {
+        messageId: messageId || "(empty)",
+        to: options.to.replace(/\D/g, "").slice(0, 6) + "***",
+      });
       return { messageId };
     });
   }

@@ -31,11 +31,22 @@ export function normalizeWebhookPayload(payload: unknown): NormalizedWebhookEven
       const v = change.value;
       if (!v || v.messaging_product !== "whatsapp") continue;
       if (change.field === "smb_message_echoes") continue;
+      if (change.field === "message_echoes") continue;
       if (v.metadata) {
         const rawId = v.metadata.phone_number_id;
         phoneNumberId = rawId != null ? String(rawId) : phoneNumberId;
         const rawDisplay = v.metadata.display_phone_number;
         displayPhoneNumber = rawDisplay != null ? String(rawDisplay) : displayPhoneNumber;
+      }
+      const msgCount = Array.isArray(v.messages) ? v.messages.length : 0;
+      const statusCount = Array.isArray(v.statuses) ? v.statuses.length : 0;
+      if (msgCount > 0 || statusCount > 0) {
+        console.log("[WHATSAPP][DEBUG] normalize change", {
+          field: change.field,
+          msgCount,
+          statusCount,
+          phoneNumberId: v.metadata?.phone_number_id ?? "(none)",
+        });
       }
       if (Array.isArray(v.messages)) messages.push(...(v.messages as IncomingMessage[]));
       if (Array.isArray(v.statuses)) statuses.push(...v.statuses);

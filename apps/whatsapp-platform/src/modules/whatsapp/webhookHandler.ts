@@ -7,6 +7,25 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+
+function extractRawWebhookStructure(payload: unknown): Record<string, unknown> | null {
+  if (!payload || typeof payload !== "object") return null;
+  const raw = payload as { entry?: Array<{ changes?: Array<{ field?: string; value?: Record<string, unknown> }> }> };
+  if (!Array.isArray(raw.entry) || raw.entry.length === 0) return null;
+  const changes = raw.entry.flatMap((e) => e.changes ?? []).map((c) => {
+    const v = c.value as Record<string, unknown> | undefined;
+    const msgs = Array.isArray(v?.messages) ? v.messages : [];
+    const sts = Array.isArray(v?.statuses) ? v.statuses : [];
+    const meta = v?.metadata && typeof v.metadata === "object" ? (v.metadata as Record<string, unknown>) : {};
+    return {
+      field: c.field ?? "?",
+      messagesLen: msgs.length,
+      statusesLen: sts.length,
+      phoneNumberId: meta.phone_number_id ?? "(none)",
+    };
+  });
+  return { changes };
+}
 import { normalizeWebhookPayload, type IncomingTextMessage } from "@devflow/whatsapp-core";
 import { APP_PRODUCT_SLUG } from "@/lib/constants";
 import { resolveTenantByPhoneNumberId } from "@/modules/whatsapp/tenantResolutionService";
@@ -45,7 +64,6 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  // #region agent log
   const bodyObj = body as Record<string, unknown> | null;
   const bodySummary =
     bodyObj && typeof bodyObj === "object"
@@ -55,7 +73,11 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
         }
       : "not_object";
   console.log("[WHATSAPP][DEBUG] POST received", JSON.stringify(bodySummary));
-  // #endregion
+
+  const rawStructure = extractRawWebhookStructure(body);
+  if (rawStructure) {
+    console.log("[WHATSAPP][DEBUG] raw payload structure", JSON.stringify(rawStructure));
+  }
 
   const normalized = normalizeWebhookPayload(body);
   if (!normalized) {
@@ -143,6 +165,17 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
   const seenConversations = new Set<string>();
   if (normalized.messages.length === 0) {
     console.log("[WHATSAPP][DEBUG] no text messages in payload (only statuses or non-text)");
+  } else {
+    console.log("[WHATSAPP][DEBUG] messages to process", normalized.messages.length);
+    for (let i = 0; i < normalized.messages.length; i++) {
+      const m = normalized.messages[i];
+      console.log("[WHATSAPP][DEBUG] message", i + 1, {
+        type: m.type,
+        from: m.from ? `${m.from.slice(0, 4)}***` : "(empty)",
+        msgId: m.id,
+        hasText: !!(m as { text?: { body?: string } }).text?.body,
+      });
+    }
   }
   for (const msg of normalized.messages) {
     if (msg.type !== "text") {
@@ -155,17 +188,29 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
       continue;
     }
 
-    console.info(`[WHATSAPP] inbound tenant=${tenant.id} wa_id=${msg.from} type=${msg.type} msg_id=${msg.id}`);
+    console.info(
+      "[WHATSAPP][DEBUG] processing text message — about to prepare/reply",
+      { msgId: msg.id, from: msg.from, tenantId: tenant.id }
+    );
 
     const key = `${tenant.id}:${msg.from}`;
     const isNewConversation = !seenConversations.has(key);
     seenConversations.add(key);
 
-    const prep = await prepareInboundConversation({
-      tenant,
-      message: msg,
-      isNewConversation,
-    });
+    let prep;
+    try {
+      prep = await prepareInboundConversation({
+        tenant,
+        message: msg,
+        isNewConversation,
+      });
+    } catch (prepErr) {
+      console.error("[WHATSAPP][DEBUG] prepareInboundConversation threw", {
+        msgId: msg.id,
+        err: prepErr instanceof Error ? prepErr.message : String(prepErr),
+      });
+      continue;
+    }
     if (!prep) {
       console.warn("[WHATSAPP][DEBUG] prepareInboundConversation returned null", { msgId: msg.id });
       continue;
