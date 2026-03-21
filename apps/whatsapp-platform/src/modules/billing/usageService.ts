@@ -2,10 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { UsageEventType } from "@/generated/prisma-whatsapp";
 import type { Prisma } from "@/generated/prisma-whatsapp";
 import { getPlanLimits, isBillingEnforceLimits, normalizePlanKey } from "./planConfig";
-import {
-  isMeteredBillingConfigured,
-  queueReportUsageToStripe,
-} from "./stripeMeteredService";
+import { reportMessageUsage } from "./application/reportMessageUsage";
+import { reportAiUsage } from "./application/reportAiUsage";
+import { isMeterEventsConfigured } from "./infrastructure/stripeMeterClient";
+import { logUsageEvent, logSystemError } from "./billingObserverService";
 
 export function periodYYYYMM(d = new Date()): string {
   const y = d.getUTCFullYear();
@@ -26,7 +26,7 @@ export function trackUsage(
   const quantity = Math.max(1, options?.quantity ?? 1);
   const metadata = options?.metadata as Prisma.InputJsonValue | undefined;
   const period = periodYYYYMM();
-  const metered = isMeteredBillingConfigured();
+  const useMeterEvents = isMeterEventsConfigured();
 
   void (async () => {
     try {
@@ -59,8 +59,28 @@ export function trackUsage(
         }
         return ev.id;
       });
-      if (metered) {
-        queueReportUsageToStripe(tenantId, type, quantity, eventId);
+      logUsageEvent(
+        tenantId,
+        type === UsageEventType.MESSAGE_SENT ? "messages" : "ai",
+        quantity
+      );
+      if (useMeterEvents) {
+        if (type === UsageEventType.MESSAGE_SENT) {
+          void reportMessageUsage({ tenantId, quantity, idempotencyKey: eventId }).then((r) => {
+            if (!r.ok) {
+              logSystemError({
+                tenantId,
+                context: "reportMessageUsage",
+                error: new Error(r.error),
+                metadata: { quantity },
+              });
+            }
+          });
+        } else {
+          void reportAiUsage({ tenantId, quantity, idempotencyKey: eventId }).then((r) => {
+            if (!r.ok) console.warn("[billing] reportAiUsage", tenantId, r.error);
+          });
+        }
       }
     } catch (e) {
       console.error("[billing/usage] trackUsage failed", tenantId, type, e);
@@ -201,6 +221,20 @@ export async function getStripeUsageSyncStats(
   aiReported: number;
   pendingCount: number;
 }> {
+  if (isMeterEventsConfigured()) {
+    const sub = await prisma.billingSubscription.findUnique({
+      where: { tenantId },
+      select: { messagesOverageSent: true, aiOverageSent: true },
+    });
+    const usage = await getUsageByPeriod(tenantId, period);
+    return {
+      messagesTotal: usage.messagesSent,
+      messagesReported: sub?.messagesOverageSent ?? 0,
+      aiTotal: usage.aiResponses,
+      aiReported: sub?.aiOverageSent ?? 0,
+      pendingCount: 0,
+    };
+  }
   const { gte, lte } = periodBounds(period);
   const [msgTotal, msgReported, aiTotal, aiReported, pending] = await Promise.all([
     prisma.usageEvent.aggregate({

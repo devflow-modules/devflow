@@ -4,7 +4,7 @@
  * @deprecated Use stripeMeterClient and reportMessageUsage/reportAiUsage instead.
  */
 
-import { isMeterEventsConfigured } from "@/modules/billing/infrastructure/stripeMeterClient";
+import { isMeterEventsConfigured } from "./infrastructure/stripeMeterClient";
 
 export function getMeteredPriceIds(): { messages: string | null; ai: string | null } {
   const isDev = process.env.NODE_ENV !== "production";

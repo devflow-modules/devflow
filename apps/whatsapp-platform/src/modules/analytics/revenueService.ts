@@ -11,8 +11,9 @@ const CANCELED_STATUS = "canceled";
 
 function getPlanPriceMonthlyBrl(plan: string): number {
   const key = plan.toUpperCase();
-  if (key === "PRO") return Math.max(0, parseFloat(process.env.REVENUE_PLAN_PRICE_PRO_BRL ?? "29") || 29);
-  if (key === "SCALE" || key === "TEAM") return Math.max(0, parseFloat(process.env.REVENUE_PLAN_PRICE_SCALE_BRL ?? "79") || 79);
+  if (key === "STARTER") return Math.max(0, parseFloat(process.env.REVENUE_PLAN_PRICE_STARTER_BRL ?? "39") || 39);
+  if (key === "PRO") return Math.max(0, parseFloat(process.env.REVENUE_PLAN_PRICE_PRO_BRL ?? "99") || 99);
+  if (key === "SCALE" || key === "TEAM") return Math.max(0, parseFloat(process.env.REVENUE_PLAN_PRICE_SCALE_BRL ?? "249") || 249);
   return 0;
 }
 
