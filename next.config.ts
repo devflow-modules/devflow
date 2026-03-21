@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@devflow/ui"],
+  transpilePackages: ["@devflow/ui", "@devflow/whatsapp-core", "@devflow/ai-core"],
   async redirects() {
     return [
       {

@@ -28,7 +28,36 @@
       "@devflow/testing-utils": ["./packages/testing-utils/src"],
       "@devflow/config": ["./packages/config"],
       "@devflow/whatsapp-core": ["./packages/whatsapp-core/src"],
-      "@devflow/ai-core": ["./packages/ai-core/src"]
+      "@devflow/ai-core": ["./packages/ai-core/src"],
+      "@wa/*": ["./apps/whatsapp-platform/src/*"],
+      "@/modules/whatsapp/*": ["./apps/whatsapp-platform/src/modules/whatsapp/*"],
+      "@/modules/whatsapp-legacy/*": ["./src/modules/whatsapp/*"],
+      "@/modules/messaging/*": ["./apps/whatsapp-platform/src/modules/messaging/*"],
+      "@/modules/inbox": ["./apps/whatsapp-platform/src/modules/inbox"],
+      "@/modules/inbox/*": ["./apps/whatsapp-platform/src/modules/inbox/*"],
+      "@/modules/ai/*": ["./apps/whatsapp-platform/src/modules/ai/*"],
+      "@/modules/analytics": ["./apps/whatsapp-platform/src/modules/analytics"],
+      "@/modules/analytics/*": ["./apps/whatsapp-platform/src/modules/analytics/*"],
+      "@/modules/auth/*": ["./apps/whatsapp-platform/src/modules/auth/*"],
+      "@/modules/tenants": ["./apps/whatsapp-platform/src/modules/tenants"],
+      "@/modules/tenants/*": ["./apps/whatsapp-platform/src/modules/tenants/*"],
+      "@/modules/conversations/*": ["./apps/whatsapp-platform/src/modules/conversations/*"],
+      "@/modules/realtime/*": ["./apps/whatsapp-platform/src/modules/realtime/*"],
+      "@/modules/automation": ["./apps/whatsapp-platform/src/modules/automation"],
+      "@/modules/automation/*": ["./apps/whatsapp-platform/src/modules/automation/*"],
+      "@/modules/stripe": ["./apps/whatsapp-platform/src/modules/stripe"],
+      "@/modules/stripe/*": ["./apps/whatsapp-platform/src/modules/stripe/*"],
+      "@/modules/billing/usageService": ["./apps/whatsapp-platform/src/modules/billing/usageService"],
+      "@/modules/billing/usage.service": ["./apps/whatsapp-platform/src/modules/billing/usage.service"],
+      "@/modules/billing/enforcementService": ["./apps/whatsapp-platform/src/modules/billing/enforcementService"],
+      "@/modules/billing/featureGate": ["./apps/whatsapp-platform/src/modules/billing/featureGate"],
+      "@/modules/billing/planCapabilities": ["./apps/whatsapp-platform/src/modules/billing/planCapabilities"],
+      "@/modules/billing/planConfig": ["./apps/whatsapp-platform/src/modules/billing/planConfig"],
+      "@/modules/billing/billingObserverService": ["./apps/whatsapp-platform/src/modules/billing/billingObserverService"],
+      "@/modules/billing/subscriptionService": ["./apps/whatsapp-platform/src/modules/billing/subscriptionService"],
+      "@/modules/billing/infrastructure/*": ["./apps/whatsapp-platform/src/modules/billing/infrastructure/*"],
+      "@/modules/billing/application/*": ["./apps/whatsapp-platform/src/modules/billing/application/*"],
+      "@/lib/db/*": ["./apps/whatsapp-platform/src/lib/db/*"]
     }
   },
   "include": [
@@ -37,7 +66,9 @@
     "src/**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "src/**/*.mts"
+    "src/**/*.mts",
+    "apps/whatsapp-platform/src/modules/**/*.ts",
+    "apps/whatsapp-platform/src/modules/**/*.tsx"
   ],
-  "exclude": ["node_modules", "apps", "templates"]
+  "exclude": ["node_modules", "templates", "apps/financeiro", "apps/funklab", "apps/investigamais", "apps/ops", "apps/whatsapp-webhook-api", "apps/whatsapp-platform/src/modules/agents", "apps/whatsapp-platform/src/modules/queues"]
 }

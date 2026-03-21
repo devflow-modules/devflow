@@ -2,13 +2,14 @@ import { createCustomerPortalSession } from "@devflow/billing-core";
 import { prisma } from "@/lib/prisma";
 import { createCheckoutSession as createStripeCheckout, isStripeConfigured } from "@/modules/stripe";
 import { getUsageByPeriod, getStripeUsageSyncStats, periodYYYYMM } from "./usageService";
-import { isMeteredBillingConfigured } from "./stripeMeteredService";
+import { isMeterEventsConfigured } from "./infrastructure/stripeMeterClient";
 import { getPlanLimits, getUsageUnitPricesBrl, normalizePlanKey } from "./planConfig";
 import { getTenantPlan } from "./subscriptionService";
 
-export type CheckoutPlan = "PRO" | "SCALE";
+export type CheckoutPlan = "STARTER" | "PRO" | "SCALE";
 
 export async function createBillingCheckoutSession(
+  userId: string,
   tenantId: string,
   email: string,
   plan: CheckoutPlan,
@@ -32,6 +33,7 @@ export async function createBillingCheckoutSession(
     const stripeCustomerId =
       tenantSub?.stripeCustomerId ?? billingSub?.stripeCustomerId ?? tenant?.stripeCustomerId ?? null;
     const result = await createStripeCheckout({
+      userId,
       tenantId,
       email,
       plan,
@@ -43,9 +45,9 @@ export async function createBillingCheckoutSession(
   }
   const { createCheckoutSession } = await import("@devflow/billing-core");
   const result = await createCheckoutSession({
-    userId: tenantId,
+    userId,
     email,
-    planId: plan === "SCALE" ? "TEAM" : "PRO",
+    planId: plan === "SCALE" ? "TEAM" : "PRO", // STARTER mapeia para PRO (billing-core: PlanIdPaid = PRO | TEAM)
     successUrl: `${baseUrl.replace(/\/$/, "")}/settings/billing?checkout=success`,
     cancelUrl: `${baseUrl.replace(/\/$/, "")}/settings/billing?checkout=cancel`,
   });
@@ -132,7 +134,7 @@ export async function getSubscriptionView(tenantId: string): Promise<Subscriptio
       null,
     cancelAtPeriodEnd: sub?.cancelAtPeriodEnd ?? false,
     activeUntil: tenant?.activeUntil?.toISOString() ?? null,
-    meteredBillingConfigured: isMeteredBillingConfigured(),
+    meteredBillingConfigured: isMeterEventsConfigured(),
     lastInvoiceId: sub?.lastInvoiceId ?? null,
     lastInvoiceStatus: sub?.lastInvoiceStatus ?? null,
     lastInvoiceAmountPaid: sub?.lastInvoiceAmountPaid ?? null,
@@ -165,7 +167,7 @@ export async function getUsageDashboard(tenantId: string, period?: string): Prom
   const estimated =
     usage.messagesSent * prices.message + usage.aiResponses * prices.aiResponse;
 
-  const stripeSync = isMeteredBillingConfigured()
+  const stripeSync = isMeterEventsConfigured()
     ? await getStripeUsageSyncStats(tenantId, p)
     : null;
 
