@@ -34,3 +34,9 @@ Variáveis obrigatórias em `.env.local` (root): `WHATSAPP_DATABASE_URL`, `WHATS
 | Arquivo | Descrição |
 |---------|-----------|
 | [WHATSAPP-SETUP.md](./WHATSAPP-SETUP.md) | Setup Meta / WhatsApp Cloud API |
+| [WHATSAPP_CLOUD_ONBOARDING_SPRINT.md](./WHATSAPP_CLOUD_ONBOARDING_SPRINT.md) | Registro de número via Graph API (site DevFlow Labs) |
+| [WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md](./WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md) | Ativação real: checklist, curls, sucesso, rollback |
+| [GRAPH_API_DIAGNOSTIC.md](./GRAPH_API_DIAGNOSTIC.md) | Diagnóstico WABA/Phone Number ID via Graph API — queries e cenários |
+| [WEBHOOK_SUBSCRIPTION_FIX.md](./WEBHOOK_SUBSCRIPTION_FIX.md) | Correção webhook: inscrever app na WABA via `POST subscribed_apps` |
+| [WEBHOOK_CONFIG_AUDIT.md](./WEBHOOK_CONFIG_AUDIT.md) | Auditoria da configuração do webhook |
+| [WEBHOOK_META_CHECKLIST.md](./WEBHOOK_META_CHECKLIST.md) | Checklist operacional no Meta Dashboard |
