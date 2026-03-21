@@ -1,10 +1,25 @@
 import type { Prisma } from "@prisma/client";
 import type { PrismaRoot } from "./whatsappInbox.conversation.service";
-import {
-  WhatsappInboxDeliveryStatus,
-  WhatsappInboxDirection,
-  WhatsappInboxMessageType,
-} from "@prisma/client";
+
+/** Enums do schema root (evita import de @prisma/client na Vercel). */
+const WhatsappInboxDeliveryStatus = {
+  RECEIVED: "RECEIVED",
+  SENT: "SENT",
+  DELIVERED: "DELIVERED",
+  READ: "READ",
+  FAILED: "FAILED",
+} as const;
+const WhatsappInboxDirection = { INBOUND: "INBOUND", OUTBOUND: "OUTBOUND" } as const;
+const WhatsappInboxMessageType = {
+  TEXT: "TEXT",
+  IMAGE: "IMAGE",
+  AUDIO: "AUDIO",
+  DOCUMENT: "DOCUMENT",
+  UNKNOWN: "UNKNOWN",
+} as const;
+type WhatsappInboxDeliveryStatus = (typeof WhatsappInboxDeliveryStatus)[keyof typeof WhatsappInboxDeliveryStatus];
+type WhatsappInboxDirection = (typeof WhatsappInboxDirection)[keyof typeof WhatsappInboxDirection];
+type WhatsappInboxMessageType = (typeof WhatsappInboxMessageType)[keyof typeof WhatsappInboxMessageType];
 import type { ParsedMessageEvent, ParsedStatusEvent } from "@/modules/whatsapp-webhook/whatsappWebhook.types";
 import {
   findOrCreateConversationForInbound,
