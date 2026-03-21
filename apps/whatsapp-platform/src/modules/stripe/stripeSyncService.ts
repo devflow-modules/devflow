@@ -1,15 +1,13 @@
 /**
  * Sincronização Stripe ↔ banco.
  * Webhook é a fonte da verdade. Atualiza BillingSubscription e TenantSubscription.
+ * Quota counters reset when billing period changes.
  */
 
 import type Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import type { LocalSubscriptionStatus } from "./stripeTypes";
-import {
-  ensureMeteredItemsOnSubscription,
-  isMeteredBillingConfigured,
-} from "@/modules/billing/stripeMeteredService";
+import { upsertBillingSubscription } from "@/modules/billing/infrastructure/billingRepository";
 
 function mapStripeStatusToLocal(stripeStatus: Stripe.Subscription["status"]): LocalSubscriptionStatus {
   switch (stripeStatus) {
@@ -31,7 +29,10 @@ function mapStripeStatusToLocal(stripeStatus: Stripe.Subscription["status"]): Lo
 function mapStripePlanToLocal(metadataPlan?: string | null): string {
   const p = (metadataPlan ?? "FREE").toUpperCase();
   if (p === "TEAM") return "SCALE";
-  return p === "PRO" ? "PRO" : p === "SCALE" ? "SCALE" : "FREE";
+  if (p === "STARTER") return "STARTER";
+  if (p === "PRO") return "PRO";
+  if (p === "SCALE") return "SCALE";
+  return "FREE";
 }
 
 export async function syncSubscriptionFromStripe(
@@ -73,41 +74,17 @@ export async function syncSubscriptionFromStripe(
         stripeSubscriptionId: subscription?.id ?? undefined,
       },
     }),
-    prisma.billingSubscription.upsert({
-      where: { tenantId },
-      create: {
-        tenantId,
-        stripeCustomerId: stripeCustomerId ?? null,
-        stripeSubscriptionId: subscription?.id ?? null,
-        plan,
-        status: subscription?.status ?? "active",
-        currentPeriodStart,
-        currentPeriodEnd,
-        cancelAtPeriodEnd: subscription?.cancel_at_period_end ?? false,
-      },
-      update: {
-        stripeCustomerId: stripeCustomerId ?? undefined,
-        stripeSubscriptionId: subscription?.id ?? undefined,
-        plan,
-        status: subscription?.status ?? "active",
-        currentPeriodStart: currentPeriodStart ?? undefined,
-        currentPeriodEnd: currentPeriodEnd ?? undefined,
-        cancelAtPeriodEnd: subscription?.cancel_at_period_end ?? false,
-      },
-    }),
   ]);
 
-  if (
-    subscription &&
-    subscription.status !== "canceled" &&
-    isMeteredBillingConfigured()
-  ) {
-    try {
-      await ensureMeteredItemsOnSubscription(tenantId, subscription.id);
-    } catch (e) {
-      console.warn("[stripe/sync] ensureMeteredItemsOnSubscription", tenantId, e);
-    }
-  }
+  await upsertBillingSubscription(tenantId, {
+    stripeCustomerId: stripeCustomerId ?? null,
+    stripeSubscriptionId: subscription?.id ?? null,
+    plan,
+    status: subscription ? subscription.status : "canceled",
+    currentPeriodStart,
+    currentPeriodEnd,
+    cancelAtPeriodEnd: subscription?.cancel_at_period_end ?? false,
+  });
 }
 
 export async function markSubscriptionPastDue(stripeCustomerId: string): Promise<void> {
