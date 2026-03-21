@@ -5,6 +5,7 @@ import {
   tenantDriverToProviderKind,
   type AiProviderKind,
 } from "./aiProvider";
+import { resolveOpenAiConfig } from "./openai";
 
 const TONE_HINTS: Record<AiAgentTone, string> = {
   FRIENDLY: "Use tom amigável, caloroso e próximo.",
@@ -64,11 +65,16 @@ export async function generateReply(input: GenerateReplyInput): Promise<Generate
     .join("\n---\n")
     .slice(0, 120_000);
 
+  const config = resolveOpenAiConfig({
+    maxTokens: input.maxTokens,
+    temperature: input.temperature,
+  });
+
   const result = await completeWithTimeout({
     kind: kind as AiProviderKind,
     messages,
-    maxTokens: Math.min(Math.max(input.maxTokens, 64), 4096),
-    temperature: Math.min(Math.max(input.temperature, 0), 2),
+    maxTokens: config.maxTokens,
+    temperature: config.temperature,
   });
 
   if (result.error || !result.text) {

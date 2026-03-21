@@ -43,6 +43,17 @@ FINANCEIRO_STRIPE_WEBHOOK_SECRET=whsec_...
 FINANCEIRO_STRIPE_PRICE_PRO=price_...
 ```
 
+## Variáveis OpenAI (compartilhadas)
+
+Configuração orientada a env com override por tenant (AiAgentConfig):
+
+| Variável | Default | Descrição |
+|----------|---------|-----------|
+| `OPENAI_MODEL` | gpt-4o-mini | Modelo (ex.: gpt-4o, gpt-4o-mini) |
+| `OPENAI_MAX_OUTPUT_TOKENS` | 220 | Tokens máx. saída (50–500, ideal WhatsApp) |
+| `OPENAI_TEMPERATURE` | 0.4 | Criatividade (0–1) |
+| `OPENAI_TIMEOUT_MS` | 10000 | Timeout em ms (3000–20000) |
+
 ## Referência completa
 
 Ver `.env.example` na raiz do monorepo.

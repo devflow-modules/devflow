@@ -13,7 +13,12 @@ import {
 } from "@/generated/prisma-whatsapp";
 import { digitsOnly } from "@/modules/inbox/waInboxUtils";
 import { generateReply } from "./aiService";
-import { generateReply as generateOpenAiReply, isOpenAiConfigured } from "./openaiReplyService";
+import { openAiConfig } from "./openai";
+import {
+  generateReply as generateOpenAiReply,
+  isOpenAiConfigured,
+  type GenerateReplyOutput,
+} from "./openaiReplyService";
 import { sendWebhookAutoReply } from "@/modules/messaging/sendMessageService";
 import { isProviderConfigured, tenantDriverToProviderKind } from "./aiProvider";
 import { canUseFeature } from "@/modules/billing/featureGate";
@@ -30,8 +35,8 @@ export async function getOrCreateAiAgentConfig(tenantId: string): Promise<AiAgen
       enabled: false,
       systemPrompt: "",
       tone: "NEUTRAL",
-      maxTokens: 512,
-      temperature: 0.7,
+      maxTokens: openAiConfig.maxTokens,
+      temperature: openAiConfig.temperature,
       fallbackToHuman: true,
     },
   });
@@ -144,20 +149,77 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
   const isStandalone = check.reason === "openai_standalone";
 
   if (isStandalone) {
-    try {
-      const replyText = await generateOpenAiReply(textBody);
-      await sendWebhookAutoReply({
-        tenant,
-        to: from,
-        conversationId,
-        text: replyText,
+    const [config, thread] = await Promise.all([
+      prisma.aiAgentConfig.findUnique({ where: { tenantId } }).then((c) => c ?? getOrCreateAiAgentConfig(tenantId)),
+      prisma.waInboxThread.findUnique({
+        where: {
+          tenantId_phoneNumber: { tenantId, phoneNumber: digitsOnly(from) },
+        },
+        select: { id: true },
+      }),
+    ]);
+
+    let contextMessages: { role: "user" | "assistant"; content: string }[] = [];
+    if (thread) {
+      const recent = await prisma.waInboxMessage.findMany({
+        where: { tenantId, threadId: thread.id, messageType: "TEXT" },
+        orderBy: { ts: "desc" },
+        take: 10,
+        select: { direction: true, contentText: true },
       });
-      trackUsage(tenantId, UsageEventType.AI_RESPONSE, {
-        metadata: { source: "openai_standalone", inboundWaMessageId: waMsgId },
-      });
-    } catch (e) {
-      console.error("[WHATSAPP][ERROR] OpenAI standalone falhou, fallback para legacy:", e);
-      throw e;
+      const chronological = [...recent].reverse();
+      for (const m of chronological) {
+        const t = m.contentText?.trim();
+        if (!t) continue;
+        contextMessages.push({
+          role: m.direction === WaInboxDirection.INBOUND ? "user" : "assistant",
+          content: t,
+        });
+      }
+    }
+
+    const gen: GenerateReplyOutput = await generateOpenAiReply({
+      message: textBody,
+      contextMessages,
+      systemPrompt: config.systemPrompt || null,
+      maxTokens: config.maxTokens,
+      temperature: config.temperature,
+      useStructuredOutput: false,
+    });
+
+    if (gen.fallback || gen.error || !gen.reply?.trim()) {
+      console.warn("[WHATSAPP][WARN] OpenAI fallback para legacy", { reason: gen.error });
+      throw new Error(gen.error ?? "Resposta vazia");
+    }
+
+    await sendWebhookAutoReply({
+      tenant,
+      to: from,
+      conversationId,
+      text: gen.reply,
+    });
+
+    trackUsage(tenantId, UsageEventType.AI_RESPONSE, {
+      metadata: {
+        source: "openai_standalone",
+        inboundWaMessageId: waMsgId,
+        tokensUsed: gen.tokensUsed,
+        durationMs: gen.durationMs,
+      },
+    });
+
+    if (thread) {
+      await prisma.aiMessageLog.create({
+        data: {
+          tenantId,
+          waInboxThreadId: thread.id,
+          inboundWaMessageId: waMsgId,
+          promptUsed: "",
+          responseGenerated: gen.reply,
+          tokensUsed: gen.tokensUsed,
+          durationMs: gen.durationMs,
+        },
+      }).catch(() => {});
     }
     return;
   }

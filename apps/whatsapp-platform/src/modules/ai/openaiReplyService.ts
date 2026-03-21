@@ -1,81 +1,163 @@
 /**
- * Geração de resposta via OpenAI para atendimento WhatsApp.
- * Usado quando OPENAI_API_KEY está configurada.
+ * Geração de resposta via OpenAI — camada de produção.
+ * Usa openai/client com timeout, tratamento de erros e fallback.
  */
 
-const DEFAULT_SYSTEM_PROMPT = `Você é um assistente de atendimento via WhatsApp da DevFlow Labs.
-Seja breve, claro e cordial. Responda em português do Brasil.
-Máximo de poucos parágrafos curtos. Mantenha tom profissional e prestativo.`;
+import {
+  isOpenAiConfigured,
+  callChatCompletion,
+  resolveOpenAiConfig,
+  buildSystemPrompt,
+  parseStructuredOutput,
+  getStructuredSystemSuffix,
+  estimateCostFromTotal,
+} from "./openai";
 
-const DEFAULT_MODEL = "gpt-4o-mini";
-const DEFAULT_MAX_TOKENS = 512;
-const DEFAULT_TEMPERATURE = 0.7;
-
-function getApiKey(): string | undefined {
-  return typeof process !== "undefined" ? process.env.OPENAI_API_KEY : undefined;
+export interface GenerateReplyInput {
+  message: string;
+  contextMessages?: { role: "user" | "assistant"; content: string }[];
+  systemPrompt?: string | null;
+  model?: string;
+  maxTokens?: number;
+  temperature?: number;
+  useStructuredOutput?: boolean;
 }
 
-function getModel(): string {
-  return typeof process !== "undefined"
-    ? (process.env.OPENAI_MODEL ?? DEFAULT_MODEL)
-    : DEFAULT_MODEL;
+export interface GenerateReplyOutput {
+  reply: string;
+  intent?: string;
+  confidence?: number;
+  needsHuman?: boolean;
+  tokensUsed: number | null;
+  durationMs: number;
+  estimatedCostUsd?: number;
+  error?: string;
+  fallback: boolean;
+}
+
+const MAX_CONTEXT_MESSAGES = 10;
+
+function buildMessages(
+  systemPrompt: string,
+  contextMessages: { role: "user" | "assistant"; content: string }[],
+  userMessage: string,
+  useStructured: boolean
+): { role: "system" | "user" | "assistant"; content: string }[] {
+  const system = useStructured ? systemPrompt + getStructuredSystemSuffix() : systemPrompt;
+  const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
+    { role: "system", content: system },
+  ];
+
+  const limited = contextMessages.slice(-MAX_CONTEXT_MESSAGES);
+  for (const m of limited) {
+    messages.push({ role: m.role, content: m.content });
+  }
+  messages.push({ role: "user", content: userMessage });
+
+  return messages;
 }
 
 /**
- * Gera resposta via OpenAI. Usa fetch (sem SDK) para manter consistência com o projeto.
- * @throws em erro de rede/API — o caller deve fazer fallback para legacy.
+ * Gera resposta via OpenAI. Nunca lança — retorna error no output em caso de falha.
  */
-export async function generateReply(
-  message: string,
-  options?: {
-    systemPrompt?: string;
-    model?: string;
-    maxTokens?: number;
-    temperature?: number;
-  }
-): Promise<string> {
-  const apiKey = getApiKey();
-  if (!apiKey?.trim()) {
-    throw new Error("OPENAI_API_KEY não configurada");
+export async function generateReply(input: GenerateReplyInput): Promise<GenerateReplyOutput> {
+  const t0 = Date.now();
+
+  if (!isOpenAiConfigured()) {
+    return {
+      reply: "",
+      tokensUsed: null,
+      durationMs: Date.now() - t0,
+      error: "OPENAI_API_KEY não configurada",
+      fallback: true,
+    };
   }
 
-  const systemPrompt = options?.systemPrompt?.trim() || DEFAULT_SYSTEM_PROMPT;
-  const model = options?.model ?? getModel();
-  const maxTokens = options?.maxTokens ?? DEFAULT_MAX_TOKENS;
-  const temperature = options?.temperature ?? DEFAULT_TEMPERATURE;
+  const systemPrompt = buildSystemPrompt(input.systemPrompt);
+  const contextMessages = input.contextMessages ?? [];
+  const useStructured = input.useStructuredOutput ?? false;
 
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message },
-      ],
-      max_tokens: maxTokens,
-      temperature,
-    }),
+  const messages = buildMessages(
+    systemPrompt,
+    contextMessages,
+    input.message,
+    useStructured
+  );
+
+  const config = resolveOpenAiConfig({
+    model: input.model,
+    maxTokens: input.maxTokens,
+    temperature: input.temperature,
   });
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`OpenAI ${res.status}: ${err.slice(0, 500)}`);
+  console.log("[OPENAI] request", {
+    tenant: "(inline)",
+    model: config.model,
+    contextLen: contextMessages.length,
+  });
+
+  const result = await callChatCompletion(messages, config);
+
+  if (result.error) {
+    console.warn("[OPENAI] fallback", {
+      reason: result.error.slice(0, 100),
+      durationMs: result.durationMs,
+      statusCode: result.statusCode,
+    });
+    return {
+      reply: "",
+      tokensUsed: result.tokensUsed,
+      durationMs: result.durationMs,
+      error: result.error,
+      fallback: true,
+    };
   }
 
-  const data = (await res.json()) as {
-    choices?: { message?: { content?: string } }[];
+  if (!result.text?.trim()) {
+    return {
+      reply: "",
+      tokensUsed: result.tokensUsed,
+      durationMs: result.durationMs,
+      error: "Resposta vazia do modelo",
+      fallback: true,
+    };
+  }
+
+  let reply: string;
+  let intent: string | undefined;
+  let confidence: number | undefined;
+  let needsHuman: boolean | undefined;
+
+  if (useStructured) {
+    const parsed = parseStructuredOutput(result.text);
+    reply = parsed.reply;
+    intent = parsed.intent;
+    confidence = parsed.confidence;
+    needsHuman = parsed.needs_human;
+  } else {
+    reply = result.text.trim();
+  }
+
+  const estimatedCost =
+    result.tokensUsed != null ? estimateCostFromTotal(result.tokensUsed) : undefined;
+
+  console.log("[OPENAI] response", {
+    durationMs: result.durationMs,
+    tokensUsed: result.tokensUsed,
+    estimatedCostUsd: estimatedCost,
+    fallback: false,
+  });
+
+  return {
+    reply,
+    intent,
+    confidence,
+    needsHuman,
+    tokensUsed: result.tokensUsed,
+    durationMs: result.durationMs,
+    estimatedCostUsd: estimatedCost,
+    fallback: false,
   };
-  const text = data.choices?.[0]?.message?.content?.trim() ?? "";
-  return text || "Não consegui gerar uma resposta. Tente novamente.";
 }
 
-/**
- * Verifica se OpenAI está configurada.
- */
-export function isOpenAiConfigured(): boolean {
-  return !!getApiKey()?.trim();
-}
+export { isOpenAiConfigured };
