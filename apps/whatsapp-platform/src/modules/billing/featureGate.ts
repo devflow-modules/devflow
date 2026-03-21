@@ -8,11 +8,19 @@ import { getTenantPlan } from "./subscriptionService";
 
 export type FeatureKey =
   | "AUTOMATION"
-  | "PLAYBOOKS"
+  | "PLAYBOOKS" /** @deprecated use ADVANCED_AUTOMATION */
+  | "QUEUES_TAGS"
+  | "ADVANCED_AUTOMATION"
   | "AI_RESPONSE"
   | "ADVANCED_AI"
+  | "WEBHOOKS_API"
+  | "ADVANCED_REPORTS"
   | "MULTI_USER"
   | "PRIORITY_SUPPORT";
+
+const FEATURE_ALIASES: Partial<Record<FeatureKey, keyof import("./plans").PlanFeatures>> = {
+  PLAYBOOKS: "ADVANCED_AUTOMATION",
+};
 
 /**
  * Verifica se o tenant pode usar a feature.
@@ -24,7 +32,8 @@ export async function canUseFeature(
 ): Promise<boolean> {
   const plan = await getTenantPlan(tenantId);
   const features = getPlan(plan).features;
-  return features[feature] === true;
+  const resolved = FEATURE_ALIASES[feature] ?? feature;
+  return (features as Record<string, boolean>)[resolved] === true;
 }
 
 /**
