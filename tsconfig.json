@@ -57,6 +57,18 @@
       "@/modules/billing/subscriptionService": ["./apps/whatsapp-platform/src/modules/billing/subscriptionService"],
       "@/modules/billing/infrastructure/*": ["./apps/whatsapp-platform/src/modules/billing/infrastructure/*"],
       "@/modules/billing/application/*": ["./apps/whatsapp-platform/src/modules/billing/application/*"],
+      "@/modules/billing/BillingService": ["./src/modules/billing/BillingService"],
+      "@/modules/billing/BillingPortalService": ["./src/modules/billing/BillingPortalService"],
+      "@/modules/billing/BillingProfileRepository": ["./src/modules/billing/BillingProfileRepository"],
+      "@/modules/billing/billingAnalytics": ["./src/modules/billing/billingAnalytics"],
+      "@/modules/billing/plans": ["./src/modules/billing/plans"],
+      "@/modules/billing/*": ["./apps/whatsapp-platform/src/modules/billing/*"],
+      "@/modules/whatsapp-inbox": ["./src/modules/whatsapp-inbox"],
+      "@/modules/whatsapp-inbox/*": ["./src/modules/whatsapp-inbox/*"],
+      "@/modules/whatsapp-messaging": ["./src/modules/whatsapp-messaging"],
+      "@/modules/whatsapp-messaging/*": ["./src/modules/whatsapp-messaging/*"],
+      "@/modules/whatsapp-onboarding": ["./src/modules/whatsapp-onboarding"],
+      "@/modules/whatsapp-onboarding/*": ["./src/modules/whatsapp-onboarding/*"],
       "@/lib/db/*": ["./apps/whatsapp-platform/src/lib/db/*"]
     }
   },
