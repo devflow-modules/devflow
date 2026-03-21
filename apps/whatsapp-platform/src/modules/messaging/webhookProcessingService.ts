@@ -36,6 +36,15 @@ function getTextBody(msg: IncomingMessage): string | null {
   return text?.body ?? null;
 }
 
+/** Erros que indicam tabela ausente no schema cache (Supabase/PostgREST). */
+function isTableNotFoundError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return (
+    msg.includes("Could not find the table") ||
+    msg.includes("does not exist")
+  );
+}
+
 /** Persiste inbound (Supabase + tracking) e retorna ids para reply. */
 export async function prepareInboundConversation(
   input: ProcessInboundMessageInput
@@ -49,15 +58,27 @@ export async function prepareInboundConversation(
 
   let conversationId: string;
   if (hasSupabaseConfig()) {
-    const conversation = await findOrCreateConversation(tenant.id, message.from);
-    conversationId = conversation.id;
-    await insertMessage({
-      conversation_id: conversationId,
-      direction: "inbound",
-      wa_message_id: message.id,
-      body: textBody,
-      status: null,
-    });
+    try {
+      const conversation = await findOrCreateConversation(tenant.id, message.from);
+      conversationId = conversation.id;
+      await insertMessage({
+        conversation_id: conversationId,
+        direction: "inbound",
+        wa_message_id: message.id,
+        body: textBody,
+        status: null,
+      });
+    } catch (err) {
+      if (isTableNotFoundError(err)) {
+        console.warn(
+          "[WHATSAPP][WARN] conversations/messages table not found — run migration. Bot will reply without persistence.",
+          { err: err instanceof Error ? err.message : String(err) }
+        );
+        conversationId = "no-db";
+      } else {
+        throw err;
+      }
+    }
   } else {
     conversationId = "no-db";
   }

@@ -14,10 +14,29 @@ vi.mock("../aiService", () => ({
   generateReply: (...a: unknown[]) => generateReply(...a),
 }));
 
+const generateOpenAiReply = vi.hoisted(() => vi.fn().mockResolvedValue("Resposta OpenAI"));
+const isOpenAiConfigured = vi.hoisted(() => vi.fn().mockReturnValue(false));
+vi.mock("../openaiReplyService", () => ({
+  generateReply: (...a: unknown[]) => generateOpenAiReply(...a),
+  isOpenAiConfigured: () => isOpenAiConfigured(),
+}));
+
+vi.mock("@/modules/billing/featureGate", () => ({
+  canUseFeature: () => Promise.resolve(true),
+}));
+
+vi.mock("@/modules/billing/enforcementService", () => ({
+  enforceUsageOrThrow: () => Promise.resolve(),
+}));
+
+vi.mock("@/modules/billing/usageService", () => ({
+  trackUsage: () => {},
+}));
+
 const mockPrisma = {
   aiAgentConfig: {
     findUnique: vi.fn(),
-    findUniqueOrThrow: vi.fn(),
+    create: vi.fn(),
   },
   tenant: {
     findUnique: vi.fn(),
@@ -31,31 +50,36 @@ const mockPrisma = {
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 
 function setupReadyTenant(tenantId = "t1") {
-  mockPrisma.aiAgentConfig.findUnique.mockResolvedValue({
+  const fullConfig = {
     enabled: true,
     systemPrompt: "Você atende a loja.",
-  });
+    tone: "NEUTRAL",
+    maxTokens: 256,
+    temperature: 0.5,
+  };
+  mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(fullConfig);
   mockPrisma.tenant.findUnique.mockResolvedValue({ aiDriver: "openAI" });
   mockPrisma.waInboxThread.findUnique.mockResolvedValue({
     id: "thread-1",
     status: WaInboxThreadStatus.OPEN,
   });
-  mockPrisma.aiAgentConfig.findUniqueOrThrow.mockResolvedValue({
+  mockPrisma.tenant.findUniqueOrThrow.mockResolvedValue({ aiDriver: "openAI" });
+  mockPrisma.waInboxMessage.findMany.mockResolvedValue([]);
+  mockPrisma.aiMessageLog.findFirst.mockResolvedValue(null);
+  mockPrisma.aiMessageLog.create.mockResolvedValue({});
+  mockPrisma.aiAgentConfig.create.mockResolvedValue({
     systemPrompt: "Você atende a loja.",
     tone: "NEUTRAL",
     maxTokens: 256,
     temperature: 0.5,
   });
-  mockPrisma.tenant.findUniqueOrThrow.mockResolvedValue({ aiDriver: "openAI" });
-  mockPrisma.waInboxMessage.findMany.mockResolvedValue([]);
-  mockPrisma.aiMessageLog.findFirst.mockResolvedValue(null);
-  mockPrisma.aiMessageLog.create.mockResolvedValue({});
 }
 
 describe("checkTenantAiAutomationReady", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubEnv("OPENAI_API_KEY", "sk-test");
+    isOpenAiConfigured.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -110,7 +134,16 @@ describe("checkTenantAiAutomationReady", () => {
     expect(r.reason).toBe("empty_prompt");
   });
 
+  it("retorna ready quando OPENAI_API_KEY existe (standalone)", async () => {
+    isOpenAiConfigured.mockReturnValue(true);
+    const { checkTenantAiAutomationReady } = await import("../aiAutomationService");
+    const r = await checkTenantAiAutomationReady("t1", "5511999999999");
+    expect(r).toEqual({ ready: true, reason: "openai_standalone" });
+    expect(mockPrisma.aiAgentConfig.findUnique).not.toHaveBeenCalled();
+  });
+
   it("isolamento: usa tenantId na busca de config", async () => {
+    isOpenAiConfigured.mockReturnValue(false);
     mockPrisma.aiAgentConfig.findUnique.mockResolvedValue({
       enabled: true,
       systemPrompt: "Loja B",
@@ -135,6 +168,8 @@ describe("runTenantAiAutoReply", () => {
     vi.clearAllMocks();
     vi.stubEnv("OPENAI_API_KEY", "sk-test");
     sendWebhookAutoReply.mockResolvedValue({ messageId: "wam-out-1" });
+    generateOpenAiReply.mockResolvedValue("Resposta OpenAI");
+    isOpenAiConfigured.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -159,6 +194,7 @@ describe("runTenantAiAutoReply", () => {
   });
 
   it("IA habilitada: gera, envia e registra log de sucesso", async () => {
+    isOpenAiConfigured.mockReturnValue(false);
     setupReadyTenant();
     generateReply.mockResolvedValue({
       text: "Olá! Como posso ajudar?",
@@ -220,7 +256,39 @@ describe("runTenantAiAutoReply", () => {
     expect(generateReply).not.toHaveBeenCalled();
   });
 
-  it("fallback em erro: log com errorMessage e sem envio", async () => {
+  it("standalone OpenAI: usa generateOpenAiReply quando OPENAI_API_KEY existe", async () => {
+    isOpenAiConfigured.mockReturnValue(true);
+    generateOpenAiReply.mockResolvedValue("Resposta via OpenAI");
+    mockPrisma.aiMessageLog.findFirst.mockResolvedValue(null);
+    const { runTenantAiAutoReply } = await import("../aiAutomationService");
+    await runTenantAiAutoReply({
+      tenant: {
+        id: "t1",
+        phoneNumberId: "p",
+        displayPhoneNumber: "",
+        accessToken: "t",
+      },
+      message: {
+        id: "wam-standalone",
+        from: "5511999999999",
+        type: "text",
+        text: { body: "olá" },
+      } as never,
+      conversationId: "c1",
+      textBody: "olá",
+    });
+    expect(generateOpenAiReply).toHaveBeenCalledWith("olá");
+    expect(sendWebhookAutoReply).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: "Resposta via OpenAI",
+        to: "5511999999999",
+      })
+    );
+    expect(generateReply).not.toHaveBeenCalled();
+  });
+
+  it("fallback em erro: log com errorMessage, lança para handler fazer fallback", async () => {
+    isOpenAiConfigured.mockReturnValue(false);
     setupReadyTenant();
     generateReply.mockResolvedValue({
       text: "",
@@ -230,17 +298,19 @@ describe("runTenantAiAutoReply", () => {
       error: "Timeout após 5000ms",
     });
     const { runTenantAiAutoReply } = await import("../aiAutomationService");
-    await runTenantAiAutoReply({
-      tenant: {
-        id: "t1",
-        phoneNumberId: "p",
-        displayPhoneNumber: "",
-        accessToken: "t",
-      },
-      message: { id: "wam-err", from: "5511999999999", type: "text", text: { body: "?" } } as never,
-      conversationId: "c",
-      textBody: "?",
-    });
+    await expect(
+      runTenantAiAutoReply({
+        tenant: {
+          id: "t1",
+          phoneNumberId: "p",
+          displayPhoneNumber: "",
+          accessToken: "t",
+        },
+        message: { id: "wam-err", from: "5511999999999", type: "text", text: { body: "?" } } as never,
+        conversationId: "c",
+        textBody: "?",
+      })
+    ).rejects.toThrow();
     expect(sendWebhookAutoReply).not.toHaveBeenCalled();
     expect(mockPrisma.aiMessageLog.create).toHaveBeenCalledWith(
       expect.objectContaining({

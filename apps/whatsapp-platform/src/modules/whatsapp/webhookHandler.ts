@@ -218,13 +218,23 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
 
     const aiReady = await checkTenantAiAutomationReady(tenant.id, msg.from);
     if (aiReady.ready) {
-      console.log("[WHATSAPP][DEBUG] using AI path", { msgId: msg.id });
-      void runTenantAiAutoReply({
-        tenant,
-        message: msg,
-        conversationId: prep.conversationId,
-        textBody: prep.textBody,
-      }).catch((err) => console.error("[WHATSAPP][ERROR] IA automática:", err));
+      console.log("[WHATSAPP][DEBUG] using AI path", { msgId: msg.id, reason: aiReady.reason });
+      try {
+        await runTenantAiAutoReply({
+          tenant,
+          message: msg,
+          conversationId: prep.conversationId,
+          textBody: prep.textBody,
+        });
+      } catch (aiErr) {
+        console.error("[WHATSAPP][ERROR] IA automática falhou, fallback para legacy:", aiErr);
+        await processLegacyInboundAutoReply(
+          tenant,
+          msg,
+          prep.conversationId,
+          prep.textBody
+        );
+      }
     } else {
       console.log("[WHATSAPP][DEBUG] using legacy path", { msgId: msg.id, reason: aiReady.reason });
       await processLegacyInboundAutoReply(

@@ -13,9 +13,12 @@ import {
 } from "@/generated/prisma-whatsapp";
 import { digitsOnly } from "@/modules/inbox/waInboxUtils";
 import { generateReply } from "./aiService";
+import { generateReply as generateOpenAiReply, isOpenAiConfigured } from "./openaiReplyService";
 import { sendWebhookAutoReply } from "@/modules/messaging/sendMessageService";
 import { isProviderConfigured, tenantDriverToProviderKind } from "./aiProvider";
-import { checkAiUsageAllowsNext, trackUsage } from "@/modules/billing/usageService";
+import { canUseFeature } from "@/modules/billing/featureGate";
+import { enforceUsageOrThrow } from "@/modules/billing/enforcementService";
+import { trackUsage } from "@/modules/billing/usageService";
 import { UsageEventType } from "@/generated/prisma-whatsapp";
 
 export async function getOrCreateAiAgentConfig(tenantId: string): Promise<AiAgentConfig> {
@@ -40,7 +43,9 @@ export interface TenantAiReadyCheck {
 }
 
 /**
- * IA automática só roda com: tenant real, config ligada, thread OPEN, driver LLM + chave.
+ * IA automática roda quando:
+ * - OPENAI_API_KEY existe (modo standalone) OU
+ * - tenant real, config ligada, thread OPEN, driver LLM + chave.
  */
 export async function checkTenantAiAutomationReady(
   tenantId: string,
@@ -48,6 +53,10 @@ export async function checkTenantAiAutomationReady(
 ): Promise<TenantAiReadyCheck> {
   if (!tenantId || tenantId === "env") {
     return { ready: false, reason: "tenant_env" };
+  }
+
+  if (isOpenAiConfigured()) {
+    return { ready: true, reason: "openai_standalone" };
   }
 
   const [config, tenant, thread] = await Promise.all([
@@ -90,6 +99,10 @@ export async function checkTenantAiAutomationReady(
     return { ready: false, reason: "empty_prompt" };
   }
 
+  if (!(await canUseFeature(tenantId, "AI_RESPONSE"))) {
+    return { ready: false, reason: "ai_blocked_by_plan" };
+  }
+
   return { ready: true };
 }
 
@@ -121,17 +134,37 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
   const check = await checkTenantAiAutomationReady(tenantId, from);
   if (!check.ready) return;
 
-  const tenantForPlan = await prisma.tenant.findUnique({
-    where: { id: tenantId },
-    select: { plan: true },
-  });
-  if (!(await checkAiUsageAllowsNext(tenantId, tenantForPlan?.plan))) {
+  try {
+    await enforceUsageOrThrow({ tenantId, feature: "messages", quantity: 1 });
+    await enforceUsageOrThrow({ tenantId, feature: "ai", quantity: 1 });
+  } catch {
+    return;
+  }
+
+  const isStandalone = check.reason === "openai_standalone";
+
+  if (isStandalone) {
+    try {
+      const replyText = await generateOpenAiReply(textBody);
+      await sendWebhookAutoReply({
+        tenant,
+        to: from,
+        conversationId,
+        text: replyText,
+      });
+      trackUsage(tenantId, UsageEventType.AI_RESPONSE, {
+        metadata: { source: "openai_standalone", inboundWaMessageId: waMsgId },
+      });
+    } catch (e) {
+      console.error("[WHATSAPP][ERROR] OpenAI standalone falhou, fallback para legacy:", e);
+      throw e;
+    }
     return;
   }
 
   const [config, tenantRow, thread] = await Promise.all([
-    prisma.aiAgentConfig.findUniqueOrThrow({ where: { tenantId } }),
-    prisma.tenant.findUniqueOrThrow({
+    prisma.aiAgentConfig.findUnique({ where: { tenantId } }).then((c) => c ?? getOrCreateAiAgentConfig(tenantId)),
+    prisma.tenant.findUnique({
       where: { id: tenantId },
       select: { aiDriver: true },
     }),
@@ -168,11 +201,11 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
     conversationId,
     messageText: textBody,
     contextMessages,
-    systemPrompt: config.systemPrompt,
+    systemPrompt: config.systemPrompt?.trim() || "",
     tone: config.tone as AiAgentTone,
     maxTokens: config.maxTokens,
     temperature: config.temperature,
-    aiDriver: tenantRow.aiDriver,
+    aiDriver: tenantRow?.aiDriver ?? null,
   });
 
   if (gen.error || !gen.text) {
@@ -188,7 +221,7 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
         errorMessage: (gen.error ?? "unknown").slice(0, 2000),
       },
     });
-    return;
+    throw new Error(gen.error ?? "Falha ao gerar resposta IA");
   }
 
   try {
@@ -227,5 +260,6 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
         errorMessage: (e instanceof Error ? e.message : String(e)).slice(0, 2000),
       },
     });
+    throw e;
   }
 }
