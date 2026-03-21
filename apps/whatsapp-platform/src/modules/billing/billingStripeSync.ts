@@ -1,15 +1,15 @@
 import type Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { normalizePlanKey } from "./planConfig";
-import {
-  ensureMeteredItemsOnSubscription,
-  isMeteredBillingConfigured,
-} from "./stripeMeteredService";
+import { upsertBillingSubscription } from "./infrastructure/billingRepository";
 
 function mapStripePlanToProductPlan(metaPlan?: string | null): string {
-  const p = (metaPlan ?? "PRO").toUpperCase();
+  const p = (metaPlan ?? "FREE").toUpperCase();
   if (p === "TEAM") return "SCALE";
-  return p === "PRO" ? "PRO" : normalizePlanKey(p);
+  if (p === "STARTER") return "STARTER";
+  if (p === "PRO") return "PRO";
+  if (p === "SCALE") return "SCALE";
+  return normalizePlanKey(p);
 }
 
 export async function syncBillingSubscriptionFromStripe(
@@ -18,23 +18,18 @@ export async function syncBillingSubscriptionFromStripe(
   subscription: Stripe.Subscription | null
 ): Promise<void> {
   if (!subscription) {
-    await prisma.billingSubscription.upsert({
-      where: { tenantId },
-      create: {
-        tenantId,
-        stripeCustomerId: stripeCustomerId ?? null,
-        stripeSubscriptionId: null,
-        plan: "FREE",
-        status: "active",
-      },
-      update: {
-        ...(stripeCustomerId ? { stripeCustomerId } : {}),
-      },
+    await upsertBillingSubscription(tenantId, {
+      stripeCustomerId: stripeCustomerId ?? null,
+      stripeSubscriptionId: null,
+      plan: "FREE",
+      status: "active",
     });
     return;
   }
 
-  const plan = mapStripePlanToProductPlan(subscription.metadata?.planId);
+  const plan = mapStripePlanToProductPlan(
+    subscription.metadata?.plan ?? subscription.metadata?.planId
+  );
   const start = subscription.current_period_start
     ? new Date(subscription.current_period_start * 1000)
     : null;
@@ -42,36 +37,15 @@ export async function syncBillingSubscriptionFromStripe(
     ? new Date(subscription.current_period_end * 1000)
     : null;
 
-  await prisma.billingSubscription.upsert({
-    where: { tenantId },
-    create: {
-      tenantId,
-      stripeCustomerId: stripeCustomerId ?? null,
-      stripeSubscriptionId: subscription.id,
-      plan,
-      status: subscription.status,
-      currentPeriodStart: start,
-      currentPeriodEnd: end,
-      cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
-    },
-    update: {
-      stripeCustomerId: stripeCustomerId ?? undefined,
-      stripeSubscriptionId: subscription.id,
-      plan,
-      status: subscription.status,
-      currentPeriodStart: start ?? undefined,
-      currentPeriodEnd: end ?? undefined,
-      cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
-    },
+  await upsertBillingSubscription(tenantId, {
+    stripeCustomerId: stripeCustomerId ?? null,
+    stripeSubscriptionId: subscription.id,
+    plan,
+    status: subscription.status,
+    currentPeriodStart: start,
+    currentPeriodEnd: end,
+    cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
   });
-
-  if (isMeteredBillingConfigured() && subscription.status !== "canceled") {
-    try {
-      await ensureMeteredItemsOnSubscription(tenantId, subscription.id);
-    } catch (e) {
-      console.warn("[billing] ensureMeteredItemsOnSubscription", tenantId, e);
-    }
-  }
 }
 
 export async function markSubscriptionPastDueByCustomerId(stripeCustomerId: string): Promise<void> {
