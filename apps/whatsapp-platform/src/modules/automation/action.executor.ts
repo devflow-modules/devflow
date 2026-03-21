@@ -63,8 +63,7 @@ export async function executeAction(
             const ok = await assignThread(
               context.tenantId,
               context.threadId,
-              users[0].id,
-              AUTOMATION_USER_ID
+              users[0].id
             );
             return { ok };
           }
@@ -73,8 +72,7 @@ export async function executeAction(
         const ok = await assignThread(
           context.tenantId,
           context.threadId,
-          userId,
-          AUTOMATION_USER_ID
+          userId
         );
         return { ok };
       }
@@ -87,8 +85,7 @@ export async function executeAction(
         const ok = await updateThreadStatus(
           context.tenantId,
           context.threadId,
-          status as WaInboxThreadStatus,
-          AUTOMATION_USER_ID
+          status as WaInboxThreadStatus
         );
         return { ok };
       }
@@ -108,8 +105,7 @@ export async function executeAction(
         const ok = await assignTagToThread(
           context.tenantId,
           context.threadId,
-          resolvedTagId,
-          AUTOMATION_USER_ID
+          resolvedTagId
         );
         return { ok };
       }
@@ -129,8 +125,7 @@ export async function executeAction(
         const ok = await removeTagFromThread(
           context.tenantId,
           context.threadId,
-          resolvedTagId,
-          AUTOMATION_USER_ID
+          resolvedTagId
         );
         return { ok };
       }
