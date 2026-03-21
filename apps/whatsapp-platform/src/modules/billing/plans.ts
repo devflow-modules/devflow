@@ -1,13 +1,18 @@
 /**
  * Definição central de planos e limites.
  * Backend-first: nunca confiar apenas no frontend.
+ *
+ * Estrutura: assinatura fixa mensal + uso variável (excedente).
+ * Starter R$39 | Pro R$99 | Scale R$249
+ * Excedente: R$0,03/conversa, R$0,09/interação IA
  */
 
-export type PlanKey = "FREE" | "PRO" | "SCALE";
+export type PlanKey = "FREE" | "STARTER" | "PRO" | "SCALE";
 
 export type SubscriptionStatus = "ACTIVE" | "TRIAL" | "PAST_DUE" | "CANCELED";
 
 export type PlanLimits = {
+  phoneNumbers: number | null;
   users: number | null;
   messagesPerMonth: number | null;
   automationsPerMonth: number | null;
@@ -15,10 +20,14 @@ export type PlanLimits = {
 };
 
 export type PlanFeatures = {
+  INBOX: boolean;
   AUTOMATION: boolean;
-  PLAYBOOKS: boolean;
+  QUEUES_TAGS: boolean;
+  ADVANCED_AUTOMATION: boolean;
   AI_RESPONSE: boolean;
   ADVANCED_AI: boolean;
+  WEBHOOKS_API: boolean;
+  ADVANCED_REPORTS: boolean;
   MULTI_USER: boolean;
   PRIORITY_SUPPORT: boolean;
 };
@@ -26,25 +35,57 @@ export type PlanFeatures = {
 export type PlanDefinition = {
   key: PlanKey;
   name: string;
+  priceBrl: number;
   limits: PlanLimits;
   features: PlanFeatures;
 };
 
 export const PLANS: Record<PlanKey, PlanDefinition> = {
+  /** Fallback para tenant sem assinatura ativa (ex.: trial expirado, cancelado). */
   FREE: {
     key: "FREE",
     name: "Gratuito",
+    priceBrl: 0,
     limits: {
+      phoneNumbers: 1,
       users: 1,
-      messagesPerMonth: 100,
+      messagesPerMonth: 50,
       automationsPerMonth: 0,
       aiCallsPerMonth: 10,
     },
     features: {
+      INBOX: true,
       AUTOMATION: false,
-      PLAYBOOKS: false,
+      QUEUES_TAGS: false,
+      ADVANCED_AUTOMATION: false,
       AI_RESPONSE: true,
       ADVANCED_AI: false,
+      WEBHOOKS_API: false,
+      ADVANCED_REPORTS: false,
+      MULTI_USER: false,
+      PRIORITY_SUPPORT: false,
+    },
+  },
+  STARTER: {
+    key: "STARTER",
+    name: "Starter",
+    priceBrl: 39,
+    limits: {
+      phoneNumbers: 1,
+      users: 1,
+      messagesPerMonth: 1_000,
+      automationsPerMonth: 5,
+      aiCallsPerMonth: 100,
+    },
+    features: {
+      INBOX: true,
+      AUTOMATION: true,
+      QUEUES_TAGS: false,
+      ADVANCED_AUTOMATION: false,
+      AI_RESPONSE: true,
+      ADVANCED_AI: false,
+      WEBHOOKS_API: false,
+      ADVANCED_REPORTS: false,
       MULTI_USER: false,
       PRIORITY_SUPPORT: false,
     },
@@ -52,17 +93,23 @@ export const PLANS: Record<PlanKey, PlanDefinition> = {
   PRO: {
     key: "PRO",
     name: "Pro",
+    priceBrl: 99,
     limits: {
+      phoneNumbers: 1,
       users: 3,
-      messagesPerMonth: 1_000,
-      automationsPerMonth: 100,
-      aiCallsPerMonth: 500,
+      messagesPerMonth: 5_000,
+      automationsPerMonth: 50,
+      aiCallsPerMonth: 750,
     },
     features: {
+      INBOX: true,
       AUTOMATION: true,
-      PLAYBOOKS: false,
+      QUEUES_TAGS: true,
+      ADVANCED_AUTOMATION: true,
       AI_RESPONSE: true,
       ADVANCED_AI: false,
+      WEBHOOKS_API: false,
+      ADVANCED_REPORTS: true,
       MULTI_USER: true,
       PRIORITY_SUPPORT: false,
     },
@@ -70,17 +117,23 @@ export const PLANS: Record<PlanKey, PlanDefinition> = {
   SCALE: {
     key: "SCALE",
     name: "Scale",
+    priceBrl: 249,
     limits: {
-      users: null,
-      messagesPerMonth: null,
+      phoneNumbers: 3,
+      users: 10,
+      messagesPerMonth: 20_000,
       automationsPerMonth: null,
-      aiCallsPerMonth: null,
+      aiCallsPerMonth: 3_000,
     },
     features: {
+      INBOX: true,
       AUTOMATION: true,
-      PLAYBOOKS: true,
+      QUEUES_TAGS: true,
+      ADVANCED_AUTOMATION: true,
       AI_RESPONSE: true,
       ADVANCED_AI: true,
+      WEBHOOKS_API: true,
+      ADVANCED_REPORTS: true,
       MULTI_USER: true,
       PRIORITY_SUPPORT: true,
     },
@@ -89,9 +142,10 @@ export const PLANS: Record<PlanKey, PlanDefinition> = {
 
 export function normalizePlan(plan: string | null | undefined): PlanKey {
   const p = (plan ?? "FREE").toUpperCase();
-  if (p === "STARTER") return "FREE";
+  if (p === "STARTER") return "STARTER";
   if (p === "PRO") return "PRO";
   if (p === "SCALE" || p === "TEAM") return "SCALE";
+  if (p === "ENTERPRISE") return "SCALE"; // Enterprise sob consulta → trata como Scale
   return "FREE";
 }
 
