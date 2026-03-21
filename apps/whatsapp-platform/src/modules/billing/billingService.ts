@@ -32,11 +32,11 @@ export async function createBillingCheckoutSession(
     ]);
     const stripeCustomerId =
       tenantSub?.stripeCustomerId ?? billingSub?.stripeCustomerId ?? tenant?.stripeCustomerId ?? null;
+    const stripePlan: "PRO" | "SCALE" = plan === "STARTER" ? "PRO" : plan;
     const result = await createStripeCheckout({
-      userId,
       tenantId,
       email,
-      plan,
+      plan: stripePlan,
       successUrl: `${baseUrl.replace(/\/$/, "")}/billing?success=true`,
       cancelUrl: `${baseUrl.replace(/\/$/, "")}/billing?canceled=true`,
       stripeCustomerId,

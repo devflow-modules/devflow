@@ -17,9 +17,17 @@ export async function createCheckoutSession(
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: params.successUrl,
     cancel_url: params.cancelUrl,
-    metadata: { tenantId: params.tenantId, plan: params.plan },
+    metadata: {
+      ...(params.userId && { userId: params.userId }),
+      tenantId: params.tenantId,
+      plan: params.plan,
+    },
     subscription_data: {
-      metadata: { tenantId: params.tenantId, plan: params.plan },
+      metadata: {
+        ...(params.userId && { userId: params.userId }),
+        tenantId: params.tenantId,
+        plan: params.plan,
+      },
     },
   };
 

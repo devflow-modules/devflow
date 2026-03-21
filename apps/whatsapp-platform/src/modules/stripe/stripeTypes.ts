@@ -19,6 +19,7 @@ export interface StripeConfig {
 }
 
 export interface CheckoutSessionParams {
+  userId?: string;
   tenantId: string;
   email: string;
   plan: StripePlanKey;
