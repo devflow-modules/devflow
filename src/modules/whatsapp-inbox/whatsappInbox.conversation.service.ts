@@ -1,9 +1,5 @@
-/**
- * Root schema Prisma client (WhatsappConversation, WhatsappInboxMessage).
- * Uses `any` to avoid Vercel/Prisma 6 generic type resolution - runtime client is correct.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type PrismaRoot = any;
+import type { PrismaRoot } from "@/modules/financeiro/lib/db";
+export type { PrismaRoot };
 
 export async function findOrCreateConversationForInbound(
   tx: PrismaRoot,
