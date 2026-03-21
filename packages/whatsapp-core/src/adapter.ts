@@ -11,13 +11,20 @@ export interface WhatsAppCloudAdapterConfig {
   baseUrl?: string;
 }
 
-const DEFAULT_BASE = "https://graph.facebook.com/v21.0";
+const DEFAULT_VERSION = "v21.0";
+
+function getGraphBaseUrl(): string {
+  const version =
+    process.env.META_API_VERSION ?? process.env.WHATSAPP_API_VERSION ?? DEFAULT_VERSION;
+  const v = version.startsWith("v") ? version : `v${version}`;
+  return `https://graph.facebook.com/${v}`;
+}
 
 export class WhatsAppCloudAdapter {
   constructor(private readonly config: WhatsAppCloudAdapterConfig) {}
 
   private get baseUrl(): string {
-    return this.config.baseUrl ?? DEFAULT_BASE;
+    return this.config.baseUrl ?? getGraphBaseUrl();
   }
 
   async sendText(phoneNumberId: string, options: SendTextOptions): Promise<{ messageId: string }> {

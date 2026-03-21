@@ -30,9 +30,12 @@ export function normalizeWebhookPayload(payload: unknown): NormalizedWebhookEven
     for (const change of entry.changes) {
       const v = change.value;
       if (!v || v.messaging_product !== "whatsapp") continue;
+      if (change.field === "smb_message_echoes") continue;
       if (v.metadata) {
-        phoneNumberId = v.metadata.phone_number_id ?? phoneNumberId;
-        displayPhoneNumber = v.metadata.display_phone_number ?? displayPhoneNumber;
+        const rawId = v.metadata.phone_number_id;
+        phoneNumberId = rawId != null ? String(rawId) : phoneNumberId;
+        const rawDisplay = v.metadata.display_phone_number;
+        displayPhoneNumber = rawDisplay != null ? String(rawDisplay) : displayPhoneNumber;
       }
       if (Array.isArray(v.messages)) messages.push(...(v.messages as IncomingMessage[]));
       if (Array.isArray(v.statuses)) statuses.push(...v.statuses);

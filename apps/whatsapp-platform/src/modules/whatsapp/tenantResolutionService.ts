@@ -61,8 +61,13 @@ export async function resolveTenantByPhoneNumberId(
     };
   }
 
-  const envPhone = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  const envToken = process.env.WHATSAPP_ACCESS_TOKEN ?? process.env.WHATSAPP_TOKEN;
+  const envPhone =
+    process.env.META_PHONE_NUMBER_ID ??
+    process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const envToken =
+    process.env.META_WHATSAPP_ACCESS_TOKEN ??
+    process.env.WHATSAPP_ACCESS_TOKEN ??
+    process.env.WHATSAPP_TOKEN;
   const envDisplay = process.env.WHATSAPP_DISPLAY_PHONE_NUMBER ?? "";
 
   if (!envPhone || !envToken || envPhone !== phoneNumberId) {
