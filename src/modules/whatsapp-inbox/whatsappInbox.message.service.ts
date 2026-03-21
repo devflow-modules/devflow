@@ -1,4 +1,5 @@
-import type { Prisma, PrismaClient } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
+import type { PrismaRoot } from "./whatsappInbox.conversation.service";
 import {
   WhatsappInboxDeliveryStatus,
   WhatsappInboxDirection,
@@ -55,7 +56,7 @@ function businessToNumber(metadata?: ParsedMessageEvent["metadata"]): string {
 }
 
 export async function createInboundMessage(
-  prisma: PrismaClient,
+  prisma: PrismaRoot,
   ev: ParsedMessageEvent
 ): Promise<{ skipped: boolean; reason?: string }> {
   if (ev.field === "smb_message_echoes") {
@@ -69,7 +70,7 @@ export async function createInboundMessage(
   }
 
   try {
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: PrismaRoot) => {
       const existing = await tx.whatsappInboxMessage.findUnique({
         where: { waMessageId },
       });
@@ -141,7 +142,7 @@ function maskId(id: string): string {
 }
 
 export async function createOutboundMessage(
-  prisma: PrismaClient,
+  prisma: PrismaRoot,
   params: {
     waMessageId: string;
     toE164: string;
@@ -158,7 +159,7 @@ export async function createOutboundMessage(
   const ts = new Date();
   const preview = previewText(text);
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: PrismaRoot) => {
     const existing = await tx.whatsappInboxMessage.findUnique({
       where: { waMessageId },
     });
@@ -205,7 +206,7 @@ export async function createOutboundMessage(
 }
 
 export async function updateMessageStatusFromWebhook(
-  prisma: PrismaClient,
+  prisma: PrismaRoot,
   ev: ParsedStatusEvent
 ): Promise<{ applied: boolean }> {
   const waMessageId = ev.messageId;
@@ -230,7 +231,7 @@ export async function updateMessageStatusFromWebhook(
       return { applied: false };
     }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: PrismaRoot) => {
       await tx.whatsappInboxMessage.update({
         where: { id: msg.id },
         data: {
@@ -268,7 +269,7 @@ export async function updateMessageStatusFromWebhook(
 }
 
 export async function listMessagesForConversation(
-  prisma: PrismaClient,
+  prisma: PrismaRoot,
   conversationId: string,
   opts: { take?: number; skip?: number } = {}
 ) {

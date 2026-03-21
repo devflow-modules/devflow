@@ -1,14 +1,12 @@
-import type { PrismaClient } from "@prisma/client";
-
 /**
- * Transaction client from prisma.$transaction (root schema: WhatsappConversation, WhatsappInboxMessage).
- * Uses `any` to avoid Vercel/Prisma 6 generic type resolution - tx has correct delegates at runtime.
+ * Root schema Prisma client (WhatsappConversation, WhatsappInboxMessage).
+ * Uses `any` to avoid Vercel/Prisma 6 generic type resolution - runtime client is correct.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Tx = any;
+export type PrismaRoot = any;
 
 export async function findOrCreateConversationForInbound(
-  tx: Tx,
+  tx: PrismaRoot,
   params: {
     phoneNumber: string;
     contactName?: string | null;
@@ -43,7 +41,7 @@ export async function findOrCreateConversationForInbound(
 }
 
 export async function touchConversationAfterOutbound(
-  tx: Tx,
+  tx: PrismaRoot,
   params: {
     customerPhone: string;
     lastMessageAt: Date;
@@ -67,7 +65,7 @@ export async function touchConversationAfterOutbound(
 }
 
 export async function listConversations(
-  prisma: PrismaClient,
+  prisma: PrismaRoot,
   opts: { take?: number; skip?: number } = {}
 ) {
   const take = Math.min(opts.take ?? 50, 200);
@@ -79,12 +77,12 @@ export async function listConversations(
   });
 }
 
-export async function getConversationById(prisma: PrismaClient, id: string) {
+export async function getConversationById(prisma: PrismaRoot, id: string) {
   return prisma.whatsappConversation.findUnique({
     where: { id },
   });
 }
 
-export async function countConversations(prisma: PrismaClient): Promise<number> {
+export async function countConversations(prisma: PrismaRoot): Promise<number> {
   return prisma.whatsappConversation.count();
 }

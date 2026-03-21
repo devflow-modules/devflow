@@ -1,6 +1,6 @@
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaRoot } from "./whatsappInbox.conversation.service";
 
-export async function getInboxPersistenceHealth(prisma: PrismaClient): Promise<{
+export async function getInboxPersistenceHealth(prisma: PrismaRoot): Promise<{
   persistenceOk: boolean;
   messagesStored: number;
   lastMessageStoredAt: string | null;

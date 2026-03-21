@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaRoot } from "./whatsappInbox.conversation.service";
 import type { ParsedWebhookEvent } from "@/modules/whatsapp-webhook/whatsappWebhook.types";
 import { createInboundMessage, updateMessageStatusFromWebhook } from "./whatsappInbox.message.service";
 
@@ -20,7 +20,7 @@ function sortEventsForPersistence(events: ParsedWebhookEvent[]): ParsedWebhookEv
 }
 
 export async function persistWebhookEvents(
-  prisma: PrismaClient,
+  prisma: PrismaRoot,
   events: ParsedWebhookEvent[]
 ): Promise<void> {
   for (const ev of sortEventsForPersistence(events)) {
