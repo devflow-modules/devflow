@@ -1,4 +1,7 @@
-import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
+import {
+  WaInboxThreadStatus,
+  type Prisma,
+} from "@/generated/prisma-whatsapp";
 import { prisma } from "@/lib/prisma";
 
 export type WaInboxThreadFilters = {
@@ -12,7 +15,7 @@ export async function waInboxListThreads(
   tenantId: string,
   opts: { take: number; skip: number; filters?: WaInboxThreadFilters; currentUserId?: string }
 ) {
-  const where: Parameters<typeof prisma.waInboxThread.findMany>[0]["where"] = { tenantId };
+  const where: Prisma.WaInboxThreadWhereInput = { tenantId };
 
   if (opts.filters?.status) where.status = opts.filters.status;
   if (opts.filters?.priority) where.priority = opts.filters.priority as "LOW" | "MEDIUM" | "HIGH";
@@ -48,7 +51,7 @@ export async function waInboxCountThreads(
   filters?: WaInboxThreadFilters,
   currentUserId?: string
 ): Promise<number> {
-  const where: Parameters<typeof prisma.waInboxThread.count>[0]["where"] = { tenantId };
+  const where: Prisma.WaInboxThreadWhereInput = { tenantId };
   if (filters?.status) where.status = filters.status;
   if (filters?.priority) where.priority = filters.priority as "LOW" | "MEDIUM" | "HIGH";
   if (filters?.assignedTo === "unassigned") where.assignedToUserId = null;
