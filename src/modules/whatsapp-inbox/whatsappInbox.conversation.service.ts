@@ -1,10 +1,8 @@
 import type { PrismaClient } from "@prisma/client";
+import { prisma } from "@/modules/financeiro/lib/db";
 
-/** Transaction client: PrismaClient minus connection/transaction methods. */
-type Tx = Omit<
-  PrismaClient,
-  "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
->;
+/** Transaction client type from actual Prisma instance (root schema with WhatsappConversation). */
+type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
 export async function findOrCreateConversationForInbound(
   tx: Tx,
