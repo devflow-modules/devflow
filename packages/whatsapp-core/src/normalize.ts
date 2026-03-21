@@ -6,9 +6,17 @@
 import type { RawWebhookPayload, NormalizedWebhookEvent, IncomingMessage } from "./types";
 
 export function normalizeWebhookPayload(payload: unknown): NormalizedWebhookEvent | null {
-  if (!payload || typeof payload !== "object") return null;
+  if (!payload || typeof payload !== "object") {
+    console.warn("[WHATSAPP][DEBUG] normalize: payload null or not object");
+    return null;
+  }
   const raw = payload as RawWebhookPayload;
-  if (raw.object !== "whatsapp_business_account" || !Array.isArray(raw.entry) || raw.entry.length === 0) {
+  if (raw.object !== "whatsapp_business_account") {
+    console.warn("[WHATSAPP][DEBUG] normalize: object !== whatsapp_business_account", { object: raw.object });
+    return null;
+  }
+  if (!Array.isArray(raw.entry) || raw.entry.length === 0) {
+    console.warn("[WHATSAPP][DEBUG] normalize: entry empty or not array", { entryLen: Array.isArray(raw.entry) ? raw.entry.length : "n/a" });
     return null;
   }
   const messages: IncomingMessage[] = [];

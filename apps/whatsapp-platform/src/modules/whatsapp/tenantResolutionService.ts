@@ -66,6 +66,12 @@ export async function resolveTenantByPhoneNumberId(
   const envDisplay = process.env.WHATSAPP_DISPLAY_PHONE_NUMBER ?? "";
 
   if (!envPhone || !envToken || envPhone !== phoneNumberId) {
+    console.log("[WHATSAPP][DEBUG] tenant env fallback failed", {
+      hasEnvPhone: !!envPhone,
+      hasEnvToken: !!envToken,
+      envPhoneMatch: envPhone === phoneNumberId,
+      phoneNumberId: phoneNumberId || "(empty)",
+    });
     return null;
   }
 

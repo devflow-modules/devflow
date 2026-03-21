@@ -50,6 +50,13 @@ export async function sendReplyAndPersist(input: SendReplyInput): Promise<{ mess
 
 /** Resposta automática pós-inbound (webhook / IA): Supabase + wa-inbox ou só wa-inbox. */
 export async function sendWebhookAutoReply(input: SendReplyInput): Promise<{ messageId: string }> {
+  console.log("[WHATSAPP][DEBUG] sendWebhookAutoReply", {
+    tenantId: input.tenant.id,
+    phoneNumberId: input.tenant.phoneNumberId,
+    to: input.to,
+    hasSupabase: hasSupabaseConfig(),
+    conversationId: input.conversationId,
+  });
   if (hasSupabaseConfig() && input.conversationId !== "no-db") {
     const r = await sendReplyAndPersist(input);
     await touchConversationLastMessage(input.conversationId);

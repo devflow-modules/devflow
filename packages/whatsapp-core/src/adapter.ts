@@ -41,6 +41,11 @@ export class WhatsAppCloudAdapter {
       });
       if (!res.ok) {
         const err = await res.text();
+        console.error("[WHATSAPP][DEBUG] Graph API error", {
+          status: res.status,
+          statusText: res.statusText,
+          body: err.slice(0, 500),
+        });
         throw new Error(`WhatsApp API error ${res.status}: ${err}`);
       }
       const data = (await res.json()) as { messages?: Array<{ id: string }> };

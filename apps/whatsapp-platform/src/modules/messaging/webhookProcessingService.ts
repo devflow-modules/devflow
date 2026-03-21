@@ -92,6 +92,8 @@ export async function processLegacyInboundAutoReply(
     reply = getReplyForMessage(textBody);
   }
 
+  console.log("[WHATSAPP][DEBUG] legacy reply prepared", { to: from, replyLen: reply?.length ?? 0 });
+
   try {
     await sendWebhookAutoReply({
       tenant,
@@ -99,8 +101,9 @@ export async function processLegacyInboundAutoReply(
       text: reply,
       conversationId,
     });
+    console.log("[WHATSAPP][DEBUG] legacy reply sent successfully", { to: from });
   } catch (err) {
-    console.error("[Webhook] Erro ao enviar resposta:", err);
+    console.error("[WHATSAPP][ERROR] Erro ao enviar resposta legada:", err);
     const { trackMessageSendFailed } = await import("@/modules/analytics");
     trackMessageSendFailed();
   }

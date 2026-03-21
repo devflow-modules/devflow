@@ -41,13 +41,51 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
   try {
     body = await request.json();
   } catch {
+    console.error("[WHATSAPP][DEBUG] Invalid JSON body");
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
+  // #region agent log
+  const bodyObj = body as Record<string, unknown> | null;
+  const bodySummary =
+    bodyObj && typeof bodyObj === "object"
+      ? {
+          object: bodyObj.object ?? "?",
+          entryLen: Array.isArray(bodyObj.entry) ? bodyObj.entry.length : 0,
+        }
+      : "not_object";
+  console.log("[WHATSAPP][DEBUG] POST received", JSON.stringify(bodySummary));
+  // #endregion
+
   const normalized = normalizeWebhookPayload(body);
   if (!normalized) {
+    const msg =
+      "[WHATSAPP][DEBUG] normalizeWebhookPayload returned null — object/entry invalid or empty messages";
+    console.warn(msg);
+    // #region agent log
+    fetch("http://127.0.0.1:7244/ingest/2e3dda65-2e5f-4b28-b3c6-59ab727bd47c", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        location: "webhookHandler.ts:normalize_null",
+        message: msg,
+        data: bodySummary,
+        timestamp: Date.now(),
+        hypothesisId: "H1",
+      }),
+    }).catch(() => {});
+    // #endregion
     return NextResponse.json({ ok: true }, { status: 200 });
   }
+
+  console.log(
+    "[WHATSAPP][DEBUG] normalized",
+    JSON.stringify({
+      phoneNumberId: normalized.phoneNumberId || "(empty)",
+      messagesCount: normalized.messages.length,
+      statusesCount: normalized.statuses.length,
+    })
+  );
 
   trackWebhookReceived();
 
@@ -56,8 +94,27 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
     return null;
   });
   if (!tenant) {
+    const msg =
+      "[WHATSAPP][DEBUG] tenant resolution failed — no WhatsappPhoneNumber/Tenant for phoneNumberId: " +
+      (normalized.phoneNumberId || "(empty)");
+    console.warn(msg);
+    // #region agent log
+    fetch("http://127.0.0.1:7244/ingest/2e3dda65-2e5f-4b28-b3c6-59ab727bd47c", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        location: "webhookHandler.ts:tenant_null",
+        message: msg,
+        data: { phoneNumberId: normalized.phoneNumberId || "", messagesCount: normalized.messages.length },
+        timestamp: Date.now(),
+        hypothesisId: "H2",
+      }),
+    }).catch(() => {});
+    // #endregion
     return NextResponse.json({ ok: true }, { status: 200 });
   }
+
+  console.log("[WHATSAPP][DEBUG] tenant resolved", { tenantId: tenant.id, phoneNumberId: tenant.phoneNumberId });
 
   if (hasSupabaseConfig()) {
     await persistWebhookLog(body, tenant.id).catch((err) =>
@@ -70,10 +127,19 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
   );
 
   const seenConversations = new Set<string>();
+  if (normalized.messages.length === 0) {
+    console.log("[WHATSAPP][DEBUG] no text messages in payload (only statuses or non-text)");
+  }
   for (const msg of normalized.messages) {
-    if (msg.type !== "text") continue;
+    if (msg.type !== "text") {
+      console.log("[WHATSAPP][DEBUG] skip non-text message", { type: msg.type, msgId: msg.id });
+      continue;
+    }
     const textBody = (msg as IncomingTextMessage).text?.body;
-    if (!textBody?.trim()) continue;
+    if (!textBody?.trim()) {
+      console.log("[WHATSAPP][DEBUG] skip empty text", { msgId: msg.id });
+      continue;
+    }
 
     console.info(`[WHATSAPP] inbound tenant=${tenant.id} wa_id=${msg.from} type=${msg.type} msg_id=${msg.id}`);
 
@@ -86,10 +152,14 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
       message: msg,
       isNewConversation,
     });
-    if (!prep) continue;
+    if (!prep) {
+      console.warn("[WHATSAPP][DEBUG] prepareInboundConversation returned null", { msgId: msg.id });
+      continue;
+    }
 
     const aiReady = await checkTenantAiAutomationReady(tenant.id, msg.from);
     if (aiReady.ready) {
+      console.log("[WHATSAPP][DEBUG] using AI path", { msgId: msg.id });
       void runTenantAiAutoReply({
         tenant,
         message: msg,
@@ -97,6 +167,7 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
         textBody: prep.textBody,
       }).catch((err) => console.error("[WHATSAPP][ERROR] IA automática:", err));
     } else {
+      console.log("[WHATSAPP][DEBUG] using legacy path", { msgId: msg.id, reason: aiReady.reason });
       await processLegacyInboundAutoReply(
         tenant,
         msg,
@@ -106,5 +177,6 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
     }
   }
 
+  console.log("[WHATSAPP][DEBUG] webhook POST completed successfully");
   return NextResponse.json({ ok: true }, { status: 200 });
 }
