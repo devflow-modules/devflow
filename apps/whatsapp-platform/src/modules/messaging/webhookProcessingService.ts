@@ -123,5 +123,16 @@ export async function processInboundMessage(input: ProcessInboundMessageInput): 
 
 export async function persistWebhookLog(payload: unknown, tenantId: string | null): Promise<void> {
   if (!hasSupabaseConfig()) return;
-  await insertWebhookLog(payload, tenantId);
+  try {
+    await insertWebhookLog(payload, tenantId);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes("Could not find the table") || msg.includes("does not exist")) {
+      console.warn(
+        "[WHATSAPP][WARN] webhook_logs table not found in Supabase — run supabase/schema.sql to enable audit logging"
+      );
+    } else {
+      throw err;
+    }
+  }
 }

@@ -78,19 +78,33 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
     return NextResponse.json({ ok: true }, { status: 200 });
   }
 
+  const messagesCount = normalized.messages.length;
+  const statusesCount = normalized.statuses.length;
   console.log(
     "[WHATSAPP][DEBUG] normalized",
     JSON.stringify({
       phoneNumberId: normalized.phoneNumberId || "(empty)",
-      messagesCount: normalized.messages.length,
-      statusesCount: normalized.statuses.length,
+      messagesCount,
+      statusesCount,
     })
   );
+
+  if (messagesCount === 0 && statusesCount > 0) {
+    console.log(
+      "[WHATSAPP][INFO] status-only event — persisting statuses only, no inbound message to reply"
+    );
+  }
 
   trackWebhookReceived();
 
   const tenant = await resolveTenantByPhoneNumberId(normalized.phoneNumberId).catch((err) => {
+    const errMsg = err?.message ?? String(err);
     console.error("[WHATSAPP][ERROR] tenant resolution:", err);
+    if (errMsg.includes("prepared statement") && errMsg.includes("already exists")) {
+      console.error(
+        "[WHATSAPP][HINT] Se usar pooler (Supabase/Neon/Vercel Postgres), adicione ?pgbouncer=true na WHATSAPP_DATABASE_URL"
+      );
+    }
     return null;
   });
   if (!tenant) {
