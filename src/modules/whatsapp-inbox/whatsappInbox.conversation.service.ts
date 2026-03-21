@@ -1,6 +1,10 @@
-import type { Prisma, PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 
-type Tx = Prisma.TransactionClient;
+/** Transaction client: PrismaClient minus connection/transaction methods. */
+type Tx = Omit<
+  PrismaClient,
+  "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
+>;
 
 export async function findOrCreateConversationForInbound(
   tx: Tx,
