@@ -3,8 +3,12 @@
  * Documentação: https://developers.facebook.com/docs/whatsapp/embedded-signup/
  */
 
-const META_GRAPH_VERSION = "v21.0";
-const META_GRAPH_BASE = `https://graph.facebook.com/${META_GRAPH_VERSION}`;
+function getMetaGraphBase(): string {
+  const ver =
+    process.env.META_API_VERSION ?? process.env.WHATSAPP_API_VERSION ?? "v21.0";
+  const v = ver.startsWith("v") ? ver : `v${ver}`;
+  return `https://graph.facebook.com/${v}`;
+}
 
 export interface EmbeddedSignupConfig {
   appId: string;
@@ -66,7 +70,7 @@ export async function exchangeCodeAndFetchPhoneNumbers(
   const { appId, appSecret } = getMetaConfig();
 
   const tokenRes = await fetch(
-    `${META_GRAPH_BASE}/oauth/access_token?client_id=${appId}&client_secret=${appSecret}&code=${encodeURIComponent(code)}`,
+    `${getMetaGraphBase()}/oauth/access_token?client_id=${appId}&client_secret=${appSecret}&code=${encodeURIComponent(code)}`,
     { method: "GET" }
   );
 
@@ -86,7 +90,7 @@ export async function exchangeCodeAndFetchPhoneNumbers(
   }
 
   const wabasRes = await fetch(
-    `${META_GRAPH_BASE}/me/client_whatsapp_business_accounts?fields=id,name,account_review_status,phone_numbers{id,display_phone_number,verified_name}&access_token=${encodeURIComponent(accessToken)}`,
+    `${getMetaGraphBase()}/me/client_whatsapp_business_accounts?fields=id,name,account_review_status,phone_numbers{id,display_phone_number,verified_name}&access_token=${encodeURIComponent(accessToken)}`,
     { method: "GET" }
   );
 

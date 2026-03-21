@@ -28,7 +28,10 @@ export async function POST(request: NextRequest) {
     const config = getEmbeddedSignupConfig(tenantId);
     const baseUrl = process.env.NEXT_PUBLIC_WHATSAPP_APP_URL ?? "http://localhost:3004";
     const redirectUri = `${baseUrl}/dashboard/whatsapp/callback`;
-    const oauthUrl = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${config.appId}&config_id=${config.configId}&response_type=code&state=${encodeURIComponent(config.state)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    const apiVer =
+      process.env.META_API_VERSION ?? process.env.WHATSAPP_API_VERSION ?? "v21.0";
+    const v = apiVer.startsWith("v") ? apiVer : `v${apiVer}`;
+    const oauthUrl = `https://www.facebook.com/${v}/dialog/oauth?client_id=${config.appId}&config_id=${config.configId}&response_type=code&state=${encodeURIComponent(config.state)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
     console.info(`[WHATSAPP] onboard start tenant=${tenantId} redirect_uri=${redirectUri}`);
     return NextResponse.json({
       success: true,

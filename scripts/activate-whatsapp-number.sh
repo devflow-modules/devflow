@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-GRAPH_VERSION="v21.0"
-
 # Carrega .env.local do monorepo se existir (mapeia WHATSAPP_* para variáveis do script)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -16,6 +14,9 @@ if [[ -f "${ENV_FILE}" ]]; then
   ACCESS_TOKEN="${ACCESS_TOKEN:-${WHATSAPP_ACCESS_TOKEN:-}}"
   PHONE_NUMBER_ID="${PHONE_NUMBER_ID:-${WHATSAPP_PHONE_NUMBER_ID:-}}"
 fi
+
+GRAPH_VERSION="${META_API_VERSION:-${WHATSAPP_API_VERSION:-v21.0}}"
+[[ "${GRAPH_VERSION}" != v* ]] && GRAPH_VERSION="v${GRAPH_VERSION}"
 
 # ====== PREENCHA (ou via env) ======
 ACCESS_TOKEN="${ACCESS_TOKEN:-SEU_ACCESS_TOKEN_AQUI}"

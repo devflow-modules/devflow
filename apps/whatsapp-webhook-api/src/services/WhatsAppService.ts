@@ -15,12 +15,18 @@ export type SendImageParams = {
   caption?: string;
 };
 
-const DEFAULT_BASE = "https://graph.facebook.com/v21.0";
+function getGraphBaseUrl(): string {
+  const ver =
+    process.env.META_API_VERSION ?? process.env.WHATSAPP_API_VERSION ?? "v21.0";
+  const v = ver.startsWith("v") ? ver : `v${ver}`;
+  return `https://graph.facebook.com/${v}`;
+}
 
 export class WhatsAppService {
   sendTextMessage(params: SendTextParams): Promise<{ messageId: string }> {
     const adapter = new WhatsAppCloudAdapter({
       accessToken: params.accessToken,
+      baseUrl: getGraphBaseUrl(),
     });
     return adapter.sendText(params.phoneNumberId, {
       to: params.to,
@@ -52,7 +58,7 @@ export class WhatsAppService {
             caption: params.caption ?? undefined,
           },
         };
-    const res = await fetch(`${DEFAULT_BASE}/${params.phoneNumberId}/messages`, {
+    const res = await fetch(`${getGraphBaseUrl()}/${params.phoneNumberId}/messages`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${params.accessToken}`,
