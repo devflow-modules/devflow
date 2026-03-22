@@ -4,6 +4,7 @@ import { GrowthTrackVisitor } from "@/components/analytics/GrowthTrackVisitor";
 import { Section } from "@/components/layout/Section";
 import { RelatedLinks } from "@/components/shared/related-links";
 import { CrossSellBeyond } from "@/components/sections/cross-sell-beyond";
+import { ToolHubSection } from "@/components/seo/ToolHubSection";
 import { SimuladorRapidoFinanceiro } from "@/modules/financeiro/components/SimuladorRapidoFinanceiro";
 import { LeadCaptureForm } from "@/modules/financeiro/components/LeadCaptureForm";
 import { FinanceiroTools } from "@/modules/financeiro/components/FinanceiroTools";
@@ -187,6 +188,8 @@ export default function FinanceiroPage() {
           />
         </div>
       </Section>
+
+      <ToolHubSection tool="financeiro" />
 
       <Section aria-label="Quer ir além — automação e produtos">
         <div className="mx-auto max-w-4xl">

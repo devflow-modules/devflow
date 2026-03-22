@@ -363,3 +363,101 @@ model RuleSource {
   rule      Rule     @relation(fields: [ruleId], references: [id])
   source    Source   @relation(fields: [sourceId], references: [id])
 }
+
+model WhatsappOnboardingState {
+  id                   String    @id @default(cuid())
+  wabaId               String
+  phoneNumberId        String
+  businessId           String?
+  codeRequestedAt      DateTime?
+  codeVerifiedAt       DateTime?
+  registeredAt         DateTime?
+  lastMetaErrorCode    Int?
+  lastMetaErrorMessage String?   @db.VarChar(2000)
+  lastOperation        String    @default("NONE")
+  lastOperationStatus  String    @default("UNKNOWN")
+  lastSuccessAt        DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@unique([wabaId, phoneNumberId])
+  @@index([phoneNumberId])
+}
+
+// ─── WhatsApp Inbox (Cloud API — conversas + mensagens) ───
+
+enum WhatsappConversationStatus {
+  OPEN
+  CLOSED
+  PENDING
+}
+
+enum WhatsappInboxDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum WhatsappInboxMessageType {
+  TEXT
+  IMAGE
+  AUDIO
+  DOCUMENT
+  UNKNOWN
+}
+
+enum WhatsappInboxDeliveryStatus {
+  RECEIVED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+model WhatsappConversation {
+  id                 String                     @id @default(uuid()) @db.Uuid
+  phoneNumber        String                     @unique
+  contactName        String?
+  lastMessageAt      DateTime                   @default(now())
+  unreadCount        Int                        @default(0)
+  lastMessagePreview String?                    @db.VarChar(512)
+  status             WhatsappConversationStatus @default(OPEN)
+  createdAt          DateTime                   @default(now())
+  updatedAt          DateTime                   @updatedAt
+  messages           WhatsappInboxMessage[]
+
+  @@index([lastMessageAt(sort: Desc)])
+}
+
+model WhatsappInboxMessage {
+  id             String                        @id @default(uuid()) @db.Uuid
+  conversationId String                        @db.Uuid
+  waMessageId    String                        @unique
+  direction      WhatsappInboxDirection
+  fromNumber     String
+  toNumber       String
+  messageType    WhatsappInboxMessageType
+  contentText    String?                       @db.Text
+  contentJson    Json?
+  ts             DateTime
+  status         WhatsappInboxDeliveryStatus
+  errorCode      String?
+  errorMessage   String?                       @db.VarChar(2000)
+  rawPayload     Json
+  createdAt      DateTime                      @default(now())
+  conversation   WhatsappConversation          @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  statusHistory  WhatsappMessageStatusHistory[]
+
+  @@index([conversationId, ts(sort: Asc)])
+  @@index([waMessageId])
+}
+
+model WhatsappMessageStatusHistory {
+  id         String                        @id @default(uuid()) @db.Uuid
+  messageId  String                        @db.Uuid
+  status     WhatsappInboxDeliveryStatus
+  ts         DateTime                      @default(now())
+  rawPayload Json?
+  message    WhatsappInboxMessage          @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId, ts(sort: Asc)])
+}

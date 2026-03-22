@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ToolHubSection } from "@/components/seo/ToolHubSection";
 
 const baseUrl = "https://devflowlabs.com.br";
 
@@ -23,5 +24,10 @@ export default function ConsultaCnpjLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      {children}
+      <ToolHubSection tool="cnpj" />
+    </>
+  );
 }

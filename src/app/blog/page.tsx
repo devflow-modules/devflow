@@ -2,40 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { blogArticles } from "@/lib/blog";
 
 const baseUrl = "https://devflowlabs.com.br";
-
-const articles = [
-  {
-    slug: "automacao-whatsapp-empresas-guia-completo",
-    title: "Automação de WhatsApp para empresas: guia completo",
-    excerpt:
-      "Tudo o que você precisa saber para automatizar o atendimento da sua empresa no WhatsApp.",
-    date: "2025-03-11",
-  },
-  {
-    slug: "como-automatizar-atendimento-whatsapp",
-    title: "Como automatizar atendimento no WhatsApp",
-    excerpt:
-      "Passo a passo para começar a automatizar respostas e organizar o atendimento.",
-    date: "2025-03-10",
-  },
-  {
-    slug: "chatbot-whatsapp-vale-pena",
-    title: "Chatbot para WhatsApp: vale a pena?",
-    excerpt:
-      "Quando um bot de atendimento faz sentido — e quando não faz.",
-    date: "2025-03-09",
-  },
-  {
-    slug: "5-erros-atendimento-whatsapp-perdem-clientes",
-    title:
-      "5 erros no atendimento pelo WhatsApp que fazem empresas perderem clientes",
-    excerpt:
-      "O que evitar para não perder vendas e reputação no atendimento.",
-    date: "2025-03-08",
-  },
-];
 
 export const metadata: Metadata = {
   title: "Blog | Automação WhatsApp, Chatbot e Atendimento",
@@ -53,6 +22,10 @@ export const metadata: Metadata = {
 };
 
 export default function BlogPage() {
+  const articles = [...blogArticles].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
   return (
     <main className="py-16 sm:py-20">
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">

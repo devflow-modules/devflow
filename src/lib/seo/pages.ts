@@ -20,6 +20,11 @@ export const seoPages: SeoPage[] = [
     useCase: "Ideal para bares, viagens, churrascos e rolês em grupo.",
     tool: "divisao",
     related: ["dividir-conta-casal", "dividir-conta-restaurante", "rateio-proporcional-renda"],
+    faq: [
+      { q: "Como dividir conta entre amigos sem confusão?", a: "Combine antes: rateio igual ou por consumo. Use uma calculadora de divisão para ter o valor exato por pessoa. Uma pessoa paga e os outros repassam na hora (PIX) para ninguém ficar devendo." },
+      { q: "E se um bebeu bem mais que os outros?", a: "Aí vale dividir por consumo: some o que cada um consumiu ou rateie bebidas à parte. Ferramentas de rateio permitem informar totais por grupo (ex.: comida vs bebida)." },
+      { q: "Preciso de app para dividir conta com amigos?", a: "Não. Uma calculadora de divisão (como a da DevFlow Labs) já resolve: você informa o total e o número de pessoas, ou valores parciais, e obtém quanto cada um paga. Grátis e no navegador." },
+    ],
   },
   {
     slug: "dividir-conta-casal",
@@ -32,6 +37,38 @@ export const seoPages: SeoPage[] = [
     useCase: "Aluguel, condomínio, mercado, contas fixas e despesas compartilhadas.",
     tool: "divisao",
     related: ["dividir-conta-amigos", "dividir-conta-republica", "rateio-proporcional-renda"],
+    whenItMakesSense:
+      "Faz sentido quando os dois trabalham e têm rendas diferentes, quando um assume mais despesas fixas (ex.: aluguel no nome de um só) ou quando vocês querem um critério objetivo para evitar discussão. Não é obrigatório: casais que ganham parecido podem manter 50/50.",
+    commonMistakes:
+      "Dividir tudo 50/50 mesmo com renda muito diferente deixa quem ganha menos com pouca margem. Outro erro é não listar todas as despesas compartilhadas (mercado, plano de celular, streaming) e só ratear o aluguel. Inclua tudo que os dois usam.",
+    example:
+      "Maria ganha R$ 4.000 e João R$ 6.000. O total de despesas compartilhadas é R$ 5.000 (aluguel, contas, mercado). A renda conjunta é R$ 10.000; Maria paga 40% (R$ 2.000) e João 60% (R$ 3.000). Assim cada um contribui na mesma proporção que a renda.",
+    checklist: [
+      "Liste todas as despesas compartilhadas (aluguel, contas, mercado, etc.).",
+      "Some a renda líquida de cada um e calcule a fração de cada um no total.",
+      "Aplique essa fração ao total de despesas para obter quanto cada um paga.",
+      "Revise quando mudar renda ou despesas (novo aluguel, aumento, etc.).",
+    ],
+    faq: [
+      {
+        q: "Dividir 50/50 ou proporcional à renda?",
+        a: "Proporcional à renda costuma ser mais justo quando um ganha bem mais que o outro. Quem ganha menos fica com mais folga; quem ganha mais paga uma parte maior. 50/50 faz sentido quando as rendas são parecidas.",
+      },
+      {
+        q: "Como incluir despesas que só um tem (financiamento, plano)?",
+        a: "Despesas só de uma pessoa ficam com ela. No rateio compartilhado entram só o que os dois usam: aluguel, condomínio, luz, água, internet, mercado, itens da casa.",
+      },
+      {
+        q: "Preciso de aplicativo para dividir contas do casal?",
+        a: "Não. Você pode usar uma calculadora de rateio proporcional (como a da DevFlow Labs) e anotar o resultado. O importante é ter o número fechado e revisar quando algo mudar.",
+      },
+    ],
+    internalLinkBlurb: {
+      before: "Se você mora com mais pessoas (república ou família), veja também como ",
+      slug: "dividir-conta-republica",
+      label: "dividir contas na república",
+      after: " sem briga.",
+    },
   },
   {
     slug: "dividir-conta-restaurante",
@@ -44,6 +81,38 @@ export const seoPages: SeoPage[] = [
     useCase: "Jantar em grupo, aniversários e confraternizações.",
     tool: "divisao",
     related: ["dividir-conta-amigos", "dividir-conta-viagem"],
+    whenItMakesSense:
+      "Faz sentido quando o grupo é grande (4+ pessoas), quando uns pedem prato caro e outros só entrada, ou quando a conta tem gorjeta e todo mundo quer sair na mesma hora. Em dupla ou trio às vezes cada um paga o seu; em grupo maior, rateio evita conta de celular na mesa.",
+    commonMistakes:
+      "Esquecer a gorjeta no total antes de dividir; deixar uma pessoa pagar tudo “depois a gente te paga” e nunca fechar; dividir igual quando o consumo foi muito diferente (ex.: um só tomou água, outro pediu bottle).",
+    example:
+      "Seis amigos jantaram: conta total R$ 480 (já com 10% de gorjeta). Se dividir igual: R$ 80 por pessoa. Se dois não beberam e combinaram ratear só a comida: some o que os quatro consumiram e divida entre eles; os outros pagam a parte deles. Ferramenta de divisão ajuda a não errar na conta.",
+    checklist: [
+      "Confira se a conta já inclui gorjeta ou serviço.",
+      "Decida: rateio igual ou por consumo (quem bebeu paga a parte das bebidas)?",
+      "Some os itens de quem entra no rateio e divida pelo número de pessoas.",
+      "Uma pessoa paga no cartão e os outros repassam na hora (PIX) para não esquecer.",
+    ],
+    faq: [
+      {
+        q: "Dividir igual ou cada um paga o que consumiu?",
+        a: "Igual é mais rápido e evita discussão quando o consumo foi parecido. Por consumo é mais justo quando tem muita diferença (uns só água, outros bebida e sobremesa). Combine antes de pedir.",
+      },
+      {
+        q: "Como incluir a gorjeta na divisão?",
+        a: "Some a gorjeta ao total da conta e divida esse valor. Assim todo mundo paga a parte proporcional da gorjeta. Não deixe a gorjeta só para quem pagou no cartão.",
+      },
+      {
+        q: "Existe ferramenta para dividir conta de restaurante?",
+        a: "Sim. Calculadoras de rateio (como a de divisão de contas da DevFlow Labs) permitem informar o total e o número de pessoas, ou até ratear por valor por pessoa quando o consumo foi diferente.",
+      },
+    ],
+    internalLinkBlurb: {
+      before: "Para viagens em grupo, o mesmo raciocínio vale: veja ",
+      slug: "dividir-conta-viagem",
+      label: "como dividir gastos de viagem",
+      after: " sem planilha infinita.",
+    },
   },
   {
     slug: "dividir-conta-republica",
@@ -80,6 +149,11 @@ export const seoPages: SeoPage[] = [
     useCase: "Casal, república e famílias com rendas diferentes.",
     tool: "divisao",
     related: ["dividir-conta-casal", "dividir-conta-republica"],
+    faq: [
+      { q: "Como calcular rateio proporcional à renda?", a: "Some a renda de todos; calcule a fração de cada um no total. Multiplique o total de despesas por essa fração. Ex.: rendas 3k e 7k (total 10k); despesas 5k. Quem ganha 3k paga 30% = R$ 1.500; quem ganha 7k paga 70% = R$ 3.500." },
+      { q: "Rateio proporcional é justo?", a: "Depende do que o grupo acha justo. Para muitos casais e repúblicas é mais justo que 50/50 quando as rendas são diferentes, porque cada um contribui na mesma proporção que sua capacidade." },
+      { q: "Onde fazer o cálculo de rateio proporcional?", a: "Na ferramenta de divisão de contas da DevFlow Labs você informa as rendas e o total de despesas e obtém quanto cada um paga. Grátis e sem cadastro." },
+    ],
   },
   {
     slug: "dividir-conta-familia",
@@ -118,6 +192,11 @@ export const seoPages: SeoPage[] = [
     useCase: "Compras B2B, cadastro de fornecedores e due diligence rápida.",
     tool: "cnpj",
     related: ["consultar-cnpj-gratis", "consultar-cnpj-antes-comprar"],
+    faq: [
+      { q: "A consulta de CNPJ online é realmente grátis?", a: "Sim. A Receita Federal disponibiliza dados básicos de CNPJ publicamente. Ferramentas como a da DevFlow Labs consultam essa base e mostram situação, razão social e outros dados em segundos, sem custo e sem cadastro." },
+      { q: "Quais dados aparecem na consulta CNPJ?", a: "Razão social, nome fantasia (quando houver), situação cadastral (Ativa, Baixada, etc.), data de abertura, endereço, CNAE principal. Dados públicos para validação rápida." },
+      { q: "Posso consultar CNPJ de ME e MEI?", a: "Sim. ME e MEI têm o mesmo formato de CNPJ; a consulta mostra porte (MEI, ME, EPP, etc.) e situação como para qualquer empresa." },
+    ],
   },
   {
     slug: "verificar-situacao-cnpj",
@@ -142,6 +221,38 @@ export const seoPages: SeoPage[] = [
     useCase: "Compras corporativas, MEI e pequenos negócios.",
     tool: "cnpj",
     related: ["consultar-cnpj-online-gratis", "dados-publicos-cnpj"],
+    whenItMakesSense:
+      "Faz sentido antes de cadastrar fornecedor novo, antes de pagar adiantado ou quando você recebe um CNPJ que nunca viu (nota fiscal, contrato, proposta). Em compras pequenas e repetidas de quem você já conhece, às vezes não vale o tempo; para valores altos ou primeiro pedido, sempre consulte.",
+    commonMistakes:
+      "Confiar só no CNPJ que o fornecedor mandou sem conferir na base oficial (pode estar incorreto ou de outra empresa). Não olhar a situação cadastral: CNPJ baixado ou suspenso pode impedir emissão de nota. Cadastrar razão social errada por não conferir.",
+    example:
+      "Você precisa comprar insumos de um novo fornecedor que mandou CNPJ 12.345.678/0001-90. Na consulta você vê: razão social correta, situação Ativa, porte ME, endereço em São Paulo. Confere com o que está no contrato e segue. Se aparecesse «Baixada» ou razão social diferente, você não cadastraria.",
+    checklist: [
+      "Pegue o CNPJ informado pelo fornecedor (nota, e-mail, contrato).",
+      "Consulte na base pública (Receita Federal ou ferramenta que use essa base).",
+      "Confira razão social, situação (Ativa) e endereço.",
+      "Só então cadastre no seu sistema e emita ordem de compra ou pague.",
+    ],
+    faq: [
+      {
+        q: "Consultar CNPJ de fornecedor é grátis?",
+        a: "Sim. A Receita Federal disponibiliza dados básicos de CNPJ publicamente. Ferramentas como a da DevFlow Labs consultam essa base e mostram situação, razão social e outros dados em segundos, sem custo.",
+      },
+      {
+        q: "O que fazer se o CNPJ estiver baixado ou suspenso?",
+        a: "Não cadastre e não pague adiantado. Empresa com situação irregular pode não emitir nota ou ter problemas legais. Peça outro fornecedor ou que regularizem antes de fechar negócio.",
+      },
+      {
+        q: "Preciso consultar CNPJ toda vez que compro do mesmo fornecedor?",
+        a: "Na primeira vez, sim. Depois de cadastrado e com nota emitida corretamente, não é obrigatório consultar de novo a cada compra. Reconsulte se o fornecedor mudar de endereço, razão social ou se passar muito tempo sem comprar.",
+      },
+    ],
+    internalLinkBlurb: {
+      before: "Para saber quais dados aparecem na consulta, leia sobre ",
+      slug: "dados-publicos-cnpj",
+      label: "dados públicos do CNPJ",
+      after: ".",
+    },
   },
   {
     slug: "consultar-cnpj-antes-comprar",
