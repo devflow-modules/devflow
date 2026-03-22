@@ -9,11 +9,28 @@
 
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
+// bcryptjs disponível via node_modules do apps/whatsapp-platform
+import bcrypt from "bcryptjs";
 
 const PLATFORM_URL = process.env.PLATFORM_URL ?? "http://localhost:3004";
-const prisma = new PrismaClient();
+let prismaInstance: PrismaClient | null = null;
+
+function requireEnv(name: string): string {
+  const v = process.env[name];
+  if (!v) {
+    console.error(`[smoke] Variável de ambiente obrigatória não definida: ${name}`);
+    console.error("[smoke] Defina WHATSAPP_DATABASE_URL e WHATSAPP_DIRECT_URL (ex.: no .env do app ou no CI).");
+    process.exit(1);
+  }
+  return v;
+}
 
 async function main() {
+  requireEnv("WHATSAPP_DATABASE_URL");
+  requireEnv("WHATSAPP_DIRECT_URL");
+
+  const prisma = new PrismaClient();
+  prismaInstance = prisma;
   console.log("[smoke] Iniciando smoke test em", PLATFORM_URL);
 
   const tenant = await prisma.tenant.create({
@@ -26,11 +43,12 @@ async function main() {
   });
   const tenantId = tenant.id;
 
+  const smokePassword = "smoke123456";
   const user = await prisma.user.create({
     data: {
       tenantId,
       email: `smoke-${Date.now()}@test.local`,
-      passwordHash: "$2a$10$dummy",
+      passwordHash: await bcrypt.hash(smokePassword, 10),
       name: "Smoke User",
       role: "admin",
       updatedAt: new Date(),
@@ -71,11 +89,11 @@ async function main() {
   const loginRes = await fetch(`${PLATFORM_URL}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: user.email, password: "smoke123456" }),
+    body: JSON.stringify({ email: user.email, password: smokePassword }),
   });
   if (!loginRes.ok) {
-    console.warn("[smoke] Login falhou (esperado se usuário não tiver senha smoke123456). Pulando chamadas HTTP.");
-    await cleanup(tenantId, conversationId);
+    console.warn("[smoke] Login falhou (platform inacessível ou senha incorreta). Pulando chamadas HTTP.");
+    await cleanup(prisma, tenantId, conversationId);
     console.log("[smoke] Limpeza feita. Smoke test concluído (apenas dados criados).");
     return;
   }
@@ -97,11 +115,15 @@ async function main() {
     }
   }
 
-  await cleanup(tenantId, conversationId);
+  await cleanup(prisma, tenantId, conversationId);
   console.log("[smoke] Limpeza feita. Smoke test concluído.");
 }
 
-async function cleanup(tenantId: string, conversationId: string) {
+async function cleanup(
+  prisma: InstanceType<typeof PrismaClient>,
+  tenantId: string,
+  conversationId: string
+) {
   await prisma.conversationQueue.deleteMany({ where: { conversationId } });
   await prisma.agentStatus.deleteMany({ where: { tenantId } });
   await prisma.conversation.deleteMany({ where: { id: conversationId } });
@@ -114,4 +136,6 @@ main()
     console.error("[smoke] Erro:", e);
     process.exit(1);
   })
-  .finally(() => prisma.$disconnect());
+  .finally(async () => {
+    if (prismaInstance) await prismaInstance.$disconnect();
+  });
