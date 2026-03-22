@@ -150,6 +150,7 @@ exports.Prisma.TenantScalarFieldEnum = {
   plan: 'plan',
   activeUntil: 'activeUntil',
   aiDriver: 'aiDriver',
+  crmWebhookUrl: 'crmWebhookUrl',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -245,6 +246,7 @@ exports.Prisma.AiAgentConfigScalarFieldEnum = {
   tenantId: 'tenantId',
   enabled: 'enabled',
   systemPrompt: 'systemPrompt',
+  model: 'model',
   tone: 'tone',
   maxTokens: 'maxTokens',
   temperature: 'temperature',
@@ -264,6 +266,14 @@ exports.Prisma.AiMessageLogScalarFieldEnum = {
   tokensUsed: 'tokensUsed',
   durationMs: 'durationMs',
   errorMessage: 'errorMessage',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.AiUsageLogScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  type: 'type',
+  tokens: 'tokens',
   createdAt: 'createdAt'
 };
 
@@ -473,6 +483,12 @@ exports.AiAgentTone = exports.$Enums.AiAgentTone = {
   NEUTRAL: 'NEUTRAL'
 };
 
+exports.AiUsageLogType = exports.$Enums.AiUsageLogType = {
+  MESSAGE_TOTAL: 'MESSAGE_TOTAL',
+  AI_SUCCESS: 'AI_SUCCESS',
+  AI_FALLBACK: 'AI_FALLBACK'
+};
+
 exports.WaInboxThreadStatus = exports.$Enums.WaInboxThreadStatus = {
   OPEN: 'OPEN',
   CLOSED: 'CLOSED',
@@ -518,6 +534,7 @@ exports.Prisma.ModelName = {
   UsageMetric: 'UsageMetric',
   AiAgentConfig: 'AiAgentConfig',
   AiMessageLog: 'AiMessageLog',
+  AiUsageLog: 'AiUsageLog',
   WaInboxThread: 'WaInboxThread',
   WaInboxTag: 'WaInboxTag',
   WaInboxThreadTag: 'WaInboxThreadTag',

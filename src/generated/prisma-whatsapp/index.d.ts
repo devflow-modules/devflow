@@ -69,6 +69,11 @@ export type AiAgentConfig = $Result.DefaultSelection<Prisma.$AiAgentConfigPayloa
  */
 export type AiMessageLog = $Result.DefaultSelection<Prisma.$AiMessageLogPayload>
 /**
+ * Model AiUsageLog
+ * 
+ */
+export type AiUsageLog = $Result.DefaultSelection<Prisma.$AiUsageLogPayload>
+/**
  * Model WaInboxThread
  * 
  */
@@ -179,6 +184,15 @@ export const AiAgentTone: {
 export type AiAgentTone = (typeof AiAgentTone)[keyof typeof AiAgentTone]
 
 
+export const AiUsageLogType: {
+  MESSAGE_TOTAL: 'MESSAGE_TOTAL',
+  AI_SUCCESS: 'AI_SUCCESS',
+  AI_FALLBACK: 'AI_FALLBACK'
+};
+
+export type AiUsageLogType = (typeof AiUsageLogType)[keyof typeof AiUsageLogType]
+
+
 export const WaInboxThreadStatus: {
   OPEN: 'OPEN',
   CLOSED: 'CLOSED',
@@ -243,6 +257,10 @@ export const UsageMetricType: typeof $Enums.UsageMetricType
 export type AiAgentTone = $Enums.AiAgentTone
 
 export const AiAgentTone: typeof $Enums.AiAgentTone
+
+export type AiUsageLogType = $Enums.AiUsageLogType
+
+export const AiUsageLogType: typeof $Enums.AiUsageLogType
 
 export type WaInboxThreadStatus = $Enums.WaInboxThreadStatus
 
@@ -491,6 +509,16 @@ export class PrismaClient<
     * ```
     */
   get aiMessageLog(): Prisma.AiMessageLogDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.aiUsageLog`: Exposes CRUD operations for the **AiUsageLog** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AiUsageLogs
+    * const aiUsageLogs = await prisma.aiUsageLog.findMany()
+    * ```
+    */
+  get aiUsageLog(): Prisma.AiUsageLogDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.waInboxThread`: Exposes CRUD operations for the **WaInboxThread** model.
@@ -1083,6 +1111,7 @@ export namespace Prisma {
     UsageMetric: 'UsageMetric',
     AiAgentConfig: 'AiAgentConfig',
     AiMessageLog: 'AiMessageLog',
+    AiUsageLog: 'AiUsageLog',
     WaInboxThread: 'WaInboxThread',
     WaInboxTag: 'WaInboxTag',
     WaInboxThreadTag: 'WaInboxThreadTag',
@@ -1115,7 +1144,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "whatsappPhoneNumber" | "tenant" | "usageEvent" | "billingSubscription" | "stripeWebhookEvent" | "billingAuditLog" | "usageAggregate" | "tenantSubscription" | "usageMetric" | "aiAgentConfig" | "aiMessageLog" | "waInboxThread" | "waInboxTag" | "waInboxThreadTag" | "waInboxMessage" | "waInboxStatusHistory" | "waInboxAuditLog" | "waAutomationRule" | "waAutomationPlaybook" | "fAQ" | "user" | "conversation" | "conversationQueue" | "agentStatus" | "message"
+      modelProps: "whatsappPhoneNumber" | "tenant" | "usageEvent" | "billingSubscription" | "stripeWebhookEvent" | "billingAuditLog" | "usageAggregate" | "tenantSubscription" | "usageMetric" | "aiAgentConfig" | "aiMessageLog" | "aiUsageLog" | "waInboxThread" | "waInboxTag" | "waInboxThreadTag" | "waInboxMessage" | "waInboxStatusHistory" | "waInboxAuditLog" | "waAutomationRule" | "waAutomationPlaybook" | "fAQ" | "user" | "conversation" | "conversationQueue" | "agentStatus" | "message"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1930,6 +1959,80 @@ export namespace Prisma {
           count: {
             args: Prisma.AiMessageLogCountArgs<ExtArgs>
             result: $Utils.Optional<AiMessageLogCountAggregateOutputType> | number
+          }
+        }
+      }
+      AiUsageLog: {
+        payload: Prisma.$AiUsageLogPayload<ExtArgs>
+        fields: Prisma.AiUsageLogFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AiUsageLogFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AiUsageLogPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AiUsageLogFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AiUsageLogPayload>
+          }
+          findFirst: {
+            args: Prisma.AiUsageLogFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AiUsageLogPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AiUsageLogFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AiUsageLogPayload>
+          }
+          findMany: {
+            args: Prisma.AiUsageLogFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AiUsageLogPayload>[]
+          }
+          create: {
+            args: Prisma.AiUsageLogCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AiUsageLogPayload>
+          }
+          createMany: {
+            args: Prisma.AiUsageLogCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AiUsageLogCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AiUsageLogPayload>[]
+          }
+          delete: {
+            args: Prisma.AiUsageLogDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AiUsageLogPayload>
+          }
+          update: {
+            args: Prisma.AiUsageLogUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AiUsageLogPayload>
+          }
+          deleteMany: {
+            args: Prisma.AiUsageLogDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AiUsageLogUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AiUsageLogUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AiUsageLogPayload>[]
+          }
+          upsert: {
+            args: Prisma.AiUsageLogUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AiUsageLogPayload>
+          }
+          aggregate: {
+            args: Prisma.AiUsageLogAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAiUsageLog>
+          }
+          groupBy: {
+            args: Prisma.AiUsageLogGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AiUsageLogGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AiUsageLogCountArgs<ExtArgs>
+            result: $Utils.Optional<AiUsageLogCountAggregateOutputType> | number
           }
         }
       }
@@ -3076,6 +3179,7 @@ export namespace Prisma {
     usageMetric?: UsageMetricOmit
     aiAgentConfig?: AiAgentConfigOmit
     aiMessageLog?: AiMessageLogOmit
+    aiUsageLog?: AiUsageLogOmit
     waInboxThread?: WaInboxThreadOmit
     waInboxTag?: WaInboxTagOmit
     waInboxThreadTag?: WaInboxThreadTagOmit
@@ -3184,6 +3288,7 @@ export namespace Prisma {
     waAutomationRules: number
     waAutomationPlaybooks: number
     aiMessageLogs: number
+    aiUsageLogs: number
     usageEvents: number
     billingAuditLogs: number
     usageAggregates: number
@@ -3205,6 +3310,7 @@ export namespace Prisma {
     waAutomationRules?: boolean | TenantCountOutputTypeCountWaAutomationRulesArgs
     waAutomationPlaybooks?: boolean | TenantCountOutputTypeCountWaAutomationPlaybooksArgs
     aiMessageLogs?: boolean | TenantCountOutputTypeCountAiMessageLogsArgs
+    aiUsageLogs?: boolean | TenantCountOutputTypeCountAiUsageLogsArgs
     usageEvents?: boolean | TenantCountOutputTypeCountUsageEventsArgs
     billingAuditLogs?: boolean | TenantCountOutputTypeCountBillingAuditLogsArgs
     usageAggregates?: boolean | TenantCountOutputTypeCountUsageAggregatesArgs
@@ -3318,6 +3424,13 @@ export namespace Prisma {
    */
   export type TenantCountOutputTypeCountAiMessageLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AiMessageLogWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountAiUsageLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AiUsageLogWhereInput
   }
 
   /**
@@ -4675,6 +4788,7 @@ export namespace Prisma {
     plan: string | null
     activeUntil: Date | null
     aiDriver: string | null
+    crmWebhookUrl: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -4695,6 +4809,7 @@ export namespace Prisma {
     plan: string | null
     activeUntil: Date | null
     aiDriver: string | null
+    crmWebhookUrl: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -4715,6 +4830,7 @@ export namespace Prisma {
     plan: number
     activeUntil: number
     aiDriver: number
+    crmWebhookUrl: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -4737,6 +4853,7 @@ export namespace Prisma {
     plan?: true
     activeUntil?: true
     aiDriver?: true
+    crmWebhookUrl?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -4757,6 +4874,7 @@ export namespace Prisma {
     plan?: true
     activeUntil?: true
     aiDriver?: true
+    crmWebhookUrl?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -4777,6 +4895,7 @@ export namespace Prisma {
     plan?: true
     activeUntil?: true
     aiDriver?: true
+    crmWebhookUrl?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -4870,6 +4989,7 @@ export namespace Prisma {
     plan: string | null
     activeUntil: Date | null
     aiDriver: string | null
+    crmWebhookUrl: string | null
     createdAt: Date
     updatedAt: Date
     _count: TenantCountAggregateOutputType | null
@@ -4907,6 +5027,7 @@ export namespace Prisma {
     plan?: boolean
     activeUntil?: boolean
     aiDriver?: boolean
+    crmWebhookUrl?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     whatsappPhoneNumbers?: boolean | Tenant$whatsappPhoneNumbersArgs<ExtArgs>
@@ -4924,6 +5045,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: boolean | Tenant$waAutomationPlaybooksArgs<ExtArgs>
     aiAgentConfig?: boolean | Tenant$aiAgentConfigArgs<ExtArgs>
     aiMessageLogs?: boolean | Tenant$aiMessageLogsArgs<ExtArgs>
+    aiUsageLogs?: boolean | Tenant$aiUsageLogsArgs<ExtArgs>
     usageEvents?: boolean | Tenant$usageEventsArgs<ExtArgs>
     billingSubscription?: boolean | Tenant$billingSubscriptionArgs<ExtArgs>
     billingAuditLogs?: boolean | Tenant$billingAuditLogsArgs<ExtArgs>
@@ -4949,6 +5071,7 @@ export namespace Prisma {
     plan?: boolean
     activeUntil?: boolean
     aiDriver?: boolean
+    crmWebhookUrl?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["tenant"]>
@@ -4969,6 +5092,7 @@ export namespace Prisma {
     plan?: boolean
     activeUntil?: boolean
     aiDriver?: boolean
+    crmWebhookUrl?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["tenant"]>
@@ -4989,11 +5113,12 @@ export namespace Prisma {
     plan?: boolean
     activeUntil?: boolean
     aiDriver?: boolean
+    crmWebhookUrl?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type TenantOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "whatsappPhone" | "systemPrompt" | "defaultPrompt" | "businessType" | "phoneNumberId" | "displayPhoneNumber" | "accessToken" | "apiKey" | "subdomain" | "stripeCustomerId" | "plan" | "activeUntil" | "aiDriver" | "createdAt" | "updatedAt", ExtArgs["result"]["tenant"]>
+  export type TenantOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "whatsappPhone" | "systemPrompt" | "defaultPrompt" | "businessType" | "phoneNumberId" | "displayPhoneNumber" | "accessToken" | "apiKey" | "subdomain" | "stripeCustomerId" | "plan" | "activeUntil" | "aiDriver" | "crmWebhookUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["tenant"]>
   export type TenantInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     whatsappPhoneNumbers?: boolean | Tenant$whatsappPhoneNumbersArgs<ExtArgs>
     users?: boolean | Tenant$usersArgs<ExtArgs>
@@ -5010,6 +5135,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: boolean | Tenant$waAutomationPlaybooksArgs<ExtArgs>
     aiAgentConfig?: boolean | Tenant$aiAgentConfigArgs<ExtArgs>
     aiMessageLogs?: boolean | Tenant$aiMessageLogsArgs<ExtArgs>
+    aiUsageLogs?: boolean | Tenant$aiUsageLogsArgs<ExtArgs>
     usageEvents?: boolean | Tenant$usageEventsArgs<ExtArgs>
     billingSubscription?: boolean | Tenant$billingSubscriptionArgs<ExtArgs>
     billingAuditLogs?: boolean | Tenant$billingAuditLogsArgs<ExtArgs>
@@ -5039,6 +5165,7 @@ export namespace Prisma {
       waAutomationPlaybooks: Prisma.$WaAutomationPlaybookPayload<ExtArgs>[]
       aiAgentConfig: Prisma.$AiAgentConfigPayload<ExtArgs> | null
       aiMessageLogs: Prisma.$AiMessageLogPayload<ExtArgs>[]
+      aiUsageLogs: Prisma.$AiUsageLogPayload<ExtArgs>[]
       usageEvents: Prisma.$UsageEventPayload<ExtArgs>[]
       billingSubscription: Prisma.$BillingSubscriptionPayload<ExtArgs> | null
       billingAuditLogs: Prisma.$BillingAuditLogPayload<ExtArgs>[]
@@ -5062,6 +5189,7 @@ export namespace Prisma {
       plan: string | null
       activeUntil: Date | null
       aiDriver: string | null
+      crmWebhookUrl: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["tenant"]>
@@ -5473,6 +5601,7 @@ export namespace Prisma {
     waAutomationPlaybooks<T extends Tenant$waAutomationPlaybooksArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$waAutomationPlaybooksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WaAutomationPlaybookPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     aiAgentConfig<T extends Tenant$aiAgentConfigArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$aiAgentConfigArgs<ExtArgs>>): Prisma__AiAgentConfigClient<$Result.GetResult<Prisma.$AiAgentConfigPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     aiMessageLogs<T extends Tenant$aiMessageLogsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$aiMessageLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AiMessageLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    aiUsageLogs<T extends Tenant$aiUsageLogsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$aiUsageLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AiUsageLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     usageEvents<T extends Tenant$usageEventsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$usageEventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UsageEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     billingSubscription<T extends Tenant$billingSubscriptionArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$billingSubscriptionArgs<ExtArgs>>): Prisma__BillingSubscriptionClient<$Result.GetResult<Prisma.$BillingSubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     billingAuditLogs<T extends Tenant$billingAuditLogsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$billingAuditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BillingAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -5523,6 +5652,7 @@ export namespace Prisma {
     readonly plan: FieldRef<"Tenant", 'String'>
     readonly activeUntil: FieldRef<"Tenant", 'DateTime'>
     readonly aiDriver: FieldRef<"Tenant", 'String'>
+    readonly crmWebhookUrl: FieldRef<"Tenant", 'String'>
     readonly createdAt: FieldRef<"Tenant", 'DateTime'>
     readonly updatedAt: FieldRef<"Tenant", 'DateTime'>
   }
@@ -6265,6 +6395,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: AiMessageLogScalarFieldEnum | AiMessageLogScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.aiUsageLogs
+   */
+  export type Tenant$aiUsageLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AiUsageLog
+     */
+    select?: AiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AiUsageLog
+     */
+    omit?: AiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AiUsageLogInclude<ExtArgs> | null
+    where?: AiUsageLogWhereInput
+    orderBy?: AiUsageLogOrderByWithRelationInput | AiUsageLogOrderByWithRelationInput[]
+    cursor?: AiUsageLogWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AiUsageLogScalarFieldEnum | AiUsageLogScalarFieldEnum[]
   }
 
   /**
@@ -14332,6 +14486,7 @@ export namespace Prisma {
     tenantId: string | null
     enabled: boolean | null
     systemPrompt: string | null
+    model: string | null
     tone: $Enums.AiAgentTone | null
     maxTokens: number | null
     temperature: number | null
@@ -14345,6 +14500,7 @@ export namespace Prisma {
     tenantId: string | null
     enabled: boolean | null
     systemPrompt: string | null
+    model: string | null
     tone: $Enums.AiAgentTone | null
     maxTokens: number | null
     temperature: number | null
@@ -14358,6 +14514,7 @@ export namespace Prisma {
     tenantId: number
     enabled: number
     systemPrompt: number
+    model: number
     tone: number
     maxTokens: number
     temperature: number
@@ -14383,6 +14540,7 @@ export namespace Prisma {
     tenantId?: true
     enabled?: true
     systemPrompt?: true
+    model?: true
     tone?: true
     maxTokens?: true
     temperature?: true
@@ -14396,6 +14554,7 @@ export namespace Prisma {
     tenantId?: true
     enabled?: true
     systemPrompt?: true
+    model?: true
     tone?: true
     maxTokens?: true
     temperature?: true
@@ -14409,6 +14568,7 @@ export namespace Prisma {
     tenantId?: true
     enabled?: true
     systemPrompt?: true
+    model?: true
     tone?: true
     maxTokens?: true
     temperature?: true
@@ -14509,6 +14669,7 @@ export namespace Prisma {
     tenantId: string
     enabled: boolean
     systemPrompt: string
+    model: string | null
     tone: $Enums.AiAgentTone
     maxTokens: number
     temperature: number
@@ -14541,6 +14702,7 @@ export namespace Prisma {
     tenantId?: boolean
     enabled?: boolean
     systemPrompt?: boolean
+    model?: boolean
     tone?: boolean
     maxTokens?: boolean
     temperature?: boolean
@@ -14555,6 +14717,7 @@ export namespace Prisma {
     tenantId?: boolean
     enabled?: boolean
     systemPrompt?: boolean
+    model?: boolean
     tone?: boolean
     maxTokens?: boolean
     temperature?: boolean
@@ -14569,6 +14732,7 @@ export namespace Prisma {
     tenantId?: boolean
     enabled?: boolean
     systemPrompt?: boolean
+    model?: boolean
     tone?: boolean
     maxTokens?: boolean
     temperature?: boolean
@@ -14583,6 +14747,7 @@ export namespace Prisma {
     tenantId?: boolean
     enabled?: boolean
     systemPrompt?: boolean
+    model?: boolean
     tone?: boolean
     maxTokens?: boolean
     temperature?: boolean
@@ -14591,7 +14756,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type AiAgentConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "tenantId" | "enabled" | "systemPrompt" | "tone" | "maxTokens" | "temperature" | "fallbackToHuman" | "createdAt" | "updatedAt", ExtArgs["result"]["aiAgentConfig"]>
+  export type AiAgentConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "tenantId" | "enabled" | "systemPrompt" | "model" | "tone" | "maxTokens" | "temperature" | "fallbackToHuman" | "createdAt" | "updatedAt", ExtArgs["result"]["aiAgentConfig"]>
   export type AiAgentConfigInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
   }
@@ -14612,6 +14777,7 @@ export namespace Prisma {
       tenantId: string
       enabled: boolean
       systemPrompt: string
+      model: string | null
       tone: $Enums.AiAgentTone
       maxTokens: number
       temperature: number
@@ -15046,6 +15212,7 @@ export namespace Prisma {
     readonly tenantId: FieldRef<"AiAgentConfig", 'String'>
     readonly enabled: FieldRef<"AiAgentConfig", 'Boolean'>
     readonly systemPrompt: FieldRef<"AiAgentConfig", 'String'>
+    readonly model: FieldRef<"AiAgentConfig", 'String'>
     readonly tone: FieldRef<"AiAgentConfig", 'AiAgentTone'>
     readonly maxTokens: FieldRef<"AiAgentConfig", 'Int'>
     readonly temperature: FieldRef<"AiAgentConfig", 'Float'>
@@ -16637,6 +16804,1098 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: AiMessageLogInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AiUsageLog
+   */
+
+  export type AggregateAiUsageLog = {
+    _count: AiUsageLogCountAggregateOutputType | null
+    _avg: AiUsageLogAvgAggregateOutputType | null
+    _sum: AiUsageLogSumAggregateOutputType | null
+    _min: AiUsageLogMinAggregateOutputType | null
+    _max: AiUsageLogMaxAggregateOutputType | null
+  }
+
+  export type AiUsageLogAvgAggregateOutputType = {
+    tokens: number | null
+  }
+
+  export type AiUsageLogSumAggregateOutputType = {
+    tokens: number | null
+  }
+
+  export type AiUsageLogMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    type: $Enums.AiUsageLogType | null
+    tokens: number | null
+    createdAt: Date | null
+  }
+
+  export type AiUsageLogMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    type: $Enums.AiUsageLogType | null
+    tokens: number | null
+    createdAt: Date | null
+  }
+
+  export type AiUsageLogCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    type: number
+    tokens: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type AiUsageLogAvgAggregateInputType = {
+    tokens?: true
+  }
+
+  export type AiUsageLogSumAggregateInputType = {
+    tokens?: true
+  }
+
+  export type AiUsageLogMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    type?: true
+    tokens?: true
+    createdAt?: true
+  }
+
+  export type AiUsageLogMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    type?: true
+    tokens?: true
+    createdAt?: true
+  }
+
+  export type AiUsageLogCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    type?: true
+    tokens?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type AiUsageLogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AiUsageLog to aggregate.
+     */
+    where?: AiUsageLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AiUsageLogs to fetch.
+     */
+    orderBy?: AiUsageLogOrderByWithRelationInput | AiUsageLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AiUsageLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AiUsageLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AiUsageLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AiUsageLogs
+    **/
+    _count?: true | AiUsageLogCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: AiUsageLogAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: AiUsageLogSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AiUsageLogMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AiUsageLogMaxAggregateInputType
+  }
+
+  export type GetAiUsageLogAggregateType<T extends AiUsageLogAggregateArgs> = {
+        [P in keyof T & keyof AggregateAiUsageLog]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAiUsageLog[P]>
+      : GetScalarType<T[P], AggregateAiUsageLog[P]>
+  }
+
+
+
+
+  export type AiUsageLogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AiUsageLogWhereInput
+    orderBy?: AiUsageLogOrderByWithAggregationInput | AiUsageLogOrderByWithAggregationInput[]
+    by: AiUsageLogScalarFieldEnum[] | AiUsageLogScalarFieldEnum
+    having?: AiUsageLogScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AiUsageLogCountAggregateInputType | true
+    _avg?: AiUsageLogAvgAggregateInputType
+    _sum?: AiUsageLogSumAggregateInputType
+    _min?: AiUsageLogMinAggregateInputType
+    _max?: AiUsageLogMaxAggregateInputType
+  }
+
+  export type AiUsageLogGroupByOutputType = {
+    id: string
+    tenantId: string
+    type: $Enums.AiUsageLogType
+    tokens: number
+    createdAt: Date
+    _count: AiUsageLogCountAggregateOutputType | null
+    _avg: AiUsageLogAvgAggregateOutputType | null
+    _sum: AiUsageLogSumAggregateOutputType | null
+    _min: AiUsageLogMinAggregateOutputType | null
+    _max: AiUsageLogMaxAggregateOutputType | null
+  }
+
+  type GetAiUsageLogGroupByPayload<T extends AiUsageLogGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AiUsageLogGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AiUsageLogGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AiUsageLogGroupByOutputType[P]>
+            : GetScalarType<T[P], AiUsageLogGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AiUsageLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    type?: boolean
+    tokens?: boolean
+    createdAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["aiUsageLog"]>
+
+  export type AiUsageLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    type?: boolean
+    tokens?: boolean
+    createdAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["aiUsageLog"]>
+
+  export type AiUsageLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    type?: boolean
+    tokens?: boolean
+    createdAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["aiUsageLog"]>
+
+  export type AiUsageLogSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    type?: boolean
+    tokens?: boolean
+    createdAt?: boolean
+  }
+
+  export type AiUsageLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "tenantId" | "type" | "tokens" | "createdAt", ExtArgs["result"]["aiUsageLog"]>
+  export type AiUsageLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+  export type AiUsageLogIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+  export type AiUsageLogIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+
+  export type $AiUsageLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AiUsageLog"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      type: $Enums.AiUsageLogType
+      tokens: number
+      createdAt: Date
+    }, ExtArgs["result"]["aiUsageLog"]>
+    composites: {}
+  }
+
+  type AiUsageLogGetPayload<S extends boolean | null | undefined | AiUsageLogDefaultArgs> = $Result.GetResult<Prisma.$AiUsageLogPayload, S>
+
+  type AiUsageLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AiUsageLogFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AiUsageLogCountAggregateInputType | true
+    }
+
+  export interface AiUsageLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AiUsageLog'], meta: { name: 'AiUsageLog' } }
+    /**
+     * Find zero or one AiUsageLog that matches the filter.
+     * @param {AiUsageLogFindUniqueArgs} args - Arguments to find a AiUsageLog
+     * @example
+     * // Get one AiUsageLog
+     * const aiUsageLog = await prisma.aiUsageLog.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AiUsageLogFindUniqueArgs>(args: SelectSubset<T, AiUsageLogFindUniqueArgs<ExtArgs>>): Prisma__AiUsageLogClient<$Result.GetResult<Prisma.$AiUsageLogPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AiUsageLog that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AiUsageLogFindUniqueOrThrowArgs} args - Arguments to find a AiUsageLog
+     * @example
+     * // Get one AiUsageLog
+     * const aiUsageLog = await prisma.aiUsageLog.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AiUsageLogFindUniqueOrThrowArgs>(args: SelectSubset<T, AiUsageLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AiUsageLogClient<$Result.GetResult<Prisma.$AiUsageLogPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AiUsageLog that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AiUsageLogFindFirstArgs} args - Arguments to find a AiUsageLog
+     * @example
+     * // Get one AiUsageLog
+     * const aiUsageLog = await prisma.aiUsageLog.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AiUsageLogFindFirstArgs>(args?: SelectSubset<T, AiUsageLogFindFirstArgs<ExtArgs>>): Prisma__AiUsageLogClient<$Result.GetResult<Prisma.$AiUsageLogPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AiUsageLog that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AiUsageLogFindFirstOrThrowArgs} args - Arguments to find a AiUsageLog
+     * @example
+     * // Get one AiUsageLog
+     * const aiUsageLog = await prisma.aiUsageLog.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AiUsageLogFindFirstOrThrowArgs>(args?: SelectSubset<T, AiUsageLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__AiUsageLogClient<$Result.GetResult<Prisma.$AiUsageLogPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AiUsageLogs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AiUsageLogFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AiUsageLogs
+     * const aiUsageLogs = await prisma.aiUsageLog.findMany()
+     * 
+     * // Get first 10 AiUsageLogs
+     * const aiUsageLogs = await prisma.aiUsageLog.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const aiUsageLogWithIdOnly = await prisma.aiUsageLog.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AiUsageLogFindManyArgs>(args?: SelectSubset<T, AiUsageLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AiUsageLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AiUsageLog.
+     * @param {AiUsageLogCreateArgs} args - Arguments to create a AiUsageLog.
+     * @example
+     * // Create one AiUsageLog
+     * const AiUsageLog = await prisma.aiUsageLog.create({
+     *   data: {
+     *     // ... data to create a AiUsageLog
+     *   }
+     * })
+     * 
+     */
+    create<T extends AiUsageLogCreateArgs>(args: SelectSubset<T, AiUsageLogCreateArgs<ExtArgs>>): Prisma__AiUsageLogClient<$Result.GetResult<Prisma.$AiUsageLogPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AiUsageLogs.
+     * @param {AiUsageLogCreateManyArgs} args - Arguments to create many AiUsageLogs.
+     * @example
+     * // Create many AiUsageLogs
+     * const aiUsageLog = await prisma.aiUsageLog.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AiUsageLogCreateManyArgs>(args?: SelectSubset<T, AiUsageLogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AiUsageLogs and returns the data saved in the database.
+     * @param {AiUsageLogCreateManyAndReturnArgs} args - Arguments to create many AiUsageLogs.
+     * @example
+     * // Create many AiUsageLogs
+     * const aiUsageLog = await prisma.aiUsageLog.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AiUsageLogs and only return the `id`
+     * const aiUsageLogWithIdOnly = await prisma.aiUsageLog.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AiUsageLogCreateManyAndReturnArgs>(args?: SelectSubset<T, AiUsageLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AiUsageLogPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AiUsageLog.
+     * @param {AiUsageLogDeleteArgs} args - Arguments to delete one AiUsageLog.
+     * @example
+     * // Delete one AiUsageLog
+     * const AiUsageLog = await prisma.aiUsageLog.delete({
+     *   where: {
+     *     // ... filter to delete one AiUsageLog
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AiUsageLogDeleteArgs>(args: SelectSubset<T, AiUsageLogDeleteArgs<ExtArgs>>): Prisma__AiUsageLogClient<$Result.GetResult<Prisma.$AiUsageLogPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AiUsageLog.
+     * @param {AiUsageLogUpdateArgs} args - Arguments to update one AiUsageLog.
+     * @example
+     * // Update one AiUsageLog
+     * const aiUsageLog = await prisma.aiUsageLog.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AiUsageLogUpdateArgs>(args: SelectSubset<T, AiUsageLogUpdateArgs<ExtArgs>>): Prisma__AiUsageLogClient<$Result.GetResult<Prisma.$AiUsageLogPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AiUsageLogs.
+     * @param {AiUsageLogDeleteManyArgs} args - Arguments to filter AiUsageLogs to delete.
+     * @example
+     * // Delete a few AiUsageLogs
+     * const { count } = await prisma.aiUsageLog.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AiUsageLogDeleteManyArgs>(args?: SelectSubset<T, AiUsageLogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AiUsageLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AiUsageLogUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AiUsageLogs
+     * const aiUsageLog = await prisma.aiUsageLog.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AiUsageLogUpdateManyArgs>(args: SelectSubset<T, AiUsageLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AiUsageLogs and returns the data updated in the database.
+     * @param {AiUsageLogUpdateManyAndReturnArgs} args - Arguments to update many AiUsageLogs.
+     * @example
+     * // Update many AiUsageLogs
+     * const aiUsageLog = await prisma.aiUsageLog.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AiUsageLogs and only return the `id`
+     * const aiUsageLogWithIdOnly = await prisma.aiUsageLog.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AiUsageLogUpdateManyAndReturnArgs>(args: SelectSubset<T, AiUsageLogUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AiUsageLogPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AiUsageLog.
+     * @param {AiUsageLogUpsertArgs} args - Arguments to update or create a AiUsageLog.
+     * @example
+     * // Update or create a AiUsageLog
+     * const aiUsageLog = await prisma.aiUsageLog.upsert({
+     *   create: {
+     *     // ... data to create a AiUsageLog
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AiUsageLog we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AiUsageLogUpsertArgs>(args: SelectSubset<T, AiUsageLogUpsertArgs<ExtArgs>>): Prisma__AiUsageLogClient<$Result.GetResult<Prisma.$AiUsageLogPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AiUsageLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AiUsageLogCountArgs} args - Arguments to filter AiUsageLogs to count.
+     * @example
+     * // Count the number of AiUsageLogs
+     * const count = await prisma.aiUsageLog.count({
+     *   where: {
+     *     // ... the filter for the AiUsageLogs we want to count
+     *   }
+     * })
+    **/
+    count<T extends AiUsageLogCountArgs>(
+      args?: Subset<T, AiUsageLogCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AiUsageLogCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AiUsageLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AiUsageLogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AiUsageLogAggregateArgs>(args: Subset<T, AiUsageLogAggregateArgs>): Prisma.PrismaPromise<GetAiUsageLogAggregateType<T>>
+
+    /**
+     * Group by AiUsageLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AiUsageLogGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AiUsageLogGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AiUsageLogGroupByArgs['orderBy'] }
+        : { orderBy?: AiUsageLogGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AiUsageLogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAiUsageLogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AiUsageLog model
+   */
+  readonly fields: AiUsageLogFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AiUsageLog.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AiUsageLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AiUsageLog model
+   */
+  interface AiUsageLogFieldRefs {
+    readonly id: FieldRef<"AiUsageLog", 'String'>
+    readonly tenantId: FieldRef<"AiUsageLog", 'String'>
+    readonly type: FieldRef<"AiUsageLog", 'AiUsageLogType'>
+    readonly tokens: FieldRef<"AiUsageLog", 'Int'>
+    readonly createdAt: FieldRef<"AiUsageLog", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AiUsageLog findUnique
+   */
+  export type AiUsageLogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AiUsageLog
+     */
+    select?: AiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AiUsageLog
+     */
+    omit?: AiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AiUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter, which AiUsageLog to fetch.
+     */
+    where: AiUsageLogWhereUniqueInput
+  }
+
+  /**
+   * AiUsageLog findUniqueOrThrow
+   */
+  export type AiUsageLogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AiUsageLog
+     */
+    select?: AiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AiUsageLog
+     */
+    omit?: AiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AiUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter, which AiUsageLog to fetch.
+     */
+    where: AiUsageLogWhereUniqueInput
+  }
+
+  /**
+   * AiUsageLog findFirst
+   */
+  export type AiUsageLogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AiUsageLog
+     */
+    select?: AiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AiUsageLog
+     */
+    omit?: AiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AiUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter, which AiUsageLog to fetch.
+     */
+    where?: AiUsageLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AiUsageLogs to fetch.
+     */
+    orderBy?: AiUsageLogOrderByWithRelationInput | AiUsageLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AiUsageLogs.
+     */
+    cursor?: AiUsageLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AiUsageLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AiUsageLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AiUsageLogs.
+     */
+    distinct?: AiUsageLogScalarFieldEnum | AiUsageLogScalarFieldEnum[]
+  }
+
+  /**
+   * AiUsageLog findFirstOrThrow
+   */
+  export type AiUsageLogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AiUsageLog
+     */
+    select?: AiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AiUsageLog
+     */
+    omit?: AiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AiUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter, which AiUsageLog to fetch.
+     */
+    where?: AiUsageLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AiUsageLogs to fetch.
+     */
+    orderBy?: AiUsageLogOrderByWithRelationInput | AiUsageLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AiUsageLogs.
+     */
+    cursor?: AiUsageLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AiUsageLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AiUsageLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AiUsageLogs.
+     */
+    distinct?: AiUsageLogScalarFieldEnum | AiUsageLogScalarFieldEnum[]
+  }
+
+  /**
+   * AiUsageLog findMany
+   */
+  export type AiUsageLogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AiUsageLog
+     */
+    select?: AiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AiUsageLog
+     */
+    omit?: AiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AiUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter, which AiUsageLogs to fetch.
+     */
+    where?: AiUsageLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AiUsageLogs to fetch.
+     */
+    orderBy?: AiUsageLogOrderByWithRelationInput | AiUsageLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AiUsageLogs.
+     */
+    cursor?: AiUsageLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AiUsageLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AiUsageLogs.
+     */
+    skip?: number
+    distinct?: AiUsageLogScalarFieldEnum | AiUsageLogScalarFieldEnum[]
+  }
+
+  /**
+   * AiUsageLog create
+   */
+  export type AiUsageLogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AiUsageLog
+     */
+    select?: AiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AiUsageLog
+     */
+    omit?: AiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AiUsageLogInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AiUsageLog.
+     */
+    data: XOR<AiUsageLogCreateInput, AiUsageLogUncheckedCreateInput>
+  }
+
+  /**
+   * AiUsageLog createMany
+   */
+  export type AiUsageLogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AiUsageLogs.
+     */
+    data: AiUsageLogCreateManyInput | AiUsageLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AiUsageLog createManyAndReturn
+   */
+  export type AiUsageLogCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AiUsageLog
+     */
+    select?: AiUsageLogSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AiUsageLog
+     */
+    omit?: AiUsageLogOmit<ExtArgs> | null
+    /**
+     * The data used to create many AiUsageLogs.
+     */
+    data: AiUsageLogCreateManyInput | AiUsageLogCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AiUsageLogIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AiUsageLog update
+   */
+  export type AiUsageLogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AiUsageLog
+     */
+    select?: AiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AiUsageLog
+     */
+    omit?: AiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AiUsageLogInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AiUsageLog.
+     */
+    data: XOR<AiUsageLogUpdateInput, AiUsageLogUncheckedUpdateInput>
+    /**
+     * Choose, which AiUsageLog to update.
+     */
+    where: AiUsageLogWhereUniqueInput
+  }
+
+  /**
+   * AiUsageLog updateMany
+   */
+  export type AiUsageLogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AiUsageLogs.
+     */
+    data: XOR<AiUsageLogUpdateManyMutationInput, AiUsageLogUncheckedUpdateManyInput>
+    /**
+     * Filter which AiUsageLogs to update
+     */
+    where?: AiUsageLogWhereInput
+    /**
+     * Limit how many AiUsageLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AiUsageLog updateManyAndReturn
+   */
+  export type AiUsageLogUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AiUsageLog
+     */
+    select?: AiUsageLogSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AiUsageLog
+     */
+    omit?: AiUsageLogOmit<ExtArgs> | null
+    /**
+     * The data used to update AiUsageLogs.
+     */
+    data: XOR<AiUsageLogUpdateManyMutationInput, AiUsageLogUncheckedUpdateManyInput>
+    /**
+     * Filter which AiUsageLogs to update
+     */
+    where?: AiUsageLogWhereInput
+    /**
+     * Limit how many AiUsageLogs to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AiUsageLogIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AiUsageLog upsert
+   */
+  export type AiUsageLogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AiUsageLog
+     */
+    select?: AiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AiUsageLog
+     */
+    omit?: AiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AiUsageLogInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AiUsageLog to update in case it exists.
+     */
+    where: AiUsageLogWhereUniqueInput
+    /**
+     * In case the AiUsageLog found by the `where` argument doesn't exist, create a new AiUsageLog with this data.
+     */
+    create: XOR<AiUsageLogCreateInput, AiUsageLogUncheckedCreateInput>
+    /**
+     * In case the AiUsageLog was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AiUsageLogUpdateInput, AiUsageLogUncheckedUpdateInput>
+  }
+
+  /**
+   * AiUsageLog delete
+   */
+  export type AiUsageLogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AiUsageLog
+     */
+    select?: AiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AiUsageLog
+     */
+    omit?: AiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AiUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter which AiUsageLog to delete.
+     */
+    where: AiUsageLogWhereUniqueInput
+  }
+
+  /**
+   * AiUsageLog deleteMany
+   */
+  export type AiUsageLogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AiUsageLogs to delete
+     */
+    where?: AiUsageLogWhereInput
+    /**
+     * Limit how many AiUsageLogs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AiUsageLog without action
+   */
+  export type AiUsageLogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AiUsageLog
+     */
+    select?: AiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AiUsageLog
+     */
+    omit?: AiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AiUsageLogInclude<ExtArgs> | null
   }
 
 
@@ -32370,6 +33629,7 @@ export namespace Prisma {
     plan: 'plan',
     activeUntil: 'activeUntil',
     aiDriver: 'aiDriver',
+    crmWebhookUrl: 'crmWebhookUrl',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -32489,6 +33749,7 @@ export namespace Prisma {
     tenantId: 'tenantId',
     enabled: 'enabled',
     systemPrompt: 'systemPrompt',
+    model: 'model',
     tone: 'tone',
     maxTokens: 'maxTokens',
     temperature: 'temperature',
@@ -32515,6 +33776,17 @@ export namespace Prisma {
   };
 
   export type AiMessageLogScalarFieldEnum = (typeof AiMessageLogScalarFieldEnum)[keyof typeof AiMessageLogScalarFieldEnum]
+
+
+  export const AiUsageLogScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    type: 'type',
+    tokens: 'tokens',
+    createdAt: 'createdAt'
+  };
+
+  export type AiUsageLogScalarFieldEnum = (typeof AiUsageLogScalarFieldEnum)[keyof typeof AiUsageLogScalarFieldEnum]
 
 
   export const WaInboxThreadScalarFieldEnum: {
@@ -32899,6 +34171,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'AiUsageLogType'
+   */
+  export type EnumAiUsageLogTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AiUsageLogType'>
+    
+
+
+  /**
+   * Reference to a field of type 'AiUsageLogType[]'
+   */
+  export type ListEnumAiUsageLogTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AiUsageLogType[]'>
+    
+
+
+  /**
    * Reference to a field of type 'WaInboxThreadStatus'
    */
   export type EnumWaInboxThreadStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WaInboxThreadStatus'>
@@ -33070,6 +34356,7 @@ export namespace Prisma {
     plan?: StringNullableFilter<"Tenant"> | string | null
     activeUntil?: DateTimeNullableFilter<"Tenant"> | Date | string | null
     aiDriver?: StringNullableFilter<"Tenant"> | string | null
+    crmWebhookUrl?: StringNullableFilter<"Tenant"> | string | null
     createdAt?: DateTimeFilter<"Tenant"> | Date | string
     updatedAt?: DateTimeFilter<"Tenant"> | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberListRelationFilter
@@ -33087,6 +34374,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookListRelationFilter
     aiAgentConfig?: XOR<AiAgentConfigNullableScalarRelationFilter, AiAgentConfigWhereInput> | null
     aiMessageLogs?: AiMessageLogListRelationFilter
+    aiUsageLogs?: AiUsageLogListRelationFilter
     usageEvents?: UsageEventListRelationFilter
     billingSubscription?: XOR<BillingSubscriptionNullableScalarRelationFilter, BillingSubscriptionWhereInput> | null
     billingAuditLogs?: BillingAuditLogListRelationFilter
@@ -33111,6 +34399,7 @@ export namespace Prisma {
     plan?: SortOrderInput | SortOrder
     activeUntil?: SortOrderInput | SortOrder
     aiDriver?: SortOrderInput | SortOrder
+    crmWebhookUrl?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     whatsappPhoneNumbers?: WhatsappPhoneNumberOrderByRelationAggregateInput
@@ -33128,6 +34417,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookOrderByRelationAggregateInput
     aiAgentConfig?: AiAgentConfigOrderByWithRelationInput
     aiMessageLogs?: AiMessageLogOrderByRelationAggregateInput
+    aiUsageLogs?: AiUsageLogOrderByRelationAggregateInput
     usageEvents?: UsageEventOrderByRelationAggregateInput
     billingSubscription?: BillingSubscriptionOrderByWithRelationInput
     billingAuditLogs?: BillingAuditLogOrderByRelationAggregateInput
@@ -33155,6 +34445,7 @@ export namespace Prisma {
     plan?: StringNullableFilter<"Tenant"> | string | null
     activeUntil?: DateTimeNullableFilter<"Tenant"> | Date | string | null
     aiDriver?: StringNullableFilter<"Tenant"> | string | null
+    crmWebhookUrl?: StringNullableFilter<"Tenant"> | string | null
     createdAt?: DateTimeFilter<"Tenant"> | Date | string
     updatedAt?: DateTimeFilter<"Tenant"> | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberListRelationFilter
@@ -33172,6 +34463,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookListRelationFilter
     aiAgentConfig?: XOR<AiAgentConfigNullableScalarRelationFilter, AiAgentConfigWhereInput> | null
     aiMessageLogs?: AiMessageLogListRelationFilter
+    aiUsageLogs?: AiUsageLogListRelationFilter
     usageEvents?: UsageEventListRelationFilter
     billingSubscription?: XOR<BillingSubscriptionNullableScalarRelationFilter, BillingSubscriptionWhereInput> | null
     billingAuditLogs?: BillingAuditLogListRelationFilter
@@ -33196,6 +34488,7 @@ export namespace Prisma {
     plan?: SortOrderInput | SortOrder
     activeUntil?: SortOrderInput | SortOrder
     aiDriver?: SortOrderInput | SortOrder
+    crmWebhookUrl?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: TenantCountOrderByAggregateInput
@@ -33222,6 +34515,7 @@ export namespace Prisma {
     plan?: StringNullableWithAggregatesFilter<"Tenant"> | string | null
     activeUntil?: DateTimeNullableWithAggregatesFilter<"Tenant"> | Date | string | null
     aiDriver?: StringNullableWithAggregatesFilter<"Tenant"> | string | null
+    crmWebhookUrl?: StringNullableWithAggregatesFilter<"Tenant"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Tenant"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Tenant"> | Date | string
   }
@@ -33776,6 +35070,7 @@ export namespace Prisma {
     tenantId?: StringFilter<"AiAgentConfig"> | string
     enabled?: BoolFilter<"AiAgentConfig"> | boolean
     systemPrompt?: StringFilter<"AiAgentConfig"> | string
+    model?: StringNullableFilter<"AiAgentConfig"> | string | null
     tone?: EnumAiAgentToneFilter<"AiAgentConfig"> | $Enums.AiAgentTone
     maxTokens?: IntFilter<"AiAgentConfig"> | number
     temperature?: FloatFilter<"AiAgentConfig"> | number
@@ -33790,6 +35085,7 @@ export namespace Prisma {
     tenantId?: SortOrder
     enabled?: SortOrder
     systemPrompt?: SortOrder
+    model?: SortOrderInput | SortOrder
     tone?: SortOrder
     maxTokens?: SortOrder
     temperature?: SortOrder
@@ -33807,6 +35103,7 @@ export namespace Prisma {
     NOT?: AiAgentConfigWhereInput | AiAgentConfigWhereInput[]
     enabled?: BoolFilter<"AiAgentConfig"> | boolean
     systemPrompt?: StringFilter<"AiAgentConfig"> | string
+    model?: StringNullableFilter<"AiAgentConfig"> | string | null
     tone?: EnumAiAgentToneFilter<"AiAgentConfig"> | $Enums.AiAgentTone
     maxTokens?: IntFilter<"AiAgentConfig"> | number
     temperature?: FloatFilter<"AiAgentConfig"> | number
@@ -33821,6 +35118,7 @@ export namespace Prisma {
     tenantId?: SortOrder
     enabled?: SortOrder
     systemPrompt?: SortOrder
+    model?: SortOrderInput | SortOrder
     tone?: SortOrder
     maxTokens?: SortOrder
     temperature?: SortOrder
@@ -33842,6 +35140,7 @@ export namespace Prisma {
     tenantId?: StringWithAggregatesFilter<"AiAgentConfig"> | string
     enabled?: BoolWithAggregatesFilter<"AiAgentConfig"> | boolean
     systemPrompt?: StringWithAggregatesFilter<"AiAgentConfig"> | string
+    model?: StringNullableWithAggregatesFilter<"AiAgentConfig"> | string | null
     tone?: EnumAiAgentToneWithAggregatesFilter<"AiAgentConfig"> | $Enums.AiAgentTone
     maxTokens?: IntWithAggregatesFilter<"AiAgentConfig"> | number
     temperature?: FloatWithAggregatesFilter<"AiAgentConfig"> | number
@@ -33935,6 +35234,63 @@ export namespace Prisma {
     durationMs?: IntNullableWithAggregatesFilter<"AiMessageLog"> | number | null
     errorMessage?: StringNullableWithAggregatesFilter<"AiMessageLog"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"AiMessageLog"> | Date | string
+  }
+
+  export type AiUsageLogWhereInput = {
+    AND?: AiUsageLogWhereInput | AiUsageLogWhereInput[]
+    OR?: AiUsageLogWhereInput[]
+    NOT?: AiUsageLogWhereInput | AiUsageLogWhereInput[]
+    id?: StringFilter<"AiUsageLog"> | string
+    tenantId?: StringFilter<"AiUsageLog"> | string
+    type?: EnumAiUsageLogTypeFilter<"AiUsageLog"> | $Enums.AiUsageLogType
+    tokens?: IntFilter<"AiUsageLog"> | number
+    createdAt?: DateTimeFilter<"AiUsageLog"> | Date | string
+    tenant?: XOR<TenantScalarRelationFilter, TenantWhereInput>
+  }
+
+  export type AiUsageLogOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    type?: SortOrder
+    tokens?: SortOrder
+    createdAt?: SortOrder
+    tenant?: TenantOrderByWithRelationInput
+  }
+
+  export type AiUsageLogWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AiUsageLogWhereInput | AiUsageLogWhereInput[]
+    OR?: AiUsageLogWhereInput[]
+    NOT?: AiUsageLogWhereInput | AiUsageLogWhereInput[]
+    tenantId?: StringFilter<"AiUsageLog"> | string
+    type?: EnumAiUsageLogTypeFilter<"AiUsageLog"> | $Enums.AiUsageLogType
+    tokens?: IntFilter<"AiUsageLog"> | number
+    createdAt?: DateTimeFilter<"AiUsageLog"> | Date | string
+    tenant?: XOR<TenantScalarRelationFilter, TenantWhereInput>
+  }, "id">
+
+  export type AiUsageLogOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    type?: SortOrder
+    tokens?: SortOrder
+    createdAt?: SortOrder
+    _count?: AiUsageLogCountOrderByAggregateInput
+    _avg?: AiUsageLogAvgOrderByAggregateInput
+    _max?: AiUsageLogMaxOrderByAggregateInput
+    _min?: AiUsageLogMinOrderByAggregateInput
+    _sum?: AiUsageLogSumOrderByAggregateInput
+  }
+
+  export type AiUsageLogScalarWhereWithAggregatesInput = {
+    AND?: AiUsageLogScalarWhereWithAggregatesInput | AiUsageLogScalarWhereWithAggregatesInput[]
+    OR?: AiUsageLogScalarWhereWithAggregatesInput[]
+    NOT?: AiUsageLogScalarWhereWithAggregatesInput | AiUsageLogScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AiUsageLog"> | string
+    tenantId?: StringWithAggregatesFilter<"AiUsageLog"> | string
+    type?: EnumAiUsageLogTypeWithAggregatesFilter<"AiUsageLog"> | $Enums.AiUsageLogType
+    tokens?: IntWithAggregatesFilter<"AiUsageLog"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"AiUsageLog"> | Date | string
   }
 
   export type WaInboxThreadWhereInput = {
@@ -35065,6 +36421,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -35082,6 +36439,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -35106,6 +36464,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -35123,6 +36482,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -35147,6 +36507,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -35164,6 +36525,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -35188,6 +36550,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -35205,6 +36568,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -35229,6 +36593,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -35249,6 +36614,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -35269,6 +36635,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -35873,6 +37240,7 @@ export namespace Prisma {
     id?: string
     enabled?: boolean
     systemPrompt?: string
+    model?: string | null
     tone?: $Enums.AiAgentTone
     maxTokens?: number
     temperature?: number
@@ -35887,6 +37255,7 @@ export namespace Prisma {
     tenantId: string
     enabled?: boolean
     systemPrompt?: string
+    model?: string | null
     tone?: $Enums.AiAgentTone
     maxTokens?: number
     temperature?: number
@@ -35899,6 +37268,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     enabled?: BoolFieldUpdateOperationsInput | boolean
     systemPrompt?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
     tone?: EnumAiAgentToneFieldUpdateOperationsInput | $Enums.AiAgentTone
     maxTokens?: IntFieldUpdateOperationsInput | number
     temperature?: FloatFieldUpdateOperationsInput | number
@@ -35913,6 +37283,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     enabled?: BoolFieldUpdateOperationsInput | boolean
     systemPrompt?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
     tone?: EnumAiAgentToneFieldUpdateOperationsInput | $Enums.AiAgentTone
     maxTokens?: IntFieldUpdateOperationsInput | number
     temperature?: FloatFieldUpdateOperationsInput | number
@@ -35926,6 +37297,7 @@ export namespace Prisma {
     tenantId: string
     enabled?: boolean
     systemPrompt?: string
+    model?: string | null
     tone?: $Enums.AiAgentTone
     maxTokens?: number
     temperature?: number
@@ -35938,6 +37310,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     enabled?: BoolFieldUpdateOperationsInput | boolean
     systemPrompt?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
     tone?: EnumAiAgentToneFieldUpdateOperationsInput | $Enums.AiAgentTone
     maxTokens?: IntFieldUpdateOperationsInput | number
     temperature?: FloatFieldUpdateOperationsInput | number
@@ -35951,6 +37324,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     enabled?: BoolFieldUpdateOperationsInput | boolean
     systemPrompt?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
     tone?: EnumAiAgentToneFieldUpdateOperationsInput | $Enums.AiAgentTone
     maxTokens?: IntFieldUpdateOperationsInput | number
     temperature?: FloatFieldUpdateOperationsInput | number
@@ -36053,6 +37427,61 @@ export namespace Prisma {
     tokensUsed?: NullableIntFieldUpdateOperationsInput | number | null
     durationMs?: NullableIntFieldUpdateOperationsInput | number | null
     errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AiUsageLogCreateInput = {
+    id?: string
+    type: $Enums.AiUsageLogType
+    tokens?: number
+    createdAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutAiUsageLogsInput
+  }
+
+  export type AiUsageLogUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    type: $Enums.AiUsageLogType
+    tokens?: number
+    createdAt?: Date | string
+  }
+
+  export type AiUsageLogUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumAiUsageLogTypeFieldUpdateOperationsInput | $Enums.AiUsageLogType
+    tokens?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutAiUsageLogsNestedInput
+  }
+
+  export type AiUsageLogUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    type?: EnumAiUsageLogTypeFieldUpdateOperationsInput | $Enums.AiUsageLogType
+    tokens?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AiUsageLogCreateManyInput = {
+    id?: string
+    tenantId: string
+    type: $Enums.AiUsageLogType
+    tokens?: number
+    createdAt?: Date | string
+  }
+
+  export type AiUsageLogUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumAiUsageLogTypeFieldUpdateOperationsInput | $Enums.AiUsageLogType
+    tokens?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AiUsageLogUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    type?: EnumAiUsageLogTypeFieldUpdateOperationsInput | $Enums.AiUsageLogType
+    tokens?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -37393,6 +38822,12 @@ export namespace Prisma {
     none?: AiMessageLogWhereInput
   }
 
+  export type AiUsageLogListRelationFilter = {
+    every?: AiUsageLogWhereInput
+    some?: AiUsageLogWhereInput
+    none?: AiUsageLogWhereInput
+  }
+
   export type UsageEventListRelationFilter = {
     every?: UsageEventWhereInput
     some?: UsageEventWhereInput
@@ -37483,6 +38918,10 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type AiUsageLogOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type UsageEventOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -37515,6 +38954,7 @@ export namespace Prisma {
     plan?: SortOrder
     activeUntil?: SortOrder
     aiDriver?: SortOrder
+    crmWebhookUrl?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -37535,6 +38975,7 @@ export namespace Prisma {
     plan?: SortOrder
     activeUntil?: SortOrder
     aiDriver?: SortOrder
+    crmWebhookUrl?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -37555,6 +38996,7 @@ export namespace Prisma {
     plan?: SortOrder
     activeUntil?: SortOrder
     aiDriver?: SortOrder
+    crmWebhookUrl?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -38055,6 +39497,7 @@ export namespace Prisma {
     tenantId?: SortOrder
     enabled?: SortOrder
     systemPrompt?: SortOrder
+    model?: SortOrder
     tone?: SortOrder
     maxTokens?: SortOrder
     temperature?: SortOrder
@@ -38073,6 +39516,7 @@ export namespace Prisma {
     tenantId?: SortOrder
     enabled?: SortOrder
     systemPrompt?: SortOrder
+    model?: SortOrder
     tone?: SortOrder
     maxTokens?: SortOrder
     temperature?: SortOrder
@@ -38086,6 +39530,7 @@ export namespace Prisma {
     tenantId?: SortOrder
     enabled?: SortOrder
     systemPrompt?: SortOrder
+    model?: SortOrder
     tone?: SortOrder
     maxTokens?: SortOrder
     temperature?: SortOrder
@@ -38175,6 +39620,55 @@ export namespace Prisma {
   export type AiMessageLogSumOrderByAggregateInput = {
     tokensUsed?: SortOrder
     durationMs?: SortOrder
+  }
+
+  export type EnumAiUsageLogTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.AiUsageLogType | EnumAiUsageLogTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.AiUsageLogType[] | ListEnumAiUsageLogTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AiUsageLogType[] | ListEnumAiUsageLogTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumAiUsageLogTypeFilter<$PrismaModel> | $Enums.AiUsageLogType
+  }
+
+  export type AiUsageLogCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    type?: SortOrder
+    tokens?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AiUsageLogAvgOrderByAggregateInput = {
+    tokens?: SortOrder
+  }
+
+  export type AiUsageLogMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    type?: SortOrder
+    tokens?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AiUsageLogMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    type?: SortOrder
+    tokens?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AiUsageLogSumOrderByAggregateInput = {
+    tokens?: SortOrder
+  }
+
+  export type EnumAiUsageLogTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AiUsageLogType | EnumAiUsageLogTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.AiUsageLogType[] | ListEnumAiUsageLogTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AiUsageLogType[] | ListEnumAiUsageLogTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumAiUsageLogTypeWithAggregatesFilter<$PrismaModel> | $Enums.AiUsageLogType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAiUsageLogTypeFilter<$PrismaModel>
+    _max?: NestedEnumAiUsageLogTypeFilter<$PrismaModel>
   }
 
   export type EnumWaInboxThreadStatusFilter<$PrismaModel = never> = {
@@ -38984,6 +40478,13 @@ export namespace Prisma {
     connect?: AiMessageLogWhereUniqueInput | AiMessageLogWhereUniqueInput[]
   }
 
+  export type AiUsageLogCreateNestedManyWithoutTenantInput = {
+    create?: XOR<AiUsageLogCreateWithoutTenantInput, AiUsageLogUncheckedCreateWithoutTenantInput> | AiUsageLogCreateWithoutTenantInput[] | AiUsageLogUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: AiUsageLogCreateOrConnectWithoutTenantInput | AiUsageLogCreateOrConnectWithoutTenantInput[]
+    createMany?: AiUsageLogCreateManyTenantInputEnvelope
+    connect?: AiUsageLogWhereUniqueInput | AiUsageLogWhereUniqueInput[]
+  }
+
   export type UsageEventCreateNestedManyWithoutTenantInput = {
     create?: XOR<UsageEventCreateWithoutTenantInput, UsageEventUncheckedCreateWithoutTenantInput> | UsageEventCreateWithoutTenantInput[] | UsageEventUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: UsageEventCreateOrConnectWithoutTenantInput | UsageEventCreateOrConnectWithoutTenantInput[]
@@ -39126,6 +40627,13 @@ export namespace Prisma {
     connectOrCreate?: AiMessageLogCreateOrConnectWithoutTenantInput | AiMessageLogCreateOrConnectWithoutTenantInput[]
     createMany?: AiMessageLogCreateManyTenantInputEnvelope
     connect?: AiMessageLogWhereUniqueInput | AiMessageLogWhereUniqueInput[]
+  }
+
+  export type AiUsageLogUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<AiUsageLogCreateWithoutTenantInput, AiUsageLogUncheckedCreateWithoutTenantInput> | AiUsageLogCreateWithoutTenantInput[] | AiUsageLogUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: AiUsageLogCreateOrConnectWithoutTenantInput | AiUsageLogCreateOrConnectWithoutTenantInput[]
+    createMany?: AiUsageLogCreateManyTenantInputEnvelope
+    connect?: AiUsageLogWhereUniqueInput | AiUsageLogWhereUniqueInput[]
   }
 
   export type UsageEventUncheckedCreateNestedManyWithoutTenantInput = {
@@ -39376,6 +40884,20 @@ export namespace Prisma {
     update?: AiMessageLogUpdateWithWhereUniqueWithoutTenantInput | AiMessageLogUpdateWithWhereUniqueWithoutTenantInput[]
     updateMany?: AiMessageLogUpdateManyWithWhereWithoutTenantInput | AiMessageLogUpdateManyWithWhereWithoutTenantInput[]
     deleteMany?: AiMessageLogScalarWhereInput | AiMessageLogScalarWhereInput[]
+  }
+
+  export type AiUsageLogUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<AiUsageLogCreateWithoutTenantInput, AiUsageLogUncheckedCreateWithoutTenantInput> | AiUsageLogCreateWithoutTenantInput[] | AiUsageLogUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: AiUsageLogCreateOrConnectWithoutTenantInput | AiUsageLogCreateOrConnectWithoutTenantInput[]
+    upsert?: AiUsageLogUpsertWithWhereUniqueWithoutTenantInput | AiUsageLogUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: AiUsageLogCreateManyTenantInputEnvelope
+    set?: AiUsageLogWhereUniqueInput | AiUsageLogWhereUniqueInput[]
+    disconnect?: AiUsageLogWhereUniqueInput | AiUsageLogWhereUniqueInput[]
+    delete?: AiUsageLogWhereUniqueInput | AiUsageLogWhereUniqueInput[]
+    connect?: AiUsageLogWhereUniqueInput | AiUsageLogWhereUniqueInput[]
+    update?: AiUsageLogUpdateWithWhereUniqueWithoutTenantInput | AiUsageLogUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: AiUsageLogUpdateManyWithWhereWithoutTenantInput | AiUsageLogUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: AiUsageLogScalarWhereInput | AiUsageLogScalarWhereInput[]
   }
 
   export type UsageEventUpdateManyWithoutTenantNestedInput = {
@@ -39660,6 +41182,20 @@ export namespace Prisma {
     deleteMany?: AiMessageLogScalarWhereInput | AiMessageLogScalarWhereInput[]
   }
 
+  export type AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<AiUsageLogCreateWithoutTenantInput, AiUsageLogUncheckedCreateWithoutTenantInput> | AiUsageLogCreateWithoutTenantInput[] | AiUsageLogUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: AiUsageLogCreateOrConnectWithoutTenantInput | AiUsageLogCreateOrConnectWithoutTenantInput[]
+    upsert?: AiUsageLogUpsertWithWhereUniqueWithoutTenantInput | AiUsageLogUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: AiUsageLogCreateManyTenantInputEnvelope
+    set?: AiUsageLogWhereUniqueInput | AiUsageLogWhereUniqueInput[]
+    disconnect?: AiUsageLogWhereUniqueInput | AiUsageLogWhereUniqueInput[]
+    delete?: AiUsageLogWhereUniqueInput | AiUsageLogWhereUniqueInput[]
+    connect?: AiUsageLogWhereUniqueInput | AiUsageLogWhereUniqueInput[]
+    update?: AiUsageLogUpdateWithWhereUniqueWithoutTenantInput | AiUsageLogUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: AiUsageLogUpdateManyWithWhereWithoutTenantInput | AiUsageLogUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: AiUsageLogScalarWhereInput | AiUsageLogScalarWhereInput[]
+  }
+
   export type UsageEventUncheckedUpdateManyWithoutTenantNestedInput = {
     create?: XOR<UsageEventCreateWithoutTenantInput, UsageEventUncheckedCreateWithoutTenantInput> | UsageEventCreateWithoutTenantInput[] | UsageEventUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: UsageEventCreateOrConnectWithoutTenantInput | UsageEventCreateOrConnectWithoutTenantInput[]
@@ -39886,6 +41422,24 @@ export namespace Prisma {
     upsert?: TenantUpsertWithoutAiMessageLogsInput
     connect?: TenantWhereUniqueInput
     update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutAiMessageLogsInput, TenantUpdateWithoutAiMessageLogsInput>, TenantUncheckedUpdateWithoutAiMessageLogsInput>
+  }
+
+  export type TenantCreateNestedOneWithoutAiUsageLogsInput = {
+    create?: XOR<TenantCreateWithoutAiUsageLogsInput, TenantUncheckedCreateWithoutAiUsageLogsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutAiUsageLogsInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type EnumAiUsageLogTypeFieldUpdateOperationsInput = {
+    set?: $Enums.AiUsageLogType
+  }
+
+  export type TenantUpdateOneRequiredWithoutAiUsageLogsNestedInput = {
+    create?: XOR<TenantCreateWithoutAiUsageLogsInput, TenantUncheckedCreateWithoutAiUsageLogsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutAiUsageLogsInput
+    upsert?: TenantUpsertWithoutAiUsageLogsInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutAiUsageLogsInput, TenantUpdateWithoutAiUsageLogsInput>, TenantUncheckedUpdateWithoutAiUsageLogsInput>
   }
 
   export type TenantCreateNestedOneWithoutWaInboxThreadsInput = {
@@ -40778,6 +42332,23 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
+  export type NestedEnumAiUsageLogTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.AiUsageLogType | EnumAiUsageLogTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.AiUsageLogType[] | ListEnumAiUsageLogTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AiUsageLogType[] | ListEnumAiUsageLogTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumAiUsageLogTypeFilter<$PrismaModel> | $Enums.AiUsageLogType
+  }
+
+  export type NestedEnumAiUsageLogTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AiUsageLogType | EnumAiUsageLogTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.AiUsageLogType[] | ListEnumAiUsageLogTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AiUsageLogType[] | ListEnumAiUsageLogTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumAiUsageLogTypeWithAggregatesFilter<$PrismaModel> | $Enums.AiUsageLogType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAiUsageLogTypeFilter<$PrismaModel>
+    _max?: NestedEnumAiUsageLogTypeFilter<$PrismaModel>
+  }
+
   export type NestedEnumWaInboxThreadStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.WaInboxThreadStatus | EnumWaInboxThreadStatusFieldRefInput<$PrismaModel>
     in?: $Enums.WaInboxThreadStatus[] | ListEnumWaInboxThreadStatusFieldRefInput<$PrismaModel>
@@ -40902,6 +42473,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     users?: UserCreateNestedManyWithoutTenantInput
@@ -40918,6 +42490,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -40942,6 +42515,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     users?: UserUncheckedCreateNestedManyWithoutTenantInput
@@ -40958,6 +42532,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -40998,6 +42573,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     users?: UserUpdateManyWithoutTenantNestedInput
@@ -41014,6 +42590,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -41038,6 +42615,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     users?: UserUncheckedUpdateManyWithoutTenantNestedInput
@@ -41054,6 +42632,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -41476,6 +43055,7 @@ export namespace Prisma {
     id?: string
     enabled?: boolean
     systemPrompt?: string
+    model?: string | null
     tone?: $Enums.AiAgentTone
     maxTokens?: number
     temperature?: number
@@ -41488,6 +43068,7 @@ export namespace Prisma {
     id?: string
     enabled?: boolean
     systemPrompt?: string
+    model?: string | null
     tone?: $Enums.AiAgentTone
     maxTokens?: number
     temperature?: number
@@ -41534,6 +43115,30 @@ export namespace Prisma {
 
   export type AiMessageLogCreateManyTenantInputEnvelope = {
     data: AiMessageLogCreateManyTenantInput | AiMessageLogCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AiUsageLogCreateWithoutTenantInput = {
+    id?: string
+    type: $Enums.AiUsageLogType
+    tokens?: number
+    createdAt?: Date | string
+  }
+
+  export type AiUsageLogUncheckedCreateWithoutTenantInput = {
+    id?: string
+    type: $Enums.AiUsageLogType
+    tokens?: number
+    createdAt?: Date | string
+  }
+
+  export type AiUsageLogCreateOrConnectWithoutTenantInput = {
+    where: AiUsageLogWhereUniqueInput
+    create: XOR<AiUsageLogCreateWithoutTenantInput, AiUsageLogUncheckedCreateWithoutTenantInput>
+  }
+
+  export type AiUsageLogCreateManyTenantInputEnvelope = {
+    data: AiUsageLogCreateManyTenantInput | AiUsageLogCreateManyTenantInput[]
     skipDuplicates?: boolean
   }
 
@@ -42141,6 +43746,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     enabled?: BoolFieldUpdateOperationsInput | boolean
     systemPrompt?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
     tone?: EnumAiAgentToneFieldUpdateOperationsInput | $Enums.AiAgentTone
     maxTokens?: IntFieldUpdateOperationsInput | number
     temperature?: FloatFieldUpdateOperationsInput | number
@@ -42153,6 +43759,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     enabled?: BoolFieldUpdateOperationsInput | boolean
     systemPrompt?: StringFieldUpdateOperationsInput | string
+    model?: NullableStringFieldUpdateOperationsInput | string | null
     tone?: EnumAiAgentToneFieldUpdateOperationsInput | $Enums.AiAgentTone
     maxTokens?: IntFieldUpdateOperationsInput | number
     temperature?: FloatFieldUpdateOperationsInput | number
@@ -42192,6 +43799,33 @@ export namespace Prisma {
     durationMs?: IntNullableFilter<"AiMessageLog"> | number | null
     errorMessage?: StringNullableFilter<"AiMessageLog"> | string | null
     createdAt?: DateTimeFilter<"AiMessageLog"> | Date | string
+  }
+
+  export type AiUsageLogUpsertWithWhereUniqueWithoutTenantInput = {
+    where: AiUsageLogWhereUniqueInput
+    update: XOR<AiUsageLogUpdateWithoutTenantInput, AiUsageLogUncheckedUpdateWithoutTenantInput>
+    create: XOR<AiUsageLogCreateWithoutTenantInput, AiUsageLogUncheckedCreateWithoutTenantInput>
+  }
+
+  export type AiUsageLogUpdateWithWhereUniqueWithoutTenantInput = {
+    where: AiUsageLogWhereUniqueInput
+    data: XOR<AiUsageLogUpdateWithoutTenantInput, AiUsageLogUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type AiUsageLogUpdateManyWithWhereWithoutTenantInput = {
+    where: AiUsageLogScalarWhereInput
+    data: XOR<AiUsageLogUpdateManyMutationInput, AiUsageLogUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type AiUsageLogScalarWhereInput = {
+    AND?: AiUsageLogScalarWhereInput | AiUsageLogScalarWhereInput[]
+    OR?: AiUsageLogScalarWhereInput[]
+    NOT?: AiUsageLogScalarWhereInput | AiUsageLogScalarWhereInput[]
+    id?: StringFilter<"AiUsageLog"> | string
+    tenantId?: StringFilter<"AiUsageLog"> | string
+    type?: EnumAiUsageLogTypeFilter<"AiUsageLog"> | $Enums.AiUsageLogType
+    tokens?: IntFilter<"AiUsageLog"> | number
+    createdAt?: DateTimeFilter<"AiUsageLog"> | Date | string
   }
 
   export type UsageEventUpsertWithWhereUniqueWithoutTenantInput = {
@@ -42421,6 +44055,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -42438,6 +44073,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
     usageAggregates?: UsageAggregateCreateNestedManyWithoutTenantInput
@@ -42461,6 +44097,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -42478,6 +44115,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
     usageAggregates?: UsageAggregateUncheckedCreateNestedManyWithoutTenantInput
@@ -42517,6 +44155,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -42534,6 +44173,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
     usageAggregates?: UsageAggregateUpdateManyWithoutTenantNestedInput
@@ -42557,6 +44197,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -42574,6 +44215,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
     usageAggregates?: UsageAggregateUncheckedUpdateManyWithoutTenantNestedInput
@@ -42597,6 +44239,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -42614,6 +44257,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
     usageAggregates?: UsageAggregateCreateNestedManyWithoutTenantInput
@@ -42637,6 +44281,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -42654,6 +44299,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
     usageAggregates?: UsageAggregateUncheckedCreateNestedManyWithoutTenantInput
@@ -42693,6 +44339,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -42710,6 +44357,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
     usageAggregates?: UsageAggregateUpdateManyWithoutTenantNestedInput
@@ -42733,6 +44381,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -42750,6 +44399,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
     usageAggregates?: UsageAggregateUncheckedUpdateManyWithoutTenantNestedInput
@@ -42773,6 +44423,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -42790,6 +44441,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     usageAggregates?: UsageAggregateCreateNestedManyWithoutTenantInput
@@ -42813,6 +44465,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -42830,6 +44483,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     usageAggregates?: UsageAggregateUncheckedCreateNestedManyWithoutTenantInput
@@ -42869,6 +44523,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -42886,6 +44541,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     usageAggregates?: UsageAggregateUpdateManyWithoutTenantNestedInput
@@ -42909,6 +44565,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -42926,6 +44583,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     usageAggregates?: UsageAggregateUncheckedUpdateManyWithoutTenantNestedInput
@@ -42949,6 +44607,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -42966,6 +44625,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -42989,6 +44649,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -43006,6 +44667,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -43045,6 +44707,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -43062,6 +44725,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -43085,6 +44749,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -43102,6 +44767,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -43125,6 +44791,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -43142,6 +44809,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -43165,6 +44833,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -43182,6 +44851,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -43221,6 +44891,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -43238,6 +44909,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -43261,6 +44933,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -43278,6 +44951,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -43301,6 +44975,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -43318,6 +44993,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -43341,6 +45017,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -43358,6 +45035,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -43397,6 +45075,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -43414,6 +45093,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -43437,6 +45117,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -43454,6 +45135,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -43477,6 +45159,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -43493,6 +45176,7 @@ export namespace Prisma {
     waAutomationRules?: WaAutomationRuleCreateNestedManyWithoutTenantInput
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -43517,6 +45201,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -43533,6 +45218,7 @@ export namespace Prisma {
     waAutomationRules?: WaAutomationRuleUncheckedCreateNestedManyWithoutTenantInput
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -43573,6 +45259,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -43589,6 +45276,7 @@ export namespace Prisma {
     waAutomationRules?: WaAutomationRuleUpdateManyWithoutTenantNestedInput
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -43613,6 +45301,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -43629,6 +45318,7 @@ export namespace Prisma {
     waAutomationRules?: WaAutomationRuleUncheckedUpdateManyWithoutTenantNestedInput
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -43653,6 +45343,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -43669,6 +45360,7 @@ export namespace Prisma {
     waAutomationRules?: WaAutomationRuleCreateNestedManyWithoutTenantInput
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -43693,6 +45385,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -43709,6 +45402,7 @@ export namespace Prisma {
     waAutomationRules?: WaAutomationRuleUncheckedCreateNestedManyWithoutTenantInput
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -43749,6 +45443,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -43765,6 +45460,7 @@ export namespace Prisma {
     waAutomationRules?: WaAutomationRuleUpdateManyWithoutTenantNestedInput
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -43789,6 +45485,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -43805,6 +45502,191 @@ export namespace Prisma {
     waAutomationRules?: WaAutomationRuleUncheckedUpdateManyWithoutTenantNestedInput
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
+    usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
+    billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
+    usageAggregates?: UsageAggregateUncheckedUpdateManyWithoutTenantNestedInput
+    tenantSubscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    usageMetrics?: UsageMetricUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantCreateWithoutAiUsageLogsInput = {
+    id?: string
+    name?: string | null
+    whatsappPhone?: string | null
+    systemPrompt?: string | null
+    defaultPrompt?: string | null
+    businessType?: string | null
+    phoneNumberId?: string | null
+    displayPhoneNumber?: string | null
+    accessToken?: string | null
+    apiKey?: string | null
+    subdomain?: string | null
+    stripeCustomerId?: string | null
+    plan?: string | null
+    activeUntil?: Date | string | null
+    aiDriver?: string | null
+    crmWebhookUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
+    users?: UserCreateNestedManyWithoutTenantInput
+    conversations?: ConversationCreateNestedManyWithoutTenantInput
+    conversationQueues?: ConversationQueueCreateNestedManyWithoutTenantInput
+    agentStatuses?: AgentStatusCreateNestedManyWithoutTenantInput
+    faqs?: FAQCreateNestedManyWithoutTenantInput
+    waInboxThreads?: WaInboxThreadCreateNestedManyWithoutTenantInput
+    waInboxMessages?: WaInboxMessageCreateNestedManyWithoutTenantInput
+    waInboxStatusHistory?: WaInboxStatusHistoryCreateNestedManyWithoutTenantInput
+    waInboxTags?: WaInboxTagCreateNestedManyWithoutTenantInput
+    waInboxAuditLogs?: WaInboxAuditLogCreateNestedManyWithoutTenantInput
+    waAutomationRules?: WaAutomationRuleCreateNestedManyWithoutTenantInput
+    waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
+    aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
+    aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
+    billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
+    billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
+    usageAggregates?: UsageAggregateCreateNestedManyWithoutTenantInput
+    tenantSubscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    usageMetrics?: UsageMetricCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutAiUsageLogsInput = {
+    id?: string
+    name?: string | null
+    whatsappPhone?: string | null
+    systemPrompt?: string | null
+    defaultPrompt?: string | null
+    businessType?: string | null
+    phoneNumberId?: string | null
+    displayPhoneNumber?: string | null
+    accessToken?: string | null
+    apiKey?: string | null
+    subdomain?: string | null
+    stripeCustomerId?: string | null
+    plan?: string | null
+    activeUntil?: Date | string | null
+    aiDriver?: string | null
+    crmWebhookUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
+    users?: UserUncheckedCreateNestedManyWithoutTenantInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutTenantInput
+    conversationQueues?: ConversationQueueUncheckedCreateNestedManyWithoutTenantInput
+    agentStatuses?: AgentStatusUncheckedCreateNestedManyWithoutTenantInput
+    faqs?: FAQUncheckedCreateNestedManyWithoutTenantInput
+    waInboxThreads?: WaInboxThreadUncheckedCreateNestedManyWithoutTenantInput
+    waInboxMessages?: WaInboxMessageUncheckedCreateNestedManyWithoutTenantInput
+    waInboxStatusHistory?: WaInboxStatusHistoryUncheckedCreateNestedManyWithoutTenantInput
+    waInboxTags?: WaInboxTagUncheckedCreateNestedManyWithoutTenantInput
+    waInboxAuditLogs?: WaInboxAuditLogUncheckedCreateNestedManyWithoutTenantInput
+    waAutomationRules?: WaAutomationRuleUncheckedCreateNestedManyWithoutTenantInput
+    waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
+    aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
+    aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
+    billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
+    usageAggregates?: UsageAggregateUncheckedCreateNestedManyWithoutTenantInput
+    tenantSubscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    usageMetrics?: UsageMetricUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutAiUsageLogsInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutAiUsageLogsInput, TenantUncheckedCreateWithoutAiUsageLogsInput>
+  }
+
+  export type TenantUpsertWithoutAiUsageLogsInput = {
+    update: XOR<TenantUpdateWithoutAiUsageLogsInput, TenantUncheckedUpdateWithoutAiUsageLogsInput>
+    create: XOR<TenantCreateWithoutAiUsageLogsInput, TenantUncheckedCreateWithoutAiUsageLogsInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutAiUsageLogsInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutAiUsageLogsInput, TenantUncheckedUpdateWithoutAiUsageLogsInput>
+  }
+
+  export type TenantUpdateWithoutAiUsageLogsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    whatsappPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    systemPrompt?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultPrompt?: NullableStringFieldUpdateOperationsInput | string | null
+    businessType?: NullableStringFieldUpdateOperationsInput | string | null
+    phoneNumberId?: NullableStringFieldUpdateOperationsInput | string | null
+    displayPhoneNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    accessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    apiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    plan?: NullableStringFieldUpdateOperationsInput | string | null
+    activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
+    users?: UserUpdateManyWithoutTenantNestedInput
+    conversations?: ConversationUpdateManyWithoutTenantNestedInput
+    conversationQueues?: ConversationQueueUpdateManyWithoutTenantNestedInput
+    agentStatuses?: AgentStatusUpdateManyWithoutTenantNestedInput
+    faqs?: FAQUpdateManyWithoutTenantNestedInput
+    waInboxThreads?: WaInboxThreadUpdateManyWithoutTenantNestedInput
+    waInboxMessages?: WaInboxMessageUpdateManyWithoutTenantNestedInput
+    waInboxStatusHistory?: WaInboxStatusHistoryUpdateManyWithoutTenantNestedInput
+    waInboxTags?: WaInboxTagUpdateManyWithoutTenantNestedInput
+    waInboxAuditLogs?: WaInboxAuditLogUpdateManyWithoutTenantNestedInput
+    waAutomationRules?: WaAutomationRuleUpdateManyWithoutTenantNestedInput
+    waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
+    aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
+    aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
+    billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
+    billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
+    usageAggregates?: UsageAggregateUpdateManyWithoutTenantNestedInput
+    tenantSubscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    usageMetrics?: UsageMetricUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutAiUsageLogsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    whatsappPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    systemPrompt?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultPrompt?: NullableStringFieldUpdateOperationsInput | string | null
+    businessType?: NullableStringFieldUpdateOperationsInput | string | null
+    phoneNumberId?: NullableStringFieldUpdateOperationsInput | string | null
+    displayPhoneNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    accessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    apiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    plan?: NullableStringFieldUpdateOperationsInput | string | null
+    activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
+    users?: UserUncheckedUpdateManyWithoutTenantNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutTenantNestedInput
+    conversationQueues?: ConversationQueueUncheckedUpdateManyWithoutTenantNestedInput
+    agentStatuses?: AgentStatusUncheckedUpdateManyWithoutTenantNestedInput
+    faqs?: FAQUncheckedUpdateManyWithoutTenantNestedInput
+    waInboxThreads?: WaInboxThreadUncheckedUpdateManyWithoutTenantNestedInput
+    waInboxMessages?: WaInboxMessageUncheckedUpdateManyWithoutTenantNestedInput
+    waInboxStatusHistory?: WaInboxStatusHistoryUncheckedUpdateManyWithoutTenantNestedInput
+    waInboxTags?: WaInboxTagUncheckedUpdateManyWithoutTenantNestedInput
+    waInboxAuditLogs?: WaInboxAuditLogUncheckedUpdateManyWithoutTenantNestedInput
+    waAutomationRules?: WaAutomationRuleUncheckedUpdateManyWithoutTenantNestedInput
+    waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
+    aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
+    aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -43829,6 +45711,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -43845,6 +45728,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -43869,6 +45753,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -43885,6 +45770,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -44024,6 +45910,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -44040,6 +45927,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -44064,6 +45952,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -44080,6 +45969,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -44180,6 +46070,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -44196,6 +46087,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -44220,6 +46112,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -44236,6 +46129,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -44300,6 +46194,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -44316,6 +46211,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -44340,6 +46236,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -44356,6 +46253,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -44536,6 +46434,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -44552,6 +46451,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -44576,6 +46476,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -44592,6 +46493,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -44703,6 +46605,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -44719,6 +46622,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -44743,6 +46647,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -44759,6 +46664,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -44848,6 +46754,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -44864,6 +46771,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -44888,6 +46796,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -44904,6 +46813,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -44987,6 +46897,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -45003,6 +46914,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -45027,6 +46939,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -45043,6 +46956,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -45116,6 +47030,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -45132,6 +47047,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -45156,6 +47072,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -45172,6 +47089,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -45212,6 +47130,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -45228,6 +47147,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -45252,6 +47172,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -45268,6 +47189,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -45292,6 +47214,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -45308,6 +47231,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -45332,6 +47256,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -45348,6 +47273,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -45388,6 +47314,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -45404,6 +47331,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -45428,6 +47356,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -45444,6 +47373,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -45468,6 +47398,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -45484,6 +47415,7 @@ export namespace Prisma {
     waAutomationRules?: WaAutomationRuleCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -45508,6 +47440,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -45524,6 +47457,7 @@ export namespace Prisma {
     waAutomationRules?: WaAutomationRuleUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -45564,6 +47498,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -45580,6 +47515,7 @@ export namespace Prisma {
     waAutomationRules?: WaAutomationRuleUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -45604,6 +47540,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -45620,6 +47557,7 @@ export namespace Prisma {
     waAutomationRules?: WaAutomationRuleUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -45644,6 +47582,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -45660,6 +47599,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -45684,6 +47624,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -45700,6 +47641,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -45740,6 +47682,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -45756,6 +47699,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -45780,6 +47724,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -45796,6 +47741,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -45820,6 +47766,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -45836,6 +47783,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -45860,6 +47808,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -45876,6 +47825,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -45964,6 +47914,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -45980,6 +47931,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -46004,6 +47956,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -46020,6 +47973,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -46060,6 +48014,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -46076,6 +48031,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -46100,6 +48056,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -46116,6 +48073,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -46212,6 +48170,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -46228,6 +48187,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -46252,6 +48212,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -46268,6 +48229,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -46339,6 +48301,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -46355,6 +48318,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -46379,6 +48343,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -46395,6 +48360,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -46458,6 +48424,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -46474,6 +48441,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -46498,6 +48466,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -46514,6 +48483,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -46567,6 +48537,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberCreateNestedManyWithoutTenantInput
@@ -46583,6 +48554,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogCreateNestedManyWithoutTenantInput
@@ -46607,6 +48579,7 @@ export namespace Prisma {
     plan?: string | null
     activeUntil?: Date | string | null
     aiDriver?: string | null
+    crmWebhookUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedCreateNestedManyWithoutTenantInput
@@ -46623,6 +48596,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedCreateNestedManyWithoutTenantInput
     aiAgentConfig?: AiAgentConfigUncheckedCreateNestedOneWithoutTenantInput
     aiMessageLogs?: AiMessageLogUncheckedCreateNestedManyWithoutTenantInput
+    aiUsageLogs?: AiUsageLogUncheckedCreateNestedManyWithoutTenantInput
     usageEvents?: UsageEventUncheckedCreateNestedManyWithoutTenantInput
     billingSubscription?: BillingSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     billingAuditLogs?: BillingAuditLogUncheckedCreateNestedManyWithoutTenantInput
@@ -46663,6 +48637,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUpdateManyWithoutTenantNestedInput
@@ -46679,6 +48654,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUpdateManyWithoutTenantNestedInput
@@ -46703,6 +48679,7 @@ export namespace Prisma {
     plan?: NullableStringFieldUpdateOperationsInput | string | null
     activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     aiDriver?: NullableStringFieldUpdateOperationsInput | string | null
+    crmWebhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     whatsappPhoneNumbers?: WhatsappPhoneNumberUncheckedUpdateManyWithoutTenantNestedInput
@@ -46719,6 +48696,7 @@ export namespace Prisma {
     waAutomationPlaybooks?: WaAutomationPlaybookUncheckedUpdateManyWithoutTenantNestedInput
     aiAgentConfig?: AiAgentConfigUncheckedUpdateOneWithoutTenantNestedInput
     aiMessageLogs?: AiMessageLogUncheckedUpdateManyWithoutTenantNestedInput
+    aiUsageLogs?: AiUsageLogUncheckedUpdateManyWithoutTenantNestedInput
     usageEvents?: UsageEventUncheckedUpdateManyWithoutTenantNestedInput
     billingSubscription?: BillingSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     billingAuditLogs?: BillingAuditLogUncheckedUpdateManyWithoutTenantNestedInput
@@ -46922,6 +48900,13 @@ export namespace Prisma {
     tokensUsed?: number | null
     durationMs?: number | null
     errorMessage?: string | null
+    createdAt?: Date | string
+  }
+
+  export type AiUsageLogCreateManyTenantInput = {
+    id?: string
+    type: $Enums.AiUsageLogType
+    tokens?: number
     createdAt?: Date | string
   }
 
@@ -47411,6 +49396,27 @@ export namespace Prisma {
     tokensUsed?: NullableIntFieldUpdateOperationsInput | number | null
     durationMs?: NullableIntFieldUpdateOperationsInput | number | null
     errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AiUsageLogUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumAiUsageLogTypeFieldUpdateOperationsInput | $Enums.AiUsageLogType
+    tokens?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AiUsageLogUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumAiUsageLogTypeFieldUpdateOperationsInput | $Enums.AiUsageLogType
+    tokens?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AiUsageLogUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumAiUsageLogTypeFieldUpdateOperationsInput | $Enums.AiUsageLogType
+    tokens?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

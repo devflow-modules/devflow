@@ -35,7 +35,7 @@
       "@/modules/messaging/*": ["./apps/whatsapp-platform/src/modules/messaging/*"],
       "@/modules/inbox": ["./apps/whatsapp-platform/src/modules/inbox"],
       "@/modules/inbox/*": ["./apps/whatsapp-platform/src/modules/inbox/*"],
-      "@/modules/ai/aiUsageService": ["./apps/whatsapp-platform/src/modules/ai/aiUsageService"],
+      "@/modules/ai/aiUsageService": ["./src/modules/ai/aiUsageService"],
       "@/modules/ai/*": ["./apps/whatsapp-platform/src/modules/ai/*"],
       "@/modules/analytics": ["./apps/whatsapp-platform/src/modules/analytics"],
       "@/modules/analytics/*": ["./apps/whatsapp-platform/src/modules/analytics/*"],
