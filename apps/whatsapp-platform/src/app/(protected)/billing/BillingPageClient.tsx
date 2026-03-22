@@ -27,6 +27,8 @@ type Usage = {
   unitPricesBrl: { message: number; aiResponse: number };
   estimatedVariableCostBrl: number;
   withinLimits: { messages: boolean; ai: boolean };
+  aiOverageBilled?: number;
+  aiOverageCostBrl?: number;
   stripeMetered?: {
     messagesReportedToStripe: number;
     aiReportedToStripe: number;
@@ -311,6 +313,22 @@ export function BillingPageClient() {
                 </div>
               )}
             </div>
+            {usage.aiOverageBilled != null && usage.aiOverageBilled > 0 && (
+              <div className="mt-3 rounded border border-amber-200 bg-amber-50 p-3">
+                <p className="text-sm font-medium text-amber-900">
+                  Você excedeu o plano, mas a IA continuou ativa
+                </p>
+                <p className="mt-1 text-sm text-amber-800">
+                  <strong>{usage.aiOverageBilled}</strong> respostas excedentes faturadas
+                  {usage.aiOverageCostBrl != null && usage.aiOverageCostBrl > 0 && (
+                    <> · R$ {usage.aiOverageCostBrl.toFixed(2)}</>
+                  )}
+                </p>
+                <p className="mt-1 text-xs text-amber-700">
+                  Este valor será refletido na cobrança.
+                </p>
+              </div>
+            )}
           </dl>
         </section>
       )}

@@ -13,7 +13,7 @@ import {
 } from "@/generated/prisma-whatsapp";
 import { digitsOnly } from "@/modules/inbox/waInboxUtils";
 import { generateReply } from "./aiService";
-import { openAiConfig } from "./openai";
+import { openAiConfig, DEFAULT_SYSTEM_PROMPT } from "./openai";
 import {
   generateReply as generateOpenAiReply,
   isOpenAiConfigured,
@@ -22,8 +22,14 @@ import {
 import { sendWebhookAutoReply } from "@/modules/messaging/sendMessageService";
 import { isProviderConfigured, tenantDriverToProviderKind } from "./aiProvider";
 import { canUseFeature } from "@/modules/billing/featureGate";
-import { enforceUsageOrThrow } from "@/modules/billing/enforcementService";
+import {
+  enforceUsageOrThrow,
+  UsageLimitExceededError,
+} from "@/modules/billing/enforcementService";
 import { trackUsage } from "@/modules/billing/usageService";
+import { trackAiUsage } from "@/modules/ai/aiUsageService";
+import { billAiOverageIfApplicableAsync } from "@/modules/billing/stripeUsageBillingService";
+import { getAiUsageStatus } from "@/modules/billing/aiUsageLimitService";
 import { UsageEventType } from "@/generated/prisma-whatsapp";
 
 export async function getOrCreateAiAgentConfig(tenantId: string): Promise<AiAgentConfig> {
@@ -33,7 +39,8 @@ export async function getOrCreateAiAgentConfig(tenantId: string): Promise<AiAgen
     data: {
       tenantId,
       enabled: false,
-      systemPrompt: "",
+      systemPrompt: DEFAULT_SYSTEM_PROMPT,
+      model: openAiConfig.model,
       tone: "NEUTRAL",
       maxTokens: openAiConfig.maxTokens,
       temperature: openAiConfig.temperature,
@@ -142,10 +149,15 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
   try {
     await enforceUsageOrThrow({ tenantId, feature: "messages", quantity: 1 });
     await enforceUsageOrThrow({ tenantId, feature: "ai", quantity: 1 });
-  } catch {
+  } catch (e) {
+    if (e instanceof UsageLimitExceededError && e.feature === "ai") {
+      trackAiUsage(tenantId, "AI_FALLBACK");
+      console.warn("[AI] Limite mensal excedido, fallback legacy", { tenantId });
+    }
     return;
   }
 
+  const usageStatus = await getAiUsageStatus(tenantId);
   const isStandalone = check.reason === "openai_standalone";
 
   if (isStandalone) {
@@ -182,16 +194,26 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
       message: textBody,
       contextMessages,
       systemPrompt: config.systemPrompt || null,
+      model: config.model ?? undefined,
       maxTokens: config.maxTokens,
       temperature: config.temperature,
       useStructuredOutput: false,
     });
 
     if (gen.fallback || gen.error || !gen.reply?.trim()) {
+      trackAiUsage(tenantId, "AI_FALLBACK");
       console.warn("[WHATSAPP][WARN] OpenAI fallback para legacy", { reason: gen.error });
       throw new Error(gen.error ?? "Resposta vazia");
     }
 
+    trackAiUsage(tenantId, "AI_SUCCESS", gen.tokensUsed ?? 0);
+    billAiOverageIfApplicableAsync({
+      tenantId,
+      messageId: waMsgId,
+      used: usageStatus.used,
+      limit: usageStatus.limit,
+      plan: usageStatus.plan,
+    });
     await sendWebhookAutoReply({
       tenant,
       to: from,
@@ -265,12 +287,14 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
     contextMessages,
     systemPrompt: config.systemPrompt?.trim() || "",
     tone: config.tone as AiAgentTone,
+    model: config.model ?? undefined,
     maxTokens: config.maxTokens,
     temperature: config.temperature,
     aiDriver: tenantRow?.aiDriver ?? null,
   });
 
   if (gen.error || !gen.text) {
+    trackAiUsage(tenantId, "AI_FALLBACK");
     await prisma.aiMessageLog.create({
       data: {
         tenantId,
@@ -286,6 +310,14 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
     throw new Error(gen.error ?? "Falha ao gerar resposta IA");
   }
 
+  trackAiUsage(tenantId, "AI_SUCCESS", gen.tokensUsed ?? 0);
+  billAiOverageIfApplicableAsync({
+    tenantId,
+    messageId: waMsgId,
+    used: usageStatus.used,
+    limit: usageStatus.limit,
+    plan: usageStatus.plan,
+  });
   try {
     const { messageId: outboundWaId } = await sendWebhookAutoReply({
       tenant,

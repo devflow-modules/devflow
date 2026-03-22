@@ -22,6 +22,7 @@ O billing do WhatsApp Platform migrou de `subscriptionItems.createUsageRecord()`
 
 - `whatsapp_messages` — uso de mensagens
 - `ai_usage` — uso de IA
+- `ai_responses` — excedente de IA (Pro/Scale) — cobrança quando tenant ultrapassa limite do plano
 
 ### 3. Configuração no Stripe
 

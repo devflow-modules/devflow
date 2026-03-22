@@ -5,13 +5,15 @@
  * Backend envia apenas event_name; price_id NÃO é passado.
  * O meter no Stripe está vinculado ao price → Stripe converte evento em cobrança.
  *
- * Event names: whatsapp_messages, ai_usage
+ * Event names: whatsapp_messages, ai_usage, ai_responses (overage)
  */
 
 import { getStripe } from "@/modules/stripe/stripeClient";
 
 export const METER_EVENT_MESSAGES = "whatsapp_messages" as const;
 export const METER_EVENT_AI = "ai_usage" as const;
+/** Usado para cobrança de excedente de IA (Pro/Scale). Meter deve estar configurado no Stripe. */
+export const METER_EVENT_AI_RESPONSES = "ai_responses" as const;
 
 export function isMeterEventsConfigured(): boolean {
   return Boolean(
@@ -22,8 +24,13 @@ export function isMeterEventsConfigured(): boolean {
   );
 }
 
+export type MeterEventName =
+  | typeof METER_EVENT_MESSAGES
+  | typeof METER_EVENT_AI
+  | typeof METER_EVENT_AI_RESPONSES;
+
 export type CreateMeterEventParams = {
-  eventName: typeof METER_EVENT_MESSAGES | typeof METER_EVENT_AI;
+  eventName: MeterEventName;
   stripeCustomerId: string;
   value: number;
   timestamp?: number;
@@ -35,7 +42,12 @@ export async function createMeterEvent(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const stripe = getStripe();
   const ts = params.timestamp ?? Math.floor(Date.now() / 1000);
-  const prefix = params.eventName === METER_EVENT_MESSAGES ? "msg" : "ai";
+  const prefix =
+    params.eventName === METER_EVENT_MESSAGES
+      ? "msg"
+      : params.eventName === METER_EVENT_AI_RESPONSES
+        ? "ai_resp"
+        : "ai";
   const identifier =
     params.identifier ?? `${prefix}_${params.stripeCustomerId}_${Date.now()}`;
 

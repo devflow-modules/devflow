@@ -5,6 +5,7 @@ import { getUsageByPeriod, getStripeUsageSyncStats, periodYYYYMM } from "./usage
 import { isMeterEventsConfigured } from "./infrastructure/stripeMeterClient";
 import { getPlanLimits, getUsageUnitPricesBrl, normalizePlanKey } from "./planConfig";
 import { getTenantPlan } from "./subscriptionService";
+import { getAiOverageBilledInPeriod } from "./aiOverageVisibilityService";
 
 export type CheckoutPlan = "STARTER" | "PRO" | "SCALE";
 
@@ -149,6 +150,8 @@ export interface UsageDashboard {
   unitPricesBrl: { message: number; aiResponse: number };
   estimatedVariableCostBrl: number;
   withinLimits: { messages: boolean; ai: boolean };
+  aiOverageBilled?: number;
+  aiOverageCostBrl?: number;
   stripeMetered?: {
     messagesReportedToStripe: number;
     aiReportedToStripe: number;
@@ -158,18 +161,16 @@ export interface UsageDashboard {
 
 export async function getUsageDashboard(tenantId: string, period?: string): Promise<UsageDashboard> {
   const p = period ?? periodYYYYMM();
-  const [usage, planKey] = await Promise.all([
+  const [usage, planKey, overage, stripeSync] = await Promise.all([
     getUsageByPeriod(tenantId, p),
     getTenantPlan(tenantId),
+    getAiOverageBilledInPeriod(tenantId, p),
+    isMeterEventsConfigured() ? getStripeUsageSyncStats(tenantId, p) : null,
   ]);
   const limits = getPlanLimits(planKey);
   const prices = getUsageUnitPricesBrl();
   const estimated =
     usage.messagesSent * prices.message + usage.aiResponses * prices.aiResponse;
-
-  const stripeSync = isMeterEventsConfigured()
-    ? await getStripeUsageSyncStats(tenantId, p)
-    : null;
 
   return {
     period: p,
@@ -186,6 +187,8 @@ export async function getUsageDashboard(tenantId: string, period?: string): Prom
         limits.messagesPerMonth == null || usage.messagesSent <= limits.messagesPerMonth,
       ai: limits.aiResponsesPerMonth == null || usage.aiResponses <= limits.aiResponsesPerMonth,
     },
+    aiOverageBilled: overage.aiOverageBilled,
+    aiOverageCostBrl: overage.aiOverageCostBrl,
     ...(stripeSync
       ? {
           stripeMetered: {

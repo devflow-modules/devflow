@@ -6,6 +6,7 @@
 import { getTenantPlan } from "./subscriptionService";
 import { getTenantPlanCapabilities } from "./planCapabilities";
 import { getUsageByPeriod, periodYYYYMM } from "./usageService";
+import { getAiUsageMetrics } from "@/modules/ai/aiUsageService";
 import { isBillingEnforceLimits } from "./planConfig";
 import { logLimitExceeded, logUsageThresholdWarning } from "./billingObserverService";
 
@@ -61,9 +62,10 @@ export async function enforceUsageOrThrow(input: EnforceUsageInput): Promise<voi
   }
 
   const period = periodYYYYMM();
-  const usage = await getUsageByPeriod(tenantId, period);
-
-  const used = feature === "messages" ? usage.messagesSent : usage.aiResponses;
+  const used =
+    feature === "ai"
+      ? (await getAiUsageMetrics(tenantId, period)).aiMessagesTotal
+      : (await getUsageByPeriod(tenantId, period)).messagesSent;
   const afterAction = used + quantity;
 
   if (afterAction <= limit) {
@@ -73,7 +75,16 @@ export async function enforceUsageOrThrow(input: EnforceUsageInput): Promise<voi
     return;
   }
 
-  if (isBillingEnforceLimits()) {
+  // Starter/FREE + AI: sempre bloqueia excedente (fallback + upgrade)
+  // Pro/Scale + AI: permite excedente (será cobrado via meter events)
+  // Messages: respeita BILLING_ENFORCE_LIMITS global
+  const allowsAiOverage = plan === "PRO" || plan === "SCALE";
+  const blockExceeded =
+    feature === "ai"
+      ? !allowsAiOverage
+      : isBillingEnforceLimits();
+
+  if (blockExceeded) {
     logLimitExceeded(tenantId, feature);
     logEnforcement(tenantId, feature, used, limit, true);
     throw new UsageLimitExceededError(
@@ -82,5 +93,6 @@ export async function enforceUsageOrThrow(input: EnforceUsageInput): Promise<voi
     );
   }
 
+  // Pro/Scale + AI: permite excedente (será cobrado via meter events)
   logEnforcement(tenantId, feature, used, limit, false);
 }

@@ -20,6 +20,8 @@ type UsageStatus = {
   should_fallback_to_legacy: boolean;
   period: string;
   plan: string;
+  ai_overage_billed?: number;
+  ai_overage_cost_brl?: number;
 };
 
 type PlanInfo = {
@@ -215,6 +217,28 @@ export function AiAnalyticsClient() {
               Plano inclui {planInfo.ai_limit.toLocaleString("pt-BR")} respostas IA/mês. Upgrade oferece mais capacidade.
             </p>
           )}
+          {usageStatus.ai_overage_billed != null &&
+            usageStatus.ai_overage_billed > 0 && (
+              <div className="mt-3 rounded border border-amber-200 bg-amber-50 p-3">
+                <p className="text-sm font-medium text-amber-900">
+                  Você excedeu o plano, mas a IA continuou ativa
+                </p>
+                <div className="mt-2 space-y-1 text-sm text-amber-800">
+                  {planInfo.ai_limit != null && (
+                    <p>
+                      Incluído no plano: {planInfo.ai_limit.toLocaleString("pt-BR")} · Usado: {usageStatus.used.toLocaleString("pt-BR")} · Excedente faturado: <strong>{usageStatus.ai_overage_billed}</strong>
+                    </p>
+                  )}
+                  {usageStatus.ai_overage_cost_brl != null &&
+                    usageStatus.ai_overage_cost_brl > 0 && (
+                      <p>Custo estimado do excedente: <strong>R$ {usageStatus.ai_overage_cost_brl.toFixed(2)}</strong></p>
+                    )}
+                </div>
+                <p className="mt-1 text-xs text-amber-700">
+                  Este valor será refletido na cobrança.
+                </p>
+              </div>
+            )}
         </div>
       )}
 
@@ -241,6 +265,16 @@ export function AiAnalyticsClient() {
             value={formatUSD(metrics.estimated_cost_usd)}
           />
         </div>
+        {usageStatus?.ai_overage_billed != null &&
+          usageStatus.ai_overage_billed > 0 &&
+          usageStatus.ai_overage_cost_brl != null &&
+          usageStatus.ai_overage_cost_brl > 0 && (
+            <p className="mt-3 text-sm text-amber-800">
+              Excedente IA este mês:{" "}
+              <strong>R$ {usageStatus.ai_overage_cost_brl.toFixed(2)}</strong>{" "}
+              ({usageStatus.ai_overage_billed} respostas)
+            </p>
+          )}
       </div>
 
       {/* Card: Saúde da IA */}

@@ -51,3 +51,11 @@ export { isMeteredBillingConfigured } from "./stripeMeteredService";
 export { isMeterEventsConfigured } from "./infrastructure/stripeMeterClient";
 export { reportMessageUsage } from "./application/reportMessageUsage";
 export { reportAiUsage } from "./application/reportAiUsage";
+export {
+  billAiOverageIfApplicable,
+  billAiOverageIfApplicableAsync,
+} from "./stripeUsageBillingService";
+export {
+  getAiOverageBilledInPeriod,
+  type AiOverageVisibility,
+} from "./aiOverageVisibilityService";
