@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@devflow/ui";
+import { PLANS } from "@/modules/billing/plans";
 
 type Sub = {
   plan: string;
@@ -32,6 +34,10 @@ type Usage = {
   };
 };
 
+type BillingPlanKey = "STARTER" | "PRO" | "SCALE";
+
+const BILLING_PLANS: BillingPlanKey[] = ["STARTER", "PRO", "SCALE"];
+
 export function BillingPageClient() {
   const searchParams = useSearchParams();
   const successParam = searchParams.get("success");
@@ -41,8 +47,8 @@ export function BillingPageClient() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
-  const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState<BillingPlanKey | null>(null);
+  const [upgradeLoading, setUpgradeLoading] = useState<BillingPlanKey | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const load = useCallback(async () => {
@@ -97,7 +103,7 @@ export function BillingPageClient() {
     setPortalLoading(false);
   }
 
-  async function checkout(plan: "PRO" | "SCALE") {
+  async function checkout(plan: BillingPlanKey) {
     setCheckoutLoading(plan);
     setErr(null);
     try {
@@ -126,7 +132,7 @@ export function BillingPageClient() {
     }
   }
 
-  async function upgradeStub(plan: "PRO" | "SCALE") {
+  async function upgradeStub(plan: BillingPlanKey) {
     setUpgradeLoading(plan);
     setErr(null);
     try {
@@ -147,6 +153,8 @@ export function BillingPageClient() {
     }
   }
 
+  const currentPlan = sub?.plan?.toUpperCase() ?? "FREE";
+
   if (loading) {
     return <p className="text-slate-600">Carregando…</p>;
   }
@@ -164,19 +172,18 @@ export function BillingPageClient() {
         </div>
       )}
       {atLimit && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          <p className="font-medium">Você atingiu o limite do plano {sub?.plan ?? "FREE"}.</p>
-          <p className="mt-1 text-amber-800">
-            Faça upgrade para continuar usando sem restrições.
+        <div className="rounded-lg border-2 border-red-400 bg-red-50 px-4 py-4 text-sm text-red-900">
+          <p className="font-semibold">🚫 Sua IA parou de responder automaticamente</p>
+          <p className="mt-1 text-red-800">
+            As mensagens estão sendo respondidas de forma limitada. Para voltar ao atendimento automático:
           </p>
           <Button
             type="button"
-            variant="outline"
             size="sm"
-            className="mt-2"
+            className="mt-3"
             onClick={() => setShowUpgradeModal(true)}
           >
-            Ver planos
+            Continuar usando IA
           </Button>
         </div>
       )}
@@ -216,28 +223,30 @@ export function BillingPageClient() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => void checkout("PRO")}
-            disabled={!!checkoutLoading}
+            onClick={() => setShowUpgradeModal(true)}
           >
-            {checkoutLoading === "PRO" ? "…" : "Upgrade PRO"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => void checkout("SCALE")}
-            disabled={!!checkoutLoading}
-          >
-            {checkoutLoading === "SCALE" ? "…" : "Upgrade SCALE"}
+            Continuar usando IA
           </Button>
         </div>
       </section>
 
       {usage && (
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-medium text-slate-900 mb-1">Uso do mês ({usage.period})</h2>
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-lg font-medium text-slate-900">Uso do mês ({usage.period})</h2>
+            <Link
+              href="/settings/ai-analytics"
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Ver detalhes IA →
+            </Link>
+          </div>
+          <p className="text-xs text-slate-500 mb-3">
+            Excedente: R$ {(usage.unitPricesBrl.message).toFixed(2)}/conversa, R$ {(usage.unitPricesBrl.aiResponse).toFixed(2)}/interação IA
+          </p>
           <dl className="grid gap-3 text-sm mt-3">
             <div className="flex justify-between items-center">
-              <dt>Mensagens</dt>
+              <dt>Conversas</dt>
               <dd className="font-mono">
                 {usage.messagesSent}
                 {usage.limits.messagesPerMonth != null && (
@@ -249,7 +258,7 @@ export function BillingPageClient() {
               </dd>
             </div>
             <div className="flex justify-between items-center">
-              <dt>Respostas IA</dt>
+              <dt>Interações IA</dt>
               <dd className="font-mono">
                 {usage.aiResponses}
                 {usage.limits.aiResponsesPerMonth != null && (
@@ -260,23 +269,47 @@ export function BillingPageClient() {
                 )}
               </dd>
             </div>
-            <div className="mt-2">
-              <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-emerald-500 rounded-full transition-all"
-                  style={{
-                    width: usage.limits.messagesPerMonth
-                      ? `${Math.min(
-                          100,
-                          (usage.messagesSent / usage.limits.messagesPerMonth) * 100
-                        )}%`
-                      : "0%",
-                  }}
-                />
+            <div className="mt-2 space-y-2">
+              <div>
+                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500 rounded-full transition-all"
+                    style={{
+                      width: usage.limits.messagesPerMonth
+                        ? `${Math.min(
+                            100,
+                            (usage.messagesSent / usage.limits.messagesPerMonth) * 100
+                          )}%`
+                        : "0%",
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-slate-500 mt-1">Conversas</p>
               </div>
-              <p className="text-xs text-slate-500 mt-1">
-                Uso de mensagens no período
-              </p>
+              {usage.limits.aiResponsesPerMonth != null && (
+                <div>
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        !usage.withinLimits.ai
+                          ? "bg-red-500"
+                          : usage.aiResponses / usage.limits.aiResponsesPerMonth >= 0.7
+                            ? "bg-amber-500"
+                            : "bg-emerald-500"
+                      }`}
+                      style={{
+                        width: `${Math.min(
+                          100,
+                          (usage.aiResponses / usage.limits.aiResponsesPerMonth) * 100
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Respostas IA — {usage.aiResponses} / {usage.limits.aiResponsesPerMonth.toLocaleString("pt-BR")}
+                  </p>
+                </div>
+              )}
             </div>
           </dl>
         </section>
@@ -290,29 +323,49 @@ export function BillingPageClient() {
           aria-modal="true"
         >
           <div
-            className="rounded-xl border border-slate-200 bg-white p-6 shadow-xl max-w-sm"
+            className="rounded-xl border border-slate-200 bg-white p-6 shadow-xl max-w-md"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold mb-2">Upgrade seu plano</h3>
-            <p className="text-sm text-slate-600 mb-4">
-              Escolha um plano para continuar sem limites.
+            <h3 className="text-lg font-semibold mb-2">Escolha seu plano</h3>
+            <p className="text-sm text-slate-600 mb-2">
+              Mais respostas IA por mês. Assinatura fixa + excedente (R$0,03/conversa, R$0,09/IA).
+            </p>
+            <p className="text-xs text-slate-500 mb-4">
+              Upgrade desbloqueia limite imediatamente.
             </p>
             <div className="flex flex-col gap-2">
-              <Button
-                type="button"
-                onClick={() => void checkout("PRO")}
-                disabled={!!checkoutLoading}
-              >
-                {checkoutLoading === "PRO" ? "…" : "PRO — 3 usuários, 1.000 msgs"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => void checkout("SCALE")}
-                disabled={!!checkoutLoading}
-              >
-                {checkoutLoading === "SCALE" ? "…" : "SCALE — Ilimitado"}
-              </Button>
+              {BILLING_PLANS.map((key) => {
+                const def = PLANS[key];
+                const isCurrent = currentPlan === key;
+                const price = def.priceBrl > 0 ? `R$ ${def.priceBrl}/mês` : "Gratuito";
+                const ai = def.limits.aiCallsPerMonth;
+                const aiLabel = ai != null ? `até ${ai.toLocaleString("pt-BR")} respostas IA` : "alto volume";
+                const planTag =
+                  key === "STARTER"
+                    ? "ideal para pequenos negócios"
+                    : key === "PRO"
+                      ? "⭐ recomendado"
+                      : "alto volume / escala";
+                const isPro = key === "PRO";
+                return (
+                  <Button
+                    key={key}
+                    type="button"
+                    variant={isCurrent ? "ghost" : isPro ? "default" : "outline"}
+                    onClick={() => (isCurrent ? null : void checkout(key))}
+                    disabled={isCurrent || !!checkoutLoading}
+                    className={`text-left justify-start h-auto py-3 ${isPro && !isCurrent ? "ring-2 ring-amber-400" : ""}`}
+                  >
+                    <span className="block">
+                      <strong>{def.name}</strong> — {price}
+                    </span>
+                    <span className="block text-xs font-normal opacity-90 mt-0.5">
+                      {aiLabel} · {planTag}
+                    </span>
+                    {checkoutLoading === key && " …"}
+                  </Button>
+                );
+              })}
               <Button
                 type="button"
                 variant="ghost"
