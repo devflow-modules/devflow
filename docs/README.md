@@ -10,6 +10,7 @@
 |-------|----------|
 | [**financeiro/**](./financeiro/) | App controle financeiro (`apps/financeiro` + módulo site) |
 | [**whatsapp/**](./whatsapp/) | Plataforma WhatsApp / IA atendimento |
+| [**whatsapp-platform/**](./whatsapp-platform/) | Inbox multi-tenant no app `whatsapp-platform` |
 | [**investigamais/**](./investigamais/) | Investiga+ (CNPJ / BI) |
 | [**shared/**](./shared/) | Monorepo, deploy, Prisma, monetização, ADRs |
 | [**ecossistema/**](./ecossistema/) | Rotas, URLs e visão do hub devflowlabs.com.br |
@@ -31,6 +32,8 @@
 | Hub de ferramentas | [shared/ARQUITETURA-FERRAMENTAS-DEVFLOW.md](./shared/ARQUITETURA-FERRAMENTAS-DEVFLOW.md) |
 | Stripe / billing | [shared/DEVFLOW-PAYMENTS.md](./shared/DEVFLOW-PAYMENTS.md) |
 | WhatsApp Cloud API | [whatsapp/WHATSAPP-SETUP.md](./whatsapp/WHATSAPP-SETUP.md) |
+| Onboarding número Cloud API (admin API) | [whatsapp/WHATSAPP_CLOUD_ONBOARDING_SPRINT.md](./whatsapp/WHATSAPP_CLOUD_ONBOARDING_SPRINT.md) |
+| **Ativação real do número (runbook)** | [whatsapp/WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md](./whatsapp/WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md) |
 | Supabase Auth (Financeiro) | [financeiro/SUPABASE_URLS.md](./financeiro/SUPABASE_URLS.md) |
 | Go-live Financeiro | [financeiro/GO_LIVE_FINANCEIRO.md](./financeiro/GO_LIVE_FINANCEIRO.md) |
 | Validação / QA Financeiro | [financeiro/FINANCEIRO_RELATORIO_VALIDACAO_FINAL.md](./financeiro/FINANCEIRO_RELATORIO_VALIDACAO_FINAL.md) |

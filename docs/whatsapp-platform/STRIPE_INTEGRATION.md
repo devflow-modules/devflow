@@ -4,14 +4,18 @@ Documentação da integração de cobrança real via Stripe.
 
 ## Variáveis de ambiente
 
+**Namespace preferido** (billing isolado por produto):
+
 | Variável | Descrição |
 |----------|-----------|
-| `STRIPE_SECRET_KEY` | Chave secreta Stripe (produção) |
-| `STRIPE_TEST_SECRET_KEY` | Chave secreta Stripe (teste) |
-| `STRIPE_WEBHOOK_SECRET` | Secret do webhook (obrigatório) |
-| `STRIPE_PRICE_PRO` | Price ID do plano PRO |
-| `STRIPE_PRICE_SCALE` | Price ID do plano SCALE |
-| `STRIPE_PRICE_TEAM` | Fallback para SCALE (compatibilidade) |
+| `WHATSAPP_STRIPE_SECRET_KEY` | Chave secreta Stripe (produção) |
+| `WHATSAPP_STRIPE_TEST_SECRET_KEY` | Chave secreta Stripe (teste) |
+| `WHATSAPP_STRIPE_WEBHOOK_SECRET` | Secret do webhook (obrigatório) |
+| `WHATSAPP_STRIPE_PRICE_PRO` | Price ID do plano PRO |
+| `WHATSAPP_STRIPE_PRICE_SCALE` | Price ID do plano SCALE |
+| `NEXT_PUBLIC_WHATSAPP_APP_URL` | URL base do app (checkout/portal) |
+
+**Fallback legado** (compatibilidade): `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PRO`, etc.
 
 ## Módulo Stripe
 
@@ -99,7 +103,7 @@ Quando Stripe não está configurado:
 1. Dashboard Stripe → Developers → Webhooks
 2. Add endpoint: `https://seu-dominio.com/api/stripe/webhook`
 3. Eventos: `checkout.session.completed`, `customer.subscription.*`, `invoice.*`
-4. Copiar o Signing secret para `STRIPE_WEBHOOK_SECRET`
+4. Copiar o Signing secret para `WHATSAPP_STRIPE_WEBHOOK_SECRET`
 
 ## Testes unitários
 

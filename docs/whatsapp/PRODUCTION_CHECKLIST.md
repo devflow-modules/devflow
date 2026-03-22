@@ -1,6 +1,6 @@
 # Checklist de Produção — WhatsApp Platform
 
-Use este checklist antes do deploy e para validar o ambiente.
+Use este checklist antes do deploy e para validar o ambiente. Referência de variáveis: `docs/whatsapp/.env.production.example`. Release notes: `docs/whatsapp/RELEASE_NOTES.md`.
 
 ---
 
@@ -23,12 +23,12 @@ Opcionais: `OPENAI_API_KEY` ou `ANTHROPIC_API_KEY` para LLM; `WHATSAPP_PHONE_NUM
 | `WHATSAPP_DATABASE_URL` | Mesmo PostgreSQL do webhook-api |
 | `WHATSAPP_DIRECT_URL` | Mesmo que no webhook-api |
 | `JWT_SECRET` | Chave para JWT (mín. 32 caracteres) |
-| `NEXT_PUBLIC_APP_URL` | URL base do app (ex.: `https://wa.seudominio.com`) |
+| `NEXT_PUBLIC_WHATSAPP_APP_URL` | URL base do app (ex.: `https://wa.seudominio.com`) |
 
 Para Supabase (filas/agentes/conversações no painel): `WHATSAPP_SUPABASE_URL`, `WHATSAPP_SUPABASE_SERVICE_ROLE_KEY`.
 
-Para /admin em produção: `ADMIN_METRICS_SECRET` (cookie ou header para métricas).  
-Para Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PRO` (ou teste).
+Para /admin em produção: `WHATSAPP_ADMIN_METRICS_SECRET` (cookie ou header para métricas).  
+Para Stripe: `WHATSAPP_STRIPE_SECRET_KEY`, `WHATSAPP_STRIPE_WEBHOOK_SECRET`, `WHATSAPP_STRIPE_PRICE_PRO`, `NEXT_PUBLIC_WHATSAPP_APP_URL` (ou variantes _TEST).
 
 ---
 
@@ -70,7 +70,7 @@ Para Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PRO` (o
 1. Criar produto e preço no Stripe (ex.: plano Pro).
 2. Configurar webhook no Stripe apontando para:
    `https://seu-dominio.com/api/stripe/webhook`
-3. Definir no app: `STRIPE_WEBHOOK_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO` (ou variáveis de teste).
+3. Definir no app: `WHATSAPP_STRIPE_WEBHOOK_SECRET`, `WHATSAPP_STRIPE_SECRET_KEY`, `WHATSAPP_STRIPE_PRICE_PRO`, `NEXT_PUBLIC_WHATSAPP_APP_URL` (ou variantes _TEST).
 4. Após checkout, o usuário é redirecionado para `/onboarding?session_id=...` e o tenant recebe `plan` e `activeUntil`.
 
 ---
@@ -118,7 +118,7 @@ Com JWT do app (não Supabase Auth), as rotas já filtram por `auth.payload.tena
    - Com usuário autenticado, acessar links de export CSV (dashboard de métricas) ou `GET /api/admin/export/conversations` e `GET /api/admin/export/messages` com cookie de sessão.
 
 5. **Smoke script**
-   - Rodar `pnpm exec tsx scripts/smoke-test-whatsapp.ts` (ou equivalente) conforme documentado no script.
+   - Com `WHATSAPP_DATABASE_URL` e `WHATSAPP_DIRECT_URL` definidos: `cd apps/whatsapp-platform && pnpm run smoke`. Para E2E completo, subir o platform em outra aba e rodar o smoke (login + queue/next + resolve).
 
 ---
 
