@@ -57,13 +57,13 @@ export async function POST(
   }
   const { tagId, action } = parsed.data;
   if (action === "add") {
-    const ok = await assignTagToThread(auth.payload.tenantId, threadId, tagId);
+    const ok = await assignTagToThread(auth.payload.tenantId, threadId, tagId, auth.payload.sub);
     if (!ok) {
       return NextResponse.json({ error: "Conversa ou tag não encontrada" }, { status: 404 });
     }
     return NextResponse.json({ success: true, data: { action: "add", tagId } });
   }
-  const ok = await removeTagFromThread(auth.payload.tenantId, threadId, tagId);
+  const ok = await removeTagFromThread(auth.payload.tenantId, threadId, tagId, auth.payload.sub);
   if (!ok) {
     return NextResponse.json({ error: "Associação não encontrada" }, { status: 404 });
   }

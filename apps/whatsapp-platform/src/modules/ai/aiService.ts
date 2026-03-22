@@ -22,6 +22,7 @@ export interface GenerateReplyInput {
   contextMessages: { role: "user" | "assistant"; content: string }[];
   systemPrompt: string;
   tone: AiAgentTone;
+  model?: string;
   maxTokens: number;
   temperature: number;
   aiDriver: string | null | undefined;
@@ -66,6 +67,7 @@ export async function generateReply(input: GenerateReplyInput): Promise<Generate
     .slice(0, 120_000);
 
   const config = resolveOpenAiConfig({
+    model: input.model,
     maxTokens: input.maxTokens,
     temperature: input.temperature,
   });
@@ -73,6 +75,7 @@ export async function generateReply(input: GenerateReplyInput): Promise<Generate
   const result = await completeWithTimeout({
     kind: kind as AiProviderKind,
     messages,
+    model: config.model,
     maxTokens: config.maxTokens,
     temperature: config.temperature,
   });

@@ -11,7 +11,10 @@ export async function POST(request: NextRequest) {
   }
 
   const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin ?? "http://localhost:3004";
+    process.env.NEXT_PUBLIC_WHATSAPP_APP_URL ??
+    process.env.NEXT_PUBLIC_APP_URL ??
+    request.nextUrl.origin ??
+    "http://localhost:3004";
   const returnUrl = `${baseUrl.replace(/\/$/, "")}/billing`;
 
   try {

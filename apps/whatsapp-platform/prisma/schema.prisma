@@ -66,6 +66,7 @@ model Tenant {
   waAutomationPlaybooks WaAutomationPlaybook[]
   aiAgentConfig        AiAgentConfig?
   aiMessageLogs        AiMessageLog[]
+  aiUsageLogs          AiUsageLog[]
   usageEvents          UsageEvent[]
   billingSubscription  BillingSubscription?
   billingAuditLogs     BillingAuditLog[]
@@ -219,6 +220,7 @@ model AiAgentConfig {
   tenantId           String      @unique @map("tenant_id")
   enabled            Boolean     @default(false) @map("enabled")
   systemPrompt       String      @default("") @map("system_prompt") @db.Text
+  model              String?     @default("gpt-4o-mini") @map("model") @db.VarChar(128)
   tone               AiAgentTone @default(NEUTRAL) @map("tone")
   maxTokens          Int         @default(512) @map("max_tokens")
   temperature        Float       @default(0.7) @map("temperature")
@@ -247,6 +249,25 @@ model AiMessageLog {
   @@index([tenantId, createdAt(sort: Desc)])
   @@index([inboundWaMessageId])
   @@map("ai_message_logs")
+}
+
+enum AiUsageLogType {
+  MESSAGE_TOTAL
+  AI_SUCCESS
+  AI_FALLBACK
+}
+
+model AiUsageLog {
+  id        String        @id @default(cuid())
+  tenantId  String        @map("tenant_id")
+  type      AiUsageLogType @map("type")
+  tokens    Int           @default(0) @map("tokens")
+  createdAt DateTime      @default(now()) @map("created_at")
+  tenant    Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([tenantId, type])
+  @@map("ai_usage_logs")
 }
 
 // ─── Inbox Cloud API (multi-tenant, espelho operacional para UI) ───

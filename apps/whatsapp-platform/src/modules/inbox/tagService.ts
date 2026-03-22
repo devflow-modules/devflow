@@ -28,11 +28,12 @@ export async function listTagsByTenant(tenantId: string) {
 export async function assignTagToThread(
   tenantId: string,
   threadId: string,
-  tagId: string
+  tagId: string,
+  callerUserId?: string
 ): Promise<boolean> {
   const [thread, tag] = await Promise.all([
     prisma.waInboxThread.findFirst({ where: { id: threadId, tenantId }, select: { id: true } }),
-    prisma.waInboxTag.findFirst({ where: { id: tagId, tenantId }, select: { id: true } }),
+    prisma.waInboxTag.findFirst({ where: { id: tagId, tenantId }, select: { id: true, name: true, color: true } }),
   ]);
   if (!thread || !tag) return false;
   await prisma.waInboxThreadTag.upsert({
@@ -40,17 +41,43 @@ export async function assignTagToThread(
     create: { tenantId, threadId, tagId },
     update: {},
   });
+  const tags = await getTagsForThread(tenantId, threadId);
+  const { publishInboxEvent, eventConversationTagsChanged } = await import("@/modules/realtime/realtime.service");
+  publishInboxEvent(tenantId, eventConversationTagsChanged(tenantId, { threadId, tags }));
+  if (callerUserId) {
+    const { logAction } = await import("./auditService");
+    await logAction(tenantId, threadId, callerUserId, "tag_add", { tagId, tagName: tag.name });
+  }
+  const { dispatchTagAdded } = await import("@/modules/automation");
+  dispatchTagAdded(tenantId, threadId, tagId, tag.name).catch((e) =>
+    console.error("[tag] automation dispatch tag_add", e)
+  );
   return true;
 }
 
 export async function removeTagFromThread(
   tenantId: string,
   threadId: string,
-  tagId: string
+  tagId: string,
+  callerUserId?: string
 ): Promise<boolean> {
+  const tag = await prisma.waInboxTag.findFirst({ where: { id: tagId, tenantId }, select: { name: true } });
   const deleted = await prisma.waInboxThreadTag.deleteMany({
     where: { threadId, tagId, tenantId },
   });
+  if (deleted.count > 0) {
+    const tags = await getTagsForThread(tenantId, threadId);
+    const { publishInboxEvent, eventConversationTagsChanged } = await import("@/modules/realtime/realtime.service");
+    publishInboxEvent(tenantId, eventConversationTagsChanged(tenantId, { threadId, tags }));
+    if (callerUserId) {
+      const { logAction } = await import("./auditService");
+      await logAction(tenantId, threadId, callerUserId, "tag_remove", { tagId, tagName: tag?.name });
+    }
+    const { dispatchTagRemoved } = await import("@/modules/automation");
+    dispatchTagRemoved(tenantId, threadId, tagId).catch((e) =>
+      console.error("[tag] automation dispatch tag_remove", e)
+    );
+  }
   return deleted.count > 0;
 }
 

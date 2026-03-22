@@ -18,9 +18,8 @@ const mockPrisma = {
 };
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
-vi.mock("../stripeMeteredService", () => ({
-  isMeteredBillingConfigured: () => false,
-  queueReportUsageToStripe: vi.fn(),
+vi.mock("../infrastructure/stripeMeterClient", () => ({
+  isMeterEventsConfigured: () => false,
 }));
 
 describe("usageService", () => {

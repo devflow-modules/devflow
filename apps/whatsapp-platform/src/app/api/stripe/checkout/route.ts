@@ -6,7 +6,7 @@ import { createCheckoutSession } from "@/modules/stripe";
 import { isStripeConfigured } from "@/modules/stripe";
 
 const bodySchema = z.object({
-  plan: z.enum(["PRO", "SCALE"]),
+  plan: z.enum(["STARTER", "PRO", "SCALE"]),
 });
 
 export const dynamic = "force-dynamic";
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
     return NextResponse.json(
-      { success: false, error: "plan deve ser PRO ou SCALE" },
+      { success: false, error: "plan deve ser STARTER, PRO ou SCALE" },
       { status: 400 }
     );
   }
@@ -60,12 +60,16 @@ export async function POST(request: NextRequest) {
     tenantSub?.stripeCustomerId ?? billingSub?.stripeCustomerId ?? tenant?.stripeCustomerId ?? null;
 
   const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin ?? "http://localhost:3004";
+    process.env.NEXT_PUBLIC_WHATSAPP_APP_URL ??
+    process.env.NEXT_PUBLIC_APP_URL ??
+    request.nextUrl.origin ??
+    "http://localhost:3004";
   const successUrl = `${baseUrl.replace(/\/$/, "")}/billing?success=true`;
   const cancelUrl = `${baseUrl.replace(/\/$/, "")}/billing?canceled=true`;
 
   try {
     const { checkoutUrl } = await createCheckoutSession({
+      userId: auth.payload.sub,
       tenantId: auth.payload.tenantId,
       email: user.email,
       plan: parsed.data.plan,

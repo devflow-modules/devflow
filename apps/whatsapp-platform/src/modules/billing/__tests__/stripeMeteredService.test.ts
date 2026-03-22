@@ -1,83 +1,101 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { UsageEventType } from "@/generated/prisma-whatsapp";
 
-const createUsageRecord = vi.fn().mockResolvedValue({});
+const createMeterEvent = vi.fn().mockResolvedValue({});
 
-vi.mock("stripe", () => ({
-  default: class {
-    subscriptions = {
-      retrieve: vi.fn().mockResolvedValue({
-        id: "sub_1",
-        items: {
-          data: [
-            { id: "si_msg", price: { id: "price_msg" } },
-            { id: "si_ai", price: { id: "price_ai" } },
-          ],
-        },
-      }),
-    };
-    subscriptionItems = {
-      create: vi.fn().mockResolvedValue({ id: "si_new" }),
-      createUsageRecord: (...args: unknown[]) => createUsageRecord(...args),
-    };
+vi.mock("@/modules/stripe/stripeClient", () => ({
+  getStripe: () => ({
+    billing: {
+      meterEvents: {
+        create: (...args: unknown[]) => createMeterEvent(...args),
+      },
+    },
+  }),
+}));
+
+const mockBillingSubscription = {
+  findUnique: vi.fn(),
+  updateMany: vi.fn(),
+};
+
+const mockTransaction = vi.fn((fn: (tx: unknown) => Promise<unknown>) =>
+  fn({ billingSubscription: { updateMany: mockBillingSubscription.updateMany } })
+);
+
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    billingSubscription: mockBillingSubscription,
+    $transaction: mockTransaction,
   },
 }));
 
-const mockPrisma = {
-  billingSubscription: {
-    findUnique: vi.fn(),
-    updateMany: vi.fn(),
-  },
-  usageEvent: {
-    update: vi.fn(),
-  },
-};
-
-vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
-
-describe("stripeMeteredService", () => {
+describe("stripeMeteredService (meter events)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.stubEnv("STRIPE_METERED_PRICE_MESSAGES", "price_msg");
-    vi.stubEnv("STRIPE_METERED_PRICE_AI", "price_ai");
-    vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_x");
-    mockPrisma.billingSubscription.findUnique.mockResolvedValue({
+    vi.stubEnv("WHATSAPP_STRIPE_METERED_PRICE_MESSAGES", "price_msg");
+    vi.stubEnv("WHATSAPP_STRIPE_METERED_PRICE_AI", "price_ai");
+    vi.stubEnv("WHATSAPP_STRIPE_TEST_SECRET_KEY", "sk_test_x");
+    mockBillingSubscription.findUnique.mockResolvedValue({
+      stripeCustomerId: "cus_123",
       stripeSubscriptionId: "sub_1",
       status: "active",
-      stripeSubscriptionItemMsgId: "si_msg",
-      stripeSubscriptionItemAiId: "si_ai",
+      plan: "PRO",
+      messagesIncludedUsed: 4998,
+      aiIncludedUsed: 0,
+      messagesOverageSent: 0,
+      aiOverageSent: 0,
     });
-    mockPrisma.usageEvent.update.mockResolvedValue({});
+    mockBillingSubscription.updateMany.mockResolvedValue({});
   });
 
   afterEach(() => {
     vi.unstubAllEnvs();
   });
 
-  it("reportUsageToStripe chama createUsageRecord com idempotency key", async () => {
-    const { reportUsageToStripe } = await import("../stripeMeteredService");
-    const r = await reportUsageToStripe({
+  it("reportMessageUsage envia overage ao Stripe via meter event", async () => {
+    const { reportMessageUsage } = await import("../application/reportMessageUsage");
+    const r = await reportMessageUsage({
       tenantId: "t1",
-      type: UsageEventType.MESSAGE_SENT,
-      quantity: 1,
-      usageEventId: "evt-uuid-1",
+      quantity: 5,
     });
     expect(r.ok).toBe(true);
-    expect(createUsageRecord).toHaveBeenCalled();
-    const call = createUsageRecord.mock.calls[0];
-    expect(call[2]?.idempotencyKey).toBe("wplat-usage-evt-uuid-1");
+    expect(createMeterEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event_name: "whatsapp_messages",
+        payload: expect.objectContaining({
+          stripe_customer_id: "cus_123",
+          value: "3",
+        }),
+      })
+    );
   });
 
-  it("isolamento: usa subscription do tenant", async () => {
-    const { reportUsageToStripe } = await import("../stripeMeteredService");
-    await reportUsageToStripe({
+  it("reportAiUsage usa subscription do tenant", async () => {
+    mockBillingSubscription.findUnique.mockResolvedValue({
+      stripeCustomerId: "cus_ai",
+      stripeSubscriptionId: "sub_1",
+      status: "active",
+      plan: "PRO",
+      messagesIncludedUsed: 0,
+      aiIncludedUsed: 749,
+      messagesOverageSent: 0,
+      aiOverageSent: 0,
+    });
+    const { reportAiUsage } = await import("../application/reportAiUsage");
+    const r = await reportAiUsage({
       tenantId: "tenant-a",
-      type: UsageEventType.AI_RESPONSE,
       quantity: 2,
-      usageEventId: "e2",
     });
-    expect(mockPrisma.billingSubscription.findUnique).toHaveBeenCalledWith({
-      where: { tenantId: "tenant-a" },
-    });
+    expect(r.ok).toBe(true);
+    expect(mockBillingSubscription.findUnique).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { tenantId: "tenant-a" },
+      })
+    );
+    expect(createMeterEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event_name: "ai_usage",
+        payload: expect.objectContaining({ stripe_customer_id: "cus_ai", value: "1" }),
+      })
+    );
   });
 });

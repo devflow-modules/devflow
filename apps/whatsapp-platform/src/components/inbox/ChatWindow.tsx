@@ -1,8 +1,11 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
 import { ChatHeader } from "./ChatHeader";
+import { ChatAuditTab } from "./ChatAuditTab";
+import { reportViewing } from "./inboxFetch";
 import type { WaInboxThreadRow } from "./inboxTypes";
 
 export function ChatWindow({
@@ -16,6 +19,21 @@ export function ChatWindow({
   onBackMobile?: () => void;
   showBack?: boolean;
 }) {
+  const [auditTab, setAuditTab] = useState(false);
+  const prevThreadIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (threadId) {
+      reportViewing(threadId, true);
+      prevThreadIdRef.current = threadId;
+    }
+    return () => {
+      const prev = prevThreadIdRef.current;
+      if (prev) reportViewing(prev, false);
+      prevThreadIdRef.current = null;
+    };
+  }, [threadId]);
+
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white" data-testid="chat-window">
       <ChatHeader
@@ -23,9 +41,17 @@ export function ChatWindow({
         thread={thread}
         onBackMobile={onBackMobile}
         showBack={showBack}
+        auditTab={auditTab}
+        onAuditTabChange={setAuditTab}
       />
-      <MessageList threadId={threadId} />
-      <MessageInput threadId={threadId} />
+      {auditTab ? (
+        <ChatAuditTab threadId={threadId} />
+      ) : (
+        <>
+          <MessageList threadId={threadId} />
+          <MessageInput threadId={threadId} />
+        </>
+      )}
     </div>
   );
 }

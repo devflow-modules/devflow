@@ -1,14 +1,28 @@
 "use client";
 
-import { useState, useCallback, type KeyboardEvent } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { sendInboxMessage } from "./inboxFetch";
+import { useState, useCallback, useEffect, useRef, type KeyboardEvent } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { sendInboxMessage, reportTyping } from "./inboxFetch";
 import { INBOX_QK, type WaInboxMessageRow } from "./inboxTypes";
+
+const TYPING_DEBOUNCE_MS = 400;
+const TYPING_STOP_DELAY_MS = 1500;
 
 export function MessageInput({ threadId }: { threadId: string | null }) {
   const [text, setText] = useState("");
   const [retryText, setRetryText] = useState<string | null>(null);
   const qc = useQueryClient();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stopTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { data: typingUsers } = useQuery({
+    queryKey: threadId ? INBOX_QK.typing(threadId) : (["inbox-typing", "none"] as const),
+    queryFn: () => [] as Array<{ userId: string; name?: string }>,
+    initialData: [] as Array<{ userId: string; name?: string }>,
+    staleTime: Number.POSITIVE_INFINITY,
+    enabled: Boolean(threadId),
+  });
+  const typingList = Array.isArray(typingUsers) ? typingUsers : [];
 
   const mutation = useMutation({
     mutationFn: ({ tid, body }: { tid: string; body: string }) =>
@@ -45,7 +59,7 @@ export function MessageInput({ threadId }: { threadId: string | null }) {
     },
     onSettled: (_d, _e, vars) => {
       qc.invalidateQueries({ queryKey: INBOX_QK.messages(vars.tid) });
-      qc.invalidateQueries({ queryKey: INBOX_QK.conversations });
+      qc.invalidateQueries({ queryKey: ["inbox-conversations"] });
     },
     onSuccess: () => {
       setText("");
@@ -53,8 +67,32 @@ export function MessageInput({ threadId }: { threadId: string | null }) {
     },
   });
 
+  useEffect(() => {
+    if (!threadId) return;
+    if (text.length > 0) {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (stopTypingTimeoutRef.current) clearTimeout(stopTypingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => {
+        reportTyping(threadId, true);
+        typingTimeoutRef.current = null;
+      }, TYPING_DEBOUNCE_MS);
+      stopTypingTimeoutRef.current = setTimeout(() => {
+        reportTyping(threadId, false);
+        stopTypingTimeoutRef.current = null;
+      }, TYPING_STOP_DELAY_MS);
+    } else {
+      reportTyping(threadId, false);
+    }
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (stopTypingTimeoutRef.current) clearTimeout(stopTypingTimeoutRef.current);
+      reportTyping(threadId, false);
+    };
+  }, [threadId, text]);
+
   const send = useCallback(() => {
     if (!threadId || !text.trim() || mutation.isPending) return;
+    reportTyping(threadId, false);
     mutation.mutate({ tid: threadId, body: text.trim() });
   }, [threadId, text, mutation]);
 
@@ -75,6 +113,12 @@ export function MessageInput({ threadId }: { threadId: string | null }) {
 
   return (
     <div className="border-t border-gray-200 bg-gray-50 p-3" data-testid="message-input">
+      {typingList.length > 0 && (
+        <p className="mb-2 text-xs text-gray-500 italic">
+          {typingList.map((t) => t.name || t.userId).join(", ")}
+          {typingList.length === 1 ? " está digitando…" : " estão digitando…"}
+        </p>
+      )}
       {mutation.isError && (
         <div className="mb-2 flex flex-wrap items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           <span>Falha ao enviar.</span>

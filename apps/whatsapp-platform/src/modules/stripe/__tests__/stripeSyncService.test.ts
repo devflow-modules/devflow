@@ -1,29 +1,28 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockTenantUpsert = vi.fn();
-const mockBillingUpsert = vi.fn();
 const mockTenantUpdateMany = vi.fn();
 const mockBillingUpdateMany = vi.fn();
+const mockUpsertBillingSubscription = vi.fn();
 
 const mockPrisma = {
   tenantSubscription: { upsert: mockTenantUpsert, updateMany: mockTenantUpdateMany },
-  billingSubscription: { upsert: mockBillingUpsert, updateMany: mockBillingUpdateMany },
+  billingSubscription: { updateMany: mockBillingUpdateMany },
   $transaction: vi.fn((arg: unknown) =>
     Array.isArray(arg) ? Promise.all(arg as Promise<unknown>[]) : (arg as (tx: unknown) => Promise<unknown>)(mockPrisma)
   ),
 };
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
-vi.mock("@/modules/billing/stripeMeteredService", () => ({
-  ensureMeteredItemsOnSubscription: vi.fn(),
-  isMeteredBillingConfigured: () => false,
+vi.mock("@/modules/billing/infrastructure/billingRepository", () => ({
+  upsertBillingSubscription: (...args: unknown[]) => mockUpsertBillingSubscription(...args),
 }));
 
 describe("stripeSyncService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockTenantUpsert.mockResolvedValue({});
-    mockBillingUpsert.mockResolvedValue({});
+    mockUpsertBillingSubscription.mockResolvedValue(undefined);
     mockTenantUpdateMany.mockResolvedValue({});
     mockBillingUpdateMany.mockResolvedValue({});
   });
@@ -43,6 +42,11 @@ describe("stripeSyncService", () => {
     await syncSubscriptionFromStripe("t1", "cus_123", subscription);
 
     expect(mockPrisma.$transaction).toHaveBeenCalled();
+    expect(mockUpsertBillingSubscription).toHaveBeenCalledWith("t1", expect.objectContaining({
+      plan: "PRO",
+      status: "active",
+      stripeSubscriptionId: "sub_123",
+    }));
     expect(mockTenantUpsert).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { tenantId: "t1" },

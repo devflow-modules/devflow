@@ -46,6 +46,16 @@ export async function fetchInboxUsers(): Promise<{ id: string; name: string; ema
   return json.data.users ?? [];
 }
 
+export async function fetchOnlineUsers(): Promise<Array<{ userId: string; name?: string; email?: string }>> {
+  const res = await fetch("/api/inbox/presence", { credentials: "include" });
+  if (!res.ok) return [];
+  const json = (await res.json()) as {
+    success: boolean;
+    data: { users: Array<{ userId: string; name?: string; email?: string }> };
+  };
+  return json.data?.users ?? [];
+}
+
 export async function assignConversation(
   threadId: string,
   userId: string | null | "me"
@@ -117,6 +127,53 @@ export async function fetchInboxMessages(threadId: string): Promise<WaInboxMessa
     data: { messages: WaInboxMessageRow[] };
   };
   return json.data.messages ?? [];
+}
+
+export async function reportViewing(threadId: string, viewing: boolean): Promise<void> {
+  const res = await fetch(`/api/inbox/conversations/${encodeURIComponent(threadId)}/view`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ viewing }),
+  });
+  if (!res.ok) {
+    console.warn("[inbox] reportViewing failed", res.status);
+  }
+}
+
+export async function reportTyping(threadId: string, typing: boolean): Promise<void> {
+  const res = await fetch(`/api/inbox/conversations/${encodeURIComponent(threadId)}/typing`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ typing }),
+  });
+  if (!res.ok) {
+    console.warn("[inbox] reportTyping failed", res.status);
+  }
+}
+
+export async function fetchInboxAuditLog(threadId: string): Promise<
+  Array<{
+    id: string;
+    threadId: string;
+    userId: string;
+    action: string;
+    metadata: unknown;
+    createdAt: string;
+    user?: { id: string; name: string };
+  }>
+> {
+  const res = await fetch(
+    `/api/inbox/conversations/${encodeURIComponent(threadId)}/audit?limit=50`,
+    { credentials: "include" }
+  );
+  if (!res.ok) throw new Error("Falha ao carregar histórico");
+  const json = (await res.json()) as {
+    success: boolean;
+    data: { logs: Array<{ id: string; threadId: string; userId: string; action: string; metadata: unknown; createdAt: string; user?: { id: string; name: string } }> };
+  };
+  return json.data.logs ?? [];
 }
 
 export async function sendInboxMessage(threadId: string, text: string): Promise<void> {

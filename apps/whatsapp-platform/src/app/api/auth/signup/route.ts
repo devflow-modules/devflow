@@ -3,12 +3,14 @@ import { z } from "zod";
 import { createCheckoutSession } from "@devflow/billing-core";
 import { hashPassword, buildSetCookieHeader, signToken } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
+import { ensureTenantSubscription } from "@/modules/billing/subscriptionService";
+import { normalizePlan } from "@/modules/billing/plans";
 
 const bodySchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   email: z.string().email("E-mail inválido"),
   password: z.string().min(8, "Senha deve ter no mínimo 8 caracteres"),
-  planId: z.enum(["starter", "pro"]).default("starter"),
+  planId: z.enum(["starter", "pro", "scale"]).default("starter"),
 });
 
 export async function POST(request: NextRequest) {
@@ -38,6 +40,8 @@ export async function POST(request: NextRequest) {
     },
   });
 
+  await ensureTenantSubscription(tenant.id, normalizePlan(planId) as "FREE" | "STARTER" | "PRO" | "SCALE");
+
   const user = await prisma.user.create({
     data: {
       tenantId: tenant.id,
@@ -58,7 +62,11 @@ export async function POST(request: NextRequest) {
 
   if (planId === "pro") {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin ?? "http://localhost:3004";
+      const baseUrl =
+        process.env.NEXT_PUBLIC_WHATSAPP_APP_URL ??
+        process.env.NEXT_PUBLIC_APP_URL ??
+        request.nextUrl.origin ??
+        "http://localhost:3004";
       const result = await createCheckoutSession({
         userId: tenant.id,
         email: emailLower,

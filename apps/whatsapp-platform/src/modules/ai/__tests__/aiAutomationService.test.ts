@@ -33,6 +33,10 @@ vi.mock("@/modules/billing/usageService", () => ({
   trackUsage: () => {},
 }));
 
+vi.mock("../aiUsageService", () => ({
+  trackAiUsage: () => {},
+}));
+
 const mockPrisma = {
   aiAgentConfig: {
     findUnique: vi.fn(),
@@ -258,8 +262,20 @@ describe("runTenantAiAutoReply", () => {
 
   it("standalone OpenAI: usa generateOpenAiReply quando OPENAI_API_KEY existe", async () => {
     isOpenAiConfigured.mockReturnValue(true);
-    generateOpenAiReply.mockResolvedValue("Resposta via OpenAI");
+    generateOpenAiReply.mockResolvedValue({
+      reply: "Resposta via OpenAI",
+      fallback: false,
+      tokensUsed: 42,
+      durationMs: 100,
+    });
     mockPrisma.aiMessageLog.findFirst.mockResolvedValue(null);
+    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue({
+      systemPrompt: "",
+      maxTokens: 512,
+      temperature: 0.7,
+    });
+    mockPrisma.waInboxThread.findUnique.mockResolvedValue({ id: "thread-1" });
+    mockPrisma.waInboxMessage.findMany.mockResolvedValue([]);
     const { runTenantAiAutoReply } = await import("../aiAutomationService");
     await runTenantAiAutoReply({
       tenant: {
@@ -277,7 +293,9 @@ describe("runTenantAiAutoReply", () => {
       conversationId: "c1",
       textBody: "olá",
     });
-    expect(generateOpenAiReply).toHaveBeenCalledWith("olá");
+    expect(generateOpenAiReply).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "olá" })
+    );
     expect(sendWebhookAutoReply).toHaveBeenCalledWith(
       expect.objectContaining({
         text: "Resposta via OpenAI",

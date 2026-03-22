@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { createBillingCheckoutSession, type CheckoutPlan } from "@/modules/billing/billingService";
 
 const bodySchema = z.object({
-  plan: z.enum(["PRO", "SCALE"]),
+  plan: z.enum(["STARTER", "PRO", "SCALE"]),
 });
 
 export const dynamic = "force-dynamic";
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
     return NextResponse.json(
-      { success: false, error: "plan deve ser PRO ou SCALE" },
+      { success: false, error: "plan deve ser STARTER, PRO ou SCALE" },
       { status: 400 }
     );
   }
@@ -34,10 +34,14 @@ export async function POST(request: NextRequest) {
   }
 
   const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin ?? "http://localhost:3004";
+    process.env.NEXT_PUBLIC_WHATSAPP_APP_URL ??
+    process.env.NEXT_PUBLIC_APP_URL ??
+    request.nextUrl.origin ??
+    "http://localhost:3004";
 
   try {
     const { checkoutUrl } = await createBillingCheckoutSession(
+      auth.payload.sub,
       auth.payload.tenantId,
       user.email,
       parsed.data.plan as CheckoutPlan,

@@ -61,7 +61,7 @@ describe("usage.service", () => {
 
   it("checkLimit retorna ok quando dentro do limite", async () => {
     mockGetTenantPlan.mockResolvedValue("FREE");
-    mockGetUsageByPeriod.mockResolvedValue({ messagesSent: 50, aiResponses: 5 });
+    mockGetUsageByPeriod.mockResolvedValue({ messagesSent: 40, aiResponses: 5 });
     mockFindUnique.mockResolvedValue({ value: 0 });
     const { checkLimit } = await import("../usage.service");
     const r = await checkLimit("t1", UsageMetricType.MESSAGES);
@@ -70,7 +70,7 @@ describe("usage.service", () => {
 
   it("checkLimit retorna LIMIT_REACHED quando excede mensagens FREE", async () => {
     mockGetTenantPlan.mockResolvedValue("FREE");
-    mockGetUsageByPeriod.mockResolvedValue({ messagesSent: 100, aiResponses: 0 });
+    mockGetUsageByPeriod.mockResolvedValue({ messagesSent: 60, aiResponses: 0 });
     const { checkLimit } = await import("../usage.service");
     const r = await checkLimit("t1", UsageMetricType.MESSAGES);
     expect(r.ok).toBe(false);

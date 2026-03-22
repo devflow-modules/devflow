@@ -38,7 +38,7 @@ export async function POST(
   const tenantId = auth.payload.tenantId;
 
   if (parsed.data.unassign) {
-    const ok = await unassignThread(tenantId, threadId);
+    const ok = await unassignThread(tenantId, threadId, auth.payload.sub);
     if (!ok) {
       return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 });
     }
@@ -48,7 +48,7 @@ export async function POST(
   let userId: string = parsed.data.userId ?? auth.payload.sub;
   if (userId === "me") userId = auth.payload.sub;
 
-  const ok = await assignThread(tenantId, threadId, userId);
+  const ok = await assignThread(tenantId, threadId, userId, auth.payload.sub);
   if (!ok) {
     return NextResponse.json({ error: "Conversa não encontrada ou usuário inválido" }, { status: 404 });
   }

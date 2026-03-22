@@ -256,6 +256,7 @@ export function BillingSettingsClient() {
 
       <p className="text-xs text-slate-500">
         Limite rígido: <code className="bg-slate-100 px-1">BILLING_ENFORCE_LIMITS=true</code>.         Metered: env{" "}
+        <code className="bg-slate-100 px-1">WHATSAPP_STRIPE_METERED_PRICE_*</code> ou{" "}
         <code className="bg-slate-100 px-1">STRIPE_METERED_PRICE_*</code> — ver{" "}
         <code className="bg-slate-100 px-1">docs/whatsapp-platform/METERED_BILLING.md</code>.
       </p>

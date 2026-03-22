@@ -41,9 +41,18 @@ type ChatHeaderProps = {
   thread: WaInboxThreadRow | null;
   onBackMobile?: () => void;
   showBack?: boolean;
+  auditTab?: boolean;
+  onAuditTabChange?: (show: boolean) => void;
 };
 
-export function ChatHeader({ threadId, thread, onBackMobile, showBack }: ChatHeaderProps) {
+export function ChatHeader({
+  threadId,
+  thread,
+  onBackMobile,
+  showBack,
+  auditTab,
+  onAuditTabChange,
+}: ChatHeaderProps) {
   const client = useQueryClient();
   const [assignOpen, setAssignOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
@@ -59,6 +68,13 @@ export function ChatHeader({ threadId, thread, onBackMobile, showBack }: ChatHea
   const { data: users = [] } = useQuery({
     queryKey: INBOX_QK.users,
     queryFn: fetchInboxUsers,
+  });
+  const { data: viewersList = [] } = useQuery({
+    queryKey: threadId ? INBOX_QK.viewers(threadId) : (["inbox-viewers", "none"] as const),
+    queryFn: () => [] as Array<{ userId: string; name?: string }>,
+    initialData: [] as Array<{ userId: string; name?: string }>,
+    staleTime: Number.POSITIVE_INFINITY,
+    enabled: Boolean(threadId),
   });
 
   const slaLabel = useSlaLabel(thread);
@@ -262,7 +278,34 @@ export function ChatHeader({ threadId, thread, onBackMobile, showBack }: ChatHea
         {slaLabel && (
           <span className="text-xs text-gray-500">{slaLabel}</span>
         )}
+
+        {onAuditTabChange && (
+          <button
+            type="button"
+            onClick={() => onAuditTabChange(!auditTab)}
+            className={`rounded border px-2 py-1 text-xs font-medium ${
+              auditTab
+                ? "border-emerald-600 bg-emerald-50 text-emerald-700"
+                : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            Histórico
+          </button>
+        )}
       </div>
+
+      {(thread.assignedToUser || viewersList.length > 0) && (
+        <div className="flex flex-wrap items-center gap-2 border-t border-gray-100 px-3 py-2 text-xs text-gray-600">
+          {thread.assignedToUser && (
+            <span>Atendido por: <strong>{thread.assignedToUser.name}</strong></span>
+          )}
+          {viewersList.length > 0 && (
+            <span>
+              Visualizando: {viewersList.map((v) => v.name || v.userId).join(", ")}
+            </span>
+          )}
+        </div>
+      )}
     </header>
   );
 }

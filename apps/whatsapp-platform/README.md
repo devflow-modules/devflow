@@ -30,10 +30,10 @@ App Next.js do produto WhatsApp Platform (DevFlow). Onboarding, auth (JWT + cook
 | `WHATSAPP_DIRECT_URL` | PostgreSQL direta (migrations) |
 | `WHATSAPP_SUPABASE_URL` / `WHATSAPP_SUPABASE_SERVICE_ROLE_KEY` | Supabase do projeto WhatsApp |
 | `JWT_SECRET` | Chave para assinatura do JWT (mín. 32 caracteres) |
-| `NEXT_PUBLIC_APP_URL` | URL base do app (ex: https://wa.example.com) |
-| `STRIPE_SECRET_KEY` / `STRIPE_TEST_SECRET_KEY` | Stripe |
-| `STRIPE_WEBHOOK_SECRET` | Assinatura do webhook Stripe |
-| `STRIPE_PRICE_PRO` / `STRIPE_TEST_PRICE_PRO` | price_id do plano Pro |
+| `NEXT_PUBLIC_WHATSAPP_APP_URL` | URL base do app (ex: https://wa.example.com) |
+| `WHATSAPP_STRIPE_SECRET_KEY` / `WHATSAPP_STRIPE_TEST_SECRET_KEY` | Stripe |
+| `WHATSAPP_STRIPE_WEBHOOK_SECRET` | Assinatura do webhook Stripe |
+| `WHATSAPP_STRIPE_PRICE_PRO` / `WHATSAPP_STRIPE_PRICE_SCALE` | price_id dos planos |
 
 ## Fluxo pós-signup e onboarding
 
@@ -41,7 +41,7 @@ Após o signup (ou após concluir o checkout Stripe no plano Pro), o usuário é
 
 ## Segurança e RLS
 
-- Rotas **/admin** em produção exigem o cookie `admin_metrics_secret` com valor igual a `ADMIN_METRICS_SECRET` (ou login em `/admin/login` que define esse cookie).
+- Rotas **/admin** em produção exigem o cookie `admin_metrics_secret` com valor igual a `WHATSAPP_ADMIN_METRICS_SECRET` (ou login em `/admin/login` que define esse cookie).
 - A API **/api/admin/metrics** exige o header `x-admin-metrics-secret` ou ambiente de desenvolvimento.
 - No Supabase, o arquivo `supabase/schema.sql` já habilita RLS nas tabelas; as políticas atuais são permissivas para uso com service role. Em cenários multi-tenant com Supabase Auth, ajuste as políticas para filtrar por `tenant_id` (por exemplo, `using (tenant_id = auth.jwt() ->> 'tenant_id')`).
 
@@ -55,7 +55,7 @@ pnpm build
 pnpm start
 ```
 
-Configurar webhook Stripe para `POST /api/stripe/webhook`. Em produção, usar `STRIPE_SECRET_KEY` e `STRIPE_PRICE_PRO`.
+Configurar webhook Stripe para `POST /api/stripe/webhook`. Em produção, usar `WHATSAPP_STRIPE_SECRET_KEY`, `WHATSAPP_STRIPE_PRICE_PRO` e `NEXT_PUBLIC_WHATSAPP_APP_URL`.
 
 ## Testes
 

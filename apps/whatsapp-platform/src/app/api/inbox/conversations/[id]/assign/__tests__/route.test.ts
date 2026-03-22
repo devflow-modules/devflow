@@ -41,7 +41,7 @@ describe("POST /api/inbox/conversations/[id]/assign", () => {
     });
     const res = await POST(req, { params: Promise.resolve({ id: "thread1" }) });
     expect(res.status).toBe(200);
-    expect(mockAssign).toHaveBeenCalledWith("t1", "thread1", "user1");
+    expect(mockAssign).toHaveBeenCalledWith("t1", "thread1", "user1", "user1");
   });
 
   it("desatribui quando unassign: true", async () => {
@@ -53,6 +53,6 @@ describe("POST /api/inbox/conversations/[id]/assign", () => {
     });
     const res = await POST(req, { params: Promise.resolve({ id: "thread1" }) });
     expect(res.status).toBe(200);
-    expect(mockUnassign).toHaveBeenCalledWith("t1", "thread1");
+    expect(mockUnassign).toHaveBeenCalledWith("t1", "thread1", "user1");
   });
 });

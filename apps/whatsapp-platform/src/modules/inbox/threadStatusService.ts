@@ -9,12 +9,23 @@ import { prisma } from "@/lib/prisma";
 export async function updateThreadStatus(
   tenantId: string,
   threadId: string,
-  status: WaInboxThreadStatus
+  status: WaInboxThreadStatus,
+  callerUserId?: string
 ): Promise<boolean> {
   const updated = await prisma.waInboxThread.updateMany({
     where: { id: threadId, tenantId },
     data: { status },
   });
+  if (updated.count > 0) {
+    const { publishInboxEvent, eventConversationStatusChanged } = await import("@/modules/realtime/realtime.service");
+    publishInboxEvent(tenantId, eventConversationStatusChanged(tenantId, { threadId, status }));
+    const { logAction } = await import("./auditService");
+    await logAction(tenantId, threadId, callerUserId ?? "system", "status_change", { status });
+    const { dispatchStatusChanged } = await import("@/modules/automation");
+    dispatchStatusChanged(tenantId, threadId, status).catch((e) =>
+      console.error("[thread-status] automation dispatch", e)
+    );
+  }
   return updated.count > 0;
 }
 

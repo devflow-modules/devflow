@@ -112,7 +112,7 @@ export function SettingsTenantForm() {
           IA de atendimento automático →
         </Link>
         <br />
-        <Link href="/settings/billing" className="text-blue-600 underline text-sm">
+        <Link href="/billing" className="text-blue-600 underline text-sm">
           Billing e uso →
         </Link>
       </p>

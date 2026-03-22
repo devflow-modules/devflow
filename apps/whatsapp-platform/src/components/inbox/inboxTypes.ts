@@ -49,4 +49,12 @@ export const INBOX_QK = {
   messages: (threadId: string) => ["inbox-messages", threadId] as const,
   tags: ["inbox-tags"] as const,
   users: ["inbox-users"] as const,
+  presence: ["inbox-presence"] as const,
+  viewers: (threadId: string) => ["inbox-viewers", threadId] as const,
+  typing: (threadId: string) => ["inbox-typing", threadId] as const,
+  audit: (threadId: string) => ["inbox-audit", threadId] as const,
 };
+
+export type OnlineUserInfo = { userId: string; name?: string; email?: string };
+export type ThreadViewer = { userId: string; name?: string };
+export type TypingUser = { userId: string; name?: string };

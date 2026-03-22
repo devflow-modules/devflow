@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
 import { getStripeUsageSyncStats, periodYYYYMM } from "@/modules/billing/usageService";
-import { isMeteredBillingConfigured } from "@/modules/billing/stripeMeteredService";
+import { isMeterEventsConfigured } from "@/modules/billing/infrastructure/stripeMeterClient";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     success: true,
     data: {
       period,
-      meteredConfigured: isMeteredBillingConfigured(),
+      meteredConfigured: isMeterEventsConfigured(),
       ...stats,
       interpretation: {
         messagesPending:

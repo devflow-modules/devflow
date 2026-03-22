@@ -5,7 +5,9 @@ import { waInboxCreateOutbound } from "@/modules/inbox";
 import { digitsOnly } from "@/modules/inbox/waInboxUtils";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-import { checkUsageWithinLimits, trackUsage } from "@/modules/billing/usageService";
+import { enforceUsageOrThrow, UsageLimitExceededError } from "@/modules/billing/enforcementService";
+import { trackUsage } from "@/modules/billing/usageService";
+import { logAction } from "@/modules/inbox";
 import { UsageEventType } from "@/generated/prisma-whatsapp";
 
 const bodySchema = z.object({
@@ -54,12 +56,16 @@ export async function POST(
     return NextResponse.json({ error: "Tenant não encontrado" }, { status: 404 });
   }
 
-  const limitCheck = await checkUsageWithinLimits(tenant.id, tenant.plan);
-  if (!limitCheck.ok) {
-    return NextResponse.json(
-      { success: false, error: { message: limitCheck.reason, code: "USAGE_LIMIT" } },
-      { status: 402 }
-    );
+  try {
+    await enforceUsageOrThrow({ tenantId: tenant.id, feature: "messages", quantity: 1 });
+  } catch (e) {
+    if (e instanceof UsageLimitExceededError) {
+      return NextResponse.json(
+        { success: false, error: { message: e.message, code: e.code } },
+        { status: 402 }
+      );
+    }
+    throw e;
   }
 
   if (!tenant.phoneNumberId?.trim() || !tenant.accessToken?.trim()) {
@@ -106,6 +112,14 @@ export async function POST(
     trackUsage(auth.payload.tenantId, UsageEventType.MESSAGE_SENT, {
       metadata: { source: "inbox_send", threadId: thread.id },
     });
+
+    await logAction(
+      auth.payload.tenantId,
+      thread.id,
+      auth.payload.sub,
+      "message_send",
+      { textLength: parsed.data.text.length }
+    );
 
     return NextResponse.json({
       success: true,

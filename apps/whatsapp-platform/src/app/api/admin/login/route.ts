@@ -4,7 +4,8 @@ const ADMIN_METRICS_COOKIE = "admin_metrics_secret";
 const COOKIE_MAX_AGE = 60 * 60 * 24; // 24h
 
 export async function POST(request: Request) {
-  const secret = process.env.ADMIN_METRICS_SECRET;
+  const secret =
+    process.env.WHATSAPP_ADMIN_METRICS_SECRET ?? process.env.ADMIN_METRICS_SECRET;
   if (!secret) {
     return NextResponse.json({ error: "Admin metrics not configured" }, { status: 503 });
   }

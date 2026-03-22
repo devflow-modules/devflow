@@ -10,16 +10,21 @@ export type PlanLimits = {
   aiResponsesPerMonth: number | null;
   automationsPerMonth?: number | null;
   users?: number | null;
+  phoneNumbers?: number | null;
 };
 
 export function normalizePlanKey(plan: string | null | undefined): string {
   return normalizePlan(plan);
 }
 
+/**
+ * Preços do excedente (uso variável).
+ * Default: R$0,03/conversa, R$0,09/interação IA.
+ */
 export function getUsageUnitPricesBrl(): { message: number; aiResponse: number } {
   return {
-    message: Math.max(0, parseFloat(process.env.BILLING_PRICE_MESSAGE_BRL ?? "0.05") || 0.05),
-    aiResponse: Math.max(0, parseFloat(process.env.BILLING_PRICE_AI_BRL ?? "0.10") || 0.1),
+    message: Math.max(0, parseFloat(process.env.BILLING_PRICE_MESSAGE_BRL ?? "0.03") || 0.03),
+    aiResponse: Math.max(0, parseFloat(process.env.BILLING_PRICE_AI_BRL ?? "0.09") || 0.09),
   };
 }
 
@@ -31,6 +36,7 @@ export function getPlanLimits(plan: string | null | undefined): PlanLimits {
     aiResponsesPerMonth: limits.aiCallsPerMonth,
     automationsPerMonth: limits.automationsPerMonth,
     users: limits.users,
+    phoneNumbers: limits.phoneNumbers,
   };
 }
 

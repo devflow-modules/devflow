@@ -90,7 +90,7 @@ export function parseWebhookEvent(event: Stripe.Event): ParsedWebhookEvent | nul
     return { type, stripeCustomerId, subscriptionId };
   }
 
-  if (type === "invoice.payment_succeeded") {
+  if (type === "invoice.payment_succeeded" || type === "invoice.upcoming") {
     const invoice = event.data.object as Stripe.Invoice;
     const stripeCustomerId =
       typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;

@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const mockPrisma = {
   user: { findFirst: vi.fn(), findMany: vi.fn() },
   waInboxThread: { updateMany: vi.fn(), findMany: vi.fn() },
+  waInboxAuditLog: { create: vi.fn().mockResolvedValue({}) },
 };
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));

@@ -34,7 +34,12 @@ export async function POST(
     return NextResponse.json({ error: "status inválido (OPEN, PENDING, CLOSED)" }, { status: 400 });
   }
 
-  const ok = await updateThreadStatus(auth.payload.tenantId, threadId, parsed.data.status);
+  const ok = await updateThreadStatus(
+    auth.payload.tenantId,
+    threadId,
+    parsed.data.status,
+    auth.payload.sub
+  );
   if (!ok) {
     return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 });
   }

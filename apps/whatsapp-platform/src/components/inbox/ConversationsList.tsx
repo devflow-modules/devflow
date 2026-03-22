@@ -5,6 +5,10 @@ import { ConversationItem } from "./ConversationItem";
 import { fetchInboxConversations } from "./inboxFetch";
 import { INBOX_QK } from "./inboxTypes";
 import type { InboxConversationsFilter } from "./inboxTypes";
+import { useInboxRealtime } from "./useInboxRealtime";
+
+const POLL_INTERVAL_REALTIME_MS = 10_000;
+const POLL_INTERVAL_FALLBACK_MS = 5_000;
 
 const FILTER_LABELS: Record<InboxConversationsFilter, string> = {
   all: "Todas",
@@ -26,10 +30,13 @@ export function ConversationsList({
   filter: InboxConversationsFilter;
   onFilterChange: (f: InboxConversationsFilter) => void;
 }) {
+  const { connected: realtimeConnected } = useInboxRealtime();
+  const pollInterval = realtimeConnected ? POLL_INTERVAL_REALTIME_MS : POLL_INTERVAL_FALLBACK_MS;
+
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: INBOX_QK.conversations(filter),
     queryFn: () => fetchInboxConversations(filter),
-    refetchInterval: 10_000,
+    refetchInterval: pollInterval,
   });
 
   if (isLoading) {

@@ -9,6 +9,7 @@ export type AiProviderKind = "openai" | "anthropic";
 export interface AiCompletionInput {
   kind: AiProviderKind;
   messages: LLMMessage[];
+  model?: string;
   maxTokens: number;
   temperature: number;
   timeoutMs?: number;
@@ -65,7 +66,7 @@ export async function completeWithTimeout(input: AiCompletionInput): Promise<AiC
 
   try {
     if (kind === "openai") {
-      const model = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
+      const model = input.model ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini";
       const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         signal: controller.signal,

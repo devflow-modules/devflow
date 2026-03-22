@@ -5,6 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 import { MessageBubble } from "./MessageBubble";
 import { fetchInboxMessages } from "./inboxFetch";
 import { INBOX_QK } from "./inboxTypes";
+import { useInboxRealtime } from "./useInboxRealtime";
+
+const POLL_INTERVAL_REALTIME_MS = 10_000;
+const POLL_INTERVAL_FALLBACK_MS = 5_000;
 
 function dateLabel(iso: string): string {
   try {
@@ -20,11 +24,14 @@ function dateLabel(iso: string): string {
 
 export function MessageList({ threadId }: { threadId: string | null }) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const { connected: realtimeConnected } = useInboxRealtime();
+  const pollInterval = realtimeConnected ? POLL_INTERVAL_REALTIME_MS : POLL_INTERVAL_FALLBACK_MS;
+
   const { data, isLoading, isError } = useQuery({
     queryKey: threadId ? INBOX_QK.messages(threadId) : ["inbox-messages", "none"],
     queryFn: () => fetchInboxMessages(threadId!),
     enabled: Boolean(threadId),
-    refetchInterval: threadId ? 3_000 : false,
+    refetchInterval: threadId ? pollInterval : false,
   });
 
   const grouped = useMemo(() => {

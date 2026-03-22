@@ -62,12 +62,15 @@ export async function waInboxCreateInbound(
   const preview =
     textBody != null ? previewText(textBody) : `[${mtype.toLowerCase()}]`;
 
-  await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const existing = await tx.waInboxMessage.findUnique({
       where: { tenantId_waMessageId: { tenantId, waMessageId: p.waMessageId } },
     });
-    if (existing) return;
+    if (existing) return null;
 
+    const existedThread = await tx.waInboxThread.findUnique({
+      where: { tenantId_phoneNumber: { tenantId, phoneNumber: customer } },
+    });
     const thread = await tx.waInboxThread.upsert({
       where: { tenantId_phoneNumber: { tenantId, phoneNumber: customer } },
       create: {
@@ -115,7 +118,44 @@ export async function waInboxCreateInbound(
         rawPayload: { source: "webhook_inbound" } as Prisma.InputJsonValue,
       },
     });
+    return { thread, row, wasNewConversation: !existedThread };
   });
+  if (result) {
+    const { thread, row, wasNewConversation } = result;
+    const { publishInboxEvent, eventMessageCreated } = await import("@/modules/realtime/realtime.service");
+    publishInboxEvent(tenantId, eventMessageCreated(tenantId, {
+      threadId: thread.id,
+      message: {
+        id: row.id,
+        waMessageId: row.waMessageId,
+        direction: "INBOUND",
+        fromNumber: row.fromNumber,
+        toNumber: row.toNumber,
+        messageType: row.messageType,
+        contentText: row.contentText,
+        ts: row.ts.toISOString(),
+        status: row.status,
+        createdAt: row.createdAt.toISOString(),
+      },
+      threadPatch: {
+        lastMessageAt: thread.lastMessageAt.toISOString(),
+        lastMessagePreview: preview,
+        unreadCount: thread.unreadCount,
+        lastCustomerMessageAt: thread.lastCustomerMessageAt?.toISOString() ?? null,
+        lastAgentReplyAt: thread.lastAgentReplyAt?.toISOString() ?? null,
+        firstResponseAt: thread.firstResponseAt?.toISOString() ?? null,
+      },
+    }));
+    const { dispatchMessageInbound, dispatchConversationCreated } = await import("@/modules/automation");
+    dispatchMessageInbound(tenantId, thread.id, row.id, textBody).catch((e) =>
+      console.error("[wa-inbox] automation dispatch inbound", e)
+    );
+    if (wasNewConversation) {
+      dispatchConversationCreated(tenantId, thread.id).catch((e) =>
+        console.error("[wa-inbox] automation dispatch conversation_created", e)
+      );
+    }
+  }
 }
 
 function isRecord(x: unknown): x is Record<string, unknown> {
@@ -135,11 +175,11 @@ export async function waInboxCreateOutbound(params: {
   const ts = new Date();
   const preview = previewText(text);
 
-  await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const dup = await tx.waInboxMessage.findUnique({
       where: { tenantId_waMessageId: { tenantId, waMessageId } },
     });
-    if (dup) return;
+    if (dup) return null;
 
     const thread = await tx.waInboxThread.upsert({
       where: { tenantId_phoneNumber: { tenantId, phoneNumber: customerPhoneDigits } },
@@ -188,7 +228,39 @@ export async function waInboxCreateOutbound(params: {
         rawPayload: { source: "send_api" } as Prisma.InputJsonValue,
       },
     });
+    return { thread, row };
   });
+  if (result) {
+    const { thread, row } = result;
+    const { publishInboxEvent, eventMessageCreated } = await import("@/modules/realtime/realtime.service");
+    publishInboxEvent(tenantId, eventMessageCreated(tenantId, {
+      threadId: thread.id,
+      message: {
+        id: row.id,
+        waMessageId: row.waMessageId,
+        direction: "OUTBOUND",
+        fromNumber: row.fromNumber,
+        toNumber: row.toNumber,
+        messageType: row.messageType,
+        contentText: row.contentText,
+        ts: row.ts.toISOString(),
+        status: row.status,
+        createdAt: row.createdAt.toISOString(),
+      },
+      threadPatch: {
+        lastMessageAt: thread.lastMessageAt.toISOString(),
+        lastMessagePreview: preview,
+        unreadCount: thread.unreadCount,
+        lastCustomerMessageAt: thread.lastCustomerMessageAt?.toISOString() ?? null,
+        lastAgentReplyAt: thread.lastAgentReplyAt?.toISOString() ?? null,
+        firstResponseAt: thread.firstResponseAt?.toISOString() ?? null,
+      },
+    }));
+    const { dispatchMessageOutbound } = await import("@/modules/automation");
+    dispatchMessageOutbound(tenantId, thread.id).catch((e) =>
+      console.error("[wa-inbox] automation dispatch outbound", e)
+    );
+  }
 }
 
 export async function waInboxApplyStatus(
@@ -231,6 +303,12 @@ export async function waInboxApplyStatus(
       },
     });
   });
+  const { publishInboxEvent, eventMessageStatusUpdated } = await import("@/modules/realtime/realtime.service");
+  publishInboxEvent(tenantId, eventMessageStatusUpdated(tenantId, {
+    threadId: msg.threadId,
+    messageId: msg.id,
+    status: String(st),
+  }));
   return true;
 }
 

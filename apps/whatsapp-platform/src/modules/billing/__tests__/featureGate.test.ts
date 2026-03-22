@@ -36,6 +36,6 @@ describe("featureGate", () => {
   it("assertFeature não lança quando permitido", async () => {
     mockGetTenantPlan.mockResolvedValue("SCALE");
     const { assertFeature } = await import("../featureGate");
-    await expect(assertFeature("t1", "PLAYBOOKS")).resolves.toBeUndefined();
+    await expect(assertFeature("t1", "ADVANCED_AUTOMATION")).resolves.toBeUndefined();
   });
 });

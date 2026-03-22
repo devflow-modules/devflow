@@ -6,7 +6,7 @@ import { normalizePlan } from "@/modules/billing/plans";
 import type { PlanKey } from "@/modules/billing/plans";
 
 const bodySchema = z.object({
-  plan: z.enum(["PRO", "SCALE"]),
+  plan: z.enum(["STARTER", "PRO", "SCALE"]),
 });
 
 /**
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   const parsed = bodySchema.safeParse(await request.json());
   if (!parsed.success) {
     return NextResponse.json(
-      { success: false, error: "plan inválido (PRO ou SCALE)" },
+      { success: false, error: "plan inválido (STARTER, PRO ou SCALE)" },
       { status: 400 }
     );
   }
