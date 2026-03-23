@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-  }
+  const denied = requireRole(auth, ["admin"]);
+  if (denied) return denied;
 
   const queues = await prisma.conversationQueue.findMany({
     where: { tenantId: auth.payload.tenantId },

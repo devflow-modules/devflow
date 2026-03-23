@@ -10,8 +10,16 @@ export {
   verifyToken,
   login,
   findUserByEmail,
+  signPasswordResetToken,
+  verifyPasswordResetToken,
+  updateUserPassword,
   type JwtPayload,
   type UserSafe,
   type UserRole,
+  type PasswordResetPayload,
 } from "./authService";
-export { getAuthFromRequest, type AuthResult } from "./verifyToken";
+export {
+  getAuthFromRequest,
+  requireRole,
+  type AuthResult,
+} from "./verifyToken";

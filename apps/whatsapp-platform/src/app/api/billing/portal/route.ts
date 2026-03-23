@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole } from "@/modules/auth";
 import { createBillingPortalSession } from "@/modules/billing/billingService";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) {
-    return NextResponse.json({ success: false, error: "Não autorizado" }, { status: 401 });
-  }
+  const denied = requireRole(auth, ["admin"]);
+  if (denied) return denied;
 
   const baseUrl =
     process.env.NEXT_PUBLIC_WHATSAPP_APP_URL ??

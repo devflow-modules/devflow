@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole } from "@/modules/auth";
 import { z } from "zod";
 import { ensureTenantSubscription } from "@/modules/billing/subscriptionService";
 import { normalizePlan } from "@/modules/billing/plans";
@@ -15,9 +15,8 @@ const bodySchema = z.object({
  */
 export async function POST(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) {
-    return NextResponse.json({ success: false, error: "Não autorizado" }, { status: 401 });
-  }
+  const denied = requireRole(auth, ["admin"]);
+  if (denied) return denied;
 
   const parsed = bodySchema.safeParse(await request.json());
   if (!parsed.success) {

@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import { getJwtSecret, JWT_EXPIRY_HOURS } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 
+const PASSWORD_RESET_EXPIRY = "1h";
+
 const SALT_ROUNDS = 10;
 
 export type UserRole = "admin" | "agent";
@@ -57,6 +59,44 @@ export async function findUserByEmail(email: string): Promise<{ id: string; emai
     where: { email: email.trim().toLowerCase() },
   });
   return user;
+}
+
+export interface PasswordResetPayload {
+  sub: string;
+  email: string;
+  purpose: "password_reset";
+}
+
+export async function signPasswordResetToken(userId: string, email: string): Promise<string> {
+  const secret = new TextEncoder().encode(getJwtSecret());
+  return new SignJWT({ sub: userId, email, purpose: "password_reset" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(PASSWORD_RESET_EXPIRY)
+    .sign(secret);
+}
+
+export async function verifyPasswordResetToken(token: string): Promise<PasswordResetPayload | null> {
+  try {
+    const secret = new TextEncoder().encode(getJwtSecret());
+    const { payload } = await jwtVerify(token, secret);
+    const p = payload as unknown as { sub?: string; email?: string; purpose?: string };
+    if (p.sub && p.email && p.purpose === "password_reset") {
+      return { sub: p.sub, email: p.email, purpose: "password_reset" };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export async function updateUserPassword(userId: string, newPassword: string): Promise<boolean> {
+  const hash = await hashPassword(newPassword);
+  const result = await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash: hash },
+  });
+  return !!result;
 }
 
 export async function login(email: string, password: string): Promise<{ user: UserSafe } | { error: string }> {

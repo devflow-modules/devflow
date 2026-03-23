@@ -1,8 +1,9 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "./authService";
 import { getTokenFromCookie } from "./cookies";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
-import type { JwtPayload } from "./authService";
+import { logAuth } from "@/lib/auth-logger";
+import type { JwtPayload, UserRole } from "./authService";
 
 export interface AuthResult {
   payload: JwtPayload;
@@ -16,4 +17,28 @@ export async function getAuthFromRequest(request: NextRequest): Promise<AuthResu
   const payload = await verifyToken(token);
   if (!payload) return null;
   return { payload, token };
+}
+
+/**
+ * Verifica se o usuário tem uma das roles permitidas.
+ * Retorna NextResponse 403 se não tiver; caso contrário retorna null (autorizado).
+ */
+export function requireRole(
+  auth: AuthResult | null,
+  allowedRoles: UserRole[]
+): NextResponse | null {
+  if (!auth) {
+    logAuth({ type: "unauthorized" });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  }
+  if (!allowedRoles.includes(auth.payload.role as UserRole)) {
+    logAuth({
+      type: "forbidden",
+      userId: auth.payload.sub,
+      tenantId: auth.payload.tenantId,
+      requiredRole: allowedRoles.join("|"),
+    });
+    return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
+  }
+  return null;
 }

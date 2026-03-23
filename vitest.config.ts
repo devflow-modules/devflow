@@ -10,6 +10,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@wa": path.resolve(__dirname, "./apps/whatsapp-platform/src"),
     },
   },
 });

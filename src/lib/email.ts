@@ -47,3 +47,14 @@ function escapeHtml(value: string) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
+export function buildResetPasswordEmailHtml(params: { resetUrl: string }) {
+  return `
+    <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; line-height: 1.4">
+      <h2>Redefinição de senha</h2>
+      <p>Você solicitou a redefinição de senha. Clique no link abaixo para definir uma nova senha:</p>
+      <p><a href="${escapeHtml(params.resetUrl)}">Redefinir senha</a></p>
+      <p>Este link expira em 1 hora. Se você não solicitou esta alteração, ignore este e-mail.</p>
+    </div>
+  `.trim();
+}
