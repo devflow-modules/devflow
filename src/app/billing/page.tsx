@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Check, CreditCard, ArrowUpRight } from "lucide-react";
 import { Plans } from "@/modules/billing/plans";
 import { ManageSubscriptionButton } from "./ManageSubscriptionButton";
+import { BillingPortalReturnBanner } from "./BillingPortalReturnBanner";
 
 export const metadata: Metadata = {
   title: "Assinatura | DevFlow",
@@ -46,9 +47,11 @@ export default async function BillingPage({ searchParams }: { searchParams: Sear
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Assinatura</h1>
           <p className="mt-2 text-muted-foreground">
-            Gerencie seu plano, histórico de pagamentos e método de pagamento.
+            Gerencie plano, método de pagamento e histórico — o retorno do portal Stripe fica explícito abaixo.
           </p>
         </div>
+
+        {portalReturn ? <BillingPortalReturnBanner /> : null}
 
         {/* Alertas de retorno do Stripe */}
         {isSuccess && (
