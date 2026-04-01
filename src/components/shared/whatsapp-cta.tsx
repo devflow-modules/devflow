@@ -1,7 +1,7 @@
 "use client";
 
 import { MessageCircle } from "lucide-react";
-import { getWhatsAppUrl } from "@/lib/whatsapp";
+import { getWhatsAppOrMailtoUrl, isWhatsAppNumberConfigured } from "@/lib/whatsapp";
 import { trackCtaWhatsAppClick } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
@@ -24,19 +24,18 @@ export function WhatsAppCta({
   className,
   size = "default",
 }: WhatsAppCtaProps) {
-  const href = getWhatsAppUrl(text);
+  const href = getWhatsAppOrMailtoUrl(text);
+  const usesMailto = !isWhatsAppNumberConfigured();
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    trackCtaWhatsAppClick(label);
-    setTimeout(() => window.open(href, "_blank", "noopener,noreferrer"), 150);
+  const handleClick = () => {
+    trackCtaWhatsAppClick(usesMailto ? `${label}_mailto_fallback` : label);
   };
 
   return (
     <a
       href={href}
-      target="_blank"
-      rel="noopener noreferrer"
+      target={usesMailto ? undefined : "_blank"}
+      rel={usesMailto ? undefined : "noopener noreferrer"}
       onClick={handleClick}
       className={cn(
         "inline-flex items-center justify-center font-medium border border-transparent",
