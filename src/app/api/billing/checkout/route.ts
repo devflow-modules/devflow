@@ -22,8 +22,9 @@ export async function POST(request: NextRequest) {
 
     const baseUrl =
       process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin ?? "http://localhost:3000";
-    const successUrl = `${baseUrl}/upgrade?success=1`;
-    const cancelUrl = `${baseUrl}/upgrade?cancel=1`;
+    const planQ = encodeURIComponent(parseResult.data.planId);
+    const successUrl = `${baseUrl}/upgrade?success=1&plan=${planQ}`;
+    const cancelUrl = `${baseUrl}/upgrade?cancel=1&plan=${planQ}`;
 
     const result = await createCheckoutSession({
       userId: auth.userId,

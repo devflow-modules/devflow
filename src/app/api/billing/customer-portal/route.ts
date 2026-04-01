@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
   const baseUrl =
     process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin ?? "http://localhost:3000";
-  const returnUrl = `${baseUrl}/billing`;
+  const returnUrl = `${baseUrl}/billing?portal_return=1`;
 
   const result = await openCustomerPortal(auth.userId, returnUrl);
 
