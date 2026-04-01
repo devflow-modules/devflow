@@ -249,7 +249,13 @@ export default function RulesPage() {
                 <Skeleton className="h-16 w-full rounded-2xl" />
               </div>
             ) : rules.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhuma regra cadastrada ainda.</p>
+              <div className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-6 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground">Automatize decisões recorrentes</p>
+                <p className="mt-1">
+                  Regras mostram como um custo se distribui entre PJ e PF, ou um valor fixo entre fontes — ideal para
+                  fechar a demo com previsibilidade.
+                </p>
+              </div>
             ) : (
               rules.map((rule) => (
                 <div
@@ -305,7 +311,10 @@ export default function RulesPage() {
                 <Skeleton className="h-16 w-full rounded-2xl" />
               </div>
             ) : allocations.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhum rateio calculado ainda.</p>
+              <p className="text-sm text-muted-foreground">
+                Quando houver despesas nas categorias referenciadas e fontes vinculadas, o rateio aparece aqui com
+                valores em reais.
+              </p>
             ) : (
               allocations.map((allocation) => (
                 <div key={allocation.ruleId} className="rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:-translate-y-px hover:shadow-md">

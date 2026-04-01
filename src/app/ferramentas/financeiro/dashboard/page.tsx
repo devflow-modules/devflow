@@ -337,7 +337,9 @@ export default function DashboardPage() {
   if (!household) {
     return (
       <div className="flex min-h-screen items-center justify-center px-6 py-14">
-        <p className="text-sm text-muted-foreground">Nenhuma casa ativa. Complete o onboarding.</p>
+        <p className="text-sm text-muted-foreground">
+          Nenhuma casa ativa — conclua o passo “Casa” no onboarding para ver o painel.
+        </p>
       </div>
     );
   }
@@ -347,20 +349,27 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-6xl space-y-8">
         <Breadcrumbs />
         {!isLoading && incomes.length === 0 && expenses.length === 0 ? (
-          <div className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground">
-            <strong>Pronto!</strong> Que tal usar uma ferramenta grátis?{" "}
-            <Link href="/ferramentas" className="font-semibold text-primary underline hover:opacity-90">
-              Ver ferramentas
-            </Link>
+          <div className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-4 text-sm text-foreground">
+            <p className="font-semibold text-foreground">Ainda sem movimentação nesta casa</p>
+            <p className="mt-1 text-muted-foreground">
+              Para uma demo com gráficos cheios, rode o seed de demonstração no ambiente controlado (usuário demo) ou
+              cadastre fontes e lançamentos — em poucos minutos o painel mostra previsibilidade e separação PJ / PF.
+            </p>
+            <p className="mt-2">
+              <Link href="/ferramentas" className="font-semibold text-primary underline hover:opacity-90">
+                Ver outras ferramentas
+              </Link>
+            </p>
           </div>
         ) : null}
         <header className="space-y-3">
           <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Dashboard</p>
           <h1 className="text-4xl font-semibold leading-tight tracking-tight text-foreground md:text-5xl">
-            Resumo financeiro
+            Visão financeira do mês
           </h1>
           <p className="text-base text-muted-foreground">
-            Totais por origem (PJ/PF), gráficos e histórico rápido das regras aplicadas.
+            Receitas, despesas, metas e projeção — para decidir com clareza, sem misturar caixa da empresa com o bolso de
+            casa.
           </p>
         </header>
 
@@ -794,7 +803,10 @@ export default function DashboardPage() {
                   <Skeleton className="h-4 w-1/2 rounded-xl" />
                 </div>
               ) : categoryBreakdown.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhuma despesa cadastrada para compor o gráfico.</p>
+                <p className="text-sm text-muted-foreground">
+                  Sem gastos neste mês ainda — cadastre despesas ou use o seed de demo para mostrar o fluxo por categoria
+                  na reunião.
+                </p>
               ) : (
                 categoryBreakdown.map((category) => (
                   <div key={category.category} className="space-y-1">
@@ -822,7 +834,9 @@ export default function DashboardPage() {
                   <li><Skeleton className="h-12 w-full rounded-2xl" /></li>
                 </>
               ) : allocations.length === 0 ? (
-                <li className="text-sm text-muted-foreground">Nenhum rateio calculado ainda.</li>
+                <li className="text-sm text-muted-foreground">
+                  Nenhuma regra aplicada ainda — em Regras você mostra como dividir custos entre fontes PJ e PF.
+                </li>
               ) : (
                 allocations.map((allocation) => (
                   <li key={allocation.ruleId} className="rounded-2xl border border-slate-200 bg-card p-3">

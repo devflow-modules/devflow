@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/modules/financeiro/lib/cn";
 import { btnGhostLight, focusRingLight, labelCaps } from "@/modules/financeiro/lib/primitives";
 import { Sidebar } from "@/modules/financeiro/components/Sidebar";
+import { DemoPresentationBar } from "@/modules/financeiro/components/DemoPresentationBar";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "/";
@@ -56,6 +57,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </button>
           <p className={cn("text-xs uppercase tracking-[0.4em]", "text-muted-foreground")}>Navegação</p>
         </div>
+        <DemoPresentationBar pathname={pathname} />
         {children}
       </div>
     </div>

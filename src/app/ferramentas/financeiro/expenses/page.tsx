@@ -412,7 +412,9 @@ export default function ExpensesPage() {
                   <Skeleton className="h-14 w-full rounded-2xl" />
                 </div>
               ) : incomes.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhuma receita cadastrada ainda.</p>
+                <p className="text-sm text-muted-foreground">
+                  Sem receitas ainda — mostre como cada entrada (PJ/PF/compartilhado) alimenta o saldo do mês.
+                </p>
               ) : (
                 incomes.map((income) => (
                   <div key={income.id} className="flex items-center justify-between rounded-2xl border border-border bg-card p-4">
@@ -517,7 +519,9 @@ export default function ExpensesPage() {
                   <Skeleton className="h-14 w-full rounded-2xl" />
                 </div>
               ) : expenses.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhuma despesa cadastrada ainda.</p>
+                <p className="text-sm text-muted-foreground">
+                  Sem despesas ainda — aqui você demonstra vencimentos, status pago/pendente e visão por categoria.
+                </p>
               ) : (
                 expenses.map((expense) => (
                   <div key={expense.id} className="flex items-center justify-between rounded-2xl border border-border bg-card p-4">
