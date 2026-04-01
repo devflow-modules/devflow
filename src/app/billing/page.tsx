@@ -33,12 +33,18 @@ const planBenefits: Record<string, string[]> = {
   ],
 };
 
-type SearchParams = Promise<{ success?: string; cancel?: string }>;
+type SearchParams = Promise<{
+  success?: string;
+  cancel?: string;
+  /** Defina na return_url do Stripe Customer Portal, ex.: ?portal_return=1 */
+  portal_return?: string;
+}>;
 
 export default async function BillingPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const isSuccess = params.success === "1";
   const isCancelled = params.cancel === "1";
+  const portalReturn = params.portal_return === "1";
 
   return (
     <div className="min-h-screen bg-background">

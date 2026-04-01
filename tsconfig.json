@@ -63,6 +63,8 @@
       "@/modules/billing/BillingProfileRepository": ["./src/modules/billing/BillingProfileRepository"],
       "@/modules/billing/billingAnalytics": ["./src/modules/billing/billingAnalytics"],
       "@/modules/billing/plans": ["./src/modules/billing/plans"],
+      "@/modules/billing/billingUiState": ["./src/modules/billing/billingUiState"],
+      "@/modules/billing/pricingPresentation": ["./src/modules/billing/pricingPresentation"],
       "@/modules/billing/*": ["./apps/whatsapp-platform/src/modules/billing/*"],
       "@/modules/whatsapp-inbox": ["./src/modules/whatsapp-inbox"],
       "@/modules/whatsapp-inbox/*": ["./src/modules/whatsapp-inbox/*"],
