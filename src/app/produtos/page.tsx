@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Package, MessageCircle, Wallet, Sparkles, ArrowRight } from "lucide-react";
+import { Package, MessageCircle, Wallet, Sparkles, ArrowRight, Search } from "lucide-react";
 import { CtaBlock } from "@/components/sections/cta-block";
 import { RelatedLinks } from "@/components/shared/related-links";
 import { cn } from "@/lib/utils";
@@ -35,31 +35,45 @@ const PRODUCTS = [
     disabled: false,
   },
   {
+    slug: "investigamais",
+    icon: Search,
+    iconBg: "bg-emerald-500/10",
+    iconColor: "text-emerald-700",
+    title: "Investiga+",
+    subtitle: "CNPJ com contexto e histórico",
+    description:
+      "Demo visível em um clique: resultado típico, benefício de histórico e consulta pública grátis.",
+    cta: "Ver demo",
+    href: "/produtos/investigamais",
+    disabled: false,
+  },
+  {
     slug: "funklab-studio",
     icon: Sparkles,
-    iconBg: "bg-slate-100",
-    iconColor: "text-slate-400",
+    iconBg: "bg-violet-500/10",
+    iconColor: "text-violet-600",
     title: "FunkLab Studio",
-    subtitle: "Em breve",
+    subtitle: "Sketches e grooves em segundos",
     description:
-      "Novos produtos em desenvolvimento. Acompanhe os lançamentos no site.",
-    cta: "Em breve",
+      "Cenário de geração claro na página do produto, demo ao vivo e export MIDI para sua DAW.",
+    cta: "Ver produto e demo",
     href: "/produtos/funklab-studio",
-    disabled: true,
+    disabled: false,
   },
 ];
 
 export const metadata: Metadata = {
   title: "Produtos | DevFlow Labs — Sistemas e plataformas",
   description:
-    "Produtos da DevFlow Labs: WhatsApp Platform (atendimento automatizado), Sistema Financeiro e mais. Sistemas para automatizar, organizar e escalar operações.",
+    "Ecossistema coerente: WhatsApp, financeiro, Investiga+ (demo CNPJ guiada) e FunkLab (demo MIDI). Cada produto com próximo passo claro para conversão.",
+  keywords: ["DevFlow Labs", "produtos", "demo", "automação", "SaaS"],
   alternates: {
     canonical: `${baseUrl}/produtos`,
   },
   openGraph: {
     title: "Produtos | DevFlow Labs",
     description:
-      "Sistemas e plataformas para automatizar, organizar e escalar operações. WhatsApp Platform, Sistema Financeiro e mais.",
+      "Hub de soluções com demos alinhadas: valor em 30s, fluxo compreensível e CTAs padronizados.",
     url: `${baseUrl}/produtos`,
     type: "website",
   },
@@ -87,12 +101,13 @@ export default function ProdutosPage() {
             </div>
             <h1
               id="produtos-heading"
-              className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl"
+              className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl"
             >
-              Quando você precisa de mais que ferramenta grátis
+              Ecossistema que vende junto
             </h1>
-            <p className="mt-4 text-lg text-slate-600">
-              WhatsApp no automático, financeiro completo — o que roda negócio de verdade.
+            <p className="mt-4 text-lg text-muted-foreground">
+              Cada produto com demo ou trial claro: problema → como funciona → resultado → próximo
+              passo — do WhatsApp ao groove MIDI.
             </p>
           </div>
         </div>

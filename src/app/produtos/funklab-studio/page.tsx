@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Check, ArrowRight, Music2, Sparkles, Download, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { demoCtaPrimaryClass, demoCtaSecondaryClass, demoEyebrowClass } from "@/components/demo/demoUi";
+import { FunklabDemoCta } from "./FunklabDemoCta";
+import { FunklabDemoSection } from "./FunklabDemoSection";
 
 const heroBullets = [
   "Sketches musicais em segundos",
@@ -66,20 +69,26 @@ const howItWorksSteps = [
 const FUNKLAB_DEMO_URL =
   process.env.NEXT_PUBLIC_FUNKLAB_DEMO_URL || "https://funklab-studio.vercel.app";
 
+const baseUrl = "https://devflowlabs.com.br";
+
 export const metadata: Metadata = {
   title: "FunkLab Studio | DevFlow Labs",
   description:
-    "Ferramenta de produção musical assistida. Gere sketches, basslines e grooves em segundos. Software para produtores.",
+    "Menos tela em branco na DAW: sketches e grooves MIDI em segundos. Demo guiada, cenário claro e export padronizado — alinhado ao ecossistema DevFlow.",
+  keywords: ["FunkLab", "MIDI", "produção musical", "demo", "DevFlow Labs", "groove"],
+  alternates: {
+    canonical: `${baseUrl}/produtos/funklab-studio`,
+  },
   openGraph: {
-    title: "FunkLab Studio | Produção musical assistida",
+    title: "FunkLab Studio | Sketches MIDI em segundos",
     description:
-      "Gere sketches musicais, basslines MIDI e grooves em segundos. Produto da DevFlow Labs.",
-    url: "https://devflowlabs.com.br/produtos/funklab-studio",
+      "Demo em 30s: preset + BPM → arquivos .mid prontos. Próximo passo: abrir a demo ao vivo.",
+    url: `${baseUrl}/produtos/funklab-studio`,
   },
   twitter: {
     title: "FunkLab Studio",
     description:
-      "Produção musical assistida. Sketches, basslines e grooves em segundos.",
+      "Grooves e basslines MIDI rápidos — demo guiada e mesmo padrão visual das outras soluções DevFlow.",
   },
 };
 
@@ -93,9 +102,9 @@ export default function FunkLabStudioPage() {
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <div className="mb-6 inline-flex items-center justify-center rounded-full border border-border bg-muted/50 px-4 py-2 text-sm font-medium text-muted-foreground">
-              <Music2 className="mr-2 size-4" aria-hidden />
-              Produção assistida
+            <div className={cn(demoEyebrowClass, "mb-6")}>
+              <Music2 className="size-3.5 text-primary" aria-hidden />
+              Produto · Produção assistida
             </div>
             <h1
               id="product-hero-heading"
@@ -103,30 +112,22 @@ export default function FunkLabStudioPage() {
             >
               FunkLab Studio
             </h1>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Gere sketches musicais, basslines e grooves em segundos. Ferramenta
-              profissional para produtores.
+            <p className="mt-4 max-w-xl text-base text-muted-foreground sm:mx-auto sm:text-lg">
+              Acelere o primeiro loop: o engine sugere grooves e basslines para você refinar na
+              DAW — com export MIDI padronizado.
             </p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-              <a
+            <div className="mt-8 flex w-full max-w-md flex-col items-stretch justify-center gap-3 sm:mx-auto sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-4">
+              <FunklabDemoCta
                 href={FUNKLAB_DEMO_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(
-                  "inline-flex items-center justify-center gap-2 h-12 rounded-2xl border border-transparent",
-                  "bg-foreground px-5 text-base font-medium text-background",
-                  "transition-colors hover:bg-foreground/90"
-                )}
+                surface="hero"
+                className={cn(demoCtaPrimaryClass, "px-6 text-base")}
               >
                 <Sparkles className="size-4" aria-hidden />
                 Abrir demo
-              </a>
+              </FunklabDemoCta>
               <Link
                 href="/projetos"
-                className={cn(
-                  "inline-flex items-center justify-center gap-2 h-12 rounded-2xl border border-border px-5 text-base font-medium",
-                  "bg-background text-foreground transition-colors hover:bg-muted"
-                )}
+                className={cn(demoCtaSecondaryClass, "px-6 text-base")}
               >
                 Ver outros projetos
                 <ArrowRight className="size-4" aria-hidden />
@@ -146,6 +147,8 @@ export default function FunkLabStudioPage() {
           </div>
         </div>
       </section>
+
+      <FunklabDemoSection />
 
       {/* 2. O que o FunkLab entrega */}
       <section
@@ -243,19 +246,14 @@ export default function FunkLabStudioPage() {
               Demo pública. Gere sketches e basslines em segundos, sem cadastro.
             </p>
             <div className="mt-8">
-              <a
+              <FunklabDemoCta
                 href={FUNKLAB_DEMO_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(
-                  "inline-flex items-center justify-center gap-2 rounded-2xl border border-transparent",
-                  "bg-foreground px-6 py-3 text-base font-medium text-background",
-                  "transition-colors hover:bg-foreground/90"
-                )}
+                surface="cta_final"
+                className={cn(demoCtaPrimaryClass, "px-8 text-base")}
               >
                 <Sparkles className="size-4" aria-hidden />
                 Abrir demo
-              </a>
+              </FunklabDemoCta>
             </div>
           </div>
         </div>
