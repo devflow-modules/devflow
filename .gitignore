@@ -69,3 +69,4 @@ yarn-error.log*
 # prisma/migrations mantidas; .env ignorado acima
 # Cliente gerado — regerar: prisma generate / pnpm build (root)
 **/src/generated/prisma-whatsapp/
+apps/whatsapp-webhook-api/src/generated/
