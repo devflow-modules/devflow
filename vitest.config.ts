@@ -3,8 +3,12 @@ import path from "path";
 
 export default defineConfig({
   test: {
+    /**
+     * Padrão: node (motores, analytics, integridade).
+     * jsdom: comentário @vitest-environment jsdom no topo do arquivo (RTL, storage, componentes).
+     */
     environment: "node",
-    include: ["src/**/*.test.ts", "src/**/*.spec.ts"],
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.spec.ts"],
     globals: true,
   },
   resolve: {

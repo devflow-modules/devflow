@@ -1,4 +1,4 @@
-import type { AuthHouseholdContext, AuthSessionContext } from "@/modules/financeiro/types";
+import type { AuthHouseholdContext } from "@/modules/financeiro/types";
 
 /**
  * Contexto completo de auth retornado pela camada de app (requireHouseholdMembership).

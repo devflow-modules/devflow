@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvider";
 import { toast } from "sonner";
@@ -9,6 +8,18 @@ import { MonthlyTrendChart } from "@/modules/financeiro/components/MonthlyTrendC
 import { CashFlowProjectionChart } from "@/modules/financeiro/components/CashFlowProjectionChart";
 import { toDateOnly } from "@/lib/dates";
 import { Breadcrumbs } from "@/modules/financeiro/components/Breadcrumbs";
+import { DashboardOperationalSection } from "@/modules/financeiro/components/operational/DashboardOperationalSection";
+import { getFinanceiroInsights } from "@/modules/financeiro/insights/getFinanceiroInsights";
+import {
+  getMonthlySummaryContextLines,
+  inferDashboardPersona,
+} from "@/modules/financeiro/insights/monthlySummaryContext";
+import { FinanceiroInsightsPanel } from "@/modules/financeiro/components/insights/FinanceiroInsightsPanel";
+import { MonthlySummaryContext } from "@/modules/financeiro/components/insights/MonthlySummaryContext";
+import { getFinanceiroMonthlyTasks } from "@/modules/financeiro/routine/getFinanceiroMonthlyTasks";
+import { MonthlyChecklistPanel } from "@/modules/financeiro/components/routine/MonthlyChecklistPanel";
+import { getFinanceiroHealthScore } from "@/modules/financeiro/health/getFinanceiroHealthScore";
+import { FinanceiroHealthScorePanel } from "@/modules/financeiro/components/health/FinanceiroHealthScorePanel";
 
 type SourceRecord = { sourceType?: "PJ" | "PF" };
 type FinancialRecord = {
@@ -320,9 +331,53 @@ export default function DashboardPage() {
     }));
   }, [expenses]);
 
+  const insights = useMemo(
+    () =>
+      getFinanceiroInsights({
+        incomes,
+        expenses,
+        rulesCount: rules.length,
+        activeMembershipRole,
+        summarySeries,
+      }),
+    [incomes, expenses, rules.length, activeMembershipRole, summarySeries]
+  );
+
+  const monthlyTasks = useMemo(
+    () =>
+      getFinanceiroMonthlyTasks({
+        incomes,
+        expenses,
+        rulesCount: rules.length,
+        activeMembershipRole,
+      }),
+    [incomes, expenses, rules.length, activeMembershipRole]
+  );
+
+  const healthScore = useMemo(
+    () =>
+      getFinanceiroHealthScore({
+        incomes,
+        expenses,
+        rulesCount: rules.length,
+        activeMembershipRole,
+      }),
+    [incomes, expenses, rules.length, activeMembershipRole]
+  );
+
+  const persona = useMemo(() => inferDashboardPersona({ incomes, expenses }), [incomes, expenses]);
+
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
   const formatDate = (value: string) => new Date(value).toLocaleDateString("pt-BR");
+
+  const monthlyContextLines = useMemo(
+    () =>
+      getMonthlySummaryContextLines({ incomes, expenses, summarySeries }, (n) =>
+        new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(n)
+      ),
+    [incomes, expenses, summarySeries]
+  );
   const scenarioLabel = (value: ProjectionMeta["scenario"]) =>
     value === "PESSIMISTIC" ? "pessimista" : value === "OPTIMISTIC" ? "otimista" : "base";
 
@@ -345,25 +400,43 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen px-6 py-10 text-foreground md:py-14">
-      <div className="mx-auto max-w-6xl space-y-8">
+    <div className="min-h-screen px-4 py-6 text-foreground sm:px-6 md:py-12">
+      <div className="mx-auto max-w-6xl space-y-5 md:space-y-8">
         <Breadcrumbs />
+        <FinanceiroHealthScorePanel
+          key={household.id}
+          result={healthScore}
+          isLoading={isLoading}
+          isOwner={activeMembershipRole !== "MEMBER"}
+          householdId={household.id}
+        />
+        <FinanceiroInsightsPanel insights={insights} isLoading={isLoading} />
+        <MonthlyChecklistPanel key={household.id} tasks={monthlyTasks} isLoading={isLoading} />
+        <DashboardOperationalSection />
         {!isLoading && incomes.length === 0 && expenses.length === 0 ? (
-          <div className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-4 text-sm text-foreground">
-            <p className="font-semibold text-foreground">Ainda sem movimentação nesta casa</p>
-            <p className="mt-1 text-muted-foreground">
-              Para uma demo com gráficos cheios, rode o seed de demonstração no ambiente controlado (usuário demo) ou
-              cadastre fontes e lançamentos — em poucos minutos o painel mostra previsibilidade e separação PJ / PF.
-            </p>
-            <p className="mt-2">
-              <Link href="/ferramentas" className="font-semibold text-primary underline hover:opacity-90">
-                Ver outras ferramentas
-              </Link>
-            </p>
-          </div>
+          <p className="rounded-lg border border-dashed border-border px-3 py-2 text-xs text-muted-foreground max-md:text-[11px]">
+            Dica: em demo, use o seed ou as ações rápidas acima para preencher o painel.
+          </p>
         ) : null}
         <header className="space-y-3">
-          <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Dashboard</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Dashboard</p>
+            {!isLoading && persona === "primeiro_uso" ? (
+              <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-800">
+                Primeiro uso
+              </span>
+            ) : null}
+            {!isLoading && persona === "inativo" ? (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
+                Mês sem lançamentos
+              </span>
+            ) : null}
+            {!isLoading && persona === "ativo" ? (
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-900">
+                Mês em atualização
+              </span>
+            ) : null}
+          </div>
           <h1 className="text-4xl font-semibold leading-tight tracking-tight text-foreground md:text-5xl">
             Visão financeira do mês
           </h1>
@@ -373,7 +446,7 @@ export default function DashboardPage() {
           </p>
         </header>
 
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div id="resumo-mes" className="scroll-mt-28 grid gap-4 lg:grid-cols-3">
           <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-px hover:shadow-md">
             <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Receitas</p>
             {isLoading ? (
@@ -398,6 +471,7 @@ export default function DashboardPage() {
               <p className="mt-2 text-3xl font-semibold text-foreground">{formatCurrency(totals.balance)}</p>
             )}
           </article>
+          {!isLoading ? <MonthlySummaryContext lines={monthlyContextLines} /> : null}
         </div>
 
         <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md lg:grid-cols-[2fr,1fr]">
@@ -851,7 +925,10 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md lg:grid-cols-2">
+        <section
+          id="relatorios"
+          className="scroll-mt-28 grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md lg:grid-cols-2"
+        >
           <div>
             <div className="flex items-center justify-between">
               <h3 className="text-base uppercase tracking-[0.2em] text-muted-foreground">Evolução (últimos meses)</h3>

@@ -152,9 +152,54 @@ Rota: `/produtos/funklab-studio`
 
 ## Produto 4 — Ferramentas Financeiras
 
+### 💰 Financeiro — Smart Dashboard
+
+Sistema de controle financeiro com **leitura instantânea** do mês:
+
+- **Score** (0–100) — organização do período num único número + faixa
+- **Insights automáticos** — receitas faltando, gastos fora do padrão, dados desatualizados
+- **Checklist de fechamento** — passos claros até o mês “fechado” na cabeça
+
+#### Destaques técnicos
+
+- Motores **determinísticos** (sem IA no núcleo)
+- **Consistência** entre score, insights e checklist (testada)
+- Navegação com **retomada** (última ação / contexto no dispositivo)
+- **Mobile-first** no dashboard operacional
+
+#### Screenshots (mockups de produto — mobile)
+
+| Vazio / primeiro uso | Em progresso | Organizado |
+|----------------------|--------------|------------|
+| ![Financeiro — estado vazio](docs/financeiro/screenshots/estado-1-vazio.png) | ![Financeiro — em progresso](docs/financeiro/screenshots/estado-2-em-progresso.png) | ![Financeiro — organizado](docs/financeiro/screenshots/estado-3-organizado.png) |
+
+Arquivos: [`estado-1-vazio.png`](docs/financeiro/screenshots/estado-1-vazio.png) · [`estado-2-em-progresso.png`](docs/financeiro/screenshots/estado-2-em-progresso.png) · [`estado-3-organizado.png`](docs/financeiro/screenshots/estado-3-organizado.png) — contexto em [`docs/financeiro/screenshots/README.md`](docs/financeiro/screenshots/README.md).
+
+#### Resultado
+
+Transforma **dados financeiros** em **decisões rápidas** — menos telas, mais clareza.
+
+**Live:** [`devflowlabs.com.br/ferramentas/financeiro`](https://devflowlabs.com.br/ferramentas/financeiro) · **README produto:** [`apps/financeiro/README.md`](apps/financeiro/README.md) · **Changelog:** [`docs/financeiro/CHANGELOG.md`](docs/financeiro/CHANGELOG.md)
+
+---
+
+### O que é o Financeiro (resumo)
+
+O Financeiro da DevFlow não é apenas um controle de gastos. É um sistema que:
+
+- resume seu mês em um **score** claro
+- mostra o que precisa de atenção com **insights** objetivos
+- guia suas ações com um **checklist** simples
+
+**Em menos de 1 minuto, você entende seu financeiro e sabe o que fazer.**
+
+Narrativa completa, pilares e roteiro de demo na landing: [`/ferramentas/financeiro`](https://devflowlabs.com.br/ferramentas/financeiro).
+
+---
+
 App SaaS completo de gestão financeira pessoal e familiar:
 
-- **Dashboard** — resumo mensal + projeção de fluxo de caixa
+- **Dashboard** — score de saúde do mês, insights, checklist, resumo mensal e projeção de fluxo de caixa
 - **Despesas / Rendas / Fontes** — controle completo
 - **Regras de rateio** — divisão automática por percentual ou valor fixo
 - **Casas (Households)** — multi-casa com convites por e-mail
@@ -252,6 +297,10 @@ Documentação: [`docs/shared/DEPLOYMENT.md`](docs/shared/DEPLOYMENT.md)
 | [`docs/financeiro/FINANCEIRO-FEATURE-STANDARD.md`](docs/financeiro/FINANCEIRO-FEATURE-STANDARD.md) | Padrão para novas features |
 | [`docs/financeiro/FINANCEIRO-APP-VS-GROWTH.md`](docs/financeiro/FINANCEIRO-APP-VS-GROWTH.md) | Separação app vs. growth |
 | [`docs/financeiro/FINANCEIRO-PRODUCT-ANALYTICS.md`](docs/financeiro/FINANCEIRO-PRODUCT-ANALYTICS.md) | Product analytics |
+| [`docs/financeiro/CHANGELOG.md`](docs/financeiro/CHANGELOG.md) | Changelog do Financeiro |
+| [`docs/financeiro/FINANCEIRO-ARCHITECTURE.md`](docs/financeiro/FINANCEIRO-ARCHITECTURE.md) | Motores score / insights / checklist |
+| [`docs/financeiro/FINANCEIRO-POSICIONAMENTO.md`](docs/financeiro/FINANCEIRO-POSICIONAMENTO.md) | Posicionamento e mercado |
+| [`apps/financeiro/README.md`](apps/financeiro/README.md) | README de produto |
 | [`docs/financeiro/FINANCEIRO-PRODUCT-SPEC.md`](docs/financeiro/FINANCEIRO-PRODUCT-SPEC.md) | Especificação do produto |
 | [`docs/shared/DEVFLOW-GROWTH-ANALYTICS.md`](docs/shared/DEVFLOW-GROWTH-ANALYTICS.md) | Growth analytics end-to-end |
 | [`docs/shared/DEVFLOW-METRICS-DASHBOARD.md`](docs/shared/DEVFLOW-METRICS-DASHBOARD.md) | Dashboard interno de métricas |

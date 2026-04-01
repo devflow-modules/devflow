@@ -105,6 +105,7 @@ export default function SettingsPage() {
       loadMembers();
       if (activeMembershipRole === "OWNER") loadInvites();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- troca de casa/papel; loaders locais instáveis
   }, [household?.id, activeMembershipRole]);
 
   if (householdLoading || !household) {

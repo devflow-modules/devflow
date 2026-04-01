@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvider";
 import { toast } from "sonner";
 import { Skeleton } from "@/modules/financeiro/components/Skeleton";
@@ -38,7 +38,6 @@ type IncomeAllocationGoal = {
 };
 type PersonalAllocationGoal = IncomeAllocationGoal;
 
-type CategoryBreakdown = { category: string; value: number; percentage: number };
 type OverviewCategoryBreakdown = { categoryId: string | null; categoryName: string; color: string | null; value: number; percentage: number };
 type BudgetProgressItem = { budgetId: string; categoryId: string; categoryName: string; color: string; spent: number; monthlyLimit: number; percent: number };
 type DashboardOverview = { totalSpent: number; categoryBreakdown: OverviewCategoryBreakdown[]; budgetProgress: BudgetProgressItem[] };
@@ -62,7 +61,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [incomes, setIncomes] = useState<FinancialRecord[]>([]);
   const [expenses, setExpenses] = useState<FinancialRecord[]>([]);
-  const [rules, setRules] = useState<RuleSummary[]>([]);
+  const [, setRules] = useState<RuleSummary[]>([]);
   const [allocations, setAllocations] = useState<AllocationSummary[]>([]);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"MEMBER" | "OWNER">("MEMBER");
@@ -280,10 +279,12 @@ export default function DashboardPage() {
       loadPersonalGoal();
       if (activeMembershipRole === "OWNER") loadInvites();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- casa/papel; loaders locais instáveis
   }, [household?.id, activeMembershipRole]);
 
   useEffect(() => {
     if (household?.id) loadCharts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- cenário/horizonte + household
   }, [projectionScenario, projectionHorizonMonths, household?.id]);
 
   const filteredIncomes = useMemo(
@@ -337,22 +338,6 @@ export default function DashboardPage() {
 
     return { monthIncomeTotal, investmentTarget, savingsTarget, remaining };
   }, [filteredIncomes, goal]);
-
-  const categoryBreakdown = useMemo(() => {
-    const totalsByCategory = filteredExpenses.reduce<Record<string, number>>((acc, expense) => {
-      const category = expense.category ?? "Outros";
-      acc[category] = (acc[category] ?? 0) + Number(expense.amount ?? 0);
-      return acc;
-    }, {});
-
-    const total = Object.values(totalsByCategory).reduce((sum, value) => sum + value, 0) || 1;
-
-    return Object.entries(totalsByCategory).map(([category, value]) => ({
-      category,
-      value,
-      percentage: Number(((value / total) * 100).toFixed(1)),
-    }));
-  }, [expenses]);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);

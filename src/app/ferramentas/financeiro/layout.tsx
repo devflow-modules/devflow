@@ -5,6 +5,9 @@ import { Fragment } from "react";
 import { Toaster } from "sonner";
 import { HouseholdProvider } from "@/modules/financeiro/lib/household/HouseholdProvider";
 import { AppShell } from "@/modules/financeiro/components/AppShell";
+import { FinanceiroLastRouteTracker } from "@/modules/financeiro/navigation/FinanceiroLastRouteTracker";
+import { FinanceiroNavAnalyticsClient } from "@/modules/financeiro/navigation/FinanceiroNavAnalyticsClient";
+import { FinanceiroRecentRoutesTracker } from "@/modules/financeiro/navigation/operational/FinanceiroRecentRoutesTracker";
 
 const APP_ROUTES = [
   "/ferramentas/financeiro/dashboard",
@@ -32,7 +35,12 @@ export default function FinanceiroLayout({
   if (isAppRoute(pathname)) {
     return (
       <HouseholdProvider>
-        <AppShell>{children}</AppShell>
+        <AppShell>
+          <FinanceiroLastRouteTracker />
+          <FinanceiroRecentRoutesTracker />
+          <FinanceiroNavAnalyticsClient />
+          {children}
+        </AppShell>
         <Toaster richColors position="top-center" />
       </HouseholdProvider>
     );

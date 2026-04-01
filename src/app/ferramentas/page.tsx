@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ToolsHubHero } from "@/components/sections/tools-hub-hero";
 import { ToolCard } from "@/components/sections/tool-card";
+import { FinanceiroHubToolCard } from "@/modules/financeiro/navigation/FinanceiroHubToolCard";
 import { WhyUseSection } from "@/components/sections/why-use-section";
 import { ConnectedProductsSection } from "@/components/sections/connected-products-section";
 import { CtaBlock } from "@/components/sections/cta-block";
@@ -94,22 +95,39 @@ export default function FerramentasPage() {
             Ferramentas disponíveis
           </h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {TOOLS.map((tool) => (
-              <ToolCard
-                key={tool.slug}
-                icon={tool.icon}
-                iconBg={tool.iconBg}
-                iconColor={tool.iconColor}
-                badge={tool.badge}
-                badgeColor={tool.badgeColor}
-                title={tool.title}
-                description={tool.description}
-                cta={tool.cta}
-                href={tool.href}
-                highlight={tool.highlight}
-                disabled={tool.disabled}
-              />
-            ))}
+            {TOOLS.map((tool) =>
+              tool.slug === "financeiro" ? (
+                <FinanceiroHubToolCard
+                  key={tool.slug}
+                  icon={tool.icon}
+                  iconBg={tool.iconBg}
+                  iconColor={tool.iconColor}
+                  badge={tool.badge}
+                  badgeColor={tool.badgeColor}
+                  title={tool.title}
+                  description={tool.description}
+                  cta={tool.cta}
+                  href={tool.href}
+                  highlight={tool.highlight}
+                  disabled={tool.disabled}
+                />
+              ) : (
+                <ToolCard
+                  key={tool.slug}
+                  icon={tool.icon}
+                  iconBg={tool.iconBg}
+                  iconColor={tool.iconColor}
+                  badge={tool.badge}
+                  badgeColor={tool.badgeColor}
+                  title={tool.title}
+                  description={tool.description}
+                  cta={tool.cta}
+                  href={tool.href}
+                  highlight={tool.highlight}
+                  disabled={tool.disabled}
+                />
+              )
+            )}
           </div>
         </div>
       </section>

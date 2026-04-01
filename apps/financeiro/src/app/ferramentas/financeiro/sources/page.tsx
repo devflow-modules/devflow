@@ -80,6 +80,7 @@ export default function SourcesPage() {
       loadSources();
       loadCycles();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- household id only
   }, [household?.id]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {

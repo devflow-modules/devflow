@@ -71,6 +71,7 @@ export default function RulesPage() {
 
   useEffect(() => {
     if (household?.id) loadSourcesAndRules();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- household id only
   }, [household?.id]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {

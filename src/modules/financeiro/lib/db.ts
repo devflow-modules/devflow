@@ -5,7 +5,6 @@ import { PrismaClient } from "@prisma/client";
 export type PrismaRoot = any;
 
 declare global {
-  // eslint-disable-next-line no-var
   var prisma: InstanceType<typeof PrismaClient> | undefined;
 }
 

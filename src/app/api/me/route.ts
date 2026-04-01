@@ -9,6 +9,7 @@ import {
   setActiveHouseholdCookie,
   deleteActiveHouseholdCookie,
 } from "@/modules/financeiro/adapters/cookies/householdCookie";
+import { resolveFinanceiroResumeFromCookies } from "@/modules/financeiro/navigation/resumeFromCookies";
 
 export async function GET(request: NextRequest) {
   try {
@@ -70,6 +71,9 @@ export async function GET(request: NextRequest) {
       ? households.find((h: { id: string }) => h.id === activeHouseholdId) ?? null
       : null;
 
+    const { targetPath: financeiroResumePath, hasLastRoute: financeiroHasLastRoute } =
+      resolveFinanceiroResumeFromCookies(request.cookies);
+
     const response = sendSuccess({
       user: {
         id: user.id,
@@ -81,6 +85,8 @@ export async function GET(request: NextRequest) {
       activeMembershipRole: activeHouseholdId
         ? (memberships.find((m: { householdId: string; role: string }) => m.householdId === activeHouseholdId)?.role ?? null)
         : null,
+      financeiroResumePath,
+      financeiroHasLastRoute,
     });
 
     if (resolved.action === "delete") {

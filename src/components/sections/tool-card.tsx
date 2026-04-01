@@ -14,6 +14,8 @@ export type ToolCardProps = {
   href: string;
   highlight?: boolean;
   disabled?: boolean;
+  /** Disparado ao clicar no card (antes da navegação). */
+  onCtaNavigate?: () => void;
 };
 
 export function ToolCard({
@@ -28,6 +30,7 @@ export function ToolCard({
   href,
   highlight = false,
   disabled = false,
+  onCtaNavigate,
 }: ToolCardProps) {
   const content = (
     <>
@@ -70,7 +73,7 @@ export function ToolCard({
   }
 
   return (
-    <Link href={href} className={cardClass}>
+    <Link href={href} className={cardClass} onClick={onCtaNavigate}>
       {content}
     </Link>
   );

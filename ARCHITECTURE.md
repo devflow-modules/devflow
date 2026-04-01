@@ -2,6 +2,19 @@
 
 Este repositório é um **monorepo** com pnpm workspaces e Turborepo. Contém múltiplos apps (portal, produtos) e packages compartilhados.
 
+## Ecossistema devflowlabs.com.br
+
+O app **na raiz** (`src/`) é o que tipicamente responde em **devflowlabs.com.br**: marketing, ferramentas, Financeiro, billing, APIs, webhooks e parte das entradas do produto WhatsApp. Os projetos em **`apps/*`** podem ser deployados em hosts separados.
+
+Documentação dedicada (topologia, fluxogramas e rotas):
+
+| Doc | Conteúdo |
+|-----|----------|
+| [docs/ecossistema/README.md](docs/ecossistema/README.md) | Índice e ordem de leitura |
+| [docs/ecossistema/TOPOLOGIA-DEVFLOW.md](docs/ecossistema/TOPOLOGIA-DEVFLOW.md) | Onde cada parte roda |
+| [docs/ecossistema/FLUXOGRAMA-DEVFLOW.md](docs/ecossistema/FLUXOGRAMA-DEVFLOW.md) | Requests, usuários e integrações |
+| [docs/ecossistema/ROTAS-ECOSSISTEMA-DEVFLOWLABS.md](docs/ecossistema/ROTAS-ECOSSISTEMA-DEVFLOWLABS.md) | Referência de rotas e APIs |
+
 ## Visão geral
 
 ```mermaid

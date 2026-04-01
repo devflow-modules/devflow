@@ -15,9 +15,11 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   globalIgnores([
-    ".next/**",
+    "**/.next/**",
     "out/**",
+    "**/out/**",
     "build/**",
+    "**/dist/**",
     "next-env.d.ts",
     "node_modules/**",
     ".turbo/**",
@@ -69,6 +71,16 @@ const eslintConfig = defineConfig([
       ],
     },
   })),
+  // Financeiro tests: mocks e spies costumam usar `any`; gate de CI cobre app + módulo.
+  {
+    files: [
+      "src/modules/financeiro/__tests__/**/*.{ts,tsx}",
+      "apps/financeiro/**/*.{test,spec}.{ts,tsx}",
+    ],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

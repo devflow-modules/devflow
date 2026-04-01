@@ -1,4 +1,4 @@
-import type { NextRequest, NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 import type { AuthContext } from "./auth";
 import { checkFinancialRateLimit } from "./financialRateLimit";
 import { logFinanceEvent } from "@/modules/financeiro/lib/finance-logger";

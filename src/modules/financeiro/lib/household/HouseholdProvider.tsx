@@ -84,7 +84,7 @@ export const HouseholdProvider = ({ children }: { children: React.ReactNode }) =
     refetchMe();
   }, [refetchMe]);
 
-  const setHousehold = (value: Household | null) => {
+  const setHousehold = useCallback((value: Household | null) => {
     setHouseholdState(value);
     if (value) {
       fetch("/api/me/active-household", {
@@ -93,11 +93,11 @@ export const HouseholdProvider = ({ children }: { children: React.ReactNode }) =
         body: JSON.stringify({ householdId: value.id }),
       }).then(() => refetchMe());
     }
-  };
+  }, [refetchMe]);
 
   const value = useMemo(
     () => ({ household, households, setHousehold, isLoading, refetchMe, activeMembershipRole }),
-    [household, households, isLoading, activeMembershipRole]
+    [household, households, setHousehold, isLoading, refetchMe, activeMembershipRole]
   );
 
   return <HouseholdContext.Provider value={value}>{children}</HouseholdContext.Provider>;

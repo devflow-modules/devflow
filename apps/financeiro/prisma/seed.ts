@@ -152,9 +152,6 @@ async function main() {
 
   console.log("\n💚 Criando receitas...");
 
-  // Mês atual
-  const receivedAt = d(Y, M, 5);
-
   const incomeDefs = [
     // Pessoal
     { source: srcSalary, amount: 6800, date: d(Y, M, 5), ctx: "PERSONAL", recurring: true },

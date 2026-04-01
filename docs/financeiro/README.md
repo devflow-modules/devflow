@@ -14,6 +14,17 @@
 | [SPRINT-HOMOLOGACAO.md](./SPRINT-HOMOLOGACAO.md) | Sprint homologação |
 | [SPRINT-OPERACIONAL.md](./SPRINT-OPERACIONAL.md) | Sprint operacional |
 
+## Produto (visão e release)
+
+| Doc | Descrição |
+|-----|-----------|
+| [README do app](../../apps/financeiro/README.md) | Narrativa de produto (nível portfólio) |
+| [CHANGELOG.md](./CHANGELOG.md) | Versões e entregas |
+| [FINANCEIRO-ARCHITECTURE.md](./FINANCEIRO-ARCHITECTURE.md) | Motores score / insights / checklist + storage + analytics |
+| [FINANCEIRO-POSICIONAMENTO.md](./FINANCEIRO-POSICIONAMENTO.md) | Problema, proposta e diferenciais |
+| [CASE-LINKEDIN.md](./CASE-LINKEDIN.md) | Rascunhos de post / case público |
+| [screenshots/README.md](./screenshots/README.md) | Material visual (3 estados mobile) |
+
 ## Produto e API
 
 | Doc | Descrição |

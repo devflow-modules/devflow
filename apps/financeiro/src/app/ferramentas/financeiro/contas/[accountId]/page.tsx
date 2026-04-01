@@ -241,6 +241,8 @@ export default function AccountDetailPage() {
       loadPayments(),
       loadTimeline(),
     ]).finally(() => setLoading(false));
+    // Carrega quando mudam conta/casa; funções locais não entram nas deps para evitar reexecução em loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount + accountId/household
   }, [accountId, household?.id]);
 
   const handleLiquidarTudo = async () => {

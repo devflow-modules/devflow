@@ -51,7 +51,10 @@ export default function HistoricoPage() {
     }
   };
 
-  useEffect(() => { loadSnapshots(); }, [household?.id]);
+  useEffect(() => {
+    loadSnapshots();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- household id only
+  }, [household?.id]);
 
   const handleClose = async () => {
     setClosing(true);

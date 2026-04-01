@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
-import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
+import { sendError } from "@/modules/financeiro/lib/api-response";
 import { buildSuccessPayload } from "@/modules/financeiro/lib/utils/response";
 import type { Prisma } from "@prisma/client";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";

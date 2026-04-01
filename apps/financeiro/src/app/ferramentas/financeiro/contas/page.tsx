@@ -48,6 +48,7 @@ export default function ContasPage() {
     if (!household?.id) return;
     setLoading(true);
     loadAccounts().finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- household id only
   }, [household?.id]);
 
   const handleCreate = async (e: React.FormEvent) => {

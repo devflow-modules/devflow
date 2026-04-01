@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
+import { trackFinanceiroGoToDashboardClicked } from "@/lib/analytics";
 import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvider";
 import { cn } from "@/modules/financeiro/lib/cn";
 import { focusRingLight, labelCaps } from "@/modules/financeiro/lib/primitives";
+import { useHash } from "@/modules/financeiro/components/useHash";
 
 const BASE = "/ferramentas/financeiro";
 
@@ -12,6 +14,7 @@ type NavItem = {
   href: string;
   label: string;
   short: string;
+  tier: "primary" | "secondary";
 };
 
 type SidebarProps = {
@@ -22,19 +25,34 @@ type SidebarProps = {
   onCloseMobile: () => void;
 };
 
-const FULL_ITEMS: NavItem[] = [
-  { href: `${BASE}/dashboard`, label: "Dashboard", short: "D" },
-  { href: `${BASE}/sources`, label: "Fontes", short: "F" },
-  { href: `${BASE}/expenses`, label: "Despesas", short: "E" },
-  { href: `${BASE}/rules`, label: "Regras", short: "R" },
-  { href: `${BASE}/settings`, label: "Configurações", short: "C" },
+const OWNER_PRIMARY: NavItem[] = [
+  { href: `${BASE}/dashboard`, label: "Dashboard", short: "D", tier: "primary" },
+  { href: `${BASE}/expenses`, label: "Lançamentos", short: "L", tier: "primary" },
+  { href: `${BASE}/dashboard#relatorios`, label: "Relatórios", short: "G", tier: "primary" },
 ];
 
-const MEMBER_ITEMS: NavItem[] = [
-  { href: `${BASE}/dashboard`, label: "Resumo", short: "R" },
-  { href: `${BASE}/expenses`, label: "Lançamentos", short: "L" },
-  { href: `${BASE}/settings`, label: "Conta", short: "C" },
+const OWNER_SECONDARY: NavItem[] = [
+  { href: `${BASE}/sources`, label: "Fontes", short: "F", tier: "secondary" },
+  { href: `${BASE}/rules`, label: "Regras", short: "R", tier: "secondary" },
+  { href: `${BASE}/settings`, label: "Configurações", short: "C", tier: "secondary" },
 ];
+
+const MEMBER_PRIMARY: NavItem[] = [
+  { href: `${BASE}/dashboard`, label: "Resumo", short: "R", tier: "primary" },
+  { href: `${BASE}/expenses`, label: "Lançamentos", short: "L", tier: "primary" },
+  { href: `${BASE}/dashboard#relatorios`, label: "Relatórios", short: "G", tier: "primary" },
+];
+
+const MEMBER_SECONDARY: NavItem[] = [
+  { href: `${BASE}/settings`, label: "Conta", short: "C", tier: "secondary" },
+];
+
+function linkIsActive(pathname: string, hash: string, item: NavItem): boolean {
+  const [basePath, frag] = item.href.split("#");
+  const samePath = pathname === basePath || pathname.startsWith(`${basePath}/`);
+  if (!frag) return samePath;
+  return samePath && hash === `#${frag}`;
+}
 
 export function Sidebar({
   pathname,
@@ -45,14 +63,16 @@ export function Sidebar({
 }: SidebarProps) {
   const { household, activeMembershipRole } = useHousehold();
   const isMember = activeMembershipRole === "MEMBER";
+  const routeHash = useHash();
 
-  const items = useMemo(() => {
-    const list = isMember ? [...MEMBER_ITEMS] : [...FULL_ITEMS];
+  const { primary, secondary } = useMemo(() => {
+    const p = isMember ? [...MEMBER_PRIMARY] : [...OWNER_PRIMARY];
+    const s = isMember ? [...MEMBER_SECONDARY] : [...OWNER_SECONDARY];
     const shouldShowOnboarding = !household || pathname === `${BASE}/onboarding`;
     if (shouldShowOnboarding) {
-      list.push({ href: `${BASE}/onboarding`, label: "Onboarding", short: "O" });
+      s.push({ href: `${BASE}/onboarding`, label: "Onboarding", short: "O", tier: "secondary" });
     }
-    return list;
+    return { primary: p, secondary: s };
   }, [household, pathname, isMember]);
 
   const overlayClasses = isMobileOpen
@@ -68,6 +88,46 @@ export function Sidebar({
 
   const labelClasses = isCollapsed ? "sr-only" : "block";
   const headerTextClasses = isCollapsed ? "sr-only" : "block";
+
+  const renderItem = (item: NavItem) => {
+    const isActive = linkIsActive(pathname, routeHash, item);
+    const isDashboard = item.href.split("#")[0] === `${BASE}/dashboard` && !item.href.includes("#");
+    const dashboardBase = `${BASE}/dashboard`;
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={() => {
+          onCloseMobile();
+          if (
+            isDashboard &&
+            pathname !== dashboardBase &&
+            !pathname.startsWith(`${dashboardBase}/`)
+          ) {
+            trackFinanceiroGoToDashboardClicked({
+              source_path: pathname,
+              target_path: dashboardBase,
+              has_last_route: false,
+              surface: "financeiro_sidebar",
+            });
+          }
+        }}
+        className={cn(
+          "group flex items-center gap-3 rounded-2xl px-3 py-2 text-sm transition-colors",
+          item.tier === "primary" && "border-l-2 border-primary/60 pl-2",
+          isActive ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-slate-100",
+          focusRingLight
+        )}
+        aria-current={isActive ? "page" : undefined}
+        aria-label={item.label}
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          {item.short}
+        </span>
+        <span className={labelClasses}>{item.label}</span>
+      </Link>
+    );
+  };
 
   return (
     <>
@@ -122,37 +182,24 @@ export function Sidebar({
           </div>
         </div>
 
-        <nav className="mt-4 flex-1 space-y-1 px-3">
-          {items.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onCloseMobile}
-                className={cn(
-                  "group flex items-center gap-3 rounded-2xl px-3 py-2 text-sm transition-colors",
-                  isActive ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-slate-100",
-                  focusRingLight
-                )}
-                aria-current={isActive ? "page" : undefined}
-                aria-label={item.label}
-              >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  {item.short}
-                </span>
-                <span className={labelClasses}>{item.label}</span>
-              </Link>
-            );
-          })}
+        <nav className="mt-4 flex-1 space-y-1 overflow-y-auto px-3 pb-4">
+          <p className={cn("px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.35em] text-muted-foreground", headerTextClasses)}>
+            Operação
+          </p>
+          <div className="space-y-1">{primary.map(renderItem)}</div>
+
+          <p className={cn("mt-5 px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.35em] text-muted-foreground", headerTextClasses)}>
+            Mais
+          </p>
+          <div className="space-y-1">{secondary.map(renderItem)}</div>
         </nav>
 
         <div className="px-4 pb-4">
           <div className="rounded-2xl border border-slate-200 bg-card p-3">
             <p className={cn("text-xs text-muted-foreground", headerTextClasses)}>
               {isMember
-                ? "Use Resumo e Lançamentos no dia a dia. Conta para trocar casa ou sair."
-                : "OWNER pode gerenciar convites, metas e membros."}
+                ? "Resumo, Lançamentos e Relatórios no dia a dia. Conta para preferências."
+                : "Atalhos acima para velocidade; Fontes e Regras para estruturar a casa."}
             </p>
           </div>
         </div>

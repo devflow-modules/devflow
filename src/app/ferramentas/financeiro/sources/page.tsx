@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { paymentDaySchema, sourceCreateSchema, sourceUpdateSchema } from "@/modules/financeiro/schemas";
 import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvider";
@@ -242,6 +243,16 @@ export default function SourcesPage() {
           </h1>
           <p className="text-sm text-muted-foreground">Liste, edite e exclua as origens de receita da sua casa.</p>
         </header>
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm">
+          <span className="text-muted-foreground">Com fontes prontas:</span>
+          <Link href="/ferramentas/financeiro/expenses#nova-receita" className="font-medium text-primary hover:underline">
+            Lançar receita
+          </Link>
+          <Link href="/ferramentas/financeiro/dashboard#resumo-mes" className="font-medium text-primary hover:underline">
+            Ver resumo do mês
+          </Link>
+        </div>
 
         <section className="grid gap-8 md:grid-cols-2">
           <div className="rounded-3xl border border-border bg-card p-6">

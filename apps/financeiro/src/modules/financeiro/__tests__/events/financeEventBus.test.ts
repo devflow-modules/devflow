@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { emit, subscribe } from "@/modules/financeiro/events/financeEventBus";
 import type { FinanceEventPayload } from "@/modules/financeiro/events/financeEvents";
 

@@ -122,6 +122,7 @@ export async function requireSessionOnly(
   | { ok: true; supabaseId: string; email: string; userId: string }
   | { ok: false; response: NextResponse }
 > {
+  void request;
   const supabase = await createClient();
   const {
     data: { user: authUser },

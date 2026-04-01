@@ -37,12 +37,19 @@
 | Supabase Auth (Financeiro) | [financeiro/SUPABASE_URLS.md](./financeiro/SUPABASE_URLS.md) |
 | Go-live Financeiro | [financeiro/GO_LIVE_FINANCEIRO.md](./financeiro/GO_LIVE_FINANCEIRO.md) |
 | Validação / QA Financeiro | [financeiro/FINANCEIRO_RELATORIO_VALIDACAO_FINAL.md](./financeiro/FINANCEIRO_RELATORIO_VALIDACAO_FINAL.md) |
+| Financeiro — README produto | [apps/financeiro/README.md](../apps/financeiro/README.md) |
+| Financeiro — changelog | [financeiro/CHANGELOG.md](./financeiro/CHANGELOG.md) |
+| Financeiro — motores (score/insights/checklist) | [financeiro/FINANCEIRO-ARCHITECTURE.md](./financeiro/FINANCEIRO-ARCHITECTURE.md) |
+| Financeiro — posicionamento | [financeiro/FINANCEIRO-POSICIONAMENTO.md](./financeiro/FINANCEIRO-POSICIONAMENTO.md) |
+| Financeiro — screenshots | [financeiro/screenshots/README.md](./financeiro/screenshots/README.md) |
+| Financeiro — case LinkedIn | [financeiro/CASE-LINKEDIN.md](./financeiro/CASE-LINKEDIN.md) |
 
 ---
 
 ## READMEs por área
 
-- [financeiro/README.md](./financeiro/README.md)
+- [financeiro/README.md](./financeiro/README.md) (índice técnico)
+- [apps/financeiro/README.md](../apps/financeiro/README.md) (narrativa de produto)
 - [whatsapp/README.md](./whatsapp/README.md)
 - [investigamais/README.md](./investigamais/README.md)
 - [shared/README.md](./shared/README.md)

@@ -65,7 +65,10 @@ export default function ProximasContasPage() {
     }
   };
 
-  useEffect(() => { load(); }, [household?.id, contextFilter, daysAhead]);
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- filters + household; load é instável
+  }, [household?.id, contextFilter, daysAhead]);
 
   const markPaid = async (expense: UpcomingExpense) => {
     const today = new Date().toISOString().slice(0, 10);

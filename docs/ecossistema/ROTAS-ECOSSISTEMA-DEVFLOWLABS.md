@@ -2,6 +2,8 @@
 
 Documento único de referência das rotas do monorepo em relação ao domínio **https://devflowlabs.com.br/**: qual app serve cada conjunto de rotas e como site, financeiro e demais produtos se encaixam no ecossistema.
 
+**Índice do ecossistema:** [README.md](./README.md) · **Topologia:** [TOPOLOGIA-DEVFLOW.md](./TOPOLOGIA-DEVFLOW.md) · **Fluxograma:** [FLUXOGRAMA-DEVFLOW.md](./FLUXOGRAMA-DEVFLOW.md)
+
 ---
 
 ## 1. Introdução

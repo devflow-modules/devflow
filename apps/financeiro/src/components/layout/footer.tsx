@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
-import { cn } from "@/lib/utils";
 
 const productLinks = [
   { href: "/produtos/funklab-studio", label: "FunkLab Studio" },

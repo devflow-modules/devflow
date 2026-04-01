@@ -108,3 +108,200 @@ export function trackTryProduct(props: {
     cta_variant: props.cta_variant ?? "primary",
   });
 }
+
+/** Navegação Financeiro — usuário autenticado em entrada pública (ex.: ?stay=1) */
+export type FinanceiroNavAnalyticsBase = {
+  source_path: string;
+  target_path: string;
+  has_last_route: boolean;
+  redirect_type?: string;
+};
+
+export function trackFinanceiroReturnDetected(props: FinanceiroNavAnalyticsBase): void {
+  track("financeiro_return_detected", props);
+}
+
+export function trackFinanceiroAutoRedirected(props: FinanceiroNavAnalyticsBase): void {
+  track("financeiro_auto_redirected", props);
+}
+
+export function trackFinanceiroResumeLastRoute(
+  props: FinanceiroNavAnalyticsBase & { interaction: "auto" | "cta_click" }
+): void {
+  track("financeiro_resume_last_route", props);
+}
+
+export function trackFinanceiroGoToDashboardClicked(
+  props: Pick<FinanceiroNavAnalyticsBase, "source_path" | "target_path" | "has_last_route"> & {
+    surface?: string;
+  }
+): void {
+  track("financeiro_go_to_dashboard_clicked", {
+    source_path: props.source_path,
+    target_path: props.target_path,
+    has_last_route: props.has_last_route,
+    surface: props.surface ?? "unknown",
+  });
+}
+
+/** Painel operacional do dashboard — ações rápidas */
+export function trackFinanceiroQuickActionClicked(props: {
+  action_type: string;
+  source: "dashboard" | "sidebar" | "mobile" | "fab";
+  position?: number;
+  has_last_action?: boolean;
+  target_path: string;
+}): void {
+  track("financeiro_quick_action_clicked", {
+    action_type: props.action_type,
+    source: props.source,
+    position: props.position ?? -1,
+    has_last_action: props.has_last_action ?? false,
+    target_path: props.target_path,
+  });
+}
+
+export function trackFinanceiroResumeClicked(props: {
+  action_type?: string;
+  source: "dashboard" | "sidebar" | "mobile" | "fab";
+  has_last_action: boolean;
+  target_path: string;
+}): void {
+  track("financeiro_resume_clicked", {
+    action_type: props.action_type ?? "last_action",
+    source: props.source,
+    has_last_action: props.has_last_action,
+    target_path: props.target_path,
+  });
+}
+
+export function trackFinanceiroRecentAccessClicked(props: {
+  source: "dashboard" | "sidebar" | "mobile" | "fab";
+  position: number;
+  target_path: string;
+}): void {
+  track("financeiro_recent_access_clicked", {
+    source: props.source,
+    position: props.position,
+    target_path: props.target_path,
+  });
+}
+
+/** Dashboard inteligente — insights de prioridade */
+export function trackFinanceiroInsightViewed(props: {
+  insight_type: string;
+  insight_id: string;
+  priority: number;
+  cta_target: string;
+  position?: number;
+}): void {
+  track("financeiro_insight_viewed", {
+    insight_type: props.insight_type,
+    insight_id: props.insight_id,
+    priority: props.priority,
+    cta_target: props.cta_target,
+    position: props.position ?? -1,
+  });
+}
+
+export function trackFinanceiroInsightClicked(props: {
+  insight_type: string;
+  insight_id: string;
+  priority: number;
+  cta_target: string;
+  position?: number;
+}): void {
+  track("financeiro_insight_clicked", {
+    insight_type: props.insight_type,
+    insight_id: props.insight_id,
+    priority: props.priority,
+    cta_target: props.cta_target,
+    position: props.position ?? -1,
+  });
+}
+
+/** Rotina mensal — checklist do mês */
+export function trackFinanceiroTaskViewed(props: {
+  task_id: string;
+  completed: boolean;
+  progress: number;
+  position: number;
+}): void {
+  track("financeiro_task_viewed", {
+    task_id: props.task_id,
+    completed: props.completed,
+    progress: props.progress,
+    position: props.position,
+  });
+}
+
+export function trackFinanceiroTaskClicked(props: {
+  task_id: string;
+  completed: boolean;
+  progress: number;
+  position: number;
+}): void {
+  track("financeiro_task_clicked", {
+    task_id: props.task_id,
+    completed: props.completed,
+    progress: props.progress,
+    position: props.position,
+  });
+}
+
+export function trackFinanceiroTaskCompleted(props: {
+  task_id: string;
+  progress: number;
+  position: number;
+}): void {
+  track("financeiro_task_completed", {
+    task_id: props.task_id,
+    completed: true,
+    progress: props.progress,
+    position: props.position,
+  });
+}
+
+/** Score de saúde financeira — visão geral do mês */
+export function trackFinanceiroScoreViewed(props: {
+  score: number;
+  level: string;
+  lowest_factor: string;
+  highest_factor: string;
+}): void {
+  track("financeiro_score_viewed", {
+    score: props.score,
+    level: props.level,
+    lowest_factor: props.lowest_factor,
+    highest_factor: props.highest_factor,
+  });
+}
+
+export function trackFinanceiroScoreBreakdownClicked(props: {
+  score: number;
+  level: string;
+  lowest_factor: string;
+  highest_factor: string;
+  criterion_id: string;
+}): void {
+  track("financeiro_score_breakdown_clicked", {
+    score: props.score,
+    level: props.level,
+    lowest_factor: props.lowest_factor,
+    highest_factor: props.highest_factor,
+    criterion_id: props.criterion_id,
+  });
+}
+
+/** Mobile dashboard — expansão além do resumo (eficácia do polish) */
+export function trackFinanceiroMobileExpandScoreBreakdown(): void {
+  track("financeiro_mobile_expand_score_breakdown", {});
+}
+
+export function trackFinanceiroMobileExpandInsights(props: { hidden_count: number }): void {
+  track("financeiro_mobile_expand_insights", { hidden_count: props.hidden_count });
+}
+
+export function trackFinanceiroMobileExpandChecklist(props: { hidden_count: number }): void {
+  track("financeiro_mobile_expand_checklist", { hidden_count: props.hidden_count });
+}

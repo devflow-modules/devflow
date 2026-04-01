@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, ReactNode, useEffect, useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { ruleCreateSchema, ruleUpdateSchema } from "@/modules/financeiro/schemas";
 import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvider";
@@ -157,6 +158,16 @@ export default function RulesPage() {
           </h1>
           <p className="text-sm text-muted-foreground">Crie regras por categoria ou valor fixo e veja o histórico.</p>
         </header>
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm">
+          <span className="text-muted-foreground">Próximo passo sugerido:</span>
+          <Link href="/ferramentas/financeiro/expenses#nova-despesa" className="font-medium text-primary hover:underline">
+            Registrar movimentação
+          </Link>
+          <Link href="/ferramentas/financeiro/dashboard#relatorios" className="font-medium text-primary hover:underline">
+            Ver impacto nos relatórios
+          </Link>
+        </div>
 
         <Section title={editingId ? "Editar regra" : "Nova regra"}>
           <form className="space-y-4" onSubmit={handleSubmit}>

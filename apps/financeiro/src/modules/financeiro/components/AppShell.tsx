@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/modules/financeiro/lib/cn";
 import { btnGhostLight, focusRingLight, labelCaps } from "@/modules/financeiro/lib/primitives";
@@ -8,18 +8,22 @@ import { Sidebar } from "@/modules/financeiro/components/Sidebar";
 import { QuickAddModal } from "@/modules/financeiro/components/QuickAddModal";
 import { DemoPresentationBar } from "@/modules/financeiro/components/DemoPresentationBar";
 
+function readSidebarCollapsed(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const stored = window.localStorage.getItem("financeiro.sidebar.collapsed");
+    if (stored != null) return stored === "true";
+  } catch {
+    /* noop */
+  }
+  return false;
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "/";
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(readSidebarCollapsed);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
-
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem("financeiro.sidebar.collapsed");
-      if (stored != null) setIsCollapsed(stored === "true");
-    } catch { /* noop */ }
-  }, []);
 
   useEffect(() => {
     try {
@@ -27,8 +31,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     } catch { /* noop */ }
   }, [isCollapsed]);
 
-  useEffect(() => {
-    setIsMobileOpen(false);
+  useLayoutEffect(() => {
+    const id = requestAnimationFrame(() => setIsMobileOpen(false));
+    return () => cancelAnimationFrame(id);
   }, [pathname]);
 
   useEffect(() => {

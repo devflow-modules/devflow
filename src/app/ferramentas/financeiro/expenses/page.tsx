@@ -2,6 +2,8 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { FINANCEIRO_BASE_PATH } from "@/modules/financeiro/navigation/constants";
+import { setFinanceiroLastAction } from "@/modules/financeiro/navigation/operational/lastActionStorage";
 import {
   expenseCreateSchema,
   expenseUpdateSchema,
@@ -98,6 +100,19 @@ export default function ExpensesPage() {
     run();
   }, [household?.id]);
 
+  useEffect(() => {
+    const scrollToHash = () => {
+      const id = window.location.hash.replace(/^#/, "");
+      if (!id) return;
+      requestAnimationFrame(() => {
+        document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    };
+    scrollToHash();
+    window.addEventListener("hashchange", scrollToHash);
+    return () => window.removeEventListener("hashchange", scrollToHash);
+  }, []);
+
   const handleIncomeSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -122,6 +137,13 @@ export default function ExpensesPage() {
     const payload = await response.json();
     if (payload.success) {
       toast.success("Receita cadastrada");
+      setFinanceiroLastAction({
+        kind: "income_added",
+        title: "Você estava lançando receitas",
+        detail: `${Number(parsed.amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} · ${parsed.receivedAt}`,
+        href: `${EXPENSES_PATH}#nova-receita`,
+        at: new Date().toISOString(),
+      });
       setIncomeForm(defaultIncomeForm);
       loadFinancials();
     } else {
@@ -147,6 +169,13 @@ export default function ExpensesPage() {
     const payload = await res.json();
     if (payload.success) {
       toast.success("Receita atualizada");
+      setFinanceiroLastAction({
+        kind: "income_edited",
+        title: "Você editou uma receita",
+        detail: `${Number(parsed.amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} · ${parsed.receivedAt}`,
+        href: `${EXPENSES_PATH}#nova-receita`,
+        at: new Date().toISOString(),
+      });
       setEditingIncomeId(null);
       setIncomeForm(defaultIncomeForm);
       loadFinancials();
@@ -204,6 +233,13 @@ export default function ExpensesPage() {
     const payload = await res.json();
     if (payload.success) {
       toast.success("Despesa atualizada");
+      setFinanceiroLastAction({
+        kind: "expense_edited",
+        title: "Você editou uma despesa",
+        detail: `Categoria: ${parsed.category}`,
+        href: `${EXPENSES_PATH}#categorias`,
+        at: new Date().toISOString(),
+      });
       setEditingExpenseId(null);
       setExpenseForm(defaultExpenseForm);
       loadFinancials();
@@ -341,7 +377,10 @@ export default function ExpensesPage() {
         </div>
 
         <section className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md">
+          <div
+            id="nova-receita"
+            className="scroll-mt-28 rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md"
+          >
             <h2 className="text-lg font-semibold text-foreground">Receitas</h2>
             <form className="mt-4 space-y-4" onSubmit={handleIncomeSubmit}>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -455,10 +494,13 @@ export default function ExpensesPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md">
+          <div
+            id="nova-despesa"
+            className="scroll-mt-28 rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md"
+          >
             <h2 className="text-lg font-semibold text-foreground">Despesas</h2>
             <form className="mt-4 space-y-4" onSubmit={handleExpenseSubmit}>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div id="categorias" className="grid scroll-mt-28 gap-3 sm:grid-cols-2">
                 <input
                   type="text"
                   placeholder="Categoria"
