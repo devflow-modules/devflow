@@ -1,3 +1,0 @@
-module.exports=[9163,a=>{"use strict";function b({children:a}){return a}a.s(["default",()=>b,"metadata",0,{title:"Demo | Simule Atendimento Automatizado | DevFlow Labs",description:"Teste a automação de atendimento no WhatsApp. Digite uma pergunta e veja como a IA responde. Demonstração interativa.",openGraph:{title:"Demo - Simule Atendimento | DevFlow Labs",url:"https://devflowlabs.com.br/demo"}}])}];
-
-//# sourceMappingURL=apps_site_src_app_demo_layout_tsx_a96a0dea._.js.map

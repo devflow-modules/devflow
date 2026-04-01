@@ -67,3 +67,5 @@ yarn-error.log*
 
 # --- Prisma (gerados) ---
 # prisma/migrations mantidas; .env ignorado acima
+# Cliente gerado — regerar: prisma generate / pnpm build (root)
+**/src/generated/prisma-whatsapp/
