@@ -510,9 +510,13 @@ export default function SourcesPage() {
                 <Skeleton className="h-16 w-full rounded-2xl" />
               </div>
             ) : sources.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Nenhuma fonte cadastrada ainda. Crie a primeira fonte no formulário acima.
-              </p>
+              <div className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-6 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground">Cadastre de onde entra o dinheiro</p>
+                <p className="mt-1">
+                  Fontes PJ e PF aparecem separadas no dashboard — o cliente enxerga clareza entre empresa e vida
+                  pessoal. Adicione a primeira acima ou use o seed de demo.
+                </p>
+              </div>
             ) : (
               sources.map((source) => (
                 <div

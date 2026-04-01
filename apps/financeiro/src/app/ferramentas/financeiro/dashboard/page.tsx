@@ -371,7 +371,9 @@ export default function DashboardPage() {
   if (!household) {
     return (
       <div className="flex min-h-screen items-center justify-center px-6 py-14">
-        <p className="text-sm text-muted-foreground">Nenhuma casa ativa. Complete o onboarding.</p>
+        <p className="text-sm text-muted-foreground">
+          Nenhuma casa ativa — conclua o passo “Casa” no onboarding para ver o painel.
+        </p>
       </div>
     );
   }
@@ -381,11 +383,18 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-6xl space-y-8">
         <Breadcrumbs />
         {!isLoading && incomes.length === 0 && expenses.length === 0 ? (
-          <div className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground">
-            <strong>Pronto!</strong> Que tal usar uma ferramenta grátis?{" "}
-            <Link href="/ferramentas" className="font-semibold text-primary underline hover:opacity-90">
-              Ver ferramentas
-            </Link>
+          <div className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-4 text-sm text-foreground">
+            <p className="font-semibold text-foreground">Ainda sem movimentação nesta casa</p>
+            <p className="mt-1 text-muted-foreground">
+              Para uma demo com gráficos cheios, rode o seed de demonstração no ambiente controlado (usuário demo) ou
+              comece cadastrando fontes e lançamentos — em poucos minutos o painel mostra previsibilidade e separação PJ
+              / PF.
+            </p>
+            <p className="mt-2">
+              <Link href="/ferramentas" className="font-semibold text-primary underline hover:opacity-90">
+                Ver outras ferramentas
+              </Link>
+            </p>
           </div>
         ) : null}
         <header className="space-y-3">
@@ -393,8 +402,12 @@ export default function DashboardPage() {
             <div>
               <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Dashboard</p>
               <h1 className="text-3xl font-semibold leading-tight tracking-tight text-foreground md:text-4xl">
-                Resumo financeiro
+                Visão financeira do mês
               </h1>
+              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                Receitas, despesas, metas e projeção no mesmo lugar — para decidir com clareza, sem misturar caixa da
+                empresa com o bolso de casa.
+              </p>
             </div>
             <ContextSelector value={contextFilter} onChange={setContextFilter} />
           </div>
@@ -420,7 +433,7 @@ export default function DashboardPage() {
             ) : (
               <>
                 <p className="mt-1.5 text-2xl font-bold text-red-600">{formatCurrency(totals.totalExpenses)}</p>
-                <p className="mt-0.5 text-xs text-red-500/70">total acumulado</p>
+                <p className="mt-0.5 text-xs text-red-500/70">todas as saídas registradas</p>
               </>
             )}
           </article>
@@ -431,7 +444,7 @@ export default function DashboardPage() {
             ) : (
               <>
                 <p className="mt-1.5 text-2xl font-bold text-foreground">{formatCurrency(overview?.totalSpent ?? 0)}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">mês corrente</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">compromissos com vencimento neste mês</p>
               </>
             )}
           </article>
@@ -451,7 +464,7 @@ export default function DashboardPage() {
                   {formatCurrency(totals.balance)}
                 </p>
                 <p className={`mt-0.5 text-xs ${totals.balance < 0 ? "text-red-500/70" : "text-indigo-600/70"}`}>
-                  receitas − despesas
+                  panorama rápido: entradas − saídas
                 </p>
               </>
             )}
@@ -460,7 +473,7 @@ export default function DashboardPage() {
 
         <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md lg:grid-cols-[2fr,1fr]">
           <div>
-            <h2 className="text-base uppercase tracking-[0.2em] text-muted-foreground">PJ vs PF</h2>
+            <h2 className="text-base uppercase tracking-[0.2em] text-muted-foreground">PJ vs PF — caixas separados</h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div className="rounded-2xl border border-slate-200 bg-card p-4 shadow-sm transition hover:-translate-y-px hover:shadow-md">
                 <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">PJ entradas</p>
@@ -861,7 +874,10 @@ export default function DashboardPage() {
                   <Skeleton className="h-4 w-1/2 rounded-xl" />
                 </div>
               ) : (overview?.categoryBreakdown?.length ?? 0) === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhuma despesa no mês para compor o gráfico.</p>
+                <p className="text-sm text-muted-foreground">
+                  Sem gastos neste mês ainda — cadastre despesas ou use o seed de demo para mostrar o fluxo por categoria
+                  na reunião.
+                </p>
               ) : (
                 (overview?.categoryBreakdown ?? []).map((item) => (
                   <div key={item.categoryId ?? item.categoryName} className="space-y-1">
@@ -892,7 +908,10 @@ export default function DashboardPage() {
                   <Skeleton className="h-16 w-full rounded-xl" />
                 </div>
               ) : (overview?.budgetProgress?.length ?? 0) === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhum orçamento configurado. Crie categorias e defina limites em Configurações.</p>
+                <p className="text-sm text-muted-foreground">
+                  Sem teto por categoria — defina orçamentos em Configurações para ver “quanto já usei do planejado” e
+                  antecipar estouro antes do fim do mês.
+                </p>
               ) : (
                 (overview?.budgetProgress ?? []).map((b) => {
                   const isDanger = b.percent >= 100;
@@ -952,7 +971,10 @@ export default function DashboardPage() {
                   <li><Skeleton className="h-12 w-full rounded-2xl" /></li>
                 </>
               ) : allocations.length === 0 ? (
-                <li className="text-sm text-muted-foreground">Nenhum rateio calculado ainda.</li>
+                <li className="text-sm text-muted-foreground">
+                  Nenhuma regra aplicada ainda — em Regras você mostra como dividir custos (ex.: mercado) entre fontes PJ
+                  e PF.
+                </li>
               ) : (
                 allocations.map((allocation) => (
                   <li key={allocation.ruleId} className="rounded-2xl border border-slate-200 bg-card p-3">

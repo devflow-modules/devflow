@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { householdCreateSchema } from "@/modules/financeiro/schemas";
 import { cn } from "@/modules/financeiro/lib/cn";
@@ -19,6 +19,16 @@ export default function OnboardingPage() {
   const [slug, setSlug] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [apresentacao, setApresentacao] = useState(false);
+
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(window.location.search);
+      setApresentacao(q.get("apresentacao") === "1" || q.get("demo") === "1");
+    } catch {
+      setApresentacao(false);
+    }
+  }, []);
 
   const toSlug = (value: string) =>
     value
@@ -103,7 +113,7 @@ export default function OnboardingPage() {
             />
           </label>
           <label className="block text-sm font-semibold text-foreground">
-            Slug (identificador único, só letras minúsculas, números e hífen)
+            {apresentacao ? "Identificador (gerado do nome — pode ajustar)" : "Slug (identificador único, só letras minúsculas, números e hífen)"}
             <input
               type="text"
               required
@@ -130,7 +140,7 @@ export default function OnboardingPage() {
               "w-full disabled:cursor-not-allowed"
             )}
           >
-            {loading ? "Criando..." : "Criar casa"}
+            {loading ? "Criando..." : apresentacao ? "Ir ao dashboard" : "Criar casa"}
           </button>
         </form>
       </div>

@@ -6,6 +6,7 @@ import { cn } from "@/modules/financeiro/lib/cn";
 import { btnGhostLight, focusRingLight, labelCaps } from "@/modules/financeiro/lib/primitives";
 import { Sidebar } from "@/modules/financeiro/components/Sidebar";
 import { QuickAddModal } from "@/modules/financeiro/components/QuickAddModal";
+import { DemoPresentationBar } from "@/modules/financeiro/components/DemoPresentationBar";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "/";
@@ -75,6 +76,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             + Lançar
           </button>
         </div>
+
+        <DemoPresentationBar pathname={pathname} />
 
         {/* Desktop quick-add FAB */}
         <button

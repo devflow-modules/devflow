@@ -400,7 +400,11 @@ export default function ExpensesPage() {
               {isLoading ? (
                 <><Skeleton className="h-14 w-full rounded-xl" /><Skeleton className="h-14 w-full rounded-xl" /></>
               ) : filteredIncomes.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhuma receita{contextFilter !== "ALL" ? " neste contexto" : ""} cadastrada.</p>
+                <p className="text-sm text-muted-foreground">
+                  {contextFilter !== "ALL"
+                    ? "Nenhuma receita neste contexto — troque o filtro ou lance uma entrada."
+                    : "Sem receitas ainda — mostre pro cliente como cada entrada (PJ/PF/compartilhado) alimenta o saldo do mês."}
+                </p>
               ) : (
                 filteredIncomes.map((income) => (
                   <div key={income.id} className="flex items-start justify-between rounded-xl border border-border bg-background p-3 gap-2">
@@ -520,7 +524,11 @@ export default function ExpensesPage() {
               {isLoading ? (
                 <><Skeleton className="h-14 w-full rounded-xl" /><Skeleton className="h-14 w-full rounded-xl" /></>
               ) : filteredExpenses.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhuma despesa{contextFilter !== "ALL" ? " neste contexto" : ""} cadastrada.</p>
+                <p className="text-sm text-muted-foreground">
+                  {contextFilter !== "ALL"
+                    ? "Nenhuma despesa neste contexto — ajuste o filtro ou cadastre um compromisso."
+                    : "Sem despesas ainda — aqui você demonstra vencimentos, status pago/pendente e visão por categoria."}
+                </p>
               ) : (
                 filteredExpenses.map((expense) => (
                   <div key={expense.id} className="flex items-start justify-between rounded-xl border border-border bg-background p-3 gap-2">
