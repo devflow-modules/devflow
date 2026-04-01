@@ -24,6 +24,7 @@
 | [FINANCEIRO-POSICIONAMENTO.md](./FINANCEIRO-POSICIONAMENTO.md) | Problema, proposta e diferenciais |
 | [CASE-LINKEDIN.md](./CASE-LINKEDIN.md) | Rascunhos de post / case público |
 | [screenshots/README.md](./screenshots/README.md) | Material visual (3 estados mobile) |
+| [ONBOARDING-SIMULACAO-3-PERFIS.md](./ONBOARDING-SIMULACAO-3-PERFIS.md) | Simulação guiada — 3 perfis (fricção + melhorias) |
 
 ## Produto e API
 

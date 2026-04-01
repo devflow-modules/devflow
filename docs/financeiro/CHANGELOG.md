@@ -6,6 +6,7 @@ Todas as mudanças relevantes do produto **Financeiro** (dashboard inteligente, 
 
 ### Adicionado
 
+- Onboarding in-product no dashboard (banner + CTAs + destaque nos blocos score/insights/checklist; `localStorage` `financeiro_onboarding_step`; eventos `financeiro_onboarding_*`)
 - Health Score do mês (0–100) com faixa e mensagem acionável
 - Insights automáticos (regras determinísticas sobre receitas, despesas e frescor dos dados)
 - Checklist mensal com progresso visual

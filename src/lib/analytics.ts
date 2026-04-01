@@ -305,3 +305,91 @@ export function trackFinanceiroMobileExpandInsights(props: { hidden_count: numbe
 export function trackFinanceiroMobileExpandChecklist(props: { hidden_count: number }): void {
   track("financeiro_mobile_expand_checklist", { hidden_count: props.hidden_count });
 }
+
+/** Onboarding in-product — ativação sem tutorial externo */
+export function trackFinanceiroOnboardingStarted(props: { surface?: string } = {}): void {
+  track("financeiro_onboarding_started", { surface: props.surface ?? "dashboard" });
+}
+
+export function trackFinanceiroOnboardingStepCompleted(props: {
+  step: "income" | "expense";
+  surface?: string;
+}): void {
+  track("financeiro_onboarding_step_completed", {
+    step: props.step,
+    surface: props.surface ?? "expenses_page",
+  });
+}
+
+export function trackFinanceiroOnboardingCompleted(props: { surface?: string } = {}): void {
+  track("financeiro_onboarding_completed", { surface: props.surface ?? "dashboard" });
+}
+
+/** Demo pública do Financeiro (sem autenticação) */
+export function trackFinanceiroDemoOpened(props: { surface?: string } = {}): void {
+  track("financeiro_demo_opened", {
+    surface: props.surface ?? "direct",
+    mode: "demo",
+  });
+}
+
+export function trackFinanceiroDemoConvertedToSignup(props: {
+  cta: string;
+  surface?: string;
+}): void {
+  track("financeiro_demo_converted_to_signup", {
+    cta: props.cta,
+    surface: props.surface ?? "demo_page",
+    mode: "demo",
+  });
+}
+
+/** Retenção emocional — dashboard */
+export function trackFinanceiroUrgencyViewed(props: {
+  kind: "stale" | "today_missing" | "incomplete";
+  pending_count?: number;
+}): void {
+  track("financeiro_urgency_viewed", {
+    kind: props.kind,
+    pending_count: props.pending_count ?? 0,
+  });
+}
+
+export function trackFinanceiroDailyGoalViewed(props: { completed: boolean; calendar_day: string }): void {
+  track("financeiro_daily_goal_viewed", {
+    completed: props.completed,
+    calendar_day: props.calendar_day,
+  });
+}
+
+export function trackFinanceiroDailyGoalCompleted(props: { calendar_day: string }): void {
+  track("financeiro_daily_goal_completed", { calendar_day: props.calendar_day });
+}
+
+export function trackFinanceiroScoreImproved(props: {
+  from_score: number;
+  to_score: number;
+  delta: number;
+}): void {
+  track("financeiro_score_improved", {
+    from_score: props.from_score,
+    to_score: props.to_score,
+    delta: props.delta,
+  });
+}
+
+export function trackFinanceiroScoreDeclined(props: {
+  from_score: number;
+  to_score: number;
+  delta: number;
+}): void {
+  track("financeiro_score_declined", {
+    from_score: props.from_score,
+    to_score: props.to_score,
+    delta: props.delta,
+  });
+}
+
+export function trackFinanceiroReturnNextDay(props: { calendar_day: string }): void {
+  track("financeiro_return_next_day", { calendar_day: props.calendar_day });
+}

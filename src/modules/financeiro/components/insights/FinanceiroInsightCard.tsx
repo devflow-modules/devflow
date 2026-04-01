@@ -6,12 +6,15 @@ import type { FinanceiroInsight } from "@/modules/financeiro/insights/types";
 import { trackFinanceiroInsightClicked } from "@/lib/analytics";
 import { cn } from "@/modules/financeiro/lib/cn";
 import { focusRingLight } from "@/modules/financeiro/lib/primitives";
+import { financeiroAuthWithNext } from "@/modules/financeiro/navigation/authHref";
 
 type Props = {
   insight: FinanceiroInsight;
   position: number;
   /** CTA mais alto e largo no mobile (insight principal). */
   touchProminent?: boolean;
+  isDemo?: boolean;
+  demoAuthBase?: string;
 };
 
 function Icon({ type }: { type: FinanceiroInsight["type"] }) {
@@ -27,7 +30,17 @@ function borderForType(type: FinanceiroInsight["type"]) {
   return "border-sky-200 bg-sky-50/40";
 }
 
-export function FinanceiroInsightCard({ insight, position, touchProminent }: Props) {
+export function FinanceiroInsightCard({
+  insight,
+  position,
+  touchProminent,
+  isDemo = false,
+  demoAuthBase,
+}: Props) {
+  const ctaHref = demoAuthBase
+    ? financeiroAuthWithNext(insight.cta.href, demoAuthBase)
+    : insight.cta.href;
+
   return (
     <article
       className={cn(
@@ -48,16 +61,17 @@ export function FinanceiroInsightCard({ insight, position, touchProminent }: Pro
         </div>
       </div>
       <Link
-        href={insight.cta.href}
-        onClick={() =>
+        href={ctaHref}
+        onClick={() => {
+          if (isDemo) return;
           trackFinanceiroInsightClicked({
             insight_type: insight.type,
             insight_id: insight.id,
             priority: insight.priority,
             cta_target: insight.cta.href,
             position,
-          })
-        }
+          });
+        }}
         className={cn(
           "inline-flex w-full shrink-0 items-center justify-center rounded-lg bg-foreground text-sm font-semibold text-background hover:opacity-90 sm:w-auto sm:self-center",
           touchProminent ? "min-h-11 px-4 py-3 sm:min-h-0 sm:px-4 sm:py-2" : "min-h-11 px-4 py-2.5 sm:min-h-0",

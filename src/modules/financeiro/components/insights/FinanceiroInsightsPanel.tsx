@@ -11,14 +11,23 @@ import { focusRingLight } from "@/modules/financeiro/lib/primitives";
 type Props = {
   insights: FinanceiroInsight[];
   isLoading: boolean;
+  onboardingCoachMark?: boolean;
+  isDemo?: boolean;
+  demoAuthBase?: string;
 };
 
-export function FinanceiroInsightsPanel({ insights, isLoading }: Props) {
+export function FinanceiroInsightsPanel({
+  insights,
+  isLoading,
+  onboardingCoachMark = false,
+  isDemo = false,
+  demoAuthBase,
+}: Props) {
   const viewedRef = useRef<Set<string>>(new Set());
   const [insightsExpanded, setInsightsExpanded] = useState(false);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isDemo || isLoading) return;
     for (let i = 0; i < insights.length; i++) {
       const insight = insights[i];
       if (viewedRef.current.has(insight.id)) continue;
@@ -31,7 +40,7 @@ export function FinanceiroInsightsPanel({ insights, isLoading }: Props) {
         position: i,
       });
     }
-  }, [insights, isLoading]);
+  }, [insights, isLoading, isDemo]);
 
   if (isLoading) {
     return (
@@ -45,13 +54,36 @@ export function FinanceiroInsightsPanel({ insights, isLoading }: Props) {
     );
   }
 
-  if (insights.length === 0) return null;
+  if (insights.length === 0) {
+    if (!onboardingCoachMark) return null;
+    return (
+      <section
+        className={cn(
+          "rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50/80 to-white p-4 shadow-sm md:p-5",
+          "ring-2 ring-violet-400/50 ring-offset-2"
+        )}
+        aria-labelledby="financeiro-insights-coach"
+        id="financeiro-insights-coach"
+      >
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary md:text-xs">Hoje no seu Financeiro</p>
+        <h2 id="financeiro-insights-coach" className="mt-1 text-base font-semibold text-foreground md:text-lg">
+          O que merece atenção agora
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Aqui aparecem alertas quando algo precisa de cuidado no mês — categorias, receitas ou hábito de lançar.
+        </p>
+      </section>
+    );
+  }
 
   const moreCount = insights.length - 1;
 
   return (
     <section
-      className="rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50/80 to-white p-3 shadow-sm md:p-5"
+      className={cn(
+        "rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50/80 to-white p-3 shadow-sm md:p-5",
+        onboardingCoachMark && "ring-2 ring-violet-400/50 ring-offset-2"
+      )}
       aria-labelledby="financeiro-insights-heading"
     >
       <div className="mb-2 flex flex-wrap items-end justify-between gap-2 md:mb-3">
@@ -77,6 +109,8 @@ export function FinanceiroInsightsPanel({ insights, isLoading }: Props) {
               insight={insight}
               position={index}
               touchProminent={index === 0}
+              isDemo={isDemo}
+              demoAuthBase={demoAuthBase}
             />
           </li>
         ))}
@@ -89,7 +123,7 @@ export function FinanceiroInsightsPanel({ insights, isLoading }: Props) {
             focusRingLight
           )}
           onClick={() => {
-            trackFinanceiroMobileExpandInsights({ hidden_count: moreCount });
+            if (!isDemo) trackFinanceiroMobileExpandInsights({ hidden_count: moreCount });
             setInsightsExpanded(true);
           }}
         >

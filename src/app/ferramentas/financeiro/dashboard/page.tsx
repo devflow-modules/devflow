@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { FinanceiroDashboardRetentionBlock } from "@/modules/financeiro/components/retention/FinanceiroDashboardRetentionBlock";
+import { FinanceiroDailyHabitStrip } from "@/modules/financeiro/components/retention/FinanceiroDailyHabitStrip";
+import { getFinanceiroMonthEmotionalLine } from "@/modules/financeiro/retention/monthEmotionalState";
+import { resolveFinanceiroUrgency } from "@/modules/financeiro/retention/resolveFinanceiroUrgency";
+import { writeRetentionStoredScore } from "@/modules/financeiro/retention/retentionStorage";
 import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvider";
 import { toast } from "sonner";
 import { Skeleton } from "@/modules/financeiro/components/Skeleton";
@@ -20,6 +25,12 @@ import { getFinanceiroMonthlyTasks } from "@/modules/financeiro/routine/getFinan
 import { MonthlyChecklistPanel } from "@/modules/financeiro/components/routine/MonthlyChecklistPanel";
 import { getFinanceiroHealthScore } from "@/modules/financeiro/health/getFinanceiroHealthScore";
 import { FinanceiroHealthScorePanel } from "@/modules/financeiro/components/health/FinanceiroHealthScorePanel";
+import { OnboardingStateBanner } from "@/modules/financeiro/components/onboarding/OnboardingStateBanner";
+import {
+  hasExpenseInCurrentMonth,
+  hasIncomeInCurrentMonth,
+} from "@/modules/financeiro/onboarding/monthActivity";
+import { useFinanceiroOnboarding } from "@/modules/financeiro/onboarding/useFinanceiroOnboarding";
 
 type SourceRecord = { sourceType?: "PJ" | "PF" };
 type FinancialRecord = {
@@ -101,6 +112,17 @@ export default function DashboardPage() {
   const [chartsLoading, setChartsLoading] = useState(false);
   const [projectionScenario, setProjectionScenario] = useState<"BASE" | "PESSIMISTIC" | "OPTIMISTIC">("BASE");
   const [projectionHorizonMonths, setProjectionHorizonMonths] = useState<1 | 3 | 6 | 12>(1);
+  const [retentionNow] = useState(() => new Date());
+
+  const hasIncomeMonth = useMemo(() => hasIncomeInCurrentMonth(incomes), [incomes]);
+  const hasExpenseMonth = useMemo(() => hasExpenseInCurrentMonth(expenses), [expenses]);
+
+  const { step: onboardingStep, bannerVariant, coachMarks, dismissCelebration } = useFinanceiroOnboarding(
+    hasIncomeMonth,
+    hasExpenseMonth,
+    isLoading,
+    household?.id
+  );
 
   const fetchFinancials = async () => {
     if (!household?.id) return;
@@ -354,6 +376,19 @@ export default function DashboardPage() {
     [incomes, expenses, rules.length, activeMembershipRole]
   );
 
+  const retentionUrgency = useMemo(
+    () =>
+      isLoading
+        ? null
+        : resolveFinanceiroUrgency({
+            now: retentionNow,
+            incomes,
+            expenses,
+            tasks: monthlyTasks,
+          }),
+    [isLoading, retentionNow, incomes, expenses, monthlyTasks]
+  );
+
   const healthScore = useMemo(
     () =>
       getFinanceiroHealthScore({
@@ -364,6 +399,11 @@ export default function DashboardPage() {
       }),
     [incomes, expenses, rules.length, activeMembershipRole]
   );
+
+  useEffect(() => {
+    if (!household?.id || !healthScore) return;
+    writeRetentionStoredScore(household.id, healthScore.score);
+  }, [household?.id, healthScore]);
 
   const persona = useMemo(() => inferDashboardPersona({ incomes, expenses }), [incomes, expenses]);
 
@@ -403,17 +443,45 @@ export default function DashboardPage() {
     <div className="min-h-screen px-4 py-6 text-foreground sm:px-6 md:py-12">
       <div className="mx-auto max-w-6xl space-y-5 md:space-y-8">
         <Breadcrumbs />
+        <FinanceiroDashboardRetentionBlock
+          householdId={household.id}
+          now={retentionNow}
+          urgency={retentionUrgency}
+          isLoading={isLoading}
+        />
+        <OnboardingStateBanner variant={bannerVariant} onDismissCelebration={dismissCelebration} />
         <FinanceiroHealthScorePanel
-          key={household.id}
+          key={`financeiro-score-${household.id}`}
           result={healthScore}
           isLoading={isLoading}
           isOwner={activeMembershipRole !== "MEMBER"}
           householdId={household.id}
+          onboardingCoachMark={coachMarks}
+          emotionalMonthLine={
+            !isLoading && healthScore ? getFinanceiroMonthEmotionalLine(healthScore.score) : undefined
+          }
         />
-        <FinanceiroInsightsPanel insights={insights} isLoading={isLoading} />
-        <MonthlyChecklistPanel key={household.id} tasks={monthlyTasks} isLoading={isLoading} />
+        {!retentionUrgency ? (
+          <FinanceiroDailyHabitStrip
+            now={retentionNow}
+            incomes={incomes}
+            expenses={expenses}
+            isLoading={isLoading}
+          />
+        ) : null}
+        <FinanceiroInsightsPanel
+          insights={insights}
+          isLoading={isLoading}
+          onboardingCoachMark={coachMarks}
+        />
+        <MonthlyChecklistPanel
+          key={`financeiro-checklist-${household.id}`}
+          tasks={monthlyTasks}
+          isLoading={isLoading}
+          onboardingCoachMark={coachMarks}
+        />
         <DashboardOperationalSection />
-        {!isLoading && incomes.length === 0 && expenses.length === 0 ? (
+        {!isLoading && incomes.length === 0 && expenses.length === 0 && onboardingStep === "completed" ? (
           <p className="rounded-lg border border-dashed border-border px-3 py-2 text-xs text-muted-foreground max-md:text-[11px]">
             Dica: em demo, use o seed ou as ações rápidas acima para preencher o painel.
           </p>

@@ -49,12 +49,27 @@ Documento curto para alinhar produto e engenharia sobre **score**, **insights** 
 
 IA pode entrar depois como **camada opcional** (ex.: texto mais rico), nunca como fonte da verdade do score.
 
+## Onboarding in-product (ativação)
+
+Orquestração leve no **dashboard** + `localStorage` (`financeiro_onboarding_step`: `empty` → `added_income` → `added_expense` → `completed`).
+
+- **Sem modal / tour longo:** banner inline, CTAs para `/ferramentas/financeiro/expenses` (#nova-receita / #nova-despesa), destaque (`ring`) em score, insights e checklist após as duas primeiras ações no mês.
+- **Analytics:** `financeiro_onboarding_started`, `financeiro_onboarding_step_completed`, `financeiro_onboarding_completed` (Vercel Analytics).
+
+## Demo pública (sem login)
+
+- **Rota:** `/ferramentas/financeiro/demo` — não exige sessão; o `middleware-client` do Financeiro não redireciona anônimos desse path para `/auth`.
+- **Dados:** snapshot fictício em `src/modules/financeiro/demo/buildDemoDashboardBundle.ts` alimenta os mesmos motores (score, insights, checklist).
+- **Shell:** a demo **não** entra na lista `APP_ROUTES` do `layout.tsx` do Financeiro (sem `HouseholdProvider` / `AppShell`), evitando `/api/me` sem login.
+- **Analytics:** `financeiro_demo_opened` e `financeiro_demo_converted_to_signup` (com `mode: "demo"`); com `isDemo` nos painéis, não disparamos eventos de uso “real” (ex.: score/insight/task viewed).
+- **Conversão:** CTAs levam a `/ferramentas/financeiro/auth?next=…` (dashboard autenticado).
+
 ## Storage (cliente)
 
 | Mecanismo | Uso típico |
 |-----------|------------|
 | **Cookie** | Última rota / contexto de navegação dentro do Financeiro (quando aplicável no app). |
-| **localStorage** | Ações recentes / “continuar de onde parei”, preferências leves que não precisam de servidor. |
+| **localStorage** | Ações recentes / “continuar de onde parei”, passo do onboarding (`financeiro_onboarding_step`), preferências leves. |
 
 Não substituem o banco: são **UX** e retomada de fluxo no dispositivo.
 

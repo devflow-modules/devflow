@@ -3,6 +3,10 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { FINANCEIRO_EXPENSES_PATH } from "@/modules/financeiro/navigation/constants";
+import {
+  advanceOnboardingAfterExpenseCreated,
+  advanceOnboardingAfterIncomeCreated,
+} from "@/modules/financeiro/onboarding/advanceOnboarding";
 import { setFinanceiroLastAction } from "@/modules/financeiro/navigation/operational/lastActionStorage";
 import {
   expenseCreateSchema,
@@ -11,6 +15,10 @@ import {
   incomeUpdateSchema,
 } from "@/modules/financeiro/schemas";
 import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvider";
+import {
+  buildUnifiedMovementToastMessage,
+  refreshFinanceiroRetentionAfterMovement,
+} from "@/modules/financeiro/retention/postMovementFeedback";
 import { Skeleton } from "@/modules/financeiro/components/Skeleton";
 import { formatDateOnlyPtBr, toDateOnly } from "@/lib/dates";
 import { Breadcrumbs } from "@/modules/financeiro/components/Breadcrumbs";
@@ -56,7 +64,7 @@ const defaultIncomeForm: IncomeForm = { amount: "", receivedAt: "", sourceId: ""
 const defaultExpenseForm: ExpenseForm = { category: "", amount: "", dueDate: "", sourceId: "", isRecurring: false };
 
 export default function ExpensesPage() {
-  const { household, isLoading: householdLoading } = useHousehold();
+  const { household, isLoading: householdLoading, activeMembershipRole } = useHousehold();
   const [isLoading, setIsLoading] = useState(true);
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -136,7 +144,7 @@ export default function ExpensesPage() {
     });
     const payload = await response.json();
     if (payload.success) {
-      toast.success("Receita cadastrada");
+      advanceOnboardingAfterIncomeCreated();
       setFinanceiroLastAction({
         kind: "income_added",
         title: "Você estava lançando receitas",
@@ -145,7 +153,20 @@ export default function ExpensesPage() {
         at: new Date().toISOString(),
       });
       setIncomeForm(defaultIncomeForm);
-      loadFinancials();
+      const snap = await loadFinancials();
+      if (snap && household?.id) {
+        const retention = await refreshFinanceiroRetentionAfterMovement({
+          householdId: household.id,
+          incomes: snap.incomes,
+          expenses: snap.expenses,
+          activeMembershipRole,
+        });
+        const { message, variant } = buildUnifiedMovementToastMessage("income_added", retention);
+        if (variant === "warning") toast.warning(message);
+        else toast.success(message);
+      } else {
+        toast.success("Receita adicionada");
+      }
     } else {
       toast.error(payload.error?.message ?? "Erro ao cadastrar");
     }
@@ -207,9 +228,22 @@ export default function ExpensesPage() {
     });
     const payload = await res.json();
     if (payload.success) {
-      toast.success("Despesa cadastrada");
+      advanceOnboardingAfterExpenseCreated();
       setExpenseForm(defaultExpenseForm);
-      loadFinancials();
+      const snap = await loadFinancials();
+      if (snap && household?.id) {
+        const retention = await refreshFinanceiroRetentionAfterMovement({
+          householdId: household.id,
+          incomes: snap.incomes,
+          expenses: snap.expenses,
+          activeMembershipRole,
+        });
+        const { message, variant } = buildUnifiedMovementToastMessage("expense_added", retention);
+        if (variant === "warning") toast.warning(message);
+        else toast.success(message);
+      } else {
+        toast.success("Despesa adicionada");
+      }
     } else {
       toast.error(payload.error?.message ?? "Erro ao cadastrar");
     }

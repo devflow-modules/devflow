@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import type { FinanceiroMonthlyTask } from "@/modules/financeiro/routine/types";
 import { getMonthlyProgress } from "@/modules/financeiro/routine/getMonthlyProgress";
 import {
@@ -18,9 +19,18 @@ import { focusRingLight } from "@/modules/financeiro/lib/primitives";
 type Props = {
   tasks: FinanceiroMonthlyTask[];
   isLoading: boolean;
+  onboardingCoachMark?: boolean;
+  isDemo?: boolean;
+  demoAuthBase?: string;
 };
 
-export function MonthlyChecklistPanel({ tasks, isLoading }: Props) {
+export function MonthlyChecklistPanel({
+  tasks,
+  isLoading,
+  onboardingCoachMark = false,
+  isDemo = false,
+  demoAuthBase,
+}: Props) {
   const viewedRef = useRef<Set<string>>(new Set());
   const initRef = useRef(false);
   const wasCompletedRef = useRef<Record<string, boolean>>({});
@@ -40,7 +50,7 @@ export function MonthlyChecklistPanel({ tasks, isLoading }: Props) {
   }, [tasks, previewTaskIds, allDone, checklistExpanded]);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isDemo || isLoading) return;
 
     tasks.forEach((t, i) => {
       if (viewedRef.current.has(t.id)) return;
@@ -52,10 +62,10 @@ export function MonthlyChecklistPanel({ tasks, isLoading }: Props) {
         position: i,
       });
     });
-  }, [isLoading, tasks, progress.percent]);
+  }, [isDemo, isLoading, tasks, progress.percent]);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isDemo || isLoading) return;
 
     if (!initRef.current) {
       tasks.forEach((t) => {
@@ -73,15 +83,29 @@ export function MonthlyChecklistPanel({ tasks, isLoading }: Props) {
           progress: progress.percent,
           position: i,
         });
+        if (!isDemo) {
+          if (t.id === "task_categories") {
+            toast.success("Categorias organizadas — seus relatórios agora fazem mais sentido", {
+              duration: 4500,
+            });
+          } else {
+            toast.success("Passo concluído — você está mais perto de fechar o mês com clareza", {
+              duration: 4500,
+            });
+          }
+        }
       }
       if (!t.completed) wasCompletedRef.current[t.id] = false;
     });
-  }, [isLoading, tasks, progress.percent]);
+  }, [isDemo, isLoading, tasks, progress.percent]);
 
   if (isLoading) {
     return (
       <section
-        className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:p-5"
+        className={cn(
+          "rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:p-5",
+          onboardingCoachMark && "ring-2 ring-violet-400/50 ring-offset-2"
+        )}
         aria-busy="true"
         id="checklist-mes"
       >
@@ -100,7 +124,10 @@ export function MonthlyChecklistPanel({ tasks, isLoading }: Props) {
   return (
     <section
       id="checklist-mes"
-      className="scroll-mt-28 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:p-5"
+      className={cn(
+        "scroll-mt-28 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:p-5",
+        onboardingCoachMark && "ring-2 ring-violet-400/50 ring-offset-2"
+      )}
       aria-labelledby="monthly-checklist-heading"
     >
       <div className="mb-2 md:mb-4">
@@ -139,6 +166,8 @@ export function MonthlyChecklistPanel({ tasks, isLoading }: Props) {
                   position={index}
                   progressPercent={progress.percent}
                   touchProminent
+                  isDemo={isDemo}
+                  demoAuthBase={demoAuthBase}
                 />
               </li>
             ))}
@@ -151,7 +180,8 @@ export function MonthlyChecklistPanel({ tasks, isLoading }: Props) {
                 focusRingLight
               )}
               onClick={() => {
-                trackFinanceiroMobileExpandChecklist({ hidden_count: hiddenTaskCount });
+                if (!isDemo)
+                  trackFinanceiroMobileExpandChecklist({ hidden_count: hiddenTaskCount });
                 setChecklistExpanded(true);
               }}
             >

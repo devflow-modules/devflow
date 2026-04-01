@@ -20,6 +20,7 @@ import { FinanceiroScoreRing } from "./FinanceiroScoreRing";
 import { cn } from "@/modules/financeiro/lib/cn";
 import { focusRingLight } from "@/modules/financeiro/lib/primitives";
 import { useIsNarrowScreen } from "@/modules/financeiro/lib/useIsNarrowScreen";
+import { financeiroAuthWithNext } from "@/modules/financeiro/navigation/authHref";
 
 const LEVEL_BADGE: Record<
   FinanceiroHealthScoreResult["level"],
@@ -75,16 +76,32 @@ type Props = {
   isLoading: boolean;
   isOwner: boolean;
   householdId: string;
+  /** Destaque leve pós-ativação (onboarding in-product). */
+  onboardingCoachMark?: boolean;
+  /** Demo pública: sem analytics de score; CTAs levam ao auth com `next`. */
+  isDemo?: boolean;
+  demoAuthBase?: string;
+  /** Retenção: frase emocional do mês (ex.: “Seu mês está em progresso (68%)”). */
+  emotionalMonthLine?: string;
 };
 
-export function FinanceiroHealthScorePanel({ result, isLoading, isOwner, householdId }: Props) {
+export function FinanceiroHealthScorePanel({
+  result,
+  isLoading,
+  isOwner,
+  householdId,
+  onboardingCoachMark = false,
+  isDemo = false,
+  demoAuthBase,
+  emotionalMonthLine,
+}: Props) {
   const headingId = useId();
   const viewedRef = useRef<string | null>(null);
   const [breakdownOpen, setBreakdownOpen] = useState(false);
   const narrow = useIsNarrowScreen();
 
   useEffect(() => {
-    if (isLoading || !result) return;
+    if (isDemo || isLoading || !result) return;
     const key = `${householdId}-${result.score}-${result.level}`;
     if (viewedRef.current === key) return;
     viewedRef.current = key;
@@ -95,12 +112,12 @@ export function FinanceiroHealthScorePanel({ result, isLoading, isOwner, househo
       lowest_factor,
       highest_factor,
     });
-  }, [isLoading, result, householdId]);
+  }, [isDemo, isLoading, result, householdId]);
 
   const toggleBreakdown = () => {
     setBreakdownOpen((prev) => {
       const next = !prev;
-      if (next && narrow) trackFinanceiroMobileExpandScoreBreakdown();
+      if (next && narrow && !isDemo) trackFinanceiroMobileExpandScoreBreakdown();
       return next;
     });
   };
@@ -108,7 +125,10 @@ export function FinanceiroHealthScorePanel({ result, isLoading, isOwner, househo
   if (isLoading) {
     return (
       <section
-        className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:p-5"
+        className={cn(
+          "rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:p-5",
+          onboardingCoachMark && "ring-2 ring-violet-400/50 ring-offset-2"
+        )}
         aria-busy="true"
         aria-labelledby={headingId}
       >
@@ -129,10 +149,16 @@ export function FinanceiroHealthScorePanel({ result, isLoading, isOwner, househo
   const badge = LEVEL_BADGE[result.level];
   const factors = getHealthScoreFactors(result.breakdown);
   const primary = getScorePrimaryCta(result, isOwner);
+  const primaryHref = demoAuthBase
+    ? financeiroAuthWithNext(primary.href, demoAuthBase)
+    : primary.href;
 
   return (
     <section
-      className="scroll-mt-28 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:p-5"
+      className={cn(
+        "scroll-mt-28 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:p-5",
+        onboardingCoachMark && "ring-2 ring-violet-400/50 ring-offset-2"
+      )}
       aria-labelledby={headingId}
       id="score-saude-financeira"
     >
@@ -143,6 +169,9 @@ export function FinanceiroHealthScorePanel({ result, isLoading, isOwner, househo
         <span className="md:hidden">Como está seu mês</span>
         <span className="hidden md:inline">Quão organizado está seu financeiro?</span>
       </h2>
+      {emotionalMonthLine ? (
+        <p className="mt-1.5 text-sm font-medium text-sky-800 md:text-base">{emotionalMonthLine}</p>
+      ) : null}
 
       <div className="mt-3 flex flex-row items-center gap-3 md:mt-4 md:items-start md:gap-6">
         <div className="shrink-0 scale-[0.92] md:scale-100">
@@ -169,7 +198,7 @@ export function FinanceiroHealthScorePanel({ result, isLoading, isOwner, househo
       </div>
 
       <Link
-        href={primary.href}
+        href={primaryHref}
         className={cn(
           "mt-4 flex min-h-11 w-full items-center justify-center rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white hover:opacity-90 md:mt-5 md:inline-flex md:w-auto md:min-h-10 md:px-5",
           focusRingLight
@@ -193,22 +222,29 @@ export function FinanceiroHealthScorePanel({ result, isLoading, isOwner, househo
         </button>
         {breakdownOpen ? (
           <ul className="mt-1 space-y-0.5 border-t border-slate-50 pt-2">
-            {result.breakdown.map((item) => (
-              <BreakdownRow
-                key={item.id}
-                item={item}
-                href={getHealthScoreCriterionHref(item.id, { isOwner })}
-                onNavigate={() =>
-                  trackFinanceiroScoreBreakdownClicked({
-                    score: result.score,
-                    level: result.level,
-                    lowest_factor: factors.lowest_factor,
-                    highest_factor: factors.highest_factor,
-                    criterion_id: item.id,
-                  })
-                }
-              />
-            ))}
+            {result.breakdown.map((item) => {
+              const criterionHref = getHealthScoreCriterionHref(item.id, { isOwner });
+              const rowHref = demoAuthBase
+                ? financeiroAuthWithNext(criterionHref, demoAuthBase)
+                : criterionHref;
+              return (
+                <BreakdownRow
+                  key={item.id}
+                  item={item}
+                  href={rowHref}
+                  onNavigate={() => {
+                    if (isDemo) return;
+                    trackFinanceiroScoreBreakdownClicked({
+                      score: result.score,
+                      level: result.level,
+                      lowest_factor: factors.lowest_factor,
+                      highest_factor: factors.highest_factor,
+                      criterion_id: item.id,
+                    });
+                  }}
+                />
+              );
+            })}
           </ul>
         ) : null}
       </div>

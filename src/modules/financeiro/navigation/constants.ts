@@ -5,6 +5,11 @@ export const FINANCEIRO_DASHBOARD_PATH = `${FINANCEIRO_BASE_PATH}/dashboard`;
 
 export const FINANCEIRO_EXPENSES_PATH = `${FINANCEIRO_BASE_PATH}/expenses`;
 
+/** Painel de exemplo sem login (dados fictícios) */
+export const FINANCEIRO_DEMO_PATH = `${FINANCEIRO_BASE_PATH}/demo`;
+
+export const FINANCEIRO_AUTH_PATH = `${FINANCEIRO_BASE_PATH}/auth`;
+
 /** Cookie: última rota interna persistida (lido no servidor no redirect) */
 export const FINANCEIRO_LAST_ROUTE_COOKIE = "financeiro_last_internal_path";
 

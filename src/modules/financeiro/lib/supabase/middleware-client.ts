@@ -26,6 +26,10 @@ const protectedPaths = [
 const isProtected = (pathname: string) =>
   protectedPaths.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
+/** Dashboard de demonstração sem login — validação e links compartilháveis */
+const isFinanceiroDemoPath = (pathname: string) =>
+  pathname === `${FINANCEIRO_BASE_PATH}/demo` || pathname.startsWith(`${FINANCEIRO_BASE_PATH}/demo/`);
+
 const FINANCEIRO_AUTH_ENTRY = `${FINANCEIRO_BASE_PATH}/auth`;
 
 function isFinanceiroPublicEntryPath(pathname: string): boolean {
@@ -89,7 +93,7 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  if (!user && isProtected(request.nextUrl.pathname)) {
+  if (!user && isProtected(request.nextUrl.pathname) && !isFinanceiroDemoPath(request.nextUrl.pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/ferramentas/financeiro/auth";
     return NextResponse.redirect(url);
