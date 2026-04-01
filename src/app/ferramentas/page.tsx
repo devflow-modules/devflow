@@ -99,7 +99,6 @@ export default function FerramentasPage() {
               tool.slug === "financeiro" ? (
                 <FinanceiroHubToolCard
                   key={tool.slug}
-                  icon={tool.icon}
                   iconBg={tool.iconBg}
                   iconColor={tool.iconColor}
                   badge={tool.badge}

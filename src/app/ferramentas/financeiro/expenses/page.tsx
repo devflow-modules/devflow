@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { FINANCEIRO_BASE_PATH } from "@/modules/financeiro/navigation/constants";
+import { FINANCEIRO_EXPENSES_PATH } from "@/modules/financeiro/navigation/constants";
 import { setFinanceiroLastAction } from "@/modules/financeiro/navigation/operational/lastActionStorage";
 import {
   expenseCreateSchema,
@@ -141,7 +141,7 @@ export default function ExpensesPage() {
         kind: "income_added",
         title: "Você estava lançando receitas",
         detail: `${Number(parsed.amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} · ${parsed.receivedAt}`,
-        href: `${EXPENSES_PATH}#nova-receita`,
+        href: `${FINANCEIRO_EXPENSES_PATH}#nova-receita`,
         at: new Date().toISOString(),
       });
       setIncomeForm(defaultIncomeForm);
@@ -173,7 +173,7 @@ export default function ExpensesPage() {
         kind: "income_edited",
         title: "Você editou uma receita",
         detail: `${Number(parsed.amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} · ${parsed.receivedAt}`,
-        href: `${EXPENSES_PATH}#nova-receita`,
+        href: `${FINANCEIRO_EXPENSES_PATH}#nova-receita`,
         at: new Date().toISOString(),
       });
       setEditingIncomeId(null);
@@ -237,7 +237,7 @@ export default function ExpensesPage() {
         kind: "expense_edited",
         title: "Você editou uma despesa",
         detail: `Categoria: ${parsed.category}`,
-        href: `${EXPENSES_PATH}#categorias`,
+        href: `${FINANCEIRO_EXPENSES_PATH}#categorias`,
         at: new Date().toISOString(),
       });
       setEditingExpenseId(null);

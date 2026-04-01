@@ -1,10 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Wallet } from "lucide-react";
 import type { ToolCardProps } from "@/components/sections/tool-card";
 import { ToolCard } from "@/components/sections/tool-card";
 import { trackFinanceiroGoToDashboardClicked, trackFinanceiroResumeLastRoute } from "@/lib/analytics";
 import { FINANCEIRO_DASHBOARD_PATH } from "./constants";
+
+/** Não recebe `icon` do Server Component (função não serializa no RSC). */
+export type FinanceiroHubToolCardProps = Omit<ToolCardProps, "icon">;
 
 type MeResponse = {
   success: true;
@@ -15,7 +19,7 @@ type MeResponse = {
   } | null;
 };
 
-export function FinanceiroHubToolCard(props: ToolCardProps) {
+export function FinanceiroHubToolCard(props: FinanceiroHubToolCardProps) {
   const [href, setHref] = useState(props.href);
   const [cta, setCta] = useState(props.cta);
   const [hasLastRoute, setHasLastRoute] = useState(false);
@@ -70,5 +74,13 @@ export function FinanceiroHubToolCard(props: ToolCardProps) {
     }
   };
 
-  return <ToolCard {...props} href={href} cta={cta} onCtaNavigate={handleNavigate} />;
+  return (
+    <ToolCard
+      {...props}
+      icon={Wallet}
+      href={href}
+      cta={cta}
+      onCtaNavigate={handleNavigate}
+    />
+  );
 }

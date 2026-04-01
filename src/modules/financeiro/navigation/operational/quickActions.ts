@@ -40,8 +40,7 @@ export function getFinanceiroQuickActions(role: "OWNER" | "MEMBER" | null | unde
   ];
 
   if (role === "MEMBER") {
-    return [
-      ...base,
+    const memberExtra: FinanceiroQuickAction[] = [
       {
         action_type: "account",
         label: "Minha conta",
@@ -54,11 +53,11 @@ export function getFinanceiroQuickActions(role: "OWNER" | "MEMBER" | null | unde
         href: `${B}/expenses#categorias`,
         description: "Campo categoria nas despesas",
       },
-    ].slice(0, 5);
+    ];
+    return [...base, ...memberExtra].slice(0, 5);
   }
 
-  return [
-    ...base,
+  const ownerExtra: FinanceiroQuickAction[] = [
     {
       action_type: "rules",
       label: "Regras automáticas",
@@ -71,5 +70,6 @@ export function getFinanceiroQuickActions(role: "OWNER" | "MEMBER" | null | unde
       href: `${B}/expenses#categorias`,
       description: "Classificar despesas",
     },
-  ].slice(0, 5);
+  ];
+  return [...base, ...ownerExtra].slice(0, 5);
 }

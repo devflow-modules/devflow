@@ -2,7 +2,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { Wallet } from "lucide-react";
 import { FinanceiroHubToolCard } from "@/modules/financeiro/navigation/FinanceiroHubToolCard";
 
 const mockedTrack = vi.hoisted(() => vi.fn());
@@ -48,7 +47,6 @@ describe("FinanceiroHubToolCard", () => {
   it("ajusta CTA com retomada e dispara resume_last_route ao navegar", async () => {
     render(
       <FinanceiroHubToolCard
-        icon={Wallet}
         title="Financeiro DevFlow"
         description="Controle pessoal e familiar."
         cta="Abrir"

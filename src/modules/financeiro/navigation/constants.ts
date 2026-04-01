@@ -3,6 +3,8 @@ export const FINANCEIRO_BASE_PATH = "/ferramentas/financeiro";
 
 export const FINANCEIRO_DASHBOARD_PATH = `${FINANCEIRO_BASE_PATH}/dashboard`;
 
+export const FINANCEIRO_EXPENSES_PATH = `${FINANCEIRO_BASE_PATH}/expenses`;
+
 /** Cookie: última rota interna persistida (lido no servidor no redirect) */
 export const FINANCEIRO_LAST_ROUTE_COOKIE = "financeiro_last_internal_path";
 
