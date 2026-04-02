@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { sanitizeFinanceiroNextPath } from "@/lib/auth/safeFinanceiroNextPath";
 import { trackSignupStartedClient } from "@/analytics/growth/trackClient";
 import { authEmailSchema, authPasswordSchema } from "@/modules/financeiro/schemas";
 import { createClient } from "@/modules/financeiro/lib/supabase/client";
@@ -35,7 +36,11 @@ export function AuthFormClient() {
   const authOrigin =
     process.env.NEXT_PUBLIC_APP_URL ??
     (typeof window !== "undefined" ? window.location.origin : "https://devflowlabs.com.br");
-  const callbackUrl = `${authOrigin}${FINANCEIRO_AUTH_PATH}/callback`;
+
+  const nextParam = searchParams.get("next");
+  const nextSafe = useMemo(() => sanitizeFinanceiroNextPath(nextParam), [nextParam]);
+  const callbackQuery = nextSafe ? `?next=${encodeURIComponent(nextSafe)}` : "";
+  const callbackUrl = `${authOrigin}${FINANCEIRO_AUTH_PATH}/callback${callbackQuery}`;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -53,7 +58,7 @@ export function AuthFormClient() {
           password: parsedPassword,
         });
         if (error) throw error;
-        window.location.href = `${FINANCEIRO_AUTH_PATH}/callback`;
+        window.location.href = `${FINANCEIRO_AUTH_PATH}/callback${callbackQuery}`;
         return;
       }
 

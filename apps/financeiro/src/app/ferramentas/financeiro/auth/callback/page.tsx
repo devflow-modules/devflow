@@ -10,6 +10,7 @@ import {
   FINANCEIRO_BASE_PATH,
   FINANCEIRO_DASHBOARD_PATH,
 } from "@devflow/financeiro-routes";
+import { sanitizeFinanceiroNextPath } from "@/lib/auth/safeFinanceiroNextPath";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function AuthCallbackPage() {
       setStatus("loading");
       await new Promise((r) => setTimeout(r, 300));
       const url = new URL(window.location.href);
+      const nextAfterLogin = sanitizeFinanceiroNextPath(url.searchParams.get("next"));
       const code = url.searchParams.get("code");
       const hash = url.hash?.slice(1);
 
@@ -81,7 +83,7 @@ export default function AuthCallbackPage() {
         if (households.length === 0) {
           router.replace(`${FINANCEIRO_BASE_PATH}/onboarding`);
         } else {
-          router.replace(FINANCEIRO_DASHBOARD_PATH);
+          router.replace(nextAfterLogin ?? FINANCEIRO_DASHBOARD_PATH);
         }
       } catch (err) {
         console.error("[auth/callback] fetch /api/me:", err);
