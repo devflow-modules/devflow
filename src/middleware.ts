@@ -8,7 +8,7 @@ import {
   getRouteGovernance,
   shouldEmitGovernanceDevWarning,
 } from "@/lib/routing-governance";
-import { getFinanceiroCutoverRedirectUrl } from "@/lib/financeiro-cutover-redirect";
+import { getFinanceiroCutoverRedirectUrl } from "@devflow/financeiro-routes";
 
 const ADMIN_METRICS_COOKIE = "admin_metrics_secret";
 
@@ -76,7 +76,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Cutover Financeiro (Bloco B): operacional no app canônico; landing + demo ficam no portal.
+  // Cutover Financeiro (Bloco B): operacional no app canônico; portal = landing + redirect /demo → app.
   const financeiroCutoverTarget = getFinanceiroCutoverRedirectUrl(request);
   if (financeiroCutoverTarget) {
     return NextResponse.redirect(financeiroCutoverTarget, 308);

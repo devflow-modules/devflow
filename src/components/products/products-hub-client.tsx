@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowRight, MessageCircle, Music2, Package, Search, Wallet } from "lucide-react";
 import {
+  trackFinanceiroDemoEntryClick,
   trackProductsPageCardClicked,
   trackProductsPageCtaClicked,
   trackProductsSelectionHelpUsed,
@@ -113,13 +114,19 @@ function ProductCard({ product }: { product: DevflowCatalogProduct }) {
               className={cn(
                 "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-primary bg-primary/5 px-4 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-primary/10"
               )}
-              onClick={() =>
+              onClick={() => {
+                if (product.demoHref === FINANCEIRO_DEMO_PATH) {
+                  trackFinanceiroDemoEntryClick({
+                    surface: `products_hub_card_${product.id}`,
+                    target_href: product.demoHref,
+                  });
+                }
                 trackProductsPageCtaClicked({
                   productId: product.id,
                   cta: "ver_exemplo",
                   targetHref: product.demoHref!,
-                })
-              }
+                });
+              }}
             >
               Ver exemplo
             </Link>
@@ -243,13 +250,17 @@ export function ProductsHubClient() {
                 className={cn(
                   "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-primary bg-primary/5 px-6 text-base font-bold text-primary transition-colors hover:bg-primary/10"
                 )}
-                onClick={() =>
+                onClick={() => {
+                  trackFinanceiroDemoEntryClick({
+                    surface: "products_hub_hero",
+                    target_href: FINANCEIRO_DEMO_PATH,
+                  });
                   trackProductsPageCtaClicked({
                     productId: "hub_hero",
                     cta: "ver_exemplo",
                     targetHref: FINANCEIRO_DEMO_PATH,
-                  })
-                }
+                  });
+                }}
               >
                 Ver exemplo
               </Link>

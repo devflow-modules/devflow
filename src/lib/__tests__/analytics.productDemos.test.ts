@@ -6,7 +6,7 @@ vi.mock("@vercel/analytics", () => ({
   track: mockedTrack,
 }));
 
-import { trackOpenDemo, trackTryProduct } from "../analytics";
+import { trackFinanceiroDemoEntryClick, trackOpenDemo, trackTryProduct } from "../analytics";
 
 describe("analytics — demos de produto", () => {
   beforeEach(() => {
@@ -32,6 +32,17 @@ describe("analytics — demos de produto", () => {
       surface: "cta",
       destination: "https://example.com",
       cta_variant: "primary",
+    });
+  });
+
+  it("trackFinanceiroDemoEntryClick envia financeiro_demo_entry_click", () => {
+    trackFinanceiroDemoEntryClick({
+      surface: "financeiro_landing_hero",
+      target_href: "/ferramentas/financeiro/demo",
+    });
+    expect(mockedTrack).toHaveBeenCalledWith("financeiro_demo_entry_click", {
+      surface: "financeiro_landing_hero",
+      target_href: "/ferramentas/financeiro/demo",
     });
   });
 

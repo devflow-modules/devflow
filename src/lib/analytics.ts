@@ -391,6 +391,20 @@ export function trackFinanceiroOnboardingCompleted(props: { surface?: string } =
   track("financeiro_onboarding_completed", { surface: props.surface ?? "dashboard" });
 }
 
+/**
+ * CTA que leva ao demo do Financeiro no portal (redirect server-side para o app).
+ * Disparar no clique, antes da navegação.
+ */
+export function trackFinanceiroDemoEntryClick(props: {
+  surface: string;
+  target_href?: string;
+}): void {
+  track("financeiro_demo_entry_click", {
+    surface: props.surface,
+    target_href: props.target_href ?? "",
+  });
+}
+
 /** Demo pública do Financeiro (sem autenticação) */
 export function trackFinanceiroDemoOpened(props: { surface?: string } = {}): void {
   track("financeiro_demo_opened", {

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Section } from "@/components/layout/Section";
 import { Calculator, PieChart } from "lucide-react";
+import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 
 const baseUrl = "https://devflowlabs.com.br";
 
@@ -10,7 +11,7 @@ const TOOLS = [
     slug: "financeiro",
     title: "Controle Financeiro",
     description: "Organize receitas e despesas mensais. Planeje o mês, simule cenários e tenha clareza sobre seu dinheiro.",
-    href: "/ferramentas/financeiro",
+    href: FINANCEIRO_BASE_PATH,
     icon: Calculator,
     external: false,
   },

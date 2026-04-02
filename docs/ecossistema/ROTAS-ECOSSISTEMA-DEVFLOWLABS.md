@@ -152,7 +152,7 @@ Cada app abaixo tem suas próprias rotas; quando deployados em outro domínio (e
 
 ### 4.2 apps/financeiro (Financeiro Casa)
 
-- **Base path:** `/ferramentas/financeiro` (`FINANCEIRO_BASE_PATH` em `apps/financeiro/src/modules/financeiro/constants/index.ts`).  
+- **Base path:** `/ferramentas/financeiro` (`FINANCEIRO_BASE_PATH` em `@devflow/financeiro-routes`; reexport em `apps/financeiro/src/modules/financeiro/constants/index.ts` e no portal em `src/modules/financeiro/navigation/constants.ts`).  
 - **Porta em dev:** 3001  
 - **Páginas:** `/`, `/ferramentas`, `/ferramentas/financeiro`, `/ferramentas/financeiro/auth`, `/ferramentas/financeiro/auth/callback`, `/ferramentas/financeiro/onboarding`, `/ferramentas/financeiro/dashboard`, `/ferramentas/financeiro/sources`, `/ferramentas/financeiro/expenses`, `/ferramentas/financeiro/rules`, `/ferramentas/financeiro/settings`, `/ferramentas/financeiro/invites/accept`, `/ferramentas/divisao-de-contas`, `/upgrade`, `/billing`, `/admin/metrics`.  
 - **APIs:** espelho do financeiro da raiz sob `/api/*` (households, expenses, incomes, rules, sources, cycles, payment-days, invites, me, dashboard, billing, budgets, categories, etc.). Ver `apps/financeiro/src/app/api/` para lista exata.

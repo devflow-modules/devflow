@@ -10,6 +10,7 @@ import {
   labelCapsSm,
   mutedTextLight,
 } from "@/modules/financeiro/lib/primitives";
+import { FINANCEIRO_AUTH_PATH } from "@devflow/financeiro-routes";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", {
@@ -181,7 +182,7 @@ export function SimuladorRapidoFinanceiro() {
               Crie sua casa financeira para acompanhar automaticamente
             </p>
             <Link
-              href="/ferramentas/financeiro/auth"
+              href={FINANCEIRO_AUTH_PATH}
               className="mt-3 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
             >
               Criar conta grátis

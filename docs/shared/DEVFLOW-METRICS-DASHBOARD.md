@@ -9,7 +9,7 @@ Este documento descreve o **dashboard interno de métricas** do produto e do fun
 O dashboard exibe as métricas registradas em memória pelas camadas de **Product Analytics** (módulo financeiro) e **Growth Analytics** (funil DevFlow). É de uso **interno (admin/dev)** e não altera o comportamento do produto.
 
 - **URL:** `/admin/metrics`
-- **Fonte dos dados:** `financeMetrics.getCounters()` e `growthMetrics.getCounters()` (contadores em memória por processo).
+- **Fonte dos dados:** `getCounters()` em **`src/lib/metrics/financeMetrics.ts`** (portal — admin) e `growthMetrics.getCounters()` (contadores em memória por processo). O app `apps/financeiro` mantém o seu próprio adapter de métricas para eventos de produto naquele deploy.
 - **Atualização:** botão "Atualizar" e refresh automático a cada 15 segundos.
 
 ---

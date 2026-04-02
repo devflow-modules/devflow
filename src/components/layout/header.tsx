@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
 import {
+  trackFinanceiroDemoEntryClick,
   trackHeaderCtaClicked,
   trackHeaderDemoClicked,
   trackHeaderNavClicked,
@@ -58,6 +59,10 @@ const navUnderline = (active: boolean) =>
   active ? "relative after:absolute after:bottom-[-6px] after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-primary" : "";
 
 function onDemoLinkClick(surface: "header_desktop_cta" | "header_mobile") {
+  trackFinanceiroDemoEntryClick({
+    surface,
+    target_href: FINANCEIRO_DEMO_PATH,
+  });
   trackHeaderDemoClicked({ surface });
   trackHeaderNavClicked({
     item: "ver_exemplo",

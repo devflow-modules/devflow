@@ -6,7 +6,7 @@ import {
   FINANCEIRO_STAY_PUBLIC_PARAM,
 } from "@/modules/financeiro/navigation/constants";
 import { resolveFinanceiroResumeFromCookies } from "@/modules/financeiro/navigation/resumeFromCookies";
-import { resolveFinanceiroResumeRedirectUrl } from "@/lib/financeiro-cutover-redirect";
+import { resolveFinanceiroResumeRedirectUrl } from "@devflow/financeiro-routes";
 
 type CookieOption = { name: string; value: string; options?: Record<string, unknown> };
 

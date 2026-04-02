@@ -1,3 +1,5 @@
+import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
+
 const FUNKLAB_DEMO_URL =
   process.env.NEXT_PUBLIC_FUNKLAB_DEMO_URL || "https://funklab-studio.vercel.app";
 
@@ -19,7 +21,7 @@ export const projects = [
     description:
       "Organize despesas, simule cenários e acompanhe o fluxo mensal. Ferramenta para quem quer clareza.",
     badges: ["SaaS", "Ferramentas financeiras"],
-    url: "/ferramentas/financeiro",
+    url: FINANCEIRO_BASE_PATH,
     theme: "finance" as const,
   },
 ] as const;

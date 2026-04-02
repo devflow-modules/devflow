@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import {
+  DEMO_ACCOUNT_NAMES,
   DEMO_CATEGORY_MARKER,
   DEMO_GOAL_OBSERVATIONS_TAG,
   DEMO_INCOME_NOTES_TAG,
@@ -43,7 +44,7 @@ export async function resetFinanceiroDemoData(prisma: PrismaClient, householdId:
   logFinanceiroDemo("reset_start", { householdId });
 
   const demoAccs = await prisma.account.findMany({
-    where: { householdId, name: { in: [...ALL_DEMO_ACCOUNT_NAMES] } },
+    where: { householdId, name: { in: [...DEMO_ACCOUNT_NAMES] } },
     select: { id: true },
   });
   const accountIds = demoAccs.map((a) => a.id);

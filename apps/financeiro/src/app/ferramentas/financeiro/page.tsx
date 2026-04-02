@@ -5,6 +5,7 @@ import { Section } from "@/components/layout/Section";
 import { SimuladorRapidoFinanceiro } from "@/modules/financeiro/components/SimuladorRapidoFinanceiro";
 import { LeadCaptureForm } from "@/modules/financeiro/components/LeadCaptureForm";
 import { FinanceiroTools } from "@/modules/financeiro/components/FinanceiroTools";
+import { FINANCEIRO_AUTH_PATH, FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 
 const baseUrl = "https://devflowlabs.com.br";
 
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   description:
     "Score claro, insights objetivos e checklist mensal: entenda seu financeiro em menos de 1 minuto e saiba o que fazer — sem planilhas complexas.",
   alternates: {
-    canonical: `${baseUrl}/ferramentas/financeiro`,
+    canonical: `${baseUrl}${FINANCEIRO_BASE_PATH}`,
   },
   keywords: [
     "controle financeiro pessoal",
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
     title: "Controle Financeiro Pessoal Online | DevFlow Labs",
     description:
       "Em menos de 1 minuto você entende seu mês: score, insights e checklist — sem planilhas, sem complexidade.",
-    url: `${baseUrl}/ferramentas/financeiro`,
+    url: `${baseUrl}${FINANCEIRO_BASE_PATH}`,
     type: "website",
   },
 };
@@ -63,7 +64,7 @@ const softwareSchema = {
   operatingSystem: "Web",
   description:
     "Score, insights e checklist: organize receitas e despesas com direção clara, sem planilhas que quebram.",
-  url: `${baseUrl}/ferramentas/financeiro`,
+  url: `${baseUrl}${FINANCEIRO_BASE_PATH}`,
   offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" },
 };
 
@@ -93,7 +94,7 @@ export default function FinanceiroPage() {
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
             <Link
-              href="/ferramentas/financeiro/auth"
+              href={FINANCEIRO_AUTH_PATH}
               className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
             >
               Entrar ou criar conta

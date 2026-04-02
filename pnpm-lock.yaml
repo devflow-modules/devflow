@@ -17,6 +17,9 @@ importers:
       '@devflow/billing-core':
         specifier: workspace:*
         version: link:packages/billing-core
+      '@devflow/financeiro-routes':
+        specifier: workspace:*
+        version: link:packages/financeiro-routes
       '@devflow/ui':
         specifier: workspace:*
         version: link:packages/ui
@@ -144,6 +147,9 @@ importers:
       '@devflow/billing-core':
         specifier: workspace:*
         version: link:../../packages/billing-core
+      '@devflow/financeiro-routes':
+        specifier: workspace:*
+        version: link:../../packages/financeiro-routes
       '@devflow/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -629,6 +635,8 @@ importers:
         version: 4.1.0(@opentelemetry/api@1.9.0)(@types/node@20.19.37)(jsdom@29.0.0(@noble/hashes@1.8.0))(msw@2.12.10(@types/node@20.19.37)(typescript@5.9.3))(vite@7.3.1(@types/node@20.19.37)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
 
   packages/config: {}
+
+  packages/financeiro-routes: {}
 
   packages/supabase-utils:
     dependencies:

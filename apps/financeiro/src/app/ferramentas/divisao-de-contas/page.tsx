@@ -3,6 +3,7 @@ import Link from "next/link";
 import { GrowthTrackVisitor } from "@/components/analytics/GrowthTrackVisitor";
 import { Section } from "@/components/layout/Section";
 import { DividirContasTool } from "@/modules/financeiro/components/DividirContasTool";
+import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 
 const baseUrl = "https://devflowlabs.com.br";
 
@@ -86,7 +87,7 @@ export default function DivisaoDeContasPage() {
         </h2>
         <p className="mt-2 text-muted-foreground">
           <Link
-            href="/ferramentas/financeiro"
+            href={FINANCEIRO_BASE_PATH}
             className="font-medium text-primary hover:underline"
           >
             Controle financeiro

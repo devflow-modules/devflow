@@ -11,8 +11,7 @@ import {
   cardStaticLight,
   focusRingLight,
 } from "@/modules/financeiro/lib/primitives";
-
-const AUTH_BASE = "/ferramentas/financeiro/auth";
+import { FINANCEIRO_AUTH_PATH, FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 
 export function AuthFormClient() {
   const searchParams = useSearchParams();
@@ -36,7 +35,7 @@ export function AuthFormClient() {
   const authOrigin =
     process.env.NEXT_PUBLIC_APP_URL ??
     (typeof window !== "undefined" ? window.location.origin : "https://devflowlabs.com.br");
-  const callbackUrl = `${authOrigin}${AUTH_BASE}/callback`;
+  const callbackUrl = `${authOrigin}${FINANCEIRO_AUTH_PATH}/callback`;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -54,7 +53,7 @@ export function AuthFormClient() {
           password: parsedPassword,
         });
         if (error) throw error;
-        window.location.href = `${AUTH_BASE}/callback`;
+        window.location.href = `${FINANCEIRO_AUTH_PATH}/callback`;
         return;
       }
 
@@ -200,7 +199,7 @@ export function AuthFormClient() {
           {mode === "password" ? (
             <p className="text-sm text-muted-foreground">
               <Link
-                href={`${AUTH_BASE}/reset`}
+                href={`${FINANCEIRO_AUTH_PATH}/reset`}
                 className="text-primary hover:underline"
               >
                 Esqueci minha senha
@@ -220,7 +219,7 @@ export function AuthFormClient() {
         </div>
       </div>
       <footer className="border-t border-border px-4 py-4 text-center text-xs text-muted-foreground">
-        <Link href="/ferramentas/financeiro" className="text-primary hover:underline">
+        <Link href={FINANCEIRO_BASE_PATH} className="text-primary hover:underline">
           Voltar ao controle financeiro
         </Link>
       </footer>

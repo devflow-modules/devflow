@@ -1,6 +1,6 @@
 "use server";
 
-import { getCounters as getFinanceCounters } from "@/modules/financeiro/adapters/metrics/financeMetrics";
+import { getCounters as getFinanceCounters } from "@/lib/metrics/financeMetrics";
 import { getCounters as getGrowthCounters } from "@/analytics/growth/growthMetrics";
 import { getRevenueMetrics } from "@/modules/revenue";
 import type { RevenueMetrics } from "@/modules/revenue";

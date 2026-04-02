@@ -25,7 +25,7 @@
 
 **Canon alvo (alinhado à matriz):**
 
-- **Portal (raiz):** landing pública, demo pública, SEO, CTAs — **sem** operação autenticada após cutover.  
+- **Portal (raiz):** landing pública, SEO, CTAs; URL `/ferramentas/financeiro/demo` **redireciona** para o app — **sem** operação autenticada após cutover.  
 - **`apps/financeiro`:** todo fluxo **auth → onboarding → dashboard → contas → …** como fonte da verdade.
 
 ---
@@ -35,7 +35,7 @@
 | Rota / prefixo | Papel |
 |----------------|--------|
 | `/ferramentas/financeiro` | Landing pública (só marketing + CTA) |
-| `/ferramentas/financeiro/demo` | Demo pública |
+| `/ferramentas/financeiro/demo` | Redirect de aquisição → demo canónica no app |
 | `/ferramentas` (hub) | Hub de ferramentas do portal |
 | `/produtos` e narrativa Financeiro | Continua no portal se for só posicionamento |
 

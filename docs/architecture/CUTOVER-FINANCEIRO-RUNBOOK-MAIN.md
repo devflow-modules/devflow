@@ -18,7 +18,7 @@ Fazer **antes** do Bloco A (uma pessoa registra, o time valida).
 | 0.2 | **Snapshot de rotas:** exportar lista (ex.: a partir de `INVENTARIO-ROTAS-MONOREPO.md` + `git ls-files '**/page.tsx' '**/route.ts'` focado em Financeiro) e guardar em gist/wiki/commit de doc | ☐ |
 | 0.3 | **Snapshot de envs:** listar variáveis relevantes no provedor (Vercel/etc.) para portal e `apps/financeiro` — sem colar segredos no repo; referência a nomes e ambientes | ☐ |
 | 0.4 | **URLs canônicas atuais:** documentar produção/staging hoje (portal + app Financeiro se já separado) | ☐ |
-| 0.5 | **Deploy OK:** smoke mínimo em produção (ou staging canônico) — landing Financeiro, demo, login, dashboard básico | ☐ |
+| 0.5 | **Deploy OK:** smoke mínimo em produção (ou staging canônico) — landing Financeiro, redirect `/ferramentas/financeiro/demo` → app, login, dashboard básico | ☐ |
 
 **Regra:** sem 0.1–0.5 fechados, não iniciar Bloco A.
 
@@ -57,7 +57,7 @@ Opcional após cada gate verde: `git tag cutover-pos-bloco-a` (fim validado do b
 | Bloco | Conteúdo | Merge na `main` |
 |-------|----------|-----------------|
 | **A** | Canon e config (`NEXT_PUBLIC_FINANCEIRO_APP_URL`, billing por produto, docs, envs) | Um ou mais commits/PRs pequenos |
-| **B** | Redirects + depreciação (rotas operacionais antigas na raiz); manter landing, demo, hub | **Maior risco operacional** — loops, query, destino errado |
+| **B** | Redirects + depreciação (rotas operacionais antigas na raiz); manter **landing** + **hub**; `/ferramentas/financeiro/demo` como **redirect** para o app | **Maior risco operacional** — loops, query, destino errado |
 | **C** | Migração operacional (auth, dashboard, settings, invites, demais áreas autenticadas) | Core do sistema |
 | **D** | Limpeza (duplicatas, matriz, links internos, sitemap/canonical se preciso) | |
 
@@ -75,7 +75,7 @@ Marcar o que for aplicável ao bloco (ex.: redirects só após B).
 
 - [ ] `/ferramentas`
 - [ ] `/ferramentas/financeiro`
-- [ ] `/ferramentas/financeiro/demo`
+- [ ] `/ferramentas/financeiro/demo` (portal → redirect para app canônico)
 - [ ] Páginas SEO ligadas ao Financeiro (amostra: home → produtos → financeiro)
 
 ### Rotas autenticadas (quando existirem no ambiente testado)
@@ -142,8 +142,8 @@ Saída: linhas **`CHECKS=`** / **`FAILURES=`**; com **`OUTPUT_JSON=true`**, tamb
 **Produção — checklist antes de o smoke ficar verde:**
 
 1. **Portal (Vercel/host):** `NEXT_PUBLIC_FINANCEIRO_APP_URL` = URL pública do `apps/financeiro` (ex. `https://financeiro.devflowlabs.com.br`). Sem isso, `/ferramentas/financeiro/dashboard` continua a mandar para **auth na raiz** e o smoke “Portal → app (308)” falha.
-2. **Demo no portal:** `/ferramentas/financeiro/demo` tem de responder **200** após deploy; enquanto for **404**, defina variável de repo **`ROUTE_VALIDATE_SKIP_FINANCEIRO_DEMO=true`** ou `SKIP_FINANCEIRO_DEMO_CHECK=true` localmente (documentado no cabeçalho de `scripts/ops/validate-routes.sh`).
-3. **Stripe webhook:** manter **`POST /api/billing/webhook` na raiz do portal** até criar endpoint equivalente no app e **alterar a URL no [Stripe Dashboard](https://dashboard.stripe.com/webhooks)**; até lá não remover a rota na raiz.
+2. **Demo (aquisição no portal):** `/ferramentas/financeiro/demo` deve **redirecionar** (1º hop) para o path do demo no host do app (`FINANCEIRO_APP_URL` + `/ferramentas/financeiro/...`). O script em modo **hosts separados** valida esse redirect, não um **200** na raiz. Se o check não se aplica (env incompleto), use `SKIP_FINANCEIRO_DEMO_CHECK=true` (ver cabeçalho de `scripts/ops/validate-routes.sh`).
+3. **Stripe webhook (checkpoint):** decisão atual em **§2.2**.
 
 **Comando local (URLs reais):**
 
@@ -155,7 +155,7 @@ PERF_MAX_FINANCEIRO_LANDING=3 \
 bash scripts/ops/validate-routes.sh
 ```
 
-(Se a demo ainda 404: acrescentar `SKIP_FINANCEIRO_DEMO_CHECK=true`.)
+(Em dev **mesmo host** que produção, o script ainda pode exigir cadeia `-L` até **200**; ajuste `STRICT_MAX_PUBLIC_REDIRECTS` conforme o cabeçalho do script.)
 
 ---
 
@@ -182,6 +182,18 @@ bash scripts/ops/validate-routes.sh
 
 ---
 
+## 2.2 Stripe — webhook (checkpoint)
+
+**Estado no repositório:** existem implementações espelhadas em **`src/app/api/billing/webhook`** (portal) e **`apps/financeiro/src/app/api/billing/webhook`** (app).
+
+**Decisão (transitória):** manter **`POST /api/billing/webhook` na raiz do portal** como endpoint **ativo no [Stripe Dashboard](https://dashboard.stripe.com/webhooks)** até haver janela para apontar o webhook **só** para o host do `apps/financeiro` e validar assinatura + persistência em produção.
+
+**Quando migrar:** atualizar a URL do endpoint no Stripe, fazer smoke de `customer.subscription.*` / `checkout.session.completed`, e só então desativar ou remover a rota duplicada que deixar de ser usada.
+
+**Não** duplicar processamento ativo em dois URLs sem coordenação (risco de eventos duplicados).
+
+---
+
 ## 3. Smoke test final (obrigatório após Bloco D)
 
 Fluxo ponta a ponta, em produção ou staging idêntico:
@@ -192,7 +204,7 @@ Fluxo ponta a ponta, em produção ou staging idêntico:
 4. Percorre **settings** e um fluxo interno representativo.  
 5. **Billing** abre no contexto do **produto Financeiro** (não portal genérico / não WhatsApp).  
 6. **Rotas antigas** na raiz **redirecionam** como planejado.  
-7. **Portal:** hub, produtos, demo pública — nada essencial quebrado.
+7. **Portal:** hub, produtos, CTAs de demo (redirect) — nada essencial quebrado; **sem** painel operacional do Financeiro na raiz.
 
 Registrar no **log de execução** (§5): data, executor, ambiente, resultado.
 

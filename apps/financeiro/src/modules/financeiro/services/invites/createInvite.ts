@@ -3,6 +3,7 @@ import { AUDIT_ACTIONS, AUDIT_ENTITY, createAuditLog } from "@/lib/audit";
 import { buildInviteEmailHtml, sendEmail } from "@/lib/email";
 import { trackFeatureUsage } from "@/modules/financeiro/adapters/productAnalytics";
 import { emit } from "@/modules/financeiro/events";
+import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 
 export type CreateInviteInput = {
   email: string;
@@ -59,7 +60,7 @@ export async function createInvite(
     select: { id: true, token: true, expiresAt: true },
   });
   if (pending) {
-    const acceptUrl = `${context.origin}/ferramentas/financeiro/invites/accept?token=${encodeURIComponent(pending.token)}`;
+    const acceptUrl = `${context.origin}${FINANCEIRO_BASE_PATH}/invites/accept?token=${encodeURIComponent(pending.token)}`;
     return {
       ok: false,
       code: "INVITE_ALREADY_PENDING",
@@ -82,7 +83,7 @@ export async function createInvite(
     },
   });
 
-  const acceptUrl = `${context.origin}/ferramentas/financeiro/invites/accept?token=${encodeURIComponent(invite.token)}`;
+  const acceptUrl = `${context.origin}${FINANCEIRO_BASE_PATH}/invites/accept?token=${encodeURIComponent(invite.token)}`;
   const household = await prisma.household.findUnique({ where: { id: context.householdId } });
   const emailResult = await sendEmail({
     to: invite.email,

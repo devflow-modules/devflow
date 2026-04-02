@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/modules/financeiro/lib/cn";
 import { focusRingLight } from "@/modules/financeiro/lib/primitives";
+import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 
-const BASE = "/ferramentas/financeiro";
+const BASE = FINANCEIRO_BASE_PATH;
 
 type Crumb = { href: string; label: string };
 

@@ -20,6 +20,7 @@
     "validate:supabase-user": "dotenv -e ../../.env.local -e .env -- tsx scripts/validate-user-supabase.ts"
   },
   "dependencies": {
+    "@devflow/financeiro-routes": "workspace:*",
     "@devflow/analytics-core": "workspace:*",
     "@devflow/billing-core": "workspace:*",
     "@devflow/ui": "workspace:*",

@@ -23,6 +23,7 @@
     "create-product": "node scripts/create-product.mjs"
   },
   "dependencies": {
+    "@devflow/financeiro-routes": "workspace:*",
     "@devflow/ai-core": "workspace:*",
     "@devflow/analytics-core": "workspace:*",
     "@devflow/billing-core": "workspace:*",

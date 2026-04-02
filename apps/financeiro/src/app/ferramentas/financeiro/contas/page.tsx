@@ -9,6 +9,7 @@ import { Skeleton } from "@/modules/financeiro/components/Skeleton";
 import { CONTEXT_LABELS } from "@/modules/financeiro/schemas";
 import { accountCreateSchema } from "@/modules/financeiro/schemas";
 import type { FinancialContext } from "@/modules/financeiro/schemas";
+import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 
 type Account = {
   id: string;
@@ -175,7 +176,7 @@ export default function ContasPage() {
           {accounts.map((acc) => (
             <li key={acc.id}>
               <Link
-                href={`/ferramentas/financeiro/contas/${acc.id}`}
+                href={`${FINANCEIRO_BASE_PATH}/contas/${acc.id}`}
                 className="block rounded-2xl border-2 border-slate-200 bg-white p-5 shadow-sm transition hover:border-primary/30 hover:shadow-md"
               >
                 <div className="flex items-start justify-between">

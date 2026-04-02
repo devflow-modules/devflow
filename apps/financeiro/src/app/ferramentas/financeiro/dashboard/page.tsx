@@ -11,6 +11,7 @@ import { toDateOnly } from "@/lib/dates";
 import { Breadcrumbs } from "@/modules/financeiro/components/Breadcrumbs";
 import { ContextSelector } from "@/modules/financeiro/components/ContextSelector";
 import type { ContextFilter } from "@/modules/financeiro/components/ContextSelector";
+import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 
 type SourceRecord = { sourceType?: "PJ" | "PF" };
 type FinancialRecord = {
@@ -1053,7 +1054,7 @@ export default function DashboardPage() {
         {/* Acesso rápido */}
         <section className="grid gap-3 sm:grid-cols-3">
           <Link
-            href="/ferramentas/financeiro/proximas-contas"
+            href={`${FINANCEIRO_BASE_PATH}/proximas-contas`}
             className="flex items-center gap-3 rounded-xl border border-amber-100 bg-amber-50 p-4 hover:bg-amber-100 transition-colors"
           >
             <span className="text-2xl">⏰</span>
@@ -1063,7 +1064,7 @@ export default function DashboardPage() {
             </div>
           </Link>
           <Link
-            href="/ferramentas/financeiro/historico"
+            href={`${FINANCEIRO_BASE_PATH}/historico`}
             className="flex items-center gap-3 rounded-xl border border-indigo-100 bg-indigo-50 p-4 hover:bg-indigo-100 transition-colors"
           >
             <span className="text-2xl">📊</span>
@@ -1073,7 +1074,7 @@ export default function DashboardPage() {
             </div>
           </Link>
           <Link
-            href="/ferramentas/financeiro/importar"
+            href={`${FINANCEIRO_BASE_PATH}/importar`}
             className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50 p-4 hover:bg-emerald-100 transition-colors"
           >
             <span className="text-2xl">📥</span>

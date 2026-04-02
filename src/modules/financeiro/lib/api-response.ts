@@ -4,7 +4,7 @@ import {
   buildErrorPayload,
   type ApiSuccessPayload,
   type ApiErrorPayload,
-} from "./utils";
+} from "./utils/response";
 
 export type { ApiSuccessPayload, ApiErrorPayload };
 

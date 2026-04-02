@@ -12,6 +12,7 @@ import {
   h1,
   mutedTextLight,
 } from "@/modules/financeiro/lib/primitives";
+import { FINANCEIRO_DASHBOARD_PATH } from "@devflow/financeiro-routes";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -63,7 +64,7 @@ export default function OnboardingPage() {
         throw new Error(payload.error?.message ?? "Erro ao criar casa");
       }
 
-      router.replace("/ferramentas/financeiro/dashboard");
+      router.replace(FINANCEIRO_DASHBOARD_PATH);
       router.refresh();
     } catch (err) {
       setError((err as Error).message);

@@ -5,8 +5,7 @@ import { useMemo } from "react";
 import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvider";
 import { cn } from "@/modules/financeiro/lib/cn";
 import { focusRingLight, labelCaps } from "@/modules/financeiro/lib/primitives";
-
-const BASE = "/ferramentas/financeiro";
+import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 
 type NavItem = {
   href: string;
@@ -23,23 +22,23 @@ type SidebarProps = {
 };
 
 const FULL_ITEMS: NavItem[] = [
-  { href: `${BASE}/dashboard`, label: "Dashboard", short: "D" },
-  { href: `${BASE}/contas`, label: "Contas", short: "Ct" },
-  { href: `${BASE}/expenses`, label: "Lançamentos", short: "L" },
-  { href: `${BASE}/proximas-contas`, label: "Próximas Contas", short: "P" },
-  { href: `${BASE}/historico`, label: "Histórico", short: "H" },
-  { href: `${BASE}/sources`, label: "Fontes", short: "F" },
-  { href: `${BASE}/rules`, label: "Regras", short: "R" },
-  { href: `${BASE}/importar`, label: "Importar CSV", short: "I" },
-  { href: `${BASE}/settings`, label: "Configurações", short: "C" },
+  { href: `${FINANCEIRO_BASE_PATH}/dashboard`, label: "Dashboard", short: "D" },
+  { href: `${FINANCEIRO_BASE_PATH}/contas`, label: "Contas", short: "Ct" },
+  { href: `${FINANCEIRO_BASE_PATH}/expenses`, label: "Lançamentos", short: "L" },
+  { href: `${FINANCEIRO_BASE_PATH}/proximas-contas`, label: "Próximas Contas", short: "P" },
+  { href: `${FINANCEIRO_BASE_PATH}/historico`, label: "Histórico", short: "H" },
+  { href: `${FINANCEIRO_BASE_PATH}/sources`, label: "Fontes", short: "F" },
+  { href: `${FINANCEIRO_BASE_PATH}/rules`, label: "Regras", short: "R" },
+  { href: `${FINANCEIRO_BASE_PATH}/importar`, label: "Importar CSV", short: "I" },
+  { href: `${FINANCEIRO_BASE_PATH}/settings`, label: "Configurações", short: "C" },
 ];
 
 const MEMBER_ITEMS: NavItem[] = [
-  { href: `${BASE}/dashboard`, label: "Resumo", short: "R" },
-  { href: `${BASE}/contas`, label: "Contas", short: "Ct" },
-  { href: `${BASE}/expenses`, label: "Lançamentos", short: "L" },
-  { href: `${BASE}/proximas-contas`, label: "Próximas Contas", short: "P" },
-  { href: `${BASE}/settings`, label: "Conta", short: "C" },
+  { href: `${FINANCEIRO_BASE_PATH}/dashboard`, label: "Resumo", short: "R" },
+  { href: `${FINANCEIRO_BASE_PATH}/contas`, label: "Contas", short: "Ct" },
+  { href: `${FINANCEIRO_BASE_PATH}/expenses`, label: "Lançamentos", short: "L" },
+  { href: `${FINANCEIRO_BASE_PATH}/proximas-contas`, label: "Próximas Contas", short: "P" },
+  { href: `${FINANCEIRO_BASE_PATH}/settings`, label: "Conta", short: "C" },
 ];
 
 export function Sidebar({
@@ -54,9 +53,9 @@ export function Sidebar({
 
   const items = useMemo(() => {
     const list = isMember ? [...MEMBER_ITEMS] : [...FULL_ITEMS];
-    const shouldShowOnboarding = !household || pathname === `${BASE}/onboarding`;
+    const shouldShowOnboarding = !household || pathname === `${FINANCEIRO_BASE_PATH}/onboarding`;
     if (shouldShowOnboarding) {
-      list.push({ href: `${BASE}/onboarding`, label: "Onboarding", short: "O" });
+      list.push({ href: `${FINANCEIRO_BASE_PATH}/onboarding`, label: "Onboarding", short: "O" });
     }
     return list;
   }, [household, pathname, isMember]);

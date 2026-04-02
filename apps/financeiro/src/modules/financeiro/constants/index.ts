@@ -1,5 +1,10 @@
-/**
- * Constantes do domínio financeiro.
- * Exporte valores fixos usados em regras de negócio ou UI.
- */
-export const FINANCEIRO_BASE_PATH = "/ferramentas/financeiro" as const;
+export {
+  FINANCEIRO_AUTH_PATH,
+  FINANCEIRO_BASE_PATH,
+  FINANCEIRO_DASHBOARD_PATH,
+  FINANCEIRO_DEMO_PATH,
+  FINANCEIRO_EXPENSES_PATH,
+  FINANCEIRO_LAST_ROUTE_COOKIE,
+  FINANCEIRO_NAV_EVENT_COOKIE,
+  FINANCEIRO_STAY_PUBLIC_PARAM,
+} from "@devflow/financeiro-routes";

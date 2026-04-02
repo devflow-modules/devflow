@@ -36,16 +36,21 @@ export function getRouteGovernance(pathname: string): RouteGovernanceEntry | nul
 
   if (path.startsWith("/_next") || path.startsWith("/favicon")) return null;
 
-  // Financeiro: demo e landing pública = portal Fase 1
+  // Financeiro: portal = aquisição (landing + redirect /demo → app); operação só no app
   if (path === "/ferramentas/financeiro" || path.startsWith("/ferramentas/financeiro/demo")) {
-    return { owner: "portal", phase: 1 };
+    return {
+      owner: "portal",
+      phase: 1,
+      migrationNote:
+        "/demo no portal é redirect server-side para apps/financeiro — sem UI operacional na raiz",
+    };
   }
   if (path.startsWith("/ferramentas/financeiro")) {
     return {
       owner: "financeiro-app",
       phase: 3,
       migrationNote:
-        "Portal não serve operação Financeiro — só landing/demo; app em apps/financeiro (Bloco C)",
+        "Portal não serve operação Financeiro — só aquisição; app em apps/financeiro (Bloco C)",
     };
   }
 

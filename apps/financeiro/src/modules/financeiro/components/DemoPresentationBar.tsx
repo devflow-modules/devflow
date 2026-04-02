@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { cn } from "@/modules/financeiro/lib/cn";
+import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 
-const BASE = "/ferramentas/financeiro";
+const BASE = FINANCEIRO_BASE_PATH;
 
 const STEPS: { href: string; label: string; hint: string }[] = [
   { href: `${BASE}/onboarding`, label: "1. Casa", hint: "criar o espaço" },

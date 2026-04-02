@@ -19,7 +19,7 @@ set -Eeuo pipefail
 #   TRACE_REDIRECTS=true              imprime hop-a-hop (debug pesado)
 #   MAX_TRACE_HOPS=15                 teto de hops no trace manual
 #   FINANCEIRO_SEPARATE_HOST=true|false  força fluxo portal→app (308) + auth no host do app; se vazio, deduz quando BASE_URL ≠ FINANCEIRO_APP_URL
-#   SKIP_FINANCEIRO_DEMO_CHECK=true   não exige 200 em /ferramentas/financeiro/demo (ex.: produção ainda sem deploy da demo no portal)
+#   SKIP_FINANCEIRO_DEMO_CHECK=true   pula o check de /ferramentas/financeiro/demo (ex.: env sem URL do app)
 #
 # Modos: normal | STRICT_MODE=true | TRACE_REDIRECTS=true (ver runbook)
 #
@@ -355,7 +355,7 @@ assert_redirect_prefix() {
     local code
     code="$(first_hop_http_code "$from_url")"
     if [[ "$code" == "200" ]]; then
-      err "$label -> STRICT_MODE: expected redirect (3xx) to auth, got 200 [$from_url]"
+      err "$label -> STRICT_MODE: expected redirect (3xx), got 200 [$from_url]"
       failures=$((failures + 1))
       [[ "$FAIL_FAST" == "true" ]] && exit 1
       return
@@ -450,9 +450,19 @@ assert_final_code "Financeiro landing" \
 if [[ "$SKIP_FINANCEIRO_DEMO_CHECK" == "true" ]]; then
   warn "Skipping Financeiro demo check (SKIP_FINANCEIRO_DEMO_CHECK=true)"
 else
-  assert_final_code "Financeiro demo" \
-    "$(normalize_url "$BASE_URL" "/ferramentas/financeiro/demo")" \
-    "200"
+  demo_portal_url="$(normalize_url "$BASE_URL" "/ferramentas/financeiro/demo")"
+  if financeiro_validate_separate_host; then
+    # Portal só redireciona para o app; não exige 200 no primeiro hop (STRICT_MODE valida 3xx).
+    demo_app_prefix="$(normalize_url "$FINANCEIRO_APP_URL" "/ferramentas/financeiro")"
+    assert_redirect_prefix "Financeiro demo (portal → app canônico)" \
+      "$demo_portal_url" \
+      "$demo_app_prefix"
+  else
+    # Mesmo host (ex.: dev): pode haver redirect interno até 200 na landing.
+    assert_final_code "Financeiro demo" \
+      "$demo_portal_url" \
+      "200"
+  fi
 fi
 
 if [[ "$PERF_CHECK" == "true" ]]; then

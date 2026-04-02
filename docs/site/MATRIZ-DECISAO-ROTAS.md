@@ -6,7 +6,7 @@ Contexto de camadas (marketing / produto / operação): `ROTAS-POR-APLICACAO.md`
 **Policy + fases de execução:** `docs/architecture/ROUTING_POLICY.md`, `docs/architecture/ROUTING_MIGRATION_EXECUCAO.md`.  
 **Cutover Financeiro (épico):** `docs/architecture/EPICO-FINANCEIRO-CUTOVER.md`.
 
-**Estado pós Bloco C/D (portal):** só aquisição em `/ferramentas/financeiro` + `/ferramentas/financeiro/demo`; operação, auth, billing e upgrade na raiz redirecionam (308) ou server `redirect` para `NEXT_PUBLIC_FINANCEIRO_APP_URL` quando definido. Checkout Stripe chama a API no host do app.
+**Estado pós Bloco C/D (portal):** só aquisição em `/ferramentas/financeiro`; `/ferramentas/financeiro/demo` na raiz é **redirect** para o app (sem painel na raiz). Operação, auth, billing e upgrade na raiz redirecionam (308) ou server `redirect` para `NEXT_PUBLIC_FINANCEIRO_APP_URL` quando definido. Checkout Stripe chama a API no host do app.
 
 ---
 
@@ -64,7 +64,7 @@ Decisão **pragmática** alinhada ao diagnóstico de sobreposição raiz ↔ app
 | `/ferramentas` (hub) | Raiz | Raiz (+ `apps/financeiro`, `apps/site`) | duplicada | **manter** (raiz); **redirecionar** ou **remover** hub duplicado nos apps |
 | `/ferramentas/divisao-de-contas`, `/ferramentas/consulta-cnpj` | Raiz | Raiz (+ `apps/financeiro` divisão) | duplicada | **manter** (raiz) para tools públicas; **migrar** cópia do app financeiro para consumir mesma origem ou **remover** duplicata |
 | `/ferramentas/financeiro` (landing pública) | Raiz | Raiz + `apps/financeiro` | duplicada | **manter** (raiz) como **só marketing**; **redirecionar** “entrar no app” para host do `apps/financeiro` quando separado |
-| `/ferramentas/financeiro/demo` | Raiz | Só raiz | só raiz | **manter** (demo pública do portal) |
+| `/ferramentas/financeiro/demo` | Raiz (URL estável) → app | Só raiz (redirect) | ok | **manter** URL de aquisição; **redirect** para demo canónica no `apps/financeiro` |
 | `/ferramentas/financeiro/auth`, `auth/callback` | `apps/financeiro` | Só `apps/financeiro` | ok | **Bloco C:** raiz sem páginas; **308** para `NEXT_PUBLIC_FINANCEIRO_APP_URL` (middleware) |
 | `/ferramentas/financeiro/onboarding` … `settings`, `dashboard`, `expenses`, `sources`, `rules` | `apps/financeiro` | Só `apps/financeiro` | ok | **Bloco C:** raiz sem páginas; redirect canónico no middleware |
 | `/ferramentas/financeiro/*` (contas, importar, histórico, proximas-contas) | `apps/financeiro` | Só `apps/financeiro` | ok | **manter** (app); raiz **308** para o mesmo path no host do app |

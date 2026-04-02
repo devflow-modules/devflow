@@ -38,7 +38,7 @@ Se **não** der para responder → **PR não deve ser mergeado** até atualizar 
 | Camada | Onde deve morar | Exemplos |
 |--------|-----------------|----------|
 | **Marketing / aquisição / SEO** | Portal (`src/app` raiz) | `/`, `/produtos`, `/precos`, `/blog`, landings, `/demo`, legal |
-| **Landing pública de produto** | Portal (narrativa + CTA) | `/produtos/*`, `/ferramentas/financeiro` (só capa), `/ferramentas/financeiro/demo` |
+| **Landing pública de produto** | Portal (narrativa + CTA + **redirect** quando o “próximo passo” é o app) | `/produtos/*`, `/ferramentas/financeiro` (capa); `/ferramentas/financeiro/demo` = **redirect** para o app canônico (sem painel na raiz) |
 | **App autenticado do produto** | `apps/*` correspondente | Dashboard, settings, billing do produto, inbox WhatsApp |
 | **APIs de dados do produto** | Mesmo app que consome o dado | Evitar API Financeiro “só na raiz” após cutover |
 
@@ -47,7 +47,7 @@ Se **não** der para responder → **PR não deve ser mergeado** até atualizar 
 ## 4. Proibições
 
 1. **Duplicar** a mesma URL semântica em dois apps sem plano de **redirecionamento** e data de desligamento documentados na matriz.  
-2. Colocar **lógica operacional de produto** na raiz (dashboards, billing de produto, inbox) **após** a janela de migração da Fase 2 — exceto **landing** e **demo pública** explícitas na matriz.  
+2. Colocar **lógica operacional de produto** na raiz (dashboards, billing de produto, inbox) **após** cutover — exceto **landing de aquisição** e redirects documentados na matriz (ex.: `/ferramentas/financeiro/demo` → app).  
 3. Criar páginas novas em **`apps/site`** sem aprovação explícita de arquitetura (pacote em depreciação; canon = raiz).
 
 ---
@@ -58,7 +58,7 @@ Se **não** der para responder → **PR não deve ser mergeado** até atualizar 
 |------|--------|
 | **`/login` (e fluxos auth) em mais de um deploy** | Cada produto no seu host com mesmo path é aceitável; documentar domínio. |
 | **`/demo` e demos públicas na raiz** | Aquisição; não confundir com app logado. |
-| **`/ferramentas/financeiro/demo` só na raiz** | Demo pública do portal; app `apps/financeiro` não precisa espelhar. |
+| **`/ferramentas/financeiro/demo` na raiz** | **URL de aquisição** no portal; resposta canónica = **redirect** para o demo no `apps/financeiro` (tracking de CTA no clique, antes do redirect). |
 | **Ferramentas gratuitas** (`/ferramentas/consulta-cnpj`, divisão de contas) | Portal; APIs públicas associadas podem ficar na raiz. |
 
 Novas exceções: adicionar **tabela nesta seção** + linha na `MATRIZ-DECISAO-ROTAS.md` + entrada em `routing-governance.ts` se aplicável à raiz.

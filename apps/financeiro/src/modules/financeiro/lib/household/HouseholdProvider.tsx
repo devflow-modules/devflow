@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import { FINANCEIRO_AUTH_PATH, FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 
 export type Household = {
   id: string;
@@ -22,12 +23,12 @@ type HouseholdContextValue = {
 const HouseholdContext = createContext<HouseholdContextValue | undefined>(undefined);
 
 const protectedPaths = [
-  "/ferramentas/financeiro/dashboard",
-  "/ferramentas/financeiro/contas",
-  "/ferramentas/financeiro/sources",
-  "/ferramentas/financeiro/expenses",
-  "/ferramentas/financeiro/rules",
-  "/ferramentas/financeiro/settings",
+  `${FINANCEIRO_BASE_PATH}/dashboard`,
+  `${FINANCEIRO_BASE_PATH}/contas`,
+  `${FINANCEIRO_BASE_PATH}/sources`,
+  `${FINANCEIRO_BASE_PATH}/expenses`,
+  `${FINANCEIRO_BASE_PATH}/rules`,
+  `${FINANCEIRO_BASE_PATH}/settings`,
 ];
 const isProtected = (path: string) =>
   protectedPaths.some((p) => path === p || path.startsWith(p + "/"));
@@ -46,7 +47,7 @@ export const HouseholdProvider = ({ children }: { children: React.ReactNode }) =
 
       if (!res.ok) {
         if (res.status === 401 && isProtected(pathname)) {
-          window.location.href = "/ferramentas/financeiro/auth";
+          window.location.href = FINANCEIRO_AUTH_PATH;
           return;
         }
         setHouseholdState(null);
@@ -68,8 +69,8 @@ export const HouseholdProvider = ({ children }: { children: React.ReactNode }) =
       } else {
         setHouseholdState(null);
         setActiveMembershipRole(null);
-        if (isProtected(pathname) && pathname !== "/ferramentas/financeiro/onboarding") {
-          window.location.href = "/ferramentas/financeiro/onboarding";
+        if (isProtected(pathname) && pathname !== `${FINANCEIRO_BASE_PATH}/onboarding`) {
+          window.location.href = `${FINANCEIRO_BASE_PATH}/onboarding`;
         }
       }
     } catch {

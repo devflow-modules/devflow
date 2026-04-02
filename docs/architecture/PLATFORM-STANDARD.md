@@ -10,6 +10,8 @@
 
 | Princípio | Significado prático |
 |-----------|---------------------|
+| **Portal = aquisição** | A raiz (`src/app`) é **marketing, SEO, CTAs e redirects** para os apps — não é o runtime operacional dos produtos SaaS. |
+| **Financeiro = app isolado** | Dashboard, auth de produto, billing de produto e APIs de dados do Financeiro vivem em **`apps/financeiro`** (host/deploy próprio quando aplicável). |
 | Dono da rota | Toda superfície (`page.tsx` / `route.ts` / redirect) tem **app e fase** definidos na matriz e no registro em código. |
 | Gate antes do merge | Mudança de rota sem atualizar governança/docs listados → CI de PR falha. |
 | Verificação após deploy | Smoke **HTTP real** contra produção (ou URL explícita): status, redirects, auth, performance básica — não substitui E2E, complementa. |

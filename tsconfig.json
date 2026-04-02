@@ -29,6 +29,7 @@
       "@devflow/config": ["./packages/config"],
       "@devflow/whatsapp-core": ["./packages/whatsapp-core/src"],
       "@devflow/ai-core": ["./packages/ai-core/src"],
+      "@devflow/financeiro-routes": ["./packages/financeiro-routes/src"],
       "@wa/*": ["./apps/whatsapp-platform/src/*"],
       "@/modules/whatsapp/*": ["./apps/whatsapp-platform/src/modules/whatsapp/*"],
       "@/modules/whatsapp-legacy/*": ["./src/modules/whatsapp/*"],

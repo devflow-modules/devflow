@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { FINANCEIRO_DASHBOARD_PATH } from "@devflow/financeiro-routes";
 
 export function InviteAcceptClient() {
   const router = useRouter();
@@ -38,7 +39,7 @@ export function InviteAcceptClient() {
       }
 
       toast.success("Convite aceito");
-      router.replace("/ferramentas/financeiro/dashboard");
+      router.replace(FINANCEIRO_DASHBOARD_PATH);
       router.refresh();
     };
 

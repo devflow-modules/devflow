@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("@/modules/financeiro/adapters/metrics/financeMetrics", () => ({
+vi.mock("@/lib/metrics/financeMetrics", () => ({
   getCounters: vi.fn(),
 }));
 
@@ -8,7 +8,7 @@ vi.mock("@/analytics/growth/growthMetrics", () => ({
   getCounters: vi.fn(),
 }));
 
-import { getCounters as getFinanceCounters } from "@/modules/financeiro/adapters/metrics/financeMetrics";
+import { getCounters as getFinanceCounters } from "@/lib/metrics/financeMetrics";
 import { getCounters as getGrowthCounters } from "@/analytics/growth/growthMetrics";
 import { GET } from "../route";
 

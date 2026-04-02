@@ -5,8 +5,11 @@ import { createClient } from "@/modules/financeiro/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { trackSignupCompletedClient } from "@/analytics/growth/trackClient";
-
-const AUTH_BASE = "/ferramentas/financeiro/auth";
+import {
+  FINANCEIRO_AUTH_PATH,
+  FINANCEIRO_BASE_PATH,
+  FINANCEIRO_DASHBOARD_PATH,
+} from "@devflow/financeiro-routes";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -55,7 +58,7 @@ export default function AuthCallbackPage() {
 
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
-        router.replace(AUTH_BASE);
+        router.replace(FINANCEIRO_AUTH_PATH);
         return;
       }
 
@@ -76,9 +79,9 @@ export default function AuthCallbackPage() {
         }
         const households = payload.data?.households ?? [];
         if (households.length === 0) {
-          router.replace("/ferramentas/financeiro/onboarding");
+          router.replace(`${FINANCEIRO_BASE_PATH}/onboarding`);
         } else {
-          router.replace("/ferramentas/financeiro/dashboard");
+          router.replace(FINANCEIRO_DASHBOARD_PATH);
         }
       } catch (err) {
         console.error("[auth/callback] fetch /api/me:", err);
@@ -97,7 +100,7 @@ export default function AuthCallbackPage() {
           {errorMessage}
         </p>
         <Link
-          href={AUTH_BASE}
+          href={FINANCEIRO_AUTH_PATH}
           className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
         >
           Tentar novamente

@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { FINANCEIRO_AUTH_PATH, FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 
 type CookieOption = { name: string; value: string; options?: Record<string, unknown> };
 
@@ -10,12 +11,12 @@ const supabaseKey =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
 const protectedPaths = [
-  "/ferramentas/financeiro/dashboard",
-  "/ferramentas/financeiro/sources",
-  "/ferramentas/financeiro/expenses",
-  "/ferramentas/financeiro/rules",
-  "/ferramentas/financeiro/settings",
-  "/ferramentas/financeiro/onboarding",
+  `${FINANCEIRO_BASE_PATH}/dashboard`,
+  `${FINANCEIRO_BASE_PATH}/sources`,
+  `${FINANCEIRO_BASE_PATH}/expenses`,
+  `${FINANCEIRO_BASE_PATH}/rules`,
+  `${FINANCEIRO_BASE_PATH}/settings`,
+  `${FINANCEIRO_BASE_PATH}/onboarding`,
 ];
 const isProtected = (pathname: string) =>
   protectedPaths.some((p) => pathname === p || pathname.startsWith(p + "/"));
@@ -47,7 +48,7 @@ export async function updateSession(request: NextRequest) {
 
   if (!user && isProtected(request.nextUrl.pathname)) {
     const url = request.nextUrl.clone();
-    url.pathname = "/ferramentas/financeiro/auth";
+    url.pathname = FINANCEIRO_AUTH_PATH;
     return NextResponse.redirect(url);
   }
 

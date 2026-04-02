@@ -9,6 +9,7 @@ import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvid
 import { createClient } from "@/modules/financeiro/lib/supabase/client";
 import { cn } from "@/modules/financeiro/lib/cn";
 import { focusRingLight } from "@/modules/financeiro/lib/primitives";
+import { FINANCEIRO_AUTH_PATH, FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 
 type Invite = { id: string; email: string; role: "MEMBER" | "OWNER"; expiresAt: string; createdAt: string };
 type Member = {
@@ -149,7 +150,7 @@ export default function SettingsPage() {
                 const supabase = createClient();
                 await supabase.auth.signOut();
                 await refetchMe();
-                router.replace("/ferramentas/financeiro/auth");
+                router.replace(FINANCEIRO_AUTH_PATH);
               }}
             >
               Sair da conta
@@ -271,7 +272,7 @@ export default function SettingsPage() {
                             return;
                           }
                           await refetchMe();
-                          router.push("/ferramentas/financeiro/onboarding");
+                          router.push(`${FINANCEIRO_BASE_PATH}/onboarding`);
                         }}
                       >
                         Sair desta casa

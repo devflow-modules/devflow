@@ -1,5 +1,6 @@
+import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 import { redirect } from "next/navigation";
 
 export default function FinanceiroHome() {
-  redirect("/ferramentas/financeiro");
+  redirect(FINANCEIRO_BASE_PATH);
 }

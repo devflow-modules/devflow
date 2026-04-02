@@ -19,6 +19,7 @@ import {
   MICRO_CONFIANCA,
   INTRO_CONTA,
 } from "../contaHumanCopy";
+import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 
 function newIdempotencyKey(): string {
   return typeof crypto !== "undefined" && crypto.randomUUID
@@ -546,7 +547,7 @@ export default function AccountDetailPage() {
     return (
       <div className="min-h-screen bg-slate-50 p-4">
         <p className="text-slate-600">Não achamos essa conta.</p>
-        <Link href="/ferramentas/financeiro/contas" className="mt-2 text-primary underline">
+        <Link href={`${FINANCEIRO_BASE_PATH}/contas`} className="mt-2 text-primary underline">
           Voltar para suas contas
         </Link>
       </div>

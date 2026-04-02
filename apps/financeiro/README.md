@@ -51,6 +51,7 @@ Guia objetivo:
 - Prisma (PostgreSQL)
 - Vitest
 - Vercel Analytics (onde configurado)
+- Rotas e cutover: workspace `@devflow/financeiro-routes` (fonte única com o portal)
 
 ## 📊 Qualidade
 

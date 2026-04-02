@@ -1,8 +1,6 @@
 /**
- * Módulo Financeiro — barrel principal (types, schemas, constants).
- * Services: importe por domínio, ex. @/modules/financeiro/services/expenses
- * Lib/Components: ex. @/modules/financeiro/lib/db, @/modules/financeiro/components/Breadcrumbs
+ * Módulo Financeiro no portal — aquisição (landing, leads) e integrações mínimas.
+ * Domínio operacional canónico: `apps/financeiro`.
  */
-export * from "./types";
 export * from "./schemas";
-export * from "./constants";
+export * from "./navigation/constants";

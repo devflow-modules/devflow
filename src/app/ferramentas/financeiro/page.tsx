@@ -6,6 +6,7 @@ import { Section } from "@/components/layout/Section";
 import { RelatedLinks } from "@/components/shared/related-links";
 import { CrossSellBeyond } from "@/components/sections/cross-sell-beyond";
 import { ToolHubSection } from "@/components/seo/ToolHubSection";
+import { FinanceiroDemoEntryLink } from "@/modules/financeiro/components/FinanceiroDemoEntryLink";
 import { SimuladorRapidoFinanceiro } from "@/modules/financeiro/components/SimuladorRapidoFinanceiro";
 import { LeadCaptureForm } from "@/modules/financeiro/components/LeadCaptureForm";
 import { FinanceiroTools } from "@/modules/financeiro/components/FinanceiroTools";
@@ -124,12 +125,13 @@ export default async function FinanceiroPage() {
               >
                 Entrar ou criar conta
               </Link>
-              <Link
+              <FinanceiroDemoEntryLink
                 href={FINANCEIRO_DEMO_PATH}
+                surface="financeiro_landing_hero"
                 className="inline-flex items-center rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm hover:bg-muted/50"
               >
                 Ver exemplo do painel (sem cadastro)
-              </Link>
+              </FinanceiroDemoEntryLink>
               <Link
                 href="/planilha-vs-app-financeiro"
                 className="inline-flex items-center text-sm font-medium text-primary hover:underline"
