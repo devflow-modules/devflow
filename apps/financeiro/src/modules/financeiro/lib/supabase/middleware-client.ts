@@ -30,10 +30,17 @@ function isFinanceiroProtectedRoute(pathname: string): boolean {
   return !isFinanceiroPublicPath(pathname);
 }
 
+/** Host público da request (Vercel: nextUrl pode espelhar o domínio primário do deploy, não o alias). */
+function requestPublicOrigin(request: NextRequest): string {
+  const forwarded = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
+  const host = forwarded || request.headers.get("host")?.trim() || request.nextUrl.host;
+  const proto =
+    request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() || request.nextUrl.protocol.replace(":", "");
+  return `${proto}://${host}`;
+}
+
 function redirectToFinanceiroAuth(request: NextRequest): NextResponse {
-  const url = request.nextUrl.clone();
-  url.pathname = FINANCEIRO_AUTH_PATH;
-  url.searchParams.delete("next");
+  const url = new URL(FINANCEIRO_AUTH_PATH, `${requestPublicOrigin(request)}/`);
   const safe = sanitizeFinanceiroNextPath(request.nextUrl.pathname);
   if (safe) url.searchParams.set("next", safe);
   return NextResponse.redirect(url);
