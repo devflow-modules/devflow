@@ -62,9 +62,19 @@ export async function createCheckoutSession(
     cancel_url: params.cancelUrl,
     client_reference_id: params.userId,
     customer_email: params.email,
-    metadata: { userId: params.userId, planId: params.planId },
+    metadata: {
+      userId: params.userId,
+      tenantId: params.userId,
+      planId: params.planId,
+      planCode: params.planId === "PRO" ? "pro" : "team",
+    },
     subscription_data: {
-      metadata: { userId: params.userId, planId: params.planId },
+      metadata: {
+        userId: params.userId,
+        tenantId: params.userId,
+        planId: params.planId,
+        planCode: params.planId === "PRO" ? "pro" : "team",
+      },
     },
   });
 

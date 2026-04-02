@@ -1,12 +1,11 @@
 import type { PrismaClient } from "@prisma/client";
-import { prisma } from "@/modules/financeiro/lib/db";
+import { prisma } from "@/lib/prisma-root";
 
 /**
- * Ponto único de acesso ao Prisma para o domínio financeiro.
- * Rotas e handlers obtêm o client aqui e passam para os services.
+ * Schema raiz do portal (ex.: leads de aquisição). Produto canónico: `apps/financeiro`.
  */
 export function getPrisma(): PrismaClient {
   return prisma;
 }
 
-export { prisma } from "@/modules/financeiro/lib/db";
+export { prisma } from "@/lib/prisma-root";

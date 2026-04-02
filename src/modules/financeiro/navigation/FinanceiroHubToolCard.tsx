@@ -4,7 +4,7 @@ import { Wallet } from "lucide-react";
 import type { ToolCardProps } from "@/components/sections/tool-card";
 import { ToolCard } from "@/components/sections/tool-card";
 import { trackFinanceiroGoToDashboardClicked } from "@/lib/analytics";
-import { FINANCEIRO_BASE_PATH } from "./constants";
+import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 
 /** Não recebe `icon` do Server Component (função não serializa no RSC). */
 export type FinanceiroHubToolCardProps = Omit<ToolCardProps, "icon">;

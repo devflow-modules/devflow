@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import * as BillingProfileRepository from "../BillingProfileRepository";
-import { prisma } from "@/modules/financeiro/lib/db";
+import { prisma } from "@/lib/prisma-root";
 
-vi.mock("@/modules/financeiro/lib/db", () => ({
+vi.mock("@/lib/prisma-root", () => ({
   prisma: {
     userBillingProfile: {
       findUnique: vi.fn(),

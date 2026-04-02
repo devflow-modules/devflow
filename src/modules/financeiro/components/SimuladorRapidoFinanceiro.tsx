@@ -5,7 +5,7 @@ import Link from "next/link";
 import { trackSimulatorUsed } from "@/analytics/growth/trackClient";
 import { financeiroAppUrl } from "@/lib/financeiro-app-url";
 import { cn } from "@/modules/financeiro/lib/cn";
-import { FINANCEIRO_AUTH_PATH } from "@/modules/financeiro/navigation/constants";
+import { FINANCEIRO_AUTH_PATH } from "@devflow/financeiro-routes";
 import {
   cardStaticLight,
   focusRingLight,

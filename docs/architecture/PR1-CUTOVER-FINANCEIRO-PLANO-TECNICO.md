@@ -66,7 +66,7 @@ Se a equipe escolher **híbrido** (portal só lista planos + deep link), documen
 | `.env.example` | Comentário acima da variável + exemplo produção/staging. |
 | `apps/financeiro/.env.staging.example` | Alinhar comentário “URL canônica” se divergir da realidade. |
 
-**Consulta (sem obrigação de editar no PR 1):** `src/modules/financeiro/navigation/constants.ts` — paths estáveis até PR 3.
+**Consulta (sem obrigação de editar no PR 1):** `@devflow/financeiro-routes` — paths estáveis; barrel opcional em `src/modules/financeiro/index.ts`.
 
 ---
 

@@ -21,7 +21,7 @@ Exemplo: feature “arquivar despesa”.
 
 ### 1. Schema
 
-Em `src/modules/financeiro/schemas/index.ts` (ou arquivo dedicado se crescer):
+Em `apps/financeiro/src/modules/financeiro/schemas/index.ts` (ou arquivo dedicado se crescer):
 
 ```ts
 export const expenseArchiveSchema = z.object({
@@ -31,7 +31,7 @@ export const expenseArchiveSchema = z.object({
 
 ### 2. Type/contract
 
-Em `src/modules/financeiro/types/domain.ts` ou no próprio service, se for uso interno:
+Em `apps/financeiro/src/modules/financeiro/types/domain.ts` ou no próprio service, se for uso interno:
 
 ```ts
 export type ArchiveExpenseInput = { expenseId: string; archivedAt?: string };
@@ -39,7 +39,7 @@ export type ArchiveExpenseInput = { expenseId: string; archivedAt?: string };
 
 ### 3. Service
 
-Em `src/modules/financeiro/services/expenses/archiveExpense.ts`:
+Em `apps/financeiro/src/modules/financeiro/services/expenses/archiveExpense.ts`:
 
 - Recebe `prisma`, `householdId`, e DTO (ex.: `ArchiveExpenseInput`).
 - Não recebe `NextRequest`, cookies ou headers.
@@ -58,7 +58,7 @@ Em `src/app/api/expenses/[expenseId]/archive/route.ts`:
 
 ### 5. Test
 
-Em `src/modules/financeiro/__tests__/services/expenses/archiveExpense.test.ts`:
+Em `apps/financeiro/src/modules/financeiro/__tests__/services/expenses/archiveExpense.test.ts`:
 
 - Mock do `prisma` (e de `auditLog` se o service usar auditoria).
 - Casos: sucesso, lista vazia / não encontrado, household incorreto, role (se houver regra de autorização no service).

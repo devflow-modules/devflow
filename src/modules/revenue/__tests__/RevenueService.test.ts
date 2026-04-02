@@ -8,10 +8,10 @@ import {
   calculateARPU,
   getRevenueMetrics,
 } from "../RevenueService";
-import { prisma } from "@/modules/financeiro/lib/db";
+import { prisma } from "@/lib/prisma-root";
 import * as growthMetrics from "@/analytics/growth/growthMetrics";
 
-vi.mock("@/modules/financeiro/lib/db", () => ({
+vi.mock("@/lib/prisma-root", () => ({
   prisma: {
     userPlan: {
       findMany: vi.fn(),

@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 
-/** Root schema client type. Cast to any to avoid Vercel Prisma 6 generic resolution. */
+/** Cliente Prisma do schema raiz do monorepo (portal): WhatsApp, billing portal, revenue, conversas admin, etc. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type PrismaRoot = any;
 
@@ -13,5 +13,4 @@ if (process.env.NODE_ENV !== "production") {
   globalThis.prisma = _prisma;
 }
 
-/** Root Prisma client (WhatsappConversation, WhatsappOnboardingState, etc). Typed as PrismaRoot for Vercel. */
 export const prisma = _prisma as PrismaRoot;

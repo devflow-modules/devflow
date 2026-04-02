@@ -8,7 +8,7 @@ import {
   trackFinanceiroReturnDetected,
 } from "@/lib/analytics";
 import { financeiroAppUrl } from "@/lib/financeiro-app-url";
-import { FINANCEIRO_DASHBOARD_PATH } from "./constants";
+import { FINANCEIRO_DASHBOARD_PATH } from "@devflow/financeiro-routes";
 
 type Props = {
   resumeHref: string;

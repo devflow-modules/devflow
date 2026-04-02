@@ -206,17 +206,11 @@ App SaaS completo de gestão financeira pessoal e familiar:
 - **Ciclos** — periodos de controle por mês/ano
 - **Simulador público** — ferramenta de atração no `/ferramentas/financeiro`
 
-### Arquitetura do módulo financeiro
+### Arquitetura do produto Financeiro
 
-```
-src/modules/financeiro/
-├── services/          # Regras de negócio puras (sem Next.js)
-├── adapters/          # Prisma, auth, cookies, logger, metrics, analytics
-├── events/            # Domain events (event bus + handlers)
-├── components/        # Componentes do módulo
-├── schemas/           # Validação Zod
-└── types/             # Tipos do domínio
-```
+**Canónico:** `apps/financeiro/src/modules/financeiro/` — services, adapters, events, schemas, UI do produto, APIs de dados.
+
+**Portal (raiz):** `src/modules/financeiro/` — apenas aquisição (landing `/ferramentas/financeiro`, leads, simulador público, cookies de navegação); Prisma do schema raiz do portal em `src/lib/prisma-root.ts` (não confundir com a BD do app).
 
 Documentação: [`docs/financeiro/FINANCEIRO-MODULE-ARCHITECTURE.md`](docs/financeiro/FINANCEIRO-MODULE-ARCHITECTURE.md)
 

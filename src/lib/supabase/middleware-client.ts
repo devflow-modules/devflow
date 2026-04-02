@@ -4,9 +4,9 @@ import {
   FINANCEIRO_BASE_PATH,
   FINANCEIRO_NAV_EVENT_COOKIE,
   FINANCEIRO_STAY_PUBLIC_PARAM,
-} from "@/modules/financeiro/navigation/constants";
+  resolveFinanceiroResumeRedirectUrl,
+} from "@devflow/financeiro-routes";
 import { resolveFinanceiroResumeFromCookies } from "@/modules/financeiro/navigation/resumeFromCookies";
-import { resolveFinanceiroResumeRedirectUrl } from "@devflow/financeiro-routes";
 
 type CookieOption = { name: string; value: string; options?: Record<string, unknown> };
 
@@ -27,6 +27,7 @@ function copySetCookieHeaders(from: NextResponse, to: NextResponse): void {
   }
 }
 
+/** Sessão Supabase no portal + redirect autenticado da landing Financeiro (aquisição). */
 export async function updateSession(request: NextRequest) {
   if (!supabaseUrl || !supabaseKey) {
     return NextResponse.next({ request });

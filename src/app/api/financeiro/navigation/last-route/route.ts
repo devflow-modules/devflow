@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/modules/financeiro/lib/supabase/server";
-import { FINANCEIRO_LAST_ROUTE_COOKIE } from "@/modules/financeiro/navigation/constants";
+import { FINANCEIRO_LAST_ROUTE_COOKIE } from "@devflow/financeiro-routes";
 import {
   isPersistableFinanceiroInternalPath,
   normalizeResumeTargetPath,

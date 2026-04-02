@@ -1,4 +1,4 @@
-import { prisma } from "@/modules/financeiro/lib/db";
+import { prisma } from "@/lib/prisma-root";
 import type {
   WhatsappOnboardingStateRepository,
   WhatsappOnboardingStateRow,

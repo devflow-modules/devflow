@@ -14,7 +14,7 @@ import { createClient } from "@/modules/financeiro/lib/supabase/server";
 import { resolveFinanceiroResumeFromCookies } from "@/modules/financeiro/navigation/resumeFromCookies";
 import { FinanceiroAuthedEntryHero } from "@/modules/financeiro/navigation/FinanceiroAuthedEntryHero";
 import { financeiroAppUrl } from "@/lib/financeiro-app-url";
-import { FINANCEIRO_AUTH_PATH, FINANCEIRO_DEMO_PATH } from "@/modules/financeiro/navigation/constants";
+import { FINANCEIRO_AUTH_PATH, FINANCEIRO_DEMO_PATH } from "@devflow/financeiro-routes";
 
 const baseUrl = "https://devflowlabs.com.br";
 

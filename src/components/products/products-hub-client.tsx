@@ -14,10 +14,7 @@ import {
   type DevflowProductId,
   DEVFLOW_PRODUCT_CATALOG,
 } from "@/lib/devflow-product-catalog";
-import {
-  FINANCEIRO_BASE_PATH,
-  FINANCEIRO_DEMO_PATH,
-} from "@/modules/financeiro/navigation/constants";
+import { FINANCEIRO_BASE_PATH, FINANCEIRO_DEMO_PATH } from "@devflow/financeiro-routes";
 import { cn } from "@/lib/utils";
 
 const iconById: Record<DevflowProductId, typeof Wallet> = {

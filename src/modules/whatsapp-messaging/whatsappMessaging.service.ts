@@ -1,5 +1,5 @@
 import { WhatsAppCloudAdapter } from "@devflow/whatsapp-core";
-import { prisma } from "@/modules/financeiro/lib/db";
+import { prisma } from "@/lib/prisma-root";
 import { createOutboundMessage } from "@/modules/whatsapp-inbox/whatsappInbox.message.service";
 import { loadMetaOnboardingEnv } from "@/modules/whatsapp-onboarding/whatsappOnboarding.env";
 import { parseMetaApiError } from "./whatsappMessaging.errors";

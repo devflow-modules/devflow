@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("@devflow/billing-core", () => ({
   validateWebhook: vi.fn(),
@@ -42,18 +42,16 @@ function makeRequest(body = "{}") {
 }
 
 describe("POST /api/billing/webhook", () => {
-  beforeEach(() => {
+  const originalFetch = globalThis.fetch;
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.unstubAllEnvs();
     vi.clearAllMocks();
-    vi.mocked(BillingService.setUserPlan).mockResolvedValue(undefined);
-    vi.mocked(BillingProfileRepository.upsertProfile).mockResolvedValue(undefined as never);
-    vi.mocked(BillingProfileRepository.clearSubscriptionId).mockResolvedValue(undefined);
-    vi.mocked(BillingProfileRepository.updateSubscriptionId).mockResolvedValue(undefined);
   });
 
-  // -------------------------------------------------------------------------
-  // Validações básicas
-  // -------------------------------------------------------------------------
   it("retorna 400 quando stripe-signature está ausente", async () => {
+    vi.stubEnv("NEXT_PUBLIC_FINANCEIRO_APP_URL", "http://localhost:3001");
     const req = new Request("http://localhost/api/billing/webhook", {
       method: "POST",
       body: "{}",
@@ -63,170 +61,195 @@ describe("POST /api/billing/webhook", () => {
     expect(await res.text()).toBe("Missing stripe-signature");
   });
 
-  it("retorna 400 quando assinatura é inválida", async () => {
-    vi.mocked(validateWebhook).mockImplementation(() => {
-      throw new Error("Invalid signature");
-    });
-    const res = await POST(
-      new Request("http://localhost/api/billing/webhook", {
-        method: "POST",
-        headers: { "stripe-signature": "v1,xxx" },
-        body: "{}",
-      }) as Parameters<typeof POST>[0]
-    );
-    expect(res.status).toBe(400);
-  });
-
-  it("retorna 200 quando parseWebhookEvent retorna null", async () => {
-    vi.mocked(validateWebhook).mockReturnValue({ type: "ping" } as never);
-    vi.mocked(parseWebhookEvent).mockReturnValue(null);
-
-    const res = await POST(makeRequest() as Parameters<typeof POST>[0]);
-
-    expect(res.status).toBe(200);
-    expect(BillingService.setUserPlan).not.toHaveBeenCalled();
-  });
-
-  // -------------------------------------------------------------------------
-  // checkout.session.completed
-  // -------------------------------------------------------------------------
-  it("atualiza plano e persiste profile em checkout.session.completed", async () => {
-    vi.mocked(validateWebhook).mockReturnValue({ type: "checkout.session.completed" } as never);
-    vi.mocked(parseWebhookEvent).mockReturnValue({
-      type: "checkout.session.completed",
-      userId: "user-1",
-      planId: "PRO",
-      stripeCustomerId: "cus_123",
-      subscriptionId: "sub_456",
+  describe("proxy para apps/financeiro (NEXT_PUBLIC_FINANCEIRO_APP_URL definido)", () => {
+    beforeEach(() => {
+      vi.stubEnv("NEXT_PUBLIC_FINANCEIRO_APP_URL", "http://localhost:3001");
     });
 
-    const res = await POST(makeRequest() as Parameters<typeof POST>[0]);
+    it("encaminha corpo e stripe-signature para o app e devolve a resposta", async () => {
+      const fetchMock = vi.fn().mockResolvedValue(new Response("OK", { status: 200 }));
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
 
-    expect(res.status).toBe(200);
-    expect(BillingService.setUserPlan).toHaveBeenCalledWith("user-1", "PRO");
-    expect(BillingProfileRepository.upsertProfile).toHaveBeenCalledWith("user-1", "cus_123", "sub_456");
-    expect(billingAnalytics.trackPaymentCompleted).toHaveBeenCalledWith({ userId: "user-1", planId: "PRO" });
-  });
+      const res = await POST(makeRequest('{"x":1}') as Parameters<typeof POST>[0]);
 
-  it("não chama upsertProfile quando stripeCustomerId está ausente no checkout", async () => {
-    vi.mocked(validateWebhook).mockReturnValue({ type: "checkout.session.completed" } as never);
-    vi.mocked(parseWebhookEvent).mockReturnValue({
-      type: "checkout.session.completed",
-      userId: "user-1",
-      planId: "PRO",
+      expect(res.status).toBe(200);
+      expect(await res.text()).toBe("OK");
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(url).toBe("http://localhost:3001/api/billing/webhook");
+      expect(init.method).toBe("POST");
+      expect(init.headers).toMatchObject({
+        "stripe-signature": "v1,valid",
+        "Content-Type": "application/json",
+      });
+      expect(init.body).toBe('{"x":1}');
+      expect(validateWebhook).not.toHaveBeenCalled();
     });
 
-    await POST(makeRequest() as Parameters<typeof POST>[0]);
+    it("propaga status e corpo quando o app responde erro", async () => {
+      globalThis.fetch = vi
+        .fn()
+        .mockResolvedValue(new Response("Invalid signature", { status: 400 })) as unknown as typeof fetch;
 
-    expect(BillingProfileRepository.upsertProfile).not.toHaveBeenCalled();
-  });
+      const res = await POST(makeRequest() as Parameters<typeof POST>[0]);
 
-  // -------------------------------------------------------------------------
-  // customer.subscription.updated — upgrade/downgrade
-  // -------------------------------------------------------------------------
-  it("atualiza plano em customer.subscription.updated com planId", async () => {
-    vi.mocked(validateWebhook).mockReturnValue({ type: "customer.subscription.updated" } as never);
-    vi.mocked(parseWebhookEvent).mockReturnValue({
-      type: "customer.subscription.updated",
-      userId: "user-1",
-      planId: "TEAM",
-      stripeCustomerId: "cus_123",
-      subscriptionId: "sub_456",
-      cancelAtPeriodEnd: false,
+      expect(res.status).toBe(400);
+      expect(await res.text()).toBe("Invalid signature");
     });
 
-    const res = await POST(makeRequest() as Parameters<typeof POST>[0]);
+    it("não chama BillingService no portal", async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue(new Response("OK", { status: 200 })) as unknown as typeof fetch;
 
-    expect(res.status).toBe(200);
-    expect(BillingService.setUserPlan).toHaveBeenCalledWith("user-1", "TEAM");
-    expect(billingAnalytics.trackSubscriptionUpdatedPortal).toHaveBeenCalled();
+      await POST(makeRequest() as Parameters<typeof POST>[0]);
+
+      expect(BillingService.setUserPlan).not.toHaveBeenCalled();
+    });
   });
 
-  // -------------------------------------------------------------------------
-  // cancel_at_period_end = true — cancelamento agendado
-  // -------------------------------------------------------------------------
-  it("NÃO reverte plano quando cancel_at_period_end é true", async () => {
-    vi.mocked(validateWebhook).mockReturnValue({ type: "customer.subscription.updated" } as never);
-    vi.mocked(parseWebhookEvent).mockReturnValue({
-      type: "customer.subscription.updated",
-      userId: "user-1",
-      subscriptionId: "sub_456",
-      cancelAtPeriodEnd: true,
+  describe("legado sem URL do app (processamento na raiz)", () => {
+    beforeEach(() => {
+      vi.stubEnv("NEXT_PUBLIC_FINANCEIRO_APP_URL", "");
+      vi.mocked(BillingService.setUserPlan).mockResolvedValue(undefined);
+      vi.mocked(BillingProfileRepository.upsertProfile).mockResolvedValue(undefined as never);
+      vi.mocked(BillingProfileRepository.clearSubscriptionId).mockResolvedValue(undefined);
+      vi.mocked(BillingProfileRepository.updateSubscriptionId).mockResolvedValue(undefined);
     });
 
-    const res = await POST(makeRequest() as Parameters<typeof POST>[0]);
-
-    expect(res.status).toBe(200);
-    expect(BillingService.setUserPlan).not.toHaveBeenCalled();
-    expect(billingAnalytics.trackSubscriptionPendingCancellation).toHaveBeenCalledWith({ userId: "user-1" });
-  });
-
-  // -------------------------------------------------------------------------
-  // cancel_at_period_end = false sem planId — reativação
-  // -------------------------------------------------------------------------
-  it("dispara trackSubscriptionReactivated quando cancel_at_period_end volta a false", async () => {
-    vi.mocked(validateWebhook).mockReturnValue({ type: "customer.subscription.updated" } as never);
-    vi.mocked(parseWebhookEvent).mockReturnValue({
-      type: "customer.subscription.updated",
-      userId: "user-1",
-      subscriptionId: "sub_456",
-      cancelAtPeriodEnd: false,
+    it("retorna 400 quando assinatura é inválida", async () => {
+      vi.mocked(validateWebhook).mockImplementation(() => {
+        throw new Error("Invalid signature");
+      });
+      const res = await POST(
+        new Request("http://localhost/api/billing/webhook", {
+          method: "POST",
+          headers: { "stripe-signature": "v1,xxx" },
+          body: "{}",
+        }) as Parameters<typeof POST>[0]
+      );
+      expect(res.status).toBe(400);
     });
 
-    const res = await POST(makeRequest() as Parameters<typeof POST>[0]);
+    it("retorna 200 quando parseWebhookEvent retorna null", async () => {
+      vi.mocked(validateWebhook).mockReturnValue({ type: "ping" } as never);
+      vi.mocked(parseWebhookEvent).mockReturnValue(null);
 
-    expect(res.status).toBe(200);
-    expect(BillingService.setUserPlan).not.toHaveBeenCalled();
-    expect(billingAnalytics.trackSubscriptionReactivated).toHaveBeenCalledWith({ userId: "user-1" });
-  });
+      const res = await POST(makeRequest() as Parameters<typeof POST>[0]);
 
-  // -------------------------------------------------------------------------
-  // customer.subscription.deleted — cancelamento efetivo
-  // -------------------------------------------------------------------------
-  it("define FREE e limpa subscriptionId em customer.subscription.deleted", async () => {
-    vi.mocked(validateWebhook).mockReturnValue({ type: "customer.subscription.deleted" } as never);
-    vi.mocked(parseWebhookEvent).mockReturnValue({
-      type: "customer.subscription.deleted",
-      userId: "user-1",
-      stripeCustomerId: "cus_123",
-      subscriptionId: "sub_456",
+      expect(res.status).toBe(200);
+      expect(BillingService.setUserPlan).not.toHaveBeenCalled();
     });
 
-    const res = await POST(makeRequest() as Parameters<typeof POST>[0]);
+    it("atualiza plano e persiste profile em checkout.session.completed", async () => {
+      vi.mocked(validateWebhook).mockReturnValue({ type: "checkout.session.completed" } as never);
+      vi.mocked(parseWebhookEvent).mockReturnValue({
+        type: "checkout.session.completed",
+        userId: "user-1",
+        planId: "PRO",
+        stripeCustomerId: "cus_123",
+        subscriptionId: "sub_456",
+      });
 
-    expect(res.status).toBe(200);
-    expect(BillingService.setUserPlan).toHaveBeenCalledWith("user-1", "FREE");
-    expect(BillingProfileRepository.clearSubscriptionId).toHaveBeenCalledWith("user-1");
-    expect(billingAnalytics.trackSubscriptionCancelled).toHaveBeenCalled();
-  });
+      const res = await POST(makeRequest() as Parameters<typeof POST>[0]);
 
-  // -------------------------------------------------------------------------
-  // customer.updated
-  // -------------------------------------------------------------------------
-  it("dispara trackCustomerUpdated em customer.updated", async () => {
-    vi.mocked(validateWebhook).mockReturnValue({ type: "customer.updated" } as never);
-    vi.mocked(parseWebhookEvent).mockReturnValue({
-      type: "customer.updated",
-      stripeCustomerId: "cus_123",
-      stripeCustomerEmail: "user@example.com",
+      expect(res.status).toBe(200);
+      expect(BillingService.setUserPlan).toHaveBeenCalledWith("user-1", "PRO");
+      expect(BillingProfileRepository.upsertProfile).toHaveBeenCalledWith("user-1", "cus_123", "sub_456");
+      expect(billingAnalytics.trackPaymentCompleted).toHaveBeenCalledWith({ userId: "user-1", planId: "PRO" });
     });
 
-    const res = await POST(makeRequest() as Parameters<typeof POST>[0]);
+    it("não chama upsertProfile quando stripeCustomerId está ausente no checkout", async () => {
+      vi.mocked(validateWebhook).mockReturnValue({ type: "checkout.session.completed" } as never);
+      vi.mocked(parseWebhookEvent).mockReturnValue({
+        type: "checkout.session.completed",
+        userId: "user-1",
+        planId: "PRO",
+      });
 
-    expect(res.status).toBe(200);
-    expect(BillingService.setUserPlan).not.toHaveBeenCalled();
-    expect(billingAnalytics.trackCustomerUpdated).toHaveBeenCalledWith({ stripeCustomerId: "cus_123" });
-  });
+      await POST(makeRequest() as Parameters<typeof POST>[0]);
 
-  it("não chama setUserPlan em customer.updated", async () => {
-    vi.mocked(validateWebhook).mockReturnValue({ type: "customer.updated" } as never);
-    vi.mocked(parseWebhookEvent).mockReturnValue({
-      type: "customer.updated",
-      stripeCustomerId: "cus_123",
+      expect(BillingProfileRepository.upsertProfile).not.toHaveBeenCalled();
     });
 
-    await POST(makeRequest() as Parameters<typeof POST>[0]);
+    it("atualiza plano em customer.subscription.updated com planId", async () => {
+      vi.mocked(validateWebhook).mockReturnValue({ type: "customer.subscription.updated" } as never);
+      vi.mocked(parseWebhookEvent).mockReturnValue({
+        type: "customer.subscription.updated",
+        userId: "user-1",
+        planId: "TEAM",
+        stripeCustomerId: "cus_123",
+        subscriptionId: "sub_456",
+        cancelAtPeriodEnd: false,
+      });
 
-    expect(BillingService.setUserPlan).not.toHaveBeenCalled();
+      const res = await POST(makeRequest() as Parameters<typeof POST>[0]);
+
+      expect(res.status).toBe(200);
+      expect(BillingService.setUserPlan).toHaveBeenCalledWith("user-1", "TEAM");
+      expect(billingAnalytics.trackSubscriptionUpdatedPortal).toHaveBeenCalled();
+    });
+
+    it("NÃO reverte plano quando cancel_at_period_end é true", async () => {
+      vi.mocked(validateWebhook).mockReturnValue({ type: "customer.subscription.updated" } as never);
+      vi.mocked(parseWebhookEvent).mockReturnValue({
+        type: "customer.subscription.updated",
+        userId: "user-1",
+        subscriptionId: "sub_456",
+        cancelAtPeriodEnd: true,
+      });
+
+      const res = await POST(makeRequest() as Parameters<typeof POST>[0]);
+
+      expect(res.status).toBe(200);
+      expect(BillingService.setUserPlan).not.toHaveBeenCalled();
+      expect(billingAnalytics.trackSubscriptionPendingCancellation).toHaveBeenCalledWith({ userId: "user-1" });
+    });
+
+    it("dispara trackSubscriptionReactivated quando cancel_at_period_end volta a false", async () => {
+      vi.mocked(validateWebhook).mockReturnValue({ type: "customer.subscription.updated" } as never);
+      vi.mocked(parseWebhookEvent).mockReturnValue({
+        type: "customer.subscription.updated",
+        userId: "user-1",
+        subscriptionId: "sub_456",
+        cancelAtPeriodEnd: false,
+      });
+
+      const res = await POST(makeRequest() as Parameters<typeof POST>[0]);
+
+      expect(res.status).toBe(200);
+      expect(BillingService.setUserPlan).not.toHaveBeenCalled();
+      expect(billingAnalytics.trackSubscriptionReactivated).toHaveBeenCalledWith({ userId: "user-1" });
+    });
+
+    it("define FREE e limpa subscriptionId em customer.subscription.deleted", async () => {
+      vi.mocked(validateWebhook).mockReturnValue({ type: "customer.subscription.deleted" } as never);
+      vi.mocked(parseWebhookEvent).mockReturnValue({
+        type: "customer.subscription.deleted",
+        userId: "user-1",
+        stripeCustomerId: "cus_123",
+        subscriptionId: "sub_456",
+      });
+
+      const res = await POST(makeRequest() as Parameters<typeof POST>[0]);
+
+      expect(res.status).toBe(200);
+      expect(BillingService.setUserPlan).toHaveBeenCalledWith("user-1", "FREE");
+      expect(BillingProfileRepository.clearSubscriptionId).toHaveBeenCalledWith("user-1");
+      expect(billingAnalytics.trackSubscriptionCancelled).toHaveBeenCalled();
+    });
+
+    it("dispara trackCustomerUpdated em customer.updated", async () => {
+      vi.mocked(validateWebhook).mockReturnValue({ type: "customer.updated" } as never);
+      vi.mocked(parseWebhookEvent).mockReturnValue({
+        type: "customer.updated",
+        stripeCustomerId: "cus_123",
+        stripeCustomerEmail: "user@example.com",
+      });
+
+      const res = await POST(makeRequest() as Parameters<typeof POST>[0]);
+
+      expect(res.status).toBe(200);
+      expect(BillingService.setUserPlan).not.toHaveBeenCalled();
+      expect(billingAnalytics.trackCustomerUpdated).toHaveBeenCalledWith({ stripeCustomerId: "cus_123" });
+    });
   });
 });

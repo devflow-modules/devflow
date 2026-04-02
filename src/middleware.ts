@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { jwtVerify } from "jose";
-import { updateSession } from "@/modules/financeiro/lib/supabase/middleware-client";
+import { updateSession } from "@/lib/supabase/middleware-client";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { logAuth } from "@wa/lib/auth-logger";
 import {

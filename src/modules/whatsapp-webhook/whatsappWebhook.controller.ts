@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/modules/financeiro/lib/db";
+import { prisma } from "@/lib/prisma-root";
 import { persistWebhookEvents } from "@/modules/whatsapp-inbox";
 import { metaWebhookBodySchema, webhookVerificationQuerySchema } from "./whatsappWebhook.schemas";
 import { parseInboundWebhookBody, verifyWebhookSubscription } from "./whatsappWebhook.service";

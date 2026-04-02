@@ -1,4 +1,4 @@
-import type { PrismaRoot } from "@/modules/financeiro/lib/db";
+import type { PrismaRoot } from "@/lib/prisma-root";
 export type { PrismaRoot };
 
 export async function findOrCreateConversationForInbound(

@@ -1,4 +1,7 @@
-import { FINANCEIRO_DASHBOARD_PATH, FINANCEIRO_LAST_ROUTE_COOKIE } from "./constants";
+import {
+  FINANCEIRO_DASHBOARD_PATH,
+  FINANCEIRO_LAST_ROUTE_COOKIE,
+} from "@devflow/financeiro-routes";
 import { normalizeResumeTargetPath } from "./lastRoute";
 
 type CookieGetter = { get(name: string): { value: string } | undefined };

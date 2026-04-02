@@ -1,7 +1,4 @@
-import {
-  FINANCEIRO_BASE_PATH,
-  FINANCEIRO_DASHBOARD_PATH,
-} from "./constants";
+import { FINANCEIRO_BASE_PATH, FINANCEIRO_DASHBOARD_PATH } from "@devflow/financeiro-routes";
 
 const TRANSIENT_PREFIXES = [
   `${FINANCEIRO_BASE_PATH}/auth`,

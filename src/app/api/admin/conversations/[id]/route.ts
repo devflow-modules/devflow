@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { guardWhatsappOnboarding } from "@/modules/whatsapp-onboarding";
-import { prisma } from "@/modules/financeiro/lib/db";
+import { prisma } from "@/lib/prisma-root";
 import { getConversationById } from "@/modules/whatsapp-inbox/whatsappInbox.conversation.service";
 import { z } from "zod";
 

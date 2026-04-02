@@ -45,5 +45,5 @@ Todas as mudanças relevantes do produto **Financeiro** (dashboard inteligente, 
 
 ### Adicionado
 
-- App dedicado `apps/financeiro` + módulo compartilhável em `src/modules/financeiro`
+- App dedicado `apps/financeiro` + na raiz do repo, pasta `src/modules/financeiro` para aquisição (landing, leads); operação canónica no app
 - Auth Supabase, Prisma e RLS documentados

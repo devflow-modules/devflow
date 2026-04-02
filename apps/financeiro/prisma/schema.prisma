@@ -47,6 +47,7 @@ model User {
   personalAllocationGoals PersonalAllocationGoal[]
   userPlan               UserPlan?
   userBillingProfile     UserBillingProfile?
+  tenantSubscription     TenantSubscription?
 }
 
 model UserPlan {
@@ -66,6 +67,37 @@ model UserBillingProfile {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Assinatura Stripe (tenantId = userId no Financeiro).
+model TenantSubscription {
+  id                   String    @id @default(cuid())
+  tenantId             String    @unique @map("tenant_id")
+  stripeCustomerId     String?   @map("stripe_customer_id")
+  stripeSubscriptionId String?   @unique @map("stripe_subscription_id")
+  stripePriceId        String?   @map("stripe_price_id")
+  planCode             String    @default("free") @map("plan_code")
+  status               String    @default("inactive") @map("status")
+  currentPeriodEnd     DateTime? @map("current_period_end")
+  cancelAtPeriodEnd    Boolean   @default(false) @map("cancel_at_period_end")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  user                 User      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_subscriptions")
+}
+
+model StripeWebhookEvent {
+  id            String    @id @default(cuid())
+  stripeEventId String    @unique @map("stripe_event_id")
+  eventType     String    @map("event_type")
+  payloadJson   Json      @map("payload_json")
+  processed     Boolean   @default(false)
+  processedAt   DateTime? @map("processed_at")
+  errorMessage  String?   @map("error_message")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@map("stripe_webhook_events")
 }
 
 enum MembershipRole {

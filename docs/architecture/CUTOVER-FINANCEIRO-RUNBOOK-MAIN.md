@@ -184,13 +184,15 @@ bash scripts/ops/validate-routes.sh
 
 ## 2.2 Stripe — webhook (checkpoint)
 
-**Estado no repositório:** existem implementações espelhadas em **`src/app/api/billing/webhook`** (portal) e **`apps/financeiro/src/app/api/billing/webhook`** (app).
+**Estado no repositório:** `POST /api/billing/webhook` no **portal** (`src/app/api/billing/webhook`) e no **app** (`apps/financeiro/src/app/api/billing/webhook`).
 
-**Decisão (transitória):** manter **`POST /api/billing/webhook` na raiz do portal** como endpoint **ativo no [Stripe Dashboard](https://dashboard.stripe.com/webhooks)** até haver janela para apontar o webhook **só** para o host do `apps/financeiro` e validar assinatura + persistência em produção.
+**Com `NEXT_PUBLIC_FINANCEIRO_APP_URL` definido no portal:** a rota na raiz é um **proxy HTTP** para `{APP_URL}/api/billing/webhook`. A assinatura e o corpo brutos são reencaminhados; **processamento canónico** (incl. idempotência e `tenant_subscription`) corre **só no app**. O URL registado no [Stripe Dashboard](https://dashboard.stripe.com/webhooks) pode continuar a ser o do portal — **não** é obrigatório mudar no mesmo deploy.
 
-**Quando migrar:** atualizar a URL do endpoint no Stripe, fazer smoke de `customer.subscription.*` / `checkout.session.completed`, e só então desativar ou remover a rota duplicada que deixar de ser usada.
+**Sem essa env** (ex.: dev só com portal): a raiz mantém o handler **legado** (`parseWebhookEvent` + `UserPlan` / perfil na BD raiz).
 
-**Não** duplicar processamento ativo em dois URLs sem coordenação (risco de eventos duplicados).
+**Quando quiseres URL única no Stripe:** apontar o endpoint diretamente ao host do `apps/financeiro`, smoke de `customer.subscription.*` / `checkout.session.completed`, e validar; a rota proxy do portal pode ficar como redundância ou ser removida depois.
+
+**Não** registares dois endpoints Stripe ativos para o mesmo fluxo Financeiro sem coordenação (risco de eventos duplicados).
 
 ---
 

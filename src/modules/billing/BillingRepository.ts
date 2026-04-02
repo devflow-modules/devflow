@@ -4,7 +4,7 @@
  */
 
 import type { PlanId } from "./plans";
-import { prisma } from "@/modules/financeiro/lib/db";
+import { prisma } from "@/lib/prisma-root";
 
 export async function getUserPlan(userId: string): Promise<PlanId> {
   const row = await prisma.userPlan.findUnique({

@@ -1,6 +1,6 @@
 # Financeiro — documentação
 
-**Apps:** `apps/financeiro` (Next dedicado) · módulo no site em `src/modules/financeiro` e rotas `/ferramentas/financeiro/*`.
+**Apps:** `apps/financeiro` (Next dedicado — **fonte de verdade operacional**). Na raiz do monorepo, `src/modules/financeiro` cobre só **aquisição** (landing, leads, ferramentas públicas) e integrações mínimas; rotas operacionais e auth de produto vivem no app.
 
 ---
 

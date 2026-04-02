@@ -116,7 +116,8 @@ export function getRouteGovernance(pathname: string): RouteGovernanceEntry | nul
     return {
       owner: "financeiro-app",
       phase: 2,
-      migrationNote: "Webhook Stripe na raiz — apontar URL no Stripe ao host definitivo quando cortar",
+      migrationNote:
+        "Com NEXT_PUBLIC_FINANCEIRO_APP_URL: proxy HTTP para o app (lógica canónica + idempotência). Opcional: mudar só a URL no Stripe para o host do app.",
     };
   }
 
@@ -124,7 +125,8 @@ export function getRouteGovernance(pathname: string): RouteGovernanceEntry | nul
     return {
       owner: "financeiro-app",
       phase: 3,
-      migrationNote: "Checkout/customer-portal só no app (Bloco D); webhook permanece em /api/billing/webhook se necessário",
+      migrationNote:
+        "Checkout/customer-portal só no app; webhook na raiz encaminha ao app quando a env do app está definida",
     };
   }
 

@@ -4,7 +4,7 @@
  * Não substitui UserPlan — UserPlan é a fonte do plano atual.
  */
 
-import { prisma } from "@/modules/financeiro/lib/db";
+import { prisma } from "@/lib/prisma-root";
 
 export type BillingProfile = {
   id: string;

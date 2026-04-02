@@ -13,7 +13,7 @@ import {
 } from "@/modules/billing/pricingPresentation";
 import { upgradeReturnStateFromSearchParams } from "@/modules/billing/billingUiState";
 import { financeiroAppUrl } from "@/lib/financeiro-app-url";
-import { FINANCEIRO_DASHBOARD_PATH } from "@/modules/financeiro/navigation/constants";
+import { FINANCEIRO_DASHBOARD_PATH } from "@devflow/financeiro-routes";
 
 type Props = {
   initialSuccess: boolean;

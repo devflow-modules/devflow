@@ -17,10 +17,7 @@ import {
   DEVFLOW_PRODUCT_CATALOG,
   PRODUTOS_HUB_PATH,
 } from "@/lib/devflow-product-catalog";
-import {
-  FINANCEIRO_BASE_PATH,
-  FINANCEIRO_DEMO_PATH,
-} from "@/modules/financeiro/navigation/constants";
+import { FINANCEIRO_BASE_PATH, FINANCEIRO_DEMO_PATH } from "@devflow/financeiro-routes";
 import { cn } from "@/lib/utils";
 
 const COMO_FUNCIONA_PATH = "/como-funciona";

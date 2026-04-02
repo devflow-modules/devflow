@@ -58,11 +58,11 @@ Orquestração leve no **dashboard** + `localStorage` (`financeiro_onboarding_st
 
 ## Demo pública (sem login)
 
-- **Rota:** `/ferramentas/financeiro/demo` — não exige sessão; o `middleware-client` do Financeiro não redireciona anônimos desse path para `/auth`.
-- **Dados:** snapshot fictício em `src/modules/financeiro/demo/buildDemoDashboardBundle.ts` alimenta os mesmos motores (score, insights, checklist).
-- **Shell:** a demo **não** entra na lista `APP_ROUTES` do `layout.tsx` do Financeiro (sem `HouseholdProvider` / `AppShell`), evitando `/api/me` sem login.
-- **Analytics:** `financeiro_demo_opened` e `financeiro_demo_converted_to_signup` (com `mode: "demo"`); com `isDemo` nos painéis, não disparamos eventos de uso “real” (ex.: score/insight/task viewed).
-- **Conversão:** CTAs levam a `/ferramentas/financeiro/auth?next=…` (dashboard autenticado).
+- **Rota canónica (app):** `apps/financeiro` — `/ferramentas/financeiro/demo` (`demo/page.tsx`); na raiz do portal a mesma URL costuma ser **redirect** de aquisição para o host do app.
+- **Dados:** em ambiente real, dados vêm do utilizador ou do **seed de demo** (`apps/financeiro/scripts/seed-financeiro-demo.ts`, helpers em `demo-seed/`). Os motores (score, insights, checklist) correm sobre dados do mês no app.
+- **Shell / auth:** middleware do app trata paths públicos conforme implementação atual; painéis autenticados usam `HouseholdProvider` / APIs do app.
+- **Analytics:** eventos de demo e conversão documentados em [`FINANCEIRO-PRODUCT-ANALYTICS.md`](./FINANCEIRO-PRODUCT-ANALYTICS.md).
+- **Conversão:** CTAs levam a auth no host canónico (`/ferramentas/financeiro/auth?next=…`).
 
 ## Storage (cliente)
 

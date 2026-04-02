@@ -23,7 +23,7 @@
 | Arquivo | Função |
 |---------|--------|
 | `src/middleware.ts` | Delega para updateSession (Supabase) |
-| `src/modules/financeiro/lib/supabase/middleware-client.ts` | Protege /ferramentas/financeiro/* |
+| `src/lib/supabase/middleware-client.ts` | Sessão Supabase + redirect da landing Financeiro autenticado (`/ferramentas/financeiro`) |
 | `src/app/api/_helpers/auth.ts` | requireHouseholdMembership, requireSessionOnly |
 | `apps/financeiro/src/app/api/_helpers/auth.ts` | idem |
 | `packages/auth-core/src/getAuthUser.ts` | Helper genérico Supabase |

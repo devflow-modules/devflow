@@ -1,16 +1,22 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { requireFeature } from "../featureGuard";
 import * as BillingRepository from "../BillingRepository";
+import * as tenantSubscriptionService from "../tenantSubscriptionService";
 
 vi.mock("../BillingRepository", () => ({
   getUserPlan: vi.fn(),
   setUserPlan: vi.fn(),
 }));
 
+vi.mock("../tenantSubscriptionService", () => ({
+  findByTenantId: vi.fn(),
+}));
+
 describe("featureGuard", () => {
   const userId = "user-1";
 
   beforeEach(() => {
+    vi.mocked(tenantSubscriptionService.findByTenantId).mockResolvedValue(null);
     vi.mocked(BillingRepository.getUserPlan).mockResolvedValue("FREE");
     vi.mocked(BillingRepository.setUserPlan).mockResolvedValue(undefined);
   });

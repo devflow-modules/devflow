@@ -1,11 +1,18 @@
 /**
- * Webhook Stripe na raiz do portal — pode permanecer aqui enquanto o endpoint no Stripe apontar para este URL.
- * Checkout/customer-portal vivem no app Financeiro (`apps/financeiro`). Ao mudar o webhook no dashboard Stripe,
- * use a rota equivalente no host do app (Bloco D / operações).
+ * Webhook Stripe na raiz do portal.
+ *
+ * Com `NEXT_PUBLIC_FINANCEIRO_APP_URL` definido: **proxy transparente** para
+ * `POST {APP_URL}/api/billing/webhook` — processamento canónico (idempotência,
+ * tenant_subscription) só em `apps/financeiro`. O URL no Stripe Dashboard pode
+ * permanecer no portal até migrares para o host do app.
+ *
+ * Sem essa env (legado / dev só portal): valida assinatura e aplica a lógica
+ * antiga (`parseWebhookEvent` + UserPlan na raiz).
  */
 import type Stripe from "stripe";
 import { NextRequest } from "next/server";
 import { validateWebhook, parseWebhookEvent } from "@devflow/billing-core";
+import { financeiroAppUrl } from "@/lib/financeiro-app-url";
 import { BillingService } from "@/modules/billing/BillingService";
 import * as BillingProfileRepository from "@/modules/billing/BillingProfileRepository";
 import {
@@ -20,6 +27,38 @@ import {
 
 export const dynamic = "force-dynamic";
 
+const FORWARD_TIMEOUT_MS = 25_000;
+
+function financeiroWebhookForwardTarget(): string | null {
+  const raw = process.env.NEXT_PUBLIC_FINANCEIRO_APP_URL?.trim();
+  if (!raw) return null;
+  const path = financeiroAppUrl("/api/billing/webhook");
+  if (!path.startsWith("http://") && !path.startsWith("https://")) return null;
+  return path;
+}
+
+async function forwardToFinanceiroApp(
+  targetUrl: string,
+  signature: string,
+  payload: string
+): Promise<Response> {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), FORWARD_TIMEOUT_MS);
+  try {
+    return await fetch(targetUrl, {
+      method: "POST",
+      headers: {
+        "stripe-signature": signature,
+        "Content-Type": "application/json",
+      },
+      body: payload,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 export async function POST(request: NextRequest) {
   const signature = request.headers.get("stripe-signature");
   if (!signature) {
@@ -31,6 +70,24 @@ export async function POST(request: NextRequest) {
     payload = await request.text();
   } catch {
     return new Response("Invalid body", { status: 400 });
+  }
+
+  const forwardUrl = financeiroWebhookForwardTarget();
+  if (forwardUrl) {
+    try {
+      const res = await forwardToFinanceiroApp(forwardUrl, signature, payload);
+      const text = await res.text();
+      return new Response(text, { status: res.status });
+    } catch (err) {
+      const aborted = err instanceof Error && err.name === "AbortError";
+      console.error(
+        "[billing/webhook] Forward to Financeiro app failed",
+        aborted ? "timeout" : err
+      );
+      return new Response(aborted ? "Webhook forward timeout" : "Webhook forward error", {
+        status: 502,
+      });
+    }
   }
 
   let event: Stripe.Event;
@@ -47,9 +104,6 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // -----------------------------------------------------------------------
-    // checkout.session.completed — pagamento confirmado, ativar plano
-    // -----------------------------------------------------------------------
     if (parsed.type === "checkout.session.completed" && parsed.userId && parsed.planId) {
       await BillingService.setUserPlan(parsed.userId, parsed.planId);
 
@@ -62,38 +116,25 @@ export async function POST(request: NextRequest) {
       }
 
       trackPaymentCompleted({ userId: parsed.userId, planId: parsed.planId });
-    }
-
-    // -----------------------------------------------------------------------
-    // customer.subscription.updated — upgrade, downgrade, cancelamento agendado ou reativação
-    // -----------------------------------------------------------------------
-    else if (parsed.type === "customer.subscription.updated" && parsed.userId) {
-      // Cancelamento agendado para fim do período (cancel_at_period_end = true)
-      // Plano permanece ativo até o fim do período — NÃO reverter para FREE agora.
-      // O evento customer.subscription.deleted chegará quando expirar de fato.
+    } else if (parsed.type === "customer.subscription.updated" && parsed.userId) {
       if (parsed.cancelAtPeriodEnd === true) {
         trackSubscriptionPendingCancellation({ userId: parsed.userId });
         console.info("[billing/webhook] Subscription scheduled to cancel at period end", {
           userId: parsed.userId,
           subscriptionId: parsed.subscriptionId,
         });
-      }
-      // Reativação — usuário cancelou o cancelamento antes do fim do período
-      else if (parsed.cancelAtPeriodEnd === false && !parsed.planId) {
+      } else if (parsed.cancelAtPeriodEnd === false && !parsed.planId) {
         trackSubscriptionReactivated({ userId: parsed.userId });
         console.info("[billing/webhook] Subscription reactivated", {
           userId: parsed.userId,
           subscriptionId: parsed.subscriptionId,
         });
-      }
-      // Upgrade ou downgrade de plano via portal
-      else if (parsed.planId) {
+      } else if (parsed.planId) {
         await BillingService.setUserPlan(parsed.userId, parsed.planId);
         trackPaymentCompleted({ userId: parsed.userId, planId: parsed.planId });
         trackSubscriptionUpdatedPortal({ userId: parsed.userId, planId: parsed.planId });
       }
 
-      // Persistir customer/subscription IDs independente do sub-caso
       if (parsed.stripeCustomerId && parsed.subscriptionId) {
         await BillingProfileRepository.upsertProfile(
           parsed.userId,
@@ -103,24 +144,12 @@ export async function POST(request: NextRequest) {
       } else if (parsed.subscriptionId) {
         await BillingProfileRepository.updateSubscriptionId(parsed.userId, parsed.subscriptionId);
       }
-    }
-
-    // -----------------------------------------------------------------------
-    // customer.subscription.deleted — cancelamento efetivo, reverter para FREE
-    // (dispara após cancel_at_period_end ou cancelamento imediato)
-    // -----------------------------------------------------------------------
-    else if (parsed.type === "customer.subscription.deleted" && parsed.userId) {
+    } else if (parsed.type === "customer.subscription.deleted" && parsed.userId) {
       await BillingService.setUserPlan(parsed.userId, "FREE");
       await BillingProfileRepository.clearSubscriptionId(parsed.userId);
       trackSubscriptionCancelled({ userId: parsed.userId });
       trackSubscriptionCancelledPortal({ userId: parsed.userId });
-    }
-
-    // -----------------------------------------------------------------------
-    // customer.updated — cliente atualizou dados de pagamento/email no portal
-    // Não altera plano; útil para rastreamento e sincronização futura.
-    // -----------------------------------------------------------------------
-    else if (parsed.type === "customer.updated" && parsed.stripeCustomerId) {
+    } else if (parsed.type === "customer.updated" && parsed.stripeCustomerId) {
       trackCustomerUpdated({ stripeCustomerId: parsed.stripeCustomerId });
       console.info("[billing/webhook] Customer updated", {
         stripeCustomerId: parsed.stripeCustomerId,

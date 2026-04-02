@@ -10,11 +10,12 @@ Property 'whatsappConversation' does not exist on type 'PrismaClient<...>'
 
 ## Solução implementada
 
-### 1. Prisma root (schema principal)
+### 1. Prisma root (schema principal do portal)
 
-- **`src/modules/financeiro/lib/db.ts`**: exporta `prisma` tipado como `PrismaRoot` (`any`) e reexporta o tipo.
-- Todos os consumidores de `prisma` (whatsapp-inbox, whatsapp-onboarding, etc.) passam a usar esse client tipado de forma permissiva.
-- **Importar sempre de** `@/modules/financeiro/lib/db`, nunca de `@prisma/client` para o client de runtime.
+- **`src/lib/prisma-root.ts`**: exporta `prisma` tipado como `PrismaRoot` (`any`) para o schema raiz do monorepo (WhatsApp, billing portal, revenue, conversas admin, etc.).
+- Todos os consumidores desse client no **portal** importam de `@/lib/prisma-root`.
+- **Importar sempre de** `@/lib/prisma-root`, nunca de `@prisma/client` para o client de runtime do schema raiz.
+- O produto **Financeiro** canónico usa o Prisma gerado em **`apps/financeiro`** (`@/modules/financeiro/lib/db` dentro desse app).
 
 ### 2. Enums do schema root
 
@@ -33,7 +34,7 @@ Property 'whatsappConversation' does not exist on type 'PrismaClient<...>'
 
 ## Checklist para novos arquivos
 
-- [ ] Usar `prisma` de `@/modules/financeiro/lib/db` para o schema root.
+- [ ] Usar `prisma` de `@/lib/prisma-root` para o schema raiz no portal.
 - [ ] Evitar importar enums de `@prisma/client`; definir localmente se necessário.
 - [ ] Usar `PrismaRoot` para parâmetros de funções que recebem o client root.
 - [ ] Rodar `pnpm run build` localmente antes do deploy.

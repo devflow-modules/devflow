@@ -7,7 +7,7 @@ const prismaMock = vi.hoisted(() => ({
   whatsappInboxMessage: { findUnique: vi.fn() },
 }));
 
-vi.mock("@/modules/financeiro/lib/db", () => ({
+vi.mock("@/lib/prisma-root", () => ({
   prisma: prismaMock,
 }));
 

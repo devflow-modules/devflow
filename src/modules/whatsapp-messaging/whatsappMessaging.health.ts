@@ -1,4 +1,4 @@
-import { prisma } from "@/modules/financeiro/lib/db";
+import { prisma } from "@/lib/prisma-root";
 import { getInboxPersistenceHealth } from "@/modules/whatsapp-inbox";
 import { loadMetaOnboardingEnv } from "@/modules/whatsapp-onboarding/whatsappOnboarding.env";
 import { getOnboardingStateRepository } from "@/modules/whatsapp-onboarding/whatsappOnboarding.persistence";

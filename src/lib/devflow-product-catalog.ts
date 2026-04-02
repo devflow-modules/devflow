@@ -1,7 +1,4 @@
-import {
-  FINANCEIRO_BASE_PATH,
-  FINANCEIRO_DEMO_PATH,
-} from "@/modules/financeiro/navigation/constants";
+import { FINANCEIRO_BASE_PATH, FINANCEIRO_DEMO_PATH } from "@devflow/financeiro-routes";
 
 export type DevflowProductId = "financeiro" | "whatsapp_platform" | "investigamais" | "funklab";
 

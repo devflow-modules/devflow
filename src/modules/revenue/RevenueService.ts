@@ -6,7 +6,7 @@
  *   - growthMetrics (em memória) para eventos de billing
  */
 
-import { prisma } from "@/modules/financeiro/lib/db";
+import { prisma } from "@/lib/prisma-root";
 import { getCounters } from "@/analytics/growth/growthMetrics";
 import { PLAN_PRICE } from "./revenuePlans";
 import type {

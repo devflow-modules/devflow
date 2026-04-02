@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { trackBillingCheckoutStarted, trackPricingPlanCtaClick } from "@/lib/analytics";
 import { financeiroAppUrl } from "@/lib/financeiro-app-url";
 import { trackUpgradeClicked } from "@/modules/billing/billingAnalytics";
-import { FINANCEIRO_AUTH_PATH } from "@/modules/financeiro/navigation/constants";
+import { FINANCEIRO_AUTH_PATH } from "@devflow/financeiro-routes";
 
 const checkoutEndpoint = () => financeiroAppUrl("/api/billing/checkout");
 const authEntryUrl = () => financeiroAppUrl(FINANCEIRO_AUTH_PATH);
