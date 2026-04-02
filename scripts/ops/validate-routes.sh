@@ -8,7 +8,7 @@ set -Eeuo pipefail
 #   BASE_URL="https://devflowlabs.com.br" bash scripts/ops/validate-routes.sh
 #
 # Optional envs:
-#   APP_URL, FINANCEIRO_APP_URL, PROTECTED_TEST_PATH, AUTH_REDIRECT_PREFIX
+#   APP_URL, FINANCEIRO_APP_URL, PROTECTED_TEST_PATH, AUTH_REDIRECT_PREFIX (default: auth no host do app se BASE_URL ≠ FINANCEIRO_APP_URL)
 #   AUTH_EXPECT_REDIRECT=true|false   FAIL_FAST=true|false
 #   STRICT_MODE=true|false            (Bloco D: sem cadeia de redirect em 200 público; hop protegido ≠ 200)
 #   STRICT_MAX_PUBLIC_REDIRECTS=0     (em STRICT_MODE, permite N redirects até 200 — ex.: 1 para slash)
@@ -46,7 +46,6 @@ MAX_TRACE_HOPS="${MAX_TRACE_HOPS:-15}"
 SKIP_FINANCEIRO_DEMO_CHECK="${SKIP_FINANCEIRO_DEMO_CHECK:-false}"
 
 PROTECTED_TEST_PATH="${PROTECTED_TEST_PATH:-/ferramentas/financeiro/dashboard}"
-AUTH_REDIRECT_PREFIX="${AUTH_REDIRECT_PREFIX:-${BASE_URL%/}/ferramentas/financeiro/auth}"
 
 RED=""
 GREEN=""
@@ -128,6 +127,15 @@ financeiro_validate_separate_host() {
   [[ "$b" != "$f" ]]
 }
 
+# Prefixo canónico de /auth para logs e overrides; com hosts separados = host do app Financeiro.
+if [[ -z "${AUTH_REDIRECT_PREFIX:-}" ]]; then
+  if financeiro_validate_separate_host; then
+    AUTH_REDIRECT_PREFIX="${FINANCEIRO_APP_URL%/}/ferramentas/financeiro/auth"
+  else
+    AUTH_REDIRECT_PREFIX="${BASE_URL%/}/ferramentas/financeiro/auth"
+  fi
+fi
+
 fetch_headers() {
   local url="$1"
   curl -sS -I -L --max-redirs "$CURL_FOLLOW_MAX" -o /dev/null -w \
@@ -148,17 +156,28 @@ extract_location() {
   awk 'BEGIN{IGNORECASE=1} /^Location:/ {sub(/\r$/, "", $2); print $2; exit}'
 }
 
+# Segundo arg = origem para Location relativo (evita resolver hop do app contra BASE_URL do portal).
 resolve_location_abs() {
   local loc="$1"
+  local origin_base="${2:-}"
   if [[ "$loc" =~ ^https?:// ]]; then
     printf "%s" "$loc"
     return
   fi
   if [[ "$loc" == /* ]]; then
-    printf "%s%s" "${BASE_URL%/}" "$loc"
+    local base="${origin_base:-$BASE_URL}"
+    printf "%s%s" "${base%/}" "$loc"
     return
   fi
   printf "%s" "$loc"
+}
+
+# Origem da URL pedida (para resolver Location /path contra o host certo).
+redirect_origin_from_url() {
+  local from_url="$1"
+  local o
+  o="$(get_origin "$from_url")"
+  [[ -n "$o" ]] && printf "%s" "$o" || printf "%s" "${BASE_URL}"
 }
 
 # Origem (scheme + host[:port]) da URL atual — para resolver Location relativo na cadeia
@@ -322,7 +341,7 @@ assert_redirect_to() {
   headers="$(fetch_first_hop "$from_url")"
   local first_location
   first_location="$(printf "%s\n" "$headers" | extract_location)"
-  first_location="$(resolve_location_abs "$first_location")"
+  first_location="$(resolve_location_abs "$first_location" "$(redirect_origin_from_url "$from_url")")"
 
   local expected_norm first_norm
   expected_norm="$(trim_trailing_slash "$(resolve_location_abs "$expected_location")")"
@@ -366,7 +385,7 @@ assert_redirect_prefix() {
   headers="$(fetch_first_hop "$from_url")"
   local first_location
   first_location="$(printf "%s\n" "$headers" | extract_location)"
-  first_location="$(resolve_location_abs "$first_location")"
+  first_location="$(resolve_location_abs "$first_location" "$(redirect_origin_from_url "$from_url")")"
   expected_prefix="$(resolve_location_abs "$expected_prefix")"
 
   if [[ -z "$first_location" ]]; then
@@ -395,7 +414,7 @@ assert_query_preserved() {
   headers="$(fetch_first_hop "$from_url")"
   local first_location
   first_location="$(printf "%s\n" "$headers" | extract_location)"
-  first_location="$(resolve_location_abs "$first_location")"
+  first_location="$(resolve_location_abs "$first_location" "$(redirect_origin_from_url "$from_url")")"
 
   if [[ -z "$first_location" ]]; then
     err "$label -> expected redirect preserving query [$expected_query_fragment], but no Location header found"
