@@ -112,3 +112,11 @@ Exemplos já previstos no adapter:
 - `finance.error` (para erros de service/handlers)
 
 Novas ações (ex.: `archived`, `restored`) seguem o mesmo padrão.
+
+---
+
+## Ver também (portal × app)
+
+Padrão da plataforma (rotas, governança, CI, validação pós-deploy, cutover): `docs/architecture/PLATFORM-STANDARD.md`.
+
+Cutover e dono de rotas Financeiro vs portal: `docs/architecture/EPICO-FINANCEIRO-CUTOVER.md`.

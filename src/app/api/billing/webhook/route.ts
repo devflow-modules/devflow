@@ -1,3 +1,8 @@
+/**
+ * Webhook Stripe na raiz do portal — pode permanecer aqui enquanto o endpoint no Stripe apontar para este URL.
+ * Checkout/customer-portal vivem no app Financeiro (`apps/financeiro`). Ao mudar o webhook no dashboard Stripe,
+ * use a rota equivalente no host do app (Bloco D / operações).
+ */
 import type Stripe from "stripe";
 import { NextRequest } from "next/server";
 import { validateWebhook, parseWebhookEvent } from "@devflow/billing-core";

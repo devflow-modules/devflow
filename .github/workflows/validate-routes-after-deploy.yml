@@ -1,0 +1,141 @@
+# Validação contra URLs reais após deploy (smoke de edge routing).
+# Não substitui o gate de governança em PR (routing-governance-check.yml).
+#
+# URLs: defina em GitHub → Settings → Variables (repo):
+#   ROUTE_VALIDATE_BASE_URL          (ex.: https://devflowlabs.com.br)
+#   ROUTE_VALIDATE_FINANCEIRO_APP_URL (ex.: https://financeiro.devflowlabs.com.br)
+#   ROUTE_VALIDATE_SKIP_FINANCEIRO_DEMO = true  (opcional, só se /ferramentas/financeiro/demo ainda 404 no portal)
+# Se vazias, usam os defaults abaixo no step (ajuste se o produto mudar).
+#
+# Gate “deploy limpo”: STRICT_MODE=true + exit 0 do script. Webhook Stripe pode ficar em /api/billing/webhook na raiz
+# até alterar o endpoint no dashboard Stripe (ver runbook).
+#
+# Gatilho: push em main pode correr antes do deploy terminar — para acoplamento
+# fino com Vercel, use workflow_dispatch após deploy ou repository_dispatch.
+#
+# Checklist operacional:
+# - workflow_dispatch: inputs opcionais sobrepõem URLs; strict/trace configuráveis.
+# - Variáveis de repo em falta: API devolve vazio → bash usa DEFAULT_BASE / DEFAULT_FINANCEIRO no step Smoke.
+# - Após deploy do portal (308 + demo): correr este workflow e esperar exit 0.
+name: Validate routes (post-deploy)
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "URL base do portal (vazio = vars ou default)"
+        required: false
+        type: string
+        default: ""
+      financeiro_app_url:
+        description: "URL do app Financeiro (vazio = vars ou default)"
+        required: false
+        type: string
+        default: ""
+      strict_mode:
+        description: "STRICT_MODE (recomendado em produção)"
+        required: false
+        type: boolean
+        default: true
+      trace_redirects:
+        description: "TRACE_REDIRECTS (debug hop-a-hop nos logs)"
+        required: false
+        type: boolean
+        default: false
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: validate-routes-post-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-routes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      # Variáveis de repositório via API (evita ${{ vars.NOME }} — o language service marca como inválido).
+      - name: Carregar variáveis ROUTE_VALIDATE_* (repo)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            async function getVar(name) {
+              try {
+                const { data } = await github.rest.actions.getRepoVariable({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name,
+                });
+                return (data && data.value) ? String(data.value) : "";
+              } catch (e) {
+                const s = e?.status ?? e?.response?.status;
+                if (s === 404) return "";
+                throw e;
+              }
+            }
+            const base = await getVar("ROUTE_VALIDATE_BASE_URL");
+            const fin = await getVar("ROUTE_VALIDATE_FINANCEIRO_APP_URL");
+            const skip = await getVar("ROUTE_VALIDATE_SKIP_FINANCEIRO_DEMO");
+            core.exportVariable("ROUTE_VALIDATE_BASE_URL", base);
+            core.exportVariable("ROUTE_VALIDATE_FINANCEIRO_APP_URL", fin);
+            core.exportVariable("ROUTE_VALIDATE_SKIP_FINANCEIRO_DEMO", skip);
+
+      - name: Smoke — rotas, redirects e auth (STRICT_MODE, curl)
+        env:
+          INPUT_BASE_URL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.base_url || '' }}
+          INPUT_FINANCEIRO_URL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.financeiro_app_url || '' }}
+          INPUT_STRICT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.strict_mode || true }}
+          INPUT_TRACE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.trace_redirects || false }}
+        run: |
+          set -euo pipefail
+
+          DEFAULT_BASE="https://devflowlabs.com.br"
+          DEFAULT_FINANCEIRO="https://financeiro.devflowlabs.com.br"
+
+          BASE_RESOLVED="${INPUT_BASE_URL:-${ROUTE_VALIDATE_BASE_URL:-$DEFAULT_BASE}}"
+          FIN_RESOLVED="${INPUT_FINANCEIRO_URL:-${ROUTE_VALIDATE_FINANCEIRO_APP_URL:-$DEFAULT_FINANCEIRO}}"
+
+          STRICT_MODE="${INPUT_STRICT}"
+          TRACE_REDIRECTS="${INPUT_TRACE}"
+
+          echo "BASE_URL=$BASE_RESOLVED"
+          echo "FINANCEIRO_APP_URL=$FIN_RESOLVED"
+          echo "STRICT_MODE=$STRICT_MODE TRACE_REDIRECTS=$TRACE_REDIRECTS"
+
+          export BASE_URL="$BASE_RESOLVED"
+          export FINANCEIRO_APP_URL="$FIN_RESOLVED"
+          export STRICT_MODE
+          export TRACE_REDIRECTS
+          export STRICT_MAX_PUBLIC_REDIRECTS=1
+          export OUTPUT_JSON=true
+          export PERF_CHECK=true
+          export PERF_MAX_FINANCEIRO_LANDING=3
+          export FAIL_FAST=false
+
+          if [[ "${ROUTE_VALIDATE_SKIP_FINANCEIRO_DEMO:-}" == "true" ]]; then
+            export SKIP_FINANCEIRO_DEMO_CHECK=true
+            echo "SKIP_FINANCEIRO_DEMO_CHECK=true (var ROUTE_VALIDATE_SKIP_FINANCEIRO_DEMO)"
+          fi
+
+          bash scripts/ops/validate-routes.sh
+
+      - name: Resumo — gate pós-deploy
+        if: always()
+        run: |
+          {
+            echo "## Validate routes (post-deploy)"
+            echo ""
+            echo "| Item | Valor |"
+            echo "|------|--------|"
+            echo "| STRICT_MODE | \`true\` |"
+            echo "| Falha do job | exit code ≠ 0 do script = deploy/rota a corrigir |"
+            echo "| Webhook Stripe | manter \`POST /api/billing/webhook\` **na raiz** até trocar URL no [Stripe Dashboard](https://dashboard.stripe.com/webhooks) |"
+            echo ""
+            echo "Variáveis: \`ROUTE_VALIDATE_BASE_URL\`, \`ROUTE_VALIDATE_FINANCEIRO_APP_URL\`, opcional \`ROUTE_VALIDATE_SKIP_FINANCEIRO_DEMO=true\` se a demo 404 no portal."
+          } >> "$GITHUB_STEP_SUMMARY"

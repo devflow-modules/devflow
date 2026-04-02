@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Search, ArrowLeft } from "lucide-react";
+import { Search } from "lucide-react";
+import { ProductPageBackLink } from "@/components/products/product-page-back-link";
 import { DemoMicroStory } from "@/components/demo/DemoMicroStory";
 import { demoEyebrowClass } from "@/components/demo/demoUi";
 import { cn } from "@/lib/utils";
@@ -45,13 +46,7 @@ export default function InvestigaMaisProdutoPage() {
         aria-labelledby="investiga-hero-heading"
       >
         <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <Link
-            href="/produtos"
-            className="inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="size-4 shrink-0" aria-hidden />
-            Voltar aos produtos
-          </Link>
+          <ProductPageBackLink className="mb-2" />
           <div className={cn(demoEyebrowClass, "mt-6")}>
             <Search className="size-3.5 text-primary" aria-hidden />
             Produto · Inteligência em CNPJ

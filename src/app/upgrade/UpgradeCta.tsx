@@ -4,9 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { trackBillingCheckoutStarted, trackPricingPlanCtaClick } from "@/lib/analytics";
+import { financeiroAppUrl } from "@/lib/financeiro-app-url";
 import { trackUpgradeClicked } from "@/modules/billing/billingAnalytics";
+import { FINANCEIRO_AUTH_PATH } from "@/modules/financeiro/navigation/constants";
 
-const AUTH_PATH = "/ferramentas/financeiro/auth";
+const checkoutEndpoint = () => financeiroAppUrl("/api/billing/checkout");
+const authEntryUrl = () => financeiroAppUrl(FINANCEIRO_AUTH_PATH);
 
 type PlanIdPaid = "PRO" | "TEAM";
 
@@ -41,7 +44,7 @@ export function UpgradeCta({
     trackUpgradeClicked({ plan: planId });
     setPhase("loading");
     try {
-      const res = await fetch("/api/billing/checkout", {
+      const res = await fetch(checkoutEndpoint(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ planId }),
@@ -113,7 +116,7 @@ export function UpgradeCta({
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
           <p>{error}</p>
           {error.includes("login") ? (
-            <Link href={AUTH_PATH} className="mt-2 inline-block font-semibold underline">
+            <Link href={authEntryUrl()} className="mt-2 inline-block font-semibold underline">
               Ir para login
             </Link>
           ) : null}

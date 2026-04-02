@@ -20,6 +20,7 @@ const routes: { path: string; changefreq: string; priority: string }[] = [
   { path: "/produtos", changefreq: "weekly", priority: "0.9" },
   { path: "/ferramentas", changefreq: "weekly", priority: "0.9" },
   { path: "/ferramentas/financeiro", changefreq: "weekly", priority: "0.85" },
+  { path: "/ferramentas/financeiro/demo", changefreq: "weekly", priority: "0.75" },
   { path: "/ferramentas/divisao-de-contas", changefreq: "weekly", priority: "0.8" },
   { path: "/ferramentas/consulta-cnpj", changefreq: "weekly", priority: "0.8" },
   { path: "/contato", changefreq: "monthly", priority: "0.7" },

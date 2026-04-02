@@ -1,0 +1,84 @@
+# Política de roteamento — monorepo DevFlow
+
+**Status:** obrigatória para PRs que criam ou movem rotas.  
+**Índice plataforma (apps, validação, deploy):** `docs/architecture/PLATFORM-STANDARD.md`  
+**Matriz operacional:** `docs/site/MATRIZ-DECISAO-ROTAS.md`  
+**Plano de execução (fases):** `docs/architecture/ROUTING_MIGRATION_EXECUCAO.md`  
+**Registro em código:** `src/lib/routing-governance.ts`
+
+---
+
+## 1. Objetivo
+
+Evitar que o repositório volte ao estado de **super-app na raiz** sem dono claro: toda rota pública ou operacional tem **um app dono**, uma **fase de migração** conhecida e, quando aplicável, caminho de **saída do legado**.
+
+---
+
+## 2. Regra crítica (gate de PR)
+
+### Nenhuma rota nova sem dono definido
+
+Antes de mergear código que adiciona `page.tsx`, `route.ts` ou redirect:
+
+| Pergunta | Obrigatório |
+|----------|-------------|
+| **Qual app dono?** (`portal` raiz, `apps/financeiro`, `apps/whatsapp-platform`, …) | Sim |
+| **Qual domínio/host em produção?** (mesmo monorepo pode ter vários deploys) | Sim, ou “ainda não definido” + issue link |
+| **Já existe rota equivalente em outro app?** | Sim — se sim, justificar ou redirecionar |
+| **É marketing, produto autenticado ou API de produto?** | Sim |
+
+Se **não** der para responder → **PR não deve ser mergeado** até atualizar esta política, a matriz ou o registro `routing-governance.ts`.
+
+**Checklist no PR:** usar template em `.github/pull_request_template.md`.
+
+---
+
+## 3. Separação por domínio (alvo)
+
+| Camada | Onde deve morar | Exemplos |
+|--------|-----------------|----------|
+| **Marketing / aquisição / SEO** | Portal (`src/app` raiz) | `/`, `/produtos`, `/precos`, `/blog`, landings, `/demo`, legal |
+| **Landing pública de produto** | Portal (narrativa + CTA) | `/produtos/*`, `/ferramentas/financeiro` (só capa), `/ferramentas/financeiro/demo` |
+| **App autenticado do produto** | `apps/*` correspondente | Dashboard, settings, billing do produto, inbox WhatsApp |
+| **APIs de dados do produto** | Mesmo app que consome o dado | Evitar API Financeiro “só na raiz” após cutover |
+
+---
+
+## 4. Proibições
+
+1. **Duplicar** a mesma URL semântica em dois apps sem plano de **redirecionamento** e data de desligamento documentados na matriz.  
+2. Colocar **lógica operacional de produto** na raiz (dashboards, billing de produto, inbox) **após** a janela de migração da Fase 2 — exceto **landing** e **demo pública** explícitas na matriz.  
+3. Criar páginas novas em **`apps/site`** sem aprovação explícita de arquitetura (pacote em depreciação; canon = raiz).
+
+---
+
+## 5. Exceções documentadas (permitidas)
+
+| Caso | Motivo |
+|------|--------|
+| **`/login` (e fluxos auth) em mais de um deploy** | Cada produto no seu host com mesmo path é aceitável; documentar domínio. |
+| **`/demo` e demos públicas na raiz** | Aquisição; não confundir com app logado. |
+| **`/ferramentas/financeiro/demo` só na raiz** | Demo pública do portal; app `apps/financeiro` não precisa espelhar. |
+| **Ferramentas gratuitas** (`/ferramentas/consulta-cnpj`, divisão de contas) | Portal; APIs públicas associadas podem ficar na raiz. |
+
+Novas exceções: adicionar **tabela nesta seção** + linha na `MATRIZ-DECISAO-ROTAS.md` + entrada em `routing-governance.ts` se aplicável à raiz.
+
+---
+
+## 6. Governança técnica
+
+- **`src/lib/routing-governance.ts`** — registro das rotas da **raiz** com `owner`, `phase`, notas de migração.  
+- **`src/middleware.ts`** — em **desenvolvimento**, avisos no console para rotas em Fase 2/3 (sem alterar resposta em produção por padrão).  
+- **CI (enforce):** workflow **Routing governance** (`.github/workflows/routing-governance-check.yml`) — em todo PR que alterar `src/app/**/page.tsx`, `src/app/**/route.ts` ou `apps/**/src/app/**/{page.tsx,route.ts}`, o diff precisa incluir ao menos uma mudança em `routing-governance.ts`, `MATRIZ-DECISAO-ROTAS.md` ou `ROUTING_POLICY.md`. Rode localmente: `bash scripts/ci/check-routing-governance.sh origin/main HEAD`.  
+- Evolução futura (Fase 2+): redirects via `next.config` ou env (`NEXT_PUBLIC_*`) quando URLs canônicas estiverem fixas.
+
+---
+
+## 7. Responsabilidade
+
+- **Dono da política:** time de engenharia / arquitetura (revisar a cada trimestre ou após novo produto).  
+- **Dono da matriz:** atualizar junto com qualquer cutover de rotas.
+
+---
+
+*Documento de policy; não substitui decisão de produto sobre domínios de produção.*

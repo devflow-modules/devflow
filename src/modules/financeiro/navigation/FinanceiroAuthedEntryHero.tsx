@@ -7,6 +7,7 @@ import {
   trackFinanceiroResumeLastRoute,
   trackFinanceiroReturnDetected,
 } from "@/lib/analytics";
+import { financeiroAppUrl } from "@/lib/financeiro-app-url";
 import { FINANCEIRO_DASHBOARD_PATH } from "./constants";
 
 type Props = {
@@ -51,7 +52,7 @@ export function FinanceiroAuthedEntryHero({ resumeHref, hasLastRoute, sourcePath
   return (
     <div className="mt-6 flex flex-wrap gap-3">
       <Link
-        href={FINANCEIRO_DASHBOARD_PATH}
+        href={financeiroAppUrl(FINANCEIRO_DASHBOARD_PATH)}
         onClick={onDashboardClick}
         className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
       >
@@ -59,7 +60,7 @@ export function FinanceiroAuthedEntryHero({ resumeHref, hasLastRoute, sourcePath
       </Link>
       {hasLastRoute && resumeHref !== FINANCEIRO_DASHBOARD_PATH ? (
         <Link
-          href={resumeHref}
+          href={financeiroAppUrl(resumeHref)}
           onClick={onResumeClick}
           className="inline-flex items-center rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted/50"
         >

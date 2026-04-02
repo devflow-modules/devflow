@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { FinanceiroHubToolCard } from "@/modules/financeiro/navigation/FinanceiroHubToolCard";
 
@@ -25,47 +25,28 @@ vi.mock("next/link", () => ({
 describe("FinanceiroHubToolCard", () => {
   beforeEach(() => {
     mockedTrack.mockClear();
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(() =>
-        Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              success: true,
-              data: {
-                user: { id: "u1" },
-                financeiroResumePath: "/ferramentas/financeiro/rules",
-                financeiroHasLastRoute: true,
-              },
-            }),
-        })
-      ) as unknown as typeof fetch
-    );
   });
 
-  it("ajusta CTA com retomada e dispara resume_last_route ao navegar", async () => {
+  it("renderiza link da landing e dispara analytics ao navegar", async () => {
     render(
       <FinanceiroHubToolCard
         title="Financeiro DevFlow"
         description="Controle pessoal e familiar."
-        cta="Abrir"
+        cta="Testar grátis"
         href="/ferramentas/financeiro"
       />
     );
 
-    await waitFor(() => {
-      expect(screen.getByText(/continuar de onde parei/i)).toBeTruthy();
-    });
-
     const user = userEvent.setup();
     const link = screen.getByRole("link", { name: /financeiro devflow/i });
+    expect(link).toHaveAttribute("href", "/ferramentas/financeiro");
+
     await user.click(link);
     expect(mockedTrack).toHaveBeenCalledWith(
-      "financeiro_resume_last_route",
+      "financeiro_go_to_dashboard_clicked",
       expect.objectContaining({
-        interaction: "cta_click",
-        target_path: "/ferramentas/financeiro/rules",
+        source_path: "/ferramentas",
+        target_path: "/ferramentas/financeiro",
       })
     );
   });

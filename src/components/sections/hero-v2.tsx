@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, MessageCircle, Wallet, SplitSquareHorizontal, Check } from "lucide-react";
 import { trackHomeCta } from "@/lib/analytics";
+import { PRODUTOS_HUB_PATH } from "@/lib/devflow-product-catalog";
 import { PRIMARY_CONVERT_CTA_LABEL, PRODUCT_LIVE_HINT } from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
 
@@ -216,6 +217,16 @@ export function HeroV2() {
               </div>
               <p className="text-center text-[11px] font-medium leading-snug text-slate-500 sm:text-left sm:text-xs">
                 {PRODUCT_LIVE_HINT}
+              </p>
+              <p className="text-center text-xs leading-snug text-slate-600 sm:text-left sm:text-sm">
+                Vários produtos numa só plataforma — muita gente começa pelo Financeiro.{" "}
+                <Link
+                  href={PRODUTOS_HUB_PATH}
+                  onClick={() => trackHomeCta("hero_produtos_hub")}
+                  className="font-semibold text-primary underline-offset-2 hover:underline"
+                >
+                  Ver catálogo de produtos
+                </Link>
               </p>
             </div>
 

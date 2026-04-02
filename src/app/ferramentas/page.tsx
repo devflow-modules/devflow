@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ToolsHubHero } from "@/components/sections/tools-hub-hero";
 import { ToolCard } from "@/components/sections/tool-card";
 import { FinanceiroHubToolCard } from "@/modules/financeiro/navigation/FinanceiroHubToolCard";
@@ -7,6 +8,7 @@ import { ConnectedProductsSection } from "@/components/sections/connected-produc
 import { CtaBlock } from "@/components/sections/cta-block";
 import { RelatedLinks } from "@/components/shared/related-links";
 import { CrossSellBeyond } from "@/components/sections/cross-sell-beyond";
+import { PRODUTOS_HUB_PATH } from "@/lib/devflow-product-catalog";
 import { Wallet, SplitSquareHorizontal, Building2, Sparkles } from "lucide-react";
 
 const baseUrl = "https://devflowlabs.com.br";
@@ -83,6 +85,15 @@ export default function FerramentasPage() {
   return (
     <div className="min-h-screen">
       <ToolsHubHero />
+
+      <div className="border-b border-primary/15 bg-primary/[0.04] py-3 text-center text-sm text-slate-700">
+        <span className="text-muted-foreground">
+          Ferramentas abrem rápido; produtos são sistemas completos para escalar.{" "}
+        </span>
+        <Link href={PRODUTOS_HUB_PATH} className="font-semibold text-primary hover:underline">
+          Ver catálogo de produtos
+        </Link>
+      </div>
 
       {/* Grid principal */}
       <section

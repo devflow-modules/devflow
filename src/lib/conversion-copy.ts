@@ -1,6 +1,6 @@
 /** CTAs globais — conversão elite (ação + redução de fricção) */
 
-export const HEADER_CTA_LABEL = "Usar grátis";
+export const HEADER_CTA_LABEL = "Começar grátis";
 
 /** Botão principal hero + CTA final — um padrão */
 export const PRIMARY_CONVERT_CTA_LABEL = "Usar grátis — sem cadastro complicado";

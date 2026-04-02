@@ -29,6 +29,7 @@ export function trackHomeCta(
     | "hero_tools"
     | "hero_whatsapp"
     | "hero_how_it_works"
+    | "hero_produtos_hub"
     | "hub_pillar_tools"
     | "hub_pillar_products"
     | "hub_pillar_automation"
@@ -39,6 +40,71 @@ export function trackHomeCta(
 /** Clique em card de ferramenta (home) */
 export function trackToolCardClick(toolId: string): void {
   track("tool_card_click", { tool: toolId, page: "home" });
+}
+
+/** Header global — navegação e conversão */
+export function trackHeaderNavClicked(props: { item: string; surface?: string }): void {
+  track("header_nav_clicked", {
+    item: props.item,
+    surface: props.surface ?? "desktop",
+  });
+}
+
+export function trackHeaderCtaClicked(props: {
+  cta: "começar_grátis" | "entrar";
+  surface?: string;
+}): void {
+  track("header_cta_clicked", {
+    cta: props.cta,
+    surface: props.surface ?? "desktop",
+  });
+}
+
+export function trackHeaderDemoClicked(props: { surface?: string } = {}): void {
+  track("header_demo_clicked", { surface: props.surface ?? "header" });
+}
+
+export function trackHeaderProductsOpened(props: { surface?: string } = {}): void {
+  track("header_products_opened", { surface: props.surface ?? "header_desktop" });
+}
+
+/** Hub multiproduto — dropdown, /produtos e “Como escolher” */
+export function trackProductsDropdownItemClicked(props: {
+  productId: string;
+  targetHref: string;
+  surface?: string;
+}): void {
+  track("products_dropdown_item_clicked", {
+    product_id: props.productId,
+    target_href: props.targetHref,
+    surface: props.surface ?? "desktop",
+  });
+}
+
+export function trackProductsPageCardClicked(props: {
+  productId: string;
+  targetHref: string;
+}): void {
+  track("products_page_card_clicked", {
+    product_id: props.productId,
+    target_href: props.targetHref,
+  });
+}
+
+export function trackProductsPageCtaClicked(props: {
+  productId: string;
+  cta: "começar_gratis" | "ver_exemplo" | "abrir";
+  targetHref: string;
+}): void {
+  track("products_page_cta_clicked", {
+    product_id: props.productId,
+    cta: props.cta,
+    target_href: props.targetHref,
+  });
+}
+
+export function trackProductsSelectionHelpUsed(props: { surface?: string } = {}): void {
+  track("products_selection_help_used", { surface: props.surface ?? "products_page" });
 }
 
 /** Cross-sell em páginas de ferramentas */

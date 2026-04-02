@@ -3,7 +3,9 @@
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { trackSimulatorUsed } from "@/analytics/growth/trackClient";
+import { financeiroAppUrl } from "@/lib/financeiro-app-url";
 import { cn } from "@/modules/financeiro/lib/cn";
+import { FINANCEIRO_AUTH_PATH } from "@/modules/financeiro/navigation/constants";
 import {
   cardStaticLight,
   focusRingLight,
@@ -181,7 +183,7 @@ export function SimuladorRapidoFinanceiro() {
               Crie sua casa financeira para acompanhar automaticamente
             </p>
             <Link
-              href="/ferramentas/financeiro/auth"
+              href={financeiroAppUrl(FINANCEIRO_AUTH_PATH)}
               className="mt-3 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
             >
               Criar conta grátis

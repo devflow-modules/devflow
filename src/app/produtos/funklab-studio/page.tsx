@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Check, ArrowRight, Music2, Sparkles, Download, Layers } from "lucide-react";
+import { ProductPageBackLink } from "@/components/products/product-page-back-link";
 import { cn } from "@/lib/utils";
 import { demoCtaPrimaryClass, demoCtaSecondaryClass, demoEyebrowClass } from "@/components/demo/demoUi";
 import { FunklabDemoCta } from "./FunklabDemoCta";
@@ -101,6 +102,7 @@ export default function FunkLabStudioPage() {
         aria-labelledby="product-hero-heading"
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <ProductPageBackLink align="center" className="mx-auto mb-6 max-w-2xl" />
           <div className="mx-auto max-w-2xl text-center">
             <div className={cn(demoEyebrowClass, "mb-6")}>
               <Music2 className="size-3.5 text-primary" aria-hidden />

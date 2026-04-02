@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { financeiroAppUrl } from "@/lib/financeiro-app-url";
 import { trackSubscriptionManageClicked } from "@/modules/billing/billingAnalytics";
+
+const customerPortalEndpoint = () => financeiroAppUrl("/api/billing/customer-portal");
 
 export function ManageSubscriptionButton() {
   const [loading, setLoading] = useState(false);
@@ -10,7 +13,7 @@ export function ManageSubscriptionButton() {
     trackSubscriptionManageClicked({});
     setLoading(true);
     try {
-      const res = await fetch("/api/billing/customer-portal", { method: "POST" });
+      const res = await fetch(customerPortalEndpoint(), { method: "POST" });
       const data = await res.json();
       if (!res.ok) {
         const msg = data?.message ?? "Erro ao abrir portal";

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Check, ArrowRight, MessageCircle, Zap, UserRound } from "lucide-react";
+import { ProductPageBackLink } from "@/components/products/product-page-back-link";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
 import { RelatedLinks } from "@/components/shared/related-links";
 import { cn } from "@/lib/utils";
@@ -115,6 +116,7 @@ export default function WhatsAppPlatformPage() {
         aria-labelledby="product-hero-heading"
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <ProductPageBackLink className="mx-auto mb-8 max-w-2xl" />
           <div className="mx-auto max-w-2xl text-center">
             <h1
               id="product-hero-heading"

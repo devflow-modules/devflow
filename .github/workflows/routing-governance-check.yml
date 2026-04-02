@@ -1,0 +1,25 @@
+# Gate: mudança em rotas Next (page.tsx / route.ts) exige atualização de governança.
+# Marque este job como required em Settings → Branches → branch protection.
+name: Routing governance
+
+on:
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  routing-governance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verificar registro / policy quando rotas mudam
+        run: |
+          bash scripts/ci/check-routing-governance.sh \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.head.sha }}"

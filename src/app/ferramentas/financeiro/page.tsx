@@ -12,7 +12,8 @@ import { FinanceiroTools } from "@/modules/financeiro/components/FinanceiroTools
 import { createClient } from "@/modules/financeiro/lib/supabase/server";
 import { resolveFinanceiroResumeFromCookies } from "@/modules/financeiro/navigation/resumeFromCookies";
 import { FinanceiroAuthedEntryHero } from "@/modules/financeiro/navigation/FinanceiroAuthedEntryHero";
-import { FINANCEIRO_DEMO_PATH } from "@/modules/financeiro/navigation/constants";
+import { financeiroAppUrl } from "@/lib/financeiro-app-url";
+import { FINANCEIRO_AUTH_PATH, FINANCEIRO_DEMO_PATH } from "@/modules/financeiro/navigation/constants";
 
 const baseUrl = "https://devflowlabs.com.br";
 
@@ -118,7 +119,7 @@ export default async function FinanceiroPage() {
           ) : (
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
-                href="/ferramentas/financeiro/auth"
+                href={financeiroAppUrl(FINANCEIRO_AUTH_PATH)}
                 className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
               >
                 Entrar ou criar conta

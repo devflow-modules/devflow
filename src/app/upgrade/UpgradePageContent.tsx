@@ -12,6 +12,8 @@ import {
   planTagline,
 } from "@/modules/billing/pricingPresentation";
 import { upgradeReturnStateFromSearchParams } from "@/modules/billing/billingUiState";
+import { financeiroAppUrl } from "@/lib/financeiro-app-url";
+import { FINANCEIRO_DASHBOARD_PATH } from "@/modules/financeiro/navigation/constants";
 
 type Props = {
   initialSuccess: boolean;
@@ -66,14 +68,14 @@ export function UpgradePageContent({ initialSuccess, initialCancel, planHint }: 
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               <Link
-                href="/ferramentas/financeiro/dashboard"
+                href={financeiroAppUrl(FINANCEIRO_DASHBOARD_PATH)}
                 className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800"
               >
                 Ir ao dashboard
                 <ArrowRight className="size-4" />
               </Link>
               <Link
-                href="/billing"
+                href={financeiroAppUrl("/billing")}
                 className="inline-flex items-center gap-2 rounded-xl border border-emerald-600/40 bg-background px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-emerald-100/50 dark:hover:bg-emerald-950/60"
               >
                 Ver assinatura

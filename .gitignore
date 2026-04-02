@@ -31,6 +31,9 @@ next-env.d.ts
 .env.production.local
 .env*.local
 
+# Env local para smoke de rotas (copiar de validate-routes.financeiro.env.example)
+scripts/ops/validate-routes.financeiro.env
+
 # --- Vercel ---
 .vercel
 
