@@ -6,7 +6,7 @@ describe("computeRetentionUrgency", () => {
 
   it("prioriza stale quando último lançamento há 3+ dias", () => {
     const u = computeRetentionUrgency(
-      [{ amount: 1, receivedAt: "2026-03-10" }],
+      [{ receivedAt: "2026-03-10" }],
       [],
       0,
       now
@@ -17,7 +17,7 @@ describe("computeRetentionUrgency", () => {
 
   it("usa today_missing quando há dados recentes mas nada hoje", () => {
     const u = computeRetentionUrgency(
-      [{ amount: 1, receivedAt: "2026-03-14" }],
+      [{ receivedAt: "2026-03-14" }],
       [],
       0,
       now
@@ -27,8 +27,8 @@ describe("computeRetentionUrgency", () => {
 
   it("mostra incomplete quando já lançou hoje e há checklist pendente", () => {
     const u = computeRetentionUrgency(
-      [{ amount: 1, receivedAt: "2026-03-15" }],
-      [{ amount: 2, dueDate: "2026-03-15", category: "X" }],
+      [{ receivedAt: "2026-03-15" }],
+      [{ dueDate: "2026-03-15" }],
       2,
       now
     );
@@ -40,7 +40,7 @@ describe("computeRetentionUrgency", () => {
   it("retorna null quando hoje ok e checklist zerado", () => {
     expect(
       computeRetentionUrgency(
-        [{ amount: 1, receivedAt: "2026-03-15" }],
+        [{ receivedAt: "2026-03-15" }],
         [],
         0,
         now

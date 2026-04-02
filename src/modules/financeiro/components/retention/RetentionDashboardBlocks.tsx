@@ -69,7 +69,7 @@ export function RetentionDashboardBlocks({
     if (urgencyLogged.current === key) return;
     urgencyLogged.current = key;
     trackFinanceiroUrgencyViewed({
-      urgency_kind: urgency.kind,
+      kind: urgency.kind,
       pending_count: urgency.pendingCount,
     });
   }, [urgency, isLoading]);
@@ -79,7 +79,7 @@ export function RetentionDashboardBlocks({
     if (isLoading) return;
     if (dailyViewLogged.current) return;
     dailyViewLogged.current = true;
-    trackFinanceiroDailyGoalViewed({ completed: hasEntryToday, surface: "dashboard" });
+    trackFinanceiroDailyGoalViewed({ completed: hasEntryToday, calendar_day: todayIso });
   }, [isLoading, hasEntryToday]);
 
   const dailyCompletedLogged = useRef(false);
@@ -89,14 +89,14 @@ export function RetentionDashboardBlocks({
     if (!shouldTrackDailyGoalCompleted(householdId, now)) return;
     dailyCompletedLogged.current = true;
     markDailyGoalCompletedTracked(householdId, now);
-    trackFinanceiroDailyGoalCompleted({ surface: "dashboard" });
+    trackFinanceiroDailyGoalCompleted({ calendar_day: calendarDayFromDate(now) });
   }, [isLoading, hasEntryToday, householdId, now]);
 
   const returnLogged = useRef(false);
   useEffect(() => {
     if (!showReturn || returnLogged.current) return;
     returnLogged.current = true;
-    trackFinanceiroReturnNextDay({ surface: "dashboard" });
+    trackFinanceiroReturnNextDay({ calendar_day: calendarDayFromDate(now) });
   }, [showReturn]);
 
   if (isLoading) return null;

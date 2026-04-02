@@ -22,7 +22,7 @@ describe("resolveFinanceiroUrgency", () => {
   it("último lançamento há 4 dias → stale", () => {
     const u = resolveFinanceiroUrgency({
       now,
-      incomes: [{ amount: 100, receivedAt: "2026-03-11" }],
+      incomes: [{ receivedAt: "2026-03-11" }],
       expenses: [],
       tasks: baseTasks(),
     });
@@ -33,8 +33,8 @@ describe("resolveFinanceiroUrgency", () => {
   it("há dados mas nada hoje → today_missing", () => {
     const u = resolveFinanceiroUrgency({
       now,
-      incomes: [{ amount: 100, receivedAt: "2026-03-14" }],
-      expenses: [{ amount: 50, dueDate: "2026-03-14", category: "X" }],
+      incomes: [{ receivedAt: "2026-03-14" }],
+      expenses: [{ dueDate: "2026-03-14" }],
       tasks: baseTasks(),
     });
     expect(u?.kind).toBe("today_missing");
@@ -52,8 +52,8 @@ describe("resolveFinanceiroUrgency", () => {
     ];
     const u = resolveFinanceiroUrgency({
       now,
-      incomes: [{ amount: 100, receivedAt: "2026-03-15" }],
-      expenses: [{ amount: 50, dueDate: "2026-03-15", category: "Moradia" }],
+      incomes: [{ receivedAt: "2026-03-15" }],
+      expenses: [{ dueDate: "2026-03-15" }],
       tasks,
     });
     expect(u?.kind).toBe("incomplete");
@@ -64,8 +64,8 @@ describe("resolveFinanceiroUrgency", () => {
   it("lançou hoje e checklist ok → null", () => {
     const u = resolveFinanceiroUrgency({
       now,
-      incomes: [{ amount: 100, receivedAt: "2026-03-15" }],
-      expenses: [{ amount: 50, dueDate: "2026-03-15", category: "Moradia" }],
+      incomes: [{ receivedAt: "2026-03-15" }],
+      expenses: [{ dueDate: "2026-03-15" }],
       tasks: [
         {
           id: "task_income",

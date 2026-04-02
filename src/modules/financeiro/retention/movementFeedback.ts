@@ -1,4 +1,4 @@
-import { recordRetentionLastEntryDay } from "./retentionStorage";
+import { calendarDayFromDate, recordFinanceiroMovementLocalDay } from "./retentionStorage";
 import { trackFinanceiroScoreImproved } from "@/lib/analytics";
 
 type FinalizeOpts = {
@@ -11,14 +11,13 @@ type FinalizeOpts = {
 /** Grava dia de atividade + analytics quando o score sobe após novo lançamento. */
 export function finalizeRetentionAfterCreate(opts: FinalizeOpts): void {
   const now = opts.now ?? new Date();
-  recordRetentionLastEntryDay(opts.householdId, now);
+  recordFinanceiroMovementLocalDay(opts.householdId, calendarDayFromDate(now));
   const delta = opts.nextScore - opts.prevScore;
   if (delta > 0) {
     trackFinanceiroScoreImproved({
+      from_score: opts.prevScore,
+      to_score: opts.nextScore,
       delta,
-      from: opts.prevScore,
-      to: opts.nextScore,
-      surface: "expenses_page",
     });
   }
 }
