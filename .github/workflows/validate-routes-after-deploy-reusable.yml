@@ -1,0 +1,86 @@
+# Chamado só por validate-routes-after-deploy.yml — vars.* ficam aqui (evita avisos no workflow principal no editor).
+name: Validate routes (post-deploy) — reusable
+
+on:
+  workflow_call:
+    inputs:
+      input_base_url:
+        type: string
+        required: false
+        default: ""
+      input_financeiro_url:
+        type: string
+        required: false
+        default: ""
+      input_strict:
+        type: boolean
+        required: false
+        default: true
+      input_trace:
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  validate-routes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Smoke — rotas, redirects e auth (STRICT_MODE, curl)
+        env:
+          ROUTE_VALIDATE_BASE_URL: ${{ vars.ROUTE_VALIDATE_BASE_URL }}
+          ROUTE_VALIDATE_FINANCEIRO_APP_URL: ${{ vars.ROUTE_VALIDATE_FINANCEIRO_APP_URL }}
+          ROUTE_VALIDATE_SKIP_FINANCEIRO_DEMO: ${{ vars.ROUTE_VALIDATE_SKIP_FINANCEIRO_DEMO }}
+          INPUT_BASE_URL: ${{ inputs.input_base_url }}
+          INPUT_FINANCEIRO_URL: ${{ inputs.input_financeiro_url }}
+          INPUT_STRICT: ${{ inputs.input_strict }}
+          INPUT_TRACE: ${{ inputs.input_trace }}
+        run: |
+          set -euo pipefail
+
+          DEFAULT_BASE="https://devflowlabs.com.br"
+          DEFAULT_FINANCEIRO="https://financeiro.devflowlabs.com.br"
+
+          BASE_RESOLVED="${INPUT_BASE_URL:-${ROUTE_VALIDATE_BASE_URL:-$DEFAULT_BASE}}"
+          FIN_RESOLVED="${INPUT_FINANCEIRO_URL:-${ROUTE_VALIDATE_FINANCEIRO_APP_URL:-$DEFAULT_FINANCEIRO}}"
+
+          STRICT_MODE="${INPUT_STRICT}"
+          TRACE_REDIRECTS="${INPUT_TRACE}"
+
+          echo "BASE_URL=$BASE_RESOLVED"
+          echo "FINANCEIRO_APP_URL=$FIN_RESOLVED"
+          echo "STRICT_MODE=$STRICT_MODE TRACE_REDIRECTS=$TRACE_REDIRECTS"
+
+          export BASE_URL="$BASE_RESOLVED"
+          export FINANCEIRO_APP_URL="$FIN_RESOLVED"
+          export STRICT_MODE
+          export TRACE_REDIRECTS
+          export STRICT_MAX_PUBLIC_REDIRECTS=1
+          export OUTPUT_JSON=true
+          export PERF_CHECK=true
+          export PERF_MAX_FINANCEIRO_LANDING=3
+          export FAIL_FAST=false
+
+          if [[ "${ROUTE_VALIDATE_SKIP_FINANCEIRO_DEMO:-}" == "true" ]]; then
+            export SKIP_FINANCEIRO_DEMO_CHECK=true
+            echo "SKIP_FINANCEIRO_DEMO_CHECK=true (var ROUTE_VALIDATE_SKIP_FINANCEIRO_DEMO)"
+          fi
+
+          bash scripts/ops/validate-routes.sh
+
+      - name: Resumo — gate pós-deploy
+        if: always()
+        run: |
+          {
+            echo "## Validate routes (post-deploy)"
+            echo ""
+            echo "| Item | Valor |"
+            echo "|------|--------|"
+            echo "| STRICT_MODE | \`true\` |"
+            echo "| Falha do job | exit code ≠ 0 do script = deploy/rota a corrigir |"
+            echo "| Webhook Stripe | manter \`POST /api/billing/webhook\` **na raiz** até trocar URL no [Stripe Dashboard](https://dashboard.stripe.com/webhooks) |"
+            echo ""
+            echo "Variáveis: \`ROUTE_VALIDATE_BASE_URL\`, \`ROUTE_VALIDATE_FINANCEIRO_APP_URL\`, opcional \`ROUTE_VALIDATE_SKIP_FINANCEIRO_DEMO=true\` se a demo 404 no portal."
+          } >> "$GITHUB_STEP_SUMMARY"
