@@ -9,6 +9,7 @@ on:
       - "src/middleware.ts"
       - "packages/whatsapp-routes/**"
       - ".github/workflows/validate-whatsapp-cutover.yml"
+      - ".github/workflows/validate-whatsapp-cutover-reusable.yml"
   workflow_dispatch:
     inputs:
       portal_url:
@@ -30,19 +31,10 @@ concurrency:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # Em push, o contexto inputs fica vazio → o script aplica defaults.
-      - name: Run cutover validation script
-        env:
-          PORTAL_URL: ${{ inputs.portal_url }}
-          WHATSAPP_APP_URL: ${{ inputs.whatsapp_app_url }}
-          STRICT_MODE: ${{ inputs.strict_mode }}
-          VERIFY_TOKEN: ${{ secrets.WHATSAPP_VERIFY_TOKEN }}
-        run: |
-          chmod +x scripts/ops/validate-whatsapp-cutover.sh
-          ./scripts/ops/validate-whatsapp-cutover.sh
+    uses: ./.github/workflows/validate-whatsapp-cutover-reusable.yml
+    with:
+      # workflow_dispatch preenche github.event.inputs; em push fica vazio → o script usa defaults.
+      portal_url: ${{ github.event.inputs.portal_url || '' }}
+      whatsapp_app_url: ${{ github.event.inputs.whatsapp_app_url || '' }}
+      strict_mode: ${{ github.event.inputs.strict_mode || '0' }}
+    secrets: inherit

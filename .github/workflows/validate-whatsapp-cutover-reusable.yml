@@ -1,0 +1,40 @@
+# Chamado apenas por validate-whatsapp-cutover.yml — declara o secret para o language service / actionlint.
+name: Validate WhatsApp cutover (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      portal_url:
+        type: string
+        required: false
+        default: ""
+      whatsapp_app_url:
+        type: string
+        required: false
+        default: ""
+      strict_mode:
+        type: string
+        required: false
+        default: "0"
+    secrets:
+      WHATSAPP_VERIFY_TOKEN:
+        description: Token de verificação Meta (GET webhook); opcional
+        required: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run cutover validation script
+        env:
+          PORTAL_URL: ${{ inputs.portal_url }}
+          WHATSAPP_APP_URL: ${{ inputs.whatsapp_app_url }}
+          STRICT_MODE: ${{ inputs.strict_mode }}
+          VERIFY_TOKEN: ${{ secrets.WHATSAPP_VERIFY_TOKEN }}
+        run: |
+          chmod +x scripts/ops/validate-whatsapp-cutover.sh
+          ./scripts/ops/validate-whatsapp-cutover.sh
