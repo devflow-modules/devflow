@@ -15,8 +15,8 @@ WhatsApp Platform cutover status
 - Root runtime removal: Done
 - Portal redirect layer: Done
 - Shared route package: Done
-- Production operational validation: In progress
-- Go-live complete: Pending final smoke tests
+- Production operational validation: Done (smoke HTTP + script)
+- Go-live complete: Done — sujeito a checklist manual §5 (Meta, E2E mensagem) quando aplicável
 ```
 
 ---
@@ -26,7 +26,7 @@ WhatsApp Platform cutover status
 | Dimensão | Estado |
 |----------|--------|
 | **Desacoplamento técnico** | Concluído |
-| **Desacoplamento operacional em produção** | Pendente de validação final |
+| **Desacoplamento operacional em produção** | Cutover **308** ativo no portal com env + deploy corretos; CI/script verdes |
 | **Acoplamento remanescente aceitável** | Monorepo + `@devflow/whatsapp-routes` + `NEXT_PUBLIC_WHATSAPP_APP_URL` no portal |
 
 ---

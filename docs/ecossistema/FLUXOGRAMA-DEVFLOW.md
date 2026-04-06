@@ -13,11 +13,13 @@ Como **usuários** e **requests HTTP** trafegam no ecossistema: middleware, auth
 flowchart TD
   REQ[Request HTTP] --> MW{middleware.ts}
 
+  MW -->|cutover Financeiro| FIN308[308 → NEXT_PUBLIC_FINANCEIRO_APP_URL]
+  MW -->|cutover WhatsApp| WA308[308 → NEXT_PUBLIC_WHATSAPP_APP_URL]
   MW -->|rota pública| PUB[Segue para página/rota]
-  MW -->|rota protegida por JWT| JWT{JWT válido?}
+  MW -->|rota protegida por JWT WhatsApp| JWT{JWT válido?}
   MW -->|rota com sessão Supabase| SB[updateSession]
 
-  JWT -->|não| LOGIN[/login?next=...]
+  JWT -->|não| LOGIN[Redirect login — no app canónico se env setada]
   JWT -->|sim| JWT_OK[segue autenticado]
 
   SB --> NEXT_SB[Next.js page / route]
@@ -29,10 +31,11 @@ flowchart TD
 
 | Tipo | Exemplos | Comportamento |
 |------|-----------|----------------|
-| **Públicas (sem exigência de login)** | Home, landings, blog, produtos, demo, legal, hub de ferramentas sem sessão | Não passam pela ramificação **JWT** nem pela de **admin JWT**; seguem para o Next. |
-| **JWT (produto WhatsApp “app”)** | Prefixos como `/inbox`, `/settings`, `/billing`, `/dashboard/whatsapp`, `/onboarding`, `/automation` (lista em `middleware.ts`) | Exigem cookie JWT; senão redirecionam para `/login`. |
-| **Admin** | `/admin/*` exceto `/admin/login` | JWT (ou cookie de métricas em produção para subpaths específicos). |
-| **Supabase session** | Fluxo padrão após ramificações acima | `updateSession` renova sessão Supabase quando há cookie (ex.: usuário do **Financeiro**). |
+| **Cutover 308** | Paths operacionais Financeiro (exceto landing/demo) e WhatsApp (lista em `@devflow/financeiro-routes` / `@devflow/whatsapp-routes`) | **Antes** de JWT/Supabase: redirect **308** para o host canónico do app quando `NEXT_PUBLIC_*_APP_URL` está definida. |
+| **Públicas** | Home, landings WhatsApp, blog, produtos, demo, legal, hub ferramentas | Seguem para o Next (e `updateSession` quando aplicável). |
+| **JWT (WhatsApp no portal)** | `/inbox`, `/settings`, … **só** se o request ainda não foi cortado para o app | Exigem cookie JWT; com cutover ativo estes paths recebem **308** primeiro. |
+| **Admin** | `/admin/*` exceto `/admin/login` | JWT ou cookie de métricas (portal). |
+| **Supabase** | Financeiro | `updateSession` após as ramificações acima. |
 
 ### Nota de engenharia (fidelidade ao código)
 
@@ -130,51 +133,49 @@ flowchart LR
 
 ---
 
-## 6. Produto WhatsApp em duas camadas
+## 6. Produto WhatsApp — portal × app canónico
 
 ```mermaid
 flowchart TB
-  subgraph SITE["Site raiz — aquisição e entrada"]
-    PAGES[Páginas públicas do produto]
-    DEMOWA[/demo e /dashboard/whatsapp]
-    ONB["POST /api/whatsapp/onboard"]
-    CALLBACK["/api/whatsapp/onboard/callback"]
-    WEBHOOK["POST /api/webhook/whatsapp"]
+  subgraph SITE["Portal devflowlabs.com.br"]
+    PAGES[Landings SEO WhatsApp]
+    MW308["308 paths operacionais → app"]
   end
 
   subgraph META["Meta / WhatsApp"]
     EMBED[Embedded Signup]
-    CLOUD[WhatsApp Cloud API]
+    CLOUD[Cloud API]
   end
 
-  subgraph APP["apps/whatsapp-platform — operação SaaS"]
-    INBOX[Inbox / automações / billing / time]
+  subgraph APP["apps/whatsapp-platform"]
+    AUTH[Auth + UI]
+    WEBHOOK["/api/webhook/whatsapp"]
+    INBOX[Inbox / billing / admin]
   end
 
-  PAGES --> DEMOWA
-  DEMOWA --> ONB
-  ONB --> EMBED
-  EMBED --> CALLBACK
+  MW308 --> AUTH
+  EMBED -.-> AUTH
   CLOUD --> WEBHOOK
-
-  DEMOWA -. continuidade do produto .-> INBOX
+  WEBHOOK --> INBOX
 ```
+
+**Callback URL** e **Verify token** na Meta devem apontar para o **host do app**, não para o portal. Stripe webhook do produto: `POST /api/stripe/webhook` no mesmo app.
 
 ---
 
 ## 7. O que mudou em relação a uma visão “só marketing”
 
-1. **App raiz** = marketing **+** ferramentas **+** billing **+** APIs **+** parte do onboarding WhatsApp **+** Financeiro no mesmo domínio.  
-2. **`apps/*`** = deploys **opcionais**; não descrevem o fluxo principal do visitante em `devflowlabs.com.br`.  
-3. **`/api/*`** = backbone operacional (billing, webhook, CRUD, callbacks).  
-4. **WhatsApp** = camada de **aquisição/entrada** no raiz **+** camada de **operação** no `apps/whatsapp-platform` quando deployado separado.
+1. **App raiz** = portal **público-operacional**: marketing, ferramentas, Financeiro, **redirects 308** para apps canónicos.  
+2. **`apps/whatsapp-platform`** = **runtime** do produto WhatsApp (webhook, auth, dados).  
+3. **`/api/*` na raiz** = sobretudo Financeiro e ferramentas; **não** webhook WhatsApp do produto.  
+4. **`apps/*`** = deploys independentes com domínio próprio quando aplicável.
 
 ---
 
 ## 8. Versão curta para PR / commit
 
-> Consolidamos o mapa do DevFlow Labs em dois níveis: **(1)** app raiz como centro público-operacional e **(2)** apps do monorepo como deploys independentes opcionais. O fluxograma explicita middleware, autenticação (JWT vs sessão Supabase vs superfície pública), billing, ferramentas e integrações externas de forma alinhada ao repositório.
+> Mapa em dois níveis: **(1)** portal na raiz com cutover **308** para Financeiro e WhatsApp e **(2)** apps canónicos em `apps/*`. Middleware, JWT, Supabase e integrações Meta/Stripe alinhados ao código em `src/middleware.ts` e aos runbooks em `docs/architecture/`.
 
 ---
 
-*Última atualização: alinhado a `src/middleware.ts`, `ROTAS-ECOSSISTEMA-DEVFLOWLABS.md` e [TOPOLOGIA-DEVFLOW.md](./TOPOLOGIA-DEVFLOW.md).*
+*Última atualização: cutover WhatsApp + Financeiro no `src/middleware.ts`, [ROTAS-ECOSSISTEMA-DEVFLOWLABS.md](./ROTAS-ECOSSISTEMA-DEVFLOWLABS.md), [TOPOLOGIA-DEVFLOW.md](./TOPOLOGIA-DEVFLOW.md).*

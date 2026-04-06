@@ -37,7 +37,8 @@
 |--------|--------|------|
 | PR | Governança (diff de rotas vs docs/registro) | `scripts/ci/check-routing-governance.sh`, workflow **Routing governance** |
 | Pós-deploy | Smoke curl (público, protegido, precos, strict opcional) | `scripts/ops/validate-routes.sh` |
-| CI automático | Mesmo script contra URLs de produção (defaults ou vars do repo) | `.github/workflows/validate-routes-after-deploy.yml` |
+| CI automático | Mesmo script contra produção (`vars.ROUTE_VALIDATE_*` opcionais no reutilizável) | `validate-routes-after-deploy.yml` → `validate-routes-after-deploy-reusable.yml` |
+| CI WhatsApp | Cutover portal → app, APIs removidas na raiz, webhook app | `validate-whatsapp-cutover.yml` → `validate-whatsapp-cutover-reusable.yml` |
 
 **Variáveis úteis do script:** ver cabeçalho de `scripts/ops/validate-routes.sh`. Exemplo local: `scripts/ops/validate-routes.financeiro.env.example`.
 
@@ -50,7 +51,7 @@
 1. Merge na branch protegida após **Routing governance** verde (e demais checks do repositório).
 2. Deploy no provedor (ex.: Vercel).
 3. Quando o deploy estiver **concluído**, preferir disparar **Validate routes (post-deploy)** manualmente (`workflow_dispatch`) ou via hook — `push` em `main` pode anteceder o deploy.
-4. Cutover grande: seguir runbook por blocos — `docs/architecture/CUTOVER-FINANCEIRO-RUNBOOK-MAIN.md` (modelo reutilizável para outros produtos).
+4. Cutover grande: runbooks — [CUTOVER-FINANCEIRO-RUNBOOK-MAIN.md](./CUTOVER-FINANCEIRO-RUNBOOK-MAIN.md), [CUTOVER-WHATSAPP-RUNBOOK-MAIN.md](./CUTOVER-WHATSAPP-RUNBOOK-MAIN.md). Após deploy do portal/app WhatsApp: workflows **Validate routes** e **Validate WhatsApp cutover**.
 
 **Épicos / planos:** `docs/architecture/EPICO-FINANCEIRO-CUTOVER.md`, `docs/architecture/PR1-CUTOVER-FINANCEIRO-PLANO-TECNICO.md`, `docs/architecture/ROUTING_MIGRATION_EXECUCAO.md`.
 

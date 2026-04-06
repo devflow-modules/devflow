@@ -12,17 +12,17 @@ Onde cada parte do ecossistema roda: **app raiz** como centro operacional em `de
 ```mermaid
 flowchart TB
   subgraph ROOT["App raiz — devflowlabs.com.br (src/)"]
-    PUB[Marketing, SEO e páginas públicas]
-    TOOLS[Ferramentas]
-    BILL[Billing e upgrade]
-    DEMO[Demo e páginas de produto]
-    WA_ROOT[Entradas do produto WhatsApp]
-    API["APIs em /api/*"]
-    ADMIN[Admin / métricas]
+    PUB[Marketing, SEO e landings WhatsApp]
+    TOOLS[Ferramentas + Financeiro em /ferramentas/financeiro]
+    BILL[Billing / upgrade onde aplicável]
+    DEMO[Demo e CTAs]
+    MW["Middleware: 308 → apps canónicos"]
+    API["APIs /api/* — Financeiro, ferramentas, admin portal"]
+    ADMIN[Admin métricas portal]
   end
 
   subgraph APPS["Deploys opcionais no monorepo (apps/)"]
-    WA_APP["apps/whatsapp-platform"]
+    WA_APP["apps/whatsapp-platform — webhook Meta + SaaS"]
     FIN_APP["apps/financeiro"]
     INV_APP["apps/investigamais"]
     FUNK_APP["apps/funklab"]
@@ -40,16 +40,18 @@ flowchart TB
 
   ROOT --> STRIPE
   ROOT --> SUPABASE
-  ROOT --> META
   ROOT --> RECEITA
   ROOT --> ANALYTICS
+  MW -. 308 com NEXT_PUBLIC_* .-> WA_APP
+  MW -. 308 .-> FIN_APP
+  WA_APP --> META
+  WA_APP --> STRIPE
 
   APPS -. deploy próprio / host separado .-> STRIPE
   APPS -. deploy próprio / host separado .-> SUPABASE
-  APPS -. deploy próprio / host separado .-> META
 ```
 
-**Leitura:** o app raiz **não é só marketing** — concentra ferramentas, billing, parte do onboarding WhatsApp, webhooks, CRUD do Financeiro no mesmo domínio. Os diretórios em `apps/` são **cópias ou variantes deployáveis** do monorepo, não o fluxo principal do visitante em `devflowlabs.com.br`.
+**Leitura:** o app raiz é **portal público-operacional** (marketing, ferramentas, Financeiro no mesmo domínio, APIs de dados do Financeiro). O **produto WhatsApp** opera no host do **`apps/whatsapp-platform`**; o portal só **redireciona 308** (e mantém landings SEO). Ver [CUTOVER-WHATSAPP-RUNBOOK-MAIN.md](../architecture/CUTOVER-WHATSAPP-RUNBOOK-MAIN.md).
 
 ---
 
@@ -68,8 +70,8 @@ flowchart LR
 
 | Caminho | Papel típico |
 |--------|----------------|
-| **`src/` (raiz)** | O que responde hoje em **devflowlabs.com.br** — marketing, SEO, hub de ferramentas, Financeiro sob `/ferramentas/financeiro`, `/api/*`, billing, demo, parte das entradas WhatsApp. |
-| **`apps/whatsapp-platform`** | Produto SaaS completo (inbox, automações, billing do produto, time) — **deploy próprio** comum. |
+| **`src/` (raiz)** | **devflowlabs.com.br** — marketing, SEO, hub de ferramentas, Financeiro sob `/ferramentas/financeiro`, APIs de dados do Financeiro, billing onde existir na raiz; **sem** webhook/API operacional WhatsApp (cutover para o app). |
+| **`apps/whatsapp-platform`** | Produto SaaS canónico (inbox, webhook Meta, Stripe, auth JWT, admin) — deploy típico em subdomínio dedicado. |
 | **`apps/financeiro`** | Mesmo produto financeiro com base path próprio — deploy separado quando necessário. |
 | **`apps/investigamais`**, **`apps/funklab`**, **`apps/ops`** | Produtos ou painéis com ciclo de release independente. |
 | **`apps/site`** | Variante de build do marketing; o canônico de rotas públicas costuma ser a raiz. |
@@ -82,11 +84,10 @@ Referência de rotas: [ROTAS-ECOSSISTEMA-DEVFLOWLABS.md](./ROTAS-ECOSSISTEMA-DEV
 
 Orquestra, entre outros:
 
-- **Billing:** checkout, customer portal, webhook Stripe  
-- **Financeiro:** CRUD (despesas, regras, households, convites, etc.)  
-- **WhatsApp:** onboard, callback, webhook unificado  
+- **Financeiro:** CRUD (despesas, regras, households, convites, etc.) — ver [ROTAS-ECOSSISTEMA-DEVFLOWLABS.md](./ROTAS-ECOSSISTEMA-DEVFLOWLABS.md)  
 - **Ferramentas:** consulta CNPJ, leads, health  
-- **Auth auxiliar** e **admin** conforme rotas existentes  
+- **Admin / analytics** do portal conforme rotas existentes  
+- **WhatsApp (produto):** **não** na raiz após cutover — canónico em `apps/whatsapp-platform` (`/api/webhook/whatsapp`, `/api/auth/*`, etc.)
 
 Detalhamento de fluxos: [FLUXOGRAMA-DEVFLOW.md](./FLUXOGRAMA-DEVFLOW.md).
 
@@ -96,17 +97,17 @@ Detalhamento de fluxos: [FLUXOGRAMA-DEVFLOW.md](./FLUXOGRAMA-DEVFLOW.md).
 
 | Camada | Papel |
 |--------|--------|
-| **App raiz (`src/`)** | Centro do ecossistema **público + operacional**: marketing, SEO, ferramentas, demo, billing, integrações e parte do onboarding. |
-| **`apps/*`** | Produtos que **podem** rodar em deploy próprio sem depender do mesmo host. |
-| **`/api/*`** | Backbone que conecta billing, webhooks, callbacks, CRUD e integrações. |
+| **App raiz (`src/`)** | Portal: marketing, SEO, ferramentas, Financeiro no domínio, middleware de cutover **308** para apps canónicos. |
+| **`apps/*`** | Produtos com deploy próprio (Financeiro, WhatsApp Platform, etc.). |
+| **`/api/*` (raiz)** | Backbone do Financeiro e ferramentas no portal; **webhook WhatsApp** no app dedicado. |
 | **Externo** | Stripe, Supabase, Meta, ReceitaWS, analytics. |
 
 ---
 
 ## 5. Versão curta para PR / changelog
 
-> Documentamos a **topologia** do DevFlow Labs: app raiz como centro público-operacional em `devflowlabs.com.br` e apps do monorepo como **deploys independentes opcionais**, com serviços externos explícitos.
+> Topologia: portal na raiz + produtos (WhatsApp, Financeiro, …) em `apps/*` com domínios próprios quando aplicável; Meta/Stripe do WhatsApp ligados ao app canónico.
 
 ---
 
-*Última atualização: alinhado ao repositório e a `src/middleware.ts` + `ROTAS-ECOSSISTEMA-DEVFLOWLABS.md`.*
+*Última atualização: cutover WhatsApp (`@devflow/whatsapp-routes`, middleware), `ROTAS-ECOSSISTEMA-DEVFLOWLABS.md`, [ARCHITECTURE.md](../../ARCHITECTURE.md).*

@@ -9,7 +9,7 @@
 
 | Pacote / origem | Pasta | Uso típico |
 |-----------------|-------|------------|
-| **Landing + Financeiro (legado integrado)** | `src/app` na raiz do repo | Site público, parte do Financeiro, login JWT WhatsApp, APIs compartilhadas |
+| **Portal + Financeiro na raiz** | `src/app` na raiz do repo | Site público, Financeiro em `/ferramentas/financeiro`, APIs de dados do Financeiro; **sem** runtime WhatsApp (cutover **308** → `apps/whatsapp-platform`) |
 | **App Financeiro** | `apps/financeiro` | Financeiro “puro” com rotas extras (contas, importar, histórico…) |
 | **WhatsApp Platform** | `apps/whatsapp-platform` | Produto WhatsApp (inbox, billing, admin…) |
 | **Investigamais** | `apps/investigamais` | App do produto Investiga+ |
@@ -23,7 +23,9 @@
 
 ## 1. Landing + integrações na raiz (`src/app`)
 
-Origem: repositório raiz, `src/app`. É o app Next “principal” quando você roda o projeto da raiz.
+Origem: repositório raiz, `src/app`. É o app Next do **portal** quando corres `pnpm dev` na raiz.
+
+**Cutover WhatsApp:** rotas como `/login`, `/signup`, `/inbox`, `/dashboard/whatsapp` no **host do portal** são tratadas pelo **middleware** (`308` para `NEXT_PUBLIC_WHATSAPP_APP_URL`); as páginas correspondentes **não** existem mais em `src/app` — vivem em `apps/whatsapp-platform`.
 
 ### 1.1 Páginas (UI)
 
@@ -83,7 +85,7 @@ Origem: repositório raiz, `src/app`. É o app Next “principal” quando você
 |----------------|---------------------|
 | `/api/health` | Saúde |
 | `/api/me`, `/api/me/active-household` | Sessão / household ativo (Financeiro) |
-| `/api/auth/login`, `logout`, `verify`, `signup`, `forgot-password`, `reset-password` | Auth **JWT WhatsApp** (não Supabase Financeiro) |
+| — | Auth **JWT WhatsApp** (`/api/auth/*`) — **removido da raiz**; canónico em `apps/whatsapp-platform` |
 | `/api/billing/checkout`, `customer-portal`, `webhook` | Stripe / billing (contexto raiz) |
 | `/api/expenses`, `/api/expenses/[expenseId]` | Despesas |
 | `/api/incomes`, `/api/incomes/[incomeId]` | Receitas |
@@ -99,10 +101,7 @@ Origem: repositório raiz, `src/app`. É o app Next “principal” quando você
 | `/api/financeiro/leads` | Leads Financeiro |
 | `/api/financeiro/navigation/last-route` | Navegação |
 | `/api/tools/cnpj/[cnpj]` | Ferramenta CNPJ |
-| `/api/whatsapp/onboard`, `onboard/callback`, `phone-numbers` | Onboard WhatsApp (raiz) |
-| `/api/webhook/whatsapp` | Webhook |
-| `/api/admin/conversations`, `.../[id]`, `.../messages` | Admin conversas |
-| `/api/admin/whatsapp/messages/*`, `onboarding/*` | Admin/onboarding WhatsApp |
+| — | **WhatsApp** (`/api/webhook/whatsapp`, `/api/whatsapp/*`, `/api/admin/conversations`, `/api/admin/whatsapp/*`) — **canónico em** `apps/whatsapp-platform` |
 | `/api/admin/metrics`, `revenue` | Admin métricas |
 | `/api/analytics/growth` | Analytics |
 | `/sitemap.xml`, `sitemap-*.xml` | Sitemaps |

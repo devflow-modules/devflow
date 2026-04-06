@@ -120,7 +120,7 @@ Decisão **pragmática** alinhada ao diagnóstico de sobreposição raiz ↔ app
 2. **Congelar** novas telas operacionais de Financeiro na raiz; novas só em `apps/financeiro`.  
 3. **Cutover Financeiro:** redirects 301 de `/ferramentas/financeiro/auth|onboarding|dashboard|…` da raiz → URL canônica do app (mesmo path em outro host, ou path unificado).  
 4. **Cutover billing:** `/billing` e `/upgrade` no app Financeiro; raiz com link/redirect.  
-5. **WhatsApp na raiz:** remover ou redirecionar `/dashboard/whatsapp*` e avaliar `/api/auth` + webhooks na raiz após tráfego zero.  
+5. **WhatsApp:** cutover **308** + remoção de APIs/UI na raiz — **feito**; manter env e middleware alinhados ao host canónico.  
 6. **APIs:** mover junto com o cutover de cada produto (não antes de UI estável).
 
 ---
@@ -132,4 +132,4 @@ Sem esta matriz atualizada no PR de cada mudança, o risco continua **organizaci
 
 ---
 
-*Última atualização: alinhada ao inventário do monorepo e à opção “raiz = portal canônico + apps = produtos”.*
+*Última atualização: cutover WhatsApp (308 + raiz sem runtime WA); raiz = portal + Financeiro; apps = produtos canónicos.*

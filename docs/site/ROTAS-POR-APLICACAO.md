@@ -6,7 +6,7 @@ Este monorepo tem **vários produtos** e **dois “mundos” de auth** diferente
 
 | Superfície | Onde vive (código) | Auth principal | Rotas típicas |
 |------------|-------------------|----------------|---------------|
-| **Site + Financeiro + APIs** | Raiz do repo → `src/app`, `src/app/api` | Marketing: público. **Financeiro:** Supabase em `/ferramentas/financeiro/auth` | `/`, `/produtos`, `/ferramentas`, `/ferramentas/financeiro/*`, `/billing` (assinatura Financeiro), `/demo`, `/como-funciona` |
+| **Portal + Financeiro + APIs** | Raiz → `src/app`, `src/app/api` | Marketing: público. **Financeiro:** Supabase em `/ferramentas/financeiro/auth` | `/`, `/produtos`, `/ferramentas`, `/ferramentas/financeiro/*`, `/billing` (Financeiro), `/demo`; **308** para app WhatsApp nos paths operacionais quando `NEXT_PUBLIC_WHATSAPP_APP_URL` está definida |
 | **WhatsApp Platform (app dedicado)** | `apps/whatsapp-platform/src/app` | **JWT** (`whatsapp_platform_token`, ver `JWT_SECRET`) | `/login`, `/signup`, `/inbox`, `/settings`, `/billing`, `/dashboard/*`, `/onboarding`, `/automation`, `/admin/*` |
 | **Outros apps** | `apps/investigamais`, `apps/funklab`, `apps/ops`, … | Cada um com seu layout | Deploy/host próprios (não assumir mesmo domínio que o site) |
 
@@ -27,15 +27,11 @@ Este monorepo tem **vários produtos** e **dois “mundos” de auth** diferente
 - **`/billing`** — gestão de plano do **Financeiro** (casas, regras, portal Stripe).
 - É **independente** do billing do WhatsApp Platform no app `apps/whatsapp-platform`.
 
-### WhatsApp no mesmo deploy (legado / híbrido)
+### WhatsApp — cutover portal → app
 
-Algumas rotas existem **neste** `src/app` para fluxo WhatsApp com **mesmo cookie JWT** que o app dedicado:
+Com **`NEXT_PUBLIC_WHATSAPP_APP_URL`**, o **`middleware.ts` na raiz** responde **308** para o mesmo path no host do **`apps/whatsapp-platform`** (ex.: `/login`, `/inbox`, `/dashboard/whatsapp`). As páginas e APIs JWT/webhook do produto **não** ficam em `src/app` — só no app dedicado (porta **3004** em dev).
 
-- **`/login`**, `forgot-password`, `reset-password` → `POST /api/auth/login` etc.
-- **`/dashboard/whatsapp`** → conectar número (área operacional leve).
-- O **`middleware.ts` na raiz** protege um conjunto de paths com JWT **pensado no produto WhatsApp**; na prática **vários desses paths não têm páginas em `src/app`** — as telas completas (inbox, automação, onboarding WhatsApp) estão no app **`apps/whatsapp-platform`**.
-
-Ou seja: em desenvolvimento você acessa o produto WhatsApp em **`apps/whatsapp-platform` (ex.: porta 3004)**; no site raiz ficam marketing + Financeiro + pedaços do fluxo WhatsApp quando o deploy unifica domínio.
+Landings de marketing WhatsApp (`/produtos/whatsapp-platform`, `/automacao-whatsapp*`, …) **continuam** na raiz. Ver [CUTOVER-WHATSAPP-RUNBOOK-MAIN.md](../architecture/CUTOVER-WHATSAPP-RUNBOOK-MAIN.md).
 
 ## 2. App WhatsApp Platform (`apps/whatsapp-platform`)
 

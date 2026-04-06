@@ -18,4 +18,6 @@ Documentação transversal ao domínio **devflowlabs.com.br**: rotas, topologia,
 2. [FLUXOGRAMA-DEVFLOW.md](./FLUXOGRAMA-DEVFLOW.md) — middleware e fluxos comerciais/técnicos.  
 3. [ROTAS-ECOSSISTEMA-DEVFLOWLABS.md](./ROTAS-ECOSSISTEMA-DEVFLOWLABS.md) — consulta pontual de path ou API.
 
-Arquitetura geral do monorepo (workspaces, packages, boundaries): [../../ARCHITECTURE.md](../../ARCHITECTURE.md).
+**Monorepo e boundaries:** [../../ARCHITECTURE.md](../../ARCHITECTURE.md).
+
+**Cutover e homologação:** [../architecture/CUTOVER-WHATSAPP-RUNBOOK-MAIN.md](../architecture/CUTOVER-WHATSAPP-RUNBOOK-MAIN.md) · [../architecture/CUTOVER-FINANCEIRO-RUNBOOK-MAIN.md](../architecture/CUTOVER-FINANCEIRO-RUNBOOK-MAIN.md) · [../architecture/WHATSAPP-CUTOVER-HOMOLOGACAO.md](../architecture/WHATSAPP-CUTOVER-HOMOLOGACAO.md).

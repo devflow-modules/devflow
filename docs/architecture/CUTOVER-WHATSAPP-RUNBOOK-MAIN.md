@@ -12,10 +12,9 @@
 
 | Dimensão | Estado |
 |----------|--------|
-| **Código / arquitetura** | Cutover técnico na `main`: portal separado, app canônico, pacote de rotas, auth no `whatsapp-platform`, raiz limpa. |
-| **Produção** | Pendente de **ativação operacional**: envs no deploy real, host final do app, webhook Meta, validação cross-domain e smoke pós-deploy. |
-
-Até concluir o checklist abaixo, trate como: **pronto para go-live**, não “100% live”.
+| **Código / arquitetura** | Cutover na `main`: portal = marketing + **308**; runtime WhatsApp só em `apps/whatsapp-platform`; `@devflow/whatsapp-routes`; middleware lê `NEXT_PUBLIC_WHATSAPP_APP_URL` e passa base ao cutover (Edge). |
+| **Produção (portal)** | Com `NEXT_PUBLIC_WHATSAPP_APP_URL` e deploy alinhado, redirects **308** para o host do app; smoke **`scripts/ops/validate-whatsapp-cutover.sh`** e CI **Validate WhatsApp cutover** validam o comportamento. |
+| **Operação contínua** | Checklist §5 (Meta callback, OAuth URIs, smoke E2E mensagem real, sign-off) — revisar após mudanças de domínio ou env. |
 
 ---
 

@@ -16,12 +16,12 @@ O repositório era uma única aplicação Next.js com rotas de marketing e de pr
 
 Migrar para um **monorepo** com:
 
-- **pnpm workspaces**: `apps/*` e `packages/*` (e raiz como app legado).
+- **pnpm workspaces**: `apps/*` e `packages/*` (e **raiz** como app Next do **portal** em devflowlabs.com.br).
 - **Turborepo**: orquestração de build, test e lint com cache.
-- **Apps**: `site` (marketing), `financeiro` (produto atual), e scaffolds para `investigamais`, `funklab`, `whatsapp-platform`, `ops`.
-- **Packages compartilhados**: `billing-core`, `analytics-core`, `ui`, `auth-core`, `supabase-utils`, `config`, `whatsapp-core`, `ai-core`, `testing-utils`.
+- **Apps**: `site` (espelho parcial marketing), `financeiro` (produto), **`whatsapp-platform` (produto SaaS canónico)**, `investigamais`, `funklab`, `ops` (scaffolds ou produtos em evolução).
+- **Packages compartilhados**: `billing-core`, `analytics-core`, `ui`, `auth-core`, `supabase-utils`, `config`, `whatsapp-core`, **`whatsapp-routes`**, **`financeiro-routes`**, `ai-core`, `testing-utils`.
 
-Cada app pode ser implantado em projeto Vercel próprio. A raiz do repo mantém o app “full” (site + produto) para compatibilidade e deploy atual.
+Cada app pode ser implantado em projeto Vercel próprio. A **raiz** concentra o **portal** (marketing, ferramentas, Financeiro no domínio, cutover **308** para apps canónicos); produtos como WhatsApp operam no respetivo `apps/*`.
 
 ## Consequências
 

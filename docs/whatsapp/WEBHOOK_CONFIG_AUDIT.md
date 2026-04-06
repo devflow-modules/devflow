@@ -16,23 +16,24 @@
 
 | Item | Valor |
 |------|--------|
-| **Arquivo** | `src/app/api/webhook/whatsapp/route.ts` |
-| **App** | Raiz (`src/`) — Next.js do monorepo |
+| **Arquivo** | `apps/whatsapp-platform/src/app/api/webhook/whatsapp/route.ts` |
+| **App** | **`apps/whatsapp-platform`** (deploy canónico), não o portal na raiz |
 | **Path** | `/api/webhook/whatsapp` |
 | **Métodos** | GET (verificação), POST (eventos) |
-| **Handler** | `@wa/modules/whatsapp/webhookHandler` (apps/whatsapp-platform) |
 
-O app raiz importa os módulos do whatsapp-platform via alias `@wa/*`. O build em produção usa o app raiz.
+Após o **cutover**, o portal em `devflowlabs.com.br` **não** serve este endpoint; a Meta deve apontar para o **host público do app** (ex.: Vercel do `whatsapp-platform`).
 
 ---
 
 ## 2. URL final exata a cadastrar na Meta
 
+Usar a origem do deploy do **whatsapp-platform**, por exemplo:
+
 ```
-https://devflowlabs.com.br/api/webhook/whatsapp
+https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp
 ```
 
-**Importante:** sem barra no final, sem query string, HTTPS obrigatório.
+**Importante:** sem barra no final na URL base do callback, HTTPS obrigatório. Substituir pelo teu domínio real se diferente.
 
 ---
 
@@ -40,7 +41,7 @@ https://devflowlabs.com.br/api/webhook/whatsapp
 
 | Cenário | O que verificar |
 |---------|------------------|
-| **Callback URL errada** | Meta configurada com `app.devflowlabs.com.br` (404) ou `*.vercel.app` em vez de `devflowlabs.com.br` |
+| **Callback URL errada** | Meta apontando para o **portal** (`devflowlabs.com.br`) ou host antigo em vez do **app canónico** (`whatsapp.devflowlabs.com.br` ou equivalente) |
 | **Override ativo** | Override no WABA apontando para outra URL (ngrok antigo, staging, etc.) |
 | **Webhook no nível User** | Inscrição em "User" em vez de "WhatsApp Business Account" — estrutura de payload diferente |
 | **Campo `messages` não inscrito** | Só `message_template_status_update` ou outros campos; `messages` precisa estar marcado |

@@ -40,7 +40,7 @@ Objetivo: **não quebrar produção** enquanto o monorepo ganha fronteiras clara
 | 2.1 | Definir URLs canônicas de produção para `apps/financeiro` (`NEXT_PUBLIC_FINANCEIRO_APP_URL` — ver `PR1-CUTOVER-FINANCEIRO-PLANO-TECNICO.md`) | ☐ |
 | 2.2 | Cutover Financeiro: `auth`, `onboarding`, `dashboard`, `expenses`, … — **301** ou rewrite de borda | ☐ |
 | 2.3 | `/billing` e `/upgrade` — dono `apps/financeiro`; raiz com redirect ou página “continuar no app” | ☐ |
-| 2.4 | `/dashboard/whatsapp*` na raiz — **redirect** para host do `apps/whatsapp-platform` ou remover após tráfego zero | ☐ |
+| 2.4 | `/dashboard/whatsapp*` na raiz — **308** / remoção; canónico no `apps/whatsapp-platform` | ✅ |
 | 2.5 | APIs `/api/me`, expenses, billing… — mover com o app ou proxy documentado até cutover | ☐ |
 | 2.6 | Revisar `/admin/metrics` na raiz — dono único (produto vs portal) | ☐ |
 

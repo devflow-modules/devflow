@@ -117,9 +117,9 @@ Checkout, customer-portal e webhook Stripe do produto Financeiro estão **só** 
 | POST | `/api/financeiro/leads` | Captura de leads financeiro |
 | POST | `/api/analytics/growth` | Analytics crescimento |
 | GET | `/api/tools/cnpj/[cnpj]` | Consulta CNPJ |
-| GET, POST | `/api/webhook/whatsapp` | Webhook WhatsApp (verificação + mensagens) — **canónico em** `apps/whatsapp-platform` após cutover; na raiz removido após Bloco D |
+| — | `/api/webhook/whatsapp` | **Não** exposto na raiz após cutover — canónico só em **`apps/whatsapp-platform`** (ex.: `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp`). |
 
-Com **`NEXT_PUBLIC_WHATSAPP_APP_URL`**, o middleware da raiz envia **308** para o app nos paths operacionais do WhatsApp (pacote `@devflow/whatsapp-routes`). Detalhes: `docs/architecture/CUTOVER-WHATSAPP-RUNBOOK-MAIN.md`.
+Com **`NEXT_PUBLIC_WHATSAPP_APP_URL`**, o middleware da raiz envia **308** para o host do app nos paths operacionais do WhatsApp (`/login`, `/inbox`, `/dashboard/whatsapp`, …; lista em `@devflow/whatsapp-routes`). Landings SEO (`/produtos/whatsapp-platform`, `/automacao-whatsapp*`, …) **permanecem** no portal. Detalhes: [CUTOVER-WHATSAPP-RUNBOOK-MAIN.md](../architecture/CUTOVER-WHATSAPP-RUNBOOK-MAIN.md).
 
 ---
 
@@ -161,7 +161,7 @@ Cada app abaixo tem suas próprias rotas; quando deployados em outro domínio (e
 ### 4.3 apps/whatsapp-platform
 
 - **Porta em dev:** 3004  
-- **Deploy típico:** subdomínio ou domínio próprio (ex.: wa.devflowlabs.com.br).  
+- **Deploy típico:** subdomínio dedicado (ex.: **`https://whatsapp.devflowlabs.com.br`** em produção).  
 - **Páginas:** `/`, `/login`, `/signup`, `/onboarding`, `/dashboard`, `/admin/login`, `/admin/conversations`, `/admin/conversations/[id]`, `/admin/distribuir`, `/admin/metrics`, `/admin/agents`, `/queues`, `/agents`, `/settings`, `/conversations`.  
 - **APIs:** auth (login, signup, logout), tenants (me, api-key), queues, agents, admin (queue/next, conversations, export, agent-status, feedback-report, metrics), stripe webhook, health, dashboard/conversations, faq, webhooks/whatsapp, etc. Ver `apps/whatsapp-platform/src/app/api/` para lista completa.
 
