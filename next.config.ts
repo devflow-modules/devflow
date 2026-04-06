@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     "@devflow/whatsapp-core",
     "@devflow/ai-core",
     "@devflow/financeiro-routes",
+    "@devflow/whatsapp-routes",
   ],
   async redirects() {
     return [
