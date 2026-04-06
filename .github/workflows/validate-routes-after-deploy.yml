@@ -1,11 +1,12 @@
 # Validação contra URLs reais após deploy (smoke de edge routing).
 # Não substitui o gate de governança em PR (routing-governance-check.yml).
 #
-# URLs: defina em GitHub → Settings → Variables (repo):
+# URLs: GitHub → Settings → Secrets and variables → Actions → Variables (repo):
 #   ROUTE_VALIDATE_BASE_URL          (ex.: https://devflowlabs.com.br)
 #   ROUTE_VALIDATE_FINANCEIRO_APP_URL (ex.: https://financeiro.devflowlabs.com.br)
 #   ROUTE_VALIDATE_SKIP_FINANCEIRO_DEMO = true  (opcional, só se /ferramentas/financeiro/demo ainda 404 no portal)
-# Se vazias, usam os defaults abaixo no step (ajuste se o produto mudar).
+# Lidas via contexto ${{ vars.* }} (sem REST API — o GITHUB_TOKEN costuma devolver 403 em getRepoVariable).
+# Se vazias, o step usa os defaults em bash (ajuste se o produto mudar).
 #
 # Gate “deploy limpo”: STRICT_MODE=true + exit 0 do script. Webhook Stripe pode ficar em /api/billing/webhook na raiz
 # até alterar o endpoint no dashboard Stripe (ver runbook).
@@ -15,7 +16,7 @@
 #
 # Checklist operacional:
 # - workflow_dispatch: inputs opcionais sobrepõem URLs; strict/trace configuráveis.
-# - Variáveis de repo em falta: API devolve vazio → bash usa DEFAULT_BASE / DEFAULT_FINANCEIRO no step Smoke.
+# - Variáveis de repo em falta: vars vazias → bash usa DEFAULT_BASE / DEFAULT_FINANCEIRO no step Smoke.
 # - Após deploy do portal (308 + demo): correr este workflow e esperar exit 0.
 name: Validate routes (post-deploy)
 
@@ -47,7 +48,6 @@ on:
 
 permissions:
   contents: read
-  actions: read
 
 concurrency:
   group: validate-routes-post-deploy-${{ github.ref }}
@@ -60,34 +60,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Variáveis de repositório via API (evita ${{ vars.NOME }} — o language service marca como inválido).
-      - name: Carregar variáveis ROUTE_VALIDATE_* (repo)
-        uses: actions/github-script@v7
-        with:
-          script: |
-            async function getVar(name) {
-              try {
-                const { data } = await github.rest.actions.getRepoVariable({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name,
-                });
-                return (data && data.value) ? String(data.value) : "";
-              } catch (e) {
-                const s = e?.status ?? e?.response?.status;
-                if (s === 404) return "";
-                throw e;
-              }
-            }
-            const base = await getVar("ROUTE_VALIDATE_BASE_URL");
-            const fin = await getVar("ROUTE_VALIDATE_FINANCEIRO_APP_URL");
-            const skip = await getVar("ROUTE_VALIDATE_SKIP_FINANCEIRO_DEMO");
-            core.exportVariable("ROUTE_VALIDATE_BASE_URL", base);
-            core.exportVariable("ROUTE_VALIDATE_FINANCEIRO_APP_URL", fin);
-            core.exportVariable("ROUTE_VALIDATE_SKIP_FINANCEIRO_DEMO", skip);
-
       - name: Smoke — rotas, redirects e auth (STRICT_MODE, curl)
         env:
+          ROUTE_VALIDATE_BASE_URL: ${{ vars.ROUTE_VALIDATE_BASE_URL }}
+          ROUTE_VALIDATE_FINANCEIRO_APP_URL: ${{ vars.ROUTE_VALIDATE_FINANCEIRO_APP_URL }}
+          ROUTE_VALIDATE_SKIP_FINANCEIRO_DEMO: ${{ vars.ROUTE_VALIDATE_SKIP_FINANCEIRO_DEMO }}
           INPUT_BASE_URL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.base_url || '' }}
           INPUT_FINANCEIRO_URL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.financeiro_app_url || '' }}
           INPUT_STRICT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.strict_mode || true }}

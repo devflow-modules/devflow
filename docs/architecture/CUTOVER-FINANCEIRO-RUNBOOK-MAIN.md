@@ -135,7 +135,7 @@ Variáveis úteis: **`STRICT_MODE`**, **`STRICT_MAX_PUBLIC_REDIRECTS`**, **`PERF
 
 Saída: linhas **`CHECKS=`** / **`FAILURES=`**; com **`OUTPUT_JSON=true`**, também uma linha JSON.
 
-**CI pós-deploy (GitHub Actions):** workflow **Validate routes (post-deploy)** — `.github/workflows/validate-routes-after-deploy.yml`. Dispara em **`push` em `main`/`master`** e **`workflow_dispatch`** (recomendado após o deploy terminar, ex. Vercel). Configure variáveis de repositório opcionais **`ROUTE_VALIDATE_BASE_URL`** e **`ROUTE_VALIDATE_FINANCEIRO_APP_URL`**; se vazias, o job usa defaults alinhados ao portal/Financeiro em produção (ajuste no YAML se os hosts mudarem). No dispatch manual dá para sobrescrever URLs e ligar **`trace_redirects`** para diagnóstico nos logs.
+**CI pós-deploy (GitHub Actions):** workflow **Validate routes (post-deploy)** — `.github/workflows/validate-routes-after-deploy.yml`. Dispara em **`push` em `main`/`master`** e **`workflow_dispatch`** (recomendado após o deploy terminar, ex. Vercel). Configure variáveis de repositório opcionais **`ROUTE_VALIDATE_BASE_URL`** e **`ROUTE_VALIDATE_FINANCEIRO_APP_URL`** (lidas no workflow como **`${{ vars.* }}`**; sem chamada REST — evita 403 do `GITHUB_TOKEN` em `getRepoVariable`). Se vazias, o job usa defaults alinhados ao portal/Financeiro em produção. No dispatch manual dá para sobrescrever URLs e ligar **`trace_redirects`** para diagnóstico nos logs.
 
 **Gate “deploy limpo”:** o job corre **`STRICT_MODE=true`** e **falha** se o script sair com código ≠ 0. No resumo do workflow (aba *Summary*) há a tabela de critérios e nota do webhook Stripe.
 
