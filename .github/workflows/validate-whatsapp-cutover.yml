@@ -10,6 +10,19 @@ on:
       - "packages/whatsapp-routes/**"
       - ".github/workflows/validate-whatsapp-cutover.yml"
   workflow_dispatch:
+    inputs:
+      portal_url:
+        description: URL base do portal (vazio em push → default no script)
+        type: string
+        default: "https://devflowlabs.com.br"
+      whatsapp_app_url:
+        description: URL base do app WhatsApp
+        type: string
+        default: "https://whatsapp.devflowlabs.com.br"
+      strict_mode:
+        description: 1 = falhar se latência acima do limite
+        type: string
+        default: "0"
 
 concurrency:
   group: validate-whatsapp-cutover-${{ github.ref }}
@@ -23,12 +36,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Em push, o contexto inputs fica vazio → o script aplica defaults.
       - name: Run cutover validation script
         env:
-          PORTAL_URL: ${{ vars.PORTAL_URL }}
-          WHATSAPP_APP_URL: ${{ vars.WHATSAPP_APP_URL }}
+          PORTAL_URL: ${{ inputs.portal_url }}
+          WHATSAPP_APP_URL: ${{ inputs.whatsapp_app_url }}
+          STRICT_MODE: ${{ inputs.strict_mode }}
           VERIFY_TOKEN: ${{ secrets.WHATSAPP_VERIFY_TOKEN }}
-          STRICT_MODE: ${{ vars.WHATSAPP_VALIDATE_STRICT }}
         run: |
           chmod +x scripts/ops/validate-whatsapp-cutover.sh
           ./scripts/ops/validate-whatsapp-cutover.sh

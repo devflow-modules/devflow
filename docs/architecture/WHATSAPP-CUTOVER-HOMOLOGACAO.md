@@ -80,5 +80,6 @@ TRACE_REDIRECTS=1 \
 
 Workflow: [`.github/workflows/validate-whatsapp-cutover.yml`](../../.github/workflows/validate-whatsapp-cutover.yml) — roda o script em `push` na `main` (paths filtrados) e em `workflow_dispatch`.
 
-Configurar no GitHub **Repository variables** (opcional): `PORTAL_URL`, `WHATSAPP_APP_URL`.  
-**Secret** (opcional): `WHATSAPP_VERIFY_TOKEN` — habilita handshake no CI.
+Em `workflow_dispatch` dá para sobrescrever URLs e `strict_mode` pelos inputs (defaults: portal e app de produção). Em `push`, o contexto `inputs` fica vazio e o script usa os mesmos defaults.
+
+**Secret** (opcional): `WHATSAPP_VERIFY_TOKEN` — habilita handshake GET no CI. O aviso do editor “context access might be invalid” para esse nome some depois de criares o secret no repositório (ou podes ignorar: o workflow corre com token vazio e o script só omite o handshake).
