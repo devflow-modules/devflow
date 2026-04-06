@@ -55,7 +55,7 @@ pnpm build
 pnpm start
 ```
 
-Configurar webhook Stripe para `POST /api/stripe/webhook`. Em produção, usar `WHATSAPP_STRIPE_SECRET_KEY`, `WHATSAPP_STRIPE_PRICE_PRO` e `NEXT_PUBLIC_WHATSAPP_APP_URL`.
+Configurar webhook Stripe para `POST https://<mesmo-host-do-app>/api/stripe/webhook` (o host deve ser o deploy do **whatsapp-platform**, ex. `whatsapp.devflowlabs.com.br`, não o portal). Em produção: `WHATSAPP_STRIPE_SECRET_KEY`, `WHATSAPP_STRIPE_WEBHOOK_SECRET` (segredo do endpoint no Stripe), `WHATSAPP_STRIPE_PRICE_*` e `NEXT_PUBLIC_WHATSAPP_APP_URL`.
 
 ## Testes
 

@@ -1,11 +1,16 @@
 # Testando o Webhook Stripe
 
-Endpoint: `POST https://app.devflowlabs.com.br/api/stripe/webhook`
+**URL de produção:** `POST {ORIGEM_DO_WHATSAPP_PLATFORM}/api/stripe/webhook`
+
+Use a mesma origem que o deploy do **whatsapp-platform** na Vercel (ex.: `https://whatsapp.devflowlabs.com.br`).  
+Não use o domínio do **portal** (`app.devflowlabs.com.br` ou raiz) se esse deploy não servir este app — a rota `/api/stripe/webhook` existe só em `apps/whatsapp-platform`.
+
+Depois de criar ou mudar o endpoint no Stripe, confirma que `WHATSAPP_STRIPE_WEBHOOK_SECRET` no projeto Vercel do whatsapp-platform é o **Signing secret** (`whsec_...`) desse endpoint.
 
 ## 1. Testar via Stripe Dashboard (Send test event)
 
 1. Acesse [Stripe Dashboard](https://dashboard.stripe.com) → **Developers** → **Webhooks**
-2. Selecione o endpoint configurado para `https://app.devflowlabs.com.br/api/stripe/webhook`
+2. Selecione o endpoint cuja URL termina em `/api/stripe/webhook` (origem = teu domínio do app WhatsApp)
 3. Clique em **Send test webhook**
 4. Escolha o evento (ex.: `checkout.session.completed`, `customer.subscription.updated`)
 5. Clique em **Send test webhook**
