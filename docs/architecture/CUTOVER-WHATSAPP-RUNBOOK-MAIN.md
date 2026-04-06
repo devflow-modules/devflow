@@ -2,7 +2,7 @@
 
 **Objetivo:** mesmo padrão do Financeiro: operação, auth JWT, webhook e APIs do produto WhatsApp no **host canônico** (`NEXT_PUBLIC_WHATSAPP_APP_URL`); portal = marketing + redirects **308** quando a env estiver definida.
 
-**Relacionados:** [CUTOVER-FINANCEIRO-RUNBOOK-MAIN.md](./CUTOVER-FINANCEIRO-RUNBOOK-MAIN.md) (estrutura de blocos), [WHATSAPP_PORTAL_APP_PARITY.md](./WHATSAPP_PORTAL_APP_PARITY.md), [WHATSAPP-CUTOVER-HOMOLOGACAO.md](./WHATSAPP-CUTOVER-HOMOLOGACAO.md) (script + checklist + CI), [PLANO_TRANSICAO_APP_SUBDOMINIO.md](../../apps/whatsapp-platform/docs/PLANO_TRANSICAO_APP_SUBDOMINIO.md), [DEPLOY_APP_SUBDOMAIN.md](../../apps/whatsapp-platform/docs/DEPLOY_APP_SUBDOMAIN.md).
+**Relacionados:** [CUTOVER-FINANCEIRO-RUNBOOK-MAIN.md](./CUTOVER-FINANCEIRO-RUNBOOK-MAIN.md) (estrutura de blocos), [WHATSAPP_PORTAL_APP_PARITY.md](./WHATSAPP_PORTAL_APP_PARITY.md), [WHATSAPP-CUTOVER-HOMOLOGACAO.md](./WHATSAPP-CUTOVER-HOMOLOGACAO.md) (script + checklist + CI), [WHATSAPP-SPRINT-FINAL-HOMOLOGACAO-SIGNOFF.md](./WHATSAPP-SPRINT-FINAL-HOMOLOGACAO-SIGNOFF.md) (sprint final, DoD, sign-off), [PLANO_TRANSICAO_APP_SUBDOMINIO.md](../../apps/whatsapp-platform/docs/PLANO_TRANSICAO_APP_SUBDOMINIO.md), [DEPLOY_APP_SUBDOMAIN.md](../../apps/whatsapp-platform/docs/DEPLOY_APP_SUBDOMAIN.md).
 
 **Pacote:** `@devflow/whatsapp-routes` — `getWhatsappCutoverRedirectUrl`, listas de prefixos JWT vs cutover.
 
