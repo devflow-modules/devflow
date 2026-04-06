@@ -79,7 +79,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(financeiroCutoverTarget, 308);
   }
 
-  const whatsappCutoverTarget = getWhatsappCutoverRedirectUrl(request);
+  // Base lida aqui (entrada do middleware) para o bundler Edge inlined NEXT_PUBLIC no chunk certo.
+  const whatsappAppPublicBase = process.env.NEXT_PUBLIC_WHATSAPP_APP_URL?.trim() ?? "";
+  const whatsappCutoverTarget = getWhatsappCutoverRedirectUrl(
+    request,
+    whatsappAppPublicBase || undefined
+  );
   if (whatsappCutoverTarget) {
     return NextResponse.redirect(whatsappCutoverTarget, 308);
   }

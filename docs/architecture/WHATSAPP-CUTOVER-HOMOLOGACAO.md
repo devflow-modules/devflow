@@ -83,3 +83,7 @@ Workflow: [`.github/workflows/validate-whatsapp-cutover.yml`](../../.github/work
 Em `workflow_dispatch` dá para sobrescrever URLs e `strict_mode` pelos inputs (defaults: portal e app de produção). Em `push`, o contexto `inputs` fica vazio e o script usa os mesmos defaults.
 
 **Secret** (opcional): `WHATSAPP_VERIFY_TOKEN` — habilita handshake GET no CI. O aviso do editor “context access might be invalid” para esse nome some depois de criares o secret no repositório (ou podes ignorar: o workflow corre com token vazio e o script só omite o handshake).
+
+### Middleware Edge (produção)
+
+O `src/middleware.ts` lê `NEXT_PUBLIC_WHATSAPP_APP_URL` e passa a base a `getWhatsappCutoverRedirectUrl(..., appBaseOverride)` para o valor ser **inlined no chunk Edge** (evita `process.env` vazio dentro do pacote `@devflow/whatsapp-routes` no bundle do middleware). Confirma `transpilePackages` com `@devflow/whatsapp-routes` em `next.config.ts` e **redeploy** do projeto Vercel que serve **devflowlabs.com.br** após definir a env.
