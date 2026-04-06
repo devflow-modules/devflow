@@ -57,7 +57,7 @@ https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp
 
 - [ ] **App correto** — App que possui o produto WhatsApp e gerencia o número da DevFlow
 - [ ] **WhatsApp → Configuration** — Seção "Webhook" acessível
-- [ ] **Callback URL** = `https://devflowlabs.com.br/api/webhook/whatsapp`
+- [ ] **Callback URL** = `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp` (origem = projeto Vercel do `whatsapp-platform`, não o portal)
 - [ ] **Verify Token** = valor idêntico a `WHATSAPP_VERIFY_TOKEN` no Vercel
 - [ ] **Status** = Verde (verificado) — testar com GET `?hub.mode=subscribe&hub.verify_token=TOKEN&hub.challenge=999`
 
@@ -74,7 +74,7 @@ https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp
 ### 4.4 WABA e Override
 
 - [ ] **WhatsApp Manager** → Phone Numbers → número da DevFlow vinculado ao WABA correto
-- [ ] **Override callback URL** (se existir): remover ou ajustar para `https://devflowlabs.com.br/api/webhook/whatsapp`
+- [ ] **Override callback URL** (se existir): remover ou ajustar para a mesma URL canónica do app (`https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp` ou o teu domínio)
 - [ ] Confirmar que o Override não aponta para ngrok, localhost ou outro domínio
 
 ### 4.5 Phone number
@@ -87,19 +87,19 @@ https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp
 
 ## 5. Checklist Vercel
 
-- [ ] Projeto correto — deployment em `devflowlabs.com.br`
-- [ ] Domínio `devflowlabs.com.br` configurado em Settings → Domains
+- [ ] **Projeto** = deploy do **`apps/whatsapp-platform`** (não o portal na raiz)
+- [ ] Domínio do app (ex.: `whatsapp.devflowlabs.com.br`) em Settings → Domains
 - [ ] `WHATSAPP_VERIFY_TOKEN` definido e igual ao Meta
-- [ ] `WHATSAPP_PHONE_NUMBER_ID` = `1027838990414844`
+- [ ] `WHATSAPP_PHONE_NUMBER_ID` = `1027838990414844` (ajustar se o teu número mudar)
 - [ ] `WHATSAPP_ACCESS_TOKEN` válido (não expirado)
-- [ ] Build do app raiz (não apenas whatsapp-platform como projeto separado)
+- [ ] Portal separado: `NEXT_PUBLIC_WHATSAPP_APP_URL` aponta para este host (cutover 308)
 
 ---
 
 ## 6. Teste de verificação (GET)
 
 ```bash
-curl "https://devflowlabs.com.br/api/webhook/whatsapp?hub.mode=subscribe&hub.verify_token=SEU_VERIFY_TOKEN&hub.challenge=999"
+curl "https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp?hub.mode=subscribe&hub.verify_token=SEU_VERIFY_TOKEN&hub.challenge=999"
 ```
 
 **Esperado:** resposta `999` (ou o valor de `hub.challenge`). Se retornar JSON, o token não confere.
@@ -110,8 +110,8 @@ curl "https://devflowlabs.com.br/api/webhook/whatsapp?hub.mode=subscribe&hub.ver
 
 | Item | Status |
 |------|--------|
-| **Código** | ✅ Correto — rota existe, handler funciona, curl responde |
-| **Deploy Vercel** | ✅ Endpoint acessível em produção |
+| **Código** | ✅ Canónico em `apps/whatsapp-platform`; handler em `@/modules/whatsapp/webhookHandler` |
+| **Deploy Vercel** | ✅ Endpoint no domínio do app WhatsApp (não no portal) |
 | **Configuração Meta** | ✅ **Corrigido (Mar 2025)** — app inscrito via `POST /{WABA}/subscribed_apps` |
 
 **Causa raiz confirmada:** App não inscrito em `subscribed_apps`. A Meta não enviava POST porque nenhum app estava registrado para receber eventos dessa WABA.

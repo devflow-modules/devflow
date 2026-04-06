@@ -25,7 +25,7 @@ Se `WHATSAPP_SUPABASE_SERVICE_ROLE_KEY` foi exposta (print, commit, vazamento):
 Em deploy, configure:
 
 ```
-NEXT_PUBLIC_WHATSAPP_APP_URL=https://app.devflowlabs.com.br
+NEXT_PUBLIC_WHATSAPP_APP_URL=https://whatsapp.devflowlabs.com.br
 ```
 
 Checkout e Customer Portal do Stripe redirecionam para essa URL.

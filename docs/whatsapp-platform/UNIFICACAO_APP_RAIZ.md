@@ -1,8 +1,10 @@
 # Unificação WhatsApp Platform no App Raiz
 
-## Objetivo
+> **Pós-cutover:** o webhook e o runtime do produto WhatsApp **não** ficam mais no portal nem no app raiz. O canónico é **`apps/whatsapp-platform`** num host dedicado (ex.: `https://whatsapp.devflowlabs.com.br`). O portal redireciona **308** para esse app (`NEXT_PUBLIC_WHATSAPP_APP_URL`). Este ficheiro descreve uma **fase histórica** da arquitectura; para operação actual, ver `ARCHITECTURE.md` e `docs/ecossistema/ROTAS-ECOSSISTEMA-DEVFLOWLABS.md`.
 
-Rodar 100% do WhatsApp Platform em `devflowlabs.com.br` (app raiz), sem depender de subdomínios.
+## Objetivo (contexto histórico)
+
+Rodar 100% do WhatsApp Platform em `devflowlabs.com.br` (app raiz), sem depender de subdomínios — **abordagem posteriormente substituída** pelo deploy dedicado `whatsapp-platform`.
 
 ---
 
@@ -137,27 +139,23 @@ Além de `@wa/*` e `@/modules/whatsapp/*` (whatsapp-platform), o root define:
 
 ---
 
-## Arquitetura final
+## Arquitetura descrita neste doc (histórica)
 
 ```
-Meta → https://devflowlabs.com.br/api/webhook/whatsapp
+Meta → (URL do portal / raiz — legado)
      → app raiz (Next.js)
-     → webhookHandler (tenantResolutionService)
-     → Prisma (WHATSAPP_DATABASE_URL)
-     → WhatsappPhoneNumber, Tenant, WaInboxThread, etc.
-     → IA, billing (trackUsage), Stripe
-
-Dashboard → https://devflowlabs.com.br/dashboard/whatsapp
-         → JWT auth → onboard/callback → WhatsappPhoneNumber
+     → …
 ```
+
+**Canónico hoje:** `Meta → https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp → whatsapp-platform` — ver `docs/whatsapp/WEBHOOK_META_CHECKLIST.md`.
 
 ---
 
-## Como testar
+## Como testar (legado; não aplicável ao cutover actual)
 
 1. Configure `WHATSAPP_DATABASE_URL` e faça migrations.
 2. Configure `WHATSAPP_VERIFY_TOKEN`, `META_*`.
-3. Teste GET:  
-   `https://devflowlabs.com.br/api/webhook/whatsapp?hub.mode=subscribe&hub.verify_token=TOKEN&hub.challenge=999`
-4. No Meta, use `https://devflowlabs.com.br/api/webhook/whatsapp` como Callback URL.
-5. OAuth Redirect URI: `https://devflowlabs.com.br/dashboard/whatsapp/callback`.
+3. Em produção actual, use o host do **`whatsapp-platform`**:  
+   `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp?hub.mode=subscribe&hub.verify_token=TOKEN&hub.challenge=999`
+4. **Callback URL** na Meta: mesma base do deploy `whatsapp-platform` (não o portal).
+5. **OAuth Redirect URI:** `https://whatsapp.devflowlabs.com.br/dashboard/whatsapp/callback` (ou o domínio que servir o app).

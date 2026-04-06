@@ -19,7 +19,7 @@ Caminho: **WhatsApp** → **Configuration** → **Webhook**
 
 | Campo | De | Para |
 |-------|-----|------|
-| Callback URL | `https://devflowlabs.com.br/api/webhook/whatsapp` | `https://app.devflowlabs.com.br/api/webhook/whatsapp` |
+| Callback URL | URL legada (runbook / pré-cutover) | `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp` (host do `whatsapp-platform`) |
 
 ### 3. Verify Token
 
@@ -42,14 +42,14 @@ Manter: `devflow_8f3a2e9c1b7d4f6a0e5c8b2`
 
 ## Deploy
 
-Garantir que `app.devflowlabs.com.br` aponte para o deploy do **whatsapp-platform** (não o app raiz).
+Garantir que o domínio público (ex.: `whatsapp.devflowlabs.com.br`) aponte para o deploy do **whatsapp-platform**, não ao portal.
 
 ---
 
 ## Arquitetura final
 
 ```
-Meta → https://app.devflowlabs.com.br/api/webhook/whatsapp
+Meta → https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp
      → whatsapp-platform
      → tenantResolutionService (WhatsappPhoneNumber)
      → Prisma

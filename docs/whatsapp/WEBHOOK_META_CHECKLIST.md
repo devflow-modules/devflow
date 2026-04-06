@@ -2,9 +2,9 @@
 
 ## Contexto
 
-- Código e infraestrutura auditados e corretos
-- Rota real: `/api/webhook/whatsapp`
-- URL produção: `https://devflowlabs.com.br/api/webhook/whatsapp`
+- **Cutover:** o webhook **não** está no portal (`devflowlabs.com.br`); a rota canónica é **`apps/whatsapp-platform`** no host público do app (ex.: `whatsapp.devflowlabs.com.br`).
+- Rota no app: `/api/webhook/whatsapp`
+- URL produção (DevFlow): `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp` — ajustar se o teu domínio for outro.
 - **Causa raiz identificada (Mar 2025):** App não inscrito em `subscribed_apps` — corrigido via `POST /{WABA}/subscribed_apps`
 
 ---
@@ -29,7 +29,7 @@
 1. Na seção **Webhook**, localize o campo **URL de retorno de chamada** (Callback URL)
 2. Insira exatamente:
    ```
-   https://devflowlabs.com.br/api/webhook/whatsapp
+   https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp
    ```
 3. Sem barra no final, sem espaços, HTTPS
 4. Clique em **Verificar e salvar** (ou "Verify and save")
@@ -63,7 +63,7 @@
 4. Procure **"Override callback URL"** ou **"URL de retorno de chamada substituta"**
 5. Se estiver preenchida com outra URL (ngrok, staging, antiga):
    - Apague OU
-   - Substitua por: `https://devflowlabs.com.br/api/webhook/whatsapp`
+   - Substitua por: `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp`
 6. Salve
 
 ### 8. Confirmar vínculo WABA e Phone Number ID
@@ -79,7 +79,7 @@
 
 | Erro | O que acontece | Como corrigir |
 |------|----------------|---------------|
-| **Callback URL errada** | Meta envia POST para URL inexistente ou outro app | Usar exatamente `https://devflowlabs.com.br/api/webhook/whatsapp` |
+| **Callback URL errada** | Meta envia POST para URL inexistente ou outro app | Usar exatamente `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp` |
 | **Override ativo** | Override no WABA redireciona para ngrok/outro domínio | Remover override ou apontar para a URL correta |
 | **`messages` não inscrito** | Só status/templates chegam; mensagens reais não | Marcar campo `messages` em Webhook fields |
 | **Nível errado (User)** | Payload diferente; `messages` pode vir em outro formato | Inscrição em WhatsApp Business Account |
@@ -98,7 +98,7 @@ No Meta, ao salvar o webhook, o status deve ficar **verde** (Verificado).
 
 Teste manual:
 ```bash
-curl "https://devflowlabs.com.br/api/webhook/whatsapp?hub.mode=subscribe&hub.verify_token=SEU_TOKEN&hub.challenge=999"
+curl "https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp?hub.mode=subscribe&hub.verify_token=SEU_TOKEN&hub.challenge=999"
 ```
 - **Esperado:** resposta com `999` (texto puro)
 - **Se retornar JSON:** Verify Token não confere
@@ -163,7 +163,7 @@ curl "https://devflowlabs.com.br/api/webhook/whatsapp?hub.mode=subscribe&hub.ver
 
 | Item | Valor |
 |------|-------|
-| **URL** | `https://devflowlabs.com.br/api/webhook/whatsapp` |
+| **URL** | `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp` |
 | **Verify Token** | Mesmo do `WHATSAPP_VERIFY_TOKEN` (Vercel) |
 | **Campo obrigatório** | `messages` |
 | **Nível** | WhatsApp Business Account |

@@ -5,7 +5,7 @@
 - **WABA ID:** 1646490656385716
 - **Phone Number ID correto:** 1027838990414844
 - **App ID:** 3926869380951661 (DevFlow Labs)
-- **Callback URL:** https://devflowlabs.com.br/api/webhook/whatsapp
+- **Callback URL (canónico hoje):** https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp
 - **Situação anterior:** `GET /subscribed_apps` retornava `{"data":[]}` — nenhum app inscrito
 - **Resolução:** POST aplicado em Mar 2025 — app inscrito com sucesso
 
@@ -147,7 +147,7 @@ curl -s "https://graph.facebook.com/v22.0/1646490656385716/subscribed_apps?acces
 
 ### 5.2 Conferir configuração no App Dashboard
 - [ ] **Meta for Developers** → App DevFlow Labs → WhatsApp → **Configuration**
-- [ ] Callback URL = `https://devflowlabs.com.br/api/webhook/whatsapp`
+- [ ] Callback URL = `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp`
 - [ ] Verify Token = valor em `WHATSAPP_VERIFY_TOKEN`
 - [ ] Campos assinados: **messages** (e outros desejados)
 
@@ -163,7 +163,7 @@ curl -s "https://graph.facebook.com/v22.0/1646490656385716/subscribed_apps?acces
 
 ### 5.5 Teste com curl (opcional)
 ```bash
-curl -X POST "https://devflowlabs.com.br/api/webhook/whatsapp" \
+curl -X POST "https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp" \
   -H "Content-Type: application/json" \
   -d '{"object":"whatsapp_business_account","entry":[{"id":"1646490656385716","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"phone_number_id":"1027838990414844"},"messages":[{"from":"5511999999999","id":"test","type":"text","text":{"body":"teste"}}]}}]}]}'
 ```

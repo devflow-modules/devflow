@@ -1,6 +1,6 @@
 /**
  * Webhook WhatsApp Cloud API — URL canônica para Meta.
- * Meta → https://app.devflowlabs.com.br/api/webhook/whatsapp
+ * Meta → https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp (host do deploy `whatsapp-platform`)
  *
  * GET  — Verificação (hub.mode, hub.verify_token, hub.challenge).
  * POST — Eventos: tenant resolution, persistência, IA, billing.

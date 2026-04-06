@@ -6,10 +6,10 @@ O webhook **deve** apontar para o whatsapp-platform:
 
 | Meta Dashboard | URL |
 |----------------|-----|
-| WhatsApp → Configuration → Webhook | `https://app.devflowlabs.com.br/api/webhook/whatsapp` |
+| WhatsApp → Configuration → Webhook | `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp` (host do `whatsapp-platform`) |
 | Verify Token | `devflow_8f3a2e9c1b7d4f6a0e5c8b2` (igual ao WHATSAPP_VERIFY_TOKEN) |
 
-Fluxo correto: **Meta → app.devflowlabs.com.br → Prisma → tenantResolution → IA → Stripe**
+Fluxo correto: **Meta → host do whatsapp-platform → Prisma → tenantResolution → IA → Stripe**
 
 ---
 
@@ -90,7 +90,7 @@ Esperado: `status = 'ACTIVE'`, `access_token` preenchido.
 
 ### 3.6 Teste inbound (webhook)
 
-**Importante:** O webhook em produção está em `https://devflowlabs.com.br/api/webhook/whatsapp` (app raiz). Para testar localmente, use ngrok ou similar e configure temporariamente no Meta.
+**Importante:** O webhook em produção está no deploy **`whatsapp-platform`** (ex.: `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp`), não no portal. Para testar localmente, use ngrok na porta **3004** e configure temporariamente no Meta.
 
 1. Envie mensagem para o número conectado
 2. **Log esperado:** `[WHATSAPP] inbound tenant=<id> wa_id=<user> type=text msg_id=<id>`

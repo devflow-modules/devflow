@@ -62,7 +62,7 @@ Você verá (mesmo sem número):
 ### URL do webhook
 
 ```
-https://devflowlabs.com.br/api/webhook/whatsapp
+https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp
 ```
 
 (Se usar API separada: `https://api.devflowlabs.com.br/webhook/whatsapp`)
@@ -71,7 +71,7 @@ https://devflowlabs.com.br/api/webhook/whatsapp
 
 1. **WhatsApp** → **Configuration**
 2. **Webhook** → **Edit**
-3. **Callback URL:** `https://devflowlabs.com.br/api/webhook/whatsapp`
+3. **Callback URL:** `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp`
 4. **Verify Token:** o mesmo valor de `WHATSAPP_VERIFY_TOKEN`
 5. Clique em **Verify and Save**
 6. Em **Webhook fields**, marque: **messages**
@@ -79,8 +79,8 @@ https://devflowlabs.com.br/api/webhook/whatsapp
 ### Teste com ngrok (desenvolvimento local)
 
 ```bash
-ngrok http 3000
-# Use: https://xxxx.ngrok.io/api/webhook/whatsapp
+ngrok http 3004
+# App whatsapp-platform em dev (porta típica 3004). Use: https://xxxx.ngrok.io/api/webhook/whatsapp
 ```
 
 ---

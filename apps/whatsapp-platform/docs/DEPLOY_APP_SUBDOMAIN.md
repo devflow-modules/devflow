@@ -1,8 +1,8 @@
-# Deploy do whatsapp-platform em app.devflowlabs.com.br
+# Deploy do whatsapp-platform (domínio dedicado)
 
 ## Objetivo
 
-Ter `app.devflowlabs.com.br` servindo o **whatsapp-platform** (webhook unificado, tenant resolution, Embedded Signup).
+Servir o **whatsapp-platform** num host próprio (ex.: `whatsapp.devflowlabs.com.br`): webhook Meta, tenant resolution, Embedded Signup, Stripe, dashboard. O **portal** (`devflowlabs.com.br`) não expõe `/api/webhook/whatsapp`; usa **308** para o app via `NEXT_PUBLIC_WHATSAPP_APP_URL`.
 
 ---
 
@@ -12,7 +12,7 @@ Ter `app.devflowlabs.com.br` servindo o **whatsapp-platform** (webhook unificado
 
 1. Acesse [vercel.com](https://vercel.com) → seu time → **Add New** → **Project**
 2. Importe o **mesmo repositório** do devflow (não precisa ser fork)
-3. Dê um nome: `whatsapp-platform` ou `app-devflowlabs`
+3. Nome sugerido: `whatsapp-platform`
 
 ### 2. Configuração do build
 
@@ -38,26 +38,30 @@ Adicione no projeto as mesmas do `.env.local` do whatsapp-platform:
 | `META_APP_ID` | Sim |
 | `META_APP_SECRET` | Sim |
 | `META_EMBEDDED_SIGNUP_CONFIG_ID` | Sim |
-| `NEXT_PUBLIC_APP_URL` | Sim (`https://app.devflowlabs.com.br`) |
+| `NEXT_PUBLIC_APP_URL` | Sim (`https://whatsapp.devflowlabs.com.br` ou o teu domínio do app) |
+| `NEXT_PUBLIC_WHATSAPP_APP_URL` | Sim (igual à URL pública deste deploy) |
 | `STRIPE_*`, `SUPABASE_*`, `OPENAI_*`, etc. | Conforme necessário |
 
-### 4. Domínio app.devflowlabs.com.br
+No **portal** (deploy raiz), `NEXT_PUBLIC_WHATSAPP_APP_URL` deve apontar para **esta** origem (ex.: `https://whatsapp.devflowlabs.com.br`).
+
+### 4. Domínio (ex.: whatsapp.devflowlabs.com.br)
 
 1. No projeto: **Settings** → **Domains**
-2. **Add** → `app.devflowlabs.com.br`
+2. **Add** → `whatsapp.devflowlabs.com.br` (ou o subdomínio escolhido)
 3. Configure o DNS no provedor do domínio:
    - Tipo: `CNAME`
-   - Nome: `app` (ou `app.devflowlabs`)
-   - Valor: `cname.vercel-dns.com`
+   - Nome: `whatsapp` (ajustar ao teu host)
+   - Valor: `cname.vercel-dns.com` (ou o indicado pela Vercel)
 4. Aguarde a propagação (pode levar alguns minutos)
 
 ### 5. OAuth Redirect URIs na Meta
 
 No Meta for Developers → seu app → **WhatsApp** → **Configuration**:
 
-Em **Valid OAuth Redirect URIs**, inclua:
+Em **Valid OAuth Redirect URIs**, inclua a URL **do mesmo host** do app:
+
 ```
-https://app.devflowlabs.com.br/dashboard/whatsapp/callback
+https://whatsapp.devflowlabs.com.br/dashboard/whatsapp/callback
 ```
 
 ### 6. Migrations do banco
@@ -76,13 +80,15 @@ O script `db:migrate` carrega o env e executa `prisma migrate deploy`.
 
 1. **Deploy** → o Vercel faz o build automaticamente
 2. Após o deploy, teste:
+
    ```
-   https://app.devflowlabs.com.br/api/webhook/whatsapp?hub.mode=subscribe&hub.verify_token=SEU_TOKEN&hub.challenge=999
+   https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp?hub.mode=subscribe&hub.verify_token=SEU_TOKEN&hub.challenge=999
    ```
+
    Deve retornar `999`.
 
 3. No Meta Dashboard: **WhatsApp** → **Configuration** → **Webhook**
-   - **Callback URL**: `https://app.devflowlabs.com.br/api/webhook/whatsapp`
+   - **Callback URL**: `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp`
    - **Verify Token**: igual a `WHATSAPP_VERIFY_TOKEN`
    - **Salvar** → status deve ficar verde
 
@@ -90,26 +96,18 @@ O script `db:migrate` carrega o env e executa `prisma migrate deploy`.
 
 ## Plano de transição
 
-Para migrar do domínio principal para o subdomínio sem downtime, veja **`PLANO_TRANSICAO_APP_SUBDOMINIO.md`**.
+Para o plano passo a passo usado na migração (incl. rollback documentado), veja **`PLANO_TRANSICAO_APP_SUBDOMINIO.md`** — actualizado para o host canónico `whatsapp.devflowlabs.com.br`.
 
 ---
 
-## Solução temporária (sem subdomínio)
-
-Enquanto `app.devflowlabs.com.br` não estiver pronto:
-
-- **devflowlabs.com.br** já responde em `/api/webhook/whatsapp` (app raiz)
-- O app raiz usa outra stack (whatsapp-webhook legado), sem `WhatsappPhoneNumber` / tenant resolution unificado
-- Para testes de webhook, pode usar `devflowlabs.com.br`; para produção com multi-tenant, use `app.devflowlabs.com.br`
-
----
-
-## Arquitetura final
+## Arquitetura
 
 ```
-Meta → https://app.devflowlabs.com.br/api/webhook/whatsapp
+Meta → https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp
      → whatsapp-platform (Vercel)
      → tenantResolutionService (WhatsappPhoneNumber)
      → Prisma (WHATSAPP_DATABASE_URL)
      → IA / billing / Stripe
 ```
+
+Portal: landings e auth; paths do produto WhatsApp → **308** para `NEXT_PUBLIC_WHATSAPP_APP_URL`.

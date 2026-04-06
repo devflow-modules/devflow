@@ -16,10 +16,9 @@
 
 | Rota | Arquivo | Handler |
 |------|---------|---------|
-| `GET/POST /api/webhook/whatsapp` | `src/app/api/webhook/whatsapp/route.ts` | `@wa/modules/whatsapp/webhookHandler` |
-| Alias | `apps/whatsapp-platform/src/app/api/webhooks/whatsapp/route.ts` | — |
+| `GET/POST /api/webhook/whatsapp` | `apps/whatsapp-platform/src/app/api/webhook/whatsapp/route.ts` | `@/modules/whatsapp/webhookHandler` (dentro do app) |
 
-URL produção: `https://devflowlabs.com.br/api/webhook/whatsapp`
+URL produção (host do `whatsapp-platform`): `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp`
 
 ---
 
