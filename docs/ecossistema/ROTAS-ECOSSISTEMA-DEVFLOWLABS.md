@@ -77,14 +77,13 @@ Documento único de referência das rotas do monorepo em relação ao domínio *
 | `/ferramentas/financeiro/settings` | Configurações |
 | `/ferramentas/financeiro/invites/accept` | Aceitar convite |
 
-### 2.5 APIs — App principal
+### 2.5 APIs — App principal (raiz)
+
+Checkout, customer-portal e webhook Stripe do produto Financeiro estão **só** em `apps/financeiro` (§4.2), não na raiz.
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
 | GET | `/api/health` | Health check |
-| POST | `/api/billing/checkout` | Checkout Stripe |
-| POST | `/api/billing/customer-portal` | Customer Portal Stripe |
-| POST | `/api/billing/webhook` | Webhook Stripe |
 | GET | `/api/admin/metrics` | Métricas admin |
 | GET | `/api/admin/revenue` | Receita admin |
 | GET | `/api/me` | Usuário autenticado |

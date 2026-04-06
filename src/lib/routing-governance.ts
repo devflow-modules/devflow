@@ -112,21 +112,12 @@ export function getRouteGovernance(pathname: string): RouteGovernanceEntry | nul
     };
   }
 
-  if (path.startsWith("/api/billing/webhook")) {
-    return {
-      owner: "financeiro-app",
-      phase: 2,
-      migrationNote:
-        "Com NEXT_PUBLIC_FINANCEIRO_APP_URL: proxy HTTP para o app (lógica canónica + idempotência). Opcional: mudar só a URL no Stripe para o host do app.",
-    };
-  }
-
   if (path.startsWith("/api/billing")) {
     return {
       owner: "financeiro-app",
       phase: 3,
       migrationNote:
-        "Checkout/customer-portal só no app; webhook na raiz encaminha ao app quando a env do app está definida",
+        "Sem API billing na raiz — checkout, customer-portal e webhook Stripe só em apps/financeiro",
     };
   }
 

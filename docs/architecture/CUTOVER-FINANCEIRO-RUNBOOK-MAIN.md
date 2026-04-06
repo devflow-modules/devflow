@@ -184,15 +184,13 @@ bash scripts/ops/validate-routes.sh
 
 ## 2.2 Stripe — webhook (checkpoint)
 
-**Estado no repositório:** `POST /api/billing/webhook` no **portal** (`src/app/api/billing/webhook`) e no **app** (`apps/financeiro/src/app/api/billing/webhook`).
+**Estado no repositório:** `POST /api/billing/webhook` existe **só** no app (`apps/financeiro/src/app/api/billing/webhook`). A raiz do portal **não** expõe webhook nem proxy de billing.
 
-**Com `NEXT_PUBLIC_FINANCEIRO_APP_URL` definido no portal:** a rota na raiz é um **proxy HTTP** para `{APP_URL}/api/billing/webhook`. A assinatura e o corpo brutos são reencaminhados; **processamento canónico** (incl. idempotência e `tenant_subscription`) corre **só no app**. O URL registado no [Stripe Dashboard](https://dashboard.stripe.com/webhooks) pode continuar a ser o do portal — **não** é obrigatório mudar no mesmo deploy.
+**Stripe Dashboard:** o endpoint do produto Financeiro deve apontar para a URL pública do app (ex. `https://<host-financeiro>/api/billing/webhook`).
 
-**Sem essa env** (ex.: dev só com portal): a raiz mantém o handler **legado** (`parseWebhookEvent` + `UserPlan` / perfil na BD raiz).
+**Smoke:** após alterar URL, validar `customer.subscription.*` / `checkout.session.completed` / `invoice.*` conforme o contrato do handler do app.
 
-**Quando quiseres URL única no Stripe:** apontar o endpoint diretamente ao host do `apps/financeiro`, smoke de `customer.subscription.*` / `checkout.session.completed`, e validar; a rota proxy do portal pode ficar como redundância ou ser removida depois.
-
-**Não** registares dois endpoints Stripe ativos para o mesmo fluxo Financeiro sem coordenação (risco de eventos duplicados).
+**Não** registar dois endpoints Stripe ativos para o mesmo fluxo Financeiro sem coordenação (risco de eventos duplicados).
 
 ---
 

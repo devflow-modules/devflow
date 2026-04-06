@@ -14,7 +14,7 @@ const ADMIN_METRICS_COOKIE = "admin_metrics_secret";
 
 /**
  * Paths que exigem JWT WhatsApp neste app.
- * Não incluir `/billing` aqui: em `src/app/billing` é assinatura do Financeiro (Stripe).
+ * Não incluir `/billing` aqui: redirect server-side para o app Financeiro (Stripe).
  * Billing do WhatsApp fica no app `apps/whatsapp-platform` (e/ou `/dashboard/billing` se existir).
  * Mapa: docs/site/ROTAS-POR-APLICACAO.md
  */

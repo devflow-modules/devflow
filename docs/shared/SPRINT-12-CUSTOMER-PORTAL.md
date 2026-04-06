@@ -35,7 +35,7 @@ Integração do Stripe Customer Portal ao DevFlow, permitindo que assinantes ger
 | `prisma/schema.prisma` | + model `UserBillingProfile`, relation em `User` |
 | `src/modules/billing/adapters/payment/types.ts` | + `stripeCustomerId` em `WebhookParsedEvent`, + `CustomerPortalAdapter` |
 | `src/modules/billing/adapters/payment/StripeAdapter.ts` | `parseWebhookEvent` agora expõe `stripeCustomerId` |
-| `src/app/api/billing/webhook/route.ts` | Persiste `UserBillingProfile` ao processar eventos |
+| `apps/financeiro/.../api/billing/webhook/route.ts` | (pós-cutover) webhook canónico no app Financeiro |
 | `src/modules/billing/billingAnalytics.ts` | + 4 novos eventos de billing self-service |
 | `src/app/upgrade/page.tsx` | CTA "Já é assinante? Gerencie sua assinatura" |
 | `src/app/pricing/page.tsx` | CTA "Já é assinante? Gerencie sua assinatura" |

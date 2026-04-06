@@ -89,7 +89,7 @@ Decisão **pragmática** alinhada ao diagnóstico de sobreposição raiz ↔ app
 | `/api/whatsapp/*`, `/api/webhook/whatsapp` | `apps/whatsapp-platform` | Raiz | ambígua | **migrar** com produto WhatsApp |
 | `/api/me`, `/api/households`, `/api/expenses`, … (dados Financeiro) | `apps/financeiro` | Raiz | ok | **Bloco D:** removidos da raiz — só em `apps/financeiro` |
 | `/api/billing/checkout`, `customer-portal` | `apps/financeiro` | Raiz | ok | **Bloco D:** removidos da raiz; CTAs do portal chamam API no host do app |
-| `/api/billing/webhook` (Stripe) | `apps/financeiro` ou raiz | Raiz (opcional) | webhook | Manter **um** endpoint ativo no Stripe Dashboard; pode ficar na raiz até DNS final |
+| `/api/billing/webhook` (Stripe) | `apps/financeiro` | Só app | ok | Stripe aponta ao host do app; raiz **não** expõe webhook |
 | `/api/financeiro/*` (leads, navigation) | Raiz (portal) ou `apps/financeiro` | Raiz | ambígua | **manter** leads no portal se forem marketing; dados de app **migrar** |
 | `/api/tools/cnpj/*` | Raiz | Raiz | ok | **manter** (ferramenta pública) |
 | `/api/admin/conversations`, `/api/admin/whatsapp/*` | `apps/whatsapp-platform` | Raiz | ambígua | **migrar** |
