@@ -1,0 +1,34 @@
+name: Validate WhatsApp cutover
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/ops/validate-whatsapp-cutover.sh"
+      - "src/middleware.ts"
+      - "packages/whatsapp-routes/**"
+      - ".github/workflows/validate-whatsapp-cutover.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: validate-whatsapp-cutover-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run cutover validation script
+        env:
+          PORTAL_URL: ${{ vars.PORTAL_URL }}
+          WHATSAPP_APP_URL: ${{ vars.WHATSAPP_APP_URL }}
+          VERIFY_TOKEN: ${{ secrets.WHATSAPP_VERIFY_TOKEN }}
+          STRICT_MODE: ${{ vars.WHATSAPP_VALIDATE_STRICT }}
+        run: |
+          chmod +x scripts/ops/validate-whatsapp-cutover.sh
+          ./scripts/ops/validate-whatsapp-cutover.sh
