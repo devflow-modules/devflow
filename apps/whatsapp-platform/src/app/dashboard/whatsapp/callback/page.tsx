@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function WhatsappCallbackPage() {
+function WhatsappCallbackInner() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
@@ -44,24 +44,25 @@ export default function WhatsappCallbackPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="rounded-lg border border-slate-200 p-8 max-w-md text-center">
-        {status === "loading" && (
-          <p className="text-slate-600">Conectando número…</p>
-        )}
-        {status === "success" && (
-          <p className="text-emerald-600 font-medium">{message}</p>
-        )}
+        {status === "loading" && <p className="text-slate-600">Conectando número…</p>}
+        {status === "success" && <p className="text-emerald-600 font-medium">{message}</p>}
         {status === "error" && (
           <div>
             <p className="text-red-600 font-medium">{message}</p>
-            <a
-              href="/dashboard/whatsapp"
-              className="mt-4 inline-block text-blue-600 underline"
-            >
+            <a href="/dashboard/whatsapp" className="mt-4 inline-block text-blue-600 underline">
               Voltar ao WhatsApp
             </a>
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+export default function WhatsappCallbackPage() {
+  return (
+    <Suspense fallback={<p className="p-6 text-center text-slate-600">Carregando…</p>}>
+      <WhatsappCallbackInner />
+    </Suspense>
   );
 }

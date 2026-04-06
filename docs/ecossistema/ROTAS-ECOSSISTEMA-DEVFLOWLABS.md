@@ -117,7 +117,9 @@ Checkout, customer-portal e webhook Stripe do produto Financeiro estão **só** 
 | POST | `/api/financeiro/leads` | Captura de leads financeiro |
 | POST | `/api/analytics/growth` | Analytics crescimento |
 | GET | `/api/tools/cnpj/[cnpj]` | Consulta CNPJ |
-| GET, POST | `/api/webhook/whatsapp` | Webhook WhatsApp (verificação + mensagens) |
+| GET, POST | `/api/webhook/whatsapp` | Webhook WhatsApp (verificação + mensagens) — **canónico em** `apps/whatsapp-platform` após cutover; na raiz removido após Bloco D |
+
+Com **`NEXT_PUBLIC_WHATSAPP_APP_URL`**, o middleware da raiz envia **308** para o app nos paths operacionais do WhatsApp (pacote `@devflow/whatsapp-routes`). Detalhes: `docs/architecture/CUTOVER-WHATSAPP-RUNBOOK-MAIN.md`.
 
 ---
 

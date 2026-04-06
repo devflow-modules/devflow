@@ -18,6 +18,7 @@ import {
   PRODUTOS_HUB_PATH,
 } from "@/lib/devflow-product-catalog";
 import { FINANCEIRO_BASE_PATH, FINANCEIRO_DEMO_PATH } from "@devflow/financeiro-routes";
+import { whatsappAppUrl } from "@/lib/whatsapp-app-url";
 import { cn } from "@/lib/utils";
 
 const COMO_FUNCIONA_PATH = "/como-funciona";
@@ -301,7 +302,7 @@ export function Header() {
             Ver exemplo
           </Link>
           <Link
-            href="/login"
+            href={whatsappAppUrl("/login")}
             className={cn(secondaryBtnClass, "hidden lg:inline-flex")}
             onClick={() => trackHeaderCtaClicked({ cta: "entrar", surface: "desktop" })}
           >
@@ -364,7 +365,7 @@ export function Header() {
               Ver exemplo
             </Link>
             <Link
-              href="/login"
+              href={whatsappAppUrl("/login")}
               className={cn(secondaryBtnClass, "w-full")}
               onClick={() => {
                 trackHeaderCtaClicked({ cta: "entrar", surface: "mobile" });

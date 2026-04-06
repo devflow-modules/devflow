@@ -66,28 +66,31 @@ export function getRouteGovernance(pathname: string): RouteGovernanceEntry | nul
   if (path.startsWith("/dashboard/whatsapp")) {
     return {
       owner: "whatsapp-app",
-      phase: 2,
-      migrationNote: "Preferir apps/whatsapp-platform no host do produto",
+      phase: 3,
+      migrationNote:
+        "Cutover: 308 para NEXT_PUBLIC_WHATSAPP_APP_URL — rotas removidas da raiz; canónico em apps/whatsapp-platform",
     };
   }
 
   if (
     path === "/login" ||
     path.startsWith("/forgot-password") ||
-    path.startsWith("/reset-password")
+    path.startsWith("/reset-password") ||
+    path === "/signup" ||
+    path.startsWith("/signup/")
   ) {
     return {
       owner: "whatsapp-app",
-      phase: 2,
-      migrationNote: "JWT na raiz — documentar domínio; alinhar com whatsapp-platform",
+      phase: 3,
+      migrationNote: "308 para app WhatsApp quando env definida; implementação só no app",
     };
   }
 
   if (path.startsWith("/api/auth")) {
     return {
       owner: "whatsapp-app",
-      phase: 2,
-      migrationNote: "Auth JWT — dono operacional whatsapp-platform",
+      phase: 3,
+      migrationNote: "Removido da raiz — auth JWT em apps/whatsapp-platform",
     };
   }
 
@@ -124,13 +127,17 @@ export function getRouteGovernance(pathname: string): RouteGovernanceEntry | nul
   if (path.startsWith("/api/whatsapp") || path.startsWith("/api/webhook/whatsapp")) {
     return {
       owner: "whatsapp-app",
-      phase: 2,
-      migrationNote: "Onboard/webhook — whatsapp-platform",
+      phase: 3,
+      migrationNote: "Removido da raiz — onboard/webhook em apps/whatsapp-platform",
     };
   }
 
   if (path.startsWith("/api/admin/conversations") || path.includes("/api/admin/whatsapp")) {
-    return { owner: "whatsapp-app", phase: 2 };
+    return {
+      owner: "whatsapp-app",
+      phase: 3,
+      migrationNote: "Removido da raiz — APIs admin WhatsApp no app",
+    };
   }
 
   if (path.startsWith("/api/financeiro")) {

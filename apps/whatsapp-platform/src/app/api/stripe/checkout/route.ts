@@ -6,7 +6,7 @@ import { createCheckoutSession } from "@/modules/stripe";
 import { isStripeConfigured } from "@/modules/stripe";
 
 const bodySchema = z.object({
-  plan: z.enum(["STARTER", "PRO", "SCALE"]),
+  plan: z.enum(["PRO", "SCALE"]),
 });
 
 export const dynamic = "force-dynamic";
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
     return NextResponse.json(
-      { success: false, error: "plan deve ser STARTER, PRO ou SCALE" },
+      { success: false, error: "plan deve ser PRO ou SCALE" },
       { status: 400 }
     );
   }

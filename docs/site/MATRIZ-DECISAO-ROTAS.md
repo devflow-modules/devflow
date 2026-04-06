@@ -8,6 +8,8 @@ Contexto de camadas (marketing / produto / operação): `ROTAS-POR-APLICACAO.md`
 
 **Estado pós Bloco C/D (portal):** só aquisição em `/ferramentas/financeiro`; `/ferramentas/financeiro/demo` na raiz é **redirect** para o app (sem painel na raiz). Operação, auth, billing e upgrade na raiz redirecionam (308) ou server `redirect` para `NEXT_PUBLIC_FINANCEIRO_APP_URL` quando definido. Checkout Stripe chama a API no host do app.
 
+**WhatsApp Platform:** com `NEXT_PUBLIC_WHATSAPP_APP_URL` definido, UI operacional (`/inbox`, `/settings`, `/dashboard/whatsapp`, `/dashboard/billing`, `/onboarding`, `/automation`), auth (`/login`, `/signup`, `/forgot-password`, `/reset-password`) recebe **308** para o mesmo path no app — ver `@devflow/whatsapp-routes` e `docs/architecture/CUTOVER-WHATSAPP-RUNBOOK-MAIN.md`. Landings WhatsApp na raiz **não** redirecionam. `/admin/metrics` na raiz continua sendo painel interno portal (não é o admin do produto WhatsApp).
+
 ---
 
 ## 1. Canon proposto (source of truth)
@@ -73,8 +75,8 @@ Decisão **pragmática** alinhada ao diagnóstico de sobreposição raiz ↔ app
 | `/upgrade` | `apps/financeiro` | Raiz | ambígua | **migrar** com billing |
 | Landings `/automacao-whatsapp*`, `/chatbot-whatsapp`, `/software-atendimento-whatsapp` | Raiz | Raiz (+ parte em `apps/site`) | duplicada | **manter** (raiz); **depreciar** `apps/site` |
 | `(seo)/[slug]` | Raiz | Raiz | ok | **manter** |
-| `/login`, `/forgot-password`, `/reset-password` (JWT) | `apps/whatsapp-platform` **no host do produto** | Raiz + `whatsapp-platform` + `investigamais` | ok entre domínios | **manter** em cada app no **seu** deploy; na raiz **migrar** ou **redirecionar** se raiz não servir mais WhatsApp |
-| `/dashboard/whatsapp`, `/dashboard/whatsapp/callback` | `apps/whatsapp-platform` | Raiz + `apps/whatsapp-platform` | duplicada / ambígua | **migrar** para `apps/whatsapp-platform`; raiz **redirecionar** ou **remover** |
+| `/login`, `/forgot-password`, `/reset-password` (JWT) | `apps/whatsapp-platform` **no host do produto** | Raiz + `whatsapp-platform` + `investigamais` | duplicada | **308** para app quando `NEXT_PUBLIC_WHATSAPP_APP_URL`; canónico no app após cutover |
+| `/dashboard/whatsapp`, `/dashboard/whatsapp/callback` | `apps/whatsapp-platform` | Raiz + `apps/whatsapp-platform` | duplicada | **308** / remoção na raiz após cutover |
 | `/admin/metrics` (contexto misto) | Definir (WhatsApp vs portal) | Raiz | ambígua | **migrar** para app dono do dado ou proteger por produto; evitar “admin genérico” na raiz |
 | `/projetos` | Raiz | Raiz | ok | **manter** |
 | Páginas só em `apps/site` | — | `apps/site` | legado | **depreciar** → **remover** após fusão na raiz |
@@ -85,14 +87,14 @@ Decisão **pragmática** alinhada ao diagnóstico de sobreposição raiz ↔ app
 
 | Prefixo / família | App dono (alvo) | Hoje | Status | Ação |
 |-------------------|-----------------|------|--------|------|
-| `/api/auth/*` (JWT WhatsApp) | `apps/whatsapp-platform` | Raiz | ambígua | **migrar** para host do WhatsApp se raiz não for borda única |
-| `/api/whatsapp/*`, `/api/webhook/whatsapp` | `apps/whatsapp-platform` | Raiz | ambígua | **migrar** com produto WhatsApp |
+| `/api/auth/*` (JWT WhatsApp) | `apps/whatsapp-platform` | Removido da raiz | ok | **manter** só no app |
+| `/api/whatsapp/*`, `/api/webhook/whatsapp` | `apps/whatsapp-platform` | Removido da raiz | ok | **manter** só no app |
 | `/api/me`, `/api/households`, `/api/expenses`, … (dados Financeiro) | `apps/financeiro` | Raiz | ok | **Bloco D:** removidos da raiz — só em `apps/financeiro` |
 | `/api/billing/checkout`, `customer-portal` | `apps/financeiro` | Raiz | ok | **Bloco D:** removidos da raiz; CTAs do portal chamam API no host do app |
 | `/api/billing/webhook` (Stripe) | `apps/financeiro` | Só app | ok | Stripe aponta ao host do app; raiz **não** expõe webhook |
 | `/api/financeiro/*` (leads, navigation) | Raiz (portal) ou `apps/financeiro` | Raiz | ambígua | **manter** leads no portal se forem marketing; dados de app **migrar** |
 | `/api/tools/cnpj/*` | Raiz | Raiz | ok | **manter** (ferramenta pública) |
-| `/api/admin/conversations`, `/api/admin/whatsapp/*` | `apps/whatsapp-platform` | Raiz | ambígua | **migrar** |
+| `/api/admin/conversations`, `/api/admin/whatsapp/*` | `apps/whatsapp-platform` | Removido da raiz | ok | **manter** só no app |
 | `/api/admin/metrics`, `revenue` | Definir por produto | Raiz | ambígua | **migrar** para app dono |
 | `/api/health` | Cada app | Vários | ok | **manter** em cada deploy |
 | Sitemaps | Raiz | Raiz | ok | **manter** |

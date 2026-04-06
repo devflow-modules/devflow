@@ -1,5 +1,7 @@
 # WhatsApp Webhook API
 
+> **Legado / experimental:** o canónico para webhook + produto é **`apps/whatsapp-platform`** (Next.js). Este pacote Express permanece no monorepo para referência ou cenários isolados; não é o alvo de novas features.
+
 Express-based inbound WhatsApp message pipeline for the DevFlow platform.
 
 ## Stack

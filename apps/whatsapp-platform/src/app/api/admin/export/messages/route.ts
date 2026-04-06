@@ -17,6 +17,9 @@ export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
   const denied = requireRole(auth, ["admin"]);
   if (denied) return denied;
+  if (!auth) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  }
 
   if (!hasSupabaseConfig()) {
     return NextResponse.json({ error: "Supabase não configurado" }, { status: 503 });

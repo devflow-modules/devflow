@@ -12,15 +12,14 @@ Property 'whatsappConversation' does not exist on type 'PrismaClient<...>'
 
 ### 1. Prisma root (schema principal do portal)
 
-- **`src/lib/prisma-root.ts`**: exporta `prisma` tipado como `PrismaRoot` (`any`) para o schema raiz do monorepo (WhatsApp, billing portal, revenue, conversas admin, etc.).
+- **`src/lib/prisma-root.ts`**: exporta `prisma` tipado como `PrismaRoot` (`any`) para o schema raiz do monorepo (Financeiro legado na raiz, revenue, etc.).
 - Todos os consumidores desse client no **portal** importam de `@/lib/prisma-root`.
 - **Importar sempre de** `@/lib/prisma-root`, nunca de `@prisma/client` para o client de runtime do schema raiz.
 - O produto **Financeiro** canónico usa o Prisma gerado em **`apps/financeiro`** (`@/modules/financeiro/lib/db` dentro desse app).
 
 ### 2. Enums do schema root
 
-- Evitar imports de enums de `@prisma/client` quando possível.
-- **`whatsappInbox.message.service.ts`**: enums definidos localmente (`WhatsappInboxDeliveryStatus`, `WhatsappInboxDirection`, `WhatsappInboxMessageType`).
+- Evitar imports de enums de `@prisma/client` quando possível; definir localmente se necessário.
 
 ### 3. Prisma.InputJsonValue
 
@@ -29,8 +28,8 @@ Property 'whatsappConversation' does not exist on type 'PrismaClient<...>'
 
 ### 4. Client WhatsApp (schema separado)
 
-- **`@/generated/prisma-whatsapp`** e **`@/lib/prisma-whatsapp`**: usados pelo `whatsapp-platform`.
-- Esse client tem schema próprio e não apresenta o mesmo problema de tipagem na Vercel.
+- **`@/generated/prisma-whatsapp`** (gerado no build de **`apps/whatsapp-platform`**): o portal na raiz **não** gera mais esse client.
+- No monorepo, o schema WhatsApp vive no app; ver `apps/whatsapp-platform/prisma/schema.prisma`.
 
 ## Checklist para novos arquivos
 

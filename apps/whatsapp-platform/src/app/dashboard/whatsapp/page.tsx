@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { WhatsappConnectClient } from "./WhatsappConnectClient";
 
 export default function DashboardWhatsappPage() {
@@ -11,7 +12,9 @@ export default function DashboardWhatsappPage() {
           Voltar ao Dashboard
         </Link>
       </p>
-      <WhatsappConnectClient />
+      <Suspense fallback={<p className="text-slate-600">Carregando…</p>}>
+        <WhatsappConnectClient />
+      </Suspense>
     </div>
   );
 }

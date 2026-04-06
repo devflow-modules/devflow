@@ -17,6 +17,9 @@ export async function POST(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
   const denied = requireRole(auth, ["admin"]);
   if (denied) return denied;
+  if (!auth) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  }
 
   const parsed = bodySchema.safeParse(await request.json());
   if (!parsed.success) {
