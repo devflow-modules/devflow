@@ -4,6 +4,7 @@ import { getAuthFromRequest } from "@/modules/auth";
 import { waInboxCreateOutbound } from "@/modules/inbox";
 import { digitsOnly } from "@/modules/inbox/waInboxUtils";
 import { prisma } from "@/lib/prisma";
+import { resolveMessagingTenantForOutbound } from "@/modules/whatsapp/whatsappPhoneResolution";
 import { z } from "zod";
 import { enforceUsageOrThrow, UsageLimitExceededError } from "@/modules/billing/enforcementService";
 import { trackUsage } from "@/modules/billing/usageService";
@@ -49,15 +50,16 @@ export async function POST(
     return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 });
   }
 
-  const tenant = await prisma.tenant.findUnique({
+  const tenantRow = await prisma.tenant.findUnique({
     where: { id: auth.payload.tenantId },
+    select: { id: true },
   });
-  if (!tenant) {
+  if (!tenantRow) {
     return NextResponse.json({ error: "Tenant não encontrado" }, { status: 404 });
   }
 
   try {
-    await enforceUsageOrThrow({ tenantId: tenant.id, feature: "messages", quantity: 1 });
+    await enforceUsageOrThrow({ tenantId: tenantRow.id, feature: "messages", quantity: 1 });
   } catch (e) {
     if (e instanceof UsageLimitExceededError) {
       return NextResponse.json(
@@ -68,11 +70,15 @@ export async function POST(
     throw e;
   }
 
-  if (!tenant.phoneNumberId?.trim() || !tenant.accessToken?.trim()) {
+  const messagingTenant = await resolveMessagingTenantForOutbound(
+    auth.payload.tenantId,
+    thread.businessPhoneNumberId
+  );
+  if (!messagingTenant) {
     return NextResponse.json(
       {
         error:
-          "WhatsApp não configurado: defina phoneNumberId e accessToken em Configurações.",
+          "WhatsApp não configurado: ligue um número em WhatsApp (dashboard) ou no onboarding.",
       },
       { status: 503 }
     );
@@ -84,18 +90,19 @@ export async function POST(
   }
 
   try {
-    const adapter = new WhatsAppCloudAdapter({ accessToken: tenant.accessToken });
-    const { messageId } = await adapter.sendText(tenant.phoneNumberId, {
+    const adapter = new WhatsAppCloudAdapter({ accessToken: messagingTenant.accessToken });
+    const { messageId } = await adapter.sendText(messagingTenant.phoneNumberId, {
       to,
       text: parsed.data.text,
     });
 
     await waInboxCreateOutbound({
       tenantId: auth.payload.tenantId,
+      businessPhoneNumberId: messagingTenant.phoneNumberId,
       customerPhoneDigits: thread.phoneNumber.replace(/\D/g, ""),
       waMessageId: messageId,
       text: parsed.data.text,
-      businessDigits: digitsOnly(tenant.displayPhoneNumber ?? ""),
+      businessDigits: digitsOnly(messagingTenant.displayPhoneNumber ?? ""),
     });
 
     await prisma.waInboxThread.update({

@@ -102,7 +102,7 @@ Variáveis opcionais do repositório (Actions → Variables): `ROUTE_VALIDATE_*`
 - **Testes:** `pnpm run test:workspace`
 - **Lint:** `pnpm run lint:workspace`
 - **Portal (raiz):** `pnpm dev` (porta padrão 3000)
-- **App por filtro:** `pnpm --filter @devflow/app-financeiro dev` ou `cd apps/whatsapp-platform && pnpm dev` (porta 3004)
+- **App por filtro:** `pnpm --filter @devflow/app-financeiro dev` ou `cd apps/whatsapp-platform && pnpm dev` (porta 3000)
 
 ## Onboarding
 

@@ -1,9 +1,18 @@
 export type InboxUser = { id: string; name: string; email: string };
 export type InboxTag = { id: string; name: string; color: string };
 
+export type WhatsappLineSummary = {
+  phoneNumberId: string;
+  label: string | null;
+  displayPhoneNumber: string | null;
+  isPrimary: boolean;
+  isDefaultOutbound: boolean;
+};
+
 export type WaInboxThreadRow = {
   id: string;
   phoneNumber: string;
+  businessPhoneNumberId: string;
   contactName: string | null;
   lastMessageAt: string;
   unreadCount: number;
@@ -17,6 +26,7 @@ export type WaInboxThreadRow = {
   firstResponseAt?: string | null;
   createdAt: string;
   updatedAt: string;
+  whatsappLine?: WhatsappLineSummary;
 };
 
 export type WaInboxMessageRow = {
@@ -44,8 +54,10 @@ export type InboxConversationsFilter =
   | "CLOSED";
 
 export const INBOX_QK = {
-  conversations: (filter?: InboxConversationsFilter) =>
-    filter ? (["inbox-conversations", filter] as const) : (["inbox-conversations"] as const),
+  conversations: (filter?: InboxConversationsFilter, lineFilter?: string | null) =>
+    filter
+      ? (["inbox-conversations", filter, lineFilter ?? "all-lines"] as const)
+      : (["inbox-conversations", lineFilter ?? "all-lines"] as const),
   messages: (threadId: string) => ["inbox-messages", threadId] as const,
   tags: ["inbox-tags"] as const,
   users: ["inbox-users"] as const,
@@ -53,6 +65,7 @@ export const INBOX_QK = {
   viewers: (threadId: string) => ["inbox-viewers", threadId] as const,
   typing: (threadId: string) => ["inbox-typing", threadId] as const,
   audit: (threadId: string) => ["inbox-audit", threadId] as const,
+  phoneLines: ["inbox-phone-lines"] as const,
 };
 
 export type OnlineUserInfo = { userId: string; name?: string; email?: string };

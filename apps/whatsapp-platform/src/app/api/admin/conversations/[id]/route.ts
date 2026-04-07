@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { hasSupabaseConfig } from "@/lib/supabase-server";
-import { getConversationById } from "@/modules/conversations";
+import { prisma } from "@/lib/prisma";
+import { listTenants } from "@/modules/tenants";
 
 export const dynamic = "force-dynamic";
 
@@ -12,18 +12,28 @@ export async function GET(
   if (!id) {
     return NextResponse.json({ error: "Missing conversation id" }, { status: 400 });
   }
-  if (!hasSupabaseConfig()) {
-    return NextResponse.json({ error: "Server not configured" }, { status: 503 });
-  }
   try {
-    const conversation = await getConversationById(id);
-    if (!conversation) {
+    const tenants = await listTenants();
+    const tenantId = tenants[0]?.id;
+    if (!tenantId) {
+      return NextResponse.json({ error: "No tenant" }, { status: 404 });
+    }
+    const thread = await prisma.waInboxThread.findFirst({
+      where: { id, tenantId },
+      select: {
+        id: true,
+        phoneNumber: true,
+        contactName: true,
+        status: true,
+      },
+    });
+    if (!thread) {
       return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
     }
     return NextResponse.json({
-      id: conversation.id,
-      customerName: conversation.wa_from,
-      status: conversation.status,
+      id: thread.id,
+      customerName: thread.contactName ?? thread.phoneNumber,
+      status: thread.status,
     });
   } catch (err) {
     console.error("[GET /api/admin/conversations/:id]", err);

@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
 import { getAuthFromRequest } from "@/modules/auth";
-import { waInboxCountThreads, waInboxListThreads } from "@/modules/inbox";
+import {
+  waInboxCountThreads,
+  waInboxListThreads,
+  fetchWhatsappLineSummaries,
+} from "@/modules/inbox";
 
 export const dynamic = "force-dynamic";
 
@@ -24,17 +28,20 @@ export async function GET(request: NextRequest) {
   const assignedTo = searchParams.get("assignedTo")?.trim() || undefined;
   const tag = searchParams.get("tag")?.trim() || undefined;
   const priorityParam = searchParams.get("priority")?.toUpperCase();
+  const businessPhoneNumberId = searchParams.get("businessPhoneNumberId")?.trim() || undefined;
 
   const filters: {
     status?: WaInboxThreadStatus;
     assignedTo?: string;
     tag?: string;
     priority?: string;
+    businessPhoneNumberId?: string;
   } = {};
   if (statusParam && VALID_STATUS.has(statusParam)) filters.status = statusParam as WaInboxThreadStatus;
   if (assignedTo) filters.assignedTo = assignedTo === "me" ? "me" : assignedTo;
   if (tag) filters.tag = tag;
   if (priorityParam && VALID_PRIORITY.has(priorityParam)) filters.priority = priorityParam;
+  if (businessPhoneNumberId) filters.businessPhoneNumberId = businessPhoneNumberId;
 
   try {
     const [threads, total] = await Promise.all([
@@ -46,9 +53,23 @@ export async function GET(request: NextRequest) {
       }),
       waInboxCountThreads(auth.payload.tenantId, Object.keys(filters).length ? filters : undefined, auth.payload.sub),
     ]);
+    const lineMap = await fetchWhatsappLineSummaries(
+      auth.payload.tenantId,
+      threads.map((t) => t.businessPhoneNumberId)
+    );
+    const threadsOut = threads.map((t) => ({
+      ...t,
+      whatsappLine: lineMap.get(t.businessPhoneNumberId) ?? {
+        phoneNumberId: t.businessPhoneNumberId,
+        label: null,
+        displayPhoneNumber: null,
+        isPrimary: false,
+        isDefaultOutbound: false,
+      },
+    }));
     return NextResponse.json({
       success: true,
-      data: { threads, pagination: { limit: take, offset: skip, total } },
+      data: { threads: threadsOut, pagination: { limit: take, offset: skip, total } },
     });
   } catch (e) {
     return NextResponse.json(

@@ -124,7 +124,7 @@ Execute com chave de teste (`STRIPE_TEST_SECRET_KEY`). Use cartões de teste Str
 Para testar webhook localmente:
 
 ```bash
-stripe listen --forward-to localhost:3004/api/stripe/webhook
+stripe listen --forward-to localhost:3000/api/stripe/webhook
 ```
 
 O comando exibe um `whsec_...` temporário; use como `STRIPE_WEBHOOK_SECRET` no `.env.local`.

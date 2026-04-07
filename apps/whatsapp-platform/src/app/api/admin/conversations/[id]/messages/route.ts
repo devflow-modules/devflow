@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { hasSupabaseConfig } from "@/lib/supabase-server";
-import { getConversationById } from "@/modules/conversations";
-import { listMessagesByConversation } from "@/modules/messaging";
+import { prisma } from "@/lib/prisma";
+import { listTenants } from "@/modules/tenants";
+import { WaInboxDirection } from "@/generated/prisma-whatsapp";
 
 export const dynamic = "force-dynamic";
 
@@ -16,24 +16,39 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  if (!id) {
+  const { id: threadId } = await params;
+  if (!threadId) {
     return NextResponse.json({ error: "Missing conversation id" }, { status: 400 });
   }
-  if (!hasSupabaseConfig()) {
-    return NextResponse.json({ messages: [] });
-  }
   try {
-    const conversation = await getConversationById(id);
-    if (!conversation) {
+    const tenants = await listTenants();
+    const tenantId = tenants[0]?.id;
+    if (!tenantId) {
+      return NextResponse.json({ messages: [] });
+    }
+    const thread = await prisma.waInboxThread.findFirst({
+      where: { id: threadId, tenantId },
+      select: { id: true },
+    });
+    if (!thread) {
       return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
     }
-    const messages = await listMessagesByConversation(id);
-    const items: AdminMessageItem[] = messages.map((m) => ({
+    const rows = await prisma.waInboxMessage.findMany({
+      where: { tenantId, threadId: thread.id },
+      orderBy: { ts: "asc" },
+      take: 500,
+      select: {
+        id: true,
+        direction: true,
+        contentText: true,
+        ts: true,
+      },
+    });
+    const items: AdminMessageItem[] = rows.map((m) => ({
       id: m.id,
-      direction: m.direction,
-      body: m.body,
-      created_at: m.created_at,
+      direction: m.direction === WaInboxDirection.INBOUND ? "inbound" : "outbound",
+      body: m.contentText ?? "",
+      created_at: m.ts.toISOString(),
     }));
     return NextResponse.json({ messages: items });
   } catch (err) {

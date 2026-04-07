@@ -5,9 +5,9 @@
 
 export interface Tenant {
   id: string;
-  phone_number_id: string;
-  display_phone_number: string | null;
-  access_token: string;
+  phone_number_id?: string | null;
+  display_phone_number?: string | null;
+  access_token?: string | null;
   verify_token: string | null;
   settings: Record<string, unknown> | null;
   created_at: string;

@@ -2,7 +2,7 @@
  * Automação de IA por tenant — webhook assíncrono, logs, isolamento.
  */
 
-import type { ResolvedTenant } from "@/modules/tenants/tenantService";
+import type { ResolvedTenant } from "@/modules/tenants";
 import type { IncomingMessage } from "@devflow/whatsapp-core";
 import { prisma } from "@/lib/prisma";
 import {
@@ -61,7 +61,8 @@ export interface TenantAiReadyCheck {
  */
 export async function checkTenantAiAutomationReady(
   tenantId: string,
-  customerPhoneE164: string
+  customerPhoneE164: string,
+  businessPhoneNumberId: string
 ): Promise<TenantAiReadyCheck> {
   if (!tenantId || tenantId === "env") {
     return { ready: false, reason: "tenant_env" };
@@ -69,6 +70,11 @@ export async function checkTenantAiAutomationReady(
 
   if (isOpenAiConfigured()) {
     return { ready: true, reason: "openai_standalone" };
+  }
+
+  const biz = businessPhoneNumberId?.trim();
+  if (!biz) {
+    return { ready: false, reason: "no_business_line" };
   }
 
   const [config, tenant, thread] = await Promise.all([
@@ -79,9 +85,10 @@ export async function checkTenantAiAutomationReady(
     }),
     prisma.waInboxThread.findUnique({
       where: {
-        tenantId_phoneNumber: {
+        tenantId_phoneNumber_businessPhoneNumberId: {
           tenantId,
           phoneNumber: digitsOnly(customerPhoneE164),
+          businessPhoneNumberId: biz,
         },
       },
       select: { id: true, status: true },
@@ -121,13 +128,13 @@ export async function checkTenantAiAutomationReady(
 export interface RunTenantAiAutoReplyInput {
   tenant: ResolvedTenant;
   message: IncomingMessage;
-  /** Supabase conversation id (legado) */
-  conversationId: string;
+  /** wa_inbox_threads.id */
+  inboxThreadId: string;
   textBody: string;
 }
 
 export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Promise<void> {
-  const { tenant, message, conversationId, textBody } = input;
+  const { tenant, message, inboxThreadId, textBody } = input;
   const tenantId = tenant.id;
   const from = message.from;
   const waMsgId = message.id;
@@ -143,7 +150,7 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
   });
   if (dup) return;
 
-  const check = await checkTenantAiAutomationReady(tenantId, from);
+  const check = await checkTenantAiAutomationReady(tenantId, from, tenant.phoneNumberId);
   if (!check.ready) return;
 
   try {
@@ -165,13 +172,17 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
       prisma.aiAgentConfig.findUnique({ where: { tenantId } }).then((c) => c ?? getOrCreateAiAgentConfig(tenantId)),
       prisma.waInboxThread.findUnique({
         where: {
-          tenantId_phoneNumber: { tenantId, phoneNumber: digitsOnly(from) },
+          tenantId_phoneNumber_businessPhoneNumberId: {
+            tenantId,
+            phoneNumber: digitsOnly(from),
+            businessPhoneNumberId: tenant.phoneNumberId,
+          },
         },
         select: { id: true },
       }),
     ]);
 
-    let contextMessages: { role: "user" | "assistant"; content: string }[] = [];
+    const contextMessages: { role: "user" | "assistant"; content: string }[] = [];
     if (thread) {
       const recent = await prisma.waInboxMessage.findMany({
         where: { tenantId, threadId: thread.id, messageType: "TEXT" },
@@ -217,7 +228,7 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
     await sendWebhookAutoReply({
       tenant,
       to: from,
-      conversationId,
+      inboxThreadId,
       text: gen.reply,
     });
 
@@ -254,7 +265,11 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
     }),
     prisma.waInboxThread.findUnique({
       where: {
-        tenantId_phoneNumber: { tenantId, phoneNumber: digitsOnly(from) },
+        tenantId_phoneNumber_businessPhoneNumberId: {
+          tenantId,
+          phoneNumber: digitsOnly(from),
+          businessPhoneNumberId: tenant.phoneNumberId,
+        },
       },
     }),
   ]);
@@ -282,7 +297,7 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
 
   const gen = await generateReply({
     tenantId,
-    conversationId,
+    conversationId: inboxThreadId,
     messageText: textBody,
     contextMessages,
     systemPrompt: config.systemPrompt?.trim() || "",
@@ -322,7 +337,7 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
     const { messageId: outboundWaId } = await sendWebhookAutoReply({
       tenant,
       to: from,
-      conversationId,
+      inboxThreadId,
       text: gen.text,
     });
 

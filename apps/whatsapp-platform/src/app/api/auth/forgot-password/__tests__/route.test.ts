@@ -27,7 +27,7 @@ vi.mock("@/lib/auth-logger", () => ({
 describe("POST /api/auth/forgot-password", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.NEXT_PUBLIC_WHATSAPP_APP_URL = "http://localhost:3004";
+    process.env.NEXT_PUBLIC_WHATSAPP_APP_URL = "http://localhost:3000";
     mockSignToken.mockResolvedValue("reset-jwt");
     mockSendEmail.mockResolvedValue({ ok: true });
   });

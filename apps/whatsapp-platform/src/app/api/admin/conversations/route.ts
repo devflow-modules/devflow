@@ -1,21 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { hasSupabaseConfig } from "@/lib/supabase-server";
-import { listConversations, listConversationsByStatus } from "@/modules/conversations";
+import { prisma } from "@/lib/prisma";
 import { listTenants } from "@/modules/tenants";
-import { getLastMessageForConversationIds } from "@/modules/messaging";
-import type { ConversationStatus } from "@/lib/db/types";
+import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
 
 export const dynamic = "force-dynamic";
 
-const VALID_STATUSES: ConversationStatus[] = [
-  "open",
-  "waiting_queue",
-  "waiting",
-  "assigned",
-  "in_progress",
-  "resolved",
-  "closed",
-];
+const VALID_THREAD_STATUSES: WaInboxThreadStatus[] = ["OPEN", "PENDING", "CLOSED"];
 
 export type AdminConversationItem = {
   id: string;
@@ -27,9 +17,6 @@ export type AdminConversationItem = {
 };
 
 export async function GET(request: NextRequest) {
-  if (!hasSupabaseConfig()) {
-    return NextResponse.json({ conversations: [], total: 0 });
-  }
   try {
     const tenants = await listTenants();
     const tenantId = tenants[0]?.id;
@@ -39,25 +26,37 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const statusParam = searchParams.get("status");
-    const conversations =
-      statusParam && VALID_STATUSES.includes(statusParam as ConversationStatus)
-        ? await listConversationsByStatus(tenantId, statusParam as ConversationStatus, 100)
-        : await listConversations(tenantId, 100);
+    const statusFilter =
+      statusParam && VALID_THREAD_STATUSES.includes(statusParam as WaInboxThreadStatus)
+        ? (statusParam as WaInboxThreadStatus)
+        : undefined;
 
-    const ids = conversations.map((c) => c.id);
-    const lastMessages = await getLastMessageForConversationIds(ids);
-
-    const items: AdminConversationItem[] = conversations.map((c) => {
-      const last = lastMessages.get(c.id);
-      return {
-        id: c.id,
-        customerName: c.wa_from ?? "—",
-        lastMessage: last?.body ?? null,
-        lastMessageAt: last?.created_at ?? null,
-        unread: 0,
-        status: c.status,
-      };
+    const threads = await prisma.waInboxThread.findMany({
+      where: {
+        tenantId,
+        ...(statusFilter ? { status: statusFilter } : {}),
+      },
+      orderBy: { lastMessageAt: "desc" },
+      take: 100,
+      select: {
+        id: true,
+        phoneNumber: true,
+        contactName: true,
+        lastMessagePreview: true,
+        lastMessageAt: true,
+        unreadCount: true,
+        status: true,
+      },
     });
+
+    const items: AdminConversationItem[] = threads.map((t) => ({
+      id: t.id,
+      customerName: t.contactName ?? t.phoneNumber,
+      lastMessage: t.lastMessagePreview ?? null,
+      lastMessageAt: t.lastMessageAt?.toISOString() ?? null,
+      unread: t.unreadCount,
+      status: t.status,
+    }));
 
     return NextResponse.json({ conversations: items, total: items.length });
   } catch (err) {

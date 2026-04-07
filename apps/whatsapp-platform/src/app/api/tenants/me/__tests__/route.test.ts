@@ -11,20 +11,26 @@ const mockPrisma = {
 vi.mock("@/modules/auth", () => ({ getAuthFromRequest: (...args: unknown[]) => mockGetAuthFromRequest(...args) }));
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 
+const tenantRow = {
+  id: "t1",
+  name: "Tenant",
+  aiDriver: "openAI",
+  defaultPrompt: null,
+  systemPrompt: null,
+  apiKey: "key",
+  plan: null,
+  activeUntil: null,
+  whatsappPhone: null,
+};
+
 describe("PATCH /api/tenants/me (aiDriver)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetAuthFromRequest.mockResolvedValue({
       payload: { tenantId: "t1", sub: "u1", email: "a@b.com", name: "User", role: "admin" },
     });
-    mockPrisma.tenant.update.mockResolvedValue({
-      id: "t1",
-      name: "Tenant",
-      aiDriver: "openAI",
-      defaultPrompt: null,
-      systemPrompt: null,
-      apiKey: "key",
-    });
+    mockPrisma.tenant.findUnique.mockResolvedValue(tenantRow);
+    mockPrisma.tenant.update.mockResolvedValue(tenantRow);
   });
 
   it("retorna 401 quando não autenticado", async () => {

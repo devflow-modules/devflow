@@ -61,7 +61,7 @@ const replacements = {
 fs.mkdirSync(appDir, { recursive: true });
 copyRecursive(TEMPLATE, appDir, replacements);
 
-const KNOWN_APP_PORTS = { site: 3000, financeiro: 3001, investigamais: 3002, funklab: 3003, "whatsapp-platform": 3004, ops: 3005 };
+const KNOWN_APP_PORTS = { site: 3000, financeiro: 3001, investigamais: 3002, funklab: 3003, "whatsapp-platform": 3000, ops: 3005 };
 const port = KNOWN_APP_PORTS[name] ?? 3010;
 
 const pkgPath = path.join(appDir, "package.json");

@@ -47,7 +47,7 @@ Se retornar **400 Webhook Error**: problema de assinatura (ver seção 3).
 2. Em produção, use o secret do endpoint de **produção** (URL com seu domínio)
 3. Para teste local com `stripe listen`:
    ```bash
-   stripe listen --forward-to localhost:3004/api/stripe/webhook
+   stripe listen --forward-to localhost:3000/api/stripe/webhook
    ```
    O CLI exibe um `whsec_xxx` temporário — use-o em `WHATSAPP_STRIPE_TEST_WEBHOOK_SECRET`
 

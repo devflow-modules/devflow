@@ -15,7 +15,7 @@ App Next.js do produto WhatsApp Platform (DevFlow). Onboarding, auth (JWT + cook
 - **Auth**: `/signup`, `/login`, `/onboarding` (wizard: WhatsApp → prompt → API Key). `POST /api/auth/signup`, `POST /api/auth/login`, `GET /api/tenants/me`, `PATCH /api/tenants/me`, `POST /api/tenants/me/api-key`.
 - **Billing**: Checkout Stripe no signup (plano Pro); `POST /api/stripe/webhook` atualiza `plan` e `activeUntil` do Tenant.
 - **Métricas**: `GET /api/metrics/overview`, `/api/metrics/agents`, `/api/metrics/intents`. Dashboard com cartões, volume por dia, intenções, KPIs por agente.
-- **Agentes e filas**: `GET /api/admin/agent-status`, `PATCH /api/admin/agent-status`, `GET/POST /api/queues`, `PATCH/DELETE /api/queues/:id`, `GET/POST /api/agents`, `PATCH/DELETE /api/agents/:id`, `GET /api/admin/queue/next` (pegar próxima conversa da fila e atribuir ao agente), `POST /api/admin/conversations/:id/assign`. Páginas `/queues`, `/agents`, `/admin/distribuir`.
+- **Agentes e filas**: `GET /api/admin/agent-status`, `PATCH /api/admin/agent-status`, `GET /api/admin/queues` (threads `wa_inbox` em espera), `GET /api/admin/queue/next` (próxima thread não atribuída + assign opcional), `POST /api/admin/conversations/:id/assign`. Páginas `/queues` (Supabase legado), `/agents`, `/admin/distribuir`.
 - **Configuração do tenant**: `GET /api/tenants/me`, `PATCH /api/tenants/me` (inclui `aiDriver`: `ruleBased` | `openAI` | `claude`). Página `/settings`.
 - **Exportação**: `GET /api/admin/export/conversations?from=&to=` e `GET /api/admin/export/messages?from=&to=` (CSV). Botões no dashboard de métricas.
 - **FAQ**: `GET/POST /api/faq`, `GET/PUT/DELETE /api/faq/:id`.

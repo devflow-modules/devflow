@@ -13,13 +13,10 @@ import { resolveTenantByPhoneNumberId } from "@/modules/whatsapp/tenantResolutio
 import {
   prepareInboundConversation,
   processLegacyInboundAutoReply,
-  persistWebhookLog,
 } from "@/modules/messaging/webhookProcessingService";
 import { checkTenantAiAutomationReady, runTenantAiAutoReply } from "@/modules/ai/aiAutomationService";
 import { persistWaInboxFromWebhook } from "@/modules/inbox";
 import { trackWebhookReceived } from "@/modules/analytics";
-import { hasSupabaseConfig } from "@/lib/supabase-server";
-
 type WabaWebhookShape = {
   entry?: Array<{
     changes?: Array<{ field?: string; value?: Record<string, unknown> }>;
@@ -153,13 +150,7 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
 
   console.log("[WHATSAPP][DEBUG] tenant resolved", { tenantId: tenant.id, phoneNumberId: tenant.phoneNumberId });
 
-  if (hasSupabaseConfig()) {
-    await persistWebhookLog(body, tenant.id).catch((err) =>
-      console.error("[WHATSAPP][ERROR] webhook log insert:", err)
-    );
-  }
-
-  await persistWaInboxFromWebhook(tenant.id, body).catch((err) =>
+  await persistWaInboxFromWebhook(tenant.id, tenant.phoneNumberId, body).catch((err) =>
     console.error("[WHATSAPP][ERROR] wa-inbox persist:", err)
   );
 
@@ -194,7 +185,7 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
       { msgId: msg.id, from: msg.from, tenantId: tenant.id }
     );
 
-    const key = `${tenant.id}:${msg.from}`;
+    const key = `${tenant.id}:${msg.from}:${tenant.phoneNumberId}`;
     const isNewConversation = !seenConversations.has(key);
     seenConversations.add(key);
 
@@ -219,14 +210,14 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
     }
 
     try {
-      const aiReady = await checkTenantAiAutomationReady(tenant.id, msg.from);
+      const aiReady = await checkTenantAiAutomationReady(tenant.id, msg.from, tenant.phoneNumberId);
       if (aiReady.ready) {
         console.log("[WHATSAPP][DEBUG] using AI path", { msgId: msg.id, reason: aiReady.reason });
         try {
           await runTenantAiAutoReply({
             tenant,
             message: msg,
-            conversationId: prep.conversationId,
+            inboxThreadId: prep.inboxThreadId,
             textBody: prep.textBody,
           });
         } catch (aiErr) {
@@ -236,7 +227,7 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
             err: aiErr instanceof Error ? aiErr.message : String(aiErr),
           });
           try {
-            await processLegacyInboundAutoReply(tenant, msg, prep.conversationId, prep.textBody);
+            await processLegacyInboundAutoReply(tenant, msg, prep.inboxThreadId, prep.textBody);
           } catch (legErr) {
             console.error("[WHATSAPP][ERROR] legacy reply falhou após erro de IA", {
               msgId: msg.id,
@@ -248,7 +239,7 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
       } else {
         console.log("[WHATSAPP][DEBUG] using legacy path", { msgId: msg.id, reason: aiReady.reason });
         try {
-          await processLegacyInboundAutoReply(tenant, msg, prep.conversationId, prep.textBody);
+          await processLegacyInboundAutoReply(tenant, msg, prep.inboxThreadId, prep.textBody);
         } catch (legErr) {
           console.error("[WHATSAPP][ERROR] legacy reply falhou", {
             msgId: msg.id,

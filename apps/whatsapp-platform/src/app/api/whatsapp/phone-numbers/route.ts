@@ -1,11 +1,12 @@
 /**
  * GET  /api/whatsapp/phone-numbers — lista números conectados do tenant
- * DELETE /api/whatsapp/phone-numbers?id=xxx — remove número (soft: marca inativo ou hard delete)
+ * DELETE /api/whatsapp/phone-numbers?id=xxx — remove número
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
+import { ensureTenantHasPrimaryAndDefaultOutbound } from "@/modules/whatsapp/whatsappPhonePolicy";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
@@ -19,30 +20,43 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, error: "Tenant não identificado" }, { status: 400 });
   }
 
-  const numbers = await prisma.whatsappPhoneNumber.findMany({
-    where: { tenantId },
-    select: {
-      id: true,
-      phoneNumberId: true,
-      displayPhoneNumber: true,
-      wabaId: true,
-      status: true,
-      createdAt: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    const numbers = await prisma.whatsappPhoneNumber.findMany({
+      where: { tenantId },
+      select: {
+        id: true,
+        phoneNumberId: true,
+        displayPhoneNumber: true,
+        wabaId: true,
+        status: true,
+        isPrimary: true,
+        isDefaultOutbound: true,
+        label: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
-  return NextResponse.json({
-    success: true,
-    data: numbers.map((n) => ({
+    const data = numbers.map((n) => ({
       id: n.id,
       phoneNumberId: n.phoneNumberId,
       displayPhoneNumber: n.displayPhoneNumber,
       wabaId: n.wabaId,
       status: n.status,
+      isPrimary: n.isPrimary,
+      isDefaultOutbound: n.isDefaultOutbound,
+      label: n.label,
       createdAt: n.createdAt.toISOString(),
-    })),
-  });
+    }));
+
+    return NextResponse.json({ success: true, data });
+  } catch (e) {
+    console.error("[WHATSAPP][phone-numbers][GET]", { tenantId, userId: auth.payload.sub, err: e });
+    return NextResponse.json(
+      { success: false, error: "Erro ao consultar números. Verifique a ligação à base de dados." },
+      { status: 503 }
+    );
+  }
 }
 
 export async function DELETE(request: NextRequest) {
@@ -75,6 +89,8 @@ export async function DELETE(request: NextRequest) {
   await prisma.whatsappPhoneNumber.delete({
     where: { id },
   });
+
+  await ensureTenantHasPrimaryAndDefaultOutbound(tenantId);
 
   return NextResponse.json({ success: true, data: { removed: id } });
 }

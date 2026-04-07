@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
-import { hasSupabaseConfig } from "@/lib/supabase-server";
-import { getConversationById, updateConversationStatus } from "@/modules/conversations";
-import { getTenantById } from "@/modules/tenants";
 import { sendReplyAndPersist } from "@/modules/messaging";
+import { resolveMessagingTenantForOutbound } from "@/modules/whatsapp/whatsappPhoneResolution";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +17,7 @@ export async function POST(
 
   const { id } = await params;
   if (!id) {
-    return NextResponse.json({ error: "Missing conversation id" }, { status: 400 });
+    return NextResponse.json({ error: "Missing thread id" }, { status: 400 });
   }
   let body: { text?: string };
   try {
@@ -30,35 +29,29 @@ export async function POST(
   if (!text) {
     return NextResponse.json({ error: "Body must include non-empty 'text'" }, { status: 400 });
   }
-  if (!hasSupabaseConfig()) {
-    return NextResponse.json({ error: "Server not configured" }, { status: 503 });
-  }
   try {
-    const conversation = await getConversationById(id);
-    if (!conversation) {
+    const thread = await prisma.waInboxThread.findFirst({
+      where: { id, tenantId: auth.payload.tenantId },
+    });
+    if (!thread) {
       return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
     }
-    const convTenantId = (conversation as { tenant_id: string }).tenant_id;
-    if (convTenantId !== auth.payload.tenantId) {
-      return NextResponse.json({ error: "Acesso negado ao tenant" }, { status: 403 });
+    const messagingTenant = await resolveMessagingTenantForOutbound(
+      auth.payload.tenantId,
+      thread.businessPhoneNumberId
+    );
+    if (!messagingTenant) {
+      return NextResponse.json(
+        { error: "WhatsApp not configured for this tenant" },
+        { status: 503 }
+      );
     }
-    const tenant = await getTenantById(convTenantId);
-    if (!tenant) {
-      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
-    }
-    const to = conversation.wa_from.replace(/\D/g, "");
     await sendReplyAndPersist({
-      tenant: {
-        id: tenant.id,
-        phoneNumberId: tenant.phone_number_id,
-        displayPhoneNumber: tenant.display_phone_number ?? "",
-        accessToken: tenant.access_token,
-      },
-      to,
+      tenant: messagingTenant,
+      to: thread.phoneNumber,
       text,
-      conversationId: id,
+      inboxThreadId: thread.id,
     });
-    await updateConversationStatus(id, "in_progress");
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[POST /api/admin/conversations/:id/send]", err);

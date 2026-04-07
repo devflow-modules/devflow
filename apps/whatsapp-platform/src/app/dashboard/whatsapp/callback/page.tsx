@@ -5,18 +5,19 @@ import { useSearchParams } from "next/navigation";
 
 function WhatsappCallbackInner() {
   const searchParams = useSearchParams();
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-  const [message, setMessage] = useState("");
+  const code = searchParams.get("code");
+  const state = searchParams.get("state");
+  const paramsInvalid = !code || !state;
+
+  const [status, setStatus] = useState<"loading" | "success" | "error">(() =>
+    paramsInvalid ? "error" : "loading"
+  );
+  const [message, setMessage] = useState(() =>
+    paramsInvalid ? "Parâmetros inválidos. Tente conectar novamente." : ""
+  );
 
   useEffect(() => {
-    const code = searchParams.get("code");
-    const state = searchParams.get("state");
-
-    if (!code || !state) {
-      setStatus("error");
-      setMessage("Parâmetros inválidos. Tente conectar novamente.");
-      return;
-    }
+    if (paramsInvalid || !code || !state) return;
 
     fetch("/api/whatsapp/onboard/callback", {
       method: "POST",
@@ -39,7 +40,7 @@ function WhatsappCallbackInner() {
         setStatus("error");
         setMessage("Erro de rede. Tente novamente.");
       });
-  }, [searchParams]);
+  }, [code, state, paramsInvalid]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6">

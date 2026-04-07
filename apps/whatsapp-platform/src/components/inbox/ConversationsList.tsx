@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ConversationItem } from "./ConversationItem";
 import { fetchInboxConversations } from "./inboxFetch";
 import { INBOX_QK } from "./inboxTypes";
-import type { InboxConversationsFilter } from "./inboxTypes";
+import type { InboxConversationsFilter, WhatsappLineSummary } from "./inboxTypes";
 import { useInboxRealtime } from "./useInboxRealtime";
 import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
@@ -27,18 +27,24 @@ export function ConversationsList({
   onSelect,
   filter,
   onFilterChange,
+  lineFilter,
+  lines,
+  onLineFilterChange,
 }: {
   selectedId: string | null;
   onSelect: (id: string) => void;
   filter: InboxConversationsFilter;
   onFilterChange: (f: InboxConversationsFilter) => void;
+  lineFilter: string | null;
+  lines: WhatsappLineSummary[];
+  onLineFilterChange: (metaPhoneNumberId: string | null) => void;
 }) {
   const { connected: realtimeConnected } = useInboxRealtime();
   const pollInterval = realtimeConnected ? POLL_INTERVAL_REALTIME_MS : POLL_INTERVAL_FALLBACK_MS;
 
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: INBOX_QK.conversations(filter),
-    queryFn: () => fetchInboxConversations(filter),
+    queryKey: INBOX_QK.conversations(filter, lineFilter),
+    queryFn: () => fetchInboxConversations(filter, lineFilter),
     refetchInterval: pollInterval,
   });
 
@@ -98,6 +104,32 @@ export function ConversationsList({
 
   return (
     <div className="flex flex-1 flex-col min-h-0">
+      {lines.length > 0 ? (
+        <div className="border-b border-slate-100/90 bg-white px-3 py-2">
+          <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+            Número WhatsApp
+          </label>
+          <select
+            className="w-full rounded-lg border border-slate-200 bg-slate-50/80 px-2 py-1.5 text-xs text-slate-800"
+            value={lineFilter ?? ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              onLineFilterChange(v === "" ? null : v);
+            }}
+          >
+            <option value="">Todos os números</option>
+            {lines.map((l) => (
+              <option key={l.phoneNumberId} value={l.phoneNumberId}>
+                {l.label?.trim() ||
+                  l.displayPhoneNumber?.trim() ||
+                  l.phoneNumberId.slice(0, 12) + "…"}
+                {l.isPrimary ? " · Principal" : ""}
+                {l.isDefaultOutbound ? " · Envio" : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
       <div className="flex flex-wrap gap-1.5 border-b border-slate-100/90 bg-slate-50/50 px-3 py-3">
         {(Object.keys(FILTER_LABELS) as InboxConversationsFilter[]).map((f) => (
           <button

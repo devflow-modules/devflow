@@ -7,9 +7,11 @@ import {
 
 /**
  * Persiste inbox a partir do POST webhook (inbound primeiro, depois status).
+ * @param businessPhoneNumberId — Meta phone_number_id da linha que recebeu o evento.
  */
 export async function persistWaInboxFromWebhook(
   tenantId: string,
+  businessPhoneNumberId: string,
   body: unknown
 ): Promise<void> {
   if (!(await waInboxTenantExists(tenantId))) return;
@@ -18,7 +20,7 @@ export async function persistWaInboxFromWebhook(
 
   for (const m of inbound) {
     try {
-      await waInboxCreateInbound(tenantId, m);
+      await waInboxCreateInbound(tenantId, businessPhoneNumberId, m);
     } catch (e) {
       console.error("[wa-inbox] inbound", e);
     }

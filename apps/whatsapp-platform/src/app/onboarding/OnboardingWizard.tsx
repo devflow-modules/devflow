@@ -12,7 +12,10 @@ const STEPS = [
 export function OnboardingWizard() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [tenant, setTenant] = useState<{ hasApiKey?: boolean; phoneNumberId?: string | null } | null>(null);
+  const [tenant, setTenant] = useState<{
+    hasApiKey?: boolean;
+    hasWhatsappPhone?: boolean;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState<string | null>(null);
@@ -23,6 +26,7 @@ export function OnboardingWizard() {
       .then((data) => {
         setTenant(data);
         if (data?.hasApiKey) setStep(3);
+        else if (data?.hasWhatsappPhone) setStep(2);
       })
       .catch(() => setTenant(null))
       .finally(() => setLoading(false));

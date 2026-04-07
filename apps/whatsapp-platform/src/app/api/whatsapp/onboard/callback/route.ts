@@ -9,6 +9,7 @@ import { getAuthFromRequest } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 import { exchangeCodeAndFetchPhoneNumbers } from "@/modules/whatsapp/embeddedSignupService";
 import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
+import { ensureTenantHasPrimaryAndDefaultOutbound } from "@/modules/whatsapp/whatsappPhonePolicy";
 
 export const dynamic = "force-dynamic";
 
@@ -110,6 +111,7 @@ export async function POST(request: NextRequest) {
     for (const pid of created) {
       console.info(`[WHATSAPP] onboard success tenant=${userTenantId} phone_number_id=${pid}`);
     }
+    await ensureTenantHasPrimaryAndDefaultOutbound(userTenantId);
     return NextResponse.json({
       success: true,
       data: {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
+import { WaInboxDirection } from "@/generated/prisma-whatsapp";
 
 export async function GET(
   request: NextRequest,
@@ -9,30 +10,31 @@ export async function GET(
   const auth = await getAuthFromRequest(request);
   if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
-  const { id: conversationId } = await params;
+  const { id: threadId } = await params;
   const format = request.nextUrl.searchParams.get("format") ?? "csv";
 
-  const conv = await prisma.conversation.findFirst({
-    where: { id: conversationId, tenantId: auth.payload.tenantId },
+  const thread = await prisma.waInboxThread.findFirst({
+    where: { id: threadId, tenantId: auth.payload.tenantId },
   });
-  if (!conv) return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 });
+  if (!thread) return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 });
 
-  const messages = await prisma.message.findMany({
-    where: { conversationId },
-    orderBy: { timestamp: "asc" },
+  const messages = await prisma.waInboxMessage.findMany({
+    where: { tenantId: auth.payload.tenantId, threadId },
+    orderBy: { ts: "asc" },
   });
 
   if (format === "csv") {
-    const header = "timestamp,sender,content\n";
-    const rows = messages.map(
-      (m) =>
-        `${m.timestamp.toISOString()},"${m.sender}","${m.content.replace(/"/g, '""')}"`
-    );
+    const header = "timestamp,direction,content\n";
+    const rows = messages.map((m) => {
+      const dir = m.direction === WaInboxDirection.INBOUND ? "inbound" : "outbound";
+      const content = (m.contentText ?? "").replace(/"/g, '""');
+      return `${m.ts.toISOString()},"${dir}","${content}"`;
+    });
     const csv = header + rows.join("\n");
     return new NextResponse(csv, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="conversation-${conversationId}.csv"`,
+        "Content-Disposition": `attachment; filename="conversation-${threadId}.csv"`,
       },
     });
   }

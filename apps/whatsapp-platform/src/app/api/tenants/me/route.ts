@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import type { Prisma } from "@/generated/prisma-whatsapp";
 import { getAuthFromRequest } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
+import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
+import { resolvePrimaryPhoneNumber } from "@/modules/whatsapp/whatsappPhoneResolution";
+import { ensureTenantHasPrimaryAndDefaultOutbound } from "@/modules/whatsapp/whatsappPhonePolicy";
 
 const AI_DRIVERS = ["ruleBased", "openAI", "claude"] as const;
 
@@ -30,6 +34,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Tenant não encontrado" }, { status: 404 });
   }
 
+  const primaryWpn = await resolvePrimaryPhoneNumber(tenant.id);
+
   const apiKeyMasked = tenant.apiKey
     ? `${tenant.apiKey.slice(0, 8)}...${tenant.apiKey.slice(-4)}`
     : null;
@@ -42,11 +48,12 @@ export async function GET(request: NextRequest) {
     defaultPrompt: tenant.defaultPrompt,
     systemPrompt: tenant.systemPrompt,
     whatsappPhone: tenant.whatsappPhone,
-    displayPhoneNumber: tenant.displayPhoneNumber,
     apiKey: apiKeyMasked,
     hasApiKey: Boolean(tenant.apiKey),
-    phoneNumberId: tenant.phoneNumberId,
     aiDriver: tenant.aiDriver ?? null,
+    hasWhatsappPhone: Boolean(primaryWpn),
+    primaryPhoneNumberId: primaryWpn?.phoneNumberId ?? null,
+    primaryDisplayPhoneNumber: primaryWpn?.displayPhoneNumber ?? null,
   });
 }
 
@@ -61,13 +68,73 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Dados inválidos", details: parsed.error.flatten() }, { status: 400 });
   }
 
-  const updateData = { ...parsed.data };
-  if (updateData.aiDriver === null) updateData.aiDriver = null;
+  const data = parsed.data;
+  const wantsPhone =
+    data.phoneNumberId !== undefined ||
+    data.accessToken !== undefined ||
+    data.displayPhoneNumber !== undefined;
 
-  const tenant = await prisma.tenant.update({
+  if (wantsPhone) {
+    const phoneNumberId = data.phoneNumberId?.trim();
+    const accessToken = data.accessToken?.trim();
+    if (!phoneNumberId || !accessToken) {
+      return NextResponse.json(
+        { error: "Para ligar WhatsApp manualmente, envie phoneNumberId e accessToken." },
+        { status: 400 }
+      );
+    }
+
+    const existingGlobal = await prisma.whatsappPhoneNumber.findUnique({
+      where: { phoneNumberId },
+    });
+    if (existingGlobal && existingGlobal.tenantId !== auth.payload.tenantId) {
+      return NextResponse.json(
+        { error: "Este Phone Number ID já está associado a outra conta." },
+        { status: 409 }
+      );
+    }
+
+    await prisma.whatsappPhoneNumber.upsert({
+      where: { phoneNumberId },
+      create: {
+        tenantId: auth.payload.tenantId,
+        phoneNumberId,
+        displayPhoneNumber: data.displayPhoneNumber?.trim() || null,
+        accessToken,
+        status: WhatsappPhoneNumberStatus.ACTIVE,
+      },
+      update: {
+        tenantId: auth.payload.tenantId,
+        displayPhoneNumber:
+          data.displayPhoneNumber !== undefined ? data.displayPhoneNumber.trim() || null : undefined,
+        accessToken,
+        status: WhatsappPhoneNumberStatus.ACTIVE,
+      },
+    });
+    await ensureTenantHasPrimaryAndDefaultOutbound(auth.payload.tenantId);
+  }
+
+  const tenantPatch: Prisma.TenantUpdateInput = {};
+  if (data.name !== undefined) tenantPatch.name = data.name;
+  if (data.defaultPrompt !== undefined) tenantPatch.defaultPrompt = data.defaultPrompt;
+  if (data.systemPrompt !== undefined) tenantPatch.systemPrompt = data.systemPrompt;
+  if (data.whatsappPhone !== undefined) tenantPatch.whatsappPhone = data.whatsappPhone;
+  if (data.aiDriver !== undefined) tenantPatch.aiDriver = data.aiDriver;
+
+  if (Object.keys(tenantPatch).length > 0) {
+    await prisma.tenant.update({
+      where: { id: auth.payload.tenantId },
+      data: tenantPatch,
+    });
+  }
+
+  const tenant = await prisma.tenant.findUnique({
     where: { id: auth.payload.tenantId },
-    data: updateData,
   });
+
+  if (!tenant) {
+    return NextResponse.json({ error: "Tenant não encontrado" }, { status: 404 });
+  }
 
   return NextResponse.json({
     id: tenant.id,

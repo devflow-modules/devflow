@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest, requireRole } from "@/modules/auth";
-import { prisma } from "@/lib/prisma";
+import { listPendingQueueThreads } from "@/modules/inbox/waInboxQueueService";
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
@@ -10,12 +10,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  const queues = await prisma.conversationQueue.findMany({
-    where: { tenantId: auth.payload.tenantId },
-    orderBy: [{ priority: "desc" }, { queuedAt: "asc" }],
-    take: 100,
-    include: { conversation: true },
-  });
+  const pending = await listPendingQueueThreads(auth.payload.tenantId, 100);
+
+  const queues = pending.map((t) => ({
+    id: t.id,
+    threadId: t.id,
+    conversationId: t.id,
+    phoneNumber: t.phoneNumber,
+    contactName: t.contactName,
+    priority: 0,
+    queuedAt: t.lastMessageAt.toISOString(),
+    lastMessagePreview: t.lastMessagePreview,
+    status: t.status,
+  }));
 
   return NextResponse.json({ queues });
 }

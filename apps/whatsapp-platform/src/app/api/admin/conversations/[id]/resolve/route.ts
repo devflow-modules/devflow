@@ -1,28 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
-import { hasSupabaseConfig } from "@/lib/supabase-server";
-import { updateConversationStatus } from "@/modules/conversations";
+import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
 
 /**
  * PATCH /api/admin/conversations/[id]/resolve
- * Marca conversa como resolved, libera agente (status = available) e opcionalmente
- * atualiza completed_at no Supabase.
+ * `id` = wa_inbox_threads.id. Fecha a thread e liberta agentes com essa conversa atual.
  */
 export async function PATCH(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await getAuthFromRequest(request);
+  const auth = await getAuthFromRequest(_request);
   if (!auth) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  const { id: conversationId } = await params;
+  const { id: threadId } = await params;
   const tenantId = auth.payload.tenantId;
 
+  const thread = await prisma.waInboxThread.findFirst({
+    where: { id: threadId, tenantId },
+  });
+  if (thread) {
+    await prisma.waInboxThread.update({
+      where: { id: thread.id },
+      data: { status: WaInboxThreadStatus.CLOSED },
+    });
+  }
+
   const agentStatuses = await prisma.agentStatus.findMany({
-    where: { tenantId, currentConversationId: conversationId },
+    where: { tenantId, currentConversationId: threadId },
   });
 
   for (const as_ of agentStatuses) {
@@ -30,14 +38,6 @@ export async function PATCH(
       where: { id: as_.id },
       data: { status: "available", currentConversationId: null, updatedAt: new Date() },
     });
-  }
-
-  if (hasSupabaseConfig()) {
-    try {
-      await updateConversationStatus(conversationId, "resolved");
-    } catch (e) {
-      console.error("[resolve] Supabase updateConversationStatus:", e);
-    }
   }
 
   return NextResponse.json({ success: true, resolved: true });

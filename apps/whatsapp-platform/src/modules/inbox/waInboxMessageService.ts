@@ -47,6 +47,7 @@ export async function waInboxTenantExists(tenantId: string): Promise<boolean> {
 
 export async function waInboxCreateInbound(
   tenantId: string,
+  businessPhoneNumberId: string,
   p: ParsedWaInbound
 ): Promise<void> {
   const customer = digitsOnly(p.from);
@@ -69,13 +70,26 @@ export async function waInboxCreateInbound(
     if (existing) return null;
 
     const existedThread = await tx.waInboxThread.findUnique({
-      where: { tenantId_phoneNumber: { tenantId, phoneNumber: customer } },
+      where: {
+        tenantId_phoneNumber_businessPhoneNumberId: {
+          tenantId,
+          phoneNumber: customer,
+          businessPhoneNumberId,
+        },
+      },
     });
     const thread = await tx.waInboxThread.upsert({
-      where: { tenantId_phoneNumber: { tenantId, phoneNumber: customer } },
+      where: {
+        tenantId_phoneNumber_businessPhoneNumberId: {
+          tenantId,
+          phoneNumber: customer,
+          businessPhoneNumberId,
+        },
+      },
       create: {
         tenantId,
         phoneNumber: customer,
+        businessPhoneNumberId,
         contactName: p.contactName ?? null,
         lastMessageAt: ts,
         lastMessagePreview: preview,
@@ -95,6 +109,7 @@ export async function waInboxCreateInbound(
       data: {
         tenantId,
         threadId: thread.id,
+        businessPhoneNumberId,
         waMessageId: p.waMessageId,
         direction: WaInboxDirection.INBOUND,
         fromNumber: customer,
@@ -166,6 +181,8 @@ export type WaInboxOutboundKind = "agent" | "ai" | "automation";
 
 export async function waInboxCreateOutbound(params: {
   tenantId: string;
+  /** Meta phone_number_id da linha que enviou */
+  businessPhoneNumberId: string;
   customerPhoneDigits: string;
   waMessageId: string;
   text: string;
@@ -173,7 +190,15 @@ export async function waInboxCreateOutbound(params: {
   /** Origem da mensagem (UI: badge Bot / Automação / Equipa). */
   outboundKind?: WaInboxOutboundKind;
 }): Promise<void> {
-  const { tenantId, customerPhoneDigits, waMessageId, text, businessDigits, outboundKind } = params;
+  const {
+    tenantId,
+    businessPhoneNumberId,
+    customerPhoneDigits,
+    waMessageId,
+    text,
+    businessDigits,
+    outboundKind,
+  } = params;
   if (!(await waInboxTenantExists(tenantId))) return;
 
   const ts = new Date();
@@ -186,10 +211,17 @@ export async function waInboxCreateOutbound(params: {
     if (dup) return null;
 
     const thread = await tx.waInboxThread.upsert({
-      where: { tenantId_phoneNumber: { tenantId, phoneNumber: customerPhoneDigits } },
+      where: {
+        tenantId_phoneNumber_businessPhoneNumberId: {
+          tenantId,
+          phoneNumber: customerPhoneDigits,
+          businessPhoneNumberId,
+        },
+      },
       create: {
         tenantId,
         phoneNumber: customerPhoneDigits,
+        businessPhoneNumberId,
         lastMessageAt: ts,
         lastMessagePreview: preview,
         unreadCount: 0,
@@ -211,6 +243,7 @@ export async function waInboxCreateOutbound(params: {
       data: {
         tenantId,
         threadId: thread.id,
+        businessPhoneNumberId,
         waMessageId,
         direction: WaInboxDirection.OUTBOUND,
         fromNumber: businessDigits || "0",

@@ -26,8 +26,8 @@ export function DistribuirClient() {
         setError(data.error ?? "Erro ao buscar próxima conversa.");
         return;
       }
-      if (data.conversation) {
-        router.push(`/admin/conversations/${data.conversation.id}`);
+      if (data.thread?.id) {
+        router.push(`/admin/conversations/${data.thread.id}`);
         return;
       }
       setMessage(data.message ?? "Nenhuma conversa na fila no momento.");

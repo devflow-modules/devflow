@@ -1,20 +1,9 @@
 /**
- * Repositório de tenants — acesso a dados por phone_number_id e id.
+ * Repositório de tenants — Supabase (conversas / admin legado).
  */
 
 import { getSupabaseServiceClient } from "@/lib/supabase-server";
 import type { Tenant } from "@/lib/db/types";
-
-export async function findTenantByPhoneNumberId(phoneNumberId: string): Promise<Tenant | null> {
-  const supabase = getSupabaseServiceClient();
-  const { data, error } = await supabase
-    .from("tenants")
-    .select("*")
-    .eq("phone_number_id", phoneNumberId)
-    .maybeSingle();
-  if (error) throw new Error(`tenants.findByPhoneNumberId: ${error.message}`);
-  return data as Tenant | null;
-}
 
 export async function getTenantById(id: string): Promise<Tenant | null> {
   const supabase = getSupabaseServiceClient();

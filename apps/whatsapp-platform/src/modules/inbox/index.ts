@@ -11,8 +11,9 @@ export {
   waInboxListThreads,
   waInboxCountThreads,
   waInboxGetThread,
+  fetchWhatsappLineSummaries,
 } from "./waInboxQueries";
-export type { WaInboxThreadFilters } from "./waInboxQueries";
+export type { WaInboxThreadFilters, WhatsappLineSummary } from "./waInboxQueries";
 export {
   assignThread,
   unassignThread,
@@ -35,3 +36,4 @@ export {
 export type { SlaInfo } from "./slaService";
 export { logAction, getThreadAuditLog } from "./auditService";
 export type { AuditAction, AuditLogEntry } from "./auditService";
+export { findNextUnassignedQueueThread, listPendingQueueThreads } from "./waInboxQueueService";

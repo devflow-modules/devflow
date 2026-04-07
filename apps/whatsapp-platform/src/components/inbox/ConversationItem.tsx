@@ -103,6 +103,20 @@ export const ConversationItem = memo(function ConversationItem({
               {thread.assignedToUser.name.split(" ")[0]}
             </span>
           )}
+          {thread.whatsappLine ? (
+            <span
+              className="max-w-[120px] truncate rounded bg-sky-50 px-1.5 py-0.5 text-[9px] font-semibold text-sky-900 ring-1 ring-sky-100"
+              title={
+                thread.whatsappLine.label ||
+                thread.whatsappLine.displayPhoneNumber ||
+                thread.whatsappLine.phoneNumberId
+              }
+            >
+              {thread.whatsappLine.label?.trim() ||
+                thread.whatsappLine.displayPhoneNumber?.trim() ||
+                "WhatsApp"}
+            </span>
+          ) : null}
         </div>
       </div>
     </button>

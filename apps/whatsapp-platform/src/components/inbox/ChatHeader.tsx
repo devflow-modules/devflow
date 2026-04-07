@@ -170,6 +170,16 @@ export function ChatHeader({
           {thread.phoneNumber && (
             <p className="truncate text-xs text-slate-500/90">{thread.phoneNumber}</p>
           )}
+          {thread.whatsappLine ? (
+            <p className="truncate text-[11px] text-slate-400">
+              Linha:{" "}
+              {thread.whatsappLine.label?.trim() ||
+                thread.whatsappLine.displayPhoneNumber?.trim() ||
+                `${thread.businessPhoneNumberId.slice(0, 10)}…`}
+              {thread.whatsappLine.isPrimary ? " · Principal" : ""}
+              {thread.whatsappLine.isDefaultOutbound ? " · Envio predefinido" : ""}
+            </p>
+          ) : null}
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {waiting && thread.status === "OPEN" && (
               <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-900">

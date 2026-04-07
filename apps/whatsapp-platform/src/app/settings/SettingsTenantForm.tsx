@@ -18,7 +18,7 @@ type TenantMe = {
   id: string;
   name: string | null;
   aiDriver: string | null;
-  phoneNumberId: string | null;
+  hasWhatsappPhone?: boolean;
   hasApiKey: boolean;
 };
 

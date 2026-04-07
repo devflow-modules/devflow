@@ -1,5 +1,6 @@
 /**
- * Repositório de logs de webhook — persistir payload recebido.
+ * Logs de webhook em Supabase (`webhook_logs`).
+ * @deprecated Fora do hot path do produto; opcional para auditoria manual.
  */
 
 import { getSupabaseServiceClient } from "@/lib/supabase-server";
@@ -14,4 +15,12 @@ export async function insertWebhookLog(payload: unknown, tenantId: string | null
     .single();
   if (error) throw new Error(`webhook_logs.insert: ${error.message}`);
   return data as WebhookLog;
+}
+
+/** @deprecated Alias de `insertWebhookLog` (Supabase). */
+export async function persistWebhookLog(
+  payload: unknown,
+  tenantId: string | null
+): Promise<WebhookLog> {
+  return insertWebhookLog(payload, tenantId);
 }

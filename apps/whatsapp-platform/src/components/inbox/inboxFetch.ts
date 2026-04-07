@@ -2,25 +2,35 @@ import type {
   WaInboxMessageRow,
   WaInboxThreadRow,
   InboxConversationsFilter,
+  WhatsappLineSummary,
 } from "./inboxTypes";
 
-function buildConversationsUrl(filter?: InboxConversationsFilter): string {
+function buildConversationsUrl(
+  filter?: InboxConversationsFilter,
+  businessPhoneNumberId?: string | null
+): string {
   const params = new URLSearchParams({ limit: "100" });
   if (filter && filter !== "all") {
     if (filter === "assigned_to_me") params.set("assignedTo", "me");
     else if (filter === "unassigned") params.set("assignedTo", "unassigned");
     else params.set("status", filter);
   }
+  if (businessPhoneNumberId?.trim()) {
+    params.set("businessPhoneNumberId", businessPhoneNumberId.trim());
+  }
   return `/api/inbox/conversations?${params.toString()}`;
 }
 
 export async function fetchInboxConversations(
-  filter?: InboxConversationsFilter
+  filter?: InboxConversationsFilter,
+  businessPhoneNumberId?: string | null
 ): Promise<{
   threads: WaInboxThreadRow[];
   pagination: { limit: number; offset: number; total: number };
 }> {
-  const res = await fetch(buildConversationsUrl(filter), { credentials: "include" });
+  const res = await fetch(buildConversationsUrl(filter, businessPhoneNumberId), {
+    credentials: "include",
+  });
   if (!res.ok) throw new Error("Falha ao carregar conversas");
   const json = (await res.json()) as {
     success: boolean;
@@ -30,6 +40,32 @@ export async function fetchInboxConversations(
     };
   };
   return json.data;
+}
+
+export async function fetchTenantWhatsappLines(): Promise<WhatsappLineSummary[]> {
+  const res = await fetch("/api/whatsapp/phone-numbers", { credentials: "include" });
+  if (!res.ok) return [];
+  const json = (await res.json()) as {
+    success?: boolean;
+    data?: Array<{
+      phoneNumberId: string;
+      label: string | null;
+      displayPhoneNumber: string | null;
+      isPrimary: boolean;
+      isDefaultOutbound: boolean;
+      status: string;
+    }>;
+  };
+  const rows = json.data ?? [];
+  return rows
+    .filter((r) => r.status === "ACTIVE")
+    .map((r) => ({
+      phoneNumberId: r.phoneNumberId,
+      label: r.label,
+      displayPhoneNumber: r.displayPhoneNumber,
+      isPrimary: r.isPrimary,
+      isDefaultOutbound: r.isDefaultOutbound,
+    }));
 }
 
 export async function fetchInboxTags(): Promise<{ id: string; name: string; color: string }[]> {

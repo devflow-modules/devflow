@@ -19,6 +19,39 @@ function formatUsage(used: number, limit: number | null): string {
 }
 
 type SortKey = keyof BillingTenantRow;
+
+type SortHeaderProps = {
+  label: string;
+  keyName: SortKey;
+  localSort: { by: SortKey; order: "asc" | "desc" };
+  sortable: boolean;
+  onHeaderClick: (key: SortKey) => void;
+};
+
+function SortHeader({
+  label,
+  keyName,
+  localSort,
+  sortable,
+  onHeaderClick,
+}: SortHeaderProps) {
+  return (
+    <th
+      className={
+        sortable
+          ? "text-left p-3 font-medium cursor-pointer hover:bg-muted/50"
+          : "text-left p-3 font-medium"
+      }
+      onClick={() => sortable && onHeaderClick(keyName)}
+    >
+      {label}
+      {localSort.by === keyName && (
+        <span className="ml-1">{localSort.order === "asc" ? "↑" : "↓"}</span>
+      )}
+    </th>
+  );
+}
+
 type Props = {
   tenants: BillingTenantRow[];
   onSort?: (sortBy: SortKey, order: "asc" | "desc") => void;
@@ -44,23 +77,7 @@ export function BillingTenantsTable({
     onSort?.(key, order);
   };
 
-  const SortHeader = ({
-    label,
-    keyName,
-  }: {
-    label: string;
-    keyName: SortKey;
-  }) => (
-    <th
-      className="text-left p-3 font-medium cursor-pointer hover:bg-muted/50"
-      onClick={() => onSort && handleSort(keyName)}
-    >
-      {label}
-      {localSort.by === keyName && (
-        <span className="ml-1">{localSort.order === "asc" ? "↑" : "↓"}</span>
-      )}
-    </th>
-  );
+  const sortable = Boolean(onSort);
 
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
@@ -68,14 +85,50 @@ export function BillingTenantsTable({
         <thead>
           <tr className="border-b border-border bg-muted/50">
             <th className="text-left p-3 font-medium">Tenant</th>
-            <SortHeader label="Plano" keyName="plan" />
-            <SortHeader label="Status" keyName="subscriptionStatus" />
-            <SortHeader label="Msgs / limite" keyName="messagesUsed" />
-            <SortHeader label="IA / limite" keyName="aiUsed" />
+            <SortHeader
+              label="Plano"
+              keyName="plan"
+              localSort={localSort}
+              sortable={sortable}
+              onHeaderClick={handleSort}
+            />
+            <SortHeader
+              label="Status"
+              keyName="subscriptionStatus"
+              localSort={localSort}
+              sortable={sortable}
+              onHeaderClick={handleSort}
+            />
+            <SortHeader
+              label="Msgs / limite"
+              keyName="messagesUsed"
+              localSort={localSort}
+              sortable={sortable}
+              onHeaderClick={handleSort}
+            />
+            <SortHeader
+              label="IA / limite"
+              keyName="aiUsed"
+              localSort={localSort}
+              sortable={sortable}
+              onHeaderClick={handleSort}
+            />
             <th className="text-right p-3 font-medium">Overage</th>
-            <SortHeader label="Última fatura" keyName="lastInvoiceAmount" />
+            <SortHeader
+              label="Última fatura"
+              keyName="lastInvoiceAmount"
+              localSort={localSort}
+              sortable={sortable}
+              onHeaderClick={handleSort}
+            />
             <th className="text-left p-3 font-medium">Status fatura</th>
-            <SortHeader label="Atualizado" keyName="updatedAt" />
+            <SortHeader
+              label="Atualizado"
+              keyName="updatedAt"
+              localSort={localSort}
+              sortable={sortable}
+              onHeaderClick={handleSort}
+            />
           </tr>
         </thead>
         <tbody>

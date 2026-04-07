@@ -15,7 +15,8 @@ import { waInboxCreateOutbound } from "@/modules/inbox/waInboxMessageService";
 import type { Action, AutomationContext } from "./automation.types";
 import { WaInboxThreadStatus, WaInboxThreadPriority } from "@/generated/prisma-whatsapp";
 import { checkTenantAiAutomationReady, runTenantAiAutoReply } from "@/modules/ai/aiAutomationService";
-import type { ResolvedTenant } from "@/modules/tenants/tenantService";
+import type { ResolvedTenant } from "@/modules/tenants";
+import { resolveMessagingTenantForOutbound } from "@/modules/whatsapp/whatsappPhoneResolution";
 import { digitsOnly } from "@/modules/inbox/waInboxUtils";
 import { WhatsAppCloudAdapter } from "@devflow/whatsapp-core";
 import type { IncomingMessage } from "@devflow/whatsapp-core";
@@ -23,18 +24,11 @@ import type { IncomingMessage } from "@devflow/whatsapp-core";
 const MAX_DEPTH = 5;
 const AUTOMATION_USER_ID = "automation";
 
-async function resolveTenantFromId(tenantId: string): Promise<ResolvedTenant | null> {
-  const row = await prisma.tenant.findUnique({
-    where: { id: tenantId },
-    select: { id: true, phoneNumberId: true, displayPhoneNumber: true, accessToken: true },
-  });
-  if (!row?.phoneNumberId || !row?.accessToken) return null;
-  return {
-    id: row.id,
-    phoneNumberId: row.phoneNumberId,
-    displayPhoneNumber: row.displayPhoneNumber ?? "",
-    accessToken: row.accessToken,
-  };
+async function resolveTenantFromId(
+  tenantId: string,
+  businessPhoneNumberId: string | null | undefined
+): Promise<ResolvedTenant | null> {
+  return resolveMessagingTenantForOutbound(tenantId, businessPhoneNumberId);
 }
 
 export function canExecuteMore(context: AutomationContext): boolean {
@@ -154,25 +148,31 @@ export async function executeAction(
         if (!text?.trim()) return { ok: false, error: "empty_text" };
         const thread = await prisma.waInboxThread.findFirst({
           where: { id: context.threadId, tenantId: context.tenantId },
-          include: { tenant: true },
+          select: { phoneNumber: true, businessPhoneNumberId: true },
         });
-        if (!thread?.tenant?.accessToken || !thread.tenant.phoneNumberId) {
+        if (!thread) return { ok: false, error: "thread_not_found" };
+        const messagingTenant = await resolveMessagingTenantForOutbound(
+          context.tenantId,
+          thread.businessPhoneNumberId
+        );
+        if (!messagingTenant) {
           return { ok: false, error: "whatsapp_not_configured" };
         }
         const adapter = new WhatsAppCloudAdapter({
-          accessToken: thread.tenant.accessToken,
+          accessToken: messagingTenant.accessToken,
         });
         const to = thread.phoneNumber.replace(/\D/g, "");
-        const { messageId } = await adapter.sendText(thread.tenant.phoneNumberId, {
+        const { messageId } = await adapter.sendText(messagingTenant.phoneNumberId, {
           to,
           text: text.trim(),
         });
         await waInboxCreateOutbound({
           tenantId: context.tenantId,
+          businessPhoneNumberId: messagingTenant.phoneNumberId,
           customerPhoneDigits: to,
           waMessageId: messageId,
           text: text.trim(),
-          businessDigits: digitsOnly(thread.tenant.displayPhoneNumber ?? ""),
+          businessDigits: digitsOnly(messagingTenant.displayPhoneNumber ?? ""),
           outboundKind: "automation",
         });
         await logAction(
@@ -186,17 +186,18 @@ export async function executeAction(
       }
 
       case "triggerAIResponse": {
-        const tenant = await resolveTenantFromId(context.tenantId);
-        if (!tenant) return { ok: false, error: "tenant_not_resolved" };
         const thread = await prisma.waInboxThread.findFirst({
           where: { id: context.threadId, tenantId: context.tenantId },
-          select: { phoneNumber: true },
+          select: { phoneNumber: true, businessPhoneNumberId: true },
         });
         if (!thread) return { ok: false, error: "thread_not_found" };
+        const tenant = await resolveTenantFromId(context.tenantId, thread.businessPhoneNumberId);
+        if (!tenant) return { ok: false, error: "tenant_not_resolved" };
         const customerPhone = thread.phoneNumber;
         const ready = await checkTenantAiAutomationReady(
           context.tenantId,
-          customerPhone
+          customerPhone,
+          thread.businessPhoneNumberId
         );
         if (!ready.ready) {
           return { ok: false, error: `ai_not_ready:${ready.reason}` };
@@ -212,7 +213,7 @@ export async function executeAction(
           await runTenantAiAutoReply({
             tenant,
             message: fakeMessage,
-            conversationId: context.threadId,
+            inboxThreadId: context.threadId,
             textBody: context.messageText ?? "...",
           });
         } catch (e) {

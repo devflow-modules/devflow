@@ -8,13 +8,18 @@ export async function GET(request: NextRequest) {
 
   const dateFrom = request.nextUrl.searchParams.get("dateFrom");
   const dateTo = request.nextUrl.searchParams.get("dateTo");
-  const convIds = await prisma.conversation.findMany({
+
+  const threads = await prisma.waInboxThread.findMany({
     where: { tenantId: auth.payload.tenantId },
     select: { id: true },
   });
-  const ids = convIds.map((c) => c.id);
+  const threadIds = threads.map((t) => t.id);
+  if (threadIds.length === 0) {
+    return NextResponse.json({ positive: 0, total: 0, rate: 0 });
+  }
+
   const where: { conversationId: { in: string[] }; createdAt?: { gte?: Date; lte?: Date } } = {
-    conversationId: { in: ids },
+    conversationId: { in: threadIds },
   };
   if (dateFrom) where.createdAt = { gte: new Date(dateFrom) };
   if (dateTo) where.createdAt = { ...where.createdAt, lte: new Date(dateTo) };

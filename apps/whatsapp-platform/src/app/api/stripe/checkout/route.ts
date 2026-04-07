@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     process.env.NEXT_PUBLIC_WHATSAPP_APP_URL ??
     process.env.NEXT_PUBLIC_APP_URL ??
     request.nextUrl.origin ??
-    "http://localhost:3004";
+    "http://localhost:3000";
   const successUrl = `${baseUrl.replace(/\/$/, "")}/billing?success=true`;
   const cancelUrl = `${baseUrl.replace(/\/$/, "")}/billing?canceled=true`;
 

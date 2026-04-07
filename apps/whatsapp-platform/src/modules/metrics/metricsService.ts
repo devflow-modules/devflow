@@ -1,6 +1,24 @@
 import { prisma } from "@/lib/prisma";
+import { WaInboxDirection } from "@/generated/prisma-whatsapp";
 
 export type DateRange = { dateFrom?: Date; dateTo?: Date };
+
+function tsWhere(range?: DateRange): { gte?: Date; lte?: Date } | undefined {
+  if (!range?.dateFrom && !range?.dateTo) return undefined;
+  const w: { gte?: Date; lte?: Date } = {};
+  if (range.dateFrom) w.gte = range.dateFrom;
+  if (range.dateTo) w.lte = range.dateTo;
+  return w;
+}
+
+function outboundKind(m: { contentJson: unknown }): string | undefined {
+  const j = m.contentJson;
+  if (j && typeof j === "object" && "outboundKind" in j) {
+    const v = (j as { outboundKind?: unknown }).outboundKind;
+    return typeof v === "string" ? v : undefined;
+  }
+  return undefined;
+}
 
 export async function getConversationStats(
   tenantId: string,
@@ -11,22 +29,17 @@ export async function getConversationStats(
   avgMessagesPerConversation: number;
   messagesByDay: { date: string; count: number }[];
 }> {
-  const where: { conversation: { tenantId: string }; timestamp?: { gte?: Date; lte?: Date } } = {
-    conversation: { tenantId },
-  };
-  if (range?.dateFrom || range?.dateTo) {
-    where.timestamp = {};
-    if (range.dateFrom) where.timestamp.gte = range.dateFrom;
-    if (range.dateTo) where.timestamp.lte = range.dateTo;
-  }
-
-  const messages = await prisma.message.findMany({
-    where,
-    select: { id: true, conversationId: true, timestamp: true, sender: true },
-    orderBy: { timestamp: "asc" },
+  const tw = tsWhere(range);
+  const messages = await prisma.waInboxMessage.findMany({
+    where: {
+      tenantId,
+      ...(tw ? { ts: tw } : {}),
+    },
+    select: { id: true, threadId: true, ts: true },
+    orderBy: { ts: "asc" },
   });
 
-  const convIds = [...new Set(messages.map((m) => m.conversationId))];
+  const convIds = [...new Set(messages.map((m) => m.threadId))];
   const totalConversations = convIds.length;
   const totalMessages = messages.length;
   const avgMessagesPerConversation =
@@ -34,7 +47,7 @@ export async function getConversationStats(
 
   const byDay: Record<string, number> = {};
   for (const m of messages) {
-    const d = m.timestamp.toISOString().slice(0, 10);
+    const d = m.ts.toISOString().slice(0, 10);
     byDay[d] = (byDay[d] ?? 0) + 1;
   }
   const messagesByDay = Object.entries(byDay)
@@ -55,70 +68,55 @@ export async function getAgentPerformance(
 ): Promise<{
   byAgent: { agentId: string; conversationsCount: number; avgResponseTimeMs: number; messagesCount: number }[];
 }> {
-  const where: { conversation: { tenantId: string }; agentId: { not: null }; timestamp?: { gte?: Date; lte?: Date } } = {
-    conversation: { tenantId },
-    agentId: { not: null },
-  };
-  if (range?.dateFrom || range?.dateTo) {
-    where.timestamp = {};
-    if (range.dateFrom) where.timestamp.gte = range.dateFrom;
-    if (range.dateTo) where.timestamp.lte = range.dateTo;
-  }
-
-  const messages = await prisma.message.findMany({
-    where,
-    select: { agentId: true, conversationId: true, responseTimeMs: true },
+  const tw = tsWhere(range);
+  const users = await prisma.user.findMany({
+    where: { tenantId },
+    select: { id: true },
   });
 
-  const byAgent: Record<string, { conversations: Set<string>; responseTimeSum: number; responseTimeCount: number; messagesCount: number }> = {};
-  for (const m of messages) {
-    const aid = m.agentId!;
-    if (!byAgent[aid]) {
-      byAgent[aid] = { conversations: new Set(), responseTimeSum: 0, responseTimeCount: 0, messagesCount: 0 };
-    }
-    byAgent[aid].conversations.add(m.conversationId);
-    byAgent[aid].messagesCount++;
-    if (m.responseTimeMs != null) {
-      byAgent[aid].responseTimeSum += m.responseTimeMs;
-      byAgent[aid].responseTimeCount++;
-    }
+  const byAgentList: {
+    agentId: string;
+    conversationsCount: number;
+    avgResponseTimeMs: number;
+    messagesCount: number;
+  }[] = [];
+
+  for (const u of users) {
+    const threadIds = (
+      await prisma.waInboxThread.findMany({
+        where: { tenantId, assignedToUserId: u.id },
+        select: { id: true },
+      })
+    ).map((t) => t.id);
+
+    const conversationsCount = threadIds.length;
+    const messagesCount =
+      threadIds.length === 0
+        ? 0
+        : await prisma.waInboxMessage.count({
+            where: {
+              tenantId,
+              threadId: { in: threadIds },
+              ...(tw ? { ts: tw } : {}),
+            },
+          });
+
+    byAgentList.push({
+      agentId: u.id,
+      conversationsCount,
+      avgResponseTimeMs: 0,
+      messagesCount,
+    });
   }
 
-  const byAgentList = Object.entries(byAgent).map(([agentId, data]) => ({
-    agentId,
-    conversationsCount: data.conversations.size,
-    avgResponseTimeMs: data.responseTimeCount > 0 ? Math.round(data.responseTimeSum / data.responseTimeCount) : 0,
-    messagesCount: data.messagesCount,
-  }));
-
-  return { byAgent: byAgentList };
+  return { byAgent: byAgentList.filter((a) => a.conversationsCount > 0 || a.messagesCount > 0) };
 }
 
 export async function getIntentDistribution(
-  tenantId: string,
-  range?: DateRange
+  _tenantId: string,
+  _range?: DateRange
 ): Promise<{ intent: string; count: number }[]> {
-  const where: { conversation: { tenantId: string }; intent: { not: null }; timestamp?: { gte?: Date; lte?: Date } } = {
-    conversation: { tenantId },
-    intent: { not: null },
-  };
-  if (range?.dateFrom || range?.dateTo) {
-    where.timestamp = {};
-    if (range.dateFrom) where.timestamp.gte = range.dateFrom;
-    if (range.dateTo) where.timestamp.lte = range.dateTo;
-  }
-
-  const messages = await prisma.message.findMany({
-    where,
-    select: { intent: true },
-  });
-
-  const counts: Record<string, number> = {};
-  for (const m of messages) {
-    const i = m.intent ?? "unknown";
-    counts[i] = (counts[i] ?? 0) + 1;
-  }
-  return Object.entries(counts).map(([intent, count]) => ({ intent, count }));
+  return [];
 }
 
 export async function getOverviewMetrics(tenantId: string, range?: DateRange): Promise<{
@@ -127,30 +125,28 @@ export async function getOverviewMetrics(tenantId: string, range?: DateRange): P
   humanMessages: number;
   avgResponseTimeMs: number;
 }> {
-  const where: { conversation: { tenantId: string }; timestamp?: { gte?: Date; lte?: Date } } = {
-    conversation: { tenantId },
-  };
-  if (range?.dateFrom || range?.dateTo) {
-    where.timestamp = {};
-    if (range.dateFrom) where.timestamp.gte = range.dateFrom;
-    if (range.dateTo) where.timestamp.lte = range.dateTo;
-  }
-
-  const messages = await prisma.message.findMany({
-    where,
-    select: { sender: true, responseTimeMs: true, agentId: true },
+  const tw = tsWhere(range);
+  const messages = await prisma.waInboxMessage.findMany({
+    where: {
+      tenantId,
+      ...(tw ? { ts: tw } : {}),
+    },
+    select: { direction: true, contentJson: true },
   });
 
-  const human = messages.filter((m) => m.sender !== "user" && m.agentId != null).length;
-  const automatic = messages.filter((m) => m.sender !== "user" && m.agentId == null).length;
-  const withTime = messages.filter((m) => m.responseTimeMs != null);
-  const avgResponseTimeMs =
-    withTime.length > 0 ? Math.round(withTime.reduce((s, m) => s + (m.responseTimeMs ?? 0), 0) / withTime.length) : 0;
+  const outbound = messages.filter((m) => m.direction === WaInboxDirection.OUTBOUND);
+  let human = 0;
+  let automatic = 0;
+  for (const m of outbound) {
+    const k = outboundKind(m);
+    if (k === "agent") human++;
+    else automatic++;
+  }
 
   return {
     totalMessages: messages.length,
     automaticMessages: automatic,
     humanMessages: human,
-    avgResponseTimeMs,
+    avgResponseTimeMs: 0,
   };
 }

@@ -108,7 +108,7 @@ describe("checkTenantAiAutomationReady", () => {
 
   it("rejeita tenant env", async () => {
     const { checkTenantAiAutomationReady } = await import("../aiAutomationService");
-    const r = await checkTenantAiAutomationReady("env", "5511999999999");
+    const r = await checkTenantAiAutomationReady("env", "5511999999999", "pn");
     expect(r).toEqual({ ready: false, reason: "tenant_env" });
   });
 
@@ -120,7 +120,7 @@ describe("checkTenantAiAutomationReady", () => {
       status: WaInboxThreadStatus.OPEN,
     });
     const { checkTenantAiAutomationReady } = await import("../aiAutomationService");
-    const r = await checkTenantAiAutomationReady("t1", "5511999999999");
+    const r = await checkTenantAiAutomationReady("t1", "5511999999999", "pn-line");
     expect(r.reason).toBe("ai_disabled");
   });
 
@@ -135,7 +135,7 @@ describe("checkTenantAiAutomationReady", () => {
       status: WaInboxThreadStatus.CLOSED,
     });
     const { checkTenantAiAutomationReady } = await import("../aiAutomationService");
-    const r = await checkTenantAiAutomationReady("t1", "5511999999999");
+    const r = await checkTenantAiAutomationReady("t1", "5511999999999", "pn-line");
     expect(r.reason).toBe("thread_not_open");
   });
 
@@ -150,14 +150,14 @@ describe("checkTenantAiAutomationReady", () => {
       status: WaInboxThreadStatus.OPEN,
     });
     const { checkTenantAiAutomationReady } = await import("../aiAutomationService");
-    const r = await checkTenantAiAutomationReady("t1", "5511999999999");
+    const r = await checkTenantAiAutomationReady("t1", "5511999999999", "pn-line");
     expect(r.reason).toBe("empty_prompt");
   });
 
   it("retorna ready quando OPENAI_API_KEY existe (standalone)", async () => {
     isOpenAiConfigured.mockReturnValue(true);
     const { checkTenantAiAutomationReady } = await import("../aiAutomationService");
-    const r = await checkTenantAiAutomationReady("t1", "5511999999999");
+    const r = await checkTenantAiAutomationReady("t1", "5511999999999", "pn-line");
     expect(r).toEqual({ ready: true, reason: "openai_standalone" });
     expect(mockPrisma.aiAgentConfig.findUnique).not.toHaveBeenCalled();
   });
@@ -175,7 +175,7 @@ describe("checkTenantAiAutomationReady", () => {
       status: WaInboxThreadStatus.OPEN,
     });
     const { checkTenantAiAutomationReady } = await import("../aiAutomationService");
-    const r = await checkTenantAiAutomationReady("tenant-b", "5511888888888");
+    const r = await checkTenantAiAutomationReady("tenant-b", "5511888888888", "pn-b");
     expect(r.ready).toBe(true);
     expect(mockPrisma.aiAgentConfig.findUnique).toHaveBeenCalledWith({
       where: { tenantId: "tenant-b" },
@@ -206,7 +206,7 @@ describe("runTenantAiAutoReply", () => {
         accessToken: "t",
       },
       message: { id: "m1", from: "5511", type: "text", text: { body: "oi" } } as never,
-      conversationId: "c1",
+      inboxThreadId: "c1",
       textBody: "oi",
     });
     expect(sendWebhookAutoReply).not.toHaveBeenCalled();
@@ -236,7 +236,7 @@ describe("runTenantAiAutoReply", () => {
         type: "text",
         text: { body: "preciso de ajuda" },
       } as never,
-      conversationId: "sup-conv",
+      inboxThreadId: "sup-conv",
       textBody: "preciso de ajuda",
     });
     expect(generateReply).toHaveBeenCalled();
@@ -270,7 +270,7 @@ describe("runTenantAiAutoReply", () => {
         accessToken: "t",
       },
       message: { id: "same-wam", from: "5511", type: "text", text: { body: "x" } } as never,
-      conversationId: "c",
+      inboxThreadId: "c",
       textBody: "x",
     });
     expect(generateReply).not.toHaveBeenCalled();
@@ -306,7 +306,7 @@ describe("runTenantAiAutoReply", () => {
         type: "text",
         text: { body: "olá" },
       } as never,
-      conversationId: "c1",
+      inboxThreadId: "c1",
       textBody: "olá",
     });
     expect(generateOpenAiReply).toHaveBeenCalledWith(
@@ -341,7 +341,7 @@ describe("runTenantAiAutoReply", () => {
           accessToken: "t",
         },
         message: { id: "wam-err", from: "5511999999999", type: "text", text: { body: "?" } } as never,
-        conversationId: "c",
+        inboxThreadId: "c",
         textBody: "?",
       })
     ).rejects.toThrow();

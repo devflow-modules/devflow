@@ -17,4 +17,4 @@ Inventário para cutover: após **Bloco D**, a raiz **não** deve expor a coluna
 
 **Marketing (permanece na raiz):** `/produtos/whatsapp-platform`, `/automacao-whatsapp*`, `/software-atendimento-whatsapp*`, `/chatbot-whatsapp*`.
 
-**Variável:** `NEXT_PUBLIC_WHATSAPP_APP_URL` — base do app (produção típica: `https://whatsapp.devflowlabs.com.br`; local: `http://localhost:3004`).
+**Variável:** `NEXT_PUBLIC_WHATSAPP_APP_URL` — base do app (produção típica: `https://whatsapp.devflowlabs.com.br`; local: `http://localhost:3000`).

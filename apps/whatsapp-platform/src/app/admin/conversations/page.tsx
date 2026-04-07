@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { hasSupabaseConfig } from "@/lib/supabase-server";
-import { listConversations, listConversationsByStatus } from "@/modules/conversations";
+import { prisma } from "@/lib/prisma";
 import { listTenants } from "@/modules/tenants";
-import { getLastMessageForConversationIds } from "@/modules/messaging";
 import { Button, Badge, cn } from "@devflow/ui";
-import type { ConversationStatus } from "@/lib/db/types";
+import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
 
 export const dynamic = "force-dynamic";
 
-const TAB_STATUSES: { label: string; status?: ConversationStatus }[] = [
+const TAB_STATUSES: { label: string; status?: WaInboxThreadStatus }[] = [
   { label: "Todas" },
-  { label: "Na fila", status: "waiting_queue" },
-  { label: "Atribuídas", status: "assigned" },
-  { label: "Em andamento", status: "in_progress" },
+  { label: "Abertas", status: WaInboxThreadStatus.OPEN },
+  { label: "Pendentes", status: WaInboxThreadStatus.PENDING },
+  { label: "Fechadas", status: WaInboxThreadStatus.CLOSED },
 ];
 
 export const metadata: Metadata = {
@@ -30,27 +28,34 @@ type ConversationItem = {
   unread: number;
 };
 
-async function getConversations(status?: ConversationStatus): Promise<ConversationItem[]> {
-  if (!hasSupabaseConfig()) return [];
+async function getConversations(status?: WaInboxThreadStatus): Promise<ConversationItem[]> {
   try {
     const tenants = await listTenants();
     const tenantId = tenants[0]?.id;
     if (!tenantId) return [];
-    const conversations = status
-      ? await listConversationsByStatus(tenantId, status, 100)
-      : await listConversations(tenantId, 100);
-    const ids = conversations.map((c) => c.id);
-    const lastMessages = await getLastMessageForConversationIds(ids);
-    return conversations.map((c) => {
-      const last = lastMessages.get(c.id);
-      return {
-        id: c.id,
-        customerName: c.wa_from,
-        lastMessage: last?.body ?? null,
-        lastMessageAt: last?.created_at ?? null,
-        unread: 0,
-      };
+    const threads = await prisma.waInboxThread.findMany({
+      where: {
+        tenantId,
+        ...(status ? { status } : {}),
+      },
+      orderBy: { lastMessageAt: "desc" },
+      take: 100,
+      select: {
+        id: true,
+        phoneNumber: true,
+        contactName: true,
+        lastMessagePreview: true,
+        lastMessageAt: true,
+        unreadCount: true,
+      },
     });
+    return threads.map((t) => ({
+      id: t.id,
+      customerName: t.contactName ?? t.phoneNumber,
+      lastMessage: t.lastMessagePreview,
+      lastMessageAt: t.lastMessageAt?.toISOString() ?? null,
+      unread: t.unreadCount,
+    }));
   } catch {
     return [];
   }
@@ -62,7 +67,10 @@ export default async function AdminConversationsPage({
   searchParams: Promise<{ status?: string }>;
 }) {
   const { status } = await searchParams;
-  const validStatus = status && TAB_STATUSES.some((t) => t.status === status) ? (status as ConversationStatus) : undefined;
+  const validStatus =
+    status && TAB_STATUSES.some((t) => t.status === status)
+      ? (status as WaInboxThreadStatus)
+      : undefined;
   const conversations = await getConversations(validStatus);
 
   return (
@@ -71,19 +79,27 @@ export default async function AdminConversationsPage({
         <div className="flex items-center justify-between flex-wrap gap-2">
           <h1 className="text-lg font-semibold text-slate-900">Conversas</h1>
           <div className="flex gap-1">
-            {TAB_STATUSES.map((tab) => (
-              <Link
-                key={tab.label}
-                href={tab.status ? `/admin/conversations?status=${tab.status}` : "/admin/conversations"}
-              >
-                <Button
-                  variant={(!tab.status && !validStatus) || tab.status === validStatus ? "default" : "ghost"}
-                  size="sm"
-                >
-                  {tab.label}
-                </Button>
-              </Link>
-            ))}
+            {TAB_STATUSES.map((tab) => {
+              const href =
+                tab.status !== undefined
+                  ? `/admin/conversations?status=${tab.status}`
+                  : "/admin/conversations";
+              return (
+                <Link key={tab.label} href={href}>
+                  <Button
+                    variant={
+                      (tab.status === undefined && validStatus === undefined) ||
+                      tab.status === validStatus
+                        ? "default"
+                        : "ghost"
+                    }
+                    size="sm"
+                  >
+                    {tab.label}
+                  </Button>
+                </Link>
+              );
+            })}
           </div>
           <Link href="/admin/distribuir" className="shrink-0">
             <Button variant="outline" size="sm">

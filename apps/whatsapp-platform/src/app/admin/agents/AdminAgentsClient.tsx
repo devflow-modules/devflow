@@ -13,9 +13,13 @@ type Agent = {
 
 type QueueEntry = {
   id: string;
+  threadId: string;
   conversationId: string;
+  phoneNumber?: string;
+  contactName?: string | null;
   priority: number;
   queuedAt: string;
+  lastMessagePreview?: string | null;
 };
 
 export function AdminAgentsClient() {
@@ -27,13 +31,17 @@ export function AdminAgentsClient() {
     Promise.all([
       fetch("/api/admin/agent-status").then((r) => (r.ok ? r.json() : { agents: [] })),
       fetch("/api/admin/queues").then((r) => (r.ok ? r.json() : { queues: [] })),
-    ]).then(([a, q]) => {
-      setAgents(a.agents ?? []);
-      setQueues(q.queues ?? []);
-    }).finally(() => setLoading(false));
+    ])
+      .then(([a, q]) => {
+        setAgents(a.agents ?? []);
+        setQueues(q.queues ?? []);
+      })
+      .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const setStatus = async (userId: string, status: string) => {
     const res = await fetch("/api/admin/agent-status", {
@@ -55,9 +63,11 @@ export function AdminAgentsClient() {
         ) : (
           <ul className="rounded border divide-y text-sm">
             {queues.map((q) => (
-              <li key={q.id} className="px-3 py-2 flex justify-between">
-                <span className="font-mono">{q.conversationId.slice(0, 8)}…</span>
-                <span>prioridade {q.priority}</span>
+              <li key={q.id} className="px-3 py-2 flex justify-between gap-2">
+                <span className="font-mono truncate" title={q.threadId}>
+                  {q.contactName || q.phoneNumber || `${q.threadId.slice(0, 8)}…`}
+                </span>
+                <span className="shrink-0 text-slate-500">prioridade {q.priority}</span>
               </li>
             ))}
           </ul>

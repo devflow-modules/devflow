@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { ConversationsList } from "./ConversationsList";
 import { ChatWindow } from "./ChatWindow";
-import { fetchInboxConversations } from "./inboxFetch";
+import { fetchInboxConversations, fetchTenantWhatsappLines } from "./inboxFetch";
 import { INBOX_QK } from "./inboxTypes";
 import type { InboxConversationsFilter } from "./inboxTypes";
 import { useMediaMd } from "./useMediaMd";
@@ -30,13 +30,20 @@ function InboxShellContent() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileChat, setMobileChat] = useState(false);
   const [filter, setFilter] = useState<InboxConversationsFilter>("all");
+  const [lineFilter, setLineFilter] = useState<string | null>(null);
   const { connected: realtimeConnected } = useInboxRealtime();
 
   const pollInterval = realtimeConnected ? POLL_INTERVAL_REALTIME_MS : POLL_INTERVAL_FALLBACK_MS;
 
+  const { data: lines = [] } = useQuery({
+    queryKey: INBOX_QK.phoneLines,
+    queryFn: fetchTenantWhatsappLines,
+    staleTime: 60_000,
+  });
+
   const { data: convData } = useQuery({
-    queryKey: INBOX_QK.conversations(filter),
-    queryFn: () => fetchInboxConversations(filter),
+    queryKey: INBOX_QK.conversations(filter, lineFilter),
+    queryFn: () => fetchInboxConversations(filter, lineFilter),
     refetchInterval: pollInterval,
   });
 
@@ -106,6 +113,9 @@ function InboxShellContent() {
               onSelect={onSelect}
               filter={filter}
               onFilterChange={setFilter}
+              lineFilter={lineFilter}
+              lines={lines}
+              onLineFilterChange={setLineFilter}
             />
           </aside>
         )}

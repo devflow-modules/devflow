@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { validateAuthToken } from "@/modules/auth/verifyToken";
 import { prisma } from "@/lib/prisma";
+import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
 
 export type TenantSnapshot =
   | { authenticated: false }
@@ -26,19 +27,23 @@ export async function getTenantSnapshot(): Promise<TenantSnapshot> {
     if (!auth) return { authenticated: false };
     const payload = auth.payload;
 
-    const tenant = await prisma.tenant.findUnique({
-      where: { id: payload.tenantId },
-      select: {
-        name: true,
-        phoneNumberId: true,
-        accessToken: true,
-        systemPrompt: true,
-        defaultPrompt: true,
-        apiKey: true,
-      },
-    });
+    const [tenant, activePhone] = await Promise.all([
+      prisma.tenant.findUnique({
+        where: { id: payload.tenantId },
+        select: {
+          name: true,
+          systemPrompt: true,
+          defaultPrompt: true,
+          apiKey: true,
+        },
+      }),
+      prisma.whatsappPhoneNumber.findFirst({
+        where: { tenantId: payload.tenantId, status: WhatsappPhoneNumberStatus.ACTIVE },
+        select: { id: true },
+      }),
+    ]);
 
-    const phoneConnected = Boolean(tenant?.phoneNumberId?.trim() && tenant?.accessToken?.trim());
+    const phoneConnected = Boolean(activePhone);
     const promptReady = Boolean((tenant?.systemPrompt || tenant?.defaultPrompt || "").trim());
     const apiKeyReady = Boolean(tenant?.apiKey);
 

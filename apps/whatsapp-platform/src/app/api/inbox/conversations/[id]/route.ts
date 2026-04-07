@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
-import { waInboxGetThread } from "@/modules/inbox";
+import { waInboxGetThread, fetchWhatsappLineSummaries } from "@/modules/inbox";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +23,18 @@ export async function GET(
     if (!thread) {
       return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 });
     }
-    return NextResponse.json({ success: true, data: { thread } });
+    const lineMap = await fetchWhatsappLineSummaries(auth.payload.tenantId, [
+      thread.businessPhoneNumberId,
+    ]);
+    const whatsappLine =
+      lineMap.get(thread.businessPhoneNumberId) ?? {
+        phoneNumberId: thread.businessPhoneNumberId,
+        label: null,
+        displayPhoneNumber: null,
+        isPrimary: false,
+        isDefaultOutbound: false,
+      };
+    return NextResponse.json({ success: true, data: { thread: { ...thread, whatsappLine } } });
   } catch (e) {
     return NextResponse.json(
       { success: false, error: { message: e instanceof Error ? e.message : "Erro" } },

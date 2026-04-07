@@ -31,7 +31,7 @@ if (dbUrl && dbUrl.includes("pooler") && !dbUrl.includes("pgbouncer=true")) {
   env.WHATSAPP_DATABASE_URL = dbUrl.includes("?") ? `${dbUrl}&pgbouncer=true` : `${dbUrl}?pgbouncer=true`;
 }
 
-const next = spawn("pnpm", ["exec", "next", "dev", "--port", "3004"], {
+const next = spawn("pnpm", ["exec", "next", "dev", "--port", "3000"], {
   stdio: "inherit",
   cwd: path.resolve(__dirname, ".."),
   env,

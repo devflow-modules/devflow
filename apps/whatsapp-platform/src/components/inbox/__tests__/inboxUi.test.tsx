@@ -54,6 +54,7 @@ describe("Inbox UI", () => {
             {
               id: "thread-1",
               phoneNumber: "5511999999999",
+              businessPhoneNumberId: "pn-meta-1",
               contactName: "Cliente",
               lastMessageAt: new Date().toISOString(),
               unreadCount: 2,
@@ -61,6 +62,13 @@ describe("Inbox UI", () => {
               status: "OPEN",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+              whatsappLine: {
+                phoneNumberId: "pn-meta-1",
+                label: "Suporte",
+                displayPhoneNumber: "+55 11",
+                isPrimary: true,
+                isDefaultOutbound: true,
+              },
             },
           ];
           return Promise.resolve({
@@ -83,12 +91,16 @@ describe("Inbox UI", () => {
   it("renderiza lista de conversas com preview e unread", async () => {
     const onSelect = vi.fn();
     const onFilterChange = vi.fn();
+    const onLineFilterChange = vi.fn();
     render(
       <ConversationsList
         selectedId={null}
         onSelect={onSelect}
         filter="all"
         onFilterChange={onFilterChange}
+        lineFilter={null}
+        lines={[]}
+        onLineFilterChange={onLineFilterChange}
       />,
       { wrapper: createWrapper() }
     );
@@ -104,12 +116,16 @@ describe("Inbox UI", () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();
     const onFilterChange = vi.fn();
+    const onLineFilterChange = vi.fn();
     render(
       <ConversationsList
         selectedId={null}
         onSelect={onSelect}
         filter="all"
         onFilterChange={onFilterChange}
+        lineFilter={null}
+        lines={[]}
+        onLineFilterChange={onLineFilterChange}
       />,
       { wrapper: createWrapper() }
     );

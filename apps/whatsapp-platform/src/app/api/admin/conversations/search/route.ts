@@ -7,25 +7,29 @@ export async function GET(request: NextRequest) {
   if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   const q = request.nextUrl.searchParams.get("q")?.trim();
   if (!q) return NextResponse.json({ conversations: [] });
-  const messages = await prisma.message.findMany({
+
+  const messages = await prisma.waInboxMessage.findMany({
     where: {
-      content: { contains: q, mode: "insensitive" },
-      conversation: { tenantId: auth.payload.tenantId },
+      tenantId: auth.payload.tenantId,
+      contentText: { contains: q, mode: "insensitive" },
     },
     take: 100,
-    select: { conversationId: true },
+    select: { threadId: true },
   });
-  const convIds = [...new Set(messages.map((m) => m.conversationId))];
-  const conversations = await prisma.conversation.findMany({
-    where: { id: { in: convIds } },
+  const threadIds = [...new Set(messages.map((m) => m.threadId))];
+  if (threadIds.length === 0) return NextResponse.json({ conversations: [] });
+
+  const threads = await prisma.waInboxThread.findMany({
+    where: { id: { in: threadIds }, tenantId: auth.payload.tenantId },
     include: { _count: { select: { messages: true } } },
   });
+
   return NextResponse.json({
-    conversations: conversations.map((c) => ({
-      id: c.id,
-      externalId: c.externalId,
-      updatedAt: c.updatedAt,
-      messageCount: c._count.messages,
+    conversations: threads.map((t) => ({
+      id: t.id,
+      externalId: t.phoneNumber,
+      updatedAt: t.updatedAt.toISOString(),
+      messageCount: t._count.messages,
     })),
   });
 }

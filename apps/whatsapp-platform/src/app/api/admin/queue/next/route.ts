@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
+import { findNextUnassignedQueueThread } from "@/modules/inbox/waInboxQueueService";
+import { WaInboxDirection } from "@/generated/prisma-whatsapp";
 
 /**
  * GET /api/admin/queue/next
- * Retorna a próxima conversa na fila para o tenant e, se assign=true (default),
- * remove da fila e atribui ao agente autenticado.
+ * Próxima thread elegível: status OPEN ou PENDING, sem `assignedToUserId`, mais antiga por `lastMessageAt`.
+ * Com assign=true (default), atribui ao utilizador autenticado e marca agente como busy.
  */
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
@@ -16,52 +18,58 @@ export async function GET(request: NextRequest) {
   const tenantId = auth.payload.tenantId;
   const userId = auth.payload.sub;
 
-  const entry = await prisma.conversationQueue.findFirst({
-    where: { tenantId },
-    orderBy: [{ priority: "desc" }, { queuedAt: "asc" }],
-    include: {
-      conversation: {
-        include: {
-          messages: {
-            orderBy: { timestamp: "desc" },
-            take: 20,
-          },
-        },
-      },
-    },
-  });
+  const thread = await findNextUnassignedQueueThread(tenantId);
 
-  if (!entry) {
-    return NextResponse.json({ conversation: null, message: "Nenhuma conversa na fila" });
+  if (!thread) {
+    return NextResponse.json({
+      thread: null,
+      message: "Nenhuma conversa na fila",
+    });
   }
 
   if (assign) {
-    await prisma.conversationQueue.deleteMany({ where: { conversationId: entry.conversationId } });
+    await prisma.waInboxThread.update({
+      where: { id: thread.id, tenantId },
+      data: { assignedToUserId: userId },
+    });
     await prisma.agentStatus.upsert({
       where: { tenantId_userId: { tenantId, userId } },
       create: {
         tenantId,
         userId,
         status: "busy",
-        currentConversationId: entry.conversationId,
+        currentConversationId: thread.id,
       },
       update: {
         status: "busy",
-        currentConversationId: entry.conversationId,
+        currentConversationId: thread.id,
         updatedAt: new Date(),
       },
     });
   }
 
+  const chronological = [...thread.messages].reverse();
+  const messagesPayload = chronological.map((m) => ({
+    id: m.id,
+    sender: m.direction === WaInboxDirection.INBOUND ? "user" : "agent",
+    content: m.contentText ?? "",
+    timestamp: m.ts.toISOString(),
+  }));
+
+  const threadPayload = {
+    id: thread.id,
+    tenantId: thread.tenantId,
+    phoneNumber: thread.phoneNumber,
+    contactName: thread.contactName,
+    status: thread.status,
+    lastMessageAt: thread.lastMessageAt.toISOString(),
+    createdAt: thread.createdAt.toISOString(),
+    messages: messagesPayload,
+  };
+
   return NextResponse.json({
-    conversation: {
-      id: entry.conversation.id,
-      externalId: entry.conversation.externalId,
-      tenantId: entry.conversation.tenantId,
-      createdAt: entry.conversation.createdAt,
-      messages: entry.conversation.messages.reverse(),
-    },
-    priority: entry.priority,
-    queuedAt: entry.queuedAt,
+    thread: threadPayload,
+    priority: 0,
+    queuedAt: thread.lastMessageAt.toISOString(),
   });
 }

@@ -160,7 +160,7 @@ Cada app abaixo tem suas próprias rotas; quando deployados em outro domínio (e
 
 ### 4.3 apps/whatsapp-platform
 
-- **Porta em dev:** 3004  
+- **Porta em dev:** 3000  
 - **Deploy típico:** subdomínio dedicado (ex.: **`https://whatsapp.devflowlabs.com.br`** em produção).  
 - **Páginas:** `/`, `/login`, `/signup`, `/onboarding`, `/dashboard`, `/admin/login`, `/admin/conversations`, `/admin/conversations/[id]`, `/admin/distribuir`, `/admin/metrics`, `/admin/agents`, `/queues`, `/agents`, `/settings`, `/conversations`.  
 - **APIs:** auth (login, signup, logout), tenants (me, api-key), queues, agents, admin (queue/next, conversations, export, agent-status, feedback-report, metrics), stripe webhook, health, dashboard/conversations, faq, webhooks/whatsapp, etc. Ver `apps/whatsapp-platform/src/app/api/` para lista completa.

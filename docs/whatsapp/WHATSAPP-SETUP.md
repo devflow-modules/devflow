@@ -79,8 +79,8 @@ https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp
 ### Teste com ngrok (desenvolvimento local)
 
 ```bash
-ngrok http 3004
-# App whatsapp-platform em dev (porta típica 3004). Use: https://xxxx.ngrok.io/api/webhook/whatsapp
+ngrok http 3000
+# App whatsapp-platform em dev (porta típica 3000). Use: https://xxxx.ngrok.io/api/webhook/whatsapp
 ```
 
 ---

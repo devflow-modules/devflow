@@ -1,11 +1,11 @@
 /**
- * Orquestração do processamento do webhook: persistir inbound → legado ou IA assíncrona.
+ * Orquestração do processamento do webhook: preparar contexto para IA / resposta legada.
+ * Inbound já foi persistido em wa_inbox_* por persistWaInboxFromWebhook (canónico).
  */
 
-import type { ResolvedTenant } from "@/modules/tenants/tenantService";
-import { findOrCreateConversation } from "@/modules/conversations/conversationsRepository";
-import { insertMessage } from "./messagesRepository";
-import { insertWebhookLog } from "./webhookLogsRepository";
+import type { ResolvedTenant } from "@/modules/tenants";
+import { prisma } from "@/lib/prisma";
+import { digitsOnly } from "@/modules/inbox/waInboxUtils";
 import { sendWebhookAutoReply } from "./sendMessageService";
 import { getReplyForMessage } from "@/modules/ai/ruleBasedReplies";
 import { generateAiReply } from "@/modules/ai/aiOrchestrator";
@@ -16,7 +16,6 @@ import {
   trackAiResponseGeneratedLlm,
   trackAiFallbackUsed,
 } from "@/modules/analytics";
-import { hasSupabaseConfig } from "@/lib/supabase-server";
 import type { IncomingMessage } from "@devflow/whatsapp-core";
 
 export interface ProcessInboundMessageInput {
@@ -26,7 +25,8 @@ export interface ProcessInboundMessageInput {
 }
 
 export interface PreparedInbound {
-  conversationId: string;
+  /** wa_inbox_threads.id */
+  inboxThreadId: string;
   textBody: string;
 }
 
@@ -36,16 +36,9 @@ function getTextBody(msg: IncomingMessage): string | null {
   return text?.body ?? null;
 }
 
-/** Erros que indicam tabela ausente no schema cache (Supabase/PostgREST). */
-function isTableNotFoundError(err: unknown): boolean {
-  const msg = err instanceof Error ? err.message : String(err);
-  return (
-    msg.includes("Could not find the table") ||
-    msg.includes("does not exist")
-  );
-}
-
-/** Persiste inbound (Supabase + tracking) e retorna ids para reply. */
+/**
+ * Resolve a thread Prisma já criada/atualizada pelo webhook inbox (mesma chave composta).
+ */
 export async function prepareInboundConversation(
   input: ProcessInboundMessageInput
 ): Promise<PreparedInbound | null> {
@@ -56,40 +49,32 @@ export async function prepareInboundConversation(
   trackInboundMessageReceived();
   if (isNewConversation) trackConversationStarted();
 
-  let conversationId: string;
-  if (hasSupabaseConfig()) {
-    try {
-      const conversation = await findOrCreateConversation(tenant.id, message.from);
-      conversationId = conversation.id;
-      await insertMessage({
-        conversation_id: conversationId,
-        direction: "inbound",
-        wa_message_id: message.id,
-        body: textBody,
-        status: null,
-      });
-    } catch (err) {
-      if (isTableNotFoundError(err)) {
-        console.warn(
-          "[WHATSAPP][WARN] conversations/messages table not found — run migration. Bot will reply without persistence.",
-          { err: err instanceof Error ? err.message : String(err) }
-        );
-        conversationId = "no-db";
-      } else {
-        throw err;
-      }
-    }
-  } else {
-    conversationId = "no-db";
+  const thread = await prisma.waInboxThread.findUnique({
+    where: {
+      tenantId_phoneNumber_businessPhoneNumberId: {
+        tenantId: tenant.id,
+        phoneNumber: digitsOnly(message.from),
+        businessPhoneNumberId: tenant.phoneNumberId,
+      },
+    },
+    select: { id: true },
+  });
+
+  if (!thread) {
+    console.warn(
+      "[WHATSAPP][WARN] prepareInboundConversation: thread wa_inbox inexistente após persist — verifique ordem webhook"
+    );
+    return null;
   }
-  return { conversationId, textBody };
+
+  return { inboxThreadId: thread.id, textBody };
 }
 
 /** Resposta automática legada (regras / WHATSAPP_ENABLE_LLM global). */
 export async function processLegacyInboundAutoReply(
   tenant: ResolvedTenant,
   message: IncomingMessage,
-  conversationId: string,
+  inboxThreadId: string,
   textBody: string
 ): Promise<void> {
   const from = message.from;
@@ -120,7 +105,7 @@ export async function processLegacyInboundAutoReply(
       tenant,
       to: from,
       text: reply,
-      conversationId,
+      inboxThreadId,
     });
     console.log("[WHATSAPP][DEBUG] legacy reply sent successfully", { to: from });
   } catch (err) {
@@ -130,30 +115,8 @@ export async function processLegacyInboundAutoReply(
   }
 }
 
-/** Fluxo completo legado (prepare + reply). Mantido para compatibilidade. */
 export async function processInboundMessage(input: ProcessInboundMessageInput): Promise<void> {
   const prep = await prepareInboundConversation(input);
   if (!prep) return;
-  await processLegacyInboundAutoReply(
-    input.tenant,
-    input.message,
-    prep.conversationId,
-    prep.textBody
-  );
-}
-
-export async function persistWebhookLog(payload: unknown, tenantId: string | null): Promise<void> {
-  if (!hasSupabaseConfig()) return;
-  try {
-    await insertWebhookLog(payload, tenantId);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    if (msg.includes("Could not find the table") || msg.includes("does not exist")) {
-      console.warn(
-        "[WHATSAPP][WARN] webhook_logs table not found in Supabase — run supabase/schema.sql to enable audit logging"
-      );
-    } else {
-      throw err;
-    }
-  }
+  await processLegacyInboundAutoReply(input.tenant, input.message, prep.inboxThreadId, prep.textBody);
 }

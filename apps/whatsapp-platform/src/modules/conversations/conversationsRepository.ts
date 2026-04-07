@@ -1,37 +1,10 @@
 /**
- * Repositório de conversas — criar, buscar, atualizar por tenant e wa_from.
+ * Repositório Supabase `conversations` (legado).
+ * @deprecated Runtime canónico: Prisma `wa_inbox_threads` / `wa_inbox_messages`.
  */
 
 import { getSupabaseServiceClient } from "@/lib/supabase-server";
 import type { Conversation, ConversationStatus } from "@/lib/db/types";
-
-export async function findOrCreateConversation(
-  tenantId: string,
-  waFrom: string
-): Promise<Conversation> {
-  const supabase = getSupabaseServiceClient();
-  const existing = await supabase
-    .from("conversations")
-    .select("*")
-    .eq("tenant_id", tenantId)
-    .eq("wa_from", waFrom.replace(/\D/g, ""))
-    .order("last_message_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (existing.data) return existing.data as Conversation;
-  const { data: inserted, error } = await supabase
-    .from("conversations")
-    .insert({
-      tenant_id: tenantId,
-      wa_from: waFrom.replace(/\D/g, ""),
-      status: "open",
-      last_message_at: new Date().toISOString(),
-    })
-    .select()
-    .single();
-  if (error) throw new Error(`conversations.insert: ${error.message}`);
-  return inserted as Conversation;
-}
 
 export async function updateConversationStatus(
   id: string,

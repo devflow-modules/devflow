@@ -21,7 +21,7 @@ Fluxo correto: **Meta → host do whatsapp-platform → Prisma → tenantResolut
 META_APP_ID=<preenchido>
 META_APP_SECRET=<preenchido>
 META_EMBEDDED_SIGNUP_CONFIG_ID=<preenchido>
-NEXT_PUBLIC_WHATSAPP_APP_URL=http://localhost:3004   # para teste local
+NEXT_PUBLIC_WHATSAPP_APP_URL=http://localhost:3000   # para teste local
 ```
 
 ### Meta App — Valid OAuth Redirect URIs
@@ -29,7 +29,7 @@ NEXT_PUBLIC_WHATSAPP_APP_URL=http://localhost:3004   # para teste local
 Adicione **ambas** as URIs em Facebook Login → Settings:
 
 - **Produção:** `https://devflowlabs.com.br/dashboard/whatsapp/callback`
-- **Local:** `http://localhost:3004/dashboard/whatsapp/callback`
+- **Local:** `http://localhost:3000/dashboard/whatsapp/callback`
 
 ### Meta App — Permissões da Config
 
@@ -44,7 +44,7 @@ Adicione **ambas** as URIs em Facebook Login → Settings:
 cd apps/whatsapp-platform && pnpm dev
 ```
 
-Acesse: http://localhost:3004
+Acesse: http://localhost:3000
 
 ---
 
@@ -90,7 +90,7 @@ Esperado: `status = 'ACTIVE'`, `access_token` preenchido.
 
 ### 3.6 Teste inbound (webhook)
 
-**Importante:** O webhook em produção está no deploy **`whatsapp-platform`** (ex.: `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp`), não no portal. Para testar localmente, use ngrok na porta **3004** e configure temporariamente no Meta.
+**Importante:** O webhook em produção está no deploy **`whatsapp-platform`** (ex.: `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp`), não no portal. Para testar localmente, use ngrok na porta **3000** e configure temporariamente no Meta.
 
 1. Envie mensagem para o número conectado
 2. **Log esperado:** `[WHATSAPP] inbound tenant=<id> wa_id=<user> type=text msg_id=<id>`

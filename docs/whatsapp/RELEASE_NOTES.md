@@ -76,7 +76,7 @@ pnpm start   # PORT padrão 3005
 ```bash
 cd apps/whatsapp-platform
 pnpm install && pnpm build
-pnpm start   # porta 3004 por padrão no script)
+pnpm start   # porta 3000 por padrão no script)
 ```
 
 ### 4. Meta e Stripe

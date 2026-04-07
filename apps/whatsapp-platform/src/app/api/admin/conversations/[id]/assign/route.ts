@@ -16,20 +16,24 @@ export async function POST(
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  const { id: conversationId } = await params;
+  const { id: threadId } = await params;
   const parsed = bodySchema.safeParse(await request.json());
   if (!parsed.success) {
     return NextResponse.json({ error: "userId obrigatório" }, { status: 400 });
   }
 
-  const conv = await prisma.conversation.findFirst({
-    where: { id: conversationId, tenantId: auth.payload.tenantId },
+  const thread = await prisma.waInboxThread.findFirst({
+    where: { id: threadId, tenantId: auth.payload.tenantId },
   });
-  if (!conv) {
+  if (!thread) {
     return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 });
   }
 
-  await prisma.conversationQueue.deleteMany({ where: { conversationId } });
+  await prisma.waInboxThread.update({
+    where: { id: thread.id },
+    data: { assignedToUserId: parsed.data.userId },
+  });
+
   await prisma.agentStatus.upsert({
     where: {
       tenantId_userId: { tenantId: auth.payload.tenantId, userId: parsed.data.userId },
@@ -38,11 +42,11 @@ export async function POST(
       tenantId: auth.payload.tenantId,
       userId: parsed.data.userId,
       status: "busy",
-      currentConversationId: conversationId,
+      currentConversationId: threadId,
     },
     update: {
       status: "busy",
-      currentConversationId: conversationId,
+      currentConversationId: threadId,
       updatedAt: new Date(),
     },
   });

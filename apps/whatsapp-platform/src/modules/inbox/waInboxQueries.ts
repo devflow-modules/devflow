@@ -9,6 +9,8 @@ export type WaInboxThreadFilters = {
   assignedTo?: string; // userId or "unassigned" | "me"
   tag?: string; // tagId
   priority?: string;
+  /** Meta phone_number_id da linha WhatsApp */
+  businessPhoneNumberId?: string;
 };
 
 export async function waInboxListThreads(
@@ -32,6 +34,10 @@ export async function waInboxListThreads(
 
   if (opts.filters?.tag) {
     where.threadTags = { some: { tagId: opts.filters.tag, tenantId } };
+  }
+
+  if (opts.filters?.businessPhoneNumberId?.trim()) {
+    where.businessPhoneNumberId = opts.filters.businessPhoneNumberId.trim();
   }
 
   return prisma.waInboxThread.findMany({
@@ -58,6 +64,9 @@ export async function waInboxCountThreads(
   else if (filters?.assignedTo === "me" && currentUserId) where.assignedToUserId = currentUserId;
   else if (filters?.assignedTo) where.assignedToUserId = filters.assignedTo;
   if (filters?.tag) where.threadTags = { some: { tagId: filters.tag, tenantId } };
+  if (filters?.businessPhoneNumberId?.trim()) {
+    where.businessPhoneNumberId = filters.businessPhoneNumberId.trim();
+  }
   return prisma.waInboxThread.count({ where });
 }
 
@@ -69,4 +78,42 @@ export async function waInboxGetThread(tenantId: string, threadId: string) {
       threadTags: { include: { tag: true } },
     },
   });
+}
+
+export type WhatsappLineSummary = {
+  phoneNumberId: string;
+  label: string | null;
+  displayPhoneNumber: string | null;
+  isPrimary: boolean;
+  isDefaultOutbound: boolean;
+};
+
+export async function fetchWhatsappLineSummaries(
+  tenantId: string,
+  metaPhoneNumberIds: string[]
+): Promise<Map<string, WhatsappLineSummary>> {
+  const ids = [...new Set(metaPhoneNumberIds.map((x) => x.trim()).filter(Boolean))];
+  if (ids.length === 0) return new Map();
+  const rows = await prisma.whatsappPhoneNumber.findMany({
+    where: { tenantId, phoneNumberId: { in: ids } },
+    select: {
+      phoneNumberId: true,
+      label: true,
+      displayPhoneNumber: true,
+      isPrimary: true,
+      isDefaultOutbound: true,
+    },
+  });
+  return new Map(
+    rows.map((r) => [
+      r.phoneNumberId,
+      {
+        phoneNumberId: r.phoneNumberId,
+        label: r.label,
+        displayPhoneNumber: r.displayPhoneNumber,
+        isPrimary: r.isPrimary,
+        isDefaultOutbound: r.isDefaultOutbound,
+      },
+    ])
+  );
 }

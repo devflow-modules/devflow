@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const config = getEmbeddedSignupConfig(tenantId);
-    const baseUrl = process.env.NEXT_PUBLIC_WHATSAPP_APP_URL ?? "http://localhost:3004";
+    const baseUrl = process.env.NEXT_PUBLIC_WHATSAPP_APP_URL ?? "http://localhost:3000";
     const redirectUri = `${baseUrl}/dashboard/whatsapp/callback`;
     const apiVer =
       process.env.META_API_VERSION ?? process.env.WHATSAPP_API_VERSION ?? "v21.0";

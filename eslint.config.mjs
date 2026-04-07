@@ -23,6 +23,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "node_modules/**",
     ".turbo/**",
+    /** Prisma client gerado (CommonJS / tipos com `any` internos). */
+    "apps/whatsapp-platform/src/generated/**",
   ]),
   // Boundary: no one may import from app packages (apps are not published).
   {
