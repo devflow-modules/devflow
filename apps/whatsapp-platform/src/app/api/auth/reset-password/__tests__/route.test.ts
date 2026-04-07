@@ -9,6 +9,14 @@ vi.mock("@/lib/rate-limit", () => ({
 const mockVerifyToken = vi.fn();
 const mockUpdatePassword = vi.fn();
 
+const { mockRevokeAllSessionsForUser } = vi.hoisted(() => ({
+  mockRevokeAllSessionsForUser: vi.fn(),
+}));
+
+vi.mock("@/modules/auth/sessionService", () => ({
+  revokeAllSessionsForUser: mockRevokeAllSessionsForUser,
+}));
+
 vi.mock("@/modules/auth", () => ({
   verifyPasswordResetToken: (...a: unknown[]) => mockVerifyToken(...a),
   updateUserPassword: (...a: unknown[]) => mockUpdatePassword(...a),
@@ -21,6 +29,7 @@ vi.mock("@/lib/auth-logger", () => ({
 describe("POST /api/auth/reset-password", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockRevokeAllSessionsForUser.mockResolvedValue(undefined);
   });
 
   it("400 quando JSON inválido", async () => {
@@ -58,5 +67,6 @@ describe("POST /api/auth/reset-password", () => {
     const res = await POST(req);
     expect(res.status).toBe(200);
     expect(mockUpdatePassword).toHaveBeenCalledWith("u1", "12345678");
+    expect(mockRevokeAllSessionsForUser).toHaveBeenCalledWith("u1");
   });
 });

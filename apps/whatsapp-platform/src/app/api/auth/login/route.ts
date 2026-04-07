@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { login, buildSetCookieHeader, signToken } from "@/modules/auth";
+import { createUserSession } from "@/modules/auth/sessionService";
 import { logAuth } from "@/lib/auth-logger";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { parseRequestJson } from "@/lib/parse-request-json";
 
 const bodySchema = z.object({
@@ -10,6 +12,19 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request);
+  const limit = checkRateLimit(ip, "auth-login");
+  if (!limit.ok) {
+    logAuth({ type: "rate_limited", route: "login", ip });
+    return NextResponse.json(
+      { error: "Muitas tentativas de início de sessão. Tente novamente em alguns minutos." },
+      {
+        status: 429,
+        headers: limit.retryAfter ? { "Retry-After": String(limit.retryAfter) } : undefined,
+      }
+    );
+  }
+
   const raw = await parseRequestJson(request);
   if (!raw.ok) {
     return NextResponse.json({ error: "Corpo JSON inválido" }, { status: 400 });
@@ -26,11 +41,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: result.error }, { status: 401 });
   }
 
+  const { sessionId } = await createUserSession(result.user.id);
+
   logAuth({
     type: "login_success",
     userId: result.user.id,
     tenantId: result.user.tenantId,
     role: result.user.role,
+    sessionId,
   });
 
   const token = await signToken({
@@ -39,6 +57,7 @@ export async function POST(request: NextRequest) {
     name: result.user.name,
     role: result.user.role,
     tenantId: result.user.tenantId,
+    jti: sessionId,
   });
   const res = NextResponse.json({ user: result.user });
   res.headers.set("Set-Cookie", buildSetCookieHeader(token));

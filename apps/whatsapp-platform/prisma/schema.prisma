@@ -485,10 +485,25 @@ model User {
   updatedAt             DateTime        @updatedAt @map("updated_at")
   tenant                Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   assignedInboxThreads  WaInboxThread[] @relation("AssignedToUser")
+  sessions              UserSession[]
 
   @@index([tenantId])
   @@index([email])
   @@map("whatsapp_users")
+}
+
+/// Sessão de browser: JWT carrega o mesmo id em `jti`; revogação invalida o token antes do exp.
+model UserSession {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, revokedAt])
+  @@map("whatsapp_user_sessions")
 }
 
 model Conversation {

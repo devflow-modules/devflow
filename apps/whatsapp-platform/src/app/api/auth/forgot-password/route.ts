@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const limit = checkRateLimit(ip, "forgot-password");
   if (!limit.ok) {
+    logAuth({ type: "rate_limited", route: "forgot-password", ip });
     return NextResponse.json(
       { error: "Muitas tentativas. Tente novamente em alguns minutos." },
       {

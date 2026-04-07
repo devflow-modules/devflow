@@ -21,5 +21,11 @@ export {
 export {
   getAuthFromRequest,
   requireRole,
+  validateAuthToken,
   type AuthResult,
 } from "./verifyToken";
+export {
+  createUserSession,
+  revokeUserSession,
+  revokeAllSessionsForUser,
+} from "./sessionService";

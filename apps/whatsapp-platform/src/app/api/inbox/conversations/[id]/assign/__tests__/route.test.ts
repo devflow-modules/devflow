@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { NextRequest } from "next/server";
 
 const mockAssign = vi.fn();
 const mockUnassign = vi.fn();
@@ -23,7 +24,7 @@ describe("POST /api/inbox/conversations/[id]/assign", () => {
   it("retorna 401 sem auth", async () => {
     mockAuth.mockResolvedValue(null);
     const { POST } = await import("../route");
-    const req = new Request("http://localhost/assign", {
+    const req = new NextRequest("http://localhost/assign", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
@@ -34,7 +35,7 @@ describe("POST /api/inbox/conversations/[id]/assign", () => {
 
   it("atribui e retorna 200 quando body vazio (assign to me)", async () => {
     const { POST } = await import("../route");
-    const req = new Request("http://localhost/assign", {
+    const req = new NextRequest("http://localhost/assign", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
@@ -46,7 +47,7 @@ describe("POST /api/inbox/conversations/[id]/assign", () => {
 
   it("desatribui quando unassign: true", async () => {
     const { POST } = await import("../route");
-    const req = new Request("http://localhost/assign", {
+    const req = new NextRequest("http://localhost/assign", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ unassign: true }),

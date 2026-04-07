@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyPasswordResetToken, updateUserPassword } from "@/modules/auth";
+import { revokeAllSessionsForUser } from "@/modules/auth/sessionService";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { logAuth } from "@/lib/auth-logger";
 import { parseRequestJson } from "@/lib/parse-request-json";
@@ -14,6 +15,7 @@ export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const limit = checkRateLimit(ip, "reset-password");
   if (!limit.ok) {
+    logAuth({ type: "rate_limited", route: "reset-password", ip });
     return NextResponse.json(
       { error: "Muitas tentativas. Tente novamente em alguns minutos." },
       {
@@ -49,6 +51,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Falha ao atualizar senha." }, { status: 500 });
   }
 
+  await revokeAllSessionsForUser(payload.sub);
+  logAuth({ type: "sessions_revoked_all", userId: payload.sub, reason: "password_reset" });
   logAuth({ type: "password_reset_success", userId: payload.sub });
 
   return NextResponse.json({

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createCheckoutSession } from "@devflow/billing-core";
 import { hashPassword, buildSetCookieHeader, signToken } from "@/modules/auth";
+import { createUserSession } from "@/modules/auth/sessionService";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { prisma } from "@/lib/prisma";
 import { ensureTenantSubscription } from "@/modules/billing/subscriptionService";
@@ -127,12 +128,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    const { sessionId } = await createUserSession(user.id);
     const token = await signToken({
       sub: user.id,
       email: user.email,
       name: user.name,
       role: "admin",
       tenantId: tenant.id,
+      jti: sessionId,
     });
 
     if (planId === "pro") {

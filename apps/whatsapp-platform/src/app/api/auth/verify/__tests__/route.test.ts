@@ -29,7 +29,10 @@ describe("GET /api/auth/verify", () => {
         name: "User",
         role: "admin",
         tenantId: "t1",
+        jti: "sid-1",
       },
+      token: "jwt",
+      sessionId: "sid-1",
     });
     const { GET } = await import("../route");
     const res = await GET(new NextRequest("http://localhost/api/auth/verify"));

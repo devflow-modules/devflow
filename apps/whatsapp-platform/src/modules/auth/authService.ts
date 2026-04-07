@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
-import { getJwtSecret, JWT_EXPIRY_HOURS } from "@/lib/auth-config";
+import { getJwtSecret, getAccessTokenHours } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 
 const PASSWORD_RESET_EXPIRY = "1h";
@@ -15,6 +15,8 @@ export interface JwtPayload {
   name: string;
   role: UserRole;
   tenantId: string;
+  /** Id da linha `UserSession` — revogação server-side invalida o token. */
+  jti: string;
   iat?: number;
   exp?: number;
 }
@@ -36,11 +38,16 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 export async function signToken(payload: Omit<JwtPayload, "iat" | "exp">): Promise<string> {
+  if (!payload.jti?.trim()) {
+    throw new Error("signToken requires payload.jti (session id)");
+  }
+  const { jti, ...claims } = payload;
   const secret = new TextEncoder().encode(getJwtSecret());
-  return new SignJWT({ ...payload })
+  return new SignJWT({ ...claims })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(`${JWT_EXPIRY_HOURS}h`)
+    .setJti(jti)
+    .setExpirationTime(`${getAccessTokenHours()}h`)
     .sign(secret);
 }
 

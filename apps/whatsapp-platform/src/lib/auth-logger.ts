@@ -4,15 +4,19 @@
  */
 
 type AuthLogEvent =
-  | { type: "login_success"; userId: string; tenantId: string; role: string }
+  | { type: "login_success"; userId: string; tenantId: string; role: string; sessionId?: string }
   | { type: "login_failed"; reason?: string }
-  | { type: "logout"; userId: string; tenantId: string }
+  | { type: "logout"; userId: string; tenantId: string; sessionId?: string }
+  | { type: "session_revoked"; userId: string; sessionId: string; reason?: string }
+  | { type: "session_rejected"; reason: string; userId?: string }
+  | { type: "sessions_revoked_all"; userId: string; reason?: string }
   | { type: "token_expired"; path?: string }
   | { type: "unauthorized"; path?: string }
   | { type: "forbidden"; userId: string; tenantId: string; path?: string; requiredRole?: string }
   | { type: "tenant_mismatch"; userId: string; resourceTenantId: string; userTenantId: string }
   | { type: "password_reset_requested"; userId: string; tenantId: string }
-  | { type: "password_reset_success"; userId: string };
+  | { type: "password_reset_success"; userId: string }
+  | { type: "rate_limited"; route: string; ip?: string };
 
 function sanitize(obj: Record<string, unknown>): Record<string, unknown> {
   const omit = ["password", "token", "cookie", "secret", "authorization"];
@@ -28,7 +32,13 @@ function sanitize(obj: Record<string, unknown>): Record<string, unknown> {
 export function logAuth(event: AuthLogEvent): void {
   const payload = sanitize(event as unknown as Record<string, unknown>);
   const line = JSON.stringify({ ts: new Date().toISOString(), ...payload });
-  if (event.type === "login_failed" || event.type === "unauthorized" || event.type === "forbidden") {
+  if (
+    event.type === "login_failed" ||
+    event.type === "unauthorized" ||
+    event.type === "forbidden" ||
+    event.type === "session_rejected" ||
+    event.type === "rate_limited"
+  ) {
     console.warn("[auth]", line);
   } else {
     console.info("[auth]", line);

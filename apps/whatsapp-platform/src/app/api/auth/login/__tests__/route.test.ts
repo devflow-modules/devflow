@@ -6,6 +6,14 @@ const mockSignToken = vi.fn();
 const mockBuildSetCookieHeader = vi.fn();
 const mockLogAuth = vi.fn();
 
+const { mockCreateUserSession } = vi.hoisted(() => ({
+  mockCreateUserSession: vi.fn(),
+}));
+
+vi.mock("@/modules/auth/sessionService", () => ({
+  createUserSession: mockCreateUserSession,
+}));
+
 vi.mock("@/modules/auth", () => ({
   login: (...a: unknown[]) => mockLogin(...a),
   signToken: (...a: unknown[]) => mockSignToken(...a),
@@ -19,6 +27,7 @@ vi.mock("@/lib/auth-logger", () => ({
 describe("POST /api/auth/login", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCreateUserSession.mockResolvedValue({ sessionId: "sess-1", expiresAt: new Date() });
     mockSignToken.mockResolvedValue("jwt-token");
     mockBuildSetCookieHeader.mockReturnValue("wa_jwt=jwt-token; Path=/; HttpOnly");
   });
@@ -79,7 +88,14 @@ describe("POST /api/auth/login", () => {
     });
     const res = await POST(req);
     expect(res.status).toBe(200);
-    expect(mockSignToken).toHaveBeenCalled();
+    expect(mockCreateUserSession).toHaveBeenCalledWith("u1");
+    expect(mockSignToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sub: "u1",
+        jti: "sess-1",
+        tenantId: "t1",
+      })
+    );
     expect(mockBuildSetCookieHeader).toHaveBeenCalledWith("jwt-token");
     expect(res.headers.get("Set-Cookie")).toBeTruthy();
     expect(mockLogAuth).toHaveBeenCalledWith(
