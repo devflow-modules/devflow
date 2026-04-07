@@ -22,10 +22,10 @@ Entregue no código / CI / documentação (não substitui validação humana no 
 
 ## 2. Smoke test manual pendente (produção)
 
-Marcar após executar no ambiente real:
+Marcar após executar no ambiente real (browser + conta + número WhatsApp oficial):
 
 - [ ] Entrar pelo portal
-- [ ] Redirecionar para o app (308)
+- [x] Redirecionar para o app (308) — *validado por script em 2026-04-02 (ver §2.1)*
 - [ ] Fazer login
 - [ ] Acessar dashboard WhatsApp
 - [ ] Enviar mensagem real para o número oficial
@@ -35,7 +35,21 @@ Marcar após executar no ambiente real:
 - [ ] Validar billing (página / checkout / portal Stripe conforme escopo)
 - [ ] Validar logout e novo login
 
-**Detalhe opcional (tabela):**
+### 2.1 Verificação automatizada (produção — rede)
+
+Executado localmente contra URLs públicas:
+
+```bash
+bash scripts/ops/validate-whatsapp-cutover.sh
+```
+
+**2026-04-02** — `PORTAL_URL=https://devflowlabs.com.br`, `WHATSAPP_APP_URL=https://whatsapp.devflowlabs.com.br`  
+**Resultado:** `PASS=18`, `FAIL=0`.
+
+Inclui: redirects 308 (`/dashboard/whatsapp`, `/login`, `/forgot-password`, `/reset-password`); rotas públicas do portal; APIs WhatsApp ausentes na raiz; `/login` e `/dashboard/whatsapp` no app com resposta esperada; **POST** `/api/webhook/whatsapp` com payload de teste → **200**.  
+**Não executado nesta corrida:** GET handshake com `hub.verify_token` real (`VERIFY_TOKEN` não fornecido — repetir com `VERIFY_TOKEN=<WHATSAPP_VERIFY_TOKEN>` para espelhar a Meta).
+
+**Detalhe opcional (tabela manual):**
 
 | # | Passo | OK / NOK | Notas |
 |---|--------|----------|--------|
@@ -64,12 +78,12 @@ Só marcar com prova (logs, prints, CI verde no merge de release):
 
 | Campo | Valor |
 |--------|--------|
-| **Data** | |
-| **Ambiente** | _ex.: Vercel `whatsapp-platform` + portal `devflowlabs.com.br`_ |
-| **Responsável** | |
-| **Resultado** | _APROVADO / APROVADO COM RESSALVAS / REPROVADO_ |
-| **Observações** | |
-| **Commit / release** | |
+| **Data** | 2026-04-02 |
+| **Ambiente** | Portal `https://devflowlabs.com.br` · App `https://whatsapp.devflowlabs.com.br` (cutover + webhook POST de teste) |
+| **Responsável** | Validação automatizada (`scripts/ops/validate-whatsapp-cutover.sh`); **smoke manual secção 2 por assinar** após login real / mensagem / billing |
+| **Resultado** | **APROVADO COM RESSALVAS** — cutover, redirects, rotas do app e POST webhook de sanidade OK em produção; **pendente:** handshake GET com token real, jornada humana completa (secção 2) e gate da secção 3 com evidência desses passos |
+| **Observações** | `PASS=18`, `FAIL=0` na corrida de 2026-04-02. GET Meta challenge não testado sem `VERIFY_TOKEN`. Ficheiro `Untitled` na raiz do repo removido como lixo. |
+| **Commit / release** | Baseline sprint pré-smoke: `6171d3380249f1a0b30d698559e407ec87e6bd8a` · Evidência rede/sign-off: último commit que alterou este ficheiro (`git log -1 --oneline -- docs/architecture/WHATSAPP-PRODUCTION-SIGNOFF.md`) |
 
 ---
 
