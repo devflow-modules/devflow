@@ -9,6 +9,7 @@ import { ensureTenantSubscription } from "@/modules/billing/subscriptionService"
 import { normalizePlan } from "@/modules/billing/plans";
 import { parseRequestJson } from "@/lib/parse-request-json";
 import { logAuth } from "@/lib/auth-logger";
+import { sendTransactionalEmail } from "@/modules/email/application/sendTransactionalEmail";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -130,6 +131,28 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    const baseUrl = (
+      process.env.NEXT_PUBLIC_WHATSAPP_APP_URL ??
+      process.env.NEXT_PUBLIC_APP_URL ??
+      request.nextUrl.origin ??
+      "http://localhost:3000"
+    ).replace(/\/$/, "");
+    const loginUrl = `${baseUrl}/login`;
+    const welcomeEmail = await sendTransactionalEmail({
+      type: "ACCOUNT_CREATED",
+      to: user.email,
+      tenantId: tenant.id,
+      userId: user.id,
+      payload: {
+        userName: user.name,
+        loginUrl,
+        email: user.email,
+      },
+    });
+    if (!welcomeEmail.ok) {
+      console.error("[signup] e-mail pós-cadastro falhou", welcomeEmail.errorCode);
+    }
+
     const { sessionId } = await createUserSession(user.id);
     const token = await signToken({
       sub: user.id,
@@ -142,11 +165,6 @@ export async function POST(request: NextRequest) {
 
     if (planId === "pro") {
       try {
-        const baseUrl =
-          process.env.NEXT_PUBLIC_WHATSAPP_APP_URL ??
-          process.env.NEXT_PUBLIC_APP_URL ??
-          request.nextUrl.origin ??
-          "http://localhost:3000";
         const result = await createCheckoutSession({
           userId: tenant.id,
           email: emailLower,

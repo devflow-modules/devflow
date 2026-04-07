@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { findUserByEmail, signPasswordResetToken } from "@/modules/auth";
-import { sendEmail, buildResetPasswordEmailHtml } from "@/lib/email";
+import { sendTransactionalEmail } from "@/modules/email/application/sendTransactionalEmail";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { logAuth } from "@/lib/auth-logger";
 import { parseRequestJson } from "@/lib/parse-request-json";
@@ -50,16 +50,31 @@ export async function POST(request: NextRequest) {
     "http://localhost:3000";
   const resetUrl = `${baseUrl.replace(/\/$/, "")}/reset-password?token=${encodeURIComponent(token)}`;
 
-  const emailResult = await sendEmail({
+  const emailResult = await sendTransactionalEmail({
+    type: "RESET_PASSWORD",
     to: user.email,
-    subject: "Redefinição de senha",
-    html: buildResetPasswordEmailHtml({ resetUrl }),
+    tenantId: user.tenantId,
+    userId: user.id,
+    payload: { userName: user.name, resetUrl },
   });
 
   if (!emailResult.ok) {
-    console.error("[auth][forgot-password] falha ao enviar e-mail", emailResult.error);
+    console.error("[auth][forgot-password] falha ao enviar e-mail", emailResult.errorCode);
+    if (emailResult.errorCode === "EMAIL_NOT_CONFIGURED") {
+      return NextResponse.json(
+        {
+          error:
+            "Envio de e-mail não está configurado no servidor. Defina RESEND_API_KEY e EMAIL_FROM ou RESEND_FROM (Resend).",
+          code: "EMAIL_NOT_CONFIGURED",
+        },
+        { status: 503 }
+      );
+    }
     return NextResponse.json(
-      { error: "Falha ao enviar e-mail. Tente novamente mais tarde." },
+      {
+        error: "Falha ao enviar e-mail. Tente novamente mais tarde.",
+        code: "EMAIL_SEND_FAILED",
+      },
       { status: 503 }
     );
   }

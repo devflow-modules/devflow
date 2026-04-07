@@ -14,6 +14,11 @@ generator client {
   output   = "../src/generated/prisma-whatsapp"
 }
 
+enum EmailDeliveryStatus {
+  SENT
+  FAILED
+}
+
 enum WhatsappPhoneNumberStatus {
   PENDING
   ACTIVE
@@ -77,6 +82,7 @@ model Tenant {
   usageAggregates      UsageAggregate[]
   tenantSubscription   TenantSubscription?
   usageMetrics         UsageMetric[]
+  emailMessages        EmailMessage[]
 
   @@map("whatsapp_tenants")
 }
@@ -514,10 +520,35 @@ model User {
   tenant                Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   assignedInboxThreads  WaInboxThread[] @relation("AssignedToUser")
   sessions              UserSession[]
+  emailMessages         EmailMessage[]
 
   @@index([tenantId])
   @@index([email])
   @@map("whatsapp_users")
+}
+
+model EmailMessage {
+  id                String              @id @default(cuid())
+  tenantId          String?             @map("tenant_id")
+  userId            String?             @map("user_id")
+  type              String
+  toEmail           String              @map("to_email")
+  subject           String
+  provider          String
+  providerMessageId String?             @map("provider_message_id")
+  status            EmailDeliveryStatus
+  errorCode         String?             @map("error_code")
+  errorMessage      String?             @map("error_message")
+  metadata          Json?
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+  tenant            Tenant?             @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  user              User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+  @@map("email_messages")
 }
 
 /// Sessão de browser: JWT carrega o mesmo id em `jti`; revogação invalida o token antes do exp.

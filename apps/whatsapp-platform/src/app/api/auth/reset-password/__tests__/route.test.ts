@@ -9,8 +9,10 @@ vi.mock("@/lib/rate-limit", () => ({
 const mockVerifyToken = vi.fn();
 const mockUpdatePassword = vi.fn();
 
-const { mockRevokeAllSessionsForUser } = vi.hoisted(() => ({
+const { mockRevokeAllSessionsForUser, mockFindUnique, mockSendTransactionalEmail } = vi.hoisted(() => ({
   mockRevokeAllSessionsForUser: vi.fn(),
+  mockFindUnique: vi.fn(),
+  mockSendTransactionalEmail: vi.fn(),
 }));
 
 vi.mock("@/modules/auth/sessionService", () => ({
@@ -22,6 +24,18 @@ vi.mock("@/modules/auth", () => ({
   updateUserPassword: (...a: unknown[]) => mockUpdatePassword(...a),
 }));
 
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    user: {
+      findUnique: (...a: unknown[]) => mockFindUnique(...a),
+    },
+  },
+}));
+
+vi.mock("@/modules/email/application/sendTransactionalEmail", () => ({
+  sendTransactionalEmail: (...a: unknown[]) => mockSendTransactionalEmail(...a),
+}));
+
 vi.mock("@/lib/auth-logger", () => ({
   logAuth: vi.fn(),
 }));
@@ -30,6 +44,12 @@ describe("POST /api/auth/reset-password", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRevokeAllSessionsForUser.mockResolvedValue(undefined);
+    mockFindUnique.mockResolvedValue({
+      email: "a@b.com",
+      name: "Tester",
+      tenantId: "t1",
+    });
+    mockSendTransactionalEmail.mockResolvedValue({ ok: true, provider: "resend" });
   });
 
   it("400 quando JSON inválido", async () => {
@@ -87,5 +107,13 @@ describe("POST /api/auth/reset-password", () => {
     expect(res.status).toBe(200);
     expect(mockUpdatePassword).toHaveBeenCalledWith("u1", "12345678");
     expect(mockRevokeAllSessionsForUser).toHaveBeenCalledWith("u1");
+    expect(mockSendTransactionalEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "PASSWORD_CHANGED",
+        to: "a@b.com",
+        userId: "u1",
+        tenantId: "t1",
+      })
+    );
   });
 });

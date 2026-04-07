@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyPasswordResetTokenResult, updateUserPassword } from "@/modules/auth";
 import { revokeAllSessionsForUser } from "@/modules/auth/sessionService";
+import { prisma } from "@/lib/prisma";
+import { sendTransactionalEmail } from "@/modules/email/application/sendTransactionalEmail";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { logAuth } from "@/lib/auth-logger";
 import { parseRequestJson } from "@/lib/parse-request-json";
@@ -56,6 +58,27 @@ export async function POST(request: NextRequest) {
   await revokeAllSessionsForUser(vr.payload.sub);
   logAuth({ type: "sessions_revoked_all", userId: vr.payload.sub, reason: "password_reset" });
   logAuth({ type: "password_reset_success", userId: vr.payload.sub });
+
+  const row = await prisma.user.findUnique({
+    where: { id: vr.payload.sub },
+    select: { email: true, name: true, tenantId: true },
+  });
+  if (row) {
+    const supportEmail = process.env.EMAIL_REPLY_TO?.trim();
+    const notify = await sendTransactionalEmail({
+      type: "PASSWORD_CHANGED",
+      to: row.email,
+      tenantId: row.tenantId,
+      userId: vr.payload.sub,
+      payload: {
+        userName: row.name,
+        ...(supportEmail ? { supportEmail } : {}),
+      },
+    });
+    if (!notify.ok) {
+      console.error("[auth][reset-password] falha ao enviar e-mail de confirmação", notify.errorCode);
+    }
+  }
 
   return NextResponse.json({
     success: true,
