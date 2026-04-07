@@ -42,6 +42,11 @@ describe("isSafeInternalNextPath", () => {
     expect(isSafeInternalNextPath("http:path")).toBe(false);
     expect(isSafeInternalNextPath("/http:foo")).toBe(false);
   });
+
+  it("rejeita pseudo-URL javascript: e variantes sem path absoluto interno", () => {
+    expect(isSafeInternalNextPath("javascript:alert(1)")).toBe(false);
+    expect(isSafeInternalNextPath("/javascript:alert(1)")).toBe(false);
+  });
 });
 
 describe("loginUrlWithNext", () => {
@@ -57,6 +62,9 @@ describe("loginUrlWithNext", () => {
   it("com next seguro e querystring", () => {
     expect(loginUrlWithNext("/inbox?filter=open")).toBe(
       "/login?next=" + encodeURIComponent("/inbox?filter=open")
+    );
+    expect(loginUrlWithNext("/inbox?tab=1")).toBe(
+      "/login?next=" + encodeURIComponent("/inbox?tab=1")
     );
   });
 
