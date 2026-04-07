@@ -162,14 +162,18 @@ function isRecord(x: unknown): x is Record<string, unknown> {
   return typeof x === "object" && x !== null;
 }
 
+export type WaInboxOutboundKind = "agent" | "ai" | "automation";
+
 export async function waInboxCreateOutbound(params: {
   tenantId: string;
   customerPhoneDigits: string;
   waMessageId: string;
   text: string;
   businessDigits: string;
+  /** Origem da mensagem (UI: badge Bot / Automação / Equipa). */
+  outboundKind?: WaInboxOutboundKind;
 }): Promise<void> {
-  const { tenantId, customerPhoneDigits, waMessageId, text, businessDigits } = params;
+  const { tenantId, customerPhoneDigits, waMessageId, text, businessDigits, outboundKind } = params;
   if (!(await waInboxTenantExists(tenantId))) return;
 
   const ts = new Date();
@@ -213,9 +217,12 @@ export async function waInboxCreateOutbound(params: {
         toNumber: customerPhoneDigits,
         messageType: WaInboxMsgType.TEXT,
         contentText: text,
+        contentJson: outboundKind
+          ? ({ outboundKind } as Prisma.InputJsonValue)
+          : undefined,
         ts,
         status: WaInboxDeliveryStatus.SENT,
-        rawPayload: { text } as Prisma.InputJsonValue,
+        rawPayload: { text, ...(outboundKind ? { outboundKind } : {}) } as Prisma.InputJsonValue,
       },
     });
 

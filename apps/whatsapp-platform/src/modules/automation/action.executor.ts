@@ -173,6 +173,7 @@ export async function executeAction(
           waMessageId: messageId,
           text: text.trim(),
           businessDigits: digitsOnly(thread.tenant.displayPhoneNumber ?? ""),
+          outboundKind: "automation",
         });
         await logAction(
           context.tenantId,

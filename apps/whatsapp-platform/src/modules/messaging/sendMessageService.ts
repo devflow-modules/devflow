@@ -18,6 +18,8 @@ export interface SendReplyInput {
   to: string;
   text: string;
   conversationId: string;
+  /** Mensagens da equipa na Inbox vs resposta automática (IA). */
+  outboundKind?: "agent" | "ai";
 }
 
 export async function sendReplyAndPersist(input: SendReplyInput): Promise<{ messageId: string }> {
@@ -40,6 +42,7 @@ export async function sendReplyAndPersist(input: SendReplyInput): Promise<{ mess
     waMessageId: messageId,
     text: input.text,
     businessDigits: digitsOnly(input.tenant.displayPhoneNumber || ""),
+    outboundKind: input.outboundKind ?? "agent",
   }).catch((e) => console.error("[WHATSAPP][ERROR] wa-inbox outbound:", e));
   trackMessageSent();
   trackUsage(input.tenant.id, UsageEventType.MESSAGE_SENT, {
@@ -58,7 +61,7 @@ export async function sendWebhookAutoReply(input: SendReplyInput): Promise<{ mes
     conversationId: input.conversationId,
   });
   if (hasSupabaseConfig() && input.conversationId !== "no-db") {
-    const r = await sendReplyAndPersist(input);
+    const r = await sendReplyAndPersist({ ...input, outboundKind: "ai" });
     await touchConversationLastMessage(input.conversationId);
     return r;
   }
@@ -74,6 +77,7 @@ export async function sendWebhookAutoReply(input: SendReplyInput): Promise<{ mes
     waMessageId: messageId,
     text: input.text,
     businessDigits: digitsOnly(input.tenant.displayPhoneNumber || ""),
+    outboundKind: "ai",
   }).catch((e) => console.error("[WHATSAPP][ERROR] wa-inbox outbound:", e));
   trackMessageSent();
   trackUsage(input.tenant.id, UsageEventType.MESSAGE_SENT, {

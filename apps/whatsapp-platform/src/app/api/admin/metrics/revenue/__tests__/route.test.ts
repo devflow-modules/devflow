@@ -5,21 +5,30 @@ vi.mock("@/modules/analytics", () => ({
   getRevenueMetrics: (...args: unknown[]) => mockGetRevenueMetrics(...args),
 }));
 
+/** NODE_ENV é read-only em ProcessEnv (TypeScript); testes usam atribuição ampla. */
+function setEnv(key: string, value: string | undefined) {
+  const env = process.env as Record<string, string | undefined>;
+  if (value === undefined) delete env[key];
+  else env[key] = value;
+}
+
 describe("GET /api/admin/metrics/revenue", () => {
   const origNodeEnv = process.env.NODE_ENV;
+  const origAdminSecret = process.env.ADMIN_METRICS_SECRET;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.NODE_ENV = "development";
+    setEnv("NODE_ENV", "development");
   });
 
   afterEach(() => {
-    process.env.NODE_ENV = origNodeEnv;
+    setEnv("NODE_ENV", origNodeEnv);
+    setEnv("ADMIN_METRICS_SECRET", origAdminSecret);
   });
 
   it("retorna 403 sem permissão em produção", async () => {
-    process.env.NODE_ENV = "production";
-    process.env.ADMIN_METRICS_SECRET = "secret123";
+    setEnv("NODE_ENV", "production");
+    setEnv("ADMIN_METRICS_SECRET", "secret123");
     const { GET } = await import("../route");
     const res = await GET(new Request("http://localhost/api/admin/metrics/revenue"));
     expect(res.status).toBe(403);

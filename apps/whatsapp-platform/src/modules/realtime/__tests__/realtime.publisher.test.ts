@@ -32,9 +32,13 @@ describe("realtime.publisher", () => {
     publish("tenant-b", tenantB);
 
     expect(receivedA).toHaveLength(1);
-    expect(receivedA[0].tenantId).toBe("tenant-a");
     expect(receivedB).toHaveLength(1);
-    expect(receivedB[0].tenantId).toBe("tenant-b");
+    const ea = receivedA[0];
+    const eb = receivedB[0];
+    expect(ea.type).toBe("message.created");
+    expect(eb.type).toBe("message.created");
+    if (ea.type === "message.created") expect(ea.tenantId).toBe("tenant-a");
+    if (eb.type === "message.created") expect(eb.tenantId).toBe("tenant-b");
   });
 
   it("tenant B não recebe eventos de tenant A", () => {
