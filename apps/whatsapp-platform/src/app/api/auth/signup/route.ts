@@ -7,7 +7,9 @@ import { prisma } from "@/lib/prisma";
 import { ensureTenantSubscription } from "@/modules/billing/subscriptionService";
 import { normalizePlan } from "@/modules/billing/plans";
 import { parseRequestJson } from "@/lib/parse-request-json";
-import { Prisma } from "@/generated/prisma-whatsapp";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const bodySchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -15,6 +17,21 @@ const bodySchema = z.object({
   password: z.string().min(8, "Senha deve ter no mínimo 8 caracteres"),
   planId: z.enum(["starter", "pro", "scale"]).default("starter"),
 });
+
+function prismaErrorCode(err: unknown): string | null {
+  if (typeof err !== "object" || err === null) return null;
+  const code = (err as { code?: unknown }).code;
+  return typeof code === "string" ? code : null;
+}
+
+function isPrismaInitError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  return (
+    err.name === "PrismaClientInitializationError" ||
+    err.message.includes("PrismaClientInitializationError") ||
+    err.message.includes("Can't reach database server")
+  );
+}
 
 function signupErrorResponse(err: unknown): NextResponse {
   console.error("[signup]", err);
@@ -29,19 +46,18 @@ function signupErrorResponse(err: unknown): NextResponse {
     );
   }
 
-  if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    if (err.code === "P2002") {
-      return NextResponse.json({ error: "E-mail já cadastrado" }, { status: 409 });
-    }
-    if (err.code === "P1001" || err.code === "P1000" || err.code === "P1017") {
-      return NextResponse.json(
-        { error: "Não foi possível ligar à base de dados. Verifique WHATSAPP_DATABASE_URL e tente novamente." },
-        { status: 503 }
-      );
-    }
+  const code = prismaErrorCode(err);
+  if (code === "P2002") {
+    return NextResponse.json({ error: "E-mail já cadastrado" }, { status: 409 });
+  }
+  if (code === "P1001" || code === "P1000" || code === "P1017") {
+    return NextResponse.json(
+      { error: "Não foi possível ligar à base de dados. Verifique WHATSAPP_DATABASE_URL e tente novamente." },
+      { status: 503 }
+    );
   }
 
-  if (err instanceof Prisma.PrismaClientInitializationError) {
+  if (isPrismaInitError(err)) {
     return NextResponse.json(
       { error: "Base de dados indisponível. Confirme WHATSAPP_DATABASE_URL e migrations." },
       { status: 503 }
@@ -165,6 +181,11 @@ export async function POST(request: NextRequest) {
     res.headers.set("Set-Cookie", buildSetCookieHeader(token));
     return res;
   } catch (err) {
-    return signupErrorResponse(err);
+    try {
+      return signupErrorResponse(err);
+    } catch (inner) {
+      console.error("[signup] falha ao montar resposta de erro", inner);
+      return NextResponse.json({ error: "Erro interno ao cadastrar." }, { status: 500 });
+    }
   }
 }
