@@ -5,10 +5,14 @@ import { useQuery } from "@tanstack/react-query";
 import { MessageBubble } from "./MessageBubble";
 import { fetchInboxMessages } from "./inboxFetch";
 import { INBOX_QK } from "./inboxTypes";
+import type { WaInboxMessageRow } from "./inboxTypes";
 import { useInboxRealtime } from "./useInboxRealtime";
+import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
+import { buttonClassName } from "@/components/ui/button";
 
 const POLL_INTERVAL_REALTIME_MS = 10_000;
 const POLL_INTERVAL_FALLBACK_MS = 5_000;
+const CLUSTER_MAX_GAP_MS = 5 * 60 * 1000;
 
 function dateLabel(iso: string): string {
   try {
@@ -22,12 +26,21 @@ function dateLabel(iso: string): string {
   }
 }
 
+function isCompactContinuation(messages: WaInboxMessageRow[], index: number): boolean {
+  if (index === 0) return false;
+  const prev = messages[index - 1];
+  const cur = messages[index];
+  if (prev.direction !== cur.direction) return false;
+  const dt = new Date(cur.ts).getTime() - new Date(prev.ts).getTime();
+  return dt >= 0 && dt < CLUSTER_MAX_GAP_MS;
+}
+
 export function MessageList({ threadId }: { threadId: string | null }) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const { connected: realtimeConnected } = useInboxRealtime();
   const pollInterval = realtimeConnected ? POLL_INTERVAL_REALTIME_MS : POLL_INTERVAL_FALLBACK_MS;
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: threadId ? INBOX_QK.messages(threadId) : ["inbox-messages", "none"],
     queryFn: () => fetchInboxMessages(threadId!),
     enabled: Boolean(threadId),
@@ -36,9 +49,9 @@ export function MessageList({ threadId }: { threadId: string | null }) {
 
   const grouped = useMemo(() => {
     if (!data?.length) return [];
-    const out: { label: string; items: typeof data }[] = [];
+    const out: { label: string; items: WaInboxMessageRow[] }[] = [];
     let currentLabel = "";
-    let bucket: typeof data = [];
+    let bucket: WaInboxMessageRow[] = [];
     for (const m of data) {
       const label = dateLabel(m.ts);
       if (label !== currentLabel) {
@@ -59,63 +72,78 @@ export function MessageList({ threadId }: { threadId: string | null }) {
 
   if (!threadId) {
     return (
-      <div className="flex flex-1 items-center justify-center text-gray-400">
-        Selecione uma conversa
+      <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
+        <p className="text-sm font-semibold text-slate-800">Escolha uma conversa</p>
+        <p className="mt-2 max-w-xs text-sm leading-relaxed text-slate-500">Na lista à esquerda, toque num contacto para abrir o histórico.</p>
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div
-        className="flex flex-1 items-center justify-center text-sm text-gray-500"
-        data-testid="messages-loading"
-      >
-        Carregando mensagens…
+      <div className="flex min-h-0 flex-1 flex-col justify-center p-4" data-testid="messages-loading">
+        <StateLoading
+          message="A carregar mensagens…"
+          className="min-h-[12rem] border-slate-200/80 bg-white/90 shadow-none"
+        />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="flex flex-1 items-center justify-center text-sm text-red-600">
-        Erro ao carregar mensagens
+      <div className="flex min-h-0 flex-1 flex-col justify-center p-4">
+        <StateError
+          title="Não foi possível carregar as mensagens"
+          message={error instanceof Error ? error.message : "Tente novamente."}
+          onRetry={() => void refetch()}
+        />
       </div>
     );
   }
 
   if (!data?.length) {
     return (
-      <div className="flex flex-1 items-center justify-center text-sm text-gray-500">
-        Sem mensagens nesta conversa
+      <div className="flex min-h-0 flex-1 flex-col justify-center p-4">
+        <StateEmpty
+          title="Sem mensagens nesta conversa"
+          description="Ainda não há mensagens. Escreva a partir do telemóvel para este número e volte aqui."
+          action={
+            <button type="button" className={buttonClassName("secondary")} onClick={() => void refetch()}>
+              Atualizar
+            </button>
+          }
+        />
       </div>
     );
   }
 
   return (
     <div
-      className="flex-1 overflow-y-auto bg-[#e5ddd5] bg-opacity-90 px-3 py-4"
-      style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c8c8c8' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-      }}
+      className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 px-4 py-6 sm:px-6 sm:py-8"
       data-testid="message-list"
     >
-      <div className="mx-auto flex max-w-3xl flex-col gap-3">
+      <div className="mx-auto flex max-w-3xl flex-col gap-10">
         {grouped.map(({ label, items }) => (
           <div key={label}>
-            <div className="mb-2 flex justify-center">
-              <span className="rounded-lg bg-white/90 px-3 py-1 text-xs text-gray-600 shadow-sm capitalize">
+            <div className="mb-4 flex justify-center sm:mb-5">
+              <span className="rounded-full border border-slate-100 bg-white px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.08em] text-slate-400 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                 {label}
               </span>
             </div>
-            <div className="flex flex-col gap-2">
-              {items.map((m) => (
-                <MessageBubble key={m.id} message={m} />
-              ))}
+            <div className="flex flex-col">
+              {items.map((m, i) => {
+                const compact = isCompactContinuation(items, i);
+                return (
+                  <div key={m.id} className={compact ? "" : i > 0 ? "mt-4" : ""}>
+                    <MessageBubble message={m} compact={compact} />
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}
-        <div ref={bottomRef} />
+        <div ref={bottomRef} className="h-px shrink-0" aria-hidden />
       </div>
     </div>
   );

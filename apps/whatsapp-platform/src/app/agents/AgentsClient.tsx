@@ -4,6 +4,17 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@devflow/ui";
+import { PageHeader } from "@/components/ui/page-header";
+import { StateEmpty } from "@/components/ui/app-states";
+import { buttonClassName } from "@/components/ui/button";
+import { Card, CardHeader } from "@/components/ui/card";
+import {
+  FormActions,
+  FormField,
+  fieldInputClassName,
+  fieldSelectClassName,
+  fieldControlCompact,
+} from "@/components/ui/form-field";
 
 type AgentItem = {
   id: string;
@@ -115,62 +126,66 @@ export function AgentsClient({
   }
 
   return (
-    <div className="min-h-screen p-6">
-      <h1 className="text-2xl font-semibold mb-4">Agentes</h1>
-      <Link href="/dashboard" className="text-blue-600 underline">
-        Voltar ao Dashboard
+    <div className="mx-auto min-w-0 max-w-4xl space-y-8">
+      <PageHeader
+        eyebrow="Equipa"
+        title="Agentes"
+        description="Pessoas que atendem na Inbox — nome, contacto e estado de disponibilidade. Os agentes aparecem nas atribuições e relatórios."
+        layout="split"
+        showDivider
+        actions={
+          !showForm ? (
+            <Button type="button" onClick={() => setShowForm(true)}>
+              Novo agente
+            </Button>
+          ) : null
+        }
+      />
+
+      <Link href="/dashboard" className={`${buttonClassName("ghost")} -mt-2 inline-flex text-sm`}>
+        ← Voltar ao painel
       </Link>
 
-      {error && (
-        <div className="mt-4 p-3 rounded bg-red-50 text-red-700 text-sm">
+      {error ? (
+        <div className="rounded-xl border border-red-200/90 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
           {error}
         </div>
-      )}
+      ) : null}
 
-      <div className="mt-4">
-        {!showForm ? (
-          <Button
-            type="button"
-            onClick={() => setShowForm(true)}
-            className="mb-4"
-          >
-            Novo agente
-          </Button>
-        ) : (
-          <form
-            onSubmit={handleCreate}
-            className="mb-4 p-4 rounded-lg border bg-slate-50 space-y-3 max-w-md"
-          >
-            <h2 className="font-medium">Novo agente</h2>
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">Nome</label>
+      {showForm ? (
+        <Card padding="lg">
+          <CardHeader
+            title="Novo agente"
+            description="Crie um registo por pessoa que usa a plataforma para responder clientes."
+          />
+          <form onSubmit={handleCreate} className="mt-2 max-w-md space-y-4">
+            <FormField id="agent-name" label="Nome" htmlFor="agent-name">
               <input
+                id="agent-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
-                placeholder="Ex: Maria"
+                className={fieldInputClassName}
+                placeholder="Ex.: Maria"
               />
-            </div>
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">
-                E-mail (opcional)
-              </label>
+            </FormField>
+            <FormField id="agent-email" label="E-mail" htmlFor="agent-email" optional>
               <input
+                id="agent-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                className={fieldInputClassName}
                 placeholder="agente@empresa.com"
               />
-            </div>
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">Status</label>
+            </FormField>
+            <FormField id="agent-status" label="Estado" htmlFor="agent-status">
               <select
+                id="agent-status"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                className={fieldSelectClassName}
               >
                 {STATUS_OPTIONS.map((s) => (
                   <option key={s} value={s}>
@@ -178,10 +193,10 @@ export function AgentsClient({
                   </option>
                 ))}
               </select>
-            </div>
-            <div className="flex gap-2">
+            </FormField>
+            <FormActions>
               <Button type="submit" disabled={loading}>
-                {loading ? "Criando…" : "Criar"}
+                {loading ? "A criar…" : "Criar"}
               </Button>
               <Button
                 type="button"
@@ -193,114 +208,111 @@ export function AgentsClient({
               >
                 Cancelar
               </Button>
-            </div>
+            </FormActions>
           </form>
-        )}
+        </Card>
+      ) : null}
 
-        {agents.length === 0 ? (
-          <p className="text-gray-600">
-            Nenhum agente cadastrado. Crie um acima.
-          </p>
-        ) : (
-          <ul className="divide-y rounded-lg border">
-            {agents.map((a) => (
-              <li
-                key={a.id}
-                className="flex justify-between items-center px-4 py-3 flex-wrap gap-2"
-              >
-                {editingId === a.id ? (
-                  <div className="flex-1 flex gap-2 items-center flex-wrap">
-                    <input
-                      type="text"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      className="rounded border border-slate-300 px-2 py-1 text-sm w-40"
-                      placeholder="Nome"
-                    />
-                    <input
-                      type="email"
-                      value={editEmail}
-                      onChange={(e) => setEditEmail(e.target.value)}
-                      className="rounded border border-slate-300 px-2 py-1 text-sm w-48"
-                      placeholder="E-mail"
-                    />
-                    <select
-                      value={editStatus}
-                      onChange={(e) => setEditStatus(e.target.value)}
-                      className="rounded border border-slate-300 px-2 py-1 text-sm"
-                    >
-                      {STATUS_OPTIONS.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
-                    <Button
-                      size="sm"
-                      onClick={() => handleUpdate(a.id)}
-                      disabled={loading}
-                    >
-                      Salvar
-                    </Button>
+      {agents.length === 0 ? (
+        <StateEmpty
+          title="Ainda não há agentes"
+          description="Adicione colegas que respondem no WhatsApp para poder atribuir conversas e medir desempenho por pessoa."
+          action={
+            <Button type="button" onClick={() => setShowForm(true)}>
+              Adicionar primeiro agente
+            </Button>
+          }
+        />
+      ) : (
+        <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/[0.03]">
+          {agents.map((a) => (
+            <li key={a.id} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+              {editingId === a.id ? (
+                <div className="flex flex-1 flex-wrap items-end gap-2">
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className={`w-40 sm:w-44 ${fieldControlCompact}`}
+                    placeholder="Nome"
+                  />
+                  <input
+                    type="email"
+                    value={editEmail}
+                    onChange={(e) => setEditEmail(e.target.value)}
+                    className={`min-w-[12rem] flex-1 sm:max-w-xs ${fieldControlCompact}`}
+                    placeholder="E-mail"
+                  />
+                  <select
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value)}
+                    className={fieldControlCompact}
+                  >
+                    {STATUS_OPTIONS.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                  <Button size="sm" onClick={() => handleUpdate(a.id)} disabled={loading}>
+                    Guardar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setEditingId(null);
+                      setEditName(a.name);
+                      setEditEmail(a.email ?? "");
+                      setEditStatus(a.status);
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="min-w-0">
+                    <span className="font-semibold text-slate-900">{a.name}</span>
+                    {a.email ? (
+                      <span className="mt-0.5 block text-sm text-slate-500">{a.email}</span>
+                    ) : null}
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-600">
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 font-medium capitalize text-slate-700">
+                        {a.status}
+                      </span>
+                      <span>{a.activeCount} conversas ativas</span>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap gap-2">
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={() => {
-                        setEditingId(null);
+                        setEditingId(a.id);
                         setEditName(a.name);
                         setEditEmail(a.email ?? "");
                         setEditStatus(a.status);
                       }}
                     >
-                      Cancelar
+                      Editar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-red-600 hover:text-red-700"
+                      onClick={() => handleDelete(a.id)}
+                      disabled={loading}
+                    >
+                      Excluir
                     </Button>
                   </div>
-                ) : (
-                  <>
-                    <div>
-                      <span className="font-medium">{a.name}</span>
-                      {a.email && (
-                        <span className="text-sm text-gray-500 ml-2">
-                          ({a.email})
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex gap-4 items-center">
-                      <span className="text-sm text-gray-600">
-                        Status: {a.status}
-                      </span>
-                      <span className="text-sm">
-                        Conversas ativas: {a.activeCount}
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          setEditingId(a.id);
-                          setEditName(a.name);
-                          setEditEmail(a.email ?? "");
-                          setEditStatus(a.status);
-                        }}
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-red-600 hover:text-red-700"
-                        onClick={() => handleDelete(a.id)}
-                        disabled={loading}
-                      >
-                        Excluir
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

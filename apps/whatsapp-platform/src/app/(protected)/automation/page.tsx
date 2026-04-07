@@ -5,5 +5,9 @@ export const metadata = {
 };
 
 export default function AutomationPage() {
-  return <AutomationClient />;
+  return (
+    <div className="mx-auto w-full max-w-4xl min-w-0 space-y-8">
+      <AutomationClient />
+    </div>
+  );
 }

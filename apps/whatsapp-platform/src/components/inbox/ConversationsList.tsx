@@ -1,11 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ConversationItem } from "./ConversationItem";
 import { fetchInboxConversations } from "./inboxFetch";
 import { INBOX_QK } from "./inboxTypes";
 import type { InboxConversationsFilter } from "./inboxTypes";
 import { useInboxRealtime } from "./useInboxRealtime";
+import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
+import { buttonClassName } from "@/components/ui/button";
 
 const POLL_INTERVAL_REALTIME_MS = 10_000;
 const POLL_INTERVAL_FALLBACK_MS = 5_000;
@@ -41,23 +44,23 @@ export function ConversationsList({
 
   if (isLoading) {
     return (
-      <div className="flex flex-1 items-center justify-center p-8 text-sm text-gray-500">
-        Carregando conversas…
+      <div className="flex min-h-0 flex-1 flex-col p-3">
+        <StateLoading
+          message="A carregar conversas…"
+          className="min-h-[10rem] flex-1 rounded-xl border-slate-200/80 py-10 shadow-none"
+        />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-sm">
-        <p className="text-red-600">{error instanceof Error ? error.message : "Erro"}</p>
-        <button
-          type="button"
-          onClick={() => refetch()}
-          className="rounded-lg bg-gray-900 px-3 py-1.5 text-white"
-        >
-          Tentar novamente
-        </button>
+      <div className="flex min-h-0 flex-1 flex-col p-3">
+        <StateError
+          title="Não foi possível carregar as conversas"
+          message={error instanceof Error ? error.message : "Tente outra vez dentro de momentos."}
+          onRetry={() => void refetch()}
+        />
       </div>
     );
   }
@@ -65,27 +68,46 @@ export function ConversationsList({
   const threads = data?.threads ?? [];
   if (threads.length === 0) {
     return (
-      <div
-        className="flex flex-1 items-center justify-center p-8 text-center text-sm text-gray-500"
-        data-testid="conversations-empty"
-      >
-        Nenhuma conversa ainda. Quando clientes enviarem mensagens, elas aparecerão aqui.
+      <div className="flex min-h-0 flex-1 flex-col p-3" data-testid="conversations-empty">
+        <StateEmpty
+          title="Ainda não há conversas aqui"
+          description={
+            filter === "all"
+              ? "As conversas aparecem aqui quando alguém escrever para o seu número. Confirme a ligação e envie um teste."
+              : "Nada corresponde a este filtro. Experimente «Todas» ou peça para atribuírem conversas."
+          }
+          action={
+            filter === "all" ? (
+              <Link href="/dashboard/whatsapp" className={buttonClassName("primary")}>
+                Rever ligação WhatsApp
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className={buttonClassName("secondary")}
+                onClick={() => onFilterChange("all")}
+              >
+                Ver todas as conversas
+              </button>
+            )
+          }
+        />
       </div>
     );
   }
 
   return (
     <div className="flex flex-1 flex-col min-h-0">
-      <div className="flex flex-wrap gap-1 border-b border-gray-100 bg-gray-50/80 px-2 py-2">
+      <div className="flex flex-wrap gap-1.5 border-b border-slate-100/90 bg-slate-50/50 px-3 py-3">
         {(Object.keys(FILTER_LABELS) as InboxConversationsFilter[]).map((f) => (
           <button
             key={f}
             type="button"
             onClick={() => onFilterChange(f)}
-            className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-[background,color,box-shadow] ${
               filter === f
-                ? "bg-emerald-600 text-white"
-                : "bg-white text-gray-600 hover:bg-gray-100"
+                ? "bg-[var(--df-brand-600)] text-white shadow-[0_1px_2px_rgba(15,23,42,0.08)]"
+                : "bg-transparent text-slate-600 ring-1 ring-slate-200/70 hover:bg-white/80 hover:text-slate-800"
             }`}
           >
             {FILTER_LABELS[f]}

@@ -4,6 +4,8 @@ import { useState, useCallback, useEffect, useRef, type KeyboardEvent } from "re
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { sendInboxMessage, reportTyping } from "./inboxFetch";
 import { INBOX_QK, type WaInboxMessageRow } from "./inboxTypes";
+import { buttonClassName } from "@/components/ui/button";
+import { fieldControlBase } from "@/components/ui/form-field";
 
 const TYPING_DEBOUNCE_MS = 400;
 const TYPING_STOP_DELAY_MS = 1500;
@@ -105,27 +107,32 @@ export function MessageInput({ threadId }: { threadId: string | null }) {
 
   if (!threadId) {
     return (
-      <div className="border-t border-gray-200 bg-gray-50 px-4 py-3 text-center text-sm text-gray-400">
-        Selecione uma conversa para responder
+      <div className="border-t border-slate-100 bg-slate-50/50 px-4 py-6 text-center">
+        <p className="text-sm text-slate-500">Escolha uma conversa para responder.</p>
       </div>
     );
   }
 
   return (
-    <div className="border-t border-gray-200 bg-gray-50 p-3" data-testid="message-input">
+    <div
+      className="border-t border-slate-100 bg-white px-4 pb-4 pt-3 shadow-[0_-8px_32px_rgba(15,23,42,0.03)] sm:px-5 sm:pb-5 sm:pt-4"
+      data-testid="message-input"
+    >
       {typingList.length > 0 && (
-        <p className="mb-2 text-xs text-gray-500 italic">
-          {typingList.map((t) => t.name || t.userId).join(", ")}
-          {typingList.length === 1 ? " está digitando…" : " estão digitando…"}
+        <p className="mb-2 px-0.5 text-xs text-slate-500">
+          <span className="italic">
+            {typingList.map((t) => t.name || t.userId).join(", ")}
+            {typingList.length === 1 ? " está a escrever…" : " estão a escrever…"}
+          </span>
         </p>
       )}
       {mutation.isError && (
-        <div className="mb-2 flex flex-wrap items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-          <span>Falha ao enviar.</span>
-          {retryText && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-red-100 bg-red-50/80 px-3 py-2.5 text-sm text-red-800">
+          <span className="font-medium">Não enviámos a mensagem.</span>
+          {retryText ? (
             <button
               type="button"
-              className="font-medium underline"
+              className="font-semibold text-red-900 underline decoration-red-300 underline-offset-2 hover:decoration-red-800"
               onClick={() => {
                 if (!threadId) return;
                 mutation.reset();
@@ -134,28 +141,33 @@ export function MessageInput({ threadId }: { threadId: string | null }) {
             >
               Tentar novamente
             </button>
-          )}
+          ) : null}
         </div>
       )}
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <label className="sr-only" htmlFor="inbox-composer">
+          Mensagem para o cliente
+        </label>
         <textarea
+          id="inbox-composer"
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder="Digite uma mensagem…"
+          placeholder="Escreva a mensagem…"
           rows={2}
           disabled={mutation.isPending}
-          className="min-h-[44px] flex-1 resize-none rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:opacity-50"
+          className={`min-h-[48px] flex-1 resize-none text-[15px] leading-relaxed shadow-inner sm:min-h-[52px] ${fieldControlBase} bg-slate-50/60 focus:bg-white`}
         />
         <button
           type="button"
           onClick={send}
           disabled={mutation.isPending || !text.trim()}
-          className="self-end rounded-xl bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          className={`${buttonClassName("primary")} h-11 min-w-[6.5rem] shrink-0 sm:h-[52px] sm:self-stretch`}
         >
-          {mutation.isPending ? "…" : "Enviar"}
+          {mutation.isPending ? "A enviar…" : "Enviar"}
         </button>
       </div>
+      <p className="mt-2.5 hidden px-0.5 text-[11px] text-slate-400 sm:block">Enter envia · Shift+Enter nova linha</p>
     </div>
   );
 }

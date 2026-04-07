@@ -5,6 +5,15 @@ import Link from "next/link";
 import { Button } from "@devflow/ui";
 import { DEFAULT_SYSTEM_PROMPT } from "@/modules/ai/openai";
 import { AiStatusBanner, type AiBannerState } from "@/components/ai/AiStatusBanner";
+import { StateLoading } from "@/components/ui/app-states";
+import { buttonClassName } from "@/components/ui/button";
+import {
+  FormActions,
+  FormField,
+  FormSection,
+  fieldSelectClassName,
+  fieldTextareaClassName,
+} from "@/components/ui/form-field";
 
 type Tone = "FRIENDLY" | "SALES" | "SUPPORT" | "NEUTRAL";
 
@@ -43,10 +52,7 @@ function clamp(n: number, min: number, max: number) {
   return Math.min(Math.max(n, min), max);
 }
 
-function getBannerState(
-  enabled: boolean,
-  usageStatus: UsageStatus | null
-): AiBannerState {
+function getBannerState(enabled: boolean, usageStatus: UsageStatus | null): AiBannerState {
   if (!enabled) return "disabled";
   if (!usageStatus) return "active";
   if (!usageStatus.can_use) return "exceeded";
@@ -143,24 +149,25 @@ export function AiSettingsForm() {
   }
 
   if (loading) {
-    return <p className="text-slate-600">Carregando…</p>;
+    return <StateLoading message="A carregar configuração de IA…" />;
   }
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
-      {/* Card: Status da IA */}
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900 mb-3">Status da IA</h2>
-        <div className="flex items-center gap-3">
+      <FormSection
+        title="Estado da IA"
+        description="Ligue ou desligue as respostas automáticas. O consumo conta para o plano."
+      >
+        <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/50 px-4 py-3">
           <input
             id="ai-enabled"
             type="checkbox"
             checked={enabled}
             onChange={(e) => setEnabled(e.target.checked)}
-            className="h-4 w-4 rounded border-slate-300"
+            className="mt-1 h-4 w-4 rounded border-slate-300 text-[var(--df-brand-600)] focus:ring-[var(--df-brand-500)]"
           />
-          <label htmlFor="ai-enabled" className="text-sm font-medium text-slate-800">
-            Ativar respostas automáticas por IA
+          <label htmlFor="ai-enabled" className="text-sm font-medium leading-snug text-slate-800">
+            Ativar respostas automáticas por IA no WhatsApp
           </label>
         </div>
         <AiStatusBanner
@@ -171,71 +178,65 @@ export function AiSettingsForm() {
           percentUsed={usageStatus?.percent_used ?? undefined}
           planName={planInfo?.plan_name}
         />
-      </div>
+      </FormSection>
 
-      {/* Card: Prompt */}
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900 mb-3">Prompt do sistema</h2>
+      <FormSection
+        title="Prompt do sistema"
+        description="Instruções fixas que definem tom, limites e o que a IA pode ou não fazer."
+      >
         <textarea
           id="prompt"
           value={systemPrompt}
           onChange={(e) => setSystemPrompt(e.target.value)}
-          rows={10}
-          className="w-full rounded border border-slate-300 px-3 py-2 text-sm font-mono"
-          placeholder="Instruções de como a IA deve responder..."
+          rows={12}
+          className={`${fieldTextareaClassName} font-mono text-[13px] leading-relaxed`}
+          placeholder="Instruções de como a IA deve responder…"
         />
-        <div className="mt-2 flex items-center gap-2">
+        <div className="pt-1">
           <Button type="button" variant="outline" size="sm" onClick={handleResetPrompt}>
-            Resetar para padrão
+            Repor texto padrão
           </Button>
         </div>
-      </div>
+      </FormSection>
 
-      {/* Card: Configuração */}
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900 mb-3">Configuração</h2>
+      <FormSection title="Modelo e comportamento" description="Ajuste fino do modelo OpenAI configurado no ambiente.">
+        <FormField id="model" label="Modelo" htmlFor="model">
+          <select
+            id="model"
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+            className={`max-w-md ${fieldSelectClassName}`}
+          >
+            {MODELS.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+        </FormField>
 
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="model" className="block text-sm font-medium text-slate-700 mb-1">
-              Modelo
-            </label>
-            <select
-              id="model"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              className="w-full max-w-md rounded border border-slate-300 px-3 py-2 text-sm"
-            >
-              {MODELS.map((m) => (
-                <option key={m.value} value={m.value}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-          </div>
+        <FormField id="tone" label="Tom" htmlFor="tone">
+          <select
+            id="tone"
+            value={tone}
+            onChange={(e) => setTone(e.target.value as Tone)}
+            className={`max-w-xs ${fieldSelectClassName}`}
+          >
+            {TONES.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </FormField>
 
-          <div>
-            <label htmlFor="tone" className="block text-sm font-medium text-slate-700 mb-1">
-              Tom
-            </label>
-            <select
-              id="tone"
-              value={tone}
-              onChange={(e) => setTone(e.target.value as Tone)}
-              className="w-full max-w-xs rounded border border-slate-300 px-3 py-2 text-sm"
-            >
-              {TONES.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="temp" className="block text-sm font-medium text-slate-700 mb-1">
-              Temperatura — 0.2 = mais preciso, 0.7 = mais criativo
-            </label>
+        <FormField
+          id="temp"
+          label="Temperatura"
+          htmlFor="temp"
+          help="Valores baixos = respostas mais previsíveis; mais altos = mais variação."
+        >
+          <div className="flex flex-wrap items-center gap-3">
             <input
               id="temp"
               type="range"
@@ -244,15 +245,19 @@ export function AiSettingsForm() {
               step={0.1}
               value={temperature}
               onChange={(e) => setTemperature(Number(e.target.value))}
-              className="w-full max-w-xs"
+              className="h-2 w-full max-w-xs cursor-pointer accent-[var(--df-brand-600)]"
             />
-            <span className="ml-2 text-sm text-slate-600">{temperature}</span>
+            <span className="tabular-nums text-sm font-semibold text-slate-700">{temperature}</span>
           </div>
+        </FormField>
 
-          <div>
-            <label htmlFor="maxTok" className="block text-sm font-medium text-slate-700 mb-1">
-              Limite de resposta (tokens) — 50 a 500
-            </label>
+        <FormField
+          id="maxTok"
+          label="Limite de tokens na resposta"
+          htmlFor="maxTok"
+          help="Entre 50 e 500. Afeta o tamanho máximo do texto gerado."
+        >
+          <div className="flex flex-wrap items-center gap-3">
             <input
               id="maxTok"
               type="range"
@@ -261,28 +266,27 @@ export function AiSettingsForm() {
               step={10}
               value={maxTokens}
               onChange={(e) => setMaxTokens(Number(e.target.value))}
-              className="w-full max-w-xs"
+              className="h-2 w-full max-w-xs cursor-pointer accent-[var(--df-brand-600)]"
             />
-            <span className="ml-2 text-sm text-slate-600">{maxTokens}</span>
+            <span className="tabular-nums text-sm font-semibold text-slate-700">{maxTokens}</span>
           </div>
+        </FormField>
+      </FormSection>
+
+      {error ? (
+        <div className="rounded-xl border border-red-200/90 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+          {error}
         </div>
-      </div>
+      ) : null}
 
-      {error && (
-        <div className="rounded bg-red-50 p-3 text-sm text-red-700">{error}</div>
-      )}
-
-      <div className="flex gap-3">
+      <FormActions>
         <Button type="submit" disabled={saving}>
-          {saving ? "Salvando…" : "Salvar"}
+          {saving ? "A guardar…" : "Guardar alterações"}
         </Button>
-        <Link
-          href="/settings"
-          className="inline-flex items-center rounded border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
-        >
-          Voltar
+        <Link href="/settings" className={buttonClassName("secondary")}>
+          Voltar às configurações
         </Link>
-      </div>
+      </FormActions>
     </form>
   );
 }

@@ -74,10 +74,12 @@ export function OnboardingWizard() {
     const res = await fetch("/api/tenants/me", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ defaultPrompt: defaultPrompt || undefined, systemPrompt: defaultPrompt || undefined }),
     });
     if (!res.ok) {
-      setError("Erro ao salvar.");
+      const data = await res.json().catch(() => ({}));
+      setError(typeof data.error === "string" ? data.error : "Erro ao salvar.");
       return;
     }
     setStep(3);
@@ -173,7 +175,7 @@ export function OnboardingWizard() {
       {step === 2 && (
         <form onSubmit={handleStep2} className="space-y-4">
           <p className="text-sm text-slate-600">
-            Defina o prompt base que a IA usará para responder aos clientes.
+            Defina o prompt base que a IA usará para responder aos clientes — cada conta define o tom, a marca e as regras do próprio negócio.
           </p>
           <div>
             <label htmlFor="defaultPrompt" className="block text-sm font-medium text-slate-700 mb-1">
@@ -182,8 +184,8 @@ export function OnboardingWizard() {
             <textarea
               id="defaultPrompt"
               name="defaultPrompt"
-              rows={5}
-              placeholder="Ex: Você é um atendente da empresa X. Seja cordial e objetivo."
+              rows={8}
+              placeholder="Ex.: quem é o assistente (nome da empresa), o que vende ou oferece, tom de voz, o que pode ou não prometer, e como encaminhar para um humano."
               className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>

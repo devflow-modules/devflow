@@ -1,7 +1,22 @@
 @import "tailwindcss";
 
+/* DevFlow WhatsApp — tokens mínimos (alinhados à escala 4·8·16·24) */
+:root {
+  --df-brand-50: #eff6ff;
+  --df-brand-200: #bfdbfe;
+  --df-brand-500: #3b82f6;
+  --df-brand-600: #2563eb;
+  --df-brand-700: #1d4ed8;
+  --df-brand-800: #1e40af;
+  --df-space-1: 0.25rem;
+  --df-space-2: 0.5rem;
+  --df-space-4: 1rem;
+  --df-space-6: 1.5rem;
+  --df-space-8: 2rem;
+}
+
 @layer base {
   body {
-    @apply bg-white text-slate-900;
+    @apply bg-slate-50 text-slate-900 antialiased;
   }
 }

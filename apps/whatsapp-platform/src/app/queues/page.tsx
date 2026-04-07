@@ -1,6 +1,8 @@
 import { hasSupabaseConfig } from "@/lib/supabase-server";
 import { listQueuesByTenant, countConversationsInQueue } from "@/modules/queues";
 import { listTenants } from "@/modules/tenants";
+import { PageHeader } from "@/components/ui/page-header";
+import { StateEmpty } from "@/components/ui/app-states";
 import { QueuesClient } from "./QueuesClient";
 
 export default async function QueuesPage() {
@@ -29,11 +31,17 @@ export default async function QueuesPage() {
 
   if (!tenantId) {
     return (
-      <div className="min-h-screen p-6">
-        <h1 className="text-2xl font-semibold mb-4">Filas</h1>
-        <p className="text-gray-600">
-          Configure o Supabase e tenha ao menos um tenant para gerenciar filas.
-        </p>
+      <div className="mx-auto max-w-3xl space-y-6">
+        <PageHeader
+          eyebrow="Operação"
+          title="Filas"
+          description="Gestão de filas por tenant."
+          showDivider
+        />
+        <StateEmpty
+          title="Ambiente incompleto"
+          description="Configure o Supabase e garanta pelo menos um tenant na base de dados para criar e listar filas."
+        />
       </div>
     );
   }

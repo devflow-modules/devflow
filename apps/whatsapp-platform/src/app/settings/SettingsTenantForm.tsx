@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@devflow/ui";
+import { Card } from "@/components/ui/card";
+import { buttonClassName } from "@/components/ui/button";
+import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
+import { fieldSelectClassName } from "@/components/ui/form-field";
 
 const AI_DRIVERS = [
   { value: "ruleBased", label: "Apenas regras (sem LLM)" },
@@ -22,17 +26,19 @@ export function SettingsTenantForm() {
   const [tenant, setTenant] = useState<TenantMe | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [aiDriver, setAiDriver] = useState<string>("ruleBased");
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      setLoadError(null);
       try {
         const res = await fetch("/api/tenants/me", { credentials: "include" });
         if (!res.ok) {
           if (res.status === 401) setTenant(null);
-          else setError("Falha ao carregar configurações");
+          else if (!cancelled) setLoadError("Não foi possível carregar as definições.");
           return;
         }
         const data = await res.json();
@@ -41,7 +47,7 @@ export function SettingsTenantForm() {
           setAiDriver(data.aiDriver ?? "ruleBased");
         }
       } catch {
-        if (!cancelled) setError("Erro de conexão");
+        if (!cancelled) setLoadError("Erro de rede. Verifique a ligação e tente outra vez.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -54,7 +60,7 @@ export function SettingsTenantForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!tenant) return;
-    setError(null);
+    setFormError(null);
     setSaving(true);
     try {
       const res = await fetch("/api/tenants/me", {
@@ -70,83 +76,81 @@ export function SettingsTenantForm() {
       const data = await res.json();
       setTenant((prev) => (prev ? { ...prev, aiDriver: data.aiDriver } : null));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar");
+      setFormError(err instanceof Error ? err.message : "Erro ao salvar");
     } finally {
       setSaving(false);
     }
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen p-6">
-        <p className="text-slate-600">Carregando…</p>
-      </div>
-    );
+    return <StateLoading message="A carregar definições…" />;
+  }
+
+  if (loadError) {
+    return <StateError message={loadError} onRetry={() => window.location.reload()} />;
   }
 
   if (!tenant) {
     return (
-      <div className="min-h-screen p-6">
-        <h1 className="text-2xl font-semibold mb-4">Configurações</h1>
-        <Link href="/dashboard" className="text-blue-600 underline">
-          Voltar ao Dashboard
-        </Link>
-        <p className="mt-4 text-gray-600">
-          Faça login para ver e alterar as configurações do tenant.
-        </p>
-        <Link href="/login" className="mt-2 inline-block text-blue-600 underline">
-          Ir para login
-        </Link>
-      </div>
+      <StateEmpty
+        title="Sessão necessária"
+        description="Inicie sessão para ver e alterar as definições desta conta."
+        action={
+          <Link href="/login" className={buttonClassName("primary")}>
+            Ir para o login
+          </Link>
+        }
+      />
     );
   }
 
   return (
-    <div className="min-h-screen p-6">
-      <h1 className="text-2xl font-semibold mb-4">Configurações</h1>
-      <Link href="/dashboard" className="text-blue-600 underline">
-        Voltar ao Dashboard
-      </Link>
-      <p className="mt-3">
-        <Link href="/settings/ai" className="text-blue-600 underline text-sm">
+    <div className="space-y-6">
+      {formError ? (
+        <div className="rounded-xl border border-red-200/90 bg-red-50 px-4 py-3 text-sm text-red-800">{formError}</div>
+      ) : null}
+
+      <div className="flex flex-wrap gap-4 text-sm">
+        <Link href="/settings/ai" className="font-semibold text-[var(--df-brand-700)] hover:underline">
           IA de atendimento automático →
         </Link>
-        <br />
-        <Link href="/billing" className="text-blue-600 underline text-sm">
-          Billing e uso →
+        <Link href="/billing" className="font-semibold text-[var(--df-brand-700)] hover:underline">
+          Plano e uso →
         </Link>
-      </p>
+      </div>
 
-      <form onSubmit={handleSubmit} className="mt-6 max-w-md space-y-4">
-        <div>
-          <label htmlFor="aiDriver" className="block text-sm font-medium text-slate-700 mb-1">
-            Motor de IA (respostas automáticas)
-          </label>
-          <select
-            id="aiDriver"
-            value={aiDriver}
-            onChange={(e) => setAiDriver(e.target.value)}
-            className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
-          >
-            {AI_DRIVERS.map((d) => (
-              <option key={d.value} value={d.value}>
-                {d.label}
-              </option>
-            ))}
-          </select>
-          <p className="mt-1 text-xs text-slate-500">
-            Para OpenAI: defina OPENAI_API_KEY no ambiente do webhook. Para Claude: ANTHROPIC_API_KEY.
-          </p>
-        </div>
+      <Card padding="lg">
+        <h2 className="text-base font-bold text-slate-900">Motor de respostas automáticas</h2>
+        <p className="mt-1 text-sm text-slate-600">
+          Define qual serviço gera texto quando a automação ou a IA respondem. Chaves de API ficam no ambiente do servidor.
+        </p>
+        <form onSubmit={handleSubmit} className="mt-6 max-w-md space-y-4">
+          <div>
+            <label htmlFor="aiDriver" className="mb-1 block text-sm font-medium text-slate-700">
+              Fornecedor
+            </label>
+            <select
+              id="aiDriver"
+              value={aiDriver}
+              onChange={(e) => setAiDriver(e.target.value)}
+              className={fieldSelectClassName}
+            >
+              {AI_DRIVERS.map((d) => (
+                <option key={d.value} value={d.value}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1.5 text-xs text-slate-500">
+              OpenAI: OPENAI_API_KEY no ambiente. Claude: ANTHROPIC_API_KEY.
+            </p>
+          </div>
 
-        {error && (
-          <div className="p-3 rounded bg-red-50 text-red-700 text-sm">{error}</div>
-        )}
-
-        <Button type="submit" disabled={saving}>
-          {saving ? "Salvando…" : "Salvar"}
-        </Button>
-      </form>
+          <Button type="submit" disabled={saving}>
+            {saving ? "A guardar…" : "Guardar alterações"}
+          </Button>
+        </form>
+      </Card>
     </div>
   );
 }

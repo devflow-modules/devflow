@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@devflow/ui";
+import { StateError, StateLoading } from "@/components/ui/app-states";
 
 type Sub = {
   plan: string;
@@ -104,19 +105,24 @@ export function BillingSettingsClient() {
   }
 
   if (loading) {
-    return <p className="text-slate-600">Carregando…</p>;
+    return <StateLoading message="A carregar faturação…" className="min-h-[14rem]" />;
   }
 
   return (
-    <div className="space-y-8">
-      {err && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {err}
-        </div>
-      )}
+    <div className="min-w-0 space-y-8">
+      {err ? (
+        <StateError
+          title="Não foi possível carregar os dados"
+          message={err}
+          onRetry={() => {
+            setLoading(true);
+            void load();
+          }}
+        />
+      ) : null}
 
-      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-medium text-slate-900 mb-3">Assinatura</h2>
+      <section className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03] sm:p-6">
+        <h2 className="mb-3 text-lg font-bold tracking-tight text-slate-900">Assinatura</h2>
         {sub && (
           <dl className="grid gap-2 text-sm">
             <div className="flex justify-between">
@@ -187,8 +193,8 @@ export function BillingSettingsClient() {
       </section>
 
       {usage && (
-        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-medium text-slate-900 mb-1">Uso do mês ({usage.period})</h2>
+        <section className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03] sm:p-6">
+          <h2 className="mb-1 text-lg font-bold tracking-tight text-slate-900">Uso do mês ({usage.period})</h2>
           <p className="text-xs text-slate-500 mb-4">
             Custos variáveis são estimados com base nos preços configurados no servidor (env).
           </p>

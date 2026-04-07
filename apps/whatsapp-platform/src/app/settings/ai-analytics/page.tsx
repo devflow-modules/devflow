@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PageHeader } from "@/components/ui/page-header";
 import { AiAnalyticsClient } from "./AiAnalyticsClient";
 
 export const metadata: Metadata = {
@@ -10,21 +11,22 @@ export const metadata: Metadata = {
 
 export default function AiAnalyticsPage() {
   return (
-    <div className="min-h-screen p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Uso e custo da IA</h1>
-          <p className="text-slate-600 text-sm mt-1">
-            Visibilidade de tokens, fallbacks e custo estimado.
-          </p>
-        </div>
-        <Link
-          href="/settings/ai"
-          className="text-sm text-blue-600 hover:underline"
-        >
-          Configurar IA →
-        </Link>
-      </div>
+    <div className="mx-auto min-w-0 max-w-4xl space-y-8">
+      <PageHeader
+        eyebrow="Inteligência"
+        title="Uso e custo da IA"
+        description="Tokens, fallbacks, limites do plano e custo estimado — para afinar o prompt e o consumo."
+        layout="split"
+        showDivider
+        actions={
+          <Link
+            href="/settings/ai"
+            className="text-sm font-semibold text-[var(--df-brand-700)] hover:underline"
+          >
+            Configurar IA →
+          </Link>
+        }
+      />
       <AiAnalyticsClient />
     </div>
   );

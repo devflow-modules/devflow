@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchInboxAuditLog } from "./inboxFetch";
 import { INBOX_QK } from "./inboxTypes";
+import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
 
 const ACTION_LABELS: Record<string, string> = {
   assign: "atribuiu para",
@@ -16,7 +17,7 @@ const ACTION_LABELS: Record<string, string> = {
 };
 
 export function ChatAuditTab({ threadId }: { threadId: string | null }) {
-  const { data: logs, isLoading, isError } = useQuery({
+  const { data: logs, isLoading, isError, error, refetch } = useQuery({
     queryKey: threadId ? INBOX_QK.audit(threadId) : ["inbox-audit", "none"],
     queryFn: () => fetchInboxAuditLog(threadId!),
     enabled: Boolean(threadId),
@@ -24,31 +25,54 @@ export function ChatAuditTab({ threadId }: { threadId: string | null }) {
 
   if (!threadId) {
     return (
-      <div className="flex flex-1 items-center justify-center text-sm text-gray-500">
-        Selecione uma conversa
+      <div className="flex min-h-0 flex-1 flex-col justify-center p-4 sm:p-6">
+        <StateEmpty
+          title="Nenhuma conversa selecionada"
+          description="Escolha uma thread na lista para ver o histórico de ações (atribuições, tags, estado, mensagens)."
+          className="mx-auto max-w-md"
+        />
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="flex flex-1 items-center justify-center text-sm text-gray-500">
-        Carregando histórico…
+      <div className="flex min-h-0 flex-1 flex-col justify-center p-4" data-testid="audit-tab-loading">
+        <StateLoading message="A carregar histórico…" className="min-h-[12rem] flex-1 border-slate-200/80 bg-white/90 shadow-none" />
       </div>
     );
   }
 
-  if (isError || !logs?.length) {
+  if (isError) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-sm text-gray-500">
-        {isError ? "Erro ao carregar histórico" : "Nenhuma ação registrada ainda"}
+      <div className="flex min-h-0 flex-1 flex-col justify-center p-4" data-testid="audit-tab">
+        <StateError
+          title="Histórico indisponível"
+          message={error instanceof Error ? error.message : "Não foi possível carregar o histórico."}
+          onRetry={() => void refetch()}
+        />
+      </div>
+    );
+  }
+
+  if (!logs?.length) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col justify-center p-4 sm:p-6" data-testid="audit-tab">
+        <StateEmpty
+          title="Sem atividades registadas"
+          description="Quando a equipa atribuir, alterar estado, adicionar tags ou enviar mensagens, as ações aparecem aqui por ordem cronológica."
+          className="mx-auto max-w-md"
+        />
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4" data-testid="audit-tab">
-      <ul className="space-y-3">
+    <div
+      className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-100/90 via-slate-50/80 to-white px-3 py-5 sm:px-5"
+      data-testid="audit-tab"
+    >
+      <ul className="mx-auto flex max-w-2xl flex-col gap-2">
         {logs.map((log) => {
           const label = ACTION_LABELS[log.action] ?? log.action;
           const userName = log.user?.name ?? log.userId;
@@ -56,9 +80,9 @@ export function ChatAuditTab({ threadId }: { threadId: string | null }) {
             log.action === "status_change" && log.metadata && typeof log.metadata === "object" && "status" in log.metadata
               ? ` ${String((log.metadata as { status: string }).status)}`
               : log.action === "tag_add" && log.metadata && typeof log.metadata === "object" && "tagName" in log.metadata
-                ? ` "${String((log.metadata as { tagName: string }).tagName)}"`
+                ? ` «${String((log.metadata as { tagName: string }).tagName)}»`
                 : log.action === "tag_remove" && log.metadata && typeof log.metadata === "object" && "tagName" in log.metadata
-                  ? ` "${String((log.metadata as { tagName: string }).tagName)}"`
+                  ? ` «${String((log.metadata as { tagName: string }).tagName)}»`
                   : "";
           const date = new Date(log.createdAt);
           const dateStr = date.toLocaleDateString("pt-BR", {
@@ -68,12 +92,15 @@ export function ChatAuditTab({ threadId }: { threadId: string | null }) {
             minute: "2-digit",
           });
           return (
-            <li key={log.id} className="flex flex-col gap-0.5 border-b border-gray-100 pb-2 last:border-0">
-              <span className="text-sm text-gray-800">
-                <strong>{userName}</strong> {label}
+            <li
+              key={log.id}
+              className="rounded-xl border border-slate-200/90 bg-white px-4 py-3 shadow-sm ring-1 ring-slate-900/[0.03]"
+            >
+              <p className="text-sm leading-snug text-slate-800">
+                <span className="font-semibold text-slate-900">{userName}</span> {label}
                 {extra}
-              </span>
-              <span className="text-xs text-gray-400">{dateStr}</span>
+              </p>
+              <p className="mt-1.5 text-xs font-medium tabular-nums text-slate-500">{dateStr}</p>
             </li>
           );
         })}

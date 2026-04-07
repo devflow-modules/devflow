@@ -1,16 +1,31 @@
 import Link from "next/link";
+import { PageHeader } from "@/components/ui/page-header";
+import { buttonClassName } from "@/components/ui/button";
 import { BillingSettingsClient } from "./BillingSettingsClient";
 
 export default function BillingSettingsPage() {
   return (
-    <div className="min-h-screen p-6 max-w-3xl">
-      <h1 className="text-2xl font-semibold mb-2">Billing e uso</h1>
-      <p className="text-slate-600 text-sm mb-6">
-        Plano base (Stripe) + uso variável (mensagens enviadas e respostas IA).{" "}
-        <Link href="/settings" className="text-blue-600 underline">
-          Voltar às configurações
-        </Link>
-      </p>
+    <div className="mx-auto min-w-0 max-w-4xl space-y-8">
+      <PageHeader
+        eyebrow="Subscrição"
+        title="Faturação e uso"
+        description={
+          <>
+            Plano base (Stripe) e uso variável (mensagens e respostas IA). Para o resumo completo do produto, veja também{" "}
+            <Link href="/billing" className="font-semibold text-[var(--df-brand-700)] hover:underline">
+              Plano e uso
+            </Link>
+            .
+          </>
+        }
+        layout="split"
+        showDivider
+        actions={
+          <Link href="/settings" className={`${buttonClassName("secondary")} text-sm`}>
+            Voltar às configurações
+          </Link>
+        }
+      />
       <BillingSettingsClient />
     </div>
   );

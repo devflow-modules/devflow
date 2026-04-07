@@ -144,51 +144,71 @@ export function ChatHeader({
 
   const title = thread.contactName?.trim() || thread.phoneNumber || "Conversa";
 
+  const waiting =
+    thread.lastCustomerMessageAt &&
+    (!thread.lastAgentReplyAt ||
+      new Date(thread.lastAgentReplyAt) < new Date(thread.lastCustomerMessageAt));
+
   return (
-    <header className="flex flex-col border-b border-gray-200 bg-gray-50">
-      <div className="flex items-center gap-3 px-3 py-3">
+    <header className="flex flex-col border-b border-slate-100 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+      <div className="flex items-center gap-3 px-4 py-4 sm:px-6 sm:py-5">
         {showBack && (
           <button
             type="button"
             onClick={onBackMobile}
-            className="rounded-lg p-2 text-gray-600 hover:bg-gray-200 md:hidden"
+            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden"
             aria-label="Voltar"
           >
             ←
           </button>
         )}
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm font-medium text-gray-600">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--df-brand-600)] text-sm font-bold text-white">
           {title.slice(0, 2).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="truncate font-semibold text-gray-900">{title}</h2>
+          <h2 className="truncate text-lg font-semibold tracking-tight text-slate-950">{title}</h2>
           {thread.phoneNumber && (
-            <p className="truncate text-xs text-gray-500">{thread.phoneNumber}</p>
+            <p className="truncate text-xs text-slate-500/90">{thread.phoneNumber}</p>
           )}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {waiting && thread.status === "OPEN" && (
+              <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-900">
+                À espera de resposta
+              </span>
+            )}
+            {!waiting && thread.lastAgentReplyAt && (
+              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-900 ring-1 ring-emerald-100">
+                Em conversa
+              </span>
+            )}
+            {slaLabel ? (
+              <span className="text-[11px] font-medium text-slate-500">{slaLabel}</span>
+            ) : null}
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 px-3 pb-2">
+      <div className="flex flex-wrap items-center gap-2 border-t border-slate-100/90 bg-slate-50/40 px-4 py-3 sm:px-6">
         <div className="relative" ref={assignRef}>
           <button
             type="button"
             onClick={() => setAssignOpen((o) => !o)}
-            className="rounded border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-lg border border-slate-100 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-slate-200 hover:bg-slate-50/80"
           >
             {thread.assignedToUser ? thread.assignedToUser.name : "Atribuir"}
           </button>
           {assignOpen && (
-            <div className="absolute left-0 top-full z-10 mt-1 w-48 rounded border border-gray-200 bg-white py-1 shadow-lg">
+            <div className="absolute left-0 top-full z-20 mt-1.5 w-52 overflow-hidden rounded-xl border border-slate-100 bg-white py-1 shadow-lg shadow-slate-900/5">
               <button
                 type="button"
-                className="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100"
+                className="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
                 onClick={() => handleAssign("me")}
               >
                 Atribuir a mim
               </button>
               <button
                 type="button"
-                className="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100"
+                className="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
                 onClick={() => handleAssign(null)}
               >
                 Desatribuir
@@ -197,7 +217,7 @@ export function ChatHeader({
                 <button
                   key={u.id}
                   type="button"
-                  className="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100"
+                  className="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
                   onClick={() => handleAssign(u.id)}
                 >
                   {u.name}
@@ -211,17 +231,17 @@ export function ChatHeader({
           <button
             type="button"
             onClick={() => setStatusOpen((o) => !o)}
-            className="rounded border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-lg border border-slate-100 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-slate-200 hover:bg-slate-50/80"
           >
             {thread.status === "OPEN" ? "Aberta" : thread.status === "CLOSED" ? "Fechada" : "Pendente"}
           </button>
           {statusOpen && (
-            <div className="absolute left-0 top-full z-10 mt-1 w-36 rounded border border-gray-200 bg-white py-1 shadow-lg">
+            <div className="absolute left-0 top-full z-20 mt-1.5 w-40 overflow-hidden rounded-xl border border-slate-100 bg-white py-1 shadow-lg shadow-slate-900/5">
               {(["OPEN", "PENDING", "CLOSED"] as const).map((s) => (
                 <button
                   key={s}
                   type="button"
-                  className="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100"
+                  className="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
                   onClick={() => handleStatus(s)}
                 >
                   {s === "OPEN" ? "Aberta" : s === "CLOSED" ? "Fechada" : "Pendente"}
@@ -252,41 +272,37 @@ export function ChatHeader({
           <button
             type="button"
             onClick={() => setTagOpen((o) => !o)}
-            className="rounded border border-dashed border-gray-400 px-2 py-0.5 text-xs text-gray-500 hover:bg-gray-100"
+            className="rounded-lg border border-dashed border-slate-200 bg-white/80 px-2 py-1 text-xs font-medium text-slate-500 transition hover:border-slate-300 hover:bg-slate-50"
           >
             + Tag
           </button>
           {tagOpen && (
-            <div className="absolute left-0 top-full z-10 mt-1 max-h-40 w-48 overflow-auto rounded border border-gray-200 bg-white py-1 shadow-lg">
+            <div className="absolute left-0 top-full z-20 mt-1.5 max-h-44 w-52 overflow-auto rounded-xl border border-slate-100 bg-white py-1 shadow-lg shadow-slate-900/5">
               {tags.filter((t) => !threadTagIds.has(t.id)).map((t) => (
                 <button
                   key={t.id}
                   type="button"
-                  className="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100"
+                  className="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
                   onClick={() => handleAddTag(t.id)}
                 >
                   {t.name}
                 </button>
               ))}
               {tags.length === 0 && (
-                <p className="px-3 py-2 text-xs text-gray-500">Crie tags em Configurações.</p>
+                <p className="px-3 py-2 text-xs text-slate-500">Crie tags em Configurações.</p>
               )}
             </div>
           )}
         </div>
 
-        {slaLabel && (
-          <span className="text-xs text-gray-500">{slaLabel}</span>
-        )}
-
         {onAuditTabChange && (
           <button
             type="button"
             onClick={() => onAuditTabChange(!auditTab)}
-            className={`rounded border px-2 py-1 text-xs font-medium ${
+            className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium transition ${
               auditTab
-                ? "border-emerald-600 bg-emerald-50 text-emerald-700"
-                : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                ? "border-emerald-200/80 bg-emerald-50/90 text-emerald-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+                : "border-slate-100 bg-white text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-slate-200 hover:bg-slate-50/80"
             }`}
           >
             Histórico
@@ -295,7 +311,7 @@ export function ChatHeader({
       </div>
 
       {(thread.assignedToUser || viewersList.length > 0) && (
-        <div className="flex flex-wrap items-center gap-2 border-t border-gray-100 px-3 py-2 text-xs text-gray-600">
+        <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 bg-slate-50/50 px-4 py-2 text-xs text-slate-600 sm:px-5">
           {thread.assignedToUser && (
             <span>Atendido por: <strong>{thread.assignedToUser.name}</strong></span>
           )}

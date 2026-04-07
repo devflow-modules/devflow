@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@devflow/ui";
 import { PLANS } from "@/modules/billing/plans";
+import { StateError, StateLoading } from "@/components/ui/app-states";
 
 type Sub = {
   plan: string;
@@ -40,6 +41,34 @@ type BillingPlanKey = "STARTER" | "PRO" | "SCALE";
 
 const BILLING_PLANS: BillingPlanKey[] = ["STARTER", "PRO", "SCALE"];
 
+function displayPlanName(plan: string | undefined): string {
+  const key = plan?.toUpperCase() as keyof typeof PLANS;
+  return PLANS[key]?.name ?? plan ?? "—";
+}
+
+function subscriptionStatusPt(status: string | undefined): string {
+  const s = (status ?? "").toUpperCase();
+  if (s === "ACTIVE") return "Ativo — cobrança em dia";
+  if (s === "TRIAL") return "Período de teste";
+  if (s === "PAST_DUE") return "Pagamento em falta — atualize o método";
+  if (s === "CANCELED" || s === "CANCELLED") return "Cancelado";
+  return status ?? "—";
+}
+
+function nextRenewalLabel(iso: string | null | undefined): string {
+  if (!iso) return "Quando ativar um plano pago, mostramos aqui a data da próxima renovação.";
+  try {
+    return new Date(iso).toLocaleDateString("pt-BR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  } catch {
+    return "—";
+  }
+}
+
 export function BillingPageClient() {
   const searchParams = useSearchParams();
   const successParam = searchParams.get("success");
@@ -50,7 +79,7 @@ export function BillingPageClient() {
   const [err, setErr] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState<BillingPlanKey | null>(null);
-  const [upgradeLoading, setUpgradeLoading] = useState<BillingPlanKey | null>(null);
+  const [, setUpgradeLoading] = useState<BillingPlanKey | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const load = useCallback(async () => {
@@ -158,11 +187,11 @@ export function BillingPageClient() {
   const currentPlan = sub?.plan?.toUpperCase() ?? "FREE";
 
   if (loading) {
-    return <p className="text-slate-600">Carregando…</p>;
+    return <StateLoading message="A carregar informação de plano…" className="min-h-[40vh]" />;
   }
 
   return (
-    <div className="space-y-8">
+    <div className="min-w-0 space-y-8">
       {successParam === "true" && (
         <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
           <p className="font-medium">Plano atualizado com sucesso.</p>
@@ -190,84 +219,90 @@ export function BillingPageClient() {
         </div>
       )}
 
-      {err && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {err}
-        </div>
-      )}
+      {err ? (
+        <StateError
+          title="Não foi possível atualizar os dados"
+          message={err}
+          onRetry={() => {
+            setLoading(true);
+            void load();
+          }}
+        />
+      ) : null}
 
-      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-medium text-slate-900 mb-3">Assinatura</h2>
-        {sub && (
-          <dl className="grid gap-2 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-slate-500">Plano</dt>
-              <dd className="font-medium uppercase">{sub.plan}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-slate-500">Status</dt>
-              <dd>{sub.status}</dd>
-            </div>
-            {sub.currentPeriodEnd && (
-              <div className="flex justify-between">
-                <dt className="text-slate-500">Fim do período</dt>
-                <dd>{new Date(sub.currentPeriodEnd).toLocaleDateString("pt-BR")}</dd>
-              </div>
-            )}
-          </dl>
-        )}
-        <div className="mt-4 flex flex-wrap gap-2">
-          {sub?.stripeCustomerId ? (
-            <Button type="button" onClick={() => void openPortal()} disabled={portalLoading}>
-              {portalLoading ? "Abrindo…" : "Gerenciar assinatura (Stripe)"}
+      <section className="overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white to-slate-50/80 p-5 shadow-md sm:p-8">
+        <div className="flex min-w-0 flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">O seu plano</p>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+              {sub ? displayPlanName(sub.plan) : "—"}
+            </h2>
+            <p className="mt-2 text-sm font-medium text-slate-600">
+              {sub ? subscriptionStatusPt(sub.status) : "Carregue novamente se não vir dados."}
+            </p>
+            <p className="mt-4 text-sm text-slate-600">
+              <span className="font-semibold text-slate-800">Próxima renovação ou fim do período:</span>{" "}
+              <span className="block sm:inline">{nextRenewalLabel(sub?.currentPeriodEnd ?? sub?.activeUntil)}</span>
+            </p>
+          </div>
+          <div className="flex min-w-0 shrink-0 flex-col gap-2 sm:flex-row lg:flex-col lg:items-stretch">
+            <Button type="button" className="font-semibold" onClick={() => setShowUpgradeModal(true)}>
+              Mudar de plano
             </Button>
-          ) : null}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setShowUpgradeModal(true)}
-          >
-            Continuar usando IA
-          </Button>
+            {sub?.stripeCustomerId ? (
+              <Button type="button" variant="outline" onClick={() => void openPortal()} disabled={portalLoading}>
+                {portalLoading ? "A abrir…" : "Faturas e método de pagamento"}
+              </Button>
+            ) : null}
+          </div>
         </div>
       </section>
 
       {usage && (
-        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="text-lg font-medium text-slate-900">Uso do mês ({usage.period})</h2>
+        <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Uso neste período</h2>
+              <p className="text-sm text-slate-500">{usage.period}</p>
+            </div>
             <Link
               href="/settings/ai-analytics"
-              className="text-sm text-blue-600 hover:underline"
+              className="text-sm font-semibold text-[var(--df-brand-700)] hover:underline"
             >
-              Ver detalhes IA →
+              Ver detalhe de IA →
             </Link>
           </div>
-          <p className="text-xs text-slate-500 mb-3">
-            Excedente: R$ {(usage.unitPricesBrl.message).toFixed(2)}/conversa, R$ {(usage.unitPricesBrl.aiResponse).toFixed(2)}/interação IA
+          <p className="mb-4 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
+            Fora do incluído no plano, pode haver custo extra por mensagem ou por resposta automática (valores no contrato).
           </p>
-          <dl className="grid gap-3 text-sm mt-3">
-            <div className="flex justify-between items-center">
-              <dt>Conversas</dt>
-              <dd className="font-mono">
+          <dl className="mt-2 grid gap-4 text-sm">
+            <div className="flex items-center justify-between gap-4">
+              <dt className="font-medium text-slate-700">Mensagens enviadas</dt>
+              <dd className="text-right tabular-nums text-base font-semibold text-slate-900">
                 {usage.messagesSent}
                 {usage.limits.messagesPerMonth != null && (
-                  <span className="text-slate-500"> / {usage.limits.messagesPerMonth}</span>
+                  <span className="text-sm font-normal text-slate-500">
+                    {" "}
+                    de {usage.limits.messagesPerMonth} incluídas
+                  </span>
                 )}
                 {!usage.withinLimits.messages && (
-                  <span className="ml-2 text-amber-600 text-xs">limite atingido</span>
+                  <span className="ml-2 text-xs font-semibold text-amber-700">limite atingido</span>
                 )}
               </dd>
             </div>
-            <div className="flex justify-between items-center">
-              <dt>Interações IA</dt>
-              <dd className="font-mono">
+            <div className="flex items-center justify-between gap-4">
+              <dt className="font-medium text-slate-700">Respostas automáticas (IA)</dt>
+              <dd className="text-right tabular-nums text-base font-semibold text-slate-900">
                 {usage.aiResponses}
                 {usage.limits.aiResponsesPerMonth != null && (
-                  <span className="text-slate-500"> / {usage.limits.aiResponsesPerMonth}</span>
+                  <span className="text-sm font-normal text-slate-500">
+                    {" "}
+                    de {usage.limits.aiResponsesPerMonth.toLocaleString("pt-BR")} incluídas
+                  </span>
                 )}
                 {!usage.withinLimits.ai && (
-                  <span className="ml-2 text-amber-600 text-xs">limite atingido</span>
+                  <span className="ml-2 text-xs font-semibold text-amber-700">limite atingido</span>
                 )}
               </dd>
             </div>

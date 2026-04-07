@@ -35,7 +35,10 @@ export function ChatWindow({
   }, [threadId]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-white" data-testid="chat-window">
+    <div
+      className="flex min-h-0 flex-1 flex-col bg-gradient-to-b from-white via-slate-50/30 to-slate-50/60"
+      data-testid="chat-window"
+    >
       <ChatHeader
         threadId={threadId}
         thread={thread}

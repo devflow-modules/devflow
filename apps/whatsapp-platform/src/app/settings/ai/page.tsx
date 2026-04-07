@@ -1,54 +1,57 @@
 import Link from "next/link";
+import { PageHeader } from "@/components/ui/page-header";
 import { AiSettingsForm } from "./AiSettingsForm";
 
 export default function AiSettingsPage() {
   return (
-    <div className="min-h-screen p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold mb-2">IA de atendimento</h1>
-          <p className="text-slate-600 text-sm">
-            Respostas automáticas por tenant no WhatsApp. Requer motor OpenAI ou Claude em{" "}
-            <Link href="/settings" className="text-blue-600 underline">
+    <div className="mx-auto min-w-0 max-w-3xl space-y-8">
+      <PageHeader
+        eyebrow="Inteligência"
+        title="IA de atendimento"
+        description={
+          <>
+            Respostas automáticas no WhatsApp por tenant. O motor (OpenAI ou Claude) define-se em{" "}
+            <Link href="/settings" className="font-semibold text-[var(--df-brand-700)] hover:underline">
               Configurações
             </Link>
             .
-          </p>
-        </div>
-        <Link
-          href="/settings/ai-analytics"
-          className="text-sm text-blue-600 hover:underline"
-        >
-          Ver uso e custo →
-        </Link>
-      </div>
+          </>
+        }
+        layout="split"
+        showDivider
+        actions={
+          <Link
+            href="/settings/ai-analytics"
+            className="text-sm font-semibold text-[var(--df-brand-700)] hover:underline"
+          >
+            Uso e custo →
+          </Link>
+        }
+      />
 
-      <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
-        <h2 className="text-sm font-semibold text-slate-800 mb-2">Guia de ativação</h2>
-        <ol className="list-decimal list-inside space-y-1 text-sm text-slate-700">
+      <section className="rounded-xl border border-slate-200/90 bg-gradient-to-br from-slate-50/90 to-white p-5 shadow-sm ring-1 ring-slate-900/[0.03] sm:p-6">
+        <h2 className="text-sm font-bold text-slate-900">Guia rápido</h2>
+        <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-slate-700">
           <li>
-            <Link href="/settings" className="text-blue-600 hover:underline">
-              Conectar WhatsApp
+            <Link href="/dashboard/whatsapp" className="font-semibold text-[var(--df-brand-700)] hover:underline">
+              Ligação WhatsApp
             </Link>{" "}
-            — número e token em Configurações
+            — número e token
           </li>
           <li>
-            <Link href="/settings" className="text-blue-600 hover:underline">
-              Escolher motor
+            <Link href="/settings" className="font-semibold text-[var(--df-brand-700)] hover:underline">
+              Motor de IA
             </Link>{" "}
-            — OpenAI ou Claude nas Configurações
+            — OpenAI ou Claude nas configurações gerais
           </li>
+          <li>Ativar IA e editar o prompt — formulário abaixo</li>
           <li>
-            Ativar IA e editar prompt — use o formulário abaixo
-          </li>
-          <li>
-            <Link href="/inbox" className="text-blue-600 hover:underline">
-              Testar
-            </Link>{" "}
-            — envie uma mensagem no Inbox
+            <Link href="/inbox" className="font-semibold text-[var(--df-brand-700)] hover:underline">
+              Testar na Inbox
+            </Link>
           </li>
         </ol>
-      </div>
+      </section>
 
       <AiSettingsForm />
     </div>

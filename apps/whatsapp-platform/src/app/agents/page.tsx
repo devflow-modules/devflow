@@ -1,6 +1,8 @@
 import { hasSupabaseConfig } from "@/lib/supabase-server";
 import { listAgentsByTenant, countActiveConversationsByAgent } from "@/modules/agents";
 import { listTenants } from "@/modules/tenants";
+import { PageHeader } from "@/components/ui/page-header";
+import { StateEmpty } from "@/components/ui/app-states";
 import { AgentsClient } from "./AgentsClient";
 
 export default async function AgentsPage() {
@@ -29,11 +31,17 @@ export default async function AgentsPage() {
 
   if (!tenantId) {
     return (
-      <div className="min-h-screen p-6">
-        <h1 className="text-2xl font-semibold mb-4">Agentes</h1>
-        <p className="text-gray-600">
-          Configure o Supabase e tenha ao menos um tenant para gerenciar agentes.
-        </p>
+      <div className="mx-auto max-w-3xl space-y-6">
+        <PageHeader
+          eyebrow="Equipa"
+          title="Agentes"
+          description="Gestão de agentes por tenant."
+          showDivider
+        />
+        <StateEmpty
+          title="Ambiente incompleto"
+          description="Configure o Supabase e garanta pelo menos um tenant na base de dados para criar e listar agentes."
+        />
       </div>
     );
   }

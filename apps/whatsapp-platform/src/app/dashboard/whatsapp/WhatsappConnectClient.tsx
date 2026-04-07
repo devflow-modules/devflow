@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { buttonClassName } from "@/components/ui/button";
+import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
 
 interface PhoneNumber {
   id: string;
@@ -97,55 +99,49 @@ export function WhatsappConnectClient() {
   }
 
   if (loading) {
-    return <p className="text-slate-600">Carregando…</p>;
+    return <StateLoading message="A carregar números ligados…" />;
   }
 
   return (
-    <div className="space-y-4">
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800 text-sm">
-          {error}
-        </div>
-      )}
+    <div className="space-y-6">
+      {error ? <StateError message={error} onRetry={() => void load()} /> : null}
 
-      <div>
+      <div className="flex flex-wrap gap-3">
         <button
           type="button"
           onClick={handleConnect}
           disabled={connectLoading}
-          className="rounded-lg bg-emerald-600 px-4 py-2 text-white font-medium hover:bg-emerald-700 disabled:opacity-50"
+          className={buttonClassName("primary")}
         >
-          {connectLoading ? "Abrindo…" : "Conectar novo número"}
+          {connectLoading ? "A abrir Meta…" : "Ligar novo número"}
         </button>
       </div>
 
       {numbers.length === 0 ? (
-        <div className="rounded-lg border border-slate-200 p-6 text-center text-slate-600">
-          <p>Nenhum número conectado.</p>
-          <p className="text-sm mt-2">Clique em &quot;Conectar novo número&quot; para começar.</p>
-        </div>
+        <StateEmpty
+          title="Ainda não há números ligados"
+          description="Use o botão acima para abrir o fluxo da Meta e autorizar o WhatsApp Business. Depois, o número aparece aqui."
+        />
       ) : (
         <ul className="space-y-3">
           {numbers.map((n) => (
             <li
               key={n.id}
-              className="flex items-center justify-between rounded-lg border border-slate-200 p-4"
+              className="flex flex-col gap-3 rounded-xl border border-slate-200/90 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
             >
-              <div>
-                <p className="font-medium">
-                  {n.displayPhoneNumber || n.phoneNumberId}
-                </p>
-                <p className="text-sm text-slate-500">
-                  ID: {n.phoneNumberId} • Status: {n.status}
+              <div className="min-w-0">
+                <p className="font-semibold text-slate-900">{n.displayPhoneNumber || n.phoneNumberId}</p>
+                <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+                  ID {n.phoneNumberId} · Estado: {n.status}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => handleRemove(n.id)}
                 disabled={removing === n.id}
-                className="rounded border border-red-200 px-3 py-1 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+                className={`${buttonClassName("secondary")} border-red-200 text-red-700 hover:bg-red-50`}
               >
-                {removing === n.id ? "Removendo…" : "Remover"}
+                {removing === n.id ? "A remover…" : "Remover"}
               </button>
             </li>
           ))}

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { MetricsCard, Button } from "@devflow/ui";
+import { StateError, StateLoading } from "@/components/ui/app-states";
 
 type Metrics = {
   messages_total: number;
@@ -96,37 +97,49 @@ export function AiAnalyticsClient() {
   const [usageStatus, setUsageStatus] = useState<UsageStatus | null>(null);
   const [planInfo, setPlanInfo] = useState<PlanInfo | null>(null);
 
-  useEffect(() => {
-    let c = false;
-    (async () => {
-      try {
-        const [rUsage, rStatus, rPlan] = await Promise.all([
-          fetch("/api/ai/usage", { credentials: "include" }),
-          fetch("/api/billing/ai-usage-status", { credentials: "include" }),
-          fetch("/api/billing/ai-plan", { credentials: "include" }),
-        ]);
-        if (!rUsage.ok) {
-          if (rUsage.status === 401) setError("Faça login para continuar.");
-          else setError("Falha ao carregar métricas.");
-          return;
-        }
-        const jUsage = await rUsage.json();
-        const jStatus = rStatus.ok ? await rStatus.json() : null;
-        const jPlan = rPlan.ok ? await rPlan.json() : null;
-        if (!c && jUsage.success) setMetrics(jUsage.data);
-        if (!c && jStatus?.success) setUsageStatus(jStatus.data);
-        if (!c && jPlan?.success) setPlanInfo(jPlan.data);
-      } catch {
-        if (!c) setError("Erro de conexão");
-      } finally {
-        if (!c) setLoading(false);
+  const load = useCallback(async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const [rUsage, rStatus, rPlan] = await Promise.all([
+        fetch("/api/ai/usage", { credentials: "include" }),
+        fetch("/api/billing/ai-usage-status", { credentials: "include" }),
+        fetch("/api/billing/ai-plan", { credentials: "include" }),
+      ]);
+      if (!rUsage.ok) {
+        if (rUsage.status === 401) setError("Faça login para continuar.");
+        else setError("Falha ao carregar métricas.");
+        return;
       }
-    })();
-    return () => { c = true; };
+      const jUsage = await rUsage.json();
+      const jStatus = rStatus.ok ? await rStatus.json() : null;
+      const jPlan = rPlan.ok ? await rPlan.json() : null;
+      if (jUsage.success) setMetrics(jUsage.data);
+      if (jStatus?.success) setUsageStatus(jStatus.data);
+      if (jPlan?.success) setPlanInfo(jPlan.data);
+    } catch {
+      setError("Erro de conexão");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  if (loading) return <p className="text-slate-600">Carregando…</p>;
-  if (error) return <p className="text-red-600">{error}</p>;
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  if (loading) {
+    return <StateLoading message="A carregar métricas de IA…" className="min-h-[14rem]" />;
+  }
+  if (error) {
+    return (
+      <StateError
+        title="Não foi possível carregar as métricas"
+        message={error}
+        onRetry={() => void load()}
+      />
+    );
+  }
   if (!metrics) return null;
 
   const atLimit = usageStatus && !usageStatus.can_use;
@@ -146,13 +159,11 @@ export function AiAnalyticsClient() {
   const estimatedHours = Math.round((metrics.ai_messages_total * 4) / 60);
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       {/* Card: Prova de valor (só exibe se tiver uso de IA) */}
       {metrics.ai_messages_total > 0 && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
-          <h2 className="text-base font-semibold text-emerald-900 mb-2">
-            💰 Valor gerado
-          </h2>
+        <div className="rounded-xl border border-emerald-200/90 bg-emerald-50/90 p-5 shadow-sm ring-1 ring-emerald-900/[0.06]">
+          <h2 className="mb-2 text-base font-bold text-emerald-900">Valor gerado</h2>
           <p className="text-sm text-emerald-800">
             Você respondeu <strong>{metrics.ai_messages_total} clientes</strong> automaticamente este mês.
           </p>
@@ -165,18 +176,17 @@ export function AiAnalyticsClient() {
       {/* Card: Limite do plano */}
       {usageStatus && planInfo && (
         <div
-          className={`rounded-lg border p-4 shadow-sm ${
+          className={`rounded-xl border p-5 shadow-sm ring-1 ${
             atLimit
-              ? "border-2 border-red-400 bg-red-50"
+              ? "border-red-300/90 bg-red-50/90 ring-red-900/[0.06]"
               : nearLimit
-                ? "border-2 border-amber-400 bg-amber-50"
-                : "border-slate-200 bg-white"
+                ? "border-amber-300/90 bg-amber-50/90 ring-amber-900/[0.06]"
+                : "border-slate-200/90 bg-white ring-slate-900/[0.03]"
           }`}
         >
-          <h2 className="text-base font-semibold text-slate-900 mb-3">
-            {nearLimit && "⚠️ "}
-            {atLimit && "🚫 "}
-            Limite de IA — {planInfo.plan_name}
+          <h2 className="mb-3 text-base font-bold tracking-tight text-slate-900">
+            {atLimit ? "Limite atingido — " : nearLimit ? "Atenção: limite de IA — " : "Limite de IA — "}
+            {planInfo.plan_name}
           </h2>
           {remaining != null && remaining > 0 && !atLimit && (
             <p className="text-sm font-medium text-slate-800 mb-2">
@@ -219,7 +229,7 @@ export function AiAnalyticsClient() {
           )}
           {usageStatus.ai_overage_billed != null &&
             usageStatus.ai_overage_billed > 0 && (
-              <div className="mt-3 rounded border border-amber-200 bg-amber-50 p-3">
+              <div className="mt-3 rounded-xl border border-amber-200/90 bg-amber-50/80 p-3 ring-1 ring-amber-900/[0.04]">
                 <p className="text-sm font-medium text-amber-900">
                   Você excedeu o plano, mas a IA continuou ativa
                 </p>
@@ -243,8 +253,8 @@ export function AiAnalyticsClient() {
       )}
 
       {/* Card: Uso */}
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900 mb-3">Uso</h2>
+      <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
+        <h2 className="mb-3 text-base font-bold tracking-tight text-slate-900">Uso</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <MetricsCard label="Total mensagens" value={String(metrics.messages_total)} />
           <MetricsCard label="Respostas IA" value={String(metrics.ai_messages_total)} />
@@ -253,8 +263,8 @@ export function AiAnalyticsClient() {
       </div>
 
       {/* Card: Custo */}
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900 mb-3">Custo</h2>
+      <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
+        <h2 className="mb-3 text-base font-bold tracking-tight text-slate-900">Custo</h2>
         <div className="grid grid-cols-2 gap-4">
           <MetricsCard
             label="Tokens usados"
@@ -278,10 +288,8 @@ export function AiAnalyticsClient() {
       </div>
 
       {/* Card: Saúde da IA */}
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900 mb-3">
-          Saúde da IA
-        </h2>
+      <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
+        <h2 className="mb-3 text-base font-bold tracking-tight text-slate-900">Saúde da IA</h2>
         <div className="flex items-center gap-2">
           <span
             className={`text-lg font-medium ${getFallbackRateColor(fallbackRate)}`}
@@ -298,10 +306,8 @@ export function AiAnalyticsClient() {
 
       {/* Insights */}
       {insights.length > 0 && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-          <h2 className="text-base font-semibold text-slate-900 mb-2">
-            Insights
-          </h2>
+        <div className="rounded-xl border border-amber-200/90 bg-amber-50/90 p-5 ring-1 ring-amber-900/[0.05]">
+          <h2 className="mb-2 text-base font-bold tracking-tight text-slate-900">Insights</h2>
           <ul className="space-y-1 text-sm text-slate-700">
             {insights.map((msg, i) => (
               <li key={i}>{msg}</li>
