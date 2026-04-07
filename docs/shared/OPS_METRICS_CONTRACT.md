@@ -10,7 +10,7 @@ Each product app that participates in Ops reporting **MUST** expose:
 GET /api/ops/metrics
 ```
 
-- **Authentication:** TBD (e.g. internal API key or service-to-service auth).
+- **Authentication:** recomendado **header** `X-Ops-Metrics-Key` com valor partilhado entre o produto (env no app, ex. `WHATSAPP_OPS_METRICS_SECRET`) e o agregador Ops (ex. `OPS_WHATSAPP_METRICS_KEY`). Sem chave em desenvolvimento pode ser opcional por app; em **produção** o endpoint não deve ficar público sem proteção.
 - **Response:** JSON with the shape below.
 
 ## Response shape

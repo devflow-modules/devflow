@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { NAV_ADMIN, NAV_OPERATION, NAV_PRIMARY, NAV_SECONDARY } from "./nav-config";
+import { fetchProtected } from "@/lib/protected-fetch";
 
 function NavLink({
   href,
@@ -38,8 +40,26 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
+type SessionRole = "admin" | "agent" | null;
+
 export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname() ?? "";
+  const [sessionRole, setSessionRole] = useState<SessionRole>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchProtected("/api/auth/verify")
+      .then((r) => r.json())
+      .then((d: { valid?: boolean; user?: { role?: string } }) => {
+        if (cancelled) return;
+        const r = d.user?.role;
+        if (r === "admin" || r === "agent") setSessionRole(r);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function navIsActive(href: string) {
     if (href === "/dashboard") return pathname === "/dashboard" || pathname === "/dashboard/";
@@ -102,13 +122,24 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
 
       <div className="border-t border-slate-100 p-3">
-        <Link
-          href={NAV_ADMIN.href}
-          className="mb-2 block rounded-lg px-3 py-2 text-xs font-medium text-slate-500 hover:bg-slate-50"
-          onClick={() => onNavigate?.()}
-        >
-          {NAV_ADMIN.label}
-        </Link>
+        {sessionRole === "admin" ? (
+          <Link
+            href={NAV_ADMIN.href}
+            className="mb-2 block rounded-lg px-3 py-2 text-xs font-medium text-slate-500 hover:bg-slate-50"
+            onClick={() => onNavigate?.()}
+          >
+            {NAV_ADMIN.label}
+          </Link>
+        ) : null}
+        {sessionRole === "agent" ? (
+          <Link
+            href="/admin/distribuir"
+            className="mb-2 block rounded-lg px-3 py-2 text-xs font-medium text-slate-500 hover:bg-slate-50"
+            onClick={() => onNavigate?.()}
+          >
+            Distribuir
+          </Link>
+        ) : null}
         <Link
           href="/login"
           className="mb-2 block rounded-lg px-3 py-2 text-xs text-slate-500 hover:bg-slate-50"

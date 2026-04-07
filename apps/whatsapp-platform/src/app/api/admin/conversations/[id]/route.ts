@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { listTenants } from "@/modules/tenants";
+import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  _request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
@@ -13,11 +13,12 @@ export async function GET(
     return NextResponse.json({ error: "Missing conversation id" }, { status: 400 });
   }
   try {
-    const tenants = await listTenants();
-    const tenantId = tenants[0]?.id;
-    if (!tenantId) {
-      return NextResponse.json({ error: "No tenant" }, { status: 404 });
-    }
+    const auth = await getAuthFromRequest(request);
+    const denied = requireRole(auth, STAFF_ROLES, request);
+    if (denied) return denied;
+
+    const tenantId = auth!.payload.tenantId;
+
     const thread = await prisma.waInboxThread.findFirst({
       where: { id, tenantId },
       select: {

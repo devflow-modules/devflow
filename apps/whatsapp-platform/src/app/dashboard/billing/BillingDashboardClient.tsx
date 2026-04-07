@@ -12,6 +12,7 @@ import {
 } from "@/components/dashboard/billing";
 import type { TenantBillingUI } from "@/modules/billing";
 import type { PlanKey } from "@/modules/billing/plans";
+import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 function formatBRL(value: number): string {
   return new Intl.NumberFormat("pt-BR", {
@@ -36,13 +37,13 @@ export function BillingDashboardClient() {
   const load = useCallback(async () => {
     setError(null);
     try {
-      const res = await fetch("/api/billing/ui", { credentials: "include" });
+      const res = await fetchProtected("/api/billing/ui");
+      const json = (await res.json().catch(() => ({}))) as { data?: TenantBillingUI; error?: string };
       if (!res.ok) {
-        setError("Não foi possível carregar os dados de billing.");
+        setError(protectedApiUserMessage(res.status, json));
         return;
       }
-      const json = await res.json();
-      setData(json.data);
+      setData(json.data !== undefined ? json.data : null);
     } catch {
       setError("Erro de rede");
     } finally {
@@ -60,9 +61,9 @@ export function BillingDashboardClient() {
     const endpoints = ["/api/stripe/portal", "/api/billing/portal"];
     for (const url of endpoints) {
       try {
-        const res = await fetch(url, { method: "POST", credentials: "include" });
-        const j = await res.json();
-        if (!res.ok) throw new Error(j.error ?? "Falha");
+        const res = await fetchProtected(url, { method: "POST" });
+        const j = (await res.json().catch(() => ({}))) as { error?: string; data?: { url: string } };
+        if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j));
         if (j.data?.url) {
           window.location.href = j.data.url;
           return;
@@ -83,14 +84,13 @@ export function BillingDashboardClient() {
       const endpoints = ["/api/stripe/checkout", "/api/billing/checkout"];
       for (const url of endpoints) {
         try {
-          const res = await fetch(url, {
+          const res = await fetchProtected(url, {
             method: "POST",
-            credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ plan }),
           });
-          const j = await res.json();
-          if (!res.ok) throw new Error(j.error ?? "Falha no checkout");
+          const j = (await res.json().catch(() => ({}))) as { error?: string; data?: { url: string } };
+          if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j));
           if (j.data?.url) {
             window.location.href = j.data.url;
             return;

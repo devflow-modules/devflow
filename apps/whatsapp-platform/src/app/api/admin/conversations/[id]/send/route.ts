@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
 import { sendReplyAndPersist } from "@/modules/messaging";
+import { logAction } from "@/modules/inbox/auditService";
+import { logError, logEvent } from "@/lib/observability";
 import { resolveMessagingTenantForOutbound } from "@/modules/whatsapp/whatsappPhoneResolution";
 import { prisma } from "@/lib/prisma";
 
@@ -11,9 +13,8 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-  }
+  const denied = requireRole(auth, STAFF_ROLES, request);
+  if (denied) return denied;
 
   const { id } = await params;
   if (!id) {
@@ -31,13 +32,13 @@ export async function POST(
   }
   try {
     const thread = await prisma.waInboxThread.findFirst({
-      where: { id, tenantId: auth.payload.tenantId },
+      where: { id, tenantId: auth!.payload.tenantId },
     });
     if (!thread) {
       return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
     }
     const messagingTenant = await resolveMessagingTenantForOutbound(
-      auth.payload.tenantId,
+      auth!.payload.tenantId,
       thread.businessPhoneNumberId
     );
     if (!messagingTenant) {
@@ -52,9 +53,18 @@ export async function POST(
       text,
       inboxThreadId: thread.id,
     });
+    await logAction(auth!.payload.tenantId, thread.id, auth!.payload.sub, "message_send", {
+      source: "admin_conversations_api",
+      textLength: text.length,
+    });
+    logEvent("info", "admin", "conversation_message_sent", {
+      tenantId: auth!.payload.tenantId,
+      threadId: thread.id,
+      userId: auth!.payload.sub,
+    });
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("[POST /api/admin/conversations/:id/send]", err);
+    logError("admin", err, { route: "admin_conversation_send", threadId: id });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Send failed" },
       { status: 500 }

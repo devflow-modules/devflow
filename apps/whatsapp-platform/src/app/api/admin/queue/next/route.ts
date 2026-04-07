@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 import { findNextUnassignedQueueThread } from "@/modules/inbox/waInboxQueueService";
+import { assignThread } from "@/modules/inbox/threadAssignmentService";
+import { logEvent } from "@/lib/observability";
 import { WaInboxDirection } from "@/generated/prisma-whatsapp";
 
 /**
@@ -11,12 +13,13 @@ import { WaInboxDirection } from "@/generated/prisma-whatsapp";
  */
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  const denied = requireRole(auth, STAFF_ROLES, request);
+  if (denied) return denied;
 
   const { searchParams } = new URL(request.url);
   const assign = searchParams.get("assign") !== "false";
-  const tenantId = auth.payload.tenantId;
-  const userId = auth.payload.sub;
+  const tenantId = auth!.payload.tenantId;
+  const userId = auth!.payload.sub;
 
   const thread = await findNextUnassignedQueueThread(tenantId);
 
@@ -28,10 +31,7 @@ export async function GET(request: NextRequest) {
   }
 
   if (assign) {
-    await prisma.waInboxThread.update({
-      where: { id: thread.id, tenantId },
-      data: { assignedToUserId: userId },
-    });
+    await assignThread(tenantId, thread.id, userId, userId);
     await prisma.agentStatus.upsert({
       where: { tenantId_userId: { tenantId, userId } },
       create: {
@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
         updatedAt: new Date(),
       },
     });
+    logEvent("info", "admin", "queue_next_assigned", { tenantId, threadId: thread.id, userId });
   }
 
   const chronological = [...thread.messages].reverse();

@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 function WhatsappCallbackInner() {
   const searchParams = useSearchParams();
@@ -19,21 +20,24 @@ function WhatsappCallbackInner() {
   useEffect(() => {
     if (paramsInvalid || !code || !state) return;
 
-    fetch("/api/whatsapp/onboard/callback", {
+    fetchProtected("/api/whatsapp/onboard/callback", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify({ code, state }),
     })
       .then(async (res) => {
-        const json = await res.json();
+        const json = (await res.json().catch(() => ({}))) as {
+          success?: boolean;
+          data?: { message?: string };
+          error?: string;
+        };
         if (res.ok && json.success) {
           setStatus("success");
           setMessage(json.data?.message ?? "Número conectado com sucesso!");
           window.location.href = "/dashboard/whatsapp?success=1";
         } else {
           setStatus("error");
-          setMessage(json.error ?? "Falha ao conectar número.");
+          setMessage(protectedApiUserMessage(res.status, json));
         }
       })
       .catch(() => {

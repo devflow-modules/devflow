@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { APP_PRODUCT_SLUG } from "@/lib/constants";
+import { guardOpsMetricsRequest } from "@/lib/ops-metrics-guard";
 import { hasSupabaseConfig } from "@/lib/supabase-server";
 import { countTenants } from "@/modules/tenants";
 import { countConversations } from "@/modules/conversations";
@@ -7,10 +8,14 @@ import { countMessagesLast24h } from "@/modules/messaging";
 
 /**
  * Contrato Ops: GET /api/ops/metrics
+ * Proteção: ver `guardOpsMetricsRequest` e `WHATSAPP_OPS_METRICS_SECRET`.
  * Billing (users, activeSubscriptions, pendingCancellation, mrr): 0 — não implementado para este produto.
  * tenants, conversations, messagesLast24h: dados reais do Supabase quando configurado.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const denied = guardOpsMetricsRequest(request);
+  if (denied) return denied;
+
   let tenants = 0;
   let conversations = 0;
   let messagesLast24h = 0;

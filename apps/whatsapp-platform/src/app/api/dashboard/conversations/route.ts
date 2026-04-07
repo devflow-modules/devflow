@@ -1,21 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { hasSupabaseConfig } from "@/lib/supabase-server";
 import { listConversations } from "@/modules/conversations";
+import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
 
 /**
- * Lista conversas para o dashboard (primeiro tenant por enquanto).
+ * Lista conversas do dashboard para o tenant da sessão.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const auth = await getAuthFromRequest(request);
+  const denied = requireRole(auth, STAFF_ROLES, request);
+  if (denied) return denied;
+
   if (!hasSupabaseConfig()) {
     return NextResponse.json({ conversations: [], total: 0 });
   }
   try {
-    const { listTenants } = await import("@/modules/tenants");
-    const tenants = await listTenants();
-    const tenantId = tenants[0]?.id;
-    if (!tenantId) {
-      return NextResponse.json({ conversations: [], total: 0 });
-    }
+    const tenantId = auth!.payload.tenantId;
     const conversations = await listConversations(tenantId, 50);
     return NextResponse.json({ conversations, total: conversations.length });
   } catch (err) {

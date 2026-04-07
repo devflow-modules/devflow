@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@devflow/ui";
+import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 export function DistribuirClient() {
   const router = useRouter();
@@ -16,14 +17,10 @@ export function DistribuirClient() {
     setMessage(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/queue/next", { credentials: "include" });
-      const data = await res.json().catch(() => ({}));
+      const res = await fetchProtected("/api/admin/queue/next");
+      const data = (await res.json().catch(() => ({}))) as { error?: string; thread?: { id: string }; message?: string };
       if (!res.ok) {
-        if (res.status === 401) {
-          setError("Faça login para pegar conversas da fila.");
-          return;
-        }
-        setError(data.error ?? "Erro ao buscar próxima conversa.");
+        setError(protectedApiUserMessage(res.status, data));
         return;
       }
       if (data.thread?.id) {

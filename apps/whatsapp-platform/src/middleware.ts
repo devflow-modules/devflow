@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-
-const JWT_COOKIE_NAME = "whatsapp_platform_token";
-const ADMIN_METRICS_COOKIE = "admin_metrics_secret";
+import { ADMIN_METRICS_SECRET_COOKIE_NAME, JWT_COOKIE_NAME } from "@/lib/auth-config";
+import { loginUrlWithNext } from "@/lib/safe-redirect";
 
 /**
  * Validação alinhada com `getAuthFromRequest` (sessão + DB), sem duplicar regras em Edge.
- * Evita tokens revogados ou sem `jti` continuarem a abrir páginas só com assinatura JWT.
  */
 async function verifySessionViaApi(request: NextRequest): Promise<boolean> {
   const verifyUrl = new URL("/api/auth/verify", request.nextUrl.origin);
@@ -17,27 +15,62 @@ async function verifySessionViaApi(request: NextRequest): Promise<boolean> {
   return res.ok;
 }
 
-export async function middleware(request: NextRequest) {
-  const path = request.nextUrl.pathname;
+function fullPathForNext(request: NextRequest): string {
+  const p = request.nextUrl.pathname;
+  const q = request.nextUrl.search;
+  return `${p}${q}`;
+}
 
-  if (
+function redirectToLoginWithNext(request: NextRequest): NextResponse {
+  const path = fullPathForNext(request);
+  return NextResponse.redirect(new URL(loginUrlWithNext(path), request.url));
+}
+
+/** Áreas com shell autenticado (alinhado à navegação principal). */
+function requiresTenantSession(path: string): boolean {
+  return (
     path.startsWith("/inbox") ||
     path.startsWith("/settings") ||
     path.startsWith("/billing") ||
-    path.startsWith("/dashboard/billing")
-  ) {
+    path.startsWith("/dashboard") ||
+    path.startsWith("/automation") ||
+    path.startsWith("/conversations") ||
+    path.startsWith("/agents") ||
+    path.startsWith("/queues")
+  );
+}
+
+/** Em produção, métricas/billing admin podem usar cookie de segredo em vez de JWT. */
+function metricsSecretBypass(request: NextRequest, path: string): boolean {
+  if (process.env.NODE_ENV !== "production") return false;
+  if (!path.startsWith("/admin/metrics") && !path.startsWith("/admin/billing")) return false;
+  const adminSecret =
+    process.env.WHATSAPP_ADMIN_METRICS_SECRET ?? process.env.ADMIN_METRICS_SECRET;
+  if (!adminSecret) return false;
+  const adminCookie = request.cookies.get(ADMIN_METRICS_SECRET_COOKIE_NAME)?.value;
+  return adminCookie === adminSecret;
+}
+
+function redirectToMetricsSecretLogin(request: NextRequest): NextResponse {
+  return NextResponse.redirect(new URL("/admin/login", request.url));
+}
+
+export async function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+
+  if (requiresTenantSession(path)) {
     const secret = process.env.JWT_SECRET;
     if (!secret) {
       if (process.env.NODE_ENV === "development") return NextResponse.next();
-      return NextResponse.redirect(new URL("/login", request.url));
+      return redirectToLoginWithNext(request);
     }
     const token = request.cookies.get(JWT_COOKIE_NAME)?.value;
     if (!token) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return redirectToLoginWithNext(request);
     }
     const valid = await verifySessionViaApi(request);
     if (!valid) {
-      const res = NextResponse.redirect(new URL("/login", request.url));
+      const res = redirectToLoginWithNext(request);
       res.cookies.delete(JWT_COOKIE_NAME);
       return res;
     }
@@ -47,31 +80,32 @@ export async function middleware(request: NextRequest) {
   if (!path.startsWith("/admin")) return NextResponse.next();
   if (path === "/admin/login" || path === "/admin/login/") return NextResponse.next();
 
-  const secret = process.env.JWT_SECRET;
-
-  if (
-    (path.startsWith("/admin/metrics") || path.startsWith("/admin/billing")) &&
-    process.env.NODE_ENV === "production"
-  ) {
-    const adminSecret =
-      process.env.WHATSAPP_ADMIN_METRICS_SECRET ?? process.env.ADMIN_METRICS_SECRET;
-    const adminCookie = request.cookies.get(ADMIN_METRICS_COOKIE)?.value;
-    if (adminSecret && adminCookie === adminSecret) return NextResponse.next();
+  if (metricsSecretBypass(request, path)) {
+    return NextResponse.next();
   }
 
-  if (!secret) {
+  const jwtSecret = process.env.JWT_SECRET;
+
+  if (!jwtSecret) {
     if (process.env.NODE_ENV === "development") return NextResponse.next();
-    return NextResponse.redirect(new URL("/admin/login", request.url));
+    return redirectToMetricsSecretLogin(request);
   }
 
   const token = request.cookies.get(JWT_COOKIE_NAME)?.value;
   if (!token) {
-    return NextResponse.redirect(new URL("/admin/login", request.url));
+    const metricsOnlySecretFlow =
+      process.env.NODE_ENV === "production" &&
+      (path.startsWith("/admin/metrics") || path.startsWith("/admin/billing")) &&
+      (process.env.WHATSAPP_ADMIN_METRICS_SECRET ?? process.env.ADMIN_METRICS_SECRET);
+    if (metricsOnlySecretFlow) {
+      return redirectToMetricsSecretLogin(request);
+    }
+    return redirectToLoginWithNext(request);
   }
 
   const valid = await verifySessionViaApi(request);
   if (!valid) {
-    const res = NextResponse.redirect(new URL("/admin/login", request.url));
+    const res = redirectToLoginWithNext(request);
     res.cookies.delete(JWT_COOKIE_NAME);
     return res;
   }

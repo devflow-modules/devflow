@@ -20,6 +20,7 @@ import {
   fieldInputClassName,
   fieldSelectClassName,
 } from "@/components/ui/form-field";
+import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 type RuleItem = {
   id: string;
@@ -42,13 +43,16 @@ const TRIGGER_LABELS: Record<string, string> = {
 };
 
 async function fetchRules(): Promise<RuleItem[]> {
-  const res = await fetch("/api/automation/rules", { credentials: "include" });
+  const res = await fetchProtected("/api/automation/rules");
+  const json = (await res.json().catch(() => ({}))) as {
+    success?: boolean;
+    data?: { rules: RuleItem[] };
+    error?: string;
+  };
   if (!res.ok) {
-    if (res.status === 401) throw new Error("Faça login para acessar");
-    throw new Error("Falha ao carregar regras");
+    throw new Error(protectedApiUserMessage(res.status, json));
   }
-  const json = (await res.json()) as { success: boolean; data: { rules: RuleItem[] } };
-  return json.data.rules ?? [];
+  return json.data?.rules ?? [];
 }
 
 export function AutomationClient() {
@@ -150,10 +154,9 @@ export function AutomationClient() {
         condValue.trim() || condOp === "isNull"
           ? [{ field: condField, operator: condOp, value: condValue.trim() || null }]
           : [];
-      const res = await fetch("/api/automation/rules", {
+      const res = await fetchProtected("/api/automation/rules", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({
           name: name.trim(),
           triggerType,
@@ -161,9 +164,9 @@ export function AutomationClient() {
           actions,
         }),
       });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? "Falha ao criar regra");
+        throw new Error(protectedApiUserMessage(res.status, data));
       }
       resetForm();
       refetch();
@@ -178,15 +181,14 @@ export function AutomationClient() {
     setApiError(null);
     setLoading(true);
     try {
-      const res = await fetch(`/api/automation/rules/${id}`, {
+      const res = await fetchProtected(`/api/automation/rules/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ isActive: !isActive }),
       });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? "Falha ao atualizar");
+        throw new Error(protectedApiUserMessage(res.status, data));
       }
       refetch();
     } catch (err) {
@@ -201,13 +203,10 @@ export function AutomationClient() {
     setApiError(null);
     setLoading(true);
     try {
-      const res = await fetch(`/api/automation/rules/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+      const res = await fetchProtected(`/api/automation/rules/${id}`, { method: "DELETE" });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? "Falha ao remover");
+        throw new Error(protectedApiUserMessage(res.status, data));
       }
       refetch();
     } catch (err) {
@@ -226,24 +225,23 @@ export function AutomationClient() {
     setTestLoading(true);
     setTestResult(null);
     try {
-      const res = await fetch(`/api/automation/rules/${ruleId}/test`, {
+      const res = await fetchProtected(`/api/automation/rules/${ruleId}/test`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({
           threadId: testThreadId,
           messageText: testMessageText.trim() || undefined,
         }),
       });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? "Falha ao testar");
-      }
-      const json = (await res.json()) as {
-        success: boolean;
-        data: { conditionsMatch: boolean; wouldExecute: boolean; matchingRulesCount: number };
+      const json = (await res.json().catch(() => ({}))) as {
+        success?: boolean;
+        data?: { conditionsMatch: boolean; wouldExecute: boolean; matchingRulesCount: number };
+        error?: string;
       };
-      setTestResult(json.data);
+      if (!res.ok) {
+        throw new Error(protectedApiUserMessage(res.status, json));
+      }
+      setTestResult(json.data ?? null);
     } catch (err) {
       setApiError(err instanceof Error ? err.message : "Erro ao testar");
     } finally {

@@ -27,6 +27,7 @@ export function getTokenFromCookie(cookieHeader: string | null): string | null {
 
 export function buildSetCookieHeader(token: string): string {
   const domain = getCookieDomain();
+  /** Alinhado a `signToken` (`getAccessTokenHours`) para o browser remover o cookie quando o JWT expira. */
   const maxAge = getAccessTokenMaxAgeSeconds();
   let value = `${JWT_COOKIE_NAME}=${token}; Path=${COOKIE_OPTIONS.path}; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`;
   if (cookieSecure()) value += "; Secure";

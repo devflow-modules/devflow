@@ -22,6 +22,7 @@ import {
   logSystemError,
 } from "@/modules/billing/billingObserverService";
 import { logWebhookInvalidSignature } from "@/modules/stripe/webhookLogger";
+import { recordPlatformAudit } from "@/lib/platformAuditLog";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +61,13 @@ export async function POST(request: NextRequest) {
   // --- 3. Roteamento: delegar para service ---
   try {
     await handleStripeWebhookEvent(event);
+    recordPlatformAudit({
+      action: "billing_webhook_processed",
+      tenantId: tenantId ?? undefined,
+      resourceType: "stripe_event",
+      resourceId: event.id,
+      metadata: { eventType: event.type },
+    });
   } catch (err) {
     if (tenantId) {
       logSystemError({

@@ -51,14 +51,28 @@ export async function signToken(payload: Omit<JwtPayload, "iat" | "exp">): Promi
     .sign(secret);
 }
 
-export async function verifyToken(token: string): Promise<JwtPayload | null> {
+export type VerifyTokenResult =
+  | { ok: true; payload: JwtPayload }
+  | { ok: false; reason: "expired" | "invalid" };
+
+export async function verifyTokenResult(token: string): Promise<VerifyTokenResult> {
   try {
     const secret = new TextEncoder().encode(getJwtSecret());
     const { payload } = await jwtVerify(token, secret);
-    return payload as unknown as JwtPayload;
-  } catch {
-    return null;
+    return { ok: true, payload: payload as unknown as JwtPayload };
+  } catch (e: unknown) {
+    const code =
+      typeof e === "object" && e !== null && "code" in e ? String((e as { code: string }).code) : "";
+    if (code === "ERR_JWT_EXPIRED") {
+      return { ok: false, reason: "expired" };
+    }
+    return { ok: false, reason: "invalid" };
   }
+}
+
+export async function verifyToken(token: string): Promise<JwtPayload | null> {
+  const r = await verifyTokenResult(token);
+  return r.ok ? r.payload : null;
 }
 
 export async function findUserByEmail(email: string): Promise<{ id: string; email: string; name: string; role: string; tenantId: string; passwordHash: string } | null> {
@@ -83,18 +97,32 @@ export async function signPasswordResetToken(userId: string, email: string): Pro
     .sign(secret);
 }
 
-export async function verifyPasswordResetToken(token: string): Promise<PasswordResetPayload | null> {
+export type VerifyPasswordResetResult =
+  | { ok: true; payload: PasswordResetPayload }
+  | { ok: false; reason: "expired" | "invalid" };
+
+export async function verifyPasswordResetTokenResult(token: string): Promise<VerifyPasswordResetResult> {
   try {
     const secret = new TextEncoder().encode(getJwtSecret());
     const { payload } = await jwtVerify(token, secret);
     const p = payload as unknown as { sub?: string; email?: string; purpose?: string };
     if (p.sub && p.email && p.purpose === "password_reset") {
-      return { sub: p.sub, email: p.email, purpose: "password_reset" };
+      return { ok: true, payload: { sub: p.sub, email: p.email, purpose: "password_reset" } };
     }
-    return null;
-  } catch {
-    return null;
+    return { ok: false, reason: "invalid" };
+  } catch (e: unknown) {
+    const code =
+      typeof e === "object" && e !== null && "code" in e ? String((e as { code: string }).code) : "";
+    if (code === "ERR_JWT_EXPIRED") {
+      return { ok: false, reason: "expired" };
+    }
+    return { ok: false, reason: "invalid" };
   }
+}
+
+export async function verifyPasswordResetToken(token: string): Promise<PasswordResetPayload | null> {
+  const r = await verifyPasswordResetTokenResult(token);
+  return r.ok ? r.payload : null;
 }
 
 export async function updateUserPassword(userId: string, newPassword: string): Promise<boolean> {

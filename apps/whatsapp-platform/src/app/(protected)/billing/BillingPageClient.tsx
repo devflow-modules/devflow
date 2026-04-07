@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@devflow/ui";
 import { PLANS } from "@/modules/billing/plans";
 import { StateError, StateLoading } from "@/components/ui/app-states";
+import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 type Sub = {
   plan: string;
@@ -86,17 +87,21 @@ export function BillingPageClient() {
     setErr(null);
     try {
       const [r1, r2] = await Promise.all([
-        fetch("/api/billing/subscription", { credentials: "include" }),
-        fetch("/api/billing/usage", { credentials: "include" }),
+        fetchProtected("/api/billing/subscription"),
+        fetchProtected("/api/billing/usage"),
       ]);
-      if (!r1.ok || !r2.ok) {
-        setErr("Não foi possível carregar billing.");
+      const j1 = (await r1.json().catch(() => ({}))) as { data?: Sub; error?: string };
+      const j2 = (await r2.json().catch(() => ({}))) as { data?: Usage; error?: string };
+      if (!r1.ok) {
+        setErr(protectedApiUserMessage(r1.status, j1));
         return;
       }
-      const j1 = await r1.json();
-      const j2 = await r2.json();
-      setSub(j1.data);
-      setUsage(j2.data);
+      if (!r2.ok) {
+        setErr(protectedApiUserMessage(r2.status, j2));
+        return;
+      }
+      setSub(j1.data ?? null);
+      setUsage(j2.data ?? null);
     } catch {
       setErr("Erro de rede");
     } finally {
@@ -141,14 +146,13 @@ export function BillingPageClient() {
       const endpoints = ["/api/stripe/checkout", "/api/billing/checkout"];
       for (const url of endpoints) {
         try {
-          const res = await fetch(url, {
+          const res = await fetchProtected(url, {
             method: "POST",
-            credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ plan }),
           });
-          const j = await res.json();
-          if (!res.ok) throw new Error(j.error ?? "Falha no checkout");
+          const j = (await res.json().catch(() => ({}))) as { error?: string; data?: { url: string } };
+          if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j));
           if (j.data?.url) {
             window.location.href = j.data.url;
             return;
@@ -167,14 +171,13 @@ export function BillingPageClient() {
     setUpgradeLoading(plan);
     setErr(null);
     try {
-      const res = await fetch("/api/billing/upgrade", {
+      const res = await fetchProtected("/api/billing/upgrade", {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan }),
       });
-      const j = await res.json();
-      if (!res.ok) throw new Error(j.error ?? "Falha");
+      const j = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j));
       await load();
       setShowUpgradeModal(false);
     } catch (e) {

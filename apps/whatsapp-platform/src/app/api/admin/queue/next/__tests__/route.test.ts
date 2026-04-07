@@ -3,22 +3,27 @@ import { WaInboxThreadStatus, WaInboxDirection } from "@/generated/prisma-whatsa
 
 const mockGetAuthFromRequest = vi.fn();
 const mockFindNext = vi.fn();
-const mockThreadUpdate = vi.fn();
 const mockAgentUpsert = vi.fn();
 
-vi.mock("@/modules/auth", () => ({ getAuthFromRequest: (...args: unknown[]) => mockGetAuthFromRequest(...args) }));
+vi.mock("@/modules/auth", async () => {
+  const actual = await vi.importActual<typeof import("@/modules/auth")>("@/modules/auth");
+  return {
+    ...actual,
+    getAuthFromRequest: (...args: unknown[]) => mockGetAuthFromRequest(...args),
+  };
+});
 vi.mock("@/modules/inbox/waInboxQueueService", () => ({
   findNextUnassignedQueueThread: (...args: unknown[]) => mockFindNext(...args),
 }));
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    waInboxThread: { update: (...args: unknown[]) => mockThreadUpdate(...args) },
     agentStatus: { upsert: (...args: unknown[]) => mockAgentUpsert(...args) },
   },
 }));
 
 describe("GET /api/admin/queue/next", () => {
   beforeEach(() => {
+    vi.resetModules();
     vi.clearAllMocks();
   });
 
@@ -34,7 +39,7 @@ describe("GET /api/admin/queue/next", () => {
 
   it("retorna thread null quando fila vazia", async () => {
     mockGetAuthFromRequest.mockResolvedValue({
-      payload: { tenantId: "t1", sub: "u1" },
+      payload: { tenantId: "t1", sub: "u1", role: "agent" },
     });
     mockFindNext.mockResolvedValue(null);
     const { GET } = await import("../route");
@@ -48,7 +53,7 @@ describe("GET /api/admin/queue/next", () => {
 
   it("retorna próxima thread e atribui ao agente quando assign=true", async () => {
     mockGetAuthFromRequest.mockResolvedValue({
-      payload: { tenantId: "t1", sub: "u1" },
+      payload: { tenantId: "t1", sub: "u1", role: "agent" },
     });
     const createdAt = new Date("2025-01-01T10:00:00Z");
     const lastMsgAt = new Date("2025-01-01T11:00:00Z");
@@ -69,8 +74,9 @@ describe("GET /api/admin/queue/next", () => {
         },
       ],
     });
-    mockThreadUpdate.mockResolvedValue({});
     mockAgentUpsert.mockResolvedValue({});
+    const assignMod = await import("@/modules/inbox/threadAssignmentService");
+    vi.spyOn(assignMod, "assignThread").mockResolvedValue(true);
     const { GET } = await import("../route");
     const req = new Request("http://localhost/api/admin/queue/next");
     const res = await GET(req as never);
@@ -78,12 +84,7 @@ describe("GET /api/admin/queue/next", () => {
     const data = await res.json();
     expect(data.thread).toBeDefined();
     expect(data.thread.id).toBe("th1");
-    expect(mockThreadUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: "th1", tenantId: "t1" },
-        data: { assignedToUserId: "u1" },
-      })
-    );
+    expect(assignMod.assignThread).toHaveBeenCalledWith("t1", "th1", "u1", "u1");
     expect(mockAgentUpsert).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { tenantId_userId: { tenantId: "t1", userId: "u1" } },

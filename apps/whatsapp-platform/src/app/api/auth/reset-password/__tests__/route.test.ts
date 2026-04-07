@@ -18,7 +18,7 @@ vi.mock("@/modules/auth/sessionService", () => ({
 }));
 
 vi.mock("@/modules/auth", () => ({
-  verifyPasswordResetToken: (...a: unknown[]) => mockVerifyToken(...a),
+  verifyPasswordResetTokenResult: (...a: unknown[]) => mockVerifyToken(...a),
   updateUserPassword: (...a: unknown[]) => mockUpdatePassword(...a),
 }));
 
@@ -44,7 +44,7 @@ describe("POST /api/auth/reset-password", () => {
   });
 
   it("400 quando token inválido", async () => {
-    mockVerifyToken.mockResolvedValue(null);
+    mockVerifyToken.mockResolvedValue({ ok: false, reason: "invalid" as const });
     const { POST } = await import("../route");
     const req = new NextRequest("http://localhost/api/auth/reset-password", {
       method: "POST",
@@ -53,10 +53,29 @@ describe("POST /api/auth/reset-password", () => {
     });
     const res = await POST(req);
     expect(res.status).toBe(400);
+    const body = (await res.json()) as { code?: string };
+    expect(body.code).toBe("RESET_TOKEN_INVALID");
+  });
+
+  it("400 quando token expirado", async () => {
+    mockVerifyToken.mockResolvedValue({ ok: false, reason: "expired" as const });
+    const { POST } = await import("../route");
+    const req = new NextRequest("http://localhost/api/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token: "exp", newPassword: "12345678" }),
+      headers: { "Content-Type": "application/json" },
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { code?: string };
+    expect(body.code).toBe("RESET_TOKEN_EXPIRED");
   });
 
   it("200 quando senha atualizada", async () => {
-    mockVerifyToken.mockResolvedValue({ sub: "u1", email: "a@b.com" });
+    mockVerifyToken.mockResolvedValue({
+      ok: true,
+      payload: { sub: "u1", email: "a@b.com" },
+    });
     mockUpdatePassword.mockResolvedValue(true);
     const { POST } = await import("../route");
     const req = new NextRequest("http://localhost/api/auth/reset-password", {

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
 
 const mockFindMany = vi.fn();
-const mockListTenants = vi.fn();
+const mockGetAuthFromRequest = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -12,12 +12,29 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
-vi.mock("@/modules/tenants", () => ({ listTenants: (...args: unknown[]) => mockListTenants(...args) }));
+vi.mock("@/modules/auth", async () => {
+  const actual = await vi.importActual<typeof import("@/modules/auth")>("@/modules/auth");
+  return {
+    ...actual,
+    getAuthFromRequest: (...args: unknown[]) => mockGetAuthFromRequest(...args),
+  };
+});
 
 describe("GET /api/admin/conversations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockListTenants.mockResolvedValue([{ id: "t1" }]);
+    mockGetAuthFromRequest.mockResolvedValue({
+      payload: {
+        sub: "u1",
+        email: "a@b.c",
+        name: "A",
+        role: "admin",
+        tenantId: "t1",
+        jti: "j1",
+      },
+      token: "t",
+      sessionId: "j1",
+    });
     mockFindMany.mockResolvedValue([
       {
         id: "th1",
@@ -29,6 +46,14 @@ describe("GET /api/admin/conversations", () => {
         status: WaInboxThreadStatus.OPEN,
       },
     ]);
+  });
+
+  it("retorna 401 quando não autenticado", async () => {
+    mockGetAuthFromRequest.mockResolvedValue(null);
+    const { GET } = await import("../route");
+    const req = new Request("http://localhost/api/admin/conversations");
+    const res = await GET(req as never);
+    expect(res.status).toBe(401);
   });
 
   it("retorna conversas e total sem filtro de status", async () => {

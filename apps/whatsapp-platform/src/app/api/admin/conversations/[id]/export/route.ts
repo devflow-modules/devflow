@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 import { WaInboxDirection } from "@/generated/prisma-whatsapp";
 
@@ -8,18 +8,19 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  const denied = requireRole(auth, STAFF_ROLES, request);
+  if (denied) return denied;
 
   const { id: threadId } = await params;
   const format = request.nextUrl.searchParams.get("format") ?? "csv";
 
   const thread = await prisma.waInboxThread.findFirst({
-    where: { id: threadId, tenantId: auth.payload.tenantId },
+    where: { id: threadId, tenantId: auth!.payload.tenantId },
   });
   if (!thread) return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 });
 
   const messages = await prisma.waInboxMessage.findMany({
-    where: { tenantId: auth.payload.tenantId, threadId },
+    where: { tenantId: auth!.payload.tenantId, threadId },
     orderBy: { ts: "asc" },
   });
 

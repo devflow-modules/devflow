@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Button, cn } from "@devflow/ui";
+import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 type MessageItem = {
   id: string;
@@ -24,7 +25,7 @@ export default function AdminConversationChatPage() {
 
   useEffect(() => {
     if (!id) return;
-    fetch(`/api/admin/conversations/${id}`)
+    fetchProtected(`/api/admin/conversations/${id}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => d && setCustomerName(d.customerName ?? null))
       .catch(() => {});
@@ -34,9 +35,11 @@ export default function AdminConversationChatPage() {
     if (!id) return;
     setError(null);
     try {
-      const res = await fetch(`/api/admin/conversations/${id}/messages`);
-      if (!res.ok) throw new Error("Falha ao carregar mensagens");
-      const data = await res.json();
+      const res = await fetchProtected(`/api/admin/conversations/${id}/messages`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(protectedApiUserMessage(res.status, data as { error?: string; message?: string }));
+      }
       setMessages(data.messages ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro");
@@ -59,13 +62,13 @@ export default function AdminConversationChatPage() {
     setSending(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/conversations/${id}/send`, {
+      const res = await fetchProtected(`/api/admin/conversations/${id}/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Falha ao enviar");
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) throw new Error(protectedApiUserMessage(res.status, data));
       setInput("");
       await fetchMessages();
     } catch (e) {

@@ -81,6 +81,24 @@ model Tenant {
   @@map("whatsapp_tenants")
 }
 
+/// Auditoria transversal (auth, automação, webhooks agregados). Inbox/thread continua em WaInboxAuditLog; billing detalhado em BillingAuditLog.
+model AuditLog {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now()) @map("created_at")
+  action       String   @map("action") @db.VarChar(64)
+  tenantId     String?  @map("tenant_id")
+  userId       String?  @map("user_id")
+  resourceType String?  @map("resource_type") @db.VarChar(64)
+  resourceId   String?  @map("resource_id") @db.VarChar(128)
+  metadata     Json?    @map("metadata")
+  ip           String?  @map("ip") @db.VarChar(128)
+
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("platform_audit_logs")
+}
+
 enum UsageEventType {
   MESSAGE_SENT
   AI_RESPONSE

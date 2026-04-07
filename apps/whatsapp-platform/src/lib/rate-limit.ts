@@ -8,6 +8,8 @@ const LIMITS: Record<string, { windowMs: number; max: number }> = {
   "reset-password": { windowMs: DEFAULT_WINDOW_MS, max: 5 },
   /** Login: limite mais alto que forgot/reset para não bloquear equipas no mesmo IP. */
   "auth-login": { windowMs: DEFAULT_WINDOW_MS, max: 30 },
+  /** Cadastro: janela igual, limite moderado por IP. */
+  signup: { windowMs: DEFAULT_WINDOW_MS, max: 10 },
 };
 
 const store = new Map<string, { count: number; resetAt: number }>();

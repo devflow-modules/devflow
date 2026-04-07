@@ -15,7 +15,7 @@ function escapeCsvCell(value: string | number | null | undefined): string {
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  const denied = requireRole(auth, ["admin"]);
+  const denied = requireRole(auth, ["admin"], request);
   if (denied) return denied;
   if (!auth) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });

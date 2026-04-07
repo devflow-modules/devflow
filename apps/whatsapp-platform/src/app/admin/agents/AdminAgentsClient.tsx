@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { fetchProtected } from "@/lib/protected-fetch";
 
 type Agent = {
   id: string;
@@ -29,8 +30,8 @@ export function AdminAgentsClient() {
 
   const load = () => {
     Promise.all([
-      fetch("/api/admin/agent-status").then((r) => (r.ok ? r.json() : { agents: [] })),
-      fetch("/api/admin/queues").then((r) => (r.ok ? r.json() : { queues: [] })),
+      fetchProtected("/api/admin/agent-status").then((r) => (r.ok ? r.json() : { agents: [] })),
+      fetchProtected("/api/admin/queues").then((r) => (r.ok ? r.json() : { queues: [] })),
     ])
       .then(([a, q]) => {
         setAgents(a.agents ?? []);
@@ -44,7 +45,7 @@ export function AdminAgentsClient() {
   }, []);
 
   const setStatus = async (userId: string, status: string) => {
-    const res = await fetch("/api/admin/agent-status", {
+    const res = await fetchProtected("/api/admin/agent-status", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, status }),

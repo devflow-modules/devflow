@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  const denied = requireRole(auth, ["admin"]);
+  const denied = requireRole(auth, ["admin"], request);
   if (denied) return denied;
   if (!auth) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });

@@ -14,6 +14,7 @@ import {
   fieldSelectClassName,
   fieldTextareaClassName,
 } from "@/components/ui/form-field";
+import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 type Tone = "FRIENDLY" | "SALES" | "SUPPORT" | "NEUTRAL";
 
@@ -76,17 +77,20 @@ export function AiSettingsForm() {
   const load = useCallback(async () => {
     try {
       const [rConfig, rStatus, rPlan] = await Promise.all([
-        fetch("/api/ai/config", { credentials: "include" }),
-        fetch("/api/billing/ai-usage-status", { credentials: "include" }),
-        fetch("/api/billing/ai-plan", { credentials: "include" }),
+        fetchProtected("/api/ai/config"),
+        fetchProtected("/api/billing/ai-usage-status"),
+        fetchProtected("/api/billing/ai-plan"),
       ]);
+      const j = (await rConfig.json().catch(() => ({}))) as {
+        data?: AiCfg;
+        error?: string;
+        success?: boolean;
+      };
       if (!rConfig.ok) {
-        if (rConfig.status === 401) setError("Faça login para continuar.");
-        else setError("Falha ao carregar");
+        setError(protectedApiUserMessage(rConfig.status, j));
         return;
       }
-      const j = await rConfig.json();
-      const d = j.data as AiCfg;
+      const d = j.data;
       if (d) {
         setEnabled(d.enabled);
         setSystemPrompt(d.systemPrompt ?? "");
@@ -119,9 +123,8 @@ export function AiSettingsForm() {
     setError(null);
     setSaving(true);
     try {
-      const res = await fetch("/api/ai/config", {
+      const res = await fetchProtected("/api/ai/config", {
         method: "PUT",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           enabled,
@@ -133,9 +136,9 @@ export function AiSettingsForm() {
           fallbackToHuman: true,
         }),
       });
+      const errBody = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error(j.error ?? "Falha ao salvar");
+        throw new Error(protectedApiUserMessage(res.status, errBody));
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro");

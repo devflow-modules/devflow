@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
+import { fetchProtected } from "@/lib/protected-fetch";
 
 type Overview = {
   totalMessages: number;
@@ -21,8 +22,6 @@ type Intent = { intent: string; count: number };
 
 type AgentRow = { agentId: string; conversationsCount: number; avgResponseTimeMs: number; messagesCount: number };
 
-const fetchOpts = { credentials: "include" as const };
-
 export function MetricsSection({ compact = false }: { compact?: boolean }) {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -33,14 +32,8 @@ export function MetricsSection({ compact = false }: { compact?: boolean }) {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/metrics/overview", fetchOpts).then((r) => {
-        if (r.status === 401) return null;
-        return r.ok ? r.json() : null;
-      }),
-      fetch("/api/metrics/agents", fetchOpts).then((r) => {
-        if (r.status === 401) return null;
-        return r.ok ? r.json() : null;
-      }),
+      fetchProtected("/api/metrics/overview").then((r) => (r.ok ? r.json() : null)),
+      fetchProtected("/api/metrics/agents").then((r) => (r.ok ? r.json() : null)),
     ])
       .then(([overviewData, agentsData]) => {
         if (overviewData?.overview) setOverview(overviewData.overview);

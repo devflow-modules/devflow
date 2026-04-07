@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
+import { recordPlatformAudit } from "@/lib/platformAuditLog";
+import { getClientIp } from "@/lib/rate-limit";
 import { z } from "zod";
 import type { Condition, Action } from "@/modules/automation/automation.types";
 
@@ -101,6 +103,16 @@ export async function POST(request: NextRequest) {
       conditions: parsed.data.conditions as object,
       actions: parsed.data.actions as object,
     },
+  });
+
+  recordPlatformAudit({
+    action: "automation_rule_create",
+    tenantId,
+    userId: auth.payload.sub,
+    resourceType: "wa_automation_rule",
+    resourceId: rule.id,
+    ip: getClientIp(request),
+    metadata: { name: rule.name, triggerType: rule.triggerType },
   });
 
   return NextResponse.json({

@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const mockVerifyJwt = vi.fn();
+const mockVerifyResult = vi.fn();
 const mockUserSessionFindFirst = vi.fn();
 const mockUserFindUnique = vi.fn();
 const mockSessionUpdate = vi.fn();
 
 vi.mock("../authService", () => ({
-  verifyToken: (...a: unknown[]) => mockVerifyJwt(...a),
+  verifyTokenResult: (...a: unknown[]) => mockVerifyResult(...a),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -32,32 +32,38 @@ describe("validateAuthToken", () => {
   });
 
   it("retorna null quando JWT inválido", async () => {
-    mockVerifyJwt.mockResolvedValue(null);
+    mockVerifyResult.mockResolvedValue({ ok: false, reason: "invalid" });
     const { validateAuthToken } = await import("../verifyToken");
     expect(await validateAuthToken("bad")).toBeNull();
     expect(mockUserSessionFindFirst).not.toHaveBeenCalled();
   });
 
   it("retorna null quando falta jti", async () => {
-    mockVerifyJwt.mockResolvedValue({
-      sub: "u1",
-      tenantId: "t1",
-      email: "a@b.com",
-      name: "A",
-      role: "admin",
+    mockVerifyResult.mockResolvedValue({
+      ok: true,
+      payload: {
+        sub: "u1",
+        tenantId: "t1",
+        email: "a@b.com",
+        name: "A",
+        role: "admin",
+      },
     });
     const { validateAuthToken } = await import("../verifyToken");
     expect(await validateAuthToken("tok")).toBeNull();
   });
 
   it("retorna null quando sessão revogada ou inexistente", async () => {
-    mockVerifyJwt.mockResolvedValue({
-      sub: "u1",
-      jti: "sid-1",
-      tenantId: "t1",
-      email: "a@b.com",
-      name: "A",
-      role: "admin",
+    mockVerifyResult.mockResolvedValue({
+      ok: true,
+      payload: {
+        sub: "u1",
+        jti: "sid-1",
+        tenantId: "t1",
+        email: "a@b.com",
+        name: "A",
+        role: "admin",
+      },
     });
     mockUserSessionFindFirst.mockResolvedValue(null);
     const { validateAuthToken } = await import("../verifyToken");
@@ -65,13 +71,16 @@ describe("validateAuthToken", () => {
   });
 
   it("retorna null e revoga sessão quando tenant no token não coincide com DB", async () => {
-    mockVerifyJwt.mockResolvedValue({
-      sub: "u1",
-      jti: "sid-1",
-      tenantId: "t-old",
-      email: "a@b.com",
-      name: "A",
-      role: "admin",
+    mockVerifyResult.mockResolvedValue({
+      ok: true,
+      payload: {
+        sub: "u1",
+        jti: "sid-1",
+        tenantId: "t-old",
+        email: "a@b.com",
+        name: "A",
+        role: "admin",
+      },
     });
     mockUserSessionFindFirst.mockResolvedValue({
       id: "sid-1",
@@ -97,13 +106,16 @@ describe("validateAuthToken", () => {
   });
 
   it("retorna AuthResult com claims normalizados da DB", async () => {
-    mockVerifyJwt.mockResolvedValue({
-      sub: "u1",
-      jti: "sid-1",
-      tenantId: "t1",
-      email: "old@b.com",
-      name: "Old",
-      role: "agent",
+    mockVerifyResult.mockResolvedValue({
+      ok: true,
+      payload: {
+        sub: "u1",
+        jti: "sid-1",
+        tenantId: "t1",
+        email: "old@b.com",
+        name: "Old",
+        role: "agent",
+      },
     });
     mockUserSessionFindFirst.mockResolvedValue({
       id: "sid-1",

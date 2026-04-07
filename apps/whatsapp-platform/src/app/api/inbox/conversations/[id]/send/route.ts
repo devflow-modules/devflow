@@ -10,6 +10,7 @@ import { enforceUsageOrThrow, UsageLimitExceededError } from "@/modules/billing/
 import { trackUsage } from "@/modules/billing/usageService";
 import { logAction } from "@/modules/inbox";
 import { UsageEventType } from "@/generated/prisma-whatsapp";
+import { logEvent, logError } from "@/lib/observability";
 
 const bodySchema = z.object({
   text: z.string().min(1).max(4096),
@@ -23,6 +24,7 @@ export async function POST(
 ) {
   const auth = await getAuthFromRequest(request);
   if (!auth) {
+    logEvent("warn", "auth", "unauthorized", { route: "inbox_conversation_send" });
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
@@ -128,13 +130,18 @@ export async function POST(
       { textLength: parsed.data.text.length }
     );
 
+    logEvent("info", "inbox", "conversation_message_sent", {
+      tenantId: auth.payload.tenantId,
+      threadId: thread.id,
+      userId: auth.payload.sub,
+    });
     return NextResponse.json({
       success: true,
       data: { messageId, waMessageId: messageId },
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    console.error("[inbox/send]", e);
+    logError("inbox", e, { route: "inbox_conversation_send", threadId: thread.id });
     return NextResponse.json(
       { success: false, error: { message: msg } },
       { status: 502 }

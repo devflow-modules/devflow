@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { listTenants } from "@/modules/tenants";
+import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
 import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
 
 export const dynamic = "force-dynamic";
@@ -18,11 +18,11 @@ export type AdminConversationItem = {
 
 export async function GET(request: NextRequest) {
   try {
-    const tenants = await listTenants();
-    const tenantId = tenants[0]?.id;
-    if (!tenantId) {
-      return NextResponse.json({ conversations: [], total: 0 });
-    }
+    const auth = await getAuthFromRequest(request);
+    const denied = requireRole(auth, STAFF_ROLES, request);
+    if (denied) return denied;
+
+    const tenantId = auth!.payload.tenantId;
 
     const { searchParams } = new URL(request.url);
     const statusParam = searchParams.get("status");

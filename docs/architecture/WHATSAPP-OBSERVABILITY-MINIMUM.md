@@ -2,6 +2,8 @@
 
 Sem plataforma APM: logs estruturados no **stdout** (Vercel / runtime) com prefixos estáveis.
 
+**Guia completo (métricas em memória, `AuditLog`, alertas, webhook):** [`WHATSAPP-OBSERVABILITY.md`](./WHATSAPP-OBSERVABILITY.md).
+
 ## Prefixos
 
 | Prefixo | Uso |

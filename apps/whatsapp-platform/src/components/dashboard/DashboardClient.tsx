@@ -7,6 +7,7 @@ import { buttonClassName } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { MetricsSection } from "@/app/dashboard/MetricsSection";
+import { fetchProtected } from "@/lib/protected-fetch";
 
 type Overview = {
   totalMessages: number;
@@ -60,7 +61,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
 
   useEffect(() => {
     if (!snapshot.authenticated) return;
-    fetch("/api/metrics/overview", { credentials: "include" })
+    fetchProtected("/api/metrics/overview")
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data?.overview) setOverview(data.overview);

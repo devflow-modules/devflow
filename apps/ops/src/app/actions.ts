@@ -16,12 +16,24 @@ export type ProductMetrics = {
   error?: string;
 };
 
+function opsMetricsFetchHeaders(product: string): HeadersInit | undefined {
+  const key =
+    product === "whatsapp-platform"
+      ? process.env.OPS_WHATSAPP_METRICS_KEY?.trim()
+      : undefined;
+  if (!key) return undefined;
+  return { "X-Ops-Metrics-Key": key };
+}
+
 export async function getAggregatedMetrics(): Promise<ProductMetrics[]> {
   const urls = getProductMetricsUrls();
   const results = await Promise.all(
     urls.map(async ({ product, url }): Promise<ProductMetrics> => {
       try {
-        const res = await fetch(url, { next: { revalidate: 30 } });
+        const res = await fetch(url, {
+          next: { revalidate: 30 },
+          headers: opsMetricsFetchHeaders(product),
+        });
         if (!res.ok) return { product, error: `HTTP ${res.status}` };
         const data = (await res.json()) as Record<string, unknown>;
         return {

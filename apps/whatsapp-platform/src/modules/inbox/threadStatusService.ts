@@ -5,6 +5,7 @@
 
 import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
 import { prisma } from "@/lib/prisma";
+import { bumpMetric } from "@/lib/observability";
 
 export async function updateThreadStatus(
   tenantId: string,
@@ -17,6 +18,8 @@ export async function updateThreadStatus(
     data: { status },
   });
   if (updated.count > 0) {
+    if (status === WaInboxThreadStatus.CLOSED) bumpMetric("threads_closed");
+    if (status === WaInboxThreadStatus.OPEN) bumpMetric("threads_opened");
     const { publishInboxEvent, eventConversationStatusChanged } = await import("@/modules/realtime/realtime.service");
     publishInboxEvent(tenantId, eventConversationStatusChanged(tenantId, { threadId, status }));
     const { logAction } = await import("./auditService");

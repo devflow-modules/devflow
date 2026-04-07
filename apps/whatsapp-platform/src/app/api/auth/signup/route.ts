@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { ensureTenantSubscription } from "@/modules/billing/subscriptionService";
 import { normalizePlan } from "@/modules/billing/plans";
 import { parseRequestJson } from "@/lib/parse-request-json";
+import { logAuth } from "@/lib/auth-logger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -75,8 +76,9 @@ export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const limit = checkRateLimit(ip, "signup");
   if (!limit.ok) {
+    logAuth({ type: "rate_limited", route: "signup", ip });
     return NextResponse.json(
-      { error: "Muitas tentativas. Tente novamente em alguns minutos." },
+      { error: "Muitas tentativas. Tente novamente em alguns minutos.", code: "RATE_LIMITED" },
       {
         status: 429,
         headers: limit.retryAfter ? { "Retry-After": String(limit.retryAfter) } : undefined,

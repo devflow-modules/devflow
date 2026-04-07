@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
+import { updateThreadStatus } from "@/modules/inbox/threadStatusService";
 
 /**
  * PATCH /api/admin/conversations/[id]/resolve
@@ -12,21 +13,17 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await getAuthFromRequest(_request);
-  if (!auth) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-  }
+  const denied = requireRole(auth, STAFF_ROLES, _request);
+  if (denied) return denied;
 
   const { id: threadId } = await params;
-  const tenantId = auth.payload.tenantId;
+  const tenantId = auth!.payload.tenantId;
 
   const thread = await prisma.waInboxThread.findFirst({
     where: { id: threadId, tenantId },
   });
   if (thread) {
-    await prisma.waInboxThread.update({
-      where: { id: thread.id },
-      data: { status: WaInboxThreadStatus.CLOSED },
-    });
+    await updateThreadStatus(tenantId, threadId, WaInboxThreadStatus.CLOSED, auth!.payload.sub);
   }
 
   const agentStatuses = await prisma.agentStatus.findMany({

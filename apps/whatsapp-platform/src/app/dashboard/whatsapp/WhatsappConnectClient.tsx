@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { buttonClassName } from "@/components/ui/button";
 import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
+import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 interface PhoneNumber {
   id: string;
@@ -30,15 +31,10 @@ export function WhatsappConnectClient() {
   const load = useCallback(async () => {
     setError(null);
     try {
-      const res = await fetch("/api/whatsapp/phone-numbers", { credentials: "include" });
+      const res = await fetchProtected("/api/whatsapp/phone-numbers");
       const json = (await res.json().catch(() => ({}))) as { data?: PhoneNumber[]; error?: string };
       if (!res.ok) {
-        setError(
-          json.error ??
-            (res.status === 401
-              ? "Sessão expirada ou inválida. Inicie sessão novamente."
-              : "Não foi possível carregar os números.")
-        );
+        setError(protectedApiUserMessage(res.status, json));
         return;
       }
       const data = json.data ?? [];
@@ -73,15 +69,14 @@ export function WhatsappConnectClient() {
     setPatching(id);
     setError(null);
     try {
-      const res = await fetch(`/api/whatsapp/phone-numbers/${encodeURIComponent(id)}`, {
+      const res = await fetchProtected(`/api/whatsapp/phone-numbers/${encodeURIComponent(id)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify(body),
       });
       const json = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        setError(json.error ?? "Erro ao atualizar número");
+        setError(protectedApiUserMessage(res.status, json));
         return;
       }
       await load();
@@ -96,13 +91,10 @@ export function WhatsappConnectClient() {
     setConnectLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/whatsapp/onboard", {
-        method: "POST",
-        credentials: "include",
-      });
-      const json = await res.json();
+      const res = await fetchProtected("/api/whatsapp/onboard", { method: "POST" });
+      const json = (await res.json().catch(() => ({}))) as { data?: { oauthUrl?: string }; error?: string };
       if (!res.ok) {
-        setError(json.error ?? "Erro ao obter URL de conexão");
+        setError(protectedApiUserMessage(res.status, json));
         return;
       }
       const oauthUrl = json.data?.oauthUrl;
@@ -122,13 +114,12 @@ export function WhatsappConnectClient() {
     setRemoving(id);
     setError(null);
     try {
-      const res = await fetch(`/api/whatsapp/phone-numbers?id=${encodeURIComponent(id)}`, {
+      const res = await fetchProtected(`/api/whatsapp/phone-numbers?id=${encodeURIComponent(id)}`, {
         method: "DELETE",
-        credentials: "include",
       });
-      const json = await res.json();
+      const json = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        setError(json.error ?? "Erro ao remover");
+        setError(protectedApiUserMessage(res.status, json));
         return;
       }
       setNumbers((prev) => prev.filter((n) => n.id !== id));

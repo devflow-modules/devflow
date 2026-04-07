@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken as verifyJwtCrypto } from "./authService";
+import { verifyTokenResult } from "./authService";
 import { getTokenFromCookie } from "./cookies";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { logAuth } from "@/lib/auth-logger";
 import type { JwtPayload, UserRole } from "./authService";
+
+/** Operadores com acesso às APIs de inbox/fila/conversas (alinhado a `queue/next`). */
+export const STAFF_ROLES: UserRole[] = ["admin", "agent"];
 
 export interface AuthResult {
   payload: JwtPayload;
@@ -17,8 +20,15 @@ export interface AuthResult {
  * Claims finais vêm da DB (role, tenant, email, nome) para evitar dados obsoletos no token.
  */
 export async function validateAuthToken(rawToken: string): Promise<AuthResult | null> {
-  const cryptoPayload = await verifyJwtCrypto(rawToken);
-  if (!cryptoPayload) return null;
+  const verified = await verifyTokenResult(rawToken);
+  if (!verified.ok) {
+    logAuth({
+      type: "session_rejected",
+      reason: verified.reason === "expired" ? "jwt_expired" : "jwt_invalid",
+    });
+    return null;
+  }
+  const cryptoPayload = verified.payload;
 
   const jti = typeof cryptoPayload.jti === "string" ? cryptoPayload.jti.trim() : "";
 
@@ -95,9 +105,17 @@ export async function getAuthFromRequest(request: NextRequest): Promise<AuthResu
  * Verifica se o utilizador tem uma das roles permitidas.
  * Retorna NextResponse 401/403 se não autorizado; caso contrário null.
  */
-export function requireRole(auth: AuthResult | null, allowedRoles: UserRole[]): NextResponse | null {
+export function requireRole(
+  auth: AuthResult | null,
+  allowedRoles: UserRole[],
+  req?: Pick<NextRequest, "nextUrl" | "method">
+): NextResponse | null {
   if (!auth) {
-    logAuth({ type: "unauthorized" });
+    logAuth({
+      type: "unauthorized",
+      path: req?.nextUrl?.pathname,
+      method: req?.method,
+    });
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
   if (!allowedRoles.includes(auth.payload.role as UserRole)) {
@@ -106,6 +124,8 @@ export function requireRole(auth: AuthResult | null, allowedRoles: UserRole[]): 
       userId: auth.payload.sub,
       tenantId: auth.payload.tenantId,
       requiredRole: allowedRoles.join("|"),
+      path: req?.nextUrl?.pathname,
+      method: req?.method,
     });
     return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
   }

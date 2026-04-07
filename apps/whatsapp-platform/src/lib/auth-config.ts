@@ -1,5 +1,8 @@
 export const JWT_COOKIE_NAME = "whatsapp_platform_token";
 
+/** Cookie definido por `/admin/login` quando o segredo de métricas é válido (produção). */
+export const ADMIN_METRICS_SECRET_COOKIE_NAME = "admin_metrics_secret";
+
 /** Duração do access token + linha de sessão em DB (horas). Default 12h — equilíbrio segurança vs UX SaaS. */
 export function getAccessTokenHours(): number {
   const raw = process.env.JWT_ACCESS_HOURS ?? process.env.JWT_EXPIRY_HOURS;

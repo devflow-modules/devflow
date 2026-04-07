@@ -14,6 +14,7 @@ import {
   fieldInputClassName,
   fieldControlCompact,
 } from "@/components/ui/form-field";
+import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 type QueueItem = {
   id: string;
@@ -50,7 +51,7 @@ export function QueuesClient({
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/queues", {
+      const res = await fetchProtected("/api/queues", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -60,9 +61,9 @@ export function QueuesClient({
           max_size: maxSize === "" ? null : parseInt(maxSize, 10),
         }),
       });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Falha ao criar fila");
+        throw new Error(protectedApiUserMessage(res.status, data));
       }
       setName("");
       setSlug("");
@@ -80,7 +81,7 @@ export function QueuesClient({
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch(`/api/queues/${id}`, {
+      const res = await fetchProtected(`/api/queues/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -88,9 +89,9 @@ export function QueuesClient({
           max_size: editMaxSize === "" ? null : parseInt(editMaxSize, 10),
         }),
       });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Falha ao atualizar");
+        throw new Error(protectedApiUserMessage(res.status, data));
       }
       setEditingId(null);
       router.refresh();
@@ -106,10 +107,10 @@ export function QueuesClient({
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch(`/api/queues/${id}`, { method: "DELETE" });
+      const res = await fetchProtected(`/api/queues/${id}`, { method: "DELETE" });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Falha ao remover");
+        throw new Error(protectedApiUserMessage(res.status, data));
       }
       setQueues((prev) => prev.filter((q) => q.id !== id));
       router.refresh();

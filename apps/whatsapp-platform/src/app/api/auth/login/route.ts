@@ -3,6 +3,7 @@ import { z } from "zod";
 import { login, buildSetCookieHeader, signToken } from "@/modules/auth";
 import { createUserSession } from "@/modules/auth/sessionService";
 import { logAuth } from "@/lib/auth-logger";
+import { recordPlatformAudit } from "@/lib/platformAuditLog";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { parseRequestJson } from "@/lib/parse-request-json";
 
@@ -17,7 +18,10 @@ export async function POST(request: NextRequest) {
   if (!limit.ok) {
     logAuth({ type: "rate_limited", route: "login", ip });
     return NextResponse.json(
-      { error: "Muitas tentativas de início de sessão. Tente novamente em alguns minutos." },
+      {
+        error: "Muitas tentativas de início de sessão. Tente novamente em alguns minutos.",
+        code: "RATE_LIMITED",
+      },
       {
         status: 429,
         headers: limit.retryAfter ? { "Retry-After": String(limit.retryAfter) } : undefined,
@@ -37,8 +41,11 @@ export async function POST(request: NextRequest) {
 
   const result = await login(parsed.data.email, parsed.data.password);
   if ("error" in result) {
-    logAuth({ type: "login_failed", reason: "invalid_credentials" });
-    return NextResponse.json({ error: result.error }, { status: 401 });
+    logAuth({ type: "login_failed", reason: "invalid_credentials", ip });
+    return NextResponse.json(
+      { error: result.error, code: "INVALID_CREDENTIALS" },
+      { status: 401 }
+    );
   }
 
   const { sessionId } = await createUserSession(result.user.id);
@@ -49,6 +56,13 @@ export async function POST(request: NextRequest) {
     tenantId: result.user.tenantId,
     role: result.user.role,
     sessionId,
+  });
+  recordPlatformAudit({
+    action: "login_success",
+    tenantId: result.user.tenantId,
+    userId: result.user.id,
+    ip,
+    metadata: { role: result.user.role },
   });
 
   const token = await signToken({

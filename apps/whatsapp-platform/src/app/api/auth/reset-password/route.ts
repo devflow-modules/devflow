@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { verifyPasswordResetToken, updateUserPassword } from "@/modules/auth";
+import { verifyPasswordResetTokenResult, updateUserPassword } from "@/modules/auth";
 import { revokeAllSessionsForUser } from "@/modules/auth/sessionService";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { logAuth } from "@/lib/auth-logger";
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   if (!limit.ok) {
     logAuth({ type: "rate_limited", route: "reset-password", ip });
     return NextResponse.json(
-      { error: "Muitas tentativas. Tente novamente em alguns minutos." },
+      { error: "Muitas tentativas. Tente novamente em alguns minutos.", code: "RATE_LIMITED" },
       {
         status: 429,
         headers: limit.retryAfter ? { "Retry-After": String(limit.retryAfter) } : undefined,
@@ -38,22 +38,24 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const payload = await verifyPasswordResetToken(parsed.data.token);
-  if (!payload) {
-    return NextResponse.json(
-      { error: "Link inválido ou expirado. Solicite um novo." },
-      { status: 400 }
-    );
+  const vr = await verifyPasswordResetTokenResult(parsed.data.token);
+  if (!vr.ok) {
+    const code = vr.reason === "expired" ? "RESET_TOKEN_EXPIRED" : "RESET_TOKEN_INVALID";
+    const error =
+      vr.reason === "expired"
+        ? "Este link expirou. Solicite um novo e-mail de redefinição."
+        : "Link inválido. Use o link completo do e-mail ou solicite um novo.";
+    return NextResponse.json({ error, code }, { status: 400 });
   }
 
-  const ok = await updateUserPassword(payload.sub, parsed.data.newPassword);
+  const ok = await updateUserPassword(vr.payload.sub, parsed.data.newPassword);
   if (!ok) {
     return NextResponse.json({ error: "Falha ao atualizar senha." }, { status: 500 });
   }
 
-  await revokeAllSessionsForUser(payload.sub);
-  logAuth({ type: "sessions_revoked_all", userId: payload.sub, reason: "password_reset" });
-  logAuth({ type: "password_reset_success", userId: payload.sub });
+  await revokeAllSessionsForUser(vr.payload.sub);
+  logAuth({ type: "sessions_revoked_all", userId: vr.payload.sub, reason: "password_reset" });
+  logAuth({ type: "password_reset_success", userId: vr.payload.sub });
 
   return NextResponse.json({
     success: true,

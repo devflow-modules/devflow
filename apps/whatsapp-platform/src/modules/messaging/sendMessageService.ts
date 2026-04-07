@@ -9,6 +9,7 @@ import { digitsOnly } from "@/modules/inbox/waInboxUtils";
 import { trackMessageSent } from "@/modules/analytics";
 import { trackUsage } from "@/modules/billing/usageService";
 import { UsageEventType } from "@/generated/prisma-whatsapp";
+import { bumpMetric, logEvent } from "@/lib/observability";
 
 export interface SendReplyInput {
   tenant: ResolvedTenant;
@@ -30,6 +31,12 @@ async function sendCloudAndPersistOutbound(
     text: input.text,
   });
   console.info(`[WHATSAPP] outbound tenant=${input.tenant.id} wa_id=${input.to}`);
+  bumpMetric("messages_sent");
+  logEvent("info", "inbox", "message_outbound", {
+    tenantId: input.tenant.id,
+    inboxThreadId: input.inboxThreadId,
+    kind: outboundKind,
+  });
   await waInboxCreateOutbound({
     tenantId: input.tenant.id,
     businessPhoneNumberId: input.tenant.phoneNumberId,

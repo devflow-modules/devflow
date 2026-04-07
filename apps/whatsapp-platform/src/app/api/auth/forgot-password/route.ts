@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   if (!limit.ok) {
     logAuth({ type: "rate_limited", route: "forgot-password", ip });
     return NextResponse.json(
-      { error: "Muitas tentativas. Tente novamente em alguns minutos." },
+      { error: "Muitas tentativas. Tente novamente em alguns minutos.", code: "RATE_LIMITED" },
       {
         status: 429,
         headers: limit.retryAfter ? { "Retry-After": String(limit.retryAfter) } : undefined,

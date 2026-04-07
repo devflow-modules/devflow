@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { buttonClassName } from "@/components/ui/button";
 import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
 import { fieldSelectClassName } from "@/components/ui/form-field";
+import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 const AI_DRIVERS = [
   { value: "ruleBased", label: "Apenas regras (sem LLM)" },
@@ -35,15 +36,21 @@ export function SettingsTenantForm() {
     (async () => {
       setLoadError(null);
       try {
-        const res = await fetch("/api/tenants/me", { credentials: "include" });
+        const res = await fetchProtected("/api/tenants/me");
+        const data = (await res.json().catch(() => ({}))) as TenantMe & { error?: string };
         if (!res.ok) {
           if (res.status === 401) setTenant(null);
-          else if (!cancelled) setLoadError("Não foi possível carregar as definições.");
+          else if (!cancelled) setLoadError(protectedApiUserMessage(res.status, data));
           return;
         }
-        const data = await res.json();
         if (!cancelled) {
-          setTenant(data);
+          setTenant({
+            id: data.id,
+            name: data.name,
+            aiDriver: data.aiDriver,
+            hasWhatsappPhone: data.hasWhatsappPhone,
+            hasApiKey: data.hasApiKey,
+          });
           setAiDriver(data.aiDriver ?? "ruleBased");
         }
       } catch {
@@ -63,18 +70,18 @@ export function SettingsTenantForm() {
     setFormError(null);
     setSaving(true);
     try {
-      const res = await fetch("/api/tenants/me", {
+      const res = await fetchProtected("/api/tenants/me", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ aiDriver: aiDriver || null }),
       });
+      const data = (await res.json().catch(() => ({}))) as { error?: string; aiDriver?: string | null };
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Falha ao salvar");
+        throw new Error(protectedApiUserMessage(res.status, data));
       }
-      const data = await res.json();
-      setTenant((prev) => (prev ? { ...prev, aiDriver: data.aiDriver } : null));
+      setTenant((prev) =>
+        prev ? { ...prev, aiDriver: data.aiDriver !== undefined ? data.aiDriver : prev.aiDriver } : null
+      );
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Erro ao salvar");
     } finally {

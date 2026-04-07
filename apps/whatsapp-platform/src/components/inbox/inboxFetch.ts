@@ -1,9 +1,19 @@
+import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 import type {
   WaInboxMessageRow,
   WaInboxThreadRow,
   InboxConversationsFilter,
   WhatsappLineSummary,
 } from "./inboxTypes";
+
+async function inboxFailMessage(res: Response): Promise<string> {
+  const data = (await res.json().catch(() => ({}))) as {
+    error?: string;
+    message?: string;
+    code?: string;
+  };
+  return protectedApiUserMessage(res.status, data);
+}
 
 function buildConversationsUrl(
   filter?: InboxConversationsFilter,
@@ -28,10 +38,8 @@ export async function fetchInboxConversations(
   threads: WaInboxThreadRow[];
   pagination: { limit: number; offset: number; total: number };
 }> {
-  const res = await fetch(buildConversationsUrl(filter, businessPhoneNumberId), {
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error("Falha ao carregar conversas");
+  const res = await fetchProtected(buildConversationsUrl(filter, businessPhoneNumberId));
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
   const json = (await res.json()) as {
     success: boolean;
     data: {
@@ -43,7 +51,7 @@ export async function fetchInboxConversations(
 }
 
 export async function fetchTenantWhatsappLines(): Promise<WhatsappLineSummary[]> {
-  const res = await fetch("/api/whatsapp/phone-numbers", { credentials: "include" });
+  const res = await fetchProtected("/api/whatsapp/phone-numbers");
   if (!res.ok) return [];
   const json = (await res.json()) as {
     success?: boolean;
@@ -69,21 +77,21 @@ export async function fetchTenantWhatsappLines(): Promise<WhatsappLineSummary[]>
 }
 
 export async function fetchInboxTags(): Promise<{ id: string; name: string; color: string }[]> {
-  const res = await fetch("/api/inbox/tags", { credentials: "include" });
-  if (!res.ok) throw new Error("Falha ao carregar tags");
+  const res = await fetchProtected("/api/inbox/tags");
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
   const json = (await res.json()) as { success: boolean; data: { tags: { id: string; name: string; color: string }[] } };
   return json.data.tags ?? [];
 }
 
 export async function fetchInboxUsers(): Promise<{ id: string; name: string; email: string }[]> {
-  const res = await fetch("/api/inbox/users", { credentials: "include" });
-  if (!res.ok) throw new Error("Falha ao carregar usuários");
+  const res = await fetchProtected("/api/inbox/users");
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
   const json = (await res.json()) as { success: boolean; data: { users: { id: string; name: string; email: string }[] } };
   return json.data.users ?? [];
 }
 
 export async function fetchOnlineUsers(): Promise<Array<{ userId: string; name?: string; email?: string }>> {
-  const res = await fetch("/api/inbox/presence", { credentials: "include" });
+  const res = await fetchProtected("/api/inbox/presence");
   if (!res.ok) return [];
   const json = (await res.json()) as {
     success: boolean;
@@ -98,66 +106,49 @@ export async function assignConversation(
 ): Promise<void> {
   const body =
     userId === null ? { unassign: true } : userId === "me" ? {} : { userId };
-  const res = await fetch(`/api/inbox/conversations/${encodeURIComponent(threadId)}/assign`, {
+  const res = await fetchProtected(`/api/inbox/conversations/${encodeURIComponent(threadId)}/assign`, {
     method: "POST",
-    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  if (!res.ok) {
-    const j = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(j.error ?? "Falha ao atribuir");
-  }
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
 }
 
 export async function updateConversationStatus(
   threadId: string,
   status: "OPEN" | "PENDING" | "CLOSED"
 ): Promise<void> {
-  const res = await fetch(`/api/inbox/conversations/${encodeURIComponent(threadId)}/status`, {
+  const res = await fetchProtected(`/api/inbox/conversations/${encodeURIComponent(threadId)}/status`, {
     method: "POST",
-    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ status }),
   });
-  if (!res.ok) {
-    const j = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(j.error ?? "Falha ao atualizar status");
-  }
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
 }
 
 export async function addTagToConversation(threadId: string, tagId: string): Promise<void> {
-  const res = await fetch(`/api/inbox/conversations/${encodeURIComponent(threadId)}/tags`, {
+  const res = await fetchProtected(`/api/inbox/conversations/${encodeURIComponent(threadId)}/tags`, {
     method: "POST",
-    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ tagId, action: "add" }),
   });
-  if (!res.ok) {
-    const j = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(j.error ?? "Falha ao adicionar tag");
-  }
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
 }
 
 export async function removeTagFromConversation(threadId: string, tagId: string): Promise<void> {
-  const res = await fetch(`/api/inbox/conversations/${encodeURIComponent(threadId)}/tags`, {
+  const res = await fetchProtected(`/api/inbox/conversations/${encodeURIComponent(threadId)}/tags`, {
     method: "POST",
-    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ tagId, action: "remove" }),
   });
-  if (!res.ok) {
-    const j = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(j.error ?? "Falha ao remover tag");
-  }
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
 }
 
 export async function fetchInboxMessages(threadId: string): Promise<WaInboxMessageRow[]> {
-  const res = await fetch(
-    `/api/inbox/conversations/${encodeURIComponent(threadId)}/messages?limit=500`,
-    { credentials: "include" }
+  const res = await fetchProtected(
+    `/api/inbox/conversations/${encodeURIComponent(threadId)}/messages?limit=500`
   );
-  if (!res.ok) throw new Error("Falha ao carregar mensagens");
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
   const json = (await res.json()) as {
     success: boolean;
     data: { messages: WaInboxMessageRow[] };
@@ -166,9 +157,8 @@ export async function fetchInboxMessages(threadId: string): Promise<WaInboxMessa
 }
 
 export async function reportViewing(threadId: string, viewing: boolean): Promise<void> {
-  const res = await fetch(`/api/inbox/conversations/${encodeURIComponent(threadId)}/view`, {
+  const res = await fetchProtected(`/api/inbox/conversations/${encodeURIComponent(threadId)}/view`, {
     method: "POST",
-    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ viewing }),
   });
@@ -178,9 +168,8 @@ export async function reportViewing(threadId: string, viewing: boolean): Promise
 }
 
 export async function reportTyping(threadId: string, typing: boolean): Promise<void> {
-  const res = await fetch(`/api/inbox/conversations/${encodeURIComponent(threadId)}/typing`, {
+  const res = await fetchProtected(`/api/inbox/conversations/${encodeURIComponent(threadId)}/typing`, {
     method: "POST",
-    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ typing }),
   });
@@ -200,11 +189,10 @@ export async function fetchInboxAuditLog(threadId: string): Promise<
     user?: { id: string; name: string };
   }>
 > {
-  const res = await fetch(
-    `/api/inbox/conversations/${encodeURIComponent(threadId)}/audit?limit=50`,
-    { credentials: "include" }
+  const res = await fetchProtected(
+    `/api/inbox/conversations/${encodeURIComponent(threadId)}/audit?limit=50`
   );
-  if (!res.ok) throw new Error("Falha ao carregar histórico");
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
   const json = (await res.json()) as {
     success: boolean;
     data: { logs: Array<{ id: string; threadId: string; userId: string; action: string; metadata: unknown; createdAt: string; user?: { id: string; name: string } }> };
@@ -213,17 +201,28 @@ export async function fetchInboxAuditLog(threadId: string): Promise<
 }
 
 export async function sendInboxMessage(threadId: string, text: string): Promise<void> {
-  const res = await fetch(
-    `/api/inbox/conversations/${encodeURIComponent(threadId)}/send`,
-    {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    }
-  );
+  const res = await fetchProtected(`/api/inbox/conversations/${encodeURIComponent(threadId)}/send`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text }),
+  });
   if (!res.ok) {
-    const j = (await res.json().catch(() => ({}))) as { error?: string | { message?: string } };
+    const j = (await res.json().catch(() => ({}))) as {
+      error?: string | { message?: string };
+      message?: string;
+      code?: string;
+    };
+    if (res.status === 401) {
+      throw new Error(protectedApiUserMessage(401, {}));
+    }
+    if (res.status === 403) {
+      const flat = {
+        error: typeof j.error === "string" ? j.error : undefined,
+        message: j.message,
+        code: j.code,
+      };
+      throw new Error(protectedApiUserMessage(403, flat));
+    }
     const msg =
       typeof j.error === "string"
         ? j.error

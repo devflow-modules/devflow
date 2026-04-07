@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAdminOrMetricsSecretPage } from "@/lib/admin-page-guard";
 import { BillingDashboardClient } from "./BillingDashboardClient";
 import { getBillingDashboard } from "./actions";
 
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminBillingPage() {
+  await requireAdminOrMetricsSecretPage("/admin/billing");
   const data = await getBillingDashboard();
   return (
     <div className="min-h-screen bg-background">

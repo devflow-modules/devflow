@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  const denied = requireRole(auth, STAFF_ROLES, request);
+  if (denied) return denied;
   const q = request.nextUrl.searchParams.get("q")?.trim();
   if (!q) return NextResponse.json({ conversations: [] });
 
   const messages = await prisma.waInboxMessage.findMany({
     where: {
-      tenantId: auth.payload.tenantId,
+      tenantId: auth!.payload.tenantId,
       contentText: { contains: q, mode: "insensitive" },
     },
     take: 100,
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
   if (threadIds.length === 0) return NextResponse.json({ conversations: [] });
 
   const threads = await prisma.waInboxThread.findMany({
-    where: { id: { in: threadIds }, tenantId: auth.payload.tenantId },
+    where: { id: { in: threadIds }, tenantId: auth!.payload.tenantId },
     include: { _count: { select: { messages: true } } },
   });
 

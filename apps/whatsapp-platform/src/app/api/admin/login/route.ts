@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-
-const ADMIN_METRICS_COOKIE = "admin_metrics_secret";
+import { ADMIN_METRICS_SECRET_COOKIE_NAME } from "@/lib/auth-config";
 const COOKIE_MAX_AGE = 60 * 60 * 24; // 24h
 
 export async function POST(request: Request) {
@@ -20,7 +19,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Segredo inválido." }, { status: 401 });
   }
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(ADMIN_METRICS_COOKIE, secret, {
+  res.cookies.set(ADMIN_METRICS_SECRET_COOKIE_NAME, secret, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

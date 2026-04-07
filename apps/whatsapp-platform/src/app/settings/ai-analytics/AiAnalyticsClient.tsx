@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { MetricsCard, Button } from "@devflow/ui";
 import { StateError, StateLoading } from "@/components/ui/app-states";
+import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 type Metrics = {
   messages_total: number;
@@ -102,21 +103,24 @@ export function AiAnalyticsClient() {
     setLoading(true);
     try {
       const [rUsage, rStatus, rPlan] = await Promise.all([
-        fetch("/api/ai/usage", { credentials: "include" }),
-        fetch("/api/billing/ai-usage-status", { credentials: "include" }),
-        fetch("/api/billing/ai-plan", { credentials: "include" }),
+        fetchProtected("/api/ai/usage"),
+        fetchProtected("/api/billing/ai-usage-status"),
+        fetchProtected("/api/billing/ai-plan"),
       ]);
+      const jUsage = (await rUsage.json().catch(() => ({}))) as {
+        success?: boolean;
+        data?: Metrics;
+        error?: string;
+      };
       if (!rUsage.ok) {
-        if (rUsage.status === 401) setError("Faça login para continuar.");
-        else setError("Falha ao carregar métricas.");
+        setError(protectedApiUserMessage(rUsage.status, jUsage));
         return;
       }
-      const jUsage = await rUsage.json();
-      const jStatus = rStatus.ok ? await rStatus.json() : null;
-      const jPlan = rPlan.ok ? await rPlan.json() : null;
-      if (jUsage.success) setMetrics(jUsage.data);
-      if (jStatus?.success) setUsageStatus(jStatus.data);
-      if (jPlan?.success) setPlanInfo(jPlan.data);
+      const jStatus = rStatus.ok ? ((await rStatus.json().catch(() => ({}))) as { success?: boolean; data?: UsageStatus }) : null;
+      const jPlan = rPlan.ok ? ((await rPlan.json().catch(() => ({}))) as { success?: boolean; data?: PlanInfo }) : null;
+      if (jUsage.success) setMetrics(jUsage.data ?? null);
+      if (jStatus?.success && jStatus.data !== undefined) setUsageStatus(jStatus.data);
+      if (jPlan?.success && jPlan.data !== undefined) setPlanInfo(jPlan.data);
     } catch {
       setError("Erro de conexão");
     } finally {

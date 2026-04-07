@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest, requireRole } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
 import { listPendingQueueThreads } from "@/modules/inbox/waInboxQueueService";
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  const denied = requireRole(auth, ["admin"]);
+  const denied = requireRole(auth, STAFF_ROLES, request);
   if (denied) return denied;
-  if (!auth) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-  }
 
-  const pending = await listPendingQueueThreads(auth.payload.tenantId, 100);
+  const pending = await listPendingQueueThreads(auth!.payload.tenantId, 100);
 
   const queues = pending.map((t) => ({
     id: t.id,

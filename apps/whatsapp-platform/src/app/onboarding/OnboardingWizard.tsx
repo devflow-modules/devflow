@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 const STEPS = [
   { id: 1, title: "Conectar WhatsApp" },
@@ -21,7 +22,7 @@ export function OnboardingWizard() {
   const [apiKey, setApiKey] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/tenants/me", { credentials: "include" })
+    fetchProtected("/api/tenants/me")
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         setTenant(data);
@@ -56,15 +57,14 @@ export function OnboardingWizard() {
       setError("Preencha Phone Number ID e Access Token.");
       return;
     }
-    const res = await fetch("/api/tenants/me", {
+    const res = await fetchProtected("/api/tenants/me", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ phoneNumberId, displayPhoneNumber, accessToken }),
-      credentials: "include",
     });
+    const data = (await res.json().catch(() => ({}))) as { error?: string };
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error ?? "Erro ao salvar.");
+      setError(protectedApiUserMessage(res.status, data));
       return;
     }
     setStep(2);
@@ -75,15 +75,14 @@ export function OnboardingWizard() {
     setError(null);
     const fd = new FormData(e.currentTarget);
     const defaultPrompt = (fd.get("defaultPrompt") as string)?.trim();
-    const res = await fetch("/api/tenants/me", {
+    const res = await fetchProtected("/api/tenants/me", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify({ defaultPrompt: defaultPrompt || undefined, systemPrompt: defaultPrompt || undefined }),
     });
+    const data = (await res.json().catch(() => ({}))) as { error?: string };
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(typeof data.error === "string" ? data.error : "Erro ao salvar.");
+      setError(protectedApiUserMessage(res.status, data));
       return;
     }
     setStep(3);
@@ -91,13 +90,13 @@ export function OnboardingWizard() {
 
   const handleGenerateApiKey = async () => {
     setError(null);
-    const res = await fetch("/api/tenants/me/api-key", { method: "POST", credentials: "include" });
+    const res = await fetchProtected("/api/tenants/me/api-key", { method: "POST" });
+    const genData = (await res.json().catch(() => ({}))) as { error?: string; apiKey?: string };
     if (!res.ok) {
-      setError("Erro ao gerar chave.");
+      setError(protectedApiUserMessage(res.status, genData));
       return;
     }
-    const data = await res.json();
-    setApiKey(data.apiKey);
+    setApiKey(genData.apiKey ?? null);
     setTenant((p) => (p ? { ...p, hasApiKey: true } : p));
   };
 

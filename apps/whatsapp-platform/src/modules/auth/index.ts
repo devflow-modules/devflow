@@ -8,10 +8,14 @@ export {
   verifyPassword,
   signToken,
   verifyToken,
+  verifyTokenResult,
+  type VerifyTokenResult,
   login,
   findUserByEmail,
   signPasswordResetToken,
   verifyPasswordResetToken,
+  verifyPasswordResetTokenResult,
+  type VerifyPasswordResetResult,
   updateUserPassword,
   type JwtPayload,
   type UserSafe,
@@ -22,6 +26,7 @@ export {
   getAuthFromRequest,
   requireRole,
   validateAuthToken,
+  STAFF_ROLES,
   type AuthResult,
 } from "./verifyToken";
 export {

@@ -15,6 +15,7 @@ import {
   fieldSelectClassName,
   fieldControlCompact,
 } from "@/components/ui/form-field";
+import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 type AgentItem = {
   id: string;
@@ -54,7 +55,7 @@ export function AgentsClient({
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/agents", {
+      const res = await fetchProtected("/api/agents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -84,7 +85,7 @@ export function AgentsClient({
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch(`/api/agents/${id}`, {
+      const res = await fetchProtected(`/api/agents/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -93,9 +94,9 @@ export function AgentsClient({
           status: editStatus,
         }),
       });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Falha ao atualizar");
+        throw new Error(protectedApiUserMessage(res.status, data));
       }
       setEditingId(null);
       router.refresh();
@@ -111,10 +112,10 @@ export function AgentsClient({
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch(`/api/agents/${id}`, { method: "DELETE" });
+      const res = await fetchProtected(`/api/agents/${id}`, { method: "DELETE" });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Falha ao remover");
+        throw new Error(protectedApiUserMessage(res.status, data));
       }
       setAgents((prev) => prev.filter((a) => a.id !== id));
       router.refresh();

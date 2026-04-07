@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { requireJwtAdminPage } from "@/lib/admin-page-guard";
 import { AdminAgentsClient } from "./AdminAgentsClient";
 
 export const metadata: Metadata = {
@@ -8,7 +9,8 @@ export const metadata: Metadata = {
   robots: "noindex, nofollow",
 };
 
-export default function AdminAgentsPage() {
+export default async function AdminAgentsPage() {
+  await requireJwtAdminPage("/admin/agents");
   return (
     <div className="min-h-screen p-6">
       <h1 className="text-2xl font-semibold mb-4">Gestão de agentes</h1>

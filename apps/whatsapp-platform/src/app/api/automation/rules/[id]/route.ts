@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
+import { recordPlatformAudit } from "@/lib/platformAuditLog";
+import { getClientIp } from "@/lib/rate-limit";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -77,6 +79,16 @@ export async function DELETE(
   if (!rule) return NextResponse.json({ error: "Regra não encontrada" }, { status: 404 });
 
   await prisma.waAutomationRule.delete({ where: { id } });
+
+  recordPlatformAudit({
+    action: "automation_rule_delete",
+    tenantId,
+    userId: auth.payload.sub,
+    resourceType: "wa_automation_rule",
+    resourceId: id,
+    ip: getClientIp(_req),
+    metadata: { name: rule.name },
+  });
 
   return NextResponse.json({ success: true, data: { deleted: true } });
 }

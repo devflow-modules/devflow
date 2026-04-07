@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { listTenants } from "@/modules/tenants";
+import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
 import { WaInboxDirection } from "@/generated/prisma-whatsapp";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export type AdminMessageItem = {
 };
 
 export async function GET(
-  _request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: threadId } = await params;
@@ -21,11 +21,12 @@ export async function GET(
     return NextResponse.json({ error: "Missing conversation id" }, { status: 400 });
   }
   try {
-    const tenants = await listTenants();
-    const tenantId = tenants[0]?.id;
-    if (!tenantId) {
-      return NextResponse.json({ messages: [] });
-    }
+    const auth = await getAuthFromRequest(request);
+    const denied = requireRole(auth, STAFF_ROLES, request);
+    if (denied) return denied;
+
+    const tenantId = auth!.payload.tenantId;
+
     const thread = await prisma.waInboxThread.findFirst({
       where: { id: threadId, tenantId },
       select: { id: true },

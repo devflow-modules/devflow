@@ -17,6 +17,7 @@ import {
 import { checkTenantAiAutomationReady, runTenantAiAutoReply } from "@/modules/ai/aiAutomationService";
 import { persistWaInboxFromWebhook } from "@/modules/inbox";
 import { trackWebhookReceived } from "@/modules/analytics";
+import { bumpMetric, logError, logEvent } from "@/lib/observability";
 type WabaWebhookShape = {
   entry?: Array<{
     changes?: Array<{ field?: string; value?: Record<string, unknown> }>;
@@ -69,17 +70,14 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
   try {
     body = await request.json();
   } catch {
-    console.error("[WHATSAPP][ERROR] webhook POST corpo JSON inválido");
+    logEvent("warn", "webhook", "invalid_json", {});
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
   try {
     return await handleWebhookEventsBody(body);
   } catch (err) {
-    console.error("[WHATSAPP][ERROR] webhook POST exceção não tratada", {
-      message: err instanceof Error ? err.message : String(err),
-      stack: err instanceof Error ? err.stack : undefined,
-    });
+    logError("webhook", err, { phase: "handleWebhookEventsBody" });
     return NextResponse.json({ ok: true }, { status: 200 });
   }
 }
@@ -130,7 +128,7 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
 
   const tenant = await resolveTenantByPhoneNumberId(normalized.phoneNumberId).catch((err) => {
     const errMsg = err?.message ?? String(err);
-    console.error("[WHATSAPP][ERROR] tenant resolution:", err);
+    logError("webhook", err, { phase: "tenant_resolution", phoneNumberId: normalized.phoneNumberId });
     if (errMsg.includes("prepared statement") && errMsg.includes("already exists")) {
       console.error(
         "[WHATSAPP][HINT] Se usar pooler (Supabase/Neon/Vercel Postgres), adicione ?pgbouncer=true na WHATSAPP_DATABASE_URL"
@@ -139,20 +137,28 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
     return null;
   });
   if (!tenant) {
-    console.warn(
-      "[WHATSAPP][INFO] tenant não resolvido — phoneNumberId:",
-      normalized.phoneNumberId || "(empty)",
-      "messagesCount:",
-      normalized.messages.length
-    );
+    logEvent("warn", "webhook", "tenant_unresolved", {
+      phoneNumberId: normalized.phoneNumberId || "",
+      messagesCount: normalized.messages.length,
+    });
     return NextResponse.json({ ok: true }, { status: 200 });
   }
 
   console.log("[WHATSAPP][DEBUG] tenant resolved", { tenantId: tenant.id, phoneNumberId: tenant.phoneNumberId });
 
   await persistWaInboxFromWebhook(tenant.id, tenant.phoneNumberId, body).catch((err) =>
-    console.error("[WHATSAPP][ERROR] wa-inbox persist:", err)
+    logError("webhook", err, { phase: "wa_inbox_persist", tenantId: tenant.id })
   );
+
+  const inboundTextCount = normalized.messages.filter((m) => m.type === "text").length;
+  if (inboundTextCount > 0) {
+    bumpMetric("messages_received", inboundTextCount);
+  }
+  logEvent("info", "webhook", "events_received", {
+    tenantId: tenant.id,
+    textMessages: inboundTextCount,
+    statuses: statusesCount,
+  });
 
   const seenConversations = new Set<string>();
   if (normalized.messages.length === 0) {
