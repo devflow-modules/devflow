@@ -34,10 +34,21 @@ export function SignupForm() {
         body: JSON.stringify({ name, email, password, planId }),
         credentials: "include",
       });
-      const data = await res.json().catch(() => ({}));
+      const text = await res.text();
+      let data: { error?: string; redirectUrl?: string; redirectTo?: string; success?: boolean } = {};
+      try {
+        data = text ? (JSON.parse(text) as typeof data) : {};
+      } catch {
+        data = {};
+      }
 
       if (!res.ok) {
-        setError(data.error ?? "Erro ao cadastrar.");
+        setError(
+          data.error ??
+            (text && text.startsWith("<")
+              ? `Erro ${res.status} no servidor. Veja os logs do deploy.`
+              : `Erro ao cadastrar (${res.status}).`)
+        );
         setLoading(false);
         return;
       }
