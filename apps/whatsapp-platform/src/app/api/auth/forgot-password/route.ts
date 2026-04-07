@@ -4,6 +4,7 @@ import { findUserByEmail, signPasswordResetToken } from "@/modules/auth";
 import { sendEmail, buildResetPasswordEmailHtml } from "@/lib/email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { logAuth } from "@/lib/auth-logger";
+import { parseRequestJson } from "@/lib/parse-request-json";
 
 const bodySchema = z.object({
   email: z.string().email(),
@@ -22,7 +23,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const parsed = bodySchema.safeParse(await request.json());
+  const raw = await parseRequestJson(request);
+  if (!raw.ok) {
+    return NextResponse.json({ error: "Corpo JSON inválido" }, { status: 400 });
+  }
+
+  const parsed = bodySchema.safeParse(raw.data);
   if (!parsed.success) {
     return NextResponse.json({ error: "E-mail inválido" }, { status: 400 });
   }
@@ -50,7 +56,7 @@ export async function POST(request: NextRequest) {
   });
 
   if (!emailResult.ok) {
-    console.error("[forgot-password] Email send failed", emailResult.error);
+    console.error("[auth][forgot-password] falha ao enviar e-mail", emailResult.error);
     return NextResponse.json(
       { error: "Falha ao enviar e-mail. Tente novamente mais tarde." },
       { status: 503 }

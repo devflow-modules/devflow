@@ -3,6 +3,7 @@ import { z } from "zod";
 import { verifyPasswordResetToken, updateUserPassword } from "@/modules/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { logAuth } from "@/lib/auth-logger";
+import { parseRequestJson } from "@/lib/parse-request-json";
 
 const bodySchema = z.object({
   token: z.string().min(1),
@@ -22,7 +23,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const parsed = bodySchema.safeParse(await request.json());
+  const raw = await parseRequestJson(request);
+  if (!raw.ok) {
+    return NextResponse.json({ error: "Corpo JSON inválido" }, { status: 400 });
+  }
+
+  const parsed = bodySchema.safeParse(raw.data);
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.errors[0]?.message ?? "Dados inválidos" },

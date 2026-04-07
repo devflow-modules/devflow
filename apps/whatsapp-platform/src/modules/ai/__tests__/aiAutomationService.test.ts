@@ -37,6 +37,22 @@ vi.mock("../aiUsageService", () => ({
   trackAiUsage: () => {},
 }));
 
+vi.mock("@/modules/billing/aiUsageLimitService", () => ({
+  getAiUsageStatus: vi.fn().mockResolvedValue({
+    used: 0,
+    limit: 100,
+    percentUsed: 0,
+    canUse: true,
+    shouldFallbackToLegacy: false,
+    period: "2025-03",
+    plan: "STARTER",
+  }),
+}));
+
+vi.mock("@/modules/billing/stripeUsageBillingService", () => ({
+  billAiOverageIfApplicableAsync: vi.fn(),
+}));
+
 const mockPrisma = {
   aiAgentConfig: {
     findUnique: vi.fn(),

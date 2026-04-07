@@ -10,6 +10,12 @@ vi.mock("@/modules/auth", () => ({
 vi.mock("@/modules/billing/aiUsageLimitService", () => ({
   getAiUsageStatus: (...a: unknown[]) => mockGetAiUsageStatus(...a),
 }));
+vi.mock("@/modules/billing/aiOverageVisibilityService", () => ({
+  getAiOverageBilledInPeriod: vi.fn().mockResolvedValue({
+    aiOverageBilled: 0,
+    aiOverageCostBrl: 0,
+  }),
+}));
 
 describe("GET /api/billing/ai-usage-status", () => {
   beforeEach(() => {

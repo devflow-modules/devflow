@@ -12,6 +12,18 @@ Só declarar “100%” quando for possível afirmar com segurança:
 
 Registo formal: [`WHATSAPP-PRODUCTION-SIGNOFF.md`](./WHATSAPP-PRODUCTION-SIGNOFF.md).
 
+### Pacote “pré-smoke” (blocos A–G)
+
+| Doc | Conteúdo |
+|-----|----------|
+| [WHATSAPP-AUTH-VALIDATION.md](./WHATSAPP-AUTH-VALIDATION.md) | Rotas auth, logs, testes |
+| [WHATSAPP-WEBHOOK-HARDENING.md](./WHATSAPP-WEBHOOK-HARDENING.md) | GET/POST, retries, testes |
+| [WHATSAPP-BILLING-VALIDATION.md](./WHATSAPP-BILLING-VALIDATION.md) | Superfícies Stripe/billing |
+| [WHATSAPP-OBSERVABILITY-MINIMUM.md](./WHATSAPP-OBSERVABILITY-MINIMUM.md) | Prefixos e campos de log |
+| [WHATSAPP-ARCHITECTURE-GUARDRAILS.md](./WHATSAPP-ARCHITECTURE-GUARDRAILS.md) | Script + workflow CI |
+| [WHATSAPP-UX-READY-CHECKLIST.md](./WHATSAPP-UX-READY-CHECKLIST.md) | Checklist UX manual |
+| [WHATSAPP-PRE-SMOKE-AUTOMATION.md](./WHATSAPP-PRE-SMOKE-AUTOMATION.md) | Workflows e `vitest` |
+
 ---
 
 ## Prioridades
@@ -28,10 +40,10 @@ Registo formal: [`WHATSAPP-PRODUCTION-SIGNOFF.md`](./WHATSAPP-PRODUCTION-SIGNOFF
 
 | Entregável | Descrição |
 |------------|-----------|
-| Sign-off | `docs/architecture/WHATSAPP-PRODUCTION-SIGNOFF.md` preenchido (data, ambiente, tabelas) |
-| Guardrail CI | Workflow **WhatsApp architecture guard** + `scripts/ci/check-whatsapp-architecture-boundary.sh` |
-| Webhook | Comportamento documentado na secção 2.3 do sign-off; código tolerante a falhas + logs |
-| Observabilidade | Prefixos e pontos críticos descritos no sign-off; ajustes pontuais no código se faltar log |
+| Sign-off | `WHATSAPP-PRODUCTION-SIGNOFF.md` — secção 1 pré-smoke no repo; secções 2–4 após smoke manual |
+| Guardrail CI | `whatsapp-architecture-guard.yml` + `check-whatsapp-architecture-boundary.sh` |
+| Auth / webhook / billing | Docs dedicados (tabela “pacote pré-smoke”) + testes em `apps/whatsapp-platform` |
+| Observabilidade | `WHATSAPP-OBSERVABILITY-MINIMUM.md` + `logAuth` / logs webhook |
 
 _Não é objetivo deste sprint: nova feature grande, novo produto ou reestruturação do monorepo._
 
@@ -53,7 +65,7 @@ _Não é objetivo deste sprint: nova feature grande, novo produto ou reestrutura
 
 ### Dia 3 (fecho)
 
-1. Rerun do smoke e do gate da secção 1 do sign-off.
+1. Rerun do smoke e do **gate técnico final** (secção 3 do sign-off).
 2. Preencher registo de homologação e commit final de documentação (se necessário).
 
 ---
@@ -62,8 +74,8 @@ _Não é objetivo deste sprint: nova feature grande, novo produto ou reestrutura
 
 | Bloco | Critério |
 |--------|-----------|
-| Sign-off técnico | Todos os itens do gate na secção 1 do `WHATSAPP-PRODUCTION-SIGNOFF.md` marcados com evidência |
-| Smoke E2E | Tabela 2.1 com OK nos passos 1–10 ou NOK explicado + plano |
+| Sign-off técnico | Secção **3** do `WHATSAPP-PRODUCTION-SIGNOFF.md` com evidência |
+| Smoke E2E | Secção **2** do sign-off: passos 1–10 OK ou NOK documentado |
 | Observabilidade | Em simulação de erro, consegue-se identificar rota, tenant (quando houver) e mensagem de log |
 | Anti-regressão | CI falha se `src/` importar `apps/whatsapp-platform` ou `@wa/`, ou se reaparecerem rotas API operacionais de WhatsApp na raiz |
 | Auth | Sem loops; cookies e redirects corretos no domínio real |

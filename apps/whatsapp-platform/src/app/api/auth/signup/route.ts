@@ -6,6 +6,7 @@ import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { prisma } from "@/lib/prisma";
 import { ensureTenantSubscription } from "@/modules/billing/subscriptionService";
 import { normalizePlan } from "@/modules/billing/plans";
+import { parseRequestJson } from "@/lib/parse-request-json";
 
 const bodySchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -27,7 +28,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const parsed = bodySchema.safeParse(await request.json());
+  const raw = await parseRequestJson(request);
+  if (!raw.ok) {
+    return NextResponse.json({ error: "Corpo JSON inválido" }, { status: 400 });
+  }
+
+  const parsed = bodySchema.safeParse(raw.data);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Dados inválidos", details: parsed.error.flatten() },

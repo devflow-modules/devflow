@@ -20,8 +20,15 @@ Os projetos em **`apps/*`** podem ter deploy e domínio separados na Vercel ou o
 | [docs/architecture/WHATSAPP-CUTOVER-HOMOLOGACAO.md](docs/architecture/WHATSAPP-CUTOVER-HOMOLOGACAO.md) | Script + CI `validate-whatsapp-cutover` |
 | [docs/architecture/PLATFORM-STANDARD.md](docs/architecture/PLATFORM-STANDARD.md) | Padrão portal → app, validação pós-deploy |
 | [docs/architecture/WHATSAPP_PORTAL_APP_PARITY.md](docs/architecture/WHATSAPP_PORTAL_APP_PARITY.md) | Paridade de rotas portal × app WhatsApp |
-| [docs/architecture/WHATSAPP-SPRINT-FECHAMENTO.md](docs/architecture/WHATSAPP-SPRINT-FECHAMENTO.md) | Sprint de fecho: prioridades P0–P2 e ordem de execução |
-| [docs/architecture/WHATSAPP-PRODUCTION-SIGNOFF.md](docs/architecture/WHATSAPP-PRODUCTION-SIGNOFF.md) | Gate de produção e registo de homologação |
+| [docs/architecture/WHATSAPP-SPRINT-FECHAMENTO.md](docs/architecture/WHATSAPP-SPRINT-FECHAMENTO.md) | Sprint de fecho: prioridades P0–P2, pacote pré-smoke (blocos A–G) |
+| [docs/architecture/WHATSAPP-PRODUCTION-SIGNOFF.md](docs/architecture/WHATSAPP-PRODUCTION-SIGNOFF.md) | Sign-off produção: estado pré-smoke, smoke manual, gate final |
+| [docs/architecture/WHATSAPP-AUTH-VALIDATION.md](docs/architecture/WHATSAPP-AUTH-VALIDATION.md) | Auth/sessão: rotas, logs, testes Vitest |
+| [docs/architecture/WHATSAPP-WEBHOOK-HARDENING.md](docs/architecture/WHATSAPP-WEBHOOK-HARDENING.md) | Webhook Meta: comportamento GET/POST, retries, testes |
+| [docs/architecture/WHATSAPP-BILLING-VALIDATION.md](docs/architecture/WHATSAPP-BILLING-VALIDATION.md) | Billing/Stripe no app dedicado |
+| [docs/architecture/WHATSAPP-OBSERVABILITY-MINIMUM.md](docs/architecture/WHATSAPP-OBSERVABILITY-MINIMUM.md) | Prefixos de log e rastreabilidade mínima |
+| [docs/architecture/WHATSAPP-ARCHITECTURE-GUARDRAILS.md](docs/architecture/WHATSAPP-ARCHITECTURE-GUARDRAILS.md) | CI: fronteira portal × `whatsapp-platform` |
+| [docs/architecture/WHATSAPP-UX-READY-CHECKLIST.md](docs/architecture/WHATSAPP-UX-READY-CHECKLIST.md) | Checklist UX manual pré-homologação |
+| [docs/architecture/WHATSAPP-PRE-SMOKE-AUTOMATION.md](docs/architecture/WHATSAPP-PRE-SMOKE-AUTOMATION.md) | Workflows GitHub + baseline `vitest` |
 
 ## Visão geral
 

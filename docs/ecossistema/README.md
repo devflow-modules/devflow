@@ -21,3 +21,5 @@ Documentação transversal ao domínio **devflowlabs.com.br**: rotas, topologia,
 **Monorepo e boundaries:** [../../ARCHITECTURE.md](../../ARCHITECTURE.md).
 
 **Cutover e homologação:** [../architecture/CUTOVER-WHATSAPP-RUNBOOK-MAIN.md](../architecture/CUTOVER-WHATSAPP-RUNBOOK-MAIN.md) · [../architecture/CUTOVER-FINANCEIRO-RUNBOOK-MAIN.md](../architecture/CUTOVER-FINANCEIRO-RUNBOOK-MAIN.md) · [../architecture/WHATSAPP-CUTOVER-HOMOLOGACAO.md](../architecture/WHATSAPP-CUTOVER-HOMOLOGACAO.md).
+
+**WhatsApp — pré-smoke e sign-off:** [../architecture/WHATSAPP-PRODUCTION-SIGNOFF.md](../architecture/WHATSAPP-PRODUCTION-SIGNOFF.md) · [../architecture/WHATSAPP-PRE-SMOKE-AUTOMATION.md](../architecture/WHATSAPP-PRE-SMOKE-AUTOMATION.md).
