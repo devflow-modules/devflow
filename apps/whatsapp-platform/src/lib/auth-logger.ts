@@ -8,7 +8,7 @@ import { trackLoginFailureForAlert } from "@/lib/observability/alerts";
 
 type AuthLogEvent =
   | { type: "login_success"; userId: string; tenantId: string; role: string; sessionId?: string }
-  | { type: "login_failed"; reason?: string; ip?: string }
+  | { type: "login_failed"; reason?: string; ip?: string; detail?: string }
   | { type: "logout"; userId: string; tenantId: string; sessionId?: string }
   | { type: "session_revoked"; userId: string; sessionId: string; reason?: string }
   | { type: "session_rejected"; reason: string; userId?: string }

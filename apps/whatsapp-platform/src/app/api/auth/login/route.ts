@@ -39,41 +39,60 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "E-mail e senha obrigatórios" }, { status: 400 });
   }
 
-  const result = await login(parsed.data.email, parsed.data.password);
-  if ("error" in result) {
-    logAuth({ type: "login_failed", reason: "invalid_credentials", ip });
+  try {
+    const result = await login(parsed.data.email, parsed.data.password);
+    if ("error" in result) {
+      logAuth({ type: "login_failed", reason: "invalid_credentials", ip });
+      return NextResponse.json(
+        { error: result.error, code: "INVALID_CREDENTIALS" },
+        { status: 401 }
+      );
+    }
+
+    const { sessionId } = await createUserSession(result.user.id);
+
+    logAuth({
+      type: "login_success",
+      userId: result.user.id,
+      tenantId: result.user.tenantId,
+      role: result.user.role,
+      sessionId,
+    });
+    recordPlatformAudit({
+      action: "login_success",
+      tenantId: result.user.tenantId,
+      userId: result.user.id,
+      ip,
+      metadata: { role: result.user.role },
+    });
+
+    const token = await signToken({
+      sub: result.user.id,
+      email: result.user.email,
+      name: result.user.name,
+      role: result.user.role,
+      tenantId: result.user.tenantId,
+      jti: sessionId,
+    });
+    const res = NextResponse.json({ user: result.user });
+    res.headers.set("Set-Cookie", buildSetCookieHeader(token));
+    return res;
+  } catch (err) {
+    console.error("[auth][login]", err);
+    const msg = err instanceof Error ? err.message : String(err);
+    const jwtMissing = msg.includes("JWT_SECRET");
+    const userMessage = jwtMissing
+      ? "Servidor sem JWT_SECRET configurado. Contacte o administrador."
+      : "Não foi possível iniciar sessão (serviço indisponível). Verifique a base de dados e tente novamente.";
+    logAuth({
+      type: "login_failed",
+      reason: "server_error",
+      ip,
+      detail: jwtMissing ? "jwt_secret" : "exception",
+    });
     return NextResponse.json(
-      { error: result.error, code: "INVALID_CREDENTIALS" },
-      { status: 401 }
+      { error: userMessage, code: jwtMissing ? "LOGIN_MISCONFIGURED" : "LOGIN_UNAVAILABLE" },
+      { status: 503 }
     );
   }
-
-  const { sessionId } = await createUserSession(result.user.id);
-
-  logAuth({
-    type: "login_success",
-    userId: result.user.id,
-    tenantId: result.user.tenantId,
-    role: result.user.role,
-    sessionId,
-  });
-  recordPlatformAudit({
-    action: "login_success",
-    tenantId: result.user.tenantId,
-    userId: result.user.id,
-    ip,
-    metadata: { role: result.user.role },
-  });
-
-  const token = await signToken({
-    sub: result.user.id,
-    email: result.user.email,
-    name: result.user.name,
-    role: result.user.role,
-    tenantId: result.user.tenantId,
-    jti: sessionId,
-  });
-  const res = NextResponse.json({ user: result.user });
-  res.headers.set("Set-Cookie", buildSetCookieHeader(token));
-  return res;
 }

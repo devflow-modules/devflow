@@ -19,6 +19,25 @@ export function mapAuthHttpError(
     return fallback ?? "Acesso negado. Não tem permissão para esta operação.";
   }
 
+  if (status >= 500) {
+    if (data.code === "LOGIN_MISCONFIGURED" || data.code === "LOGIN_UNAVAILABLE") {
+      return fallback ?? "Serviço temporariamente indisponível. Tente novamente em instantes.";
+    }
+    if (data.code === "EMAIL_NOT_CONFIGURED") {
+      return (
+        fallback ??
+        "Envio de e-mail não está configurado no servidor. Defina RESEND_API_KEY e EMAIL_FROM ou RESEND_FROM."
+      );
+    }
+    if (data.code === "EMAIL_SEND_FAILED") {
+      return fallback ?? "Falha ao enviar e-mail. Tente novamente mais tarde.";
+    }
+    return (
+      fallback ??
+      "O servidor não conseguiu completar o pedido. Se persistir, contacte o suporte."
+    );
+  }
+
   switch (data.code) {
     case "INVALID_CREDENTIALS":
       return "E-mail ou senha incorretos. Verifique e tente novamente.";
@@ -31,6 +50,17 @@ export function mapAuthHttpError(
       return "Este link de redefinição expirou. Peça um novo e-mail em «Esqueci minha senha».";
     case "RESET_TOKEN_INVALID":
       return "Este link não é válido. Peça um novo e-mail ou copie o endereço completo do e-mail.";
+    case "LOGIN_MISCONFIGURED":
+      return fallback ?? "Configuração do servidor incompleta (JWT). Contacte o administrador.";
+    case "LOGIN_UNAVAILABLE":
+      return fallback ?? "Serviço indisponível. Verifique a base de dados e tente novamente.";
+    case "EMAIL_NOT_CONFIGURED":
+      return (
+        fallback ??
+        "Envio de e-mail não está configurado. Defina RESEND_API_KEY e EMAIL_FROM ou RESEND_FROM no servidor."
+      );
+    case "EMAIL_SEND_FAILED":
+      return fallback ?? "Falha ao enviar e-mail. Tente novamente mais tarde.";
     default:
       break;
   }
