@@ -20,6 +20,8 @@ Os projetos em **`apps/*`** podem ter deploy e domínio separados na Vercel ou o
 | [docs/architecture/WHATSAPP-CUTOVER-HOMOLOGACAO.md](docs/architecture/WHATSAPP-CUTOVER-HOMOLOGACAO.md) | Script + CI `validate-whatsapp-cutover` |
 | [docs/architecture/PLATFORM-STANDARD.md](docs/architecture/PLATFORM-STANDARD.md) | Padrão portal → app, validação pós-deploy |
 | [docs/architecture/WHATSAPP_PORTAL_APP_PARITY.md](docs/architecture/WHATSAPP_PORTAL_APP_PARITY.md) | Paridade de rotas portal × app WhatsApp |
+| [docs/architecture/WHATSAPP-SPRINT-FECHAMENTO.md](docs/architecture/WHATSAPP-SPRINT-FECHAMENTO.md) | Sprint de fecho: prioridades P0–P2 e ordem de execução |
+| [docs/architecture/WHATSAPP-PRODUCTION-SIGNOFF.md](docs/architecture/WHATSAPP-PRODUCTION-SIGNOFF.md) | Gate de produção e registo de homologação |
 
 ## Visão geral
 

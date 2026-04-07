@@ -7,10 +7,28 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { normalizeWebhookPayload, type IncomingTextMessage } from "@devflow/whatsapp-core";
+import { APP_PRODUCT_SLUG } from "@/lib/constants";
+import { resolveTenantByPhoneNumberId } from "@/modules/whatsapp/tenantResolutionService";
+import {
+  prepareInboundConversation,
+  processLegacyInboundAutoReply,
+  persistWebhookLog,
+} from "@/modules/messaging/webhookProcessingService";
+import { checkTenantAiAutomationReady, runTenantAiAutoReply } from "@/modules/ai/aiAutomationService";
+import { persistWaInboxFromWebhook } from "@/modules/inbox";
+import { trackWebhookReceived } from "@/modules/analytics";
+import { hasSupabaseConfig } from "@/lib/supabase-server";
+
+type WabaWebhookShape = {
+  entry?: Array<{
+    changes?: Array<{ field?: string; value?: Record<string, unknown> }>;
+  }>;
+};
 
 function extractRawWebhookStructure(payload: unknown): Record<string, unknown> | null {
   if (!payload || typeof payload !== "object") return null;
-  const raw = payload as { entry?: Array<{ changes?: Array<{ field?: string; value?: Record<string, unknown> }> }> };
+  const raw = payload as WabaWebhookShape;
   if (!Array.isArray(raw.entry) || raw.entry.length === 0) return null;
   const changes = raw.entry.flatMap((e) => e.changes ?? []).map((c) => {
     const v = c.value as Record<string, unknown> | undefined;
@@ -26,18 +44,6 @@ function extractRawWebhookStructure(payload: unknown): Record<string, unknown> |
   });
   return { changes };
 }
-import { normalizeWebhookPayload, type IncomingTextMessage } from "@devflow/whatsapp-core";
-import { APP_PRODUCT_SLUG } from "@/lib/constants";
-import { resolveTenantByPhoneNumberId } from "@/modules/whatsapp/tenantResolutionService";
-import {
-  prepareInboundConversation,
-  processLegacyInboundAutoReply,
-  persistWebhookLog,
-} from "@/modules/messaging/webhookProcessingService";
-import { checkTenantAiAutomationReady, runTenantAiAutoReply } from "@/modules/ai/aiAutomationService";
-import { persistWaInboxFromWebhook } from "@/modules/inbox";
-import { trackWebhookReceived } from "@/modules/analytics";
-import { hasSupabaseConfig } from "@/lib/supabase-server";
 
 export async function handleWebhookVerification(request: NextRequest): Promise<NextResponse> {
   const searchParams = request.nextUrl.searchParams;
@@ -52,6 +58,12 @@ export async function handleWebhookVerification(request: NextRequest): Promise<N
       headers: { "Content-Type": "text/plain" },
     });
   }
+
+  console.warn("[WHATSAPP][INFO] GET webhook verify não corresponde", {
+    mode: mode ?? "(empty)",
+    tokenPresent: Boolean(token),
+    challengePresent: Boolean(challenge),
+  });
   return NextResponse.json({ product: APP_PRODUCT_SLUG, webhook: "whatsapp", method: "GET" });
 }
 
@@ -60,10 +72,22 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
   try {
     body = await request.json();
   } catch {
-    console.error("[WHATSAPP][DEBUG] Invalid JSON body");
+    console.error("[WHATSAPP][ERROR] webhook POST corpo JSON inválido");
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
+  try {
+    return await handleWebhookEventsBody(body);
+  } catch (err) {
+    console.error("[WHATSAPP][ERROR] webhook POST exceção não tratada", {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    });
+    return NextResponse.json({ ok: true }, { status: 200 });
+  }
+}
+
+async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
   const bodyObj = body as Record<string, unknown> | null;
   const bodySummary =
     bodyObj && typeof bodyObj === "object"
@@ -81,22 +105,10 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
 
   const normalized = normalizeWebhookPayload(body);
   if (!normalized) {
-    const msg =
-      "[WHATSAPP][DEBUG] normalizeWebhookPayload returned null — object/entry invalid or empty messages";
-    console.warn(msg);
-    // #region agent log
-    fetch("http://127.0.0.1:7244/ingest/2e3dda65-2e5f-4b28-b3c6-59ab727bd47c", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        location: "webhookHandler.ts:normalize_null",
-        message: msg,
-        data: bodySummary,
-        timestamp: Date.now(),
-        hypothesisId: "H1",
-      }),
-    }).catch(() => {});
-    // #endregion
+    console.warn(
+      "[WHATSAPP][INFO] normalizeWebhookPayload null — payload sem mensagens normalizáveis ou estrutura inválida",
+      JSON.stringify(bodySummary)
+    );
     return NextResponse.json({ ok: true }, { status: 200 });
   }
 
@@ -130,23 +142,12 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
     return null;
   });
   if (!tenant) {
-    const msg =
-      "[WHATSAPP][DEBUG] tenant resolution failed — no WhatsappPhoneNumber/Tenant for phoneNumberId: " +
-      (normalized.phoneNumberId || "(empty)");
-    console.warn(msg);
-    // #region agent log
-    fetch("http://127.0.0.1:7244/ingest/2e3dda65-2e5f-4b28-b3c6-59ab727bd47c", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        location: "webhookHandler.ts:tenant_null",
-        message: msg,
-        data: { phoneNumberId: normalized.phoneNumberId || "", messagesCount: normalized.messages.length },
-        timestamp: Date.now(),
-        hypothesisId: "H2",
-      }),
-    }).catch(() => {});
-    // #endregion
+    console.warn(
+      "[WHATSAPP][INFO] tenant não resolvido — phoneNumberId:",
+      normalized.phoneNumberId || "(empty)",
+      "messagesCount:",
+      normalized.messages.length
+    );
     return NextResponse.json({ ok: true }, { status: 200 });
   }
 
@@ -205,8 +206,9 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
         isNewConversation,
       });
     } catch (prepErr) {
-      console.error("[WHATSAPP][DEBUG] prepareInboundConversation threw", {
+      console.error("[WHATSAPP][ERROR] prepareInboundConversation", {
         msgId: msg.id,
+        tenantId: tenant.id,
         err: prepErr instanceof Error ? prepErr.message : String(prepErr),
       });
       continue;
@@ -216,33 +218,51 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
       continue;
     }
 
-    const aiReady = await checkTenantAiAutomationReady(tenant.id, msg.from);
-    if (aiReady.ready) {
-      console.log("[WHATSAPP][DEBUG] using AI path", { msgId: msg.id, reason: aiReady.reason });
-      try {
-        await runTenantAiAutoReply({
-          tenant,
-          message: msg,
-          conversationId: prep.conversationId,
-          textBody: prep.textBody,
-        });
-      } catch (aiErr) {
-        console.error("[WHATSAPP][ERROR] IA automática falhou, fallback para legacy:", aiErr);
-        await processLegacyInboundAutoReply(
-          tenant,
-          msg,
-          prep.conversationId,
-          prep.textBody
-        );
+    try {
+      const aiReady = await checkTenantAiAutomationReady(tenant.id, msg.from);
+      if (aiReady.ready) {
+        console.log("[WHATSAPP][DEBUG] using AI path", { msgId: msg.id, reason: aiReady.reason });
+        try {
+          await runTenantAiAutoReply({
+            tenant,
+            message: msg,
+            conversationId: prep.conversationId,
+            textBody: prep.textBody,
+          });
+        } catch (aiErr) {
+          console.error("[WHATSAPP][ERROR] IA automática falhou, fallback legacy", {
+            msgId: msg.id,
+            tenantId: tenant.id,
+            err: aiErr instanceof Error ? aiErr.message : String(aiErr),
+          });
+          try {
+            await processLegacyInboundAutoReply(tenant, msg, prep.conversationId, prep.textBody);
+          } catch (legErr) {
+            console.error("[WHATSAPP][ERROR] legacy reply falhou após erro de IA", {
+              msgId: msg.id,
+              tenantId: tenant.id,
+              err: legErr instanceof Error ? legErr.message : String(legErr),
+            });
+          }
+        }
+      } else {
+        console.log("[WHATSAPP][DEBUG] using legacy path", { msgId: msg.id, reason: aiReady.reason });
+        try {
+          await processLegacyInboundAutoReply(tenant, msg, prep.conversationId, prep.textBody);
+        } catch (legErr) {
+          console.error("[WHATSAPP][ERROR] legacy reply falhou", {
+            msgId: msg.id,
+            tenantId: tenant.id,
+            err: legErr instanceof Error ? legErr.message : String(legErr),
+          });
+        }
       }
-    } else {
-      console.log("[WHATSAPP][DEBUG] using legacy path", { msgId: msg.id, reason: aiReady.reason });
-      await processLegacyInboundAutoReply(
-        tenant,
-        msg,
-        prep.conversationId,
-        prep.textBody
-      );
+    } catch (pipeErr) {
+      console.error("[WHATSAPP][ERROR] pipeline de mensagem (AI/legacy)", {
+        msgId: msg.id,
+        tenantId: tenant.id,
+        err: pipeErr instanceof Error ? pipeErr.message : String(pipeErr),
+      });
     }
   }
 

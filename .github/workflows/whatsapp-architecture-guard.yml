@@ -1,0 +1,21 @@
+# Impede regressão: portal (src/) acoplado a apps/whatsapp-platform ou webhook na raiz.
+name: WhatsApp architecture guard
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fronteira portal vs whatsapp-platform
+        run: bash scripts/ci/check-whatsapp-architecture-boundary.sh
