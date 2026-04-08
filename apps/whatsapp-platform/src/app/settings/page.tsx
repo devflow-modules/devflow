@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { SettingsTenantForm } from "./SettingsTenantForm";
+import { TenantInstructionsCard } from "./TenantInstructionsCard";
 
 export default function SettingsPage() {
   return (
@@ -7,11 +8,12 @@ export default function SettingsPage() {
       <PageHeader
         eyebrow="Conta"
         title="Configurações"
-        description="Motor de IA para respostas automáticas e atalhos para plano e análises. As alterações valem para todo o espaço de trabalho."
+        description="Motor de IA, instruções de atendimento e atalhos para plano e análises. As alterações valem para todo o espaço de trabalho."
         layout="split"
         showDivider
       />
       <SettingsTenantForm />
+      <TenantInstructionsCard />
     </div>
   );
 }

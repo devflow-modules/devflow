@@ -121,6 +121,9 @@ export function SettingsTenantForm() {
         <Link href="/settings/ai" className="font-semibold text-[var(--df-brand-700)] hover:underline">
           IA de atendimento automático →
         </Link>
+        <Link href="/settings/developer" className="font-semibold text-[var(--df-brand-700)] hover:underline">
+          API e integrações →
+        </Link>
         <Link href="/billing" className="font-semibold text-[var(--df-brand-700)] hover:underline">
           Plano e uso →
         </Link>

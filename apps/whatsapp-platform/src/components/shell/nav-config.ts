@@ -14,6 +14,7 @@ export const NAV_SECONDARY: NavItem[] = [
   { href: "/dashboard/whatsapp", label: "WhatsApp", description: "Estado da ligação" },
   { href: "/billing", label: "Cobrança", description: "Plano e faturação" },
   { href: "/settings", label: "Configurações", description: "Conta e preferências" },
+  { href: "/settings/developer", label: "API e integrações", description: "Chave de API (admin)" },
 ];
 
 /** Operação (não primária; ainda usada com frequência média). */

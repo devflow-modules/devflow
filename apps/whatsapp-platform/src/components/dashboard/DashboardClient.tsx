@@ -88,7 +88,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
     );
   }
 
-  const setupComplete = snapshot.phoneConnected && snapshot.promptReady && snapshot.apiKeyReady;
+  const activationComplete = snapshot.activationComplete;
   const hasActivity =
     overview !== null && (overview.totalMessages > 0 || (overview.automaticMessages ?? 0) + (overview.humanMessages ?? 0) > 0);
 
@@ -97,20 +97,16 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
       ? Math.round((overview.automaticMessages / overview.totalMessages) * 100)
       : 0;
 
-  const firstIncompleteHref = !snapshot.phoneConnected
-    ? "/onboarding"
-    : !snapshot.promptReady
-      ? "/onboarding"
-      : "/onboarding";
+  const firstIncompleteHref = "/onboarding";
 
   return (
     <div className="space-y-12">
-      {!setupComplete && (
+      {!activationComplete && (
         <PageHeader
-          eyebrow="Configuração"
+          eyebrow="Ativação"
           eyebrowTone="amber"
-          title="Conclua a configuração"
-          description="WhatsApp, instruções da IA e chave de API. Depois, as mensagens aparecem na Inbox."
+          title="Conclua a ativação"
+          description="Instruções do assistente e ligação do WhatsApp Business. Depois, as mensagens aparecem na Inbox. Integrações com API são opcionais."
           layout="split"
           showDivider={false}
           className="!pb-0"
@@ -122,11 +118,11 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
         />
       )}
 
-      {setupComplete && !hasActivity && !metricsLoading && (
+      {activationComplete && !hasActivity && !metricsLoading && (
         <PageHeader
           eyebrow="Pronto"
           title="Envie uma mensagem de teste"
-          description="Conta pronta. Escreva para o número Business para validar o fluxo."
+          description="Conta ativada. Escreva para o número Business para validar o fluxo."
           layout="split"
           showDivider={false}
           className="!pb-0"
@@ -138,7 +134,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
         />
       )}
 
-      {setupComplete && (hasActivity || metricsLoading) && (
+      {activationComplete && (hasActivity || metricsLoading) && (
         <PageHeader
           eyebrow="Resumo"
           eyebrowTone="neutral"
@@ -162,42 +158,52 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
         />
       )}
 
-      {!setupComplete && (
+      {!activationComplete && (
         <Card padding="lg">
           <CardHeader
             title="Lista de verificação"
-            description="Pode seguir a ordem que quiser — os três passos são necessários para produção."
+            description="Dois passos para ativar o atendimento. A chave de API é só para integrações — fica em Configurações → API e integrações."
           />
           <div className="space-y-4">
             <CheckRow
+              done={snapshot.promptReady}
+              title="Instruções do assistente"
+              detail="Segmento, objetivo e tom — ou texto manual nas configurações."
+              href="/onboarding"
+              cta={snapshot.promptReady ? "Rever" : "Configurar"}
+            />
+            <CheckRow
               done={snapshot.phoneConnected}
-              title="Ligar o WhatsApp Business"
-              detail="Número e credenciais na Meta — no assistente ou na área WhatsApp."
+              title="WhatsApp Business ligado"
+              detail="Phone Number ID e token da Meta; estado também em WhatsApp no menu."
               href={snapshot.phoneConnected ? "/dashboard/whatsapp" : "/onboarding"}
               cta={snapshot.phoneConnected ? "Rever ligação" : "Ligar agora"}
             />
-            <CheckRow
-              done={snapshot.promptReady}
-              title="Instruções para a IA"
-              detail="Tom de voz e regras que a IA segue nas respostas automáticas."
-              href="/onboarding"
-              cta={snapshot.promptReady ? "Ajustar" : "Definir"}
-            />
-            <CheckRow
-              done={snapshot.apiKeyReady}
-              title="Chave de API"
-              detail="Permite que outros sistemas falem com a sua conta com segurança."
-              href="/onboarding"
-              cta={snapshot.apiKeyReady ? "Rever" : "Gerar chave"}
-            />
           </div>
+          {snapshot.apiKeyReady ? (
+            <p className="mt-4 text-xs text-slate-500">
+              Chave de API já gerada —{" "}
+              <Link href="/settings/developer" className="font-medium text-[var(--df-brand-700)] underline">
+                gerir em API e integrações
+              </Link>
+              .
+            </p>
+          ) : (
+            <p className="mt-4 text-xs text-slate-500">
+              Precisa de API para integrações?{" "}
+              <Link href="/settings/developer" className="font-medium text-[var(--df-brand-700)] underline">
+                Gerar chave (admin)
+              </Link>
+              .
+            </p>
+          )}
           <p className="mt-6 rounded-xl border border-slate-100/80 bg-slate-50/50 px-4 py-3 text-xs leading-relaxed text-slate-500">
             Na Meta, confirme o webhook (URL pública) e o mesmo código de verificação do servidor.
           </p>
         </Card>
       )}
 
-      {setupComplete && !hasActivity && !metricsLoading && (
+      {activationComplete && !hasActivity && !metricsLoading && (
         <Card
           padding="lg"
           className="border border-dashed border-slate-200/90 bg-gradient-to-b from-slate-50/60 to-white"
@@ -231,7 +237,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
         </Card>
       )}
 
-      {setupComplete && (
+      {activationComplete && (
         <div className="grid min-w-0 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <Card padding="md" className="!p-5 min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Mensagens</p>
@@ -265,7 +271,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
         </div>
       )}
 
-      {setupComplete && (
+      {activationComplete && (
         <div className="grid gap-8 lg:grid-cols-3">
           <Card className="lg:col-span-2">
             <CardHeader title="Histórico recente" description="Volume, intenções e desempenho por agente." />

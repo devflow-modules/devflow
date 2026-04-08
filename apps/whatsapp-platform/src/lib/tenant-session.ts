@@ -12,7 +12,10 @@ export type TenantSnapshot =
       tenantName: string | null;
       phoneConnected: boolean;
       promptReady: boolean;
+      /** Integrações / developer — não bloqueia ativação. */
       apiKeyReady: boolean;
+      /** Ativação operacional: linha WhatsApp + instruções do assistente. */
+      activationComplete: boolean;
     };
 
 /**
@@ -46,6 +49,7 @@ export async function getTenantSnapshot(): Promise<TenantSnapshot> {
     const phoneConnected = Boolean(activePhone);
     const promptReady = Boolean((tenant?.systemPrompt || tenant?.defaultPrompt || "").trim());
     const apiKeyReady = Boolean(tenant?.apiKey);
+    const activationComplete = phoneConnected && promptReady;
 
     return {
       authenticated: true,
@@ -54,6 +58,7 @@ export async function getTenantSnapshot(): Promise<TenantSnapshot> {
       phoneConnected,
       promptReady,
       apiKeyReady,
+      activationComplete,
     };
   } catch {
     return { authenticated: false };

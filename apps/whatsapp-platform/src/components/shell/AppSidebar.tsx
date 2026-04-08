@@ -96,7 +96,9 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
         <SectionTitle>Conta</SectionTitle>
         <div className="space-y-0.5">
-          {NAV_SECONDARY.map((item) => (
+          {NAV_SECONDARY.filter(
+            (item) => item.href !== "/settings/developer" || sessionRole === "admin"
+          ).map((item) => (
             <NavLink
               key={item.href}
               href={item.href}
