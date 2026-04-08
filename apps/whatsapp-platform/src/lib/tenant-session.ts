@@ -16,6 +16,9 @@ export type TenantSnapshot =
       apiKeyReady: boolean;
       /** Ativação operacional: linha WhatsApp + instruções do assistente. */
       activationComplete: boolean;
+      /** Linha Business preferida (principal ou mais recente) — pós-onboarding / primeiro teste. */
+      primaryBusinessDisplayNumber: string | null;
+      primaryBusinessPhoneNumberId: string | null;
     };
 
 /**
@@ -30,7 +33,7 @@ export async function getTenantSnapshot(): Promise<TenantSnapshot> {
     if (!auth) return { authenticated: false };
     const payload = auth.payload;
 
-    const [tenant, activePhone] = await Promise.all([
+    const [tenant, activeLines] = await Promise.all([
       prisma.tenant.findUnique({
         where: { id: payload.tenantId },
         select: {
@@ -40,13 +43,16 @@ export async function getTenantSnapshot(): Promise<TenantSnapshot> {
           apiKey: true,
         },
       }),
-      prisma.whatsappPhoneNumber.findFirst({
+      prisma.whatsappPhoneNumber.findMany({
         where: { tenantId: payload.tenantId, status: WhatsappPhoneNumberStatus.ACTIVE },
-        select: { id: true },
+        select: { id: true, displayPhoneNumber: true, phoneNumberId: true },
+        orderBy: [{ isPrimary: "desc" }, { updatedAt: "desc" }],
+        take: 1,
       }),
     ]);
 
-    const phoneConnected = Boolean(activePhone);
+    const wpn = activeLines[0] ?? null;
+    const phoneConnected = Boolean(wpn);
     const promptReady = Boolean((tenant?.systemPrompt || tenant?.defaultPrompt || "").trim());
     const apiKeyReady = Boolean(tenant?.apiKey);
     const activationComplete = phoneConnected && promptReady;
@@ -59,6 +65,8 @@ export async function getTenantSnapshot(): Promise<TenantSnapshot> {
       promptReady,
       apiKeyReady,
       activationComplete,
+      primaryBusinessDisplayNumber: wpn?.displayPhoneNumber?.trim() || null,
+      primaryBusinessPhoneNumberId: wpn?.phoneNumberId ?? null,
     };
   } catch {
     return { authenticated: false };

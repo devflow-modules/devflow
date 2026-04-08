@@ -9,6 +9,7 @@ import type { InboxConversationsFilter, WhatsappLineSummary } from "./inboxTypes
 import { useInboxRealtime } from "./useInboxRealtime";
 import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
+import { FirstConversationHint } from "./FirstConversationHint";
 
 const POLL_INTERVAL_REALTIME_MS = 10_000;
 const POLL_INTERVAL_FALLBACK_MS = 5_000;
@@ -73,29 +74,39 @@ export function ConversationsList({
 
   const threads = data?.threads ?? [];
   if (threads.length === 0) {
+    if (filter === "all") {
+      return (
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-3" data-testid="conversations-empty">
+          <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-dashed border-slate-200/90 bg-gradient-to-b from-slate-50/90 to-white px-4 py-5 shadow-sm">
+            <p className="text-center text-sm font-semibold text-slate-900">A aguardar a primeira mensagem</p>
+            <p className="mt-1 text-center text-xs text-slate-500">
+              A Inbox está ligada — envie um teste do telemóvel e a conversa aparece aqui.
+            </p>
+            <div className="mt-5 min-h-0 flex-1">
+              <FirstConversationHint variant="sidebar" lines={lines} />
+            </div>
+            <div className="mt-6 flex flex-wrap justify-center gap-2 border-t border-slate-100 pt-4">
+              <Link href="/dashboard/whatsapp" className={buttonClassName("secondary")}>
+                Estado da ligação
+              </Link>
+            </div>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="flex min-h-0 flex-1 flex-col p-3" data-testid="conversations-empty">
         <StateEmpty
           title="Ainda não há conversas aqui"
-          description={
-            filter === "all"
-              ? "As conversas aparecem aqui quando alguém escrever para o seu número. Confirme a ligação e envie um teste."
-              : "Nada corresponde a este filtro. Experimente «Todas» ou peça para atribuírem conversas."
-          }
+          description="Nada corresponde a este filtro. Experimente «Todas» ou peça para atribuírem conversas."
           action={
-            filter === "all" ? (
-              <Link href="/dashboard/whatsapp" className={buttonClassName("primary")}>
-                Rever ligação WhatsApp
-              </Link>
-            ) : (
-              <button
-                type="button"
-                className={buttonClassName("secondary")}
-                onClick={() => onFilterChange("all")}
-              >
-                Ver todas as conversas
-              </button>
-            )
+            <button
+              type="button"
+              className={buttonClassName("secondary")}
+              onClick={() => onFilterChange("all")}
+            >
+              Ver todas as conversas
+            </button>
           }
         />
       </div>

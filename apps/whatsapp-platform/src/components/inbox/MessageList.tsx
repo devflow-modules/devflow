@@ -107,7 +107,7 @@ export function MessageList({ threadId }: { threadId: string | null }) {
       <div className="flex min-h-0 flex-1 flex-col justify-center p-4">
         <StateEmpty
           title="Sem mensagens nesta conversa"
-          description="Ainda não há mensagens. Escreva a partir do telemóvel para este número e volte aqui."
+          description="A primeira mensagem do cliente aparece aqui. Se acabou de abrir a conversa, peça um teste do telemóvel ou aguarde a resposta automática."
           action={
             <button type="button" className={buttonClassName("secondary")} onClick={() => void refetch()}>
               Atualizar

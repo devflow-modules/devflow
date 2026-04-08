@@ -150,6 +150,50 @@ describe("Inbox UI", () => {
     expect(screen.getByTestId("messages-loading")).toBeInTheDocument();
   });
 
+  it("lista vazia (filtro Todas) mostra guia da primeira mensagem", async () => {
+    vi.mocked(fetch).mockImplementation((input: RequestInfo) => {
+      const url = String(input);
+      if (url.includes("/api/inbox/conversations") && !url.includes("/messages")) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: { threads: [], pagination: { total: 0, limit: 100, offset: 0 } },
+          }),
+        });
+      }
+      return Promise.resolve({ ok: false, status: 404 });
+    });
+    const onSelect = vi.fn();
+    const onFilterChange = vi.fn();
+    const onLineFilterChange = vi.fn();
+    const lines = [
+      {
+        phoneNumberId: "pn-1",
+        label: null,
+        displayPhoneNumber: "+351 910 000 000",
+        isPrimary: true,
+        isDefaultOutbound: true,
+      },
+    ];
+    render(
+      <ConversationsList
+        selectedId={null}
+        onSelect={onSelect}
+        filter="all"
+        onFilterChange={onFilterChange}
+        lineFilter={null}
+        lines={lines}
+        onLineFilterChange={onLineFilterChange}
+      />,
+      { wrapper: createWrapper() }
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId("first-conversation-hint")).toBeInTheDocument();
+    });
+    expect(screen.getByText(/\+351 910 000 000/)).toBeInTheDocument();
+  });
+
   it("MessageBubble outbound mostra status read", () => {
     const msg: WaInboxMessageRow = {
       id: "x",

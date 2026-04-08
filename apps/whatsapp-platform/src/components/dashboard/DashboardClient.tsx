@@ -8,6 +8,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { MetricsSection } from "@/app/dashboard/MetricsSection";
 import { fetchProtected } from "@/lib/protected-fetch";
+import { PostActivationGuide } from "@/components/dashboard/PostActivationGuide";
 
 type Overview = {
   totalMessages: number;
@@ -139,9 +140,10 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
 
       {activationComplete && !hasActivity && !metricsLoading && (
         <PageHeader
-          eyebrow="Pronto"
-          title="Envie uma mensagem de teste"
-          description="Conta ativada. Escreva para o número Business para validar o fluxo."
+          eyebrow="Inbox"
+          eyebrowTone="neutral"
+          title="Vamos à primeira conversa"
+          description="A conta está ativa. Envie um teste do WhatsApp no telemóvel para o número Business — a thread aparece na Inbox em segundos."
           layout="split"
           showDivider={false}
           className="!pb-0"
@@ -234,31 +236,20 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
           className="border border-dashed border-slate-200/90 bg-gradient-to-b from-slate-50/60 to-white"
         >
           <CardHeader
-            title="Validar antes de abrir ao público"
-            description="Três passos rápidos para ter a certeza que tudo flui."
+            title="Primeiro valor na Inbox"
+            description="Siga o guia abaixo — é o caminho mais curto para ver mensagens a entrar no sistema."
           />
-          <ul className="list-none space-y-4 text-sm leading-relaxed text-slate-600">
-            <li className="flex gap-3">
-              <span className="font-semibold tabular-nums text-slate-400">1</span>
-              <span>Escreva do telemóvel para o número Business que ligou.</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="font-semibold tabular-nums text-slate-400">2</span>
-              <span>Na Meta, confirme webhook e subscrição da app.</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="font-semibold tabular-nums text-slate-400">3</span>
-              <span>Volte à Inbox — a conversa deve surgir à esquerda.</span>
-            </li>
-          </ul>
-          <div className="mt-8">
-            <Link
-              href="/dashboard/whatsapp"
-              className={`${buttonClassName("ghost")} -ml-1 text-[var(--df-brand-700)] hover:bg-slate-50`}
-            >
-              Ver estado da ligação →
+          <PostActivationGuide
+            displayNumber={snapshot.primaryBusinessDisplayNumber}
+            phoneNumberId={snapshot.primaryBusinessPhoneNumberId}
+          />
+          <p className="mt-8 rounded-xl border border-slate-100/80 bg-white/60 px-4 py-3 text-xs leading-relaxed text-slate-600">
+            Antes de divulgar o número aos clientes, confirme na Meta o webhook público e o código de verificação — detalhes em{" "}
+            <Link href="/dashboard/whatsapp" className="font-medium text-[var(--df-brand-700)] underline">
+              Estado da ligação
             </Link>
-          </div>
+            .
+          </p>
         </Card>
       )}
 

@@ -12,6 +12,7 @@ import { useMediaMd } from "./useMediaMd";
 import { useInboxRealtime, InboxRealtimeProvider } from "./useInboxRealtime";
 import { OnlineUsersBadge } from "./OnlineUsersBadge";
 import { PageHeader } from "@/components/ui/page-header";
+import { FirstConversationHint } from "./FirstConversationHint";
 
 /** Polling: 10s quando realtime conectado, 5s como fallback. */
 const POLL_INTERVAL_REALTIME_MS = 10_000;
@@ -52,6 +53,12 @@ function InboxShellContent() {
     [convData, selectedId]
   );
 
+  const awaitingFirstMessage =
+    convData !== undefined &&
+    convData.threads.length === 0 &&
+    filter === "all" &&
+    lineFilter === null;
+
   const onSelect = useCallback((id: string) => {
     setSelectedId(id);
     setMobileChat(true);
@@ -82,7 +89,11 @@ function InboxShellContent() {
         <PageHeader
           eyebrow="Atendimento"
           title="Inbox"
-          description="Escolha uma conversa à esquerda para ver e responder."
+          description={
+            awaitingFirstMessage
+              ? "Envie um teste do telemóvel para o número Business — a conversa surge na lista à esquerda."
+              : "Escolha uma conversa à esquerda para ver e responder."
+          }
           layout="split"
           size="compact"
           showDivider={false}
@@ -129,6 +140,12 @@ function InboxShellContent() {
                 showBack={!isMd}
                 onBackMobile={onBack}
               />
+            ) : awaitingFirstMessage ? (
+              <div className="hidden min-h-0 flex-1 flex-col items-center justify-center px-4 py-8 md:flex md:px-8">
+                <div className="max-w-lg rounded-2xl border border-dashed border-slate-200/90 bg-white/95 px-6 py-8 shadow-sm">
+                  <FirstConversationHint variant="main" lines={lines} />
+                </div>
+              </div>
             ) : (
               <div className="hidden min-h-0 flex-1 flex-col items-center justify-center px-4 py-8 text-center md:flex md:px-6">
                 <div className="max-w-sm rounded-xl border border-dashed border-slate-200/90 bg-white/90 px-5 py-8 shadow-sm">
