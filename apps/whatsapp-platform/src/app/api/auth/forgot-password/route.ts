@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Envio de e-mail não está configurado no servidor. Defina RESEND_API_KEY e EMAIL_FROM ou RESEND_FROM (Resend).",
+            "Envio de e-mail não está configurado no servidor. Defina RESEND_API_KEY e um remetente: EMAIL_FROM, RESEND_FROM ou RESEND_FROM_EMAIL (Resend).",
           code: "EMAIL_NOT_CONFIGURED",
         },
         { status: 503 }

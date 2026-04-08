@@ -32,6 +32,7 @@ describe("sendTransactionalEmail", () => {
     delete process.env.RESEND_API_KEY;
     delete process.env.EMAIL_FROM;
     delete process.env.RESEND_FROM;
+    delete process.env.RESEND_FROM_EMAIL;
   });
 
   it("envia RESET_PASSWORD com sucesso e persiste SENT", async () => {
@@ -116,5 +117,23 @@ describe("sendTransactionalEmail", () => {
     expect(r.errorCode).toBe("EMAIL_NOT_CONFIGURED");
     expect(mockSendWithResend).not.toHaveBeenCalled();
     expect(mockEmailCreate).not.toHaveBeenCalled();
+  });
+
+  it("aceita RESEND_FROM_EMAIL quando EMAIL_FROM e RESEND_FROM estão ausentes", async () => {
+    delete process.env.EMAIL_FROM;
+    delete process.env.RESEND_FROM;
+    process.env.RESEND_FROM_EMAIL = "noreply@alias.example.com";
+    const { sendTransactionalEmail } = await import("../application/sendTransactionalEmail");
+    const r = await sendTransactionalEmail({
+      type: "WELCOME",
+      to: "user@test.com",
+      payload: { loginUrl: "https://app.test/login" },
+    });
+    expect(r.ok).toBe(true);
+    expect(mockSendWithResend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: expect.stringContaining("noreply@alias.example.com"),
+      })
+    );
   });
 });

@@ -105,7 +105,7 @@ describe("POST /api/auth/forgot-password", () => {
     const body = (await res.json()) as { code?: string; error?: string };
     expect(body.code).toBe("EMAIL_NOT_CONFIGURED");
     expect(body.error).toContain("não está configurado");
-    expect(body.error).toMatch(/RESEND_API_KEY|EMAIL_FROM|RESEND_FROM/);
+    expect(body.error).toMatch(/RESEND_API_KEY|EMAIL_FROM|RESEND_FROM|RESEND_FROM_EMAIL/);
     expect(body.error).not.toMatch(/re_[a-z0-9]+/i);
   });
 });

@@ -6,7 +6,7 @@ export type ResolvedTransactionalEmailConfig =
 
 /**
  * RESEND_API_KEY obrigatório para envio.
- * Remetente: EMAIL_FROM ou legado RESEND_FROM.
+ * Remetente: EMAIL_FROM, RESEND_FROM ou alias RESEND_FROM_EMAIL (comum em setups antigos).
  * Resposta opcional: EMAIL_REPLY_TO.
  */
 export function getTransactionalEmailConfig(): ResolvedTransactionalEmailConfig {
@@ -14,7 +14,11 @@ export function getTransactionalEmailConfig(): ResolvedTransactionalEmailConfig 
   if (!apiKey) {
     return { ok: false, reason: "missing_api_key" };
   }
-  const rawFrom = (process.env.EMAIL_FROM ?? process.env.RESEND_FROM)?.trim();
+  const rawFrom = (
+    process.env.EMAIL_FROM ??
+    process.env.RESEND_FROM ??
+    process.env.RESEND_FROM_EMAIL
+  )?.trim();
   if (!rawFrom) {
     return { ok: false, reason: "missing_from" };
   }

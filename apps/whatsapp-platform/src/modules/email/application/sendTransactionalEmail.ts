@@ -110,7 +110,7 @@ export async function sendTransactionalEmail(
       errorMessage:
         config.reason === "missing_api_key"
           ? "RESEND_API_KEY não configurada"
-          : "EMAIL_FROM ou RESEND_FROM não configurado",
+          : "EMAIL_FROM, RESEND_FROM ou RESEND_FROM_EMAIL não configurado",
     };
   }
 

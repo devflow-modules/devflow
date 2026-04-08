@@ -26,7 +26,7 @@ export function mapAuthHttpError(
     if (data.code === "EMAIL_NOT_CONFIGURED") {
       return (
         fallback ??
-        "Envio de e-mail não está configurado no servidor. Defina RESEND_API_KEY e EMAIL_FROM ou RESEND_FROM."
+        "Envio de e-mail não está configurado no servidor. Defina RESEND_API_KEY e um remetente (EMAIL_FROM, RESEND_FROM ou RESEND_FROM_EMAIL)."
       );
     }
     if (data.code === "EMAIL_SEND_FAILED") {
@@ -57,7 +57,7 @@ export function mapAuthHttpError(
     case "EMAIL_NOT_CONFIGURED":
       return (
         fallback ??
-        "Envio de e-mail não está configurado. Defina RESEND_API_KEY e EMAIL_FROM ou RESEND_FROM no servidor."
+        "Envio de e-mail não está configurado. Defina RESEND_API_KEY e um remetente (EMAIL_FROM, RESEND_FROM ou RESEND_FROM_EMAIL) no servidor."
       );
     case "EMAIL_SEND_FAILED":
       return fallback ?? "Falha ao enviar e-mail. Tente novamente mais tarde.";
