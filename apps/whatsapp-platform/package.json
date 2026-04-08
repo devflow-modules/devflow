@@ -11,6 +11,7 @@
         "start": "next start --port 3000",
         "lint": "eslint src",
         "test": "vitest run",
+        "test:e2e": "playwright test",
         "smoke": "tsx ../../scripts/smoke-test-whatsapp.ts",
         "test:meter": "tsx scripts/test-meter-usage.ts"
     },
@@ -52,6 +53,7 @@
         "tailwindcss": "^4",
         "tsx": "^4.19.0",
         "typescript": "^5",
-        "vitest": "^4.1.0"
+        "vitest": "^4.1.0",
+        "@playwright/test": "^1.51.0"
     }
 }

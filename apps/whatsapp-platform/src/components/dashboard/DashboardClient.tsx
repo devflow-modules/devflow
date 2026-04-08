@@ -55,9 +55,12 @@ function CheckRow({
   );
 }
 
+type SessionRole = "admin" | "agent" | null;
+
 export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [metricsLoading, setMetricsLoading] = useState(() => snapshot.authenticated);
+  const [sessionRole, setSessionRole] = useState<SessionRole>(null);
 
   useEffect(() => {
     if (!snapshot.authenticated) return;
@@ -67,6 +70,22 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
         if (data?.overview) setOverview(data.overview);
       })
       .finally(() => setMetricsLoading(false));
+  }, [snapshot.authenticated]);
+
+  useEffect(() => {
+    if (!snapshot.authenticated) return;
+    let cancelled = false;
+    fetchProtected("/api/auth/verify")
+      .then((r) => r.json())
+      .then((d: { user?: { role?: string } }) => {
+        if (cancelled) return;
+        const r = d.user?.role;
+        if (r === "admin" || r === "agent") setSessionRole(r);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
   }, [snapshot.authenticated]);
 
   if (!snapshot.authenticated) {
@@ -180,23 +199,29 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
               cta={snapshot.phoneConnected ? "Rever ligação" : "Ligar agora"}
             />
           </div>
-          {snapshot.apiKeyReady ? (
+          {sessionRole === "admin" ? (
+            snapshot.apiKeyReady ? (
+              <p className="mt-4 text-xs text-slate-500">
+                Chave de API já gerada —{" "}
+                <Link href="/settings/developer" className="font-medium text-[var(--df-brand-700)] underline">
+                  gerir em API e integrações
+                </Link>
+                .
+              </p>
+            ) : (
+              <p className="mt-4 text-xs text-slate-500">
+                Precisa de API para integrações?{" "}
+                <Link href="/settings/developer" className="font-medium text-[var(--df-brand-700)] underline">
+                  Gerar chave
+                </Link>
+                .
+              </p>
+            )
+          ) : sessionRole === "agent" ? (
             <p className="mt-4 text-xs text-slate-500">
-              Chave de API já gerada —{" "}
-              <Link href="/settings/developer" className="font-medium text-[var(--df-brand-700)] underline">
-                gerir em API e integrações
-              </Link>
-              .
+              Integrações com API: peça a um administrador em Configurações → API e integrações.
             </p>
-          ) : (
-            <p className="mt-4 text-xs text-slate-500">
-              Precisa de API para integrações?{" "}
-              <Link href="/settings/developer" className="font-medium text-[var(--df-brand-700)] underline">
-                Gerar chave (admin)
-              </Link>
-              .
-            </p>
-          )}
+          ) : null}
           <p className="mt-6 rounded-xl border border-slate-100/80 bg-slate-50/50 px-4 py-3 text-xs leading-relaxed text-slate-500">
             Na Meta, confirme o webhook (URL pública) e o mesmo código de verificação do servidor.
           </p>

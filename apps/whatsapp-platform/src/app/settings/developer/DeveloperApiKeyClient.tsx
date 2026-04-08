@@ -5,11 +5,10 @@ import Link from "next/link";
 import { Button } from "@devflow/ui";
 import { Card } from "@/components/ui/card";
 import { buttonClassName } from "@/components/ui/button";
-import { StateEmpty, StateLoading } from "@/components/ui/app-states";
+import { StateLoading } from "@/components/ui/app-states";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 export function DeveloperApiKeyClient() {
-  const [role, setRole] = useState<string | null>(null);
   const [hasApiKey, setHasApiKey] = useState(false);
   const [masked, setMasked] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,18 +19,13 @@ export function DeveloperApiKeyClient() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [v, me] = await Promise.all([
-        fetchProtected("/api/auth/verify"),
-        fetchProtected("/api/tenants/me"),
-      ]);
-      const vj = (await v.json().catch(() => ({}))) as { user?: { role?: string } };
+      const me = await fetchProtected("/api/tenants/me");
       const mj = (await me.json().catch(() => ({}))) as {
         apiKey?: string | null;
         hasApiKey?: boolean;
         error?: string;
       };
       if (cancelled) return;
-      setRole(vj.user?.role ?? null);
       if (me.ok) {
         setHasApiKey(Boolean(mj.hasApiKey));
         setMasked(typeof mj.apiKey === "string" ? mj.apiKey : null);
@@ -63,20 +57,6 @@ export function DeveloperApiKeyClient() {
 
   if (loading) {
     return <StateLoading message="A carregar…" />;
-  }
-
-  if (role !== "admin") {
-    return (
-      <StateEmpty
-        title="Acesso restrito"
-        description="Só administradores podem gerir a chave de API."
-        action={
-          <Link href="/settings" className={buttonClassName("primary")}>
-            Voltar às configurações
-          </Link>
-        }
-      />
-    );
   }
 
   return (

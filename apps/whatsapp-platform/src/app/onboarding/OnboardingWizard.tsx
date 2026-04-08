@@ -26,6 +26,8 @@ type TenantMe = {
   systemPrompt?: string | null;
 };
 
+type SessionRole = "admin" | "agent" | null;
+
 function hasPromptConfigured(t: TenantMe | null): boolean {
   if (!t) return false;
   return Boolean((t.defaultPrompt || t.systemPrompt || "").trim());
@@ -44,11 +46,19 @@ export function OnboardingWizard() {
 
   const [checklistMeta, setChecklistMeta] = useState(false);
   const [checklistWebhook, setChecklistWebhook] = useState(false);
+  const [sessionRole, setSessionRole] = useState<SessionRole>(null);
+  const [whatsappSaving, setWhatsappSaving] = useState(false);
+  const [whatsappSuccess, setWhatsappSuccess] = useState(false);
 
   useEffect(() => {
-    fetchProtected("/api/tenants/me")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: TenantMe | null) => {
+    let cancelled = false;
+    Promise.all([fetchProtected("/api/tenants/me"), fetchProtected("/api/auth/verify")])
+      .then(async ([meRes, verifyRes]) => {
+        const data = meRes.ok ? ((await meRes.json()) as TenantMe) : null;
+        const vj = verifyRes.ok ? ((await verifyRes.json()) as { user?: { role?: string } }) : {};
+        if (cancelled) return;
+        const r = vj.user?.role;
+        if (r === "admin" || r === "agent") setSessionRole(r);
         setTenant(data);
         const promptOk = hasPromptConfigured(data);
         const phoneOk = Boolean(data?.hasWhatsappPhone);
@@ -56,8 +66,15 @@ export function OnboardingWizard() {
         else if (promptOk) setStep(2);
         else setStep(1);
       })
-      .catch(() => setTenant(null))
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (!cancelled) setTenant(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (loading) {
@@ -96,6 +113,7 @@ export function OnboardingWizard() {
   const handleWhatsAppSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    setWhatsappSuccess(false);
     const fd = new FormData(e.currentTarget);
     const phoneNumberId = (fd.get("phoneNumberId") as string)?.trim();
     const displayPhoneNumber = (fd.get("displayPhoneNumber") as string)?.trim();
@@ -104,18 +122,27 @@ export function OnboardingWizard() {
       setError("Preencha o Phone Number ID e o Access Token.");
       return;
     }
-    const res = await fetchProtected("/api/tenants/me", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phoneNumberId, displayPhoneNumber, accessToken }),
-    });
-    const data = (await res.json().catch(() => ({}))) as { error?: string };
-    if (!res.ok) {
-      setError(protectedApiUserMessage(res.status, data));
-      return;
+    setWhatsappSaving(true);
+    try {
+      const res = await fetchProtected("/api/tenants/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phoneNumberId, displayPhoneNumber, accessToken }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setError(protectedApiUserMessage(res.status, data));
+        return;
+      }
+      setTenant((p) => (p ? { ...p, hasWhatsappPhone: true } : p));
+      setWhatsappSuccess(true);
+      window.setTimeout(() => {
+        setWhatsappSuccess(false);
+        setStep(3);
+      }, 1400);
+    } finally {
+      setWhatsappSaving(false);
     }
-    setTenant((p) => (p ? { ...p, hasWhatsappPhone: true } : p));
-    setStep(3);
   };
 
   const handleFinish = () => {
@@ -277,7 +304,14 @@ export function OnboardingWizard() {
               <label htmlFor="phoneNumberId" className={labelClass}>
                 Phone Number ID
               </label>
-              <input id="phoneNumberId" name="phoneNumberId" type="text" placeholder="Ex.: 123456789" className={fieldClass} />
+              <input
+                id="phoneNumberId"
+                name="phoneNumberId"
+                type="text"
+                placeholder="Ex.: 123456789"
+                className={fieldClass}
+                disabled={whatsappSaving || whatsappSuccess}
+              />
             </div>
             <div>
               <label htmlFor="displayPhoneNumber" className={labelClass}>
@@ -289,6 +323,7 @@ export function OnboardingWizard() {
                 type="text"
                 placeholder="+351 912 345 678"
                 className={fieldClass}
+                disabled={whatsappSaving || whatsappSuccess}
               />
             </div>
             <div>
@@ -302,14 +337,29 @@ export function OnboardingWizard() {
                 placeholder="EAAx…"
                 autoComplete="off"
                 className={fieldClass}
+                disabled={whatsappSaving || whatsappSuccess}
               />
             </div>
+            {whatsappSaving && (
+              <p className="text-sm text-slate-600" role="status">
+                A validar credenciais com a Meta…
+              </p>
+            )}
+            {whatsappSuccess && (
+              <p
+                className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-900"
+                role="status"
+              >
+                Ligação confirmada com a Meta. A avançar…
+              </p>
+            )}
             {error && <p className="text-sm text-red-600">{error}</p>}
             <button
               type="submit"
-              className="w-full rounded-md bg-[var(--df-brand-600)] px-3 py-2.5 text-sm font-medium text-white hover:bg-[var(--df-brand-700)]"
+              disabled={whatsappSaving || whatsappSuccess}
+              className="w-full rounded-md bg-[var(--df-brand-600)] px-3 py-2.5 text-sm font-medium text-white hover:bg-[var(--df-brand-700)] disabled:opacity-60"
             >
-              Guardar e concluir ligação
+              {whatsappSaving ? "A validar…" : "Guardar e concluir ligação"}
             </button>
           </form>
 
@@ -330,7 +380,7 @@ export function OnboardingWizard() {
           <div>
             <h2 className="text-lg font-semibold text-slate-900">Está pronto para começar</h2>
             <p className="mt-2 text-sm text-slate-600">
-              O assistente tem instruções iniciais e a linha WhatsApp está associada à conta. Pode enviar uma mensagem de
+              O assistente tem instruções iniciais e validámos a ligação WhatsApp com a Meta. Pode enviar uma mensagem de
               teste e abrir a Inbox.
             </p>
           </div>
@@ -343,13 +393,17 @@ export function OnboardingWizard() {
           </button>
           <div className="flex flex-col gap-2 border-t border-slate-100 pt-4 text-left text-sm text-slate-600">
             <p className="font-medium text-slate-800">Opcional — integrações técnicas</p>
-            <p>
-              Chave de API para desenvolvimento e integrações:{" "}
-              <Link href="/settings/developer" className="text-[var(--df-brand-700)] underline">
-                API e integrações
-              </Link>{" "}
-              (apenas administradores).
-            </p>
+            {sessionRole === "admin" ? (
+              <p>
+                Chave de API para desenvolvimento e integrações:{" "}
+                <Link href="/settings/developer" className="text-[var(--df-brand-700)] underline">
+                  API e integrações
+                </Link>
+                .
+              </p>
+            ) : (
+              <p>Chave de API: peça a um administrador da organização em Configurações → API e integrações.</p>
+            )}
             <p>
               Motor de IA (modelo, temperatura):{" "}
               <Link href="/settings/ai" className="text-[var(--df-brand-700)] underline">

@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
 import { resolvePrimaryPhoneNumber } from "@/modules/whatsapp/whatsappPhoneResolution";
 import { ensureTenantHasPrimaryAndDefaultOutbound } from "@/modules/whatsapp/whatsappPhonePolicy";
+import { validateWhatsappCloudCredentials } from "@/modules/whatsapp/validateWhatsappCloudCredentials";
 
 const AI_DRIVERS = ["ruleBased", "openAI", "claude"] as const;
 
@@ -94,19 +95,38 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    const validation = await validateWhatsappCloudCredentials(phoneNumberId, accessToken);
+    if (!validation.ok) {
+      return NextResponse.json(
+        {
+          error: validation.message,
+          code: "WHATSAPP_CLOUD_VALIDATION_FAILED",
+          detail: validation.code,
+        },
+        { status: 422 }
+      );
+    }
+
+    const displayFromForm = data.displayPhoneNumber?.trim() || null;
+    const displayFromMeta =
+      validation.ok && validation.displayPhoneNumber ? validation.displayPhoneNumber.trim() : null;
+    const displayPhoneNumber = displayFromForm || displayFromMeta || null;
+
     await prisma.whatsappPhoneNumber.upsert({
       where: { phoneNumberId },
       create: {
         tenantId: auth.payload.tenantId,
         phoneNumberId,
-        displayPhoneNumber: data.displayPhoneNumber?.trim() || null,
+        displayPhoneNumber,
         accessToken,
         status: WhatsappPhoneNumberStatus.ACTIVE,
       },
       update: {
         tenantId: auth.payload.tenantId,
         displayPhoneNumber:
-          data.displayPhoneNumber !== undefined ? data.displayPhoneNumber.trim() || null : undefined,
+          data.displayPhoneNumber !== undefined
+            ? data.displayPhoneNumber.trim() || displayFromMeta || null
+            : displayFromMeta ?? undefined,
         accessToken,
         status: WhatsappPhoneNumberStatus.ACTIVE,
       },

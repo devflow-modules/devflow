@@ -23,6 +23,8 @@ type TenantMe = {
   hasApiKey: boolean;
 };
 
+type SessionRole = "admin" | "agent" | null;
+
 export function SettingsTenantForm() {
   const [tenant, setTenant] = useState<TenantMe | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,13 +32,22 @@ export function SettingsTenantForm() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [aiDriver, setAiDriver] = useState<string>("ruleBased");
+  const [sessionRole, setSessionRole] = useState<SessionRole>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoadError(null);
       try {
-        const res = await fetchProtected("/api/tenants/me");
+        const [res, verifyRes] = await Promise.all([
+          fetchProtected("/api/tenants/me"),
+          fetchProtected("/api/auth/verify"),
+        ]);
+        const vj = verifyRes.ok ? ((await verifyRes.json()) as { user?: { role?: string } }) : {};
+        if (!cancelled) {
+          const r = vj.user?.role;
+          if (r === "admin" || r === "agent") setSessionRole(r);
+        }
         const data = (await res.json().catch(() => ({}))) as TenantMe & { error?: string };
         if (!res.ok) {
           if (res.status === 401) setTenant(null);
@@ -121,9 +132,11 @@ export function SettingsTenantForm() {
         <Link href="/settings/ai" className="font-semibold text-[var(--df-brand-700)] hover:underline">
           IA de atendimento automático →
         </Link>
-        <Link href="/settings/developer" className="font-semibold text-[var(--df-brand-700)] hover:underline">
-          API e integrações →
-        </Link>
+        {sessionRole === "admin" ? (
+          <Link href="/settings/developer" className="font-semibold text-[var(--df-brand-700)] hover:underline">
+            API e integrações →
+          </Link>
+        ) : null}
         <Link href="/billing" className="font-semibold text-[var(--df-brand-700)] hover:underline">
           Plano e uso →
         </Link>

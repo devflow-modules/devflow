@@ -44,6 +44,8 @@ scripts/ops/validate-routes.financeiro.env
 coverage/
 .nyc_output/
 *.lcov
+**/test-results/
+**/playwright-report/
 
 # --- IDE / Editor ---
 .idea/
