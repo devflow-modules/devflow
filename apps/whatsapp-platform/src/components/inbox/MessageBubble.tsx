@@ -117,8 +117,8 @@ export const MessageBubble = memo(function MessageBubble({
   return (
     <div className={`flex w-full ${outbound ? "justify-end" : "justify-start"}`} data-testid="message-bubble">
       <div
-        className={`max-w-[min(92%,28rem)] ${bubbleRadius} ${density} shadow-[0_1px_3px_rgba(15,23,42,0.06)] ${
-          outbound ? "bg-[var(--df-brand-600)] text-white" : "bg-white text-slate-900"
+        className={`max-w-[min(92%,28rem)] ${bubbleRadius} ${density} ${
+          outbound ? "df-message-panel-outbound" : "df-message-panel-inbound"
         }`}
       >
         {!outbound && !compact && (

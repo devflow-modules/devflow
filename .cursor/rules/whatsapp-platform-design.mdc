@@ -1,0 +1,19 @@
+---
+description: Padrão visual WhatsApp Platform (cores, layout, tipografia, Tailwind)
+globs:
+  - apps/whatsapp-platform/**/*.tsx
+  - apps/whatsapp-platform/**/*.css
+alwaysApply: false
+---
+
+# WhatsApp Platform — UI
+
+- **Tokens:** `apps/whatsapp-platform/src/app/globals.css` — prefixo `df-*` (marca, admin, feedback, layout, tipografia).
+- **Cores:** fundos `slate-50` / superfícies `white`; marca `var(--df-brand-*)`; config sensível âmbar + `PageHeader` `tone="admin"`.
+- **Tipografia:** classes `df-eyebrow`, `df-text-page-title`, `df-text-section-title`, `df-text-muted`, `df-text-page-description`, `df-label` — ver `DESIGN_SYSTEM.md`.
+- **Layout:** `df-shell-main`, `df-page-narrow` / `df-page-medium`, ritmo `df-stack` / `df-stack-tight` / `df-stack-relaxed` / `df-stack-dense`. Inbox = full-bleed (sem `max-w-6xl` no conteúdo).
+- **Componentes:** `PageHeader`, `Card`, `Button` (`primary` | `secondary` | `ghost` | `destructive` | `admin`), `FormField`/`FormSection`, `StateLoading`/`StateEmpty`/`StateError`, `AppBadge`, `.df-quick-action`, `.df-focus-brand`.
+- **Tabelas admin:** `df-table-wrap` + `df-table`. **Feedback:** `df-feedback-*`.
+- **Evitar:** Tailwind longo duplicado quando existe `df-*`; cinzentos fora de `slate`; sombras pesadas.
+
+Documentação: `apps/whatsapp-platform/docs/DESIGN_SYSTEM.md` · checklist de PR: `docs/VISUAL_REVIEW_CHECKLIST.md`.

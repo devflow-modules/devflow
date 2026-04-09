@@ -2,12 +2,9 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { AiSettingsForm } from "./AiSettingsForm";
 
-const qaClass =
-  "rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200/90 transition hover:bg-slate-50";
-
 export default function AiSettingsPage() {
   return (
-    <div className="mx-auto min-w-0 max-w-3xl space-y-8">
+    <div className="df-page-narrow df-stack min-w-0">
       <PageHeader
         eyebrow="Inteligência"
         title="IA de atendimento"
@@ -25,19 +22,19 @@ export default function AiSettingsPage() {
         tone="admin"
         quickActions={
           <>
-            <button type="submit" form="wf-ai-settings" className={qaClass}>
+            <button type="submit" form="wf-ai-settings" className="df-quick-action">
               Salvar alterações
             </button>
-            <Link href="/inbox" className={qaClass}>
+            <Link href="/inbox" className="df-quick-action">
               Testar na Inbox
             </Link>
-            <Link href="/settings/ai-analytics" className={qaClass}>
+            <Link href="/settings/ai-analytics" className="df-quick-action">
               Uso e custo de IA
             </Link>
-            <Link href="/settings/developer" className={qaClass}>
+            <Link href="/settings/developer" className="df-quick-action">
               API e integrações
             </Link>
-            <Link href="/billing" className={qaClass}>
+            <Link href="/billing" className="df-quick-action">
               Cobrança
             </Link>
           </>

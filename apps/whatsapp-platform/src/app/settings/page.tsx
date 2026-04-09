@@ -5,7 +5,7 @@ import { TenantInstructionsCard } from "./TenantInstructionsCard";
 
 export default function SettingsPage() {
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="df-page-narrow df-stack">
       <PageHeader
         eyebrow="Conta"
         title="Configurações"
@@ -15,22 +15,13 @@ export default function SettingsPage() {
         tone="admin"
         quickActions={
           <>
-            <Link
-              href="/settings/ai"
-              className="rounded-lg bg-white px-3 py-1.5 text-slate-700 shadow-sm ring-1 ring-slate-200/90 transition hover:bg-slate-50"
-            >
+            <Link href="/settings/ai" className="df-quick-action">
               IA de atendimento
             </Link>
-            <Link
-              href="/settings/developer"
-              className="rounded-lg bg-white px-3 py-1.5 text-slate-700 shadow-sm ring-1 ring-slate-200/90 transition hover:bg-slate-50"
-            >
+            <Link href="/settings/developer" className="df-quick-action">
               API e integrações
             </Link>
-            <Link
-              href="/billing"
-              className="rounded-lg bg-white px-3 py-1.5 text-slate-700 shadow-sm ring-1 ring-slate-200/90 transition hover:bg-slate-50"
-            >
+            <Link href="/billing" className="df-quick-action">
               Cobrança
             </Link>
           </>

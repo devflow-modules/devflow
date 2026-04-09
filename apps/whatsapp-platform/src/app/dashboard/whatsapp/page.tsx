@@ -9,9 +9,6 @@ import { isOperator } from "@/lib/roles";
 import Link from "next/link";
 import { WhatsappConnectClient } from "./WhatsappConnectClient";
 
-const qaClass =
-  "rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200/90 transition hover:bg-slate-50";
-
 export default async function DashboardWhatsappPage() {
   const store = await cookies();
   const token = store.get(JWT_COOKIE_NAME)?.value;
@@ -30,10 +27,10 @@ export default async function DashboardWhatsappPage() {
         tone="admin"
         quickActions={
           <>
-            <Link href="/settings" className={qaClass}>
+            <Link href="/settings" className="df-quick-action">
               Configurações
             </Link>
-            <Link href="/billing" className={qaClass}>
+            <Link href="/billing" className="df-quick-action">
               Cobrança
             </Link>
           </>

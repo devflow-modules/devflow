@@ -6,6 +6,10 @@ export const buttonVariantClasses = {
   secondary:
     "bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50/80 shadow-sm",
   ghost: "bg-transparent text-slate-600 hover:bg-slate-100/80 border border-transparent",
+  destructive:
+    "bg-red-600 text-white hover:bg-red-700 border border-transparent shadow-sm focus-visible:ring-red-500/35",
+  admin:
+    "bg-[var(--df-admin-50)] text-[var(--df-admin-900)] border border-amber-200/90 hover:bg-amber-100/80 shadow-sm focus-visible:ring-amber-500/30",
 } as const;
 
 type Variant = keyof typeof buttonVariantClasses;

@@ -1,22 +1,437 @@
 @import "tailwindcss";
 
-/* DevFlow WhatsApp — tokens mínimos (alinhados à escala 4·8·16·24) */
+/**
+ * WhatsApp Platform — design tokens (DevFlow)
+ * Neutros: escala slate (Tailwind). Marca: azul. Áreas administrativas: âmbar discreto.
+ * Ver: apps/whatsapp-platform/docs/DESIGN_SYSTEM.md
+ */
+
 :root {
+  /* Marca (primária — ações, links, foco) */
   --df-brand-50: #eff6ff;
+  --df-brand-100: #dbeafe;
   --df-brand-200: #bfdbfe;
+  --df-brand-400: #60a5fa;
   --df-brand-500: #3b82f6;
   --df-brand-600: #2563eb;
   --df-brand-700: #1d4ed8;
   --df-brand-800: #1e40af;
+
+  /* Admin / configuração sensível (selos, secções, PageHeader admin) */
+  --df-admin-50: #fffbeb;
+  --df-admin-100: #fef3c7;
+  --df-admin-200: #fde68a;
+  --df-admin-800: #92400e;
+  --df-admin-900: #78350f;
+
+  /* Superfícies semânticas */
+  --df-bg-app: #f8fafc;
+  --df-bg-elevated: #ffffff;
+  --df-border-subtle: rgb(241 245 249 / 0.9);
+  --df-text-primary: #0f172a;
+  --df-text-secondary: #64748b;
+  --df-text-muted: #94a3b8;
+
+  /* Feedback */
+  --df-success-bg: #ecfdf5;
+  --df-success-border: #a7f3d0;
+  --df-success-text: #065f46;
+  --df-danger-bg: #fef2f2;
+  --df-danger-border: #fecaca;
+  --df-danger-text: #991b1b;
+  --df-warning-bg: #fffbeb;
+  --df-warning-border: #fde68a;
+
+  /* Espaçamento (escala 4 · 8 · 16 · 24 px) */
   --df-space-1: 0.25rem;
   --df-space-2: 0.5rem;
+  --df-space-3: 0.75rem;
   --df-space-4: 1rem;
   --df-space-6: 1.5rem;
   --df-space-8: 2rem;
+  --df-space-10: 2.5rem;
+  --df-space-12: 3rem;
+
+  /* Raio e sombra */
+  --df-radius-sm: 0.5rem;
+  --df-radius-md: 0.75rem;
+  --df-radius-lg: 1rem;
+  --df-radius-xl: 1.25rem;
+  --df-shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.04);
+  --df-shadow-sidebar: 4px 0 32px rgba(15, 23, 42, 0.04);
+
+  /* Layout — alinhado ao AppShell */
+  --df-shell-max-width: 72rem;
+  --df-shell-px: 1rem;
+  --df-shell-py: 2rem;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --df-shell-px: 1.5rem;
+    --df-shell-py: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --df-shell-px: 2.5rem;
+    --df-shell-py: 3rem;
+  }
 }
 
 @layer base {
   body {
     @apply bg-slate-50 text-slate-900 antialiased;
+  }
+}
+
+/**
+ * Utilitários de produto — preferir estes a classes Tailwind ad hoc repetidas.
+ */
+@layer components {
+  /* --- Layout & ritmo vertical --- */
+  .df-shell-main {
+    @apply mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12;
+  }
+
+  /** Blocos de página (settings, formulários densos) */
+  .df-page-narrow {
+    @apply mx-auto w-full min-w-0 max-w-3xl;
+  }
+
+  .df-page-medium {
+    @apply mx-auto w-full min-w-0 max-w-4xl;
+  }
+
+  /** Espaço vertical entre secções principais (PageHeader → conteúdo → cartões) */
+  .df-stack {
+    @apply flex flex-col gap-8;
+  }
+
+  .df-stack-relaxed {
+    @apply flex flex-col gap-10 sm:gap-12;
+  }
+
+  .df-stack-tight {
+    @apply flex flex-col gap-4;
+  }
+
+  .df-stack-dense {
+    @apply flex flex-col gap-6;
+  }
+
+  /* --- Tipografia por função --- */
+  .df-eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500;
+  }
+
+  .df-eyebrow-admin {
+    @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-600/90;
+  }
+
+  .df-text-page-title {
+    @apply text-3xl font-semibold tracking-tight text-slate-950 sm:text-[2rem] sm:leading-tight;
+  }
+
+  .df-text-page-title-sm {
+    @apply text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl;
+  }
+
+  .df-text-section-title {
+    @apply text-lg font-semibold tracking-tight text-slate-950;
+  }
+
+  .df-text-body {
+    @apply text-sm leading-relaxed text-slate-600;
+  }
+
+  .df-text-muted {
+    @apply text-sm leading-relaxed text-slate-500;
+  }
+
+  .df-text-page-description {
+    @apply max-w-xl text-[15px] leading-relaxed text-slate-500 sm:text-base;
+  }
+
+  .df-label {
+    @apply text-[13px] font-medium text-slate-800;
+  }
+
+  /* --- Cabeçalho de página (complementa PageHeader) --- */
+  .df-quick-action {
+    @apply rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200/90 transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-60;
+  }
+
+  .df-focus-brand {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+  }
+
+  .df-admin-badge {
+    @apply inline-flex items-center gap-1 rounded-full border border-amber-200/90 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900/90;
+  }
+
+  /* --- Form controls (inputs alinhados ao form-field) --- */
+  .df-field-control {
+    @apply w-full rounded-xl border border-slate-100 bg-white px-3.5 py-3 text-sm text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)] outline-none transition-[border-color,box-shadow,background-color] placeholder:text-slate-400 focus:border-[var(--df-brand-500)]/35 focus:bg-white focus:ring-2 focus:ring-[var(--df-brand-500)]/15 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .df-textarea-control {
+    @apply min-h-[7.5rem] resize-y;
+  }
+
+  .df-field-compact {
+    @apply rounded-lg border border-slate-100 bg-white px-2.5 py-2 text-sm text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)] outline-none focus:border-[var(--df-brand-500)]/35 focus:ring-2 focus:ring-[var(--df-brand-500)]/15 disabled:opacity-50;
+  }
+
+  /* --- Cartões --- */
+  .df-card {
+    @apply rounded-2xl border border-slate-100/80 bg-white p-7 shadow-[var(--df-shadow-card)];
+  }
+
+  .df-card-sm {
+    @apply rounded-2xl border border-slate-100/80 bg-white p-5 shadow-[var(--df-shadow-card)];
+  }
+
+  .df-card-lg {
+    @apply rounded-2xl border border-slate-100/80 bg-white p-8 shadow-[var(--df-shadow-card)];
+  }
+
+  /** Secção de formulário (FormSection) */
+  .df-form-section {
+    @apply rounded-2xl border border-slate-100/80 bg-white p-6 shadow-[var(--df-shadow-card)] sm:p-8;
+  }
+
+  /* --- Badges / chips --- */
+  .df-badge {
+    @apply inline-flex items-center rounded-full border border-slate-200/90 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700;
+  }
+
+  .df-badge-brand {
+    @apply inline-flex items-center rounded-full border border-[var(--df-brand-200)] bg-[var(--df-brand-50)] px-2 py-0.5 text-xs font-medium text-[var(--df-brand-800)];
+  }
+
+  .df-badge-admin {
+    @apply inline-flex items-center rounded-full border border-amber-200/90 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-900/90;
+  }
+
+  .df-badge-success {
+    @apply inline-flex items-center rounded-full border border-emerald-200/90 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-900;
+  }
+
+  .df-badge-danger {
+    @apply inline-flex items-center rounded-full border border-red-200/90 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-900;
+  }
+
+  .df-badge-muted {
+    @apply inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600;
+  }
+
+  /* --- Estados vazios / carregamento / erro --- */
+  .df-state-loading {
+    @apply flex min-h-[12rem] flex-col items-center justify-center gap-4 rounded-2xl border border-slate-100/90 bg-white px-8 py-14 text-center shadow-[0_1px_2px_rgba(15,23,42,0.04)];
+  }
+
+  .df-state-empty {
+    @apply rounded-2xl border border-dashed border-slate-200/70 bg-slate-50/40 px-6 py-12 text-center;
+  }
+
+  .df-state-error {
+    @apply rounded-2xl border border-red-100 bg-red-50/50 px-6 py-8 text-center shadow-sm;
+  }
+
+  .df-feedback-success {
+    @apply rounded-lg border border-emerald-200/90 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-900;
+  }
+
+  .df-feedback-warning {
+    @apply rounded-lg border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-sm text-amber-950;
+  }
+
+  .df-feedback-danger {
+    @apply rounded-lg border border-red-200/90 bg-red-50/90 px-4 py-3 text-sm text-red-900;
+  }
+
+  .df-feedback-info {
+    @apply rounded-lg border border-slate-200/90 bg-slate-50 px-4 py-3 text-sm text-slate-800;
+  }
+
+  /* --- Tabelas administrativas --- */
+  .df-table-wrap {
+    @apply overflow-x-auto rounded-xl border border-slate-200/80 bg-white shadow-sm;
+  }
+
+  .df-table {
+    @apply w-full min-w-[520px] border-collapse text-left text-sm;
+  }
+
+  .df-table thead {
+    @apply border-b border-slate-200 bg-slate-50/80;
+  }
+
+  .df-table th {
+    @apply px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-500;
+  }
+
+  .df-table td {
+    @apply border-b border-slate-100 px-4 py-2.5 text-slate-800;
+  }
+
+  .df-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  /* --- Inbox / chat operacional (SLA, chips, toolbar, timeline) --- */
+  .df-inbox-header {
+    @apply flex flex-col border-b border-slate-100 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)];
+  }
+
+  /** SLA por nível — legibilidade e urgência preservadas */
+  .df-badge-sla-ok {
+    @apply rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-700 ring-1 ring-slate-200/80;
+  }
+
+  .df-badge-sla-medium {
+    @apply rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-950 ring-1 ring-amber-200/80;
+  }
+
+  .df-badge-sla-high {
+    @apply rounded-full bg-orange-100 px-2.5 py-0.5 text-[11px] font-bold text-orange-950 ring-1 ring-orange-200/70;
+  }
+
+  .df-badge-sla-critical {
+    @apply rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-bold text-red-950 ring-2 ring-red-400/80;
+  }
+
+  .df-chip-conv-state {
+    @apply rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-800 ring-1 ring-slate-200/80;
+  }
+
+  .df-chip-status-open {
+    @apply rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-900 ring-1 ring-emerald-100;
+  }
+
+  .df-chip-status-closed {
+    @apply rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-500;
+  }
+
+  .df-chip-status-pending {
+    @apply rounded-full bg-indigo-50 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-800;
+  }
+
+  .df-chip-priority-high {
+    @apply rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-800;
+  }
+
+  .df-chip-unassigned {
+    @apply rounded-md bg-amber-50 px-1.5 py-0.5 text-[9px] font-semibold text-amber-950 ring-1 ring-amber-200/70;
+  }
+
+  .df-chip-awaiting {
+    @apply rounded-md bg-amber-100/90 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-amber-950;
+  }
+
+  .df-badge-pending-count {
+    @apply min-w-[1.25rem] rounded-md bg-[var(--df-brand-600)] px-1 py-0.5 text-center text-[10px] font-bold text-white tabular-nums;
+  }
+
+  .df-inbox-toolbar-btn {
+    @apply inline-flex items-center rounded-lg border border-slate-200/90 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+  }
+
+  .df-inbox-dropdown {
+    @apply absolute left-0 top-full z-20 mt-1.5 rounded-xl border border-slate-100 bg-white py-1 shadow-lg shadow-slate-900/5;
+  }
+
+  .df-inbox-dropdown-item {
+    @apply w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50;
+  }
+
+  .df-inbox-pill-notes {
+    @apply rounded-lg border border-amber-200/80 bg-amber-50/90 px-2.5 py-1.5 text-xs font-medium text-amber-950 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+  }
+
+  .df-inbox-pill-audit-on {
+    @apply rounded-lg border border-emerald-200/80 bg-emerald-50/90 px-2.5 py-1.5 text-xs font-medium text-emerald-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+  }
+
+  .df-inbox-pill-audit-off {
+    @apply inline-flex items-center rounded-lg border border-slate-200/90 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+  }
+
+  .df-inbox-tag-add {
+    @apply rounded-lg border border-dashed border-slate-200 bg-white/80 px-2 py-1 text-xs font-medium text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+  }
+
+  .df-inbox-queue-select {
+    @apply w-full max-w-[min(100%,14rem)] rounded-lg border border-slate-100 bg-white px-2.5 py-2 text-[11px] text-slate-800 shadow-[0_1px_2px_rgba(15,23,42,0.04)] outline-none focus:border-[var(--df-brand-500)]/35 focus:ring-2 focus:ring-[var(--df-brand-500)]/15 disabled:opacity-50;
+  }
+
+  /** Lista — espera SLA compacta */
+  .df-inbox-sla-wait-critical {
+    @apply inline-flex items-center rounded-md bg-red-600/15 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-red-800 ring-1 ring-red-300/50;
+  }
+
+  .df-inbox-sla-wait-high {
+    @apply inline-flex items-center rounded-md bg-orange-500/15 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-orange-950 ring-1 ring-orange-300/50;
+  }
+
+  .df-inbox-sla-wait-muted {
+    @apply text-[11px] font-medium text-slate-600;
+  }
+
+  .df-inbox-row-action-primary {
+    @apply rounded-lg bg-[var(--df-brand-600)] px-2.5 py-1.5 text-[10px] font-semibold text-white shadow-md ring-1 ring-black/5 hover:bg-[var(--df-brand-700)] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+  }
+
+  .df-inbox-row-action-secondary {
+    @apply rounded-lg bg-white px-2.5 py-1.5 text-[10px] font-semibold text-slate-700 shadow-md ring-1 ring-slate-200/90 hover:bg-slate-50 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+  }
+
+  /** Timeline de mensagens */
+  .df-timeline-day {
+    @apply rounded-full border border-slate-100 bg-white px-3.5 py-1 text-[11px] font-medium capitalize tracking-wide text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)];
+  }
+
+  .df-timeline-unread {
+    @apply rounded-full bg-[var(--df-brand-500)]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--df-brand-700)] ring-1 ring-[var(--df-brand-500)]/20;
+  }
+
+  .df-message-panel-inbound {
+    @apply bg-white text-slate-900 shadow-[0_1px_3px_rgba(15,23,42,0.06)];
+  }
+
+  .df-message-panel-outbound {
+    @apply bg-[var(--df-brand-600)] text-white shadow-[0_1px_3px_rgba(15,23,42,0.06)];
+  }
+
+  /** Compositor: atalhos e sugestões */
+  .df-inbox-template-chip {
+    @apply rounded-full border border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[11px] font-medium text-slate-700 transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+  }
+
+  .df-inbox-ai-chip {
+    @apply rounded-full border border-[var(--df-brand-200)] bg-[var(--df-brand-50)] px-2.5 py-1 text-[11px] font-semibold text-[var(--df-brand-800)] transition hover:bg-[var(--df-brand-100)] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+  }
+
+  .df-panel-ai-preview {
+    @apply rounded-xl border border-violet-100 bg-violet-50/50 p-3 text-sm shadow-sm;
+  }
+
+  .df-panel-playbook {
+    @apply rounded-xl border border-sky-100 bg-sky-50/40 p-3 text-sm shadow-sm;
+  }
+
+  /** Estado vazio operacional (lista) */
+  .df-inbox-filter-empty-card {
+    @apply mx-auto flex w-full max-w-sm flex-col items-center rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white via-white to-slate-50/95 px-6 py-10 text-center shadow-[0_8px_40px_rgba(15,23,42,0.06)];
+  }
+
+  .df-inbox-empty-icon-success {
+    @apply mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-500/15;
+  }
+
+  .df-inbox-empty-icon-neutral {
+    @apply mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--df-brand-50)] text-[var(--df-brand-600)] ring-[var(--df-brand-500)]/15;
   }
 }

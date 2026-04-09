@@ -91,9 +91,9 @@ export function MessageList({
 
   if (!threadId) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
+      <div className="df-state-empty flex flex-1 flex-col items-center justify-center border-0 bg-transparent px-6 py-16 shadow-none">
         <p className="text-sm font-semibold text-slate-800">Escolha uma conversa</p>
-        <p className="mt-2 max-w-xs text-sm leading-relaxed text-slate-500">Na lista à esquerda, toque num contacto para abrir o histórico.</p>
+        <p className="df-text-muted mt-2 max-w-xs">Na lista à esquerda, toque num contacto para abrir o histórico.</p>
       </div>
     );
   }
@@ -101,10 +101,7 @@ export function MessageList({
   if (isLoading) {
     return (
       <div className="flex min-h-0 flex-1 flex-col justify-center p-4" data-testid="messages-loading">
-        <StateLoading
-          message="A carregar mensagens…"
-          className="min-h-[12rem] border-slate-200/80 bg-white/90 shadow-none"
-        />
+        <StateLoading message="A carregar mensagens…" className="min-h-[12rem] border-slate-200/80 bg-white/90 shadow-none" />
       </div>
     );
   }
@@ -147,18 +144,14 @@ export function MessageList({
           if (item.kind === "day") {
             return (
               <div key={`d-${ti}-${item.label}`} className="flex justify-center py-2">
-                <span className="rounded-full border border-slate-100 bg-white px-3.5 py-1 text-[11px] font-medium capitalize tracking-wide text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-                  {item.label}
-                </span>
+                <span className="df-timeline-day">{item.label}</span>
               </div>
             );
           }
           if (item.kind === "unread") {
             return (
               <div key={`u-${ti}`} className="flex justify-center py-2" data-testid="unread-separator">
-                <span className="rounded-full bg-[var(--df-brand-500)]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--df-brand-700)] ring-1 ring-[var(--df-brand-500)]/20">
-                  Novas mensagens
-                </span>
+                <span className="df-timeline-unread">Novas mensagens</span>
               </div>
             );
           }

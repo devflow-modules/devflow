@@ -109,8 +109,8 @@ export function ManagerDashboardSection() {
     <div className="space-y-8" data-testid="manager-dashboard">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold tracking-tight text-slate-900">Visão gerencial</h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <h2 className="df-text-section-title">Visão gerencial</h2>
+          <p className="df-text-muted mt-1">
             Operação em tempo real; restantes métricas no período: <span className="font-medium text-slate-700">{rangeLabel}</span>
           </p>
         </div>
@@ -195,31 +195,33 @@ export function ManagerDashboardSection() {
               />
             </div>
           ) : (
-            <div className="overflow-x-auto px-2 pb-6">
-              <table className="w-full min-w-[520px] text-sm" data-testid="manager-dashboard-agents-table">
-                <thead>
-                  <tr className="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    <th className="px-4 py-2">Agente</th>
-                    <th className="px-4 py-2 text-right">Threads</th>
-                    <th className="px-4 py-2 text-right">Resposta</th>
-                    <th className="px-4 py-2 text-right">1.ª resposta</th>
-                    <th className="px-4 py-2 text-right">Fechadas</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.team.agents.map((a) => (
-                    <tr key={a.userId} className="border-b border-slate-50 last:border-0">
-                      <td className="px-4 py-2.5 font-medium text-slate-900">
+            <div className="px-2 pb-6">
+              <div className="df-table-wrap">
+                <table className="df-table" data-testid="manager-dashboard-agents-table">
+                  <thead>
+                    <tr>
+                      <th>Agente</th>
+                      <th className="text-right">Threads</th>
+                      <th className="text-right">Resposta</th>
+                      <th className="text-right">1.ª resposta</th>
+                      <th className="text-right">Fechadas</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.team.agents.map((a) => (
+                      <tr key={a.userId}>
+                        <td className="font-medium text-slate-900">
                         {a.name ?? a.email ?? a.userId.slice(0, 8)}
                       </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-800">{a.handled}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-600">{formatMs(a.avgResponseMs)}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-600">{formatMs(a.avgFirstResponseMs)}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-800">{a.closed}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        <td className="text-right tabular-nums text-slate-800">{a.handled}</td>
+                        <td className="text-right tabular-nums text-slate-600">{formatMs(a.avgResponseMs)}</td>
+                        <td className="text-right tabular-nums text-slate-600">{formatMs(a.avgFirstResponseMs)}</td>
+                        <td className="text-right tabular-nums text-slate-800">{a.closed}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </Card>

@@ -8,16 +8,12 @@ type LoadingProps = {
 
 export function StateLoading({ message = "A carregar…", className = "" }: LoadingProps) {
   return (
-    <div
-      className={`flex min-h-[12rem] flex-col items-center justify-center gap-4 rounded-2xl border border-slate-100/90 bg-white px-8 py-14 text-center shadow-[0_1px_2px_rgba(15,23,42,0.04)] ${className}`.trim()}
-      role="status"
-      aria-live="polite"
-    >
+    <div className={`df-state-loading ${className}`.trim()} role="status" aria-live="polite">
       <span
         className="h-9 w-9 animate-spin rounded-full border-2 border-slate-100 border-t-[var(--df-brand-600)]"
         aria-hidden
       />
-      <p className="text-sm text-slate-500">{message}</p>
+      <p className="df-text-muted">{message}</p>
     </div>
   );
 }
@@ -62,11 +58,9 @@ type EmptyProps = {
 
 export function StateEmpty({ title, description, action, className = "" }: EmptyProps) {
   return (
-    <div
-      className={`rounded-2xl border border-dashed border-slate-200/70 bg-slate-50/40 px-6 py-12 text-center ${className}`.trim()}
-    >
+    <div className={`df-state-empty ${className}`.trim()}>
       <p className="text-sm font-semibold text-slate-900">{title}</p>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-500">{description}</p>
+      <p className="df-text-muted mx-auto mt-2 max-w-md">{description}</p>
       {action ? <div className="mt-8 flex justify-center">{action}</div> : null}
     </div>
   );

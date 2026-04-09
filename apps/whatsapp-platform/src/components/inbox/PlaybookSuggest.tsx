@@ -39,7 +39,7 @@ export function PlaybookSuggest({
       <button
         type="button"
         disabled={mut.isPending || sendDisabled}
-        className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-950 transition hover:bg-sky-100 disabled:opacity-50"
+        className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-950 transition hover:bg-sky-100 disabled:opacity-50 df-focus-brand"
         onClick={() => mut.mutate()}
         data-testid="btn-playbook-suggest"
       >
@@ -51,10 +51,7 @@ export function PlaybookSuggest({
         </p>
       )}
       {preview !== null && (
-        <div
-          className="rounded-xl border border-sky-100 bg-sky-50/40 p-3 text-sm shadow-sm"
-          data-testid="playbook-preview"
-        >
+        <div className="df-panel-playbook" data-testid="playbook-preview">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-900">Playbook (IA)</p>
           <dl className="mt-2 space-y-1.5 text-slate-800">
             <div>

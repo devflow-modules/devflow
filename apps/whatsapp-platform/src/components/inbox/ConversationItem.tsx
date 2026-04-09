@@ -6,6 +6,7 @@ import { threadNeedsAgentReply } from "./messageOutboundKind";
 import { type ConversationState } from "@/modules/inbox/waInboxConversationState";
 import { formatCompactWaitDurationMs } from "@/modules/inbox/waInboxSla";
 import { conversationPreviewPrefix } from "./conversationPreviewPrefix";
+import { slaWaitLabelClass } from "./inboxOperationalStyles";
 
 function formatListTimeCompact(iso: string): string {
   try {
@@ -100,13 +101,7 @@ export const ConversationItem = memo(function ConversationItem({
             <div className="shrink-0 text-right">
               {state === "awaiting_agent" && waitLabel ? (
                 <span
-                  className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
-                    isCritical
-                      ? "bg-red-600/15 text-red-800 ring-1 ring-red-300/50"
-                      : isHigh
-                        ? "bg-orange-500/15 text-orange-950 ring-1 ring-orange-300/50"
-                        : "text-slate-600"
-                  }`}
+                  className={`inline-flex items-center tabular-nums ${slaWaitLabelClass(isCritical, isHigh)}`}
                   data-testid="sla-wait-label"
                   data-sla-rank={slaRank(thread.slaLevel)}
                 >
@@ -126,10 +121,7 @@ export const ConversationItem = memo(function ConversationItem({
 
           <div className="mt-1 flex flex-wrap items-center gap-1">
             {pendingCount > 0 ? (
-              <span
-                className="min-w-[1.25rem] rounded-md bg-[var(--df-brand-600)] px-1 py-0.5 text-center text-[10px] font-bold text-white tabular-nums"
-                data-testid="pending-inbound-badge"
-              >
+              <span className="df-badge-pending-count" data-testid="pending-inbound-badge">
                 {pendingCount > 99 ? "99+" : pendingCount}
               </span>
             ) : null}
@@ -145,18 +137,11 @@ export const ConversationItem = memo(function ConversationItem({
               </span>
             ) : null}
             {showSemDono ? (
-              <span
-                className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[9px] font-semibold text-amber-950 ring-1 ring-amber-200/70"
-                data-testid="unassigned-chip"
-              >
+              <span className="df-chip-unassigned" data-testid="unassigned-chip">
                 Sem dono
               </span>
             ) : null}
-            {needsReply && thread.status === "OPEN" && !state && (
-              <span className="rounded-md bg-amber-100/90 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-amber-950">
-                À espera
-              </span>
-            )}
+            {needsReply && thread.status === "OPEN" && !state && <span className="df-chip-awaiting">À espera</span>}
           </div>
         </div>
       </button>
@@ -171,7 +156,7 @@ export const ConversationItem = memo(function ConversationItem({
             <button
               type="button"
               disabled={busyAction?.id === thread.id}
-              className="rounded-lg bg-[var(--df-brand-600)] px-2.5 py-1.5 text-[10px] font-semibold text-white shadow-md ring-1 ring-black/5 hover:bg-[var(--df-brand-700)] disabled:opacity-50"
+              className="df-inbox-row-action-primary"
               onClick={() => onAssume?.(thread.id)}
               data-testid="action-assume"
             >
@@ -182,7 +167,7 @@ export const ConversationItem = memo(function ConversationItem({
             <button
               type="button"
               disabled={busyAction?.id === thread.id}
-              className="rounded-lg bg-white px-2.5 py-1.5 text-[10px] font-semibold text-slate-700 shadow-md ring-1 ring-slate-200/90 hover:bg-slate-50 disabled:opacity-50"
+              className="df-inbox-row-action-secondary"
               onClick={() => onClose?.(thread.id)}
               data-testid="action-close"
             >

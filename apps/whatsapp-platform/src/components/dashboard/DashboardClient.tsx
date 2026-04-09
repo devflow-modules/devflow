@@ -35,7 +35,7 @@ function CheckRow({
   cta: string;
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-slate-100/90 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:flex-row sm:items-center sm:justify-between">
+    <div className="df-card-sm flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-start gap-3.5">
         <span
           className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
@@ -95,7 +95,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
 
   if (!snapshot.authenticated) {
     return (
-      <div className="space-y-8">
+      <div className="df-stack">
         <PageHeader
           eyebrow="Acesso"
           title="Entre para continuar"
@@ -124,7 +124,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
   const firstIncompleteHref = "/onboarding";
 
   return (
-    <div className="space-y-12">
+    <div className="df-stack-relaxed">
       <div className="flex justify-end">
         <SupportHelpButton variant="inline" />
       </div>
@@ -206,7 +206,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
             title="Lista de verificação"
             description="Dois passos para ativar o atendimento. A chave de API é só para integrações — fica em Configurações → API e integrações."
           />
-          <div className="space-y-4">
+          <div className="df-stack-tight">
             <CheckRow
               done={snapshot.promptReady}
               title="Instruções do assistente"

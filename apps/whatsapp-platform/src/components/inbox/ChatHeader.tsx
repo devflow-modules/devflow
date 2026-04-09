@@ -18,15 +18,13 @@ import { CONVERSATION_STATE_LABELS } from "@/modules/inbox/waInboxConversationSt
 import { formatWaitDurationMs } from "@/modules/inbox/waInboxSla";
 import type { InboxSlaLevel } from "./inboxTypes";
 import { buttonClassName } from "@/components/ui/button";
+import { SLA_LEVEL_BADGE_CLASS } from "./inboxOperationalStyles";
 
-const SLA_HEADER: Record<
-  InboxSlaLevel,
-  { label: string; className: string }
-> = {
-  low: { label: "SLA OK", className: "bg-slate-100 text-slate-700 ring-slate-200/80" },
-  medium: { label: "SLA médio", className: "bg-amber-100 text-amber-950 ring-amber-200/80" },
-  high: { label: "SLA alto", className: "bg-orange-100 text-orange-950 ring-orange-200/70" },
-  critical: { label: "Crítico", className: "bg-red-100 text-red-950 ring-2 ring-red-400/80" },
+const SLA_LABEL: Record<InboxSlaLevel, string> = {
+  low: "SLA OK",
+  medium: "SLA médio",
+  high: "SLA alto",
+  critical: "Crítico",
 };
 
 type ChatHeaderProps = {
@@ -160,7 +158,9 @@ export function ChatHeader({
   const title = thread.contactName?.trim() || thread.phoneNumber || "Conversa";
   const state = thread.conversationState;
   const stateLabel = state ? CONVERSATION_STATE_LABELS[state] : null;
-  const sla = thread.slaLevel ? SLA_HEADER[thread.slaLevel] : null;
+  const slaLevel = thread.slaLevel;
+  const slaLabel = slaLevel ? SLA_LABEL[slaLevel] : null;
+  const slaBadgeClass = slaLevel ? SLA_LEVEL_BADGE_CLASS[slaLevel] : null;
   const wait =
     thread.responseDelayMs != null && state === "awaiting_agent"
       ? formatWaitDurationMs(thread.responseDelayMs)
@@ -172,13 +172,13 @@ export function ChatHeader({
   const canReopen = thread.status === "CLOSED";
 
   return (
-    <header className="flex flex-col border-b border-slate-100 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+    <header className="df-inbox-header">
       <div className="flex items-start gap-3 px-4 py-4 sm:px-6 sm:py-5">
         {showBack && (
           <button
             type="button"
             onClick={onBackMobile}
-            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden"
+            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden df-focus-brand"
             aria-label="Voltar"
           >
             ←
@@ -188,42 +188,31 @@ export function ChatHeader({
           {title.slice(0, 2).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="truncate text-lg font-semibold tracking-tight text-slate-950">{title}</h2>
+          <h2 className="df-text-section-title truncate">{title}</h2>
           {thread.phoneNumber && (
             <p className="truncate text-xs text-slate-500/90">{thread.phoneNumber}</p>
           )}
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            {stateLabel ? (
-              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-800 ring-1 ring-slate-200/80">
-                {stateLabel}
-              </span>
-            ) : null}
-            {sla && wait ? (
-              <span
-                className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ring-1 ${sla.className}`}
-                data-testid="chat-header-sla"
-              >
-                {sla.label} · {wait}
+            {stateLabel ? <span className="df-chip-conv-state">{stateLabel}</span> : null}
+            {slaBadgeClass && slaLabel && wait ? (
+              <span className={slaBadgeClass} data-testid="chat-header-sla">
+                {slaLabel} · {wait}
               </span>
             ) : wait ? (
-              <span className="text-[11px] font-medium text-slate-600">À espera há {wait}</span>
+              <span className="df-inbox-sla-wait-muted">À espera há {wait}</span>
             ) : null}
             <span
-              className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+              className={
                 thread.status === "OPEN"
-                  ? "bg-emerald-50 text-emerald-900 ring-1 ring-emerald-100"
+                  ? "df-chip-status-open"
                   : thread.status === "CLOSED"
-                    ? "bg-slate-100 text-slate-500"
-                    : "bg-indigo-50 text-indigo-800"
-              }`}
+                    ? "df-chip-status-closed"
+                    : "df-chip-status-pending"
+              }
             >
               {thread.status === "OPEN" ? "Aberta" : thread.status === "CLOSED" ? "Fechada" : "Pendente"}
             </span>
-            {thread.priority === "HIGH" ? (
-              <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-800">
-                Prioridade alta
-              </span>
-            ) : null}
+            {thread.priority === "HIGH" ? <span className="df-chip-priority-high">Prioridade alta</span> : null}
           </div>
           <p className="mt-2 text-xs text-slate-600">
             <span className="font-medium text-slate-500">Responsável: </span>
@@ -245,7 +234,7 @@ export function ChatHeader({
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <span className="text-[11px] font-medium text-slate-500">Fila</span>
               <select
-                className="max-w-[min(100%,14rem)] rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] text-slate-800"
+                className="df-inbox-queue-select"
                 disabled={actionBusy}
                 value={thread.queue?.id ?? ""}
                 onChange={(e) => {
@@ -293,7 +282,7 @@ export function ChatHeader({
           <button
             type="button"
             disabled={actionBusy}
-            className={`${buttonClassName("secondary")} text-slate-700`}
+            className={buttonClassName("secondary")}
             onClick={() => handleStatus("CLOSED")}
             data-testid="header-close"
           >
@@ -316,31 +305,23 @@ export function ChatHeader({
           <button
             type="button"
             onClick={() => setAssignOpen((o) => !o)}
-            className="rounded-lg border border-slate-100 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-slate-200 hover:bg-slate-50/80"
+            className="df-inbox-toolbar-btn max-w-full min-w-0 justify-start text-slate-600"
           >
             {thread.assignedToUser ? thread.assignedToUser.name : "Atribuir…"}
           </button>
           {assignOpen && (
-            <div className="absolute left-0 top-full z-20 mt-1.5 w-52 overflow-hidden rounded-xl border border-slate-100 bg-white py-1 shadow-lg shadow-slate-900/5">
-              <button
-                type="button"
-                className="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
-                onClick={() => handleAssign("me")}
-              >
+            <div className="df-inbox-dropdown w-52 max-w-[min(100vw-2rem,13rem)]">
+              <button type="button" className="df-inbox-dropdown-item" onClick={() => handleAssign("me")}>
                 Atribuir a mim
               </button>
-              <button
-                type="button"
-                className="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
-                onClick={() => handleAssign(null)}
-              >
+              <button type="button" className="df-inbox-dropdown-item" onClick={() => handleAssign(null)}>
                 Desatribuir
               </button>
               {usersFetched.map((u: { id: string; name: string }) => (
                 <button
                   key={u.id}
                   type="button"
-                  className="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                  className="df-inbox-dropdown-item"
                   onClick={() => handleAssign(u.id)}
                 >
                   {u.name}
@@ -351,20 +332,16 @@ export function ChatHeader({
         </div>
 
         <div className="relative" ref={statusRef}>
-          <button
-            type="button"
-            onClick={() => setStatusOpen((o) => !o)}
-            className="rounded-lg border border-slate-100 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-slate-200 hover:bg-slate-50/80"
-          >
+          <button type="button" onClick={() => setStatusOpen((o) => !o)} className="df-inbox-toolbar-btn">
             Estado
           </button>
           {statusOpen && (
-            <div className="absolute left-0 top-full z-20 mt-1.5 w-40 overflow-hidden rounded-xl border border-slate-100 bg-white py-1 shadow-lg shadow-slate-900/5">
+            <div className="df-inbox-dropdown w-40">
               {(["OPEN", "PENDING", "CLOSED"] as const).map((s) => (
                 <button
                   key={s}
                   type="button"
-                  className="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                  className="df-inbox-dropdown-item"
                   onClick={() => handleStatus(s)}
                 >
                   {s === "OPEN" ? "Aberta" : s === "CLOSED" ? "Fechada" : "Pendente"}
@@ -396,20 +373,16 @@ export function ChatHeader({
               </button>
             </span>
           ))}
-          <button
-            type="button"
-            onClick={() => setTagOpen((o) => !o)}
-            className="rounded-lg border border-dashed border-slate-200 bg-white/80 px-2 py-1 text-xs font-medium text-slate-500 transition hover:border-slate-300 hover:bg-slate-50"
-          >
+          <button type="button" onClick={() => setTagOpen((o) => !o)} className="df-inbox-tag-add">
             + Tag
           </button>
           {tagOpen && (
-            <div className="absolute left-0 top-full z-20 mt-1.5 max-h-44 w-52 overflow-auto rounded-xl border border-slate-100 bg-white py-1 shadow-lg shadow-slate-900/5">
+            <div className="df-inbox-dropdown max-h-44 w-52 overflow-y-auto">
               {tagsFetched.filter((t: { id: string }) => !threadTagIds.has(t.id)).map((t: { id: string; name: string }) => (
                 <button
                   key={t.id}
                   type="button"
-                  className="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                  className="df-inbox-dropdown-item"
                   onClick={() => handleAddTag(t.id)}
                 >
                   {t.name}
@@ -423,12 +396,7 @@ export function ChatHeader({
         </div>
 
         {onOpenNotes ? (
-          <button
-            type="button"
-            onClick={onOpenNotes}
-            className="rounded-lg border border-amber-200/80 bg-amber-50/90 px-2.5 py-1.5 text-xs font-medium text-amber-950 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
-            data-testid="header-notes"
-          >
+          <button type="button" onClick={onOpenNotes} className="df-inbox-pill-notes" data-testid="header-notes">
             Notas
           </button>
         ) : null}
@@ -437,11 +405,7 @@ export function ChatHeader({
           <button
             type="button"
             onClick={() => onAuditTabChange(!auditTab)}
-            className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium transition ${
-              auditTab
-                ? "border-emerald-200/80 bg-emerald-50/90 text-emerald-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
-                : "border-slate-100 bg-white text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-slate-200 hover:bg-slate-50/80"
-            }`}
+            className={auditTab ? "df-inbox-pill-audit-on" : "df-inbox-pill-audit-off"}
           >
             Histórico
           </button>

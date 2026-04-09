@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { listTenants } from "@/modules/tenants";
-import { Button, Badge, cn } from "@devflow/ui";
+import { Button, cn } from "@devflow/ui";
+import { AppBadge } from "@/components/ui/app-badge";
 import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
 
 export const dynamic = "force-dynamic";
@@ -136,9 +137,9 @@ export default async function AdminConversationsPage({
                         {c.customerName || "Cliente"}
                       </span>
                       {c.unread > 0 && (
-                        <Badge variant="primary" className="shrink-0">
+                        <AppBadge variant="brand" className="shrink-0">
                           {c.unread}
-                        </Badge>
+                        </AppBadge>
                       )}
                     </div>
                     {c.lastMessage && (

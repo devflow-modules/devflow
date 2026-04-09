@@ -10,7 +10,6 @@ import {
 } from "./inboxFetch";
 import { INBOX_QK, type WaInboxMessageRow, type WaInboxThreadRow } from "./inboxTypes";
 import { buttonClassName } from "@/components/ui/button";
-import { fieldControlBase } from "@/components/ui/form-field";
 import { followUpSuggestion } from "./followUpUtils";
 import { PlaybookSuggest } from "./PlaybookSuggest";
 
@@ -143,7 +142,7 @@ export function MessageInput({
   if (!threadId) {
     return (
       <div className="border-t border-slate-100 bg-slate-50/50 px-4 py-6 text-center">
-        <p className="text-sm text-slate-500">Escolha uma conversa para responder.</p>
+        <p className="df-text-muted">Escolha uma conversa para responder.</p>
       </div>
     );
   }
@@ -187,7 +186,7 @@ export function MessageInput({
       ) : null}
 
       {mutation.isError && (
-        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-red-100 bg-red-50/80 px-3 py-2.5 text-sm text-red-800">
+        <div className="df-feedback-danger mb-3 flex flex-wrap items-center gap-2">
           <span className="font-medium">Não enviámos a mensagem.</span>
           {retryText ? (
             <button
@@ -210,7 +209,7 @@ export function MessageInput({
           <button
             key={t.label}
             type="button"
-            className="rounded-full border border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[11px] font-medium text-slate-700 transition hover:bg-white"
+            className="df-inbox-template-chip"
             onClick={() => applyTemplate(t.text)}
             data-testid={`template-${t.label}`}
           >
@@ -220,7 +219,7 @@ export function MessageInput({
         <button
           type="button"
           disabled={suggestMut.isPending || mutation.isPending}
-          className="rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-900 transition hover:bg-violet-100 disabled:opacity-50"
+          className="df-inbox-ai-chip"
           onClick={() => suggestMut.mutate(threadId)}
           data-testid="btn-ai-suggest"
         >
@@ -241,10 +240,7 @@ export function MessageInput({
       )}
 
       {aiPreview !== null && (
-        <div
-          className="mb-3 rounded-xl border border-violet-100 bg-violet-50/50 p-3 text-sm shadow-sm transition-all duration-200"
-          data-testid="ai-preview"
-        >
+        <div className="df-panel-ai-preview mb-3 transition-all duration-200" data-testid="ai-preview">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-violet-900">
             Pré-visualização (IA)
           </p>
@@ -294,7 +290,7 @@ export function MessageInput({
           placeholder="Escreva a mensagem…"
           rows={2}
           disabled={mutation.isPending}
-          className={`min-h-[48px] flex-1 resize-none text-[15px] leading-relaxed shadow-inner transition-colors duration-200 sm:min-h-[52px] ${fieldControlBase} bg-slate-50/60 focus:bg-white`}
+          className={`df-field-control min-h-[48px] flex-1 resize-none text-[15px] leading-relaxed shadow-inner transition-colors duration-200 sm:min-h-[52px] bg-slate-50/60 focus:bg-white`}
         />
         <button
           type="button"

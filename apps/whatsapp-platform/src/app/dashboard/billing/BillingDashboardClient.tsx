@@ -15,9 +15,6 @@ import type { TenantBillingUI } from "@/modules/billing";
 import type { PlanKey } from "@/modules/billing/plans";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
-const qaClass =
-  "rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200/90 transition hover:bg-slate-50 disabled:opacity-60";
-
 function formatBRL(value: number): string {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
@@ -129,7 +126,7 @@ export function BillingDashboardClient() {
     maxPct >= 80 || isPastDue || d.plan?.toUpperCase() === "STARTER" || d.plan?.toUpperCase() === "FREE";
 
   return (
-    <div className="space-y-6">
+    <div className="df-stack-tight">
       <PageHeader
         eyebrow="Conta"
         title="Cobrança e uso"
@@ -141,7 +138,7 @@ export function BillingDashboardClient() {
           <>
             <button
               type="button"
-              className={qaClass}
+              className="df-quick-action"
               onClick={() => void openPortal()}
               disabled={portalLoading}
             >
@@ -149,12 +146,12 @@ export function BillingDashboardClient() {
             </button>
             <button
               type="button"
-              className={qaClass}
+              className="df-quick-action"
               onClick={() => document.getElementById("billing-upgrade-cta")?.click()}
             >
               Atualizar plano
             </button>
-            <Link href="/settings" className={qaClass}>
+            <Link href="/settings" className="df-quick-action">
               Configurações
             </Link>
           </>
@@ -162,19 +159,19 @@ export function BillingDashboardClient() {
       />
 
       {successParam === "true" && (
-        <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+        <div className="df-feedback-success" role="status">
           Plano atualizado com sucesso.
         </div>
       )}
       {canceledParam === "true" && (
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+        <div className="df-feedback-info" role="status">
           Checkout cancelado.
         </div>
       )}
 
       {isPastDue && (
-        <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3">
-          <p className="font-medium text-red-900">Pagamento falhou — atualize seu método de pagamento</p>
+        <div className="df-feedback-danger">
+          <p className="font-medium">Pagamento falhou — atualize seu método de pagamento</p>
           <button
             type="button"
             onClick={() => void openPortal()}
@@ -186,11 +183,7 @@ export function BillingDashboardClient() {
         </div>
       )}
 
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {error}
-        </div>
-      )}
+      {error ? <div className="df-feedback-danger">{error}</div> : null}
 
       <BillingHeader
         plan={d.plan}

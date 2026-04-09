@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
 const eyebrowTones = {
-  brand: "text-slate-500",
-  neutral: "text-slate-400",
-  amber: "text-amber-600/90",
+  brand: "df-eyebrow",
+  neutral: "text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400",
+  amber: "df-eyebrow-admin",
 } as const;
 
 export type PageHeaderEyebrowTone = keyof typeof eyebrowTones;
@@ -30,6 +30,7 @@ type Props = {
 
 /**
  * Hierarquia tipo SaaS: eyebrow discreto → título forte → corpo suave.
+ * Padrão oficial de cabeçalho de página — ver `DESIGN_SYSTEM.md` e classes `df-*`.
  */
 export function PageHeader({
   eyebrow,
@@ -46,10 +47,7 @@ export function PageHeader({
   sensitivityBadge,
 }: Props) {
   const showBadge = sensitivityBadge ?? tone === "admin";
-  const titleClass =
-    size === "compact"
-      ? "text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl"
-      : "text-3xl font-semibold tracking-tight text-slate-950 sm:text-[2rem] sm:leading-tight";
+  const titleClass = size === "compact" ? "df-text-page-title-sm mt-2" : "df-text-page-title mt-2";
 
   const dividerSplit = showDivider ? "border-b border-slate-100 pb-8 sm:pb-10" : "pb-4 sm:pb-5";
   const toneRing = tone === "admin" ? "rounded-2xl border border-amber-100/90 bg-amber-50/25 pl-4 ring-1 ring-amber-100/80" : "";
@@ -61,16 +59,10 @@ export function PageHeader({
       >
         <div className="min-w-0 max-w-2xl">
           <div className="flex flex-wrap items-center gap-2">
-            {eyebrow ? (
-              <p
-                className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${eyebrowTones[eyebrowTone]}`}
-              >
-                {eyebrow}
-              </p>
-            ) : null}
+            {eyebrow ? <p className={eyebrowTones[eyebrowTone]}>{eyebrow}</p> : null}
             {showBadge ? (
               <span
-                className="inline-flex items-center gap-1 rounded-full border border-amber-200/90 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900/90"
+                className="df-admin-badge"
                 title="Configuração do espaço de trabalho — fora da operação diária da Inbox"
               >
                 <span aria-hidden>🔒</span>
@@ -78,12 +70,12 @@ export function PageHeader({
               </span>
             ) : null}
           </div>
-          <h1 className={`mt-2 ${titleClass}`}>{title}</h1>
+          <h1 className={titleClass}>{title}</h1>
           {quickActions ? (
             <div className="mt-3 flex flex-wrap gap-2 text-sm">{quickActions}</div>
           ) : null}
           {description ? (
-            <div className="mt-3 max-w-xl text-[15px] leading-relaxed text-slate-500 sm:text-base">{description}</div>
+            <div className="df-text-page-description mt-3">{description}</div>
           ) : null}
         </div>
         {actions ? (
@@ -96,23 +88,17 @@ export function PageHeader({
   return (
     <header className={`max-w-2xl ${toneRing} ${className}`.trim()}>
       <div className="flex flex-wrap items-center gap-2">
-        {eyebrow ? (
-          <p className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${eyebrowTones[eyebrowTone]}`}>
-            {eyebrow}
-          </p>
-        ) : null}
+        {eyebrow ? <p className={eyebrowTones[eyebrowTone]}>{eyebrow}</p> : null}
         {showBadge ? (
-          <span className="inline-flex items-center gap-1 rounded-full border border-amber-200/90 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900/90">
+          <span className="df-admin-badge">
             <span aria-hidden>🔒</span>
             Área administrativa
           </span>
         ) : null}
       </div>
-      <h1 className={`mt-3 ${titleClass}`}>{title}</h1>
+      <h1 className={`mt-3 ${size === "compact" ? "df-text-page-title-sm" : "df-text-page-title"}`}>{title}</h1>
       {quickActions ? <div className="mt-3 flex flex-wrap gap-2 text-sm">{quickActions}</div> : null}
-      {description ? (
-        <div className="mt-3 max-w-xl text-[15px] leading-relaxed text-slate-500 sm:text-base">{description}</div>
-      ) : null}
+      {description ? <div className="df-text-page-description mt-3">{description}</div> : null}
       {actions ? <div className="mt-8 flex flex-wrap gap-3">{actions}</div> : null}
     </header>
   );

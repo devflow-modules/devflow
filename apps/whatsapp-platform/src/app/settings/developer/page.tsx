@@ -36,7 +36,7 @@ export default async function DeveloperSettingsPage() {
 
   if (!auth) {
     return (
-      <div className="mx-auto max-w-3xl space-y-8">
+      <div className="df-page-narrow df-stack">
         {header}
         <StateEmpty
           title="Sessão necessária"
@@ -56,7 +56,7 @@ export default async function DeveloperSettingsPage() {
 
   if (!isTenantManager(auth.payload.role)) {
     return (
-      <div className="mx-auto max-w-3xl space-y-8">
+      <div className="df-page-narrow df-stack">
         {header}
         <StateEmpty
           title="Acesso restrito a gestores"
@@ -72,7 +72,7 @@ export default async function DeveloperSettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="df-page-narrow df-stack">
       {header}
       <DeveloperApiKeyClient />
     </div>

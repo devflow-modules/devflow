@@ -3,7 +3,8 @@
 import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { Button, Badge } from "@devflow/ui";
+import { Button } from "@devflow/ui";
+import { AppBadge } from "@/components/ui/app-badge";
 import {
   fetchInboxConversations,
   fetchInboxTags,
@@ -507,14 +508,10 @@ export function AutomationClient() {
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{r.name}</span>
-                  <Badge variant={r.isActive ? "primary" : "default"}>
+                  <AppBadge variant={r.isActive ? "brand" : "neutral"}>
                     {r.isActive ? "Ativa" : "Inativa"}
-                  </Badge>
-                  {r.isSystem ? (
-                    <Badge variant="default" className="bg-slate-100 text-slate-700">
-                      Sistema
-                    </Badge>
-                  ) : null}
+                  </AppBadge>
+                  {r.isSystem ? <AppBadge variant="muted">Sistema</AppBadge> : null}
                   <span className="text-xs text-slate-500">
                     {TRIGGER_LABELS[r.triggerType] ?? r.triggerType}
                   </span>

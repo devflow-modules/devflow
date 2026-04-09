@@ -30,15 +30,8 @@ export function InboxFilterEmpty({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col p-4" data-testid="conversations-empty">
-      <div className="mx-auto flex w-full max-w-sm flex-col items-center rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white via-white to-slate-50/95 px-6 py-10 text-center shadow-[0_8px_40px_rgba(15,23,42,0.06)]">
-        <div
-          className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ring-1 ${
-            allClear
-              ? "bg-emerald-50 text-emerald-600 ring-emerald-500/15"
-              : "bg-[var(--df-brand-50)] text-[var(--df-brand-600)] ring-[var(--df-brand-500)]/15"
-          }`}
-          aria-hidden
-        >
+      <div className="df-inbox-filter-empty-card">
+        <div className={allClear ? "df-inbox-empty-icon-success" : "df-inbox-empty-icon-neutral"} aria-hidden>
           {allClear ? (
             <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -54,7 +47,7 @@ export function InboxFilterEmpty({
           )}
         </div>
         <h3 className="text-[15px] font-semibold tracking-tight text-slate-900">{title}</h3>
-        <p className="mt-2 text-sm leading-relaxed text-slate-500">{body}</p>
+        <p className="df-text-muted mt-2">{body}</p>
         {!allClear ? (
           <button type="button" className={`${buttonClassName("primary")} mt-8 w-full max-w-[240px]`} onClick={onSelectNeedsResponse}>
             Precisa de resposta
