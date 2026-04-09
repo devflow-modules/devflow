@@ -2,6 +2,9 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { AiSettingsForm } from "./AiSettingsForm";
 
+const qaClass =
+  "rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200/90 transition hover:bg-slate-50";
+
 export default function AiSettingsPage() {
   return (
     <div className="mx-auto min-w-0 max-w-3xl space-y-8">
@@ -19,13 +22,25 @@ export default function AiSettingsPage() {
         }
         layout="split"
         showDivider
-        actions={
-          <Link
-            href="/settings/ai-analytics"
-            className="text-sm font-semibold text-[var(--df-brand-700)] hover:underline"
-          >
-            Uso e custo →
-          </Link>
+        tone="admin"
+        quickActions={
+          <>
+            <button type="submit" form="wf-ai-settings" className={qaClass}>
+              Salvar alterações
+            </button>
+            <Link href="/inbox" className={qaClass}>
+              Testar na Inbox
+            </Link>
+            <Link href="/settings/ai-analytics" className={qaClass}>
+              Uso e custo de IA
+            </Link>
+            <Link href="/settings/developer" className={qaClass}>
+              API e integrações
+            </Link>
+            <Link href="/billing" className={qaClass}>
+              Cobrança
+            </Link>
+          </>
         }
       />
 

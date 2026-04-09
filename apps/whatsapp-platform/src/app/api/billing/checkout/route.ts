@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getAuthFromRequest, requireRole } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 import { createBillingCheckoutSession, type CheckoutPlan } from "@/modules/billing/billingService";
 
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  const denied = requireRole(auth, ["admin"], request);
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
   if (denied) return denied;
   if (!auth) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });

@@ -7,10 +7,13 @@ import { buttonClassName } from "@/components/ui/button";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { permissionsMessages } from "@/lib/permissionsMessages";
 import { validateAuthToken } from "@/modules/auth";
+import { isTenantManager } from "@/lib/roles";
+import { DeveloperHeaderQuickActions } from "./DeveloperHeaderQuickActions";
 import { DeveloperApiKeyClient } from "./DeveloperApiKeyClient";
 
 export const metadata: Metadata = {
-  title: "Integrações e API | WhatsApp Platform",
+  title: "API e integrações | WhatsApp Platform",
+  description: "Chaves e integrações técnicas do espaço de trabalho.",
   robots: "noindex, nofollow",
 };
 
@@ -22,10 +25,12 @@ export default async function DeveloperSettingsPage() {
   const header = (
     <PageHeader
       eyebrow="Avançado"
-      title="Integrações e API"
-      description="Gere a chave de API do tenant para integrações técnicas. A ativação do WhatsApp e as instruções do assistente não dependem disto."
+      title="API e integrações"
+      description="Gere a chave do espaço de trabalho para integrações server-to-server. A ligação WhatsApp e o assistente não dependem disto."
       layout="split"
       showDivider
+      tone="admin"
+      quickActions={<DeveloperHeaderQuickActions />}
     />
   );
 
@@ -49,12 +54,12 @@ export default async function DeveloperSettingsPage() {
     );
   }
 
-  if (auth.payload.role !== "admin") {
+  if (!isTenantManager(auth.payload.role)) {
     return (
       <div className="mx-auto max-w-3xl space-y-8">
         {header}
         <StateEmpty
-          title="Acesso restrito a administradores"
+          title="Acesso restrito a gestores"
           description={permissionsMessages.adminOnly}
           action={
             <Link href="/settings" className={buttonClassName("primary")}>

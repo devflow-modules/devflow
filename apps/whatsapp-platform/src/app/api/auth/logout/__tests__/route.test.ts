@@ -45,7 +45,7 @@ describe("POST /api/auth/logout", () => {
         tenantId: "t1",
         email: "a@b.com",
         name: "U",
-        role: "admin",
+        role: "manager",
         jti: "sid-1",
       },
       token: "t",

@@ -3,14 +3,14 @@ import { randomBytes } from "crypto";
 import { getAuthFromRequest } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 import { permissionsMessages } from "@/lib/permissionsMessages";
-import { isAdmin } from "@/lib/roles";
+import { isTenantManager } from "@/lib/roles";
 
 export async function POST(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
   if (!auth) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
-  if (!isAdmin(auth.payload.role)) {
+  if (!isTenantManager(auth.payload.role)) {
     return NextResponse.json(
       { error: permissionsMessages.adminOnly, code: "FORBIDDEN_ROLE" },
       { status: 403 }

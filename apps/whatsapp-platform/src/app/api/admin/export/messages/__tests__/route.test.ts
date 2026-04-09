@@ -4,10 +4,13 @@ const mockGetAuthFromRequest = vi.fn();
 const mockListConversationsByDateRange = vi.fn();
 const mockListMessagesInRange = vi.fn();
 
-vi.mock("@/modules/auth", () => ({
-  getAuthFromRequest: (...args: unknown[]) => mockGetAuthFromRequest(...args),
-  requireRole: () => null,
-}));
+vi.mock("@/modules/auth", async () => {
+  const actual = await vi.importActual<typeof import("@/modules/auth")>("@/modules/auth");
+  return {
+    ...actual,
+    getAuthFromRequest: (...args: unknown[]) => mockGetAuthFromRequest(...args),
+  };
+});
 vi.mock("@/lib/supabase-server", () => ({ hasSupabaseConfig: vi.fn(() => true) }));
 vi.mock("@/modules/conversations", () => ({
   listConversationsByDateRange: (...args: unknown[]) => mockListConversationsByDateRange(...args),
@@ -19,7 +22,7 @@ vi.mock("@/modules/messaging", () => ({
 describe("GET /api/admin/export/messages", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetAuthFromRequest.mockResolvedValue({ payload: { tenantId: "t1" } });
+    mockGetAuthFromRequest.mockResolvedValue({ payload: { tenantId: "t1", role: "manager" } });
     mockListConversationsByDateRange.mockResolvedValue([{ id: "c1" }]);
     mockListMessagesInRange.mockResolvedValue([
       {

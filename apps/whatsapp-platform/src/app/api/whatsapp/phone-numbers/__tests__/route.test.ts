@@ -10,9 +10,13 @@ vi.mock("@/modules/whatsapp/whatsappPhonePolicy", () => ({
   ensureTenantHasPrimaryAndDefaultOutbound: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@/modules/auth", () => ({
-  getAuthFromRequest: (...a: unknown[]) => mockGetAuth(...a),
-}));
+vi.mock("@/modules/auth", async () => {
+  const actual = await vi.importActual<typeof import("@/modules/auth")>("@/modules/auth");
+  return {
+    ...actual,
+    getAuthFromRequest: (...a: unknown[]) => mockGetAuth(...a),
+  };
+});
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -28,7 +32,7 @@ describe("GET /api/whatsapp/phone-numbers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetAuth.mockResolvedValue({
-      payload: { sub: "u1", tenantId: "t1", email: "a@b.com", name: "A", role: "admin", jti: "s1" },
+      payload: { sub: "u1", tenantId: "t1", email: "a@b.com", name: "A", role: "manager", jti: "s1" },
       token: "x",
       sessionId: "s1",
     });
@@ -74,10 +78,24 @@ describe("DELETE /api/whatsapp/phone-numbers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetAuth.mockResolvedValue({
-      payload: { sub: "u1", tenantId: "t1", email: "a@b.com", name: "A", role: "admin", jti: "s1" },
+      payload: { sub: "u1", tenantId: "t1", email: "a@b.com", name: "A", role: "manager", jti: "s1" },
       token: "x",
       sessionId: "s1",
     });
+  });
+
+  it("403 quando operador", async () => {
+    mockGetAuth.mockResolvedValue({
+      payload: { sub: "u1", tenantId: "t1", email: "a@b.com", name: "A", role: "operator", jti: "s1" },
+      token: "x",
+      sessionId: "s1",
+    });
+    const { DELETE } = await import("../route");
+    const res = await DELETE(
+      new NextRequest("http://localhost/api/whatsapp/phone-numbers?id=wpn1")
+    );
+    expect(res.status).toBe(403);
+    expect(mockDelete).not.toHaveBeenCalled();
   });
 
   it("404 quando id não existe no tenant", async () => {

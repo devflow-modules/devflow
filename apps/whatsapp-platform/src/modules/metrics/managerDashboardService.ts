@@ -55,7 +55,36 @@ function resolveRange(search?: DateRange): DateRange {
   return { dateFrom, dateTo };
 }
 
-async function countCriticalAwaiting(tenantId: string): Promise<number> {
+/** Opções do dashboard gerencial; compatível com `getManagerDashboard(tenant, { range })` ou `(tenant, rangeLegado)`. */
+export type ManagerDashboardSearchOpts = {
+  range?: DateRange;
+  /** Filtra métricas pela fila da thread; `"none"` = sem fila. */
+  queueId?: string;
+};
+
+function normalizeDashboardInput(
+  input?: DateRange | ManagerDashboardSearchOpts
+): { range: DateRange; queueId?: string } {
+  if (!input) {
+    return { range: resolveRange(undefined) };
+  }
+  if ("queueId" in input || "range" in input) {
+    const o = input as ManagerDashboardSearchOpts;
+    return {
+      range: resolveRange(o.range),
+      queueId: o.queueId,
+    };
+  }
+  return { range: resolveRange(input as DateRange) };
+}
+
+function queueThreadFilterSql(queueId: string | undefined): Prisma.Sql {
+  if (queueId === undefined) return Prisma.sql``;
+  if (queueId === "none") return Prisma.sql`AND t.queue_id IS NULL`;
+  return Prisma.sql`AND t.queue_id = ${queueId}`;
+}
+
+async function countCriticalAwaiting(tenantId: string, queueId?: string): Promise<number> {
   const rows = await prisma.$queryRaw<Array<{ c: bigint }>>`
     WITH base AS (
       SELECT
@@ -81,6 +110,7 @@ async function countCriticalAwaiting(tenantId: string): Promise<number> {
         ) AS last_unanswered_inbound_at
       FROM wa_inbox_threads t
       WHERE t.tenant_id = ${tenantId}
+      ${queueThreadFilterSql(queueId)}
     ),
     calc AS (
       SELECT *,
@@ -104,7 +134,8 @@ async function countCriticalAwaiting(tenantId: string): Promise<number> {
 
 async function avgFirstResponseMsForRange(
   tenantId: string,
-  range: DateRange
+  range: DateRange,
+  queueId?: string
 ): Promise<number | null> {
   const tw = tsWhere(range);
   const rows = await prisma.$queryRaw<Array<{ avg: number | null }>>`
@@ -120,6 +151,7 @@ async function avgFirstResponseMsForRange(
     ) fi ON fi.thread_id = t.id
     WHERE t.tenant_id = ${tenantId}
       AND t.first_response_at IS NOT NULL
+      ${queueThreadFilterSql(queueId)}
       ${tw?.gte ? Prisma.sql`AND t.first_response_at >= ${tw.gte}` : Prisma.sql``}
       ${tw?.lte ? Prisma.sql`AND t.first_response_at <= ${tw.lte}` : Prisma.sql``}
   `;
@@ -130,7 +162,8 @@ async function avgFirstResponseMsForRange(
 
 async function teamAggregates(
   tenantId: string,
-  range: DateRange
+  range: DateRange,
+  queueId?: string
 ): Promise<{
   handled: number;
   avgResponseMs: number | null;
@@ -140,22 +173,25 @@ async function teamAggregates(
   const tw = tsWhere(range)!;
 
   const handledRows = await prisma.$queryRaw<Array<{ c: bigint }>>`
-    SELECT COUNT(DISTINCT thread_id)::bigint AS c
-    FROM wa_inbox_audit_logs
-    WHERE tenant_id = ${tenantId}
-      AND action = 'message_send'
-      ${tw?.gte ? Prisma.sql`AND created_at >= ${tw.gte}` : Prisma.sql``}
-      ${tw?.lte ? Prisma.sql`AND created_at <= ${tw.lte}` : Prisma.sql``}
+    SELECT COUNT(DISTINCT a.thread_id)::bigint AS c
+    FROM wa_inbox_audit_logs a
+    INNER JOIN wa_inbox_threads t ON t.id = a.thread_id AND t.tenant_id = a.tenant_id
+    WHERE a.tenant_id = ${tenantId}
+      AND a.action = 'message_send'
+      ${queueThreadFilterSql(queueId)}
+      ${tw?.gte ? Prisma.sql`AND a.created_at >= ${tw.gte}` : Prisma.sql``}
+      ${tw?.lte ? Prisma.sql`AND a.created_at <= ${tw.lte}` : Prisma.sql``}
   `;
   const handled = Number(handledRows[0]?.c ?? 0);
 
   const closedRows = await prisma.$queryRaw<Array<{ c: bigint }>>`
     SELECT COUNT(*)::bigint AS c
-    FROM wa_inbox_threads
-    WHERE tenant_id = ${tenantId}
-      AND status = 'CLOSED'
-      ${tw?.gte ? Prisma.sql`AND updated_at >= ${tw.gte}` : Prisma.sql``}
-      ${tw?.lte ? Prisma.sql`AND updated_at <= ${tw.lte}` : Prisma.sql``}
+    FROM wa_inbox_threads t
+    WHERE t.tenant_id = ${tenantId}
+      AND t.status = 'CLOSED'
+      ${queueThreadFilterSql(queueId)}
+      ${tw?.gte ? Prisma.sql`AND t.updated_at >= ${tw.gte}` : Prisma.sql``}
+      ${tw?.lte ? Prisma.sql`AND t.updated_at <= ${tw.lte}` : Prisma.sql``}
   `;
   const closed = Number(closedRows[0]?.c ?? 0);
 
@@ -168,6 +204,7 @@ async function teamAggregates(
       AND t.last_agent_reply_at IS NOT NULL
       AND t.last_customer_message_at IS NOT NULL
       AND t.last_agent_reply_at >= t.last_customer_message_at
+      ${queueThreadFilterSql(queueId)}
       ${tw?.gte ? Prisma.sql`AND t.updated_at >= ${tw.gte}` : Prisma.sql``}
       ${tw?.lte ? Prisma.sql`AND t.updated_at <= ${tw.lte}` : Prisma.sql``}
   `;
@@ -175,7 +212,7 @@ async function teamAggregates(
   const avgResponseMs =
     ar != null && !Number.isNaN(ar) ? Math.round(ar) : null;
 
-  const avgFirst = await avgFirstResponseMsForRange(tenantId, range);
+  const avgFirst = await avgFirstResponseMsForRange(tenantId, range, queueId);
 
   return {
     handled,
@@ -185,7 +222,11 @@ async function teamAggregates(
   };
 }
 
-async function buildAgentRows(tenantId: string, range: DateRange): Promise<ManagerAgentRow[]> {
+async function buildAgentRows(
+  tenantId: string,
+  range: DateRange,
+  queueId?: string
+): Promise<ManagerAgentRow[]> {
   const tw = tsWhere(range);
   const users = await prisma.user.findMany({
     where: { tenantId },
@@ -197,24 +238,27 @@ async function buildAgentRows(tenantId: string, range: DateRange): Promise<Manag
 
   for (const u of users) {
     const handledRows = await prisma.$queryRaw<Array<{ c: bigint }>>`
-      SELECT COUNT(DISTINCT thread_id)::bigint AS c
-      FROM wa_inbox_audit_logs
-      WHERE tenant_id = ${tenantId}
-        AND user_id = ${u.id}
-        AND action = 'message_send'
-        ${tw?.gte ? Prisma.sql`AND created_at >= ${tw.gte}` : Prisma.sql``}
-        ${tw?.lte ? Prisma.sql`AND created_at <= ${tw.lte}` : Prisma.sql``}
+      SELECT COUNT(DISTINCT a.thread_id)::bigint AS c
+      FROM wa_inbox_audit_logs a
+      INNER JOIN wa_inbox_threads t ON t.id = a.thread_id AND t.tenant_id = a.tenant_id
+      WHERE a.tenant_id = ${tenantId}
+        AND a.user_id = ${u.id}
+        AND a.action = 'message_send'
+        ${queueThreadFilterSql(queueId)}
+        ${tw?.gte ? Prisma.sql`AND a.created_at >= ${tw.gte}` : Prisma.sql``}
+        ${tw?.lte ? Prisma.sql`AND a.created_at <= ${tw.lte}` : Prisma.sql``}
     `;
     const handled = Number(handledRows[0]?.c ?? 0);
 
     const closedRows = await prisma.$queryRaw<Array<{ c: bigint }>>`
       SELECT COUNT(*)::bigint AS c
-      FROM wa_inbox_threads
-      WHERE tenant_id = ${tenantId}
-        AND assigned_to_user_id = ${u.id}
-        AND status = 'CLOSED'
-        ${tw?.gte ? Prisma.sql`AND updated_at >= ${tw.gte}` : Prisma.sql``}
-        ${tw?.lte ? Prisma.sql`AND updated_at <= ${tw.lte}` : Prisma.sql``}
+      FROM wa_inbox_threads t
+      WHERE t.tenant_id = ${tenantId}
+        AND t.assigned_to_user_id = ${u.id}
+        AND t.status = 'CLOSED'
+        ${queueThreadFilterSql(queueId)}
+        ${tw?.gte ? Prisma.sql`AND t.updated_at >= ${tw.gte}` : Prisma.sql``}
+        ${tw?.lte ? Prisma.sql`AND t.updated_at <= ${tw.lte}` : Prisma.sql``}
     `;
     const closed = Number(closedRows[0]?.c ?? 0);
 
@@ -228,6 +272,7 @@ async function buildAgentRows(tenantId: string, range: DateRange): Promise<Manag
         AND t.last_agent_reply_at IS NOT NULL
         AND t.last_customer_message_at IS NOT NULL
         AND t.last_agent_reply_at >= t.last_customer_message_at
+        ${queueThreadFilterSql(queueId)}
     `;
     const ar = avgRespRows[0]?.avg;
     const avgResponseMs =
@@ -247,6 +292,7 @@ async function buildAgentRows(tenantId: string, range: DateRange): Promise<Manag
       WHERE t.tenant_id = ${tenantId}
         AND t.assigned_to_user_id = ${u.id}
         AND t.first_response_at IS NOT NULL
+        ${queueThreadFilterSql(queueId)}
     `;
     const af = avgFirstRows[0]?.avg;
     const avgFirstResponseMs =
@@ -268,7 +314,8 @@ async function buildAgentRows(tenantId: string, range: DateRange): Promise<Manag
 
 async function automationBlock(
   tenantId: string,
-  range: DateRange
+  range: DateRange,
+  queueId?: string
 ): Promise<ManagerDashboardPayload["automation"]> {
   const tw = tsWhere(range)!;
 
@@ -280,13 +327,15 @@ async function automationBlock(
     }>
   >`
     SELECT
-      SUM(CASE WHEN direction::text = 'OUTBOUND' THEN 1 ELSE 0 END)::bigint AS outbound,
-      SUM(CASE WHEN direction::text = 'OUTBOUND' AND (content_json->>'outboundKind') = 'agent' THEN 1 ELSE 0 END)::bigint AS agent,
-      SUM(CASE WHEN direction::text = 'OUTBOUND' AND (content_json->>'outboundKind') = 'ai' THEN 1 ELSE 0 END)::bigint AS ai
-    FROM wa_inbox_messages
-    WHERE tenant_id = ${tenantId}
-      ${tw?.gte ? Prisma.sql`AND ts >= ${tw.gte}` : Prisma.sql``}
-      ${tw?.lte ? Prisma.sql`AND ts <= ${tw.lte}` : Prisma.sql``}
+      SUM(CASE WHEN m.direction::text = 'OUTBOUND' THEN 1 ELSE 0 END)::bigint AS outbound,
+      SUM(CASE WHEN m.direction::text = 'OUTBOUND' AND (m.content_json->>'outboundKind') = 'agent' THEN 1 ELSE 0 END)::bigint AS agent,
+      SUM(CASE WHEN m.direction::text = 'OUTBOUND' AND (m.content_json->>'outboundKind') = 'ai' THEN 1 ELSE 0 END)::bigint AS ai
+    FROM wa_inbox_messages m
+    INNER JOIN wa_inbox_threads t ON t.id = m.thread_id AND t.tenant_id = m.tenant_id
+    WHERE m.tenant_id = ${tenantId}
+      ${queueThreadFilterSql(queueId)}
+      ${tw?.gte ? Prisma.sql`AND m.ts >= ${tw.gte}` : Prisma.sql``}
+      ${tw?.lte ? Prisma.sql`AND m.ts <= ${tw.lte}` : Prisma.sql``}
   `;
 
   const outbound = Number(msgAgg[0]?.outbound ?? 0);
@@ -298,11 +347,12 @@ async function automationBlock(
 
   const closedRows = await prisma.$queryRaw<Array<{ c: bigint }>>`
     SELECT COUNT(*)::bigint AS c
-    FROM wa_inbox_threads
-    WHERE tenant_id = ${tenantId}
-      AND status = 'CLOSED'
-      ${tw?.gte ? Prisma.sql`AND updated_at >= ${tw.gte}` : Prisma.sql``}
-      ${tw?.lte ? Prisma.sql`AND updated_at <= ${tw.lte}` : Prisma.sql``}
+    FROM wa_inbox_threads t
+    WHERE t.tenant_id = ${tenantId}
+      AND t.status = 'CLOSED'
+      ${queueThreadFilterSql(queueId)}
+      ${tw?.gte ? Prisma.sql`AND t.updated_at >= ${tw.gte}` : Prisma.sql``}
+      ${tw?.lte ? Prisma.sql`AND t.updated_at <= ${tw.lte}` : Prisma.sql``}
   `;
   const closed = Number(closedRows[0]?.c ?? 0);
 
@@ -313,30 +363,36 @@ async function automationBlock(
   const fallbackRate = humanAiDenom > 0 ? agent / humanAiDenom : null;
 
   const activeRows = await prisma.$queryRaw<Array<{ c: bigint }>>`
-    SELECT COUNT(DISTINCT thread_id)::bigint AS c
-    FROM wa_inbox_messages
-    WHERE tenant_id = ${tenantId}
-      ${tw?.gte ? Prisma.sql`AND ts >= ${tw.gte}` : Prisma.sql``}
-      ${tw?.lte ? Prisma.sql`AND ts <= ${tw.lte}` : Prisma.sql``}
+    SELECT COUNT(DISTINCT m.thread_id)::bigint AS c
+    FROM wa_inbox_messages m
+    INNER JOIN wa_inbox_threads t ON t.id = m.thread_id AND t.tenant_id = m.tenant_id
+    WHERE m.tenant_id = ${tenantId}
+      ${queueThreadFilterSql(queueId)}
+      ${tw?.gte ? Prisma.sql`AND m.ts >= ${tw.gte}` : Prisma.sql``}
+      ${tw?.lte ? Prisma.sql`AND m.ts <= ${tw.lte}` : Prisma.sql``}
   `;
   const activeThreads = Number(activeRows[0]?.c ?? 0);
   const denom = Math.max(1, activeThreads);
 
   const playbookRows = await prisma.$queryRaw<Array<{ c: bigint }>>`
     SELECT COUNT(*)::bigint AS c
-    FROM wa_inbox_audit_logs
-    WHERE tenant_id = ${tenantId}
-      AND action = 'playbook_suggest'
-      ${tw?.gte ? Prisma.sql`AND created_at >= ${tw.gte}` : Prisma.sql``}
-      ${tw?.lte ? Prisma.sql`AND created_at <= ${tw.lte}` : Prisma.sql``}
+    FROM wa_inbox_audit_logs a
+    INNER JOIN wa_inbox_threads t ON t.id = a.thread_id AND t.tenant_id = a.tenant_id
+    WHERE a.tenant_id = ${tenantId}
+      AND a.action = 'playbook_suggest'
+      ${queueThreadFilterSql(queueId)}
+      ${tw?.gte ? Prisma.sql`AND a.created_at >= ${tw.gte}` : Prisma.sql``}
+      ${tw?.lte ? Prisma.sql`AND a.created_at <= ${tw.lte}` : Prisma.sql``}
   `;
   const followRows = await prisma.$queryRaw<Array<{ c: bigint }>>`
     SELECT COUNT(*)::bigint AS c
-    FROM wa_inbox_audit_logs
-    WHERE tenant_id = ${tenantId}
-      AND action = 'follow_up_prompt'
-      ${tw?.gte ? Prisma.sql`AND created_at >= ${tw.gte}` : Prisma.sql``}
-      ${tw?.lte ? Prisma.sql`AND created_at <= ${tw.lte}` : Prisma.sql``}
+    FROM wa_inbox_audit_logs a
+    INNER JOIN wa_inbox_threads t ON t.id = a.thread_id AND t.tenant_id = a.tenant_id
+    WHERE a.tenant_id = ${tenantId}
+      AND a.action = 'follow_up_prompt'
+      ${queueThreadFilterSql(queueId)}
+      ${tw?.gte ? Prisma.sql`AND a.created_at >= ${tw.gte}` : Prisma.sql``}
+      ${tw?.lte ? Prisma.sql`AND a.created_at <= ${tw.lte}` : Prisma.sql``}
   `;
 
   const playbookUsageRate = Number(playbookRows[0]?.c ?? 0) / denom;
@@ -351,7 +407,10 @@ async function automationBlock(
   };
 }
 
-async function funnelCounts(tenantId: string): Promise<Record<FunnelStageKey, number>> {
+async function funnelCounts(
+  tenantId: string,
+  queueId?: string
+): Promise<Record<FunnelStageKey, number>> {
   const empty: Record<FunnelStageKey, number> = {
     lead: 0,
     qualified: 0,
@@ -362,7 +421,17 @@ async function funnelCounts(tenantId: string): Promise<Record<FunnelStageKey, nu
   };
 
   const tagRows = await prisma.waInboxThreadTag.findMany({
-    where: { tenantId },
+    where: {
+      tenantId,
+      ...(queueId !== undefined
+        ? {
+            thread:
+              queueId === "none"
+                ? { queueId: null }
+                : { queueId },
+          }
+        : {}),
+    },
     select: {
       threadId: true,
       tag: { select: { name: true } },
@@ -386,24 +455,27 @@ async function funnelCounts(tenantId: string): Promise<Record<FunnelStageKey, nu
 
 export async function getManagerDashboard(
   tenantId: string,
-  searchRange?: DateRange
+  input?: DateRange | ManagerDashboardSearchOpts
 ): Promise<ManagerDashboardPayload> {
-  const range = resolveRange(searchRange);
+  const { range: rangeIn, queueId } = normalizeDashboardInput(input);
+  const range = rangeIn;
   const rangeIso = {
     dateFrom: range.dateFrom?.toISOString() ?? null,
     dateTo: range.dateTo?.toISOString() ?? null,
   };
 
+  const qf = queueId !== undefined ? { queueId } : {};
+
   const [awaiting, unassigned, critical, opAvgFirst, team, agents, automation, funnel] =
     await Promise.all([
-      waInboxCountThreads(tenantId, { conversationPhase: "needs_response" }),
-      waInboxCountThreads(tenantId, { conversationPhase: "unassigned" }),
-      countCriticalAwaiting(tenantId),
-      avgFirstResponseMsForRange(tenantId, range),
-      teamAggregates(tenantId, range),
-      buildAgentRows(tenantId, range),
-      automationBlock(tenantId, range),
-      funnelCounts(tenantId),
+      waInboxCountThreads(tenantId, { conversationPhase: "needs_response", ...qf }),
+      waInboxCountThreads(tenantId, { conversationPhase: "unassigned", ...qf }),
+      countCriticalAwaiting(tenantId, queueId),
+      avgFirstResponseMsForRange(tenantId, range, queueId),
+      teamAggregates(tenantId, range, queueId),
+      buildAgentRows(tenantId, range, queueId),
+      automationBlock(tenantId, range, queueId),
+      funnelCounts(tenantId, queueId),
     ]);
 
   return {

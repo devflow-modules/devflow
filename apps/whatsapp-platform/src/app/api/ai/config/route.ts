@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { getOrCreateAiAgentConfig } from "@/modules/ai/aiAutomationService";
 import { prisma } from "@/lib/prisma";
 
@@ -39,18 +39,16 @@ async function getConfig(auth: { payload: { tenantId: string } }) {
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) {
-    return NextResponse.json({ success: false, error: "Não autorizado" }, { status: 401 });
-  }
-  const data = await getConfig(auth);
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
+  if (denied) return denied;
+  const data = await getConfig(auth!);
   return NextResponse.json({ success: true, data });
 }
 
 export async function PUT(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) {
-    return NextResponse.json({ success: false, error: "Não autorizado" }, { status: 401 });
-  }
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
+  if (denied) return denied;
 
   const body = await request.json().catch(() => null);
   const parsed = putSchema.safeParse(body);
@@ -61,7 +59,7 @@ export async function PUT(request: NextRequest) {
     );
   }
 
-  const tenantId = auth.payload.tenantId;
+  const tenantId = auth!.payload.tenantId;
   await getOrCreateAiAgentConfig(tenantId);
 
   const data: Record<string, unknown> = {};

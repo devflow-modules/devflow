@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { validateAuthToken } from "@/modules/auth";
-import { isAgent } from "@/lib/roles";
+import { isOperator } from "@/lib/roles";
 import { OnboardingWizard } from "./OnboardingWizard";
 
 export const metadata: Metadata = {
@@ -16,7 +16,7 @@ export default async function OnboardingPage() {
   const store = await cookies();
   const token = store.get(JWT_COOKIE_NAME)?.value;
   const auth = token ? await validateAuthToken(token) : null;
-  if (auth && isAgent(auth.payload.role)) {
+  if (auth && isOperator(auth.payload.role)) {
     redirect("/inbox");
   }
   return (

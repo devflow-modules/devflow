@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { PageHeader } from "@/components/ui/page-header";
 import {
   BillingHeader,
   UsageCard,
@@ -13,6 +14,9 @@ import {
 import type { TenantBillingUI } from "@/modules/billing";
 import type { PlanKey } from "@/modules/billing/plans";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
+
+const qaClass =
+  "rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200/90 transition hover:bg-slate-50 disabled:opacity-60";
 
 function formatBRL(value: number): string {
   return new Intl.NumberFormat("pt-BR", {
@@ -126,6 +130,37 @@ export function BillingDashboardClient() {
 
   return (
     <div className="space-y-6">
+      <PageHeader
+        eyebrow="Conta"
+        title="Cobrança e uso"
+        description="Plano atual, consumo de mensagens e IA, excedente e previsão de cobrança."
+        layout="split"
+        showDivider
+        tone="admin"
+        quickActions={
+          <>
+            <button
+              type="button"
+              className={qaClass}
+              onClick={() => void openPortal()}
+              disabled={portalLoading}
+            >
+              {portalLoading ? "A abrir…" : "Ver portal de faturação"}
+            </button>
+            <button
+              type="button"
+              className={qaClass}
+              onClick={() => document.getElementById("billing-upgrade-cta")?.click()}
+            >
+              Atualizar plano
+            </button>
+            <Link href="/settings" className={qaClass}>
+              Configurações
+            </Link>
+          </>
+        }
+      />
+
       {successParam === "true" && (
         <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
           Plano atualizado com sucesso.
@@ -222,6 +257,7 @@ export function BillingDashboardClient() {
         shouldShow={showUpgradeCTA}
         onUpgrade={(plan) => void checkout(plan)}
         loadingPlan={checkoutLoading}
+        upgradeButtonId="billing-upgrade-cta"
       />
 
       <p className="text-center text-sm text-slate-500">

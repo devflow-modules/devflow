@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { Prisma } from "@/generated/prisma-whatsapp";
 import { getAuthFromRequest } from "@/modules/auth";
 import { permissionsMessages } from "@/lib/permissionsMessages";
-import { isAdmin } from "@/lib/roles";
+import { isTenantManager } from "@/lib/roles";
 import { prisma } from "@/lib/prisma";
 import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
 import { resolvePrimaryPhoneNumber } from "@/modules/whatsapp/whatsappPhoneResolution";
@@ -39,6 +39,15 @@ export async function GET(request: NextRequest) {
 
   const primaryWpn = await resolvePrimaryPhoneNumber(tenant.id);
 
+  if (!isTenantManager(auth.payload.role)) {
+    return NextResponse.json({
+      id: tenant.id,
+      name: tenant.name,
+      plan: tenant.plan,
+      hasWhatsappPhone: Boolean(primaryWpn),
+    });
+  }
+
   const apiKeyMasked = tenant.apiKey
     ? `${tenant.apiKey.slice(0, 8)}...${tenant.apiKey.slice(-4)}`
     : null;
@@ -66,7 +75,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  if (!isAdmin(auth.payload.role)) {
+  if (!isTenantManager(auth.payload.role)) {
     return NextResponse.json(
       { error: permissionsMessages.adminOnly, code: "FORBIDDEN_ROLE" },
       { status: 403 }

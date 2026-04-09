@@ -39,7 +39,7 @@ describe("GET /api/admin/queue/next", () => {
 
   it("retorna thread null quando fila vazia", async () => {
     mockGetAuthFromRequest.mockResolvedValue({
-      payload: { tenantId: "t1", sub: "u1", role: "agent" },
+      payload: { tenantId: "t1", sub: "u1", role: "operator" },
     });
     mockFindNext.mockResolvedValue(null);
     const { GET } = await import("../route");
@@ -53,7 +53,7 @@ describe("GET /api/admin/queue/next", () => {
 
   it("retorna próxima thread e atribui ao agente quando assign=true", async () => {
     mockGetAuthFromRequest.mockResolvedValue({
-      payload: { tenantId: "t1", sub: "u1", role: "agent" },
+      payload: { tenantId: "t1", sub: "u1", role: "operator" },
     });
     const createdAt = new Date("2025-01-01T10:00:00Z");
     const lastMsgAt = new Date("2025-01-01T11:00:00Z");
@@ -87,7 +87,7 @@ describe("GET /api/admin/queue/next", () => {
     expect(assignMod.assignThread).toHaveBeenCalledWith("t1", "th1", "u1", "u1");
     expect(mockAgentUpsert).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { tenantId_userId: { tenantId: "t1", userId: "u1" } },
+        where: { userId: "u1" },
         update: expect.objectContaining({ status: "busy", currentConversationId: "th1" }),
       })
     );

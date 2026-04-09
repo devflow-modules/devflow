@@ -28,7 +28,7 @@ describe("GET /api/admin/conversations", () => {
         sub: "u1",
         email: "a@b.c",
         name: "A",
-        role: "admin",
+        role: "manager",
         tenantId: "t1",
         jti: "j1",
       },

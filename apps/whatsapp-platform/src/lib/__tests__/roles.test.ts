@@ -1,25 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { isAdmin, isAgent, isNavItemHiddenForAgent, isPathRestrictedForAgent } from "../roles";
+import {
+  isManager,
+  isOperator,
+  isPathRestrictedForOperator,
+  isPlatformAdmin,
+  isTenantManager,
+} from "../roles";
 
 describe("roles", () => {
-  it("isAdmin / isAgent", () => {
-    expect(isAdmin("admin")).toBe(true);
-    expect(isAdmin("agent")).toBe(false);
-    expect(isAgent("agent")).toBe(true);
-    expect(isAgent(undefined)).toBe(false);
+  it("isOperator / isManager / isPlatformAdmin / isTenantManager", () => {
+    expect(isOperator("operator")).toBe(true);
+    expect(isOperator("manager")).toBe(false);
+    expect(isManager("manager")).toBe(true);
+    expect(isPlatformAdmin("platform_admin")).toBe(true);
+    expect(isTenantManager("manager")).toBe(true);
+    expect(isTenantManager("platform_admin")).toBe(true);
+    expect(isTenantManager("operator")).toBe(false);
+    expect(isOperator(undefined)).toBe(false);
   });
 
-  it("isPathRestrictedForAgent", () => {
-    expect(isPathRestrictedForAgent("/onboarding")).toBe(true);
-    expect(isPathRestrictedForAgent("/settings/ai")).toBe(true);
-    expect(isPathRestrictedForAgent("/billing")).toBe(true);
-    expect(isPathRestrictedForAgent("/dashboard/whatsapp")).toBe(true);
-    expect(isPathRestrictedForAgent("/inbox")).toBe(false);
-    expect(isPathRestrictedForAgent("/dashboard")).toBe(false);
-  });
-
-  it("isNavItemHiddenForAgent alinha com href", () => {
-    expect(isNavItemHiddenForAgent("/settings")).toBe(true);
-    expect(isNavItemHiddenForAgent("/inbox")).toBe(false);
+  it("isPathRestrictedForOperator", () => {
+    expect(isPathRestrictedForOperator("/settings")).toBe(true);
+    expect(isPathRestrictedForOperator("/settings/ai")).toBe(true);
+    expect(isPathRestrictedForOperator("/billing")).toBe(true);
+    expect(isPathRestrictedForOperator("/dashboard")).toBe(true);
+    expect(isPathRestrictedForOperator("/dashboard/whatsapp")).toBe(true);
+    expect(isPathRestrictedForOperator("/onboarding")).toBe(true);
+    expect(isPathRestrictedForOperator("/inbox")).toBe(false);
+    expect(isPathRestrictedForOperator("/automation")).toBe(false);
   });
 });

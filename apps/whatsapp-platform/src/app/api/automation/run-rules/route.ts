@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
+import { isTenantManager } from "@/lib/roles";
 import { runTimeElapsedRulesBatch } from "@/modules/automation/timeElapsedRunner";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ function authorizeCron(request: NextRequest): boolean {
 export async function POST(request: NextRequest) {
   const cronOk = authorizeCron(request);
   const session = cronOk ? null : await getAuthFromRequest(request);
-  if (!cronOk && (!session || session.payload.role !== "admin")) {
+  if (!cronOk && (!session || !isTenantManager(session.payload.role))) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 

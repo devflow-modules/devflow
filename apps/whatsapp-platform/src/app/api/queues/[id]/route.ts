@@ -1,12 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
-import { getQueueById, updateQueue, deleteQueue } from "@/modules/queues";
+import { z } from "zod";
+import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS, ROLES_OPERATIONAL } from "@/modules/auth";
+import {
+  deleteOperationalQueue,
+  getOperationalQueue,
+  updateOperationalQueue,
+} from "@/modules/inbox/inboxOperationalQueueService";
 
-function requireAdmin(auth: { payload: { role: string } }): NextResponse | null {
-  if (auth.payload.role !== "admin") {
-    return NextResponse.json({ error: "Apenas admin pode editar ou remover filas" }, { status: 403 });
+export const dynamic = "force-dynamic";
+
+const patchSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  slug: z.string().min(1).max(64).optional(),
+  description: z.string().max(2000).nullable().optional(),
+  color: z.string().max(32).nullable().optional(),
+  slaTargetMinutes: z.number().int().min(1).max(10080).nullable().optional(),
+  isActive: z.boolean().optional(),
+});
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const auth = await getAuthFromRequest(request);
+  const denied = requireRole(auth, ROLES_OPERATIONAL, request);
+  if (denied) return denied;
+
+  const { id } = await params;
+  const queue = await getOperationalQueue(auth!.payload.tenantId, id);
+  if (!queue) {
+    return NextResponse.json({ error: "Fila não encontrada" }, { status: 404 });
   }
-  return null;
+  return NextResponse.json({ success: true, data: { queue } });
 }
 
 export async function PATCH(
@@ -14,32 +39,30 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-  const forbidden = requireAdmin(auth);
-  if (forbidden) return forbidden;
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
+  if (denied) return denied;
 
   const { id } = await params;
-  let body: { name?: string; slug?: string; max_size?: number | null };
+  let json: unknown;
   try {
-    body = await request.json();
+    json = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
-  const existing = await getQueueById(id);
-  if (!existing) {
-    return NextResponse.json({ error: "Fila não encontrada" }, { status: 404 });
+
+  const parsed = patchSchema.safeParse(json);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
   }
-  if ((existing as { tenant_id: string }).tenant_id !== auth.payload.tenantId) {
-    return NextResponse.json({ error: "Acesso negado ao tenant" }, { status: 403 });
-  }
+
   try {
-    const queue = await updateQueue(id, {
-      name: body.name,
-      max_size: body.max_size ?? undefined,
-    });
-    return NextResponse.json(queue);
+    const queue = await updateOperationalQueue(auth!.payload.tenantId, id, parsed.data);
+    if (!queue) {
+      return NextResponse.json({ error: "Fila não encontrada" }, { status: 404 });
+    }
+    return NextResponse.json({ success: true, data: { queue } });
   } catch (e) {
-    console.error("[api/queues/[id]]", e);
+    console.error("[api/queues/[id] PATCH]", e);
     return NextResponse.json({ error: "Falha ao atualizar fila" }, { status: 500 });
   }
 }
@@ -49,23 +72,18 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-  const forbidden = requireAdmin(auth);
-  if (forbidden) return forbidden;
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
+  if (denied) return denied;
 
   const { id } = await params;
-  const existing = await getQueueById(id);
-  if (!existing) {
-    return NextResponse.json({ error: "Fila não encontrada" }, { status: 404 });
-  }
-  if ((existing as { tenant_id: string }).tenant_id !== auth.payload.tenantId) {
-    return NextResponse.json({ error: "Acesso negado ao tenant" }, { status: 403 });
-  }
   try {
-    await deleteQueue(id);
+    const ok = await deleteOperationalQueue(auth!.payload.tenantId, id);
+    if (!ok) {
+      return NextResponse.json({ error: "Fila não encontrada" }, { status: 404 });
+    }
     return NextResponse.json({ success: true });
   } catch (e) {
-    console.error("[api/queues/[id]]", e);
+    console.error("[api/queues/[id] DELETE]", e);
     return NextResponse.json({ error: "Falha ao remover fila" }, { status: 500 });
   }
 }

@@ -6,8 +6,17 @@ import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { logAuth } from "@/lib/auth-logger";
 import type { JwtPayload, UserRole } from "./authService";
 
-/** Operadores com acesso às APIs de inbox/fila/conversas (alinhado a `queue/next`). */
-export const STAFF_ROLES: UserRole[] = ["admin", "agent"];
+/** Inbox, filas, conversas — operator+ */
+export const ROLES_OPERATIONAL: UserRole[] = ["operator", "manager", "platform_admin"];
+
+/** Dashboard tenant, billing, export CSV, PATCH tenant — manager+ */
+export const ROLES_MANAGER_PLUS: UserRole[] = ["manager", "platform_admin"];
+
+/** Rotas exclusivas da plataforma (staff). */
+export const ROLES_PLATFORM_ONLY: UserRole[] = ["platform_admin"];
+
+/** @deprecated Preferir `ROLES_OPERATIONAL`. */
+export const STAFF_ROLES: UserRole[] = ROLES_OPERATIONAL;
 
 export interface AuthResult {
   payload: JwtPayload;

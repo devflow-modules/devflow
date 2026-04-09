@@ -1,33 +1,33 @@
 import { isSafeInternalNextPath, resolveLoginRedirect } from "@/lib/safe-redirect";
-import { isAdmin } from "@/lib/roles";
+import { isTenantManager } from "@/lib/roles";
 
-const ADMIN_DEFAULT = "/dashboard/whatsapp";
-const AGENT_DEFAULT = "/inbox";
+const MANAGER_DEFAULT = "/dashboard/whatsapp";
+const OPERATOR_DEFAULT = "/inbox";
 
 /**
  * Destino após login ou sessão já válida em `/login`.
- * Agentes não devem cair em onboarding nem em rotas de configuração.
+ * Operadores não devem cair em onboarding, configurações nem painel.
  */
 export function resolvePostLoginRedirect(
   next: string | null | undefined,
   role: string | null | undefined
 ): string {
-  if (isAdmin(role)) {
-    return resolveLoginRedirect(next ?? null, ADMIN_DEFAULT);
+  if (isTenantManager(role)) {
+    return resolveLoginRedirect(next ?? null, MANAGER_DEFAULT);
   }
 
-  if (typeof next === "string" && isSafeInternalNextPath(next) && !isPathBlockedForAgentAfterLogin(next)) {
+  if (typeof next === "string" && isSafeInternalNextPath(next) && !isPathBlockedForOperatorAfterLogin(next)) {
     return next;
   }
 
-  return AGENT_DEFAULT;
+  return OPERATOR_DEFAULT;
 }
 
-function isPathBlockedForAgentAfterLogin(path: string): boolean {
+function isPathBlockedForOperatorAfterLogin(path: string): boolean {
   const p = path.split("?")[0] ?? path;
   if (p === "/onboarding" || p.startsWith("/onboarding/")) return true;
   if (p.startsWith("/settings")) return true;
   if (p === "/billing" || p.startsWith("/billing/")) return true;
-  if (p === "/dashboard/whatsapp" || p.startsWith("/dashboard/whatsapp/")) return true;
+  if (p === "/dashboard" || p.startsWith("/dashboard/")) return true;
   return false;
 }

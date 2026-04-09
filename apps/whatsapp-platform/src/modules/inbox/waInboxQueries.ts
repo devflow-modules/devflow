@@ -34,11 +34,14 @@ export type WaInboxThreadFilters = {
   /** Meta phone_number_id da linha WhatsApp */
   businessPhoneNumberId?: string;
   conversationPhase?: WaInboxConversationPhaseFilter;
+  /** Filtra por fila operacional; `"none"` = sem fila (`queue_id` nulo). */
+  queueId?: string;
 };
 
 const listInclude = {
   assignedToUser: { select: { id: true, name: true, email: true } },
   threadTags: { include: { tag: true } },
+  queue: { select: { id: true, name: true, slug: true, color: true } },
 } as const;
 
 export type WaInboxListedThread = Prisma.WaInboxThreadGetPayload<{ include: typeof listInclude }> & {
@@ -121,6 +124,13 @@ function buildWaInboxThreadWhereSql(
   }
   if (filters?.businessPhoneNumberId?.trim()) {
     parts.push(Prisma.sql`t.business_phone_number_id = ${filters.businessPhoneNumberId.trim()}`);
+  }
+  if (filters?.queueId !== undefined) {
+    if (filters.queueId === "none" || filters.queueId === "") {
+      parts.push(Prisma.sql`t.queue_id IS NULL`);
+    } else {
+      parts.push(Prisma.sql`t.queue_id = ${filters.queueId}`);
+    }
   }
   return Prisma.join(parts, " AND ");
 }
@@ -305,6 +315,7 @@ export async function waInboxGetThread(tenantId: string, threadId: string) {
     include: {
       assignedToUser: { select: { id: true, name: true, email: true } },
       threadTags: { include: { tag: true } },
+      queue: { select: { id: true, name: true, slug: true, color: true } },
     },
   });
 }

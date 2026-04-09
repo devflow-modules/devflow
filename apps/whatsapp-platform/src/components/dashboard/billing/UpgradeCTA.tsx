@@ -9,6 +9,8 @@ type Props = {
   shouldShow: boolean;
   onUpgrade: (plan: PlanKey) => void;
   loadingPlan: string | null;
+  /** Para atalhos no cabeçalho (ex.: “Atualizar plano”). */
+  upgradeButtonId?: string;
 };
 
 const PLAN_ORDER: PlanKey[] = ["FREE", "STARTER", "PRO", "SCALE"];
@@ -26,6 +28,7 @@ export function UpgradeCTA({
   shouldShow,
   onUpgrade,
   loadingPlan,
+  upgradeButtonId,
 }: Props) {
   if (!shouldShow) return null;
 
@@ -45,6 +48,7 @@ export function UpgradeCTA({
         Benefícios do plano {nextPlanDef.name}: {benefits}
       </p>
       <Button
+        id={upgradeButtonId}
         type="button"
         className="mt-4 bg-emerald-600 hover:bg-emerald-700"
         onClick={() => onUpgrade(nextPlan)}

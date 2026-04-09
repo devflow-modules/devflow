@@ -7,7 +7,8 @@ const PASSWORD_RESET_EXPIRY = "1h";
 
 const SALT_ROUNDS = 10;
 
-export type UserRole = "admin" | "agent";
+/** operator = atendimento; manager = admin do tenant; platform_admin = staff interno (vê tudo). */
+export type UserRole = "operator" | "manager" | "platform_admin";
 
 export interface JwtPayload {
   sub: string;

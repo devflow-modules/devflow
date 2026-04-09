@@ -5,7 +5,11 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { ConversationsList } from "./ConversationsList";
 import { ChatWindow } from "./ChatWindow";
-import { fetchInboxConversations, fetchTenantWhatsappLines } from "./inboxFetch";
+import {
+  fetchInboxConversations,
+  fetchInboxOperationalQueues,
+  fetchTenantWhatsappLines,
+} from "./inboxFetch";
 import { INBOX_QK } from "./inboxTypes";
 import type { InboxConversationsFilter } from "./inboxTypes";
 import { useMediaMd } from "./useMediaMd";
@@ -33,6 +37,7 @@ function InboxShellContent() {
   const [mobileChat, setMobileChat] = useState(false);
   const [filter, setFilter] = useState<InboxConversationsFilter>("needs_response");
   const [lineFilter, setLineFilter] = useState<string | null>(null);
+  const [queueFilter, setQueueFilter] = useState<string | null>(null);
   const { connected: realtimeConnected } = useInboxRealtime();
 
   const pollInterval = realtimeConnected ? POLL_INTERVAL_REALTIME_MS : POLL_INTERVAL_FALLBACK_MS;
@@ -40,6 +45,12 @@ function InboxShellContent() {
   const { data: lines = [] } = useQuery({
     queryKey: INBOX_QK.phoneLines,
     queryFn: fetchTenantWhatsappLines,
+    staleTime: 60_000,
+  });
+
+  const { data: inboxQueues = [] } = useQuery({
+    queryKey: ["inbox-operational-queues"],
+    queryFn: fetchInboxOperationalQueues,
     staleTime: 60_000,
   });
 
@@ -52,8 +63,8 @@ function InboxShellContent() {
   const tenantThreadTotal = inboxOverview?.pagination.total;
 
   const { data: convData } = useQuery({
-    queryKey: INBOX_QK.conversations(filter, lineFilter),
-    queryFn: () => fetchInboxConversations(filter, lineFilter),
+    queryKey: INBOX_QK.conversations(filter, lineFilter, queueFilter),
+    queryFn: () => fetchInboxConversations(filter, lineFilter, queueFilter),
     refetchInterval: pollInterval,
   });
 
@@ -134,6 +145,9 @@ function InboxShellContent() {
               lineFilter={lineFilter}
               lines={lines}
               onLineFilterChange={setLineFilter}
+              queueFilter={queueFilter}
+              queues={inboxQueues}
+              onQueueFilterChange={setQueueFilter}
               tenantThreadTotal={tenantThreadTotal}
             />
           </aside>
@@ -143,6 +157,7 @@ function InboxShellContent() {
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             {selectedId ? (
               <ChatWindow
+                key={selectedId}
                 threadId={selectedId}
                 thread={selectedThread}
                 showBack={!isMd}

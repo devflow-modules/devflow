@@ -5,8 +5,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AppSidebar } from "./AppSidebar";
 import { SupportProvider } from "@/components/support/SupportProvider";
+import { SessionRoleProvider, useSessionRole } from "@/components/navigation/SessionRoleContext";
+import { RouteBreadcrumbs } from "@/components/navigation/RouteBreadcrumbs";
+import { NavCommandPalette } from "@/components/navigation/NavCommandPalette";
+import { shellHomeHref } from "@/lib/roles";
 
-export function AppShell({ children }: { children: ReactNode }) {
+function MobileHeaderBrand() {
+  const { role } = useSessionRole();
+  const href = shellHomeHref(role);
+  return (
+    <Link href={href} className="min-w-0 truncate text-sm font-semibold tracking-tight text-slate-900">
+      WhatsApp Platform
+    </Link>
+  );
+}
+
+function AppShellInner({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "";
   const inboxFullBleed = pathname === "/inbox" || pathname.startsWith("/inbox/");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -28,7 +42,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [mobileNavOpen]);
 
   return (
-    <SupportProvider>
     <div className="flex min-h-screen bg-slate-50/90">
       {mobileNavOpen ? (
         <button
@@ -57,9 +70,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <Link href="/dashboard" className="min-w-0 truncate text-sm font-semibold tracking-tight text-slate-900">
-            WhatsApp Platform
-          </Link>
+          <MobileHeaderBrand />
+          <span className="ml-auto text-[10px] text-slate-400" title="Paleta de navegação">
+            ⌘K
+          </span>
         </header>
         <main className="min-h-0 flex-1">
           {inboxFullBleed ? (
@@ -67,11 +81,24 @@ export function AppShell({ children }: { children: ReactNode }) {
               {children}
             </div>
           ) : (
-            <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12">{children}</div>
+            <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12">
+              <RouteBreadcrumbs />
+              {children}
+            </div>
           )}
         </main>
       </div>
+      <NavCommandPalette />
     </div>
+  );
+}
+
+export function AppShell({ children }: { children: ReactNode }) {
+  return (
+    <SupportProvider>
+      <SessionRoleProvider>
+        <AppShellInner>{children}</AppShellInner>
+      </SessionRoleProvider>
     </SupportProvider>
   );
 }

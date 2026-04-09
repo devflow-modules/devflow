@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@devflow/ui";
 import { PageHeader } from "@/components/ui/page-header";
 import { StateEmpty } from "@/components/ui/app-states";
@@ -15,36 +16,55 @@ import {
   fieldControlCompact,
 } from "@/components/ui/form-field";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
-
-type QueueItem = {
-  id: string;
-  name: string;
-  slug: string;
-  max_size: number | null;
-  pendingCount: number;
-};
+import { fetchInboxUsers } from "@/components/inbox/inboxFetch";
+import type { OperationalQueueWithMetrics } from "@/modules/inbox/inboxOperationalQueueService";
 
 export function QueuesClient({
-  tenantId,
-  queues: initialQueues,
+  initialQueues,
 }: {
-  tenantId: string;
-  queues: QueueItem[];
+  initialQueues: OperationalQueueWithMetrics[];
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [queues, setQueues] = useState(initialQueues);
   useEffect(() => {
     setQueues(initialQueues);
   }, [initialQueues]);
+
+  useEffect(() => {
+    const qid = searchParams.get("queue")?.trim();
+    if (!qid || queues.length === 0) return;
+    const hit = queues.some((x) => x.id === qid);
+    if (hit) {
+      setExpandMembersFor(qid);
+      requestAnimationFrame(() => {
+        document.getElementById(`queue-row-${qid}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    }
+  }, [searchParams, queues]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
-  const [maxSize, setMaxSize] = useState<string>("");
+  const [description, setDescription] = useState("");
+  const [color, setColor] = useState("#6366f1");
+  const [slaMinutes, setSlaMinutes] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
-  const [editMaxSize, setEditMaxSize] = useState("");
+  const [editSlug, setEditSlug] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editColor, setEditColor] = useState("#6366f1");
+  const [editSlaMinutes, setEditSlaMinutes] = useState("");
+  const [editActive, setEditActive] = useState(true);
+  const [memberUserId, setMemberUserId] = useState("");
+  const [expandMembersFor, setExpandMembersFor] = useState<string | null>(null);
+
+  const { data: tenantUsers = [] } = useQuery({
+    queryKey: ["queues-tenant-users"],
+    queryFn: fetchInboxUsers,
+    staleTime: 60_000,
+  });
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -55,10 +75,18 @@ export function QueuesClient({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tenant_id: tenantId,
           name: name.trim(),
-          slug: slug.trim().toLowerCase().replace(/\s+/g, "-"),
-          max_size: maxSize === "" ? null : parseInt(maxSize, 10),
+          ...(slug.trim() ? { slug: slug.trim().toLowerCase() } : {}),
+          description: description.trim() || null,
+          color: color.trim() || null,
+          slaTargetMinutes:
+            slaMinutes === ""
+              ? null
+              : (() => {
+                  const n = parseInt(slaMinutes, 10);
+                  return Number.isFinite(n) && n > 0 ? n : null;
+                })(),
+          isActive: true,
         }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -67,7 +95,9 @@ export function QueuesClient({
       }
       setName("");
       setSlug("");
-      setMaxSize("");
+      setDescription("");
+      setColor("#6366f1");
+      setSlaMinutes("");
       setShowForm(false);
       router.refresh();
     } catch (err) {
@@ -86,7 +116,17 @@ export function QueuesClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: editName.trim(),
-          max_size: editMaxSize === "" ? null : parseInt(editMaxSize, 10),
+          slug: editSlug.trim() || undefined,
+          description: editDescription.trim() || null,
+          color: editColor.trim() || null,
+          slaTargetMinutes:
+            editSlaMinutes === ""
+              ? null
+              : (() => {
+                  const n = parseInt(editSlaMinutes, 10);
+                  return Number.isFinite(n) && n > 0 ? n : null;
+                })(),
+          isActive: editActive,
         }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -103,7 +143,7 @@ export function QueuesClient({
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Remover esta fila?")) return;
+    if (!confirm("Remover esta fila? As conversas ficam sem fila.")) return;
     setError(null);
     setLoading(true);
     try {
@@ -121,12 +161,55 @@ export function QueuesClient({
     }
   }
 
+  async function handleAddMember(queueId: string) {
+    if (!memberUserId.trim()) return;
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetchProtected(`/api/queues/${queueId}/members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: memberUserId.trim() }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        throw new Error(protectedApiUserMessage(res.status, data));
+      }
+      setMemberUserId("");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao vincular");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleRemoveMember(queueId: string, userId: string) {
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetchProtected(
+        `/api/queues/${queueId}/members?userId=${encodeURIComponent(userId)}`,
+        { method: "DELETE" }
+      );
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        throw new Error(protectedApiUserMessage(res.status, data));
+      }
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao remover vínculo");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="mx-auto min-w-0 max-w-4xl space-y-8">
       <PageHeader
         eyebrow="Operação"
         title="Filas"
-        description="Organize o atendimento por filas (ex.: suporte, vendas). Cada fila tem um identificador único e limite opcional de tamanho."
+        description="Filas da Inbox: backlog, SLA crítico, conversas sem dono e agentes vinculados. Integradas com a lista de conversas e o dashboard."
         layout="split"
         showDivider
         actions={
@@ -152,7 +235,7 @@ export function QueuesClient({
         <Card padding="lg">
           <CardHeader
             title="Nova fila"
-            description="O slug é usado em integrações e regras — use letras minúsculas e hífens."
+            description="O slug é gerado a partir do nome se não preencher. Cor e SLA alimentam a operação visual."
           />
           <form onSubmit={handleCreate} className="mt-2 max-w-md space-y-4">
             <FormField id="queue-name" label="Nome" htmlFor="queue-name">
@@ -166,32 +249,49 @@ export function QueuesClient({
                 placeholder="Ex.: Suporte"
               />
             </FormField>
-            <FormField id="queue-slug" label="Slug" htmlFor="queue-slug" help="Identificador único, sem espaços.">
+            <FormField id="queue-slug" label="Slug" htmlFor="queue-slug" optional>
               <input
                 id="queue-slug"
                 type="text"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
-                required
                 className={fieldInputClassName}
-                placeholder="Ex.: suporte"
+                placeholder="Opcional — ex.: suporte"
+              />
+            </FormField>
+            <FormField id="queue-desc" label="Descrição" htmlFor="queue-desc" optional>
+              <textarea
+                id="queue-desc"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className={fieldInputClassName}
+                rows={2}
+              />
+            </FormField>
+            <FormField id="queue-color" label="Cor" htmlFor="queue-color">
+              <input
+                id="queue-color"
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="h-10 w-20 cursor-pointer rounded border border-slate-200"
               />
             </FormField>
             <FormField
-              id="queue-max"
-              label="Tamanho máximo"
-              htmlFor="queue-max"
+              id="queue-sla"
+              label="Meta SLA (minutos)"
+              htmlFor="queue-sla"
               optional
-              help="Número máximo de conversas pendentes. Vazio = sem limite."
+              help="Referência operacional; vazio = sem meta."
             >
               <input
-                id="queue-max"
+                id="queue-sla"
                 type="number"
                 min={1}
-                value={maxSize}
-                onChange={(e) => setMaxSize(e.target.value)}
+                value={slaMinutes}
+                onChange={(e) => setSlaMinutes(e.target.value)}
                 className={fieldInputClassName}
-                placeholder="Ilimitado"
+                placeholder="Opcional"
               />
             </FormField>
             <FormActions>
@@ -216,7 +316,7 @@ export function QueuesClient({
       {queues.length === 0 ? (
         <StateEmpty
           title="Nenhuma fila configurada"
-          description="As filas ajudam a separar conversas por equipa ou prioridade. Crie a primeira para começar a encaminhar trabalho."
+          description="Crie filas para organizar conversas e filtrar na Inbox e no dashboard gerencial."
           action={
             <Button type="button" onClick={() => setShowForm(true)}>
               Criar primeira fila
@@ -226,22 +326,50 @@ export function QueuesClient({
       ) : (
         <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/[0.03]">
           {queues.map((q) => (
-            <li key={q.id} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <li key={q.id} id={`queue-row-${q.id}`} className="flex flex-col gap-3 px-4 py-4 scroll-mt-24">
               {editingId === q.id ? (
-                <div className="flex flex-1 flex-wrap items-end gap-2">
+                <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
                   <input
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    className={`w-44 ${fieldControlCompact}`}
+                    className={`w-full sm:w-48 ${fieldControlCompact}`}
+                    placeholder="Nome"
+                  />
+                  <input
+                    type="text"
+                    value={editSlug}
+                    onChange={(e) => setEditSlug(e.target.value)}
+                    className={`w-full sm:w-40 ${fieldControlCompact}`}
+                    placeholder="slug"
+                  />
+                  <input
+                    type="color"
+                    value={editColor}
+                    onChange={(e) => setEditColor(e.target.value)}
+                    className="h-9 w-16 cursor-pointer rounded border border-slate-200"
                   />
                   <input
                     type="number"
                     min={1}
-                    value={editMaxSize}
-                    onChange={(e) => setEditMaxSize(e.target.value)}
-                    placeholder="Máx."
-                    className={`w-24 ${fieldControlCompact}`}
+                    value={editSlaMinutes}
+                    onChange={(e) => setEditSlaMinutes(e.target.value)}
+                    placeholder="SLA min"
+                    className={`w-28 ${fieldControlCompact}`}
+                  />
+                  <label className="flex items-center gap-2 text-sm text-slate-600">
+                    <input
+                      type="checkbox"
+                      checked={editActive}
+                      onChange={(e) => setEditActive(e.target.checked)}
+                    />
+                    Ativa
+                  </label>
+                  <textarea
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    className="min-h-[3rem] w-full rounded-lg border border-slate-200 px-2 py-1.5 text-sm sm:max-w-md"
+                    placeholder="Descrição"
                   />
                   <Button size="sm" onClick={() => handleUpdate(q.id)} disabled={loading}>
                     Guardar
@@ -252,7 +380,11 @@ export function QueuesClient({
                     onClick={() => {
                       setEditingId(null);
                       setEditName(q.name);
-                      setEditMaxSize(q.max_size?.toString() ?? "");
+                      setEditSlug(q.slug);
+                      setEditDescription(q.description ?? "");
+                      setEditColor(q.color ?? "#6366f1");
+                      setEditSlaMinutes(q.slaTargetMinutes?.toString() ?? "");
+                      setEditActive(q.isActive);
                     }}
                   >
                     Cancelar
@@ -260,38 +392,127 @@ export function QueuesClient({
                 </div>
               ) : (
                 <>
-                  <div className="min-w-0">
-                    <span className="font-semibold text-slate-900">{q.name}</span>
-                    <span className="ml-2 text-sm font-medium text-slate-500">{q.slug}</span>
-                    <div className="mt-2 flex flex-wrap gap-3 text-sm text-slate-600">
-                      <span>{q.pendingCount} pendentes</span>
-                      {q.max_size != null ? (
-                        <span className="text-slate-500">Máx.: {q.max_size}</span>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className="inline-block h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-slate-200/80"
+                          style={{ backgroundColor: q.color ?? "#94a3b8" }}
+                          aria-hidden
+                        />
+                        <span className="font-semibold text-slate-900">{q.name}</span>
+                        {!q.isActive ? (
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-900">
+                            Inativa
+                          </span>
+                        ) : null}
+                        <span className="text-sm text-slate-500">{q.slug}</span>
+                      </div>
+                      {q.description ? (
+                        <p className="mt-1 text-sm text-slate-600">{q.description}</p>
                       ) : null}
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
+                        <span>
+                          Backlog (abertas/pendentes): <strong>{q.backlogCount}</strong>
+                        </span>
+                        <span>
+                          Sem dono: <strong>{q.unassignedCount}</strong>
+                        </span>
+                        <span>
+                          SLA crítico: <strong className="text-red-700">{q.criticalSlaCount}</strong>
+                        </span>
+                        {q.slaTargetMinutes != null ? (
+                          <span className="text-slate-500">Meta: {q.slaTargetMinutes} min</span>
+                        ) : null}
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {q.members.map((m) => (
+                          <span
+                            key={m.userId}
+                            className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700"
+                          >
+                            {m.name}
+                          </span>
+                        ))}
+                        {q.members.length === 0 ? (
+                          <span className="text-xs text-slate-400">Nenhum agente vinculado</span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          setExpandMembersFor((prev) => (prev === q.id ? null : q.id))
+                        }
+                      >
+                        {expandMembersFor === q.id ? "Fechar vínculos" : "Gerir agentes"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setEditingId(q.id);
+                          setEditName(q.name);
+                          setEditSlug(q.slug);
+                          setEditDescription(q.description ?? "");
+                          setEditColor(q.color ?? "#6366f1");
+                          setEditSlaMinutes(q.slaTargetMinutes?.toString() ?? "");
+                          setEditActive(q.isActive);
+                        }}
+                      >
+                        Editar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => handleDelete(q.id)}
+                        disabled={loading}
+                      >
+                        Excluir
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex shrink-0 flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        setEditingId(q.id);
-                        setEditName(q.name);
-                        setEditMaxSize(q.max_size?.toString() ?? "");
-                      }}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-red-600 hover:text-red-700"
-                      onClick={() => handleDelete(q.id)}
-                      disabled={loading}
-                    >
-                      Excluir
-                    </Button>
-                  </div>
+                  {expandMembersFor === q.id ? (
+                    <div className="rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-3">
+                      <p className="text-xs font-medium text-slate-500">Vincular utilizador à fila</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <select
+                          value={memberUserId}
+                          onChange={(e) => setMemberUserId(e.target.value)}
+                          className={`min-w-[12rem] ${fieldControlCompact}`}
+                        >
+                          <option value="">Escolher…</option>
+                          {tenantUsers.map((u) => (
+                            <option key={u.id} value={u.id}>
+                              {u.name} ({u.email})
+                            </option>
+                          ))}
+                        </select>
+                        <Button size="sm" type="button" onClick={() => handleAddMember(q.id)} disabled={loading}>
+                          Adicionar
+                        </Button>
+                      </div>
+                      <ul className="mt-3 space-y-1 text-sm">
+                        {q.members.map((m) => (
+                          <li key={m.userId} className="flex items-center justify-between gap-2">
+                            <span>
+                              {m.name} <span className="text-slate-500">{m.email}</span>
+                            </span>
+                            <button
+                              type="button"
+                              className="text-xs text-red-600 hover:underline"
+                              onClick={() => handleRemoveMember(q.id, m.userId)}
+                            >
+                              Remover
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
                 </>
               )}
             </li>

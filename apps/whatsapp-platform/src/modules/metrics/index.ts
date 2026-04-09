@@ -8,5 +8,6 @@ export {
 export {
   getManagerDashboard,
   type ManagerDashboardPayload,
+  type ManagerDashboardSearchOpts,
   type ManagerAgentRow,
 } from "./managerDashboardService";

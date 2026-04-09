@@ -27,7 +27,7 @@ describe("GET /api/auth/verify", () => {
         sub: "u1",
         email: "a@b.com",
         name: "User",
-        role: "admin",
+        role: "manager",
         tenantId: "t1",
         jti: "sid-1",
       },
@@ -43,7 +43,7 @@ describe("GET /api/auth/verify", () => {
       id: "u1",
       email: "a@b.com",
       name: "User",
-      role: "admin",
+      role: "manager",
       tenantId: "t1",
     });
   });

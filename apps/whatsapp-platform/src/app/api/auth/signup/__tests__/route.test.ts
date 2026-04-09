@@ -69,7 +69,7 @@ describe("POST /api/auth/signup", () => {
       id: "u-new",
       email: "joao@example.com",
       name: "João Silva",
-      role: "admin",
+      role: "manager",
       tenantId: "t-new",
     });
     mockHashPassword.mockResolvedValue("hashed-secret");
@@ -142,7 +142,7 @@ describe("POST /api/auth/signup", () => {
       id: "u-maria",
       email: "maria@example.com",
       name: "Maria",
-      role: "admin",
+      role: "manager",
       tenantId: "t-new",
     });
     const res = await POST(req);

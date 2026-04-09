@@ -18,7 +18,8 @@ async function inboxFailMessage(res: Response): Promise<string> {
 
 function buildConversationsUrl(
   filter?: InboxConversationsFilter,
-  businessPhoneNumberId?: string | null
+  businessPhoneNumberId?: string | null,
+  queueId?: string | null
 ): string {
   const params = new URLSearchParams({ limit: "100" });
   if (filter) {
@@ -27,17 +28,21 @@ function buildConversationsUrl(
   if (businessPhoneNumberId?.trim()) {
     params.set("businessPhoneNumberId", businessPhoneNumberId.trim());
   }
+  if (queueId?.trim()) {
+    params.set("queueId", queueId.trim());
+  }
   return `/api/inbox/conversations?${params.toString()}`;
 }
 
 export async function fetchInboxConversations(
   filter?: InboxConversationsFilter,
-  businessPhoneNumberId?: string | null
+  businessPhoneNumberId?: string | null,
+  queueId?: string | null
 ): Promise<{
   threads: WaInboxThreadRow[];
   pagination: { limit: number; offset: number; total: number };
 }> {
-  const res = await fetchProtected(buildConversationsUrl(filter, businessPhoneNumberId));
+  const res = await fetchProtected(buildConversationsUrl(filter, businessPhoneNumberId, queueId));
   if (!res.ok) throw new Error(await inboxFailMessage(res));
   const json = (await res.json()) as {
     success: boolean;
@@ -332,4 +337,33 @@ export async function sendInboxMessage(threadId: string, text: string): Promise<
           : `Erro ${res.status}`;
     throw new Error(msg);
   }
+}
+
+export type InboxQueueOption = {
+  id: string;
+  name: string;
+  slug: string;
+  color: string | null;
+};
+
+export async function fetchInboxOperationalQueues(): Promise<InboxQueueOption[]> {
+  const res = await fetchProtected("/api/queues");
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
+  const json = (await res.json()) as {
+    success?: boolean;
+    data?: { queues: InboxQueueOption[] };
+  };
+  return json.data?.queues ?? [];
+}
+
+export async function updateThreadQueue(threadId: string, queueId: string | null): Promise<void> {
+  const res = await fetchProtected(
+    `/api/inbox/conversations/${encodeURIComponent(threadId)}/queue`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ queueId }),
+    }
+  );
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
 }

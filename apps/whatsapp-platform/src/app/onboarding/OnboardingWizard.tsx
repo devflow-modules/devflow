@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
+import { isTenantManager } from "@/lib/roles";
+import type { UserRole } from "@/modules/auth";
 import {
   GUIDED_OBJECTIVES,
   GUIDED_SEGMENTS,
@@ -26,7 +28,7 @@ type TenantMe = {
   systemPrompt?: string | null;
 };
 
-type SessionRole = "admin" | "agent" | null;
+const KNOWN_ROLES = new Set<UserRole>(["operator", "manager", "platform_admin"]);
 
 function hasPromptConfigured(t: TenantMe | null): boolean {
   if (!t) return false;
@@ -46,7 +48,7 @@ export function OnboardingWizard() {
 
   const [checklistMeta, setChecklistMeta] = useState(false);
   const [checklistWebhook, setChecklistWebhook] = useState(false);
-  const [sessionRole, setSessionRole] = useState<SessionRole>(null);
+  const [sessionRole, setSessionRole] = useState<UserRole | null>(null);
   const [whatsappSaving, setWhatsappSaving] = useState(false);
   const [whatsappSuccess, setWhatsappSuccess] = useState(false);
 
@@ -58,7 +60,7 @@ export function OnboardingWizard() {
         const vj = verifyRes.ok ? ((await verifyRes.json()) as { user?: { role?: string } }) : {};
         if (cancelled) return;
         const r = vj.user?.role;
-        if (r === "admin" || r === "agent") setSessionRole(r);
+        if (r && KNOWN_ROLES.has(r as UserRole)) setSessionRole(r as UserRole);
         setTenant(data);
         const promptOk = hasPromptConfigured(data);
         const phoneOk = Boolean(data?.hasWhatsappPhone);
@@ -393,7 +395,7 @@ export function OnboardingWizard() {
           </button>
           <div className="flex flex-col gap-2 border-t border-slate-100 pt-4 text-left text-sm text-slate-600">
             <p className="font-medium text-slate-800">Opcional — integrações técnicas</p>
-            {sessionRole === "admin" ? (
+            {sessionRole && isTenantManager(sessionRole) ? (
               <p>
                 Chave de API para desenvolvimento e integrações:{" "}
                 <Link href="/settings/developer" className="text-[var(--df-brand-700)] underline">
@@ -402,7 +404,7 @@ export function OnboardingWizard() {
                 .
               </p>
             ) : (
-              <p>Chave de API: peça a um administrador da organização em Configurações → API e integrações.</p>
+              <p>Chave de API: peça a um gestor da organização em Configurações → API e integrações.</p>
             )}
             <p>
               Motor de IA (modelo, temperatura):{" "}

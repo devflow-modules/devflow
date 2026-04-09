@@ -4,9 +4,13 @@ import { NextRequest } from "next/server";
 const mockGetAuthFromRequest = vi.fn();
 const mockGetManagerDashboard = vi.fn();
 
-vi.mock("@/modules/auth", () => ({
-  getAuthFromRequest: (...args: unknown[]) => mockGetAuthFromRequest(...args),
-}));
+vi.mock("@/modules/auth", async () => {
+  const actual = await vi.importActual<typeof import("@/modules/auth")>("@/modules/auth");
+  return {
+    ...actual,
+    getAuthFromRequest: (...args: unknown[]) => mockGetAuthFromRequest(...args),
+  };
+});
 
 vi.mock("@/modules/metrics/managerDashboardService", () => ({
   getManagerDashboard: (...args: unknown[]) => mockGetManagerDashboard(...args),
@@ -43,7 +47,7 @@ describe("GET /api/metrics/manager-dashboard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetAuthFromRequest.mockResolvedValue({
-      payload: { tenantId: "t1", sub: "u1", email: "a@b.com", name: "User", role: "admin" },
+      payload: { tenantId: "t1", sub: "u1", email: "a@b.com", name: "User", role: "manager" },
     });
     mockGetManagerDashboard.mockResolvedValue(samplePayload);
   });
@@ -55,6 +59,17 @@ describe("GET /api/metrics/manager-dashboard", () => {
       new NextRequest(new URL("http://localhost/api/metrics/manager-dashboard")) as never
     );
     expect(res.status).toBe(401);
+  });
+
+  it("retorna 403 quando operador", async () => {
+    mockGetAuthFromRequest.mockResolvedValue({
+      payload: { tenantId: "t1", sub: "u1", email: "a@b.com", name: "User", role: "operator" },
+    });
+    const { GET } = await import("../route");
+    const res = await GET(
+      new NextRequest(new URL("http://localhost/api/metrics/manager-dashboard")) as never
+    );
+    expect(res.status).toBe(403);
   });
 
   it("retorna 200 com payload do serviço", async () => {

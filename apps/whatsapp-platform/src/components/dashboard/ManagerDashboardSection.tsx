@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
 import { fetchProtected } from "@/lib/protected-fetch";
+import { fetchInboxOperationalQueues } from "@/components/inbox/inboxFetch";
 import type { ManagerDashboardPayload } from "@/modules/metrics/managerDashboardService";
 
 function formatMs(ms: number | null | undefined): string {
@@ -36,10 +37,34 @@ export function ManagerDashboardSection() {
   const [data, setData] = useState<ManagerDashboardPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [queueId, setQueueId] = useState<string | null>(null);
+  const [queues, setQueues] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    fetchProtected("/api/metrics/manager-dashboard")
+    fetchInboxOperationalQueues()
+      .then((list) => {
+        if (!cancelled) setQueues(list.map((q) => ({ id: q.id, name: q.name })));
+      })
+      .catch(() => {
+        if (!cancelled) setQueues([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const params = new URLSearchParams();
+    if (queueId && queueId !== "all") {
+      params.set("queueId", queueId);
+    }
+    const url =
+      params.toString().length > 0
+        ? `/api/metrics/manager-dashboard?${params.toString()}`
+        : "/api/metrics/manager-dashboard";
+    fetchProtected(url)
       .then((r) => (r.ok ? r.json() : null))
       .then((json: ManagerDashboardPayload | null) => {
         if (!cancelled && json) setData(json);
@@ -53,7 +78,7 @@ export function ManagerDashboardSection() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [queueId]);
 
   if (loading) {
     return (
@@ -89,6 +114,32 @@ export function ManagerDashboardSection() {
             Operação em tempo real; restantes métricas no período: <span className="font-medium text-slate-700">{rangeLabel}</span>
           </p>
         </div>
+        {queues.length > 0 ? (
+          <div className="flex flex-col gap-1">
+            <label htmlFor="manager-dash-queue" className="text-[11px] font-medium text-slate-500">
+              Fila
+            </label>
+            <select
+              id="manager-dash-queue"
+              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800"
+              value={queueId === null ? "all" : queueId}
+              onChange={(e) => {
+                const v = e.target.value;
+                setLoading(true);
+                setError(null);
+                setQueueId(v === "all" ? null : v);
+              }}
+            >
+              <option value="all">Todas as filas</option>
+              <option value="none">Sem fila</option>
+              {queues.map((q) => (
+                <option key={q.id} value={q.id}>
+                  {q.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

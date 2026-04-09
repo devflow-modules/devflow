@@ -2,5 +2,5 @@
 
 export const permissionsMessages = {
   adminOnly:
-    "Apenas administradores podem aceder a esta funcionalidade.",
+    "Apenas gestores da organização podem aceder a esta funcionalidade.",
 } as const;

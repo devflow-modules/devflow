@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@devflow/ui";
 import { Card } from "@/components/ui/card";
-import { buttonClassName } from "@/components/ui/button";
 import { StateLoading } from "@/components/ui/app-states";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
@@ -84,7 +83,7 @@ export function DeveloperApiKeyClient() {
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
         <div className="mt-6">
-          <Button type="button" onClick={handleGenerate} disabled={working}>
+          <Button id="dev-api-generate-btn" type="button" onClick={handleGenerate} disabled={working}>
             {working ? "A gerar…" : hasApiKey ? "Regenerar chave" : "Gerar chave"}
           </Button>
         </div>

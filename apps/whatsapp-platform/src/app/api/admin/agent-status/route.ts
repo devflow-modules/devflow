@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, ROLES_OPERATIONAL } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 
 const patchBodySchema = z.object({
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     where: { tenantId: auth.payload.tenantId },
   });
   const users = await prisma.user.findMany({
-    where: { tenantId: auth.payload.tenantId, role: { in: ["admin", "agent"] } },
+    where: { tenantId: auth.payload.tenantId, role: { in: [...ROLES_OPERATIONAL] } },
     select: { id: true, name: true, email: true, role: true },
   });
   const byUserId = Object.fromEntries(statuses.map((s) => [s.userId, s]));
@@ -36,7 +36,7 @@ export async function PATCH(request: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
   const { userId, status, currentConversationId } = parsed.data;
   const updated = await prisma.agentStatus.upsert({
-    where: { tenantId_userId: { tenantId: auth.payload.tenantId, userId } },
+    where: { userId },
     create: { tenantId: auth.payload.tenantId, userId, status, currentConversationId: currentConversationId ?? null },
     update: { status, currentConversationId: currentConversationId ?? undefined, updatedAt: new Date() },
   });

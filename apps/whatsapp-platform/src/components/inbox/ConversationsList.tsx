@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useMemo } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ConversationItem } from "./ConversationItem";
 import {
@@ -10,7 +10,12 @@ import {
   updateConversationStatus,
 } from "./inboxFetch";
 import { INBOX_QK } from "./inboxTypes";
-import type { InboxConversationsFilter, WhatsappLineSummary, WaInboxThreadRow } from "./inboxTypes";
+import type {
+  InboxConversationsFilter,
+  WhatsappLineSummary,
+  WaInboxThreadRow,
+} from "./inboxTypes";
+import type { InboxQueueOption } from "./inboxFetch";
 import {
   INBOX_SIDEBAR_SECTION_LABELS,
   INBOX_SIDEBAR_SECTION_ORDER,
@@ -66,6 +71,9 @@ export function ConversationsList({
   lineFilter,
   lines,
   onLineFilterChange,
+  queueFilter,
+  queues,
+  onQueueFilterChange,
   tenantThreadTotal,
 }: {
   selectedId: string | null;
@@ -75,6 +83,9 @@ export function ConversationsList({
   lineFilter: string | null;
   lines: WhatsappLineSummary[];
   onLineFilterChange: (metaPhoneNumberId: string | null) => void;
+  queueFilter: string | null;
+  queues: InboxQueueOption[];
+  onQueueFilterChange: (queueId: string | null) => void;
   /** Total de threads no tenant (sem filtro de fase); usado só para onboarding. */
   tenantThreadTotal?: number;
 }) {
@@ -104,9 +115,25 @@ export function ConversationsList({
     return null;
   }, [assumeMut.isPending, assumeMut.variables, closeMut.isPending, closeMut.variables]);
 
+  const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
+  const moreFiltersRef = useRef<HTMLDivElement>(null);
+  const hasLineFilter = Boolean(lineFilter);
+  const hasSecondaryRefinement = hasLineFilter || queueFilter !== null;
+
+  useEffect(() => {
+    if (!moreFiltersOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (moreFiltersRef.current && !moreFiltersRef.current.contains(e.target as Node)) {
+        setMoreFiltersOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [moreFiltersOpen]);
+
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: INBOX_QK.conversations(filter, lineFilter),
-    queryFn: () => fetchInboxConversations(filter, lineFilter),
+    queryKey: INBOX_QK.conversations(filter, lineFilter, queueFilter),
+    queryFn: () => fetchInboxConversations(filter, lineFilter, queueFilter),
     refetchInterval: pollInterval,
   });
 
@@ -139,7 +166,115 @@ export function ConversationsList({
     sortThreadsForSidebar(threads.filter((t) => threadSidebarSection(t) === section));
 
   const showOnboardingEmpty =
-    tenantThreadTotal === 0 && threads.length === 0 && (lineFilter === null || lineFilter === "");
+    tenantThreadTotal === 0 &&
+    threads.length === 0 &&
+    (lineFilter === null || lineFilter === "") &&
+    queueFilter === null;
+
+  const showRefinementRow = queues.length > 0 || lines.length > 0;
+
+  const filterChrome = (
+    <>
+      <div className="flex flex-wrap gap-1 border-b border-slate-100/90 bg-gradient-to-b from-slate-50 to-white px-2 py-2.5">
+        {FILTER_ORDER.map((f) => (
+          <button
+            key={f}
+            type="button"
+            onClick={() => onFilterChange(f)}
+            className={`rounded-full px-2 py-1.5 text-[10px] font-semibold transition-[background,color,box-shadow] sm:px-2.5 sm:text-[11px] ${
+              filter === f
+                ? "bg-[var(--df-brand-600)] text-white shadow-[0_1px_2px_rgba(15,23,42,0.08)]"
+                : "bg-white/90 text-slate-600 ring-1 ring-slate-200/80 hover:bg-white hover:text-slate-900"
+            }`}
+          >
+            {FILTER_LABELS[f]}
+          </button>
+        ))}
+      </div>
+
+      {showRefinementRow ? (
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100/90 bg-white px-2 py-2">
+          {queues.length > 0 ? (
+            <div className="flex min-w-0 max-w-[min(100%,18rem)] flex-1 items-center gap-1.5">
+              <span className="shrink-0 text-[10px] font-medium text-slate-500">Fila</span>
+              <select
+                className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-slate-50/90 px-2 py-1.5 text-[11px] text-slate-800"
+                aria-label="Filtrar por fila"
+                value={queueFilter === "none" ? "__none__" : queueFilter ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === "") onQueueFilterChange(null);
+                  else if (v === "__none__") onQueueFilterChange("none");
+                  else onQueueFilterChange(v);
+                }}
+              >
+                <option value="">Todas</option>
+                <option value="__none__">Sem fila</option>
+                {queues.map((q) => (
+                  <option key={q.id} value={q.id}>
+                    {q.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+
+          {lines.length > 0 ? (
+            <div ref={moreFiltersRef} className="relative flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setMoreFiltersOpen((o) => !o)}
+                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
+                  hasLineFilter
+                    ? "border-[var(--df-brand-500)]/40 bg-[var(--df-brand-50)] text-[var(--df-brand-800)]"
+                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                }`}
+                aria-expanded={moreFiltersOpen}
+                aria-controls="inbox-more-filters"
+              >
+                Mais filtros
+                {hasLineFilter ? (
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--df-brand-500)]" aria-hidden />
+                ) : null}
+              </button>
+              {moreFiltersOpen ? (
+                <div
+                  id="inbox-more-filters"
+                  className="absolute left-0 top-full z-30 mt-1 w-[min(calc(100vw-2rem),18rem)] rounded-xl border border-slate-200/90 bg-white p-3 shadow-lg ring-1 ring-slate-900/[0.04]"
+                >
+                  <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                    Linha WhatsApp
+                  </label>
+                  <select
+                    className="w-full rounded-lg border border-slate-200 bg-slate-50/80 px-2 py-1.5 text-xs text-slate-800"
+                    value={lineFilter ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      onLineFilterChange(v === "" ? null : v);
+                    }}
+                  >
+                    <option value="">Todos os números</option>
+                    {lines.map((l) => (
+                      <option key={l.phoneNumberId} value={l.phoneNumberId}>
+                        {l.label?.trim() ||
+                          l.displayPhoneNumber?.trim() ||
+                          l.phoneNumberId.slice(0, 12) + "…"}
+                        {l.isPrimary ? " · Principal" : ""}
+                        {l.isDefaultOutbound ? " · Envio" : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-2 text-[10px] leading-snug text-slate-400">
+                    Use a linha quando tiver vários números Business; a fila fica no controlo ao lado.
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </>
+  );
 
   if (threads.length === 0) {
     if (showOnboardingEmpty) {
@@ -162,53 +297,23 @@ export function ConversationsList({
         </div>
       );
     }
-    return <InboxFilterEmpty onSelectNeedsResponse={() => onFilterChange("needs_response")} />;
+    return (
+      <div className="flex min-h-0 flex-1 flex-col">
+        {filterChrome}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain" data-testid="conversations-empty">
+          <InboxFilterEmpty
+            filter={filter}
+            hasSecondaryRefinement={hasSecondaryRefinement}
+            onSelectNeedsResponse={() => onFilterChange("needs_response")}
+          />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {lines.length > 0 ? (
-        <div className="border-b border-slate-100/90 bg-white px-3 py-2">
-          <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-            Número WhatsApp
-          </label>
-          <select
-            className="w-full rounded-lg border border-slate-200 bg-slate-50/80 px-2 py-1.5 text-xs text-slate-800"
-            value={lineFilter ?? ""}
-            onChange={(e) => {
-              const v = e.target.value;
-              onLineFilterChange(v === "" ? null : v);
-            }}
-          >
-            <option value="">Todos os números</option>
-            {lines.map((l) => (
-              <option key={l.phoneNumberId} value={l.phoneNumberId}>
-                {l.label?.trim() ||
-                  l.displayPhoneNumber?.trim() ||
-                  l.phoneNumberId.slice(0, 12) + "…"}
-                {l.isPrimary ? " · Principal" : ""}
-                {l.isDefaultOutbound ? " · Envio" : ""}
-              </option>
-            ))}
-          </select>
-        </div>
-      ) : null}
-      <div className="flex flex-wrap gap-1 border-b border-slate-100/90 bg-gradient-to-b from-slate-50 to-white px-2 py-2.5">
-        {FILTER_ORDER.map((f) => (
-          <button
-            key={f}
-            type="button"
-            onClick={() => onFilterChange(f)}
-            className={`rounded-full px-2 py-1.5 text-[10px] font-semibold transition-[background,color,box-shadow] sm:px-2.5 sm:text-[11px] ${
-              filter === f
-                ? "bg-[var(--df-brand-600)] text-white shadow-[0_1px_2px_rgba(15,23,42,0.08)]"
-                : "bg-white/90 text-slate-600 ring-1 ring-slate-200/80 hover:bg-white hover:text-slate-900"
-            }`}
-          >
-            {FILTER_LABELS[f]}
-          </button>
-        ))}
-      </div>
+      {filterChrome}
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain" data-testid="conversations-list">
         {INBOX_SIDEBAR_SECTION_ORDER.map((section) => {
           const group = threadsBySection(section);

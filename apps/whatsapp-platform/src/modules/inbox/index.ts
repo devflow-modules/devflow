@@ -50,3 +50,16 @@ export type { InternalNoteDto } from "./internalNoteService";
 export { suggestInboxPlaybook } from "./inboxPlaybookService";
 export type { InboxPlaybookResult } from "./inboxPlaybookService";
 export { findNextUnassignedQueueThread, listPendingQueueThreads } from "./waInboxQueueService";
+export {
+  createOperationalQueue,
+  listOperationalQueuesWithMetrics,
+  setThreadQueue,
+  addQueueMember,
+  removeQueueMember,
+  type OperationalQueueWithMetrics,
+} from "./inboxOperationalQueueService";
+export {
+  listOperationalAgents,
+  upsertAgentOperationalStatus,
+  type OperationalAgentRow,
+} from "./operationsAgentsService";

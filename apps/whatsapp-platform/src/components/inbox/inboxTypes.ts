@@ -10,6 +10,14 @@ export type WhatsappLineSummary = {
   status: string;
 };
 
+/** Fila operacional (WaInboxQueue) associada à thread. */
+export type InboxThreadQueue = {
+  id: string;
+  name: string;
+  slug: string;
+  color: string | null;
+};
+
 /** Alinhado com `waInboxConversationState` / API inbox. */
 export type InboxConversationState =
   | "awaiting_agent"
@@ -42,6 +50,7 @@ export type WaInboxThreadRow = {
   status: string;
   priority?: string;
   assignedToUser?: InboxUser | null;
+  queue?: InboxThreadQueue | null;
   threadTags?: { tag: InboxTag }[];
   lastCustomerMessageAt?: string | null;
   lastAgentReplyAt?: string | null;
@@ -85,10 +94,14 @@ export type InternalNoteRow = {
 };
 
 export const INBOX_QK = {
-  conversations: (filter?: InboxConversationsFilter, lineFilter?: string | null) =>
+  conversations: (
+    filter?: InboxConversationsFilter,
+    lineFilter?: string | null,
+    queueFilter?: string | null
+  ) =>
     filter
-      ? (["inbox-conversations", filter, lineFilter ?? "all-lines"] as const)
-      : (["inbox-conversations", lineFilter ?? "all-lines"] as const),
+      ? (["inbox-conversations", filter, lineFilter ?? "all-lines", queueFilter ?? "all-queues"] as const)
+      : (["inbox-conversations", lineFilter ?? "all-lines", queueFilter ?? "all-queues"] as const),
   thread: (threadId: string) => ["inbox-thread", threadId] as const,
   messages: (threadId: string) => ["inbox-messages", threadId] as const,
   internalNotes: (threadId: string) => ["inbox-internal-notes", threadId] as const,

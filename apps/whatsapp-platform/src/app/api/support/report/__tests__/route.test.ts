@@ -29,7 +29,7 @@ describe("POST /api/support/report", () => {
         sub: "u1",
         email: "a@b.com",
         name: "A",
-        role: "admin",
+        role: "manager",
         tenantId: "t1",
         jti: "jti",
       },

@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
   const priorityParam = searchParams.get("priority")?.toUpperCase();
   const businessPhoneNumberId = searchParams.get("businessPhoneNumberId")?.trim() || undefined;
   const phaseParam = searchParams.get("phase")?.trim().toLowerCase() || undefined;
+  const queueIdParam = searchParams.get("queueId")?.trim() || undefined;
 
   const filters: {
     status?: WaInboxThreadStatus;
@@ -47,6 +48,7 @@ export async function GET(request: NextRequest) {
     priority?: string;
     businessPhoneNumberId?: string;
     conversationPhase?: WaInboxConversationPhaseFilter;
+    queueId?: string;
   } = {};
   if (phaseParam && VALID_PHASE.has(phaseParam)) {
     filters.conversationPhase = phaseParam as WaInboxConversationPhaseFilter;
@@ -57,6 +59,9 @@ export async function GET(request: NextRequest) {
   if (tag) filters.tag = tag;
   if (priorityParam && VALID_PRIORITY.has(priorityParam)) filters.priority = priorityParam;
   if (businessPhoneNumberId) filters.businessPhoneNumberId = businessPhoneNumberId;
+  if (queueIdParam) {
+    filters.queueId = queueIdParam === "none" ? "none" : queueIdParam;
+  }
 
   try {
     const [threads, total] = await Promise.all([

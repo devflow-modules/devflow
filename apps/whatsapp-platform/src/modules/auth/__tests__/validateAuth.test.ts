@@ -46,7 +46,7 @@ describe("validateAuthToken", () => {
         tenantId: "t1",
         email: "a@b.com",
         name: "A",
-        role: "admin",
+        role: "manager",
       },
     });
     const { validateAuthToken } = await import("../verifyToken");
@@ -62,7 +62,7 @@ describe("validateAuthToken", () => {
         tenantId: "t1",
         email: "a@b.com",
         name: "A",
-        role: "admin",
+        role: "manager",
       },
     });
     mockUserSessionFindFirst.mockResolvedValue(null);
@@ -79,7 +79,7 @@ describe("validateAuthToken", () => {
         tenantId: "t-old",
         email: "a@b.com",
         name: "A",
-        role: "admin",
+        role: "manager",
       },
     });
     mockUserSessionFindFirst.mockResolvedValue({
@@ -92,7 +92,7 @@ describe("validateAuthToken", () => {
       id: "u1",
       email: "a@b.com",
       name: "A",
-      role: "admin",
+      role: "manager",
       tenantId: "t-new",
     });
     const { validateAuthToken } = await import("../verifyToken");
@@ -114,7 +114,7 @@ describe("validateAuthToken", () => {
         tenantId: "t1",
         email: "old@b.com",
         name: "Old",
-        role: "agent",
+        role: "operator",
       },
     });
     mockUserSessionFindFirst.mockResolvedValue({
@@ -127,7 +127,7 @@ describe("validateAuthToken", () => {
       id: "u1",
       email: "new@b.com",
       name: "New",
-      role: "admin",
+      role: "manager",
       tenantId: "t1",
     });
     const { validateAuthToken } = await import("../verifyToken");
@@ -136,7 +136,7 @@ describe("validateAuthToken", () => {
     expect(auth!.sessionId).toBe("sid-1");
     expect(auth!.payload.email).toBe("new@b.com");
     expect(auth!.payload.name).toBe("New");
-    expect(auth!.payload.role).toBe("admin");
+    expect(auth!.payload.role).toBe("manager");
     expect(auth!.payload.jti).toBe("sid-1");
   });
 });

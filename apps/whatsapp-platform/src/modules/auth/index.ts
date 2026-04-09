@@ -26,6 +26,9 @@ export {
   getAuthFromRequest,
   requireRole,
   validateAuthToken,
+  ROLES_OPERATIONAL,
+  ROLES_MANAGER_PLUS,
+  ROLES_PLATFORM_ONLY,
   STAFF_ROLES,
   type AuthResult,
 } from "./verifyToken";

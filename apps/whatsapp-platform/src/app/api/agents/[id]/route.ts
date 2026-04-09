@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { getAuthFromRequest } from "@/modules/auth";
-import { getAgentById, updateAgent, deleteAgent } from "@/modules/agents";
-import type { AgentStatus } from "@/lib/db/types";
+import { isTenantManager } from "@/lib/roles";
+import { upsertAgentOperationalStatus } from "@/modules/inbox/operationsAgentsService";
 
-function requireAdmin(auth: { payload: { role: string } }): NextResponse | null {
-  if (auth.payload.role !== "admin") {
-    return NextResponse.json({ error: "Apenas admin pode editar ou remover agentes" }, { status: 403 });
-  }
-  return null;
-}
+export const dynamic = "force-dynamic";
+
+const STATUS_VALUES = ["available", "busy", "offline"] as const;
+
+const patchSchema = z.object({
+  status: z.enum(STATUS_VALUES),
+});
 
 export async function PATCH(
   request: NextRequest,
@@ -16,58 +18,42 @@ export async function PATCH(
 ) {
   const auth = await getAuthFromRequest(request);
   if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-  const forbidden = requireAdmin(auth);
-  if (forbidden) return forbidden;
 
-  const { id } = await params;
-  let body: { name?: string; email?: string | null; status?: AgentStatus };
+  const { id: userId } = await params;
+  const isSelf = auth.payload.sub === userId;
+  if (!isSelf && !isTenantManager(auth.payload.role)) {
+    return NextResponse.json(
+      { error: "Apenas pode alterar o seu próprio estado ou ser gestor do tenant" },
+      { status: 403 }
+    );
+  }
+
+  let json: unknown;
   try {
-    body = await request.json();
+    json = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
-  const existing = await getAgentById(id);
-  if (!existing) {
-    return NextResponse.json({ error: "Agente não encontrado" }, { status: 404 });
+
+  const parsed = patchSchema.safeParse(json);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "status inválido (available | busy | offline)" }, { status: 400 });
   }
-  if ((existing as { tenant_id: string }).tenant_id !== auth.payload.tenantId) {
-    return NextResponse.json({ error: "Acesso negado ao tenant" }, { status: 403 });
+
+  const ok = await upsertAgentOperationalStatus(auth.payload.tenantId, userId, parsed.data.status);
+  if (!ok) {
+    return NextResponse.json({ error: "Utilizador não encontrado neste tenant" }, { status: 404 });
   }
-  try {
-    const agent = await updateAgent(id, {
-      name: body.name,
-      email: body.email,
-      status: body.status,
-    });
-    return NextResponse.json(agent);
-  } catch (e) {
-    console.error("[api/agents/[id]]", e);
-    return NextResponse.json({ error: "Falha ao atualizar agente" }, { status: 500 });
-  }
+
+  return NextResponse.json({ success: true, data: { userId, status: parsed.data.status } });
 }
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  _context: { params: Promise<{ id: string }> }
 ) {
-  const auth = await getAuthFromRequest(request);
-  if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-  const forbidden = requireAdmin(auth);
-  if (forbidden) return forbidden;
-
-  const { id } = await params;
-  const existing = await getAgentById(id);
-  if (!existing) {
-    return NextResponse.json({ error: "Agente não encontrado" }, { status: 404 });
-  }
-  if ((existing as { tenant_id: string }).tenant_id !== auth.payload.tenantId) {
-    return NextResponse.json({ error: "Acesso negado ao tenant" }, { status: 403 });
-  }
-  try {
-    await deleteAgent(id);
-    return NextResponse.json({ success: true });
-  } catch (e) {
-    console.error("[api/agents/[id]]", e);
-    return NextResponse.json({ error: "Falha ao remover agente" }, { status: 500 });
-  }
+  return NextResponse.json(
+    { error: "Utilizadores não são removidos por esta rota — use a gestão de equipa / configurações." },
+    { status: 405 }
+  );
 }

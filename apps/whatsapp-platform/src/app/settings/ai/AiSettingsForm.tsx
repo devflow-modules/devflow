@@ -156,7 +156,7 @@ export function AiSettingsForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
+    <form id="wf-ai-settings" onSubmit={handleSubmit} className="max-w-2xl space-y-6">
       <FormSection
         title="Estado da IA"
         description="Ligue ou desligue as respostas automáticas. O consumo conta para o plano."

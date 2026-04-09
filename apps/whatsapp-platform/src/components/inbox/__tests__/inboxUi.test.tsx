@@ -47,6 +47,12 @@ describe("Inbox UI", () => {
             }),
           });
         }
+        if (url.includes("/api/queues")) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ success: true, data: { queues: [] } }),
+          });
+        }
         if (url.includes("/internal-notes")) {
           if (init?.method === "DELETE") {
             return Promise.resolve({
@@ -138,6 +144,7 @@ describe("Inbox UI", () => {
               displayPhoneNumber: "+55 11",
               isPrimary: true,
               isDefaultOutbound: true,
+              status: "ACTIVE",
             },
           };
           return Promise.resolve({
@@ -172,6 +179,7 @@ describe("Inbox UI", () => {
                 displayPhoneNumber: "+55 11",
                 isPrimary: true,
                 isDefaultOutbound: true,
+                status: "ACTIVE",
               },
             },
           ];
@@ -208,6 +216,9 @@ describe("Inbox UI", () => {
         lineFilter={null}
         lines={[]}
         onLineFilterChange={onLineFilterChange}
+        queueFilter={null}
+        queues={[]}
+        onQueueFilterChange={vi.fn()}
       />,
       { wrapper: createWrapper() }
     );
@@ -234,6 +245,9 @@ describe("Inbox UI", () => {
         lineFilter={null}
         lines={[]}
         onLineFilterChange={onLineFilterChange}
+        queueFilter={null}
+        queues={[]}
+        onQueueFilterChange={vi.fn()}
       />,
       { wrapper: createWrapper() }
     );
@@ -259,7 +273,7 @@ describe("Inbox UI", () => {
   });
 
   it("lista vazia sem threads no tenant mostra guia da primeira mensagem", async () => {
-    vi.mocked(fetch).mockImplementation((input: RequestInfo) => {
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes("/api/inbox/conversations") && !url.includes("/messages")) {
         return Promise.resolve({
@@ -268,9 +282,9 @@ describe("Inbox UI", () => {
             success: true,
             data: { threads: [], pagination: { total: 0, limit: 100, offset: 0 } },
           }),
-        });
+        } as Response);
       }
-      return Promise.resolve({ ok: false, status: 404 });
+      return Promise.resolve({ ok: false, status: 404 } as Response);
     });
     const onSelect = vi.fn();
     const onFilterChange = vi.fn();
@@ -294,6 +308,9 @@ describe("Inbox UI", () => {
         lineFilter={null}
         lines={lines}
         onLineFilterChange={onLineFilterChange}
+        queueFilter={null}
+        queues={[]}
+        onQueueFilterChange={vi.fn()}
         tenantThreadTotal={0}
       />,
       { wrapper: createWrapper() }
@@ -395,7 +412,7 @@ describe("Inbox UI", () => {
   it("MessageInput mostra preview do playbook após Sugerir ação", async () => {
     const user = userEvent.setup();
     const orig = vi.mocked(fetch).getMockImplementation();
-    vi.mocked(fetch).mockImplementation((input: RequestInfo, init?: RequestInit) => {
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.includes("suggest-playbook")) {
         return Promise.resolve({
@@ -410,7 +427,7 @@ describe("Inbox UI", () => {
               durationMs: 100,
             },
           }),
-        });
+        } as Response);
       }
       return orig!(input, init);
     });
@@ -424,13 +441,13 @@ describe("Inbox UI", () => {
   it("MessageInput mostra pré-visualização após gerar com IA", async () => {
     const user = userEvent.setup();
     const orig = vi.mocked(fetch).getMockImplementation();
-    vi.mocked(fetch).mockImplementation((input: RequestInfo, init?: RequestInit) => {
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.includes("suggest-reply")) {
         return Promise.resolve({
           ok: true,
           json: async () => ({ success: true, data: { text: "Resposta sugerida pela IA" } }),
-        });
+        } as Response);
       }
       return orig!(input, init);
     });

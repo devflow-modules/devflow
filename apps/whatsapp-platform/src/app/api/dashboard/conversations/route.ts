@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { hasSupabaseConfig } from "@/lib/supabase-server";
 import { listConversations } from "@/modules/conversations";
-import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 
 /**
  * Lista conversas do dashboard para o tenant da sessão.
  */
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  const denied = requireRole(auth, STAFF_ROLES, request);
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
   if (denied) return denied;
 
   if (!hasSupabaseConfig()) {

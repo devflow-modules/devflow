@@ -8,6 +8,8 @@ import { buttonClassName } from "@/components/ui/button";
 import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
 import { fieldSelectClassName } from "@/components/ui/form-field";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
+import { isTenantManager } from "@/lib/roles";
+import type { UserRole } from "@/modules/auth";
 
 const AI_DRIVERS = [
   { value: "ruleBased", label: "Apenas regras (sem LLM)" },
@@ -23,7 +25,7 @@ type TenantMe = {
   hasApiKey: boolean;
 };
 
-type SessionRole = "admin" | "agent" | null;
+const KNOWN_ROLES = new Set<UserRole>(["operator", "manager", "platform_admin"]);
 
 export function SettingsTenantForm() {
   const [tenant, setTenant] = useState<TenantMe | null>(null);
@@ -32,7 +34,7 @@ export function SettingsTenantForm() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [aiDriver, setAiDriver] = useState<string>("ruleBased");
-  const [sessionRole, setSessionRole] = useState<SessionRole>(null);
+  const [sessionRole, setSessionRole] = useState<UserRole | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,7 +48,7 @@ export function SettingsTenantForm() {
         const vj = verifyRes.ok ? ((await verifyRes.json()) as { user?: { role?: string } }) : {};
         if (!cancelled) {
           const r = vj.user?.role;
-          if (r === "admin" || r === "agent") setSessionRole(r);
+          if (r && KNOWN_ROLES.has(r as UserRole)) setSessionRole(r as UserRole);
         }
         const data = (await res.json().catch(() => ({}))) as TenantMe & { error?: string };
         if (!res.ok) {
@@ -132,7 +134,7 @@ export function SettingsTenantForm() {
         <Link href="/settings/ai" className="font-semibold text-[var(--df-brand-700)] hover:underline">
           IA de atendimento automático →
         </Link>
-        {sessionRole === "admin" ? (
+        {sessionRole && isTenantManager(sessionRole) ? (
           <Link href="/settings/developer" className="font-semibold text-[var(--df-brand-700)] hover:underline">
             API e integrações →
           </Link>

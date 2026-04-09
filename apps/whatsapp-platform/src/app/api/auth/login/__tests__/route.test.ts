@@ -76,7 +76,7 @@ describe("POST /api/auth/login", () => {
         id: "u1",
         email: "a@b.com",
         name: "A",
-        role: "admin",
+        role: "manager",
         tenantId: "t1",
       },
     });
@@ -103,7 +103,7 @@ describe("POST /api/auth/login", () => {
         type: "login_success",
         userId: "u1",
         tenantId: "t1",
-        role: "admin",
+        role: "manager",
       })
     );
   });

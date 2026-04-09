@@ -133,6 +133,17 @@ export const ConversationItem = memo(function ConversationItem({
                 {pendingCount > 99 ? "99+" : pendingCount}
               </span>
             ) : null}
+            {thread.queue?.name ? (
+              <span
+                className="max-w-[7rem] truncate rounded-md px-1.5 py-0.5 text-[9px] font-semibold ring-1 ring-slate-200/80"
+                style={{
+                  backgroundColor: thread.queue.color ? `${thread.queue.color}33` : "rgb(241 245 249)",
+                }}
+                title={thread.queue.slug}
+              >
+                {thread.queue.name}
+              </span>
+            ) : null}
             {showSemDono ? (
               <span
                 className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[9px] font-semibold text-amber-950 ring-1 ring-amber-200/70"

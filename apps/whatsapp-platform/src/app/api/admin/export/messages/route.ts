@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest, requireRole } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { hasSupabaseConfig } from "@/lib/supabase-server";
 import { listConversationsByDateRange } from "@/modules/conversations";
 import { listMessagesInRange } from "@/modules/messaging";
@@ -15,7 +15,7 @@ function escapeCsvCell(value: string | number | null | undefined): string {
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  const denied = requireRole(auth, ["admin"], request);
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
   if (denied) return denied;
   if (!auth) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });

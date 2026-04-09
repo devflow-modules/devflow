@@ -2,23 +2,18 @@ import { describe, expect, it } from "vitest";
 import { resolvePostLoginRedirect } from "../postLoginRedirect";
 
 describe("resolvePostLoginRedirect", () => {
-  it("admin usa next seguro ou default", () => {
-    expect(resolvePostLoginRedirect("/dashboard", "admin")).toBe("/dashboard");
-    expect(resolvePostLoginRedirect(null, "admin")).toBe("/dashboard/whatsapp");
+  it("manager+ usa next ou destino padrão do painel", () => {
+    expect(resolvePostLoginRedirect("/dashboard", "manager")).toBe("/dashboard");
+    expect(resolvePostLoginRedirect(null, "manager")).toBe("/dashboard/whatsapp");
+    expect(resolvePostLoginRedirect(null, "platform_admin")).toBe("/dashboard/whatsapp");
   });
 
-  it("agent vai para inbox por omissão", () => {
-    expect(resolvePostLoginRedirect(null, "agent")).toBe("/inbox");
-  });
-
-  it("agent respeita next operacional", () => {
-    expect(resolvePostLoginRedirect("/inbox", "agent")).toBe("/inbox");
-    expect(resolvePostLoginRedirect("/dashboard", "agent")).toBe("/dashboard");
-  });
-
-  it("agent não segue next para onboarding ou settings", () => {
-    expect(resolvePostLoginRedirect("/onboarding", "agent")).toBe("/inbox");
-    expect(resolvePostLoginRedirect("/settings", "agent")).toBe("/inbox");
-    expect(resolvePostLoginRedirect("/dashboard/whatsapp", "agent")).toBe("/inbox");
+  it("operador cai na Inbox ou respeita next seguro (exceto rotas bloqueadas)", () => {
+    expect(resolvePostLoginRedirect(null, "operator")).toBe("/inbox");
+    expect(resolvePostLoginRedirect("/inbox", "operator")).toBe("/inbox");
+    expect(resolvePostLoginRedirect("/dashboard", "operator")).toBe("/inbox");
+    expect(resolvePostLoginRedirect("/onboarding", "operator")).toBe("/inbox");
+    expect(resolvePostLoginRedirect("/settings", "operator")).toBe("/inbox");
+    expect(resolvePostLoginRedirect("/dashboard/whatsapp", "operator")).toBe("/inbox");
   });
 });

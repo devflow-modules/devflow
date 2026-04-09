@@ -5,18 +5,17 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { getEmbeddedSignupConfig } from "@/modules/whatsapp/embeddedSignupService";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) {
-    return NextResponse.json({ success: false, error: "Não autorizado" }, { status: 401 });
-  }
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
+  if (denied) return denied;
 
-  const tenantId = auth.payload.tenantId;
+  const tenantId = auth!.payload.tenantId;
   if (!tenantId) {
     return NextResponse.json(
       { success: false, error: "Tenant não identificado" },

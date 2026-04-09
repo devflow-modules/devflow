@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
   if (assign) {
     await assignThread(tenantId, thread.id, userId, userId);
     await prisma.agentStatus.upsert({
-      where: { tenantId_userId: { tenantId, userId } },
+      where: { userId },
       create: {
         tenantId,
         userId,

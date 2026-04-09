@@ -53,10 +53,6 @@ export function ChatWindow({
   );
 
   useEffect(() => {
-    setNotesOpen(false);
-  }, [threadId]);
-
-  useEffect(() => {
     if (threadId) {
       reportViewing(threadId, true);
       prevThreadIdRef.current = threadId;

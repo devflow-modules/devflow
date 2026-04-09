@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { getAiUsageMetrics } from "@/modules/ai/aiUsageService";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) {
-    return NextResponse.json({ success: false, error: "Não autorizado" }, { status: 401 });
-  }
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
+  if (denied) return denied;
 
   const period = request.nextUrl.searchParams.get("period") ?? undefined;
-  const metrics = await getAiUsageMetrics(auth.payload.tenantId, period);
+  const metrics = await getAiUsageMetrics(auth!.payload.tenantId, period);
 
   return NextResponse.json({
     success: true,

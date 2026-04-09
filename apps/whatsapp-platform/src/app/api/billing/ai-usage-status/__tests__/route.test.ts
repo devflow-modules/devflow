@@ -21,7 +21,7 @@ describe("GET /api/billing/ai-usage-status", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetAuth.mockResolvedValue({
-      payload: { tenantId: "t-status", sub: "u1", role: "admin" },
+      payload: { tenantId: "t-status", sub: "u1", role: "manager" },
     });
     mockGetAiUsageStatus.mockResolvedValue({
       used: 80,

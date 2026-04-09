@@ -62,7 +62,7 @@ describe("POST /api/auth/forgot-password", () => {
       tenantId: "t1",
       name: "A",
       passwordHash: "x",
-      role: "admin",
+      role: "manager",
     });
     mockSendTransactionalEmail.mockResolvedValue({
       ok: false,
@@ -86,7 +86,7 @@ describe("POST /api/auth/forgot-password", () => {
       tenantId: "t1",
       name: "A",
       passwordHash: "x",
-      role: "admin",
+      role: "manager",
     });
     mockSendTransactionalEmail.mockResolvedValue({
       ok: false,

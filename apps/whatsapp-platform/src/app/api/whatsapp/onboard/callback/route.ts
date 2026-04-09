@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 import { exchangeCodeAndFetchPhoneNumbers } from "@/modules/whatsapp/embeddedSignupService";
 import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
@@ -15,11 +15,10 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) {
-    return NextResponse.json({ success: false, error: "Não autorizado" }, { status: 401 });
-  }
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
+  if (denied) return denied;
 
-  const userTenantId = auth.payload.tenantId;
+  const userTenantId = auth!.payload.tenantId;
   if (!userTenantId) {
     return NextResponse.json(
       { success: false, error: "Tenant não identificado" },

@@ -5,9 +5,13 @@ const mockGetAuth = vi.fn();
 const mockGetOrCreate = vi.fn();
 const mockUpdate = vi.fn();
 
-vi.mock("@/modules/auth", () => ({
-  getAuthFromRequest: (...a: unknown[]) => mockGetAuth(...a),
-}));
+vi.mock("@/modules/auth", async () => {
+  const actual = await vi.importActual<typeof import("@/modules/auth")>("@/modules/auth");
+  return {
+    ...actual,
+    getAuthFromRequest: (...a: unknown[]) => mockGetAuth(...a),
+  };
+});
 vi.mock("@/modules/ai/aiAutomationService", () => ({
   getOrCreateAiAgentConfig: (...a: unknown[]) => mockGetOrCreate(...a),
 }));
@@ -23,7 +27,7 @@ describe("/api/ai/config", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetAuth.mockResolvedValue({
-      payload: { tenantId: "t-ai", sub: "u1", role: "admin" },
+      payload: { tenantId: "t-ai", sub: "u1", role: "manager" },
     });
     mockGetOrCreate.mockResolvedValue({
       enabled: false,
@@ -51,6 +55,31 @@ describe("/api/ai/config", () => {
     expect(j.success).toBe(true);
     expect(j.data.tone).toBe("NEUTRAL");
     expect(j.data.model).toBe("gpt-4o-mini");
+  });
+
+  it("GET 403 para operador", async () => {
+    mockGetAuth.mockResolvedValue({
+      payload: { tenantId: "t-ai", sub: "u1", role: "operator" },
+    });
+    const { GET } = await import("../route");
+    const res = await GET(new NextRequest("http://x/api/ai/config"));
+    expect(res.status).toBe(403);
+  });
+
+  it("PUT 403 para operador", async () => {
+    mockGetAuth.mockResolvedValue({
+      payload: { tenantId: "t-ai", sub: "u1", role: "operator" },
+    });
+    const { PUT } = await import("../route");
+    const res = await PUT(
+      new NextRequest("http://x/api/ai/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: true }),
+      })
+    );
+    expect(res.status).toBe(403);
+    expect(mockUpdate).not.toHaveBeenCalled();
   });
 
   it("POST atualiza enabled", async () => {

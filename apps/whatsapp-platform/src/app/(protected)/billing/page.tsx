@@ -5,14 +5,14 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StateLoading } from "@/components/ui/app-states";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { validateAuthToken } from "@/modules/auth";
-import { isAgent } from "@/lib/roles";
+import { isOperator } from "@/lib/roles";
 import { BillingPageClient } from "./BillingPageClient";
 
 export default async function BillingPage() {
   const store = await cookies();
   const token = store.get(JWT_COOKIE_NAME)?.value;
   const auth = token ? await validateAuthToken(token) : null;
-  if (auth && isAgent(auth.payload.role)) {
+  if (auth && isOperator(auth.payload.role)) {
     redirect("/inbox");
   }
   return (

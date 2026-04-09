@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
         email: emailLower,
         passwordHash,
         name: name.trim(),
-        role: "admin",
+        role: "manager",
       },
     });
 
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
       sub: user.id,
       email: user.email,
       name: user.name,
-      role: "admin",
+      role: "manager",
       tenantId: tenant.id,
       jti: sessionId,
     });

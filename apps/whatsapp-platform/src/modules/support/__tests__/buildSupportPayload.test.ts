@@ -7,7 +7,7 @@ const basePayload: JwtPayload = {
   sub: "user-1",
   email: "a@b.com",
   name: "Nome",
-  role: "admin",
+  role: "manager",
   tenantId: "tenant-1",
   jti: "sess-1",
 };
@@ -39,7 +39,7 @@ describe("buildSupportPayload", () => {
     });
     expect(p.userId).toBe("user-1");
     expect(p.tenantId).toBe("tenant-1");
-    expect(p.role).toBe("admin");
+    expect(p.role).toBe("manager");
     expect(p.email).toBe("a@b.com");
     expect(p.description).toBe("Olá");
     expect(p.pathname).toBe("/inbox");

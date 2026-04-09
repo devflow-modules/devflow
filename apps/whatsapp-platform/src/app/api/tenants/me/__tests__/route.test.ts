@@ -8,8 +8,13 @@ const mockPrisma = {
   },
 };
 
+const mockResolvePrimaryPhoneNumber = vi.fn();
+
 vi.mock("@/modules/auth", () => ({ getAuthFromRequest: (...args: unknown[]) => mockGetAuthFromRequest(...args) }));
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
+vi.mock("@/modules/whatsapp/whatsappPhoneResolution", () => ({
+  resolvePrimaryPhoneNumber: (...args: unknown[]) => mockResolvePrimaryPhoneNumber(...args),
+}));
 
 const tenantRow = {
   id: "t1",
@@ -23,11 +28,62 @@ const tenantRow = {
   whatsappPhone: null,
 };
 
+describe("GET /api/tenants/me", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockResolvePrimaryPhoneNumber.mockResolvedValue({
+      phoneNumberId: "pn1",
+      displayPhoneNumber: "+351 910 000 000",
+    });
+    mockPrisma.tenant.findUnique.mockResolvedValue(tenantRow);
+  });
+
+  it("retorna 401 quando não autenticado", async () => {
+    mockGetAuthFromRequest.mockResolvedValue(null);
+    const { GET } = await import("../route");
+    const res = await GET(new Request("http://localhost/api/tenants/me") as never);
+    expect(res.status).toBe(401);
+  });
+
+  it("operador recebe payload mínimo", async () => {
+    mockGetAuthFromRequest.mockResolvedValue({
+      payload: { tenantId: "t1", sub: "u1", email: "a@b.com", name: "User", role: "operator" },
+    });
+    const { GET } = await import("../route");
+    const res = await GET(new Request("http://localhost/api/tenants/me") as never);
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as Record<string, unknown>;
+    expect(data).toEqual({
+      id: "t1",
+      name: "Tenant",
+      plan: null,
+      hasWhatsappPhone: true,
+    });
+    expect(data).not.toHaveProperty("defaultPrompt");
+    expect(data).not.toHaveProperty("hasApiKey");
+    expect(data).not.toHaveProperty("apiKey");
+  });
+
+  it("gestor recebe payload completo", async () => {
+    mockGetAuthFromRequest.mockResolvedValue({
+      payload: { tenantId: "t1", sub: "u1", email: "a@b.com", name: "User", role: "manager" },
+    });
+    const { GET } = await import("../route");
+    const res = await GET(new Request("http://localhost/api/tenants/me") as never);
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as Record<string, unknown>;
+    expect(data.id).toBe("t1");
+    expect(data.hasApiKey).toBe(true);
+    expect(data.aiDriver).toBe("openAI");
+    expect(data.primaryPhoneNumberId).toBe("pn1");
+  });
+});
+
 describe("PATCH /api/tenants/me (aiDriver)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetAuthFromRequest.mockResolvedValue({
-      payload: { tenantId: "t1", sub: "u1", email: "a@b.com", name: "User", role: "admin" },
+      payload: { tenantId: "t1", sub: "u1", email: "a@b.com", name: "User", role: "manager" },
     });
     mockPrisma.tenant.findUnique.mockResolvedValue(tenantRow);
     mockPrisma.tenant.update.mockResolvedValue(tenantRow);
@@ -44,9 +100,9 @@ describe("PATCH /api/tenants/me (aiDriver)", () => {
     expect(res.status).toBe(401);
   });
 
-  it("retorna 403 quando agent tenta PATCH", async () => {
+  it("retorna 403 quando operador tenta PATCH", async () => {
     mockGetAuthFromRequest.mockResolvedValue({
-      payload: { tenantId: "t1", sub: "u1", email: "a@b.com", name: "User", role: "agent" },
+      payload: { tenantId: "t1", sub: "u1", email: "a@b.com", name: "User", role: "operator" },
     });
     const { PATCH } = await import("../route");
     const req = new Request("http://localhost/api/tenants/me", {

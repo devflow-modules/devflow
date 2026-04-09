@@ -10,6 +10,8 @@ import {
   removeTagFromConversation,
   fetchInboxTags,
   fetchInboxUsers,
+  fetchInboxOperationalQueues,
+  updateThreadQueue,
 } from "./inboxFetch";
 import { INBOX_QK } from "./inboxTypes";
 import { CONVERSATION_STATE_LABELS } from "@/modules/inbox/waInboxConversationState";
@@ -62,6 +64,12 @@ export function ChatHeader({
   const { data: usersFetched = [] } = useQuery({
     queryKey: INBOX_QK.users,
     queryFn: fetchInboxUsers,
+  });
+
+  const { data: inboxQueues = [] } = useQuery({
+    queryKey: ["inbox-operational-queues"],
+    queryFn: fetchInboxOperationalQueues,
+    staleTime: 60_000,
   });
 
   const threadTagIds = new Set(thread?.threadTags?.map((tt) => tt.tag.id) ?? []);
@@ -134,6 +142,18 @@ export function ChatHeader({
       invalidate();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleQueueChange = async (queueId: string | null) => {
+    try {
+      setActionBusy(true);
+      await updateThreadQueue(threadId, queueId);
+      invalidate();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setActionBusy(false);
     }
   };
 
@@ -220,6 +240,28 @@ export function ChatHeader({
                 thread.whatsappLine.displayPhoneNumber?.trim() ||
                 `${thread.businessPhoneNumberId.slice(0, 10)}…`}
             </p>
+          ) : null}
+          {inboxQueues.length > 0 ? (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-medium text-slate-500">Fila</span>
+              <select
+                className="max-w-[min(100%,14rem)] rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] text-slate-800"
+                disabled={actionBusy}
+                value={thread.queue?.id ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  void handleQueueChange(v === "" ? null : v);
+                }}
+                aria-label="Fila da conversa"
+              >
+                <option value="">Nenhuma</option>
+                {inboxQueues.map((q) => (
+                  <option key={q.id} value={q.id}>
+                    {q.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           ) : null}
         </div>
       </div>

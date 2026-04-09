@@ -41,7 +41,7 @@ export async function POST(
 
   await prisma.agentStatus.upsert({
     where: {
-      tenantId_userId: { tenantId: auth!.payload.tenantId, userId: parsed.data.userId },
+      userId: parsed.data.userId,
     },
     create: {
       tenantId: auth!.payload.tenantId,

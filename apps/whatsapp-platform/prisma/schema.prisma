@@ -85,6 +85,8 @@ model Tenant {
   usageMetrics         UsageMetric[]
   emailMessages        EmailMessage[]
   waAutoReplyClaims    WaAutoReplyClaim[]
+  waInboxQueues        WaInboxQueue[]
+  waInboxQueueMemberships WaInboxQueueMembership[]
 
   @@map("whatsapp_tenants")
 }
@@ -370,9 +372,48 @@ enum WaInboxDeliveryStatus {
   FAILED
 }
 
+model WaInboxQueue {
+  id               String   @id @default(cuid())
+  tenantId         String   @map("tenant_id")
+  name             String   @map("name")
+  slug             String   @map("slug")
+  description      String?  @map("description") @db.Text
+  color            String?  @map("color") @db.VarChar(32)
+  slaTargetMinutes Int?     @map("sla_target_minutes")
+  isActive         Boolean  @default(true) @map("is_active")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  threads          WaInboxThread[]
+  memberships      WaInboxQueueMembership[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@map("wa_inbox_queues")
+}
+
+model WaInboxQueueMembership {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  queueId   String   @map("queue_id")
+  userId    String   @map("user_id")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  tenant    Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  queue     WaInboxQueue @relation(fields: [queueId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([queueId, userId])
+  @@index([tenantId, userId])
+  @@index([queueId])
+  @@map("wa_inbox_queue_memberships")
+}
+
 model WaInboxThread {
   id                     String                @id @default(cuid())
   tenantId               String                @map("tenant_id")
+  queueId                String?               @map("queue_id")
   phoneNumber            String                @map("phone_number")
   /** phone_number_id (Meta) da linha WhatsApp Business desta conversa */
   businessPhoneNumberId  String                @map("business_phone_number_id")
@@ -389,6 +430,7 @@ model WaInboxThread {
   createdAt              DateTime              @default(now()) @map("created_at")
   updatedAt              DateTime              @updatedAt @map("updated_at")
   tenant                 Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  queue                  WaInboxQueue?         @relation(fields: [queueId], references: [id], onDelete: SetNull)
   assignedToUser         User?                 @relation("AssignedToUser", fields: [assignedToUserId], references: [id], onDelete: SetNull)
   messages               WaInboxMessage[]
   threadTags             WaInboxThreadTag[]
@@ -400,6 +442,7 @@ model WaInboxThread {
   @@index([tenantId, businessPhoneNumberId])
   @@index([tenantId, status])
   @@index([tenantId, assignedToUserId])
+  @@index([tenantId, queueId])
   @@map("wa_inbox_threads")
 }
 
@@ -579,6 +622,8 @@ model User {
   waInboxInternalNotes  WaInboxInternalNote[]
   sessions              UserSession[]
   emailMessages         EmailMessage[]
+  agentStatus           AgentStatus?
+  waInboxQueueMemberships WaInboxQueueMembership[]
 
   @@index([tenantId])
   @@index([email])
@@ -626,13 +671,14 @@ model UserSession {
 model AgentStatus {
   id                    String   @id @default(cuid())
   tenantId              String   @map("tenant_id")
-  userId                String   @map("user_id")
+  /** Um utilizador = um registo de presença por tenant; `user_id` é único na tabela. */
+  userId                String   @unique @map("user_id")
   status                String
   currentConversationId String?  @map("current_conversation_id")
   updatedAt             DateTime @updatedAt @map("updated_at")
   tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([tenantId, userId])
   @@index([tenantId, status])
   @@map("whatsapp_agent_status")
 }

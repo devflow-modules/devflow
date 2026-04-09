@@ -15,7 +15,7 @@ describe("GET /api/billing/ai-plan", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetAuth.mockResolvedValue({
-      payload: { tenantId: "t-plan", sub: "u1", role: "admin" },
+      payload: { tenantId: "t-plan", sub: "u1", role: "manager" },
     });
     mockGetAiPlanInfo.mockResolvedValue({
       plan: "PRO",

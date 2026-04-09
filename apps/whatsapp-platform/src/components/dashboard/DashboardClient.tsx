@@ -11,6 +11,8 @@ import { ManagerDashboardSection } from "@/components/dashboard/ManagerDashboard
 import { fetchProtected } from "@/lib/protected-fetch";
 import { PostActivationGuide } from "@/components/dashboard/PostActivationGuide";
 import { SupportHelpButton } from "@/components/support/SupportHelpButton";
+import { isOperator, isTenantManager } from "@/lib/roles";
+import type { UserRole } from "@/modules/auth";
 
 type Overview = {
   totalMessages: number;
@@ -58,12 +60,12 @@ function CheckRow({
   );
 }
 
-type SessionRole = "admin" | "agent" | null;
+const KNOWN_ROLES = new Set<UserRole>(["operator", "manager", "platform_admin"]);
 
 export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [metricsLoading, setMetricsLoading] = useState(() => snapshot.authenticated);
-  const [sessionRole, setSessionRole] = useState<SessionRole>(null);
+  const [sessionRole, setSessionRole] = useState<UserRole | null>(null);
 
   useEffect(() => {
     if (!snapshot.authenticated) return;
@@ -83,7 +85,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
       .then((d: { user?: { role?: string } }) => {
         if (cancelled) return;
         const r = d.user?.role;
-        if (r === "admin" || r === "agent") setSessionRole(r);
+        if (r && KNOWN_ROLES.has(r as UserRole)) setSessionRole(r as UserRole);
       })
       .catch(() => {});
     return () => {
@@ -126,7 +128,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
       <div className="flex justify-end">
         <SupportHelpButton variant="inline" />
       </div>
-      {sessionRole === "agent" && (
+      {sessionRole && isOperator(sessionRole) && (
         <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/50 px-5 py-4 text-sm text-emerald-950">
           <p className="font-semibold">Pronto para atender</p>
           <p className="mt-1 text-emerald-900/90">
@@ -220,7 +222,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
               cta={snapshot.phoneConnected ? "Rever ligação" : "Ligar agora"}
             />
           </div>
-          {sessionRole === "admin" ? (
+          {sessionRole && isTenantManager(sessionRole) ? (
             snapshot.apiKeyReady ? (
               <p className="mt-4 text-xs text-slate-500">
                 Chave de API já gerada —{" "}
@@ -238,9 +240,9 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
                 .
               </p>
             )
-          ) : sessionRole === "agent" ? (
+          ) : sessionRole && isOperator(sessionRole) ? (
             <p className="mt-4 text-xs text-slate-500">
-              Integrações com API: peça a um administrador em Configurações → API e integrações.
+              Integrações com API: peça a um gestor em Configurações → API e integrações.
             </p>
           ) : null}
           <p className="mt-6 rounded-xl border border-slate-100/80 bg-slate-50/50 px-4 py-3 text-xs leading-relaxed text-slate-500">

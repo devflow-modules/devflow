@@ -7,33 +7,12 @@ import { Button } from "@devflow/ui";
 import { PageHeader } from "@/components/ui/page-header";
 import { StateEmpty } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
-import { Card, CardHeader } from "@/components/ui/card";
-import {
-  FormActions,
-  FormField,
-  fieldInputClassName,
-  fieldSelectClassName,
-  fieldControlCompact,
-} from "@/components/ui/form-field";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
-
-type AgentItem = {
-  id: string;
-  name: string;
-  email: string | null;
-  status: string;
-  activeCount: number;
-};
+import type { OperationalAgentRow } from "@/modules/inbox/operationsAgentsService";
 
 const STATUS_OPTIONS = ["available", "busy", "offline"] as const;
 
-export function AgentsClient({
-  tenantId,
-  agents: initialAgents,
-}: {
-  tenantId: string;
-  agents: AgentItem[];
-}) {
+export function AgentsClient({ agents: initialAgents }: { agents: OperationalAgentRow[] }) {
   const router = useRouter();
   const [agents, setAgents] = useState(initialAgents);
   useEffect(() => {
@@ -41,63 +20,25 @@ export function AgentsClient({
   }, [initialAgents]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<string>("offline");
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editEmail, setEditEmail] = useState("");
   const [editStatus, setEditStatus] = useState<string>("offline");
 
-  async function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleStatusSave(userId: string) {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetchProtected("/api/agents", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tenant_id: tenantId,
-          name: name.trim(),
-          email: email.trim() || null,
-          status: status || "offline",
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Falha ao criar agente");
-      }
-      setName("");
-      setEmail("");
-      setStatus("offline");
-      setShowForm(false);
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao criar agente");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleUpdate(id: string) {
-    setError(null);
-    setLoading(true);
-    try {
-      const res = await fetchProtected(`/api/agents/${id}`, {
+      const res = await fetchProtected(`/api/agents/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editName.trim(),
-          email: editEmail.trim() || null,
-          status: editStatus,
-        }),
+        body: JSON.stringify({ status: editStatus }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
         throw new Error(protectedApiUserMessage(res.status, data));
       }
+      setAgents((prev) =>
+        prev.map((a) => (a.userId === userId ? { ...a, status: editStatus } : a))
+      );
       setEditingId(null);
       router.refresh();
     } catch (err) {
@@ -107,39 +48,18 @@ export function AgentsClient({
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Remover este agente?")) return;
-    setError(null);
-    setLoading(true);
-    try {
-      const res = await fetchProtected(`/api/agents/${id}`, { method: "DELETE" });
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        throw new Error(protectedApiUserMessage(res.status, data));
-      }
-      setAgents((prev) => prev.filter((a) => a.id !== id));
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao remover");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
     <div className="mx-auto min-w-0 max-w-4xl space-y-8">
       <PageHeader
-        eyebrow="Equipa"
+        eyebrow="Operação"
         title="Agentes"
-        description="Pessoas que atendem na Inbox — nome, contacto e estado de disponibilidade. Os agentes aparecem nas atribuições e relatórios."
+        description="Cada agente é um utilizador do tenant. O estado (disponível, ocupado, offline) sincroniza com a Inbox e `whatsapp_agent_status`. Para criar utilizadores, use Configurações."
         layout="split"
         showDivider
         actions={
-          !showForm ? (
-            <Button type="button" onClick={() => setShowForm(true)}>
-              Novo agente
-            </Button>
-          ) : null
+          <Link href="/settings" className={`${buttonClassName("secondary")} text-sm`}>
+            Configurações
+          </Link>
         }
       />
 
@@ -153,101 +73,34 @@ export function AgentsClient({
         </div>
       ) : null}
 
-      {showForm ? (
-        <Card padding="lg">
-          <CardHeader
-            title="Novo agente"
-            description="Crie um registo por pessoa que usa a plataforma para responder clientes."
-          />
-          <form onSubmit={handleCreate} className="mt-2 max-w-md space-y-4">
-            <FormField id="agent-name" label="Nome" htmlFor="agent-name">
-              <input
-                id="agent-name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className={fieldInputClassName}
-                placeholder="Ex.: Maria"
-              />
-            </FormField>
-            <FormField id="agent-email" label="E-mail" htmlFor="agent-email" optional>
-              <input
-                id="agent-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={fieldInputClassName}
-                placeholder="agente@empresa.com"
-              />
-            </FormField>
-            <FormField id="agent-status" label="Estado" htmlFor="agent-status">
-              <select
-                id="agent-status"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className={fieldSelectClassName}
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-            <FormActions>
-              <Button type="submit" disabled={loading}>
-                {loading ? "A criar…" : "Criar"}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => {
-                  setShowForm(false);
-                  setError(null);
-                }}
-              >
-                Cancelar
-              </Button>
-            </FormActions>
-          </form>
-        </Card>
-      ) : null}
-
       {agents.length === 0 ? (
         <StateEmpty
-          title="Ainda não há agentes"
-          description="Adicione colegas que respondem no WhatsApp para poder atribuir conversas e medir desempenho por pessoa."
+          title="Sem utilizadores no tenant"
+          description="Adicione utilizadores em Configurações para aparecerem aqui como agentes operacionais."
           action={
-            <Button type="button" onClick={() => setShowForm(true)}>
-              Adicionar primeiro agente
-            </Button>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link href="/settings" className={`${buttonClassName("primary")} text-sm`}>
+                Abrir configurações
+              </Link>
+              <Link href="/queues" className={`${buttonClassName("secondary")} text-sm`}>
+                Ver filas operacionais
+              </Link>
+            </div>
           }
         />
       ) : (
         <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/[0.03]">
           {agents.map((a) => (
-            <li key={a.id} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-              {editingId === a.id ? (
+            <li
+              key={a.userId}
+              className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+              {editingId === a.userId ? (
                 <div className="flex flex-1 flex-wrap items-end gap-2">
-                  <input
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className={`w-40 sm:w-44 ${fieldControlCompact}`}
-                    placeholder="Nome"
-                  />
-                  <input
-                    type="email"
-                    value={editEmail}
-                    onChange={(e) => setEditEmail(e.target.value)}
-                    className={`min-w-[12rem] flex-1 sm:max-w-xs ${fieldControlCompact}`}
-                    placeholder="E-mail"
-                  />
                   <select
                     value={editStatus}
                     onChange={(e) => setEditStatus(e.target.value)}
-                    className={fieldControlCompact}
+                    className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm"
                   >
                     {STATUS_OPTIONS.map((s) => (
                       <option key={s} value={s}>
@@ -255,16 +108,14 @@ export function AgentsClient({
                       </option>
                     ))}
                   </select>
-                  <Button size="sm" onClick={() => handleUpdate(a.id)} disabled={loading}>
-                    Guardar
+                  <Button size="sm" onClick={() => handleStatusSave(a.userId)} disabled={loading}>
+                    Guardar estado
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => {
                       setEditingId(null);
-                      setEditName(a.name);
-                      setEditEmail(a.email ?? "");
                       setEditStatus(a.status);
                     }}
                   >
@@ -275,14 +126,17 @@ export function AgentsClient({
                 <>
                   <div className="min-w-0">
                     <span className="font-semibold text-slate-900">{a.name}</span>
-                    {a.email ? (
-                      <span className="mt-0.5 block text-sm text-slate-500">{a.email}</span>
-                    ) : null}
+                    <span className="mt-0.5 block text-sm text-slate-500">{a.email}</span>
                     <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-600">
                       <span className="rounded-full bg-slate-100 px-2 py-0.5 font-medium capitalize text-slate-700">
                         {a.status}
                       </span>
-                      <span>{a.activeCount} conversas ativas</span>
+                      <span>{a.activeThreadCount} conversas abertas/pendentes</span>
+                      {a.queueIds.length > 0 ? (
+                        <span className="text-slate-500">
+                          {a.queueIds.length} fila{a.queueIds.length > 1 ? "s" : ""}
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                   <div className="flex shrink-0 flex-wrap gap-2">
@@ -290,22 +144,11 @@ export function AgentsClient({
                       size="sm"
                       variant="ghost"
                       onClick={() => {
-                        setEditingId(a.id);
-                        setEditName(a.name);
-                        setEditEmail(a.email ?? "");
+                        setEditingId(a.userId);
                         setEditStatus(a.status);
                       }}
                     >
-                      Editar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-red-600 hover:text-red-700"
-                      onClick={() => handleDelete(a.id)}
-                      disabled={loading}
-                    >
-                      Excluir
+                      Alterar estado
                     </Button>
                   </div>
                 </>
