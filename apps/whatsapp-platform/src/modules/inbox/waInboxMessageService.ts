@@ -137,6 +137,8 @@ export async function waInboxCreateInbound(
   });
   if (result) {
     const { thread, row, wasNewConversation } = result;
+    const { getWaInboxThreadInboxMetrics } = await import("./waInboxThreadMetrics");
+    const inboxMetrics = await getWaInboxThreadInboxMetrics(tenantId, thread.id);
     const { publishInboxEvent, eventMessageCreated } = await import("@/modules/realtime/realtime.service");
     publishInboxEvent(tenantId, eventMessageCreated(tenantId, {
       threadId: thread.id,
@@ -159,6 +161,7 @@ export async function waInboxCreateInbound(
         lastCustomerMessageAt: thread.lastCustomerMessageAt?.toISOString() ?? null,
         lastAgentReplyAt: thread.lastAgentReplyAt?.toISOString() ?? null,
         firstResponseAt: thread.firstResponseAt?.toISOString() ?? null,
+        ...(inboxMetrics ?? {}),
       },
     }));
     const { dispatchMessageInbound, dispatchConversationCreated } = await import("@/modules/automation");
@@ -272,6 +275,8 @@ export async function waInboxCreateOutbound(params: {
   });
   if (result) {
     const { thread, row } = result;
+    const { getWaInboxThreadInboxMetrics } = await import("./waInboxThreadMetrics");
+    const inboxMetrics = await getWaInboxThreadInboxMetrics(tenantId, thread.id);
     const { publishInboxEvent, eventMessageCreated } = await import("@/modules/realtime/realtime.service");
     publishInboxEvent(tenantId, eventMessageCreated(tenantId, {
       threadId: thread.id,
@@ -294,6 +299,7 @@ export async function waInboxCreateOutbound(params: {
         lastCustomerMessageAt: thread.lastCustomerMessageAt?.toISOString() ?? null,
         lastAgentReplyAt: thread.lastAgentReplyAt?.toISOString() ?? null,
         firstResponseAt: thread.firstResponseAt?.toISOString() ?? null,
+        ...(inboxMetrics ?? {}),
       },
     }));
     const { dispatchMessageOutbound } = await import("@/modules/automation");

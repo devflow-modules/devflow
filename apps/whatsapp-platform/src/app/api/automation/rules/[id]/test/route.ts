@@ -8,6 +8,7 @@ import type {
   Condition,
 } from "@/modules/automation/automation.types";
 import { randomUUID } from "crypto";
+import { getWaInboxThreadInboxMetrics } from "@/modules/inbox/waInboxThreadMetrics";
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +60,7 @@ export async function POST(
     direction: "INBOUND",
   };
 
+  const metrics = await getWaInboxThreadInboxMetrics(tenantId, threadId);
   const ctx: AutomationContext = {
     tenantId,
     threadId,
@@ -72,6 +74,12 @@ export async function POST(
       lastMessageAt: thread.lastMessageAt,
       lastCustomerMessageAt: thread.lastCustomerMessageAt,
       tags: thread.threadTags?.map((tt) => ({ id: tt.tag.id, name: tt.tag.name })) ?? [],
+      conversationState: metrics?.conversationState,
+      slaLevel: metrics?.slaLevel ?? null,
+      isUnassigned: metrics?.isUnassigned,
+      responseDelayMs: metrics?.responseDelayMs ?? null,
+      lastUnansweredInboundAt: metrics?.lastUnansweredInboundAt ?? null,
+      lastInboundMessageAt: metrics?.lastInboundMessageAt ?? null,
     },
   };
 

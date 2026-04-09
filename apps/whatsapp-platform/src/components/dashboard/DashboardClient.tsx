@@ -7,6 +7,7 @@ import { buttonClassName } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { MetricsSection } from "@/app/dashboard/MetricsSection";
+import { ManagerDashboardSection } from "@/components/dashboard/ManagerDashboardSection";
 import { fetchProtected } from "@/lib/protected-fetch";
 import { PostActivationGuide } from "@/components/dashboard/PostActivationGuide";
 import { SupportHelpButton } from "@/components/support/SupportHelpButton";
@@ -304,6 +305,10 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
             <p className="mt-1 text-xs text-slate-500">Mensagens enviadas por pessoas</p>
           </Card>
         </div>
+      )}
+
+      {activationComplete && (
+        <ManagerDashboardSection />
       )}
 
       {activationComplete && (

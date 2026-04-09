@@ -10,6 +10,17 @@ export type WhatsappLineSummary = {
   status: string;
 };
 
+/** Alinhado com `waInboxConversationState` / API inbox. */
+export type InboxConversationState =
+  | "awaiting_agent"
+  | "in_progress"
+  | "awaiting_customer"
+  | "closed";
+
+export type InboxLastResponderType = "agent" | "ai" | "automation" | null;
+
+export type InboxSlaLevel = "low" | "medium" | "high" | "critical";
+
 export type WaInboxThreadRow = {
   id: string;
   phoneNumber: string;
@@ -17,6 +28,16 @@ export type WaInboxThreadRow = {
   contactName: string | null;
   lastMessageAt: string;
   unreadCount: number;
+  /** Mensagens inbound sem resposta outbound (pendência real). */
+  unansweredInboundCount?: number;
+  conversationState?: InboxConversationState;
+  lastResponderType?: InboxLastResponderType;
+  /** ms desde a última inbound pendente; só em awaiting_agent. */
+  responseDelayMs?: number | null;
+  slaLevel?: InboxSlaLevel | null;
+  isUnassigned?: boolean;
+  isAssignedToMe?: boolean;
+  lastUnansweredInboundAt?: string | null;
   lastMessagePreview: string | null;
   status: string;
   priority?: string;
@@ -47,19 +68,30 @@ export type WaInboxMessageRow = {
 };
 
 export type InboxConversationsFilter =
-  | "all"
-  | "assigned_to_me"
+  | "needs_response"
+  | "mine"
   | "unassigned"
-  | "OPEN"
-  | "PENDING"
-  | "CLOSED";
+  | "in_attendance"
+  | "awaiting_customer"
+  | "closed";
+
+export type InternalNoteRow = {
+  id: string;
+  body: string;
+  userId: string;
+  authorName: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
 
 export const INBOX_QK = {
   conversations: (filter?: InboxConversationsFilter, lineFilter?: string | null) =>
     filter
       ? (["inbox-conversations", filter, lineFilter ?? "all-lines"] as const)
       : (["inbox-conversations", lineFilter ?? "all-lines"] as const),
+  thread: (threadId: string) => ["inbox-thread", threadId] as const,
   messages: (threadId: string) => ["inbox-messages", threadId] as const,
+  internalNotes: (threadId: string) => ["inbox-internal-notes", threadId] as const,
   tags: ["inbox-tags"] as const,
   users: ["inbox-users"] as const,
   presence: ["inbox-presence"] as const,

@@ -14,6 +14,12 @@ const ACTION_LABELS: Record<string, string> = {
   message_send: "enviou mensagem",
   priority_change: "alterou prioridade",
   ai_reply: "IA respondeu",
+  internal_note_create: "criou nota interna",
+  internal_note_delete: "removeu nota interna",
+  playbook_suggest: "gerou playbook (IA)",
+  follow_up_prompt: "registou follow-up sugerido",
+  notify: "notificação (regra)",
+  automation_log: "registo de automação",
 };
 
 export function ChatAuditTab({ threadId }: { threadId: string | null }) {
@@ -83,7 +89,11 @@ export function ChatAuditTab({ threadId }: { threadId: string | null }) {
                 ? ` «${String((log.metadata as { tagName: string }).tagName)}»`
                 : log.action === "tag_remove" && log.metadata && typeof log.metadata === "object" && "tagName" in log.metadata
                   ? ` «${String((log.metadata as { tagName: string }).tagName)}»`
-                  : "";
+                  : log.action === "playbook_suggest" && log.metadata && typeof log.metadata === "object" && "intent" in log.metadata
+                    ? ` · ${String((log.metadata as { intent: string }).intent)}`
+                    : log.action === "internal_note_create" && log.metadata && typeof log.metadata === "object" && "preview" in log.metadata
+                      ? ` · ${String((log.metadata as { preview: string }).preview).slice(0, 80)}${String((log.metadata as { preview: string }).preview).length > 80 ? "…" : ""}`
+                      : "";
           const date = new Date(log.createdAt);
           const dateStr = date.toLocaleDateString("pt-BR", {
             day: "2-digit",

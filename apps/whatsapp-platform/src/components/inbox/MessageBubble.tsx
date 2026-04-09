@@ -42,6 +42,22 @@ function StatusTicks({ status, outbound }: { status: string; outbound: boolean }
   return null;
 }
 
+function messageTypeShort(mt: string): string | null {
+  const u = mt.toUpperCase();
+  if (u === "TEXT" || u === "UNKNOWN") return null;
+  const labels: Record<string, string> = {
+    IMAGE: "Imagem",
+    AUDIO: "Áudio",
+    VOICE: "Áudio",
+    VIDEO: "Vídeo",
+    DOCUMENT: "Documento",
+    STICKER: "Figurinha",
+    LOCATION: "Localização",
+    CONTACT: "Contacto",
+  };
+  return labels[u] ?? u;
+}
+
 function outboundKindLabel(kind: "ai" | "automation" | "agent"): string {
   if (kind === "ai") return "IA";
   if (kind === "automation") return "Automático";
@@ -81,10 +97,12 @@ export const MessageBubble = memo(function MessageBubble({
   compact?: boolean;
 }) {
   const outbound = message.direction === "OUTBOUND";
+  const pendingOptimistic = message.id.startsWith("optimistic-");
   const hasMedia = isNonTextMessage(message);
   const textBody = message.contentText?.trim() ?? "";
   const showText = textBody.length > 0 && (!hasMedia || textBody !== `[${message.messageType}]`);
   const outboundKind = getOutboundKindFromMessage(message);
+  const typeLabel = messageTypeShort(message.messageType);
 
   const bubbleRadius = compact
     ? outbound
@@ -104,8 +122,13 @@ export const MessageBubble = memo(function MessageBubble({
         }`}
       >
         {!outbound && !compact && (
-          <div className="mb-1.5">
+          <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
             <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400/90">Cliente</span>
+            {typeLabel ? (
+              <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-600">
+                {typeLabel}
+              </span>
+            ) : null}
           </div>
         )}
         {!outbound && compact && <span className="sr-only">Mensagem do cliente</span>}
@@ -131,9 +154,20 @@ export const MessageBubble = memo(function MessageBubble({
             outbound ? "justify-end text-white/85" : "justify-start text-slate-500"
           }`}
         >
-          {outbound && outboundKind ? <OutboundKindBadge kind={outboundKind} /> : null}
+          {outbound && outboundKind && !pendingOptimistic ? <OutboundKindBadge kind={outboundKind} /> : null}
+          {outbound && typeLabel && !compact ? (
+            <span className="rounded bg-white/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white/90">
+              {typeLabel}
+            </span>
+          ) : null}
           <span className="tabular-nums opacity-90">{formatTime(message.ts)}</span>
-          {outbound ? <StatusTicks status={message.status} outbound /> : null}
+          {outbound && pendingOptimistic ? (
+            <span className="text-[10px] italic opacity-90" data-testid="msg-pending">
+              A enviar…
+            </span>
+          ) : outbound ? (
+            <StatusTicks status={message.status} outbound />
+          ) : null}
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import type { WaInboxMessageRow } from "./inboxTypes";
+import type { WaInboxMessageRow, InboxConversationState } from "./inboxTypes";
 
 export type OutboundUiKind = "ai" | "automation" | "agent" | null;
 
@@ -14,9 +14,13 @@ export function getOutboundKindFromMessage(message: WaInboxMessageRow): Outbound
 
 /** Cliente escreveu por último e está à espera de resposta da equipa/bot. */
 export function threadNeedsAgentReply(thread: {
+  conversationState?: InboxConversationState;
   lastCustomerMessageAt?: string | null;
   lastAgentReplyAt?: string | null;
 }): boolean {
+  if (thread.conversationState) {
+    return thread.conversationState === "awaiting_agent";
+  }
   const lc = thread.lastCustomerMessageAt ? new Date(thread.lastCustomerMessageAt).getTime() : 0;
   if (!lc) return false;
   const la = thread.lastAgentReplyAt ? new Date(thread.lastAgentReplyAt).getTime() : 0;

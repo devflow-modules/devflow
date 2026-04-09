@@ -11,7 +11,7 @@ import {
   removeTagFromThread,
   logAction,
 } from "@/modules/inbox";
-import type { Action, AutomationContext } from "./automation.types";
+import type { Action, AutomationContext, ActionType } from "./automation.types";
 import { WaInboxThreadStatus, WaInboxThreadPriority } from "@/generated/prisma-whatsapp";
 import { checkTenantAiAutomationReady, runTenantAiAutoReply } from "@/modules/ai/aiAutomationService";
 import type { ResolvedTenant } from "@/modules/tenants";
@@ -33,6 +33,21 @@ export function canExecuteMore(context: AutomationContext): boolean {
   return context.depth < MAX_DEPTH;
 }
 
+function normalizeAutomationAction(action: Action): Action {
+  const t = action.type as string;
+  if (t === "assign_to_user") return { type: "assignConversation", params: action.params };
+  if (t === "add_tag") return { type: "addTag", params: action.params };
+  if (t === "send_message") {
+    const mode = action.params?.mode as string | undefined;
+    if (mode === "ai") return { type: "triggerAIResponse", params: action.params };
+    return {
+      type: "sendMessage",
+      params: { text: String(action.params?.text ?? "") },
+    };
+  }
+  return action;
+}
+
 export async function executeAction(
   action: Action,
   context: AutomationContext
@@ -41,10 +56,25 @@ export async function executeAction(
     return { ok: false, error: "max_depth_exceeded" };
   }
 
+  const normalized = normalizeAutomationAction(action);
+  const effectiveType = normalized.type as ActionType;
+
   try {
-    switch (action.type) {
+    switch (effectiveType) {
+      case "notify": {
+        const title = String(normalized.params?.title ?? "Automação");
+        const body = String(
+          normalized.params?.body ?? normalized.params?.message ?? ""
+        );
+        await logAction(context.tenantId, context.threadId, AUTOMATION_USER_ID, "notify", {
+          title,
+          body,
+        });
+        return { ok: true };
+      }
+
       case "assignConversation": {
-        const userId = action.params?.userId as string | undefined;
+        const userId = normalized.params?.userId as string | undefined;
         if (userId === "auto" || userId === "automation" || !userId) {
           const users = await prisma.user.findMany({
             where: { tenantId: context.tenantId },
@@ -70,7 +100,7 @@ export async function executeAction(
       }
 
       case "updateStatus": {
-        const status = action.params?.status as string | undefined;
+        const status = normalized.params?.status as string | undefined;
         if (!status || !["OPEN", "PENDING", "CLOSED"].includes(status)) {
           return { ok: false, error: "invalid_status" };
         }
@@ -83,8 +113,8 @@ export async function executeAction(
       }
 
       case "addTag": {
-        const tagId = action.params?.tagId as string | undefined;
-        const tagName = action.params?.tagName as string | undefined;
+        const tagId = normalized.params?.tagId as string | undefined;
+        const tagName = normalized.params?.tagName as string | undefined;
         let resolvedTagId = tagId;
         if (!resolvedTagId && tagName) {
           const tag = await prisma.waInboxTag.findFirst({
@@ -103,8 +133,8 @@ export async function executeAction(
       }
 
       case "removeTag": {
-        const tagId = action.params?.tagId as string | undefined;
-        const tagName = action.params?.tagName as string | undefined;
+        const tagId = normalized.params?.tagId as string | undefined;
+        const tagName = normalized.params?.tagName as string | undefined;
         let resolvedTagId = tagId;
         if (!resolvedTagId && tagName) {
           const tag = await prisma.waInboxTag.findFirst({
@@ -123,7 +153,7 @@ export async function executeAction(
       }
 
       case "setPriority": {
-        const priority = action.params?.priority as string | undefined;
+        const priority = normalized.params?.priority as string | undefined;
         if (!priority || !["LOW", "MEDIUM", "HIGH"].includes(priority)) {
           return { ok: false, error: "invalid_priority" };
         }
@@ -142,7 +172,7 @@ export async function executeAction(
       }
 
       case "sendMessage": {
-        const text = action.params?.text as string | undefined;
+        const text = normalized.params?.text as string | undefined;
         if (!text?.trim()) return { ok: false, error: "empty_text" };
         const thread = await prisma.waInboxThread.findFirst({
           where: { id: context.threadId, tenantId: context.tenantId },
@@ -223,8 +253,8 @@ export async function executeAction(
 
       case "logAction": {
         const note =
-          (action.params?.message as string) ??
-          (action.params?.note as string) ??
+          (normalized.params?.message as string) ??
+          (normalized.params?.note as string) ??
           "automation";
         await logAction(
           context.tenantId,
@@ -241,7 +271,7 @@ export async function executeAction(
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    console.error("[automation] action failed", action.type, context.threadId, msg);
+    console.error("[automation] action failed", effectiveType, context.threadId, msg);
     return { ok: false, error: msg };
   }
 }

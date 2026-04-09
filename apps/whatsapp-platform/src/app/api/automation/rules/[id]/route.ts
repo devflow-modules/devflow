@@ -77,6 +77,12 @@ export async function DELETE(
     where: { id, tenantId },
   });
   if (!rule) return NextResponse.json({ error: "Regra não encontrada" }, { status: 404 });
+  if (rule.isSystem) {
+    return NextResponse.json(
+      { error: "Regras de sistema não podem ser removidas. Desative-as na lista." },
+      { status: 400 }
+    );
+  }
 
   await prisma.waAutomationRule.delete({ where: { id } });
 

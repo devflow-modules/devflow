@@ -5,12 +5,21 @@ import {
   waInboxCountThreads,
   waInboxListThreads,
   fetchWhatsappLineSummaries,
+  type WaInboxConversationPhaseFilter,
 } from "@/modules/inbox";
 
 export const dynamic = "force-dynamic";
 
 const VALID_STATUS = new Set<string>(["OPEN", "PENDING", "CLOSED"]);
 const VALID_PRIORITY = new Set<string>(["LOW", "MEDIUM", "HIGH"]);
+const VALID_PHASE = new Set<string>([
+  "needs_response",
+  "mine",
+  "unassigned",
+  "in_attendance",
+  "awaiting_customer",
+  "closed",
+]);
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
@@ -29,6 +38,7 @@ export async function GET(request: NextRequest) {
   const tag = searchParams.get("tag")?.trim() || undefined;
   const priorityParam = searchParams.get("priority")?.toUpperCase();
   const businessPhoneNumberId = searchParams.get("businessPhoneNumberId")?.trim() || undefined;
+  const phaseParam = searchParams.get("phase")?.trim().toLowerCase() || undefined;
 
   const filters: {
     status?: WaInboxThreadStatus;
@@ -36,9 +46,14 @@ export async function GET(request: NextRequest) {
     tag?: string;
     priority?: string;
     businessPhoneNumberId?: string;
+    conversationPhase?: WaInboxConversationPhaseFilter;
   } = {};
-  if (statusParam && VALID_STATUS.has(statusParam)) filters.status = statusParam as WaInboxThreadStatus;
-  if (assignedTo) filters.assignedTo = assignedTo === "me" ? "me" : assignedTo;
+  if (phaseParam && VALID_PHASE.has(phaseParam)) {
+    filters.conversationPhase = phaseParam as WaInboxConversationPhaseFilter;
+  } else {
+    if (statusParam && VALID_STATUS.has(statusParam)) filters.status = statusParam as WaInboxThreadStatus;
+    if (assignedTo) filters.assignedTo = assignedTo === "me" ? "me" : assignedTo;
+  }
   if (tag) filters.tag = tag;
   if (priorityParam && VALID_PRIORITY.has(priorityParam)) filters.priority = priorityParam;
   if (businessPhoneNumberId) filters.businessPhoneNumberId = businessPhoneNumberId;

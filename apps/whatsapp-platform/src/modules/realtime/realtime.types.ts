@@ -77,6 +77,16 @@ export type ConversationPriorityChangedPayload = {
   priority: string;
 };
 
+export type InboxConversationState =
+  | "awaiting_agent"
+  | "in_progress"
+  | "awaiting_customer"
+  | "closed";
+
+export type InboxLastResponderType = "agent" | "ai" | "automation" | null;
+
+export type InboxSlaLevel = "low" | "medium" | "high" | "critical";
+
 export type MessageCreatedPayload = {
   threadId: string;
   message: {
@@ -98,6 +108,13 @@ export type MessageCreatedPayload = {
     lastCustomerMessageAt?: string | null;
     lastAgentReplyAt?: string | null;
     firstResponseAt?: string | null;
+    unansweredInboundCount?: number;
+    conversationState?: InboxConversationState;
+    lastResponderType?: InboxLastResponderType;
+    responseDelayMs?: number | null;
+    slaLevel?: InboxSlaLevel | null;
+    isUnassigned?: boolean;
+    lastUnansweredInboundAt?: string | null;
   };
 };
 

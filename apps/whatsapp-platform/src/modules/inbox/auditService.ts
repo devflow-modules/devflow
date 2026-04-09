@@ -15,7 +15,12 @@ export type AuditAction =
   | "message_send"
   | "priority_change"
   | "ai_reply"
-  | "automation_log";
+  | "automation_log"
+  | "notify"
+  | "internal_note_create"
+  | "internal_note_delete"
+  | "playbook_suggest"
+  | "follow_up_prompt";
 
 export async function logAction(
   tenantId: string,

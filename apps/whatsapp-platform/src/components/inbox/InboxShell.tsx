@@ -31,7 +31,7 @@ function InboxShellContent() {
   const isMd = useMediaMd();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileChat, setMobileChat] = useState(false);
-  const [filter, setFilter] = useState<InboxConversationsFilter>("all");
+  const [filter, setFilter] = useState<InboxConversationsFilter>("needs_response");
   const [lineFilter, setLineFilter] = useState<string | null>(null);
   const { connected: realtimeConnected } = useInboxRealtime();
 
@@ -42,6 +42,14 @@ function InboxShellContent() {
     queryFn: fetchTenantWhatsappLines,
     staleTime: 60_000,
   });
+
+  const { data: inboxOverview } = useQuery({
+    queryKey: ["inbox-conversations", "tenant-total-global"],
+    queryFn: () => fetchInboxConversations(undefined, null),
+    staleTime: 30_000,
+    refetchInterval: pollInterval,
+  });
+  const tenantThreadTotal = inboxOverview?.pagination.total;
 
   const { data: convData } = useQuery({
     queryKey: INBOX_QK.conversations(filter, lineFilter),
@@ -55,10 +63,7 @@ function InboxShellContent() {
   );
 
   const awaitingFirstMessage =
-    convData !== undefined &&
-    convData.threads.length === 0 &&
-    filter === "all" &&
-    lineFilter === null;
+    tenantThreadTotal === 0 && convData !== undefined && lineFilter === null;
 
   const onSelect = useCallback((id: string) => {
     setSelectedId(id);
@@ -129,6 +134,7 @@ function InboxShellContent() {
               lineFilter={lineFilter}
               lines={lines}
               onLineFilterChange={setLineFilter}
+              tenantThreadTotal={tenantThreadTotal}
             />
           </aside>
         )}

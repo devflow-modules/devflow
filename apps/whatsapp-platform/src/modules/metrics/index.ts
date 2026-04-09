@@ -5,3 +5,8 @@ export {
   getOverviewMetrics,
   type DateRange,
 } from "./metricsService";
+export {
+  getManagerDashboard,
+  type ManagerDashboardPayload,
+  type ManagerAgentRow,
+} from "./managerDashboardService";

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
 import { waInboxGetThread, fetchWhatsappLineSummaries } from "@/modules/inbox";
+import { getWaInboxThreadInboxMetrics } from "@/modules/inbox/waInboxThreadMetrics";
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +24,9 @@ export async function GET(
     if (!thread) {
       return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 });
     }
-    const lineMap = await fetchWhatsappLineSummaries(auth.payload.tenantId, [
-      thread.businessPhoneNumberId,
+    const [lineMap, metrics] = await Promise.all([
+      fetchWhatsappLineSummaries(auth.payload.tenantId, [thread.businessPhoneNumberId]),
+      getWaInboxThreadInboxMetrics(auth.payload.tenantId, id),
     ]);
     const whatsappLine =
       lineMap.get(thread.businessPhoneNumberId) ?? {
@@ -34,7 +36,14 @@ export async function GET(
         isPrimary: false,
         isDefaultOutbound: false,
       };
-    return NextResponse.json({ success: true, data: { thread: { ...thread, whatsappLine } } });
+    const isAssignedToMe = thread.assignedToUserId === auth.payload.sub;
+    const threadOut = {
+      ...thread,
+      whatsappLine,
+      ...(metrics ?? {}),
+      isAssignedToMe,
+    };
+    return NextResponse.json({ success: true, data: { thread: threadOut } });
   } catch (e) {
     return NextResponse.json(
       { success: false, error: { message: e instanceof Error ? e.message : "Erro" } },

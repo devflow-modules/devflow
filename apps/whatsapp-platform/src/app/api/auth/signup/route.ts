@@ -131,6 +131,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    const { seedDefaultAutomationRules } = await import("@/modules/automation/defaultRules.seed");
+    await seedDefaultAutomationRules(tenant.id).catch((e) =>
+      console.error("[signup] seedDefaultAutomationRules", e)
+    );
+
     const baseUrl = (
       process.env.NEXT_PUBLIC_WHATSAPP_APP_URL ??
       process.env.NEXT_PUBLIC_APP_URL ??

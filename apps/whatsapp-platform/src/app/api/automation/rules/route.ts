@@ -5,10 +5,11 @@ import { recordPlatformAudit } from "@/lib/platformAuditLog";
 import { getClientIp } from "@/lib/rate-limit";
 import { z } from "zod";
 import type { Condition, Action } from "@/modules/automation/automation.types";
+import { normalizeTriggerType } from "@/modules/automation/triggerNormalize";
 
 export const dynamic = "force-dynamic";
 
-const TRIGGER_TYPES = [
+const CANONICAL_TRIGGERS = [
   "MESSAGE_INBOUND",
   "MESSAGE_OUTBOUND",
   "CONVERSATION_CREATED",
@@ -18,29 +19,56 @@ const TRIGGER_TYPES = [
   "TIME_ELAPSED",
 ] as const;
 
+const CONDITION_OPERATORS = [
+  "contains",
+  "equals",
+  "notEquals",
+  "exists",
+  "isNull",
+  "timeSinceLastMessage_gt",
+  "gte",
+  "lte",
+  "gt",
+  "lt",
+] as const;
+
+const ACTION_TYPES = [
+  "assignConversation",
+  "assign_to_user",
+  "updateStatus",
+  "addTag",
+  "add_tag",
+  "removeTag",
+  "setPriority",
+  "sendMessage",
+  "send_message",
+  "triggerAIResponse",
+  "logAction",
+  "notify",
+] as const;
+
 const conditionSchema = z.object({
   field: z.string(),
-  operator: z.enum(["contains", "equals", "notEquals", "exists", "isNull", "timeSinceLastMessage_gt"]),
+  operator: z.enum(CONDITION_OPERATORS),
   value: z.union([z.string(), z.number(), z.boolean(), z.null()]).optional(),
 });
 
 const actionSchema = z.object({
-  type: z.enum([
-    "assignConversation",
-    "updateStatus",
-    "addTag",
-    "removeTag",
-    "setPriority",
-    "sendMessage",
-    "triggerAIResponse",
-    "logAction",
-  ]),
+  type: z.enum(ACTION_TYPES),
   params: z.record(z.unknown()).optional(),
 });
 
 const createRuleSchema = z.object({
   name: z.string().min(1).max(200),
-  triggerType: z.enum(TRIGGER_TYPES),
+  triggerType: z
+    .string()
+    .min(1)
+    .transform((s) => normalizeTriggerType(s))
+    .refine(
+      (t): t is (typeof CANONICAL_TRIGGERS)[number] =>
+        (CANONICAL_TRIGGERS as readonly string[]).includes(t),
+      { message: "Trigger inválido (use message_received → MESSAGE_INBOUND, time_elapsed → TIME_ELAPSED, etc.)" }
+    ),
   conditions: z.array(conditionSchema).default([]),
   actions: z.array(actionSchema).min(1),
 });
@@ -64,6 +92,7 @@ export async function GET(request: NextRequest) {
         id: r.id,
         name: r.name,
         isActive: r.isActive,
+        isSystem: r.isSystem,
         triggerType: r.triggerType,
         conditions: r.conditions,
         actions: r.actions,

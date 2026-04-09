@@ -71,6 +71,7 @@ model Tenant {
   waInboxStatusHistory WaInboxStatusHistory[]
   waInboxTags          WaInboxTag[]
   waInboxAuditLogs     WaInboxAuditLog[]
+  waInboxInternalNotes WaInboxInternalNote[]
   waAutomationRules    WaAutomationRule[]
   waAutomationPlaybooks WaAutomationPlaybook[]
   aiAgentConfig        AiAgentConfig?
@@ -391,6 +392,7 @@ model WaInboxThread {
   assignedToUser         User?                 @relation("AssignedToUser", fields: [assignedToUserId], references: [id], onDelete: SetNull)
   messages               WaInboxMessage[]
   threadTags             WaInboxThreadTag[]
+  internalNotes          WaInboxInternalNote[]
   autoReplyClaims        WaAutoReplyClaim[]
 
   @@unique([tenantId, phoneNumber, businessPhoneNumberId])
@@ -427,6 +429,22 @@ model WaInboxThreadTag {
   @@index([tenantId, threadId])
   @@index([tenantId, tagId])
   @@map("wa_inbox_thread_tags")
+}
+
+model WaInboxInternalNote {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  threadId  String   @map("thread_id")
+  userId    String   @map("user_id")
+  body      String   @map("body") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  tenant    Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  thread    WaInboxThread  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, threadId, createdAt(sort: Desc)])
+  @@map("wa_inbox_internal_notes")
 }
 
 model WaInboxMessage {
@@ -493,6 +511,8 @@ model WaAutomationRule {
   tenantId    String   @map("tenant_id")
   name        String   @map("name")
   isActive    Boolean  @default(true) @map("is_active")
+  /** Regras seed (v1); não remover na UI sem confirmação extra. */
+  isSystem    Boolean  @default(false) @map("is_system")
   triggerType String   @map("trigger_type")
   conditions  Json     @map("conditions")
   actions     Json     @map("actions")
@@ -556,6 +576,7 @@ model User {
   updatedAt             DateTime        @updatedAt @map("updated_at")
   tenant                Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   assignedInboxThreads  WaInboxThread[] @relation("AssignedToUser")
+  waInboxInternalNotes  WaInboxInternalNote[]
   sessions              UserSession[]
   emailMessages         EmailMessage[]
 

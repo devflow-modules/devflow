@@ -26,6 +26,7 @@ type RuleItem = {
   id: string;
   name: string;
   isActive: boolean;
+  isSystem?: boolean;
   triggerType: string;
   conditions: { field: string; operator: string; value?: unknown }[];
   actions: { type: string; params?: Record<string, unknown> }[];
@@ -75,7 +76,7 @@ export function AutomationClient() {
 
   const { data: convData } = useQuery({
     queryKey: ["automation", "conversations"],
-    queryFn: () => fetchInboxConversations("all"),
+    queryFn: () => fetchInboxConversations(undefined),
     enabled: Boolean(testRuleId),
   });
   const { data: tags = [] } = useQuery({
@@ -504,11 +505,16 @@ export function AutomationClient() {
           {rules.map((r) => (
             <li key={r.id} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{r.name}</span>
                   <Badge variant={r.isActive ? "primary" : "default"}>
                     {r.isActive ? "Ativa" : "Inativa"}
                   </Badge>
+                  {r.isSystem ? (
+                    <Badge variant="default" className="bg-slate-100 text-slate-700">
+                      Sistema
+                    </Badge>
+                  ) : null}
                   <span className="text-xs text-slate-500">
                     {TRIGGER_LABELS[r.triggerType] ?? r.triggerType}
                   </span>
@@ -544,7 +550,8 @@ export function AutomationClient() {
                   variant="ghost"
                   className="text-red-600 hover:text-red-700"
                   onClick={() => handleDelete(r.id)}
-                  disabled={loading}
+                  disabled={loading || r.isSystem}
+                  title={r.isSystem ? "Regras de sistema não podem ser removidas" : undefined}
                 >
                   Excluir
                 </Button>

@@ -13,7 +13,12 @@ export {
   waInboxGetThread,
   fetchWhatsappLineSummaries,
 } from "./waInboxQueries";
-export type { WaInboxThreadFilters, WhatsappLineSummary } from "./waInboxQueries";
+export type {
+  WaInboxThreadFilters,
+  WhatsappLineSummary,
+  WaInboxListedThread,
+  WaInboxConversationPhaseFilter,
+} from "./waInboxQueries";
 export {
   assignThread,
   unassignThread,
@@ -36,4 +41,12 @@ export {
 export type { SlaInfo } from "./slaService";
 export { logAction, getThreadAuditLog } from "./auditService";
 export type { AuditAction, AuditLogEntry } from "./auditService";
+export {
+  listInternalNotes,
+  createInternalNote,
+  deleteInternalNote,
+} from "./internalNoteService";
+export type { InternalNoteDto } from "./internalNoteService";
+export { suggestInboxPlaybook } from "./inboxPlaybookService";
+export type { InboxPlaybookResult } from "./inboxPlaybookService";
 export { findNextUnassignedQueueThread, listPendingQueueThreads } from "./waInboxQueueService";

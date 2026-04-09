@@ -12,29 +12,20 @@ import {
   fetchInboxUsers,
 } from "./inboxFetch";
 import { INBOX_QK } from "./inboxTypes";
+import { CONVERSATION_STATE_LABELS } from "@/modules/inbox/waInboxConversationState";
+import { formatWaitDurationMs } from "@/modules/inbox/waInboxSla";
+import type { InboxSlaLevel } from "./inboxTypes";
+import { buttonClassName } from "@/components/ui/button";
 
-function useSlaLabel(thread: WaInboxThreadRow | null): string {
-  if (!thread) return "";
-  const lastC = thread.lastCustomerMessageAt ? new Date(thread.lastCustomerMessageAt).getTime() : null;
-  const lastA = thread.lastAgentReplyAt ? new Date(thread.lastAgentReplyAt).getTime() : null;
-  const first = thread.firstResponseAt ? new Date(thread.firstResponseAt).getTime() : null;
-  const created = new Date(thread.createdAt).getTime();
-  const now = Date.now();
-  if (lastC && !lastA) {
-    const min = Math.floor((now - lastC) / 60000);
-    if (min < 1) return "Aguardando resposta";
-    return `Aguardando há ${min}m`;
-  }
-  if (first && lastC) {
-    const min = Math.round((first - Math.min(created, lastC)) / 60000);
-    if (min >= 0) return `1ª resposta em ${min}m`;
-  }
-  if (lastA && lastC) {
-    const min = Math.round((lastA - lastC) / 60000);
-    if (min >= 0) return `Respondido em ${min}m`;
-  }
-  return "";
-}
+const SLA_HEADER: Record<
+  InboxSlaLevel,
+  { label: string; className: string }
+> = {
+  low: { label: "SLA OK", className: "bg-slate-100 text-slate-700 ring-slate-200/80" },
+  medium: { label: "SLA médio", className: "bg-amber-100 text-amber-950 ring-amber-200/80" },
+  high: { label: "SLA alto", className: "bg-orange-100 text-orange-950 ring-orange-200/70" },
+  critical: { label: "Crítico", className: "bg-red-100 text-red-950 ring-2 ring-red-400/80" },
+};
 
 type ChatHeaderProps = {
   threadId: string | null;
@@ -43,6 +34,7 @@ type ChatHeaderProps = {
   showBack?: boolean;
   auditTab?: boolean;
   onAuditTabChange?: (show: boolean) => void;
+  onOpenNotes?: () => void;
 };
 
 export function ChatHeader({
@@ -52,36 +44,33 @@ export function ChatHeader({
   showBack,
   auditTab,
   onAuditTabChange,
+  onOpenNotes,
 }: ChatHeaderProps) {
   const client = useQueryClient();
   const [assignOpen, setAssignOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
   const [tagOpen, setTagOpen] = useState(false);
+  const [actionBusy, setActionBusy] = useState(false);
   const assignRef = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLDivElement>(null);
   const tagRef = useRef<HTMLDivElement>(null);
 
-  const { data: tags = [] } = useQuery({
+  const { data: tagsFetched = [] } = useQuery({
     queryKey: INBOX_QK.tags,
     queryFn: fetchInboxTags,
   });
-  const { data: users = [] } = useQuery({
+  const { data: usersFetched = [] } = useQuery({
     queryKey: INBOX_QK.users,
     queryFn: fetchInboxUsers,
   });
-  const { data: viewersList = [] } = useQuery({
-    queryKey: threadId ? INBOX_QK.viewers(threadId) : (["inbox-viewers", "none"] as const),
-    queryFn: () => [] as Array<{ userId: string; name?: string }>,
-    initialData: [] as Array<{ userId: string; name?: string }>,
-    staleTime: Number.POSITIVE_INFINITY,
-    enabled: Boolean(threadId),
-  });
 
-  const slaLabel = useSlaLabel(thread);
   const threadTagIds = new Set(thread?.threadTags?.map((tt) => tt.tag.id) ?? []);
 
   const invalidate = () => {
-    client.invalidateQueries({ queryKey: ["inbox-conversations"] });
+    client.invalidateQueries({ queryKey: ["inbox-conversations"], exact: false });
+    if (threadId) {
+      client.invalidateQueries({ queryKey: INBOX_QK.thread(threadId) });
+    }
   };
 
   useEffect(() => {
@@ -105,20 +94,26 @@ export function ChatHeader({
 
   const handleAssign = async (userId: string | null) => {
     try {
+      setActionBusy(true);
       await assignConversation(threadId, userId);
       invalidate();
     } catch (err) {
       console.error(err);
+    } finally {
+      setActionBusy(false);
     }
     setAssignOpen(false);
   };
 
   const handleStatus = async (status: "OPEN" | "PENDING" | "CLOSED") => {
     try {
+      setActionBusy(true);
       await updateConversationStatus(threadId, status);
       invalidate();
     } catch (err) {
       console.error(err);
+    } finally {
+      setActionBusy(false);
     }
     setStatusOpen(false);
   };
@@ -143,15 +138,22 @@ export function ChatHeader({
   };
 
   const title = thread.contactName?.trim() || thread.phoneNumber || "Conversa";
+  const state = thread.conversationState;
+  const stateLabel = state ? CONVERSATION_STATE_LABELS[state] : null;
+  const sla = thread.slaLevel ? SLA_HEADER[thread.slaLevel] : null;
+  const wait =
+    thread.responseDelayMs != null && state === "awaiting_agent"
+      ? formatWaitDurationMs(thread.responseDelayMs)
+      : null;
 
-  const waiting =
-    thread.lastCustomerMessageAt &&
-    (!thread.lastAgentReplyAt ||
-      new Date(thread.lastAgentReplyAt) < new Date(thread.lastCustomerMessageAt));
+  const canAssume = !thread.isAssignedToMe && thread.status !== "CLOSED";
+  const canRelease = Boolean(thread.isAssignedToMe && thread.status !== "CLOSED");
+  const canClose = thread.status !== "CLOSED";
+  const canReopen = thread.status === "CLOSED";
 
   return (
     <header className="flex flex-col border-b border-slate-100 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-      <div className="flex items-center gap-3 px-4 py-4 sm:px-6 sm:py-5">
+      <div className="flex items-start gap-3 px-4 py-4 sm:px-6 sm:py-5">
         {showBack && (
           <button
             type="button"
@@ -170,42 +172,111 @@ export function ChatHeader({
           {thread.phoneNumber && (
             <p className="truncate text-xs text-slate-500/90">{thread.phoneNumber}</p>
           )}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {stateLabel ? (
+              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-800 ring-1 ring-slate-200/80">
+                {stateLabel}
+              </span>
+            ) : null}
+            {sla && wait ? (
+              <span
+                className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ring-1 ${sla.className}`}
+                data-testid="chat-header-sla"
+              >
+                {sla.label} · {wait}
+              </span>
+            ) : wait ? (
+              <span className="text-[11px] font-medium text-slate-600">À espera há {wait}</span>
+            ) : null}
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                thread.status === "OPEN"
+                  ? "bg-emerald-50 text-emerald-900 ring-1 ring-emerald-100"
+                  : thread.status === "CLOSED"
+                    ? "bg-slate-100 text-slate-500"
+                    : "bg-indigo-50 text-indigo-800"
+              }`}
+            >
+              {thread.status === "OPEN" ? "Aberta" : thread.status === "CLOSED" ? "Fechada" : "Pendente"}
+            </span>
+            {thread.priority === "HIGH" ? (
+              <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-800">
+                Prioridade alta
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-2 text-xs text-slate-600">
+            <span className="font-medium text-slate-500">Responsável: </span>
+            {thread.assignedToUser ? (
+              <strong>{thread.assignedToUser.name}</strong>
+            ) : (
+              <span className="text-amber-800">Sem dono</span>
+            )}
+          </p>
           {thread.whatsappLine ? (
-            <p className="truncate text-[11px] text-slate-400">
+            <p className="mt-1 truncate text-[11px] text-slate-400">
               Linha:{" "}
               {thread.whatsappLine.label?.trim() ||
                 thread.whatsappLine.displayPhoneNumber?.trim() ||
                 `${thread.businessPhoneNumberId.slice(0, 10)}…`}
-              {thread.whatsappLine.isPrimary ? " · Principal" : ""}
-              {thread.whatsappLine.isDefaultOutbound ? " · Envio predefinido" : ""}
             </p>
           ) : null}
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            {waiting && thread.status === "OPEN" && (
-              <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-900">
-                À espera de resposta
-              </span>
-            )}
-            {!waiting && thread.lastAgentReplyAt && (
-              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-900 ring-1 ring-emerald-100">
-                Em conversa
-              </span>
-            )}
-            {slaLabel ? (
-              <span className="text-[11px] font-medium text-slate-500">{slaLabel}</span>
-            ) : null}
-          </div>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 border-t border-slate-100/90 bg-slate-50/40 px-4 py-3 sm:px-6">
+        {canAssume ? (
+          <button
+            type="button"
+            disabled={actionBusy}
+            className={buttonClassName("primary")}
+            onClick={() => handleAssign("me")}
+            data-testid="header-assume"
+          >
+            Assumir
+          </button>
+        ) : null}
+        {canRelease ? (
+          <button
+            type="button"
+            disabled={actionBusy}
+            className={buttonClassName("secondary")}
+            onClick={() => handleAssign(null)}
+            data-testid="header-release"
+          >
+            Liberar
+          </button>
+        ) : null}
+        {canClose ? (
+          <button
+            type="button"
+            disabled={actionBusy}
+            className={`${buttonClassName("secondary")} text-slate-700`}
+            onClick={() => handleStatus("CLOSED")}
+            data-testid="header-close"
+          >
+            Fechar
+          </button>
+        ) : null}
+        {canReopen ? (
+          <button
+            type="button"
+            disabled={actionBusy}
+            className={buttonClassName("secondary")}
+            onClick={() => handleStatus("OPEN")}
+            data-testid="header-reopen"
+          >
+            Reabrir
+          </button>
+        ) : null}
+
         <div className="relative" ref={assignRef}>
           <button
             type="button"
             onClick={() => setAssignOpen((o) => !o)}
             className="rounded-lg border border-slate-100 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-slate-200 hover:bg-slate-50/80"
           >
-            {thread.assignedToUser ? thread.assignedToUser.name : "Atribuir"}
+            {thread.assignedToUser ? thread.assignedToUser.name : "Atribuir…"}
           </button>
           {assignOpen && (
             <div className="absolute left-0 top-full z-20 mt-1.5 w-52 overflow-hidden rounded-xl border border-slate-100 bg-white py-1 shadow-lg shadow-slate-900/5">
@@ -223,7 +294,7 @@ export function ChatHeader({
               >
                 Desatribuir
               </button>
-              {users.map((u) => (
+              {usersFetched.map((u: { id: string; name: string }) => (
                 <button
                   key={u.id}
                   type="button"
@@ -243,7 +314,7 @@ export function ChatHeader({
             onClick={() => setStatusOpen((o) => !o)}
             className="rounded-lg border border-slate-100 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-slate-200 hover:bg-slate-50/80"
           >
-            {thread.status === "OPEN" ? "Aberta" : thread.status === "CLOSED" ? "Fechada" : "Pendente"}
+            Estado
           </button>
           {statusOpen && (
             <div className="absolute left-0 top-full z-20 mt-1.5 w-40 overflow-hidden rounded-xl border border-slate-100 bg-white py-1 shadow-lg shadow-slate-900/5">
@@ -261,7 +332,11 @@ export function ChatHeader({
           )}
         </div>
 
-        <div className="relative flex flex-wrap items-center gap-1" ref={tagRef}>
+        <div
+          className="relative flex flex-wrap items-center gap-1"
+          ref={tagRef}
+          data-testid="chat-thread-tags"
+        >
           {thread.threadTags?.map((tt) => (
             <span
               key={tt.tag.id}
@@ -288,7 +363,7 @@ export function ChatHeader({
           </button>
           {tagOpen && (
             <div className="absolute left-0 top-full z-20 mt-1.5 max-h-44 w-52 overflow-auto rounded-xl border border-slate-100 bg-white py-1 shadow-lg shadow-slate-900/5">
-              {tags.filter((t) => !threadTagIds.has(t.id)).map((t) => (
+              {tagsFetched.filter((t: { id: string }) => !threadTagIds.has(t.id)).map((t: { id: string; name: string }) => (
                 <button
                   key={t.id}
                   type="button"
@@ -298,14 +373,25 @@ export function ChatHeader({
                   {t.name}
                 </button>
               ))}
-              {tags.length === 0 && (
-                <p className="px-3 py-2 text-xs text-slate-500">Crie tags em Configurações.</p>
+              {tagsFetched.length === 0 && (
+                <p className="px-3 py-2 text-xs text-slate-500">Crie tags nas definições.</p>
               )}
             </div>
           )}
         </div>
 
-        {onAuditTabChange && (
+        {onOpenNotes ? (
+          <button
+            type="button"
+            onClick={onOpenNotes}
+            className="rounded-lg border border-amber-200/80 bg-amber-50/90 px-2.5 py-1.5 text-xs font-medium text-amber-950 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+            data-testid="header-notes"
+          >
+            Notas
+          </button>
+        ) : null}
+
+        {onAuditTabChange ? (
           <button
             type="button"
             onClick={() => onAuditTabChange(!auditTab)}
@@ -317,21 +403,8 @@ export function ChatHeader({
           >
             Histórico
           </button>
-        )}
+        ) : null}
       </div>
-
-      {(thread.assignedToUser || viewersList.length > 0) && (
-        <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 bg-slate-50/50 px-4 py-2 text-xs text-slate-600 sm:px-5">
-          {thread.assignedToUser && (
-            <span>Atendido por: <strong>{thread.assignedToUser.name}</strong></span>
-          )}
-          {viewersList.length > 0 && (
-            <span>
-              Visualizando: {viewersList.map((v) => v.name || v.userId).join(", ")}
-            </span>
-          )}
-        </div>
-      )}
     </header>
   );
 }

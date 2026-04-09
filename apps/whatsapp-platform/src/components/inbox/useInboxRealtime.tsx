@@ -79,6 +79,8 @@ function useInboxRealtimeConnection(enabled = true) {
             return { ...data, threads };
           }
         );
+        void qc.invalidateQueries({ queryKey: ["inbox-conversations"], exact: false });
+        void qc.invalidateQueries({ queryKey: INBOX_QK.thread(threadId) });
         return;
       }
 
@@ -95,6 +97,8 @@ function useInboxRealtimeConnection(enabled = true) {
             return { ...data, threads };
           }
         );
+        void qc.invalidateQueries({ queryKey: ["inbox-conversations"], exact: false });
+        void qc.invalidateQueries({ queryKey: INBOX_QK.thread(threadId) });
         return;
       }
 
@@ -168,6 +172,9 @@ function useInboxRealtimeConnection(enabled = true) {
             }
           );
         }
+        void qc.invalidateQueries({ queryKey: INBOX_QK.thread(threadId) });
+        void qc.invalidateQueries({ queryKey: ["inbox-conversations"], exact: false });
+        void qc.invalidateQueries({ queryKey: ["inbox-conversations", "tenant-total-global"] });
         return;
       }
 

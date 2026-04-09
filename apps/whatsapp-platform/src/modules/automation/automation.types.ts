@@ -1,5 +1,5 @@
 /**
- * Tipos para o engine de automação.
+ * Tipos para o engine de automação (Rule Engine v1).
  */
 
 export type AutomationTriggerType =
@@ -17,7 +17,11 @@ export type ConditionOperator =
   | "notEquals"
   | "exists"
   | "isNull"
-  | "timeSinceLastMessage_gt";
+  | "timeSinceLastMessage_gt"
+  | "gte"
+  | "lte"
+  | "gt"
+  | "lt";
 
 export type Condition = {
   field: string;
@@ -27,13 +31,17 @@ export type Condition = {
 
 export type ActionType =
   | "assignConversation"
+  | "assign_to_user"
   | "updateStatus"
   | "addTag"
+  | "add_tag"
   | "removeTag"
   | "setPriority"
   | "sendMessage"
+  | "send_message"
   | "triggerAIResponse"
-  | "logAction";
+  | "logAction"
+  | "notify";
 
 export type Action = {
   type: ActionType;
@@ -45,9 +53,25 @@ export type AutomationRuleRow = {
   tenantId: string;
   name: string;
   isActive: boolean;
+  isSystem?: boolean;
   triggerType: string;
   conditions: Condition[];
   actions: Action[];
+};
+
+/** Subconjunto enriquecido para avaliação de condições (inbox + SLA). */
+export type AutomationThreadContext = {
+  status?: string;
+  assignedToUserId?: string | null;
+  lastMessageAt?: Date;
+  lastCustomerMessageAt?: Date | null;
+  tags?: { id: string; name: string }[];
+  conversationState?: string;
+  slaLevel?: string | null;
+  isUnassigned?: boolean;
+  responseDelayMs?: number | null;
+  lastUnansweredInboundAt?: string | null;
+  lastInboundMessageAt?: string | null;
 };
 
 export type AutomationEvent = {
@@ -61,13 +85,7 @@ export type AutomationEvent = {
   tagId?: string;
   tagName?: string;
   assignedToUserId?: string | null;
-  thread?: {
-    status?: string;
-    assignedToUserId?: string | null;
-    lastMessageAt?: Date;
-    lastCustomerMessageAt?: Date | null;
-    tags?: { id: string; name: string }[];
-  };
+  thread?: AutomationThreadContext;
 };
 
 export type AutomationContext = {
@@ -82,13 +100,7 @@ export type AutomationContext = {
   status?: string;
   tagId?: string;
   assignedToUserId?: string | null;
-  thread?: {
-    status?: string;
-    assignedToUserId?: string | null;
-    lastMessageAt?: Date;
-    lastCustomerMessageAt?: Date | null;
-    tags?: { id: string; name: string }[];
-  };
+  thread?: AutomationThreadContext;
 };
 
 export type PlaybookStep = {

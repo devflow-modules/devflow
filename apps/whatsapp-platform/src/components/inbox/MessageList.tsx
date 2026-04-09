@@ -1,30 +1,24 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MessageBubble } from "./MessageBubble";
 import { fetchInboxMessages } from "./inboxFetch";
 import { INBOX_QK } from "./inboxTypes";
 import type { WaInboxMessageRow } from "./inboxTypes";
+import type { WaInboxThreadRow } from "./inboxTypes";
 import { useInboxRealtime } from "./useInboxRealtime";
 import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
+import {
+  calendarDayKey,
+  daySeparatorLabel,
+  firstUnreadSeparatorIndex,
+} from "./chatMessageUtils";
 
 const POLL_INTERVAL_REALTIME_MS = 10_000;
 const POLL_INTERVAL_FALLBACK_MS = 5_000;
 const CLUSTER_MAX_GAP_MS = 5 * 60 * 1000;
-
-function dateLabel(iso: string): string {
-  try {
-    return new Date(iso).toLocaleDateString("pt-BR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-    });
-  } catch {
-    return "";
-  }
-}
 
 function isCompactContinuation(messages: WaInboxMessageRow[], index: number): boolean {
   if (index === 0) return false;
@@ -35,8 +29,15 @@ function isCompactContinuation(messages: WaInboxMessageRow[], index: number): bo
   return dt >= 0 && dt < CLUSTER_MAX_GAP_MS;
 }
 
-export function MessageList({ threadId }: { threadId: string | null }) {
+export function MessageList({
+  threadId,
+  thread,
+}: {
+  threadId: string | null;
+  thread?: WaInboxThreadRow | null;
+}) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const lastMsgIdRef = useRef<string | null>(null);
   const { connected: realtimeConnected } = useInboxRealtime();
   const pollInterval = realtimeConnected ? POLL_INTERVAL_REALTIME_MS : POLL_INTERVAL_FALLBACK_MS;
 
@@ -47,28 +48,46 @@ export function MessageList({ threadId }: { threadId: string | null }) {
     refetchInterval: threadId ? pollInterval : false,
   });
 
-  const grouped = useMemo(() => {
+  const unreadIdx = useMemo(
+    () => (data?.length ? firstUnreadSeparatorIndex(data, thread?.unreadCount) : null),
+    [data, thread?.unreadCount]
+  );
+
+  const timeline = useMemo(() => {
     if (!data?.length) return [];
-    const out: { label: string; items: WaInboxMessageRow[] }[] = [];
-    let currentLabel = "";
-    let bucket: WaInboxMessageRow[] = [];
-    for (const m of data) {
-      const label = dateLabel(m.ts);
-      if (label !== currentLabel) {
-        if (bucket.length) out.push({ label: currentLabel, items: bucket });
-        currentLabel = label;
-        bucket = [m];
-      } else {
-        bucket.push(m);
+    const out: Array<
+      | { kind: "day"; label: string }
+      | { kind: "unread" }
+      | { kind: "msg"; message: WaInboxMessageRow; indexInData: number }
+    > = [];
+    let lastDay = "";
+    for (let i = 0; i < data.length; i++) {
+      const m = data[i];
+      const dk = calendarDayKey(m.ts);
+      if (dk !== lastDay) {
+        out.push({ kind: "day", label: daySeparatorLabel(m.ts) });
+        lastDay = dk;
       }
+      if (unreadIdx !== null && i === unreadIdx) {
+        out.push({ kind: "unread" });
+      }
+      out.push({ kind: "msg", message: m, indexInData: i });
     }
-    if (bucket.length) out.push({ label: currentLabel, items: bucket });
     return out;
+  }, [data, unreadIdx]);
+
+  useLayoutEffect(() => {
+    if (!data?.length) return;
+    const last = data[data.length - 1];
+    if (lastMsgIdRef.current !== last.id) {
+      lastMsgIdRef.current = last.id;
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [data]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [threadId, data?.length]);
+  }, [threadId]);
 
   if (!threadId) {
     return (
@@ -123,27 +142,40 @@ export function MessageList({ threadId }: { threadId: string | null }) {
       className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 px-4 py-6 sm:px-6 sm:py-8"
       data-testid="message-list"
     >
-      <div className="mx-auto flex max-w-3xl flex-col gap-10">
-        {grouped.map(({ label, items }) => (
-          <div key={label}>
-            <div className="mb-4 flex justify-center sm:mb-5">
-              <span className="rounded-full border border-slate-100 bg-white px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.08em] text-slate-400 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-                {label}
-              </span>
+      <div className="mx-auto flex max-w-3xl flex-col gap-3">
+        {timeline.map((item, ti) => {
+          if (item.kind === "day") {
+            return (
+              <div key={`d-${ti}-${item.label}`} className="flex justify-center py-2">
+                <span className="rounded-full border border-slate-100 bg-white px-3.5 py-1 text-[11px] font-medium capitalize tracking-wide text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+                  {item.label}
+                </span>
+              </div>
+            );
+          }
+          if (item.kind === "unread") {
+            return (
+              <div key={`u-${ti}`} className="flex justify-center py-2" data-testid="unread-separator">
+                <span className="rounded-full bg-[var(--df-brand-500)]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--df-brand-700)] ring-1 ring-[var(--df-brand-500)]/20">
+                  Novas mensagens
+                </span>
+              </div>
+            );
+          }
+          const idx = item.indexInData;
+          const compact = isCompactContinuation(data, idx);
+          return (
+            <div
+              key={item.message.id}
+              className={`transition-opacity duration-200 ${
+                idx === 0 ? "" : compact ? "" : "mt-4"
+              }`}
+            >
+              <MessageBubble message={item.message} compact={compact} />
             </div>
-            <div className="flex flex-col">
-              {items.map((m, i) => {
-                const compact = isCompactContinuation(items, i);
-                return (
-                  <div key={m.id} className={compact ? "" : i > 0 ? "mt-4" : ""}>
-                    <MessageBubble message={m} compact={compact} />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-        <div ref={bottomRef} className="h-px shrink-0" aria-hidden />
+          );
+        })}
+        <div ref={bottomRef} className="h-px shrink-0 scroll-mt-4" aria-hidden />
       </div>
     </div>
   );

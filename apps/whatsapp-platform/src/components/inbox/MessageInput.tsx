@@ -2,17 +2,39 @@
 
 import { useState, useCallback, useEffect, useRef, type KeyboardEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { sendInboxMessage, reportTyping } from "./inboxFetch";
-import { INBOX_QK, type WaInboxMessageRow } from "./inboxTypes";
+import {
+  sendInboxMessage,
+  reportTyping,
+  fetchSuggestedReply,
+  logFollowUpUse,
+} from "./inboxFetch";
+import { INBOX_QK, type WaInboxMessageRow, type WaInboxThreadRow } from "./inboxTypes";
 import { buttonClassName } from "@/components/ui/button";
 import { fieldControlBase } from "@/components/ui/form-field";
+import { followUpSuggestion } from "./followUpUtils";
+import { PlaybookSuggest } from "./PlaybookSuggest";
 
 const TYPING_DEBOUNCE_MS = 400;
 const TYPING_STOP_DELAY_MS = 1500;
 
-export function MessageInput({ threadId }: { threadId: string | null }) {
+const QUICK_TEMPLATES: { label: string; text: string }[] = [
+  { label: "Saudação", text: "Olá! Obrigado pelo contacto. Como posso ajudar?" },
+  { label: "Aguardar", text: "Obrigado pela paciência — já verifico e volto já com uma resposta." },
+  { label: "Dados", text: "Pode enviar mais detalhes ou um print do ecrã, por favor?" },
+  { label: "Horário", text: "O nosso horário de atendimento é de segunda a sexta, 9h–18h." },
+  { label: "Encerrar", text: "Posso ajudar em mais alguma coisa? Se não, tenha um bom dia!" },
+];
+
+export function MessageInput({
+  threadId,
+  thread,
+}: {
+  threadId: string | null;
+  thread?: WaInboxThreadRow | null;
+}) {
   const [text, setText] = useState("");
   const [retryText, setRetryText] = useState<string | null>(null);
+  const [aiPreview, setAiPreview] = useState<string | null>(null);
   const qc = useQueryClient();
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stopTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -25,6 +47,11 @@ export function MessageInput({ threadId }: { threadId: string | null }) {
     enabled: Boolean(threadId),
   });
   const typingList = Array.isArray(typingUsers) ? typingUsers : [];
+
+  const suggestMut = useMutation({
+    mutationFn: (tid: string) => fetchSuggestedReply(tid),
+    onSuccess: (data) => setAiPreview(data.text),
+  });
 
   const mutation = useMutation({
     mutationFn: ({ tid, body }: { tid: string; body: string }) =>
@@ -62,10 +89,12 @@ export function MessageInput({ threadId }: { threadId: string | null }) {
     onSettled: (_d, _e, vars) => {
       qc.invalidateQueries({ queryKey: INBOX_QK.messages(vars.tid) });
       qc.invalidateQueries({ queryKey: ["inbox-conversations"] });
+      if (vars.tid) qc.invalidateQueries({ queryKey: INBOX_QK.thread(vars.tid) });
     },
     onSuccess: () => {
       setText("");
       setRetryText(null);
+      setAiPreview(null);
     },
   });
 
@@ -98,6 +127,12 @@ export function MessageInput({ threadId }: { threadId: string | null }) {
     mutation.mutate({ tid: threadId, body: text.trim() });
   }, [threadId, text, mutation]);
 
+  const applyTemplate = (tpl: string) => {
+    const name = thread?.contactName?.trim();
+    const personalized = name ? tpl.replace(/\{\{nome\}\}/g, name) : tpl;
+    setText((prev) => (prev ? `${prev.trim()}\n\n${personalized}` : personalized));
+  };
+
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -126,6 +161,31 @@ export function MessageInput({ threadId }: { threadId: string | null }) {
           </span>
         </p>
       )}
+      {thread && followUpSuggestion(thread)?.show ? (
+        <div
+          className="mb-3 rounded-xl border border-amber-200/90 bg-amber-50/90 px-3 py-2.5 text-sm text-amber-950 shadow-sm"
+          data-testid="follow-up-banner"
+        >
+          <p className="font-medium">Follow-up sugerido</p>
+          <p className="mt-1 text-xs text-amber-900/85">
+            O cliente ainda não respondeu após a última mensagem sua — pode enviar um lembrete cordial.
+          </p>
+          <button
+            type="button"
+            className={`${buttonClassName("secondary")} mt-2 text-xs`}
+            onClick={async () => {
+              const fu = followUpSuggestion(thread);
+              if (!fu?.show) return;
+              setText(fu.suggestedText);
+              void logFollowUpUse(threadId);
+              await qc.invalidateQueries({ queryKey: INBOX_QK.audit(threadId) });
+            }}
+          >
+            Usar texto sugerido
+          </button>
+        </div>
+      ) : null}
+
       {mutation.isError && (
         <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-red-100 bg-red-50/80 px-3 py-2.5 text-sm text-red-800">
           <span className="font-medium">Não enviámos a mensagem.</span>
@@ -144,6 +204,84 @@ export function MessageInput({ threadId }: { threadId: string | null }) {
           ) : null}
         </div>
       )}
+
+      <div className="mb-3 flex flex-wrap gap-1.5">
+        {QUICK_TEMPLATES.map((t) => (
+          <button
+            key={t.label}
+            type="button"
+            className="rounded-full border border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[11px] font-medium text-slate-700 transition hover:bg-white"
+            onClick={() => applyTemplate(t.text)}
+            data-testid={`template-${t.label}`}
+          >
+            {t.label}
+          </button>
+        ))}
+        <button
+          type="button"
+          disabled={suggestMut.isPending || mutation.isPending}
+          className="rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-900 transition hover:bg-violet-100 disabled:opacity-50"
+          onClick={() => suggestMut.mutate(threadId)}
+          data-testid="btn-ai-suggest"
+        >
+          {suggestMut.isPending ? "A gerar…" : "Gerar com IA"}
+        </button>
+      </div>
+
+      <PlaybookSuggest
+        threadId={threadId}
+        sendDisabled={mutation.isPending}
+        onUseResponse={(t) => setText(t)}
+      />
+
+      {suggestMut.isError && (
+        <p className="mb-2 text-xs text-red-600">
+          {suggestMut.error instanceof Error ? suggestMut.error.message : "Erro ao gerar sugestão"}
+        </p>
+      )}
+
+      {aiPreview !== null && (
+        <div
+          className="mb-3 rounded-xl border border-violet-100 bg-violet-50/50 p-3 text-sm shadow-sm transition-all duration-200"
+          data-testid="ai-preview"
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-violet-900">
+            Pré-visualização (IA)
+          </p>
+          <p className="mt-2 whitespace-pre-wrap text-slate-800">{aiPreview}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className={buttonClassName("primary")}
+              onClick={() => {
+                setText(aiPreview);
+                setAiPreview(null);
+              }}
+            >
+              Usar no editor
+            </button>
+            <button
+              type="button"
+              className={buttonClassName("secondary")}
+              onClick={() => setAiPreview(null)}
+            >
+              Descartar
+            </button>
+            <button
+              type="button"
+              className={buttonClassName("secondary")}
+              disabled={mutation.isPending}
+              onClick={() => {
+                if (!threadId) return;
+                mutation.mutate({ tid: threadId, body: aiPreview });
+              }}
+            >
+              Enviar direto
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <label className="sr-only" htmlFor="inbox-composer">
           Mensagem para o cliente
@@ -156,7 +294,7 @@ export function MessageInput({ threadId }: { threadId: string | null }) {
           placeholder="Escreva a mensagem…"
           rows={2}
           disabled={mutation.isPending}
-          className={`min-h-[48px] flex-1 resize-none text-[15px] leading-relaxed shadow-inner sm:min-h-[52px] ${fieldControlBase} bg-slate-50/60 focus:bg-white`}
+          className={`min-h-[48px] flex-1 resize-none text-[15px] leading-relaxed shadow-inner transition-colors duration-200 sm:min-h-[52px] ${fieldControlBase} bg-slate-50/60 focus:bg-white`}
         />
         <button
           type="button"

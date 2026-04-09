@@ -86,3 +86,15 @@ export async function dispatchTagRemoved(
     tagId,
   });
 }
+
+/** Cron ou POST `/api/automation/run-rules` — regras com trigger TIME_ELAPSED. */
+export async function dispatchTimeElapsed(
+  tenantId: string,
+  threadId: string
+): Promise<{ rulesApplied: number }> {
+  return dispatchEvent({
+    triggerType: "TIME_ELAPSED",
+    tenantId,
+    threadId,
+  });
+}

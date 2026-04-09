@@ -4,6 +4,7 @@ import type {
   WaInboxThreadRow,
   InboxConversationsFilter,
   WhatsappLineSummary,
+  InternalNoteRow,
 } from "./inboxTypes";
 
 async function inboxFailMessage(res: Response): Promise<string> {
@@ -20,10 +21,8 @@ function buildConversationsUrl(
   businessPhoneNumberId?: string | null
 ): string {
   const params = new URLSearchParams({ limit: "100" });
-  if (filter && filter !== "all") {
-    if (filter === "assigned_to_me") params.set("assignedTo", "me");
-    else if (filter === "unassigned") params.set("assignedTo", "unassigned");
-    else params.set("status", filter);
+  if (filter) {
+    params.set("phase", filter);
   }
   if (businessPhoneNumberId?.trim()) {
     params.set("businessPhoneNumberId", businessPhoneNumberId.trim());
@@ -48,6 +47,107 @@ export async function fetchInboxConversations(
     };
   };
   return json.data;
+}
+
+export async function fetchInboxThread(threadId: string): Promise<WaInboxThreadRow> {
+  const res = await fetchProtected(`/api/inbox/conversations/${encodeURIComponent(threadId)}`);
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
+  const json = (await res.json()) as {
+    success: boolean;
+    data: { thread: WaInboxThreadRow };
+  };
+  return json.data.thread;
+}
+
+export async function fetchSuggestedReply(threadId: string): Promise<{ text: string }> {
+  const res = await fetchProtected(
+    `/api/inbox/conversations/${encodeURIComponent(threadId)}/suggest-reply`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    }
+  );
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
+  const json = (await res.json()) as {
+    success: boolean;
+    data?: { text: string };
+    error?: { message?: string };
+  };
+  if (!json.success || !json.data?.text?.trim()) {
+    throw new Error(json.error?.message ?? "Não foi possível gerar a sugestão");
+  }
+  return { text: json.data.text.trim() };
+}
+
+export async function fetchInternalNotes(threadId: string): Promise<InternalNoteRow[]> {
+  const res = await fetchProtected(
+    `/api/inbox/conversations/${encodeURIComponent(threadId)}/internal-notes`
+  );
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
+  const json = (await res.json()) as { success: boolean; data: { notes: InternalNoteRow[] } };
+  return json.data.notes ?? [];
+}
+
+export async function createInternalNoteApi(threadId: string, body: string): Promise<InternalNoteRow> {
+  const res = await fetchProtected(
+    `/api/inbox/conversations/${encodeURIComponent(threadId)}/internal-notes`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ body }),
+    }
+  );
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
+  const json = (await res.json()) as { success: boolean; data: { note: InternalNoteRow } };
+  return json.data.note;
+}
+
+export async function deleteInternalNoteApi(threadId: string, noteId: string): Promise<void> {
+  const res = await fetchProtected(
+    `/api/inbox/conversations/${encodeURIComponent(threadId)}/internal-notes/${encodeURIComponent(noteId)}`,
+    { method: "DELETE" }
+  );
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
+}
+
+export type PlaybookSuggestion = {
+  intent: string;
+  recommendedAction: string;
+  suggestedResponse: string;
+  tokensUsed: number | null;
+  durationMs: number;
+};
+
+export async function fetchPlaybookSuggestion(threadId: string): Promise<PlaybookSuggestion> {
+  const res = await fetchProtected(
+    `/api/inbox/conversations/${encodeURIComponent(threadId)}/suggest-playbook`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    }
+  );
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
+  const json = (await res.json()) as {
+    success: boolean;
+    data?: PlaybookSuggestion;
+    error?: { message?: string };
+  };
+  if (!json.success || !json.data) {
+    throw new Error(json.error?.message ?? "Não foi possível gerar o playbook");
+  }
+  return json.data;
+}
+
+export async function logFollowUpUse(threadId: string): Promise<void> {
+  const res = await fetchProtected(
+    `/api/inbox/conversations/${encodeURIComponent(threadId)}/follow-up/log`,
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }
+  );
+  if (!res.ok) {
+    console.warn("[inbox] logFollowUpUse failed", res.status);
+  }
 }
 
 export async function fetchTenantWhatsappLines(): Promise<WhatsappLineSummary[]> {

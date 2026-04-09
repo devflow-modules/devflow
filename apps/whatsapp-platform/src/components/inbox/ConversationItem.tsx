@@ -1,21 +1,21 @@
 "use client";
 
 import { memo } from "react";
-import type { WaInboxThreadRow } from "./inboxTypes";
+import type { InboxSlaLevel, WaInboxThreadRow } from "./inboxTypes";
 import { threadNeedsAgentReply } from "./messageOutboundKind";
+import { type ConversationState } from "@/modules/inbox/waInboxConversationState";
+import { formatCompactWaitDurationMs } from "@/modules/inbox/waInboxSla";
+import { conversationPreviewPrefix } from "./conversationPreviewPrefix";
 
-function formatListTime(iso: string): string {
+function formatListTimeCompact(iso: string): string {
   try {
-    const d = new Date(iso);
-    const now = new Date();
-    const sameDay =
-      d.getDate() === now.getDate() &&
-      d.getMonth() === now.getMonth() &&
-      d.getFullYear() === now.getFullYear();
-    if (sameDay) {
-      return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-    }
-    return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+    const diff = Date.now() - new Date(iso).getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 1) return "agora";
+    if (m < 60) return `${m}m`;
+    const h = Math.floor(m / 60);
+    if (h < 48) return `${h}h`;
+    return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
   } catch {
     return "";
   }
@@ -25,100 +25,161 @@ export const ConversationItem = memo(function ConversationItem({
   thread,
   active,
   onSelect,
+  onAssume,
+  onClose,
+  busyAction,
 }: {
   thread: WaInboxThreadRow;
   active: boolean;
   onSelect: (id: string) => void;
+  onAssume?: (id: string) => void;
+  onClose?: (id: string) => void;
+  busyAction?: { id: string; kind: "assume" | "close" } | null;
 }) {
   const title = thread.contactName?.trim() || thread.phoneNumber;
-  const preview = thread.lastMessagePreview?.trim() || "—";
+  const initials = title.slice(0, 2).toUpperCase();
+  const rawPreview = thread.lastMessagePreview?.trim() || "—";
+  const prefix = conversationPreviewPrefix(thread);
   const needsReply = threadNeedsAgentReply(thread);
+  const pendingCount = thread.unansweredInboundCount ?? 0;
+  const state = thread.conversationState as ConversationState | undefined;
+  const showSlaWait = state === "awaiting_agent" && thread.responseDelayMs != null;
+  const waitLabel = showSlaWait ? formatCompactWaitDurationMs(thread.responseDelayMs!) : null;
+  const isCritical = state === "awaiting_agent" && thread.slaLevel === "critical";
+  const isHigh = state === "awaiting_agent" && thread.slaLevel === "high";
+  const showActions = Boolean(onAssume || onClose);
+  const canAssume = Boolean(onAssume && !thread.isAssignedToMe && thread.status !== "CLOSED");
+  const canClose = Boolean(onClose && thread.status !== "CLOSED");
+  const showSemDono = Boolean(
+    (thread.isUnassigned || !thread.assignedToUser) && thread.status !== "CLOSED"
+  );
+
+  const slaRank = (s: InboxSlaLevel | null | undefined): number =>
+    s === "critical" ? 0 : s === "high" ? 1 : s === "medium" ? 2 : 3;
+
+  const rowClass = [
+    "group relative flex w-full items-stretch border-b border-slate-100/80 transition-[background-color,box-shadow] duration-200 ease-out",
+    isCritical
+      ? "bg-gradient-to-r from-red-50 via-red-50/95 to-red-50/80 shadow-[inset_4px_0_0_0_rgb(220,38,38),0_0_0_1px_rgba(248,113,113,0.25)]"
+      : isHigh
+        ? "bg-gradient-to-r from-orange-50/90 to-orange-50/60 shadow-[inset_4px_0_0_0_rgb(234,88,12)]"
+        : active
+          ? "bg-slate-50/95 shadow-[inset_3px_0_0_0_var(--df-brand-500)]"
+          : "bg-white hover:bg-slate-50/90",
+  ].join(" ");
+
+  const avatarClass = isCritical
+    ? "bg-red-100 text-red-900 ring-2 ring-red-200/80"
+    : isHigh
+      ? "bg-orange-100 text-orange-950 ring-1 ring-orange-200/80"
+      : active
+        ? "bg-[var(--df-brand-600)] text-white shadow-sm ring-0"
+        : "bg-slate-100 text-slate-700 ring-1 ring-slate-200/80";
 
   return (
-    <button
-      type="button"
-      onClick={() => onSelect(thread.id)}
-      data-testid="conversation-item"
-      data-thread-id={thread.id}
-      className={`flex w-full gap-3.5 border-b border-slate-100/90 px-4 py-4 text-left transition-colors ${
-        active
-          ? "border-l-[3px] border-l-[var(--df-brand-500)] bg-slate-50/95 pl-[calc(1rem-3px)]"
-          : "border-l-[3px] border-l-transparent bg-white pl-[calc(1rem-3px)] hover:bg-slate-50/80"
-      }`}
-    >
-      <div
-        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-          active ? "bg-[var(--df-brand-600)] text-white shadow-sm" : "bg-slate-100 text-slate-600"
-        }`}
+    <div className={rowClass} data-thread-id={thread.id}>
+      <button
+        type="button"
+        onClick={() => onSelect(thread.id)}
+        data-testid="conversation-item"
+        className="flex min-w-0 flex-1 items-start gap-2.5 px-2 py-2.5 text-left sm:gap-3 sm:px-2.5 sm:py-2.5"
       >
-        {title.slice(0, 2).toUpperCase()}
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-baseline justify-between gap-2">
-          <span className={`truncate font-semibold ${active ? "text-slate-950" : "text-slate-800"}`}>{title}</span>
-          <span className="shrink-0 text-xs tabular-nums text-slate-400/90">
-            {formatListTime(thread.lastMessageAt)}
-          </span>
+        <div
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[11px] font-bold tracking-tight transition-transform duration-200 ease-out group-hover:scale-[1.02] ${avatarClass}`}
+          aria-hidden
+        >
+          {initials}
         </div>
-        <div className="mt-1 flex items-center justify-between gap-2">
-          <p className="truncate text-sm leading-snug text-slate-500/95">{preview}</p>
-          {thread.unreadCount > 0 && (
+        <div className="min-w-0 flex-1 pr-1">
+          <div className="flex min-w-0 items-start justify-between gap-2">
             <span
-              className="shrink-0 rounded-full bg-[var(--df-brand-600)] px-2 py-0.5 text-xs font-semibold text-white"
-              data-testid="unread-badge"
+              className={`truncate text-[13px] font-semibold leading-tight ${active ? "text-slate-950" : "text-slate-900"}`}
             >
-              {thread.unreadCount > 99 ? "99+" : thread.unreadCount}
+              {title}
             </span>
-          )}
+            <div className="shrink-0 text-right">
+              {state === "awaiting_agent" && waitLabel ? (
+                <span
+                  className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
+                    isCritical
+                      ? "bg-red-600/15 text-red-800 ring-1 ring-red-300/50"
+                      : isHigh
+                        ? "bg-orange-500/15 text-orange-950 ring-1 ring-orange-300/50"
+                        : "text-slate-600"
+                  }`}
+                  data-testid="sla-wait-label"
+                  data-sla-rank={slaRank(thread.slaLevel)}
+                >
+                  {waitLabel}
+                </span>
+              ) : (
+                <span className="text-[11px] tabular-nums text-slate-400">{formatListTimeCompact(thread.lastMessageAt)}</span>
+              )}
+            </div>
+          </div>
+
+          <p className="mt-1 line-clamp-2 text-left text-[12px] leading-snug text-slate-600">
+            <span className="font-semibold text-slate-400">{prefix}</span>
+            <span className="text-slate-400"> · </span>
+            <span>{rawPreview}</span>
+          </p>
+
+          <div className="mt-1 flex flex-wrap items-center gap-1">
+            {pendingCount > 0 ? (
+              <span
+                className="min-w-[1.25rem] rounded-md bg-[var(--df-brand-600)] px-1 py-0.5 text-center text-[10px] font-bold text-white tabular-nums"
+                data-testid="pending-inbound-badge"
+              >
+                {pendingCount > 99 ? "99+" : pendingCount}
+              </span>
+            ) : null}
+            {showSemDono ? (
+              <span
+                className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[9px] font-semibold text-amber-950 ring-1 ring-amber-200/70"
+                data-testid="unassigned-chip"
+              >
+                Sem dono
+              </span>
+            ) : null}
+            {needsReply && thread.status === "OPEN" && !state && (
+              <span className="rounded-md bg-amber-100/90 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-amber-950">
+                À espera
+              </span>
+            )}
+          </div>
         </div>
-        <div className="mt-1.5 flex flex-wrap items-center gap-1">
-          {needsReply && thread.status === "OPEN" && (
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
-              À espera
-            </span>
-          )}
-          {thread.status && (
-            <span
-              className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                thread.status === "OPEN"
-                  ? "bg-slate-100 text-slate-700"
-                  : thread.status === "CLOSED"
-                    ? "bg-slate-100 text-slate-500"
-                    : "bg-indigo-50 text-indigo-800"
-              }`}
+      </button>
+
+      {showActions && (canAssume || canClose) ? (
+        <div
+          className="pointer-events-none absolute right-2 top-1/2 z-[2] flex -translate-y-1/2 translate-x-1 flex-col gap-1 opacity-0 shadow-sm transition-all duration-200 ease-out group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          {canAssume ? (
+            <button
+              type="button"
+              disabled={busyAction?.id === thread.id}
+              className="rounded-lg bg-[var(--df-brand-600)] px-2.5 py-1.5 text-[10px] font-semibold text-white shadow-md ring-1 ring-black/5 hover:bg-[var(--df-brand-700)] disabled:opacity-50"
+              onClick={() => onAssume?.(thread.id)}
+              data-testid="action-assume"
             >
-              {thread.status === "OPEN" ? "Aberta" : thread.status === "CLOSED" ? "Fechada" : "Pendente"}
-            </span>
-          )}
-          {thread.priority === "HIGH" && (
-            <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-800">
-              Alta
-            </span>
-          )}
-          {thread.assignedToUser && (
-            <span
-              className="max-w-[100px] truncate rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-900 ring-1 ring-emerald-100"
-              title={thread.assignedToUser.name}
+              {busyAction?.id === thread.id && busyAction.kind === "assume" ? "…" : "Assumir"}
+            </button>
+          ) : null}
+          {canClose ? (
+            <button
+              type="button"
+              disabled={busyAction?.id === thread.id}
+              className="rounded-lg bg-white px-2.5 py-1.5 text-[10px] font-semibold text-slate-700 shadow-md ring-1 ring-slate-200/90 hover:bg-slate-50 disabled:opacity-50"
+              onClick={() => onClose?.(thread.id)}
+              data-testid="action-close"
             >
-              {thread.assignedToUser.name.split(" ")[0]}
-            </span>
-          )}
-          {thread.whatsappLine ? (
-            <span
-              className="max-w-[120px] truncate rounded bg-sky-50 px-1.5 py-0.5 text-[9px] font-semibold text-sky-900 ring-1 ring-sky-100"
-              title={
-                thread.whatsappLine.label ||
-                thread.whatsappLine.displayPhoneNumber ||
-                thread.whatsappLine.phoneNumberId
-              }
-            >
-              {thread.whatsappLine.label?.trim() ||
-                thread.whatsappLine.displayPhoneNumber?.trim() ||
-                "WhatsApp"}
-            </span>
+              {busyAction?.id === thread.id && busyAction.kind === "close" ? "…" : "Fechar"}
+            </button>
           ) : null}
         </div>
-      </div>
-    </button>
+      ) : null}
+    </div>
   );
 });
