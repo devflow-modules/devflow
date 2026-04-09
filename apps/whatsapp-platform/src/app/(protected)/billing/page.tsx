@@ -1,9 +1,20 @@
 import { Suspense } from "react";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { StateLoading } from "@/components/ui/app-states";
+import { JWT_COOKIE_NAME } from "@/lib/auth-config";
+import { validateAuthToken } from "@/modules/auth";
+import { isAgent } from "@/lib/roles";
 import { BillingPageClient } from "./BillingPageClient";
 
-export default function BillingPage() {
+export default async function BillingPage() {
+  const store = await cookies();
+  const token = store.get(JWT_COOKIE_NAME)?.value;
+  const auth = token ? await validateAuthToken(token) : null;
+  if (auth && isAgent(auth.payload.role)) {
+    redirect("/inbox");
+  }
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <PageHeader

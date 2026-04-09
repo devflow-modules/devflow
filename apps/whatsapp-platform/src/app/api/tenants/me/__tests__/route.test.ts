@@ -44,6 +44,21 @@ describe("PATCH /api/tenants/me (aiDriver)", () => {
     expect(res.status).toBe(401);
   });
 
+  it("retorna 403 quando agent tenta PATCH", async () => {
+    mockGetAuthFromRequest.mockResolvedValue({
+      payload: { tenantId: "t1", sub: "u1", email: "a@b.com", name: "User", role: "agent" },
+    });
+    const { PATCH } = await import("../route");
+    const req = new Request("http://localhost/api/tenants/me", {
+      method: "PATCH",
+      body: JSON.stringify({ aiDriver: "openAI" }),
+    });
+    const res = await PATCH(req as never);
+    expect(res.status).toBe(403);
+    const data = await res.json();
+    expect(data.code).toBe("FORBIDDEN_ROLE");
+  });
+
   it("atualiza aiDriver e retorna 200", async () => {
     const { PATCH } = await import("../route");
     const req = new Request("http://localhost/api/tenants/me", {

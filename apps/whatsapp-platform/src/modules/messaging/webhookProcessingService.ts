@@ -5,9 +5,11 @@
 
 import type { ResolvedTenant } from "@/modules/tenants";
 import { prisma } from "@/lib/prisma";
+import { WaInboxDirection } from "@/generated/prisma-whatsapp";
 import { digitsOnly } from "@/modules/inbox/waInboxUtils";
 import { sendWebhookAutoReply } from "./sendMessageService";
 import { getReplyForMessage } from "@/modules/ai/ruleBasedReplies";
+import { buildFirstAutomaticReply } from "@/modules/ai/firstResponseTemplate";
 import { generateAiReply } from "@/modules/ai/aiOrchestrator";
 import { createLlmProvider, isLlmConfigured } from "@devflow/ai-core";
 import {
@@ -70,6 +72,29 @@ export async function prepareInboundConversation(
   return { inboxThreadId: thread.id, textBody };
 }
 
+async function resolveLegacyRuleReply(
+  tenantId: string,
+  inboxThreadId: string,
+  textBody: string
+): Promise<string> {
+  const inboundCount = await prisma.waInboxMessage.count({
+    where: { threadId: inboxThreadId, direction: WaInboxDirection.INBOUND },
+  });
+  const isFirstInbound = inboundCount <= 1;
+  if (isFirstInbound) {
+    const t = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { name: true, businessType: true },
+    });
+    return buildFirstAutomaticReply({
+      tenantId,
+      businessName: t?.name,
+      businessType: t?.businessType,
+    });
+  }
+  return getReplyForMessage(textBody);
+}
+
 /** Resposta automática legada (regras / WHATSAPP_ENABLE_LLM global). */
 export async function processLegacyInboundAutoReply(
   tenant: ResolvedTenant,
@@ -85,17 +110,19 @@ export async function processLegacyInboundAutoReply(
     isLlmConfigured();
 
   let reply: string;
+  let persistKind: "ai" | "automation" = "automation";
   if (useLlm) {
     try {
       const llm = createLlmProvider();
       reply = await generateAiReply({ userMessage: textBody, llm });
+      persistKind = "ai";
       trackAiResponseGeneratedLlm();
     } catch {
-      reply = getReplyForMessage(textBody);
+      reply = await resolveLegacyRuleReply(tenant.id, inboxThreadId, textBody);
       trackAiFallbackUsed();
     }
   } else {
-    reply = getReplyForMessage(textBody);
+    reply = await resolveLegacyRuleReply(tenant.id, inboxThreadId, textBody);
   }
 
   console.log("[WHATSAPP][DEBUG] legacy reply prepared", { to: from, replyLen: reply?.length ?? 0 });
@@ -106,6 +133,7 @@ export async function processLegacyInboundAutoReply(
       to: from,
       text: reply,
       inboxThreadId,
+      outboundKind: persistKind,
     });
     console.log("[WHATSAPP][DEBUG] legacy reply sent successfully", { to: from });
   } catch (err) {

@@ -19,6 +19,7 @@ export type TenantSnapshot =
       /** Linha Business preferida (principal ou mais recente) — pós-onboarding / primeiro teste. */
       primaryBusinessDisplayNumber: string | null;
       primaryBusinessPhoneNumberId: string | null;
+      primaryLineStatus: WhatsappPhoneNumberStatus | null;
     };
 
 /**
@@ -45,7 +46,7 @@ export async function getTenantSnapshot(): Promise<TenantSnapshot> {
       }),
       prisma.whatsappPhoneNumber.findMany({
         where: { tenantId: payload.tenantId, status: WhatsappPhoneNumberStatus.ACTIVE },
-        select: { id: true, displayPhoneNumber: true, phoneNumberId: true },
+        select: { id: true, displayPhoneNumber: true, phoneNumberId: true, status: true },
         orderBy: [{ isPrimary: "desc" }, { updatedAt: "desc" }],
         take: 1,
       }),
@@ -67,6 +68,7 @@ export async function getTenantSnapshot(): Promise<TenantSnapshot> {
       activationComplete,
       primaryBusinessDisplayNumber: wpn?.displayPhoneNumber?.trim() || null,
       primaryBusinessPhoneNumberId: wpn?.phoneNumberId ?? null,
+      primaryLineStatus: wpn?.status ?? null,
     };
   } catch {
     return { authenticated: false };

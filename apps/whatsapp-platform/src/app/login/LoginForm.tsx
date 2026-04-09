@@ -3,11 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { resolveLoginRedirect } from "@/lib/safe-redirect";
+import { resolvePostLoginRedirect } from "@/lib/postLoginRedirect";
 import { mapAuthHttpError } from "@/lib/auth-client-errors";
 import { PasswordField } from "@/components/auth/PasswordField";
-
-const DEFAULT_REDIRECT = "/dashboard/whatsapp";
 
 export function LoginForm() {
   const router = useRouter();
@@ -21,9 +19,10 @@ export function LoginForm() {
 
   useEffect(() => {
     fetch("/api/auth/verify", { credentials: "include" })
-      .then((res) => {
+      .then(async (res) => {
         if (res.ok) {
-          const redirect = resolveLoginRedirect(searchParams.get("next"), DEFAULT_REDIRECT);
+          const j = (await res.json().catch(() => ({}))) as { user?: { role?: string } };
+          const redirect = resolvePostLoginRedirect(searchParams.get("next"), j.user?.role);
           router.replace(redirect);
         }
       })
@@ -55,6 +54,7 @@ export function LoginForm() {
       const data = (await res.json().catch(() => ({}))) as {
         error?: string;
         code?: string;
+        user?: { role?: string };
       };
 
       if (!res.ok) {
@@ -62,7 +62,7 @@ export function LoginForm() {
         return;
       }
 
-      const redirect = resolveLoginRedirect(searchParams.get("next"), DEFAULT_REDIRECT);
+      const redirect = resolvePostLoginRedirect(searchParams.get("next"), data.user?.role);
       router.push(redirect);
       router.refresh();
     } catch {

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import type { Prisma } from "@/generated/prisma-whatsapp";
 import { getAuthFromRequest } from "@/modules/auth";
+import { permissionsMessages } from "@/lib/permissionsMessages";
+import { isAdmin } from "@/lib/roles";
 import { prisma } from "@/lib/prisma";
 import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
 import { resolvePrimaryPhoneNumber } from "@/modules/whatsapp/whatsappPhoneResolution";
@@ -62,6 +64,13 @@ export async function PATCH(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
   if (!auth) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  }
+
+  if (!isAdmin(auth.payload.role)) {
+    return NextResponse.json(
+      { error: permissionsMessages.adminOnly, code: "FORBIDDEN_ROLE" },
+      { status: 403 }
+    );
   }
 
   const parsed = patchBodySchema.safeParse(await request.json());

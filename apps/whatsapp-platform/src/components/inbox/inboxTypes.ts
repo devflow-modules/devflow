@@ -7,6 +7,7 @@ export type WhatsappLineSummary = {
   displayPhoneNumber: string | null;
   isPrimary: boolean;
   isDefaultOutbound: boolean;
+  status: string;
 };
 
 export type WaInboxThreadRow = {

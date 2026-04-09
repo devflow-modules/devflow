@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { SupportHelpButton } from "@/components/support/SupportHelpButton";
 import { NAV_ADMIN, NAV_OPERATION, NAV_PRIMARY, NAV_SECONDARY } from "./nav-config";
 import { fetchProtected } from "@/lib/protected-fetch";
+import { isNavItemHiddenForAgent } from "@/lib/roles";
 
 function NavLink({
   href,
@@ -71,6 +73,17 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
     window.location.href = "/login";
   }
 
+  const primaryNav =
+    sessionRole === "agent"
+      ? NAV_PRIMARY.filter((item) => !isNavItemHiddenForAgent(item.href))
+      : NAV_PRIMARY;
+
+  const secondaryNav = NAV_SECONDARY.filter((item) => {
+    if (item.href === "/settings/developer") return sessionRole === "admin";
+    if (sessionRole === "agent") return !isNavItemHiddenForAgent(item.href);
+    return true;
+  });
+
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-slate-100/90 bg-white">
       <div className="border-b border-slate-100/90 px-4 py-6">
@@ -83,7 +96,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
       <nav className="flex-1 overflow-y-auto px-2 py-4">
         <SectionTitle>Principal</SectionTitle>
         <div className="space-y-0.5">
-          {NAV_PRIMARY.map((item) => (
+          {primaryNav.map((item) => (
             <NavLink
               key={item.href}
               href={item.href}
@@ -94,20 +107,22 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
           ))}
         </div>
 
-        <SectionTitle>Conta</SectionTitle>
-        <div className="space-y-0.5">
-          {NAV_SECONDARY.filter(
-            (item) => item.href !== "/settings/developer" || sessionRole === "admin"
-          ).map((item) => (
-            <NavLink
-              key={item.href}
-              href={item.href}
-              label={item.label}
-              active={navIsActive(item.href)}
-              onNavigate={onNavigate}
-            />
-          ))}
-        </div>
+        {secondaryNav.length > 0 ? (
+          <>
+            <SectionTitle>Conta</SectionTitle>
+            <div className="space-y-0.5">
+              {secondaryNav.map((item) => (
+                <NavLink
+                  key={item.href}
+                  href={item.href}
+                  label={item.label}
+                  active={navIsActive(item.href)}
+                  onNavigate={onNavigate}
+                />
+              ))}
+            </div>
+          </>
+        ) : null}
 
         <SectionTitle>Operação</SectionTitle>
         <div className="space-y-0.5">
@@ -124,6 +139,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
 
       <div className="border-t border-slate-100 p-3">
+        <SupportHelpButton variant="sidebar" className="mb-3" />
         {sessionRole === "admin" ? (
           <Link
             href={NAV_ADMIN.href}

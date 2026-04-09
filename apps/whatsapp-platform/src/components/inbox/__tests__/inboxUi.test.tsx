@@ -7,13 +7,18 @@ import { ConversationsList } from "../ConversationsList";
 import { MessageBubble } from "../MessageBubble";
 import { MessageList } from "../MessageList";
 import type { WaInboxMessageRow, WaInboxThreadRow } from "../inboxTypes";
+import { SupportProvider } from "@/components/support/SupportProvider";
 
 function createWrapper() {
   const qc = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   return function Wrapper({ children }: { children: React.ReactNode }) {
-    return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
+    return (
+      <QueryClientProvider client={qc}>
+        <SupportProvider>{children}</SupportProvider>
+      </QueryClientProvider>
+    );
   };
 }
 
@@ -174,6 +179,7 @@ describe("Inbox UI", () => {
         displayPhoneNumber: "+351 910 000 000",
         isPrimary: true,
         isDefaultOutbound: true,
+        status: "ACTIVE",
       },
     ];
     render(

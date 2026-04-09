@@ -44,7 +44,7 @@ function StatusTicks({ status, outbound }: { status: string; outbound: boolean }
 
 function outboundKindLabel(kind: "ai" | "automation" | "agent"): string {
   if (kind === "ai") return "IA";
-  if (kind === "automation") return "Automação";
+  if (kind === "automation") return "Automático";
   return "Agente";
 }
 
@@ -62,7 +62,7 @@ function OutboundKindBadge({ kind }: { kind: "ai" | "automation" | "agent" }) {
         kind === "ai"
           ? "Resposta gerada por IA"
           : kind === "automation"
-            ? "Enviado por automação"
+            ? "Resposta automática (regras / fluxo de boas-vindas)"
             : "Enviado por um agente humano na plataforma"
       }
     >

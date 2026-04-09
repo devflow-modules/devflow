@@ -1,4 +1,9 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { JWT_COOKIE_NAME } from "@/lib/auth-config";
+import { validateAuthToken } from "@/modules/auth";
+import { isAgent } from "@/lib/roles";
 import { OnboardingWizard } from "./OnboardingWizard";
 
 export const metadata: Metadata = {
@@ -7,7 +12,13 @@ export const metadata: Metadata = {
   robots: "noindex, nofollow",
 };
 
-export default function OnboardingPage() {
+export default async function OnboardingPage() {
+  const store = await cookies();
+  const token = store.get(JWT_COOKIE_NAME)?.value;
+  const auth = token ? await validateAuthToken(token) : null;
+  if (auth && isAgent(auth.payload.role)) {
+    redirect("/inbox");
+  }
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-6">
       <div className="w-full max-w-lg">

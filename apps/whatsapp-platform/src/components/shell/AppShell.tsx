@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AppSidebar } from "./AppSidebar";
+import { SupportProvider } from "@/components/support/SupportProvider";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "";
@@ -27,6 +28,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [mobileNavOpen]);
 
   return (
+    <SupportProvider>
     <div className="flex min-h-screen bg-slate-50/90">
       {mobileNavOpen ? (
         <button
@@ -70,5 +72,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         </main>
       </div>
     </div>
+    </SupportProvider>
   );
 }

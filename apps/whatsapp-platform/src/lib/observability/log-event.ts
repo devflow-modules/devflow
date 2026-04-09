@@ -12,7 +12,8 @@ export type LogSource =
   | "automation"
   | "security"
   | "app"
-  | "email";
+  | "email"
+  | "support";
 
 /**
  * Log estruturado JSON (uma linha). Prefixo [source] para grep.

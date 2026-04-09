@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StateEmpty } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
+import { permissionsMessages } from "@/lib/permissionsMessages";
 import { validateAuthToken } from "@/modules/auth";
 import { DeveloperApiKeyClient } from "./DeveloperApiKeyClient";
 
@@ -54,7 +55,7 @@ export default async function DeveloperSettingsPage() {
         {header}
         <StateEmpty
           title="Acesso restrito a administradores"
-          description="Só administradores podem gerir a chave de API e integrações técnicas."
+          description={permissionsMessages.adminOnly}
           action={
             <Link href="/settings" className={buttonClassName("primary")}>
               Voltar às configurações

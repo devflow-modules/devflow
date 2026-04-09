@@ -73,6 +73,7 @@ export async function fetchTenantWhatsappLines(): Promise<WhatsappLineSummary[]>
       displayPhoneNumber: r.displayPhoneNumber,
       isPrimary: r.isPrimary,
       isDefaultOutbound: r.isDefaultOutbound,
+      status: r.status,
     }));
 }
 

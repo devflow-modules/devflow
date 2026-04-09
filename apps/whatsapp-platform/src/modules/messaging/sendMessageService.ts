@@ -17,13 +17,13 @@ export interface SendReplyInput {
   text: string;
   /** wa_inbox_threads.id (correlação / métricas) */
   inboxThreadId: string;
-  /** Mensagens da equipa na Inbox vs resposta automática (IA). */
-  outboundKind?: "agent" | "ai";
+  /** Equipa, IA (LLM) ou resposta automática por regras (webhook legado). */
+  outboundKind?: "agent" | "ai" | "automation";
 }
 
 async function sendCloudAndPersistOutbound(
   input: SendReplyInput,
-  outboundKind: "agent" | "ai"
+  outboundKind: "agent" | "ai" | "automation"
 ): Promise<{ messageId: string }> {
   const adapter = new WhatsAppCloudAdapter({ accessToken: input.tenant.accessToken });
   const { messageId } = await adapter.sendText(input.tenant.phoneNumberId, {
@@ -61,11 +61,13 @@ export async function sendReplyAndPersist(input: SendReplyInput): Promise<{ mess
 }
 
 export async function sendWebhookAutoReply(input: SendReplyInput): Promise<{ messageId: string }> {
+  const persistKind = input.outboundKind === "automation" ? "automation" : "ai";
   console.log("[WHATSAPP][DEBUG] sendWebhookAutoReply", {
     tenantId: input.tenant.id,
     phoneNumberId: input.tenant.phoneNumberId,
     to: input.to,
     inboxThreadId: input.inboxThreadId,
+    persistKind,
   });
-  return sendCloudAndPersistOutbound({ ...input, outboundKind: "ai" }, "ai");
+  return sendCloudAndPersistOutbound({ ...input, outboundKind: persistKind }, persistKind);
 }

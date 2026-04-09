@@ -8,6 +8,7 @@ type Props = {
   label?: string;
   copiedLabel?: string;
   className?: string;
+  onCopied?: () => void;
 };
 
 export function CopyTextButton({
@@ -15,6 +16,7 @@ export function CopyTextButton({
   label = "Copiar número",
   copiedLabel = "Copiado",
   className = "",
+  onCopied,
 }: Props) {
   const [copied, setCopied] = useState(false);
 
@@ -23,11 +25,12 @@ export function CopyTextButton({
     try {
       await navigator.clipboard.writeText(text.trim());
       setCopied(true);
+      onCopied?.();
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
       /* ignore */
     }
-  }, [text]);
+  }, [text, onCopied]);
 
   return (
     <button

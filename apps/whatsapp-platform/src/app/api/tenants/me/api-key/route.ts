@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
-import { getAuthFromRequest, requireRole } from "@/modules/auth";
+import { getAuthFromRequest } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
+import { permissionsMessages } from "@/lib/permissionsMessages";
+import { isAdmin } from "@/lib/roles";
 
 export async function POST(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  const denied = requireRole(auth, ["admin"], request);
-  if (denied) return denied;
   if (!auth) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  }
+  if (!isAdmin(auth.payload.role)) {
+    return NextResponse.json(
+      { error: permissionsMessages.adminOnly, code: "FORBIDDEN_ROLE" },
+      { status: 403 }
+    );
   }
 
   const apiKey = `wa_${randomBytes(32).toString("hex")}`;

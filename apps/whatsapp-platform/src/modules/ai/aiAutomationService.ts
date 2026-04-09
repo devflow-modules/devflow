@@ -230,6 +230,7 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
       to: from,
       inboxThreadId,
       text: gen.reply,
+      outboundKind: "ai",
     });
 
     trackUsage(tenantId, UsageEventType.AI_RESPONSE, {
@@ -339,6 +340,7 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
       to: from,
       inboxThreadId,
       text: gen.text,
+      outboundKind: "ai",
     });
 
     await prisma.aiMessageLog.create({

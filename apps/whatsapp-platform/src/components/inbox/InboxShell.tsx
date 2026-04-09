@@ -13,6 +13,7 @@ import { useInboxRealtime, InboxRealtimeProvider } from "./useInboxRealtime";
 import { OnlineUsersBadge } from "./OnlineUsersBadge";
 import { PageHeader } from "@/components/ui/page-header";
 import { FirstConversationHint } from "./FirstConversationHint";
+import { SupportHelpButton } from "@/components/support/SupportHelpButton";
 
 /** Polling: 10s quando realtime conectado, 5s como fallback. */
 const POLL_INTERVAL_REALTIME_MS = 10_000;
@@ -101,6 +102,7 @@ function InboxShellContent() {
           actions={
             <div className="flex w-full flex-wrap items-center gap-3 lg:w-auto lg:justify-end">
               {statusPill}
+              <SupportHelpButton variant="compact" className="rounded-lg px-2 py-1.5 no-underline hover:bg-slate-50" />
               <Link
                 href="/settings"
                 className="rounded-lg px-2 py-1.5 text-sm font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
@@ -153,6 +155,9 @@ function InboxShellContent() {
                   <p className="mt-2 text-sm leading-relaxed text-slate-600">
                     As threads estão na coluna da esquerda. Selecione um contacto para ver o histórico e enviar respostas.
                   </p>
+                  <div className="mt-4 flex justify-center">
+                    <SupportHelpButton variant="inline" />
+                  </div>
                 </div>
               </div>
             )}

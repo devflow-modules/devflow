@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { MetricsSection } from "@/app/dashboard/MetricsSection";
 import { fetchProtected } from "@/lib/protected-fetch";
 import { PostActivationGuide } from "@/components/dashboard/PostActivationGuide";
+import { SupportHelpButton } from "@/components/support/SupportHelpButton";
 
 type Overview = {
   totalMessages: number;
@@ -121,6 +122,23 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
 
   return (
     <div className="space-y-12">
+      <div className="flex justify-end">
+        <SupportHelpButton variant="inline" />
+      </div>
+      {sessionRole === "agent" && (
+        <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/50 px-5 py-4 text-sm text-emerald-950">
+          <p className="font-semibold">Pronto para atender</p>
+          <p className="mt-1 text-emerald-900/90">
+            Está na conta certa para operar conversas. Abra a Inbox para responder clientes em tempo real.
+          </p>
+          <div className="mt-3">
+            <Link href="/inbox" className={`${buttonClassName("primary")} inline-flex text-sm`}>
+              Abrir Inbox
+            </Link>
+          </div>
+        </div>
+      )}
+
       {!activationComplete && (
         <PageHeader
           eyebrow="Ativação"
@@ -242,6 +260,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
           <PostActivationGuide
             displayNumber={snapshot.primaryBusinessDisplayNumber}
             phoneNumberId={snapshot.primaryBusinessPhoneNumberId}
+            lineStatus={snapshot.primaryLineStatus}
           />
           <p className="mt-8 rounded-xl border border-slate-100/80 bg-white/60 px-4 py-3 text-xs leading-relaxed text-slate-600">
             Antes de divulgar o número aos clientes, confirme na Meta o webhook público e o código de verificação — detalhes em{" "}

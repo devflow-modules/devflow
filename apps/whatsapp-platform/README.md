@@ -18,6 +18,7 @@ App Next.js do produto WhatsApp Platform (DevFlow). Onboarding, auth (JWT + cook
 - **Agentes e filas**: `GET /api/admin/agent-status`, `PATCH /api/admin/agent-status`, `GET /api/admin/queues` (threads `wa_inbox` em espera), `GET /api/admin/queue/next` (próxima thread não atribuída + assign opcional), `POST /api/admin/conversations/:id/assign`. Páginas `/queues` (Supabase legado), `/agents`, `/admin/distribuir`.
 - **Configuração do tenant**: `GET /api/tenants/me`, `PATCH /api/tenants/me` (inclui `aiDriver`: `ruleBased` | `openAI` | `claude`). Página `/settings`.
 - **Exportação**: `GET /api/admin/export/conversations?from=&to=` e `GET /api/admin/export/messages?from=&to=` (CSV). Botões no dashboard de métricas.
+- **Suporte in-app**: botão «Precisa de ajuda?» (sidebar, dashboard, inbox); `POST /api/support/report` envia contexto técnico (sem tokens) por e-mail (Resend) e/ou webhook opcional — ver `WHATSAPP_SUPPORT_NOTIFY_EMAIL` e `WHATSAPP_SUPPORT_WEBHOOK_URL` no `.env.example`.
 - **FAQ**: `GET/POST /api/faq`, `GET/PUT/DELETE /api/faq/:id`.
 - **Feedback**: `POST /api/admin/messages/:id/feedback` (rating 1 | -1), `GET /api/admin/feedback-report`.
 - **Busca e export**: `GET /api/admin/conversations/search?q=`, `GET /api/admin/conversations/:id/export?format=csv`.

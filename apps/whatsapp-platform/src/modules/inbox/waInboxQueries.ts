@@ -86,6 +86,7 @@ export type WhatsappLineSummary = {
   displayPhoneNumber: string | null;
   isPrimary: boolean;
   isDefaultOutbound: boolean;
+  status: string;
 };
 
 export async function fetchWhatsappLineSummaries(
@@ -102,6 +103,7 @@ export async function fetchWhatsappLineSummaries(
       displayPhoneNumber: true,
       isPrimary: true,
       isDefaultOutbound: true,
+      status: true,
     },
   });
   return new Map(
@@ -113,6 +115,7 @@ export async function fetchWhatsappLineSummaries(
         displayPhoneNumber: r.displayPhoneNumber,
         isPrimary: r.isPrimary,
         isDefaultOutbound: r.isDefaultOutbound,
+        status: r.status,
       },
     ])
   );
