@@ -128,13 +128,24 @@ export async function processLegacyInboundAutoReply(
   console.log("[WHATSAPP][DEBUG] legacy reply prepared", { to: from, replyLen: reply?.length ?? 0 });
 
   try {
-    await sendWebhookAutoReply({
+    const sent = await sendWebhookAutoReply({
       tenant,
       to: from,
       text: reply,
       inboxThreadId,
       outboundKind: persistKind,
+      automaticTrigger: {
+        inboundWaMessageId: message.id,
+        triggerSource: "legacy",
+      },
     });
+    if (!sent.ok) {
+      console.log("[WHATSAPP][DEBUG] legacy reply aborted by guard", {
+        to: from,
+        reason: sent.reason,
+      });
+      return;
+    }
     console.log("[WHATSAPP][DEBUG] legacy reply sent successfully", { to: from });
   } catch (err) {
     console.error("[WHATSAPP][ERROR] Erro ao enviar resposta legada:", err);

@@ -10,6 +10,19 @@ import { trackMessageSent } from "@/modules/analytics";
 import { trackUsage } from "@/modules/billing/usageService";
 import { UsageEventType } from "@/generated/prisma-whatsapp";
 import { bumpMetric, logEvent } from "@/lib/observability";
+import { prisma } from "@/lib/prisma";
+import {
+  assertAutomaticOutboundAllowed,
+  logAutomaticReplyAborted,
+  type AutomaticOutboundTriggerContext,
+} from "./automaticReplyGuard";
+import { getWaAutoReplyClaimTtlMs } from "./automaticReplyClaimConfig";
+import {
+  claimAutomaticReplySend,
+  completeAutomaticReplyClaim,
+  failAutomaticReplyClaim,
+  verifyAutomaticReplyClaimBeforeSend,
+} from "./automaticReplyClaimService";
 
 export interface SendReplyInput {
   tenant: ResolvedTenant;
@@ -19,7 +32,16 @@ export interface SendReplyInput {
   inboxThreadId: string;
   /** Equipa, IA (LLM) ou resposta automática por regras (webhook legado). */
   outboundKind?: "agent" | "ai" | "automation";
+  /**
+   * Obrigatório para envios automáticos (IA / legado webhook): habilita rechecagem last mile,
+   * claim atómico e idempotência por mensagem inbound Meta.
+   */
+  automaticTrigger?: AutomaticOutboundTriggerContext;
 }
+
+export type WebhookAutoReplyResult =
+  | { ok: true; messageId: string }
+  | { ok: false; aborted: true; reason: string };
 
 async function sendCloudAndPersistOutbound(
   input: SendReplyInput,
@@ -60,7 +82,7 @@ export async function sendReplyAndPersist(input: SendReplyInput): Promise<{ mess
   return sendCloudAndPersistOutbound({ ...input, outboundKind: input.outboundKind ?? "agent" }, "agent");
 }
 
-export async function sendWebhookAutoReply(input: SendReplyInput): Promise<{ messageId: string }> {
+export async function sendWebhookAutoReply(input: SendReplyInput): Promise<WebhookAutoReplyResult> {
   const persistKind = input.outboundKind === "automation" ? "automation" : "ai";
   console.log("[WHATSAPP][DEBUG] sendWebhookAutoReply", {
     tenantId: input.tenant.id,
@@ -69,5 +91,91 @@ export async function sendWebhookAutoReply(input: SendReplyInput): Promise<{ mes
     inboxThreadId: input.inboxThreadId,
     persistKind,
   });
-  return sendCloudAndPersistOutbound({ ...input, outboundKind: persistKind }, persistKind);
+
+  const triggerSource = input.automaticTrigger?.triggerSource ?? "unknown";
+
+  if (!input.automaticTrigger) {
+    const gateOnly = await assertAutomaticOutboundAllowed(prisma, {
+      tenantId: input.tenant.id,
+      threadId: input.inboxThreadId,
+      trigger: undefined,
+    });
+    if (!gateOnly.allowed) {
+      logAutomaticReplyAborted({
+        tenantId: input.tenant.id,
+        threadId: input.inboxThreadId,
+        reason: gateOnly.reason,
+        triggerSource,
+      });
+      return { ok: false, aborted: true, reason: gateOnly.reason };
+    }
+    try {
+      const { messageId } = await sendCloudAndPersistOutbound(
+        { ...input, outboundKind: persistKind },
+        persistKind
+      );
+      return { ok: true, messageId };
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  const claimed = await claimAutomaticReplySend(prisma, {
+    tenantId: input.tenant.id,
+    threadId: input.inboxThreadId,
+    trigger: input.automaticTrigger,
+    claimTtlMs: getWaAutoReplyClaimTtlMs(),
+  });
+  if (!claimed.ok) {
+    logAutomaticReplyAborted({
+      tenantId: input.tenant.id,
+      threadId: input.inboxThreadId,
+      reason: claimed.reason,
+      triggerSource,
+    });
+    return { ok: false, aborted: true, reason: claimed.reason };
+  }
+
+  const preSend = await verifyAutomaticReplyClaimBeforeSend(prisma, {
+    claimId: claimed.claimId,
+    claimToken: claimed.claimToken,
+    tenantId: input.tenant.id,
+    threadId: input.inboxThreadId,
+    trigger: input.automaticTrigger,
+  });
+  if (!preSend.ok) {
+    await failAutomaticReplyClaim(prisma, {
+      claimId: claimed.claimId,
+      claimToken: claimed.claimToken,
+      failureReason: preSend.reason,
+    });
+    logAutomaticReplyAborted({
+      tenantId: input.tenant.id,
+      threadId: input.inboxThreadId,
+      reason: preSend.reason,
+      triggerSource,
+    });
+    return { ok: false, aborted: true, reason: preSend.reason };
+  }
+
+  try {
+    const { messageId } = await sendCloudAndPersistOutbound(
+      { ...input, outboundKind: persistKind },
+      persistKind
+    );
+    await completeAutomaticReplyClaim(prisma, {
+      claimId: claimed.claimId,
+      claimToken: claimed.claimToken,
+      outboundWaMessageId: messageId,
+    });
+    return { ok: true, messageId };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    await failAutomaticReplyClaim(prisma, {
+      claimId: claimed.claimId,
+      claimToken: claimed.claimToken,
+      failureReason: msg,
+    });
+    throw e;
+  }
 }

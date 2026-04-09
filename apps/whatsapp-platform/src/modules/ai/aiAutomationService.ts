@@ -69,6 +69,29 @@ export async function checkTenantAiAutomationReady(
   }
 
   if (isOpenAiConfigured()) {
+    const bizEarly = businessPhoneNumberId?.trim();
+    if (!bizEarly) {
+      return { ready: false, reason: "no_business_line" };
+    }
+    const threadOnly = await prisma.waInboxThread.findUnique({
+      where: {
+        tenantId_phoneNumber_businessPhoneNumberId: {
+          tenantId,
+          phoneNumber: digitsOnly(customerPhoneE164),
+          businessPhoneNumberId: bizEarly,
+        },
+      },
+      select: { id: true, status: true, assignedToUserId: true },
+    });
+    if (!threadOnly) {
+      return { ready: false, reason: "no_thread" };
+    }
+    if (threadOnly.status !== WaInboxThreadStatus.OPEN) {
+      return { ready: false, reason: "thread_not_open" };
+    }
+    if (threadOnly.assignedToUserId) {
+      return { ready: false, reason: "human_handoff" };
+    }
     return { ready: true, reason: "openai_standalone" };
   }
 
@@ -91,7 +114,7 @@ export async function checkTenantAiAutomationReady(
           businessPhoneNumberId: biz,
         },
       },
-      select: { id: true, status: true },
+      select: { id: true, status: true, assignedToUserId: true },
     }),
   ]);
 
@@ -103,6 +126,9 @@ export async function checkTenantAiAutomationReady(
   }
   if (thread.status !== WaInboxThreadStatus.OPEN) {
     return { ready: false, reason: "thread_not_open" };
+  }
+  if (thread.assignedToUserId) {
+    return { ready: false, reason: "human_handoff" };
   }
 
   const kind = tenantDriverToProviderKind(tenant?.aiDriver);
@@ -141,14 +167,24 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
 
   if (tenantId === "env") return;
 
-  const dup = await prisma.aiMessageLog.findFirst({
+  const alreadyCompleted = await prisma.aiMessageLog.findFirst({
+    where: {
+      tenantId,
+      inboundWaMessageId: waMsgId,
+      outboundWaMessageId: { not: null },
+    },
+    select: { id: true },
+  });
+  if (alreadyCompleted) return;
+
+  const recentDup = await prisma.aiMessageLog.findFirst({
     where: {
       tenantId,
       inboundWaMessageId: waMsgId,
       createdAt: { gte: new Date(Date.now() - 120_000) },
     },
   });
-  if (dup) return;
+  if (recentDup) return;
 
   const check = await checkTenantAiAutomationReady(tenantId, from, tenant.phoneNumberId);
   if (!check.ready) return;
@@ -225,13 +261,15 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
       limit: usageStatus.limit,
       plan: usageStatus.plan,
     });
-    await sendWebhookAutoReply({
+    const sendResult = await sendWebhookAutoReply({
       tenant,
       to: from,
       inboxThreadId,
       text: gen.reply,
       outboundKind: "ai",
+      automaticTrigger: { inboundWaMessageId: waMsgId, triggerSource: "ai" },
     });
+    if (!sendResult.ok) return;
 
     trackUsage(tenantId, UsageEventType.AI_RESPONSE, {
       metadata: {
@@ -248,6 +286,7 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
           tenantId,
           waInboxThreadId: thread.id,
           inboundWaMessageId: waMsgId,
+          outboundWaMessageId: sendResult.messageId,
           promptUsed: "",
           responseGenerated: gen.reply,
           tokensUsed: gen.tokensUsed,
@@ -335,13 +374,16 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
     plan: usageStatus.plan,
   });
   try {
-    const { messageId: outboundWaId } = await sendWebhookAutoReply({
+    const sendResult = await sendWebhookAutoReply({
       tenant,
       to: from,
       inboxThreadId,
       text: gen.text,
       outboundKind: "ai",
+      automaticTrigger: { inboundWaMessageId: waMsgId, triggerSource: "ai" },
     });
+    if (!sendResult.ok) return;
+    const outboundWaId = sendResult.messageId;
 
     await prisma.aiMessageLog.create({
       data: {

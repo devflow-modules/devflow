@@ -11,15 +11,13 @@ import {
   removeTagFromThread,
   logAction,
 } from "@/modules/inbox";
-import { waInboxCreateOutbound } from "@/modules/inbox/waInboxMessageService";
 import type { Action, AutomationContext } from "./automation.types";
 import { WaInboxThreadStatus, WaInboxThreadPriority } from "@/generated/prisma-whatsapp";
 import { checkTenantAiAutomationReady, runTenantAiAutoReply } from "@/modules/ai/aiAutomationService";
 import type { ResolvedTenant } from "@/modules/tenants";
 import { resolveMessagingTenantForOutbound } from "@/modules/whatsapp/whatsappPhoneResolution";
-import { digitsOnly } from "@/modules/inbox/waInboxUtils";
-import { WhatsAppCloudAdapter } from "@devflow/whatsapp-core";
 import type { IncomingMessage } from "@devflow/whatsapp-core";
+import { sendWebhookAutoReply } from "@/modules/messaging/sendMessageService";
 
 const MAX_DEPTH = 5;
 const AUTOMATION_USER_ID = "automation";
@@ -158,23 +156,24 @@ export async function executeAction(
         if (!messagingTenant) {
           return { ok: false, error: "whatsapp_not_configured" };
         }
-        const adapter = new WhatsAppCloudAdapter({
-          accessToken: messagingTenant.accessToken,
-        });
         const to = thread.phoneNumber.replace(/\D/g, "");
-        const { messageId } = await adapter.sendText(messagingTenant.phoneNumberId, {
+        const sendResult = await sendWebhookAutoReply({
+          tenant: messagingTenant,
           to,
           text: text.trim(),
-        });
-        await waInboxCreateOutbound({
-          tenantId: context.tenantId,
-          businessPhoneNumberId: messagingTenant.phoneNumberId,
-          customerPhoneDigits: to,
-          waMessageId: messageId,
-          text: text.trim(),
-          businessDigits: digitsOnly(messagingTenant.displayPhoneNumber ?? ""),
+          inboxThreadId: context.threadId,
           outboundKind: "automation",
+          automaticTrigger:
+            context.messageId && !String(context.messageId).startsWith("auto-")
+              ? {
+                  inboundWaMessageId: context.messageId,
+                  triggerSource: "automation",
+                }
+              : undefined,
         });
+        if (!sendResult.ok) {
+          return { ok: false, error: `automatic_send_blocked:${sendResult.reason}` };
+        }
         await logAction(
           context.tenantId,
           context.threadId,

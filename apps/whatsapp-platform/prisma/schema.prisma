@@ -83,6 +83,7 @@ model Tenant {
   tenantSubscription   TenantSubscription?
   usageMetrics         UsageMetric[]
   emailMessages        EmailMessage[]
+  waAutoReplyClaims    WaAutoReplyClaim[]
 
   @@map("whatsapp_tenants")
 }
@@ -306,6 +307,41 @@ enum WaInboxThreadStatus {
   PENDING
 }
 
+/** Claim atómico: uma resposta automática por (tenant, thread, inbound Meta, fonte). */
+enum WaAutoReplyClaimTrigger {
+  LEGACY
+  AI
+  AUTOMATION
+}
+
+enum WaAutoReplyClaimStatus {
+  PENDING
+  SENT
+  FAILED
+  EXPIRED
+}
+
+model WaAutoReplyClaim {
+  id                  String                 @id @default(cuid())
+  tenantId            String                 @map("tenant_id")
+  waInboxThreadId     String                 @map("wa_inbox_thread_id")
+  inboundWaMessageId  String                 @map("inbound_wa_message_id") @db.VarChar(128)
+  triggerSource       WaAutoReplyClaimTrigger @map("trigger_source")
+  status              WaAutoReplyClaimStatus  @default(PENDING)
+  claimToken          String                 @map("claim_token") @db.VarChar(64)
+  expiresAt           DateTime               @map("expires_at")
+  outboundWaMessageId String?                @map("outbound_wa_message_id") @db.VarChar(128)
+  failureReason       String?                @map("failure_reason") @db.VarChar(256)
+  createdAt           DateTime               @default(now()) @map("created_at")
+  updatedAt           DateTime               @updatedAt @map("updated_at")
+  tenant              Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  thread              WaInboxThread          @relation(fields: [waInboxThreadId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, waInboxThreadId, inboundWaMessageId, triggerSource])
+  @@index([tenantId, waInboxThreadId])
+  @@map("wa_auto_reply_claims")
+}
+
 enum WaInboxThreadPriority {
   LOW
   MEDIUM
@@ -355,6 +391,7 @@ model WaInboxThread {
   assignedToUser         User?                 @relation("AssignedToUser", fields: [assignedToUserId], references: [id], onDelete: SetNull)
   messages               WaInboxMessage[]
   threadTags             WaInboxThreadTag[]
+  autoReplyClaims        WaAutoReplyClaim[]
 
   @@unique([tenantId, phoneNumber, businessPhoneNumberId])
   @@index([tenantId, lastMessageAt(sort: Desc)])
