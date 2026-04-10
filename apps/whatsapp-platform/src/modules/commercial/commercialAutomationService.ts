@@ -23,6 +23,7 @@ import {
   RECOVERY_SCHEDULE_DELAY_MS,
   REACTIVATION_DELAY_AFTER_IDLE_MS,
 } from "./commercialAutomationConstants";
+import { isOperationalAutomationEnabled } from "@/modules/operations/tenantOperationalConfigService";
 
 export { COMMERCIAL_TASK_TYPES } from "./commercialAutomationConstants";
 
@@ -142,6 +143,7 @@ export type ScheduleFollowUpContext = {
  */
 export async function scheduleFollowUp(context: ScheduleFollowUpContext): Promise<boolean> {
   const { tenantId, threadId, delayMs } = context;
+  if (!(await isOperationalAutomationEnabled(tenantId))) return false;
   const thread = await prisma.waInboxThread.findFirst({
     where: { id: threadId, tenantId },
     select: { lastCommercialMsgAt: true, status: true, assignedToUserId: true },
@@ -172,6 +174,7 @@ export async function scheduleReactivation(conversation: {
   tenantId: string;
 }): Promise<boolean> {
   const { id: threadId, tenantId } = conversation;
+  if (!(await isOperationalAutomationEnabled(tenantId))) return false;
   const thread = await prisma.waInboxThread.findFirst({
     where: { id: threadId, tenantId },
     select: { lastCommercialMsgAt: true, status: true, assignedToUserId: true, lastMessageAt: true },
@@ -196,6 +199,7 @@ export async function scheduleReactivation(conversation: {
 }
 
 async function scheduleRecoveryTask(tenantId: string, threadId: string): Promise<void> {
+  if (!(await isOperationalAutomationEnabled(tenantId))) return;
   if ((await countExecutedFollowupRecovery(threadId)) >= MAX_FOLLOWUP_RECOVERY_PER_THREAD) return;
   if (await hasPendingTask(threadId, COMMERCIAL_TASK_TYPES.RECOVERY)) return;
 
@@ -406,7 +410,7 @@ async function validateThreadForExecution(
 /**
  * Processa tarefas agendadas (cron).
  */
-export async function processFollowUps(opts?: { limit?: number }): Promise<{
+export async function processFollowUps(opts?: { limit?: number; tenantId?: string }): Promise<{
   processed: number;
   skipped: number;
   errors: number;
@@ -414,7 +418,11 @@ export async function processFollowUps(opts?: { limit?: number }): Promise<{
   const limit = Math.min(50, Math.max(1, opts?.limit ?? 25));
   const now = new Date();
   const tasks = await prisma.followUpTask.findMany({
-    where: { executed: false, scheduledAt: { lte: now } },
+    where: {
+      executed: false,
+      scheduledAt: { lte: now },
+      ...(opts?.tenantId ? { tenantId: opts.tenantId } : {}),
+    },
     orderBy: { scheduledAt: "asc" },
     take: limit,
   });
@@ -425,6 +433,10 @@ export async function processFollowUps(opts?: { limit?: number }): Promise<{
 
   for (const task of tasks) {
     try {
+      if (!(await isOperationalAutomationEnabled(task.tenantId))) {
+        skipped += 1;
+        continue;
+      }
       const v = await validateThreadForExecution(task.tenantId, task.conversationId);
       if (!v.canSend) {
         if (v.deferMs != null) {
@@ -529,7 +541,10 @@ export async function processFollowUps(opts?: { limit?: number }): Promise<{
     }
   }
 
-  await scanIdleNegotiationsAndHighReactivations();
+  /** Scan global só no worker cron; execução manual por tenant não reavalia todas as threads. */
+  if (!opts?.tenantId) {
+    await scanIdleNegotiationsAndHighReactivations();
+  }
 
   return { processed, skipped, errors };
 }
@@ -553,6 +568,7 @@ export async function scanIdleNegotiationsAndHighReactivations(): Promise<void> 
   });
 
   for (const row of idleNegotiating) {
+    if (!(await isOperationalAutomationEnabled(row.tenantId))) continue;
     const last = await prisma.waInboxMessage.findFirst({
       where: { threadId: row.id, tenantId: row.tenantId },
       orderBy: { ts: "desc" },
@@ -584,6 +600,7 @@ export async function scanIdleNegotiationsAndHighReactivations(): Promise<void> 
   });
 
   for (const row of highInactive) {
+    if (!(await isOperationalAutomationEnabled(row.tenantId))) continue;
     await scheduleReactivation({ id: row.id, tenantId: row.tenantId });
   }
 
@@ -599,6 +616,7 @@ export async function scanIdleNegotiationsAndHighReactivations(): Promise<void> 
   });
 
   for (const row of interestStale) {
+    if (!(await isOperationalAutomationEnabled(row.tenantId))) continue;
     const ld = parseLeadDataJson(row.leadData);
     const interestPrice =
       ld.interest && /pre[çc]o|or[çc]amento|valor/i.test(ld.interest);

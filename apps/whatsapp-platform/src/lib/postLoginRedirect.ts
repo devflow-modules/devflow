@@ -1,12 +1,13 @@
 import { isSafeInternalNextPath, resolveLoginRedirect } from "@/lib/safe-redirect";
 import { isTenantManager } from "@/lib/roles";
 
-const MANAGER_DEFAULT = "/dashboard/whatsapp";
+const MANAGER_DEFAULT = "/dashboard/ai";
 const OPERATOR_DEFAULT = "/inbox";
 
 /**
  * Destino após login ou sessão já válida em `/login`.
- * Operadores não devem cair em onboarding, configurações nem painel.
+ * Gestores: default `/dashboard/ai` (painel de decisão).
+ * Operadores: `/inbox` salvo `next` seguro.
  */
 export function resolvePostLoginRedirect(
   next: string | null | undefined,

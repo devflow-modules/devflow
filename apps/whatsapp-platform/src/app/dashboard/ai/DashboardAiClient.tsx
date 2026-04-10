@@ -1,52 +1,33 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
-import { StateLoading, StateError } from "@/components/ui/app-states";
+import { StateError } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
-
-type MetricsData = {
-  totalMessages: number;
-  autoReplies: number;
-  fallbacks: number;
-  errors: number;
-  blockedDecisions: number;
-  avgLatency: number;
-  periodDays: number;
-  automationPercent: number | null;
-  fallbackPercent: number | null;
-  errorPercent: number | null;
-};
+import {
+  buildManagerActions,
+  generateManagerInsights,
+  type ManagerDashboardFunnel,
+  type ManagerDashboardLeadQuality,
+  type ManagerDashboardMetrics,
+  type ManagerDashboardOpportunities,
+} from "./managerDashboardAi";
+import { ManagerActionsList } from "@/components/dashboard/ai/ManagerActionsList";
+import { ManagerInsights } from "@/components/dashboard/ai/ManagerInsights";
+import { KpiCardEnhanced } from "@/components/dashboard/ai/KpiCardEnhanced";
+import { DashboardAiSkeleton } from "@/components/dashboard/ai/DashboardAiSkeleton";
+import { FunnelStageLegend } from "@/components/dashboard/ai/FunnelStageLegend";
+import { SystemHealthPanel } from "@/components/dashboard/ai/SystemHealthPanel";
+import type { SystemHealthSnapshot } from "@/modules/dashboard/systemHealthService";
+import type { SystemHealthSummary } from "@/modules/dashboard/buildSystemHealthSummary";
 
 type LogRow = {
   type: "auto_reply" | "fallback" | "error" | "blocked_by_guard";
   reason: string;
   createdAt: string;
   conversationId: string | null;
-};
-
-type FunnelData = {
-  lead: number;
-  qualifying: number;
-  negotiating: number;
-  support: number;
-  closed: number;
-};
-
-type LeadQualityData = {
-  high: number;
-  medium: number;
-  low: number;
-  avgScore: number;
-};
-
-type OpportunityData = {
-  highPending: number;
-  stalled: number;
-  negotiating: number;
-  reactivationQueued: number;
 };
 
 function badgeClass(type: LogRow["type"]): string {
@@ -82,11 +63,45 @@ function typeLabel(type: LogRow["type"]): string {
 export function DashboardAiClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [metrics, setMetrics] = useState<MetricsData | null>(null);
+  const [metrics, setMetrics] = useState<ManagerDashboardMetrics | null>(null);
   const [logs, setLogs] = useState<LogRow[] | null>(null);
-  const [funnel, setFunnel] = useState<FunnelData | null>(null);
-  const [leadQuality, setLeadQuality] = useState<LeadQualityData | null>(null);
-  const [opportunities, setOpportunities] = useState<OpportunityData | null>(null);
+  const [funnel, setFunnel] = useState<ManagerDashboardFunnel | null>(null);
+  const [leadQuality, setLeadQuality] = useState<ManagerDashboardLeadQuality | null>(null);
+  const [opportunities, setOpportunities] = useState<ManagerDashboardOpportunities | null>(null);
+  const [healthSnapshot, setHealthSnapshot] = useState<SystemHealthSnapshot | null>(null);
+  const [healthSummary, setHealthSummary] = useState<SystemHealthSummary | null>(null);
+  const [healthError, setHealthError] = useState<string | null>(null);
+  const [healthLoading, setHealthLoading] = useState(true);
+
+  const loadHealth = useCallback(async () => {
+    setHealthError(null);
+    try {
+      const res = await fetchProtected("/api/dashboard/system-health");
+      const j = (await res.json().catch(() => ({}))) as {
+        success?: boolean;
+        data?: { snapshot: SystemHealthSnapshot; summary: SystemHealthSummary };
+        error?: string;
+      };
+      if (!res.ok) {
+        setHealthSnapshot(null);
+        setHealthSummary(null);
+        setHealthError(protectedApiUserMessage(res.status, j));
+        return;
+      }
+      if (j.data?.snapshot && j.data?.summary) {
+        setHealthSnapshot(j.data.snapshot);
+        setHealthSummary(j.data.summary);
+      } else {
+        setHealthError("Resposta incompleta do servidor");
+      }
+    } catch {
+      setHealthError("Erro ao carregar saúde do canal");
+      setHealthSnapshot(null);
+      setHealthSummary(null);
+    } finally {
+      setHealthLoading(false);
+    }
+  }, []);
 
   const load = useCallback(async () => {
     setError(null);
@@ -102,7 +117,7 @@ export function DashboardAiClient() {
 
       const jm = (await resM.json().catch(() => ({}))) as {
         success?: boolean;
-        data?: MetricsData;
+        data?: ManagerDashboardMetrics;
         error?: string;
       };
       const jl = (await resL.json().catch(() => ({}))) as {
@@ -112,17 +127,17 @@ export function DashboardAiClient() {
       };
       const jf = (await resF.json().catch(() => ({}))) as {
         success?: boolean;
-        data?: FunnelData;
+        data?: ManagerDashboardFunnel;
         error?: string;
       };
       const jq = (await resQ.json().catch(() => ({}))) as {
         success?: boolean;
-        data?: LeadQualityData;
+        data?: ManagerDashboardLeadQuality;
         error?: string;
       };
       const jo = (await resO.json().catch(() => ({}))) as {
         success?: boolean;
-        data?: OpportunityData;
+        data?: ManagerDashboardOpportunities;
         error?: string;
       };
 
@@ -152,7 +167,7 @@ export function DashboardAiClient() {
       if (jq.data) setLeadQuality(jq.data);
       if (jo.data) setOpportunities(jo.data);
     } catch {
-      setError("Erro de rede");
+      setError("Erro ao carregar dados");
     } finally {
       setLoading(false);
     }
@@ -162,12 +177,55 @@ export function DashboardAiClient() {
     load();
   }, [load]);
 
+  useEffect(() => {
+    setHealthLoading(true);
+    void loadHealth();
+  }, [loadHealth]);
+
+  const managerActions = useMemo(
+    () => buildManagerActions(opportunities, funnel),
+    [opportunities, funnel]
+  );
+
+  const insightLines = useMemo(
+    () => generateManagerInsights(metrics, funnel, opportunities, leadQuality),
+    [metrics, funnel, opportunities, leadQuality]
+  );
+
   if (loading) {
-    return <StateLoading message="A carregar operação de IA…" />;
+    return (
+      <div className="df-stack min-w-0">
+        <PageHeader
+          eyebrow="Operação"
+          title="IA no atendimento"
+          description="Saúde do canal, automação e decisões — prioridades e impacto na conversão."
+          layout="split"
+          showDivider
+          tone="admin"
+          quickActions={
+            <>
+              <Link href="/settings/ai" className="df-quick-action">
+                Configurar IA
+              </Link>
+              <Link href="/settings/ai-analytics" className="df-quick-action">
+                Uso e custos
+              </Link>
+            </>
+          }
+        />
+        <DashboardAiSkeleton />
+      </div>
+    );
   }
+
   if (error) {
-    return <StateError message={error} onRetry={load} />;
+    return (
+      <div className="df-stack min-w-0">
+        <StateError message={error} onRetry={load} />
+      </div>
+    );
   }
+
   if (!metrics) {
     return null;
   }
@@ -215,12 +273,18 @@ export function DashboardAiClient() {
     },
   ];
 
+  const showDecisionEmpty =
+    managerActions.length === 0 &&
+    insightLines.length === 0 &&
+    isEmpty &&
+    (!leadQuality || leadQuality.high + leadQuality.medium + leadQuality.low === 0);
+
   return (
     <div className="df-stack min-w-0">
       <PageHeader
         eyebrow="Operação"
         title="IA no atendimento"
-        description="Métricas agregadas e eventos recentes (sem texto de conversas). Acesso exclusivo para gestão."
+        description="Saúde do canal, automação e decisões — prioridades e impacto na conversão."
         layout="split"
         showDivider
         tone="admin"
@@ -236,15 +300,39 @@ export function DashboardAiClient() {
         }
       />
 
-      {isEmpty ? (
-        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-6 py-10 text-center">
-          <p className="text-lg font-semibold text-slate-900">Ainda não há eventos de IA no período</p>
-          <p className="mt-2 text-sm text-slate-600">
-            Quando a automação responder ou for bloqueada, os números e a lista abaixo passam a aparecer aqui.
-          </p>
-          <Link href="/settings/ai" className={`${buttonClassName("secondary", "mt-6 inline-flex")}`}>
-            Rever configuração de IA
-          </Link>
+      <SystemHealthPanel
+        snapshot={healthLoading ? null : healthSnapshot}
+        summary={healthLoading ? null : healthSummary}
+        error={healthError}
+        onRefresh={() => {
+          setHealthLoading(true);
+          void loadHealth();
+        }}
+      />
+
+      <ManagerActionsList actions={managerActions} />
+
+      <div className="flex flex-wrap gap-2">
+        <Link
+          href="/inbox?filter=high_no_response"
+          className={buttonClassName("secondary", "inline-flex text-sm")}
+        >
+          Ver leads HIGH
+        </Link>
+        <Link
+          href="/inbox?phase=in_attendance"
+          className={buttonClassName("secondary", "inline-flex text-sm")}
+        >
+          Ver negociações
+        </Link>
+        <Link href="/inbox" className={buttonClassName("primary", "inline-flex text-sm")}>
+          Ir para inbox
+        </Link>
+      </div>
+
+      {showDecisionEmpty ? (
+        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/90 px-5 py-6 text-center text-sm text-slate-600">
+          Ainda não há dados suficientes. Quando as conversas começarem, verá insights e acções recomendadas aqui.
         </div>
       ) : null}
 
@@ -265,30 +353,42 @@ export function DashboardAiClient() {
         ))}
       </div>
 
-      {leadQuality ? (
+      <ManagerInsights lines={insightLines} />
+
+      {leadQuality && opportunities ? (
         <div className="rounded-xl border border-slate-200/90 bg-white p-6 shadow-sm ring-1 ring-slate-900/[0.04]">
           <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">Qualidade dos leads</h2>
           <p className="mt-2 text-sm text-slate-600">
-            Conversas abertas classificadas por prioridade automática (score CRM). Destaque para leads{" "}
-            <span className="font-semibold text-red-600">HIGH (🔥)</span>.
+            Prioridade automática a partir do score CRM. Combine com pendências reais no inbox.
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-lg border border-red-100 bg-red-50/80 px-4 py-3 ring-1 ring-red-200/40">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-red-800">High</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-red-900">{leadQuality.high}</p>
-            </div>
-            <div className="rounded-lg border border-amber-100 bg-amber-50/70 px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-amber-900">Medium</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-amber-950">{leadQuality.medium}</p>
-            </div>
-            <div className="rounded-lg border border-slate-200 bg-slate-50/90 px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-600">Low</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-slate-800">{leadQuality.low}</p>
-            </div>
-            <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Score médio</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900">{leadQuality.avgScore}</p>
-            </div>
+            <KpiCardEnhanced
+              label="High"
+              value={leadQuality.high}
+              subHint={
+                opportunities.highPending > 0
+                  ? `(${opportunities.highPending} sem resposta)`
+                  : "(nenhuma pendência HIGH)"
+              }
+              hint="Prioridade CRM"
+              emphasis
+            />
+            <KpiCardEnhanced
+              label="Medium"
+              value={leadQuality.medium}
+              hint="Prioridade CRM"
+            />
+            <KpiCardEnhanced
+              label="Low"
+              value={leadQuality.low}
+              hint="Prioridade CRM"
+            />
+            <KpiCardEnhanced
+              label="Score médio"
+              value={leadQuality.avgScore}
+              hint="Média nas conversas abertas"
+              tooltip="Score alto = maior chance de fechar. Score baixo = pouco engajamento."
+            />
           </div>
         </div>
       ) : null}
@@ -301,20 +401,22 @@ export function DashboardAiClient() {
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-lg border border-red-100 bg-red-50/80 px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-red-800">🔥 Leads HIGH sem resposta</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-red-800">
+                Leads HIGH sem resposta
+              </p>
               <p className="mt-1 text-2xl font-bold tabular-nums text-red-900">{opportunities.highPending}</p>
             </div>
             <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-600">⏳ Conversas paradas</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-600">Conversas paradas</p>
               <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900">{opportunities.stalled}</p>
               <p className="mt-1 text-[10px] text-slate-500">Qualificação/negociação sem mensagem há 2h+</p>
             </div>
             <div className="rounded-lg border border-emerald-100 bg-emerald-50/70 px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-900">💰 Em negociação</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-900">Em negociação</p>
               <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-950">{opportunities.negotiating}</p>
             </div>
             <div className="rounded-lg border border-indigo-100 bg-indigo-50/80 px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-indigo-900">🔄 Reativações na fila</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-indigo-900">Reativações na fila</p>
               <p className="mt-1 text-2xl font-bold tabular-nums text-indigo-950">
                 {opportunities.reactivationQueued}
               </p>
@@ -325,7 +427,10 @@ export function DashboardAiClient() {
 
       {funnel ? (
         <div className="rounded-xl border border-slate-200/90 bg-white p-6 shadow-sm ring-1 ring-slate-900/[0.04]">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">Funil comercial (conversas)</h2>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">Funil comercial (conversas)</h2>
+            <FunnelStageLegend />
+          </div>
           <p className="mt-2 text-sm text-slate-600">
             <span className="font-semibold text-[var(--df-brand-700)]">{funnel.lead}</span> leads activos ·{" "}
             <span className="font-semibold text-slate-900">{funnel.qualifying + funnel.negotiating}</span> em
@@ -363,6 +468,18 @@ export function DashboardAiClient() {
               );
             })}
           </div>
+        </div>
+      ) : null}
+
+      {isEmpty ? (
+        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-6 py-10 text-center">
+          <p className="text-lg font-semibold text-slate-900">Ainda não há eventos de IA no período</p>
+          <p className="mt-2 text-sm text-slate-600">
+            Quando a automação responder ou for bloqueada, os números e a lista abaixo passam a aparecer aqui.
+          </p>
+          <Link href="/settings/ai" className={`${buttonClassName("secondary", "mt-6 inline-flex")}`}>
+            Rever configuração de IA
+          </Link>
         </div>
       ) : null}
 

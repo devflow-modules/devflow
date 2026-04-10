@@ -148,7 +148,7 @@ export function OnboardingWizard() {
   };
 
   const handleFinish = () => {
-    router.push("/dashboard");
+    router.push("/dashboard/ai");
     router.refresh();
   };
 

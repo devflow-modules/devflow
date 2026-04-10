@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ConversationActionBanner } from "./ConversationActionBanner";
 import { useQuery } from "@tanstack/react-query";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
@@ -26,6 +27,9 @@ function mergeThreadRow(
     leadScore: fromApi.leadScore ?? fromList.leadScore,
     leadData: fromApi.leadData ?? fromList.leadData,
     aiState: fromApi.aiState ?? fromList.aiState,
+    lastResponderType: fromApi.lastResponderType ?? fromList.lastResponderType,
+    conversationState: fromApi.conversationState ?? fromList.conversationState,
+    priority: fromApi.priority ?? fromList.priority,
   };
 }
 
@@ -42,7 +46,12 @@ export function ChatWindow({
 }) {
   const [auditTab, setAuditTab] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
+  const [actionBannerDismissed, setActionBannerDismissed] = useState(false);
   const prevThreadIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    setActionBannerDismissed(false);
+  }, [threadId]);
 
   const { data: fetchedThread } = useQuery({
     queryKey: threadId ? INBOX_QK.thread(threadId) : ["inbox-thread", "disabled"],
@@ -90,8 +99,18 @@ export function ChatWindow({
           <ChatAuditTab threadId={threadId} />
         ) : (
           <>
+            <ConversationActionBanner
+              thread={activeThread}
+              dismissed={actionBannerDismissed}
+              onDismiss={() => setActionBannerDismissed(true)}
+              onRespondNow={() => {}}
+            />
             <MessageList threadId={threadId} thread={activeThread} />
-            <MessageInput threadId={threadId} thread={activeThread} />
+            <MessageInput
+              threadId={threadId}
+              thread={activeThread}
+              onAgentMessageSent={() => setActionBannerDismissed(true)}
+            />
           </>
         )}
       </div>

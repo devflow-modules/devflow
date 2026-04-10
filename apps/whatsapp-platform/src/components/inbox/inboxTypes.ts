@@ -108,11 +108,23 @@ export const INBOX_QK = {
   conversations: (
     filter?: InboxConversationsFilter,
     lineFilter?: string | null,
-    queueFilter?: string | null
+    queueFilter?: string | null,
+    priorityFilter?: string | null
   ) =>
     filter
-      ? (["inbox-conversations", filter, lineFilter ?? "all-lines", queueFilter ?? "all-queues"] as const)
-      : (["inbox-conversations", lineFilter ?? "all-lines", queueFilter ?? "all-queues"] as const),
+      ? ([
+          "inbox-conversations",
+          filter,
+          lineFilter ?? "all-lines",
+          queueFilter ?? "all-queues",
+          priorityFilter ?? "all-priority",
+        ] as const)
+      : ([
+          "inbox-conversations",
+          lineFilter ?? "all-lines",
+          queueFilter ?? "all-queues",
+          priorityFilter ?? "all-priority",
+        ] as const),
   thread: (threadId: string) => ["inbox-thread", threadId] as const,
   messages: (threadId: string) => ["inbox-messages", threadId] as const,
   internalNotes: (threadId: string) => ["inbox-internal-notes", threadId] as const,

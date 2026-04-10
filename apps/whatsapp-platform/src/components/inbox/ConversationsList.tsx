@@ -74,6 +74,7 @@ export function ConversationsList({
   queueFilter,
   queues,
   onQueueFilterChange,
+  priorityFilter,
   tenantThreadTotal,
 }: {
   selectedId: string | null;
@@ -86,6 +87,8 @@ export function ConversationsList({
   queueFilter: string | null;
   queues: InboxQueueOption[];
   onQueueFilterChange: (queueId: string | null) => void;
+  /** Prioridade CRM (LOW | MEDIUM | HIGH); alinhado com query `priority` da API. */
+  priorityFilter?: string | null;
   /** Total de threads no tenant (sem filtro de fase); usado só para onboarding. */
   tenantThreadTotal?: number;
 }) {
@@ -132,8 +135,8 @@ export function ConversationsList({
   }, [moreFiltersOpen]);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: INBOX_QK.conversations(filter, lineFilter, queueFilter),
-    queryFn: () => fetchInboxConversations(filter, lineFilter, queueFilter),
+    queryKey: INBOX_QK.conversations(filter, lineFilter, queueFilter, priorityFilter ?? null),
+    queryFn: () => fetchInboxConversations(filter, lineFilter, queueFilter, priorityFilter ?? null),
     refetchInterval: pollInterval,
   });
 

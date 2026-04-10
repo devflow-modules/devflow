@@ -27,9 +27,12 @@ const QUICK_TEMPLATES: { label: string; text: string }[] = [
 export function MessageInput({
   threadId,
   thread,
+  onAgentMessageSent,
 }: {
   threadId: string | null;
   thread?: WaInboxThreadRow | null;
+  /** Chamado após envio bem-sucedido de mensagem humana (limpa banner de acção, etc.). */
+  onAgentMessageSent?: () => void;
 }) {
   const [text, setText] = useState("");
   const [retryText, setRetryText] = useState<string | null>(null);
@@ -94,6 +97,7 @@ export function MessageInput({
       setText("");
       setRetryText(null);
       setAiPreview(null);
+      onAgentMessageSent?.();
     },
   });
 
@@ -149,6 +153,7 @@ export function MessageInput({
 
   return (
     <div
+      id="inbox-composer-anchor"
       className="border-t border-slate-100 bg-white px-4 pb-4 pt-3 shadow-[0_-8px_32px_rgba(15,23,42,0.03)] sm:px-5 sm:pb-5 sm:pt-4"
       data-testid="message-input"
     >

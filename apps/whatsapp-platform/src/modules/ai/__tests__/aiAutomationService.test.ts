@@ -53,6 +53,21 @@ vi.mock("@/modules/billing/stripeUsageBillingService", () => ({
   billAiOverageIfApplicableAsync: vi.fn(),
 }));
 
+const mockGetOrCreateOperational = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({
+    id: "op1",
+    tenantId: "t1",
+    aiEnabled: true,
+    automationEnabled: true,
+    updatedAt: new Date(),
+    updatedByUserId: null,
+  })
+);
+
+vi.mock("@/modules/operations/tenantOperationalConfigService", () => ({
+  getOrCreateTenantOperationalConfig: (...a: unknown[]) => mockGetOrCreateOperational(...a),
+}));
+
 const mockPrisma = {
   aiAgentConfig: {
     findUnique: vi.fn(),
@@ -122,6 +137,14 @@ function setupReadyTenant(_tenantId = "t1") {
 describe("checkTenantAiAutomationReady", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetOrCreateOperational.mockResolvedValue({
+      id: "op1",
+      tenantId: "t1",
+      aiEnabled: true,
+      automationEnabled: true,
+      updatedAt: new Date(),
+      updatedByUserId: null,
+    });
     vi.stubEnv("OPENAI_API_KEY", "sk-test");
     isOpenAiConfigured.mockReturnValue(false);
   });
@@ -134,6 +157,20 @@ describe("checkTenantAiAutomationReady", () => {
     const { checkTenantAiAutomationReady } = await import("../aiAutomationService");
     const r = await checkTenantAiAutomationReady("env", "5511999999999", "pn");
     expect(r).toEqual({ ready: false, reason: "tenant_env" });
+  });
+
+  it("rejeita quando IA pausada pelo painel operacional", async () => {
+    mockGetOrCreateOperational.mockResolvedValueOnce({
+      id: "op1",
+      tenantId: "t1",
+      aiEnabled: false,
+      automationEnabled: true,
+      updatedAt: new Date(),
+      updatedByUserId: null,
+    });
+    const { checkTenantAiAutomationReady } = await import("../aiAutomationService");
+    const r = await checkTenantAiAutomationReady("t1", "5511999999999", "pn-line");
+    expect(r).toEqual({ ready: false, reason: "operational_ai_paused" });
   });
 
   it("rejeita quando IA desabilitada", async () => {

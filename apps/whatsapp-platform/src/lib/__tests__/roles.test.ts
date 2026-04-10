@@ -5,6 +5,7 @@ import {
   isPathRestrictedForOperator,
   isPlatformAdmin,
   isTenantManager,
+  shellHomeHref,
 } from "../roles";
 
 describe("roles", () => {
@@ -28,5 +29,13 @@ describe("roles", () => {
     expect(isPathRestrictedForOperator("/onboarding")).toBe(true);
     expect(isPathRestrictedForOperator("/inbox")).toBe(false);
     expect(isPathRestrictedForOperator("/automation")).toBe(false);
+  });
+
+  it("shellHomeHref — operador na Inbox; gestores no painel IA", () => {
+    expect(shellHomeHref("operator")).toBe("/inbox");
+    expect(shellHomeHref("manager")).toBe("/dashboard/ai");
+    expect(shellHomeHref("platform_admin")).toBe("/dashboard/ai");
+    expect(shellHomeHref(null)).toBe("/dashboard/ai");
+    expect(shellHomeHref(undefined)).toBe("/dashboard/ai");
   });
 });

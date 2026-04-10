@@ -1,19 +1,8 @@
 "use client";
 
 import type { WaInboxThreadRow } from "./inboxTypes";
-
-function priorityEmoji(priority: string | undefined): { icon: string; label: string; className: string } {
-  switch (priority) {
-    case "HIGH":
-      return { icon: "🔥", label: "Alta", className: "text-red-600" };
-    case "MEDIUM":
-      return { icon: "⚡", label: "Média", className: "text-amber-600" };
-    case "LOW":
-      return { icon: "💤", label: "Baixa", className: "text-slate-500" };
-    default:
-      return { icon: "—", label: "—", className: "text-slate-400" };
-  }
-}
+import { OperatorSuggestion } from "./OperatorSuggestion";
+import { aiStateFriendlyLabel, leadScoreHumanLabel, priorityGuidance } from "./leadPanelCopy";
 
 function row(label: string, value: string | undefined | null) {
   if (!value?.trim()) return null;
@@ -34,8 +23,10 @@ export function LeadDataPanel({
 }) {
   if (!thread) return null;
   const ld = thread.leadData;
-  const pr = priorityEmoji(thread.priority);
   const score = thread.leadScore ?? 0;
+  const scoreLabel = leadScoreHumanLabel(score);
+  const stateLabel = aiStateFriendlyLabel(thread.aiState);
+  const pg = priorityGuidance(thread.priority);
 
   return (
     <aside
@@ -47,22 +38,31 @@ export function LeadDataPanel({
         <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600">Dados do lead</h3>
       </div>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3 text-left">
-        <div className="flex items-center justify-between gap-2">
-          <span className={`text-sm font-semibold ${pr.className}`}>
-            {pr.icon} {pr.label}
-          </span>
-          <span className="tabular-nums text-sm font-bold text-slate-800" data-testid="lead-score-panel">
-            {score} pts
-          </span>
+        <div className="space-y-2 rounded-lg border border-slate-200/80 bg-white/90 px-2.5 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Score</p>
+          <p className="text-sm text-slate-900" data-testid="lead-score-panel">
+            <span className="font-bold tabular-nums">{score}</span>
+            <span className="text-slate-600"> — {scoreLabel}</span>
+          </p>
+          {stateLabel ? (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Estado</p>
+              <p className="text-sm text-slate-900">{stateLabel}</p>
+            </div>
+          ) : null}
+          {pg ? (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Prioridade</p>
+              <p className="text-sm text-slate-900" title={pg.tooltip}>
+                {thread.priority === "HIGH" ? "🔥 HIGH" : thread.priority === "MEDIUM" ? "⚡ MEDIUM" : "💤 LOW"} →{" "}
+                <span className="font-medium">{pg.line}</span>
+              </p>
+            </div>
+          ) : null}
         </div>
-        {thread.aiState ? (
-          <div className="space-y-0.5">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Funil (IA)</p>
-            <span className="inline-flex rounded-md bg-white px-2 py-0.5 text-xs font-medium text-slate-800 ring-1 ring-slate-200/90">
-              {thread.aiState}
-            </span>
-          </div>
-        ) : null}
+
+        <OperatorSuggestion thread={thread} />
+
         {row("Nome", ld?.name)}
         {row("Interesse", ld?.interest)}
         {row("Orçamento", ld?.budget)}

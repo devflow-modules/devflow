@@ -7,6 +7,7 @@ import { type ConversationState } from "@/modules/inbox/waInboxConversationState
 import { formatCompactWaitDurationMs } from "@/modules/inbox/waInboxSla";
 import { conversationPreviewPrefix } from "./conversationPreviewPrefix";
 import { slaWaitLabelClass } from "./inboxOperationalStyles";
+import { priorityGuidance } from "./leadPanelCopy";
 
 function formatListTimeCompact(iso: string): string {
   try {
@@ -58,6 +59,7 @@ export const ConversationItem = memo(function ConversationItem({
   const crmTier = thread.priority;
   const crmLabel =
     crmTier === "HIGH" ? "🔥 HIGH" : crmTier === "MEDIUM" ? "⚡ MEDIUM" : crmTier === "LOW" ? "💤 LOW" : null;
+  const priorityHint = priorityGuidance(crmTier);
   const crmClass =
     crmTier === "HIGH"
       ? "text-red-600 ring-red-200/60"
@@ -134,10 +136,14 @@ export const ConversationItem = memo(function ConversationItem({
           <div className="mt-1 flex flex-wrap items-center gap-1.5" data-testid="crm-inbox-row">
             {crmLabel ? (
               <span
-                className={`rounded px-1 py-0.5 text-[9px] font-bold ring-1 ${crmClass}`}
-                title="Prioridade (score CRM)"
+                className={`inline-flex flex-col rounded px-1 py-0.5 text-[9px] font-bold ring-1 ${crmClass}`}
+                title={priorityHint?.tooltip ?? "Prioridade da conversa"}
+                data-testid="crm-priority-badge"
               >
-                {crmLabel}
+                <span>{crmLabel}</span>
+                {priorityHint ? (
+                  <span className="font-normal normal-case opacity-90">{priorityHint.line}</span>
+                ) : null}
               </span>
             ) : null}
             <span className="tabular-nums text-[9px] font-semibold text-slate-600" data-testid="lead-score-list">

@@ -66,6 +66,10 @@ const mockPrisma = {
     findUnique: vi.fn(),
     findUniqueOrThrow: vi.fn(),
   },
+  tenantOperationalConfig: {
+    findUnique: vi.fn(),
+    create: vi.fn(),
+  },
   waInboxThread: { findUnique: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
   waInboxMessage: { findFirst: vi.fn(), findMany: vi.fn(), count: vi.fn() },
   aiMessageLog: { findFirst: vi.fn(), create: vi.fn() },
@@ -94,7 +98,18 @@ function mockAgentConfig(over: Record<string, unknown> = {}) {
   };
 }
 
+const defaultOperational = {
+  id: "op-int",
+  tenantId: "t1",
+  aiEnabled: true,
+  automationEnabled: true,
+  updatedAt: new Date(),
+  updatedByUserId: null as string | null,
+};
+
 function setupPipelineReady() {
+  mockPrisma.tenantOperationalConfig.findUnique.mockResolvedValue(defaultOperational);
+  mockPrisma.tenantOperationalConfig.create.mockResolvedValue(defaultOperational);
   mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(mockAgentConfig());
   mockPrisma.tenant.findUnique.mockResolvedValue({ aiDriver: "openAI" });
   mockPrisma.waInboxThread.findUnique.mockResolvedValue({

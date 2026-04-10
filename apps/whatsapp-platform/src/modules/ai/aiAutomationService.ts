@@ -44,6 +44,7 @@ import {
 import { evaluateAutomationRules } from "@/modules/ai/aiAutomationRules";
 import { executeAiActions } from "@/modules/ai/aiExecuteActions";
 import { logAiPipelineEvent } from "@/modules/ai/aiOperationalLogService";
+import { getOrCreateTenantOperationalConfig } from "@/modules/operations/tenantOperationalConfigService";
 
 export async function getOrCreateAiAgentConfig(tenantId: string): Promise<AiAgentConfig> {
   const existing = await prisma.aiAgentConfig.findUnique({ where: { tenantId } });
@@ -79,6 +80,14 @@ export async function checkTenantAiAutomationReady(
 ): Promise<TenantAiReadyCheck> {
   if (!tenantId || tenantId === "env") {
     return { ready: false, reason: "tenant_env" };
+  }
+
+  const opCfg = await getOrCreateTenantOperationalConfig(tenantId);
+  if (!opCfg.aiEnabled) {
+    return { ready: false, reason: "operational_ai_paused" };
+  }
+  if (!opCfg.automationEnabled) {
+    return { ready: false, reason: "operational_automation_paused" };
   }
 
   if (isOpenAiConfigured()) {

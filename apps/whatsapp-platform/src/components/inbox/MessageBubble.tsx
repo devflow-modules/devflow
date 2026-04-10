@@ -3,6 +3,7 @@
 import { memo } from "react";
 import type { WaInboxMessageRow } from "./inboxTypes";
 import { getOutboundKindFromMessage } from "./messageOutboundKind";
+import { MessageOriginBadge } from "./MessageOriginBadge";
 import { isNonTextMessage, MessageMediaPreview } from "./messageMediaPreview";
 
 function formatTime(iso: string): string {
@@ -56,36 +57,6 @@ function messageTypeShort(mt: string): string | null {
     CONTACT: "Contacto",
   };
   return labels[u] ?? u;
-}
-
-function outboundKindLabel(kind: "ai" | "automation" | "agent"): string {
-  if (kind === "ai") return "IA";
-  if (kind === "automation") return "Automático";
-  return "Agente";
-}
-
-function OutboundKindBadge({ kind }: { kind: "ai" | "automation" | "agent" }) {
-  const dot =
-    kind === "ai"
-      ? "bg-emerald-300 shadow-[0_0_0_1px_rgba(255,255,255,0.35)]"
-      : kind === "automation"
-        ? "bg-amber-300 shadow-[0_0_0_1px_rgba(255,255,255,0.35)]"
-        : "bg-sky-300 shadow-[0_0_0_1px_rgba(255,255,255,0.35)]";
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-md border border-white/25 bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white/95 backdrop-blur-[2px]"
-      title={
-        kind === "ai"
-          ? "Resposta gerada por IA"
-          : kind === "automation"
-            ? "Resposta automática (regras / fluxo de boas-vindas)"
-            : "Enviado por um agente humano na plataforma"
-      }
-    >
-      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} aria-hidden />
-      {outboundKindLabel(kind)}
-    </span>
-  );
 }
 
 export const MessageBubble = memo(function MessageBubble({
@@ -154,7 +125,7 @@ export const MessageBubble = memo(function MessageBubble({
             outbound ? "justify-end text-white/85" : "justify-start text-slate-500"
           }`}
         >
-          {outbound && outboundKind && !pendingOptimistic ? <OutboundKindBadge kind={outboundKind} /> : null}
+          {outbound && outboundKind && !pendingOptimistic ? <MessageOriginBadge kind={outboundKind} /> : null}
           {outbound && typeLabel && !compact ? (
             <span className="rounded bg-white/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white/90">
               {typeLabel}

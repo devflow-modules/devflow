@@ -19,7 +19,8 @@ async function inboxFailMessage(res: Response): Promise<string> {
 function buildConversationsUrl(
   filter?: InboxConversationsFilter,
   businessPhoneNumberId?: string | null,
-  queueId?: string | null
+  queueId?: string | null,
+  priority?: string | null
 ): string {
   const params = new URLSearchParams({ limit: "100" });
   if (filter) {
@@ -31,18 +32,24 @@ function buildConversationsUrl(
   if (queueId?.trim()) {
     params.set("queueId", queueId.trim());
   }
+  if (priority?.trim()) {
+    params.set("priority", priority.trim().toUpperCase());
+  }
   return `/api/inbox/conversations?${params.toString()}`;
 }
 
 export async function fetchInboxConversations(
   filter?: InboxConversationsFilter,
   businessPhoneNumberId?: string | null,
-  queueId?: string | null
+  queueId?: string | null,
+  priority?: string | null
 ): Promise<{
   threads: WaInboxThreadRow[];
   pagination: { limit: number; offset: number; total: number };
 }> {
-  const res = await fetchProtected(buildConversationsUrl(filter, businessPhoneNumberId, queueId));
+  const res = await fetchProtected(
+    buildConversationsUrl(filter, businessPhoneNumberId, queueId, priority)
+  );
   if (!res.ok) throw new Error(await inboxFailMessage(res));
   const json = (await res.json()) as {
     success: boolean;

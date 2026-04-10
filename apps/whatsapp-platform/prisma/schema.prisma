@@ -88,8 +88,38 @@ model Tenant {
   followUpTasks        FollowUpTask[]
   waInboxQueues        WaInboxQueue[]
   waInboxQueueMemberships WaInboxQueueMembership[]
+  operationalConfig    TenantOperationalConfig?
+  webhookHealth        WebhookHealth?
 
   @@map("whatsapp_tenants")
+}
+
+/** Controlo operacional por tenant (pausas manuais sem alterar AiAgentConfig). */
+model TenantOperationalConfig {
+  id                  String   @id @default(cuid())
+  tenantId            String   @unique @map("tenant_id")
+  aiEnabled           Boolean  @default(true) @map("ai_enabled")
+  automationEnabled   Boolean  @default(true) @map("automation_enabled")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+  updatedByUserId     String?  @map("updated_by_user_id") @db.VarChar(128)
+  tenant              Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_operational_configs")
+}
+
+/** Telemetria de saúde do webhook WhatsApp (atualizado no handler de entrada). */
+model WebhookHealth {
+  id             String    @id @default(cuid())
+  tenantId       String    @unique @map("tenant_id")
+  lastReceivedAt DateTime? @map("last_received_at")
+  lastSuccessAt  DateTime? @map("last_success_at")
+  lastErrorAt    DateTime? @map("last_error_at")
+  totalReceived  Int       @default(0) @map("total_received")
+  totalErrors    Int       @default(0) @map("total_errors")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("webhook_health")
 }
 
 /// Auditoria transversal (auth, automação, webhooks agregados). Inbox/thread continua em WaInboxAuditLog; billing detalhado em BillingAuditLog.

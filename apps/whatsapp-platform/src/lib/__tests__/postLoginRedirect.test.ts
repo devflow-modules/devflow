@@ -4,8 +4,8 @@ import { resolvePostLoginRedirect } from "../postLoginRedirect";
 describe("resolvePostLoginRedirect", () => {
   it("manager+ usa next ou destino padrão do painel", () => {
     expect(resolvePostLoginRedirect("/dashboard", "manager")).toBe("/dashboard");
-    expect(resolvePostLoginRedirect(null, "manager")).toBe("/dashboard/whatsapp");
-    expect(resolvePostLoginRedirect(null, "platform_admin")).toBe("/dashboard/whatsapp");
+    expect(resolvePostLoginRedirect(null, "manager")).toBe("/dashboard/ai");
+    expect(resolvePostLoginRedirect(null, "platform_admin")).toBe("/dashboard/ai");
   });
 
   it("operador cai na Inbox ou respeita next seguro (exceto rotas bloqueadas)", () => {

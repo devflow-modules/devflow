@@ -17,11 +17,11 @@ export function isTenantManager(role: string | null | undefined): boolean {
   return isManager(role) || isPlatformAdmin(role);
 }
 
-/** Destino do logotipo / marca na shell. */
+/** Destino do logotipo / marca na shell (alinhado ao pós-login e à home autenticada). */
 export function shellHomeHref(role: string | null | undefined): string {
-  if (isTenantManager(role) || isPlatformAdmin(role)) return "/dashboard";
   if (isOperator(role)) return "/inbox";
-  return "/dashboard";
+  if (isTenantManager(role)) return "/dashboard/ai";
+  return "/dashboard/ai";
 }
 
 /** Caminhos que o operador não deve usar (configuração / monetização / painel). */

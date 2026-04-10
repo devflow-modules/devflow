@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MessageBubble } from "./MessageBubble";
+import { AutomationStatusHints, ConversationTimeline } from "./ConversationTimeline";
 import { fetchInboxMessages } from "./inboxFetch";
 import { INBOX_QK } from "./inboxTypes";
 import type { WaInboxMessageRow } from "./inboxTypes";
@@ -140,6 +141,8 @@ export function MessageList({
       data-testid="message-list"
     >
       <div className="mx-auto flex max-w-3xl flex-col gap-3">
+        <ConversationTimeline messages={data} />
+        {thread ? <AutomationStatusHints thread={thread} /> : null}
         {timeline.map((item, ti) => {
           if (item.kind === "day") {
             return (

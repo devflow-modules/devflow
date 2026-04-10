@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WhatsApp Platform — DevFlow Labs</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 18mm 16mm;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      font-size: 11pt;
+      line-height: 1.55;
+      color: #1e293b;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 12mm 14mm 20mm;
+      background: #fff;
+    }
+    .cover {
+      min-height: 72vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      page-break-after: always;
+      padding: 8mm 0 16mm;
+    }
+    .cover h1 {
+      font-size: 26pt;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #0f172a;
+      margin: 0 0 12px;
+      line-height: 1.2;
+    }
+    .cover .brand {
+      font-size: 10pt;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #64748b;
+      margin-bottom: 28px;
+    }
+    .cover .subtitle {
+      font-size: 13pt;
+      color: #475569;
+      max-width: 420px;
+      margin: 0 auto;
+      line-height: 1.45;
+    }
+    .cover .line {
+      width: 48px;
+      height: 3px;
+      background: linear-gradient(90deg, #0ea5e9, #6366f1);
+      border-radius: 2px;
+      margin: 32px auto 0;
+    }
+    h2 {
+      font-size: 15pt;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 28px 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    h3 {
+      font-size: 12pt;
+      font-weight: 700;
+      color: #334155;
+      margin: 20px 0 8px;
+    }
+    h4 {
+      font-size: 11pt;
+      font-weight: 700;
+      color: #475569;
+      margin: 14px 0 6px;
+    }
+    p {
+      margin: 0 0 10px;
+    }
+    ul {
+      margin: 8px 0 14px;
+      padding-left: 1.25em;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    .lead {
+      font-size: 12pt;
+      color: #475569;
+    }
+    .box {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin: 14px 0;
+      border: 1px solid #e2e8f0;
+    }
+    .steps {
+      counter-reset: step;
+      list-style: none;
+      padding-left: 0;
+    }
+    .steps li {
+      position: relative;
+      padding-left: 2.2em;
+      margin-bottom: 10px;
+    }
+    .steps li::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1.5em;
+      height: 1.5em;
+      font-size: 9pt;
+      font-weight: 700;
+      line-height: 1.5em;
+      text-align: center;
+      background: #e0f2fe;
+      color: #0369a1;
+      border-radius: 50%;
+    }
+    .example {
+      margin: 12px 0;
+      padding-left: 12px;
+      border-left: 3px solid #6366f1;
+    }
+    .conclusion {
+      margin-top: 24px;
+      padding: 16px 18px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    .footer-note {
+      margin-top: 32px;
+      font-size: 9pt;
+      color: #94a3b8;
+      text-align: center;
+    }
+    @media print {
+      body {
+        padding: 0;
+      }
+      h2 {
+        page-break-after: avoid;
+      }
+      .box,
+      .example,
+      .conclusion {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="cover">
+    <p class="brand">DevFlow Labs</p>
+    <h1>WhatsApp Platform</h1>
+    <p class="subtitle">
+      Atendimento, operação e vendas no WhatsApp com inteligência artificial
+    </p>
+    <div class="line" aria-hidden="true"></div>
+  </header>
+
+  <section>
+    <h2>Visão geral</h2>
+    <p class="lead">
+      Uma plataforma que organiza todas as conversas do WhatsApp, automatiza atendimentos
+      e ajuda a transformar contatos em clientes — sem complicar o dia a dia da sua equipe.
+    </p>
+    <p>
+      O sistema reúne em um só lugar o que antes ficava espalhado: mensagens, prioridades,
+      histórico e oportunidades de venda. Assim, sua empresa responde mais rápido, com mais
+      consistência e com foco no que realmente importa: <strong>resultado</strong>.
+    </p>
+    <p>
+      <strong>Qual problema resolve?</strong> Conversas perdidas, filas desorganizadas,
+      demora para responder e dificuldade em saber quem merece atenção primeiro. A plataforma
+      cola ordem, velocidade e visão de negócio no mesmo fluxo de trabalho.
+    </p>
+  </section>
+
+  <section>
+    <h2>Principais benefícios</h2>
+    <ul>
+      <li><strong>Atendimento organizado</strong> — tudo em um único painel, com histórico claro.</li>
+      <li><strong>Respostas automáticas inteligentes</strong> — a tecnologia ajuda a equipe a não ficar sobrecarregada.</li>
+      <li><strong>Priorização de leads</strong> — destaque para quem tem maior chance de fechar.</li>
+      <li><strong>Automação de follow-up e reativação</strong> — menos contatos esquecidos no meio do caminho.</li>
+      <li><strong>Visão da operação em tempo real</strong> — decisões com base no que está acontecendo agora.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Como funciona (fluxo simples)</h2>
+    <ol class="steps">
+      <li>O cliente envia uma mensagem no WhatsApp da empresa.</li>
+      <li>A conversa entra automaticamente no sistema.</li>
+      <li>O sistema organiza e define prioridades de forma inteligente.</li>
+      <li>A assistente virtual pode responder na hora ou deixar a conversa para um atendente humano.</li>
+      <li>A equipe acompanha tudo, responde quando necessário e mantém o padrão da marca.</li>
+      <li>O sistema apoia o fechamento de vendas e ajuda a recuperar quem parou de responder.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Funcionalidades principais</h2>
+
+    <h3>Inbox inteligente</h3>
+    <ul>
+      <li>Todas as conversas em um só lugar, fáceis de encontrar.</li>
+      <li>Prioridade automática — alta, média ou baixa — para focar onde há mais retorno.</li>
+      <li>Histórico completo da conversa, sempre disponível.</li>
+    </ul>
+
+    <h3>Inteligência artificial</h3>
+    <ul>
+      <li>Respostas automáticas quando fizer sentido para o negócio.</li>
+      <li>Sugestões que ajudam o atendente a ser mais rápido e preciso.</li>
+      <li>Controle total: é possível pausar ou retomar o uso da assistente a qualquer momento.</li>
+    </ul>
+
+    <h3>Automação comercial</h3>
+    <ul>
+      <li>Follow-up automático para não deixar oportunidades esfriarem.</li>
+      <li>Reativação de clientes que sumiram da conversa.</li>
+      <li>Recuperação de oportunidades que quase se perderam.</li>
+    </ul>
+
+    <h3>Gestão e métricas</h3>
+    <ul>
+      <li>Painel com visão clara da operação.</li>
+      <li>Acompanhamento de leads e oportunidades.</li>
+      <li>Indicadores que mostram como o time e a automação estão performando.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Perfis de uso</h2>
+
+    <div class="box">
+      <h4>Gestor</h4>
+      <p>
+        Acompanha resultados, identifica oportunidades de venda e toma decisões com base em números
+        e na fila do dia. Enxerga o “retrato” do negócio sem precisar mergulhar em cada conversa.
+      </p>
+    </div>
+
+    <div class="box">
+      <h4>Operador (atendente)</h4>
+      <p>
+        Responde clientes com clareza, usa as sugestões do sistema quando ajudam e sabe exatamente
+        quem atender primeiro graças à priorização automática.
+      </p>
+    </div>
+
+    <div class="box">
+      <h4>Administrador</h4>
+      <p>
+        Controla o funcionamento geral, ativa ou pausa automações e monitora se tudo está saudável
+        — para a operação rodar com previsibilidade e segurança.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Diferenciais do sistema</h2>
+    <ul>
+      <li>Interface organizada e fácil de adotar no dia a dia.</li>
+      <li>Automação com controle: a máquina acelera, mas o humano continua no comando.</li>
+      <li>Prioridade inteligente — menos adivinhação, mais foco em quem pode comprar.</li>
+      <li>Foco em resultado: vendas, conversão e retorno sobre o esforço da equipe.</li>
+      <li>Tudo integrado em uma única plataforma — sem precisar juntar planilhas e grupos soltos.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Exemplos práticos</h2>
+
+    <div class="example">
+      <p>
+        <strong>Exemplo 1 — Dúvida rápida.</strong>
+        Um cliente pergunta o preço de um produto. A assistente responde na hora com as informações
+        corretas; se a conversa exigir negociação ou exceção, o atendente assume com todo o contexto
+        já na tela.
+      </p>
+    </div>
+
+    <div class="example">
+      <p>
+        <strong>Exemplo 2 — Cliente sumiu.</strong>
+        Alguém parou de responder no meio da conversa. O sistema pode enviar um lembrete cordial,
+        mantendo o relacionamento vivo sem depender de alguém lembrar manualmente cada caso.
+      </p>
+    </div>
+
+    <div class="example">
+      <p>
+        <strong>Exemplo 3 — Pico de demanda.</strong>
+        Vários clientes falam ao mesmo tempo. O painel mostra quem é mais urgente e quem tem maior
+        potencial de fechamento, para a equipe não perder tempo na ordem errada.
+      </p>
+    </div>
+  </section>
+
+  <section class="conclusion">
+    <h2>Conclusão</h2>
+    <p>
+      A WhatsApp Platform da DevFlow Labs foi pensada para simplificar o atendimento, organizar a
+      operação e aumentar resultados usando o WhatsApp como canal principal de relacionamento e venda —
+      com tecnologia que trabalha a favor do time, não no lugar dele.
+    </p>
+  </section>
+
+  <p class="footer-note">
+    Documento institucional — DevFlow Labs · WhatsApp Platform
+  </p>
+
+</body>
+</html>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { ConversationsList } from "./ConversationsList";
@@ -31,14 +32,55 @@ export function InboxShell() {
   );
 }
 
+const INBOX_PHASES: InboxConversationsFilter[] = [
+  "needs_response",
+  "mine",
+  "unassigned",
+  "in_attendance",
+  "awaiting_customer",
+  "closed",
+];
+
 function InboxShellContent() {
+  const searchParams = useSearchParams();
   const isMd = useMediaMd();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileChat, setMobileChat] = useState(false);
   const [filter, setFilter] = useState<InboxConversationsFilter>("needs_response");
   const [lineFilter, setLineFilter] = useState<string | null>(null);
   const [queueFilter, setQueueFilter] = useState<string | null>(null);
+  const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
   const { connected: realtimeConnected } = useInboxRealtime();
+
+  useEffect(() => {
+    const legacy = searchParams.get("filter");
+    const phaseParam = searchParams.get("phase");
+    const priorityParam = searchParams.get("priority");
+
+    let nextPhase: InboxConversationsFilter = "needs_response";
+    let nextPriority: string | null = null;
+
+    if (legacy === "high_no_response") {
+      nextPhase = "needs_response";
+      nextPriority = "HIGH";
+    } else if (legacy === "stalled") {
+      nextPhase = "awaiting_customer";
+    } else if (legacy === "reactivation") {
+      nextPhase = "needs_response";
+      nextPriority = "HIGH";
+    }
+
+    if (phaseParam && INBOX_PHASES.includes(phaseParam as InboxConversationsFilter)) {
+      nextPhase = phaseParam as InboxConversationsFilter;
+    }
+    const pu = priorityParam?.trim().toUpperCase();
+    if (pu === "LOW" || pu === "MEDIUM" || pu === "HIGH") {
+      nextPriority = pu;
+    }
+
+    setFilter(nextPhase);
+    setPriorityFilter(nextPriority);
+  }, [searchParams]);
 
   const pollInterval = realtimeConnected ? POLL_INTERVAL_REALTIME_MS : POLL_INTERVAL_FALLBACK_MS;
 
@@ -63,8 +105,8 @@ function InboxShellContent() {
   const tenantThreadTotal = inboxOverview?.pagination.total;
 
   const { data: convData } = useQuery({
-    queryKey: INBOX_QK.conversations(filter, lineFilter, queueFilter),
-    queryFn: () => fetchInboxConversations(filter, lineFilter, queueFilter),
+    queryKey: INBOX_QK.conversations(filter, lineFilter, queueFilter, priorityFilter),
+    queryFn: () => fetchInboxConversations(filter, lineFilter, queueFilter, priorityFilter),
     refetchInterval: pollInterval,
   });
 
@@ -148,6 +190,7 @@ function InboxShellContent() {
               queueFilter={queueFilter}
               queues={inboxQueues}
               onQueueFilterChange={setQueueFilter}
+              priorityFilter={priorityFilter}
               tenantThreadTotal={tenantThreadTotal}
             />
           </aside>

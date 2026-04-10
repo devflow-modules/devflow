@@ -18,6 +18,11 @@ import { checkTenantAiAutomationReady, runTenantAiAutoReply } from "@/modules/ai
 import { persistWaInboxFromWebhook } from "@/modules/inbox";
 import { trackWebhookReceived } from "@/modules/analytics";
 import { bumpMetric, logError, logEvent } from "@/lib/observability";
+import {
+  recordWebhookProcessingError,
+  recordWebhookProcessingSuccess,
+} from "@/modules/operations/webhookHealthService";
+import { isOperationalAutomationEnabled } from "@/modules/operations/tenantOperationalConfigService";
 type WabaWebhookShape = {
   entry?: Array<{
     changes?: Array<{ field?: string; value?: Record<string, unknown> }>;
@@ -232,6 +237,9 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
             tenantId: tenant.id,
             err: aiErr instanceof Error ? aiErr.message : String(aiErr),
           });
+          if (!(await isOperationalAutomationEnabled(tenant.id))) {
+            continue;
+          }
           try {
             await processLegacyInboundAutoReply(tenant, msg, prep.inboxThreadId, prep.textBody);
           } catch (legErr) {
@@ -244,6 +252,10 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
         }
       } else {
         console.log("[WHATSAPP][DEBUG] using legacy path", { msgId: msg.id, reason: aiReady.reason });
+        if (!(await isOperationalAutomationEnabled(tenant.id))) {
+          console.log("[WHATSAPP][DEBUG] skip legacy auto-reply — automação pausada", { tenantId: tenant.id });
+          continue;
+        }
         try {
           await processLegacyInboundAutoReply(tenant, msg, prep.inboxThreadId, prep.textBody);
         } catch (legErr) {
