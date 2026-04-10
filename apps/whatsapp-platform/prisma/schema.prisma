@@ -85,6 +85,7 @@ model Tenant {
   usageMetrics         UsageMetric[]
   emailMessages        EmailMessage[]
   waAutoReplyClaims    WaAutoReplyClaim[]
+  followUpTasks        FollowUpTask[]
   waInboxQueues        WaInboxQueue[]
   waInboxQueueMemberships WaInboxQueueMembership[]
 
@@ -248,37 +249,65 @@ enum AiAgentTone {
 }
 
 model AiAgentConfig {
-  id                 String      @id @default(cuid())
-  tenantId           String      @unique @map("tenant_id")
-  enabled            Boolean     @default(false) @map("enabled")
-  systemPrompt       String      @default("") @map("system_prompt") @db.Text
-  model              String?     @default("gpt-4o-mini") @map("model") @db.VarChar(128)
-  tone               AiAgentTone @default(NEUTRAL) @map("tone")
-  maxTokens          Int         @default(512) @map("max_tokens")
-  temperature        Float       @default(0.7) @map("temperature")
-  fallbackToHuman    Boolean     @default(true) @map("fallback_to_human")
-  createdAt          DateTime    @default(now()) @map("created_at")
-  updatedAt          DateTime    @updatedAt @map("updated_at")
-  tenant             Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id              String @id @default(cuid())
+  tenantId        String @unique @map("tenant_id")
+  enabled         Boolean @default(false) @map("enabled")
+  /** Legado: prompt livre; usado se não houver campos comportamentais preenchidos */
+  systemPrompt    String @default("") @map("system_prompt") @db.Text
+  model           String? @default("gpt-4o-mini") @map("model") @db.VarChar(128)
+  tone            AiAgentTone @default(NEUTRAL) @map("tone")
+  maxTokens       Int @default(512) @map("max_tokens")
+  temperature     Float @default(0.7) @map("temperature")
+  fallbackToHuman Boolean @default(true) @map("fallback_to_human")
+
+  assistantName    String? @map("assistant_name") @db.VarChar(120)
+  businessContext  String? @map("business_context") @db.Text
+  goal             String? @map("goal") @db.Text
+  rules            String[] @default([]) @map("rules")
+  forbiddenTopics  String[] @default([]) @map("forbidden_topics")
+  handoffTriggers  String[] @default([]) @map("handoff_triggers")
+  autoReply        Boolean @default(true) @map("auto_reply")
+  outOfHoursReply  String? @map("out_of_hours_reply") @db.Text
+  /** ruleBased | openAI | claude — null herda Tenant.ai_driver */
+  runtimeDriver    String? @map("runtime_driver") @db.VarChar(32)
+  /** Objetivos/regras por estágio do funil (merge com defaults do produto) */
+  playbookJson     Json?   @map("playbook_json")
+
+  configVersion   Int @default(1) @map("config_version")
+  updatedByUserId String? @map("updated_by_user_id") @db.VarChar(128)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@map("ai_agent_configs")
 }
 
 model AiMessageLog {
-  id                   String   @id @default(cuid())
-  tenantId             String   @map("tenant_id")
-  waInboxThreadId      String?  @map("wa_inbox_thread_id")
-  inboundWaMessageId   String?  @map("inbound_wa_message_id")
-  outboundWaMessageId  String?  @map("outbound_wa_message_id")
-  promptUsed           String   @map("prompt_used") @db.Text
-  responseGenerated    String   @map("response_generated") @db.Text
-  tokensUsed           Int?     @map("tokens_used")
-  durationMs           Int?     @map("duration_ms")
-  errorMessage         String?  @map("error_message") @db.VarChar(2000)
-  createdAt            DateTime @default(now()) @map("created_at")
-  tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id                  String   @id @default(cuid())
+  tenantId            String   @map("tenant_id")
+  waInboxThreadId     String?  @map("wa_inbox_thread_id")
+  inboundWaMessageId  String?  @map("inbound_wa_message_id")
+  outboundWaMessageId String?  @map("outbound_wa_message_id")
+  promptUsed          String   @map("prompt_used") @db.Text
+  responseGenerated   String   @map("response_generated") @db.Text
+  tokensUsed          Int?     @map("tokens_used")
+  durationMs          Int?     @map("duration_ms")
+  errorMessage        String?  @map("error_message") @db.VarChar(2000)
+  /** auto_reply | fallback | error | blocked | test */
+  eventKind           String   @default("auto_reply") @map("event_kind") @db.VarChar(32)
+  decisionReason      String?  @map("decision_reason") @db.VarChar(512)
+  modelUsed           String?  @map("model_used") @db.VarChar(128)
+  providerKind        String?  @map("provider_kind") @db.VarChar(32)
+  /** Snapshot do estágio do funil no momento do evento */
+  aiStateSnapshot     String?  @map("ai_state_snapshot") @db.VarChar(32)
+  /** Snapshot do lead score no momento do evento (análise futura) */
+  leadScoreSnapshot   Int?     @map("lead_score_snapshot")
+  createdAt           DateTime @default(now()) @map("created_at")
+  tenant              Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, createdAt(sort: Desc)])
+  @@index([tenantId, eventKind])
   @@index([inboundWaMessageId])
   @@map("ai_message_logs")
 }
@@ -287,6 +316,10 @@ enum AiUsageLogType {
   MESSAGE_TOTAL
   AI_SUCCESS
   AI_FALLBACK
+  /** Simulação em /settings/ai — não conta como resposta de produção */
+  AI_TEST_RUN
+  /** Falha do provedor (timeout, 4xx/5xx) — observabilidade */
+  AI_PROVIDER_ERROR
 }
 
 model AiUsageLog {
@@ -343,6 +376,26 @@ model WaAutoReplyClaim {
   @@unique([tenantId, waInboxThreadId, inboundWaMessageId, triggerSource])
   @@index([tenantId, waInboxThreadId])
   @@map("wa_auto_reply_claims")
+}
+
+/** Follow-up / reativação / recuperação comercial (fila processada por worker cron) */
+model FollowUpTask {
+  id             String   @id @default(cuid())
+  tenantId       String   @map("tenant_id")
+  conversationId String   @map("conversation_id")
+  scheduledAt    DateTime @map("scheduled_at")
+  executed       Boolean  @default(false) @map("executed")
+  /** followup | reactivation | recovery */
+  type           String   @map("type") @db.VarChar(32)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  tenant   Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  thread   WaInboxThread @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, scheduledAt])
+  @@index([executed, scheduledAt])
+  @@index([conversationId, executed])
+  @@map("follow_up_tasks")
 }
 
 enum WaInboxThreadPriority {
@@ -427,6 +480,18 @@ model WaInboxThread {
   lastCustomerMessageAt  DateTime?             @map("last_customer_message_at")
   lastAgentReplyAt       DateTime?             @map("last_agent_reply_at")
   firstResponseAt        DateTime?             @map("first_response_at")
+  /** Playbook: lead | qualifying | negotiating | support | closed */
+  aiState                String?               @map("ai_state") @db.VarChar(32)
+  /** Pontuação CRM (MVP) — recalculada em cada inbound de texto */
+  leadScore              Int                   @default(0) @map("lead_score")
+  /** Dados extraídos heurísticamente do cliente (merge incremental) */
+  leadData               Json?                 @map("lead_data")
+  /** Cliente sinalizou hesitação (ex.: "vou pensar") — fila recuperação comercial */
+  needsRecovery          Boolean               @default(false) @map("needs_recovery")
+  /** Contador de automações comerciais enviadas (follow-up / reativação / recuperação) */
+  commercialMsgCount     Int                   @default(0) @map("commercial_msg_count")
+  /** Último envio automático comercial (anti-spam / intervalo mínimo) */
+  lastCommercialMsgAt    DateTime?             @map("last_commercial_msg_at")
   createdAt              DateTime              @default(now()) @map("created_at")
   updatedAt              DateTime              @updatedAt @map("updated_at")
   tenant                 Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -436,9 +501,11 @@ model WaInboxThread {
   threadTags             WaInboxThreadTag[]
   internalNotes          WaInboxInternalNote[]
   autoReplyClaims        WaAutoReplyClaim[]
+  followUpTasks          FollowUpTask[]
 
   @@unique([tenantId, phoneNumber, businessPhoneNumberId])
   @@index([tenantId, lastMessageAt(sort: Desc)])
+  @@index([tenantId, leadScore(sort: Desc)])
   @@index([tenantId, businessPhoneNumberId])
   @@index([tenantId, status])
   @@index([tenantId, assignedToUserId])

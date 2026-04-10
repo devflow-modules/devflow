@@ -7,11 +7,15 @@ import {
   WaInboxDirection,
   WaInboxMsgType,
   UsageEventType,
-  type AiAgentTone,
 } from "@/generated/prisma-whatsapp";
 import { getOrCreateAiAgentConfig } from "@/modules/ai/aiAutomationService";
 import { generateReply } from "@/modules/ai/aiService";
 import { openAiConfig } from "@/modules/ai/openai";
+import {
+  agentPromptInputFromConfig,
+  buildAgentSystemPrompt,
+} from "@/modules/ai/prompt/agentSystemPrompt";
+import { resolveEffectiveDriver } from "@/modules/ai/resolveAiRuntimeConfig";
 import { prisma } from "@/lib/prisma";
 import { waInboxListMessages } from "@/modules/inbox/waInboxMessageService";
 import { trackUsage } from "@/modules/billing/usageService";
@@ -86,19 +90,20 @@ export async function suggestInboxPlaybook(params: {
     '{"intent":"string curta do que o cliente quer","recommendedAction":"o que o agente deve fazer a seguir (operacional)","suggestedResponse":"texto pronto para colar no WhatsApp em pt-BR, cordial e objetivo"}. ' +
     "O campo suggestedResponse deve ser só o texto da mensagem, sem aspas extras.";
 
+  const basePrompt =
+    buildAgentSystemPrompt(agentPromptInputFromConfig(config)) +
+    "\n\nÉs um assistente de triagem de inbox: devolves apenas JSON.";
+
   const gen = await generateReply({
     tenantId,
     conversationId: threadId,
     messageText: instruction,
     contextMessages,
-    systemPrompt:
-      (config.systemPrompt?.trim() || "") +
-      "\n\nÉs um assistente de triagem de inbox: devolves apenas JSON.",
-    tone: config.tone as AiAgentTone,
+    systemPrompt: basePrompt,
     model: config.model ?? openAiConfig.model,
     maxTokens: Math.min(config.maxTokens ?? openAiConfig.maxTokens, 500),
     temperature: Math.min(config.temperature ?? 0.4, 0.7),
-    aiDriver: tenantRow?.aiDriver ?? null,
+    aiDriver: resolveEffectiveDriver(tenantRow?.aiDriver, config.runtimeDriver),
   });
 
   if (gen.error || !gen.text?.trim()) {

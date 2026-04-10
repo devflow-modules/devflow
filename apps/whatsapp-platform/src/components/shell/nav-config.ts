@@ -15,6 +15,7 @@ export const NAV_PRIMARY: NavItem[] = [
 /** Secundária — conta, canais, cobrança e configuração (inclui análises de IA). */
 export const NAV_SECONDARY: NavItem[] = [
   { href: "/dashboard/whatsapp", label: ROUTE_META["/dashboard/whatsapp"].label, description: "Estado da ligação Meta" },
+  { href: "/dashboard/ai", label: ROUTE_META["/dashboard/ai"].label, description: "Métricas e guardas da IA" },
   { href: "/billing", label: ROUTE_META["/billing"].label, description: "Plano e faturação" },
   { href: "/settings", label: ROUTE_META["/settings"].label, description: "Conta e preferências" },
   { href: "/settings/ai-analytics", label: ROUTE_META["/settings/ai-analytics"].label, description: "Uso de IA e custos" },

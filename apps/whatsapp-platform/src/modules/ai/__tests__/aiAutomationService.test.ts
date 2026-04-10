@@ -62,37 +62,55 @@ const mockPrisma = {
     findUnique: vi.fn(),
     findUniqueOrThrow: vi.fn(),
   },
-  waInboxThread: { findUnique: vi.fn(), findFirst: vi.fn() },
-  waInboxMessage: { findFirst: vi.fn(), findMany: vi.fn() },
+  waInboxThread: { findUnique: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
+  waInboxMessage: { findFirst: vi.fn(), findMany: vi.fn(), count: vi.fn() },
   aiMessageLog: { findFirst: vi.fn(), create: vi.fn() },
 };
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 
-function setupReadyTenant(tenantId = "t1") {
-  const fullConfig = {
+function mockAgentConfig(over: Record<string, unknown> = {}) {
+  return {
     enabled: true,
+    autoReply: true,
     systemPrompt: "Você atende a loja.",
     tone: "NEUTRAL",
     maxTokens: 256,
     temperature: 0.5,
+    model: "gpt-4o-mini",
+    rules: [] as string[],
+    forbiddenTopics: [] as string[],
+    handoffTriggers: [] as string[],
+    assistantName: null,
+    businessContext: null,
+    goal: null,
+    runtimeDriver: null,
+    outOfHoursReply: null,
+    ...over,
   };
+}
+
+function setupReadyTenant(_tenantId = "t1") {
+  const fullConfig = mockAgentConfig();
   mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(fullConfig);
   mockPrisma.tenant.findUnique.mockResolvedValue({ aiDriver: "openAI" });
   mockPrisma.waInboxThread.findUnique.mockResolvedValue({
     id: "thread-1",
     status: WaInboxThreadStatus.OPEN,
     assignedToUserId: null,
+    aiState: null,
   });
   mockPrisma.tenant.findUniqueOrThrow.mockResolvedValue({ aiDriver: "openAI" });
   mockPrisma.waInboxMessage.findMany.mockResolvedValue([]);
   mockPrisma.waInboxMessage.findFirst.mockResolvedValue(null);
+  mockPrisma.waInboxMessage.count.mockResolvedValue(2);
   mockPrisma.waInboxThread.findFirst.mockResolvedValue({
     status: WaInboxThreadStatus.OPEN,
     assignedToUserId: null,
   });
   mockPrisma.aiMessageLog.findFirst.mockResolvedValue(null);
   mockPrisma.aiMessageLog.create.mockResolvedValue({});
+  mockPrisma.waInboxThread.update.mockResolvedValue({});
   mockPrisma.aiAgentConfig.create.mockResolvedValue({
     systemPrompt: "Você atende a loja.",
     tone: "NEUTRAL",
@@ -119,7 +137,7 @@ describe("checkTenantAiAutomationReady", () => {
   });
 
   it("rejeita quando IA desabilitada", async () => {
-    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue({ enabled: false });
+    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(mockAgentConfig({ enabled: false }));
     mockPrisma.tenant.findUnique.mockResolvedValue({ aiDriver: "openAI" });
     mockPrisma.waInboxThread.findUnique.mockResolvedValue({
       id: "th1",
@@ -132,10 +150,7 @@ describe("checkTenantAiAutomationReady", () => {
   });
 
   it("rejeita thread fechada (fallback humano)", async () => {
-    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue({
-      enabled: true,
-      systemPrompt: "Olá",
-    });
+    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(mockAgentConfig({ systemPrompt: "Olá" }));
     mockPrisma.tenant.findUnique.mockResolvedValue({ aiDriver: "openAI" });
     mockPrisma.waInboxThread.findUnique.mockResolvedValue({
       id: "th1",
@@ -148,10 +163,9 @@ describe("checkTenantAiAutomationReady", () => {
   });
 
   it("rejeita prompt vazio", async () => {
-    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue({
-      enabled: true,
-      systemPrompt: "   ",
-    });
+    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(
+      mockAgentConfig({ systemPrompt: "   ", rules: [], forbiddenTopics: [], handoffTriggers: [] })
+    );
     mockPrisma.tenant.findUnique.mockResolvedValue({ aiDriver: "openAI" });
     mockPrisma.waInboxThread.findUnique.mockResolvedValue({
       id: "th1",
@@ -165,6 +179,7 @@ describe("checkTenantAiAutomationReady", () => {
 
   it("retorna ready quando OPENAI_API_KEY existe (standalone)", async () => {
     isOpenAiConfigured.mockReturnValue(true);
+    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(mockAgentConfig({ systemPrompt: "ok" }));
     mockPrisma.waInboxThread.findUnique.mockResolvedValue({
       id: "th-standalone",
       status: WaInboxThreadStatus.OPEN,
@@ -173,11 +188,12 @@ describe("checkTenantAiAutomationReady", () => {
     const { checkTenantAiAutomationReady } = await import("../aiAutomationService");
     const r = await checkTenantAiAutomationReady("t1", "5511999999999", "pn-line");
     expect(r).toEqual({ ready: true, reason: "openai_standalone" });
-    expect(mockPrisma.aiAgentConfig.findUnique).not.toHaveBeenCalled();
+    expect(mockPrisma.aiAgentConfig.findUnique).toHaveBeenCalled();
   });
 
   it("rejeita standalone quando thread atribuída a humano", async () => {
     isOpenAiConfigured.mockReturnValue(true);
+    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(mockAgentConfig());
     mockPrisma.waInboxThread.findUnique.mockResolvedValue({
       id: "th1",
       status: WaInboxThreadStatus.OPEN,
@@ -190,10 +206,7 @@ describe("checkTenantAiAutomationReady", () => {
 
   it("isolamento: usa tenantId na busca de config", async () => {
     isOpenAiConfigured.mockReturnValue(false);
-    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue({
-      enabled: true,
-      systemPrompt: "Loja B",
-    });
+    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(mockAgentConfig({ systemPrompt: "Loja B" }));
     mockPrisma.tenant.findUnique.mockResolvedValue({ aiDriver: "claude" });
     vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant");
     mockPrisma.waInboxThread.findUnique.mockResolvedValue({
@@ -215,7 +228,12 @@ describe("runTenantAiAutoReply", () => {
     vi.clearAllMocks();
     vi.stubEnv("OPENAI_API_KEY", "sk-test");
     sendWebhookAutoReply.mockResolvedValue({ ok: true, messageId: "wam-out-1" });
-    generateOpenAiReply.mockResolvedValue("Resposta OpenAI");
+    generateOpenAiReply.mockResolvedValue({
+      reply: "Resposta OpenAI",
+      fallback: false,
+      tokensUsed: 1,
+      durationMs: 10,
+    });
     isOpenAiConfigured.mockReturnValue(false);
   });
 
@@ -276,6 +294,7 @@ describe("runTenantAiAutoReply", () => {
     expect(mockPrisma.aiMessageLog.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
+          eventKind: "auto_reply",
           responseGenerated: "Olá! Como posso ajudar?",
           tokensUsed: 42,
           outboundWaMessageId: "wam-out-1",
@@ -347,15 +366,20 @@ describe("runTenantAiAutoReply", () => {
       durationMs: 100,
     });
     mockPrisma.aiMessageLog.findFirst.mockResolvedValue(null);
-    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue({
-      systemPrompt: "",
-      maxTokens: 512,
-      temperature: 0.7,
-    });
+    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(
+      mockAgentConfig({
+        systemPrompt: "prompt legado ou estruturado",
+        enabled: true,
+        autoReply: true,
+        maxTokens: 512,
+        temperature: 0.7,
+      })
+    );
     mockPrisma.waInboxThread.findUnique.mockResolvedValue({
       id: "thread-1",
       status: WaInboxThreadStatus.OPEN,
       assignedToUserId: null,
+      aiState: null,
     });
     mockPrisma.waInboxThread.findFirst.mockResolvedValue({
       status: WaInboxThreadStatus.OPEN,
@@ -363,6 +387,8 @@ describe("runTenantAiAutoReply", () => {
     });
     mockPrisma.waInboxMessage.findFirst.mockResolvedValue(null);
     mockPrisma.waInboxMessage.findMany.mockResolvedValue([]);
+    mockPrisma.waInboxMessage.count.mockResolvedValue(1);
+    mockPrisma.waInboxThread.update.mockResolvedValue({});
     const { runTenantAiAutoReply } = await import("../aiAutomationService");
     await runTenantAiAutoReply({
       tenant: {
@@ -375,13 +401,13 @@ describe("runTenantAiAutoReply", () => {
         id: "wam-standalone",
         from: "5511999999999",
         type: "text",
-        text: { body: "olá" },
+        text: { body: "Preciso de um orçamento" },
       } as never,
       inboxThreadId: "c1",
-      textBody: "olá",
+      textBody: "Preciso de um orçamento",
     });
     expect(generateOpenAiReply).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "olá" })
+      expect.objectContaining({ message: "Preciso de um orçamento" })
     );
     expect(sendWebhookAutoReply).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -420,6 +446,7 @@ describe("runTenantAiAutoReply", () => {
     expect(mockPrisma.aiMessageLog.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
+          eventKind: "error",
           errorMessage: expect.stringContaining("Timeout"),
         }),
       })

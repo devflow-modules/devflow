@@ -7,6 +7,7 @@ import { MessageInput } from "./MessageInput";
 import { ChatHeader } from "./ChatHeader";
 import { ChatAuditTab } from "./ChatAuditTab";
 import { InternalNotesPanel } from "./InternalNotesPanel";
+import { LeadDataPanel } from "./LeadDataPanel";
 import { reportViewing, fetchInboxThread } from "./inboxFetch";
 import { INBOX_QK, type WaInboxThreadRow } from "./inboxTypes";
 
@@ -22,6 +23,9 @@ function mergeThreadRow(
     ...fromList,
     ...fromApi,
     unreadCount: fromList.unreadCount ?? fromApi.unreadCount ?? 0,
+    leadScore: fromApi.leadScore ?? fromList.leadScore,
+    leadData: fromApi.leadData ?? fromList.leadData,
+    aiState: fromApi.aiState ?? fromList.aiState,
   };
 }
 
@@ -66,29 +70,37 @@ export function ChatWindow({
 
   return (
     <div
-      className="flex min-h-0 flex-1 flex-col bg-gradient-to-b from-white via-slate-50/30 to-slate-50/60"
+      className="flex min-h-0 flex-1 flex-col bg-gradient-to-b from-white via-slate-50/30 to-slate-50/60 xl:flex-row"
       data-testid="chat-window"
     >
-      <ChatHeader
-        threadId={threadId}
-        thread={activeThread}
-        onBackMobile={onBackMobile}
-        showBack={showBack}
-        auditTab={auditTab}
-        onAuditTabChange={setAuditTab}
-        onOpenNotes={() => setNotesOpen((o) => !o)}
-      />
-      {notesOpen && threadId ? (
-        <InternalNotesPanel threadId={threadId} onClose={() => setNotesOpen(false)} />
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <ChatHeader
+          threadId={threadId}
+          thread={activeThread}
+          onBackMobile={onBackMobile}
+          showBack={showBack}
+          auditTab={auditTab}
+          onAuditTabChange={setAuditTab}
+          onOpenNotes={() => setNotesOpen((o) => !o)}
+        />
+        {notesOpen && threadId ? (
+          <InternalNotesPanel threadId={threadId} onClose={() => setNotesOpen(false)} />
+        ) : null}
+        {auditTab ? (
+          <ChatAuditTab threadId={threadId} />
+        ) : (
+          <>
+            <MessageList threadId={threadId} thread={activeThread} />
+            <MessageInput threadId={threadId} thread={activeThread} />
+          </>
+        )}
+      </div>
+      {!auditTab && activeThread ? (
+        <LeadDataPanel
+          thread={activeThread}
+          className="max-h-40 w-full shrink-0 overflow-y-auto border-t border-slate-200/90 sm:max-h-52 md:max-h-64 xl:max-h-[min(100vh,720px)] xl:w-72 xl:border-l xl:border-t-0"
+        />
       ) : null}
-      {auditTab ? (
-        <ChatAuditTab threadId={threadId} />
-      ) : (
-        <>
-          <MessageList threadId={threadId} thread={activeThread} />
-          <MessageInput threadId={threadId} thread={activeThread} />
-        </>
-      )}
     </div>
   );
 }

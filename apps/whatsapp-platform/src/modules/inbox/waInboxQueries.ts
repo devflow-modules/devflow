@@ -184,7 +184,8 @@ export async function waInboxListThreads(
         ) AS last_unanswered_inbound_at,
         t.last_message_at,
         t.status,
-        t.assigned_to_user_id
+        t.assigned_to_user_id,
+        t.lead_score
       FROM wa_inbox_threads t
       WHERE ${whereSql}
     ),
@@ -234,6 +235,7 @@ export async function waInboxListThreads(
       ranked.sort_bucket ASC,
       CASE WHEN ranked.sort_bucket = 0 THEN ranked.sla_sort ELSE 0 END DESC,
       CASE WHEN ranked.sort_bucket = 0 THEN ranked.response_delay_ms ELSE 0 END DESC NULLS LAST,
+      ranked.lead_score DESC,
       ranked.last_message_at DESC
     LIMIT ${opts.take} OFFSET ${opts.skip}
   `;

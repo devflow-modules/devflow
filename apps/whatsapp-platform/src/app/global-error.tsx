@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 /**
  * UI mínima proposital: não importa AppShell, providers de sessão nem hooks de navegação.
  * O erro global renderiza fora da árvore normal do layout e deve permanecer isolado.
@@ -66,7 +68,7 @@ export default function GlobalError({
             >
               Tentar novamente
             </button>
-            <a
+            <Link
               href="/"
               style={{
                 display: "inline-flex",
@@ -81,7 +83,7 @@ export default function GlobalError({
               }}
             >
               Ir ao início
-            </a>
+            </Link>
           </div>
         </main>
       </body>

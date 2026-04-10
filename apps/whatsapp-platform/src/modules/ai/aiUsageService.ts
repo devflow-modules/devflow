@@ -7,12 +7,15 @@ import { prisma } from "@/lib/prisma";
 import { AiUsageLogType } from "@/generated/prisma-whatsapp";
 import { estimateCostFromTotal } from "./openai";
 
+export type AiUsageTrackType =
+  | "MESSAGE_TOTAL"
+  | "AI_SUCCESS"
+  | "AI_FALLBACK"
+  | "AI_TEST_RUN"
+  | "AI_PROVIDER_ERROR";
+
 /** Registra evento de uso de IA. Não bloqueia; falhas só em log. */
-export function trackAiUsage(
-  tenantId: string,
-  type: "MESSAGE_TOTAL" | "AI_SUCCESS" | "AI_FALLBACK",
-  tokens = 0
-): void {
+export function trackAiUsage(tenantId: string, type: AiUsageTrackType, tokens = 0): void {
   if (!tenantId || tenantId === "env") return;
   void prisma.aiUsageLog
     .create({

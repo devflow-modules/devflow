@@ -1,5 +1,4 @@
 import type { LLMMessage } from "@devflow/ai-core";
-import type { AiAgentTone } from "@/generated/prisma-whatsapp";
 import {
   completeWithTimeout,
   tenantDriverToProviderKind,
@@ -7,21 +6,14 @@ import {
 } from "./aiProvider";
 import { resolveOpenAiConfig } from "./openai";
 
-const TONE_HINTS: Record<AiAgentTone, string> = {
-  FRIENDLY: "Use tom amigável, caloroso e próximo.",
-  SALES: "Tom comercial: objetivo, destaque valor e próximo passo sem ser agressivo.",
-  SUPPORT: "Tom de suporte: claro, didático, passo a passo quando fizer sentido.",
-  NEUTRAL: "Tom neutro e profissional.",
-};
-
 export interface GenerateReplyInput {
   tenantId: string;
   /** Para logs / contexto */
   conversationId: string;
   messageText: string;
   contextMessages: { role: "user" | "assistant"; content: string }[];
+  /** Prompt de sistema já montado (ex.: `buildAgentSystemPrompt` + instruções extra). */
   systemPrompt: string;
-  tone: AiAgentTone;
   model?: string;
   maxTokens: number;
   temperature: number;
@@ -48,12 +40,7 @@ export async function generateReply(input: GenerateReplyInput): Promise<Generate
     };
   }
 
-  const systemParts = [
-    input.systemPrompt.trim(),
-    TONE_HINTS[input.tone] ?? TONE_HINTS.NEUTRAL,
-    "Responda em português do Brasil. Seja breve para WhatsApp (máx. poucos parágrafos curtos).",
-  ].filter(Boolean);
-  const systemContent = systemParts.join("\n\n");
+  const systemContent = input.systemPrompt.trim();
 
   const messages: LLMMessage[] = [{ role: "system", content: systemContent }];
   for (const m of input.contextMessages) {

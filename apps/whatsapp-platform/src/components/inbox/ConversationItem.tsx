@@ -55,6 +55,18 @@ export const ConversationItem = memo(function ConversationItem({
     (thread.isUnassigned || !thread.assignedToUser) && thread.status !== "CLOSED"
   );
 
+  const crmTier = thread.priority;
+  const crmLabel =
+    crmTier === "HIGH" ? "🔥 HIGH" : crmTier === "MEDIUM" ? "⚡ MEDIUM" : crmTier === "LOW" ? "💤 LOW" : null;
+  const crmClass =
+    crmTier === "HIGH"
+      ? "text-red-600 ring-red-200/60"
+      : crmTier === "MEDIUM"
+        ? "text-amber-700 ring-amber-200/70"
+        : crmTier === "LOW"
+          ? "text-slate-500 ring-slate-200/80"
+          : "";
+
   const slaRank = (s: InboxSlaLevel | null | undefined): number =>
     s === "critical" ? 0 : s === "high" ? 1 : s === "medium" ? 2 : 3;
 
@@ -118,6 +130,25 @@ export const ConversationItem = memo(function ConversationItem({
             <span className="text-slate-400"> · </span>
             <span>{rawPreview}</span>
           </p>
+
+          <div className="mt-1 flex flex-wrap items-center gap-1.5" data-testid="crm-inbox-row">
+            {crmLabel ? (
+              <span
+                className={`rounded px-1 py-0.5 text-[9px] font-bold ring-1 ${crmClass}`}
+                title="Prioridade (score CRM)"
+              >
+                {crmLabel}
+              </span>
+            ) : null}
+            <span className="tabular-nums text-[9px] font-semibold text-slate-600" data-testid="lead-score-list">
+              {thread.leadScore ?? 0} pts
+            </span>
+            {thread.aiState ? (
+              <span className="max-w-[5.5rem] truncate rounded bg-slate-100 px-1 py-0.5 text-[9px] font-medium text-slate-700 ring-1 ring-slate-200/80">
+                {thread.aiState}
+              </span>
+            ) : null}
+          </div>
 
           <div className="mt-1 flex flex-wrap items-center gap-1">
             {pendingCount > 0 ? (

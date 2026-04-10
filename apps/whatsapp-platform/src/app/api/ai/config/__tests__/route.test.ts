@@ -4,6 +4,9 @@ import { NextRequest } from "next/server";
 const mockGetAuth = vi.fn();
 const mockGetOrCreate = vi.fn();
 const mockUpdate = vi.fn();
+const mockFindUnique = vi.fn();
+const mockTenantFindUnique = vi.fn();
+const mockAuditCreate = vi.fn();
 
 vi.mock("@/modules/auth", async () => {
   const actual = await vi.importActual<typeof import("@/modules/auth")>("@/modules/auth");
@@ -18,10 +21,45 @@ vi.mock("@/modules/ai/aiAutomationService", () => ({
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     aiAgentConfig: {
+      findUnique: (...a: unknown[]) => mockFindUnique(...a),
       update: (...a: unknown[]) => mockUpdate(...a),
+    },
+    tenant: {
+      findUnique: (...a: unknown[]) => mockTenantFindUnique(...a),
+    },
+    auditLog: {
+      create: (...a: unknown[]) => mockAuditCreate(...a),
     },
   },
 }));
+
+function baseRow(over: Record<string, unknown> = {}) {
+  return {
+    id: "cfg1",
+    tenantId: "t-ai",
+    enabled: false,
+    systemPrompt: "",
+    model: "gpt-4o-mini",
+    tone: "NEUTRAL",
+    maxTokens: 512,
+    temperature: 0.7,
+    fallbackToHuman: true,
+    assistantName: null,
+    businessContext: null,
+    goal: null,
+    rules: [] as string[],
+    forbiddenTopics: [] as string[],
+    handoffTriggers: [] as string[],
+    autoReply: true,
+    outOfHoursReply: null,
+    runtimeDriver: null,
+    configVersion: 1,
+    updatedByUserId: null as string | null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...over,
+  };
+}
 
 describe("/api/ai/config", () => {
   beforeEach(() => {
@@ -29,15 +67,15 @@ describe("/api/ai/config", () => {
     mockGetAuth.mockResolvedValue({
       payload: { tenantId: "t-ai", sub: "u1", role: "manager" },
     });
-    mockGetOrCreate.mockResolvedValue({
-      enabled: false,
-      systemPrompt: "",
-      model: "gpt-4o-mini",
-      tone: "NEUTRAL",
-      maxTokens: 512,
-      temperature: 0.7,
-      fallbackToHuman: true,
-    });
+    mockGetOrCreate.mockResolvedValue(baseRow());
+    mockFindUnique.mockResolvedValue(baseRow());
+    mockTenantFindUnique.mockResolvedValue({ aiDriver: null });
+    mockAuditCreate.mockResolvedValue({});
+    mockUpdate.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
+      ...baseRow(),
+      ...data,
+      configVersion: 2,
+    }));
   });
 
   it("GET 401 sem auth", async () => {
@@ -55,6 +93,7 @@ describe("/api/ai/config", () => {
     expect(j.success).toBe(true);
     expect(j.data.tone).toBe("NEUTRAL");
     expect(j.data.model).toBe("gpt-4o-mini");
+    expect(j.presets?.length).toBeGreaterThan(0);
   });
 
   it("GET 403 para operador", async () => {
@@ -84,13 +123,11 @@ describe("/api/ai/config", () => {
 
   it("POST atualiza enabled", async () => {
     mockUpdate.mockResolvedValue({
-      enabled: true,
-      systemPrompt: "Olá",
-      model: "gpt-4o-mini",
-      tone: "FRIENDLY",
-      maxTokens: 400,
-      temperature: 0.6,
-      fallbackToHuman: true,
+      ...baseRow({
+        enabled: true,
+        systemPrompt: "Olá",
+        tone: "FRIENDLY",
+      }),
     });
     const { PUT } = await import("../route");
     const res = await PUT(
@@ -110,15 +147,7 @@ describe("/api/ai/config", () => {
   });
 
   it("PUT aplica clamp em temperature e maxTokens", async () => {
-    mockUpdate.mockResolvedValue({
-      enabled: true,
-      systemPrompt: "",
-      model: "gpt-4o-mini",
-      tone: "NEUTRAL",
-      maxTokens: 300,
-      temperature: 0.5,
-      fallbackToHuman: true,
-    });
+    mockUpdate.mockResolvedValue(baseRow({ maxTokens: 500, temperature: 1 }));
     const { PUT } = await import("../route");
     const res = await PUT(
       new NextRequest("http://x/api/ai/config", {

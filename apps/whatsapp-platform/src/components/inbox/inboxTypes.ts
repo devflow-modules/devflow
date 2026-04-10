@@ -49,6 +49,17 @@ export type WaInboxThreadRow = {
   lastMessagePreview: string | null;
   status: string;
   priority?: string;
+  /** CRM: pontuação automática (recalculada em cada inbound) */
+  leadScore?: number;
+  /** CRM: campos extraídos heurísticamente */
+  leadData?: {
+    name?: string;
+    interest?: string;
+    budget?: string;
+    urgency?: string;
+  } | null;
+  /** Snapshot do funil IA na thread */
+  aiState?: string | null;
   assignedToUser?: InboxUser | null;
   queue?: InboxThreadQueue | null;
   threadTags?: { tag: InboxTag }[];

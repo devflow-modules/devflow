@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
-import {
-  WaInboxDirection,
-  WaInboxMsgType,
-  UsageEventType,
-  type AiAgentTone,
-} from "@/generated/prisma-whatsapp";
+import { WaInboxDirection, WaInboxMsgType, UsageEventType } from "@/generated/prisma-whatsapp";
 import { getOrCreateAiAgentConfig } from "@/modules/ai/aiAutomationService";
 import { generateReply } from "@/modules/ai/aiService";
 import { openAiConfig } from "@/modules/ai/openai";
+import {
+  agentPromptInputFromConfig,
+  buildAgentSystemPrompt,
+} from "@/modules/ai/prompt/agentSystemPrompt";
+import { resolveEffectiveDriver } from "@/modules/ai/resolveAiRuntimeConfig";
 import { waInboxListMessages } from "@/modules/inbox";
 import { enforceUsageOrThrow, UsageLimitExceededError } from "@/modules/billing/enforcementService";
 import { trackUsage } from "@/modules/billing/usageService";
@@ -88,12 +88,11 @@ export async function POST(
       conversationId: threadId,
       messageText: instruction,
       contextMessages,
-      systemPrompt: config.systemPrompt?.trim() || "",
-      tone: config.tone as AiAgentTone,
+      systemPrompt: buildAgentSystemPrompt(agentPromptInputFromConfig(config)),
       model: config.model ?? openAiConfig.model,
       maxTokens: Math.min(config.maxTokens ?? openAiConfig.maxTokens, 400),
       temperature: config.temperature,
-      aiDriver: tenantRow?.aiDriver ?? null,
+      aiDriver: resolveEffectiveDriver(tenantRow?.aiDriver, config.runtimeDriver),
     });
 
     if (gen.error || !gen.text?.trim()) {

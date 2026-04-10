@@ -39,6 +39,13 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     roles: ["manager", "platform_admin"],
     sensitive: true,
   },
+  "/dashboard/ai": {
+    label: "IA — operação",
+    parent: "/dashboard",
+    section: "conta",
+    roles: ["manager", "platform_admin"],
+    sensitive: true,
+  },
   "/inbox": {
     label: "Inbox",
     parent: null,

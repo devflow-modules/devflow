@@ -115,6 +115,10 @@ export type MessageCreatedPayload = {
     slaLevel?: InboxSlaLevel | null;
     isUnassigned?: boolean;
     lastUnansweredInboundAt?: string | null;
+    /** CRM leve — score e dados extraídos */
+    leadScore?: number;
+    priority?: string;
+    leadData?: Record<string, string | undefined> | null;
   };
 };
 

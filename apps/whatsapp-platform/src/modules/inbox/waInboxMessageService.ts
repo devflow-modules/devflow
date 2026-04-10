@@ -137,8 +137,21 @@ export async function waInboxCreateInbound(
   });
   if (result) {
     const { thread, row, wasNewConversation } = result;
+    const { refreshThreadLeadCrmAfterInbound } = await import("./leadCrm");
+    const crm = await refreshThreadLeadCrmAfterInbound({
+      tenantId,
+      threadId: thread.id,
+      inboundText: textBody ?? "",
+    });
     const { getWaInboxThreadInboxMetrics } = await import("./waInboxThreadMetrics");
     const inboxMetrics = await getWaInboxThreadInboxMetrics(tenantId, thread.id);
+    const { evaluateCommercialPipelineAfterInbound } = await import("@/modules/commercial");
+    await evaluateCommercialPipelineAfterInbound({
+      tenantId,
+      threadId: thread.id,
+      inboundText: textBody ?? "",
+      inboxMetrics,
+    }).catch((e) => console.error("[wa-inbox] commercial pipeline", e));
     const { publishInboxEvent, eventMessageCreated } = await import("@/modules/realtime/realtime.service");
     publishInboxEvent(tenantId, eventMessageCreated(tenantId, {
       threadId: thread.id,
@@ -162,6 +175,13 @@ export async function waInboxCreateInbound(
         lastAgentReplyAt: thread.lastAgentReplyAt?.toISOString() ?? null,
         firstResponseAt: thread.firstResponseAt?.toISOString() ?? null,
         ...(inboxMetrics ?? {}),
+        ...(crm
+          ? {
+              leadScore: crm.leadScore,
+              priority: crm.priority,
+              leadData: crm.leadData,
+            }
+          : {}),
       },
     }));
     const { dispatchMessageInbound, dispatchConversationCreated } = await import("@/modules/automation");
