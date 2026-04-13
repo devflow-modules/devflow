@@ -33,6 +33,7 @@ export function InboxShell() {
 }
 
 const INBOX_PHASES: InboxConversationsFilter[] = [
+  "all",
   "needs_response",
   "mine",
   "unassigned",

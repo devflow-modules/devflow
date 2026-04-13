@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
 import { getAuthFromRequest } from "@/modules/auth";
+import { jsonError, jsonSuccess } from "@/lib/api-response";
 import {
   waInboxCountThreads,
   waInboxListThreads,
@@ -13,6 +14,7 @@ export const dynamic = "force-dynamic";
 const VALID_STATUS = new Set<string>(["OPEN", "PENDING", "CLOSED"]);
 const VALID_PRIORITY = new Set<string>(["LOW", "MEDIUM", "HIGH"]);
 const VALID_PHASE = new Set<string>([
+  "all",
   "needs_response",
   "mine",
   "unassigned",
@@ -24,7 +26,7 @@ const VALID_PHASE = new Set<string>([
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
   if (!auth) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    return jsonError("UNAUTHORIZED", "Não autorizado", 401);
   }
 
   const { searchParams } = new URL(request.url);
@@ -87,17 +89,15 @@ export async function GET(request: NextRequest) {
         isDefaultOutbound: false,
       },
     }));
-    return NextResponse.json({
-      success: true,
-      data: { threads: threadsOut, pagination: { limit: take, offset: skip, total } },
+    return jsonSuccess({
+      threads: threadsOut,
+      pagination: { limit: take, offset: skip, total },
     });
   } catch (e) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: { message: e instanceof Error ? e.message : "Erro ao listar" },
-      },
-      { status: 500 }
+    return jsonError(
+      "INBOX_LIST_FAILED",
+      e instanceof Error ? e.message : "Erro ao listar",
+      500
     );
   }
 }

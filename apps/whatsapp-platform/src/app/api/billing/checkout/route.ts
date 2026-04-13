@@ -1,5 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
+import { jsonError, jsonSuccess } from "@/lib/api-response";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 import { createBillingCheckoutSession, type CheckoutPlan } from "@/modules/billing/billingService";
@@ -15,16 +17,20 @@ export async function POST(request: NextRequest) {
   const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
   if (denied) return denied;
   if (!auth) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    return jsonError("UNAUTHORIZED", "Não autorizado", 401);
+  }
+
+  const checkoutLim = checkRateLimit(getClientIp(request), "billing-checkout");
+  if (!checkoutLim.ok) {
+    return jsonError("RATE_LIMITED", "Muitas tentativas de checkout. Tente novamente em instantes.", 429, {
+      headers: checkoutLim.retryAfter ? { "Retry-After": String(checkoutLim.retryAfter) } : undefined,
+    });
   }
 
   const json = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json(
-      { success: false, error: "plan deve ser STARTER, PRO ou SCALE" },
-      { status: 400 }
-    );
+    return jsonError("VALIDATION_ERROR", "plan deve ser STARTER, PRO ou SCALE", 400);
   }
 
   const user = await prisma.user.findFirst({
@@ -32,7 +38,7 @@ export async function POST(request: NextRequest) {
     select: { email: true },
   });
   if (!user?.email) {
-    return NextResponse.json({ success: false, error: "Usuário não encontrado" }, { status: 404 });
+    return jsonError("USER_NOT_FOUND", "Usuário não encontrado", 404);
   }
 
   const baseUrl =
@@ -49,13 +55,10 @@ export async function POST(request: NextRequest) {
       parsed.data.plan as CheckoutPlan,
       baseUrl
     );
-    return NextResponse.json({
-      success: true,
-      data: { url: checkoutUrl },
-    });
+    return jsonSuccess({ url: checkoutUrl });
   } catch (e) {
     console.error("[billing/checkout]", e);
     const msg = e instanceof Error ? e.message : "Checkout indisponível";
-    return NextResponse.json({ success: false, error: msg }, { status: 502 });
+    return jsonError("CHECKOUT_UNAVAILABLE", msg, 502);
   }
 }

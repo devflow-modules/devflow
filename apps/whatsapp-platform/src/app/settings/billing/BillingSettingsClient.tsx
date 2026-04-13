@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@devflow/ui";
 import { StateError, StateLoading } from "@/components/ui/app-states";
+import { readBillingPostUrl, readSubscriptionFromApiJson } from "@/lib/api-json-client";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 type Sub = {
@@ -48,17 +49,17 @@ export function BillingSettingsClient() {
         fetchProtected("/api/billing/subscription"),
         fetchProtected("/api/billing/usage"),
       ]);
-      const j1 = (await r1.json().catch(() => ({}))) as { data?: Sub; error?: string };
+      const j1 = await r1.json().catch(() => ({}));
       const j2 = (await r2.json().catch(() => ({}))) as { data?: Usage; error?: string };
       if (!r1.ok) {
-        setErr(protectedApiUserMessage(r1.status, j1));
+        setErr(protectedApiUserMessage(r1.status, j1 as { error?: string }));
         return;
       }
       if (!r2.ok) {
         setErr(protectedApiUserMessage(r2.status, j2));
         return;
       }
-      setSub(j1.data ?? null);
+      setSub(readSubscriptionFromApiJson(j1));
       setUsage(j2.data ?? null);
     } catch {
       setErr("Erro de rede");
@@ -76,10 +77,11 @@ export function BillingSettingsClient() {
     setErr(null);
     try {
       const res = await fetchProtected("/api/billing/portal", { method: "POST" });
-      const j = (await res.json().catch(() => ({}))) as { error?: string; data?: { url: string } };
-      if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j));
-      if (!j.data?.url) throw new Error("URL do portal não disponível.");
-      window.location.href = j.data.url;
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j as { error?: string }));
+      const url = readBillingPostUrl(j);
+      if (!url) throw new Error("URL do portal não disponível.");
+      window.location.href = url;
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Portal indisponível");
     } finally {
@@ -96,10 +98,11 @@ export function BillingSettingsClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan }),
       });
-      const j = (await res.json().catch(() => ({}))) as { error?: string; data?: { url: string } };
-      if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j));
-      if (!j.data?.url) throw new Error("URL de checkout não disponível.");
-      window.location.href = j.data.url;
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j as { error?: string }));
+      const url = readBillingPostUrl(j);
+      if (!url) throw new Error("URL de checkout não disponível.");
+      window.location.href = url;
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Checkout indisponível");
     } finally {

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { jsonSuccess } from "@/lib/api-response";
 import { buildClearCookieHeader, getAuthFromRequest } from "@/modules/auth";
 import { revokeUserSession } from "@/modules/auth/sessionService";
 import { logAuth } from "@/lib/auth-logger";
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const res = NextResponse.json({ success: true });
+  const res = jsonSuccess({ ok: true });
   res.headers.set("Set-Cookie", buildClearCookieHeader());
   return res;
 }

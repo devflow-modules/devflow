@@ -32,6 +32,7 @@ const POLL_INTERVAL_REALTIME_MS = 10_000;
 const POLL_INTERVAL_FALLBACK_MS = 5_000;
 
 const FILTER_LABELS: Record<InboxConversationsFilter, string> = {
+  all: "Geral",
   needs_response: "Precisa resposta",
   mine: "Minhas",
   unassigned: "Sem dono",
@@ -41,6 +42,7 @@ const FILTER_LABELS: Record<InboxConversationsFilter, string> = {
 };
 
 const FILTER_ORDER: InboxConversationsFilter[] = [
+  "all",
   "needs_response",
   "mine",
   "unassigned",

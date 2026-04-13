@@ -1,17 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { jsonError, jsonSuccess } from "@/lib/api-response";
 import { getAuthFromRequest } from "@/modules/auth";
+
+const noStore = { "Cache-Control": "no-store" as const };
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
   if (!auth) {
-    return NextResponse.json(
-      { valid: false },
-      { status: 401, headers: { "Cache-Control": "no-store" } }
-    );
+    return jsonError("UNAUTHORIZED", "Não autorizado", 401, { headers: noStore });
   }
 
   const { payload } = auth;
-  return NextResponse.json(
+  return jsonSuccess(
     {
       valid: true,
       user: {
@@ -22,6 +22,6 @@ export async function GET(request: NextRequest) {
         tenantId: payload.tenantId,
       },
     },
-    { headers: { "Cache-Control": "no-store" } }
+    { headers: noStore }
   );
 }

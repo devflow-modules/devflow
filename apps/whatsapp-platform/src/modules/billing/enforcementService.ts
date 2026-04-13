@@ -3,12 +3,12 @@
  * Bloqueia ou permite conforme BILLING_ENFORCE_LIMITS.
  */
 
-import { getTenantPlan } from "./subscriptionService";
-import { getTenantPlanCapabilities } from "./planCapabilities";
+import { getTenantBillingContext } from "./subscriptionService";
 import { getUsageByPeriod, periodYYYYMM } from "./usageService";
 import { getAiUsageMetrics } from "@/modules/ai/aiUsageService";
 import { isBillingEnforceLimits } from "./planConfig";
 import { logLimitExceeded, logUsageThresholdWarning } from "./billingObserverService";
+import { bumpMetric, logEvent } from "@/lib/observability";
 
 export type EnforcementFeature = "messages" | "ai";
 
@@ -51,8 +51,7 @@ function logEnforcement(
 export async function enforceUsageOrThrow(input: EnforceUsageInput): Promise<void> {
   const { tenantId, feature, quantity = 1 } = input;
 
-  const plan = await getTenantPlan(tenantId);
-  const caps = getTenantPlanCapabilities(plan);
+  const { plan, capabilities: caps } = await getTenantBillingContext(tenantId);
 
   const limit =
     feature === "messages" ? caps.maxMessages : feature === "ai" ? caps.maxAIUsage : null;
@@ -87,6 +86,14 @@ export async function enforceUsageOrThrow(input: EnforceUsageInput): Promise<voi
   if (blockExceeded) {
     logLimitExceeded(tenantId, feature);
     logEnforcement(tenantId, feature, used, limit, true);
+    bumpMetric("billing_enforcement_blocked");
+    logEvent(
+      "warn",
+      "billing",
+      "usage_limit_blocked",
+      { feature, plan, used, limit: limit ?? null },
+      { tenant_id: tenantId }
+    );
     throw new UsageLimitExceededError(
       feature,
       `Limite mensal de ${feature === "messages" ? "mensagens" : "respostas IA"} atingido. Faça upgrade para continuar.`

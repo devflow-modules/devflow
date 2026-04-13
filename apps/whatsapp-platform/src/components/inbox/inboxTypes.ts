@@ -88,6 +88,7 @@ export type WaInboxMessageRow = {
 };
 
 export type InboxConversationsFilter =
+  | "all"
   | "needs_response"
   | "mine"
   | "unassigned"

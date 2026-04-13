@@ -13,6 +13,7 @@ import {
 } from "@/components/dashboard/billing";
 import type { TenantBillingUI } from "@/modules/billing";
 import type { PlanKey } from "@/modules/billing/plans";
+import { readBillingPostUrl } from "@/lib/api-json-client";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 function formatBRL(value: number): string {
@@ -63,10 +64,11 @@ export function BillingDashboardClient() {
     for (const url of endpoints) {
       try {
         const res = await fetchProtected(url, { method: "POST" });
-        const j = (await res.json().catch(() => ({}))) as { error?: string; data?: { url: string } };
-        if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j));
-        if (j.data?.url) {
-          window.location.href = j.data.url;
+        const j = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j as { error?: string }));
+        const postUrl = readBillingPostUrl(j);
+        if (postUrl) {
+          window.location.href = postUrl;
           return;
         }
       } catch (e) {
@@ -90,10 +92,11 @@ export function BillingDashboardClient() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ plan }),
           });
-          const j = (await res.json().catch(() => ({}))) as { error?: string; data?: { url: string } };
-          if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j));
-          if (j.data?.url) {
-            window.location.href = j.data.url;
+          const j = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j as { error?: string }));
+          const postUrl = readBillingPostUrl(j);
+          if (postUrl) {
+            window.location.href = postUrl;
             return;
           }
         } catch {

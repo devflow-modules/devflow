@@ -13,6 +13,13 @@ export {
   waInboxGetThread,
   fetchWhatsappLineSummaries,
 } from "./waInboxQueries";
+export {
+  countInboxThreadsTotal,
+  countTenantsTotal,
+  listInboxThreadsCreatedInRange,
+  listInboxMessagesCreatedInRange,
+  listRecentInboxThreadsForTenant,
+} from "./waInboxOpsMetrics";
 export type {
   WaInboxThreadFilters,
   WhatsappLineSummary,

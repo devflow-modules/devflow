@@ -52,8 +52,16 @@ export const ConversationItem = memo(function ConversationItem({
   const showActions = Boolean(onAssume || onClose);
   const canAssume = Boolean(onAssume && !thread.isAssignedToMe && thread.status !== "CLOSED");
   const canClose = Boolean(onClose && thread.status !== "CLOSED");
+  /** «Sem dono» só quando falta alguém humano assumir e há pendência inbound. */
   const showSemDono = Boolean(
-    (thread.isUnassigned || !thread.assignedToUser) && thread.status !== "CLOSED"
+    (thread.isUnassigned || !thread.assignedToUser) &&
+      thread.status !== "CLOSED" &&
+      state === "awaiting_agent"
+  );
+  const showAguardandoCliente = Boolean(
+    (thread.isUnassigned || !thread.assignedToUser) &&
+      thread.status !== "CLOSED" &&
+      state === "awaiting_customer"
   );
 
   const crmTier = thread.priority;
@@ -176,6 +184,15 @@ export const ConversationItem = memo(function ConversationItem({
             {showSemDono ? (
               <span className="df-chip-unassigned" data-testid="unassigned-chip">
                 Sem dono
+              </span>
+            ) : null}
+            {showAguardandoCliente ? (
+              <span
+                className="rounded bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-900 ring-1 ring-emerald-200/80"
+                data-testid="awaiting-customer-chip"
+                title="Última resposta enviada; à espera do cliente"
+              >
+                {thread.lastResponderType === "ai" ? "IA · aguarda cliente" : "Aguardando cliente"}
               </span>
             ) : null}
             {needsReply && thread.status === "OPEN" && !state && <span className="df-chip-awaiting">À espera</span>}

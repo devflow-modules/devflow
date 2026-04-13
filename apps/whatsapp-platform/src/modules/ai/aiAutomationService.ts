@@ -45,6 +45,7 @@ import { evaluateAutomationRules } from "@/modules/ai/aiAutomationRules";
 import { executeAiActions } from "@/modules/ai/aiExecuteActions";
 import { logAiPipelineEvent } from "@/modules/ai/aiOperationalLogService";
 import { getOrCreateTenantOperationalConfig } from "@/modules/operations/tenantOperationalConfigService";
+import { bumpMetric, logEvent } from "@/lib/observability";
 
 export async function getOrCreateAiAgentConfig(tenantId: string): Promise<AiAgentConfig> {
   const existing = await prisma.aiAgentConfig.findUnique({ where: { tenantId } });
@@ -192,10 +193,12 @@ export interface RunTenantAiAutoReplyInput {
   /** wa_inbox_threads.id */
   inboxThreadId: string;
   textBody: string;
+  /** Correlaciona com logs do webhook (`X-Trace-Id`). */
+  traceId?: string;
 }
 
 export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Promise<void> {
-  const { tenant, message, inboxThreadId, textBody } = input;
+  const { tenant, message, inboxThreadId, textBody, traceId: pipelineTraceId } = input;
   const tenantId = tenant.id;
   const from = message.from;
   const waMsgId = message.id;
@@ -223,6 +226,15 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
 
   const check = await checkTenantAiAutomationReady(tenantId, from, tenant.phoneNumberId);
   if (!check.ready) return;
+
+  bumpMetric("ai_auto_reply_started");
+  logEvent(
+    "info",
+    "automation",
+    "ai_auto_reply_pipeline_start",
+    { inbound_wa_message_id: waMsgId, inbox_thread_id: inboxThreadId },
+    { trace_id: pipelineTraceId, tenant_id: tenantId }
+  );
 
   try {
     await enforceUsageOrThrow({ tenantId, feature: "messages", quantity: 1 });
@@ -323,6 +335,7 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
       modelUsed: modelUsedBase,
       providerKind: pk,
       leadScoreSnapshot: thread.leadScore,
+      traceId: pipelineTraceId,
     });
     if (ok.ok) {
       trackAiUsage(tenantId, "AI_SUCCESS", 0);
@@ -406,6 +419,7 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
       text: gen.reply,
       outboundKind: "ai",
       automaticTrigger: { inboundWaMessageId: waMsgId, triggerSource: "ai" },
+      traceId: pipelineTraceId,
     });
     if (!sendResult.ok) return;
 
@@ -493,6 +507,7 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
       text: gen.text,
       outboundKind: "ai",
       automaticTrigger: { inboundWaMessageId: waMsgId, triggerSource: "ai" },
+      traceId: pipelineTraceId,
     });
     if (!sendResult.ok) return;
     const outboundWaId = sendResult.messageId;

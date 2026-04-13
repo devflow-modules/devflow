@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { resolvePostLoginRedirect } from "@/lib/postLoginRedirect";
+import { readVerifyPayload, unwrapApiData } from "@/lib/api-json-client";
 import { mapAuthHttpError } from "@/lib/auth-client-errors";
 import { PasswordField } from "@/components/auth/PasswordField";
 
@@ -51,8 +52,10 @@ export function LoginForm() {
         body: JSON.stringify({ email: em, password }),
         credentials: "include",
       });
-      const data = (await res.json().catch(() => ({}))) as {
-        error?: string;
+      const raw = await res.json().catch(() => ({}));
+      const data = raw as {
+        success?: boolean;
+        error?: string | { code?: string; message?: string };
         code?: string;
         user?: { role?: string };
       };
@@ -62,7 +65,9 @@ export function LoginForm() {
         return;
       }
 
-      const redirect = resolvePostLoginRedirect(searchParams.get("next"), data.user?.role);
+      const loginPayload = unwrapApiData<{ user?: { role?: string } }>(raw);
+      const user = loginPayload?.user ?? (data as { user?: { role?: string } }).user;
+      const redirect = resolvePostLoginRedirect(searchParams.get("next"), user?.role);
       router.push(redirect);
       router.refresh();
     } catch {

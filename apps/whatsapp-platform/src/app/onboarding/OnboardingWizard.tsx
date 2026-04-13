@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { readVerifyPayload } from "@/lib/api-json-client";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 import { isTenantManager } from "@/lib/roles";
 import type { UserRole } from "@/modules/auth";
@@ -57,7 +58,7 @@ export function OnboardingWizard() {
     Promise.all([fetchProtected("/api/tenants/me"), fetchProtected("/api/auth/verify")])
       .then(async ([meRes, verifyRes]) => {
         const data = meRes.ok ? ((await meRes.json()) as TenantMe) : null;
-        const vj = verifyRes.ok ? ((await verifyRes.json()) as { user?: { role?: string } }) : {};
+        const vj = verifyRes.ok ? readVerifyPayload(await verifyRes.json()) : {};
         if (cancelled) return;
         const r = vj.user?.role;
         if (r && KNOWN_ROLES.has(r as UserRole)) setSessionRole(r as UserRole);

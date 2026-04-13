@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { newTraceId } from "@/lib/api-response";
 import { APP_PRODUCT_SLUG } from "@/lib/constants";
 import { guardOpsMetricsRequest } from "@/lib/ops-metrics-guard";
-import { hasSupabaseConfig } from "@/lib/supabase-server";
-import { countTenants } from "@/modules/tenants";
-import { countConversations } from "@/modules/conversations";
-import { countMessagesLast24h } from "@/modules/messaging";
+import {
+  countInboxThreadsTotal,
+  countTenantsTotal,
+} from "@/modules/inbox/waInboxOpsMetrics";
+import { countMessagesLast24h } from "@/modules/messaging/waInboxMessageStats";
 
 /**
  * Contrato Ops: GET /api/ops/metrics
  * Proteção: ver `guardOpsMetricsRequest` e `WHATSAPP_OPS_METRICS_SECRET`.
  * Billing (users, activeSubscriptions, pendingCancellation, mrr): 0 — não implementado para este produto.
- * tenants, conversations, messagesLast24h: dados reais do Supabase quando configurado.
+ * tenants, conversations, messagesLast24h: Prisma (fonte única com inbox).
  */
 export async function GET(request: NextRequest) {
   const denied = guardOpsMetricsRequest(request);
@@ -20,16 +22,17 @@ export async function GET(request: NextRequest) {
   let conversations = 0;
   let messagesLast24h = 0;
 
-  if (hasSupabaseConfig()) {
-    try {
-      tenants = await countTenants();
-      conversations = await countConversations();
-      messagesLast24h = await countMessagesLast24h();
-    } catch (err) {
-      console.error("[Ops metrics]", err);
-    }
+  try {
+    [tenants, conversations, messagesLast24h] = await Promise.all([
+      countTenantsTotal(),
+      countInboxThreadsTotal(),
+      countMessagesLast24h(),
+    ]);
+  } catch (err) {
+    console.error("[Ops metrics]", err);
   }
 
+  const trace_id = newTraceId();
   const payload = {
     product: APP_PRODUCT_SLUG,
     users: 0,
@@ -39,6 +42,7 @@ export async function GET(request: NextRequest) {
     tenants,
     conversations,
     messagesLast24h,
+    trace_id,
   };
-  return NextResponse.json(payload);
+  return NextResponse.json(payload, { headers: { "X-Trace-Id": trace_id } });
 }

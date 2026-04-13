@@ -19,6 +19,7 @@ import {
 
 /** Filtro operacional (UI). Quando definido, ignora `status` e `assignedTo` legacy. */
 export type WaInboxConversationPhaseFilter =
+  | "all"
   | "needs_response"
   | "mine"
   | "unassigned"
@@ -79,14 +80,19 @@ function buildWaInboxThreadWhereSql(
 
   if (filters?.conversationPhase) {
     const ph = filters.conversationPhase;
-    if (ph === "needs_response") {
+    if (ph === "all") {
+      /* sem filtro de fase — apenas tenant + refinamentos (linha, fila, prioridade) */
+    } else if (ph === "needs_response") {
       parts.push(Prisma.sql`t.status::text <> 'CLOSED'`);
       parts.push(sqlThreadHasUnansweredInbound(tenantId));
     } else if (ph === "mine") {
       if (currentUserId) parts.push(Prisma.sql`t.assigned_to_user_id = ${currentUserId}`);
       else parts.push(Prisma.sql`FALSE`);
     } else if (ph === "unassigned") {
+      /** Sem dono humano e ainda há mensagem inbound por responder (fila de «assumir»). */
+      parts.push(Prisma.sql`t.status::text <> 'CLOSED'`);
       parts.push(Prisma.sql`t.assigned_to_user_id IS NULL`);
+      parts.push(sqlThreadHasUnansweredInbound(tenantId));
     } else if (ph === "in_attendance") {
       parts.push(Prisma.sql`t.status::text <> 'CLOSED'`);
       parts.push(Prisma.sql`t.assigned_to_user_id IS NOT NULL`);

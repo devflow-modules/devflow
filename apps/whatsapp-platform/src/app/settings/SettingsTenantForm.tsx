@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { buttonClassName } from "@/components/ui/button";
 import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
 import { fieldSelectClassName } from "@/components/ui/form-field";
+import { readVerifyPayload } from "@/lib/api-json-client";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 import { isTenantManager } from "@/lib/roles";
 import type { UserRole } from "@/modules/auth";
@@ -45,7 +46,7 @@ export function SettingsTenantForm() {
           fetchProtected("/api/tenants/me"),
           fetchProtected("/api/auth/verify"),
         ]);
-        const vj = verifyRes.ok ? ((await verifyRes.json()) as { user?: { role?: string } }) : {};
+        const vj = verifyRes.ok ? readVerifyPayload(await verifyRes.json()) : {};
         if (!cancelled) {
           const r = vj.user?.role;
           if (r && KNOWN_ROLES.has(r as UserRole)) setSessionRole(r as UserRole);

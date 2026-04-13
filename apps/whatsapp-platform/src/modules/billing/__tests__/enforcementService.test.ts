@@ -9,19 +9,19 @@ vi.mock("@/modules/ai/aiUsageService", () => ({
 }));
 
 vi.mock("../subscriptionService", () => ({
-  getTenantPlan: () => Promise.resolve("PRO"),
-}));
-
-vi.mock("../planCapabilities", () => ({
-  getTenantPlanCapabilities: (plan: string) => ({
-    plan: plan || "PRO",
-    maxMessages: 5000,
-    maxAIUsage: 750,
-    maxAutomations: 50,
-    maxUsers: 3,
-    maxPhoneNumbers: 1,
-    featuresEnabled: {},
-  }),
+  getTenantBillingContext: () =>
+    Promise.resolve({
+      plan: "PRO" as const,
+      capabilities: {
+        plan: "PRO",
+        maxMessages: 5000,
+        maxAIUsage: 750,
+        maxAutomations: 50,
+        maxUsers: 3,
+        maxPhoneNumbers: 1,
+        featuresEnabled: {},
+      },
+    }),
 }));
 
 vi.mock("../usageService", () => ({

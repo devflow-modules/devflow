@@ -1,32 +1,39 @@
 import { NextResponse } from "next/server";
 import { getCounters } from "@devflow/analytics-core";
-import { hasSupabaseConfig } from "@/lib/supabase-server";
-import { countTenants } from "@/modules/tenants";
-import { countConversations } from "@/modules/conversations";
-import { countMessagesLast24h } from "@/modules/messaging";
+import { jsonError, newTraceId } from "@/lib/api-response";
+import {
+  countInboxThreadsTotal,
+  countTenantsTotal,
+} from "@/modules/inbox/waInboxOpsMetrics";
+import { countMessagesLast24h } from "@/modules/messaging/waInboxMessageStats";
 import { isAdminMetricsAllowed } from "./adminAuth";
 
 export async function GET(request: Request) {
   if (!isAdminMetricsAllowed(request)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return jsonError("FORBIDDEN", "Forbidden", 403);
   }
 
   const metrics = getCounters();
   let tenants = 0;
   let conversations = 0;
   let messagesLast24h = 0;
-  if (hasSupabaseConfig()) {
-    try {
-      tenants = await countTenants();
-      conversations = await countConversations();
-      messagesLast24h = await countMessagesLast24h();
-    } catch (err) {
-      console.error("[admin/metrics]", err);
-    }
+  try {
+    [tenants, conversations, messagesLast24h] = await Promise.all([
+      countTenantsTotal(),
+      countInboxThreadsTotal(),
+      countMessagesLast24h(),
+    ]);
+  } catch (err) {
+    console.error("[admin/metrics]", err);
   }
 
-  return NextResponse.json({
-    whatsapp_platform: { metrics },
-    ops: { tenants, conversations, messagesLast24h },
-  });
+  const trace_id = newTraceId();
+  return NextResponse.json(
+    {
+      whatsapp_platform: { metrics },
+      ops: { tenants, conversations, messagesLast24h },
+      trace_id,
+    },
+    { headers: { "X-Trace-Id": trace_id } }
+  );
 }

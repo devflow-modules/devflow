@@ -52,7 +52,7 @@ describe("webhookHandler", () => {
   });
 
   describe("handleWebhookEvents (POST)", () => {
-    it("400 quando corpo não é JSON", async () => {
+    it("400 quando corpo não é JSON (contrato jsonError)", async () => {
       const { handleWebhookEvents } = await import("../webhookHandler");
       const req = new Request("http://localhost/api/webhook/whatsapp", {
         method: "POST",
@@ -61,6 +61,14 @@ describe("webhookHandler", () => {
       });
       const res = await handleWebhookEvents(req);
       expect(res.status).toBe(400);
+      const j = (await res.json()) as {
+        success: boolean;
+        error?: { code: string; message: string };
+        trace_id?: string;
+      };
+      expect(j.success).toBe(false);
+      expect(j.error?.code).toBe("INVALID_JSON_BODY");
+      expect(res.headers.get("X-Trace-Id")).toBeTruthy();
     });
 
     it("200 ok quando payload não normaliza (object inválido)", async () => {

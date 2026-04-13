@@ -16,6 +16,7 @@ export type ExecuteAiActionsInput = {
   modelUsed: string;
   providerKind: string | null;
   leadScoreSnapshot?: number | null;
+  traceId?: string;
 };
 
 /**
@@ -29,6 +30,7 @@ export async function executeAiActions(input: ExecuteAiActionsInput): Promise<{ 
     text: input.replyText,
     outboundKind: "ai",
     automaticTrigger: { inboundWaMessageId: input.inboundWaMessageId, triggerSource: "ai" },
+    traceId: input.traceId,
   });
   if (!sendResult.ok) return { ok: false };
 

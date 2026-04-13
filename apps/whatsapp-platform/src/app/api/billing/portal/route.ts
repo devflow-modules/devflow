@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { jsonError, jsonSuccess } from "@/lib/api-response";
 import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { createBillingPortalSession } from "@/modules/billing/billingService";
 
@@ -9,7 +10,7 @@ export async function POST(request: NextRequest) {
   const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
   if (denied) return denied;
   if (!auth) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    return jsonError("UNAUTHORIZED", "Não autorizado", 401);
   }
 
   const baseUrl =
@@ -21,13 +22,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const { portalUrl } = await createBillingPortalSession(auth.payload.tenantId, returnUrl);
-    return NextResponse.json({
-      success: true,
-      data: { url: portalUrl },
-    });
+    return jsonSuccess({ url: portalUrl });
   } catch (e) {
     console.error("[billing/portal]", e);
     const msg = e instanceof Error ? e.message : "Portal indisponível";
-    return NextResponse.json({ success: false, error: msg }, { status: 400 });
+    return jsonError("BILLING_PORTAL_FAILED", msg, 400);
   }
 }

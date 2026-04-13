@@ -1,22 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const mockGetTenantPlan = vi.fn();
+const mockGetTenantBillingContext = vi.fn();
 const mockGetAiUsageMetrics = vi.fn();
 const mockGetUsageByPeriod = vi.fn();
 
-vi.mock("../subscriptionService", () => ({
-  getTenantPlan: (...a: unknown[]) => mockGetTenantPlan(...a),
-}));
-vi.mock("./planCapabilities", () => ({
-  getTenantPlanCapabilities: (plan: string) => ({
+function capsForPlan(plan: "STARTER" | "PRO") {
+  return {
     plan,
     maxMessages: 1000,
     maxAIUsage: 100,
-    maxAutomations: null,
-    maxUsers: null,
-    maxPhoneNumbers: null,
+    maxAutomations: null as number | null,
+    maxUsers: null as number | null,
+    maxPhoneNumbers: null as number | null,
     featuresEnabled: {},
-  }),
+  };
+}
+
+vi.mock("../subscriptionService", () => ({
+  getTenantBillingContext: (...a: unknown[]) => mockGetTenantBillingContext(...a),
 }));
 vi.mock("@/modules/ai/aiUsageService", () => ({
   getAiUsageMetrics: (...a: unknown[]) => mockGetAiUsageMetrics(...a),
@@ -36,7 +37,10 @@ vi.mock("../billingObserverService", () => ({
 describe("enforcementService AI limit", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetTenantPlan.mockResolvedValue("STARTER");
+    mockGetTenantBillingContext.mockResolvedValue({
+      plan: "STARTER",
+      capabilities: capsForPlan("STARTER"),
+    });
     mockGetAiUsageMetrics.mockResolvedValue({ aiMessagesTotal: 50 });
     mockGetUsageByPeriod.mockResolvedValue({ messagesSent: 100, aiResponses: 50 });
   });
@@ -58,7 +62,10 @@ describe("enforcementService AI limit", () => {
   });
 
   it("permite excedente de IA no Pro (será cobrado via meter events)", async () => {
-    mockGetTenantPlan.mockResolvedValue("PRO");
+    mockGetTenantBillingContext.mockResolvedValue({
+      plan: "PRO",
+      capabilities: capsForPlan("PRO"),
+    });
     mockGetAiUsageMetrics.mockResolvedValue({ aiMessagesTotal: 750 });
     const { enforceUsageOrThrow } = await import("../enforcementService");
     await expect(

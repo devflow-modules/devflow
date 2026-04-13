@@ -3,6 +3,13 @@ const DEFAULT_MAX = 5;
 
 /** Prefixos sensíveis: limites por IP (memória — em multi-instância usar store partilhado). */
 const LIMITS: Record<string, { windowMs: number; max: number }> = {
+  /** Anti-abuso por IP; a Meta pode enviar rajadas — limite alto (ajustável por env). */
+  "webhook-whatsapp": {
+    windowMs: Number(process.env.WHATSAPP_WEBHOOK_RATE_WINDOW_MS ?? 15 * 60 * 1000),
+    max: Math.max(100, Number(process.env.WHATSAPP_WEBHOOK_RATE_MAX ?? 5000)),
+  },
+  /** Checkout Stripe — evita abuso de criação de sessões. */
+  "billing-checkout": { windowMs: DEFAULT_WINDOW_MS, max: 30 },
   auth: { windowMs: DEFAULT_WINDOW_MS, max: DEFAULT_MAX },
   "forgot-password": { windowMs: DEFAULT_WINDOW_MS, max: 5 },
   "reset-password": { windowMs: DEFAULT_WINDOW_MS, max: 5 },

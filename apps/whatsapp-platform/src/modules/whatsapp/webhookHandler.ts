@@ -9,6 +9,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { normalizeWebhookPayload, type IncomingTextMessage } from "@devflow/whatsapp-core";
 import { APP_PRODUCT_SLUG } from "@/lib/constants";
+import { jsonError, newTraceId, withTraceHeaders } from "@/lib/api-response";
+import { prisma } from "@/lib/prisma";
 import { resolveTenantByPhoneNumberId } from "@/modules/whatsapp/tenantResolutionService";
 import {
   prepareInboundConversation,
@@ -28,6 +30,14 @@ type WabaWebhookShape = {
     changes?: Array<{ field?: string; value?: Record<string, unknown> }>;
   }>;
 };
+
+/** Evita repetir IA/legado quando a Meta reenvia o mesmo message_id e já existe registo de pipeline. */
+async function hasInboundPipelineAudit(tenantId: string, inboundWaMessageId: string): Promise<boolean> {
+  const n = await prisma.aiMessageLog.count({
+    where: { tenantId, inboundWaMessageId },
+  });
+  return n > 0;
+}
 
 function extractRawWebhookStructure(payload: unknown): Record<string, unknown> | null {
   if (!payload || typeof payload !== "object") return null;
@@ -55,11 +65,15 @@ export async function handleWebhookVerification(request: NextRequest): Promise<N
   const challenge = searchParams.get("hub.challenge");
   const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN;
 
+  const traceId = newTraceId();
   if (mode === "subscribe" && token === verifyToken) {
-    return new NextResponse(challenge ?? "", {
-      status: 200,
-      headers: { "Content-Type": "text/plain" },
-    });
+    return withTraceHeaders(
+      new NextResponse(challenge ?? "", {
+        status: 200,
+        headers: { "Content-Type": "text/plain" },
+      }),
+      traceId
+    );
   }
 
   console.warn("[WHATSAPP][INFO] GET webhook verify não corresponde", {
@@ -67,7 +81,10 @@ export async function handleWebhookVerification(request: NextRequest): Promise<N
     tokenPresent: Boolean(token),
     challengePresent: Boolean(challenge),
   });
-  return NextResponse.json({ product: APP_PRODUCT_SLUG, webhook: "whatsapp", method: "GET" });
+  return withTraceHeaders(
+    NextResponse.json({ product: APP_PRODUCT_SLUG, webhook: "whatsapp", method: "GET" }),
+    traceId
+  );
 }
 
 export async function handleWebhookEvents(request: Request): Promise<NextResponse> {
@@ -75,19 +92,23 @@ export async function handleWebhookEvents(request: Request): Promise<NextRespons
   try {
     body = await request.json();
   } catch {
-    logEvent("warn", "webhook", "invalid_json", {});
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    const traceId = newTraceId();
+    logEvent("warn", "webhook", "invalid_json", {}, { trace_id: traceId });
+    return jsonError("INVALID_JSON_BODY", "Invalid JSON", 400, { traceId });
   }
 
   try {
     return await handleWebhookEventsBody(body);
   } catch (err) {
-    logError("webhook", err, { phase: "handleWebhookEventsBody" });
-    return NextResponse.json({ ok: true }, { status: 200 });
+    const traceId = newTraceId();
+    logError("webhook", err, { phase: "handleWebhookEventsBody" }, { trace_id: traceId });
+    return withTraceHeaders(NextResponse.json({ ok: true, trace_id: traceId }, { status: 200 }), traceId);
   }
 }
 
 async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
+  const traceId = newTraceId();
+  bumpMetric("webhook_posts");
   const bodyObj = body as Record<string, unknown> | null;
   const bodySummary =
     bodyObj && typeof bodyObj === "object"
@@ -105,11 +126,14 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
 
   const normalized = normalizeWebhookPayload(body);
   if (!normalized) {
-    console.warn(
-      "[WHATSAPP][INFO] normalizeWebhookPayload null — payload sem mensagens normalizáveis ou estrutura inválida",
-      JSON.stringify(bodySummary)
+    logEvent(
+      "warn",
+      "webhook",
+      "payload_not_normalizable",
+      { bodySummary },
+      { trace_id: traceId }
     );
-    return NextResponse.json({ ok: true }, { status: 200 });
+    return withTraceHeaders(NextResponse.json({ ok: true, trace_id: traceId }, { status: 200 }), traceId);
   }
 
   const messagesCount = normalized.messages.length;
@@ -142,28 +166,39 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
     return null;
   });
   if (!tenant) {
-    logEvent("warn", "webhook", "tenant_unresolved", {
-      phoneNumberId: normalized.phoneNumberId || "",
-      messagesCount: normalized.messages.length,
-    });
-    return NextResponse.json({ ok: true }, { status: 200 });
+    logEvent(
+      "warn",
+      "webhook",
+      "tenant_unresolved",
+      {
+        phoneNumberId: normalized.phoneNumberId || "",
+        messagesCount: normalized.messages.length,
+      },
+      { trace_id: traceId }
+    );
+    return withTraceHeaders(NextResponse.json({ ok: true, trace_id: traceId }, { status: 200 }), traceId);
   }
 
   console.log("[WHATSAPP][DEBUG] tenant resolved", { tenantId: tenant.id, phoneNumberId: tenant.phoneNumberId });
 
   await persistWaInboxFromWebhook(tenant.id, tenant.phoneNumberId, body).catch((err) =>
-    logError("webhook", err, { phase: "wa_inbox_persist", tenantId: tenant.id })
+    logError("webhook", err, { phase: "wa_inbox_persist", tenantId: tenant.id }, { trace_id: traceId, tenant_id: tenant.id })
   );
 
   const inboundTextCount = normalized.messages.filter((m) => m.type === "text").length;
   if (inboundTextCount > 0) {
     bumpMetric("messages_received", inboundTextCount);
   }
-  logEvent("info", "webhook", "events_received", {
-    tenantId: tenant.id,
-    textMessages: inboundTextCount,
-    statuses: statusesCount,
-  });
+  logEvent(
+    "info",
+    "webhook",
+    "events_received",
+    {
+      textMessages: inboundTextCount,
+      statuses: statusesCount,
+    },
+    { trace_id: traceId, tenant_id: tenant.id }
+  );
 
   const seenConversations = new Set<string>();
   if (normalized.messages.length === 0) {
@@ -188,6 +223,18 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
     const textBody = (msg as IncomingTextMessage).text?.body;
     if (!textBody?.trim()) {
       console.log("[WHATSAPP][DEBUG] skip empty text", { msgId: msg.id });
+      continue;
+    }
+
+    if (await hasInboundPipelineAudit(tenant.id, msg.id)) {
+      bumpMetric("webhook_pipeline_skipped_duplicate");
+      logEvent(
+        "info",
+        "webhook",
+        "inbound_pipeline_skipped_duplicate",
+        { inbound_wa_message_id: msg.id },
+        { trace_id: traceId, tenant_id: tenant.id }
+      );
       continue;
     }
 
@@ -230,13 +277,16 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
             message: msg,
             inboxThreadId: prep.inboxThreadId,
             textBody: prep.textBody,
+            traceId,
           });
         } catch (aiErr) {
-          console.error("[WHATSAPP][ERROR] IA automática falhou, fallback legacy", {
-            msgId: msg.id,
-            tenantId: tenant.id,
-            err: aiErr instanceof Error ? aiErr.message : String(aiErr),
-          });
+          bumpMetric("ai_auto_reply_failed");
+          logError(
+            "webhook",
+            aiErr,
+            { phase: "ai_auto_reply", inbound_wa_message_id: msg.id },
+            { trace_id: traceId, tenant_id: tenant.id }
+          );
           if (!(await isOperationalAutomationEnabled(tenant.id))) {
             continue;
           }
@@ -276,5 +326,5 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
   }
 
   console.log("[WHATSAPP][DEBUG] webhook POST completed successfully");
-  return NextResponse.json({ ok: true }, { status: 200 });
+  return withTraceHeaders(NextResponse.json({ ok: true, trace_id: traceId }, { status: 200 }), traceId);
 }

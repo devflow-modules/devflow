@@ -127,7 +127,7 @@ describe("threadSidebarSection", () => {
     ).toBe("awaiting_agent");
   });
 
-  it("sem dono sem pendência inbound fica em Sem dono", () => {
+  it("aguardando cliente (ex.: IA respondeu) vai para secção Aguardando cliente, não Sem dono", () => {
     expect(
       threadSidebarSection({
         conversationState: "awaiting_customer",
@@ -136,7 +136,7 @@ describe("threadSidebarSection", () => {
         assignedToUser: null,
         isUnassigned: true,
       })
-    ).toBe("unassigned");
+    ).toBe("awaiting_customer");
   });
 
   it("aguardando cliente com responsável vai para a secção correspondente", () => {

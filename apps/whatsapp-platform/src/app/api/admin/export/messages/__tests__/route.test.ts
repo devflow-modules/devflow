@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockGetAuthFromRequest = vi.fn();
-const mockListConversationsByDateRange = vi.fn();
-const mockListMessagesInRange = vi.fn();
+const mockListInboxMessagesCreatedInRange = vi.fn();
 
 vi.mock("@/modules/auth", async () => {
   const actual = await vi.importActual<typeof import("@/modules/auth")>("@/modules/auth");
@@ -11,26 +10,21 @@ vi.mock("@/modules/auth", async () => {
     getAuthFromRequest: (...args: unknown[]) => mockGetAuthFromRequest(...args),
   };
 });
-vi.mock("@/lib/supabase-server", () => ({ hasSupabaseConfig: vi.fn(() => true) }));
-vi.mock("@/modules/conversations", () => ({
-  listConversationsByDateRange: (...args: unknown[]) => mockListConversationsByDateRange(...args),
-}));
-vi.mock("@/modules/messaging", () => ({
-  listMessagesInRange: (...args: unknown[]) => mockListMessagesInRange(...args),
+vi.mock("@/modules/inbox/waInboxOpsMetrics", () => ({
+  listInboxMessagesCreatedInRange: (...args: unknown[]) => mockListInboxMessagesCreatedInRange(...args),
 }));
 
 describe("GET /api/admin/export/messages", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetAuthFromRequest.mockResolvedValue({ payload: { tenantId: "t1", role: "manager" } });
-    mockListConversationsByDateRange.mockResolvedValue([{ id: "c1" }]);
-    mockListMessagesInRange.mockResolvedValue([
+    mockListInboxMessagesCreatedInRange.mockResolvedValue([
       {
         id: "m1",
-        conversation_id: "c1",
-        direction: "inbound",
+        threadId: "c1",
+        direction: "INBOUND",
         body: "Oi",
-        created_at: "2025-01-01T12:00:00Z",
+        createdAt: new Date("2025-01-01T12:00:00.000Z"),
       },
     ]);
   });
@@ -42,7 +36,7 @@ describe("GET /api/admin/export/messages", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("Content-Type")).toContain("text/csv");
     const text = await res.text();
-    expect(text).toContain("id,conversation_id,direction,body,created_at");
+    expect(text).toContain("id,thread_id,direction,body,created_at");
     expect(text).toContain("m1");
   });
 });

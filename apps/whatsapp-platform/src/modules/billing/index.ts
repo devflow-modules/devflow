@@ -20,7 +20,11 @@ export {
   normalizePlanKey,
   isBillingEnforceLimits,
 } from "./planConfig";
-export { getTenantPlan, ensureTenantSubscription } from "./subscriptionService";
+export {
+  getTenantPlan,
+  getTenantBillingContext,
+  ensureTenantSubscription,
+} from "./subscriptionService";
 export { canUseFeature, assertFeature } from "./featureGate";
 export {
   enforceUsageOrThrow,

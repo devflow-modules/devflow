@@ -50,11 +50,21 @@ export async function fetchProtected(input: RequestInfo | URL, init?: RequestIni
   return res;
 }
 
+function extractApiErrorMessage(data: {
+  error?: string | { code?: string; message?: string };
+  message?: string;
+}): string | undefined {
+  const e = data.error;
+  if (typeof e === "string") return e;
+  if (e && typeof e === "object" && typeof e.message === "string") return e.message;
+  return data.message;
+}
+
 export function protectedApiUserMessage(
   status: number,
-  data: { error?: string; message?: string; code?: string }
+  data: { error?: string | { code?: string; message?: string }; message?: string; code?: string }
 ): string {
-  const fallback = data.error ?? data.message;
+  const fallback = extractApiErrorMessage(data);
   if (status === 401) {
     return PROTECTED_API_SESSION_EXPIRED;
   }

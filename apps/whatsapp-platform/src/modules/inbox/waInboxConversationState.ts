@@ -143,9 +143,10 @@ export function threadSidebarSection(t: ThreadLikeForSidebar): InboxSidebarSecti
   const state = inferConversationStateForGrouping(t);
   if (state === "closed") return "closed";
   if (state === "awaiting_agent") return "awaiting_agent";
+  /** À espera do cliente (ex.: IA já respondeu) — não misturar com «Sem dono». */
+  if (state === "awaiting_customer") return "awaiting_customer";
   const noOwner = Boolean(t.isUnassigned || !t.assignedToUser);
   if (noOwner) return "unassigned";
   if (state === "in_progress") return "in_progress";
-  if (state === "awaiting_customer") return "awaiting_customer";
   return "in_progress";
 }

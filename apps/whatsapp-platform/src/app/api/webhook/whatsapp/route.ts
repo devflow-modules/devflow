@@ -7,6 +7,8 @@
  */
 
 import { NextRequest } from "next/server";
+import { jsonError } from "@/lib/api-response";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { handleWebhookVerification, handleWebhookEvents } from "@/modules/whatsapp/webhookHandler";
 
 export const dynamic = "force-dynamic";
@@ -16,5 +18,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const lim = checkRateLimit(ip, "webhook-whatsapp");
+  if (!lim.ok) {
+    return jsonError("RATE_LIMITED", "Too many requests", 429, {
+      headers: lim.retryAfter ? { "Retry-After": String(lim.retryAfter) } : undefined,
+    });
+  }
   return handleWebhookEvents(request);
 }

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockGetAuthFromRequest = vi.fn();
-const mockListConversationsByDateRange = vi.fn();
+const mockListInboxThreadsCreatedInRange = vi.fn();
 
 vi.mock("@/modules/auth", async () => {
   const actual = await vi.importActual<typeof import("@/modules/auth")>("@/modules/auth");
@@ -10,23 +10,22 @@ vi.mock("@/modules/auth", async () => {
     getAuthFromRequest: (...args: unknown[]) => mockGetAuthFromRequest(...args),
   };
 });
-vi.mock("@/lib/supabase-server", () => ({ hasSupabaseConfig: vi.fn(() => true) }));
-vi.mock("@/modules/conversations", () => ({
-  listConversationsByDateRange: (...args: unknown[]) => mockListConversationsByDateRange(...args),
+vi.mock("@/modules/inbox/waInboxOpsMetrics", () => ({
+  listInboxThreadsCreatedInRange: (...args: unknown[]) => mockListInboxThreadsCreatedInRange(...args),
 }));
 
 describe("GET /api/admin/export/conversations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetAuthFromRequest.mockResolvedValue({ payload: { tenantId: "t1", role: "manager" } });
-    mockListConversationsByDateRange.mockResolvedValue([
+    mockListInboxThreadsCreatedInRange.mockResolvedValue([
       {
         id: "c1",
-        wa_from: "5511999999999",
-        status: "open",
-        created_at: "2025-01-01T00:00:00Z",
-        updated_at: "2025-01-01T00:00:00Z",
-        last_message_at: "2025-01-01T12:00:00Z",
+        phoneNumber: "5511999999999",
+        status: "OPEN",
+        createdAt: new Date("2025-01-01T00:00:00.000Z"),
+        updatedAt: new Date("2025-01-01T00:00:00.000Z"),
+        lastMessageAt: new Date("2025-01-01T12:00:00.000Z"),
       },
     ]);
   });

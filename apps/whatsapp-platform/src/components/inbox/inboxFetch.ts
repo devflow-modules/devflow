@@ -23,7 +23,9 @@ function buildConversationsUrl(
   priority?: string | null
 ): string {
   const params = new URLSearchParams({ limit: "100" });
-  if (filter) {
+  if (filter === "all") {
+    params.set("phase", "all");
+  } else if (filter) {
     params.set("phase", filter);
   }
   if (businessPhoneNumberId?.trim()) {

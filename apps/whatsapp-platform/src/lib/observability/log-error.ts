@@ -1,5 +1,5 @@
 import { bumpMetric } from "./metrics";
-import { logEvent } from "./log-event";
+import { logEvent, type LogCorrelation } from "./log-event";
 import type { LogSource } from "./log-event";
 
 /**
@@ -8,14 +8,21 @@ import type { LogSource } from "./log-event";
 export function logError(
   source: LogSource,
   err: unknown,
-  context?: Record<string, unknown>
+  context?: Record<string, unknown>,
+  correlation?: LogCorrelation
 ): void {
   bumpMetric("errors");
   const message = err instanceof Error ? err.message : String(err);
   const stack = err instanceof Error ? err.stack : undefined;
-  logEvent("error", source, "exception", {
-    message,
-    ...(stack ? { stack } : {}),
-    ...context,
-  });
+  logEvent(
+    "error",
+    source,
+    "exception",
+    {
+      message,
+      ...(stack ? { stack } : {}),
+      ...context,
+    },
+    correlation
+  );
 }

@@ -9,7 +9,7 @@ import { digitsOnly } from "@/modules/inbox/waInboxUtils";
 import { trackMessageSent } from "@/modules/analytics";
 import { trackUsage } from "@/modules/billing/usageService";
 import { UsageEventType } from "@/generated/prisma-whatsapp";
-import { bumpMetric, logEvent } from "@/lib/observability";
+import { bumpMetric, logEvent, maskPhoneLike } from "@/lib/observability";
 import { prisma } from "@/lib/prisma";
 import {
   assertAutomaticOutboundAllowed,
@@ -37,6 +37,8 @@ export interface SendReplyInput {
    * claim atómico e idempotência por mensagem inbound Meta.
    */
   automaticTrigger?: AutomaticOutboundTriggerContext;
+  /** Correlaciona com `trace_id` do webhook / pipeline IA. */
+  traceId?: string;
 }
 
 export type WebhookAutoReplyResult =
@@ -52,13 +54,20 @@ async function sendCloudAndPersistOutbound(
     to: input.to,
     text: input.text,
   });
-  console.info(`[WHATSAPP] outbound tenant=${input.tenant.id} wa_id=${input.to}`);
+  console.info(`[WHATSAPP] outbound tenant=${input.tenant.id} wa_id=${maskPhoneLike(input.to)}`);
   bumpMetric("messages_sent");
-  logEvent("info", "inbox", "message_outbound", {
-    tenantId: input.tenant.id,
-    inboxThreadId: input.inboxThreadId,
-    kind: outboundKind,
-  });
+  bumpMetric("outbound_dispatch");
+  logEvent(
+    "info",
+    "inbox",
+    "message_outbound",
+    {
+      inboxThreadId: input.inboxThreadId,
+      kind: outboundKind,
+      to_masked: maskPhoneLike(input.to),
+    },
+    { trace_id: input.traceId, tenant_id: input.tenant.id }
+  );
   await waInboxCreateOutbound({
     tenantId: input.tenant.id,
     businessPhoneNumberId: input.tenant.phoneNumberId,
@@ -84,13 +93,18 @@ export async function sendReplyAndPersist(input: SendReplyInput): Promise<{ mess
 
 export async function sendWebhookAutoReply(input: SendReplyInput): Promise<WebhookAutoReplyResult> {
   const persistKind = input.outboundKind === "automation" ? "automation" : "ai";
-  console.log("[WHATSAPP][DEBUG] sendWebhookAutoReply", {
-    tenantId: input.tenant.id,
-    phoneNumberId: input.tenant.phoneNumberId,
-    to: input.to,
-    inboxThreadId: input.inboxThreadId,
-    persistKind,
-  });
+  logEvent(
+    "info",
+    "inbox",
+    "outbound_auto_reply_dispatch",
+    {
+      phoneNumberId: input.tenant.phoneNumberId,
+      to_masked: maskPhoneLike(input.to),
+      inboxThreadId: input.inboxThreadId,
+      persistKind,
+    },
+    { trace_id: input.traceId, tenant_id: input.tenant.id }
+  );
 
   const triggerSource = input.automaticTrigger?.triggerSource ?? "unknown";
 

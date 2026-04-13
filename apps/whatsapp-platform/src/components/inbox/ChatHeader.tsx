@@ -218,6 +218,16 @@ export function ChatHeader({
             <span className="font-medium text-slate-500">Responsável: </span>
             {thread.assignedToUser ? (
               <strong>{thread.assignedToUser.name}</strong>
+            ) : thread.status === "CLOSED" ? (
+              <span className="text-slate-500">—</span>
+            ) : thread.conversationState === "awaiting_customer" ? (
+              <span className={thread.lastResponderType === "ai" ? "text-emerald-800" : "text-slate-700"}>
+                {thread.lastResponderType === "ai"
+                  ? "Assistente IA (aguarda cliente)"
+                  : "Aguardando cliente"}
+              </span>
+            ) : thread.conversationState === "awaiting_agent" ? (
+              <span className="text-amber-800">Sem dono — precisa de resposta humana</span>
             ) : (
               <span className="text-amber-800">Sem dono</span>
             )}

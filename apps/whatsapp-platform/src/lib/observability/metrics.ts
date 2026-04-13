@@ -8,6 +8,13 @@ const counts: Record<string, number> = {
   threads_opened: 0,
   threads_closed: 0,
   errors: 0,
+  webhook_posts: 0,
+  webhook_pipeline_skipped_duplicate: 0,
+  ai_auto_reply_started: 0,
+  ai_auto_reply_completed: 0,
+  ai_auto_reply_failed: 0,
+  billing_enforcement_blocked: 0,
+  outbound_dispatch: 0,
 };
 
 export function bumpMetric(name: keyof typeof counts, delta = 1): void {

@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
+import { jsonError, jsonSuccess } from "@/lib/api-response";
 import { login, buildSetCookieHeader, signToken } from "@/modules/auth";
 import { createUserSession } from "@/modules/auth/sessionService";
 import { logAuth } from "@/lib/auth-logger";
@@ -17,13 +18,11 @@ export async function POST(request: NextRequest) {
   const limit = checkRateLimit(ip, "auth-login");
   if (!limit.ok) {
     logAuth({ type: "rate_limited", route: "login", ip });
-    return NextResponse.json(
+    return jsonError(
+      "RATE_LIMITED",
+      "Muitas tentativas de início de sessão. Tente novamente em alguns minutos.",
+      429,
       {
-        error: "Muitas tentativas de início de sessão. Tente novamente em alguns minutos.",
-        code: "RATE_LIMITED",
-      },
-      {
-        status: 429,
         headers: limit.retryAfter ? { "Retry-After": String(limit.retryAfter) } : undefined,
       }
     );
@@ -31,22 +30,19 @@ export async function POST(request: NextRequest) {
 
   const raw = await parseRequestJson(request);
   if (!raw.ok) {
-    return NextResponse.json({ error: "Corpo JSON inválido" }, { status: 400 });
+    return jsonError("INVALID_JSON", "Corpo JSON inválido", 400);
   }
 
   const parsed = bodySchema.safeParse(raw.data);
   if (!parsed.success) {
-    return NextResponse.json({ error: "E-mail e senha obrigatórios" }, { status: 400 });
+    return jsonError("VALIDATION_ERROR", "E-mail e senha obrigatórios", 400);
   }
 
   try {
     const result = await login(parsed.data.email, parsed.data.password);
     if ("error" in result) {
       logAuth({ type: "login_failed", reason: "invalid_credentials", ip });
-      return NextResponse.json(
-        { error: result.error, code: "INVALID_CREDENTIALS" },
-        { status: 401 }
-      );
+      return jsonError("INVALID_CREDENTIALS", result.error, 401);
     }
 
     const { sessionId } = await createUserSession(result.user.id);
@@ -74,7 +70,7 @@ export async function POST(request: NextRequest) {
       tenantId: result.user.tenantId,
       jti: sessionId,
     });
-    const res = NextResponse.json({ user: result.user });
+    const res = jsonSuccess({ user: result.user });
     res.headers.set("Set-Cookie", buildSetCookieHeader(token));
     return res;
   } catch (err) {
@@ -90,9 +86,10 @@ export async function POST(request: NextRequest) {
       ip,
       detail: jwtMissing ? "jwt_secret" : "exception",
     });
-    return NextResponse.json(
-      { error: userMessage, code: jwtMissing ? "LOGIN_MISCONFIGURED" : "LOGIN_UNAVAILABLE" },
-      { status: 503 }
+    return jsonError(
+      jwtMissing ? "LOGIN_MISCONFIGURED" : "LOGIN_UNAVAILABLE",
+      userMessage,
+      503
     );
   }
 }

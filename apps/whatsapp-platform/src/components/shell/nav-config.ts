@@ -7,9 +7,8 @@ export type NavItem = { href: string; label: string; description?: string };
 /** Navegação principal — frequência de uso (máx. 6). Labels alinhados à matriz de produto. */
 export const NAV_PRIMARY: NavItem[] = [
   { href: "/dashboard", label: ROUTE_META["/dashboard"].label, description: "Resumo e próximos passos" },
-  { href: "/inbox", label: ROUTE_META["/inbox"].label, description: "Atendimento em tempo real" },
+  { href: "/inbox", label: ROUTE_META["/inbox"].label, description: "Atendimento, histórico e filas" },
   { href: "/automation", label: ROUTE_META["/automation"].label, description: "Regras e automação" },
-  { href: "/conversations", label: ROUTE_META["/conversations"].label, description: "Histórico e filas" },
 ];
 
 /** Secundária — conta, canais, cobrança e configuração (inclui análises de IA). */
@@ -30,7 +29,7 @@ export const NAV_OPERATION: NavItem[] = [
 
 export const NAV_ADMIN = { href: "/admin/metrics", label: "Métricas internas" };
 
-const OPERATOR_PRIMARY_HREFS = new Set<string>(["/inbox", "/automation", "/conversations"]);
+const OPERATOR_PRIMARY_HREFS = new Set<string>(["/inbox", "/automation"]);
 
 /** Navegação principal conforme role (operador não vê painel/análises). */
 export function primaryNavForRole(role: UserRole | string | null): NavItem[] {

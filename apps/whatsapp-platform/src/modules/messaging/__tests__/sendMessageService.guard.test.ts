@@ -63,6 +63,7 @@ vi.mock("@/modules/billing/usageService", () => ({ trackUsage: vi.fn() }));
 vi.mock("@/lib/observability", () => ({
   bumpMetric: vi.fn(),
   logEvent: vi.fn(),
+  maskPhoneLike: (s: string) => `***${String(s).replace(/\D/g, "").slice(-2)}`,
 }));
 
 describe("sendWebhookAutoReply — gate + claim", () => {

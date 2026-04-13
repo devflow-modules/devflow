@@ -1,10 +1,11 @@
 "use server";
 
 import { getCounters } from "@devflow/analytics-core";
-import { hasSupabaseConfig } from "@/lib/supabase-server";
-import { countTenants } from "@/modules/tenants";
-import { countConversations } from "@/modules/conversations";
-import { countMessagesLast24h } from "@/modules/messaging";
+import {
+  countInboxThreadsTotal,
+  countTenantsTotal,
+} from "@/modules/inbox/waInboxOpsMetrics";
+import { countMessagesLast24h } from "@/modules/messaging/waInboxMessageStats";
 import {
   getRevenueMetrics,
   getUsageMetrics,
@@ -27,14 +28,14 @@ export async function getAdminMetrics(): Promise<AdminMetricsPayload> {
   let tenants = 0;
   let conversations = 0;
   let messagesLast24h = 0;
-  if (hasSupabaseConfig()) {
-    try {
-      tenants = await countTenants();
-      conversations = await countConversations();
-      messagesLast24h = await countMessagesLast24h();
-    } catch (err) {
-      console.error("[admin/metrics]", err);
-    }
+  try {
+    [tenants, conversations, messagesLast24h] = await Promise.all([
+      countTenantsTotal(),
+      countInboxThreadsTotal(),
+      countMessagesLast24h(),
+    ]);
+  } catch (err) {
+    console.error("[admin/metrics]", err);
   }
 
   return {

@@ -8,6 +8,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { MetricsSection } from "@/app/dashboard/MetricsSection";
 import { ManagerDashboardSection } from "@/components/dashboard/ManagerDashboardSection";
+import { readVerifyPayload } from "@/lib/api-json-client";
 import { fetchProtected } from "@/lib/protected-fetch";
 import { PostActivationGuide } from "@/components/dashboard/PostActivationGuide";
 import { SupportHelpButton } from "@/components/support/SupportHelpButton";
@@ -82,8 +83,9 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
     let cancelled = false;
     fetchProtected("/api/auth/verify")
       .then((r) => r.json())
-      .then((d: { user?: { role?: string } }) => {
+      .then((raw: unknown) => {
         if (cancelled) return;
+        const d = readVerifyPayload(raw);
         const r = d.user?.role;
         if (r && KNOWN_ROLES.has(r as UserRole)) setSessionRole(r as UserRole);
       })
@@ -328,7 +330,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
               <Link href="/automation" className={`${buttonClassName("ghost")} w-full justify-center text-slate-700`}>
                 Automações
               </Link>
-              <Link href="/conversations" className={`${buttonClassName("ghost")} w-full justify-center text-slate-700`}>
+              <Link href="/inbox" className={`${buttonClassName("ghost")} w-full justify-center text-slate-700`}>
                 Conversas
               </Link>
               <Link href="/billing" className={`${buttonClassName("ghost")} w-full justify-center text-slate-600`}>

@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { readVerifyPayload } from "@/lib/api-json-client";
 import { fetchProtected } from "@/lib/protected-fetch";
 import type { UserRole } from "@/modules/auth";
 
@@ -21,8 +22,9 @@ export function SessionRoleProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     fetchProtected("/api/auth/verify")
       .then((r) => r.json())
-      .then((d: { valid?: boolean; user?: { role?: string } }) => {
+      .then((raw: unknown) => {
         if (cancelled) return;
+        const d = readVerifyPayload(raw);
         const r0 = d.user?.role;
         if (r0 && KNOWN_ROLES.has(r0 as UserRole)) setRole(r0 as UserRole);
         else setRole(null);

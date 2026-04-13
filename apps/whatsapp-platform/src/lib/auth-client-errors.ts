@@ -2,11 +2,33 @@
  * Mapeia respostas das APIs de auth para mensagens estáveis na UI.
  * Códigos opcionais vêm do backend (`code`) quando existirem.
  */
+function readAuthErrorFields(data: {
+  error?: string | { code?: string; message?: string };
+  code?: string;
+  message?: string;
+}): { message?: string; code?: string } {
+  const e = data.error;
+  const msg =
+    typeof e === "string"
+      ? e
+      : e && typeof e === "object" && typeof e.message === "string"
+        ? e.message
+        : undefined;
+  const code =
+    data.code ??
+    (e && typeof e === "object" && "code" in e && typeof (e as { code?: string }).code === "string"
+      ? (e as { code: string }).code
+      : undefined);
+  return { message: msg ?? data.message, code };
+}
+
 export function mapAuthHttpError(
   status: number,
-  data: { error?: string; code?: string; message?: string }
+  data: { error?: string | { code?: string; message?: string }; code?: string; message?: string }
 ): string {
-  const fallback = data.error ?? data.message;
+  const { message: nestedMsg, code: nestedCode } = readAuthErrorFields(data);
+  const fallback = nestedMsg ?? (typeof data.error === "string" ? data.error : undefined) ?? data.message;
+  const dataWithCode = { ...data, code: nestedCode ?? data.code };
 
   if (status === 429) {
     return (
@@ -20,16 +42,16 @@ export function mapAuthHttpError(
   }
 
   if (status >= 500) {
-    if (data.code === "LOGIN_MISCONFIGURED" || data.code === "LOGIN_UNAVAILABLE") {
+    if (dataWithCode.code === "LOGIN_MISCONFIGURED" || dataWithCode.code === "LOGIN_UNAVAILABLE") {
       return fallback ?? "Serviço temporariamente indisponível. Tente novamente em instantes.";
     }
-    if (data.code === "EMAIL_NOT_CONFIGURED") {
+    if (dataWithCode.code === "EMAIL_NOT_CONFIGURED") {
       return (
         fallback ??
         "Envio de e-mail não está configurado no servidor. Defina RESEND_API_KEY e um remetente (EMAIL_FROM, RESEND_FROM ou RESEND_FROM_EMAIL)."
       );
     }
-    if (data.code === "EMAIL_SEND_FAILED") {
+    if (dataWithCode.code === "EMAIL_SEND_FAILED") {
       return fallback ?? "Falha ao enviar e-mail. Tente novamente mais tarde.";
     }
     return (
@@ -38,7 +60,7 @@ export function mapAuthHttpError(
     );
   }
 
-  switch (data.code) {
+  switch (dataWithCode.code) {
     case "INVALID_CREDENTIALS":
       return "E-mail ou senha incorretos. Verifique e tente novamente.";
     case "RATE_LIMITED":

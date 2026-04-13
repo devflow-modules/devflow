@@ -17,8 +17,12 @@ describe("GET /api/auth/verify", () => {
     const { GET } = await import("../route");
     const res = await GET(new NextRequest("http://localhost/api/auth/verify"));
     expect(res.status).toBe(401);
-    const data = await res.json();
-    expect(data.valid).toBe(false);
+    const data = (await res.json()) as {
+      success: boolean;
+      error?: { code: string; message: string };
+    };
+    expect(data.success).toBe(false);
+    expect(data.error?.code).toBe("UNAUTHORIZED");
   });
 
   it("retorna 200 e user quando autenticado", async () => {
@@ -37,9 +41,16 @@ describe("GET /api/auth/verify", () => {
     const { GET } = await import("../route");
     const res = await GET(new NextRequest("http://localhost/api/auth/verify"));
     expect(res.status).toBe(200);
-    const data = await res.json();
-    expect(data.valid).toBe(true);
-    expect(data.user).toEqual({
+    const data = (await res.json()) as {
+      success: boolean;
+      data: {
+        valid: boolean;
+        user: { id: string; email: string; name: string; role: string; tenantId: string };
+      };
+    };
+    expect(data.success).toBe(true);
+    expect(data.data.valid).toBe(true);
+    expect(data.data.user).toEqual({
       id: "u1",
       email: "a@b.com",
       name: "User",

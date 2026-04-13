@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@devflow/ui";
 import { PLANS } from "@/modules/billing/plans";
 import { StateError, StateLoading } from "@/components/ui/app-states";
+import { readBillingPostUrl, readSubscriptionFromApiJson } from "@/lib/api-json-client";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 type Sub = {
@@ -90,17 +91,17 @@ export function BillingPageClient() {
         fetchProtected("/api/billing/subscription"),
         fetchProtected("/api/billing/usage"),
       ]);
-      const j1 = (await r1.json().catch(() => ({}))) as { data?: Sub; error?: string };
+      const j1 = await r1.json().catch(() => ({}));
       const j2 = (await r2.json().catch(() => ({}))) as { data?: Usage; error?: string };
       if (!r1.ok) {
-        setErr(protectedApiUserMessage(r1.status, j1));
+        setErr(protectedApiUserMessage(r1.status, j1 as { error?: string }));
         return;
       }
       if (!r2.ok) {
         setErr(protectedApiUserMessage(r2.status, j2));
         return;
       }
-      setSub(j1.data ?? null);
+      setSub(readSubscriptionFromApiJson(j1));
       setUsage(j2.data ?? null);
     } catch {
       setErr("Erro de rede");
@@ -125,9 +126,19 @@ export function BillingPageClient() {
       try {
         const res = await fetch(url, { method: "POST", credentials: "include" });
         const j = await res.json();
-        if (!res.ok) throw new Error(j.error ?? "Falha");
-        if (j.data?.url) {
-          window.location.href = j.data.url;
+        if (!res.ok) {
+          const ej = j as { error?: string | { message?: string } };
+          const msg =
+            typeof ej.error === "object" && ej.error && "message" in ej.error
+              ? String((ej.error as { message?: string }).message)
+              : typeof ej.error === "string"
+                ? ej.error
+                : "Falha";
+          throw new Error(msg);
+        }
+        const postUrl = readBillingPostUrl(j);
+        if (postUrl) {
+          window.location.href = postUrl;
           return;
         }
       } catch (e) {
@@ -151,10 +162,11 @@ export function BillingPageClient() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ plan }),
           });
-          const j = (await res.json().catch(() => ({}))) as { error?: string; data?: { url: string } };
-          if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j));
-          if (j.data?.url) {
-            window.location.href = j.data.url;
+          const j = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j as { error?: string }));
+          const postUrl = readBillingPostUrl(j);
+          if (postUrl) {
+            window.location.href = postUrl;
             return;
           }
         } catch {
