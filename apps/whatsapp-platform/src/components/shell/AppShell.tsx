@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AppSidebar } from "./AppSidebar";
 import { SupportProvider } from "@/components/support/SupportProvider";
 import { SessionRoleProvider, useSessionRole } from "@/components/navigation/SessionRoleContext";
@@ -95,10 +96,12 @@ function AppShellInner({ children }: { children: ReactNode }) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <SupportProvider>
-      <SessionRoleProvider>
-        <AppShellInner>{children}</AppShellInner>
-      </SessionRoleProvider>
-    </SupportProvider>
+    <QueryProvider>
+      <SupportProvider>
+        <SessionRoleProvider>
+          <AppShellInner>{children}</AppShellInner>
+        </SessionRoleProvider>
+      </SupportProvider>
+    </QueryProvider>
   );
 }

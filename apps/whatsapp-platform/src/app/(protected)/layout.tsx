@@ -1,11 +1,7 @@
 import type { ReactNode } from "react";
-import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AppShell } from "@/components/shell/AppShell";
 
+/** `QueryProvider` está dentro de `AppShell` (rotas como /queues também precisam de React Query). */
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
-  return (
-    <QueryProvider>
-      <AppShell>{children}</AppShell>
-    </QueryProvider>
-  );
+  return <AppShell>{children}</AppShell>;
 }
