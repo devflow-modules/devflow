@@ -416,7 +416,7 @@ export function QueuesClient({
                           Backlog (abertas/pendentes): <strong>{q.backlogCount}</strong>
                         </span>
                         <span>
-                          Sem dono: <strong>{q.unassignedCount}</strong>
+                          Sem responsável: <strong>{q.unassignedCount}</strong>
                         </span>
                         <span>
                           SLA crítico: <strong className="text-red-700">{q.criticalSlaCount}</strong>

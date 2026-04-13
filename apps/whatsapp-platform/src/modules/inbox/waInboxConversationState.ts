@@ -112,7 +112,7 @@ export const INBOX_SIDEBAR_SECTION_ORDER: readonly InboxSidebarSection[] = [
 
 export const INBOX_SIDEBAR_SECTION_LABELS: Record<InboxSidebarSection, string> = {
   awaiting_agent: "Precisa de resposta",
-  unassigned: "Sem dono",
+  unassigned: "Sem responsável",
   in_progress: "Em atendimento",
   awaiting_customer: "Aguardando cliente",
   closed: "Fechadas",
@@ -143,7 +143,7 @@ export function threadSidebarSection(t: ThreadLikeForSidebar): InboxSidebarSecti
   const state = inferConversationStateForGrouping(t);
   if (state === "closed") return "closed";
   if (state === "awaiting_agent") return "awaiting_agent";
-  /** À espera do cliente (ex.: IA já respondeu) — não misturar com «Sem dono». */
+  /** À espera do cliente (ex.: IA já respondeu) — não misturar com «Sem responsável». */
   if (state === "awaiting_customer") return "awaiting_customer";
   const noOwner = Boolean(t.isUnassigned || !t.assignedToUser);
   if (noOwner) return "unassigned";

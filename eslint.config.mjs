@@ -68,7 +68,37 @@ const eslintConfig = defineConfig([
               group: APP_NAMES.filter((a) => a !== app).map((a) => `*apps/${a}*`),
               message: "Apps cannot import from other apps.",
             },
+            ...(app === "whatsapp-platform"
+              ? [
+                  {
+                    group: ["**/modules/queues", "**/modules/queues/**"],
+                    message:
+                      "Módulo legado removido; use inboxOperationalQueueService. Ver docs/architecture/OPERATIONAL_QUEUES_CANONICAL.md.",
+                  },
+                  {
+                    group: ["**/modules/agents", "**/modules/agents/**"],
+                    message:
+                      "Módulo legado removido; agentes operacionais = User + WaInboxThread.assignedToUserId + operationsAgentsService. Ver CONVERSATION_OWNERSHIP_AND_HANDOFF.md.",
+                  },
+                ]
+              : []),
           ],
+          ...(app === "whatsapp-platform"
+            ? {
+                paths: [
+                  {
+                    name: "@/modules/queues",
+                    message:
+                      "Removido: use inboxOperationalQueueService e WaInboxQueue (OPERATIONAL_QUEUES_CANONICAL.md).",
+                  },
+                  {
+                    name: "@/modules/agents",
+                    message:
+                      "Removido: use threadAssignmentService, operationsAgentsService (CONVERSATION_OWNERSHIP_AND_HANDOFF.md).",
+                  },
+                ],
+              }
+            : {}),
         },
       ],
     },

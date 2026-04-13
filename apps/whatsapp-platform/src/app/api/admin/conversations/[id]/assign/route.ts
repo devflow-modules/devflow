@@ -8,6 +8,10 @@ const bodySchema = z.object({
   userId: z.string().min(1),
 });
 
+/**
+ * Staff: mesma regra de atribuição que `/api/inbox/conversations/[id]/assign`
+ * (`assignThread` + presença em `whatsapp_agent_status` já centralizados no serviço).
+ */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -38,23 +42,6 @@ export async function POST(
   if (!assigned) {
     return NextResponse.json({ error: "Não foi possível atribuir" }, { status: 400 });
   }
-
-  await prisma.agentStatus.upsert({
-    where: {
-      userId: parsed.data.userId,
-    },
-    create: {
-      tenantId: auth!.payload.tenantId,
-      userId: parsed.data.userId,
-      status: "busy",
-      currentConversationId: threadId,
-    },
-    update: {
-      status: "busy",
-      currentConversationId: threadId,
-      updatedAt: new Date(),
-    },
-  });
 
   return NextResponse.json({ success: true });
 }

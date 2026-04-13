@@ -16,6 +16,7 @@ import type { InboxConversationsFilter } from "./inboxTypes";
 import { useMediaMd } from "./useMediaMd";
 import { useInboxRealtime, InboxRealtimeProvider } from "./useInboxRealtime";
 import { OnlineUsersBadge } from "./OnlineUsersBadge";
+import { InboxMetricsPanel } from "./InboxMetricsPanel";
 import { PageHeader } from "@/components/ui/page-header";
 import { FirstConversationHint } from "./FirstConversationHint";
 import { SupportHelpButton } from "@/components/support/SupportHelpButton";
@@ -172,6 +173,13 @@ function InboxShellContent() {
           }
         />
       </div>
+
+      <InboxMetricsPanel
+        onOpenThread={(id) => {
+          setSelectedId(id);
+          setMobileChat(true);
+        }}
+      />
 
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         {showSidebar && (

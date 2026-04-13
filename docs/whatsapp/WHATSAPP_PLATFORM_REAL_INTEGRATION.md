@@ -20,7 +20,7 @@
 - **modules/messaging:** `messagesRepository`, `webhookLogsRepository`, `sendMessageService`, `webhookProcessingService`.
 - **modules/ai:** `ruleBasedReplies` (parser + MESSAGES), `aiOrchestrator` (generateAiReply com LLM).
 - **modules/analytics:** eventos whatsapp.* (tenant_created, conversation_started, message_sent, etc.).
-- **modules/queues:** não implementado (sem filas/agentes na lógica atual).
+- **Filas operacionais:** implementadas no domínio Inbox Prisma (`WaInboxQueue`, `inboxOperationalQueueService`, `/queues`); o antigo `modules/queues` (Supabase) foi removido.
 - **modules/domain:** placeholder.
 
 ## Fluxo do webhook (real)
@@ -55,7 +55,7 @@
 
 - **/dashboard** — KPIs (tenants, conversas, mensagens 24h) via `getOpsMetrics()`.
 - **/conversations** — lista de conversas (wa_from, status, last_message_at) quando há Supabase.
-- **/agents, /queues, /settings** — scaffold; sem lógica real.
+- **/queues** — gestão de filas operacionais (Prisma); **/agents**, **/settings** — conforme evolução do produto.
 
 ## Lacunas conhecidas
 
@@ -70,4 +70,4 @@
 - Criar projeto Supabase e rodar `schema.sql`.
 - Configurar env em produção (verify token, phone number id, access token, Supabase).
 - Opcional: integrar LLM em `generateAiReply` e usar em vez de regras para alguns intents.
-- Opcional: implementar filas e atribuição de agentes em `modules/queues`.
+- Opcional: evoluir roteamento automático e atribuição no domínio Inbox (`OPERATIONAL_QUEUES_CANONICAL.md`).

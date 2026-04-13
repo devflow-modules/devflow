@@ -94,8 +94,36 @@ Documento vivo: consolida duplicidades, caminhos legados e decisões de consolid
 
 ---
 
+## 11. Filas operacionais — consolidação (sprint domínio)
+
+| Área | Canónico | Removido |
+|------|----------|----------|
+| Filas de atendimento na UX e Inbox | Prisma `WaInboxQueue`, `WaInboxQueueMembership`, `WaInboxThread.queueId`; `inboxOperationalQueueService`; `/queues`; `/api/queues/*` | `src/modules/queues/*` (Supabase `queues` + `queueRoutingService` + `distributionService`) — **sem imports no monorepo**; removido para eliminar ambiguidade. |
+| Roteamento automático / `selectNextAgent` legado | — | A lógica antiga assentava em Supabase `agents`/`conversations` e **nunca foi ligada** ao pipeline Prisma; qualquer redistribuição futura deve implementar-se no domínio inbox (ver `OPERATIONAL_QUEUES_CANONICAL.md`). |
+
+**Risco mitigado:** deixar de existir duas “árvores” de filas (Prisma vs Supabase) no código; novos imports para `@/modules/queues` são bloqueados por ESLint no app.
+
+**Documentação:** `docs/architecture/OPERATIONAL_QUEUES_CANONICAL.md`.
+
+---
+
+## 12. Assignment / agentes — consolidação (sprint domínio)
+
+| Área | Canónico | Removido |
+|------|----------|----------|
+| Responsável humano pela thread | `WaInboxThread.assignedToUserId`; `threadAssignmentService` (`assignThread`, `unassignThread`); rotas `/api/inbox/conversations/[id]/assign` e equivalentes staff | `src/modules/agents/*` (Supabase `agents`) — **sem imports**; removido. |
+| Presença (`busy`, conversa actual) após atribuir | Lógica centralizada em `threadAssignmentService` (tabela `whatsapp_agent_status`) | `agentStatus.upsert` duplicado em rotas admin após `assignThread` — removido. |
+
+**Risco mitigado:** uma única regra de atribuição + presença; inbox e admin não divergem; ESLint bloqueia `@/modules/agents`.
+
+**Documentação:** `docs/architecture/CONVERSATION_OWNERSHIP_AND_HANDOFF.md`.
+
+---
+
 ## Referências
 
 - `docs/shared/OPS_METRICS_CONTRACT.md`
 - `docs/whatsapp-platform/CANONICAL_MESSAGING.md`
+- `docs/architecture/OPERATIONAL_QUEUES_CANONICAL.md`
+- `docs/architecture/CONVERSATION_OWNERSHIP_AND_HANDOFF.md`
 - `DEPLOY_APP_SUBDOMAIN.md`, `PLANO_TRANSICAO_APP_SUBDOMINIO.md`

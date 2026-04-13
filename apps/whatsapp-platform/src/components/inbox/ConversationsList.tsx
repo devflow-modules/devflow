@@ -27,6 +27,7 @@ import { StateError, StateLoading } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
 import { FirstConversationHint } from "./FirstConversationHint";
 import { InboxFilterEmpty } from "./InboxSidebarEmpty";
+import { getResponseAlertLevel } from "./ResponseAlertBadge";
 
 const POLL_INTERVAL_REALTIME_MS = 10_000;
 const POLL_INTERVAL_FALLBACK_MS = 5_000;
@@ -35,7 +36,7 @@ const FILTER_LABELS: Record<InboxConversationsFilter, string> = {
   all: "Geral",
   needs_response: "Precisa resposta",
   mine: "Minhas",
-  unassigned: "Sem dono",
+  unassigned: "Sem responsável",
   in_attendance: "Em atendimento",
   awaiting_customer: "Aguardando cliente",
   closed: "Fechadas",
@@ -166,6 +167,14 @@ export function ConversationsList({
   }
 
   const threads = data?.threads ?? [];
+
+  const awaiting = threads.filter((t) => t.conversationState === "awaiting_agent");
+  const responseAlertCriticalCount = awaiting.filter(
+    (t) => getResponseAlertLevel(t.responseDelayMs) === "critical"
+  ).length;
+  const responseAlertWarningCount = awaiting.filter(
+    (t) => getResponseAlertLevel(t.responseDelayMs) === "warning"
+  ).length;
 
   const threadsBySection = (section: InboxSidebarSection) =>
     sortThreadsForSidebar(threads.filter((t) => threadSidebarSection(t) === section));
@@ -319,6 +328,29 @@ export function ConversationsList({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {filterChrome}
+      {responseAlertCriticalCount > 0 ? (
+        <div
+          className="border-b border-red-200/90 bg-red-50/95 px-3 py-2 text-[11px] leading-snug text-red-950 sm:px-4"
+          role="alert"
+          data-testid="inbox-stale-alert-critical"
+        >
+          <strong className="font-semibold">Crítico:</strong>{" "}
+          {responseAlertCriticalCount === 1
+            ? "1 conversa à espera há mais de 10 minutos."
+            : `${responseAlertCriticalCount} conversas à espera há mais de 10 minutos.`}
+        </div>
+      ) : responseAlertWarningCount > 0 ? (
+        <div
+          className="border-b border-amber-200/90 bg-amber-50/95 px-3 py-2 text-[11px] leading-snug text-amber-950 sm:px-4"
+          role="status"
+          data-testid="inbox-stale-alert-warning"
+        >
+          <strong className="font-semibold">Atenção:</strong>{" "}
+          {responseAlertWarningCount === 1
+            ? "1 conversa à espera há mais de 5 minutos."
+            : `${responseAlertWarningCount} conversas à espera há mais de 5 minutos.`}
+        </div>
+      ) : null}
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain" data-testid="conversations-list">
         {INBOX_SIDEBAR_SECTION_ORDER.map((section) => {
           const group = threadsBySection(section);

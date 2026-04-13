@@ -43,6 +43,7 @@ vi.mock("../realtime.service", () => ({
 const mockPrisma = {
   user: { findFirst: vi.fn(), findMany: vi.fn() },
   waInboxThread: { updateMany: vi.fn(), findMany: vi.fn(), findFirst: vi.fn() },
+  agentStatus: { upsert: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
   waInboxTag: { findFirst: vi.fn(), findMany: vi.fn() },
   waInboxThreadTag: { upsert: vi.fn(), deleteMany: vi.fn(), findMany: vi.fn() },
   waInboxAuditLog: { create: vi.fn().mockResolvedValue({}) },
@@ -61,7 +62,9 @@ describe("realtime publish integration", () => {
       name: "User 1",
       email: "u1@test.com",
     });
+    mockPrisma.waInboxThread.findFirst.mockResolvedValue({ assignedToUserId: null });
     mockPrisma.waInboxThread.updateMany.mockResolvedValue({ count: 1 });
+    mockPrisma.agentStatus.upsert.mockResolvedValue({});
 
     const { assignThread } = await import("@/modules/inbox/threadAssignmentService");
     await assignThread("tenant1", "thread1", "u1");
@@ -80,7 +83,13 @@ describe("realtime publish integration", () => {
   });
 
   it("unassignThread publica conversation.assigned com null", async () => {
+    mockPrisma.waInboxThread.findFirst.mockResolvedValue({ assignedToUserId: "u1" });
     mockPrisma.waInboxThread.updateMany.mockResolvedValue({ count: 1 });
+    mockPrisma.agentStatus.findUnique.mockResolvedValue({
+      tenantId: "tenant1",
+      currentConversationId: "thread1",
+    });
+    mockPrisma.agentStatus.update.mockResolvedValue({});
 
     const { unassignThread } = await import("@/modules/inbox/threadAssignmentService");
     await unassignThread("tenant1", "thread1");

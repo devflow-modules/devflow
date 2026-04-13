@@ -227,9 +227,9 @@ export function ChatHeader({
                   : "Aguardando cliente"}
               </span>
             ) : thread.conversationState === "awaiting_agent" ? (
-              <span className="text-amber-800">Sem dono — precisa de resposta humana</span>
+              <span className="text-amber-800">Sem responsável — precisa de resposta humana</span>
             ) : (
-              <span className="text-amber-800">Sem dono</span>
+              <span className="text-amber-800">Sem responsável</span>
             )}
           </p>
           {thread.whatsappLine ? (
@@ -317,15 +317,15 @@ export function ChatHeader({
             onClick={() => setAssignOpen((o) => !o)}
             className="df-inbox-toolbar-btn max-w-full min-w-0 justify-start text-slate-600"
           >
-            {thread.assignedToUser ? thread.assignedToUser.name : "Atribuir…"}
+            {thread.assignedToUser ? thread.assignedToUser.name : "Responsável…"}
           </button>
           {assignOpen && (
             <div className="df-inbox-dropdown w-52 max-w-[min(100vw-2rem,13rem)]">
               <button type="button" className="df-inbox-dropdown-item" onClick={() => handleAssign("me")}>
-                Atribuir a mim
+                Eu como responsável
               </button>
               <button type="button" className="df-inbox-dropdown-item" onClick={() => handleAssign(null)}>
-                Desatribuir
+                Remover responsável
               </button>
               {usersFetched.map((u: { id: string; name: string }) => (
                 <button

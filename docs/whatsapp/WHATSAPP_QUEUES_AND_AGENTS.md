@@ -1,57 +1,51 @@
 # Filas e atendentes — WhatsApp Platform
 
-Documentação do módulo de filas e agentes (Fase 2 do sprint operacional).
+> **Actualização (consolidação de domínio):** a pilha operacional de **filas de atendimento** na Inbox e na página **Filas operacionais** é **100% Prisma** (`WaInboxQueue`, membros, `WaInboxThread.queueId`). O texto abaixo descreve o desenho **histórico** baseado em Supabase (`queues`, `agents`, `conversations`) usado em fases anteriores; **não** é a fonte de verdade do código actual.
+
+**Fonte de verdade actual:** [`apps/whatsapp-platform/docs/architecture/OPERATIONAL_QUEUES_CANONICAL.md`](../../apps/whatsapp-platform/docs/architecture/OPERATIONAL_QUEUES_CANONICAL.md).
 
 ---
 
-## 1. Schema (Supabase)
+## 1. Schema (Supabase) — legado / referência histórica
 
 - **queues** — filas por tenant: `id`, `tenant_id`, `name`, `slug`, `settings`, `max_size`, `created_at`, `updated_at`.
 - **agents** — atendentes por tenant: `id`, `tenant_id`, `name`, `email`, `status` (`available` | `busy` | `offline`), `settings`, `created_at`, `updated_at`.
 - **conversation_assignments** — histórico de atribuições: `conversation_id`, `agent_id`, `assigned_at`, `completed_at`.
 - **conversations** — campos adicionados: `queue_id`, `assigned_agent_id`; status estendido: `open`, `waiting_queue`, `waiting`, `assigned`, `in_progress`, `resolved`, `closed`.
 
-Executar o conteúdo de `apps/whatsapp-platform/supabase/schema.sql` no projeto Supabase. Em bases já existentes, rodar migrações para adicionar `queues`, `agents`, `conversation_assignments` e a coluna `queue_id` em `conversations`.
+O módulo TypeScript `src/modules/queues/*` (repositório Supabase + routing + distribuição) **foi removido** por não ter consumidores e duplicar o conceito de fila face ao modelo Prisma.
 
 ---
 
-## 2. Módulos
+## 2. Módulos (estado actual)
 
-- **queues** — `queuesRepository` (CRUD), `queueRoutingService` (resolve fila por tenant/mensagem), `distributionService` (selectNextAgent: round_robin, least_loaded, random).
-- **agents** — `agentsRepository` (CRUD), `countActiveConversationsByAgent`.
-- **conversations** — `setConversationQueue`, `assignConversationToAgent`, `listConversationsByStatus`.
+- **Filas operacionais canónicas:** `inboxOperationalQueueService` + rotas `/api/queues` (ver documento canónico).
+- **agents / conversations (Supabase):** podem ainda existir chamadas pontuais noutros módulos; não definem a fila da Inbox Prisma.
 
 ---
 
-## 3. APIs REST
+## 3. APIs REST (canónicas para filas Prisma)
 
 | Método | Rota | Descrição |
 |--------|------|------------|
-| GET | /api/queues?tenant_id= | Listar filas do tenant |
-| POST | /api/queues | Criar fila (body: tenant_id, name, slug, max_size?) |
-| GET | /api/agents?tenant_id= | Listar agentes do tenant |
-| POST | /api/agents | Criar agente (body: tenant_id, name, email?, status?) |
+| GET | `/api/queues` | Listar filas + métricas (sessão; roles operacionais). |
+| POST | `/api/queues` | Criar fila (gestores). |
+| PATCH/DELETE | `/api/queues/[id]` | Atualizar / remover fila. |
+| * | `/api/queues/[id]/members` | Membros da fila. |
 
-Rotas PATCH/DELETE para `/api/queues/[id]` e `/api/agents/[id]` podem ser adicionadas conforme necessidade.
+Rotas `/api/agents` legadas (se existirem no projecto) referem-se ao modelo Supabase, não ao membership em `WaInboxQueueMembership`.
 
 ---
 
-## 4. Fluxo de roteamento (webhook)
+## 4. Fluxo de roteamento (webhook) — nota
 
-1. Nova mensagem → `findOrCreateConversation`.
-2. (Opcional) `resolveQueueForConversation(tenantId)` → retorna fila padrão ou por intent.
-3. Se fila existir: `setConversationQueue(conversationId, queueId)`.
-4. `selectNextAgent(tenantId, queueId)` → agente disponível (ex.: least_loaded).
-5. Se agente existir: `assignConversationToAgent(conversationId, agentId)`.
-
-O webhook atual ainda não aplica filas/agentes automaticamente; a infraestrutura está pronta para integrar quando habilitado.
+Qualquer roteamento automático de novas mensagens para fila/agente deve alinhar com **threads Prisma** e `WaInboxQueue`, não com `resolveQueueForConversation` sobre a tabela Supabase `queues` (removido).
 
 ---
 
 ## 5. Dashboard
 
-- **/dashboard** — visão geral; exibir totais de filas, conversas pendentes e agentes (quando as páginas forem conectadas aos novos endpoints).
-- **/conversations** — listar por status (waiting_queue, assigned, in_progress).
-- **/agents** — listar agentes com status e contagem de conversas ativas.
+- **/queues** — gestão de filas operacionais (canónico).
+- **/inbox** — atendimento com refinamento por fila.
 
-Variáveis de ambiente: nenhuma nova obrigatória; opcional `WHATSAPP_QUEUE_MAX_SIZE` para limite global por fila.
+Variáveis de ambiente: nenhuma nova obrigatória específica a este documento histórico.

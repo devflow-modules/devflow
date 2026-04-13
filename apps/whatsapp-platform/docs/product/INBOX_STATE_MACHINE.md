@@ -3,6 +3,8 @@
 Fonte de verdade: `wa_inbox_threads` + mensagens em `wa_inbox_messages`.  
 Estados derivados: `src/modules/inbox/waInboxConversationState.ts` e filtros em `waInboxQueries.ts`.
 
+**Atribuição, posse e handoff (terminologia e rotas):** `docs/architecture/CONVERSATION_OWNERSHIP_AND_HANDOFF.md`.
+
 ## Estados lógicos (UI / API)
 
 | Estado | Condição resumida |
@@ -20,7 +22,7 @@ Estados derivados: `src/modules/inbox/waInboxConversationState.ts` e filtros em 
 ## Filtros da lista (fase)
 
 - **Geral:** todas as threads (refinável por linha/fila/prioridade).
-- **Sem dono:** sem humano atribuído **e** com inbound por responder (fila para assumir).
+- **Sem responsável:** sem humano atribuído **e** com inbound por responder (fila para assumir).
 - **Aguardando cliente:** sem humano, sem pendência inbound.
 - Ver código: `WaInboxConversationPhaseFilter` em `waInboxQueries.ts`.
 

@@ -48,7 +48,7 @@ Os módulos do `whatsapp-platform` são usados via path aliases no `tsconfig.jso
 ### 6. Build do app raiz (Next.js)
 
 - **Status:** `pnpm build` conclui com sucesso.
-- **Exclusões no `tsconfig`:** `apps/whatsapp-platform/src/modules/agents` e `modules/queues` não entram no typecheck do root (evitam dependências Supabase não usadas no runtime unificado).
+- **Legado removido:** `modules/queues` e `modules/agents` (Supabase) deixaram de existir no código; filas e atribuição humana estão no domínio Inbox Prisma (`OPERATIONAL_QUEUES_CANONICAL.md`, `CONVERSATION_OWNERSHIP_AND_HANDOFF.md`).
 - **Pacotes transpilados:** `@devflow/whatsapp-core`, `@devflow/ai-core` (ver `next.config`).
 
 ---

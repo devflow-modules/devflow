@@ -3,7 +3,6 @@ import { WaInboxThreadStatus, WaInboxDirection } from "@/generated/prisma-whatsa
 
 const mockGetAuthFromRequest = vi.fn();
 const mockFindNext = vi.fn();
-const mockAgentUpsert = vi.fn();
 
 vi.mock("@/modules/auth", async () => {
   const actual = await vi.importActual<typeof import("@/modules/auth")>("@/modules/auth");
@@ -14,11 +13,6 @@ vi.mock("@/modules/auth", async () => {
 });
 vi.mock("@/modules/inbox/waInboxQueueService", () => ({
   findNextUnassignedQueueThread: (...args: unknown[]) => mockFindNext(...args),
-}));
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
-    agentStatus: { upsert: (...args: unknown[]) => mockAgentUpsert(...args) },
-  },
 }));
 
 describe("GET /api/admin/queue/next", () => {
@@ -74,7 +68,6 @@ describe("GET /api/admin/queue/next", () => {
         },
       ],
     });
-    mockAgentUpsert.mockResolvedValue({});
     const assignMod = await import("@/modules/inbox/threadAssignmentService");
     vi.spyOn(assignMod, "assignThread").mockResolvedValue(true);
     const { GET } = await import("../route");
@@ -85,11 +78,5 @@ describe("GET /api/admin/queue/next", () => {
     expect(data.thread).toBeDefined();
     expect(data.thread.id).toBe("th1");
     expect(assignMod.assignThread).toHaveBeenCalledWith("t1", "th1", "u1", "u1");
-    expect(mockAgentUpsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { userId: "u1" },
-        update: expect.objectContaining({ status: "busy", currentConversationId: "th1" }),
-      })
-    );
   });
 });

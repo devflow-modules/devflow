@@ -8,6 +8,7 @@ import { formatCompactWaitDurationMs } from "@/modules/inbox/waInboxSla";
 import { conversationPreviewPrefix } from "./conversationPreviewPrefix";
 import { slaWaitLabelClass } from "./inboxOperationalStyles";
 import { priorityGuidance } from "./leadPanelCopy";
+import { ResponseAlertBadge, getResponseAlertLevel } from "./ResponseAlertBadge";
 
 function formatListTimeCompact(iso: string): string {
   try {
@@ -47,12 +48,18 @@ export const ConversationItem = memo(function ConversationItem({
   const state = thread.conversationState as ConversationState | undefined;
   const showSlaWait = state === "awaiting_agent" && thread.responseDelayMs != null;
   const waitLabel = showSlaWait ? formatCompactWaitDurationMs(thread.responseDelayMs!) : null;
-  const isCritical = state === "awaiting_agent" && thread.slaLevel === "critical";
-  const isHigh = state === "awaiting_agent" && thread.slaLevel === "high";
+  const responseAlert = state === "awaiting_agent" ? getResponseAlertLevel(thread.responseDelayMs) : "none";
+  const isCritical =
+    state === "awaiting_agent" &&
+    (thread.slaLevel === "critical" || responseAlert === "critical");
+  const isHigh =
+    state === "awaiting_agent" &&
+    !isCritical &&
+    (thread.slaLevel === "high" || responseAlert === "warning");
   const showActions = Boolean(onAssume || onClose);
   const canAssume = Boolean(onAssume && !thread.isAssignedToMe && thread.status !== "CLOSED");
   const canClose = Boolean(onClose && thread.status !== "CLOSED");
-  /** «Sem dono» só quando falta alguém humano assumir e há pendência inbound. */
+  /** Sem responsável humano: pendência inbound e ninguém atribuído. */
   const showSemDono = Boolean(
     (thread.isUnassigned || !thread.assignedToUser) &&
       thread.status !== "CLOSED" &&
@@ -80,15 +87,22 @@ export const ConversationItem = memo(function ConversationItem({
   const slaRank = (s: InboxSlaLevel | null | undefined): number =>
     s === "critical" ? 0 : s === "high" ? 1 : s === "medium" ? 2 : 3;
 
+  const noOwnerStripe =
+    showSemDono && !isCritical && !isHigh && !active
+      ? "bg-amber-50/40 shadow-[inset_3px_0_0_0_rgb(217,119,6)]"
+      : null;
+
   const rowClass = [
     "group relative flex w-full items-stretch border-b border-slate-100/80 transition-[background-color,box-shadow] duration-200 ease-out",
     isCritical
       ? "bg-gradient-to-r from-red-50 via-red-50/95 to-red-50/80 shadow-[inset_4px_0_0_0_rgb(220,38,38),0_0_0_1px_rgba(248,113,113,0.25)]"
       : isHigh
         ? "bg-gradient-to-r from-orange-50/90 to-orange-50/60 shadow-[inset_4px_0_0_0_rgb(234,88,12)]"
-        : active
-          ? "bg-slate-50/95 shadow-[inset_3px_0_0_0_var(--df-brand-500)]"
-          : "bg-white hover:bg-slate-50/90",
+        : noOwnerStripe
+          ? `${noOwnerStripe} hover:bg-amber-50/55`
+          : active
+            ? "bg-slate-50/95 shadow-[inset_3px_0_0_0_var(--df-brand-500)]"
+            : "bg-white hover:bg-slate-50/90",
   ].join(" ");
 
   const avatarClass = isCritical
@@ -165,6 +179,9 @@ export const ConversationItem = memo(function ConversationItem({
           </div>
 
           <div className="mt-1 flex flex-wrap items-center gap-1">
+            {state === "awaiting_agent" && responseAlert !== "none" ? (
+              <ResponseAlertBadge delayMs={thread.responseDelayMs} />
+            ) : null}
             {pendingCount > 0 ? (
               <span className="df-badge-pending-count" data-testid="pending-inbound-badge">
                 {pendingCount > 99 ? "99+" : pendingCount}
@@ -183,7 +200,7 @@ export const ConversationItem = memo(function ConversationItem({
             ) : null}
             {showSemDono ? (
               <span className="df-chip-unassigned" data-testid="unassigned-chip">
-                Sem dono
+                Sem responsável
               </span>
             ) : null}
             {showAguardandoCliente ? (

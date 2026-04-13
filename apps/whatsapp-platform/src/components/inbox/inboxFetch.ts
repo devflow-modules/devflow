@@ -1,4 +1,5 @@
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
+import { unwrapApiData } from "@/lib/api-json-client";
 import type {
   WaInboxMessageRow,
   WaInboxThreadRow,
@@ -375,4 +376,64 @@ export async function updateThreadQueue(threadId: string, queueId: string | null
     }
   );
   if (!res.ok) throw new Error(await inboxFailMessage(res));
+}
+
+export type InboxOperationalMetricsPayload = {
+  periodDays: number;
+  conversationsByAgent: Array<{ userId: string; name: string | null; openThreads: number }>;
+  avgQueueWaitSeconds: number | null;
+  avgHandleSeconds: number | null;
+  sampleQueue: number;
+  sampleHandle: number;
+};
+
+export async function fetchInboxMetrics(days = 30): Promise<InboxOperationalMetricsPayload> {
+  const res = await fetchProtected(`/api/inbox/metrics?days=${encodeURIComponent(String(days))}`);
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
+  const raw = await res.json();
+  const data = unwrapApiData<InboxOperationalMetricsPayload>(raw);
+  if (!data) throw new Error("Resposta de métricas inválida");
+  return data;
+}
+
+export type InboxTeamMember = {
+  userId: string;
+  name: string;
+  email: string;
+  status: string;
+  activeThreadCount: number;
+  queueIds: string[];
+};
+
+export async function fetchInboxTeam(): Promise<InboxTeamMember[]> {
+  const res = await fetchProtected("/api/inbox/team");
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
+  const raw = await res.json();
+  const data = unwrapApiData<{ members: InboxTeamMember[] }>(raw);
+  return data?.members ?? [];
+}
+
+export type InboxQueueNextPayload = {
+  thread: {
+    id: string;
+    tenantId: string;
+    phoneNumber: string;
+    contactName: string | null;
+    status: string;
+    lastMessageAt: string;
+    createdAt: string;
+    messages: Array<{ id: string; sender: string; content: string; timestamp: string }>;
+  } | null;
+  message?: string;
+  priority: number;
+  queuedAt: string | null;
+};
+
+export async function fetchInboxQueueNext(assign = true): Promise<InboxQueueNextPayload> {
+  const res = await fetchProtected(`/api/inbox/queue/next?assign=${assign ? "true" : "false"}`);
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
+  const raw = await res.json();
+  const data = unwrapApiData<InboxQueueNextPayload>(raw);
+  if (!data) throw new Error("Resposta inválida");
+  return data;
 }

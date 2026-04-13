@@ -149,7 +149,7 @@ export function ManagerDashboardSection() {
           <p className="mt-1 text-xs text-slate-500">Threads com mensagem pendente</p>
         </Card>
         <Card padding="md" className="!p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Sem dono</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Sem responsável</p>
           <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">{data.operation.unassigned}</p>
           <p className="mt-1 text-xs text-slate-500">Abertas sem atribuição</p>
         </Card>
@@ -159,9 +159,9 @@ export function ManagerDashboardSection() {
           <p className="mt-1 text-xs text-rose-900/80">Aguardam há ≥ 30 min</p>
         </Card>
         <Card padding="md" className="!p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">1.ª resposta (média)</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Tempo médio em fila</p>
           <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">{formatMs(data.operation.avgFirstResponseMs)}</p>
-          <p className="mt-1 text-xs text-slate-500">No período (cliente → 1.ª resposta)</p>
+          <p className="mt-1 text-xs text-slate-500">Até à primeira resposta (período)</p>
         </Card>
       </div>
 
@@ -174,11 +174,11 @@ export function ManagerDashboardSection() {
               <p className="text-xl font-bold tabular-nums text-slate-900">{data.team.handled}</p>
             </div>
             <div className="rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2">
-              <p className="text-[10px] font-semibold uppercase text-slate-500">Resposta média</p>
+              <p className="text-[10px] font-semibold uppercase text-slate-500">Tempo médio de atendimento</p>
               <p className="text-xl font-bold tabular-nums text-slate-900">{formatMs(data.team.avgResponseMs)}</p>
             </div>
             <div className="rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2">
-              <p className="text-[10px] font-semibold uppercase text-slate-500">1.ª resposta</p>
+              <p className="text-[10px] font-semibold uppercase text-slate-500">Tempo médio em fila</p>
               <p className="text-xl font-bold tabular-nums text-slate-900">{formatMs(data.team.avgFirstResponseMs)}</p>
             </div>
             <div className="rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2">
@@ -201,9 +201,9 @@ export function ManagerDashboardSection() {
                   <thead>
                     <tr>
                       <th>Agente</th>
-                      <th className="text-right">Threads</th>
-                      <th className="text-right">Resposta</th>
-                      <th className="text-right">1.ª resposta</th>
+                      <th className="text-right">Conversas por responsável</th>
+                      <th className="text-right">Tempo médio de atendimento</th>
+                      <th className="text-right">Tempo médio em fila</th>
                       <th className="text-right">Fechadas</th>
                     </tr>
                   </thead>
