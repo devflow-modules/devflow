@@ -400,9 +400,11 @@ export type InboxTeamMember = {
   userId: string;
   name: string;
   email: string;
+  role: string;
   status: string;
   activeThreadCount: number;
-  queueIds: string[];
+  queues: Array<{ id: string; name: string }>;
+  lastActivityAt: string | null;
 };
 
 export async function fetchInboxTeam(): Promise<InboxTeamMember[]> {

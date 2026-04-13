@@ -32,9 +32,10 @@ function NavLink({
     <Link
       href={href}
       onClick={() => onNavigate?.()}
+      title={label}
       className={`block rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
         active
-          ? "bg-[var(--df-brand-50)]/90 text-[var(--df-brand-800)]"
+          ? "bg-[var(--df-brand-50)]/95 font-semibold text-[var(--df-brand-900)] ring-1 ring-[var(--df-brand-200)]/90 shadow-sm"
           : sensitive
             ? "text-amber-900/90 hover:bg-amber-50 hover:text-amber-950"
             : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
@@ -48,11 +49,14 @@ function NavLink({
 function CollapsibleNavSection({
   sectionId,
   title,
+  subtitle,
   defaultSensitive,
   children,
 }: {
   sectionId: string;
   title: string;
+  /** Uma linha curta para orientar — não substitui o título. */
+  subtitle?: string;
   defaultSensitive?: boolean;
   children: ReactNode;
 }) {
@@ -64,13 +68,20 @@ function CollapsibleNavSection({
       <button
         type="button"
         onClick={() => setSectionCollapsed(sectionId, !collapsed)}
-        className={`mb-2 flex w-full items-center justify-between gap-2 px-3 py-1 text-left text-[11px] font-semibold uppercase tracking-[0.1em] ${
+        className={`mb-1.5 flex w-full items-start justify-between gap-2 px-3 py-1 text-left text-[11px] font-semibold uppercase tracking-[0.1em] ${
           defaultSensitive ? "text-amber-800/90" : "text-slate-400/90"
         }`}
         aria-expanded={!collapsed}
       >
-        <span>{title}</span>
-        <span className="text-slate-400" aria-hidden>
+        <span className="min-w-0 flex-1">
+          <span className="block">{title}</span>
+          {subtitle && !collapsed ? (
+            <span className="mt-0.5 block text-[10px] font-normal normal-case leading-snug tracking-normal text-slate-500">
+              {subtitle}
+            </span>
+          ) : null}
+        </span>
+        <span className="shrink-0 text-slate-400" aria-hidden>
           {collapsed ? "▸" : "▾"}
         </span>
       </button>
@@ -116,7 +127,11 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <nav className="flex-1 space-y-4 overflow-y-auto px-2 py-4">
-        <CollapsibleNavSection sectionId="principal" title="Principal">
+        <CollapsibleNavSection
+          sectionId="principal"
+          title="Trabalho do dia"
+          subtitle="Inbox, painel e automações — o essencial."
+        >
           <div className="space-y-0.5">
             {primaryNav.map((item) => (
               <NavLink
@@ -132,7 +147,12 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
         </CollapsibleNavSection>
 
         {secondaryNav.length > 0 ? (
-          <CollapsibleNavSection sectionId="conta" title="Conta e canais" defaultSensitive>
+          <CollapsibleNavSection
+            sectionId="conta"
+            title="Conta e canais"
+            subtitle="Linha WhatsApp, IA, plano e definições do tenant."
+            defaultSensitive
+          >
             <div className="space-y-0.5">
               {secondaryNav.map((item) => (
                 <NavLink
@@ -150,7 +170,11 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
         <div className="border-t border-slate-200/80 pt-3" aria-hidden />
 
-        <CollapsibleNavSection sectionId="operacao" title="Operação">
+        <CollapsibleNavSection
+          sectionId="operacao"
+          title="Equipa e filas"
+          subtitle="Quem atende e distribuição operacional."
+        >
           <div className="space-y-0.5">
             {NAV_OPERATION.map((item) => (
               <NavLink
@@ -165,11 +189,13 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
         </CollapsibleNavSection>
 
         {platformNav.length > 0 ? (
-          <CollapsibleNavSection sectionId="plataforma" title="Plataforma (interno)" defaultSensitive>
+          <CollapsibleNavSection
+            sectionId="plataforma"
+            title="Ferramentas internas"
+            subtitle="Só equipa DevFlow — não é a conta do cliente."
+            defaultSensitive
+          >
             <div className="mb-2 border-t-2 border-amber-200/70 pt-3" aria-hidden />
-            <p className="mb-2 px-3 text-[10px] leading-snug text-amber-800/80">
-              Ferramentas de equipa DevFlow — não confundir com o tenant do cliente.
-            </p>
             <div className="space-y-0.5">
               {platformNav.map((item) => (
                 <NavLink

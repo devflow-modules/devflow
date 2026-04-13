@@ -191,6 +191,7 @@ export function ManagerDashboardSection() {
               <StateEmpty
                 title="Sem utilizadores na conta"
                 description="Convide agentes em Configurações para ver desempenho por pessoa."
+                nextStep="Abra Equipe no menu para ver quem já está no tenant ou convide novos membros."
                 className="border-dashed border-slate-200 bg-slate-50/50 py-8"
               />
             </div>
@@ -264,6 +265,7 @@ export function ManagerDashboardSection() {
               <StateEmpty
                 title="Sem tags de funil"
                 description="Ao classificar conversas com tags alinhadas ao funil, o resumo aparece aqui."
+                nextStep="Na Inbox, aplique tags (ex.: Lead, Proposta) às threads — os totais atualizam neste cartão."
                 className="border-dashed border-slate-200 bg-slate-50/50 py-8"
               />
             </div>

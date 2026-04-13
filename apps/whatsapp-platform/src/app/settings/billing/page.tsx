@@ -7,13 +7,13 @@ export default function BillingSettingsPage() {
   return (
     <div className="mx-auto min-w-0 max-w-4xl space-y-8">
       <PageHeader
-        eyebrow="Subscrição"
-        title="Faturação e uso"
+        eyebrow="Conta"
+        title="Plano no espaço de trabalho"
         description={
           <>
-            Plano base (Stripe) e uso variável (mensagens e respostas IA). Para o resumo completo do produto, veja também{" "}
+            Plano base (Stripe) e uso variável (mensagens e IA). O painel completo de consumo e renovação está em{" "}
             <Link href="/billing" className="font-semibold text-[var(--df-brand-700)] hover:underline">
-              Plano e uso
+              Plano e faturação
             </Link>
             .
           </>

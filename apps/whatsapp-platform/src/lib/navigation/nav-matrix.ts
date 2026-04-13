@@ -15,6 +15,8 @@ export type RouteMeta = {
   sensitive?: boolean;
   /** Só staff da plataforma (comando interno). */
   platformOnly?: boolean;
+  /** Palavras-chave extra para a paleta (PT / sinónimos) — não aparecem na UI. */
+  searchAliases?: readonly string[];
 };
 
 /** Metadados por caminho canónico (sem query). */
@@ -24,6 +26,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     parent: null,
     section: "principal",
     roles: ["manager", "platform_admin"],
+    searchAliases: ["resumo", "início", "home", "métricas gerais"],
   },
   "/dashboard/whatsapp": {
     label: "Ligação WhatsApp",
@@ -31,6 +34,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     section: "conta",
     roles: ["manager", "platform_admin"],
     sensitive: true,
+    searchAliases: ["whatsapp", "meta", "business", "número", "ligar", "configurar whatsapp", "linha"],
   },
   "/dashboard/billing": {
     label: "Cobrança",
@@ -38,6 +42,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     section: "conta",
     roles: ["manager", "platform_admin"],
     sensitive: true,
+    searchAliases: ["plano", "faturação", "fatura", "stripe"],
   },
   "/dashboard/ai": {
     label: "IA — operação",
@@ -45,18 +50,21 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     section: "conta",
     roles: ["manager", "platform_admin"],
     sensitive: true,
+    searchAliases: ["inteligência artificial", "métricas ia", "saúde", "guardas"],
   },
   "/inbox": {
     label: "Inbox",
     parent: null,
     section: "principal",
     roles: ["operator", "manager", "platform_admin"],
+    searchAliases: ["mensagens", "conversas", "atendimento", "chat", "caixa de entrada", "inbox"],
   },
   "/automation": {
     label: "Automações",
     parent: null,
     section: "principal",
     roles: ["operator", "manager", "platform_admin"],
+    searchAliases: ["regras", "fluxos", "bots"],
   },
   "/conversations": {
     label: "Conversas",
@@ -70,6 +78,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     section: "conta",
     roles: ["manager", "platform_admin"],
     sensitive: true,
+    searchAliases: ["custos ia", "tokens", "uso"],
   },
   "/settings": {
     label: "Configurações",
@@ -77,6 +86,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     section: "conta",
     roles: ["manager", "platform_admin"],
     sensitive: true,
+    searchAliases: ["definições", "conta", "preferências", "equipa"],
   },
   "/settings/ai": {
     label: "IA de atendimento",
@@ -97,24 +107,28 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     section: "conta",
     roles: ["manager", "platform_admin"],
     sensitive: true,
+    searchAliases: ["chave api", "webhook", "desenvolvedor"],
   },
   "/billing": {
-    label: "Cobrança",
+    label: "Plano e faturação",
     parent: null,
     section: "conta",
     roles: ["manager", "platform_admin"],
+    searchAliases: ["cobrança", "plano", "pagamento", "assinatura", "stripe", "fatura"],
   },
   "/agents": {
     label: "Equipe",
     parent: null,
     section: "operacao",
     roles: ["operator", "manager", "platform_admin"],
+    searchAliases: ["agentes", "time", "equipa", "pessoas", "colaboradores"],
   },
   "/queues": {
     label: "Filas operacionais",
     parent: null,
     section: "operacao",
     roles: ["operator", "manager", "platform_admin"],
+    searchAliases: ["filas", "distribuição", "espera", "sla"],
   },
   "/admin/metrics": {
     label: "Métricas internas",
@@ -125,12 +139,13 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     sensitive: true,
   },
   "/admin/billing": {
-    label: "Billing interno",
+    label: "Faturação interna",
     parent: null,
     section: "plataforma",
     roles: ["platform_admin"],
     platformOnly: true,
     sensitive: true,
+    searchAliases: ["billing", "stripe interno"],
   },
   "/admin/agents": {
     label: "Agentes (plataforma)",
@@ -153,6 +168,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     parent: null,
     section: "operacao",
     roles: ["operator", "manager", "platform_admin"],
+    searchAliases: ["próxima conversa", "pegar conversa", "fila", "assumir"],
   },
   "/onboarding": {
     label: "Ativação da conta",
@@ -160,6 +176,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     section: "conta",
     roles: ["manager", "platform_admin"],
     sensitive: true,
+    searchAliases: ["primeiros passos", "configuração inicial", "setup", "ativar"],
   },
 };
 
@@ -275,8 +292,8 @@ export const PALETTE_GROUP_ORDER: PaletteGroupId[] = ["operacao", "gestao", "con
 export const PALETTE_GROUP_LABEL: Record<PaletteGroupId, string> = {
   operacao: "Operação",
   gestao: "Gestão",
-  configuracao: "Configuração",
-  plataforma: "Plataforma (interno)",
+  configuracao: "Conta e canais",
+  plataforma: "Ferramentas internas (DevFlow)",
 };
 
 function paletteGroupForRoute(path: string, meta: RouteMeta): PaletteGroupId {
@@ -297,6 +314,8 @@ export type CommandPaletteRoute = {
   label: string;
   groupId: PaletteGroupId;
   groupLabel: string;
+  /** Sinónimos e termos de pesquisa (minúsculos na filtragem). */
+  aliases: string[];
 };
 
 /** Destinos agrupados para a command palette (labels de produto, sem jargão técnico). */
@@ -314,6 +333,7 @@ export function commandPaletteRoutes(role: UserRole | null): CommandPaletteRoute
       label: meta.label,
       groupId,
       groupLabel: PALETTE_GROUP_LABEL[groupId],
+      aliases: [...(meta.searchAliases ?? [])],
     });
   }
 

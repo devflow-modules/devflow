@@ -72,7 +72,8 @@ export function MetricsSection({ compact = false }: { compact?: boolean }) {
     return (
       <StateEmpty
         title="Sem histórico detalhado ainda"
-        description="Quando houver mais mensagens, aparecem aqui volume por dia, intenções e desempenho por agente. Envie mensagens de teste ou aguarde tráfego real."
+        description="Quando houver mais mensagens, aparecem aqui volume por dia, intenções e desempenho por agente."
+        nextStep="Envie mensagens de teste a partir do WhatsApp Business ou aguarde tráfego real; o resumo preenche automaticamente."
         className="border-slate-200/80 bg-slate-50/50 py-8"
       />
     );

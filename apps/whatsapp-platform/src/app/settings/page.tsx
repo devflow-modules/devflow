@@ -22,7 +22,7 @@ export default function SettingsPage() {
               API e integrações
             </Link>
             <Link href="/billing" className="df-quick-action">
-              Cobrança
+              Plano e faturação
             </Link>
           </>
         }

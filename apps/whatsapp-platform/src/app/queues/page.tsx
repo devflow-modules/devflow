@@ -13,13 +13,14 @@ export default async function QueuesPage() {
       <div className="mx-auto max-w-3xl space-y-6">
         <PageHeader
           eyebrow="Operação"
-          title="Filas"
-          description="Filas da Inbox (fonte canónica Prisma)."
+          title="Filas operacionais"
+          description="Distribua conversas por equipa e prioridade — as filas ligam-se à Inbox e à equipa."
           showDivider
         />
         <StateEmpty
           title="Inicie sessão"
-          description="É necessário estar autenticado para gerir filas."
+          description="Inicie sessão para criar filas, atribuir agentes e ver métricas."
+          nextStep="Precisa de acesso? Peça a um gestor do tenant."
           action={
             <Link href="/login" className="text-sm font-medium text-[var(--df-brand-600)] hover:underline">
               Ir para o login

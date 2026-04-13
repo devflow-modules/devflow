@@ -317,6 +317,7 @@ export function QueuesClient({
         <StateEmpty
           title="Nenhuma fila configurada"
           description="Crie filas para organizar conversas e filtrar na Inbox e no dashboard gerencial."
+          nextStep="Depois de criar, atribua agentes em Equipe e use a Inbox para distribuir conversas."
           action={
             <Button type="button" onClick={() => setShowForm(true)}>
               Criar primeira fila

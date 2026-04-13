@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
-import { StateError } from "@/components/ui/app-states";
+import { StateEmpty, StateError } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 import {
@@ -192,27 +192,34 @@ export function DashboardAiClient() {
     [metrics, funnel, opportunities, leadQuality]
   );
 
+  const aiDashboardHeader = (
+    <PageHeader
+      eyebrow="Operação"
+      title="IA no atendimento"
+      description="Saúde do canal (webhook, filas), automação, funil e oportunidades — visão de gestão para afinar IA e priorizar conversas."
+      layout="split"
+      showDivider
+      tone="admin"
+      quickActions={
+        <>
+          <Link href="/settings/ai" className="df-quick-action">
+            Configurar IA
+          </Link>
+          <Link href="/settings/ai-analytics" className="df-quick-action">
+            Uso e custos de IA
+          </Link>
+          <Link href="/inbox" className="df-quick-action">
+            Abrir Inbox
+          </Link>
+        </>
+      }
+    />
+  );
+
   if (loading) {
     return (
       <div className="df-stack min-w-0">
-        <PageHeader
-          eyebrow="Operação"
-          title="IA no atendimento"
-          description="Saúde do canal, automação e decisões — prioridades e impacto na conversão."
-          layout="split"
-          showDivider
-          tone="admin"
-          quickActions={
-            <>
-              <Link href="/settings/ai" className="df-quick-action">
-                Configurar IA
-              </Link>
-              <Link href="/settings/ai-analytics" className="df-quick-action">
-                Uso e custos
-              </Link>
-            </>
-          }
-        />
+        {aiDashboardHeader}
         <DashboardAiSkeleton />
       </div>
     );
@@ -221,13 +228,28 @@ export function DashboardAiClient() {
   if (error) {
     return (
       <div className="df-stack min-w-0">
-        <StateError message={error} onRetry={load} />
+        {aiDashboardHeader}
+        <StateError message={error} onRetry={load} retryLabel="Tentar novamente" />
       </div>
     );
   }
 
   if (!metrics) {
-    return null;
+    return (
+      <div className="df-stack min-w-0">
+        {aiDashboardHeader}
+        <StateEmpty
+          title="Métricas indisponíveis"
+          description="Não foi possível obter o resumo de IA para o período."
+          nextStep="Verifique a sessão ou tente novamente dentro de instantes."
+          action={
+            <button type="button" className={buttonClassName("primary")} onClick={() => void load()}>
+              Recarregar
+            </button>
+          }
+        />
+      </div>
+    );
   }
 
   const isEmpty = metrics.totalMessages === 0;
@@ -281,24 +303,7 @@ export function DashboardAiClient() {
 
   return (
     <div className="df-stack min-w-0">
-      <PageHeader
-        eyebrow="Operação"
-        title="IA no atendimento"
-        description="Saúde do canal, automação e decisões — prioridades e impacto na conversão."
-        layout="split"
-        showDivider
-        tone="admin"
-        quickActions={
-          <>
-            <Link href="/settings/ai" className="df-quick-action">
-              Configurar IA
-            </Link>
-            <Link href="/settings/ai-analytics" className="df-quick-action">
-              Uso e custos
-            </Link>
-          </>
-        }
-      />
+      {aiDashboardHeader}
 
       <SystemHealthPanel
         snapshot={healthLoading ? null : healthSnapshot}
@@ -331,9 +336,12 @@ export function DashboardAiClient() {
       </div>
 
       {showDecisionEmpty ? (
-        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/90 px-5 py-6 text-center text-sm text-slate-600">
-          Ainda não há dados suficientes. Quando as conversas começarem, verá insights e acções recomendadas aqui.
-        </div>
+        <StateEmpty
+          title="Ainda não há decisões sugeridas"
+          description="Insights e acções recomendadas aparecem quando houver conversas e sinais de funil no período."
+          nextStep="Abra a Inbox para gerar tráfego ou ajuste a IA em Configurações."
+          className="border border-dashed border-slate-200 bg-slate-50/90 py-8"
+        />
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -472,15 +480,17 @@ export function DashboardAiClient() {
       ) : null}
 
       {isEmpty ? (
-        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-6 py-10 text-center">
-          <p className="text-lg font-semibold text-slate-900">Ainda não há eventos de IA no período</p>
-          <p className="mt-2 text-sm text-slate-600">
-            Quando a automação responder ou for bloqueada, os números e a lista abaixo passam a aparecer aqui.
-          </p>
-          <Link href="/settings/ai" className={`${buttonClassName("secondary", "mt-6 inline-flex")}`}>
-            Rever configuração de IA
-          </Link>
-        </div>
+        <StateEmpty
+          title="Sem eventos de IA no período"
+          description="Quando a automação responder, falhar ou for bloqueada por guardas, os totais e a lista de eventos preenchem automaticamente."
+          nextStep="Envie mensagens de teste na Inbox ou revise o comportamento em Configurações → IA de atendimento."
+          className="border border-dashed border-slate-200 bg-slate-50/80 py-10"
+          action={
+            <Link href="/settings/ai" className={buttonClassName("secondary", "inline-flex")}>
+              Rever configuração de IA
+            </Link>
+          }
+        />
       ) : null}
 
       {!isEmpty ? (
@@ -510,9 +520,12 @@ export function DashboardAiClient() {
         <h2 className="text-sm font-bold text-slate-900">Eventos recentes</h2>
         <p className="mt-1 text-xs text-slate-500">Últimos registos operacionais (tipo, motivo, conversa).</p>
         {!logs || logs.length === 0 ? (
-          <p className="mt-4 rounded-lg border border-slate-100 bg-slate-50/50 px-4 py-6 text-sm text-slate-600">
-            Sem linhas para mostrar. Ajuste o período nas métricas ou aguarde novos eventos.
-          </p>
+          <StateEmpty
+            title="Sem eventos recentes na lista"
+            description="Os últimos registos de automação e erros aparecem aqui quando existirem."
+            nextStep="Quando houver novas interações com a IA, os registos aparecem aqui em tempo quase real."
+            className="mt-4 border border-slate-100 bg-slate-50/50 py-6 text-left"
+          />
         ) : (
           <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200/90 bg-white shadow-sm">
             <table className="w-full min-w-[640px] text-left text-sm">

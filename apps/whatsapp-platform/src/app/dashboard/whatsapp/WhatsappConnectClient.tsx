@@ -152,7 +152,8 @@ export function WhatsappConnectClient() {
       {numbers.length === 0 ? (
         <StateEmpty
           title="Ainda não há números ligados"
-          description="Use o botão acima para abrir o fluxo da Meta e autorizar o WhatsApp Business. Depois, o número aparece aqui."
+          description="Use o botão «Ligar novo número» para abrir o fluxo da Meta e autorizar o WhatsApp Business."
+          nextStep="Concluído o fluxo, o número aparece aqui e a Inbox passa a receber conversas nessa linha."
         />
       ) : (
         <ul className="space-y-3">

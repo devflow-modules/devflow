@@ -9,22 +9,34 @@ import {
 
 type AgentStatusBadgeProps = {
   status: string | null | undefined;
-  /** compact = só ponto + label curta; comfortable = um pouco mais de ar */
+  /** compact = denso (inbox); comfortable = alinhado a badges de equipa (altura ~24px). */
   density?: "compact" | "comfortable";
   className?: string;
 };
 
+const SHELL_BY_PRESENCE: Record<OperationalPresence, string> = {
+  available: "border-emerald-200/85 bg-emerald-50/90 text-emerald-950",
+  busy: "border-red-200/85 bg-red-50/90 text-red-950",
+  offline: "border-slate-200/90 bg-slate-100/90 text-slate-600",
+};
+
 /**
  * Estado do agente na operação (Livre / Em atendimento / Offline).
+ * Raio e padding alinhados a `AgentRoleBadge` (rounded-md, altura visual consistente em modo comfortable).
  */
 export function AgentStatusBadge({ status, density = "compact", className = "" }: AgentStatusBadgeProps) {
   const presence: OperationalPresence = normalizeOperationalStatus(status);
   const label = OPERATIONAL_STATUS_LABEL[presence];
-  const pad = density === "compact" ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-1 text-[11px]";
+  const shell = SHELL_BY_PRESENCE[presence];
+
+  const pad =
+    density === "compact"
+      ? "h-[1.25rem] gap-1 px-1.5 py-0 text-[10px] leading-none"
+      : "h-6 gap-1.5 px-2 py-0.5 text-xs font-medium leading-none";
 
   return (
     <span
-      className={`inline-flex max-w-full items-center gap-1.5 truncate rounded-full border border-slate-100/90 bg-white font-medium text-slate-700 shadow-sm ${pad} ${className}`.trim()}
+      className={`inline-flex max-w-full items-center truncate rounded-md border font-medium shadow-none ${shell} ${pad} ${className}`.trim()}
       title={label}
     >
       <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${operationalStatusDotClass(presence)}`} aria-hidden />

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { validateAuthToken } from "@/modules/auth";
 import { isOperator } from "@/lib/roles";
+import { StateLoading } from "@/components/ui/app-states";
 import { BillingDashboardClient } from "./BillingDashboardClient";
 
 export default async function DashboardBillingPage() {
@@ -15,7 +16,7 @@ export default async function DashboardBillingPage() {
   }
   return (
     <div className="mx-auto max-w-4xl">
-      <Suspense fallback={<p className="text-slate-600">Carregando…</p>}>
+      <Suspense fallback={<StateLoading message="A carregar faturação…" />}>
         <BillingDashboardClient />
       </Suspense>
     </div>

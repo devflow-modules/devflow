@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { MetricsCard, MetricsSection, FunnelVisualization } from "@devflow/ui";
+import { PageHeader } from "@/components/ui/page-header";
 import type {
   AdminMetricsPayload,
   AdminRevenuePayload,
@@ -107,41 +108,49 @@ export function MetricsDashboardClient({ initialData }: Props) {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-8 flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-2xl font-bold text-foreground">Métricas internas — WhatsApp Platform</h1>
-        <div className="flex gap-2 items-center">
-          <a
-            href="/admin/billing"
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Billing e receita
-          </a>
-          <a
-            href={exportConversationsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Exportar conversas (CSV)
-          </a>
-          <a
-            href={exportMessagesUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Exportar mensagens (CSV)
-          </a>
-          <button
-            type="button"
-            onClick={refresh}
-            disabled={loading}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
-          >
-            {loading ? "Atualizando…" : "Atualizar"}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Plataforma interna"
+        title="Métricas internas"
+        description="Eventos agregados do produto, operações em tempo real e indicadores SaaS. Uso exclusivo da equipa DevFlow — não confundir com métricas do tenant cliente."
+        layout="split"
+        showDivider
+        tone="admin"
+        className="mb-8 !pb-6 sm:!pb-8"
+        actions={
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <a
+              href="/admin/billing"
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Faturação e receita
+            </a>
+            <a
+              href={exportConversationsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Exportar conversas (CSV)
+            </a>
+            <a
+              href={exportMessagesUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Exportar mensagens (CSV)
+            </a>
+            <button
+              type="button"
+              onClick={refresh}
+              disabled={loading}
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+            >
+              {loading ? "Atualizando…" : "Atualizar"}
+            </button>
+          </div>
+        }
+      />
 
       <MetricsSection title="Métricas do produto">
         <MetricsCard label="Tenant criado" value={get(m, PREFIX + "tenant_created")} />

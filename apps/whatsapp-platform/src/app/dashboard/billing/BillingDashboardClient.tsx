@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
+import { StateError, StateLoading } from "@/components/ui/app-states";
 import {
   BillingHeader,
   UsageCard,
@@ -109,14 +110,53 @@ export function BillingDashboardClient() {
     }
   }
 
+  const billingHeader = (
+    <PageHeader
+      eyebrow="Conta"
+      title="Plano e faturação"
+      description="Plano Stripe, consumo de mensagens e de IA no período, excedente e próxima cobrança — alinhado à área Conta e canais."
+      layout="split"
+      showDivider
+      tone="admin"
+      quickActions={
+        <>
+          <button
+            type="button"
+            className="df-quick-action"
+            onClick={() => void openPortal()}
+            disabled={portalLoading}
+          >
+            {portalLoading ? "A abrir…" : "Ver portal de faturação"}
+          </button>
+          <button
+            type="button"
+            className="df-quick-action"
+            onClick={() => document.getElementById("billing-upgrade-cta")?.click()}
+          >
+            Atualizar plano
+          </button>
+          <Link href="/settings" className="df-quick-action">
+            Configurações
+          </Link>
+        </>
+      }
+    />
+  );
+
   if (loading) {
-    return <p className="text-slate-600">Carregando…</p>;
+    return (
+      <div className="df-stack-tight">
+        {billingHeader}
+        <StateLoading message="A carregar plano e consumo…" />
+      </div>
+    );
   }
 
   if (error && !data) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800">
-        {error}
+      <div className="df-stack-tight">
+        {billingHeader}
+        <StateError message={error} onRetry={() => void load()} retryLabel="Tentar novamente" />
       </div>
     );
   }
@@ -130,36 +170,7 @@ export function BillingDashboardClient() {
 
   return (
     <div className="df-stack-tight">
-      <PageHeader
-        eyebrow="Conta"
-        title="Cobrança e uso"
-        description="Plano atual, consumo de mensagens e IA, excedente e previsão de cobrança."
-        layout="split"
-        showDivider
-        tone="admin"
-        quickActions={
-          <>
-            <button
-              type="button"
-              className="df-quick-action"
-              onClick={() => void openPortal()}
-              disabled={portalLoading}
-            >
-              {portalLoading ? "A abrir…" : "Ver portal de faturação"}
-            </button>
-            <button
-              type="button"
-              className="df-quick-action"
-              onClick={() => document.getElementById("billing-upgrade-cta")?.click()}
-            >
-              Atualizar plano
-            </button>
-            <Link href="/settings" className="df-quick-action">
-              Configurações
-            </Link>
-          </>
-        }
-      />
+      {billingHeader}
 
       {successParam === "true" && (
         <div className="df-feedback-success" role="status">
@@ -257,8 +268,8 @@ export function BillingDashboardClient() {
       />
 
       <p className="text-center text-sm text-slate-500">
-        <Link href="/dashboard" className="text-blue-600 hover:underline">
-          ← Voltar ao dashboard
+        <Link href="/dashboard" className="font-medium text-[var(--df-brand-700)] hover:underline">
+          ← Voltar ao painel
         </Link>
       </p>
     </div>

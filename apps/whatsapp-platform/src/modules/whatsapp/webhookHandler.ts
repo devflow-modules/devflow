@@ -20,10 +20,7 @@ import { checkTenantAiAutomationReady, runTenantAiAutoReply } from "@/modules/ai
 import { persistWaInboxFromWebhook } from "@/modules/inbox";
 import { trackWebhookReceived } from "@/modules/analytics";
 import { bumpMetric, logError, logEvent } from "@/lib/observability";
-import {
-  recordWebhookProcessingError,
-  recordWebhookProcessingSuccess,
-} from "@/modules/operations/webhookHealthService";
+import { recordWebhookProcessingSuccess } from "@/modules/operations/webhookHealthService";
 import { isOperationalAutomationEnabled } from "@/modules/operations/tenantOperationalConfigService";
 type WabaWebhookShape = {
   entry?: Array<{
@@ -324,6 +321,15 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
       });
     }
   }
+
+  await recordWebhookProcessingSuccess(tenant.id).catch((err) =>
+    logError(
+      "webhook",
+      err,
+      { phase: "webhook_health_record_success", tenantId: tenant.id },
+      { trace_id: traceId, tenant_id: tenant.id }
+    )
+  );
 
   console.log("[WHATSAPP][DEBUG] webhook POST completed successfully");
   return withTraceHeaders(NextResponse.json({ ok: true, trace_id: traceId }, { status: 200 }), traceId);

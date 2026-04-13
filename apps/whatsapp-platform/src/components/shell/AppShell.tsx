@@ -8,6 +8,7 @@ import { AppSidebar } from "./AppSidebar";
 import { SupportProvider } from "@/components/support/SupportProvider";
 import { SessionRoleProvider, useSessionRole } from "@/components/navigation/SessionRoleContext";
 import { RouteBreadcrumbs } from "@/components/navigation/RouteBreadcrumbs";
+import { NavigationOrientationHint } from "@/components/navigation/NavigationOrientationHint";
 import { NavCommandPalette } from "@/components/navigation/NavCommandPalette";
 import { shellHomeHref } from "@/lib/roles";
 
@@ -84,6 +85,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
           ) : (
             <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12">
               <RouteBreadcrumbs />
+              <NavigationOrientationHint />
               {children}
             </div>
           )}

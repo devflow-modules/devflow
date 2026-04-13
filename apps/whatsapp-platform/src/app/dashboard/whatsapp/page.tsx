@@ -21,7 +21,7 @@ export default async function DashboardWhatsappPage() {
       <PageHeader
         eyebrow="Ligação"
         title="WhatsApp Business"
-        description="Números autorizados na Meta para esta conta — receber e enviar mensagens pela plataforma."
+        description="Números autorizados na Meta para este tenant: é aqui que a Inbox e o envio passam a usar a linha correta."
         layout="split"
         showDivider
         tone="admin"
@@ -31,7 +31,7 @@ export default async function DashboardWhatsappPage() {
               Configurações
             </Link>
             <Link href="/billing" className="df-quick-action">
-              Cobrança
+              Plano e faturação
             </Link>
           </>
         }

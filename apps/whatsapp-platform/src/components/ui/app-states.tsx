@@ -52,15 +52,20 @@ export function StateError({
 type EmptyProps = {
   title: string;
   description: string;
+  /** Próximo passo sugerido (tom discreto, sem parecer erro). */
+  nextStep?: string;
   action?: ReactNode;
   className?: string;
 };
 
-export function StateEmpty({ title, description, action, className = "" }: EmptyProps) {
+export function StateEmpty({ title, description, nextStep, action, className = "" }: EmptyProps) {
   return (
     <div className={`df-state-empty ${className}`.trim()}>
       <p className="text-sm font-semibold text-slate-900">{title}</p>
       <p className="df-text-muted mx-auto mt-2 max-w-md">{description}</p>
+      {nextStep ? (
+        <p className="mx-auto mt-4 max-w-md text-center text-xs leading-relaxed text-slate-500">{nextStep}</p>
+      ) : null}
       {action ? <div className="mt-8 flex justify-center">{action}</div> : null}
     </div>
   );

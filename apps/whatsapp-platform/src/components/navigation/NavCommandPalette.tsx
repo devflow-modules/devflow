@@ -6,35 +6,69 @@ import {
   commandPaletteRoutes,
   PALETTE_GROUP_LABEL,
   PALETTE_GROUP_ORDER,
+  type CommandPaletteRoute,
   type PaletteGroupId,
 } from "@/lib/navigation/nav-matrix";
 import { useSessionRole } from "./SessionRoleContext";
+import { useSupport } from "@/components/support/SupportProvider";
+
+function matchesQuery(route: CommandPaletteRoute, q: string): boolean {
+  const s = q.trim().toLowerCase();
+  if (!s) return true;
+  const blob = [route.label, route.href, ...route.aliases, route.groupLabel].join(" ").toLowerCase();
+  return blob.includes(s);
+}
+
+type QuickAction = {
+  id: string;
+  label: string;
+  aliases: string[];
+  run: () => void;
+};
 
 /**
- * Comando rápido estilo produto premium: ⌘K / Ctrl+K para saltar para uma página.
+ * Comando rápido: ⌘K / Ctrl+K — rotas por palavras-chave (PT) + ação de suporte.
  */
 export function NavCommandPalette() {
   const router = useRouter();
   const { role } = useSessionRole();
+  const { openSupport } = useSupport();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
 
   const routes = useMemo(() => commandPaletteRoutes(role), [role]);
 
-  const filtered = useMemo(() => {
+  const quickActions = useMemo((): QuickAction[] => {
+    return [
+      {
+        id: "support",
+        label: "Pedir ajuda (suporte)",
+        aliases: ["ajuda", "suporte", "help", "ticket", "contacto", "contactar"],
+        run: () => {
+          openSupport();
+          setOpen(false);
+          setQ("");
+        },
+      },
+    ];
+  }, [openSupport]);
+
+  const filteredActions = useMemo(() => {
     const s = q.trim().toLowerCase();
-    if (!s) return routes;
-    return routes.filter(
-      (r) =>
-        r.label.toLowerCase().includes(s) ||
-        r.groupLabel.toLowerCase().includes(s) ||
-        r.href.toLowerCase().includes(s)
-    );
+    if (!s) return quickActions;
+    return quickActions.filter((a) => {
+      const blob = [a.label, ...a.aliases].join(" ").toLowerCase();
+      return blob.includes(s);
+    });
+  }, [q, quickActions]);
+
+  const filteredRoutes = useMemo(() => {
+    return routes.filter((r) => matchesQuery(r, q));
   }, [routes, q]);
 
   const grouped = useMemo(() => {
-    const byId = new Map<PaletteGroupId, typeof filtered>();
-    for (const r of filtered) {
+    const byId = new Map<PaletteGroupId, CommandPaletteRoute[]>();
+    for (const r of filteredRoutes) {
       const arr = byId.get(r.groupId) ?? [];
       arr.push(r);
       byId.set(r.groupId, arr);
@@ -44,7 +78,7 @@ export function NavCommandPalette() {
       label: PALETTE_GROUP_LABEL[id],
       items: byId.get(id) ?? [],
     })).filter((g) => g.items.length > 0);
-  }, [filtered]);
+  }, [filteredRoutes]);
 
   const onNavigate = useCallback(
     (href: string) => {
@@ -69,8 +103,10 @@ export function NavCommandPalette() {
 
   if (!open) return null;
 
+  const showActions = filteredActions.length > 0;
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[12vh] px-4">
+    <div className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[12vh]">
       <button
         type="button"
         className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]"
@@ -91,13 +127,34 @@ export function NavCommandPalette() {
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Filtrar por nome da página…"
+            placeholder="Ex.: inbox, equipe, plano, ajuda…"
             className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-sm text-slate-900 outline-none ring-[var(--df-brand-500)] placeholder:text-slate-400 focus:border-[var(--df-brand-400)] focus:bg-white focus:ring-2"
           />
-          <p className="mt-2 text-[11px] text-slate-400">⌘K ou Ctrl+K para abrir · Esc para fechar</p>
+          <p className="mt-2 text-[11px] text-slate-400">⌘K ou Ctrl+K · Esc para fechar</p>
         </div>
         <div className="max-h-[min(50vh,420px)] overflow-y-auto py-2">
-          {grouped.length === 0 ? (
+          {showActions ? (
+            <div className="mb-2 border-b border-slate-100 pb-2">
+              <p className="sticky top-0 z-[1] bg-white/95 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 backdrop-blur-sm">
+                Ação rápida
+              </p>
+              <ul className="space-y-0.5">
+                {filteredActions.map((a) => (
+                  <li key={a.id}>
+                    <button
+                      type="button"
+                      onClick={a.run}
+                      className="flex w-full flex-col items-start gap-0.5 px-4 py-2.5 text-left text-sm transition hover:bg-[var(--df-brand-50)]"
+                    >
+                      <span className="font-medium text-slate-900">{a.label}</span>
+                      <span className="text-[11px] text-slate-500">Abre o formulário de suporte</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {grouped.length === 0 && !showActions ? (
             <p className="px-4 py-6 text-center text-sm text-slate-500">Nenhum destino corresponde.</p>
           ) : (
             grouped.map((g) => (

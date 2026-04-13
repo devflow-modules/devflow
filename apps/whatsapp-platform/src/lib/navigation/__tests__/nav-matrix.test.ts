@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getBreadcrumbs, navAccessSummary, routeAllowedForRole } from "../nav-matrix";
+import { commandPaletteRoutes, getBreadcrumbs, navAccessSummary, routeAllowedForRole } from "../nav-matrix";
 
 describe("nav-matrix", () => {
   it("getBreadcrumbs: settings/ai com home Painel", () => {
@@ -21,5 +21,14 @@ describe("nav-matrix", () => {
     const s = navAccessSummary("manager");
     expect(s["/settings"]).toBe(true);
     expect(s["/admin/metrics"]).toBe(false);
+  });
+
+  it("commandPaletteRoutes inclui aliases PT para pesquisa", () => {
+    const routes = commandPaletteRoutes("manager");
+    const inbox = routes.find((r) => r.href === "/inbox");
+    expect(inbox?.aliases).toContain("mensagens");
+    const billing = routes.find((r) => r.href === "/billing");
+    expect(billing?.label).toBe("Plano e faturação");
+    expect(billing?.aliases.some((a) => a.includes("cobran"))).toBe(true);
   });
 });

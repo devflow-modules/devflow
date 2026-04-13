@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { getTenantSnapshot } from "@/lib/tenant-session";
 import { listOperationalAgents } from "@/modules/inbox/operationsAgentsService";
+import { validateAuthToken } from "@/modules/auth";
 import { PageHeader } from "@/components/ui/page-header";
 import { StateEmpty } from "@/components/ui/app-states";
 import { AgentsClient } from "./AgentsClient";
@@ -11,14 +14,15 @@ export default async function AgentsPage() {
     return (
       <div className="mx-auto max-w-3xl space-y-6">
         <PageHeader
-          eyebrow="Equipa"
-          title="Agentes"
-          description="Utilizadores do tenant e estado operacional na Inbox."
+          eyebrow="Operação"
+          title="Equipe e agentes"
+          description="Veja quem atende, em que estado está na Inbox e em que filas participa — após iniciar sessão."
           showDivider
         />
         <StateEmpty
           title="Inicie sessão"
-          description="É necessário estar autenticado para ver a equipa operacional."
+          description="Inicie sessão com a conta da sua organização para ver a equipa e estados operacionais."
+          nextStep="Se ainda não tem credenciais, peça a um gestor do tenant."
           action={
             <Link href="/login" className="text-sm font-medium text-[var(--df-brand-600)] hover:underline">
               Ir para o login
@@ -29,6 +33,24 @@ export default async function AgentsPage() {
     );
   }
 
-  const agents = await listOperationalAgents(snap.tenantId);
-  return <AgentsClient agents={agents} />;
+  const [agents, auth] = await Promise.all([
+    listOperationalAgents(snap.tenantId),
+    (async () => {
+      const store = await cookies();
+      const token = store.get(JWT_COOKIE_NAME)?.value;
+      if (!token) return null;
+      return validateAuthToken(token);
+    })(),
+  ]);
+
+  const viewer = auth
+    ? {
+        userId: auth.payload.sub,
+        name: auth.payload.name,
+        email: auth.payload.email,
+        role: auth.payload.role,
+      }
+    : null;
+
+  return <AgentsClient agents={agents} viewer={viewer} />;
 }

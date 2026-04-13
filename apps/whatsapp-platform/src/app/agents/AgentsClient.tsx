@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@devflow/ui";
@@ -9,10 +9,69 @@ import { StateEmpty } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 import type { OperationalAgentRow } from "@/modules/inbox/operationsAgentsService";
+import { AgentRoleBadge } from "@/components/agents/AgentRoleBadge";
+import { AgentStatusBadge } from "@/components/inbox/AgentStatusBadge";
+import { OPERATIONAL_STATUS_LABEL } from "@/components/inbox/agentOperationalStatus";
+import { formatRelativeAgoPt } from "@/lib/formatRelativeAgoPt";
+import { roleScopeLine, teamRoleSegment, type TeamRoleSegment } from "@/lib/role-presentation";
 
 const STATUS_OPTIONS = ["available", "busy", "offline"] as const;
 
-export function AgentsClient({ agents: initialAgents }: { agents: OperationalAgentRow[] }) {
+const QUEUE_PREVIEW_MAX = 3;
+
+type TeamFilter = "all" | TeamRoleSegment;
+
+type Viewer = {
+  userId: string;
+  name: string;
+  email: string;
+  role: string;
+};
+
+function filterClass(active: boolean): string {
+  return active
+    ? `${buttonClassName("primary")} text-xs`
+    : `${buttonClassName("secondary")} border-slate-200/90 text-xs`;
+}
+
+function QueueBadges({ queues }: { queues: OperationalAgentRow["queues"] }) {
+  if (queues.length === 0) {
+    return (
+      <span className="text-xs leading-snug text-slate-500">Nenhuma fila atribuída neste momento.</span>
+    );
+  }
+  const visible = queues.slice(0, QUEUE_PREVIEW_MAX);
+  const extra = queues.length - visible.length;
+  return (
+    <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+      {visible.map((q) => (
+        <span
+          key={q.id}
+          className="max-w-[10rem] truncate rounded-md border border-slate-200/80 bg-slate-50/90 px-2 py-0.5 text-[11px] font-medium text-slate-700"
+          title={q.name}
+        >
+          {q.name}
+        </span>
+      ))}
+      {extra > 0 ? (
+        <span
+          className="rounded-md border border-dashed border-slate-300/90 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-600"
+          title={`${extra} fila${extra > 1 ? "s" : ""} adicional${extra > 1 ? "is" : ""}`}
+        >
+          +{extra}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
+export function AgentsClient({
+  agents: initialAgents,
+  viewer,
+}: {
+  agents: OperationalAgentRow[];
+  viewer: Viewer | null;
+}) {
   const router = useRouter();
   const [agents, setAgents] = useState(initialAgents);
   useEffect(() => {
@@ -22,6 +81,22 @@ export function AgentsClient({ agents: initialAgents }: { agents: OperationalAge
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editStatus, setEditStatus] = useState<string>("offline");
+  const [segment, setSegment] = useState<TeamFilter>("all");
+
+  const filtered = useMemo(() => {
+    if (segment === "all") return agents;
+    return agents.filter((a) => teamRoleSegment(a.role) === segment);
+  }, [agents, segment]);
+
+  const counts = useMemo(() => {
+    let gestao = 0;
+    let operacao = 0;
+    for (const a of agents) {
+      if (teamRoleSegment(a.role) === "gestao") gestao += 1;
+      else operacao += 1;
+    }
+    return { gestao, operacao, total: agents.length };
+  }, [agents]);
 
   async function handleStatusSave(userId: string) {
     setError(null);
@@ -49,11 +124,11 @@ export function AgentsClient({ agents: initialAgents }: { agents: OperationalAge
   }
 
   return (
-    <div className="mx-auto min-w-0 max-w-4xl space-y-8">
+    <div className="mx-auto min-w-0 max-w-5xl space-y-6">
       <PageHeader
         eyebrow="Operação"
-        title="Agentes"
-        description="Cada agente é um utilizador do tenant. O estado (disponível, ocupado, offline) sincroniza com a Inbox e `whatsapp_agent_status`. Para criar utilizadores, use Configurações."
+        title="Equipe e agentes"
+        description="Quem está no tenant, que papel desempenha, estado operacional e filas. O estado (Livre, Em atendimento, Offline) sincroniza com a Inbox. Para criar utilizadores, use Configurações."
         layout="split"
         showDivider
         actions={
@@ -63,9 +138,27 @@ export function AgentsClient({ agents: initialAgents }: { agents: OperationalAge
         }
       />
 
-      <Link href="/dashboard" className={`${buttonClassName("ghost")} -mt-2 inline-flex text-sm`}>
+      <Link href="/dashboard" className={`${buttonClassName("ghost")} -mt-1 inline-flex text-sm`}>
         ← Voltar ao painel
       </Link>
+
+      {viewer ? (
+        <section
+          className="rounded-lg border border-slate-200/80 bg-slate-50/50 px-3 py-2.5 text-sm shadow-none ring-1 ring-slate-900/[0.03]"
+          aria-label="A sua sessão"
+        >
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">A sua sessão</p>
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold text-slate-800">{viewer.name}</span>
+            <AgentRoleBadge role={viewer.role} size="compact" />
+            <span className="rounded-md bg-white/90 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 ring-1 ring-slate-200/70">
+              Você
+            </span>
+          </div>
+          <p className="mt-0.5 truncate text-xs text-slate-500">{viewer.email}</p>
+          <p className="mt-1.5 text-xs leading-snug text-slate-600">{roleScopeLine(viewer.role)}</p>
+        </section>
+      ) : null}
 
       {error ? (
         <div className="rounded-xl border border-red-200/90 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
@@ -75,10 +168,11 @@ export function AgentsClient({ agents: initialAgents }: { agents: OperationalAge
 
       {agents.length === 0 ? (
         <StateEmpty
-          title="Sem utilizadores no tenant"
-          description="Adicione utilizadores em Configurações para aparecerem aqui como agentes operacionais."
+          title="Ainda não há membros na equipe"
+          description="Quando adicionar utilizadores ao tenant em Configurações, eles aparecem aqui com papel, estado na Inbox e filas."
+          nextStep="Comece por Configurações para convidar ou criar utilizadores com perfil de Operador ou Gestor."
           action={
-            <div className="flex flex-wrap items-center justify-center gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-2">
               <Link href="/settings" className={`${buttonClassName("primary")} text-sm`}>
                 Abrir configurações
               </Link>
@@ -89,73 +183,173 @@ export function AgentsClient({ agents: initialAgents }: { agents: OperationalAge
           }
         />
       ) : (
-        <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/[0.03]">
-          {agents.map((a) => (
-            <li
-              key={a.userId}
-              className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
-            >
-              {editingId === a.userId ? (
-                <div className="flex flex-1 flex-wrap items-end gap-2">
-                  <select
-                    value={editStatus}
-                    onChange={(e) => setEditStatus(e.target.value)}
-                    className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm"
+        <>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-slate-600">
+              {counts.total} membro{counts.total !== 1 ? "s" : ""}
+              {counts.gestao > 0 || counts.operacao > 0 ? (
+                <span className="text-slate-500">
+                  {" "}
+                  · {counts.gestao} gestão · {counts.operacao} operação
+                </span>
+              ) : null}
+            </p>
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por tipo de papel">
+              <button type="button" className={filterClass(segment === "all")} onClick={() => setSegment("all")}>
+                Todos
+              </button>
+              <button
+                type="button"
+                className={filterClass(segment === "gestao")}
+                onClick={() => setSegment("gestao")}
+              >
+                Gestão
+              </button>
+              <button
+                type="button"
+                className={filterClass(segment === "operacao")}
+                onClick={() => setSegment("operacao")}
+              >
+                Operação
+              </button>
+            </div>
+          </div>
+
+          {filtered.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-200/90 bg-slate-50/40 px-4 py-8 text-center">
+              <p className="text-sm font-medium text-slate-700">Nenhum resultado neste filtro</p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                Experimente «Todos» ou outro segmento para ver a equipe completa.
+              </p>
+            </div>
+          ) : (
+            <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+              {filtered.map((a) => {
+                const isSelf = viewer?.userId === a.userId;
+                const editing = editingId === a.userId;
+                const lastLabel = formatRelativeAgoPt(a.lastActivityAt);
+                const activityTitle = a.lastActivityAt
+                  ? new Date(a.lastActivityAt).toLocaleString("pt-BR")
+                  : undefined;
+
+                return (
+                  <li
+                    key={a.userId}
+                    className="flex flex-col gap-2 rounded-xl border border-slate-200/80 bg-white p-3 shadow-sm ring-1 ring-slate-900/[0.025]"
                   >
-                    {STATUS_OPTIONS.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                  <Button size="sm" onClick={() => handleStatusSave(a.userId)} disabled={loading}>
-                    Guardar estado
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setEditingId(null);
-                      setEditStatus(a.status);
-                    }}
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <div className="min-w-0">
-                    <span className="font-semibold text-slate-900">{a.name}</span>
-                    <span className="mt-0.5 block text-sm text-slate-500">{a.email}</span>
-                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-600">
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 font-medium capitalize text-slate-700">
-                        {a.status}
+                    {/* 1 — Nome + role (badge menor) */}
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="min-w-0 truncate text-base font-semibold tracking-tight text-slate-900">
+                        {a.name}
                       </span>
-                      <span>{a.activeThreadCount} conversas abertas/pendentes</span>
-                      {a.queueIds.length > 0 ? (
-                        <span className="text-slate-500">
-                          {a.queueIds.length} fila{a.queueIds.length > 1 ? "s" : ""}
+                      {isSelf ? (
+                        <span className="shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
+                          Você
                         </span>
                       ) : null}
+                      <AgentRoleBadge role={a.role} size="compact" className="shrink-0" />
                     </div>
-                  </div>
-                  <div className="flex shrink-0 flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        setEditingId(a.userId);
-                        setEditStatus(a.status);
-                      }}
-                    >
-                      Alterar estado
-                    </Button>
-                  </div>
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
+
+                    {/* 2 — Estado operacional (separado da role) */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      {editing ? (
+                        <select
+                          value={editStatus}
+                          onChange={(e) => setEditStatus(e.target.value)}
+                          className="df-field-compact max-w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm"
+                          aria-label="Novo estado operacional"
+                        >
+                          {STATUS_OPTIONS.map((s) => (
+                            <option key={s} value={s}>
+                              {OPERATIONAL_STATUS_LABEL[s]}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <AgentStatusBadge status={a.status} density="comfortable" />
+                      )}
+                    </div>
+
+                    <p className="df-text-muted truncate text-sm">{a.email}</p>
+
+                    {/* 3 — Função */}
+                    <p className="text-xs leading-relaxed text-slate-600">{roleScopeLine(a.role)}</p>
+
+                    {/* 4–6 — Métricas */}
+                    <div className="space-y-2 border-t border-slate-100/90 pt-2">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="text-xs text-slate-500">Conversas abertas ou pendentes</span>
+                        <span className="text-sm font-semibold tabular-nums text-slate-900">{a.activeThreadCount}</span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Filas</p>
+                        <div className="mt-1 min-w-0">
+                          <QueueBadges queues={a.queues} />
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-2">
+                        <span className="shrink-0 text-xs text-slate-500">Última atividade</span>
+                        <span
+                          className="text-xs text-slate-500 sm:min-w-0 sm:flex-1"
+                          title={activityTitle}
+                        >
+                          {a.lastActivityAt ? lastLabel : "Sem registo recente de presença ou conversa."}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 7 — Ações */}
+                    <div className="flex flex-wrap gap-2 border-t border-slate-100/90 pt-2">
+                      <span className="sr-only">Ações</span>
+                      {editing ? (
+                        <>
+                          <Button size="sm" onClick={() => handleStatusSave(a.userId)} disabled={loading}>
+                            Guardar estado
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setEditingId(null);
+                              setEditStatus(a.status);
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => {
+                              setEditingId(a.userId);
+                              setEditStatus(a.status);
+                            }}
+                          >
+                            Alterar estado
+                          </Button>
+                          <Link
+                            href="/inbox"
+                            className={`${buttonClassName("ghost")} inline-flex items-center text-sm`}
+                          >
+                            Abrir inbox
+                          </Link>
+                          <Link
+                            href="/queues"
+                            className={`${buttonClassName("ghost")} inline-flex items-center text-sm`}
+                          >
+                            Ver filas
+                          </Link>
+                        </>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </>
       )}
     </div>
   );

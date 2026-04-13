@@ -18,11 +18,12 @@ export default async function BillingPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <PageHeader
-        eyebrow="Subscrição"
-        title="Plano e uso"
-        description="Veja o nome do plano, consumo do período e a data de renovação. Pode mudar de plano ou gerir pagamentos quando aplicável."
+        eyebrow="Conta"
+        title="Plano e faturação"
+        description="Resumo da subscrição: plano, consumo no período e renovação. Para detalhes de Stripe e limites, use também o painel «Plano e faturação» em Dashboard."
         layout="split"
         showDivider
+        tone="admin"
       />
       <Suspense fallback={<StateLoading message="A carregar dados de faturação…" />}>
         <BillingPageClient />

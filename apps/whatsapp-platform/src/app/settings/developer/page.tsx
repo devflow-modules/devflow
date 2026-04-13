@@ -24,9 +24,9 @@ export default async function DeveloperSettingsPage() {
 
   const header = (
     <PageHeader
-      eyebrow="Avançado"
+      eyebrow="Configuração"
       title="API e integrações"
-      description="Gere a chave do espaço de trabalho para integrações server-to-server. A ligação WhatsApp e o assistente não dependem disto."
+      description="Chave de API para chamadas server-to-server (webhooks, sistemas externos). A linha WhatsApp e o assistente funcionam sem isto — use quando precisar de automatizar fora da app."
       layout="split"
       showDivider
       tone="admin"
@@ -61,6 +61,7 @@ export default async function DeveloperSettingsPage() {
         <StateEmpty
           title="Acesso restrito a gestores"
           description={permissionsMessages.adminOnly}
+          nextStep="Operadores usam a Inbox; gestores gerem a conta em Configurações."
           action={
             <Link href="/settings" className={buttonClassName("primary")}>
               Voltar às configurações
