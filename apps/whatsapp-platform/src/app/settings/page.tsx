@@ -18,6 +18,12 @@ export default function SettingsPage() {
             <Link href="/settings/ai" className="df-quick-action">
               IA de atendimento
             </Link>
+            <Link href="/settings/ai-analytics" className="df-quick-action">
+              Uso e custo de IA
+            </Link>
+            <Link href="/dashboard/ai" className="df-quick-action">
+              Painel IA (operação)
+            </Link>
             <Link href="/settings/developer" className="df-quick-action">
               API e integrações
             </Link>

@@ -90,9 +90,25 @@ function CollapsibleNavSection({
   );
 }
 
+function normalizeNavPath(path: string): string {
+  const p = path.split("?")[0] ?? path;
+  if (p.length > 1 && p.endsWith("/")) return p.slice(0, -1);
+  return p || "/";
+}
+
+/**
+ * Destaque da rota atual. Cuidado com prefixos: `/settings` não pode activar-se em `/settings/developer`
+ * (senão «Configurações» e o filho ficam os dois seleccionados).
+ */
 function navIsActive(pathname: string, href: string) {
-  if (href === "/dashboard") return pathname === "/dashboard" || pathname === "/dashboard/";
-  return pathname === href || pathname.startsWith(`${href}/`);
+  const p = normalizeNavPath(pathname);
+  const h = normalizeNavPath(href);
+
+  if (h === "/dashboard") return p === "/dashboard";
+
+  if (h === "/settings") return p === "/settings";
+
+  return p === h || p.startsWith(`${h}/`);
 }
 
 export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {

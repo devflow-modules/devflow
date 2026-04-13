@@ -94,6 +94,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     section: "conta",
     roles: ["manager", "platform_admin"],
     sensitive: true,
+    searchAliases: ["prompt", "comportamento", "tom", "playbook", "respostas automáticas"],
   },
   "/settings/billing": {
     label: "Plano no espaço de trabalho",

@@ -15,16 +15,22 @@ export default function AiAnalyticsPage() {
       <PageHeader
         eyebrow="Inteligência"
         title="Uso e custo da IA"
-        description="Tokens, fallbacks, limites do plano e custo estimado — para afinar o prompt e o consumo."
+        description="Tokens, fallbacks, limites do plano e custo estimado — para afinar o prompt e o consumo. O motor (fornecedor) está em Configurações gerais; o comportamento do texto em IA de atendimento."
         layout="split"
         showDivider
-        actions={
-          <Link
-            href="/settings/ai"
-            className="text-sm font-semibold text-[var(--df-brand-700)] hover:underline"
-          >
-            Configurar IA →
-          </Link>
+        tone="admin"
+        quickActions={
+          <>
+            <Link href="/settings" className="df-quick-action">
+              Motor (config. gerais)
+            </Link>
+            <Link href="/settings/ai" className="df-quick-action">
+              IA de atendimento
+            </Link>
+            <Link href="/dashboard/ai" className="df-quick-action">
+              Painel de operação
+            </Link>
+          </>
         }
       />
       <AiAnalyticsClient />

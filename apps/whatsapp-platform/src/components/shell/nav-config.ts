@@ -11,12 +11,17 @@ export const NAV_PRIMARY: NavItem[] = [
   { href: "/automation", label: ROUTE_META["/automation"].label, description: "Regras e automação" },
 ];
 
-/** Secundária — conta, canais, cobrança e configuração (inclui análises de IA). */
+/**
+ * Secundária — conta, canais, cobrança e configuração.
+ * Ordem IA (utilizador): Configurações (motor) → IA de atendimento (comportamento) → Análises de IA (uso/custo);
+ * «IA — operação» no painel é métricas operacionais, não o mesmo ecrã que /settings/ai.
+ */
 export const NAV_SECONDARY: NavItem[] = [
   { href: "/dashboard/whatsapp", label: ROUTE_META["/dashboard/whatsapp"].label, description: "Estado da ligação Meta" },
   { href: "/dashboard/ai", label: ROUTE_META["/dashboard/ai"].label, description: "Métricas e guardas da IA" },
   { href: "/billing", label: ROUTE_META["/billing"].label, description: "Plano e faturação" },
   { href: "/settings", label: ROUTE_META["/settings"].label, description: "Conta e preferências" },
+  { href: "/settings/ai", label: ROUTE_META["/settings/ai"].label, description: "Prompt, tom e automação da IA no WhatsApp" },
   { href: "/settings/ai-analytics", label: ROUTE_META["/settings/ai-analytics"].label, description: "Uso de IA e custos" },
   { href: "/settings/developer", label: ROUTE_META["/settings/developer"].label, description: "Chave de API" },
 ];

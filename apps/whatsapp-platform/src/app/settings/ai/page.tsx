@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { AiSettingsForm } from "./AiSettingsForm";
+import { aiSettingsHref } from "./aiSettingsAnchors";
 
 export default function AiSettingsPage() {
   return (
@@ -10,9 +11,18 @@ export default function AiSettingsPage() {
         title="IA de atendimento"
         description={
           <>
-            Respostas automáticas no WhatsApp por tenant. O motor (OpenAI ou Claude) define-se em{" "}
+            Comportamento da IA no WhatsApp: identidade, regras, automação e teste. O fornecedor LLM (OpenAI / Claude /
+            regras) define-se em{" "}
             <Link href="/settings" className="font-semibold text-[var(--df-brand-700)] hover:underline">
-              Configurações
+              Configurações gerais
+            </Link>
+            ; consumo e limites em{" "}
+            <Link href="/settings/ai-analytics" className="font-semibold text-[var(--df-brand-700)] hover:underline">
+              Uso e custo
+            </Link>
+            ; saúde operacional em{" "}
+            <Link href="/dashboard/ai" className="font-semibold text-[var(--df-brand-700)] hover:underline">
+              Painel IA
             </Link>
             .
           </>
@@ -25,11 +35,20 @@ export default function AiSettingsPage() {
             <button type="submit" form="wf-ai-settings" className="df-quick-action">
               Salvar alterações
             </button>
+            <Link href={aiSettingsHref("teste")} className="df-quick-action">
+              Ir para teste
+            </Link>
             <Link href="/inbox" className="df-quick-action">
               Testar na Inbox
             </Link>
             <Link href="/settings/ai-analytics" className="df-quick-action">
               Uso e custo de IA
+            </Link>
+            <Link href="/dashboard/ai" className="df-quick-action">
+              Painel de operação
+            </Link>
+            <Link href="/settings" className="df-quick-action">
+              Motor (config. gerais)
             </Link>
             <Link href="/settings/developer" className="df-quick-action">
               API e integrações
@@ -40,30 +59,6 @@ export default function AiSettingsPage() {
           </>
         }
       />
-
-      <section className="rounded-xl border border-slate-200/90 bg-gradient-to-br from-slate-50/90 to-white p-5 shadow-sm ring-1 ring-slate-900/[0.03] sm:p-6">
-        <h2 className="text-sm font-bold text-slate-900">Guia rápido</h2>
-        <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-slate-700">
-          <li>
-            <Link href="/dashboard/whatsapp" className="font-semibold text-[var(--df-brand-700)] hover:underline">
-              Ligação WhatsApp
-            </Link>{" "}
-            — número e token
-          </li>
-          <li>
-            <Link href="/settings" className="font-semibold text-[var(--df-brand-700)] hover:underline">
-              Motor de IA
-            </Link>{" "}
-            — OpenAI ou Claude nas configurações gerais
-          </li>
-          <li>Ativar IA e editar o prompt — formulário abaixo</li>
-          <li>
-            <Link href="/inbox" className="font-semibold text-[var(--df-brand-700)] hover:underline">
-              Testar na Inbox
-            </Link>
-          </li>
-        </ol>
-      </section>
 
       <AiSettingsForm />
     </div>

@@ -202,8 +202,11 @@ export function DashboardAiClient() {
       tone="admin"
       quickActions={
         <>
+          <Link href="/settings" className="df-quick-action">
+            Motor (config. gerais)
+          </Link>
           <Link href="/settings/ai" className="df-quick-action">
-            Configurar IA
+            IA de atendimento
           </Link>
           <Link href="/settings/ai-analytics" className="df-quick-action">
             Uso e custos de IA
