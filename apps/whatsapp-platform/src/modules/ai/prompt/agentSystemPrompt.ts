@@ -3,7 +3,6 @@ import {
   getPlaybookInstruction,
   type PlaybookJson,
 } from "@/modules/ai/conversationStateService";
-import { buildSystemPrompt } from "@/modules/ai/openai/prompts";
 
 const TONE_LINES: Record<AiAgentTone, string> = {
   FRIENDLY: "Tom: amigável, caloroso e próximo.",
@@ -16,7 +15,6 @@ const WHATSAPP_FOOTER =
   "Responde em português do Brasil. Mensagens curtas, adequadas ao WhatsApp (poucos parágrafos).";
 
 export type AgentPromptInput = {
-  legacySystemPrompt: string | null | undefined;
   tone: AiAgentTone;
   assistantName?: string | null;
   businessContext?: string | null;
@@ -38,21 +36,15 @@ export function hasStructuredBehavior(input: AgentPromptInput): boolean {
   );
 }
 
-/** Indica se a automação pode gerar texto (legado ou estruturado). */
+/** Indica se a automação pode gerar texto (comportamento estruturado preenchido). */
 export function hasEffectiveAgentPrompt(input: AgentPromptInput): boolean {
-  if (hasStructuredBehavior(input)) return true;
-  const legacy = input.legacySystemPrompt?.trim() ?? "";
-  return legacy.length > 0;
+  return hasStructuredBehavior(input);
 }
 
 export type AgentPromptBuildOptions = {
-  /** Estado do funil (lead | qualifying | …) */
   conversationState?: string;
-  /** Últimas mensagens resumidas (ex.: 3 trocas) */
   recentSummary?: string;
-  /** Overrides de objetivo/regras por estágio (tenant) */
   playbookOverlay?: PlaybookJson | null;
-  /** Injeção vinda de regras de automação (ex.: mencionou preço) */
   promptAugmentation?: string | null;
 };
 
@@ -63,10 +55,7 @@ function playbookPromptBlock(opts: AgentPromptBuildOptions): string {
   return aug ? `${core}\n\n${aug}` : core;
 }
 
-function appendPlaybookSections(
-  base: string,
-  opts: AgentPromptBuildOptions | undefined
-): string {
+function appendPlaybookSections(base: string, opts: AgentPromptBuildOptions | undefined): string {
   if (!opts?.conversationState && !opts?.recentSummary?.trim()) return base;
   const extra: string[] = [];
   if (opts.conversationState) {
@@ -78,17 +67,21 @@ function appendPlaybookSections(
   return [base, ...extra].filter(Boolean).join("\n\n");
 }
 
+/** Rede de segurança se não houver campos estruturados (a API não deve permitir IA ativa neste estado). */
+function minimalPromptFromTone(tone: AiAgentTone): string {
+  return [TONE_LINES[tone] ?? TONE_LINES.NEUTRAL, WHATSAPP_FOOTER].join("\n\n");
+}
+
 /**
  * Único ponto de montagem do system prompt para runtime e simulação.
- * Combina identidade, contexto, regras e tom; fallback para prompt legado.
+ * Usa apenas a configuração estruturada; sem legado em texto livre.
  */
 export function buildAgentSystemPrompt(
   input: AgentPromptInput,
   opts?: AgentPromptBuildOptions
 ): string {
   if (!hasStructuredBehavior(input)) {
-    const legacy = buildSystemPrompt(input.legacySystemPrompt);
-    return appendPlaybookSections(legacy, opts);
+    return appendPlaybookSections(minimalPromptFromTone(input.tone), opts);
   }
 
   const parts: string[] = [];
@@ -112,9 +105,7 @@ export function buildAgentSystemPrompt(
 
   const rules = (input.rules ?? []).map((r) => r.trim()).filter(Boolean);
   if (rules.length > 0) {
-    parts.push(
-      "Regras obrigatórias:\n" + rules.map((r, i) => `${i + 1}. ${r}`).join("\n")
-    );
+    parts.push("Regras obrigatórias:\n" + rules.map((r, i) => `${i + 1}. ${r}`).join("\n"));
   }
 
   const forbidden = (input.forbiddenTopics ?? []).map((r) => r.trim()).filter(Boolean);
@@ -134,9 +125,7 @@ export function buildAgentSystemPrompt(
   }
 
   if (opts?.conversationState) {
-    parts.push(
-      `Estado da conversa (funil): ${opts.conversationState}.\n${playbookPromptBlock(opts)}`
-    );
+    parts.push(`Estado da conversa (funil): ${opts.conversationState}.\n${playbookPromptBlock(opts)}`);
   }
   if (opts?.recentSummary?.trim()) {
     parts.push("Resumo das últimas mensagens (contexto):\n" + opts.recentSummary.trim());
@@ -147,10 +136,8 @@ export function buildAgentSystemPrompt(
   return parts.filter(Boolean).join("\n\n");
 }
 
-/** Mapeia linha Prisma para entrada do builder (runtime + testes). */
 export function agentPromptInputFromConfig(row: AiAgentConfig): AgentPromptInput {
   return {
-    legacySystemPrompt: row.systemPrompt,
     tone: row.tone,
     assistantName: row.assistantName,
     businessContext: row.businessContext,

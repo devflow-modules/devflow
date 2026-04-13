@@ -94,7 +94,6 @@ type PlanInfo = { plan_name: string };
 
 type AiCfg = {
   enabled: boolean;
-  systemPrompt: string;
   model: string;
   tone: Tone;
   maxTokens: number;
@@ -337,7 +336,6 @@ export function AiSettingsForm() {
   const [model, setModel] = useState("gpt-4o-mini");
   const [maxTokens, setMaxTokens] = useState(220);
   const [temperature, setTemperature] = useState(0.4);
-  const [systemPrompt, setSystemPrompt] = useState("");
 
   const [configVersion, setConfigVersion] = useState(1);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
@@ -384,7 +382,6 @@ export function AiSettingsForm() {
     setModel(d.model);
     setMaxTokens(clamp(d.maxTokens ?? 220, 50, 500));
     setTemperature(clamp(d.temperature ?? 0.4, 0, 1));
-    setSystemPrompt(d.systemPrompt ?? "");
     setConfigVersion(d.configVersion);
     setUpdatedAt(d.updatedAt);
     setPlaybookDraft(hydratePlaybookDraft(d.playbookJson ?? null));
@@ -455,7 +452,6 @@ export function AiSettingsForm() {
       model,
       maxTokens: clamp(maxTokens, 50, 500),
       temperature: clamp(temperature, 0, 1),
-      systemPrompt,
       playbookJson: buildPlaybookJsonFromDraft(playbookDraft),
     };
   }
@@ -872,7 +868,7 @@ export function AiSettingsForm() {
         id="limites"
         phase="4 · Limites e segurança"
         title="Handoff, modelo e consumo"
-        description="Gatilhos humanos, tamanho da resposta e temperatura influenciam segurança e custo. O prompt legado só é necessário em cenários especiais."
+        description="Gatilhos humanos, tamanho da resposta e temperatura influenciam segurança e custo. O comportamento em texto vem das fases anteriores (identidade, contexto, regras, funil)."
       >
         <label className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/50 px-4 py-3">
           <input
@@ -905,7 +901,7 @@ export function AiSettingsForm() {
         />
         <details className="rounded-xl border border-slate-200/90 bg-slate-50/50 p-4 ring-1 ring-slate-900/[0.03]">
           <summary className="cursor-pointer text-sm font-bold text-slate-900">
-            Avançado — motor LLM, tokens e prompt legado
+            Avançado — motor LLM e parâmetros de geração
           </summary>
           <div className="mt-4 space-y-4 border-t border-slate-200/80 pt-4">
             <p className="text-xs text-slate-600">
@@ -984,20 +980,6 @@ export function AiSettingsForm() {
                 />
                 <span className="tabular-nums text-sm font-semibold text-slate-700">{maxTokens}</span>
               </div>
-            </FormField>
-            <FormField
-              id="legacyPrompt"
-              label="Prompt de sistema legado"
-              htmlFor="legacyPrompt"
-              help="Só se não usar o painel estruturado acima. Impacto: duplicar instruções pode confundir o modelo."
-            >
-              <textarea
-                id="legacyPrompt"
-                value={systemPrompt}
-                onChange={(e) => setSystemPrompt(e.target.value)}
-                rows={8}
-                className={`${fieldTextareaClassName} font-mono text-[13px]`}
-              />
             </FormField>
           </div>
         </details>

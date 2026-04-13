@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { WaInboxDirection, WaInboxThreadStatus, type AiAgentConfig } from "@/generated/prisma-whatsapp";
 import { digitsOnly } from "@/modules/inbox/waInboxUtils";
 import { generateReply } from "./aiService";
-import { openAiConfig, DEFAULT_SYSTEM_PROMPT } from "./openai";
+import { openAiConfig } from "./openai";
 import {
   agentPromptInputFromConfig,
   buildAgentSystemPrompt,
@@ -54,7 +54,6 @@ export async function getOrCreateAiAgentConfig(tenantId: string): Promise<AiAgen
     data: {
       tenantId,
       enabled: false,
-      systemPrompt: DEFAULT_SYSTEM_PROMPT,
       model: openAiConfig.model,
       tone: "NEUTRAL",
       maxTokens: openAiConfig.maxTokens,

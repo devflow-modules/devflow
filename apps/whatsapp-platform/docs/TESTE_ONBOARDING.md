@@ -98,7 +98,7 @@ Esperado: `status = 'ACTIVE'`, `access_token` preenchido.
 
 ### 3.7 Teste outbound (IA)
 
-Se o tenant tiver IA habilitada (AiAgentConfig.enabled, systemPrompt, aiDriver configurado):
+Se o tenant tiver IA habilitada (AiAgentConfig.enabled, comportamento estruturado preenchido, aiDriver configurado):
 
 1. **Log esperado:** `[WHATSAPP] outbound tenant=<id> wa_id=<to>`
 2. Resposta recebida no WhatsApp

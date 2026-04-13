@@ -87,7 +87,7 @@ export async function PUT(request: NextRequest) {
       {
         success: false,
         error:
-          "Com a IA ativada, preencha identidade, contexto ou objetivo (ou regras), ou o prompt legado na secção avançada.",
+          "Com a IA ativada, preencha pelo menos um campo de comportamento: identidade, contexto do negócio, objetivo, regras, tópicos a evitar ou gatilhos de handoff.",
       },
       { status: 400 }
     );
@@ -104,7 +104,6 @@ export async function PUT(request: NextRequest) {
 
   const data: Record<string, unknown> = {};
   if (patch.enabled !== undefined) data.enabled = patch.enabled;
-  if (patch.systemPrompt !== undefined) data.systemPrompt = patch.systemPrompt;
   if (patch.model !== undefined) data.model = patch.model;
   if (patch.tone !== undefined) data.tone = patch.tone;
   if (patch.maxTokens !== undefined) data.maxTokens = patch.maxTokens;

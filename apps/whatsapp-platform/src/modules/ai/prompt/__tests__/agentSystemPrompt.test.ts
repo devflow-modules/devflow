@@ -6,20 +6,19 @@ import {
 } from "../agentSystemPrompt";
 
 describe("buildAgentSystemPrompt", () => {
-  it("usa prompt legado quando não há campos estruturados", () => {
+  it("sem campos estruturados usa tom + rodapé mínimo", () => {
     const s = buildAgentSystemPrompt({
-      legacySystemPrompt: "Apenas legado.",
       tone: "NEUTRAL",
       rules: [],
       forbiddenTopics: [],
       handoffTriggers: [],
     });
-    expect(s).toContain("Apenas legado.");
+    expect(s).toContain("Tom: neutro");
+    expect(s).toContain("WhatsApp");
   });
 
   it("monta blocos quando há comportamento estruturado", () => {
     const s = buildAgentSystemPrompt({
-      legacySystemPrompt: "",
       tone: "SALES",
       assistantName: "Ana",
       businessContext: "Vendemos software.",
@@ -36,10 +35,9 @@ describe("buildAgentSystemPrompt", () => {
     expect(s).toContain("Pedir humano");
   });
 
-  it("hasEffectiveAgentPrompt com legado vazio mas regras", () => {
+  it("hasEffectiveAgentPrompt com regras", () => {
     expect(
       hasEffectiveAgentPrompt({
-        legacySystemPrompt: "  ",
         tone: "NEUTRAL",
         rules: ["x"],
         forbiddenTopics: [],
@@ -48,10 +46,9 @@ describe("buildAgentSystemPrompt", () => {
     ).toBe(true);
   });
 
-  it("hasStructuredBehavior", () => {
+  it("hasStructuredBehavior com nome do assistente", () => {
     expect(
       hasStructuredBehavior({
-        legacySystemPrompt: "",
         tone: "NEUTRAL",
         assistantName: "x",
         rules: [],

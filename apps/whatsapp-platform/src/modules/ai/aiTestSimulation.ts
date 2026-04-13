@@ -28,7 +28,6 @@ export function mergeAgentConfigDraft(
   return {
     ...base,
     ...(n.enabled !== undefined ? { enabled: n.enabled } : {}),
-    ...(n.systemPrompt !== undefined ? { systemPrompt: n.systemPrompt } : {}),
     ...(n.model !== undefined ? { model: n.model } : {}),
     ...(n.tone !== undefined ? { tone: n.tone } : {}),
     ...(n.maxTokens !== undefined ? { maxTokens: n.maxTokens } : {}),

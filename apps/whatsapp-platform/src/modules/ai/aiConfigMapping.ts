@@ -17,7 +17,6 @@ export function aiAgentConfigToApiResponse(
     maxTokens: row.maxTokens,
     temperature: row.temperature,
     fallbackToHuman: row.fallbackToHuman,
-    systemPrompt: row.systemPrompt,
     assistantName: row.assistantName,
     businessContext: row.businessContext,
     goal: row.goal,

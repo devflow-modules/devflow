@@ -81,12 +81,11 @@ function mockAgentConfig(over: Record<string, unknown> = {}) {
   return {
     enabled: true,
     autoReply: true,
-    systemPrompt: "Você atende a loja.",
     tone: "NEUTRAL",
     maxTokens: 256,
     temperature: 0.5,
     model: "gpt-4o-mini",
-    rules: [] as string[],
+    rules: ["Atender na loja."] as string[],
     forbiddenTopics: [] as string[],
     handoffTriggers: [] as string[],
     assistantName: null,
@@ -130,10 +129,10 @@ function setupPipelineReady() {
   mockPrisma.aiMessageLog.create.mockResolvedValue({});
   mockPrisma.waInboxThread.update.mockResolvedValue({});
   mockPrisma.aiAgentConfig.create.mockResolvedValue({
-    systemPrompt: "Você atende a loja.",
     tone: "NEUTRAL",
     maxTokens: 256,
     temperature: 0.5,
+    rules: ["Atender na loja."],
   });
 }
 

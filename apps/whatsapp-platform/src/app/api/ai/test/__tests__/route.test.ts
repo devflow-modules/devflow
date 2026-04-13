@@ -59,7 +59,6 @@ describe("POST /api/ai/test", () => {
       id: "c1",
       tenantId: "t1",
       enabled: true,
-      systemPrompt: "x",
       tone: "NEUTRAL",
       model: "gpt-4o-mini",
       maxTokens: 200,

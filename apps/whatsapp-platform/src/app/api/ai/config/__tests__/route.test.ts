@@ -38,7 +38,6 @@ function baseRow(over: Record<string, unknown> = {}) {
     id: "cfg1",
     tenantId: "t-ai",
     enabled: false,
-    systemPrompt: "",
     model: "gpt-4o-mini",
     tone: "NEUTRAL",
     maxTokens: 512,
@@ -125,8 +124,8 @@ describe("/api/ai/config", () => {
     mockUpdate.mockResolvedValue({
       ...baseRow({
         enabled: true,
-        systemPrompt: "Olá",
         tone: "FRIENDLY",
+        businessContext: "Loja",
       }),
     });
     const { PUT } = await import("../route");
@@ -134,14 +133,14 @@ describe("/api/ai/config", () => {
       new NextRequest("http://x/api/ai/config", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: true, systemPrompt: "Olá", tone: "FRIENDLY" }),
+        body: JSON.stringify({ enabled: true, tone: "FRIENDLY", businessContext: "Loja" }),
       })
     );
     expect(res.status).toBe(200);
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { tenantId: "t-ai" },
-        data: expect.objectContaining({ enabled: true, systemPrompt: "Olá" }),
+        data: expect.objectContaining({ enabled: true, tone: "FRIENDLY" }),
       })
     );
   });

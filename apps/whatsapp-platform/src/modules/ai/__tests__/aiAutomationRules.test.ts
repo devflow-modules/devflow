@@ -4,7 +4,6 @@ import { evaluateAutomationRules } from "../aiAutomationRules";
 const baseConfig = {
   enabled: true,
   autoReply: true,
-  systemPrompt: "x",
   model: "gpt-4o-mini",
   tone: "NEUTRAL",
   maxTokens: 200,
@@ -14,7 +13,7 @@ const baseConfig = {
   forbiddenTopics: [],
   handoffTriggers: [],
   assistantName: null,
-  businessContext: null,
+  businessContext: "Negócio de teste",
   goal: null,
   outOfHoursReply: null,
   runtimeDriver: null,

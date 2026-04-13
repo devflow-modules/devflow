@@ -17,7 +17,6 @@ const MAX = {
   businessContext: 8000,
   goal: 2000,
   outOfHours: 2000,
-  legacyPrompt: 16_000,
   ruleItem: 500,
   topicItem: 200,
   handoffItem: 300,
@@ -44,7 +43,6 @@ const toneSchema = z.enum(TONES);
 
 export const aiConfigPutSchema = z.object({
   enabled: z.boolean().optional(),
-  systemPrompt: z.string().max(MAX.legacyPrompt).optional(),
   model: z.string().min(1).max(128).optional(),
   tone: toneSchema.optional(),
   maxTokens: z.number().optional(),

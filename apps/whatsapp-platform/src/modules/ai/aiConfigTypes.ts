@@ -12,8 +12,6 @@ export interface AiBehaviorConfig {
   handoffTriggers: string[];
   autoReply: boolean;
   outOfHoursReply: string | null;
-  /** Prompt livre legado — usado quando não há comportamento estruturado */
-  systemPrompt: string;
   /** Objetivos e regras por estágio do funil (override opcional) */
   playbookJson: PlaybookJson | null;
 }
