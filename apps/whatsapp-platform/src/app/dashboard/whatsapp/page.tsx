@@ -19,9 +19,9 @@ export default async function DashboardWhatsappPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <PageHeader
-        eyebrow="Ligação"
-        title="WhatsApp Business"
-        description="Números autorizados na Meta para este tenant: é aqui que a Inbox e o envio passam a usar a linha correta."
+        eyebrow="Canal WhatsApp"
+        title="Ligação e gestão"
+        description="Veja o estado da ligação, ligue números WhatsApp Business e defina qual linha é principal e qual usar no envio padrão. A Inbox e as mensagens saídas seguem estas escolhas."
         layout="split"
         showDivider
         tone="admin"
