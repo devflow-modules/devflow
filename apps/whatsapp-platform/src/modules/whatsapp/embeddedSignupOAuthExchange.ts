@@ -18,6 +18,90 @@ function toEmbeddedSignupUserAccessToken(raw: string): EmbeddedSignupUserAccessT
 }
 
 /**
+ * Chama `GET /debug_token` (input_token = token do utilizador; access_token = app_id|app_secret)
+ * para registar app_id, type e scopes — equivalente ao Access Token Debugger, sem logar o token completo.
+ * Falhas são ignoradas (não bloqueiam onboarding); útil só para diagnóstico.
+ */
+async function logOAuthTokenDebugSnapshot(args: {
+  graphBase: string;
+  userAccessTokenPlain: string;
+  appId: string;
+  appSecret: string;
+  expectedAppId: string;
+}): Promise<void> {
+  const { graphBase, userAccessTokenPlain, appId, appSecret, expectedAppId } = args;
+  const debugUrl = new URL(`${graphBase}/debug_token`);
+  debugUrl.searchParams.set("input_token", userAccessTokenPlain);
+  debugUrl.searchParams.set("access_token", `${appId}|${appSecret}`);
+
+  try {
+    const res = await fetch(debugUrl.toString(), { method: "GET" });
+    const raw = await res.text();
+    type DebugPayload = {
+      data?: {
+        app_id?: string;
+        type?: string;
+        scopes?: string[];
+        is_valid?: boolean;
+        user_id?: string;
+      };
+      error?: { message?: string };
+    };
+    let parsed: DebugPayload;
+    try {
+      parsed = JSON.parse(raw) as DebugPayload;
+    } catch {
+      console.warn(
+        "[WHATSAPP][EmbeddedSignup]",
+        JSON.stringify({
+          stage: "oauth_token_debug_snapshot",
+          error: "invalid_json",
+          bodyPreview: raw.slice(0, 800),
+        })
+      );
+      return;
+    }
+
+    if (parsed.error?.message) {
+      console.warn(
+        "[WHATSAPP][EmbeddedSignup]",
+        JSON.stringify({
+          stage: "oauth_token_debug_snapshot",
+          tokenFingerprint: maskAccessTokenForLog(userAccessTokenPlain),
+          graphError: parsed.error,
+          httpStatus: res.status,
+        })
+      );
+      return;
+    }
+
+    const d = parsed.data;
+    console.info(
+      "[WHATSAPP][EmbeddedSignup]",
+      JSON.stringify({
+        stage: "oauth_token_debug_snapshot",
+        tokenFingerprint: maskAccessTokenForLog(userAccessTokenPlain),
+        expected_app_id_from_env: expectedAppId,
+        debug: {
+          app_id: d?.app_id ?? null,
+          app_id_matches_env: d?.app_id === expectedAppId,
+          type: d?.type ?? null,
+          scopes: d?.scopes ?? null,
+          is_valid: d?.is_valid ?? null,
+          user_id: d?.user_id ?? null,
+        },
+        httpStatus: res.status,
+      })
+    );
+  } catch (e) {
+    console.warn(
+      "[WHATSAPP][EmbeddedSignup] oauth_token_debug_snapshot request failed",
+      e instanceof Error ? e.message : e
+    );
+  }
+}
+
+/**
  * Executa `GET /oauth/access_token` e devolve o token de **utilizador** a usar nas chamadas Graph `/me/...` do onboarding.
  */
 export async function getEmbeddedSignupUserAccessTokenFromCode(
@@ -87,9 +171,19 @@ export async function getEmbeddedSignupUserAccessTokenFromCode(
       stage: "oauth_token_exchange",
       tokenSource: "oauth_user_token",
       tokenFingerprint: maskAccessTokenForLog(accessToken),
+      embedded_signup_config_id_masked:
+        configId.length > 8 ? `${configId.slice(0, 4)}…${configId.slice(-4)}` : "***",
       message: "Token OAuth obtido; próximo passo usa APENAS este token para /me/assigned_whatsapp_business_accounts (não env/system).",
     })
   );
+
+  await logOAuthTokenDebugSnapshot({
+    graphBase,
+    userAccessTokenPlain: accessToken,
+    appId,
+    appSecret,
+    expectedAppId: appId,
+  });
 
   return { userAccessToken, appId, configId };
 }

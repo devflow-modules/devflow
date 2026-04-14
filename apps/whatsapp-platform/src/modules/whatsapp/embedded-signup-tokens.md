@@ -7,6 +7,8 @@
 3. Esse token é o único usado em `GET /me/assigned_whatsapp_business_accounts` para listar WABA e números.
 4. Os dados são persistidos em `WhatsappPhoneNumber` (incluindo esse token como credencial da linha).
 
+Após a troca do `code`, o backend chama `GET /debug_token` (com o mesmo token e credenciais do app) e regista nos logs **sem expor o token**: `app_id`, `type`, `scopes`, `app_id_matches_env`, `user_id`. Isto substitui a necessidade de abrir o Access Token Debugger manualmente em muitos casos.
+
 **Nunca** usar nesta fase:
 
 - `WHATSAPP_ACCESS_TOKEN` / `META_WHATSAPP_ACCESS_TOKEN` do env

@@ -25,40 +25,63 @@ describe("Embedded Signup — origem do token (onboarding vs operacional)", () =
     process.env.WHATSAPP_ACCESS_TOKEN = "SYSTEM_USER_TOKEN_MUST_NOT_BE_USED";
     process.env.META_WHATSAPP_ACCESS_TOKEN = "ALT_SYS";
 
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ access_token: "EAAG_OAUTH_USER_FROM_CODE" }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        })
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            data: [
-              {
-                id: "waba_1",
-                business_id: "biz_1",
-                phone_numbers: {
-                  data: [{ id: "phone_1", display_phone_number: "+5511999999999" }],
-                },
+    const fetchMock = vi.fn().mockImplementation((url: string | URL) => {
+      const u = typeof url === "string" ? url : url.toString();
+      if (u.includes("/oauth/access_token")) {
+        return Promise.resolve(
+          new Response(JSON.stringify({ access_token: "EAAG_OAUTH_USER_FROM_CODE" }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          })
+        );
+      }
+      if (u.includes("/debug_token")) {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              data: {
+                app_id: "111111111111111",
+                type: "USER",
+                is_valid: true,
+                scopes: ["whatsapp_business_management", "public_profile"],
+                user_id: "42",
               },
-            ],
-          }),
-          { status: 200, headers: { "Content-Type": "application/json" } }
-        )
-      );
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          )
+        );
+      }
+      if (u.includes("assigned_whatsapp_business_accounts")) {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              data: [
+                {
+                  id: "waba_1",
+                  business_id: "biz_1",
+                  phone_numbers: {
+                    data: [{ id: "phone_1", display_phone_number: "+5511999999999" }],
+                  },
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          )
+        );
+      }
+      return Promise.resolve(new Response(`unexpected url: ${u}`, { status: 404 }));
+    });
 
     vi.stubGlobal("fetch", fetchMock);
 
     const { exchangeCodeAndFetchPhoneNumbers } = await import("../embeddedSignupService");
     const rows = await exchangeCodeAndFetchPhoneNumbers("dummy_authorization_code");
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
 
-    const secondCall = fetchMock.mock.calls[1];
-    const auth = (secondCall[1] as { headers?: { Authorization?: string } })?.headers?.Authorization;
+    const wabaCall = fetchMock.mock.calls.find((c) => String(c[0]).includes("assigned_whatsapp_business_accounts"));
+    expect(wabaCall).toBeDefined();
+    const auth = (wabaCall![1] as { headers?: { Authorization?: string } })?.headers?.Authorization;
     expect(auth).toBe("Bearer EAAG_OAUTH_USER_FROM_CODE");
     expect(rows).toHaveLength(1);
     expect(rows[0].accessToken).toBe("EAAG_OAUTH_USER_FROM_CODE");
