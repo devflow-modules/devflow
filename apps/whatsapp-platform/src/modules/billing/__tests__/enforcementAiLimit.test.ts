@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { PLANS } from "../plans";
 
 const mockGetTenantBillingContext = vi.fn();
 const mockGetAiUsageMetrics = vi.fn();
@@ -52,16 +53,15 @@ describe("enforcementService AI limit", () => {
     ).resolves.toBeUndefined();
   });
 
-  it("lança quando excede limite de IA (Starter)", async () => {
+  it("permite acima do limite de IA no Starter (uso adicional faturado)", async () => {
     mockGetAiUsageMetrics.mockResolvedValue({ aiMessagesTotal: 100 });
-    const { enforceUsageOrThrow, UsageLimitExceededError } =
-      await import("../enforcementService");
+    const { enforceUsageOrThrow } = await import("../enforcementService");
     await expect(
       enforceUsageOrThrow({ tenantId: "t1", feature: "ai", quantity: 1 })
-    ).rejects.toThrow(UsageLimitExceededError);
+    ).resolves.toBeUndefined();
   });
 
-  it("permite excedente de IA no Pro (será cobrado via meter events)", async () => {
+  it("permite acima do limite de IA no Pro (uso adicional faturado)", async () => {
     mockGetTenantBillingContext.mockResolvedValue({
       plan: "PRO",
       capabilities: capsForPlan("PRO"),
@@ -71,5 +71,30 @@ describe("enforcementService AI limit", () => {
     await expect(
       enforceUsageOrThrow({ tenantId: "t1", feature: "ai", quantity: 1 })
     ).resolves.toBeUndefined();
+  });
+
+  it("bloqueia FREE ao exceder limite de IA (FREE_PLAN_LIMIT_REACHED)", async () => {
+    mockGetTenantBillingContext.mockResolvedValue({
+      plan: "FREE",
+      capabilities: {
+        plan: "FREE",
+        maxMessages: 50,
+        maxAIUsage: 10,
+        maxAutomations: 0,
+        maxUsers: 1,
+        maxPhoneNumbers: 1,
+        featuresEnabled: PLANS.FREE.features,
+      },
+    });
+    mockGetAiUsageMetrics.mockResolvedValue({ aiMessagesTotal: 10 });
+    const { enforceUsageOrThrow, UsageLimitExceededError } =
+      await import("../enforcementService");
+    const err = await enforceUsageOrThrow({
+      tenantId: "t1",
+      feature: "ai",
+      quantity: 1,
+    }).catch((e) => e);
+    expect(err).toBeInstanceOf(UsageLimitExceededError);
+    expect((err as InstanceType<typeof UsageLimitExceededError>).code).toBe("FREE_PLAN_LIMIT_REACHED");
   });
 });

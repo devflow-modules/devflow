@@ -4,8 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@devflow/ui";
-import { PLANS, getPlan } from "@/modules/billing/plans";
+import { PLANS, getPlan, normalizePlan } from "@/modules/billing/plans";
 import {
+  billingChangePlanButtonLabel,
   COMMERCIAL_CHECKOUT_CTA,
   COMMERCIAL_PLAN_BENEFITS,
   COMMERCIAL_PLAN_HEADLINE,
@@ -20,7 +21,9 @@ import {
   USAGE_ANTI_SURPRISE_LINE,
 } from "@/modules/billing/usageCommunication";
 import { CurrentPlanUpgradeHint } from "@/components/dashboard/billing/CurrentPlanUpgradeHint";
+import { HowFreePlanWorksSection } from "@/components/dashboard/billing/HowFreePlanWorksSection";
 import { HowUsageWorksSection } from "@/components/dashboard/billing/HowUsageWorksSection";
+import { UsageCard } from "@/components/dashboard/billing/UsageCard";
 import { StateError, StateLoading } from "@/components/ui/app-states";
 import { readBillingPostUrl, readSubscriptionFromApiJson } from "@/lib/api-json-client";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
@@ -46,6 +49,7 @@ type Usage = {
   unitPricesBrl: { message: number; aiResponse: number };
   estimatedVariableCostBrl: number;
   withinLimits: { messages: boolean; ai: boolean };
+  allowsMeteredOverage: boolean;
   enforceLimits: boolean;
   aiOverageBilled?: number;
   aiOverageCostBrl?: number;
@@ -234,12 +238,24 @@ export function BillingPageClient() {
         </div>
       )}
       {sub ? <CurrentPlanUpgradeHint plan={sub.plan} /> : null}
-      {beyondIncluded && usage?.enforceLimits && (
+      {beyondIncluded && usage?.enforceLimits && usage.allowsMeteredOverage && (
         <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-950">
           <p className="font-semibold">Limite incluído no plano atingido neste período</p>
           <p className="mt-1 text-amber-900/95">
             Com o modo de enforcement ativo, o serviço pode limitar funcionalidades até atualizar o plano ou o período
             renovar. Prefira subir de nível para recuperar margem no pacote incluído.
+          </p>
+          <Button type="button" size="sm" className="mt-3" onClick={() => setShowUpgradeModal(true)}>
+            Ver planos e continuar
+          </Button>
+        </div>
+      )}
+      {beyondIncluded && usage?.enforceLimits && !usage.allowsMeteredOverage && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-950">
+          <p className="font-semibold">Limite do plano gratuito atingido neste período</p>
+          <p className="mt-1 text-amber-900/95">
+            O plano gratuito não inclui expansão faturada. Escolha um plano para continuar a operar com atendimento e
+            desbloquear volumes maiores.
           </p>
           <Button type="button" size="sm" className="mt-3" onClick={() => setShowUpgradeModal(true)}>
             Ver planos e continuar
@@ -291,7 +307,7 @@ export function BillingPageClient() {
           </div>
           <div className="flex min-w-0 shrink-0 flex-col gap-2 sm:flex-row lg:flex-col lg:items-stretch">
             <Button type="button" className="font-semibold" onClick={() => setShowUpgradeModal(true)}>
-              Mudar de plano
+              {sub ? billingChangePlanButtonLabel(getPlan(sub.plan).key) : "Mudar de plano"}
             </Button>
             {sub?.stripeCustomerId ? (
               <Button type="button" variant="outline" onClick={() => void openPortal()} disabled={portalLoading}>
@@ -302,9 +318,12 @@ export function BillingPageClient() {
         </div>
       </section>
 
-      {usage && (
-        <HowUsageWorksSection unitPrices={usage.unitPricesBrl} />
-      )}
+      {usage &&
+        (usage.allowsMeteredOverage ? (
+          <HowUsageWorksSection unitPrices={usage.unitPricesBrl} />
+        ) : (
+          <HowFreePlanWorksSection planKey={normalizePlan(sub?.plan ?? "FREE")} />
+        ))}
 
       {usage && (
         <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm">
@@ -320,88 +339,51 @@ export function BillingPageClient() {
               Ver detalhe de IA →
             </Link>
           </div>
-          <p className="mb-4 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-600">
-            Comparado com o que o seu plano inclui por mês. Depois do incluído, aplica-se o uso adicional — sem cortar o
-            serviço. Na fatura Stripe, aparece como «{STRIPE_USAGE_LINE_LABELS.extraConversations}» e «
-            {STRIPE_USAGE_LINE_LABELS.extraAi}».
+          <p className="mb-4 rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2.5 text-xs leading-relaxed text-slate-600">
+            {usage.allowsMeteredOverage ? (
+              <>
+                Comparado com o que o plano inclui por mês. Depois do incluído, entra em vigor o uso adicional — o
+                atendimento continua. Na fatura Stripe, aparece como «{STRIPE_USAGE_LINE_LABELS.extraConversations}» e «
+                {STRIPE_USAGE_LINE_LABELS.extraAi}».
+              </>
+            ) : (
+              <>
+                Comparado com o incluído no plano gratuito. Ao atingir o limite, é necessário escolher um plano para
+                continuar — não há cobrança adicional nem expansão automática no gratuito.
+              </>
+            )}
           </p>
-          <dl className="mt-2 grid gap-4 text-sm">
-            <div className="flex items-center justify-between gap-4">
-              <dt className="font-medium text-slate-700">Conversas (período)</dt>
-              <dd className="text-right tabular-nums text-base font-semibold text-slate-900">
-                {usage.messagesSent.toLocaleString("pt-BR")}
-                {usage.limits.messagesPerMonth != null && (
-                  <span className="text-sm font-normal text-slate-500">
-                    {" "}
-                    de {usage.limits.messagesPerMonth.toLocaleString("pt-BR")} incluídas
-                  </span>
-                )}
-                {!usage.withinLimits.messages && (
-                  <span className="ml-2 text-xs font-semibold text-amber-800">além do incluído</span>
-                )}
-              </dd>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <dt className="font-medium text-slate-700">Interações de IA (período)</dt>
-              <dd className="text-right tabular-nums text-base font-semibold text-slate-900">
-                {usage.aiResponses.toLocaleString("pt-BR")}
-                {usage.limits.aiResponsesPerMonth != null && (
-                  <span className="text-sm font-normal text-slate-500">
-                    {" "}
-                    de {usage.limits.aiResponsesPerMonth.toLocaleString("pt-BR")} incluídas
-                  </span>
-                )}
-                {!usage.withinLimits.ai && (
-                  <span className="ml-2 text-xs font-semibold text-amber-800">além do incluído</span>
-                )}
-              </dd>
-            </div>
-            <div className="mt-2 space-y-2">
-              <div>
-                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-emerald-500 rounded-full transition-all"
-                    style={{
-                      width: usage.limits.messagesPerMonth
-                        ? `${Math.min(
-                            100,
-                            (usage.messagesSent / usage.limits.messagesPerMonth) * 100
-                          )}%`
-                        : "0%",
-                    }}
-                  />
-                </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  {usage.limits.messagesPerMonth != null
-                    ? `${usage.messagesSent.toLocaleString("pt-BR")} de ${usage.limits.messagesPerMonth.toLocaleString("pt-BR")} conversas incluídas`
-                    : "Conversas no período"}
-                </p>
-              </div>
-              {usage.limits.aiResponsesPerMonth != null && (
-                <div>
-                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all ${
-                        !usage.withinLimits.ai
-                          ? "bg-red-500"
-                          : usage.aiResponses / usage.limits.aiResponsesPerMonth >= 0.7
-                            ? "bg-amber-500"
-                            : "bg-emerald-500"
-                      }`}
-                      style={{
-                        width: `${Math.min(
-                          100,
-                          (usage.aiResponses / usage.limits.aiResponsesPerMonth) * 100
-                        )}%`,
-                      }}
-                    />
-                  </div>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Respostas IA — {usage.aiResponses} / {usage.limits.aiResponsesPerMonth.toLocaleString("pt-BR")}
-                  </p>
-                </div>
-              )}
-            </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <UsageCard
+              title="Conversas no período"
+              used={usage.messagesSent}
+              limit={usage.limits.messagesPerMonth}
+              percentage={
+                usage.limits.messagesPerMonth != null && usage.limits.messagesPerMonth > 0
+                  ? Math.round((usage.messagesSent / usage.limits.messagesPerMonth) * 100)
+                  : null
+              }
+              includedKindLabel="conversas incluídas"
+            />
+            <UsageCard
+              title="Interações de IA no período"
+              used={usage.aiResponses}
+              limit={usage.limits.aiResponsesPerMonth}
+              percentage={
+                usage.limits.aiResponsesPerMonth != null && usage.limits.aiResponsesPerMonth > 0
+                  ? Math.round((usage.aiResponses / usage.limits.aiResponsesPerMonth) * 100)
+                  : null
+              }
+              includedKindLabel="interações de IA incluídas"
+            />
+          </div>
+          {usage.allowsMeteredOverage && (!usage.withinLimits.messages || !usage.withinLimits.ai) ? (
+            <p className="mt-3 text-xs font-medium text-amber-900">
+              Parte do consumo está além do volume incluído — o uso adicional será refletido na fatura, sem interromper o
+              serviço.
+            </p>
+          ) : null}
+          <div className="mt-4 space-y-3">
             {usage.aiOverageBilled != null && usage.aiOverageBilled > 0 && (
               <div className="mt-3 rounded border border-emerald-100 bg-emerald-50/80 p-3">
                 <p className="text-sm font-medium text-emerald-950">
@@ -418,7 +400,7 @@ export function BillingPageClient() {
                 </p>
               </div>
             )}
-          </dl>
+          </div>
         </section>
       )}
 

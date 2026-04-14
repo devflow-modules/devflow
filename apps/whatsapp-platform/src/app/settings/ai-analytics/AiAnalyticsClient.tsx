@@ -244,16 +244,16 @@ export function AiAnalyticsClient() {
                 <div className="mt-2 space-y-1 text-sm text-amber-800">
                   {planInfo.ai_limit != null && (
                     <p>
-                      Incluído no plano: {planInfo.ai_limit.toLocaleString("pt-BR")} · Usado: {usageStatus.used.toLocaleString("pt-BR")} · Excedente faturado: <strong>{usageStatus.ai_overage_billed}</strong>
+                      Incluído no plano: {planInfo.ai_limit.toLocaleString("pt-BR")} · Usado: {usageStatus.used.toLocaleString("pt-BR")} · Uso adicional faturado: <strong>{usageStatus.ai_overage_billed}</strong>
                     </p>
                   )}
                   {usageStatus.ai_overage_cost_brl != null &&
                     usageStatus.ai_overage_cost_brl > 0 && (
-                      <p>Custo estimado do excedente: <strong>R$ {usageStatus.ai_overage_cost_brl.toFixed(2)}</strong></p>
+                      <p>Custo estimado do uso adicional: <strong>R$ {usageStatus.ai_overage_cost_brl.toFixed(2)}</strong></p>
                     )}
                 </div>
                 <p className="mt-1 text-xs text-amber-700">
-                  Este valor será refletido na cobrança.
+                  Este valor aparece na fatura do período, com o mesmo nome de linha do Stripe.
                 </p>
               </div>
             )}

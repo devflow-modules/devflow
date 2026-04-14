@@ -5,7 +5,6 @@
  */
 
 import type { PlanKey } from "./plans";
-import { PLANS } from "./plans";
 import { formatIncludedUsageSentence } from "./usageCommunication";
 
 /** Título curto por plano: estágio da operação (valor, não técnico). */
@@ -68,6 +67,13 @@ export const COMMERCIAL_RECOMMENDED_PLAN: PlanKey = "PRO";
 
 export const COMMERCIAL_RECOMMENDED_BADGE = "Mais escolhido";
 
+/** Subtítulo da página Plano e faturação (PageHeader / contexto). */
+export const BILLING_PAGE_HEADER_DESCRIPTION =
+  "Gerencie o seu plano, consumo e crescimento da sua operação.";
+
+/** Mesma linha no cartão do plano (BillingHeader), alinhada ao PageHeader. */
+export const BILLING_HEADER_SUPPORTING_LINE = BILLING_PAGE_HEADER_DESCRIPTION;
+
 /** Microcopy abaixo da tabela de planos — reduz fricção na escolha. */
 export const PRICING_DECISION_REASSURANCE =
   "Comece com o plano que melhor representa a sua operação hoje. Pode alterar a qualquer momento.";
@@ -83,23 +89,51 @@ export function formatIncludedLimitsLine(plan: PlanKey): string {
 export function upgradeSuggestionCopy(current: PlanKey): { title: string; href: string } | null {
   if (current === "FREE" || current === "STARTER") {
     return {
-      title: "Para operar com equipa e filas → veja o plano Pro",
+      title: "Para operar com equipe e filas → plano Pro",
       href: "/dashboard/billing",
     };
   }
   if (current === "PRO") {
     return {
-      title: "Precisa de mais volume, integrações e equipa? → veja o Scale",
+      title: "Para mais volume e integrações → plano Scale",
       href: "/dashboard/billing",
     };
   }
   return null;
 }
 
+/** CTA principal «mudar plano» — específico ao próximo passo natural. */
+export function billingChangePlanButtonLabel(current: PlanKey): string {
+  if (current === "FREE" || current === "STARTER") {
+    return "Para operar com equipe e filas → plano Pro";
+  }
+  if (current === "PRO") {
+    return "Para mais volume e integrações → plano Scale";
+  }
+  if (current === "SCALE") {
+    return "Alterar ou rever plano";
+  }
+  return "Mudar de plano";
+}
+
+/** Título do cartão de upgrade (próximo plano na sequência). */
+export function upgradeCtaHeadline(current: PlanKey, next: PlanKey): string {
+  if (next === "PRO") {
+    return "Para operar com equipe e filas → plano Pro";
+  }
+  if (next === "SCALE" && current === "PRO") {
+    return "Para mais volume e integrações → plano Scale";
+  }
+  if (next === "SCALE") {
+    return "Escalar a operação com o plano Scale";
+  }
+  return "Próximo passo de plano";
+}
+
 /** Dicas contextuais leves (não intrusivas) com link para billing. */
 export const CONTEXTUAL_UPGRADE_HINTS = {
   inbox:
-    "Para organizar conversas com filas e responsáveis → o plano Pro foi pensado para equipas.",
+    "Para organizar conversas com filas e responsáveis → o plano Pro foi pensado para equipes.",
   aiSettings: "Precisa de mais margem para IA e automação? Veja os planos e limites incluídos.",
   whatsappChannel:
     "Para vários canais e operação pesada → o Scale acompanha mais volume e integrações.",

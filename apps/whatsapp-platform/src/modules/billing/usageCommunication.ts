@@ -18,7 +18,7 @@ export function formatIncludedUsageSentence(plan: PlanKey): string {
   const m = def.limits.messagesPerMonth;
   const ai = def.limits.aiCallsPerMonth;
   const parts: string[] = [];
-  if (m != null) parts.push(`até ${m.toLocaleString("pt-BR")} conversas por mês`);
+  if (m != null) parts.push(`até ${m.toLocaleString("pt-BR")} conversas incluídas por mês`);
   if (ai != null) parts.push(`até ${ai.toLocaleString("pt-BR")} interações de IA por mês`);
   if (parts.length === 0) return "Inclui uso conforme o seu plano.";
   if (parts.length === 1) return `Inclui ${parts[0]}.`;
@@ -26,36 +26,77 @@ export function formatIncludedUsageSentence(plan: PlanKey): string {
 }
 
 export const USAGE_AFTER_INCLUDED_EXPLAINER =
-  "Depois disso, o uso adicional é cobrado automaticamente no fim do período de faturação.";
+  "Ao atingir o limite do plano, o uso continua normalmente e o adicional é cobrado automaticamente no fim do período de faturação.";
 
 export const USAGE_NO_SERVICE_INTERRUPTION =
   "O atendimento não é interrompido por causa destes limites — continua a operar normalmente.";
 
 export const USAGE_EXPANSION_FRAMING =
-  "Se precisar de mais volume, o uso adicional permite expandir a sua operação sem travar o atendimento.";
+  "Quando precisa de mais volume, o uso adicional permite a expansão da operação sem travar o atendimento.";
+
+/** Linha curta sob o bloco de consumo: reduz ansiedade sobre cobrança indevida. */
+export const USAGE_EXPANSION_ONLY_IF_GROWTH =
+  "O uso adicional só acontece se o seu atendimento crescer além do volume incluído.";
 
 export const USAGE_ANTI_SURPRISE_LINE =
-  "Nunca interrompemos o seu atendimento por causa dos limites incluídos: quando ultrapassa o pacote do plano, regista-se o uso adicional e a fatura reflete isso de forma transparente.";
+  "Não interrompemos o atendimento por causa dos limites incluídos: quando o volume vai além do pacote do plano, regista-se o uso adicional e a fatura mostra isso com transparência — sem surpresas.";
 
 export function formatExpansionUnitPriceLines(prices: { message: number; aiResponse: number }): string[] {
   const fmt = (n: number) =>
     n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return [
-    `${STRIPE_USAGE_LINE_LABELS.extraConversations}: R$ ${fmt(prices.message)} cada`,
-    `${STRIPE_USAGE_LINE_LABELS.extraAi}: R$ ${fmt(prices.aiResponse)} por interação`,
+    `Conversas adicionais: R$ ${fmt(prices.message)}`,
+    `Uso adicional de IA: R$ ${fmt(prices.aiResponse)}`,
   ];
 }
 
-export function contextualInboxUsageHint(messagesLimit: number | null | undefined): string {
+export function contextualInboxUsageHint(
+  messagesLimit: number | null | undefined,
+  options?: { isFreePlan?: boolean }
+): string {
   if (messagesLimit != null && messagesLimit > 0) {
+    if (options?.isFreePlan) {
+      return `O plano gratuito inclui até ${messagesLimit.toLocaleString("pt-BR")} conversas por mês. Ao atingir o limite, escolha um plano para continuar — veja Plano e faturação.`;
+    }
     return `O seu plano inclui até ${messagesLimit.toLocaleString("pt-BR")} conversas por mês. Se precisar de mais, o uso adicional está disponível — veja detalhes em Plano e faturação.`;
   }
   return "Veja limites incluídos e uso do período em Plano e faturação.";
 }
 
-export function contextualAiUsageHint(aiLimit: number | null | undefined): string {
+export function contextualAiUsageHint(
+  aiLimit: number | null | undefined,
+  options?: { isFreePlan?: boolean }
+): string {
   if (aiLimit != null && aiLimit > 0) {
+    if (options?.isFreePlan) {
+      return `Inclui até ${aiLimit.toLocaleString("pt-BR")} interações de IA por mês no plano gratuito. Ao atingir o limite, será necessário escolher um plano para continuar.`;
+    }
     return `Inclui até ${aiLimit.toLocaleString("pt-BR")} interações de IA por mês no seu plano. Além disso, pode expandir com uso adicional — sem interrupção do serviço.`;
   }
   return "Consulte o consumo de IA e os limites do plano em Plano e faturação.";
+}
+
+/** Blocos curtos para secção «plano gratuito» na UI de billing. */
+export function freePlanUsageExplainerLines(plan: PlanKey): { title: string; bullets: string[] } {
+  const def = PLANS[plan];
+  const m = def.limits.messagesPerMonth;
+  const ai = def.limits.aiCallsPerMonth;
+  const bullets: string[] = [];
+  if (m != null) {
+    bullets.push(`Inclui até ${m.toLocaleString("pt-BR")} conversas por mês.`);
+  }
+  if (ai != null) {
+    bullets.push(`Inclui até ${ai.toLocaleString("pt-BR")} interações de IA por mês.`);
+  }
+  bullets.push("Ao atingir esse limite, será necessário escolher um plano para continuar.");
+  bullets.push("Não há cobrança adicional nem expansão automática no plano gratuito.");
+  return {
+    title: "Como funciona o plano gratuito",
+    bullets,
+  };
+}
+
+/** Uma linha para listas «depois do incluído» em planos pagos. */
+export function paidPlanUsageAfterIncludedLine(): string {
+  return `${USAGE_AFTER_INCLUDED_EXPLAINER} ${USAGE_NO_SERVICE_INTERRUPTION}`;
 }

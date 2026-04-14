@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@devflow/ui";
 import { StateError, StateLoading } from "@/components/ui/app-states";
+import { HowFreePlanWorksSection } from "@/components/dashboard/billing/HowFreePlanWorksSection";
 import { HowUsageWorksSection } from "@/components/dashboard/billing/HowUsageWorksSection";
+import { normalizePlan } from "@/modules/billing/plans";
 import { readBillingPostUrl, readSubscriptionFromApiJson } from "@/lib/api-json-client";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
@@ -28,6 +30,7 @@ type Usage = {
   unitPricesBrl: { message: number; aiResponse: number };
   estimatedVariableCostBrl: number;
   withinLimits: { messages: boolean; ai: boolean };
+  allowsMeteredOverage?: boolean;
   enforceLimits: boolean;
   stripeMetered?: {
     messagesReportedToStripe: number;
@@ -204,9 +207,12 @@ export function BillingSettingsClient() {
         </div>
       </section>
 
-      {usage && (
-        <HowUsageWorksSection unitPrices={usage.unitPricesBrl} />
-      )}
+      {usage &&
+        (usage.allowsMeteredOverage !== false ? (
+          <HowUsageWorksSection unitPrices={usage.unitPricesBrl} />
+        ) : (
+          <HowFreePlanWorksSection planKey={normalizePlan(sub?.plan ?? "FREE")} />
+        ))}
 
       {usage && (
         <section className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03] sm:p-6">

@@ -1,27 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { PLANS } from "../plans";
 
 const mockGetUsageByPeriod = vi.fn();
 const mockGetAiUsageMetrics = vi.fn();
 const mockIsBillingEnforceLimits = vi.fn();
+const mockGetTenantBillingContext = vi.fn();
 
 vi.mock("@/modules/ai/aiUsageService", () => ({
   getAiUsageMetrics: (...args: unknown[]) => mockGetAiUsageMetrics(...args),
 }));
 
 vi.mock("../subscriptionService", () => ({
-  getTenantBillingContext: () =>
-    Promise.resolve({
-      plan: "PRO" as const,
-      capabilities: {
-        plan: "PRO",
-        maxMessages: 5000,
-        maxAIUsage: 750,
-        maxAutomations: 50,
-        maxUsers: 3,
-        maxPhoneNumbers: 1,
-        featuresEnabled: {},
-      },
-    }),
+  getTenantBillingContext: (...args: unknown[]) => mockGetTenantBillingContext(...args),
 }));
 
 vi.mock("../usageService", () => ({
@@ -38,11 +28,25 @@ vi.mock("../billingObserverService", () => ({
   logUsageThresholdWarning: () => {},
 }));
 
+const proContext = {
+  plan: "PRO" as const,
+  capabilities: {
+    plan: "PRO" as const,
+    maxMessages: 5000,
+    maxAIUsage: 750,
+    maxAutomations: 50,
+    maxUsers: 3,
+    maxPhoneNumbers: 1,
+    featuresEnabled: PLANS.PRO.features,
+  },
+};
+
 describe("enforcementService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockIsBillingEnforceLimits.mockReturnValue(true);
     mockGetAiUsageMetrics.mockResolvedValue({ aiMessagesTotal: 50 });
+    mockGetTenantBillingContext.mockResolvedValue(proContext);
   });
 
   afterEach(() => {
@@ -67,7 +71,7 @@ describe("enforcementService", () => {
     ).resolves.toBeUndefined();
   });
 
-  it("lança UsageLimitExceededError quando excede e BILLING_ENFORCE_LIMITS=true", async () => {
+  it("lança UsageLimitExceededError quando excede e BILLING_ENFORCE_LIMITS=true (plano pago)", async () => {
     mockGetUsageByPeriod.mockResolvedValue({
       period: "2025-03",
       messagesSent: 5000,
@@ -90,7 +94,7 @@ describe("enforcementService", () => {
     expect(err.feature).toBe("messages");
   });
 
-  it("permite quando excede mas BILLING_ENFORCE_LIMITS=false (soft limit)", async () => {
+  it("permite quando excede mas BILLING_ENFORCE_LIMITS=false (soft limit, plano pago)", async () => {
     mockGetUsageByPeriod.mockResolvedValue({
       period: "2025-03",
       messagesSent: 5000,
@@ -108,6 +112,38 @@ describe("enforcementService", () => {
     await expect(
       enforceUsageOrThrow({ tenantId: "t1", feature: "ai", quantity: 1 })
     ).resolves.toBeUndefined();
+  });
+
+  it("FREE: bloqueia mensagens acima do limite mesmo com BILLING_ENFORCE_LIMITS=false", async () => {
+    mockGetTenantBillingContext.mockResolvedValue({
+      plan: "FREE",
+      capabilities: {
+        plan: "FREE",
+        maxMessages: 50,
+        maxAIUsage: 10,
+        maxAutomations: 0,
+        maxUsers: 1,
+        maxPhoneNumbers: 1,
+        featuresEnabled: PLANS.FREE.features,
+      },
+    });
+    mockGetUsageByPeriod.mockResolvedValue({
+      period: "2025-03",
+      messagesSent: 50,
+      aiResponses: 0,
+    });
+    mockIsBillingEnforceLimits.mockReturnValue(false);
+
+    const { enforceUsageOrThrow, UsageLimitExceededError } = await import("../enforcementService");
+
+    const err = await enforceUsageOrThrow({
+      tenantId: "t1",
+      feature: "messages",
+      quantity: 1,
+    }).catch((e) => e);
+
+    expect(err).toBeInstanceOf(UsageLimitExceededError);
+    expect(err.code).toBe("FREE_PLAN_LIMIT_REACHED");
   });
 
   it("UsageLimitExceededError tem code e feature", async () => {

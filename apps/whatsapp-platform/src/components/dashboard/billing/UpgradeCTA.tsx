@@ -3,7 +3,11 @@
 import { Button } from "@devflow/ui";
 import { PLANS } from "@/modules/billing/plans";
 import type { PlanKey } from "@/modules/billing/plans";
-import { COMMERCIAL_PLAN_HEADLINE, COMMERCIAL_PLAN_SUBTITLE } from "@/modules/billing/planPresentation";
+import {
+  COMMERCIAL_PLAN_HEADLINE,
+  COMMERCIAL_PLAN_SUBTITLE,
+  upgradeCtaHeadline,
+} from "@/modules/billing/planPresentation";
 
 type Props = {
   currentPlan: string;
@@ -33,12 +37,13 @@ export function UpgradeCTA({
 }: Props) {
   if (!shouldShow) return null;
 
+  const currentKey = (currentPlan?.toUpperCase() ?? "FREE") as PlanKey;
   const nextPlan = getNextPlan(currentPlan);
   const nextPlanDef = PLANS[nextPlan];
 
   return (
     <div className="rounded-xl border-2 border-emerald-200 bg-emerald-50/60 p-6">
-      <h3 className="text-lg font-semibold text-emerald-900">Subir de plano</h3>
+      <h3 className="text-lg font-semibold text-emerald-900">{upgradeCtaHeadline(currentKey, nextPlan)}</h3>
       <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-emerald-800/90">{nextPlanDef.name}</p>
       <p className="mt-1 text-base font-semibold text-emerald-950">{COMMERCIAL_PLAN_HEADLINE[nextPlan]}</p>
       <p className="mt-2 text-sm leading-relaxed text-emerald-900/95">{COMMERCIAL_PLAN_SUBTITLE[nextPlan]}</p>

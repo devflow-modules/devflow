@@ -5,8 +5,8 @@ type Props = {
   used: number;
   limit: number | null;
   percentage: number | null;
-  /** Ex.: "conversas" | "interações de IA" */
-  unitLabel?: string;
+  /** Ex.: "conversas incluídas" | "interações de IA incluídas" */
+  includedKindLabel: string;
 };
 
 function getProgressColor(pct: number | null): string {
@@ -16,34 +16,40 @@ function getProgressColor(pct: number | null): string {
   return "bg-red-500";
 }
 
-export function UsageCard({ title, used, limit, percentage, unitLabel = "unidades" }: Props) {
+export function UsageCard({ title, used, limit, percentage, includedKindLabel }: Props) {
   const pct = percentage ?? (limit != null && limit > 0 ? Math.round((used / limit) * 100) : 0);
   const displayLimit = limit != null ? limit.toLocaleString("pt-BR") : "—";
   const isUnlimited = limit == null;
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="text-sm font-medium text-slate-600">{title}</h3>
-      <p className="mt-1 text-2xl font-semibold text-slate-900">
-        {used.toLocaleString("pt-BR")}
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</h3>
+      <div className="mt-3 flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
+        <span className="text-3xl font-bold tabular-nums tracking-tight text-slate-900">
+          {used.toLocaleString("pt-BR")}
+        </span>
         {!isUnlimited && (
-          <span className="text-base font-normal text-slate-500"> / {displayLimit}</span>
+          <>
+            <span className="text-xl font-medium text-slate-400">/</span>
+            <span className="text-3xl font-bold tabular-nums tracking-tight text-slate-900">
+              {displayLimit}
+            </span>
+          </>
         )}
-      </p>
-      {!isUnlimited && (
-        <p className="mt-1 text-xs text-slate-500">
-          {used.toLocaleString("pt-BR")} de {displayLimit} {unitLabel} incluídas no período
-        </p>
+      </div>
+      {!isUnlimited && <p className="mt-2 text-sm text-slate-500">{includedKindLabel}</p>}
+      {isUnlimited && (
+        <p className="mt-2 text-sm text-slate-500">Sem limite fixo incluído neste indicador</p>
       )}
       {!isUnlimited && (
         <>
-          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+          <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-slate-100">
             <div
               className={`h-full rounded-full transition-all ${getProgressColor(pct)}`}
               style={{ width: `${Math.min(100, pct)}%` }}
             />
           </div>
-          <p className="mt-1 text-xs text-slate-500">{pct}% do incluído utilizado</p>
+          <p className="mt-1.5 text-xs text-slate-500">{pct}% do volume incluído no plano</p>
         </>
       )}
     </div>

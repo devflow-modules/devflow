@@ -105,7 +105,7 @@ function InboxShellContent() {
       if (!r.ok) return null;
       const j = (await r.json()) as {
         success?: boolean;
-        data?: { plan: string; messagesLimit: number | null };
+        data?: { plan: string; messagesLimit: number | null; allowsMeteredOverage?: boolean };
       };
       return j.data ?? null;
     },
@@ -199,7 +199,9 @@ function InboxShellContent() {
         <PricingContextHint
           message={
             billingUi?.messagesLimit != null
-              ? contextualInboxUsageHint(billingUi.messagesLimit)
+              ? contextualInboxUsageHint(billingUi.messagesLimit, {
+                  isFreePlan: billingUi.allowsMeteredOverage === false,
+                })
               : CONTEXTUAL_UPGRADE_HINTS.inbox
           }
         />

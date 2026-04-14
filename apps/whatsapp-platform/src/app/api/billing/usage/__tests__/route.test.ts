@@ -23,6 +23,7 @@ describe("GET /api/billing/usage", () => {
       unitPricesBrl: { message: 0.05, aiResponse: 0.1 },
       estimatedVariableCostBrl: 0.45,
       withinLimits: { messages: true, ai: true },
+      allowsMeteredOverage: true,
       enforceLimits: true,
     });
   });

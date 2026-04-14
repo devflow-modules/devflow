@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
+import { BILLING_PAGE_HEADER_DESCRIPTION } from "@/modules/billing/planPresentation";
 import { StateLoading } from "@/components/ui/app-states";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { validateAuthToken } from "@/modules/auth";
@@ -20,7 +21,7 @@ export default async function BillingPage() {
       <PageHeader
         eyebrow="Conta"
         title="Plano e faturação"
-        description="Veja o nível da operação, o consumo do período e a renovação. O painel em Dashboard oferece a mesma visão com comparação de planos e atalhos para o portal Stripe."
+        description={BILLING_PAGE_HEADER_DESCRIPTION}
         layout="split"
         showDivider
         tone="admin"

@@ -4,7 +4,8 @@
  */
 
 import { getTenantBillingSummary } from "./billingSummaryService";
-import { getUsageUnitPricesBrl } from "./planConfig";
+import { getUsageUnitPricesBrl, isBillingEnforceLimits } from "./planConfig";
+import { normalizePlan, planAllowsMeteredOverage } from "./plans";
 
 export type TenantBillingUI = {
   plan: string;
@@ -25,6 +26,8 @@ export type TenantBillingUI = {
   nextInvoiceDate: string | null;
   lastInvoiceAmount: number | null;
   lastInvoiceStatus: string | null;
+  /** Plano pago: expansão faturada; FREE: sempre limite duro na UX. */
+  allowsMeteredOverage: boolean;
   enforceLimits: boolean;
 };
 
@@ -48,8 +51,11 @@ export async function getTenantBillingUI(tenantId: string): Promise<TenantBillin
       ? Math.round((summary.usage.ai / aiLimit) * 100)
       : null;
 
-  const estimatedOverageCost =
-    summary.overage.messages * prices.message + summary.overage.ai * prices.aiResponse;
+  const pk = normalizePlan(summary.plan);
+  const allowsMetered = planAllowsMeteredOverage(pk);
+  const estimatedOverageCost = allowsMetered
+    ? summary.overage.messages * prices.message + summary.overage.ai * prices.aiResponse
+    : 0;
 
   return {
     plan: summary.plan,
@@ -61,14 +67,15 @@ export async function getTenantBillingUI(tenantId: string): Promise<TenantBillin
     aiLimit,
     usagePercentageMessages,
     usagePercentageAI,
-    overageMessages: summary.overage.messages,
-    overageAI: summary.overage.ai,
+    overageMessages: allowsMetered ? summary.overage.messages : 0,
+    overageAI: allowsMetered ? summary.overage.ai : 0,
     estimatedOverageCost,
     messageUnitPriceBrl: prices.message,
     aiUnitPriceBrl: prices.aiResponse,
     nextInvoiceDate: summary.nextInvoice?.periodEnd ?? null,
     lastInvoiceAmount: summary.lastInvoice?.amountPaid ?? null,
     lastInvoiceStatus: summary.lastInvoice?.status ?? null,
-    enforceLimits: process.env.BILLING_ENFORCE_LIMITS !== "false",
+    allowsMeteredOverage: allowsMetered,
+    enforceLimits: !allowsMetered || isBillingEnforceLimits(),
   };
 }

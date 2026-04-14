@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
 import { suggestInboxPlaybook } from "@/modules/inbox";
-import { enforceUsageOrThrow, UsageLimitExceededError } from "@/modules/billing/enforcementService";
+import {
+  enforceUsageOrThrow,
+  UsageLimitExceededError,
+  usageLimitErrorToPayload,
+} from "@/modules/billing/enforcementService";
 import { logError } from "@/lib/observability";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +31,7 @@ export async function POST(
   } catch (e) {
     if (e instanceof UsageLimitExceededError) {
       return NextResponse.json(
-        { success: false, error: { message: e.message, code: e.code } },
+        { success: false, error: usageLimitErrorToPayload(e) },
         { status: 402 }
       );
     }

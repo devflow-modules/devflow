@@ -40,18 +40,24 @@ describe("stripeUsageBillingService", () => {
     mockCreateMeterEvent.mockResolvedValue({ ok: true });
   });
 
-  it("não cobra excedente no plano Starter", async () => {
+  it("cobra excedente no Starter quando used >= limit", async () => {
     const { billAiOverageIfApplicable } = await import(
       "../stripeUsageBillingService"
     );
     await billAiOverageIfApplicable({
       tenantId: "t1",
-      messageId: "wamid.xxx",
-      used: 150,
+      messageId: "wamid.starter_over",
+      used: 100,
       limit: 100,
       plan: "STARTER",
     });
-    expect(mockCreateMeterEvent).not.toHaveBeenCalled();
+    expect(mockCreateMeterEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventName: "ai_responses",
+        stripeCustomerId: "cus_pro123",
+        value: 1,
+      })
+    );
   });
 
   it("não cobra excedente no plano FREE", async () => {

@@ -329,7 +329,7 @@ export async function sendInboxMessage(threadId: string, text: string): Promise<
   });
   if (!res.ok) {
     const j = (await res.json().catch(() => ({}))) as {
-      error?: string | { message?: string };
+      error?: string | { message?: string; code?: string; upgradeRequired?: boolean };
       message?: string;
       code?: string;
     };
@@ -343,6 +343,22 @@ export async function sendInboxMessage(threadId: string, text: string): Promise<
         code: j.code,
       };
       throw new Error(protectedApiUserMessage(403, flat));
+    }
+    if (res.status === 402) {
+      const err = j.error;
+      const nested =
+        err && typeof err === "object" && "message" in err
+          ? (err as { message?: string; code?: string })
+          : null;
+      const code = nested?.code;
+      const msg = nested?.message;
+      if (code === "FREE_PLAN_LIMIT_REACHED") {
+        throw new Error(
+          msg ??
+            "Seu plano gratuito chegou ao limite. Para continuar a operar com atendimento, escolha um plano em Plano e faturação."
+        );
+      }
+      throw new Error(msg ?? `Erro ${res.status}`);
     }
     const msg =
       typeof j.error === "string"

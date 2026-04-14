@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
+import { BILLING_PAGE_HEADER_DESCRIPTION } from "@/modules/billing/planPresentation";
 import { StateError, StateLoading } from "@/components/ui/app-states";
 import {
   BillingHeader,
@@ -14,9 +15,10 @@ import {
   PlanComparisonMatrix,
   CurrentPlanUpgradeHint,
   HowUsageWorksSection,
+  HowFreePlanWorksSection,
 } from "@/components/dashboard/billing";
 import type { TenantBillingUI } from "@/modules/billing";
-import type { PlanKey } from "@/modules/billing/plans";
+import { normalizePlan, type PlanKey } from "@/modules/billing/plans";
 import { readBillingPostUrl } from "@/lib/api-json-client";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
@@ -117,7 +119,7 @@ export function BillingDashboardClient() {
     <PageHeader
       eyebrow="Conta"
       title="Plano e faturação"
-      description="Veja o nível da sua operação (Inbox, equipa, IA e automação), o consumo do período e a renovação. O portal Stripe trata de faturas e método de pagamento."
+      description={BILLING_PAGE_HEADER_DESCRIPTION}
       layout="split"
       showDivider
       tone="admin"
@@ -212,9 +214,13 @@ export function BillingDashboardClient() {
         manageLoading={portalLoading}
       />
 
-      <HowUsageWorksSection
-        unitPrices={{ message: d.messageUnitPriceBrl, aiResponse: d.aiUnitPriceBrl }}
-      />
+      {d.allowsMeteredOverage ? (
+        <HowUsageWorksSection
+          unitPrices={{ message: d.messageUnitPriceBrl, aiResponse: d.aiUnitPriceBrl }}
+        />
+      ) : (
+        <HowFreePlanWorksSection planKey={normalizePlan(d.plan)} />
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <UsageCard
@@ -222,18 +228,19 @@ export function BillingDashboardClient() {
           used={d.messagesUsed}
           limit={d.messagesLimit}
           percentage={d.usagePercentageMessages}
-          unitLabel="conversas"
+          includedKindLabel="conversas incluídas"
         />
         <UsageCard
           title="IA de atendimento"
           used={d.aiUsed}
           limit={d.aiLimit}
           percentage={d.usagePercentageAI}
-          unitLabel="interações de IA"
+          includedKindLabel="interações de IA incluídas"
         />
       </div>
 
       <BillingAlerts
+        currentPlan={d.plan}
         usagePercentageMessages={d.usagePercentageMessages}
         usagePercentageAI={d.usagePercentageAI}
         enforceLimits={d.enforceLimits}

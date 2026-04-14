@@ -3,8 +3,8 @@
  * Cobra Pro/Scale quando ultrapassam o limite do plano via meter events.
  *
  * Regras:
- * - Starter/FREE: não cobra excedente (fallback + upgrade)
- * - Pro/Scale: envia meter event ao Stripe quando used >= limit
+ * - FREE: não cobra (sem faturação variável)
+ * - Starter / Pro / Scale: envia meter event ao Stripe quando used >= limit
  *
  * Idempotência: identifier por mensagem + BillingAuditLog evita duplicatas.
  */
@@ -40,7 +40,7 @@ export async function billAiOverageIfApplicable(
 ): Promise<void> {
   const { tenantId, messageId, used, limit, plan } = input;
 
-  if (plan === "STARTER" || plan === "FREE") {
+  if (plan === "FREE") {
     return;
   }
 

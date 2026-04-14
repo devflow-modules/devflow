@@ -4,6 +4,7 @@ import { createCheckoutSession as createStripeCheckout, isStripeConfigured } fro
 import { getUsageByPeriod, getStripeUsageSyncStats, periodYYYYMM } from "./usageService";
 import { isMeterEventsConfigured } from "./infrastructure/stripeMeterClient";
 import { getPlanLimits, getUsageUnitPricesBrl, isBillingEnforceLimits, normalizePlanKey } from "./planConfig";
+import { normalizePlan, planAllowsMeteredOverage } from "./plans";
 import { getTenantPlan } from "./subscriptionService";
 import { getAiOverageBilledInPeriod } from "./aiOverageVisibilityService";
 
@@ -150,6 +151,8 @@ export interface UsageDashboard {
   unitPricesBrl: { message: number; aiResponse: number };
   estimatedVariableCostBrl: number;
   withinLimits: { messages: boolean; ai: boolean };
+  /** true quando o plano permite expansão faturada (não-FREE). */
+  allowsMeteredOverage: boolean;
   enforceLimits: boolean;
   aiOverageBilled?: number;
   aiOverageCostBrl?: number;
@@ -172,6 +175,8 @@ export async function getUsageDashboard(tenantId: string, period?: string): Prom
   const prices = getUsageUnitPricesBrl();
   const estimated =
     usage.messagesSent * prices.message + usage.aiResponses * prices.aiResponse;
+  const pk = normalizePlan(planKey);
+  const allowsExpansion = planAllowsMeteredOverage(pk);
 
   return {
     period: p,
@@ -183,14 +188,15 @@ export async function getUsageDashboard(tenantId: string, period?: string): Prom
     },
     unitPricesBrl: prices,
     estimatedVariableCostBrl: Math.round(estimated * 10000) / 10000,
-    enforceLimits: isBillingEnforceLimits(),
+    allowsMeteredOverage: allowsExpansion,
+    enforceLimits: !allowsExpansion || isBillingEnforceLimits(),
     withinLimits: {
       messages:
         limits.messagesPerMonth == null || usage.messagesSent <= limits.messagesPerMonth,
       ai: limits.aiResponsesPerMonth == null || usage.aiResponses <= limits.aiResponsesPerMonth,
     },
-    aiOverageBilled: overage.aiOverageBilled,
-    aiOverageCostBrl: overage.aiOverageCostBrl,
+    aiOverageBilled: allowsExpansion ? overage.aiOverageBilled : 0,
+    aiOverageCostBrl: allowsExpansion ? overage.aiOverageCostBrl : 0,
     ...(stripeSync
       ? {
           stripeMetered: {

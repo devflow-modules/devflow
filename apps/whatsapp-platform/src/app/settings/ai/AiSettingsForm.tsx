@@ -602,7 +602,11 @@ export function AiSettingsForm() {
           planName={planInfo?.plan_name}
         />
         {planCaps ? (
-          <PricingContextHint message={contextualAiUsageHint(planCaps.limits.aiCallsPerMonth)} />
+          <PricingContextHint
+            message={contextualAiUsageHint(planCaps.limits.aiCallsPerMonth, {
+              isFreePlan: planCaps.planKey === "FREE",
+            })}
+          />
         ) : null}
         <div className="rounded-xl border border-dashed border-slate-200/90 bg-white/60 px-4 py-3 text-sm text-slate-600">
           <p className="font-semibold text-slate-800">Ordem sugerida de configuração</p>

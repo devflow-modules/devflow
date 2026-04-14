@@ -161,3 +161,11 @@ export function getPlanLimits(plan: string | null | undefined): PlanLimits {
 export function getPlanFeatures(plan: string | null | undefined): PlanFeatures {
   return getPlan(plan).features;
 }
+
+/**
+ * Planos pagos (STARTER / PRO / SCALE) podem ter expansão de uso faturada.
+ * FREE não tem cartão nem faturação variável — limite incluído é teto duro.
+ */
+export function planAllowsMeteredOverage(plan: string | null | undefined): boolean {
+  return normalizePlan(plan) !== "FREE";
+}

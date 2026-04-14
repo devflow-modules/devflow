@@ -38,12 +38,18 @@ export {
   featureAccessDeniedResponse,
   type FeatureNotAvailablePayload,
 } from "./featureAccess";
-export { FEATURE_UPGRADE_COPY, featureUpgradeShortMessage } from "./featureUpgradeCopy";
+export {
+  FEATURE_UPGRADE_COPY,
+  FREE_PLAN_LIMIT_PAYWALL_MESSAGE,
+  featureUpgradeShortMessage,
+} from "./featureUpgradeCopy";
 export {
   enforceUsageOrThrow,
   UsageLimitExceededError,
+  usageLimitErrorToPayload,
   type EnforceUsageInput,
   type EnforcementFeature,
+  type UsageLimitErrorCode,
 } from "./enforcementService";
 export {
   logStripeEvent,
@@ -59,7 +65,12 @@ export { getTenantBillingUI } from "./tenantBillingUIService";
 export type { TenantBillingUI } from "./tenantBillingUIService";
 export type { FeatureKey } from "./featureGate";
 export { incrementUsage, getUsage, checkLimit } from "./usage.service";
-export { PLANS, getPlan } from "./plans";
+export {
+  PLANS,
+  getPlan,
+  planAllowsMeteredOverage,
+  normalizePlan,
+} from "./plans";
 export {
   COMMERCIAL_PLAN_BENEFITS,
   COMMERCIAL_PLAN_HEADLINE,
@@ -88,10 +99,13 @@ export {
   USAGE_AFTER_INCLUDED_EXPLAINER,
   USAGE_ANTI_SURPRISE_LINE,
   USAGE_EXPANSION_FRAMING,
+  USAGE_EXPANSION_ONLY_IF_GROWTH,
   USAGE_NO_SERVICE_INTERRUPTION,
   formatExpansionUnitPriceLines,
   contextualInboxUsageHint,
   contextualAiUsageHint,
+  freePlanUsageExplainerLines,
+  paidPlanUsageAfterIncludedLine,
 } from "./usageCommunication";
 export { isMeteredBillingConfigured } from "./stripeMeteredService";
 export { isMeterEventsConfigured } from "./infrastructure/stripeMeterClient";

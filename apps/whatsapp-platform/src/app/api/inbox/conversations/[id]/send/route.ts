@@ -6,7 +6,11 @@ import { digitsOnly } from "@/modules/inbox/waInboxUtils";
 import { prisma } from "@/lib/prisma";
 import { resolveMessagingTenantForOutbound } from "@/modules/whatsapp/whatsappPhoneResolution";
 import { z } from "zod";
-import { enforceUsageOrThrow, UsageLimitExceededError } from "@/modules/billing/enforcementService";
+import {
+  enforceUsageOrThrow,
+  UsageLimitExceededError,
+  usageLimitErrorToPayload,
+} from "@/modules/billing/enforcementService";
 import { trackUsage } from "@/modules/billing/usageService";
 import { logAction } from "@/modules/inbox";
 import { UsageEventType } from "@/generated/prisma-whatsapp";
@@ -65,7 +69,7 @@ export async function POST(
   } catch (e) {
     if (e instanceof UsageLimitExceededError) {
       return NextResponse.json(
-        { success: false, error: { message: e.message, code: e.code } },
+        { success: false, error: usageLimitErrorToPayload(e) },
         { status: 402 }
       );
     }

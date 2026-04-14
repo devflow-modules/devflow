@@ -1,6 +1,7 @@
 /**
  * Enforcement de uso por plano.
- * Bloqueia ou permite conforme BILLING_ENFORCE_LIMITS.
+ * - FREE: limite incluído é teto duro (mensagens e IA); sem cobrança adicional.
+ * - STARTER / PRO / SCALE: mensagens respeitam BILLING_ENFORCE_LIMITS; IA além do incluído segue para faturação (meter).
  */
 
 import { getTenantBillingContext } from "./subscriptionService";
@@ -9,8 +10,12 @@ import { getAiUsageMetrics } from "@/modules/ai/aiUsageService";
 import { isBillingEnforceLimits } from "./planConfig";
 import { logLimitExceeded, logUsageThresholdWarning } from "./billingObserverService";
 import { bumpMetric, logEvent } from "@/lib/observability";
+import type { PlanKey } from "./plans";
+import { planAllowsMeteredOverage } from "./plans";
 
 export type EnforcementFeature = "messages" | "ai";
+
+export type UsageLimitErrorCode = "USAGE_LIMIT_EXCEEDED" | "FREE_PLAN_LIMIT_REACHED";
 
 export type EnforceUsageInput = {
   tenantId: string;
@@ -20,13 +25,64 @@ export type EnforceUsageInput = {
 
 export class UsageLimitExceededError extends Error {
   override readonly name = "UsageLimitExceededError";
-  readonly code = "USAGE_LIMIT_EXCEEDED" as const;
+  readonly code: UsageLimitErrorCode;
   readonly feature: string;
+  readonly currentPlan: PlanKey;
+  readonly upgradeRequired: boolean;
 
-  constructor(feature: string, message?: string) {
+  constructor(
+    feature: string,
+    message?: string,
+    options?: {
+      code?: UsageLimitErrorCode;
+      currentPlan?: PlanKey;
+      upgradeRequired?: boolean;
+    }
+  ) {
     super(message ?? `Limite de uso atingido para ${feature}`);
     this.feature = feature;
+    this.currentPlan = options?.currentPlan ?? "FREE";
+    this.upgradeRequired = options?.upgradeRequired ?? true;
+    this.code = options?.code ?? "USAGE_LIMIT_EXCEEDED";
   }
+}
+
+/** Payload estável para APIs 402 / cliente. */
+export function usageLimitErrorToPayload(e: UsageLimitExceededError): {
+  message: string;
+  code: UsageLimitErrorCode;
+  currentPlan: PlanKey;
+  upgradeRequired: boolean;
+  feature: string;
+} {
+  return {
+    message: e.message,
+    code: e.code,
+    currentPlan: e.currentPlan,
+    upgradeRequired: e.upgradeRequired,
+    feature: e.feature,
+  };
+}
+
+function buildLimitExceededError(
+  plan: PlanKey,
+  feature: EnforcementFeature
+): UsageLimitExceededError {
+  const isFree = !planAllowsMeteredOverage(plan);
+  const msg =
+    feature === "messages"
+      ? isFree
+        ? "Limite de conversas do plano gratuito atingido. Escolha um plano para continuar."
+        : "Limite mensal de conversas atingido. Atualize o plano ou aguarde a renovação do período."
+      : isFree
+        ? "Limite de interações de IA do plano gratuito atingido. Escolha um plano para continuar."
+        : "Limite mensal de interações de IA atingido. Atualize o plano ou aguarde a renovação do período.";
+
+  return new UsageLimitExceededError(feature, msg, {
+    code: isFree ? "FREE_PLAN_LIMIT_REACHED" : "USAGE_LIMIT_EXCEEDED",
+    currentPlan: plan,
+    upgradeRequired: true,
+  });
 }
 
 function logEnforcement(
@@ -45,8 +101,8 @@ function logEnforcement(
 }
 
 /**
- * Verifica se o uso está dentro do limite. Se BILLING_ENFORCE_LIMITS=true e
- * ultrapassar, lança UsageLimitExceededError. Caso contrário, permite (soft limit).
+ * Verifica se o uso está dentro do limite. FREE bloqueia sempre ao ultrapassar.
+ * Planos pagos: mensagens bloqueiam se BILLING_ENFORCE_LIMITS=true; IA além do incluído não bloqueia (meter).
  */
 export async function enforceUsageOrThrow(input: EnforceUsageInput): Promise<void> {
   const { tenantId, feature, quantity = 1 } = input;
@@ -74,16 +130,28 @@ export async function enforceUsageOrThrow(input: EnforceUsageInput): Promise<voi
     return;
   }
 
-  // Starter/FREE + AI: sempre bloqueia excedente (fallback + upgrade)
-  // Pro/Scale + AI: permite excedente (será cobrado via meter events)
-  // Messages: respeita BILLING_ENFORCE_LIMITS global
-  const allowsAiOverage = plan === "PRO" || plan === "SCALE";
-  const blockExceeded =
-    feature === "ai"
-      ? !allowsAiOverage
-      : isBillingEnforceLimits();
+  // Acima do limite incluído
+  if (feature === "ai") {
+    if (!planAllowsMeteredOverage(plan)) {
+      logLimitExceeded(tenantId, feature);
+      logEnforcement(tenantId, feature, used, limit, true);
+      bumpMetric("billing_enforcement_blocked");
+      logEvent(
+        "warn",
+        "billing",
+        "usage_limit_blocked",
+        { feature, plan, used, limit: limit ?? null },
+        { tenant_id: tenantId }
+      );
+      throw buildLimitExceededError(plan, "ai");
+    }
+    logEnforcement(tenantId, feature, used, limit, false);
+    return;
+  }
 
-  if (blockExceeded) {
+  // messages
+  const blockMessages = !planAllowsMeteredOverage(plan) || isBillingEnforceLimits();
+  if (blockMessages) {
     logLimitExceeded(tenantId, feature);
     logEnforcement(tenantId, feature, used, limit, true);
     bumpMetric("billing_enforcement_blocked");
@@ -94,12 +162,8 @@ export async function enforceUsageOrThrow(input: EnforceUsageInput): Promise<voi
       { feature, plan, used, limit: limit ?? null },
       { tenant_id: tenantId }
     );
-    throw new UsageLimitExceededError(
-      feature,
-      `Limite mensal de ${feature === "messages" ? "mensagens" : "respostas IA"} atingido. Faça upgrade para continuar.`
-    );
+    throw buildLimitExceededError(plan, "messages");
   }
 
-  // Pro/Scale + AI: permite excedente (será cobrado via meter events)
   logEnforcement(tenantId, feature, used, limit, false);
 }

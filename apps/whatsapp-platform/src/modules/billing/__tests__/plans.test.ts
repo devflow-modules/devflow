@@ -5,6 +5,7 @@ import {
   normalizePlan,
   getPlanLimits,
   getPlanFeatures,
+  planAllowsMeteredOverage,
 } from "../plans";
 import { getTenantPlanCapabilities } from "../planCapabilities";
 
@@ -75,6 +76,13 @@ describe("plans", () => {
     expect(getPlanFeatures("FREE").AUTOMATION).toBe(false);
     expect(getPlanFeatures("PRO").AUTOMATION).toBe(true);
     expect(getPlanFeatures("SCALE").ADVANCED_AI).toBe(true);
+  });
+
+  it("planAllowsMeteredOverage: false só para FREE", () => {
+    expect(planAllowsMeteredOverage("FREE")).toBe(false);
+    expect(planAllowsMeteredOverage("STARTER")).toBe(true);
+    expect(planAllowsMeteredOverage("PRO")).toBe(true);
+    expect(planAllowsMeteredOverage("SCALE")).toBe(true);
   });
 
   it("getTenantPlanCapabilities retorna maxMessages, maxAIUsage e featuresEnabled", () => {

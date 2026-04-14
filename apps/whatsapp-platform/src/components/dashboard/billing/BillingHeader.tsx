@@ -1,8 +1,12 @@
 "use client";
 
 import { Button } from "@devflow/ui";
-import { PLANS, getPlan } from "@/modules/billing/plans";
-import { COMMERCIAL_PLAN_HEADLINE, COMMERCIAL_PLAN_SUBTITLE } from "@/modules/billing/planPresentation";
+import { getPlan } from "@/modules/billing/plans";
+import {
+  BILLING_HEADER_SUPPORTING_LINE,
+  COMMERCIAL_PLAN_HEADLINE,
+  COMMERCIAL_PLAN_SUBTITLE,
+} from "@/modules/billing/planPresentation";
 
 type Props = {
   plan: string;
@@ -30,7 +34,8 @@ export function BillingHeader({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{planName}</p>
-          <h2 className="mt-1 text-xl font-semibold text-slate-900">{headline}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-slate-500">{BILLING_HEADER_SUPPORTING_LINE}</p>
+          <h2 className="mt-2 text-xl font-semibold text-slate-900">{headline}</h2>
           {subtitle ? <p className="mt-2 max-w-xl text-sm text-slate-600">{subtitle}</p> : null}
           <div className="mt-2 flex items-center gap-2">
             <span

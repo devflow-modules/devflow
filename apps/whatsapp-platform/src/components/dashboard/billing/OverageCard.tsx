@@ -24,9 +24,7 @@ export function OverageCard({ overageMessages, overageAI, estimatedCost }: Props
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3 className="text-sm font-medium text-slate-600">Expansão de uso (além do incluído)</h3>
-        <p className="mt-2 text-sm text-slate-600">
-          Neste período ainda não ultrapassou o pacote incluído no plano — sem uso adicional a registar.
-        </p>
+        <p className="mt-2 text-sm text-slate-600">Ainda dentro do volume incluído no plano.</p>
       </div>
     );
   }

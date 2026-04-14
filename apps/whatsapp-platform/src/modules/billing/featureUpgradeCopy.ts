@@ -8,6 +8,10 @@ import { PLANS } from "./plans";
 import type { FeatureKey } from "./featureGate";
 import { CONTEXTUAL_UPGRADE_HINTS } from "./planPresentation";
 
+/** Mensagem quando FREE atinge limite (API 402 ou paywall contextual). */
+export const FREE_PLAN_LIMIT_PAYWALL_MESSAGE =
+  "Seu plano gratuito chegou ao limite. Para continuar a operar com atendimento, escolha um plano em Plano e faturação.";
+
 export const FEATURE_UPGRADE_COPY: Record<
   FeatureKey,
   string | undefined

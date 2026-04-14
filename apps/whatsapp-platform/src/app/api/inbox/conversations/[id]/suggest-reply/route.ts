@@ -11,7 +11,11 @@ import {
 } from "@/modules/ai/prompt/agentSystemPrompt";
 import { resolveEffectiveDriver } from "@/modules/ai/resolveAiRuntimeConfig";
 import { waInboxListMessages } from "@/modules/inbox";
-import { enforceUsageOrThrow, UsageLimitExceededError } from "@/modules/billing/enforcementService";
+import {
+  enforceUsageOrThrow,
+  UsageLimitExceededError,
+  usageLimitErrorToPayload,
+} from "@/modules/billing/enforcementService";
 import { trackUsage } from "@/modules/billing/usageService";
 import { trackAiUsage } from "@/modules/ai/aiUsageService";
 import { logEvent, logError } from "@/lib/observability";
@@ -39,7 +43,7 @@ export async function POST(
   } catch (e) {
     if (e instanceof UsageLimitExceededError) {
       return NextResponse.json(
-        { success: false, error: { message: e.message, code: e.code } },
+        { success: false, error: usageLimitErrorToPayload(e) },
         { status: 402 }
       );
     }

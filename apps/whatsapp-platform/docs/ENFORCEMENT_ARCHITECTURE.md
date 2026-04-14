@@ -19,12 +19,17 @@ Controle de uso baseado em plano. Bloqueia ou permite conforme configuração.
 
 ---
 
-## 3. Hard vs soft limit
+## 3. Hard vs soft limit e plano FREE
 
-| Modo | BILLING_ENFORCE_LIMITS | Comportamento |
-|------|------------------------|---------------|
-| **HARD** | `true` (default) | Bloqueia e lança `UsageLimitExceededError` ao exceder |
-| **SOFT** | `false` | Permite; overage é cobrado via meter events |
+| Modo | BILLING_ENFORCE_LIMITS | Plano FREE | Comportamento |
+|------|------------------------|------------|----------------|
+| **HARD** | `true` (default) | — | Mensagens: bloqueia ao exceder (planos pagos). |
+| **SOFT** | `false` | — | Mensagens (pagos): permite; overage via meter events. |
+| **FREE** | qualquer | sempre | Mensagens e IA: **sempre bloqueia** ao exceder o incluído — não há faturação variável. Erro típico: `FREE_PLAN_LIMIT_REACHED`. |
+
+**IA (respostas):** em planos **pagos**, o enforcement **não bloqueia** além do incluído (o excesso segue para faturação via meter). Em **FREE**, bloqueia ao ultrapassar o limite.
+
+Ver também: `docs/billing/FREE_VS_PAID_USAGE.md`.
 
 ---
 

@@ -7,3 +7,4 @@ export { PlanComparisonMatrix } from "./PlanComparisonMatrix";
 export { CurrentPlanUpgradeHint } from "./CurrentPlanUpgradeHint";
 export { PricingContextHint } from "./PricingContextHint";
 export { HowUsageWorksSection } from "./HowUsageWorksSection";
+export { HowFreePlanWorksSection } from "./HowFreePlanWorksSection";
