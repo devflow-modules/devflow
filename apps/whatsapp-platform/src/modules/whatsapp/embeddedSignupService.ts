@@ -3,14 +3,11 @@
  * Documentação: https://developers.facebook.com/docs/whatsapp/embedded-signup/
  */
 
+import {
+  buildAssignedWhatsappBusinessAccountsUrl,
+  getMetaGraphBase,
+} from "./embeddedSignupGraphQueries";
 import { getWhatsAppEmbeddedSignupRedirectUri } from "./whatsappEmbeddedSignupRedirectUri";
-
-function getMetaGraphBase(): string {
-  const ver =
-    process.env.META_API_VERSION ?? process.env.WHATSAPP_API_VERSION ?? "v21.0";
-  const v = ver.startsWith("v") ? ver : `v${ver}`;
-  return `https://graph.facebook.com/${v}`;
-}
 
 export interface EmbeddedSignupConfig {
   appId: string;
@@ -63,30 +60,61 @@ export function getEmbeddedSignupConfig(tenantId: string): EmbeddedSignupConfig 
   };
 }
 
+type AssignedWabaGraphRow = {
+  id: string;
+  name?: string;
+  business_id?: string;
+  phone_numbers?: {
+    data?: Array<{
+      id: string;
+      display_phone_number?: string;
+      verified_name?: string;
+    }>;
+  };
+};
+
 /**
- * Troca code por access_token e obtém WABA + phone numbers.
+ * Troca code por access_token e obtém WABA + phone numbers via
+ * `GET /me/assigned_whatsapp_business_accounts` (token no header; não usar edge `client_whatsapp_business_accounts`).
  */
 export async function exchangeCodeAndFetchPhoneNumbers(
   code: string
 ): Promise<WhatsappPhoneNumberData[]> {
   const { appId, appSecret } = getMetaConfig();
   const redirectUri = getWhatsAppEmbeddedSignupRedirectUri();
+  const graphBase = getMetaGraphBase();
 
-  const tokenUrl = new URL(`${getMetaGraphBase()}/oauth/access_token`);
+  const tokenUrl = new URL(`${graphBase}/oauth/access_token`);
   tokenUrl.searchParams.set("client_id", appId);
   tokenUrl.searchParams.set("client_secret", appSecret);
   tokenUrl.searchParams.set("code", code);
   tokenUrl.searchParams.set("redirect_uri", redirectUri);
 
+  const tokenUrlForLog = new URL(tokenUrl.toString());
+  tokenUrlForLog.searchParams.set("client_secret", "***");
+  tokenUrlForLog.searchParams.set("code", "***");
+  console.info("[WHATSAPP][EmbeddedSignup] oauth/access_token GET", tokenUrlForLog.toString());
+
   const tokenRes = await fetch(tokenUrl.toString(), { method: "GET" });
 
+  const tokenRaw = await tokenRes.text();
+  console.info(
+    "[WHATSAPP][EmbeddedSignup] oauth/access_token response",
+    JSON.stringify({ status: tokenRes.status, body: tokenRaw.slice(0, 4000) })
+  );
+
   if (!tokenRes.ok) {
-    const err = await tokenRes.text();
-    console.error("[WHATSAPP][EmbeddedSignup] token exchange failed:", err);
-    throw new Error(`Falha ao trocar code por token: ${err}`);
+    console.error("[WHATSAPP][EmbeddedSignup] token exchange failed:", tokenRaw);
+    throw new Error(`Falha ao trocar code por token: ${tokenRaw}`);
   }
 
-  const tokenData = (await tokenRes.json()) as { access_token?: string; error?: { message?: string } };
+  let tokenData: { access_token?: string; error?: { message?: string } };
+  try {
+    tokenData = JSON.parse(tokenRaw) as { access_token?: string; error?: { message?: string } };
+  } catch {
+    throw new Error("Resposta inválida ao trocar code por token");
+  }
+
   if (tokenData.error?.message) {
     throw new Error(tokenData.error.message);
   }
@@ -95,25 +123,34 @@ export async function exchangeCodeAndFetchPhoneNumbers(
     throw new Error("Token não retornado pela Meta");
   }
 
-  const wabasRes = await fetch(
-    `${getMetaGraphBase()}/me/client_whatsapp_business_accounts?fields=id,name,account_review_status,phone_numbers{id,display_phone_number,verified_name}&access_token=${encodeURIComponent(accessToken)}`,
-    { method: "GET" }
+  const wabaListUrl = buildAssignedWhatsappBusinessAccountsUrl(graphBase);
+  console.info("[WHATSAPP][EmbeddedSignup] assigned_whatsapp_business_accounts GET", wabaListUrl);
+
+  const wabasRes = await fetch(wabaListUrl, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  const wabaRaw = await wabasRes.text();
+  console.info(
+    "[WHATSAPP][EmbeddedSignup] assigned_whatsapp_business_accounts response",
+    JSON.stringify({ status: wabasRes.status, body: wabaRaw.slice(0, 8000) })
   );
 
   if (!wabasRes.ok) {
-    const err = await wabasRes.text();
-    console.error("[WHATSAPP][EmbeddedSignup] WABA fetch failed:", err);
-    throw new Error(`Falha ao buscar WABA: ${err}`);
+    console.error("[WHATSAPP][EmbeddedSignup] WABA fetch failed:", wabaRaw);
+    throw new Error(`Falha ao buscar WABA: ${wabaRaw}`);
   }
 
-  const wabaData = (await wabasRes.json()) as {
-    data?: Array<{
-      id: string;
-      name?: string;
-      phone_numbers?: { data?: Array<{ id: string; display_phone_number?: string; verified_name?: string }> };
-    }>;
-    error?: { message?: string };
-  };
+  let wabaData: { data?: AssignedWabaGraphRow[]; error?: { message?: string } };
+  try {
+    wabaData = JSON.parse(wabaRaw) as {
+      data?: AssignedWabaGraphRow[];
+      error?: { message?: string };
+    };
+  } catch {
+    throw new Error("Resposta inválida ao listar WABAs");
+  }
 
   if (wabaData.error?.message) {
     throw new Error(wabaData.error.message);
@@ -131,6 +168,7 @@ export async function exchangeCodeAndFetchPhoneNumbers(
           displayPhoneNumber: p.display_phone_number ?? p.id,
           wabaId: waba.id,
           accessToken,
+          businessId: waba.business_id,
         });
       }
     }
