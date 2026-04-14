@@ -20,6 +20,12 @@ import { InboxMetricsPanel } from "./InboxMetricsPanel";
 import { PageHeader } from "@/components/ui/page-header";
 import { FirstConversationHint } from "./FirstConversationHint";
 import { SupportHelpButton } from "@/components/support/SupportHelpButton";
+import { PricingContextHint } from "@/components/dashboard/billing/PricingContextHint";
+import { CONTEXTUAL_UPGRADE_HINTS } from "@/modules/billing/planPresentation";
+import { fetchProtected } from "@/lib/protected-fetch";
+import { getUiPlanCapabilities } from "@/modules/billing/planUiCapabilities";
+import { FEATURE_UPGRADE_COPY } from "@/modules/billing/featureUpgradeCopy";
+import { contextualInboxUsageHint } from "@/modules/billing/usageCommunication";
 
 /** Polling: 10s quando realtime conectado, 5s como fallback. */
 const POLL_INTERVAL_REALTIME_MS = 10_000;
@@ -91,6 +97,21 @@ function InboxShellContent() {
     queryFn: fetchTenantWhatsappLines,
     staleTime: 60_000,
   });
+
+  const { data: billingUi } = useQuery({
+    queryKey: ["tenant-billing-ui"],
+    queryFn: async () => {
+      const r = await fetchProtected("/api/billing/ui");
+      if (!r.ok) return null;
+      const j = (await r.json()) as {
+        success?: boolean;
+        data?: { plan: string; messagesLimit: number | null };
+      };
+      return j.data ?? null;
+    },
+    staleTime: 120_000,
+  });
+  const caps = billingUi?.plan != null ? getUiPlanCapabilities(billingUi.plan) : null;
 
   const { data: inboxQueues = [] } = useQuery({
     queryKey: ["inbox-operational-queues"],
@@ -172,6 +193,19 @@ function InboxShellContent() {
             </div>
           }
         />
+      </div>
+
+      <div className="shrink-0 space-y-2 px-4 pb-2 sm:px-6">
+        <PricingContextHint
+          message={
+            billingUi?.messagesLimit != null
+              ? contextualInboxUsageHint(billingUi.messagesLimit)
+              : CONTEXTUAL_UPGRADE_HINTS.inbox
+          }
+        />
+        {caps && !caps.hasQueuesAndTags && FEATURE_UPGRADE_COPY.QUEUES_TAGS ? (
+          <PricingContextHint message={FEATURE_UPGRADE_COPY.QUEUES_TAGS} />
+        ) : null}
       </div>
 
       <InboxMetricsPanel

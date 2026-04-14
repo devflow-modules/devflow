@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { addQueueMember, removeQueueMember } from "@/modules/inbox/inboxOperationalQueueService";
+import { requireFeatureOr403 } from "@/modules/billing/featureGate";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,11 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
+  if (denied) return denied;
+
+  const blocked = await requireFeatureOr403(auth!.payload.tenantId, "QUEUES_TAGS");
+  if (blocked) return blocked;
 
   const { id: queueId } = await params;
   let json: unknown;
@@ -29,7 +34,7 @@ export async function POST(
     return NextResponse.json({ error: "userId inválido" }, { status: 400 });
   }
 
-  const res = await addQueueMember(auth.payload.tenantId, queueId, parsed.data.userId);
+  const res = await addQueueMember(auth!.payload.tenantId, queueId, parsed.data.userId);
   if (!res.ok) {
     const status = res.reason === "not_found" ? 404 : 400;
     return NextResponse.json({ error: "Fila ou utilizador inválido" }, { status });

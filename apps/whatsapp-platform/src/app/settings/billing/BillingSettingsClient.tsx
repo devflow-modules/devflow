@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@devflow/ui";
 import { StateError, StateLoading } from "@/components/ui/app-states";
+import { HowUsageWorksSection } from "@/components/dashboard/billing/HowUsageWorksSection";
 import { readBillingPostUrl, readSubscriptionFromApiJson } from "@/lib/api-json-client";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
@@ -27,6 +28,7 @@ type Usage = {
   unitPricesBrl: { message: number; aiResponse: number };
   estimatedVariableCostBrl: number;
   withinLimits: { messages: boolean; ai: boolean };
+  enforceLimits: boolean;
   stripeMetered?: {
     messagesReportedToStripe: number;
     aiReportedToStripe: number;
@@ -128,7 +130,11 @@ export function BillingSettingsClient() {
       ) : null}
 
       <section className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03] sm:p-6">
-        <h2 className="mb-3 text-lg font-bold tracking-tight text-slate-900">Assinatura</h2>
+        <h2 className="mb-1 text-lg font-bold tracking-tight text-slate-900">Assinatura</h2>
+        <p className="mb-3 text-sm text-slate-600">
+          Plano ativo, renovação e faturação via Stripe. Limites técnicos e enforcement continuam definidos no
+          servidor — aqui vê o estado e acede ao portal.
+        </p>
         {sub && (
           <dl className="grid gap-2 text-sm">
             <div className="flex justify-between">
@@ -176,7 +182,7 @@ export function BillingSettingsClient() {
         <div className="mt-4 flex flex-wrap gap-2">
           {sub?.stripeCustomerId ? (
             <Button type="button" onClick={() => void openPortal()} disabled={portalLoading}>
-              {portalLoading ? "Abrindo…" : "Gerenciar assinatura (Stripe)"}
+              {portalLoading ? "Abrindo…" : "Portal Stripe (faturas e pagamento)"}
             </Button>
           ) : null}
           <Button
@@ -185,7 +191,7 @@ export function BillingSettingsClient() {
             onClick={() => void checkout("PRO")}
             disabled={!!checkoutLoading}
           >
-            {checkoutLoading === "PRO" ? "…" : "Upgrade PRO"}
+            {checkoutLoading === "PRO" ? "…" : "Subir para Pro"}
           </Button>
           <Button
             type="button"
@@ -193,10 +199,14 @@ export function BillingSettingsClient() {
             onClick={() => void checkout("SCALE")}
             disabled={!!checkoutLoading}
           >
-            {checkoutLoading === "SCALE" ? "…" : "Upgrade SCALE"}
+            {checkoutLoading === "SCALE" ? "…" : "Subir para Scale"}
           </Button>
         </div>
       </section>
+
+      {usage && (
+        <HowUsageWorksSection unitPrices={usage.unitPricesBrl} />
+      )}
 
       {usage && (
         <section className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03] sm:p-6">
@@ -206,7 +216,7 @@ export function BillingSettingsClient() {
           </p>
           <dl className="grid gap-3 text-sm">
             <div className="flex justify-between items-center">
-              <dt>Mensagens enviadas (outbound)</dt>
+              <dt>Volume de conversas (enviadas)</dt>
               <dd className="font-mono">
                 {usage.messagesSent}
                 {usage.limits.messagesPerMonth != null && (
@@ -267,10 +277,9 @@ export function BillingSettingsClient() {
       )}
 
       <p className="text-xs text-slate-500">
-        Limite rígido: <code className="bg-slate-100 px-1">BILLING_ENFORCE_LIMITS=true</code>.         Metered: env{" "}
-        <code className="bg-slate-100 px-1">WHATSAPP_STRIPE_METERED_PRICE_*</code> ou{" "}
-        <code className="bg-slate-100 px-1">STRIPE_METERED_PRICE_*</code> — ver{" "}
-        <code className="bg-slate-100 px-1">docs/whatsapp-platform/METERED_BILLING.md</code>.
+        Administradores: fluxo técnico de billing e enforcement está em{" "}
+        <code className="rounded bg-slate-100 px-1">docs/billing/BILLING_FLOW.md</code> — separado da narrativa de
+        produto na interface.
       </p>
     </div>
   );

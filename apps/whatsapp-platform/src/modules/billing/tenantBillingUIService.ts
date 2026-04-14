@@ -19,6 +19,9 @@ export type TenantBillingUI = {
   overageMessages: number;
   overageAI: number;
   estimatedOverageCost: number;
+  /** Preços unitários de expansão (exibição; mesma fonte que `planConfig.getUsageUnitPricesBrl`). */
+  messageUnitPriceBrl: number;
+  aiUnitPriceBrl: number;
   nextInvoiceDate: string | null;
   lastInvoiceAmount: number | null;
   lastInvoiceStatus: string | null;
@@ -61,6 +64,8 @@ export async function getTenantBillingUI(tenantId: string): Promise<TenantBillin
     overageMessages: summary.overage.messages,
     overageAI: summary.overage.ai,
     estimatedOverageCost,
+    messageUnitPriceBrl: prices.message,
+    aiUnitPriceBrl: prices.aiResponse,
     nextInvoiceDate: summary.nextInvoice?.periodEnd ?? null,
     lastInvoiceAmount: summary.lastInvoice?.amountPaid ?? null,
     lastInvoiceStatus: summary.lastInvoice?.status ?? null,

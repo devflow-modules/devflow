@@ -11,6 +11,9 @@ import { WhatsappPhoneNumberCard } from "./WhatsappPhoneNumberCard";
 import { WhatsappStatusSummary } from "./WhatsappStatusSummary";
 import type { WhatsappPhoneNumberRow } from "./whatsappConnectTypes";
 import { formatDisplayLine } from "./whatsappConnectUtils";
+import { PricingContextHint } from "@/components/dashboard/billing/PricingContextHint";
+import { CONTEXTUAL_UPGRADE_HINTS } from "@/modules/billing/planPresentation";
+import { getUiPlanCapabilities } from "@/modules/billing/planUiCapabilities";
 
 export function WhatsappConnectClient() {
   const searchParams = useSearchParams();
@@ -23,11 +26,15 @@ export function WhatsappConnectClient() {
   const [labelDrafts, setLabelDrafts] = useState<Record<string, string>>({});
   const [oauthSuccessBanner, setOauthSuccessBanner] = useState(false);
   const [listHighlight, setListHighlight] = useState(false);
+  const [phoneCapacityHint, setPhoneCapacityHint] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setError(null);
     try {
-      const res = await fetchProtected("/api/whatsapp/phone-numbers");
+      const [res, billingRes] = await Promise.all([
+        fetchProtected("/api/whatsapp/phone-numbers"),
+        fetchProtected("/api/billing/ui"),
+      ]);
       const json = (await res.json().catch(() => ({}))) as { data?: WhatsappPhoneNumberRow[]; error?: string };
       if (!res.ok) {
         setError(protectedApiUserMessage(res.status, json));
@@ -35,6 +42,31 @@ export function WhatsappConnectClient() {
       }
       const data = json.data ?? [];
       setNumbers(data);
+
+      if (billingRes.ok) {
+        const bj = (await billingRes.json().catch(() => ({}))) as {
+          success?: boolean;
+          data?: { plan?: string };
+        };
+        const plan = bj.data?.plan;
+        if (plan) {
+          const caps = getUiPlanCapabilities(plan);
+          const maxPhones = caps.limits.phoneNumbers;
+          if (maxPhones != null && data.filter((n) => n.status === "ACTIVE").length >= maxPhones) {
+            setPhoneCapacityHint(
+              caps.planKey === "SCALE"
+                ? null
+                : "Precisa de mais canais WhatsApp no mesmo espaço? O plano Scale inclui até 3 números — veja detalhes em Planos."
+            );
+          } else {
+            setPhoneCapacityHint(null);
+          }
+        } else {
+          setPhoneCapacityHint(null);
+        }
+      } else {
+        setPhoneCapacityHint(null);
+      }
       setLabelDrafts((prev) => {
         const next = { ...prev };
         for (const n of data) {
@@ -180,6 +212,9 @@ export function WhatsappConnectClient() {
       />
 
       <WhatsappConnectCta connectLoading={connectLoading} onConnect={handleConnect} />
+
+      <PricingContextHint message={CONTEXTUAL_UPGRADE_HINTS.whatsappChannel} />
+      {phoneCapacityHint ? <PricingContextHint message={phoneCapacityHint} /> : null}
 
       {numbers.length === 0 ? (
         <StateEmpty

@@ -11,6 +11,9 @@ import {
   OverageCard,
   BillingAlerts,
   UpgradeCTA,
+  PlanComparisonMatrix,
+  CurrentPlanUpgradeHint,
+  HowUsageWorksSection,
 } from "@/components/dashboard/billing";
 import type { TenantBillingUI } from "@/modules/billing";
 import type { PlanKey } from "@/modules/billing/plans";
@@ -114,7 +117,7 @@ export function BillingDashboardClient() {
     <PageHeader
       eyebrow="Conta"
       title="Plano e faturação"
-      description="Plano Stripe, consumo de mensagens e de IA no período, excedente e próxima cobrança — alinhado à área Conta e canais."
+      description="Veja o nível da sua operação (Inbox, equipa, IA e automação), o consumo do período e a renovação. O portal Stripe trata de faturas e método de pagamento."
       layout="split"
       showDivider
       tone="admin"
@@ -199,6 +202,8 @@ export function BillingDashboardClient() {
 
       {error ? <div className="df-feedback-danger">{error}</div> : null}
 
+      <CurrentPlanUpgradeHint plan={d.plan} />
+
       <BillingHeader
         plan={d.plan}
         status={d.status}
@@ -207,18 +212,24 @@ export function BillingDashboardClient() {
         manageLoading={portalLoading}
       />
 
+      <HowUsageWorksSection
+        unitPrices={{ message: d.messageUnitPriceBrl, aiResponse: d.aiUnitPriceBrl }}
+      />
+
       <div className="grid gap-4 sm:grid-cols-2">
         <UsageCard
-          title="Mensagens"
+          title="Volume de conversas"
           used={d.messagesUsed}
           limit={d.messagesLimit}
           percentage={d.usagePercentageMessages}
+          unitLabel="conversas"
         />
         <UsageCard
-          title="Interações IA"
+          title="IA de atendimento"
           used={d.aiUsed}
           limit={d.aiLimit}
           percentage={d.usagePercentageAI}
+          unitLabel="interações de IA"
         />
       </div>
 
@@ -229,6 +240,8 @@ export function BillingDashboardClient() {
         overageMessages={d.overageMessages}
         overageAI={d.overageAI}
       />
+
+      <PlanComparisonMatrix currentPlan={d.plan} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <OverageCard

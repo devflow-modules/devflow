@@ -5,6 +5,8 @@ type Props = {
   used: number;
   limit: number | null;
   percentage: number | null;
+  /** Ex.: "conversas" | "interações de IA" */
+  unitLabel?: string;
 };
 
 function getProgressColor(pct: number | null): string {
@@ -14,7 +16,7 @@ function getProgressColor(pct: number | null): string {
   return "bg-red-500";
 }
 
-export function UsageCard({ title, used, limit, percentage }: Props) {
+export function UsageCard({ title, used, limit, percentage, unitLabel = "unidades" }: Props) {
   const pct = percentage ?? (limit != null && limit > 0 ? Math.round((used / limit) * 100) : 0);
   const displayLimit = limit != null ? limit.toLocaleString("pt-BR") : "—";
   const isUnlimited = limit == null;
@@ -29,6 +31,11 @@ export function UsageCard({ title, used, limit, percentage }: Props) {
         )}
       </p>
       {!isUnlimited && (
+        <p className="mt-1 text-xs text-slate-500">
+          {used.toLocaleString("pt-BR")} de {displayLimit} {unitLabel} incluídas no período
+        </p>
+      )}
+      {!isUnlimited && (
         <>
           <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
             <div
@@ -36,7 +43,7 @@ export function UsageCard({ title, used, limit, percentage }: Props) {
               style={{ width: `${Math.min(100, pct)}%` }}
             />
           </div>
-          <p className="mt-1 text-xs text-slate-500">{pct}% utilizado</p>
+          <p className="mt-1 text-xs text-slate-500">{pct}% do incluído utilizado</p>
         </>
       )}
     </div>

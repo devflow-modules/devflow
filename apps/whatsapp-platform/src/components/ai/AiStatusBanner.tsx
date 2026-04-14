@@ -35,15 +35,16 @@ export function AiStatusBanner({
 
   if (state === "exceeded") {
     return (
-      <div className="mt-3 rounded-lg border-2 border-red-400 bg-red-50 p-4">
-        <p className="text-sm font-semibold text-red-900">
-          🚫 Sua IA parou de responder automaticamente
+      <div className="mt-3 rounded-lg border border-amber-300 bg-amber-50/95 p-4">
+        <p className="text-sm font-semibold text-amber-950">
+          Interações de IA incluídas no plano esgotadas neste período
         </p>
-        <p className="mt-1 text-sm text-red-800">
-          As mensagens estão sendo respondidas de forma limitada. Para voltar ao atendimento automático:
+        <p className="mt-1 text-sm text-amber-900/95">
+          Faça upgrade para recuperar margem no pacote incluído, ou veja em Plano e faturação como funciona o uso
+          adicional (na fatura: «Uso adicional de IA»).
         </p>
         <Link href="/billing" className="mt-3 inline-block">
-          <Button size="sm">Fazer upgrade do plano</Button>
+          <Button size="sm">Ver planos e faturação</Button>
         </Link>
       </div>
     );
@@ -51,15 +52,17 @@ export function AiStatusBanner({
 
   if (state === "near_limit") {
     return (
-      <div className="mt-3 rounded-lg border-2 border-amber-400 bg-amber-50 p-4">
-        <p className="text-sm font-semibold text-amber-900">
-          ⚠️ Você já usou {percentUsed}% das respostas com IA
+      <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/80 p-4">
+        <p className="text-sm font-semibold text-amber-950">
+          Próximo do que o plano inclui ({percentUsed != null ? `${percentUsed}%` : "—"} das interações de IA)
         </p>
-        <p className="mt-1 text-sm text-amber-800">
-          Clientes podem começar a ficar sem resposta automática. Evite perder vendas.
+        <p className="mt-1 text-sm text-amber-900/90">
+          Isto não interrompe o serviço: além do incluído pode haver expansão de uso, conforme a sua fatura.
         </p>
         <Link href="/billing" className="mt-3 inline-block">
-          <Button size="sm">Evitar parar a IA</Button>
+          <Button size="sm" variant="outline">
+            Rever plano e limites
+          </Button>
         </Link>
       </div>
     );

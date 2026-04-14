@@ -19,6 +19,9 @@ import { formatWaitDurationMs } from "@/modules/inbox/waInboxSla";
 import type { InboxSlaLevel } from "./inboxTypes";
 import { buttonClassName } from "@/components/ui/button";
 import { SLA_LEVEL_BADGE_CLASS } from "./inboxOperationalStyles";
+import { FeatureUpgradePrompt } from "@/components/billing/FeatureUpgradePrompt";
+import type { FeatureNotAvailablePayload } from "@/lib/protected-fetch";
+import { isFeatureBlockedError } from "@/lib/protected-fetch";
 
 const SLA_LABEL: Record<InboxSlaLevel, string> = {
   low: "SLA OK",
@@ -51,6 +54,7 @@ export function ChatHeader({
   const [statusOpen, setStatusOpen] = useState(false);
   const [tagOpen, setTagOpen] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
+  const [queueUpgradeBlock, setQueueUpgradeBlock] = useState<FeatureNotAvailablePayload | null>(null);
   const assignRef = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLDivElement>(null);
   const tagRef = useRef<HTMLDivElement>(null);
@@ -146,10 +150,15 @@ export function ChatHeader({
   const handleQueueChange = async (queueId: string | null) => {
     try {
       setActionBusy(true);
+      setQueueUpgradeBlock(null);
       await updateThreadQueue(threadId, queueId);
       invalidate();
     } catch (err) {
-      console.error(err);
+      if (isFeatureBlockedError(err)) {
+        setQueueUpgradeBlock(err.payload);
+      } else {
+        console.error(err);
+      }
     } finally {
       setActionBusy(false);
     }
@@ -260,6 +269,14 @@ export function ChatHeader({
                   </option>
                 ))}
               </select>
+            </div>
+          ) : null}
+          {queueUpgradeBlock ? (
+            <div className="mt-3 max-w-xl">
+              <FeatureUpgradePrompt
+                blocked={queueUpgradeBlock}
+                onDismiss={() => setQueueUpgradeBlock(null)}
+              />
             </div>
           ) : null}
         </div>

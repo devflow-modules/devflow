@@ -4,6 +4,7 @@ import { getAuthFromRequest } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 import { permissionsMessages } from "@/lib/permissionsMessages";
 import { isTenantManager } from "@/lib/roles";
+import { requireFeatureOr403 } from "@/modules/billing/featureGate";
 
 export async function POST(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
@@ -16,6 +17,9 @@ export async function POST(request: NextRequest) {
       { status: 403 }
     );
   }
+
+  const blocked = await requireFeatureOr403(auth.payload.tenantId, "WEBHOOKS_API");
+  if (blocked) return blocked;
 
   const apiKey = `wa_${randomBytes(32).toString("hex")}`;
 

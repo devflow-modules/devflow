@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@devflow/ui";
 import { AiStatusBanner, type AiBannerState } from "@/components/ai/AiStatusBanner";
@@ -17,6 +17,10 @@ import { AiSettingsPhase, AiSettingsSubheading } from "./AiSettingsPhase";
 import { AiSettingsAnchorNav } from "./AiSettingsAnchorNav";
 import { AiStatusSummary } from "./AiStatusSummary";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
+import { PricingContextHint } from "@/components/dashboard/billing/PricingContextHint";
+import { getUiPlanCapabilities } from "@/modules/billing/planUiCapabilities";
+import { FEATURE_UPGRADE_COPY } from "@/modules/billing/featureUpgradeCopy";
+import { contextualAiUsageHint } from "@/modules/billing/usageCommunication";
 import type { AiAgentTone } from "@/generated/prisma-whatsapp";
 import type { AiBehaviorPreset, AiBehaviorPresetId } from "@/modules/ai/aiPresets";
 import type { AiState, PlaybookJson } from "@/modules/ai/conversationStateService";
@@ -90,7 +94,7 @@ type UsageStatus = {
   can_use: boolean;
 };
 
-type PlanInfo = { plan_name: string };
+type PlanInfo = { plan_name: string; plan: string };
 
 type AiCfg = {
   enabled: boolean;
@@ -160,7 +164,7 @@ function getBannerState(enabled: boolean, usageStatus: UsageStatus | null): AiBa
   if (!enabled) return "disabled";
   if (!usageStatus) return "active";
   if (!usageStatus.can_use) return "exceeded";
-  if (usageStatus.percent_used != null && usageStatus.percent_used >= 70) return "near_limit";
+  if (usageStatus.percent_used != null && usageStatus.percent_used >= 80) return "near_limit";
   return "active";
 }
 
@@ -342,6 +346,11 @@ export function AiSettingsForm() {
 
   const [usageStatus, setUsageStatus] = useState<UsageStatus | null>(null);
   const [planInfo, setPlanInfo] = useState<PlanInfo | null>(null);
+
+  const planCaps = useMemo(
+    () => (planInfo?.plan != null ? getUiPlanCapabilities(planInfo.plan) : null),
+    [planInfo?.plan]
+  );
 
   const [playbookDraft, setPlaybookDraft] = useState<Record<AiState, PlaybookDraftRow>>(emptyPlaybookDraft);
 
@@ -592,6 +601,9 @@ export function AiSettingsForm() {
           percentUsed={usageStatus?.percent_used ?? undefined}
           planName={planInfo?.plan_name}
         />
+        {planCaps ? (
+          <PricingContextHint message={contextualAiUsageHint(planCaps.limits.aiCallsPerMonth)} />
+        ) : null}
         <div className="rounded-xl border border-dashed border-slate-200/90 bg-white/60 px-4 py-3 text-sm text-slate-600">
           <p className="font-semibold text-slate-800">Ordem sugerida de configuração</p>
           <ol className="mt-2 list-decimal space-y-1 pl-5">
@@ -904,6 +916,9 @@ export function AiSettingsForm() {
             Avançado — motor LLM e parâmetros de geração
           </summary>
           <div className="mt-4 space-y-4 border-t border-slate-200/80 pt-4">
+            {planCaps && !planCaps.hasAdvancedAi && FEATURE_UPGRADE_COPY.ADVANCED_AI ? (
+              <PricingContextHint message={FEATURE_UPGRADE_COPY.ADVANCED_AI} />
+            ) : null}
             <p className="text-xs text-slate-600">
               Motor global do tenant: <strong>{tenantAiDriver ?? "não definido"}</strong>. Sobrescreva só se precisar de um
               fornecedor diferente só para esta IA de atendimento.

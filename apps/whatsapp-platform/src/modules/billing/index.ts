@@ -12,6 +12,7 @@ export {
   getSubscriptionView,
   getUsageDashboard,
   type CheckoutPlan,
+  type UsageDashboard,
 } from "./billingService";
 export { syncBillingSubscriptionFromStripe, markSubscriptionPastDueByCustomerId } from "./billingStripeSync";
 export {
@@ -25,7 +26,19 @@ export {
   getTenantBillingContext,
   ensureTenantSubscription,
 } from "./subscriptionService";
-export { canUseFeature, assertFeature } from "./featureGate";
+export {
+  canUseFeature,
+  assertFeature,
+  requireFeatureOr403,
+} from "./featureGate";
+export {
+  buildFeatureAccessError,
+  minimumPlanForFeature,
+  FeatureNotAvailableError,
+  featureAccessDeniedResponse,
+  type FeatureNotAvailablePayload,
+} from "./featureAccess";
+export { FEATURE_UPGRADE_COPY, featureUpgradeShortMessage } from "./featureUpgradeCopy";
 export {
   enforceUsageOrThrow,
   UsageLimitExceededError,
@@ -48,9 +61,38 @@ export type { FeatureKey } from "./featureGate";
 export { incrementUsage, getUsage, checkLimit } from "./usage.service";
 export { PLANS, getPlan } from "./plans";
 export {
+  COMMERCIAL_PLAN_BENEFITS,
+  COMMERCIAL_PLAN_HEADLINE,
+  COMMERCIAL_PLAN_SUBTITLE,
+  COMMERCIAL_CHECKOUT_CTA,
+  COMMERCIAL_TAGLINE,
+  COMMERCIAL_POSITIONING,
+  COMMERCIAL_RECOMMENDED_BADGE,
+  COMMERCIAL_RECOMMENDED_PLAN,
+  CONTEXTUAL_UPGRADE_HINTS,
+  PLAN_VALUE_COMPARISON,
+  PRICING_DECISION_REASSURANCE,
+  PRICING_LIMITS_SECTION_TITLE,
+  comparisonCellValue,
+  formatIncludedLimitsLine,
+  upgradeSuggestionCopy,
+} from "./planPresentation";
+export {
   getTenantPlanCapabilities,
   type PlanCapabilities,
 } from "./planCapabilities";
+export { getUiPlanCapabilities, type UiPlanCapabilities } from "./planUiCapabilities";
+export {
+  formatIncludedUsageSentence,
+  STRIPE_USAGE_LINE_LABELS,
+  USAGE_AFTER_INCLUDED_EXPLAINER,
+  USAGE_ANTI_SURPRISE_LINE,
+  USAGE_EXPANSION_FRAMING,
+  USAGE_NO_SERVICE_INTERRUPTION,
+  formatExpansionUnitPriceLines,
+  contextualInboxUsageHint,
+  contextualAiUsageHint,
+} from "./usageCommunication";
 export { isMeteredBillingConfigured } from "./stripeMeteredService";
 export { isMeterEventsConfigured } from "./infrastructure/stripeMeterClient";
 export { reportMessageUsage } from "./application/reportMessageUsage";

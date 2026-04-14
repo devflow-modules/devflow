@@ -37,7 +37,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     searchAliases: ["whatsapp", "meta", "business", "número", "ligar", "configurar whatsapp", "linha"],
   },
   "/dashboard/billing": {
-    label: "Cobrança",
+    label: "Plano e faturação",
     parent: "/dashboard",
     section: "conta",
     roles: ["manager", "platform_admin"],
@@ -97,7 +97,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     searchAliases: ["prompt", "comportamento", "tom", "playbook", "respostas automáticas"],
   },
   "/settings/billing": {
-    label: "Plano no espaço de trabalho",
+    label: "Plano e faturação (resumo)",
     parent: "/settings",
     section: "conta",
     roles: ["manager", "platform_admin"],

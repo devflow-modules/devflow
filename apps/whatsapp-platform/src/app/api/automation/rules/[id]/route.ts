@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { recordPlatformAudit } from "@/lib/platformAuditLog";
 import { getClientIp } from "@/lib/rate-limit";
 import { z } from "zod";
+import { requireFeatureOr403 } from "@/modules/billing/featureGate";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,9 @@ export async function PATCH(
   const tenantId = auth.payload.tenantId;
   const { id } = await context.params;
   if (!id) return NextResponse.json({ error: "id obrigatório" }, { status: 400 });
+
+  const gate = await requireFeatureOr403(tenantId, "AUTOMATION");
+  if (gate) return gate;
 
   let json: unknown;
   try {
@@ -72,6 +76,9 @@ export async function DELETE(
   const tenantId = auth.payload.tenantId;
   const { id } = await context.params;
   if (!id) return NextResponse.json({ error: "id obrigatório" }, { status: 400 });
+
+  const gate = await requireFeatureOr403(tenantId, "AUTOMATION");
+  if (gate) return gate;
 
   const rule = await prisma.waAutomationRule.findFirst({
     where: { id, tenantId },

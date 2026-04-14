@@ -1,10 +1,11 @@
 /**
- * Definição central de planos e limites.
- * Backend-first: nunca confiar apenas no frontend.
+ * Definição central de planos, limites e flags de funcionalidade (fonte de verdade para enforcement e UI técnica).
+ * Nunca confiar apenas no frontend para autorização.
  *
- * Estrutura: assinatura fixa mensal + uso variável (excedente).
- * Starter R$39 | Pro R$99 | Scale R$249
- * Excedente: R$0,03/conversa, R$0,09/interação IA
+ * Assinatura mensal + possível uso variável (excedente) — ver serviços de billing e Stripe.
+ *
+ * Narrativa comercial, packaging e comparação por valor de produto: `planPresentation.ts` e
+ * `docs/billing/PRODUCT_PRICING_NARRATIVE.md` (não duplicar números de quota na copy sem alinhar aqui).
  */
 
 export type PlanKey = "FREE" | "STARTER" | "PRO" | "SCALE";

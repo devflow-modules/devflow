@@ -1,0 +1,80 @@
+"use client";
+
+import {
+  USAGE_AFTER_INCLUDED_EXPLAINER,
+  USAGE_ANTI_SURPRISE_LINE,
+  USAGE_EXPANSION_FRAMING,
+  USAGE_NO_SERVICE_INTERRUPTION,
+  formatExpansionUnitPriceLines,
+  STRIPE_USAGE_LINE_LABELS,
+} from "@/modules/billing/usageCommunication";
+
+type Props = {
+  unitPrices: { message: number; aiResponse: number };
+  className?: string;
+};
+
+/**
+ * Bloco educativo: incluído no plano, o que acontece depois, preços de expansão, alinhamento Stripe.
+ */
+export function HowUsageWorksSection({ unitPrices, className = "" }: Props) {
+  const priceLines = formatExpansionUnitPriceLines(unitPrices);
+
+  return (
+    <section
+      className={`rounded-2xl border border-slate-200/90 bg-gradient-to-b from-slate-50/80 to-white p-5 shadow-sm sm:p-6 ${className}`}
+      aria-labelledby="how-usage-works-heading"
+    >
+      <h2 id="how-usage-works-heading" className="text-base font-semibold text-slate-900">
+        Como funciona o uso
+      </h2>
+      <p className="mt-1 text-sm text-slate-600">
+        Cada plano inclui um volume de conversas e de interações de IA por mês. Isto é o pacote base da sua subscrição.
+      </p>
+      <ul className="mt-4 space-y-3 text-sm text-slate-700">
+        <li className="flex gap-2">
+          <span className="mt-0.5 text-emerald-600" aria-hidden>
+            ✓
+          </span>
+          <span>
+            <strong className="text-slate-900">Incluído no plano:</strong> conversas e interações de IA até aos limites do nível que escolheu (ver tabela de planos).
+          </span>
+        </li>
+        <li className="flex gap-2">
+          <span className="mt-0.5 text-slate-500" aria-hidden>
+            →
+          </span>
+          <span>
+            <strong className="text-slate-900">Depois do incluído:</strong> {USAGE_AFTER_INCLUDED_EXPLAINER}{" "}
+            {USAGE_NO_SERVICE_INTERRUPTION}
+          </span>
+        </li>
+        <li className="flex gap-2">
+          <span className="mt-0.5 text-slate-500" aria-hidden>
+            ↑
+          </span>
+          <span>
+            <strong className="text-slate-900">Expandir a operação:</strong> {USAGE_EXPANSION_FRAMING}
+          </span>
+        </li>
+      </ul>
+
+      <div className="mt-5 rounded-xl border border-slate-100 bg-white/90 px-4 py-3">
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Preço quando ultrapassa o incluído</p>
+        <ul className="mt-2 space-y-1.5 text-sm text-slate-600">
+          {priceLines.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+        <p className="mt-3 text-xs leading-relaxed text-slate-500">
+          Na fatura, estes valores aparecem como «{STRIPE_USAGE_LINE_LABELS.extraConversations}» e «
+          {STRIPE_USAGE_LINE_LABELS.extraAi}», para bater certo com o Stripe.
+        </p>
+      </div>
+
+      <p className="mt-4 rounded-lg bg-emerald-50/80 px-3 py-2.5 text-sm leading-relaxed text-emerald-950/90">
+        {USAGE_ANTI_SURPRISE_LINE}
+      </p>
+    </section>
+  );
+}

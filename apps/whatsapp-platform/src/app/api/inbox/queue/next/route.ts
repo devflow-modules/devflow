@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getAuthFromRequest, requireRole, ROLES_OPERATIONAL } from "@/modules/auth";
 import { runQueueNext } from "@/modules/inbox/inboxQueueNext";
 import { jsonSuccess, jsonError } from "@/lib/api-response";
+import { requireFeatureOr403 } from "@/modules/billing/featureGate";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,9 @@ export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
   const denied = requireRole(auth, ROLES_OPERATIONAL, request);
   if (denied) return denied;
+
+  const blocked = await requireFeatureOr403(auth!.payload.tenantId, "QUEUES_TAGS");
+  if (blocked) return blocked;
 
   try {
     const { searchParams } = new URL(request.url);

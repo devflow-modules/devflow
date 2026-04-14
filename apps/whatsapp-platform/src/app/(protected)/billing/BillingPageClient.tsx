@@ -4,7 +4,23 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@devflow/ui";
-import { PLANS } from "@/modules/billing/plans";
+import { PLANS, getPlan } from "@/modules/billing/plans";
+import {
+  COMMERCIAL_CHECKOUT_CTA,
+  COMMERCIAL_PLAN_BENEFITS,
+  COMMERCIAL_PLAN_HEADLINE,
+  COMMERCIAL_PLAN_SUBTITLE,
+  COMMERCIAL_RECOMMENDED_BADGE,
+  COMMERCIAL_RECOMMENDED_PLAN,
+} from "@/modules/billing/planPresentation";
+import {
+  formatIncludedUsageSentence,
+  STRIPE_USAGE_LINE_LABELS,
+  USAGE_AFTER_INCLUDED_EXPLAINER,
+  USAGE_ANTI_SURPRISE_LINE,
+} from "@/modules/billing/usageCommunication";
+import { CurrentPlanUpgradeHint } from "@/components/dashboard/billing/CurrentPlanUpgradeHint";
+import { HowUsageWorksSection } from "@/components/dashboard/billing/HowUsageWorksSection";
 import { StateError, StateLoading } from "@/components/ui/app-states";
 import { readBillingPostUrl, readSubscriptionFromApiJson } from "@/lib/api-json-client";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
@@ -30,6 +46,7 @@ type Usage = {
   unitPricesBrl: { message: number; aiResponse: number };
   estimatedVariableCostBrl: number;
   withinLimits: { messages: boolean; ai: boolean };
+  enforceLimits: boolean;
   aiOverageBilled?: number;
   aiOverageCostBrl?: number;
   stripeMetered?: {
@@ -114,9 +131,8 @@ export function BillingPageClient() {
     void load();
   }, [load]);
 
-  const atLimit =
-    usage &&
-    (!usage.withinLimits.messages || !usage.withinLimits.ai);
+  const beyondIncluded =
+    usage && (!usage.withinLimits.messages || !usage.withinLimits.ai);
 
   async function openPortal() {
     setPortalLoading(true);
@@ -217,20 +233,26 @@ export function BillingPageClient() {
           <p>Checkout cancelado.</p>
         </div>
       )}
-      {atLimit && (
-        <div className="rounded-lg border-2 border-red-400 bg-red-50 px-4 py-4 text-sm text-red-900">
-          <p className="font-semibold">🚫 Sua IA parou de responder automaticamente</p>
-          <p className="mt-1 text-red-800">
-            As mensagens estão sendo respondidas de forma limitada. Para voltar ao atendimento automático:
+      {sub ? <CurrentPlanUpgradeHint plan={sub.plan} /> : null}
+      {beyondIncluded && usage?.enforceLimits && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-950">
+          <p className="font-semibold">Limite incluído no plano atingido neste período</p>
+          <p className="mt-1 text-amber-900/95">
+            Com o modo de enforcement ativo, o serviço pode limitar funcionalidades até atualizar o plano ou o período
+            renovar. Prefira subir de nível para recuperar margem no pacote incluído.
           </p>
-          <Button
-            type="button"
-            size="sm"
-            className="mt-3"
-            onClick={() => setShowUpgradeModal(true)}
-          >
-            Continuar usando IA
+          <Button type="button" size="sm" className="mt-3" onClick={() => setShowUpgradeModal(true)}>
+            Ver planos e continuar
           </Button>
+        </div>
+      )}
+      {beyondIncluded && usage && !usage.enforceLimits && (
+        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-800">
+          <p className="font-semibold">Ultrapassou o incluído no plano — o atendimento continua</p>
+          <p className="mt-1 text-slate-700">
+            O uso adicional («{STRIPE_USAGE_LINE_LABELS.extraConversations}» e «{STRIPE_USAGE_LINE_LABELS.extraAi}») é
+            registado e cobrado no fim do período. {USAGE_ANTI_SURPRISE_LINE}
+          </p>
         </div>
       )}
 
@@ -249,9 +271,16 @@ export function BillingPageClient() {
         <div className="flex min-w-0 flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">O seu plano</p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
-              {sub ? displayPlanName(sub.plan) : "—"}
-            </h2>
+            {sub ? (
+              <>
+                <p className="mt-1 text-sm font-medium text-slate-500">{displayPlanName(sub.plan)}</p>
+                <h2 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
+                  {COMMERCIAL_PLAN_HEADLINE[getPlan(sub.plan).key]}
+                </h2>
+              </>
+            ) : (
+              <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">—</h2>
+            )}
             <p className="mt-2 text-sm font-medium text-slate-600">
               {sub ? subscriptionStatusPt(sub.status) : "Carregue novamente se não vir dados."}
             </p>
@@ -274,10 +303,14 @@ export function BillingPageClient() {
       </section>
 
       {usage && (
+        <HowUsageWorksSection unitPrices={usage.unitPricesBrl} />
+      )}
+
+      {usage && (
         <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm">
           <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Uso neste período</h2>
+              <h2 className="text-lg font-bold text-slate-900">Consumo do período</h2>
               <p className="text-sm text-slate-500">{usage.period}</p>
             </div>
             <Link
@@ -287,29 +320,31 @@ export function BillingPageClient() {
               Ver detalhe de IA →
             </Link>
           </div>
-          <p className="mb-4 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-            Fora do incluído no plano, pode haver custo extra por mensagem ou por resposta automática (valores no contrato).
+          <p className="mb-4 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-600">
+            Comparado com o que o seu plano inclui por mês. Depois do incluído, aplica-se o uso adicional — sem cortar o
+            serviço. Na fatura Stripe, aparece como «{STRIPE_USAGE_LINE_LABELS.extraConversations}» e «
+            {STRIPE_USAGE_LINE_LABELS.extraAi}».
           </p>
           <dl className="mt-2 grid gap-4 text-sm">
             <div className="flex items-center justify-between gap-4">
-              <dt className="font-medium text-slate-700">Mensagens enviadas</dt>
+              <dt className="font-medium text-slate-700">Conversas (período)</dt>
               <dd className="text-right tabular-nums text-base font-semibold text-slate-900">
-                {usage.messagesSent}
+                {usage.messagesSent.toLocaleString("pt-BR")}
                 {usage.limits.messagesPerMonth != null && (
                   <span className="text-sm font-normal text-slate-500">
                     {" "}
-                    de {usage.limits.messagesPerMonth} incluídas
+                    de {usage.limits.messagesPerMonth.toLocaleString("pt-BR")} incluídas
                   </span>
                 )}
                 {!usage.withinLimits.messages && (
-                  <span className="ml-2 text-xs font-semibold text-amber-700">limite atingido</span>
+                  <span className="ml-2 text-xs font-semibold text-amber-800">além do incluído</span>
                 )}
               </dd>
             </div>
             <div className="flex items-center justify-between gap-4">
-              <dt className="font-medium text-slate-700">Respostas automáticas (IA)</dt>
+              <dt className="font-medium text-slate-700">Interações de IA (período)</dt>
               <dd className="text-right tabular-nums text-base font-semibold text-slate-900">
-                {usage.aiResponses}
+                {usage.aiResponses.toLocaleString("pt-BR")}
                 {usage.limits.aiResponsesPerMonth != null && (
                   <span className="text-sm font-normal text-slate-500">
                     {" "}
@@ -317,7 +352,7 @@ export function BillingPageClient() {
                   </span>
                 )}
                 {!usage.withinLimits.ai && (
-                  <span className="ml-2 text-xs font-semibold text-amber-700">limite atingido</span>
+                  <span className="ml-2 text-xs font-semibold text-amber-800">além do incluído</span>
                 )}
               </dd>
             </div>
@@ -336,7 +371,11 @@ export function BillingPageClient() {
                     }}
                   />
                 </div>
-                <p className="text-xs text-slate-500 mt-1">Conversas</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {usage.limits.messagesPerMonth != null
+                    ? `${usage.messagesSent.toLocaleString("pt-BR")} de ${usage.limits.messagesPerMonth.toLocaleString("pt-BR")} conversas incluídas`
+                    : "Conversas no período"}
+                </p>
               </div>
               {usage.limits.aiResponsesPerMonth != null && (
                 <div>
@@ -364,18 +403,18 @@ export function BillingPageClient() {
               )}
             </div>
             {usage.aiOverageBilled != null && usage.aiOverageBilled > 0 && (
-              <div className="mt-3 rounded border border-amber-200 bg-amber-50 p-3">
-                <p className="text-sm font-medium text-amber-900">
-                  Você excedeu o plano, mas a IA continuou ativa
+              <div className="mt-3 rounded border border-emerald-100 bg-emerald-50/80 p-3">
+                <p className="text-sm font-medium text-emerald-950">
+                  {STRIPE_USAGE_LINE_LABELS.extraAi} (expansão de uso)
                 </p>
-                <p className="mt-1 text-sm text-amber-800">
-                  <strong>{usage.aiOverageBilled}</strong> respostas excedentes faturadas
+                <p className="mt-1 text-sm text-emerald-900">
+                  <strong>{usage.aiOverageBilled.toLocaleString("pt-BR")}</strong> interações além do incluído
                   {usage.aiOverageCostBrl != null && usage.aiOverageCostBrl > 0 && (
-                    <> · R$ {usage.aiOverageCostBrl.toFixed(2)}</>
+                    <> · estimativa R$ {usage.aiOverageCostBrl.toFixed(2)}</>
                   )}
                 </p>
-                <p className="mt-1 text-xs text-amber-700">
-                  Este valor será refletido na cobrança.
+                <p className="mt-1 text-xs text-emerald-800/90">
+                  O mesmo nome aparece na fatura Stripe para facilitar a reconciliação.
                 </p>
               </div>
             )}
@@ -391,54 +430,76 @@ export function BillingPageClient() {
           aria-modal="true"
         >
           <div
-            className="rounded-xl border border-slate-200 bg-white p-6 shadow-xl max-w-md"
+            className="max-h-[90vh] overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 shadow-xl sm:max-w-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold mb-2">Escolha seu plano</h3>
-            <p className="text-sm text-slate-600 mb-2">
-              Mais respostas IA por mês. Assinatura fixa + excedente (R$0,03/conversa, R$0,09/IA).
+            <h3 className="text-lg font-semibold mb-2">Escolha o plano certo para a sua operação</h3>
+            <p className="text-sm text-slate-600 mb-4">
+              Assinatura mensal fixa por nível. {USAGE_AFTER_INCLUDED_EXPLAINER} {USAGE_ANTI_SURPRISE_LINE}
             </p>
-            <p className="text-xs text-slate-500 mb-4">
-              Upgrade desbloqueia limite imediatamente.
-            </p>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               {BILLING_PLANS.map((key) => {
                 const def = PLANS[key];
                 const isCurrent = currentPlan === key;
                 const price = def.priceBrl > 0 ? `R$ ${def.priceBrl}/mês` : "Gratuito";
-                const ai = def.limits.aiCallsPerMonth;
-                const aiLabel = ai != null ? `até ${ai.toLocaleString("pt-BR")} respostas IA` : "alto volume";
-                const planTag =
-                  key === "STARTER"
-                    ? "ideal para pequenos negócios"
-                    : key === "PRO"
-                      ? "⭐ recomendado"
-                      : "alto volume / escala";
-                const isPro = key === "PRO";
+                const isRecommended = key === COMMERCIAL_RECOMMENDED_PLAN;
+                const benefits = COMMERCIAL_PLAN_BENEFITS[key];
+                const cta = COMMERCIAL_CHECKOUT_CTA[key];
                 return (
-                  <Button
+                  <div
                     key={key}
-                    type="button"
-                    variant={isCurrent ? "ghost" : isPro ? "default" : "outline"}
-                    onClick={() => (isCurrent ? null : void checkout(key))}
-                    disabled={isCurrent || !!checkoutLoading}
-                    className={`text-left justify-start h-auto py-3 ${isPro && !isCurrent ? "ring-2 ring-amber-400" : ""}`}
+                    className={`rounded-xl border p-4 ${
+                      isRecommended && !isCurrent
+                        ? "border-amber-300 bg-gradient-to-br from-amber-50/90 to-white shadow-md ring-2 ring-amber-400/90"
+                        : "border-slate-200 bg-white"
+                    } ${isCurrent ? "opacity-90" : ""}`}
                   >
-                    <span className="block">
-                      <strong>{def.name}</strong> — {price}
-                    </span>
-                    <span className="block text-xs font-normal opacity-90 mt-0.5">
-                      {aiLabel} · {planTag}
-                    </span>
-                    {checkoutLoading === key && " …"}
-                  </Button>
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{def.name}</p>
+                        <p className="mt-0.5 text-base font-semibold text-slate-900">{COMMERCIAL_PLAN_HEADLINE[key]}</p>
+                        <p className="mt-1 text-xs leading-relaxed text-slate-600">{COMMERCIAL_PLAN_SUBTITLE[key]}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-sm font-semibold text-slate-900">{price}</span>
+                        {isRecommended && !isCurrent ? (
+                          <span className="mt-1 block w-full rounded-full bg-amber-200/90 px-2 py-0.5 text-center text-[10px] font-bold uppercase text-amber-950">
+                            {COMMERCIAL_RECOMMENDED_BADGE}
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <p className="mt-2 rounded-lg bg-slate-50/90 px-2.5 py-2 text-xs font-medium leading-snug text-slate-800">
+                      {formatIncludedUsageSentence(key)}
+                    </p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-slate-500">{USAGE_AFTER_INCLUDED_EXPLAINER}</p>
+                    <ul className="mt-3 space-y-1.5 border-t border-slate-100/90 pt-3 text-xs text-slate-700">
+                      {benefits.map((line) => (
+                        <li key={line} className="flex gap-2">
+                          <span className="text-emerald-600" aria-hidden>
+                            ✓
+                          </span>
+                          <span>{line}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <Button
+                      type="button"
+                      className={`mt-4 w-full ${isRecommended && !isCurrent ? "font-semibold shadow-sm" : ""}`}
+                      variant={isCurrent ? "ghost" : isRecommended ? "default" : "outline"}
+                      onClick={() => (isCurrent ? null : void checkout(key))}
+                      disabled={isCurrent || !!checkoutLoading}
+                    >
+                      {isCurrent
+                        ? "Plano atual"
+                        : checkoutLoading === key
+                          ? "A redirecionar…"
+                          : cta}
+                    </Button>
+                  </div>
                 );
               })}
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setShowUpgradeModal(false)}
-              >
+              <Button type="button" variant="ghost" onClick={() => setShowUpgradeModal(false)}>
                 Fechar
               </Button>
             </div>

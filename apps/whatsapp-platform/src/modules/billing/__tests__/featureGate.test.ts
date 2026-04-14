@@ -24,13 +24,11 @@ describe("featureGate", () => {
     expect(ok).toBe(false);
   });
 
-  it("assertFeature lança erro com code FEATURE_BLOCKED quando bloqueado", async () => {
+  it("assertFeature lança FeatureNotAvailableError com code FEATURE_NOT_AVAILABLE quando bloqueado", async () => {
     mockGetTenantPlan.mockResolvedValue("FREE");
     const { assertFeature } = await import("../featureGate");
-    await expect(assertFeature("t1", "AUTOMATION")).rejects.toMatchObject({
-      message: "Upgrade your plan",
-      code: "FEATURE_BLOCKED",
-    });
+    const { FeatureNotAvailableError } = await import("../featureAccess");
+    await expect(assertFeature("t1", "AUTOMATION")).rejects.toBeInstanceOf(FeatureNotAvailableError);
   });
 
   it("assertFeature não lança quando permitido", async () => {

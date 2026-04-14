@@ -2,6 +2,8 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { AiSettingsForm } from "./AiSettingsForm";
 import { aiSettingsHref } from "./aiSettingsAnchors";
+import { PricingContextHint } from "@/components/dashboard/billing/PricingContextHint";
+import { CONTEXTUAL_UPGRADE_HINTS } from "@/modules/billing/planPresentation";
 
 export default function AiSettingsPage() {
   return (
@@ -54,11 +56,13 @@ export default function AiSettingsPage() {
               API e integrações
             </Link>
             <Link href="/billing" className="df-quick-action">
-              Cobrança
+              Plano e faturação
             </Link>
           </>
         }
       />
+
+      <PricingContextHint message={CONTEXTUAL_UPGRADE_HINTS.aiSettings} />
 
       <AiSettingsForm />
     </div>

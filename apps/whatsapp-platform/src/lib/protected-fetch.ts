@@ -50,6 +50,47 @@ export async function fetchProtected(input: RequestInfo | URL, init?: RequestIni
   return res;
 }
 
+/** Corpo 403 quando uma feature do plano bloqueia a operação (API interna). */
+export type FeatureNotAvailablePayload = {
+  code: "FEATURE_NOT_AVAILABLE";
+  feature: string;
+  currentPlan: string;
+  requiredPlan: string;
+  message?: string;
+};
+
+export class FeatureBlockedError extends Error {
+  readonly name = "FeatureBlockedError";
+
+  constructor(public readonly payload: FeatureNotAvailablePayload) {
+    super(payload.message?.trim() || "Esta funcionalidade não está disponível no seu plano.");
+    Object.setPrototypeOf(this, FeatureBlockedError.prototype);
+  }
+}
+
+export function parseFeatureNotAvailable(data: unknown): FeatureNotAvailablePayload | null {
+  if (!data || typeof data !== "object") return null;
+  const o = data as Record<string, unknown>;
+  if (o.code !== "FEATURE_NOT_AVAILABLE") return null;
+  const feature = o.feature;
+  const currentPlan = o.currentPlan;
+  const requiredPlan = o.requiredPlan;
+  if (typeof feature !== "string" || typeof currentPlan !== "string" || typeof requiredPlan !== "string") {
+    return null;
+  }
+  return {
+    code: "FEATURE_NOT_AVAILABLE",
+    feature,
+    currentPlan,
+    requiredPlan,
+    message: typeof o.message === "string" ? o.message : undefined,
+  };
+}
+
+export function isFeatureBlockedError(e: unknown): e is FeatureBlockedError {
+  return e instanceof FeatureBlockedError;
+}
+
 function extractApiErrorMessage(data: {
   error?: string | { code?: string; message?: string };
   message?: string;
@@ -69,6 +110,8 @@ export function protectedApiUserMessage(
     return PROTECTED_API_SESSION_EXPIRED;
   }
   if (status === 403) {
+    const blocked = parseFeatureNotAvailable(data);
+    if (blocked?.message?.trim()) return blocked.message.trim();
     return fallback?.trim() ? fallback : PROTECTED_API_FORBIDDEN;
   }
   return fallback ?? "Não foi possível concluir o pedido. Tente novamente.";

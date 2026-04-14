@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthFromRequest } from "@/modules/auth";
 import { setThreadQueue } from "@/modules/inbox/inboxOperationalQueueService";
+import { requireFeatureOr403 } from "@/modules/billing/featureGate";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,9 @@ export async function PATCH(
   if (!auth) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
+
+  const blocked = await requireFeatureOr403(auth.payload.tenantId, "QUEUES_TAGS");
+  if (blocked) return blocked;
 
   const { id: threadId } = await context.params;
   if (!threadId?.trim()) {

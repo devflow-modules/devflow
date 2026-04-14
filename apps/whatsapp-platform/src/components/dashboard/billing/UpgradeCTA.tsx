@@ -3,6 +3,7 @@
 import { Button } from "@devflow/ui";
 import { PLANS } from "@/modules/billing/plans";
 import type { PlanKey } from "@/modules/billing/plans";
+import { COMMERCIAL_PLAN_HEADLINE, COMMERCIAL_PLAN_SUBTITLE } from "@/modules/billing/planPresentation";
 
 type Props = {
   currentPlan: string;
@@ -34,19 +35,13 @@ export function UpgradeCTA({
 
   const nextPlan = getNextPlan(currentPlan);
   const nextPlanDef = PLANS[nextPlan];
-  const benefits =
-    nextPlan === "STARTER"
-      ? "1.000 mensagens, 100 interações IA, automação"
-      : nextPlan === "PRO"
-        ? "5.000 mensagens, 750 IA, filas e tags, relatórios avançados"
-        : "20.000 mensagens, 3.000 IA, suporte prioritário, webhooks";
 
   return (
     <div className="rounded-xl border-2 border-emerald-200 bg-emerald-50/60 p-6">
-      <h3 className="text-lg font-semibold text-emerald-900">Fazer upgrade</h3>
-      <p className="mt-1 text-sm text-emerald-800">
-        Benefícios do plano {nextPlanDef.name}: {benefits}
-      </p>
+      <h3 className="text-lg font-semibold text-emerald-900">Subir de plano</h3>
+      <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-emerald-800/90">{nextPlanDef.name}</p>
+      <p className="mt-1 text-base font-semibold text-emerald-950">{COMMERCIAL_PLAN_HEADLINE[nextPlan]}</p>
+      <p className="mt-2 text-sm leading-relaxed text-emerald-900/95">{COMMERCIAL_PLAN_SUBTITLE[nextPlan]}</p>
       <Button
         id={upgradeButtonId}
         type="button"
@@ -54,7 +49,7 @@ export function UpgradeCTA({
         onClick={() => onUpgrade(nextPlan)}
         disabled={!!loadingPlan}
       >
-        {loadingPlan === nextPlan ? "Redirecionando…" : `Fazer upgrade para ${nextPlanDef.name}`}
+        {loadingPlan === nextPlan ? "A redirecionar…" : `Continuar com o plano ${nextPlanDef.name}`}
       </Button>
     </div>
   );

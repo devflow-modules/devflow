@@ -3,8 +3,15 @@
  * Backend-first: sempre validar no servidor.
  */
 
-import { getPlan } from "./plans";
+import { getPlan, normalizePlan } from "./plans";
 import { getTenantPlan } from "./subscriptionService";
+import {
+  FeatureNotAvailableError,
+  buildFeatureAccessError,
+  featureAccessDeniedResponse,
+  minimumPlanForFeature,
+} from "./featureAccess";
+import type { NextResponse } from "next/server";
 
 export type FeatureKey =
   | "AUTOMATION"
@@ -46,8 +53,25 @@ export async function assertFeature(
 ): Promise<void> {
   const allowed = await canUseFeature(tenantId, feature);
   if (!allowed) {
-    const err = new Error("Upgrade your plan") as Error & { code?: string };
-    err.code = "FEATURE_BLOCKED";
-    throw err;
+    const currentPlan = normalizePlan(await getTenantPlan(tenantId));
+    const requiredPlan = minimumPlanForFeature(feature);
+    const payload = buildFeatureAccessError({ feature, currentPlan, requiredPlan });
+    throw new FeatureNotAvailableError(
+      payload.message,
+      feature,
+      currentPlan,
+      requiredPlan
+    );
   }
+}
+
+/**
+ * Retorna `NextResponse` 403 se a feature não estiver disponível; caso contrário `null`.
+ */
+export async function requireFeatureOr403(
+  tenantId: string,
+  feature: FeatureKey
+): Promise<NextResponse | null> {
+  if (await canUseFeature(tenantId, feature)) return null;
+  return featureAccessDeniedResponse(tenantId, feature);
 }

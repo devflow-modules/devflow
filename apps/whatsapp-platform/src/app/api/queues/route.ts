@@ -5,6 +5,7 @@ import {
   createOperationalQueue,
   listOperationalQueuesWithMetrics,
 } from "@/modules/inbox/inboxOperationalQueueService";
+import { requireFeatureOr403 } from "@/modules/billing/featureGate";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,9 @@ export async function POST(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
   const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
   if (denied) return denied;
+
+  const blocked = await requireFeatureOr403(auth!.payload.tenantId, "QUEUES_TAGS");
+  if (blocked) return blocked;
 
   let json: unknown;
   try {

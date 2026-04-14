@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { createCheckoutSession as createStripeCheckout, isStripeConfigured } from "@/modules/stripe";
 import { getUsageByPeriod, getStripeUsageSyncStats, periodYYYYMM } from "./usageService";
 import { isMeterEventsConfigured } from "./infrastructure/stripeMeterClient";
-import { getPlanLimits, getUsageUnitPricesBrl, normalizePlanKey } from "./planConfig";
+import { getPlanLimits, getUsageUnitPricesBrl, isBillingEnforceLimits, normalizePlanKey } from "./planConfig";
 import { getTenantPlan } from "./subscriptionService";
 import { getAiOverageBilledInPeriod } from "./aiOverageVisibilityService";
 
@@ -150,6 +150,7 @@ export interface UsageDashboard {
   unitPricesBrl: { message: number; aiResponse: number };
   estimatedVariableCostBrl: number;
   withinLimits: { messages: boolean; ai: boolean };
+  enforceLimits: boolean;
   aiOverageBilled?: number;
   aiOverageCostBrl?: number;
   stripeMetered?: {
@@ -182,6 +183,7 @@ export async function getUsageDashboard(tenantId: string, period?: string): Prom
     },
     unitPricesBrl: prices,
     estimatedVariableCostBrl: Math.round(estimated * 10000) / 10000,
+    enforceLimits: isBillingEnforceLimits(),
     withinLimits: {
       messages:
         limits.messagesPerMonth == null || usage.messagesSent <= limits.messagesPerMonth,

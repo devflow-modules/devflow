@@ -6,6 +6,8 @@ import { getClientIp } from "@/lib/rate-limit";
 import { z } from "zod";
 import type { Condition, Action } from "@/modules/automation/automation.types";
 import { normalizeTriggerType } from "@/modules/automation/triggerNormalize";
+import { requireFeatureOr403 } from "@/modules/billing/featureGate";
+import { ruleRequiresAdvancedAutomation } from "@/modules/automation/automationRuleFeatures";
 
 export const dynamic = "force-dynamic";
 
@@ -80,6 +82,9 @@ export async function GET(request: NextRequest) {
   const tenantId = auth.payload.tenantId;
   if (!tenantId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+  const gate = await requireFeatureOr403(tenantId, "AUTOMATION");
+  if (gate) return gate;
+
   const rules = await prisma.waAutomationRule.findMany({
     where: { tenantId },
     orderBy: { createdAt: "desc" },
@@ -122,6 +127,17 @@ export async function POST(request: NextRequest) {
       { error: "Dados inválidos", details: parsed.error.flatten() },
       { status: 400 }
     );
+  }
+
+  if (
+    ruleRequiresAdvancedAutomation({
+      triggerType: parsed.data.triggerType,
+      conditions: parsed.data.conditions,
+      actions: parsed.data.actions,
+    })
+  ) {
+    const gateAdv = await requireFeatureOr403(tenantId, "ADVANCED_AUTOMATION");
+    if (gateAdv) return gateAdv;
   }
 
   const rule = await prisma.waAutomationRule.create({

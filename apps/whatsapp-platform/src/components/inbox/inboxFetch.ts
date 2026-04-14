@@ -1,4 +1,9 @@
-import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
+import {
+  fetchProtected,
+  FeatureBlockedError,
+  parseFeatureNotAvailable,
+  protectedApiUserMessage,
+} from "@/lib/protected-fetch";
 import { unwrapApiData } from "@/lib/api-json-client";
 import type {
   WaInboxMessageRow,
@@ -375,7 +380,16 @@ export async function updateThreadQueue(threadId: string, queueId: string | null
       body: JSON.stringify({ queueId }),
     }
   );
-  if (!res.ok) throw new Error(await inboxFailMessage(res));
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    if (res.status === 403) {
+      const blocked = parseFeatureNotAvailable(data);
+      if (blocked) throw new FeatureBlockedError(blocked);
+    }
+    throw new Error(
+      protectedApiUserMessage(res.status, data as { error?: string; message?: string; code?: string })
+    );
+  }
 }
 
 export type InboxOperationalMetricsPayload = {

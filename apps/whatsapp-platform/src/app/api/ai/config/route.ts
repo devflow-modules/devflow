@@ -16,6 +16,8 @@ import {
 } from "@/modules/ai/schemas/aiConfigSchemas";
 import { resolveEffectiveDriver } from "@/modules/ai/resolveAiRuntimeConfig";
 import { AI_BEHAVIOR_PRESETS } from "@/modules/ai/aiPresets";
+import { requireFeatureOr403 } from "@/modules/billing/featureGate";
+import { aiRuntimeRequiresAdvancedAi } from "@/modules/ai/aiFeatureGating";
 
 export const dynamic = "force-dynamic";
 
@@ -100,6 +102,16 @@ export async function PUT(request: NextRequest) {
       { success: false, error: "Modelo incompatível com o motor selecionado." },
       { status: 400 }
     );
+  }
+
+  if (
+    aiRuntimeRequiresAdvancedAi({
+      effectiveDriver,
+      model: modelToCheck,
+    })
+  ) {
+    const blocked = await requireFeatureOr403(tenantId, "ADVANCED_AI");
+    if (blocked) return blocked;
   }
 
   const data: Record<string, unknown> = {};

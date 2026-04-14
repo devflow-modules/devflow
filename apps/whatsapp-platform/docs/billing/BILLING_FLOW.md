@@ -7,7 +7,13 @@
 | Planos, limites, capabilities | `modules/billing` — `plans.ts` / capabilities derivadas da subscrição |
 | Uso agregado | `UsageAggregate` + eventos (`UsageEventType`) |
 | Enforcement antes de ação | `enforceUsageOrThrow` (`enforcementService`) |
-| Webhook Stripe | Rota dedicada + idempotência via `BillingAuditLog` / referências Stripe (ver `BILLING_OPERATIONS.md`) |
+| Webhook Stripe | Rota dedicada + idempotência via `BillingAuditLog` / referências Stripe |
+
+## Narrativa comercial vs técnica
+
+- **Limites, quotas e gating** continuam definidos em código (`plans.ts`, enforcement, uso agregado).
+- **Copy e comparação de planos na app** usam `planPresentation.ts` e seguem o enquadramento em `PRODUCT_PRICING_NARRATIVE.md`.
+- Isto evita que textos de produto copiem literalmente nomes internos ou números sem contexto, sem alterar a fonte de verdade técnica.
 
 ## Fluxo resumido
 
@@ -18,9 +24,9 @@
 
 ## Documentação relacionada
 
-- `docs/BILLING_OPERATIONS.md` — auditoria, logs, observabilidade
-- `docs/ENFORCEMENT_ARCHITECTURE.md` — hard vs soft limit
-- `docs/BILLING_ARCHITECTURE.md` — visão técnica (se presente no repo)
+- `docs/billing/PRODUCT_PRICING_NARRATIVE.md` — posicionamento comercial e matriz de valor (UI)
+- `docs/billing/CAPABILITIES_MATRIX.md` — alinhamento flags `plans.ts` vs copy e `getUiPlanCapabilities()`
+- `docs/ENFORCEMENT_ARCHITECTURE.md` — hard vs soft limit (se presente no repositório)
 
 ## Pendências conhecidas (hardening contínuo)
 

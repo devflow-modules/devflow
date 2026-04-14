@@ -1,7 +1,8 @@
 "use client";
 
 import { Button } from "@devflow/ui";
-import { PLANS } from "@/modules/billing/plans";
+import { PLANS, getPlan } from "@/modules/billing/plans";
+import { COMMERCIAL_PLAN_HEADLINE, COMMERCIAL_PLAN_SUBTITLE } from "@/modules/billing/planPresentation";
 
 type Props = {
   plan: string;
@@ -18,17 +19,20 @@ export function BillingHeader({
   onManageSubscription,
   manageLoading,
 }: Props) {
-  const planKey = plan?.toUpperCase() ?? "FREE";
-  const planDef = PLANS[planKey as keyof typeof PLANS] ?? PLANS.FREE;
+  const planDef = getPlan(plan);
   const planName = planDef.name;
+  const headline = COMMERCIAL_PLAN_HEADLINE[planDef.key];
+  const subtitle = COMMERCIAL_PLAN_SUBTITLE[planDef.key];
   const isPastDue = status?.toLowerCase() === "past_due" || status?.toLowerCase() === "pastdue";
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-slate-900">{planName}</h2>
-          <div className="mt-1 flex items-center gap-2">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{planName}</p>
+          <h2 className="mt-1 text-xl font-semibold text-slate-900">{headline}</h2>
+          {subtitle ? <p className="mt-2 max-w-xl text-sm text-slate-600">{subtitle}</p> : null}
+          <div className="mt-2 flex items-center gap-2">
             <span
               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                 isPastDue
@@ -51,7 +55,7 @@ export function BillingHeader({
             onClick={onManageSubscription}
             disabled={manageLoading}
           >
-            {manageLoading ? "Abrindo…" : "Gerenciar assinatura"}
+            {manageLoading ? "A abrir…" : "Gerir assinatura (Stripe)"}
           </Button>
         )}
       </div>

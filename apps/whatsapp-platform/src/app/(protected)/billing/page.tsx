@@ -20,7 +20,7 @@ export default async function BillingPage() {
       <PageHeader
         eyebrow="Conta"
         title="Plano e faturação"
-        description="Resumo da subscrição: plano, consumo no período e renovação. Para detalhes de Stripe e limites, use também o painel «Plano e faturação» em Dashboard."
+        description="Veja o nível da operação, o consumo do período e a renovação. O painel em Dashboard oferece a mesma visão com comparação de planos e atalhos para o portal Stripe."
         layout="split"
         showDivider
         tone="admin"

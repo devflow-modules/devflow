@@ -83,10 +83,14 @@ function getInsights(metrics: Metrics): string[] {
 function getLimitInsight(usageStatus: UsageStatus | null): string | null {
   if (!usageStatus) return null;
   if (!usageStatus.can_use) {
-    return "🚫 Sua IA parou de responder automaticamente. As mensagens estão sendo respondidas de forma limitada. Para voltar ao atendimento automático: faça upgrade do plano.";
+    return "Incluído no plano esgotado para interações de IA neste período. Atualize o plano para voltar a ter margem no pacote incluído, ou confira em Plano e faturação como funciona o uso adicional («Uso adicional de IA» na fatura).";
   }
-  if (usageStatus.percent_used != null && usageStatus.percent_used >= 70) {
-    return "⚠️ Você já usou " + usageStatus.percent_used + "% das respostas com IA. Clientes podem começar a ficar sem resposta automática. Evite perder vendas — aumente seu plano agora.";
+  if (usageStatus.percent_used != null && usageStatus.percent_used >= 80) {
+    return (
+      "Está a utilizar cerca de " +
+      usageStatus.percent_used +
+      "% das interações de IA incluídas no plano neste período. Aproximar-se do limite não corta o serviço — além do incluído, pode haver uso adicional conforme a fatura."
+    );
   }
   return null;
 }
@@ -148,7 +152,7 @@ export function AiAnalyticsClient() {
 
   const atLimit = usageStatus && !usageStatus.can_use;
   const nearLimit =
-    usageStatus?.percent_used != null && usageStatus.percent_used >= 70;
+    usageStatus?.percent_used != null && usageStatus.percent_used >= 80;
 
   const fallbackRate =
     metrics.ai_messages_total + metrics.fallback_total > 0
@@ -226,7 +230,7 @@ export function AiAnalyticsClient() {
               Sua IA parou de responder automaticamente. As mensagens estão sendo respondidas de forma limitada.
             </p>
           )}
-          {usageStatus.percent_used != null && usageStatus.percent_used < 70 && planInfo.ai_limit != null && (
+          {usageStatus.percent_used != null && usageStatus.percent_used < 80 && planInfo.ai_limit != null && (
             <p className="mt-2 text-xs text-slate-500">
               Plano inclui {planInfo.ai_limit.toLocaleString("pt-BR")} respostas IA/mês. Upgrade oferece mais capacidade.
             </p>

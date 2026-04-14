@@ -14,6 +14,7 @@ const counts: Record<string, number> = {
   ai_auto_reply_completed: 0,
   ai_auto_reply_failed: 0,
   billing_enforcement_blocked: 0,
+  feature_gate_blocked: 0,
   outbound_dispatch: 0,
 };
 
