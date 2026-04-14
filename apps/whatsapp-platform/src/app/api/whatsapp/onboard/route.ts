@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { getEmbeddedSignupConfig } from "@/modules/whatsapp/embeddedSignupService";
+import { getWhatsAppEmbeddedSignupRedirectUri } from "@/modules/whatsapp/whatsappEmbeddedSignupRedirectUri";
 
 export const dynamic = "force-dynamic";
 
@@ -25,8 +26,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const config = getEmbeddedSignupConfig(tenantId);
-    const baseUrl = process.env.NEXT_PUBLIC_WHATSAPP_APP_URL ?? "http://localhost:3000";
-    const redirectUri = `${baseUrl}/dashboard/whatsapp/callback`;
+    const redirectUri = getWhatsAppEmbeddedSignupRedirectUri();
     const apiVer =
       process.env.META_API_VERSION ?? process.env.WHATSAPP_API_VERSION ?? "v21.0";
     const v = apiVer.startsWith("v") ? apiVer : `v${apiVer}`;

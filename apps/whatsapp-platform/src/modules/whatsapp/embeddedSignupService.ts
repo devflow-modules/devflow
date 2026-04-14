@@ -3,6 +3,8 @@
  * Documentação: https://developers.facebook.com/docs/whatsapp/embedded-signup/
  */
 
+import { getWhatsAppEmbeddedSignupRedirectUri } from "./whatsappEmbeddedSignupRedirectUri";
+
 function getMetaGraphBase(): string {
   const ver =
     process.env.META_API_VERSION ?? process.env.WHATSAPP_API_VERSION ?? "v21.0";
@@ -68,11 +70,15 @@ export async function exchangeCodeAndFetchPhoneNumbers(
   code: string
 ): Promise<WhatsappPhoneNumberData[]> {
   const { appId, appSecret } = getMetaConfig();
+  const redirectUri = getWhatsAppEmbeddedSignupRedirectUri();
 
-  const tokenRes = await fetch(
-    `${getMetaGraphBase()}/oauth/access_token?client_id=${appId}&client_secret=${appSecret}&code=${encodeURIComponent(code)}`,
-    { method: "GET" }
-  );
+  const tokenUrl = new URL(`${getMetaGraphBase()}/oauth/access_token`);
+  tokenUrl.searchParams.set("client_id", appId);
+  tokenUrl.searchParams.set("client_secret", appSecret);
+  tokenUrl.searchParams.set("code", code);
+  tokenUrl.searchParams.set("redirect_uri", redirectUri);
+
+  const tokenRes = await fetch(tokenUrl.toString(), { method: "GET" });
 
   if (!tokenRes.ok) {
     const err = await tokenRes.text();
