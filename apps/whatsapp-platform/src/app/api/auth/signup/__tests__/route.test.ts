@@ -63,7 +63,7 @@ describe("POST /api/auth/signup", () => {
     mockTenantCreate.mockResolvedValue({
       id: "t-new",
       name: "João Silva",
-      plan: "starter",
+      plan: "free",
     });
     mockUserCreate.mockResolvedValue({
       id: "u-new",
@@ -78,6 +78,7 @@ describe("POST /api/auth/signup", () => {
     mockCreateUserSession.mockResolvedValue({ sessionId: "sess-1" });
     mockEnsureTenantSubscription.mockResolvedValue(undefined);
     mockSendTransactionalEmail.mockResolvedValue({ ok: true, provider: "resend" });
+    mockCreateCheckoutSession.mockReset();
   });
 
   it("cria conta, chama sendTransactionalEmail com ACCOUNT_CREATED e responde 200", async () => {
@@ -88,7 +89,7 @@ describe("POST /api/auth/signup", () => {
         name: "João Silva",
         email: "Joao@Example.com",
         password: "12345678",
-        planId: "starter",
+        planId: "free",
       }),
       headers: { "Content-Type": "application/json" },
     });
@@ -134,7 +135,7 @@ describe("POST /api/auth/signup", () => {
         name: "Maria",
         email: "maria@example.com",
         password: "12345678",
-        planId: "starter",
+        planId: "free",
       }),
       headers: { "Content-Type": "application/json" },
     });
@@ -151,6 +152,72 @@ describe("POST /api/auth/signup", () => {
     expect(body.success).toBe(true);
     expect(mockSendTransactionalEmail).toHaveBeenCalledWith(
       expect.objectContaining({ type: "ACCOUNT_CREATED", to: "maria@example.com" })
+    );
+  });
+
+  it("com planId pro devolve redirectUrl do createCheckoutSession (onboarding comercial)", async () => {
+    const checkoutUrl = "https://checkout.stripe.com/cpay/cs_test_integration";
+    mockCreateCheckoutSession.mockResolvedValue({ checkoutUrl });
+
+    mockTenantCreate.mockResolvedValue({
+      id: "t-pro",
+      name: "Cliente Pro",
+      plan: "pro",
+    });
+    mockUserCreate.mockResolvedValue({
+      id: "u-pro",
+      email: "cliente.pro@example.com",
+      name: "Cliente Pro",
+      role: "manager",
+      tenantId: "t-pro",
+    });
+
+    const { POST } = await import("../route");
+    const req = new NextRequest("http://localhost/api/auth/signup", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "Cliente Pro",
+        email: "cliente.pro@example.com",
+        password: "12345678",
+        planId: "pro",
+      }),
+      headers: { "Content-Type": "application/json" },
+    });
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      success?: boolean;
+      redirectUrl?: string;
+      redirectTo?: string;
+      user?: { email: string; tenantId: string; name: string };
+    };
+
+    expect(body.success).toBe(true);
+    expect(body.redirectUrl).toBe(checkoutUrl);
+    expect(body.redirectTo).toBeUndefined();
+    expect(body.user?.email).toBe("cliente.pro@example.com");
+    expect(body.user?.tenantId).toBe("t-pro");
+    expect(body.user?.name).toBe("Cliente Pro");
+    expect(res.headers.get("Set-Cookie")).toBeTruthy();
+
+    expect(mockCreateCheckoutSession).toHaveBeenCalledTimes(1);
+    expect(mockCreateCheckoutSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: "t-pro",
+        email: "cliente.pro@example.com",
+        planId: "PRO",
+        successUrl: "http://localhost:3000/onboarding?session_id={CHECKOUT_SESSION_ID}",
+        cancelUrl: "http://localhost:3000/signup?cancel=1",
+      })
+    );
+
+    expect(mockSendTransactionalEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "ACCOUNT_CREATED",
+        to: "cliente.pro@example.com",
+        tenantId: "t-pro",
+      })
     );
   });
 });

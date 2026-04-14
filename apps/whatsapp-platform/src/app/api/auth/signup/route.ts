@@ -18,7 +18,7 @@ const bodySchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   email: z.string().email("E-mail inválido"),
   password: z.string().min(8, "Senha deve ter no mínimo 8 caracteres"),
-  planId: z.enum(["starter", "pro", "scale"]).default("starter"),
+  planId: z.enum(["free", "pro"]).default("free"),
 });
 
 function prismaErrorCode(err: unknown): string | null {

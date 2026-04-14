@@ -4,7 +4,7 @@ import { AuthScreenShell } from "@/components/auth/AuthScreenShell";
 
 export const metadata: Metadata = {
   title: "Cadastro | WhatsApp Platform",
-  description: "Crie sua conta",
+  description: "Plano gratuito ou Pro — equipe, IA e controle.",
   robots: "noindex, nofollow",
 };
 
@@ -13,7 +13,7 @@ export default function SignupPage() {
     <AuthScreenShell
       eyebrow="WhatsApp Platform"
       title="Criar conta"
-      description="Registe-se para ligar o WhatsApp Business, inbox e automações ao seu negócio."
+      description="Comece no plano gratuito ou escolha um plano pago para operar com mais equipe, IA e controle."
     >
       <SignupForm />
     </AuthScreenShell>

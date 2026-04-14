@@ -4,12 +4,15 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { mapAuthHttpError } from "@/lib/auth-client-errors";
 import { PasswordField } from "@/components/auth/PasswordField";
+import { COMMERCIAL_RECOMMENDED_BADGE } from "@/modules/billing/planPresentation";
+
+type SignupPlanId = "free" | "pro";
 
 export function SignupForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [planId, setPlanId] = useState<"starter" | "pro" | "scale">("starter");
+  const [planId, setPlanId] = useState<SignupPlanId>("free");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const submitLock = useRef(false);
@@ -72,6 +75,11 @@ export function SignupForm() {
     }
   };
 
+  const planCardClass = (selected: boolean) =>
+    `relative flex cursor-pointer rounded-xl border p-4 text-left transition-shadow focus-within:ring-2 focus-within:ring-blue-500/30 ${
+      selected ? "border-blue-500 bg-blue-50/40 shadow-sm ring-2 ring-blue-500/20" : "border-slate-200 bg-white hover:border-slate-300"
+    }`;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-5" aria-busy={loading} noValidate>
       <div>
@@ -117,33 +125,62 @@ export function SignupForm() {
         minLength={8}
         disabled={loading}
       />
-      <fieldset disabled={loading} className="space-y-2">
-        <legend className="mb-2 text-sm font-medium text-slate-700">Plano</legend>
-        <div className="flex flex-col gap-2 sm:flex-row sm:gap-4">
-          <label className="flex cursor-pointer items-center gap-2">
+
+      <fieldset disabled={loading} className="space-y-3">
+        <legend className="mb-1 text-sm font-medium text-slate-700">Plano</legend>
+        <div className="grid gap-3">
+          <label className={planCardClass(planId === "free")}>
             <input
               type="radio"
               name="planId"
-              value="starter"
-              checked={planId === "starter"}
-              onChange={() => setPlanId("starter")}
-              className="rounded border-slate-300"
+              value="free"
+              checked={planId === "free"}
+              onChange={() => setPlanId("free")}
+              className="sr-only"
             />
-            <span className="text-sm text-slate-700">Starter (grátis)</span>
+            <div className="min-w-0 flex-1">
+              <span className="text-sm font-semibold text-slate-900">Gratuito</span>
+              <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                Para testar a plataforma e ligar o primeiro canal.
+              </p>
+            </div>
           </label>
-          <label className="flex cursor-pointer items-center gap-2">
+
+          <label className={planCardClass(planId === "pro")}>
             <input
               type="radio"
               name="planId"
               value="pro"
               checked={planId === "pro"}
               onChange={() => setPlanId("pro")}
-              className="rounded border-slate-300"
+              className="sr-only"
             />
-            <span className="text-sm text-slate-700">Pro (pago)</span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-semibold text-slate-900">Pro</span>
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950">
+                  {COMMERCIAL_RECOMMENDED_BADGE}
+                </span>
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                Para operar com equipe, filas e IA de atendimento.
+              </p>
+            </div>
           </label>
         </div>
+
+        <div className="space-y-1 rounded-lg bg-slate-50/90 px-3 py-2.5 text-xs leading-relaxed text-slate-600">
+          <p>Sem cartão no plano gratuito.</p>
+          <p>Pode alterar o plano depois.</p>
+        </div>
+
+        {planId === "pro" ? (
+          <p className="text-xs leading-relaxed text-slate-600">
+            Após criar a conta, você poderá concluir a ativação do plano no checkout seguro (cartão).
+          </p>
+        ) : null}
       </fieldset>
+
       {error && (
         <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
           {error}
