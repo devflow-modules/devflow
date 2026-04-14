@@ -9,6 +9,11 @@ vi.mock("next/navigation", () => ({
   useSearchParams: vi.fn(),
 }));
 
+vi.mock("@/components/support/SupportProvider", () => ({
+  useSupport: () => ({ openSupport: vi.fn() }),
+  SupportProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 function requestUrl(input: RequestInfo | URL): string {
   if (typeof input === "string") return input;
   if (input instanceof URL) return input.href;
@@ -52,7 +57,7 @@ describe("WhatsappConnectClient", () => {
   it("estado vazio: mostra StateEmpty e resumo sem canal ligado", async () => {
     render(<WhatsappConnectClient />);
     await waitFor(() => {
-      expect(screen.getByText("Ainda não há números ligados ao canal")).toBeInTheDocument();
+      expect(screen.getByText("Você ainda não conectou seu WhatsApp")).toBeInTheDocument();
     });
     expect(screen.getByText("Sem número ligado")).toBeInTheDocument();
     expect(screen.getAllByText("Ainda não definido").length).toBeGreaterThanOrEqual(2);
@@ -65,7 +70,7 @@ describe("WhatsappConnectClient", () => {
     render(<WhatsappConnectClient />);
 
     await waitFor(() => {
-      expect(screen.getByText("Número ligado com sucesso")).toBeInTheDocument();
+      expect(screen.getByText("WhatsApp conectado com sucesso")).toBeInTheDocument();
     });
     expect(replaceState).toHaveBeenCalledWith({}, "", "/dashboard/whatsapp");
     replaceState.mockRestore();
@@ -104,7 +109,7 @@ describe("WhatsappConnectClient", () => {
     expect(defaults.length).toBeGreaterThanOrEqual(1);
 
     expect(screen.getByText("Próximos passos")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Abrir a Inbox/i })).toHaveAttribute("href", "/inbox");
+    expect(screen.getByRole("link", { name: /Responder mensagens/i })).toHaveAttribute("href", "/inbox");
   });
 
   it("resumo com vários números: mostra linha de contexto", async () => {

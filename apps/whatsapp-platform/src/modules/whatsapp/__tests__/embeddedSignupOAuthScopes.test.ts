@@ -5,10 +5,15 @@ import {
 } from "../embeddedSignupOAuthScopes";
 
 describe("embeddedSignupOAuthScopes", () => {
-  it("inclui business_management para edges de Business Manager (/me/assigned_whatsapp_business_accounts)", () => {
-    expect(EMBEDDED_SIGNUP_OAUTH_SCOPE_LIST).toContain("business_management");
-    expect(EMBEDDED_SIGNUP_OAUTH_SCOPES).toContain("business_management");
+  it("usa apenas scopes aceites no dialog Embedded Signup (sem business_management na URL)", () => {
+    expect(EMBEDDED_SIGNUP_OAUTH_SCOPE_LIST).toEqual([
+      "whatsapp_business_management",
+      "whatsapp_business_messaging",
+      "public_profile",
+    ]);
+    expect(EMBEDDED_SIGNUP_OAUTH_SCOPE_LIST).not.toContain("business_management");
     expect(EMBEDDED_SIGNUP_OAUTH_SCOPES).toContain("whatsapp_business_management");
     expect(EMBEDDED_SIGNUP_OAUTH_SCOPES).toContain("whatsapp_business_messaging");
+    expect(EMBEDDED_SIGNUP_OAUTH_SCOPES).toContain("public_profile");
   });
 });

@@ -295,9 +295,9 @@ export function ConversationsList({
       return (
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-3" data-testid="conversations-empty">
           <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-dashed border-slate-200/90 bg-gradient-to-b from-slate-50/90 to-white px-4 py-5 shadow-sm">
-            <p className="text-center text-sm font-semibold text-slate-900">A aguardar a primeira mensagem</p>
+            <p className="text-center text-sm font-semibold text-slate-900">Aguardando sua primeira mensagem</p>
             <p className="mt-1 text-center text-xs text-slate-500">
-              A Inbox está ligada — envie um teste do telemóvel e a conversa aparece aqui.
+              Envie uma mensagem para seu número para testar o atendimento.
             </p>
             <div className="mt-5 min-h-0 flex-1">
               <FirstConversationHint variant="sidebar" lines={lines} />

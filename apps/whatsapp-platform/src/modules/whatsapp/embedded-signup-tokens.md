@@ -11,10 +11,15 @@ Após a troca do `code`, o backend chama `GET /debug_token` (com o mesmo token e
 
 ### Scopes OAuth (`/dialog/oauth`)
 
-O `POST /api/whatsapp/onboard` devolve `oauthUrl` com o parâmetro `scope` definido em `embeddedSignupOAuthScopes.ts`, incluindo **`business_management`** além de `whatsapp_business_management`, `whatsapp_business_messaging` e `public_profile`.
+O `POST /api/whatsapp/onboard` devolve `oauthUrl` com `scope` definido em `embeddedSignupOAuthScopes.ts`:
 
-- A **configuração na Meta** (Facebook Login for Business / Embedded Signup associada ao `config_id`) deve permitir esses permissões; só o código ou só a consola não bastam se estiverem desalinhados.
-- Se o log `oauth_token_debug_snapshot` mostrar o token **sem** `business_management`, o passo seguinte (`assigned_whatsapp_business_accounts`) pode falhar com permissão — ajuste a config na Meta e refaça o OAuth.
+- `whatsapp_business_management`
+- `whatsapp_business_messaging`
+- `public_profile`
+
+**Não** incluir `business_management` no parâmetro `scope` deste diálogo: a Meta responde com **Invalid Scopes** para esse pedido explícito no fluxo Embedded Signup. Permissões de negócio adicionais, quando aplicáveis, são tratadas pela configuração **Facebook Login for Business** associada ao mesmo `config_id` na consola Meta, não por forçar esse scope na URL.
+
+**Onboarding** = estes scopes aceites + `config_id`. **Operação** (mensagens, automações, tokens por linha ou env) segue noutros caminhos; ver `operationalWhatsappAccessToken.ts`.
 
 **Nunca** usar nesta fase:
 
@@ -38,3 +43,4 @@ Motivo: edges como `/me/...` dependem do contexto do utilizador que concluiu o O
 | Tipo opaco do token OAuth | `embeddedSignupUserAccessToken.ts` |
 | Env operacional (não onboarding) | `operationalWhatsappAccessToken.ts` |
 | Orquestração | `embeddedSignupService.ts` |
+| Scopes do dialog OAuth | `embeddedSignupOAuthScopes.ts` |

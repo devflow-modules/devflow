@@ -12,6 +12,7 @@ import { INBOX_QK, type WaInboxMessageRow, type WaInboxThreadRow } from "./inbox
 import { buttonClassName } from "@/components/ui/button";
 import { followUpSuggestion } from "./followUpUtils";
 import { PlaybookSuggest } from "./PlaybookSuggest";
+import { markFirstReplySent } from "@/lib/activationStorage";
 
 const TYPING_DEBOUNCE_MS = 400;
 const TYPING_STOP_DELAY_MS = 1500;
@@ -97,6 +98,7 @@ export function MessageInput({
       setText("");
       setRetryText(null);
       setAiPreview(null);
+      markFirstReplySent();
       onAgentMessageSent?.();
     },
   });

@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     oauth.searchParams.set("scope", EMBEDDED_SIGNUP_OAUTH_SCOPES);
     const oauthUrl = oauth.toString();
     console.info(
-      `[WHATSAPP] onboard start tenant=${tenantId} redirect_uri=${redirectUri} scope_includes_business_management=true`
+      `[WHATSAPP] onboard start tenant=${tenantId} redirect_uri=${redirectUri} embedded_signup_scopes=${EMBEDDED_SIGNUP_OAUTH_SCOPES}`
     );
     return NextResponse.json({
       success: true,

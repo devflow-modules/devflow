@@ -26,6 +26,13 @@ import { fetchProtected } from "@/lib/protected-fetch";
 import { getUiPlanCapabilities } from "@/modules/billing/planUiCapabilities";
 import { FEATURE_UPGRADE_COPY } from "@/modules/billing/featureUpgradeCopy";
 import { contextualInboxUsageHint } from "@/modules/billing/usageCommunication";
+import {
+  dismissFirstReplyBanner,
+  ensureFirstMessageActivationLogged,
+  getActivationState,
+  markFirstMessageToastSeen,
+  markFirstReplyToastSeen,
+} from "@/lib/activationStorage";
 
 /** Polling: 10s quando realtime conectado, 5s como fallback. */
 const POLL_INTERVAL_REALTIME_MS = 10_000;
@@ -54,6 +61,12 @@ function InboxShellContent() {
   const isMd = useMediaMd();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileChat, setMobileChat] = useState(false);
+  const [activationPickFirst, setActivationPickFirst] = useState(false);
+  const [activationUi, setActivationUi] = useState(() =>
+    typeof window !== "undefined"
+      ? getActivationState()
+      : ({} as ReturnType<typeof getActivationState>)
+  );
   const [filter, setFilter] = useState<InboxConversationsFilter>("needs_response");
   const [lineFilter, setLineFilter] = useState<string | null>(null);
   const [queueFilter, setQueueFilter] = useState<string | null>(null);
@@ -127,6 +140,18 @@ function InboxShellContent() {
   });
   const tenantThreadTotal = inboxOverview?.pagination.total;
 
+  useEffect(() => {
+    const sync = () => setActivationUi(getActivationState());
+    sync();
+    window.addEventListener("df-activation-update", sync);
+    return () => window.removeEventListener("df-activation-update", sync);
+  }, []);
+
+  useEffect(() => {
+    if (tenantThreadTotal == null) return;
+    ensureFirstMessageActivationLogged(tenantThreadTotal);
+  }, [tenantThreadTotal]);
+
   const { data: convData } = useQuery({
     queryKey: INBOX_QK.conversations(filter, lineFilter, queueFilter, priorityFilter),
     queryFn: () => fetchInboxConversations(filter, lineFilter, queueFilter, priorityFilter),
@@ -141,10 +166,34 @@ function InboxShellContent() {
   const awaitingFirstMessage =
     tenantThreadTotal === 0 && convData !== undefined && lineFilter === null;
 
+  const hasFirstReplyRecorded = Boolean(activationUi.firstReplyAt);
+  const showFirstMessageCelebration =
+    (tenantThreadTotal ?? 0) > 0 &&
+    !activationUi.firstMessageToastSeen &&
+    !hasFirstReplyRecorded;
+  const showFirstReplyCelebration =
+    hasFirstReplyRecorded && !activationUi.firstReplyToastSeen;
+  const showFirstReplyGate =
+    (tenantThreadTotal ?? 0) > 0 &&
+    !hasFirstReplyRecorded &&
+    !activationUi.firstReplyBannerDismissed &&
+    Boolean(activationUi.firstMessageToastSeen);
+
   const onSelect = useCallback((id: string) => {
     setSelectedId(id);
     setMobileChat(true);
   }, []);
+
+  useEffect(() => {
+    if (!activationPickFirst) return;
+    const threads = convData?.threads;
+    if (!threads?.length) return;
+    const first = threads[0];
+    if (first?.id) {
+      onSelect(first.id);
+      setActivationPickFirst(false);
+    }
+  }, [activationPickFirst, convData?.threads, onSelect]);
 
   const onBack = useCallback(() => {
     setMobileChat(false);
@@ -173,7 +222,7 @@ function InboxShellContent() {
           title="Inbox"
           description={
             awaitingFirstMessage
-              ? "Envie um teste do telemóvel para o número Business — a conversa surge na lista à esquerda."
+              ? "Envie uma mensagem para o seu número para testar — a conversa aparece na lista à esquerda."
               : "Escolha uma conversa à esquerda para ver e responder."
           }
           layout="split"
@@ -194,6 +243,91 @@ function InboxShellContent() {
           }
         />
       </div>
+
+      {(showFirstMessageCelebration || showFirstReplyCelebration || showFirstReplyGate) && (
+        <div className="shrink-0 space-y-2 px-4 pb-2 sm:px-6">
+          {showFirstMessageCelebration ? (
+            <div
+              className="flex flex-col gap-3 rounded-xl border border-emerald-200/90 bg-emerald-50/95 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+              role="status"
+            >
+              <div>
+                <p className="text-sm font-semibold text-emerald-950">Primeira mensagem recebida 🎉</p>
+                <p className="mt-0.5 text-xs text-emerald-900/90">
+                  Agora você pode começar a atender seus clientes.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="shrink-0 rounded-lg bg-emerald-700 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-800"
+                onClick={() => {
+                  markFirstMessageToastSeen();
+                  setActivationUi(getActivationState());
+                }}
+              >
+                Entendi
+              </button>
+            </div>
+          ) : null}
+          {showFirstReplyCelebration ? (
+            <div
+              className="flex flex-col gap-3 rounded-xl border border-[var(--df-brand-200)] bg-[var(--df-brand-50)]/95 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+              role="status"
+            >
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Primeiro atendimento realizado 🚀</p>
+                <p className="mt-0.5 text-xs text-slate-700">Seu sistema já está funcionando.</p>
+              </div>
+              <button
+                type="button"
+                className="shrink-0 rounded-lg bg-[var(--df-brand-600)] px-3 py-2 text-xs font-semibold text-white hover:bg-[var(--df-brand-700)]"
+                onClick={() => {
+                  markFirstReplyToastSeen();
+                  setActivationUi(getActivationState());
+                }}
+              >
+                Ótimo
+              </button>
+            </div>
+          ) : null}
+          {showFirstReplyGate ? (
+            <div
+              className="flex flex-col gap-3 rounded-xl border border-amber-200/90 bg-amber-50/95 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+              role="region"
+              aria-label="Primeira resposta"
+            >
+              <div>
+                <p className="text-sm font-semibold text-amber-950">Vamos responder sua primeira mensagem?</p>
+                <p className="mt-0.5 text-xs text-amber-950/85">
+                  Esse é o momento onde seu atendimento começa.
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="rounded-lg bg-amber-800 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-900"
+                  onClick={() => {
+                    setFilter("needs_response");
+                    setActivationPickFirst(true);
+                  }}
+                >
+                  Responder agora
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border border-amber-300/80 bg-white px-3 py-2 text-xs font-medium text-amber-950 hover:bg-amber-100/50"
+                  onClick={() => {
+                    dismissFirstReplyBanner();
+                    setActivationUi(getActivationState());
+                  }}
+                >
+                  Agora não
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      )}
 
       <div className="shrink-0 space-y-2 px-4 pb-2 sm:px-6">
         <PricingContextHint

@@ -1,17 +1,18 @@
 /**
- * Permissões pedidas no diálogo OAuth do Embedded Signup (`/dialog/oauth` junto com `config_id`).
+ * Permissões pedidas no parâmetro `scope` do diálogo OAuth Embedded Signup (`/dialog/oauth` + `config_id`).
  *
- * **`business_management`** costuma ser necessário para `GET /me/assigned_whatsapp_business_accounts`
- * (lista de WABAs atribuídas ao utilizador). Se o token sair só com `whatsapp_*` + `public_profile`,
- * esse edge pode falhar com código 10 (ex. subcode 1752203) — alinhar também na consola Meta:
- * Facebook Login for Business / configuração ligada ao mesmo `config_id`.
+ * **Não incluir** `business_management` aqui: a Meta devolve "Invalid Scopes: business_management" quando esse
+ * scope é solicitado manualmente neste diálogo — permissões mais amplas de negócio vêm da configuração
+ * **Facebook Login for Business** ligada ao `config_id`, não de um scope inválido na URL.
+ *
+ * Permissões adicionais ou tokens operacionais (ex. System User, env) pertencem a fluxos fora deste onboarding;
+ * ver `operationalWhatsappAccessToken.ts` e documentação em `embedded-signup-tokens.md`.
  *
  * @see https://developers.facebook.com/docs/whatsapp/embedded-signup/
  */
 export const EMBEDDED_SIGNUP_OAUTH_SCOPE_LIST = [
   "whatsapp_business_management",
   "whatsapp_business_messaging",
-  "business_management",
   "public_profile",
 ] as const;
 
