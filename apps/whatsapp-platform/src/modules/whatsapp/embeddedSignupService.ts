@@ -4,6 +4,12 @@
  */
 
 import {
+  buildEmbeddedSignupWabaFailureDiagnosis,
+  buildEmbeddedSignupWabaRequestLog,
+  classifyEmbeddedSignupWabaFailure,
+  tryParseMetaGraphError,
+} from "./embeddedSignupDiagnostics";
+import {
   buildAssignedWhatsappBusinessAccountsUrl,
   getMetaGraphBase,
 } from "./embeddedSignupGraphQueries";
@@ -80,7 +86,7 @@ type AssignedWabaGraphRow = {
 export async function exchangeCodeAndFetchPhoneNumbers(
   code: string
 ): Promise<WhatsappPhoneNumberData[]> {
-  const { appId, appSecret } = getMetaConfig();
+  const { appId, appSecret, configId } = getMetaConfig();
   const redirectUri = getWhatsAppEmbeddedSignupRedirectUri();
   const graphBase = getMetaGraphBase();
 
@@ -124,7 +130,13 @@ export async function exchangeCodeAndFetchPhoneNumbers(
   }
 
   const wabaListUrl = buildAssignedWhatsappBusinessAccountsUrl(graphBase);
-  console.info("[WHATSAPP][EmbeddedSignup] assigned_whatsapp_business_accounts GET", wabaListUrl);
+  const wabaRequestLog = buildEmbeddedSignupWabaRequestLog({
+    graphApiBase: graphBase,
+    embeddedSignupConfigId: configId,
+    appId,
+  });
+  console.info("[WHATSAPP][EmbeddedSignup] waba_list_request", JSON.stringify(wabaRequestLog));
+  console.info("[WHATSAPP][EmbeddedSignup] waba_list_url", wabaListUrl);
 
   const wabasRes = await fetch(wabaListUrl, {
     method: "GET",
@@ -132,15 +144,44 @@ export async function exchangeCodeAndFetchPhoneNumbers(
   });
 
   const wabaRaw = await wabasRes.text();
+  const graphErrFromBody = tryParseMetaGraphError(wabaRaw);
+
+  if (!wabasRes.ok || graphErrFromBody) {
+    const cause = classifyEmbeddedSignupWabaFailure(graphErrFromBody, wabasRes.status);
+    const diagnosis = buildEmbeddedSignupWabaFailureDiagnosis({
+      cause,
+      parsed: graphErrFromBody,
+    });
+    console.error(
+      "[WHATSAPP][EmbeddedSignup] waba_list_failed",
+      JSON.stringify({
+        ...wabaRequestLog,
+        endpoint: wabaListUrl,
+        httpStatus: wabasRes.status,
+        graphError: graphErrFromBody,
+        error_subcode: graphErrFromBody?.error_subcode ?? null,
+        fbtrace_id: graphErrFromBody?.fbtrace_id ?? null,
+        diagnosis,
+        bodyPreview: wabaRaw.slice(0, 4000),
+      })
+    );
+    const hint = graphErrFromBody?.fbtrace_id
+      ? ` fbtrace_id=${graphErrFromBody.fbtrace_id}`
+      : "";
+    const msg =
+      graphErrFromBody?.message ??
+      (wabaRaw ? wabaRaw.slice(0, 500) : `HTTP ${wabasRes.status}`);
+    const opsHint =
+      cause === "graph_permission_denied"
+        ? " Verifique escopos do app (Access Token Debugger), config_id no App Dashboard e papel do utilizador no Business Manager."
+        : " Verifique META_API_VERSION e o corpo do erro nos logs do servidor.";
+    throw new Error(`Falha ao buscar WABA (${cause}): ${msg}.${hint}${opsHint}`);
+  }
+
   console.info(
     "[WHATSAPP][EmbeddedSignup] assigned_whatsapp_business_accounts response",
     JSON.stringify({ status: wabasRes.status, body: wabaRaw.slice(0, 8000) })
   );
-
-  if (!wabasRes.ok) {
-    console.error("[WHATSAPP][EmbeddedSignup] WABA fetch failed:", wabaRaw);
-    throw new Error(`Falha ao buscar WABA: ${wabaRaw}`);
-  }
 
   let wabaData: { data?: AssignedWabaGraphRow[]; error?: { message?: string } };
   try {
@@ -153,6 +194,13 @@ export async function exchangeCodeAndFetchPhoneNumbers(
   }
 
   if (wabaData.error?.message) {
+    const graphErr = tryParseMetaGraphError(wabaRaw);
+    const cause = classifyEmbeddedSignupWabaFailure(graphErr, 200);
+    const diagnosis = buildEmbeddedSignupWabaFailureDiagnosis({ cause, parsed: graphErr });
+    console.error(
+      "[WHATSAPP][EmbeddedSignup] waba_list_error_in_body",
+      JSON.stringify({ ...wabaRequestLog, graphError: graphErr, diagnosis })
+    );
     throw new Error(wabaData.error.message);
   }
 
