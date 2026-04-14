@@ -11,7 +11,7 @@
  * Esse token precisa de escopos/grants compatíveis com WhatsApp Business, por exemplo (nomes podem variar ligeiramente na UI):
  * - `whatsapp_business_management`
  * - `whatsapp_business_messaging`
- * - frequentemente `business_management` quando o fluxo envolve Business Manager
+ * - **`business_management`** — com frequência **obrigatório** para `GET /me/assigned_whatsapp_business_accounts`; sem ele o token pode ter só `whatsapp_*` + `public_profile` e falhar com código 10 (ex. subcode 1752203)
  *
  * **Diferenciar causas (operacional):**
  * - **App / integração:** escopos não aprovados no App, Embedded Signup mal configurado, app em modo dev sem testers — costuma aparecer como Graph **code 10** (Permission).
@@ -117,7 +117,8 @@ export function buildEmbeddedSignupWabaFailureDiagnosis(args: {
   const operatorChecklist =
     cause === "graph_permission_denied"
       ? ([
-          "Confirmar no Access Token Debugger: escopos whatsapp_business_management / whatsapp_business_messaging (e business_management se aplicável).",
+          "Confirmar scope business_management no token (Access Token Debugger ou log oauth_token_debug_snapshot). Sem ele, /me/assigned_whatsapp_business_accounts costuma falhar — alinhar Facebook Login for Business (config_id) com embeddedSignupOAuthScopes no backend.",
+          "Confirmar escopos whatsapp_business_management e whatsapp_business_messaging.",
           "Confirmar que o token é do mesmo META_APP_ID / FACEBOOK_APP_ID que o Embedded Signup (config_id desse app).",
           "Confirmar papel do utilizador no Business Manager / WABA (admin ou permissões de gestão WhatsApp).",
           "Confirmar que o produto WhatsApp e o fluxo Embedded Signup estão aprovados no App (modo Live ou testers em Dev).",

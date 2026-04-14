@@ -9,6 +9,13 @@
 
 Após a troca do `code`, o backend chama `GET /debug_token` (com o mesmo token e credenciais do app) e regista nos logs **sem expor o token**: `app_id`, `type`, `scopes`, `app_id_matches_env`, `user_id`. Isto substitui a necessidade de abrir o Access Token Debugger manualmente em muitos casos.
 
+### Scopes OAuth (`/dialog/oauth`)
+
+O `POST /api/whatsapp/onboard` devolve `oauthUrl` com o parâmetro `scope` definido em `embeddedSignupOAuthScopes.ts`, incluindo **`business_management`** além de `whatsapp_business_management`, `whatsapp_business_messaging` e `public_profile`.
+
+- A **configuração na Meta** (Facebook Login for Business / Embedded Signup associada ao `config_id`) deve permitir esses permissões; só o código ou só a consola não bastam se estiverem desalinhados.
+- Se o log `oauth_token_debug_snapshot` mostrar o token **sem** `business_management`, o passo seguinte (`assigned_whatsapp_business_accounts`) pode falhar com permissão — ajuste a config na Meta e refaça o OAuth.
+
 **Nunca** usar nesta fase:
 
 - `WHATSAPP_ACCESS_TOKEN` / `META_WHATSAPP_ACCESS_TOKEN` do env

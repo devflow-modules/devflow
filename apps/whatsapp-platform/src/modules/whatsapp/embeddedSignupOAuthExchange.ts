@@ -76,6 +76,9 @@ async function logOAuthTokenDebugSnapshot(args: {
     }
 
     const d = parsed.data;
+    const scopes = d?.scopes ?? [];
+    const hasBusinessManagement = scopes.includes("business_management");
+
     console.info(
       "[WHATSAPP][EmbeddedSignup]",
       JSON.stringify({
@@ -86,13 +89,25 @@ async function logOAuthTokenDebugSnapshot(args: {
           app_id: d?.app_id ?? null,
           app_id_matches_env: d?.app_id === expectedAppId,
           type: d?.type ?? null,
-          scopes: d?.scopes ?? null,
+          scopes,
           is_valid: d?.is_valid ?? null,
           user_id: d?.user_id ?? null,
         },
         httpStatus: res.status,
       })
     );
+
+    if (!hasBusinessManagement) {
+      console.warn(
+        "[WHATSAPP][EmbeddedSignup]",
+        JSON.stringify({
+          stage: "oauth_token_debug_snapshot",
+          warning:
+            "Token sem scope business_management — /me/assigned_whatsapp_business_accounts pode falhar (ex. código 10, subcode 1752203). Inclua business_management na configuração Facebook Login for Business ligada ao config_id; o dialog OAuth do backend já envia scope com business_management (embeddedSignupOAuthScopes). Refaça o fluxo OAuth.",
+          scopes,
+        })
+      );
+    }
   } catch (e) {
     console.warn(
       "[WHATSAPP][EmbeddedSignup] oauth_token_debug_snapshot request failed",

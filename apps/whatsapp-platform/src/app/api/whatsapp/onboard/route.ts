@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { getEmbeddedSignupConfig } from "@/modules/whatsapp/embeddedSignupService";
+import { EMBEDDED_SIGNUP_OAUTH_SCOPES } from "@/modules/whatsapp/embeddedSignupOAuthScopes";
 import { getWhatsAppEmbeddedSignupRedirectUri } from "@/modules/whatsapp/whatsappEmbeddedSignupRedirectUri";
 
 export const dynamic = "force-dynamic";
@@ -30,8 +31,17 @@ export async function POST(request: NextRequest) {
     const apiVer =
       process.env.META_API_VERSION ?? process.env.WHATSAPP_API_VERSION ?? "v21.0";
     const v = apiVer.startsWith("v") ? apiVer : `v${apiVer}`;
-    const oauthUrl = `https://www.facebook.com/${v}/dialog/oauth?client_id=${config.appId}&config_id=${config.configId}&response_type=code&state=${encodeURIComponent(config.state)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
-    console.info(`[WHATSAPP] onboard start tenant=${tenantId} redirect_uri=${redirectUri}`);
+    const oauth = new URL(`https://www.facebook.com/${v}/dialog/oauth`);
+    oauth.searchParams.set("client_id", config.appId);
+    oauth.searchParams.set("config_id", config.configId);
+    oauth.searchParams.set("response_type", "code");
+    oauth.searchParams.set("state", config.state);
+    oauth.searchParams.set("redirect_uri", redirectUri);
+    oauth.searchParams.set("scope", EMBEDDED_SIGNUP_OAUTH_SCOPES);
+    const oauthUrl = oauth.toString();
+    console.info(
+      `[WHATSAPP] onboard start tenant=${tenantId} redirect_uri=${redirectUri} scope_includes_business_management=true`
+    );
     return NextResponse.json({
       success: true,
       data: {
