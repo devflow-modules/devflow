@@ -35,6 +35,9 @@ import {
   markFirstMessageToastSeen,
   markFirstReplyToastSeen,
 } from "@/lib/activationStorage";
+import { useShellLayoutOptional } from "@/components/shell/ShellLayoutContext";
+
+const INBOX_FOCUS_MODE_KEY = "df-inbox-focus-mode";
 
 /** Polling: 10s quando realtime conectado, 5s como fallback. */
 const POLL_INTERVAL_REALTIME_MS = 10_000;
@@ -75,7 +78,31 @@ function InboxShellContent() {
   const [lineFilter, setLineFilter] = useState<string | null>(null);
   const [queueFilter, setQueueFilter] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
+  const [inboxFocusMode, setInboxFocusMode] = useState(false);
   const { connected: realtimeConnected } = useInboxRealtime();
+  const shellLayout = useShellLayoutOptional();
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      try {
+        if (localStorage.getItem(INBOX_FOCUS_MODE_KEY) === "1") setInboxFocusMode(true);
+      } catch {
+        /* ignore */
+      }
+    });
+  }, []);
+
+  const toggleInboxFocusMode = useCallback(() => {
+    setInboxFocusMode((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(INBOX_FOCUS_MODE_KEY, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     const legacy = searchParams.get("filter");
@@ -243,21 +270,49 @@ function InboxShellContent() {
           Seu canal está em ativação. Assim que aprovado, você poderá responder mensagens aqui.
         </div>
       ) : null}
-      <div className="shrink-0 border-b border-slate-100 bg-white px-4 py-4 sm:px-6 sm:py-5 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+      <div
+        className={`shrink-0 border-b border-slate-100 bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)] ${
+          inboxFocusMode ? "px-3 py-2.5 sm:px-4 sm:py-3" : "px-4 py-4 sm:px-6 sm:py-5"
+        }`}
+      >
         <PageHeader
           eyebrow="Atendimento"
           title="Inbox"
           description={
-            awaitingFirstMessage
-              ? "Envie uma mensagem para o seu número para testar — a conversa aparece na lista à esquerda."
-              : "Escolha uma conversa à esquerda para ver e responder."
+            inboxFocusMode
+              ? undefined
+              : awaitingFirstMessage
+                ? "Envie uma mensagem para o seu número para testar — a conversa aparece na lista à esquerda."
+                : "Escolha uma conversa à esquerda para ver e responder."
           }
           layout="split"
           size="compact"
           showDivider={false}
           className="!pb-0"
           actions={
-            <div className="flex w-full flex-wrap items-center gap-3 lg:w-auto lg:justify-end">
+            <div className="flex w-full flex-wrap items-center gap-2 sm:gap-3 lg:w-auto lg:justify-end">
+              {shellLayout ? (
+                <button
+                  type="button"
+                  onClick={() => shellLayout.toggleSidebar()}
+                  className="hidden rounded-lg border border-slate-200/90 bg-white px-2 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 lg:inline-flex"
+                  title="Recuar o menu lateral (mais largura para o chat)"
+                >
+                  Recuar menu
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={toggleInboxFocusMode}
+                className={`rounded-lg border px-2 py-1.5 text-xs font-semibold shadow-sm transition ${
+                  inboxFocusMode
+                    ? "border-[var(--df-brand-300)] bg-[var(--df-brand-50)] text-[var(--df-brand-900)]"
+                    : "border-slate-200/90 bg-white text-slate-700 hover:bg-slate-50"
+                }`}
+                title="Menos cabeçalho e métricas — mais espaço para mensagens"
+              >
+                {inboxFocusMode ? "Sair do modo foco" : "Modo foco"}
+              </button>
               {statusPill}
               <SupportHelpButton variant="compact" className="rounded-lg px-2 py-1.5 no-underline hover:bg-slate-50" />
               <Link
@@ -408,6 +463,7 @@ function InboxShellContent() {
                 showBack={!isMd}
                 onBackMobile={onBack}
                 evaluationMode={evaluationMode}
+                compactChrome={inboxFocusMode}
               />
             ) : awaitingFirstMessage ? (
               <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-8 md:px-8">

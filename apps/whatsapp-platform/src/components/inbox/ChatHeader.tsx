@@ -44,6 +44,8 @@ type ChatHeaderProps = {
   auditTab?: boolean;
   onAuditTabChange?: (show: boolean) => void;
   onOpenNotes?: () => void;
+  /** Menos altura e padding — modo foco na inbox. */
+  compactChrome?: boolean;
 };
 
 export function ChatHeader({
@@ -54,6 +56,7 @@ export function ChatHeader({
   auditTab,
   onAuditTabChange,
   onOpenNotes,
+  compactChrome = false,
 }: ChatHeaderProps) {
   const client = useQueryClient();
   const [assignOpen, setAssignOpen] = useState(false);
@@ -218,12 +221,16 @@ export function ChatHeader({
       })
     : null;
 
+  const headerMaxH = compactChrome ? "max-h-[min(26vh,220px)]" : "max-h-[min(38vh,340px)]";
+  const headerPad = compactChrome ? "px-3 py-2.5 sm:px-4 sm:py-3" : "px-4 py-4 sm:px-6 sm:py-5";
+  const toolbarPad = compactChrome ? "px-3 py-2 sm:px-4" : "px-4 py-3 sm:px-6";
+
   return (
     <header
-      className="df-inbox-header max-h-[min(38vh,340px)] shrink-0 overflow-y-auto overscroll-contain"
+      className={`df-inbox-header ${headerMaxH} shrink-0 overflow-y-auto overscroll-contain`}
       data-testid="chat-header"
     >
-      <div className="flex items-start gap-3 px-4 py-4 sm:px-6 sm:py-5">
+      <div className={`flex items-start gap-3 ${headerPad}`}>
         {showBack && (
           <button
             type="button"
@@ -345,7 +352,7 @@ export function ChatHeader({
         </div>
       </div>
 
-      <div className="border-t border-slate-100/90 bg-slate-50/50 px-4 py-3 sm:px-6">
+      <div className={`border-t border-slate-100/90 bg-slate-50/50 ${toolbarPad}`}>
         <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">Operação</p>
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200/80 bg-white/95 p-2 shadow-sm">
           {canAssume ? (

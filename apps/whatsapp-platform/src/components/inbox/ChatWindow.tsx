@@ -39,6 +39,7 @@ export function ChatWindow({
   onBackMobile,
   showBack,
   evaluationMode = false,
+  compactChrome = false,
 }: {
   threadId: string | null;
   thread: WaInboxThreadRow | null;
@@ -46,6 +47,8 @@ export function ChatWindow({
   showBack?: boolean;
   /** Tenant em FREE — copy lateral de avaliação guiada. */
   evaluationMode?: boolean;
+  /** Cabeçalho da conversa mais baixo (modo foco inbox). */
+  compactChrome?: boolean;
 }) {
   const [auditTab, setAuditTab] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
@@ -96,6 +99,7 @@ export function ChatWindow({
           auditTab={auditTab}
           onAuditTabChange={setAuditTab}
           onOpenNotes={() => setNotesOpen((o) => !o)}
+          compactChrome={compactChrome}
         />
         {notesOpen && threadId ? (
           <InternalNotesPanel threadId={threadId} onClose={() => setNotesOpen(false)} />
