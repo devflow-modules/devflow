@@ -48,10 +48,9 @@ export async function PATCH(
   return NextResponse.json({ success: true, data: { userId, status: parsed.data.status } });
 }
 
-export async function DELETE(
-  _request: NextRequest,
-  _context: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  void request;
+  void context;
   return NextResponse.json(
     { error: "Utilizadores não são removidos por esta rota — use a gestão de equipa / configurações." },
     { status: 405 }

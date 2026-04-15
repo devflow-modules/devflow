@@ -1,5 +1,3 @@
-import type { UserRole } from "@/modules/auth";
-
 export function isOperator(role: string | null | undefined): role is "operator" {
   return role === "operator";
 }

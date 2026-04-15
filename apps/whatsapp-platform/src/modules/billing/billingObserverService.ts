@@ -3,7 +3,6 @@
  * Logs padronizados + BillingAuditLog para rastreabilidade.
  */
 
-import type Stripe from "stripe";
 import { createBillingAuditLogAsync } from "./infrastructure/billingAuditRepository";
 
 const STRIPE_EVENT_TYPES = [

@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { recordPlatformAudit } from "@/lib/platformAuditLog";
 import { getClientIp } from "@/lib/rate-limit";
 import { z } from "zod";
-import type { Condition, Action } from "@/modules/automation/automation.types";
 import { normalizeTriggerType } from "@/modules/automation/triggerNormalize";
 import { requireFeatureOr403 } from "@/modules/billing/featureGate";
 import { ruleRequiresAdvancedAutomation } from "@/modules/automation/automationRuleFeatures";

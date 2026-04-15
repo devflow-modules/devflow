@@ -4,7 +4,6 @@
 
 import { prisma } from "@/lib/prisma";
 import { getUsageByPeriod, periodYYYYMM } from "./usageService";
-import { getTenantPlan } from "./subscriptionService";
 import { getTenantPlanCapabilities } from "./planCapabilities";
 import { getStripe, isStripeConfigured } from "@/modules/stripe/stripeClient";
 

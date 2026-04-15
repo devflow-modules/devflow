@@ -36,7 +36,7 @@ function sanitizeValue(key: string, value: unknown): unknown {
     return sanitizeLogData(value as Record<string, unknown>);
   }
   if (Array.isArray(value)) {
-    return value.map((item, i) =>
+    return value.map((item) =>
       typeof item === "object" && item !== null
         ? sanitizeLogData(item as Record<string, unknown>)
         : item

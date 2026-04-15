@@ -32,8 +32,9 @@ export function isMeteredBillingConfigured(): boolean {
  * Retry pending UsageEvent reports to Stripe.
  * Stub: meter events are handled by reportMessageUsage/reportAiUsage.
  */
-export async function retryPendingStripeUsageReports(
-  _limit: number
-): Promise<{ processed: number; succeeded: number }> {
+export async function retryPendingStripeUsageReports(): Promise<{
+  processed: number;
+  succeeded: number;
+}> {
   return { processed: 0, succeeded: 0 };
 }

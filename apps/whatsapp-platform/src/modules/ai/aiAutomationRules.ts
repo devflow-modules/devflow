@@ -32,7 +32,7 @@ export function evaluateAutomationRules(input: {
   const text = input.messageText ?? "";
   const lower = text.toLowerCase();
   let promptAugmentation: string | null = null;
-  let markNeedsHuman = false;
+  const markNeedsHuman = false;
 
   if (lower.includes("preço") || lower.includes("preco") || lower.includes("orçamento") || lower.includes("orcamento")) {
     promptAugmentation =

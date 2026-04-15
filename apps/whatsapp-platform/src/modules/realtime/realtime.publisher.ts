@@ -33,7 +33,7 @@ export function publish(tenantId: string, event: InboxRealtimeEvent): void {
   const e = { ...event, ts: event.ts || new Date().toISOString() };
   for (const fn of set) {
     try {
-      fn(event);
+      fn(e);
     } catch (err) {
       console.error("[realtime] subscriber error", err);
     }

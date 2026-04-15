@@ -99,8 +99,10 @@ function InboxShellContent() {
       nextPriority = pu;
     }
 
-    setFilter(nextPhase);
-    setPriorityFilter(nextPriority);
+    queueMicrotask(() => {
+      setFilter(nextPhase);
+      setPriorityFilter(nextPriority);
+    });
   }, [searchParams]);
 
   const pollInterval = realtimeConnected ? POLL_INTERVAL_REALTIME_MS : POLL_INTERVAL_FALLBACK_MS;
@@ -195,8 +197,10 @@ function InboxShellContent() {
     if (!threads?.length) return;
     const first = threads[0];
     if (first?.id) {
-      onSelect(first.id);
-      setActivationPickFirst(false);
+      queueMicrotask(() => {
+        onSelect(first.id);
+        setActivationPickFirst(false);
+      });
     }
   }, [activationPickFirst, convData?.threads, onSelect]);
 

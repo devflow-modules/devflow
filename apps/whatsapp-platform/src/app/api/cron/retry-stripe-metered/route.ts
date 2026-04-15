@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  const result = await retryPendingStripeUsageReports(100);
+  const result = await retryPendingStripeUsageReports();
   return NextResponse.json({
     success: true,
     processed: result.processed,

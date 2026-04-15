@@ -25,12 +25,6 @@ export interface ChatCompletionResult {
   statusCode?: number;
 }
 
-const RETRYABLE_STATUS = new Set([429, 500, 502, 503]);
-
-function isRetryable(status: number): boolean {
-  return RETRYABLE_STATUS.has(status);
-}
-
 /**
  * Chama a API OpenAI. Trata 401, 429, 5xx e timeout.
  * @throws nunca — retorna error no resultado

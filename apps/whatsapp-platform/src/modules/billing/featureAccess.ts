@@ -5,7 +5,6 @@
 
 import { NextResponse } from "next/server";
 import type { FeatureKey } from "./featureGate";
-import { canUseFeature } from "./featureGate";
 import { PLANS, normalizePlan, type PlanFeatures, type PlanKey } from "./plans";
 import { getTenantPlan } from "./subscriptionService";
 import { bumpMetric, logEvent } from "@/lib/observability";

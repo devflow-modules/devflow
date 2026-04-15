@@ -53,7 +53,9 @@ vi.mock("@/lib/prisma", () => ({
 
 vi.mock("@devflow/whatsapp-core", () => ({
   WhatsAppCloudAdapter: class {
-    constructor(_opts: unknown) {}
+    constructor(...args: unknown[]) {
+      void args;
+    }
     sendText = prismaMocks.sendText;
   },
 }));

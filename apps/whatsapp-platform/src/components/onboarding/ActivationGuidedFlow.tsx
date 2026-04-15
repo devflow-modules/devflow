@@ -27,7 +27,9 @@ function useFirstReplyRecorded(): boolean {
     typeof window !== "undefined" ? hasRecordedFirstReply() : false
   );
   useEffect(() => {
-    setDone(hasRecordedFirstReply());
+    queueMicrotask(() => {
+      setDone(hasRecordedFirstReply());
+    });
     const onUp = () => setDone(hasRecordedFirstReply());
     window.addEventListener("df-activation-update", onUp);
     return () => window.removeEventListener("df-activation-update", onUp);

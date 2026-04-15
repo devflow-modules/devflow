@@ -307,6 +307,7 @@ function useInboxRealtimeConnection(enabled = true) {
       eventSourceRef.current = null;
       setConnected(false);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reconexão apenas quando `enabled` muda; handleEvent usa qc estável
   }, [enabled]);
 
   return { connected };

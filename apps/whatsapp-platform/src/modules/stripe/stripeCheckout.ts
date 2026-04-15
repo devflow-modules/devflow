@@ -4,7 +4,7 @@
 
 import type Stripe from "stripe";
 import { getStripe, getPriceId } from "./stripeClient";
-import type { CheckoutSessionParams, StripePlanKey } from "./stripeTypes";
+import type { CheckoutSessionParams } from "./stripeTypes";
 
 export async function createCheckoutSession(
   params: CheckoutSessionParams

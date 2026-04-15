@@ -1,10 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { classifyWebhookHealth } from "../webhookHealthService";
-import {
-  WEBHOOK_ATTENTION_MAX_AGE_MS,
-  WEBHOOK_OK_MAX_AGE_MS,
-  WEBHOOK_STALE_ERROR_MS,
-} from "../webhookHealthConstants";
+import { WEBHOOK_OK_MAX_AGE_MS, WEBHOOK_STALE_ERROR_MS } from "../webhookHealthConstants";
 
 describe("classifyWebhookHealth", () => {
   const now = new Date("2026-04-11T12:00:00.000Z").getTime();

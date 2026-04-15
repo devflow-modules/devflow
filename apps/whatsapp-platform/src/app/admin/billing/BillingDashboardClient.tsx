@@ -57,7 +57,7 @@ export function BillingDashboardClient({ initialData }: Props) {
     if (sortBy || sortOrder) {
       refresh();
     }
-  }, [sortBy, sortOrder]);
+  }, [sortBy, sortOrder, refresh]);
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8">

@@ -50,7 +50,9 @@ export function ChatWindow({
   const prevThreadIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    setActionBannerDismissed(false);
+    queueMicrotask(() => {
+      setActionBannerDismissed(false);
+    });
   }, [threadId]);
 
   const { data: fetchedThread } = useQuery({

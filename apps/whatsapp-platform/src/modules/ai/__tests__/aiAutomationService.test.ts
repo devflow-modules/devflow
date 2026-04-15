@@ -105,7 +105,7 @@ function mockAgentConfig(over: Record<string, unknown> = {}) {
   };
 }
 
-function setupReadyTenant(_tenantId = "t1") {
+function setupReadyTenant() {
   mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValue({
     status: WhatsappPhoneNumberStatus.ACTIVE,
     accessToken: "tok",

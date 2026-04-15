@@ -11,11 +11,13 @@ export function NavigationOrientationHint() {
   const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
-    try {
-      setDismissed(window.localStorage.getItem(STORAGE_KEY) === "1");
-    } catch {
-      setDismissed(false);
-    }
+    queueMicrotask(() => {
+      try {
+        setDismissed(window.localStorage.getItem(STORAGE_KEY) === "1");
+      } catch {
+        setDismissed(false);
+      }
+    });
   }, []);
 
   const dismiss = useCallback(() => {

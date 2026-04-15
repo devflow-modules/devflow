@@ -3,7 +3,6 @@
  */
 
 import { dispatchEvent } from "./trigger.dispatcher";
-import type { AutomationTriggerType } from "./automation.types";
 
 export { dispatchEvent };
 

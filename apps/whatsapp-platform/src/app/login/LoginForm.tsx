@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { resolvePostLoginRedirect } from "@/lib/postLoginRedirect";
-import { readVerifyPayload, unwrapApiData } from "@/lib/api-json-client";
+import { unwrapApiData } from "@/lib/api-json-client";
 import { mapAuthHttpError } from "@/lib/auth-client-errors";
 import { PasswordField } from "@/components/auth/PasswordField";
 

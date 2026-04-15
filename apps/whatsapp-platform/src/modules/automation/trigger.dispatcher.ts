@@ -13,7 +13,6 @@ import { UsageMetricType } from "@/generated/prisma-whatsapp";
 import { getWaInboxThreadInboxMetrics } from "@/modules/inbox/waInboxThreadMetrics";
 import { logAction } from "@/modules/inbox";
 
-const MAX_DEPTH = 5;
 const AUTOMATION_AUDIT_USER = "automation";
 
 async function loadAutomationThreadContext(

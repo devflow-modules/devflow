@@ -113,9 +113,11 @@ export async function getAgentPerformance(
 }
 
 export async function getIntentDistribution(
-  _tenantId: string,
-  _range?: DateRange
+  tenantId: string,
+  range?: DateRange
 ): Promise<{ intent: string; count: number }[]> {
+  void tenantId;
+  void range;
   return [];
 }
 
