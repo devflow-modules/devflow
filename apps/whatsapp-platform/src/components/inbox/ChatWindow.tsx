@@ -84,10 +84,10 @@ export function ChatWindow({
 
   return (
     <div
-      className="flex min-h-0 flex-1 flex-col bg-gradient-to-b from-white via-slate-50/30 to-slate-50/60 xl:flex-row"
+      className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-gradient-to-b from-white via-slate-50/30 to-slate-50/60 xl:flex-row xl:items-stretch"
       data-testid="chat-window"
     >
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden xl:min-h-0">
         <ChatHeader
           threadId={threadId}
           thread={activeThread}
@@ -105,7 +105,7 @@ export function ChatWindow({
         ) : (
           <div
             key={threadId ?? "none"}
-            className="flex min-h-0 flex-1 flex-col overflow-hidden motion-safe:animate-[dfInboxPaneEnter_220ms_ease-out] motion-reduce:animate-none"
+            className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden motion-safe:animate-[dfInboxPaneEnter_220ms_ease-out] motion-reduce:animate-none"
           >
             <ConversationActionBanner
               thread={activeThread}
@@ -126,7 +126,7 @@ export function ChatWindow({
         <LeadDataPanel
           thread={activeThread}
           evaluationMode={evaluationMode}
-          className="max-h-40 w-full shrink-0 overflow-y-auto border-t border-slate-200/90 sm:max-h-52 md:max-h-64 xl:max-h-[min(100vh,720px)] xl:w-72 xl:border-l xl:border-t-0"
+          className="max-h-40 w-full shrink-0 overflow-y-auto border-t border-slate-200/90 sm:max-h-52 md:max-h-64 xl:max-h-full xl:min-h-0 xl:w-72 xl:shrink-0 xl:border-l xl:border-t-0"
         />
       ) : null}
     </div>

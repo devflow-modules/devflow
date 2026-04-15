@@ -137,7 +137,7 @@ export function MessageList({
 
   return (
     <div
-      className="min-h-0 flex-1 overflow-y-auto bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 px-5 py-7 sm:px-7 sm:py-9"
+      className="min-h-0 flex-1 basis-0 overflow-y-auto overflow-x-hidden bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 px-5 py-7 sm:px-7 sm:py-9"
       data-testid="message-list"
     >
       <div className="mx-auto flex max-w-3xl flex-col gap-4">

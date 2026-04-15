@@ -369,9 +369,9 @@ function InboxShellContent() {
         }}
       />
 
-      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
         {showSidebar && (
-          <aside className="flex w-full shrink-0 flex-col border-r border-slate-100/90 bg-white md:w-[min(380px,40vw)]">
+          <aside className="flex min-h-0 w-full shrink-0 flex-col overflow-hidden border-r border-slate-100/90 bg-white md:w-[min(380px,40vw)]">
             <div className="flex items-center justify-between border-b border-slate-100/90 px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Conversas</p>
               <OnlineUsersBadge />
@@ -394,7 +394,7 @@ function InboxShellContent() {
         )}
 
         {showChatColumn && (
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
             {selectedId ? (
               <ChatWindow
                 key={selectedId}
