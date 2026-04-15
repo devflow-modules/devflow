@@ -123,6 +123,8 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
     return [
       { href: "/admin/metrics", label: ROUTE_META["/admin/metrics"].label },
       { href: "/admin/billing", label: ROUTE_META["/admin/billing"].label },
+      { href: "/admin/affiliates", label: ROUTE_META["/admin/affiliates"].label },
+      { href: "/admin/tenants", label: ROUTE_META["/admin/tenants"].label },
       { href: "/admin/agents", label: ROUTE_META["/admin/agents"].label },
       { href: "/admin/conversations", label: ROUTE_META["/admin/conversations"].label },
       { href: "/admin/whatsapp", label: ROUTE_META["/admin/whatsapp"].label },

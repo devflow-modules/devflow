@@ -9,7 +9,13 @@ import { ensureTenantSubscription } from "@/modules/billing/subscriptionService"
 import { normalizePlan } from "@/modules/billing/plans";
 import { parseRequestJson } from "@/lib/parse-request-json";
 import { logAuth } from "@/lib/auth-logger";
+import { recordPlatformAudit } from "@/lib/platformAuditLog";
 import { sendTransactionalEmail } from "@/modules/email/application/sendTransactionalEmail";
+import {
+  AFFILIATE_REF_COOKIE_NAME,
+  buildClearAffiliateRefCookie,
+  resolveSignupAffiliateRef,
+} from "@/modules/affiliates/affiliateRef";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,6 +25,10 @@ const bodySchema = z.object({
   email: z.string().email("E-mail inválido"),
   password: z.string().min(8, "Senha deve ter no mínimo 8 caracteres"),
   planId: z.enum(["free", "pro"]).default("free"),
+  affiliateRef: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : String(v).trim()),
+    z.string().optional()
+  ),
 });
 
 function prismaErrorCode(err: unknown): string | null {
@@ -101,12 +111,26 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { name, email, password, planId } = parsed.data;
+    const { name, email, password, planId, affiliateRef: affiliateRefBody } = parsed.data;
     const emailLower = email.trim().toLowerCase();
 
     const existing = await prisma.user.findUnique({ where: { email: emailLower } });
     if (existing) {
       return NextResponse.json({ error: "E-mail já cadastrado" }, { status: 409 });
+    }
+
+    const cookieRef = request.cookies.get(AFFILIATE_REF_COOKIE_NAME)?.value ?? undefined;
+    const { id: resolvedAffiliateId, via: affiliateRefVia } = resolveSignupAffiliateRef(
+      affiliateRefBody,
+      cookieRef
+    );
+    let affiliateIdForTenant: string | undefined;
+    if (resolvedAffiliateId) {
+      const affiliateRow = await prisma.affiliate.findUnique({
+        where: { id: resolvedAffiliateId },
+        select: { id: true },
+      });
+      if (affiliateRow) affiliateIdForTenant = affiliateRow.id;
     }
 
     const passwordHash = await hashPassword(password);
@@ -116,8 +140,23 @@ export async function POST(request: NextRequest) {
       data: {
         name: tenantName,
         plan: planId,
+        ...(affiliateIdForTenant
+          ? { affiliateId: affiliateIdForTenant, affiliateSource: "ref" }
+          : {}),
       },
     });
+
+    if (affiliateIdForTenant && affiliateRefVia) {
+      recordPlatformAudit({
+        action: "affiliate.assigned",
+        tenantId: tenant.id,
+        metadata: {
+          affiliateId: affiliateIdForTenant,
+          source: "ref",
+          via: affiliateRefVia,
+        },
+      });
+    }
 
     await ensureTenantSubscription(tenant.id, normalizePlan(planId));
 
@@ -189,6 +228,7 @@ export async function POST(request: NextRequest) {
           },
         });
         res.headers.set("Set-Cookie", buildSetCookieHeader(token));
+        res.headers.append("Set-Cookie", buildClearAffiliateRefCookie());
         return res;
       } catch (err) {
         console.error("[signup] Stripe checkout error", err);
@@ -207,6 +247,7 @@ export async function POST(request: NextRequest) {
       redirectTo: "/onboarding",
     });
     res.headers.set("Set-Cookie", buildSetCookieHeader(token));
+    res.headers.append("Set-Cookie", buildClearAffiliateRefCookie());
     return res;
   } catch (err) {
     try {

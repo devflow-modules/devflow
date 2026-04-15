@@ -6,8 +6,12 @@ vi.mock("@/lib/rate-limit", () => ({
   getClientIp: () => "127.0.0.1",
 }));
 
+const VALID_AFFILIATE_CUID = "cjld2cjxh0000qzrmn831ir4";
+
 const mockUserFindUnique = vi.hoisted(() => vi.fn());
 const mockTenantCreate = vi.hoisted(() => vi.fn());
+const mockAffiliateFindUnique = vi.hoisted(() => vi.fn());
+const mockRecordPlatformAudit = vi.hoisted(() => vi.fn());
 const mockUserCreate = vi.hoisted(() => vi.fn());
 const mockHashPassword = vi.hoisted(() => vi.fn());
 const mockSignToken = vi.hoisted(() => vi.fn());
@@ -25,6 +29,9 @@ vi.mock("@/lib/prisma", () => ({
     },
     tenant: {
       create: (...a: unknown[]) => mockTenantCreate(...a),
+    },
+    affiliate: {
+      findUnique: (...a: unknown[]) => mockAffiliateFindUnique(...a),
     },
   },
 }));
@@ -55,10 +62,15 @@ vi.mock("@/lib/auth-logger", () => ({
   logAuth: vi.fn(),
 }));
 
+vi.mock("@/lib/platformAuditLog", () => ({
+  recordPlatformAudit: (...a: unknown[]) => mockRecordPlatformAudit(...a),
+}));
+
 describe("POST /api/auth/signup", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.NEXT_PUBLIC_WHATSAPP_APP_URL = "http://localhost:3000";
+    mockAffiliateFindUnique.mockResolvedValue(null);
     mockUserFindUnique.mockResolvedValue(null);
     mockTenantCreate.mockResolvedValue({
       id: "t-new",
@@ -217,6 +229,207 @@ describe("POST /api/auth/signup", () => {
         type: "ACCOUNT_CREATED",
         to: "cliente.pro@example.com",
         tenantId: "t-pro",
+      })
+    );
+  });
+
+  it("com affiliateRef válido no body vincula tenant e regista auditoria", async () => {
+    mockAffiliateFindUnique.mockResolvedValue({ id: VALID_AFFILIATE_CUID });
+    const { POST } = await import("../route");
+    const req = new NextRequest("http://localhost/api/auth/signup", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "Parceiro",
+        email: "parceiro@example.com",
+        password: "12345678",
+        planId: "free",
+        affiliateRef: VALID_AFFILIATE_CUID,
+      }),
+      headers: { "Content-Type": "application/json" },
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    expect(mockAffiliateFindUnique).toHaveBeenCalledWith({
+      where: { id: VALID_AFFILIATE_CUID },
+      select: { id: true },
+    });
+    expect(mockTenantCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          affiliateId: VALID_AFFILIATE_CUID,
+          affiliateSource: "ref",
+        }),
+      })
+    );
+    expect(mockRecordPlatformAudit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "affiliate.assigned",
+        tenantId: "t-new",
+        metadata: expect.objectContaining({
+          affiliateId: VALID_AFFILIATE_CUID,
+          source: "ref",
+          via: "body",
+        }),
+      })
+    );
+  });
+
+  it("sem ref não consulta afiliado nem audita vínculo", async () => {
+    const { POST } = await import("../route");
+    const req = new NextRequest("http://localhost/api/auth/signup", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "Só",
+        email: "so@example.com",
+        password: "12345678",
+        planId: "free",
+      }),
+      headers: { "Content-Type": "application/json" },
+    });
+    mockUserCreate.mockResolvedValue({
+      id: "u-so",
+      email: "so@example.com",
+      name: "Só",
+      role: "manager",
+      tenantId: "t-new",
+    });
+    await POST(req);
+    expect(mockAffiliateFindUnique).not.toHaveBeenCalled();
+    const createArg = mockTenantCreate.mock.calls[0]?.[0] as { data: { affiliateId?: string } };
+    expect(createArg.data.affiliateId).toBeUndefined();
+    expect(mockRecordPlatformAudit).not.toHaveBeenCalled();
+  });
+
+  it("ref inválido no body é ignorado", async () => {
+    const { POST } = await import("../route");
+    const req = new NextRequest("http://localhost/api/auth/signup", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "X",
+        email: "x@example.com",
+        password: "12345678",
+        planId: "free",
+        affiliateRef: "não-é-cuid",
+      }),
+      headers: { "Content-Type": "application/json" },
+    });
+    mockUserCreate.mockResolvedValue({
+      id: "u-x",
+      email: "x@example.com",
+      name: "X",
+      role: "manager",
+      tenantId: "t-new",
+    });
+    await POST(req);
+    expect(mockAffiliateFindUnique).not.toHaveBeenCalled();
+    const createArg = mockTenantCreate.mock.calls[0]?.[0] as { data: { affiliateId?: string } };
+    expect(createArg.data.affiliateId).toBeUndefined();
+  });
+
+  it("fallback: cookie affiliate_ref quando body não traz ref", async () => {
+    mockAffiliateFindUnique.mockResolvedValue({ id: VALID_AFFILIATE_CUID });
+    const { POST } = await import("../route");
+    const req = new NextRequest("http://localhost/api/auth/signup", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "Cookie",
+        email: "cookie@example.com",
+        password: "12345678",
+        planId: "free",
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        cookie: `affiliate_ref=${VALID_AFFILIATE_CUID}`,
+      },
+    });
+    mockUserCreate.mockResolvedValue({
+      id: "u-c",
+      email: "cookie@example.com",
+      name: "Cookie",
+      role: "manager",
+      tenantId: "t-new",
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    expect(mockAffiliateFindUnique).toHaveBeenCalled();
+    expect(mockTenantCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ affiliateId: VALID_AFFILIATE_CUID }),
+      })
+    );
+    expect(mockRecordPlatformAudit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.objectContaining({ via: "cookie" }),
+      })
+    );
+  });
+
+  it("afiliado inexistente na base não grava affiliateId", async () => {
+    mockAffiliateFindUnique.mockResolvedValue(null);
+    const { POST } = await import("../route");
+    const req = new NextRequest("http://localhost/api/auth/signup", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "Y",
+        email: "y@example.com",
+        password: "12345678",
+        planId: "free",
+        affiliateRef: VALID_AFFILIATE_CUID,
+      }),
+      headers: { "Content-Type": "application/json" },
+    });
+    mockUserCreate.mockResolvedValue({
+      id: "u-y",
+      email: "y@example.com",
+      name: "Y",
+      role: "manager",
+      tenantId: "t-new",
+    });
+    await POST(req);
+    expect(mockAffiliateFindUnique).toHaveBeenCalled();
+    const createArg = mockTenantCreate.mock.calls[0]?.[0] as { data: { affiliateId?: string } };
+    expect(createArg.data.affiliateId).toBeUndefined();
+    expect(mockRecordPlatformAudit).not.toHaveBeenCalled();
+  });
+
+  it("body válido prevalece sobre cookie quando ambos presentes", async () => {
+    const bodyId = VALID_AFFILIATE_CUID;
+    const cookieId = "ckfqz8q3q0000q3q3q3q3q3q3";
+    mockAffiliateFindUnique.mockImplementation(({ where }: { where: { id: string } }) =>
+      Promise.resolve({ id: where.id })
+    );
+    const { POST } = await import("../route");
+    const req = new NextRequest("http://localhost/api/auth/signup", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "Dois",
+        email: "dois@example.com",
+        password: "12345678",
+        planId: "free",
+        affiliateRef: bodyId,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        cookie: `affiliate_ref=${cookieId}`,
+      },
+    });
+    mockUserCreate.mockResolvedValue({
+      id: "u-2",
+      email: "dois@example.com",
+      name: "Dois",
+      role: "manager",
+      tenantId: "t-new",
+    });
+    await POST(req);
+    expect(mockAffiliateFindUnique).toHaveBeenCalledWith({
+      where: { id: bodyId },
+      select: { id: true },
+    });
+    const createArg = mockTenantCreate.mock.calls[0]?.[0] as { data: { affiliateId?: string } };
+    expect(createArg.data.affiliateId).toBe(bodyId);
+    expect(mockRecordPlatformAudit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.objectContaining({ via: "body" }),
       })
     );
   });

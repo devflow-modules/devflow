@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { ADMIN_METRICS_SECRET_COOKIE_NAME, JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { loginUrlWithNext } from "@/lib/safe-redirect";
+import { logAuth } from "@/lib/auth-logger";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 /**
  * Validação alinhada com `getAuthFromRequest` (sessão + DB), sem duplicar regras em Edge.
@@ -43,7 +45,13 @@ function requiresTenantSession(path: string): boolean {
 /** Em produção, métricas/billing admin podem usar cookie de segredo em vez de JWT. */
 function metricsSecretBypass(request: NextRequest, path: string): boolean {
   if (process.env.NODE_ENV !== "production") return false;
-  if (!path.startsWith("/admin/metrics") && !path.startsWith("/admin/billing")) return false;
+  if (
+    !path.startsWith("/admin/metrics") &&
+    !path.startsWith("/admin/billing") &&
+    !path.startsWith("/admin/affiliates") &&
+    !path.startsWith("/admin/tenants")
+  )
+    return false;
   const adminSecret =
     process.env.WHATSAPP_ADMIN_METRICS_SECRET ?? process.env.ADMIN_METRICS_SECRET;
   if (!adminSecret) return false;
@@ -57,6 +65,34 @@ function redirectToMetricsSecretLogin(request: NextRequest): NextResponse {
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
+
+  if (path.startsWith("/api/admin") && request.method !== "OPTIONS") {
+    const ip = getClientIp(request);
+    const lim = checkRateLimit(ip, "admin-api");
+    if (!lim.ok) {
+      const trace_id = crypto.randomUUID();
+      logAuth({ type: "rate_limited", route: path, ip });
+      return NextResponse.json(
+        {
+          success: false,
+          data: null,
+          error: {
+            code: "RATE_LIMITED",
+            message: "Demasiados pedidos. Tente novamente em breve.",
+          },
+          trace_id,
+        },
+        {
+          status: 429,
+          headers: {
+            "Content-Type": "application/json",
+            "X-Trace-Id": trace_id,
+            ...(lim.retryAfter ? { "Retry-After": String(lim.retryAfter) } : {}),
+          },
+        }
+      );
+    }
+  }
 
   if (requiresTenantSession(path)) {
     const secret = process.env.JWT_SECRET;
@@ -95,7 +131,10 @@ export async function middleware(request: NextRequest) {
   if (!token) {
     const metricsOnlySecretFlow =
       process.env.NODE_ENV === "production" &&
-      (path.startsWith("/admin/metrics") || path.startsWith("/admin/billing")) &&
+      (path.startsWith("/admin/metrics") ||
+        path.startsWith("/admin/billing") ||
+        path.startsWith("/admin/affiliates") ||
+        path.startsWith("/admin/tenants")) &&
       (process.env.WHATSAPP_ADMIN_METRICS_SECRET ?? process.env.ADMIN_METRICS_SECRET);
     if (metricsOnlySecretFlow) {
       return redirectToMetricsSecretLogin(request);

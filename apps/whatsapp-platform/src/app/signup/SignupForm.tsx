@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { mapAuthHttpError } from "@/lib/auth-client-errors";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { COMMERCIAL_RECOMMENDED_BADGE } from "@/modules/billing/planPresentation";
+import { clientReadAffiliateRefCookie, clientSetAffiliateRefCookie } from "@/modules/affiliates/affiliateRef";
 
 type SignupPlanId = "free" | "pro";
 
-export function SignupForm() {
+export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: string }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,6 +17,11 @@ export function SignupForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const submitLock = useRef(false);
+
+  useEffect(() => {
+    if (!affiliateRefFromUrl?.trim()) return;
+    clientSetAffiliateRefCookie(affiliateRefFromUrl.trim());
+  }, [affiliateRefFromUrl]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -37,10 +43,17 @@ export function SignupForm() {
     setLoading(true);
 
     try {
+      const affiliateRef = clientReadAffiliateRefCookie();
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: n, email: em, password, planId }),
+        body: JSON.stringify({
+          name: n,
+          email: em,
+          password,
+          planId,
+          ...(affiliateRef ? { affiliateRef } : {}),
+        }),
         credentials: "include",
       });
       const text = await res.text();

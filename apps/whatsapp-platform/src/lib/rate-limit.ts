@@ -17,6 +17,8 @@ const LIMITS: Record<string, { windowMs: number; max: number }> = {
   "auth-login": { windowMs: DEFAULT_WINDOW_MS, max: 30 },
   /** Cadastro: janela igual, limite moderado por IP. */
   signup: { windowMs: DEFAULT_WINDOW_MS, max: 10 },
+  /** Todas as rotas `/api/admin/*` (middleware Edge) — anti-abuso por IP. */
+  "admin-api": { windowMs: DEFAULT_WINDOW_MS, max: 400 },
 };
 
 const store = new Map<string, { count: number; resetAt: number }>();

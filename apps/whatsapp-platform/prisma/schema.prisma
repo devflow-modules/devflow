@@ -119,8 +119,48 @@ model Tenant {
   waInboxQueueMemberships WaInboxQueueMembership[]
   operationalConfig    TenantOperationalConfig?
   webhookHealth        WebhookHealth?
+  affiliateId          String?                @map("affiliate_id")
+  /** `ref` = link de indicação no signup; `manual` = vínculo pela equipa (admin). */
+  affiliateSource      String?                @map("affiliate_source")
+  affiliate            Affiliate?             @relation(fields: [affiliateId], references: [id], onDelete: SetNull)
+  commissions          Commission[]
+  /** Valor fechado da implantação (BRL); obrigatório para gerar comissão de afiliado. */
+  implantationPriceBrl Float?                 @map("implantation_price_brl")
 
+  @@index([affiliateId])
   @@map("whatsapp_tenants")
+}
+
+/** Parceiro de indicação (comissão só em implantação — GTM). */
+model Affiliate {
+  id               String       @id @default(cuid())
+  name             String
+  email            String?
+  phone            String?
+  commissionRate   Float        @default(0.5) @map("commission_rate")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  tenants          Tenant[]
+  commissions      Commission[]
+
+  @@map("whatsapp_affiliates")
+}
+
+/** Comissão por tenant (ex.: type `implantacao`). */
+model Commission {
+  id           String   @id @default(cuid())
+  affiliateId  String   @map("affiliate_id")
+  tenantId     String   @map("tenant_id")
+  amount       Float
+  type         String
+  status       String   @default("pendente") @map("status")
+  createdAt    DateTime @default(now()) @map("created_at")
+  affiliate    Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Restrict)
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, type])
+  @@index([affiliateId])
+  @@index([affiliateId, status])
+  @@map("whatsapp_commissions")
 }
 
 /** Controlo operacional por tenant (pausas manuais sem alterar AiAgentConfig). */

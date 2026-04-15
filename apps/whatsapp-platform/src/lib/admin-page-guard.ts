@@ -13,7 +13,7 @@ export async function readMetricsSecretBypass(): Promise<boolean> {
   return store.get(ADMIN_METRICS_SECRET_COOKIE_NAME)?.value === secret;
 }
 
-/** Páginas `/admin/metrics` e `/admin/billing`: segredo (prod) ou JWT com role `platform_admin`. */
+/** Páginas `/admin/metrics`, `/admin/billing`, `/admin/affiliates` e `/admin/tenants`: segredo (prod) ou JWT `platform_admin`. */
 export async function requireAdminOrMetricsSecretPage(nextPath: string): Promise<void> {
   if (await readMetricsSecretBypass()) return;
   const store = await cookies();
