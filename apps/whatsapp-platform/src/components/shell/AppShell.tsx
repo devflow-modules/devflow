@@ -7,8 +7,7 @@ import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AppSidebar } from "./AppSidebar";
 import { SupportProvider } from "@/components/support/SupportProvider";
 import { SessionRoleProvider, useSessionRole } from "@/components/navigation/SessionRoleContext";
-import { RouteBreadcrumbs } from "@/components/navigation/RouteBreadcrumbs";
-import { NavigationOrientationHint } from "@/components/navigation/NavigationOrientationHint";
+import { ShellPage } from "./ShellPage";
 import { NavCommandPalette } from "@/components/navigation/NavCommandPalette";
 import { shellHomeHref } from "@/lib/roles";
 
@@ -44,7 +43,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
   }, [mobileNavOpen]);
 
   return (
-    <div className="flex min-h-screen bg-slate-50/90">
+    <div className="flex h-dvh max-h-dvh w-full min-h-0 overflow-hidden bg-slate-50/90">
       {mobileNavOpen ? (
         <button
           type="button"
@@ -54,14 +53,14 @@ function AppShellInner({ children }: { children: ReactNode }) {
         />
       ) : null}
       <div
-        className={`fixed inset-y-0 left-0 z-50 flex w-[min(17.5rem,88vw)] shrink-0 flex-col border-r border-slate-100/90 bg-white shadow-[4px_0_32px_rgba(15,23,42,0.04)] transition-transform duration-200 ease-out lg:static lg:z-0 lg:w-60 lg:max-w-none lg:shadow-none lg:transition-none ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-full w-[min(17.5rem,88vw)] shrink-0 flex-col border-r border-slate-100/90 bg-white shadow-[4px_0_32px_rgba(15,23,42,0.04)] transition-transform duration-200 ease-out lg:static lg:z-0 lg:h-full lg:w-60 lg:max-w-none lg:shadow-none lg:transition-none ${
           mobileNavOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         <AppSidebar onNavigate={() => setMobileNavOpen(false)} />
       </div>
-      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-slate-100 bg-white/90 px-3 backdrop-blur-md sm:px-4 lg:hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="z-30 flex h-14 shrink-0 items-center gap-3 border-b border-slate-100 bg-white/90 px-3 backdrop-blur-md sm:px-4 lg:hidden">
           <button
             type="button"
             onClick={() => setMobileNavOpen(true)}
@@ -77,17 +76,11 @@ function AppShellInner({ children }: { children: ReactNode }) {
             ⌘K
           </span>
         </header>
-        <main className="min-h-0 flex-1">
+        <main className="min-h-0 flex-1 overflow-hidden">
           {inboxFullBleed ? (
-            <div className="flex h-[calc(100dvh-3.5rem)] min-h-0 flex-col overflow-hidden lg:h-[100dvh]">
-              {children}
-            </div>
+            <div className="flex h-full min-h-0 flex-col overflow-hidden">{children}</div>
           ) : (
-            <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12">
-              <RouteBreadcrumbs />
-              <NavigationOrientationHint />
-              {children}
-            </div>
+            <ShellPage>{children}</ShellPage>
           )}
         </main>
       </div>

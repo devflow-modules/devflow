@@ -21,8 +21,8 @@ export default async function OnboardingPage() {
     redirect("/inbox");
   }
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-6">
-      <div className="w-full max-w-2xl">
+    <main className="flex h-full min-h-0 flex-col overflow-y-auto p-6">
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center py-8">
         <h1 className="mb-8 text-center text-2xl font-semibold text-slate-900">Ativação da conta</h1>
         <QueryProvider>
           <OnboardingWizard />

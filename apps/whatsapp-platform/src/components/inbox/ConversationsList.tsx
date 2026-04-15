@@ -23,7 +23,7 @@ import {
   type InboxSidebarSection,
 } from "@/modules/inbox/waInboxConversationState";
 import { useInboxRealtime } from "./useInboxRealtime";
-import { StateError, StateLoading } from "@/components/ui/app-states";
+import { StateError } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
 import { FirstConversationHint } from "./FirstConversationHint";
 import { InboxFilterEmpty } from "./InboxSidebarEmpty";
@@ -33,7 +33,7 @@ const POLL_INTERVAL_REALTIME_MS = 10_000;
 const POLL_INTERVAL_FALLBACK_MS = 5_000;
 
 const FILTER_LABELS: Record<InboxConversationsFilter, string> = {
-  all: "Geral",
+  all: "Todas",
   needs_response: "Precisa resposta",
   mine: "Minhas",
   unassigned: "Sem responsável",
@@ -145,11 +145,15 @@ export function ConversationsList({
 
   if (isLoading) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col p-3">
-        <StateLoading
-          message="A carregar conversas…"
-          className="min-h-[10rem] flex-1 rounded-xl border-slate-200/80 py-10 shadow-none"
-        />
+      <div className="flex min-h-0 flex-1 flex-col p-3" data-testid="conversations-list-skeleton">
+        <div className="space-y-2 rounded-xl border border-slate-100 bg-white/90 p-3 shadow-sm">
+          <div className="h-8 w-3/5 max-w-[12rem] animate-pulse rounded-lg bg-slate-200/80" />
+          <div className="h-8 w-full animate-pulse rounded-lg bg-slate-100/90" />
+          <div className="h-8 w-full animate-pulse rounded-lg bg-slate-100/90" />
+          <div className="h-8 w-4/5 animate-pulse rounded-lg bg-slate-100/90" />
+          <div className="h-8 w-full animate-pulse rounded-lg bg-slate-100/90" />
+          <p className="pt-2 text-center text-[11px] font-medium text-slate-400">A carregar conversas…</p>
+        </div>
       </div>
     );
   }
@@ -189,21 +193,30 @@ export function ConversationsList({
 
   const filterChrome = (
     <>
-      <div className="flex flex-wrap gap-1 border-b border-slate-100/90 bg-gradient-to-b from-slate-50 to-white px-2 py-2.5">
-        {FILTER_ORDER.map((f) => (
-          <button
-            key={f}
-            type="button"
-            onClick={() => onFilterChange(f)}
-            className={`rounded-full px-2 py-1.5 text-[10px] font-semibold transition-[background,color,box-shadow] sm:px-2.5 sm:text-[11px] ${
-              filter === f
-                ? "bg-[var(--df-brand-600)] text-white shadow-[0_1px_2px_rgba(15,23,42,0.08)]"
-                : "bg-white/90 text-slate-600 ring-1 ring-slate-200/80 hover:bg-white hover:text-slate-900"
-            }`}
-          >
-            {FILTER_LABELS[f]}
-          </button>
-        ))}
+      <div className="flex flex-wrap gap-1.5 border-b border-slate-100/90 bg-gradient-to-b from-slate-50 to-white px-2 py-2.5">
+        {FILTER_ORDER.map((f) => {
+          const isNeeds = f === "needs_response";
+          const selected = filter === f;
+          return (
+            <button
+              key={f}
+              type="button"
+              onClick={() => onFilterChange(f)}
+              data-testid={`inbox-filter-${f}`}
+              className={`rounded-full px-2.5 py-1.5 text-[10px] font-semibold transition-[background,color,box-shadow,ring] sm:text-[11px] ${
+                selected && isNeeds
+                  ? "bg-red-600 text-white shadow-md ring-2 ring-red-400/60"
+                  : selected
+                    ? "bg-[var(--df-brand-600)] text-white shadow-[0_1px_2px_rgba(15,23,42,0.08)]"
+                    : isNeeds
+                      ? "bg-red-50/95 text-red-900 ring-1 ring-red-200/90 hover:bg-red-100"
+                      : "bg-white/90 text-slate-600 ring-1 ring-slate-200/80 hover:bg-white hover:text-slate-900"
+              }`}
+            >
+              {FILTER_LABELS[f]}
+            </button>
+          );
+        })}
       </div>
 
       {showRefinementRow ? (

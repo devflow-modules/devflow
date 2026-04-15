@@ -35,28 +35,26 @@ export default async function AdminTenantsIndexPage() {
     gtmLifecycle: t.gtmLifecycle,
   }));
   return (
-    <div className="min-h-screen bg-slate-50/80 p-6">
-      <div className="mx-auto max-w-4xl">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Plataforma</p>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Tenants</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Filtros, badges e detalhe (afiliado, comissão, auditoria). Ordenado por última actualização.
-        </p>
-        <div className="mt-6">
-          {initialRows.length === 0 ? (
-            <p className="rounded-xl border border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500 shadow-sm">
-              Sem tenants na base.
-            </p>
-          ) : (
-            <TenantsAdminListClient initialRows={initialRows} />
-          )}
-        </div>
-        <p className="mt-4 text-sm">
-          <Link href="/admin/affiliates" className="font-medium text-slate-700 underline-offset-4 hover:underline">
-            ← Afiliados
-          </Link>
-        </p>
+    <div className="mx-auto max-w-4xl">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Plataforma</p>
+      <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Tenants</h1>
+      <p className="mt-1 text-sm text-slate-600">
+        Filtros, badges e detalhe (afiliado, comissão, auditoria). Ordenado por última actualização.
+      </p>
+      <div className="mt-6">
+        {initialRows.length === 0 ? (
+          <p className="rounded-xl border border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500 shadow-sm">
+            Sem tenants na base.
+          </p>
+        ) : (
+          <TenantsAdminListClient initialRows={initialRows} />
+        )}
       </div>
+      <p className="mt-4 text-sm">
+        <Link href="/admin/affiliates" className="font-medium text-slate-700 underline-offset-4 hover:underline">
+          ← Afiliados
+        </Link>
+      </p>
     </div>
   );
 }

@@ -36,13 +36,13 @@ export function DistribuirClient() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <header className="mb-6">
-        <Link href="/admin/conversations" className="text-blue-600 underline text-sm">
+    <div className="space-y-6">
+      <header>
+        <Link href="/admin/conversations" className="text-sm font-medium text-blue-600 underline-offset-4 hover:underline">
           ← Voltar às conversas
         </Link>
-        <h1 className="text-xl font-semibold text-slate-900 mt-2">Distribuição de fila</h1>
-        <p className="text-sm text-slate-600 mt-1">
+        <h1 className="mt-2 text-xl font-semibold text-slate-900">Distribuição de fila</h1>
+        <p className="mt-1 text-sm text-slate-600">
           Pegue a próxima conversa em espera para atender. Você será redirecionado para a conversa.
         </p>
       </header>
@@ -53,12 +53,12 @@ export function DistribuirClient() {
         </Button>
 
         {message && (
-          <div className="p-4 rounded-lg bg-slate-100 text-slate-700 text-sm">
+          <div className="rounded-lg bg-slate-100 p-4 text-sm text-slate-700">
             {message}
           </div>
         )}
         {error && (
-          <div className="p-4 rounded-lg bg-red-50 text-red-700 text-sm">
+          <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700">
             {error}
           </div>
         )}

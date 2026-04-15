@@ -11,10 +11,14 @@ import {
   fetchInboxTags,
   fetchInboxUsers,
   fetchInboxOperationalQueues,
+  fetchInboxTeam,
   updateThreadQueue,
 } from "./inboxFetch";
 import { INBOX_QK } from "./inboxTypes";
-import { CONVERSATION_STATE_LABELS } from "@/modules/inbox/waInboxConversationState";
+import { readVerifyPayload } from "@/lib/api-json-client";
+import { fetchProtected } from "@/lib/protected-fetch";
+import { AgentStatusBadge } from "./AgentStatusBadge";
+import { getConversationStateBadge } from "./conversationStateUi";
 import { formatWaitDurationMs } from "@/modules/inbox/waInboxSla";
 import type { InboxSlaLevel } from "./inboxTypes";
 import { buttonClassName } from "@/components/ui/button";
@@ -73,6 +77,26 @@ export function ChatHeader({
     queryFn: fetchInboxOperationalQueues,
     staleTime: 60_000,
   });
+
+  const { data: authUser, isSuccess: authLoaded } = useQuery({
+    queryKey: ["inbox-header-auth-user"],
+    queryFn: async () => {
+      const res = await fetchProtected("/api/auth/verify");
+      const raw = await res.json();
+      return readVerifyPayload(raw)?.user ?? null;
+    },
+    staleTime: 60_000,
+  });
+
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: INBOX_QK.team,
+    queryFn: fetchInboxTeam,
+    staleTime: 30_000,
+  });
+
+  const myAgentStatus = authUser?.id
+    ? teamMembers.find((m) => m.userId === authUser.id)?.status
+    : undefined;
 
   const threadTagIds = new Set(thread?.threadTags?.map((tt) => tt.tag.id) ?? []);
 
@@ -166,7 +190,7 @@ export function ChatHeader({
 
   const title = thread.contactName?.trim() || thread.phoneNumber || "Conversa";
   const state = thread.conversationState;
-  const stateLabel = state ? CONVERSATION_STATE_LABELS[state] : null;
+  const stateBadge = getConversationStateBadge(state);
   const slaLevel = thread.slaLevel;
   const slaLabel = slaLevel ? SLA_LABEL[slaLevel] : null;
   const slaBadgeClass = slaLevel ? SLA_LEVEL_BADGE_CLASS[slaLevel] : null;
@@ -197,12 +221,25 @@ export function ChatHeader({
           {title.slice(0, 2).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="df-text-section-title truncate">{title}</h2>
-          {thread.phoneNumber && (
-            <p className="truncate text-xs text-slate-500/90">{thread.phoneNumber}</p>
-          )}
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="min-w-0">
+              <h2 className="df-text-section-title truncate">{title}</h2>
+              {thread.phoneNumber && (
+                <p className="truncate text-xs text-slate-500/90">{thread.phoneNumber}</p>
+              )}
+            </div>
+            {authLoaded && authUser?.id ? (
+              <div className="shrink-0 pt-0.5" data-testid="header-my-agent-status">
+                <AgentStatusBadge status={myAgentStatus} density="comfortable" />
+              </div>
+            ) : null}
+          </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            {stateLabel ? <span className="df-chip-conv-state">{stateLabel}</span> : null}
+            {stateBadge ? (
+              <span className={stateBadge.className} data-testid="chat-header-state-badge">
+                {stateBadge.label}
+              </span>
+            ) : null}
             {slaBadgeClass && slaLabel && wait ? (
               <span className={slaBadgeClass} data-testid="chat-header-sla">
                 {slaLabel} · {wait}
@@ -282,52 +319,57 @@ export function ChatHeader({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 border-t border-slate-100/90 bg-slate-50/40 px-4 py-3 sm:px-6">
-        {canAssume ? (
-          <button
-            type="button"
-            disabled={actionBusy}
-            className={buttonClassName("primary")}
-            onClick={() => handleAssign("me")}
-            data-testid="header-assume"
-          >
-            Assumir
-          </button>
-        ) : null}
-        {canRelease ? (
-          <button
-            type="button"
-            disabled={actionBusy}
-            className={buttonClassName("secondary")}
-            onClick={() => handleAssign(null)}
-            data-testid="header-release"
-          >
-            Liberar
-          </button>
-        ) : null}
-        {canClose ? (
-          <button
-            type="button"
-            disabled={actionBusy}
-            className={buttonClassName("secondary")}
-            onClick={() => handleStatus("CLOSED")}
-            data-testid="header-close"
-          >
-            Fechar
-          </button>
-        ) : null}
-        {canReopen ? (
-          <button
-            type="button"
-            disabled={actionBusy}
-            className={buttonClassName("secondary")}
-            onClick={() => handleStatus("OPEN")}
-            data-testid="header-reopen"
-          >
-            Reabrir
-          </button>
-        ) : null}
+      <div className="border-t border-slate-100/90 bg-slate-50/50 px-4 py-3 sm:px-6">
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">Operação</p>
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200/80 bg-white/95 p-2 shadow-sm">
+          {canAssume ? (
+            <button
+              type="button"
+              disabled={actionBusy}
+              className={`${buttonClassName("primary")} ${state === "awaiting_agent" ? "ring-2 ring-red-200/80" : ""}`}
+              onClick={() => handleAssign("me")}
+              data-testid="header-assume"
+            >
+              Assumir conversa
+            </button>
+          ) : null}
+          {canRelease ? (
+            <button
+              type="button"
+              disabled={actionBusy}
+              className={buttonClassName("secondary")}
+              onClick={() => handleAssign(null)}
+              data-testid="header-release"
+            >
+              Liberar
+            </button>
+          ) : null}
+          {canClose ? (
+            <button
+              type="button"
+              disabled={actionBusy}
+              className={buttonClassName("secondary")}
+              onClick={() => handleStatus("CLOSED")}
+              data-testid="header-close"
+            >
+              Encerrar
+            </button>
+          ) : null}
+          {canReopen ? (
+            <button
+              type="button"
+              disabled={actionBusy}
+              className={buttonClassName("secondary")}
+              onClick={() => handleStatus("OPEN")}
+              data-testid="header-reopen"
+            >
+              Reabrir
+            </button>
+          ) : null}
+        </div>
 
+        <p className="mb-2 mt-4 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">Gestão</p>
+        <div className="flex flex-wrap items-center gap-2">
         <div className="relative" ref={assignRef}>
           <button
             type="button"
@@ -359,7 +401,12 @@ export function ChatHeader({
         </div>
 
         <div className="relative" ref={statusRef}>
-          <button type="button" onClick={() => setStatusOpen((o) => !o)} className="df-inbox-toolbar-btn">
+          <button
+            type="button"
+            onClick={() => setStatusOpen((o) => !o)}
+            className="df-inbox-toolbar-btn"
+            data-testid="header-thread-status-trigger"
+          >
             Estado
           </button>
           {statusOpen && (
@@ -369,6 +416,7 @@ export function ChatHeader({
                   key={s}
                   type="button"
                   className="df-inbox-dropdown-item"
+                  data-testid={`header-thread-status-${s}`}
                   onClick={() => handleStatus(s)}
                 >
                   {s === "OPEN" ? "Aberta" : s === "CLOSED" ? "Fechada" : "Pendente"}
@@ -437,6 +485,7 @@ export function ChatHeader({
             Histórico
           </button>
         ) : null}
+        </div>
       </div>
     </header>
   );

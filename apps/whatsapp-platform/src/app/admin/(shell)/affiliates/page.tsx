@@ -21,8 +21,6 @@ export default async function AdminAffiliatesPage() {
   }));
   const publicSignupBaseUrl = getWhatsappAppPublicBaseUrl();
   return (
-    <div className="min-h-screen bg-slate-50/80 p-6">
-      <AffiliatesAdminClient initialAffiliates={initialAffiliates} publicSignupBaseUrl={publicSignupBaseUrl} />
-    </div>
+    <AffiliatesAdminClient initialAffiliates={initialAffiliates} publicSignupBaseUrl={publicSignupBaseUrl} />
   );
 }

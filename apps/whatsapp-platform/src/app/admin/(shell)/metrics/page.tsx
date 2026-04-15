@@ -14,9 +14,5 @@ export const metadata: Metadata = {
 export default async function AdminMetricsPage() {
   await requireAdminOrMetricsSecretPage("/admin/metrics");
   const data = await getAdminMetrics();
-  return (
-    <div className="min-h-screen bg-background">
-      <MetricsDashboardClient initialData={data} />
-    </div>
-  );
+  return <MetricsDashboardClient initialData={data} />;
 }

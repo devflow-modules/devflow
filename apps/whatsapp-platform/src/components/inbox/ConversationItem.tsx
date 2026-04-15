@@ -9,6 +9,7 @@ import { conversationPreviewPrefix } from "./conversationPreviewPrefix";
 import { slaWaitLabelClass } from "./inboxOperationalStyles";
 import { priorityGuidance } from "./leadPanelCopy";
 import { ResponseAlertBadge, getResponseAlertLevel } from "./ResponseAlertBadge";
+import { getConversationStateBadge } from "./conversationStateUi";
 
 function formatListTimeCompact(iso: string): string {
   try {
@@ -46,6 +47,11 @@ export const ConversationItem = memo(function ConversationItem({
   const needsReply = threadNeedsAgentReply(thread);
   const pendingCount = thread.unansweredInboundCount ?? 0;
   const state = thread.conversationState as ConversationState | undefined;
+  const stateBadge = getConversationStateBadge(state);
+  const assigneeLabel =
+    thread.status === "CLOSED"
+      ? null
+      : thread.assignedToUser?.name?.trim() || "Sem responsável";
   const showSlaWait = state === "awaiting_agent" && thread.responseDelayMs != null;
   const waitLabel = showSlaWait ? formatCompactWaitDurationMs(thread.responseDelayMs!) : null;
   const responseAlert = state === "awaiting_agent" ? getResponseAlertLevel(thread.responseDelayMs) : "none";
@@ -107,7 +113,7 @@ export const ConversationItem = memo(function ConversationItem({
         : noOwnerStripe
           ? `${noOwnerStripe} hover:bg-amber-50/55`
           : active
-            ? "bg-slate-50/95 shadow-[inset_3px_0_0_0_var(--df-brand-500)]"
+            ? "bg-slate-50/95 shadow-[inset_4px_0_0_0_var(--df-brand-500)] ring-2 ring-[var(--df-brand-500)]/25 ring-inset"
             : "bg-white hover:bg-slate-50/90",
   ].join(" ");
 
@@ -140,7 +146,7 @@ export const ConversationItem = memo(function ConversationItem({
             >
               {title}
             </span>
-            <div className="shrink-0 text-right">
+            <div className="flex shrink-0 flex-col items-end gap-0.5 text-right">
               {state === "awaiting_agent" && waitLabel ? (
                 <span
                   className={`inline-flex items-center tabular-nums ${slaWaitLabelClass(isCritical, isHigh)}`}
@@ -152,8 +158,31 @@ export const ConversationItem = memo(function ConversationItem({
               ) : (
                 <span className="text-[11px] tabular-nums text-slate-400">{formatListTimeCompact(thread.lastMessageAt)}</span>
               )}
+              {thread.unreadCount > 0 ? (
+                <span
+                  className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold text-white tabular-nums shadow-sm"
+                  title="Mensagens não lidas"
+                  data-testid="unread-count-badge"
+                >
+                  {thread.unreadCount > 99 ? "99+" : thread.unreadCount}
+                </span>
+              ) : null}
             </div>
           </div>
+
+          {stateBadge ? (
+            <div className="mt-1 flex flex-wrap items-center gap-1.5">
+              <span className={stateBadge.className} data-testid="conversation-state-badge">
+                {stateBadge.label}
+              </span>
+            </div>
+          ) : null}
+
+          {assigneeLabel ? (
+            <p className="mt-0.5 truncate text-left text-[10px] font-medium text-slate-500" data-testid="assignee-line">
+              Responsável: <span className="text-slate-700">{assigneeLabel}</span>
+            </p>
+          ) : null}
 
           <p className="mt-1 line-clamp-2 text-left text-[12px] leading-snug text-slate-600">
             <span className="font-semibold text-slate-400">{prefix}</span>
@@ -189,7 +218,7 @@ export const ConversationItem = memo(function ConversationItem({
               <ResponseAlertBadge delayMs={thread.responseDelayMs} />
             ) : null}
             {pendingCount > 0 ? (
-              <span className="df-badge-pending-count" data-testid="pending-inbound-badge">
+              <span className="df-badge-pending-count" data-testid="pending-inbound-badge" title="Inbounds sem resposta">
                 {pendingCount > 99 ? "99+" : pendingCount}
               </span>
             ) : null}

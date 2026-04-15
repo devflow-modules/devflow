@@ -1,25 +1,14 @@
 import { test, expect } from "@playwright/test";
-
-const email = process.env.E2E_WHATSAPP_ADMIN_EMAIL?.trim() ?? "";
-const password = process.env.E2E_WHATSAPP_ADMIN_PASSWORD?.trim() ?? "";
-
-async function login(page: import("@playwright/test").Page) {
-  await page.goto("/login?next=/onboarding");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Senha").fill(password);
-  await page.getByRole("button", { name: "Entrar" }).click();
-  await page.waitForURL(/\/onboarding/, { timeout: 45_000 });
-}
+import { loginAsWhatsappAdmin, skipIfMissingWhatsappE2ECredentials } from "./helpers/whatsapp-auth";
 
 test.describe("Onboarding", () => {
-  test.skip(!email || !password, "Defina E2E_WHATSAPP_ADMIN_EMAIL e E2E_WHATSAPP_ADMIN_PASSWORD no ambiente");
-
   test.beforeEach(async ({ context }) => {
+    skipIfMissingWhatsappE2ECredentials();
     await context.clearCookies();
   });
 
   test("falha na validação WhatsApp bloqueia avanço", async ({ page }) => {
-    await login(page);
+    await loginAsWhatsappAdmin(page, { next: "/onboarding" });
     await page.goto("/onboarding");
 
     if (await page.getByRole("heading", { name: "Está pronto para começar" }).isVisible()) {
@@ -41,7 +30,7 @@ test.describe("Onboarding", () => {
   });
 
   test("fluxo feliz e reentrada no passo correto", async ({ page }) => {
-    await login(page);
+    await loginAsWhatsappAdmin(page, { next: "/onboarding" });
     await page.goto("/onboarding");
 
     if (await page.getByRole("heading", { name: "Está pronto para começar" }).isVisible()) {

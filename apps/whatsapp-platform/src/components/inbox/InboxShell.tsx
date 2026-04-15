@@ -224,7 +224,7 @@ function InboxShellContent() {
   );
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-slate-50/80">
+    <div className="flex h-full min-h-0 flex-col bg-slate-50/80" data-testid="inbox-shell">
       {channelAwaitingActivation ? (
         <div
           className="shrink-0 border-b border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm leading-relaxed text-amber-950 sm:px-6"

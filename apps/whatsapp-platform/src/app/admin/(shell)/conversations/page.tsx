@@ -75,8 +75,8 @@ export default async function AdminConversationsPage({
   const conversations = await getConversations(validStatus);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white px-4 py-3">
+    <div className="rounded-xl border border-slate-200/80 bg-slate-50/50 shadow-sm">
+      <header className="sticky top-0 z-10 rounded-t-xl border-b border-slate-200 bg-white px-4 py-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <h1 className="text-lg font-semibold text-slate-900">Conversas</h1>
           <div className="flex gap-1">

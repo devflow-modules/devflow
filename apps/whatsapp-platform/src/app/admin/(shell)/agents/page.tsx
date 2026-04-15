@@ -12,9 +12,9 @@ export const metadata: Metadata = {
 export default async function AdminAgentsPage() {
   await requireJwtAdminPage("/admin/agents");
   return (
-    <div className="min-h-screen p-6">
-      <h1 className="text-2xl font-semibold mb-4">Gestão de agentes</h1>
-      <Link href="/dashboard" className="text-blue-600 underline">
+    <div className="space-y-4">
+      <h1 className="text-2xl font-semibold">Gestão de agentes</h1>
+      <Link href="/dashboard" className="text-sm font-medium text-blue-600 underline-offset-4 hover:underline">
         Voltar ao Dashboard
       </Link>
       <AdminAgentsClient />

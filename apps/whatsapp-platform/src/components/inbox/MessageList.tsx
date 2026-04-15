@@ -137,16 +137,16 @@ export function MessageList({
 
   return (
     <div
-      className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 px-4 py-6 sm:px-6 sm:py-8"
+      className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 px-5 py-7 sm:px-7 sm:py-9"
       data-testid="message-list"
     >
-      <div className="mx-auto flex max-w-3xl flex-col gap-3">
+      <div className="mx-auto flex max-w-3xl flex-col gap-4">
         <ConversationTimeline messages={data} />
         {thread ? <AutomationStatusHints thread={thread} /> : null}
         {timeline.map((item, ti) => {
           if (item.kind === "day") {
             return (
-              <div key={`d-${ti}-${item.label}`} className="flex justify-center py-2">
+              <div key={`d-${ti}-${item.label}`} className="flex justify-center py-3" data-testid="day-separator">
                 <span className="df-timeline-day">{item.label}</span>
               </div>
             );
@@ -164,7 +164,7 @@ export function MessageList({
             <div
               key={item.message.id}
               className={`transition-opacity duration-200 ${
-                idx === 0 ? "" : compact ? "" : "mt-4"
+                idx === 0 ? "" : compact ? "" : "mt-5"
               }`}
             >
               <MessageBubble message={item.message} compact={compact} />

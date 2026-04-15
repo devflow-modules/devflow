@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import {
   calendarDayKey,
+  daySeparatorLabel,
   firstUnreadSeparatorIndex,
   groupMessagesByCalendarDay,
 } from "../chatMessageUtils";
@@ -39,6 +40,36 @@ describe("firstUnreadSeparatorIndex", () => {
 
   it("null se sem não lidas", () => {
     expect(firstUnreadSeparatorIndex([msg("1", "2025-01-01T10:00:00Z")], 0)).toBe(null);
+  });
+});
+
+describe("daySeparatorLabel", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("usa Hoje para mensagens no mesmo dia local", () => {
+    vi.setSystemTime(new Date(2026, 3, 14, 14, 0, 0));
+    const morning = new Date(2026, 3, 14, 8, 30, 0);
+    expect(daySeparatorLabel(morning.toISOString())).toBe("Hoje");
+  });
+
+  it("usa Ontem para o dia civil anterior", () => {
+    vi.setSystemTime(new Date(2026, 3, 14, 12, 0, 0));
+    const prev = new Date(2026, 3, 13, 18, 0, 0);
+    expect(daySeparatorLabel(prev.toISOString())).toBe("Ontem");
+  });
+
+  it("usa data formatada para dias mais antigos", () => {
+    vi.setSystemTime(new Date(2026, 3, 14, 12, 0, 0));
+    const old = new Date(2026, 2, 1, 10, 0, 0);
+    const label = daySeparatorLabel(old.toISOString());
+    expect(label).not.toBe("Hoje");
+    expect(label).not.toBe("Ontem");
+    expect(label.length).toBeGreaterThan(4);
   });
 });
 

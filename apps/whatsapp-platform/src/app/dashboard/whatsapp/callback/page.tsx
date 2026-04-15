@@ -60,7 +60,7 @@ function WhatsappCallbackInner() {
   }, [code, state, paramsInvalid]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-6">
+    <div className="flex w-full flex-col items-center justify-center py-12">
       <div className="w-full max-w-md">
         {status === "loading" && (
           <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">

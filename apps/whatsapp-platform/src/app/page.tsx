@@ -27,8 +27,8 @@ export default async function HomePage() {
   const panelHref = auth ? shellHomeHref(auth.payload.role) : "/dashboard";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50/95 via-white to-white">
-      <main className="mx-auto max-w-4xl px-6 py-16 sm:py-20 md:py-24">
+    <div className="h-full overflow-y-auto bg-gradient-to-b from-slate-50/95 via-white to-white">
+      <main className="mx-auto min-h-full max-w-4xl px-6 py-16 sm:py-20 md:py-24">
         <HeroSection
           isAuthenticated={isAuthenticated}
           panelHref={panelHref}

@@ -100,7 +100,10 @@ export function ChatWindow({
         {auditTab ? (
           <ChatAuditTab threadId={threadId} />
         ) : (
-          <>
+          <div
+            key={threadId ?? "none"}
+            className="flex min-h-0 flex-1 flex-col motion-safe:animate-[dfInboxPaneEnter_220ms_ease-out] motion-reduce:animate-none"
+          >
             <ConversationActionBanner
               thread={activeThread}
               dismissed={actionBannerDismissed}
@@ -113,7 +116,7 @@ export function ChatWindow({
               thread={activeThread}
               onAgentMessageSent={() => setActionBannerDismissed(true)}
             />
-          </>
+          </div>
         )}
       </div>
       {!auditTab && activeThread ? (

@@ -14,9 +14,5 @@ export const metadata: Metadata = {
 export default async function AdminBillingPage() {
   await requireAdminOrMetricsSecretPage("/admin/billing");
   const data = await getBillingDashboard();
-  return (
-    <div className="min-h-screen bg-background">
-      <BillingDashboardClient initialData={data} />
-    </div>
-  );
+  return <BillingDashboardClient initialData={data} />;
 }

@@ -13,12 +13,23 @@ export function calendarDayKey(iso: string): string {
   }
 }
 
+function startOfLocalDay(d: Date): number {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
+/** Separador de dia na timeline — “Hoje”, “Ontem” ou data curta (timezone local). */
 export function daySeparatorLabel(iso: string): string {
   try {
-    return new Date(iso).toLocaleDateString("pt-BR", {
+    const msg = new Date(iso);
+    const todayStart = startOfLocalDay(new Date());
+    const msgStart = startOfLocalDay(msg);
+    const diffDays = Math.round((todayStart - msgStart) / 86_400_000);
+    if (diffDays === 0) return "Hoje";
+    if (diffDays === 1) return "Ontem";
+    return msg.toLocaleDateString("pt-BR", {
       weekday: "long",
       day: "numeric",
-      month: "long",
+      month: "short",
       year: "numeric",
     });
   } catch {

@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+@keyframes dfInboxPaneEnter {
+  from {
+    opacity: 0.72;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
@@ -413,11 +424,16 @@
 
   /** Compositor: atalhos e sugestões */
   .df-inbox-template-chip {
-    @apply rounded-full border border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[11px] font-medium text-slate-700 transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    @apply rounded-full border border-slate-200/90 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm ring-1 ring-slate-100/90 transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
   }
 
   .df-inbox-ai-chip {
-    @apply rounded-full border border-[var(--df-brand-200)] bg-[var(--df-brand-50)] px-2.5 py-1 text-[11px] font-semibold text-[var(--df-brand-800)] transition hover:bg-[var(--df-brand-100)] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    @apply rounded-full border border-[var(--df-brand-200)] bg-[var(--df-brand-50)] px-3 py-1.5 text-[11px] font-semibold text-[var(--df-brand-800)] shadow-sm transition hover:bg-[var(--df-brand-100)] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+  }
+
+  /** Botão enviar — compositor inbox */
+  .df-inbox-send-primary {
+    @apply min-h-[3rem] min-w-[7rem] shrink-0 rounded-xl bg-[var(--df-brand-600)] px-5 text-sm font-bold text-white shadow-md ring-1 ring-black/5 transition hover:bg-[var(--df-brand-700)] hover:shadow-lg active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
   }
 
   .df-panel-ai-preview {

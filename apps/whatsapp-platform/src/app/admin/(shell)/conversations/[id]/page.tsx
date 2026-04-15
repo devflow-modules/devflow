@@ -80,14 +80,14 @@ export default function AdminConversationChatPage() {
 
   if (!id) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-[40vh] items-center justify-center py-12">
         <p className="text-slate-600">Conversa não encontrada.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen flex-col bg-slate-50">
+    <div className="flex min-h-0 max-h-[min(85dvh,920px)] flex-col overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm">
       <header className="shrink-0 border-b border-slate-200 bg-white px-4 py-3">
         <div className="flex items-center gap-3">
           <Link

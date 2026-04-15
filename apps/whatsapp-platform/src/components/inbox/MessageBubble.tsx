@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useCallback, useState } from "react";
 import type { WaInboxMessageRow } from "./inboxTypes";
 import { getOutboundKindFromMessage } from "./messageOutboundKind";
 import { MessageOriginBadge } from "./MessageOriginBadge";
@@ -17,7 +17,11 @@ function formatTime(iso: string): string {
 
 function StatusTicks({ status, outbound }: { status: string; outbound: boolean }) {
   const s = status.toUpperCase();
-  const fail = <span className={outbound ? "text-amber-200" : "text-red-600"} title="Falha">!</span>;
+  const fail = (
+    <span className={outbound ? "text-amber-200" : "text-red-600"} title="Falha no envio">
+      !
+    </span>
+  );
   if (s === "FAILED") return fail;
   if (s === "READ") {
     return (
@@ -41,6 +45,30 @@ function StatusTicks({ status, outbound }: { status: string; outbound: boolean }
     );
   }
   return null;
+}
+
+function FailedResendHint({ textBody }: { textBody: string }) {
+  const [copied, setCopied] = useState(false);
+  const onCopy = useCallback(() => {
+    void navigator.clipboard.writeText(textBody).then(() => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    });
+  }, [textBody]);
+
+  return (
+    <div className="mt-2 rounded-lg border border-white/25 bg-black/10 px-2.5 py-1.5">
+      <p className="text-[10px] font-medium text-white/90">Não foi entregue — reenvie pelo compositor.</p>
+      <button
+        type="button"
+        onClick={onCopy}
+        className="mt-1 text-[11px] font-semibold text-white underline decoration-white/40 underline-offset-2 hover:decoration-white"
+        data-testid="msg-failed-copy"
+      >
+        {copied ? "Texto copiado" : "Copiar texto da mensagem"}
+      </button>
+    </div>
+  );
 }
 
 function messageTypeShort(mt: string): string | null {
@@ -74,6 +102,7 @@ export const MessageBubble = memo(function MessageBubble({
   const showText = textBody.length > 0 && (!hasMedia || textBody !== `[${message.messageType}]`);
   const outboundKind = getOutboundKindFromMessage(message);
   const typeLabel = messageTypeShort(message.messageType);
+  const failed = message.status.toUpperCase() === "FAILED";
 
   const bubbleRadius = compact
     ? outbound
@@ -83,7 +112,7 @@ export const MessageBubble = memo(function MessageBubble({
       ? "rounded-2xl rounded-br-md"
       : "rounded-2xl rounded-bl-md";
 
-  const density = compact ? "px-3 py-2" : "px-3.5 py-2.5";
+  const density = compact ? "px-3.5 py-2.5" : "px-4 py-3.5";
 
   return (
     <div className={`flex w-full ${outbound ? "justify-end" : "justify-start"}`} data-testid="message-bubble">
@@ -102,7 +131,26 @@ export const MessageBubble = memo(function MessageBubble({
             ) : null}
           </div>
         )}
+        {outbound && !compact && (
+          <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] font-medium uppercase tracking-wide text-white/75">
+              {outboundKind === "ai"
+                ? "Assistente IA"
+                : outboundKind === "automation"
+                  ? "Sistema"
+                  : outboundKind === "agent"
+                    ? "Operador"
+                    : "Equipa"}
+            </span>
+            {typeLabel ? (
+              <span className="rounded bg-white/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white/90">
+                {typeLabel}
+              </span>
+            ) : null}
+          </div>
+        )}
         {!outbound && compact && <span className="sr-only">Mensagem do cliente</span>}
+        {outbound && compact && <span className="sr-only">Mensagem da equipa</span>}
 
         {hasMedia ? <MessageMediaPreview message={message} outbound={outbound} /> : null}
 
@@ -126,11 +174,6 @@ export const MessageBubble = memo(function MessageBubble({
           }`}
         >
           {outbound && outboundKind && !pendingOptimistic ? <MessageOriginBadge kind={outboundKind} /> : null}
-          {outbound && typeLabel && !compact ? (
-            <span className="rounded bg-white/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white/90">
-              {typeLabel}
-            </span>
-          ) : null}
           <span className="tabular-nums opacity-90">{formatTime(message.ts)}</span>
           {outbound && pendingOptimistic ? (
             <span className="text-[10px] italic opacity-90" data-testid="msg-pending">
@@ -140,6 +183,12 @@ export const MessageBubble = memo(function MessageBubble({
             <StatusTicks status={message.status} outbound />
           ) : null}
         </div>
+        {outbound && failed && !pendingOptimistic && message.errorMessage ? (
+          <p className="mt-2 text-[11px] leading-snug text-amber-100/95" data-testid="msg-failed-reason">
+            {message.errorMessage}
+          </p>
+        ) : null}
+        {outbound && failed && !pendingOptimistic && showText ? <FailedResendHint textBody={textBody} /> : null}
       </div>
     </div>
   );

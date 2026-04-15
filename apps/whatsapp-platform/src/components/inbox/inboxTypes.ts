@@ -136,6 +136,7 @@ export const INBOX_QK = {
   typing: (threadId: string) => ["inbox-typing", threadId] as const,
   audit: (threadId: string) => ["inbox-audit", threadId] as const,
   phoneLines: ["inbox-phone-lines"] as const,
+  team: ["inbox-team"] as const,
 };
 
 export type OnlineUserInfo = { userId: string; name?: string; email?: string };

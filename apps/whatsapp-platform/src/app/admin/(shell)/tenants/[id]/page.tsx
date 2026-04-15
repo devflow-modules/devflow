@@ -17,9 +17,5 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function AdminTenantDetailPage({ params }: PageProps) {
   const { id } = await params;
   await requireAdminOrMetricsSecretPage(`/admin/tenants/${id}`);
-  return (
-    <div className="min-h-screen bg-slate-50/80 p-6">
-      <TenantAdminClient tenantId={id} />
-    </div>
-  );
+  return <TenantAdminClient tenantId={id} />;
 }

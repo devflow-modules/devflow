@@ -137,7 +137,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   }
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r border-slate-100/90 bg-white">
+    <aside className="flex h-full w-60 shrink-0 flex-col border-r border-slate-100/90 bg-white">
       <div className="border-b border-slate-100/90 px-4 py-6">
         <Link href={shellHomeHref(sessionRole)} className="block" onClick={() => onNavigate?.()}>
           <span className="text-sm font-semibold tracking-tight text-slate-950">WhatsApp Platform</span>

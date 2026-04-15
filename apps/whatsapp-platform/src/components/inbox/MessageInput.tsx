@@ -235,30 +235,33 @@ export function MessageInput({
         </div>
       )}
 
-      <div className="mb-3 flex flex-wrap gap-1.5">
-        {QUICK_TEMPLATES.map((t) => (
+      <div className="mb-3 rounded-xl border border-slate-200/80 bg-slate-50/60 px-3 py-2.5">
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">Respostas rápidas</p>
+        <div className="flex flex-wrap gap-2">
+          {QUICK_TEMPLATES.map((t) => (
+            <button
+              key={t.label}
+              type="button"
+              disabled={composerLocked}
+              title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
+              className="df-inbox-template-chip"
+              onClick={() => applyTemplate(t.text)}
+              data-testid={`template-${t.label}`}
+            >
+              {t.label}
+            </button>
+          ))}
           <button
-            key={t.label}
             type="button"
-            disabled={composerLocked}
+            disabled={composerLocked || suggestMut.isPending || mutation.isPending}
             title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
-            className="df-inbox-template-chip"
-            onClick={() => applyTemplate(t.text)}
-            data-testid={`template-${t.label}`}
+            className="df-inbox-ai-chip"
+            onClick={() => suggestMut.mutate(threadId)}
+            data-testid="btn-ai-suggest"
           >
-            {t.label}
+            {suggestMut.isPending ? "A gerar…" : "Gerar com IA"}
           </button>
-        ))}
-        <button
-          type="button"
-          disabled={composerLocked || suggestMut.isPending || mutation.isPending}
-          title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
-          className="df-inbox-ai-chip"
-          onClick={() => suggestMut.mutate(threadId)}
-          data-testid="btn-ai-suggest"
-        >
-          {suggestMut.isPending ? "A gerar…" : "Gerar com IA"}
-        </button>
+        </div>
       </div>
 
       <PlaybookSuggest
@@ -323,22 +326,23 @@ export function MessageInput({
           onChange={(e) => setText(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder="Escreva a mensagem…"
-          rows={2}
+          rows={3}
           disabled={mutation.isPending || composerLocked}
           title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
-          className={`df-field-control min-h-[48px] flex-1 resize-none text-[15px] leading-relaxed shadow-inner transition-colors duration-200 sm:min-h-[52px] bg-slate-50/60 focus:bg-white`}
+          className="df-field-control min-h-[5.5rem] flex-1 resize-y text-[15px] leading-relaxed shadow-inner transition-colors duration-200 bg-slate-50/60 focus:bg-white"
         />
         <button
           type="button"
           onClick={send}
           disabled={mutation.isPending || !text.trim() || composerLocked}
           title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
-          className={`${buttonClassName("primary")} h-11 min-w-[6.5rem] shrink-0 sm:h-[52px] sm:self-stretch`}
+          className="df-inbox-send-primary sm:self-stretch"
+          data-testid="send-button"
         >
           {mutation.isPending ? "A enviar…" : "Enviar"}
         </button>
       </div>
-      <p className="mt-2.5 hidden px-0.5 text-[11px] text-slate-400 sm:block">Enter envia · Shift+Enter nova linha</p>
+      <p className="mt-2 px-0.5 text-[11px] text-slate-400">Enter envia · Shift+Enter nova linha</p>
     </div>
   );
 }
