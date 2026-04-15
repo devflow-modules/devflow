@@ -4,9 +4,11 @@ export type ChannelErrorType = "TOKEN_INVALID" | "WEBHOOK_INVALID" | "META_REJEC
 
 export type PlaybookCtaAction = "RETRY" | "OPEN_META" | "COPY_WEBHOOK";
 
+export type KnownChannelPlaybookError = Exclude<ChannelErrorType, "UNKNOWN">;
+
 export type ActivationPlaybook = {
   id: string;
-  errorType: ChannelErrorType;
+  errorType: KnownChannelPlaybookError;
   title: string;
   steps: string[];
   cta?: {
@@ -28,7 +30,7 @@ export function classifyChannelError(event: Pick<ChannelActivationEvent, "messag
   return "UNKNOWN";
 }
 
-const PLAYBOOKS: Record<Exclude<ChannelErrorType, "UNKNOWN">, Omit<ActivationPlaybook, "id" | "errorType">> = {
+const PLAYBOOKS: Record<KnownChannelPlaybookError, Omit<ActivationPlaybook, "id" | "errorType">> = {
   TOKEN_INVALID: {
     title: "Token inválido",
     steps: [
@@ -58,7 +60,7 @@ const PLAYBOOKS: Record<Exclude<ChannelErrorType, "UNKNOWN">, Omit<ActivationPla
   },
 };
 
-function toPlaybook(errorType: Exclude<ChannelErrorType, "UNKNOWN">): ActivationPlaybook {
+function toPlaybook(errorType: KnownChannelPlaybookError): ActivationPlaybook {
   const base = PLAYBOOKS[errorType];
   return {
     id: `playbook-${errorType.toLowerCase()}`,
@@ -88,7 +90,7 @@ export function getChannelPlaybook(channel: ChannelPlaybookInput): ActivationPla
 export type ActivationPlaybookDto = {
   title: string;
   steps: string[];
-  errorType: Exclude<ChannelErrorType, "UNKNOWN">;
+  errorType: KnownChannelPlaybookError;
   cta?: {
     label: string;
     action: PlaybookCtaAction;
