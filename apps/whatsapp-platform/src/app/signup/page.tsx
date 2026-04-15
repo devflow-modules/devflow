@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Cadastro | WhatsApp Platform",
-  description: "Plano gratuito ou Pro — equipe, IA e controle.",
+  description: "Avaliação guiada ou operação Pro — equipe, IA e controlo.",
   robots: "noindex, nofollow",
 };
 
@@ -21,7 +21,7 @@ export default async function SignupPage({
     <AuthScreenShell
       eyebrow="WhatsApp Platform"
       title="Criar conta"
-      description="Comece no plano gratuito ou escolha um plano pago para operar com mais equipe, IA e controle."
+      description="Comece na avaliação guiada da plataforma ou avance para operação paga com mais equipa, IA e controlo."
     >
       <SignupForm affiliateRefFromUrl={refFromUrl} />
     </AuthScreenShell>

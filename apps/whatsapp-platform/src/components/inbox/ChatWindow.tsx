@@ -38,11 +38,14 @@ export function ChatWindow({
   thread,
   onBackMobile,
   showBack,
+  evaluationMode = false,
 }: {
   threadId: string | null;
   thread: WaInboxThreadRow | null;
   onBackMobile?: () => void;
   showBack?: boolean;
+  /** Tenant em FREE — copy lateral de avaliação guiada. */
+  evaluationMode?: boolean;
 }) {
   const [auditTab, setAuditTab] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
@@ -122,6 +125,7 @@ export function ChatWindow({
       {!auditTab && activeThread ? (
         <LeadDataPanel
           thread={activeThread}
+          evaluationMode={evaluationMode}
           className="max-h-40 w-full shrink-0 overflow-y-auto border-t border-slate-200/90 sm:max-h-52 md:max-h-64 xl:max-h-[min(100vh,720px)] xl:w-72 xl:border-l xl:border-t-0"
         />
       ) : null}

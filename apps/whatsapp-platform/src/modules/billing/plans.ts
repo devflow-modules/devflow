@@ -42,7 +42,7 @@ export type PlanDefinition = {
 export const PLANS: Record<PlanKey, PlanDefinition> = {
   FREE: {
     key: "FREE",
-    name: "Avaliação",
+    name: "Avaliação guiada",
     priceBrl: 0,
     limits: {
       phoneNumbers: 1,

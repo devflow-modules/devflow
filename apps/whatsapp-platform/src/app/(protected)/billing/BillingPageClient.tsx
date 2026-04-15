@@ -13,7 +13,9 @@ import {
   COMMERCIAL_PLAN_SUBTITLE,
   COMMERCIAL_RECOMMENDED_BADGE,
   COMMERCIAL_RECOMMENDED_PLAN,
+  HOW_FULL_OPERATION_WORKS,
 } from "@/modules/billing/planPresentation";
+import { freeEvaluationStaleMessage } from "@/modules/billing/demoEvaluation";
 import {
   formatIncludedUsageSentence,
   STRIPE_USAGE_LINE_LABELS,
@@ -30,6 +32,7 @@ import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 type Sub = {
   plan: string;
+  tenantCreatedAt?: string | null;
   status: string;
   stripeCustomerId: string | null;
   currentPeriodEnd: string | null;
@@ -218,6 +221,10 @@ export function BillingPageClient() {
   }
 
   const normalizedCurrentPlan = normalizePlan(sub?.plan);
+  const evaluationStaleHint =
+    sub && normalizedCurrentPlan === "FREE"
+      ? freeEvaluationStaleMessage(sub.plan, sub.tenantCreatedAt ?? null)
+      : null;
 
   if (loading) {
     return <StateLoading message="A carregar informação de plano…" className="min-h-[40vh]" />;
@@ -236,6 +243,14 @@ export function BillingPageClient() {
         </div>
       )}
       {sub ? <CurrentPlanUpgradeHint plan={sub.plan} /> : null}
+      {evaluationStaleHint ? (
+        <div
+          className="rounded-lg border border-sky-100 bg-sky-50/90 px-4 py-3 text-sm text-sky-950"
+          role="status"
+        >
+          {evaluationStaleHint}
+        </div>
+      ) : null}
       {beyondIncluded && usage?.enforceLimits && usage.allowsMeteredOverage && (
         <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-950">
           <p className="font-semibold">Limite incluído no plano atingido neste período</p>
@@ -250,13 +265,13 @@ export function BillingPageClient() {
       )}
       {beyondIncluded && usage?.enforceLimits && !usage.allowsMeteredOverage && (
         <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-950">
-          <p className="font-semibold">Limite do plano gratuito atingido neste período</p>
+          <p className="font-semibold">Limite da avaliação guiada atingido neste período</p>
           <p className="mt-1 text-amber-900/95">
-            O plano gratuito não inclui expansão faturada. Escolha um plano para continuar a operar com atendimento e
-            desbloquear volumes maiores.
+            A demonstração não inclui expansão faturada. Para continuar o atendimento sem teto da avaliação, avance para
+            a operação completa (implantação + mensalidade) com a nossa equipa.
           </p>
           <Button type="button" size="sm" className="mt-3" onClick={() => setShowUpgradeModal(true)}>
-            Ver planos e continuar
+            {COMMERCIAL_CHECKOUT_CTA.OPERATIONAL_BASE}
           </Button>
         </div>
       )}
@@ -305,7 +320,11 @@ export function BillingPageClient() {
           </div>
           <div className="flex min-w-0 shrink-0 flex-col gap-2 sm:flex-row lg:flex-col lg:items-stretch">
             <Button type="button" className="font-semibold" onClick={() => setShowUpgradeModal(true)}>
-              {sub ? billingChangePlanButtonLabel(getPlan(sub.plan).key) : "Mudar de plano"}
+              {sub && normalizePlan(sub.plan) === "FREE"
+                ? COMMERCIAL_CHECKOUT_CTA.OPERATIONAL_BASE
+                : sub
+                  ? billingChangePlanButtonLabel(getPlan(sub.plan).key)
+                  : "Mudar de plano"}
             </Button>
             {sub?.stripeCustomerId ? (
               <Button type="button" variant="outline" onClick={() => void openPortal()} disabled={portalLoading}>
@@ -322,6 +341,21 @@ export function BillingPageClient() {
         ) : (
           <HowFreePlanWorksSection planKey={normalizePlan(sub?.plan ?? "FREE")} />
         ))}
+
+      {normalizedCurrentPlan === "FREE" ? (
+        <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-bold text-slate-900">{HOW_FULL_OPERATION_WORKS.title}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-slate-600">{HOW_FULL_OPERATION_WORKS.intro}</p>
+          <ul className="mt-4 list-inside list-disc space-y-2 text-sm text-slate-700">
+            {HOW_FULL_OPERATION_WORKS.bullets.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+          <Button type="button" className="mt-5 font-semibold" onClick={() => setShowUpgradeModal(true)}>
+            {COMMERCIAL_CHECKOUT_CTA.OPERATIONAL_BASE}
+          </Button>
+        </section>
+      ) : null}
 
       {usage && (
         <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm">
@@ -346,8 +380,8 @@ export function BillingPageClient() {
               </>
             ) : (
               <>
-                Comparado com o incluído no plano gratuito. Ao atingir o limite, é necessário escolher um plano para
-                continuar — não há cobrança adicional nem expansão automática no gratuito.
+                Comparado com o incluído na avaliação guiada. Ao atingir o limite, é necessário ativar a operação
+                completa — não há cobrança adicional nem expansão automática nesta fase.
               </>
             )}
           </p>
@@ -426,7 +460,7 @@ export function BillingPageClient() {
                   def.priceBrl > 0
                     ? `R$ ${def.priceBrl}/mês`
                     : key === "FREE"
-                      ? "Gratuito"
+                      ? "Avaliação (sem cobrança)"
                       : "Mensalidade conforme Stripe / contrato";
                 const isRecommended = key === COMMERCIAL_RECOMMENDED_PLAN;
                 const benefits = COMMERCIAL_PLAN_BENEFITS[key];

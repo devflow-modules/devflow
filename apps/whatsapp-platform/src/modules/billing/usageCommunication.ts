@@ -52,11 +52,16 @@ export function formatExpansionUnitPriceLines(prices: { message: number; aiRespo
 
 export function contextualInboxUsageHint(
   messagesLimit: number | null | undefined,
-  options?: { isFreePlan?: boolean }
+  options?: { isFreePlan?: boolean; messagesUsed?: number }
 ): string {
   if (messagesLimit != null && messagesLimit > 0) {
     if (options?.isFreePlan) {
-      return `A avaliação inclui até ${messagesLimit.toLocaleString("pt-BR")} conversas por mês. Ao atingir o limite, ative a operação contratada — veja Consumo e faturação.`;
+      const used = options.messagesUsed;
+      const usedPart =
+        typeof used === "number" && used >= 0
+          ? ` Já utilizou ${used.toLocaleString("pt-BR")} de ${messagesLimit.toLocaleString("pt-BR")} mensagens da avaliação neste período.`
+          : "";
+      return `Ambiente de avaliação guiada: até ${messagesLimit.toLocaleString("pt-BR")} conversas incluídas por mês.${usedPart} Ao atingir o limite, a operação completa é ativada com a implantação — Consumo e faturação.`;
     }
     return `O seu pacote inclui até ${messagesLimit.toLocaleString("pt-BR")} conversas por mês. Se precisar de mais, o uso adicional está disponível — veja detalhes em Consumo e faturação.`;
   }
@@ -65,33 +70,43 @@ export function contextualInboxUsageHint(
 
 export function contextualAiUsageHint(
   aiLimit: number | null | undefined,
-  options?: { isFreePlan?: boolean }
+  options?: { isFreePlan?: boolean; aiUsed?: number }
 ): string {
   if (aiLimit != null && aiLimit > 0) {
     if (options?.isFreePlan) {
-      return `Inclui até ${aiLimit.toLocaleString("pt-BR")} interações de IA por mês na avaliação. Ao atingir o limite, ative a operação contratada para continuar.`;
+      const used = options.aiUsed;
+      const usedPart =
+        typeof used === "number" && used >= 0
+          ? ` Utilização: ${used.toLocaleString("pt-BR")} de ${aiLimit.toLocaleString("pt-BR")} interações de IA na avaliação.`
+          : "";
+      return `Na avaliação guiada, inclui até ${aiLimit.toLocaleString("pt-BR")} interações de IA por mês.${usedPart} Acabou o incluído — avance para a operação completa com a equipa.`;
     }
     return `Inclui até ${aiLimit.toLocaleString("pt-BR")} interações de IA por mês no seu plano. Além disso, pode expandir com uso adicional — sem interrupção do serviço.`;
   }
   return "Consulte o consumo de IA e os limites em Consumo e faturação.";
 }
 
-/** Blocos curtos para secção «plano gratuito» na UI de billing. */
+/** Blocos curtos para secção de avaliação guiada (plano FREE) na UI de billing. */
 export function freePlanUsageExplainerLines(plan: PlanKey): { title: string; bullets: string[] } {
   const def = PLANS[plan];
   const m = def.limits.messagesPerMonth;
   const ai = def.limits.aiCallsPerMonth;
   const bullets: string[] = [];
   if (m != null) {
-    bullets.push(`Inclui até ${m.toLocaleString("pt-BR")} conversas por mês.`);
+    bullets.push(`Até ${m.toLocaleString("pt-BR")} conversas incluídas por mês na demonstração.`);
   }
   if (ai != null) {
-    bullets.push(`Inclui até ${ai.toLocaleString("pt-BR")} interações de IA por mês.`);
+    bullets.push(`Até ${ai.toLocaleString("pt-BR")} interações de IA por mês na demonstração.`);
   }
-  bullets.push("Ao atingir esse limite, é preciso ativar a operação contratada para continuar — fale connosco ou use Consumo e faturação.");
-  bullets.push("Não há cobrança adicional nem expansão automática no plano gratuito.");
+  bullets.push(
+    "Não é operação completa: automações avançadas, filas/tags completas, multiutilizador e integrações entram na implantação."
+  );
+  bullets.push(
+    "Ao atingir o incluído, é preciso avançar para a operação completa — fale connosco ou use Consumo e faturação."
+  );
+  bullets.push("Sem cartão nesta fase e sem cobrança variável automática na avaliação.");
   return {
-    title: "Como funciona a avaliação",
+    title: "Como funciona a avaliação guiada",
     bullets,
   };
 }

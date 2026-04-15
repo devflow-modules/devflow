@@ -152,9 +152,9 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
               className="sr-only"
             />
             <div className="min-w-0 flex-1">
-              <span className="text-sm font-semibold text-slate-900">Gratuito</span>
+              <span className="text-sm font-semibold text-slate-900">Avaliação guiada</span>
               <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                Para testar a plataforma e ligar o primeiro canal.
+                Demonstração da plataforma com limites claros — operação completa com implantação.
               </p>
             </div>
           </label>
@@ -183,8 +183,8 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
         </div>
 
         <div className="space-y-1 rounded-lg bg-slate-50/90 px-3 py-2.5 text-xs leading-relaxed text-slate-600">
-          <p>Sem cartão no plano gratuito.</p>
-          <p>Pode alterar o plano depois.</p>
+          <p>Sem cartão na fase de avaliação guiada.</p>
+          <p>Pode alinhar a operação completa depois com a equipa.</p>
         </div>
 
         {planId === "pro" ? (

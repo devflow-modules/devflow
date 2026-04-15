@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { STRIPE_USAGE_LINE_LABELS } from "@/modules/billing/usageCommunication";
 import { normalizePlan } from "@/modules/billing/plans";
+import { formatFreeEvaluationUsageCounts } from "@/modules/billing/demoEvaluation";
 
 type Props = {
   /** Plano normalizado (ex.: tenant billing). */
@@ -12,6 +13,11 @@ type Props = {
   enforceLimits: boolean;
   overageMessages: number;
   overageAI: number;
+  /** Opcional — mensagens com contagem na avaliação (FREE). */
+  messagesUsed?: number;
+  messagesLimit?: number | null;
+  aiUsed?: number;
+  aiLimit?: number | null;
 };
 
 type Alert = {
@@ -20,6 +26,25 @@ type Alert = {
   cta?: { href: string; label: string };
 };
 
+function freeEvaluationCountLine(
+  messagesUsed: number | undefined,
+  messagesLimit: number | null | undefined,
+  aiUsed: number | undefined,
+  aiLimit: number | null | undefined
+): string | null {
+  if (
+    typeof messagesUsed !== "number" ||
+    messagesLimit == null ||
+    messagesLimit <= 0 ||
+    typeof aiUsed !== "number" ||
+    aiLimit == null ||
+    aiLimit <= 0
+  ) {
+    return null;
+  }
+  return formatFreeEvaluationUsageCounts(messagesUsed, messagesLimit, aiUsed, aiLimit);
+}
+
 export function BillingAlerts({
   currentPlan,
   usagePercentageMessages,
@@ -27,6 +52,10 @@ export function BillingAlerts({
   enforceLimits,
   overageMessages,
   overageAI,
+  messagesUsed,
+  messagesLimit,
+  aiUsed,
+  aiLimit,
 }: Props) {
   const planKey = normalizePlan(currentPlan);
   const isFree = planKey === "FREE";
@@ -51,15 +80,27 @@ export function BillingAlerts({
       });
     }
   } else if (maxPct >= 100 && !enforceLimits) {
-      alerts.push({
-        type: "warning",
-        message: `Ultrapassou o volume incluído no pacote neste período. O uso adicional («${STRIPE_USAGE_LINE_LABELS.extraConversations}» e «${STRIPE_USAGE_LINE_LABELS.extraAi}» na fatura) é registado e faturado automaticamente — o atendimento segue sem interrupção.`,
-      });
+    alerts.push({
+      type: "warning",
+      message: `Ultrapassou o volume incluído no pacote neste período. O uso adicional («${STRIPE_USAGE_LINE_LABELS.extraConversations}» e «${STRIPE_USAGE_LINE_LABELS.extraAi}» na fatura) é registado e faturado automaticamente — o atendimento segue sem interrupção.`,
+    });
+  } else if (isFree && maxPct >= 90 && maxPct < 100) {
+    const count = freeEvaluationCountLine(messagesUsed, messagesLimit, aiUsed, aiLimit);
+    alerts.push({
+      type: "info",
+      message: count
+        ? `${count} Recomendamos alinhar a operação completa antes de atingir o teto da avaliação.`
+        : "Está a usar quase todo o incluído na avaliação neste período. Avance para a operação completa a tempo para não interromper o atendimento.",
+      cta: { href: "/dashboard/billing", label: "Consumo e faturação" },
+    });
   } else if (maxPct >= 80) {
     if (isFree) {
+      const count = freeEvaluationCountLine(messagesUsed, messagesLimit, aiUsed, aiLimit);
       alerts.push({
         type: "info",
-        message: "Está perto do limite da avaliação. Ative a operação contratada a tempo para não interromper o atendimento.",
+        message: count
+          ? `Está perto do limite da avaliação. ${count} A operação completa libera volumes e funcionalidades na implantação.`
+          : "Está perto do limite da avaliação. Ative a operação contratada a tempo para não interromper o atendimento.",
         cta: { href: "/dashboard/billing", label: "Consumo e faturação" },
       });
     } else {

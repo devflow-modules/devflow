@@ -13,6 +13,7 @@ export function unwrapApiData<T>(raw: unknown): T | null {
 
 type SubscriptionViewLike = {
   plan: string;
+  tenantCreatedAt?: string | null;
   status: string;
   stripeCustomerId: string | null;
   currentPeriodEnd: string | null;

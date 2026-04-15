@@ -9,17 +9,20 @@ import { CONTEXTUAL_UPGRADE_HINTS } from "./planPresentation";
 
 /** Mensagem quando FREE atinge limite (API 402 ou paywall contextual). */
 export const FREE_PLAN_LIMIT_PAYWALL_MESSAGE =
-  "A avaliação chegou ao limite incluído. Para continuar a operar com atendimento completo, ative a operação contratada em Consumo e faturação ou fale connosco.";
+  "Atingiu o limite da avaliação guiada. A operação completa (inbox, equipa, automações e volumes) é liberada na implantação — veja Consumo e faturação ou fale connosco.";
 
 export const FEATURE_UPGRADE_COPY: Record<FeatureKey, string | undefined> = {
-  QUEUES_TAGS: "Filas e responsáveis fazem parte da operação contratada — fale connosco para incluir no seu pacote.",
-  AUTOMATION: "Automação de regras faz parte da operação contratada — veja o que está incluído no seu contrato.",
-  ADVANCED_AUTOMATION: "Automação avançada (fluxos mais ricos) — disponível na operação contratada; fale connosco para ajustar.",
-  PLAYBOOKS: "Fluxos e automação avançada — alinhados na operação contratada.",
-  AI_RESPONSE: "Respostas com IA — conforme o pacote contratado.",
-  ADVANCED_AI: "Motores de IA avançados — incluídos quando previstos no contrato.",
+  QUEUES_TAGS:
+    "Filas e tags completas fazem parte da operação completa — não estão na avaliação guiada. Fale connosco para incluir na implantação.",
+  AUTOMATION:
+    "Automação de regras integra a operação completa após implantação — na avaliação só experimenta o essencial da inbox.",
+  ADVANCED_AUTOMATION:
+    "Fluxos e automação avançada — disponíveis na operação completa; combinamos no contrato de implantação.",
+  PLAYBOOKS: "Playbooks e fluxos avançados — alinhados na operação completa com a equipa.",
+  AI_RESPONSE: "Respostas com IA além do incluído na avaliação — alinhadas ao pacote operacional contratado.",
+  ADVANCED_AI: "Motores de IA avançados — quando previstos na operação completa.",
   WEBHOOKS_API: "API e integrações — quando fazem parte da implantação acordada.",
-  ADVANCED_REPORTS: "Relatórios avançados — incluídos na operação contratada.",
+  ADVANCED_REPORTS: "Relatórios avançados — incluídos na operação completa.",
   MULTI_USER: "Vários utilizadores na mesma conta — conforme o pacote de implantação.",
   PRIORITY_SUPPORT: "Suporte prioritário — quando incluído no contrato.",
 };

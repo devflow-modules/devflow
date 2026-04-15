@@ -73,6 +73,14 @@ export {
   normalizePlan,
 } from "./plans";
 export {
+  isFreeEvaluationPlan,
+  freeEvaluationStaleMessage,
+  formatFreeEvaluationUsageCounts,
+  evaluationModeBadgeLabel,
+  planKeyForDisplay,
+  FREE_EVALUATION_STALE_DAYS,
+} from "./demoEvaluation";
+export {
   COMMERCIAL_PLAN_BENEFITS,
   COMMERCIAL_PLAN_HEADLINE,
   COMMERCIAL_PLAN_SUBTITLE,
@@ -81,6 +89,7 @@ export {
   COMMERCIAL_POSITIONING,
   COMMERCIAL_RECOMMENDED_BADGE,
   COMMERCIAL_RECOMMENDED_PLAN,
+  HOW_FULL_OPERATION_WORKS,
   CONTEXTUAL_UPGRADE_HINTS,
   PLAN_VALUE_COMPARISON,
   PRICING_DECISION_REASSURANCE,

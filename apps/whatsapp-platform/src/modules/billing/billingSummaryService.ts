@@ -9,6 +9,8 @@ import { getStripe, isStripeConfigured } from "@/modules/stripe/stripeClient";
 
 export type TenantBillingSummary = {
   plan: string;
+  /** ISO da criação do tenant — só UX (aviso de avaliação prolongada). */
+  tenantCreatedAt: string | null;
   status: string;
   hasStripeCustomer: boolean;
   usage: { messages: number; ai: number };
@@ -57,7 +59,7 @@ export async function getTenantBillingSummary(
     }),
     prisma.tenant.findUnique({
       where: { id: tenantId },
-      select: { plan: true, stripeCustomerId: true },
+      select: { plan: true, stripeCustomerId: true, createdAt: true },
     }),
     getUsageByPeriod(tenantId, period),
   ]);
@@ -103,6 +105,7 @@ export async function getTenantBillingSummary(
 
   return {
     plan,
+    tenantCreatedAt: tenant?.createdAt?.toISOString() ?? null,
     status,
     hasStripeCustomer,
     usage: {

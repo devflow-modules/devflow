@@ -78,10 +78,10 @@ function buildLimitExceededError(
   const msg =
     feature === "messages"
       ? isFree
-        ? "Limite de conversas do plano gratuito atingido. Escolha um plano para continuar."
+        ? "Atingiu o limite de conversas da avaliação guiada. A operação completa é liberada na implantação — fale connosco ou veja Consumo e faturação."
         : "Limite mensal de conversas atingido. Atualize o plano ou aguarde a renovação do período."
       : isFree
-        ? "Limite de interações de IA do plano gratuito atingido. Escolha um plano para continuar."
+        ? "Atingiu o limite de IA da avaliação guiada. Para continuar com margem completa, avance para a operação com a nossa equipa."
         : "Limite mensal de interações de IA atingido. Atualize o plano ou aguarde a renovação do período.";
 
   return new UsageLimitExceededError(feature, msg, {

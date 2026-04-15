@@ -11,6 +11,7 @@ import {
   markInboxVisited,
 } from "@/lib/activationStorage";
 import { OnboardingProgress } from "./OnboardingProgress";
+import { EvaluationModeRibbon } from "@/components/shell/EvaluationModeRibbon";
 
 type TenantMe = {
   hasWhatsappPhone?: boolean;
@@ -83,6 +84,7 @@ export function ActivationGuidedFlow() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      <EvaluationModeRibbon className="mb-4 rounded-xl border border-sky-100/90 text-left" />
       <OnboardingProgress currentStep={currentStep} allComplete={allComplete} />
 
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">

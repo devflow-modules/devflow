@@ -8,13 +8,13 @@ import { formatIncludedUsageSentence } from "./usageCommunication";
 
 /** Título curto por plano: estágio da operação (valor, não técnico). */
 export const COMMERCIAL_PLAN_HEADLINE: Record<PlanKey, string> = {
-  FREE: "Experimentar a plataforma",
+  FREE: "Demonstração da plataforma em ambiente limitado",
   OPERATIONAL_BASE: "Operação profissional no WhatsApp",
 };
 
 /** Subtítulo: para quem é (linha de valor). */
 export const COMMERCIAL_PLAN_SUBTITLE: Record<PlanKey, string> = {
-  FREE: "Para validar inbox, ligação do número e fluxo antes da implantação.",
+  FREE: "Avaliação guiada: experimente inbox e IA com limites claros — a operação completa vem com a implantação.",
   OPERATIONAL_BASE:
     "Sistema profissional para organizar, controlar e escalar o atendimento da sua empresa no WhatsApp — com implantação acompanhada.",
 };
@@ -23,8 +23,8 @@ export const COMMERCIAL_PLAN_SUBTITLE: Record<PlanKey, string> = {
 export const COMMERCIAL_PLAN_BENEFITS: Record<PlanKey, readonly string[]> = {
   FREE: [
     "Inbox para receber e responder conversas num só lugar",
-    "Ligar um canal WhatsApp Business e testar o fluxo",
-    "Primeiros passos com IA de atendimento",
+    "Ligar um canal WhatsApp Business e percorrer o fluxo real",
+    "Primeiros passos com IA de atendimento (volume incluído limitado)",
   ],
   OPERATIONAL_BASE: [
     "Inbox com filas, responsáveis e prioridade",
@@ -35,8 +35,8 @@ export const COMMERCIAL_PLAN_BENEFITS: Record<PlanKey, readonly string[]> = {
 };
 
 export const COMMERCIAL_CHECKOUT_CTA: Record<PlanKey, string> = {
-  FREE: "Continuar em avaliação",
-  OPERATIONAL_BASE: "Ativar operação contratada",
+  FREE: "Continuar na avaliação guiada",
+  OPERATIONAL_BASE: "Ativar operação completa",
 };
 
 export const COMMERCIAL_TAGLINE: Record<PlanKey, string> = COMMERCIAL_PLAN_SUBTITLE;
@@ -51,6 +51,18 @@ export const COMMERCIAL_RECOMMENDED_BADGE = "Recomendado";
 /** Subtítulo da página Consumo / faturação (PageHeader / contexto). */
 export const BILLING_PAGE_HEADER_DESCRIPTION =
   "Acompanhe o consumo do período e a sua assinatura. Ajustes de contrato e implantação são feitos com a nossa equipa.";
+
+/** Secção de venda consultiva na página Plano / billing (FREE → operação completa). */
+export const HOW_FULL_OPERATION_WORKS = {
+  title: "Como funciona a operação completa",
+  intro:
+    "Depois da avaliação guiada, a operação em produção combina implantação (setup) com mensalidade operacional alinhada ao volume e à equipa.",
+  bullets: [
+    "Implantação: canais, permissões, regras e integrações conforme o contrato.",
+    "Mensalidade: pacote incluído de conversas e IA, com expansão transparente quando precisar de mais volume.",
+    "Ajustes de funcionalidades e limites são tratados com a equipa — não é um produto self-service genérico.",
+  ] as const,
+} as const;
 
 /** Mesma linha no cartão do plano (BillingHeader), alinhada ao PageHeader. */
 export const BILLING_HEADER_SUPPORTING_LINE = BILLING_PAGE_HEADER_DESCRIPTION;
@@ -87,9 +99,12 @@ export function upgradeCtaHeadline(current: PlanKey, next: PlanKey): string {
 }
 
 export const CONTEXTUAL_UPGRADE_HINTS = {
-  inbox: "Filas e responsáveis fazem parte da operação contratada — veja consumo e contacte a equipa se precisar de mais.",
-  aiSettings: "Margem de IA e automação: veja o consumo do período e fale connosco para ajustar o pacote.",
-  whatsappChannel: "Vários canais e volumes maiores integram-se na sua implantação — fale com a equipa.",
+  inbox:
+    "Neste ambiente de avaliação, filas e responsáveis avançados fazem parte da operação completa — combinamos na implantação. Veja consumo em Consumo e faturação.",
+  aiSettings:
+    "Margem de IA e automação alinhadas ao contrato: na avaliação o uso é limitado; para expandir, avance para a operação completa com a equipa.",
+  whatsappChannel:
+    "Vários canais e volumes maiores entram no pacote de implantação — fale connosco quando for avançar da demonstração para a operação.",
 } as const;
 
 export type ValueAxisId = "operacao" | "ia" | "gestao" | "escala";

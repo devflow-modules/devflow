@@ -66,9 +66,11 @@ function priorityStripe(priority: string | undefined) {
 export function LeadDataPanel({
   thread,
   className = "",
+  evaluationMode = false,
 }: {
   thread: WaInboxThreadRow | null;
   className?: string;
+  evaluationMode?: boolean;
 }) {
   if (!thread) return null;
   const ld = thread.leadData;
@@ -97,6 +99,20 @@ export function LeadDataPanel({
         <p className="mt-0.5 text-[10px] text-slate-500">Decisão rápida — estado vem do servidor.</p>
       </div>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3 text-left">
+        {evaluationMode
+          ? panelSection(
+              "Avaliação em andamento",
+              <>
+                <p className="text-xs leading-relaxed text-slate-700">
+                  Ambiente de demonstração com limites de conversas e IA. Para operações completas (filas, equipa,
+                  volumes), é necessário ativar a operação com a implantação.
+                </p>
+                <p className="text-[11px] leading-relaxed text-slate-500">
+                  Veja consumo e próximos passos em Consumo e faturação.
+                </p>
+              </>
+            )
+          : null}
         {panelSection(
           "Situação da conversa",
           <>

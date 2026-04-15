@@ -16,6 +16,7 @@ import {
 } from "@/components/dashboard/billing";
 import type { TenantBillingUI } from "@/modules/billing";
 import { normalizePlan } from "@/modules/billing/plans";
+import { freeEvaluationStaleMessage } from "@/modules/billing/demoEvaluation";
 import { readBillingPostUrl } from "@/lib/api-json-client";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
@@ -161,6 +162,7 @@ export function BillingDashboardClient() {
     d.status?.toLowerCase() === "past_due" || d.status?.toLowerCase() === "pastdue";
   const planKey = normalizePlan(d.plan);
   const isFreePlan = planKey === "FREE";
+  const evaluationStaleHint = freeEvaluationStaleMessage(d.plan, d.tenantCreatedAt);
 
   return (
     <div className="df-stack-tight">
@@ -195,7 +197,16 @@ export function BillingDashboardClient() {
 
       {isFreePlan ? (
         <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-5 text-sm text-slate-800 shadow-sm">
-          <p className="font-medium text-slate-900">Conta em avaliação</p>
+          <p className="font-medium text-slate-900">Ambiente de avaliação guiada</p>
+          <p className="mt-2 leading-relaxed">
+            Limites atuais: conversas e IA do período estão nos cartões abaixo. O que está bloqueado ou parcial segue
+            o contrato da demonstração — a operação completa libera filas, equipa e volumes na implantação.
+          </p>
+          {evaluationStaleHint ? (
+            <p className="mt-2 rounded-lg border border-amber-100 bg-amber-50/90 px-3 py-2 text-xs text-amber-950">
+              {evaluationStaleHint}
+            </p>
+          ) : null}
           <p className="mt-2 leading-relaxed">
             A operação comercial é consultiva (implantação + mensalidade). Se já tiver acordo connosco e quiser
             ativar o pagamento recorrente aqui, pode continuar para o Stripe.
@@ -206,7 +217,7 @@ export function BillingDashboardClient() {
             disabled={checkoutBusy}
             onClick={() => void checkoutOperationalBase()}
           >
-            {checkoutBusy ? "A redirecionar…" : "Ativar operação contratada (Stripe)"}
+            {checkoutBusy ? "A redirecionar…" : "Ativar operação completa (Stripe)"}
           </button>
         </div>
       ) : null}
@@ -251,6 +262,10 @@ export function BillingDashboardClient() {
         enforceLimits={d.enforceLimits}
         overageMessages={d.overageMessages}
         overageAI={d.overageAI}
+        messagesUsed={d.messagesUsed}
+        messagesLimit={d.messagesLimit}
+        aiUsed={d.aiUsed}
+        aiLimit={d.aiLimit}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

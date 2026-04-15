@@ -91,6 +91,8 @@ export async function createBillingPortalSession(
 
 export interface SubscriptionView {
   plan: string;
+  /** ISO — só UX (aviso de avaliação prolongada em FREE). */
+  tenantCreatedAt: string | null;
   status: string;
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
@@ -121,6 +123,7 @@ export async function getSubscriptionView(tenantId: string): Promise<Subscriptio
 
   return {
     plan,
+    tenantCreatedAt: tenant?.createdAt?.toISOString() ?? null,
     status,
     stripeCustomerId:
       tenantSub?.stripeCustomerId ??

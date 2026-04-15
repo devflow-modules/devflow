@@ -8,6 +8,7 @@ import { AppSidebar } from "./AppSidebar";
 import { SupportProvider } from "@/components/support/SupportProvider";
 import { SessionRoleProvider, useSessionRole } from "@/components/navigation/SessionRoleContext";
 import { ShellPage } from "./ShellPage";
+import { EvaluationModeRibbon } from "./EvaluationModeRibbon";
 import { NavCommandPalette } from "@/components/navigation/NavCommandPalette";
 import { shellHomeHref } from "@/lib/roles";
 
@@ -76,6 +77,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
             ⌘K
           </span>
         </header>
+        <EvaluationModeRibbon />
         <main className="min-h-0 flex-1 overflow-hidden">
           {inboxFullBleed ? (
             <div className="flex h-full min-h-0 flex-col overflow-hidden">{children}</div>

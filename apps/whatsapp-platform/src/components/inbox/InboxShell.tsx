@@ -26,6 +26,8 @@ import { fetchProtected } from "@/lib/protected-fetch";
 import { getUiPlanCapabilities } from "@/modules/billing/planUiCapabilities";
 import { FEATURE_UPGRADE_COPY } from "@/modules/billing/featureUpgradeCopy";
 import { contextualInboxUsageHint } from "@/modules/billing/usageCommunication";
+import type { TenantBillingUI } from "@/modules/billing";
+import { normalizePlan } from "@/modules/billing/plans";
 import {
   dismissFirstReplyBanner,
   ensureFirstMessageActivationLogged,
@@ -123,14 +125,12 @@ function InboxShellContent() {
     queryFn: async () => {
       const r = await fetchProtected("/api/billing/ui");
       if (!r.ok) return null;
-      const j = (await r.json()) as {
-        success?: boolean;
-        data?: { plan: string; messagesLimit: number | null; allowsMeteredOverage?: boolean };
-      };
+      const j = (await r.json()) as { success?: boolean; data?: TenantBillingUI };
       return j.data ?? null;
     },
     staleTime: 120_000,
   });
+  const evaluationMode = Boolean(billingUi && normalizePlan(billingUi.plan) === "FREE");
   const caps = billingUi?.plan != null ? getUiPlanCapabilities(billingUi.plan) : null;
 
   const { data: inboxQueues = [] } = useQuery({
@@ -352,6 +352,7 @@ function InboxShellContent() {
             billingUi?.messagesLimit != null
               ? contextualInboxUsageHint(billingUi.messagesLimit, {
                   isFreePlan: billingUi.allowsMeteredOverage === false,
+                  messagesUsed: billingUi.messagesUsed,
                 })
               : CONTEXTUAL_UPGRADE_HINTS.inbox
           }
@@ -401,6 +402,7 @@ function InboxShellContent() {
                 thread={selectedThread}
                 showBack={!isMd}
                 onBackMobile={onBack}
+                evaluationMode={evaluationMode}
               />
             ) : awaitingFirstMessage ? (
               <div className="hidden min-h-0 flex-1 flex-col items-center justify-center px-4 py-8 md:flex md:px-8">

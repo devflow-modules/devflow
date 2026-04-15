@@ -6,11 +6,13 @@ import { StateError, StateLoading } from "@/components/ui/app-states";
 import { HowFreePlanWorksSection } from "@/components/dashboard/billing/HowFreePlanWorksSection";
 import { HowUsageWorksSection } from "@/components/dashboard/billing/HowUsageWorksSection";
 import { normalizePlan } from "@/modules/billing/plans";
+import { freeEvaluationStaleMessage } from "@/modules/billing/demoEvaluation";
 import { readBillingPostUrl, readSubscriptionFromApiJson } from "@/lib/api-json-client";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 type Sub = {
   plan: string;
+  tenantCreatedAt?: string | null;
   status: string;
   stripeCustomerId: string | null;
   currentPeriodEnd: string | null;
@@ -119,8 +121,26 @@ export function BillingSettingsClient() {
     return <StateLoading message="A carregar faturação…" className="min-h-[14rem]" />;
   }
 
+  const evaluationStaleHint =
+    sub && normalizePlan(sub.plan) === "FREE"
+      ? freeEvaluationStaleMessage(sub.plan, sub.tenantCreatedAt ?? null)
+      : null;
+
   return (
     <div className="min-w-0 space-y-8">
+      {normalizePlan(sub?.plan ?? "") === "FREE" ? (
+        <div
+          className="rounded-xl border border-sky-100 bg-sky-50/90 px-4 py-3 text-sm text-sky-950"
+          data-testid="settings-evaluation-mode-hint"
+          role="status"
+        >
+          <p className="font-medium">Modo avaliação ativo</p>
+          <p className="mt-1 text-xs leading-relaxed text-sky-900/95">
+            Limites da demonstração aplicam-se à conta. A operação completa é ativada com implantação e contrato.
+          </p>
+          {evaluationStaleHint ? <p className="mt-2 text-xs text-amber-950">{evaluationStaleHint}</p> : null}
+        </div>
+      ) : null}
       {err ? (
         <StateError
           title="Não foi possível carregar os dados"

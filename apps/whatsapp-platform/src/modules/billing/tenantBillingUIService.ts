@@ -9,6 +9,8 @@ import { normalizePlan, planAllowsMeteredOverage } from "./plans";
 
 export type TenantBillingUI = {
   plan: string;
+  /** ISO — aviso suave de avaliação prolongada (FREE). */
+  tenantCreatedAt: string | null;
   status: string;
   hasStripeCustomer: boolean;
   messagesUsed: number;
@@ -59,6 +61,7 @@ export async function getTenantBillingUI(tenantId: string): Promise<TenantBillin
 
   return {
     plan: summary.plan,
+    tenantCreatedAt: summary.tenantCreatedAt,
     status: summary.status,
     hasStripeCustomer: summary.hasStripeCustomer,
     messagesUsed: summary.usage.messages,
