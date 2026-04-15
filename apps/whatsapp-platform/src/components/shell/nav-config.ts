@@ -13,7 +13,7 @@ export const NAV_PRIMARY: NavItem[] = [
 
 /**
  * Secundária — conta, canais, cobrança e configuração.
- * Ordem IA (utilizador): Configurações (motor) → IA de atendimento (comportamento) → Análises de IA (uso/custo);
+ * Ordem IA: Configurações (motor) → IA de atendimento (comportamento) → Análises de IA (uso/custo);
  * «IA — operação» no painel é métricas operacionais, não o mesmo ecrã que /settings/ai.
  */
 export const NAV_SECONDARY: NavItem[] = [
@@ -46,7 +46,7 @@ export function primaryNavForRole(role: UserRole | string | null): NavItem[] {
   return NAV_PRIMARY;
 }
 
-/** Secundária: operador não vê conta/cobrança; API developer só para gestor do tenant. */
+/** Secundária: operador não vê conta/cobrança; API developer só para admin do tenant. */
 export function secondaryNavForRole(role: UserRole | string | null): NavItem[] {
   if (!role) return NAV_SECONDARY;
   if (isOperator(role) && !isPlatformAdmin(role)) return [];

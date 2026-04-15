@@ -59,9 +59,9 @@ export default async function DeveloperSettingsPage() {
       <div className="df-page-narrow df-stack">
         {header}
         <StateEmpty
-          title="Acesso restrito a gestores"
+          title="Acesso restrito a admins"
           description={permissionsMessages.adminOnly}
-          nextStep="Operadores usam a Inbox; gestores gerem a conta em Configurações."
+          nextStep="Operadores usam a Inbox; admins gerem a conta em Configurações."
           action={
             <Link href="/settings" className={buttonClassName("primary")}>
               Voltar às configurações

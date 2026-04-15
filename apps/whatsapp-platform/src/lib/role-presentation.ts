@@ -12,11 +12,11 @@ export function friendlyRoleLabel(role: string | null | undefined): string {
     case "operator":
       return "Operador";
     case "manager":
-      return "Gestor";
+      return "Admin";
     case "platform_admin":
       return "Admin da plataforma";
     default:
-      return "Utilizador";
+      return "Membro da equipa";
   }
 }
 

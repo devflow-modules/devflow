@@ -244,7 +244,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
             )
           ) : sessionRole && isOperator(sessionRole) ? (
             <p className="mt-4 text-xs text-slate-500">
-              Integrações com API: peça a um gestor em Configurações → API e integrações.
+              Integrações com API: peça a um admin em Configurações → API e integrações.
             </p>
           ) : null}
           <p className="mt-6 rounded-xl border border-slate-100/80 bg-slate-50/50 px-4 py-3 text-xs leading-relaxed text-slate-500">

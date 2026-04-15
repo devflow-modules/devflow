@@ -170,7 +170,7 @@ export function AgentsClient({
         <StateEmpty
           title="Ainda não há membros na equipe"
           description="Quando adicionar utilizadores ao tenant em Configurações, eles aparecem aqui com papel, estado na Inbox e filas."
-          nextStep="Comece por Configurações para convidar ou criar utilizadores com perfil de Operador ou Gestor."
+          nextStep="Comece por Configurações para convidar ou criar utilizadores com perfil de Operador ou Admin."
           action={
             <div className="flex flex-wrap items-center justify-center gap-2">
               <Link href="/settings" className={`${buttonClassName("primary")} text-sm`}>

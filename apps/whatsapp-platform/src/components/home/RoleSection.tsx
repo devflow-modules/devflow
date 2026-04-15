@@ -1,17 +1,16 @@
 const ROLES = [
-  { label: "Gestor", hint: "acompanha e decide" },
-  { label: "Operador", hint: "responde e executa" },
-  { label: "Admin", hint: "monitora e controla" },
+  { label: "Admin", hint: "gestão do sistema e da conta" },
+  { label: "Operador", hint: "atendimento na inbox" },
 ] as const;
 
 export function RoleSection() {
   return (
     <section className="mt-16 text-center" aria-labelledby="perfis-heading">
       <h2 id="perfis-heading" className="text-lg font-semibold text-slate-900">
-        Feito para gestores, operadores e administradores
+        Feito para admins e operadores
       </h2>
       <p className="mx-auto mt-2 max-w-xl text-sm text-slate-600">
-        Cada perfil vê exatamente o que precisa para agir.
+        Cada perfil vê o que precisa: gestão ou execução no WhatsApp.
       </p>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
         {ROLES.map((r) => (

@@ -26,6 +26,8 @@ import { SLA_LEVEL_BADGE_CLASS } from "./inboxOperationalStyles";
 import { FeatureUpgradePrompt } from "@/components/billing/FeatureUpgradePrompt";
 import type { FeatureNotAvailablePayload } from "@/lib/protected-fetch";
 import { isFeatureBlockedError } from "@/lib/protected-fetch";
+import { useSessionRole } from "@/components/navigation/SessionRoleContext";
+import { inboxAssigneeCopy } from "@/lib/roleProductLabels";
 
 const SLA_LABEL: Record<InboxSlaLevel, string> = {
   low: "SLA OK",
@@ -77,6 +79,8 @@ export function ChatHeader({
     queryFn: fetchInboxOperationalQueues,
     staleTime: 60_000,
   });
+
+  const { role: sessionRole } = useSessionRole();
 
   const { data: authUser, isSuccess: authLoaded } = useQuery({
     queryKey: ["inbox-header-auth-user"],
@@ -204,6 +208,16 @@ export function ChatHeader({
   const canClose = thread.status !== "CLOSED";
   const canReopen = thread.status === "CLOSED";
 
+  const assigneeCopy = thread.assignedToUser
+    ? inboxAssigneeCopy({
+        assignedToUser: thread.assignedToUser,
+        isAssignedToMe: thread.isAssignedToMe,
+        sessionRole,
+        authUserId: authUser?.id,
+        threadStatus: thread.status,
+      })
+    : null;
+
   return (
     <header
       className="df-inbox-header max-h-[min(38vh,340px)] shrink-0 overflow-y-auto overscroll-contain"
@@ -263,24 +277,33 @@ export function ChatHeader({
             </span>
             {thread.priority === "HIGH" ? <span className="df-chip-priority-high">Prioridade alta</span> : null}
           </div>
-          <p className="mt-2 text-xs text-slate-600">
-            <span className="font-medium text-slate-500">Responsável: </span>
-            {thread.assignedToUser ? (
-              <strong>{thread.assignedToUser.name}</strong>
-            ) : thread.status === "CLOSED" ? (
-              <span className="text-slate-500">—</span>
-            ) : thread.conversationState === "awaiting_customer" ? (
-              <span className={thread.lastResponderType === "ai" ? "text-emerald-800" : "text-slate-700"}>
-                {thread.lastResponderType === "ai"
-                  ? "Assistente IA (aguarda cliente)"
-                  : "Aguardando cliente"}
-              </span>
-            ) : thread.conversationState === "awaiting_agent" ? (
-              <span className="text-amber-800">Sem responsável — precisa de resposta humana</span>
-            ) : (
-              <span className="text-amber-800">Sem responsável</span>
-            )}
-          </p>
+          {thread.assignedToUser && assigneeCopy ? (
+            <>
+              <p className="mt-2 text-xs text-slate-600" data-testid="chat-header-assignee">
+                <strong className="font-semibold text-slate-900">{assigneeCopy.line}</strong>
+              </p>
+              {assigneeCopy.note ? (
+                <p className="mt-1 text-[11px] leading-snug text-emerald-900/90">{assigneeCopy.note}</p>
+              ) : null}
+            </>
+          ) : (
+            <p className="mt-2 text-xs text-slate-600">
+              <span className="font-medium text-slate-500">Responsável: </span>
+              {thread.status === "CLOSED" ? (
+                <span className="text-slate-500">—</span>
+              ) : thread.conversationState === "awaiting_customer" ? (
+                <span className={thread.lastResponderType === "ai" ? "text-emerald-800" : "text-slate-700"}>
+                  {thread.lastResponderType === "ai"
+                    ? "Assistente IA (aguarda cliente)"
+                    : "Aguardando cliente"}
+                </span>
+              ) : thread.conversationState === "awaiting_agent" ? (
+                <span className="text-amber-800">Sem responsável — precisa de resposta humana</span>
+              ) : (
+                <span className="text-amber-800">Sem responsável</span>
+              )}
+            </p>
+          )}
           {thread.whatsappLine ? (
             <p className="mt-1 truncate text-[11px] text-slate-400">
               Linha:{" "}

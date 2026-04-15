@@ -1,7 +1,7 @@
 import type { AiAgentTone } from "@/generated/prisma-whatsapp";
 import type { PlaybookJson } from "@/modules/ai/conversationStateService";
 
-/** Camada de produto — o que o gestor edita na UI (sem segredos). */
+/** Camada de produto — o que o admin edita na UI (sem segredos). */
 export interface AiBehaviorConfig {
   assistantName: string | null;
   businessContext: string | null;

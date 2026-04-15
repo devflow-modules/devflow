@@ -1,6 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { readVerifyPayload } from "@/lib/api-json-client";
+import { fetchProtected } from "@/lib/protected-fetch";
+import { useSessionRole } from "@/components/navigation/SessionRoleContext";
+import { inboxAssigneeCopy } from "@/lib/roleProductLabels";
 import type { WaInboxThreadRow } from "./inboxTypes";
 import type { ConversationState } from "@/modules/inbox/waInboxConversationState";
 import { OperatorSuggestion } from "./OperatorSuggestion";
@@ -72,6 +77,17 @@ export function LeadDataPanel({
   className?: string;
   evaluationMode?: boolean;
 }) {
+  const { role: sessionRole } = useSessionRole();
+  const { data: authUser } = useQuery({
+    queryKey: ["inbox-header-auth-user"],
+    queryFn: async () => {
+      const res = await fetchProtected("/api/auth/verify");
+      const raw = await res.json();
+      return readVerifyPayload(raw)?.user ?? null;
+    },
+    staleTime: 60_000,
+  });
+
   if (!thread) return null;
   const ld = thread.leadData;
   const score = thread.leadScore ?? 0;
@@ -83,10 +99,21 @@ export function LeadDataPanel({
   const hint = conversationStateOperationalHint(convState);
   const bullets = conversationStateSuggestedActions(convState);
   const hasOperatorSuggestion = Boolean(generateOperatorSuggestion(thread));
+  const assigneeCopy = thread.assignedToUser
+    ? inboxAssigneeCopy({
+        assignedToUser: thread.assignedToUser,
+        isAssignedToMe: thread.isAssignedToMe,
+        sessionRole,
+        authUserId: authUser?.id,
+        threadStatus: thread.status,
+      })
+    : null;
   const assignee =
-    thread.status === "CLOSED"
-      ? "—"
-      : thread.assignedToUser?.name?.trim() || "Sem responsável";
+    assigneeCopy && assigneeCopy.line
+      ? assigneeCopy.line
+      : thread.status === "CLOSED"
+        ? "—"
+        : "Sem responsável";
 
   return (
     <aside
@@ -130,6 +157,9 @@ export function LeadDataPanel({
               <p className="text-sm font-medium text-slate-900" data-testid="lead-panel-assignee">
                 {assignee}
               </p>
+              {assigneeCopy?.note ? (
+                <p className="mt-1 text-[11px] leading-snug text-emerald-900/85">{assigneeCopy.note}</p>
+              ) : null}
             </div>
             {hint ? <p className="text-xs leading-relaxed text-slate-600">{hint}</p> : null}
           </>

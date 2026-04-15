@@ -20,7 +20,7 @@ export default async function QueuesPage() {
         <StateEmpty
           title="Inicie sessão"
           description="Inicie sessão para criar filas, atribuir agentes e ver métricas."
-          nextStep="Precisa de acesso? Peça a um gestor do tenant."
+          nextStep="Precisa de acesso? Peça a um admin da conta."
           action={
             <Link href="/login" className="text-sm font-medium text-[var(--df-brand-600)] hover:underline">
               Ir para o login

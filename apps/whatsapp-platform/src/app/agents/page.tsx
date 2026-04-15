@@ -22,7 +22,7 @@ export default async function AgentsPage() {
         <StateEmpty
           title="Inicie sessão"
           description="Inicie sessão com a conta da sua organização para ver a equipa e estados operacionais."
-          nextStep="Se ainda não tem credenciais, peça a um gestor do tenant."
+          nextStep="Se ainda não tem credenciais, peça a um admin da conta."
           action={
             <Link href="/login" className="text-sm font-medium text-[var(--df-brand-600)] hover:underline">
               Ir para o login

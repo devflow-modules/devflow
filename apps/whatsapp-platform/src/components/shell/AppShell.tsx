@@ -9,6 +9,7 @@ import { SupportProvider } from "@/components/support/SupportProvider";
 import { SessionRoleProvider, useSessionRole } from "@/components/navigation/SessionRoleContext";
 import { ShellPage } from "./ShellPage";
 import { EvaluationModeRibbon } from "./EvaluationModeRibbon";
+import { SessionRoleModePill } from "./SessionRoleModePill";
 import { NavCommandPalette } from "@/components/navigation/NavCommandPalette";
 import { shellHomeHref } from "@/lib/roles";
 
@@ -61,7 +62,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
         <AppSidebar onNavigate={() => setMobileNavOpen(false)} />
       </div>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="z-30 flex h-14 shrink-0 items-center gap-3 border-b border-slate-100 bg-white/90 px-3 backdrop-blur-md sm:px-4 lg:hidden">
+        <header className="z-30 flex h-14 shrink-0 items-center gap-2 border-b border-slate-100 bg-white/90 px-3 backdrop-blur-md sm:gap-3 sm:px-4 lg:hidden">
           <button
             type="button"
             onClick={() => setMobileNavOpen(true)}
@@ -73,7 +74,8 @@ function AppShellInner({ children }: { children: ReactNode }) {
             </svg>
           </button>
           <MobileHeaderBrand />
-          <span className="ml-auto text-[10px] text-slate-400" title="Paleta de navegação">
+          <SessionRoleModePill variant="header" />
+          <span className="ml-auto shrink-0 text-[10px] text-slate-400" title="Paleta de navegação">
             ⌘K
           </span>
         </header>

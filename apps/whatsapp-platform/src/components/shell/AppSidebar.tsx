@@ -15,6 +15,7 @@ import {
 } from "./nav-config";
 import { ROUTE_META } from "@/lib/navigation/nav-matrix";
 import { isOperator, isPlatformAdmin, shellHomeHref } from "@/lib/roles";
+import { SessionRoleModePill } from "./SessionRoleModePill";
 function NavLink({
   href,
   label,
@@ -118,6 +119,14 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const primaryNav = primaryNavForRole(sessionRole);
   const secondaryNav = secondaryNavForRole(sessionRole);
 
+  const principalSubtitle = useMemo(() => {
+    if (!sessionRole) return "Inbox, painel e automações — o essencial.";
+    if (isOperator(sessionRole) && !isPlatformAdmin(sessionRole)) {
+      return "Inbox e automações — foco no atendimento.";
+    }
+    return "Painel, inbox, billing e definições — administração da conta.";
+  }, [sessionRole]);
+
   const platformNav: NavItem[] = useMemo(() => {
     if (!sessionRole || !isPlatformAdmin(sessionRole)) return [];
     return [
@@ -142,6 +151,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
         <Link href={shellHomeHref(sessionRole)} className="block" onClick={() => onNavigate?.()}>
           <span className="text-sm font-semibold tracking-tight text-slate-950">WhatsApp Platform</span>
           <span className="mt-1 block text-xs text-slate-500">DevFlow Labs</span>
+          <SessionRoleModePill variant="sidebar" />
         </Link>
       </div>
 
@@ -149,7 +159,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
         <CollapsibleNavSection
           sectionId="principal"
           title="Trabalho do dia"
-          subtitle="Inbox, painel e automações — o essencial."
+          subtitle={principalSubtitle}
         >
           <div className="space-y-0.5">
             {primaryNav.map((item) => (

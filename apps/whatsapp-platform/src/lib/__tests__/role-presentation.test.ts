@@ -4,9 +4,9 @@ import { friendlyRoleLabel, roleScopeLine, teamRoleSegment } from "../role-prese
 describe("role-presentation", () => {
   it("friendlyRoleLabel mapeia roles conhecidas", () => {
     expect(friendlyRoleLabel("operator")).toBe("Operador");
-    expect(friendlyRoleLabel("manager")).toBe("Gestor");
+    expect(friendlyRoleLabel("manager")).toBe("Admin");
     expect(friendlyRoleLabel("platform_admin")).toBe("Admin da plataforma");
-    expect(friendlyRoleLabel("unknown")).toBe("Utilizador");
+    expect(friendlyRoleLabel("unknown")).toBe("Membro da equipa");
   });
 
   it("teamRoleSegment separa gestão e operação", () => {
