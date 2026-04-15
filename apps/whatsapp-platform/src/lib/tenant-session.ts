@@ -45,7 +45,12 @@ export async function getTenantSnapshot(): Promise<TenantSnapshot> {
         },
       }),
       prisma.whatsappPhoneNumber.findMany({
-        where: { tenantId: payload.tenantId, status: WhatsappPhoneNumberStatus.ACTIVE },
+        where: {
+          tenantId: payload.tenantId,
+          status: {
+            in: [WhatsappPhoneNumberStatus.ACTIVE, WhatsappPhoneNumberStatus.PENDING_ACTIVATION],
+          },
+        },
         select: { id: true, displayPhoneNumber: true, phoneNumberId: true, status: true },
         orderBy: [{ isPrimary: "desc" }, { updatedAt: "desc" }],
         take: 1,

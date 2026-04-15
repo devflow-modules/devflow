@@ -18,7 +18,7 @@ describe("whatsappPhoneResolution", () => {
     vi.clearAllMocks();
   });
 
-  it("resolvePrimaryPhoneNumber usa isPrimary + ACTIVE", async () => {
+  it("resolvePrimaryPhoneNumber usa isPrimary + ACTIVE ou PENDING_ACTIVATION", async () => {
     mockFindFirst.mockResolvedValue({
       id: "w1",
       tenantId: "t1",
@@ -35,7 +35,9 @@ describe("whatsappPhoneResolution", () => {
         where: expect.objectContaining({
           tenantId: "t1",
           isPrimary: true,
-          status: WhatsappPhoneNumberStatus.ACTIVE,
+          status: {
+            in: [WhatsappPhoneNumberStatus.ACTIVE, WhatsappPhoneNumberStatus.PENDING_ACTIVATION],
+          },
         }),
       })
     );

@@ -21,8 +21,8 @@ describe("PostActivationGuide", () => {
 
   it("mostra status da linha", () => {
     render(
-      <PostActivationGuide displayNumber={null} phoneNumberId={null} lineStatus="PENDING" />
+      <PostActivationGuide displayNumber={null} phoneNumberId={null} lineStatus="PENDING_ACTIVATION" />
     );
-    expect(screen.getByTestId("line-status-dashboard")).toHaveTextContent(/não conectado/);
+    expect(screen.getByTestId("line-status-dashboard")).toHaveTextContent(/aguardando ativação/);
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
+import { WaInboxThreadStatus, WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
 
 const sendWebhookAutoReply = vi.hoisted(() =>
   vi.fn().mockResolvedValue({ ok: true, messageId: "wam-out-1" })
@@ -80,6 +80,7 @@ const mockPrisma = {
   waInboxThread: { findUnique: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
   waInboxMessage: { findFirst: vi.fn(), findMany: vi.fn(), count: vi.fn() },
   aiMessageLog: { findFirst: vi.fn(), create: vi.fn() },
+  whatsappPhoneNumber: { findFirst: vi.fn() },
 };
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
@@ -105,6 +106,10 @@ function mockAgentConfig(over: Record<string, unknown> = {}) {
 }
 
 function setupReadyTenant(_tenantId = "t1") {
+  mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValue({
+    status: WhatsappPhoneNumberStatus.ACTIVE,
+    accessToken: "tok",
+  });
   const fullConfig = mockAgentConfig();
   mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(fullConfig);
   mockPrisma.tenant.findUnique.mockResolvedValue({ aiDriver: "openAI" });
@@ -143,6 +148,10 @@ describe("checkTenantAiAutomationReady", () => {
       automationEnabled: true,
       updatedAt: new Date(),
       updatedByUserId: null,
+    });
+    mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValue({
+      status: WhatsappPhoneNumberStatus.ACTIVE,
+      accessToken: "tok",
     });
     vi.stubEnv("OPENAI_API_KEY", "sk-test");
     isOpenAiConfigured.mockReturnValue(false);
@@ -264,11 +273,25 @@ describe("checkTenantAiAutomationReady", () => {
       where: { tenantId: "tenant-b" },
     });
   });
+
+  it("rejeita canal em pending_activation", async () => {
+    mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValueOnce({
+      status: WhatsappPhoneNumberStatus.PENDING_ACTIVATION,
+      accessToken: null,
+    });
+    const { checkTenantAiAutomationReady } = await import("../aiAutomationService");
+    const r = await checkTenantAiAutomationReady("t1", "5511999999999", "pn-line");
+    expect(r).toEqual({ ready: false, reason: "channel_not_active" });
+  });
 });
 
 describe("runTenantAiAutoReply", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValue({
+      status: WhatsappPhoneNumberStatus.ACTIVE,
+      accessToken: "tok",
+    });
     vi.stubEnv("OPENAI_API_KEY", "sk-test");
     sendWebhookAutoReply.mockResolvedValue({ ok: true, messageId: "wam-out-1" });
     generateOpenAiReply.mockResolvedValue({
@@ -292,6 +315,7 @@ describe("runTenantAiAutoReply", () => {
         phoneNumberId: "x",
         displayPhoneNumber: "",
         accessToken: "t",
+        channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
       },
       message: { id: "m1", from: "5511", type: "text", text: { body: "oi" } } as never,
       inboxThreadId: "c1",
@@ -317,6 +341,7 @@ describe("runTenantAiAutoReply", () => {
         phoneNumberId: "pid",
         displayPhoneNumber: "55114000",
         accessToken: "tok",
+        channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
       },
       message: {
         id: "wam-in-99",
@@ -368,6 +393,7 @@ describe("runTenantAiAutoReply", () => {
         phoneNumberId: "pid",
         displayPhoneNumber: "55114000",
         accessToken: "tok",
+        channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
       },
       message: {
         id: "wam-guard",
@@ -392,6 +418,7 @@ describe("runTenantAiAutoReply", () => {
         phoneNumberId: "p",
         displayPhoneNumber: "",
         accessToken: "t",
+        channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
       },
       message: { id: "same-wam", from: "5511", type: "text", text: { body: "x" } } as never,
       inboxThreadId: "c",
@@ -439,6 +466,7 @@ describe("runTenantAiAutoReply", () => {
         phoneNumberId: "p",
         displayPhoneNumber: "",
         accessToken: "t",
+        channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
       },
       message: {
         id: "wam-standalone",
@@ -479,6 +507,7 @@ describe("runTenantAiAutoReply", () => {
           phoneNumberId: "p",
           displayPhoneNumber: "",
           accessToken: "t",
+          channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
         },
         message: { id: "wam-err", from: "5511999999999", type: "text", text: { body: "?" } } as never,
         inboxThreadId: "c",

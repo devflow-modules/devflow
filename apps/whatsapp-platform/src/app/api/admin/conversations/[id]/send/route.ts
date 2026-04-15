@@ -4,6 +4,7 @@ import { sendReplyAndPersist } from "@/modules/messaging";
 import { logAction } from "@/modules/inbox/auditService";
 import { logError, logEvent } from "@/lib/observability";
 import { resolveMessagingTenantForOutbound } from "@/modules/whatsapp/whatsappPhoneResolution";
+import { assertWhatsappPhoneNumberSendable } from "@/modules/whatsapp/whatsappChannelGuards";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +37,24 @@ export async function POST(
     });
     if (!thread) {
       return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+    }
+    const lineRow = await prisma.whatsappPhoneNumber.findFirst({
+      where: {
+        tenantId: auth!.payload.tenantId,
+        phoneNumberId: thread.businessPhoneNumberId,
+      },
+    });
+    try {
+      assertWhatsappPhoneNumberSendable(lineRow);
+    } catch (e) {
+      const code = e instanceof Error ? e.message : "";
+      if (code === "CHANNEL_NOT_ACTIVE") {
+        return NextResponse.json({ error: "CHANNEL_NOT_ACTIVE" }, { status: 403 });
+      }
+      return NextResponse.json(
+        { error: "WhatsApp not configured for this tenant" },
+        { status: 503 }
+      );
     }
     const messagingTenant = await resolveMessagingTenantForOutbound(
       auth!.payload.tenantId,

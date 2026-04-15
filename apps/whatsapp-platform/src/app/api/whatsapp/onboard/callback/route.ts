@@ -9,6 +9,7 @@ import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/a
 import { prisma } from "@/lib/prisma";
 import { exchangeCodeAndFetchPhoneNumbers } from "@/modules/whatsapp/embeddedSignupService";
 import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
+import { logChannelEvent } from "@/modules/whatsapp/channelEventService";
 import { ensureTenantHasPrimaryAndDefaultOutbound } from "@/modules/whatsapp/whatsappPhonePolicy";
 
 export const dynamic = "force-dynamic";
@@ -88,11 +89,24 @@ export async function POST(request: NextRequest) {
             wabaId: pn.wabaId,
             businessId: pn.businessId,
             status: WhatsappPhoneNumberStatus.ACTIVE,
+            ...(existing.activatedAt == null ? { activatedAt: new Date() } : {}),
           },
+        });
+        await logChannelEvent({
+          channelId: existing.id,
+          type: "TOKEN_ATTACHED",
+          message: "Token recebido (Embedded Signup / OAuth).",
+          metadata: { source: "embedded_signup" },
+        });
+        await logChannelEvent({
+          channelId: existing.id,
+          type: "ACTIVATED",
+          message: "Canal ativo (Embedded Signup).",
+          metadata: { phoneNumberId: pn.phoneNumberId },
         });
         created.push(pn.phoneNumberId);
       } else {
-        await prisma.whatsappPhoneNumber.create({
+        const createdRow = await prisma.whatsappPhoneNumber.create({
           data: {
             tenantId: userTenantId,
             phoneNumberId: pn.phoneNumberId,
@@ -101,7 +115,26 @@ export async function POST(request: NextRequest) {
             accessToken: pn.accessToken,
             businessId: pn.businessId,
             status: WhatsappPhoneNumberStatus.ACTIVE,
+            activatedAt: new Date(),
           },
+        });
+        await logChannelEvent({
+          channelId: createdRow.id,
+          type: "CHANNEL_CREATED",
+          message: "Canal criado (Embedded Signup).",
+          metadata: { phoneNumberId: pn.phoneNumberId },
+        });
+        await logChannelEvent({
+          channelId: createdRow.id,
+          type: "TOKEN_ATTACHED",
+          message: "Token recebido (Embedded Signup).",
+          metadata: { source: "embedded_signup" },
+        });
+        await logChannelEvent({
+          channelId: createdRow.id,
+          type: "ACTIVATED",
+          message: "Canal ativo (Embedded Signup).",
+          metadata: { phoneNumberId: pn.phoneNumberId },
         });
         created.push(pn.phoneNumberId);
       }

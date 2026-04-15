@@ -39,6 +39,7 @@ export function PlaybookSuggest({
       <button
         type="button"
         disabled={mut.isPending || sendDisabled}
+        title={sendDisabled && !mut.isPending ? "Disponível após ativação do número" : undefined}
         className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-950 transition hover:bg-sky-100 disabled:opacity-50 df-focus-brand"
         onClick={() => mut.mutate()}
         data-testid="btn-playbook-suggest"

@@ -3,7 +3,12 @@
  * (Prisma, LLM, WhatsApp), lógica real de guard, playbook e logging.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
+import { WaInboxThreadStatus, WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
+
+const activeLineRow = {
+  status: WhatsappPhoneNumberStatus.ACTIVE,
+  accessToken: "tok",
+};
 
 const sendWebhookAutoReply = vi.hoisted(() =>
   vi.fn().mockResolvedValue({ ok: true, messageId: "wam-out-1" })
@@ -73,6 +78,7 @@ const mockPrisma = {
   waInboxThread: { findUnique: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
   waInboxMessage: { findFirst: vi.fn(), findMany: vi.fn(), count: vi.fn() },
   aiMessageLog: { findFirst: vi.fn(), create: vi.fn() },
+  whatsappPhoneNumber: { findFirst: vi.fn() },
 };
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
@@ -107,6 +113,7 @@ const defaultOperational = {
 };
 
 function setupPipelineReady() {
+  mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValue(activeLineRow);
   mockPrisma.tenantOperationalConfig.findUnique.mockResolvedValue(defaultOperational);
   mockPrisma.tenantOperationalConfig.create.mockResolvedValue(defaultOperational);
   mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(mockAgentConfig());
@@ -163,6 +170,7 @@ describe("aiAutomationService — pipeline integrado", () => {
         phoneNumberId: "pid",
         displayPhoneNumber: "55114000",
         accessToken: "tok",
+        channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
       },
       message: {
         id: "wam-in-int",
@@ -197,6 +205,7 @@ describe("aiAutomationService — pipeline integrado", () => {
         phoneNumberId: "pid",
         displayPhoneNumber: "55114000",
         accessToken: "tok",
+        channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
       },
       message: {
         id: "wam-block",
@@ -238,6 +247,7 @@ describe("aiAutomationService — pipeline integrado", () => {
           phoneNumberId: "pid",
           displayPhoneNumber: "55114000",
           accessToken: "tok",
+          channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
         },
         message: {
           id: "wam-err",

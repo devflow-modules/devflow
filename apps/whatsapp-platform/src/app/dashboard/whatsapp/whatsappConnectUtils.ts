@@ -6,5 +6,7 @@ export function formatDisplayLine(n: WhatsappPhoneNumberRow): string {
 
 export function statusLabel(status: string): string {
   if (status === "ACTIVE") return "Ativo";
+  if (status === "PENDING_ACTIVATION") return "Aguardando ativação";
+  if (status === "ERROR") return "Erro";
   return status.replace(/_/g, " ");
 }

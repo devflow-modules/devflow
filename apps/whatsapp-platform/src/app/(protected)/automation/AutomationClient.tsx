@@ -9,7 +9,9 @@ import {
   fetchInboxConversations,
   fetchInboxTags,
   fetchInboxUsers,
+  fetchTenantWhatsappLines,
 } from "@/components/inbox/inboxFetch";
+import { INBOX_QK } from "@/components/inbox/inboxTypes";
 import { PageHeader } from "@/components/ui/page-header";
 import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
@@ -58,6 +60,13 @@ async function fetchRules(): Promise<RuleItem[]> {
 }
 
 export function AutomationClient() {
+  const { data: waLines = [] } = useQuery({
+    queryKey: INBOX_QK.phoneLines,
+    queryFn: fetchTenantWhatsappLines,
+    staleTime: 60_000,
+  });
+  const automationOutboundLocked = waLines.some((l) => l.status === "PENDING_ACTIVATION");
+
   const { data: rules = [], refetch, isLoading, error } = useQuery({
     queryKey: ["automation", "rules"],
     queryFn: fetchRules,
@@ -306,12 +315,27 @@ export function AutomationClient() {
         showDivider
         actions={
           !showForm ? (
-            <Button type="button" onClick={() => setShowForm(true)}>
+            <Button
+              type="button"
+              disabled={automationOutboundLocked}
+              title={automationOutboundLocked ? "Disponível após ativação do número" : undefined}
+              onClick={() => setShowForm(true)}
+            >
               Nova regra
             </Button>
           ) : null
         }
       />
+
+      {automationOutboundLocked ? (
+        <div
+          className="rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-sm text-amber-950"
+          role="status"
+        >
+          Automações que enviam mensagens ficam disponíveis após a Meta aprovar o número e o canal ser ativado com
+          token.
+        </div>
+      ) : null}
 
       <section className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm">
         <h2 className="text-sm font-bold text-slate-900">Modelos para começar</h2>
@@ -321,8 +345,10 @@ export function AutomationClient() {
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <button
             type="button"
+            disabled={automationOutboundLocked}
+            title={automationOutboundLocked ? "Disponível após ativação do número" : undefined}
             onClick={() => applyTemplate("urgent")}
-            className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)]"
+            className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)] disabled:opacity-50"
           >
             <span className="font-semibold text-slate-900">Palavra &quot;urgente&quot;</span>
             <span className="mt-1 block text-xs text-slate-600">
@@ -331,8 +357,10 @@ export function AutomationClient() {
           </button>
           <button
             type="button"
+            disabled={automationOutboundLocked}
+            title={automationOutboundLocked ? "Disponível após ativação do número" : undefined}
             onClick={() => applyTemplate("log")}
-            className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)]"
+            className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)] disabled:opacity-50"
           >
             <span className="font-semibold text-slate-900">Registar receção</span>
             <span className="mt-1 block text-xs text-slate-600">
@@ -341,8 +369,10 @@ export function AutomationClient() {
           </button>
           <button
             type="button"
+            disabled={automationOutboundLocked}
+            title={automationOutboundLocked ? "Disponível após ativação do número" : undefined}
             onClick={() => applyTemplate("reply")}
-            className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)]"
+            className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)] disabled:opacity-50"
           >
             <span className="font-semibold text-slate-900">Perguntas sobre horário</span>
             <span className="mt-1 block text-xs text-slate-600">

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
 import * as webhookProcessing from "@/modules/messaging/webhookProcessingService";
 import * as aiAutomation from "@/modules/ai/aiAutomationService";
 import * as tenantOps from "@/modules/operations/tenantOperationalConfigService";
@@ -29,14 +30,19 @@ vi.mock("@/lib/observability", () => ({
 
 describe("handleWebhookEvents — idempotência inbound", () => {
   let countSpy: ReturnType<typeof vi.spyOn>;
+  let findFirstSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    findFirstSpy = vi.spyOn(prisma.whatsappPhoneNumber, "findFirst").mockResolvedValue({
+      id: "line-test-1",
+    } as Awaited<ReturnType<typeof prisma.whatsappPhoneNumber.findFirst>>);
     mockResolveTenant.mockResolvedValue({
       id: "tenant-1",
       phoneNumberId: "pnid_test",
       displayPhoneNumber: "+5511",
       accessToken: "token",
+      channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
     });
     mockPersist.mockResolvedValue(undefined);
 
@@ -61,6 +67,7 @@ describe("handleWebhookEvents — idempotência inbound", () => {
 
   afterEach(() => {
     countSpy.mockRestore();
+    findFirstSpy.mockRestore();
     vi.restoreAllMocks();
   });
 

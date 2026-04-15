@@ -5,15 +5,25 @@
 import { prisma } from "@/lib/prisma";
 import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
 
+const LINE_STATUSES_FOR_UI: WhatsappPhoneNumberStatus[] = [
+  WhatsappPhoneNumberStatus.ACTIVE,
+  WhatsappPhoneNumberStatus.PENDING_ACTIVATION,
+];
+
 export async function ensureTenantHasPrimaryAndDefaultOutbound(tenantId: string): Promise<void> {
-  const firstActive = await prisma.whatsappPhoneNumber.findFirst({
-    where: { tenantId, status: WhatsappPhoneNumberStatus.ACTIVE },
-    orderBy: { createdAt: "asc" },
-  });
-  if (!firstActive) return;
+  const firstLine =
+    (await prisma.whatsappPhoneNumber.findFirst({
+      where: { tenantId, status: WhatsappPhoneNumberStatus.ACTIVE },
+      orderBy: { createdAt: "asc" },
+    })) ??
+    (await prisma.whatsappPhoneNumber.findFirst({
+      where: { tenantId, status: WhatsappPhoneNumberStatus.PENDING_ACTIVATION },
+      orderBy: { createdAt: "asc" },
+    }));
+  if (!firstLine) return;
 
   let primary = await prisma.whatsappPhoneNumber.findFirst({
-    where: { tenantId, isPrimary: true, status: WhatsappPhoneNumberStatus.ACTIVE },
+    where: { tenantId, isPrimary: true, status: { in: LINE_STATUSES_FOR_UI } },
   });
   if (!primary) {
     await prisma.$transaction([
@@ -22,20 +32,20 @@ export async function ensureTenantHasPrimaryAndDefaultOutbound(tenantId: string)
         data: { isPrimary: false },
       }),
       prisma.whatsappPhoneNumber.update({
-        where: { id: firstActive.id },
+        where: { id: firstLine.id },
         data: { isPrimary: true },
       }),
     ]);
     primary = await prisma.whatsappPhoneNumber.findFirst({
-      where: { tenantId, isPrimary: true, status: WhatsappPhoneNumberStatus.ACTIVE },
+      where: { tenantId, isPrimary: true, status: { in: LINE_STATUSES_FOR_UI } },
     });
   }
 
   const def = await prisma.whatsappPhoneNumber.findFirst({
-    where: { tenantId, isDefaultOutbound: true, status: WhatsappPhoneNumberStatus.ACTIVE },
+    where: { tenantId, isDefaultOutbound: true, status: { in: LINE_STATUSES_FOR_UI } },
   });
   if (!def) {
-    const targetId = primary?.id ?? firstActive.id;
+    const targetId = primary?.id ?? firstLine.id;
     await prisma.$transaction([
       prisma.whatsappPhoneNumber.updateMany({
         where: { tenantId, isDefaultOutbound: true },
@@ -57,7 +67,7 @@ export async function setWhatsappLineAsPrimary(tenantId: string, whatsappPhoneNu
     }),
     prisma.whatsappPhoneNumber.update({
       where: { id: whatsappPhoneNumberRowId, tenantId },
-      data: { isPrimary: true, status: WhatsappPhoneNumberStatus.ACTIVE },
+      data: { isPrimary: true },
     }),
   ]);
 }
@@ -70,7 +80,7 @@ export async function setWhatsappLineAsDefaultOutbound(tenantId: string, whatsap
     }),
     prisma.whatsappPhoneNumber.update({
       where: { id: whatsappPhoneNumberRowId, tenantId },
-      data: { isDefaultOutbound: true, status: WhatsappPhoneNumberStatus.ACTIVE },
+      data: { isDefaultOutbound: true },
     }),
   ]);
 }

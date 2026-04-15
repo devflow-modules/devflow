@@ -49,6 +49,11 @@ async function sendCloudAndPersistOutbound(
   input: SendReplyInput,
   outboundKind: "agent" | "ai" | "automation"
 ): Promise<{ messageId: string }> {
+  if (!input.tenant.accessToken?.trim()) {
+    const err = new Error("CHANNEL_NOT_ACTIVE");
+    err.name = "ChannelSendError";
+    throw err;
+  }
   const adapter = new WhatsAppCloudAdapter({ accessToken: input.tenant.accessToken });
   const { messageId } = await adapter.sendText(input.tenant.phoneNumberId, {
     to: input.to,

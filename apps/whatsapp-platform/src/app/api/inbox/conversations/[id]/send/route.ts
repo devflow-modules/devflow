@@ -5,6 +5,7 @@ import { waInboxCreateOutbound } from "@/modules/inbox";
 import { digitsOnly } from "@/modules/inbox/waInboxUtils";
 import { prisma } from "@/lib/prisma";
 import { resolveMessagingTenantForOutbound } from "@/modules/whatsapp/whatsappPhoneResolution";
+import { assertWhatsappPhoneNumberSendable } from "@/modules/whatsapp/whatsappChannelGuards";
 import { z } from "zod";
 import {
   enforceUsageOrThrow,
@@ -76,6 +77,42 @@ export async function POST(
     throw e;
   }
 
+  const lineRow = await prisma.whatsappPhoneNumber.findFirst({
+    where: {
+      tenantId: auth.payload.tenantId,
+      phoneNumberId: thread.businessPhoneNumberId,
+    },
+  });
+  try {
+    assertWhatsappPhoneNumberSendable(lineRow);
+  } catch (e) {
+    const code = e instanceof Error ? e.message : "CHANNEL_NOT_ACTIVE";
+    if (code === "CHANNEL_NOT_ACTIVE") {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "CHANNEL_NOT_ACTIVE",
+            message:
+              "Canal em ativação. O envio fica disponível após aprovação da Meta e configuração do token.",
+          },
+        },
+        { status: 403 }
+      );
+    }
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: "CHANNEL_NOT_CONFIGURED",
+          message:
+            "WhatsApp não configurado: ligue um número em WhatsApp (dashboard) ou no onboarding.",
+        },
+      },
+      { status: 503 }
+    );
+  }
+
   const messagingTenant = await resolveMessagingTenantForOutbound(
     auth.payload.tenantId,
     thread.businessPhoneNumberId
@@ -83,8 +120,12 @@ export async function POST(
   if (!messagingTenant) {
     return NextResponse.json(
       {
-        error:
-          "WhatsApp não configurado: ligue um número em WhatsApp (dashboard) ou no onboarding.",
+        success: false,
+        error: {
+          code: "CHANNEL_NOT_CONFIGURED",
+          message:
+            "WhatsApp não configurado: ligue um número em WhatsApp (dashboard) ou no onboarding.",
+        },
       },
       { status: 503 }
     );
@@ -96,7 +137,7 @@ export async function POST(
   }
 
   try {
-    const adapter = new WhatsAppCloudAdapter({ accessToken: messagingTenant.accessToken });
+    const adapter = new WhatsAppCloudAdapter({ accessToken: messagingTenant.accessToken! });
     const { messageId } = await adapter.sendText(messagingTenant.phoneNumberId, {
       to,
       text: parsed.data.text,

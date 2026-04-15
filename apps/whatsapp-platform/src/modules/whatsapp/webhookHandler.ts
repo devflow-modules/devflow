@@ -22,6 +22,8 @@ import { trackWebhookReceived } from "@/modules/analytics";
 import { bumpMetric, logError, logEvent } from "@/lib/observability";
 import { recordWebhookProcessingSuccess } from "@/modules/operations/webhookHealthService";
 import { isOperationalAutomationEnabled } from "@/modules/operations/tenantOperationalConfigService";
+import { logWebhookVerifiedOnce } from "@/modules/whatsapp/channelEventService";
+import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
 type WabaWebhookShape = {
   entry?: Array<{
     changes?: Array<{ field?: string; value?: Record<string, unknown> }>;
@@ -178,6 +180,14 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
 
   console.log("[WHATSAPP][DEBUG] tenant resolved", { tenantId: tenant.id, phoneNumberId: tenant.phoneNumberId });
 
+  const whatsappLine = await prisma.whatsappPhoneNumber.findFirst({
+    where: { phoneNumberId: tenant.phoneNumberId },
+    select: { id: true },
+  });
+  if (whatsappLine) {
+    await logWebhookVerifiedOnce(whatsappLine.id);
+  }
+
   await persistWaInboxFromWebhook(tenant.id, tenant.phoneNumberId, body).catch((err) =>
     logError("webhook", err, { phase: "wa_inbox_persist", tenantId: tenant.id }, { trace_id: traceId, tenant_id: tenant.id })
   );
@@ -220,6 +230,20 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
     const textBody = (msg as IncomingTextMessage).text?.body;
     if (!textBody?.trim()) {
       console.log("[WHATSAPP][DEBUG] skip empty text", { msgId: msg.id });
+      continue;
+    }
+
+    const outboundPipelineReady =
+      tenant.channelStatus === WhatsappPhoneNumberStatus.ACTIVE &&
+      Boolean(tenant.accessToken?.trim());
+    if (!outboundPipelineReady) {
+      logEvent(
+        "info",
+        "webhook",
+        "inbound_pipeline_skipped_channel_not_active",
+        { inbound_wa_message_id: msg.id },
+        { trace_id: traceId, tenant_id: tenant.id }
+      );
       continue;
     }
 

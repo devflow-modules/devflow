@@ -111,6 +111,11 @@ function InboxShellContent() {
     staleTime: 60_000,
   });
 
+  const channelAwaitingActivation = useMemo(
+    () => lines.some((l) => l.status === "PENDING_ACTIVATION"),
+    [lines]
+  );
+
   const { data: billingUi } = useQuery({
     queryKey: ["tenant-billing-ui"],
     queryFn: async () => {
@@ -216,6 +221,14 @@ function InboxShellContent() {
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-slate-50/80">
+      {channelAwaitingActivation ? (
+        <div
+          className="shrink-0 border-b border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm leading-relaxed text-amber-950 sm:px-6"
+          role="status"
+        >
+          Seu canal está em ativação. Assim que aprovado, você poderá responder mensagens aqui.
+        </div>
+      ) : null}
       <div className="shrink-0 border-b border-slate-100 bg-white px-4 py-4 sm:px-6 sm:py-5 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
         <PageHeader
           eyebrow="Atendimento"

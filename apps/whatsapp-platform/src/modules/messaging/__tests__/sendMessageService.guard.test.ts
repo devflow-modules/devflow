@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { WaInboxThreadStatus, WaAutoReplyClaimStatus } from "@/generated/prisma-whatsapp";
+import {
+  WaInboxThreadStatus,
+  WaAutoReplyClaimStatus,
+  WhatsappPhoneNumberStatus,
+} from "@/generated/prisma-whatsapp";
 
 const prismaMocks = vi.hoisted(() => ({
   findFirstThread: vi.fn(),
@@ -72,6 +76,7 @@ describe("sendWebhookAutoReply — gate + claim", () => {
     phoneNumberId: "pn1",
     displayPhoneNumber: "55114000",
     accessToken: "token",
+    channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
   };
 
   beforeEach(() => {

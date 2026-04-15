@@ -20,8 +20,10 @@ enum EmailDeliveryStatus {
 }
 
 enum WhatsappPhoneNumberStatus {
-  PENDING
+  /** Canal criado manualmente ou aguardando token; webhook e inbox recebem, envio bloqueado. */
+  PENDING_ACTIVATION
   ACTIVE
+  ERROR
 }
 
 model WhatsappPhoneNumber {
@@ -30,21 +32,41 @@ model WhatsappPhoneNumber {
   phoneNumberId       String                   @unique @map("phone_number_id")
   displayPhoneNumber  String?                  @map("display_phone_number")
   wabaId              String?                  @map("waba_id")
-  accessToken         String                   @map("access_token")
+  accessToken         String?                  @map("access_token")
   businessId          String?                  @map("business_id")
-  status              WhatsappPhoneNumberStatus @default(PENDING) @map("status")
+  status              WhatsappPhoneNumberStatus @default(PENDING_ACTIVATION) @map("status")
   isPrimary           Boolean                  @default(false) @map("is_primary")
   isDefaultOutbound   Boolean                  @default(false) @map("is_default_outbound")
   label               String?                  @map("label")
+  /** Preenchido na primeira transição para ACTIVE (manual ou OAuth); não sobrescrito em reativações. */
+  activatedAt         DateTime?                @map("activated_at")
+  /** Tentativas automáticas de correção (auto-healing); máximo 2. */
+  autoHealAttempts    Int                      @default(0) @map("auto_heal_attempts")
+  lastAutoHealAt      DateTime?                @map("last_auto_heal_at")
   createdAt           DateTime                 @default(now()) @map("created_at")
   updatedAt           DateTime                 @updatedAt @map("updated_at")
   tenant              Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  channelEvents       WhatsappChannelEvent[]
 
   @@index([tenantId])
   @@index([phoneNumberId])
   @@index([tenantId, isPrimary])
   @@index([tenantId, isDefaultOutbound])
   @@map("whatsapp_phone_numbers")
+}
+
+/** Eventos de diagnóstico / timeline de ativação (admin). */
+model WhatsappChannelEvent {
+  id        String   @id @default(cuid())
+  channelId String   @map("channel_id")
+  type      String
+  message   String
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  channel   WhatsappPhoneNumber @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@index([channelId, createdAt])
+  @@map("whatsapp_channel_events")
 }
 
 model Tenant {

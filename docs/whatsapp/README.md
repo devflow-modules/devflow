@@ -33,6 +33,7 @@ Variáveis obrigatórias em `.env.local` (root): `WHATSAPP_DATABASE_URL`, `WHATS
 
 | Arquivo | Descrição |
 |---------|-----------|
+| [OPERATIONAL_PLAYBOOK.md](./OPERATIONAL_PLAYBOOK.md) | Onboarding assistido: painel `/admin/whatsapp`, checklist, validação UI, ativação; curl/script como fallback |
 | [WHATSAPP-SETUP.md](./WHATSAPP-SETUP.md) | Setup Meta / WhatsApp Cloud API |
 | [WHATSAPP_CLOUD_ONBOARDING_SPRINT.md](./WHATSAPP_CLOUD_ONBOARDING_SPRINT.md) | Registro de número via Graph API (site DevFlow Labs) |
 | [WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md](./WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md) | Ativação real: checklist, curls, sucesso, rollback |

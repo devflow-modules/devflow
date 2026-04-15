@@ -11,3 +11,11 @@ export { fetchWabaUsingEmbeddedSignupUserToken } from "./embeddedSignupWabaFetch
 export type { EmbeddedSignupUserAccessToken } from "./embeddedSignupUserAccessToken";
 export { getOperationalWhatsappAccessTokenFromEnv } from "./operationalWhatsappAccessToken";
 export { handleWebhookVerification, handleWebhookEvents } from "./webhookHandler";
+export {
+  createWhatsappChannelManual,
+  activateWhatsappChannel,
+} from "./whatsappChannelLifecycle";
+export {
+  isWhatsappLineReadyForOutbound,
+  assertWhatsappPhoneNumberSendable,
+} from "./whatsappChannelGuards";

@@ -8,6 +8,7 @@ import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 import { WhatsappConnectCta } from "./WhatsappConnectCta";
 import { WhatsappConnectErrorPanel } from "./WhatsappConnectErrorPanel";
 import { WhatsappConnectSuccessBanner } from "./WhatsappConnectSuccessBanner";
+import { WhatsappPendingActivationCard } from "./WhatsappPendingActivationCard";
 import { WhatsappPhoneNumberCard } from "./WhatsappPhoneNumberCard";
 import { WhatsappStatusSummary } from "./WhatsappStatusSummary";
 import type { WhatsappPhoneNumberRow } from "./whatsappConnectTypes";
@@ -20,14 +21,19 @@ import {
 import { PricingContextHint } from "@/components/dashboard/billing/PricingContextHint";
 import { CONTEXTUAL_UPGRADE_HINTS } from "@/modules/billing/planPresentation";
 import { getUiPlanCapabilities } from "@/modules/billing/planUiCapabilities";
+import { useSimpleToast } from "@/components/ui/simple-toast";
 
 type FriendlyError = {
   kind: OnboardingErrorKind;
   source: "connect" | "page";
 };
 
+const SHOW_EMBEDDED_SIGNUP =
+  typeof process !== "undefined" && process.env.NEXT_PUBLIC_WHATSAPP_SHOW_EMBEDDED_SIGNUP !== "0";
+
 export function WhatsappConnectClient() {
   const searchParams = useSearchParams();
+  const { showToast, toastAnchor } = useSimpleToast(4200);
   const [numbers, setNumbers] = useState<WhatsappPhoneNumberRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [friendlyError, setFriendlyError] = useState<FriendlyError | null>(null);
@@ -39,6 +45,7 @@ export function WhatsappConnectClient() {
   const [listHighlight, setListHighlight] = useState(false);
   const [phoneCapacityHint, setPhoneCapacityHint] = useState<string | null>(null);
   const loggedStartRef = useRef(false);
+  const prevHadPendingActivationRef = useRef<boolean | null>(null);
 
   const setPageError = useCallback((message: string, status: number) => {
     const kind = mapOnboardingErrorToKind(message, status);
@@ -126,13 +133,36 @@ export function WhatsappConnectClient() {
     const active = numbers.filter((n) => n.status === "ACTIVE");
     const primary = numbers.find((n) => n.isPrimary);
     const defaultOutbound = numbers.find((n) => n.isDefaultOutbound);
+    const hasPendingActivation = numbers.some((n) => n.status === "PENDING_ACTIVATION");
     return {
       channelConnected: numbers.length > 0,
       activeCount: active.length,
+      hasPendingActivation,
       primaryLine: primary ? formatDisplayLine(primary) : null,
       defaultOutboundLine: defaultOutbound ? formatDisplayLine(defaultOutbound) : null,
     };
   }, [numbers]);
+
+  useEffect(() => {
+    if (loading) return;
+    const hadPending = stats.hasPendingActivation;
+    const hasActive = numbers.some((n) => n.status === "ACTIVE");
+    if (
+      prevHadPendingActivationRef.current === true &&
+      !hadPending &&
+      hasActive &&
+      numbers.length > 0
+    ) {
+      showToast("WhatsApp ativado com sucesso 🚀");
+    }
+    prevHadPendingActivationRef.current = hadPending;
+  }, [loading, numbers, stats.hasPendingActivation, showToast]);
+
+  useEffect(() => {
+    if (!stats.hasPendingActivation) return;
+    const id = window.setInterval(() => void load(), 60_000);
+    return () => window.clearInterval(id);
+  }, [stats.hasPendingActivation, load]);
 
   async function patchNumber(id: string, body: Record<string, unknown>) {
     setPatching(id);
@@ -229,6 +259,7 @@ export function WhatsappConnectClient() {
 
   return (
     <div className="relative space-y-8">
+      {toastAnchor}
       {connectLoading ? (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-[2px]"
@@ -269,6 +300,8 @@ export function WhatsappConnectClient() {
         totalNumbers={numbers.length}
       />
 
+      {stats.hasPendingActivation ? <WhatsappPendingActivationCard /> : null}
+
       {stats.channelConnected ? (
         <section
           className="rounded-2xl border border-emerald-200/80 bg-emerald-50/40 p-5 shadow-sm"
@@ -287,6 +320,7 @@ export function WhatsappConnectClient() {
         </section>
       ) : null}
 
+      {SHOW_EMBEDDED_SIGNUP ? (
       <section className="rounded-2xl border border-[var(--df-brand-200)]/80 bg-[var(--df-brand-50)]/40 p-5 shadow-sm">
         <h2 className="text-lg font-semibold tracking-tight text-slate-900">Ligue seu WhatsApp ao sistema</h2>
         <p className="mt-2 text-sm leading-relaxed text-slate-600">
@@ -317,6 +351,7 @@ export function WhatsappConnectClient() {
         </div>
         <WhatsappConnectCta connectLoading={connectLoading} onConnect={handleConnect} />
       </section>
+      ) : null}
 
       <PricingContextHint message={CONTEXTUAL_UPGRADE_HINTS.whatsappChannel} />
       {phoneCapacityHint ? <PricingContextHint message={phoneCapacityHint} /> : null}

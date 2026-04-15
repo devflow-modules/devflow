@@ -112,6 +112,34 @@ describe("WhatsappConnectClient", () => {
     expect(screen.getByRole("link", { name: /Responder mensagens/i })).toHaveAttribute("href", "/inbox");
   });
 
+  it("pending_activation: mostra card de aguardar Meta", async () => {
+    vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/whatsapp/phone-numbers") && !u.includes("/phone-numbers/")) {
+        return jsonResponse({
+          data: [
+            row({
+              status: "PENDING_ACTIVATION",
+              isPrimary: true,
+              isDefaultOutbound: true,
+            }),
+          ],
+        });
+      }
+      if (u.includes("/api/billing/ui")) {
+        return jsonResponse({ success: true, data: { plan: "STARTER" } });
+      }
+      return jsonResponse({});
+    });
+
+    render(<WhatsappConnectClient />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Seu número já está configurado")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Aguardando ativação")).toBeInTheDocument();
+  });
+
   it("resumo com vários números: mostra linha de contexto", async () => {
     vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
       const u = requestUrl(input);

@@ -78,7 +78,7 @@ export function WhatsappPhoneNumberCard({
       <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/50 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <span className="text-xs font-medium text-slate-500">Ações</span>
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end sm:gap-2">
-          {n.status === "ACTIVE" && !n.isPrimary ? (
+          {(n.status === "ACTIVE" || n.status === "PENDING_ACTIVATION") && !n.isPrimary ? (
             <button
               type="button"
               disabled={patching}
@@ -88,7 +88,7 @@ export function WhatsappPhoneNumberCard({
               Definir como principal
             </button>
           ) : null}
-          {n.status === "ACTIVE" && !n.isDefaultOutbound ? (
+          {(n.status === "ACTIVE" || n.status === "PENDING_ACTIVATION") && !n.isDefaultOutbound ? (
             <button
               type="button"
               disabled={patching}

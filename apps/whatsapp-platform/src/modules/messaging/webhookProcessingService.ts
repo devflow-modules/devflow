@@ -5,7 +5,7 @@
 
 import type { ResolvedTenant } from "@/modules/tenants";
 import { prisma } from "@/lib/prisma";
-import { WaInboxDirection } from "@/generated/prisma-whatsapp";
+import { WaInboxDirection, WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
 import { digitsOnly } from "@/modules/inbox/waInboxUtils";
 import { sendWebhookAutoReply } from "./sendMessageService";
 import { getReplyForMessage } from "@/modules/ai/ruleBasedReplies";
@@ -102,6 +102,13 @@ export async function processLegacyInboundAutoReply(
   inboxThreadId: string,
   textBody: string
 ): Promise<void> {
+  if (
+    tenant.channelStatus !== WhatsappPhoneNumberStatus.ACTIVE ||
+    !tenant.accessToken?.trim()
+  ) {
+    return;
+  }
+
   const from = message.from;
 
   const useLlm =

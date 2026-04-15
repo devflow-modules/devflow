@@ -186,7 +186,7 @@ export async function fetchTenantWhatsappLines(): Promise<WhatsappLineSummary[]>
   };
   const rows = json.data ?? [];
   return rows
-    .filter((r) => r.status === "ACTIVE")
+    .filter((r) => r.status === "ACTIVE" || r.status === "PENDING_ACTIVATION")
     .map((r) => ({
       phoneNumberId: r.phoneNumberId,
       label: r.label,
@@ -195,6 +195,17 @@ export async function fetchTenantWhatsappLines(): Promise<WhatsappLineSummary[]>
       isDefaultOutbound: r.isDefaultOutbound,
       status: r.status,
     }));
+}
+
+/** Linha com token Meta válido — envio humano / automações. */
+export function isWhatsappOutboundEnabledForThread(
+  lines: WhatsappLineSummary[],
+  businessPhoneNumberId: string | null | undefined
+): boolean {
+  const id = businessPhoneNumberId?.trim();
+  if (!id) return false;
+  const line = lines.find((l) => l.phoneNumberId === id);
+  return Boolean(line?.status === "ACTIVE");
 }
 
 export async function fetchInboxTags(): Promise<{ id: string; name: string; color: string }[]> {

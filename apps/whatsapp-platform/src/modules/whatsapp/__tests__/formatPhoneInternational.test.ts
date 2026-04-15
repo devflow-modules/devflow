@@ -19,7 +19,7 @@ describe("formatWhatsappLineStatusForUi", () => {
   it("ACTIVE mostra ativo", () => {
     expect(formatWhatsappLineStatusForUi("ACTIVE")).toBe("Status: ativo ✓");
   });
-  it("PENDING mostra aviso", () => {
-    expect(formatWhatsappLineStatusForUi("PENDING")).toBe("Status: não conectado ⚠");
+  it("PENDING_ACTIVATION mostra aguardando", () => {
+    expect(formatWhatsappLineStatusForUi("PENDING_ACTIVATION")).toBe("Status: aguardando ativação ⏳");
   });
 });

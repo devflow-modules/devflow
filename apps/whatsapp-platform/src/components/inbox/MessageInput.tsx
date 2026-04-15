@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, type KeyboardEvent } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo, type KeyboardEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   sendInboxMessage,
   reportTyping,
   fetchSuggestedReply,
   logFollowUpUse,
+  fetchTenantWhatsappLines,
+  isWhatsappOutboundEnabledForThread,
 } from "./inboxFetch";
 import { INBOX_QK, type WaInboxMessageRow, type WaInboxThreadRow } from "./inboxTypes";
 import { buttonClassName } from "@/components/ui/button";
@@ -16,6 +18,8 @@ import { markFirstReplySent } from "@/lib/activationStorage";
 
 const TYPING_DEBOUNCE_MS = 400;
 const TYPING_STOP_DELAY_MS = 1500;
+
+const OUTBOUND_LOCKED_HINT = "Disponível após ativação do número";
 
 const QUICK_TEMPLATES: { label: string; text: string }[] = [
   { label: "Saudação", text: "Olá! Obrigado pelo contacto. Como posso ajudar?" },
@@ -41,6 +45,17 @@ export function MessageInput({
   const qc = useQueryClient();
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stopTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { data: waLines = [] } = useQuery({
+    queryKey: INBOX_QK.phoneLines,
+    queryFn: fetchTenantWhatsappLines,
+    staleTime: 60_000,
+  });
+  const outboundEnabled = useMemo(
+    () => isWhatsappOutboundEnabledForThread(waLines, thread?.businessPhoneNumberId),
+    [waLines, thread?.businessPhoneNumberId]
+  );
+  const composerLocked = Boolean(threadId && thread && !outboundEnabled);
 
   const { data: typingUsers } = useQuery({
     queryKey: threadId ? INBOX_QK.typing(threadId) : (["inbox-typing", "none"] as const),
@@ -127,10 +142,10 @@ export function MessageInput({
   }, [threadId, text]);
 
   const send = useCallback(() => {
-    if (!threadId || !text.trim() || mutation.isPending) return;
+    if (!threadId || !text.trim() || mutation.isPending || composerLocked) return;
     reportTyping(threadId, false);
     mutation.mutate({ tid: threadId, body: text.trim() });
-  }, [threadId, text, mutation]);
+  }, [threadId, text, mutation, composerLocked]);
 
   const applyTemplate = (tpl: string) => {
     const name = thread?.contactName?.trim();
@@ -159,6 +174,15 @@ export function MessageInput({
       className="border-t border-slate-100 bg-white px-4 pb-4 pt-3 shadow-[0_-8px_32px_rgba(15,23,42,0.03)] sm:px-5 sm:pb-5 sm:pt-4"
       data-testid="message-input"
     >
+      {composerLocked ? (
+        <p
+          className="mb-3 rounded-lg border border-amber-200/90 bg-amber-50/90 px-3 py-2 text-xs text-amber-950"
+          title={OUTBOUND_LOCKED_HINT}
+        >
+          Envio e sugestões com IA ficam disponíveis quando o canal WhatsApp estiver ativo na Meta.
+        </p>
+      ) : null}
+
       {typingList.length > 0 && (
         <p className="mb-2 px-0.5 text-xs text-slate-500">
           <span className="italic">
@@ -216,6 +240,8 @@ export function MessageInput({
           <button
             key={t.label}
             type="button"
+            disabled={composerLocked}
+            title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
             className="df-inbox-template-chip"
             onClick={() => applyTemplate(t.text)}
             data-testid={`template-${t.label}`}
@@ -225,7 +251,8 @@ export function MessageInput({
         ))}
         <button
           type="button"
-          disabled={suggestMut.isPending || mutation.isPending}
+          disabled={composerLocked || suggestMut.isPending || mutation.isPending}
+          title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
           className="df-inbox-ai-chip"
           onClick={() => suggestMut.mutate(threadId)}
           data-testid="btn-ai-suggest"
@@ -236,7 +263,7 @@ export function MessageInput({
 
       <PlaybookSuggest
         threadId={threadId}
-        sendDisabled={mutation.isPending}
+        sendDisabled={mutation.isPending || composerLocked}
         onUseResponse={(t) => setText(t)}
       />
 
@@ -273,7 +300,8 @@ export function MessageInput({
             <button
               type="button"
               className={buttonClassName("secondary")}
-              disabled={mutation.isPending}
+              disabled={mutation.isPending || composerLocked}
+              title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
               onClick={() => {
                 if (!threadId) return;
                 mutation.mutate({ tid: threadId, body: aiPreview });
@@ -296,13 +324,15 @@ export function MessageInput({
           onKeyDown={onKeyDown}
           placeholder="Escreva a mensagem…"
           rows={2}
-          disabled={mutation.isPending}
+          disabled={mutation.isPending || composerLocked}
+          title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
           className={`df-field-control min-h-[48px] flex-1 resize-none text-[15px] leading-relaxed shadow-inner transition-colors duration-200 sm:min-h-[52px] bg-slate-50/60 focus:bg-white`}
         />
         <button
           type="button"
           onClick={send}
-          disabled={mutation.isPending || !text.trim()}
+          disabled={mutation.isPending || !text.trim() || composerLocked}
+          title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
           className={`${buttonClassName("primary")} h-11 min-w-[6.5rem] shrink-0 sm:h-[52px] sm:self-stretch`}
         >
           {mutation.isPending ? "A enviar…" : "Enviar"}

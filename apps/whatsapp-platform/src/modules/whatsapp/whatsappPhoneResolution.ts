@@ -9,11 +9,21 @@ import {
 } from "@/generated/prisma-whatsapp";
 import type { ResolvedTenant } from "./resolvedTenant";
 
+const CONNECTED_LINE_STATUSES: WhatsappPhoneNumberStatus[] = [
+  WhatsappPhoneNumberStatus.ACTIVE,
+  WhatsappPhoneNumberStatus.PENDING_ACTIVATION,
+];
+
 export async function resolvePrimaryPhoneNumber(
   tenantId: string
 ): Promise<WhatsappPhoneNumber | null> {
+  const primary = await prisma.whatsappPhoneNumber.findFirst({
+    where: { tenantId, isPrimary: true, status: { in: CONNECTED_LINE_STATUSES } },
+  });
+  if (primary) return primary;
   return prisma.whatsappPhoneNumber.findFirst({
-    where: { tenantId, status: WhatsappPhoneNumberStatus.ACTIVE, isPrimary: true },
+    where: { tenantId, status: WhatsappPhoneNumberStatus.ACTIVE },
+    orderBy: { updatedAt: "desc" },
   });
 }
 
@@ -46,6 +56,7 @@ export function whatsappRowToResolvedTenant(
     phoneNumberId: row.phoneNumberId,
     displayPhoneNumber: row.displayPhoneNumber ?? "",
     accessToken: row.accessToken,
+    channelStatus: row.status,
     whatsappPhoneNumberId: row.id,
   };
 }

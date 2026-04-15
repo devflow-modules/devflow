@@ -40,5 +40,7 @@ export function formatPhoneInternational(input: string | null | undefined): stri
 export function formatWhatsappLineStatusForUi(status: string | null | undefined): string | null {
   if (!status) return null;
   if (status === "ACTIVE") return "Status: ativo ✓";
+  if (status === "PENDING_ACTIVATION") return "Status: aguardando ativação ⏳";
+  if (status === "ERROR") return "Status: erro — contacte o suporte ⚠";
   return "Status: não conectado ⚠";
 }

@@ -1,9 +1,8 @@
 /**
  * Resolução de tenant por phone_number_id (webhook Meta).
- * Fonte única: whatsapp_phone_numbers com status ACTIVE.
+ * Qualquer linha registada (incl. PENDING_ACTIVATION) — persistência de inbox não depende do token.
  */
 
-import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
 import type { ResolvedTenant } from "./resolvedTenant";
 import { resolvePhoneNumberById, whatsappRowToResolvedTenant } from "./whatsappPhoneResolution";
 
@@ -16,8 +15,6 @@ export async function resolveTenantByPhoneNumberId(
   phoneNumberId: string
 ): Promise<ResolvedTenant | null> {
   const wpn = await resolvePhoneNumberById(phoneNumberId);
-  if (!wpn || wpn.status !== WhatsappPhoneNumberStatus.ACTIVE || !wpn.accessToken?.trim()) {
-    return null;
-  }
+  if (!wpn) return null;
   return whatsappRowToResolvedTenant(wpn.tenantId, wpn);
 }

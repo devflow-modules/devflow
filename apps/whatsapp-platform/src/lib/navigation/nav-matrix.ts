@@ -164,6 +164,15 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     platformOnly: true,
     sensitive: true,
   },
+  "/admin/whatsapp": {
+    label: "WhatsApp (provisionamento)",
+    parent: null,
+    section: "plataforma",
+    roles: ["platform_admin"],
+    platformOnly: true,
+    sensitive: true,
+    searchAliases: ["canais", "waba", "manual", "ativar", "meta"],
+  },
   "/admin/distribuir": {
     label: "Distribuir próxima",
     parent: null,

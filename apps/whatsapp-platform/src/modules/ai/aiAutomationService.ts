@@ -5,7 +5,12 @@
 import type { ResolvedTenant } from "@/modules/tenants";
 import type { IncomingMessage } from "@devflow/whatsapp-core";
 import { prisma } from "@/lib/prisma";
-import { WaInboxDirection, WaInboxThreadStatus, type AiAgentConfig } from "@/generated/prisma-whatsapp";
+import {
+  WaInboxDirection,
+  WaInboxThreadStatus,
+  WhatsappPhoneNumberStatus,
+  type AiAgentConfig,
+} from "@/generated/prisma-whatsapp";
 import { digitsOnly } from "@/modules/inbox/waInboxUtils";
 import { generateReply } from "./aiService";
 import { openAiConfig } from "./openai";
@@ -88,6 +93,21 @@ export async function checkTenantAiAutomationReady(
   }
   if (!opCfg.automationEnabled) {
     return { ready: false, reason: "operational_automation_paused" };
+  }
+
+  const bizForLine = businessPhoneNumberId?.trim();
+  if (bizForLine) {
+    const lineRow = await prisma.whatsappPhoneNumber.findFirst({
+      where: { tenantId, phoneNumberId: bizForLine },
+      select: { status: true, accessToken: true },
+    });
+    if (
+      !lineRow ||
+      lineRow.status !== WhatsappPhoneNumberStatus.ACTIVE ||
+      !lineRow.accessToken?.trim()
+    ) {
+      return { ready: false, reason: "channel_not_active" };
+    }
   }
 
   if (isOpenAiConfigured()) {
@@ -203,6 +223,12 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
   const waMsgId = message.id;
 
   if (tenantId === "env") return;
+  if (
+    tenant.channelStatus !== WhatsappPhoneNumberStatus.ACTIVE ||
+    !tenant.accessToken?.trim()
+  ) {
+    return;
+  }
 
   const alreadyCompleted = await prisma.aiMessageLog.findFirst({
     where: {

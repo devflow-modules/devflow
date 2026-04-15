@@ -125,6 +125,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
       { href: "/admin/billing", label: ROUTE_META["/admin/billing"].label },
       { href: "/admin/agents", label: ROUTE_META["/admin/agents"].label },
       { href: "/admin/conversations", label: ROUTE_META["/admin/conversations"].label },
+      { href: "/admin/whatsapp", label: ROUTE_META["/admin/whatsapp"].label },
     ];
   }, [sessionRole]);
 
