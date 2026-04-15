@@ -111,7 +111,7 @@ export async function getSubscriptionView(tenantId: string): Promise<Subscriptio
     prisma.tenantSubscription.findUnique({ where: { tenantId } }),
     prisma.tenant.findUnique({
       where: { id: tenantId },
-      select: { plan: true, stripeCustomerId: true, activeUntil: true },
+      select: { plan: true, stripeCustomerId: true, activeUntil: true, createdAt: true },
     }),
     prisma.billingSubscription.findUnique({ where: { tenantId } }),
   ]);

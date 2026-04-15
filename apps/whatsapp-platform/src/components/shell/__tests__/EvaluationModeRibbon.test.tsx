@@ -46,7 +46,7 @@ describe("EvaluationModeRibbon", () => {
             enforceLimits: true,
           },
         }),
-    } as ReturnType<typeof protectedFetch.fetchProtected>);
+    } as unknown as Response);
 
     renderWithQuery(<EvaluationModeRibbon />);
 
@@ -83,7 +83,7 @@ describe("EvaluationModeRibbon", () => {
             enforceLimits: false,
           },
         }),
-    } as ReturnType<typeof protectedFetch.fetchProtected>);
+    } as unknown as Response);
 
     renderWithQuery(<EvaluationModeRibbon />);
 
