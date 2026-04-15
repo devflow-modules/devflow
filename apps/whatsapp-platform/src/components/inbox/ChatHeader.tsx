@@ -205,7 +205,10 @@ export function ChatHeader({
   const canReopen = thread.status === "CLOSED";
 
   return (
-    <header className="df-inbox-header">
+    <header
+      className="df-inbox-header max-h-[min(38vh,340px)] shrink-0 overflow-y-auto overscroll-contain"
+      data-testid="chat-header"
+    >
       <div className="flex items-start gap-3 px-4 py-4 sm:px-6 sm:py-5">
         {showBack && (
           <button

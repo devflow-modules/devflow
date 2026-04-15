@@ -171,7 +171,7 @@ export function MessageInput({
   return (
     <div
       id="inbox-composer-anchor"
-      className="border-t border-slate-100 bg-white px-4 pb-4 pt-3 shadow-[0_-8px_32px_rgba(15,23,42,0.03)] sm:px-5 sm:pb-5 sm:pt-4"
+      className="shrink-0 border-t border-slate-100 bg-white px-4 pb-4 pt-3 shadow-[0_-8px_32px_rgba(15,23,42,0.03)] sm:px-5 sm:pb-5 sm:pt-4"
       data-testid="message-input"
     >
       {composerLocked ? (

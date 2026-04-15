@@ -101,7 +101,7 @@ export function MessageList({
 
   if (isLoading) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col justify-center p-4" data-testid="messages-loading">
+      <div className="flex min-h-[10rem] flex-1 flex-col justify-center p-4" data-testid="messages-loading">
         <StateLoading message="A carregar mensagens…" className="min-h-[12rem] border-slate-200/80 bg-white/90 shadow-none" />
       </div>
     );
@@ -109,7 +109,7 @@ export function MessageList({
 
   if (isError) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col justify-center p-4">
+      <div className="flex min-h-[10rem] flex-1 flex-col justify-center p-4">
         <StateError
           title="Não foi possível carregar as mensagens"
           message={error instanceof Error ? error.message : "Tente novamente."}
@@ -137,7 +137,7 @@ export function MessageList({
 
   return (
     <div
-      className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 px-5 py-7 sm:px-7 sm:py-9"
+      className="min-h-0 flex-1 overflow-y-auto bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 px-5 py-7 sm:px-7 sm:py-9"
       data-testid="message-list"
     >
       <div className="mx-auto flex max-w-3xl flex-col gap-4">

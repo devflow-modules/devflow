@@ -87,7 +87,7 @@ export function ChatWindow({
       className="flex min-h-0 flex-1 flex-col bg-gradient-to-b from-white via-slate-50/30 to-slate-50/60 xl:flex-row"
       data-testid="chat-window"
     >
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <ChatHeader
           threadId={threadId}
           thread={activeThread}
@@ -105,7 +105,7 @@ export function ChatWindow({
         ) : (
           <div
             key={threadId ?? "none"}
-            className="flex min-h-0 flex-1 flex-col motion-safe:animate-[dfInboxPaneEnter_220ms_ease-out] motion-reduce:animate-none"
+            className="flex min-h-0 flex-1 flex-col overflow-hidden motion-safe:animate-[dfInboxPaneEnter_220ms_ease-out] motion-reduce:animate-none"
           >
             <ConversationActionBanner
               thread={activeThread}
