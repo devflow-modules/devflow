@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { ConversationsList } from "./ConversationsList";
@@ -60,6 +60,8 @@ const INBOX_PHASES: InboxConversationsFilter[] = [
 
 function InboxShellContent() {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
   const isMd = useMediaMd();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileChat, setMobileChat] = useState(false);
@@ -186,10 +188,18 @@ function InboxShellContent() {
     !activationUi.firstReplyBannerDismissed &&
     Boolean(activationUi.firstMessageToastSeen);
 
-  const onSelect = useCallback((id: string) => {
-    setSelectedId(id);
-    setMobileChat(true);
-  }, []);
+  const selectThread = useCallback(
+    (id: string) => {
+      setSelectedId(id);
+      setMobileChat(true);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("thread", id);
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
+  const onSelect = selectThread;
 
   useEffect(() => {
     if (!activationPickFirst) return;
@@ -198,11 +208,11 @@ function InboxShellContent() {
     const first = threads[0];
     if (first?.id) {
       queueMicrotask(() => {
-        onSelect(first.id);
+        selectThread(first.id);
         setActivationPickFirst(false);
       });
     }
-  }, [activationPickFirst, convData?.threads, onSelect]);
+  }, [activationPickFirst, convData?.threads, selectThread]);
 
   const onBack = useCallback(() => {
     setMobileChat(false);
@@ -224,7 +234,7 @@ function InboxShellContent() {
   );
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-slate-50/80" data-testid="inbox-shell">
+    <div className="flex min-h-0 flex-1 flex-col bg-slate-50/80" data-testid="inbox-shell">
       {channelAwaitingActivation ? (
         <div
           className="shrink-0 border-b border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm leading-relaxed text-amber-950 sm:px-6"
@@ -362,12 +372,7 @@ function InboxShellContent() {
         ) : null}
       </div>
 
-      <InboxMetricsPanel
-        onOpenThread={(id) => {
-          setSelectedId(id);
-          setMobileChat(true);
-        }}
-      />
+      <InboxMetricsPanel onOpenThread={selectThread} />
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
         {showSidebar && (
@@ -405,13 +410,13 @@ function InboxShellContent() {
                 evaluationMode={evaluationMode}
               />
             ) : awaitingFirstMessage ? (
-              <div className="hidden min-h-0 flex-1 flex-col items-center justify-center px-4 py-8 md:flex md:px-8">
+              <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-8 md:px-8">
                 <div className="max-w-lg rounded-2xl border border-dashed border-slate-200/90 bg-white/95 px-6 py-8 shadow-sm">
                   <FirstConversationHint variant="main" lines={lines} />
                 </div>
               </div>
             ) : (
-              <div className="hidden min-h-0 flex-1 flex-col items-center justify-center px-4 py-8 text-center md:flex md:px-6">
+              <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-8 text-center md:px-6">
                 <div className="max-w-sm rounded-xl border border-dashed border-slate-200/90 bg-white/90 px-5 py-8 shadow-sm">
                   <p className="text-sm font-semibold text-slate-900">Escolha uma conversa</p>
                   <p className="mt-2 text-sm leading-relaxed text-slate-600">

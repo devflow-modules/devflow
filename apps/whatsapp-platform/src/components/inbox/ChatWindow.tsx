@@ -105,15 +105,19 @@ export function ChatWindow({
         ) : (
           <div
             key={threadId ?? "none"}
-            className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden motion-safe:animate-[dfInboxPaneEnter_220ms_ease-out] motion-reduce:animate-none"
+            className="grid min-h-0 min-w-0 grid-cols-1 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden motion-safe:animate-[dfInboxPaneEnter_220ms_ease-out] motion-reduce:animate-none"
           >
-            <ConversationActionBanner
-              thread={activeThread}
-              dismissed={actionBannerDismissed}
-              onDismiss={() => setActionBannerDismissed(true)}
-              onRespondNow={() => {}}
-            />
-            <MessageList threadId={threadId} thread={activeThread} />
+            <div className="min-w-0 shrink-0">
+              <ConversationActionBanner
+                thread={activeThread}
+                dismissed={actionBannerDismissed}
+                onDismiss={() => setActionBannerDismissed(true)}
+                onRespondNow={() => {}}
+              />
+            </div>
+            <div className="relative min-h-0 min-w-0 overflow-hidden">
+              <MessageList threadId={threadId} thread={activeThread} />
+            </div>
             <MessageInput
               threadId={threadId}
               thread={activeThread}
