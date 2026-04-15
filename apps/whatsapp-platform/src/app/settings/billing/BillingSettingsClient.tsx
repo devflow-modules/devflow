@@ -94,14 +94,14 @@ export function BillingSettingsClient() {
     }
   }
 
-  async function checkout(plan: "PRO" | "SCALE") {
-    setCheckoutLoading(plan);
+  async function checkoutOperational() {
+    setCheckoutLoading("OPERATIONAL_BASE");
     setErr(null);
     try {
       const res = await fetchProtected("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan: "OPERATIONAL_BASE" }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j as { error?: string }));
@@ -191,18 +191,10 @@ export function BillingSettingsClient() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => void checkout("PRO")}
+            onClick={() => void checkoutOperational()}
             disabled={!!checkoutLoading}
           >
-            {checkoutLoading === "PRO" ? "…" : "Subir para Pro"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => void checkout("SCALE")}
-            disabled={!!checkoutLoading}
-          >
-            {checkoutLoading === "SCALE" ? "…" : "Subir para Scale"}
+            {checkoutLoading === "OPERATIONAL_BASE" ? "…" : "Ativar operação contratada (Stripe)"}
           </Button>
         </div>
       </section>

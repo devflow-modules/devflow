@@ -56,11 +56,11 @@ export function contextualInboxUsageHint(
 ): string {
   if (messagesLimit != null && messagesLimit > 0) {
     if (options?.isFreePlan) {
-      return `O plano gratuito inclui até ${messagesLimit.toLocaleString("pt-BR")} conversas por mês. Ao atingir o limite, escolha um plano para continuar — veja Plano e faturação.`;
+      return `A avaliação inclui até ${messagesLimit.toLocaleString("pt-BR")} conversas por mês. Ao atingir o limite, ative a operação contratada — veja Consumo e faturação.`;
     }
-    return `O seu plano inclui até ${messagesLimit.toLocaleString("pt-BR")} conversas por mês. Se precisar de mais, o uso adicional está disponível — veja detalhes em Plano e faturação.`;
+    return `O seu pacote inclui até ${messagesLimit.toLocaleString("pt-BR")} conversas por mês. Se precisar de mais, o uso adicional está disponível — veja detalhes em Consumo e faturação.`;
   }
-  return "Veja limites incluídos e uso do período em Plano e faturação.";
+  return "Veja limites incluídos e uso do período em Consumo e faturação.";
 }
 
 export function contextualAiUsageHint(
@@ -69,11 +69,11 @@ export function contextualAiUsageHint(
 ): string {
   if (aiLimit != null && aiLimit > 0) {
     if (options?.isFreePlan) {
-      return `Inclui até ${aiLimit.toLocaleString("pt-BR")} interações de IA por mês no plano gratuito. Ao atingir o limite, será necessário escolher um plano para continuar.`;
+      return `Inclui até ${aiLimit.toLocaleString("pt-BR")} interações de IA por mês na avaliação. Ao atingir o limite, ative a operação contratada para continuar.`;
     }
     return `Inclui até ${aiLimit.toLocaleString("pt-BR")} interações de IA por mês no seu plano. Além disso, pode expandir com uso adicional — sem interrupção do serviço.`;
   }
-  return "Consulte o consumo de IA e os limites do plano em Plano e faturação.";
+  return "Consulte o consumo de IA e os limites em Consumo e faturação.";
 }
 
 /** Blocos curtos para secção «plano gratuito» na UI de billing. */
@@ -88,10 +88,10 @@ export function freePlanUsageExplainerLines(plan: PlanKey): { title: string; bul
   if (ai != null) {
     bullets.push(`Inclui até ${ai.toLocaleString("pt-BR")} interações de IA por mês.`);
   }
-  bullets.push("Ao atingir esse limite, será necessário escolher um plano para continuar.");
+  bullets.push("Ao atingir esse limite, é preciso ativar a operação contratada para continuar — fale connosco ou use Consumo e faturação.");
   bullets.push("Não há cobrança adicional nem expansão automática no plano gratuito.");
   return {
-    title: "Como funciona o plano gratuito",
+    title: "Como funciona a avaliação",
     bullets,
   };
 }

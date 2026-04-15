@@ -14,9 +14,9 @@ vi.mock("@/modules/ai/aiUsageService", () => ({
 describe("aiUsageLimitService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetTenantPlan.mockResolvedValue("STARTER");
+    mockGetTenantPlan.mockResolvedValue("OPERATIONAL_BASE");
     mockGetAiUsageMetrics.mockResolvedValue({
-      aiMessagesTotal: 50,
+      aiMessagesTotal: 1500,
       messagesTotal: 100,
       fallbackTotal: 5,
       tokensUsedTotal: 5000,
@@ -25,12 +25,9 @@ describe("aiUsageLimitService", () => {
   });
 
   it("getAiUsageStatus retorna canUse quando dentro do limite", async () => {
-    vi.doMock("./planConfig", () => ({
-      getPlanLimits: () => ({ aiResponsesPerMonth: 100 }),
-    }));
     const { getAiUsageStatus } = await import("../aiUsageLimitService");
     const status = await getAiUsageStatus("t1");
-    expect(status.used).toBe(50);
+    expect(status.used).toBe(1500);
     expect(status.canUse).toBe(true);
     expect(status.shouldFallbackToLegacy).toBe(false);
     expect(status.percentUsed).toBe(50);
@@ -38,7 +35,7 @@ describe("aiUsageLimitService", () => {
 
   it("getAiUsageStatus retorna shouldFallbackToLegacy quando excedeu", async () => {
     mockGetAiUsageMetrics.mockResolvedValue({
-      aiMessagesTotal: 150,
+      aiMessagesTotal: 3100,
       messagesTotal: 200,
       fallbackTotal: 10,
       tokensUsedTotal: 15000,
@@ -46,8 +43,8 @@ describe("aiUsageLimitService", () => {
     });
     const { getAiUsageStatus } = await import("../aiUsageLimitService");
     const status = await getAiUsageStatus("t1");
-    expect(status.used).toBe(150);
-    expect(status.limit).toBe(100); // STARTER
+    expect(status.used).toBe(3100);
+    expect(status.limit).toBe(3000);
     expect(status.canUse).toBe(false);
     expect(status.shouldFallbackToLegacy).toBe(true);
   });
@@ -55,9 +52,9 @@ describe("aiUsageLimitService", () => {
   it("getAiPlanInfo retorna info do plano", async () => {
     const { getAiPlanInfo } = await import("../aiUsageLimitService");
     const info = await getAiPlanInfo("t1");
-    expect(info.plan).toBe("STARTER");
-    expect(info.planName).toBe("Starter");
-    expect(info.aiLimit).toBe(100);
-    expect(info.aiLimitLabel).toContain("100");
+    expect(info.plan).toBe("OPERATIONAL_BASE");
+    expect(info.planName).toBe("Operação contratada");
+    expect(info.aiLimit).toBe(3000);
+    expect(info.aiLimitLabel).toMatch(/3[.,]000/);
   });
 });

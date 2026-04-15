@@ -73,7 +73,13 @@ export const ConversationItem = memo(function ConversationItem({
 
   const crmTier = thread.priority;
   const crmLabel =
-    crmTier === "HIGH" ? "🔥 HIGH" : crmTier === "MEDIUM" ? "⚡ MEDIUM" : crmTier === "LOW" ? "💤 LOW" : null;
+    crmTier === "HIGH"
+      ? "Prioridade alta"
+      : crmTier === "MEDIUM"
+        ? "Prioridade média"
+        : crmTier === "LOW"
+          ? "Prioridade baixa"
+          : null;
   const priorityHint = priorityGuidance(crmTier);
   const crmClass =
     crmTier === "HIGH"

@@ -126,6 +126,40 @@ export function logSystemError(params: {
 /**
  * Hook: uso >= 80% do limite (base para alertas).
  */
+/** Pacote incluído ultrapassado sem bloquear envio (plano pago, soft limit). */
+export function logSoftMessageOverIncluded(
+  tenantId: string,
+  used: number,
+  limit: number,
+  afterAction: number
+): void {
+  console.warn(
+    `[BILLING][SOFT_LIMIT] tenant=${tenantId} messages after=${afterAction} included=${limit} (sem bloqueio)`
+  );
+  void createBillingAuditLogAsync({
+    tenantId,
+    eventType: "usage.soft_over_included",
+    source: "usage",
+    metadata: { feature: "messages", used, limit, afterAction },
+  });
+}
+
+/** Alerta interno: primeiro cruzamento de 5000 mensagens no período (margem / revisão comercial). */
+export function logHighWaterMessagesCrossing5000(
+  tenantId: string,
+  usedBefore: number,
+  afterAction: number
+): void {
+  if (afterAction < 5000 || usedBefore >= 5000) return;
+  console.warn(`[BILLING][HIGH_WATER] tenant=${tenantId} messages>=5000 in period (after=${afterAction})`);
+  void createBillingAuditLogAsync({
+    tenantId,
+    eventType: "usage.messages_high_water_5k",
+    source: "usage",
+    metadata: { afterAction, threshold: 5000 },
+  });
+}
+
 export function logUsageThresholdWarning(
   tenantId: string,
   feature: "messages" | "ai",

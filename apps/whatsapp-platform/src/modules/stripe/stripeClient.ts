@@ -46,9 +46,27 @@ export function getWebhookSecret(): string {
   return secret;
 }
 
+function readScalePriceId(isProd: boolean): string {
+  return isProd
+    ? (process.env.WHATSAPP_STRIPE_PRICE_SCALE ?? process.env.WHATSAPP_STRIPE_PRICE_TEAM ?? process.env.STRIPE_PRICE_SCALE ?? process.env.STRIPE_PRICE_TEAM ?? "")
+    : (process.env.WHATSAPP_STRIPE_TEST_PRICE_SCALE ?? process.env.WHATSAPP_STRIPE_TEST_PRICE_TEAM ?? process.env.WHATSAPP_STRIPE_PRICE_SCALE ?? process.env.WHATSAPP_STRIPE_PRICE_TEAM ?? process.env.STRIPE_TEST_PRICE_SCALE ?? process.env.STRIPE_TEST_PRICE_TEAM ?? "");
+}
+
 /** Em dev: usa TEST price IDs. Em prod: usa LIVE price IDs. */
-export function getPriceId(plan: "STARTER" | "PRO" | "SCALE"): string {
+export function getPriceId(plan: "OPERATIONAL_BASE" | "PRO" | "SCALE" | "STARTER"): string {
   const isProd = process.env.NODE_ENV === "production";
+  if (plan === "OPERATIONAL_BASE") {
+    const priceId = isProd
+      ? (process.env.WHATSAPP_STRIPE_PRICE_OPERATIONAL_BASE ?? process.env.WHATSAPP_STRIPE_PRICE_SCALE ?? "")
+      : (process.env.WHATSAPP_STRIPE_TEST_PRICE_OPERATIONAL_BASE ??
+          process.env.WHATSAPP_STRIPE_TEST_PRICE_SCALE ??
+          process.env.WHATSAPP_STRIPE_PRICE_OPERATIONAL_BASE ??
+          "");
+    if (priceId) return priceId;
+    const fallback = readScalePriceId(isProd);
+    if (!fallback) throw new Error("WHATSAPP_STRIPE_PRICE_OPERATIONAL_BASE ou WHATSAPP_STRIPE_PRICE_SCALE (TEST em dev) is required");
+    return fallback;
+  }
   if (plan === "STARTER") {
     const priceId = isProd
       ? (process.env.WHATSAPP_STRIPE_PRICE_STARTER ?? "")
@@ -63,9 +81,7 @@ export function getPriceId(plan: "STARTER" | "PRO" | "SCALE"): string {
     if (!priceId) throw new Error("WHATSAPP_STRIPE_PRICE_PRO (ou TEST em dev) is required");
     return priceId;
   }
-  const priceId = isProd
-    ? (process.env.WHATSAPP_STRIPE_PRICE_SCALE ?? process.env.WHATSAPP_STRIPE_PRICE_TEAM ?? process.env.STRIPE_PRICE_SCALE ?? process.env.STRIPE_PRICE_TEAM ?? "")
-    : (process.env.WHATSAPP_STRIPE_TEST_PRICE_SCALE ?? process.env.WHATSAPP_STRIPE_TEST_PRICE_TEAM ?? process.env.WHATSAPP_STRIPE_PRICE_SCALE ?? process.env.WHATSAPP_STRIPE_PRICE_TEAM ?? process.env.STRIPE_TEST_PRICE_SCALE ?? process.env.STRIPE_TEST_PRICE_TEAM ?? "");
+  const priceId = readScalePriceId(isProd);
   if (!priceId) throw new Error("WHATSAPP_STRIPE_PRICE_SCALE (ou TEST em dev) is required");
   return priceId;
 }

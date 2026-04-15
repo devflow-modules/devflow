@@ -78,11 +78,12 @@ export function WhatsappConnectClient() {
         if (plan) {
           const caps = getUiPlanCapabilities(plan);
           const maxPhones = caps.limits.phoneNumbers;
-          if (maxPhones != null && data.filter((n) => n.status === "ACTIVE").length >= maxPhones) {
+          const activeLines = data.filter((n) => n.status === "ACTIVE").length;
+          if (maxPhones != null && activeLines >= maxPhones) {
             setPhoneCapacityHint(
-              caps.planKey === "SCALE"
-                ? null
-                : "Precisa de mais canais WhatsApp no mesmo espaço? O plano Scale inclui até 3 números — veja detalhes em Planos."
+              maxPhones >= 3
+                ? "Atingiu o número de canais incluídos no pacote. Para mais linhas, contacte a equipa comercial."
+                : "Precisa de mais canais no mesmo espaço? O pacote operacional inclui mais linhas — veja Consumo e faturação."
             );
           } else {
             setPhoneCapacityHint(null);

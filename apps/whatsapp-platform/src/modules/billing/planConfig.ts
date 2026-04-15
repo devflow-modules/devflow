@@ -43,3 +43,11 @@ export function getPlanLimits(plan: string | null | undefined): PlanLimits {
 export function isBillingEnforceLimits(): boolean {
   return process.env.BILLING_ENFORCE_LIMITS !== "false";
 }
+
+/**
+ * Por defeito, planos pagos não bloqueiam envio ao ultrapassar o pacote incluído (soft limit + meter).
+ * Defina `BILLING_HARD_BLOCK_PAID_MESSAGES=true` para recuperar o comportamento «teto duro» em mensagens.
+ */
+export function isBillingHardBlockPaidMessages(): boolean {
+  return process.env.BILLING_HARD_BLOCK_PAID_MESSAGES === "true";
+}

@@ -54,7 +54,7 @@ vi.mock("@/modules/billing/aiUsageLimitService", () => ({
     canUse: true,
     shouldFallbackToLegacy: false,
     period: "2025-03",
-    plan: "STARTER",
+    plan: "OPERATIONAL_BASE",
   }),
 }));
 

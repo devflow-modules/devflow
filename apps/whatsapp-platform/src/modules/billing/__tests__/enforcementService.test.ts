@@ -4,6 +4,7 @@ import { PLANS } from "../plans";
 const mockGetUsageByPeriod = vi.fn();
 const mockGetAiUsageMetrics = vi.fn();
 const mockIsBillingEnforceLimits = vi.fn();
+const mockIsBillingHardBlockPaidMessages = vi.fn();
 const mockGetTenantBillingContext = vi.fn();
 
 vi.mock("@/modules/ai/aiUsageService", () => ({
@@ -21,23 +22,26 @@ vi.mock("../usageService", () => ({
 
 vi.mock("../planConfig", () => ({
   isBillingEnforceLimits: () => mockIsBillingEnforceLimits(),
+  isBillingHardBlockPaidMessages: () => mockIsBillingHardBlockPaidMessages(),
 }));
 
 vi.mock("../billingObserverService", () => ({
   logLimitExceeded: () => {},
   logUsageThresholdWarning: () => {},
+  logSoftMessageOverIncluded: () => {},
+  logHighWaterMessagesCrossing5000: () => {},
 }));
 
-const proContext = {
-  plan: "PRO" as const,
+const paidContext = {
+  plan: "OPERATIONAL_BASE" as const,
   capabilities: {
-    plan: "PRO" as const,
+    plan: "OPERATIONAL_BASE" as const,
     maxMessages: 5000,
     maxAIUsage: 750,
     maxAutomations: 50,
     maxUsers: 3,
     maxPhoneNumbers: 1,
-    featuresEnabled: PLANS.PRO.features,
+    featuresEnabled: PLANS.OPERATIONAL_BASE.features,
   },
 };
 
@@ -45,8 +49,9 @@ describe("enforcementService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockIsBillingEnforceLimits.mockReturnValue(true);
+    mockIsBillingHardBlockPaidMessages.mockReturnValue(false);
     mockGetAiUsageMetrics.mockResolvedValue({ aiMessagesTotal: 50 });
-    mockGetTenantBillingContext.mockResolvedValue(proContext);
+    mockGetTenantBillingContext.mockResolvedValue(paidContext);
   });
 
   afterEach(() => {
@@ -71,17 +76,16 @@ describe("enforcementService", () => {
     ).resolves.toBeUndefined();
   });
 
-  it("lança UsageLimitExceededError quando excede e BILLING_ENFORCE_LIMITS=true (plano pago)", async () => {
+  it("lança UsageLimitExceededError quando excede, enforce e hard block em mensagens (plano pago)", async () => {
     mockGetUsageByPeriod.mockResolvedValue({
       period: "2025-03",
       messagesSent: 5000,
       aiResponses: 0,
     });
     mockIsBillingEnforceLimits.mockReturnValue(true);
+    mockIsBillingHardBlockPaidMessages.mockReturnValue(true);
 
-    const { enforceUsageOrThrow, UsageLimitExceededError } = await import(
-      "../enforcementService"
-    );
+    const { enforceUsageOrThrow, UsageLimitExceededError } = await import("../enforcementService");
 
     const err = await enforceUsageOrThrow({
       tenantId: "t1",
@@ -92,6 +96,27 @@ describe("enforcementService", () => {
     expect(err).toBeInstanceOf(UsageLimitExceededError);
     expect(err.code).toBe("USAGE_LIMIT_EXCEEDED");
     expect(err.feature).toBe("messages");
+  });
+
+  it("permite mensagens acima do incluído com soft limit (enforce sem hard block)", async () => {
+    mockGetUsageByPeriod.mockResolvedValue({
+      period: "2025-03",
+      messagesSent: 5000,
+      aiResponses: 750,
+    });
+    mockGetAiUsageMetrics.mockResolvedValue({ aiMessagesTotal: 750 });
+    mockIsBillingEnforceLimits.mockReturnValue(true);
+    mockIsBillingHardBlockPaidMessages.mockReturnValue(false);
+
+    const { enforceUsageOrThrow } = await import("../enforcementService");
+
+    await expect(
+      enforceUsageOrThrow({ tenantId: "t1", feature: "messages", quantity: 1 })
+    ).resolves.toBeUndefined();
+
+    await expect(
+      enforceUsageOrThrow({ tenantId: "t1", feature: "ai", quantity: 1 })
+    ).resolves.toBeUndefined();
   });
 
   it("permite quando excede mas BILLING_ENFORCE_LIMITS=false (soft limit, plano pago)", async () => {

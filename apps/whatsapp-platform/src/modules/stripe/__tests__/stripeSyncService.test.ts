@@ -43,7 +43,7 @@ describe("stripeSyncService", () => {
 
     expect(mockPrisma.$transaction).toHaveBeenCalled();
     expect(mockUpsertBillingSubscription).toHaveBeenCalledWith("t1", expect.objectContaining({
-      plan: "PRO",
+      plan: "OPERATIONAL_BASE",
       status: "active",
       stripeSubscriptionId: "sub_123",
     }));
@@ -52,7 +52,7 @@ describe("stripeSyncService", () => {
         where: { tenantId: "t1" },
         create: expect.objectContaining({
           tenantId: "t1",
-          plan: "PRO",
+          plan: "OPERATIONAL_BASE",
           status: "ACTIVE",
           stripeCustomerId: "cus_123",
           stripeSubscriptionId: "sub_123",
@@ -93,7 +93,7 @@ describe("stripeSyncService", () => {
     expect(mockTenantUpsert).toHaveBeenCalledWith(
       expect.objectContaining({
         create: expect.objectContaining({
-          plan: "PRO",
+          plan: "OPERATIONAL_BASE",
           status: "PAST_DUE",
         }),
       })

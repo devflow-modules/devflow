@@ -40,7 +40,7 @@ describe("stripeUsageBillingService", () => {
     mockCreateMeterEvent.mockResolvedValue({ ok: true });
   });
 
-  it("cobra excedente no Starter quando used >= limit", async () => {
+  it("cobra excedente no plano pago quando used >= limit", async () => {
     const { billAiOverageIfApplicable } = await import(
       "../stripeUsageBillingService"
     );
@@ -49,7 +49,7 @@ describe("stripeUsageBillingService", () => {
       messageId: "wamid.starter_over",
       used: 100,
       limit: 100,
-      plan: "STARTER",
+      plan: "OPERATIONAL_BASE",
     });
     expect(mockCreateMeterEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -74,7 +74,7 @@ describe("stripeUsageBillingService", () => {
     expect(mockCreateMeterEvent).not.toHaveBeenCalled();
   });
 
-  it("não cobra quando used < limit (Pro)", async () => {
+  it("não cobra quando used < limit (plano pago)", async () => {
     const { billAiOverageIfApplicable } = await import(
       "../stripeUsageBillingService"
     );
@@ -83,12 +83,12 @@ describe("stripeUsageBillingService", () => {
       messageId: "wamid.xxx",
       used: 50,
       limit: 750,
-      plan: "PRO",
+      plan: "OPERATIONAL_BASE",
     });
     expect(mockCreateMeterEvent).not.toHaveBeenCalled();
   });
 
-  it("cobra excedente no Pro quando used >= limit", async () => {
+  it("cobra excedente quando used >= limit (plano pago)", async () => {
     const { billAiOverageIfApplicable } = await import(
       "../stripeUsageBillingService"
     );
@@ -97,7 +97,7 @@ describe("stripeUsageBillingService", () => {
       messageId: "wamid.overage1",
       used: 750,
       limit: 750,
-      plan: "PRO",
+      plan: "OPERATIONAL_BASE",
     });
     expect(mockCreateMeterEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -117,7 +117,7 @@ describe("stripeUsageBillingService", () => {
     );
   });
 
-  it("cobra excedente no Scale quando used >= limit", async () => {
+  it("cobra excedente com outro customer quando used >= limit", async () => {
     mockGetBillingSubscriptionByTenant.mockResolvedValue({
       stripeCustomerId: "cus_scale456",
     });
@@ -129,7 +129,7 @@ describe("stripeUsageBillingService", () => {
       messageId: "wamid.scale_over",
       used: 3001,
       limit: 3000,
-      plan: "SCALE",
+      plan: "OPERATIONAL_BASE",
     });
     expect(mockCreateMeterEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -150,7 +150,7 @@ describe("stripeUsageBillingService", () => {
       messageId: "wamid.duplicate",
       used: 100,
       limit: 100,
-      plan: "PRO",
+      plan: "OPERATIONAL_BASE",
     });
     expect(mockCreateMeterEvent).not.toHaveBeenCalled();
   });
@@ -166,7 +166,7 @@ describe("stripeUsageBillingService", () => {
       messageId: "wamid.fail",
       used: 751,
       limit: 750,
-      plan: "PRO",
+      plan: "OPERATIONAL_BASE",
     });
     expect(mockCreateBillingAuditLog).not.toHaveBeenCalled();
     consoleSpy.mockRestore();
@@ -184,7 +184,7 @@ describe("stripeUsageBillingService", () => {
       messageId: "wamid.nocust",
       used: 101,
       limit: 100,
-      plan: "PRO",
+      plan: "OPERATIONAL_BASE",
     });
     expect(mockCreateMeterEvent).not.toHaveBeenCalled();
     consoleSpy.mockRestore();

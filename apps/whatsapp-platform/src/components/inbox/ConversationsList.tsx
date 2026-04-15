@@ -92,7 +92,7 @@ export function ConversationsList({
   onQueueFilterChange: (queueId: string | null) => void;
   /** Prioridade CRM (LOW | MEDIUM | HIGH); alinhado com query `priority` da API. */
   priorityFilter?: string | null;
-  /** Total de threads no tenant (sem filtro de fase); usado só para onboarding. */
+  /** Total de conversas no espaço (sem filtro de fase); usado só para onboarding. */
   tenantThreadTotal?: number;
 }) {
   const qc = useQueryClient();

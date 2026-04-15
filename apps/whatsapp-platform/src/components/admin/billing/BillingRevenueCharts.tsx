@@ -22,19 +22,19 @@ export function BillingUsageByPlanCharts({ usageByPlan }: UsageChartsProps) {
   const msgData = usageByPlan.map((u) => ({
     name: u.plan,
     value: u.messages,
-    fill: u.plan === "STARTER" ? "hsl(var(--chart-1))" : u.plan === "PRO" ? "hsl(var(--chart-2))" : "hsl(var(--chart-3))",
+    fill: u.plan === "FREE" ? "hsl(var(--chart-1))" : "hsl(var(--chart-2))",
   }));
   const aiData = usageByPlan.map((u) => ({
     name: u.plan,
     value: u.ai,
-    fill: u.plan === "STARTER" ? "hsl(142 76% 36%)" : u.plan === "PRO" ? "hsl(217 91% 60%)" : "hsl(262 83% 58%)",
+    fill: u.plan === "FREE" ? "hsl(142 76% 36%)" : "hsl(217 91% 60%)",
   }));
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
         <h3 className="text-sm font-medium text-muted-foreground mb-4">
-          Uso de mensagens por plano
+          Uso de mensagens (FREE vs operação contratada)
         </h3>
         <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">
@@ -53,7 +53,7 @@ export function BillingUsageByPlanCharts({ usageByPlan }: UsageChartsProps) {
       </div>
       <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
         <h3 className="text-sm font-medium text-muted-foreground mb-4">
-          Uso de IA por plano
+          Uso de IA (FREE vs operação contratada)
         </h3>
         <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">

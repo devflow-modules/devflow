@@ -15,7 +15,7 @@ import {
   formatIncludedLimitsLine,
 } from "@/modules/billing/planPresentation";
 
-const COLUMNS: PlanKey[] = ["FREE", "STARTER", "PRO", "SCALE"];
+const COLUMNS: PlanKey[] = ["FREE", "OPERATIONAL_BASE"];
 
 type Props = {
   /** Plano atual do tenant (para contexto; opcional). */
@@ -32,15 +32,15 @@ export function PlanComparisonMatrix({ currentPlan }: Props) {
     >
       <div className="mb-4">
         <h2 id="plan-comparison-heading" className="text-lg font-semibold text-slate-900">
-          Comparar planos por valor
+          Avaliação vs operação contratada
         </h2>
         <p className="mt-1 text-sm text-slate-600">
-          O foco é o que cada nível permite fazer na operação. Na última linha vê quantas conversas e interações de IA
-          estão incluídas por mês — e pode expandir com uso adicional se precisar de mais volume.
+          A operação comercial é consultiva: o pacote incluído e os limites alinham-se ao contrato de implantação. A
+          tabela resume a diferença entre experimentar e operar em produção.
         </p>
       </div>
       <div className="overflow-x-auto rounded-xl border border-slate-200">
-        <table className="w-full min-w-[720px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[520px] border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50/90 align-top">
               <th className="px-3 py-3 font-medium text-slate-600 sm:px-4">Âmbito</th>
@@ -88,7 +88,7 @@ export function PlanComparisonMatrix({ currentPlan }: Props) {
               <Fragment key={section.axis}>
                 <tr className="bg-slate-100/80">
                   <td
-                    colSpan={5}
+                    colSpan={3}
                     className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600 sm:px-4"
                   >
                     {section.title}

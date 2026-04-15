@@ -9,7 +9,8 @@ import { RoleSection } from "@/components/home/RoleSection";
 
 export const metadata: Metadata = {
   title: "WhatsApp Platform — DevFlow Labs",
-  description: "Atendimento, operação e vendas no WhatsApp com IA.",
+  description:
+    "Sistema profissional para organizar, controlar e escalar o atendimento da sua empresa no WhatsApp.",
   robots: { index: true, follow: true },
 };
 

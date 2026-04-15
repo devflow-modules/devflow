@@ -1,6 +1,5 @@
 /**
- * Copy de upgrade alinhada a `planPresentation` / matriz de capacidades.
- * Usada em API (message), hints na UI e FeatureUpgradePrompt.
+ * Copy de gating alinhada à venda consultiva (sem «menu de planos»).
  */
 
 import type { PlanKey } from "./plans";
@@ -10,26 +9,19 @@ import { CONTEXTUAL_UPGRADE_HINTS } from "./planPresentation";
 
 /** Mensagem quando FREE atinge limite (API 402 ou paywall contextual). */
 export const FREE_PLAN_LIMIT_PAYWALL_MESSAGE =
-  "Seu plano gratuito chegou ao limite. Para continuar a operar com atendimento, escolha um plano em Plano e faturação.";
+  "A avaliação chegou ao limite incluído. Para continuar a operar com atendimento completo, ative a operação contratada em Consumo e faturação ou fale connosco.";
 
-export const FEATURE_UPGRADE_COPY: Record<
-  FeatureKey,
-  string | undefined
-> = {
-  QUEUES_TAGS:
-    "Organize o atendimento com filas e responsáveis — disponível a partir do plano Pro.",
-  AUTOMATION: "Automação de regras — incluída a partir do Starter.",
-  ADVANCED_AUTOMATION:
-    "Automação avançada (fluxos mais ricos, tempo decorrido, notificações) — disponível a partir do Pro.",
-  PLAYBOOKS:
-    "Fluxos e automação avançada — disponível a partir do Pro.",
-  AI_RESPONSE: "Respostas com IA — incluídas conforme o seu plano.",
-  ADVANCED_AI:
-    "Modelos e motores avançados de IA — disponíveis no plano Scale.",
-  WEBHOOKS_API: "API e integrações — disponíveis no plano Scale.",
-  ADVANCED_REPORTS: "Relatórios avançados — disponíveis a partir do Pro.",
-  MULTI_USER: "Vários utilizadores na mesma conta — a partir do plano Pro.",
-  PRIORITY_SUPPORT: "Suporte prioritário — incluído no plano Scale.",
+export const FEATURE_UPGRADE_COPY: Record<FeatureKey, string | undefined> = {
+  QUEUES_TAGS: "Filas e responsáveis fazem parte da operação contratada — fale connosco para incluir no seu pacote.",
+  AUTOMATION: "Automação de regras faz parte da operação contratada — veja o que está incluído no seu contrato.",
+  ADVANCED_AUTOMATION: "Automação avançada (fluxos mais ricos) — disponível na operação contratada; fale connosco para ajustar.",
+  PLAYBOOKS: "Fluxos e automação avançada — alinhados na operação contratada.",
+  AI_RESPONSE: "Respostas com IA — conforme o pacote contratado.",
+  ADVANCED_AI: "Motores de IA avançados — incluídos quando previstos no contrato.",
+  WEBHOOKS_API: "API e integrações — quando fazem parte da implantação acordada.",
+  ADVANCED_REPORTS: "Relatórios avançados — incluídos na operação contratada.",
+  MULTI_USER: "Vários utilizadores na mesma conta — conforme o pacote de implantação.",
+  PRIORITY_SUPPORT: "Suporte prioritário — quando incluído no contrato.",
 };
 
 function planDisplayName(plan: PlanKey): string {
@@ -40,13 +32,11 @@ function planDisplayName(plan: PlanKey): string {
 export function featureUpgradeShortMessage(feature: FeatureKey, requiredPlan: PlanKey): string {
   const base = FEATURE_UPGRADE_COPY[feature]?.trim();
   const target = planDisplayName(requiredPlan);
-  if (base) return `${base} Faça upgrade para ${target}.`;
-  return `Esta funcionalidade requer o plano ${target}.`;
+  if (base) return `${base} Requisito mínimo: ${target}.`;
+  return `Esta funcionalidade requer a operação: ${target}.`;
 }
 
 /** Texto para hints preventivos (Inbox / IA / WhatsApp). */
-export function contextualHintForArea(
-  area: keyof typeof CONTEXTUAL_UPGRADE_HINTS
-): string {
+export function contextualHintForArea(area: keyof typeof CONTEXTUAL_UPGRADE_HINTS): string {
   return CONTEXTUAL_UPGRADE_HINTS[area];
 }

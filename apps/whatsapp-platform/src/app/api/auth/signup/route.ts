@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    await ensureTenantSubscription(tenant.id, normalizePlan(planId) as "FREE" | "STARTER" | "PRO" | "SCALE");
+    await ensureTenantSubscription(tenant.id, normalizePlan(planId));
 
     const user = await prisma.user.create({
       data: {

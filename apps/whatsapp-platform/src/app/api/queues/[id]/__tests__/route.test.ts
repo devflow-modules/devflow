@@ -40,7 +40,7 @@ describe("PATCH /api/queues/[id]", () => {
   });
 
   it("retorna 403 FEATURE_NOT_AVAILABLE quando plano sem filas", async () => {
-    mockGetTenantPlan.mockResolvedValue("STARTER");
+    mockGetTenantPlan.mockResolvedValue("FREE");
     const { PATCH } = await import("../route");
     const req = new Request("http://localhost/api/queues/q1", {
       method: "PATCH",

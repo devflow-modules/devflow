@@ -31,6 +31,18 @@ export async function GET(request: NextRequest) {
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: auth.payload.tenantId },
+    select: {
+      id: true,
+      name: true,
+      plan: true,
+      gtmLifecycle: true,
+      activeUntil: true,
+      defaultPrompt: true,
+      systemPrompt: true,
+      whatsappPhone: true,
+      apiKey: true,
+      aiDriver: true,
+    },
   });
 
   if (!tenant) {
@@ -44,6 +56,7 @@ export async function GET(request: NextRequest) {
       id: tenant.id,
       name: tenant.name,
       plan: tenant.plan,
+      gtmLifecycle: tenant.gtmLifecycle,
       hasWhatsappPhone: Boolean(primaryWpn),
     });
   }
@@ -56,6 +69,7 @@ export async function GET(request: NextRequest) {
     id: tenant.id,
     name: tenant.name,
     plan: tenant.plan,
+    gtmLifecycle: tenant.gtmLifecycle,
     activeUntil: tenant.activeUntil?.toISOString() ?? null,
     defaultPrompt: tenant.defaultPrompt,
     systemPrompt: tenant.systemPrompt,

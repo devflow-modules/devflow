@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getBillingSubscriptionByTenant } from "../infrastructure/billingRepository";
 import { createMeterEvent, METER_EVENT_MESSAGES, isMeterEventsConfigured } from "../infrastructure/stripeMeterClient";
 import { allocateUsage, getMessageLimits } from "../domain/usagePolicy";
+import { planAllowsMeteredOverage } from "../plans";
 import { logOverageSent, logSystemError } from "../billingObserverService";
 
 const ACTIVE_STATUSES = ["active", "trialing"];
@@ -55,7 +56,7 @@ export async function reportMessageUsage(params: {
     });
   });
 
-  const isPaidPlan = ["STARTER", "PRO", "SCALE"].includes(sub.plan.toUpperCase());
+  const isPaidPlan = planAllowsMeteredOverage(sub.plan);
   if (overage > 0 && isMeterEventsConfigured() && isPaidPlan) {
     logOverageSent(params.tenantId, "messages", overage);
     const result = await createMeterEvent({

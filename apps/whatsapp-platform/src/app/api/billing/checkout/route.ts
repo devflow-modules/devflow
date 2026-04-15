@@ -5,9 +5,10 @@ import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 import { createBillingCheckoutSession, type CheckoutPlan } from "@/modules/billing/billingService";
+import { normalizePlan } from "@/modules/billing/plans";
 
 const bodySchema = z.object({
-  plan: z.enum(["STARTER", "PRO", "SCALE"]),
+  plan: z.enum(["OPERATIONAL_BASE", "STARTER", "PRO", "SCALE", "TEAM"]),
 });
 
 export const dynamic = "force-dynamic";
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
   const json = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
-    return jsonError("VALIDATION_ERROR", "plan deve ser STARTER, PRO ou SCALE", 400);
+    return jsonError("VALIDATION_ERROR", "plan deve ser OPERATIONAL_BASE (ou legado STARTER/PRO/SCALE/TEAM)", 400);
   }
 
   const user = await prisma.user.findFirst({
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
       auth.payload.sub,
       auth.payload.tenantId,
       user.email,
-      parsed.data.plan as CheckoutPlan,
+      normalizePlan(parsed.data.plan) as CheckoutPlan,
       baseUrl
     );
     return jsonSuccess({ url: checkoutUrl });

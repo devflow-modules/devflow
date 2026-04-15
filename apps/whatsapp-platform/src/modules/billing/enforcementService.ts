@@ -1,14 +1,20 @@
 /**
  * Enforcement de uso por plano.
  * - FREE: limite incluído é teto duro (mensagens e IA); sem cobrança adicional.
- * - STARTER / PRO / SCALE: mensagens respeitam BILLING_ENFORCE_LIMITS; IA além do incluído segue para faturação (meter).
+ * - OPERATIONAL_BASE (e legados normalizados): IA além do incluído → meter; mensagens → soft limit por defeito
+ *   (ver `BILLING_HARD_BLOCK_PAID_MESSAGES` + `BILLING_ENFORCE_LIMITS`).
  */
 
 import { getTenantBillingContext } from "./subscriptionService";
 import { getUsageByPeriod, periodYYYYMM } from "./usageService";
 import { getAiUsageMetrics } from "@/modules/ai/aiUsageService";
-import { isBillingEnforceLimits } from "./planConfig";
-import { logLimitExceeded, logUsageThresholdWarning } from "./billingObserverService";
+import { isBillingEnforceLimits, isBillingHardBlockPaidMessages } from "./planConfig";
+import {
+  logHighWaterMessagesCrossing5000,
+  logLimitExceeded,
+  logSoftMessageOverIncluded,
+  logUsageThresholdWarning,
+} from "./billingObserverService";
 import { bumpMetric, logEvent } from "@/lib/observability";
 import type { PlanKey } from "./plans";
 import { planAllowsMeteredOverage } from "./plans";
@@ -102,7 +108,8 @@ function logEnforcement(
 
 /**
  * Verifica se o uso está dentro do limite. FREE bloqueia sempre ao ultrapassar.
- * Planos pagos: mensagens bloqueiam se BILLING_ENFORCE_LIMITS=true; IA além do incluído não bloqueia (meter).
+ * Plano pago: IA acima do incluído não bloqueia (meter). Mensagens: soft limit por defeito; teto duro só com
+ * `BILLING_HARD_BLOCK_PAID_MESSAGES=true` e `BILLING_ENFORCE_LIMITS=true`.
  */
 export async function enforceUsageOrThrow(input: EnforceUsageInput): Promise<void> {
   const { tenantId, feature, quantity = 1 } = input;
@@ -149,8 +156,10 @@ export async function enforceUsageOrThrow(input: EnforceUsageInput): Promise<voi
     return;
   }
 
-  // messages
-  const blockMessages = !planAllowsMeteredOverage(plan) || isBillingEnforceLimits();
+  // messages — FREE: bloqueio; pago: soft limit por defeito (log + meter), teto duro só com env explícito
+  const blockMessages =
+    !planAllowsMeteredOverage(plan) ||
+    (isBillingEnforceLimits() && isBillingHardBlockPaidMessages());
   if (blockMessages) {
     logLimitExceeded(tenantId, feature);
     logEnforcement(tenantId, feature, used, limit, true);
@@ -165,5 +174,7 @@ export async function enforceUsageOrThrow(input: EnforceUsageInput): Promise<voi
     throw buildLimitExceededError(plan, "messages");
   }
 
+  logSoftMessageOverIncluded(tenantId, used, limit, afterAction);
+  logHighWaterMessagesCrossing5000(tenantId, used, afterAction);
   logEnforcement(tenantId, feature, used, limit, false);
 }

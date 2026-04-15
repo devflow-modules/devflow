@@ -2,7 +2,7 @@
  * Tipos para integração Stripe.
  */
 
-export type StripePlanKey = "PRO" | "SCALE";
+export type StripePlanKey = "OPERATIONAL_BASE" | "PRO" | "SCALE";
 
 export type LocalSubscriptionStatus =
   | "ACTIVE"

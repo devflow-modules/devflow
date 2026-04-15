@@ -19,6 +19,12 @@ enum EmailDeliveryStatus {
   FAILED
 }
 
+/** Ciclo comercial GTM: avaliação vs cliente implantado (onboarding / reporting). */
+enum TenantGtmLifecycle {
+  AVALIACAO
+  IMPLANTADO
+}
+
 enum WhatsappPhoneNumberStatus {
   /** Canal criado manualmente ou aguardando token; webhook e inbox recebem, envio bloqueado. */
   PENDING_ACTIVATION
@@ -72,6 +78,7 @@ model WhatsappChannelEvent {
 model Tenant {
   id                   String         @id @default(cuid())
   name                 String?        @map("name")
+  gtmLifecycle         TenantGtmLifecycle @default(AVALIACAO) @map("gtm_lifecycle")
   whatsappPhone        String?        @map("whatsapp_phone")
   systemPrompt         String?        @map("system_prompt") @db.Text
   defaultPrompt        String?        @map("default_prompt") @db.Text

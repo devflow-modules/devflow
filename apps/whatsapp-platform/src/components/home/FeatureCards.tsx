@@ -1,15 +1,15 @@
 const ITEMS = [
   {
     title: "Inbox operacional",
-    body: "Atenda com contexto, prioridade e histórico completo das conversas.",
+    body: "Todas as conversas num só sítio: contexto, prioridade e histórico para a equipa não perder nada.",
   },
   {
     title: "IA e automação",
-    body: "Respostas automáticas, follow-ups e reativação de leads sem perder o controlo.",
+    body: "Primeira resposta, regras e fluxos alinhados ao negócio — com supervisão humana.",
   },
   {
-    title: "Gestão comercial",
-    body: "Lead score, funil e oportunidades organizadas em tempo real.",
+    title: "Controlo da operação",
+    body: "Filas, responsáveis e visão do que está em aberto para responder rápido e bem.",
   },
 ] as const;
 

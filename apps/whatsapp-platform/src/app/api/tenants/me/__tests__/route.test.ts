@@ -19,6 +19,7 @@ vi.mock("@/modules/whatsapp/whatsappPhoneResolution", () => ({
 const tenantRow = {
   id: "t1",
   name: "Tenant",
+  gtmLifecycle: "AVALIACAO",
   aiDriver: "openAI",
   defaultPrompt: null,
   systemPrompt: null,
@@ -57,6 +58,7 @@ describe("GET /api/tenants/me", () => {
       id: "t1",
       name: "Tenant",
       plan: null,
+      gtmLifecycle: "AVALIACAO",
       hasWhatsappPhone: true,
     });
     expect(data).not.toHaveProperty("defaultPrompt");
@@ -73,6 +75,7 @@ describe("GET /api/tenants/me", () => {
     expect(res.status).toBe(200);
     const data = (await res.json()) as Record<string, unknown>;
     expect(data.id).toBe("t1");
+    expect(data.gtmLifecycle).toBe("AVALIACAO");
     expect(data.hasApiKey).toBe(true);
     expect(data.aiDriver).toBe("openAI");
     expect(data.primaryPhoneNumberId).toBe("pn1");

@@ -5,6 +5,7 @@
 import { prisma } from "@/lib/prisma";
 import { getRevenueMetrics } from "@/modules/analytics";
 import { getUsageUnitPricesBrl } from "../planConfig";
+import { normalizePlan } from "../plans";
 import { periodYYYYMM } from "../usageService";
 import type {
   BillingDashboardSummary,
@@ -204,13 +205,12 @@ export async function getUsageByPlan(): Promise<UsageByPlan[]> {
 
   const usageByTenant = new Map(aggs.map((a) => [a.tenantId, { messages: a.messagesCount, ai: a.aiCount }]));
   const byPlan = new Map<string, { messages: number; ai: number }>([
-    ["STARTER", { messages: 0, ai: 0 }],
-    ["PRO", { messages: 0, ai: 0 }],
-    ["SCALE", { messages: 0, ai: 0 }],
+    ["FREE", { messages: 0, ai: 0 }],
+    ["OPERATIONAL_BASE", { messages: 0, ai: 0 }],
   ]);
 
   for (const sub of subs) {
-    const plan = sub.plan.toUpperCase() === "TEAM" ? "SCALE" : sub.plan.toUpperCase();
+    const plan = normalizePlan(sub.plan);
     const cur = byPlan.get(plan) ?? { messages: 0, ai: 0 };
     const usage = usageByTenant.get(sub.tenantId) ?? { messages: 0, ai: 0 };
     cur.messages += usage.messages;
@@ -218,7 +218,7 @@ export async function getUsageByPlan(): Promise<UsageByPlan[]> {
     byPlan.set(plan, cur);
   }
 
-  return ["STARTER", "PRO", "SCALE"].map((plan) => ({
+  return (["FREE", "OPERATIONAL_BASE"] as const).map((plan) => ({
     plan,
     messages: byPlan.get(plan)?.messages ?? 0,
     ai: byPlan.get(plan)?.ai ?? 0,

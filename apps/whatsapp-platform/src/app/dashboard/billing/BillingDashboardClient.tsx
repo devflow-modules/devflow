@@ -11,14 +11,11 @@ import {
   UsageCard,
   OverageCard,
   BillingAlerts,
-  UpgradeCTA,
-  PlanComparisonMatrix,
-  CurrentPlanUpgradeHint,
   HowUsageWorksSection,
   HowFreePlanWorksSection,
 } from "@/components/dashboard/billing";
 import type { TenantBillingUI } from "@/modules/billing";
-import { normalizePlan, type PlanKey } from "@/modules/billing/plans";
+import { normalizePlan } from "@/modules/billing/plans";
 import { readBillingPostUrl } from "@/lib/api-json-client";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
@@ -40,7 +37,7 @@ export function BillingDashboardClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
-  const [checkoutLoading, setCheckoutLoading] = useState<PlanKey | null>(null);
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -86,8 +83,8 @@ export function BillingDashboardClient() {
     setPortalLoading(false);
   }
 
-  async function checkout(plan: PlanKey) {
-    setCheckoutLoading(plan);
+  async function checkoutOperationalBase() {
+    setCheckoutBusy(true);
     setError(null);
     try {
       const endpoints = ["/api/stripe/checkout", "/api/billing/checkout"];
@@ -96,7 +93,7 @@ export function BillingDashboardClient() {
           const res = await fetchProtected(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ plan }),
+            body: JSON.stringify({ plan: "OPERATIONAL_BASE" }),
           });
           const j = await res.json().catch(() => ({}));
           if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j as { error?: string }));
@@ -111,14 +108,14 @@ export function BillingDashboardClient() {
       }
       setError("Checkout indisponível");
     } finally {
-      setCheckoutLoading(null);
+      setCheckoutBusy(false);
     }
   }
 
   const billingHeader = (
     <PageHeader
       eyebrow="Conta"
-      title="Plano e faturação"
+      title="Consumo e faturação"
       description={BILLING_PAGE_HEADER_DESCRIPTION}
       layout="split"
       showDivider
@@ -133,13 +130,6 @@ export function BillingDashboardClient() {
           >
             {portalLoading ? "A abrir…" : "Ver portal de faturação"}
           </button>
-          <button
-            type="button"
-            className="df-quick-action"
-            onClick={() => document.getElementById("billing-upgrade-cta")?.click()}
-          >
-            Atualizar plano
-          </button>
           <Link href="/settings" className="df-quick-action">
             Configurações
           </Link>
@@ -152,7 +142,7 @@ export function BillingDashboardClient() {
     return (
       <div className="df-stack-tight">
         {billingHeader}
-        <StateLoading message="A carregar plano e consumo…" />
+        <StateLoading message="A carregar consumo e faturação…" />
       </div>
     );
   }
@@ -169,9 +159,8 @@ export function BillingDashboardClient() {
   const d = data!;
   const isPastDue =
     d.status?.toLowerCase() === "past_due" || d.status?.toLowerCase() === "pastdue";
-  const maxPct = Math.max(d.usagePercentageMessages ?? 0, d.usagePercentageAI ?? 0);
-  const showUpgradeCTA =
-    maxPct >= 80 || isPastDue || d.plan?.toUpperCase() === "STARTER" || d.plan?.toUpperCase() === "FREE";
+  const planKey = normalizePlan(d.plan);
+  const isFreePlan = planKey === "FREE";
 
   return (
     <div className="df-stack-tight">
@@ -179,7 +168,7 @@ export function BillingDashboardClient() {
 
       {successParam === "true" && (
         <div className="df-feedback-success" role="status">
-          Plano atualizado com sucesso.
+          Assinatura atualizada com sucesso.
         </div>
       )}
       {canceledParam === "true" && (
@@ -204,7 +193,23 @@ export function BillingDashboardClient() {
 
       {error ? <div className="df-feedback-danger">{error}</div> : null}
 
-      <CurrentPlanUpgradeHint plan={d.plan} />
+      {isFreePlan ? (
+        <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-5 text-sm text-slate-800 shadow-sm">
+          <p className="font-medium text-slate-900">Conta em avaliação</p>
+          <p className="mt-2 leading-relaxed">
+            A operação comercial é consultiva (implantação + mensalidade). Se já tiver acordo connosco e quiser
+            ativar o pagamento recorrente aqui, pode continuar para o Stripe.
+          </p>
+          <button
+            type="button"
+            className="mt-4 rounded-lg bg-[var(--df-brand-600)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--df-brand-700)] disabled:opacity-60"
+            disabled={checkoutBusy}
+            onClick={() => void checkoutOperationalBase()}
+          >
+            {checkoutBusy ? "A redirecionar…" : "Ativar operação contratada (Stripe)"}
+          </button>
+        </div>
+      ) : null}
 
       <BillingHeader
         plan={d.plan}
@@ -248,8 +253,6 @@ export function BillingDashboardClient() {
         overageAI={d.overageAI}
       />
 
-      <PlanComparisonMatrix currentPlan={d.plan} />
-
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <OverageCard
           overageMessages={d.overageMessages}
@@ -278,14 +281,6 @@ export function BillingDashboardClient() {
           )}
         </div>
       </div>
-
-      <UpgradeCTA
-        currentPlan={d.plan}
-        shouldShow={showUpgradeCTA}
-        onUpgrade={(plan) => void checkout(plan)}
-        loadingPlan={checkoutLoading}
-        upgradeButtonId="billing-upgrade-cta"
-      />
 
       <p className="text-center text-sm text-slate-500">
         <Link href="/dashboard" className="font-medium text-[var(--df-brand-700)] hover:underline">

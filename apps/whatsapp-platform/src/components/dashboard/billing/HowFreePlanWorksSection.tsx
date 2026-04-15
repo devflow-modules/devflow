@@ -10,7 +10,7 @@ type Props = {
 };
 
 /**
- * Narrativa de billing só para FREE: limite incluído, sem expansão faturada, CTA para upgrade.
+ * Narrativa de billing só para conta em avaliação (FREE): limites incluídos, sem expansão faturada.
  */
 export function HowFreePlanWorksSection({ planKey, className = "" }: Props) {
   const { title, bullets } = freePlanUsageExplainerLines(planKey);
@@ -24,8 +24,8 @@ export function HowFreePlanWorksSection({ planKey, className = "" }: Props) {
         {title}
       </h2>
       <p className="mt-1 text-sm text-slate-600">
-        O plano gratuito permite experimentar a plataforma com um volume incluído por mês — sem cartão e sem cobrança
-        variável.
+        A avaliação permite experimentar a plataforma com um volume incluído por mês — sem cartão e sem cobrança
+        variável. Para operação completa, combinamos implantação e contrato consigo.
       </p>
       <ul className="mt-4 space-y-2.5 text-sm text-slate-700">
         {bullets.map((line) => (
@@ -42,13 +42,13 @@ export function HowFreePlanWorksSection({ planKey, className = "" }: Props) {
           href="/dashboard/billing"
           className="inline-flex items-center justify-center rounded-lg bg-[var(--df-brand-600)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--df-brand-700)]"
         >
-          Ver planos e continuar
+          Consumo e faturação
         </Link>
         <Link
           href="/billing"
           className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-50"
         >
-          Plano e faturação
+          Ver consumo
         </Link>
       </div>
     </section>

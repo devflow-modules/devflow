@@ -48,9 +48,9 @@ export function buildFirstAutomaticReply(input: FirstAutomaticReplyInput): strin
   const name = input.businessName?.trim() || "a nossa equipa";
   const greeting = pickGreeting(input.tenantId);
   const objective = objectivePhraseFromBusinessType(input.businessType);
-  return `${greeting} Sou o assistente da ${name}.
+  return `${greeting} Recebemos a sua mensagem e já vamos atendê-lo.
 
-Posso ajudar com ${objective}.
+Sou o assistente da ${name} — posso ajudar com ${objective}.
 
 Como posso ajudar hoje?`;
 }

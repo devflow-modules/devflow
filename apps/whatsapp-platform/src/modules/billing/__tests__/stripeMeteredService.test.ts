@@ -39,7 +39,7 @@ describe("stripeMeteredService (meter events)", () => {
       stripeSubscriptionId: "sub_1",
       status: "active",
       plan: "PRO",
-      messagesIncludedUsed: 4998,
+      messagesIncludedUsed: 19998,
       aiIncludedUsed: 0,
       messagesOverageSent: 0,
       aiOverageSent: 0,
@@ -76,7 +76,7 @@ describe("stripeMeteredService (meter events)", () => {
       status: "active",
       plan: "PRO",
       messagesIncludedUsed: 0,
-      aiIncludedUsed: 749,
+      aiIncludedUsed: 2999,
       messagesOverageSent: 0,
       aiOverageSent: 0,
     });

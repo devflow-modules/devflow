@@ -27,11 +27,18 @@ function mapStripeStatusToLocal(stripeStatus: Stripe.Subscription["status"]): Lo
 }
 
 function mapStripePlanToLocal(metadataPlan?: string | null): string {
-  const p = (metadataPlan ?? "FREE").toUpperCase();
-  if (p === "TEAM") return "SCALE";
-  if (p === "STARTER") return "STARTER";
-  if (p === "PRO") return "PRO";
-  if (p === "SCALE") return "SCALE";
+  const p = (metadataPlan ?? "FREE").toUpperCase().replace(/-/g, "_");
+  if (p === "FREE") return "FREE";
+  if (
+    p === "OPERATIONAL_BASE" ||
+    p === "STARTER" ||
+    p === "PRO" ||
+    p === "SCALE" ||
+    p === "TEAM" ||
+    p === "ENTERPRISE"
+  ) {
+    return "OPERATIONAL_BASE";
+  }
   return "FREE";
 }
 

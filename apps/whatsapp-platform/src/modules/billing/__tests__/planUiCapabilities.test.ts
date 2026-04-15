@@ -16,34 +16,24 @@ describe("getUiPlanCapabilities", () => {
     expect(c.limits.users).toBe(1);
   });
 
-  it("STARTER: automação básica, sem filas, sem IA avançada", () => {
-    const c = getUiPlanCapabilities("STARTER");
+  it("OPERATIONAL_BASE: capacidades completas do pacote contratado", () => {
+    const c = getUiPlanCapabilities("OPERATIONAL_BASE");
+    expect(c.planKey).toBe("OPERATIONAL_BASE");
     expect(c.hasAutomation).toBe(true);
-    expect(c.hasAdvancedAutomation).toBe(false);
-    expect(c.hasQueuesAndTags).toBe(false);
-    expect(c.hasAdvancedAi).toBe(false);
-    expect(c.hasWebhooksApi).toBe(false);
-    expect(c.hasAdvancedReports).toBe(false);
-    expect(c.hasMultiUser).toBe(false);
-  });
-
-  it("PRO: filas, automação avançada, relatórios, multi-user, sem IA avançada nem API", () => {
-    const c = getUiPlanCapabilities("PRO");
-    expect(c.hasQueuesAndTags).toBe(true);
     expect(c.hasAdvancedAutomation).toBe(true);
-    expect(c.hasAdvancedReports).toBe(true);
-    expect(c.hasMultiUser).toBe(true);
-    expect(c.hasAdvancedAi).toBe(false);
-    expect(c.hasWebhooksApi).toBe(false);
-    expect(c.limits.users).toBe(3);
-  });
-
-  it("SCALE: IA avançada, API, suporte prioritário", () => {
-    const c = getUiPlanCapabilities("SCALE");
+    expect(c.hasQueuesAndTags).toBe(true);
     expect(c.hasAdvancedAi).toBe(true);
     expect(c.hasWebhooksApi).toBe(true);
+    expect(c.hasAdvancedReports).toBe(true);
+    expect(c.hasMultiUser).toBe(true);
     expect(c.hasPrioritySupport).toBe(true);
     expect(c.limits.phoneNumbers).toBe(3);
     expect(c.limits.users).toBe(10);
+  });
+
+  it("legados STARTER/PRO/SCALE normalizam para o mesmo pacote operacional", () => {
+    expect(getUiPlanCapabilities("STARTER").planKey).toBe("OPERATIONAL_BASE");
+    expect(getUiPlanCapabilities("PRO").planKey).toBe("OPERATIONAL_BASE");
+    expect(getUiPlanCapabilities("SCALE").planKey).toBe("OPERATIONAL_BASE");
   });
 });

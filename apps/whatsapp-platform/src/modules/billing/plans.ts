@@ -1,14 +1,12 @@
 /**
- * Definição central de planos, limites e flags de funcionalidade (fonte de verdade para enforcement e UI técnica).
- * Nunca confiar apenas no frontend para autorização.
- *
- * Assinatura mensal + possível uso variável (excedente) — ver serviços de billing e Stripe.
- *
- * Narrativa comercial, packaging e comparação por valor de produto: `planPresentation.ts` e
- * `docs/billing/PRODUCT_PRICING_NARRATIVE.md` (não duplicar números de quota na copy sem alinhar aqui).
+ * Planos efetivos: FREE (avaliação) + OPERATIONAL_BASE (implantação / operação contratada).
+ * Valores legados na BD (STARTER, PRO, SCALE, TEAM, ENTERPRISE) normalizam para OPERATIONAL_BASE.
  */
 
-export type PlanKey = "FREE" | "STARTER" | "PRO" | "SCALE";
+export type PlanKey = "FREE" | "OPERATIONAL_BASE";
+
+/** Plano único pago usado em checkout, Stripe metadata e políticas internas. */
+export const COMMERCIAL_CONTRACT_PLAN_KEY = "operational_base" as const;
 
 export type SubscriptionStatus = "ACTIVE" | "TRIAL" | "PAST_DUE" | "CANCELED";
 
@@ -42,10 +40,9 @@ export type PlanDefinition = {
 };
 
 export const PLANS: Record<PlanKey, PlanDefinition> = {
-  /** Fallback para tenant sem assinatura ativa (ex.: trial expirado, cancelado). */
   FREE: {
     key: "FREE",
-    name: "Gratuito",
+    name: "Avaliação",
     priceBrl: 0,
     limits: {
       phoneNumbers: 1,
@@ -67,58 +64,10 @@ export const PLANS: Record<PlanKey, PlanDefinition> = {
       PRIORITY_SUPPORT: false,
     },
   },
-  STARTER: {
-    key: "STARTER",
-    name: "Starter",
-    priceBrl: 39,
-    limits: {
-      phoneNumbers: 1,
-      users: 1,
-      messagesPerMonth: 1_000,
-      automationsPerMonth: 5,
-      aiCallsPerMonth: 100,
-    },
-    features: {
-      INBOX: true,
-      AUTOMATION: true,
-      QUEUES_TAGS: false,
-      ADVANCED_AUTOMATION: false,
-      AI_RESPONSE: true,
-      ADVANCED_AI: false,
-      WEBHOOKS_API: false,
-      ADVANCED_REPORTS: false,
-      MULTI_USER: false,
-      PRIORITY_SUPPORT: false,
-    },
-  },
-  PRO: {
-    key: "PRO",
-    name: "Pro",
-    priceBrl: 99,
-    limits: {
-      phoneNumbers: 1,
-      users: 3,
-      messagesPerMonth: 5_000,
-      automationsPerMonth: 50,
-      aiCallsPerMonth: 750,
-    },
-    features: {
-      INBOX: true,
-      AUTOMATION: true,
-      QUEUES_TAGS: true,
-      ADVANCED_AUTOMATION: true,
-      AI_RESPONSE: true,
-      ADVANCED_AI: false,
-      WEBHOOKS_API: false,
-      ADVANCED_REPORTS: true,
-      MULTI_USER: true,
-      PRIORITY_SUPPORT: false,
-    },
-  },
-  SCALE: {
-    key: "SCALE",
-    name: "Scale",
-    priceBrl: 249,
+  OPERATIONAL_BASE: {
+    key: "OPERATIONAL_BASE",
+    name: "Operação contratada",
+    priceBrl: 0,
     limits: {
       phoneNumbers: 3,
       users: 10,
@@ -141,12 +90,21 @@ export const PLANS: Record<PlanKey, PlanDefinition> = {
   },
 };
 
+const PAID_ALIASES = new Set([
+  "STARTER",
+  "PRO",
+  "SCALE",
+  "TEAM",
+  "ENTERPRISE",
+  "OPERATIONAL_BASE",
+  "OPERATIONAL-BASE",
+  COMMERCIAL_CONTRACT_PLAN_KEY.toUpperCase(),
+]);
+
 export function normalizePlan(plan: string | null | undefined): PlanKey {
-  const p = (plan ?? "FREE").toUpperCase();
-  if (p === "STARTER") return "STARTER";
-  if (p === "PRO") return "PRO";
-  if (p === "SCALE" || p === "TEAM") return "SCALE";
-  if (p === "ENTERPRISE") return "SCALE"; // Enterprise sob consulta → trata como Scale
+  const p = (plan ?? "FREE").toUpperCase().replace(/-/g, "_");
+  if (p === "FREE") return "FREE";
+  if (PAID_ALIASES.has(p)) return "OPERATIONAL_BASE";
   return "FREE";
 }
 
@@ -162,10 +120,6 @@ export function getPlanFeatures(plan: string | null | undefined): PlanFeatures {
   return getPlan(plan).features;
 }
 
-/**
- * Planos pagos (STARTER / PRO / SCALE) podem ter expansão de uso faturada.
- * FREE não tem cartão nem faturação variável — limite incluído é teto duro.
- */
 export function planAllowsMeteredOverage(plan: string | null | undefined): boolean {
   return normalizePlan(plan) !== "FREE";
 }

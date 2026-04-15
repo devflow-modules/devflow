@@ -4,7 +4,7 @@
  */
 
 import { getTenantBillingSummary } from "./billingSummaryService";
-import { getUsageUnitPricesBrl, isBillingEnforceLimits } from "./planConfig";
+import { getUsageUnitPricesBrl, isBillingEnforceLimits, isBillingHardBlockPaidMessages } from "./planConfig";
 import { normalizePlan, planAllowsMeteredOverage } from "./plans";
 
 export type TenantBillingUI = {
@@ -76,6 +76,7 @@ export async function getTenantBillingUI(tenantId: string): Promise<TenantBillin
     lastInvoiceAmount: summary.lastInvoice?.amountPaid ?? null,
     lastInvoiceStatus: summary.lastInvoice?.status ?? null,
     allowsMeteredOverage: allowsMetered,
-    enforceLimits: !allowsMetered || isBillingEnforceLimits(),
+    enforceLimits:
+      !allowsMetered || (isBillingEnforceLimits() && isBillingHardBlockPaidMessages()),
   };
 }

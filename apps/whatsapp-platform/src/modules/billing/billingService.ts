@@ -4,11 +4,11 @@ import { createCheckoutSession as createStripeCheckout, isStripeConfigured } fro
 import { getUsageByPeriod, getStripeUsageSyncStats, periodYYYYMM } from "./usageService";
 import { isMeterEventsConfigured } from "./infrastructure/stripeMeterClient";
 import { getPlanLimits, getUsageUnitPricesBrl, isBillingEnforceLimits, normalizePlanKey } from "./planConfig";
-import { normalizePlan, planAllowsMeteredOverage } from "./plans";
+import { normalizePlan, planAllowsMeteredOverage, type PlanKey } from "./plans";
 import { getTenantPlan } from "./subscriptionService";
 import { getAiOverageBilledInPeriod } from "./aiOverageVisibilityService";
 
-export type CheckoutPlan = "STARTER" | "PRO" | "SCALE";
+export type CheckoutPlan = PlanKey;
 
 export async function createBillingCheckoutSession(
   userId: string,
@@ -17,6 +17,9 @@ export async function createBillingCheckoutSession(
   plan: CheckoutPlan,
   baseUrl: string
 ): Promise<{ checkoutUrl: string }> {
+  if (normalizePlan(plan) === "FREE") {
+    throw new Error("Checkout disponível apenas para ativar a operação contratada (contacte a equipa se precisar de ajuda).");
+  }
   if (isStripeConfigured()) {
     const [tenantSub, billingSub, tenant] = await Promise.all([
       prisma.tenantSubscription.findUnique({
@@ -34,7 +37,7 @@ export async function createBillingCheckoutSession(
     ]);
     const stripeCustomerId =
       tenantSub?.stripeCustomerId ?? billingSub?.stripeCustomerId ?? tenant?.stripeCustomerId ?? null;
-    const stripePlan: "PRO" | "SCALE" = plan === "STARTER" ? "PRO" : plan;
+    const stripePlan = "OPERATIONAL_BASE" as const;
     const result = await createStripeCheckout({
       tenantId,
       email,
@@ -49,7 +52,7 @@ export async function createBillingCheckoutSession(
   const result = await createCheckoutSession({
     userId,
     email,
-    planId: plan === "SCALE" ? "TEAM" : "PRO", // STARTER mapeia para PRO (billing-core: PlanIdPaid = PRO | TEAM)
+    planId: "TEAM",
     successUrl: `${baseUrl.replace(/\/$/, "")}/settings/billing?checkout=success`,
     cancelUrl: `${baseUrl.replace(/\/$/, "")}/settings/billing?checkout=cancel`,
   });

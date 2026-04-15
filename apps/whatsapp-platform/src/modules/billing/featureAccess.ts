@@ -10,7 +10,7 @@ import { getTenantPlan } from "./subscriptionService";
 import { bumpMetric, logEvent } from "@/lib/observability";
 import { featureUpgradeShortMessage } from "./featureUpgradeCopy";
 
-const PLAN_ORDER: PlanKey[] = ["FREE", "STARTER", "PRO", "SCALE"];
+const PLAN_ORDER: PlanKey[] = ["FREE", "OPERATIONAL_BASE"];
 
 const FEATURE_TO_PLAN_KEY: Record<FeatureKey, keyof PlanFeatures> = {
   AUTOMATION: "AUTOMATION",
@@ -42,7 +42,7 @@ export function minimumPlanForFeature(feature: FeatureKey): PlanKey {
   for (const pk of PLAN_ORDER) {
     if (PLANS[pk].features[key]) return pk;
   }
-  return "SCALE";
+  return "OPERATIONAL_BASE";
 }
 
 export function buildFeatureAccessError(params: {

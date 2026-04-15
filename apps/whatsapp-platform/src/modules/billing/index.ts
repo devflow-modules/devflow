@@ -20,6 +20,7 @@ export {
   getPlanLimits,
   normalizePlanKey,
   isBillingEnforceLimits,
+  isBillingHardBlockPaidMessages,
 } from "./planConfig";
 export {
   getTenantPlan,

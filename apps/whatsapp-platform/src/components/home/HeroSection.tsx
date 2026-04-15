@@ -13,10 +13,11 @@ export function HeroSection({
   return (
     <section className="text-center">
       <h1 className="text-balance text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl md:text-[2.5rem] md:leading-tight">
-        WhatsApp com IA para atendimento, operação e vendas
+        Sistema profissional para organizar, controlar e escalar o atendimento da sua empresa no WhatsApp
       </h1>
       <p className="mx-auto mt-5 max-w-2xl text-pretty text-base leading-relaxed text-slate-600 sm:text-lg">
-        Centralize conversas, priorize leads e automatize follow-ups em um único painel.
+        Uma operação clara: conversas num só lugar, equipa alinhada, automação e IA com controlo — implantação
+        acompanhada, não um SaaS genérico.
       </p>
 
       <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center">

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@devflow/ui";
-import { PLANS } from "@/modules/billing/plans";
+import { PLANS, normalizePlan } from "@/modules/billing/plans";
 import type { PlanKey } from "@/modules/billing/plans";
 import {
   COMMERCIAL_PLAN_HEADLINE,
@@ -18,14 +18,9 @@ type Props = {
   upgradeButtonId?: string;
 };
 
-const PLAN_ORDER: PlanKey[] = ["FREE", "STARTER", "PRO", "SCALE"];
-
 function getNextPlan(current: string): PlanKey {
-  const key = (current?.toUpperCase() ?? "FREE") as PlanKey;
-  const idx = PLAN_ORDER.indexOf(key);
-  const nextIdx = Math.min(idx + 1, PLAN_ORDER.length - 1);
-  const next = PLAN_ORDER[nextIdx];
-  return next === "FREE" ? "STARTER" : next;
+  const key = normalizePlan(current);
+  return key === "FREE" ? "OPERATIONAL_BASE" : "OPERATIONAL_BASE";
 }
 
 export function UpgradeCTA({
@@ -37,7 +32,7 @@ export function UpgradeCTA({
 }: Props) {
   if (!shouldShow) return null;
 
-  const currentKey = (currentPlan?.toUpperCase() ?? "FREE") as PlanKey;
+  const currentKey = normalizePlan(currentPlan);
   const nextPlan = getNextPlan(currentPlan);
   const nextPlanDef = PLANS[nextPlan];
 

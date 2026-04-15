@@ -5,7 +5,7 @@ const mockGetTenantBillingContext = vi.fn();
 const mockGetAiUsageMetrics = vi.fn();
 const mockGetUsageByPeriod = vi.fn();
 
-function capsForPlan(plan: "STARTER" | "PRO") {
+function capsForPlan(plan: "OPERATIONAL_BASE") {
   return {
     plan,
     maxMessages: 1000,
@@ -27,20 +27,23 @@ vi.mock("../usageService", () => ({
   getUsageByPeriod: (...a: unknown[]) => mockGetUsageByPeriod(...a),
   periodYYYYMM: () => "2025-03",
 }));
-vi.mock("./planConfig", () => ({
+vi.mock("../planConfig", () => ({
   isBillingEnforceLimits: () => true,
+  isBillingHardBlockPaidMessages: () => false,
 }));
 vi.mock("../billingObserverService", () => ({
   logLimitExceeded: () => {},
   logUsageThresholdWarning: () => {},
+  logSoftMessageOverIncluded: () => {},
+  logHighWaterMessagesCrossing5000: () => {},
 }));
 
 describe("enforcementService AI limit", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetTenantBillingContext.mockResolvedValue({
-      plan: "STARTER",
-      capabilities: capsForPlan("STARTER"),
+      plan: "OPERATIONAL_BASE",
+      capabilities: capsForPlan("OPERATIONAL_BASE"),
     });
     mockGetAiUsageMetrics.mockResolvedValue({ aiMessagesTotal: 50 });
     mockGetUsageByPeriod.mockResolvedValue({ messagesSent: 100, aiResponses: 50 });
@@ -53,7 +56,7 @@ describe("enforcementService AI limit", () => {
     ).resolves.toBeUndefined();
   });
 
-  it("permite acima do limite de IA no Starter (uso adicional faturado)", async () => {
+  it("permite acima do limite de IA no plano pago (uso adicional faturado)", async () => {
     mockGetAiUsageMetrics.mockResolvedValue({ aiMessagesTotal: 100 });
     const { enforceUsageOrThrow } = await import("../enforcementService");
     await expect(
@@ -61,10 +64,10 @@ describe("enforcementService AI limit", () => {
     ).resolves.toBeUndefined();
   });
 
-  it("permite acima do limite de IA no Pro (uso adicional faturado)", async () => {
+  it("permite acima do limite de IA com outro contexto pago (uso adicional faturado)", async () => {
     mockGetTenantBillingContext.mockResolvedValue({
-      plan: "PRO",
-      capabilities: capsForPlan("PRO"),
+      plan: "OPERATIONAL_BASE",
+      capabilities: capsForPlan("OPERATIONAL_BASE"),
     });
     mockGetAiUsageMetrics.mockResolvedValue({ aiMessagesTotal: 750 });
     const { enforceUsageOrThrow } = await import("../enforcementService");

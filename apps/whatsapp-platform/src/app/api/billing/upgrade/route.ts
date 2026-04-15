@@ -3,10 +3,8 @@ import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/a
 import { z } from "zod";
 import { ensureTenantSubscription } from "@/modules/billing/subscriptionService";
 import { normalizePlan } from "@/modules/billing/plans";
-import type { PlanKey } from "@/modules/billing/plans";
-
 const bodySchema = z.object({
-  plan: z.enum(["STARTER", "PRO", "SCALE"]),
+  plan: z.enum(["OPERATIONAL_BASE", "STARTER", "PRO", "SCALE", "TEAM"]),
 });
 
 /**
@@ -24,13 +22,13 @@ export async function POST(request: NextRequest) {
   const parsed = bodySchema.safeParse(await request.json());
   if (!parsed.success) {
     return NextResponse.json(
-      { success: false, error: "plan inválido (STARTER, PRO ou SCALE)" },
+      { success: false, error: "plan inválido" },
       { status: 400 }
     );
   }
 
   try {
-    const plan = normalizePlan(parsed.data.plan) as PlanKey;
+    const plan = normalizePlan(parsed.data.plan);
     await ensureTenantSubscription(auth.payload.tenantId, plan, "ACTIVE");
     return NextResponse.json({
       success: true,

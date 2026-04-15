@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@devflow/ui";
-import { PLANS, getPlan, normalizePlan } from "@/modules/billing/plans";
+import { PLANS, getPlan, normalizePlan, type PlanKey } from "@/modules/billing/plans";
 import {
   billingChangePlanButtonLabel,
   COMMERCIAL_CHECKOUT_CTA,
@@ -60,13 +60,11 @@ type Usage = {
   };
 };
 
-type BillingPlanKey = "STARTER" | "PRO" | "SCALE";
-
-const BILLING_PLANS: BillingPlanKey[] = ["STARTER", "PRO", "SCALE"];
+/** Planos mostrados no modal de checkout (venda consultiva: um pacote pago). */
+const MODAL_CHECKOUT_PLANS: PlanKey[] = ["OPERATIONAL_BASE"];
 
 function displayPlanName(plan: string | undefined): string {
-  const key = plan?.toUpperCase() as keyof typeof PLANS;
-  return PLANS[key]?.name ?? plan ?? "—";
+  return getPlan(plan).name;
 }
 
 function subscriptionStatusPt(status: string | undefined): string {
@@ -101,8 +99,8 @@ export function BillingPageClient() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
-  const [checkoutLoading, setCheckoutLoading] = useState<BillingPlanKey | null>(null);
-  const [, setUpgradeLoading] = useState<BillingPlanKey | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState<PlanKey | null>(null);
+  const [, setUpgradeLoading] = useState<PlanKey | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const load = useCallback(async () => {
@@ -170,7 +168,7 @@ export function BillingPageClient() {
     setPortalLoading(false);
   }
 
-  async function checkout(plan: BillingPlanKey) {
+  async function checkout(plan: PlanKey) {
     setCheckoutLoading(plan);
     setErr(null);
     try {
@@ -199,7 +197,7 @@ export function BillingPageClient() {
     }
   }
 
-  async function upgradeStub(plan: BillingPlanKey) {
+  async function upgradeStub(plan: PlanKey) {
     setUpgradeLoading(plan);
     setErr(null);
     try {
@@ -219,7 +217,7 @@ export function BillingPageClient() {
     }
   }
 
-  const currentPlan = sub?.plan?.toUpperCase() ?? "FREE";
+  const normalizedCurrentPlan = normalizePlan(sub?.plan);
 
   if (loading) {
     return <StateLoading message="A carregar informação de plano…" className="min-h-[40vh]" />;
@@ -415,15 +413,21 @@ export function BillingPageClient() {
             className="max-h-[90vh] overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 shadow-xl sm:max-w-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold mb-2">Escolha o plano certo para a sua operação</h3>
+            <h3 className="text-lg font-semibold mb-2">Ativar operação contratada</h3>
             <p className="text-sm text-slate-600 mb-4">
-              Assinatura mensal fixa por nível. {USAGE_AFTER_INCLUDED_EXPLAINER} {USAGE_ANTI_SURPRISE_LINE}
+              Pacote operacional único (mensal + uso adicional transparente). {USAGE_AFTER_INCLUDED_EXPLAINER}{" "}
+              {USAGE_ANTI_SURPRISE_LINE}
             </p>
             <div className="flex flex-col gap-3">
-              {BILLING_PLANS.map((key) => {
+              {MODAL_CHECKOUT_PLANS.map((key) => {
                 const def = PLANS[key];
-                const isCurrent = currentPlan === key;
-                const price = def.priceBrl > 0 ? `R$ ${def.priceBrl}/mês` : "Gratuito";
+                const isCurrent = normalizedCurrentPlan === key;
+                const price =
+                  def.priceBrl > 0
+                    ? `R$ ${def.priceBrl}/mês`
+                    : key === "FREE"
+                      ? "Gratuito"
+                      : "Mensalidade conforme Stripe / contrato";
                 const isRecommended = key === COMMERCIAL_RECOMMENDED_PLAN;
                 const benefits = COMMERCIAL_PLAN_BENEFITS[key];
                 const cta = COMMERCIAL_CHECKOUT_CTA[key];

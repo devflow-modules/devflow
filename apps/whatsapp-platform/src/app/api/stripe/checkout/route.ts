@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthFromRequest } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
-import { createCheckoutSession } from "@/modules/stripe";
-import { isStripeConfigured } from "@/modules/stripe";
+import { createCheckoutSession, isStripeConfigured, type StripePlanKey } from "@/modules/stripe";
 
 const bodySchema = z.object({
-  plan: z.enum(["PRO", "SCALE"]),
+  plan: z.enum(["OPERATIONAL_BASE", "PRO", "SCALE"]),
 });
 
 export const dynamic = "force-dynamic";
@@ -28,7 +27,7 @@ export async function POST(request: NextRequest) {
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
     return NextResponse.json(
-      { success: false, error: "plan deve ser PRO ou SCALE" },
+      { success: false, error: "plan deve ser OPERATIONAL_BASE, PRO ou SCALE" },
       { status: 400 }
     );
   }
@@ -72,7 +71,7 @@ export async function POST(request: NextRequest) {
       userId: auth.payload.sub,
       tenantId: auth.payload.tenantId,
       email: user.email,
-      plan: parsed.data.plan,
+      plan: parsed.data.plan as StripePlanKey,
       successUrl,
       cancelUrl,
       stripeCustomerId,

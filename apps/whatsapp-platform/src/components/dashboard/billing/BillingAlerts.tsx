@@ -40,33 +40,33 @@ export function BillingAlerts({
       alerts.push({
         type: "danger",
         message:
-          "Você atingiu o limite do plano gratuito. Escolha um plano para continuar a operar com atendimento.",
-        cta: { href: "/dashboard/billing", label: "Ver planos" },
+          "Atingiu o limite da avaliação. Ative a operação contratada para continuar o atendimento — Consumo e faturação ou contacte a equipa.",
+        cta: { href: "/dashboard/billing", label: "Consumo e faturação" },
       });
     } else {
       alerts.push({
         type: "danger",
         message:
-          "Incluído no plano esgotado neste período. Atualize o plano para voltar a ter margem no pacote base, ou contacte-nos se precisar de volumes especiais.",
+          "Pacote incluído esgotado neste período e bloqueio técnico ativo. Contacte a equipa para ajustar o contrato ou volumes.",
       });
     }
   } else if (maxPct >= 100 && !enforceLimits) {
-    alerts.push({
-      type: "warning",
-      message: `Ultrapassou o volume incluído no plano neste período. O uso adicional («${STRIPE_USAGE_LINE_LABELS.extraConversations}» e «${STRIPE_USAGE_LINE_LABELS.extraAi}» na fatura) é registado e faturado automaticamente — o atendimento segue sem interrupção.`,
-    });
+      alerts.push({
+        type: "warning",
+        message: `Ultrapassou o volume incluído no pacote neste período. O uso adicional («${STRIPE_USAGE_LINE_LABELS.extraConversations}» e «${STRIPE_USAGE_LINE_LABELS.extraAi}» na fatura) é registado e faturado automaticamente — o atendimento segue sem interrupção.`,
+      });
   } else if (maxPct >= 80) {
     if (isFree) {
       alerts.push({
         type: "info",
-        message: "Você está perto do limite do plano gratuito. Escolha um plano a tempo para não interromper o atendimento.",
-        cta: { href: "/dashboard/billing", label: "Escolher plano" },
+        message: "Está perto do limite da avaliação. Ative a operação contratada a tempo para não interromper o atendimento.",
+        cta: { href: "/dashboard/billing", label: "Consumo e faturação" },
       });
     } else {
       alerts.push({
         type: "info",
         message:
-          "Está próximo do que o plano inclui neste período. Se ultrapassar, o uso adicional conta de forma automática — sem bloquear o serviço.",
+          "Está próximo do que o pacote inclui neste período. Se ultrapassar, o uso adicional conta de forma automática — sem bloquear o serviço.",
       });
     }
   }

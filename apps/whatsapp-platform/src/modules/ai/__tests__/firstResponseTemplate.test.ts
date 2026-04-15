@@ -24,6 +24,7 @@ describe("firstResponseTemplate", () => {
       businessType: "other",
     });
     expect(t).toContain("Padaria Central");
+    expect(t).toMatch(/recebemos a sua mensagem/i);
     expect(t).toContain("Como posso ajudar hoje?");
     expect(t.toLowerCase()).toContain("assistente");
   });
