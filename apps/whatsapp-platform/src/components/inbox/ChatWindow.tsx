@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ConversationActionBanner } from "./ConversationActionBanner";
 import { useQuery } from "@tanstack/react-query";
 import { MessageList } from "./MessageList";
@@ -113,6 +113,10 @@ export function ChatWindow({
     return () => window.removeEventListener("keydown", onKey);
   }, [crmDrawerOpen]);
 
+  const handleAgentMessageSent = useCallback(() => {
+    setActionBannerDismissed(true);
+  }, []);
+
   const leadSideClass = `hidden max-h-full min-h-0 shrink-0 overflow-y-auto border-l border-slate-200/90 xl:flex ${
     shellSidebarCollapsed ? "xl:w-[260px] xl:max-w-[260px]" : "xl:w-[280px] xl:min-w-[260px] xl:max-w-[280px]"
   }`;
@@ -177,7 +181,7 @@ export function ChatWindow({
             <MessageInput
               threadId={threadId}
               thread={activeThread}
-              onAgentMessageSent={() => setActionBannerDismissed(true)}
+              onAgentMessageSent={handleAgentMessageSent}
               denseComposer={compactChrome || shellSidebarCollapsed || inboxFocusMode}
             />
           </div>

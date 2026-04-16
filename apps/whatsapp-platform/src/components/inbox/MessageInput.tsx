@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, useMemo, type KeyboardEvent } from "react";
+import { memo, useCallback, useRef, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   sendInboxMessage,
-  reportTyping,
   fetchSuggestedReply,
   logFollowUpUse,
   fetchTenantWhatsappLines,
@@ -16,9 +15,7 @@ import { followUpSuggestion } from "./followUpUtils";
 import { PlaybookSuggest } from "./PlaybookSuggest";
 import { markFirstReplySent } from "@/lib/activationStorage";
 import { INBOX_CHAT_GUTTER_X, INBOX_CHAT_GUTTER_X_COMPACT } from "./inboxChatLayout";
-
-const TYPING_DEBOUNCE_MS = 400;
-const TYPING_STOP_DELAY_MS = 1500;
+import { InboxComposerTextField, type InboxComposerHandle } from "./InboxComposerTextField";
 
 const OUTBOUND_LOCKED_HINT = "Disponível após ativação do número";
 
@@ -30,7 +27,7 @@ const QUICK_TEMPLATES: { label: string; text: string }[] = [
   { label: "Encerrar", text: "Posso ajudar em mais alguma coisa? Se não, tenha um bom dia!" },
 ];
 
-export function MessageInput({
+function MessageInputInner({
   threadId,
   thread,
   onAgentMessageSent,
@@ -43,12 +40,10 @@ export function MessageInput({
   /** Menos padding, respostas rápidas recolhíveis — liberta altura para o histórico. */
   denseComposer?: boolean;
 }) {
-  const [text, setText] = useState("");
   const [retryText, setRetryText] = useState<string | null>(null);
   const [aiPreview, setAiPreview] = useState<string | null>(null);
   const qc = useQueryClient();
-  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const stopTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const composerRef = useRef<InboxComposerHandle>(null);
 
   const { data: waLines = [] } = useQuery({
     queryKey: INBOX_QK.phoneLines,
@@ -114,7 +109,7 @@ export function MessageInput({
       if (vars.tid) qc.invalidateQueries({ queryKey: INBOX_QK.thread(vars.tid) });
     },
     onSuccess: () => {
-      setText("");
+      composerRef.current?.clear();
       setRetryText(null);
       setAiPreview(null);
       markFirstReplySent();
@@ -122,47 +117,33 @@ export function MessageInput({
     },
   });
 
-  useEffect(() => {
-    if (!threadId) return;
-    if (text.length > 0) {
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      if (stopTypingTimeoutRef.current) clearTimeout(stopTypingTimeoutRef.current);
-      typingTimeoutRef.current = setTimeout(() => {
-        reportTyping(threadId, true);
-        typingTimeoutRef.current = null;
-      }, TYPING_DEBOUNCE_MS);
-      stopTypingTimeoutRef.current = setTimeout(() => {
-        reportTyping(threadId, false);
-        stopTypingTimeoutRef.current = null;
-      }, TYPING_STOP_DELAY_MS);
-    } else {
-      reportTyping(threadId, false);
-    }
-    return () => {
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      if (stopTypingTimeoutRef.current) clearTimeout(stopTypingTimeoutRef.current);
-      reportTyping(threadId, false);
-    };
-  }, [threadId, text]);
+  const { mutate: sendMessage } = mutation;
+  const handleComposerSend = useCallback(
+    (body: string) => {
+      if (!threadId) return;
+      sendMessage({ tid: threadId, body });
+    },
+    [threadId, sendMessage]
+  );
 
-  const send = useCallback(() => {
-    if (!threadId || !text.trim() || mutation.isPending || composerLocked) return;
-    reportTyping(threadId, false);
-    mutation.mutate({ tid: threadId, body: text.trim() });
-  }, [threadId, text, mutation, composerLocked]);
+  const applyTemplate = useCallback(
+    (tpl: string) => {
+      const name = thread?.contactName?.trim();
+      const personalized = name ? tpl.replace(/\{\{nome\}\}/g, name) : tpl;
+      composerRef.current?.appendText(personalized);
+    },
+    [thread?.contactName]
+  );
 
-  const applyTemplate = (tpl: string) => {
-    const name = thread?.contactName?.trim();
-    const personalized = name ? tpl.replace(/\{\{nome\}\}/g, name) : tpl;
-    setText((prev) => (prev ? `${prev.trim()}\n\n${personalized}` : personalized));
-  };
+  const handlePlaybookUse = useCallback((t: string) => {
+    composerRef.current?.setText(t);
+  }, []);
 
-  const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      send();
-    }
-  };
+  const handleAiPreviewUseInEditor = useCallback(() => {
+    if (aiPreview === null) return;
+    composerRef.current?.setText(aiPreview);
+    setAiPreview(null);
+  }, [aiPreview]);
 
   if (!threadId) {
     return (
@@ -214,7 +195,7 @@ export function MessageInput({
             onClick={async () => {
               const fu = followUpSuggestion(thread);
               if (!fu?.show) return;
-              setText(fu.suggestedText);
+              composerRef.current?.setText(fu.suggestedText);
               void logFollowUpUse(threadId);
               await qc.invalidateQueries({ queryKey: INBOX_QK.audit(threadId) });
             }}
@@ -314,7 +295,7 @@ export function MessageInput({
             <PlaybookSuggest
               threadId={threadId}
               sendDisabled={mutation.isPending || composerLocked}
-              onUseResponse={(t) => setText(t)}
+              onUseResponse={handlePlaybookUse}
             />
           </div>
         </details>
@@ -322,7 +303,7 @@ export function MessageInput({
         <PlaybookSuggest
           threadId={threadId}
           sendDisabled={mutation.isPending || composerLocked}
-          onUseResponse={(t) => setText(t)}
+          onUseResponse={handlePlaybookUse}
         />
       )}
 
@@ -339,21 +320,10 @@ export function MessageInput({
           </p>
           <p className="mt-2 whitespace-pre-wrap text-slate-800">{aiPreview}</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <button
-              type="button"
-              className={buttonClassName("primary")}
-              onClick={() => {
-                setText(aiPreview);
-                setAiPreview(null);
-              }}
-            >
+            <button type="button" className={buttonClassName("primary")} onClick={handleAiPreviewUseInEditor}>
               Usar no editor
             </button>
-            <button
-              type="button"
-              className={buttonClassName("secondary")}
-              onClick={() => setAiPreview(null)}
-            >
+            <button type="button" className={buttonClassName("secondary")} onClick={() => setAiPreview(null)}>
               Descartar
             </button>
             <button
@@ -372,37 +342,17 @@ export function MessageInput({
         </div>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <label className="sr-only" htmlFor="inbox-composer">
-          Mensagem para o cliente
-        </label>
-        <textarea
-          id="inbox-composer"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={onKeyDown}
-          placeholder="Escreva a mensagem…"
-          rows={denseComposer ? 2 : 3}
-          disabled={mutation.isPending || composerLocked}
-          title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
-          className={`df-field-control flex-1 resize-y text-[15px] leading-relaxed shadow-inner transition-colors duration-200 bg-slate-50/60 focus:bg-white ${
-            denseComposer ? "min-h-[4.25rem]" : "min-h-[5.5rem]"
-          }`}
-        />
-        <button
-          type="button"
-          onClick={send}
-          disabled={mutation.isPending || !text.trim() || composerLocked}
-          title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
-          className="df-inbox-send-primary sm:self-stretch"
-          data-testid="send-button"
-        >
-          {mutation.isPending ? "A enviar…" : "Enviar"}
-        </button>
-      </div>
-      <p className={`px-0.5 text-[11px] text-slate-400 ${denseComposer ? "mt-1" : "mt-2"}`}>
-        Enter envia · Shift+Enter nova linha
-      </p>
+      <InboxComposerTextField
+        key={threadId}
+        ref={composerRef}
+        threadId={threadId}
+        denseComposer={denseComposer}
+        composerLocked={composerLocked}
+        sendDisabled={mutation.isPending}
+        onSend={handleComposerSend}
+      />
     </div>
   );
 }
+
+export const MessageInput = memo(MessageInputInner);
