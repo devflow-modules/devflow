@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import type { WaInboxThreadRow } from "./inboxTypes";
 import { bannerLabel, computeConversationActionBanner } from "./conversationActionBannerLogic";
 import { buttonClassName } from "@/components/ui/button";
+import { INBOX_CHAT_GUTTER_X } from "./inboxChatLayout";
 
 export function ConversationActionBanner({
   thread,
@@ -26,11 +27,11 @@ export function ConversationActionBanner({
 
   return (
     <div
-      className="shrink-0 border-b border-amber-200/90 bg-gradient-to-r from-amber-50 to-amber-50/40 px-4 py-3 sm:px-5"
+      className={`shrink-0 border-b border-amber-200/90 bg-gradient-to-r from-amber-50 to-amber-50/40 py-3 sm:py-3.5 ${INBOX_CHAT_GUTTER_X}`}
       data-testid="conversation-action-banner"
       role="status"
     >
-      <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3">
+      <div className="flex w-full flex-wrap items-center justify-between gap-3">
         <p className="min-w-0 text-sm font-medium text-amber-950">{text}</p>
         <div className="flex shrink-0 gap-2">
           <button

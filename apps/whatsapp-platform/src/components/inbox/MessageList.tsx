@@ -16,6 +16,7 @@ import {
   daySeparatorLabel,
   firstUnreadSeparatorIndex,
 } from "./chatMessageUtils";
+import { INBOX_CHAT_GUTTER_X } from "./inboxChatLayout";
 
 const POLL_INTERVAL_REALTIME_MS = 10_000;
 const POLL_INTERVAL_FALLBACK_MS = 5_000;
@@ -33,12 +34,9 @@ function isCompactContinuation(messages: WaInboxMessageRow[], index: number): bo
 export function MessageList({
   threadId,
   thread,
-  wideReadingColumn = false,
 }: {
   threadId: string | null;
   thread?: WaInboxThreadRow | null;
-  /** Menu principal recuado — coluna de leitura mais larga. */
-  wideReadingColumn?: boolean;
 }) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastMsgIdRef = useRef<string | null>(null);
@@ -95,7 +93,9 @@ export function MessageList({
 
   if (!threadId) {
     return (
-      <div className="df-state-empty flex flex-1 flex-col items-center justify-center border-0 bg-transparent px-6 py-16 shadow-none">
+      <div
+        className={`df-state-empty flex flex-1 flex-col items-center justify-center border-0 bg-transparent py-16 shadow-none ${INBOX_CHAT_GUTTER_X}`}
+      >
         <p className="text-sm font-semibold text-slate-800">Escolha uma conversa</p>
         <p className="df-text-muted mt-2 max-w-xs">Na lista à esquerda, toque num contacto para abrir o histórico.</p>
       </div>
@@ -104,7 +104,10 @@ export function MessageList({
 
   if (isLoading) {
     return (
-      <div className="flex h-full min-h-0 flex-col justify-center p-4 transition-opacity duration-300" data-testid="messages-loading">
+      <div
+        className={`flex h-full min-h-0 flex-col justify-center py-6 transition-opacity duration-300 sm:py-8 ${INBOX_CHAT_GUTTER_X}`}
+        data-testid="messages-loading"
+      >
         <StateLoading
           message="A carregar mensagens…"
           className="min-h-[12rem] border-slate-200/80 bg-white/90 shadow-none motion-safe:animate-pulse motion-safe:duration-[1.6s]"
@@ -115,7 +118,7 @@ export function MessageList({
 
   if (isError) {
     return (
-      <div className="flex h-full min-h-0 flex-col justify-center p-4">
+      <div className={`flex h-full min-h-0 flex-col justify-center py-6 sm:py-8 ${INBOX_CHAT_GUTTER_X}`}>
         <StateError
           title="Não foi possível carregar as mensagens"
           message={error instanceof Error ? error.message : "Tente novamente."}
@@ -127,7 +130,7 @@ export function MessageList({
 
   if (!data?.length) {
     return (
-      <div className="flex h-full min-h-0 flex-col justify-center p-4">
+      <div className={`flex h-full min-h-0 flex-col justify-center py-6 sm:py-8 ${INBOX_CHAT_GUTTER_X}`}>
         <StateEmpty
           title="Sem mensagens nesta conversa"
           description="A primeira mensagem do cliente aparece aqui. Se acabou de abrir a conversa, peça um teste do telemóvel ou aguarde a resposta automática."
@@ -143,12 +146,10 @@ export function MessageList({
 
   return (
     <div
-      className="flex h-full min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 px-5 py-6 sm:px-8 sm:py-8"
+      className={`flex h-full min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 py-6 sm:py-8 ${INBOX_CHAT_GUTTER_X}`}
       data-testid="message-list"
     >
-      <div
-        className={`mx-auto flex min-h-full w-full flex-col gap-3.5 ${wideReadingColumn ? "max-w-5xl xl:max-w-[52rem]" : "max-w-[46rem]"}`}
-      >
+      <div className="flex min-h-full w-full max-w-none flex-col gap-3.5">
         <ConversationTimeline messages={data} />
         {thread ? <AutomationStatusHints thread={thread} /> : null}
         {timeline.map((item, ti) => {

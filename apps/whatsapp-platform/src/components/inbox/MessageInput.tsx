@@ -15,6 +15,7 @@ import { buttonClassName } from "@/components/ui/button";
 import { followUpSuggestion } from "./followUpUtils";
 import { PlaybookSuggest } from "./PlaybookSuggest";
 import { markFirstReplySent } from "@/lib/activationStorage";
+import { INBOX_CHAT_GUTTER_X, INBOX_CHAT_GUTTER_X_COMPACT } from "./inboxChatLayout";
 
 const TYPING_DEBOUNCE_MS = 400;
 const TYPING_STOP_DELAY_MS = 1500;
@@ -175,7 +176,9 @@ export function MessageInput({
     <div
       id="inbox-composer-anchor"
       className={`shrink-0 rounded-t-2xl border-t border-slate-200/90 bg-white shadow-[0_-10px_36px_rgba(15,23,42,0.045)] ${
-        denseComposer ? "px-3 pb-2.5 pt-2 sm:px-4 sm:pb-3 sm:pt-2.5" : "px-4 pb-4 pt-3.5 sm:px-5 sm:pb-5 sm:pt-4"
+        denseComposer
+          ? `${INBOX_CHAT_GUTTER_X_COMPACT} pb-2.5 pt-2 sm:pb-3 sm:pt-2.5`
+          : `${INBOX_CHAT_GUTTER_X} pb-4 pt-3.5 sm:pb-5 sm:pt-4`
       }`}
       data-testid="message-input"
     >

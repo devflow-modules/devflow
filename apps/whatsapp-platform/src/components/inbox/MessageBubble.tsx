@@ -103,6 +103,12 @@ export const MessageBubble = memo(function MessageBubble({
   const outboundKind = getOutboundKindFromMessage(message);
   const typeLabel = messageTypeShort(message.messageType);
   const failed = message.status.toUpperCase() === "FAILED";
+  /** IA / automação: bolha mais estreita; agente e cliente usam % maior do painel. */
+  const narrowSystemBubble =
+    outbound && (outboundKind === "automation" || outboundKind === "ai");
+  const bubbleMaxClass = narrowSystemBubble
+    ? "max-w-[min(72%,26rem)]"
+    : "max-w-[min(80%,40rem)]";
 
   const bubbleRadius = compact
     ? outbound
@@ -117,7 +123,7 @@ export const MessageBubble = memo(function MessageBubble({
   return (
     <div className={`flex w-full ${outbound ? "justify-end" : "justify-start"}`} data-testid="message-bubble">
       <div
-        className={`max-w-[min(92%,28rem)] ${bubbleRadius} ${density} ${
+        className={`${bubbleMaxClass} ${bubbleRadius} ${density} ${
           outbound ? "df-message-panel-outbound" : "df-message-panel-inbound"
         }`}
       >

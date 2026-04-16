@@ -28,6 +28,7 @@ import type { FeatureNotAvailablePayload } from "@/lib/protected-fetch";
 import { isFeatureBlockedError } from "@/lib/protected-fetch";
 import { useSessionRole } from "@/components/navigation/SessionRoleContext";
 import { inboxAssigneeCopy } from "@/lib/roleProductLabels";
+import { INBOX_CHAT_GUTTER_X, INBOX_CHAT_GUTTER_X_COMPACT } from "./inboxChatLayout";
 
 const SLA_LABEL: Record<InboxSlaLevel, string> = {
   low: "SLA OK",
@@ -222,8 +223,12 @@ export function ChatHeader({
     : null;
 
   const headerMaxH = compactChrome ? "max-h-[min(22vh,200px)]" : "max-h-[min(26vh,280px)]";
-  const headerPad = compactChrome ? "px-3 py-2.5 sm:px-4 sm:py-3" : "px-4 py-3 sm:px-5 sm:py-4";
-  const toolbarPad = compactChrome ? "px-3 py-2 sm:px-4" : "px-4 py-2.5 sm:px-5";
+  const headerPad = compactChrome
+    ? `${INBOX_CHAT_GUTTER_X_COMPACT} py-2.5 sm:py-3`
+    : `${INBOX_CHAT_GUTTER_X} py-3 sm:py-4`;
+  const toolbarPad = compactChrome
+    ? `${INBOX_CHAT_GUTTER_X_COMPACT} py-2 sm:py-2.5`
+    : `${INBOX_CHAT_GUTTER_X} py-2.5 sm:py-3`;
 
   return (
     <header
