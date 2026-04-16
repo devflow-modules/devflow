@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { Button } from "@devflow/ui";
+import { isWhiteLabelMode } from "@/lib/productMode";
+import { SupportHelpButton } from "@/components/support/SupportHelpButton";
 
 export type AiBannerState = "disabled" | "active" | "near_limit" | "exceeded";
 
@@ -22,6 +24,8 @@ export function AiStatusBanner({
   percentUsed,
   planName,
 }: Props) {
+  const wl = isWhiteLabelMode();
+
   if (state === "disabled" && !enabled) {
     return (
       <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -37,15 +41,24 @@ export function AiStatusBanner({
     return (
       <div className="mt-3 rounded-lg border border-amber-300 bg-amber-50/95 p-4">
         <p className="text-sm font-semibold text-amber-950">
-          Interações de IA incluídas no plano esgotadas neste período
+          {wl
+            ? "Capacidade de IA da operação esgotada neste período"
+            : "Interações de IA incluídas no plano esgotadas neste período"}
         </p>
         <p className="mt-1 text-sm text-amber-900/95">
-          Faça upgrade para recuperar margem no pacote incluído, ou veja em Plano e faturação como funciona o uso
-          adicional (na fatura: «Uso adicional de IA»).
+          {wl
+            ? "Contacte o suporte para alinhar a capacidade e continuar o atendimento com IA."
+            : "Faça upgrade para recuperar margem no pacote incluído, ou veja em Plano e faturação como funciona o uso adicional (na fatura: «Uso adicional de IA»)."}
         </p>
-        <Link href="/billing" className="mt-3 inline-block">
-          <Button size="sm">Ver planos e faturação</Button>
-        </Link>
+        {wl ? (
+          <div className="mt-3">
+            <SupportHelpButton variant="inline" />
+          </div>
+        ) : (
+          <Link href="/billing" className="mt-3 inline-block">
+            <Button size="sm">Ver planos e faturação</Button>
+          </Link>
+        )}
       </div>
     );
   }
@@ -54,16 +67,26 @@ export function AiStatusBanner({
     return (
       <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/80 p-4">
         <p className="text-sm font-semibold text-amber-950">
-          Próximo do que o plano inclui ({percentUsed != null ? `${percentUsed}%` : "—"} das interações de IA)
+          {wl
+            ? `Próximo da margem de IA da operação (${percentUsed != null ? `${percentUsed}%` : "—"})`
+            : `Próximo do que o plano inclui (${percentUsed != null ? `${percentUsed}%` : "—"} das interações de IA)`}
         </p>
         <p className="mt-1 text-sm text-amber-900/90">
-          Isto não interrompe o serviço: além do incluído pode haver expansão de uso, conforme a sua fatura.
+          {wl
+            ? "O suporte pode ajudar a ajustar a capacidade antes de atingir o limite."
+            : "Isto não interrompe o serviço: além do incluído pode haver expansão de uso, conforme a sua fatura."}
         </p>
-        <Link href="/billing" className="mt-3 inline-block">
-          <Button size="sm" variant="outline">
-            Rever plano e limites
-          </Button>
-        </Link>
+        {wl ? (
+          <div className="mt-3">
+            <SupportHelpButton variant="inline" />
+          </div>
+        ) : (
+          <Link href="/billing" className="mt-3 inline-block">
+            <Button size="sm" variant="outline">
+              Rever plano e limites
+            </Button>
+          </Link>
+        )}
       </div>
     );
   }
@@ -79,12 +102,17 @@ export function AiStatusBanner({
           </p>
         ) : (
           <p className="mt-1 text-sm text-emerald-800">
-            {used} respostas IA este mês{planName ? ` (plano ${planName})` : ""}.
+            {used} respostas IA este mês
+            {!wl && planName ? ` (plano ${planName})` : ""}.
           </p>
         )}
-        <Link href="/settings/ai-analytics" className="mt-2 inline-block text-sm text-emerald-700 hover:underline">
-          Ver uso detalhado →
-        </Link>
+        {!wl ? (
+          <Link href="/settings/ai-analytics" className="mt-2 inline-block text-sm text-emerald-700 hover:underline">
+            Ver uso detalhado →
+          </Link>
+        ) : (
+          <p className="mt-2 text-sm text-emerald-800">Para detalhes de uso, contacte o suporte.</p>
+        )}
       </div>
     );
   }

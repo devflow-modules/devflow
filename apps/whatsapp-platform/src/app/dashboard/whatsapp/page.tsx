@@ -8,6 +8,7 @@ import { validateAuthToken } from "@/modules/auth";
 import { isOperator } from "@/lib/roles";
 import Link from "next/link";
 import { WhatsappConnectClient } from "./WhatsappConnectClient";
+import { isWhiteLabelMode } from "@/lib/productMode";
 
 export default async function DashboardWhatsappPage() {
   const store = await cookies();
@@ -16,6 +17,7 @@ export default async function DashboardWhatsappPage() {
   if (auth && isOperator(auth.payload.role)) {
     redirect("/inbox");
   }
+  const wl = isWhiteLabelMode();
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <PageHeader
@@ -30,9 +32,11 @@ export default async function DashboardWhatsappPage() {
             <Link href="/settings" className="df-quick-action">
               Configurações
             </Link>
-            <Link href="/billing" className="df-quick-action">
-              Plano e faturação
-            </Link>
+            {!wl ? (
+              <Link href="/billing" className="df-quick-action">
+                Plano e faturação
+              </Link>
+            ) : null}
           </>
         }
       />

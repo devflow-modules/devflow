@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { isWhiteLabelMode } from "@/lib/productMode";
 
 export function DeveloperHeaderQuickActions() {
   return (
@@ -8,9 +9,11 @@ export function DeveloperHeaderQuickActions() {
       <Link href="/settings" className="df-quick-action">
         Configurações
       </Link>
-      <Link href="/billing" className="df-quick-action">
-        Cobrança
-      </Link>
+      {!isWhiteLabelMode() ? (
+        <Link href="/billing" className="df-quick-action">
+          Cobrança
+        </Link>
+      ) : null}
       <button
         type="button"
         className="df-quick-action"

@@ -11,6 +11,7 @@ import { readVerifyPayload } from "@/lib/api-json-client";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 import { isTenantManager } from "@/lib/roles";
 import type { UserRole } from "@/modules/auth";
+import { isWhiteLabelMode } from "@/lib/productMode";
 
 const AI_DRIVERS = [
   { value: "ruleBased", label: "Apenas regras (sem LLM)" },
@@ -140,9 +141,11 @@ export function SettingsTenantForm() {
             API e integrações →
           </Link>
         ) : null}
-        <Link href="/billing" className="font-semibold text-[var(--df-brand-700)] hover:underline">
-          Plano e uso →
-        </Link>
+        {!isWhiteLabelMode() ? (
+          <Link href="/billing" className="font-semibold text-[var(--df-brand-700)] hover:underline">
+            Plano e uso →
+          </Link>
+        ) : null}
       </div>
 
       <Card padding="lg">

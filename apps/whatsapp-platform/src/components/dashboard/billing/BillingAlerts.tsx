@@ -4,6 +4,7 @@ import Link from "next/link";
 import { STRIPE_USAGE_LINE_LABELS } from "@/modules/billing/usageCommunication";
 import { normalizePlan } from "@/modules/billing/plans";
 import { formatFreeEvaluationUsageCounts } from "@/modules/billing/demoEvaluation";
+import { isWhiteLabelMode } from "@/lib/productMode";
 
 type Props = {
   /** Plano normalizado (ex.: tenant billing). */
@@ -57,6 +58,8 @@ export function BillingAlerts({
   aiUsed,
   aiLimit,
 }: Props) {
+  if (isWhiteLabelMode()) return null;
+
   const planKey = normalizePlan(currentPlan);
   const isFree = planKey === "FREE";
   const maxPct = Math.max(usagePercentageMessages ?? 0, usagePercentageAI ?? 0);

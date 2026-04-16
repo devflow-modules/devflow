@@ -9,6 +9,7 @@ import {
   freeEvaluationStaleMessage,
   isFreeEvaluationPlan,
 } from "@/modules/billing/demoEvaluation";
+import { isWhiteLabelMode } from "@/lib/productMode";
 
 type Props = {
   className?: string;
@@ -29,6 +30,7 @@ export function EvaluationModeRibbon({ className = "" }: Props) {
     staleTime: 120_000,
   });
 
+  if (isWhiteLabelMode()) return null;
   if (!data || !isFreeEvaluationPlan(data.plan)) return null;
 
   const label = evaluationModeBadgeLabel(data.plan);

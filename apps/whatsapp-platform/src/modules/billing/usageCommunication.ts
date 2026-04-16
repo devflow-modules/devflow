@@ -5,6 +5,7 @@
 
 import type { PlanKey } from "./plans";
 import { PLANS } from "./plans";
+import { isWhiteLabelMode } from "@/lib/productMode";
 
 /** Nomes alinhados à fatura Stripe (não alterar sem alinhar produto/financeiro). */
 export const STRIPE_USAGE_LINE_LABELS = {
@@ -14,6 +15,9 @@ export const STRIPE_USAGE_LINE_LABELS = {
 
 /** Texto principal visível por plano (≈3 s de leitura). */
 export function formatIncludedUsageSentence(plan: PlanKey): string {
+  if (isWhiteLabelMode()) {
+    return "Capacidade alinhada à configuração da operação com o suporte.";
+  }
   const def = PLANS[plan];
   const m = def.limits.messagesPerMonth;
   const ai = def.limits.aiCallsPerMonth;
@@ -25,21 +29,25 @@ export function formatIncludedUsageSentence(plan: PlanKey): string {
   return `Inclui ${parts[0]} e ${parts[1]}.`;
 }
 
-export const USAGE_AFTER_INCLUDED_EXPLAINER =
-  "Ao atingir o limite do plano, o uso continua normalmente e o adicional é cobrado automaticamente no fim do período de faturação.";
+export const USAGE_AFTER_INCLUDED_EXPLAINER = isWhiteLabelMode()
+  ? "Ao atingir a margem configurada, o suporte pode alinhar a capacidade da operação."
+  : "Ao atingir o limite do plano, o uso continua normalmente e o adicional é cobrado automaticamente no fim do período de faturação.";
 
 export const USAGE_NO_SERVICE_INTERRUPTION =
   "O atendimento não é interrompido por causa destes limites — continua a operar normalmente.";
 
-export const USAGE_EXPANSION_FRAMING =
-  "Quando precisa de mais volume, o uso adicional permite a expansão da operação sem travar o atendimento.";
+export const USAGE_EXPANSION_FRAMING = isWhiteLabelMode()
+  ? "Quando precisa de mais volume, o suporte ajuda a expandir a operação sem travar o atendimento."
+  : "Quando precisa de mais volume, o uso adicional permite a expansão da operação sem travar o atendimento.";
 
 /** Linha curta sob o bloco de consumo: reduz ansiedade sobre cobrança indevida. */
-export const USAGE_EXPANSION_ONLY_IF_GROWTH =
-  "O uso adicional só acontece se o seu atendimento crescer além do volume incluído.";
+export const USAGE_EXPANSION_ONLY_IF_GROWTH = isWhiteLabelMode()
+  ? "Ajustes de capacidade são tratados com o suporte quando a operação cresce."
+  : "O uso adicional só acontece se o seu atendimento crescer além do volume incluído.";
 
-export const USAGE_ANTI_SURPRISE_LINE =
-  "Não interrompemos o atendimento por causa dos limites incluídos: quando o volume vai além do pacote do plano, regista-se o uso adicional e a fatura mostra isso com transparência — sem surpresas.";
+export const USAGE_ANTI_SURPRISE_LINE = isWhiteLabelMode()
+  ? "O atendimento continua a operar: para ajustar capacidade, contacte o suporte."
+  : "Não interrompemos o atendimento por causa dos limites incluídos: quando o volume vai além do pacote do plano, regista-se o uso adicional e a fatura mostra isso com transparência — sem surpresas.";
 
 export function formatExpansionUnitPriceLines(prices: { message: number; aiResponse: number }): string[] {
   const fmt = (n: number) =>
@@ -54,6 +62,9 @@ export function contextualInboxUsageHint(
   messagesLimit: number | null | undefined,
   options?: { isFreePlan?: boolean; messagesUsed?: number }
 ): string {
+  if (isWhiteLabelMode()) {
+    return "Para ajustar a capacidade da operação, contacte o suporte.";
+  }
   if (messagesLimit != null && messagesLimit > 0) {
     if (options?.isFreePlan) {
       const used = options.messagesUsed;
@@ -72,6 +83,9 @@ export function contextualAiUsageHint(
   aiLimit: number | null | undefined,
   options?: { isFreePlan?: boolean; aiUsed?: number }
 ): string {
+  if (isWhiteLabelMode()) {
+    return "Para alinhar a capacidade de IA da operação, contacte o suporte.";
+  }
   if (aiLimit != null && aiLimit > 0) {
     if (options?.isFreePlan) {
       const used = options.aiUsed;
@@ -88,6 +102,16 @@ export function contextualAiUsageHint(
 
 /** Blocos curtos para secção de avaliação guiada (plano FREE) na UI de billing. */
 export function freePlanUsageExplainerLines(plan: PlanKey): { title: string; bullets: string[] } {
+  if (isWhiteLabelMode()) {
+    return {
+      title: "Ativação guiada",
+      bullets: [
+        "Inbox e canal WhatsApp para começar a operar.",
+        "Automatizações avançadas, filas completas e integrações podem ser alinhadas com o suporte.",
+        "Contacte o suporte para evoluir a operação quando precisar de mais capacidade.",
+      ],
+    };
+  }
   const def = PLANS[plan];
   const m = def.limits.messagesPerMonth;
   const ai = def.limits.aiCallsPerMonth;

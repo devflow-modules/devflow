@@ -36,6 +36,7 @@ import {
   markFirstReplyToastSeen,
 } from "@/lib/activationStorage";
 import { useShellLayoutOptional } from "@/components/shell/ShellLayoutContext";
+import { isWhiteLabelMode } from "@/lib/productMode";
 
 const INBOX_FOCUS_MODE_KEY = "df-inbox-focus-mode";
 
@@ -418,7 +419,7 @@ function InboxShellContent() {
         </div>
       )}
 
-      {!inboxFocusMode ? (
+      {!inboxFocusMode && !isWhiteLabelMode() ? (
         <div
           className={`shrink-0 space-y-2 px-4 pb-2 sm:px-6 ${shellSidebarCollapsed ? "pt-0.5" : ""}`}
         >

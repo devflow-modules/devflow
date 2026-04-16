@@ -2,14 +2,20 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { SettingsTenantForm } from "./SettingsTenantForm";
 import { TenantInstructionsCard } from "./TenantInstructionsCard";
+import { isWhiteLabelMode } from "@/lib/productMode";
 
 export default function SettingsPage() {
+  const wl = isWhiteLabelMode();
   return (
     <div className="df-page-narrow df-stack">
       <PageHeader
         eyebrow="Conta"
         title="Configurações"
-        description="Motor de IA, instruções de atendimento e atalhos para plano e análises. As alterações valem para todo o espaço de trabalho."
+        description={
+          wl
+            ? "Motor de IA, instruções de atendimento e atalhos para a operação. As alterações valem para todo o espaço de trabalho."
+            : "Motor de IA, instruções de atendimento e atalhos para plano e análises. As alterações valem para todo o espaço de trabalho."
+        }
         layout="split"
         showDivider
         tone="admin"
@@ -19,7 +25,7 @@ export default function SettingsPage() {
               IA de atendimento
             </Link>
             <Link href="/settings/ai-analytics" className="df-quick-action">
-              Uso e custo de IA
+              {wl ? "Desempenho da IA" : "Uso e custo de IA"}
             </Link>
             <Link href="/dashboard/ai" className="df-quick-action">
               Painel IA (operação)
@@ -27,9 +33,11 @@ export default function SettingsPage() {
             <Link href="/settings/developer" className="df-quick-action">
               API e integrações
             </Link>
-            <Link href="/billing" className="df-quick-action">
-              Plano e faturação
-            </Link>
+            {!wl ? (
+              <Link href="/billing" className="df-quick-action">
+                Plano e faturação
+              </Link>
+            ) : null}
           </>
         }
       />

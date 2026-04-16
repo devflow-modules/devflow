@@ -16,6 +16,8 @@ import {
   conversationStateSuggestedActions,
   getConversationStateBadge,
 } from "./conversationStateUi";
+import { isWhiteLabelMode } from "@/lib/productMode";
+import { SupportHelpButton } from "@/components/support/SupportHelpButton";
 
 function panelSection(title: string, children: ReactNode) {
   return (
@@ -147,16 +149,28 @@ export function LeadDataPanel({
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3 text-left">
         {evaluationMode
           ? panelSection(
-              "Avaliação em andamento",
-              <>
-                <p className="text-xs leading-relaxed text-slate-700">
-                  Ambiente de demonstração com limites de conversas e IA. Para operações completas (filas, equipa,
-                  volumes), é necessário ativar a operação com a implantação.
-                </p>
-                <p className="text-[11px] leading-relaxed text-slate-500">
-                  Veja consumo e próximos passos em Consumo e faturação.
-                </p>
-              </>
+              isWhiteLabelMode() ? "Operação em configuração" : "Avaliação em andamento",
+              isWhiteLabelMode() ? (
+                <>
+                  <p className="text-xs leading-relaxed text-slate-700">
+                    A operação está a ser configurada. Filas, equipa e volumes adicionais podem ser alinhados com o
+                    suporte.
+                  </p>
+                  <div className="pt-1">
+                    <SupportHelpButton variant="inline" className="text-xs" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs leading-relaxed text-slate-700">
+                    Ambiente de demonstração com limites de conversas e IA. Para operações completas (filas, equipa,
+                    volumes), é necessário ativar a operação com a implantação.
+                  </p>
+                  <p className="text-[11px] leading-relaxed text-slate-500">
+                    Veja consumo e próximos passos em Consumo e faturação.
+                  </p>
+                </>
+              )
             )
           : null}
         {panelSection(

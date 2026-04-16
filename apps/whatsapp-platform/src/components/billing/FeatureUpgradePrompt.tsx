@@ -3,6 +3,8 @@
 import Link from "next/link";
 import type { FeatureNotAvailablePayload as FeatureBlockedApiPayload } from "@/lib/protected-fetch";
 import { PLANS, type PlanKey } from "@/modules/billing/plans";
+import { isWhiteLabelMode } from "@/lib/productMode";
+import { SupportHelpButton } from "@/components/support/SupportHelpButton";
 
 type Props = {
   blocked: Pick<FeatureBlockedApiPayload, "feature" | "currentPlan" | "requiredPlan" | "message">;
@@ -26,6 +28,33 @@ export function FeatureUpgradePrompt({
   const msg =
     blocked.message?.trim() ||
     `Para usar esta funcionalidade, faça upgrade para o plano ${planLabel(blocked.requiredPlan)}.`;
+
+  if (isWhiteLabelMode()) {
+    return (
+      <div
+        role="status"
+        className="flex flex-col gap-3 rounded-xl border border-amber-200/90 bg-amber-50/95 px-4 py-3 text-sm text-amber-950 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+        data-testid="feature-upgrade-prompt"
+      >
+        <p className="min-w-0 leading-relaxed">
+          {blocked.message?.trim() ||
+            "Esta funcionalidade não está disponível na configuração atual da operação. Contacte o suporte para mais informações."}
+        </p>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {onDismiss ? (
+            <button
+              type="button"
+              onClick={onDismiss}
+              className="rounded-lg px-2 py-1.5 text-xs font-medium text-amber-900/80 hover:bg-amber-100/80"
+            >
+              Fechar
+            </button>
+          ) : null}
+          <SupportHelpButton variant="inline" className="text-xs" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

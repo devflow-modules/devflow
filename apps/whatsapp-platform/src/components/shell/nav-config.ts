@@ -1,6 +1,7 @@
 import type { UserRole } from "@/modules/auth";
 import { ROUTE_META } from "@/lib/navigation/nav-matrix";
 import { isOperator, isPlatformAdmin, isTenantManager } from "@/lib/roles";
+import { isWhiteLabelMode } from "@/lib/productMode";
 
 export type NavItem = { href: string; label: string; description?: string };
 
@@ -16,15 +17,32 @@ export const NAV_PRIMARY: NavItem[] = [
  * Ordem IA: Configurações (motor) → IA de atendimento (comportamento) → Análises de IA (uso/custo);
  * «IA — operação» no painel é métricas operacionais, não o mesmo ecrã que /settings/ai.
  */
-export const NAV_SECONDARY: NavItem[] = [
+const NAV_SECONDARY_WITHOUT_BILLING: NavItem[] = [
   { href: "/dashboard/whatsapp", label: ROUTE_META["/dashboard/whatsapp"].label, description: "Estado da ligação Meta" },
   { href: "/dashboard/ai", label: ROUTE_META["/dashboard/ai"].label, description: "Métricas e guardas da IA" },
-  { href: "/billing", label: ROUTE_META["/billing"].label, description: "Plano e faturação" },
   { href: "/settings", label: ROUTE_META["/settings"].label, description: "Conta e preferências" },
   { href: "/settings/ai", label: ROUTE_META["/settings/ai"].label, description: "Prompt, tom e automação da IA no WhatsApp" },
   { href: "/settings/ai-analytics", label: ROUTE_META["/settings/ai-analytics"].label, description: "Uso de IA e custos" },
   { href: "/settings/developer", label: ROUTE_META["/settings/developer"].label, description: "Chave de API" },
 ];
+
+const BILLING_NAV_ITEM: NavItem = {
+  href: "/billing",
+  label: ROUTE_META["/billing"].label,
+  description: "Plano e faturação",
+};
+
+export const NAV_SECONDARY: NavItem[] = isWhiteLabelMode()
+  ? NAV_SECONDARY_WITHOUT_BILLING
+  : [
+      { href: "/dashboard/whatsapp", label: ROUTE_META["/dashboard/whatsapp"].label, description: "Estado da ligação Meta" },
+      { href: "/dashboard/ai", label: ROUTE_META["/dashboard/ai"].label, description: "Métricas e guardas da IA" },
+      BILLING_NAV_ITEM,
+      { href: "/settings", label: ROUTE_META["/settings"].label, description: "Conta e preferências" },
+      { href: "/settings/ai", label: ROUTE_META["/settings/ai"].label, description: "Prompt, tom e automação da IA no WhatsApp" },
+      { href: "/settings/ai-analytics", label: ROUTE_META["/settings/ai-analytics"].label, description: "Uso de IA e custos" },
+      { href: "/settings/developer", label: ROUTE_META["/settings/developer"].label, description: "Chave de API" },
+    ];
 
 /** Operação — equipa e filas. */
 export const NAV_OPERATION: NavItem[] = [

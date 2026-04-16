@@ -5,6 +5,8 @@ import Link from "next/link";
 import { MetricsCard, Button } from "@devflow/ui";
 import { StateError, StateLoading } from "@/components/ui/app-states";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
+import { isWhiteLabelMode } from "@/lib/productMode";
+import { SupportHelpButton } from "@/components/support/SupportHelpButton";
 
 type Metrics = {
   messages_total: number;
@@ -67,7 +69,11 @@ function getInsights(metrics: Metrics): string[] {
       `⚠️ Sua taxa de fallback está alta (${(fallbackRate * 100).toFixed(0)}%). Pode indicar problema na API ou prompt inadequado.`
     );
   }
-  if (metrics.estimated_cost_usd > 1 && metrics.tokens_used_total > 10000) {
+  if (
+    !isWhiteLabelMode() &&
+    metrics.estimated_cost_usd > 1 &&
+    metrics.tokens_used_total > 10000
+  ) {
     insights.push(
       `💰 Considere reduzir maxTokens nas configurações de IA para controlar o custo.`
     );
@@ -82,6 +88,15 @@ function getInsights(metrics: Metrics): string[] {
 
 function getLimitInsight(usageStatus: UsageStatus | null): string | null {
   if (!usageStatus) return null;
+  if (isWhiteLabelMode()) {
+    if (!usageStatus.can_use) {
+      return "Capacidade de IA esgotada neste período. Contacte o suporte para alinhar a operação.";
+    }
+    if (usageStatus.percent_used != null && usageStatus.percent_used >= 80) {
+      return `Está a utilizar cerca de ${usageStatus.percent_used}% da margem de IA da operação neste período. Contacte o suporte se precisar de mais capacidade.`;
+    }
+    return null;
+  }
   if (!usageStatus.can_use) {
     return "Incluído no plano esgotado para interações de IA neste período. Atualize o plano para voltar a ter margem no pacote incluído, ou confira em Plano e faturação como funciona o uso adicional («Uso adicional de IA» na fatura).";
   }
@@ -165,6 +180,7 @@ export function AiAnalyticsClient() {
 
   const remaining = planInfo?.ai_limit != null && usageStatus ? planInfo.ai_limit - usageStatus.used : null;
   const estimatedHours = Math.round((metrics.ai_messages_total * 4) / 60);
+  const wl = isWhiteLabelMode();
 
   return (
     <div className="min-w-0 space-y-6">
@@ -193,8 +209,17 @@ export function AiAnalyticsClient() {
           }`}
         >
           <h2 className="mb-3 text-base font-bold tracking-tight text-slate-900">
-            {atLimit ? "Limite atingido — " : nearLimit ? "Atenção: limite de IA — " : "Limite de IA — "}
-            {planInfo.plan_name}
+            {wl ? (
+              <>
+                {atLimit ? "Capacidade atingida — " : nearLimit ? "Atenção: margem de IA — " : "Margem de IA — "}
+                operação
+              </>
+            ) : (
+              <>
+                {atLimit ? "Limite atingido — " : nearLimit ? "Atenção: limite de IA — " : "Limite de IA — "}
+                {planInfo.plan_name}
+              </>
+            )}
           </h2>
           {remaining != null && remaining > 0 && !atLimit && (
             <p className="text-sm font-medium text-slate-800 mb-2">
@@ -214,28 +239,35 @@ export function AiAnalyticsClient() {
                 {usageStatus.percent_used}% usado
               </span>
             )}
-            {atLimit && (
-              <Link href="/billing">
-                <Button size="sm">Fazer upgrade do plano</Button>
-              </Link>
-            )}
-            {nearLimit && !atLimit && (
-              <Link href="/billing">
-                <Button size="sm">Continuar usando IA</Button>
-              </Link>
-            )}
+            {atLimit &&
+              (wl ? (
+                <SupportHelpButton variant="inline" className="text-sm" />
+              ) : (
+                <Link href="/billing">
+                  <Button size="sm">Fazer upgrade do plano</Button>
+                </Link>
+              ))}
+            {nearLimit && !atLimit &&
+              (wl ? (
+                <SupportHelpButton variant="inline" className="text-sm" />
+              ) : (
+                <Link href="/billing">
+                  <Button size="sm">Continuar usando IA</Button>
+                </Link>
+              ))}
           </div>
           {atLimit && (
             <p className="mt-3 text-sm text-red-800">
               Sua IA parou de responder automaticamente. As mensagens estão sendo respondidas de forma limitada.
             </p>
           )}
-          {usageStatus.percent_used != null && usageStatus.percent_used < 80 && planInfo.ai_limit != null && (
+          {usageStatus.percent_used != null && usageStatus.percent_used < 80 && planInfo.ai_limit != null && !wl && (
             <p className="mt-2 text-xs text-slate-500">
               Plano inclui {planInfo.ai_limit.toLocaleString("pt-BR")} respostas IA/mês. Upgrade oferece mais capacidade.
             </p>
           )}
-          {usageStatus.ai_overage_billed != null &&
+          {!wl &&
+            usageStatus.ai_overage_billed != null &&
             usageStatus.ai_overage_billed > 0 && (
               <div className="mt-3 rounded-xl border border-amber-200/90 bg-amber-50/80 p-3 ring-1 ring-amber-900/[0.04]">
                 <p className="text-sm font-medium text-amber-900">
@@ -270,30 +302,32 @@ export function AiAnalyticsClient() {
         </div>
       </div>
 
-      {/* Card: Custo */}
-      <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
-        <h2 className="mb-3 text-base font-bold tracking-tight text-slate-900">Custo</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <MetricsCard
-            label="Tokens usados"
-            value={metrics.tokens_used_total.toLocaleString()}
-          />
-          <MetricsCard
-            label="Custo estimado (USD)"
-            value={formatUSD(metrics.estimated_cost_usd)}
-          />
+      {/* Card: Custo (oculto em white-label — sem exposição de preço) */}
+      {!wl && (
+        <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
+          <h2 className="mb-3 text-base font-bold tracking-tight text-slate-900">Custo</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <MetricsCard
+              label="Tokens usados"
+              value={metrics.tokens_used_total.toLocaleString()}
+            />
+            <MetricsCard
+              label="Custo estimado (USD)"
+              value={formatUSD(metrics.estimated_cost_usd)}
+            />
+          </div>
+          {usageStatus?.ai_overage_billed != null &&
+            usageStatus.ai_overage_billed > 0 &&
+            usageStatus.ai_overage_cost_brl != null &&
+            usageStatus.ai_overage_cost_brl > 0 && (
+              <p className="mt-3 text-sm text-amber-800">
+                Excedente IA este mês:{" "}
+                <strong>R$ {usageStatus.ai_overage_cost_brl.toFixed(2)}</strong>{" "}
+                ({usageStatus.ai_overage_billed} respostas)
+              </p>
+            )}
         </div>
-        {usageStatus?.ai_overage_billed != null &&
-          usageStatus.ai_overage_billed > 0 &&
-          usageStatus.ai_overage_cost_brl != null &&
-          usageStatus.ai_overage_cost_brl > 0 && (
-            <p className="mt-3 text-sm text-amber-800">
-              Excedente IA este mês:{" "}
-              <strong>R$ {usageStatus.ai_overage_cost_brl.toFixed(2)}</strong>{" "}
-              ({usageStatus.ai_overage_billed} respostas)
-            </p>
-          )}
-      </div>
+      )}
 
       {/* Card: Saúde da IA */}
       <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">

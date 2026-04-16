@@ -5,6 +5,7 @@ import Link from "next/link";
 import { mapAuthHttpError } from "@/lib/auth-client-errors";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { COMMERCIAL_RECOMMENDED_BADGE } from "@/modules/billing/planPresentation";
+import { isWhiteLabelMode } from "@/lib/productMode";
 import { clientReadAffiliateRefCookie, clientSetAffiliateRefCookie } from "@/modules/affiliates/affiliateRef";
 
 type SignupPlanId = "free" | "pro";
@@ -51,7 +52,7 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
           name: n,
           email: em,
           password,
-          planId,
+          planId: isWhiteLabelMode() ? "free" : planId,
           ...(affiliateRef ? { affiliateRef } : {}),
         }),
         credentials: "include",
@@ -92,6 +93,8 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
     `relative flex cursor-pointer rounded-xl border p-4 text-left transition-shadow focus-within:ring-2 focus-within:ring-blue-500/30 ${
       selected ? "border-blue-500 bg-blue-50/40 shadow-sm ring-2 ring-blue-500/20" : "border-slate-200 bg-white hover:border-slate-300"
     }`;
+
+  const whiteLabel = isWhiteLabelMode();
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5" aria-busy={loading} noValidate>
@@ -140,54 +143,69 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
       />
 
       <fieldset disabled={loading} className="space-y-3">
-        <legend className="mb-1 text-sm font-medium text-slate-700">Plano</legend>
+        <legend className="mb-1 text-sm font-medium text-slate-700">{whiteLabel ? "Início" : "Plano"}</legend>
         <div className="grid gap-3">
-          <label className={planCardClass(planId === "free")}>
+          <label className={planCardClass(whiteLabel || planId === "free")}>
             <input
               type="radio"
               name="planId"
               value="free"
-              checked={planId === "free"}
+              checked={whiteLabel || planId === "free"}
               onChange={() => setPlanId("free")}
               className="sr-only"
             />
             <div className="min-w-0 flex-1">
-              <span className="text-sm font-semibold text-slate-900">Avaliação guiada</span>
+              <span className="text-sm font-semibold text-slate-900">
+                {whiteLabel ? "Ativação guiada" : "Avaliação guiada"}
+              </span>
               <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                Demonstração da plataforma com limites claros — operação completa com implantação.
+                {whiteLabel
+                  ? "Comece com a configuração assistida do canal e da operação — o suporte acompanha a evolução."
+                  : "Demonstração da plataforma com limites claros — operação completa com implantação."}
               </p>
             </div>
           </label>
 
-          <label className={planCardClass(planId === "pro")}>
-            <input
-              type="radio"
-              name="planId"
-              value="pro"
-              checked={planId === "pro"}
-              onChange={() => setPlanId("pro")}
-              className="sr-only"
-            />
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-semibold text-slate-900">Pro</span>
-                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950">
-                  {COMMERCIAL_RECOMMENDED_BADGE}
-                </span>
+          {!whiteLabel ? (
+            <label className={planCardClass(planId === "pro")}>
+              <input
+                type="radio"
+                name="planId"
+                value="pro"
+                checked={planId === "pro"}
+                onChange={() => setPlanId("pro")}
+                className="sr-only"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-semibold text-slate-900">Pro</span>
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950">
+                    {COMMERCIAL_RECOMMENDED_BADGE}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                  Para operar com equipe, filas e IA de atendimento.
+                </p>
               </div>
-              <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                Para operar com equipe, filas e IA de atendimento.
-              </p>
-            </div>
-          </label>
+            </label>
+          ) : null}
         </div>
 
         <div className="space-y-1 rounded-lg bg-slate-50/90 px-3 py-2.5 text-xs leading-relaxed text-slate-600">
-          <p>Sem cartão na fase de avaliação guiada.</p>
-          <p>Pode alinhar a operação completa depois com a equipa.</p>
+          {whiteLabel ? (
+            <>
+              <p>Sem pedido de dados de pagamento nesta fase.</p>
+              <p>Para evoluir a operação, use o suporte.</p>
+            </>
+          ) : (
+            <>
+              <p>Sem cartão na fase de avaliação guiada.</p>
+              <p>Pode alinhar a operação completa depois com a equipa.</p>
+            </>
+          )}
         </div>
 
-        {planId === "pro" ? (
+        {!whiteLabel && planId === "pro" ? (
           <p className="text-xs leading-relaxed text-slate-600">
             Após criar a conta, você poderá concluir a ativação do plano no checkout seguro (cartão).
           </p>

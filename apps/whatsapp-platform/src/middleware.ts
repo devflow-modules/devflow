@@ -66,6 +66,19 @@ function redirectToMetricsSecretLogin(request: NextRequest): NextResponse {
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
+  if (process.env.NEXT_PUBLIC_PRODUCT_MODE === "WHITE_LABEL") {
+    if (
+      path === "/billing" ||
+      path.startsWith("/billing/") ||
+      path === "/dashboard/billing" ||
+      path.startsWith("/dashboard/billing/") ||
+      path === "/settings/billing" ||
+      path.startsWith("/settings/billing/")
+    ) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+  }
+
   if (path.startsWith("/api/admin") && request.method !== "OPTIONS") {
     const ip = getClientIp(request);
     const lim = checkRateLimit(ip, "admin-api");
