@@ -452,7 +452,7 @@ function InboxShellContent() {
         <InboxMetricsPanel onOpenThread={selectThread} />
       )}
 
-      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden md:flex-row md:items-stretch">
+      <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden md:flex-row md:items-stretch">
         {showSidebar && (
           <aside
             className={`flex min-h-0 w-full shrink-0 flex-col overflow-hidden border-r border-slate-100/90 bg-white md:max-w-none ${
@@ -483,7 +483,7 @@ function InboxShellContent() {
         )}
 
         {showChatColumn && (
-          <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
             {selectedId ? (
               <ChatWindow
                 key={selectedId}

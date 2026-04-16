@@ -94,7 +94,7 @@ export function MessageList({
   if (!threadId) {
     return (
       <div
-        className={`df-state-empty flex flex-1 flex-col items-center justify-center border-0 bg-transparent py-16 shadow-none ${INBOX_CHAT_GUTTER_X}`}
+        className={`df-state-empty flex min-h-0 flex-1 flex-col items-center justify-center border-0 bg-transparent py-16 shadow-none ${INBOX_CHAT_GUTTER_X}`}
       >
         <p className="text-sm font-semibold text-slate-800">Escolha uma conversa</p>
         <p className="df-text-muted mt-2 max-w-xs">Na lista à esquerda, toque num contacto para abrir o histórico.</p>
@@ -118,7 +118,7 @@ export function MessageList({
 
   if (isError) {
     return (
-      <div className={`flex h-full min-h-0 flex-col justify-center py-6 sm:py-8 ${INBOX_CHAT_GUTTER_X}`}>
+      <div className={`flex min-h-0 flex-1 flex-col justify-center py-6 sm:py-8 ${INBOX_CHAT_GUTTER_X}`}>
         <StateError
           title="Não foi possível carregar as mensagens"
           message={error instanceof Error ? error.message : "Tente novamente."}
@@ -130,7 +130,7 @@ export function MessageList({
 
   if (!data?.length) {
     return (
-      <div className={`flex h-full min-h-0 flex-col justify-center py-6 sm:py-8 ${INBOX_CHAT_GUTTER_X}`}>
+      <div className={`flex min-h-0 flex-1 flex-col justify-center py-6 sm:py-8 ${INBOX_CHAT_GUTTER_X}`}>
         <StateEmpty
           title="Sem mensagens nesta conversa"
           description="A primeira mensagem do cliente aparece aqui. Se acabou de abrir a conversa, peça um teste do telemóvel ou aguarde a resposta automática."
@@ -146,7 +146,7 @@ export function MessageList({
 
   return (
     <div
-      className={`flex h-full min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 py-6 sm:py-8 ${INBOX_CHAT_GUTTER_X}`}
+      className={`flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 py-6 sm:py-8 ${INBOX_CHAT_GUTTER_X}`}
       data-testid="message-list"
     >
       <div className="flex min-h-full w-full max-w-none flex-col">

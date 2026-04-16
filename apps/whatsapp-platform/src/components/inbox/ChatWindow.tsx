@@ -123,11 +123,11 @@ export function ChatWindow({
 
   return (
     <div
-      className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-gradient-to-b from-white via-slate-50/30 to-slate-50/60 xl:flex-row xl:items-stretch"
+      className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-gradient-to-b from-white via-slate-50/30 to-slate-50/60 xl:flex-row xl:items-stretch"
       data-testid="chat-window"
     >
       <div
-        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden xl:min-h-0 xl:min-w-0 ${
+        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden ${
           shellSidebarCollapsed ? "xl:flex-[1_1_0%]" : ""
         }`}
       >
