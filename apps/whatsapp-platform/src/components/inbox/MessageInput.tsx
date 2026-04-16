@@ -166,7 +166,7 @@ export function MessageInput({
 
   if (!threadId) {
     return (
-      <div className="border-t border-slate-100 bg-slate-50/50 px-4 py-6 text-center">
+      <div className={`border-t border-slate-100 bg-slate-50/50 py-6 text-center ${INBOX_CHAT_GUTTER_X}`}>
         <p className="df-text-muted">Escolha uma conversa para responder.</p>
       </div>
     );

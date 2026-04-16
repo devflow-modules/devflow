@@ -19,7 +19,7 @@ export function ConversationTimeline({ messages }: { messages: WaInboxMessageRow
 
   return (
     <details
-      className="group rounded-xl border border-slate-200/90 bg-white/80 px-3 py-2 shadow-sm backdrop-blur-sm"
+      className="group w-full max-w-none rounded-xl border border-slate-200/90 bg-white/80 px-3 py-2.5 shadow-sm backdrop-blur-sm sm:px-3.5"
       data-testid="conversation-timeline"
     >
       <summary className="cursor-pointer list-none text-left text-xs font-semibold text-slate-600 marker:content-none [&::-webkit-details-marker]:hidden">
@@ -52,7 +52,7 @@ export function AutomationStatusHints({ thread }: { thread: import("./inboxTypes
   if (hints.length === 0) return null;
   return (
     <div
-      className="rounded-lg border border-slate-200/80 bg-slate-50/90 px-3 py-2 text-[11px] text-slate-600"
+      className="w-full max-w-none rounded-lg border border-slate-200/80 bg-slate-50/90 px-3 py-2 text-[11px] text-slate-600 sm:px-3.5"
       data-testid="automation-status-hints"
     >
       {hints.map((h) => (

@@ -12,6 +12,7 @@ import { LeadDataPanel } from "./LeadDataPanel";
 import { reportViewing, fetchInboxThread } from "./inboxFetch";
 import { INBOX_QK, type WaInboxThreadRow } from "./inboxTypes";
 import { useMediaMinWidth } from "@/lib/useMediaMinWidth";
+import { INBOX_CHAT_GUTTER_X } from "./inboxChatLayout";
 
 /** Lista traz `unreadCount`; GET por id pode não — preservamos o da lista. */
 function mergeThreadRow(
@@ -158,7 +159,9 @@ export function ChatWindow({
               <MessageList threadId={threadId} thread={activeThread} />
             </div>
             {!auditTab && activeThread && crmDrawerMode ? (
-              <div className="hidden shrink-0 border-t border-slate-200/85 bg-white/95 px-3 py-2 md:block xl:hidden">
+              <div
+                className={`hidden shrink-0 border-t border-slate-200/85 bg-white/95 py-2 md:block md:py-2.5 xl:hidden ${INBOX_CHAT_GUTTER_X}`}
+              >
                 <button
                   type="button"
                   onClick={() => setCrmDrawerOpen(true)}
