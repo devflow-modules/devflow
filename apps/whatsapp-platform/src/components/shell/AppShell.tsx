@@ -28,7 +28,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "";
   const inboxFullBleed = pathname === "/inbox" || pathname.startsWith("/inbox/");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const { sidebarCollapsed, toggleSidebar } = useShellLayout();
+  const { sidebarCollapsed } = useShellLayout();
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setMobileNavOpen(false));
@@ -57,30 +57,21 @@ function AppShellInner({ children }: { children: ReactNode }) {
         />
       ) : null}
       <div
-        className={`fixed inset-y-0 left-0 z-50 flex h-full w-[min(17.5rem,88vw)] shrink-0 flex-col overflow-hidden border-r border-slate-100/90 bg-white shadow-[4px_0_32px_rgba(15,23,42,0.04)] transition-[transform,width,opacity] duration-200 ease-out lg:static lg:z-0 lg:h-full lg:w-60 lg:max-w-none lg:shadow-none lg:transition-[width,opacity] ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-full w-[min(17.5rem,88vw)] shrink-0 flex-col overflow-hidden border-r border-slate-100/90 bg-white shadow-[4px_0_32px_rgba(15,23,42,0.04)] transition-[transform,width,box-shadow] duration-300 ease-out lg:static lg:z-0 lg:h-full lg:max-w-none lg:shadow-none lg:transition-[width,box-shadow] ${
           mobileNavOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         } ${
           sidebarCollapsed
-            ? "lg:pointer-events-none lg:w-0 lg:min-w-0 lg:border-0 lg:opacity-0"
-            : ""
+            ? "lg:w-14 lg:min-w-[3.5rem] lg:border-slate-100/90 lg:shadow-[2px_0_20px_rgba(15,23,42,0.06)]"
+            : "lg:w-60"
         }`}
       >
         <AppSidebar onNavigate={() => setMobileNavOpen(false)} />
       </div>
-      {sidebarCollapsed ? (
-        <button
-          type="button"
-          onClick={() => toggleSidebar()}
-          className="fixed left-0 top-[calc(env(safe-area-inset-top,0px)+5.25rem)] z-[55] hidden h-11 w-9 items-center justify-center rounded-r-lg border border-slate-200/90 bg-white text-slate-600 shadow-md transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2 lg:flex"
-          aria-label="Mostrar menu de navegação"
-          title="Mostrar menu"
-        >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      ) : null}
-      <div className="flex min-h-0 min-w-0 flex-1 basis-0 flex-col overflow-hidden">
+      <div
+        className={`flex min-h-0 min-w-0 flex-1 basis-0 flex-col overflow-hidden transition-[padding] duration-300 ease-out ${
+          sidebarCollapsed ? "lg:w-full lg:max-w-none" : ""
+        }`}
+      >
         <header className="z-30 flex h-14 shrink-0 items-center gap-2 border-b border-slate-100 bg-white/90 px-3 backdrop-blur-md sm:gap-3 sm:px-4 lg:hidden">
           <button
             type="button"
@@ -99,9 +90,9 @@ function AppShellInner({ children }: { children: ReactNode }) {
           </span>
         </header>
         <EvaluationModeRibbon />
-        <main className="min-h-0 flex-1 overflow-hidden">
+        <main className="min-h-0 w-full min-w-0 flex-1 overflow-hidden">
           {inboxFullBleed ? (
-            <div className="flex h-full min-h-0 flex-col overflow-hidden">{children}</div>
+            <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden">{children}</div>
           ) : (
             <ShellPage>{children}</ShellPage>
           )}

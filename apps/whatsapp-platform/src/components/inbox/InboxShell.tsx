@@ -263,7 +263,12 @@ function InboxShellContent() {
   );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-slate-50/80" data-testid="inbox-shell">
+    <div
+      className={`flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden bg-slate-50/80 ${
+        shellSidebarCollapsed ? "lg:max-w-none" : ""
+      }`}
+      data-testid="inbox-shell"
+    >
       {channelAwaitingActivation ? (
         <div
           className="shrink-0 border-b border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm leading-relaxed text-amber-950 sm:px-6"
@@ -298,9 +303,9 @@ function InboxShellContent() {
                   type="button"
                   onClick={() => shellLayout.toggleSidebar()}
                   className="hidden rounded-lg border border-slate-200/90 bg-white px-2 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 lg:inline-flex"
-                  title="Recuar o menu lateral (mais largura para o chat)"
+                  title="Menu compacto com ícones — mais espaço para o conteúdo. Clique de novo para expandir."
                 >
-                  Recuar menu
+                  {shellSidebarCollapsed ? "Expandir menu" : "Menu compacto"}
                 </button>
               ) : null}
               <button
@@ -433,7 +438,7 @@ function InboxShellContent() {
         </div>
       ) : null}
 
-      {metricsCompact ? (
+      {inboxFocusMode ? null : metricsCompact ? (
         <details className="group shrink-0 border-b border-slate-100/90 bg-slate-50/50">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-left text-xs font-semibold text-slate-600 marker:content-none [&::-webkit-details-marker]:hidden sm:px-4">
             <span>Métricas e equipa</span>
@@ -447,11 +452,13 @@ function InboxShellContent() {
         <InboxMetricsPanel onOpenThread={selectThread} />
       )}
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
+      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden md:flex-row md:items-stretch">
         {showSidebar && (
           <aside
-            className={`flex min-h-0 w-full shrink-0 flex-col overflow-hidden border-r border-slate-100/90 bg-white ${
-              shellSidebarCollapsed ? "md:w-[min(280px,26vw)]" : "md:w-[min(360px,38vw)]"
+            className={`flex min-h-0 w-full shrink-0 flex-col overflow-hidden border-r border-slate-100/90 bg-white md:max-w-none ${
+              shellSidebarCollapsed
+                ? "md:w-[248px] md:min-w-[240px] md:max-w-[260px] xl:w-[272px] xl:min-w-[260px] xl:max-w-[272px]"
+                : "md:w-[260px] md:min-w-[240px] md:max-w-[280px] xl:w-[300px] xl:min-w-[280px] xl:max-w-[300px]"
             }`}
           >
             <div className="flex items-center justify-between border-b border-slate-100/90 px-4 py-3">
@@ -476,7 +483,7 @@ function InboxShellContent() {
         )}
 
         {showChatColumn && (
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
             {selectedId ? (
               <ChatWindow
                 key={selectedId}
@@ -487,6 +494,7 @@ function InboxShellContent() {
                 evaluationMode={evaluationMode}
                 compactChrome={inboxFocusMode}
                 shellSidebarCollapsed={shellSidebarCollapsed}
+                inboxFocusMode={inboxFocusMode}
               />
             ) : awaitingFirstMessage ? (
               <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-8 md:px-8">

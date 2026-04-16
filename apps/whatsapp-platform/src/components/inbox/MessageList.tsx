@@ -104,8 +104,11 @@ export function MessageList({
 
   if (isLoading) {
     return (
-      <div className="flex h-full min-h-0 flex-col justify-center p-4" data-testid="messages-loading">
-        <StateLoading message="A carregar mensagens…" className="min-h-[12rem] border-slate-200/80 bg-white/90 shadow-none" />
+      <div className="flex h-full min-h-0 flex-col justify-center p-4 transition-opacity duration-300" data-testid="messages-loading">
+        <StateLoading
+          message="A carregar mensagens…"
+          className="min-h-[12rem] border-slate-200/80 bg-white/90 shadow-none motion-safe:animate-pulse motion-safe:duration-[1.6s]"
+        />
       </div>
     );
   }
@@ -140,11 +143,11 @@ export function MessageList({
 
   return (
     <div
-      className="h-full min-h-0 overflow-y-auto overflow-x-hidden bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 px-5 py-7 sm:px-7 sm:py-9"
+      className="flex h-full min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 px-5 py-6 sm:px-8 sm:py-8"
       data-testid="message-list"
     >
       <div
-        className={`mx-auto flex w-full flex-col gap-4 ${wideReadingColumn ? "max-w-5xl" : "max-w-3xl"}`}
+        className={`mx-auto flex min-h-full w-full flex-col gap-3.5 ${wideReadingColumn ? "max-w-5xl xl:max-w-[52rem]" : "max-w-[46rem]"}`}
       >
         <ConversationTimeline messages={data} />
         {thread ? <AutomationStatusHints thread={thread} /> : null}

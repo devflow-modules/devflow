@@ -114,7 +114,7 @@ export const ConversationItem = memo(function ConversationItem({
           ? `${noOwnerStripe} hover:bg-amber-50/55`
           : active
             ? "bg-slate-50/95 shadow-[inset_4px_0_0_0_var(--df-brand-500)] ring-2 ring-[var(--df-brand-500)]/25 ring-inset"
-            : "bg-white hover:bg-slate-50/90",
+            : "bg-white hover:bg-slate-50/95 hover:shadow-[0_1px_4px_rgba(15,23,42,0.06)] active:bg-slate-50",
   ].join(" ");
 
   const avatarClass = isCritical

@@ -221,9 +221,9 @@ export function ChatHeader({
       })
     : null;
 
-  const headerMaxH = compactChrome ? "max-h-[min(22vh,200px)]" : "max-h-[min(28vh,300px)]";
-  const headerPad = compactChrome ? "px-3 py-2.5 sm:px-4 sm:py-3" : "px-4 py-4 sm:px-6 sm:py-5";
-  const toolbarPad = compactChrome ? "px-3 py-2 sm:px-4" : "px-4 py-3 sm:px-6";
+  const headerMaxH = compactChrome ? "max-h-[min(22vh,200px)]" : "max-h-[min(26vh,280px)]";
+  const headerPad = compactChrome ? "px-3 py-2.5 sm:px-4 sm:py-3" : "px-4 py-3 sm:px-5 sm:py-4";
+  const toolbarPad = compactChrome ? "px-3 py-2 sm:px-4" : "px-4 py-2.5 sm:px-5";
 
   return (
     <header

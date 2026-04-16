@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMediaMinWidth } from "@/lib/useMediaMinWidth";
 
 /**
  * Breakpoint md (Tailwind 768px).
@@ -9,13 +9,5 @@ import { useEffect, useState } from "react";
  * Após `useEffect`, alinha com `matchMedia`.
  */
 export function useMediaMd(): boolean {
-  const [md, setMd] = useState(true);
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
-    const apply = () => setMd(mq.matches);
-    apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
-  }, []);
-  return md;
+  return useMediaMinWidth(768, true);
 }

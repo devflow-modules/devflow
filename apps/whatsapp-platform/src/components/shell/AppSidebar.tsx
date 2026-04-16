@@ -17,6 +17,8 @@ import { ROUTE_META } from "@/lib/navigation/nav-matrix";
 import { isOperator, isPlatformAdmin, shellHomeHref } from "@/lib/roles";
 import { SessionRoleModePill } from "./SessionRoleModePill";
 import { useShellLayoutOptional } from "./ShellLayoutContext";
+import { SidebarRail } from "./SidebarRail";
+import { useMediaMinWidth } from "@/lib/useMediaMinWidth";
 function NavLink({
   href,
   label,
@@ -117,6 +119,8 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname() ?? "";
   const { role: sessionRole } = useSessionRole();
   const shellLayout = useShellLayoutOptional();
+  const isLg = useMediaMinWidth(1024, true);
+  const railMode = Boolean(shellLayout?.sidebarCollapsed && isLg);
 
   const primaryNav = primaryNavForRole(sessionRole);
   const secondaryNav = secondaryNavForRole(sessionRole);
@@ -147,6 +151,21 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
     window.location.href = "/login";
   }
 
+  if (railMode && shellLayout) {
+    return (
+      <SidebarRail
+        pathname={pathname}
+        sessionRole={sessionRole}
+        primaryNav={primaryNav}
+        secondaryNav={secondaryNav}
+        operationNav={NAV_OPERATION}
+        platformNav={platformNav}
+        onNavigate={onNavigate}
+        onExpand={() => shellLayout.toggleSidebar()}
+      />
+    );
+  }
+
   return (
     <aside className="flex h-full w-full min-w-0 shrink-0 flex-col bg-white">
       <div className="flex items-start justify-between gap-2 border-b border-slate-100/90 px-3 py-4 sm:px-4 sm:py-5">
@@ -164,8 +183,8 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
             type="button"
             onClick={() => shellLayout.toggleSidebar()}
             className="hidden shrink-0 rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2 lg:flex"
-            aria-label="Recuar menu"
-            title="Recuar menu (mais espaço para o chat)"
+            aria-label="Menu compacto"
+            title="Menu compacto — barra de ícones com acesso rápido; mais espaço para o conteúdo"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
