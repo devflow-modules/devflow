@@ -149,38 +149,42 @@ export function MessageList({
       className={`flex h-full min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 py-6 sm:py-8 ${INBOX_CHAT_GUTTER_X}`}
       data-testid="message-list"
     >
-      <div className="flex min-h-full w-full max-w-none flex-col gap-3.5">
-        <ConversationTimeline messages={data} />
-        {thread ? <AutomationStatusHints thread={thread} /> : null}
-        {timeline.map((item, ti) => {
-          if (item.kind === "day") {
+      <div className="flex min-h-full w-full max-w-none flex-col">
+        <div className="flex shrink-0 flex-col gap-3.5">
+          <ConversationTimeline messages={data} />
+          {thread ? <AutomationStatusHints thread={thread} /> : null}
+        </div>
+        <div className="mt-auto flex w-full min-w-0 max-w-none flex-col gap-3.5">
+          {timeline.map((item, ti) => {
+            if (item.kind === "day") {
+              return (
+                <div key={`d-${ti}-${item.label}`} className="flex justify-center py-3" data-testid="day-separator">
+                  <span className="df-timeline-day">{item.label}</span>
+                </div>
+              );
+            }
+            if (item.kind === "unread") {
+              return (
+                <div key={`u-${ti}`} className="flex justify-center py-2" data-testid="unread-separator">
+                  <span className="df-timeline-unread">Novas mensagens</span>
+                </div>
+              );
+            }
+            const idx = item.indexInData;
+            const compact = isCompactContinuation(data, idx);
             return (
-              <div key={`d-${ti}-${item.label}`} className="flex justify-center py-3" data-testid="day-separator">
-                <span className="df-timeline-day">{item.label}</span>
+              <div
+                key={item.message.id}
+                className={`transition-opacity duration-200 ${
+                  idx === 0 ? "" : compact ? "" : "mt-5"
+                }`}
+              >
+                <MessageBubble message={item.message} compact={compact} />
               </div>
             );
-          }
-          if (item.kind === "unread") {
-            return (
-              <div key={`u-${ti}`} className="flex justify-center py-2" data-testid="unread-separator">
-                <span className="df-timeline-unread">Novas mensagens</span>
-              </div>
-            );
-          }
-          const idx = item.indexInData;
-          const compact = isCompactContinuation(data, idx);
-          return (
-            <div
-              key={item.message.id}
-              className={`transition-opacity duration-200 ${
-                idx === 0 ? "" : compact ? "" : "mt-5"
-              }`}
-            >
-              <MessageBubble message={item.message} compact={compact} />
-            </div>
-          );
-        })}
-        <div ref={bottomRef} className="h-px shrink-0 scroll-mt-4" aria-hidden />
+          })}
+          <div ref={bottomRef} className="h-px shrink-0 scroll-mt-4" aria-hidden />
+        </div>
       </div>
     </div>
   );
