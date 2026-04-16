@@ -33,9 +33,12 @@ function isCompactContinuation(messages: WaInboxMessageRow[], index: number): bo
 export function MessageList({
   threadId,
   thread,
+  wideReadingColumn = false,
 }: {
   threadId: string | null;
   thread?: WaInboxThreadRow | null;
+  /** Menu principal recuado — coluna de leitura mais larga. */
+  wideReadingColumn?: boolean;
 }) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastMsgIdRef = useRef<string | null>(null);
@@ -140,7 +143,9 @@ export function MessageList({
       className="h-full min-h-0 overflow-y-auto overflow-x-hidden bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 px-5 py-7 sm:px-7 sm:py-9"
       data-testid="message-list"
     >
-      <div className="mx-auto flex max-w-3xl flex-col gap-4">
+      <div
+        className={`mx-auto flex w-full flex-col gap-4 ${wideReadingColumn ? "max-w-5xl" : "max-w-3xl"}`}
+      >
         <ConversationTimeline messages={data} />
         {thread ? <AutomationStatusHints thread={thread} /> : null}
         {timeline.map((item, ti) => {

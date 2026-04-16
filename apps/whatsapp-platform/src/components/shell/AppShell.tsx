@@ -80,7 +80,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
           </svg>
         </button>
       ) : null}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 basis-0 flex-col overflow-hidden">
         <header className="z-30 flex h-14 shrink-0 items-center gap-2 border-b border-slate-100 bg-white/90 px-3 backdrop-blur-md sm:gap-3 sm:px-4 lg:hidden">
           <button
             type="button"

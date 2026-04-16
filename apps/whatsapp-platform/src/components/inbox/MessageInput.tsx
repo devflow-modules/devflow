@@ -33,11 +33,14 @@ export function MessageInput({
   threadId,
   thread,
   onAgentMessageSent,
+  denseComposer = false,
 }: {
   threadId: string | null;
   thread?: WaInboxThreadRow | null;
   /** Chamado após envio bem-sucedido de mensagem humana (limpa banner de acção, etc.). */
   onAgentMessageSent?: () => void;
+  /** Menos padding, respostas rápidas recolhíveis — liberta altura para o histórico. */
+  denseComposer?: boolean;
 }) {
   const [text, setText] = useState("");
   const [retryText, setRetryText] = useState<string | null>(null);
@@ -171,7 +174,9 @@ export function MessageInput({
   return (
     <div
       id="inbox-composer-anchor"
-      className="shrink-0 border-t border-slate-100 bg-white px-4 pb-4 pt-3 shadow-[0_-8px_32px_rgba(15,23,42,0.03)] sm:px-5 sm:pb-5 sm:pt-4"
+      className={`shrink-0 border-t border-slate-100 bg-white shadow-[0_-8px_32px_rgba(15,23,42,0.03)] ${
+        denseComposer ? "px-3 pb-2.5 pt-2 sm:px-4 sm:pb-3 sm:pt-2.5" : "px-4 pb-4 pt-3 sm:px-5 sm:pb-5 sm:pt-4"
+      }`}
       data-testid="message-input"
     >
       {composerLocked ? (
@@ -235,40 +240,88 @@ export function MessageInput({
         </div>
       )}
 
-      <div className="mb-3 rounded-xl border border-slate-200/80 bg-slate-50/60 px-3 py-2.5">
-        <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">Respostas rápidas</p>
-        <div className="flex flex-wrap gap-2">
-          {QUICK_TEMPLATES.map((t) => (
+      {denseComposer ? (
+        <details className="mb-2 rounded-lg border border-slate-200/80 bg-slate-50/60">
+          <summary className="cursor-pointer list-none px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500 marker:content-none [&::-webkit-details-marker]:hidden">
+            Respostas rápidas e IA ▾
+          </summary>
+          <div className="flex flex-wrap gap-1.5 border-t border-slate-100/90 px-2.5 pb-2.5 pt-2">
+            {QUICK_TEMPLATES.map((t) => (
+              <button
+                key={t.label}
+                type="button"
+                disabled={composerLocked}
+                title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
+                className="df-inbox-template-chip"
+                onClick={() => applyTemplate(t.text)}
+                data-testid={`template-${t.label}`}
+              >
+                {t.label}
+              </button>
+            ))}
             <button
-              key={t.label}
               type="button"
-              disabled={composerLocked}
+              disabled={composerLocked || suggestMut.isPending || mutation.isPending}
               title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
-              className="df-inbox-template-chip"
-              onClick={() => applyTemplate(t.text)}
-              data-testid={`template-${t.label}`}
+              className="df-inbox-ai-chip"
+              onClick={() => suggestMut.mutate(threadId)}
+              data-testid="btn-ai-suggest"
             >
-              {t.label}
+              {suggestMut.isPending ? "A gerar…" : "Gerar com IA"}
             </button>
-          ))}
-          <button
-            type="button"
-            disabled={composerLocked || suggestMut.isPending || mutation.isPending}
-            title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
-            className="df-inbox-ai-chip"
-            onClick={() => suggestMut.mutate(threadId)}
-            data-testid="btn-ai-suggest"
-          >
-            {suggestMut.isPending ? "A gerar…" : "Gerar com IA"}
-          </button>
+          </div>
+        </details>
+      ) : (
+        <div className="mb-3 rounded-xl border border-slate-200/80 bg-slate-50/60 px-3 py-2.5">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">Respostas rápidas</p>
+          <div className="flex flex-wrap gap-2">
+            {QUICK_TEMPLATES.map((t) => (
+              <button
+                key={t.label}
+                type="button"
+                disabled={composerLocked}
+                title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
+                className="df-inbox-template-chip"
+                onClick={() => applyTemplate(t.text)}
+                data-testid={`template-${t.label}`}
+              >
+                {t.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              disabled={composerLocked || suggestMut.isPending || mutation.isPending}
+              title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
+              className="df-inbox-ai-chip"
+              onClick={() => suggestMut.mutate(threadId)}
+              data-testid="btn-ai-suggest"
+            >
+              {suggestMut.isPending ? "A gerar…" : "Gerar com IA"}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
-      <PlaybookSuggest
-        threadId={threadId}
-        sendDisabled={mutation.isPending || composerLocked}
-        onUseResponse={(t) => setText(t)}
-      />
+      {denseComposer ? (
+        <details className="mb-2">
+          <summary className="cursor-pointer text-[11px] font-medium text-sky-800 marker:content-none [&::-webkit-details-marker]:hidden">
+            Sugerir ação (playbook)
+          </summary>
+          <div className="mt-1">
+            <PlaybookSuggest
+              threadId={threadId}
+              sendDisabled={mutation.isPending || composerLocked}
+              onUseResponse={(t) => setText(t)}
+            />
+          </div>
+        </details>
+      ) : (
+        <PlaybookSuggest
+          threadId={threadId}
+          sendDisabled={mutation.isPending || composerLocked}
+          onUseResponse={(t) => setText(t)}
+        />
+      )}
 
       {suggestMut.isError && (
         <p className="mb-2 text-xs text-red-600">
@@ -326,10 +379,12 @@ export function MessageInput({
           onChange={(e) => setText(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder="Escreva a mensagem…"
-          rows={3}
+          rows={denseComposer ? 2 : 3}
           disabled={mutation.isPending || composerLocked}
           title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
-          className="df-field-control min-h-[5.5rem] flex-1 resize-y text-[15px] leading-relaxed shadow-inner transition-colors duration-200 bg-slate-50/60 focus:bg-white"
+          className={`df-field-control flex-1 resize-y text-[15px] leading-relaxed shadow-inner transition-colors duration-200 bg-slate-50/60 focus:bg-white ${
+            denseComposer ? "min-h-[4.25rem]" : "min-h-[5.5rem]"
+          }`}
         />
         <button
           type="button"
@@ -342,7 +397,9 @@ export function MessageInput({
           {mutation.isPending ? "A enviar…" : "Enviar"}
         </button>
       </div>
-      <p className="mt-2 px-0.5 text-[11px] text-slate-400">Enter envia · Shift+Enter nova linha</p>
+      <p className={`px-0.5 text-[11px] text-slate-400 ${denseComposer ? "mt-1" : "mt-2"}`}>
+        Enter envia · Shift+Enter nova linha
+      </p>
     </div>
   );
 }

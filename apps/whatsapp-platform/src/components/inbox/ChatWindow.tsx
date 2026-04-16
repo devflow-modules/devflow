@@ -40,6 +40,7 @@ export function ChatWindow({
   showBack,
   evaluationMode = false,
   compactChrome = false,
+  shellSidebarCollapsed = false,
 }: {
   threadId: string | null;
   thread: WaInboxThreadRow | null;
@@ -49,6 +50,8 @@ export function ChatWindow({
   evaluationMode?: boolean;
   /** Cabeçalho da conversa mais baixo (modo foco inbox). */
   compactChrome?: boolean;
+  /** Menu principal recuado — mais largura para o chat e compositor mais denso. */
+  shellSidebarCollapsed?: boolean;
 }) {
   const [auditTab, setAuditTab] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
@@ -90,7 +93,11 @@ export function ChatWindow({
       className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-gradient-to-b from-white via-slate-50/30 to-slate-50/60 xl:flex-row xl:items-stretch"
       data-testid="chat-window"
     >
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden xl:min-h-0">
+      <div
+        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden xl:min-h-0 xl:min-w-0 ${
+          shellSidebarCollapsed ? "xl:flex-[1_1_0%]" : ""
+        }`}
+      >
         <ChatHeader
           threadId={threadId}
           thread={activeThread}
@@ -99,7 +106,7 @@ export function ChatWindow({
           auditTab={auditTab}
           onAuditTabChange={setAuditTab}
           onOpenNotes={() => setNotesOpen((o) => !o)}
-          compactChrome={compactChrome}
+          compactChrome={compactChrome || shellSidebarCollapsed}
         />
         {notesOpen && threadId ? (
           <InternalNotesPanel threadId={threadId} onClose={() => setNotesOpen(false)} />
@@ -120,12 +127,17 @@ export function ChatWindow({
               />
             </div>
             <div className="relative min-h-0 min-w-0 overflow-hidden">
-              <MessageList threadId={threadId} thread={activeThread} />
+              <MessageList
+                threadId={threadId}
+                thread={activeThread}
+                wideReadingColumn={shellSidebarCollapsed}
+              />
             </div>
             <MessageInput
               threadId={threadId}
               thread={activeThread}
               onAgentMessageSent={() => setActionBannerDismissed(true)}
+              denseComposer={compactChrome || shellSidebarCollapsed}
             />
           </div>
         )}
@@ -134,7 +146,9 @@ export function ChatWindow({
         <LeadDataPanel
           thread={activeThread}
           evaluationMode={evaluationMode}
-          className="max-h-40 w-full shrink-0 overflow-y-auto border-t border-slate-200/90 sm:max-h-52 md:max-h-64 xl:max-h-full xl:min-h-0 xl:w-72 xl:shrink-0 xl:border-l xl:border-t-0"
+          className={`max-h-40 w-full shrink-0 overflow-y-auto border-t border-slate-200/90 sm:max-h-52 md:max-h-64 xl:max-h-full xl:min-h-0 xl:shrink-0 xl:border-l xl:border-t-0 ${
+            shellSidebarCollapsed ? "xl:w-64" : "xl:w-72"
+          }`}
         />
       ) : null}
     </div>

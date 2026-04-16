@@ -81,6 +81,8 @@ function InboxShellContent() {
   const [inboxFocusMode, setInboxFocusMode] = useState(false);
   const { connected: realtimeConnected } = useInboxRealtime();
   const shellLayout = useShellLayoutOptional();
+  const shellSidebarCollapsed = Boolean(shellLayout?.sidebarCollapsed);
+  const metricsCompact = inboxFocusMode || shellSidebarCollapsed;
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -411,27 +413,47 @@ function InboxShellContent() {
         </div>
       )}
 
-      <div className="shrink-0 space-y-2 px-4 pb-2 sm:px-6">
-        <PricingContextHint
-          message={
-            billingUi?.messagesLimit != null
-              ? contextualInboxUsageHint(billingUi.messagesLimit, {
-                  isFreePlan: billingUi.allowsMeteredOverage === false,
-                  messagesUsed: billingUi.messagesUsed,
-                })
-              : CONTEXTUAL_UPGRADE_HINTS.inbox
-          }
-        />
-        {caps && !caps.hasQueuesAndTags && FEATURE_UPGRADE_COPY.QUEUES_TAGS ? (
-          <PricingContextHint message={FEATURE_UPGRADE_COPY.QUEUES_TAGS} />
-        ) : null}
-      </div>
+      {!inboxFocusMode ? (
+        <div
+          className={`shrink-0 space-y-2 px-4 pb-2 sm:px-6 ${shellSidebarCollapsed ? "pt-0.5" : ""}`}
+        >
+          <PricingContextHint
+            message={
+              billingUi?.messagesLimit != null
+                ? contextualInboxUsageHint(billingUi.messagesLimit, {
+                    isFreePlan: billingUi.allowsMeteredOverage === false,
+                    messagesUsed: billingUi.messagesUsed,
+                  })
+                : CONTEXTUAL_UPGRADE_HINTS.inbox
+            }
+          />
+          {caps && !caps.hasQueuesAndTags && FEATURE_UPGRADE_COPY.QUEUES_TAGS ? (
+            <PricingContextHint message={FEATURE_UPGRADE_COPY.QUEUES_TAGS} />
+          ) : null}
+        </div>
+      ) : null}
 
-      <InboxMetricsPanel onOpenThread={selectThread} />
+      {metricsCompact ? (
+        <details className="group shrink-0 border-b border-slate-100/90 bg-slate-50/50">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-left text-xs font-semibold text-slate-600 marker:content-none [&::-webkit-details-marker]:hidden sm:px-4">
+            <span>Métricas e equipa</span>
+            <span className="text-[10px] text-slate-400 transition group-open:rotate-180" aria-hidden>
+              ▼
+            </span>
+          </summary>
+          <InboxMetricsPanel onOpenThread={selectThread} />
+        </details>
+      ) : (
+        <InboxMetricsPanel onOpenThread={selectThread} />
+      )}
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
         {showSidebar && (
-          <aside className="flex min-h-0 w-full shrink-0 flex-col overflow-hidden border-r border-slate-100/90 bg-white md:w-[min(380px,40vw)]">
+          <aside
+            className={`flex min-h-0 w-full shrink-0 flex-col overflow-hidden border-r border-slate-100/90 bg-white ${
+              shellSidebarCollapsed ? "md:w-[min(280px,26vw)]" : "md:w-[min(360px,38vw)]"
+            }`}
+          >
             <div className="flex items-center justify-between border-b border-slate-100/90 px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Conversas</p>
               <OnlineUsersBadge />
@@ -464,6 +486,7 @@ function InboxShellContent() {
                 onBackMobile={onBack}
                 evaluationMode={evaluationMode}
                 compactChrome={inboxFocusMode}
+                shellSidebarCollapsed={shellSidebarCollapsed}
               />
             ) : awaitingFirstMessage ? (
               <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-8 md:px-8">
