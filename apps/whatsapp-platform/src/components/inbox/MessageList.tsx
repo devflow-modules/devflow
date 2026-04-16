@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MessageBubble } from "./MessageBubble";
 import { AutomationStatusHints, ConversationTimeline } from "./ConversationTimeline";
@@ -22,6 +22,31 @@ const POLL_INTERVAL_REALTIME_MS = 10_000;
 const POLL_INTERVAL_FALLBACK_MS = 5_000;
 const CLUSTER_MAX_GAP_MS = 5 * 60 * 1000;
 
+/** Distância ao fundo da lista abaixo da qual consideramos “junto ao fim” (auto-scroll em nova mensagem). */
+const NEAR_BOTTOM_THRESHOLD_PX = 96;
+
+function isNearListBottom(el: HTMLElement, thresholdPx = NEAR_BOTTOM_THRESHOLD_PX): boolean {
+  const { scrollTop, scrollHeight, clientHeight } = el;
+  return scrollHeight - scrollTop - clientHeight <= thresholdPx;
+}
+
+/**
+ * Scroll explícito no contentor `message-list` (scrollIntoView no bottomRef não garante
+ * alinhar o overflow deste elemento quando o layout usa mt-auto / flex).
+ */
+function scheduleScrollMessageListToBottom(
+  getEl: () => HTMLDivElement | null,
+  behavior: ScrollBehavior
+): void {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const el = getEl();
+      if (!el) return;
+      el.scrollTo({ top: el.scrollHeight, behavior });
+    });
+  });
+}
+
 function isCompactContinuation(messages: WaInboxMessageRow[], index: number): boolean {
   if (index === 0) return false;
   const prev = messages[index - 1];
@@ -38,8 +63,10 @@ export function MessageList({
   threadId: string | null;
   thread?: WaInboxThreadRow | null;
 }) {
+  const messageListRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastMsgIdRef = useRef<string | null>(null);
+  const prevThreadIdRef = useRef<string | null>(null);
   const { connected: realtimeConnected } = useInboxRealtime();
   const pollInterval = realtimeConnected ? POLL_INTERVAL_REALTIME_MS : POLL_INTERVAL_FALLBACK_MS;
 
@@ -79,17 +106,35 @@ export function MessageList({
   }, [data, unreadIdx]);
 
   useLayoutEffect(() => {
-    if (!data?.length) return;
-    const last = data[data.length - 1];
-    if (lastMsgIdRef.current !== last.id) {
-      lastMsgIdRef.current = last.id;
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!threadId) {
+      prevThreadIdRef.current = null;
+      lastMsgIdRef.current = null;
+      return;
     }
-  }, [data]);
+    if (!data?.length) return;
+    const el = messageListRef.current;
+    if (!el) return;
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [threadId]);
+    if (prevThreadIdRef.current !== threadId) {
+      prevThreadIdRef.current = threadId;
+      lastMsgIdRef.current = null;
+    }
+
+    const last = data[data.length - 1];
+
+    if (lastMsgIdRef.current === null) {
+      lastMsgIdRef.current = last.id;
+      scheduleScrollMessageListToBottom(() => messageListRef.current, "auto");
+      return;
+    }
+
+    if (lastMsgIdRef.current === last.id) return;
+
+    lastMsgIdRef.current = last.id;
+    if (isNearListBottom(el)) {
+      scheduleScrollMessageListToBottom(() => messageListRef.current, "smooth");
+    }
+  }, [threadId, data]);
 
   if (!threadId) {
     return (
@@ -146,6 +191,7 @@ export function MessageList({
 
   return (
     <div
+      ref={messageListRef}
       className={`flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 py-6 sm:py-8 ${INBOX_CHAT_GUTTER_X}`}
       data-testid="message-list"
     >
