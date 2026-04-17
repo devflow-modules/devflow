@@ -9,6 +9,8 @@ import { PLANS, normalizePlan, type PlanFeatures, type PlanKey } from "./plans";
 import { getTenantPlan } from "./subscriptionService";
 import { bumpMetric, logEvent } from "@/lib/observability";
 import { featureUpgradeShortMessage } from "./featureUpgradeCopy";
+import { sanitizeFeatureNotAvailablePayload } from "./billingSanitizer";
+import type { JwtPayload } from "@/modules/auth";
 
 const PLAN_ORDER: PlanKey[] = ["FREE", "OPERATIONAL_BASE"];
 
@@ -87,7 +89,8 @@ export class FeatureNotAvailableError extends Error {
 
 export async function featureAccessDeniedResponse(
   tenantId: string,
-  feature: FeatureKey
+  feature: FeatureKey,
+  user?: Pick<JwtPayload, "role">
 ): Promise<NextResponse> {
   const raw = await getTenantPlan(tenantId);
   const currentPlan = normalizePlan(raw);
@@ -104,5 +107,6 @@ export async function featureAccessDeniedResponse(
     },
     { tenant_id: tenantId }
   );
-  return NextResponse.json(body, { status: 403 });
+  const safe = sanitizeFeatureNotAvailablePayload(body, user ?? {});
+  return NextResponse.json(safe, { status: 403 });
 }

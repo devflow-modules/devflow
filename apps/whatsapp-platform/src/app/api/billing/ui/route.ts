@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
 import { getTenantBillingUI } from "@/modules/billing";
+import {
+  logBillingInternal,
+  sanitizeTenantBillingUI,
+  shouldSanitizeBillingResponse,
+} from "@/modules/billing/billingSanitizer";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +16,11 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const data = await getTenantBillingUI(auth.payload.tenantId);
+    const raw = await getTenantBillingUI(auth.payload.tenantId);
+    if (shouldSanitizeBillingResponse(auth.payload)) {
+      logBillingInternal("GET /api/billing/ui", auth.payload.tenantId, raw);
+    }
+    const data = sanitizeTenantBillingUI(raw, auth.payload);
     return NextResponse.json({ success: true, data });
   } catch (e) {
     console.error("[billing/ui]", e);

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { jsonError, jsonSuccess } from "@/lib/api-response";
 import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { createBillingPortalSession } from "@/modules/billing/billingService";
+import { billingWriteForbiddenResponse, shouldSanitizeBillingResponse } from "@/modules/billing/billingSanitizer";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,9 @@ export async function POST(request: NextRequest) {
   if (denied) return denied;
   if (!auth) {
     return jsonError("UNAUTHORIZED", "Não autorizado", 401);
+  }
+  if (shouldSanitizeBillingResponse(auth.payload)) {
+    return billingWriteForbiddenResponse();
   }
 
   const baseUrl =

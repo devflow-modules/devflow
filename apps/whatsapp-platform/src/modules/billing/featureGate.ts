@@ -12,6 +12,7 @@ import {
   minimumPlanForFeature,
 } from "./featureAccess";
 import type { NextResponse } from "next/server";
+import type { JwtPayload } from "@/modules/auth";
 
 export type FeatureKey =
   | "AUTOMATION"
@@ -70,8 +71,9 @@ export async function assertFeature(
  */
 export async function requireFeatureOr403(
   tenantId: string,
-  feature: FeatureKey
+  feature: FeatureKey,
+  user?: Pick<JwtPayload, "role">
 ): Promise<NextResponse | null> {
   if (await canUseFeature(tenantId, feature)) return null;
-  return featureAccessDeniedResponse(tenantId, feature);
+  return featureAccessDeniedResponse(tenantId, feature, user);
 }

@@ -16,6 +16,7 @@ import {
   buildClearAffiliateRefCookie,
   resolveSignupAffiliateRef,
 } from "@/modules/affiliates/affiliateRef";
+import { isWhiteLabelBillingApi } from "@/modules/billing/billingSanitizer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -111,7 +112,10 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { name, email, password, planId, affiliateRef: affiliateRefBody } = parsed.data;
+    const { name, email, password, planId: planIdRaw, affiliateRef: affiliateRefBody } = parsed.data;
+    const wl = isWhiteLabelBillingApi();
+    /** Em WHITE_LABEL o cliente nunca escolhe plano comercial; ignora `pro` e evita checkout. */
+    const planId = wl ? "free" : planIdRaw;
     const emailLower = email.trim().toLowerCase();
 
     const existing = await prisma.user.findUnique({ where: { email: emailLower } });
@@ -207,7 +211,7 @@ export async function POST(request: NextRequest) {
       jti: sessionId,
     });
 
-    if (planId === "pro") {
+    if (!wl && planId === "pro") {
       try {
         const result = await createCheckoutSession({
           userId: tenant.id,
@@ -235,17 +239,33 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const res = NextResponse.json({
-      success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        tenantId: tenant.id,
-      },
-      redirectTo: "/onboarding",
-    });
+    const res = NextResponse.json(
+      wl
+        ? {
+            success: true,
+            message: "Conta criada. Continue a ativação guiada na próxima página.",
+            user: {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              role: user.role,
+              tenantId: tenant.id,
+            },
+            redirectTo: "/onboarding",
+            requiresManualActivation: true,
+          }
+        : {
+            success: true,
+            user: {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              role: user.role,
+              tenantId: tenant.id,
+            },
+            redirectTo: "/onboarding",
+          }
+    );
     res.headers.set("Set-Cookie", buildSetCookieHeader(token));
     res.headers.append("Set-Cookie", buildClearAffiliateRefCookie());
     return res;

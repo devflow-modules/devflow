@@ -19,6 +19,7 @@ import {
   trackAiFallbackUsed,
 } from "@/modules/analytics";
 import type { IncomingMessage } from "@devflow/whatsapp-core";
+import { logWhatsappWebhookDebug } from "@/lib/serverVerboseLog";
 
 export interface ProcessInboundMessageInput {
   tenant: ResolvedTenant;
@@ -132,7 +133,10 @@ export async function processLegacyInboundAutoReply(
     reply = await resolveLegacyRuleReply(tenant.id, inboxThreadId, textBody);
   }
 
-  console.log("[WHATSAPP][DEBUG] legacy reply prepared", { to: from, replyLen: reply?.length ?? 0 });
+  logWhatsappWebhookDebug("[WHATSAPP][DEBUG] legacy reply prepared", {
+    to: from,
+    replyLen: reply?.length ?? 0,
+  });
 
   try {
     const sent = await sendWebhookAutoReply({
@@ -147,13 +151,13 @@ export async function processLegacyInboundAutoReply(
       },
     });
     if (!sent.ok) {
-      console.log("[WHATSAPP][DEBUG] legacy reply aborted by guard", {
+      logWhatsappWebhookDebug("[WHATSAPP][DEBUG] legacy reply aborted by guard", {
         to: from,
         reason: sent.reason,
       });
       return;
     }
-    console.log("[WHATSAPP][DEBUG] legacy reply sent successfully", { to: from });
+    logWhatsappWebhookDebug("[WHATSAPP][DEBUG] legacy reply sent successfully", { to: from });
   } catch (err) {
     console.error("[WHATSAPP][ERROR] Erro ao enviar resposta legada:", err);
     const { trackMessageSendFailed } = await import("@/modules/analytics");

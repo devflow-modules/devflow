@@ -278,7 +278,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
         </Card>
       )}
 
-      {activationComplete && !isWhiteLabelMode() && (
+      {activationComplete && (
         <div className="grid min-w-0 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <Card padding="md" className="!p-5 min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Mensagens</p>
@@ -316,7 +316,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
         <ManagerDashboardSection />
       )}
 
-      {activationComplete && !isWhiteLabelMode() && (
+      {activationComplete && (
         <div className="grid gap-8 lg:grid-cols-3">
           <Card className="lg:col-span-2">
             <CardHeader title="Histórico recente" description="Volume, intenções e desempenho por agente." />
@@ -334,28 +334,14 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
               <Link href="/inbox" className={`${buttonClassName("ghost")} w-full justify-center text-slate-700`}>
                 Conversas
               </Link>
-              <Link href="/billing" className={`${buttonClassName("ghost")} w-full justify-center text-slate-600`}>
-                Plano e uso
-              </Link>
+              {!isWhiteLabelMode() ? (
+                <Link href="/billing" className={`${buttonClassName("ghost")} w-full justify-center text-slate-600`}>
+                  Plano e uso
+                </Link>
+              ) : null}
             </div>
           </Card>
         </div>
-      )}
-      {activationComplete && isWhiteLabelMode() && (
-        <Card>
-          <CardHeader title="Atalhos" description="Ir para as áreas mais usadas." />
-          <div className="flex flex-col gap-1.5">
-            <Link href="/inbox" className={`${buttonClassName("primary")} w-full justify-center`}>
-              Inbox
-            </Link>
-            <Link href="/automation" className={`${buttonClassName("ghost")} w-full justify-center text-slate-700`}>
-              Automações
-            </Link>
-            <Link href="/inbox" className={`${buttonClassName("ghost")} w-full justify-center text-slate-700`}>
-              Conversas
-            </Link>
-          </div>
-        </Card>
       )}
     </div>
   );

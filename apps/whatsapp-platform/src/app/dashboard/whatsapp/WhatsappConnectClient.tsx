@@ -21,6 +21,7 @@ import {
 import { PricingContextHint } from "@/components/dashboard/billing/PricingContextHint";
 import { CONTEXTUAL_UPGRADE_HINTS } from "@/modules/billing/planPresentation";
 import { getUiPlanCapabilities } from "@/modules/billing/planUiCapabilities";
+import { isWhiteLabelMode } from "@/lib/productMode";
 import { useSimpleToast } from "@/components/ui/simple-toast";
 
 type FriendlyError = {
@@ -58,7 +59,9 @@ export function WhatsappConnectClient() {
     try {
       const [res, billingRes] = await Promise.all([
         fetchProtected("/api/whatsapp/phone-numbers"),
-        fetchProtected("/api/billing/ui"),
+        isWhiteLabelMode()
+          ? Promise.resolve({ ok: false } as Response)
+          : fetchProtected("/api/billing/ui"),
       ]);
       const json = (await res.json().catch(() => ({}))) as { data?: WhatsappPhoneNumberRow[]; error?: string };
       if (!res.ok) {

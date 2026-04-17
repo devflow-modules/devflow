@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 
 const mockGetAuth = vi.fn();
@@ -18,6 +18,7 @@ vi.mock("@/modules/ai/aiUsageService", () => ({
 describe("/api/ai/usage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
     mockGetAuth.mockResolvedValue({
       payload: { tenantId: "t-usage", sub: "u1", role: "manager" },
     });
@@ -30,6 +31,10 @@ describe("/api/ai/usage", () => {
     });
   });
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("GET 401 sem auth", async () => {
     mockGetAuth.mockResolvedValue(null);
     const { GET } = await import("../route");
@@ -37,7 +42,7 @@ describe("/api/ai/usage", () => {
     expect(res.status).toBe(401);
   });
 
-  it("GET retorna métricas", async () => {
+  it("GET retorna métricas completas (SAAS)", async () => {
     const { GET } = await import("../route");
     const res = await GET(new NextRequest("http://x/api/ai/usage"));
     expect(res.status).toBe(200);
@@ -47,6 +52,29 @@ describe("/api/ai/usage", () => {
     expect(j.data.ai_messages_total).toBe(80);
     expect(j.data.fallback_total).toBe(10);
     expect(j.data.tokens_used_total).toBe(18000);
+    expect(j.data.estimated_cost_usd).toBe(2.34);
+  });
+
+  it("WHITE_LABEL + manager omite custo e tokens", async () => {
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
+    const { GET } = await import("../route");
+    const res = await GET(new NextRequest("http://x/api/ai/usage"));
+    const j = await res.json();
+    expect(j.data).toEqual({
+      messages_total: 120,
+      ai_messages_total: 80,
+      fallback_total: 10,
+    });
+    expect(j.data).not.toHaveProperty("estimated_cost_usd");
+  });
+
+  it("WHITE_LABEL + platform_admin mantém métricas completas", async () => {
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
+    mockGetAuth.mockResolvedValue({
+      payload: { tenantId: "t-usage", sub: "u1", role: "platform_admin" },
+    });
+    const { GET } = await import("../route");
+    const j = await (await GET(new NextRequest("http://x/api/ai/usage"))).json();
     expect(j.data.estimated_cost_usd).toBe(2.34);
   });
 

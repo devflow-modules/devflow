@@ -161,6 +161,7 @@ function InboxShellContent() {
       return j.data ?? null;
     },
     staleTime: 120_000,
+    enabled: !isWhiteLabelMode(),
   });
   const evaluationMode = Boolean(billingUi && normalizePlan(billingUi.plan) === "FREE");
   const caps = billingUi?.plan != null ? getUiPlanCapabilities(billingUi.plan) : null;

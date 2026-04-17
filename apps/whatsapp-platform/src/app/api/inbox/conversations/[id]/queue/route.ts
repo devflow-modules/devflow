@@ -19,7 +19,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  const blocked = await requireFeatureOr403(auth.payload.tenantId, "QUEUES_TAGS");
+  const blocked = await requireFeatureOr403(auth.payload.tenantId, "QUEUES_TAGS", auth.payload);
   if (blocked) return blocked;
 
   const { id: threadId } = await context.params;

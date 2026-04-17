@@ -3,6 +3,7 @@ import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/a
 import { prisma } from "@/lib/prisma";
 import { createPortalSession } from "@/modules/stripe";
 import { isStripeConfigured } from "@/modules/stripe";
+import { billingWriteForbiddenResponse, shouldSanitizeBillingResponse } from "@/modules/billing/billingSanitizer";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,9 @@ export async function POST(request: NextRequest) {
   if (denied) return denied;
   if (!auth) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  }
+  if (shouldSanitizeBillingResponse(auth.payload)) {
+    return billingWriteForbiddenResponse();
   }
 
   if (!isStripeConfigured()) {

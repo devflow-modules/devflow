@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 
 vi.mock("@/lib/rate-limit", () => ({
@@ -69,6 +69,7 @@ vi.mock("@/lib/platformAuditLog", () => ({
 describe("POST /api/auth/signup", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
     process.env.NEXT_PUBLIC_WHATSAPP_APP_URL = "http://localhost:3000";
     mockAffiliateFindUnique.mockResolvedValue(null);
     mockUserFindUnique.mockResolvedValue(null);
@@ -91,6 +92,10 @@ describe("POST /api/auth/signup", () => {
     mockEnsureTenantSubscription.mockResolvedValue(undefined);
     mockSendTransactionalEmail.mockResolvedValue({ ok: true, provider: "resend" });
     mockCreateCheckoutSession.mockReset();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("cria conta, chama sendTransactionalEmail com ACCOUNT_CREATED e responde 200", async () => {
@@ -432,5 +437,82 @@ describe("POST /api/auth/signup", () => {
         metadata: expect.objectContaining({ via: "body" }),
       })
     );
+  });
+
+  describe("WHITE_LABEL", () => {
+    beforeEach(() => {
+      vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
+    });
+
+    it("ignora planId pro — sem Stripe, resposta só com redirect interno e requiresManualActivation", async () => {
+      mockTenantCreate.mockResolvedValue({
+        id: "t-wl",
+        name: "WL User",
+        plan: "free",
+      });
+      mockUserCreate.mockResolvedValue({
+        id: "u-wl",
+        email: "wl@example.com",
+        name: "WL User",
+        role: "manager",
+        tenantId: "t-wl",
+      });
+
+      const { POST } = await import("../route");
+      const req = new NextRequest("http://localhost/api/auth/signup", {
+        method: "POST",
+        body: JSON.stringify({
+          name: "WL User",
+          email: "wl@example.com",
+          password: "12345678",
+          planId: "pro",
+        }),
+        headers: { "Content-Type": "application/json" },
+      });
+      const res = await POST(req);
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as Record<string, unknown>;
+
+      expect(mockCreateCheckoutSession).not.toHaveBeenCalled();
+      expect(body.redirectTo).toBe("/onboarding");
+      expect(body.requiresManualActivation).toBe(true);
+      expect(typeof body.message).toBe("string");
+      expect(body).not.toHaveProperty("redirectUrl");
+      expect(body).not.toHaveProperty("plan");
+      expect(body).not.toHaveProperty("planId");
+
+      expect(mockTenantCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ plan: "free" }),
+        })
+      );
+      expect(mockEnsureTenantSubscription).toHaveBeenCalledWith("t-wl", expect.any(String));
+    });
+
+    it("fluxo free permanece sem campos de billing na resposta", async () => {
+      const { POST } = await import("../route");
+      const req = new NextRequest("http://localhost/api/auth/signup", {
+        method: "POST",
+        body: JSON.stringify({
+          name: "Free WL",
+          email: "freewl@example.com",
+          password: "12345678",
+          planId: "free",
+        }),
+        headers: { "Content-Type": "application/json" },
+      });
+      mockUserCreate.mockResolvedValue({
+        id: "u-fw",
+        email: "freewl@example.com",
+        name: "Free WL",
+        role: "manager",
+        tenantId: "t-new",
+      });
+      const res = await POST(req);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.success).toBe(true);
+      expect(body.requiresManualActivation).toBe(true);
+      expect(body).not.toHaveProperty("redirectUrl");
+    });
   });
 });

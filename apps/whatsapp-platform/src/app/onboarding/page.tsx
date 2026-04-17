@@ -7,9 +7,13 @@ import { isOperator } from "@/lib/roles";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { OnboardingWizard } from "./OnboardingWizard";
 
+const wlOnboarding = process.env.NEXT_PUBLIC_PRODUCT_MODE === "WHITE_LABEL";
+
 export const metadata: Metadata = {
-  title: "Ativação | WhatsApp Platform",
-  description: "Conecte o WhatsApp, teste e comece a atender em poucos passos",
+  title: wlOnboarding ? "Configuração do sistema | WhatsApp Platform" : "Ativação | WhatsApp Platform",
+  description: wlOnboarding
+    ? "Ligue o canal, valide mensagens e conclua a configuração assistida da operação."
+    : "Conecte o WhatsApp, teste e comece a atender em poucos passos",
   robots: "noindex, nofollow",
 };
 
@@ -23,7 +27,9 @@ export default async function OnboardingPage() {
   return (
     <main className="flex h-full min-h-0 flex-col overflow-y-auto p-6">
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center py-8">
-        <h1 className="mb-8 text-center text-2xl font-semibold text-slate-900">Ativação da conta</h1>
+        <h1 className="mb-8 text-center text-2xl font-semibold text-slate-900">
+          {wlOnboarding ? "Configuração assistida" : "Ativação da conta"}
+        </h1>
         <QueryProvider>
           <OnboardingWizard />
         </QueryProvider>

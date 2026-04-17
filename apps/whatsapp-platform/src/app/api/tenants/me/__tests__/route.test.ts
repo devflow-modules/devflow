@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const mockGetAuthFromRequest = vi.fn();
 const mockPrisma = {
@@ -32,11 +32,16 @@ const tenantRow = {
 describe("GET /api/tenants/me", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
     mockResolvePrimaryPhoneNumber.mockResolvedValue({
       phoneNumberId: "pn1",
       displayPhoneNumber: "+351 910 000 000",
     });
     mockPrisma.tenant.findUnique.mockResolvedValue(tenantRow);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("retorna 401 quando não autenticado", async () => {
@@ -79,6 +84,41 @@ describe("GET /api/tenants/me", () => {
     expect(data.hasApiKey).toBe(true);
     expect(data.aiDriver).toBe("openAI");
     expect(data.primaryPhoneNumberId).toBe("pn1");
+  });
+
+  it("WHITE_LABEL + manager não inclui plan nem activeUntil", async () => {
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
+    mockGetAuthFromRequest.mockResolvedValue({
+      payload: { tenantId: "t1", sub: "u1", email: "a@b.com", name: "User", role: "manager" },
+    });
+    mockPrisma.tenant.findUnique.mockResolvedValue({
+      ...tenantRow,
+      plan: "PRO",
+      activeUntil: new Date("2030-01-01"),
+    });
+    const { GET } = await import("../route");
+    const res = await GET(new Request("http://localhost/api/tenants/me") as never);
+    const data = (await res.json()) as Record<string, unknown>;
+    expect(data).not.toHaveProperty("plan");
+    expect(data).not.toHaveProperty("activeUntil");
+    expect(data.id).toBe("t1");
+  });
+
+  it("WHITE_LABEL + platform_admin mantém plan", async () => {
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
+    mockGetAuthFromRequest.mockResolvedValue({
+      payload: { tenantId: "t1", sub: "u1", email: "a@b.com", name: "User", role: "platform_admin" },
+    });
+    mockPrisma.tenant.findUnique.mockResolvedValue({
+      ...tenantRow,
+      plan: "PRO",
+      activeUntil: new Date("2030-01-01"),
+    });
+    const { GET } = await import("../route");
+    const res = await GET(new Request("http://localhost/api/tenants/me") as never);
+    const data = (await res.json()) as Record<string, unknown>;
+    expect(data.plan).toBe("PRO");
+    expect(typeof data.activeUntil).toBe("string");
   });
 });
 

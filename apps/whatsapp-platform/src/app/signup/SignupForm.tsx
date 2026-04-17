@@ -63,6 +63,8 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
         code?: string;
         redirectUrl?: string;
         redirectTo?: string;
+        message?: string;
+        requiresManualActivation?: boolean;
       } = {};
       try {
         data = text ? (JSON.parse(text) as typeof data) : {};
@@ -142,31 +144,35 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
         disabled={loading}
       />
 
-      <fieldset disabled={loading} className="space-y-3">
-        <legend className="mb-1 text-sm font-medium text-slate-700">{whiteLabel ? "Início" : "Plano"}</legend>
-        <div className="grid gap-3">
-          <label className={planCardClass(whiteLabel || planId === "free")}>
-            <input
-              type="radio"
-              name="planId"
-              value="free"
-              checked={whiteLabel || planId === "free"}
-              onChange={() => setPlanId("free")}
-              className="sr-only"
-            />
-            <div className="min-w-0 flex-1">
-              <span className="text-sm font-semibold text-slate-900">
-                {whiteLabel ? "Ativação guiada" : "Avaliação guiada"}
-              </span>
-              <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                {whiteLabel
-                  ? "Comece com a configuração assistida do canal e da operação — o suporte acompanha a evolução."
-                  : "Demonstração da plataforma com limites claros — operação completa com implantação."}
-              </p>
-            </div>
-          </label>
+      {whiteLabel ? (
+        <div className="rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700">
+          <p className="font-medium text-slate-900">Ativação guiada</p>
+          <p className="mt-1 text-xs leading-relaxed text-slate-600">
+            Criamos o espaço da sua operação. Na sequência, configure o canal e o atendimento — sem checkout nem
+            pagamento nesta página.
+          </p>
+        </div>
+      ) : (
+        <fieldset disabled={loading} className="space-y-3">
+          <legend className="mb-1 text-sm font-medium text-slate-700">Plano</legend>
+          <div className="grid gap-3">
+            <label className={planCardClass(planId === "free")}>
+              <input
+                type="radio"
+                name="planId"
+                value="free"
+                checked={planId === "free"}
+                onChange={() => setPlanId("free")}
+                className="sr-only"
+              />
+              <div className="min-w-0 flex-1">
+                <span className="text-sm font-semibold text-slate-900">Avaliação guiada</span>
+                <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                  Demonstração da plataforma com limites claros — operação completa com implantação.
+                </p>
+              </div>
+            </label>
 
-          {!whiteLabel ? (
             <label className={planCardClass(planId === "pro")}>
               <input
                 type="radio"
@@ -188,29 +194,20 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
                 </p>
               </div>
             </label>
+          </div>
+
+          <div className="space-y-1 rounded-lg bg-slate-50/90 px-3 py-2.5 text-xs leading-relaxed text-slate-600">
+            <p>Sem cartão na fase de avaliação guiada.</p>
+            <p>Pode alinhar a operação completa depois com a equipa.</p>
+          </div>
+
+          {planId === "pro" ? (
+            <p className="text-xs leading-relaxed text-slate-600">
+              Após criar a conta, você poderá concluir a ativação do plano no checkout seguro (cartão).
+            </p>
           ) : null}
-        </div>
-
-        <div className="space-y-1 rounded-lg bg-slate-50/90 px-3 py-2.5 text-xs leading-relaxed text-slate-600">
-          {whiteLabel ? (
-            <>
-              <p>Sem pedido de dados de pagamento nesta fase.</p>
-              <p>Para evoluir a operação, use o suporte.</p>
-            </>
-          ) : (
-            <>
-              <p>Sem cartão na fase de avaliação guiada.</p>
-              <p>Pode alinhar a operação completa depois com a equipa.</p>
-            </>
-          )}
-        </div>
-
-        {!whiteLabel && planId === "pro" ? (
-          <p className="text-xs leading-relaxed text-slate-600">
-            Após criar a conta, você poderá concluir a ativação do plano no checkout seguro (cartão).
-          </p>
-        ) : null}
-      </fieldset>
+        </fieldset>
+      )}
 
       {error && (
         <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
@@ -222,7 +219,7 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
         disabled={loading}
         className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50"
       >
-        {loading ? "A criar conta…" : "Criar conta"}
+        {loading ? "A processar…" : whiteLabel ? "Solicitar acesso" : "Criar conta"}
       </button>
       <p className="text-center text-sm text-slate-600">
         <Link href="/login" className="font-medium text-blue-600 hover:text-blue-800">

@@ -24,7 +24,7 @@ export async function PATCH(
   const { id } = await context.params;
   if (!id) return NextResponse.json({ error: "id obrigatório" }, { status: 400 });
 
-  const gate = await requireFeatureOr403(tenantId, "AUTOMATION");
+  const gate = await requireFeatureOr403(tenantId, "AUTOMATION", auth.payload);
   if (gate) return gate;
 
   let json: unknown;
@@ -77,7 +77,7 @@ export async function DELETE(
   const { id } = await context.params;
   if (!id) return NextResponse.json({ error: "id obrigatório" }, { status: 400 });
 
-  const gate = await requireFeatureOr403(tenantId, "AUTOMATION");
+  const gate = await requireFeatureOr403(tenantId, "AUTOMATION", auth.payload);
   if (gate) return gate;
 
   const rule = await prisma.waAutomationRule.findFirst({

@@ -347,7 +347,7 @@ export async function handleStripeWebhookEvent(event: Stripe.Event): Promise<voi
       break;
 
     case "invoice.upcoming":
-      // TODO: notificar cliente sobre cobrança próxima (email, in-app)
+      // Reservado: notificar cliente sobre cobrança próxima (email, in-app).
       break;
 
     default:

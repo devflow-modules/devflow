@@ -44,7 +44,7 @@ export function AccountCreatedEmail({
               </>
             ) : temporaryPassword ? (
               <Text style={emailTheme.text}>
-                {/* TODO: migrar para fluxo só com setPasswordUrl; evitar senha temporária em e-mail. */}
+                {/* Preferir evolução futura: só setPasswordUrl, sem senha temporária no e-mail. */}
                 Utilize a palavra-passe temporária que lhe foi comunicada por um canal seguro e altere-a após o
                 primeiro acesso.
               </Text>

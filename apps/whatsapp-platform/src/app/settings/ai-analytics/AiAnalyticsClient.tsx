@@ -121,10 +121,11 @@ export function AiAnalyticsClient() {
     setError(null);
     setLoading(true);
     try {
+      const skipPlan = isWhiteLabelMode();
       const [rUsage, rStatus, rPlan] = await Promise.all([
         fetchProtected("/api/ai/usage"),
         fetchProtected("/api/billing/ai-usage-status"),
-        fetchProtected("/api/billing/ai-plan"),
+        skipPlan ? Promise.resolve({ ok: false } as Response) : fetchProtected("/api/billing/ai-plan"),
       ]);
       const jUsage = (await rUsage.json().catch(() => ({}))) as {
         success?: boolean;
@@ -178,7 +179,9 @@ export function AiAnalyticsClient() {
   const limitInsight = getLimitInsight(usageStatus);
   if (limitInsight) insights.unshift(limitInsight);
 
-  const remaining = planInfo?.ai_limit != null && usageStatus ? planInfo.ai_limit - usageStatus.used : null;
+  const limitForRemaining = planInfo?.ai_limit ?? usageStatus?.limit ?? null;
+  const remaining =
+    limitForRemaining != null && usageStatus ? limitForRemaining - usageStatus.used : null;
   const estimatedHours = Math.round((metrics.ai_messages_total * 4) / 60);
   const wl = isWhiteLabelMode();
 
@@ -197,8 +200,8 @@ export function AiAnalyticsClient() {
         </div>
       )}
 
-      {/* Card: Limite do plano */}
-      {usageStatus && planInfo && (
+      {/* Card: capacidade de IA (SaaS inclui nome do plano; white-label só operação) */}
+      {usageStatus && (wl || planInfo) && (
         <div
           className={`rounded-xl border p-5 shadow-sm ring-1 ${
             atLimit
@@ -217,7 +220,7 @@ export function AiAnalyticsClient() {
             ) : (
               <>
                 {atLimit ? "Limite atingido — " : nearLimit ? "Atenção: limite de IA — " : "Limite de IA — "}
-                {planInfo.plan_name}
+                {planInfo?.plan_name ?? ""}
               </>
             )}
           </h2>
@@ -228,7 +231,15 @@ export function AiAnalyticsClient() {
           )}
           <div className="flex flex-wrap items-center gap-4">
             <span className="text-sm">
-              {usageStatus.used} / {planInfo.ai_limit_label} respostas IA
+              {wl && !planInfo
+                ? `${usageStatus.used} / ${
+                    usageStatus.limit != null ? usageStatus.limit.toLocaleString("pt-BR") : "—"
+                  } interações com IA (operação)`
+                : planInfo
+                  ? `${usageStatus.used} / ${planInfo.ai_limit_label} respostas IA`
+                  : `${usageStatus.used} / ${
+                      usageStatus.limit != null ? usageStatus.limit.toLocaleString("pt-BR") : "—"
+                    } interações com IA`}
             </span>
             {usageStatus.percent_used != null && (
               <span
@@ -261,12 +272,17 @@ export function AiAnalyticsClient() {
               Sua IA parou de responder automaticamente. As mensagens estão sendo respondidas de forma limitada.
             </p>
           )}
-          {usageStatus.percent_used != null && usageStatus.percent_used < 80 && planInfo.ai_limit != null && !wl && (
+          {usageStatus.percent_used != null &&
+            usageStatus.percent_used < 80 &&
+            planInfo != null &&
+            planInfo.ai_limit != null &&
+            !wl && (
             <p className="mt-2 text-xs text-slate-500">
               Plano inclui {planInfo.ai_limit.toLocaleString("pt-BR")} respostas IA/mês. Upgrade oferece mais capacidade.
             </p>
           )}
           {!wl &&
+            planInfo != null &&
             usageStatus.ai_overage_billed != null &&
             usageStatus.ai_overage_billed > 0 && (
               <div className="mt-3 rounded-xl border border-amber-200/90 bg-amber-50/80 p-3 ring-1 ring-amber-900/[0.04]">

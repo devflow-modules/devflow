@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
   const tenantId = auth.payload.tenantId;
   if (!tenantId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const gate = await requireFeatureOr403(tenantId, "AUTOMATION");
+  const gate = await requireFeatureOr403(tenantId, "AUTOMATION", auth.payload);
   if (gate) return gate;
 
   const rules = await prisma.waAutomationRule.findMany({
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
       actions: parsed.data.actions,
     })
   ) {
-    const gateAdv = await requireFeatureOr403(tenantId, "ADVANCED_AUTOMATION");
+    const gateAdv = await requireFeatureOr403(tenantId, "ADVANCED_AUTOMATION", auth.payload);
     if (gateAdv) return gateAdv;
   }
 

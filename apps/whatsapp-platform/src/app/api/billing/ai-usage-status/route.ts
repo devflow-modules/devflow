@@ -3,6 +3,11 @@ import { getAuthFromRequest } from "@/modules/auth";
 import { getAiUsageStatus } from "@/modules/billing/aiUsageLimitService";
 import { getAiOverageBilledInPeriod } from "@/modules/billing/aiOverageVisibilityService";
 import { periodYYYYMM } from "@/modules/ai/aiUsageService";
+import {
+  logBillingInternal,
+  sanitizeAiUsageStatusPayload,
+  shouldSanitizeBillingResponse,
+} from "@/modules/billing/billingSanitizer";
 
 export const dynamic = "force-dynamic";
 
@@ -19,18 +24,24 @@ export async function GET(request: NextRequest) {
     getAiOverageBilledInPeriod(auth.payload.tenantId, p),
   ]);
 
+  const payload = {
+    used: status.used,
+    limit: status.limit,
+    percent_used: status.percentUsed,
+    can_use: status.canUse,
+    should_fallback_to_legacy: status.shouldFallbackToLegacy,
+    period: status.period,
+    plan: status.plan,
+    ai_overage_billed: overage.aiOverageBilled,
+    ai_overage_cost_brl: overage.aiOverageCostBrl,
+  };
+  if (shouldSanitizeBillingResponse(auth.payload)) {
+    logBillingInternal("GET /api/billing/ai-usage-status", auth.payload.tenantId, payload);
+  }
+  const data = sanitizeAiUsageStatusPayload(payload, auth.payload);
+
   return NextResponse.json({
     success: true,
-    data: {
-      used: status.used,
-      limit: status.limit,
-      percent_used: status.percentUsed,
-      can_use: status.canUse,
-      should_fallback_to_legacy: status.shouldFallbackToLegacy,
-      period: status.period,
-      plan: status.plan,
-      ai_overage_billed: overage.aiOverageBilled,
-      ai_overage_cost_brl: overage.aiOverageCostBrl,
-    },
+    data,
   });
 }

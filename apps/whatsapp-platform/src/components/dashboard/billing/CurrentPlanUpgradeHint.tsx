@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { isWhiteLabelMode } from "@/lib/productMode";
 import { PLANS, getPlan } from "@/modules/billing/plans";
 import { upgradeSuggestionCopy } from "@/modules/billing/planPresentation";
 
@@ -9,6 +10,7 @@ type Props = {
 };
 
 export function CurrentPlanUpgradeHint({ plan }: Props) {
+  if (isWhiteLabelMode()) return null;
   const key = getPlan(plan).key;
   const def = PLANS[key];
   const hint = upgradeSuggestionCopy(key);

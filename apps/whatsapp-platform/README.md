@@ -2,6 +2,19 @@
 
 App Next.js do produto WhatsApp Platform (DevFlow). Onboarding, auth (JWT + cookies), billing (Stripe), dashboard de métricas, gestão de agentes e filas, FAQs e feedback.
 
+## Modo de produto (SAAS vs WHITE_LABEL)
+
+`NEXT_PUBLIC_PRODUCT_MODE` controla se a UI e os contratos HTTP públicos expõem faturação Stripe ao utilizador final. Em **WHITE_LABEL**, rotas e payloads são sanitizados para managers/operators; a lógica de billing no servidor mantém-se.
+
+Documentação:
+
+- [docs/PRODUCT_MODE.md](./docs/PRODUCT_MODE.md)
+- [docs/WHITE_LABEL_STRATEGY.md](./docs/WHITE_LABEL_STRATEGY.md)
+- [docs/API_CONTRACT.md](./docs/API_CONTRACT.md)
+- [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
+
+Tipos de referência para respostas WL: `src/types/whiteLabelContracts.ts`.
+
 ## Stack
 
 - **Next.js 16** + **TypeScript**
@@ -25,8 +38,11 @@ App Next.js do produto WhatsApp Platform (DevFlow). Onboarding, auth (JWT + cook
 
 ## Variáveis de ambiente
 
+Lista resumida; o ficheiro **`.env.example`** no mesmo pacote está agrupado por domínio (produto, base de dados, WhatsApp, auth, billing, observabilidade).
+
 | Variable | Descrição |
 |----------|-----------|
+| `NEXT_PUBLIC_PRODUCT_MODE` | `SAAS` (defeito) ou `WHITE_LABEL` — ver [docs/PRODUCT_MODE.md](./docs/PRODUCT_MODE.md) |
 | `WHATSAPP_DATABASE_URL` | PostgreSQL pooler — **obrigatório** `?pgbouncer=true` no final da URL (Supabase/Supavisor) |
 | `WHATSAPP_DIRECT_URL` | PostgreSQL direta (migrations) |
 | `WHATSAPP_SUPABASE_URL` / `WHATSAPP_SUPABASE_SERVICE_ROLE_KEY` | Supabase do projeto WhatsApp |
@@ -35,6 +51,8 @@ App Next.js do produto WhatsApp Platform (DevFlow). Onboarding, auth (JWT + cook
 | `WHATSAPP_STRIPE_SECRET_KEY` / `WHATSAPP_STRIPE_TEST_SECRET_KEY` | Stripe |
 | `WHATSAPP_STRIPE_WEBHOOK_SECRET` | Assinatura do webhook Stripe |
 | `WHATSAPP_STRIPE_PRICE_PRO` / `WHATSAPP_STRIPE_PRICE_SCALE` | price_id dos planos |
+| `WHATSAPP_WEBHOOK_VERBOSE` | `1` para logs de diagnóstico do webhook (defeito: silencioso) |
+| `BILLING_INTERNAL_LOG` | `1` para log interno de rotas de billing no servidor (defeito: silencioso) |
 
 ## Fluxo pós-signup e onboarding
 

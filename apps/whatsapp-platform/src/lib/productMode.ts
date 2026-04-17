@@ -1,7 +1,4 @@
-/**
- * Modo de produto exposto ao cliente (build-time via `NEXT_PUBLIC_*`).
- * `WHITE_LABEL` oculta UI e rotas de faturação ao utilizador final; serviços internos mantêm-se.
- */
+/** Build-time: `NEXT_PUBLIC_PRODUCT_MODE`. `WHITE_LABEL` oculta faturação na UI; lógica interna mantém-se. */
 export const PRODUCT_MODE = process.env.NEXT_PUBLIC_PRODUCT_MODE ?? "SAAS";
 
-export const isWhiteLabelMode = (): boolean => PRODUCT_MODE === "WHITE_LABEL";
+export const isWhiteLabelMode = () => PRODUCT_MODE === "WHITE_LABEL";

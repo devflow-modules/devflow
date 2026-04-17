@@ -16,6 +16,7 @@ import {
   UsageLimitExceededError,
   usageLimitErrorToPayload,
 } from "@/modules/billing/enforcementService";
+import { sanitizeUsageLimitErrorPayload } from "@/modules/billing/billingSanitizer";
 import { trackUsage } from "@/modules/billing/usageService";
 import { trackAiUsage } from "@/modules/ai/aiUsageService";
 import { logEvent, logError } from "@/lib/observability";
@@ -42,10 +43,8 @@ export async function POST(
     await enforceUsageOrThrow({ tenantId, feature: "ai", quantity: 1 });
   } catch (e) {
     if (e instanceof UsageLimitExceededError) {
-      return NextResponse.json(
-        { success: false, error: usageLimitErrorToPayload(e) },
-        { status: 402 }
-      );
+      const err = sanitizeUsageLimitErrorPayload(usageLimitErrorToPayload(e), auth.payload);
+      return NextResponse.json({ success: false, error: err }, { status: 402 });
     }
     throw e;
   }

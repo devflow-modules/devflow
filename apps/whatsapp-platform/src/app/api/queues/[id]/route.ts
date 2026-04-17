@@ -43,7 +43,7 @@ export async function PATCH(
   const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
   if (denied) return denied;
 
-  const blocked = await requireFeatureOr403(auth!.payload.tenantId, "QUEUES_TAGS");
+  const blocked = await requireFeatureOr403(auth!.payload.tenantId, "QUEUES_TAGS", auth!.payload);
   if (blocked) return blocked;
 
   const { id } = await params;
@@ -79,7 +79,7 @@ export async function DELETE(
   const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
   if (denied) return denied;
 
-  const blocked = await requireFeatureOr403(auth!.payload.tenantId, "QUEUES_TAGS");
+  const blocked = await requireFeatureOr403(auth!.payload.tenantId, "QUEUES_TAGS", auth!.payload);
   if (blocked) return blocked;
 
   const { id } = await params;

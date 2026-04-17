@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 
 const mockAuth = vi.fn();
@@ -14,7 +14,8 @@ vi.mock("@/modules/billing/billingService", () => ({
 describe("GET /api/billing/usage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockAuth.mockResolvedValue({ payload: { tenantId: "t-bill" } });
+    vi.unstubAllEnvs();
+    mockAuth.mockResolvedValue({ payload: { tenantId: "t-bill", role: "manager" } });
     mockDashboard.mockResolvedValue({
       period: "2025-03",
       messagesSent: 5,
@@ -28,6 +29,10 @@ describe("GET /api/billing/usage", () => {
     });
   });
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("401 sem auth", async () => {
     mockAuth.mockResolvedValue(null);
     const { GET } = await import("../route");
@@ -35,13 +40,28 @@ describe("GET /api/billing/usage", () => {
     expect(res.status).toBe(401);
   });
 
-  it("retorna uso do tenant", async () => {
+  it("retorna uso do tenant (SAAS)", async () => {
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
     const { GET } = await import("../route");
     const res = await GET(new NextRequest("http://x/api/billing/usage"));
     expect(res.status).toBe(200);
     const j = await res.json();
     expect(j.success).toBe(true);
     expect(j.data.messagesSent).toBe(5);
+    expect(j.examples).toBeDefined();
     expect(mockDashboard).toHaveBeenCalledWith("t-bill", undefined);
+  });
+
+  it("WHITE_LABEL + manager remove contagens e preços", async () => {
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
+    const { GET } = await import("../route");
+    const res = await GET(new NextRequest("http://x/api/billing/usage"));
+    const j = await res.json();
+    expect(j.data).toEqual({
+      period: "2025-03",
+      withinLimits: { messages: true, ai: true },
+      enforceLimits: true,
+    });
+    expect(j).not.toHaveProperty("examples");
   });
 });

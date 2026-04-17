@@ -6,6 +6,7 @@ import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/a
 import { prisma } from "@/lib/prisma";
 import { createBillingCheckoutSession, type CheckoutPlan } from "@/modules/billing/billingService";
 import { normalizePlan } from "@/modules/billing/plans";
+import { billingWriteForbiddenResponse, shouldSanitizeBillingResponse } from "@/modules/billing/billingSanitizer";
 
 const bodySchema = z.object({
   plan: z.enum(["OPERATIONAL_BASE", "STARTER", "PRO", "SCALE", "TEAM"]),
@@ -19,6 +20,9 @@ export async function POST(request: NextRequest) {
   if (denied) return denied;
   if (!auth) {
     return jsonError("UNAUTHORIZED", "Não autorizado", 401);
+  }
+  if (shouldSanitizeBillingResponse(auth.payload)) {
+    return billingWriteForbiddenResponse();
   }
 
   const checkoutLim = checkRateLimit(getClientIp(request), "billing-checkout");

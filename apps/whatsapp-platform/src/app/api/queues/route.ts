@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
   const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
   if (denied) return denied;
 
-  const blocked = await requireFeatureOr403(auth!.payload.tenantId, "QUEUES_TAGS");
+  const blocked = await requireFeatureOr403(auth!.payload.tenantId, "QUEUES_TAGS", auth!.payload);
   if (blocked) return blocked;
 
   let json: unknown;

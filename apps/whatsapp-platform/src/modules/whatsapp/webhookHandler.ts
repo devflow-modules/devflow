@@ -24,6 +24,7 @@ import { recordWebhookProcessingSuccess } from "@/modules/operations/webhookHeal
 import { isOperationalAutomationEnabled } from "@/modules/operations/tenantOperationalConfigService";
 import { logWebhookVerifiedOnce } from "@/modules/whatsapp/channelEventService";
 import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
+import { logWhatsappWebhookDebug } from "@/lib/serverVerboseLog";
 type WabaWebhookShape = {
   entry?: Array<{
     changes?: Array<{ field?: string; value?: Record<string, unknown> }>;
@@ -116,11 +117,11 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
           entryLen: Array.isArray(bodyObj.entry) ? bodyObj.entry.length : 0,
         }
       : "not_object";
-  console.log("[WHATSAPP][DEBUG] POST received", JSON.stringify(bodySummary));
+  logWhatsappWebhookDebug("[WHATSAPP][DEBUG] POST received", JSON.stringify(bodySummary));
 
   const rawStructure = extractRawWebhookStructure(body);
   if (rawStructure) {
-    console.log("[WHATSAPP][DEBUG] raw payload structure", JSON.stringify(rawStructure));
+    logWhatsappWebhookDebug("[WHATSAPP][DEBUG] raw payload structure", JSON.stringify(rawStructure));
   }
 
   const normalized = normalizeWebhookPayload(body);
@@ -178,7 +179,10 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
     return withTraceHeaders(NextResponse.json({ ok: true, trace_id: traceId }, { status: 200 }), traceId);
   }
 
-  console.log("[WHATSAPP][DEBUG] tenant resolved", { tenantId: tenant.id, phoneNumberId: tenant.phoneNumberId });
+  logWhatsappWebhookDebug("[WHATSAPP][DEBUG] tenant resolved", {
+    tenantId: tenant.id,
+    phoneNumberId: tenant.phoneNumberId,
+  });
 
   const whatsappLine = await prisma.whatsappPhoneNumber.findFirst({
     where: { phoneNumberId: tenant.phoneNumberId },
@@ -209,12 +213,12 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
 
   const seenConversations = new Set<string>();
   if (normalized.messages.length === 0) {
-    console.log("[WHATSAPP][DEBUG] no text messages in payload (only statuses or non-text)");
+    logWhatsappWebhookDebug("[WHATSAPP][DEBUG] no text messages in payload (only statuses or non-text)");
   } else {
-    console.log("[WHATSAPP][DEBUG] messages to process", normalized.messages.length);
+    logWhatsappWebhookDebug("[WHATSAPP][DEBUG] messages to process", normalized.messages.length);
     for (let i = 0; i < normalized.messages.length; i++) {
       const m = normalized.messages[i];
-      console.log("[WHATSAPP][DEBUG] message", i + 1, {
+      logWhatsappWebhookDebug("[WHATSAPP][DEBUG] message", i + 1, {
         type: m.type,
         from: m.from ? `${m.from.slice(0, 4)}***` : "(empty)",
         msgId: m.id,
@@ -224,12 +228,12 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
   }
   for (const msg of normalized.messages) {
     if (msg.type !== "text") {
-      console.log("[WHATSAPP][DEBUG] skip non-text message", { type: msg.type, msgId: msg.id });
+      logWhatsappWebhookDebug("[WHATSAPP][DEBUG] skip non-text message", { type: msg.type, msgId: msg.id });
       continue;
     }
     const textBody = (msg as IncomingTextMessage).text?.body;
     if (!textBody?.trim()) {
-      console.log("[WHATSAPP][DEBUG] skip empty text", { msgId: msg.id });
+      logWhatsappWebhookDebug("[WHATSAPP][DEBUG] skip empty text", { msgId: msg.id });
       continue;
     }
 
@@ -259,10 +263,11 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
       continue;
     }
 
-    console.info(
-      "[WHATSAPP][DEBUG] processing text message — about to prepare/reply",
-      { msgId: msg.id, from: msg.from, tenantId: tenant.id }
-    );
+    logWhatsappWebhookDebug("[WHATSAPP][DEBUG] processing text message — about to prepare/reply", {
+      msgId: msg.id,
+      from: msg.from,
+      tenantId: tenant.id,
+    });
 
     const key = `${tenant.id}:${msg.from}:${tenant.phoneNumberId}`;
     const isNewConversation = !seenConversations.has(key);
@@ -284,14 +289,14 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
       continue;
     }
     if (!prep) {
-      console.warn("[WHATSAPP][DEBUG] prepareInboundConversation returned null", { msgId: msg.id });
+      logWhatsappWebhookDebug("[WHATSAPP][DEBUG] prepareInboundConversation returned null", { msgId: msg.id });
       continue;
     }
 
     try {
       const aiReady = await checkTenantAiAutomationReady(tenant.id, msg.from, tenant.phoneNumberId);
       if (aiReady.ready) {
-        console.log("[WHATSAPP][DEBUG] using AI path", { msgId: msg.id, reason: aiReady.reason });
+        logWhatsappWebhookDebug("[WHATSAPP][DEBUG] using AI path", { msgId: msg.id, reason: aiReady.reason });
         try {
           await runTenantAiAutoReply({
             tenant,
@@ -355,6 +360,6 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
     )
   );
 
-  console.log("[WHATSAPP][DEBUG] webhook POST completed successfully");
+  logWhatsappWebhookDebug("[WHATSAPP][DEBUG] webhook POST completed successfully");
   return withTraceHeaders(NextResponse.json({ ok: true, trace_id: traceId }, { status: 200 }), traceId);
 }

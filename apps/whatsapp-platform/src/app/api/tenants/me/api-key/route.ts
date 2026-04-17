@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const blocked = await requireFeatureOr403(auth.payload.tenantId, "WEBHOOKS_API");
+  const blocked = await requireFeatureOr403(auth.payload.tenantId, "WEBHOOKS_API", auth.payload);
   if (blocked) return blocked;
 
   const apiKey = `wa_${randomBytes(32).toString("hex")}`;

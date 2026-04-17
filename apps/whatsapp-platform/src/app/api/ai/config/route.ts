@@ -110,7 +110,7 @@ export async function PUT(request: NextRequest) {
       model: modelToCheck,
     })
   ) {
-    const blocked = await requireFeatureOr403(tenantId, "ADVANCED_AI");
+    const blocked = await requireFeatureOr403(tenantId, "ADVANCED_AI", auth!.payload);
     if (blocked) return blocked;
   }
 

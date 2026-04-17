@@ -101,7 +101,9 @@ export function ChatWindow({
   }, [threadId]);
 
   useEffect(() => {
-    setCrmDrawerOpen(false);
+    queueMicrotask(() => {
+      setCrmDrawerOpen(false);
+    });
   }, [threadId]);
 
   useEffect(() => {

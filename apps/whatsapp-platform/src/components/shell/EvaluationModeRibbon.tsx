@@ -28,6 +28,7 @@ export function EvaluationModeRibbon({ className = "" }: Props) {
       return j.data ?? null;
     },
     staleTime: 120_000,
+    enabled: !isWhiteLabelMode(),
   });
 
   if (isWhiteLabelMode()) return null;

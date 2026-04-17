@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getAuthFromRequest } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 import { createCheckoutSession, isStripeConfigured, type StripePlanKey } from "@/modules/stripe";
+import { billingWriteForbiddenResponse, shouldSanitizeBillingResponse } from "@/modules/billing/billingSanitizer";
 
 const bodySchema = z.object({
   plan: z.enum(["OPERATIONAL_BASE", "PRO", "SCALE"]),
@@ -14,6 +15,9 @@ export async function POST(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
   if (!auth) {
     return NextResponse.json({ success: false, error: "Não autorizado" }, { status: 401 });
+  }
+  if (shouldSanitizeBillingResponse(auth.payload)) {
+    return billingWriteForbiddenResponse();
   }
 
   if (!isStripeConfigured()) {

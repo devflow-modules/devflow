@@ -9,6 +9,7 @@ import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
 import { resolvePrimaryPhoneNumber } from "@/modules/whatsapp/whatsappPhoneResolution";
 import { ensureTenantHasPrimaryAndDefaultOutbound } from "@/modules/whatsapp/whatsappPhonePolicy";
 import { validateWhatsappCloudCredentials } from "@/modules/whatsapp/validateWhatsappCloudCredentials";
+import { sanitizeTenantMeGetPayload } from "@/modules/billing/billingSanitizer";
 
 const AI_DRIVERS = ["ruleBased", "openAI", "claude"] as const;
 
@@ -52,20 +53,21 @@ export async function GET(request: NextRequest) {
   const primaryWpn = await resolvePrimaryPhoneNumber(tenant.id);
 
   if (!isTenantManager(auth.payload.role)) {
-    return NextResponse.json({
+    const operatorPayload = {
       id: tenant.id,
       name: tenant.name,
       plan: tenant.plan,
       gtmLifecycle: tenant.gtmLifecycle,
       hasWhatsappPhone: Boolean(primaryWpn),
-    });
+    };
+    return NextResponse.json(sanitizeTenantMeGetPayload(operatorPayload, auth.payload));
   }
 
   const apiKeyMasked = tenant.apiKey
     ? `${tenant.apiKey.slice(0, 8)}...${tenant.apiKey.slice(-4)}`
     : null;
 
-  return NextResponse.json({
+  const managerPayload = {
     id: tenant.id,
     name: tenant.name,
     plan: tenant.plan,
@@ -80,7 +82,8 @@ export async function GET(request: NextRequest) {
     hasWhatsappPhone: Boolean(primaryWpn),
     primaryPhoneNumberId: primaryWpn?.phoneNumberId ?? null,
     primaryDisplayPhoneNumber: primaryWpn?.displayPhoneNumber ?? null,
-  });
+  };
+  return NextResponse.json(sanitizeTenantMeGetPayload(managerPayload, auth.payload));
 }
 
 export async function PATCH(request: NextRequest) {

@@ -17,6 +17,7 @@ import { AiSettingsPhase, AiSettingsSubheading } from "./AiSettingsPhase";
 import { AiSettingsAnchorNav } from "./AiSettingsAnchorNav";
 import { AiStatusSummary } from "./AiStatusSummary";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
+import { isWhiteLabelMode } from "@/lib/productMode";
 import { PricingContextHint } from "@/components/dashboard/billing/PricingContextHint";
 import { getUiPlanCapabilities } from "@/modules/billing/planUiCapabilities";
 import { FEATURE_UPGRADE_COPY } from "@/modules/billing/featureUpgradeCopy";
@@ -266,6 +267,7 @@ function GuardrailsSummary(props: {
   canUse?: boolean;
 }) {
   const { enabled, autoReply, fallbackToHuman, planName, canUse } = props;
+  const wl = isWhiteLabelMode();
   return (
     <div className="rounded-xl border border-slate-200/90 bg-gradient-to-br from-slate-50/90 to-white p-4 text-sm text-slate-700 ring-1 ring-slate-900/[0.03]">
       <p className="font-semibold text-slate-900">Guardrails e handoff (resumo)</p>
@@ -274,11 +276,13 @@ function GuardrailsSummary(props: {
           <strong className="text-slate-800">Quando a IA pode responder:</strong> espaço com IA ativada, resposta
           automática ligada, decisão dos guards a permitir e{" "}
           {canUse === false ? (
-            <span className="text-amber-800">quota do plano esgotada ou bloqueada</span>
+            <span className="text-amber-800">
+              {wl ? "capacidade de IA da operação esgotada ou bloqueada" : "quota do plano esgotada ou bloqueada"}
+            </span>
           ) : (
-            <span>quota disponível no plano</span>
+            <span>{wl ? "margem de capacidade disponível para a operação" : "quota disponível no plano"}</span>
           )}
-          {planName ? (
+          {!wl && planName ? (
             <>
               {" "}
               (<span className="whitespace-nowrap">plano {planName}</span>)
@@ -401,7 +405,9 @@ export function AiSettingsForm() {
       const [rConfig, rStatus, rPlan] = await Promise.all([
         fetchProtected("/api/ai/config"),
         fetchProtected("/api/billing/ai-usage-status"),
-        fetchProtected("/api/billing/ai-plan"),
+        isWhiteLabelMode()
+          ? Promise.resolve({ ok: false } as Response)
+          : fetchProtected("/api/billing/ai-plan"),
       ]);
       const j = (await rConfig.json().catch(() => ({}))) as {
         data?: AiCfg;
