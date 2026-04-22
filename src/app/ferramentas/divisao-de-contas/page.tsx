@@ -61,6 +61,9 @@ export default function DivisaoDeContasPage() {
             Calcule o rateio proporcional por renda. Para casal, república ou
             família.
           </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Use gratuitamente, sem cadastro.
+          </p>
           <Link
             href="/ferramentas"
             className="mt-6 inline-flex items-center text-sm font-medium text-primary hover:underline"

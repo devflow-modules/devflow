@@ -21,7 +21,6 @@ import {
   demoCtaPrimaryClass,
   demoCtaSecondaryClass,
   demoEyebrowClass,
-  demoSuccessPanelClass,
 } from "@/components/demo/demoUi";
 import { cn } from "@/lib/utils";
 import { CONSULTA_PREFILL_DEMO_DISPLAY } from "@/modules/produto-demos/investigaDemo";
@@ -95,8 +94,7 @@ export default function ConsultaCnpjPage() {
             Consulta CNPJ
           </h1>
           <p className="mt-4 text-base text-muted-foreground sm:text-lg">
-            Dados públicos da Receita Federal em uma ficha só. Ideal para validar o fluxo antes de
-            apresentar o Investiga+.
+            Consulte dados públicos de empresas de forma rápida e organizada.
           </p>
           <Link
             href="/ferramentas"
@@ -105,17 +103,16 @@ export default function ConsultaCnpjPage() {
             ← Voltar ao hub de ferramentas
           </Link>
 
-          <div className={cn(demoSuccessPanelClass, "mx-auto mt-8 max-w-2xl p-4 sm:p-5")}>
-            <div className={cn(demoEyebrowClass, "mb-2 bg-background/60")}>
-              <Sparkles className="size-3.5 text-primary" aria-hidden />
-              Demo comercial
+          <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-dashed border-border/80 bg-muted/20 p-4 sm:p-5">
+            <div className={cn(demoEyebrowClass, "mb-2 bg-background/60 text-muted-foreground")}>
+              <Sparkles className="size-3.5 text-muted-foreground" aria-hidden />
+              Exemplo de uso
             </div>
             <p className="text-sm font-medium text-foreground">
-              Venda o valor em segundos na página do produto
+              Veja como consultas podem ser usadas em um fluxo maior de análise.
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Exemplo ilustrativo instantâneo; em seguida você traz o cliente para esta consulta
-              real.
+              Ilustração para contexto; a consulta abaixo usa dados reais da Receita Federal.
             </p>
             <Link
               href="/produtos/investigamais"
@@ -123,11 +120,11 @@ export default function ConsultaCnpjPage() {
                 trackOpenDemo({ product: "investigamais", surface: "consulta_cnpj_banner" })
               }
               className={cn(
-                demoCtaPrimaryClass,
-                "mt-4 text-xs font-semibold sm:text-sm"
+                demoCtaSecondaryClass,
+                "mt-4 text-xs font-medium sm:text-sm"
               )}
             >
-              <Sparkles className="size-4" aria-hidden />
+              <Sparkles className="size-4 shrink-0" aria-hidden />
               Abrir demo Investiga+
             </Link>
           </div>
@@ -177,7 +174,7 @@ export default function ConsultaCnpjPage() {
             className="mx-auto mt-6 max-w-xl text-center text-sm text-muted-foreground"
             aria-live="polite"
           >
-            Informe 14 dígitos ou use o link acima para ver a narrativa comercial do Investiga+.
+            Digite um CNPJ válido para visualizar os dados.
           </p>
         )}
 

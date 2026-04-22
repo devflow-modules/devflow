@@ -42,27 +42,27 @@ export function ToolsHubHero() {
 
           <div className="mt-6 flex w-full flex-col items-stretch gap-3 sm:mt-8 sm:flex-row sm:items-center sm:justify-center sm:gap-4">
             <Link
-              href="/ferramentas/financeiro"
+              href="/demo"
               className={cn(
-                "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold sm:w-auto sm:px-6 sm:text-base",
+                "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold sm:w-auto sm:px-6 sm:text-base",
                 "bg-primary text-primary-foreground transition-all duration-200 hover:bg-primary/90"
               )}
             >
-              Testar grátis
+              Ver demo
               <ArrowRight className="size-4 shrink-0" aria-hidden />
             </Link>
             <Link
-              href="/produtos"
+              href="/ferramentas/financeiro"
               className={cn(
-                "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-border px-5 text-sm font-bold sm:w-auto sm:px-6 sm:text-base",
-                "bg-white text-foreground transition-all duration-200 hover:bg-slate-50"
+                "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-5 text-sm font-medium sm:w-auto sm:px-6 sm:text-base",
+                "text-foreground transition-colors hover:bg-muted/60"
               )}
             >
-              Começar agora
+              Abrir ferramenta Financeiro
             </Link>
           </div>
           <p className="mt-3 text-xs text-slate-500 sm:mt-4 sm:text-sm">
-            Sem instalação · Leva menos de 1 minuto
+            Ferramentas gratuitas · Sem instalação
           </p>
         </div>
       </div>

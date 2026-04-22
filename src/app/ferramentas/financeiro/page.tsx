@@ -118,33 +118,43 @@ export default async function FinanceiroPage() {
               />
             </div>
           ) : (
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link
-                href={financeiroAppUrl(FINANCEIRO_AUTH_PATH)}
-                className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-              >
-                Entrar ou criar conta
-              </Link>
-              <FinanceiroDemoEntryLink
-                href={FINANCEIRO_DEMO_PATH}
-                surface="financeiro_landing_hero"
-                className="inline-flex items-center rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm hover:bg-muted/50"
-              >
-                Ver exemplo do painel (sem cadastro)
-              </FinanceiroDemoEntryLink>
-              <Link
-                href="/planilha-vs-app-financeiro"
-                className="inline-flex items-center text-sm font-medium text-primary hover:underline"
-              >
-                Planilha vs aplicativo financeiro
-              </Link>
-              <Link
-                href="/ferramentas"
-                className="inline-flex items-center text-sm font-medium text-primary hover:underline"
-              >
-                ← Voltar ao hub
-              </Link>
-            </div>
+            <>
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <Link
+                  href={financeiroAppUrl(FINANCEIRO_AUTH_PATH)}
+                  className="inline-flex items-center rounded-lg border border-primary/25 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                >
+                  Entrar ou criar conta
+                </Link>
+                <FinanceiroDemoEntryLink
+                  href={FINANCEIRO_DEMO_PATH}
+                  surface="financeiro_landing_hero"
+                  className="inline-flex items-center rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/60"
+                >
+                  Ver exemplo do painel (sem cadastro)
+                </FinanceiroDemoEntryLink>
+                <Link
+                  href="/planilha-vs-app-financeiro"
+                  className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+                >
+                  Planilha vs aplicativo financeiro
+                </Link>
+                <Link
+                  href="/ferramentas"
+                  className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+                >
+                  ← Voltar ao hub
+                </Link>
+              </div>
+              <p className="mt-5 text-sm text-muted-foreground">
+                <Link
+                  href="/produtos/whatsapp-platform"
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  Conhecer automação de atendimento via WhatsApp
+                </Link>
+              </p>
+            </>
           )}
         </div>
       </Section>
@@ -279,8 +289,9 @@ export default async function FinanceiroPage() {
         <div className="mx-auto max-w-2xl">
           <LeadCaptureForm
             source="simulator"
-            title="Receba novas ferramentas financeiras e melhorias"
-            buttonLabel="Quero receber"
+            title="Quer receber novidades do Financeiro?"
+            description="Opcional — só atualizações pontuais, sem spam."
+            buttonLabel="Cadastrar e-mail"
           />
         </div>
       </Section>
@@ -346,9 +357,9 @@ export default async function FinanceiroPage() {
         <div className="mx-auto max-w-xl">
           <LeadCaptureForm
             source="early_access"
-            title="Estamos lançando novos recursos do Financeiro DevFlow"
-            description="Entre na lista de acesso antecipado"
-            buttonLabel="Quero participar"
+            title="Lista opcional — novidades do Financeiro"
+            description="Se quiser acompanhar próximos recursos, deixe seu e-mail."
+            buttonLabel="Entrar na lista"
             variant="footer"
           />
         </div>

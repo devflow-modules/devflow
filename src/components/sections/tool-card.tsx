@@ -44,8 +44,22 @@ export function ToolCard({
           </span>
         )}
       </div>
-      <h2 className="mt-4 text-lg font-semibold text-foreground">{title}</h2>
-      <p className="mt-2 flex-1 text-sm text-slate-600">{description}</p>
+      <h2
+        className={cn(
+          "mt-4 text-lg font-semibold",
+          disabled ? "text-muted-foreground" : "text-foreground"
+        )}
+      >
+        {title}
+      </h2>
+      <p
+        className={cn(
+          "mt-2 flex-1 text-sm",
+          disabled ? "text-muted-foreground" : "text-slate-600"
+        )}
+      >
+        {description}
+      </p>
       {!disabled && (
         <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary">
           {cta}
@@ -61,13 +75,14 @@ export function ToolCard({
     !disabled && "hover:-translate-y-1 hover:shadow-lg",
     highlight && "border-primary/30 bg-primary/[0.02]",
     !highlight && !disabled && "border-border",
-    disabled && "border-dashed border-slate-200 bg-slate-50/50 opacity-80"
+    disabled && "border-dashed border-slate-200/90 bg-slate-50/40 opacity-75"
   );
 
   if (disabled) {
     return (
-      <article className={cardClass} aria-disabled>
+      <article className={cardClass} aria-label={`${title} — em desenvolvimento`}>
         {content}
+        <p className="mt-4 text-xs font-medium text-muted-foreground">Em desenvolvimento</p>
       </article>
     );
   }

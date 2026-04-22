@@ -19,13 +19,11 @@ const TOOLS = [
     icon: Wallet,
     iconBg: "bg-primary/10",
     iconColor: "text-primary",
-    badge: "Mais usado",
-    badgeColor: "bg-primary/10 text-primary border border-primary/30",
     title: "Financeiro",
     description: "Controle completo PF, PJ e sociedade. Receitas, despesas, orçamentos e fechamento mensal.",
-    cta: "Testar grátis",
+    cta: "Abrir ferramenta",
     href: "/ferramentas/financeiro",
-    highlight: true,
+    highlight: false,
   },
   {
     slug: "divisao-de-contas",
@@ -112,8 +110,6 @@ export default function FerramentasPage() {
                   key={tool.slug}
                   iconBg={tool.iconBg}
                   iconColor={tool.iconColor}
-                  badge={tool.badge}
-                  badgeColor={tool.badgeColor}
                   title={tool.title}
                   description={tool.description}
                   cta={tool.cta}
@@ -127,8 +123,6 @@ export default function FerramentasPage() {
                   icon={tool.icon}
                   iconBg={tool.iconBg}
                   iconColor={tool.iconColor}
-                  badge={tool.badge}
-                  badgeColor={tool.badgeColor}
                   title={tool.title}
                   description={tool.description}
                   cta={tool.cta}
@@ -146,10 +140,10 @@ export default function FerramentasPage() {
       <ConnectedProductsSection />
 
       <CtaBlock
-        title="Próximo passo: conheça nossos produtos"
-        subtitle="Sistemas e automações que se conectam às ferramentas."
-        primaryLabel="Começar agora"
-        primaryHref="/produtos"
+        title="Próximo passo: veja como automatizar seu WhatsApp"
+        subtitle="Ferramentas resolvem tarefas. O WhatsApp Platform organiza sua operação."
+        primaryLabel="Ver demo"
+        primaryHref="/demo"
       />
 
       <div className="mx-auto max-w-[1200px] px-4 pb-16 sm:px-6 lg:px-8">
