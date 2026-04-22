@@ -25,6 +25,20 @@ describe("webhookHandler", () => {
     process.env.WHATSAPP_VERIFY_TOKEN = "verify-secret";
   });
 
+  describe("GET /api/webhook/whatsapp (route)", () => {
+    it("devolve hub.challenge pela route Next (wiring real)", async () => {
+      process.env.WHATSAPP_VERIFY_TOKEN = "route-verify";
+      const { GET } = await import("@/app/api/webhook/whatsapp/route");
+      const url = new URL("http://localhost/api/webhook/whatsapp");
+      url.searchParams.set("hub.mode", "subscribe");
+      url.searchParams.set("hub.verify_token", "route-verify");
+      url.searchParams.set("hub.challenge", "CHALLENGE_FROM_ROUTE");
+      const res = await GET(new NextRequest(url));
+      expect(res.status).toBe(200);
+      expect(await res.text()).toBe("CHALLENGE_FROM_ROUTE");
+    });
+  });
+
   describe("handleWebhookVerification (GET)", () => {
     it("devolve hub.challenge quando token confere", async () => {
       const { handleWebhookVerification } = await import("../webhookHandler");

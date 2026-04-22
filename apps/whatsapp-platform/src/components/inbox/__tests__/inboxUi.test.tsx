@@ -32,6 +32,30 @@ describe("Inbox UI", () => {
       "fetch",
       vi.fn((input: RequestInfo, init?: RequestInit) => {
         const url = String(input);
+        if (url.includes("/api/whatsapp/phone-numbers")) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: [
+                {
+                  phoneNumberId: "pn-meta-1",
+                  label: "Suporte",
+                  displayPhoneNumber: "+55 11",
+                  isPrimary: true,
+                  isDefaultOutbound: true,
+                  status: "ACTIVE",
+                },
+              ],
+            }),
+          });
+        }
+        if (url.includes("/api/inbox/conversations/") && url.includes("/send") && init?.method === "POST") {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ success: true }),
+          } as Response);
+        }
         if (url.includes("/api/inbox/tags")) {
           return Promise.resolve({
             ok: true,
@@ -455,6 +479,23 @@ describe("Inbox UI", () => {
     await user.click(screen.getByTestId("btn-ai-suggest"));
     await waitFor(() => {
       expect(screen.getByTestId("ai-preview")).toHaveTextContent("Resposta sugerida pela IA");
+    });
+  });
+
+  it("MessageInput envia resposta: POST /send e optimista na thread", async () => {
+    const user = userEvent.setup();
+    render(<MessageInput threadId="thread-1" thread={null} />, { wrapper: createWrapper() });
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Escreva a mensagem…")).toBeInTheDocument();
+    });
+    const ta = screen.getByPlaceholderText("Escreva a mensagem…");
+    await user.type(ta, "Resposta do agente");
+    await user.click(screen.getByTestId("send-button"));
+    await waitFor(() => {
+      expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+        expect.stringContaining("/api/inbox/conversations/thread-1/send"),
+        expect.objectContaining({ method: "POST" })
+      );
     });
   });
 

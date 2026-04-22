@@ -1,0 +1,26 @@
+/** @vitest-environment jsdom */
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import DemoPage from "../page";
+
+vi.mock("@/lib/analytics", () => ({
+  trackDemoCompleted: vi.fn(),
+  trackDemoHandoff: vi.fn(),
+  trackDemoMessageSent: vi.fn(),
+  trackDemoScenarioSelected: vi.fn(),
+}));
+
+describe("P1 — Demo /demo", () => {
+  beforeEach(() => {
+    vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "5511888888888");
+  });
+
+  it("carrega experiência guiada, CTA WhatsApp (wa.me) e link secundário", () => {
+    render(<DemoPage />);
+    expect(screen.getByRole("heading", { name: /Demonstração comercial/i })).toBeInTheDocument();
+    expect(screen.getByText(/1\. Escolha o segmento/i)).toBeInTheDocument();
+    const wa = screen.getByRole("link", { name: /Testar no WhatsApp/i });
+    expect(wa.getAttribute("href")).toMatch(/^https:\/\/wa\.me\/5511888888888/);
+    expect(screen.getByRole("link", { name: /Ver automação/i })).toHaveAttribute("href", "/automacao-whatsapp");
+  });
+});
