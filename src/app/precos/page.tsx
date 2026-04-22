@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check, MessageCircle } from "lucide-react";
+import { Check } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
 import { cn } from "@/lib/utils";
 
@@ -18,8 +18,6 @@ const plans = [
       "Handoff humano",
       "Suporte por email",
     ],
-    cta: "Quero orçamento",
-    text: "Olá, quero solicitar uma proposta para o plano Starter.",
     featured: false,
   },
   {
@@ -33,8 +31,6 @@ const plans = [
       "Integrações",
       "Suporte prioritário",
     ],
-    cta: "Quero orçamento",
-    text: "Olá, quero solicitar uma proposta para o plano Pro.",
     featured: true,
   },
   {
@@ -48,8 +44,6 @@ const plans = [
       "Treinamento da equipe",
       "Suporte 24/7",
     ],
-    cta: "Quero proposta",
-    text: "Olá, quero uma proposta Enterprise para minha empresa.",
     featured: false,
   },
 ];
@@ -81,8 +75,7 @@ export default function PrecosPage() {
             Preços
           </h1>
           <p className="mt-4 text-lg text-slate-600">
-            Implantação sob medida. Plano conforme volume e operação.
-            Demonstração antes da proposta.
+            Veja como funciona na prática antes de qualquer proposta.
           </p>
         </div>
 
@@ -122,13 +115,24 @@ export default function PrecosPage() {
               </ul>
               <div className="mt-8">
                 <WhatsAppCta
-                  label={plan.cta}
+                  label="Falar com especialista"
+                  ariaLabel="Falar com especialista no WhatsApp"
                   size="default"
-                  text={plan.text}
+                  text="Quero entender como aplicar isso no meu WhatsApp"
                 />
               </div>
             </article>
           ))}
+        </div>
+
+        <div className="mx-auto mt-12 max-w-lg rounded-2xl border border-border bg-muted/30 px-6 py-8 text-center">
+          <p className="text-sm font-medium text-foreground">Prefere ver antes de falar?</p>
+          <Link
+            href="/demo"
+            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-border bg-background px-6 text-sm font-semibold text-foreground transition-colors hover:bg-muted sm:w-auto"
+          >
+            Ver demo
+          </Link>
         </div>
 
         <p className="mt-8 text-center text-sm text-slate-600">
@@ -138,10 +142,10 @@ export default function PrecosPage() {
 
         <p className="mt-8 text-center">
           <Link
-            href="/automacao-whatsapp"
+            href="/produtos/whatsapp-platform"
             className="text-sm font-medium text-primary hover:underline"
           >
-            ← Ver automação WhatsApp
+            Ver produto completo
           </Link>
         </p>
       </div>

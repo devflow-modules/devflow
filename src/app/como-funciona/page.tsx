@@ -31,8 +31,7 @@ export default function ComoFuncionaPage() {
             Como a DevFlow Labs funciona
           </h1>
           <p className="mt-3 max-w-2xl text-base text-slate-600">
-            Você chegou por uma página dedicada — sem pular direto para a home. Abaixo, o mesmo fluxo em três
-            passos que usamos no site.
+            Veja em três passos como organizar seu atendimento e automatizar seu WhatsApp.
           </p>
         </div>
       </div>
