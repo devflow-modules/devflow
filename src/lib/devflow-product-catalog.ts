@@ -21,10 +21,21 @@ export type DevflowCatalogProduct = {
 };
 
 /**
- * Ordem: Financeiro continua primeiro no catálogo; WhatsApp Platform com destaque visual (lançamento).
+ * Ordem: WhatsApp Platform primeiro (foco de lançamento); Financeiro e demais seguem.
  * Textos: verbo + resultado (evitar genéricos).
  */
 export const DEVFLOW_PRODUCT_CATALOG: DevflowCatalogProduct[] = [
+  {
+    id: "whatsapp_platform",
+    navItemKey: "produto_whatsapp",
+    name: "WhatsApp Platform",
+    summary: "Automatize atendimento e vendas no WhatsApp",
+    cardPitch: "Transforme volume de mensagens em operação previsível.",
+    audience: "Negócios que vivem de WhatsApp e precisam de métricas e controle.",
+    href: "/produtos/whatsapp-platform",
+    featured: true,
+    badge: "Principal",
+  },
   {
     id: "financeiro",
     navItemKey: "produto_financeiro",
@@ -34,19 +45,7 @@ export const DEVFLOW_PRODUCT_CATALOG: DevflowCatalogProduct[] = [
     audience: "Quem quer controle real de PF, PJ ou casa, com próximo passo óbvio.",
     href: FINANCEIRO_BASE_PATH,
     demoHref: FINANCEIRO_DEMO_PATH,
-    featured: true,
-    badge: "Mais usado",
-  },
-  {
-    id: "whatsapp_platform",
-    navItemKey: "produto_whatsapp",
-    name: "WhatsApp Platform",
-    summary: "Automatize atendimento e vendas no WhatsApp",
-    cardPitch: "Transforme volume de mensagens em operação previsível.",
-    audience: "Negócios que vivem de WhatsApp e precisam de métricas e controle.",
-    href: "/produtos/whatsapp-platform",
     featured: false,
-    badge: "Principal",
   },
   {
     id: "investigamais",

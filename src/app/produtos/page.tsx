@@ -8,7 +8,7 @@ const baseUrl = "https://devflowlabs.com.br";
 export const metadata: Metadata = {
   title: "Produtos | DevFlow Labs — Plataforma multiproduto",
   description:
-    "Catálogo DevFlow: Financeiro, WhatsApp Platform, Investigamais e FunkLab. Escolha pelo problema — cada produto com próximo passo claro.",
+    "Catálogo DevFlow: WhatsApp Platform, Financeiro, Investigamais e FunkLab. Escolha pelo problema — cada produto com próximo passo claro.",
   keywords: ["DevFlow Labs", "produtos", "plataforma", "SaaS", "automação"],
   alternates: {
     canonical: `${baseUrl}/produtos`,
@@ -30,8 +30,9 @@ export default function ProdutosPage() {
       <CtaBlock
         title="Quer resolver algo na hora, de graça?"
         subtitle="Ferramentas são entradas rápidas; produtos são sistemas completos — os dois se conectam."
-        primaryLabel="Abrir ferramentas"
-        primaryHref="/ferramentas"
+        primaryLabel="Ver demo"
+        primaryHref="/demo"
+        secondaryLink={{ label: "Abrir ferramentas", href: "/ferramentas" }}
       />
 
       <div className="mx-auto max-w-[1200px] px-4 pb-16 sm:px-6 lg:px-8">

@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowRight, MessageCircle, Music2, Package, Search, Wallet } from "lucide-react";
 import {
-  trackFinanceiroDemoEntryClick,
   trackProductsPageCardClicked,
   trackProductsPageCtaClicked,
   trackProductsSelectionHelpUsed,
@@ -14,8 +13,11 @@ import {
   type DevflowProductId,
   DEVFLOW_PRODUCT_CATALOG,
 } from "@/lib/devflow-product-catalog";
-import { FINANCEIRO_BASE_PATH, FINANCEIRO_DEMO_PATH } from "@devflow/financeiro-routes";
+import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
+import { PRIMARY_DEMO_HREF } from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
+
+const WHATSAPP_PRODUCT_HREF = "/produtos/whatsapp-platform";
 
 const iconById: Record<DevflowProductId, typeof Wallet> = {
   financeiro: Wallet,
@@ -29,23 +31,23 @@ const iconStyleById: Record<
   { wrap: string; icon: string }
 > = {
   financeiro: { wrap: "bg-primary/10", icon: "text-primary" },
-  whatsapp_platform: { wrap: "bg-primary/10", icon: "text-primary" },
+  whatsapp_platform: { wrap: "bg-emerald-500/10", icon: "text-emerald-700" },
   investigamais: { wrap: "bg-emerald-500/10", icon: "text-emerald-700" },
   funklab: { wrap: "bg-violet-500/10", icon: "text-violet-600" },
 };
 
 const comoEscolher = [
   {
+    trigger: "Quer automatizar atendimento e escalar no WhatsApp",
+    productId: "whatsapp_platform" as const,
+    href: WHATSAPP_PRODUCT_HREF,
+    name: "WhatsApp Platform",
+  },
+  {
     trigger: "Quer organizar dinheiro e fechar o mês com clareza",
     productId: "financeiro" as const,
     href: FINANCEIRO_BASE_PATH,
     name: "Financeiro",
-  },
-  {
-    trigger: "Quer automatizar atendimento e escalar no WhatsApp",
-    productId: "whatsapp_platform" as const,
-    href: "/produtos/whatsapp-platform",
-    name: "WhatsApp Platform",
   },
   {
     trigger: "Quer validar CNPJ e dados com contexto rápido",
@@ -65,11 +67,11 @@ function ProductCard({ product }: { product: DevflowCatalogProduct }) {
   const Icon = iconById[product.id];
   const styles = iconStyleById[product.id];
 
-  if (product.id === "financeiro") {
+  if (product.id === "whatsapp_platform") {
     return (
       <article
         className={cn(
-          "flex flex-col rounded-2xl border-2 border-primary/35 bg-gradient-to-b from-primary/[0.06] to-card p-6 shadow-sm transition-all duration-200 hover:shadow-lg"
+          "flex flex-col rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-b from-emerald-500/[0.07] to-card p-6 shadow-sm ring-1 ring-emerald-500/15 transition-all duration-200 hover:shadow-lg"
         )}
       >
         <div className="flex items-start justify-between gap-2">
@@ -77,7 +79,7 @@ function ProductCard({ product }: { product: DevflowCatalogProduct }) {
             <Icon className={cn("size-5", styles.icon)} aria-hidden />
           </div>
           {product.badge ? (
-            <span className="shrink-0 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+            <span className="shrink-0 rounded-full border border-emerald-500/35 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-200">
               {product.badge}
             </span>
           ) : null}
@@ -89,7 +91,7 @@ function ProductCard({ product }: { product: DevflowCatalogProduct }) {
         </p>
         <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <Link
-            href={FINANCEIRO_BASE_PATH}
+            href={PRIMARY_DEMO_HREF}
             className={cn(
               "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold",
               "bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
@@ -97,37 +99,30 @@ function ProductCard({ product }: { product: DevflowCatalogProduct }) {
             onClick={() =>
               trackProductsPageCtaClicked({
                 productId: product.id,
-                cta: "começar_gratis",
-                targetHref: FINANCEIRO_BASE_PATH,
+                cta: "ver_exemplo",
+                targetHref: PRIMARY_DEMO_HREF,
               })
             }
           >
-            Começar grátis
+            Ver demo
             <ArrowRight className="size-4" aria-hidden />
           </Link>
-          {product.demoHref ? (
-            <Link
-              href={product.demoHref}
-              className={cn(
-                "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-primary bg-primary/5 px-4 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-primary/10"
-              )}
-              onClick={() => {
-                if (product.demoHref === FINANCEIRO_DEMO_PATH) {
-                  trackFinanceiroDemoEntryClick({
-                    surface: `products_hub_card_${product.id}`,
-                    target_href: product.demoHref,
-                  });
-                }
-                trackProductsPageCtaClicked({
-                  productId: product.id,
-                  cta: "ver_exemplo",
-                  targetHref: product.demoHref!,
-                });
-              }}
-            >
-              Ver exemplo
-            </Link>
-          ) : null}
+          <Link
+            href={WHATSAPP_PRODUCT_HREF}
+            className={cn(
+              "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-emerald-600/30 bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-emerald-500/[0.06]"
+            )}
+            onClick={() =>
+              trackProductsPageCtaClicked({
+                productId: product.id,
+                cta: "abrir",
+                targetHref: WHATSAPP_PRODUCT_HREF,
+              })
+            }
+          >
+            Ver produto principal
+            <ArrowRight className="size-4" aria-hidden />
+          </Link>
         </div>
       </article>
     );
@@ -226,7 +221,7 @@ export function ProductsHubClient() {
             </p>
             <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
               <Link
-                href={FINANCEIRO_BASE_PATH}
+                href={PRIMARY_DEMO_HREF}
                 className={cn(
                   "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-base font-bold",
                   "bg-primary text-primary-foreground shadow-[0_3px_14px_rgba(34,197,94,0.35)] transition-all hover:bg-[#16a34a] hover:shadow-md"
@@ -234,32 +229,28 @@ export function ProductsHubClient() {
                 onClick={() =>
                   trackProductsPageCtaClicked({
                     productId: "hub_hero",
-                    cta: "começar_gratis",
-                    targetHref: FINANCEIRO_BASE_PATH,
+                    cta: "ver_exemplo",
+                    targetHref: PRIMARY_DEMO_HREF,
                   })
                 }
               >
-                Começar grátis
+                Ver demo
                 <ArrowRight className="size-5 shrink-0" aria-hidden />
               </Link>
               <Link
-                href={FINANCEIRO_DEMO_PATH}
+                href={WHATSAPP_PRODUCT_HREF}
                 className={cn(
-                  "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-primary bg-primary/5 px-6 text-base font-bold text-primary transition-colors hover:bg-primary/10"
+                  "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-border bg-background px-6 text-base font-semibold text-foreground transition-colors hover:bg-muted/60"
                 )}
-                onClick={() => {
-                  trackFinanceiroDemoEntryClick({
-                    surface: "products_hub_hero",
-                    target_href: FINANCEIRO_DEMO_PATH,
-                  });
+                onClick={() =>
                   trackProductsPageCtaClicked({
                     productId: "hub_hero",
-                    cta: "ver_exemplo",
-                    targetHref: FINANCEIRO_DEMO_PATH,
-                  });
-                }}
+                    cta: "abrir",
+                    targetHref: WHATSAPP_PRODUCT_HREF,
+                  })
+                }
               >
-                Ver exemplo
+                Ver produto principal
               </Link>
             </div>
           </div>

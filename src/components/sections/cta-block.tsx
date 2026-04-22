@@ -10,6 +10,8 @@ type CtaBlockProps = {
   subtitle?: string;
   primaryLabel: string;
   primaryHref: string;
+  /** Se definido, substitui o WhatsApp por um link secundário (ex.: /ferramentas no hub de produtos). */
+  secondaryLink?: { label: string; href: string };
   whatsappText?: string;
 };
 
@@ -18,6 +20,7 @@ export function CtaBlock({
   subtitle = "Tudo no mesmo ecossistema DevFlow Labs.",
   primaryLabel,
   primaryHref,
+  secondaryLink,
   whatsappText = "Olá, quero entender como a DevFlow Labs pode me ajudar.",
 }: CtaBlockProps) {
   return (
@@ -61,11 +64,22 @@ export function CtaBlock({
               {primaryLabel}
               <ArrowRight className="size-4" aria-hidden />
             </Link>
-            <WhatsAppCta
-              label="Falar com a gente"
-              size="default"
-              text={whatsappText}
-            />
+            {secondaryLink ? (
+              <Link
+                href={secondaryLink.href}
+                className={cn(
+                  "inline-flex h-12 min-w-[10rem] items-center justify-center gap-2 rounded-xl border border-border bg-background px-6 text-base font-semibold text-foreground transition-colors hover:bg-muted/60"
+                )}
+              >
+                {secondaryLink.label}
+              </Link>
+            ) : (
+              <WhatsAppCta
+                label="Falar com a gente"
+                size="default"
+                text={whatsappText}
+              />
+            )}
           </div>
         </div>
       </div>
