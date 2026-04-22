@@ -112,7 +112,9 @@ export async function middleware(request: NextRequest) {
   // 2. Proteção admin (exceto /admin/login)
   if (isAdminPath(path)) {
     if (
-      (path.startsWith("/admin/metrics") || path.startsWith("/admin/billing")) &&
+      (path.startsWith("/admin/metrics") ||
+        path.startsWith("/admin/billing") ||
+        path.startsWith("/admin/leads")) &&
       process.env.NODE_ENV === "production"
     ) {
       const adminSecret =

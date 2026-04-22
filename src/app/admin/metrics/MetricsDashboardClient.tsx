@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import {
   MetricsCard,
   MetricsSection,
@@ -76,16 +77,24 @@ export function MetricsDashboardClient({ initialData }: Props) {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-foreground">Métricas internas</h1>
-        <button
-          type="button"
-          onClick={refresh}
-          disabled={loading}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
-        >
-          {loading ? "Atualizando…" : "Atualizar"}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/admin/leads"
+            className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-muted"
+          >
+            Leads outbound
+          </Link>
+          <button
+            type="button"
+            onClick={refresh}
+            disabled={loading}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+          >
+            {loading ? "Atualizando…" : "Atualizar"}
+          </button>
+        </div>
       </div>
 
       {/* ------------------------------------------------------------------ */}

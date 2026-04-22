@@ -1,0 +1,104 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+vi.mock("@/lib/prisma-root", () => ({
+  prisma: {
+    lead: {
+      findMany: vi.fn(),
+      create: vi.fn(),
+      groupBy: vi.fn(),
+    },
+  },
+}));
+
+import { prisma } from "@/lib/prisma-root";
+import { GET, POST } from "../route";
+
+const authHeaders = { "x-admin-metrics-secret": "secret-leads-test" };
+
+describe("/api/admin/leads", () => {
+  beforeEach(() => {
+    process.env.ADMIN_METRICS_SECRET = "secret-leads-test";
+    vi.stubEnv("NODE_ENV", "production");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.mocked(prisma.lead.findMany).mockReset();
+    vi.mocked(prisma.lead.create).mockReset();
+    vi.mocked(prisma.lead.groupBy).mockReset();
+  });
+
+  it("GET 403 sem autorização", async () => {
+    const req = new Request("http://localhost/api/admin/leads");
+    const res = await GET(req);
+    expect(res.status).toBe(403);
+  });
+
+  it("GET retorna lista com filtro opcional e resumo", async () => {
+    const rows = [
+      {
+        id: "1",
+        name: "A",
+        company: null,
+        phone: "5511999990000",
+        status: "novo",
+        notes: null,
+        origin: null,
+        lastContactAt: null,
+        nextFollowUpAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+    vi.mocked(prisma.lead.findMany).mockResolvedValue(rows as never);
+    vi.mocked(prisma.lead.groupBy).mockResolvedValue([{ status: "novo", _count: { _all: 1 } }] as never);
+
+    const res = await GET(
+      new Request("http://localhost/api/admin/leads?status=novo", { headers: authHeaders })
+    );
+    expect(res.status).toBe(200);
+    expect(prisma.lead.findMany).toHaveBeenCalledWith({
+      where: { status: "novo" },
+    });
+    const body = await res.json();
+    expect(body.leads).toHaveLength(1);
+    expect(body.leads[0].id).toBe("1");
+    expect(body.summary).toBeDefined();
+    expect(body.summary.byStatus).toEqual({ novo: 1 });
+    expect(body.summary.total).toBe(1);
+  });
+
+  it("POST cria lead", async () => {
+    const created = {
+      id: "c1",
+      name: "João",
+      company: "Acme",
+      phone: "+5511988887777",
+      status: "novo",
+      notes: "x",
+      origin: null,
+      lastContactAt: null,
+      nextFollowUpAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    vi.mocked(prisma.lead.create).mockResolvedValue(created as never);
+
+    const res = await POST(
+      new Request("http://localhost/api/admin/leads", {
+        method: "POST",
+        headers: { ...authHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: "+5511988887777",
+          name: "João",
+          company: "Acme",
+          notes: "x",
+        }),
+      })
+    );
+    expect(res.status).toBe(201);
+    expect(prisma.lead.create).toHaveBeenCalled();
+    const body = await res.json();
+    expect(body.lead.phone).toBe("+5511988887777");
+  });
+});
