@@ -32,6 +32,15 @@ enum WhatsappPhoneNumberStatus {
   ERROR
 }
 
+/** Verificação Meta Business (camada operacional admin — não substitui o fluxo Meta). */
+enum MetaBusinessVerificationStatus {
+  NOT_STARTED
+  READY_FOR_SUBMISSION
+  IN_REVIEW
+  APPROVED
+  REJECTED
+}
+
 model WhatsappPhoneNumber {
   id                  String                   @id @default(cuid())
   tenantId            String                   @map("tenant_id")
@@ -49,6 +58,15 @@ model WhatsappPhoneNumber {
   /** Tentativas automáticas de correção (auto-healing); máximo 2. */
   autoHealAttempts    Int                      @default(0) @map("auto_heal_attempts")
   lastAutoHealAt      DateTime?                @map("last_auto_heal_at")
+  /** Estado operacional da verificação Meta Business (checklist + decisões admin). */
+  verificationStatus  MetaBusinessVerificationStatus @default(NOT_STARTED) @map("verification_status")
+  /** Checklist JSON: `{ \"items\": [{ \"id\", \"label\", \"done\" }] }` — merge com defaults no serviço. */
+  verificationChecklist Json @default("{}") @map("verification_checklist")
+  verificationChecklistUpdatedAt DateTime? @map("verification_checklist_updated_at")
+  verificationReadyAt            DateTime? @map("verification_ready_at")
+  verificationSubmittedAt      DateTime? @map("verification_submitted_at")
+  verificationApprovedAt       DateTime? @map("verification_approved_at")
+  verificationRejectedAt       DateTime? @map("verification_rejected_at")
   createdAt           DateTime                 @default(now()) @map("created_at")
   updatedAt           DateTime                 @updatedAt @map("updated_at")
   tenant              Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)

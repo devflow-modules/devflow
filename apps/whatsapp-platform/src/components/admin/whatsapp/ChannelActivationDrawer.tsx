@@ -6,6 +6,7 @@ import type { ChannelActivationEvent } from "@/modules/whatsapp/channelEventServ
 import type { AdminChannelDetail } from "@/modules/whatsapp/channelActivationService";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 import { useSimpleToast } from "@/components/ui/simple-toast";
+import { ChannelVerificationCard } from "@/components/admin/whatsapp/ChannelVerificationCard";
 
 type Props = {
   channelId: string | null;
@@ -35,6 +36,12 @@ function eventIcon(type: string): string {
       return "✕";
     case "AUTO_HEAL_SKIPPED":
       return "⏭";
+    case "VERIFICATION_CHECKLIST_UPDATED":
+      return "☑";
+    case "VERIFICATION_STATUS_CHANGED":
+      return "◎";
+    case "VERIFICATION_COMPUTED":
+      return "📊";
     default:
       return "•";
   }
@@ -60,6 +67,12 @@ function eventTitle(type: string): string {
       return "Auto-healing (falhou)";
     case "AUTO_HEAL_SKIPPED":
       return "Auto-healing (ignorado)";
+    case "VERIFICATION_CHECKLIST_UPDATED":
+      return "Verificação Meta — checklist";
+    case "VERIFICATION_STATUS_CHANGED":
+      return "Verificação Meta — estado";
+    case "VERIFICATION_COMPUTED":
+      return "Verificação Meta — prontidão";
     default:
       return type;
   }
@@ -71,6 +84,16 @@ export function ChannelActivationDrawer({ channelId, open, onClose, onRetryActiv
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { showToast, toastAnchor } = useSimpleToast(3200);
+
+  const reloadTimelineOnly = useCallback(async () => {
+    if (!channelId) return;
+    const tRes = await fetchProtected(`/api/admin/whatsapp/channels/${encodeURIComponent(channelId)}/timeline`);
+    const tJson = await tRes.json().catch(() => ({}));
+    if (tRes.ok && (tJson as { success?: boolean }).success) {
+      const ev = (tJson as { data?: { events?: ChannelActivationEvent[] } }).data?.events;
+      setEvents(Array.isArray(ev) ? ev : []);
+    }
+  }, [channelId]);
 
   const load = useCallback(async () => {
     if (!channelId) return;
@@ -221,6 +244,9 @@ export function ChannelActivationDrawer({ channelId, open, onClose, onRetryActiv
                   <p className="mb-4 text-[11px] text-slate-500">
                     Tentativas automáticas registadas: {detail.autoHealAttempts} / 2
                   </p>
+                  {channelId ? (
+                    <ChannelVerificationCard channelId={channelId} onTimelineRefresh={() => void reloadTimelineOnly()} />
+                  ) : null}
                 </>
               ) : null}
 
