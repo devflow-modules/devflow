@@ -65,6 +65,7 @@ function opsAfterScenarioSelect(scenario: DemoScenarioId): DemoOpsState {
 
 export function DemoGuidedExperience() {
   const titleId = useId();
+  const inputId = useId();
   const [phase, setPhase] = useState<Phase>("pick");
   const [scenario, setScenario] = useState<DemoScenarioId | null>(null);
   const [messages, setMessages] = useState<ChatMsg[]>([]);
@@ -182,23 +183,24 @@ export function DemoGuidedExperience() {
   const def = scenario ? DEMO_SCENARIOS[scenario] : null;
 
   return (
-    <main className="min-h-screen bg-[#f8fafc]">
-      <section className="py-14 sm:py-20" aria-labelledby={titleId}>
+    <div className="min-h-screen bg-[#f8fafc]">
+      <section className="py-8 sm:py-12 lg:py-16" aria-labelledby={titleId}>
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="max-w-2xl">
               <div className="h-1 w-12 rounded-full bg-primary" aria-hidden />
-              <h1 id={titleId} className="mt-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                Demonstração comercial — WhatsApp
+              <h1 id={titleId} className="mt-4 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                Veja como seu WhatsApp pode responder, qualificar e organizar atendimento automaticamente
               </h1>
               <p className="mt-3 text-slate-600">
-                Fluxo guiado por segmento: captação no canal, resposta imediata, triagem automática e handoff explícito
-                para humano. Tudo roda no seu navegador — sem depender de APIs externas nesta página.
+                Simulação guiada: entrada de mensagem, resposta automática, triagem e handoff para humano — como
+                acontece na operação real.
               </p>
             </div>
             <button
               type="button"
               onClick={resetDemo}
+              aria-label="Reiniciar demonstração do zero"
               className="inline-flex items-center gap-2 self-start rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted"
             >
               <RotateCcw className="size-4" aria-hidden />
@@ -207,40 +209,47 @@ export function DemoGuidedExperience() {
           </div>
 
           {phase === "success" ? (
-            <div className="mx-auto mt-14 max-w-xl rounded-2xl border border-emerald-200 bg-emerald-50/80 p-8 text-center shadow-sm">
+            <div className="mx-auto mt-8 max-w-xl rounded-2xl border border-emerald-200 bg-emerald-50/80 p-6 text-center shadow-sm sm:mt-12 sm:p-8">
               <CheckCircle2 className="mx-auto size-12 text-emerald-600" aria-hidden />
-              <h2 className="mt-4 text-xl font-semibold text-emerald-950">Roteiro concluído</h2>
+              <h2 className="mt-4 text-balance text-xl font-semibold text-emerald-950">
+                Agora imagine isso rodando no seu WhatsApp
+              </h2>
               <p className="mt-2 text-sm text-emerald-900/90">
-                Você viu captação, automação de primeira resposta, triagem e handoff com fila — o mesmo raciocínio da
-                plataforma em produção.
+                Esse fluxo mostra como organizar atendimento, responder mais rápido e não perder oportunidades.
               </p>
               <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
                 <WhatsAppCta
-                  label="Falar com a equipe"
+                  label="Falar com especialista"
+                  ariaLabel="Falar com especialista no WhatsApp após ver a demonstração"
                   size="lg"
-                  text="Concluí a demo guiada do WhatsApp e quero entender encaixe no meu negócio."
+                  text="Vi a demonstração e quero aplicar isso no meu WhatsApp."
                 />
                 <Link
                   href="/produtos/whatsapp-platform"
-                  className="inline-flex items-center justify-center rounded-xl border border-emerald-300 bg-background px-6 py-3 text-base font-medium text-foreground transition-colors hover:bg-emerald-100/50"
+                  aria-label="Ver página completa do produto WhatsApp Platform"
+                  className="inline-flex min-h-12 items-center justify-center rounded-xl border border-emerald-300 bg-background px-6 py-3 text-base font-medium text-foreground transition-colors hover:bg-emerald-100/50"
                 >
-                  Ver produto
+                  Ver produto completo
                 </Link>
               </div>
               <button
                 type="button"
                 onClick={resetDemo}
-                className="mt-6 text-sm font-medium text-emerald-800 underline-offset-4 hover:underline"
+                aria-label="Recomeçar a demonstração guiada"
+                className="mt-8 text-xs font-normal text-slate-600 underline-offset-4 hover:text-foreground hover:underline"
               >
                 Ver a demo de novo
               </button>
             </div>
           ) : (
-            <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
-              <div className="space-y-8">
+            <div className="mt-8 grid min-w-0 gap-6 sm:mt-10 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+              <div className="min-w-0 space-y-6 sm:space-y-8">
                 {phase === "pick" && (
                   <div>
-                    <h2 className="text-lg font-semibold text-foreground">1. Escolha o segmento</h2>
+                    <p className="text-sm font-medium text-slate-700">
+                      Escolha um cenário e simule como um cliente interage com seu WhatsApp.
+                    </p>
+                    <h2 className="mt-3 text-lg font-semibold text-foreground">1. Escolha o segmento</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                       Três roteiros prontos para apresentação — cada um com atalhos alinhados ao nicho.
                     </p>
@@ -252,7 +261,7 @@ export function DemoGuidedExperience() {
 
                 <div
                   className={cn(
-                    "overflow-hidden rounded-xl border border-border bg-card shadow-lg",
+                    "min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-lg",
                     phase === "pick" && "opacity-90"
                   )}
                 >
@@ -293,7 +302,7 @@ export function DemoGuidedExperience() {
                   {phase === "pick" ? (
                     <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 p-8 text-center">
                       <Headphones className="size-10 text-muted-foreground/60" aria-hidden />
-                      <p className="text-sm font-medium text-foreground">Chat aguardando cenário</p>
+                      <p className="text-sm font-medium text-foreground">Escolha um cenário para começar</p>
                       <p className="max-w-xs text-xs text-muted-foreground">
                         Selecione restaurante, tabacaria ou loja/serviços para carregar o roteiro e as sugestões de
                         mensagem.
@@ -301,7 +310,13 @@ export function DemoGuidedExperience() {
                     </div>
                   ) : (
                     <>
-                      <div className="flex h-80 flex-col overflow-y-auto p-4">
+                      <div
+                        className="flex min-h-0 h-[min(20rem,52dvh)] flex-col overflow-y-auto overflow-x-hidden p-3 sm:h-80 sm:p-4"
+                        role="log"
+                        aria-live="polite"
+                        aria-relevant="additions text"
+                        aria-label="Mensagens da conversa simulada"
+                      >
                         {messages.map((msg) => (
                           <div
                             key={msg.id}
@@ -352,6 +367,7 @@ export function DemoGuidedExperience() {
                                 key={prompt}
                                 type="button"
                                 disabled={isTyping}
+                                aria-label={`Enviar sugestão: ${prompt}`}
                                 onClick={() => sendMessage(prompt, "chip")}
                                 className={cn(
                                   "rounded-lg border border-border bg-background px-3 py-1.5 text-left text-xs font-medium",
@@ -366,22 +382,27 @@ export function DemoGuidedExperience() {
                         </div>
                       )}
 
-                      <div className="flex gap-2 border-t border-border p-3">
+                      <div className="flex min-w-0 gap-2 border-t border-border p-3">
+                        <label htmlFor={inputId} className="sr-only">
+                          Mensagem como cliente no WhatsApp
+                        </label>
                         <input
+                          id={inputId}
                           type="text"
                           value={input}
                           onChange={(e) => setInput(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && sendMessage(input, "input")}
-                          placeholder="Digite como se fosse o cliente no WhatsApp…"
+                          placeholder="Digite como um cliente no WhatsApp…"
+                          autoComplete="off"
                           disabled={isTyping}
-                          className="flex-1 rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-60"
+                          className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:opacity-60 sm:px-4"
                         />
                         <button
                           type="button"
                           onClick={() => sendMessage(input, "input")}
                           disabled={isTyping || !input.trim()}
                           className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-[#16a34a] disabled:opacity-50"
-                          aria-label="Enviar"
+                          aria-label="Enviar mensagem"
                         >
                           <Send className="size-5" />
                         </button>
@@ -391,9 +412,10 @@ export function DemoGuidedExperience() {
                         <button
                           type="button"
                           onClick={completeDemo}
+                          aria-label="Finalizar demonstração e ver próximos passos"
                           className="w-full rounded-lg border border-border bg-background py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
                         >
-                          Concluir roteiro da demonstração
+                          Finalizar demonstração
                         </button>
                       </div>
                     </>
@@ -401,12 +423,11 @@ export function DemoGuidedExperience() {
                 </div>
 
                 <p className="text-center text-sm text-slate-600 lg:text-left">
-                  Simulação local para apresentações. Contratos de webhook e multi-tenant da plataforma não são alterados
-                  por esta página.
+                  Exemplo interativo do fluxo de atendimento e operação no WhatsApp.
                 </p>
               </div>
 
-              <div className="space-y-4">
+              <div className="min-w-0 space-y-4">
                 <h2 className="text-lg font-semibold text-foreground lg:sr-only">Painel operacional</h2>
                 {scenario ? (
                   <DemoOpsPanel
@@ -424,31 +445,33 @@ export function DemoGuidedExperience() {
           )}
 
           {phase !== "success" && (
-            <div className="mx-auto mt-12 max-w-2xl text-center">
+            <div className="mx-auto mt-8 max-w-2xl px-1 text-center sm:mt-10">
               <p className="text-sm font-medium text-foreground">Pronto para levar isso para o seu WhatsApp?</p>
-              <div className="mt-4 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <div className="mt-4 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
                 <WhatsAppCta
-                  label="Testar no WhatsApp"
+                  label="Falar com especialista"
+                  ariaLabel="Falar com especialista no WhatsApp"
                   size="lg"
-                  text="Vi a demonstração guiada e quero automatizar meu negócio."
+                  text="Vi a demonstração e quero aplicar isso no meu WhatsApp."
                 />
                 <Link
-                  href="/automacao-whatsapp"
-                  className="inline-flex items-center justify-center rounded-xl border border-border bg-background px-6 py-3 text-base font-medium text-foreground transition-colors hover:bg-muted"
+                  href="/produtos/whatsapp-platform"
+                  aria-label="Ver página do produto WhatsApp Platform"
+                  className="inline-flex min-h-12 w-full max-w-sm items-center justify-center rounded-xl border border-border bg-background px-6 py-3 text-base font-medium text-foreground transition-colors hover:bg-muted sm:w-auto"
                 >
-                  Ver automação
+                  Ver produto
                 </Link>
               </div>
             </div>
           )}
 
-          <p className="mt-10 text-center">
-            <Link href="/" className="text-sm text-slate-600 hover:text-foreground">
+          <p className="mt-8 text-center sm:mt-10">
+            <Link href="/" className="text-sm text-slate-600 hover:text-foreground" aria-label="Voltar à página inicial">
               ← Voltar ao início
             </Link>
           </p>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

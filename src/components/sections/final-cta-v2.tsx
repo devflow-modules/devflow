@@ -3,14 +3,18 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
-import { PRIMARY_CONVERT_CTA_LABEL } from "@/lib/conversion-copy";
+import {
+  PRIMARY_CONVERT_CTA_LABEL,
+  PRIMARY_DEMO_HREF,
+  SPECIALIST_WHATSAPP_CTA_LABEL,
+} from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
 
 export function FinalCtaV2() {
   return (
     <section
       id="cta-final"
-      className="relative overflow-x-clip overflow-y-visible bg-gradient-to-b from-slate-900 to-slate-950 py-14 text-white sm:py-20 lg:py-28"
+      className="relative overflow-x-clip overflow-y-visible bg-gradient-to-b from-slate-900 to-slate-950 py-10 text-white sm:py-14 lg:py-18"
       aria-labelledby="final-cta-v2-heading"
     >
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
@@ -23,7 +27,7 @@ export function FinalCtaV2() {
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div
           className={cn(
-            "mx-auto max-w-xl rounded-2xl border border-white/10 bg-white/5 p-10 text-center backdrop-blur-sm sm:p-12"
+            "mx-auto max-w-xl rounded-2xl border border-white/10 bg-white/5 p-6 text-center backdrop-blur-sm sm:p-10 lg:p-12"
           )}
         >
           <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
@@ -46,7 +50,8 @@ export function FinalCtaV2() {
 
           <div className="mt-6 flex flex-col items-stretch gap-3 sm:mt-8 sm:items-center sm:gap-4">
             <Link
-              href="/ferramentas"
+              href={PRIMARY_DEMO_HREF}
+              aria-label="Ver demonstração guiada de atendimento no WhatsApp"
               className={cn(
                 "devflow-cta-elite inline-flex min-h-[3rem] items-center justify-center gap-2 rounded-xl px-4 text-left text-sm font-bold leading-snug sm:min-h-14 sm:min-w-[min(100%,300px)] sm:justify-center sm:px-8 sm:text-base md:text-lg",
                 "bg-primary text-primary-foreground",
@@ -57,9 +62,10 @@ export function FinalCtaV2() {
               <ArrowRight className="size-5 shrink-0" aria-hidden />
             </Link>
             <WhatsAppCta
-              label="Prefere falar no WhatsApp?"
+              label={SPECIALIST_WHATSAPP_CTA_LABEL}
+              ariaLabel="Falar com especialista no WhatsApp"
               size="default"
-              text="Olá, quero entender como a DevFlow Labs pode me ajudar."
+              text="Quero ver como organizar meu WhatsApp com a DevFlow — falar com especialista."
               className="!min-h-12 !border-white/20 !bg-transparent !px-4 !text-white hover:!bg-white/10"
             />
           </div>

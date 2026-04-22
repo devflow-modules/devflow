@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     template: "%s | DevFlow Labs",
   },
   description:
-    "Automatize o atendimento do seu WhatsApp com IA, métricas e controle da operação. Ideal para negócios que recebem muitas mensagens.",
+    "WhatsApp Platform, inbox e automação para atendimento e vendas — com ferramentas e produtos DevFlow Labs. Menos caos, mais resposta e controle da operação.",
   keywords: [
     "automação",
     "WhatsApp",
@@ -38,13 +38,13 @@ export const metadata: Metadata = {
     siteName: "DevFlow Labs",
     title: "DevFlow Labs | Automação de Atendimento no WhatsApp",
     description:
-      "Automatize o atendimento do seu WhatsApp com IA, métricas e controle da operação. Ideal para negócios que recebem muitas mensagens.",
+      "WhatsApp Platform, inbox e automação para atendimento e vendas — com ferramentas e produtos DevFlow Labs.",
     images: [
       {
         url: `${baseUrl}/og-devflow.png`,
         width: 1200,
         height: 630,
-        alt: "DevFlow Labs Automação WhatsApp",
+        alt: "DevFlow Labs — WhatsApp Platform, inbox e automação",
       },
     ],
   },
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "DevFlow Labs | Automação WhatsApp",
     description:
-      "Automatize o atendimento do seu WhatsApp com IA, métricas e controle da operação. Ideal para negócios que recebem muitas mensagens.",
+      "WhatsApp Platform, inbox e automação para atendimento e vendas — com ferramentas e produtos DevFlow Labs.",
     images: [`${baseUrl}/og-devflow.png`],
   },
   robots: {

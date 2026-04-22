@@ -26,6 +26,7 @@ export function trackScrollDepth(percent: 25 | 50 | 75): void {
 /** CTAs da home — conversão */
 export function trackHomeCta(
   action:
+    | "hero_ver_demo"
     | "hero_tools"
     | "hero_whatsapp"
     | "hero_how_it_works"
@@ -51,7 +52,7 @@ export function trackHeaderNavClicked(props: { item: string; surface?: string })
 }
 
 export function trackHeaderCtaClicked(props: {
-  cta: "começar_grátis" | "entrar";
+  cta: "ver_demo" | "começar_grátis" | "entrar";
   surface?: string;
 }): void {
   track("header_cta_clicked", {

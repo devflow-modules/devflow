@@ -4,7 +4,13 @@ import Link from "next/link";
 import { ArrowRight, MessageCircle, Wallet, SplitSquareHorizontal, Check } from "lucide-react";
 import { trackHomeCta } from "@/lib/analytics";
 import { PRODUTOS_HUB_PATH } from "@/lib/devflow-product-catalog";
-import { PRIMARY_CONVERT_CTA_LABEL, PRODUCT_LIVE_HINT } from "@/lib/conversion-copy";
+import {
+  PRIMARY_CONVERT_CTA_LABEL,
+  PRIMARY_DEMO_HREF,
+  PRODUCT_LIVE_HINT,
+  SPECIALIST_WHATSAPP_CTA_LABEL,
+} from "@/lib/conversion-copy";
+import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
 import { cn } from "@/lib/utils";
 
 const bullets = [
@@ -128,7 +134,7 @@ export function HeroV2() {
   return (
     <section
       id="hero"
-      className="relative overflow-x-clip overflow-y-visible bg-gradient-to-b from-white via-white to-slate-50 py-14 sm:py-20 lg:py-28"
+      className="relative overflow-x-clip overflow-y-visible bg-gradient-to-b from-white via-white to-slate-50 py-10 sm:py-16 lg:py-24"
       aria-labelledby="hero-heading"
     >
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
@@ -150,7 +156,7 @@ export function HeroV2() {
       </div>
 
       <div className="mx-auto max-w-[1200px] px-3 min-[400px]:px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-2 lg:gap-16 lg:items-center">
+        <div className="grid min-w-0 gap-6 sm:gap-8 lg:grid-cols-2 lg:gap-16 lg:items-center">
           <div className="min-w-0 space-y-4 sm:space-y-6 lg:space-y-7">
             <div className="inline-flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 rounded-full border border-primary/35 bg-primary/8 px-2.5 py-1.5 text-[11px] font-semibold shadow-sm min-[380px]:gap-2 min-[380px]:px-3 min-[380px]:text-xs sm:text-xs">
               <span className="size-2 shrink-0 rounded-full bg-primary ring-2 ring-primary/30" aria-hidden />
@@ -158,8 +164,8 @@ export function HeroV2() {
               <span className="text-primary">Ao vivo</span>
               <span className="hidden text-slate-300 sm:inline">·</span>
               <span className="w-full text-slate-700 sm:w-auto sm:truncate">
-                <span className="sm:hidden">Ferramentas, WhatsApp e SaaS</span>
-                <span className="hidden sm:inline">Ferramentas · WhatsApp · SaaS</span>
+                <span className="sm:hidden">WhatsApp Platform · ferramentas · SaaS</span>
+                <span className="hidden sm:inline">WhatsApp Platform · ferramentas · SaaS</span>
               </span>
             </div>
 
@@ -168,12 +174,12 @@ export function HeroV2() {
                 id="hero-heading"
                 className="text-balance text-[1.5rem] font-extrabold leading-[1.15] tracking-tight text-foreground min-[360px]:text-[1.625rem] min-[400px]:text-[1.75rem] sm:text-4xl sm:leading-[1.1] lg:text-[3.15rem]"
               >
-                Ferramentas soltas custam tempo todo dia
+                Seu WhatsApp não pode ser o gargalo da operação
               </h1>
               <p className="text-base leading-relaxed text-slate-600 sm:text-lg lg:text-xl">
-                <strong className="font-semibold text-foreground">Um só lugar</strong> pra atendimento,
-                finanças e tarefas.{" "}
-                <span className="text-foreground/90">Ganhe tempo — pare de depender só do manual.</span>
+                <strong className="font-semibold text-foreground">WhatsApp Platform</strong> para inbox, automação e
+                métricas — e ainda ferramentas e finanças num só ecossistema.{" "}
+                <span className="text-foreground/90">Menos caos, mais resposta e controle.</span>
               </p>
             </div>
 
@@ -191,8 +197,9 @@ export function HeroV2() {
             <div className="space-y-3 pt-0.5 sm:pt-1">
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-stretch sm:gap-4">
                 <Link
-                  href="/ferramentas"
-                  onClick={() => trackHomeCta("hero_tools")}
+                  href={PRIMARY_DEMO_HREF}
+                  onClick={() => trackHomeCta("hero_ver_demo")}
+                  aria-label="Ver demonstração guiada de atendimento no WhatsApp"
                   className={cn(
                     "devflow-cta-elite inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-4 text-left text-sm font-bold leading-snug sm:min-h-14 sm:w-auto sm:min-w-[min(100%,280px)] sm:justify-center sm:px-6 sm:text-base md:px-8 md:text-lg",
                     "bg-primary text-primary-foreground",
@@ -203,29 +210,43 @@ export function HeroV2() {
                   <span className="text-balance">{PRIMARY_CONVERT_CTA_LABEL}</span>
                   <ArrowRight className="size-5 shrink-0" aria-hidden />
                 </Link>
-                <Link
-                  href="/#como-funciona-hub"
-                  onClick={() => trackHomeCta("hero_how_it_works")}
+                <WhatsAppCta
+                  label={SPECIALIST_WHATSAPP_CTA_LABEL}
+                  ariaLabel="Falar com especialista no WhatsApp"
+                  text="Quero ver como organizar meu WhatsApp com a DevFlow — falar com especialista."
+                  size="lg"
                   className={cn(
-                    "inline-flex min-h-12 w-full items-center justify-center rounded-xl border-2 border-slate-200 px-5 text-sm font-semibold sm:w-auto sm:min-w-[140px]",
-                    "bg-white text-slate-700 transition-all duration-200",
-                    "hover:border-primary/30 hover:bg-slate-50"
+                    "w-full min-h-[3rem] justify-center border-2 border-slate-200 bg-white text-slate-800 shadow-sm sm:w-auto sm:min-w-[min(100%,17rem)]",
+                    "hover:border-primary/35 hover:bg-slate-50"
                   )}
-                >
-                  Como funciona
-                </Link>
+                />
               </div>
               <p className="text-center text-[11px] font-medium leading-snug text-slate-500 sm:text-left sm:text-xs">
                 {PRODUCT_LIVE_HINT}
               </p>
               <p className="text-center text-xs leading-snug text-slate-600 sm:text-left sm:text-sm">
-                Vários produtos numa só plataforma — muita gente começa pelo Financeiro.{" "}
+                <Link
+                  href="/#como-funciona-hub"
+                  onClick={() => trackHomeCta("hero_how_it_works")}
+                  className="font-semibold text-primary underline-offset-2 hover:underline"
+                >
+                  Como funciona
+                </Link>
+                <span className="text-slate-400"> · </span>
                 <Link
                   href={PRODUTOS_HUB_PATH}
                   onClick={() => trackHomeCta("hero_produtos_hub")}
                   className="font-semibold text-primary underline-offset-2 hover:underline"
                 >
-                  Ver catálogo de produtos
+                  Catálogo de produtos
+                </Link>
+                <span className="text-slate-400"> · </span>
+                <Link
+                  href="/ferramentas"
+                  onClick={() => trackHomeCta("hero_tools")}
+                  className="font-semibold text-slate-600 underline-offset-2 hover:text-primary hover:underline"
+                >
+                  Ferramentas grátis
                 </Link>
               </p>
             </div>

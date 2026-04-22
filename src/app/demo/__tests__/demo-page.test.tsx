@@ -15,12 +15,20 @@ describe("P1 — Demo /demo", () => {
     vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "5511888888888");
   });
 
-  it("carrega experiência guiada, CTA WhatsApp (wa.me) e link secundário", () => {
+  it("carrega experiência guiada, CTA especialista (wa.me) e Ver produto", () => {
     render(<DemoPage />);
-    expect(screen.getByRole("heading", { name: /Demonstração comercial/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        name: /Veja como seu WhatsApp pode responder/i,
+      })
+    ).toBeInTheDocument();
     expect(screen.getByText(/1\. Escolha o segmento/i)).toBeInTheDocument();
-    const wa = screen.getByRole("link", { name: /Testar no WhatsApp/i });
+    const wa = screen.getByRole("link", { name: /Falar com especialista/i });
     expect(wa.getAttribute("href")).toMatch(/^https:\/\/wa\.me\/5511888888888/);
-    expect(screen.getByRole("link", { name: /Ver automação/i })).toHaveAttribute("href", "/automacao-whatsapp");
+    expect(
+      screen.getByRole("link", {
+        name: /Ver página do produto WhatsApp Platform/i,
+      })
+    ).toHaveAttribute("href", "/produtos/whatsapp-platform");
   });
 });

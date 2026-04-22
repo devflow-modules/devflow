@@ -21,79 +21,92 @@ import { ProofSocial } from "@/components/sections/proof-social";
 import { Faq } from "@/components/sections/faq";
 
 const baseUrl = "https://devflowlabs.com.br";
+const ogImage = `${baseUrl}/og-devflow.png`;
 
 export const metadata: Metadata = {
-  title: "DevFlow Labs | Plataforma de Ferramentas, Automação e SaaS",
+  title: "DevFlow Labs | WhatsApp Platform — Inbox, automação e operação",
   alternates: {
     canonical: baseUrl,
   },
   description:
-    "Ferramentas online, controle financeiro pessoal e automação de atendimento no WhatsApp. DevFlow Labs — plataforma de ferramentas e produtos SaaS para automatizar, organizar e escalar sua operação.",
+    "WhatsApp Platform para atendimento e vendas com inbox, automação e métricas. Ferramentas gratuitas e produtos SaaS DevFlow Labs — organize a operação sem perder o humano.",
   keywords: [
+    "WhatsApp Platform",
+    "inbox whatsapp",
+    "automação whatsapp",
+    "atendimento whatsapp",
     "ferramentas online",
     "controle financeiro pessoal",
-    "divisão de contas",
-    "consulta CNPJ",
-    "automação whatsapp",
-    "chatbot whatsapp",
-    "software atendimento whatsapp",
-    "IA para WhatsApp",
-    "chatbot com handoff humano",
     "DevFlow Labs",
   ],
   openGraph: {
-    title: "DevFlow Labs | Plataforma de Ferramentas, Automação e SaaS",
+    type: "website",
+    locale: "pt_BR",
+    siteName: "DevFlow Labs",
+    title: "DevFlow Labs | WhatsApp Platform e automação de atendimento",
     description:
-      "Ferramentas online, controle financeiro e automação de atendimento no WhatsApp. Produtos SaaS e soluções digitais integradas.",
-    url: "https://devflowlabs.com.br",
+      "Inbox, automação e visão operacional no WhatsApp — com ferramentas e SaaS integrados na mesma plataforma.",
+    url: baseUrl,
+    images: [
+      {
+        url: ogImage,
+        width: 1200,
+        height: 630,
+        alt: "DevFlow Labs — WhatsApp Platform, inbox e automação",
+      },
+    ],
   },
   twitter: {
-    title: "DevFlow Labs | Plataforma de Ferramentas, Automação e SaaS",
+    card: "summary_large_image",
+    title: "DevFlow Labs | WhatsApp Platform",
     description:
-      "Ferramentas online, controle financeiro e automação de atendimento no WhatsApp. Produtos SaaS e soluções digitais integradas.",
+      "Organize atendimento e vendas no WhatsApp com inbox, automação e métricas — e ferramentas quando precisar.",
+    images: [ogImage],
   },
 };
+
+/** Secundárias: menos padding vertical para não competir com o herói e o bloco WhatsApp. */
+function HomeSecondaryStack({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="[&>section]:!py-8 sm:[&>section]:!py-10 lg:[&>section]:!py-14">{children}</div>
+  );
+}
 
 export default function Home() {
   return (
     <>
       <ScrollTracker />
 
-      {/* 1. Hero — plataforma hub */}
       <HeroV2 />
 
       <TechnicalTrustStrip />
-
-      <HubPillarsSection />
-
-      <WhereToStartSection />
-
-      <ToolsSection />
-
-      {/* 3. Nossos produtos */}
-      <ProductsSection />
-
-      {/* 4. Problema → Solução */}
-      <ProblemSolutionSection />
-
-      {/* 5. Como funciona */}
-      <HowItWorksHub />
-
-      <ResultsSocialProofSection />
 
       <WhatsAppProductSection />
 
       <AuthorityRealOpsSection />
 
-      <Metrics />
+      <HomeSecondaryStack>
+        <HubPillarsSection />
 
-      {/* 8. Prova social — reaproveitado */}
-      <ProofSocial />
+        <WhereToStartSection />
 
-      {/* 9. FAQ — reaproveitado */}
-      <Faq />
+        <ToolsSection />
 
-      {/* 10. CTA Final — novo */}
+        <ProductsSection />
+
+        <ProblemSolutionSection />
+
+        <HowItWorksHub />
+
+        <ResultsSocialProofSection />
+
+        <Metrics />
+
+        <ProofSocial />
+
+        <Faq />
+      </HomeSecondaryStack>
+
       <FinalCtaV2 />
     </>
   );

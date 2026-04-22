@@ -34,14 +34,14 @@ export function WhatsAppProductSection() {
   return (
     <section
       id="automacao-whatsapp"
-      className="bg-[#f1f5f9] py-24 sm:py-28"
+      className="bg-[#f1f5f9] py-12 sm:py-16 lg:py-20"
       aria-labelledby="whatsapp-product-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <p className="mb-6 text-center text-sm font-medium text-slate-500 sm:text-left">
           O próximo passo, se atendimento é seu gargalo:
         </p>
-        <div className="grid gap-14 lg:grid-cols-2 lg:gap-16 lg:items-center">
+        <div className="grid min-w-0 gap-8 lg:grid-cols-2 lg:gap-14 lg:items-center">
           <div className="space-y-8">
             <div>
               <h2
@@ -85,6 +85,7 @@ export function WhatsAppProductSection() {
             <div className="space-y-4">
               <WhatsAppCta
                 label="Quero automatizar meu WhatsApp"
+                ariaLabel="Quero automatizar meu WhatsApp: abrir conversa no WhatsApp"
                 size="lg"
                 text="Olá, quero automatizar o atendimento da minha empresa no WhatsApp."
               />
@@ -93,6 +94,7 @@ export function WhatsAppProductSection() {
               </p>
               <Link
                 href="/demo"
+                aria-label="Ver demonstração guiada de atendimento no WhatsApp"
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
               >
                 Ver demo ao vivo

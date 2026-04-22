@@ -3,14 +3,13 @@
 import Link from "next/link";
 import { Zap, TrendingUp, MessageCircle, ArrowRight } from "lucide-react";
 import { trackHomeCta } from "@/lib/analytics";
-import { PRIMARY_CONVERT_CTA_LABEL } from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
 
 const paths = [
   {
     title: "Quer resolver rápido?",
     body: "Ferramentas grátis no browser — CNPJ, divisão de contas, simuladores.",
-    cta: PRIMARY_CONVERT_CTA_LABEL,
+    cta: "Abrir ferramentas grátis",
     href: "/ferramentas",
     icon: Zap,
     track: "hub_pillar_tools" as const,
@@ -46,7 +45,7 @@ export function WhereToStartSection() {
   return (
     <section
       id="por-onde-comecar"
-      className="bg-gradient-to-b from-slate-50 to-white py-14 sm:py-20 lg:py-24"
+      className="bg-gradient-to-b from-slate-50 to-white py-10 sm:py-14 lg:py-16"
       aria-labelledby="where-start-heading"
     >
       <div className="mx-auto max-w-[1200px] px-3 min-[400px]:px-4 sm:px-6 lg:px-8">
@@ -66,7 +65,7 @@ export function WhereToStartSection() {
           </p>
         </div>
 
-        <ul className="mt-14 grid gap-8 lg:grid-cols-3" role="list">
+        <ul className="mt-10 grid gap-6 lg:grid-cols-3" role="list">
           {paths.map((p) => (
             <li key={p.href}>
               <Link
@@ -90,12 +89,7 @@ export function WhereToStartSection() {
                 <h3 className="mt-3 text-pretty text-base font-bold text-foreground sm:mt-4 sm:text-lg">{p.title}</h3>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">{p.body}</p>
                 <span className="mt-5 inline-flex min-h-10 flex-wrap items-center gap-2 text-left text-sm font-bold leading-snug text-primary sm:mt-6">
-                  {p.href === "/ferramentas" ? (
-                    <>
-                      <span className="sm:hidden">Usar grátis — sem cadastro pesado</span>
-                      <span className="hidden sm:inline">{PRIMARY_CONVERT_CTA_LABEL}</span>
-                    </>
-                  ) : p.href === "/produtos" ? (
+                  {p.href === "/produtos" ? (
                     <>
                       <span className="sm:hidden">Começar agora (&lt;1 min)</span>
                       <span className="hidden sm:inline">{p.cta}</span>

@@ -4,20 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
-import {
-  trackFinanceiroDemoEntryClick,
-  trackHeaderCtaClicked,
-  trackHeaderDemoClicked,
-  trackHeaderNavClicked,
-  trackHeaderProductsOpened,
-  trackProductsDropdownItemClicked,
-} from "@/lib/analytics";
-import { HEADER_CTA_LABEL } from "@/lib/conversion-copy";
+import { trackHeaderCtaClicked, trackHeaderNavClicked, trackHeaderProductsOpened, trackProductsDropdownItemClicked } from "@/lib/analytics";
+import { HEADER_CTA_LABEL, PRIMARY_DEMO_HREF } from "@/lib/conversion-copy";
 import {
   DEVFLOW_PRODUCT_CATALOG,
   PRODUTOS_HUB_PATH,
 } from "@/lib/devflow-product-catalog";
-import { FINANCEIRO_BASE_PATH, FINANCEIRO_DEMO_PATH } from "@devflow/financeiro-routes";
+import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 import { whatsappAppUrl } from "@/lib/whatsapp-app-url";
 import { cn } from "@/lib/utils";
 
@@ -44,7 +37,7 @@ function isComoFuncionaActive(pathname: string): boolean {
 }
 
 function isDemoActive(pathname: string): boolean {
-  return pathname === FINANCEIRO_DEMO_PATH || pathname.startsWith(`${FINANCEIRO_DEMO_PATH}/`);
+  return pathname === "/demo" || pathname.startsWith("/demo/");
 }
 
 const navText = (active: boolean) =>
@@ -55,18 +48,6 @@ const navText = (active: boolean) =>
 
 const navUnderline = (active: boolean) =>
   active ? "relative after:absolute after:bottom-[-6px] after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-primary" : "";
-
-function onDemoLinkClick(surface: "header_desktop_cta" | "header_mobile") {
-  trackFinanceiroDemoEntryClick({
-    surface,
-    target_href: FINANCEIRO_DEMO_PATH,
-  });
-  trackHeaderDemoClicked({ surface });
-  trackHeaderNavClicked({
-    item: "ver_exemplo",
-    surface: surface === "header_mobile" ? "mobile" : "desktop",
-  });
-}
 
 export function Header() {
   const pathname = usePathname() ?? "/";
@@ -133,12 +114,6 @@ export function Header() {
   const secondaryBtnClass =
     "inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-border bg-transparent px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-muted min-[380px]:px-4 min-[380px]:text-sm";
 
-  const demoHighlightClass = cn(
-    "hidden min-h-11 shrink-0 items-center justify-center rounded-xl border-2 border-primary bg-primary/10 px-2.5 text-xs font-bold text-primary shadow-sm transition-all",
-    "hover:bg-primary/15 hover:shadow-md lg:inline-flex min-[380px]:px-3 min-[380px]:text-sm",
-    demoActive && "border-primary bg-primary/15 ring-2 ring-primary/20"
-  );
-
   const onNav = (item: string, surface: "desktop" | "mobile" = "desktop") => {
     trackHeaderNavClicked({ item, surface });
     setMobileOpen(false);
@@ -172,6 +147,7 @@ export function Header() {
         <div className="min-w-0 flex-1">
           <Link
             href="/"
+            aria-label="DevFlow Labs — página inicial"
             className="block truncate text-base font-bold tracking-tight text-foreground transition-colors hover:text-primary min-[380px]:text-lg sm:text-xl"
             onClick={() => trackHeaderNavClicked({ item: "logo_home" })}
           >
@@ -194,6 +170,7 @@ export function Header() {
                 navText(produtosActive || productsOpen),
                 navUnderline(produtosActive && !productsOpen)
               )}
+              aria-label="Nossos produtos — abrir menu"
               aria-expanded={productsOpen}
               aria-haspopup="true"
               onClick={() => {
@@ -224,7 +201,9 @@ export function Header() {
                         "rounded-lg border p-3 transition-colors",
                         p.featured
                           ? "border-primary/40 bg-primary/[0.06]"
-                          : "border-transparent bg-muted/30 hover:bg-muted/50"
+                          : p.id === "whatsapp_platform"
+                            ? "border-emerald-500/45 bg-emerald-500/[0.07] ring-1 ring-emerald-500/20 hover:bg-emerald-500/[0.1]"
+                            : "border-transparent bg-muted/30 hover:bg-muted/50"
                       )}
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -241,6 +220,7 @@ export function Header() {
                         </div>
                         <Link
                           href={p.href}
+                          aria-label={`Abrir página de ${p.name}`}
                           className="shrink-0 rounded-lg bg-primary px-2.5 py-1.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90"
                           onClick={() => onCatalogProductNavigate(p.id, p.href, p.navItemKey, "desktop")}
                         >
@@ -293,15 +273,6 @@ export function Header() {
 
         <div className="flex shrink-0 items-center gap-1.5 min-[400px]:gap-2 sm:gap-2">
           <Link
-            href={FINANCEIRO_DEMO_PATH}
-            className={demoHighlightClass}
-            onClick={() => {
-              onDemoLinkClick("header_desktop_cta");
-            }}
-          >
-            Ver exemplo
-          </Link>
-          <Link
             href={whatsappAppUrl("/login")}
             className={cn(secondaryBtnClass, "hidden lg:inline-flex")}
             onClick={() => trackHeaderCtaClicked({ cta: "entrar", surface: "desktop" })}
@@ -309,9 +280,13 @@ export function Header() {
             Entrar
           </Link>
           <Link
-            href={FINANCEIRO_BASE_PATH}
-            className={headerCtaClass}
-            onClick={() => trackHeaderCtaClicked({ cta: "começar_grátis", surface: "desktop" })}
+            href={PRIMARY_DEMO_HREF}
+            aria-label="Ver demonstração guiada de atendimento no WhatsApp"
+            className={cn(headerCtaClass, demoActive && "ring-2 ring-primary/25 ring-offset-2 ring-offset-background")}
+            onClick={() => {
+              trackHeaderCtaClicked({ cta: "ver_demo", surface: "desktop" });
+              trackHeaderNavClicked({ item: "ver_demo", surface: "desktop" });
+            }}
           >
             {HEADER_CTA_LABEL}
           </Link>
@@ -343,26 +318,16 @@ export function Header() {
         <div className="mx-auto max-w-[1200px] space-y-4 px-3 py-4 sm:px-6">
           <div className="flex flex-col gap-2">
             <Link
-              href={FINANCEIRO_BASE_PATH}
+              href={PRIMARY_DEMO_HREF}
+              aria-label="Ver demonstração guiada de atendimento no WhatsApp"
               className={cn(headerCtaClass, "w-full")}
               onClick={() => {
-                trackHeaderCtaClicked({ cta: "começar_grátis", surface: "mobile" });
+                trackHeaderCtaClicked({ cta: "ver_demo", surface: "mobile" });
+                trackHeaderNavClicked({ item: "ver_demo", surface: "mobile" });
                 setMobileOpen(false);
               }}
             >
               {HEADER_CTA_LABEL}
-            </Link>
-            <Link
-              href={FINANCEIRO_DEMO_PATH}
-              className={cn(
-                "flex min-h-11 w-full items-center justify-center rounded-xl border-2 border-primary bg-primary/10 text-sm font-bold text-primary transition-colors hover:bg-primary/15"
-              )}
-              onClick={() => {
-                onDemoLinkClick("header_mobile");
-                setMobileOpen(false);
-              }}
-            >
-              Ver exemplo
             </Link>
             <Link
               href={whatsappAppUrl("/login")}
@@ -386,7 +351,11 @@ export function Header() {
                   <div
                     className={cn(
                       "rounded-xl border px-3 py-2.5",
-                      p.featured ? "border-primary/35 bg-primary/[0.06]" : "border-border bg-muted/20"
+                      p.featured
+                        ? "border-primary/35 bg-primary/[0.06]"
+                        : p.id === "whatsapp_platform"
+                          ? "border-emerald-500/40 bg-emerald-500/[0.08] ring-1 ring-emerald-500/20"
+                          : "border-border bg-muted/20"
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -403,6 +372,7 @@ export function Header() {
                       </div>
                       <Link
                         href={p.href}
+                        aria-label={`Abrir página de ${p.name}`}
                         className="shrink-0 rounded-lg bg-primary px-2.5 py-2 text-xs font-bold text-primary-foreground"
                         onClick={() => onCatalogProductNavigate(p.id, p.href, p.navItemKey, "mobile")}
                       >

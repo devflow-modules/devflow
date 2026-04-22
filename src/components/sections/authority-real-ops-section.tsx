@@ -23,7 +23,7 @@ export function AuthorityRealOpsSection() {
   return (
     <section
       id="autoridade-operacao"
-      className="border-y border-border bg-slate-900 py-24 text-white sm:py-28"
+      className="border-y border-border bg-slate-900 py-12 text-white sm:py-16 lg:py-20"
       aria-labelledby="authority-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -40,7 +40,7 @@ export function AuthorityRealOpsSection() {
           </p>
         </div>
 
-        <ul className="mt-16 grid gap-8 sm:grid-cols-3" role="list">
+        <ul className="mt-10 grid gap-6 sm:mt-12 sm:grid-cols-3 sm:gap-8" role="list">
           {points.map((p) => (
             <li
               key={p.title}

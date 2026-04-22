@@ -21,7 +21,7 @@ export type DevflowCatalogProduct = {
 };
 
 /**
- * Ordem fixa: Financeiro primeiro (entrada da plataforma).
+ * Ordem: Financeiro continua primeiro no catálogo; WhatsApp Platform com destaque visual (lançamento).
  * Textos: verbo + resultado (evitar genéricos).
  */
 export const DEVFLOW_PRODUCT_CATALOG: DevflowCatalogProduct[] = [
@@ -46,6 +46,7 @@ export const DEVFLOW_PRODUCT_CATALOG: DevflowCatalogProduct[] = [
     audience: "Negócios que vivem de WhatsApp e precisam de métricas e controle.",
     href: "/produtos/whatsapp-platform",
     featured: false,
+    badge: "Principal",
   },
   {
     id: "investigamais",

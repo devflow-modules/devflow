@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("@/lib/metrics/financeMetrics", () => ({
   getCounters: vi.fn(),
@@ -28,13 +28,15 @@ describe("GET /api/admin/metrics", () => {
     process.env.ADMIN_METRICS_SECRET = "test-secret";
   });
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("retorna 403 quando não autorizado", async () => {
     process.env.ADMIN_METRICS_SECRET = undefined;
-    const prev = process.env.NODE_ENV;
-    process.env.NODE_ENV = "production";
+    vi.stubEnv("NODE_ENV", "production");
     const req = new Request("http://localhost/api/admin/metrics");
     const res = await GET(req);
-    process.env.NODE_ENV = prev;
 
     expect(res.status).toBe(403);
     const body = await res.json();
