@@ -6,6 +6,22 @@ import { RelatedLinks } from "@/components/shared/related-links";
 import { cn } from "@/lib/utils";
 
 const baseUrl = "https://devflowlabs.com.br";
+const ogImage = `${baseUrl}/og-devflow.png`;
+
+const faqItems = [
+  {
+    q: "Automação substitui atendente?",
+    a: "Substitui tarefas repetitivas e primeiro contato. Quando o cliente pede humano, há exceção ou venda complexa, o handoff deve ser imediato — com histórico e contexto na fila.",
+  },
+  {
+    q: "Preciso de API oficial da Meta?",
+    a: "Para operação séria com múltiplos agentes, filas e métricas, o caminho é integração sobre a infraestrutura oficial. Veja o guia em WhatsApp Business API e como isso se conecta ao produto.",
+  },
+  {
+    q: "Quanto tempo leva para ver valor?",
+    a: "A demo guiada mostra o fluxo em minutos. Piloto comercial depende do seu volume e canais; o importante é medir tempo de primeira resposta e taxa de conversão antes e depois.",
+  },
+];
 
 const heroBullets = [
   "Automação que responde 24/7 sem perder qualidade",
@@ -78,15 +94,28 @@ export const metadata: Metadata = {
     canonical: `${baseUrl}/automacao-whatsapp`,
   },
   openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    siteName: "DevFlow Labs",
     title: "Automação de WhatsApp para Empresas | DevFlow Labs",
     description:
       "Automatize atendimento no WhatsApp com IA, métricas e controle da operação.",
     url: `${baseUrl}/automacao-whatsapp`,
+    images: [
+      {
+        url: ogImage,
+        width: 1200,
+        height: 630,
+        alt: "DevFlow Labs — automação de WhatsApp para empresas",
+      },
+    ],
   },
   twitter: {
+    card: "summary_large_image",
     title: "Automação WhatsApp para Empresas | DevFlow Labs",
     description:
       "Automatize atendimento no WhatsApp com IA, métricas e controle da operação.",
+    images: [ogImage],
   },
 };
 
@@ -110,22 +139,43 @@ export default function AutomacaoWhatsAppPage() {
               sem retorno. IA + métricas + handoff humano.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-              <WhatsAppCta
-                label="Falar no WhatsApp"
-                size="lg"
-                text="Quero automatizar o atendimento da minha empresa no WhatsApp."
-              />
               <Link
                 href="/demo"
                 className={cn(
-                  "inline-flex items-center justify-center gap-2 h-12 rounded-xl border border-border px-5 text-base font-medium",
-                  "bg-background text-foreground transition-colors hover:bg-muted"
+                  "inline-flex h-12 min-h-12 w-full items-center justify-center gap-2 rounded-xl px-6 text-base font-semibold sm:w-auto",
+                  "bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
                 )}
               >
-                Ver demonstração
+                Ver demo
                 <ArrowRight className="size-4" aria-hidden />
               </Link>
+              <WhatsAppCta
+                label="Falar com especialista"
+                ariaLabel="Falar com especialista sobre automação de WhatsApp"
+                size="lg"
+                text="Quero automatizar o atendimento da minha empresa no WhatsApp — falar com especialista DevFlow."
+                className="w-full justify-center sm:w-auto"
+              />
             </div>
+            <p className="mt-6 max-w-xl text-center text-sm text-muted-foreground">
+              Produto completo:{" "}
+              <Link href="/produtos/whatsapp-platform" className="font-medium text-primary underline-offset-4 hover:underline">
+                WhatsApp Platform
+              </Link>
+              . Contexto de preços:{" "}
+              <Link href="/precos" className="font-medium text-primary underline-offset-4 hover:underline">
+                planos
+              </Link>
+              . Fluxo geral:{" "}
+              <Link href="/como-funciona" className="font-medium text-primary underline-offset-4 hover:underline">
+                como funciona
+              </Link>
+              . API oficial:{" "}
+              <Link href="/whatsapp-business-api" className="font-medium text-primary underline-offset-4 hover:underline">
+                WhatsApp Business API
+              </Link>
+              .
+            </p>
             <ul className="mt-8 space-y-2 text-left sm:mx-auto sm:max-w-md" role="list">
               {heroBullets.map((bullet, i) => (
                 <li
@@ -216,6 +266,32 @@ export default function AutomacaoWhatsAppPage() {
         </div>
       </section>
 
+      <section className="border-t border-border py-16 sm:py-20" aria-labelledby="faq-heading">
+        <div className="mx-auto max-w-[720px] px-4 sm:px-6 lg:px-8">
+          <h2 id="faq-heading" className="text-center text-xl font-semibold text-foreground sm:text-2xl">
+            Perguntas frequentes
+          </h2>
+          <div className="mt-8 space-y-3">
+            {faqItems.map((item) => (
+              <details
+                key={item.q}
+                className="group rounded-xl border border-border bg-card px-4 py-3 shadow-sm open:bg-muted/20"
+              >
+                <summary className="cursor-pointer list-none text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
+                  <span className="flex items-start justify-between gap-2">
+                    {item.q}
+                    <span className="shrink-0 text-muted-foreground group-open:rotate-180 motion-safe:transition-transform">
+                      ▼
+                    </span>
+                  </span>
+                </summary>
+                <p className="mt-3 border-t border-border pt-3 text-sm text-muted-foreground">{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section
         className="border-t border-border py-16 sm:py-20"
         aria-labelledby="segmentos-heading"
@@ -267,11 +343,23 @@ export default function AutomacaoWhatsAppPage() {
             <p className="mt-4 text-muted-foreground">
               Piloto de 7 dias para testar. Sem compromisso.
             </p>
-            <div className="mt-8">
+            <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+              <Link
+                href="/demo"
+                className={cn(
+                  "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-base font-semibold",
+                  "bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
+                )}
+              >
+                Ver demo
+                <ArrowRight className="size-4" aria-hidden />
+              </Link>
               <WhatsAppCta
-                label="Falar no WhatsApp"
+                label="Falar com especialista"
+                ariaLabel="Falar com especialista sobre automação de WhatsApp"
                 size="lg"
-                text="Quero automatizar o atendimento da minha empresa no WhatsApp."
+                text="Quero automatizar o atendimento da minha empresa no WhatsApp — falar com especialista DevFlow."
+                className="justify-center"
               />
             </div>
             <p className="mt-6">

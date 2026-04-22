@@ -27,7 +27,7 @@ export default function SobrePage() {
             Criamos automação de atendimento no WhatsApp com IA, handoff humano, métricas operacionais e controle real da operação — não apenas chatbots, mas infraestrutura de atendimento.
           </p>
           <p className="text-sm">
-            Também desenvolvemos produtos SaaS próprios, como o FunkLab Studio e ferramentas de produtividade, sempre com foco em engenharia de software e experiência do usuário.
+            Também desenvolvemos produtos SaaS próprios e ferramentas de produtividade, sempre com foco em engenharia de software e experiência do usuário.
           </p>
           <p className="text-sm">
             Se você busca automatizar atendimento, escalar operação ou construir um produto digital, podemos conversar.

@@ -1,6 +1,7 @@
 import { FINANCEIRO_BASE_PATH, FINANCEIRO_DEMO_PATH } from "@devflow/financeiro-routes";
 
-export type DevflowProductId = "financeiro" | "whatsapp_platform" | "investigamais" | "funklab";
+/** Produtos expostos no catálogo público (header, /produtos). */
+export type DevflowProductId = "whatsapp_platform" | "financeiro";
 
 export type DevflowCatalogProduct = {
   id: DevflowProductId;
@@ -21,8 +22,7 @@ export type DevflowCatalogProduct = {
 };
 
 /**
- * Ordem: WhatsApp Platform primeiro (foco de lançamento); Financeiro e demais seguem.
- * Textos: verbo + resultado (evitar genéricos).
+ * Catálogo público alinhado ao lançamento: WhatsApp Platform e Financeiro.
  */
 export const DEVFLOW_PRODUCT_CATALOG: DevflowCatalogProduct[] = [
   {
@@ -45,26 +45,6 @@ export const DEVFLOW_PRODUCT_CATALOG: DevflowCatalogProduct[] = [
     audience: "Quem quer controle real de PF, PJ ou casa, com próximo passo óbvio.",
     href: FINANCEIRO_BASE_PATH,
     demoHref: FINANCEIRO_DEMO_PATH,
-    featured: false,
-  },
-  {
-    id: "investigamais",
-    navItemKey: "produto_investigamais",
-    name: "Investigamais",
-    summary: "Consulte e valide dados com rapidez",
-    cardPitch: "Investigação e validação com fluxo guiado e demo visível.",
-    audience: "Quem precisa checar pessoas, empresas ou cenários com rapidez.",
-    href: "/produtos/investigamais",
-    featured: false,
-  },
-  {
-    id: "funklab",
-    navItemKey: "produto_funklab",
-    name: "FunkLab",
-    summary: "Gere grooves e sketches em segundos para sua produção",
-    cardPitch: "Da ideia ao MIDI exportável, com demo ao vivo na página.",
-    audience: "Produtores e estúdios que querem agilidade na criação musical.",
-    href: "/produtos/funklab-studio",
     featured: false,
   },
 ];

@@ -12,6 +12,7 @@ import { PRODUTOS_HUB_PATH } from "@/lib/devflow-product-catalog";
 import { Wallet, SplitSquareHorizontal, Building2, Sparkles } from "lucide-react";
 
 const baseUrl = "https://devflowlabs.com.br";
+const ogImage = `${baseUrl}/og-devflow.png`;
 
 const TOOLS = [
   {
@@ -71,11 +72,27 @@ export const metadata: Metadata = {
     canonical: `${baseUrl}/ferramentas`,
   },
   openGraph: {
+    locale: "pt_BR",
+    siteName: "DevFlow Labs",
     title: "Ferramentas | DevFlow Labs",
     description:
       "Hub de ferramentas: controle financeiro, divisão de contas, consulta CNPJ. Conectado ao ecossistema DevFlow Labs.",
     url: `${baseUrl}/ferramentas`,
     type: "website",
+    images: [
+      {
+        url: ogImage,
+        width: 1200,
+        height: 630,
+        alt: "DevFlow Labs — hub de ferramentas",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ferramentas | DevFlow Labs",
+    description: "Ferramentas gratuitas e caminho para WhatsApp Platform e demo guiada.",
+    images: [ogImage],
   },
 };
 
@@ -84,12 +101,20 @@ export default function FerramentasPage() {
     <div className="min-h-screen">
       <ToolsHubHero />
 
-      <div className="border-b border-primary/15 bg-primary/[0.04] py-3 text-center text-sm text-slate-700">
+      <div className="border-b border-primary/15 bg-primary/[0.04] py-3 px-4 text-center text-sm text-slate-700">
         <span className="text-muted-foreground">
           Ferramentas abrem rápido; produtos são sistemas completos para escalar.{" "}
         </span>
         <Link href={PRODUTOS_HUB_PATH} className="font-semibold text-primary hover:underline">
           Ver catálogo de produtos
+        </Link>
+        <span className="text-slate-400"> · </span>
+        <Link href="/produtos/whatsapp-platform" className="font-semibold text-primary hover:underline">
+          WhatsApp Platform
+        </Link>
+        <span className="text-slate-400"> · </span>
+        <Link href="/demo" className="font-semibold text-primary hover:underline">
+          Ver demo
         </Link>
       </div>
 

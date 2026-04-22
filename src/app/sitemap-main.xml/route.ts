@@ -5,10 +5,11 @@ const baseUrl = "https://devflowlabs.com.br";
 const routes: { path: string; changefreq: string; priority: string }[] = [
   { path: "/", changefreq: "weekly", priority: "1" },
   { path: "/automacao-whatsapp", changefreq: "weekly", priority: "0.95" },
+  { path: "/whatsapp-business-api", changefreq: "weekly", priority: "0.9" },
+  { path: "/como-funciona", changefreq: "monthly", priority: "0.75" },
   { path: "/chatbot-whatsapp", changefreq: "weekly", priority: "0.9" },
   { path: "/software-atendimento-whatsapp", changefreq: "weekly", priority: "0.9" },
   { path: "/produtos/whatsapp-platform", changefreq: "weekly", priority: "0.9" },
-  { path: "/produtos/funklab-studio", changefreq: "weekly", priority: "0.9" },
   { path: "/automacao-whatsapp-restaurante", changefreq: "weekly", priority: "0.9" },
   { path: "/automacao-whatsapp-tabacaria", changefreq: "weekly", priority: "0.9" },
   { path: "/automacao-whatsapp-loja", changefreq: "weekly", priority: "0.9" },

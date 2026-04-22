@@ -234,6 +234,14 @@ export function HeroV2() {
                 </Link>
                 <span className="text-slate-400"> · </span>
                 <Link
+                  href="/produtos/whatsapp-platform"
+                  onClick={() => trackHomeCta("hero_whatsapp_platform")}
+                  className="font-semibold text-primary underline-offset-2 hover:underline"
+                >
+                  WhatsApp Platform
+                </Link>
+                <span className="text-slate-400"> · </span>
+                <Link
                   href={PRODUTOS_HUB_PATH}
                   onClick={() => trackHomeCta("hero_produtos_hub")}
                   className="font-semibold text-primary underline-offset-2 hover:underline"

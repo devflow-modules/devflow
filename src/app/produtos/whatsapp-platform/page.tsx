@@ -13,6 +13,7 @@ import {
 import { RelatedLinks } from "@/components/shared/related-links";
 
 const baseUrl = "https://devflowlabs.com.br";
+const ogImage = `${baseUrl}/og-devflow.png`;
 
 export const metadata: Metadata = {
   title: "WhatsApp Platform | DevFlow Labs",
@@ -22,15 +23,28 @@ export const metadata: Metadata = {
   description:
     "Plataforma premium de atendimento e vendas no WhatsApp com inbox multiatendente, automação inteligente, lead scoring e visão operacional para escalar com controle.",
   openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    siteName: "DevFlow Labs",
     title: "WhatsApp Platform | Atendimento e Vendas com Escala",
     description:
       "Reposicione sua operação de WhatsApp com centralização, priorização de leads, automação e dashboard operacional em um único produto.",
-    url: "https://devflowlabs.com.br/produtos/whatsapp-platform",
+    url: `${baseUrl}/produtos/whatsapp-platform`,
+    images: [
+      {
+        url: ogImage,
+        width: 1200,
+        height: 630,
+        alt: "DevFlow Labs — WhatsApp Platform",
+      },
+    ],
   },
   twitter: {
+    card: "summary_large_image",
     title: "WhatsApp Platform | DevFlow Labs",
     description:
       "Atendimento, vendas e operação via WhatsApp com narrativa premium e foco em conversão.",
+    images: [ogImage],
   },
 };
 

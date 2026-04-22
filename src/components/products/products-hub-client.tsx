@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { ArrowRight, MessageCircle, Music2, Package, Search, Wallet } from "lucide-react";
+import { ArrowRight, MessageCircle, Package, Wallet } from "lucide-react";
 import {
   trackProductsPageCardClicked,
   trackProductsPageCtaClicked,
@@ -22,8 +22,6 @@ const WHATSAPP_PRODUCT_HREF = "/produtos/whatsapp-platform";
 const iconById: Record<DevflowProductId, typeof Wallet> = {
   financeiro: Wallet,
   whatsapp_platform: MessageCircle,
-  investigamais: Search,
-  funklab: Music2,
 };
 
 const iconStyleById: Record<
@@ -32,8 +30,6 @@ const iconStyleById: Record<
 > = {
   financeiro: { wrap: "bg-primary/10", icon: "text-primary" },
   whatsapp_platform: { wrap: "bg-emerald-500/10", icon: "text-emerald-700" },
-  investigamais: { wrap: "bg-emerald-500/10", icon: "text-emerald-700" },
-  funklab: { wrap: "bg-violet-500/10", icon: "text-violet-600" },
 };
 
 const comoEscolher = [
@@ -48,18 +44,6 @@ const comoEscolher = [
     productId: "financeiro" as const,
     href: FINANCEIRO_BASE_PATH,
     name: "Financeiro",
-  },
-  {
-    trigger: "Quer validar CNPJ e dados com contexto rápido",
-    productId: "investigamais" as const,
-    href: "/produtos/investigamais",
-    name: "Investigamais",
-  },
-  {
-    trigger: "Quer grooves e sketches MIDI na hora para produzir",
-    productId: "funklab" as const,
-    href: "/produtos/funklab-studio",
-    name: "FunkLab",
   },
 ];
 

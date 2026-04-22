@@ -1,5 +1,16 @@
 import Link from "next/link";
-import { ArrowRight, Wrench, Package, MessageCircle, Wallet, FileText } from "lucide-react";
+import {
+  ArrowRight,
+  Wrench,
+  Package,
+  MessageCircle,
+  Wallet,
+  FileText,
+  PlayCircle,
+  Code2,
+  Zap,
+  Tag,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Variant = "ferramentas" | "produtos" | "automacao-whatsapp" | "financeiro" | "default";
@@ -9,33 +20,41 @@ const LINK_SETS: Record<
   { href: string; label: string; icon?: React.ComponentType<{ className?: string }> }[]
 > = {
   ferramentas: [
-    { href: "/produtos", label: "Produtos", icon: Package },
-    { href: "/automacao-whatsapp", label: "Automação WhatsApp", icon: MessageCircle },
-    { href: "/ferramentas/financeiro", label: "Sistema Financeiro", icon: Wallet },
+    { href: "/demo", label: "Ver demo", icon: PlayCircle },
+    { href: "/produtos/whatsapp-platform", label: "WhatsApp Platform", icon: MessageCircle },
+    { href: "/produtos", label: "Catálogo de produtos", icon: Package },
+    { href: "/automacao-whatsapp", label: "Automação WhatsApp", icon: Zap },
+    { href: "/whatsapp-business-api", label: "WhatsApp Business API", icon: Code2 },
     { href: "/contato", label: "Contato", icon: FileText },
   ],
   produtos: [
+    { href: "/demo", label: "Ver demo", icon: PlayCircle },
+    { href: "/produtos/whatsapp-platform", label: "WhatsApp Platform", icon: MessageCircle },
     { href: "/ferramentas", label: "Ferramentas", icon: Wrench },
-    { href: "/automacao-whatsapp", label: "Automação WhatsApp", icon: MessageCircle },
-    { href: "/ferramentas/financeiro", label: "Sistema Financeiro", icon: Wallet },
+    { href: "/automacao-whatsapp", label: "Automação WhatsApp", icon: Zap },
     { href: "/contato", label: "Contato", icon: FileText },
   ],
   "automacao-whatsapp": [
+    { href: "/demo", label: "Ver demo", icon: PlayCircle },
+    { href: "/produtos/whatsapp-platform", label: "WhatsApp Platform", icon: MessageCircle },
+    { href: "/whatsapp-business-api", label: "WhatsApp Business API", icon: Code2 },
+    { href: "/precos", label: "Preços", icon: Tag },
+    { href: "/como-funciona", label: "Como funciona", icon: FileText },
     { href: "/ferramentas", label: "Ferramentas", icon: Wrench },
-    { href: "/produtos", label: "Produtos", icon: Package },
-    { href: "/ferramentas/financeiro", label: "Sistema Financeiro", icon: Wallet },
-    { href: "/demo", label: "Ver demo", icon: MessageCircle },
   ],
   financeiro: [
+    { href: "/demo", label: "Ver demo", icon: PlayCircle },
+    { href: "/produtos/whatsapp-platform", label: "WhatsApp Platform", icon: MessageCircle },
     { href: "/ferramentas", label: "Hub de ferramentas", icon: Wrench },
     { href: "/produtos", label: "Produtos", icon: Package },
-    { href: "/automacao-whatsapp", label: "Automação WhatsApp", icon: MessageCircle },
+    { href: "/automacao-whatsapp", label: "Automação WhatsApp", icon: Zap },
     { href: "/ferramentas/divisao-de-contas", label: "Divisão de contas", icon: Wallet },
   ],
   default: [
+    { href: "/demo", label: "Ver demo", icon: PlayCircle },
+    { href: "/produtos/whatsapp-platform", label: "WhatsApp Platform", icon: MessageCircle },
     { href: "/ferramentas", label: "Ferramentas", icon: Wrench },
     { href: "/produtos", label: "Produtos", icon: Package },
-    { href: "/automacao-whatsapp", label: "Automação WhatsApp", icon: MessageCircle },
     { href: "/contato", label: "Contato", icon: FileText },
   ],
 };

@@ -5,6 +5,7 @@ import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
 import { cn } from "@/lib/utils";
 
 const baseUrl = "https://devflowlabs.com.br";
+const ogImage = `${baseUrl}/og-devflow.png`;
 
 const plans = [
   {
@@ -56,10 +57,27 @@ export const metadata: Metadata = {
     canonical: `${baseUrl}/precos`,
   },
   openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    siteName: "DevFlow Labs",
     title: "Preços | DevFlow Labs",
     description:
       "Planos de automação WhatsApp. Piloto grátis para testar.",
     url: `${baseUrl}/precos`,
+    images: [
+      {
+        url: ogImage,
+        width: 1200,
+        height: 630,
+        alt: "DevFlow Labs — preços e planos",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Preços | DevFlow Labs",
+    description: "Planos Starter, Pro e Enterprise — veja a demo antes da proposta.",
+    images: [ogImage],
   },
 };
 
@@ -76,6 +94,20 @@ export default function PrecosPage() {
           </h1>
           <p className="mt-4 text-lg text-slate-600">
             Veja como funciona na prática antes de qualquer proposta.
+          </p>
+          <p className="mt-4 text-sm text-muted-foreground">
+            <Link href="/demo" className="font-medium text-primary underline-offset-4 hover:underline">
+              Ver demo guiada
+            </Link>
+            <span className="mx-2 text-border" aria-hidden>
+              ·
+            </span>
+            <Link
+              href="/produtos/whatsapp-platform"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Página do WhatsApp Platform
+            </Link>
           </p>
         </div>
 

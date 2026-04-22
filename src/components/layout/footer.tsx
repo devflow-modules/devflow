@@ -13,7 +13,6 @@ const productsLinks = [
   { href: "/produtos", label: "Todos os produtos" },
   { href: "/produtos/whatsapp-platform", label: "WhatsApp Platform" },
   { href: "/ferramentas/financeiro", label: "Sistema Financeiro" },
-  { href: "/produtos/funklab-studio", label: "FunkLab Studio" },
 ];
 
 const automacaoLinks = [

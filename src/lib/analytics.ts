@@ -29,6 +29,7 @@ export function trackHomeCta(
     | "hero_ver_demo"
     | "hero_tools"
     | "hero_whatsapp"
+    | "hero_whatsapp_platform"
     | "hero_how_it_works"
     | "hero_produtos_hub"
     | "hub_pillar_tools"

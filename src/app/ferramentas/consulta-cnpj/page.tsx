@@ -11,21 +11,23 @@ import {
   Calendar,
   Activity,
   MapPin,
-  ExternalLink,
   Sparkles,
   Loader2,
 } from "lucide-react";
-import { trackOpenDemo, trackTryProduct } from "@/lib/analytics";
+import { trackCtaDemoClick } from "@/lib/analytics";
 import {
   demoCardClass,
   demoCtaPrimaryClass,
   demoCtaSecondaryClass,
   demoEyebrowClass,
 } from "@/components/demo/demoUi";
+import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
 import { cn } from "@/lib/utils";
 import { CONSULTA_PREFILL_DEMO_DISPLAY } from "@/modules/produto-demos/investigaDemo";
-
-const INVESTIGA_PLUS_URL = "https://investigamais.com.br";
+import {
+  PRIMARY_DEMO_HREF,
+  SPECIALIST_WHATSAPP_CTA_LABEL,
+} from "@/lib/conversion-copy";
 
 type CnpjData = {
   company_name: string;
@@ -115,17 +117,15 @@ export default function ConsultaCnpjPage() {
               Ilustração para contexto; a consulta abaixo usa dados reais da Receita Federal.
             </p>
             <Link
-              href="/produtos/investigamais"
-              onClick={() =>
-                trackOpenDemo({ product: "investigamais", surface: "consulta_cnpj_banner" })
-              }
+              href={PRIMARY_DEMO_HREF}
+              onClick={() => trackCtaDemoClick("consulta_cnpj_context_banner")}
               className={cn(
                 demoCtaSecondaryClass,
                 "mt-4 text-xs font-medium sm:text-sm"
               )}
             >
               <Sparkles className="size-4 shrink-0" aria-hidden />
-              Abrir demo Investiga+
+              Ver demo
             </Link>
           </div>
         </div>
@@ -241,38 +241,38 @@ export default function ConsultaCnpjPage() {
                 </div>
               </div>
 
-              <div className="mt-8 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
-                <p className="text-sm font-medium text-foreground">
-                  Próximo passo: histórico, equipe e alertas no Investiga+
+              <div className="mt-8 rounded-xl border border-border bg-muted/30 p-4 sm:p-5">
+                <h2 className="text-base font-semibold text-foreground sm:text-lg">
+                  Agora imagine isso rodando automaticamente no seu atendimento
+                </h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Consultas como essa podem ser integradas ao seu fluxo de atendimento no WhatsApp.
                 </p>
-                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-stretch">
                   <Link
-                    href="/produtos/investigamais"
-                    onClick={() =>
-                      trackOpenDemo({ product: "investigamais", surface: "consulta_cnpj_result" })
-                    }
+                    href={PRIMARY_DEMO_HREF}
+                    onClick={() => trackCtaDemoClick("consulta_cnpj_result_ver_demo")}
                     className={cn(demoCtaPrimaryClass, "w-full sm:w-auto")}
                   >
-                    Ver demo do produto
+                    Ver demo
                   </Link>
-                  <a
-                    href={INVESTIGA_PLUS_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() =>
-                      trackTryProduct({
-                        product: "investigamais",
-                        surface: "consulta_cnpj_result_external",
-                        destination: INVESTIGA_PLUS_URL,
-                        cta_variant: "secondary",
-                      })
-                    }
-                    className={cn(demoCtaSecondaryClass, "w-full sm:w-auto")}
-                  >
-                    Abrir investigamais.com.br
-                    <ExternalLink className="size-4" aria-hidden />
-                  </a>
+                  <WhatsAppCta
+                    label={SPECIALIST_WHATSAPP_CTA_LABEL}
+                    ariaLabel="Falar com especialista no WhatsApp"
+                    size="default"
+                    text="Quero entender como integrar consultas e dados ao meu atendimento no WhatsApp."
+                    className="w-full sm:w-auto sm:min-w-[12rem] justify-center"
+                  />
                 </div>
+                <p className="mt-4 text-center sm:text-left">
+                  <Link
+                    href="/produtos/whatsapp-platform"
+                    onClick={() => trackCtaDemoClick("consulta_cnpj_result_produto")}
+                    className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    Ver produto completo
+                  </Link>
+                </p>
               </div>
             </div>
           </div>
