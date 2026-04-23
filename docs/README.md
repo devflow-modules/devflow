@@ -11,7 +11,7 @@ O hub **`devflowlabs.com.br`** posiciona-se hoje em torno de:
 1. **WhatsApp Platform** — automação de atendimento no WhatsApp, demo e páginas de produto.  
 2. **Financeiro** — app de controle financeiro em `/ferramentas/financeiro`.
 
-**CRM interno** (equipa comercial DevFlow): `/admin/leads` e `/admin/lead-finder` — ver pasta [**crm/**](./crm/).
+**CRM interno** (equipa comercial DevFlow): `/admin/leads` e `/admin/lead-finder` — ver pasta [**crm/**](./crm/). Playbook comercial (ICP, outbound, funil, demo): [**GO-TO-MARKET.md**](./GO-TO-MARKET.md).
 
 Outros apps no repositório (Investigamais, FunkLab, etc.) mantêm documentação técnica própria, mas **não** são tratados como pilares do go-to-market público atual neste índice.
 
@@ -53,6 +53,7 @@ Outros apps no repositório (Investigamais, FunkLab, etc.) mantêm documentaçã
 
 | Preciso de… | Documento |
 |-------------|-----------|
+| **Playbook GTM (manual de crescimento)** | [GO-TO-MARKET.md](./GO-TO-MARKET.md) |
 | Índice CRM | [crm/README.md](./crm/README.md) |
 | `/admin/leads` | [crm/LEADS-CRM.md](./crm/LEADS-CRM.md) |
 | `/admin/lead-finder` | [crm/LEAD-FINDER.md](./crm/LEAD-FINDER.md) |
