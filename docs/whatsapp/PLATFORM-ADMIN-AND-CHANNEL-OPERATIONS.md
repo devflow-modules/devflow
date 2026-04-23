@@ -3,6 +3,8 @@
 Documento de produto/engenharia: comportamento **actual** no monorepo, sem novo RBAC.  
 A app WhatsApp vive em `apps/whatsapp-platform`. O CRM outbound (`/admin/leads`) vive no **portal** (`src/…`); a ponte para o inbox usa `NEXT_PUBLIC_WHATSAPP_APP_URL`.
 
+**Tenant interno comercial:** ver [DEVFLOW-SALES-TENANT.md](./DEVFLOW-SALES-TENANT.md).
+
 ---
 
 ## 1. Modelo de roles (fonte de verdade e enforcement)
