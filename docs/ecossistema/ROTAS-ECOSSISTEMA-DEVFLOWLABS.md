@@ -4,6 +4,8 @@ Documento único de referência das rotas do monorepo em relação ao domínio *
 
 **Índice do ecossistema:** [README.md](./README.md) · **Topologia:** [TOPOLOGIA-DEVFLOW.md](./TOPOLOGIA-DEVFLOW.md) · **Fluxograma:** [FLUXOGRAMA-DEVFLOW.md](./FLUXOGRAMA-DEVFLOW.md)
 
+> **Foco de comunicação pública atual:** **WhatsApp Platform** e **Financeiro** no hub `devflowlabs.com.br`. Rotas de outros produtos (ex. landings históricas) podem permanecer no código; o posicionamento comercial principal segue o [WHATSAPP-PLATFORM-OVERVIEW](../whatsapp/WHATSAPP-PLATFORM-OVERVIEW.md) e a documentação do Financeiro. **CRM interno:** `/admin/leads` e `/admin/lead-finder` — [docs/crm/README.md](../crm/README.md).
+
 ---
 
 ## 1. Introdução
@@ -32,7 +34,7 @@ Documento único de referência das rotas do monorepo em relação ao domínio *
 | `/chatbot-whatsapp` | Chatbot WhatsApp |
 | `/software-atendimento-whatsapp` | Software atendimento |
 | `/produtos/whatsapp-platform` | Produto WhatsApp Platform |
-| `/produtos/funklab-studio` | Produto FunkLab Studio |
+| `/produtos/funklab-studio` | FunkLab (narrativa; não é foco do lançamento público atual) |
 | `/demo` | Demo automação |
 | `/precos` | Preços |
 | `/pricing` | Pricing (inglês) |
@@ -53,6 +55,8 @@ Documento único de referência das rotas do monorepo em relação ao domínio *
 | `/upgrade` | Upgrade (billing) |
 | `/billing` | Billing |
 | `/admin/metrics` | Admin métricas |
+| `/admin/leads` | CRM comercial outbound (leads) |
+| `/admin/lead-finder` | Atalho Google Maps + criação rápida de lead |
 
 ### 2.3 Páginas — Ferramentas
 

@@ -1,6 +1,19 @@
 # Documentação DevFlow
 
-Índice do monorepo. Cada pasta agrupa docs por **produto** ou **tema transversal**.
+Índice do monorepo. Cada pasta agrupa docs por **produto**, **CRM / operações comerciais** ou **tema transversal**.
+
+---
+
+## Foco público atual (lançamento)
+
+O hub **`devflowlabs.com.br`** posiciona-se hoje em torno de:
+
+1. **WhatsApp Platform** — automação de atendimento no WhatsApp, demo e páginas de produto.  
+2. **Financeiro** — app de controle financeiro em `/ferramentas/financeiro`.
+
+**CRM interno** (equipa comercial DevFlow): `/admin/leads` e `/admin/lead-finder` — ver pasta [**crm/**](./crm/).
+
+Outros apps no repositório (Investigamais, FunkLab, etc.) mantêm documentação técnica própria, mas **não** são tratados como pilares do go-to-market público atual neste índice.
 
 ---
 
@@ -8,49 +21,74 @@
 
 | Pasta | Conteúdo |
 |-------|----------|
+| [**crm/**](./crm/) | CRM portal: leads, Lead Finder, follow-up, templates |
+| [**whatsapp/**](./whatsapp/) | Cloud API, webhooks, onboarding, visão de produto |
+| [**whatsapp-platform/**](./whatsapp-platform/) | Inbox multi-tenant (`apps/whatsapp-platform`) |
 | [**financeiro/**](./financeiro/) | App controle financeiro (`apps/financeiro` + módulo site) |
-| [**whatsapp/**](./whatsapp/) | Plataforma WhatsApp / IA atendimento |
-| [**whatsapp-platform/**](./whatsapp-platform/) | Inbox multi-tenant no app `whatsapp-platform` |
-| [**investigamais/**](./investigamais/) | Investiga+ (CNPJ / BI) |
+| [**investigamais/**](./investigamais/) | Investiga+ (referência técnica; produto separado) |
 | [**shared/**](./shared/) | Monorepo, deploy, Prisma, monetização, ADRs |
-| [**ecossistema/**](./ecossistema/) | Rotas, URLs e visão do hub devflowlabs.com.br |
-| [**seo/**](./seo/) | Pilares, clusters, prioridade de indexação |
+| [**ecossistema/**](./ecossistema/) | Rotas, URLs e visão do hub |
+| [**site/**](./site/) | Inventário de rotas e decisões de routing |
+| [**seo/**](./seo/) | Pilares, clusters, indexação |
 | [**backlinks/**](./backlinks/) | Rascunhos de artigos / link building |
+| [**ai-ops/**](./ai-ops/) | Workflow de IA, checklists de demo |
+| [**architecture/**](./architecture/) | Cutover, guardrails, políticas |
 | [**healthsafe-rpa/**](./healthsafe-rpa/) | Referência HealthSafe × RPA |
-| [**_archive/**](./_archive/) | Migrações e relatórios históricos (WhatsApp DB) |
+| [**_archive/**](./_archive/) | Migrações e relatórios históricos |
 
 ---
 
-## Links rápidos
+## Por tema
+
+### Produto WhatsApp (público + técnico)
 
 | Preciso de… | Documento |
 |-------------|-----------|
-| Rotas e apps no ar | [ecossistema/ROTAS-ECOSSISTEMA-DEVFLOWLABS.md](./ecossistema/ROTAS-ECOSSISTEMA-DEVFLOWLABS.md) |
+| **Visão de produto (lançamento)** | [whatsapp/WHATSAPP-PLATFORM-OVERVIEW.md](./whatsapp/WHATSAPP-PLATFORM-OVERVIEW.md) |
+| Setup Cloud API | [whatsapp/WHATSAPP-SETUP.md](./whatsapp/WHATSAPP-SETUP.md) |
+| Ativação real (runbook) | [whatsapp/WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md](./whatsapp/WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md) |
+| Inbox SaaS | [whatsapp-platform/README.md](./whatsapp-platform/README.md) |
+
+### CRM / vendas (portal, interno)
+
+| Preciso de… | Documento |
+|-------------|-----------|
+| Índice CRM | [crm/README.md](./crm/README.md) |
+| `/admin/leads` | [crm/LEADS-CRM.md](./crm/LEADS-CRM.md) |
+| `/admin/lead-finder` | [crm/LEAD-FINDER.md](./crm/LEAD-FINDER.md) |
+| Follow-up e ações | [crm/FOLLOW-UP-ENGINE.md](./crm/FOLLOW-UP-ENGINE.md) |
+| Templates WhatsApp | [crm/MESSAGE-TEMPLATES.md](./crm/MESSAGE-TEMPLATES.md) |
+
+### Financeiro
+
+| Preciso de… | Documento |
+|-------------|-----------|
+| README técnico | [financeiro/README.md](./financeiro/README.md) |
+| README app | [apps/financeiro/README.md](../apps/financeiro/README.md) |
+| Go-live | [financeiro/GO_LIVE_FINANCEIRO.md](./financeiro/GO_LIVE_FINANCEIRO.md) |
+| Supabase Auth | [financeiro/SUPABASE_URLS.md](./financeiro/SUPABASE_URLS.md) |
+| Changelog | [financeiro/CHANGELOG.md](./financeiro/CHANGELOG.md) |
+
+### Infra, deploy e monorepo
+
+| Preciso de… | Documento |
+|-------------|-----------|
+| Rotas no ar | [ecossistema/ROTAS-ECOSSISTEMA-DEVFLOWLABS.md](./ecossistema/ROTAS-ECOSSISTEMA-DEVFLOWLABS.md) |
+| Boundaries monorepo | [shared/ARCHITECTURE_BOUNDARIES.md](./shared/ARCHITECTURE_BOUNDARIES.md) |
 | Prisma + Supabase | [shared/PRISMA-SUPABASE-SETUP.md](./shared/PRISMA-SUPABASE-SETUP.md) |
 | Deploy Vercel | [shared/DEPLOYMENT.md](./shared/DEPLOYMENT.md) |
-| Arquitetura monorepo | [shared/ARCHITECTURE_BOUNDARIES.md](./shared/ARCHITECTURE_BOUNDARIES.md) |
-| Hub de ferramentas | [shared/ARQUITETURA-FERRAMENTAS-DEVFLOW.md](./shared/ARQUITETURA-FERRAMENTAS-DEVFLOW.md) |
+| Build Vercel | [VERCEL_BUILD.md](./VERCEL_BUILD.md) |
+| Variáveis de ambiente | [ENV_STRUCTURE.md](./ENV_STRUCTURE.md) |
 | Stripe / billing | [shared/DEVFLOW-PAYMENTS.md](./shared/DEVFLOW-PAYMENTS.md) |
-| WhatsApp Cloud API | [whatsapp/WHATSAPP-SETUP.md](./whatsapp/WHATSAPP-SETUP.md) |
-| Onboarding número Cloud API (admin API) | [whatsapp/WHATSAPP_CLOUD_ONBOARDING_SPRINT.md](./whatsapp/WHATSAPP_CLOUD_ONBOARDING_SPRINT.md) |
-| **Ativação real do número (runbook)** | [whatsapp/WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md](./whatsapp/WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md) |
-| Supabase Auth (Financeiro) | [financeiro/SUPABASE_URLS.md](./financeiro/SUPABASE_URLS.md) |
-| Go-live Financeiro | [financeiro/GO_LIVE_FINANCEIRO.md](./financeiro/GO_LIVE_FINANCEIRO.md) |
-| Validação / QA Financeiro | [financeiro/FINANCEIRO_RELATORIO_VALIDACAO_FINAL.md](./financeiro/FINANCEIRO_RELATORIO_VALIDACAO_FINAL.md) |
-| Financeiro — README produto | [apps/financeiro/README.md](../apps/financeiro/README.md) |
-| Financeiro — changelog | [financeiro/CHANGELOG.md](./financeiro/CHANGELOG.md) |
-| Financeiro — motores (score/insights/checklist) | [financeiro/FINANCEIRO-ARCHITECTURE.md](./financeiro/FINANCEIRO-ARCHITECTURE.md) |
-| Financeiro — posicionamento | [financeiro/FINANCEIRO-POSICIONAMENTO.md](./financeiro/FINANCEIRO-POSICIONAMENTO.md) |
-| Financeiro — screenshots | [financeiro/screenshots/README.md](./financeiro/screenshots/README.md) |
-| Financeiro — case LinkedIn | [financeiro/CASE-LINKEDIN.md](./financeiro/CASE-LINKEDIN.md) |
+| Métricas dashboard | [shared/DEVFLOW-METRICS-DASHBOARD.md](./shared/DEVFLOW-METRICS-DASHBOARD.md) |
 
 ---
 
 ## READMEs por área
 
-- [financeiro/README.md](./financeiro/README.md) (índice técnico)
-- [apps/financeiro/README.md](../apps/financeiro/README.md) (narrativa de produto)
-- [whatsapp/README.md](./whatsapp/README.md)
-- [investigamais/README.md](./investigamais/README.md)
-- [shared/README.md](./shared/README.md)
-- [backlinks/README.md](./backlinks/README.md)
+- [crm/README.md](./crm/README.md)  
+- [financeiro/README.md](./financeiro/README.md)  
+- [whatsapp/README.md](./whatsapp/README.md)  
+- [investigamais/README.md](./investigamais/README.md) (produto / app separado)  
+- [shared/README.md](./shared/README.md)  
+- [backlinks/README.md](./backlinks/README.md)  

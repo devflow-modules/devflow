@@ -2,6 +2,8 @@
 
 Documentação transversal ao domínio **devflowlabs.com.br**: rotas, topologia, fluxos e deploys. Serve **engenharia**, **produto** e **apresentação** (executivo / comercial).
 
+**Foco público atual** no hub: **WhatsApp Platform** e **Financeiro**; CRM interno em [`/admin/leads`](../crm/LEADS-CRM.md). Visão de produto WhatsApp: [WHATSAPP-PLATFORM-OVERVIEW](../whatsapp/WHATSAPP-PLATFORM-OVERVIEW.md).
+
 ## Índice
 
 | Documento | Quando usar |

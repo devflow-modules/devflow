@@ -43,9 +43,10 @@ Use na validação final (comercial + merge), alinhado a `ACCEPTANCE_CRITERIA.md
 ## Smoke manual rápido
 
 - [ ] `/produtos` — cards e links.
-- [ ] `/produtos/investigamais` — strip + demo + CTAs.
-- [ ] `/produtos/funklab-studio` — hero + seção demo + CTA final.
-- [ ] `/ferramentas/consulta-cnpj` — banner demo, loading, erro simulado, sucesso, CTAs do rodapé do card.
+- [ ] `/produtos/whatsapp-platform` — narrativa alinhada ao [WHATSAPP-PLATFORM-OVERVIEW](../whatsapp/WHATSAPP-PLATFORM-OVERVIEW.md).
+- [ ] `/demo` — fluxo demo WhatsApp.
+- [ ] *(Opcional / fora do foco de lançamento atual)* `/produtos/investigamais`, `/produtos/funklab-studio` — apenas se essas landings estiverem ativas na release.
+- [ ] `/ferramentas/consulta-cnpj` — se existir na build: banner demo, loading, erro simulado, sucesso, CTAs do rodapé do card.
 
 ## Build e testes
 

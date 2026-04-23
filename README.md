@@ -1,23 +1,24 @@
 # DevFlow
 
-**Hub central do ecossistema DevFlow** — plataforma que reúne automação de atendimento via WhatsApp com IA e ferramentas SaaS de gestão financeira, tudo sob um único domínio com SEO consolidado.
+**Hub central do ecossistema DevFlow** — sob `devflowlabs.com.br`, o foco público atual é **automação de atendimento no WhatsApp** (com demo e páginas de produto) e o **Financeiro** como segunda ferramenta SaaS ativa. Tudo com SEO consolidado no mesmo domínio.
 
 ```
 devflowlabs.com.br
-├── /                          # Landing principal — Automação WhatsApp
-├── /automacao-whatsapp-*      # Páginas de nicho (restaurante, tabacaria, etc.)
-├── /demo                      # Demo interativa do robô WhatsApp
-├── /produtos/
-│   ├── /whatsapp-platform     # Produto automação WhatsApp
-│   └── /funklab-studio        # Gerador musical IA (Funk, Mandelão, Phonk)
-├── /ferramentas/              # Hub de ferramentas SaaS
-│   ├── /financeiro            # App de controle financeiro pessoal/familiar
-│   └── /divisao-de-contas     # Calculadora de divisão de contas
-├── /pricing                   # Planos e preços
-├── /upgrade                   # Upgrade de plano (checkout Stripe)
+├── /                          # Landing — Automação WhatsApp (proposta de valor)
+├── /automacao-whatsapp-*      # Páginas de nicho (SEO)
+├── /demo                      # Demo interativa (WhatsApp)
+├── /produtos/whatsapp-platform
+├── /ferramentas/
+│   ├── /financeiro            # App Financeiro (Supabase Auth)
+│   └── /divisao-de-contas     # Calculadora
+├── /pricing , /upgrade        # Planos e checkout (contexto produto)
 ├── /blog                      # Conteúdo e SEO
-└── /admin/metrics             # Dashboard interno de métricas
+├── /admin/metrics             # Métricas internas (growth)
+├── /admin/leads               # CRM comercial outbound (interno)
+└── /admin/lead-finder         # Atalho Maps → criar lead (interno)
 ```
+
+Rotas adicionais (ex. `/produtos/funklab-studio`, ferramentas experimentais) podem existir no código; **não** fazem parte do posicionamento de lançamento descrito neste README. Detalhes de rotas: [`docs/ecossistema/ROTAS-ECOSSISTEMA-DEVFLOWLABS.md`](docs/ecossistema/ROTAS-ECOSSISTEMA-DEVFLOWLABS.md).
 
 ---
 
@@ -103,54 +104,42 @@ WHATSAPP_DEMO_MODE=false
 ```env
 NEXT_PUBLIC_WHATSAPP_NUMBER=      # Número público (botões wa.me)
 NEXT_PUBLIC_META_PIXEL_ID=        # Meta Pixel
-ADMIN_METRICS_SECRET=             # Proteção da rota /api/admin/metrics (produção)
+ADMIN_METRICS_SECRET=             # Proteção /api/admin/metrics e rotas admin sensíveis (ex.: leads) em produção
 ```
 
 ---
 
-## Produto 1 — Automação WhatsApp
+## Produto 1 — WhatsApp Platform (foco principal)
 
-Robô de atendimento via WhatsApp Cloud API com:
+Robô e operação de atendimento via **WhatsApp Cloud API**, com narrativa no portal e produto canónico no app `whatsapp-platform`:
 
-- Fluxo conversacional configurável
-- Handoff humano
-- Demo interativa em `/demo`
-- Páginas de nicho para SEO (`/automacao-whatsapp-restaurante`, `-tabacaria`, etc.)
-- Meta Pixel integrado (PageView, ViewContent, Contact)
+- Fluxo conversacional configurável e handoff humano
+- Demo em `/demo` e páginas de nicho para SEO
+- Meta Pixel (PageView, ViewContent, Contact) onde configurado
 
-Setup: [`docs/whatsapp/WHATSAPP-SETUP.md`](docs/whatsapp/WHATSAPP-SETUP.md)
+**Visão de produto:** [`docs/whatsapp/WHATSAPP-PLATFORM-OVERVIEW.md`](docs/whatsapp/WHATSAPP-PLATFORM-OVERVIEW.md) · **Setup técnico:** [`docs/whatsapp/WHATSAPP-SETUP.md`](docs/whatsapp/WHATSAPP-SETUP.md)
 
----
+### CRM comercial interno (portal)
 
-## Produto 2 — Investiga+
+Ferramentas **internas** no mesmo Next da raiz (acesso restrito):
 
-Plataforma SaaS de inteligência de CNPJ e business intelligence (repositório próprio):
+- **`/admin/leads`** — lista, funil, follow-up derivado, templates WhatsApp, conversão e `conversationRef`
+- **`/admin/lead-finder`** — atalho Google Maps + criação rápida com origem `lead_finder_google_maps`
 
-- **Busca de CNPJ** — integração ReceitaWS com cache local
-- **Histórico de consultas** — filtros avançados por usuário
-- **Perfil + bônus** — gerenciamento de créditos/bônus
-- **Webhook** — integração para automações externas
-- **Arquitetura limpa** — Node.js + Express + Prisma + PostgreSQL
-
-Repositório: [TraffikPro/investiga-mais](https://github.com/TraffikPro/investiga-mais) · Live: [investigamais.com](https://investigamais.com)
+Documentação: [`docs/crm/README.md`](docs/crm/README.md)
 
 ---
 
-## Produto 3 — FunkLab Studio
+## Outros produtos no monorepo (não foco do lançamento público atual)
 
-Gerador musical assistido por IA para produtores de funk, mandelão e phonk:
+O repositório inclui apps e documentação para **Investigamais** (CNPJ / BI, produto com repositório próprio) e **FunkLab** (experiências musicais). Mantêm utilidade técnica e histórico; **não** entram na mensagem principal de go-to-market do hub neste momento.
 
-- **Sketch Generator** — múltiplas ideias de groove automaticamente por estilo e BPM
-- **Bassline Generator** — linhas de baixo MIDI configuráveis (root, escala, duração, BPM)
-- **Biblioteca integrada** — presets, grooves e bass patterns (Mandelão, Funk, Phonk, Tech House)
-- **Exportação direta** — MIDI, áudio e projetos para DAW
-- **Engine musical** — humanização de timing/velocity, slides, ghost notes
-
-Rota: `/produtos/funklab-studio`
+- Investigamais: [`docs/investigamais/README.md`](docs/investigamais/README.md)  
+- FunkLab (`apps/funklab`): [`apps/funklab/README.md`](apps/funklab/README.md)
 
 ---
 
-## Produto 4 — Ferramentas Financeiras
+## Produto 2 — Ferramentas Financeiras
 
 ### 💰 Financeiro — Smart Dashboard
 
@@ -243,7 +232,7 @@ Pipeline de métricas do funil de aquisição completo (em memória, preparado p
 visitor_landed → simulator_used → lead_submitted → signup → household_created → first_expense
 ```
 
-Dashboard interno: `http://localhost:3000/admin/metrics`
+Dashboard interno: `http://localhost:3000/admin/metrics`. CRM de leads: `/admin/leads` (ver [`docs/crm/README.md`](docs/crm/README.md)).
 
 Documentação: [`docs/shared/DEVFLOW-GROWTH-ANALYTICS.md`](docs/shared/DEVFLOW-GROWTH-ANALYTICS.md)
 
@@ -283,6 +272,8 @@ Documentação: [`docs/shared/DEPLOYMENT.md`](docs/shared/DEPLOYMENT.md)
 
 | Arquivo | Conteúdo |
 |---------|----------|
+| [`docs/whatsapp/WHATSAPP-PLATFORM-OVERVIEW.md`](docs/whatsapp/WHATSAPP-PLATFORM-OVERVIEW.md) | Visão de produto WhatsApp (lançamento) |
+| [`docs/crm/README.md`](docs/crm/README.md) | CRM `/admin/leads` e Lead Finder |
 | [`docs/shared/ARQUITETURA-FERRAMENTAS-DEVFLOW.md`](docs/shared/ARQUITETURA-FERRAMENTAS-DEVFLOW.md) | DevFlow como hub de ferramentas |
 | [`docs/financeiro/FINANCEIRO-MODULE-ARCHITECTURE.md`](docs/financeiro/FINANCEIRO-MODULE-ARCHITECTURE.md) | Arquitetura do módulo financeiro |
 | [`docs/financeiro/FINANCEIRO-API-MAP.md`](docs/financeiro/FINANCEIRO-API-MAP.md) | Mapa de todas as APIs |
