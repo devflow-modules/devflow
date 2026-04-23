@@ -14,7 +14,7 @@ import {
   type NavItem,
 } from "./nav-config";
 import { ROUTE_META } from "@/lib/navigation/nav-matrix";
-import { isOperator, isPlatformAdmin, shellHomeHref } from "@/lib/roles";
+import { isOperator, isPlatformAdmin, isTenantManager, shellHomeHref } from "@/lib/roles";
 import { SessionRoleModePill } from "./SessionRoleModePill";
 import { useShellLayoutOptional } from "./ShellLayoutContext";
 import { SidebarRail } from "./SidebarRail";
@@ -286,7 +286,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       <div className="border-t border-slate-100 p-3">
         <SupportHelpButton variant="sidebar" className="mb-3" />
-        {sessionRole && (isOperator(sessionRole) || isPlatformAdmin(sessionRole)) ? (
+        {sessionRole && (isOperator(sessionRole) || isTenantManager(sessionRole)) ? (
           <Link
             href="/admin/distribuir"
             className="mb-2 block rounded-lg px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50"

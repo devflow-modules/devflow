@@ -75,7 +75,7 @@ Após conversão, o lead costuma aparecer como **convertido** na UI e ações de
 
 Identificador canónico da **conversa** (ex. UUID no WhatsApp Platform). Atualizável via `PATCH` com `conversationRef`.
 
-- Com valor: badge **Conversa vinculada** e link para abrir o chat no app (rota portal `/admin/chat?conversationId=…`, resolvida para o host configurado do produto WhatsApp quando aplicável).  
+- Com valor: badge **Conversa vinculada** e link para o chat no app (URL canónica no WA: `/admin/conversations/{id}`; ainda existe **redirect** em `/admin/chat?conversationId=…` no deploy do WhatsApp Platform; o host vem de `NEXT_PUBLIC_WHATSAPP_APP_URL`).  
 - Sem valor: operador cola o ID e usa **Vincular conversa**.
 
 ---

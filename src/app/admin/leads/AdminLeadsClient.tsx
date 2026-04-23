@@ -117,7 +117,9 @@ function formatRatePct2(n: number | null | undefined): string {
 }
 
 function conversationChatUrl(ref: string): string {
-  return whatsappAppUrl(`/admin/chat?conversationId=${encodeURIComponent(ref)}`);
+  const id = ref.trim();
+  if (!id) return whatsappAppUrl("/admin/conversations");
+  return whatsappAppUrl(`/admin/conversations/${encodeURIComponent(id)}`);
 }
 
 function urgencyListBorder(u: "low" | "medium" | "high" | undefined): string {

@@ -9,6 +9,7 @@ export type NavItem = { href: string; label: string; description?: string };
 export const NAV_PRIMARY: NavItem[] = [
   { href: "/dashboard", label: ROUTE_META["/dashboard"].label, description: "Resumo e próximos passos" },
   { href: "/inbox", label: ROUTE_META["/inbox"].label, description: "Atendimento, histórico e filas" },
+  { href: "/conversations", label: ROUTE_META["/conversations"].label, description: "Lista de conversas do tenant" },
   { href: "/automation", label: ROUTE_META["/automation"].label, description: "Regras e automação" },
 ];
 
@@ -52,7 +53,7 @@ export const NAV_OPERATION: NavItem[] = [
 
 export const NAV_ADMIN = { href: "/admin/metrics", label: "Métricas internas" };
 
-const OPERATOR_PRIMARY_HREFS = new Set<string>(["/inbox", "/automation"]);
+const OPERATOR_PRIMARY_HREFS = new Set<string>(["/inbox", "/conversations", "/automation"]);
 
 /** Navegação principal conforme role (operador não vê painel/análises). */
 export function primaryNavForRole(role: UserRole | string | null): NavItem[] {
