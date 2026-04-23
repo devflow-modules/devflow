@@ -1,82 +1,185 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowRight, Mail, MessageCircle, PlayCircle } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
 import { cn } from "@/lib/utils";
 
+const baseUrl = "https://devflowlabs.com.br";
+const ogImage = `${baseUrl}/og-devflow.png`;
+
 export const metadata: Metadata = {
-  title: "Contato | DevFlow Labs",
+  title: "Fale com a DevFlow Labs",
   description:
-    "Entre em contato com a DevFlow Labs pelo WhatsApp ou email. Automação de atendimento no WhatsApp e produtos SaaS.",
+    "Demo guiada da WhatsApp Platform, conversa no WhatsApp ou e-mail para briefing — escolha o canal que combina com o seu ritmo de decisão.",
   alternates: {
-    canonical: "https://devflowlabs.com.br/contato",
+    canonical: `${baseUrl}/contato`,
   },
   openGraph: {
-    title: "Contato | DevFlow Labs",
+    type: "website",
+    locale: "pt_BR",
+    siteName: "DevFlow Labs",
+    title: "Fale com a DevFlow Labs | Demo, WhatsApp ou e-mail",
     description:
-      "Entre em contato pelo WhatsApp ou email. Resposta rápida.",
-    url: "https://devflowlabs.com.br/contato",
+      "Veja a plataforma em ação na demo, fale com o time no WhatsApp ou envie um briefing formal por e-mail.",
+    url: `${baseUrl}/contato`,
+    images: [
+      {
+        url: ogImage,
+        width: 1200,
+        height: 630,
+        alt: "DevFlow Labs — contato e demo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Fale com a DevFlow Labs",
+    description:
+      "Demo guiada, WhatsApp ou e-mail — contato alinhado ao funil da WhatsApp Platform.",
+    images: [ogImage],
   },
 };
 
+const cardBase =
+  "flex h-full flex-col rounded-2xl border border-border bg-card p-6 shadow-[0_18px_50px_-24px_rgba(15,23,42,0.2)] sm:p-8";
+
 export default function ContatoPage() {
   return (
-    <main className="py-16 sm:py-20">
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-xl">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Contato
+    <main className="relative overflow-hidden">
+      <div
+        className="pointer-events-none absolute inset-0 -z-10 opacity-40"
+        aria-hidden
+      >
+        <div
+          className="absolute -top-40 right-0 h-96 w-96 rounded-full blur-3xl"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(34, 197, 94, 0.22) 0%, transparent 65%)",
+          }}
+        />
+        <div
+          className="absolute -bottom-32 left-0 h-80 w-80 rounded-full blur-3xl"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(15, 23, 42, 0.12) 0%, transparent 70%)",
+          }}
+        />
+      </div>
+
+      <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+        <header className="mx-auto max-w-3xl text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary/90">
+            Contato comercial
+          </p>
+          <h1 className="mt-3 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-[2.35rem] lg:leading-tight">
+            Fale com a DevFlow Labs
           </h1>
-          <p className="mt-4 text-slate-600">
-            Resposta rápida. Entre em contato pelo WhatsApp ou email.
+          <p className="mx-auto mt-4 max-w-2xl text-base font-semibold leading-snug text-slate-700 sm:text-lg">
+            Escolha o melhor caminho para ver a plataforma em ação ou conversar sobre o seu caso.
           </p>
+        </header>
 
-          <div className="mt-12 space-y-8">
-            <div className="rounded-xl border border-border bg-card p-6">
-              <h2 className="font-semibold text-foreground">WhatsApp</h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Canal principal. Respondemos em poucos minutos em horário comercial.
-              </p>
-              <div className="mt-4">
-                <WhatsAppCta
-                  label="Falar no WhatsApp"
-                  size="lg"
-                  text="Olá, gostaria de falar com a equipe DevFlow Labs."
-                />
-              </div>
+        <div className="mx-auto mt-14 grid max-w-5xl gap-6 lg:grid-cols-3">
+          <article className={cn(cardBase, "ring-1 ring-emerald-500/15")}>
+            <div className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <PlayCircle className="size-6" aria-hidden />
             </div>
-
-            <div className="rounded-xl border border-border bg-card p-6">
-              <h2 className="font-semibold text-foreground">E-mail</h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Para propostas formais ou dúvidas que exigem documentação.
-              </p>
-              <a
-                href="mailto:contato@devflowlabs.com.br"
-                className="mt-4 inline-block font-medium text-primary hover:underline"
-              >
-                contato@devflowlabs.com.br
-              </a>
-            </div>
-
-            <div className="rounded-xl border border-primary/20 bg-primary/5 p-6">
-              <p className="text-sm font-medium text-foreground">
-                Resposta em até 24h (dias úteis).
-              </p>
-              <p className="mt-1 text-sm text-slate-600">
-                No WhatsApp, costumamos responder em minutos.
-              </p>
-            </div>
-          </div>
-
-          <p className="mt-12">
+            <h2 className="mt-5 text-lg font-bold tracking-tight text-foreground">
+              Ver demo guiada
+            </h2>
+            <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">
+              Dois minutos vendo fila, priorização e handoff — ideal para validar fit antes de falar com alguém.
+            </p>
             <Link
-              href="/"
-              className="text-sm font-medium text-slate-600 hover:text-foreground"
+              href="/demo"
+              className={cn(
+                "mt-8 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-primary-foreground",
+                "bg-primary shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] transition-all hover:brightness-[1.03] active:brightness-[0.98]",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 focus-visible:ring-offset-2"
+              )}
             >
-              ← Voltar ao início
+              Abrir demo
+              <ArrowRight className="size-4 shrink-0" aria-hidden />
             </Link>
-          </p>
+          </article>
+
+          <article className={cn(cardBase, "border-slate-200/90")}>
+            <div className="flex size-11 items-center justify-center rounded-xl bg-[#25D366]/12 text-[#128C7E]">
+              <MessageCircle className="size-6" aria-hidden />
+            </div>
+            <h2 className="mt-5 text-lg font-bold tracking-tight text-foreground">
+              WhatsApp
+            </h2>
+            <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">
+              Canal principal em horário comercial: resposta em minutos para dúvidas, escopo e próximos passos.
+            </p>
+            <div className="mt-8">
+              <WhatsAppCta
+                label="Falar no WhatsApp"
+                size="lg"
+                className="w-full justify-center"
+                text="Olá, vim pelo site da DevFlow. Quero alinhar sobre a WhatsApp Platform e o meu caso de atendimento."
+              />
+            </div>
+          </article>
+
+          <article className={cn(cardBase, "border-slate-200/90")}>
+            <div className="flex size-11 items-center justify-center rounded-xl bg-slate-900/5 text-slate-700">
+              <Mail className="size-6" aria-hidden />
+            </div>
+            <h2 className="mt-5 text-lg font-bold tracking-tight text-foreground">
+              E-mail
+            </h2>
+            <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">
+              Para propostas formais, anexos ou compras que exigem documentação por escrito.
+            </p>
+            <a
+              href="mailto:contato@devflowlabs.com.br"
+              className={cn(
+                "mt-8 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white text-sm font-semibold text-slate-800",
+                "shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50"
+              )}
+            >
+              contato@devflowlabs.com.br
+            </a>
+          </article>
         </div>
+
+        <div
+          className="mx-auto mt-12 max-w-3xl rounded-2xl border border-slate-200/80 bg-slate-50/80 px-5 py-6 sm:px-8"
+          aria-label="Como escolher o canal"
+        >
+          <p className="text-center text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+            Decisão rápida
+          </p>
+          <ul className="mt-4 space-y-3 text-sm leading-relaxed text-slate-700 sm:text-[0.9375rem]">
+            <li>
+              <span className="font-semibold text-foreground">Quer ver antes de falar?</span>{" "}
+              Vá para a <Link href="/demo" className="font-semibold text-primary underline-offset-4 hover:underline">demo</Link>.
+            </li>
+            <li>
+              <span className="font-semibold text-foreground">Quer discutir o seu caso?</span>{" "}
+              WhatsApp — conversa direta com o time.
+            </li>
+            <li>
+              <span className="font-semibold text-foreground">Precisa de proposta formal?</span>{" "}
+              E-mail com contexto e anexos.
+            </li>
+          </ul>
+        </div>
+
+        <p className="mx-auto mt-10 max-w-xl text-center text-xs font-medium leading-relaxed text-muted-foreground sm:text-sm">
+          WhatsApp costuma responder em minutos em dias úteis. E-mail: até 24h úteis para retorno com leitura completa do briefing.
+        </p>
+
+        <p className="mt-12 text-center">
+          <Link
+            href="/"
+            className="text-sm font-semibold text-slate-600 underline-offset-4 hover:text-foreground hover:underline"
+          >
+            ← Voltar ao início
+          </Link>
+        </p>
       </div>
     </main>
   );

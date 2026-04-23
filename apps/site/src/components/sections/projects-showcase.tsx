@@ -3,7 +3,21 @@ import { ExternalLink, FolderOpen } from "lucide-react";
 import { projects } from "@/lib/projects";
 import { cn } from "@/lib/utils";
 
-function ProjectThumbnail({ theme }: { theme: "music" | "finance" }) {
+function ProjectThumbnail({ theme }: { theme: "music" | "finance" | "whatsapp" }) {
+  if (theme === "whatsapp") {
+    return (
+      <div className="flex h-24 flex-col justify-end gap-1.5 rounded-lg bg-gradient-to-br from-emerald-500/18 to-slate-900/[0.04] p-3">
+        <div
+          className="ml-auto h-6 w-[68%] rounded-lg rounded-br-sm bg-emerald-500/85 shadow-sm"
+          aria-hidden
+        />
+        <div
+          className="mr-auto h-6 w-[58%] rounded-lg rounded-bl-sm bg-white shadow-sm ring-1 ring-slate-200/90"
+          aria-hidden
+        />
+      </div>
+    );
+  }
   if (theme === "music") {
     return (
       <div className="flex h-24 items-end justify-center gap-1 rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 p-4">
@@ -49,10 +63,10 @@ export function ProjectsShowcase() {
             id="projects-heading"
             className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
           >
-            Produtos reais que a DevFlow criou
+            Sistemas reais em operação
           </h2>
           <p className="mt-3 text-slate-600">
-            SaaS, automação e IA. Software que roda em produção.
+            WhatsApp Platform em primeiro plano, financeiro ativo e laboratório separado — o mesmo recorte da página de ecossistema.
           </p>
         </div>
 
@@ -62,14 +76,26 @@ export function ProjectsShowcase() {
               key={project.id}
               className={cn(
                 "group relative rounded-xl border border-border bg-card p-6",
-                "transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+                "transition-all duration-200 hover:-translate-y-1 hover:shadow-lg",
+                project.highlight && "ring-1 ring-emerald-500/25"
               )}
             >
               <div className="absolute right-4 top-4">
-                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
-                  <span className="size-1.5 rounded-full bg-primary" />
-                  Live
-                </span>
+                {project.highlight ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-600/25 bg-emerald-600/10 px-2 py-0.5 text-xs font-bold text-emerald-900">
+                    <span className="size-1.5 rounded-full bg-emerald-600" />
+                    Principal
+                  </span>
+                ) : project.isExperimental ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-600">
+                    Lab
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                    <span className="size-1.5 rounded-full bg-primary" />
+                    Live
+                  </span>
+                )}
               </div>
               <ProjectThumbnail theme={project.theme} />
               <h3 className="mt-4 font-semibold text-foreground">{project.title}</h3>
@@ -95,7 +121,7 @@ export function ProjectsShowcase() {
                       "transition-all duration-200 hover:bg-[#16a34a]"
                     )}
                   >
-                    Abrir aplicação
+                    {project.ctaLabel}
                   </Link>
                 ) : (
                   <a
@@ -108,7 +134,7 @@ export function ProjectsShowcase() {
                       "transition-all duration-200 hover:bg-[#16a34a]"
                     )}
                   >
-                    Abrir aplicação
+                    {project.ctaLabel}
                     <ExternalLink className="size-4" aria-hidden />
                   </a>
                 )}
