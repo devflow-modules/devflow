@@ -144,8 +144,11 @@ model Tenant {
   commissions          Commission[]
   /** Valor fechado da implantação (BRL); obrigatório para gerar comissão de afiliado. */
   implantationPriceBrl Float?                 @map("implantation_price_brl")
+  /** Workspace interno DevFlow (ex.: comercial) — mesmo modelo multi-tenant, marcado para operação/admin. */
+  isInternal            Boolean                @default(false) @map("is_internal")
 
   @@index([affiliateId])
+  @@index([isInternal])
   @@map("whatsapp_tenants")
 }
 
