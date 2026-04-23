@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { listTenants } from "@/modules/tenants";
+import { JWT_COOKIE_NAME } from "@/lib/auth-config";
+import { validateAuthToken } from "@/modules/auth";
 import { Button, cn } from "@devflow/ui";
 import { AppBadge } from "@/components/ui/app-badge";
 import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
@@ -29,11 +31,11 @@ type ConversationItem = {
   unread: number;
 };
 
-async function getConversations(status?: WaInboxThreadStatus): Promise<ConversationItem[]> {
+async function getConversations(
+  status: WaInboxThreadStatus | undefined,
+  tenantId: string
+): Promise<ConversationItem[]> {
   try {
-    const tenants = await listTenants();
-    const tenantId = tenants[0]?.id;
-    if (!tenantId) return [];
     const threads = await prisma.waInboxThread.findMany({
       where: {
         tenantId,
@@ -68,11 +70,15 @@ export default async function AdminConversationsPage({
   searchParams: Promise<{ status?: string }>;
 }) {
   const { status } = await searchParams;
+  const store = await cookies();
+  const token = store.get(JWT_COOKIE_NAME)?.value;
+  const auth = token ? await validateAuthToken(token) : null;
+  const tenantId = auth?.payload.tenantId;
   const validStatus =
     status && TAB_STATUSES.some((t) => t.status === status)
       ? (status as WaInboxThreadStatus)
       : undefined;
-  const conversations = await getConversations(validStatus);
+  const conversations = tenantId ? await getConversations(validStatus, tenantId) : [];
 
   return (
     <div className="rounded-xl border border-slate-200/80 bg-slate-50/50 shadow-sm">

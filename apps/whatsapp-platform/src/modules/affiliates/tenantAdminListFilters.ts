@@ -5,6 +5,7 @@ export type TenantListRow = {
   affiliateId: string | null;
   affiliateSource: string | null;
   gtmLifecycle: string;
+  isInternal: boolean;
 };
 
 export type TenantListFilters = {

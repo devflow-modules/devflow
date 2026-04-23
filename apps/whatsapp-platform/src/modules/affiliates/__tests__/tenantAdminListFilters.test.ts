@@ -9,6 +9,7 @@ const rows: TenantListRow[] = [
     affiliateId: "a1",
     affiliateSource: "ref",
     gtmLifecycle: "IMPLANTADO",
+    isInternal: false,
   },
   {
     id: "t2",
@@ -17,6 +18,7 @@ const rows: TenantListRow[] = [
     affiliateId: null,
     affiliateSource: null,
     gtmLifecycle: "AVALIACAO",
+    isInternal: false,
   },
   {
     id: "t3",
@@ -25,6 +27,7 @@ const rows: TenantListRow[] = [
     affiliateId: "a2",
     affiliateSource: "manual",
     gtmLifecycle: "IMPLANTADO",
+    isInternal: false,
   },
 ];
 

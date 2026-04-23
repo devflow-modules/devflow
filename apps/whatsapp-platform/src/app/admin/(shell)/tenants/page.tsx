@@ -24,6 +24,7 @@ export default async function AdminTenantsIndexPage() {
       affiliateId: true,
       affiliateSource: true,
       gtmLifecycle: true,
+      isInternal: true,
     },
   });
   const initialRows = rows.map((t) => ({
@@ -33,6 +34,7 @@ export default async function AdminTenantsIndexPage() {
     affiliateId: t.affiliateId,
     affiliateSource: t.affiliateSource,
     gtmLifecycle: t.gtmLifecycle,
+    isInternal: t.isInternal,
   }));
   return (
     <div className="mx-auto max-w-4xl">

@@ -94,6 +94,9 @@ export function TenantsAdminListClient({ initialRows }: { initialRows: TenantLis
                     ) : (
                       <Badge className="bg-slate-200 text-slate-800">Avaliação</Badge>
                     )}
+                    {t.isInternal ? (
+                      <Badge className="bg-amber-100 text-amber-950">Interno</Badge>
+                    ) : null}
                     {t.affiliateId ? (
                       <Badge className="bg-violet-100 text-violet-900">Afiliado</Badge>
                     ) : (
