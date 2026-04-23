@@ -145,8 +145,8 @@ function leadSortKey(lead: LeadForActionInput & { name?: string | null; company?
  * Compara prioridade (urgência) e, em seguida, nome/empresa para lista estável.
  */
 export function compareLeadsForActionList(
-  a: { leadActionState: LeadActionState; name?: string | null; company?: string | null; phone?: string; id?: string; status: string; lastContactAt: unknown },
-  b: { leadActionState: LeadActionState; name?: string | null; company?: string | null; phone?: string; id?: string; status: string; lastContactAt: unknown }
+  a: LeadForActionInput & { leadActionState: LeadActionState; name?: string | null; company?: string | null; phone?: string; id?: string },
+  b: LeadForActionInput & { leadActionState: LeadActionState; name?: string | null; company?: string | null; phone?: string; id?: string }
 ): number {
   const du = URG_ORDER[b.leadActionState.urgency] - URG_ORDER[a.leadActionState.urgency];
   if (du !== 0) return du;

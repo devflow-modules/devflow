@@ -52,7 +52,7 @@ describe("PATCH /api/admin/leads/[id]", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     } as never);
-    vi.mocked(prisma.lead.update).mockImplementation(async ({ data }) => ({
+    vi.mocked(prisma.lead.update).mockImplementation(async ({ data }: { data: { status?: string; lastContactAt?: Date | null } }) => ({
       id: "lead-1",
       status: (data as { status?: string }).status ?? "ganho",
       phone: "55",

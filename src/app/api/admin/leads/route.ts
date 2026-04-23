@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { Prisma } from "@prisma/client";
+import type { Lead, Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma-root";
 import { isAdminLeadsApiAllowed } from "@/lib/admin-leads-api-auth";
@@ -74,7 +74,7 @@ export async function GET(request: Request) {
       }),
     ]);
 
-    const ordered = sortOutboundLeadsByCommercialPriority(rawList);
+    const ordered = sortOutboundLeadsByCommercialPriority(rawList as Lead[]);
     const leads = ordered.map((l) => {
       const daysSinceLastContact = daysSinceLastContactAt(l.lastContactAt);
       const forAction = { status: l.status, lastContactAt: l.lastContactAt, name: l.name, company: l.company, phone: l.phone, id: l.id };
