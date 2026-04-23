@@ -30,7 +30,8 @@
       "@devflow/whatsapp-core": ["./packages/whatsapp-core/src"],
       "@devflow/ai-core": ["./packages/ai-core/src"],
       "@devflow/financeiro-routes": ["./packages/financeiro-routes/src"],
-      "@devflow/whatsapp-routes": ["./packages/whatsapp-routes/src"]
+      "@devflow/whatsapp-routes": ["./packages/whatsapp-routes/src"],
+      "@whatsapp/platform-prisma": ["./apps/whatsapp-platform/src/generated/prisma-whatsapp"]
     }
   },
   "include": [

@@ -3,11 +3,21 @@ import type { Lead, Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma-root";
 import { isAdminLeadsApiAllowed } from "@/lib/admin-leads-api-auth";
+import { getCrmWhatsappSessionFromCookies } from "@/lib/crm-whatsapp-auth";
+import { createLeadOriginField } from "@/lib/outbound-lead-origins";
 import { sortOutboundLeadsByCommercialPriority } from "@/lib/admin-outbound-leads";
 import { buildPrismaWhereForFollowupFilter } from "@/lib/admin-lead-followup";
 import { buildConversionMetricsFromGroupBy } from "@/lib/admin-lead-conversion-metrics";
 import { buildStaleLeadWhereInput, daysSinceLastContactAt } from "@/lib/admin-lead-stale";
 import { getLeadActionState, getSuggestedAction, pickActionListWithState } from "@/lib/admin-lead-actions";
+import { getWhatsappCrmPrisma } from "@/lib/whatsapp-crm-db";
+import {
+  assertWhatsappUserIsAssignable,
+  appendLeadAssignmentScopeFilters,
+  getWhatsappUserForDisplay,
+  listAssignableWhatsappUsersForTenant,
+  syncLeadAssigneeFromThreadIfEmpty,
+} from "@/lib/lead-operator-service";
 
 const createLeadSchema = z.object({
   name: z.string().trim().max(200).optional().nullable(),
@@ -15,7 +25,8 @@ const createLeadSchema = z.object({
   phone: z.string().trim().min(3).max(40),
   status: z.string().trim().max(80).optional(),
   notes: z.string().trim().max(10_000).optional().nullable(),
-  origin: z.string().trim().max(120).optional().nullable(),
+  /** Slugs canónicos: ver `outbound-lead-origins.ts` */
+  origin: createLeadOriginField,
   nextFollowUpAt: z.string().max(100).optional().nullable(),
 });
 
@@ -25,7 +36,8 @@ function isOverdueFollowUpParam(v: string | null): boolean {
 
 function buildWhereFromParams(
   searchParams: URLSearchParams,
-  opts: { includeStatusFilter: boolean }
+  opts: { includeStatusFilter: boolean },
+  session: Awaited<ReturnType<typeof getCrmWhatsappSessionFromCookies>>
 ): Prisma.LeadWhereInput {
   const parts: Prisma.LeadWhereInput[] = [];
   if (opts.includeStatusFilter) {
@@ -47,9 +59,40 @@ function buildWhereFromParams(
     parts.push(buildStaleLeadWhereInput());
   }
 
+  appendLeadAssignmentScopeFilters(parts, searchParams, session);
+
   if (parts.length === 0) return {};
   if (parts.length === 1) return parts[0]!;
   return { AND: parts };
+}
+
+async function attachAssignedOperatorsLeads<T extends { assignedOperatorId: string | null }>(
+  rows: T[]
+): Promise<(T & { assignedOperator: { id: string; name: string; email: string } | null })[]> {
+  const ids = [...new Set(rows.map((r) => r.assignedOperatorId).filter(Boolean))] as string[];
+  if (ids.length === 0) {
+    return rows.map((r) => ({ ...r, assignedOperator: null }));
+  }
+  try {
+    const users = await getWhatsappCrmPrisma().user.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, name: true, email: true },
+    });
+    const m = new Map(users.map((u) => [u.id, u] as const));
+    return rows.map((r) => ({
+      ...r,
+      assignedOperator: r.assignedOperatorId
+        ? (m.get(r.assignedOperatorId) ?? { id: r.assignedOperatorId, name: "—", email: "—" })
+        : null,
+    }));
+  } catch {
+    return rows.map((r) => ({
+      ...r,
+      assignedOperator: r.assignedOperatorId
+        ? { id: r.assignedOperatorId, name: "—", email: "—" }
+        : null,
+    }));
+  }
 }
 
 export async function GET(request: Request) {
@@ -58,10 +101,20 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
+  const session = await getCrmWhatsappSessionFromCookies();
+
+  const opFilter = searchParams.get("operatorId")?.trim();
+  if (opFilter && session) {
+    try {
+      await assertWhatsappUserIsAssignable(opFilter, session.tenantId);
+    } catch {
+      return NextResponse.json({ error: "Operador inválido para este contexto" }, { status: 400 });
+    }
+  }
 
   try {
-    const listWhere = buildWhereFromParams(searchParams, { includeStatusFilter: true });
-    const summaryWhere = buildWhereFromParams(searchParams, { includeStatusFilter: false });
+    const listWhere = buildWhereFromParams(searchParams, { includeStatusFilter: true }, session);
+    const summaryWhere = buildWhereFromParams(searchParams, { includeStatusFilter: false }, session);
 
     const [rawList, groupRows] = await Promise.all([
       prisma.lead.findMany({
@@ -74,21 +127,56 @@ export async function GET(request: Request) {
       }),
     ]);
 
-    const ordered = sortOutboundLeadsByCommercialPriority(rawList as Lead[]);
+    const syncConvo = searchParams.get("syncFromConversation") === "1";
+    let listAfterSync = rawList as Lead[];
+    if (syncConvo) {
+      const slice = listAfterSync.slice(0, 50).filter((l) => l.conversationRef && !l.assignedOperatorId);
+      await Promise.all(
+        slice.map(async (l) => {
+          const u = await syncLeadAssigneeFromThreadIfEmpty(l);
+          if (u) {
+            const idx = listAfterSync.findIndex((x) => x.id === l.id);
+            if (idx >= 0) listAfterSync[idx] = u;
+          }
+        })
+      );
+    }
+
+    const withOperators = await attachAssignedOperatorsLeads(
+      listAfterSync as { assignedOperatorId: string | null }[]
+    );
+
+    const ordered = sortOutboundLeadsByCommercialPriority(withOperators as unknown as Lead[]);
     const leads = ordered.map((l) => {
-      const daysSinceLastContact = daysSinceLastContactAt(l.lastContactAt);
-      const forAction = { status: l.status, lastContactAt: l.lastContactAt, name: l.name, company: l.company, phone: l.phone, id: l.id };
+      const lead = l as Lead & {
+        assignedOperator?: { id: string; name: string; email: string } | null;
+      };
+      const daysSinceLastContact = daysSinceLastContactAt(lead.lastContactAt);
+      const forAction = {
+        status: lead.status,
+        lastContactAt: lead.lastContactAt,
+        name: lead.name,
+        company: lead.company,
+        phone: lead.phone,
+        id: lead.id,
+      };
       const leadActionState = getLeadActionState(forAction);
       const suggestedAction = getSuggestedAction(forAction, leadActionState);
-      return { ...l, daysSinceLastContact, leadActionState, suggestedAction };
+      return { ...lead, daysSinceLastContact, leadActionState, suggestedAction };
     });
     const actionList = pickActionListWithState(leads);
     const { byStatus, conversionMetrics, funnelStageCounts } = buildConversionMetricsFromGroupBy(groupRows);
     const summaryTotal = conversionMetrics.total;
 
+    const operators = session
+      ? await listAssignableWhatsappUsersForTenant(session.tenantId)
+      : [];
+
     return NextResponse.json({
       leads,
       actionList,
+      currentUserId: session?.sub ?? null,
+      operators,
       summary: {
         byStatus,
         countsByStatus: byStatus,
@@ -97,7 +185,8 @@ export async function GET(request: Request) {
         conversionMetrics,
       },
     });
-  } catch {
+  } catch (e) {
+    console.error("[GET /api/admin/leads]", e);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
@@ -135,6 +224,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "nextFollowUpAt inválido" }, { status: 400 });
   }
 
+  const session = await getCrmWhatsappSessionFromCookies();
+  let assignee: string | null = null;
+  if (session) {
+    try {
+      await assertWhatsappUserIsAssignable(session.sub, session.tenantId);
+      assignee = session.sub;
+    } catch {
+      assignee = null;
+    }
+  }
+
   try {
     const lead = await prisma.lead.create({
       data: {
@@ -142,13 +242,28 @@ export async function POST(request: Request) {
         name: name ?? null,
         company: company ?? null,
         notes: notes ?? null,
-        origin: origin && origin.length > 0 ? origin : null,
+        origin: origin ?? null,
         nextFollowUpAt: nfuP.value,
+        assignedOperatorId: assignee,
         ...(status ? { status } : {}),
       },
     });
-    return NextResponse.json({ lead }, { status: 201 });
-  } catch {
+    let assignedOperator: { id: string; name: string; email: string } | null = null;
+    if (lead.assignedOperatorId) {
+      try {
+        assignedOperator =
+          (await getWhatsappUserForDisplay(lead.assignedOperatorId)) ?? {
+            id: lead.assignedOperatorId,
+            name: "—",
+            email: "—",
+          };
+      } catch {
+        assignedOperator = { id: lead.assignedOperatorId, name: "—", email: "—" };
+      }
+    }
+    return NextResponse.json({ lead: { ...lead, assignedOperator } }, { status: 201 });
+  } catch (e) {
+    console.error("[POST /api/admin/leads]", e);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

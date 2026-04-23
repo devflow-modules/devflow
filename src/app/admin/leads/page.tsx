@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toaster } from "sonner";
 import { AdminLeadsClient } from "./AdminLeadsClient";
 
 export const metadata: Metadata = {
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
 export default function AdminLeadsPage() {
   return (
     <div className="min-h-screen bg-background">
+      <Toaster position="top-center" richColors closeButton />
       <AdminLeadsClient />
     </div>
   );

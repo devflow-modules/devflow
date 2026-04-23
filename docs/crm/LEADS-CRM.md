@@ -40,8 +40,14 @@ Ordem típica na interface (referência):
 
 ## Origem (`origin`)
 
-Campo opcional para **atribuição** (campanha, parceiro, “lead_finder_google_maps”, etc.).  
-Útil para filtrar no `GET /api/admin/leads?origin=…` e para relatórios de funil.
+Valores canónicos (recomendado, validados no **POST** da API e na UI de `/admin/leads`):
+
+- `outbound_whatsapp` — prospecção WhatsApp  
+- `lead_finder_google_maps` — lead finder (Maps)  
+- `inbound_site` — site / inbound  
+- `demo` — pedido de demo / fluxo de demo  
+
+Leads antigos com texto livre podem ainda ser guardados/alterados vão **PATCH**; novos must usar o catálogo. Ver `src/lib/outbound-lead-origins.ts` e `docs/whatsapp/DATA-ISOLATION-LEADS-AND-OPERATORS.md`.
 
 ---
 

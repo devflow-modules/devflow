@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   OUTBOUND_LEAD_STATUS_DISPLAY_ORDER,
   OUTBOUND_LEAD_STATUS_PRIORITY,
@@ -12,13 +13,20 @@ import {
 } from "@/lib/admin-lead-followup";
 import type { ConversionMetricsPayload } from "@/lib/admin-lead-conversion-metrics";
 import { getContactStalePresentation, daysSinceLastContactAt } from "@/lib/admin-lead-stale";
+import { getNextAction } from "@/lib/lead-next-action";
 import {
   firstContactTemplate,
   followUpTemplate,
   sendDemoTemplate,
+  getTemplateByAction,
   buildWhatsAppUrlWithMessage,
-} from "@/lib/admin-lead-message-templates";
+} from "@/lib/lead-message-templates";
 import { whatsappAppUrl } from "@/lib/whatsapp-app-url";
+import {
+  OUTBOUND_LEAD_ORIGINS,
+  OUTBOUND_LEAD_ORIGIN_LABELS,
+  isCanonicalLeadOrigin,
+} from "@/lib/outbound-lead-origins";
 
 export type LeadRow = {
   id: string;
@@ -34,6 +42,8 @@ export type LeadRow = {
   convertedToType: string | null;
   convertedToRef: string | null;
   conversationRef: string | null;
+  assignedOperatorId?: string | null;
+  assignedOperator?: { id: string; name: string; email: string } | null;
   daysSinceLastContact?: number | null;
   leadActionState?: {
     needsFollowUp: boolean;
@@ -55,6 +65,8 @@ type SummaryPayload = {
   funnelStageCounts?: Record<string, number>;
   conversionMetrics: ConversionMetricsPayload;
 };
+
+type WhatsappOperatorOption = { id: string; name: string; email: string };
 
 const STATUS_OPTIONS = [
   "novo",
@@ -129,11 +141,22 @@ function urgencyListBorder(u: "low" | "medium" | "high" | undefined): string {
   return "border-l-4 border-l-border";
 }
 
+/** Borda esquerda por prioridade do NBA (próxima ação comercial). */
+function nbaPriorityBorder(p: "low" | "medium" | "high"): string {
+  if (p === "high") return "border-l-4 border-l-destructive";
+  if (p === "medium") return "border-l-4 border-l-orange-500";
+  return "border-l-4 border-l-border";
+}
+
 export function AdminLeadsClient() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [originFilter, setOriginFilter] = useState<string>("");
   const [followupFilter, setFollowupFilter] = useState<string>("");
   const [staleFilter, setStaleFilter] = useState<string>("");
+  const [assignmentScope, setAssignmentScope] = useState<"all" | "mine" | "unassigned">("all");
+  const [operatorFilterId, setOperatorFilterId] = useState<string>("");
+  const [operators, setOperators] = useState<WhatsappOperatorOption[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [leads, setLeads] = useState<LeadRow[]>([]);
   const [actionList, setActionList] = useState<LeadRow[]>([]);
   const [highlightConvertLeadId, setHighlightConvertLeadId] = useState<string | null>(null);
@@ -154,19 +177,31 @@ export function AdminLeadsClient() {
     if (originFilter.trim()) q.set("origin", originFilter.trim());
     if (followupFilter) q.set("followup", followupFilter);
     if (staleFilter) q.set("stale", staleFilter);
+    if (assignmentScope === "mine") q.set("scope", "mine");
+    if (assignmentScope === "unassigned") q.set("scope", "unassigned");
+    if (assignmentScope === "all" && operatorFilterId.trim()) {
+      q.set("operatorId", operatorFilterId.trim());
+    }
     const s = q.toString();
     return s ? `?${s}` : "";
-  }, [statusFilter, originFilter, followupFilter, staleFilter]);
+  }, [statusFilter, originFilter, followupFilter, staleFilter, assignmentScope, operatorFilterId]);
 
-  const load = useCallback(async () => {
+  const load = useCallback(
+    async (opts?: { syncFromConversation?: boolean }) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/leads${query}`, { credentials: "include" });
+      const p = new URLSearchParams(query.replace(/^\?/, ""));
+      if (opts?.syncFromConversation) p.set("syncFromConversation", "1");
+      const qs = p.toString() ? `?${p.toString()}` : "";
+
+      const res = await fetch(`/api/admin/leads${qs}`, { credentials: "include" });
       const data = (await res.json().catch(() => ({}))) as {
         leads?: LeadRow[];
         actionList?: LeadRow[];
         summary?: SummaryPayload;
+        currentUserId?: string | null;
+        operators?: WhatsappOperatorOption[];
         error?: string;
       };
       if (!res.ok) {
@@ -174,11 +209,15 @@ export function AdminLeadsClient() {
         setLeads([]);
         setActionList([]);
         setSummary(null);
+        setCurrentUserId(null);
+        setOperators([]);
         return;
       }
       setLeads(data.leads ?? []);
       setActionList(data.actionList ?? []);
       setSummary(data.summary ?? null);
+      setCurrentUserId(data.currentUserId ?? null);
+      setOperators(data.operators ?? []);
       setNoteDrafts((prev) => {
         const next = { ...prev };
         for (const l of data.leads ?? []) {
@@ -205,10 +244,14 @@ export function AdminLeadsClient() {
       setLeads([]);
       setActionList([]);
       setSummary(null);
+      setCurrentUserId(null);
+      setOperators([]);
     } finally {
       setLoading(false);
     }
-  }, [query]);
+  },
+    [query]
+  );
 
   useEffect(() => {
     void load();
@@ -228,7 +271,7 @@ export function AdminLeadsClient() {
           phone: form.phone.trim(),
           name: form.name.trim() || null,
           company: form.company.trim() || null,
-          origin: form.origin.trim() || null,
+          ...(form.origin.trim() ? { origin: form.origin.trim() } : {}),
           notes: form.notes.trim() || null,
           nextFollowUpAt: form.nextFollowUpAt || null,
         }),
@@ -286,25 +329,38 @@ export function AdminLeadsClient() {
     }
   }
 
-  const runSuggestedAction = useCallback((lead: LeadRow) => {
-    const t = lead.suggestedAction?.type;
-    if (!t || t === "none") return;
-    if (t === "close") {
-      if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
-      setHighlightConvertLeadId(lead.id);
-      highlightTimerRef.current = setTimeout(() => {
-        setHighlightConvertLeadId(null);
-        highlightTimerRef.current = null;
-      }, 4000);
-      document.getElementById(`lead-convert-${lead.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-      return;
-    }
-    let body = firstContactTemplate(lead);
-    if (t === "followup") body = followUpTemplate(lead);
-    if (t === "demo") body = sendDemoTemplate(lead);
-    const url = buildWhatsAppUrlWithMessage(lead.phone, body);
-    window.open(url, "_blank", "noopener,noreferrer");
+  const logNba = useCallback((leadId: string, actionType: string) => {
+    void fetch(`/api/admin/leads/${leadId}`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lastSuggestedActionType: actionType }),
+    });
   }, []);
+
+  const runNba = useCallback(
+    (lead: LeadRow) => {
+      const nba = getNextAction(lead);
+      if (nba.type === "none") return;
+      logNba(lead.id, nba.type);
+      if (nba.type === "close") {
+        if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
+        setHighlightConvertLeadId(lead.id);
+        highlightTimerRef.current = setTimeout(() => {
+          setHighlightConvertLeadId(null);
+          highlightTimerRef.current = null;
+        }, 4000);
+        document.getElementById(`lead-convert-${lead.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+        toast.info("Ajuste o status manualmente. Use «Converter em cliente» quando fizer sentido.");
+        return;
+      }
+      const text = getTemplateByAction(nba.type, lead);
+      if (!text.trim()) return;
+      const url = buildWhatsAppUrlWithMessage(lead.phone, text);
+      window.open(url, "_blank", "noopener,noreferrer");
+    },
+    [logNba]
+  );
 
   useEffect(() => {
     return () => {
@@ -364,12 +420,18 @@ export function AdminLeadsClient() {
           </label>
           <label className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">Origem</span>
-            <input
+            <select
               value={originFilter}
               onChange={(e) => setOriginFilter(e.target.value)}
-              placeholder="filtrar"
-              className="w-32 rounded-md border border-input bg-background px-2 py-1.5 text-sm"
-            />
+              className="min-w-[10.5rem] max-w-[14rem] rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+            >
+              <option value="">Todas</option>
+              {OUTBOUND_LEAD_ORIGINS.map((o) => (
+                <option key={o} value={o}>
+                  {OUTBOUND_LEAD_ORIGIN_LABELS[o]}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">Follow-up</span>
@@ -399,6 +461,60 @@ export function AdminLeadsClient() {
               ))}
             </select>
           </label>
+          <label className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Responsáveis</span>
+            <select
+              value={assignmentScope}
+              onChange={(e) => {
+                const v = e.target.value as "all" | "mine" | "unassigned";
+                if (v === "mine" || v === "unassigned") setOperatorFilterId("");
+                setAssignmentScope(v);
+              }}
+              className="min-w-[7.5rem] rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+            >
+              <option value="all">Todos</option>
+              <option value="mine">Meus leads</option>
+              <option value="unassigned">Não atribuídos</option>
+            </select>
+          </label>
+          {assignmentScope === "all" && (
+            <label className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Operador</span>
+              <select
+                value={operatorFilterId}
+                onChange={(e) => setOperatorFilterId(e.target.value)}
+                className="min-w-[9.5rem] max-w-[14rem] rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+                disabled={operators.length === 0}
+              >
+                <option value="">Qualquer</option>
+                {operators.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.name?.trim() || o.email}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {currentUserId && (
+            <button
+              type="button"
+              onClick={() => {
+                setOperatorFilterId("");
+                setAssignmentScope("mine");
+              }}
+              className="whitespace-nowrap text-xs font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Só meus
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => void load({ syncFromConversation: true })}
+            className="whitespace-nowrap text-xs font-medium text-muted-foreground underline-offset-4 hover:underline"
+            title="Unidirecional: copia assignee da conversa se o lead ainda não tiver responsável (até 50 por pedido)"
+          >
+            Sincronizar c/ conversa
+          </button>
           <Link
             href="/admin/metrics"
             className="text-sm font-medium text-primary underline-offset-4 hover:underline"
@@ -420,23 +536,35 @@ export function AdminLeadsClient() {
           <ul className="space-y-2">
             {actionList.map((lead) => {
               const u = lead.leadActionState?.urgency;
+              const nba = getNextAction(lead);
               return (
                 <li
                   key={lead.id}
-                  className={`flex flex-col gap-2 rounded-md border border-border bg-card p-3 text-sm shadow-sm sm:flex-row sm:items-center sm:justify-between ${urgencyListBorder(u)} pl-3`}
+                  className={`flex flex-col gap-2 rounded-md border border-border bg-card p-3 text-sm shadow-sm sm:flex-row sm:items-center sm:justify-between ${urgencyListBorder(
+                    u
+                  )} pl-3`}
                 >
                   <div className="min-w-0">
                     <p className="font-medium text-foreground">
                       {lead.name ?? "—"} {lead.company ? <span className="text-muted-foreground">· {lead.company}</span> : null}
                     </p>
-                    <p className="text-xs text-muted-foreground">{lead.leadActionState?.reason}</p>
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground/90">NBA: {nba.label}</span>
+                      {nba.priority === "high" ? (
+                        <span className="ml-1 text-destructive">· alta</span>
+                      ) : nba.priority === "medium" ? (
+                        <span className="ml-1 text-orange-600">· média</span>
+                      ) : null}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">{lead.leadActionState?.reason}</p>
                   </div>
                   <button
                     type="button"
-                    onClick={() => runSuggestedAction(lead)}
-                    className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-95"
+                    onClick={() => runNba(lead)}
+                    disabled={nba.type === "none"}
+                    className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {lead.suggestedAction?.type === "close" ? "Ir para conversão" : "Abrir ação sugerida"}
+                    {nba.type === "close" ? "Ir para conversão" : nba.type === "none" ? "—" : "Executar"}
                   </button>
                 </li>
               );
@@ -527,12 +655,18 @@ export function AdminLeadsClient() {
           </label>
           <label className="flex flex-col gap-1 text-sm">
             <span className="text-muted-foreground">Origem</span>
-            <input
+            <select
               value={form.origin}
               onChange={(e) => setForm((f) => ({ ...f, origin: e.target.value }))}
               className="rounded-md border border-input bg-background px-3 py-2"
-              placeholder="ex.: indicação, site, evento"
-            />
+            >
+              <option value="">Selecione… (opcional)</option>
+              {OUTBOUND_LEAD_ORIGINS.map((o) => (
+                <option key={o} value={o}>
+                  {OUTBOUND_LEAD_ORIGIN_LABELS[o]}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="flex flex-col gap-1 text-sm">
             <span className="text-muted-foreground">Próximo follow-up</span>
@@ -583,13 +717,14 @@ export function AdminLeadsClient() {
       )}
 
       <section className="rounded-lg border border-border overflow-x-auto">
-        <table className="w-full min-w-[1280px] text-left text-sm">
+        <table className="w-full min-w-[1380px] text-left text-sm">
           <thead className="border-b border-border bg-muted/50">
             <tr>
               <th className="px-2 py-2 font-medium">Urg. / conv.</th>
               <th className="px-2 py-2 font-medium">Telefone</th>
               <th className="px-2 py-2 font-medium">Nome</th>
               <th className="px-2 py-2 font-medium">Empresa</th>
+              <th className="px-2 py-2 font-medium min-w-[7.5rem]">Responsável</th>
               <th className="px-2 py-2 font-medium w-[90px]">Origem</th>
               <th className="px-2 py-2 font-medium">Conversa</th>
               <th className="px-2 py-2 font-medium">Status</th>
@@ -604,13 +739,13 @@ export function AdminLeadsClient() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={13} className="px-3 py-8 text-center text-muted-foreground">
+                <td colSpan={14} className="px-3 py-8 text-center text-muted-foreground">
                   Carregando…
                 </td>
               </tr>
             ) : leads.length === 0 ? (
               <tr>
-                <td colSpan={13} className="px-3 py-8 text-center text-muted-foreground">
+                <td colSpan={14} className="px-3 py-8 text-center text-muted-foreground">
                   Nenhum lead encontrado.
                 </td>
               </tr>
@@ -627,8 +762,17 @@ export function AdminLeadsClient() {
                       ? daysSinceLastContactAt(lead.lastContactAt)
                       : null;
                 const staleP = getContactStalePresentation(lead.lastContactAt, daysStale);
+                const isMine = Boolean(
+                  currentUserId && (lead.assignedOperatorId === currentUserId || lead.assignedOperator?.id === currentUserId)
+                );
+                const nba = getNextAction(lead);
                 return (
-                  <tr key={lead.id} className="border-b border-border last:border-0">
+                  <tr
+                    key={lead.id}
+                    className={`border-b border-border last:border-0 ${
+                      isMine ? "bg-primary/[0.06] dark:bg-primary/10" : ""
+                    }`}
+                  >
                     <td className="px-2 py-2 align-top">
                       <div className="flex flex-col gap-1">
                         {lead.convertedAt && (
@@ -671,20 +815,62 @@ export function AdminLeadsClient() {
                     <td className="px-2 py-2 font-mono text-xs sm:text-sm align-top">{lead.phone}</td>
                     <td className="px-2 py-2 align-top">{lead.name ?? "—"}</td>
                     <td className="px-2 py-2 align-top">{lead.company ?? "—"}</td>
+                    <td className="px-2 py-2 align-top min-w-[7.5rem] text-xs">
+                      {isMine && (
+                        <span className="mb-0.5 inline-block rounded bg-primary/15 px-1 py-0.5 text-[9px] font-medium text-primary">
+                          Você
+                        </span>
+                      )}
+                      <p className="text-foreground" title={lead.assignedOperator?.email ?? ""}>
+                        {lead.assignedOperator?.name?.trim() ||
+                          (lead.assignedOperatorId ? "—" : "Não atribuído")}
+                      </p>
+                      <select
+                        className="mt-1 w-full min-w-0 max-w-[11rem] rounded border border-input bg-background py-0.5 pl-1 text-[10px] sm:text-xs"
+                        value={lead.assignedOperatorId ?? lead.assignedOperator?.id ?? ""}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          void patchLead(lead.id, { assignedOperatorId: v ? v : null });
+                        }}
+                        aria-label="Reatribuir lead"
+                        disabled={operators.length === 0}
+                      >
+                        <option value="">Não atribuído</option>
+                        {operators.map((o) => (
+                          <option key={o.id} value={o.id}>
+                            {o.name?.trim() || o.email}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
                     <td className="px-2 py-2 align-top">
-                      <input
-                        value={originDrafts[lead.id] ?? ""}
+                      <select
+                        value={originDrafts[lead.id] ?? lead.origin ?? ""}
                         onChange={(e) =>
                           setOriginDrafts((d) => ({ ...d, [lead.id]: e.target.value }))
                         }
-                        className="w-full min-w-[80px] max-w-[100px] rounded border border-input bg-background px-1.5 py-0.5 text-xs"
-                        placeholder="—"
-                      />
+                        className="w-full min-w-[80px] max-w-[9.5rem] rounded border border-input bg-background px-1 py-0.5 text-[10px] sm:text-xs"
+                        aria-label="Origem do lead"
+                      >
+                        <option value="">—</option>
+                        {OUTBOUND_LEAD_ORIGINS.map((o) => (
+                          <option key={o} value={o}>
+                            {OUTBOUND_LEAD_ORIGIN_LABELS[o]}
+                          </option>
+                        ))}
+                        {lead.origin && !isCanonicalLeadOrigin(lead.origin) ? (
+                          <option value={lead.origin}>
+                            Legado: {lead.origin}
+                          </option>
+                        ) : null}
+                      </select>
                       <button
                         type="button"
                         className="mt-0.5 block text-[10px] font-medium text-primary hover:underline"
                         onClick={() =>
-                          void patchLead(lead.id, { origin: originDrafts[lead.id]?.trim() || null })
+                          void patchLead(lead.id, {
+                            origin: (originDrafts[lead.id] ?? lead.origin)?.trim() || null,
+                          })
                         }
                       >
                         Salvar
@@ -749,17 +935,29 @@ export function AdminLeadsClient() {
                         ))}
                       </select>
                     </td>
-                    <td className="px-2 py-2 align-top text-xs">
-                      <p className="text-foreground">{lead.suggestedAction?.label ?? "—"}</p>
-                      {lead.suggestedAction?.type && lead.suggestedAction.type !== "none" ? (
+                    <td className={`px-2 py-2 align-top text-xs pl-2 ${nbaPriorityBorder(nba.priority)}`}>
+                      <p
+                        className={
+                          nba.priority === "high"
+                            ? "font-medium text-destructive"
+                            : nba.priority === "medium"
+                              ? "font-medium text-orange-600"
+                              : "text-foreground"
+                        }
+                      >
+                        {nba.label}
+                      </p>
+                      {nba.type !== "none" ? (
                         <button
                           type="button"
-                          onClick={() => runSuggestedAction(lead)}
+                          onClick={() => runNba(lead)}
                           className="mt-1 text-[10px] font-medium text-primary hover:underline"
                         >
-                          Executar
+                          {nba.type === "close" ? "Ir p/ conversão" : "Executar"}
                         </button>
-                      ) : null}
+                      ) : (
+                        <p className="mt-0.5 text-[10px] text-muted-foreground">—</p>
+                      )}
                     </td>
                     <td className="px-2 py-2 text-xs text-muted-foreground align-top whitespace-nowrap">
                       {formatDt(lead.lastContactAt)}

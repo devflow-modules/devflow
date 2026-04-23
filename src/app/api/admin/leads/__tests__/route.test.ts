@@ -1,5 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+vi.mock("@/lib/whatsapp-crm-db", () => ({
+  getWhatsappCrmPrisma: () => ({
+    user: {
+      findMany: vi.fn().mockResolvedValue([]),
+      findFirst: vi.fn().mockResolvedValue(null),
+      findUnique: vi.fn().mockResolvedValue(null),
+    },
+    waInboxThread: { findFirst: vi.fn().mockResolvedValue(null) },
+  }),
+}));
+
 vi.mock("@/lib/prisma-root", () => ({
   prisma: {
     lead: {
@@ -44,6 +55,7 @@ describe("/api/admin/leads", () => {
         status: "novo",
         notes: null,
         origin: null,
+        assignedOperatorId: null,
         lastContactAt: null,
         nextFollowUpAt: null,
         createdAt: new Date(),
@@ -60,8 +72,9 @@ describe("/api/admin/leads", () => {
     expect(prisma.lead.findMany).toHaveBeenCalledWith({
       where: { status: "novo" },
     });
-    const body = await res.json();
+    const body = (await res.json()) as { operators?: unknown; leads: { id: string }[] };
     expect(body.leads).toHaveLength(1);
+    expect(body.operators).toEqual([]);
     expect(body.leads[0].id).toBe("1");
     expect(body.leads[0].daysSinceLastContact).toBeNull();
     expect(body.summary).toBeDefined();
@@ -99,6 +112,7 @@ describe("/api/admin/leads", () => {
       status: "novo",
       notes: "x",
       origin: null,
+      assignedOperatorId: null,
       lastContactAt: null,
       nextFollowUpAt: null,
       createdAt: new Date(),
@@ -122,5 +136,54 @@ describe("/api/admin/leads", () => {
     expect(prisma.lead.create).toHaveBeenCalled();
     const body = await res.json();
     expect(body.lead.phone).toBe("+5511988887777");
+  });
+
+  it("POST 400 com origin fora do catálogo", async () => {
+    const res = await POST(
+      new Request("http://localhost/api/admin/leads", {
+        method: "POST",
+        headers: { ...authHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: "+5511988887777",
+          name: "X",
+          origin: "texto_livre_antigo",
+        }),
+      })
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("POST aceita origin canónico", async () => {
+    const created = {
+      id: "c2",
+      name: "Y",
+      company: null,
+      phone: "+5511999990001",
+      status: "novo",
+      notes: null,
+      origin: "demo",
+      assignedOperatorId: null,
+      lastContactAt: null,
+      nextFollowUpAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    vi.mocked(prisma.lead.create).mockResolvedValue(created as never);
+    const res = await POST(
+      new Request("http://localhost/api/admin/leads", {
+        method: "POST",
+        headers: { ...authHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: "+5511999990001",
+          name: "Y",
+          origin: "demo",
+        }),
+      })
+    );
+    expect(res.status).toBe(201);
+    const createCall = vi.mocked(prisma.lead.create).mock.calls[0]?.[0] as { data: { origin: string } };
+    expect(createCall.data.origin).toBe("demo");
+    const body = (await res.json()) as { lead: { origin: string; assignedOperator: null } };
+    expect(body.lead.assignedOperator).toBeNull();
   });
 });

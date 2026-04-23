@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma-root";
 import { isAdminLeadsApiAllowed } from "@/lib/admin-leads-api-auth";
+import { getCrmWhatsappSessionFromCookies } from "@/lib/crm-whatsapp-auth";
+import { patchLeadOriginField } from "@/lib/outbound-lead-origins";
+import {
+  assertWhatsappUserIsAssignable,
+  getWhatsappUserForDisplay,
+  syncLeadAssigneeFromThreadIfEmpty,
+} from "@/lib/lead-operator-service";
 
 const patchLeadSchema = z.object({
   name: z.string().trim().max(200).optional().nullable(),
@@ -9,9 +16,13 @@ const patchLeadSchema = z.object({
   phone: z.string().trim().min(3).max(40).optional(),
   status: z.string().trim().max(80).optional(),
   notes: z.string().trim().max(10_000).optional().nullable(),
-  origin: z.string().trim().max(120).optional().nullable(),
+  origin: patchLeadOriginField,
   nextFollowUpAt: z.union([z.string().max(100), z.null()]).optional(),
   conversationRef: z.string().trim().max(200).optional().nullable(),
+  /** `whatsapp_users.id` no tenant da sessão */
+  assignedOperatorId: z.union([z.string().min(1).max(64), z.null()]).optional(),
+  /** Tipo de NBA usado no último "Executar" (apenas registo) */
+  lastSuggestedActionType: z.string().trim().max(40).optional().nullable(),
 });
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -59,7 +70,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     data.notes === undefined &&
     data.origin === undefined &&
     data.nextFollowUpAt === undefined &&
-    data.conversationRef === undefined
+    data.conversationRef === undefined &&
+    data.assignedOperatorId === undefined &&
+    data.lastSuggestedActionType === undefined
   ) {
     return NextResponse.json({ error: "No fields to update" }, { status: 400 });
   }
@@ -67,6 +80,18 @@ export async function PATCH(request: Request, context: RouteContext) {
   const nfu = parseNextFollowUp(data.nextFollowUpAt);
   if (nfu === "invalid") {
     return NextResponse.json({ error: "nextFollowUpAt inválido" }, { status: 400 });
+  }
+
+  const session = await getCrmWhatsappSessionFromCookies();
+  if (data.assignedOperatorId) {
+    if (!session) {
+      return NextResponse.json({ error: "Sessão necessária para atribuir responsável" }, { status: 400 });
+    }
+    try {
+      await assertWhatsappUserIsAssignable(data.assignedOperatorId, session.tenantId);
+    } catch {
+      return NextResponse.json({ error: "Responsável inválido" }, { status: 400 });
+    }
   }
 
   try {
@@ -77,7 +102,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     const statusChanged = data.status !== undefined && data.status !== current.status;
 
-    const lead = await prisma.lead.update({
+    let lead = await prisma.lead.update({
       where: { id },
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
@@ -97,10 +122,39 @@ export async function PATCH(request: Request, context: RouteContext) {
                   : null,
             }
           : {}),
+        ...(data.assignedOperatorId !== undefined ? { assignedOperatorId: data.assignedOperatorId } : {}),
+        ...(data.lastSuggestedActionType !== undefined
+          ? {
+              lastSuggestedActionType:
+                data.lastSuggestedActionType && data.lastSuggestedActionType.length > 0
+                  ? data.lastSuggestedActionType
+                  : null,
+            }
+          : {}),
         ...(statusChanged ? { lastContactAt: new Date() } : {}),
       },
     });
-    return NextResponse.json({ lead });
+
+    if (!lead.assignedOperatorId && lead.conversationRef) {
+      const synced = await syncLeadAssigneeFromThreadIfEmpty(lead);
+      if (synced) lead = synced;
+    }
+
+    let assignedOperator: { id: string; name: string; email: string } | null = null;
+    if (lead.assignedOperatorId) {
+      try {
+        assignedOperator =
+          (await getWhatsappUserForDisplay(lead.assignedOperatorId)) ?? {
+            id: lead.assignedOperatorId,
+            name: "—",
+            email: "—",
+          };
+      } catch {
+        assignedOperator = { id: lead.assignedOperatorId, name: "—", email: "—" };
+      }
+    }
+
+    return NextResponse.json({ lead: { ...lead, assignedOperator } });
   } catch (e: unknown) {
     const code = typeof e === "object" && e !== null && "code" in e ? (e as { code?: string }).code : undefined;
     if (code === "P2025") {

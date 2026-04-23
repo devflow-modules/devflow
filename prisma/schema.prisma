@@ -317,6 +317,10 @@ model Lead {
   convertedToRef   String?
   /// Referência a conversa canónica (ex.: UUID do inbox) — ponte com WhatsApp Platform.
   conversationRef  String?
+  /// Responsável comercial (operador) — `whatsapp_users.id` na BD WhatsApp; sem FK Prisma (bases distintas).
+  assignedOperatorId String? @map("assigned_operator_id")
+  /// Último tipo de NBA "Executar" (logging leve, opcional).
+  lastSuggestedActionType String? @map("last_suggested_action_type")
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
@@ -326,6 +330,7 @@ model Lead {
   @@index([origin])
   @@index([convertedAt])
   @@index([conversationRef])
+  @@index([assignedOperatorId])
   @@map("outbound_leads")
 }
 
