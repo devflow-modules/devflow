@@ -4,6 +4,10 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma-root";
 import { isAdminLeadsApiAllowed } from "@/lib/admin-leads-api-auth";
 import { sortOutboundLeadsByCommercialPriority } from "@/lib/admin-outbound-leads";
+import { buildPrismaWhereForFollowupFilter } from "@/lib/admin-lead-followup";
+import { buildConversionMetricsFromGroupBy } from "@/lib/admin-lead-conversion-metrics";
+import { buildStaleLeadWhereInput, daysSinceLastContactAt } from "@/lib/admin-lead-stale";
+import { getLeadActionState, getSuggestedAction, pickActionListWithState } from "@/lib/admin-lead-actions";
 
 const createLeadSchema = z.object({
   name: z.string().trim().max(200).optional().nullable(),
@@ -12,7 +16,7 @@ const createLeadSchema = z.object({
   status: z.string().trim().max(80).optional(),
   notes: z.string().trim().max(10_000).optional().nullable(),
   origin: z.string().trim().max(120).optional().nullable(),
-  nextFollowUpAt: z.string().max(80).optional().nullable(),
+  nextFollowUpAt: z.string().max(100).optional().nullable(),
 });
 
 function isOverdueFollowUpParam(v: string | null): boolean {
@@ -30,12 +34,19 @@ function buildWhereFromParams(
   }
   const origin = searchParams.get("origin")?.trim();
   if (origin) parts.push({ origin });
-  if (isOverdueFollowUpParam(searchParams.get("overdueFollowUp"))) {
-    const now = new Date();
-    parts.push({
-      nextFollowUpAt: { not: null, lt: now },
-    });
+
+  const follow = searchParams.get("followup")?.trim();
+  if (follow === "overdue" || follow === "today" || follow === "none") {
+    parts.push(buildPrismaWhereForFollowupFilter(follow));
+  } else if (isOverdueFollowUpParam(searchParams.get("overdueFollowUp"))) {
+    parts.push(buildPrismaWhereForFollowupFilter("overdue"));
   }
+
+  const staleQ = searchParams.get("stale")?.trim();
+  if (staleQ === "true" || staleQ === "1") {
+    parts.push(buildStaleLeadWhereInput());
+  }
+
   if (parts.length === 0) return {};
   if (parts.length === 1) return parts[0]!;
   return { AND: parts };
@@ -63,14 +74,29 @@ export async function GET(request: Request) {
       }),
     ]);
 
-    const leads = sortOutboundLeadsByCommercialPriority(rawList);
-    const summaryByStatus: Record<string, number> = {};
-    for (const row of groupRows) {
-      summaryByStatus[row.status] = row._count._all;
-    }
-    const summaryTotal = Object.values(summaryByStatus).reduce((a, b) => a + b, 0);
+    const ordered = sortOutboundLeadsByCommercialPriority(rawList);
+    const leads = ordered.map((l) => {
+      const daysSinceLastContact = daysSinceLastContactAt(l.lastContactAt);
+      const forAction = { status: l.status, lastContactAt: l.lastContactAt, name: l.name, company: l.company, phone: l.phone, id: l.id };
+      const leadActionState = getLeadActionState(forAction);
+      const suggestedAction = getSuggestedAction(forAction, leadActionState);
+      return { ...l, daysSinceLastContact, leadActionState, suggestedAction };
+    });
+    const actionList = pickActionListWithState(leads);
+    const { byStatus, conversionMetrics, funnelStageCounts } = buildConversionMetricsFromGroupBy(groupRows);
+    const summaryTotal = conversionMetrics.total;
 
-    return NextResponse.json({ leads, summary: { byStatus: summaryByStatus, total: summaryTotal } });
+    return NextResponse.json({
+      leads,
+      actionList,
+      summary: {
+        byStatus,
+        countsByStatus: byStatus,
+        funnelStageCounts,
+        total: summaryTotal,
+        conversionMetrics,
+      },
+    });
   } catch {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

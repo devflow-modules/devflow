@@ -1,11 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   OUTBOUND_LEAD_STATUS_DISPLAY_ORDER,
   OUTBOUND_LEAD_STATUS_PRIORITY,
 } from "@/lib/admin-outbound-leads";
+import {
+  addLocalDaysWithHour,
+  deriveFollowupUrgency,
+} from "@/lib/admin-lead-followup";
+import type { ConversionMetricsPayload } from "@/lib/admin-lead-conversion-metrics";
+import { getContactStalePresentation, daysSinceLastContactAt } from "@/lib/admin-lead-stale";
+import {
+  firstContactTemplate,
+  followUpTemplate,
+  sendDemoTemplate,
+  buildWhatsAppUrlWithMessage,
+} from "@/lib/admin-lead-message-templates";
+import { whatsappAppUrl } from "@/lib/whatsapp-app-url";
 
 export type LeadRow = {
   id: string;
@@ -17,6 +30,20 @@ export type LeadRow = {
   origin: string | null;
   lastContactAt: string | null;
   nextFollowUpAt: string | null;
+  convertedAt: string | null;
+  convertedToType: string | null;
+  convertedToRef: string | null;
+  conversationRef: string | null;
+  daysSinceLastContact?: number | null;
+  leadActionState?: {
+    needsFollowUp: boolean;
+    urgency: "low" | "medium" | "high";
+    reason: string;
+  };
+  suggestedAction?: {
+    label: string;
+    type: "contact" | "followup" | "demo" | "close" | "none";
+  };
   createdAt: string;
   updatedAt: string;
 };
@@ -24,6 +51,9 @@ export type LeadRow = {
 type SummaryPayload = {
   byStatus: Record<string, number>;
   total: number;
+  countsByStatus: Record<string, number>;
+  funnelStageCounts?: Record<string, number>;
+  conversionMetrics: ConversionMetricsPayload;
 };
 
 const STATUS_OPTIONS = [
@@ -48,28 +78,22 @@ const QUICK_ACTIONS = [
   { label: "Perdido", status: "perdido" },
 ] as const;
 
+const FOLLOWUP_FILTERS = [
+  { value: "", label: "Todos os FU" },
+  { value: "overdue", label: "Atrasado" },
+  { value: "today", label: "Hoje" },
+  { value: "none", label: "Sem follow-up" },
+] as const;
+
+const STALE_FILTERS = [
+  { value: "", label: "Todos" },
+  { value: "true", label: "Parados (+3d)" },
+] as const;
+
 function waMeUrl(phone: string): string {
   const digits = phone.replace(/\D/g, "");
   if (!digits) return "#";
   return `https://wa.me/${digits}`;
-}
-
-function startOfLocalDay(d: Date): Date {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
-}
-
-/** Atrasado: follow-up antes de hoje 00:00. Hoje: mesmo dia civil (inclui horário futuro hoje). */
-function followUpUrgency(iso: string | null | undefined): "overdue" | "today" | null {
-  if (!iso) return null;
-  const t = new Date(iso);
-  if (Number.isNaN(t.getTime())) return null;
-  const now = new Date();
-  const startToday = startOfLocalDay(now);
-  if (t < startToday) return "overdue";
-  if (t.toDateString() === now.toDateString()) return "today";
-  return null;
 }
 
 function toDatetimeLocalValue(iso: string | null | undefined): string {
@@ -87,27 +111,50 @@ function formatDt(iso: string | null | undefined): string {
   return d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 }
 
+function formatRatePct2(n: number | null | undefined): string {
+  if (n == null) return "—";
+  return `${(n * 100).toFixed(2)}%`;
+}
+
+function conversationChatUrl(ref: string): string {
+  return whatsappAppUrl(`/admin/chat?conversationId=${encodeURIComponent(ref)}`);
+}
+
+function urgencyListBorder(u: "low" | "medium" | "high" | undefined): string {
+  if (u === "high") return "border-l-4 border-l-destructive";
+  if (u === "medium") return "border-l-4 border-l-orange-500";
+  if (u === "low") return "border-l-4 border-l-amber-400";
+  return "border-l-4 border-l-border";
+}
+
 export function AdminLeadsClient() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [originFilter, setOriginFilter] = useState<string>("");
-  const [overdueOnly, setOverdueOnly] = useState(false);
+  const [followupFilter, setFollowupFilter] = useState<string>("");
+  const [staleFilter, setStaleFilter] = useState<string>("");
   const [leads, setLeads] = useState<LeadRow[]>([]);
+  const [actionList, setActionList] = useState<LeadRow[]>([]);
+  const [highlightConvertLeadId, setHighlightConvertLeadId] = useState<string | null>(null);
+  const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [summary, setSummary] = useState<SummaryPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [converting, setConverting] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", company: "", phone: "", origin: "", notes: "", nextFollowUpAt: "" });
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
   const [originDrafts, setOriginDrafts] = useState<Record<string, string>>({});
+  const [conversationDrafts, setConversationDrafts] = useState<Record<string, string>>({});
 
   const query = useMemo(() => {
     const q = new URLSearchParams();
     if (statusFilter) q.set("status", statusFilter);
     if (originFilter.trim()) q.set("origin", originFilter.trim());
-    if (overdueOnly) q.set("overdueFollowUp", "1");
+    if (followupFilter) q.set("followup", followupFilter);
+    if (staleFilter) q.set("stale", staleFilter);
     const s = q.toString();
     return s ? `?${s}` : "";
-  }, [statusFilter, originFilter, overdueOnly]);
+  }, [statusFilter, originFilter, followupFilter, staleFilter]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -116,16 +163,19 @@ export function AdminLeadsClient() {
       const res = await fetch(`/api/admin/leads${query}`, { credentials: "include" });
       const data = (await res.json().catch(() => ({}))) as {
         leads?: LeadRow[];
+        actionList?: LeadRow[];
         summary?: SummaryPayload;
         error?: string;
       };
       if (!res.ok) {
         setError(data.error ?? `Erro ${res.status}`);
         setLeads([]);
+        setActionList([]);
         setSummary(null);
         return;
       }
       setLeads(data.leads ?? []);
+      setActionList(data.actionList ?? []);
       setSummary(data.summary ?? null);
       setNoteDrafts((prev) => {
         const next = { ...prev };
@@ -141,9 +191,17 @@ export function AdminLeadsClient() {
         }
         return next;
       });
+      setConversationDrafts((prev) => {
+        const next = { ...prev };
+        for (const l of data.leads ?? []) {
+          if (next[l.id] === undefined) next[l.id] = l.conversationRef ?? "";
+        }
+        return next;
+      });
     } catch {
       setError("Falha ao carregar leads");
       setLeads([]);
+      setActionList([]);
       setSummary(null);
     } finally {
       setLoading(false);
@@ -203,6 +261,60 @@ export function AdminLeadsClient() {
     await load();
   }
 
+  async function convertLead(id: string) {
+    setConverting(id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/leads/${id}/convert`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setError(data.error ?? `Erro ${res.status}`);
+        return;
+      }
+      await load();
+    } catch {
+      setError("Falha ao converter lead");
+    } finally {
+      setConverting(null);
+    }
+  }
+
+  const runSuggestedAction = useCallback((lead: LeadRow) => {
+    const t = lead.suggestedAction?.type;
+    if (!t || t === "none") return;
+    if (t === "close") {
+      if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
+      setHighlightConvertLeadId(lead.id);
+      highlightTimerRef.current = setTimeout(() => {
+        setHighlightConvertLeadId(null);
+        highlightTimerRef.current = null;
+      }, 4000);
+      document.getElementById(`lead-convert-${lead.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    let body = firstContactTemplate(lead);
+    if (t === "followup") body = followUpTemplate(lead);
+    if (t === "demo") body = sendDemoTemplate(lead);
+    const url = buildWhatsAppUrlWithMessage(lead.phone, body);
+    window.open(url, "_blank", "noopener,noreferrer");
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
+    };
+  }, []);
+
+  function setFollowupDays(id: string, days: number) {
+    const iso = addLocalDaysWithHour(new Date(), days, 10, 0).toISOString();
+    return patchLead(id, { nextFollowUpAt: iso });
+  }
+
   const summaryEntries = useMemo(() => {
     if (!summary) return [];
     const keys = new Set([
@@ -217,14 +329,22 @@ export function AdminLeadsClient() {
     });
   }, [summary]);
 
+  const m = summary?.conversionMetrics;
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Leads outbound</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Painel diário de prospecção e follow-up.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Painel comercial: prospecção, follow-up e conversão.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/admin/lead-finder"
+            className="inline-flex items-center rounded-md border border-primary/30 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10"
+          >
+            Buscar leads (Maps)
+          </Link>
           <label className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">Status</span>
             <select
@@ -250,13 +370,32 @@ export function AdminLeadsClient() {
             />
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={overdueOnly}
-              onChange={(e) => setOverdueOnly(e.target.checked)}
-              className="rounded border-input"
-            />
-            <span className="text-muted-foreground">Follow-up atrasado</span>
+            <span className="text-muted-foreground">Follow-up</span>
+            <select
+              value={followupFilter}
+              onChange={(e) => setFollowupFilter(e.target.value)}
+              className="rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+            >
+              {FOLLOWUP_FILTERS.map((f) => (
+                <option key={f.value || "all"} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Contato</span>
+            <select
+              value={staleFilter}
+              onChange={(e) => setStaleFilter(e.target.value)}
+              className="rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+            >
+              {STALE_FILTERS.map((f) => (
+                <option key={f.value || "all-stale"} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </select>
           </label>
           <Link
             href="/admin/metrics"
@@ -273,15 +412,73 @@ export function AdminLeadsClient() {
         </p>
       ) : null}
 
+      {!loading && actionList.length > 0 && (
+        <section className="mb-6" aria-label="Ações de hoje">
+          <h2 className="mb-3 text-base font-semibold text-foreground">🔥 Ações de hoje</h2>
+          <ul className="space-y-2">
+            {actionList.map((lead) => {
+              const u = lead.leadActionState?.urgency;
+              return (
+                <li
+                  key={lead.id}
+                  className={`flex flex-col gap-2 rounded-md border border-border bg-card p-3 text-sm shadow-sm sm:flex-row sm:items-center sm:justify-between ${urgencyListBorder(u)} pl-3`}
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground">
+                      {lead.name ?? "—"} {lead.company ? <span className="text-muted-foreground">· {lead.company}</span> : null}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{lead.leadActionState?.reason}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => runSuggestedAction(lead)}
+                    className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-95"
+                  >
+                    {lead.suggestedAction?.type === "close" ? "Ir para conversão" : "Abrir ação sugerida"}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      {m && (
+        <section className="mb-6" aria-label="Métricas de conversão">
+          <h2 className="mb-2 text-sm font-semibold text-foreground">Métricas (origem e follow-up dos filtros; resumo de status abaixo ignora o filtro de status)</h2>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            {[
+              { k: "Total", v: m.total },
+              { k: "Novos", v: m.novos },
+              { k: "Contato inic.", v: m.contatoIniciado },
+              { k: "Respondeu", v: m.respondeu },
+              { k: "Demo enviada", v: m.demoEnviada },
+              { k: "Negociação", v: m.negociacao },
+              { k: "Fechados", v: m.fechados },
+              { k: "Perdidos", v: m.perdidos },
+            ].map((c) => (
+              <div key={c.k} className="rounded-lg border border-border bg-card px-2 py-2 text-center text-sm">
+                <p className="text-xs text-muted-foreground">{c.k}</p>
+                <p className="text-lg font-bold tabular-nums">{c.v}</p>
+              </div>
+            ))}
+            <div className="col-span-2 text-xs text-muted-foreground sm:col-span-3 lg:col-span-4">
+              Denominador das taxas: total de leads do resumo (filtros de origem e follow-up; status não aplica a este
+              resumo agregado).
+            </div>
+          </div>
+        </section>
+      )}
+
       {summary && (
         <section className="mb-8" aria-label="Resumo por status">
           <p className="mb-3 text-sm font-medium text-muted-foreground">
-            Resumo{originFilter || overdueOnly ? " (com filtros de origem / atraso)" : ""} · {summary.total}{" "}
+            Resumo por estágio{originFilter || followupFilter ? " (origem / follow-up aplicados ao funil resumido)" : ""} · {summary.total}{" "}
             lead(s)
           </p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
             {summaryEntries.map((key) => {
-              const n = summary.byStatus[key] ?? 0;
+              const n = summary.countsByStatus[key] ?? summary.byStatus[key] ?? 0;
               return (
                 <div
                   key={key}
@@ -364,52 +561,110 @@ export function AdminLeadsClient() {
         </form>
       </section>
 
+      {m && m.total > 0 && (
+        <section className="mb-4" aria-label="Taxas do funil">
+          <h2 className="mb-2 text-sm font-semibold text-foreground">Conversão (taxas)</h2>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {[
+              { k: "Resposta", v: m.responseRate },
+              { k: "Demo", v: m.demoRate },
+              { k: "Negociação", v: m.negotiationRate },
+              { k: "Fechamento", v: m.closeRate },
+            ].map((c) => (
+              <div key={c.k} className="rounded-lg border border-border bg-card px-3 py-2.5 text-center text-sm shadow-sm">
+                <p className="text-xs text-muted-foreground">{c.k}</p>
+                <p className="text-lg font-bold tabular-nums text-foreground">{formatRatePct2(c.v)}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="rounded-lg border border-border overflow-x-auto">
-        <table className="w-full min-w-[960px] text-left text-sm">
+        <table className="w-full min-w-[1280px] text-left text-sm">
           <thead className="border-b border-border bg-muted/50">
             <tr>
-              <th className="px-2 py-2 font-medium">Urg.</th>
+              <th className="px-2 py-2 font-medium">Urg. / conv.</th>
               <th className="px-2 py-2 font-medium">Telefone</th>
               <th className="px-2 py-2 font-medium">Nome</th>
               <th className="px-2 py-2 font-medium">Empresa</th>
-              <th className="px-2 py-2 font-medium w-[100px]">Origem</th>
+              <th className="px-2 py-2 font-medium w-[90px]">Origem</th>
+              <th className="px-2 py-2 font-medium">Conversa</th>
               <th className="px-2 py-2 font-medium">Status</th>
-              <th className="px-2 py-2 font-medium whitespace-nowrap">Último contato</th>
+              <th className="px-2 py-2 font-medium min-w-[100px]">Próxima ação</th>
+              <th className="px-2 py-2 font-medium whitespace-nowrap">Últ. cont.</th>
               <th className="px-2 py-2 font-medium whitespace-nowrap">Próx. FU</th>
-              <th className="px-2 py-2 font-medium min-w-[180px]">Notas</th>
-              <th className="px-2 py-2 font-medium">Ações</th>
+              <th className="px-2 py-2 font-medium min-w-[140px]">Notas</th>
+              <th className="px-2 py-2 font-medium w-[200px]">Ações comerciais</th>
               <th className="px-2 py-2 font-medium whitespace-nowrap">Atual.</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={11} className="px-3 py-8 text-center text-muted-foreground">
+                <td colSpan={13} className="px-3 py-8 text-center text-muted-foreground">
                   Carregando…
                 </td>
               </tr>
             ) : leads.length === 0 ? (
               <tr>
-                <td colSpan={11} className="px-3 py-8 text-center text-muted-foreground">
+                <td colSpan={13} className="px-3 py-8 text-center text-muted-foreground">
                   Nenhum lead encontrado.
                 </td>
               </tr>
             ) : (
               leads.map((lead) => {
-                const urg = followUpUrgency(lead.nextFollowUpAt);
+                const urg = deriveFollowupUrgency(lead.nextFollowUpAt);
+                const hrefPrimeiro = buildWhatsAppUrlWithMessage(lead.phone, firstContactTemplate(lead));
+                const hrefFu = buildWhatsAppUrlWithMessage(lead.phone, followUpTemplate(lead));
+                const hrefDemo = buildWhatsAppUrlWithMessage(lead.phone, sendDemoTemplate(lead));
+                const daysStale =
+                  lead.daysSinceLastContact !== undefined
+                    ? lead.daysSinceLastContact
+                    : lead.lastContactAt != null
+                      ? daysSinceLastContactAt(lead.lastContactAt)
+                      : null;
+                const staleP = getContactStalePresentation(lead.lastContactAt, daysStale);
                 return (
                   <tr key={lead.id} className="border-b border-border last:border-0">
                     <td className="px-2 py-2 align-top">
-                      {urg === "overdue" && (
-                        <span className="inline-block rounded bg-destructive/15 px-1.5 py-0.5 text-xs font-medium text-destructive">
-                          Atrasado
-                        </span>
-                      )}
-                      {urg === "today" && (
-                        <span className="inline-block rounded bg-amber-500/15 px-1.5 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-200">
-                          Hoje
-                        </span>
-                      )}
+                      <div className="flex flex-col gap-1">
+                        {lead.convertedAt && (
+                          <span className="inline-block w-fit rounded bg-primary/15 px-1.5 py-0.5 text-xs font-medium text-primary">
+                            Convertido
+                          </span>
+                        )}
+                        {urg === "overdue" && (
+                          <span className="inline-block w-fit rounded bg-destructive/15 px-1.5 py-0.5 text-xs font-medium text-destructive">
+                            Atrasado
+                          </span>
+                        )}
+                        {urg === "due_today" && (
+                          <span className="inline-block w-fit rounded bg-amber-500/15 px-1.5 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-200">
+                            Hoje
+                          </span>
+                        )}
+                        {urg === "upcoming" && (
+                          <span className="inline-block w-fit rounded bg-slate-500/10 px-1.5 py-0.5 text-xs text-slate-600">
+                            Agendado
+                          </span>
+                        )}
+                        {staleP.kind !== "ok" && (
+                          <span
+                            className={
+                              staleP.kind === "nunca"
+                                ? "inline-block w-fit max-w-full rounded border border-border bg-muted/50 px-1.5 py-0.5 text-[10px] text-muted-foreground"
+                                : staleP.kind === "sem_resposta"
+                                  ? "inline-block w-fit max-w-full rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-900 dark:text-amber-200"
+                                  : staleP.kind === "esfriando"
+                                    ? "inline-block w-fit max-w-full rounded bg-orange-500/20 px-1.5 py-0.5 text-[10px] font-medium text-orange-900 dark:text-orange-200"
+                                    : "inline-block w-fit max-w-full rounded bg-destructive/15 px-1.5 py-0.5 text-[10px] font-medium text-destructive"
+                            }
+                          >
+                            {staleP.label}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-2 py-2 font-mono text-xs sm:text-sm align-top">{lead.phone}</td>
                     <td className="px-2 py-2 align-top">{lead.name ?? "—"}</td>
@@ -420,7 +675,7 @@ export function AdminLeadsClient() {
                         onChange={(e) =>
                           setOriginDrafts((d) => ({ ...d, [lead.id]: e.target.value }))
                         }
-                        className="w-full min-w-[80px] max-w-[120px] rounded border border-input bg-background px-1.5 py-0.5 text-xs"
+                        className="w-full min-w-[80px] max-w-[100px] rounded border border-input bg-background px-1.5 py-0.5 text-xs"
                         placeholder="—"
                       />
                       <button
@@ -433,11 +688,54 @@ export function AdminLeadsClient() {
                         Salvar
                       </button>
                     </td>
+                    <td className="px-2 py-2 align-top text-xs">
+                      {lead.conversationRef ? (
+                        <span className="mb-1 inline-block w-fit rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
+                          Conversa vinculada
+                        </span>
+                      ) : (
+                        <p className="text-[10px] text-muted-foreground">Sem conversa</p>
+                      )}
+                      <label className="mt-1 block text-[10px] text-muted-foreground">ID da conversa</label>
+                      <input
+                        value={conversationDrafts[lead.id] ?? ""}
+                        onChange={(e) =>
+                          setConversationDrafts((d) => ({ ...d, [lead.id]: e.target.value }))
+                        }
+                        className="mt-0.5 w-full min-w-[100px] max-w-[130px] rounded border border-input bg-background px-1.5 py-0.5 font-mono text-[10px]"
+                        placeholder="cole o ID"
+                        aria-label="ID da conversa"
+                      />
+                      <div className="mt-0.5 flex flex-wrap gap-1">
+                        <button
+                          type="button"
+                          className="text-[10px] font-medium text-primary hover:underline"
+                          onClick={() =>
+                            void patchLead(lead.id, {
+                              conversationRef: conversationDrafts[lead.id]?.trim() || null,
+                            })
+                          }
+                        >
+                          Vincular conversa
+                        </button>
+                        {lead.conversationRef ? (
+                          <a
+                            href={conversationChatUrl(lead.conversationRef)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] font-medium text-primary hover:underline"
+                          >
+                            Abrir conversa
+                          </a>
+                        ) : null}
+                      </div>
+                    </td>
                     <td className="px-2 py-2 align-top">
                       <select
                         value={lead.status}
                         onChange={(e) => void patchLead(lead.id, { status: e.target.value })}
-                        className="max-w-[9.5rem] rounded-md border border-input bg-background px-1.5 py-1 text-xs sm:text-sm"
+                        className="max-w-[8.5rem] rounded-md border border-input bg-background px-1.5 py-1 text-xs sm:text-sm"
+                        disabled={!!lead.convertedAt}
                       >
                         {STATUS_OPTIONS.includes(lead.status as (typeof STATUS_OPTIONS)[number]) ? null : (
                           <option value={lead.status}>{lead.status}</option>
@@ -449,6 +747,18 @@ export function AdminLeadsClient() {
                         ))}
                       </select>
                     </td>
+                    <td className="px-2 py-2 align-top text-xs">
+                      <p className="text-foreground">{lead.suggestedAction?.label ?? "—"}</p>
+                      {lead.suggestedAction?.type && lead.suggestedAction.type !== "none" ? (
+                        <button
+                          type="button"
+                          onClick={() => runSuggestedAction(lead)}
+                          className="mt-1 text-[10px] font-medium text-primary hover:underline"
+                        >
+                          Executar
+                        </button>
+                      ) : null}
+                    </td>
                     <td className="px-2 py-2 text-xs text-muted-foreground align-top whitespace-nowrap">
                       {formatDt(lead.lastContactAt)}
                     </td>
@@ -456,15 +766,38 @@ export function AdminLeadsClient() {
                       <input
                         type="datetime-local"
                         defaultValue={toDatetimeLocalValue(lead.nextFollowUpAt)}
-                        key={lead.nextFollowUpAt ?? "empty"}
+                        key={`${lead.id}-${lead.nextFollowUpAt ?? "e"}`}
                         onBlur={(e) => {
                           const v = e.target.value;
                           void patchLead(lead.id, {
                             nextFollowUpAt: v ? new Date(v).toISOString() : null,
                           });
                         }}
-                        className="w-full min-w-[150px] rounded border border-input bg-background px-1.5 py-0.5 text-xs"
+                        className="w-full min-w-[140px] rounded border border-input bg-background px-1.5 py-0.5 text-xs"
                       />
+                      <div className="mt-0.5 flex flex-wrap gap-0.5">
+                        <button
+                          type="button"
+                          className="rounded border border-border px-1 text-[9px] hover:bg-muted"
+                          onClick={() => void setFollowupDays(lead.id, 1)}
+                        >
+                          +1d
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded border border-border px-1 text-[9px] hover:bg-muted"
+                          onClick={() => void setFollowupDays(lead.id, 3)}
+                        >
+                          +3d
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded border border-border px-1 text-[9px] hover:bg-muted"
+                          onClick={() => void setFollowupDays(lead.id, 7)}
+                        >
+                          +7d
+                        </button>
+                      </div>
                     </td>
                     <td className="px-2 py-2 align-top">
                       <textarea
@@ -476,14 +809,14 @@ export function AdminLeadsClient() {
                           }))
                         }
                         rows={2}
-                        className="w-full min-w-[160px] rounded-md border border-input bg-background px-2 py-1 text-xs"
+                        className="w-full min-w-[120px] rounded-md border border-input bg-background px-2 py-1 text-xs"
                       />
                       <button
                         type="button"
                         className="mt-1 text-xs font-medium text-primary hover:underline"
                         onClick={() => void patchLead(lead.id, { notes: noteDrafts[lead.id] ?? "" })}
                       >
-                        Salvar notas
+                        Salvar
                       </button>
                     </td>
                     <td className="px-2 py-2 align-top">
@@ -492,19 +825,61 @@ export function AdminLeadsClient() {
                           <button
                             key={qa.status}
                             type="button"
+                            disabled={!!lead.convertedAt}
                             onClick={() => void patchLead(lead.id, { status: qa.status })}
-                            className="rounded border border-border bg-background px-2 py-0.5 text-left text-[11px] font-medium hover:bg-muted"
+                            className="rounded border border-border bg-background px-2 py-0.5 text-left text-[10px] font-medium hover:bg-muted disabled:opacity-50"
                           >
                             {qa.label}
                           </button>
                         ))}
+                        <div className="mt-0.5 flex flex-col gap-0.5 border-t border-border pt-0.5">
+                          <a
+                            href={hrefPrimeiro}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] font-medium text-primary hover:underline"
+                          >
+                            Primeiro contato
+                          </a>
+                          <a
+                            href={hrefFu}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] font-medium text-primary hover:underline"
+                          >
+                            Follow-up
+                          </a>
+                          <a
+                            href={hrefDemo}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] font-medium text-primary hover:underline"
+                          >
+                            Enviar demo
+                          </a>
+                        </div>
+                        {!lead.convertedAt && (
+                          <button
+                            id={`lead-convert-${lead.id}`}
+                            type="button"
+                            className={`mt-0.5 rounded border border-primary/40 bg-primary/5 px-2 py-0.5 text-left text-[10px] font-medium text-primary hover:bg-primary/10 disabled:opacity-50 ${
+                              highlightConvertLeadId === lead.id
+                                ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                                : ""
+                            }`}
+                            disabled={converting === lead.id}
+                            onClick={() => void convertLead(lead.id)}
+                          >
+                            {converting === lead.id ? "…" : "Converter em cliente"}
+                          </button>
+                        )}
                         <a
                           href={waMeUrl(lead.phone)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-1 inline-flex w-fit items-center rounded-md border border-input bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary"
+                          className="mt-0.5 inline-flex w-fit items-center rounded-md border border-input bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary"
                         >
-                          WhatsApp
+                          WhatsApp vazio
                         </a>
                       </div>
                     </td>

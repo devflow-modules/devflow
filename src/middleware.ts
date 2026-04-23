@@ -114,7 +114,8 @@ export async function middleware(request: NextRequest) {
     if (
       (path.startsWith("/admin/metrics") ||
         path.startsWith("/admin/billing") ||
-        path.startsWith("/admin/leads")) &&
+        path.startsWith("/admin/leads") ||
+        path.startsWith("/admin/lead-finder")) &&
       process.env.NODE_ENV === "production"
     ) {
       const adminSecret =

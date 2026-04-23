@@ -63,9 +63,31 @@ describe("/api/admin/leads", () => {
     const body = await res.json();
     expect(body.leads).toHaveLength(1);
     expect(body.leads[0].id).toBe("1");
+    expect(body.leads[0].daysSinceLastContact).toBeNull();
     expect(body.summary).toBeDefined();
     expect(body.summary.byStatus).toEqual({ novo: 1 });
+    expect(body.summary.countsByStatus).toEqual({ novo: 1 });
+    expect(body.summary.funnelStageCounts).toBeDefined();
+    expect(body.summary.funnelStageCounts.novo).toBe(1);
     expect(body.summary.total).toBe(1);
+    expect(body.summary.conversionMetrics).toBeDefined();
+    expect(body.summary.conversionMetrics.novos).toBe(1);
+    expect(body.summary.conversionMetrics.total).toBe(1);
+    expect(body.actionList).toBeDefined();
+    expect(body.actionList.length).toBe(1);
+    expect(body.leads[0].leadActionState).toBeDefined();
+    expect(body.leads[0].suggestedAction).toBeDefined();
+  });
+
+  it("GET com stale=1 aplica filtro de contato parado", async () => {
+    vi.mocked(prisma.lead.findMany).mockResolvedValue([] as never);
+    vi.mocked(prisma.lead.groupBy).mockResolvedValue([] as never);
+    const res = await GET(
+      new Request("http://localhost/api/admin/leads?stale=1", { headers: authHeaders })
+    );
+    expect(res.status).toBe(200);
+    const call = vi.mocked(prisma.lead.findMany).mock.calls[0]?.[0] as { where: { OR?: unknown[] } };
+    expect(call.where.OR).toBeDefined();
   });
 
   it("POST cria lead", async () => {

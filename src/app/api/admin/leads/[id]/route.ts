@@ -10,7 +10,8 @@ const patchLeadSchema = z.object({
   status: z.string().trim().max(80).optional(),
   notes: z.string().trim().max(10_000).optional().nullable(),
   origin: z.string().trim().max(120).optional().nullable(),
-  nextFollowUpAt: z.union([z.string().max(80), z.null()]).optional(),
+  nextFollowUpAt: z.union([z.string().max(100), z.null()]).optional(),
+  conversationRef: z.string().trim().max(200).optional().nullable(),
 });
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -57,7 +58,8 @@ export async function PATCH(request: Request, context: RouteContext) {
     data.status === undefined &&
     data.notes === undefined &&
     data.origin === undefined &&
-    data.nextFollowUpAt === undefined
+    data.nextFollowUpAt === undefined &&
+    data.conversationRef === undefined
   ) {
     return NextResponse.json({ error: "No fields to update" }, { status: 400 });
   }
@@ -87,6 +89,14 @@ export async function PATCH(request: Request, context: RouteContext) {
           ? { origin: data.origin && data.origin.length > 0 ? data.origin : null }
           : {}),
         ...(nfu !== "omit" ? { nextFollowUpAt: nfu } : {}),
+        ...(data.conversationRef !== undefined
+          ? {
+              conversationRef:
+                data.conversationRef && data.conversationRef.length > 0
+                  ? data.conversationRef
+                  : null,
+            }
+          : {}),
         ...(statusChanged ? { lastContactAt: new Date() } : {}),
       },
     });

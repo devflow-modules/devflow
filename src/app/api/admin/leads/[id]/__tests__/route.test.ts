@@ -82,4 +82,36 @@ describe("PATCH /api/admin/leads/[id]", () => {
     expect(updateArg.data.status).toBe("ganho");
     expect(updateArg.data.lastContactAt).toBeInstanceOf(Date);
   });
+
+  it("atualiza conversationRef", async () => {
+    vi.mocked(prisma.lead.findUnique).mockResolvedValue({
+      id: "lead-1",
+      status: "novo",
+      phone: "55",
+      name: null,
+      company: null,
+      notes: null,
+      origin: null,
+      lastContactAt: null,
+      nextFollowUpAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as never);
+    vi.mocked(prisma.lead.update).mockResolvedValue({
+      id: "lead-1",
+      conversationRef: "conv-uuid",
+    } as never);
+
+    const res = await PATCH(
+      new Request("http://localhost/api/admin/leads/lead-1", {
+        method: "PATCH",
+        headers: { ...authHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify({ conversationRef: "conv-uuid" }),
+      }),
+      { params: Promise.resolve({ id: "lead-1" }) }
+    );
+    expect(res.status).toBe(200);
+    const updateArg = vi.mocked(prisma.lead.update).mock.calls[0]?.[0] as { data: { conversationRef: string } };
+    expect(updateArg.data.conversationRef).toBe("conv-uuid");
+  });
 });
