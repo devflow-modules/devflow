@@ -310,7 +310,7 @@ export const AUTOMACAO_WHATSAPP_RESTAURANTE: NicheAutomationPageConfig = {
     title: "Pronto para desafogar o WhatsApp do restaurante?",
     subtitle: "Demo guiada ou conversa com o time — sem compromisso.",
     whatsappLabel: "Quero automação para restaurante",
-    prefill:
+    whatsappPrefill:
       "Tenho restaurante e quero ver automação de WhatsApp para cardápio, delivery e fila de pedidos. Podemos agendar?",
   },
 };
@@ -503,7 +503,7 @@ export const AUTOMACAO_WHATSAPP_CLINICA: NicheAutomationPageConfig = {
     title: "Quer ver automação pensada para jornada do paciente?",
     subtitle: "Demo guiada ou conversa com o time.",
     whatsappLabel: "Quero automação para clínica",
-    prefill:
+    whatsappPrefill:
       "Tenho clínica/consultório e quero automação de WhatsApp para agendamento de consulta, convênio e triagem. Podemos agendar?",
   },
 };
@@ -696,7 +696,7 @@ export const AUTOMACAO_WHATSAPP_LOJA: NicheAutomationPageConfig = {
     title: "Quer vender mais pelo WhatsApp sem multiplicar atendentes?",
     subtitle: "Demo ou conversa com especialista.",
     whatsappLabel: "Quero automação para loja",
-    prefill:
+    whatsappPrefill:
       "Tenho loja física/online e quero automação de WhatsApp para estoque, preço e handoff para o vendedor. Podemos agendar?",
   },
 };
@@ -890,7 +890,7 @@ export const AUTOMACAO_WHATSAPP_TABACARIA: NicheAutomationPageConfig = {
     title: "Quer agilizar pedidos no WhatsApp da tabacaria?",
     subtitle: "Demo ou conversa com o time comercial.",
     whatsappLabel: "Quero automação para tabacaria",
-    prefill:
+    whatsappPrefill:
       "Tenho tabacaria e quero automação de WhatsApp para delivery, essências e linhas e handoff para o balcão. Podemos agendar?",
   },
 };
