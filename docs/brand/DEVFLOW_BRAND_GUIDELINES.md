@@ -116,3 +116,61 @@ Diretrizes:
 - Misturar multiplas cores primarias por modulo sem `themeMode`.
 - Usar tagline em telas operacionais pequenas.
 - Alterar estrutura de rotas, autenticacao, billing ou integracoes por motivo visual.
+
+## Checklist Final de QA Visual
+
+- [ ] Todas as telas principais usam base escura (`df-page`) sem blocos claros dominantes.
+- [ ] Superficies de cards e paineis usam `df-surface` ou `df-surface-elevated`.
+- [ ] Bordas de cards/tabelas usam `df-border-brand` ou variante semantica equivalente.
+- [ ] CTA primario usa verde DevFlow (`#00D084`) e hover `#00A86B`.
+- [ ] Texto principal/apoio com contraste: `text primary` / `text secondary`.
+- [ ] Sidebar operacional com simbolo `DF`; logo completo apenas no contexto institucional.
+
+## Regras de Estados Dinamicos
+
+- `hover`: realce sutil em verde (`df-brand-soft`) sem trocar para azul template.
+- `focus`: usar ring com token de marca (`--df-brand-*` / `--devflow-brand`).
+- `active`: manter legibilidade em fundo escuro com contraste alto.
+- `disabled`: reduzir opacidade sem perder leitura do label.
+- `loading`: spinner/barras em verde DevFlow ou neutro dark; evitar azul default.
+- `error/success/warning/info`: usar tokens semanticos oficiais, nunca cores hardcoded fora do sistema.
+- `empty/skeleton`: containers escuros com borda sutil de marca.
+- `toast/alert/dialog/modal/dropdown`: fundo escuro elevado + borda de marca/semantica.
+
+## Regras Mobile e Responsividade
+
+- Breakpoints minimos de QA: `390px`, `768px`, desktop.
+- Evitar overflow horizontal em listas/tabelas/cards/chat.
+- Header e sidebar devem manter toque facil (alvos minimos de clique).
+- Logos e simbolos com respiro visual, sem compressao ou distorcao.
+- Chat/inbox: scroll vertical fluido, input sempre acessivel, sem sobreposicao de painel.
+
+## White-label (Smoke Test)
+
+- Estrutura obrigatoria: `data-theme="devflow"` e `data-theme="client_branded"`.
+- `client_branded` pode alterar apenas `brand primary`, logo e nome.
+- Layout, UX, espacamento e componentes continuam com base DevFlow.
+- Nao duplicar estilos por tema; apenas sobrescrever tokens necessarios.
+- Validar contraste apos troca de cor primaria antes de promover para producao.
+
+## Exemplos de Uso
+
+Correto:
+
+- Card operacional: `df-surface` + `df-border-brand` + texto primario/muted.
+- CTA principal: fundo verde DevFlow, label escuro de alto contraste.
+- Empty state: bloco escuro elevado com texto muted e acao secundaria.
+
+Incorreto:
+
+- Card branco como fundo predominante em paginas operacionais.
+- Focus ring azul/purpura herdado de template.
+- Tagline institucional em header de telas operacionais pequenas.
+- Duplicar CSS para tema cliente em vez de trocar tokens.
+
+## Componentes Criticos Padronizados
+
+- Portal: `header`, `footer`, `hero`, `products hub`, `tools hub`, `demo guided experience`.
+- WhatsApp Platform: `AuthScreenShell`, `AppShell`, `AppSidebar`, `DashboardClient`, `MetricsSection`.
+- Inbox: `InboxShell`, `ConversationsList`, `ConversationItem`, `ChatWindow`, `MessageBubble`, `ChatHeader`.
+- Admin WhatsApp: `AdminWhatsappClient`, `ActivationMetricsHeader`, `ProvisionChannelForm`, `ChannelVerificationCard`.

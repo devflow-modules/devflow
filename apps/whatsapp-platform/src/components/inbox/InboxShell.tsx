@@ -254,7 +254,7 @@ function InboxShellContent() {
 
   const statusPill = (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full border border-slate-100 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+      className="inline-flex items-center gap-1.5 rounded-full border df-border-brand bg-[var(--df-bg-elevated)] px-2.5 py-1 text-xs font-medium text-[var(--df-text-secondary)] shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
       title={realtimeConnected ? "Tempo real ativo" : "A atualizar em intervalos…"}
     >
       <span
@@ -266,7 +266,7 @@ function InboxShellContent() {
 
   return (
     <div
-      className={`flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden bg-slate-50/80 ${
+      className={`df-page flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden ${
         shellSidebarCollapsed ? "lg:max-w-none" : ""
       }`}
       data-testid="inbox-shell"
@@ -279,8 +279,8 @@ function InboxShellContent() {
           Seu canal está em ativação. Assim que aprovado, você poderá responder mensagens aqui.
         </div>
       ) : null}
-      <div
-        className={`shrink-0 border-b border-slate-100 bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)] ${
+        <div
+          className={`shrink-0 border-b df-border-brand bg-[var(--df-bg-elevated)] shadow-[0_1px_0_rgba(15,23,42,0.04)] ${
           inboxFocusMode ? "px-3 py-2.5 sm:px-4 sm:py-3" : "px-4 py-4 sm:px-6 sm:py-5"
         }`}
       >
@@ -304,7 +304,7 @@ function InboxShellContent() {
                 <button
                   type="button"
                   onClick={() => shellLayout.toggleSidebar()}
-                  className="hidden rounded-lg border border-slate-200/90 bg-white px-2 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 lg:inline-flex"
+                  className="hidden rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-2 py-1.5 text-xs font-medium text-[var(--df-text-secondary)] shadow-sm transition hover:bg-[var(--df-brand-100)] lg:inline-flex"
                   title="Menu compacto com ícones — mais espaço para o conteúdo. Clique de novo para expandir."
                 >
                   {shellSidebarCollapsed ? "Expandir menu" : "Menu compacto"}
@@ -316,7 +316,7 @@ function InboxShellContent() {
                 className={`rounded-lg border px-2 py-1.5 text-xs font-semibold shadow-sm transition ${
                   inboxFocusMode
                     ? "border-[var(--df-brand-300)] bg-[var(--df-brand-50)] text-[var(--df-brand-900)]"
-                    : "border-slate-200/90 bg-white text-slate-700 hover:bg-slate-50"
+                    : "border-[var(--df-border-subtle)] bg-[var(--df-bg-elevated)] text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)]"
                 }`}
                 title="Menos cabeçalho e métricas — mais espaço para mensagens"
               >
@@ -326,7 +326,7 @@ function InboxShellContent() {
               <SupportHelpButton variant="compact" className="rounded-lg px-2 py-1.5 no-underline hover:bg-slate-50" />
               <Link
                 href="/settings"
-                className="rounded-lg px-2 py-1.5 text-sm font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
+                className="rounded-lg px-2 py-1.5 text-sm font-medium text-[var(--df-text-secondary)] transition hover:bg-[var(--df-brand-100)] hover:text-[var(--df-text-primary)]"
               >
                 Ajustes
               </Link>
@@ -441,10 +441,10 @@ function InboxShellContent() {
       ) : null}
 
       {inboxFocusMode ? null : metricsCompact ? (
-        <details className="group shrink-0 border-b border-slate-100/90 bg-slate-50/50">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-left text-xs font-semibold text-slate-600 marker:content-none [&::-webkit-details-marker]:hidden sm:px-4">
+        <details className="group shrink-0 border-b df-border-brand bg-[var(--df-bg-app)]/50">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-left text-xs font-semibold text-[var(--df-text-secondary)] marker:content-none [&::-webkit-details-marker]:hidden sm:px-4">
             <span>Métricas e equipa</span>
-            <span className="text-[10px] text-slate-400 transition group-open:rotate-180" aria-hidden>
+            <span className="text-[10px] text-[var(--df-text-muted)] transition group-open:rotate-180" aria-hidden>
               ▼
             </span>
           </summary>
@@ -457,14 +457,14 @@ function InboxShellContent() {
       <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden md:flex-row md:items-stretch">
         {showSidebar && (
           <aside
-            className={`flex min-h-0 w-full shrink-0 flex-col overflow-hidden border-r border-slate-100/90 bg-white md:max-w-none ${
+            className={`df-surface flex min-h-0 w-full shrink-0 flex-col overflow-hidden border-r md:max-w-none ${
               shellSidebarCollapsed
                 ? "md:w-[248px] md:min-w-[240px] md:max-w-[260px] xl:w-[272px] xl:min-w-[260px] xl:max-w-[272px]"
                 : "md:w-[260px] md:min-w-[240px] md:max-w-[280px] xl:w-[300px] xl:min-w-[280px] xl:max-w-[300px]"
             }`}
           >
-            <div className="flex items-center justify-between border-b border-slate-100/90 px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Conversas</p>
+            <div className="flex items-center justify-between border-b df-border-brand px-4 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--df-text-muted)]">Conversas</p>
               <OnlineUsersBadge />
             </div>
             <ConversationsList
@@ -500,15 +500,15 @@ function InboxShellContent() {
               />
             ) : awaitingFirstMessage ? (
               <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-8 md:px-8">
-                <div className="max-w-lg rounded-2xl border border-dashed border-slate-200/90 bg-white/95 px-6 py-8 shadow-sm">
+                <div className="max-w-lg rounded-2xl border border-dashed df-border-brand bg-[var(--df-bg-elevated)]/95 px-6 py-8 shadow-sm">
                   <FirstConversationHint variant="main" lines={lines} />
                 </div>
               </div>
             ) : (
               <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-8 text-center md:px-6">
-                <div className="max-w-sm rounded-xl border border-dashed border-slate-200/90 bg-white/90 px-5 py-8 shadow-sm">
-                  <p className="text-sm font-semibold text-slate-900">Escolha uma conversa</p>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                <div className="max-w-sm rounded-xl border border-dashed df-border-brand bg-[var(--df-bg-elevated)]/90 px-5 py-8 shadow-sm">
+                  <p className="text-sm font-semibold text-[var(--df-text-primary)]">Escolha uma conversa</p>
+                  <p className="mt-2 text-sm leading-relaxed text-[var(--df-text-secondary)]">
                     As threads estão na coluna da esquerda. Selecione um contacto para ver o histórico e enviar respostas.
                   </p>
                   <div className="mt-4 flex justify-center">

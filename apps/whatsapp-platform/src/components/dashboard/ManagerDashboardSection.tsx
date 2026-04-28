@@ -83,7 +83,7 @@ export function ManagerDashboardSection() {
   if (loading) {
     return (
       <div data-testid="manager-dashboard-loading">
-        <StateLoading message="A carregar visão gerencial…" className="min-h-[10rem] border-slate-200/80 bg-white/90 py-10 shadow-none" />
+        <StateLoading message="A carregar visão gerencial…" className="min-h-[10rem] border-0 bg-transparent py-10 shadow-none" />
       </div>
     );
   }
@@ -111,17 +111,17 @@ export function ManagerDashboardSection() {
         <div>
           <h2 className="df-text-section-title">Visão gerencial</h2>
           <p className="df-text-muted mt-1">
-            Operação em tempo real; restantes métricas no período: <span className="font-medium text-slate-700">{rangeLabel}</span>
+            Operação em tempo real; restantes métricas no período: <span className="font-medium text-[var(--df-text-primary)]">{rangeLabel}</span>
           </p>
         </div>
         {queues.length > 0 ? (
           <div className="flex flex-col gap-1">
-            <label htmlFor="manager-dash-queue" className="text-[11px] font-medium text-slate-500">
+            <label htmlFor="manager-dash-queue" className="text-[11px] font-medium text-[var(--df-text-muted)]">
               Fila
             </label>
             <select
               id="manager-dash-queue"
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800"
+              className="rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2 text-sm text-[var(--df-text-primary)]"
               value={queueId === null ? "all" : queueId}
               onChange={(e) => {
                 const v = e.target.value;
@@ -144,24 +144,24 @@ export function ManagerDashboardSection() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card padding="md" className="!p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">A responder</p>
-          <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">{data.operation.awaiting}</p>
-          <p className="mt-1 text-xs text-slate-500">Threads com mensagem pendente</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">A responder</p>
+          <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-text-primary)]">{data.operation.awaiting}</p>
+          <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Threads com mensagem pendente</p>
         </Card>
         <Card padding="md" className="!p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Sem responsável</p>
-          <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">{data.operation.unassigned}</p>
-          <p className="mt-1 text-xs text-slate-500">Abertas sem atribuição</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Sem responsável</p>
+          <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-text-primary)]">{data.operation.unassigned}</p>
+          <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Abertas sem atribuição</p>
         </Card>
-        <Card padding="md" className="!p-5 ring-1 ring-rose-200/80 bg-gradient-to-br from-rose-50/80 to-white">
-          <p className="text-xs font-semibold uppercase tracking-wide text-rose-800/90">SLA crítico</p>
-          <p className="mt-2 text-3xl font-bold tabular-nums text-rose-950">{data.operation.critical}</p>
-          <p className="mt-1 text-xs text-rose-900/80">Aguardam há ≥ 30 min</p>
+        <Card padding="md" className="!p-5 ring-1 ring-[var(--df-danger-border)] bg-[var(--df-danger-bg)]">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-danger-text)]">SLA crítico</p>
+          <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-danger-text)]">{data.operation.critical}</p>
+          <p className="mt-1 text-xs text-[var(--df-danger-text)]/85">Aguardam há ≥ 30 min</p>
         </Card>
         <Card padding="md" className="!p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Tempo médio em fila</p>
-          <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">{formatMs(data.operation.avgFirstResponseMs)}</p>
-          <p className="mt-1 text-xs text-slate-500">Até à primeira resposta (período)</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Tempo médio em fila</p>
+          <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-text-primary)]">{formatMs(data.operation.avgFirstResponseMs)}</p>
+          <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Até à primeira resposta (período)</p>
         </Card>
       </div>
 
@@ -169,21 +169,21 @@ export function ManagerDashboardSection() {
         <Card className="lg:col-span-2">
           <CardHeader title="Equipa" description="Atividade e fechos no período." />
           <div className="grid gap-3 px-6 pb-4 sm:grid-cols-4">
-            <div className="rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2">
-              <p className="text-[10px] font-semibold uppercase text-slate-500">Threads atendidas</p>
-              <p className="text-xl font-bold tabular-nums text-slate-900">{data.team.handled}</p>
+            <div className="rounded-lg border df-border-brand bg-[var(--df-bg-app)] px-3 py-2">
+              <p className="text-[10px] font-semibold uppercase text-[var(--df-text-muted)]">Threads atendidas</p>
+              <p className="text-xl font-bold tabular-nums text-[var(--df-text-primary)]">{data.team.handled}</p>
             </div>
-            <div className="rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2">
-              <p className="text-[10px] font-semibold uppercase text-slate-500">Tempo médio de atendimento</p>
-              <p className="text-xl font-bold tabular-nums text-slate-900">{formatMs(data.team.avgResponseMs)}</p>
+            <div className="rounded-lg border df-border-brand bg-[var(--df-bg-app)] px-3 py-2">
+              <p className="text-[10px] font-semibold uppercase text-[var(--df-text-muted)]">Tempo médio de atendimento</p>
+              <p className="text-xl font-bold tabular-nums text-[var(--df-text-primary)]">{formatMs(data.team.avgResponseMs)}</p>
             </div>
-            <div className="rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2">
-              <p className="text-[10px] font-semibold uppercase text-slate-500">Tempo médio em fila</p>
-              <p className="text-xl font-bold tabular-nums text-slate-900">{formatMs(data.team.avgFirstResponseMs)}</p>
+            <div className="rounded-lg border df-border-brand bg-[var(--df-bg-app)] px-3 py-2">
+              <p className="text-[10px] font-semibold uppercase text-[var(--df-text-muted)]">Tempo médio em fila</p>
+              <p className="text-xl font-bold tabular-nums text-[var(--df-text-primary)]">{formatMs(data.team.avgFirstResponseMs)}</p>
             </div>
-            <div className="rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2">
-              <p className="text-[10px] font-semibold uppercase text-slate-500">Fechadas</p>
-              <p className="text-xl font-bold tabular-nums text-slate-900">{data.team.closed}</p>
+            <div className="rounded-lg border df-border-brand bg-[var(--df-bg-app)] px-3 py-2">
+              <p className="text-[10px] font-semibold uppercase text-[var(--df-text-muted)]">Fechadas</p>
+              <p className="text-xl font-bold tabular-nums text-[var(--df-text-primary)]">{data.team.closed}</p>
             </div>
           </div>
           {data.team.agents.length === 0 ? (
@@ -211,13 +211,13 @@ export function ManagerDashboardSection() {
                   <tbody>
                     {data.team.agents.map((a) => (
                       <tr key={a.userId}>
-                        <td className="font-medium text-slate-900">
+                        <td className="font-medium text-[var(--df-text-primary)]">
                         {a.name ?? a.email ?? a.userId.slice(0, 8)}
                       </td>
-                        <td className="text-right tabular-nums text-slate-800">{a.handled}</td>
-                        <td className="text-right tabular-nums text-slate-600">{formatMs(a.avgResponseMs)}</td>
-                        <td className="text-right tabular-nums text-slate-600">{formatMs(a.avgFirstResponseMs)}</td>
-                        <td className="text-right tabular-nums text-slate-800">{a.closed}</td>
+                        <td className="text-right tabular-nums text-[var(--df-text-primary)]">{a.handled}</td>
+                        <td className="text-right tabular-nums text-[var(--df-text-secondary)]">{formatMs(a.avgResponseMs)}</td>
+                        <td className="text-right tabular-nums text-[var(--df-text-secondary)]">{formatMs(a.avgFirstResponseMs)}</td>
+                        <td className="text-right tabular-nums text-[var(--df-text-primary)]">{a.closed}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -230,25 +230,25 @@ export function ManagerDashboardSection() {
         <Card>
           <CardHeader title="Automação & IA" description="Proporções no período (mensagens e auditoria)." />
           <ul className="space-y-2 px-6 pb-6 text-sm" data-testid="manager-dashboard-automation">
-            <li className="flex justify-between gap-2 border-b border-slate-100 pb-2">
-              <span className="text-slate-600">Mensagens automáticas / IA</span>
-              <span className="font-semibold tabular-nums text-slate-900">{formatPct(data.automation.autoRate)}</span>
+            <li className="flex justify-between gap-2 border-b df-border-brand pb-2">
+              <span className="text-[var(--df-text-secondary)]">Mensagens automáticas / IA</span>
+              <span className="font-semibold tabular-nums text-[var(--df-text-primary)]">{formatPct(data.automation.autoRate)}</span>
             </li>
-            <li className="flex justify-between gap-2 border-b border-slate-100 pb-2">
-              <span className="text-slate-600">Mensagens IA vs fechos no período</span>
-              <span className="font-semibold tabular-nums text-slate-900">{formatPct(data.automation.resolvedByAiRate)}</span>
+            <li className="flex justify-between gap-2 border-b df-border-brand pb-2">
+              <span className="text-[var(--df-text-secondary)]">Mensagens IA vs fechos no período</span>
+              <span className="font-semibold tabular-nums text-[var(--df-text-primary)]">{formatPct(data.automation.resolvedByAiRate)}</span>
             </li>
-            <li className="flex justify-between gap-2 border-b border-slate-100 pb-2">
-              <span className="text-slate-600">Transbordo humano (agente / agente+IA)</span>
-              <span className="font-semibold tabular-nums text-slate-900">{formatPct(data.automation.fallbackRate)}</span>
+            <li className="flex justify-between gap-2 border-b df-border-brand pb-2">
+              <span className="text-[var(--df-text-secondary)]">Transbordo humano (agente / agente+IA)</span>
+              <span className="font-semibold tabular-nums text-[var(--df-text-primary)]">{formatPct(data.automation.fallbackRate)}</span>
             </li>
-            <li className="flex justify-between gap-2 border-b border-slate-100 pb-2">
-              <span className="text-slate-600">Uso de playbook (vs threads ativas)</span>
-              <span className="font-semibold tabular-nums text-slate-900">{formatPct(data.automation.playbookUsageRate)}</span>
+            <li className="flex justify-between gap-2 border-b df-border-brand pb-2">
+              <span className="text-[var(--df-text-secondary)]">Uso de playbook (vs threads ativas)</span>
+              <span className="font-semibold tabular-nums text-[var(--df-text-primary)]">{formatPct(data.automation.playbookUsageRate)}</span>
             </li>
             <li className="flex justify-between gap-2">
-              <span className="text-slate-600">Follow-up sugerido</span>
-              <span className="font-semibold tabular-nums text-slate-900">{formatPct(data.automation.followUpUsageRate)}</span>
+              <span className="text-[var(--df-text-secondary)]">Follow-up sugerido</span>
+              <span className="font-semibold tabular-nums text-[var(--df-text-primary)]">{formatPct(data.automation.followUpUsageRate)}</span>
             </li>
           </ul>
         </Card>
@@ -278,17 +278,17 @@ export function ManagerDashboardSection() {
               return (
                 <div
                   key={key}
-                  className="rounded-xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/50 px-4 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+                  className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] px-4 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
                 >
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{FUNNEL_LABELS[key]}</p>
-                  <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900">{v}</p>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200/80">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">{FUNNEL_LABELS[key]}</p>
+                  <p className="mt-1 text-2xl font-bold tabular-nums text-[var(--df-text-primary)]">{v}</p>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--df-bg-app)]">
                     <div
                       className="h-full rounded-full bg-[var(--df-brand-600)] transition-[width] duration-500 ease-out"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <p className="mt-1 text-[11px] text-slate-500">{pct}% do funil etiquetado</p>
+                  <p className="mt-1 text-[11px] text-[var(--df-text-secondary)]">{pct}% do funil etiquetado</p>
                 </div>
               );
             })}

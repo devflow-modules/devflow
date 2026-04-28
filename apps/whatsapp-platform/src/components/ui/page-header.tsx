@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 const eyebrowTones = {
   brand: "df-eyebrow",
-  neutral: "text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400",
+  neutral: "text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--df-text-muted)]",
   amber: "df-eyebrow-admin",
 } as const;
 
@@ -49,7 +49,7 @@ export function PageHeader({
   const showBadge = sensitivityBadge ?? tone === "admin";
   const titleClass = size === "compact" ? "df-text-page-title-sm mt-2" : "df-text-page-title mt-2";
 
-  const dividerSplit = showDivider ? "border-b border-slate-100 pb-8 sm:pb-10" : "pb-4 sm:pb-5";
+  const dividerSplit = showDivider ? "border-b df-border-brand pb-8 sm:pb-10" : "pb-4 sm:pb-5";
   const toneRing = tone === "admin" ? "rounded-2xl border border-amber-100/90 bg-amber-50/25 pl-4 ring-1 ring-amber-100/80" : "";
 
   if (layout === "split") {

@@ -293,7 +293,9 @@ export function AdminWhatsappClient() {
 
   const tabClass = (active: boolean) =>
     `rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-      active ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+      active
+        ? "bg-[var(--df-brand-500)] text-[#032316]"
+        : "border df-border-brand bg-[var(--df-bg-elevated)] text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)]"
     }`;
 
   return (
@@ -342,7 +344,7 @@ export function AdminWhatsappClient() {
             title="Fila de ativação"
             description="Prioridade composta (crítico → travado → delay → tempo na fila). Polling silencioso ~20s; filtro preservado na URL."
           />
-          <div className="border-t border-slate-100 px-6 py-4 space-y-5">
+          <div className="space-y-5 border-t df-border-brand px-6 py-4">
             <PendingActivationToolbar buckets={metrics?.slaBuckets ?? null} activeFilter={pendingFilter} />
             <ActivationQueueTable
               filter={pendingFilter}
@@ -360,14 +362,14 @@ export function AdminWhatsappClient() {
             title="Canais WhatsApp"
             description="Lista de linhas provisionadas e estado de ativação."
           />
-          <div className="border-t border-slate-100 px-6 py-4">
+          <div className="border-t df-border-brand px-6 py-4">
             <div className="mb-4 flex flex-wrap items-end gap-3">
               <label className="block">
                 <span className="df-label">Filtrar por estado</span>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="mt-1 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-1 rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2 text-sm text-[var(--df-text-primary)]"
                   data-testid="channel-status-filter"
                 >
                   <option value="all">Todos</option>
@@ -382,7 +384,7 @@ export function AdminWhatsappClient() {
                   value={tenantQuery}
                   onChange={(e) => setTenantQuery(e.target.value)}
                   placeholder="Nome ou ID…"
-                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2 text-sm text-[var(--df-text-primary)]"
                   data-testid="channel-tenant-search"
                 />
               </label>

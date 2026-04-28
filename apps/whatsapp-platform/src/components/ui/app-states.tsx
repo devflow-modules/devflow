@@ -10,7 +10,7 @@ export function StateLoading({ message = "A carregar…", className = "" }: Load
   return (
     <div className={`df-state-loading ${className}`.trim()} role="status" aria-live="polite">
       <span
-        className="h-9 w-9 animate-spin rounded-full border-2 border-slate-100 border-t-[var(--df-brand-600)]"
+        className="h-9 w-9 animate-spin rounded-full border-2 border-[var(--df-border-subtle)] border-t-[var(--df-brand-600)]"
         aria-hidden
       />
       <p className="df-text-muted">{message}</p>
@@ -35,11 +35,12 @@ export function StateError({
 }: ErrorProps) {
   return (
     <div
-      className={`rounded-2xl border border-red-100 bg-red-50/50 px-6 py-8 text-center shadow-sm ${className}`.trim()}
+      className={`rounded-2xl border px-6 py-8 text-center shadow-sm ${className}`.trim()}
+      style={{ borderColor: "var(--df-danger-border)", background: "var(--df-danger-bg)" }}
       role="alert"
     >
-      <p className="text-sm font-semibold text-red-950">{title}</p>
-      <p className="mt-2 text-sm leading-relaxed text-red-800/90">{message}</p>
+      <p className="text-sm font-semibold text-[var(--df-danger-text)]">{title}</p>
+      <p className="mt-2 text-sm leading-relaxed text-[var(--df-danger-text)]/90">{message}</p>
       {onRetry ? (
         <button type="button" className={`${buttonClassName("secondary")} mt-6`} onClick={onRetry}>
           {retryLabel}
@@ -61,10 +62,10 @@ type EmptyProps = {
 export function StateEmpty({ title, description, nextStep, action, className = "" }: EmptyProps) {
   return (
     <div className={`df-state-empty ${className}`.trim()}>
-      <p className="text-sm font-semibold text-slate-900">{title}</p>
+      <p className="text-sm font-semibold text-[var(--df-text-primary)]">{title}</p>
       <p className="df-text-muted mx-auto mt-2 max-w-md">{description}</p>
       {nextStep ? (
-        <p className="mx-auto mt-4 max-w-md text-center text-xs leading-relaxed text-slate-500">{nextStep}</p>
+        <p className="mx-auto mt-4 max-w-md text-center text-xs leading-relaxed text-[var(--df-text-secondary)]">{nextStep}</p>
       ) : null}
       {action ? <div className="mt-8 flex justify-center">{action}</div> : null}
     </div>

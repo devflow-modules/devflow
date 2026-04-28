@@ -62,18 +62,18 @@ export function TenantInstructionsCard() {
   return (
     <div id="instrucoes-conta">
     <Card padding="lg">
-      <h2 className="text-base font-bold text-slate-900">Instruções do assistente (conta)</h2>
-      <p className="mt-1 text-sm text-slate-600">
+      <h2 className="text-base font-bold text-[var(--df-text-primary)]">Instruções do assistente (conta)</h2>
+      <p className="mt-1 text-sm text-[var(--df-text-secondary)]">
         Texto que orienta o comportamento do atendimento no WhatsApp. Podes editar aqui em modo avançado ou voltar ao
-        assistente guiado em <span className="font-medium text-slate-700">Configuração inicial</span> (onboarding)
+        assistente guiado em <span className="font-medium text-[var(--df-text-primary)]">Configuração inicial</span> (onboarding)
         alterando estes campos manualmente abaixo.
       </p>
       {loading ? (
-        <p className="mt-4 text-sm text-slate-500">A carregar…</p>
+        <p className="mt-4 text-sm text-[var(--df-text-muted)]">A carregar…</p>
       ) : (
         <form onSubmit={handleSave} className="mt-4 space-y-4">
           <div>
-            <label htmlFor="tenant-instructions" className="mb-1 block text-sm font-medium text-slate-700">
+            <label htmlFor="tenant-instructions" className="mb-1 block text-sm font-medium text-[var(--df-text-secondary)]">
               Prompt / instruções
             </label>
             <textarea

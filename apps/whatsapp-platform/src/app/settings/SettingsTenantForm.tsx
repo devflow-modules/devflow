@@ -129,7 +129,7 @@ export function SettingsTenantForm() {
   return (
     <div className="space-y-6">
       {formError ? (
-        <div className="rounded-xl border border-red-200/90 bg-red-50 px-4 py-3 text-sm text-red-800">{formError}</div>
+        <div className="rounded-xl border border-[var(--df-danger-border)] bg-[var(--df-danger-bg)] px-4 py-3 text-sm text-[var(--df-danger-text)]">{formError}</div>
       ) : null}
 
       <div className="flex flex-wrap gap-4 text-sm">
@@ -149,13 +149,13 @@ export function SettingsTenantForm() {
       </div>
 
       <Card padding="lg">
-        <h2 className="text-base font-bold text-slate-900">Motor de respostas automáticas</h2>
-        <p className="mt-1 text-sm text-slate-600">
+        <h2 className="text-base font-bold text-[var(--df-text-primary)]">Motor de respostas automáticas</h2>
+        <p className="mt-1 text-sm text-[var(--df-text-secondary)]">
           Define qual serviço gera texto quando a automação ou a IA respondem. Chaves de API ficam no ambiente do servidor.
         </p>
         <form onSubmit={handleSubmit} className="mt-6 max-w-md space-y-4">
           <div>
-            <label htmlFor="aiDriver" className="mb-1 block text-sm font-medium text-slate-700">
+            <label htmlFor="aiDriver" className="mb-1 block text-sm font-medium text-[var(--df-text-secondary)]">
               Fornecedor
             </label>
             <select
@@ -170,7 +170,7 @@ export function SettingsTenantForm() {
                 </option>
               ))}
             </select>
-            <p className="mt-1.5 text-xs text-slate-500">
+            <p className="mt-1.5 text-xs text-[var(--df-text-muted)]">
               OpenAI: OPENAI_API_KEY no ambiente. Claude: ANTHROPIC_API_KEY.
             </p>
           </div>

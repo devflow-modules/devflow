@@ -43,7 +43,7 @@ function NavLink({
           ? "bg-[var(--df-brand-50)]/95 font-semibold text-[var(--df-brand-900)] ring-1 ring-[var(--df-brand-200)]/90 shadow-sm"
           : sensitive
             ? "text-amber-900/90 hover:bg-amber-50 hover:text-amber-950"
-            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+            : "text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)] hover:text-[var(--df-text-primary)]"
       }`}
     >
       {label}
@@ -229,7 +229,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
                 ? "Linha WhatsApp, IA e definições do tenant."
                 : "Linha WhatsApp, IA, plano e definições do tenant."
             }
-            defaultSensitive
+          defaultSensitive
           >
             <div className="space-y-0.5">
               {secondaryNav.map((item) => (
@@ -295,7 +295,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
         {sessionRole && (isOperator(sessionRole) || isTenantManager(sessionRole)) ? (
           <Link
             href="/admin/distribuir"
-            className="mb-2 block rounded-lg px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50"
+            className="mb-2 block rounded-lg px-3 py-2 text-xs font-medium text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)] hover:text-[var(--df-text-primary)]"
             onClick={() => onNavigate?.()}
           >
             {ROUTE_META["/admin/distribuir"].label}
@@ -303,7 +303,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
         ) : null}
         <Link
           href="/login"
-          className="mb-2 block rounded-lg px-3 py-2 text-xs text-slate-500 hover:bg-slate-50"
+          className="mb-2 block rounded-lg px-3 py-2 text-xs text-[var(--df-text-muted)] hover:bg-[var(--df-brand-100)] hover:text-[var(--df-text-primary)]"
           onClick={() => onNavigate?.()}
         >
           Entrar (outra conta)
@@ -311,7 +311,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
         <button
           type="button"
           onClick={() => void logout()}
-          className="w-full rounded-lg px-3 py-2 text-left text-xs font-medium text-red-600 hover:bg-red-50"
+          className="w-full rounded-lg px-3 py-2 text-left text-xs font-medium text-[var(--df-danger-text)] hover:bg-[var(--df-danger-bg)]"
         >
           Terminar sessão
         </button>

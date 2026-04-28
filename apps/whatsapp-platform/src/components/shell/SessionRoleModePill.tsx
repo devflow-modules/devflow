@@ -18,7 +18,7 @@ export function SessionRoleModePill({ variant = "header" }: Props) {
   if (variant === "sidebar") {
     return (
       <p
-        className="mt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400"
+        className="mt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--df-text-muted)]"
         data-testid="session-role-mode-sidebar"
       >
         {label}
@@ -28,7 +28,7 @@ export function SessionRoleModePill({ variant = "header" }: Props) {
 
   return (
     <span
-      className="max-w-[9rem] truncate rounded-full border border-slate-200/90 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500"
+      className="hidden max-w-[9rem] truncate rounded-full border df-border-brand bg-[var(--df-bg-elevated)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)] min-[430px]:inline-flex"
       title={label}
       data-testid="session-role-mode-header"
     >

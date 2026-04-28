@@ -71,15 +71,15 @@ export function ProvisionChannelForm({
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4 rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
-      <h2 className="df-text-section-title text-slate-900">Provisionar canal (manual)</h2>
+    <form onSubmit={submit} className="df-surface space-y-4 rounded-xl p-5 shadow-sm">
+      <h2 className="df-text-section-title text-[var(--df-text-primary)]">Provisionar canal (manual)</h2>
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block sm:col-span-2">
           <span className="df-label">Tenant</span>
           <select
             value={tenantId}
             onChange={(ev) => setTenantId(ev.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900"
+            className="mt-1 w-full rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2 text-sm text-[var(--df-text-primary)]"
             disabled={busy}
             data-testid="provision-tenant-select"
           >
@@ -96,7 +96,7 @@ export function ProvisionChannelForm({
           <input
             value={phone}
             onChange={(ev) => setPhone(ev.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-mono text-slate-900"
+            className="mt-1 w-full rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2 text-sm font-mono text-[var(--df-text-primary)]"
             placeholder="+5511999990000"
             disabled={busy}
             data-testid="provision-phone"
@@ -107,7 +107,7 @@ export function ProvisionChannelForm({
           <input
             value={wabaId}
             onChange={(ev) => setWabaId(ev.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-mono text-slate-900"
+            className="mt-1 w-full rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2 text-sm font-mono text-[var(--df-text-primary)]"
             disabled={busy}
             data-testid="provision-waba"
           />
@@ -117,7 +117,7 @@ export function ProvisionChannelForm({
           <input
             value={phoneNumberId}
             onChange={(ev) => setPhoneNumberId(ev.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-mono text-slate-900"
+            className="mt-1 w-full rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2 text-sm font-mono text-[var(--df-text-primary)]"
             disabled={busy}
             data-testid="provision-phone-number-id"
           />

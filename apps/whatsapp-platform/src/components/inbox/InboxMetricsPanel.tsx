@@ -23,12 +23,12 @@ function formatDurationSeconds(sec: number | null): string {
 function TeamMemberRow({ m }: { m: InboxTeamMember }) {
   return (
     <div className="flex min-w-0 max-w-[11rem] items-center gap-1.5">
-      <span className="min-w-0 truncate text-[11px] font-medium text-slate-800" title={m.name || m.email}>
+      <span className="min-w-0 truncate text-[11px] font-medium text-[var(--df-text-primary)]" title={m.name || m.email}>
         {m.name?.trim() || m.email}
       </span>
       <AgentStatusBadge status={m.status} density="compact" className="shrink-0" />
       {m.activeThreadCount > 0 ? (
-        <span className="shrink-0 tabular-nums text-[10px] text-slate-400">({m.activeThreadCount})</span>
+        <span className="shrink-0 tabular-nums text-[10px] text-[var(--df-text-muted)]">({m.activeThreadCount})</span>
       ) : null}
     </div>
   );
@@ -75,39 +75,39 @@ export function InboxMetricsPanel({ onOpenThread }: InboxMetricsPanelProps) {
     metrics && metrics.sampleQueue === 0 && metrics.sampleHandle === 0 && !metricsLoading;
 
   return (
-    <div className="flex flex-col gap-2.5 border-b border-slate-100/90 bg-slate-50/40 px-3 py-2.5 sm:px-4">
+    <div className="flex flex-col gap-2.5 border-b df-border-brand bg-[var(--df-bg-app)]/40 px-3 py-2.5 sm:px-4">
       <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-start sm:gap-3">
         <div className="grid gap-2 sm:grid-cols-3">
-          <div className="rounded-lg border border-slate-100/90 bg-white/90 px-2.5 py-2 shadow-sm">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Tempo médio em fila</p>
-            <p className="mt-0.5 text-lg font-bold tabular-nums leading-tight text-slate-900">
+          <div className="rounded-lg border df-border-brand bg-[var(--df-bg-elevated)]/90 px-2.5 py-2 shadow-sm">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Tempo médio em fila</p>
+            <p className="mt-0.5 text-lg font-bold tabular-nums leading-tight text-[var(--df-text-primary)]">
               {metricsLoading ? "…" : formatDurationSeconds(metrics?.avgQueueWaitSeconds ?? null)}
             </p>
             {metrics && metrics.sampleQueue > 0 ? (
-              <p className="mt-0.5 text-[10px] text-slate-400">{metrics.sampleQueue} conversas na amostra</p>
+              <p className="mt-0.5 text-[10px] text-[var(--df-text-muted)]">{metrics.sampleQueue} conversas na amostra</p>
             ) : (
-              <p className="mt-0.5 text-[10px] text-slate-400">Auditoria de atribuições</p>
+              <p className="mt-0.5 text-[10px] text-[var(--df-text-muted)]">Auditoria de atribuições</p>
             )}
           </div>
-          <div className="rounded-lg border border-slate-100/90 bg-white/90 px-2.5 py-2 shadow-sm">
+          <div className="rounded-lg border df-border-brand bg-[var(--df-bg-elevated)]/90 px-2.5 py-2 shadow-sm">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
               Tempo médio de atendimento
             </p>
-            <p className="mt-0.5 text-lg font-bold tabular-nums leading-tight text-slate-900">
+            <p className="mt-0.5 text-lg font-bold tabular-nums leading-tight text-[var(--df-text-primary)]">
               {metricsLoading ? "…" : formatDurationSeconds(metrics?.avgHandleSeconds ?? null)}
             </p>
             {metrics && metrics.sampleHandle > 0 ? (
-              <p className="mt-0.5 text-[10px] text-slate-400">{metrics.sampleHandle} fechos no período</p>
+              <p className="mt-0.5 text-[10px] text-[var(--df-text-muted)]">{metrics.sampleHandle} fechos no período</p>
             ) : (
-              <p className="mt-0.5 text-[10px] text-slate-400">Até ao fecho da conversa</p>
+              <p className="mt-0.5 text-[10px] text-[var(--df-text-muted)]">Até ao fecho da conversa</p>
             )}
           </div>
-          <div className="rounded-lg border border-slate-100/90 bg-white/90 px-2.5 py-2 shadow-sm">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Conversas por responsável</p>
-            <p className="mt-0.5 text-lg font-bold tabular-nums leading-tight text-slate-900">
+          <div className="rounded-lg border df-border-brand bg-[var(--df-bg-elevated)]/90 px-2.5 py-2 shadow-sm">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Conversas por responsável</p>
+            <p className="mt-0.5 text-lg font-bold tabular-nums leading-tight text-[var(--df-text-primary)]">
               {metricsLoading ? "…" : totalAssigned ?? "—"}
             </p>
-            <p className="mt-0.5 text-[10px] text-slate-400">Total em aberto atribuído</p>
+            <p className="mt-0.5 text-[10px] text-[var(--df-text-muted)]">Total em aberto atribuído</p>
           </div>
         </div>
         <button
@@ -122,33 +122,33 @@ export function InboxMetricsPanel({ onOpenThread }: InboxMetricsPanelProps) {
       </div>
 
       {noMetricSamples ? (
-        <p className="rounded-lg border border-dashed border-slate-200/90 bg-white/60 px-2.5 py-1.5 text-[10px] leading-snug text-slate-500">
+        <p className="rounded-lg border border-dashed df-border-brand bg-[var(--df-bg-elevated)]/60 px-2.5 py-1.5 text-[10px] leading-snug text-[var(--df-text-secondary)]">
           Sem dados suficientes para médias ainda — as médias usam o histórico de atribuições e fechos no período.
         </p>
       ) : null}
 
       {metrics && metrics.conversationsByAgent.length > 0 ? (
         <p
-          className="text-[10px] leading-snug text-slate-600"
+          className="text-[10px] leading-snug text-[var(--df-text-secondary)]"
           title={metrics.conversationsByAgent.map((a) => `${a.name ?? a.userId}: ${a.openThreads}`).join(" · ")}
         >
-          <span className="font-medium text-slate-500">Conversas por responsável:</span>{" "}
+          <span className="font-medium text-[var(--df-text-muted)]">Conversas por responsável:</span>{" "}
           {metrics.conversationsByAgent.slice(0, 5).map((a, i) => (
             <span key={a.userId}>
               {i > 0 ? " · " : null}
-              <span className="text-slate-800">{a.name?.trim() ?? a.userId.slice(0, 8)}</span>
-              <span className="tabular-nums text-slate-500"> ({a.openThreads})</span>
+              <span className="text-[var(--df-text-primary)]">{a.name?.trim() ?? a.userId.slice(0, 8)}</span>
+              <span className="tabular-nums text-[var(--df-text-muted)]"> ({a.openThreads})</span>
             </span>
           ))}
-          {metrics.conversationsByAgent.length > 5 ? <span className="text-slate-400"> · …</span> : null}
+          {metrics.conversationsByAgent.length > 5 ? <span className="text-[var(--df-text-muted)]"> · …</span> : null}
         </p>
       ) : null}
 
       {teamLoading ? (
-        <p className="text-[11px] text-slate-400">A carregar equipa…</p>
+        <p className="text-[11px] text-[var(--df-text-muted)]">A carregar equipa…</p>
       ) : team.length > 0 ? (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Equipa</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Equipa</span>
           <div className="flex min-w-0 flex-1 flex-wrap gap-x-3 gap-y-1.5">
             {team.map((m) => (
               <TeamMemberRow key={m.userId} m={m} />

@@ -10,10 +10,10 @@ function MetricBox({
   sub?: string;
 }) {
   return (
-    <div className="rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2.5">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-0.5 text-xl font-bold tabular-nums text-slate-900">{value}</p>
-      {sub ? <p className="text-xs text-slate-500">{sub}</p> : null}
+    <div className="rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2.5">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">{label}</p>
+      <p className="mt-0.5 text-xl font-bold tabular-nums text-[var(--df-text-primary)]">{value}</p>
+      {sub ? <p className="text-xs text-[var(--df-text-secondary)]">{sub}</p> : null}
     </div>
   );
 }
@@ -37,7 +37,7 @@ export function ActivationMetricsHeader({ metrics, loading }: Props) {
         aria-busy
       >
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-[4.25rem] animate-pulse rounded-lg bg-slate-100" />
+          <div key={i} className="h-[4.25rem] animate-pulse rounded-lg border df-border-brand bg-[var(--df-bg-elevated)]" />
         ))}
       </div>
     );
