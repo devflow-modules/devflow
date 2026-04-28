@@ -9,10 +9,11 @@ import { ChatWindow } from "./ChatWindow";
 import {
   fetchInboxConversations,
   fetchInboxOperationalQueues,
+  fetchInboxProspectMetrics,
   fetchTenantWhatsappLines,
 } from "./inboxFetch";
 import { INBOX_QK } from "./inboxTypes";
-import type { InboxConversationsFilter } from "./inboxTypes";
+import type { InboxConversationsFilter, InboxProspectLens } from "./inboxTypes";
 import { useMediaMd } from "./useMediaMd";
 import { useInboxRealtime, InboxRealtimeProvider } from "./useInboxRealtime";
 import { OnlineUsersBadge } from "./OnlineUsersBadge";
@@ -37,6 +38,8 @@ import {
 } from "@/lib/activationStorage";
 import { useShellLayoutOptional } from "@/components/shell/ShellLayoutContext";
 import { isWhiteLabelMode } from "@/lib/productMode";
+import { useSessionRole } from "@/components/navigation/SessionRoleContext";
+import { isDevFlowProspectingEnabled } from "@/lib/devflowProspecting";
 
 const INBOX_FOCUS_MODE_KEY = "df-inbox-focus-mode";
 
@@ -79,8 +82,13 @@ function InboxShellContent() {
   const [lineFilter, setLineFilter] = useState<string | null>(null);
   const [queueFilter, setQueueFilter] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
+  const [prospectLens, setProspectLens] = useState<InboxProspectLens | null>(null);
   const [inboxFocusMode, setInboxFocusMode] = useState(false);
   const { connected: realtimeConnected } = useInboxRealtime();
+  const { role: sessionRole, loading: roleLoading } = useSessionRole();
+  const prospectingEnabled = useMemo(() => isDevFlowProspectingEnabled(sessionRole), [sessionRole]);
+  const effectiveProspectLens = prospectingEnabled ? prospectLens : null;
+
   const shellLayout = useShellLayoutOptional();
   const shellSidebarCollapsed = Boolean(shellLayout?.sidebarCollapsed);
   const metricsCompact = inboxFocusMode || shellSidebarCollapsed;
@@ -192,9 +200,18 @@ function InboxShellContent() {
     ensureFirstMessageActivationLogged(tenantThreadTotal);
   }, [tenantThreadTotal]);
 
+  const { data: prospectMetrics } = useQuery({
+    queryKey: ["inbox-prospect-metrics"],
+    queryFn: fetchInboxProspectMetrics,
+    staleTime: 45_000,
+    refetchInterval: pollInterval,
+    enabled: prospectingEnabled && !roleLoading,
+  });
+
   const { data: convData } = useQuery({
-    queryKey: INBOX_QK.conversations(filter, lineFilter, queueFilter, priorityFilter),
-    queryFn: () => fetchInboxConversations(filter, lineFilter, queueFilter, priorityFilter),
+    queryKey: INBOX_QK.conversations(filter, lineFilter, queueFilter, priorityFilter, effectiveProspectLens),
+    queryFn: () =>
+      fetchInboxConversations(filter, lineFilter, queueFilter, priorityFilter, effectiveProspectLens),
     refetchInterval: pollInterval,
   });
 
@@ -471,7 +488,10 @@ function InboxShellContent() {
               selectedId={selectedId}
               onSelect={onSelect}
               filter={filter}
-              onFilterChange={setFilter}
+              onFilterChange={(f) => {
+                setFilter(f);
+                setProspectLens(null);
+              }}
               lineFilter={lineFilter}
               lines={lines}
               onLineFilterChange={setLineFilter}
@@ -479,6 +499,10 @@ function InboxShellContent() {
               queues={inboxQueues}
               onQueueFilterChange={setQueueFilter}
               priorityFilter={priorityFilter}
+              prospectLens={prospectLens}
+              onProspectLensChange={prospectingEnabled ? setProspectLens : undefined}
+              prospectMetrics={prospectMetrics}
+              prospectUiEnabled={prospectingEnabled}
               tenantThreadTotal={tenantThreadTotal}
             />
           </aside>

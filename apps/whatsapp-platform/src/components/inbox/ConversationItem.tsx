@@ -10,6 +10,13 @@ import { slaWaitLabelClass } from "./inboxOperationalStyles";
 import { priorityGuidance } from "./leadPanelCopy";
 import { ResponseAlertBadge, getResponseAlertLevel } from "./ResponseAlertBadge";
 import { getConversationStateBadge } from "./conversationStateUi";
+import {
+  isFollowUpDueOrOverdue,
+  isSalesStage,
+  SALES_STAGE_ABBREV,
+  SALES_STAGE_BADGE_CLASS,
+  SALES_STAGE_LABELS_PT,
+} from "@/modules/inbox/prospectSales";
 
 function formatListTimeCompact(iso: string): string {
   try {
@@ -32,6 +39,7 @@ export const ConversationItem = memo(function ConversationItem({
   onAssume,
   onClose,
   busyAction,
+  devFlowProspectingUi = false,
 }: {
   thread: WaInboxThreadRow;
   active: boolean;
@@ -39,6 +47,8 @@ export const ConversationItem = memo(function ConversationItem({
   onAssume?: (id: string) => void;
   onClose?: (id: string) => void;
   busyAction?: { id: string; kind: "assume" | "close" } | null;
+  /** CRM comercial DevFlow (interno): etapa + FU hoje na linha. */
+  devFlowProspectingUi?: boolean;
 }) {
   const title = thread.contactName?.trim() || thread.phoneNumber;
   const initials = title.slice(0, 2).toUpperCase();
@@ -98,6 +108,18 @@ export const ConversationItem = memo(function ConversationItem({
 
   const slaRank = (s: InboxSlaLevel | null | undefined): number =>
     s === "critical" ? 0 : s === "high" ? 1 : s === "medium" ? 2 : 3;
+
+  const followUpDue = isFollowUpDueOrOverdue(thread.leadData?.prospect?.nextFollowUpAt);
+  const prospectStage = thread.leadData?.prospect?.salesStage;
+  const stageChip =
+    prospectStage && isSalesStage(prospectStage) ? (
+      <span
+        className={`max-w-[4.5rem] truncate rounded px-1 py-0.5 text-[9px] font-bold ring-1 ${SALES_STAGE_BADGE_CLASS[prospectStage]}`}
+        title={SALES_STAGE_LABELS_PT[prospectStage]}
+      >
+        {SALES_STAGE_ABBREV[prospectStage]}
+      </span>
+    ) : null;
 
   const noOwnerStripe =
     showSemDono && !isCritical && !isHigh && !active
@@ -211,6 +233,16 @@ export const ConversationItem = memo(function ConversationItem({
                 {thread.aiState}
               </span>
             ) : null}
+            {devFlowProspectingUi && followUpDue ? (
+              <span
+                className="rounded bg-red-100 px-1 py-0.5 text-[9px] font-bold text-red-950 ring-1 ring-red-200/85"
+                title="Follow-up comercial: hoje ou em atraso"
+                data-testid="prospect-followup-due-chip"
+              >
+                FU hoje
+              </span>
+            ) : null}
+            {devFlowProspectingUi ? stageChip : null}
           </div>
 
           <div className="mt-1 flex flex-wrap items-center gap-1">

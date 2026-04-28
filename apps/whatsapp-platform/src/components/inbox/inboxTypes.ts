@@ -1,3 +1,8 @@
+import type { ProspectData } from "@/modules/inbox/prospectSales";
+import type { InboxProspectLens } from "@/modules/inbox/inboxProspectLens";
+
+export type { InboxProspectLens };
+
 export type InboxUser = { id: string; name: string; email: string };
 export type InboxTag = { id: string; name: string; color: string };
 
@@ -57,6 +62,7 @@ export type WaInboxThreadRow = {
     interest?: string;
     budget?: string;
     urgency?: string;
+    prospect?: ProspectData;
   } | null;
   /** Snapshot do funil IA na thread */
   aiState?: string | null;
@@ -110,22 +116,17 @@ export const INBOX_QK = {
     filter?: InboxConversationsFilter,
     lineFilter?: string | null,
     queueFilter?: string | null,
-    priorityFilter?: string | null
+    priorityFilter?: string | null,
+    prospectLens?: InboxProspectLens | null
   ) =>
-    filter
-      ? ([
-          "inbox-conversations",
-          filter,
-          lineFilter ?? "all-lines",
-          queueFilter ?? "all-queues",
-          priorityFilter ?? "all-priority",
-        ] as const)
-      : ([
-          "inbox-conversations",
-          lineFilter ?? "all-lines",
-          queueFilter ?? "all-queues",
-          priorityFilter ?? "all-priority",
-        ] as const),
+    [
+      "inbox-conversations",
+      filter ?? "all",
+      lineFilter ?? "all-lines",
+      queueFilter ?? "all-queues",
+      priorityFilter ?? "all-priority",
+      prospectLens ?? "all-prospect",
+    ] as const,
   thread: (threadId: string) => ["inbox-thread", threadId] as const,
   messages: (threadId: string) => ["inbox-messages", threadId] as const,
   internalNotes: (threadId: string) => ["inbox-internal-notes", threadId] as const,

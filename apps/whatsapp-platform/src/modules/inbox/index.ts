@@ -26,6 +26,14 @@ export type {
   WaInboxListedThread,
   WaInboxConversationPhaseFilter,
 } from "./waInboxQueries";
+export { waInboxProspectMetrics } from "./waInboxProspectMetrics";
+export type { InboxProspectMetricsRow } from "./waInboxProspectMetrics";
+export {
+  INBOX_PROSPECT_LENS,
+  INBOX_PROSPECT_LENS_LABELS,
+  isInboxProspectLens,
+  type InboxProspectLens,
+} from "./inboxProspectLens";
 export {
   assignThread,
   unassignThread,

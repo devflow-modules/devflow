@@ -12,9 +12,12 @@ import {
 import { INBOX_QK } from "./inboxTypes";
 import type {
   InboxConversationsFilter,
+  InboxProspectLens,
   WhatsappLineSummary,
   WaInboxThreadRow,
 } from "./inboxTypes";
+import type { InboxProspectMetricsRow } from "@/modules/inbox/waInboxProspectMetrics";
+import { InboxProspectMetricsBar } from "./InboxProspectMetricsBar";
 import type { InboxQueueOption } from "./inboxFetch";
 import {
   INBOX_SIDEBAR_SECTION_LABELS,
@@ -78,6 +81,10 @@ export function ConversationsList({
   queues,
   onQueueFilterChange,
   priorityFilter,
+  prospectLens,
+  onProspectLensChange,
+  prospectMetrics,
+  prospectUiEnabled = false,
   tenantThreadTotal,
 }: {
   selectedId: string | null;
@@ -92,6 +99,11 @@ export function ConversationsList({
   onQueueFilterChange: (queueId: string | null) => void;
   /** Prioridade CRM (LOW | MEDIUM | HIGH); alinhado com query `priority` da API. */
   priorityFilter?: string | null;
+  prospectLens?: InboxProspectLens | null;
+  onProspectLensChange?: (lens: InboxProspectLens | null) => void;
+  prospectMetrics?: InboxProspectMetricsRow;
+  /** CRM DevFlow interno: métricas, filtros prospectLens e chips comerciais na lista. */
+  prospectUiEnabled?: boolean;
   /** Total de conversas no espaço (sem filtro de fase); usado só para onboarding. */
   tenantThreadTotal?: number;
 }) {
@@ -137,9 +149,24 @@ export function ConversationsList({
     return () => document.removeEventListener("mousedown", onDoc);
   }, [moreFiltersOpen]);
 
+  const effectiveProspectLens = prospectUiEnabled ? (prospectLens ?? null) : null;
+
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: INBOX_QK.conversations(filter, lineFilter, queueFilter, priorityFilter ?? null),
-    queryFn: () => fetchInboxConversations(filter, lineFilter, queueFilter, priorityFilter ?? null),
+    queryKey: INBOX_QK.conversations(
+      filter,
+      lineFilter,
+      queueFilter,
+      priorityFilter ?? null,
+      effectiveProspectLens
+    ),
+    queryFn: () =>
+      fetchInboxConversations(
+        filter,
+        lineFilter,
+        queueFilter,
+        priorityFilter ?? null,
+        effectiveProspectLens
+      ),
     refetchInterval: pollInterval,
   });
 
@@ -193,6 +220,13 @@ export function ConversationsList({
 
   const filterChrome = (
     <>
+      {prospectUiEnabled && onProspectLensChange ? (
+        <InboxProspectMetricsBar
+          metrics={prospectMetrics}
+          activeLens={prospectLens ?? null}
+          onLensChange={onProspectLensChange}
+        />
+      ) : null}
       <div className="flex flex-wrap gap-1.5 border-b df-border-brand bg-[var(--df-bg-elevated)] px-2 py-2.5">
         {FILTER_ORDER.map((f) => {
           const isNeeds = f === "needs_response";
@@ -393,6 +427,7 @@ export function ConversationsList({
                   onAssume={(id) => assumeMut.mutate(id)}
                   onClose={(id) => closeMut.mutate(id)}
                   busyAction={busyAction}
+                  devFlowProspectingUi={prospectUiEnabled}
                 />
               ))}
             </Fragment>

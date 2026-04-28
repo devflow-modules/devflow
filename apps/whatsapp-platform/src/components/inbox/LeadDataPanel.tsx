@@ -18,6 +18,8 @@ import {
 } from "./conversationStateUi";
 import { isWhiteLabelMode } from "@/lib/productMode";
 import { SupportHelpButton } from "@/components/support/SupportHelpButton";
+import { DevFlowProspectPanel } from "./DevFlowProspectPanel";
+import { isDevFlowProspectingEnabled } from "@/lib/devflowProspecting";
 
 function panelSection(title: string, children: ReactNode) {
   return (
@@ -94,6 +96,7 @@ export function LeadDataPanel({
   });
 
   if (!thread) return null;
+  const devFlowProspectingUi = isDevFlowProspectingEnabled(sessionRole);
   const ld = thread.leadData;
   const score = thread.leadScore ?? 0;
   const scoreLabel = leadScoreHumanLabel(score);
@@ -251,6 +254,8 @@ export function LeadDataPanel({
             ) : null}
           </>
         )}
+
+        {!evaluationMode && devFlowProspectingUi ? <DevFlowProspectPanel thread={thread} /> : null}
 
         {panelSection(
           "Sugestão de ação",

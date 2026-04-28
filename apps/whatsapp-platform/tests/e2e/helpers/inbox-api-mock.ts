@@ -245,11 +245,34 @@ export async function installInboxOperationalMocks(page: Page, store: InboxMockS
       return route.fulfill(json({ success: true, data: { users: [] } }));
     }
 
+    if (url.pathname === "/api/inbox/prospect-metrics" && method === "GET") {
+      const open = store.threads.filter((t) => (t as { status?: string }).status !== "CLOSED").length;
+      const hot = store.threads.filter((t) => Number((t as { leadScore?: number }).leadScore) >= 40).length;
+      const pending = store.threads.filter((t) => Number((t as { unansweredInboundCount?: number }).unansweredInboundCount) > 0)
+        .length;
+      return route.fulfill(
+        json({
+          success: true,
+          data: {
+            totalOpen: open,
+            followupDue: 0,
+            proposalOpen: 0,
+            diagnosisScheduled: 0,
+            hotLead: hot,
+            pendingInbound: pending,
+          },
+          error: null,
+          trace_id: "e2e-prospect-metrics",
+        })
+      );
+    }
+
     const conv = parseConversationsPath(url.pathname);
     if (!conv) return route.continue();
 
     if (conv.kind === "list" && method === "GET") {
       const phase = url.searchParams.get("phase") ?? "";
+      const prospectLens = url.searchParams.get("prospectLens") ?? "";
       let threads = [...store.threads];
       if (phase === "closed") {
         threads = threads.filter((t) => t.status === "CLOSED");
@@ -259,6 +282,15 @@ export async function installInboxOperationalMocks(page: Page, store: InboxMockS
         threads = threads.filter((t) => t.conversationState === "awaiting_agent");
       } else if (phase === "mine" || phase === "in_attendance") {
         threads = threads.filter((t) => t.isAssignedToMe === true);
+      }
+      if (prospectLens === "hot_lead") {
+        threads = threads.filter((t) => Number(t.leadScore) >= 40);
+      } else if (prospectLens === "pending_inbound") {
+        threads = threads.filter((t) => Number(t.unansweredInboundCount) > 0);
+      } else if (prospectLens === "proposal_open") {
+        threads = threads.filter(
+          (t) => (t as { leadData?: { prospect?: { salesStage?: string } } }).leadData?.prospect?.salesStage === "PROPOSAL_SENT"
+        );
       }
       return route.fulfill(
         json({
@@ -364,5 +396,6 @@ export async function installInboxOperationalMocks(page: Page, store: InboxMockS
   await page.route("**/api/inbox/team**", handler);
   await page.route("**/api/inbox/tags**", handler);
   await page.route("**/api/inbox/users**", handler);
+  await page.route("**/api/inbox/prospect-metrics**", handler);
   await page.route("**/api/inbox/conversations**", handler);
 }

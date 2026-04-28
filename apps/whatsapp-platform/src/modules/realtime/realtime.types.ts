@@ -118,7 +118,8 @@ export type MessageCreatedPayload = {
     /** CRM leve — score e dados extraídos */
     leadScore?: number;
     priority?: string;
-    leadData?: Record<string, string | undefined> | null;
+    /** Inclui `prospect` (objeto) além de strings CRM legadas. */
+    leadData?: Record<string, unknown> | null;
   };
 };
 

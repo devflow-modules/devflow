@@ -79,6 +79,15 @@ describe("mergeLeadData", () => {
     expect(m.name).toBe("Ana");
     expect(m.interest).toBe("produto X");
   });
+
+  it("preserva prospect quando o patch inbound não traz prospect", () => {
+    const m = mergeLeadData(
+      { name: "Ana", prospect: { companyName: "Clínica X", salesStage: "CONTACTED" as const } },
+      { name: "Ignorado" }
+    );
+    expect(m.prospect?.companyName).toBe("Clínica X");
+    expect(m.prospect?.salesStage).toBe("CONTACTED");
+  });
 });
 
 describe("getConversationPriority", () => {

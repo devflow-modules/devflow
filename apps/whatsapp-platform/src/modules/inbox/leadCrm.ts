@@ -5,12 +5,19 @@ import {
   countInboundTextMessages,
   type AiState,
 } from "@/modules/ai/conversationStateService";
+import {
+  mergeProspectData,
+  parseProspectFromUnknown,
+  type ProspectData,
+} from "@/modules/inbox/prospectSales";
 
 export type LeadData = {
   name?: string;
   interest?: string;
   budget?: string;
   urgency?: string;
+  /** Prospecção comercial (DevFlow) — JSON em `lead_data`. */
+  prospect?: ProspectData;
 };
 
 const PRICE_BUDGET_HINTS =
@@ -85,6 +92,9 @@ export function mergeLeadData(
     const v = patch[k]?.trim();
     if (v && !base[k]) base[k] = v;
   }
+  if (patch.prospect && Object.keys(patch.prospect).length) {
+    base.prospect = mergeProspectData(base.prospect, patch.prospect);
+  }
   return base;
 }
 
@@ -94,7 +104,8 @@ export function getConversationPriority(leadScore: number): WaInboxThreadPriorit
   return WaInboxThreadPriority.LOW;
 }
 
-function parseLeadDataJson(raw: unknown): LeadData {
+/** Parse seguro de `lead_data` (API + refresh inbound). */
+export function parseLeadDataJson(raw: unknown): LeadData {
   if (!raw || typeof raw !== "object") return {};
   const o = raw as Record<string, unknown>;
   const out: LeadData = {};
@@ -102,6 +113,8 @@ function parseLeadDataJson(raw: unknown): LeadData {
     const v = o[k];
     if (typeof v === "string" && v.trim()) out[k] = v.trim();
   }
+  const prospect = parseProspectFromUnknown(o.prospect);
+  if (prospect) out.prospect = prospect;
   return out;
 }
 

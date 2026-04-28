@@ -8,6 +8,8 @@ import {
   fetchWhatsappLineSummaries,
   type WaInboxConversationPhaseFilter,
 } from "@/modules/inbox";
+import { isInboxProspectLens, type InboxProspectLens } from "@/modules/inbox/inboxProspectLens";
+import { isDevFlowProspectingEnabled } from "@/lib/devflowProspecting";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +44,7 @@ export async function GET(request: NextRequest) {
   const businessPhoneNumberId = searchParams.get("businessPhoneNumberId")?.trim() || undefined;
   const phaseParam = searchParams.get("phase")?.trim().toLowerCase() || undefined;
   const queueIdParam = searchParams.get("queueId")?.trim() || undefined;
+  const prospectLensParam = searchParams.get("prospectLens")?.trim() || undefined;
 
   const filters: {
     status?: WaInboxThreadStatus;
@@ -51,6 +54,7 @@ export async function GET(request: NextRequest) {
     businessPhoneNumberId?: string;
     conversationPhase?: WaInboxConversationPhaseFilter;
     queueId?: string;
+    prospectLens?: InboxProspectLens;
   } = {};
   if (phaseParam && VALID_PHASE.has(phaseParam)) {
     filters.conversationPhase = phaseParam as WaInboxConversationPhaseFilter;
@@ -63,6 +67,11 @@ export async function GET(request: NextRequest) {
   if (businessPhoneNumberId) filters.businessPhoneNumberId = businessPhoneNumberId;
   if (queueIdParam) {
     filters.queueId = queueIdParam === "none" ? "none" : queueIdParam;
+  }
+  if (prospectLensParam && isInboxProspectLens(prospectLensParam)) {
+    if (isDevFlowProspectingEnabled(auth.payload.role)) {
+      filters.prospectLens = prospectLensParam;
+    }
   }
 
   try {
@@ -81,6 +90,7 @@ export async function GET(request: NextRequest) {
       if (!filters.conversationPhase) throw phaseError;
       const fallbackFilters = { ...filters };
       delete fallbackFilters.conversationPhase;
+      delete fallbackFilters.prospectLens;
       const degradedFilters = Object.keys(fallbackFilters).length ? fallbackFilters : undefined;
       threads = await waInboxListThreads(auth.payload.tenantId, {
         take,

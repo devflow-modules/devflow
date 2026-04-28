@@ -16,6 +16,7 @@ import {
   SLA_TIER_MEDIUM_MAX_MS,
   type SlaLevel,
 } from "./waInboxSla";
+import type { InboxProspectLens } from "./inboxProspectLens";
 
 /** Filtro operacional (UI). Quando definido, ignora `status` e `assignedTo` legacy. */
 export type WaInboxConversationPhaseFilter =
@@ -37,6 +38,8 @@ export type WaInboxThreadFilters = {
   conversationPhase?: WaInboxConversationPhaseFilter;
   /** Filtra por fila operacional; `"none"` = sem fila (`queue_id` nulo). */
   queueId?: string;
+  /** Filtro em `lead_data.prospect` / score (lista + contagem). */
+  prospectLens?: InboxProspectLens;
 };
 
 const listInclude = {
@@ -122,6 +125,35 @@ function buildWaInboxThreadWhereParts(
       and(Prisma.sql`t.queue_id = ${filters.queueId}`);
     }
   }
+
+  const lens = filters?.prospectLens;
+  if (lens === "followup_due") {
+    and(Prisma.sql`(
+      t.lead_data IS NOT NULL
+      AND NULLIF(btrim(t.lead_data::jsonb #>> '{prospect,nextFollowUpAt}'), '') IS NOT NULL
+      AND (t.lead_data::jsonb #>> '{prospect,nextFollowUpAt}') ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+      AND (t.lead_data::jsonb #>> '{prospect,nextFollowUpAt}')::timestamptz
+        <= (date_trunc('day', now()) + interval '1 day' - interval '1 second')
+    )`);
+  } else if (lens === "proposal_open") {
+    and(Prisma.sql`t.lead_data::jsonb->'prospect'->>'salesStage' = 'PROPOSAL_SENT'`);
+  } else if (lens === "diagnosis_scheduled") {
+    and(Prisma.sql`t.lead_data::jsonb->'prospect'->>'salesStage' = 'DIAGNOSIS_SCHEDULED'`);
+  } else if (lens === "hot_lead") {
+    and(Prisma.sql`t.lead_score >= 40`);
+  } else if (lens === "pending_inbound") {
+    and(Prisma.sql`t.status::text <> 'CLOSED'`);
+    and(Prisma.sql`EXISTS (
+      SELECT 1 FROM wa_inbox_messages mi
+      WHERE mi.thread_id = t.id AND mi.tenant_id = t.tenant_id AND mi.direction = 'INBOUND'
+        AND mi.ts > COALESCE(
+          (SELECT MAX(mo.ts) FROM wa_inbox_messages mo
+           WHERE mo.thread_id = t.id AND mo.tenant_id = t.tenant_id AND mo.direction = 'OUTBOUND'),
+          'epoch'::timestamp
+        )
+    )`);
+  }
+
   return parts;
 }
 
@@ -357,6 +389,15 @@ export async function waInboxCountThreads(
   }
   if (filters?.tag) {
     where.threadTags = { some: { tenantId, tagId: filters.tag } };
+  }
+
+  if (filters?.prospectLens) {
+    const whereParts = buildWaInboxThreadWhereParts(tenantId, filters, currentUserId);
+    const whereSql = combineWhereParts(whereParts);
+    const rows = await prisma.$queryRaw<[{ c: bigint }]>(Prisma.sql`
+      SELECT COUNT(*)::bigint AS c FROM wa_inbox_threads t WHERE ${whereSql}
+    `);
+    return Number(rows[0]?.c ?? 0);
   }
 
   return prisma.waInboxThread.count({ where });

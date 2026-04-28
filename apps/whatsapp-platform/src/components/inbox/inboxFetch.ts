@@ -5,10 +5,12 @@ import {
   protectedApiUserMessage,
 } from "@/lib/protected-fetch";
 import { unwrapApiData } from "@/lib/api-json-client";
+import type { InboxProspectMetricsRow } from "@/modules/inbox/waInboxProspectMetrics";
 import type {
   WaInboxMessageRow,
   WaInboxThreadRow,
   InboxConversationsFilter,
+  InboxProspectLens,
   WhatsappLineSummary,
   InternalNoteRow,
 } from "./inboxTypes";
@@ -26,7 +28,8 @@ function buildConversationsUrl(
   filter?: InboxConversationsFilter,
   businessPhoneNumberId?: string | null,
   queueId?: string | null,
-  priority?: string | null
+  priority?: string | null,
+  prospectLens?: InboxProspectLens | null
 ): string {
   const params = new URLSearchParams({ limit: "100" });
   if (filter === "all") {
@@ -43,6 +46,9 @@ function buildConversationsUrl(
   if (priority?.trim()) {
     params.set("priority", priority.trim().toUpperCase());
   }
+  if (prospectLens) {
+    params.set("prospectLens", prospectLens);
+  }
   return `/api/inbox/conversations?${params.toString()}`;
 }
 
@@ -50,13 +56,14 @@ export async function fetchInboxConversations(
   filter?: InboxConversationsFilter,
   businessPhoneNumberId?: string | null,
   queueId?: string | null,
-  priority?: string | null
+  priority?: string | null,
+  prospectLens?: InboxProspectLens | null
 ): Promise<{
   threads: WaInboxThreadRow[];
   pagination: { limit: number; offset: number; total: number };
 }> {
   const res = await fetchProtected(
-    buildConversationsUrl(filter, businessPhoneNumberId, queueId, priority)
+    buildConversationsUrl(filter, businessPhoneNumberId, queueId, priority, prospectLens)
   );
   if (!res.ok) throw new Error(await inboxFailMessage(res));
   const json = (await res.json()) as {
@@ -256,6 +263,40 @@ export async function updateConversationStatus(
     body: JSON.stringify({ status }),
   });
   if (!res.ok) throw new Error(await inboxFailMessage(res));
+}
+
+/** Atualiza `leadData.prospect` (prospecção DevFlow). */
+export async function patchInboxThreadProspect(
+  threadId: string,
+  body: Record<string, unknown>
+): Promise<WaInboxThreadRow["leadData"]> {
+  const res = await fetchProtected(`/api/inbox/conversations/${encodeURIComponent(threadId)}/prospect`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
+  const json = (await res.json()) as {
+    success: boolean;
+    data?: { leadData: WaInboxThreadRow["leadData"] };
+  };
+  if (!json.success || !json.data?.leadData) {
+    throw new Error("Resposta inválida ao atualizar prospecção");
+  }
+  return json.data.leadData;
+}
+
+export async function fetchInboxProspectMetrics(): Promise<InboxProspectMetricsRow> {
+  const res = await fetchProtected("/api/inbox/prospect-metrics");
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
+  const json = (await res.json()) as {
+    success: boolean;
+    data: InboxProspectMetricsRow | null;
+  };
+  if (!json.success || !json.data) {
+    throw new Error("Resposta inválida ao carregar métricas de prospecção");
+  }
+  return json.data;
 }
 
 export async function addTagToConversation(threadId: string, tagId: string): Promise<void> {
