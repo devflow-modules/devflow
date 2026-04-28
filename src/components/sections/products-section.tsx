@@ -47,10 +47,10 @@ const products = [
   },
   {
     icon: Sparkles,
-    iconBg: "bg-slate-100",
-    iconColor: "text-slate-400",
+    iconBg: "bg-muted/40",
+    iconColor: "text-muted-foreground",
     tag: "Em breve",
-    tagColor: "text-slate-400",
+    tagColor: "text-muted-foreground",
     title: "Próximo produto",
     subtitle: "Em desenvolvimento",
     description:
@@ -63,7 +63,7 @@ const products = [
     cta: "Quero saber",
     href: "/contato",
     external: false,
-    accent: "border-dashed border-slate-200",
+    accent: "border-dashed border-border",
     disabled: true,
   },
 ];
@@ -72,7 +72,7 @@ export function ProductsSection() {
   return (
     <section
       id="produtos"
-      className="bg-[#f8fafc] py-24 sm:py-28"
+      className="border-y df-border-brand bg-[var(--devflow-surface)] py-24 sm:py-28"
       aria-labelledby="products-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -81,17 +81,17 @@ export function ProductsSection() {
           <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
           <h2
             id="products-heading"
-            className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+            className="df-text-primary text-2xl font-semibold tracking-tight sm:text-3xl"
           >
             Quando ferramenta grátis não basta mais
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="df-text-secondary mt-3 leading-relaxed">
             Quando precisa de mais que ferramenta avulsa.
           </p>
           <p className="mt-4 text-sm font-medium text-primary/90">
             Agora que você viu o rápido, veja o que escala.
           </p>
-          <p className="mx-auto mt-6 max-w-lg text-sm text-slate-600">
+          <p className="df-text-secondary mx-auto mt-6 max-w-lg text-sm leading-relaxed">
             Teste sem risco — não fez sentido, você não usa.
           </p>
         </div>
@@ -120,13 +120,13 @@ export function ProductsSection() {
                 </div>
               </div>
 
-              <h3 className="mt-4 text-lg font-semibold text-foreground">{product.title}</h3>
-              <p className="text-sm font-medium text-muted-foreground">{product.subtitle}</p>
-              <p className="mt-2 flex-1 text-sm text-slate-600">{product.description}</p>
+              <h3 className="df-text-primary mt-4 text-lg font-semibold">{product.title}</h3>
+              <p className="df-text-secondary text-sm font-medium">{product.subtitle}</p>
+              <p className="df-text-secondary mt-2 flex-1 text-sm leading-relaxed">{product.description}</p>
 
               <ul className="mt-4 space-y-1.5">
                 {product.highlights.map((item) => (
-                  <li key={item} className="flex items-center gap-2 text-xs text-slate-500">
+                  <li key={item} className="df-text-secondary flex items-center gap-2 text-xs leading-relaxed">
                     <span className="size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
                     {item}
                   </li>
@@ -139,8 +139,8 @@ export function ProductsSection() {
                   "mt-6 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold",
                   "transition-all duration-200",
                   product.disabled
-                    ? "border border-dashed border-slate-300 bg-slate-50 text-slate-400 cursor-default pointer-events-none"
-                    : "border border-border bg-white text-foreground hover:bg-slate-50"
+                    ? "df-text-secondary cursor-default border border-dashed border-border bg-muted/20 opacity-60 pointer-events-none"
+                    : "df-surface-elevated border border-border text-foreground hover:bg-muted/20"
                 )}
                 tabIndex={product.disabled ? -1 : undefined}
                 aria-disabled={product.disabled}
@@ -155,7 +155,7 @@ export function ProductsSection() {
             </article>
           ))}
         </div>
-        <p className="mx-auto mt-10 max-w-md text-center text-xs text-slate-500">
+        <p className="df-text-muted mx-auto mt-10 max-w-md text-center text-xs leading-relaxed">
           Onde for grátis: sem cartão. Pode parar quando quiser.
         </p>
       </div>

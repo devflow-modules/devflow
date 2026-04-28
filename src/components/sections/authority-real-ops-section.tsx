@@ -31,11 +31,11 @@ export function AuthorityRealOpsSection() {
           <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
           <h2
             id="authority-heading"
-            className="text-2xl font-bold tracking-tight sm:text-3xl"
+            className="df-text-primary text-2xl font-bold tracking-tight sm:text-3xl"
           >
             Feito por quem opera de verdade
           </h2>
-          <p className="mt-4 text-sm leading-relaxed text-slate-400 sm:text-base">
+          <p className="df-text-secondary mt-4 text-sm leading-relaxed sm:text-base">
             Infra validada em produção — não protótipo.
           </p>
         </div>
@@ -52,8 +52,8 @@ export function AuthorityRealOpsSection() {
               <div className="flex size-11 items-center justify-center rounded-xl bg-primary/20">
                 <p.icon className="size-6 text-primary" aria-hidden />
               </div>
-              <h3 className="mt-5 font-bold text-white">{p.title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-400">{p.text}</p>
+              <h3 className="df-text-primary mt-5 font-bold">{p.title}</h3>
+              <p className="df-text-secondary mt-3 text-sm leading-relaxed">{p.text}</p>
             </li>
           ))}
         </ul>

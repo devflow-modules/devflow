@@ -41,7 +41,7 @@ const automationRuns = [
   {
     name: "Pós-venda D+7",
     status: "Disparou agora",
-    tone: "text-slate-700 bg-slate-500/10 border-slate-500/15",
+    tone: "df-text-secondary bg-muted/25 border-border",
   },
 ];
 
@@ -62,7 +62,7 @@ export function ProductPreviewSection() {
         >
           Sua fila respondendo sozinha enquanto o comercial fecha no timing certo
         </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-base font-semibold leading-snug text-slate-700 sm:text-lg">
+        <p className="df-text-secondary mx-auto mt-4 max-w-2xl text-base font-semibold leading-snug sm:text-lg">
           Veja ação no painel: mensagens entrando, automação disparando, SLA apertando e o lead certo subindo — sem
           planilha, sem caos no celular.
         </p>
@@ -75,14 +75,14 @@ export function ProductPreviewSection() {
             background: "linear-gradient(145deg, rgba(148,163,184,0.45), rgba(226,232,240,0.9))",
           }}
         >
-          <div className="overflow-hidden rounded-[1.3rem] border border-slate-200/80 bg-card">
+          <div className="overflow-hidden rounded-[1.3rem] border df-border-brand bg-card">
             <div className="flex items-center gap-2 border-b border-border bg-slate-950 px-4 py-2.5">
               <span className="flex gap-1.5" aria-hidden>
                 <span className="size-2.5 rounded-full bg-red-400/90" />
                 <span className="size-2.5 rounded-full bg-amber-400/90" />
                 <span className="size-2.5 rounded-full bg-emerald-400/90" />
               </span>
-              <p className="ml-2 min-w-0 flex-1 truncate text-center text-[11px] font-medium text-slate-400">
+              <p className="df-text-secondary ml-2 min-w-0 flex-1 truncate text-center text-[11px] font-medium">
                 DevFlow WhatsApp Platform
               </p>
               <span className="shrink-0 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-400">
@@ -90,21 +90,21 @@ export function ProductPreviewSection() {
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-emerald-50/90 px-3 py-2 sm:px-4">
-              <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-emerald-900 sm:text-[11px]">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-emerald-950/35 px-3 py-2 sm:px-4">
+              <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-emerald-200 sm:text-[11px]">
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5">
                   <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" aria-hidden />
                   14 msgs/min
                 </span>
-                <span className="rounded-full bg-white/80 px-2 py-0.5 text-slate-700 ring-1 ring-black/5">3 fluxos ativos</span>
-                <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-amber-900">2 SLA críticos</span>
+                <span className="rounded-full bg-muted/50 px-2 py-0.5 text-foreground ring-1 ring-border">3 fluxos ativos</span>
+                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-amber-100">2 SLA críticos</span>
               </div>
-              <span className="text-[10px] font-semibold text-slate-600 sm:text-[11px]">Último evento há 3s</span>
+              <span className="df-text-secondary text-[10px] font-semibold sm:text-[11px]">Último evento há 3s</span>
             </div>
 
             <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:divide-x lg:divide-border">
               {/* Inbox column */}
-              <div className="flex flex-col border-b border-border bg-gradient-to-b from-slate-50/80 to-background p-4 sm:p-5 lg:border-b-0">
+              <div className="flex flex-col border-b border-border bg-gradient-to-b from-muted/25 to-background p-4 sm:p-5 lg:border-b-0">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-sm font-bold tracking-tight text-foreground">Inbox</p>
                   <Users2 className="size-4 text-muted-foreground" aria-hidden />
@@ -136,17 +136,17 @@ export function ProductPreviewSection() {
                       )}
                     >
                       <div className="flex items-start gap-3">
-                        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/90 text-xs font-bold text-slate-700 shadow-sm ring-1 ring-black/5">
+                        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted/40 text-xs font-bold text-foreground shadow-sm ring-1 ring-border">
                           {row.initials}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-2">
                             <p className="truncate text-xs font-bold text-foreground">{row.contact}</p>
-                            <span className="shrink-0 rounded-md bg-white/80 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-foreground ring-1 ring-black/5">
+                            <span className="shrink-0 rounded-md bg-muted/40 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-foreground ring-1 ring-border">
                               {row.score}
                             </span>
                           </div>
-                          <p className="mt-1 text-[11px] font-medium leading-snug text-slate-600">{row.meta}</p>
+                          <p className="df-text-secondary mt-1 text-[11px] font-medium leading-snug">{row.meta}</p>
                         </div>
                       </div>
                     </div>
@@ -156,7 +156,7 @@ export function ProductPreviewSection() {
 
               {/* Chat + ops column */}
               <div className="flex flex-col bg-background p-4 sm:p-5">
-                <article className="flex flex-1 flex-col rounded-2xl border border-border bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-inner sm:p-5">
+                <article className="flex flex-1 flex-col rounded-2xl border border-border bg-muted/15 p-4 shadow-inner sm:p-5">
                   <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/80 pb-3">
                     <div className="min-w-0">
                       <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Conversa ativa</p>
@@ -165,7 +165,7 @@ export function ProductPreviewSection() {
                         <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
                           Score 94
                         </span>
-                        <span className="rounded-md bg-slate-900/5 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+                        <span className="rounded-md bg-muted/35 px-2 py-0.5 text-[10px] font-semibold text-foreground">
                           SLA 8m
                         </span>
                         <span className="rounded-md bg-sky-500/10 px-2 py-0.5 text-[10px] font-bold text-sky-900">
@@ -180,7 +180,7 @@ export function ProductPreviewSection() {
                   </div>
 
                   <div className="mt-4 flex-1 space-y-3">
-                    <div className="max-w-[88%] rounded-2xl rounded-tl-md border border-border bg-white px-3.5 py-2.5 text-xs leading-relaxed text-slate-700 shadow-sm">
+                    <div className="max-w-[88%] rounded-2xl rounded-tl-md border border-border bg-card px-3.5 py-2.5 text-xs leading-relaxed text-foreground shadow-sm">
                       <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                         Automação · agora
                       </span>
@@ -209,7 +209,7 @@ export function ProductPreviewSection() {
                 </article>
 
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <article className="rounded-2xl border border-border bg-gradient-to-b from-white to-slate-50/70 p-4 shadow-sm sm:p-5">
+                  <article className="rounded-2xl border border-border bg-muted/15 p-4 shadow-sm sm:p-5">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-sm font-bold text-foreground">Automação em execução</p>
                       <Bot className="size-4 text-primary" aria-hidden />
@@ -230,7 +230,7 @@ export function ProductPreviewSection() {
                     </div>
                   </article>
 
-                  <article className="rounded-2xl border border-border bg-gradient-to-b from-white to-slate-50/70 p-4 shadow-sm sm:p-5">
+                  <article className="rounded-2xl border border-border bg-muted/15 p-4 shadow-sm sm:p-5">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-sm font-bold text-foreground">Resultado hoje</p>
                       <BarChart3 className="size-4 text-primary" aria-hidden />
@@ -245,7 +245,7 @@ export function ProductPreviewSection() {
                             </p>
                             <p className="text-sm font-bold tabular-nums text-foreground">{m.value}</p>
                           </div>
-                          <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-200/80">
+                          <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-muted/50">
                             <div
                               className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-sky-500"
                               style={{ width: `${m.pct}%` }}
@@ -262,7 +262,7 @@ export function ProductPreviewSection() {
         </div>
 
         <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-center sm:flex-row sm:text-left">
-          <p className="max-w-md text-sm font-semibold leading-snug text-slate-700">
+          <p className="df-text-secondary max-w-md text-sm font-semibold leading-snug">
             Em 2 minutos você vê a fila, a automação e o SLA — o mesmo gatilho que o time sente quando o produto
             trabalha por ele.
           </p>

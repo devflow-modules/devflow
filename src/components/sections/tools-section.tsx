@@ -57,7 +57,7 @@ export function ToolsSection() {
   return (
     <section
       id="ferramentas"
-      className="bg-white py-14 sm:py-20 lg:py-28"
+      className="border-y df-border-brand bg-[var(--devflow-surface)] py-14 sm:py-20 lg:py-28"
       aria-labelledby="tools-heading"
     >
       <div className="mx-auto max-w-[1200px] px-3 min-[400px]:px-4 sm:px-6 lg:px-8">
@@ -66,14 +66,14 @@ export function ToolsSection() {
           <p className="text-xs font-medium text-primary sm:text-sm">Veja na prática</p>
           <h2
             id="tools-heading"
-            className="mt-2 text-balance text-xl font-bold tracking-tight text-foreground sm:text-3xl lg:text-4xl"
+            className="df-text-primary mt-2 text-balance text-xl font-bold tracking-tight sm:text-3xl lg:text-4xl"
           >
             Ferramentas que você usa hoje
           </h2>
-          <p className="mt-4 text-base leading-relaxed text-slate-600 sm:text-lg">
+          <p className="df-text-secondary mt-4 text-base leading-relaxed sm:text-lg">
             Cada uma resolve uma coisa concreta.
           </p>
-          <p className="mx-auto mt-5 max-w-md text-sm text-slate-500">
+          <p className="df-text-secondary mx-auto mt-5 max-w-md text-sm leading-relaxed">
             Ganhe minutos todo dia — pare de refazer o mesmo processo manual.
           </p>
         </div>
@@ -116,15 +116,15 @@ export function ToolsSection() {
                   )}
                 </div>
 
-                <h3 className="mt-5 text-pretty text-lg font-bold text-foreground sm:mt-6 sm:text-xl">{tool.title}</h3>
+                <h3 className="df-text-primary mt-5 text-pretty text-lg font-bold sm:mt-6 sm:text-xl">{tool.title}</h3>
 
-                <p className="mt-3 text-sm text-slate-500">{tool.pain}</p>
+                <p className="df-text-secondary mt-3 text-sm">{tool.pain}</p>
                 <p className="mt-1 text-sm font-semibold text-primary">{tool.benefit}</p>
-                <p className="mt-2 text-sm text-slate-600">{tool.description}</p>
+                <p className="df-text-secondary mt-2 text-sm leading-relaxed">{tool.description}</p>
 
                 <ul className="mt-5 space-y-2.5 border-t border-border pt-5" role="list">
                   {tool.features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-xs text-slate-600">
+                    <li key={feature} className="df-text-secondary flex items-center gap-2 text-xs leading-relaxed">
                       <span className="size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
                       {feature}
                     </li>
@@ -140,7 +140,7 @@ export function ToolsSection() {
                   "transition-all duration-200",
                   tool.highlight
                     ? "bg-primary text-primary-foreground shadow-[0_4px_14px_rgba(34,197,94,0.28)] hover:bg-[#16a34a]"
-                    : "border-2 border-slate-200 bg-white text-foreground hover:border-primary/35"
+                    : "df-surface-elevated border-2 text-foreground hover:border-primary/35"
                 )}
               >
                 <span className="text-balance sm:hidden">Usar agora</span>
@@ -151,7 +151,7 @@ export function ToolsSection() {
           ))}
         </div>
 
-        <p className="mx-auto mt-12 max-w-lg text-center text-xs text-slate-500">
+        <p className="df-text-muted mx-auto mt-12 max-w-lg text-center text-xs leading-relaxed">
           Grátis nas ferramentas acima · Sem cartão · Abre no navegador
         </p>
       </div>

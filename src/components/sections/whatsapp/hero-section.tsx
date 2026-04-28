@@ -46,6 +46,7 @@ export function HeroSection() {
       className="df-page df-brand-gradient relative overflow-hidden border-b df-border-brand py-16 sm:py-20 lg:py-28"
     >
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
+        <div className="absolute inset-0 df-gradient-text-scrim" />
         <div
           className="absolute -top-32 -right-24 h-80 w-80 rounded-full opacity-45"
           style={{ background: "radial-gradient(circle, rgba(37, 211, 102, 0.18) 0%, transparent 72%)" }}
@@ -61,23 +62,23 @@ export function HeroSection() {
 
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
           <div className="space-y-7">
-            <span className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border df-border-brand bg-card/90 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground shadow-sm backdrop-blur-sm sm:text-xs">
-              <Radio className="size-3.5 shrink-0 text-emerald-600" aria-hidden />
-              <span className="text-emerald-700">Fila ativa</span>
-              <span className="hidden text-slate-300 sm:inline" aria-hidden>
+            <span className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border df-border-brand bg-card/90 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide shadow-sm backdrop-blur-sm sm:text-xs">
+              <Radio className="size-3.5 shrink-0 text-emerald-500" aria-hidden />
+              <span className="text-emerald-400">Fila ativa</span>
+              <span className="df-text-muted hidden sm:inline" aria-hidden>
                 ·
               </span>
-              <span className="w-full pl-5 text-slate-600 sm:w-auto sm:pl-0">API oficial · inbox · IA · score · SLA</span>
+              <span className="df-text-secondary w-full pl-5 sm:w-auto sm:pl-0">API oficial · inbox · IA · score · SLA</span>
             </span>
 
             <div className="space-y-5">
               <h1
                 id="whatsapp-hero-heading"
-                className="text-balance text-[1.65rem] font-bold leading-[1.12] tracking-tight text-foreground sm:text-4xl sm:leading-[1.1] lg:text-[2.65rem] lg:leading-[1.08]"
+                className="df-text-primary text-balance text-[1.65rem] font-bold leading-[1.15] tracking-tight sm:text-4xl sm:leading-[1.12] lg:text-[2.65rem] lg:leading-[1.08]"
               >
                 Implementamos sua operação de WhatsApp para responder rápido e vender com previsibilidade
               </h1>
-              <p className="df-text-muted max-w-xl text-base font-semibold leading-snug sm:text-lg sm:leading-snug">
+              <p className="df-text-secondary max-w-xl text-base font-semibold leading-snug sm:text-lg sm:leading-snug">
                 Da arquitetura de atendimento ao painel operacional, a DevFlow configura o fluxo completo com
                 inbox multiatendente, automação e IA aplicada ao repetitivo.
               </p>
@@ -110,7 +111,7 @@ export function HeroSection() {
               {heroPoints.map((point) => (
                 <li
                   key={point}
-                  className="flex items-start gap-3 text-sm leading-snug text-muted-foreground sm:text-[0.95rem]"
+                  className="df-text-secondary flex items-start gap-3 text-sm leading-snug sm:text-[0.95rem]"
                 >
                   <CheckCircle2 className="mt-0.5 size-[1.05rem] shrink-0 text-emerald-600" aria-hidden />
                   <span>{point}</span>
@@ -118,7 +119,7 @@ export function HeroSection() {
               ))}
             </ul>
 
-            <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
+            <p className="df-text-secondary text-xs leading-relaxed sm:text-sm">
               Já é cliente?{" "}
               <Link
                 href={whatsappAppUrl("/inbox")}
@@ -126,7 +127,7 @@ export function HeroSection() {
               >
                 Abrir inbox
               </Link>
-              <span className="text-slate-300"> · </span>
+              <span className="df-text-muted"> · </span>
               <Link
                 href="/contato"
                 className="font-semibold text-foreground underline decoration-slate-300 underline-offset-4 hover:text-primary hover:decoration-primary/40"
@@ -152,7 +153,7 @@ export function HeroSection() {
                   <span className="size-2.5 rounded-full bg-amber-400/90" />
                   <span className="size-2.5 rounded-full bg-emerald-400/90" />
                 </span>
-                <p className="ml-2 min-w-0 flex-1 truncate text-center text-[11px] font-medium text-slate-400">
+                <p className="df-text-secondary ml-2 min-w-0 flex-1 truncate text-center text-[11px] font-medium">
                   Operações · agora
                 </p>
                 <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-400">
@@ -163,28 +164,28 @@ export function HeroSection() {
               <div className="space-y-5 p-4 sm:p-6">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-sm font-semibold tracking-tight text-foreground">Painel operacional</p>
-                  <span className="text-[11px] font-semibold text-emerald-700">Atualizado agora</span>
+                  <span className="text-[11px] font-semibold text-emerald-400/95">Atualizado agora</span>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <article className="rounded-2xl border border-border bg-gradient-to-b from-white to-slate-50/80 p-4 shadow-sm">
+                  <article className="rounded-2xl border border-border bg-muted/20 p-4 shadow-sm">
                     <MessageCircleMore className="size-4 text-primary" aria-hidden />
-                    <p className="mt-2.5 text-2xl font-bold tabular-nums tracking-tight text-foreground">1.284</p>
-                    <p className="mt-0.5 text-[11px] font-medium leading-tight text-muted-foreground">
+                    <p className="df-text-primary mt-2.5 text-2xl font-bold tabular-nums tracking-tight">1.284</p>
+                    <p className="df-text-secondary mt-0.5 text-[11px] font-medium leading-tight">
                       Mensagens · últimas 24h
                     </p>
                   </article>
-                  <article className="rounded-2xl border border-border bg-gradient-to-b from-white to-slate-50/80 p-4 shadow-sm">
+                  <article className="rounded-2xl border border-border bg-muted/20 p-4 shadow-sm">
                     <Users2 className="size-4 text-sky-600" aria-hidden />
-                    <p className="mt-2.5 text-2xl font-bold tabular-nums tracking-tight text-foreground">74%</p>
-                    <p className="mt-0.5 text-[11px] font-medium leading-tight text-muted-foreground">
+                    <p className="df-text-primary mt-2.5 text-2xl font-bold tabular-nums tracking-tight">74%</p>
+                    <p className="df-text-secondary mt-0.5 text-[11px] font-medium leading-tight">
                       Fechadas sem humano
                     </p>
                   </article>
-                  <article className="rounded-2xl border border-border bg-gradient-to-b from-white to-slate-50/80 p-4 shadow-sm">
+                  <article className="rounded-2xl border border-border bg-muted/20 p-4 shadow-sm">
                     <BarChart3 className="size-4 text-emerald-600" aria-hidden />
-                    <p className="mt-2.5 text-2xl font-bold tabular-nums tracking-tight text-foreground">+31%</p>
-                    <p className="mt-0.5 text-[11px] font-medium leading-tight text-muted-foreground">
+                    <p className="df-text-primary mt-2.5 text-2xl font-bold tabular-nums tracking-tight">+31%</p>
+                    <p className="df-text-secondary mt-0.5 text-[11px] font-medium leading-tight">
                       Lead → venda · vs. semana passada
                     </p>
                   </article>
@@ -192,7 +193,7 @@ export function HeroSection() {
 
                 <div className="rounded-2xl border border-border bg-muted/25 p-4">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <p className="df-text-secondary text-[11px] font-bold uppercase tracking-wider">
                       Fila priorizada
                     </p>
                     <span className="text-[10px] font-bold text-amber-700">2 SLA no limite</span>
@@ -207,11 +208,11 @@ export function HeroSection() {
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                             <p className="truncate text-xs font-semibold text-foreground">{item.name}</p>
-                            <span className="shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                            <span className="df-text-secondary shrink-0 rounded-md bg-muted/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
                               {item.tag}
                             </span>
                           </div>
-                          <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{item.status}</p>
+                          <p className="df-text-secondary mt-0.5 truncate text-[11px]">{item.status}</p>
                         </div>
                       </div>
                     ))}

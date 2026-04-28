@@ -28,20 +28,20 @@ export function HowItWorksHub() {
   return (
     <section
       id="como-funciona-hub"
-      className="bg-white py-16 sm:py-20"
+      className="border-y df-border-brand bg-[var(--devflow-surface)] py-16 sm:py-20"
       aria-labelledby="how-it-works-hub-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
-          <p className="text-sm text-slate-500">Agora que você entendeu o mapa:</p>
+          <p className="df-text-secondary text-sm">Agora que você entendeu o mapa:</p>
           <h2
             id="how-it-works-hub-heading"
-            className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
+            className="df-text-primary mt-2 text-2xl font-bold tracking-tight sm:text-3xl"
           >
             Como funciona
           </h2>
-          <p className="mt-4 text-slate-600">
+          <p className="df-text-secondary mt-4 leading-relaxed">
             Três passos. Direto ao ponto.
           </p>
         </div>
@@ -69,8 +69,8 @@ export function HowItWorksHub() {
                 <span className="text-2xl font-bold text-primary/20">{step.number}</span>
               </div>
 
-              <h3 className="mt-4 font-semibold text-foreground">{step.title}</h3>
-              <p className="mt-2 text-sm text-slate-600">{step.description}</p>
+              <h3 className="df-text-primary mt-4 font-semibold">{step.title}</h3>
+              <p className="df-text-secondary mt-2 text-sm leading-relaxed">{step.description}</p>
             </article>
           ))}
         </div>

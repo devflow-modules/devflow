@@ -11,11 +11,11 @@ export function FinalCTASection() {
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary/90 sm:text-sm">Chega de fila parada</p>
           <h2
             id="final-cta-heading"
-            className="mt-3 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+            className="df-text-primary mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl"
           >
             Quer sair da conversa com um plano de implementação claro?
           </h2>
-          <p className="df-text-muted mx-auto mt-4 max-w-2xl text-base font-semibold leading-snug sm:text-lg">
+          <p className="df-text-secondary mx-auto mt-4 max-w-2xl text-base font-semibold leading-snug sm:text-lg">
             Comece com diagnóstico e veja a demo guiada para entender como a operação funciona no dia a dia.
           </p>
 
@@ -41,7 +41,7 @@ export function FinalCTASection() {
               <ArrowRight className="size-4" aria-hidden />
             </Link>
           </div>
-          <p className="mx-auto mt-6 max-w-lg text-center text-xs font-medium leading-relaxed text-muted-foreground sm:text-sm">
+          <p className="df-text-secondary mx-auto mt-6 max-w-lg text-center text-xs font-medium leading-relaxed sm:text-sm">
             Prefere e-mail?{" "}
             <Link
               href="/contato"

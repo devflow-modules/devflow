@@ -24,7 +24,7 @@ export function ResultsSocialProofSection() {
   return (
     <section
       id="resultados-reais"
-      className="bg-white py-24 sm:py-28"
+      className="border-y df-border-brand bg-[var(--devflow-background)] py-24 sm:py-28"
       aria-labelledby="results-social-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -33,10 +33,10 @@ export function ResultsSocialProofSection() {
             <TrendingUp className="size-3.5" aria-hidden />
             Antes → depois
           </div>
-          <p className="text-sm text-slate-500">Na prática, o que muda:</p>
+          <p className="df-text-secondary text-sm leading-relaxed">Na prática, o que muda:</p>
           <h2
             id="results-social-heading"
-            className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
+            className="df-text-primary mt-2 text-2xl font-bold tracking-tight sm:text-3xl"
           >
             Menos manual, mais fluxo
           </h2>
@@ -52,15 +52,15 @@ export function ResultsSocialProofSection() {
               )}
             >
               <div className={cn("border-l-4 pl-4", s.accent)}>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                <p className="df-text-muted text-[10px] font-bold uppercase tracking-wider">
                   Antes
                 </p>
-                <p className="mt-2 text-sm font-medium text-slate-700">{s.antes}</p>
+                <p className="df-text-primary mt-2 text-sm font-medium leading-relaxed">{s.antes}</p>
               </div>
               <div className="my-5 h-px bg-border" aria-hidden />
               <div className="rounded-xl bg-primary/5 px-4 py-3">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-primary">Depois</p>
-                <p className="mt-2 text-sm font-semibold text-foreground">{s.depois}</p>
+                <p className="df-text-primary mt-2 text-sm font-semibold leading-relaxed">{s.depois}</p>
               </div>
             </li>
           ))}

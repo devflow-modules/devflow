@@ -45,7 +45,7 @@ export function WhereToStartSection() {
   return (
     <section
       id="por-onde-comecar"
-      className="bg-gradient-to-b from-slate-50 to-white py-10 sm:py-14 lg:py-16"
+      className="border-y df-border-brand bg-gradient-to-b from-[var(--devflow-surface)] to-[var(--devflow-background)] py-10 sm:py-14 lg:py-16"
       aria-labelledby="where-start-heading"
     >
       <div className="mx-auto max-w-[1200px] px-3 min-[400px]:px-4 sm:px-6 lg:px-8">
@@ -53,14 +53,14 @@ export function WhereToStartSection() {
           <div className="mx-auto mb-3 h-1 w-12 rounded-full bg-primary sm:mb-4" aria-hidden />
           <h2
             id="where-start-heading"
-            className="text-balance text-xl font-bold tracking-tight text-foreground sm:text-2xl lg:text-3xl"
+            className="df-text-primary text-balance text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl"
           >
             Por onde começar?
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="df-text-secondary mt-3 leading-relaxed">
             Três caminhos. Um clique.
           </p>
-          <p className="mt-4 text-sm text-slate-500">
+          <p className="df-text-muted mt-4 text-sm leading-relaxed">
             Agora que você viu o hub, escolhe o que resolve sua urgência de hoje.
           </p>
         </div>
@@ -86,8 +86,8 @@ export function WhereToStartSection() {
                 >
                   <p.icon className="size-6" aria-hidden />
                 </div>
-                <h3 className="mt-3 text-pretty text-base font-bold text-foreground sm:mt-4 sm:text-lg">{p.title}</h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">{p.body}</p>
+                <h3 className="df-text-primary mt-3 text-pretty text-base font-bold sm:mt-4 sm:text-lg">{p.title}</h3>
+                <p className="df-text-secondary mt-2 flex-1 text-sm leading-relaxed">{p.body}</p>
                 <span className="mt-5 inline-flex min-h-10 flex-wrap items-center gap-2 text-left text-sm font-bold leading-snug text-primary sm:mt-6">
                   {p.href === "/produtos" ? (
                     <>
@@ -99,7 +99,7 @@ export function WhereToStartSection() {
                   )}
                   <ArrowRight className="size-4 shrink-0" aria-hidden />
                 </span>
-                <p className="mt-3 text-xs font-medium text-slate-500">{p.foot}</p>
+                <p className="df-text-muted mt-3 text-xs font-medium leading-relaxed">{p.foot}</p>
               </Link>
             </li>
           ))}

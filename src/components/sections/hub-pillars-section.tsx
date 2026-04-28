@@ -45,7 +45,7 @@ export function HubPillarsSection() {
   return (
     <section
       id="hub-pilares"
-      className="border-y border-border bg-slate-50 py-14 sm:py-20 lg:py-24"
+      className="border-y df-border-brand bg-[var(--devflow-background)] py-14 sm:py-20 lg:py-24"
       aria-labelledby="hub-pillars-heading"
     >
       <div className="mx-auto max-w-[1200px] px-3 min-[400px]:px-4 sm:px-6 lg:px-8">
@@ -53,11 +53,11 @@ export function HubPillarsSection() {
           <div className="mx-auto mb-3 h-1 w-12 rounded-full bg-primary sm:mb-4" aria-hidden />
           <h2
             id="hub-pillars-heading"
-            className="text-balance text-xl font-bold tracking-tight text-foreground sm:text-2xl lg:text-3xl"
+            className="df-text-primary text-balance text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl"
           >
             Um único hub para tudo que sua operação precisa
           </h2>
-          <p className="mt-3 text-base text-slate-600 sm:text-lg">
+          <p className="df-text-secondary mt-3 text-base leading-relaxed sm:text-lg">
             Menos login, menos aba. Tudo aqui.
           </p>
           <p className="mt-4 text-sm font-medium text-primary/90">
@@ -91,14 +91,14 @@ export function HubPillarsSection() {
                   >
                     <p.icon className="size-5 sm:size-6" aria-hidden />
                   </div>
-                  <span className="max-w-[48%] shrink-0 truncate rounded-full border border-border bg-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-muted-foreground sm:max-w-none sm:px-2.5 sm:text-[10px]">
+                  <span className="df-text-secondary max-w-[48%] shrink-0 truncate rounded-full border border-border bg-muted/35 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide sm:max-w-none sm:px-2.5 sm:text-[10px]">
                     {p.badge}
                   </span>
                 </div>
-                <h3 className="mt-3 text-pretty text-base font-bold text-foreground group-hover:text-primary sm:mt-4 sm:text-lg">
+                <h3 className="df-text-primary mt-3 text-pretty text-base font-bold group-hover:text-primary sm:mt-4 sm:text-lg">
                   {p.title}
                 </h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">
+                <p className="df-text-secondary mt-2 flex-1 text-sm leading-relaxed">
                   {p.value}
                 </p>
                 <span className="mt-4 inline-flex min-h-10 items-center gap-1.5 text-sm font-bold text-primary sm:mt-5">

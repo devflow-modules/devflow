@@ -21,7 +21,7 @@ export function Section({
     <section
       className={cn(
         "py-24",
-        alternate && "bg-[#f1f5f9]",
+        alternate && "border-y df-border-brand bg-[var(--devflow-surface)]",
         className
       )}
       {...props}

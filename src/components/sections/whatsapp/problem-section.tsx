@@ -40,7 +40,7 @@ export function ProblemSection() {
         >
           Seu WhatsApp vende, mas a operação manual drena receita
         </h2>
-        <p className="mt-4 text-base font-semibold leading-snug text-slate-700 sm:text-lg">
+        <p className="df-text-secondary mt-4 text-base font-semibold leading-snug sm:text-lg">
           Suporte, vendas ou pós-venda: quando o volume sobe, quem não tem sistema perde velocidade — e perde venda.
         </p>
       </div>

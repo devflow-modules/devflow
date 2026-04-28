@@ -25,7 +25,7 @@ export function Metrics() {
   return (
     <section
       id="impacto"
-      className="bg-[#f1f5f9] py-24"
+      className="border-y df-border-brand bg-[var(--devflow-surface)] py-24"
       aria-labelledby="metrics-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -40,7 +40,7 @@ export function Metrics() {
           >
             Impacto operacional
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="df-text-secondary mt-3 leading-relaxed">
             Números reais de operações usando a DevFlow.
           </p>
         </div>
@@ -57,9 +57,9 @@ export function Metrics() {
               <p className="text-4xl font-bold text-primary sm:text-5xl">
                 {metric.value}
               </p>
-              <p className="mt-2 font-medium text-foreground">{metric.label}</p>
+              <p className="df-text-primary mt-2 font-medium">{metric.label}</p>
               {metric.sub && (
-                <p className="mt-1 text-xs text-slate-600">{metric.sub}</p>
+                <p className="df-text-secondary mt-1 text-xs leading-relaxed">{metric.sub}</p>
               )}
             </article>
           ))}

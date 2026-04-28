@@ -56,7 +56,7 @@
   --popover: var(--devflow-surface-elevated);
   --popover-foreground: var(--devflow-text-primary);
   --primary: var(--devflow-brand);
-  --primary-foreground: #032316;
+  --primary-foreground: var(--devflow-text-primary);
   --secondary: rgba(255, 255, 255, 0.03);
   --secondary-foreground: var(--devflow-text-primary);
   --muted: rgba(255, 255, 255, 0.04);
@@ -91,7 +91,7 @@
   --popover: var(--devflow-surface-elevated);
   --popover-foreground: var(--devflow-text-primary);
   --primary: var(--devflow-brand);
-  --primary-foreground: #032316;
+  --primary-foreground: var(--devflow-text-primary);
   --secondary: rgba(255, 255, 255, 0.03);
   --secondary-foreground: var(--devflow-text-primary);
   --muted: rgba(255, 255, 255, 0.04);
@@ -128,7 +128,8 @@ html[data-theme="client_branded"] {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    line-height: 1.55;
   }
   html {
     @apply font-sans;
@@ -186,8 +187,24 @@ html[data-theme="client_branded"] {
     0 0 0 1px var(--devflow-border-brand),
     0 0 34px rgba(0, 208, 132, 0.2);
 }
-.df-text-muted {
+/** Texto — contraste consistente dark premium */
+.df-text-primary {
+  color: var(--devflow-text-primary);
+}
+.df-text-secondary {
   color: var(--devflow-text-secondary);
+}
+.df-text-muted {
+  color: var(--devflow-text-muted);
+}
+/** Leitura sobre gradiente brand */
+.df-gradient-text-scrim {
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--devflow-background) 78%, transparent) 0%,
+    transparent 42%,
+    color-mix(in srgb, var(--devflow-background) 55%, transparent) 100%
+  );
 }
 .df-border-brand {
   border-color: var(--devflow-border-brand);

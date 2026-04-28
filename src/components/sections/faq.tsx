@@ -2,7 +2,6 @@
 
 import { ChevronDown } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
-import { cn } from "@/lib/utils";
 
 const faqItems = [
   {
@@ -79,11 +78,11 @@ export function Faq() {
           />
           <h2
             id="faq-heading"
-            className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+            className="df-text-primary text-2xl font-semibold tracking-tight sm:text-3xl"
           >
             Perguntas frequentes
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="df-text-secondary mt-3 leading-relaxed">
             Dúvidas comuns sobre a automação de atendimento no WhatsApp.
           </p>
         </div>
@@ -94,11 +93,11 @@ export function Faq() {
               key={i}
               className="group rounded-xl border border-border bg-card [&[open]]:border-primary/30"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-4 font-medium text-foreground transition-colors hover:text-primary [&::-webkit-details-marker]:hidden">
+              <summary className="df-text-primary flex cursor-pointer list-none items-center justify-between px-4 py-4 font-medium transition-colors hover:text-primary [&::-webkit-details-marker]:hidden">
                 {item.question}
-                <ChevronDown className="size-5 shrink-0 transition-transform group-open:rotate-180 text-muted-foreground" />
+                <ChevronDown className="df-text-secondary size-5 shrink-0 transition-transform group-open:rotate-180" />
               </summary>
-              <p className="border-t border-border px-4 py-3 text-slate-600">
+              <p className="df-text-secondary border-t border-border px-4 py-3 leading-relaxed">
                 {item.answer}
               </p>
             </details>

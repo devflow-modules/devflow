@@ -34,11 +34,11 @@ export function WhatsAppProductSection() {
   return (
     <section
       id="automacao-whatsapp"
-      className="bg-[#f1f5f9] py-12 sm:py-16 lg:py-20"
+      className="border-y df-border-brand bg-[var(--devflow-surface)] py-12 sm:py-16 lg:py-20"
       aria-labelledby="whatsapp-product-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <p className="mb-6 text-center text-sm font-medium text-slate-500 sm:text-left">
+        <p className="df-text-secondary mb-6 text-center text-sm font-medium sm:text-left">
           O próximo passo, se atendimento é seu gargalo:
         </p>
         <div className="grid min-w-0 gap-8 lg:grid-cols-2 lg:gap-14 lg:items-center">
@@ -46,13 +46,13 @@ export function WhatsAppProductSection() {
             <div>
               <h2
                 id="whatsapp-product-heading"
-                className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+                className="df-text-primary text-3xl font-bold tracking-tight sm:text-4xl"
               >
                 WhatsApp que responde sozinho — e escala com você
               </h2>
-              <p className="mt-4 text-lg leading-relaxed text-slate-600">
+              <p className="df-text-secondary mt-4 text-lg leading-relaxed">
                 Cliente não espera: quem demora, perde pra quem responde na hora.
-                <span className="mt-2 block text-base text-slate-700">
+                <span className="df-text-primary mt-2 block text-base font-medium">
                   Você ganha tempo; o automático cobre o repetitivo.
                 </span>
               </p>
@@ -62,20 +62,20 @@ export function WhatsAppProductSection() {
               {features.map((feature) => (
                 <div
                   key={feature.title}
-                  className="rounded-2xl border border-border bg-white p-5 shadow-sm"
+                  className="df-surface-elevated rounded-2xl p-5 shadow-sm"
                 >
                   <div className="flex size-9 items-center justify-center rounded-xl bg-primary/12">
                     <feature.icon className="size-4 text-primary" aria-hidden />
                   </div>
-                  <p className="mt-3 text-sm font-bold text-foreground">{feature.title}</p>
-                  <p className="mt-2 text-xs leading-relaxed text-slate-600">{feature.description}</p>
+                  <p className="df-text-primary mt-3 text-sm font-bold">{feature.title}</p>
+                  <p className="df-text-secondary mt-2 text-xs leading-relaxed">{feature.description}</p>
                 </div>
               ))}
             </div>
 
             <ul className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-2" role="list">
               {highlights.map((item) => (
-                <li key={item} className="flex items-center gap-2 text-sm text-slate-700">
+                <li key={item} className="df-text-secondary flex items-center gap-2 text-sm">
                   <Check className="size-4 shrink-0 text-primary" aria-hidden />
                   {item}
                 </li>
@@ -89,7 +89,7 @@ export function WhatsAppProductSection() {
                 size="lg"
                 text="Olá, quero automatizar o atendimento da minha empresa no WhatsApp."
               />
-              <p className="text-xs text-slate-500">
+              <p className="df-text-muted text-xs leading-relaxed">
                 Conversa sem custo · Sem compromisso nessa etapa
               </p>
               <Link
@@ -104,9 +104,9 @@ export function WhatsAppProductSection() {
           </div>
 
           <div className="space-y-5">
-            <div className="rounded-2xl border-2 border-border bg-white p-6 shadow-[0_12px_48px_rgba(0,0,0,0.06)]">
+            <div className="df-surface-elevated rounded-2xl border-2 p-6 shadow-[0_12px_48px_rgba(0,0,0,0.25)]">
               <div className="mb-4 flex items-center justify-between">
-                <p className="text-sm font-bold text-foreground">Painel — hoje</p>
+                <p className="df-text-primary text-sm font-bold">Painel — hoje</p>
                 <span className="rounded-full bg-primary/12 px-2.5 py-1 text-xs font-bold text-primary">
                   Produção
                 </span>
@@ -117,16 +117,16 @@ export function WhatsAppProductSection() {
                   { label: "No bot", value: "74%", color: "text-sky-600" },
                   { label: "Humanos", value: "23", color: "text-orange-600" },
                 ].map((stat) => (
-                  <div key={stat.label} className="rounded-xl bg-slate-50 p-3 text-center">
+                  <div key={stat.label} className="rounded-xl bg-muted/30 p-3 text-center">
                     <p className={cn("text-xl font-extrabold", stat.color)}>{stat.value}</p>
-                    <p className="mt-0.5 text-[10px] font-medium text-muted-foreground">
+                    <p className="df-text-secondary mt-0.5 text-[10px] font-medium">
                       {stat.label}
                     </p>
                   </div>
                 ))}
               </div>
               <div className="mt-6 space-y-2">
-                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                <p className="df-text-secondary text-xs font-bold uppercase tracking-wide">
                   Fila recente
                 </p>
                 {[
@@ -136,14 +136,14 @@ export function WhatsAppProductSection() {
                 ].map((conv) => (
                   <div
                     key={conv.name}
-                    className="flex items-center gap-3 rounded-xl border border-border/60 bg-slate-50/80 px-3 py-2.5"
+                    className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/25 px-3 py-2.5"
                   >
                     <span className={cn("size-2 shrink-0 rounded-full", conv.dot)} aria-hidden />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-semibold text-foreground">{conv.name}</p>
-                      <p className="truncate text-[10px] text-muted-foreground">{conv.status}</p>
+                      <p className="df-text-primary truncate text-xs font-semibold">{conv.name}</p>
+                      <p className="df-text-secondary truncate text-[10px]">{conv.status}</p>
                     </div>
-                    <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
+                    <span className="df-text-muted shrink-0 text-[10px] font-medium">
                       {conv.time}
                     </span>
                   </div>

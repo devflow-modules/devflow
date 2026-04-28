@@ -33,18 +33,18 @@ export function FinalCtaV2() {
           <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
           <h2
             id="final-cta-v2-heading"
-            className="text-2xl font-bold tracking-tight sm:text-3xl"
+            className="df-text-primary text-2xl font-bold tracking-tight sm:text-3xl"
           >
             Sua operação no WhatsApp precisa de método
           </h2>
-          <p className="mt-4 text-base leading-relaxed text-slate-300 sm:text-lg">
+          <p className="df-text-secondary mt-4 text-base leading-relaxed sm:text-lg">
             Diagnóstico inicial para transformar atendimento e vendas em rotina previsível.
           </p>
-          <p className="mt-3 text-sm text-slate-400">
+          <p className="df-text-secondary mt-3 text-sm leading-relaxed">
             Implementação guiada, IA no repetitivo e gestão com SLA no dashboard operacional.
           </p>
 
-          <p className="mt-2 text-xs font-medium text-emerald-400/90">
+          <p className="mt-2 text-xs font-medium text-emerald-400">
             Já em uso hoje em operações reais.
           </p>
 
@@ -76,7 +76,7 @@ export function FinalCtaV2() {
               className="!min-h-12 !border-white/20 !bg-transparent !px-4 !text-white hover:!bg-white/10"
             />
           </div>
-          <p className="mt-6 text-xs text-slate-500">
+          <p className="df-text-muted mt-6 text-xs leading-relaxed">
             Oferta principal: implementação de operação de atendimento e vendas no WhatsApp
           </p>
         </div>

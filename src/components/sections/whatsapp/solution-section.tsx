@@ -37,7 +37,7 @@ export function SolutionSection() {
           >
             Troca improviso por máquina de receita no WhatsApp
           </h2>
-          <p className="mt-4 max-w-2xl text-base font-semibold leading-snug text-slate-700 sm:text-lg">
+          <p className="df-text-secondary mt-4 max-w-2xl text-base font-semibold leading-snug sm:text-lg">
             Menos heroísmo, mais processo: fila organizada, automação no lugar certo e número na mesa pra decidir rápido.
           </p>
           <p className="mt-6 text-sm font-bold text-foreground">

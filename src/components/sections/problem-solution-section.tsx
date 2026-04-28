@@ -50,7 +50,7 @@ export function ProblemSolutionSection() {
   return (
     <section
       id="problema-solucao"
-      className="bg-white py-24 sm:py-28"
+      className="border-y df-border-brand bg-[var(--devflow-surface)] py-24 sm:py-28"
       aria-labelledby="problem-solution-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -59,12 +59,12 @@ export function ProblemSolutionSection() {
           <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
           <h2
             id="problem-solution-heading"
-            className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+            className="df-text-primary text-2xl font-semibold tracking-tight sm:text-3xl"
           >
             Chega de app solto e planilha espalhada
           </h2>
-          <p className="mt-3 text-slate-600">Dor de um lado. Caminho do outro.</p>
-          <p className="mt-3 text-sm text-slate-500">
+          <p className="df-text-secondary mt-3 leading-relaxed">Dor de um lado. Caminho do outro.</p>
+          <p className="df-text-muted mt-3 text-sm leading-relaxed">
             O próximo passo é simples: escolha o par que combina com você.
           </p>
         </div>
@@ -76,24 +76,24 @@ export function ProblemSolutionSection() {
               className="grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-center"
             >
               {/* Problema */}
-              <div className="rounded-2xl border border-red-100 bg-red-50/50 p-5">
+              <div className="rounded-2xl border border-red-500/25 bg-red-950/25 p-5">
                 <div className="flex items-start gap-3">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-red-100">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-red-500/15">
                     <pair.problem.icon className="size-5 text-red-400" aria-hidden />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <X className="size-3.5 text-red-400 shrink-0" aria-hidden />
-                      <p className="text-sm font-semibold text-slate-700">{pair.problem.text}</p>
+                      <p className="df-text-primary text-sm font-semibold">{pair.problem.text}</p>
                     </div>
-                    <p className="mt-1 text-xs text-slate-500">{pair.problem.detail}</p>
+                    <p className="df-text-secondary mt-1 text-xs leading-relaxed">{pair.problem.detail}</p>
                   </div>
                 </div>
               </div>
 
               {/* Seta */}
               <div className="flex justify-center">
-                <div className="flex size-8 items-center justify-center rounded-full border border-border bg-white shadow-sm">
+                <div className="df-surface flex size-8 items-center justify-center rounded-full shadow-sm">
                   <ArrowRight className="size-4 text-primary" aria-hidden />
                 </div>
               </div>
@@ -111,8 +111,8 @@ export function ProblemSolutionSection() {
                     <p className={cn("text-xs font-semibold uppercase tracking-wide", pair.solution.color)}>
                       {pair.solution.label}
                     </p>
-                    <p className="mt-0.5 text-sm font-semibold text-slate-700">{pair.solution.text}</p>
-                    <p className="mt-1 text-xs text-slate-500">{pair.solution.detail}</p>
+                    <p className="df-text-primary mt-0.5 text-sm font-semibold">{pair.solution.text}</p>
+                    <p className="df-text-secondary mt-1 text-xs leading-relaxed">{pair.solution.detail}</p>
                   </div>
                 </div>
               </div>

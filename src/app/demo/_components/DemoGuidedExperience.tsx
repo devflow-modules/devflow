@@ -192,7 +192,7 @@ export function DemoGuidedExperience() {
               <h1 id={titleId} className="mt-4 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                 Veja como a operação de atendimento e vendas funciona no WhatsApp
               </h1>
-              <p className="df-text-muted mt-3">
+              <p className="df-text-secondary mt-3 leading-relaxed">
                 Demo comercial guiada: mensagem de entrada, resposta automática, triagem e handoff para humano
                 no fluxo que implementamos em produção.
               </p>
@@ -214,7 +214,7 @@ export function DemoGuidedExperience() {
               <h2 className="mt-4 text-balance text-xl font-semibold text-foreground">
                 Próximo passo: levar este fluxo para sua operação
               </h2>
-              <p className="df-text-muted mt-2 text-sm">
+              <p className="df-text-secondary mt-2 text-sm leading-relaxed">
                 Você já viu a dinâmica. Agora agende o diagnóstico para desenhar a implementação com a DevFlow.
               </p>
               <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
@@ -236,7 +236,7 @@ export function DemoGuidedExperience() {
                 type="button"
                 onClick={resetDemo}
                 aria-label="Recomeçar a demonstração guiada"
-                className="df-text-muted mt-8 text-xs font-normal underline-offset-4 hover:text-foreground hover:underline"
+                className="df-text-secondary mt-8 text-xs font-normal underline-offset-4 hover:text-foreground hover:underline"
               >
                 Ver a demo de novo
               </button>
@@ -246,7 +246,7 @@ export function DemoGuidedExperience() {
               <div className="min-w-0 space-y-6 sm:space-y-8">
                 {phase === "pick" && (
                   <div>
-                    <p className="df-text-muted text-sm font-medium">
+                    <p className="df-text-secondary text-sm font-medium">
                       Escolha um cenário e simule como um cliente interage com seu WhatsApp.
                     </p>
                     <h2 className="mt-3 text-lg font-semibold text-foreground">1. Escolha o segmento</h2>
@@ -422,7 +422,7 @@ export function DemoGuidedExperience() {
                   )}
                 </div>
 
-                <p className="df-text-muted text-center text-sm lg:text-left">
+                <p className="df-text-secondary text-center text-sm leading-relaxed lg:text-left">
                   Exemplo interativo do fluxo de atendimento e operação no WhatsApp.
                 </p>
               </div>
@@ -466,7 +466,7 @@ export function DemoGuidedExperience() {
           )}
 
           <p className="mt-8 text-center sm:mt-10">
-            <Link href="/" className="df-text-muted text-sm hover:text-foreground" aria-label="Voltar à página inicial">
+            <Link href="/" className="df-text-secondary text-sm hover:text-foreground" aria-label="Voltar à página inicial">
               ← Voltar ao início
             </Link>
           </p>

@@ -40,7 +40,7 @@ export function DifferentiatorsSection() {
         >
           Operação que imprime ticket: escala, controle e performance no mesmo lugar
         </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-base font-semibold leading-snug text-slate-700 sm:text-lg">
+        <p className="df-text-secondary mx-auto mt-4 max-w-2xl text-base font-semibold leading-snug sm:text-lg">
           Você não compra “mensagem bonita”. Compra velocidade de resposta, prioridade certa e número que sustenta
           meta.
         </p>

@@ -69,7 +69,7 @@ function ProductCard({ product }: { product: DevflowCatalogProduct }) {
           ) : null}
         </div>
         <h3 className="mt-4 text-lg font-semibold text-foreground">{product.name}</h3>
-        <p className="df-text-muted mt-1 text-sm">{product.cardPitch}</p>
+        <p className="df-text-secondary mt-1 text-sm leading-relaxed">{product.cardPitch}</p>
         <p className="mt-3 text-xs font-medium text-muted-foreground">
           <span className="text-foreground/80">Para quem:</span> {product.audience}
         </p>
@@ -137,7 +137,7 @@ function ProductCard({ product }: { product: DevflowCatalogProduct }) {
           <Icon className={cn("size-5", styles.icon)} aria-hidden />
         </div>
         <h3 className="mt-4 text-lg font-semibold text-foreground">{product.name}</h3>
-        <p className="df-text-muted mt-1 text-sm">{product.cardPitch}</p>
+        <p className="df-text-secondary mt-1 text-sm leading-relaxed">{product.cardPitch}</p>
         <p className="mt-3 text-xs font-medium text-muted-foreground">
           <span className="text-foreground/80">Para quem:</span> {product.audience}
         </p>

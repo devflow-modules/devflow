@@ -55,7 +55,7 @@ export function Footer() {
             >
               DevFlow Labs
             </Link>
-            <p className="df-text-muted max-w-md text-sm leading-relaxed">
+            <p className="df-text-secondary max-w-md text-sm leading-relaxed">
               Implementação guiada de atendimento e vendas no WhatsApp com IA, inbox multiatendente e dashboard operacional.
             </p>
             <div className="flex flex-col gap-3 pt-1">

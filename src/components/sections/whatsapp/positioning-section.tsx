@@ -25,7 +25,7 @@ export function PositioningSection() {
         >
           Use por dentro ou venda por fora — a plataforma aguenta os dois modelos
         </h2>
-        <p className="mt-4 text-base font-semibold leading-snug text-slate-700 sm:text-lg">
+        <p className="df-text-secondary mt-4 text-base font-semibold leading-snug sm:text-lg">
           Mesma lógica de fila, score e SLA. Só muda quem assina a conta — você ou seu cliente.
         </p>
       </div>
@@ -50,7 +50,7 @@ export function PositioningSection() {
           <Shield className="size-4 text-primary" aria-hidden />
           Zero enrolação: é operação que paga conta
         </p>
-        <p className="mt-2.5 font-semibold leading-snug text-slate-700">
+        <p className="df-text-secondary mt-2.5 font-semibold leading-snug">
           Sem cosmético. Fila, prioridade e métrica para bater meta — hoje no seu CNPJ ou no do seu cliente.
         </p>
       </div>

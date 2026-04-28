@@ -10,6 +10,7 @@ export function ToolsHubHero() {
       aria-labelledby="tools-hub-heading"
     >
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
+        <div className="absolute inset-0 df-gradient-text-scrim" />
         <div
           className="absolute -top-40 -right-40 h-80 w-80 max-w-[100vw] rounded-full opacity-25 sm:opacity-30"
           style={{ background: "radial-gradient(circle, rgba(34, 197, 94, 0.15) 0%, transparent 70%)" }}
@@ -32,11 +33,11 @@ export function ToolsHubHero() {
 
           <h1
             id="tools-hub-heading"
-            className="text-balance text-2xl font-bold tracking-tight text-foreground min-[400px]:text-[1.65rem] sm:text-4xl lg:text-5xl"
+            className="df-text-primary text-balance text-2xl font-bold tracking-tight min-[400px]:text-[1.65rem] sm:text-4xl lg:text-5xl"
           >
             Tudo que você precisa num só hub — grátis pra começar
           </h1>
-          <p className="df-text-muted mt-3 text-base leading-relaxed sm:mt-4 sm:text-lg">
+          <p className="df-text-secondary mt-3 text-base leading-relaxed sm:mt-4 sm:text-lg">
             Menos planilha, menos app solto. Abre o browser e resolve.
           </p>
 
@@ -61,7 +62,7 @@ export function ToolsHubHero() {
               Abrir ferramenta Financeiro
             </Link>
           </div>
-          <p className="df-text-muted mt-3 text-xs sm:mt-4 sm:text-sm">
+          <p className="df-text-muted mt-3 text-xs leading-relaxed sm:mt-4 sm:text-sm">
             Ferramentas gratuitas · Sem instalação
           </p>
         </div>

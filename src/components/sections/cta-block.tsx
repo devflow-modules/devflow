@@ -29,6 +29,7 @@ export function CtaBlock({
       aria-labelledby="cta-block-heading"
     >
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
+        <div className="absolute inset-0 df-gradient-text-scrim" />
         <div
           className="absolute -right-20 -top-20 h-60 w-60 rounded-full opacity-20"
           style={{ background: "radial-gradient(circle, rgba(34, 197, 94, 0.2) 0%, transparent 70%)" }}
@@ -47,11 +48,11 @@ export function CtaBlock({
           <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
           <h2
             id="cta-block-heading"
-            className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+            className="df-text-primary text-2xl font-semibold tracking-tight sm:text-3xl"
           >
             {title}
           </h2>
-          {subtitle && <p className="df-text-muted mt-4">{subtitle}</p>}
+          {subtitle && <p className="df-text-secondary mt-4 leading-relaxed">{subtitle}</p>}
 
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
