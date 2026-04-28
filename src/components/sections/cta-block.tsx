@@ -25,7 +25,7 @@ export function CtaBlock({
 }: CtaBlockProps) {
   return (
     <section
-      className="relative overflow-hidden bg-[#f1f5f9] py-24"
+      className="df-page df-brand-gradient relative overflow-hidden py-24"
       aria-labelledby="cta-block-heading"
     >
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
@@ -43,7 +43,7 @@ export function CtaBlock({
       </div>
 
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl rounded-2xl border border-border bg-card p-8 text-center shadow-sm sm:p-12">
+        <div className="df-surface-elevated mx-auto max-w-2xl rounded-2xl border border-border p-8 text-center shadow-sm sm:p-12">
           <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
           <h2
             id="cta-block-heading"
@@ -51,14 +51,14 @@ export function CtaBlock({
           >
             {title}
           </h2>
-          {subtitle && <p className="mt-4 text-slate-600">{subtitle}</p>}
+          {subtitle && <p className="df-text-muted mt-4">{subtitle}</p>}
 
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
               href={primaryHref}
               className={cn(
                 "inline-flex items-center justify-center gap-2 h-12 rounded-xl px-6 text-base font-semibold",
-                "bg-primary text-primary-foreground transition-all duration-200 hover:bg-primary/90"
+                "bg-primary text-primary-foreground transition-all duration-200 hover:bg-[#00A86B]"
               )}
             >
               {primaryLabel}
@@ -68,7 +68,7 @@ export function CtaBlock({
               <Link
                 href={secondaryLink.href}
                 className={cn(
-                  "inline-flex h-12 min-w-[10rem] items-center justify-center gap-2 rounded-xl border border-border bg-background px-6 text-base font-semibold text-foreground transition-colors hover:bg-muted/60"
+                  "inline-flex h-12 min-w-[10rem] items-center justify-center gap-2 rounded-xl border df-border-brand bg-background px-6 text-base font-semibold text-foreground transition-colors hover:bg-primary/10"
                 )}
               >
                 {secondaryLink.label}

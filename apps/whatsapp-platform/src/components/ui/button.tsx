@@ -4,12 +4,13 @@ export const buttonVariantClasses = {
   primary:
     "bg-[var(--df-brand-600)] text-white hover:bg-[var(--df-brand-700)] border border-transparent shadow-[0_1px_2px_rgba(15,23,42,0.08)] hover:shadow-md",
   secondary:
-    "bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50/80 shadow-sm",
-  ghost: "bg-transparent text-slate-600 hover:bg-slate-100/80 border border-transparent",
+    "bg-[var(--df-bg-elevated)] text-[var(--df-text-primary)] border border-[var(--df-border-subtle)] hover:bg-[var(--df-brand-100)] shadow-sm",
+  ghost:
+    "bg-transparent text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)] border border-transparent",
   destructive:
     "bg-red-600 text-white hover:bg-red-700 border border-transparent shadow-sm focus-visible:ring-red-500/35",
   admin:
-    "bg-[var(--df-admin-50)] text-[var(--df-admin-900)] border border-amber-200/90 hover:bg-amber-100/80 shadow-sm focus-visible:ring-amber-500/30",
+    "bg-[var(--df-admin-50)] text-[var(--df-admin-900)] border border-[var(--df-warning-border)] hover:bg-[var(--df-admin-100)] shadow-sm focus-visible:ring-amber-500/30",
 } as const;
 
 type Variant = keyof typeof buttonVariantClasses;

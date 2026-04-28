@@ -18,46 +18,47 @@
 }
 
 /**
- * WhatsApp Platform — design tokens (DevFlow)
- * Neutros: escala slate (Tailwind). Marca: azul. Áreas administrativas: âmbar discreto.
- * Ver: apps/whatsapp-platform/docs/DESIGN_SYSTEM.md
+ * WhatsApp Platform — design tokens (DevFlow Labs)
+ * Base premium dark + verde tecnologico da marca.
  */
 
+html[data-theme="devflow"],
 :root {
   /* Marca (primária — ações, links, foco) */
-  --df-brand-50: #eff6ff;
-  --df-brand-100: #dbeafe;
-  --df-brand-200: #bfdbfe;
-  --df-brand-400: #60a5fa;
-  --df-brand-500: #3b82f6;
-  --df-brand-600: #2563eb;
-  --df-brand-700: #1d4ed8;
-  --df-brand-800: #1e40af;
+  --df-brand-50: rgba(0, 208, 132, 0.08);
+  --df-brand-100: rgba(0, 208, 132, 0.12);
+  --df-brand-200: rgba(0, 208, 132, 0.18);
+  --df-brand-400: #34e2a3;
+  --df-brand-500: #00d084;
+  --df-brand-600: #00d084;
+  --df-brand-700: #00a86b;
+  --df-brand-800: #008a57;
+  --df-brand-900: #c9ffea;
 
   /* Admin / configuração sensível (selos, secções, PageHeader admin) */
-  --df-admin-50: #fffbeb;
-  --df-admin-100: #fef3c7;
-  --df-admin-200: #fde68a;
-  --df-admin-800: #92400e;
-  --df-admin-900: #78350f;
+  --df-admin-50: rgba(246, 196, 83, 0.12);
+  --df-admin-100: rgba(246, 196, 83, 0.18);
+  --df-admin-200: rgba(246, 196, 83, 0.24);
+  --df-admin-800: #f6c453;
+  --df-admin-900: #ffe4a5;
 
   /* Superfícies semânticas */
-  --df-bg-app: #f8fafc;
-  --df-bg-elevated: #ffffff;
-  --df-border-subtle: rgb(241 245 249 / 0.9);
-  --df-text-primary: #0f172a;
-  --df-text-secondary: #64748b;
-  --df-text-muted: #94a3b8;
+  --df-bg-app: #030607;
+  --df-bg-elevated: #07100f;
+  --df-border-subtle: rgba(0, 208, 132, 0.14);
+  --df-text-primary: #f7f9f8;
+  --df-text-secondary: #a8b3af;
+  --df-text-muted: #8f9f98;
 
   /* Feedback */
-  --df-success-bg: #ecfdf5;
-  --df-success-border: #a7f3d0;
-  --df-success-text: #065f46;
-  --df-danger-bg: #fef2f2;
-  --df-danger-border: #fecaca;
-  --df-danger-text: #991b1b;
-  --df-warning-bg: #fffbeb;
-  --df-warning-border: #fde68a;
+  --df-success-bg: rgba(30, 215, 134, 0.16);
+  --df-success-border: rgba(30, 215, 134, 0.26);
+  --df-success-text: #c4ffe6;
+  --df-danger-bg: rgba(255, 93, 93, 0.16);
+  --df-danger-border: rgba(255, 93, 93, 0.28);
+  --df-danger-text: #ffd2d2;
+  --df-warning-bg: rgba(246, 196, 83, 0.14);
+  --df-warning-border: rgba(246, 196, 83, 0.26);
 
   /* Espaçamento (escala 4 · 8 · 16 · 24 px) */
   --df-space-1: 0.25rem;
@@ -74,13 +75,21 @@
   --df-radius-md: 0.75rem;
   --df-radius-lg: 1rem;
   --df-radius-xl: 1.25rem;
-  --df-shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.04);
-  --df-shadow-sidebar: 4px 0 32px rgba(15, 23, 42, 0.04);
+  --df-shadow-card: 0 8px 26px rgba(0, 0, 0, 0.28);
+  --df-shadow-sidebar: 4px 0 32px rgba(0, 0, 0, 0.35);
 
   /* Layout — alinhado ao AppShell */
   --df-shell-max-width: 72rem;
   --df-shell-px: 1rem;
   --df-shell-py: 2rem;
+}
+
+html[data-theme="client_branded"] {
+  --df-brand-400: var(--client-brand-400, #34e2a3);
+  --df-brand-500: var(--client-brand-primary, #00d084);
+  --df-brand-600: var(--client-brand-primary, #00d084);
+  --df-brand-700: var(--client-brand-primary-hover, #00a86b);
+  --df-brand-800: var(--client-brand-primary-strong, #008a57);
 }
 
 @media (min-width: 640px) {
@@ -99,7 +108,9 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    background-color: var(--df-bg-app);
+    color: var(--df-text-primary);
+    @apply antialiased;
   }
 }
 
@@ -107,6 +118,35 @@
  * Utilitários de produto — preferir estes a classes Tailwind ad hoc repetidas.
  */
 @layer components {
+  .df-page {
+    background: var(--df-bg-app);
+    color: var(--df-text-primary);
+  }
+
+  .df-surface {
+    background: var(--df-bg-elevated);
+    border: 1px solid var(--df-border-subtle);
+  }
+
+  .df-surface-elevated {
+    background: #0b1715;
+    border: 1px solid var(--df-border-subtle);
+  }
+
+  .df-brand-gradient {
+    background-image: linear-gradient(140deg, var(--df-brand-100), transparent 60%);
+  }
+
+  .df-glow-brand {
+    box-shadow:
+      0 0 0 1px var(--df-border-subtle),
+      0 0 26px rgba(0, 208, 132, 0.2);
+  }
+
+  .df-border-brand {
+    border-color: var(--df-border-subtle);
+  }
+
   /* --- Layout & ritmo vertical --- */
   .df-shell-main {
     @apply mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12;
@@ -164,7 +204,9 @@
   }
 
   .df-text-muted {
-    @apply text-sm leading-relaxed text-slate-500;
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+    color: var(--df-text-secondary);
   }
 
   .df-text-page-description {

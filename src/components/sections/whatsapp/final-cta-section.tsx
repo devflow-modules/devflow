@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils";
 
 export function FinalCTASection() {
   return (
-    <section aria-labelledby="final-cta-heading" className="border-t border-border py-20 sm:py-24">
+    <section aria-labelledby="final-cta-heading" className="df-page border-t df-border-brand py-20 sm:py-24">
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl rounded-3xl border border-border bg-card p-8 text-center shadow-[0_24px_80px_-20px_rgba(15,23,42,0.18)] sm:p-12">
+        <div className="df-surface-elevated mx-auto max-w-4xl rounded-3xl border border-border p-8 text-center shadow-[0_24px_80px_-20px_rgba(0,0,0,0.35)] sm:p-12">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary/90 sm:text-sm">Chega de fila parada</p>
           <h2
             id="final-cta-heading"
@@ -15,7 +15,7 @@ export function FinalCTASection() {
           >
             Quer sentir o produto trabalhando por você ainda hoje?
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-base font-semibold leading-snug text-slate-700 sm:text-lg">
+          <p className="df-text-muted mx-auto mt-4 max-w-2xl text-base font-semibold leading-snug sm:text-lg">
             Uma conversa com vendas ou 2 minutos de demo — você escolhe o ritmo. O ganho é o mesmo: menos lead morto,
             mais deal vivo.
           </p>
@@ -34,8 +34,8 @@ export function FinalCTASection() {
             <Link
               href="/demo"
               className={cn(
-                "inline-flex h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-6 text-base font-semibold text-slate-800",
-                "shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 sm:w-auto sm:min-w-[11rem]"
+                "inline-flex h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl border-2 df-border-brand bg-card px-6 text-base font-semibold text-foreground",
+                "shadow-sm transition-all hover:border-primary/40 hover:bg-primary/10 sm:w-auto sm:min-w-[11rem]"
               )}
             >
               Ver demo em 2 minutos

@@ -8,9 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const themeMode = process.env.NEXT_PUBLIC_THEME_MODE === "client_branded" ? "client_branded" : "devflow";
   return (
-    <html lang="pt-BR" className="h-full overflow-hidden">
-      <body className="h-full overflow-hidden font-sans antialiased">{children}</body>
+    <html lang="pt-BR" data-theme={themeMode} className="h-full overflow-hidden">
+      <body className="df-page h-full overflow-hidden font-sans antialiased">{children}</body>
     </html>
   );
 }

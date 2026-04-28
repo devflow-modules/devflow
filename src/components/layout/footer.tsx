@@ -45,7 +45,7 @@ const footerLinkClass =
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-muted/30">
+    <footer className="df-surface border-t df-border-brand">
       <div className="mx-auto max-w-[1200px] px-3 py-10 min-[400px]:px-4 sm:px-6 sm:py-12 lg:px-8">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5 lg:gap-10">
           <div className="space-y-4 sm:col-span-2 lg:col-span-1">
@@ -55,7 +55,7 @@ export function Footer() {
             >
               DevFlow Labs
             </Link>
-            <p className="max-w-md text-sm leading-relaxed text-slate-600">
+            <p className="df-text-muted max-w-md text-sm leading-relaxed">
               Plataforma de ferramentas, produtos SaaS e automações para operações que querem crescer com eficiência.
             </p>
             <div className="flex flex-col gap-3 pt-1">
@@ -63,7 +63,7 @@ export function Footer() {
                 href="/ferramentas"
                 className={cn(
                   "inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-semibold",
-                  "bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
+                  "bg-primary text-primary-foreground transition-colors hover:bg-[#00A86B]"
                 )}
               >
                 Usar ferramentas

@@ -183,7 +183,7 @@ export function DemoGuidedExperience() {
   const def = scenario ? DEMO_SCENARIOS[scenario] : null;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc]">
+    <div className="df-page min-h-screen">
       <section className="py-8 sm:py-12 lg:py-16" aria-labelledby={titleId}>
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -192,7 +192,7 @@ export function DemoGuidedExperience() {
               <h1 id={titleId} className="mt-4 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                 Veja como seu WhatsApp pode responder, qualificar e organizar atendimento automaticamente
               </h1>
-              <p className="mt-3 text-slate-600">
+              <p className="df-text-muted mt-3">
                 Simulação guiada: entrada de mensagem, resposta automática, triagem e handoff para humano — como
                 acontece na operação real.
               </p>
@@ -201,7 +201,7 @@ export function DemoGuidedExperience() {
               type="button"
               onClick={resetDemo}
               aria-label="Reiniciar demonstração do zero"
-              className="inline-flex items-center gap-2 self-start rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted"
+              className="df-surface inline-flex items-center gap-2 self-start rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-primary/10"
             >
               <RotateCcw className="size-4" aria-hidden />
               Reiniciar demo
@@ -209,12 +209,12 @@ export function DemoGuidedExperience() {
           </div>
 
           {phase === "success" ? (
-            <div className="mx-auto mt-8 max-w-xl rounded-2xl border border-emerald-200 bg-emerald-50/80 p-6 text-center shadow-sm sm:mt-12 sm:p-8">
+            <div className="df-surface-elevated mx-auto mt-8 max-w-xl rounded-2xl border border-emerald-500/35 bg-emerald-500/10 p-6 text-center shadow-sm sm:mt-12 sm:p-8">
               <CheckCircle2 className="mx-auto size-12 text-emerald-600" aria-hidden />
-              <h2 className="mt-4 text-balance text-xl font-semibold text-emerald-950">
+              <h2 className="mt-4 text-balance text-xl font-semibold text-foreground">
                 Agora imagine isso rodando no seu WhatsApp
               </h2>
-              <p className="mt-2 text-sm text-emerald-900/90">
+              <p className="df-text-muted mt-2 text-sm">
                 Esse fluxo mostra como organizar atendimento, responder mais rápido e não perder oportunidades.
               </p>
               <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
@@ -227,7 +227,7 @@ export function DemoGuidedExperience() {
                 <Link
                   href="/produtos/whatsapp-platform"
                   aria-label="Ver página completa do produto WhatsApp Platform"
-                  className="inline-flex min-h-12 items-center justify-center rounded-xl border border-emerald-300 bg-background px-6 py-3 text-base font-medium text-foreground transition-colors hover:bg-emerald-100/50"
+                  className="df-surface inline-flex min-h-12 items-center justify-center rounded-xl border border-emerald-500/30 bg-background px-6 py-3 text-base font-medium text-foreground transition-colors hover:bg-primary/10"
                 >
                   Ver produto completo
                 </Link>
@@ -236,7 +236,7 @@ export function DemoGuidedExperience() {
                 type="button"
                 onClick={resetDemo}
                 aria-label="Recomeçar a demonstração guiada"
-                className="mt-8 text-xs font-normal text-slate-600 underline-offset-4 hover:text-foreground hover:underline"
+                className="df-text-muted mt-8 text-xs font-normal underline-offset-4 hover:text-foreground hover:underline"
               >
                 Ver a demo de novo
               </button>
@@ -246,7 +246,7 @@ export function DemoGuidedExperience() {
               <div className="min-w-0 space-y-6 sm:space-y-8">
                 {phase === "pick" && (
                   <div>
-                    <p className="text-sm font-medium text-slate-700">
+                    <p className="df-text-muted text-sm font-medium">
                       Escolha um cenário e simule como um cliente interage com seu WhatsApp.
                     </p>
                     <h2 className="mt-3 text-lg font-semibold text-foreground">1. Escolha o segmento</h2>
@@ -261,11 +261,11 @@ export function DemoGuidedExperience() {
 
                 <div
                   className={cn(
-                    "min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-lg",
+                    "df-surface-elevated min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-lg",
                     phase === "pick" && "opacity-90"
                   )}
                 >
-                  <div className="flex items-center gap-3 border-b border-border bg-muted/30 px-4 py-3">
+                  <div className="flex items-center gap-3 border-b border-border bg-primary/10 px-4 py-3">
                     <div className="flex size-10 items-center justify-center rounded-full border border-primary/20 bg-primary/5">
                       <MessageCircle className="size-5 text-primary" />
                     </div>
@@ -282,16 +282,16 @@ export function DemoGuidedExperience() {
 
                   {handoffBanner && phase === "chat" && (
                     <div
-                      className="flex items-start gap-3 border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+                      className="flex items-start gap-3 border-b border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
                       role="status"
                       aria-live="polite"
                     >
-                      <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-800">
+                        <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-100">
                         <UserRound className="size-5" aria-hidden />
                       </span>
                       <div>
                         <p className="font-semibold">Handoff humano ativo</p>
-                        <p className="mt-0.5 text-amber-900/90">
+                        <p className="mt-0.5 text-amber-100/90">
                           O bot encerrou a automação neste ponto. Na operação real, a conversa aparece na fila / inbox
                           com histórico completo para o agente assumir.
                         </p>
@@ -327,9 +327,9 @@ export function DemoGuidedExperience() {
                                 "max-w-[90%] rounded-2xl px-4 py-2 text-sm leading-relaxed",
                                 msg.role === "user"
                                   ? "rounded-tr-md bg-primary text-primary-foreground"
-                                  : "rounded-tl-md border bg-muted/50 text-foreground",
+                                  : "rounded-tl-md border df-border-brand bg-card/60 text-foreground",
                                 msg.handoff &&
-                                  "border-amber-300 bg-amber-50/90 text-amber-950 ring-1 ring-amber-200/80"
+                                  "border-amber-500/35 bg-amber-500/10 text-amber-100 ring-1 ring-amber-500/25"
                               )}
                             >
                               <BubbleBody text={msg.text} />
@@ -338,20 +338,20 @@ export function DemoGuidedExperience() {
                         ))}
                         {isTyping && (
                           <div className="mb-3 flex justify-start" role="status" aria-live="polite">
-                            <div className="flex items-center gap-2 rounded-2xl rounded-tl-md border border-border bg-muted/50 px-4 py-2">
+                            <div className="flex items-center gap-2 rounded-2xl rounded-tl-md border df-border-brand bg-card/60 px-4 py-2">
                               <span
-                                className="size-2 animate-pulse rounded-full bg-slate-400"
+                                className="size-2 animate-pulse rounded-full bg-muted-foreground"
                                 style={{ animationDelay: "0ms" }}
                               />
                               <span
-                                className="size-2 animate-pulse rounded-full bg-slate-400"
+                                className="size-2 animate-pulse rounded-full bg-muted-foreground"
                                 style={{ animationDelay: "150ms" }}
                               />
                               <span
-                                className="size-2 animate-pulse rounded-full bg-slate-400"
+                                className="size-2 animate-pulse rounded-full bg-muted-foreground"
                                 style={{ animationDelay: "300ms" }}
                               />
-                              <span className="text-xs text-slate-500">Digitando…</span>
+                              <span className="df-text-muted text-xs">Digitando…</span>
                             </div>
                           </div>
                         )}
@@ -370,7 +370,7 @@ export function DemoGuidedExperience() {
                                 aria-label={`Enviar sugestão: ${prompt}`}
                                 onClick={() => sendMessage(prompt, "chip")}
                                 className={cn(
-                                  "rounded-lg border border-border bg-background px-3 py-1.5 text-left text-xs font-medium",
+                                  "df-surface rounded-lg border border-border bg-background px-3 py-1.5 text-left text-xs font-medium",
                                   "text-foreground transition-colors hover:border-primary/50 hover:bg-primary/5",
                                   isTyping && "pointer-events-none opacity-50"
                                 )}
@@ -395,25 +395,25 @@ export function DemoGuidedExperience() {
                           placeholder="Digite como um cliente no WhatsApp…"
                           autoComplete="off"
                           disabled={isTyping}
-                          className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:opacity-60 sm:px-4"
+                          className="df-surface min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:opacity-60 sm:px-4"
                         />
                         <button
                           type="button"
                           onClick={() => sendMessage(input, "input")}
                           disabled={isTyping || !input.trim()}
-                          className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-[#16a34a] disabled:opacity-50"
+                          className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-[#00A86B] disabled:opacity-50"
                           aria-label="Enviar mensagem"
                         >
                           <Send className="size-5" />
                         </button>
                       </div>
 
-                      <div className="border-t border-border bg-muted/20 px-3 py-3">
+                      <div className="border-t border-border bg-primary/5 px-3 py-3">
                         <button
                           type="button"
                           onClick={completeDemo}
                           aria-label="Finalizar demonstração e ver próximos passos"
-                          className="w-full rounded-lg border border-border bg-background py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                          className="df-surface w-full rounded-lg border border-border bg-background py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-primary/10"
                         >
                           Finalizar demonstração
                         </button>
@@ -422,7 +422,7 @@ export function DemoGuidedExperience() {
                   )}
                 </div>
 
-                <p className="text-center text-sm text-slate-600 lg:text-left">
+                <p className="df-text-muted text-center text-sm lg:text-left">
                   Exemplo interativo do fluxo de atendimento e operação no WhatsApp.
                 </p>
               </div>
@@ -457,7 +457,7 @@ export function DemoGuidedExperience() {
                 <Link
                   href="/produtos/whatsapp-platform"
                   aria-label="Ver página do produto WhatsApp Platform"
-                  className="inline-flex min-h-12 w-full max-w-sm items-center justify-center rounded-xl border border-border bg-background px-6 py-3 text-base font-medium text-foreground transition-colors hover:bg-muted sm:w-auto"
+                  className="df-surface inline-flex min-h-12 w-full max-w-sm items-center justify-center rounded-xl border border-border bg-background px-6 py-3 text-base font-medium text-foreground transition-colors hover:bg-primary/10 sm:w-auto"
                 >
                   Ver produto
                 </Link>
@@ -466,7 +466,7 @@ export function DemoGuidedExperience() {
           )}
 
           <p className="mt-8 text-center sm:mt-10">
-            <Link href="/" className="text-sm text-slate-600 hover:text-foreground" aria-label="Voltar à página inicial">
+            <Link href="/" className="df-text-muted text-sm hover:text-foreground" aria-label="Voltar à página inicial">
               ← Voltar ao início
             </Link>
           </p>

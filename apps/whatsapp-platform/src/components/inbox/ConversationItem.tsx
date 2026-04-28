@@ -101,11 +101,11 @@ export const ConversationItem = memo(function ConversationItem({
 
   const noOwnerStripe =
     showSemDono && !isCritical && !isHigh && !active
-      ? "bg-amber-50/40 shadow-[inset_3px_0_0_0_rgb(217,119,6)]"
+      ? "bg-[var(--df-warning-bg)] shadow-[inset_3px_0_0_0_rgb(217,119,6)]"
       : null;
 
   const rowClass = [
-    "group relative flex w-full items-stretch border-b border-slate-100/80 transition-[background-color,box-shadow] duration-200 ease-out",
+    "group relative flex w-full items-stretch border-b df-border-brand transition-[background-color,box-shadow] duration-200 ease-out",
     isCritical
       ? "bg-gradient-to-r from-red-50 via-red-50/95 to-red-50/80 shadow-[inset_4px_0_0_0_rgb(220,38,38),0_0_0_1px_rgba(248,113,113,0.25)]"
       : isHigh
@@ -114,7 +114,7 @@ export const ConversationItem = memo(function ConversationItem({
           ? `${noOwnerStripe} hover:bg-amber-50/55`
           : active
             ? "bg-slate-50/95 shadow-[inset_4px_0_0_0_var(--df-brand-500)] ring-2 ring-[var(--df-brand-500)]/25 ring-inset"
-            : "bg-white hover:bg-slate-50/95 hover:shadow-[0_1px_4px_rgba(15,23,42,0.06)] active:bg-slate-50",
+            : "bg-[var(--df-bg-elevated)] hover:bg-[var(--df-brand-100)] hover:shadow-[0_1px_4px_rgba(15,23,42,0.06)] active:bg-[var(--df-brand-50)]",
   ].join(" ");
 
   const avatarClass = isCritical
@@ -123,7 +123,7 @@ export const ConversationItem = memo(function ConversationItem({
       ? "bg-orange-100 text-orange-950 ring-1 ring-orange-200/80"
       : active
         ? "bg-[var(--df-brand-600)] text-white shadow-sm ring-0"
-        : "bg-slate-100 text-slate-700 ring-1 ring-slate-200/80";
+        : "bg-[var(--df-brand-100)] text-[var(--df-brand-900)] ring-1 ring-[var(--df-border-subtle)]";
 
   return (
     <div className={rowClass} data-thread-id={thread.id}>
@@ -142,7 +142,7 @@ export const ConversationItem = memo(function ConversationItem({
         <div className="min-w-0 flex-1 pr-1">
           <div className="flex min-w-0 items-start justify-between gap-2">
             <span
-              className={`truncate text-[13px] font-semibold leading-tight ${active ? "text-slate-950" : "text-slate-900"}`}
+              className={`truncate text-[13px] font-semibold leading-tight ${active ? "text-[var(--df-text-primary)]" : "text-[var(--df-text-primary)]"}`}
             >
               {title}
             </span>
@@ -156,11 +156,11 @@ export const ConversationItem = memo(function ConversationItem({
                   {waitLabel}
                 </span>
               ) : (
-                <span className="text-[11px] tabular-nums text-slate-400">{formatListTimeCompact(thread.lastMessageAt)}</span>
+                <span className="text-[11px] tabular-nums text-[var(--df-text-muted)]">{formatListTimeCompact(thread.lastMessageAt)}</span>
               )}
               {thread.unreadCount > 0 ? (
                 <span
-                  className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold text-white tabular-nums shadow-sm"
+                  className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--df-brand-700)] px-1.5 py-0.5 text-[10px] font-bold text-white tabular-nums shadow-sm"
                   title="Mensagens não lidas"
                   data-testid="unread-count-badge"
                 >
@@ -179,14 +179,14 @@ export const ConversationItem = memo(function ConversationItem({
           ) : null}
 
           {assigneeLabel ? (
-            <p className="mt-0.5 truncate text-left text-[10px] font-medium text-slate-500" data-testid="assignee-line">
-              Responsável: <span className="text-slate-700">{assigneeLabel}</span>
+            <p className="mt-0.5 truncate text-left text-[10px] font-medium text-[var(--df-text-muted)]" data-testid="assignee-line">
+              Responsável: <span className="text-[var(--df-text-secondary)]">{assigneeLabel}</span>
             </p>
           ) : null}
 
-          <p className="mt-1 line-clamp-2 text-left text-[12px] leading-snug text-slate-600">
-            <span className="font-semibold text-slate-400">{prefix}</span>
-            <span className="text-slate-400"> · </span>
+          <p className="mt-1 line-clamp-2 text-left text-[12px] leading-snug text-[var(--df-text-secondary)]">
+            <span className="font-semibold text-[var(--df-text-muted)]">{prefix}</span>
+            <span className="text-[var(--df-text-muted)]"> · </span>
             <span>{rawPreview}</span>
           </p>
 
@@ -203,11 +203,11 @@ export const ConversationItem = memo(function ConversationItem({
                 ) : null}
               </span>
             ) : null}
-            <span className="tabular-nums text-[9px] font-semibold text-slate-600" data-testid="lead-score-list">
+            <span className="tabular-nums text-[9px] font-semibold text-[var(--df-text-secondary)]" data-testid="lead-score-list">
               {thread.leadScore ?? 0} pts
             </span>
             {thread.aiState ? (
-              <span className="max-w-[5.5rem] truncate rounded bg-slate-100 px-1 py-0.5 text-[9px] font-medium text-slate-700 ring-1 ring-slate-200/80">
+              <span className="max-w-[5.5rem] truncate rounded bg-[var(--df-brand-100)] px-1 py-0.5 text-[9px] font-medium text-[var(--df-brand-900)] ring-1 ring-[var(--df-border-subtle)]">
                 {thread.aiState}
               </span>
             ) : null}

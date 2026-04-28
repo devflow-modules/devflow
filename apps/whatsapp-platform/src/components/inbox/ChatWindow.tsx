@@ -119,13 +119,13 @@ export function ChatWindow({
     setActionBannerDismissed(true);
   }, []);
 
-  const leadSideClass = `hidden max-h-full min-h-0 shrink-0 overflow-y-auto border-l border-slate-200/90 xl:flex ${
+  const leadSideClass = `hidden max-h-full min-h-0 shrink-0 overflow-y-auto border-l df-border-brand xl:flex ${
     shellSidebarCollapsed ? "xl:w-[260px] xl:max-w-[260px]" : "xl:w-[280px] xl:min-w-[260px] xl:max-w-[280px]"
   }`;
 
   return (
     <div
-      className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-gradient-to-b from-white via-slate-50/30 to-slate-50/60 xl:flex-row xl:items-stretch"
+      className="df-page df-brand-gradient flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden xl:flex-row xl:items-stretch"
       data-testid="chat-window"
     >
       <div
@@ -166,14 +166,14 @@ export function ChatWindow({
             </div>
             {!auditTab && activeThread && crmDrawerMode ? (
               <div
-                className={`hidden shrink-0 border-t border-slate-200/85 bg-white/95 py-2 md:block md:py-2.5 xl:hidden ${INBOX_CHAT_GUTTER_X}`}
+                className={`hidden shrink-0 border-t df-border-brand bg-[var(--df-bg-elevated)]/95 py-2 md:block md:py-2.5 xl:hidden ${INBOX_CHAT_GUTTER_X}`}
               >
                 <button
                   type="button"
                   onClick={() => setCrmDrawerOpen(true)}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200/90 bg-slate-50/90 px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-white"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border df-border-brand bg-[var(--df-bg-app)] px-3 py-2 text-xs font-semibold text-[var(--df-text-secondary)] shadow-sm transition hover:border-[var(--df-brand-500)]/40 hover:bg-[var(--df-brand-50)]"
                 >
-                  <svg className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+                  <svg className="h-4 w-4 text-[var(--df-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   Contexto CRM
@@ -193,7 +193,7 @@ export function ChatWindow({
         <LeadDataPanel
           thread={activeThread}
           evaluationMode={evaluationMode}
-          className="flex w-full shrink-0 overflow-y-auto border-t border-slate-200/90 md:hidden max-h-[min(42vh,22rem)] sm:max-h-[min(44vh,24rem)]"
+          className="flex w-full shrink-0 overflow-y-auto border-t df-border-brand md:hidden max-h-[min(42vh,22rem)] sm:max-h-[min(44vh,24rem)]"
         />
       ) : null}
       {!auditTab && activeThread && crmSide ? (
@@ -203,12 +203,12 @@ export function ChatWindow({
         <div className="fixed inset-0 z-[45] md:block xl:hidden" role="presentation">
           <button
             type="button"
-            className="absolute inset-0 bg-slate-900/35 backdrop-blur-[1px] transition-opacity"
+            className="absolute inset-0 bg-black/45 backdrop-blur-[1px] transition-opacity"
             aria-label="Fechar painel CRM"
             onClick={() => setCrmDrawerOpen(false)}
           />
           <div
-            className="absolute inset-y-0 right-0 flex w-[min(22rem,92vw)] max-w-full flex-col border-l border-slate-200/90 bg-white shadow-[0_0_40px_rgba(15,23,42,0.12)] motion-safe:animate-[dfInboxPaneEnter_200ms_ease-out] motion-reduce:animate-none"
+            className="absolute inset-y-0 right-0 flex w-[min(22rem,92vw)] max-w-full flex-col border-l df-border-brand bg-[var(--df-bg-elevated)] shadow-[0_0_40px_rgba(0,0,0,0.4)] motion-safe:animate-[dfInboxPaneEnter_200ms_ease-out] motion-reduce:animate-none"
             role="dialog"
             aria-modal="true"
             aria-label="Contexto CRM"

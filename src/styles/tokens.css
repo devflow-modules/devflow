@@ -1,37 +1,36 @@
 /**
- * DevFlow Labs — Design System Tokens
- * Tecnologia • Automação • Precisão • Sistemas
+ * DevFlow Labs — Brand primitives
+ * Automacao · Sistemas · Resultados
  */
 
 :root {
-  /* Brand Primary */
-  --devflow-primary: #22c55e;
-  --devflow-primary-dark: #16a34a;
-  --devflow-primary-foreground: #ffffff;
+  /* Official brand palette */
+  --devflow-background: #030607;
+  --devflow-surface: #07100f;
+  --devflow-surface-elevated: #0b1715;
+  --devflow-brand: #00d084;
+  --devflow-brand-hover: #00a86b;
+  --devflow-text-primary: #f7f9f8;
+  --devflow-text-secondary: #a8b3af;
+  --devflow-border-brand: rgba(0, 208, 132, 0.14);
+  --devflow-brand-soft: rgba(0, 208, 132, 0.12);
 
-  /* Backgrounds */
-  --devflow-bg-dark: #0f172a;
-  --devflow-bg-light: #f8fafc;
-  --devflow-bg-alt: #f1f5f9;
+  /* Semantic feedback */
+  --devflow-danger: #ff5d5d;
+  --devflow-danger-soft: rgba(255, 93, 93, 0.14);
+  --devflow-warning: #f6c453;
+  --devflow-warning-soft: rgba(246, 196, 83, 0.16);
+  --devflow-success: #1ed786;
+  --devflow-success-soft: rgba(30, 215, 134, 0.16);
+  --devflow-info: #4ab8ff;
+  --devflow-info-soft: rgba(74, 184, 255, 0.16);
 
-  /* Text */
-  --devflow-text-primary: #0f172a;
-  --devflow-text-secondary: #475569;
-  --devflow-text-muted: #64748b;
-  --devflow-text-light: #f8fafc;
-
-  /* Accent Tech */
-  --devflow-accent: #38bdf8;
-
-  /* UI */
-  --devflow-border: #cbd5e1;
-  --devflow-border-light: #e2e8f0;
-  --devflow-radius: 0.5rem;
-  --devflow-radius-lg: 0.75rem;
-  --devflow-radius-xl: 1rem;
-  --devflow-section-padding: 6rem;
+  /* Shared sizing */
+  --devflow-radius: 0.75rem;
+  --devflow-radius-lg: 1rem;
+  --devflow-radius-xl: 1.25rem;
   --devflow-container-max: 1200px;
   --devflow-card-gap: 1.5rem;
-  --devflow-shadow-card: 0 8px 30px rgba(0, 0, 0, 0.08);
-  --devflow-shadow-hero: 0 20px 60px rgba(0, 0, 0, 0.08);
+  --devflow-shadow-card: 0 16px 40px rgba(0, 0, 0, 0.35);
+  --devflow-shadow-hero: 0 24px 72px rgba(0, 0, 0, 0.45);
 }

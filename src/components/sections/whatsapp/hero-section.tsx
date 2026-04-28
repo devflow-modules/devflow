@@ -43,7 +43,7 @@ export function HeroSection() {
   return (
     <section
       aria-labelledby="whatsapp-hero-heading"
-      className="relative overflow-hidden border-b border-border bg-gradient-to-b from-white via-white to-slate-50 py-16 sm:py-20 lg:py-28"
+      className="df-page df-brand-gradient relative overflow-hidden border-b df-border-brand py-16 sm:py-20 lg:py-28"
     >
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
         <div
@@ -61,7 +61,7 @@ export function HeroSection() {
 
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
           <div className="space-y-7">
-            <span className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border border-slate-200/90 bg-white/90 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-600 shadow-sm backdrop-blur-sm sm:text-xs">
+            <span className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border df-border-brand bg-card/90 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground shadow-sm backdrop-blur-sm sm:text-xs">
               <Radio className="size-3.5 shrink-0 text-emerald-600" aria-hidden />
               <span className="text-emerald-700">Fila ativa</span>
               <span className="hidden text-slate-300 sm:inline" aria-hidden>
@@ -77,7 +77,7 @@ export function HeroSection() {
               >
                 Cada minuto sem resposta no WhatsApp é venda que escapa
               </h1>
-              <p className="max-w-xl text-base font-semibold leading-snug text-slate-700 sm:text-lg sm:leading-snug">
+              <p className="df-text-muted max-w-xl text-base font-semibold leading-snug sm:text-lg sm:leading-snug">
                 Pare de perder deal na fila. Suba o ticket certo primeiro, deixe a IA engolir o repetitivo e feche com
                 SLA e conversão no painel — hoje, não “quando der”.
               </p>
@@ -97,8 +97,8 @@ export function HeroSection() {
               <Link
                 href="/demo"
                 className={cn(
-                  "inline-flex h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-6 text-base font-semibold text-slate-800",
-                  "shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 sm:w-auto sm:min-w-[11rem]"
+                  "inline-flex h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl border-2 df-border-brand bg-card px-6 text-base font-semibold text-foreground",
+                  "shadow-sm transition-all hover:border-primary/40 hover:bg-primary/10 sm:w-auto sm:min-w-[11rem]"
                 )}
               >
                 Ver demo em 2 minutos
@@ -110,7 +110,7 @@ export function HeroSection() {
               {heroPoints.map((point) => (
                 <li
                   key={point}
-                  className="flex items-start gap-3 text-sm leading-snug text-slate-700 sm:text-[0.95rem]"
+                  className="flex items-start gap-3 text-sm leading-snug text-muted-foreground sm:text-[0.95rem]"
                 >
                   <CheckCircle2 className="mt-0.5 size-[1.05rem] shrink-0 text-emerald-600" aria-hidden />
                   <span>{point}</span>
@@ -145,7 +145,7 @@ export function HeroSection() {
               }}
               aria-hidden
             />
-            <div className="overflow-hidden rounded-3xl border border-slate-200/90 bg-card shadow-[0_24px_80px_-12px_rgba(15,23,42,0.18)]">
+            <div className="df-surface-elevated overflow-hidden rounded-3xl border df-border-brand bg-card shadow-[0_24px_80px_-12px_rgba(0,0,0,0.35)]">
               <div className="flex items-center gap-2 border-b border-border bg-slate-950 px-4 py-2.5">
                 <span className="flex gap-1.5" aria-hidden>
                   <span className="size-2.5 rounded-full bg-red-400/90" />

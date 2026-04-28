@@ -17,9 +17,9 @@ export default function LoginPage() {
       title="Entrar"
       description="Aceda ao painel, inbox e automações com a sua conta."
       footer={
-        <p className="text-center text-sm text-slate-600">
+        <p className="text-center text-sm text-[var(--df-text-secondary)]">
           Ainda não tem conta?{" "}
-          <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-800">
+          <Link href="/signup" className="font-medium text-[var(--df-brand-500)] hover:text-[var(--df-brand-400)]">
             Criar conta
           </Link>
         </p>
@@ -28,7 +28,7 @@ export default function LoginPage() {
       <Suspense
         fallback={
           <div className="flex justify-center py-10">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--df-border-subtle)] border-t-[var(--df-brand-500)]" />
           </div>
         }
       >

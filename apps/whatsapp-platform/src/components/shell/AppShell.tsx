@@ -18,8 +18,13 @@ function MobileHeaderBrand() {
   const { role } = useSessionRole();
   const href = shellHomeHref(role);
   return (
-    <Link href={href} className="min-w-0 truncate text-sm font-semibold tracking-tight text-slate-900">
-      WhatsApp Platform
+    <Link href={href} className="flex min-w-0 items-center gap-2">
+      <span className="df-glow-brand inline-flex h-7 w-7 items-center justify-center rounded-md border df-border-brand bg-[var(--df-brand-100)] text-[10px] font-bold text-[var(--df-brand-900)]">
+        DF
+      </span>
+      <span className="min-w-0 truncate text-sm font-semibold tracking-tight text-[var(--df-text-primary)]">
+        WhatsApp Platform
+      </span>
     </Link>
   );
 }
@@ -47,17 +52,17 @@ function AppShellInner({ children }: { children: ReactNode }) {
   }, [mobileNavOpen]);
 
   return (
-    <div className="flex h-dvh max-h-dvh w-full min-h-0 overflow-hidden bg-slate-50/90">
+    <div className="df-page flex h-dvh max-h-dvh w-full min-h-0 overflow-hidden">
       {mobileNavOpen ? (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-[1px] lg:hidden"
+          className="fixed inset-0 z-40 bg-black/55 backdrop-blur-[1px] lg:hidden"
           aria-label="Fechar menu"
           onClick={() => setMobileNavOpen(false)}
         />
       ) : null}
       <div
-        className={`fixed inset-y-0 left-0 z-50 flex h-full w-[min(17.5rem,88vw)] shrink-0 flex-col overflow-hidden border-r border-slate-100/90 bg-white shadow-[4px_0_32px_rgba(15,23,42,0.04)] transition-[transform,width,box-shadow] duration-300 ease-out lg:static lg:z-0 lg:h-full lg:max-w-none lg:shadow-none lg:transition-[width,box-shadow] ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-full w-[min(17.5rem,88vw)] shrink-0 flex-col overflow-hidden border-r df-border-brand bg-[var(--df-bg-elevated)] shadow-[4px_0_32px_rgba(0,0,0,0.35)] transition-[transform,width,box-shadow] duration-300 ease-out lg:static lg:z-0 lg:h-full lg:max-w-none lg:shadow-none lg:transition-[width,box-shadow] ${
           mobileNavOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         } ${
           sidebarCollapsed
@@ -72,11 +77,11 @@ function AppShellInner({ children }: { children: ReactNode }) {
           sidebarCollapsed ? "lg:w-full lg:max-w-none" : ""
         }`}
       >
-        <header className="z-30 flex h-14 shrink-0 items-center gap-2 border-b border-slate-100 bg-white/90 px-3 backdrop-blur-md sm:gap-3 sm:px-4 lg:hidden">
+        <header className="z-30 flex h-14 shrink-0 items-center gap-2 border-b df-border-brand bg-[var(--df-bg-elevated)]/95 px-3 backdrop-blur-md sm:gap-3 sm:px-4 lg:hidden">
           <button
             type="button"
             onClick={() => setMobileNavOpen(true)}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2"
             aria-label="Abrir menu de navegação"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
@@ -85,7 +90,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
           </button>
           <MobileHeaderBrand />
           <SessionRoleModePill variant="header" />
-          <span className="ml-auto shrink-0 text-[10px] text-slate-400" title="Paleta de navegação">
+          <span className="ml-auto shrink-0 text-[10px] text-[var(--df-text-muted)]" title="Paleta de navegação">
             ⌘K
           </span>
         </header>

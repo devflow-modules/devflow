@@ -6,7 +6,7 @@ export function ToolsHubHero() {
   return (
     <section
       id="ferramentas-hero"
-      className="relative overflow-x-clip bg-gradient-to-b from-white to-slate-50 py-12 sm:py-16 lg:py-20"
+      className="df-page df-brand-gradient relative overflow-x-clip py-12 sm:py-16 lg:py-20"
       aria-labelledby="tools-hub-heading"
     >
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
@@ -36,7 +36,7 @@ export function ToolsHubHero() {
           >
             Tudo que você precisa num só hub — grátis pra começar
           </h1>
-          <p className="mt-3 text-base leading-relaxed text-slate-600 sm:mt-4 sm:text-lg">
+          <p className="df-text-muted mt-3 text-base leading-relaxed sm:mt-4 sm:text-lg">
             Menos planilha, menos app solto. Abre o browser e resolve.
           </p>
 
@@ -45,7 +45,7 @@ export function ToolsHubHero() {
               href="/demo"
               className={cn(
                 "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold sm:w-auto sm:px-6 sm:text-base",
-                "bg-primary text-primary-foreground transition-all duration-200 hover:bg-primary/90"
+                "bg-primary text-primary-foreground transition-all duration-200 hover:bg-[#00A86B]"
               )}
             >
               Ver demo
@@ -54,14 +54,14 @@ export function ToolsHubHero() {
             <Link
               href="/ferramentas/financeiro"
               className={cn(
-                "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-5 text-sm font-medium sm:w-auto sm:px-6 sm:text-base",
-                "text-foreground transition-colors hover:bg-muted/60"
+                "df-surface inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border px-5 text-sm font-medium sm:w-auto sm:px-6 sm:text-base",
+                "text-foreground transition-colors hover:bg-primary/10"
               )}
             >
               Abrir ferramenta Financeiro
             </Link>
           </div>
-          <p className="mt-3 text-xs text-slate-500 sm:mt-4 sm:text-sm">
+          <p className="df-text-muted mt-3 text-xs sm:mt-4 sm:text-sm">
             Ferramentas gratuitas · Sem instalação
           </p>
         </div>

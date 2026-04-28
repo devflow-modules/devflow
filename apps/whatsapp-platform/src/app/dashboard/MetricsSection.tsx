@@ -87,22 +87,22 @@ export function MetricsSection({ compact = false }: { compact?: boolean }) {
     <div className={compact ? "space-y-4" : "mt-8 space-y-6"}>
       {!compact && (
         <>
-          <h2 className="text-xl font-semibold text-slate-900">Métricas do tenant</h2>
+          <h2 className="text-xl font-semibold text-[var(--df-text-primary)]">Métricas do tenant</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-lg border border-slate-200 bg-white p-4">
-              <p className="text-sm text-slate-600">Total de mensagens</p>
+            <div className="df-surface rounded-lg p-4">
+              <p className="text-sm text-[var(--df-text-secondary)]">Total de mensagens</p>
               <p className="text-2xl font-semibold tabular-nums">{overview?.totalMessages ?? 0}</p>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-white p-4">
-              <p className="text-sm text-slate-600">Mensagens automáticas</p>
+            <div className="df-surface rounded-lg p-4">
+              <p className="text-sm text-[var(--df-text-secondary)]">Mensagens automáticas</p>
               <p className="text-2xl font-semibold tabular-nums">{overview?.automaticMessages ?? 0}</p>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-white p-4">
-              <p className="text-sm text-slate-600">Mensagens humanas</p>
+            <div className="df-surface rounded-lg p-4">
+              <p className="text-sm text-[var(--df-text-secondary)]">Mensagens humanas</p>
               <p className="text-2xl font-semibold tabular-nums">{overview?.humanMessages ?? 0}</p>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-white p-4">
-              <p className="text-sm text-slate-600">Tempo médio resposta (ms)</p>
+            <div className="df-surface rounded-lg p-4">
+              <p className="text-sm text-[var(--df-text-secondary)]">Tempo médio resposta (ms)</p>
               <p className="text-2xl font-semibold tabular-nums">{overview?.avgResponseTimeMs ?? 0}</p>
             </div>
           </div>
@@ -110,18 +110,18 @@ export function MetricsSection({ compact = false }: { compact?: boolean }) {
       )}
 
       {compact && !hasDetail && overview && (
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-[var(--df-text-secondary)]">
           Volume por dia e breakdowns aparecem quando houver mais conversas.
         </p>
       )}
 
       {stats && stats.messagesByDay.length > 0 && (
-        <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
-          <p className="mb-2 text-sm font-medium text-slate-700">Volume por dia</p>
+        <div className="df-surface rounded-lg p-4">
+          <p className="mb-2 text-sm font-medium text-[var(--df-text-secondary)]">Volume por dia</p>
           <div className="flex flex-wrap gap-2">
             {stats.messagesByDay.slice(-14).map(({ date, count }) => (
-              <div key={date} className="flex items-baseline gap-1 rounded-md bg-white px-2 py-1 text-sm shadow-sm">
-                <span className="text-slate-600">{date.slice(5)}</span>
+              <div key={date} className="flex items-baseline gap-1 rounded-md bg-[var(--df-bg-app)] px-2 py-1 text-sm shadow-sm">
+                <span className="text-[var(--df-text-secondary)]">{date.slice(5)}</span>
                 <span className="font-medium tabular-nums">{count}</span>
               </div>
             ))}
@@ -130,11 +130,11 @@ export function MetricsSection({ compact = false }: { compact?: boolean }) {
       )}
 
       {intents.length > 0 && (
-        <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
-          <p className="mb-2 text-sm font-medium text-slate-700">Distribuição de intenções</p>
+        <div className="df-surface rounded-lg p-4">
+          <p className="mb-2 text-sm font-medium text-[var(--df-text-secondary)]">Distribuição de intenções</p>
           <ul className="flex flex-wrap gap-2">
             {intents.map(({ intent, count }) => (
-              <li key={intent} className="rounded-md bg-white px-2 py-1 text-sm shadow-sm">
+              <li key={intent} className="rounded-md bg-[var(--df-bg-app)] px-2 py-1 text-sm shadow-sm">
                 <span className="font-medium">{intent}</span>: {count}
               </li>
             ))}
@@ -143,23 +143,23 @@ export function MetricsSection({ compact = false }: { compact?: boolean }) {
       )}
 
       {agents.length > 0 && (
-        <div className="overflow-hidden rounded-lg border border-slate-200">
-          <p className="border-b border-slate-100 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700">
+        <div className="overflow-hidden rounded-lg border df-border-brand">
+          <p className="border-b df-border-brand bg-[var(--df-bg-elevated)] px-4 py-2 text-sm font-medium text-[var(--df-text-secondary)]">
             Por agente
           </p>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-100 bg-white">
-                <th className="p-3 text-left font-medium text-slate-600">Agente</th>
-                <th className="p-3 text-right font-medium text-slate-600">Conversas</th>
-                <th className="p-3 text-right font-medium text-slate-600">Mensagens</th>
-                <th className="p-3 text-right font-medium text-slate-600">Tempo (ms)</th>
+              <tr className="border-b df-border-brand bg-[var(--df-bg-elevated)]">
+                <th className="p-3 text-left font-medium text-[var(--df-text-secondary)]">Agente</th>
+                <th className="p-3 text-right font-medium text-[var(--df-text-secondary)]">Conversas</th>
+                <th className="p-3 text-right font-medium text-[var(--df-text-secondary)]">Mensagens</th>
+                <th className="p-3 text-right font-medium text-[var(--df-text-secondary)]">Tempo (ms)</th>
               </tr>
             </thead>
             <tbody>
               {agents.map((a) => (
-                <tr key={a.agentId} className="border-b border-slate-50 last:border-0">
-                  <td className="p-3 font-mono text-xs text-slate-800">{a.agentId.slice(0, 8)}…</td>
+                <tr key={a.agentId} className="border-b df-border-brand last:border-0">
+                  <td className="p-3 font-mono text-xs text-[var(--df-text-primary)]">{a.agentId.slice(0, 8)}…</td>
                   <td className="p-3 text-right tabular-nums">{a.conversationsCount}</td>
                   <td className="p-3 text-right tabular-nums">{a.messagesCount}</td>
                   <td className="p-3 text-right tabular-nums">{a.avgResponseTimeMs}</td>

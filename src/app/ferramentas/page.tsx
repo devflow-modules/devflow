@@ -98,21 +98,21 @@ export const metadata: Metadata = {
 
 export default function FerramentasPage() {
   return (
-    <div className="min-h-screen">
+    <div className="df-page min-h-screen">
       <ToolsHubHero />
 
-      <div className="border-b border-primary/15 bg-primary/[0.04] py-3 px-4 text-center text-sm text-slate-700">
-        <span className="text-muted-foreground">
+      <div className="border-b df-border-brand bg-primary/[0.08] px-4 py-3 text-center text-sm text-foreground">
+        <span className="df-text-muted">
           Ferramentas abrem rápido; produtos são sistemas completos para escalar.{" "}
         </span>
         <Link href={PRODUTOS_HUB_PATH} className="font-semibold text-primary hover:underline">
           Ver catálogo de produtos
         </Link>
-        <span className="text-slate-400"> · </span>
+        <span className="text-muted-foreground"> · </span>
         <Link href="/produtos/whatsapp-platform" className="font-semibold text-primary hover:underline">
           WhatsApp Platform
         </Link>
-        <span className="text-slate-400"> · </span>
+        <span className="text-muted-foreground"> · </span>
         <Link href="/demo" className="font-semibold text-primary hover:underline">
           Ver demo
         </Link>
@@ -121,7 +121,7 @@ export default function FerramentasPage() {
       {/* Grid principal */}
       <section
         id="ferramentas-grid"
-        className="py-24 bg-white"
+        className="df-page py-24"
         aria-labelledby="grid-heading"
       >
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">

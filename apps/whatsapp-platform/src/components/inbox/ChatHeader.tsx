@@ -240,7 +240,7 @@ export function ChatHeader({
           <button
             type="button"
             onClick={onBackMobile}
-            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden df-focus-brand"
+            className="rounded-lg p-2 text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)] md:hidden df-focus-brand"
             aria-label="Voltar"
           >
             ←
@@ -252,9 +252,9 @@ export function ChatHeader({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
-              <h2 className="df-text-section-title truncate">{title}</h2>
+              <h2 className="df-text-section-title truncate text-[var(--df-text-primary)]">{title}</h2>
               {thread.phoneNumber && (
-                <p className="truncate text-xs text-slate-500/90">{thread.phoneNumber}</p>
+                <p className="truncate text-xs text-[var(--df-text-secondary)]">{thread.phoneNumber}</p>
               )}
             </div>
             {authLoaded && authUser?.id ? (
@@ -291,20 +291,20 @@ export function ChatHeader({
           </div>
           {thread.assignedToUser && assigneeCopy ? (
             <>
-              <p className="mt-2 text-xs text-slate-600" data-testid="chat-header-assignee">
-                <strong className="font-semibold text-slate-900">{assigneeCopy.line}</strong>
+            <p className="mt-2 text-xs text-[var(--df-text-secondary)]" data-testid="chat-header-assignee">
+                <strong className="font-semibold text-[var(--df-text-primary)]">{assigneeCopy.line}</strong>
               </p>
               {assigneeCopy.note ? (
-                <p className="mt-1 text-[11px] leading-snug text-emerald-900/90">{assigneeCopy.note}</p>
+                <p className="mt-1 text-[11px] leading-snug text-[var(--df-brand-400)]">{assigneeCopy.note}</p>
               ) : null}
             </>
           ) : (
-            <p className="mt-2 text-xs text-slate-600">
-              <span className="font-medium text-slate-500">Responsável: </span>
+            <p className="mt-2 text-xs text-[var(--df-text-secondary)]">
+              <span className="font-medium text-[var(--df-text-muted)]">Responsável: </span>
               {thread.status === "CLOSED" ? (
-                <span className="text-slate-500">—</span>
+                <span className="text-[var(--df-text-muted)]">—</span>
               ) : thread.conversationState === "awaiting_customer" ? (
-                <span className={thread.lastResponderType === "ai" ? "text-emerald-800" : "text-slate-700"}>
+                <span className={thread.lastResponderType === "ai" ? "text-[var(--df-brand-400)]" : "text-[var(--df-text-secondary)]"}>
                   {thread.lastResponderType === "ai"
                     ? "Assistente IA (aguarda cliente)"
                     : "Aguardando cliente"}
@@ -317,7 +317,7 @@ export function ChatHeader({
             </p>
           )}
           {thread.whatsappLine ? (
-            <p className="mt-1 truncate text-[11px] text-slate-400">
+            <p className="mt-1 truncate text-[11px] text-[var(--df-text-muted)]">
               Linha:{" "}
               {thread.whatsappLine.label?.trim() ||
                 thread.whatsappLine.displayPhoneNumber?.trim() ||
@@ -326,7 +326,7 @@ export function ChatHeader({
           ) : null}
           {inboxQueues.length > 0 ? (
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span className="text-[11px] font-medium text-slate-500">Fila</span>
+              <span className="text-[11px] font-medium text-[var(--df-text-secondary)]">Fila</span>
               <select
                 className="df-inbox-queue-select"
                 disabled={actionBusy}
@@ -357,9 +357,9 @@ export function ChatHeader({
         </div>
       </div>
 
-      <div className={`border-t border-slate-100/90 bg-slate-50/50 ${toolbarPad}`}>
-        <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">Operação</p>
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200/80 bg-white/95 p-2 shadow-sm">
+      <div className={`border-t df-border-brand bg-[var(--df-bg-app)]/70 ${toolbarPad}`}>
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--df-text-muted)]">Operação</p>
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border df-border-brand bg-[var(--df-bg-elevated)]/95 p-2 shadow-sm">
           {canAssume ? (
             <button
               type="button"
@@ -406,7 +406,7 @@ export function ChatHeader({
           ) : null}
         </div>
 
-        <p className="mb-2 mt-4 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">Gestão</p>
+        <p className="mb-2 mt-4 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--df-text-muted)]">Gestão</p>
         <div className="flex flex-wrap items-center gap-2">
         <div className="relative" ref={assignRef}>
           <button
@@ -502,7 +502,7 @@ export function ChatHeader({
                 </button>
               ))}
               {tagsFetched.length === 0 && (
-                <p className="px-3 py-2 text-xs text-slate-500">Crie tags nas definições.</p>
+                <p className="px-3 py-2 text-xs text-[var(--df-text-secondary)]">Crie tags nas definições.</p>
               )}
             </div>
           )}

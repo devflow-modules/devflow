@@ -134,7 +134,7 @@ export function HeroV2() {
   return (
     <section
       id="hero"
-      className="relative overflow-x-clip overflow-y-visible bg-gradient-to-b from-white via-white to-slate-50 py-10 sm:py-16 lg:py-24"
+      className="df-page df-brand-gradient relative overflow-x-clip overflow-y-visible py-10 sm:py-16 lg:py-24"
       aria-labelledby="hero-heading"
     >
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
@@ -162,8 +162,8 @@ export function HeroV2() {
               <span className="size-2 shrink-0 rounded-full bg-primary ring-2 ring-primary/30" aria-hidden />
               <Wallet className="size-3.5 shrink-0 text-primary" aria-hidden />
               <span className="text-primary">Ao vivo</span>
-              <span className="hidden text-slate-300 sm:inline">·</span>
-              <span className="w-full text-slate-700 sm:w-auto sm:truncate">
+                <span className="hidden text-muted-foreground sm:inline">·</span>
+              <span className="df-text-muted w-full sm:w-auto sm:truncate">
                 <span className="sm:hidden">WhatsApp Platform · ferramentas · SaaS</span>
                 <span className="hidden sm:inline">WhatsApp Platform · ferramentas · SaaS</span>
               </span>
@@ -176,7 +176,7 @@ export function HeroV2() {
               >
                 Seu WhatsApp não pode ser o gargalo da operação
               </h1>
-              <p className="text-base leading-relaxed text-slate-600 sm:text-lg lg:text-xl">
+              <p className="df-text-muted text-base leading-relaxed sm:text-lg lg:text-xl">
                 <strong className="font-semibold text-foreground">WhatsApp Platform</strong> para inbox, automação e
                 métricas — e ainda ferramentas e finanças num só ecossistema.{" "}
                 <span className="text-foreground/90">Menos caos, mais resposta e controle.</span>
@@ -185,7 +185,7 @@ export function HeroV2() {
 
             <ul className="grid grid-cols-1 gap-2.5 sm:gap-2.5" role="list">
               {bullets.map((bullet, i) => (
-                <li key={i} className="flex items-start gap-2.5 text-sm font-medium text-slate-800 sm:gap-3 sm:text-base">
+                <li key={i} className="flex items-start gap-2.5 text-sm font-medium text-foreground sm:gap-3 sm:text-base">
                   <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-lg bg-primary/12">
                     <Check className="size-3.5 text-primary" aria-hidden />
                   </span>
@@ -204,7 +204,7 @@ export function HeroV2() {
                     "devflow-cta-elite inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-4 text-left text-sm font-bold leading-snug sm:min-h-14 sm:w-auto sm:min-w-[min(100%,280px)] sm:justify-center sm:px-6 sm:text-base md:px-8 md:text-lg",
                     "bg-primary text-primary-foreground",
                     "transition-transform duration-200 ease-out",
-                    "hover:scale-[1.02] hover:bg-[#16a34a] active:scale-[0.98] sm:hover:scale-[1.03]"
+                    "hover:scale-[1.02] hover:bg-[#00A86B] active:scale-[0.98] sm:hover:scale-[1.03]"
                   )}
                 >
                   <span className="text-balance">{PRIMARY_CONVERT_CTA_LABEL}</span>
@@ -216,15 +216,15 @@ export function HeroV2() {
                   text="Quero ver como organizar meu WhatsApp com a DevFlow — falar com especialista."
                   size="lg"
                   className={cn(
-                    "w-full min-h-[3rem] justify-center border-2 border-slate-200 bg-white text-slate-800 shadow-sm sm:w-auto sm:min-w-[min(100%,17rem)]",
-                    "hover:border-primary/35 hover:bg-slate-50"
+                    "w-full min-h-[3rem] justify-center border-2 df-border-brand bg-card text-foreground shadow-sm sm:w-auto sm:min-w-[min(100%,17rem)]",
+                    "hover:border-primary/35 hover:bg-primary/10"
                   )}
                 />
               </div>
-              <p className="text-center text-[11px] font-medium leading-snug text-slate-500 sm:text-left sm:text-xs">
+              <p className="df-text-muted text-center text-[11px] font-medium leading-snug sm:text-left sm:text-xs">
                 {PRODUCT_LIVE_HINT}
               </p>
-              <p className="text-center text-xs leading-snug text-slate-600 sm:text-left sm:text-sm">
+              <p className="df-text-muted text-center text-xs leading-snug sm:text-left sm:text-sm">
                 <Link
                   href="/#como-funciona-hub"
                   onClick={() => trackHomeCta("hero_how_it_works")}
@@ -232,7 +232,7 @@ export function HeroV2() {
                 >
                   Como funciona
                 </Link>
-                <span className="text-slate-400"> · </span>
+                <span className="text-muted-foreground"> · </span>
                 <Link
                   href="/produtos/whatsapp-platform"
                   onClick={() => trackHomeCta("hero_whatsapp_platform")}
@@ -240,7 +240,7 @@ export function HeroV2() {
                 >
                   WhatsApp Platform
                 </Link>
-                <span className="text-slate-400"> · </span>
+                <span className="text-muted-foreground"> · </span>
                 <Link
                   href={PRODUTOS_HUB_PATH}
                   onClick={() => trackHomeCta("hero_produtos_hub")}
@@ -248,29 +248,29 @@ export function HeroV2() {
                 >
                   Catálogo de produtos
                 </Link>
-                <span className="text-slate-400"> · </span>
+                <span className="text-muted-foreground"> · </span>
                 <Link
                   href="/ferramentas"
                   onClick={() => trackHomeCta("hero_tools")}
-                  className="font-semibold text-slate-600 underline-offset-2 hover:text-primary hover:underline"
+                  className="font-semibold text-muted-foreground underline-offset-2 hover:text-primary hover:underline"
                 >
                   Ferramentas grátis
                 </Link>
               </p>
             </div>
 
-            <div className="flex flex-col gap-2 border-t border-border pt-4 text-[11px] font-medium text-slate-600 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-1 sm:pt-5 sm:text-sm">
+            <div className="df-text-muted flex flex-col gap-2 border-t border-border pt-4 text-[11px] font-medium sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-1 sm:pt-5 sm:text-sm">
               <span className="inline-flex items-center gap-1.5">
                 <span className="size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
                 {proofUsers} usuários ativos
               </span>
-              <span className="hidden text-slate-300 sm:inline">·</span>
+              <span className="hidden text-muted-foreground sm:inline">·</span>
               <span>{proofOps} operações feitas</span>
-              <span className="hidden text-slate-300 sm:inline">·</span>
-              <span className="font-semibold text-emerald-700">Atualizado sempre</span>
+              <span className="hidden text-muted-foreground sm:inline">·</span>
+              <span className="font-semibold text-primary">Atualizado sempre</span>
             </div>
 
-            <p className="text-xs leading-relaxed text-slate-600 sm:text-sm">
+            <p className="df-text-muted text-xs leading-relaxed sm:text-sm">
               Sem cartão · Cancele quando quiser · Direto no navegador
             </p>
           </div>

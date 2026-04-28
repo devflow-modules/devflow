@@ -132,9 +132,9 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
         <SupportHelpButton variant="inline" />
       </div>
       {sessionRole && isOperator(sessionRole) && (
-        <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/50 px-5 py-4 text-sm text-emerald-950">
+        <div className="rounded-2xl border df-border-brand bg-[var(--df-brand-100)]/60 px-5 py-4 text-sm text-[var(--df-text-primary)]">
           <p className="font-semibold">Pronto para atender</p>
-          <p className="mt-1 text-emerald-900/90">
+          <p className="mt-1 text-[var(--df-text-secondary)]">
             Está na conta certa para operar conversas. Abra a Inbox para responder clientes em tempo real.
           </p>
           <div className="mt-3">
@@ -187,7 +187,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
           description={
             snapshot.tenantName ? (
               <>
-                Conta <span className="font-medium text-slate-700">{snapshot.tenantName}</span> — volume, resposta e automação.
+                Conta <span className="font-medium text-[var(--df-text-primary)]">{snapshot.tenantName}</span> — volume, resposta e automação.
               </>
             ) : (
               "Volume de mensagens, tempo de resposta e automação."
@@ -227,7 +227,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
           </div>
           {sessionRole && isTenantManager(sessionRole) ? (
             snapshot.apiKeyReady ? (
-              <p className="mt-4 text-xs text-slate-500">
+              <p className="mt-4 text-xs text-[var(--df-text-secondary)]">
                 Chave de API já gerada —{" "}
                 <Link href="/settings/developer" className="font-medium text-[var(--df-brand-700)] underline">
                   gerir em API e integrações
@@ -235,7 +235,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
                 .
               </p>
             ) : (
-              <p className="mt-4 text-xs text-slate-500">
+              <p className="mt-4 text-xs text-[var(--df-text-secondary)]">
                 Precisa de API para integrações?{" "}
                 <Link href="/settings/developer" className="font-medium text-[var(--df-brand-700)] underline">
                   Gerar chave
@@ -244,11 +244,11 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
               </p>
             )
           ) : sessionRole && isOperator(sessionRole) ? (
-            <p className="mt-4 text-xs text-slate-500">
+            <p className="mt-4 text-xs text-[var(--df-text-secondary)]">
               Integrações com API: peça a um admin em Configurações → API e integrações.
             </p>
           ) : null}
-          <p className="mt-6 rounded-xl border border-slate-100/80 bg-slate-50/50 px-4 py-3 text-xs leading-relaxed text-slate-500">
+          <p className="mt-6 rounded-xl border df-border-brand bg-[var(--df-bg-app)] px-4 py-3 text-xs leading-relaxed text-[var(--df-text-secondary)]">
             Na Meta, confirme o webhook (URL pública) e o mesmo código de verificação do servidor.
           </p>
         </Card>
@@ -257,7 +257,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
       {activationComplete && !hasActivity && !metricsLoading && (
         <Card
           padding="lg"
-          className="border border-dashed border-slate-200/90 bg-gradient-to-b from-slate-50/60 to-white"
+          className="border border-dashed df-border-brand bg-gradient-to-b from-[var(--df-bg-elevated)]/70 to-[var(--df-bg-app)]"
         >
           <CardHeader
             title="Primeiro valor na Inbox"
@@ -268,7 +268,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
             phoneNumberId={snapshot.primaryBusinessPhoneNumberId}
             lineStatus={snapshot.primaryLineStatus}
           />
-          <p className="mt-8 rounded-xl border border-slate-100/80 bg-white/60 px-4 py-3 text-xs leading-relaxed text-slate-600">
+          <p className="mt-8 rounded-xl border df-border-brand bg-[var(--df-bg-elevated)]/60 px-4 py-3 text-xs leading-relaxed text-[var(--df-text-secondary)]">
             Antes de divulgar o número aos clientes, confirme na Meta o webhook público e o código de verificação — detalhes em{" "}
             <Link href="/dashboard/whatsapp" className="font-medium text-[var(--df-brand-700)] underline">
               Estado da ligação
@@ -281,33 +281,33 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
       {activationComplete && (
         <div className="grid min-w-0 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <Card padding="md" className="!p-5 min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Mensagens</p>
-            <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-secondary)]">Mensagens</p>
+            <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-text-primary)]">
               {metricsLoading ? "…" : (overview?.totalMessages ?? 0)}
             </p>
-            <p className="mt-1 text-xs text-slate-500">Total no período</p>
+            <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Total no período</p>
           </Card>
           <Card padding="md" className="!p-5 min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Resposta média</p>
-            <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-secondary)]">Resposta média</p>
+            <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-text-primary)]">
               {metricsLoading ? "…" : `${overview?.avgResponseTimeMs ?? 0}`}
-              <span className="text-lg font-semibold text-slate-400"> ms</span>
+              <span className="text-lg font-semibold text-[var(--df-text-muted)]"> ms</span>
             </p>
-            <p className="mt-1 text-xs text-slate-500">Tempo até primeira resposta</p>
+            <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Tempo até primeira resposta</p>
           </Card>
           <Card padding="md" className="!p-5 min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Automático</p>
-            <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-secondary)]">Automático</p>
+            <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-text-primary)]">
               {metricsLoading ? "…" : `${automationRate}%`}
             </p>
-            <p className="mt-1 text-xs text-slate-500">Parte respondida sem humano</p>
+            <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Parte respondida sem humano</p>
           </Card>
           <Card padding="md" className="!p-5 min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Equipa</p>
-            <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-secondary)]">Equipa</p>
+            <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-text-primary)]">
               {metricsLoading ? "…" : (overview?.humanMessages ?? 0)}
             </p>
-            <p className="mt-1 text-xs text-slate-500">Mensagens enviadas por pessoas</p>
+            <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Mensagens enviadas por pessoas</p>
           </Card>
         </div>
       )}

@@ -146,7 +146,7 @@ export function ConversationsList({
   if (isLoading) {
     return (
       <div className="flex min-h-0 flex-1 flex-col p-3" data-testid="conversations-list-skeleton">
-        <div className="space-y-2 rounded-xl border border-slate-100 bg-white/90 p-3 shadow-sm">
+        <div className="space-y-2 rounded-xl border df-border-brand bg-[var(--df-bg-elevated)]/90 p-3 shadow-sm">
           <div className="h-8 w-3/5 max-w-[12rem] animate-pulse rounded-lg bg-slate-200/80" />
           <div className="h-8 w-full animate-pulse rounded-lg bg-slate-100/90" />
           <div className="h-8 w-full animate-pulse rounded-lg bg-slate-100/90" />
@@ -193,7 +193,7 @@ export function ConversationsList({
 
   const filterChrome = (
     <>
-      <div className="flex flex-wrap gap-1.5 border-b border-slate-100/90 bg-gradient-to-b from-slate-50 to-white px-2 py-2.5">
+      <div className="flex flex-wrap gap-1.5 border-b df-border-brand bg-[var(--df-bg-elevated)] px-2 py-2.5">
         {FILTER_ORDER.map((f) => {
           const isNeeds = f === "needs_response";
           const selected = filter === f;
@@ -210,7 +210,7 @@ export function ConversationsList({
                     ? "bg-[var(--df-brand-600)] text-white shadow-[0_1px_2px_rgba(15,23,42,0.08)]"
                     : isNeeds
                       ? "bg-red-50/95 text-red-900 ring-1 ring-red-200/90 hover:bg-red-100"
-                      : "bg-white/90 text-slate-600 ring-1 ring-slate-200/80 hover:bg-white hover:text-slate-900"
+                      : "bg-[var(--df-bg-elevated)] text-[var(--df-text-secondary)] ring-1 ring-[var(--df-border-subtle)] hover:bg-[var(--df-brand-100)] hover:text-[var(--df-text-primary)]"
               }`}
             >
               {FILTER_LABELS[f]}
@@ -220,12 +220,12 @@ export function ConversationsList({
       </div>
 
       {showRefinementRow ? (
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100/90 bg-white px-2 py-2">
+        <div className="flex flex-wrap items-center gap-2 border-b df-border-brand bg-[var(--df-bg-elevated)] px-2 py-2">
           {queues.length > 0 ? (
             <div className="flex min-w-0 max-w-[min(100%,18rem)] flex-1 items-center gap-1.5">
-              <span className="shrink-0 text-[10px] font-medium text-slate-500">Fila</span>
+                <span className="shrink-0 text-[10px] font-medium text-[var(--df-text-secondary)]">Fila</span>
               <select
-                className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-slate-50/90 px-2 py-1.5 text-[11px] text-slate-800"
+                className="min-w-0 flex-1 rounded-lg border df-border-brand bg-[var(--df-bg-app)] px-2 py-1.5 text-[11px] text-[var(--df-text-primary)]"
                 aria-label="Filtrar por fila"
                 value={queueFilter === "none" ? "__none__" : queueFilter ?? ""}
                 onChange={(e) => {
@@ -254,7 +254,7 @@ export function ConversationsList({
                 className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
                   hasLineFilter
                     ? "border-[var(--df-brand-500)]/40 bg-[var(--df-brand-50)] text-[var(--df-brand-800)]"
-                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    : "border-[var(--df-border-subtle)] bg-[var(--df-bg-elevated)] text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)]"
                 }`}
                 aria-expanded={moreFiltersOpen}
                 aria-controls="inbox-more-filters"
@@ -267,13 +267,13 @@ export function ConversationsList({
               {moreFiltersOpen ? (
                 <div
                   id="inbox-more-filters"
-                  className="absolute left-0 top-full z-30 mt-1 w-[min(calc(100vw-2rem),18rem)] rounded-xl border border-slate-200/90 bg-white p-3 shadow-lg ring-1 ring-slate-900/[0.04]"
+                  className="absolute left-0 top-full z-30 mt-1 w-[min(calc(100vw-2rem),18rem)] rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-3 shadow-lg ring-1 ring-black/30"
                 >
-                  <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                  <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">
                     Linha WhatsApp
                   </label>
                   <select
-                    className="w-full rounded-lg border border-slate-200 bg-slate-50/80 px-2 py-1.5 text-xs text-slate-800"
+                    className="w-full rounded-lg border df-border-brand bg-[var(--df-bg-app)] px-2 py-1.5 text-xs text-[var(--df-text-primary)]"
                     value={lineFilter ?? ""}
                     onChange={(e) => {
                       const v = e.target.value;
@@ -291,7 +291,7 @@ export function ConversationsList({
                       </option>
                     ))}
                   </select>
-                  <p className="mt-2 text-[10px] leading-snug text-slate-400">
+                  <p className="mt-2 text-[10px] leading-snug text-[var(--df-text-muted)]">
                     Use a linha quando tiver vários números Business; a fila fica no controlo ao lado.
                   </p>
                 </div>
@@ -307,15 +307,15 @@ export function ConversationsList({
     if (showOnboardingEmpty) {
       return (
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-3" data-testid="conversations-empty">
-          <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-dashed border-slate-200/90 bg-gradient-to-b from-slate-50/90 to-white px-4 py-5 shadow-sm">
-            <p className="text-center text-sm font-semibold text-slate-900">Aguardando sua primeira mensagem</p>
-            <p className="mt-1 text-center text-xs text-slate-500">
+          <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-dashed df-border-brand bg-gradient-to-b from-[var(--df-bg-elevated)] to-[var(--df-bg-app)] px-4 py-5 shadow-sm">
+            <p className="text-center text-sm font-semibold text-[var(--df-text-primary)]">Aguardando sua primeira mensagem</p>
+            <p className="mt-1 text-center text-xs text-[var(--df-text-secondary)]">
               Envie uma mensagem para seu número para testar o atendimento.
             </p>
             <div className="mt-5 min-h-0 flex-1">
               <FirstConversationHint variant="sidebar" lines={lines} />
             </div>
-            <div className="mt-6 flex flex-wrap justify-center gap-2 border-t border-slate-100 pt-4">
+            <div className="mt-6 flex flex-wrap justify-center gap-2 border-t df-border-brand pt-4">
               <Link href="/dashboard/whatsapp" className={buttonClassName("secondary")}>
                 Estado da ligação
               </Link>
@@ -371,14 +371,14 @@ export function ConversationsList({
           return (
             <Fragment key={section}>
               <div
-                className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-slate-200/80 bg-slate-50/98 px-3 py-2 backdrop-blur-md sm:px-4"
+                className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b df-border-brand bg-[var(--df-bg-elevated)]/95 px-3 py-2 backdrop-blur-md sm:px-4"
                 data-testid={`inbox-group-${section}`}
               >
-                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--df-text-secondary)]">
                   {INBOX_SIDEBAR_SECTION_LABELS[section]}
                 </span>
                 <span
-                  className="inline-flex min-h-[1.35rem] min-w-[1.35rem] items-center justify-center rounded-full bg-slate-200/90 px-2 text-[10px] font-bold tabular-nums text-slate-800 ring-1 ring-slate-300/40"
+                  className="inline-flex min-h-[1.35rem] min-w-[1.35rem] items-center justify-center rounded-full bg-[var(--df-brand-100)] px-2 text-[10px] font-bold tabular-nums text-[var(--df-brand-900)] ring-1 ring-[var(--df-border-subtle)]"
                   data-testid={`inbox-group-count-${section}`}
                 >
                   {group.length}

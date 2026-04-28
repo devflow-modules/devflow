@@ -117,6 +117,7 @@ function navIsActive(pathname: string, href: string) {
 }
 
 export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
+  const brandName = process.env.NEXT_PUBLIC_BRAND_NAME ?? "DevFlow Labs";
   const pathname = usePathname() ?? "";
   const { role: sessionRole } = useSessionRole();
   const shellLayout = useShellLayoutOptional();
@@ -168,22 +169,27 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   }
 
   return (
-    <aside className="flex h-full w-full min-w-0 shrink-0 flex-col bg-white">
-      <div className="flex items-start justify-between gap-2 border-b border-slate-100/90 px-3 py-4 sm:px-4 sm:py-5">
+    <aside className="df-page flex h-full w-full min-w-0 shrink-0 flex-col">
+      <div className="flex items-start justify-between gap-2 border-b df-border-brand px-3 py-4 sm:px-4 sm:py-5">
         <Link
           href={shellHomeHref(sessionRole)}
           className="min-w-0 flex-1"
           onClick={() => onNavigate?.()}
         >
-          <span className="text-sm font-semibold tracking-tight text-slate-950">WhatsApp Platform</span>
-          <span className="mt-1 block text-xs text-slate-500">DevFlow Labs</span>
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border df-border-brand bg-[var(--df-brand-100)] text-[10px] font-bold text-[var(--df-brand-900)]">
+            DF
+          </span>
+          <span className="mt-2 block text-sm font-semibold tracking-tight text-[var(--df-text-primary)]">
+            WhatsApp Platform
+          </span>
+          <span className="mt-1 block text-xs text-[var(--df-text-secondary)]">{brandName}</span>
           <SessionRoleModePill variant="sidebar" />
         </Link>
         {shellLayout ? (
           <button
             type="button"
             onClick={() => shellLayout.toggleSidebar()}
-            className="hidden shrink-0 rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2 lg:flex"
+            className="hidden shrink-0 rounded-lg p-2 text-[var(--df-text-secondary)] transition hover:bg-[var(--df-brand-100)] hover:text-[var(--df-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2 lg:flex"
             aria-label="Menu compacto"
             title="Menu compacto — barra de ícones com acesso rápido; mais espaço para o conteúdo"
           >
@@ -240,7 +246,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
           </CollapsibleNavSection>
         ) : null}
 
-        <div className="border-t border-slate-200/80 pt-3" aria-hidden />
+        <div className="border-t df-border-brand pt-3" aria-hidden />
 
         <CollapsibleNavSection
           sectionId="operacao"
@@ -284,7 +290,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
         ) : null}
       </nav>
 
-      <div className="border-t border-slate-100 p-3">
+      <div className="border-t df-border-brand p-3">
         <SupportHelpButton variant="sidebar" className="mb-3" />
         {sessionRole && (isOperator(sessionRole) || isTenantManager(sessionRole)) ? (
           <Link

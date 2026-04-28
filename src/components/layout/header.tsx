@@ -43,7 +43,7 @@ function isDemoActive(pathname: string): boolean {
 const navText = (active: boolean) =>
   cn(
     "text-sm font-semibold transition-colors",
-    active ? "text-primary" : "text-slate-600 hover:text-primary"
+    active ? "text-primary" : "text-muted-foreground hover:text-primary"
   );
 
 const navUnderline = (active: boolean) =>
@@ -112,7 +112,7 @@ export function Header() {
   );
 
   const secondaryBtnClass =
-    "inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-border bg-transparent px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-muted min-[380px]:px-4 min-[380px]:text-sm";
+    "inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border df-border-brand bg-transparent px-3 text-xs font-semibold text-foreground transition-colors hover:bg-primary/10 min-[380px]:px-4 min-[380px]:text-sm";
 
   const onNav = (item: string, surface: "desktop" | "mobile" = "desktop") => {
     trackHeaderNavClicked({ item, surface });
@@ -139,8 +139,8 @@ export function Header() {
       className={cn(
         "sticky top-0 z-50 w-full max-w-[100vw] border-b transition-[box-shadow,background-color] duration-200",
         scrolled
-          ? "border-slate-200/90 bg-background/95 shadow-[0_4px_24px_rgba(15,23,42,0.06)] backdrop-blur-md supports-[backdrop-filter]:bg-background/90"
-          : "border-slate-200/80 bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/80"
+          ? "border df-border-brand bg-background/95 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-md supports-[backdrop-filter]:bg-background/90"
+          : "border df-border-brand bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/80"
       )}
     >
       <div className="mx-auto flex min-h-[3.25rem] max-w-[1200px] items-center justify-between gap-2 px-3 min-[400px]:gap-3 min-[400px]:px-4 sm:min-h-[4rem] sm:px-6 lg:px-8">
@@ -153,8 +153,8 @@ export function Header() {
           >
             DevFlow Labs
           </Link>
-          <p className="mt-0.5 hidden max-w-[20rem] truncate text-[11px] leading-snug text-slate-500 xl:block">
-            Ferramentas gratuitas, produtos SaaS e automação — comece em minutos
+          <p className="df-text-muted mt-0.5 hidden max-w-[20rem] truncate text-[11px] leading-snug xl:block">
+            Automação · Sistemas · Resultados
           </p>
         </div>
 
@@ -189,7 +189,7 @@ export function Header() {
                 className="absolute left-0 top-full z-50 mt-1 w-[min(calc(100vw-2rem),22rem)] rounded-xl border border-border bg-background p-2 shadow-lg"
                 role="menu"
               >
-                <p className="px-2 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <p className="df-text-muted px-2 pb-1.5 text-[10px] font-bold uppercase tracking-wider">
                   Catálogo
                 </p>
                 <div className="flex flex-col gap-1.5">
@@ -342,7 +342,7 @@ export function Header() {
           </div>
 
           <nav aria-label="Navegação mobile">
-            <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <p className="df-text-muted mb-1 text-[10px] font-bold uppercase tracking-wider">
               Nossos produtos
             </p>
             <ul className="flex flex-col gap-2 border-b border-border pb-3" role="list">
@@ -397,7 +397,7 @@ export function Header() {
               <li>
                 <Link
                   href="/ferramentas"
-                  className="flex min-h-12 items-center rounded-xl px-3 py-3 text-base font-semibold text-slate-800 hover:bg-primary/5 hover:text-primary"
+                  className="flex min-h-12 items-center rounded-xl px-3 py-3 text-base font-semibold text-foreground hover:bg-primary/5 hover:text-primary"
                   onClick={() => onNav("ferramentas_gratuitas", "mobile")}
                 >
                   Ferramentas gratuitas
@@ -406,7 +406,7 @@ export function Header() {
               <li>
                 <Link
                   href={COMO_FUNCIONA_PATH}
-                  className="flex min-h-12 items-center rounded-xl px-3 py-3 text-base font-semibold text-slate-800 hover:bg-primary/5 hover:text-primary"
+                  className="flex min-h-12 items-center rounded-xl px-3 py-3 text-base font-semibold text-foreground hover:bg-primary/5 hover:text-primary"
                   onClick={() => onNav("como_funciona", "mobile")}
                 >
                   Como funciona
@@ -415,7 +415,7 @@ export function Header() {
               <li>
                 <Link
                   href="/precos"
-                  className="flex min-h-12 items-center rounded-xl px-3 py-3 text-base font-semibold text-slate-800 hover:bg-primary/5 hover:text-primary"
+                  className="flex min-h-12 items-center rounded-xl px-3 py-3 text-base font-semibold text-foreground hover:bg-primary/5 hover:text-primary"
                   onClick={() => onNav("precos", "mobile")}
                 >
                   Preços

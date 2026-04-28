@@ -55,7 +55,7 @@ function ProductCard({ product }: { product: DevflowCatalogProduct }) {
     return (
       <article
         className={cn(
-          "flex flex-col rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-b from-emerald-500/[0.07] to-card p-6 shadow-sm ring-1 ring-emerald-500/15 transition-all duration-200 hover:shadow-lg"
+          "df-surface-elevated flex flex-col rounded-2xl border-2 border-primary/40 bg-gradient-to-b from-primary/[0.08] to-card p-6 shadow-sm ring-1 ring-primary/20 transition-all duration-200 hover:shadow-lg"
         )}
       >
         <div className="flex items-start justify-between gap-2">
@@ -63,13 +63,13 @@ function ProductCard({ product }: { product: DevflowCatalogProduct }) {
             <Icon className={cn("size-5", styles.icon)} aria-hidden />
           </div>
           {product.badge ? (
-            <span className="shrink-0 rounded-full border border-emerald-500/35 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-200">
+            <span className="shrink-0 rounded-full border border-primary/35 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
               {product.badge}
             </span>
           ) : null}
         </div>
         <h3 className="mt-4 text-lg font-semibold text-foreground">{product.name}</h3>
-        <p className="mt-1 text-sm text-slate-600">{product.cardPitch}</p>
+        <p className="df-text-muted mt-1 text-sm">{product.cardPitch}</p>
         <p className="mt-3 text-xs font-medium text-muted-foreground">
           <span className="text-foreground/80">Para quem:</span> {product.audience}
         </p>
@@ -78,7 +78,7 @@ function ProductCard({ product }: { product: DevflowCatalogProduct }) {
             href={PRIMARY_DEMO_HREF}
             className={cn(
               "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold",
-              "bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
+              "bg-primary text-primary-foreground transition-colors hover:bg-[#00A86B]"
             )}
             onClick={() =>
               trackProductsPageCtaClicked({
@@ -94,7 +94,7 @@ function ProductCard({ product }: { product: DevflowCatalogProduct }) {
           <Link
             href={WHATSAPP_PRODUCT_HREF}
             className={cn(
-              "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-emerald-600/30 bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-emerald-500/[0.06]"
+              "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border-2 df-border-brand bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-primary/10"
             )}
             onClick={() =>
               trackProductsPageCtaClicked({
@@ -130,14 +130,14 @@ function ProductCard({ product }: { product: DevflowCatalogProduct }) {
     >
       <article
         className={cn(
-          "flex h-full flex-col rounded-2xl border border-border bg-card p-6 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-lg"
+          "df-surface flex h-full flex-col rounded-2xl border border-border bg-card p-6 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-lg"
         )}
       >
         <div className={cn("flex size-10 items-center justify-center rounded-xl", styles.wrap)}>
           <Icon className={cn("size-5", styles.icon)} aria-hidden />
         </div>
         <h3 className="mt-4 text-lg font-semibold text-foreground">{product.name}</h3>
-        <p className="mt-1 text-sm text-slate-600">{product.cardPitch}</p>
+        <p className="df-text-muted mt-1 text-sm">{product.cardPitch}</p>
         <p className="mt-3 text-xs font-medium text-muted-foreground">
           <span className="text-foreground/80">Para quem:</span> {product.audience}
         </p>
@@ -176,7 +176,7 @@ export function ProductsHubClient() {
   return (
     <>
       <section
-        className="relative overflow-hidden bg-gradient-to-b from-white to-slate-50 py-16 sm:py-20"
+        className="df-page df-brand-gradient relative overflow-hidden py-16 sm:py-20"
         aria-labelledby="produtos-heading"
       >
         <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
@@ -243,7 +243,7 @@ export function ProductsHubClient() {
 
       <section
         id="lista-produtos"
-        className="bg-white py-20 sm:py-24"
+        className="df-page py-20 sm:py-24"
         aria-labelledby="lista-heading"
       >
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -260,7 +260,7 @@ export function ProductsHubClient() {
 
       <section
         ref={helpRef}
-        className="border-t border-border bg-slate-50/80 py-16 sm:py-20"
+        className="border-t border-border bg-card/60 py-16 sm:py-20"
         aria-labelledby="como-escolher-heading"
       >
         <div className="mx-auto max-w-[720px] px-4 sm:px-6 lg:px-8">

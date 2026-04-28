@@ -7,9 +7,9 @@ const label: Record<SlaStatus, string> = {
 };
 
 const className: Record<SlaStatus, string> = {
-  ok: "bg-emerald-100 text-emerald-900 ring-emerald-200/80",
-  delay: "bg-amber-100 text-amber-950 ring-amber-200/80",
-  critical: "bg-red-100 text-red-900 ring-red-200/80",
+  ok: "bg-[var(--df-success-bg)] text-[var(--df-success-text)] ring-[var(--df-success-border)]",
+  delay: "bg-[var(--df-warning-bg)] text-[#ffe4a5] ring-[var(--df-warning-border)]",
+  critical: "bg-[var(--df-danger-bg)] text-[var(--df-danger-text)] ring-[var(--df-danger-border)]",
 };
 
 type Props = {

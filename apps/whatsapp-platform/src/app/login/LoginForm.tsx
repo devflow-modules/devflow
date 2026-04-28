@@ -81,8 +81,8 @@ export function LoginForm() {
   if (checkingAuth) {
     return (
       <div className="flex flex-col items-center justify-center py-10" aria-busy="true">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
-        <p className="mt-3 text-sm text-slate-500">A verificar sessão…</p>
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--df-border-subtle)] border-t-[var(--df-brand-500)]" />
+        <p className="mt-3 text-sm text-[var(--df-text-secondary)]">A verificar sessão…</p>
       </div>
     );
   }
@@ -90,7 +90,7 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-5" aria-busy={loading} noValidate>
       <div>
-        <label htmlFor="login-email" className="mb-1 block text-sm font-medium text-slate-700">
+        <label htmlFor="login-email" className="mb-1 block text-sm font-medium text-[var(--df-text-secondary)]">
           E-mail
         </label>
         <input
@@ -102,7 +102,7 @@ export function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={loading}
-          className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-60"
+          className="w-full rounded-md border border-[var(--df-border-subtle)] bg-[var(--df-bg-app)] px-3 py-2 text-sm text-[var(--df-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)] disabled:opacity-60"
         />
       </div>
       <PasswordField
@@ -126,12 +126,12 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50"
+        className="df-brand-gradient w-full rounded-md bg-[#00D084] px-4 py-2.5 text-sm font-semibold text-[#032316] shadow-sm transition-colors hover:bg-[#00A86B] disabled:opacity-50"
       >
         {loading ? "A entrar…" : "Entrar"}
       </button>
-      <p className="text-center text-sm text-slate-600">
-        <Link href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-800">
+      <p className="text-center text-sm text-[var(--df-text-secondary)]">
+        <Link href="/forgot-password" className="font-medium text-[var(--df-brand-500)] hover:text-[var(--df-brand-400)]">
           Esqueci minha senha
         </Link>
       </p>

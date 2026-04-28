@@ -85,10 +85,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const themeMode = process.env.NEXT_PUBLIC_THEME_MODE === "client_branded" ? "client_branded" : "devflow";
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" data-theme={themeMode}>
       <body
-        className={`${inter.variable} font-sans flex min-h-screen flex-col antialiased`}
+        className={`${inter.variable} df-page font-sans flex min-h-screen flex-col antialiased`}
       >
         <script
           type="application/ld+json"

@@ -31,7 +31,7 @@ export function BodyChrome({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Header />
-      <main className="min-w-0 flex-1 overflow-x-clip">{children}</main>
+      <main className="df-page min-w-0 flex-1 overflow-x-clip">{children}</main>
       <Footer />
       <FloatingWhatsAppCta />
     </>

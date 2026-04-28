@@ -50,7 +50,7 @@ export const metadata: Metadata = {
 
 export default function WhatsAppPlatformPage() {
   return (
-    <main>
+    <main className="df-page">
       <HeroSection />
       <ProblemSection />
       <SolutionSection />
@@ -60,11 +60,11 @@ export default function WhatsAppPlatformPage() {
       <PositioningSection />
       <FinalCTASection />
 
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 pb-8">
+      <div className="mx-auto max-w-[1200px] px-4 pb-8 sm:px-6 lg:px-8">
         <RelatedLinks variant="produtos" title="Explore o ecossistema" />
       </div>
 
-      <div className="border-t border-border py-8">
+      <div className="border-t df-border-brand py-8">
         <p className="text-center">
           <Link
             href="/"
