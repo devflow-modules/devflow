@@ -57,88 +57,77 @@ export type WaInboxListedThread = Prisma.WaInboxThreadGetPayload<{ include: type
   lastUnansweredInboundAt: string | null;
 };
 
-/** Mesma janela que `unansweredInboundCount` — há mensagem inbound sem resposta outbound depois. */
-function sqlThreadHasUnansweredInbound(tenantId: string): Prisma.Sql {
-  return Prisma.sql`EXISTS (
-    SELECT 1 FROM wa_inbox_messages mi
-    WHERE mi.thread_id = t.id AND mi.tenant_id = ${tenantId}
-      AND mi.direction = 'INBOUND'
-      AND mi.ts > COALESCE(
-        (SELECT MAX(mo.ts) FROM wa_inbox_messages mo
-         WHERE mo.thread_id = t.id AND mo.tenant_id = ${tenantId} AND mo.direction = 'OUTBOUND'),
-        'epoch'::timestamp
-      )
-  )`;
-}
-
-function buildWaInboxThreadWhereSql(
+function buildWaInboxThreadWhereParts(
   tenantId: string,
   filters: WaInboxThreadFilters | undefined,
   currentUserId?: string
-): Prisma.Sql {
+): Prisma.Sql[] {
   const parts: Prisma.Sql[] = [Prisma.sql`t.tenant_id = ${tenantId}`];
+  const and = (clause: Prisma.Sql) => {
+    parts.push(clause);
+  };
 
   if (filters?.conversationPhase) {
     const ph = filters.conversationPhase;
     if (ph === "all") {
       /* sem filtro de fase — apenas tenant + refinamentos (linha, fila, prioridade) */
     } else if (ph === "needs_response") {
-      parts.push(Prisma.sql`t.status::text <> 'CLOSED'`);
-      parts.push(sqlThreadHasUnansweredInbound(tenantId));
+      and(Prisma.sql`t.status::text <> 'CLOSED'`);
     } else if (ph === "mine") {
-      if (currentUserId) parts.push(Prisma.sql`t.assigned_to_user_id = ${currentUserId}`);
-      else parts.push(Prisma.sql`FALSE`);
+      if (currentUserId) and(Prisma.sql`t.assigned_to_user_id = ${currentUserId}`);
+      else and(Prisma.sql`FALSE`);
     } else if (ph === "unassigned") {
-      /** Sem dono humano e ainda há mensagem inbound por responder (fila de «assumir»). */
-      parts.push(Prisma.sql`t.status::text <> 'CLOSED'`);
-      parts.push(Prisma.sql`t.assigned_to_user_id IS NULL`);
-      parts.push(sqlThreadHasUnansweredInbound(tenantId));
+      and(Prisma.sql`t.status::text <> 'CLOSED'`);
+      and(Prisma.sql`t.assigned_to_user_id IS NULL`);
     } else if (ph === "in_attendance") {
-      parts.push(Prisma.sql`t.status::text <> 'CLOSED'`);
-      parts.push(Prisma.sql`t.assigned_to_user_id IS NOT NULL`);
-      parts.push(Prisma.sql`NOT (${sqlThreadHasUnansweredInbound(tenantId)})`);
+      and(Prisma.sql`t.status::text <> 'CLOSED'`);
+      and(Prisma.sql`t.assigned_to_user_id IS NOT NULL`);
     } else if (ph === "awaiting_customer") {
-      parts.push(Prisma.sql`t.status::text <> 'CLOSED'`);
-      parts.push(Prisma.sql`t.assigned_to_user_id IS NULL`);
-      parts.push(Prisma.sql`NOT (${sqlThreadHasUnansweredInbound(tenantId)})`);
+      and(Prisma.sql`t.status::text <> 'CLOSED'`);
+      and(Prisma.sql`t.assigned_to_user_id IS NULL`);
     } else if (ph === "closed") {
-      parts.push(Prisma.sql`t.status::text = 'CLOSED'`);
+      and(Prisma.sql`t.status::text = 'CLOSED'`);
     }
   } else {
     if (filters?.status) {
-      parts.push(Prisma.sql`t.status = ${filters.status}`);
+      and(Prisma.sql`t.status = ${filters.status}`);
     }
     if (filters?.assignedTo !== undefined) {
       if (filters.assignedTo === "unassigned") {
-        parts.push(Prisma.sql`t.assigned_to_user_id IS NULL`);
+        and(Prisma.sql`t.assigned_to_user_id IS NULL`);
       } else if (filters.assignedTo === "me" && currentUserId) {
-        parts.push(Prisma.sql`t.assigned_to_user_id = ${currentUserId}`);
+        and(Prisma.sql`t.assigned_to_user_id = ${currentUserId}`);
       } else if (filters.assignedTo) {
-        parts.push(Prisma.sql`t.assigned_to_user_id = ${filters.assignedTo}`);
+        and(Prisma.sql`t.assigned_to_user_id = ${filters.assignedTo}`);
       }
     }
   }
 
   if (filters?.priority) {
-    parts.push(Prisma.sql`t.priority = ${filters.priority}`);
+    and(Prisma.sql`t.priority = ${filters.priority}`);
   }
   if (filters?.tag) {
-    parts.push(Prisma.sql`EXISTS (
+    and(Prisma.sql`EXISTS (
       SELECT 1 FROM wa_inbox_thread_tags tt
       WHERE tt.thread_id = t.id AND tt.tenant_id = ${tenantId} AND tt.tag_id = ${filters.tag}
     )`);
   }
   if (filters?.businessPhoneNumberId?.trim()) {
-    parts.push(Prisma.sql`t.business_phone_number_id = ${filters.businessPhoneNumberId.trim()}`);
+    and(Prisma.sql`t.business_phone_number_id = ${filters.businessPhoneNumberId.trim()}`);
   }
   if (filters?.queueId !== undefined) {
     if (filters.queueId === "none" || filters.queueId === "") {
-      parts.push(Prisma.sql`t.queue_id IS NULL`);
+      and(Prisma.sql`t.queue_id IS NULL`);
     } else {
-      parts.push(Prisma.sql`t.queue_id = ${filters.queueId}`);
+      and(Prisma.sql`t.queue_id = ${filters.queueId}`);
     }
   }
-  return Prisma.join(parts, " AND ");
+  return parts;
+}
+
+function combineWhereParts(parts: Prisma.Sql[]): Prisma.Sql {
+  if (parts.length === 0) return Prisma.sql`TRUE`;
+  return parts.slice(1).reduce((acc, clause) => Prisma.sql`${acc} AND ${clause}`, parts[0]);
 }
 
 type OrderedListRow = {
@@ -158,9 +147,10 @@ export async function waInboxListThreads(
   tenantId: string,
   opts: { take: number; skip: number; filters?: WaInboxThreadFilters; currentUserId?: string }
 ): Promise<WaInboxListedThread[]> {
-  const whereSql = buildWaInboxThreadWhereSql(tenantId, opts.filters, opts.currentUserId);
+  const whereParts = buildWaInboxThreadWhereParts(tenantId, opts.filters, opts.currentUserId);
+  const whereSql = combineWhereParts(whereParts);
 
-  const orderedRows = await prisma.$queryRaw<OrderedListRow[]>`
+  const listQuery = Prisma.sql`
     WITH base AS (
       SELECT
         t.id,
@@ -245,6 +235,18 @@ export async function waInboxListThreads(
       ranked.last_message_at DESC
     LIMIT ${opts.take} OFFSET ${opts.skip}
   `;
+  let orderedRows: OrderedListRow[];
+  try {
+    orderedRows = await prisma.$queryRaw<OrderedListRow[]>(listQuery);
+  } catch (error) {
+    console.error("[inbox] waInboxListThreads raw query failed", {
+      tenantId,
+      filters: opts.filters,
+      message: error instanceof Error ? error.message : error,
+      queryText: listQuery.text,
+    });
+    throw error;
+  }
 
   const ids = orderedRows.map((r) => r.id);
   if (ids.length === 0) return [];
@@ -310,11 +312,54 @@ export async function waInboxCountThreads(
   filters?: WaInboxThreadFilters,
   currentUserId?: string
 ): Promise<number> {
-  const whereSql = buildWaInboxThreadWhereSql(tenantId, filters, currentUserId);
-  const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
-    SELECT COUNT(*)::bigint AS count FROM wa_inbox_threads t WHERE ${whereSql}
-  `;
-  return Number(rows[0]?.count ?? 0);
+  const where: Prisma.WaInboxThreadWhereInput = { tenantId };
+
+  if (filters?.conversationPhase) {
+    switch (filters.conversationPhase) {
+      case "closed":
+        where.status = WaInboxThreadStatus.CLOSED;
+        break;
+      case "mine":
+        where.assignedToUserId = currentUserId ?? "__no_user__";
+        break;
+      case "unassigned":
+      case "awaiting_customer":
+        where.status = { not: WaInboxThreadStatus.CLOSED };
+        where.assignedToUserId = null;
+        break;
+      case "in_attendance":
+        where.status = { not: WaInboxThreadStatus.CLOSED };
+        where.assignedToUserId = { not: null };
+        break;
+      case "needs_response":
+        where.status = { not: WaInboxThreadStatus.CLOSED };
+        break;
+      case "all":
+      default:
+        break;
+    }
+  } else {
+    if (filters?.status) where.status = filters.status;
+    if (filters?.assignedTo === "unassigned") where.assignedToUserId = null;
+    else if (filters?.assignedTo === "me") where.assignedToUserId = currentUserId ?? "__no_user__";
+    else if (filters?.assignedTo) where.assignedToUserId = filters.assignedTo;
+  }
+
+  if (filters?.priority) {
+    where.priority = filters.priority as "LOW" | "MEDIUM" | "HIGH";
+  }
+  if (filters?.businessPhoneNumberId?.trim()) {
+    where.businessPhoneNumberId = filters.businessPhoneNumberId.trim();
+  }
+  if (filters?.queueId !== undefined) {
+    if (filters.queueId === "none" || filters.queueId === "") where.queueId = null;
+    else where.queueId = filters.queueId;
+  }
+  if (filters?.tag) {
+    where.threadTags = { some: { tenantId, tagId: filters.tag } };
+  }
+
+  return prisma.waInboxThread.count({ where });
 }
 
 export async function waInboxGetThread(tenantId: string, threadId: string) {

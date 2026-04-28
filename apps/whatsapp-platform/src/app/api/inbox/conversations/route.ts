@@ -66,15 +66,37 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const [threads, total] = await Promise.all([
-      waInboxListThreads(auth.payload.tenantId, {
+    const effectiveFilters = Object.keys(filters).length ? filters : undefined;
+    let threads: Awaited<ReturnType<typeof waInboxListThreads>> = [];
+    let total = 0;
+    try {
+      threads = await waInboxListThreads(auth.payload.tenantId, {
         take,
         skip,
-        filters: Object.keys(filters).length ? filters : undefined,
+        filters: effectiveFilters,
         currentUserId: auth.payload.sub,
-      }),
-      waInboxCountThreads(auth.payload.tenantId, Object.keys(filters).length ? filters : undefined, auth.payload.sub),
-    ]);
+      });
+      total = await waInboxCountThreads(auth.payload.tenantId, effectiveFilters, auth.payload.sub);
+    } catch (phaseError) {
+      if (!filters.conversationPhase) throw phaseError;
+      const fallbackFilters = { ...filters };
+      delete fallbackFilters.conversationPhase;
+      const degradedFilters = Object.keys(fallbackFilters).length ? fallbackFilters : undefined;
+      threads = await waInboxListThreads(auth.payload.tenantId, {
+        take,
+        skip,
+        filters: degradedFilters,
+        currentUserId: auth.payload.sub,
+      });
+      total = await waInboxCountThreads(auth.payload.tenantId, degradedFilters, auth.payload.sub);
+      console.warn("[inbox] phase query degraded to fallback list", {
+        tenantId: auth.payload.tenantId,
+        userId: auth.payload.sub,
+        phase: filters.conversationPhase,
+        phaseError: phaseError instanceof Error ? phaseError.message : phaseError,
+      });
+    }
+
     const lineMap = await fetchWhatsappLineSummaries(
       auth.payload.tenantId,
       threads.map((t) => t.businessPhoneNumberId)
@@ -94,9 +116,18 @@ export async function GET(request: NextRequest) {
       pagination: { limit: take, offset: skip, total },
     });
   } catch (e) {
+    console.error("[inbox] failed to list conversations", {
+      tenantId: auth.payload.tenantId,
+      userId: auth.payload.sub,
+      limit: take,
+      offset: skip,
+      filters,
+      error: e instanceof Error ? e.message : e,
+      stack: e instanceof Error ? e.stack : undefined,
+    });
     return jsonError(
       "INBOX_LIST_FAILED",
-      e instanceof Error ? e.message : "Erro ao listar",
+      "Não foi possível carregar as conversas",
       500
     );
   }
