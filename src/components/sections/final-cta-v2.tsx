@@ -35,13 +35,13 @@ export function FinalCtaV2() {
             id="final-cta-v2-heading"
             className="text-2xl font-bold tracking-tight sm:text-3xl"
           >
-            Você pode continuar no manual...
+            Sua operação no WhatsApp precisa de método
           </h2>
           <p className="mt-4 text-base leading-relaxed text-slate-300 sm:text-lg">
-            ...ou organizar em minutos.
+            Diagnóstico inicial para transformar atendimento e vendas em rotina previsível.
           </p>
           <p className="mt-3 text-sm text-slate-400">
-            Tenha controle da operação num só lugar. Ganhe tempo todo dia.
+            Implementação guiada, IA no repetitivo e gestão com SLA no dashboard operacional.
           </p>
 
           <p className="mt-2 text-xs font-medium text-emerald-400/90">
@@ -49,28 +49,35 @@ export function FinalCtaV2() {
           </p>
 
           <div className="mt-6 flex flex-col items-stretch gap-3 sm:mt-8 sm:items-center sm:gap-4">
-            <Link
-              href={PRIMARY_DEMO_HREF}
-              aria-label="Ver demonstração guiada de atendimento no WhatsApp"
+            <WhatsAppCta
+              label={PRIMARY_CONVERT_CTA_LABEL}
+              ariaLabel="Agendar diagnóstico da operação no WhatsApp"
+              size="default"
+              text="Quero agendar um diagnóstico da minha operação de atendimento e vendas no WhatsApp."
               className={cn(
                 "devflow-cta-elite inline-flex min-h-[3rem] items-center justify-center gap-2 rounded-xl px-4 text-left text-sm font-bold leading-snug sm:min-h-14 sm:min-w-[min(100%,300px)] sm:justify-center sm:px-8 sm:text-base md:text-lg",
                 "bg-primary text-primary-foreground",
                 "transition-transform duration-200 hover:scale-[1.02] hover:bg-[#16a34a] active:scale-[0.98] sm:hover:scale-[1.03]"
               )}
+            />
+            <Link
+              href={PRIMARY_DEMO_HREF}
+              aria-label="Ver demonstração guiada de atendimento no WhatsApp"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white/10"
             >
-              <span className="text-balance">{PRIMARY_CONVERT_CTA_LABEL}</span>
-              <ArrowRight className="size-5 shrink-0" aria-hidden />
+              Ver demo em 2 minutos
+              <ArrowRight className="size-4 shrink-0" aria-hidden />
             </Link>
             <WhatsAppCta
               label={SPECIALIST_WHATSAPP_CTA_LABEL}
               ariaLabel="Falar com especialista no WhatsApp"
               size="default"
-              text="Quero ver como organizar meu WhatsApp com a DevFlow — falar com especialista."
+              text="Quero entender a implementação da operação de WhatsApp com a DevFlow."
               className="!min-h-12 !border-white/20 !bg-transparent !px-4 !text-white hover:!bg-white/10"
             />
           </div>
           <p className="mt-6 text-xs text-slate-500">
-            Ferramentas grátis · Sem cartão · Cancele quando quiser
+            Oferta principal: implementação de operação de atendimento e vendas no WhatsApp
           </p>
         </div>
       </div>

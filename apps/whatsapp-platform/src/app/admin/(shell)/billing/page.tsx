@@ -6,8 +6,8 @@ import { getBillingDashboard } from "./actions";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Billing e receita | Admin — WhatsApp Platform",
-  description: "Dashboard admin de billing, receita e uso.",
+  title: "Ferramentas internas DevFlow | Billing e receita",
+  description: "Ferramentas internas DevFlow para billing, receita e uso da plataforma.",
   robots: "noindex, nofollow",
 };
 

@@ -5,9 +5,9 @@ const ogImage = `${baseUrl}/og-devflow.png`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
-  title: "Demonstração guiada | Atendimento no WhatsApp | DevFlow Labs",
+  title: "Demo guiada da operação no WhatsApp | DevFlow Labs",
   description:
-    "Simule como um cliente fala no WhatsApp: mensagens, respostas automáticas, triagem e handoff para humano — fluxo guiado, sem instalar nada.",
+    "Veja uma simulação guiada de atendimento e vendas no WhatsApp com IA, triagem e handoff. Depois da demo, agende seu diagnóstico.",
   alternates: {
     canonical: `${baseUrl}/demo`,
   },
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     siteName: "DevFlow Labs",
     title: "Demonstração guiada no WhatsApp | DevFlow Labs",
     description:
-      "Experimente inbox, automação e handoff num roteiro curto — como na operação real.",
+      "Simulação comercial guiada para entender a operação no WhatsApp antes da implementação.",
     url: `${baseUrl}/demo`,
     images: [
       {
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Demonstração guiada | DevFlow Labs",
     description:
-      "Simule atendimento no WhatsApp: automação, triagem e passagem para humano.",
+      "Veja a operação simulada e avance para diagnóstico com a DevFlow.",
     images: [ogImage],
   },
 };

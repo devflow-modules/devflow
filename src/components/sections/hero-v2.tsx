@@ -14,9 +14,9 @@ import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
 import { cn } from "@/lib/utils";
 
 const bullets = [
-  "WhatsApp atendendo enquanto você foca no que importa",
-  "Grana e contas num só lugar — sem planilha solta",
-  "Ferramentas prontas: abriu, usou",
+  "Diagnóstico inicial para mapear gargalos de atendimento e vendas no WhatsApp",
+  "Implementação guiada de IA no repetitivo com handoff para o time",
+  "Operação acompanhada com inbox multiatendente, SLA e dashboard operacional",
 ];
 
 function withPlus(n: string): string {
@@ -164,8 +164,8 @@ export function HeroV2() {
               <span className="text-primary">Ao vivo</span>
                 <span className="hidden text-muted-foreground sm:inline">·</span>
               <span className="df-text-muted w-full sm:w-auto sm:truncate">
-                <span className="sm:hidden">WhatsApp Platform · ferramentas · SaaS</span>
-                <span className="hidden sm:inline">WhatsApp Platform · ferramentas · SaaS</span>
+                <span className="sm:hidden">Diagnóstico · implementação · operação</span>
+                <span className="hidden sm:inline">WhatsApp Platform · implementação guiada</span>
               </span>
             </div>
 
@@ -174,12 +174,13 @@ export function HeroV2() {
                 id="hero-heading"
                 className="text-balance text-[1.5rem] font-extrabold leading-[1.15] tracking-tight text-foreground min-[360px]:text-[1.625rem] min-[400px]:text-[1.75rem] sm:text-4xl sm:leading-[1.1] lg:text-[3.15rem]"
               >
-                Seu WhatsApp não pode ser o gargalo da operação
+                Transforme seu WhatsApp em uma operação previsível de atendimento e vendas
               </h1>
               <p className="df-text-muted text-base leading-relaxed sm:text-lg lg:text-xl">
-                <strong className="font-semibold text-foreground">WhatsApp Platform</strong> para inbox, automação e
-                métricas — e ainda ferramentas e finanças num só ecossistema.{" "}
-                <span className="text-foreground/90">Menos caos, mais resposta e controle.</span>
+                A DevFlow implementa sua operação com{" "}
+                <strong className="font-semibold text-foreground">inbox multiatendente, IA aplicada ao repetitivo</strong>,
+                automação e dashboard operacional.{" "}
+                <span className="text-foreground/90">Você entra com o contexto, nós entregamos o fluxo rodando.</span>
               </p>
             </div>
 
@@ -196,18 +197,28 @@ export function HeroV2() {
 
             <div className="space-y-3 pt-0.5 sm:pt-1">
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-stretch sm:gap-4">
-                <Link
-                  href={PRIMARY_DEMO_HREF}
-                  onClick={() => trackHomeCta("hero_ver_demo")}
-                  aria-label="Ver demonstração guiada de atendimento no WhatsApp"
+                <WhatsAppCta
+                  label={PRIMARY_CONVERT_CTA_LABEL}
+                  ariaLabel="Agendar diagnóstico da operação no WhatsApp"
+                  text="Quero agendar um diagnóstico da minha operação de atendimento e vendas no WhatsApp."
+                  size="lg"
                   className={cn(
                     "devflow-cta-elite inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-4 text-left text-sm font-bold leading-snug sm:min-h-14 sm:w-auto sm:min-w-[min(100%,280px)] sm:justify-center sm:px-6 sm:text-base md:px-8 md:text-lg",
                     "bg-primary text-primary-foreground",
                     "transition-transform duration-200 ease-out",
                     "hover:scale-[1.02] hover:bg-[#00A86B] active:scale-[0.98] sm:hover:scale-[1.03]"
                   )}
+                />
+                <Link
+                  href={PRIMARY_DEMO_HREF}
+                  onClick={() => trackHomeCta("hero_ver_demo")}
+                  aria-label="Ver demonstração guiada de atendimento no WhatsApp"
+                  className={cn(
+                    "inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl border-2 df-border-brand bg-card px-4 text-left text-sm font-semibold leading-snug text-foreground sm:min-h-14 sm:w-auto sm:min-w-[min(100%,280px)] sm:justify-center sm:px-6 sm:text-base md:px-8",
+                    "transition-transform duration-200 ease-out hover:scale-[1.02] hover:bg-primary/10 active:scale-[0.98]"
+                  )}
                 >
-                  <span className="text-balance">{PRIMARY_CONVERT_CTA_LABEL}</span>
+                  <span className="text-balance">Ver demo em 2 minutos</span>
                   <ArrowRight className="size-5 shrink-0" aria-hidden />
                 </Link>
                 <WhatsAppCta
@@ -254,7 +265,7 @@ export function HeroV2() {
                   onClick={() => trackHomeCta("hero_tools")}
                   className="font-semibold text-muted-foreground underline-offset-2 hover:text-primary hover:underline"
                 >
-                  Ferramentas grátis
+                  Ferramentas de apoio
                 </Link>
               </p>
             </div>
@@ -271,7 +282,7 @@ export function HeroV2() {
             </div>
 
             <p className="df-text-muted text-xs leading-relaxed sm:text-sm">
-              Sem cartão · Cancele quando quiser · Direto no navegador
+              Implementação consultiva focada em resultado operacional
             </p>
           </div>
 

@@ -190,11 +190,11 @@ export function DemoGuidedExperience() {
             <div className="max-w-2xl">
               <div className="h-1 w-12 rounded-full bg-primary" aria-hidden />
               <h1 id={titleId} className="mt-4 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                Veja como seu WhatsApp pode responder, qualificar e organizar atendimento automaticamente
+                Veja como a operação de atendimento e vendas funciona no WhatsApp
               </h1>
               <p className="df-text-muted mt-3">
-                Simulação guiada: entrada de mensagem, resposta automática, triagem e handoff para humano — como
-                acontece na operação real.
+                Demo comercial guiada: mensagem de entrada, resposta automática, triagem e handoff para humano
+                no fluxo que implementamos em produção.
               </p>
             </div>
             <button
@@ -212,17 +212,17 @@ export function DemoGuidedExperience() {
             <div className="df-surface-elevated mx-auto mt-8 max-w-xl rounded-2xl border border-emerald-500/35 bg-emerald-500/10 p-6 text-center shadow-sm sm:mt-12 sm:p-8">
               <CheckCircle2 className="mx-auto size-12 text-emerald-600" aria-hidden />
               <h2 className="mt-4 text-balance text-xl font-semibold text-foreground">
-                Agora imagine isso rodando no seu WhatsApp
+                Próximo passo: levar este fluxo para sua operação
               </h2>
               <p className="df-text-muted mt-2 text-sm">
-                Esse fluxo mostra como organizar atendimento, responder mais rápido e não perder oportunidades.
+                Você já viu a dinâmica. Agora agende o diagnóstico para desenhar a implementação com a DevFlow.
               </p>
               <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
                 <WhatsAppCta
-                  label="Falar com especialista"
-                  ariaLabel="Falar com especialista no WhatsApp após ver a demonstração"
+                  label="Agendar diagnóstico"
+                  ariaLabel="Agendar diagnóstico no WhatsApp após ver a demonstração"
                   size="lg"
-                  text="Vi a demonstração e quero aplicar isso no meu WhatsApp."
+                  text="Vi a demo e quero agendar um diagnóstico da minha operação no WhatsApp."
                 />
                 <Link
                   href="/produtos/whatsapp-platform"
@@ -449,10 +449,10 @@ export function DemoGuidedExperience() {
               <p className="text-sm font-medium text-foreground">Pronto para levar isso para o seu WhatsApp?</p>
               <div className="mt-4 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
                 <WhatsAppCta
-                  label="Falar com especialista"
+                  label="Agendar diagnóstico"
                   ariaLabel="Falar com especialista no WhatsApp"
                   size="lg"
-                  text="Vi a demonstração e quero aplicar isso no meu WhatsApp."
+                  text="Vi a demo e quero agendar um diagnóstico da minha operação no WhatsApp."
                 />
                 <Link
                   href="/produtos/whatsapp-platform"

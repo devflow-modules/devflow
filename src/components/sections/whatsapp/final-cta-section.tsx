@@ -13,18 +13,17 @@ export function FinalCTASection() {
             id="final-cta-heading"
             className="mt-3 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
           >
-            Quer sentir o produto trabalhando por você ainda hoje?
+            Quer sair da conversa com um plano de implementação claro?
           </h2>
           <p className="df-text-muted mx-auto mt-4 max-w-2xl text-base font-semibold leading-snug sm:text-lg">
-            Uma conversa com vendas ou 2 minutos de demo — você escolhe o ritmo. O ganho é o mesmo: menos lead morto,
-            mais deal vivo.
+            Comece com diagnóstico e veja a demo guiada para entender como a operação funciona no dia a dia.
           </p>
 
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <WhatsAppCta
               size="lg"
-              label="Reservar conversa com vendas"
-              text="Estou perdendo venda no WhatsApp por fila e demora. Quero reservar conversa com vendas da DevFlow WhatsApp Platform ainda hoje."
+              label="Agendar diagnóstico"
+              text="Quero agendar um diagnóstico da minha operação de atendimento e vendas no WhatsApp."
               className={cn(
                 "w-full min-h-[3.25rem] justify-center shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] sm:w-auto sm:min-w-[min(100%,17.5rem)]",
                 "ring-2 ring-emerald-400/35 ring-offset-2 ring-offset-background",
@@ -48,7 +47,7 @@ export function FinalCTASection() {
               href="/contato"
               className="font-bold text-foreground underline decoration-slate-300 underline-offset-4 hover:text-primary hover:decoration-primary/40"
             >
-              Mandar briefing
+              Falar com especialista
             </Link>
           </p>
         </div>

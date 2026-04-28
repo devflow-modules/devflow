@@ -21,14 +21,14 @@ export const metadata: Metadata = {
     canonical: `${baseUrl}/produtos/whatsapp-platform`,
   },
   description:
-    "Plataforma premium de atendimento e vendas no WhatsApp com inbox multiatendente, automação inteligente, lead scoring e visão operacional para escalar com controle.",
+    "Oferta consultiva de implementação da operação de atendimento e vendas no WhatsApp com IA, inbox multiatendente, automação e dashboard operacional.",
   openGraph: {
     type: "website",
     locale: "pt_BR",
     siteName: "DevFlow Labs",
     title: "WhatsApp Platform | Atendimento e Vendas com Escala",
     description:
-      "Reposicione sua operação de WhatsApp com centralização, priorização de leads, automação e dashboard operacional em um único produto.",
+      "Diagnóstico inicial, implementação guiada e operação acompanhada para transformar o WhatsApp em um canal previsível de atendimento e vendas.",
     url: `${baseUrl}/produtos/whatsapp-platform`,
     images: [
       {
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "WhatsApp Platform | DevFlow Labs",
     description:
-      "Atendimento, vendas e operação via WhatsApp com narrativa premium e foco em conversão.",
+      "Implementação consultiva de atendimento e vendas no WhatsApp com IA aplicada ao repetitivo e foco em resultado operacional.",
     images: [ogImage],
   },
 };
@@ -61,7 +61,7 @@ export default function WhatsAppPlatformPage() {
       <FinalCTASection />
 
       <div className="mx-auto max-w-[1200px] px-4 pb-8 sm:px-6 lg:px-8">
-        <RelatedLinks variant="produtos" title="Explore o ecossistema" />
+        <RelatedLinks variant="produtos" title="Explore soluções complementares" />
       </div>
 
       <div className="border-t df-border-brand py-8">

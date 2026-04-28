@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { trackHeaderCtaClicked, trackHeaderNavClicked, trackHeaderProductsOpened, trackProductsDropdownItemClicked } from "@/lib/analytics";
-import { HEADER_CTA_LABEL, PRIMARY_DEMO_HREF } from "@/lib/conversion-copy";
+import { HEADER_CTA_LABEL } from "@/lib/conversion-copy";
 import {
   DEVFLOW_PRODUCT_CATALOG,
   PRODUTOS_HUB_PATH,
@@ -15,6 +15,7 @@ import { whatsappAppUrl } from "@/lib/whatsapp-app-url";
 import { cn } from "@/lib/utils";
 
 const COMO_FUNCIONA_PATH = "/como-funciona";
+const DIAGNOSTICO_PATH = "/contato";
 
 /** Só rotas sob /produtos — Financeiro no header é oferta, mas rotas /ferramentas/financeiro não marcam “Produtos”. */
 function isProdutosNavActive(pathname: string): boolean {
@@ -280,12 +281,12 @@ export function Header() {
             Entrar
           </Link>
           <Link
-            href={PRIMARY_DEMO_HREF}
-            aria-label="Ver demonstração guiada de atendimento no WhatsApp"
+            href={DIAGNOSTICO_PATH}
+            aria-label="Agendar diagnóstico da operação no WhatsApp"
             className={cn(headerCtaClass, demoActive && "ring-2 ring-primary/25 ring-offset-2 ring-offset-background")}
             onClick={() => {
               trackHeaderCtaClicked({ cta: "ver_demo", surface: "desktop" });
-              trackHeaderNavClicked({ item: "ver_demo", surface: "desktop" });
+              trackHeaderNavClicked({ item: "agendar_diagnostico", surface: "desktop" });
             }}
           >
             {HEADER_CTA_LABEL}
@@ -318,12 +319,12 @@ export function Header() {
         <div className="mx-auto max-w-[1200px] space-y-4 px-3 py-4 sm:px-6">
           <div className="flex flex-col gap-2">
             <Link
-              href={PRIMARY_DEMO_HREF}
-              aria-label="Ver demonstração guiada de atendimento no WhatsApp"
+              href={DIAGNOSTICO_PATH}
+              aria-label="Agendar diagnóstico da operação no WhatsApp"
               className={cn(headerCtaClass, "w-full")}
               onClick={() => {
                 trackHeaderCtaClicked({ cta: "ver_demo", surface: "mobile" });
-                trackHeaderNavClicked({ item: "ver_demo", surface: "mobile" });
+                trackHeaderNavClicked({ item: "agendar_diagnostico", surface: "mobile" });
                 setMobileOpen(false);
               }}
             >

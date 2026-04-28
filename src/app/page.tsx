@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ScrollTracker } from "@/components/shared/scroll-tracker";
 
-// Novos componentes — posicionamento hub
+// Seções da home
 import { HeroV2 } from "@/components/sections/hero-v2";
 import { TechnicalTrustStrip } from "@/components/sections/technical-trust-strip";
 import { HubPillarsSection } from "@/components/sections/hub-pillars-section";
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     canonical: baseUrl,
   },
   description:
-    "WhatsApp Platform para atendimento e vendas com inbox, automação e métricas. Ferramentas gratuitas e produtos SaaS DevFlow Labs — organize a operação sem perder o humano.",
+    "Implementação guiada de operação de atendimento e vendas no WhatsApp com IA, inbox multiatendente, automação e dashboard operacional.",
   keywords: [
     "WhatsApp Platform",
     "inbox whatsapp",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     siteName: "DevFlow Labs",
     title: "DevFlow Labs | WhatsApp Platform e automação de atendimento",
     description:
-      "Inbox, automação e visão operacional no WhatsApp — com ferramentas e SaaS integrados na mesma plataforma.",
+      "Diagnóstico, implementação e operação acompanhada para atendimento e vendas no WhatsApp com IA aplicada ao repetitivo.",
     url: baseUrl,
     images: [
       {
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "DevFlow Labs | WhatsApp Platform",
     description:
-      "Organize atendimento e vendas no WhatsApp com inbox, automação e métricas — e ferramentas quando precisar.",
+      "Operação de WhatsApp implementada com inbox multiatendente, automação e controle de SLA para vendas e atendimento.",
     images: [ogImage],
   },
 };

@@ -13,9 +13,9 @@ import { whatsappAppUrl } from "@/lib/whatsapp-app-url";
 import { cn } from "@/lib/utils";
 
 const heroPoints = [
-  "Resposta instantânea no repetitivo — humano só quando tem cheque na mesa",
-  "Quem paga sobe no topo da fila. O resto não rouba atenção do comercial",
-  "Você vê dinheiro: SLA, handoff e conversão — não vanity metric",
+  "Diagnóstico da operação atual para priorizar gargalos de atendimento e vendas",
+  "Implementação guiada da IA no repetitivo com handoff para o time certo",
+  "Gestão diária com SLA, fila priorizada e dashboard operacional",
 ];
 
 const queueItems = [
@@ -75,19 +75,19 @@ export function HeroSection() {
                 id="whatsapp-hero-heading"
                 className="text-balance text-[1.65rem] font-bold leading-[1.12] tracking-tight text-foreground sm:text-4xl sm:leading-[1.1] lg:text-[2.65rem] lg:leading-[1.08]"
               >
-                Cada minuto sem resposta no WhatsApp é venda que escapa
+                Implementamos sua operação de WhatsApp para responder rápido e vender com previsibilidade
               </h1>
               <p className="df-text-muted max-w-xl text-base font-semibold leading-snug sm:text-lg sm:leading-snug">
-                Pare de perder deal na fila. Suba o ticket certo primeiro, deixe a IA engolir o repetitivo e feche com
-                SLA e conversão no painel — hoje, não “quando der”.
+                Da arquitetura de atendimento ao painel operacional, a DevFlow configura o fluxo completo com
+                inbox multiatendente, automação e IA aplicada ao repetitivo.
               </p>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-stretch sm:gap-4">
               <WhatsAppCta
                 size="lg"
-                label="Reservar conversa com vendas"
-                text="Estou perdendo venda no WhatsApp por fila e demora. Quero reservar conversa com vendas da DevFlow WhatsApp Platform ainda hoje."
+                label="Agendar diagnóstico"
+                text="Quero agendar um diagnóstico da minha operação de atendimento e vendas no WhatsApp."
                 className={cn(
                   "w-full min-h-[3.25rem] justify-center shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] sm:w-auto sm:min-w-[min(100%,17.5rem)]",
                   "ring-2 ring-emerald-400/35 ring-offset-2 ring-offset-background",
@@ -131,7 +131,7 @@ export function HeroSection() {
                 href="/contato"
                 className="font-semibold text-foreground underline decoration-slate-300 underline-offset-4 hover:text-primary hover:decoration-primary/40"
               >
-                Mandar briefing
+                Falar com especialista
               </Link>
             </p>
           </div>

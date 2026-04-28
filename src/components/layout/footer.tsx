@@ -56,23 +56,23 @@ export function Footer() {
               DevFlow Labs
             </Link>
             <p className="df-text-muted max-w-md text-sm leading-relaxed">
-              Plataforma de ferramentas, produtos SaaS e automações para operações que querem crescer com eficiência.
+              Implementação guiada de atendimento e vendas no WhatsApp com IA, inbox multiatendente e dashboard operacional.
             </p>
             <div className="flex flex-col gap-3 pt-1">
               <Link
-                href="/ferramentas"
+                href="/contato"
                 className={cn(
                   "inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-semibold",
                   "bg-primary text-primary-foreground transition-colors hover:bg-[#00A86B]"
                 )}
               >
-                Usar ferramentas
+                Agendar diagnóstico
               </Link>
               <WhatsAppCta
-                label="WhatsApp"
+                label="Falar com especialista"
                 size="default"
                 className="!min-h-11 w-full justify-center sm:w-auto sm:justify-center"
-                text="Olá, gostaria de mais informações sobre a DevFlow Labs."
+                text="Quero falar com um especialista sobre a implementação da operação de WhatsApp."
               />
             </div>
           </div>
