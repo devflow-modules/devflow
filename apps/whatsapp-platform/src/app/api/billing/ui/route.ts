@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
 import { getTenantBillingUI } from "@/modules/billing";
 import {
+  billingWriteForbiddenResponse,
   logBillingInternal,
   sanitizeTenantBillingUI,
   shouldSanitizeBillingResponse,
@@ -14,12 +15,13 @@ export async function GET(request: NextRequest) {
   if (!auth) {
     return NextResponse.json({ success: false, error: "Não autorizado" }, { status: 401 });
   }
+  if (shouldSanitizeBillingResponse(auth.payload)) {
+    return billingWriteForbiddenResponse();
+  }
 
   try {
     const raw = await getTenantBillingUI(auth.payload.tenantId);
-    if (shouldSanitizeBillingResponse(auth.payload)) {
-      logBillingInternal("GET /api/billing/ui", auth.payload.tenantId, raw);
-    }
+    logBillingInternal("GET /api/billing/ui", auth.payload.tenantId, raw);
     const data = sanitizeTenantBillingUI(raw, auth.payload);
     return NextResponse.json({ success: true, data });
   } catch (e) {

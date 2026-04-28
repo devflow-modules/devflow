@@ -3,6 +3,7 @@ import { getAuthFromRequest } from "@/modules/auth";
 import { getStripeUsageSyncStats, periodYYYYMM } from "@/modules/billing/usageService";
 import { isMeterEventsConfigured } from "@/modules/billing/infrastructure/stripeMeterClient";
 import {
+  billingWriteForbiddenResponse,
   logBillingInternal,
   shouldSanitizeBillingResponse,
 } from "@/modules/billing/billingSanitizer";
@@ -14,6 +15,9 @@ export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
   if (!auth) {
     return NextResponse.json({ success: false, error: "Não autorizado" }, { status: 401 });
+  }
+  if (shouldSanitizeBillingResponse(auth.payload)) {
+    return billingWriteForbiddenResponse();
   }
 
   const periodParam = request.nextUrl.searchParams.get("period");
@@ -27,14 +31,11 @@ export async function GET(request: NextRequest) {
   const period = parsed?.success ? parsed.data : periodYYYYMM();
   const stats = await getStripeUsageSyncStats(auth.payload.tenantId, period);
 
-  if (shouldSanitizeBillingResponse(auth.payload)) {
-    logBillingInternal("GET /api/billing/usage/stripe", auth.payload.tenantId, {
-      period,
-      meteredConfigured: isMeterEventsConfigured(),
-      ...stats,
-    });
-    return NextResponse.json({ success: true, data: {} });
-  }
+  logBillingInternal("GET /api/billing/usage/stripe", auth.payload.tenantId, {
+    period,
+    meteredConfigured: isMeterEventsConfigured(),
+    ...stats,
+  });
 
   return NextResponse.json({
     success: true,

@@ -7,11 +7,11 @@ import { StateLoading } from "@/components/ui/app-states";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { validateAuthToken } from "@/modules/auth";
 import { isOperator } from "@/lib/roles";
-import { isWhiteLabelMode } from "@/lib/productMode";
+import { isCommercialBillingVisible } from "@/lib/productMode";
 import { BillingPageClient } from "./BillingPageClient";
 
 export default async function BillingPage() {
-  if (isWhiteLabelMode()) return null;
+  if (!isCommercialBillingVisible()) redirect("/dashboard");
   const store = await cookies();
   const token = store.get(JWT_COOKIE_NAME)?.value;
   const auth = token ? await validateAuthToken(token) : null;

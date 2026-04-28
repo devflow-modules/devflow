@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
 import { getUsageDashboard } from "@/modules/billing/billingService";
 import {
+  billingWriteForbiddenResponse,
   logBillingInternal,
   sanitizeUsageDashboard,
   shouldSanitizeBillingResponse,
@@ -14,6 +15,9 @@ export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
   if (!auth) {
     return NextResponse.json({ success: false, error: "Não autorizado" }, { status: 401 });
+  }
+  if (shouldSanitizeBillingResponse(auth.payload)) {
+    return billingWriteForbiddenResponse();
   }
 
   const period = request.nextUrl.searchParams.get("period");
@@ -29,20 +33,14 @@ export async function GET(request: NextRequest) {
       auth.payload.tenantId,
       parsedPeriod?.success ? parsedPeriod.data : undefined
     );
-    if (shouldSanitizeBillingResponse(auth.payload)) {
-      logBillingInternal("GET /api/billing/usage", auth.payload.tenantId, raw);
-    }
+    logBillingInternal("GET /api/billing/usage", auth.payload.tenantId, raw);
     const data = sanitizeUsageDashboard(raw, auth.payload);
     return NextResponse.json({
       success: true,
       data,
-      ...(shouldSanitizeBillingResponse(auth.payload)
-        ? {}
-        : {
-            examples: {
-              estimatedFormula: "messagesSent × preço_mensagem + aiResponses × preço_IA (env)",
-            },
-          }),
+      examples: {
+        estimatedFormula: "messagesSent × preço_mensagem + aiResponses × preço_IA (env)",
+      },
     });
   } catch (e) {
     console.error("[billing/usage]", e);

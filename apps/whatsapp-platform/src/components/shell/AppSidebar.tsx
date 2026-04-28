@@ -19,7 +19,7 @@ import { SessionRoleModePill } from "./SessionRoleModePill";
 import { useShellLayoutOptional } from "./ShellLayoutContext";
 import { SidebarRail } from "./SidebarRail";
 import { useMediaMinWidth } from "@/lib/useMediaMinWidth";
-import { isWhiteLabelMode } from "@/lib/productMode";
+import { isCommercialBillingVisible } from "@/lib/productMode";
 function NavLink({
   href,
   label,
@@ -225,7 +225,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
             sectionId="conta"
             title="Conta e canais"
             subtitle={
-              isWhiteLabelMode()
+              !isCommercialBillingVisible()
                 ? "Linha WhatsApp, IA e definições do tenant."
                 : "Linha WhatsApp, IA, plano e definições do tenant."
             }

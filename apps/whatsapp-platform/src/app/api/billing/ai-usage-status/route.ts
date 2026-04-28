@@ -4,6 +4,7 @@ import { getAiUsageStatus } from "@/modules/billing/aiUsageLimitService";
 import { getAiOverageBilledInPeriod } from "@/modules/billing/aiOverageVisibilityService";
 import { periodYYYYMM } from "@/modules/ai/aiUsageService";
 import {
+  billingWriteForbiddenResponse,
   logBillingInternal,
   sanitizeAiUsageStatusPayload,
   shouldSanitizeBillingResponse,
@@ -15,6 +16,9 @@ export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
   if (!auth) {
     return NextResponse.json({ success: false, error: "Não autorizado" }, { status: 401 });
+  }
+  if (shouldSanitizeBillingResponse(auth.payload)) {
+    return billingWriteForbiddenResponse();
   }
 
   const period = request.nextUrl.searchParams.get("period") ?? undefined;
@@ -35,9 +39,7 @@ export async function GET(request: NextRequest) {
     ai_overage_billed: overage.aiOverageBilled,
     ai_overage_cost_brl: overage.aiOverageCostBrl,
   };
-  if (shouldSanitizeBillingResponse(auth.payload)) {
-    logBillingInternal("GET /api/billing/ai-usage-status", auth.payload.tenantId, payload);
-  }
+  logBillingInternal("GET /api/billing/ai-usage-status", auth.payload.tenantId, payload);
   const data = sanitizeAiUsageStatusPayload(payload, auth.payload);
 
   return NextResponse.json({

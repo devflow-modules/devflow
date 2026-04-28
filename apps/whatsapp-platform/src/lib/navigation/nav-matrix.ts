@@ -1,5 +1,6 @@
 import type { UserRole } from "@/modules/auth";
 import { isOperator, isPlatformAdmin } from "@/lib/roles";
+import { isCommercialBillingVisible } from "@/lib/productMode";
 
 /** Secções da sidebar (colapsáveis + plataforma separada). */
 export type NavSectionId = "principal" | "conta" | "operacao" | "plataforma";
@@ -352,6 +353,16 @@ export function commandPaletteRoutes(role: UserRole | null): CommandPaletteRoute
   const out: CommandPaletteRoute[] = [];
 
   for (const [path, meta] of Object.entries(ROUTE_META)) {
+    if (
+      !isCommercialBillingVisible() &&
+      (path === "/billing" ||
+        path === "/dashboard/billing" ||
+        path === "/settings/billing" ||
+        path === "/plan" ||
+        path === "/subscription")
+    ) {
+      continue;
+    }
     if (!meta.roles.includes(role)) continue;
     if (meta.platformOnly && !isPlatformAdmin(role)) continue;
     if (isOperator(role) && path.startsWith("/dashboard")) continue;

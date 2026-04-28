@@ -6,8 +6,9 @@ import { validateAuthToken } from "@/modules/auth";
 import { isOperator } from "@/lib/roles";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { OnboardingWizard } from "./OnboardingWizard";
+import { isCommercialBillingVisible } from "@/lib/productMode";
 
-const wlOnboarding = process.env.NEXT_PUBLIC_PRODUCT_MODE === "WHITE_LABEL";
+const wlOnboarding = !isCommercialBillingVisible();
 
 export const metadata: Metadata = {
   title: wlOnboarding ? "Configuração do sistema | WhatsApp Platform" : "Ativação | WhatsApp Platform",

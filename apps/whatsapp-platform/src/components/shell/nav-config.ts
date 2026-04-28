@@ -1,7 +1,7 @@
 import type { UserRole } from "@/modules/auth";
 import { ROUTE_META } from "@/lib/navigation/nav-matrix";
 import { isOperator, isPlatformAdmin, isTenantManager } from "@/lib/roles";
-import { isWhiteLabelMode } from "@/lib/productMode";
+import { isCommercialBillingVisible } from "@/lib/productMode";
 
 export type NavItem = { href: string; label: string; description?: string };
 
@@ -33,7 +33,7 @@ const BILLING_NAV_ITEM: NavItem = {
   description: "Plano e faturação",
 };
 
-export const NAV_SECONDARY: NavItem[] = isWhiteLabelMode()
+export const NAV_SECONDARY: NavItem[] = !isCommercialBillingVisible()
   ? NAV_SECONDARY_WITHOUT_BILLING
   : [
       { href: "/dashboard/whatsapp", label: ROUTE_META["/dashboard/whatsapp"].label, description: "Estado da ligação Meta" },

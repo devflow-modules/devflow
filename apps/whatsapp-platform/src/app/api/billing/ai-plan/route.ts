@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
 import { getAiPlanInfo } from "@/modules/billing/aiUsageLimitService";
 import {
+  billingWriteForbiddenResponse,
   logBillingInternal,
   sanitizeAiPlanPayload,
   shouldSanitizeBillingResponse,
@@ -14,6 +15,9 @@ export async function GET(request: NextRequest) {
   if (!auth) {
     return NextResponse.json({ success: false, error: "Não autorizado" }, { status: 401 });
   }
+  if (shouldSanitizeBillingResponse(auth.payload)) {
+    return billingWriteForbiddenResponse();
+  }
 
   const rawPlan = await getAiPlanInfo(auth.payload.tenantId);
   const payload = {
@@ -22,9 +26,7 @@ export async function GET(request: NextRequest) {
     ai_limit: rawPlan.aiLimit,
     ai_limit_label: rawPlan.aiLimitLabel,
   };
-  if (shouldSanitizeBillingResponse(auth.payload)) {
-    logBillingInternal("GET /api/billing/ai-plan", auth.payload.tenantId, payload);
-  }
+  logBillingInternal("GET /api/billing/ai-plan", auth.payload.tenantId, payload);
   const data = sanitizeAiPlanPayload(payload, auth.payload);
 
   return NextResponse.json({

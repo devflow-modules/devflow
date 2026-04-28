@@ -4,6 +4,7 @@ import { ADMIN_METRICS_SECRET_COOKIE_NAME, JWT_COOKIE_NAME } from "@/lib/auth-co
 import { loginUrlWithNext } from "@/lib/safe-redirect";
 import { logAuth } from "@/lib/auth-logger";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { isCommercialBillingVisible } from "@/lib/productMode";
 
 /**
  * Validação alinhada com `getAuthFromRequest` (sessão + DB), sem duplicar regras em Edge.
@@ -66,14 +67,18 @@ function redirectToMetricsSecretLogin(request: NextRequest): NextResponse {
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
-  if (process.env.NEXT_PUBLIC_PRODUCT_MODE === "WHITE_LABEL") {
+  if (!isCommercialBillingVisible()) {
     if (
       path === "/billing" ||
       path.startsWith("/billing/") ||
       path === "/dashboard/billing" ||
       path.startsWith("/dashboard/billing/") ||
       path === "/settings/billing" ||
-      path.startsWith("/settings/billing/")
+      path.startsWith("/settings/billing/") ||
+      path === "/plan" ||
+      path.startsWith("/plan/") ||
+      path === "/subscription" ||
+      path.startsWith("/subscription/")
     ) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }

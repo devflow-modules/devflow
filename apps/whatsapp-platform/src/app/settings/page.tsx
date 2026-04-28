@@ -2,17 +2,17 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { SettingsTenantForm } from "./SettingsTenantForm";
 import { TenantInstructionsCard } from "./TenantInstructionsCard";
-import { isWhiteLabelMode } from "@/lib/productMode";
+import { isCommercialBillingVisible } from "@/lib/productMode";
 
 export default function SettingsPage() {
-  const wl = isWhiteLabelMode();
+  const commercialVisible = isCommercialBillingVisible();
   return (
     <div className="df-page-narrow df-stack">
       <PageHeader
         eyebrow="Conta"
         title="Configurações"
         description={
-          wl
+          !commercialVisible
             ? "Motor de IA, instruções de atendimento e atalhos para a operação. As alterações valem para todo o espaço de trabalho."
             : "Motor de IA, instruções de atendimento e atalhos para plano e análises. As alterações valem para todo o espaço de trabalho."
         }
@@ -25,7 +25,7 @@ export default function SettingsPage() {
               IA de atendimento
             </Link>
             <Link href="/settings/ai-analytics" className="df-quick-action">
-              {wl ? "Desempenho da IA" : "Uso e custo de IA"}
+              {!commercialVisible ? "Desempenho da IA" : "Uso e custo de IA"}
             </Link>
             <Link href="/dashboard/ai" className="df-quick-action">
               Painel IA (operação)
@@ -33,7 +33,7 @@ export default function SettingsPage() {
             <Link href="/settings/developer" className="df-quick-action">
               API e integrações
             </Link>
-            {!wl ? (
+            {commercialVisible ? (
               <Link href="/billing" className="df-quick-action">
                 Plano e faturação
               </Link>

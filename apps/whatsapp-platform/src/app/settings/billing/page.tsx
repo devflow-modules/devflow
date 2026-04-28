@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { buttonClassName } from "@/components/ui/button";
-import { isWhiteLabelMode } from "@/lib/productMode";
+import { isCommercialBillingVisible } from "@/lib/productMode";
 import { BillingSettingsClient } from "./BillingSettingsClient";
 
 export default function BillingSettingsPage() {
-  if (isWhiteLabelMode()) return null;
+  if (!isCommercialBillingVisible()) redirect("/dashboard");
   return (
     <div className="mx-auto min-w-0 max-w-4xl space-y-8">
       <PageHeader

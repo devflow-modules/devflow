@@ -6,11 +6,12 @@
 
 import { NextResponse } from "next/server";
 import { logBillingInternalDebug } from "@/lib/serverVerboseLog";
+import { isCommercialBillingVisible } from "@/lib/productMode";
 import type { SubscriptionView, UsageDashboard } from "./billingService";
 import type { TenantBillingUI } from "./tenantBillingUIService";
 
 export function isWhiteLabelBillingApi(): boolean {
-  return process.env.NEXT_PUBLIC_PRODUCT_MODE === "WHITE_LABEL";
+  return !isCommercialBillingVisible();
 }
 
 /** Acesso completo aos dados de billing na API (inclui respostas em WL). */
@@ -151,12 +152,8 @@ export function sanitizeUsageLimitErrorPayload(
   user: { role?: string }
 ): UsageLimitErrorPayload | SanitizedUsageLimitErrorPayload {
   if (!shouldSanitizeBillingResponse(user)) return raw;
-  const base =
-    raw.feature === "messages"
-      ? "A capacidade de envio para este período foi atingida. Contacte o suporte para alinhar a operação."
-      : "A capacidade de IA para este período foi atingida. Contacte o suporte para alinhar a operação.";
   return {
-    message: base,
+    message: "Capacidade temporariamente indisponível. Contacte o suporte.",
     code: raw.code,
     feature: raw.feature,
   };
@@ -189,14 +186,14 @@ export function sanitizeFeatureNotAvailablePayload(
     code: "FEATURE_NOT_AVAILABLE",
     feature: raw.feature,
     message:
-      "Esta capacidade não está ativa na configuração atual da operação. Contacte o suporte para pedir alterações.",
+      "Esta funcionalidade não está ativa na configuração atual da operação.",
   };
 }
 
 /** Checkout, portal Stripe e upgrade não estão disponíveis a tenants em WHITE_LABEL (só staff vê URLs/dados completos). */
 export function billingWriteForbiddenResponse(): NextResponse {
   return NextResponse.json(
-    { success: false, error: "Indisponível neste modo de produto." },
+    { success: false, error: "Indisponível neste modo de operação." },
     { status: 403 }
   );
 }

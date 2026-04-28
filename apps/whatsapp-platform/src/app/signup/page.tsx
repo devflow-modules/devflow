@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { SignupForm } from "./SignupForm";
 import { AuthScreenShell } from "@/components/auth/AuthScreenShell";
+import { isCommercialBillingVisible } from "@/lib/productMode";
 
 export const dynamic = "force-dynamic";
 
-const wl = process.env.NEXT_PUBLIC_PRODUCT_MODE === "WHITE_LABEL";
+const wl = !isCommercialBillingVisible();
 
 export const metadata: Metadata = {
   title: wl ? "Pedir acesso | WhatsApp Platform" : "Cadastro | WhatsApp Platform",
