@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, ArrowRightLeft, Bot, Gauge, Layers3 } from "lucide-react";
 import { Section } from "@/components/layout/Section";
+import { PRIMARY_DEMO_CTA_LABEL } from "@/lib/conversion-copy";
 
 const solutions = [
   {
@@ -45,7 +46,7 @@ export function SolutionSection() {
               href="/demo"
               className="inline-flex items-center gap-1.5 text-primary underline-offset-4 transition-colors hover:text-primary/80 hover:underline"
             >
-              Ver demo em 2 minutos
+              {PRIMARY_DEMO_CTA_LABEL}
               <ArrowRight className="size-4" aria-hidden />
             </Link>
             <span className="mx-2 font-normal text-muted-foreground">·</span>

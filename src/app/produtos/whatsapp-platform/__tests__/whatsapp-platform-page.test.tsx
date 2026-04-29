@@ -28,12 +28,12 @@ describe("P0 — Landing /produtos/whatsapp-platform", () => {
   it("CTAs primário (WhatsApp) e secundário (demo) com hrefs válidos", () => {
     render(<WhatsAppPlatformPage />);
 
-    const primary = screen.getAllByRole("link", { name: /Reservar conversa com vendas/i });
+    const primary = screen.getAllByRole("link", { name: /Agendar diagnóstico/i });
     expect(primary.length).toBeGreaterThanOrEqual(1);
     const wa = primary[0];
     expect(wa.getAttribute("href")).toMatch(/^https:\/\/wa\.me\/5511999999999/);
 
-    const demoLinks = screen.getAllByRole("link", { name: /Ver demo em 2 minutos/i });
+    const demoLinks = screen.getAllByRole("link", { name: /Ver demo guiada/i });
     expect(demoLinks[0]).toHaveAttribute("href", "/demo");
 
     const inbox = screen.getByRole("link", { name: /Abrir inbox/i });
@@ -45,10 +45,10 @@ describe("P0 — Landing /produtos/whatsapp-platform", () => {
 
   it("secção final inclui CTA WhatsApp e link para demo", () => {
     render(<WhatsAppPlatformPage />);
-    const final = screen.getByRole("region", { name: /Quer sentir o produto/i });
+    const final = screen.getByRole("region", { name: /Quer sair da conversa com um plano/i });
     expect(
-      within(final).getByRole("link", { name: /Reservar conversa com vendas/i })
+      within(final).getByRole("link", { name: /Agendar diagnóstico/i })
     ).toHaveAttribute("href", expect.stringMatching(/^https:\/\/wa\.me\//));
-    expect(within(final).getByRole("link", { name: /Ver demo em 2 minutos/i })).toHaveAttribute("href", "/demo");
+    expect(within(final).getByRole("link", { name: /Ver demo guiada/i })).toHaveAttribute("href", "/demo");
   });
 });

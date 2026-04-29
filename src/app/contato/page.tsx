@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Mail, MessageCircle, PlayCircle } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
+import {
+  PRIMARY_DEMO_CTA_LABEL,
+  QUICK_WHATSAPP_CTA_LABEL,
+} from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
 
 const baseUrl = "https://devflowlabs.com.br";
@@ -77,6 +81,25 @@ export default function ContatoPage() {
           <p className="df-text-secondary mx-auto mt-4 max-w-2xl text-base font-semibold leading-snug sm:text-lg">
             Escolha o melhor caminho para ver a plataforma em ação ou conversar sobre o seu caso.
           </p>
+          <div className="mx-auto mt-8 flex max-w-lg flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+            <Link
+              href="/demo"
+              className={cn(
+                "df-btn-primary inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
+                "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              )}
+            >
+              {PRIMARY_DEMO_CTA_LABEL}
+              <ArrowRight className="size-4 shrink-0" aria-hidden />
+            </Link>
+            <WhatsAppCta
+              label={QUICK_WHATSAPP_CTA_LABEL}
+              variant="secondary"
+              size="lg"
+              className="h-12 flex-1 justify-center px-6"
+              text="Olá, vim pelo site da DevFlow. Quero alinhar sobre a WhatsApp Platform e o meu caso de atendimento."
+            />
+          </div>
         </header>
 
         <div className="mx-auto mt-14 grid max-w-5xl gap-6 lg:grid-cols-3">
@@ -93,17 +116,17 @@ export default function ContatoPage() {
             <Link
               href="/demo"
               className={cn(
-                "mt-8 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-primary-foreground",
-                "bg-primary shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] transition-all hover:brightness-[1.03] active:brightness-[0.98]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 focus-visible:ring-offset-2"
+                "df-btn-primary mt-8 h-12 w-full rounded-xl text-sm font-semibold",
+                "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] active:brightness-[0.98]",
+                "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               )}
             >
-              Abrir demo
+              {PRIMARY_DEMO_CTA_LABEL}
               <ArrowRight className="size-4 shrink-0" aria-hidden />
             </Link>
           </article>
 
-          <article className={cn(cardBase, "border-slate-200/90")}>
+          <article className={cn(cardBase, "df-border-dark")}>
             <div className="flex size-11 items-center justify-center rounded-xl bg-[#25D366]/12 text-[#128C7E]">
               <MessageCircle className="size-6" aria-hidden />
             </div>
@@ -115,7 +138,7 @@ export default function ContatoPage() {
             </p>
             <div className="mt-8">
               <WhatsAppCta
-                label="Falar no WhatsApp"
+                label={QUICK_WHATSAPP_CTA_LABEL}
                 size="lg"
                 className="w-full justify-center"
                 text="Olá, vim pelo site da DevFlow. Quero alinhar sobre a WhatsApp Platform e o meu caso de atendimento."
@@ -123,7 +146,7 @@ export default function ContatoPage() {
             </div>
           </article>
 
-          <article className={cn(cardBase, "border-slate-200/90")}>
+          <article className={cn(cardBase, "df-border-dark")}>
             <div className="flex size-11 items-center justify-center rounded-xl bg-slate-900/5 text-slate-700">
               <Mail className="size-6" aria-hidden />
             </div>
@@ -136,8 +159,7 @@ export default function ContatoPage() {
             <a
               href="mailto:contato@devflowlabs.com.br"
               className={cn(
-                "mt-8 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white text-sm font-semibold text-slate-800",
-                "shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50"
+                "df-btn-secondary mt-8 h-12 w-full rounded-xl text-sm font-semibold"
               )}
             >
               contato@devflowlabs.com.br
@@ -155,7 +177,14 @@ export default function ContatoPage() {
           <ul className="df-text-secondary mt-4 space-y-3 text-sm leading-relaxed sm:text-[0.9375rem]">
             <li>
               <span className="df-text-primary font-semibold">Quer ver antes de falar?</span>{" "}
-              Vá para a <Link href="/demo" className="font-semibold text-primary underline-offset-4 hover:underline">demo</Link>.
+              Vá para a{" "}
+              <Link
+                href="/demo"
+                className="font-medium text-primary underline decoration-primary/30 underline-offset-4 hover:decoration-primary"
+              >
+                demo guiada
+              </Link>
+              .
             </li>
             <li>
               <span className="df-text-primary font-semibold">Quer discutir o seu caso?</span>{" "}

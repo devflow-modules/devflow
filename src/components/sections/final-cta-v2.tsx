@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
 import {
   PRIMARY_CONVERT_CTA_LABEL,
+  PRIMARY_DEMO_CTA_LABEL,
   PRIMARY_DEMO_HREF,
-  SPECIALIST_WHATSAPP_CTA_LABEL,
 } from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
 
@@ -49,32 +48,25 @@ export function FinalCtaV2() {
           </p>
 
           <div className="mt-6 flex flex-col items-stretch gap-3 sm:mt-8 sm:items-center sm:gap-4">
-            <WhatsAppCta
-              label={PRIMARY_CONVERT_CTA_LABEL}
-              ariaLabel="Agendar diagnóstico da operação no WhatsApp"
-              size="default"
-              text="Quero agendar um diagnóstico da minha operação de atendimento e vendas no WhatsApp."
-              className={cn(
-                "devflow-cta-elite inline-flex min-h-[3rem] items-center justify-center gap-2 rounded-xl px-4 text-left text-sm font-bold leading-snug sm:min-h-14 sm:min-w-[min(100%,300px)] sm:justify-center sm:px-8 sm:text-base md:text-lg",
-                "bg-primary text-primary-foreground",
-                "transition-transform duration-200 hover:scale-[1.02] hover:bg-[#16a34a] active:scale-[0.98] sm:hover:scale-[1.03]"
-              )}
-            />
             <Link
               href={PRIMARY_DEMO_HREF}
               aria-label="Ver demonstração guiada de atendimento no WhatsApp"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              className={cn(
+                "devflow-cta-elite inline-flex min-h-[3rem] items-center justify-center gap-2 rounded-xl px-6 text-sm font-bold text-primary-foreground sm:min-h-14 sm:min-w-[min(100%,300px)] sm:text-base",
+                "bg-primary shadow-[0_14px_40px_-6px_rgba(34,197,94,0.45)] transition-transform duration-200",
+                "hover:scale-[1.02] hover:brightness-[1.08] active:scale-[0.98] sm:hover:scale-[1.03]"
+              )}
             >
-              Ver demo em 2 minutos
+              {PRIMARY_DEMO_CTA_LABEL}
               <ArrowRight className="size-4 shrink-0" aria-hidden />
             </Link>
-            <WhatsAppCta
-              label={SPECIALIST_WHATSAPP_CTA_LABEL}
-              ariaLabel="Falar com especialista no WhatsApp"
-              size="default"
-              text="Quero entender a implementação da operação de WhatsApp com a DevFlow."
-              className="!min-h-12 !border-white/20 !bg-transparent !px-4 !text-white hover:!bg-white/10"
-            />
+            <Link
+              href="/contato"
+              aria-label="Agendar diagnóstico — ir para contato"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/25 bg-transparent px-6 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+            >
+              {PRIMARY_CONVERT_CTA_LABEL}
+            </Link>
           </div>
           <p className="df-text-muted mt-6 text-xs leading-relaxed">
             Oferta principal: implementação de operação de atendimento e vendas no WhatsApp

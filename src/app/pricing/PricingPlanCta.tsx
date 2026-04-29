@@ -40,7 +40,7 @@ export function PricingPlanCta({ planId, isPro, surface = "pricing" }: Props) {
             trackPricingPlanCtaClick({ planId: "FREE", surface });
             trackUpgradeClicked({ plan: "FREE" });
           }}
-          className="inline-block w-full rounded-xl border border-border bg-background px-4 py-2.5 text-center text-sm font-semibold text-foreground hover:bg-muted"
+          className="df-btn-secondary w-full rounded-xl px-4 py-2.5 text-center text-sm font-semibold"
         >
           Começar no Financeiro grátis
         </Link>
@@ -113,10 +113,11 @@ export function PricingPlanCta({ planId, isPro, surface = "pricing" }: Props) {
         onClick={handleUpgrade}
         disabled={busy}
         className={cn(
-          "inline-block w-full rounded-xl px-4 py-3 text-center text-sm font-semibold disabled:opacity-70",
+          "w-full rounded-xl px-4 py-3 text-center text-sm font-semibold",
+          busy && "df-btn-disabled",
           isPro
-            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-            : "border border-border bg-background text-foreground hover:bg-muted"
+            ? "df-btn-primary"
+            : "df-btn-secondary"
         )}
       >
         {phase === "redirecting"

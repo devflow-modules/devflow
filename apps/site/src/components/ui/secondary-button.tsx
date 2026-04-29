@@ -18,8 +18,7 @@ export function SecondaryButton({
     <Link
       href={href}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg border border-[#e2e8f0] px-4 py-2.5 text-sm font-semibold",
-        "bg-white text-foreground transition-colors hover:bg-[#f1f5f9]",
+        "df-btn-secondary rounded-lg px-4 py-2.5 font-semibold",
         className
       )}
     >

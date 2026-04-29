@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { ProductPageBackLink } from "@/components/products/product-page-back-link";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
+import { PRIMARY_DEMO_CTA_LABEL } from "@/lib/conversion-copy";
 import { whatsappAppUrl } from "@/lib/whatsapp-app-url";
 import { cn } from "@/lib/utils";
 
@@ -102,7 +103,7 @@ export function HeroSection() {
                   "shadow-sm transition-all hover:border-primary/40 hover:bg-primary/10 sm:w-auto sm:min-w-[11rem]"
                 )}
               >
-                Ver demo em 2 minutos
+                {PRIMARY_DEMO_CTA_LABEL}
                 <ArrowRight className="size-4" aria-hidden />
               </Link>
             </div>

@@ -18,7 +18,7 @@ export function PricingPlanCta({ planId, isPro }: Props) {
     return (
       <Link
         href="/ferramentas/financeiro"
-        className="inline-block w-full rounded-xl border border-border bg-background px-4 py-2.5 text-center text-sm font-medium text-foreground hover:bg-muted"
+        className="df-btn-secondary w-full rounded-xl px-4 py-2.5 text-center text-sm font-medium"
       >
         Começar grátis
       </Link>
@@ -60,10 +60,11 @@ export function PricingPlanCta({ planId, isPro }: Props) {
       onClick={handleUpgrade}
       disabled={loading}
       className={cn(
-        "inline-block w-full rounded-xl px-4 py-2.5 text-center text-sm font-semibold disabled:opacity-70",
+        "w-full rounded-xl px-4 py-2.5 text-center text-sm font-semibold",
+        loading && "df-btn-disabled",
         isPro
-          ? "bg-primary text-primary-foreground hover:bg-primary/90"
-          : "border border-border bg-background text-foreground hover:bg-muted"
+          ? "df-btn-primary"
+          : "df-btn-secondary"
       )}
     >
       {loading ? "Redirecionando..." : "Fazer upgrade"}

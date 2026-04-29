@@ -1,5 +1,6 @@
-import { TrendingUp } from "lucide-react";
+import { ArrowRight, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import { VER_EXEMPLO_REAL_CTA_LABEL } from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
 
 const stories = [
@@ -66,12 +67,16 @@ export function ResultsSocialProofSection() {
           ))}
         </ul>
 
-        <p className="mt-14 text-center">
+        <p className="mt-14 flex justify-center">
           <Link
-            href="/ferramentas"
-            className="text-sm font-bold text-primary hover:underline"
+            href="/projetos"
+            className={cn(
+              "df-btn-primary inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
+              "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)]"
+            )}
           >
-            Usar agora — sem cadastro complicado
+            {VER_EXEMPLO_REAL_CTA_LABEL}
+            <ArrowRight className="size-4 shrink-0" aria-hidden />
           </Link>
         </p>
       </div>

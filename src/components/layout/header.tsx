@@ -104,16 +104,16 @@ export function Header() {
   }, [productsOpen]);
 
   const headerCtaClass = cn(
-    "inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl font-bold",
-    "bg-primary text-primary-foreground shadow-[0_3px_14px_rgba(34,197,94,0.35)]",
+    "df-btn-primary min-h-11 shrink-0 rounded-xl font-bold",
+    "shadow-[0_3px_14px_rgba(34,197,94,0.35)]",
     "px-3 text-xs min-[380px]:px-4 min-[380px]:text-sm",
     "transition-all duration-200 ease-out",
-    "hover:scale-[1.04] hover:shadow-[0_6px_22px_rgba(34,197,94,0.42)] hover:bg-[#16a34a]",
+    "hover:scale-[1.04] hover:shadow-[0_6px_22px_rgba(34,197,94,0.42)]",
     "active:scale-[0.98]"
   );
 
   const secondaryBtnClass =
-    "inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border df-border-brand bg-transparent px-3 text-xs font-semibold text-foreground transition-colors hover:bg-primary/10 min-[380px]:px-4 min-[380px]:text-sm";
+    "df-btn-secondary min-h-11 shrink-0 rounded-xl px-3 text-xs font-semibold min-[380px]:px-4 min-[380px]:text-sm";
 
   const onNav = (item: string, surface: "desktop" | "mobile" = "desktop") => {
     trackHeaderNavClicked({ item, surface });
@@ -222,7 +222,7 @@ export function Header() {
                         <Link
                           href={p.href}
                           aria-label={`Abrir página de ${p.name}`}
-                          className="shrink-0 rounded-lg bg-primary px-2.5 py-1.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+                          className="df-btn-primary shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-bold"
                           onClick={() => onCatalogProductNavigate(p.id, p.href, p.navItemKey, "desktop")}
                         >
                           Abrir
@@ -234,7 +234,7 @@ export function Header() {
                 <Link
                   href={PRODUTOS_HUB_PATH}
                   role="menuitem"
-                  className="mt-2 block rounded-lg border border-border px-3 py-2.5 text-center text-sm font-semibold text-primary transition-colors hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="df-btn-secondary mt-2 flex w-full rounded-lg px-3 py-2.5 text-center text-sm font-semibold"
                   onClick={() => onNav("products_hub")}
                 >
                   Ver catálogo completo
@@ -374,7 +374,7 @@ export function Header() {
                       <Link
                         href={p.href}
                         aria-label={`Abrir página de ${p.name}`}
-                        className="shrink-0 rounded-lg bg-primary px-2.5 py-2 text-xs font-bold text-primary-foreground"
+                        className="df-btn-primary shrink-0 rounded-lg px-2.5 py-2 text-xs font-bold"
                         onClick={() => onCatalogProductNavigate(p.id, p.href, p.navItemKey, "mobile")}
                       >
                         Abrir
@@ -386,7 +386,7 @@ export function Header() {
               <li>
                 <Link
                   href={PRODUTOS_HUB_PATH}
-                  className="flex min-h-11 items-center justify-center rounded-xl border border-primary/30 px-3 py-2 text-sm font-bold text-primary hover:bg-primary/5"
+                  className="df-btn-secondary flex min-h-11 rounded-xl px-3 py-2 text-sm font-bold"
                   onClick={() => onNav("products_hub", "mobile")}
                 >
                   Ver catálogo completo

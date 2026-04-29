@@ -10,12 +10,13 @@ interface WhatsAppCtaProps {
   label?: string;
   className?: string;
   size?: "sm" | "default" | "lg";
+  variant?: "primary" | "secondary";
 }
 
 const sizeClasses = {
-  sm: "h-8 gap-2 rounded-xl px-3 text-sm",
-  default: "h-10 gap-2 rounded-2xl px-4 text-sm",
-  lg: "h-14 gap-2 rounded-xl px-6 text-lg font-semibold",
+  sm: "min-h-10 rounded-xl px-3 text-sm",
+  default: "min-h-10 rounded-2xl px-4 text-sm",
+  lg: "min-h-12 rounded-xl px-6 text-base font-semibold",
 } as const;
 
 export function WhatsAppCta({
@@ -23,6 +24,7 @@ export function WhatsAppCta({
   label = "Fale conosco",
   className,
   size = "default",
+  variant = "primary",
 }: WhatsAppCtaProps) {
   const href = getWhatsAppUrl(text);
 
@@ -39,9 +41,8 @@ export function WhatsAppCta({
       rel="noopener noreferrer"
       onClick={handleClick}
       className={cn(
-        "inline-flex items-center justify-center font-medium border border-transparent",
-        "bg-[#25D366] text-white transition-all duration-200 hover:bg-[#20BD5A]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]/50 focus-visible:ring-offset-2",
+        variant === "secondary" ? "df-btn-secondary font-medium" : "df-btn-primary border-transparent font-medium",
+        "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         sizeClasses[size],
         className
       )}

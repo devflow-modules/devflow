@@ -49,6 +49,10 @@
 }
 
 :root {
+  --df-border-on-light: rgba(15, 23, 42, 0.16);
+  --df-text-on-light-primary: #0f172a;
+  --df-link-current: #047857;
+  --df-link-hover-current: #065f46;
   --background: #f8fafc;
   --foreground: #0c1222;
   --card: #ffffff;
@@ -169,11 +173,39 @@
   --df-text-primary-current: #0f172a;
   --df-text-secondary-current: #334155;
   --df-text-muted-current: #475569;
+  --df-link-current: #047857;
+  --df-link-hover-current: #065f46;
 }
 .df-section-dark {
   --df-text-primary-current: #f8fafc;
   --df-text-secondary-current: #cbd5e1;
   --df-text-muted-current: #94a3b8;
+  --df-link-current: #6ee7b7;
+  --df-link-hover-current: #a7f3d0;
+}
+
+.df-section-light .bg-card {
+  --df-text-primary-current: var(--devflow-text-primary);
+  --df-text-secondary-current: var(--devflow-text-secondary);
+  --df-text-muted-current: var(--devflow-text-muted);
+  --df-link-current: #6ee7b7;
+  --df-link-hover-current: #a7f3d0;
+}
+
+.df-section-light .df-btn-secondary {
+  border-color: var(--df-border-on-light);
+  color: var(--df-text-on-light-primary);
+}
+.df-section-light .df-btn-secondary:hover {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.df-section-light .bg-card .df-btn-secondary {
+  border-color: var(--devflow-border-brand, var(--border));
+  color: var(--df-text-primary-current, var(--foreground));
+}
+.df-section-light .bg-card .df-btn-secondary:hover {
+  background: var(--muted);
 }
 .df-text-primary {
   color: var(--df-text-primary-current, #0f172a);
@@ -185,7 +217,7 @@
   color: var(--df-text-muted-current, #475569);
 }
 .df-text-on-light-primary {
-  color: #0f172a;
+  color: var(--df-text-on-light-primary);
 }
 .df-text-on-light-secondary {
   color: #334155;
@@ -201,6 +233,87 @@
 }
 .df-text-on-dark-muted {
   color: #94a3b8;
+}
+
+/* Button system (DevFlow) */
+.df-btn-primary,
+.df-btn-secondary,
+.df-btn-secondary-light,
+.df-btn-ghost,
+.df-btn-disabled {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    opacity 0.2s ease,
+    filter 0.2s ease;
+}
+
+.df-btn-primary {
+  border: 1px solid transparent;
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.df-btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+.df-btn-secondary {
+  border: 1px solid var(--devflow-border-brand, var(--border));
+  background: transparent;
+  color: var(--df-text-primary-current, var(--foreground));
+}
+.df-btn-secondary:hover {
+  background: var(--muted);
+}
+
+.df-btn-secondary-light {
+  /* Preferir `df-btn-secondary` dentro de `df-section-light` (regra contextual). Mantido para compat. */
+  border: 1px solid var(--df-border-on-light);
+  background: transparent;
+  color: var(--df-text-on-light-primary);
+}
+.df-btn-secondary-light:hover {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.df-btn-ghost {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--df-text-secondary-current, var(--muted-foreground));
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+.df-btn-ghost:hover {
+  color: var(--primary);
+  text-decoration: underline;
+  filter: none;
+}
+
+.df-btn-disabled,
+.df-btn-disabled:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  user-select: none;
+}
+
+.df-btn-primary:focus-visible,
+.df-btn-secondary:focus-visible,
+.df-btn-secondary-light:focus-visible,
+.df-btn-ghost:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 80%, transparent);
 }
 
 /* Blog article content */

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
+import { PRIMARY_DEMO_CTA_LABEL } from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
 
 export function FinalCTASection() {
@@ -37,7 +38,7 @@ export function FinalCTASection() {
                 "shadow-sm transition-all hover:border-primary/40 hover:bg-primary/10 sm:w-auto sm:min-w-[11rem]"
               )}
             >
-              Ver demo em 2 minutos
+              {PRIMARY_DEMO_CTA_LABEL}
               <ArrowRight className="size-4" aria-hidden />
             </Link>
           </div>

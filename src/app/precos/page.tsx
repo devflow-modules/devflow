@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
+import {
+  PRIMARY_CONVERT_CTA_LABEL,
+  PRIMARY_DEMO_CTA_LABEL,
+  PRIMARY_DEMO_HREF,
+} from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
 
 const baseUrl = "https://devflowlabs.com.br";
@@ -102,20 +107,24 @@ export default function PrecosPage() {
           <p className="df-text-secondary mt-4 text-lg">
             A DevFlow Labs configura sua operação, ativa o número, organiza sua equipe e deixa o WhatsApp pronto para vender com controle.
           </p>
-          <p className="df-text-secondary mt-4 text-sm">
-            <Link href="/demo" className="font-medium text-primary underline-offset-4 hover:underline">
-              Ver demo guiada
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link
+              href={PRIMARY_DEMO_HREF}
+              className={cn(
+                "df-btn-primary inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
+                "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              )}
+            >
+              {PRIMARY_DEMO_CTA_LABEL}
+              <ArrowRight className="size-4 shrink-0" aria-hidden />
             </Link>
-            <span className="mx-2 text-border" aria-hidden>
-              ·
-            </span>
             <Link
               href="/produtos/whatsapp-platform"
-              className="font-medium text-primary underline-offset-4 hover:underline"
+              className="df-btn-secondary inline-flex h-12 items-center justify-center rounded-xl px-6 text-sm font-semibold"
             >
               Entender WhatsApp Platform
             </Link>
-          </p>
+          </div>
         </div>
 
         <div className="mx-auto mt-16 grid max-w-5xl gap-8 sm:grid-cols-3">
@@ -172,10 +181,14 @@ export default function PrecosPage() {
             Veja a inbox, automações, handoff humano e métricas em uma demonstração guiada.
           </p>
           <Link
-            href="/demo"
-            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-border bg-background px-6 text-sm font-semibold text-foreground transition-colors hover:bg-muted sm:w-auto"
+            href={PRIMARY_DEMO_HREF}
+            className={cn(
+              "df-btn-primary mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold sm:w-auto",
+              "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)]"
+            )}
           >
-            Ver demo guiada
+            {PRIMARY_DEMO_CTA_LABEL}
+            <ArrowRight className="size-4 shrink-0" aria-hidden />
           </Link>
         </div>
 
@@ -210,7 +223,44 @@ export default function PrecosPage() {
               </p>
             </article>
           </div>
+          <div className="mt-8 flex justify-center">
+            <Link
+              href="/contato"
+              className={cn(
+                "df-btn-primary inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
+                "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)]"
+              )}
+            >
+              {PRIMARY_CONVERT_CTA_LABEL}
+              <ArrowRight className="size-4 shrink-0" aria-hidden />
+            </Link>
+          </div>
         </section>
+
+        <div className="mx-auto mt-14 max-w-xl rounded-2xl border border-border bg-card px-6 py-8 text-center shadow-sm sm:px-10">
+          <p className="text-sm font-semibold text-foreground">Próximo passo</p>
+          <p className="df-text-secondary mt-2 text-sm leading-relaxed">
+            Veja a demo guiada para tirar dúvidas; quando fizer sentido, agendamos o diagnóstico da operação.
+          </p>
+          <div className="mt-6 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
+            <Link
+              href={PRIMARY_DEMO_HREF}
+              className={cn(
+                "df-btn-primary inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
+                "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)]"
+              )}
+            >
+              {PRIMARY_DEMO_CTA_LABEL}
+              <ArrowRight className="size-4 shrink-0" aria-hidden />
+            </Link>
+            <Link
+              href="/contato"
+              className="df-btn-secondary inline-flex h-12 items-center justify-center rounded-xl px-6 text-sm font-semibold"
+            >
+              {PRIMARY_CONVERT_CTA_LABEL}
+            </Link>
+          </div>
+        </div>
 
         <p className="mt-8 text-center">
           <Link

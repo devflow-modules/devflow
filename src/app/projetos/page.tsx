@@ -52,8 +52,8 @@ const cardBase = cn(
 function ProjectCta({ project }: { project: Project }) {
   const isExternal = project.url.startsWith("http");
   const btnClass = cn(
-    "mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold",
-    "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
+    "mt-6 w-full rounded-xl px-4 py-3 text-sm font-semibold",
+    "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
     project.highlight && "sm:mt-8 sm:py-3.5 sm:text-base"
   );
 
@@ -63,7 +63,7 @@ function ProjectCta({ project }: { project: Project }) {
         href={project.url}
         target="_blank"
         rel="noopener noreferrer"
-        className={cn(btnClass, "bg-foreground text-background hover:bg-slate-800")}
+        className={cn(btnClass, "df-btn-secondary")}
       >
         {project.ctaLabel}
         <ExternalLink className="size-4 shrink-0 opacity-90" aria-hidden />
@@ -76,7 +76,7 @@ function ProjectCta({ project }: { project: Project }) {
       href={project.url}
       className={cn(
         btnClass,
-        "bg-primary text-primary-foreground shadow-[0_12px_36px_-10px_rgba(22,163,74,0.45)] hover:brightness-[1.03] active:brightness-[0.98]"
+        "df-btn-primary shadow-[0_12px_36px_-10px_rgba(22,163,74,0.45)] active:brightness-[0.98]"
       )}
     >
       {project.ctaLabel}
@@ -166,8 +166,8 @@ function EndCtaBlock() {
         <Link
           href="/demo"
           className={cn(
-            "inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold text-primary-foreground",
-            "bg-primary shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] transition-all hover:brightness-[1.03] sm:min-w-[11rem]"
+            "df-btn-primary h-12 flex-1 rounded-xl px-6 text-sm font-semibold",
+            "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] sm:min-w-[11rem]"
           )}
         >
           Ver demo
@@ -176,8 +176,7 @@ function EndCtaBlock() {
         <Link
           href="/produtos/whatsapp-platform"
           className={cn(
-            "inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border px-6 text-sm font-semibold",
-            "df-border-dark bg-background text-foreground transition-all hover:bg-muted sm:min-w-[11rem]"
+            "df-btn-secondary h-12 flex-1 rounded-xl px-6 text-sm font-semibold sm:min-w-[11rem]"
           )}
         >
           Ver produto principal

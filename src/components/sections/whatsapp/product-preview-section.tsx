@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, BarChart3, Bot, Clock3, Search, Users2 } from "lucide-react";
 import { Section } from "@/components/layout/Section";
+import { PRIMARY_DEMO_CTA_LABEL } from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
 
 const inboxRows = [
@@ -270,7 +271,7 @@ export function ProductPreviewSection() {
             href="/demo"
             className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-foreground px-6 text-sm font-bold text-background shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]"
           >
-            Ver demo em 2 minutos
+            {PRIMARY_DEMO_CTA_LABEL}
             <ArrowRight className="size-4" aria-hidden />
           </Link>
         </div>

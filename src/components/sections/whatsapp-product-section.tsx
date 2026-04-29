@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { Check, ArrowRight, Zap, UserRound, BarChart3 } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
+import {
+  ENTENDER_APLICAR_NEGOCIO_CTA_LABEL,
+  PLATFORM_IN_ACTION_CTA_LABEL,
+} from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
 
 const features = [
@@ -83,23 +87,28 @@ export function WhatsAppProductSection() {
             </ul>
 
             <div className="space-y-4">
+              <Link
+                href="/produtos/whatsapp-platform"
+                aria-label="Ver página da WhatsApp Platform com detalhes do produto"
+                className={cn(
+                  "df-btn-primary inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
+                  "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] sm:w-auto"
+                )}
+              >
+                {PLATFORM_IN_ACTION_CTA_LABEL}
+                <ArrowRight className="size-4 shrink-0" aria-hidden />
+              </Link>
               <WhatsAppCta
-                label="Quero automatizar meu WhatsApp"
-                ariaLabel="Quero automatizar meu WhatsApp: abrir conversa no WhatsApp"
+                label={ENTENDER_APLICAR_NEGOCIO_CTA_LABEL}
+                ariaLabel="Entender como aplicar no meu negócio: abrir conversa no WhatsApp"
+                variant="secondary"
                 size="lg"
-                text="Olá, quero automatizar o atendimento da minha empresa no WhatsApp."
+                className="w-full justify-center sm:w-auto"
+                text="Olá, quero entender como aplicar a WhatsApp Platform da DevFlow no meu negócio."
               />
               <p className="df-text-muted text-xs leading-relaxed">
-                Conversa sem custo · Sem compromisso nessa etapa
+                Demo guiada em seguida — sem compromisso nesta etapa.
               </p>
-              <Link
-                href="/demo"
-                aria-label="Ver demonstração guiada de atendimento no WhatsApp"
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
-              >
-                Ver demo ao vivo
-                <ArrowRight className="size-3.5" aria-hidden />
-              </Link>
             </div>
           </div>
 

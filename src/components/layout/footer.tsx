@@ -62,14 +62,14 @@ export function Footer() {
               <Link
                 href="/contato"
                 className={cn(
-                  "inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-semibold",
-                  "bg-primary text-primary-foreground transition-colors hover:bg-[#00A86B]"
+                  "df-btn-primary min-h-11 rounded-xl px-4 text-sm font-semibold"
                 )}
               >
                 Agendar diagnóstico
               </Link>
               <WhatsAppCta
                 label="Falar com especialista"
+                variant="secondary"
                 size="default"
                 className="!min-h-11 w-full justify-center sm:w-auto sm:justify-center"
                 text="Quero falar com um especialista sobre a implementação da operação de WhatsApp."

@@ -17,9 +17,7 @@ export function PrimaryButton({
   icon,
 }: PrimaryButtonProps) {
   const baseClass = cn(
-    "inline-flex items-center justify-center gap-2 rounded-lg border border-transparent",
-    "bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground",
-    "transition-all duration-200 hover:bg-[#16a34a]",
+    "df-btn-primary rounded-lg px-4 py-2.5 font-semibold",
     className
   );
 

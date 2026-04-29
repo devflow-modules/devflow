@@ -4,6 +4,16 @@ import Link from "next/link";
 import { ArrowRight, Check, ChevronDown, MessageCircle } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
 import type { DemoMessage, NicheAutomationPageConfig } from "@/lib/niche-whatsapp-automation-pages";
+import {
+  NICHE_QUERO_NO_MEU_NEGOCIO_CTA_LABEL,
+  NICHE_RESOLVER_NEGOCIO_CTA_LABEL,
+  NICHE_VER_FLUXO_COMPLETO_CTA_LABEL,
+  NICHE_VER_NA_PRATICA_CTA_LABEL,
+  PRIMARY_CONVERT_CTA_LABEL,
+  PRIMARY_DEMO_CTA_LABEL,
+  PRIMARY_DEMO_HREF,
+  QUICK_WHATSAPP_CTA_LABEL,
+} from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
 
 function MessageBubble({
@@ -81,7 +91,7 @@ function ChatExample({
             href="/demo"
             className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
           >
-            Ver demo guiada
+            {NICHE_VER_FLUXO_COMPLETO_CTA_LABEL}
             <ArrowRight className="size-4" aria-hidden />
           </Link>
         </p>
@@ -132,11 +142,12 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
                   "bg-primary shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] transition-all hover:brightness-[1.03] sm:min-w-[11rem]"
                 )}
               >
-                Ver demo
+                {NICHE_VER_NA_PRATICA_CTA_LABEL}
                 <ArrowRight className="size-4 shrink-0" aria-hidden />
               </Link>
               <WhatsAppCta
-                label={content.heroWhatsApp.label}
+                label={QUICK_WHATSAPP_CTA_LABEL}
+                variant="secondary"
                 size="lg"
                 text={content.heroWhatsApp.prefill}
                 className="w-full justify-center sm:w-auto sm:min-w-[14rem]"
@@ -172,6 +183,14 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">{p.description}</p>
               </article>
             ))}
+          </div>
+          <div className="mt-10 flex justify-center">
+            <WhatsAppCta
+              label={NICHE_RESOLVER_NEGOCIO_CTA_LABEL}
+              size="lg"
+              text={`Olá, vim da página ${content.path}. Quero resolver isso no meu negócio.`}
+              className="w-full max-w-md justify-center"
+            />
           </div>
         </div>
       </section>
@@ -261,6 +280,14 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
               </li>
             ))}
           </ul>
+          <div className="mt-10 flex justify-center">
+            <WhatsAppCta
+              label={NICHE_QUERO_NO_MEU_NEGOCIO_CTA_LABEL}
+              size="lg"
+              text={`Olá, vim da página ${content.path}. Quero esse resultado no meu negócio.`}
+              className="w-full max-w-md justify-center"
+            />
+          </div>
         </div>
       </section>
 
@@ -310,21 +337,24 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
             <p className="mt-4 text-slate-600">{content.finalCta.subtitle}</p>
             <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
               <Link
-                href="/demo"
+                href={PRIMARY_DEMO_HREF}
                 className={cn(
                   "inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold text-primary-foreground",
                   "bg-primary shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] transition-all hover:brightness-[1.03] sm:min-w-[11rem]"
                 )}
               >
-                Ver demo
+                {PRIMARY_DEMO_CTA_LABEL}
                 <ArrowRight className="size-4 shrink-0" aria-hidden />
               </Link>
-              <WhatsAppCta
-                label={content.finalCta.whatsappLabel}
-                size="lg"
-                text={content.finalCta.whatsappPrefill}
-                className="w-full justify-center sm:w-auto sm:min-w-[14rem]"
-              />
+              <Link
+                href="/contato"
+                className={cn(
+                  "df-btn-secondary inline-flex h-12 items-center justify-center rounded-xl px-6 text-sm font-semibold",
+                  "w-full sm:w-auto sm:min-w-[14rem]"
+                )}
+              >
+                {PRIMARY_CONVERT_CTA_LABEL}
+              </Link>
             </div>
             <p className="mt-8">
               <Link

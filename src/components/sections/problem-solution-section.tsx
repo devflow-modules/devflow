@@ -1,4 +1,7 @@
+import Link from "next/link";
 import { MessageCircle, Wallet, Database, ArrowRight, X } from "lucide-react";
+import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
+import { QUICK_WHATSAPP_CTA_LABEL, VER_COMO_FUNCIONA_CTA_LABEL } from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
 
 const pairs = [
@@ -118,6 +121,27 @@ export function ProblemSolutionSection() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="mt-14 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
+          <Link
+            href="/como-funciona"
+            className={cn(
+              "df-btn-primary inline-flex h-12 w-full min-w-0 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold sm:w-auto sm:min-w-[14rem]",
+              "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            )}
+          >
+            {VER_COMO_FUNCIONA_CTA_LABEL}
+            <ArrowRight className="size-4 shrink-0" aria-hidden />
+          </Link>
+          <WhatsAppCta
+            label={QUICK_WHATSAPP_CTA_LABEL}
+            ariaLabel="Falar no WhatsApp com a DevFlow Labs"
+            variant="secondary"
+            size="lg"
+            className="w-full justify-center sm:w-auto sm:min-w-[14rem]"
+            text="Olá, vim pelo site. Quero falar sobre como organizar atendimento e processos no WhatsApp."
+          />
         </div>
       </div>
     </section>
