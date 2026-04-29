@@ -42,7 +42,7 @@ function NavLink({
         active
           ? "bg-[var(--df-brand-50)]/95 font-semibold text-[var(--df-brand-900)] ring-1 ring-[var(--df-brand-200)]/90 shadow-sm"
           : sensitive
-            ? "text-amber-900/90 hover:bg-amber-50 hover:text-amber-950"
+            ? "text-amber-200/95 hover:bg-amber-950/35 hover:text-amber-50"
             : "text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)] hover:text-[var(--df-text-primary)]"
       }`}
     >
@@ -74,19 +74,19 @@ function CollapsibleNavSection({
         type="button"
         onClick={() => setSectionCollapsed(sectionId, !collapsed)}
         className={`mb-1.5 flex w-full items-start justify-between gap-2 px-3 py-1 text-left text-[11px] font-semibold uppercase tracking-[0.1em] ${
-          defaultSensitive ? "text-amber-800/90" : "text-slate-400/90"
+          defaultSensitive ? "text-amber-800/90" : "text-[var(--df-text-muted)]"
         }`}
         aria-expanded={!collapsed}
       >
         <span className="min-w-0 flex-1">
           <span className="block">{title}</span>
           {subtitle && !collapsed ? (
-            <span className="mt-0.5 block text-[10px] font-normal normal-case leading-snug tracking-normal text-slate-500">
+            <span className="mt-0.5 block text-[10px] font-normal normal-case leading-snug tracking-normal text-[var(--df-text-secondary)]">
               {subtitle}
             </span>
           ) : null}
         </span>
-        <span className="shrink-0 text-slate-400" aria-hidden>
+        <span className="shrink-0 text-[var(--df-text-muted)]" aria-hidden>
           {collapsed ? "▸" : "▾"}
         </span>
       </button>

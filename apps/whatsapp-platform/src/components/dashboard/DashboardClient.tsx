@@ -48,8 +48,8 @@ function CheckRow({
           {done ? "✓" : "!"}
         </span>
         <div>
-          <p className="font-semibold tracking-tight text-slate-950">{title}</p>
-          <p className="mt-1 text-sm leading-relaxed text-slate-500">{detail}</p>
+          <p className="font-semibold tracking-tight text-[var(--df-text-primary)]">{title}</p>
+          <p className="mt-1 text-sm leading-relaxed text-[var(--df-text-secondary)]">{detail}</p>
         </div>
       </div>
       <Link
@@ -289,22 +289,22 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
           </Card>
           <Card padding="md" className="!p-5 min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-secondary)]">Resposta média</p>
-            <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-text-primary)]">
+            <p className="mt-2 text-4xl font-bold tabular-nums tracking-tight text-[var(--df-text-primary)]">
               {metricsLoading ? "…" : `${overview?.avgResponseTimeMs ?? 0}`}
-              <span className="text-lg font-semibold text-[var(--df-text-muted)]"> ms</span>
+              <span className="text-lg font-semibold text-[var(--df-text-secondary)]"> ms</span>
             </p>
             <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Tempo até primeira resposta</p>
           </Card>
           <Card padding="md" className="!p-5 min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-secondary)]">Automático</p>
-            <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-text-primary)]">
+            <p className="mt-2 text-4xl font-bold tabular-nums tracking-tight text-[var(--df-text-primary)]">
               {metricsLoading ? "…" : `${automationRate}%`}
             </p>
             <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Parte respondida sem humano</p>
           </Card>
           <Card padding="md" className="!p-5 min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-secondary)]">Equipa</p>
-            <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-text-primary)]">
+            <p className="mt-2 text-4xl font-bold tabular-nums tracking-tight text-[var(--df-text-primary)]">
               {metricsLoading ? "…" : (overview?.humanMessages ?? 0)}
             </p>
             <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Mensagens enviadas por pessoas</p>
@@ -328,14 +328,14 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
               <Link href="/inbox" className={`${buttonClassName("primary")} w-full justify-center`}>
                 Inbox
               </Link>
-              <Link href="/automation" className={`${buttonClassName("ghost")} w-full justify-center text-slate-700`}>
+              <Link href="/automation" className={`${buttonClassName("ghost")} w-full justify-center`}>
                 Automações
               </Link>
-              <Link href="/inbox" className={`${buttonClassName("ghost")} w-full justify-center text-slate-700`}>
+              <Link href="/inbox" className={`${buttonClassName("ghost")} w-full justify-center`}>
                 Conversas
               </Link>
               {!isWhiteLabelMode() ? (
-                <Link href="/billing" className={`${buttonClassName("ghost")} w-full justify-center text-slate-600`}>
+                <Link href="/billing" className={`${buttonClassName("ghost")} w-full justify-center`}>
                   Plano e uso
                 </Link>
               ) : null}

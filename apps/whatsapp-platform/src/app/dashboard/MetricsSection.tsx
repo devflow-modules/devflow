@@ -74,7 +74,7 @@ export function MetricsSection({ compact = false }: { compact?: boolean }) {
         title="Sem histórico detalhado ainda"
         description="Quando houver mais mensagens, aparecem aqui volume por dia, intenções e desempenho por agente."
         nextStep="Envie mensagens de teste a partir do WhatsApp Business ou aguarde tráfego real; o resumo preenche automaticamente."
-        className="border-slate-200/80 bg-slate-50/50 py-8"
+        className="py-8"
       />
     );
   }
@@ -160,9 +160,9 @@ export function MetricsSection({ compact = false }: { compact?: boolean }) {
               {agents.map((a) => (
                 <tr key={a.agentId} className="border-b df-border-brand last:border-0">
                   <td className="p-3 font-mono text-xs text-[var(--df-text-primary)]">{a.agentId.slice(0, 8)}…</td>
-                  <td className="p-3 text-right tabular-nums">{a.conversationsCount}</td>
-                  <td className="p-3 text-right tabular-nums">{a.messagesCount}</td>
-                  <td className="p-3 text-right tabular-nums">{a.avgResponseTimeMs}</td>
+                  <td className="p-3 text-right tabular-nums text-[var(--df-text-primary)]">{a.conversationsCount}</td>
+                  <td className="p-3 text-right tabular-nums text-[var(--df-text-primary)]">{a.messagesCount}</td>
+                  <td className="p-3 text-right tabular-nums text-[var(--df-text-secondary)]">{a.avgResponseTimeMs}</td>
                 </tr>
               ))}
             </tbody>

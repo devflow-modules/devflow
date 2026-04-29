@@ -144,23 +144,26 @@ export function ManagerDashboardSection() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card padding="md" className="!p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">A responder</p>
-          <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-text-primary)]">{data.operation.awaiting}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-secondary)]">A responder</p>
+          <p className="mt-2 text-4xl font-bold tabular-nums tracking-tight text-[var(--df-text-primary)]">{data.operation.awaiting}</p>
           <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Threads com mensagem pendente</p>
         </Card>
         <Card padding="md" className="!p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Sem responsável</p>
-          <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-text-primary)]">{data.operation.unassigned}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-secondary)]">Sem responsável</p>
+          <p className="mt-2 text-4xl font-bold tabular-nums tracking-tight text-[var(--df-text-primary)]">{data.operation.unassigned}</p>
           <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Abertas sem atribuição</p>
         </Card>
-        <Card padding="md" className="!p-5 ring-1 ring-[var(--df-danger-border)] bg-[var(--df-danger-bg)]">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-danger-text)]">SLA crítico</p>
-          <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-danger-text)]">{data.operation.critical}</p>
-          <p className="mt-1 text-xs text-[var(--df-danger-text)]/85">Aguardam há ≥ 30 min</p>
+        <Card
+          padding="md"
+          className="!border-[color:var(--df-danger-sla-border)] !bg-[var(--df-danger-sla-bg)] !p-5 !shadow-none ring-0"
+        >
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-danger-sla-label)]">SLA crítico</p>
+          <p className="mt-2 text-4xl font-bold tabular-nums tracking-tight text-[var(--df-danger-sla-value)]">{data.operation.critical}</p>
+          <p className="mt-1 text-xs text-[var(--df-danger-sla-caption)]">Aguardam há ≥ 30 min</p>
         </Card>
         <Card padding="md" className="!p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Tempo médio em fila</p>
-          <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-text-primary)]">{formatMs(data.operation.avgFirstResponseMs)}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-secondary)]">Tempo médio em fila</p>
+          <p className="mt-2 text-4xl font-bold tabular-nums tracking-tight text-[var(--df-text-primary)]">{formatMs(data.operation.avgFirstResponseMs)}</p>
           <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Até à primeira resposta (período)</p>
         </Card>
       </div>
@@ -192,7 +195,7 @@ export function ManagerDashboardSection() {
                 title="Sem utilizadores na conta"
                 description="Convide agentes em Configurações para ver desempenho por pessoa."
                 nextStep="Abra Equipe no menu para ver quem já está no tenant ou convide novos membros."
-                className="border-dashed border-slate-200 bg-slate-50/50 py-8"
+                className="py-8"
               />
             </div>
           ) : (
@@ -266,7 +269,7 @@ export function ManagerDashboardSection() {
                 title="Sem tags de funil"
                 description="Ao classificar conversas com tags alinhadas ao funil, o resumo aparece aqui."
                 nextStep="Na Inbox, aplique tags (ex.: Lead, Proposta) às threads — os totais atualizam neste cartão."
-                className="border-dashed border-slate-200 bg-slate-50/50 py-8"
+                className="py-8"
               />
             </div>
           </div>

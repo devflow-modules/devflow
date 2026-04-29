@@ -40,7 +40,7 @@ export function StateError({
       role="alert"
     >
       <p className="text-sm font-semibold text-[var(--df-danger-text)]">{title}</p>
-      <p className="mt-2 text-sm leading-relaxed text-[var(--df-danger-text)]/90">{message}</p>
+      <p className="mt-2 text-sm leading-relaxed text-[var(--df-danger-text)]">{message}</p>
       {onRetry ? (
         <button type="button" className={`${buttonClassName("secondary")} mt-6`} onClick={onRetry}>
           {retryLabel}

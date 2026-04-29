@@ -44,11 +44,13 @@ html[data-theme="devflow"],
 
   /* Superfícies semânticas */
   --df-bg-app: #030607;
-  --df-bg-elevated: #07100f;
-  --df-border-subtle: rgba(0, 208, 132, 0.14);
-  --df-text-primary: #f7f9f8;
-  --df-text-secondary: #a8b3af;
-  --df-text-muted: #8f9f98;
+  --df-bg-elevated: #0b1513;
+  --df-border-subtle: rgba(0, 208, 132, 0.16);
+  /** Contorno visível em cartões/tabelas dark (sem depender só do brand). */
+  --df-border-dark: rgba(148, 163, 184, 0.14);
+  --df-text-primary: #f1f5f4;
+  --df-text-secondary: #b8c4bf;
+  --df-text-muted: #9aa8a1;
 
   /* Feedback */
   --df-success-bg: rgba(30, 215, 134, 0.16);
@@ -57,6 +59,12 @@ html[data-theme="devflow"],
   --df-danger-bg: rgba(255, 93, 93, 0.16);
   --df-danger-border: rgba(255, 93, 93, 0.28);
   --df-danger-text: #ffd2d2;
+  /** SLA crítico — alerta sem fundo sólido pesado */
+  --df-danger-sla-bg: rgba(239, 68, 68, 0.12);
+  --df-danger-sla-border: rgba(248, 113, 113, 0.38);
+  --df-danger-sla-label: #fecaca;
+  --df-danger-sla-value: #fef2f2;
+  --df-danger-sla-caption: #fca5a5;
   --df-warning-bg: rgba(246, 196, 83, 0.14);
   --df-warning-border: rgba(246, 196, 83, 0.26);
 
@@ -125,7 +133,7 @@ html[data-theme="client_branded"] {
 
   .df-surface {
     background: var(--df-bg-elevated);
-    border: 1px solid var(--df-border-subtle);
+    border: 1px solid color-mix(in srgb, var(--df-border-dark) 45%, var(--df-border-subtle));
   }
 
   .df-surface-elevated {
@@ -180,41 +188,66 @@ html[data-theme="client_branded"] {
 
   /* --- Tipografia por função --- */
   .df-eyebrow {
-    @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500;
+    @apply text-[11px] font-semibold uppercase tracking-[0.14em];
+    color: var(--df-text-muted);
   }
 
   .df-eyebrow-admin {
     @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-600/90;
   }
 
-  .df-text-page-title {
-    @apply text-3xl font-semibold tracking-tight text-slate-950 sm:text-[2rem] sm:leading-tight;
+  .df-text-primary {
+    color: var(--df-text-primary);
   }
 
-  .df-text-page-title-sm {
-    @apply text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl;
-  }
-
-  .df-text-section-title {
-    @apply text-lg font-semibold tracking-tight text-slate-950;
-  }
-
-  .df-text-body {
-    @apply text-sm leading-relaxed text-slate-600;
+  .df-text-secondary {
+    color: var(--df-text-secondary);
   }
 
   .df-text-muted {
     font-size: 0.875rem;
     line-height: 1.5rem;
+    color: var(--df-text-muted);
+  }
+
+  .df-text-page-title {
+    @apply text-3xl font-semibold tracking-tight sm:text-[2rem] sm:leading-tight;
+    color: var(--df-text-primary);
+  }
+
+  .df-text-page-title-sm {
+    @apply text-xl font-semibold tracking-tight sm:text-2xl;
+    color: var(--df-text-primary);
+  }
+
+  .df-text-section-title {
+    @apply text-lg font-semibold tracking-tight;
+    color: var(--df-text-primary);
+  }
+
+  .df-text-body {
+    @apply text-sm leading-relaxed;
     color: var(--df-text-secondary);
   }
 
   .df-text-page-description {
-    @apply max-w-xl text-[15px] leading-relaxed text-slate-500 sm:text-base;
+    @apply max-w-xl text-[15px] leading-relaxed sm:text-base;
+    color: var(--df-text-secondary);
   }
 
   .df-label {
-    @apply text-[13px] font-medium text-slate-800;
+    @apply text-[13px] font-medium;
+    color: var(--df-text-secondary);
+  }
+
+  /** Superfície escura de secção (paridade com portal DevFlow) */
+  .df-section-dark {
+    background: var(--df-bg-app);
+    color: var(--df-text-primary);
+  }
+
+  .df-border-dark {
+    border-color: var(--df-border-dark);
   }
 
   /* --- Cabeçalho de página (complementa PageHeader) --- */
@@ -223,7 +256,40 @@ html[data-theme="client_branded"] {
   }
 
   .df-focus-brand {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--df-bg-app)];
+  }
+
+  /** Botões alinhados ao design system (shell / dashboard) — sem @apply cruzado (Tailwind v4). */
+  .df-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-transparent px-5 py-2.5 text-sm font-semibold shadow-[0_1px_2px_rgba(0,0,0,0.25)] transition-[background,box-shadow,colors,border-color] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--df-bg-app)] disabled:pointer-events-none disabled:opacity-50;
+    background: var(--df-brand-600);
+    color: #021a12;
+  }
+
+  .df-btn-primary:hover:not(:disabled) {
+    background: var(--df-brand-700);
+  }
+
+  .df-btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold shadow-sm transition-[background,box-shadow,colors,border-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--df-bg-app)] disabled:pointer-events-none disabled:opacity-50;
+    background: var(--df-bg-elevated);
+    color: var(--df-text-primary);
+    border: 1px solid color-mix(in srgb, var(--df-border-dark) 60%, var(--df-border-subtle));
+  }
+
+  .df-btn-secondary:hover:not(:disabled) {
+    background: var(--df-brand-100);
+  }
+
+  .df-btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-transparent px-5 py-2.5 text-sm font-semibold transition-[background,box-shadow,colors,border-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--df-bg-app)] disabled:pointer-events-none disabled:opacity-50;
+    background: transparent;
+    color: var(--df-text-secondary);
+  }
+
+  .df-btn-ghost:hover:not(:disabled) {
+    background: var(--df-brand-50);
+    color: var(--df-text-primary);
   }
 
   .df-admin-badge {
@@ -246,21 +312,21 @@ html[data-theme="client_branded"] {
   /* --- Cartões --- */
   .df-card {
     @apply rounded-2xl p-7;
-    border: 1px solid var(--df-border-subtle);
+    border: 1px solid color-mix(in srgb, var(--df-border-dark) 55%, var(--df-border-subtle));
     background: var(--df-bg-elevated);
     box-shadow: var(--df-shadow-card);
   }
 
   .df-card-sm {
     @apply rounded-2xl p-5;
-    border: 1px solid var(--df-border-subtle);
+    border: 1px solid color-mix(in srgb, var(--df-border-dark) 55%, var(--df-border-subtle));
     background: var(--df-bg-elevated);
     box-shadow: var(--df-shadow-card);
   }
 
   .df-card-lg {
     @apply rounded-2xl p-8;
-    border: 1px solid var(--df-border-subtle);
+    border: 1px solid color-mix(in srgb, var(--df-border-dark) 55%, var(--df-border-subtle));
     background: var(--df-bg-elevated);
     box-shadow: var(--df-shadow-card);
   }
@@ -308,8 +374,8 @@ html[data-theme="client_branded"] {
 
   .df-state-empty {
     @apply rounded-2xl border border-dashed px-6 py-12 text-center;
-    border-color: var(--df-border-subtle);
-    background: color-mix(in srgb, var(--df-bg-elevated) 78%, black);
+    border-color: color-mix(in srgb, var(--df-border-subtle) 65%, var(--df-border-dark));
+    background: color-mix(in srgb, var(--df-bg-elevated) 88%, var(--df-bg-app));
   }
 
   .df-state-error {
@@ -337,29 +403,40 @@ html[data-theme="client_branded"] {
     color: var(--df-text-primary);
   }
 
-  /* --- Tabelas administrativas --- */
+  /* --- Tabelas (shell dark premium) --- */
   .df-table-wrap {
-    @apply overflow-x-auto rounded-xl border border-slate-200/80 bg-white shadow-sm;
+    @apply overflow-x-auto rounded-xl shadow-sm;
+    border: 1px solid color-mix(in srgb, var(--df-border-dark) 55%, var(--df-border-subtle));
+    background: color-mix(in srgb, var(--df-bg-elevated) 92%, var(--df-bg-app));
   }
 
   .df-table {
     @apply w-full min-w-[520px] border-collapse text-left text-sm;
+    color: var(--df-text-primary);
   }
 
   .df-table thead {
-    @apply border-b border-slate-200 bg-slate-50/80;
+    border-bottom: 1px solid color-mix(in srgb, var(--df-border-dark) 50%, var(--df-border-subtle));
+    background: color-mix(in srgb, var(--df-bg-app) 55%, var(--df-bg-elevated));
   }
 
   .df-table th {
-    @apply px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-500;
+    @apply px-4 py-2.5 text-xs font-semibold uppercase tracking-wide;
+    color: var(--df-text-secondary);
   }
 
   .df-table td {
-    @apply border-b border-slate-100 px-4 py-2.5 text-slate-800;
+    @apply px-4 py-2.5;
+    border-bottom: 1px solid color-mix(in srgb, var(--df-border-dark) 70%, transparent);
+    color: var(--df-text-primary);
   }
 
   .df-table tbody tr:last-child td {
     @apply border-b-0;
+  }
+
+  .df-table tbody tr:hover td {
+    background: color-mix(in srgb, var(--df-brand-50) 35%, transparent);
   }
 
   /* --- Inbox / chat operacional (SLA, chips, toolbar, timeline) --- */
