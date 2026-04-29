@@ -146,7 +146,7 @@ export default function ContatoPage() {
         </div>
 
         <div
-          className="df-section-light mx-auto mt-12 max-w-3xl rounded-2xl border border-slate-200/80 bg-slate-50/80 px-5 py-6 sm:px-8"
+          className="df-section-dark mx-auto mt-12 max-w-3xl rounded-2xl border bg-card px-5 py-6 transition-all duration-200 hover:shadow-md sm:px-8 df-border-dark"
           aria-label="Como escolher o canal"
         >
           <p className="df-text-muted text-center text-xs font-bold uppercase tracking-[0.18em]">

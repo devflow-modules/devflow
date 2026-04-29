@@ -10,21 +10,23 @@ const ogImage = `${baseUrl}/og-devflow.png`;
 const plans = [
   {
     name: "Starter",
-    description: "Para começar a automatizar",
-    price: "Sob consulta",
+    description: "Para negócios que querem sair do atendimento manual",
+    price: "Implantação guiada + mensalidade",
     features: [
       "Até 1.000 mensagens/mês",
       "1 número WhatsApp",
-      "Respostas automáticas",
-      "Handoff humano",
-      "Suporte por email",
+      "Respostas automáticas essenciais",
+      "Inbox com handoff humano",
+      "Suporte por e-mail",
     ],
+    cta: "Agendar diagnóstico",
+    ctaText: "Quero agendar diagnóstico para avaliar implantação guiada e mensalidade da operação.",
     featured: false,
   },
   {
     name: "Pro",
-    description: "Para negócios em crescimento",
-    price: "Sob consulta",
+    description: "Para negócios com equipe e maior volume de atendimento",
+    price: "Implantação guiada + mensalidade",
     features: [
       "Mensagens ilimitadas*",
       "Múltiplos números",
@@ -32,19 +34,24 @@ const plans = [
       "Integrações",
       "Suporte prioritário",
     ],
+    badgeLabel: "Mais recomendado",
+    cta: "Montar plano Pro",
+    ctaText: "Quero montar um plano Pro com implantação guiada para meu volume de atendimento.",
     featured: true,
   },
   {
     name: "Enterprise",
-    description: "Para operações em escala",
-    price: "Sob consulta",
+    description: "Para operações com múltiplas unidades, SLA e personalização",
+    price: "Projeto sob medida",
     features: [
-      "Personalizado",
+      "Operação personalizada",
       "SLA dedicado",
       "Onboarding assistido",
       "Treinamento da equipe",
       "Suporte 24/7",
     ],
+    cta: "Falar sobre escala",
+    ctaText: "Quero falar sobre escala com projeto sob medida, implantação e evolução contínua.",
     featured: false,
   },
 ];
@@ -90,10 +97,10 @@ export default function PrecosPage() {
             id="precos-heading"
             className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl"
           >
-            Preços
+            Planos para operar seu WhatsApp com automação, inbox e atendimento humano
           </h1>
           <p className="df-text-secondary mt-4 text-lg">
-            Veja como funciona na prática antes de qualquer proposta.
+            A DevFlow Labs configura sua operação, ativa o número, organiza sua equipe e deixa o WhatsApp pronto para vender com controle.
           </p>
           <p className="df-text-secondary mt-4 text-sm">
             <Link href="/demo" className="font-medium text-primary underline-offset-4 hover:underline">
@@ -106,7 +113,7 @@ export default function PrecosPage() {
               href="/produtos/whatsapp-platform"
               className="font-medium text-primary underline-offset-4 hover:underline"
             >
-              Página do WhatsApp Platform
+              Entender WhatsApp Platform
             </Link>
           </p>
         </div>
@@ -124,7 +131,7 @@ export default function PrecosPage() {
             >
               {plan.featured && (
                 <span className="mb-4 inline-block w-fit rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
-                  Mais popular
+                  {plan.badgeLabel}
                 </span>
               )}
               <h2 className="text-xl font-semibold text-foreground">
@@ -147,10 +154,10 @@ export default function PrecosPage() {
               </ul>
               <div className="mt-8">
                 <WhatsAppCta
-                  label="Falar com especialista"
-                  ariaLabel="Falar com especialista no WhatsApp"
+                  label={plan.cta}
+                  ariaLabel={plan.cta}
                   size="default"
-                  text="Quero entender como aplicar isso no meu WhatsApp"
+                  text={plan.ctaText}
                 />
               </div>
             </article>
@@ -158,19 +165,52 @@ export default function PrecosPage() {
         </div>
 
         <div className="mx-auto mt-12 max-w-lg rounded-2xl border border-border bg-muted/30 px-6 py-8 text-center">
-          <p className="text-sm font-medium text-foreground">Prefere ver antes de falar?</p>
+          <p className="text-sm font-medium text-foreground">
+            Antes de falar com vendas, veja a plataforma funcionando
+          </p>
+          <p className="df-text-secondary mt-2 text-sm">
+            Veja a inbox, automações, handoff humano e métricas em uma demonstração guiada.
+          </p>
           <Link
             href="/demo"
             className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-border bg-background px-6 text-sm font-semibold text-foreground transition-colors hover:bg-muted sm:w-auto"
           >
-            Ver demo
+            Ver demo guiada
           </Link>
         </div>
 
         <p className="df-text-secondary mt-8 text-center text-sm">
-          * Consulte condições. Piloto de 7 dias grátis. Valores variam conforme
-          volume e necessidades.
+          * O plano final depende do volume de mensagens, quantidade de números, integrações e nível de implantação. Projetos podem incluir setup inicial + mensalidade recorrente.
         </p>
+
+        <section className="mx-auto mt-12 max-w-5xl" aria-labelledby="como-funciona-contratacao">
+          <h2
+            id="como-funciona-contratacao"
+            className="text-center text-2xl font-semibold tracking-tight text-foreground"
+          >
+            Como funciona a contratação
+          </h2>
+          <div className="mt-6 grid gap-5 sm:grid-cols-3">
+            <article className="rounded-2xl border border-border bg-card p-5">
+              <h3 className="text-base font-semibold text-foreground">Diagnóstico da operação</h3>
+              <p className="df-text-secondary mt-2 text-sm">
+                Entendemos volume, equipe, número de WhatsApp e gargalos.
+              </p>
+            </article>
+            <article className="rounded-2xl border border-border bg-card p-5">
+              <h3 className="text-base font-semibold text-foreground">Implantação guiada</h3>
+              <p className="df-text-secondary mt-2 text-sm">
+                Configuramos número, inbox, automações iniciais, handoff e métricas.
+              </p>
+            </article>
+            <article className="rounded-2xl border border-border bg-card p-5">
+              <h3 className="text-base font-semibold text-foreground">Mensalidade da plataforma</h3>
+              <p className="df-text-secondary mt-2 text-sm">
+                Após ativação, você mantém a operação rodando com suporte e evolução.
+              </p>
+            </article>
+          </div>
+        </section>
 
         <p className="mt-8 text-center">
           <Link

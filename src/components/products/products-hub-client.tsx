@@ -200,8 +200,8 @@ export function ProductsHubClient() {
               Produtos DevFlow
             </h1>
             <p className="mt-4 text-lg text-muted-foreground">
-              Soluções para organizar, automatizar e escalar sua operação — cada uma com próximo
-              passo claro.
+              Produtos que sustentam operações reais de atendimento e vendas no WhatsApp e no
+              financeiro, com próximo passo comercial claro.
             </p>
             <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
               <Link

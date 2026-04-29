@@ -44,9 +44,9 @@ const operationalProjects = projects.filter((p) => !p.isExperimental);
 const experimentalProjects = projects.filter((p) => p.isExperimental);
 
 const cardBase = cn(
-  "flex h-full flex-col rounded-2xl border border-border bg-card",
+  "df-section-dark flex h-full flex-col rounded-2xl border df-border-dark bg-card",
   "shadow-[0_18px_50px_-24px_rgba(15,23,42,0.18)] transition-all duration-200",
-  "hover:-translate-y-0.5 hover:border-slate-300/90 hover:shadow-[0_22px_55px_-20px_rgba(15,23,42,0.22)]"
+  "hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_22px_55px_-20px_rgba(15,23,42,0.22)]"
 );
 
 function ProjectCta({ project }: { project: Project }) {
@@ -95,19 +95,20 @@ function ProjectCard({ project }: { project: Project }) {
         featured
           ? cn(
               "p-8 sm:p-10 lg:p-12",
-              "ring-2 ring-emerald-500/30 [background:linear-gradient(165deg,var(--card)_0%,rgba(236,253,245,0.55)_55%,var(--card)_100%)]"
+              "ring-1 ring-primary/30 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.16),transparent_35%),linear-gradient(135deg,rgba(6,32,26,0.95),rgba(2,8,7,1))]"
             )
           : "p-6 sm:p-8",
-        project.isExperimental && "border-slate-200/90 bg-slate-50/50"
+        project.isExperimental &&
+          "border-dashed df-border-dark bg-card/80 opacity-90 hover:opacity-100 hover:shadow-md"
       )}
     >
       {featured ? (
-        <span className="mb-4 inline-flex w-fit items-center rounded-full border border-emerald-600/30 bg-emerald-600/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-900">
+        <span className="mb-4 inline-flex w-fit items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary sm:text-[0.8125rem]">
           Produto principal
         </span>
       ) : null}
       {project.isExperimental ? (
-        <span className="mb-3 inline-flex w-fit items-center rounded-full border border-slate-300 bg-white px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-slate-600">
+        <span className="mb-3 inline-flex w-fit items-center rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-primary">
           Laboratório
         </span>
       ) : null}
@@ -123,15 +124,15 @@ function ProjectCard({ project }: { project: Project }) {
       <p
         className={cn(
           "font-semibold text-primary",
-          featured ? "mt-2 text-base sm:text-lg" : "mt-1 text-sm"
+          featured ? "mt-2 text-lg sm:text-xl" : "mt-1 text-base sm:text-[1.0625rem]"
         )}
       >
         {project.tagline}
       </p>
       <p
         className={cn(
-          "flex-1 leading-relaxed text-slate-600",
-          featured ? "mt-4 text-base sm:max-w-3xl" : "mt-3 text-sm"
+          "df-text-secondary flex-1 leading-relaxed",
+          featured ? "mt-4 text-base sm:max-w-3xl sm:text-lg" : "mt-3 text-[0.9375rem] sm:text-base"
         )}
       >
         {project.description}
@@ -140,7 +141,7 @@ function ProjectCard({ project }: { project: Project }) {
         {project.badges.map((badge) => (
           <span
             key={badge}
-            className="rounded-md border border-border bg-white/90 px-2 py-0.5 text-xs font-medium text-slate-700"
+            className="df-text-secondary rounded-md border df-border-dark bg-muted/40 px-2 py-0.5 text-[0.8125rem] font-medium sm:text-sm"
           >
             {badge}
           </span>
@@ -153,12 +154,12 @@ function ProjectCard({ project }: { project: Project }) {
 
 function EndCtaBlock() {
   return (
-    <div className="mx-auto mt-20 max-w-3xl rounded-2xl border border-border bg-card px-6 py-10 text-center shadow-[0_24px_70px_-28px_rgba(15,23,42,0.2)] sm:px-12 sm:py-12">
-      <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary/90">Próximo passo</p>
+    <div className="df-section-dark mx-auto mt-20 max-w-3xl rounded-2xl border df-border-dark bg-card px-6 py-10 text-center shadow-[0_24px_70px_-28px_rgba(15,23,42,0.2)] sm:px-12 sm:py-12">
+      <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary sm:text-xs">Próximo passo</p>
       <h2 className="mt-3 text-balance text-xl font-bold tracking-tight text-foreground sm:text-2xl">
         Veja a WhatsApp Platform em ação
       </h2>
-      <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-slate-600 sm:text-[0.9375rem]">
+      <p className="df-text-secondary mx-auto mt-3 max-w-lg text-[0.9375rem] leading-relaxed sm:text-base">
         Demo guiada em poucos minutos ou página completa do produto — o mesmo sistema que aparece em operação acima.
       </p>
       <div className="mx-auto mt-8 flex max-w-xl flex-col gap-3 sm:flex-row sm:justify-center">
@@ -175,8 +176,8 @@ function EndCtaBlock() {
         <Link
           href="/produtos/whatsapp-platform"
           className={cn(
-            "inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-6 text-sm font-semibold text-slate-800",
-            "shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 sm:min-w-[11rem]"
+            "inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border px-6 text-sm font-semibold",
+            "df-border-dark bg-background text-foreground transition-all hover:bg-muted sm:min-w-[11rem]"
           )}
         >
           Ver produto principal
@@ -213,18 +214,18 @@ export default function ProjetosPage() {
               id="projetos-hero-heading"
               className="mt-3 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
             >
-              Produtos e sistemas em operação
+              Sistemas reais em operação no WhatsApp e financeiro
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg font-semibold leading-snug text-foreground sm:text-xl">
               Esses não são apenas projetos. São sistemas reais em operação.
             </p>
-            <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-[1.05rem]">
+            <p className="df-text-secondary mx-auto mt-4 max-w-2xl text-[1.0625rem] leading-relaxed sm:text-[1.05rem]">
               Prioridade explícita: WhatsApp Platform no centro do GTM, Financeiro Casa como produto ativo complementar e experimentação isolada no laboratório.
             </p>
           </header>
 
           <div className="mx-auto mt-16 max-w-5xl">
-            <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-500">Em operação</h2>
+            <h2 className="df-text-muted text-base font-bold uppercase tracking-[0.18em] sm:text-sm">Em operação</h2>
             <div className="mt-6 grid gap-8 lg:grid-cols-2 lg:gap-6">
               {operationalProjects.map((project) => (
                 <div key={project.id} className={cn(project.highlight && "lg:col-span-2")}>
@@ -235,8 +236,8 @@ export default function ProjetosPage() {
           </div>
 
           <div className="mx-auto mt-16 max-w-5xl">
-            <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-500">Laboratório</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+            <h2 className="df-text-muted text-base font-bold uppercase tracking-[0.18em] sm:text-sm">Laboratório</h2>
+            <p className="df-text-secondary mt-2 max-w-2xl text-[0.9375rem] leading-relaxed sm:text-sm">
               Fora do roadmap comercial: transparência técnica sem diluir foco de produto nem de suporte.
             </p>
             <div className="mt-6 grid max-w-2xl gap-6">
