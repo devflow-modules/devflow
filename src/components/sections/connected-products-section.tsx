@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Wallet, MessageCircle, Building2, SplitSquareHorizontal, ArrowRight } from "lucide-react";
+import { Wallet, Building2, SplitSquareHorizontal, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const connections = [
@@ -24,19 +24,16 @@ export function ConnectedProductsSection() {
   return (
     <section
       id="conectado-produtos"
-      className="py-24 bg-[#f8fafc]"
+      className="df-light py-24"
       aria-labelledby="connected-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
-          <h2
-            id="connected-heading"
-            className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
-          >
+          <h2 id="connected-heading" className="df-text-primary text-2xl font-semibold tracking-tight sm:text-3xl">
             Conectado com nossos produtos
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="df-text-secondary mt-3">
             As ferramentas se integram ao ecossistema. Use sozinhas ou junto com os produtos.
           </p>
         </div>
@@ -47,7 +44,7 @@ export function ConnectedProductsSection() {
               key={i}
               href={conn.product.href}
               className={cn(
-                "block rounded-2xl border border-border bg-card p-6",
+                "df-card-light block rounded-2xl border p-6",
                 "transition-all duration-200 hover:border-primary/30 hover:shadow-lg"
               )}
             >
@@ -62,7 +59,7 @@ export function ConnectedProductsSection() {
                       {t.label}
                     </span>
                   ))}
-                  <span className="text-slate-400" aria-hidden>+</span>
+                  <span className="df-text-muted" aria-hidden>+</span>
                   <span className="inline-flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-semibold text-primary">
                     {conn.product.label}
                   </span>
@@ -72,7 +69,7 @@ export function ConnectedProductsSection() {
                   <ArrowRight className="size-4" aria-hidden />
                 </span>
               </div>
-              <p className="mt-3 text-sm text-slate-600">{conn.description}</p>
+              <p className="df-text-secondary mt-3 text-sm">{conn.description}</p>
             </Link>
           ))}
         </div>

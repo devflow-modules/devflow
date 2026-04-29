@@ -181,7 +181,7 @@ export function HeroV2() {
                 A DevFlow implementa sua operação com{" "}
                 <strong className="font-semibold text-foreground">inbox multiatendente, IA aplicada ao repetitivo</strong>,
                 automação e dashboard operacional.{" "}
-                <span className="text-foreground/90">Você entra com o contexto, nós entregamos o fluxo rodando.</span>
+                <span className="df-text-primary">Você entra com o contexto, nós entregamos o fluxo rodando.</span>
               </p>
             </div>
 
@@ -267,7 +267,7 @@ export function HeroV2() {
                 <Link
                   href="/ferramentas"
                   onClick={() => trackHomeCta("hero_tools")}
-                  className="font-semibold text-muted-foreground underline-offset-2 hover:text-primary hover:underline"
+                  className="df-link font-semibold no-underline hover:underline"
                 >
                   Ferramentas de apoio
                 </Link>

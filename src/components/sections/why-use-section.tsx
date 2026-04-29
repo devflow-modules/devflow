@@ -13,8 +13,8 @@ const blocks = [
     icon: ThumbsUp,
     title: "Útil",
     description: "Resolvem problemas reais: controle financeiro, divisão de contas, consulta de dados.",
-    color: "text-blue-600",
-    bg: "bg-blue-500/5 border-blue-500/20",
+    color: "text-sky-700",
+    bg: "bg-sky-100 border-sky-300/60",
   },
   {
     icon: Link2,
@@ -29,19 +29,16 @@ export function WhyUseSection() {
   return (
     <section
       id="por-que-usar"
-      className="py-24 bg-white"
+      className="df-light py-24"
       aria-labelledby="why-use-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
-          <h2
-            id="why-use-heading"
-            className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
-          >
+          <h2 id="why-use-heading" className="df-text-primary text-2xl font-semibold tracking-tight sm:text-3xl">
             Por que usar
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="df-text-secondary mt-3">
             Ferramentas pensadas para o seu dia a dia, dentro do ecossistema DevFlow Labs.
           </p>
         </div>
@@ -59,8 +56,8 @@ export function WhyUseSection() {
               <div className={cn("mx-auto flex size-12 items-center justify-center rounded-xl border", block.bg)}>
                 <block.icon className={cn("size-6", block.color)} aria-hidden />
               </div>
-              <h3 className="mt-4 font-semibold text-foreground">{block.title}</h3>
-              <p className="mt-2 text-sm text-slate-600">{block.description}</p>
+              <h3 className="df-text-primary mt-4 font-semibold">{block.title}</h3>
+              <p className="df-text-secondary mt-2 text-sm">{block.description}</p>
             </article>
           ))}
         </div>

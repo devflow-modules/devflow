@@ -26,10 +26,10 @@ const products = [
   },
   {
     icon: Wallet,
-    iconBg: "bg-blue-500/10",
-    iconColor: "text-blue-500",
+    iconBg: "bg-sky-400/20",
+    iconColor: "text-sky-200",
     tag: "SaaS",
-    tagColor: "text-blue-500",
+    tagColor: "text-sky-200",
     title: "Sistema Financeiro",
     subtitle: "Gestão Financeira Completa",
     description:
@@ -43,7 +43,7 @@ const products = [
     cta: "Testar grátis — sem cartão",
     href: "/ferramentas/financeiro",
     external: false,
-    accent: "border-blue-500/30",
+    accent: "border-sky-400/35",
   },
   {
     icon: Sparkles,
@@ -88,7 +88,7 @@ export function ProductsSection() {
           <p className="df-text-secondary mt-3 leading-relaxed">
             Quando precisa de mais que ferramenta avulsa.
           </p>
-          <p className="mt-4 text-sm font-medium text-primary/90">
+          <p className="mt-4 text-sm font-medium text-primary">
             Agora que você viu o rápido, veja o que escala.
           </p>
           <p className="df-text-secondary mx-auto mt-6 max-w-lg text-sm leading-relaxed">
@@ -104,7 +104,7 @@ export function ProductsSection() {
                 "flex flex-col rounded-2xl border-2 bg-card p-6 shadow-sm",
                 "transition-all duration-300",
                 product.disabled
-                  ? "opacity-70"
+                  ? "df-text-muted"
                   : "hover:-translate-y-1 hover:border-primary/20 hover:shadow-[0_16px_48px_rgba(15,23,42,0.1)]",
                 product.accent
               )}
@@ -139,7 +139,7 @@ export function ProductsSection() {
                   "mt-6 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold",
                   "transition-all duration-200",
                   product.disabled
-                    ? "df-text-secondary cursor-default border border-dashed border-border bg-muted/20 opacity-60 pointer-events-none"
+                    ? "df-text-secondary cursor-default border border-dashed border-border bg-muted/20 pointer-events-none"
                     : "df-surface-elevated border border-border text-foreground hover:bg-muted/20"
                 )}
                 tabIndex={product.disabled ? -1 : undefined}

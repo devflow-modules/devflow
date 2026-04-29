@@ -44,7 +44,7 @@ function isDemoActive(pathname: string): boolean {
 const navText = (active: boolean) =>
   cn(
     "text-sm font-semibold transition-colors",
-    active ? "text-primary" : "text-muted-foreground hover:text-primary"
+    active ? "text-primary" : "df-text-secondary hover:text-primary"
   );
 
 const navUnderline = (active: boolean) =>
@@ -217,7 +217,7 @@ export function Header() {
                               </span>
                             ) : null}
                           </div>
-                          <p className="mt-1 text-xs leading-snug text-muted-foreground">{p.summary}</p>
+                          <p className="df-text-secondary mt-1 text-xs leading-snug">{p.summary}</p>
                         </div>
                         <Link
                           href={p.href}
@@ -234,7 +234,7 @@ export function Header() {
                 <Link
                   href={PRODUTOS_HUB_PATH}
                   role="menuitem"
-                  className="mt-2 block rounded-lg border border-border px-3 py-2.5 text-center text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
+                  className="mt-2 block rounded-lg border border-border px-3 py-2.5 text-center text-sm font-semibold text-primary transition-colors hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   onClick={() => onNav("products_hub")}
                 >
                   Ver catálogo completo
@@ -295,7 +295,7 @@ export function Header() {
           <button
             type="button"
             onClick={() => setMobileOpen((o) => !o)}
-            className="flex size-11 min-h-11 min-w-11 items-center justify-center rounded-xl border border-border bg-transparent text-slate-600 transition-colors hover:bg-muted lg:hidden"
+            className="df-text-secondary flex size-11 min-h-11 min-w-11 items-center justify-center rounded-xl border border-border bg-transparent transition-colors hover:bg-muted lg:hidden"
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav"
             aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
@@ -369,7 +369,7 @@ export function Header() {
                             </span>
                           ) : null}
                         </div>
-                        <p className="mt-1 text-xs leading-snug text-muted-foreground">{p.summary}</p>
+                        <p className="df-text-secondary mt-1 text-xs leading-snug">{p.summary}</p>
                       </div>
                       <Link
                         href={p.href}

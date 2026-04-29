@@ -41,11 +41,11 @@ const legalLinks = [
 const currentYear = new Date().getFullYear();
 
 const footerLinkClass =
-  "flex min-h-10 items-center py-1 text-sm text-muted-foreground transition-colors hover:text-primary";
+  "df-text-secondary flex min-h-10 items-center py-1 text-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
 
 export function Footer() {
   return (
-    <footer className="df-surface border-t df-border-brand">
+    <footer className="df-card-dark border-t df-border-dark">
       <div className="mx-auto max-w-[1200px] px-3 py-10 min-[400px]:px-4 sm:px-6 sm:py-12 lg:px-8">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5 lg:gap-10">
           <div className="space-y-4 sm:col-span-2 lg:col-span-1">
@@ -130,26 +130,26 @@ export function Footer() {
           </nav>
         </div>
 
-        <div className="mt-8 border-t border-border pt-6 sm:mt-10 sm:pt-8">
+        <div className="mt-8 border-t df-border-dark pt-6 sm:mt-10 sm:pt-8">
           <nav
-            className="flex flex-col items-center gap-2 text-center text-xs leading-relaxed text-muted-foreground sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-5 sm:gap-y-2 sm:text-sm"
+            className="df-text-secondary flex flex-col items-center gap-2 text-center text-xs leading-relaxed sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-5 sm:gap-y-2 sm:text-sm"
             aria-label="Legal e institucional"
           >
             {legalLinks.map((item) => (
-              <Link key={item.href} href={item.href} className="min-h-9 py-1 hover:text-primary">
+              <Link key={item.href} href={item.href} className="min-h-9 py-1 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                 {item.label}
               </Link>
             ))}
-            <Link href="/contato" className="min-h-9 py-1 hover:text-primary">
+            <Link href="/contato" className="min-h-9 py-1 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
               Contato
             </Link>
           </nav>
-          <p className="mt-4 text-center text-xs text-muted-foreground sm:text-sm">
+          <p className="df-text-secondary mt-4 text-center text-xs sm:text-sm">
             © {currentYear} DevFlow Labs. Todos os direitos reservados.
           </p>
-          <address className="mx-auto mt-3 max-w-lg text-center text-[11px] leading-relaxed text-muted-foreground not-italic sm:text-xs">
+          <address className="df-text-secondary mx-auto mt-3 max-w-lg text-center text-[11px] leading-relaxed not-italic sm:text-xs">
             São Paulo — SP · CNPJ: 60.517.335/0001-03 ·{" "}
-            <a href="mailto:contato@devflowlabs.com.br" className="break-all text-primary hover:underline sm:break-normal">
+            <a href="mailto:contato@devflowlabs.com.br" className="df-link break-all font-medium sm:break-normal">
               contato@devflowlabs.com.br
             </a>
           </address>

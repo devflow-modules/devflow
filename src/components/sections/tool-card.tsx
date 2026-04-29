@@ -55,7 +55,7 @@ export function ToolCard({
       <p
         className={cn(
           "mt-2 flex-1 text-sm",
-          disabled ? "text-muted-foreground" : "text-slate-600"
+          disabled ? "df-text-muted" : "df-text-secondary"
         )}
       >
         {description}
@@ -75,7 +75,7 @@ export function ToolCard({
     !disabled && "hover:-translate-y-1 hover:shadow-lg",
     highlight && "border-primary/30 bg-primary/[0.02]",
     !highlight && !disabled && "border-border",
-    disabled && "border-dashed border-slate-200/90 bg-slate-50/40 opacity-75"
+    disabled && "df-card-light border-dashed"
   );
 
   if (disabled) {

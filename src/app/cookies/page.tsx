@@ -9,30 +9,32 @@ export const metadata: Metadata = {
 
 export default function CookiesPage() {
   return (
-    <main className="py-16 sm:py-20">
-      <div className="mx-auto max-w-[720px] px-4 sm:px-6 lg:px-8">
+    <main className="df-light py-16 sm:py-20">
+      <div className="mx-auto max-w-[820px] px-4 sm:px-6 lg:px-8">
         <h1
           id="cookies-heading"
-          className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+          className="df-text-primary text-2xl font-semibold tracking-tight sm:text-3xl"
         >
           Política de Cookies
         </h1>
-        <p className="mt-2 text-sm text-slate-600">Última atualização: {new Date().toLocaleDateString("pt-BR")}</p>
+        <p className="df-text-secondary mt-2 text-sm font-medium">
+          Última atualização: {new Date().toLocaleDateString("pt-BR")}
+        </p>
 
-        <div className="mt-8 space-y-6 text-slate-700">
+        <div className="df-card-light df-text-secondary mt-8 space-y-7 rounded-2xl p-6 shadow-sm sm:p-8">
           <section>
-            <h2 className="text-lg font-semibold text-foreground">O que são cookies</h2>
-            <p className="mt-2 text-sm">
+            <h2 className="df-text-primary text-lg font-semibold">O que são cookies</h2>
+            <p className="mt-2 text-sm leading-7">
               Cookies são pequenos arquivos de texto armazenados no seu navegador quando você visita um site. Eles ajudam a recordar preferências, medir o uso do site e melhorar a experiência.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground">Como usamos cookies</h2>
-            <p className="mt-2 text-sm">
+            <h2 className="df-text-primary text-lg font-semibold">Como usamos cookies</h2>
+            <p className="mt-2 text-sm leading-7">
               Utilizamos cookies e tecnologias similares para:
             </p>
-            <ul className="mt-2 list-inside list-disc space-y-1 text-sm">
+            <ul className="mt-2 list-inside list-disc space-y-1 text-sm leading-7">
               <li>Medir visitas e páginaviews (Vercel Analytics)</li>
               <li>Medir eficácia de anúncios (Meta Pixel / Facebook)</li>
               <li>Entender a origem do tráfego e o comportamento de navegação</li>
@@ -40,14 +42,14 @@ export default function CookiesPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground">Meta Pixel</h2>
-            <p className="mt-2 text-sm">
+            <h2 className="df-text-primary text-lg font-semibold">Meta Pixel</h2>
+            <p className="mt-2 text-sm leading-7">
               O Meta Pixel (Facebook/Instagram) utiliza cookies para rastrear conversões, otimizar anúncios e criar públicos para campanhas. Os dados são processados pela Meta em conformidade com suas políticas. Você pode gerenciar preferências em{" "}
               <a
                 href="https://www.facebook.com/settings?tab=ads"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary underline hover:no-underline"
+                className="df-link font-medium"
               >
                 Configurações de anúncios do Facebook
               </a>
@@ -56,10 +58,10 @@ export default function CookiesPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground">Gerenciar cookies</h2>
-            <p className="mt-2 text-sm">
+            <h2 className="df-text-primary text-lg font-semibold">Gerenciar cookies</h2>
+            <p className="mt-2 text-sm leading-7">
               Você pode desativar ou limitar cookies pelas configurações do seu navegador. Isso pode afetar a funcionalidade de partes do site. Para mais informações sobre privacidade, consulte nossa{" "}
-              <Link href="/privacidade" className="text-primary underline hover:no-underline">
+              <Link href="/privacidade" className="df-link font-medium">
                 Política de Privacidade
               </Link>
               .
@@ -68,7 +70,7 @@ export default function CookiesPage() {
         </div>
 
         <p className="mt-12">
-          <Link href="/" className="text-sm font-medium text-primary hover:underline">
+          <Link href="/" className="df-link text-sm font-semibold">
             ← Voltar ao início
           </Link>
         </p>

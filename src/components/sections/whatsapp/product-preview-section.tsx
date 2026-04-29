@@ -187,7 +187,7 @@ export function ProductPreviewSection() {
                       Vi renovação anual. Confirmo 42 licenças e já mando link de pagamento?
                     </div>
                     <div className="ml-auto max-w-[88%] rounded-2xl rounded-tr-md bg-slate-900 px-3.5 py-2.5 text-xs leading-relaxed text-white shadow-md">
-                      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-white/60">
+                      <span className="df-text-secondary mb-1 block text-[10px] font-semibold uppercase tracking-wide">
                         Cliente · agora
                       </span>
                       São 42 licenças. Preciso falar com alguém sobre desconto progressivo.
@@ -224,7 +224,7 @@ export function ProductPreviewSection() {
                           )}
                         >
                           <span className="min-w-0 truncate">{run.name}</span>
-                          <span className="shrink-0 tabular-nums opacity-90">{run.status}</span>
+                          <span className="shrink-0 tabular-nums text-current">{run.status}</span>
                         </div>
                       ))}
                     </div>

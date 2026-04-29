@@ -49,6 +49,11 @@
 }
 
 :root {
+  --df-text-primary-current: var(--devflow-text-primary);
+  --df-text-secondary-current: var(--devflow-text-secondary);
+  --df-text-muted-current: var(--devflow-text-muted);
+  --df-link-current: #6ee7b7;
+  --df-link-hover-current: #a7f3d0;
   --background: var(--devflow-background);
   --foreground: var(--devflow-text-primary);
   --card: var(--devflow-surface);
@@ -170,6 +175,29 @@ html[data-theme="client_branded"] {
 .df-page {
   background: var(--devflow-background);
   color: var(--devflow-text-primary);
+  --df-text-primary-current: var(--devflow-text-primary);
+  --df-text-secondary-current: var(--devflow-text-secondary);
+  --df-text-muted-current: var(--devflow-text-muted);
+  --df-link-current: #6ee7b7;
+  --df-link-hover-current: #a7f3d0;
+}
+.df-dark {
+  background: var(--devflow-background);
+  color: var(--devflow-text-primary);
+  --df-text-primary-current: var(--devflow-text-primary);
+  --df-text-secondary-current: var(--devflow-text-secondary);
+  --df-text-muted-current: var(--devflow-text-muted);
+  --df-link-current: #6ee7b7;
+  --df-link-hover-current: #a7f3d0;
+}
+.df-light {
+  background: #f8fafc;
+  color: #0f172a;
+  --df-text-primary-current: #0f172a;
+  --df-text-secondary-current: #334155;
+  --df-text-muted-current: #475569;
+  --df-link-current: #047857;
+  --df-link-hover-current: #065f46;
 }
 .df-surface {
   background: var(--devflow-surface);
@@ -189,13 +217,26 @@ html[data-theme="client_branded"] {
 }
 /** Texto — contraste consistente dark premium */
 .df-text-primary {
-  color: var(--devflow-text-primary);
+  color: var(--df-text-primary-current, var(--devflow-text-primary));
 }
 .df-text-secondary {
-  color: var(--devflow-text-secondary);
+  color: var(--df-text-secondary-current, var(--devflow-text-secondary));
 }
 .df-text-muted {
-  color: var(--devflow-text-muted);
+  color: var(--df-text-muted-current, var(--devflow-text-muted));
+}
+.df-link {
+  color: var(--df-link-current, #34d399);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.df-link:hover {
+  color: var(--df-link-hover-current, #6ee7b7);
+}
+.df-link:focus-visible {
+  outline: 2px solid #34d399;
+  outline-offset: 2px;
+  border-radius: 0.25rem;
 }
 /** Leitura sobre gradiente brand */
 .df-gradient-text-scrim {
@@ -208,6 +249,64 @@ html[data-theme="client_branded"] {
 }
 .df-border-brand {
   border-color: var(--devflow-border-brand);
+}
+.df-border-dark {
+  border-color: var(--devflow-border-brand);
+}
+.df-border-light {
+  border-color: rgba(15, 23, 42, 0.14);
+}
+.df-card-dark {
+  background: var(--devflow-surface);
+  border: 1px solid var(--devflow-border-brand);
+}
+.df-card-light {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+}
+
+/**
+ * Guardrail de contraste:
+ * padroniza classes utilitárias antigas para tokens oficiais.
+ * Evita texto informativo com baixo contraste em páginas antigas.
+ */
+.text-slate-300,
+.text-slate-400,
+.text-slate-500,
+.text-slate-600,
+.text-slate-700,
+.text-gray-500,
+.text-gray-600,
+.text-gray-700,
+.text-zinc-500,
+.text-zinc-600,
+.text-zinc-700,
+.text-neutral-500,
+.text-neutral-600,
+.text-neutral-700 {
+  color: var(--df-text-secondary-current, var(--devflow-text-secondary));
+}
+.text-slate-800,
+.text-slate-900,
+.text-gray-800,
+.text-gray-900,
+.text-zinc-800,
+.text-zinc-900,
+.text-neutral-800,
+.text-neutral-900 {
+  color: var(--df-text-primary-current, var(--devflow-text-primary));
+}
+.text-blue-500,
+.text-blue-600,
+.text-blue-700 {
+  color: var(--df-link-current, #34d399);
+}
+.text-white\/40,
+.text-white\/50,
+.text-white\/60,
+.text-black\/40,
+.text-black\/50 {
+  color: var(--df-text-secondary-current, var(--devflow-text-secondary));
 }
 
 /* Blog article content */

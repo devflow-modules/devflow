@@ -25,8 +25,8 @@ const pillars = [
     cta: "Começar agora",
     value: "Escale com sistema que aguenta volume de verdade.",
     href: "/produtos",
-    accent: "border-blue-500/20 bg-blue-500/[0.04] hover:border-blue-500/35",
-    iconBg: "bg-blue-500/15 text-blue-600",
+    accent: "border-sky-400/30 bg-sky-400/[0.08] hover:border-sky-300/45",
+    iconBg: "bg-sky-400/20 text-sky-200",
   },
   {
     id: "automation" as const,
@@ -60,7 +60,7 @@ export function HubPillarsSection() {
           <p className="df-text-secondary mt-3 text-base leading-relaxed sm:text-lg">
             Menos login, menos aba. Tudo aqui.
           </p>
-          <p className="mt-4 text-sm font-medium text-primary/90">
+          <p className="mt-4 text-sm font-medium text-primary">
             O próximo passo é simples — escolha por onde entrar.
           </p>
         </div>

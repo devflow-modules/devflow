@@ -71,7 +71,7 @@ function ProductCard({ product }: { product: DevflowCatalogProduct }) {
         <h3 className="mt-4 text-lg font-semibold text-foreground">{product.name}</h3>
         <p className="df-text-secondary mt-1 text-sm leading-relaxed">{product.cardPitch}</p>
         <p className="mt-3 text-xs font-medium text-muted-foreground">
-          <span className="text-foreground/80">Para quem:</span> {product.audience}
+          <span className="text-foreground">Para quem:</span> {product.audience}
         </p>
         <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <Link
@@ -139,7 +139,7 @@ function ProductCard({ product }: { product: DevflowCatalogProduct }) {
         <h3 className="mt-4 text-lg font-semibold text-foreground">{product.name}</h3>
         <p className="df-text-secondary mt-1 text-sm leading-relaxed">{product.cardPitch}</p>
         <p className="mt-3 text-xs font-medium text-muted-foreground">
-          <span className="text-foreground/80">Para quem:</span> {product.audience}
+          <span className="text-foreground">Para quem:</span> {product.audience}
         </p>
         <span
           className={cn(

@@ -25,8 +25,8 @@ const paths = [
     icon: TrendingUp,
     track: "hub_pillar_products" as const,
     foot: "Não gostou? Não usa. Sem drama.",
-    accent: "border-blue-500/25 bg-blue-500/[0.05] hover:border-blue-500/40",
-    iconClass: "bg-blue-500/15 text-blue-600",
+    accent: "border-sky-400/35 bg-sky-400/[0.08] hover:border-sky-300/50",
+    iconClass: "bg-sky-400/20 text-sky-200",
   },
   {
     title: "Quer automatizar atendimento?",

@@ -26,8 +26,8 @@ const pairs = [
       label: "Sistema Financeiro",
       text: "Um painel, mês fechado",
       detail: "Categorias, recorrência, visão clara",
-      color: "text-blue-600",
-      bg: "bg-blue-500/5 border-blue-500/20",
+      color: "text-sky-200",
+      bg: "bg-sky-400/[0.08] border-sky-400/30",
     },
   },
   {

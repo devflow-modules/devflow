@@ -51,10 +51,10 @@ const TOOLS = [
   {
     slug: "em-breve",
     icon: Sparkles,
-    iconBg: "bg-slate-100",
-    iconColor: "text-slate-400",
+    iconBg: "bg-muted/40",
+    iconColor: "df-text-muted",
     badge: "Em breve",
-    badgeColor: "bg-slate-100 text-slate-500",
+    badgeColor: "bg-muted/40 df-text-secondary",
     title: "Próximas ferramentas",
     description: "Novas ferramentas em desenvolvimento. Acompanhe os lançamentos.",
     cta: "",
@@ -105,15 +105,15 @@ export default function FerramentasPage() {
         <span className="df-text-muted">
           Ferramentas abrem rápido; produtos são sistemas completos para escalar.{" "}
         </span>
-        <Link href={PRODUTOS_HUB_PATH} className="font-semibold text-primary hover:underline">
+        <Link href={PRODUTOS_HUB_PATH} className="df-link font-semibold">
           Ver catálogo de produtos
         </Link>
-        <span className="text-muted-foreground"> · </span>
-        <Link href="/produtos/whatsapp-platform" className="font-semibold text-primary hover:underline">
+        <span className="df-text-muted"> · </span>
+        <Link href="/produtos/whatsapp-platform" className="df-link font-semibold">
           WhatsApp Platform
         </Link>
-        <span className="text-muted-foreground"> · </span>
-        <Link href="/demo" className="font-semibold text-primary hover:underline">
+        <span className="df-text-muted"> · </span>
+        <Link href="/demo" className="df-link font-semibold">
           Ver demo
         </Link>
       </div>

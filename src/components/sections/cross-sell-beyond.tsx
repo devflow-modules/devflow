@@ -17,18 +17,15 @@ export function CrossSellBeyond({ className, variant = "default" }: Props) {
   return (
     <section
       className={cn(
-        "rounded-2xl border-2 border-dashed border-primary/25 bg-gradient-to-br from-primary/[0.04] to-slate-50 p-5 sm:p-8 lg:p-10",
+        "rounded-2xl border-2 border-dashed border-primary/25 bg-gradient-to-br from-primary/[0.06] to-slate-100 p-5 sm:p-8 lg:p-10",
         className
       )}
       aria-labelledby="cross-sell-heading"
     >
-      <h2
-        id="cross-sell-heading"
-        className="text-center text-xl font-bold text-foreground sm:text-2xl"
-      >
+      <h2 id="cross-sell-heading" className="df-text-primary text-center text-xl font-bold sm:text-2xl">
         Quer ir além?
       </h2>
-      <p className="mx-auto mt-2 max-w-lg text-center text-sm text-slate-600">
+      <p className="df-text-secondary mx-auto mt-2 max-w-lg text-center text-sm">
         Essas ferramentas resolvem mais ainda da sua operação.
       </p>
 
@@ -38,7 +35,7 @@ export function CrossSellBeyond({ className, variant = "default" }: Props) {
           href="/ferramentas/financeiro"
           onClick={() => trackCrossSell("financeiro")}
           className={cn(
-            "group flex h-full min-h-0 flex-col rounded-2xl border border-border bg-card p-5 text-left sm:p-6",
+            "group df-card-light flex h-full min-h-0 flex-col rounded-2xl border p-5 text-left sm:p-6",
             "shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg"
           )}
         >
@@ -48,7 +45,7 @@ export function CrossSellBeyond({ className, variant = "default" }: Props) {
           <h3 className="mt-4 font-bold text-foreground group-hover:text-primary">
             Sistema financeiro
           </h3>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="df-text-secondary mt-1 text-sm">
             PF, PJ e casal: orçamentos, recorrências, fechamento mensal e importação CSV.
           </p>
           <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-primary">
@@ -62,7 +59,7 @@ export function CrossSellBeyond({ className, variant = "default" }: Props) {
           href="/automacao-whatsapp"
           onClick={() => trackCrossSell("whatsapp")}
           className={cn(
-            "group flex h-full min-h-0 flex-col rounded-2xl border border-border bg-card p-5 text-left sm:p-6",
+            "group df-card-light flex h-full min-h-0 flex-col rounded-2xl border p-5 text-left sm:p-6",
             "shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/35 hover:shadow-lg"
           )}
         >
@@ -72,7 +69,7 @@ export function CrossSellBeyond({ className, variant = "default" }: Props) {
           <h3 className="mt-4 font-bold text-foreground group-hover:text-emerald-700">
             Automação WhatsApp
           </h3>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="df-text-secondary mt-1 text-sm">
             Respostas automáticas, handoff para humano e métricas — não perca mais venda por demora.
           </p>
           <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-emerald-700">
@@ -86,17 +83,17 @@ export function CrossSellBeyond({ className, variant = "default" }: Props) {
             href="/produtos"
             onClick={() => trackCrossSell("produtos")}
             className={cn(
-              "group flex h-full min-h-0 flex-col rounded-2xl border border-border bg-card p-5 text-left sm:p-6",
+              "group df-card-light flex h-full min-h-0 flex-col rounded-2xl border p-5 text-left sm:p-6",
               "shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg"
             )}
           >
-            <div className="flex size-11 items-center justify-center rounded-xl bg-slate-500/12">
-              <Layers className="size-6 text-slate-700" aria-hidden />
+            <div className="flex size-11 items-center justify-center rounded-xl bg-slate-200">
+              <Layers className="df-text-primary size-6" aria-hidden />
             </div>
             <h3 className="mt-4 font-bold text-foreground group-hover:text-primary">
               Produtos SaaS
             </h3>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="df-text-secondary mt-1 text-sm">
               WhatsApp Platform, financeiro completo e roadmap — tudo no mesmo hub.
             </p>
             <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-primary">
