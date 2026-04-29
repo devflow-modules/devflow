@@ -56,7 +56,7 @@
   --popover: #ffffff;
   --popover-foreground: #0c1222;
   --primary: #22c55e;
-  --primary-foreground: #ffffff;
+  --primary-foreground: #032316;
   --secondary: #f1f5f9;
   --secondary-foreground: #0c1222;
   --muted: #f1f5f9;
@@ -157,6 +157,50 @@
 }
 .btn-primary-devflow:hover {
   background-color: var(--devflow-primary-dark);
+}
+
+/* Contraste contextual para seções claras/escuras */
+.df-page {
+  --df-text-primary-current: #0f172a;
+  --df-text-secondary-current: #334155;
+  --df-text-muted-current: #475569;
+}
+.df-section-light {
+  --df-text-primary-current: #0f172a;
+  --df-text-secondary-current: #334155;
+  --df-text-muted-current: #475569;
+}
+.df-section-dark {
+  --df-text-primary-current: #f8fafc;
+  --df-text-secondary-current: #cbd5e1;
+  --df-text-muted-current: #94a3b8;
+}
+.df-text-primary {
+  color: var(--df-text-primary-current, #0f172a);
+}
+.df-text-secondary {
+  color: var(--df-text-secondary-current, #334155);
+}
+.df-text-muted {
+  color: var(--df-text-muted-current, #475569);
+}
+.df-text-on-light-primary {
+  color: #0f172a;
+}
+.df-text-on-light-secondary {
+  color: #334155;
+}
+.df-text-on-light-muted {
+  color: #475569;
+}
+.df-text-on-dark-primary {
+  color: #f8fafc;
+}
+.df-text-on-dark-secondary {
+  color: #cbd5e1;
+}
+.df-text-on-dark-muted {
+  color: #94a3b8;
 }
 
 /* Blog article content */

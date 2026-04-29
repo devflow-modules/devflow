@@ -47,16 +47,18 @@ export function ToolCard({
       <h2
         className={cn(
           "mt-4 text-lg font-semibold",
-          disabled ? "text-muted-foreground" : "text-foreground"
+          disabled ? "df-text-on-light-primary" : "text-foreground"
         )}
+        style={disabled ? { color: "#0f172a" } : undefined}
       >
         {title}
       </h2>
       <p
         className={cn(
           "mt-2 flex-1 text-sm",
-          disabled ? "df-text-muted" : "df-text-secondary"
+          disabled ? "df-text-on-light-secondary" : "df-text-secondary"
         )}
+        style={disabled ? { color: "#334155" } : undefined}
       >
         {description}
       </p>
@@ -75,14 +77,16 @@ export function ToolCard({
     !disabled && "hover:-translate-y-1 hover:shadow-lg",
     highlight && "border-primary/30 bg-primary/[0.02]",
     !highlight && !disabled && "border-border",
-    disabled && "df-card-light border-dashed"
+    disabled && "df-card-light df-section-light border-dashed"
   );
 
   if (disabled) {
     return (
       <article className={cardClass} aria-label={`${title} — em desenvolvimento`}>
         {content}
-        <p className="mt-4 text-xs font-medium text-muted-foreground">Em desenvolvimento</p>
+        <p className="df-text-on-light-muted mt-4 text-xs font-medium" style={{ color: "#475569" }}>
+          Em desenvolvimento
+        </p>
       </article>
     );
   }

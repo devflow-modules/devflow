@@ -17,7 +17,7 @@ export function CrossSellBeyond({ className, variant = "default" }: Props) {
   return (
     <section
       className={cn(
-        "rounded-2xl border-2 border-dashed border-primary/25 bg-gradient-to-br from-primary/[0.06] to-slate-100 p-5 sm:p-8 lg:p-10",
+        "df-section-light rounded-2xl border-2 border-dashed border-primary/25 bg-gradient-to-br from-primary/[0.06] to-slate-100 p-5 sm:p-8 lg:p-10",
         className
       )}
       aria-labelledby="cross-sell-heading"
@@ -66,7 +66,7 @@ export function CrossSellBeyond({ className, variant = "default" }: Props) {
           <div className="flex size-11 items-center justify-center rounded-xl bg-emerald-500/12">
             <MessageCircle className="size-6 text-emerald-600" aria-hidden />
           </div>
-          <h3 className="mt-4 font-bold text-foreground group-hover:text-emerald-700">
+          <h3 className="df-text-primary mt-4 font-bold group-hover:text-emerald-700">
             Automação WhatsApp
           </h3>
           <p className="df-text-secondary mt-1 text-sm">
@@ -90,7 +90,7 @@ export function CrossSellBeyond({ className, variant = "default" }: Props) {
             <div className="flex size-11 items-center justify-center rounded-xl bg-slate-200">
               <Layers className="df-text-primary size-6" aria-hidden />
             </div>
-            <h3 className="mt-4 font-bold text-foreground group-hover:text-primary">
+            <h3 className="df-text-primary mt-4 font-bold group-hover:text-primary">
               Produtos SaaS
             </h3>
             <p className="df-text-secondary mt-1 text-sm">

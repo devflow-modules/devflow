@@ -61,7 +61,7 @@
   --popover: var(--devflow-surface-elevated);
   --popover-foreground: var(--devflow-text-primary);
   --primary: var(--devflow-brand);
-  --primary-foreground: var(--devflow-text-primary);
+  --primary-foreground: #032316;
   --secondary: rgba(255, 255, 255, 0.03);
   --secondary-foreground: var(--devflow-text-primary);
   --muted: rgba(255, 255, 255, 0.04);
@@ -96,7 +96,7 @@
   --popover: var(--devflow-surface-elevated);
   --popover-foreground: var(--devflow-text-primary);
   --primary: var(--devflow-brand);
-  --primary-foreground: var(--devflow-text-primary);
+  --primary-foreground: #032316;
   --secondary: rgba(255, 255, 255, 0.03);
   --secondary-foreground: var(--devflow-text-primary);
   --muted: rgba(255, 255, 255, 0.04);
@@ -198,6 +198,72 @@ html[data-theme="client_branded"] {
   --df-text-muted-current: #475569;
   --df-link-current: #047857;
   --df-link-hover-current: #065f46;
+}
+
+/**
+ * Seção clara sem forçar fundo — só redefine tokens de texto para leitura em bg branco/cinza claro.
+ * Cards escuros (`bg-card`) dentro da seção recuperam tokens dark via regra abaixo.
+ */
+.df-section-light {
+  --df-text-primary-current: #0f172a;
+  --df-text-secondary-current: #334155;
+  --df-text-muted-current: #475569;
+  --df-link-current: #047857;
+  --df-link-hover-current: #065f46;
+}
+
+.df-section-dark {
+  --df-text-primary-current: var(--devflow-text-primary);
+  --df-text-secondary-current: var(--devflow-text-secondary);
+  --df-text-muted-current: var(--devflow-text-muted);
+  --df-link-current: #6ee7b7;
+  --df-link-hover-current: #a7f3d0;
+}
+
+/* Superfície escura dentro de seção clara: corpo do card continua legível no tema DevFlow */
+.df-section-light .bg-card {
+  --df-text-primary-current: var(--devflow-text-primary);
+  --df-text-secondary-current: var(--devflow-text-secondary);
+  --df-text-muted-current: var(--devflow-text-muted);
+}
+
+/** Aliases explícitos de contraste (não dependem do ancestral) */
+.df-text-on-light-primary {
+  color: #0f172a;
+}
+.df-text-on-light-secondary {
+  color: #334155;
+}
+.df-text-on-light-muted {
+  color: #475569;
+}
+.df-text-on-dark-primary {
+  color: var(--devflow-text-primary);
+}
+.df-text-on-dark-secondary {
+  color: var(--devflow-text-secondary);
+}
+.df-text-on-dark-muted {
+  color: var(--devflow-text-muted);
+}
+
+.df-heading-light {
+  color: #0f172a;
+}
+.df-body-light {
+  color: #334155;
+}
+.df-muted-light {
+  color: #475569;
+}
+.df-heading-dark {
+  color: var(--devflow-text-primary);
+}
+.df-body-dark {
+  color: var(--devflow-text-secondary);
+}
+.df-muted-dark {
+  color: var(--devflow-text-muted);
 }
 .df-surface {
   background: var(--devflow-surface);

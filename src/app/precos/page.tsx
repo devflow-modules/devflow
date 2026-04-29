@@ -92,10 +92,10 @@ export default function PrecosPage() {
           >
             Preços
           </h1>
-          <p className="mt-4 text-lg text-slate-600">
+          <p className="df-text-secondary mt-4 text-lg">
             Veja como funciona na prática antes de qualquer proposta.
           </p>
-          <p className="mt-4 text-sm text-muted-foreground">
+          <p className="df-text-secondary mt-4 text-sm">
             <Link href="/demo" className="font-medium text-primary underline-offset-4 hover:underline">
               Ver demo guiada
             </Link>
@@ -130,7 +130,7 @@ export default function PrecosPage() {
               <h2 className="text-xl font-semibold text-foreground">
                 {plan.name}
               </h2>
-              <p className="mt-1 text-sm text-slate-600">{plan.description}</p>
+              <p className="df-text-secondary mt-1 text-sm">{plan.description}</p>
               <p className="mt-4 text-2xl font-bold text-foreground">
                 {plan.price}
               </p>
@@ -138,7 +138,7 @@ export default function PrecosPage() {
                 {plan.features.map((f) => (
                   <li
                     key={f}
-                    className="flex items-start gap-2 text-sm text-slate-700"
+                    className="df-text-secondary flex items-start gap-2 text-sm"
                   >
                     <Check className="mt-0.5 size-4 shrink-0 text-primary" />
                     {f}
@@ -167,7 +167,7 @@ export default function PrecosPage() {
           </Link>
         </div>
 
-        <p className="mt-8 text-center text-sm text-slate-600">
+        <p className="df-text-secondary mt-8 text-center text-sm">
           * Consulte condições. Piloto de 7 dias grátis. Valores variam conforme
           volume e necessidades.
         </p>

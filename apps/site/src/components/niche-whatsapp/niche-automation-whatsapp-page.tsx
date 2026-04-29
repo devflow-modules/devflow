@@ -47,11 +47,15 @@ function ChatExample({
   messages: readonly DemoMessage[];
 }) {
   return (
-    <section className="bg-[#f1f5f9] py-20 sm:py-24" aria-labelledby="niche-chat-heading">
+    <section
+      className="df-section-light bg-[#f1f5f9] py-20 sm:py-24"
+      aria-labelledby="niche-chat-heading"
+    >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <h2
           id="niche-chat-heading"
-          className="text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
+          className="df-text-primary text-center text-2xl font-bold tracking-tight sm:text-3xl"
+          style={{ color: "#0f172a" }}
         >
           {title}
         </h2>
@@ -90,7 +94,7 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
   return (
     <main>
       <section
-        className="relative overflow-hidden bg-gradient-to-b from-white via-white to-slate-50 py-20 sm:py-24 lg:py-28"
+        className="df-section-light relative overflow-hidden bg-gradient-to-b from-white via-white to-slate-50 py-20 sm:py-24 lg:py-28"
         aria-labelledby="niche-hero-heading"
       >
         <div
@@ -112,7 +116,8 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
             </p>
             <h1
               id="niche-hero-heading"
-              className="mt-4 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-[3.15rem] lg:leading-[1.08]"
+              className="df-text-primary mt-4 text-balance text-3xl font-bold tracking-tight sm:text-5xl lg:text-[3.15rem] lg:leading-[1.08]"
+              style={{ color: "#0f172a" }}
             >
               {content.hero.h1}
             </h1>
@@ -141,11 +146,15 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
         </div>
       </section>
 
-      <section className="border-t border-border bg-[#f1f5f9] py-20 sm:py-24" aria-labelledby="niche-pains-heading">
+      <section
+        className="df-section-light border-t border-border bg-[#f1f5f9] py-20 sm:py-24"
+        aria-labelledby="niche-pains-heading"
+      >
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <h2
             id="niche-pains-heading"
-            className="text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
+            className="df-text-primary text-center text-2xl font-bold tracking-tight sm:text-3xl"
+            style={{ color: "#0f172a" }}
           >
             {content.problems.sectionTitle}
           </h2>
@@ -159,7 +168,7 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
                   "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                 )}
               >
-                <h3 className="font-semibold text-foreground">{p.title}</h3>
+                <h3 className="df-text-primary font-semibold">{p.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">{p.description}</p>
               </article>
             ))}
@@ -229,13 +238,14 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
       </section>
 
       <section
-        className="border-t border-border bg-[#f1f5f9] py-20 sm:py-24"
+        className="df-section-light border-t border-border bg-[#f1f5f9] py-20 sm:py-24"
         aria-labelledby="niche-results-heading"
       >
         <div className="mx-auto max-w-[720px] px-4 sm:px-6 lg:px-8">
           <h2
             id="niche-results-heading"
-            className="text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
+            className="df-text-primary text-center text-2xl font-bold tracking-tight sm:text-3xl"
+            style={{ color: "#0f172a" }}
           >
             {content.results.sectionTitle}
           </h2>
@@ -255,13 +265,14 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
       </section>
 
       <section
-        className="border-t border-border bg-slate-50/90 py-20 sm:py-24"
+        className="df-section-light border-t border-border bg-slate-50/90 py-20 sm:py-24"
         aria-labelledby="niche-faq-heading"
       >
         <div className="mx-auto max-w-[720px] px-4 sm:px-6 lg:px-8">
           <h2
             id="niche-faq-heading"
-            className="text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
+            className="df-text-primary text-center text-2xl font-bold tracking-tight sm:text-3xl"
+            style={{ color: "#0f172a" }}
           >
             Perguntas frequentes
           </h2>

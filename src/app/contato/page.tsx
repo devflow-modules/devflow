@@ -68,13 +68,13 @@ export default function ContatoPage() {
 
       <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
         <header className="mx-auto max-w-3xl text-center">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary/90">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
             Contato comercial
           </p>
           <h1 className="mt-3 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-[2.35rem] lg:leading-tight">
             Fale com a DevFlow Labs
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base font-semibold leading-snug text-slate-700 sm:text-lg">
+          <p className="df-text-secondary mx-auto mt-4 max-w-2xl text-base font-semibold leading-snug sm:text-lg">
             Escolha o melhor caminho para ver a plataforma em ação ou conversar sobre o seu caso.
           </p>
         </header>
@@ -87,7 +87,7 @@ export default function ContatoPage() {
             <h2 className="mt-5 text-lg font-bold tracking-tight text-foreground">
               Ver demo guiada
             </h2>
-            <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">
+            <p className="df-text-secondary mt-2 flex-1 text-sm leading-relaxed">
               Dois minutos vendo fila, priorização e handoff — ideal para validar fit antes de falar com alguém.
             </p>
             <Link
@@ -110,7 +110,7 @@ export default function ContatoPage() {
             <h2 className="mt-5 text-lg font-bold tracking-tight text-foreground">
               WhatsApp
             </h2>
-            <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">
+            <p className="df-text-secondary mt-2 flex-1 text-sm leading-relaxed">
               Canal principal em horário comercial: resposta em minutos para dúvidas, escopo e próximos passos.
             </p>
             <div className="mt-8">
@@ -130,7 +130,7 @@ export default function ContatoPage() {
             <h2 className="mt-5 text-lg font-bold tracking-tight text-foreground">
               E-mail
             </h2>
-            <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">
+            <p className="df-text-secondary mt-2 flex-1 text-sm leading-relaxed">
               Para propostas formais, anexos ou compras que exigem documentação por escrito.
             </p>
             <a
@@ -146,36 +146,36 @@ export default function ContatoPage() {
         </div>
 
         <div
-          className="mx-auto mt-12 max-w-3xl rounded-2xl border border-slate-200/80 bg-slate-50/80 px-5 py-6 sm:px-8"
+          className="df-section-light mx-auto mt-12 max-w-3xl rounded-2xl border border-slate-200/80 bg-slate-50/80 px-5 py-6 sm:px-8"
           aria-label="Como escolher o canal"
         >
-          <p className="text-center text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+          <p className="df-text-muted text-center text-xs font-bold uppercase tracking-[0.18em]">
             Decisão rápida
           </p>
-          <ul className="mt-4 space-y-3 text-sm leading-relaxed text-slate-700 sm:text-[0.9375rem]">
+          <ul className="df-text-secondary mt-4 space-y-3 text-sm leading-relaxed sm:text-[0.9375rem]">
             <li>
-              <span className="font-semibold text-foreground">Quer ver antes de falar?</span>{" "}
+              <span className="df-text-primary font-semibold">Quer ver antes de falar?</span>{" "}
               Vá para a <Link href="/demo" className="font-semibold text-primary underline-offset-4 hover:underline">demo</Link>.
             </li>
             <li>
-              <span className="font-semibold text-foreground">Quer discutir o seu caso?</span>{" "}
+              <span className="df-text-primary font-semibold">Quer discutir o seu caso?</span>{" "}
               WhatsApp — conversa direta com o time.
             </li>
             <li>
-              <span className="font-semibold text-foreground">Precisa de proposta formal?</span>{" "}
+              <span className="df-text-primary font-semibold">Precisa de proposta formal?</span>{" "}
               E-mail com contexto e anexos.
             </li>
           </ul>
         </div>
 
-        <p className="mx-auto mt-10 max-w-xl text-center text-xs font-medium leading-relaxed text-muted-foreground sm:text-sm">
+        <p className="df-text-secondary mx-auto mt-10 max-w-xl text-center text-xs font-medium leading-relaxed sm:text-sm">
           WhatsApp costuma responder em minutos em dias úteis. E-mail: até 24h úteis para retorno com leitura completa do briefing.
         </p>
 
         <p className="mt-12 text-center">
           <Link
             href="/"
-            className="text-sm font-semibold text-slate-600 underline-offset-4 hover:text-foreground hover:underline"
+            className="df-text-secondary text-sm font-semibold underline-offset-4 hover:text-foreground hover:underline"
           >
             ← Voltar ao início
           </Link>

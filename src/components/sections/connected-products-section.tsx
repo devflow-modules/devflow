@@ -53,7 +53,7 @@ export function ConnectedProductsSection() {
                   {conn.tools.map((t) => (
                     <span
                       key={t.label}
-                      className="inline-flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm font-medium text-foreground"
+                      className="df-text-primary inline-flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm font-medium"
                     >
                       <t.icon className="size-4 text-primary" aria-hidden />
                       {t.label}

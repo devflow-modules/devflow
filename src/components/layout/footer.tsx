@@ -41,7 +41,7 @@ const legalLinks = [
 const currentYear = new Date().getFullYear();
 
 const footerLinkClass =
-  "df-text-secondary flex min-h-10 items-center py-1 text-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
+  "df-text-on-dark-secondary flex min-h-10 items-center py-1 text-sm font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
 
 export function Footer() {
   return (
@@ -55,7 +55,7 @@ export function Footer() {
             >
               DevFlow Labs
             </Link>
-            <p className="df-text-secondary max-w-md text-sm leading-relaxed">
+            <p className="df-text-on-dark-secondary max-w-md text-sm leading-relaxed">
               Implementação guiada de atendimento e vendas no WhatsApp com IA, inbox multiatendente e dashboard operacional.
             </p>
             <div className="flex flex-col gap-3 pt-1">
@@ -132,7 +132,7 @@ export function Footer() {
 
         <div className="mt-8 border-t df-border-dark pt-6 sm:mt-10 sm:pt-8">
           <nav
-            className="df-text-secondary flex flex-col items-center gap-2 text-center text-xs leading-relaxed sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-5 sm:gap-y-2 sm:text-sm"
+            className="df-text-on-dark-secondary flex flex-col items-center gap-2 text-center text-xs leading-relaxed sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-5 sm:gap-y-2 sm:text-sm"
             aria-label="Legal e institucional"
           >
             {legalLinks.map((item) => (
@@ -144,10 +144,10 @@ export function Footer() {
               Contato
             </Link>
           </nav>
-          <p className="df-text-secondary mt-4 text-center text-xs sm:text-sm">
+          <p className="df-text-on-dark-secondary mt-4 text-center text-xs sm:text-sm">
             © {currentYear} DevFlow Labs. Todos os direitos reservados.
           </p>
-          <address className="df-text-secondary mx-auto mt-3 max-w-lg text-center text-[11px] leading-relaxed not-italic sm:text-xs">
+          <address className="df-text-on-dark-secondary mx-auto mt-3 max-w-lg text-center text-xs leading-relaxed not-italic sm:text-sm">
             São Paulo — SP · CNPJ: 60.517.335/0001-03 ·{" "}
             <a href="mailto:contato@devflowlabs.com.br" className="df-link break-all font-medium sm:break-normal">
               contato@devflowlabs.com.br

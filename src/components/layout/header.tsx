@@ -154,7 +154,7 @@ export function Header() {
           >
             DevFlow Labs
           </Link>
-          <p className="df-text-muted mt-0.5 hidden max-w-[20rem] truncate text-[11px] leading-snug xl:block">
+          <p className="df-text-secondary mt-0.5 hidden max-w-[20rem] truncate text-xs leading-snug xl:block">
             Automação · Sistemas · Resultados
           </p>
         </div>
