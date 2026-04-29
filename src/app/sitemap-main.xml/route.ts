@@ -18,6 +18,7 @@ const routes: { path: string; changefreq: string; priority: string }[] = [
   { path: "/precos", changefreq: "weekly", priority: "0.85" },
   { path: "/blog", changefreq: "weekly", priority: "0.85" },
   { path: "/projetos", changefreq: "weekly", priority: "0.8" },
+  { path: "/cases", changefreq: "monthly", priority: "0.82" },
   { path: "/produtos", changefreq: "weekly", priority: "0.9" },
   { path: "/ferramentas", changefreq: "weekly", priority: "0.9" },
   { path: "/ferramentas/financeiro", changefreq: "weekly", priority: "0.85" },

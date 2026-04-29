@@ -235,6 +235,14 @@
   color: #94a3b8;
 }
 
+/** Bordas e hero — alinhado ao portal principal (páginas como /cases, /projetos) */
+.df-border-dark {
+  border-color: rgba(15, 23, 42, 0.14);
+}
+.df-border-brand {
+  border-color: rgba(34, 197, 94, 0.22);
+}
+
 /* Button system (DevFlow) */
 .df-btn-primary,
 .df-btn-secondary,

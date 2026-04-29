@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/", label: "Início" },
+  { href: "/cases", label: "Cases" },
   { href: "/automacao-whatsapp", label: "Automação WhatsApp" },
   { href: "/chatbot-whatsapp", label: "Chatbot" },
   { href: "/automacao-whatsapp-tabacaria", label: "Tabacarias" },

@@ -37,6 +37,10 @@ function isComoFuncionaActive(pathname: string): boolean {
   return pathname === COMO_FUNCIONA_PATH;
 }
 
+function isCasesActive(pathname: string): boolean {
+  return pathname === "/cases";
+}
+
 function isDemoActive(pathname: string): boolean {
   return pathname === "/demo" || pathname.startsWith("/demo/");
 }
@@ -61,6 +65,7 @@ export function Header() {
   const ferramentasActive = isFerramentasGratuitasActive(pathname);
   const precosActive = isPrecosActive(pathname);
   const comoFuncionaActive = isComoFuncionaActive(pathname);
+  const casesActive = isCasesActive(pathname);
   const demoActive = isDemoActive(pathname);
 
   const openProductsMenu = useCallback(() => {
@@ -264,6 +269,14 @@ export function Header() {
           </Link>
 
           <Link
+            href="/cases"
+            className={cn("px-2 py-1.5", navText(casesActive), navUnderline(casesActive))}
+            onClick={() => onNav("cases")}
+          >
+            Cases
+          </Link>
+
+          <Link
             href="/precos"
             className={cn("px-2 py-1.5", navText(precosActive), navUnderline(precosActive))}
             onClick={() => onNav("precos")}
@@ -411,6 +424,15 @@ export function Header() {
                   onClick={() => onNav("como_funciona", "mobile")}
                 >
                   Como funciona
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/cases"
+                  className="flex min-h-12 items-center rounded-xl px-3 py-3 text-base font-semibold text-foreground hover:bg-primary/5 hover:text-primary"
+                  onClick={() => onNav("cases", "mobile")}
+                >
+                  Cases
                 </Link>
               </li>
               <li>
