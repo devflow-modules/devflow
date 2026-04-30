@@ -38,11 +38,12 @@ export function PasswordField({
         <label htmlFor={id} className="block text-sm font-medium df-text-secondary">
           {label}
         </label>
-        <Button variant="secondary"
+        <Button
+          variant="secondary"
           type="button"
-          className="text-xs font-medium text-blue-600 hover:text-blue-800"
+          aria-pressed={visible}
+          className="text-xs font-medium text-[var(--df-brand-400)] underline-offset-2 hover:text-[var(--df-brand-300)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--df-bg-elevated)]"
           onClick={() => setVisible((v) => !v)}
-          tabIndex={-1}
         >
           {visible ? "Ocultar" : "Mostrar"}
         </Button>

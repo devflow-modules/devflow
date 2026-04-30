@@ -1,0 +1,48 @@
+# Gate opcional: a11y automatizado + checagens leves do monorepo na app WhatsApp Platform.
+# Segredos opcionais E2E_WHATSAPP_* desbloqueiam fluxos autenticados (sem eles: /login + skips).
+
+name: WhatsApp Platform A11y
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 0"
+  pull_request:
+    paths:
+      - "apps/whatsapp-platform/**"
+      - ".github/workflows/whatsapp-platform-a11y.yml"
+
+jobs:
+  a11y:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: apps/whatsapp-platform
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+        working-directory: ${{ github.workspace }}
+
+      - name: check:buttons + lint:design-system + tsc
+        run: |
+          pnpm check:buttons
+          pnpm lint:design-system
+          pnpm exec tsc --noEmit
+
+      - name: test:a11y (axe + Playwright)
+        env:
+          CI: "1"
+          E2E_WHATSAPP_ADMIN_EMAIL: ${{ secrets.E2E_WHATSAPP_ADMIN_EMAIL }}
+          E2E_WHATSAPP_ADMIN_PASSWORD: ${{ secrets.E2E_WHATSAPP_ADMIN_PASSWORD }}
+        run: pnpm test:a11y

@@ -4,7 +4,8 @@ require("dotenv").config({ path: path.resolve(__dirname, "../../.env.local") });
 require("dotenv").config({ path: path.resolve(__dirname, ".env.local") });
 
 module.exports = defineConfig({
-  testDir: "./tests/e2e",
+  /** Inclui `tests/e2e` e `tests/a11y`; filtre com `pnpm exec playwright test tests/e2e` ou `tests/a11y`. */
+  testDir: "./tests",
   fullyParallel: false,
   workers: 1,
   forbidOnly: Boolean(process.env.CI),
