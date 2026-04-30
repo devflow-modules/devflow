@@ -1,12 +1,28 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
+import type { AuthResult } from "@/modules/auth";
 
-const mockAuth = vi.hoisted(() => vi.fn());
+const mockGate = vi.hoisted(() => vi.fn());
 const mockGetDetail = vi.hoisted(() => vi.fn());
 const mockGetTimeline = vi.hoisted(() => vi.fn());
 
-vi.mock("../../../provisionAuth", () => ({
-  authorizeProvisionOrPlatformAdmin: (...a: unknown[]) => mockAuth(...a),
+const gateOk: AuthResult = {
+  payload: {
+    sub: "u1",
+    tenantId: "t1",
+    role: "platform_admin",
+    email: "a@b.c",
+    name: "A",
+    jti: "jid",
+    iat: 1,
+    exp: 9999999999,
+  },
+  token: "tok",
+  sessionId: "jid",
+};
+
+vi.mock("@/lib/adminApiAuth", () => ({
+  gatePlatformAdminOrProvisionSecret: (...a: unknown[]) => mockGate(...a),
 }));
 
 vi.mock("@/modules/whatsapp/channelActivationService", async (importOriginal) => {
@@ -22,11 +38,14 @@ vi.mock("@/modules/whatsapp/channelEventService", async (importOriginal) => {
 describe("GET /api/admin/whatsapp/channels/:id", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockAuth.mockResolvedValue(true);
+    mockGate.mockResolvedValue({ ok: true, auth: gateOk, viaProvisionSecret: false });
   });
 
   it("401 quando não autorizado", async () => {
-    mockAuth.mockResolvedValue(false);
+    mockGate.mockResolvedValue({
+      ok: false,
+      response: new Response(JSON.stringify({ success: false }), { status: 401 }),
+    });
     const { GET } = await import("../route");
     const res = await GET(new NextRequest("http://localhost/api/admin/whatsapp/channels/x"), {
       params: Promise.resolve({ id: "x" }),
@@ -112,7 +131,7 @@ describe("GET /api/admin/whatsapp/channels/:id", () => {
 describe("GET /api/admin/whatsapp/channels/:id/timeline", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockAuth.mockResolvedValue(true);
+    mockGate.mockResolvedValue({ ok: true, auth: gateOk, viaProvisionSecret: false });
   });
 
   it("retorna eventos ordenados (serviço já aplica desc)", async () => {

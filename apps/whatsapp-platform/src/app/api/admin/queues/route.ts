@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_PLATFORM_ONLY } from "@/modules/auth";
 import { listPendingQueueThreads } from "@/modules/inbox/waInboxQueueService";
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  const denied = requireRole(auth, STAFF_ROLES, request);
+  const denied = requireRole(auth, ROLES_PLATFORM_ONLY, request);
   if (denied) return denied;
 
   const pending = await listPendingQueueThreads(auth!.payload.tenantId, 100);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_PLATFORM_ONLY } from "@/modules/auth";
 import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +19,7 @@ export type AdminConversationItem = {
 export async function GET(request: NextRequest) {
   try {
     const auth = await getAuthFromRequest(request);
-    const denied = requireRole(auth, STAFF_ROLES, request);
+    const denied = requireRole(auth, ROLES_PLATFORM_ONLY, request);
     if (denied) return denied;
 
     const tenantId = auth!.payload.tenantId;

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS, ROLES_OPERATIONAL } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 import { recordPlatformAudit } from "@/lib/platformAuditLog";
 import { getClientIp } from "@/lib/rate-limit";
@@ -76,12 +76,13 @@ const createRuleSchema = z.object({
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  const denied = requireRole(auth, ROLES_OPERATIONAL, request);
+  if (denied) return denied;
 
-  const tenantId = auth.payload.tenantId;
+  const tenantId = auth!.payload.tenantId;
   if (!tenantId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const gate = await requireFeatureOr403(tenantId, "AUTOMATION", auth.payload);
+  const gate = await requireFeatureOr403(tenantId, "AUTOMATION", auth!.payload);
   if (gate) return gate;
 
   const rules = await prisma.waAutomationRule.findMany({
@@ -108,9 +109,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
+  if (denied) return denied;
 
-  const tenantId = auth.payload.tenantId;
+  const tenantId = auth!.payload.tenantId;
   if (!tenantId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   let json: unknown;
@@ -135,7 +137,7 @@ export async function POST(request: NextRequest) {
       actions: parsed.data.actions,
     })
   ) {
-    const gateAdv = await requireFeatureOr403(tenantId, "ADVANCED_AUTOMATION", auth.payload);
+    const gateAdv = await requireFeatureOr403(tenantId, "ADVANCED_AUTOMATION", auth!.payload);
     if (gateAdv) return gateAdv;
   }
 
@@ -152,7 +154,7 @@ export async function POST(request: NextRequest) {
   recordPlatformAudit({
     action: "automation_rule_create",
     tenantId,
-    userId: auth.payload.sub,
+    userId: auth!.payload.sub,
     resourceType: "wa_automation_rule",
     resourceId: rule.id,
     ip: getClientIp(request),

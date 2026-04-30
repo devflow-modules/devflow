@@ -1,11 +1,10 @@
-import { NextResponse } from "next/server";
-import { isAdminMetricsAllowed } from "../adminAuth";
+import { NextRequest, NextResponse } from "next/server";
+import { gatePlatformAdminJwt } from "@/lib/adminApiAuth";
 import { getRevenueMetrics } from "@/modules/analytics";
 
-export async function GET(request: Request) {
-  if (!isAdminMetricsAllowed(request)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+export async function GET(request: NextRequest) {
+  const gate = await gatePlatformAdminJwt(request);
+  if (!gate.ok) return gate.response;
   try {
     const metrics = await getRevenueMetrics();
     return NextResponse.json(metrics);

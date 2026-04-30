@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_PLATFORM_ONLY } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  const denied = requireRole(auth, ROLES_PLATFORM_ONLY, request);
+  if (denied) return denied;
 
   const dateFrom = request.nextUrl.searchParams.get("dateFrom");
   const dateTo = request.nextUrl.searchParams.get("dateTo");
 
   const threads = await prisma.waInboxThread.findMany({
-    where: { tenantId: auth.payload.tenantId },
+    where: { tenantId: auth!.payload.tenantId },
     select: { id: true },
   });
   const threadIds = threads.map((t) => t.id);

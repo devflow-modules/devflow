@@ -1,14 +1,30 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
+import type { AuthResult } from "@/modules/auth";
 import { MetaBusinessVerificationStatus } from "@/generated/prisma-whatsapp";
 
-const mockAuth = vi.fn();
+const mockGate = vi.fn();
+
+const gateOk: AuthResult = {
+  payload: {
+    sub: "u1",
+    tenantId: "t1",
+    role: "platform_admin",
+    email: "a@b.c",
+    name: "A",
+    jti: "jid",
+    iat: 1,
+    exp: 9999999999,
+  },
+  token: "tok",
+  sessionId: "jid",
+};
 const mockGet = vi.fn();
 const mockUpdateChecklist = vi.fn();
 const mockSetStatus = vi.fn();
 
-vi.mock("../../../../provisionAuth", () => ({
-  authorizeProvisionOrPlatformAdmin: (...a: unknown[]) => mockAuth(...a),
+vi.mock("@/lib/adminApiAuth", () => ({
+  gatePlatformAdminOrProvisionSecret: (...a: unknown[]) => mockGate(...a),
 }));
 
 vi.mock("@/modules/whatsapp/verificationService", () => ({
@@ -41,7 +57,7 @@ const sampleDto = {
 describe("P0 — /api/admin/whatsapp/channels/:id/verification", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockAuth.mockResolvedValue(true);
+    mockGate.mockResolvedValue({ ok: true, auth: gateOk, viaProvisionSecret: false });
     mockGet.mockResolvedValue(sampleDto);
     mockUpdateChecklist.mockResolvedValue({ ...sampleDto, readinessScore: 20 });
     mockSetStatus.mockResolvedValue({
@@ -52,7 +68,10 @@ describe("P0 — /api/admin/whatsapp/channels/:id/verification", () => {
   });
 
   it("GET 401 sem auth", async () => {
-    mockAuth.mockResolvedValue(false);
+    mockGate.mockResolvedValue({
+      ok: false,
+      response: new Response(JSON.stringify({ success: false }), { status: 401 }),
+    });
     const { GET } = await import("../route");
     const res = await GET(new NextRequest("http://localhost/c1/verification"), {
       params: Promise.resolve({ id: "c1" }),

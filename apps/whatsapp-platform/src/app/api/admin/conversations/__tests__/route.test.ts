@@ -28,7 +28,7 @@ describe("GET /api/admin/conversations", () => {
         sub: "u1",
         email: "a@b.c",
         name: "A",
-        role: "manager",
+        role: "platform_admin",
         tenantId: "t1",
         jti: "j1",
       },
@@ -54,6 +54,25 @@ describe("GET /api/admin/conversations", () => {
     const req = new Request("http://localhost/api/admin/conversations");
     const res = await GET(req as never);
     expect(res.status).toBe(401);
+  });
+
+  it("retorna 403 para manager (só platform_admin em /api/admin)", async () => {
+    mockGetAuthFromRequest.mockResolvedValue({
+      payload: {
+        sub: "u2",
+        email: "m@b.c",
+        name: "M",
+        role: "manager",
+        tenantId: "t1",
+        jti: "j2",
+      },
+      token: "t",
+      sessionId: "j2",
+    });
+    const { GET } = await import("../route");
+    const req = new Request("http://localhost/api/admin/conversations");
+    const res = await GET(req as never);
+    expect(res.status).toBe(403);
   });
 
   it("retorna conversas e total sem filtro de status", async () => {

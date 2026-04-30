@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_PLATFORM_ONLY } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 import { WaInboxDirection } from "@/generated/prisma-whatsapp";
 
@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await getAuthFromRequest(request);
-  const denied = requireRole(auth, STAFF_ROLES, request);
+  const denied = requireRole(auth, ROLES_PLATFORM_ONLY, request);
   if (denied) return denied;
 
   const { id: threadId } = await params;

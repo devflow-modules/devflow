@@ -4,8 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { getAdminTenantAffiliatePanel } from "@/modules/affiliates/adminTenantAffiliatePanel";
 import { ensureImplantationCommission, serializeCommissionAttempt } from "@/modules/affiliates/implantationCommission";
 import { patchAdminTenantBodySchema } from "@/modules/affiliates/schemas";
-import { authorizeProvisionOrPlatformAdmin } from "@/app/api/admin/whatsapp/provisionAuth";
 import { parseCuidParam } from "@/lib/route-params";
+import { getClientIp } from "@/lib/rate-limit";
+import { gatePlatformAdminOrProvisionSecret } from "@/lib/adminApiAuth";
+import { recordPlatformAudit } from "@/lib/platformAuditLog";
 
 export const dynamic = "force-dynamic";
 
@@ -13,9 +15,8 @@ type RouteContext = { params: Promise<{ id: string }> };
 
 export async function GET(request: NextRequest, context: RouteContext) {
   const traceId = newTraceId();
-  if (!(await authorizeProvisionOrPlatformAdmin(request))) {
-    return jsonError("UNAUTHORIZED", "Não autorizado", 401, { traceId });
-  }
+  const gate = await gatePlatformAdminOrProvisionSecret(request);
+  if (!gate.ok) return gate.response;
   const { id: rawId } = await context.params;
   const tenantId = parseCuidParam(rawId);
   if (!tenantId) {
@@ -35,9 +36,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   const traceId = newTraceId();
-  if (!(await authorizeProvisionOrPlatformAdmin(request))) {
-    return jsonError("UNAUTHORIZED", "Não autorizado", 401, { traceId });
-  }
+  const gate = await gatePlatformAdminOrProvisionSecret(request);
+  if (!gate.ok) return gate.response;
   const { id: rawId } = await context.params;
   const tenantId = parseCuidParam(rawId);
   if (!tenantId) {
@@ -63,6 +63,19 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       select: { id: true, implantationPriceBrl: true, gtmLifecycle: true, affiliateId: true },
     });
     const commissionResult = await ensureImplantationCommission(tenant.id);
+
+    recordPlatformAudit({
+      action: "admin.tenant.patch",
+      tenantId: tenant.id,
+      userId: gate.auth?.payload.sub ?? null,
+      resourceType: "tenant",
+      resourceId: tenant.id,
+      ip: getClientIp(request),
+      metadata: gate.viaProvisionSecret
+        ? { authVia: "provision_bearer", implantationPriceBrl: tenant.implantationPriceBrl ?? null }
+        : { authVia: "platform_admin_session", implantationPriceBrl: tenant.implantationPriceBrl ?? null },
+    });
+
     return jsonSuccess({ tenant, ...serializeCommissionAttempt(commissionResult) }, { traceId });
   } catch (e: unknown) {
     const code = typeof e === "object" && e !== null && "code" in e ? (e as { code?: string }).code : undefined;

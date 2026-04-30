@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { jsonError, jsonSuccess, newTraceId } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
 import { listCommissionsForAffiliate } from "@/modules/affiliates/adminAffiliatesService";
-import { authorizeProvisionOrPlatformAdmin } from "@/app/api/admin/whatsapp/provisionAuth";
+import { gatePlatformAdminOrProvisionSecret } from "@/lib/adminApiAuth";
 import { parseCuidParam } from "@/lib/route-params";
 
 export const dynamic = "force-dynamic";
@@ -11,9 +11,8 @@ type RouteContext = { params: Promise<{ id: string }> };
 
 export async function GET(request: NextRequest, context: RouteContext) {
   const traceId = newTraceId();
-  if (!(await authorizeProvisionOrPlatformAdmin(request))) {
-    return jsonError("UNAUTHORIZED", "Não autorizado", 401, { traceId });
-  }
+  const gate = await gatePlatformAdminOrProvisionSecret(request);
+  if (!gate.ok) return gate.response;
   const { id: rawId } = await context.params;
   const id = parseCuidParam(rawId);
   if (!id) {

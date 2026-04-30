@@ -108,7 +108,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     label: "API e integrações",
     parent: "/settings",
     section: "conta",
-    roles: ["manager", "platform_admin"],
+    roles: ["platform_admin"],
     sensitive: true,
     searchAliases: ["chave api", "webhook", "desenvolvedor"],
   },
@@ -123,7 +123,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     label: "Agentes",
     parent: null,
     section: "operacao",
-    roles: ["operator", "manager", "platform_admin"],
+    roles: ["manager", "platform_admin"],
     searchAliases: ["equipe", "time", "equipa", "pessoas", "colaboradores"],
   },
   "/queues": {
@@ -193,7 +193,8 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     sensitive: true,
     searchAliases: ["canais", "waba", "manual", "ativar", "meta"],
   },
-  "/admin/distribuir": {
+  /** Rota operacional fora de `/admin/*` (filas inbox); não exige papel de plataforma. */
+  "/distribuir": {
     label: "Distribuir próxima",
     parent: null,
     section: "operacao",

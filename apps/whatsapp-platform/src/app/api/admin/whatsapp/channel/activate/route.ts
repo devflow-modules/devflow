@@ -3,7 +3,9 @@ import { z } from "zod";
 import { jsonError, jsonSuccess, newTraceId } from "@/lib/api-response";
 import { logChannelEvent } from "@/modules/whatsapp/channelEventService";
 import { activateWhatsappChannel } from "@/modules/whatsapp/whatsappChannelLifecycle";
-import { authorizeProvisionOrPlatformAdmin } from "../../provisionAuth";
+import { gatePlatformAdminOrProvisionSecret } from "@/lib/adminApiAuth";
+import { getClientIp } from "@/lib/rate-limit";
+import { recordPlatformAudit } from "@/lib/platformAuditLog";
 
 export const dynamic = "force-dynamic";
 
@@ -14,13 +16,12 @@ const bodySchema = z.object({
 
 /**
  * POST — valida token na Meta e ativa o canal.
- * Auth: `Authorization: Bearer WHATSAPP_MANUAL_PROVISION_SECRET` ou JWT `platform_admin`.
+ * Auth: `Bearer WHATSAPP_MANUAL_PROVISION_SECRET` (automação) ou JWT `platform_admin`.
  */
 export async function POST(request: NextRequest) {
   const traceId = newTraceId();
-  if (!(await authorizeProvisionOrPlatformAdmin(request))) {
-    return jsonError("UNAUTHORIZED", "Não autorizado", 401, { traceId });
-  }
+  const gate = await gatePlatformAdminOrProvisionSecret(request);
+  if (!gate.ok) return gate.response;
 
   let json: unknown;
   try {
@@ -36,6 +37,17 @@ export async function POST(request: NextRequest) {
 
   try {
     const row = await activateWhatsappChannel(parsed.data);
+    recordPlatformAudit({
+      action: "admin.whatsapp.channel.activate",
+      tenantId: row.tenantId,
+      userId: gate.auth?.payload.sub ?? null,
+      resourceType: "whatsapp_channel",
+      resourceId: row.id,
+      ip: getClientIp(request),
+      metadata: gate.viaProvisionSecret
+        ? { authVia: "provision_bearer" }
+        : { authVia: "platform_admin_session" },
+    });
     return jsonSuccess(
       {
         channelId: row.id,

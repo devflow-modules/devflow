@@ -2,6 +2,11 @@ import type { UserRole } from "@/modules/auth";
 import { ROUTE_META } from "@/lib/navigation/nav-matrix";
 import { isOperator, isPlatformAdmin, isTenantManager } from "@/lib/roles";
 import { isCommercialBillingVisible } from "@/lib/productMode";
+import {
+  canAccessDeveloperSettings,
+  canViewAutomation,
+  canViewTeamPage,
+} from "@/lib/permissions";
 
 export type NavItem = { href: string; label: string; description?: string };
 
@@ -31,6 +36,7 @@ export function navOperationItemsForRole(role: UserRole | string | null): NavIte
 
 /** 2. Automação e IA */
 export function navAutomationItemsForRole(role: UserRole | string | null): NavItem[] {
+  if (role && !canViewAutomation(role)) return [];
   const items = [
     navItem("/automation"),
     navItem("/dashboard/ai"),
@@ -49,7 +55,7 @@ export function navAccountItemsForRole(role: UserRole | string | null): NavItem[
   if (!role) {
     const out: NavItem[] = [navItem("/dashboard/whatsapp")];
     if (isCommercialBillingVisible()) out.push(navItem("/billing"));
-    out.push(navItem("/settings"), navItem("/settings/developer"));
+    out.push(navItem("/settings"));
     return out;
   }
   if (isOperator(role) && !isPlatformAdmin(role)) return [];
@@ -59,14 +65,15 @@ export function navAccountItemsForRole(role: UserRole | string | null): NavItem[
     out.push(navItem("/billing"));
   }
   out.push(navItem("/settings"));
-  if (isTenantManager(role) || isPlatformAdmin(role)) {
+  if (canAccessDeveloperSettings(role)) {
     out.push(navItem("/settings/developer"));
   }
   return out;
 }
 
 /** 4. Equipe — agentes */
-export function navTeamItemsForRole(_role: UserRole | string | null): NavItem[] {
+export function navTeamItemsForRole(role: UserRole | string | null): NavItem[] {
+  if (role && !canViewTeamPage(role)) return [];
   return [navItem("/agents")];
 }
 

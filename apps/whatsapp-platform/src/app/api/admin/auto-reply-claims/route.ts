@@ -4,7 +4,7 @@ import {
   WaAutoReplyClaimTrigger,
 } from "@/generated/prisma-whatsapp";
 import { prisma } from "@/lib/prisma";
-import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_PLATFORM_ONLY } from "@/modules/auth";
 import { listWaAutoReplyClaimsForAdmin } from "@/modules/messaging/automaticReplyClaimDiagnosticsService";
 import { getWaAutoReplyClaimMetricsSnapshot } from "@/modules/messaging/automaticReplyClaimInstrumentation";
 
@@ -27,7 +27,7 @@ function parseDate(raw: string | null): Date | undefined {
 export async function GET(request: NextRequest) {
   try {
     const auth = await getAuthFromRequest(request);
-    const denied = requireRole(auth, STAFF_ROLES, request);
+    const denied = requireRole(auth, ROLES_PLATFORM_ONLY, request);
     if (denied) return denied;
 
     const tenantId = auth!.payload.tenantId;

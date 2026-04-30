@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { recordPlatformAudit } from "@/lib/platformAuditLog";
 import { ensureImplantationCommission, serializeCommissionAttempt } from "@/modules/affiliates/implantationCommission";
 import { patchTenantAffiliateBodySchema } from "@/modules/affiliates/schemas";
-import { authorizeProvisionOrPlatformAdmin } from "@/app/api/admin/whatsapp/provisionAuth";
+import { gatePlatformAdminOrProvisionSecret } from "@/lib/adminApiAuth";
 import { parseCuidParam } from "@/lib/route-params";
 
 export const dynamic = "force-dynamic";
@@ -13,9 +13,8 @@ type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   const traceId = newTraceId();
-  if (!(await authorizeProvisionOrPlatformAdmin(request))) {
-    return jsonError("UNAUTHORIZED", "Não autorizado", 401, { traceId });
-  }
+  const gate = await gatePlatformAdminOrProvisionSecret(request);
+  if (!gate.ok) return gate.response;
   const { id: rawId } = await context.params;
   const tenantId = parseCuidParam(rawId);
   if (!tenantId) {

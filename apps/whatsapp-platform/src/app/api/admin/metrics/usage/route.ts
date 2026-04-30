@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { isAdminMetricsAllowed } from "../adminAuth";
+import { NextRequest, NextResponse } from "next/server";
+import { gatePlatformAdminJwt } from "@/lib/adminApiAuth";
 import { getUsageMetrics, toDateRange } from "@/modules/analytics";
 
 function getRange(request: Request): { from: Date; to: Date } {
@@ -20,10 +20,9 @@ function getRange(request: Request): { from: Date; to: Date } {
   return { from: range.from, to: range.to };
 }
 
-export async function GET(request: Request) {
-  if (!isAdminMetricsAllowed(request)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+export async function GET(request: NextRequest) {
+  const gate = await gatePlatformAdminJwt(request);
+  if (!gate.ok) return gate.response;
   try {
     const { from, to } = getRange(request);
     const metrics = await getUsageMetrics({ from, to });

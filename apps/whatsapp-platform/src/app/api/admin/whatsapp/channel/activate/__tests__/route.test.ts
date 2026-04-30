@@ -1,26 +1,49 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import type { AuthResult } from "@/modules/auth";
 import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
 
-const mockAuth = vi.fn();
 const mockActivate = vi.fn();
+const mockGate = vi.fn();
 
-vi.mock("../../../provisionAuth", () => ({
-  authorizeProvisionOrPlatformAdmin: (...a: unknown[]) => mockAuth(...a),
+vi.mock("@/lib/adminApiAuth", () => ({
+  gatePlatformAdminOrProvisionSecret: (...a: unknown[]) => mockGate(...a),
+}));
+
+vi.mock("@/lib/platformAuditLog", () => ({
+  recordPlatformAudit: vi.fn(),
 }));
 
 vi.mock("@/modules/whatsapp/whatsappChannelLifecycle", () => ({
   activateWhatsappChannel: (...a: unknown[]) => mockActivate(...a),
 }));
 
+const gateOkPlatform: AuthResult = {
+  payload: {
+    sub: "u1",
+    tenantId: "t1",
+    role: "platform_admin",
+    email: "a@b.c",
+    name: "A",
+    jti: "jid",
+    iat: 1,
+    exp: 9999999999,
+  },
+  token: "tok",
+  sessionId: "jid",
+};
+
 describe("P0 — POST /api/admin/whatsapp/channel/activate", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockAuth.mockResolvedValue(true);
+    mockGate.mockResolvedValue({ ok: true, auth: gateOkPlatform, viaProvisionSecret: false });
   });
 
   it("401 sem autorização", async () => {
-    mockAuth.mockResolvedValue(false);
+    mockGate.mockResolvedValue({
+      ok: false,
+      response: new NextResponse(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 401 }),
+    });
     const { POST } = await import("../route");
     const res = await POST(
       new NextRequest("http://localhost/api/admin/whatsapp/channel/activate", {

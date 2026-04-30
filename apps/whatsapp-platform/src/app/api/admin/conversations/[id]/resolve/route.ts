@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_PLATFORM_ONLY } from "@/modules/auth";
+import { getClientIp } from "@/lib/rate-limit";
+import { recordPlatformAudit } from "@/lib/platformAuditLog";
 import { prisma } from "@/lib/prisma";
 import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
 import { updateThreadStatus } from "@/modules/inbox/threadStatusService";
@@ -13,7 +15,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await getAuthFromRequest(_request);
-  const denied = requireRole(auth, STAFF_ROLES, _request);
+  const denied = requireRole(auth, ROLES_PLATFORM_ONLY, _request);
   if (denied) return denied;
 
   const { id: threadId } = await params;
@@ -36,6 +38,15 @@ export async function PATCH(
       data: { status: "available", currentConversationId: null, updatedAt: new Date() },
     });
   }
+
+  recordPlatformAudit({
+    action: "admin.conversation.resolve",
+    tenantId,
+    userId: auth!.payload.sub,
+    resourceType: "wa_inbox_thread",
+    resourceId: threadId,
+    metadata: { ip: getClientIp(_request), hadThread: Boolean(thread) },
+  });
 
   return NextResponse.json({ success: true, resolved: true });
 }

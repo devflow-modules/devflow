@@ -1,16 +1,13 @@
 import type { NextRequest } from "next/server";
-import { isPlatformAdmin } from "@/lib/roles";
 import { logEvent } from "@/lib/observability/log-event";
 import { getAuthFromRequest } from "@/modules/auth";
+import { isPlatformAdmin } from "@/lib/roles";
+import { authorizeProvisionBearer } from "@/lib/adminProvisionBearer";
 
-/** Auth por script/curl: `Authorization: Bearer WHATSAPP_MANUAL_PROVISION_SECRET`. */
-export function authorizeProvisionBearer(request: NextRequest): boolean {
-  const secret = process.env.WHATSAPP_MANUAL_PROVISION_SECRET?.trim();
-  if (!secret) return false;
-  return request.headers.get("authorization") === `Bearer ${secret}`;
-}
+/** Re-export para scripts e chamadas `curl` contra rotas provision (ex.: WhatsApp Meta). */
+export { authorizeProvisionBearer } from "@/lib/adminProvisionBearer";
 
-/** Bearer (secret) ou sessão JWT com `platform_admin` (UI interna). */
+/** Bearer (secret do ambiente) ou sessão JWT com `platform_admin` (UI interna). */
 export async function authorizeProvisionOrPlatformAdmin(request: NextRequest): Promise<boolean> {
   if (authorizeProvisionBearer(request)) return true;
   const auth = await getAuthFromRequest(request);

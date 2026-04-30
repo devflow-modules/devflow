@@ -4,6 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { validateAuthToken } from "@/modules/auth";
+import { requireJwtAdminPage } from "@/lib/admin-page-guard";
 import { cn } from "@devflow/ui";
 import { Button } from "@/components/ui/button";
 import { AppBadge } from "@/components/ui/app-badge";
@@ -70,11 +71,12 @@ export default async function AdminConversationsPage({
 }: {
   searchParams: Promise<{ status?: string }>;
 }) {
+  await requireJwtAdminPage("/admin/conversations");
   const { status } = await searchParams;
   const store = await cookies();
   const token = store.get(JWT_COOKIE_NAME)?.value;
   const auth = token ? await validateAuthToken(token) : null;
-  const tenantId = auth?.payload.tenantId;
+  const tenantId = auth!.payload.tenantId;
   const validStatus =
     status && TAB_STATUSES.some((t) => t.status === status)
       ? (status as WaInboxThreadStatus)
@@ -109,7 +111,7 @@ export default async function AdminConversationsPage({
               );
             })}
           </div>
-          <Link href="/admin/distribuir" className="shrink-0">
+          <Link href="/distribuir" className="shrink-0">
             <Button variant="outline" size="sm">
               Distribuir
             </Button>

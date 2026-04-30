@@ -15,6 +15,8 @@ import { INBOX_QK } from "@/components/inbox/inboxTypes";
 import { PageHeader } from "@/components/ui/page-header";
 import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
+import { useSessionRole } from "@/components/navigation/SessionRoleContext";
+import { canManageAutomation } from "@/lib/permissions";
 import {
   FormActions,
   FormField,
@@ -60,6 +62,8 @@ async function fetchRules(): Promise<RuleItem[]> {
 }
 
 export function AutomationClient() {
+  const { role } = useSessionRole();
+  const canManage = canManageAutomation(role);
   const { data: waLines = [] } = useQuery({
     queryKey: INBOX_QK.phoneLines,
     queryFn: fetchTenantWhatsappLines,
@@ -314,7 +318,7 @@ export function AutomationClient() {
         layout="split"
         showDivider
         actions={
-          !showForm ? (
+          canManage && !showForm ? (
             <Button variant="disabled"
               type="button"
               disabled={automationOutboundLocked}
@@ -327,13 +331,21 @@ export function AutomationClient() {
         }
       />
 
-      {automationOutboundLocked ? (
+      {!canManage ? (
+        <div className="df-feedback-info !rounded-xl px-4 py-3 text-sm" role="status">
+          Somente leitura: operadores podem visualizar regras e resultados, mas criação, edição e exclusão exigem
+          permissão de gestor.
+        </div>
+      ) : null}
+
+      {canManage && automationOutboundLocked ? (
         <div className="df-feedback-warning !rounded-xl px-4 py-3 text-sm" role="status">
           Automações que enviam mensagens ficam disponíveis após a Meta aprovar o número e o canal ser ativado com
           token.
         </div>
       ) : null}
 
+      {canManage ? (
       <section className="rounded-xl border border-border/90 bg-card p-5 shadow-sm">
         <h2 className="text-sm font-bold df-text-primary">Modelos para começar</h2>
         <p className="mt-1 text-sm df-text-secondary">
@@ -378,6 +390,7 @@ export function AutomationClient() {
           </Button>
         </div>
       </section>
+      ) : null}
 
       {(apiError || testResult) && (
         <div
@@ -409,7 +422,7 @@ export function AutomationClient() {
       )}
 
       <div className="mb-4">
-        {showForm ? (
+        {canManage && showForm ? (
           <form onSubmit={handleCreate} className="max-w-2xl">
             <FormSection
               title="Nova regra"
@@ -522,11 +535,11 @@ export function AutomationClient() {
         <StateEmpty
           title="Ainda não há regras"
           description="Use um modelo abaixo para preencher o formulário ou crie uma regra à medida com «Nova regra» no topo. As regras ativas executam-se quando chegam mensagens ou mudam estados."
-          action={
+          action={canManage ? (
             <Button variant="secondary" type="button" onClick={() => setShowForm(true)}>
               Criar primeira regra
             </Button>
-          }
+          ) : undefined}
         />
       ) : (
         <ul className="df-divide-y-soft overflow-hidden rounded-xl border border-border/90 bg-card shadow-sm">
@@ -548,14 +561,16 @@ export function AutomationClient() {
                 </div>
               </div>
               <div className="flex gap-2 flex-wrap">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleToggle(r.id, r.isActive)}
-                  disabled={loading}
-                >
-                  {r.isActive ? "Desativar" : "Ativar"}
-                </Button>
+                {canManage ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleToggle(r.id, r.isActive)}
+                    disabled={loading}
+                  >
+                    {r.isActive ? "Desativar" : "Ativar"}
+                  </Button>
+                ) : null}
                 <Button
                   size="sm"
                   variant="ghost"
@@ -569,16 +584,18 @@ export function AutomationClient() {
                 >
                   Testar
                 </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="df-text-error hover:opacity-90"
-                  onClick={() => handleDelete(r.id)}
-                  disabled={loading || r.isSystem}
-                  title={r.isSystem ? "Regras de sistema não podem ser removidas" : undefined}
-                >
-                  Excluir
-                </Button>
+                {canManage ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="df-text-error hover:opacity-90"
+                    onClick={() => handleDelete(r.id)}
+                    disabled={loading || r.isSystem}
+                    title={r.isSystem ? "Regras de sistema não podem ser removidas" : undefined}
+                  >
+                    Excluir
+                  </Button>
+                ) : null}
               </div>
             </li>
           ))}

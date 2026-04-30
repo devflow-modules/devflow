@@ -39,11 +39,18 @@ function requiresTenantSession(path: string): boolean {
     path.startsWith("/automation") ||
     path.startsWith("/conversations") ||
     path.startsWith("/agents") ||
-    path.startsWith("/queues")
+    path.startsWith("/queues") ||
+    path === "/distribuir" ||
+    path.startsWith("/distribuir/")
   );
 }
 
-/** Em produção, métricas/billing admin podem usar cookie de segredo em vez de JWT. */
+/**
+ * Bypass interno Ops (exceção documentada): permite `/admin`-subset sem JWT válido quando o cliente
+ * apresenta o cookie `ADMIN_METRICS_SECRET`. Não concede papel de sessão — é credencial própria.
+ * Mantém‑se apenas para páginas alinhadas a `requireAdminOrMetricsSecretPage`. Manager/operator não
+ * devem obter esse segredo.
+ */
 function metricsSecretBypass(request: NextRequest, path: string): boolean {
   if (process.env.NODE_ENV !== "production") return false;
   if (

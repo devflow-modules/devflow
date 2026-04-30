@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_PLATFORM_ONLY } from "@/modules/auth";
+import { getClientIp } from "@/lib/rate-limit";
+import { recordPlatformAudit } from "@/lib/platformAuditLog";
 import { prisma } from "@/lib/prisma";
 import { assignThread } from "@/modules/inbox/threadAssignmentService";
 
@@ -17,7 +19,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await getAuthFromRequest(request);
-  const denied = requireRole(auth, STAFF_ROLES, request);
+  const denied = requireRole(auth, ROLES_PLATFORM_ONLY, request);
   if (denied) return denied;
 
   const { id: threadId } = await params;
@@ -42,6 +44,18 @@ export async function POST(
   if (!assigned) {
     return NextResponse.json({ error: "Não foi possível atribuir" }, { status: 400 });
   }
+
+  recordPlatformAudit({
+    action: "admin.conversation.assign",
+    tenantId: auth!.payload.tenantId,
+    userId: auth!.payload.sub,
+    resourceType: "wa_inbox_thread",
+    resourceId: threadId,
+    metadata: {
+      assignedUserId: parsed.data.userId,
+      ip: getClientIp(request),
+    },
+  });
 
   return NextResponse.json({ success: true });
 }

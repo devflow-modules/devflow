@@ -5,16 +5,16 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StateLoading } from "@/components/ui/app-states";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { validateAuthToken } from "@/modules/auth";
-import { isOperator } from "@/lib/roles";
 import Link from "next/link";
 import { WhatsappConnectClient } from "./WhatsappConnectClient";
 import { isWhiteLabelMode } from "@/lib/productMode";
+import { canManageWhatsappChannels } from "@/lib/permissions";
 
 export default async function DashboardWhatsappPage() {
   const store = await cookies();
   const token = store.get(JWT_COOKIE_NAME)?.value;
   const auth = token ? await validateAuthToken(token) : null;
-  if (auth && isOperator(auth.payload.role)) {
+  if (auth && !canManageWhatsappChannels(auth.payload.role)) {
     redirect("/inbox");
   }
   const wl = isWhiteLabelMode();

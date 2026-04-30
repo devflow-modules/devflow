@@ -6,8 +6,8 @@ import { BILLING_PAGE_HEADER_DESCRIPTION } from "@/modules/billing/planPresentat
 import { StateLoading } from "@/components/ui/app-states";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { validateAuthToken } from "@/modules/auth";
-import { isOperator } from "@/lib/roles";
 import { isCommercialBillingVisible } from "@/lib/productMode";
+import { canAccessBilling } from "@/lib/permissions";
 import { BillingPageClient } from "./BillingPageClient";
 
 export default async function BillingPage() {
@@ -15,7 +15,7 @@ export default async function BillingPage() {
   const store = await cookies();
   const token = store.get(JWT_COOKIE_NAME)?.value;
   const auth = token ? await validateAuthToken(token) : null;
-  if (auth && isOperator(auth.payload.role)) {
+  if (auth && !canAccessBilling(auth.payload.role, "SAAS")) {
     redirect("/inbox");
   }
   return (

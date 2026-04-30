@@ -5,9 +5,8 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StateEmpty } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
-import { permissionsMessages } from "@/lib/permissionsMessages";
+import { canAccessDeveloperSettings } from "@/lib/permissions";
 import { validateAuthToken } from "@/modules/auth";
-import { isTenantManager } from "@/lib/roles";
 import { DeveloperHeaderQuickActions } from "./DeveloperHeaderQuickActions";
 import { DeveloperApiKeyClient } from "./DeveloperApiKeyClient";
 
@@ -54,17 +53,17 @@ export default async function DeveloperSettingsPage() {
     );
   }
 
-  if (!isTenantManager(auth.payload.role)) {
+  if (!canAccessDeveloperSettings(auth.payload.role)) {
     return (
       <div className="df-page-narrow df-stack">
         {header}
         <StateEmpty
-          title="Acesso restrito a admins"
-          description={permissionsMessages.adminOnly}
-          nextStep="Operadores usam a Inbox; admins gerem a conta em Configurações."
+          title="Acesso restrito"
+          description="Esta área exige permissão de gestor ou administrador da plataforma."
+          nextStep="Volte para o painel operacional para continuar."
           action={
-            <Link href="/settings" className={buttonClassName("primary")}>
-              Voltar às configurações
+            <Link href="/dashboard" className={buttonClassName("primary")}>
+              Voltar ao Painel
             </Link>
           }
         />

@@ -3,15 +3,14 @@ import { jsonError, jsonSuccess, newTraceId } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
 import { listAffiliatesWithStats } from "@/modules/affiliates/adminAffiliatesService";
 import { createAffiliateBodySchema } from "@/modules/affiliates/schemas";
-import { authorizeProvisionOrPlatformAdmin } from "../whatsapp/provisionAuth";
+import { gatePlatformAdminOrProvisionSecret } from "@/lib/adminApiAuth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const traceId = newTraceId();
-  if (!(await authorizeProvisionOrPlatformAdmin(request))) {
-    return jsonError("UNAUTHORIZED", "Não autorizado", 401, { traceId });
-  }
+  const gate = await gatePlatformAdminOrProvisionSecret(request);
+  if (!gate.ok) return gate.response;
   try {
     const affiliates = await listAffiliatesWithStats();
     return jsonSuccess({ affiliates }, { traceId });
@@ -23,9 +22,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const traceId = newTraceId();
-  if (!(await authorizeProvisionOrPlatformAdmin(request))) {
-    return jsonError("UNAUTHORIZED", "Não autorizado", 401, { traceId });
-  }
+  const gate = await gatePlatformAdminOrProvisionSecret(request);
+  if (!gate.ok) return gate.response;
   let body: unknown;
   try {
     body = await request.json();

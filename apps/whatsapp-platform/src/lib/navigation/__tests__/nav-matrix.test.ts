@@ -30,6 +30,9 @@ describe("nav-matrix", () => {
     const { routeAllowedForRole } = await loadNavMatrix();
     expect(routeAllowedForRole("/admin/metrics", "operator")).toBe(false);
     expect(routeAllowedForRole("/inbox", "operator")).toBe(true);
+    expect(routeAllowedForRole("/agents", "operator")).toBe(false);
+    expect(routeAllowedForRole("/settings/developer", "manager")).toBe(false);
+    expect(routeAllowedForRole("/settings/developer", "platform_admin")).toBe(true);
   });
 
   it("navAccessSummary cobre rotas conhecidas", async () => {

@@ -1,17 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getCounters } from "@devflow/analytics-core";
-import { jsonError, newTraceId } from "@/lib/api-response";
+import { newTraceId } from "@/lib/api-response";
 import {
   countInboxThreadsTotal,
   countTenantsTotal,
 } from "@/modules/inbox/waInboxOpsMetrics";
 import { countMessagesLast24h } from "@/modules/messaging/waInboxMessageStats";
-import { isAdminMetricsAllowed } from "./adminAuth";
+import { gatePlatformAdminJwt } from "@/lib/adminApiAuth";
 
-export async function GET(request: Request) {
-  if (!isAdminMetricsAllowed(request)) {
-    return jsonError("FORBIDDEN", "Forbidden", 403);
-  }
+export async function GET(request: NextRequest) {
+  const gate = await gatePlatformAdminJwt(request);
+  if (!gate.ok) return gate.response;
 
   const metrics = getCounters();
   let tenants = 0;

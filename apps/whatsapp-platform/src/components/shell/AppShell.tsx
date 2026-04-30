@@ -10,6 +10,7 @@ import { SessionRoleProvider, useSessionRole } from "@/components/navigation/Ses
 import { ShellLayoutProvider, useShellLayout } from "./ShellLayoutContext";
 import { ShellPage } from "./ShellPage";
 import { EvaluationModeRibbon } from "./EvaluationModeRibbon";
+import { PlatformAdminContextBanner } from "./PlatformAdminContextBanner";
 import { SessionRoleModePill } from "./SessionRoleModePill";
 import { NavCommandPalette } from "@/components/navigation/NavCommandPalette";
 import { shellHomeHref } from "@/lib/roles";
@@ -100,6 +101,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
           </span>
         </header>
         <EvaluationModeRibbon />
+        <PlatformAdminContextBanner />
         <main className="min-h-0 w-full min-w-0 flex-1 overflow-hidden">
           {inboxFullBleed ? (
             <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden">{children}</div>

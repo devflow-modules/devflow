@@ -3,9 +3,10 @@ import { jsonError, jsonSuccess, newTraceId } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
 import { recordPlatformAudit } from "@/lib/platformAuditLog";
 import { patchCommissionPayBodySchema } from "@/modules/affiliates/schemas";
-import { authorizeProvisionOrPlatformAdmin } from "@/app/api/admin/whatsapp/provisionAuth";
 import { logEvent } from "@/lib/observability/log-event";
 import { parseCuidParam } from "@/lib/route-params";
+import { getClientIp } from "@/lib/rate-limit";
+import { gatePlatformAdminOrProvisionSecret } from "@/lib/adminApiAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -13,9 +14,9 @@ type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   const traceId = newTraceId();
-  if (!(await authorizeProvisionOrPlatformAdmin(request))) {
-    return jsonError("UNAUTHORIZED", "Não autorizado", 401, { traceId });
-  }
+  const gate = await gatePlatformAdminOrProvisionSecret(request);
+  if (!gate.ok) return gate.response;
+
   const { id: rawId } = await context.params;
   const commissionId = parseCuidParam(rawId);
   if (!commissionId) {
@@ -61,9 +62,15 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     recordPlatformAudit({
       action: "affiliate.commission.paid",
       tenantId: current.tenantId,
+      userId: gate.auth?.payload.sub ?? null,
       resourceType: "commission",
       resourceId: commission.id,
-      metadata: { affiliateId: current.affiliateId, amount: current.amount },
+      ip: getClientIp(request),
+      metadata: {
+        affiliateId: current.affiliateId,
+        amount: current.amount,
+        authVia: gate.viaProvisionSecret ? "provision_bearer" : "platform_admin_session",
+      },
     });
     return jsonSuccess({ commission, alreadyPaid: false as const }, { traceId });
   } catch (e: unknown) {

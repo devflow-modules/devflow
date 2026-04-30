@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { jsonError, jsonSuccess, newTraceId } from "@/lib/api-response";
-import { authorizeProvisionOrPlatformAdmin } from "../../provisionAuth";
+import { gatePlatformAdminOrProvisionSecret } from "@/lib/adminApiAuth";
 import { getPendingChannels } from "@/modules/whatsapp/channelActivationService";
 
 export const dynamic = "force-dynamic";
@@ -23,9 +23,8 @@ const querySchema = z.object({
  */
 export async function GET(request: NextRequest) {
   const traceId = newTraceId();
-  if (!(await authorizeProvisionOrPlatformAdmin(request))) {
-    return jsonError("UNAUTHORIZED", "Não autorizado", 401, { traceId });
-  }
+  const gate = await gatePlatformAdminOrProvisionSecret(request);
+  if (!gate.ok) return gate.response;
 
   const { searchParams } = new URL(request.url);
   const parsed = querySchema.safeParse({

@@ -17,7 +17,18 @@ vi.mock("@/modules/inbox/waInboxOpsMetrics", () => ({
 describe("GET /api/admin/export/messages", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetAuthFromRequest.mockResolvedValue({ payload: { tenantId: "t1", role: "manager" } });
+    mockGetAuthFromRequest.mockResolvedValue({
+      payload: {
+        sub: "u1",
+        tenantId: "t1",
+        role: "platform_admin",
+        email: "a@b.c",
+        name: "A",
+        jti: "j1",
+      },
+      token: "x",
+      sessionId: "j1",
+    });
     mockListInboxMessagesCreatedInRange.mockResolvedValue([
       {
         id: "m1",
@@ -27,6 +38,25 @@ describe("GET /api/admin/export/messages", () => {
         createdAt: new Date("2025-01-01T12:00:00.000Z"),
       },
     ]);
+  });
+
+  it("retorna 403 para manager", async () => {
+    mockGetAuthFromRequest.mockResolvedValue({
+      payload: {
+        sub: "u2",
+        tenantId: "t1",
+        role: "manager",
+        email: "m@b.c",
+        name: "M",
+        jti: "j2",
+      },
+      token: "x",
+      sessionId: "j2",
+    });
+    const { GET } = await import("../route");
+    const req = new Request("http://localhost/api/admin/export/messages");
+    const res = await GET(req as never);
+    expect(res.status).toBe(403);
   });
 
   it("retorna CSV de mensagens", async () => {

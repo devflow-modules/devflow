@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 import { recordPlatformAudit } from "@/lib/platformAuditLog";
 import { getClientIp } from "@/lib/rate-limit";
@@ -18,13 +18,14 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
+  if (denied) return denied;
 
-  const tenantId = auth.payload.tenantId;
+  const tenantId = auth!.payload.tenantId;
   const { id } = await context.params;
   if (!id) return NextResponse.json({ error: "id obrigatório" }, { status: 400 });
 
-  const gate = await requireFeatureOr403(tenantId, "AUTOMATION", auth.payload);
+  const gate = await requireFeatureOr403(tenantId, "AUTOMATION", auth!.payload);
   if (gate) return gate;
 
   let json: unknown;
@@ -71,13 +72,14 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   const auth = await getAuthFromRequest(_req);
-  if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, _req);
+  if (denied) return denied;
 
-  const tenantId = auth.payload.tenantId;
+  const tenantId = auth!.payload.tenantId;
   const { id } = await context.params;
   if (!id) return NextResponse.json({ error: "id obrigatório" }, { status: 400 });
 
-  const gate = await requireFeatureOr403(tenantId, "AUTOMATION", auth.payload);
+  const gate = await requireFeatureOr403(tenantId, "AUTOMATION", auth!.payload);
   if (gate) return gate;
 
   const rule = await prisma.waAutomationRule.findFirst({
@@ -96,7 +98,7 @@ export async function DELETE(
   recordPlatformAudit({
     action: "automation_rule_delete",
     tenantId,
-    userId: auth.payload.sub,
+    userId: auth!.payload.sub,
     resourceType: "wa_automation_rule",
     resourceId: id,
     ip: getClientIp(_req),

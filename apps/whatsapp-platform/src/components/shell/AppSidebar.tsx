@@ -267,17 +267,19 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
           </CollapsibleNavSection>
         ) : null}
 
-        <CollapsibleNavSection sectionId="equipe" title="Equipe" subtitle="Agentes que atendem.">
-          {teamNav.map((item) => (
-            <NavLink
-              key={item.href}
-              href={item.href}
-              label={item.label}
-              active={navIsActive(pathname, item.href)}
-              onNavigate={onNavigate}
-            />
-          ))}
-        </CollapsibleNavSection>
+        {teamNav.length > 0 ? (
+          <CollapsibleNavSection sectionId="equipe" title="Equipe" subtitle="Agentes que atendem.">
+            {teamNav.map((item) => (
+              <NavLink
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                active={navIsActive(pathname, item.href)}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </CollapsibleNavSection>
+        ) : null}
 
         {platformNav.length > 0 ? (
           <CollapsibleNavSection
@@ -305,11 +307,11 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
         <SupportHelpButton variant="sidebar" className="mb-3" />
         {sessionRole && (isOperator(sessionRole) || isTenantManager(sessionRole)) ? (
           <Link
-            href="/admin/distribuir"
+            href="/distribuir"
             className="mb-2 block rounded-lg px-3 py-2 text-xs font-medium text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)] hover:text-[var(--df-text-primary)]"
             onClick={() => onNavigate?.()}
           >
-            {ROUTE_META["/admin/distribuir"].label}
+            {ROUTE_META["/distribuir"].label}
           </Link>
         ) : null}
         <Link

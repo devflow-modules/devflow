@@ -15,7 +15,7 @@ describe("nav-config (produto por role)", () => {
     expect(secondaryNavForRole("operator")).toEqual([]);
   });
 
-  it("operador: sidebar — Operação (sem painel), Automação só regras, sem Conta, Equipe com agentes", () => {
+  it("operador: sidebar — Operação (sem painel), Automação só regras, sem Conta e sem Equipe", () => {
     expect(navOperationItemsForRole("operator").map((i) => i.href)).toEqual([
       "/inbox",
       "/conversations",
@@ -23,7 +23,7 @@ describe("nav-config (produto por role)", () => {
     ]);
     expect(navAutomationItemsForRole("operator").map((i) => i.href)).toEqual(["/automation"]);
     expect(navAccountItemsForRole("operator")).toEqual([]);
-    expect(navTeamItemsForRole("operator").map((i) => i.href)).toEqual(["/agents"]);
+    expect(navTeamItemsForRole("operator")).toEqual([]);
   });
 
   it("admin (manager): painel completo na principal + secundária com billing e configurações (SAAS)", async () => {
@@ -41,6 +41,7 @@ describe("nav-config (produto por role)", () => {
     const secondary = secondaryNavSaas("manager");
     expect(secondary.some((i) => i.href === "/billing")).toBe(true);
     expect(secondary.some((i) => i.href === "/settings")).toBe(true);
+    expect(secondary.some((i) => i.href === "/settings/developer")).toBe(false);
     vi.unstubAllEnvs();
     vi.resetModules();
   });

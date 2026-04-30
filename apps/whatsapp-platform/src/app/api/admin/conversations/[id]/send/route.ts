@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest, requireRole, STAFF_ROLES } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_PLATFORM_ONLY } from "@/modules/auth";
+import { getClientIp } from "@/lib/rate-limit";
+import { recordPlatformAudit } from "@/lib/platformAuditLog";
 import { sendReplyAndPersist } from "@/modules/messaging";
 import { logAction } from "@/modules/inbox/auditService";
 import { logError, logEvent } from "@/lib/observability";
@@ -14,7 +16,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await getAuthFromRequest(request);
-  const denied = requireRole(auth, STAFF_ROLES, request);
+  const denied = requireRole(auth, ROLES_PLATFORM_ONLY, request);
   if (denied) return denied;
 
   const { id } = await params;
@@ -75,6 +77,14 @@ export async function POST(
     await logAction(auth!.payload.tenantId, thread.id, auth!.payload.sub, "message_send", {
       source: "admin_conversations_api",
       textLength: text.length,
+    });
+    recordPlatformAudit({
+      action: "admin.conversation.send",
+      tenantId: auth!.payload.tenantId,
+      userId: auth!.payload.sub,
+      resourceType: "wa_inbox_thread",
+      resourceId: thread.id,
+      metadata: { ip: getClientIp(request), textLength: text.length },
     });
     logEvent("info", "admin", "conversation_message_sent", {
       tenantId: auth!.payload.tenantId,

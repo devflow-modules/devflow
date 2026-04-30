@@ -1,3 +1,21 @@
+/**
+ * Guards de páginas `/admin/*`.
+ *
+ * ## Escopo nominal
+ * Toda a UI `/admin/*` destina-se a `platform_admin`; `manager`/`operator` devem falhar este guard
+ * (redirect para shell do tenant).
+ *
+ * ## Exceção documentada (apenas produção / alinhado ao middleware)
+ * Páginas `requireAdminOrMetricsSecretPage`:
+ * `/admin/metrics`, `/admin/billing`, `/admin/affiliates`, `/admin/tenants` (+ `[id]` do tenant).
+ * Aceitam cookie HTTP-only `ADMIN_METRICS_SECRET` igual ao configurado na env (bookmark interno Ops),
+ * **sem JWT** na sessão. Isto não confere papel `manager`/`operator`; exige credencial estática na org.
+ *
+ * Todas as outras páginas `/admin/*` usam `requireJwtAdminPage` (somente JWT `platform_admin`).
+ *
+ * ### Rotas **fora** de `/admin` (tenant app)
+ * Distribuição operacional existe em `/distribuir` (router `(protected)`), não em `/admin/distribuir`.
+ */
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ADMIN_METRICS_SECRET_COOKIE_NAME, JWT_COOKIE_NAME } from "@/lib/auth-config";

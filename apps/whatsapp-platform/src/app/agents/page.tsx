@@ -6,6 +6,8 @@ import { listOperationalAgents } from "@/modules/inbox/operationsAgentsService";
 import { validateAuthToken } from "@/modules/auth";
 import { PageHeader } from "@/components/ui/page-header";
 import { StateEmpty } from "@/components/ui/app-states";
+import { buttonClassName } from "@/components/ui/button";
+import { canViewTeamPage } from "@/lib/permissions";
 import { AgentsClient } from "./AgentsClient";
 
 export default async function AgentsPage() {
@@ -33,15 +35,9 @@ export default async function AgentsPage() {
     );
   }
 
-  const [agents, auth] = await Promise.all([
-    listOperationalAgents(snap.tenantId),
-    (async () => {
-      const store = await cookies();
-      const token = store.get(JWT_COOKIE_NAME)?.value;
-      if (!token) return null;
-      return validateAuthToken(token);
-    })(),
-  ]);
+  const store = await cookies();
+  const token = store.get(JWT_COOKIE_NAME)?.value;
+  const auth = token ? await validateAuthToken(token) : null;
 
   const viewer = auth
     ? {
@@ -52,5 +48,28 @@ export default async function AgentsPage() {
       }
     : null;
 
+  if (!canViewTeamPage(viewer?.role)) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-6">
+        <PageHeader
+          eyebrow="Operação"
+          title="Acesso restrito"
+          description="Esta área exige permissão de gestor ou administrador da plataforma."
+          showDivider
+        />
+        <StateEmpty
+          title="Sem permissão para Equipe"
+          description="Pode continuar o atendimento pela Inbox."
+          action={
+            <Link href="/inbox" className={buttonClassName("primary")}>
+              Voltar para Inbox
+            </Link>
+          }
+        />
+      </div>
+    );
+  }
+
+  const agents = await listOperationalAgents(snap.tenantId);
   return <AgentsClient agents={agents} viewer={viewer} />;
 }

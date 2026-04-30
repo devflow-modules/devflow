@@ -17,17 +17,26 @@ export function DistribuirClient() {
     setMessage(null);
     setLoading(true);
     try {
-      const res = await fetchProtected("/api/admin/queue/next");
-      const data = (await res.json().catch(() => ({}))) as { error?: string; thread?: { id: string }; message?: string };
+      const res = await fetchProtected("/api/inbox/queue/next");
+      const raw = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(protectedApiUserMessage(res.status, data));
+        setError(protectedApiUserMessage(res.status, raw as { error?: string }));
         return;
       }
-      if (data.thread?.id) {
-        router.push(`/admin/conversations/${data.thread.id}`);
+      const envelope = raw as {
+        success?: boolean;
+        data?: { thread?: { id: string } | null; message?: string };
+      };
+      if (envelope.success !== true || envelope.data === undefined) {
+        setMessage("Resposta da fila inesperada. Tente de novo.");
         return;
       }
-      setMessage(data.message ?? "Nenhuma conversa na fila no momento.");
+      const tid = envelope.data.thread?.id ?? null;
+      if (tid) {
+        router.push(`/inbox?thread=${encodeURIComponent(tid)}`);
+        return;
+      }
+      setMessage(envelope.data.message ?? "Nenhuma conversa na fila no momento.");
     } catch {
       setError("Erro de conexão.");
     } finally {
@@ -38,17 +47,17 @@ export function DistribuirClient() {
   return (
     <div className="space-y-6">
       <header>
-        <Link href="/admin/conversations" className="text-sm font-medium text-blue-600 underline-offset-4 hover:underline">
-          ← Voltar às conversas
+        <Link href="/inbox" className="text-sm font-medium text-blue-600 underline-offset-4 hover:underline">
+          ← Voltar à inbox
         </Link>
         <h1 className="mt-2 text-xl font-semibold df-text-primary">Distribuição de fila</h1>
         <p className="mt-1 text-sm df-text-secondary">
-          Pegue a próxima conversa em espera para atender. Você será redirecionado para a conversa.
+          Pegue a próxima conversa em espera para atender. Você será direcionado à inbox dessa conversa.
         </p>
       </header>
 
       <div className="max-w-md space-y-4">
-        <Button variant="disabled" onClick={handleNext} disabled={loading} className="w-full sm:w-auto">
+        <Button variant="secondary" onClick={() => void handleNext()} disabled={loading} className="w-full sm:w-auto">
           {loading ? "Buscando…" : "Pegar próxima conversa"}
         </Button>
 

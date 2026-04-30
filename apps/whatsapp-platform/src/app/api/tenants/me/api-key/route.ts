@@ -2,18 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { getAuthFromRequest } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
-import { permissionsMessages } from "@/lib/permissionsMessages";
-import { isTenantManager } from "@/lib/roles";
+import { canAccessDeveloperSettings } from "@/lib/permissions";
 import { requireFeatureOr403 } from "@/modules/billing/featureGate";
 
 export async function POST(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
   if (!auth) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    return NextResponse.json({ success: false, error: "Não autorizado", code: "UNAUTHORIZED" }, { status: 401 });
   }
-  if (!isTenantManager(auth.payload.role)) {
+  if (!canAccessDeveloperSettings(auth.payload.role)) {
     return NextResponse.json(
-      { error: permissionsMessages.adminOnly, code: "FORBIDDEN_ROLE" },
+      { success: false, error: "Acesso negado", code: "FORBIDDEN" },
       { status: 403 }
     );
   }

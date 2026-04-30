@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest, NextResponse } from "next/server";
-import { requireRole, STAFF_ROLES, type AuthResult } from "../verifyToken";
+import { requireRole, ROLES_PLATFORM_ONLY, STAFF_ROLES, type AuthResult } from "../verifyToken";
 import type { JwtPayload } from "../authService";
 
 vi.mock("@/lib/auth-logger", () => ({ logAuth: vi.fn() }));
@@ -49,6 +49,35 @@ describe("P0 — requireRole (guards rotas staff)", () => {
 
   it("null quando platform_admin acede", () => {
     const res = requireRole(auth({ role: "platform_admin" }), STAFF_ROLES, reqCtx("/api/inbox/conversations"));
+    expect(res).toBeNull();
+  });
+});
+
+describe("P0 — requireRole (rotas /api/admin/* — ROLES_PLATFORM_ONLY)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("401 sem sessão", () => {
+    const res = requireRole(null, ROLES_PLATFORM_ONLY, reqCtx("/api/admin/conversations"));
+    expect(res).toBeInstanceOf(NextResponse);
+    expect(res!.status).toBe(401);
+  });
+
+  it("403 manager", () => {
+    const res = requireRole(auth({ role: "manager" }), ROLES_PLATFORM_ONLY, reqCtx("/api/admin/agent-status"));
+    expect(res).toBeInstanceOf(NextResponse);
+    expect(res!.status).toBe(403);
+  });
+
+  it("403 operator", () => {
+    const res = requireRole(auth({ role: "operator" }), ROLES_PLATFORM_ONLY, reqCtx("/api/admin/conversations"));
+    expect(res).toBeInstanceOf(NextResponse);
+    expect(res!.status).toBe(403);
+  });
+
+  it("null para platform_admin", () => {
+    const res = requireRole(auth({ role: "platform_admin" }), ROLES_PLATFORM_ONLY, reqCtx("/api/admin/queues"));
     expect(res).toBeNull();
   });
 });

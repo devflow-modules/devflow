@@ -1,30 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
+import { NextRequest } from "next/server";
 import { requeuePendingFollowUpTasksForTenant } from "@/modules/operations/reprocessFollowUpTasks";
 import { auditOperationalAction } from "@/modules/operations/recordOperationalAudit";
+import { gatePlatformAdminJwt } from "@/lib/adminApiAuth";
+import { jsonError, jsonSuccess, newTraceId } from "@/lib/api-response";
 
 export const dynamic = "force-dynamic";
 
 /**
  * Reencaminha tarefas pendentes do tenant para a próxima janela do worker.
+ * Exclusivo `platform_admin`.
  */
 export async function POST(request: NextRequest) {
-  const auth = await getAuthFromRequest(request);
-  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
-  if (denied) return denied;
+  const traceId = newTraceId();
+  const gate = await gatePlatformAdminJwt(request);
+  if (!gate.ok) return gate.response;
 
-  const tenantId = auth!.payload.tenantId;
-  const userId = auth!.payload.sub;
+  const tenantId = gate.auth.payload.tenantId;
+  const userId = gate.auth.payload.sub;
   if (!tenantId) {
-    return NextResponse.json({ success: false, error: "Tenant não identificado" }, { status: 400 });
+    return jsonError("BAD_REQUEST", "Tenant não identificado", 400, { traceId });
   }
 
   auditOperationalAction("operational_reprocess_followups", tenantId, userId, {});
 
   const { updated } = await requeuePendingFollowUpTasksForTenant(tenantId);
 
-  return NextResponse.json({
-    success: true,
-    data: { tasksRequeued: updated },
-  });
+  return jsonSuccess({ tasksRequeued: updated }, { traceId });
 }

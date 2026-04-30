@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_PLATFORM_ONLY } from "@/modules/auth";
 import { listInboxMessagesCreatedInRange } from "@/modules/inbox/waInboxOpsMetrics";
 
 function escapeCsvCell(value: string | number | null | undefined): string {
@@ -13,7 +13,7 @@ function escapeCsvCell(value: string | number | null | undefined): string {
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
+  const denied = requireRole(auth, ROLES_PLATFORM_ONLY, request);
   if (denied) return denied;
   if (!auth) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });

@@ -4,7 +4,7 @@ import {
   setVerificationStatus,
   type VerificationAdminAction,
 } from "@/modules/whatsapp/verificationService";
-import { authorizeProvisionOrPlatformAdmin } from "../../../../provisionAuth";
+import { gatePlatformAdminOrProvisionSecret } from "@/lib/adminApiAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -30,9 +30,8 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   const traceId = newTraceId();
-  if (!(await authorizeProvisionOrPlatformAdmin(request))) {
-    return jsonError("UNAUTHORIZED", "Não autorizado", 401, { traceId });
-  }
+  const gate = await gatePlatformAdminOrProvisionSecret(request);
+  if (!gate.ok) return gate.response;
 
   const { id } = await context.params;
   if (!id?.trim()) {

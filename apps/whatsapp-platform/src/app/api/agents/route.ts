@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { listOperationalAgents } from "@/modules/inbox/operationsAgentsService";
 
 export const dynamic = "force-dynamic";
@@ -10,12 +10,11 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-  }
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
+  if (denied) return denied;
 
   try {
-    const agents = await listOperationalAgents(auth.payload.tenantId);
+    const agents = await listOperationalAgents(auth!.payload.tenantId);
     return NextResponse.json({ success: true, data: { agents } });
   } catch (e) {
     console.error("[api/agents GET]", e);
