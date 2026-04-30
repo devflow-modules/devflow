@@ -49,7 +49,7 @@ export function AutomacaoFaz() {
           >
             O que a automação faz
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="mt-3 df-text-secondary">
             Ações concretas que o robô executa no seu atendimento.
           </p>
         </div>
@@ -67,7 +67,7 @@ export function AutomacaoFaz() {
                 <action.icon className="size-5 text-primary" aria-hidden />
               </div>
               <h3 className="mt-3 font-medium text-foreground">{action.title}</h3>
-              <p className="mt-1 text-sm text-slate-600">{action.description}</p>
+              <p className="mt-1 text-sm df-text-secondary">{action.description}</p>
             </article>
           ))}
         </div>

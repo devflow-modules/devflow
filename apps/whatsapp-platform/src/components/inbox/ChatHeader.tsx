@@ -29,6 +29,7 @@ import { isFeatureBlockedError } from "@/lib/protected-fetch";
 import { useSessionRole } from "@/components/navigation/SessionRoleContext";
 import { inboxAssigneeCopy } from "@/lib/roleProductLabels";
 import { INBOX_CHAT_GUTTER_X, INBOX_CHAT_GUTTER_X_COMPACT } from "./inboxChatLayout";
+import { Button } from "@/components/ui/button";
 
 const SLA_LABEL: Record<InboxSlaLevel, string> = {
   low: "SLA OK",
@@ -237,14 +238,14 @@ export function ChatHeader({
     >
       <div className={`flex items-start gap-3 ${headerPad}`}>
         {showBack && (
-          <button
+          <Button variant="ghost"
             type="button"
             onClick={onBackMobile}
             className="rounded-lg p-2 text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)] md:hidden df-focus-brand"
             aria-label="Voltar"
           >
             ←
-          </button>
+          </Button>
         )}
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--df-brand-600)] text-sm font-bold text-white">
           {title.slice(0, 2).toUpperCase()}
@@ -361,7 +362,7 @@ export function ChatHeader({
         <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--df-text-muted)]">Operação</p>
         <div className="flex flex-wrap items-center gap-2 rounded-xl border df-border-brand bg-[var(--df-bg-elevated)]/95 p-2 shadow-sm">
           {canAssume ? (
-            <button
+            <Button variant="disabled"
               type="button"
               disabled={actionBusy}
               className={`${buttonClassName("primary")} ${state === "awaiting_agent" ? "ring-2 ring-red-200/80" : ""}`}
@@ -369,10 +370,10 @@ export function ChatHeader({
               data-testid="header-assume"
             >
               Assumir conversa
-            </button>
+            </Button>
           ) : null}
           {canRelease ? (
-            <button
+            <Button variant="disabled"
               type="button"
               disabled={actionBusy}
               className={buttonClassName("secondary")}
@@ -380,10 +381,10 @@ export function ChatHeader({
               data-testid="header-release"
             >
               Liberar
-            </button>
+            </Button>
           ) : null}
           {canClose ? (
-            <button
+            <Button variant="disabled"
               type="button"
               disabled={actionBusy}
               className={buttonClassName("secondary")}
@@ -391,10 +392,10 @@ export function ChatHeader({
               data-testid="header-close"
             >
               Encerrar
-            </button>
+            </Button>
           ) : null}
           {canReopen ? (
-            <button
+            <Button variant="disabled"
               type="button"
               disabled={actionBusy}
               className={buttonClassName("secondary")}
@@ -402,55 +403,55 @@ export function ChatHeader({
               data-testid="header-reopen"
             >
               Reabrir
-            </button>
+            </Button>
           ) : null}
         </div>
 
         <p className="mb-2 mt-4 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--df-text-muted)]">Gestão</p>
         <div className="flex flex-wrap items-center gap-2">
         <div className="relative" ref={assignRef}>
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => setAssignOpen((o) => !o)}
-            className="df-inbox-toolbar-btn max-w-full min-w-0 justify-start text-slate-600"
+            className="df-inbox-toolbar-btn max-w-full min-w-0 justify-start df-text-secondary"
           >
             {thread.assignedToUser ? thread.assignedToUser.name : "Responsável…"}
-          </button>
+          </Button>
           {assignOpen && (
             <div className="df-inbox-dropdown w-52 max-w-[min(100vw-2rem,13rem)]">
-              <button type="button" className="df-inbox-dropdown-item" onClick={() => handleAssign("me")}>
+              <Button variant="secondary" type="button" className="df-inbox-dropdown-item" onClick={() => handleAssign("me")}>
                 Eu como responsável
-              </button>
-              <button type="button" className="df-inbox-dropdown-item" onClick={() => handleAssign(null)}>
+              </Button>
+              <Button variant="secondary" type="button" className="df-inbox-dropdown-item" onClick={() => handleAssign(null)}>
                 Remover responsável
-              </button>
+              </Button>
               {usersFetched.map((u: { id: string; name: string }) => (
-                <button
+                <Button variant="secondary"
                   key={u.id}
                   type="button"
                   className="df-inbox-dropdown-item"
                   onClick={() => handleAssign(u.id)}
                 >
                   {u.name}
-                </button>
+                </Button>
               ))}
             </div>
           )}
         </div>
 
         <div className="relative" ref={statusRef}>
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => setStatusOpen((o) => !o)}
             className="df-inbox-toolbar-btn"
             data-testid="header-thread-status-trigger"
           >
             Estado
-          </button>
+          </Button>
           {statusOpen && (
             <div className="df-inbox-dropdown w-40">
               {(["OPEN", "PENDING", "CLOSED"] as const).map((s) => (
-                <button
+                <Button variant="secondary"
                   key={s}
                   type="button"
                   className="df-inbox-dropdown-item"
@@ -458,7 +459,7 @@ export function ChatHeader({
                   onClick={() => handleStatus(s)}
                 >
                   {s === "OPEN" ? "Aberta" : s === "CLOSED" ? "Fechada" : "Pendente"}
-                </button>
+                </Button>
               ))}
             </div>
           )}
@@ -472,34 +473,37 @@ export function ChatHeader({
           {thread.threadTags?.map((tt) => (
             <span
               key={tt.tag.id}
-              className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs text-white"
-              style={{ backgroundColor: tt.tag.color || "#6b7280" }}
+              className={
+                "inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs text-white " +
+                (tt.tag.color ? "" : "bg-muted-foreground")
+              }
+              style={tt.tag.color ? { backgroundColor: tt.tag.color } : undefined}
             >
               {tt.tag.name}
-              <button
+              <Button variant="ghost"
                 type="button"
                 aria-label={`Remover ${tt.tag.name}`}
                 className="hover:opacity-80"
                 onClick={() => handleRemoveTag(tt.tag.id)}
               >
                 ×
-              </button>
+              </Button>
             </span>
           ))}
-          <button type="button" onClick={() => setTagOpen((o) => !o)} className="df-inbox-tag-add">
+          <Button variant="secondary" type="button" onClick={() => setTagOpen((o) => !o)} className="df-inbox-tag-add">
             + Tag
-          </button>
+          </Button>
           {tagOpen && (
             <div className="df-inbox-dropdown max-h-44 w-52 overflow-y-auto">
               {tagsFetched.filter((t: { id: string }) => !threadTagIds.has(t.id)).map((t: { id: string; name: string }) => (
-                <button
+                <Button variant="secondary"
                   key={t.id}
                   type="button"
                   className="df-inbox-dropdown-item"
                   onClick={() => handleAddTag(t.id)}
                 >
                   {t.name}
-                </button>
+                </Button>
               ))}
               {tagsFetched.length === 0 && (
                 <p className="px-3 py-2 text-xs text-[var(--df-text-secondary)]">Crie tags nas definições.</p>
@@ -509,19 +513,19 @@ export function ChatHeader({
         </div>
 
         {onOpenNotes ? (
-          <button type="button" onClick={onOpenNotes} className="df-inbox-pill-notes" data-testid="header-notes">
+          <Button variant="secondary" type="button" onClick={onOpenNotes} className="df-inbox-pill-notes" data-testid="header-notes">
             Notas
-          </button>
+          </Button>
         ) : null}
 
         {onAuditTabChange ? (
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => onAuditTabChange(!auditTab)}
             className={auditTab ? "df-inbox-pill-audit-on" : "df-inbox-pill-audit-off"}
           >
             Histórico
-          </button>
+          </Button>
         ) : null}
         </div>
       </div>

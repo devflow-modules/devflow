@@ -23,7 +23,7 @@ const BADGE: Record<
   closed: {
     label: "Encerrada",
     className:
-      "rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-600 ring-1 ring-slate-200/90",
+      "rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide df-text-secondary ring-1 ring-slate-200/90",
   },
 };
 

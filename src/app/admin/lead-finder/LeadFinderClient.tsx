@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Toaster, toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 const LEAD_FINDER_ORIGIN = "lead_finder_google_maps";
 const CITY_STORAGE_KEY = "leadFinderCity";
@@ -163,14 +164,15 @@ export function LeadFinderClient() {
             <p className="mb-1.5 text-xs font-medium text-muted-foreground">Segmentos rápidos</p>
             <div className="flex flex-wrap gap-1.5">
               {NICHE_PRESETS.map((label) => (
-                <button
+                <Button
                   key={label}
                   type="button"
+                  variant="secondary"
                   onClick={() => setSegment(label)}
-                  className="rounded-md border border-border bg-background px-2 py-1 text-xs font-medium text-foreground hover:bg-muted"
+                  className="rounded-md border border-border bg-background px-2 py-1 text-xs font-medium text-foreground shadow-none hover:bg-muted"
                 >
                   {label}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -196,13 +198,14 @@ export function LeadFinderClient() {
               />
             </label>
           </div>
-          <button
+          <Button
             type="button"
+            variant="secondary"
             onClick={buscarNoGoogleMaps}
-            className="mt-4 rounded-md border border-primary bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/15"
+            className="mt-4 rounded-md border border-primary bg-primary/10 px-4 py-2 text-sm font-medium text-primary shadow-none hover:bg-primary/15"
           >
             Buscar no Google Maps
-          </button>
+          </Button>
         </section>
 
         <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
@@ -254,21 +257,23 @@ export function LeadFinderClient() {
               origens podem ser adicionadas no futuro)
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-              <button
+              <Button
                 type="submit"
+                variant="primary"
                 disabled={submitting}
-                className="rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-95 disabled:opacity-50"
+                className="rounded-md px-4 py-2.5 text-sm font-medium hover:opacity-95 disabled:opacity-50"
               >
                 {submitting ? "Salvando…" : "Adicionar ao CRM"}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="secondary"
                 disabled={submitting}
                 onClick={() => void createLead(true)}
-                className="rounded-md border border-primary/40 bg-primary/5 px-4 py-2.5 text-sm font-medium text-primary hover:bg-primary/10 disabled:opacity-50"
+                className="rounded-md border border-primary/40 bg-primary/5 px-4 py-2.5 text-sm font-medium text-primary shadow-none hover:bg-primary/10 disabled:opacity-50"
               >
                 Adicionar e abrir WhatsApp
-              </button>
+              </Button>
             </div>
           </form>
         </section>

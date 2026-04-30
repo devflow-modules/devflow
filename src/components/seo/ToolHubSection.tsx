@@ -48,7 +48,7 @@ export function ToolHubSection({ tool }: Props) {
 
   return (
     <section
-      className="border-t border-border bg-slate-50/80 py-12 sm:py-14"
+      className="border-t border-border bg-muted/60/80 py-12 sm:py-14"
       aria-labelledby="tool-hub-heading"
     >
       <div className="mx-auto max-w-[720px] px-4 sm:px-6 lg:px-8">
@@ -58,7 +58,7 @@ export function ToolHubSection({ tool }: Props) {
         >
           Guias e páginas relacionadas
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600 sm:text-base">
+        <p className="mt-2 text-sm leading-relaxed df-text-secondary sm:text-base">
           Conteúdo original sobre este tema: como usar a ferramenta, dicas e comparativos.
           Cada link leva a um guia com foco em um caso de uso ou dúvida específica.
         </p>

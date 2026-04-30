@@ -27,6 +27,7 @@ import {
   OUTBOUND_LEAD_ORIGIN_LABELS,
   isCanonicalLeadOrigin,
 } from "@/lib/outbound-lead-origins";
+import { Button } from "@/components/ui/button";
 
 export type LeadRow = {
   id: string;
@@ -496,25 +497,27 @@ export function AdminLeadsClient() {
             </label>
           )}
           {currentUserId && (
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => {
                 setOperatorFilterId("");
                 setAssignmentScope("mine");
               }}
-              className="whitespace-nowrap text-xs font-medium text-primary underline-offset-4 hover:underline"
+              className="h-auto min-h-0 whitespace-nowrap px-0 py-0 text-xs font-medium text-primary underline-offset-4 shadow-none hover:underline"
             >
               Só meus
-            </button>
+            </Button>
           )}
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => void load({ syncFromConversation: true })}
-            className="whitespace-nowrap text-xs font-medium text-muted-foreground underline-offset-4 hover:underline"
+            className="h-auto min-h-0 whitespace-nowrap px-0 py-0 text-xs font-medium text-muted-foreground underline-offset-4 shadow-none hover:underline"
             title="Unidirecional: copia assignee da conversa se o lead ainda não tiver responsável (até 50 por pedido)"
           >
             Sincronizar c/ conversa
-          </button>
+          </Button>
           <Link
             href="/admin/metrics"
             className="text-sm font-medium text-primary underline-offset-4 hover:underline"
@@ -558,14 +561,14 @@ export function AdminLeadsClient() {
                     </p>
                     <p className="text-[10px] text-muted-foreground">{lead.leadActionState?.reason}</p>
                   </div>
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     onClick={() => runNba(lead)}
                     disabled={nba.type === "none"}
                     className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {nba.type === "close" ? "Ir para conversão" : nba.type === "none" ? "—" : "Executar"}
-                  </button>
+                  </Button>
                 </li>
               );
             })}
@@ -686,13 +689,13 @@ export function AdminLeadsClient() {
             />
           </label>
           <div className="flex items-end sm:col-span-2 lg:col-span-3">
-            <button
+            <Button variant="primary"
               type="submit"
               disabled={creating}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
               {creating ? "Salvando…" : "Adicionar lead"}
-            </button>
+            </Button>
           </div>
         </form>
       </section>
@@ -791,7 +794,7 @@ export function AdminLeadsClient() {
                           </span>
                         )}
                         {urg === "upcoming" && (
-                          <span className="inline-block w-fit rounded bg-slate-500/10 px-1.5 py-0.5 text-xs text-slate-600">
+                          <span className="inline-block w-fit rounded bg-muted-foreground/40/10 px-1.5 py-0.5 text-xs df-text-secondary">
                             Agendado
                           </span>
                         )}
@@ -864,7 +867,7 @@ export function AdminLeadsClient() {
                           </option>
                         ) : null}
                       </select>
-                      <button
+                      <Button variant="secondary"
                         type="button"
                         className="mt-0.5 block text-[10px] font-medium text-primary hover:underline"
                         onClick={() =>
@@ -874,7 +877,7 @@ export function AdminLeadsClient() {
                         }
                       >
                         Salvar
-                      </button>
+                      </Button>
                     </td>
                     <td className="px-2 py-2 align-top text-xs">
                       {lead.conversationRef ? (
@@ -895,7 +898,7 @@ export function AdminLeadsClient() {
                         aria-label="ID da conversa"
                       />
                       <div className="mt-0.5 flex flex-wrap gap-1">
-                        <button
+                        <Button variant="secondary"
                           type="button"
                           className="text-[10px] font-medium text-primary hover:underline"
                           onClick={() =>
@@ -905,7 +908,7 @@ export function AdminLeadsClient() {
                           }
                         >
                           Vincular conversa
-                        </button>
+                        </Button>
                         {lead.conversationRef ? (
                           <a
                             href={conversationChatUrl(lead.conversationRef)}
@@ -948,13 +951,13 @@ export function AdminLeadsClient() {
                         {nba.label}
                       </p>
                       {nba.type !== "none" ? (
-                        <button
+                        <Button variant="secondary"
                           type="button"
                           onClick={() => runNba(lead)}
                           className="mt-1 text-[10px] font-medium text-primary hover:underline"
                         >
                           {nba.type === "close" ? "Ir p/ conversão" : "Executar"}
-                        </button>
+                        </Button>
                       ) : (
                         <p className="mt-0.5 text-[10px] text-muted-foreground">—</p>
                       )}
@@ -976,27 +979,27 @@ export function AdminLeadsClient() {
                         className="w-full min-w-[140px] rounded border border-input bg-background px-1.5 py-0.5 text-xs"
                       />
                       <div className="mt-0.5 flex flex-wrap gap-0.5">
-                        <button
+                        <Button variant="secondary"
                           type="button"
                           className="rounded border border-border px-1 text-[9px] hover:bg-muted"
                           onClick={() => void setFollowupDays(lead.id, 1)}
                         >
                           +1d
-                        </button>
-                        <button
+                        </Button>
+                        <Button variant="secondary"
                           type="button"
                           className="rounded border border-border px-1 text-[9px] hover:bg-muted"
                           onClick={() => void setFollowupDays(lead.id, 3)}
                         >
                           +3d
-                        </button>
-                        <button
+                        </Button>
+                        <Button variant="secondary"
                           type="button"
                           className="rounded border border-border px-1 text-[9px] hover:bg-muted"
                           onClick={() => void setFollowupDays(lead.id, 7)}
                         >
                           +7d
-                        </button>
+                        </Button>
                       </div>
                     </td>
                     <td className="px-2 py-2 align-top">
@@ -1011,18 +1014,18 @@ export function AdminLeadsClient() {
                         rows={2}
                         className="w-full min-w-[120px] rounded-md border border-input bg-background px-2 py-1 text-xs"
                       />
-                      <button
+                      <Button variant="secondary"
                         type="button"
                         className="mt-1 text-xs font-medium text-primary hover:underline"
                         onClick={() => void patchLead(lead.id, { notes: noteDrafts[lead.id] ?? "" })}
                       >
                         Salvar
-                      </button>
+                      </Button>
                     </td>
                     <td className="px-2 py-2 align-top">
                       <div className="flex max-w-[200px] flex-col gap-1">
                         {QUICK_ACTIONS.map((qa) => (
-                          <button
+                          <Button variant="disabled"
                             key={qa.status}
                             type="button"
                             disabled={!!lead.convertedAt}
@@ -1030,7 +1033,7 @@ export function AdminLeadsClient() {
                             className="rounded border border-border bg-background px-2 py-0.5 text-left text-[10px] font-medium hover:bg-muted disabled:opacity-50"
                           >
                             {qa.label}
-                          </button>
+                          </Button>
                         ))}
                         <div className="mt-0.5 flex flex-col gap-0.5 border-t border-border pt-0.5">
                           <a
@@ -1059,7 +1062,7 @@ export function AdminLeadsClient() {
                           </a>
                         </div>
                         {!lead.convertedAt && (
-                          <button
+                          <Button variant="disabled"
                             id={`lead-convert-${lead.id}`}
                             type="button"
                             className={`mt-0.5 rounded border border-primary/40 bg-primary/5 px-2 py-0.5 text-left text-[10px] font-medium text-primary hover:bg-primary/10 disabled:opacity-50 ${
@@ -1071,7 +1074,7 @@ export function AdminLeadsClient() {
                             onClick={() => void convertLead(lead.id)}
                           >
                             {converting === lead.id ? "…" : "Converter em cliente"}
-                          </button>
+                          </Button>
                         )}
                         <a
                           href={waMeUrl(lead.phone)}

@@ -84,7 +84,7 @@ export function ToolCard({
     return (
       <article className={cardClass} aria-label={`${title} — em desenvolvimento`}>
         {content}
-        <p className="df-text-on-light-muted mt-4 text-xs font-medium" style={{ color: "#475569" }}>
+        <p className="df-text-on-light-muted mt-4 text-xs font-medium">
           Em desenvolvimento
         </p>
       </article>

@@ -5,6 +5,7 @@ import { cn } from "@/modules/financeiro/lib/cn";
 import { DividirContasTool } from "@/modules/financeiro/components/DividirContasTool";
 import { ProjecaoFinanceiraTool } from "@/modules/financeiro/components/ProjecaoFinanceiraTool";
 import { DespesasFixasTool } from "@/modules/financeiro/components/DespesasFixasTool";
+import { Button } from "@/components/ui/button";
 
 const TABS = [
   { id: "divisao", label: "Divisão de contas", Tool: DividirContasTool },
@@ -25,7 +26,7 @@ export function FinanceiroTools() {
         className="flex flex-wrap gap-2 border-b border-border pb-4"
       >
         {TABS.map((tab) => (
-          <button
+          <Button variant="secondary"
             key={tab.id}
             role="tab"
             aria-selected={active === tab.id}
@@ -40,7 +41,7 @@ export function FinanceiroTools() {
             )}
           >
             {tab.label}
-          </button>
+          </Button>
         ))}
       </div>
       <div

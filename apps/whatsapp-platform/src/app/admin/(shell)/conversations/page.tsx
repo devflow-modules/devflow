@@ -81,10 +81,10 @@ export default async function AdminConversationsPage({
   const conversations = tenantId ? await getConversations(validStatus, tenantId) : [];
 
   return (
-    <div className="rounded-xl border border-slate-200/80 bg-slate-50/50 shadow-sm">
-      <header className="sticky top-0 z-10 rounded-t-xl border-b border-slate-200 bg-white px-4 py-3">
+    <div className="rounded-xl border border-border/80 bg-muted/60/50 shadow-sm">
+      <header className="sticky top-0 z-10 rounded-t-xl border-b border-border bg-card px-4 py-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <h1 className="text-lg font-semibold text-slate-900">Conversas</h1>
+          <h1 className="text-lg font-semibold df-text-primary">Conversas</h1>
           <div className="flex gap-1">
             {TAB_STATUSES.map((tab) => {
               const href =
@@ -123,7 +123,7 @@ export default async function AdminConversationsPage({
 
       <main className="mx-auto max-w-2xl">
         {conversations.length === 0 ? (
-          <div className="p-6 text-center text-slate-600">
+          <div className="p-6 text-center df-text-secondary">
             Nenhuma conversa ainda. As conversas aparecem aqui quando mensagens forem recebidas via webhook.
           </div>
         ) : (
@@ -133,13 +133,13 @@ export default async function AdminConversationsPage({
                 <Link
                   href={`/admin/conversations/${c.id}`}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-100",
+                    "flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted",
                     c.unread > 0 && "bg-blue-50/50"
                   )}
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="truncate font-medium text-slate-900">
+                      <span className="truncate font-medium df-text-primary">
                         {c.customerName || "Cliente"}
                       </span>
                       {c.unread > 0 && (
@@ -149,11 +149,11 @@ export default async function AdminConversationsPage({
                       )}
                     </div>
                     {c.lastMessage && (
-                      <p className="mt-0.5 truncate text-sm text-slate-600">{c.lastMessage}</p>
+                      <p className="mt-0.5 truncate text-sm df-text-secondary">{c.lastMessage}</p>
                     )}
                   </div>
                   {c.lastMessageAt && (
-                    <span className="shrink-0 text-xs text-slate-400">
+                    <span className="shrink-0 text-xs df-text-muted">
                       {new Date(c.lastMessageAt).toLocaleTimeString("pt-BR", {
                         hour: "2-digit",
                         minute: "2-digit",

@@ -63,7 +63,7 @@ export function FaqSection({
   return (
     <section
       id={id}
-      className={cn("border-t border-border bg-white py-12 sm:py-14", className)}
+      className={cn("border-t border-border bg-card py-12 sm:py-14", className)}
       aria-labelledby={`${id}-heading`}
     >
       {withSchema && (
@@ -83,10 +83,10 @@ export function FaqSection({
           {items.map((item, i) => (
             <div
               key={i}
-              className="rounded-xl border border-border bg-slate-50/60 p-4 sm:p-5"
+              className="rounded-xl border border-border bg-muted/60/60 p-4 sm:p-5"
             >
               <dt className="font-medium text-foreground">{item.q}</dt>
-              <dd className="mt-2 text-sm leading-relaxed text-slate-600 sm:text-base">
+              <dd className="mt-2 text-sm leading-relaxed df-text-secondary sm:text-base">
                 {item.a}
               </dd>
             </div>

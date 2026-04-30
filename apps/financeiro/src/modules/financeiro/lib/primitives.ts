@@ -15,7 +15,7 @@ export const cardBaseLight =
 export const labelCaps = "text-xs font-medium uppercase tracking-wider";
 export const labelCapsSm = "text-sm font-medium uppercase tracking-wider";
 export const btnGhostLight =
-  "rounded-xl border border-slate-200 bg-white px-3 py-2 text-foreground transition hover:bg-slate-50";
+  "rounded-xl border border-border bg-card px-3 py-2 text-foreground transition hover:bg-muted/60";
 
 export const btnPrimaryBase = "rounded-2xl px-4 py-3 text-sm font-semibold transition";
 export const btnPrimaryLight = "bg-primary text-primary-foreground hover:opacity-90";

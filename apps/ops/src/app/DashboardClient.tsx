@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { MetricsCard, MetricsSection } from "@devflow/ui";
 import type { ProductMetrics } from "./actions";
 import { getAggregatedMetrics } from "./actions";
+import { Button } from "@/components/ui/button";
 
 type Props = { initialData: ProductMetrics[] };
 
@@ -38,14 +39,15 @@ export function DashboardClient({ initialData }: Props) {
     <main className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Ops Dashboard — DevFlow</h1>
-        <button
+        <Button
+          variant="primary"
           type="button"
           onClick={refresh}
           disabled={loading}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+          className="disabled:opacity-60"
         >
           {loading ? "Atualizando…" : "Atualizar"}
-        </button>
+        </Button>
       </div>
 
       {data.length === 0 && (

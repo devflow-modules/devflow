@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface Row {
   id: string;
@@ -41,12 +42,12 @@ export default function HistoricoPage() {
       <Link href="/dashboard" className="text-blue-600 underline">Voltar</Link>
       <h1 className="mt-4 text-2xl font-semibold">Histórico de consultas</h1>
       {loading ? (
-        <p className="mt-4 text-gray-600">Carregando…</p>
+        <p className="mt-4 df-text-secondary">Carregando…</p>
       ) : (
         <>
           <table className="mt-4 w-full border-collapse border text-sm">
             <thead>
-              <tr className="bg-gray-100">
+              <tr className="bg-muted">
                 <th className="border p-2 text-left">CNPJ</th>
                 <th className="border p-2 text-left">Nome</th>
                 <th className="border p-2 text-left">Status</th>
@@ -64,26 +65,26 @@ export default function HistoricoPage() {
               ))}
             </tbody>
           </table>
-          {total === 0 && <p className="mt-4 text-gray-600">Nenhuma consulta ainda.</p>}
+          {total === 0 && <p className="mt-4 df-text-secondary">Nenhuma consulta ainda.</p>}
           {total > 0 && (
             <div className="mt-4 flex gap-2">
-              <button
+              <Button variant="disabled"
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => p - 1)}
                 className="rounded border px-3 py-1 disabled:opacity-50"
               >
                 Anterior
-              </button>
+              </Button>
               <span className="py-1">Página {page}</span>
-              <button
+              <Button variant="disabled"
                 type="button"
                 disabled={page * 5 >= total}
                 onClick={() => setPage((p) => p + 1)}
                 className="rounded border px-3 py-1 disabled:opacity-50"
               >
                 Próxima
-              </button>
+              </Button>
             </div>
           )}
         </>

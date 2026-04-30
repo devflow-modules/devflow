@@ -54,20 +54,8 @@ export default function ContatoPage() {
         className="pointer-events-none absolute inset-0 -z-10 opacity-40"
         aria-hidden
       >
-        <div
-          className="absolute -top-40 right-0 h-96 w-96 rounded-full blur-3xl"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(34, 197, 94, 0.22) 0%, transparent 65%)",
-          }}
-        />
-        <div
-          className="absolute -bottom-32 left-0 h-80 w-80 rounded-full blur-3xl"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(15, 23, 42, 0.12) 0%, transparent 70%)",
-          }}
-        />
+        <div className="df-decor-radial-brand-soft absolute -top-40 right-0 h-96 w-96 rounded-full blur-3xl" />
+        <div className="df-decor-radial-ink-soft absolute -bottom-32 left-0 h-80 w-80 rounded-full blur-3xl" />
       </div>
 
       <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
@@ -147,7 +135,7 @@ export default function ContatoPage() {
           </article>
 
           <article className={cn(cardBase, "df-border-dark")}>
-            <div className="flex size-11 items-center justify-center rounded-xl bg-slate-900/5 text-slate-700">
+            <div className="flex size-11 items-center justify-center rounded-xl bg-muted/5 df-text-secondary">
               <Mail className="size-6" aria-hidden />
             </div>
             <h2 className="mt-5 text-lg font-bold tracking-tight text-foreground">

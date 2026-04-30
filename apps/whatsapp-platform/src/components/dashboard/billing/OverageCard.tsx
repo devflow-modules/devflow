@@ -22,9 +22,9 @@ export function OverageCard({ overageMessages, overageAI, estimatedCost }: Props
 
   if (!hasOverage) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h3 className="text-sm font-medium text-slate-600">Expansão de uso (além do incluído)</h3>
-        <p className="mt-2 text-sm text-slate-600">Ainda dentro do volume incluído no plano.</p>
+      <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm">
+        <h3 className="text-sm font-medium text-[var(--df-text-secondary)]">Expansão de uso (além do incluído)</h3>
+        <p className="mt-2 text-sm text-[var(--df-text-secondary)]">Ainda dentro do volume incluído no plano.</p>
       </div>
     );
   }

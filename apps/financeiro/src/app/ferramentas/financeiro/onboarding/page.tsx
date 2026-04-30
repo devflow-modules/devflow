@@ -13,6 +13,7 @@ import {
   mutedTextLight,
 } from "@/modules/financeiro/lib/primitives";
 import { FINANCEIRO_DASHBOARD_PATH } from "@devflow/financeiro-routes";
+import { Button } from "@/components/ui/button";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -131,7 +132,7 @@ export default function OnboardingPage() {
           {error ? (
             <p className="text-sm text-destructive">{error}</p>
           ) : null}
-          <button
+          <Button variant="primary"
             type="submit"
             disabled={loading || name.length < 3 || slug.length < 3}
             className={cn(
@@ -142,7 +143,7 @@ export default function OnboardingPage() {
             )}
           >
             {loading ? "Criando..." : apresentacao ? "Ir ao dashboard" : "Criar casa"}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

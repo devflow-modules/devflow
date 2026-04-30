@@ -332,7 +332,7 @@
   @apply mt-6 mb-3 text-lg font-semibold text-foreground;
 }
 .blog-content p {
-  @apply mt-4 text-slate-700 leading-relaxed;
+  @apply mt-4 leading-relaxed df-text-secondary;
 }
 .blog-content p:first-of-type {
   @apply mt-0;
@@ -348,4 +348,54 @@
 }
 .blog-content strong {
   @apply font-semibold text-foreground;
+}
+
+.df-decor-radial-brand {
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--primary) 22%, transparent) 0%,
+    transparent 70%
+  );
+}
+.df-decor-radial-accent {
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--chart-1) 18%, transparent) 0%,
+    transparent 70%
+  );
+}
+.df-decor-grid-mesh {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--foreground) 32%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--foreground) 32%, transparent) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.df-decor-radial-brand-soft {
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--primary) 20%, transparent) 0%,
+    transparent 65%
+  );
+}
+.df-decor-radial-ink-soft {
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--foreground) 12%, transparent) 0%,
+    transparent 70%
+  );
+}
+.df-wa-preview-frame {
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--border) 55%, transparent),
+    color-mix(in srgb, var(--muted) 92%, transparent)
+  );
+}
+.df-wa-hero-aureole {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--primary) 22%, transparent) 0%,
+    color-mix(in srgb, var(--chart-1) 14%, transparent) 45%,
+    color-mix(in srgb, var(--foreground) 6%, transparent) 100%
+  );
 }

@@ -31,7 +31,7 @@ export function QuandoFazSentido() {
           >
             Quando faz sentido contratar
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="mt-3 df-text-secondary">
             Reconheça seu cenário. A honestidade aumenta credibilidade.
           </p>
         </div>
@@ -44,7 +44,7 @@ export function QuandoFazSentido() {
             </h3>
             <ul className="mt-4 space-y-2" role="list">
               {quandoSim.map((item) => (
-                <li key={item} className="text-sm text-slate-700">
+                <li key={item} className="text-sm df-text-secondary">
                   • {item}
                 </li>
               ))}
@@ -57,7 +57,7 @@ export function QuandoFazSentido() {
             </h3>
             <ul className="mt-4 space-y-2" role="list">
               {quandoNao.map((item) => (
-                <li key={item} className="text-sm text-slate-600">
+                <li key={item} className="text-sm df-text-secondary">
                   • {item}
                 </li>
               ))}

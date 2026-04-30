@@ -30,13 +30,13 @@ export function BillingHeader({
   const isPastDue = status?.toLowerCase() === "past_due" || status?.toLowerCase() === "pastdue";
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-6 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{planName}</p>
-          <p className="mt-2 text-sm leading-relaxed text-slate-500">{BILLING_HEADER_SUPPORTING_LINE}</p>
-          <h2 className="mt-2 text-xl font-semibold text-slate-900">{headline}</h2>
-          {subtitle ? <p className="mt-2 max-w-xl text-sm text-slate-600">{subtitle}</p> : null}
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">{planName}</p>
+          <p className="mt-2 text-sm leading-relaxed text-[var(--df-text-muted)]">{BILLING_HEADER_SUPPORTING_LINE}</p>
+          <h2 className="mt-2 text-xl font-semibold text-[var(--df-text-primary)]">{headline}</h2>
+          {subtitle ? <p className="mt-2 max-w-xl text-sm text-[var(--df-text-secondary)]">{subtitle}</p> : null}
           <div className="mt-2 flex items-center gap-2">
             <span
               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -45,7 +45,7 @@ export function BillingHeader({
                   : status?.toLowerCase() === "active"
                     ? "bg-emerald-100 text-emerald-800"
                     : status?.toLowerCase() === "free"
-                      ? "bg-slate-100 text-slate-700"
+                      ? "bg-[var(--df-bg-app)] text-[var(--df-text-secondary)]"
                       : "bg-amber-100 text-amber-800"
               }`}
             >

@@ -87,7 +87,7 @@ export function CrossSellBeyond({ className, variant = "default" }: Props) {
               "shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg"
             )}
           >
-            <div className="flex size-11 items-center justify-center rounded-xl bg-slate-200">
+            <div className="flex size-11 items-center justify-center rounded-xl bg-muted">
               <Layers className="df-text-primary size-6" aria-hidden />
             </div>
             <h3 className="df-text-primary mt-4 font-bold group-hover:text-primary">

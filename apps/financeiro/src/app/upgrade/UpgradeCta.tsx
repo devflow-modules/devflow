@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { trackUpgradeClicked } from "@/modules/billing/billingAnalytics";
+import { Button } from "@/components/ui/button";
 type PlanIdPaid = "PRO" | "TEAM";
 
 type Props = {
@@ -42,13 +43,13 @@ export function UpgradeCta({ planId = "PRO", children }: Props) {
   };
 
   return (
-    <button
+    <Button variant="disabled"
       type="button"
       onClick={handleUpgrade}
       disabled={loading}
       className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-70"
     >
       {loading ? "Redirecionando..." : children ?? "Upgrade para PRO"}
-    </button>
+    </Button>
   );
 }

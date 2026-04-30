@@ -44,7 +44,7 @@ export function ChatAuditTab({ threadId }: { threadId: string | null }) {
   if (isLoading) {
     return (
       <div className="flex min-h-0 flex-1 flex-col justify-center p-4" data-testid="audit-tab-loading">
-        <StateLoading message="A carregar histórico…" className="min-h-[12rem] flex-1 border-slate-200/80 bg-white/90 shadow-none" />
+        <StateLoading message="A carregar histórico…" className="min-h-[12rem] flex-1 border-border/80 bg-card/90 shadow-none" />
       </div>
     );
   }
@@ -104,13 +104,13 @@ export function ChatAuditTab({ threadId }: { threadId: string | null }) {
           return (
             <li
               key={log.id}
-              className="rounded-xl border border-slate-200/90 bg-white px-4 py-3 shadow-sm ring-1 ring-slate-900/[0.03]"
+              className="rounded-xl border border-border/90 bg-card px-4 py-3 shadow-sm ring-1 ring-slate-900/[0.03]"
             >
-              <p className="text-sm leading-snug text-slate-800">
-                <span className="font-semibold text-slate-900">{userName}</span> {label}
+              <p className="text-sm leading-snug df-text-primary">
+                <span className="font-semibold df-text-primary">{userName}</span> {label}
                 {extra}
               </p>
-              <p className="mt-1.5 text-xs font-medium tabular-nums text-slate-500">{dateStr}</p>
+              <p className="mt-1.5 text-xs font-medium tabular-nums df-text-muted">{dateStr}</p>
             </li>
           );
         })}

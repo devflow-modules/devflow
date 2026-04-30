@@ -191,13 +191,7 @@ export default function ProjetosPage() {
   return (
     <main className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
-        <div
-          className="absolute -top-32 left-1/2 h-[28rem] w-[120%] -translate-x-1/2 opacity-40"
-          style={{
-            background:
-              "radial-gradient(ellipse at top, rgba(34, 197, 94, 0.14) 0%, transparent 55%)",
-          }}
-        />
+        <div className="df-decor-radial-brand-soft absolute -top-32 left-1/2 h-[28rem] w-[120%] -translate-x-1/2 opacity-40" />
       </div>
 
       <section

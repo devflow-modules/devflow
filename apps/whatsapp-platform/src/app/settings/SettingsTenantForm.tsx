@@ -175,7 +175,7 @@ export function SettingsTenantForm() {
             </p>
           </div>
 
-          <Button type="submit" disabled={saving}>
+          <Button variant="primary" type="submit" disabled={saving}>
             {saving ? "A guardar…" : "Guardar alterações"}
           </Button>
         </form>

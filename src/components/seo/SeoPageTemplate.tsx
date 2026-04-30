@@ -44,7 +44,7 @@ export function SeoPageTemplate({ page, relatedPages }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
+    <div className="min-h-screen bg-gradient-to-b from-card to-muted/40">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       {/* Section 1 — Hero */}
       <section
@@ -52,20 +52,8 @@ export function SeoPageTemplate({ page, relatedPages }: Props) {
         aria-labelledby="seo-hero-heading"
       >
         <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
-          <div
-            className="absolute -top-40 -right-40 h-80 w-80 rounded-full opacity-25"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(34, 197, 94, 0.12) 0%, transparent 70%)",
-            }}
-          />
-          <div
-            className="absolute inset-0 opacity-[0.03]"
-            style={{
-              backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 23, 42, 0.6) 1px, transparent 1px)`,
-              backgroundSize: "40px 40px",
-            }}
-          />
+          <div className="df-decor-radial-brand absolute -top-40 -right-40 h-80 w-80 rounded-full opacity-25" />
+          <div className="df-decor-grid-mesh absolute inset-0 opacity-[0.03]" />
         </div>
 
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -93,25 +81,25 @@ export function SeoPageTemplate({ page, relatedPages }: Props) {
             >
               {page.h1}
             </h1>
-            <p className="mt-6 text-lg leading-relaxed text-slate-600">{page.intro}</p>
+            <p className="mt-6 text-lg leading-relaxed df-text-secondary">{page.intro}</p>
           </div>
         </div>
       </section>
 
       {/* Section 2 — Problem / explanation */}
       <section
-        className="border-y border-border bg-white py-12 sm:py-14"
+        className="border-y border-border bg-card py-12 sm:py-14"
         aria-labelledby="seo-explanation-heading"
       >
         <div className="mx-auto max-w-[720px] px-4 sm:px-6 lg:px-8">
           <h2 id="seo-explanation-heading" className="sr-only">
             Contexto
           </h2>
-          <div className="rounded-2xl border border-border bg-slate-50/80 p-6 sm:p-8">
-            <p className="text-base leading-relaxed text-slate-700">{para1}</p>
-            <p className="mt-4 text-base leading-relaxed text-slate-600">{para2}</p>
+          <div className="rounded-2xl border border-border bg-muted/60/80 p-6 sm:p-8">
+            <p className="text-base leading-relaxed df-text-secondary">{para1}</p>
+            <p className="mt-4 text-base leading-relaxed df-text-secondary">{para2}</p>
             {page.internalLinkBlurb && (
-              <p className="mt-4 text-base leading-relaxed text-slate-600">
+              <p className="mt-4 text-base leading-relaxed df-text-secondary">
                 {page.internalLinkBlurb.before}
                 <Link href={`/${page.internalLinkBlurb.slug}`} className="font-medium text-primary hover:underline">
                   {page.internalLinkBlurb.label}
@@ -139,13 +127,13 @@ export function SeoPageTemplate({ page, relatedPages }: Props) {
       </section>
 
       {/* Section 3 — Use case */}
-      <div className="bg-white">
+      <div className="bg-card">
         <UseCaseSection page={page} />
       </div>
 
       {/* Section 3b — Anti-thin: quando faz sentido, erros, exemplo, checklist */}
       {(page.whenItMakesSense ?? page.commonMistakes ?? page.example ?? page.checklist) && (
-        <section className="border-t border-border bg-slate-50/60 py-12 sm:py-14" aria-labelledby="seo-deep-heading">
+        <section className="border-t border-border bg-muted/60/60 py-12 sm:py-14" aria-labelledby="seo-deep-heading">
           <div className="mx-auto max-w-[720px] px-4 sm:px-6 lg:px-8">
             <h2 id="seo-deep-heading" className="sr-only">
               Quando usar, erros comuns e exemplo
@@ -153,25 +141,25 @@ export function SeoPageTemplate({ page, relatedPages }: Props) {
             {page.whenItMakesSense && (
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-foreground">Quando isso faz sentido?</h3>
-                <p className="mt-2 text-base leading-relaxed text-slate-700">{page.whenItMakesSense}</p>
+                <p className="mt-2 text-base leading-relaxed df-text-secondary">{page.whenItMakesSense}</p>
               </div>
             )}
             {page.commonMistakes && (
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-foreground">Erros comuns</h3>
-                <p className="mt-2 text-base leading-relaxed text-slate-700">{page.commonMistakes}</p>
+                <p className="mt-2 text-base leading-relaxed df-text-secondary">{page.commonMistakes}</p>
               </div>
             )}
             {page.example && (
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-foreground">Exemplo prático</h3>
-                <p className="mt-2 text-base leading-relaxed text-slate-700">{page.example}</p>
+                <p className="mt-2 text-base leading-relaxed df-text-secondary">{page.example}</p>
               </div>
             )}
             {page.checklist && page.checklist.length > 0 && (
               <div>
                 <h3 className="text-lg font-semibold text-foreground">Checklist rápido</h3>
-                <ul className="mt-3 list-inside list-disc space-y-1.5 text-base leading-relaxed text-slate-700">
+                <ul className="mt-3 list-inside list-disc space-y-1.5 text-base leading-relaxed df-text-secondary">
                   {page.checklist.map((item, i) => (
                     <li key={i}>{item}</li>
                   ))}
@@ -205,15 +193,11 @@ export function SeoPageTemplate({ page, relatedPages }: Props) {
 
       {/* Section 6 — Final CTA */}
       <section
-        className="relative overflow-hidden border-t border-border bg-[#f1f5f9] py-16 sm:py-20"
+        className="df-section-light relative overflow-hidden border-t border-border bg-muted/30 py-16 sm:py-20"
         aria-labelledby="seo-final-cta-heading"
       >
         <div
-          className="pointer-events-none absolute -right-20 top-0 h-48 w-48 rounded-full opacity-15"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(34, 197, 94, 0.25) 0%, transparent 70%)",
-          }}
+          className="df-decor-radial-brand-soft pointer-events-none absolute -right-20 top-0 h-48 w-48 rounded-full opacity-15"
           aria-hidden
         />
         <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -230,7 +214,7 @@ export function SeoPageTemplate({ page, relatedPages }: Props) {
             >
               Explore o ecossistema DevFlow Labs
             </h2>
-            <p className="mt-3 text-slate-600">
+            <p className="mt-3 df-text-secondary">
               Ferramentas gratuitas e produtos para automatizar e organizar sua operação.
             </p>
             <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
@@ -247,7 +231,7 @@ export function SeoPageTemplate({ page, relatedPages }: Props) {
                 href="/produtos"
                 className={cn(
                   "inline-flex items-center justify-center gap-2 rounded-xl border border-border px-6 py-3.5 text-base font-semibold",
-                  "bg-white text-foreground transition-colors hover:bg-slate-50"
+                  "bg-card text-foreground transition-colors hover:bg-muted/60"
                 )}
               >
                 Começar agora

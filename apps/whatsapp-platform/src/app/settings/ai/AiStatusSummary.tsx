@@ -6,7 +6,7 @@ export function AiStatusSummary(props: { enabled: boolean; autoReply: boolean; m
 
   return (
     <div
-      className={`space-y-2 rounded-xl border border-slate-200/90 bg-white px-3 py-2.5 shadow-sm ring-1 ring-slate-900/[0.03] ${className}`.trim()}
+      className={`space-y-2 rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2.5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)] ${className}`.trim()}
       role="status"
       aria-label="Estado operacional da IA"
     >
@@ -23,7 +23,7 @@ export function AiStatusSummary(props: { enabled: boolean; autoReply: boolean; m
             <span className="df-badge whitespace-nowrap">Auto-resposta desligada</span>
           )
         ) : (
-          <span className="df-badge whitespace-nowrap text-slate-500">Auto-resposta —</span>
+          <span className="df-badge whitespace-nowrap text-[var(--df-text-muted)]">Auto-resposta —</span>
         )}
         {!enabled ? (
           <span className="df-badge whitespace-nowrap">Modo inativo</span>
@@ -33,8 +33,8 @@ export function AiStatusSummary(props: { enabled: boolean; autoReply: boolean; m
           <span className="df-badge whitespace-nowrap">Modo assistido</span>
         )}
       </div>
-      <p className="text-xs text-slate-500">
-        Motor efectivo: <span className="font-medium text-slate-700">{motorLabel}</span>
+      <p className="text-xs text-[var(--df-text-muted)]">
+        Motor efectivo: <span className="font-medium text-[var(--df-text-secondary)]">{motorLabel}</span>
       </p>
     </div>
   );

@@ -11,17 +11,8 @@ export function ToolsHubHero() {
     >
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
         <div className="absolute inset-0 df-gradient-text-scrim" />
-        <div
-          className="absolute -top-40 -right-40 h-80 w-80 max-w-[100vw] rounded-full opacity-25 sm:opacity-30"
-          style={{ background: "radial-gradient(circle, rgba(34, 197, 94, 0.15) 0%, transparent 70%)" }}
-        />
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 23, 42, 0.6) 1px, transparent 1px)`,
-            backgroundSize: "40px 40px",
-          }}
-        />
+        <div className="df-decor-radial-brand absolute -top-40 -right-40 h-80 w-80 max-w-[100vw] rounded-full opacity-25 sm:opacity-30" />
+        <div className="df-decor-grid-mesh absolute inset-0 opacity-[0.03]" />
       </div>
 
       <div className="mx-auto max-w-[1200px] px-3 min-[400px]:px-4 sm:px-6 lg:px-8">

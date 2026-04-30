@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { trackSubscriptionManageClicked } from "@/modules/billing/billingAnalytics";
+import { Button } from "@/components/ui/button";
 
 export function ManageSubscriptionButton() {
   const [loading, setLoading] = useState(false);
@@ -30,13 +31,13 @@ export function ManageSubscriptionButton() {
   };
 
   return (
-    <button
+    <Button variant="disabled"
       type="button"
       onClick={handleManage}
       disabled={loading}
       className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-70 sm:w-auto"
     >
       {loading ? "Abrindo portal..." : "Gerenciar assinatura"}
-    </button>
+    </Button>
   );
 }

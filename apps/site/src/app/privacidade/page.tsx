@@ -18,9 +18,9 @@ export default function PrivacidadePage() {
         >
           Política de Privacidade
         </h1>
-        <p className="mt-2 text-sm text-slate-600">Última atualização: {new Date().toLocaleDateString("pt-BR")}</p>
+        <p className="mt-2 text-sm df-text-secondary">Última atualização: {new Date().toLocaleDateString("pt-BR")}</p>
 
-        <div className="mt-8 space-y-6 text-slate-700">
+        <div className="mt-8 space-y-6 df-text-secondary">
           <section>
             <h2 className="text-lg font-semibold text-foreground">1. Responsável</h2>
             <p className="mt-2 text-sm">

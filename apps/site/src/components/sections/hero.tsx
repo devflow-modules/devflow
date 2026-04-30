@@ -79,7 +79,7 @@ export function Hero() {
   return (
     <section
       id="hero"
-      className="relative overflow-hidden bg-gradient-to-b from-white to-slate-50 py-24"
+      className="relative overflow-hidden bg-gradient-to-b from-card to-muted/40 py-24"
       aria-labelledby="hero-heading"
     >
       {/* Glow sutil + grid tecnológico */}
@@ -87,28 +87,9 @@ export function Hero() {
           className="pointer-events-none absolute inset-0 -z-10"
           aria-hidden
         >
-          <div
-            className="absolute -top-40 -right-40 h-80 w-80 rounded-full opacity-35"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(34, 197, 94, 0.18) 0%, transparent 70%)",
-            }}
-          />
-          <div
-            className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full opacity-30"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%)",
-            }}
-          />
-          <div
-            className="absolute inset-0 opacity-[0.04]"
-            style={{
-              backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.6) 1px, transparent 1px),
-                                linear-gradient(90deg, rgba(15, 23, 42, 0.6) 1px, transparent 1px)`,
-              backgroundSize: "40px 40px",
-            }}
-          />
+          <div className="df-decor-radial-brand absolute -top-40 -right-40 h-80 w-80 rounded-full opacity-35" />
+          <div className="df-decor-radial-accent absolute -bottom-40 -left-40 h-80 w-80 rounded-full opacity-30" />
+          <div className="df-decor-grid-mesh absolute inset-0 opacity-[0.04]" />
         </div>
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 lg:items-center">
@@ -116,14 +97,14 @@ export function Hero() {
           <div className="space-y-6 sm:space-y-8">
             <div
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border border-border bg-white px-3 py-1.5 text-xs font-medium shadow-sm"
+                "inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium shadow-sm"
               )}
             >
               <span className="text-primary">Automação</span>
-              <span className="text-slate-300">•</span>
+              <span className="df-text-muted">•</span>
               <span className="text-accent">SaaS</span>
-              <span className="text-slate-300">•</span>
-              <span className="text-slate-600">Operação real</span>
+              <span className="df-text-muted">•</span>
+              <span className="df-text-secondary">Operação real</span>
             </div>
 
             <div className="space-y-4 max-w-[600px]">
@@ -133,7 +114,7 @@ export function Hero() {
               >
                 Automação Inteligente de Atendimento no WhatsApp
               </h1>
-              <p className="text-base text-slate-600 sm:text-lg">
+              <p className="text-base df-text-secondary sm:text-lg">
                 Empresas que recebem muitas mensagens perdem vendas todos os dias.
                 Automatize respostas, organize conversas e nunca deixe um cliente
                 sem retorno.
@@ -151,7 +132,7 @@ export function Hero() {
               </div>
             </div>
 
-            <p className="text-xs font-medium text-slate-500">
+            <p className="text-xs font-medium df-text-muted">
               {proofSocial}
             </p>
 
@@ -178,7 +159,7 @@ export function Hero() {
               {microProof.map((bullet, i) => (
                 <li
                   key={i}
-                  className="flex items-center gap-2 text-sm font-medium text-slate-700"
+                  className="flex items-center gap-2 text-sm font-medium df-text-secondary"
                 >
                   <Check
                     className="size-4 shrink-0 text-primary"
@@ -193,7 +174,7 @@ export function Hero() {
           {/* Coluna direita - mockup conversa realista */}
           <div
             className={cn(
-              "rounded-xl border border-[#cbd5e1] bg-gradient-to-b from-white to-slate-50/80 p-4",
+              "rounded-xl border border-[#cbd5e1] bg-gradient-to-b from-card to-muted/40/80 p-4",
               "shadow-[0_20px_60px_rgba(0,0,0,0.1)] transition-all duration-200 sm:p-5 lg:p-6"
             )}
           >
@@ -226,11 +207,11 @@ export function Hero() {
                   time={msg.time}
                 />
               ))}
-              <div className="flex items-center gap-2 text-xs text-slate-500">
+              <div className="flex items-center gap-2 text-xs df-text-muted">
                 <span className="flex gap-1">
-                  <span className="size-2 animate-pulse rounded-full bg-slate-400" style={{ animationDelay: "0ms" }} />
-                  <span className="size-2 animate-pulse rounded-full bg-slate-400" style={{ animationDelay: "150ms" }} />
-                  <span className="size-2 animate-pulse rounded-full bg-slate-400" style={{ animationDelay: "300ms" }} />
+                  <span className="size-2 animate-pulse rounded-full bg-muted-foreground/35" style={{ animationDelay: "0ms" }} />
+                  <span className="size-2 animate-pulse rounded-full bg-muted-foreground/35" style={{ animationDelay: "150ms" }} />
+                  <span className="size-2 animate-pulse rounded-full bg-muted-foreground/35" style={{ animationDelay: "300ms" }} />
                 </span>
                 DevFlow Bot está digitando...
               </div>
@@ -244,7 +225,7 @@ export function Hero() {
             <div
               key={badge}
               className={cn(
-                "rounded-lg border border-accent/30 bg-accent/5 px-4 py-2 text-xs font-medium text-slate-700"
+                "rounded-lg border border-accent/30 bg-accent/5 px-4 py-2 text-xs font-medium df-text-secondary"
               )}
             >
               {badge}

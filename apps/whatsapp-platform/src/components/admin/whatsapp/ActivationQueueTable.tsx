@@ -37,7 +37,7 @@ function priorityHint(row: PendingChannelRow): string {
 
 function AlertsCell({ row }: { row: PendingChannelRow }) {
   const summary = row.alerts?.map((a) => a.message).join(" · ");
-  if (!row.alerts?.length && !row.lastEvent?.type) return <span className="text-slate-400">—</span>;
+  if (!row.alerts?.length && !row.lastEvent?.type) return <span className="df-text-muted">—</span>;
   return (
     <span
       className="inline-flex max-w-[10rem] cursor-help items-center gap-1 text-amber-800"
@@ -67,7 +67,7 @@ export function ActivationQueueTable({
     return (
       <div className="space-y-2 py-6" data-testid="activation-queue-loading" aria-busy>
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100" />
+          <div key={i} className="h-12 animate-pulse rounded-lg bg-muted" />
         ))}
       </div>
     );
@@ -76,7 +76,7 @@ export function ActivationQueueTable({
   if (items.length === 0) {
     return (
       <p
-        className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 py-12 text-center text-sm text-slate-700"
+        className="rounded-xl border border-dashed border-border bg-muted/60/50 py-12 text-center text-sm df-text-secondary"
         data-testid="activation-queue-empty"
       >
         {EMPTY_COPY[filter]}
@@ -104,8 +104,8 @@ export function ActivationQueueTable({
           {items.map((row) => (
             <tr key={row.id} data-testid={`pending-row-${row.id}`} className={rowTone(row)}>
               <td className="text-sm">
-                <span className="font-mono tabular-nums text-slate-800">{row.priorityScore}</span>
-                <span className="ml-2 text-xs text-slate-600">{priorityHint(row)}</span>
+                <span className="font-mono tabular-nums df-text-primary">{row.priorityScore}</span>
+                <span className="ml-2 text-xs df-text-secondary">{priorityHint(row)}</span>
               </td>
               <td>
                 <AlertsCell row={row} />
@@ -113,10 +113,10 @@ export function ActivationQueueTable({
               <td className="font-mono text-sm">{row.phoneNumber}</td>
               <td>
                 <div className="flex flex-wrap items-center gap-1">
-                  <span className="font-medium text-slate-900">{row.tenantName}</span>
+                  <span className="font-medium df-text-primary">{row.tenantName}</span>
                   {row.autoHealAttempts >= 2 ? (
                     <span
-                      className="inline-flex items-center gap-0.5 rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold text-slate-800"
+                      className="inline-flex items-center gap-0.5 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold df-text-primary"
                       title="Limite de tentativas automáticas atingido"
                       data-testid={`auto-heal-limit-${row.id}`}
                     >
@@ -145,7 +145,7 @@ export function ActivationQueueTable({
                     </span>
                   ) : null}
                 </div>
-                <div className="font-mono text-xs text-slate-500">{row.tenantId}</div>
+                <div className="font-mono text-xs df-text-muted">{row.tenantId}</div>
                 {row.possiblyStuck ? (
                   <span
                     className="mt-1 inline-block rounded-md bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-950"
@@ -156,7 +156,7 @@ export function ActivationQueueTable({
                 ) : null}
               </td>
               <td className="text-xs font-mono">{row.status}</td>
-              <td className="whitespace-nowrap text-sm text-slate-600">
+              <td className="whitespace-nowrap text-sm df-text-secondary">
                 {new Date(row.createdAt).toLocaleString("pt-PT")}
               </td>
               <td className="tabular-nums text-sm">{row.minutesInQueue} min</td>

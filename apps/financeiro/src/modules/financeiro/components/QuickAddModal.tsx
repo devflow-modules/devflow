@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { cn } from "@/modules/financeiro/lib/cn";
 import type { FinancialContext } from "@/modules/financeiro/schemas";
 import { toDateOnly } from "@/lib/dates";
+import { Button } from "@/components/ui/button";
 
 const STORAGE_KEY = "financeiro.quickadd.last";
 
@@ -34,7 +35,7 @@ interface QuickAddModalProps {
 }
 
 const fieldCls =
-  "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100";
+  "w-full rounded-xl border border-border bg-card px-3 py-2.5 text-sm df-text-primary outline-none focus:ring-2 focus:ring-indigo-400 dark:df-border-dark dark:bg-muted dark:df-text-primary";
 
 export function QuickAddModal({ open, onClose }: QuickAddModalProps) {
   const [type, setType] = useState<"expense" | "income">("expense");
@@ -138,12 +139,12 @@ export function QuickAddModal({ open, onClose }: QuickAddModalProps) {
       className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 px-4 pt-[15vh] backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-950">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card shadow-2xl dark:df-border-dark dark:bg-muted">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 dark:border-slate-800">
-          <div className="flex gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-700 dark:bg-slate-900">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4 dark:df-border-dark">
+          <div className="flex gap-1 rounded-xl border border-border bg-muted/60 p-1 dark:df-border-dark dark:bg-muted">
             {(["expense", "income"] as const).map((t) => (
-              <button
+              <Button variant="secondary"
                 key={t}
                 type="button"
                 onClick={() => setType(t)}
@@ -153,27 +154,27 @@ export function QuickAddModal({ open, onClose }: QuickAddModalProps) {
                     ? t === "expense"
                       ? "bg-red-500 text-white shadow-sm"
                       : "bg-emerald-500 text-white shadow-sm"
-                    : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                    : "df-text-muted hover:df-text-secondary dark:df-text-muted"
                 )}
               >
                 {t === "expense" ? "💸 Despesa" : "💰 Receita"}
-              </button>
+              </Button>
             ))}
           </div>
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
+            className="rounded-lg p-1.5 df-text-muted hover:bg-muted hover:df-text-secondary dark:hover:bg-muted"
           >
             ✕
-          </button>
+          </Button>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-3 px-5 py-4">
           {/* Valor grande em destaque */}
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">R$</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-bold df-text-muted">R$</span>
             <input
               ref={amountRef}
               type="number"
@@ -181,7 +182,7 @@ export function QuickAddModal({ open, onClose }: QuickAddModalProps) {
               step="0.01"
               placeholder="0,00"
               required
-              className="w-full rounded-xl border-2 border-indigo-300 bg-white py-3 pl-10 pr-3 text-xl font-bold text-slate-800 outline-none focus:border-indigo-500 dark:bg-slate-900 dark:text-slate-100"
+              className="w-full rounded-xl border-2 border-indigo-300 bg-card py-3 pl-10 pr-3 text-xl font-bold df-text-primary outline-none focus:border-indigo-500 dark:bg-muted dark:df-text-primary"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
@@ -228,7 +229,7 @@ export function QuickAddModal({ open, onClose }: QuickAddModalProps) {
           </select>
 
           {type === "expense" && (
-            <label className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+            <label className="flex items-center gap-2 text-sm df-text-muted dark:df-text-muted">
               <input
                 type="checkbox"
                 checked={isPaid}
@@ -239,7 +240,7 @@ export function QuickAddModal({ open, onClose }: QuickAddModalProps) {
             </label>
           )}
 
-          <button
+          <Button variant="primary"
             type="submit"
             disabled={submitting}
             className={cn(
@@ -251,10 +252,10 @@ export function QuickAddModal({ open, onClose }: QuickAddModalProps) {
             )}
           >
             {submitting ? "Salvando..." : type === "expense" ? "Lançar despesa" : "Lançar receita"}
-          </button>
+          </Button>
 
-          <p className="text-center text-[10px] text-slate-400">
-            <kbd className="rounded border border-slate-200 px-1 py-0.5 text-[9px] font-mono">Esc</kbd> para fechar
+          <p className="text-center text-[10px] df-text-muted">
+            <kbd className="rounded border border-border px-1 py-0.5 text-[9px] font-mono">Esc</kbd> para fechar
           </p>
         </form>
       </div>

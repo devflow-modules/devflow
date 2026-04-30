@@ -25,13 +25,13 @@ export function FieldLabel({ htmlFor, children, optional, className = "" }: Labe
       className={`df-label mb-2 block ${className}`.trim()}
     >
       {children}
-      {optional ? <span className="ml-1.5 font-normal text-slate-400">Opcional</span> : null}
+      {optional ? <span className="ml-1.5 font-normal df-text-muted">Opcional</span> : null}
     </label>
   );
 }
 
 export function FieldHelp({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <p className={`mt-2 text-xs leading-relaxed text-slate-500 ${className}`.trim()}>{children}</p>;
+  return <p className={`mt-2 text-xs leading-relaxed df-text-muted ${className}`.trim()}>{children}</p>;
 }
 
 export function FieldError({ children, className = "" }: { children: ReactNode; className?: string }) {
@@ -101,7 +101,7 @@ export function FormSection({ title, description, children, className = "" }: Fo
 export function FormActions({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <div
-      className={`flex flex-wrap items-center gap-3 border-t border-slate-100 pt-8 ${className}`.trim()}
+      className={`flex flex-wrap items-center gap-3 border-t border-border pt-8 ${className}`.trim()}
     >
       {children}
     </div>

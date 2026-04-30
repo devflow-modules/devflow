@@ -10,6 +10,7 @@ import {
 import { buttonClassName } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AgentStatusBadge } from "./AgentStatusBadge";
+import { Button } from "@/components/ui/button";
 
 function formatDurationSeconds(sec: number | null): string {
   if (sec == null || !Number.isFinite(sec)) return "—";
@@ -90,7 +91,7 @@ export function InboxMetricsPanel({ onOpenThread }: InboxMetricsPanelProps) {
             )}
           </div>
           <div className="rounded-lg border df-border-brand bg-[var(--df-bg-elevated)]/90 px-2.5 py-2 shadow-sm">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+            <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">
               Tempo médio de atendimento
             </p>
             <p className="mt-0.5 text-lg font-bold tabular-nums leading-tight text-[var(--df-text-primary)]">
@@ -110,7 +111,7 @@ export function InboxMetricsPanel({ onOpenThread }: InboxMetricsPanelProps) {
             <p className="mt-0.5 text-[10px] text-[var(--df-text-muted)]">Total em aberto atribuído</p>
           </div>
         </div>
-        <button
+        <Button variant="disabled"
           type="button"
           disabled={nextMut.isPending}
           className={buttonClassName("primary") + " h-fit shrink-0 self-start px-3 py-2 text-sm"}
@@ -118,7 +119,7 @@ export function InboxMetricsPanel({ onOpenThread }: InboxMetricsPanelProps) {
           title="Atribui a ti a próxima conversa sem responsável na fila"
         >
           {nextMut.isPending ? "A abrir…" : "Assumir próxima"}
-        </button>
+        </Button>
       </div>
 
       {noMetricSamples ? (

@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { AuthScreenShell } from "@/components/auth/AuthScreenShell";
 import { mapAuthHttpError } from "@/lib/auth-client-errors";
+import { Button } from "@/components/ui/button";
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -57,7 +58,7 @@ export function ForgotPasswordForm() {
         title="Verifique o seu e-mail"
         description="Se existir uma conta associada a esse endereço, enviámos um link para redefinir a senha. Pode demorar alguns minutos."
         footer={
-          <p className="text-center text-sm text-slate-600">
+          <p className="text-center text-sm df-text-secondary">
             <Link href="/login" className="font-medium text-blue-600 hover:text-blue-800">
               Voltar ao login
             </Link>
@@ -80,7 +81,7 @@ export function ForgotPasswordForm() {
       title="Esqueci minha senha"
       description="Indique o e-mail da conta. Enviaremos um link seguro para definir uma nova senha."
       footer={
-        <p className="text-center text-sm text-slate-600">
+        <p className="text-center text-sm df-text-secondary">
           <Link href="/login" className="font-medium text-blue-600 hover:text-blue-800">
             Voltar ao login
           </Link>
@@ -94,7 +95,7 @@ export function ForgotPasswordForm() {
           </div>
         )}
         <div>
-          <label htmlFor="forgot-email" className="mb-1 block text-sm font-medium text-slate-700">
+          <label htmlFor="forgot-email" className="mb-1 block text-sm font-medium df-text-secondary">
             E-mail
           </label>
           <input
@@ -106,16 +107,16 @@ export function ForgotPasswordForm() {
             required
             autoComplete="email"
             disabled={loading}
-            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-60"
+            className="w-full rounded-md border df-border-dark bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-60"
           />
         </div>
-        <button
+        <Button variant="primary"
           type="submit"
           disabled={loading}
           className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50"
         >
           {loading ? "A enviar…" : "Enviar link de redefinição"}
-        </button>
+        </Button>
       </form>
     </AuthScreenShell>
   );

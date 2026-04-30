@@ -17,17 +17,17 @@ export function HowFreePlanWorksSection({ planKey, className = "" }: Props) {
 
   return (
     <section
-      className={`rounded-2xl border border-slate-200/90 bg-gradient-to-b from-slate-50/80 to-white p-5 shadow-sm sm:p-6 ${className}`}
+      className={`rounded-2xl border df-border-brand bg-gradient-to-b from-[var(--df-bg-app)] to-[var(--df-bg-elevated)] p-5 shadow-sm sm:p-6 ${className}`}
       aria-labelledby="how-free-plan-heading"
     >
-      <h2 id="how-free-plan-heading" className="text-base font-semibold text-slate-900">
+      <h2 id="how-free-plan-heading" className="text-base font-semibold text-[var(--df-text-primary)]">
         {title}
       </h2>
-      <p className="mt-1 text-sm text-slate-600">
+      <p className="mt-1 text-sm text-[var(--df-text-secondary)]">
         A avaliação permite experimentar a plataforma com um volume incluído por mês — sem cartão e sem cobrança
         variável. Para operação completa, combinamos implantação e contrato consigo.
       </p>
-      <ul className="mt-4 space-y-2.5 text-sm text-slate-700">
+      <ul className="mt-4 space-y-2.5 text-sm text-[var(--df-text-secondary)]">
         {bullets.map((line) => (
           <li key={line} className="flex gap-2">
             <span className="mt-0.5 text-emerald-600" aria-hidden>
@@ -46,7 +46,7 @@ export function HowFreePlanWorksSection({ planKey, className = "" }: Props) {
         </Link>
         <Link
           href="/billing"
-          className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-50"
+          className="inline-flex items-center justify-center rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--df-text-primary)] shadow-sm transition hover:bg-[color-mix(in_srgb,var(--df-bg-app)_45%,var(--df-bg-elevated))]"
         >
           Ver consumo
         </Link>

@@ -11,8 +11,8 @@ type BadgeProps = {
 
 const variantClasses: Record<BadgeVariant, string> = {
   default:
-    "rounded-md border border-border bg-white px-2 py-0.5 text-xs font-medium text-slate-700",
-  tech: "rounded-lg border border-accent/30 bg-accent/5 px-4 py-2 text-xs font-medium text-slate-700",
+    "rounded-md border border-border bg-card px-2 py-0.5 text-xs font-medium df-text-secondary",
+  tech: "rounded-lg border border-accent/30 bg-accent/5 px-4 py-2 text-xs font-medium df-text-secondary",
   primary:
     "rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary",
 };

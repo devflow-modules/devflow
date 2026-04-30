@@ -305,9 +305,9 @@ export function AutomationClient() {
         title="O que acontece quando chega uma mensagem"
         description={
           <>
-            Cada regra tem um <strong className="font-semibold text-slate-800">quando</strong> (gatilho), opcionalmente
-            um <strong className="font-semibold text-slate-800">se</strong> (condição) e uma ou mais{" "}
-            <strong className="font-semibold text-slate-800">ações</strong> (ex.: enviar texto, mudar prioridade). As
+            Cada regra tem um <strong className="font-semibold df-text-primary">quando</strong> (gatilho), opcionalmente
+            um <strong className="font-semibold df-text-primary">se</strong> (condição) e uma ou mais{" "}
+            <strong className="font-semibold df-text-primary">ações</strong> (ex.: enviar texto, mudar prioridade). As
             regras ativas correm na ordem definida pelo sistema quando o evento ocorre.
           </>
         }
@@ -315,7 +315,7 @@ export function AutomationClient() {
         showDivider
         actions={
           !showForm ? (
-            <Button
+            <Button variant="disabled"
               type="button"
               disabled={automationOutboundLocked}
               title={automationOutboundLocked ? "Disponível após ativação do número" : undefined}
@@ -337,48 +337,48 @@ export function AutomationClient() {
         </div>
       ) : null}
 
-      <section className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-bold text-slate-900">Modelos para começar</h2>
-        <p className="mt-1 text-sm text-slate-600">
+      <section className="rounded-xl border border-border/90 bg-card p-5 shadow-sm">
+        <h2 className="text-sm font-bold df-text-primary">Modelos para começar</h2>
+        <p className="mt-1 text-sm df-text-secondary">
           Preenchem o formulário por si; pode editar antes de guardar.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <button
+          <Button variant="disabled"
             type="button"
             disabled={automationOutboundLocked}
             title={automationOutboundLocked ? "Disponível após ativação do número" : undefined}
             onClick={() => applyTemplate("urgent")}
-            className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)] disabled:opacity-50"
+            className="rounded-xl border border-border bg-muted/60 p-4 text-left text-sm shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)] disabled:opacity-50"
           >
-            <span className="font-semibold text-slate-900">Palavra &quot;urgente&quot;</span>
-            <span className="mt-1 block text-xs text-slate-600">
+            <span className="font-semibold df-text-primary">Palavra &quot;urgente&quot;</span>
+            <span className="mt-1 block text-xs df-text-secondary">
               Se a mensagem contiver &quot;urgente&quot;, marca a conversa como prioridade alta.
             </span>
-          </button>
-          <button
+          </Button>
+          <Button variant="disabled"
             type="button"
             disabled={automationOutboundLocked}
             title={automationOutboundLocked ? "Disponível após ativação do número" : undefined}
             onClick={() => applyTemplate("log")}
-            className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)] disabled:opacity-50"
+            className="rounded-xl border border-border bg-muted/60 p-4 text-left text-sm shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)] disabled:opacity-50"
           >
-            <span className="font-semibold text-slate-900">Registar receção</span>
-            <span className="mt-1 block text-xs text-slate-600">
+            <span className="font-semibold df-text-primary">Registar receção</span>
+            <span className="mt-1 block text-xs df-text-secondary">
               Em cada mensagem recebida, deixa um registo no histórico (útil para auditoria).
             </span>
-          </button>
-          <button
+          </Button>
+          <Button variant="disabled"
             type="button"
             disabled={automationOutboundLocked}
             title={automationOutboundLocked ? "Disponível após ativação do número" : undefined}
             onClick={() => applyTemplate("reply")}
-            className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)] disabled:opacity-50"
+            className="rounded-xl border border-border bg-muted/60 p-4 text-left text-sm shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)] disabled:opacity-50"
           >
-            <span className="font-semibold text-slate-900">Perguntas sobre horário</span>
-            <span className="mt-1 block text-xs text-slate-600">
+            <span className="font-semibold df-text-primary">Perguntas sobre horário</span>
+            <span className="mt-1 block text-xs df-text-secondary">
               Se escreverem &quot;horário&quot;, responde automaticamente com texto de horário de atendimento.
             </span>
-          </button>
+          </Button>
         </div>
       </section>
 
@@ -387,7 +387,7 @@ export function AutomationClient() {
           className={`rounded-xl border px-4 py-3 text-sm shadow-sm ${
             apiError
               ? "border-red-200/90 bg-red-50/90 text-red-800"
-              : "border-slate-200/90 bg-slate-50/90 text-slate-800"
+              : "border-border/90 bg-muted/60/90 df-text-primary"
           }`}
           role={apiError ? "alert" : "status"}
         >
@@ -395,15 +395,15 @@ export function AutomationClient() {
           {testResult && !apiError ? (
             <ul className="space-y-1.5">
               <li>
-                <span className="font-semibold text-slate-700">Condições:</span>{" "}
+                <span className="font-semibold df-text-secondary">Condições:</span>{" "}
                 {testResult.conditionsMatch ? "Sim" : "Não"}
               </li>
               <li>
-                <span className="font-semibold text-slate-700">Executaria a regra:</span>{" "}
+                <span className="font-semibold df-text-secondary">Executaria a regra:</span>{" "}
                 {testResult.wouldExecute ? "Sim" : "Não"}
               </li>
               <li>
-                <span className="font-semibold text-slate-700">Regras coincidentes:</span>{" "}
+                <span className="font-semibold df-text-secondary">Regras coincidentes:</span>{" "}
                 {testResult.matchingRulesCount}
               </li>
             </ul>
@@ -486,7 +486,7 @@ export function AutomationClient() {
 
               <div>
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-sm font-medium text-slate-700">Ações</span>
+                  <span className="text-sm font-medium df-text-secondary">Ações</span>
                   <Button type="button" size="sm" variant="ghost" onClick={addAction}>
                     + Ação
                   </Button>
@@ -507,7 +507,7 @@ export function AutomationClient() {
               </div>
 
               <FormActions>
-                <Button type="submit" disabled={loading}>
+                <Button variant="primary" type="submit" disabled={loading}>
                   {loading ? "A criar…" : "Criar regra"}
                 </Button>
                 <Button type="button" variant="ghost" onClick={resetForm}>
@@ -526,13 +526,13 @@ export function AutomationClient() {
           title="Ainda não há regras"
           description="Use um modelo abaixo para preencher o formulário ou crie uma regra à medida com «Nova regra» no topo. As regras ativas executam-se quando chegam mensagens ou mudam estados."
           action={
-            <Button type="button" onClick={() => setShowForm(true)}>
+            <Button variant="secondary" type="button" onClick={() => setShowForm(true)}>
               Criar primeira regra
             </Button>
           }
         />
       ) : (
-        <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm">
+        <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-border/90 bg-card shadow-sm">
           {rules.map((r) => (
             <li key={r.id} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -542,11 +542,11 @@ export function AutomationClient() {
                     {r.isActive ? "Ativa" : "Inativa"}
                   </AppBadge>
                   {r.isSystem ? <AppBadge variant="muted">Sistema</AppBadge> : null}
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs df-text-muted">
                     {TRIGGER_LABELS[r.triggerType] ?? r.triggerType}
                   </span>
                 </div>
-                <div className="text-xs text-slate-500 mt-1">
+                <div className="text-xs df-text-muted mt-1">
                   {r.conditions.length} condição(ões) · {r.actions.length} ação(ões)
                 </div>
               </div>
@@ -589,18 +589,18 @@ export function AutomationClient() {
       )}
 
       {testRuleId ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 p-4 backdrop-blur-[2px]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-muted/45 p-4 backdrop-blur-[2px]">
           <div
-            className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-xl ring-1 ring-black/[0.06]"
+            className="w-full max-w-md overflow-hidden rounded-2xl border border-border/90 bg-card shadow-xl ring-1 ring-black/[0.06]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="automation-test-title"
           >
-            <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-5 py-4">
-              <h3 id="automation-test-title" className="text-base font-bold tracking-tight text-slate-900">
+            <div className="border-b border-border bg-gradient-to-r from-muted/40 to-white px-5 py-4">
+              <h3 id="automation-test-title" className="text-base font-bold tracking-tight df-text-primary">
                 Testar regra
               </h3>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="mt-1 text-sm df-text-secondary">
                 Simula o contexto de uma conversa real. O resultado aparece no painel acima da lista.
               </p>
             </div>
@@ -642,8 +642,8 @@ export function AutomationClient() {
                 />
               </FormField>
             </div>
-            <div className="flex flex-wrap gap-2 border-t border-slate-100 bg-slate-50/80 px-5 py-4">
-              <Button
+            <div className="flex flex-wrap gap-2 border-t border-border bg-muted/60/80 px-5 py-4">
+              <Button variant="secondary"
                 type="button"
                 onClick={() => handleTest(testRuleId)}
                 disabled={testLoading || !testThreadId.trim()}
@@ -697,7 +697,7 @@ function ActionRow({
   const params = action.params ?? {};
 
   return (
-    <div className="flex flex-wrap items-end gap-2 rounded-xl border border-slate-200/90 bg-slate-50/60 p-3 ring-1 ring-slate-900/[0.02]">
+    <div className="flex flex-wrap items-end gap-2 rounded-xl border border-border/90 bg-muted/60/60 p-3 ring-1 ring-slate-900/[0.02]">
       <select
         value={action.type}
         onChange={(e) => onChange({ type: e.target.value })}

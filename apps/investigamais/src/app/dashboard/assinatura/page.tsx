@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 type BillingStatus = {
   plan: string;
@@ -49,7 +50,7 @@ export default function AssinaturaPage() {
         <Link href="/dashboard" className="text-blue-600 underline">
           Voltar
         </Link>
-        <p className="mt-4 text-gray-600">Não foi possível carregar os dados.</p>
+        <p className="mt-4 df-text-secondary">Não foi possível carregar os dados.</p>
       </div>
     );
   }
@@ -65,11 +66,11 @@ export default function AssinaturaPage() {
 
       <div className="mt-6 max-w-md space-y-4 rounded-lg border p-6">
         <div>
-          <p className="text-sm text-gray-600">Plano atual</p>
+          <p className="text-sm df-text-secondary">Plano atual</p>
           <p className="text-xl font-medium capitalize">{billing.plan}</p>
         </div>
         <div>
-          <p className="text-sm text-gray-600">Consultas no período</p>
+          <p className="text-sm df-text-secondary">Consultas no período</p>
           <p className="text-xl font-medium">
             {billing.remaining_queries} / {limit}
           </p>
@@ -80,17 +81,17 @@ export default function AssinaturaPage() {
           </p>
         )}
         {billing.canUsePortal && (
-          <button
+          <Button variant="disabled"
             type="button"
             onClick={openPortal}
             disabled={portalLoading}
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
           >
             {portalLoading ? "Abrindo…" : "Gerenciar assinatura (Stripe)"}
-          </button>
+          </Button>
         )}
         {!billing.canUsePortal && (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm df-text-muted">
             Vincule uma assinatura para gerenciar pelo portal. (Integração Stripe em configuração.)
           </p>
         )}

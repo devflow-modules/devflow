@@ -49,8 +49,13 @@ html[data-theme="devflow"],
   /** Contorno visível em cartões/tabelas dark (sem depender só do brand). */
   --df-border-dark: rgba(148, 163, 184, 0.14);
   --df-text-primary: #f1f5f4;
-  --df-text-secondary: #b8c4bf;
-  --df-text-muted: #9aa8a1;
+  /** Corpo — contraste reforçado vs. fundo app (dashboard / inbox) */
+  --df-text-secondary: #cdd8d3;
+  --df-text-muted: #a3b0aa;
+  /** Cascata tipográfica (paridade com portal `df-section-*`) */
+  --df-text-primary-current: var(--df-text-primary);
+  --df-text-secondary-current: var(--df-text-secondary);
+  --df-text-muted-current: var(--df-text-muted);
 
   /* Feedback */
   --df-success-bg: rgba(30, 215, 134, 0.16);
@@ -155,6 +160,26 @@ html[data-theme="client_branded"] {
     border-color: var(--df-border-subtle);
   }
 
+  /**
+   * Painéis da área Conta e canais (settings, WhatsApp, billing tenant).
+   * Preferir a isto em vez de bg-white + border-slate-*.
+   */
+  .df-panel {
+    @apply rounded-xl shadow-sm;
+    border: 1px solid color-mix(in srgb, var(--df-border-dark) 55%, var(--df-border-subtle));
+    background: var(--df-bg-elevated);
+  }
+
+  .df-panel-inset {
+    border: 1px solid color-mix(in srgb, var(--df-border-dark) 50%, var(--df-border-subtle));
+    background: color-mix(in srgb, var(--df-bg-app) 48%, var(--df-bg-elevated));
+  }
+
+  .df-skeleton-bar {
+    @apply animate-pulse rounded;
+    background: color-mix(in srgb, var(--df-border-dark) 75%, var(--df-bg-elevated));
+  }
+
   /* --- Layout & ritmo vertical --- */
   .df-shell-main {
     @apply mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12;
@@ -197,17 +222,17 @@ html[data-theme="client_branded"] {
   }
 
   .df-text-primary {
-    color: var(--df-text-primary);
+    color: var(--df-text-primary-current);
   }
 
   .df-text-secondary {
-    color: var(--df-text-secondary);
+    color: var(--df-text-secondary-current);
   }
 
   .df-text-muted {
     font-size: 0.875rem;
     line-height: 1.5rem;
-    color: var(--df-text-muted);
+    color: var(--df-text-muted-current);
   }
 
   .df-text-page-title {
@@ -242,8 +267,29 @@ html[data-theme="client_branded"] {
 
   /** Superfície escura de secção (paridade com portal DevFlow) */
   .df-section-dark {
+    --df-text-primary-current: var(--df-text-primary);
+    --df-text-secondary-current: var(--df-text-secondary);
+    --df-text-muted-current: var(--df-text-muted);
     background: var(--df-bg-app);
     color: var(--df-text-primary);
+  }
+
+  /**
+   * Secção clara (modais, onboarding claro, marketing embutido).
+   * Cartões escuros (`bg-card` / superfície elevada) restauram tokens dark nos descendentes.
+   */
+  .df-section-light {
+    --df-text-primary-current: #0f172a;
+    --df-text-secondary-current: #1e293b;
+    --df-text-muted-current: #475569;
+    background: color-mix(in srgb, var(--df-bg-elevated) 88%, #f8fafc 12%);
+    color: var(--df-text-primary-current);
+  }
+
+  .df-section-light .bg-card {
+    --df-text-primary-current: var(--df-text-primary);
+    --df-text-secondary-current: var(--df-text-secondary);
+    --df-text-muted-current: var(--df-text-muted);
   }
 
   .df-border-dark {
@@ -252,7 +298,10 @@ html[data-theme="client_branded"] {
 
   /* --- Cabeçalho de página (complementa PageHeader) --- */
   .df-quick-action {
-    @apply rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200/90 transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-60;
+    @apply rounded-lg px-3 py-1.5 text-sm font-medium shadow-sm transition hover:bg-[var(--df-brand-100)] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--df-bg-app)];
+    border: 1px solid color-mix(in srgb, var(--df-border-dark) 55%, var(--df-border-subtle));
+    background: var(--df-bg-elevated);
+    color: var(--df-text-primary);
   }
 
   .df-focus-brand {
@@ -290,6 +339,14 @@ html[data-theme="client_branded"] {
   .df-btn-ghost:hover:not(:disabled) {
     background: var(--df-brand-50);
     color: var(--df-text-primary);
+  }
+
+  .df-btn-disabled,
+  .df-btn-disabled:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+    user-select: none;
   }
 
   .df-admin-badge {

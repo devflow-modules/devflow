@@ -3,6 +3,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { buildAffiliateSignupLink } from "@/modules/affiliates/affiliateSignupLink";
+import { Button } from "@/components/ui/button";
 
 type AffiliateRow = {
   id: string;
@@ -204,71 +205,71 @@ export function AffiliatesAdminClient({
     <div className="mx-auto max-w-5xl space-y-8">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Plataforma</p>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Afiliados</h1>
-          <p className="mt-1 max-w-2xl text-sm text-slate-600">{baseHint}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide df-text-muted">Plataforma</p>
+          <h1 className="text-2xl font-semibold tracking-tight df-text-primary">Afiliados</h1>
+          <p className="mt-1 max-w-2xl text-sm df-text-secondary">{baseHint}</p>
         </div>
         <div className="flex flex-wrap gap-3 text-sm">
-          <Link href="/admin/tenants" className="font-medium text-slate-600 underline-offset-4 hover:underline">
+          <Link href="/admin/tenants" className="font-medium df-text-secondary underline-offset-4 hover:underline">
             Tenants
           </Link>
-          <Link href="/admin/billing" className="font-medium text-slate-600 underline-offset-4 hover:underline">
+          <Link href="/admin/billing" className="font-medium df-text-secondary underline-offset-4 hover:underline">
             Faturação
           </Link>
-          <Link href="/admin/metrics" className="font-medium text-slate-600 underline-offset-4 hover:underline">
+          <Link href="/admin/metrics" className="font-medium df-text-secondary underline-offset-4 hover:underline">
             Métricas
           </Link>
         </div>
       </div>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-900">Novo afiliado</h2>
+      <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
+        <h2 className="text-sm font-semibold df-text-primary">Novo afiliado</h2>
         <form onSubmit={onCreate} className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-          <label className="block min-w-[180px] flex-1 text-xs text-slate-600">
+          <label className="block min-w-[180px] flex-1 text-xs df-text-secondary">
             Nome
             <input
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900"
+              className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm df-text-primary"
               value={name}
               onChange={(ev) => setName(ev.target.value)}
               placeholder="Distribuidora X"
             />
           </label>
-          <label className="block min-w-[200px] flex-1 text-xs text-slate-600">
+          <label className="block min-w-[200px] flex-1 text-xs df-text-secondary">
             E-mail (opcional)
             <input
               type="email"
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900"
+              className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm df-text-primary"
               value={email}
               onChange={(ev) => setEmail(ev.target.value)}
             />
           </label>
-          <label className="block w-32 text-xs text-slate-600">
+          <label className="block w-32 text-xs df-text-secondary">
             Taxa (0–1)
             <input
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900"
+              className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm df-text-primary"
               value={commissionRate}
               onChange={(ev) => setCommissionRate(ev.target.value)}
               placeholder="0.5"
             />
           </label>
-          <button
+          <Button variant="primary"
             type="submit"
             disabled={createBusy}
-            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-lg bg-muted px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
           >
             {createBusy ? "A guardar…" : "Criar"}
-          </button>
+          </Button>
         </form>
         {createError ? <p className="mt-2 text-sm text-red-600">{createError}</p> : null}
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 px-5 py-3">
-          <h2 className="text-sm font-semibold text-slate-900">Resumo</h2>
+      <section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <div className="border-b border-border px-5 py-3">
+          <h2 className="text-sm font-semibold df-text-primary">Resumo</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="bg-slate-50 text-xs font-medium uppercase text-slate-500">
+            <thead className="bg-muted/60 text-xs font-medium uppercase df-text-muted">
               <tr>
                 <th className="px-4 py-3">Afiliado</th>
                 <th className="px-4 py-3">Taxa</th>
@@ -283,83 +284,83 @@ export function AffiliatesAdminClient({
             <tbody className="divide-y divide-slate-100">
               {affiliates.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={8} className="px-4 py-8 text-center df-text-muted">
                     Sem afiliados. Crie o primeiro acima.
                   </td>
                 </tr>
               ) : (
                 affiliates.map((a) => (
                   <Fragment key={a.id}>
-                    <tr className="hover:bg-slate-50/80">
+                    <tr className="hover:bg-muted/60/80">
                       <td className="px-4 py-3">
-                        <div className="font-medium text-slate-900">{a.name}</div>
-                        {a.email ? <div className="text-xs text-slate-500">{a.email}</div> : null}
-                        <div className="mt-0.5 font-mono text-[11px] text-slate-400">{a.id}</div>
+                        <div className="font-medium df-text-primary">{a.name}</div>
+                        {a.email ? <div className="text-xs df-text-muted">{a.email}</div> : null}
+                        <div className="mt-0.5 font-mono text-[11px] df-text-muted">{a.id}</div>
                       </td>
-                      <td className="px-4 py-3 text-slate-700">{formatPct(a.commissionRate)}</td>
-                      <td className="px-4 py-3 text-right tabular-nums text-slate-800">{a.clientCount}</td>
-                      <td className="px-4 py-3 text-right tabular-nums text-slate-800">{formatBrl(a.totalEarned)}</td>
+                      <td className="px-4 py-3 df-text-secondary">{formatPct(a.commissionRate)}</td>
+                      <td className="px-4 py-3 text-right tabular-nums df-text-primary">{a.clientCount}</td>
+                      <td className="px-4 py-3 text-right tabular-nums df-text-primary">{formatBrl(a.totalEarned)}</td>
                       <td className="px-4 py-3 text-right tabular-nums text-amber-800">{formatBrl(a.pendingTotal)}</td>
                       <td className="px-4 py-3 text-right tabular-nums text-emerald-800">{formatBrl(a.paidTotal)}</td>
                       <td className="px-4 py-3">
                         <div className="flex max-w-[220px] flex-col gap-1.5">
-                          <p className="text-[11px] leading-snug text-slate-500">Use este link para indicar clientes</p>
+                          <p className="text-[11px] leading-snug df-text-muted">Use este link para indicar clientes</p>
                           <p
-                            className="break-all font-mono text-[10px] leading-tight text-slate-400"
+                            className="break-all font-mono text-[10px] leading-tight df-text-muted"
                             title={buildAffiliateSignupLink(a.id, publicSignupBaseUrl || undefined)}
                           >
                             {truncateSignupUrl(buildAffiliateSignupLink(a.id, publicSignupBaseUrl || undefined))}
                           </p>
-                          <button
+                          <Button variant="secondary"
                             type="button"
                             data-testid={`copy-ref-link-${a.id}`}
                             onClick={() => void copyReferralLink(a.id)}
-                            className="w-max rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-800 hover:bg-slate-50"
+                            className="w-max rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium df-text-primary hover:bg-muted/60"
                           >
                             {copyNoticeAffiliateId === a.id
                               ? "Link de indicação copiado"
                               : "Copiar link de indicação"}
-                          </button>
-                          <button
+                          </Button>
+                          <Button variant="secondary"
                             type="button"
                             onClick={() => openReferralLink(a.id)}
                             className="w-max text-xs font-medium text-blue-700 underline-offset-4 hover:underline"
                           >
                             Abrir signup
-                          </button>
+                          </Button>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button
+                        <Button variant="secondary"
                           type="button"
                           onClick={() => void toggleExpand(a.id)}
-                          className="text-sm font-medium text-slate-700 underline-offset-4 hover:underline"
+                          className="text-sm font-medium df-text-secondary underline-offset-4 hover:underline"
                         >
                           {expandedId === a.id ? "Fechar" : "Comissões"}
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                     {expandedId === a.id ? (
-                      <tr className="bg-slate-50/50">
+                      <tr className="bg-muted/60/50">
                         <td colSpan={8} className="px-4 py-4">
                           {loadingCommissions === a.id ? (
-                            <p className="text-sm text-slate-500">A carregar comissões…</p>
+                            <p className="text-sm df-text-muted">A carregar comissões…</p>
                           ) : (
                             <div className="space-y-3">
                               <div className="flex flex-wrap gap-2">
                                 {(["all", "pendente", "pago"] as const).map((f) => (
-                                  <button
+                                  <Button variant="secondary"
                                     key={f}
                                     type="button"
                                     onClick={() => setCommissionFilter(f)}
                                     className={`rounded-full px-3 py-1 text-xs font-medium ${
                                       commissionFilter === f
-                                        ? "bg-slate-900 text-white"
-                                        : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
+                                        ? "bg-muted text-white"
+                                        : "bg-card df-text-secondary ring-1 ring-slate-200 hover:bg-muted/60"
                                     }`}
                                   >
                                     {f === "all" ? "Todas" : f === "pendente" ? "Pendentes" : "Pagas"}
-                                  </button>
+                                  </Button>
                                 ))}
                               </div>
                               <ul className="space-y-2">
@@ -368,7 +369,7 @@ export function AffiliatesAdminClient({
                                   .map((c) => (
                                     <li
                                       key={c.id}
-                                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm"
                                     >
                                       <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-2">
@@ -381,17 +382,17 @@ export function AffiliatesAdminClient({
                                           >
                                             {c.status === "pago" ? "Pago" : "Pendente"}
                                           </span>
-                                          <span className="font-medium text-slate-900">{formatBrl(c.amount)}</span>
-                                          <span className="text-slate-500">comissão</span>
+                                          <span className="font-medium df-text-primary">{formatBrl(c.amount)}</span>
+                                          <span className="df-text-muted">comissão</span>
                                         </div>
-                                        <div className="mt-1 text-xs text-slate-600">
+                                        <div className="mt-1 text-xs df-text-secondary">
                                           Implantação:{" "}
                                           {c.implantationPriceBrl != null && c.implantationPriceBrl > 0
                                             ? formatBrl(c.implantationPriceBrl)
                                             : "—"}{" "}
                                           · Taxa aplicada: {formatPct(c.affiliateCommissionRate)} · {c.type}
                                         </div>
-                                        <div className="flex flex-wrap items-center gap-x-2 text-xs text-slate-500">
+                                        <div className="flex flex-wrap items-center gap-x-2 text-xs df-text-muted">
                                           <span>
                                             {c.tenantName ?? c.tenantId} · {new Date(c.createdAt).toLocaleString("pt-BR")}
                                           </span>
@@ -404,23 +405,23 @@ export function AffiliatesAdminClient({
                                         </div>
                                       </div>
                                       {c.status === "pendente" ? (
-                                        <button
+                                        <Button variant="disabled"
                                           type="button"
                                           disabled={payingId === c.id}
                                           onClick={() => void markPaid(c.id, a.id)}
-                                          className="shrink-0 rounded-md border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-800 hover:bg-slate-50 disabled:opacity-50"
+                                          className="shrink-0 rounded-md border df-border-dark bg-card px-3 py-1 text-xs font-medium df-text-primary hover:bg-muted/60 disabled:opacity-50"
                                         >
                                           {payingId === c.id ? "…" : "Marcar como pago"}
-                                        </button>
+                                        </Button>
                                       ) : null}
                                     </li>
                                   ))}
                                 {(commissionsByAffiliate[a.id] ?? []).length === 0 ? (
-                                  <li className="text-sm text-slate-500">Nenhuma comissão registada.</li>
+                                  <li className="text-sm df-text-muted">Nenhuma comissão registada.</li>
                                 ) : (commissionsByAffiliate[a.id] ?? []).filter(
                                     (c) => commissionFilter === "all" || c.status === commissionFilter
                                   ).length === 0 ? (
-                                  <li className="text-sm text-slate-500">Nenhuma comissão neste filtro.</li>
+                                  <li className="text-sm df-text-muted">Nenhuma comissão neste filtro.</li>
                                 ) : null}
                               </ul>
                             </div>
@@ -436,12 +437,12 @@ export function AffiliatesAdminClient({
         </div>
       </section>
 
-      <p className="text-xs text-slate-500">
-        APIs: <code className="rounded bg-slate-100 px-1">POST/GET /api/admin/affiliates</code>,{" "}
-        <code className="rounded bg-slate-100 px-1">PATCH /api/admin/tenants/:id/affiliate</code>,{" "}
-        <code className="rounded bg-slate-100 px-1">PATCH /api/admin/tenants/:id</code> (implantação),{" "}
-        <code className="rounded bg-slate-100 px-1">PATCH /api/admin/tenants/:id/gtm-lifecycle</code>,{" "}
-        <code className="rounded bg-slate-100 px-1">PATCH /api/admin/commissions/:id/pay</code>.
+      <p className="text-xs df-text-muted">
+        APIs: <code className="rounded bg-muted px-1">POST/GET /api/admin/affiliates</code>,{" "}
+        <code className="rounded bg-muted px-1">PATCH /api/admin/tenants/:id/affiliate</code>,{" "}
+        <code className="rounded bg-muted px-1">PATCH /api/admin/tenants/:id</code> (implantação),{" "}
+        <code className="rounded bg-muted px-1">PATCH /api/admin/tenants/:id/gtm-lifecycle</code>,{" "}
+        <code className="rounded bg-muted px-1">PATCH /api/admin/commissions/:id/pay</code>.
       </p>
     </div>
   );

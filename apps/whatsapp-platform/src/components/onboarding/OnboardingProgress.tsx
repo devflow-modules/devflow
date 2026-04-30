@@ -24,7 +24,7 @@ export function OnboardingProgress({ currentStep, allComplete }: OnboardingProgr
                     ? "bg-emerald-500 text-white"
                     : active
                       ? "bg-[var(--df-brand-600)] text-white ring-2 ring-[var(--df-brand-200)]"
-                      : "bg-slate-200 text-slate-500"
+                      : "bg-muted df-text-muted"
                 }`}
                 aria-current={active ? "step" : undefined}
               >
@@ -32,13 +32,13 @@ export function OnboardingProgress({ currentStep, allComplete }: OnboardingProgr
               </span>
               <span
                 className={`text-xs font-medium sm:text-sm ${
-                  active ? "text-slate-900" : done ? "text-emerald-800" : "text-slate-500"
+                  active ? "df-text-primary" : done ? "text-emerald-800" : "df-text-muted"
                 }`}
               >
                 {label}
               </span>
               {i < STEP_LABELS.length - 1 ? (
-                <span className="mx-1 hidden h-px min-w-[1rem] flex-1 bg-slate-200 sm:block" aria-hidden />
+                <span className="mx-1 hidden h-px min-w-[1rem] flex-1 bg-muted sm:block" aria-hidden />
               ) : null}
             </li>
           );

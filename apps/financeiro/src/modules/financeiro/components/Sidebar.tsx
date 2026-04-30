@@ -6,6 +6,7 @@ import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvid
 import { cn } from "@/modules/financeiro/lib/cn";
 import { focusRingLight, labelCaps } from "@/modules/financeiro/lib/primitives";
 import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
+import { Button } from "@/components/ui/button";
 
 type NavItem = {
   href: string;
@@ -65,7 +66,7 @@ export function Sidebar({
     : "pointer-events-none opacity-0";
 
   const asideClasses = [
-    "fixed inset-y-0 left-0 z-40 flex h-full flex-col border-r border-slate-200 bg-white shadow-sm",
+    "fixed inset-y-0 left-0 z-40 flex h-full flex-col border-r border-border bg-card shadow-sm",
     "transition-transform duration-200 ease-out",
     isCollapsed ? "w-20" : "w-64",
     isMobileOpen ? "translate-x-0" : "-translate-x-full sm:translate-x-0",
@@ -77,7 +78,7 @@ export function Sidebar({
   return (
     <>
       <div
-        className={`fixed inset-0 z-30 bg-slate-900/50 transition-opacity duration-200 sm:hidden ${overlayClasses}`}
+        className={`fixed inset-0 z-30 bg-muted/50 transition-opacity duration-200 sm:hidden ${overlayClasses}`}
         onClick={onCloseMobile}
         aria-hidden="true"
       />
@@ -89,27 +90,27 @@ export function Sidebar({
             <p className={cn("truncate text-lg font-semibold text-foreground", headerTextClasses)}>Casa</p>
           </div>
           <div className="flex items-center gap-2">
-            <button
+            <Button variant="ghost"
               type="button"
-              className={cn("hidden rounded-xl border border-slate-200 px-2 py-2 text-foreground transition hover:bg-slate-50 sm:inline-flex", labelCaps, focusRingLight)}
+              className={cn("hidden rounded-xl border border-border px-2 py-2 text-foreground transition hover:bg-muted/60 sm:inline-flex", labelCaps, focusRingLight)}
               onClick={onToggleCollapsed}
               aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
             >
               {isCollapsed ? ">>" : "<<"}
-            </button>
-            <button
+            </Button>
+            <Button variant="ghost"
               type="button"
-              className={cn("rounded-xl border border-slate-200 px-2 py-2 text-foreground transition hover:bg-slate-50 sm:hidden", labelCaps, focusRingLight)}
+              className={cn("rounded-xl border border-border px-2 py-2 text-foreground transition hover:bg-muted/60 sm:hidden", labelCaps, focusRingLight)}
               onClick={onCloseMobile}
               aria-label="Fechar menu"
             >
               X
-            </button>
+            </Button>
           </div>
         </div>
 
         <div className="px-4">
-          <div className="rounded-2xl border border-slate-200 bg-card p-3">
+          <div className="rounded-2xl border border-border bg-card p-3">
             <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Casa ativa</p>
             <p className={cn("mt-2 truncate text-sm text-foreground", headerTextClasses)}>
               {household?.name ?? "Nenhuma casa ativa"}
@@ -137,13 +138,13 @@ export function Sidebar({
                 onClick={onCloseMobile}
                 className={cn(
                   "group flex items-center gap-3 rounded-2xl px-3 py-2 text-sm transition-colors",
-                  isActive ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-slate-100",
+                  isActive ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-muted",
                   focusRingLight
                 )}
                 aria-current={isActive ? "page" : undefined}
                 aria-label={item.label}
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                   {item.short}
                 </span>
                 <span className={labelClasses}>{item.label}</span>
@@ -153,7 +154,7 @@ export function Sidebar({
         </nav>
 
         <div className="px-4 pb-4">
-          <div className="rounded-2xl border border-slate-200 bg-card p-3">
+          <div className="rounded-2xl border border-border bg-card p-3">
             <p className={cn("text-xs text-muted-foreground", headerTextClasses)}>
               {isMember
                 ? "Use Resumo e Lançamentos no dia a dia. Conta para trocar casa ou sair."

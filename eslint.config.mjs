@@ -113,6 +113,43 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-explicit-any": "off",
     },
   },
+  /** Design system: literais de className com utilitários Tailwind legados (paridade com `lint:design-system`). */
+  {
+    files: [
+      "src/**/*.{ts,tsx}",
+      "apps/**/src/**/*.{ts,tsx}",
+      "packages/**/src/**/*.{ts,tsx}",
+      "templates/**/src/**/*.{ts,tsx}",
+    ],
+    ignores: [
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/generated/**",
+      "**/__tests__/**",
+      "**/*.{test,spec}.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "Literal[value=/text-(slate|gray|zinc)-/]",
+          message: "Usar df-text-* / tokens DevFlow em vez de text-slate|gray|zinc.",
+        },
+        {
+          selector: "Literal[value=/border-(slate|gray|zinc)-/]",
+          message: "Usar border-border / df-border-dark em vez de border-slate|gray|zinc.",
+        },
+        {
+          selector: "Literal[value=/bg-(slate|gray|zinc)-/]",
+          message: "Usar bg-card / bg-muted / tokens em vez de bg-slate|gray|zinc.",
+        },
+        {
+          selector: "Literal[value=/\\\\bbg-white\\\\b/]",
+          message: "Evitar bg-white solto; preferir bg-card / df-section-light.",
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

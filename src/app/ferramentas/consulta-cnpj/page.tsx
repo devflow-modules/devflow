@@ -23,6 +23,7 @@ import {
 } from "@/components/demo/demoUi";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { CONSULTA_PREFILL_DEMO_DISPLAY } from "@/modules/produto-demos/investigaDemo";
 import {
   PRIMARY_DEMO_HREF,
@@ -149,8 +150,9 @@ export default function ConsultaCnpjPage() {
               disabled={loading}
               className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
             />
-            <button
+            <Button
               type="submit"
+              variant="primary"
               disabled={loading}
               className={cn(demoCtaPrimaryClass, "min-w-[140px] sm:w-auto")}
             >
@@ -165,7 +167,7 @@ export default function ConsultaCnpjPage() {
                   Consultar
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </form>
 

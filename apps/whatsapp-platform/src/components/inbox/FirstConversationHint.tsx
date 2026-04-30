@@ -50,14 +50,14 @@ export function FirstConversationHint({
 
   const numberBlock =
     formatted ? (
-      <div className="mt-3 rounded-xl border border-slate-200/90 bg-slate-50/80 px-3 py-3">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Número Business</p>
+      <div className="mt-3 rounded-xl border border-border/90 bg-muted/60/80 px-3 py-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wide df-text-muted">Número Business</p>
         {statusLine ? (
-          <p className="mt-1 text-xs font-medium text-slate-600" data-testid="line-status-inbox-hint">
+          <p className="mt-1 text-xs font-medium df-text-secondary" data-testid="line-status-inbox-hint">
             {statusLine}
           </p>
         ) : null}
-        <p className="mt-1 font-mono text-base font-semibold tracking-tight text-slate-900">{formatted}</p>
+        <p className="mt-1 font-mono text-base font-semibold tracking-tight df-text-primary">{formatted}</p>
         <div className="mt-3 flex flex-wrap gap-2">
           {waHref ? (
             <a
@@ -86,7 +86,7 @@ export function FirstConversationHint({
         ) : null}
       </div>
     ) : (
-      <p className="mt-3 text-sm text-slate-600">
+      <p className="mt-3 text-sm df-text-secondary">
         O número aparece em{" "}
         <Link href="/dashboard/whatsapp" className="font-medium text-[var(--df-brand-700)] underline">
           WhatsApp → Estado da ligação
@@ -99,18 +99,18 @@ export function FirstConversationHint({
     return (
       <div className="space-y-3 text-left" data-testid="first-conversation-hint">
         {toastAnchor}
-        <p className="text-sm leading-relaxed text-slate-600">
-          <span className="font-medium text-slate-800">1.</span> Use «Abrir WhatsApp» ou copie número e mensagem.
+        <p className="text-sm leading-relaxed df-text-secondary">
+          <span className="font-medium df-text-primary">1.</span> Use «Abrir WhatsApp» ou copie número e mensagem.
         </p>
-        <p className="text-sm leading-relaxed text-slate-600">
-          <span className="font-medium text-slate-800">2.</span> Envie do telemóvel pessoal para o número Business.
+        <p className="text-sm leading-relaxed df-text-secondary">
+          <span className="font-medium df-text-primary">2.</span> Envie do telemóvel pessoal para o número Business.
         </p>
-        <p className="text-sm leading-relaxed text-slate-600">
-          <span className="font-medium text-slate-800">3.</span> Esta lista atualiza sozinha — a conversa aparece à
+        <p className="text-sm leading-relaxed df-text-secondary">
+          <span className="font-medium df-text-primary">3.</span> Esta lista atualiza sozinha — a conversa aparece à
           esquerda em segundos.
         </p>
         {numberBlock}
-        <p className="text-xs leading-relaxed text-slate-500">
+        <p className="text-xs leading-relaxed df-text-muted">
           Se nada surgir em um minuto, confirme o webhook na Meta ou em{" "}
           <Link href="/dashboard/whatsapp" className="font-medium text-[var(--df-brand-700)] underline">
             Estado da ligação
@@ -127,8 +127,8 @@ export function FirstConversationHint({
   return (
     <div className="max-w-md text-left" data-testid="first-conversation-hint-main">
       {toastAnchor}
-      <p className="text-sm font-semibold text-slate-900">Primeiro contacto</p>
-      <p className="mt-2 text-sm leading-relaxed text-slate-600">
+      <p className="text-sm font-semibold df-text-primary">Primeiro contacto</p>
+      <p className="mt-2 text-sm leading-relaxed df-text-secondary">
         Abra o WhatsApp com um clique, envie o teste e volte — a inbox sincroniza sozinha.
       </p>
       {numberBlock}

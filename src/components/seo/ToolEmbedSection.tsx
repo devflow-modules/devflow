@@ -34,7 +34,7 @@ export function ToolEmbedSection({ page }: Props) {
 
         <div
           className={cn(
-            "overflow-hidden rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-white to-slate-50",
+            "overflow-hidden rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-card to-muted/40",
             "shadow-[0_20px_60px_rgba(0,0,0,0.06)]"
           )}
         >
@@ -61,7 +61,7 @@ export function ToolEmbedSection({ page }: Props) {
           <div className="px-6 py-6 sm:px-8 sm:py-8">
             <ul className="space-y-2.5" role="list">
               {(isDivisao ? DIVISAO_BULLETS : CNPJ_BULLETS).map((item) => (
-                <li key={item} className="flex items-start gap-2.5 text-sm text-slate-700">
+                <li key={item} className="flex items-start gap-2.5 text-sm df-text-secondary">
                   <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
                   {item}
                 </li>

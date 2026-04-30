@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { buttonClassName } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   text: string;
@@ -33,12 +34,12 @@ export function CopyTextButton({
   }, [text, onCopied]);
 
   return (
-    <button
+    <Button variant="secondary"
       type="button"
       onClick={() => void onClick()}
       className={`${buttonClassName("secondary")} ${className}`.trim()}
     >
       {copied ? copiedLabel : label}
-    </button>
+    </Button>
   );
 }

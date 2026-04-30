@@ -41,19 +41,19 @@ export function DistribuirClient() {
         <Link href="/admin/conversations" className="text-sm font-medium text-blue-600 underline-offset-4 hover:underline">
           ← Voltar às conversas
         </Link>
-        <h1 className="mt-2 text-xl font-semibold text-slate-900">Distribuição de fila</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="mt-2 text-xl font-semibold df-text-primary">Distribuição de fila</h1>
+        <p className="mt-1 text-sm df-text-secondary">
           Pegue a próxima conversa em espera para atender. Você será redirecionado para a conversa.
         </p>
       </header>
 
       <div className="max-w-md space-y-4">
-        <Button onClick={handleNext} disabled={loading} className="w-full sm:w-auto">
+        <Button variant="disabled" onClick={handleNext} disabled={loading} className="w-full sm:w-auto">
           {loading ? "Buscando…" : "Pegar próxima conversa"}
         </Button>
 
         {message && (
-          <div className="rounded-lg bg-slate-100 p-4 text-sm text-slate-700">
+          <div className="rounded-lg bg-muted p-4 text-sm df-text-secondary">
             {message}
           </div>
         )}

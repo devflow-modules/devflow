@@ -24,12 +24,12 @@ export function TenantsAdminListClient({ initialRows }: { initialRows: TenantLis
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <label className="text-xs text-slate-600">
+      <div className="flex flex-wrap gap-3 rounded-xl border border-border bg-card p-4 shadow-sm">
+        <label className="text-xs df-text-secondary">
           Afiliado
           <select
             data-testid="filter-affiliate"
-            className="mt-1 block rounded-lg border border-slate-200 px-2 py-1.5 text-sm"
+            className="mt-1 block rounded-lg border border-border px-2 py-1.5 text-sm"
             value={filters.affiliate}
             onChange={(e) =>
               setFilters((f) => ({ ...f, affiliate: e.target.value as TenantListFilters["affiliate"] }))
@@ -40,10 +40,10 @@ export function TenantsAdminListClient({ initialRows }: { initialRows: TenantLis
             <option value="without">Sem afiliado</option>
           </select>
         </label>
-        <label className="text-xs text-slate-600">
+        <label className="text-xs df-text-secondary">
           Origem
           <select
-            className="mt-1 block rounded-lg border border-slate-200 px-2 py-1.5 text-sm"
+            className="mt-1 block rounded-lg border border-border px-2 py-1.5 text-sm"
             value={filters.source}
             onChange={(e) => setFilters((f) => ({ ...f, source: e.target.value as TenantListFilters["source"] }))}
           >
@@ -52,10 +52,10 @@ export function TenantsAdminListClient({ initialRows }: { initialRows: TenantLis
             <option value="manual">Manual</option>
           </select>
         </label>
-        <label className="text-xs text-slate-600">
+        <label className="text-xs df-text-secondary">
           Ciclo GTM
           <select
-            className="mt-1 block rounded-lg border border-slate-200 px-2 py-1.5 text-sm"
+            className="mt-1 block rounded-lg border border-border px-2 py-1.5 text-sm"
             value={filters.gtm}
             onChange={(e) => setFilters((f) => ({ ...f, gtm: e.target.value as TenantListFilters["gtm"] }))}
           >
@@ -64,14 +64,14 @@ export function TenantsAdminListClient({ initialRows }: { initialRows: TenantLis
             <option value="AVALIACAO">Em avaliação</option>
           </select>
         </label>
-        <p className="self-end text-xs text-slate-500" data-testid="tenant-filter-count">
+        <p className="self-end text-xs df-text-muted" data-testid="tenant-filter-count">
           {filtered.length} de {initialRows.length}
         </p>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs font-medium uppercase text-slate-500">
+          <thead className="bg-muted/60 text-xs font-medium uppercase df-text-muted">
             <tr>
               <th className="px-4 py-3">Nome</th>
               <th className="px-4 py-3">Plano</th>
@@ -81,18 +81,18 @@ export function TenantsAdminListClient({ initialRows }: { initialRows: TenantLis
           </thead>
           <tbody className="divide-y divide-slate-100">
             {filtered.map((t) => (
-              <tr key={t.id} className="hover:bg-slate-50/80" data-testid={`tenant-row-${t.id}`}>
+              <tr key={t.id} className="hover:bg-muted/60/80" data-testid={`tenant-row-${t.id}`}>
                 <td className="px-4 py-3">
-                  <div className="font-medium text-slate-900">{t.name ?? "—"}</div>
-                  <div className="font-mono text-[11px] text-slate-400">{t.id}</div>
+                  <div className="font-medium df-text-primary">{t.name ?? "—"}</div>
+                  <div className="font-mono text-[11px] df-text-muted">{t.id}</div>
                 </td>
-                <td className="px-4 py-3 text-slate-700">{t.plan ?? "—"}</td>
+                <td className="px-4 py-3 df-text-secondary">{t.plan ?? "—"}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1.5">
                     {t.gtmLifecycle === "IMPLANTADO" ? (
                       <Badge className="bg-emerald-100 text-emerald-900">Implantado</Badge>
                     ) : (
-                      <Badge className="bg-slate-200 text-slate-800">Avaliação</Badge>
+                      <Badge className="bg-muted df-text-primary">Avaliação</Badge>
                     )}
                     {t.isInternal ? (
                       <Badge className="bg-amber-100 text-amber-950">Interno</Badge>
@@ -100,7 +100,7 @@ export function TenantsAdminListClient({ initialRows }: { initialRows: TenantLis
                     {t.affiliateId ? (
                       <Badge className="bg-violet-100 text-violet-900">Afiliado</Badge>
                     ) : (
-                      <Badge className="bg-slate-100 text-slate-600">Sem afiliado</Badge>
+                      <Badge className="bg-muted df-text-secondary">Sem afiliado</Badge>
                     )}
                     {t.affiliateSource === "ref" ? (
                       <Badge className="bg-sky-100 text-sky-900">Ref</Badge>
@@ -123,7 +123,7 @@ export function TenantsAdminListClient({ initialRows }: { initialRows: TenantLis
           </tbody>
         </table>
         {filtered.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-slate-500">Nenhum tenant com estes filtros.</p>
+          <p className="px-4 py-8 text-center text-sm df-text-muted">Nenhum tenant com estes filtros.</p>
         ) : null}
       </div>
     </div>

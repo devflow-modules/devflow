@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getGrowthSessionId } from "@/analytics/growth/trackClient";
 import { cn } from "@/modules/financeiro/lib/cn";
+import { Button } from "@/components/ui/button";
 import { focusRingLight, mutedTextLight } from "@/modules/financeiro/lib/primitives";
 
 type LeadCaptureFormProps = {
@@ -95,17 +96,17 @@ export function LeadCaptureForm({
             )}
           />
         </label>
-        <button
+        <Button
           type="submit"
+          variant="primary"
           disabled={status === "loading"}
           className={cn(
-            "rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground",
-            "hover:bg-primary/90 disabled:opacity-60",
+            "rounded-lg px-4 py-2.5 text-sm font-semibold hover:bg-primary/90 disabled:opacity-60",
             focusRingLight
           )}
         >
           {status === "loading" ? "Enviando..." : buttonLabel}
-        </button>
+        </Button>
       </div>
       {message && (
         <p

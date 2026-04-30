@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { buttonClassName } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 
 type WhatsappConnectSuccessBannerProps = {
   onDismiss: () => void;
@@ -23,9 +24,9 @@ export function WhatsappConnectSuccessBanner({ onDismiss }: WhatsappConnectSucce
           Ver conversas
         </Link>
       </div>
-      <button type="button" onClick={onDismiss} className={`${buttonClassName("secondary")} mt-3 shrink-0 sm:mt-0`}>
+      <Button variant="secondary" type="button" onClick={onDismiss} className={`${buttonClassName("secondary")} mt-3 shrink-0 sm:mt-0`}>
         Fechar
-      </button>
+      </Button>
     </div>
   );
 }

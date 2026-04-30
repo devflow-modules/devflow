@@ -28,7 +28,7 @@ export function AntesDepois() {
           >
             Antes vs Depois
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="mt-3 df-text-secondary">
             A transformação que a automação traz para o atendimento.
           </p>
         </div>
@@ -40,7 +40,7 @@ export function AntesDepois() {
               {antes.map((item) => (
                 <li
                   key={item}
-                  className="flex items-center gap-3 text-sm text-slate-700"
+                  className="flex items-center gap-3 text-sm df-text-secondary"
                 >
                   <X className="size-4 shrink-0 text-destructive" aria-hidden />
                   {item}
@@ -54,7 +54,7 @@ export function AntesDepois() {
               {depois.map((item) => (
                 <li
                   key={item}
-                  className="flex items-center gap-3 text-sm text-slate-700"
+                  className="flex items-center gap-3 text-sm df-text-secondary"
                 >
                   <Check className="size-4 shrink-0 text-primary" aria-hidden />
                   {item}

@@ -41,7 +41,7 @@ export const metadata: Metadata = {
 };
 
 const sectionTitle = "mt-14 text-xl font-bold tracking-tight text-foreground sm:text-2xl";
-const body = "mt-4 space-y-4 text-sm leading-relaxed text-slate-700 sm:text-[0.9375rem]";
+const body = "mt-4 space-y-4 text-sm leading-relaxed df-text-secondary sm:text-[0.9375rem]";
 
 export default function SobrePage() {
   return (
@@ -50,13 +50,7 @@ export default function SobrePage() {
         className="pointer-events-none absolute inset-0 -z-10"
         aria-hidden
       >
-        <div
-          className="absolute -top-24 right-0 h-72 w-72 rounded-full opacity-50 blur-2xl"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(34, 197, 94, 0.18) 0%, transparent 70%)",
-          }}
-        />
+        <div className="df-decor-radial-brand-soft absolute -top-24 right-0 h-72 w-72 rounded-full opacity-50 blur-2xl" />
       </div>
 
       <div className="mx-auto max-w-[720px] px-4 sm:px-6 lg:px-8">
@@ -69,7 +63,7 @@ export default function SobrePage() {
         >
           Sobre a DevFlow Labs
         </h1>
-        <p className="mt-4 text-base font-semibold leading-snug text-slate-800 sm:text-lg">
+        <p className="mt-4 text-base font-semibold leading-snug df-text-primary sm:text-lg">
           Software de produto para quem trata WhatsApp como canal de receita — não como brinde de marketing.
         </p>
 
@@ -158,7 +152,7 @@ export default function SobrePage() {
         <p className="mt-12">
           <Link
             href="/"
-            className="text-sm font-semibold text-slate-600 underline-offset-4 hover:text-foreground hover:underline"
+            className="text-sm font-semibold df-text-secondary underline-offset-4 hover:text-foreground hover:underline"
           >
             ← Voltar ao início
           </Link>

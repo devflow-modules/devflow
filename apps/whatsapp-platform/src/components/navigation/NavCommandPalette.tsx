@@ -11,6 +11,7 @@ import {
 } from "@/lib/navigation/nav-matrix";
 import { useSessionRole } from "./SessionRoleContext";
 import { useSupport } from "@/components/support/SupportProvider";
+import { Button } from "@/components/ui/button";
 
 function matchesQuery(route: CommandPaletteRoute, q: string): boolean {
   const s = q.trim().toLowerCase();
@@ -107,20 +108,20 @@ export function NavCommandPalette() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[12vh]">
-      <button
+      <Button variant="ghost"
         type="button"
-        className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-muted/40 backdrop-blur-[2px]"
         aria-label="Fechar"
         onClick={() => setOpen(false)}
       />
       <div
-        className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xl ring-1 ring-slate-900/5"
+        className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-border/90 bg-card shadow-2xl ring-1 ring-slate-900/5"
         role="dialog"
         aria-modal="true"
         aria-labelledby="nav-cmd-title"
       >
-        <div className="border-b border-slate-100 px-4 py-3">
-          <p id="nav-cmd-title" className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+        <div className="border-b border-border px-4 py-3">
+          <p id="nav-cmd-title" className="text-xs font-semibold uppercase tracking-wide df-text-muted">
             Ir para…
           </p>
           <input
@@ -128,50 +129,50 @@ export function NavCommandPalette() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Ex.: inbox, equipe, plano, ajuda…"
-            className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-sm text-slate-900 outline-none ring-[var(--df-brand-500)] placeholder:text-slate-400 focus:border-[var(--df-brand-400)] focus:bg-white focus:ring-2"
+            className="mt-2 w-full rounded-lg border border-border bg-muted/60/80 px-3 py-2 text-sm df-text-primary outline-none ring-[var(--df-brand-500)] placeholder:df-text-muted focus:border-[var(--df-brand-400)] focus:bg-card focus:ring-2"
           />
-          <p className="mt-2 text-[11px] text-slate-400">⌘K ou Ctrl+K · Esc para fechar</p>
+          <p className="mt-2 text-[11px] df-text-muted">⌘K ou Ctrl+K · Esc para fechar</p>
         </div>
         <div className="max-h-[min(50vh,420px)] overflow-y-auto py-2">
           {showActions ? (
-            <div className="mb-2 border-b border-slate-100 pb-2">
-              <p className="sticky top-0 z-[1] bg-white/95 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 backdrop-blur-sm">
+            <div className="mb-2 border-b border-border pb-2">
+              <p className="sticky top-0 z-[1] bg-card/95 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider df-text-muted backdrop-blur-sm">
                 Ação rápida
               </p>
               <ul className="space-y-0.5">
                 {filteredActions.map((a) => (
                   <li key={a.id}>
-                    <button
+                    <Button variant="ghost"
                       type="button"
                       onClick={a.run}
                       className="flex w-full flex-col items-start gap-0.5 px-4 py-2.5 text-left text-sm transition hover:bg-[var(--df-brand-50)]"
                     >
-                      <span className="font-medium text-slate-900">{a.label}</span>
-                      <span className="text-[11px] text-slate-500">Abre o formulário de suporte</span>
-                    </button>
+                      <span className="font-medium df-text-primary">{a.label}</span>
+                      <span className="text-[11px] df-text-muted">Abre o formulário de suporte</span>
+                    </Button>
                   </li>
                 ))}
               </ul>
             </div>
           ) : null}
           {grouped.length === 0 && !showActions ? (
-            <p className="px-4 py-6 text-center text-sm text-slate-500">Nenhum destino corresponde.</p>
+            <p className="px-4 py-6 text-center text-sm df-text-muted">Nenhum destino corresponde.</p>
           ) : (
             grouped.map((g) => (
               <div key={g.id} className="mb-2 last:mb-0">
-                <p className="sticky top-0 z-[1] bg-white/95 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 backdrop-blur-sm">
+                <p className="sticky top-0 z-[1] bg-card/95 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider df-text-muted backdrop-blur-sm">
                   {g.label}
                 </p>
                 <ul className="space-y-0.5">
                   {g.items.map((r) => (
                     <li key={r.href}>
-                      <button
+                      <Button variant="secondary"
                         type="button"
                         onClick={() => onNavigate(r.href)}
                         className="flex w-full flex-col items-start gap-0.5 px-4 py-2.5 text-left text-sm transition hover:bg-[var(--df-brand-50)]"
                       >
-                        <span className="font-medium text-slate-900">{r.label}</span>
-                      </button>
+                        <span className="font-medium df-text-primary">{r.label}</span>
+                      </Button>
                     </li>
                   ))}
                 </ul>

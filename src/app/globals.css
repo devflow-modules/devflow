@@ -527,3 +527,57 @@ html[data-theme="client_branded"] {
     box-shadow: 0 6px 28px rgba(0, 208, 132, 0.38);
   }
 }
+
+/* Decoração marketing/hero — evita inline style com hex (tokens + color-mix) */
+.df-decor-radial-brand {
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--primary) 22%, transparent) 0%,
+    transparent 70%
+  );
+}
+.df-decor-radial-accent {
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--chart-1) 18%, transparent) 0%,
+    transparent 70%
+  );
+}
+.df-decor-grid-mesh {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--foreground) 32%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--foreground) 32%, transparent) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+/** Glow brand mais suave (CTA / contato) */
+.df-decor-radial-brand-soft {
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--primary) 20%, transparent) 0%,
+    transparent 65%
+  );
+}
+/** Halo escuro suave sobre fundo claro */
+.df-decor-radial-ink-soft {
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--foreground) 12%, transparent) 0%,
+    transparent 70%
+  );
+}
+/** Moldura / halo páginas WhatsApp (sem rgba hardcoded em JSX) */
+.df-wa-preview-frame {
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--border) 55%, transparent),
+    color-mix(in srgb, var(--muted) 92%, transparent)
+  );
+}
+.df-wa-hero-aureole {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--primary) 22%, transparent) 0%,
+    color-mix(in srgb, var(--chart-1) 14%, transparent) 45%,
+    color-mix(in srgb, var(--foreground) 6%, transparent) 100%
+  );
+}

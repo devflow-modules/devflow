@@ -12,6 +12,7 @@ import {
   demoSectionMutedClass,
 } from "@/components/demo/demoUi";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { FunklabDemoCta } from "./FunklabDemoCta";
 
 const DEMO_HREF =
@@ -93,8 +94,9 @@ export function FunklabDemoSection() {
               </p>
             </div>
             <p className="mt-4 text-xs text-muted-foreground">{FUNKLAB_DEMO_SCENARIO.footnote}</p>
-            <button
+            <Button
               type="button"
+              variant="secondary"
               className={cn(demoCtaSecondaryClass, "mt-4 w-full sm:w-auto")}
               onClick={() => {
                 trackTryProduct({
@@ -107,7 +109,7 @@ export function FunklabDemoSection() {
               }}
             >
               Testar na nova aba
-            </button>
+            </Button>
           </article>
         </div>
       </div>

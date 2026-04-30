@@ -62,7 +62,7 @@ export default function SoftwareAtendimentoWhatsAppPage() {
   return (
     <main>
       <section
-        className="relative overflow-hidden bg-gradient-to-b from-white to-slate-50 py-24"
+        className="relative overflow-hidden bg-gradient-to-b from-card to-muted/40 py-24"
         aria-labelledby="hero-heading"
       >
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -77,7 +77,7 @@ export default function SoftwareAtendimentoWhatsAppPage() {
             >
               Software de Atendimento no WhatsApp
             </h1>
-            <p className="mt-4 text-lg text-slate-600">
+            <p className="mt-4 text-lg df-text-secondary">
               Plataforma completa: automação, central de conversas, métricas e equipe.
               Para quem precisa de controle real da operação.
             </p>
@@ -100,7 +100,7 @@ export default function SoftwareAtendimentoWhatsAppPage() {
           >
             Por que um software em vez do WhatsApp comum?
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-center text-slate-600">
+          <p className="mx-auto mt-3 max-w-xl text-center df-text-secondary">
             Quando o volume cresce, organização e métricas fazem a diferença.
           </p>
           <div className="mx-auto mt-12 max-w-2xl space-y-4">
@@ -145,7 +145,7 @@ export default function SoftwareAtendimentoWhatsAppPage() {
                   <f.icon className="size-5 text-primary" aria-hidden />
                 </div>
                 <h3 className="mt-4 font-medium text-foreground">{f.title}</h3>
-                <p className="mt-2 text-sm text-slate-600">{f.description}</p>
+                <p className="mt-2 text-sm df-text-secondary">{f.description}</p>
               </article>
             ))}
           </div>
@@ -161,7 +161,7 @@ export default function SoftwareAtendimentoWhatsAppPage() {
             >
               Quer ver a plataforma em ação?
             </h2>
-            <p className="mt-4 text-slate-600">
+            <p className="mt-4 df-text-secondary">
               Fala com a gente no WhatsApp e mostraremos como funciona.
             </p>
             <div className="mt-8">
@@ -174,7 +174,7 @@ export default function SoftwareAtendimentoWhatsAppPage() {
             <p className="mt-6">
               <Link
                 href="/automacao-whatsapp"
-                className="text-sm text-slate-600 hover:text-foreground"
+                className="text-sm df-text-secondary hover:text-foreground"
               >
                 ← Ver automação WhatsApp
               </Link>

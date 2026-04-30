@@ -16,6 +16,7 @@ import { PlaybookSuggest } from "./PlaybookSuggest";
 import { markFirstReplySent } from "@/lib/activationStorage";
 import { INBOX_CHAT_GUTTER_X, INBOX_CHAT_GUTTER_X_COMPACT } from "./inboxChatLayout";
 import { InboxComposerTextField, type InboxComposerHandle } from "./InboxComposerTextField";
+import { Button } from "@/components/ui/button";
 
 const OUTBOUND_LOCKED_HINT = "Disponível após ativação do número";
 
@@ -147,7 +148,7 @@ function MessageInputInner({
 
   if (!threadId) {
     return (
-      <div className={`border-t border-slate-100 bg-slate-50/50 py-6 text-center ${INBOX_CHAT_GUTTER_X}`}>
+      <div className={`border-t border-border bg-muted/60/50 py-6 text-center ${INBOX_CHAT_GUTTER_X}`}>
         <p className="df-text-muted">Escolha uma conversa para responder.</p>
       </div>
     );
@@ -156,7 +157,7 @@ function MessageInputInner({
   return (
     <div
       id="inbox-composer-anchor"
-      className={`shrink-0 rounded-t-2xl border-t border-slate-200/90 bg-white shadow-[0_-10px_36px_rgba(15,23,42,0.045)] ${
+      className={`shrink-0 rounded-t-2xl border-t border-border/90 bg-card shadow-[0_-10px_36px_rgba(15,23,42,0.045)] ${
         denseComposer
           ? `${INBOX_CHAT_GUTTER_X_COMPACT} pb-2.5 pt-2 sm:pb-3 sm:pt-2.5`
           : `${INBOX_CHAT_GUTTER_X} pb-4 pt-3.5 sm:pb-5 sm:pt-4`
@@ -173,7 +174,7 @@ function MessageInputInner({
       ) : null}
 
       {typingList.length > 0 && (
-        <p className="mb-2 px-0.5 text-xs text-slate-500">
+        <p className="mb-2 px-0.5 text-xs df-text-muted">
           <span className="italic">
             {typingList.map((t) => t.name || t.userId).join(", ")}
             {typingList.length === 1 ? " está a escrever…" : " estão a escrever…"}
@@ -189,7 +190,7 @@ function MessageInputInner({
           <p className="mt-1 text-xs text-amber-900/85">
             O cliente ainda não respondeu após a última mensagem sua — pode enviar um lembrete cordial.
           </p>
-          <button
+          <Button variant="secondary"
             type="button"
             className={`${buttonClassName("secondary")} mt-2 text-xs`}
             onClick={async () => {
@@ -201,7 +202,7 @@ function MessageInputInner({
             }}
           >
             Usar texto sugerido
-          </button>
+          </Button>
         </div>
       ) : null}
 
@@ -209,7 +210,7 @@ function MessageInputInner({
         <div className="df-feedback-danger mb-3 flex flex-wrap items-center gap-2">
           <span className="font-medium">Não enviámos a mensagem.</span>
           {retryText ? (
-            <button
+            <Button variant="secondary"
               type="button"
               className="font-semibold text-red-900 underline decoration-red-300 underline-offset-2 hover:decoration-red-800"
               onClick={() => {
@@ -219,19 +220,19 @@ function MessageInputInner({
               }}
             >
               Tentar novamente
-            </button>
+            </Button>
           ) : null}
         </div>
       )}
 
       {denseComposer ? (
-        <details className="mb-2 rounded-lg border border-slate-200/80 bg-slate-50/60">
-          <summary className="cursor-pointer list-none px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500 marker:content-none [&::-webkit-details-marker]:hidden">
+        <details className="mb-2 rounded-lg border border-border/80 bg-muted/60/60">
+          <summary className="cursor-pointer list-none px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide df-text-muted marker:content-none [&::-webkit-details-marker]:hidden">
             Respostas rápidas e IA ▾
           </summary>
-          <div className="flex flex-wrap gap-1.5 border-t border-slate-100/90 px-2.5 pb-2.5 pt-2">
+          <div className="flex flex-wrap gap-1.5 border-t border-border/90 px-2.5 pb-2.5 pt-2">
             {QUICK_TEMPLATES.map((t) => (
-              <button
+              <Button variant="disabled"
                 key={t.label}
                 type="button"
                 disabled={composerLocked}
@@ -241,9 +242,9 @@ function MessageInputInner({
                 data-testid={`template-${t.label}`}
               >
                 {t.label}
-              </button>
+              </Button>
             ))}
-            <button
+            <Button variant="disabled"
               type="button"
               disabled={composerLocked || suggestMut.isPending || mutation.isPending}
               title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
@@ -252,15 +253,15 @@ function MessageInputInner({
               data-testid="btn-ai-suggest"
             >
               {suggestMut.isPending ? "A gerar…" : "Gerar com IA"}
-            </button>
+            </Button>
           </div>
         </details>
       ) : (
-        <div className="mb-3 rounded-xl border border-slate-200/80 bg-slate-50/60 px-3 py-2.5">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">Respostas rápidas</p>
+        <div className="mb-3 rounded-xl border border-border/80 bg-muted/60/60 px-3 py-2.5">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-wide df-text-muted">Respostas rápidas</p>
           <div className="flex flex-wrap gap-2">
             {QUICK_TEMPLATES.map((t) => (
-              <button
+              <Button variant="disabled"
                 key={t.label}
                 type="button"
                 disabled={composerLocked}
@@ -270,9 +271,9 @@ function MessageInputInner({
                 data-testid={`template-${t.label}`}
               >
                 {t.label}
-              </button>
+              </Button>
             ))}
-            <button
+            <Button variant="disabled"
               type="button"
               disabled={composerLocked || suggestMut.isPending || mutation.isPending}
               title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
@@ -281,7 +282,7 @@ function MessageInputInner({
               data-testid="btn-ai-suggest"
             >
               {suggestMut.isPending ? "A gerar…" : "Gerar com IA"}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -318,15 +319,15 @@ function MessageInputInner({
           <p className="text-[11px] font-semibold uppercase tracking-wide text-violet-900">
             Pré-visualização (IA)
           </p>
-          <p className="mt-2 whitespace-pre-wrap text-slate-800">{aiPreview}</p>
+          <p className="mt-2 whitespace-pre-wrap df-text-primary">{aiPreview}</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" className={buttonClassName("primary")} onClick={handleAiPreviewUseInEditor}>
+            <Button variant="secondary" type="button" className={buttonClassName("primary")} onClick={handleAiPreviewUseInEditor}>
               Usar no editor
-            </button>
-            <button type="button" className={buttonClassName("secondary")} onClick={() => setAiPreview(null)}>
+            </Button>
+            <Button variant="secondary" type="button" className={buttonClassName("secondary")} onClick={() => setAiPreview(null)}>
               Descartar
-            </button>
-            <button
+            </Button>
+            <Button variant="disabled"
               type="button"
               className={buttonClassName("secondary")}
               disabled={mutation.isPending || composerLocked}
@@ -337,7 +338,7 @@ function MessageInputInner({
               }}
             >
               Enviar direto
-            </button>
+            </Button>
           </div>
         </div>
       )}

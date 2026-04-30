@@ -12,6 +12,7 @@ import { Breadcrumbs } from "@/modules/financeiro/components/Breadcrumbs";
 import { ContextSelector } from "@/modules/financeiro/components/ContextSelector";
 import type { ContextFilter } from "@/modules/financeiro/components/ContextSelector";
 import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
+import { Button } from "@/components/ui/button";
 
 type SourceRecord = { sourceType?: "PJ" | "PF" };
 type FinancialRecord = {
@@ -423,7 +424,7 @@ export default function DashboardPage() {
               </>
             )}
           </article>
-          <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <article className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Gasto no mês</p>
             {overviewLoading ? (
               <Skeleton className="mt-3 h-8 w-32" />
@@ -457,11 +458,11 @@ export default function DashboardPage() {
           </article>
         </div>
 
-        <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md lg:grid-cols-[2fr,1fr]">
+        <section className="grid gap-4 rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md lg:grid-cols-[2fr,1fr]">
           <div>
             <h2 className="text-base uppercase tracking-[0.2em] text-muted-foreground">PJ vs PF — caixas separados</h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200 bg-card p-4 shadow-sm transition hover:-translate-y-px hover:shadow-md">
+              <div className="rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:-translate-y-px hover:shadow-md">
                 <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">PJ entradas</p>
                 {isLoading ? (
                   <div className="space-y-2">
@@ -475,7 +476,7 @@ export default function DashboardPage() {
                   </>
                 )}
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-card p-4 shadow-sm transition hover:-translate-y-px hover:shadow-md">
+              <div className="rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:-translate-y-px hover:shadow-md">
                 <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">PF entradas</p>
                 {isLoading ? (
                   <div className="space-y-2">
@@ -495,7 +496,7 @@ export default function DashboardPage() {
             <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Casa ativa</p>
             {households.length > 1 ? (
               <select
-                className="w-full rounded-2xl border border-slate-200 bg-card px-3 py-2 text-sm text-foreground"
+                className="w-full rounded-2xl border border-border bg-card px-3 py-2 text-sm text-foreground"
                 value={household.id}
                 onChange={(event) => {
                   const nextHousehold = households.find((h) => h.id === event.target.value) ?? null;
@@ -518,16 +519,16 @@ export default function DashboardPage() {
               <p className="text-sm text-muted-foreground">Nenhuma casa carregada.</p>
             )}
             <div className="flex flex-wrap gap-3">
-              <button
+              <Button variant="secondary"
                 type="button"
-                className="rounded-2xl border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-foreground hover:bg-slate-50"
+                className="rounded-2xl border border-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-foreground hover:bg-muted/60"
                 onClick={() => { fetchFinancials(); fetchRules(); loadOverview(); }}
               >
                 Atualizar
-              </button>
+              </Button>
             </div>
             {activeMembershipRole === "OWNER" && (
-            <div className="mt-4 space-y-2 rounded-2xl border border-slate-200 bg-card p-3">
+            <div className="mt-4 space-y-2 rounded-2xl border border-border bg-card p-3">
               <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Convidar</p>
               <div className="grid gap-2">
                 <input
@@ -535,17 +536,17 @@ export default function DashboardPage() {
                   placeholder="email@exemplo.com"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-foreground"
+                  className="w-full rounded-2xl border border-border bg-card px-3 py-2 text-sm text-foreground"
                 />
                 <select
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-foreground"
+                  className="w-full rounded-2xl border border-border bg-card px-3 py-2 text-sm text-foreground"
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as "MEMBER" | "OWNER")}
                 >
                   <option value="MEMBER">MEMBER</option>
                   <option value="OWNER">OWNER</option>
                 </select>
-                <button
+                <Button variant="primary"
                   type="button"
                   className="rounded-2xl bg-primary px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground hover:opacity-90"
                   onClick={async () => {
@@ -578,7 +579,7 @@ export default function DashboardPage() {
                   disabled={!inviteEmail}
                 >
                   Gerar link
-                </button>
+                </Button>
                 {lastInviteUrl ? (
                   <p className="break-all text-sm text-foreground">
                     Link: <a className="underline text-primary" href={lastInviteUrl}>{lastInviteUrl}</a>
@@ -591,7 +592,7 @@ export default function DashboardPage() {
             </div>
             )}
             {activeMembershipRole === "OWNER" && (
-            <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-card p-3">
+            <div className="mt-4 space-y-3 rounded-2xl border border-border bg-card p-3">
               <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Convites pendentes</p>
               {invitesLoading ? (
                 <div className="space-y-2">
@@ -606,14 +607,14 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-2">
                   {pendingInvites.map((invite) => (
-                    <div key={invite.id} className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3">
+                    <div key={invite.id} className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-3">
                       <div>
                         <p className="text-sm text-foreground">{invite.email}</p>
                         <p className="text-sm text-muted-foreground">
                           {invite.role} · expira em {formatDate(invite.expiresAt)}
                         </p>
                       </div>
-                      <button
+                      <Button variant="secondary"
                         type="button"
                         className="rounded-xl border border-rose-300 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-rose-700 hover:bg-rose-50"
                         onClick={async () => {
@@ -628,7 +629,7 @@ export default function DashboardPage() {
                         }}
                       >
                         Revogar
-                      </button>
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -636,7 +637,7 @@ export default function DashboardPage() {
             </div>
             )}
             {activeMembershipRole === "OWNER" && (
-            <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-card p-3">
+            <div className="mt-4 space-y-3 rounded-2xl border border-border bg-card p-3">
               <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Meta da família (total da casa)</p>
               {goalLoading ? (
                 <div className="space-y-2">
@@ -655,7 +656,7 @@ export default function DashboardPage() {
                         placeholder="% investir (opcional)"
                         value={goalForm.investmentPercent}
                         onChange={(e) => setGoalForm((p) => ({ ...p, investmentPercent: e.target.value }))}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-foreground"
+                        className="w-full rounded-2xl border border-border bg-card px-3 py-2 text-sm text-foreground"
                       />
                       <input
                         type="number"
@@ -663,7 +664,7 @@ export default function DashboardPage() {
                         placeholder="% guardar (opcional)"
                         value={goalForm.savingsPercent}
                         onChange={(e) => setGoalForm((p) => ({ ...p, savingsPercent: e.target.value }))}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-foreground"
+                        className="w-full rounded-2xl border border-border bg-card px-3 py-2 text-sm text-foreground"
                       />
                     </div>
                     <div className="grid gap-2 sm:grid-cols-2">
@@ -673,7 +674,7 @@ export default function DashboardPage() {
                         placeholder="R$ investir (opcional)"
                         value={goalForm.investmentAmount}
                         onChange={(e) => setGoalForm((p) => ({ ...p, investmentAmount: e.target.value }))}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-foreground"
+                        className="w-full rounded-2xl border border-border bg-card px-3 py-2 text-sm text-foreground"
                       />
                       <input
                         type="number"
@@ -681,17 +682,17 @@ export default function DashboardPage() {
                         placeholder="R$ guardar (opcional)"
                         value={goalForm.savingsAmount}
                         onChange={(e) => setGoalForm((p) => ({ ...p, savingsAmount: e.target.value }))}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-foreground"
+                        className="w-full rounded-2xl border border-border bg-card px-3 py-2 text-sm text-foreground"
                       />
                     </div>
                     <textarea
                       placeholder="Observações"
                       value={goalForm.observations}
                       onChange={(e) => setGoalForm((p) => ({ ...p, observations: e.target.value }))}
-                      className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-foreground"
+                      className="w-full rounded-2xl border border-border bg-card px-3 py-2 text-sm text-foreground"
                       rows={3}
                     />
-                    <button
+                    <Button variant="secondary"
                       type="button"
                       className="rounded-2xl bg-emerald-600 px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:opacity-90"
                       onClick={async () => {
@@ -722,11 +723,11 @@ export default function DashboardPage() {
                       }}
                     >
                       Salvar meta da família
-                    </button>
+                    </Button>
                   </div>
 
                   {goal ? (
-                    <div className="mt-3 space-y-1 rounded-2xl border border-slate-200 bg-white p-3">
+                    <div className="mt-3 space-y-1 rounded-2xl border border-border bg-card p-3">
                       <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Resumo (mês atual)</p>
                       <p className="text-sm text-foreground">Receitas no mês: {formatCurrency(allocationSummary.monthIncomeTotal)}</p>
                       <p className="text-sm text-foreground">Investir: {formatCurrency(allocationSummary.investmentTarget)}</p>
@@ -741,7 +742,7 @@ export default function DashboardPage() {
             </div>
             )}
             {activeMembershipRole === "MEMBER" && goal && (
-            <div className="mt-4 space-y-2 rounded-2xl border border-slate-200 bg-card p-3">
+            <div className="mt-4 space-y-2 rounded-2xl border border-border bg-card p-3">
               <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Meta da família (total da casa)</p>
               <p className="text-sm text-muted-foreground">
                 Investir: {goal.investmentPercent != null ? `${Number(goal.investmentPercent)}%` : goal.investmentAmount != null ? formatCurrency(Number(goal.investmentAmount)) : "—"} · Guardar: {goal.savingsPercent != null ? `${Number(goal.savingsPercent)}%` : goal.savingsAmount != null ? formatCurrency(Number(goal.savingsAmount)) : "—"}
@@ -749,7 +750,7 @@ export default function DashboardPage() {
               <p className="text-sm text-muted-foreground">Definida pelo responsável da casa. Abaixo, sua meta pessoal.</p>
             </div>
             )}
-            <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-card p-3">
+            <div className="mt-4 space-y-3 rounded-2xl border border-border bg-card p-3">
               <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Minha meta pessoal (investir / guardar)</p>
               {personalGoalLoading ? (
                 <div className="space-y-2">
@@ -768,7 +769,7 @@ export default function DashboardPage() {
                         placeholder="% investir (opcional)"
                         value={personalGoalForm.investmentPercent}
                         onChange={(e) => setPersonalGoalForm((p) => ({ ...p, investmentPercent: e.target.value }))}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-foreground"
+                        className="w-full rounded-2xl border border-border bg-card px-3 py-2 text-sm text-foreground"
                       />
                       <input
                         type="number"
@@ -776,7 +777,7 @@ export default function DashboardPage() {
                         placeholder="% guardar (opcional)"
                         value={personalGoalForm.savingsPercent}
                         onChange={(e) => setPersonalGoalForm((p) => ({ ...p, savingsPercent: e.target.value }))}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-foreground"
+                        className="w-full rounded-2xl border border-border bg-card px-3 py-2 text-sm text-foreground"
                       />
                     </div>
                     <div className="grid gap-2 sm:grid-cols-2">
@@ -786,7 +787,7 @@ export default function DashboardPage() {
                         placeholder="R$ investir (opcional)"
                         value={personalGoalForm.investmentAmount}
                         onChange={(e) => setPersonalGoalForm((p) => ({ ...p, investmentAmount: e.target.value }))}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-foreground"
+                        className="w-full rounded-2xl border border-border bg-card px-3 py-2 text-sm text-foreground"
                       />
                       <input
                         type="number"
@@ -794,17 +795,17 @@ export default function DashboardPage() {
                         placeholder="R$ guardar (opcional)"
                         value={personalGoalForm.savingsAmount}
                         onChange={(e) => setPersonalGoalForm((p) => ({ ...p, savingsAmount: e.target.value }))}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-foreground"
+                        className="w-full rounded-2xl border border-border bg-card px-3 py-2 text-sm text-foreground"
                       />
                     </div>
                     <textarea
                       placeholder="Observações"
                       value={personalGoalForm.observations}
                       onChange={(e) => setPersonalGoalForm((p) => ({ ...p, observations: e.target.value }))}
-                      className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-foreground"
+                      className="w-full rounded-2xl border border-border bg-card px-3 py-2 text-sm text-foreground"
                       rows={2}
                     />
-                    <button
+                    <Button variant="primary"
                       type="button"
                       className="rounded-2xl bg-primary px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground hover:opacity-90"
                       onClick={async () => {
@@ -835,7 +836,7 @@ export default function DashboardPage() {
                       }}
                     >
                       Salvar minha meta
-                    </button>
+                    </Button>
                   </div>
                   {personalGoal ? (
                     <p className="mt-2 text-sm text-muted-foreground">Sua meta pessoal do mês está salva. Ajuste acima se quiser.</p>
@@ -846,7 +847,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md lg:grid-cols-2">
+        <section className="grid gap-6 rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md lg:grid-cols-2">
           <div>
             <div className="flex items-center justify-between">
               <h3 className="text-base uppercase tracking-[0.2em] text-muted-foreground">Fluxo por categoria (mês)</h3>
@@ -868,7 +869,7 @@ export default function DashboardPage() {
                 (overview?.categoryBreakdown ?? []).map((item) => (
                   <div key={item.categoryId ?? item.categoryName} className="space-y-1">
                     <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">{item.categoryName}</p>
-                    <div className="relative h-2 rounded-full bg-slate-100">
+                    <div className="relative h-2 rounded-full bg-muted">
                       <div
                         className="absolute h-full rounded-full"
                         style={{
@@ -907,7 +908,7 @@ export default function DashboardPage() {
                     ? "border-red-200 bg-red-50"
                     : isWarning
                     ? "border-amber-200 bg-amber-50"
-                    : "border-slate-100 bg-slate-50";
+                    : "border-border bg-muted/60";
                   return (
                     <div key={b.budgetId} className={`rounded-xl border p-3 ${bgClass}`}>
                       <div className="flex items-center justify-between gap-2">
@@ -932,7 +933,7 @@ export default function DashboardPage() {
                           {b.percent.toFixed(0)}%
                         </span>
                       </div>
-                      <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/60">
+                      <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-card/60">
                         <div
                           className="h-full rounded-full transition-all duration-500"
                           style={{ width: `${Math.min(100, b.percent)}%`, backgroundColor: barColor }}
@@ -963,7 +964,7 @@ export default function DashboardPage() {
                 </li>
               ) : (
                 allocations.map((allocation) => (
-                  <li key={allocation.ruleId} className="rounded-2xl border border-slate-200 bg-card p-3">
+                  <li key={allocation.ruleId} className="rounded-2xl border border-border bg-card p-3">
                     <p className="font-semibold text-foreground">{allocation.ruleName}</p>
                     <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
                       {formatCurrency(allocation.total)} total alocado
@@ -975,7 +976,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md lg:grid-cols-2">
+        <section className="grid gap-6 rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md lg:grid-cols-2">
           <div>
             <div className="flex items-center justify-between">
               <h3 className="text-base uppercase tracking-[0.2em] text-muted-foreground">Evolução (últimos meses)</h3>
@@ -990,7 +991,7 @@ export default function DashboardPage() {
               <h3 className="text-base uppercase tracking-[0.2em] text-muted-foreground">Projeção de fluxo</h3>
               <div className="flex items-center gap-2">
                 <select
-                  className="rounded-xl border border-slate-200 bg-card px-2 py-1 text-sm text-foreground"
+                  className="rounded-xl border border-border bg-card px-2 py-1 text-sm text-foreground"
                   value={projectionHorizonMonths}
                   onChange={(e) => setProjectionHorizonMonths(Number(e.target.value) as 1 | 3 | 6 | 12)}
                 >
@@ -1000,7 +1001,7 @@ export default function DashboardPage() {
                   <option value={12}>12 meses</option>
                 </select>
                 <select
-                  className="rounded-xl border border-slate-200 bg-card px-2 py-1 text-sm text-foreground"
+                  className="rounded-xl border border-border bg-card px-2 py-1 text-sm text-foreground"
                   value={projectionScenario}
                   onChange={(e) => setProjectionScenario(e.target.value as "BASE" | "PESSIMISTIC" | "OPTIMISTIC")}
                 >
@@ -1018,7 +1019,7 @@ export default function DashboardPage() {
                 {" "}· receitas ×{(projectionMeta?.incomeMultiplier ?? 1).toFixed(2)} · despesas ×
                 {(projectionMeta?.expenseMultiplier ?? 1).toFixed(2)}.
               </p>
-              <details className="mt-3 rounded-2xl border border-slate-200 bg-card p-3 text-sm text-foreground">
+              <details className="mt-3 rounded-2xl border border-border bg-card p-3 text-sm text-foreground">
                 <summary className="cursor-pointer uppercase tracking-[0.2em] text-muted-foreground">
                   Como calculamos
                 </summary>

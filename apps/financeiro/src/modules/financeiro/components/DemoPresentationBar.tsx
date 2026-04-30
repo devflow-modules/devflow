@@ -59,7 +59,7 @@ export function DemoPresentationBar({ pathname }: Props) {
                   "rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors",
                   isActive
                     ? "border-amber-600 bg-amber-100 text-amber-950"
-                    : "border-amber-200/80 bg-white/80 text-amber-900 hover:bg-amber-100"
+                    : "border-amber-200/80 bg-card/80 text-amber-900 hover:bg-amber-100"
                 )}
                 title={step.hint}
               >

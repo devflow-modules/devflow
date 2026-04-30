@@ -61,14 +61,14 @@ export function DeveloperApiKeyClient() {
   return (
     <div className="space-y-6">
       <Card padding="lg">
-        <h2 className="text-base font-bold text-slate-900">Chave de API do espaço de trabalho</h2>
-        <p className="mt-1 text-sm text-slate-600">
+        <h2 className="text-base font-bold text-[var(--df-text-primary)]">Chave de API do espaço de trabalho</h2>
+        <p className="mt-1 text-sm text-[var(--df-text-secondary)]">
           Usa esta chave para integrações server-to-server e webhooks personalizados. Não partilhes em código público nem
           no frontend. Se gerares uma nova chave, a anterior deixa de funcionar.
         </p>
 
         {hasApiKey && !generated && masked && (
-          <p className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-sm text-slate-700">
+          <p className="mt-4 rounded-lg border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_45%,var(--df-bg-elevated))] px-3 py-2 font-mono text-sm text-[var(--df-text-secondary)]">
             Chave atual (mascarada): {masked}
           </p>
         )}
@@ -76,20 +76,20 @@ export function DeveloperApiKeyClient() {
         {generated && (
           <div className="mt-4 space-y-2">
             <p className="text-sm font-medium text-amber-900">Copia agora — não voltamos a mostrar a chave completa.</p>
-            <div className="break-all rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-sm">{generated}</div>
+            <div className="break-all rounded-lg border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_45%,var(--df-bg-elevated))] p-3 font-mono text-sm">{generated}</div>
           </div>
         )}
 
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
         <div className="mt-6">
-          <Button id="dev-api-generate-btn" type="button" onClick={handleGenerate} disabled={working}>
+          <Button variant="disabled" id="dev-api-generate-btn" type="button" onClick={handleGenerate} disabled={working}>
             {working ? "A gerar…" : hasApiKey ? "Regenerar chave" : "Gerar chave"}
           </Button>
         </div>
       </Card>
 
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-[var(--df-text-muted)]">
         <Link href="/settings" className="font-medium text-[var(--df-brand-700)] hover:underline">
           ← Voltar às configurações
         </Link>

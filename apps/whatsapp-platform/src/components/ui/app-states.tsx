@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { buttonClassName } from "./button";
+import { Button } from "@/components/ui/button";
 
 type LoadingProps = {
   message?: string;
@@ -42,9 +43,9 @@ export function StateError({
       <p className="text-sm font-semibold text-[var(--df-danger-text)]">{title}</p>
       <p className="mt-2 text-sm leading-relaxed text-[var(--df-danger-text)]">{message}</p>
       {onRetry ? (
-        <button type="button" className={`${buttonClassName("secondary")} mt-6`} onClick={onRetry}>
+        <Button variant="secondary" type="button" className={`${buttonClassName("secondary")} mt-6`} onClick={onRetry}>
           {retryLabel}
-        </button>
+        </Button>
       ) : null}
     </div>
   );

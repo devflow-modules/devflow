@@ -13,6 +13,7 @@ import {
 import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
 import { whatsappAppUrl } from "@/lib/whatsapp-app-url";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const COMO_FUNCIONA_PATH = "/como-funciona";
 const DIAGNOSTICO_PATH = "/contato";
@@ -169,10 +170,11 @@ export function Header() {
           aria-label="Navegação principal"
         >
           <div ref={productsWrapRef} className="relative px-2 py-1">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               className={cn(
-                "inline-flex items-center gap-1 rounded-lg px-1 py-1.5",
+                "inline-flex items-center gap-1 rounded-lg px-1 py-1.5 shadow-none",
                 navText(produtosActive || productsOpen),
                 navUnderline(produtosActive && !productsOpen)
               )}
@@ -189,7 +191,7 @@ export function Header() {
                 className={cn("size-4 transition-transform", productsOpen && "rotate-180")}
                 aria-hidden
               />
-            </button>
+            </Button>
             {productsOpen ? (
               <div
                 className="absolute left-0 top-full z-50 mt-1 w-[min(calc(100vw-2rem),22rem)] rounded-xl border border-border bg-background p-2 shadow-lg"
@@ -305,16 +307,17 @@ export function Header() {
             {HEADER_CTA_LABEL}
           </Link>
 
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => setMobileOpen((o) => !o)}
-            className="df-text-secondary flex size-11 min-h-11 min-w-11 items-center justify-center rounded-xl border border-border bg-transparent transition-colors hover:bg-muted lg:hidden"
+            className="df-text-secondary size-11 min-h-11 min-w-11 rounded-xl border border-border bg-transparent shadow-none transition-colors hover:bg-muted lg:hidden"
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav"
             aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
           >
             {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-          </button>
+          </Button>
         </div>
       </div>
 

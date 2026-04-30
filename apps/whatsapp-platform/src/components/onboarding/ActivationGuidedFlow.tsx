@@ -87,11 +87,11 @@ export function ActivationGuidedFlow() {
       <EvaluationModeRibbon className="mb-4 rounded-xl border border-sky-100/90 text-left" />
       <OnboardingProgress currentStep={currentStep} allComplete={allComplete} />
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
         {!allComplete && currentStep === 1 ? (
           <>
-            <h2 className="text-lg font-semibold text-slate-900">Conecte seu WhatsApp</h2>
-            <p className="mt-2 text-sm text-slate-600">
+            <h2 className="text-lg font-semibold df-text-primary">Conecte seu WhatsApp</h2>
+            <p className="mt-2 text-sm df-text-secondary">
               Para receber mensagens e atender clientes, ligue o número da sua empresa ao DevFlow.
             </p>
             <Link
@@ -105,18 +105,18 @@ export function ActivationGuidedFlow() {
 
         {!allComplete && currentStep === 2 ? (
           <>
-            <h2 className="text-lg font-semibold text-slate-900">Teste seu número</h2>
-            <p className="mt-2 text-sm text-slate-600">
+            <h2 className="text-lg font-semibold df-text-primary">Teste seu número</h2>
+            <p className="mt-2 text-sm df-text-secondary">
               Envie uma mensagem para seu próprio número a partir do WhatsApp no telemóvel. Assim você confirma que está
               recebendo mensagens.
             </p>
-            <p className="mt-4 text-xs text-slate-500">
+            <p className="mt-4 text-xs df-text-muted">
               Quando a mensagem aparecer na Inbox, o passo seguinte desbloqueia automaticamente.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/inbox"
-                className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                className="inline-flex items-center justify-center rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold df-text-primary hover:bg-muted/60"
                 onClick={() => markInboxVisited()}
               >
                 Abrir Inbox para verificar
@@ -127,8 +127,8 @@ export function ActivationGuidedFlow() {
 
         {!allComplete && currentStep === 3 ? (
           <>
-            <h2 className="text-lg font-semibold text-slate-900">Responda sua primeira conversa</h2>
-            <p className="mt-2 text-sm text-slate-600">
+            <h2 className="text-lg font-semibold df-text-primary">Responda sua primeira conversa</h2>
+            <p className="mt-2 text-sm df-text-secondary">
               Abra a Inbox e responda à conversa que chegou. Esse é o momento em que o seu atendimento começa.
             </p>
             <Link
@@ -146,8 +146,8 @@ export function ActivationGuidedFlow() {
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-2xl text-emerald-700">
               ✓
             </div>
-            <h2 className="mt-4 text-lg font-semibold text-slate-900">Tudo certo — seu atendimento está ativo</h2>
-            <p className="mt-2 text-sm text-slate-600">
+            <h2 className="mt-4 text-lg font-semibold df-text-primary">Tudo certo — seu atendimento está ativo</h2>
+            <p className="mt-2 text-sm df-text-secondary">
               Você já recebeu uma mensagem e respondeu. Pode continuar na Inbox ou explorar o painel.
             </p>
             <Link
@@ -160,7 +160,7 @@ export function ActivationGuidedFlow() {
         ) : null}
       </div>
 
-      <p className="mt-6 text-center text-xs text-slate-500">
+      <p className="mt-6 text-center text-xs df-text-muted">
         Quer configurar respostas automáticas depois?{" "}
         <Link href="/settings/ai" className="font-medium text-[var(--df-brand-600)] hover:underline">
           Ir para assistente

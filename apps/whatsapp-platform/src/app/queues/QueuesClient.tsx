@@ -214,7 +214,7 @@ export function QueuesClient({
         showDivider
         actions={
           !showForm ? (
-            <Button type="button" onClick={() => setShowForm(true)}>
+            <Button variant="secondary" type="button" onClick={() => setShowForm(true)}>
               Nova fila
             </Button>
           ) : null
@@ -274,7 +274,7 @@ export function QueuesClient({
                 type="color"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
-                className="h-10 w-20 cursor-pointer rounded border border-slate-200"
+                className="h-10 w-20 cursor-pointer rounded border border-border"
               />
             </FormField>
             <FormField
@@ -295,7 +295,7 @@ export function QueuesClient({
               />
             </FormField>
             <FormActions>
-              <Button type="submit" disabled={loading}>
+              <Button variant="primary" type="submit" disabled={loading}>
                 {loading ? "A criar…" : "Criar"}
               </Button>
               <Button
@@ -319,13 +319,13 @@ export function QueuesClient({
           description="Crie filas para organizar conversas e filtrar na Inbox e no dashboard gerencial."
           nextStep="Depois de criar, atribua agentes em Equipe e use a Inbox para distribuir conversas."
           action={
-            <Button type="button" onClick={() => setShowForm(true)}>
+            <Button variant="secondary" type="button" onClick={() => setShowForm(true)}>
               Criar primeira fila
             </Button>
           }
         />
       ) : (
-        <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/[0.03]">
+        <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-border/90 bg-card shadow-sm ring-1 ring-slate-900/[0.03]">
           {queues.map((q) => (
             <li key={q.id} id={`queue-row-${q.id}`} className="flex flex-col gap-3 px-4 py-4 scroll-mt-24">
               {editingId === q.id ? (
@@ -348,7 +348,7 @@ export function QueuesClient({
                     type="color"
                     value={editColor}
                     onChange={(e) => setEditColor(e.target.value)}
-                    className="h-9 w-16 cursor-pointer rounded border border-slate-200"
+                    className="h-9 w-16 cursor-pointer rounded border border-border"
                   />
                   <input
                     type="number"
@@ -358,7 +358,7 @@ export function QueuesClient({
                     placeholder="SLA min"
                     className={`w-28 ${fieldControlCompact}`}
                   />
-                  <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <label className="flex items-center gap-2 text-sm df-text-secondary">
                     <input
                       type="checkbox"
                       checked={editActive}
@@ -369,10 +369,10 @@ export function QueuesClient({
                   <textarea
                     value={editDescription}
                     onChange={(e) => setEditDescription(e.target.value)}
-                    className="min-h-[3rem] w-full rounded-lg border border-slate-200 px-2 py-1.5 text-sm sm:max-w-md"
+                    className="min-h-[3rem] w-full rounded-lg border border-border px-2 py-1.5 text-sm sm:max-w-md"
                     placeholder="Descrição"
                   />
-                  <Button size="sm" onClick={() => handleUpdate(q.id)} disabled={loading}>
+                  <Button variant="secondary" size="sm" onClick={() => handleUpdate(q.id)} disabled={loading}>
                     Guardar
                   </Button>
                   <Button
@@ -397,22 +397,25 @@ export function QueuesClient({
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span
-                          className="inline-block h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-slate-200/80"
-                          style={{ backgroundColor: q.color ?? "#94a3b8" }}
+                          className={
+                            "inline-block h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-border " +
+                            (q.color ? "" : "bg-muted-foreground")
+                          }
+                          style={q.color ? { backgroundColor: q.color } : undefined}
                           aria-hidden
                         />
-                        <span className="font-semibold text-slate-900">{q.name}</span>
+                        <span className="font-semibold df-text-primary">{q.name}</span>
                         {!q.isActive ? (
                           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-900">
                             Inativa
                           </span>
                         ) : null}
-                        <span className="text-sm text-slate-500">{q.slug}</span>
+                        <span className="text-sm df-text-muted">{q.slug}</span>
                       </div>
                       {q.description ? (
-                        <p className="mt-1 text-sm text-slate-600">{q.description}</p>
+                        <p className="mt-1 text-sm df-text-secondary">{q.description}</p>
                       ) : null}
-                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm df-text-secondary">
                         <span>
                           Backlog (abertas/pendentes): <strong>{q.backlogCount}</strong>
                         </span>
@@ -423,20 +426,20 @@ export function QueuesClient({
                           SLA crítico: <strong className="text-red-700">{q.criticalSlaCount}</strong>
                         </span>
                         {q.slaTargetMinutes != null ? (
-                          <span className="text-slate-500">Meta: {q.slaTargetMinutes} min</span>
+                          <span className="df-text-muted">Meta: {q.slaTargetMinutes} min</span>
                         ) : null}
                       </div>
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {q.members.map((m) => (
                           <span
                             key={m.userId}
-                            className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700"
+                            className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs df-text-secondary"
                           >
                             {m.name}
                           </span>
                         ))}
                         {q.members.length === 0 ? (
-                          <span className="text-xs text-slate-400">Nenhum agente vinculado</span>
+                          <span className="text-xs df-text-muted">Nenhum agente vinculado</span>
                         ) : null}
                       </div>
                     </div>
@@ -477,8 +480,8 @@ export function QueuesClient({
                     </div>
                   </div>
                   {expandMembersFor === q.id ? (
-                    <div className="rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-3">
-                      <p className="text-xs font-medium text-slate-500">Vincular utilizador à fila</p>
+                    <div className="rounded-lg border border-border bg-muted/60/80 px-3 py-3">
+                      <p className="text-xs font-medium df-text-muted">Vincular utilizador à fila</p>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         <select
                           value={memberUserId}
@@ -492,7 +495,7 @@ export function QueuesClient({
                             </option>
                           ))}
                         </select>
-                        <Button size="sm" type="button" onClick={() => handleAddMember(q.id)} disabled={loading}>
+                        <Button variant="secondary" size="sm" type="button" onClick={() => handleAddMember(q.id)} disabled={loading}>
                           Adicionar
                         </Button>
                       </div>
@@ -500,15 +503,15 @@ export function QueuesClient({
                         {q.members.map((m) => (
                           <li key={m.userId} className="flex items-center justify-between gap-2">
                             <span>
-                              {m.name} <span className="text-slate-500">{m.email}</span>
+                              {m.name} <span className="df-text-muted">{m.email}</span>
                             </span>
-                            <button
+                            <Button variant="secondary"
                               type="button"
                               className="text-xs text-red-600 hover:underline"
                               onClick={() => handleRemoveMember(q.id, m.userId)}
                             >
                               Remover
-                            </button>
+                            </Button>
                           </li>
                         ))}
                       </ul>

@@ -3,9 +3,10 @@
 import { cn } from "@/modules/financeiro/lib/cn";
 import type { FinancialContext } from "@/modules/financeiro/schemas";
 import { CONTEXT_LABELS } from "@/modules/financeiro/schemas";
+import { Button } from "@/components/ui/button";
 
 const CONTEXT_COLORS: Record<FinancialContext | "ALL", string> = {
-  ALL: "bg-slate-100 text-slate-700 hover:bg-slate-200 data-[active=true]:bg-slate-700 data-[active=true]:text-white",
+  ALL: "bg-muted df-text-secondary hover:bg-muted data-[active=true]:bg-muted data-[active=true]:text-white",
   PERSONAL: "bg-blue-50 text-blue-700 hover:bg-blue-100 data-[active=true]:bg-blue-600 data-[active=true]:text-white",
   BUSINESS: "bg-violet-50 text-violet-700 hover:bg-violet-100 data-[active=true]:bg-violet-600 data-[active=true]:text-white",
   SHARED: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 data-[active=true]:bg-emerald-600 data-[active=true]:text-white",
@@ -38,7 +39,7 @@ export function ContextSelector({ value, onChange, showAll = true, className }: 
   return (
     <div className={cn("flex flex-wrap gap-1.5", className)}>
       {options.map(({ key, label }) => (
-        <button
+        <Button variant="secondary"
           key={key}
           type="button"
           data-active={value === key}
@@ -50,7 +51,7 @@ export function ContextSelector({ value, onChange, showAll = true, className }: 
         >
           <span className="text-[10px]">{CONTEXT_ICONS[key]}</span>
           {label}
-        </button>
+        </Button>
       ))}
     </div>
   );
@@ -67,12 +68,12 @@ export function ContextSelectField({ value, onChange, label = "Contexto", classN
   return (
     <div className={className}>
       {label && (
-        <label className="mb-1 block text-xs font-medium text-slate-600">{label}</label>
+        <label className="mb-1 block text-xs font-medium df-text-secondary">{label}</label>
       )}
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as FinancialContext)}
-        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm df-text-primary focus:outline-none focus:ring-2 focus:ring-indigo-400"
       >
         <option value="PERSONAL">👤 Pessoal</option>
         <option value="BUSINESS">🏢 Empresa (PJ)</option>

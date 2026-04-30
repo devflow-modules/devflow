@@ -13,20 +13,17 @@ export function FinalCtaV2() {
   return (
     <section
       id="cta-final"
-      className="relative overflow-x-clip overflow-y-visible bg-gradient-to-b from-slate-900 to-slate-950 py-10 text-white sm:py-14 lg:py-18"
+      className="relative overflow-x-clip overflow-y-visible bg-gradient-to-b from-card to-muted py-10 text-foreground sm:py-14 lg:py-18"
       aria-labelledby="final-cta-v2-heading"
     >
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
-        <div
-          className="absolute -right-20 -top-20 h-60 w-60 rounded-full opacity-30"
-          style={{ background: "radial-gradient(circle, rgba(34, 197, 94, 0.35) 0%, transparent 70%)" }}
-        />
+        <div className="df-decor-radial-brand absolute -right-20 -top-20 h-60 w-60 rounded-full opacity-30" />
       </div>
 
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div
           className={cn(
-            "mx-auto max-w-xl rounded-2xl border border-white/10 bg-white/5 p-6 text-center backdrop-blur-sm sm:p-10 lg:p-12"
+            "mx-auto max-w-xl rounded-2xl border border-white/10 bg-card/5 p-6 text-center backdrop-blur-sm sm:p-10 lg:p-12"
           )}
         >
           <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
@@ -63,7 +60,7 @@ export function FinalCtaV2() {
             <Link
               href="/contato"
               aria-label="Agendar diagnóstico — ir para contato"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/25 bg-transparent px-6 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/25 bg-transparent px-6 text-sm font-semibold text-white transition-colors hover:bg-card/10"
             >
               {PRIMARY_CONVERT_CTA_LABEL}
             </Link>

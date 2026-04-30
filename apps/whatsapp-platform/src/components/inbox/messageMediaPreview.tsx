@@ -63,8 +63,8 @@ export function MessageMediaPreview({
 
   const label = typeLabel(message.messageType);
   const boxClass = outbound
-    ? "border-white/25 bg-white/10 text-white"
-    : "border-slate-200/90 bg-slate-50 text-slate-800";
+    ? "border-white/25 bg-card/10 text-white"
+    : "border-border/90 bg-muted/60 df-text-primary";
 
   return (
     <div
@@ -74,22 +74,22 @@ export function MessageMediaPreview({
       <div className="flex items-start gap-2">
         <span
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg ${
-            outbound ? "bg-white/15" : "bg-white text-slate-600 shadow-sm ring-1 ring-slate-200/80"
+            outbound ? "bg-card/15" : "bg-card df-text-secondary shadow-sm ring-1 ring-slate-200/80"
           }`}
           aria-hidden
         >
           {label === "Imagem" ? "🖼" : label === "Áudio" ? "🎧" : label === "Vídeo" ? "▶" : "📎"}
         </span>
         <div className="min-w-0 flex-1">
-          <p className={`text-xs font-semibold uppercase tracking-wide ${outbound ? "text-white/90" : "text-slate-500"}`}>
+          <p className={`text-xs font-semibold uppercase tracking-wide ${outbound ? "text-white/90" : "df-text-muted"}`}>
             {label}
           </p>
           {caption ? (
-            <p className={`mt-0.5 break-words text-[13px] leading-snug ${outbound ? "text-white/95" : "text-slate-700"}`}>
+            <p className={`mt-0.5 break-words text-[13px] leading-snug ${outbound ? "text-white/95" : "df-text-secondary"}`}>
               {caption}
             </p>
           ) : (
-            <p className={`mt-0.5 text-xs ${outbound ? "text-white/75" : "text-slate-500"}`}>
+            <p className={`mt-0.5 text-xs ${outbound ? "text-white/75" : "df-text-muted"}`}>
               Pré-visualização não disponível — o ficheiro foi recebido via WhatsApp.
             </p>
           )}

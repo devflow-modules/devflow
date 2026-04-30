@@ -28,9 +28,9 @@ export function AiStatusBanner({
 
   if (state === "disabled" && !enabled) {
     return (
-      <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
-        <p className="text-sm font-medium text-slate-800">IA desativada</p>
-        <p className="mt-1 text-sm text-slate-600">
+      <div className="mt-3 rounded-lg border border-border bg-muted/60 p-4">
+        <p className="text-sm font-medium df-text-primary">IA desativada</p>
+        <p className="mt-1 text-sm df-text-secondary">
           Ative o toggle acima para começar a responder clientes automaticamente com IA.
         </p>
       </div>
@@ -56,7 +56,7 @@ export function AiStatusBanner({
           </div>
         ) : (
           <Link href="/billing" className="mt-3 inline-block">
-            <Button size="sm">Ver planos e faturação</Button>
+            <Button variant="secondary" size="sm">Ver planos e faturação</Button>
           </Link>
         )}
       </div>

@@ -10,7 +10,7 @@ export function FinalCta() {
   return (
     <section
       id="cta-final"
-      className="relative overflow-hidden bg-[#f1f5f9] py-24"
+      className="df-section-light relative overflow-hidden bg-muted/40 py-24"
       aria-labelledby="final-cta-heading"
     >
       {/* Assinatura visual — grid + glow sutil */}
@@ -18,28 +18,9 @@ export function FinalCta() {
         className="pointer-events-none absolute inset-0 -z-10"
         aria-hidden
       >
-        <div
-          className="absolute -right-20 -top-20 h-60 w-60 rounded-full opacity-20"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(34, 197, 94, 0.2) 0%, transparent 70%)",
-          }}
-        />
-        <div
-          className="absolute -bottom-20 -left-20 h-60 w-60 rounded-full opacity-15"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, transparent 70%)",
-          }}
-        />
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.6) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(15, 23, 42, 0.6) 1px, transparent 1px)`,
-            backgroundSize: "40px 40px",
-          }}
-        />
+        <div className="df-decor-radial-brand-soft absolute -right-20 -top-20 h-60 w-60 rounded-full opacity-20" />
+        <div className="df-decor-radial-accent absolute -bottom-20 -left-20 h-60 w-60 rounded-full opacity-15" />
+        <div className="df-decor-grid-mesh absolute inset-0 opacity-[0.03]" />
       </div>
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div
@@ -55,7 +36,7 @@ export function FinalCta() {
           >
             Veja a DevFlow funcionando
           </h2>
-          <p className="mt-4 text-slate-600">
+          <p className="mt-4 df-text-secondary">
             Teste a automação de atendimento. Converse pelo WhatsApp ou veja a demonstração.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-4">
@@ -69,7 +50,7 @@ export function FinalCta() {
               onClick={() => trackCtaDemoClick("final_cta")}
               className={cn(
                 "inline-flex items-center justify-center gap-2 h-12 rounded-lg border border-[#e2e8f0] px-5 text-base font-semibold",
-                "bg-white text-foreground transition-all duration-200 hover:bg-[#f1f5f9]"
+                "bg-card text-foreground transition-all duration-200 hover:bg-[#f1f5f9]"
               )}
             >
               Ver uma conversa em ação

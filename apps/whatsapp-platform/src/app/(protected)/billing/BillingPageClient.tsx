@@ -238,7 +238,7 @@ export function BillingPageClient() {
         </div>
       )}
       {canceledParam === "true" && (
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+        <div className="rounded-lg border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_45%,var(--df-bg-elevated))] px-4 py-3 text-sm text-[var(--df-text-secondary)]">
           <p>Checkout cancelado.</p>
         </div>
       )}
@@ -258,7 +258,7 @@ export function BillingPageClient() {
             Com o modo de enforcement ativo, o serviço pode limitar funcionalidades até atualizar o plano ou o período
             renovar. Prefira subir de nível para recuperar margem no pacote incluído.
           </p>
-          <Button type="button" size="sm" className="mt-3" onClick={() => setShowUpgradeModal(true)}>
+          <Button variant="secondary" type="button" size="sm" className="mt-3" onClick={() => setShowUpgradeModal(true)}>
             Ver planos e continuar
           </Button>
         </div>
@@ -270,15 +270,15 @@ export function BillingPageClient() {
             A demonstração não inclui expansão faturada. Para continuar o atendimento sem teto da avaliação, avance para
             a operação completa (implantação + mensalidade) com a nossa equipa.
           </p>
-          <Button type="button" size="sm" className="mt-3" onClick={() => setShowUpgradeModal(true)}>
+          <Button variant="secondary" type="button" size="sm" className="mt-3" onClick={() => setShowUpgradeModal(true)}>
             {COMMERCIAL_CHECKOUT_CTA.OPERATIONAL_BASE}
           </Button>
         </div>
       )}
       {beyondIncluded && usage && !usage.enforceLimits && (
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-800">
+        <div className="rounded-lg border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_45%,var(--df-bg-elevated))] px-4 py-4 text-sm text-[var(--df-text-primary)]">
           <p className="font-semibold">Ultrapassou o incluído no plano — o atendimento continua</p>
-          <p className="mt-1 text-slate-700">
+          <p className="mt-1 text-[var(--df-text-secondary)]">
             O uso adicional («{STRIPE_USAGE_LINE_LABELS.extraConversations}» e «{STRIPE_USAGE_LINE_LABELS.extraAi}») é
             registado e cobrado no fim do período. {USAGE_ANTI_SURPRISE_LINE}
           </p>
@@ -296,30 +296,30 @@ export function BillingPageClient() {
         />
       ) : null}
 
-      <section className="overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white to-slate-50/80 p-5 shadow-md sm:p-8">
+      <section className="overflow-hidden rounded-2xl border df-border-brand bg-gradient-to-br from-[var(--df-bg-elevated)] to-[var(--df-bg-app)] p-5 shadow-md sm:p-8">
         <div className="flex min-w-0 flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">O seu plano</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--df-text-muted)]">O seu plano</p>
             {sub ? (
               <>
-                <p className="mt-1 text-sm font-medium text-slate-500">{displayPlanName(sub.plan)}</p>
-                <h2 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
+                <p className="mt-1 text-sm font-medium text-[var(--df-text-muted)]">{displayPlanName(sub.plan)}</p>
+                <h2 className="mt-1 text-3xl font-bold tracking-tight text-[var(--df-text-primary)]">
                   {COMMERCIAL_PLAN_HEADLINE[getPlan(sub.plan).key]}
                 </h2>
               </>
             ) : (
-              <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">—</h2>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight text-[var(--df-text-primary)]">—</h2>
             )}
-            <p className="mt-2 text-sm font-medium text-slate-600">
+            <p className="mt-2 text-sm font-medium text-[var(--df-text-secondary)]">
               {sub ? subscriptionStatusPt(sub.status) : "Carregue novamente se não vir dados."}
             </p>
-            <p className="mt-4 text-sm text-slate-600">
-              <span className="font-semibold text-slate-800">Próxima renovação ou fim do período:</span>{" "}
+            <p className="mt-4 text-sm text-[var(--df-text-secondary)]">
+              <span className="font-semibold text-[var(--df-text-primary)]">Próxima renovação ou fim do período:</span>{" "}
               <span className="block sm:inline">{nextRenewalLabel(sub?.currentPeriodEnd ?? sub?.activeUntil)}</span>
             </p>
           </div>
           <div className="flex min-w-0 shrink-0 flex-col gap-2 sm:flex-row lg:flex-col lg:items-stretch">
-            <Button type="button" className="font-semibold" onClick={() => setShowUpgradeModal(true)}>
+            <Button variant="secondary" type="button" className="font-semibold" onClick={() => setShowUpgradeModal(true)}>
               {sub && normalizePlan(sub.plan) === "FREE"
                 ? COMMERCIAL_CHECKOUT_CTA.OPERATIONAL_BASE
                 : sub
@@ -343,26 +343,26 @@ export function BillingPageClient() {
         ))}
 
       {normalizedCurrentPlan === "FREE" ? (
-        <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900">{HOW_FULL_OPERATION_WORKS.title}</h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600">{HOW_FULL_OPERATION_WORKS.intro}</p>
-          <ul className="mt-4 list-inside list-disc space-y-2 text-sm text-slate-700">
+        <section className="rounded-2xl border df-border-brand bg-[var(--df-bg-elevated)] p-6 shadow-sm">
+          <h2 className="text-lg font-bold text-[var(--df-text-primary)]">{HOW_FULL_OPERATION_WORKS.title}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-[var(--df-text-secondary)]">{HOW_FULL_OPERATION_WORKS.intro}</p>
+          <ul className="mt-4 list-inside list-disc space-y-2 text-sm text-[var(--df-text-secondary)]">
             {HOW_FULL_OPERATION_WORKS.bullets.map((line) => (
               <li key={line}>{line}</li>
             ))}
           </ul>
-          <Button type="button" className="mt-5 font-semibold" onClick={() => setShowUpgradeModal(true)}>
+          <Button variant="secondary" type="button" className="mt-5 font-semibold" onClick={() => setShowUpgradeModal(true)}>
             {COMMERCIAL_CHECKOUT_CTA.OPERATIONAL_BASE}
           </Button>
         </section>
       ) : null}
 
       {usage && (
-        <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm">
+        <section className="rounded-2xl border df-border-brand bg-[var(--df-bg-elevated)] p-6 shadow-sm">
           <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Consumo do período</h2>
-              <p className="text-sm text-slate-500">{usage.period}</p>
+              <h2 className="text-lg font-bold text-[var(--df-text-primary)]">Consumo do período</h2>
+              <p className="text-sm text-[var(--df-text-muted)]">{usage.period}</p>
             </div>
             <Link
               href="/settings/ai-analytics"
@@ -371,7 +371,7 @@ export function BillingPageClient() {
               Ver detalhe de IA →
             </Link>
           </div>
-          <p className="mb-4 rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2.5 text-xs leading-relaxed text-slate-600">
+          <p className="mb-4 rounded-lg border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_52%,var(--df-bg-elevated))] px-3 py-2.5 text-xs leading-relaxed text-[var(--df-text-secondary)]">
             {usage.allowsMeteredOverage ? (
               <>
                 Comparado com o que o plano inclui por mês. Depois do incluído, entra em vigor o uso adicional — o
@@ -444,11 +444,11 @@ export function BillingPageClient() {
           aria-modal="true"
         >
           <div
-            className="max-h-[90vh] overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 shadow-xl sm:max-w-lg"
+            className="max-h-[90vh] overflow-y-auto rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-6 shadow-xl sm:max-w-lg"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-semibold mb-2">Ativar operação contratada</h3>
-            <p className="text-sm text-slate-600 mb-4">
+            <p className="text-sm text-[var(--df-text-secondary)] mb-4">
               Pacote operacional único (mensal + uso adicional transparente). {USAGE_AFTER_INCLUDED_EXPLAINER}{" "}
               {USAGE_ANTI_SURPRISE_LINE}
             </p>
@@ -470,30 +470,30 @@ export function BillingPageClient() {
                     key={key}
                     className={`rounded-xl border p-4 ${
                       isRecommended && !isCurrent
-                        ? "border-amber-300 bg-gradient-to-br from-amber-50/90 to-white shadow-md ring-2 ring-amber-400/90"
-                        : "border-slate-200 bg-white"
+                        ? "border-amber-500/40 bg-gradient-to-br from-amber-950/40 to-[var(--df-bg-elevated)] shadow-md ring-2 ring-amber-400/35"
+                        : "border df-border-brand bg-[var(--df-bg-elevated)]"
                     } ${isCurrent ? "opacity-90" : ""}`}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{def.name}</p>
-                        <p className="mt-0.5 text-base font-semibold text-slate-900">{COMMERCIAL_PLAN_HEADLINE[key]}</p>
-                        <p className="mt-1 text-xs leading-relaxed text-slate-600">{COMMERCIAL_PLAN_SUBTITLE[key]}</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">{def.name}</p>
+                        <p className="mt-0.5 text-base font-semibold text-[var(--df-text-primary)]">{COMMERCIAL_PLAN_HEADLINE[key]}</p>
+                        <p className="mt-1 text-xs leading-relaxed text-[var(--df-text-secondary)]">{COMMERCIAL_PLAN_SUBTITLE[key]}</p>
                       </div>
                       <div className="text-right">
-                        <span className="text-sm font-semibold text-slate-900">{price}</span>
+                        <span className="text-sm font-semibold text-[var(--df-text-primary)]">{price}</span>
                         {isRecommended && !isCurrent ? (
-                          <span className="mt-1 block w-full rounded-full bg-amber-200/90 px-2 py-0.5 text-center text-[10px] font-bold uppercase text-amber-950">
+                          <span className="mt-1 block w-full rounded-full bg-amber-500/20 px-2 py-0.5 text-center text-[10px] font-bold uppercase text-amber-200">
                             {COMMERCIAL_RECOMMENDED_BADGE}
                           </span>
                         ) : null}
                       </div>
                     </div>
-                    <p className="mt-2 rounded-lg bg-slate-50/90 px-2.5 py-2 text-xs font-medium leading-snug text-slate-800">
+                    <p className="mt-2 rounded-lg bg-[color-mix(in_srgb,var(--df-bg-app)_55%,var(--df-bg-elevated))] px-2.5 py-2 text-xs font-medium leading-snug text-[var(--df-text-primary)]">
                       {formatIncludedUsageSentence(key)}
                     </p>
-                    <p className="mt-1 text-[11px] leading-relaxed text-slate-500">{USAGE_AFTER_INCLUDED_EXPLAINER}</p>
-                    <ul className="mt-3 space-y-1.5 border-t border-slate-100/90 pt-3 text-xs text-slate-700">
+                    <p className="mt-1 text-[11px] leading-relaxed text-[var(--df-text-muted)]">{USAGE_AFTER_INCLUDED_EXPLAINER}</p>
+                    <ul className="mt-3 space-y-1.5 border-t df-border-brand pt-3 text-xs text-[var(--df-text-secondary)]">
                       {benefits.map((line) => (
                         <li key={line} className="flex gap-2">
                           <span className="text-emerald-600" aria-hidden>

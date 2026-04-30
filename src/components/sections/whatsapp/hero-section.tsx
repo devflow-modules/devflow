@@ -48,14 +48,8 @@ export function HeroSection() {
     >
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
         <div className="absolute inset-0 df-gradient-text-scrim" />
-        <div
-          className="absolute -top-32 -right-24 h-80 w-80 rounded-full opacity-45"
-          style={{ background: "radial-gradient(circle, rgba(37, 211, 102, 0.18) 0%, transparent 72%)" }}
-        />
-        <div
-          className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full opacity-30"
-          style={{ background: "radial-gradient(circle, rgba(56, 189, 248, 0.16) 0%, transparent 70%)" }}
-        />
+        <div className="df-decor-radial-brand absolute -top-32 -right-24 h-80 w-80 rounded-full opacity-45" />
+        <div className="df-decor-radial-accent absolute -bottom-24 -left-20 h-72 w-72 rounded-full opacity-30" />
       </div>
 
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -124,14 +118,14 @@ export function HeroSection() {
               Já é cliente?{" "}
               <Link
                 href={whatsappAppUrl("/inbox")}
-                className="font-semibold text-foreground underline decoration-slate-300 underline-offset-4 hover:text-primary hover:decoration-primary/40"
+                className="font-semibold text-foreground underline decoration-border underline-offset-4 hover:text-primary hover:decoration-primary/40"
               >
                 Abrir inbox
               </Link>
               <span className="df-text-muted"> · </span>
               <Link
                 href="/contato"
-                className="font-semibold text-foreground underline decoration-slate-300 underline-offset-4 hover:text-primary hover:decoration-primary/40"
+                className="font-semibold text-foreground underline decoration-border underline-offset-4 hover:text-primary hover:decoration-primary/40"
               >
                 Falar com especialista
               </Link>
@@ -140,15 +134,11 @@ export function HeroSection() {
 
           <div className="relative">
             <div
-              className="pointer-events-none absolute -inset-1 -z-10 rounded-[1.35rem] opacity-70 blur-sm"
-              style={{
-                background:
-                  "linear-gradient(135deg, rgba(37,211,102,0.2) 0%, rgba(14,165,233,0.12) 45%, rgba(15,23,42,0.06) 100%)",
-              }}
+              className="df-wa-hero-aureole pointer-events-none absolute -inset-1 -z-10 rounded-[1.35rem] opacity-70 blur-sm"
               aria-hidden
             />
             <div className="df-surface-elevated overflow-hidden rounded-3xl border df-border-brand bg-card shadow-[0_24px_80px_-12px_rgba(0,0,0,0.35)]">
-              <div className="flex items-center gap-2 border-b border-border bg-slate-950 px-4 py-2.5">
+              <div className="flex items-center gap-2 border-b border-border bg-muted px-4 py-2.5">
                 <span className="flex gap-1.5" aria-hidden>
                   <span className="size-2.5 rounded-full bg-red-400/90" />
                   <span className="size-2.5 rounded-full bg-amber-400/90" />

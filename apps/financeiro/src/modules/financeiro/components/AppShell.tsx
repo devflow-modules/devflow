@@ -7,6 +7,7 @@ import { btnGhostLight, focusRingLight, labelCaps } from "@/modules/financeiro/l
 import { Sidebar } from "@/modules/financeiro/components/Sidebar";
 import { QuickAddModal } from "@/modules/financeiro/components/QuickAddModal";
 import { DemoPresentationBar } from "@/modules/financeiro/components/DemoPresentationBar";
+import { Button } from "@/components/ui/button";
 
 function readSidebarCollapsed(): boolean {
   if (typeof window === "undefined") return false;
@@ -61,31 +62,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className={`flex min-h-screen flex-col ${contentPadding}`}>
         {/* Mobile header */}
-        <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-200 bg-card/95 px-4 py-3 backdrop-blur sm:hidden">
-          <button
+        <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-card/95 px-4 py-3 backdrop-blur sm:hidden">
+          <Button variant="secondary"
             type="button"
             className={cn(btnGhostLight, labelCaps, focusRingLight)}
             onClick={() => setIsMobileOpen(true)}
             aria-label="Abrir menu"
           >
             Menu
-          </button>
+          </Button>
           <p className={cn("text-xs uppercase tracking-[0.4em]", "text-muted-foreground flex-1")}>
             Navegação
           </p>
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => setQuickAddOpen(true)}
             className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
           >
             + Lançar
-          </button>
+          </Button>
         </div>
 
         <DemoPresentationBar pathname={pathname} />
 
         {/* Desktop quick-add FAB */}
-        <button
+        <Button variant="secondary"
           type="button"
           onClick={() => setQuickAddOpen(true)}
           title="Lançar rápido (⌘K)"
@@ -96,7 +97,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <kbd className="ml-1 rounded border border-primary-foreground/30 px-1.5 py-0.5 text-[10px] font-mono opacity-75">
             ⌘K
           </kbd>
-        </button>
+        </Button>
 
         {children}
       </div>

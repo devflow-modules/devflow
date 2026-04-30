@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { MetricsCard, MetricsSection, FunnelVisualization } from "@devflow/ui";
 import { PageHeader } from "@/components/ui/page-header";
+import { Button } from "@/components/ui/button";
 import type {
   AdminMetricsPayload,
   AdminRevenuePayload,
@@ -120,7 +121,7 @@ export function MetricsDashboardClient({ initialData }: Props) {
           <div className="flex flex-wrap items-center justify-end gap-2">
             <a
               href="/admin/billing"
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border df-border-dark px-3 py-2 text-sm font-medium df-text-secondary hover:bg-muted/60"
             >
               Faturação e receita
             </a>
@@ -128,7 +129,7 @@ export function MetricsDashboardClient({ initialData }: Props) {
               href={exportConversationsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border df-border-dark px-3 py-2 text-sm font-medium df-text-secondary hover:bg-muted/60"
             >
               Exportar conversas (CSV)
             </a>
@@ -136,18 +137,18 @@ export function MetricsDashboardClient({ initialData }: Props) {
               href={exportMessagesUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border df-border-dark px-3 py-2 text-sm font-medium df-text-secondary hover:bg-muted/60"
             >
               Exportar mensagens (CSV)
             </a>
-            <button
+            <Button variant="disabled"
               type="button"
               onClick={refresh}
               disabled={loading}
               className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
             >
               {loading ? "Atualizando…" : "Atualizar"}
-            </button>
+            </Button>
           </div>
         }
       />
@@ -172,20 +173,20 @@ export function MetricsDashboardClient({ initialData }: Props) {
       <MetricsSection title="Receita SaaS" className="mt-10">
         <div className="flex flex-wrap gap-2 items-center mb-4">
           <span className="text-sm text-muted-foreground">Período (uso/ranking):</span>
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => setPeriod("7d")}
             className={`rounded-lg border px-3 py-1.5 text-sm font-medium ${period === "7d" ? "bg-primary text-primary-foreground border-primary" : "border-border bg-card hover:bg-muted"}`}
           >
             7 dias
-          </button>
-          <button
+          </Button>
+          <Button variant="secondary"
             type="button"
             onClick={() => setPeriod("30d")}
             className={`rounded-lg border px-3 py-1.5 text-sm font-medium ${period === "30d" ? "bg-primary text-primary-foreground border-primary" : "border-border bg-card hover:bg-muted"}`}
           >
             30 dias
-          </button>
+          </Button>
         </div>
         {revenueLoading ? (
           <p className="text-sm text-muted-foreground">Carregando receita…</p>

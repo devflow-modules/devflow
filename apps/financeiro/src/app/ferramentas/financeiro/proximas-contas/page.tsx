@@ -9,6 +9,7 @@ import { ContextSelector, ContextBadge } from "@/modules/financeiro/components/C
 import type { ContextFilter } from "@/modules/financeiro/components/ContextSelector";
 import type { FinancialContext } from "@/modules/financeiro/schemas";
 import { formatDateOnlyPtBr } from "@/lib/dates";
+import { Button } from "@/components/ui/button";
 
 type Source = { id: string; name: string; sourceType: "PJ" | "PF" };
 type Category = { id: string; name: string; color: string } | null;
@@ -112,24 +113,24 @@ export default function ProximasContasPage() {
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-medium text-muted-foreground">Horizonte:</span>
           {DAYS_OPTIONS.map((d) => (
-            <button
+            <Button variant="secondary"
               key={d}
               type="button"
               onClick={() => setDaysAhead(d)}
               className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
                 daysAhead === d
                   ? "bg-indigo-600 text-white"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  : "bg-muted df-text-secondary hover:bg-muted"
               }`}
             >
               {d} dias
-            </button>
+            </Button>
           ))}
         </div>
 
         {/* KPIs */}
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className={`rounded-2xl border p-4 ${(data?.totalOverdue ?? 0) > 0 ? "border-red-200 bg-red-50" : "border-slate-200 bg-slate-50"}`}>
+          <div className={`rounded-2xl border p-4 ${(data?.totalOverdue ?? 0) > 0 ? "border-red-200 bg-red-50" : "border-border bg-muted/60"}`}>
             <p className={`text-xs font-medium uppercase tracking-wider ${(data?.totalOverdue ?? 0) > 0 ? "text-red-500" : "text-muted-foreground"}`}>
               ⚠ Atrasadas
             </p>
@@ -230,7 +231,7 @@ function ExpenseCard({
       ? "border-red-200 bg-red-50"
       : days <= 3
       ? "border-amber-200 bg-amber-50"
-      : "border-slate-200 bg-white";
+      : "border-border bg-card";
 
   return (
     <div className={`flex items-center justify-between gap-3 rounded-xl border p-3 ${urgencyColor}`}>
@@ -259,13 +260,13 @@ function ExpenseCard({
         <p className={`text-sm font-bold ${variant === "overdue" ? "text-red-600" : "text-foreground"}`}>
           {formatCurrency(Number(expense.amount))}
         </p>
-        <button
+        <Button variant="secondary"
           type="button"
           onClick={() => onMarkPaid(expense)}
           className="rounded-lg bg-emerald-500 px-2.5 py-1 text-xs font-medium text-white hover:bg-emerald-600 active:scale-95"
         >
           Pagar
-        </button>
+        </Button>
       </div>
     </div>
   );

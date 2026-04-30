@@ -149,8 +149,8 @@ export function BillingTenantsTable({
                       : row.subscriptionStatus === "past_due"
                         ? "bg-amber-100 text-amber-800"
                         : row.subscriptionStatus === "canceled"
-                          ? "bg-gray-100 text-gray-600"
-                          : "bg-slate-100 text-slate-700"
+                          ? "bg-muted df-text-secondary"
+                          : "bg-muted df-text-secondary"
                   }`}
                 >
                   {row.subscriptionStatus}

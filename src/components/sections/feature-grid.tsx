@@ -49,7 +49,7 @@ export function FeatureGrid() {
           >
             Recursos que fazem diferença
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="mt-3 df-text-secondary">
             O que a DevFlow entrega para sua operação de atendimento no WhatsApp.
           </p>
         </div>
@@ -64,7 +64,7 @@ export function FeatureGrid() {
               )}
             >
               <h3 className="font-medium text-foreground">{feature.title}</h3>
-              <p className="mt-2 text-sm text-slate-600">
+              <p className="mt-2 text-sm df-text-secondary">
                 {feature.description}
               </p>
             </article>

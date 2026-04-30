@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MessageCircle, Send } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const BOT_RESPONSES: Record<string, string> = {
   morango: "Temos! Morango clássico e morango com menta. Qual você prefere? Também fazemos entrega.",
@@ -77,7 +78,7 @@ export function LegacyDemoExperience() {
             <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               Simule um atendimento automatizado
             </h1>
-            <p className="mt-4 text-slate-600">
+            <p className="mt-4 df-text-secondary">
               Digite uma pergunta e veja como a IA responde. Ex: &quot;tem essência de morango?&quot; ou &quot;qual o
               cardápio?&quot;
             </p>
@@ -125,18 +126,18 @@ export function LegacyDemoExperience() {
                   <div className="mb-3 flex justify-start">
                     <div className="flex items-center gap-2 rounded-2xl rounded-tl-md border border-border bg-muted/50 px-4 py-2">
                       <span
-                        className="size-2 animate-pulse rounded-full bg-slate-400"
+                        className="size-2 animate-pulse rounded-full bg-muted-foreground/35"
                         style={{ animationDelay: "0ms" }}
                       />
                       <span
-                        className="size-2 animate-pulse rounded-full bg-slate-400"
+                        className="size-2 animate-pulse rounded-full bg-muted-foreground/35"
                         style={{ animationDelay: "150ms" }}
                       />
                       <span
-                        className="size-2 animate-pulse rounded-full bg-slate-400"
+                        className="size-2 animate-pulse rounded-full bg-muted-foreground/35"
                         style={{ animationDelay: "300ms" }}
                       />
-                      <span className="text-xs text-slate-500">DevFlow Bot está digitando...</span>
+                      <span className="text-xs df-text-muted">DevFlow Bot está digitando...</span>
                     </div>
                   </div>
                 )}
@@ -147,17 +148,18 @@ export function LegacyDemoExperience() {
                 <p className="mb-2 text-xs text-muted-foreground">Ou clique:</p>
                 <div className="flex flex-wrap gap-2">
                   {QUICK_CHOICES.map((choice) => (
-                    <button
+                    <Button
                       key={choice.value}
                       type="button"
+                      variant="secondary"
                       onClick={() => sendMessage(choice.value)}
                       className={cn(
-                        "rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium",
+                        "h-auto min-h-0 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium shadow-none",
                         "text-foreground transition-colors hover:border-primary/50 hover:bg-primary/5"
                       )}
                     >
                       {choice.label}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -171,18 +173,19 @@ export function LegacyDemoExperience() {
                   placeholder="Digite uma pergunta..."
                   className="flex-1 rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="primary"
                   onClick={handleSend}
-                  className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-[#16a34a]"
+                  className="size-10 rounded-lg p-0 hover:bg-primary/90"
                   aria-label="Enviar"
                 >
                   <Send className="size-5" />
-                </button>
+                </Button>
               </div>
             </div>
 
-            <p className="mt-4 text-center text-sm text-slate-600">
+            <p className="mt-4 text-center text-sm df-text-secondary">
               Esta é uma demonstração. Na operação real, o bot usa IA e se integra ao seu atendimento.
             </p>
           </div>
@@ -205,7 +208,7 @@ export function LegacyDemoExperience() {
           </div>
 
           <p className="mt-8 text-center">
-            <Link href="/" className="text-sm text-slate-600 hover:text-foreground">
+            <Link href="/" className="text-sm df-text-secondary hover:text-foreground">
               ← Voltar ao início
             </Link>
           </p>

@@ -5,6 +5,7 @@ import type { NavItem } from "./nav-config";
 import { shellHomeHref } from "@/lib/roles";
 import type { UserRole } from "@/modules/auth";
 import { useSupport } from "@/components/support/SupportProvider";
+import { Button } from "@/components/ui/button";
 
 function normalizeNavPath(path: string): string {
   const p = path.split("?")[0] ?? path;
@@ -128,7 +129,7 @@ function RailNavLink({
           ? "bg-[var(--df-brand-50)] text-[var(--df-brand-900)] ring-1 ring-[var(--df-brand-200)]/90 shadow-sm"
           : sensitive
             ? "text-amber-800/90 hover:bg-amber-50 hover:text-amber-950"
-            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            : "df-text-secondary hover:bg-muted hover:df-text-primary"
       }`}
     >
       {iconForHref(item.href)}
@@ -164,8 +165,8 @@ export function SidebarRail({
   }
 
   return (
-    <aside className="flex h-full w-full min-w-0 flex-col bg-white" aria-label="Navegação compacta">
-      <div className="flex flex-col items-center gap-2 border-b border-slate-100/90 px-1 py-3">
+    <aside className="flex h-full w-full min-w-0 flex-col bg-card" aria-label="Navegação compacta">
+      <div className="flex flex-col items-center gap-2 border-b border-border/90 px-1 py-3">
         <Link
           href={home}
           title="Início"
@@ -175,17 +176,17 @@ export function SidebarRail({
         >
           W
         </Link>
-        <button
+        <Button variant="ghost"
           type="button"
           onClick={onExpand}
-          className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2"
+          className="flex h-9 w-9 items-center justify-center rounded-xl df-text-muted transition hover:bg-muted hover:df-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2"
           aria-label="Expandir menu lateral"
           title="Expandir menu"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
           </svg>
-        </button>
+        </Button>
       </div>
 
       <nav className="flex min-h-0 flex-1 flex-col items-center gap-1.5 overflow-y-auto overflow-x-hidden px-1 py-3">
@@ -194,13 +195,13 @@ export function SidebarRail({
         ))}
         {secondaryNav.length > 0 ? (
           <>
-            <div className="my-1 h-px w-6 bg-slate-200/90" aria-hidden />
+            <div className="my-1 h-px w-6 bg-muted/90" aria-hidden />
             {secondaryNav.map((item) => (
               <RailNavLink key={item.href} item={item} pathname={pathname} onNavigate={onNavigate} />
             ))}
           </>
         ) : null}
-        <div className="my-1 h-px w-6 bg-slate-200/90" aria-hidden />
+        <div className="my-1 h-px w-6 bg-muted/90" aria-hidden />
         {operationNav.map((item) => (
           <RailNavLink key={item.href} item={item} pathname={pathname} onNavigate={onNavigate} />
         ))}
@@ -214,19 +215,19 @@ export function SidebarRail({
         ) : null}
       </nav>
 
-      <div className="flex flex-col items-center gap-1.5 border-t border-slate-100/90 px-1 py-3">
-        <button
+      <div className="flex flex-col items-center gap-1.5 border-t border-border/90 px-1 py-3">
+        <Button variant="secondary"
           type="button"
           onClick={() => openSupport()}
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/90 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/90 bg-card df-text-secondary shadow-sm transition hover:bg-muted/60 hover:df-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2"
           aria-label="Precisa de ajuda?"
           title="Precisa de ajuda?"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-        </button>
-        <button
+        </Button>
+        <Button variant="secondary"
           type="button"
           onClick={() => void logout()}
           className="flex h-9 w-9 items-center justify-center rounded-xl text-red-600 transition hover:bg-red-50"
@@ -236,7 +237,7 @@ export function SidebarRail({
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
-        </button>
+        </Button>
       </div>
     </aside>
   );

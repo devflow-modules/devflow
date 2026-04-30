@@ -4,6 +4,7 @@ import { useState } from "react";
 import { getGrowthSessionId } from "@/analytics/growth/trackClient";
 import { cn } from "@/modules/financeiro/lib/cn";
 import { focusRingLight, mutedTextLight } from "@/modules/financeiro/lib/primitives";
+import { Button } from "@/components/ui/button";
 
 type LeadCaptureFormProps = {
   source: string;
@@ -95,7 +96,7 @@ export function LeadCaptureForm({
             )}
           />
         </label>
-        <button
+        <Button variant="primary"
           type="submit"
           disabled={status === "loading"}
           className={cn(
@@ -105,7 +106,7 @@ export function LeadCaptureForm({
           )}
         >
           {status === "loading" ? "Enviando..." : buttonLabel}
-        </button>
+        </Button>
       </div>
       {message && (
         <p

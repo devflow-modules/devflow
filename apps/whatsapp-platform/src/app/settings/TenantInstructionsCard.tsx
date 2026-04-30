@@ -86,7 +86,7 @@ export function TenantInstructionsCard() {
             />
           </div>
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
-          <Button type="submit" disabled={saving}>
+          <Button variant="primary" type="submit" disabled={saving}>
             {saving ? "A guardar…" : "Guardar instruções"}
           </Button>
         </form>

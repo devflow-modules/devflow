@@ -26,14 +26,14 @@ export default function ContatoPage() {
           <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Contato
           </h1>
-          <p className="mt-4 text-slate-600">
+          <p className="mt-4 df-text-secondary">
             Resposta rápida. Entre em contato pelo WhatsApp ou email.
           </p>
 
           <div className="mt-12 space-y-8">
             <div className="rounded-xl border border-border bg-card p-6">
               <h2 className="font-semibold text-foreground">WhatsApp</h2>
-              <p className="mt-2 text-sm text-slate-600">
+              <p className="mt-2 text-sm df-text-secondary">
                 Canal principal. Respondemos em poucos minutos em horário comercial.
               </p>
               <div className="mt-4">
@@ -47,7 +47,7 @@ export default function ContatoPage() {
 
             <div className="rounded-xl border border-border bg-card p-6">
               <h2 className="font-semibold text-foreground">E-mail</h2>
-              <p className="mt-2 text-sm text-slate-600">
+              <p className="mt-2 text-sm df-text-secondary">
                 Para propostas formais ou dúvidas que exigem documentação.
               </p>
               <a
@@ -62,7 +62,7 @@ export default function ContatoPage() {
               <p className="text-sm font-medium text-foreground">
                 Resposta em até 24h (dias úteis).
               </p>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="mt-1 text-sm df-text-secondary">
                 No WhatsApp, costumamos responder em minutos.
               </p>
             </div>
@@ -71,7 +71,7 @@ export default function ContatoPage() {
           <p className="mt-12">
             <Link
               href="/"
-              className="text-sm font-medium text-slate-600 hover:text-foreground"
+              className="text-sm font-medium df-text-secondary hover:text-foreground"
             >
               ← Voltar ao início
             </Link>

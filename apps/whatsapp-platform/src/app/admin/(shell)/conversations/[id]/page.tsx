@@ -81,23 +81,23 @@ export default function AdminConversationChatPage() {
   if (!id) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center py-12">
-        <p className="text-slate-600">Conversa não encontrada.</p>
+        <p className="df-text-secondary">Conversa não encontrada.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-0 max-h-[min(85dvh,920px)] flex-col overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm">
-      <header className="shrink-0 border-b border-slate-200 bg-white px-4 py-3">
+    <div className="flex min-h-0 max-h-[min(85dvh,920px)] flex-col overflow-hidden rounded-xl border border-border bg-muted/60 shadow-sm">
+      <header className="shrink-0 border-b border-border bg-card px-4 py-3">
         <div className="flex items-center gap-3">
           <Link
             href="/admin/conversations"
-            className="text-slate-600 hover:text-slate-900"
+            className="df-text-secondary hover:df-text-primary"
             aria-label="Voltar"
           >
             ←
           </Link>
-          <h1 className="text-lg font-semibold text-slate-900">
+          <h1 className="text-lg font-semibold df-text-primary">
             {customerName ?? `Conversa ${id.slice(0, 8)}…`}
           </h1>
         </div>
@@ -114,7 +114,7 @@ export default function AdminConversationChatPage() {
               className={cn(
                 "max-w-[85%] rounded-2xl px-4 py-2 text-sm",
                 m.direction === "inbound"
-                  ? "mr-auto bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/60"
+                  ? "mr-auto bg-card df-text-primary shadow-sm ring-1 ring-slate-200/60"
                   : "ml-auto bg-green-600 text-white"
               )}
             >
@@ -122,7 +122,7 @@ export default function AdminConversationChatPage() {
               <p
                 className={cn(
                   "mt-1 text-xs",
-                  m.direction === "inbound" ? "text-slate-500" : "text-green-200"
+                  m.direction === "inbound" ? "df-text-muted" : "text-green-200"
                 )}
               >
                 {new Date(m.created_at).toLocaleTimeString("pt-BR", {
@@ -138,7 +138,7 @@ export default function AdminConversationChatPage() {
 
       <form
         onSubmit={handleSend}
-        className="shrink-0 border-t border-slate-200 bg-white p-3"
+        className="shrink-0 border-t border-border bg-card p-3"
       >
         <div className="flex gap-2">
           <input
@@ -146,10 +146,10 @@ export default function AdminConversationChatPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Digite sua mensagem..."
-            className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-500 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20"
+            className="min-w-0 flex-1 rounded-xl border border-border bg-muted/60 px-4 py-2.5 text-sm df-text-primary placeholder:df-text-muted focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20"
             disabled={sending}
           />
-          <Button type="submit" disabled={sending || !input.trim()} size="default">
+          <Button variant="primary" type="submit" disabled={sending || !input.trim()} size="default">
             {sending ? "…" : "Enviar"}
           </Button>
         </div>

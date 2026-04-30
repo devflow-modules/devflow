@@ -32,9 +32,9 @@ export function ActivateChannelModal({ open, channelLabel, onClose, onSubmit }: 
 
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-      <button
+      <Button variant="ghost"
         type="button"
-        className="absolute inset-0 bg-slate-900/40"
+        className="absolute inset-0 bg-muted/40"
         aria-label="Fechar"
         onClick={() => !busy && onClose()}
       />
@@ -42,9 +42,9 @@ export function ActivateChannelModal({ open, channelLabel, onClose, onSubmit }: 
         role="dialog"
         aria-modal="true"
         aria-labelledby="activate-channel-title"
-        className="relative z-[301] w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-xl"
+        className="relative z-[301] w-full max-w-lg rounded-xl border border-border bg-card p-6 shadow-xl"
       >
-        <h2 id="activate-channel-title" className="df-text-section-title text-slate-900">
+        <h2 id="activate-channel-title" className="df-text-section-title df-text-primary">
           Ativar canal
         </h2>
         <p className="df-text-muted mt-1 text-sm">{channelLabel}</p>
@@ -55,7 +55,7 @@ export function ActivateChannelModal({ open, channelLabel, onClose, onSubmit }: 
               value={token}
               onChange={(ev) => setToken(ev.target.value)}
               rows={4}
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 font-mono text-sm text-slate-900 shadow-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+              className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm df-text-primary shadow-sm focus:df-border-dark focus:outline-none focus:ring-2 focus:ring-slate-200"
               placeholder="Cole o token de acesso…"
               disabled={busy}
               autoComplete="off"

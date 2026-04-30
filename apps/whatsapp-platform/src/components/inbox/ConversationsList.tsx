@@ -31,6 +31,7 @@ import { buttonClassName } from "@/components/ui/button";
 import { FirstConversationHint } from "./FirstConversationHint";
 import { InboxFilterEmpty } from "./InboxSidebarEmpty";
 import { getResponseAlertLevel } from "./ResponseAlertBadge";
+import { Button } from "@/components/ui/button";
 
 const POLL_INTERVAL_REALTIME_MS = 10_000;
 const POLL_INTERVAL_FALLBACK_MS = 5_000;
@@ -174,12 +175,12 @@ export function ConversationsList({
     return (
       <div className="flex min-h-0 flex-1 flex-col p-3" data-testid="conversations-list-skeleton">
         <div className="space-y-2 rounded-xl border df-border-brand bg-[var(--df-bg-elevated)]/90 p-3 shadow-sm">
-          <div className="h-8 w-3/5 max-w-[12rem] animate-pulse rounded-lg bg-slate-200/80" />
-          <div className="h-8 w-full animate-pulse rounded-lg bg-slate-100/90" />
-          <div className="h-8 w-full animate-pulse rounded-lg bg-slate-100/90" />
-          <div className="h-8 w-4/5 animate-pulse rounded-lg bg-slate-100/90" />
-          <div className="h-8 w-full animate-pulse rounded-lg bg-slate-100/90" />
-          <p className="pt-2 text-center text-[11px] font-medium text-slate-400">A carregar conversas…</p>
+          <div className="h-8 w-3/5 max-w-[12rem] animate-pulse rounded-lg bg-muted/80" />
+          <div className="h-8 w-full animate-pulse rounded-lg bg-muted/90" />
+          <div className="h-8 w-full animate-pulse rounded-lg bg-muted/90" />
+          <div className="h-8 w-4/5 animate-pulse rounded-lg bg-muted/90" />
+          <div className="h-8 w-full animate-pulse rounded-lg bg-muted/90" />
+          <p className="pt-2 text-center text-[11px] font-medium df-text-muted">A carregar conversas…</p>
         </div>
       </div>
     );
@@ -232,7 +233,7 @@ export function ConversationsList({
           const isNeeds = f === "needs_response";
           const selected = filter === f;
           return (
-            <button
+            <Button variant="secondary"
               key={f}
               type="button"
               onClick={() => onFilterChange(f)}
@@ -248,7 +249,7 @@ export function ConversationsList({
               }`}
             >
               {FILTER_LABELS[f]}
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -282,7 +283,7 @@ export function ConversationsList({
 
           {lines.length > 0 ? (
             <div ref={moreFiltersRef} className="relative flex items-center gap-1.5">
-              <button
+              <Button variant="secondary"
                 type="button"
                 onClick={() => setMoreFiltersOpen((o) => !o)}
                 className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
@@ -297,7 +298,7 @@ export function ConversationsList({
                 {hasLineFilter ? (
                   <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--df-brand-500)]" aria-hidden />
                 ) : null}
-              </button>
+              </Button>
               {moreFiltersOpen ? (
                 <div
                   id="inbox-more-filters"

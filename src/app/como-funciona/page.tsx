@@ -48,7 +48,7 @@ export default function ComoFuncionaPage() {
             <Link href="/" className="font-medium text-primary hover:underline">
               Home
             </Link>
-            <span className="mx-1.5 text-slate-400" aria-hidden>
+            <span className="mx-1.5 df-text-muted" aria-hidden>
               /
             </span>
             <span className="font-medium text-foreground">Como funciona</span>
@@ -56,7 +56,7 @@ export default function ComoFuncionaPage() {
           <h1 className="mt-4 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             Como a DevFlow Labs funciona
           </h1>
-          <p className="mt-3 max-w-2xl text-base text-slate-600">
+          <p className="mt-3 max-w-2xl text-base df-text-secondary">
             Veja em três passos como organizar seu atendimento e automatizar seu WhatsApp.
           </p>
         </div>

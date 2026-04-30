@@ -26,7 +26,7 @@ export function SectionHeader({
         {title}
       </h2>
       {description && (
-        <p className="mt-3 text-slate-600">{description}</p>
+        <p className="mt-3 df-text-secondary">{description}</p>
       )}
     </div>
   );

@@ -152,47 +152,47 @@ export function BillingSettingsClient() {
         />
       ) : null}
 
-      <section className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03] sm:p-6">
-        <h2 className="mb-1 text-lg font-bold tracking-tight text-slate-900">Assinatura</h2>
-        <p className="mb-3 text-sm text-slate-600">
+      <section className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)] sm:p-6">
+        <h2 className="mb-1 text-lg font-bold tracking-tight text-[var(--df-text-primary)]">Assinatura</h2>
+        <p className="mb-3 text-sm text-[var(--df-text-secondary)]">
           Plano ativo, renovação e faturação via Stripe. Limites técnicos e enforcement continuam definidos no
           servidor — aqui vê o estado e acede ao portal.
         </p>
         {sub && (
           <dl className="grid gap-2 text-sm">
             <div className="flex justify-between">
-              <dt className="text-slate-500">Plano</dt>
+              <dt className="text-[var(--df-text-muted)]">Plano</dt>
               <dd className="font-medium uppercase">{sub.plan}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-slate-500">Status</dt>
+              <dt className="text-[var(--df-text-muted)]">Status</dt>
               <dd>{sub.status}</dd>
             </div>
             {sub.currentPeriodEnd && (
               <div className="flex justify-between">
-                <dt className="text-slate-500">Fim do período</dt>
+                <dt className="text-[var(--df-text-muted)]">Fim do período</dt>
                 <dd>{new Date(sub.currentPeriodEnd).toLocaleDateString("pt-BR")}</dd>
               </div>
             )}
             {sub.cancelAtPeriodEnd && (
               <p className="text-amber-700 text-xs">Cancelamento agendado ao fim do período.</p>
             )}
-            <div className="flex justify-between pt-2 border-t border-slate-100">
-              <dt className="text-slate-500">Uso variável Stripe</dt>
+            <div className="flex justify-between pt-2 border-t df-border-brand">
+              <dt className="text-[var(--df-text-muted)]">Uso variável Stripe</dt>
               <dd>{sub.meteredBillingConfigured ? "Ativo" : "Não configurado"}</dd>
             </div>
             {sub.lastInvoiceId && (
               <>
                 <div className="flex justify-between">
-                  <dt className="text-slate-500">Última invoice</dt>
+                  <dt className="text-[var(--df-text-muted)]">Última invoice</dt>
                   <dd className="text-xs font-mono truncate max-w-[180px]">{sub.lastInvoiceId}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-slate-500">Status / pago</dt>
+                  <dt className="text-[var(--df-text-muted)]">Status / pago</dt>
                   <dd>
                     {sub.lastInvoiceStatus}{" "}
                     {sub.lastInvoiceAmountPaid != null && (
-                      <span className="text-slate-600">
+                      <span className="text-[var(--df-text-secondary)]">
                         ({(sub.lastInvoiceAmountPaid / 100).toFixed(2)} {sub.lastInvoiceAmountPaid > 0 ? "centavos/moeda Stripe" : ""})
                       </span>
                     )}
@@ -204,7 +204,7 @@ export function BillingSettingsClient() {
         )}
         <div className="mt-4 flex flex-wrap gap-2">
           {sub?.stripeCustomerId ? (
-            <Button type="button" onClick={() => void openPortal()} disabled={portalLoading}>
+            <Button variant="secondary" type="button" onClick={() => void openPortal()} disabled={portalLoading}>
               {portalLoading ? "Abrindo…" : "Portal Stripe (faturas e pagamento)"}
             </Button>
           ) : null}
@@ -227,9 +227,9 @@ export function BillingSettingsClient() {
         ))}
 
       {usage && (
-        <section className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03] sm:p-6">
-          <h2 className="mb-1 text-lg font-bold tracking-tight text-slate-900">Uso do mês ({usage.period})</h2>
-          <p className="text-xs text-slate-500 mb-4">
+        <section className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)] sm:p-6">
+          <h2 className="mb-1 text-lg font-bold tracking-tight text-[var(--df-text-primary)]">Uso do mês ({usage.period})</h2>
+          <p className="text-xs text-[var(--df-text-muted)] mb-4">
             Custos variáveis são estimados com base nos preços configurados no servidor (env).
           </p>
           <dl className="grid gap-3 text-sm">
@@ -238,7 +238,7 @@ export function BillingSettingsClient() {
               <dd className="font-mono">
                 {usage.messagesSent}
                 {usage.limits.messagesPerMonth != null && (
-                  <span className="text-slate-500"> / {usage.limits.messagesPerMonth}</span>
+                  <span className="text-[var(--df-text-muted)]"> / {usage.limits.messagesPerMonth}</span>
                 )}
                 {!usage.withinLimits.messages && (
                   <span className="ml-2 text-amber-600 text-xs">no limite</span>
@@ -250,13 +250,13 @@ export function BillingSettingsClient() {
               <dd className="font-mono">
                 {usage.aiResponses}
                 {usage.limits.aiResponsesPerMonth != null && (
-                  <span className="text-slate-500"> / {usage.limits.aiResponsesPerMonth}</span>
+                  <span className="text-[var(--df-text-muted)]"> / {usage.limits.aiResponsesPerMonth}</span>
                 )}
               </dd>
             </div>
-            <div className="flex justify-between border-t border-slate-100 pt-3 mt-2">
-              <dt className="text-slate-600">Preço unitário (ref.)</dt>
-              <dd className="text-right text-xs text-slate-600">
+            <div className="flex justify-between border-t df-border-brand pt-3 mt-2">
+              <dt className="text-[var(--df-text-secondary)]">Preço unitário (ref.)</dt>
+              <dd className="text-right text-xs text-[var(--df-text-secondary)]">
                 msg R$ {usage.unitPricesBrl.message.toFixed(4)} · IA R${" "}
                 {usage.unitPricesBrl.aiResponse.toFixed(4)}
               </dd>
@@ -268,8 +268,8 @@ export function BillingSettingsClient() {
               </dd>
             </div>
             {usage.stripeMetered && sub?.meteredBillingConfigured && (
-              <div className="border-t border-slate-100 pt-3 mt-2 space-y-2">
-                <p className="text-xs font-medium text-slate-700">Enviado ao Stripe (metered)</p>
+              <div className="border-t df-border-brand pt-3 mt-2 space-y-2">
+                <p className="text-xs font-medium text-[var(--df-text-secondary)]">Enviado ao Stripe (metered)</p>
                 <div className="flex justify-between text-sm">
                   <dt>Mensagens faturáveis</dt>
                   <dd className="font-mono">
@@ -294,9 +294,9 @@ export function BillingSettingsClient() {
         </section>
       )}
 
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-[var(--df-text-muted)]">
         Administradores: fluxo técnico de billing e enforcement está em{" "}
-        <code className="rounded bg-slate-100 px-1">docs/billing/BILLING_FLOW.md</code> — separado da narrativa de
+        <code className="rounded bg-[var(--df-bg-app)] px-1">docs/billing/BILLING_FLOW.md</code> — separado da narrativa de
         produto na interface.
       </p>
     </div>

@@ -20,6 +20,7 @@ import { useShellLayoutOptional } from "./ShellLayoutContext";
 import { SidebarRail } from "./SidebarRail";
 import { useMediaMinWidth } from "@/lib/useMediaMinWidth";
 import { isCommercialBillingVisible } from "@/lib/productMode";
+import { Button } from "@/components/ui/button";
 function NavLink({
   href,
   label,
@@ -70,7 +71,7 @@ function CollapsibleNavSection({
 
   return (
     <div className={defaultSensitive ? "rounded-xl ring-1 ring-amber-100/90 bg-amber-50/20" : ""}>
-      <button
+      <Button variant="secondary"
         type="button"
         onClick={() => setSectionCollapsed(sectionId, !collapsed)}
         className={`mb-1.5 flex w-full items-start justify-between gap-2 px-3 py-1 text-left text-[11px] font-semibold uppercase tracking-[0.1em] ${
@@ -89,7 +90,7 @@ function CollapsibleNavSection({
         <span className="shrink-0 text-[var(--df-text-muted)]" aria-hidden>
           {collapsed ? "▸" : "▾"}
         </span>
-      </button>
+      </Button>
       {!collapsed ? <div className="space-y-0.5">{children}</div> : null}
     </div>
   );
@@ -186,7 +187,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
           <SessionRoleModePill variant="sidebar" />
         </Link>
         {shellLayout ? (
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => shellLayout.toggleSidebar()}
             className="hidden shrink-0 rounded-lg p-2 text-[var(--df-text-secondary)] transition hover:bg-[var(--df-brand-100)] hover:text-[var(--df-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2 lg:flex"
@@ -196,7 +197,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-          </button>
+          </Button>
         ) : null}
       </div>
 
@@ -308,13 +309,13 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
         >
           Entrar (outra conta)
         </Link>
-        <button
+        <Button variant="secondary"
           type="button"
           onClick={() => void logout()}
           className="w-full rounded-lg px-3 py-2 text-left text-xs font-medium text-[var(--df-danger-text)] hover:bg-[var(--df-danger-bg)]"
         >
           Terminar sessão
-        </button>
+        </Button>
       </div>
     </aside>
   );

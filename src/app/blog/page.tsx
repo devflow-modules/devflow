@@ -36,7 +36,7 @@ export default function BlogPage() {
           >
             Blog
           </h1>
-          <p className="mt-4 text-lg text-slate-600">
+          <p className="mt-4 text-lg df-text-secondary">
             Automação WhatsApp, chatbot e atendimento. Dicas e guias para sua
             empresa.
           </p>
@@ -69,7 +69,7 @@ export default function BlogPage() {
                 <h2 className="mt-2 text-xl font-semibold text-foreground">
                   {article.title}
                 </h2>
-                <p className="mt-2 text-slate-600">{article.excerpt}</p>
+                <p className="mt-2 df-text-secondary">{article.excerpt}</p>
                 <span
                   className={cn(
                     "mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary"

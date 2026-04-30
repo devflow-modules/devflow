@@ -23,7 +23,7 @@ export function AuthorityRealOpsSection() {
   return (
     <section
       id="autoridade-operacao"
-      className="border-y border-border bg-slate-900 py-12 text-white sm:py-16 lg:py-20"
+      className="border-y border-border bg-muted py-12 text-white sm:py-16 lg:py-20"
       aria-labelledby="authority-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -45,7 +45,7 @@ export function AuthorityRealOpsSection() {
             <li
               key={p.title}
               className={cn(
-                "rounded-2xl border border-white/10 bg-white/5 p-7",
+                "rounded-2xl border border-white/10 bg-card/5 p-7",
                 "transition-colors hover:border-primary/35"
               )}
             >

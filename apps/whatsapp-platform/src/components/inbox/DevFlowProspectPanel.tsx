@@ -15,6 +15,7 @@ import {
   type SalesStage,
 } from "@/modules/inbox/prospectSales";
 import { PROSPECT_MESSAGE_TEMPLATES } from "@/modules/inbox/prospectMessageTemplates";
+import { Button } from "@/components/ui/button";
 
 function followUpTomorrowMorningIso(): string {
   const d = new Date();
@@ -73,7 +74,7 @@ export function DevFlowProspectPanel({ thread }: { thread: WaInboxThreadRow }) {
   const fuBadges = prospectBadges({ prospect });
   const stage = prospect?.salesStage;
   const stageLabel = stage ? SALES_STAGE_LABELS_PT[stage] : "Sem etapa";
-  const stageClass = stage ? SALES_STAGE_BADGE_CLASS[stage] : "bg-slate-100 text-slate-600 ring-1 ring-slate-200/90";
+  const stageClass = stage ? SALES_STAGE_BADGE_CLASS[stage] : "bg-muted df-text-secondary ring-1 ring-slate-200/90";
 
   const [companyName, setCompanyName] = useState("");
   const [niche, setNiche] = useState("");
@@ -124,7 +125,7 @@ export function DevFlowProspectPanel({ thread }: { thread: WaInboxThreadRow }) {
   });
 
   const qBtn =
-    "rounded-lg border border-slate-200/90 bg-white px-2 py-1.5 text-[10px] font-semibold leading-tight text-slate-800 shadow-sm transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45";
+    "rounded-lg border border-border/90 bg-card px-2 py-1.5 text-[10px] font-semibold leading-tight df-text-primary shadow-sm transition hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45";
 
   const patchStage = (salesStage: SalesStage, ns?: string) => {
     mutation.mutate({
@@ -170,10 +171,10 @@ export function DevFlowProspectPanel({ thread }: { thread: WaInboxThreadRow }) {
 
   return (
     <section
-      className="rounded-xl border border-slate-200/85 bg-white/95 px-3 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+      className="rounded-xl border border-border/85 bg-card/95 px-3 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
       data-testid="devflow-prospect-panel"
     >
-      <h4 className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Prospecção DevFlow</h4>
+      <h4 className="text-[10px] font-bold uppercase tracking-wide df-text-muted">Prospecção DevFlow</h4>
 
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <span
@@ -192,26 +193,26 @@ export function DevFlowProspectPanel({ thread }: { thread: WaInboxThreadRow }) {
 
       <div className="mt-3 space-y-2 text-left">
         <div className="space-y-0.5">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Etapa (resumo)</p>
-          <p className="text-xs text-slate-700">{stageLabel}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">Etapa (resumo)</p>
+          <p className="text-xs df-text-secondary">{stageLabel}</p>
         </div>
         <div className="space-y-0.5">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Origem</p>
-          <p className="text-sm text-slate-900">{originLabel ?? "—"}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">Origem</p>
+          <p className="text-sm df-text-primary">{originLabel ?? "—"}</p>
         </div>
         <div className="space-y-0.5">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Próximo passo</p>
-          <p className="text-sm text-slate-900">{prospect?.nextStep?.trim() ? prospect.nextStep : "—"}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">Próximo passo</p>
+          <p className="text-sm df-text-primary">{prospect?.nextStep?.trim() ? prospect.nextStep : "—"}</p>
         </div>
         <div className="space-y-0.5">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Próximo follow-up</p>
-          <p className="text-sm text-slate-900">
+          <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">Próximo follow-up</p>
+          <p className="text-sm df-text-primary">
             {prospect?.nextFollowUpAt?.trim() ? formatPtDateTime(prospect.nextFollowUpAt) : "—"}
           </p>
         </div>
         <div className="space-y-0.5">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Valor da proposta</p>
-          <p className="text-sm font-medium tabular-nums text-slate-900">
+          <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">Valor da proposta</p>
+          <p className="text-sm font-medium tabular-nums df-text-primary">
             {prospect?.proposalValue != null && Number.isFinite(prospect.proposalValue)
               ? formatProposalBrl(prospect.proposalValue)
               : "—"}
@@ -220,47 +221,47 @@ export function DevFlowProspectPanel({ thread }: { thread: WaInboxThreadRow }) {
       </div>
 
       {!hasAnyProspect ? (
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs df-text-muted">
           Ainda sem dados de prospecção nesta conversa. Preencha o formulário abaixo ou use ações rápidas.
         </p>
       ) : null}
 
-      <details className="mt-3 rounded-lg border border-slate-200/80 bg-slate-50/50 px-2 py-1.5">
-        <summary className="cursor-pointer text-[10px] font-bold uppercase tracking-wide text-slate-600">
+      <details className="mt-3 rounded-lg border border-border/80 bg-muted/60/50 px-2 py-1.5">
+        <summary className="cursor-pointer text-[10px] font-bold uppercase tracking-wide df-text-secondary">
           Editar dados
         </summary>
         <div className="mt-2 space-y-2 pb-1">
           <label className="block">
-            <span className="text-[9px] font-semibold text-slate-500">Empresa</span>
+            <span className="text-[9px] font-semibold df-text-muted">Empresa</span>
             <input
-              className="mt-0.5 w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs"
+              className="mt-0.5 w-full rounded border border-border bg-card px-2 py-1 text-xs"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
               maxLength={200}
             />
           </label>
           <label className="block">
-            <span className="text-[9px] font-semibold text-slate-500">Nicho</span>
+            <span className="text-[9px] font-semibold df-text-muted">Nicho</span>
             <input
-              className="mt-0.5 w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs"
+              className="mt-0.5 w-full rounded border border-border bg-card px-2 py-1 text-xs"
               value={niche}
               onChange={(e) => setNiche(e.target.value)}
               maxLength={200}
             />
           </label>
           <label className="block">
-            <span className="text-[9px] font-semibold text-slate-500">Cidade</span>
+            <span className="text-[9px] font-semibold df-text-muted">Cidade</span>
             <input
-              className="mt-0.5 w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs"
+              className="mt-0.5 w-full rounded border border-border bg-card px-2 py-1 text-xs"
               value={city}
               onChange={(e) => setCity(e.target.value)}
               maxLength={120}
             />
           </label>
           <label className="block">
-            <span className="text-[9px] font-semibold text-slate-500">Origem</span>
+            <span className="text-[9px] font-semibold df-text-muted">Origem</span>
             <select
-              className="mt-0.5 w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs"
+              className="mt-0.5 w-full rounded border border-border bg-card px-2 py-1 text-xs"
               value={source}
               onChange={(e) => setSource((e.target.value || "") as ProspectSource | "")}
             >
@@ -273,9 +274,9 @@ export function DevFlowProspectPanel({ thread }: { thread: WaInboxThreadRow }) {
             </select>
           </label>
           <label className="block">
-            <span className="text-[9px] font-semibold text-slate-500">Dor / contexto</span>
+            <span className="text-[9px] font-semibold df-text-muted">Dor / contexto</span>
             <textarea
-              className="mt-0.5 w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs"
+              className="mt-0.5 w-full rounded border border-border bg-card px-2 py-1 text-xs"
               rows={2}
               value={pain}
               onChange={(e) => setPain(e.target.value)}
@@ -283,68 +284,68 @@ export function DevFlowProspectPanel({ thread }: { thread: WaInboxThreadRow }) {
             />
           </label>
           <label className="block">
-            <span className="text-[9px] font-semibold text-slate-500">Atendentes (texto)</span>
+            <span className="text-[9px] font-semibold df-text-muted">Atendentes (texto)</span>
             <input
-              className="mt-0.5 w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs"
+              className="mt-0.5 w-full rounded border border-border bg-card px-2 py-1 text-xs"
               value={attendantsCount}
               onChange={(e) => setAttendantsCount(e.target.value)}
               maxLength={80}
             />
           </label>
           <label className="block">
-            <span className="text-[9px] font-semibold text-slate-500">Volume estimado</span>
+            <span className="text-[9px] font-semibold df-text-muted">Volume estimado</span>
             <input
-              className="mt-0.5 w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs"
+              className="mt-0.5 w-full rounded border border-border bg-card px-2 py-1 text-xs"
               value={estimatedVolume}
               onChange={(e) => setEstimatedVolume(e.target.value)}
               maxLength={200}
             />
           </label>
           <label className="block">
-            <span className="text-[9px] font-semibold text-slate-500">Valor proposta (número)</span>
+            <span className="text-[9px] font-semibold df-text-muted">Valor proposta (número)</span>
             <input
               type="number"
               step="0.01"
               min={0}
-              className="mt-0.5 w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs tabular-nums"
+              className="mt-0.5 w-full rounded border border-border bg-card px-2 py-1 text-xs tabular-nums"
               value={proposalValueStr}
               onChange={(e) => setProposalValueStr(e.target.value)}
             />
           </label>
           <label className="block">
-            <span className="text-[9px] font-semibold text-slate-500">Próximo passo</span>
+            <span className="text-[9px] font-semibold df-text-muted">Próximo passo</span>
             <input
-              className="mt-0.5 w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs"
+              className="mt-0.5 w-full rounded border border-border bg-card px-2 py-1 text-xs"
               value={nextStep}
               onChange={(e) => setNextStep(e.target.value)}
               maxLength={500}
             />
           </label>
           <label className="block">
-            <span className="text-[9px] font-semibold text-slate-500">Próximo follow-up</span>
+            <span className="text-[9px] font-semibold df-text-muted">Próximo follow-up</span>
             <input
               type="datetime-local"
-              className="mt-0.5 w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs"
+              className="mt-0.5 w-full rounded border border-border bg-card px-2 py-1 text-xs"
               value={nextFollowLocal}
               onChange={(e) => setNextFollowLocal(e.target.value)}
             />
           </label>
-          <button
+          <Button variant="disabled"
             type="button"
             disabled={mutation.isPending}
             onClick={onSaveForm}
             className="w-full rounded-lg bg-[var(--df-brand-600)] px-2 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[var(--df-brand-700)] disabled:opacity-50"
           >
             Guardar dados
-          </button>
+          </Button>
         </div>
       </details>
 
       <div className="mt-3 space-y-1.5">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Templates (copiar)</p>
+        <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">Templates (copiar)</p>
         <div className="flex flex-wrap gap-1">
           {PROSPECT_MESSAGE_TEMPLATES.map((t) => (
-            <button
+            <Button variant="disabled"
               key={t.id}
               type="button"
               disabled={mutation.isPending}
@@ -352,39 +353,39 @@ export function DevFlowProspectPanel({ thread }: { thread: WaInboxThreadRow }) {
               className={`rounded-md border px-2 py-1 text-[9px] font-semibold shadow-sm transition ${
                 copyFlash === t.id
                   ? "border-emerald-300 bg-emerald-50 text-emerald-900"
-                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                  : "border-border bg-card df-text-secondary hover:bg-muted/60"
               }`}
             >
               {copyFlash === t.id ? "Copiado" : t.label}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
 
       <div className="mt-3 space-y-1.5">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Ações rápidas</p>
+        <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">Ações rápidas</p>
         <div className="flex flex-wrap gap-1.5">
-          <button type="button" className={qBtn} disabled={mutation.isPending} onClick={() => patchStage("CONTACTED")}>
+          <Button variant="disabled" type="button" className={qBtn} disabled={mutation.isPending} onClick={() => patchStage("CONTACTED")}>
             Contato feito
-          </button>
-          <button
+          </Button>
+          <Button variant="disabled"
             type="button"
             className={qBtn}
             disabled={mutation.isPending}
             onClick={() => patchStage("DIAGNOSIS_SCHEDULED", "Diagnóstico agendado")}
           >
             Diagnóstico agendado
-          </button>
-          <button type="button" className={qBtn} disabled={mutation.isPending} onClick={() => patchStage("PROPOSAL_SENT")}>
+          </Button>
+          <Button variant="disabled" type="button" className={qBtn} disabled={mutation.isPending} onClick={() => patchStage("PROPOSAL_SENT")}>
             Proposta enviada
-          </button>
-          <button type="button" className={qBtn} disabled={mutation.isPending} onClick={() => patchStage("WON")}>
+          </Button>
+          <Button variant="disabled" type="button" className={qBtn} disabled={mutation.isPending} onClick={() => patchStage("WON")}>
             Fechado
-          </button>
-          <button type="button" className={qBtn} disabled={mutation.isPending} onClick={() => patchStage("LOST")}>
+          </Button>
+          <Button variant="disabled" type="button" className={qBtn} disabled={mutation.isPending} onClick={() => patchStage("LOST")}>
             Perdido
-          </button>
-          <button
+          </Button>
+          <Button variant="disabled"
             type="button"
             className={qBtn}
             disabled={mutation.isPending}
@@ -392,7 +393,7 @@ export function DevFlowProspectPanel({ thread }: { thread: WaInboxThreadRow }) {
             title="Define follow-up para amanhã às 09:00 (hora local do browser)"
           >
             Agendar follow-up
-          </button>
+          </Button>
         </div>
       </div>
 

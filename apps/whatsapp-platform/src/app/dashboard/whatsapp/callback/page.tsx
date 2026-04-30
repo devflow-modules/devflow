@@ -63,12 +63,12 @@ function WhatsappCallbackInner() {
     <div className="flex w-full flex-col items-center justify-center py-12">
       <div className="w-full max-w-md">
         {status === "loading" && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+          <div className="rounded-2xl border df-border-brand bg-[var(--df-bg-elevated)] p-8 text-center shadow-sm">
             <div
-              className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-[var(--df-brand-600)]"
+              className="mx-auto h-10 w-10 animate-spin rounded-full border-2 df-border-brand border-t-[var(--df-brand-600)]"
               aria-hidden
             />
-            <p className="mt-4 text-sm text-slate-600">Conectando seu número…</p>
+            <p className="mt-4 text-sm text-[var(--df-text-secondary)]">Conectando seu número…</p>
           </div>
         )}
         {status === "success" && (
@@ -97,7 +97,7 @@ function WhatsappCallbackInner() {
 
 export default function WhatsappCallbackPage() {
   return (
-    <Suspense fallback={<p className="p-6 text-center text-slate-600">Carregando…</p>}>
+    <Suspense fallback={<p className="p-6 text-center text-[var(--df-text-secondary)]">Carregando…</p>}>
       <WhatsappCallbackInner />
     </Suspense>
   );

@@ -40,6 +40,7 @@ import { useShellLayoutOptional } from "@/components/shell/ShellLayoutContext";
 import { isWhiteLabelMode } from "@/lib/productMode";
 import { useSessionRole } from "@/components/navigation/SessionRoleContext";
 import { isDevFlowProspectingEnabled } from "@/lib/devflowProspecting";
+import { Button } from "@/components/ui/button";
 
 const INBOX_FOCUS_MODE_KEY = "df-inbox-focus-mode";
 
@@ -318,16 +319,16 @@ function InboxShellContent() {
           actions={
             <div className="flex w-full flex-wrap items-center gap-2 sm:gap-3 lg:w-auto lg:justify-end">
               {shellLayout ? (
-                <button
+                <Button variant="secondary"
                   type="button"
                   onClick={() => shellLayout.toggleSidebar()}
                   className="hidden rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-2 py-1.5 text-xs font-medium text-[var(--df-text-secondary)] shadow-sm transition hover:bg-[var(--df-brand-100)] lg:inline-flex"
                   title="Menu compacto com ícones — mais espaço para o conteúdo. Clique de novo para expandir."
                 >
                   {shellSidebarCollapsed ? "Expandir menu" : "Menu compacto"}
-                </button>
+                </Button>
               ) : null}
-              <button
+              <Button variant="secondary"
                 type="button"
                 onClick={toggleInboxFocusMode}
                 className={`rounded-lg border px-2 py-1.5 text-xs font-semibold shadow-sm transition ${
@@ -338,9 +339,9 @@ function InboxShellContent() {
                 title="Menos cabeçalho e métricas — mais espaço para mensagens"
               >
                 {inboxFocusMode ? "Sair do modo foco" : "Modo foco"}
-              </button>
+              </Button>
               {statusPill}
-              <SupportHelpButton variant="compact" className="rounded-lg px-2 py-1.5 no-underline hover:bg-slate-50" />
+              <SupportHelpButton variant="compact" className="rounded-lg px-2 py-1.5 no-underline hover:bg-muted/60" />
               <Link
                 href="/settings"
                 className="rounded-lg px-2 py-1.5 text-sm font-medium text-[var(--df-text-secondary)] transition hover:bg-[var(--df-brand-100)] hover:text-[var(--df-text-primary)]"
@@ -365,7 +366,7 @@ function InboxShellContent() {
                   Agora você pode começar a atender seus clientes.
                 </p>
               </div>
-              <button
+              <Button variant="secondary"
                 type="button"
                 className="shrink-0 rounded-lg bg-emerald-700 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-800"
                 onClick={() => {
@@ -374,7 +375,7 @@ function InboxShellContent() {
                 }}
               >
                 Entendi
-              </button>
+              </Button>
             </div>
           ) : null}
           {showFirstReplyCelebration ? (
@@ -383,10 +384,10 @@ function InboxShellContent() {
               role="status"
             >
               <div>
-                <p className="text-sm font-semibold text-slate-900">Primeiro atendimento realizado 🚀</p>
-                <p className="mt-0.5 text-xs text-slate-700">Seu sistema já está funcionando.</p>
+                <p className="text-sm font-semibold df-text-primary">Primeiro atendimento realizado 🚀</p>
+                <p className="mt-0.5 text-xs df-text-secondary">Seu sistema já está funcionando.</p>
               </div>
-              <button
+              <Button variant="secondary"
                 type="button"
                 className="shrink-0 rounded-lg bg-[var(--df-brand-600)] px-3 py-2 text-xs font-semibold text-white hover:bg-[var(--df-brand-700)]"
                 onClick={() => {
@@ -395,7 +396,7 @@ function InboxShellContent() {
                 }}
               >
                 Ótimo
-              </button>
+              </Button>
             </div>
           ) : null}
           {showFirstReplyGate ? (
@@ -411,7 +412,7 @@ function InboxShellContent() {
                 </p>
               </div>
               <div className="flex shrink-0 flex-wrap gap-2">
-                <button
+                <Button variant="secondary"
                   type="button"
                   className="rounded-lg bg-amber-800 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-900"
                   onClick={() => {
@@ -420,17 +421,17 @@ function InboxShellContent() {
                   }}
                 >
                   Responder agora
-                </button>
-                <button
+                </Button>
+                <Button variant="secondary"
                   type="button"
-                  className="rounded-lg border border-amber-300/80 bg-white px-3 py-2 text-xs font-medium text-amber-950 hover:bg-amber-100/50"
+                  className="rounded-lg border border-amber-300/80 bg-card px-3 py-2 text-xs font-medium text-amber-950 hover:bg-amber-100/50"
                   onClick={() => {
                     dismissFirstReplyBanner();
                     setActivationUi(getActivationState());
                   }}
                 >
                   Agora não
-                </button>
+                </Button>
               </div>
             </div>
           ) : null}

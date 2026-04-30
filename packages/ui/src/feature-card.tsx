@@ -30,7 +30,7 @@ export function FeatureCard({
       <h3 className={cn("font-medium text-foreground", icon && "mt-4")}>
         {title}
       </h3>
-      <p className="mt-2 text-sm text-slate-600">{description}</p>
+      <p className="mt-2 text-sm df-text-secondary">{description}</p>
     </article>
   );
 }

@@ -45,7 +45,7 @@ export function AdminWhatsappChannelsTable({ rows, loading, onActivate, onCopy, 
 
   if (rows.length === 0) {
     return (
-      <p className="df-text-muted rounded-xl border border-dashed border-slate-200 bg-slate-50/50 py-10 text-center text-sm">
+      <p className="df-text-muted rounded-xl border border-dashed border-border bg-muted/60/50 py-10 text-center text-sm">
         Nenhum canal registado. Use o formulário acima para provisionar.
       </p>
     );
@@ -76,8 +76,8 @@ export function AdminWhatsappChannelsTable({ rows, loading, onActivate, onCopy, 
                 data-status={row.status}
               >
                 <td>
-                  <div className="font-medium text-slate-900">{row.tenantName}</div>
-                  <div className="font-mono text-xs text-slate-500">{row.tenantId}</div>
+                  <div className="font-medium df-text-primary">{row.tenantName}</div>
+                  <div className="font-mono text-xs df-text-muted">{row.tenantId}</div>
                 </td>
                 <td className="font-mono text-sm">{row.phone}</td>
                 <td>
@@ -93,7 +93,7 @@ export function AdminWhatsappChannelsTable({ rows, loading, onActivate, onCopy, 
                 <td>
                   <ReadyCell row={row} />
                 </td>
-                <td className="whitespace-nowrap text-sm text-slate-600">
+                <td className="whitespace-nowrap text-sm df-text-secondary">
                   {new Date(row.updatedAt).toLocaleString("pt-PT")}
                 </td>
                 <td className="text-right">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   id?: string;
@@ -34,17 +35,17 @@ export function PasswordField({
   return (
     <div>
       <div className="mb-1 flex items-center justify-between gap-2">
-        <label htmlFor={id} className="block text-sm font-medium text-slate-700">
+        <label htmlFor={id} className="block text-sm font-medium df-text-secondary">
           {label}
         </label>
-        <button
+        <Button variant="secondary"
           type="button"
           className="text-xs font-medium text-blue-600 hover:text-blue-800"
           onClick={() => setVisible((v) => !v)}
           tabIndex={-1}
         >
           {visible ? "Ocultar" : "Mostrar"}
-        </button>
+        </Button>
       </div>
       <input
         id={id}
@@ -57,7 +58,7 @@ export function PasswordField({
         required={required}
         minLength={minLength}
         placeholder={placeholder}
-        className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-60"
+        className="w-full rounded-md border df-border-dark bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-60"
       />
     </div>
   );

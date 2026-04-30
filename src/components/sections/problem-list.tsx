@@ -34,7 +34,7 @@ export function ProblemList() {
           >
             Problemas que a DevFlow resolve
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="mt-3 df-text-secondary">
             Se você vive alguns desses, provavelmente precisa de automação com
             controle.
           </p>
@@ -50,7 +50,7 @@ export function ProblemList() {
               )}
             >
               <h3 className="font-medium text-foreground">{problem.title}</h3>
-              <p className="mt-2 text-sm text-slate-600">
+              <p className="mt-2 text-sm df-text-secondary">
                 {problem.description}
               </p>
             </article>

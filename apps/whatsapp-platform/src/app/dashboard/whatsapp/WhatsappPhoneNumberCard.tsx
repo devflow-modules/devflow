@@ -1,6 +1,7 @@
 import { buttonClassName } from "@/components/ui/button";
 import type { WhatsappPhoneNumberRow } from "./whatsappConnectTypes";
 import { formatDisplayLine, statusLabel } from "./whatsappConnectUtils";
+import { Button } from "@/components/ui/button";
 
 type WhatsappPhoneNumberCardProps = {
   number: WhatsappPhoneNumberRow;
@@ -26,17 +27,17 @@ export function WhatsappPhoneNumberCard({
   onRemove,
 }: WhatsappPhoneNumberCardProps) {
   return (
-    <li className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm">
-      <div className="border-b border-slate-100 bg-slate-50/80 px-4 py-3 sm:flex sm:items-start sm:justify-between sm:gap-4">
+    <li className="overflow-hidden rounded-2xl border df-border-brand bg-[var(--df-bg-elevated)] shadow-sm">
+      <div className="border-b df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_52%,var(--df-bg-elevated))] px-4 py-3 sm:flex sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Etiqueta interna</p>
-          <p className="mt-0.5 text-base font-semibold text-slate-900">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--df-text-muted)]">Etiqueta interna</p>
+          <p className="mt-0.5 text-base font-semibold text-[var(--df-text-primary)]">
             {labelDraft.trim() || "Sem etiqueta"}
           </p>
-          <p className="mt-2 text-lg font-semibold tracking-tight text-slate-900 tabular-nums">
+          <p className="mt-2 text-lg font-semibold tracking-tight text-[var(--df-text-primary)] tabular-nums">
             {formatDisplayLine(n)}
           </p>
-          <p className="mt-1 text-xs text-slate-500">Estado: {statusLabel(n.status)}</p>
+          <p className="mt-1 text-xs text-[var(--df-text-muted)]">Estado: {statusLabel(n.status)}</p>
         </div>
         <div className="mt-3 flex flex-wrap gap-2 sm:mt-0 sm:justify-end">
           {n.isPrimary ? (
@@ -54,58 +55,58 @@ export function WhatsappPhoneNumberCard({
 
       <div className="grid gap-4 p-4 sm:grid-cols-[1fr_auto] sm:items-end">
         <div className="flex max-w-lg flex-col gap-1 sm:flex-row sm:items-end sm:gap-2">
-          <label className="block min-w-0 flex-1 text-xs font-medium text-slate-600">
+          <label className="block min-w-0 flex-1 text-xs font-medium text-[var(--df-text-secondary)]">
             Editar etiqueta
             <input
               type="text"
-              className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400"
+              className="mt-1 w-full rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2 text-sm text-[var(--df-text-primary)] shadow-sm placeholder:text-[var(--df-text-muted)]"
               value={labelDraft}
               onChange={(e) => onLabelChange(e.target.value)}
               placeholder="Ex.: Suporte, Vendas"
             />
           </label>
-          <button
+          <Button variant="disabled"
             type="button"
             disabled={patching}
             className={`${buttonClassName("secondary")} w-full shrink-0 sm:w-auto`}
             onClick={onSaveLabel}
           >
             {patching ? "A guardar…" : "Guardar"}
-          </button>
+          </Button>
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/50 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <span className="text-xs font-medium text-slate-500">Ações</span>
+      <div className="flex flex-col gap-3 border-t df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <span className="text-xs font-medium text-[var(--df-text-muted)]">Ações</span>
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end sm:gap-2">
           {(n.status === "ACTIVE" || n.status === "PENDING_ACTIVATION") && !n.isPrimary ? (
-            <button
+            <Button variant="disabled"
               type="button"
               disabled={patching}
               className={`${buttonClassName("secondary")} text-sm`}
               onClick={onSetPrimary}
             >
               Definir como principal
-            </button>
+            </Button>
           ) : null}
           {(n.status === "ACTIVE" || n.status === "PENDING_ACTIVATION") && !n.isDefaultOutbound ? (
-            <button
+            <Button variant="disabled"
               type="button"
               disabled={patching}
               className={`${buttonClassName("secondary")} text-sm`}
               onClick={onSetDefaultOutbound}
             >
               Usar no envio padrão
-            </button>
+            </Button>
           ) : null}
-          <button
+          <Button variant="disabled"
             type="button"
             onClick={onRemove}
             disabled={removing}
             className={`${buttonClassName("secondary")} border-red-200 text-sm text-red-700 hover:bg-red-50`}
           >
             {removing ? "A remover…" : "Remover número"}
-          </button>
+          </Button>
         </div>
       </div>
     </li>

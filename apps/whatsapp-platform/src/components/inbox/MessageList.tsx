@@ -17,6 +17,7 @@ import {
   firstUnreadSeparatorIndex,
 } from "./chatMessageUtils";
 import { INBOX_CHAT_GUTTER_X } from "./inboxChatLayout";
+import { Button } from "@/components/ui/button";
 
 const POLL_INTERVAL_REALTIME_MS = 10_000;
 const POLL_INTERVAL_FALLBACK_MS = 5_000;
@@ -141,7 +142,7 @@ export function MessageList({
       <div
         className={`df-state-empty flex min-h-0 flex-1 flex-col items-center justify-center border-0 bg-transparent py-16 shadow-none ${INBOX_CHAT_GUTTER_X}`}
       >
-        <p className="text-sm font-semibold text-slate-800">Escolha uma conversa</p>
+        <p className="text-sm font-semibold df-text-primary">Escolha uma conversa</p>
         <p className="df-text-muted mt-2 max-w-xs">Na lista à esquerda, toque num contacto para abrir o histórico.</p>
       </div>
     );
@@ -155,7 +156,7 @@ export function MessageList({
       >
         <StateLoading
           message="A carregar mensagens…"
-          className="min-h-[12rem] border-slate-200/80 bg-white/90 shadow-none motion-safe:animate-pulse motion-safe:duration-[1.6s]"
+          className="min-h-[12rem] border-border/80 bg-card/90 shadow-none motion-safe:animate-pulse motion-safe:duration-[1.6s]"
         />
       </div>
     );
@@ -180,9 +181,9 @@ export function MessageList({
           title="Sem mensagens nesta conversa"
           description="A primeira mensagem do cliente aparece aqui. Se acabou de abrir a conversa, peça um teste do telemóvel ou aguarde a resposta automática."
           action={
-            <button type="button" className={buttonClassName("secondary")} onClick={() => void refetch()}>
+            <Button variant="secondary" type="button" className={buttonClassName("secondary")} onClick={() => void refetch()}>
               Atualizar
-            </button>
+            </Button>
           }
         />
       </div>
@@ -192,7 +193,7 @@ export function MessageList({
   return (
     <div
       ref={messageListRef}
-      className={`flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden bg-gradient-to-b from-slate-50/90 via-white/40 to-slate-100/60 py-6 sm:py-8 ${INBOX_CHAT_GUTTER_X}`}
+      className={`flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden bg-gradient-to-b from-muted/40/90 via-card/40 to-slate-100/60 py-6 sm:py-8 ${INBOX_CHAT_GUTTER_X}`}
       data-testid="message-list"
     >
       <div className="flex min-h-full w-full max-w-none flex-col">

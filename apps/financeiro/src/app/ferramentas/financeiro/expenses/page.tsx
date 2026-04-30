@@ -15,6 +15,7 @@ import { formatDateOnlyPtBr, toDateOnly } from "@/lib/dates";
 import { Breadcrumbs } from "@/modules/financeiro/components/Breadcrumbs";
 import { ContextSelector, ContextBadge, ContextSelectField } from "@/modules/financeiro/components/ContextSelector";
 import type { ContextFilter } from "@/modules/financeiro/components/ContextSelector";
+import { Button } from "@/components/ui/button";
 
 type FinancialSource = { id: string; name: string; sourceType: "PJ" | "PF" };
 type Income = {
@@ -295,7 +296,7 @@ export default function ExpensesPage() {
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Lançamentos</p>
             <h1 className="mt-1 text-3xl font-semibold text-foreground">Receitas & Despesas</h1>
             <p className="mt-1 text-xs text-muted-foreground">
-              Ou use <kbd className="rounded border border-slate-300 px-1 py-0.5 text-[10px] font-mono">⌘K</kbd> para lançar em segundos
+              Ou use <kbd className="rounded border df-border-dark px-1 py-0.5 text-[10px] font-mono">⌘K</kbd> para lançar em segundos
             </p>
           </div>
           <ContextSelector value={contextFilter} onChange={setContextFilter} />
@@ -378,20 +379,20 @@ export default function ExpensesPage() {
                 Receita recorrente
               </label>
               <div className="flex gap-2">
-                <button
+                <Button variant="primary"
                   type="submit"
                   className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
                 >
                   {editingIncomeId ? "Atualizar" : "Cadastrar receita"}
-                </button>
+                </Button>
                 {editingIncomeId && (
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     className="rounded-xl border border-border px-4 py-2.5 text-sm text-foreground"
                     onClick={() => { setEditingIncomeId(null); setIncomeForm(defaultIncomeForm); }}
                   >
                     Cancelar
-                  </button>
+                  </Button>
                 )}
               </div>
             </form>
@@ -422,7 +423,7 @@ export default function ExpensesPage() {
                       <ContextBadge context={income.context ?? "PERSONAL"} className="mt-1" />
                     </div>
                     <div className="flex shrink-0 gap-1.5">
-                      <button
+                      <Button variant="secondary"
                         className="rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-foreground"
                         onClick={() => {
                           setEditingIncomeId(income.id);
@@ -438,13 +439,13 @@ export default function ExpensesPage() {
                         }}
                       >
                         Editar
-                      </button>
-                      <button
+                      </Button>
+                      <Button variant="secondary"
                         className="rounded-lg border border-destructive/50 px-2.5 py-1.5 text-xs font-medium text-destructive"
                         onClick={() => deleteIncome(income.id)}
                       >
                         ✕
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))
@@ -502,20 +503,20 @@ export default function ExpensesPage() {
                 Despesa recorrente
               </label>
               <div className="flex gap-2">
-                <button
+                <Button variant="primary"
                   type="submit"
                   className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
                 >
                   {editingExpenseId ? "Atualizar" : "Cadastrar despesa"}
-                </button>
+                </Button>
                 {editingExpenseId && (
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     className="rounded-xl border border-border px-4 py-2.5 text-sm text-foreground"
                     onClick={() => { setEditingExpenseId(null); setExpenseForm(defaultExpenseForm); }}
                   >
                     Cancelar
-                  </button>
+                  </Button>
                 )}
               </div>
             </form>
@@ -537,7 +538,7 @@ export default function ExpensesPage() {
                         <p className="text-sm font-semibold text-foreground">{expense.category}</p>
                         <span className={`text-xs font-medium ${
                           expense.status === "PAID" ? "text-emerald-600" :
-                          expense.status === "SCHEDULED" ? "text-amber-500" : "text-slate-500"
+                          expense.status === "SCHEDULED" ? "text-amber-500" : "df-text-muted"
                         }`}>
                           {expense.status === "PAID" ? "✓ paga" : expense.status === "SCHEDULED" ? "⏰ agendada" : "• pendente"}
                         </span>
@@ -560,21 +561,21 @@ export default function ExpensesPage() {
                     </div>
                     <div className="flex shrink-0 flex-col gap-1">
                       {expense.status !== "PAID" ? (
-                        <button
+                        <Button variant="secondary"
                           className="rounded-lg border border-emerald-400/60 px-2.5 py-1 text-xs font-medium text-emerald-600"
                           onClick={() => markExpensePaid(expense)}
                         >
                           Pagar
-                        </button>
+                        </Button>
                       ) : (
-                        <button
+                        <Button variant="secondary"
                           className="rounded-lg border border-border px-2.5 py-1 text-xs text-foreground"
                           onClick={() => unmarkExpensePaid(expense)}
                         >
                           Desmarcar
-                        </button>
+                        </Button>
                       )}
-                      <button
+                      <Button variant="secondary"
                         className="rounded-lg border border-border px-2.5 py-1 text-xs text-foreground"
                         onClick={() => {
                           setEditingExpenseId(expense.id);
@@ -590,13 +591,13 @@ export default function ExpensesPage() {
                         }}
                       >
                         Editar
-                      </button>
-                      <button
+                      </Button>
+                      <Button variant="secondary"
                         className="rounded-lg border border-destructive/50 px-2.5 py-1 text-xs text-destructive"
                         onClick={() => deleteExpense(expense.id)}
                       >
                         ✕
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))

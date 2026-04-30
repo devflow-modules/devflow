@@ -20,6 +20,7 @@ import {
   INTRO_CONTA,
 } from "../contaHumanCopy";
 import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
+import { Button } from "@/components/ui/button";
 
 function newIdempotencyKey(): string {
   return typeof crypto !== "undefined" && crypto.randomUUID
@@ -423,7 +424,7 @@ export default function AccountDetailPage() {
     }
     if (s.status === "PENDING") {
       return (
-        <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">Pendente</span>
+        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium df-text-secondary">Pendente</span>
       );
     }
     if (s.status === "COMPLETED") {
@@ -526,7 +527,7 @@ export default function AccountDetailPage() {
 
   if (householdLoading || !household) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4">
+      <div className="min-h-screen bg-muted/60 p-4">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="mt-6 h-32 w-full rounded-2xl" />
       </div>
@@ -535,8 +536,8 @@ export default function AccountDetailPage() {
 
   if (loading && !account) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4">
-        <p className="text-sm text-slate-500">Carregando dados da conta…</p>
+      <div className="min-h-screen bg-muted/60 p-4">
+        <p className="text-sm df-text-muted">Carregando dados da conta…</p>
         <Skeleton className="mt-2 h-8 w-48" />
         <Skeleton className="mt-6 h-64 w-full rounded-2xl" />
       </div>
@@ -545,8 +546,8 @@ export default function AccountDetailPage() {
 
   if (!account) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4">
-        <p className="text-slate-600">Não achamos essa conta.</p>
+      <div className="min-h-screen bg-muted/60 p-4">
+        <p className="df-text-secondary">Não achamos essa conta.</p>
         <Link href={`${FINANCEIRO_BASE_PATH}/contas`} className="mt-2 text-primary underline">
           Voltar para suas contas
         </Link>
@@ -555,59 +556,59 @@ export default function AccountDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
+    <div className="min-h-screen bg-muted/60 p-4 sm:p-6">
       <Breadcrumbs />
       <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">{account.name}</h1>
-          <p className="text-sm text-slate-500">{CONTEXT_LABELS[account.type as keyof typeof CONTEXT_LABELS]}</p>
+          <h1 className="text-xl font-bold df-text-primary">{account.name}</h1>
+          <p className="text-sm df-text-muted">{CONTEXT_LABELS[account.type as keyof typeof CONTEXT_LABELS]}</p>
         </div>
-        <button
+        <Button variant="secondary"
           type="button"
           onClick={() => setShowExpenseModal(true)}
           className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
         >
           Nova despesa
-        </button>
+        </Button>
       </div>
 
-      <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-600">{INTRO_CONTA}</p>
-      <p className="mt-2 text-xs text-slate-500">{MICRO_CONFIANCA}</p>
+      <p className="mt-4 max-w-2xl text-sm leading-relaxed df-text-secondary">{INTRO_CONTA}</p>
+      <p className="mt-2 text-xs df-text-muted">{MICRO_CONFIANCA}</p>
 
-      <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
-        <h2 className="text-base font-semibold text-slate-900">Saldo atual (por pessoa)</h2>
-        <p className="mt-1 text-xs text-slate-500">
+      <section className="mt-6 rounded-2xl border border-border bg-card p-5">
+        <h2 className="text-base font-semibold df-text-primary">Saldo atual (por pessoa)</h2>
+        <p className="mt-1 text-xs df-text-muted">
           Positivo = a pessoa pagou mais do que “sua parte”; negativo = ainda deve. Depois dos acertos já feitos.
         </p>
         <div className="mt-3 flex flex-wrap gap-4">
           {Object.entries(balances).map(([name, value]) => (
-            <div key={name} className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
-              <span className="block text-xs font-medium uppercase tracking-wide text-slate-500">{name}</span>
+            <div key={name} className="rounded-xl border border-border bg-muted/60 px-4 py-3">
+              <span className="block text-xs font-medium uppercase tracking-wide df-text-muted">{name}</span>
               <span className={`mt-0.5 block text-lg font-bold tabular-nums ${value >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
                 {value >= 0 ? "+" : ""}R$ {value.toFixed(2)}
               </span>
             </div>
           ))}
           {Object.keys(balances).length === 0 && (
-            <p className="text-sm text-slate-600">
+            <p className="text-sm df-text-secondary">
               Nenhuma despesa paga nesta conta ainda. Adicione uma despesa e marque “já paguei” para ver os saldos.
             </p>
           )}
         </div>
       </section>
 
-      <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+      <section className="mt-6 rounded-2xl border border-border bg-card p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-base font-semibold text-slate-900">Quem precisa pagar quem</h2>
-          <button
+          <h2 className="text-base font-semibold df-text-primary">Quem precisa pagar quem</h2>
+          <Button variant="secondary"
             type="button"
             onClick={() => setShowManualSettlement(true)}
             className="text-sm font-medium text-primary hover:underline"
           >
             + Acerto manual
-          </button>
+          </Button>
         </div>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs df-text-muted">
           Quem paga, quem recebe e quanto falta — em uma frase só, quando possível.
         </p>
         {(() => {
@@ -649,10 +650,10 @@ export default function AccountDetailPage() {
                   return (
                     <div
                       key={"id" in item ? item.id : `s-${idx}`}
-                      className="rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm"
+                      className="rounded-xl border border-border bg-card px-4 py-4 shadow-sm"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-2">
-                        <p className="max-w-xl text-base font-semibold leading-snug text-slate-900">{frasePrincipal}</p>
+                        <p className="max-w-xl text-base font-semibold leading-snug df-text-primary">{frasePrincipal}</p>
                         <div className="flex shrink-0 flex-wrap items-center gap-1">
                           {isSettlement && settlementStatusBadge(item as SettlementItem)}
                           {!isSettlement && (
@@ -663,7 +664,7 @@ export default function AccountDetailPage() {
                         </div>
                       </div>
                       {isSettlement && (paid > 0 || status === "PARTIAL") ? (
-                        <div className="mt-3 space-y-1 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                        <div className="mt-3 space-y-1 rounded-lg bg-muted/60 px-3 py-2 text-sm df-text-secondary">
                           <div className="flex justify-between">
                             <span>Total do acerto</span>
                             <span className="font-medium tabular-nums">R$ {total.toFixed(2)}</span>
@@ -672,12 +673,12 @@ export default function AccountDetailPage() {
                             <span>Já pago</span>
                             <span className="font-medium tabular-nums text-emerald-700">R$ {paid.toFixed(2)}</span>
                           </div>
-                          <div className="flex justify-between border-t border-slate-200 pt-1 font-semibold">
+                          <div className="flex justify-between border-t border-border pt-1 font-semibold">
                             <span>Falta pagar</span>
-                            <span className="tabular-nums text-slate-900">R$ {Math.round(remaining * 100) / 100}</span>
+                            <span className="tabular-nums df-text-primary">R$ {Math.round(remaining * 100) / 100}</span>
                           </div>
                           {remaining > 0.01 && total > 0 && (
-                            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
                               <div
                                 className="h-full rounded-full bg-primary transition-all"
                                 style={{ width: `${Math.min(100, (paid / total) * 100)}%` }}
@@ -686,13 +687,13 @@ export default function AccountDetailPage() {
                           )}
                         </div>
                       ) : !isSettlement ? (
-                        <p className="mt-2 text-sm text-slate-600">
+                        <p className="mt-2 text-sm df-text-secondary">
                           Valor sugerido: <span className="font-semibold tabular-nums">R$ {total.toFixed(2)}</span>
                         </p>
                       ) : null}
                       {"id" in item && (status === "PENDING" || status === "PARTIAL") && remaining > 0.01 && (
                         <div className="mt-4 flex flex-wrap gap-2">
-                          <button
+                          <Button variant="secondary"
                             type="button"
                             onClick={() => {
                               setShowPaymentModal(item.id);
@@ -701,15 +702,15 @@ export default function AccountDetailPage() {
                             className="rounded-lg border-2 border-primary bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
                           >
                             Registrar pagamento
-                          </button>
-                          <button
+                          </Button>
+                          <Button variant="disabled"
                             type="button"
                             disabled={completingId === item.id}
                             onClick={() => handleMarkPaid(item.id)}
-                            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                            className="rounded-lg border df-border-dark bg-card px-3 py-2 text-xs font-semibold df-text-secondary hover:bg-muted/60 disabled:opacity-50"
                           >
                             {completingId === item.id ? "…" : "Marcar tudo como pago"}
-                          </button>
+                          </Button>
                         </div>
                       )}
                       {"id" in item &&
@@ -720,14 +721,14 @@ export default function AccountDetailPage() {
                             <p className="mb-2 text-xs text-violet-900">
                               O valor já está quitado no total. Se não for mudar mais nada, confirme para fechar este acerto.
                             </p>
-                            <button
+                            <Button variant="disabled"
                               type="button"
                               disabled={reopeningId === item.id}
                               onClick={() => handleFinalizeSettlement(item.id)}
                               className="rounded-lg bg-violet-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-800 disabled:opacity-50"
                             >
                               {reopeningId === item.id ? "…" : "Confirmar acerto fechado"}
-                            </button>
+                            </Button>
                           </div>
                         )}
                     </div>
@@ -735,42 +736,42 @@ export default function AccountDetailPage() {
                 })}
               </div>
               {isSuggested && suggested.length > 0 && (
-                <button
+                <Button variant="disabled"
                   type="button"
                   disabled={liquidating}
                   onClick={handleLiquidarTudo}
                   className="mt-4 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
                   {liquidating ? "Registrando…" : "Registrar estes acertos na lista"}
-                </button>
+                </Button>
               )}
               {completed.length > 0 && (
-                <div className="mt-6 border-t border-slate-200 pt-4">
-                  <h3 className="text-sm font-semibold text-slate-800">Acertos já quitados</h3>
+                <div className="mt-6 border-t border-border pt-4">
+                  <h3 className="text-sm font-semibold df-text-primary">Acertos já quitados</h3>
                   <ul className="mt-2 space-y-1.5">
                     {completed.map((s) => (
                       <li
                         key={s.id}
-                        className="flex flex-wrap items-center justify-between gap-2 text-sm text-slate-600"
+                        className="flex flex-wrap items-center justify-between gap-2 text-sm df-text-secondary"
                       >
                         <span className="flex flex-wrap items-center gap-2">
                           {s.fromName} → {s.toName}: R$ {s.amount.toFixed(2)}
                           {settlementStatusBadge(s)}
                         </span>
                         <span className="flex items-center gap-2">
-                          <span className="text-xs text-slate-400">
+                          <span className="text-xs df-text-muted">
                             {s.completedAt
                               ? new Date(s.completedAt).toLocaleDateString("pt-BR")
                               : new Date(s.createdAt).toLocaleDateString("pt-BR")}
                           </span>
-                          <button
+                          <Button variant="disabled"
                             type="button"
                             disabled={reopeningId === s.id}
                             onClick={() => handleReopenSettlement(s.id)}
                             className="text-xs font-medium text-primary hover:underline disabled:opacity-50"
                           >
                             Reabrir acerto
-                          </button>
+                          </Button>
                         </span>
                       </li>
                     ))}
@@ -778,14 +779,14 @@ export default function AccountDetailPage() {
                 </div>
               )}
               {payments.length > 0 && (
-                <div className="mt-6 border-t border-slate-200 pt-4">
-                  <h3 className="text-sm font-semibold text-slate-800">Pagamentos já registrados</h3>
-                  <p className="mt-0.5 text-xs text-slate-500">Cada linha é um pagamento feito de uma pessoa para outra.</p>
+                <div className="mt-6 border-t border-border pt-4">
+                  <h3 className="text-sm font-semibold df-text-primary">Pagamentos já registrados</h3>
+                  <p className="mt-0.5 text-xs df-text-muted">Cada linha é um pagamento feito de uma pessoa para outra.</p>
                   <ul className="mt-2 space-y-1.5">
                     {payments.map((p) => (
                       <li
                         key={p.id}
-                        className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 py-2 text-sm text-slate-600 last:border-0"
+                        className="flex flex-wrap items-center justify-between gap-2 border-b border-border py-2 text-sm df-text-secondary last:border-0"
                       >
                         <div>
                           <span>
@@ -798,18 +799,18 @@ export default function AccountDetailPage() {
                           )}
                         </div>
                         <span className="flex items-center gap-2">
-                          <span className="text-xs text-slate-400">
+                          <span className="text-xs df-text-muted">
                             {new Date(p.createdAt).toLocaleDateString("pt-BR")}
                           </span>
                           {(p.netAmount ?? p.amount) > 0.01 && (
-                            <button
+                            <Button variant="disabled"
                               type="button"
                               disabled={reversingPaymentId === p.id}
                               onClick={() => handleReversePayment(p.id)}
                               className="text-xs font-medium text-amber-800 hover:underline disabled:opacity-50"
                             >
                               {reversingPaymentId === p.id ? "…" : "Estornar pagamento"}
-                            </button>
+                            </Button>
                           )}
                         </span>
                       </li>
@@ -822,43 +823,43 @@ export default function AccountDetailPage() {
         })()}
       </section>
 
-      <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
-        <h2 className="text-base font-semibold text-slate-900">Fechar mês</h2>
-        <p className="mt-1 text-xs text-slate-600">
+      <section className="mt-6 rounded-2xl border border-border bg-card p-5">
+        <h2 className="text-base font-semibold df-text-primary">Fechar mês</h2>
+        <p className="mt-1 text-xs df-text-secondary">
           Guardamos um retrato dos saldos daquele mês para você consultar depois. Nada some — despesas e pagamentos continuam iguais.
         </p>
         <form onSubmit={handleCloseMonth} className="mt-3 flex flex-wrap items-end gap-2">
           <div>
-            <label className="block text-xs font-medium text-slate-600">Mês (ex.: 2026-03)</label>
+            <label className="block text-xs font-medium df-text-secondary">Mês (ex.: 2026-03)</label>
             <input
               type="text"
               value={closeMonthInput}
               onChange={(e) => setCloseMonthInput(e.target.value)}
               placeholder="2026-03"
-              className="mt-0.5 w-36 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+              className="mt-0.5 w-36 rounded-lg border df-border-dark px-2 py-1.5 text-sm"
             />
           </div>
-          <button
+          <Button variant="primary"
             type="submit"
             disabled={closingMonth}
-            className="rounded-xl bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-50"
+            className="rounded-xl bg-muted px-4 py-2 text-sm font-semibold text-white hover:bg-muted disabled:opacity-50"
           >
             {closingMonth ? "Guardando…" : "Fechar este mês"}
-          </button>
+          </Button>
         </form>
-        <div className="mt-6 border-t border-slate-200 pt-4">
-          <h3 className="text-sm font-semibold text-slate-800">Histórico</h3>
-          <p className="mt-0.5 text-xs text-slate-500">Tudo que aconteceu nesta conta, em ordem.</p>
+        <div className="mt-6 border-t border-border pt-4">
+          <h3 className="text-sm font-semibold df-text-primary">Histórico</h3>
+          <p className="mt-0.5 text-xs df-text-muted">Tudo que aconteceu nesta conta, em ordem.</p>
           {timeline.length === 0 ? (
-            <p className="mt-2 text-sm text-slate-600">Nada registrado ainda. Comece adicionando uma despesa.</p>
+            <p className="mt-2 text-sm df-text-secondary">Nada registrado ainda. Comece adicionando uma despesa.</p>
           ) : (
             <ul className="mt-3 space-y-2">
               {timeline.map((ev) => (
-                <li key={`${ev.type}-${ev.id}`} className="flex gap-2 text-sm text-slate-700">
+                <li key={`${ev.type}-${ev.id}`} className="flex gap-2 text-sm df-text-secondary">
                   <span className="text-emerald-600">✔</span>
                   <div>
                     <span>{timelineLabel(ev)}</span>
-                    <span className="ml-2 text-xs text-slate-400">
+                    <span className="ml-2 text-xs df-text-muted">
                       {new Date(ev.at).toLocaleString("pt-BR")}
                     </span>
                   </div>
@@ -869,16 +870,16 @@ export default function AccountDetailPage() {
         </div>
       </section>
 
-      <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+      <section className="mt-6 rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-slate-900">Pessoas nesta conta</h2>
-          <button
+          <h2 className="text-base font-semibold df-text-primary">Pessoas nesta conta</h2>
+          <Button variant="secondary"
             type="button"
             onClick={() => setShowAddParticipant(true)}
             className="text-sm font-medium text-primary hover:underline"
           >
             + Adicionar pessoa
-          </button>
+          </Button>
         </div>
         {account.participants.length === 0 ? (
           <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -887,19 +888,19 @@ export default function AccountDetailPage() {
         ) : (
           <ul className="mt-3 space-y-2">
             {account.participants.map((p) => (
-              <li key={p.id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                <span className="font-medium text-slate-800">{p.name}</span>
-                <span className="text-sm text-slate-600">{Math.round(p.defaultShare * 100)}%</span>
+              <li key={p.id} className="flex items-center justify-between rounded-lg bg-muted/60 px-3 py-2">
+                <span className="font-medium df-text-primary">{p.name}</span>
+                <span className="text-sm df-text-secondary">{Math.round(p.defaultShare * 100)}%</span>
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
-        <h2 className="text-base font-semibold text-slate-900">Despesas</h2>
+      <section className="mt-6 rounded-2xl border border-border bg-card p-5">
+        <h2 className="text-base font-semibold df-text-primary">Despesas</h2>
         {account.expenses.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-600">
+          <p className="mt-3 text-sm df-text-secondary">
             Nenhuma despesa ainda. Toque em <strong>Nova despesa</strong> para começar — você pode marcar se já pagou.
           </p>
         ) : (
@@ -908,17 +909,17 @@ export default function AccountDetailPage() {
               <li key={exp.id} className="py-3 first:pt-0">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="font-medium text-slate-800">{exp.category}</p>
-                    <p className="text-sm text-slate-500">
+                    <p className="font-medium df-text-primary">{exp.category}</p>
+                    <p className="text-sm df-text-muted">
                       {new Date(exp.dueDate).toLocaleDateString("pt-BR")} · {exp.expenseSplitType === "INDIVIDUAL" ? `100% ${exp.paidByParticipant?.name ?? "—"}` : "Compartilhada"}
                     </p>
                     {exp.splits?.length > 0 && (
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="mt-1 text-xs df-text-muted">
                         {exp.splits.map((s) => `${s.participant.name}: R$ ${s.amount.toFixed(2)}`).join(" · ")}
                       </p>
                     )}
                   </div>
-                  <span className="font-semibold text-slate-900">R$ {exp.amount.toFixed(2)}</span>
+                  <span className="font-semibold df-text-primary">R$ {exp.amount.toFixed(2)}</span>
                 </div>
               </li>
             ))}
@@ -929,47 +930,47 @@ export default function AccountDetailPage() {
       {/* Modal despesa */}
       {showExpenseModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-lg">
-            <h2 className="text-lg font-semibold text-slate-900">Nova despesa</h2>
-            <p className="mt-1 text-sm text-slate-500">Você pode corrigir depois se errar algum valor.</p>
+          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-lg">
+            <h2 className="text-lg font-semibold df-text-primary">Nova despesa</h2>
+            <p className="mt-1 text-sm df-text-muted">Você pode corrigir depois se errar algum valor.</p>
             <form onSubmit={handleAddExpense} className="mt-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700">Categoria / Título</label>
+                <label className="block text-sm font-medium df-text-secondary">Categoria / Título</label>
                 <input
                   type="text"
                   value={expenseCategory}
                   onChange={(e) => setExpenseCategory(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-xl border df-border-dark px-3 py-2 text-sm"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700">Valor (R$)</label>
+                <label className="block text-sm font-medium df-text-secondary">Valor (R$)</label>
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={expenseAmount}
                   onChange={(e) => setExpenseAmount(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-xl border df-border-dark px-3 py-2 text-sm"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700">Vencimento</label>
+                <label className="block text-sm font-medium df-text-secondary">Vencimento</label>
                 <input
                   type="date"
                   value={expenseDueDate}
                   onChange={(e) => setExpenseDueDate(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-xl border df-border-dark px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700">Tipo</label>
+                <label className="block text-sm font-medium df-text-secondary">Tipo</label>
                 <select
                   value={expenseType}
                   onChange={(e) => setExpenseType(e.target.value as "SHARED" | "INDIVIDUAL")}
-                  className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-xl border df-border-dark px-3 py-2 text-sm"
                 >
                   <option value="SHARED">Compartilhada (proporcional)</option>
                   <option value="INDIVIDUAL">Individual (100% uma pessoa)</option>
@@ -981,19 +982,19 @@ export default function AccountDetailPage() {
                   id="expensePaid"
                   checked={expensePaid}
                   onChange={(e) => setExpensePaid(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300"
+                  className="h-4 w-4 rounded df-border-dark"
                 />
-                <label htmlFor="expensePaid" className="text-sm font-medium text-slate-700">
+                <label htmlFor="expensePaid" className="text-sm font-medium df-text-secondary">
                   Já paguei — entra no saldo de quem pagou
                 </label>
               </div>
               {expenseType === "INDIVIDUAL" && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700">Quem pagou (100%)</label>
+                  <label className="block text-sm font-medium df-text-secondary">Quem pagou (100%)</label>
                   <select
                     value={expenseParticipantId}
                     onChange={(e) => setExpenseParticipantId(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-xl border df-border-dark px-3 py-2 text-sm"
                     required
                   >
                     <option value="">Selecione</option>
@@ -1004,20 +1005,20 @@ export default function AccountDetailPage() {
                 </div>
               )}
               <div className="flex gap-2 pt-2">
-                <button
+                <Button variant="secondary"
                   type="button"
                   onClick={() => setShowExpenseModal(false)}
-                  className="flex-1 rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className="flex-1 rounded-xl border df-border-dark px-4 py-2 text-sm font-medium df-text-secondary hover:bg-muted/60"
                 >
                   Cancelar
-                </button>
-                <button
+                </Button>
+                <Button variant="primary"
                   type="submit"
                   disabled={submitting || !expenseAmount || Number(expenseAmount) <= 0}
                   className="flex-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
                   {submitting ? "Salvando…" : "Salvar"}
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -1027,22 +1028,22 @@ export default function AccountDetailPage() {
       {/* Modal participante */}
       {showAddParticipant && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-lg">
-            <h2 className="text-lg font-semibold text-slate-900">Adicionar participante</h2>
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-lg">
+            <h2 className="text-lg font-semibold df-text-primary">Adicionar participante</h2>
             <form onSubmit={handleAddParticipant} className="mt-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700">Nome</label>
+                <label className="block text-sm font-medium df-text-secondary">Nome</label>
                 <input
                   type="text"
                   value={participantName}
                   onChange={(e) => setParticipantName(e.target.value)}
                   placeholder="Ex: Gustavo, Alexia"
-                  className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-xl border df-border-dark px-3 py-2 text-sm"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700">Parte nas despesas compartilhadas (0,7 = 70%)</label>
+                <label className="block text-sm font-medium df-text-secondary">Parte nas despesas compartilhadas (0,7 = 70%)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -1050,16 +1051,16 @@ export default function AccountDetailPage() {
                   max="1"
                   value={participantShare}
                   onChange={(e) => setParticipantShare(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-xl border df-border-dark px-3 py-2 text-sm"
                 />
               </div>
               <div className="flex gap-2 pt-2">
-                <button type="button" onClick={() => setShowAddParticipant(false)} className="flex-1 rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                <Button variant="secondary" type="button" onClick={() => setShowAddParticipant(false)} className="flex-1 rounded-xl border df-border-dark px-4 py-2 text-sm font-medium df-text-secondary hover:bg-muted/60">
                   Cancelar
-                </button>
-                <button type="submit" disabled={submitting || !participantName.trim()} className="flex-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+                </Button>
+                <Button variant="primary" type="submit" disabled={submitting || !participantName.trim()} className="flex-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
                   {submitting ? "Adicionando…" : "Adicionar"}
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -1069,37 +1070,37 @@ export default function AccountDetailPage() {
       {/* Modal registrar pagamento (parcial) */}
       {showPaymentModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-lg">
-            <h2 className="text-lg font-semibold text-slate-900">Registrar pagamento</h2>
-            <p className="mt-1 text-sm text-slate-500">Quanto dessa dívida foi pago agora (pode ser em partes).</p>
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-lg">
+            <h2 className="text-lg font-semibold df-text-primary">Registrar pagamento</h2>
+            <p className="mt-1 text-sm df-text-muted">Quanto dessa dívida foi pago agora (pode ser em partes).</p>
             <form onSubmit={(e) => handleRegisterPayment(e, showPaymentModal)} className="mt-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700">Valor pago (R$)</label>
+                <label className="block text-sm font-medium df-text-secondary">Valor pago (R$)</label>
                 <input
                   type="number"
                   step="0.01"
                   min="0.01"
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-xl border df-border-dark px-3 py-2 text-sm"
                   required
                 />
               </div>
               <div className="flex gap-2 pt-2">
-                <button
+                <Button variant="secondary"
                   type="button"
                   onClick={() => { setShowPaymentModal(null); setPaymentAmount(""); }}
-                  className="flex-1 rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className="flex-1 rounded-xl border df-border-dark px-4 py-2 text-sm font-medium df-text-secondary hover:bg-muted/60"
                 >
                   Cancelar
-                </button>
-                <button
+                </Button>
+                <Button variant="primary"
                   type="submit"
                   disabled={submittingPayment || !paymentAmount || parseFloat(paymentAmount) <= 0}
                   className="flex-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
                   {submittingPayment ? "Salvando…" : "Confirmar"}
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -1109,16 +1110,16 @@ export default function AccountDetailPage() {
       {/* Modal pagamento manual */}
       {showManualSettlement && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-lg">
-            <h2 className="text-lg font-semibold text-slate-900">Acerto manual</h2>
-            <p className="mt-1 text-sm text-slate-500">Para quando alguém pagou outra pessoa e você quer registrar fora do automático.</p>
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-lg">
+            <h2 className="text-lg font-semibold df-text-primary">Acerto manual</h2>
+            <p className="mt-1 text-sm df-text-muted">Para quando alguém pagou outra pessoa e você quer registrar fora do automático.</p>
             <form onSubmit={handleManualSettlement} className="mt-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700">Quem pagou</label>
+                <label className="block text-sm font-medium df-text-secondary">Quem pagou</label>
                 <select
                   value={manualFromId}
                   onChange={(e) => setManualFromId(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-xl border df-border-dark px-3 py-2 text-sm"
                   required
                 >
                   <option value="">Selecione</option>
@@ -1128,11 +1129,11 @@ export default function AccountDetailPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700">Quem recebeu</label>
+                <label className="block text-sm font-medium df-text-secondary">Quem recebeu</label>
                 <select
                   value={manualToId}
                   onChange={(e) => setManualToId(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-xl border df-border-dark px-3 py-2 text-sm"
                   required
                 >
                   <option value="">Selecione</option>
@@ -1142,32 +1143,32 @@ export default function AccountDetailPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700">Valor (R$)</label>
+                <label className="block text-sm font-medium df-text-secondary">Valor (R$)</label>
                 <input
                   type="number"
                   step="0.01"
                   min="0.01"
                   value={manualAmount}
                   onChange={(e) => setManualAmount(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-xl border df-border-dark px-3 py-2 text-sm"
                   required
                 />
               </div>
               <div className="flex gap-2 pt-2">
-                <button
+                <Button variant="secondary"
                   type="button"
                   onClick={() => { setShowManualSettlement(false); setManualFromId(""); setManualToId(""); setManualAmount(""); }}
-                  className="flex-1 rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className="flex-1 rounded-xl border df-border-dark px-4 py-2 text-sm font-medium df-text-secondary hover:bg-muted/60"
                 >
                   Cancelar
-                </button>
-                <button
+                </Button>
+                <Button variant="primary"
                   type="submit"
                   disabled={submittingManual || !manualFromId || !manualToId || !manualAmount || manualFromId === manualToId}
                   className="flex-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
                   {submittingManual ? "Salvando…" : "Registrar"}
-                </button>
+                </Button>
               </div>
             </form>
           </div>

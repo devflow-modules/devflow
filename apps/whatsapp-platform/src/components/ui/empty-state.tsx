@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 type EmptyStateTone = "default" | "positive" | "muted";
 
 const toneClass: Record<EmptyStateTone, string> = {
-  default: "border-slate-200/90 bg-white/95",
+  default: "border-border/90 bg-card/95",
   positive: "border-emerald-200/70 bg-emerald-50/40",
-  muted: "border-slate-200/70 bg-slate-50/80",
+  muted: "border-border/70 bg-muted/60/80",
 };
 
 export type EmptyStateProps = {
@@ -34,8 +34,8 @@ export function EmptyState({
       className={`rounded-xl border px-4 py-5 text-center shadow-[0_1px_2px_rgba(15,23,42,0.04)] ${toneClass[tone]} ${className}`.trim()}
       role="status"
     >
-      {icon ? <div className="mb-3 flex justify-center text-slate-400 [&_svg]:h-8 [&_svg]:w-8">{icon}</div> : null}
-      <p className="text-sm font-semibold text-slate-900">{title}</p>
+      {icon ? <div className="mb-3 flex justify-center df-text-muted [&_svg]:h-8 [&_svg]:w-8">{icon}</div> : null}
+      <p className="text-sm font-semibold df-text-primary">{title}</p>
       <p className="df-text-muted mx-auto mt-1.5 max-w-md text-sm leading-relaxed">{description}</p>
       {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
     </div>

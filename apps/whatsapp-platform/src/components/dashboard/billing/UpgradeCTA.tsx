@@ -42,7 +42,7 @@ export function UpgradeCTA({
       <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-emerald-800/90">{nextPlanDef.name}</p>
       <p className="mt-1 text-base font-semibold text-emerald-950">{COMMERCIAL_PLAN_HEADLINE[nextPlan]}</p>
       <p className="mt-2 text-sm leading-relaxed text-emerald-900/95">{COMMERCIAL_PLAN_SUBTITLE[nextPlan]}</p>
-      <Button
+      <Button variant="secondary"
         id={upgradeButtonId}
         type="button"
         className="mt-4 bg-emerald-600 hover:bg-emerald-700"

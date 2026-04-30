@@ -35,7 +35,7 @@ export function HowItWorks() {
           >
             Como funciona
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="mt-3 df-text-secondary">
             Três passos simples da mensagem até o atendimento humano.
           </p>
         </div>
@@ -56,7 +56,7 @@ export function HowItWorks() {
                 Passo {index + 1}
               </p>
               <h3 className="mt-1 font-medium text-foreground">{step.title}</h3>
-              <p className="mt-2 text-sm text-slate-600">
+              <p className="mt-2 text-sm df-text-secondary">
                 {step.description}
               </p>
             </article>

@@ -22,7 +22,7 @@ export function Header() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full border-b border-slate-200",
+        "sticky top-0 z-50 w-full border-b border-border",
         "bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/70",
         "shadow-[0_1px_0_0_rgba(0,0,0,0.03)]"
       )}
@@ -43,7 +43,7 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm font-medium text-slate-600 transition-colors hover:text-primary"
+              className="text-sm font-medium df-text-secondary transition-colors hover:text-primary"
             >
               {item.label}
             </Link>
@@ -54,7 +54,7 @@ export function Header() {
           <Link
             href="/demo"
             onClick={() => trackCtaDemoClick("header")}
-            className="hidden text-sm font-medium text-slate-600 transition-colors hover:text-primary sm:inline-block"
+            className="hidden text-sm font-medium df-text-secondary transition-colors hover:text-primary sm:inline-block"
           >
             Ver demo
           </Link>

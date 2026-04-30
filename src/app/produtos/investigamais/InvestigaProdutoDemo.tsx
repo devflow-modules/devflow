@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { trackOpenDemo, trackTryProduct } from "@/lib/analytics";
 import {
   demoAssistPanelClass,
@@ -113,14 +114,15 @@ export function InvestigaProdutoDemo() {
           CNPJ fictício na narrativa: {INVESTIGA_DEMO_CNPJ_DISPLAY}
         </p>
 
-        <button
+        <Button
           type="button"
+          variant="primary"
           onClick={showIllustrative}
           className={cn(demoCtaPrimaryClass, "mt-6")}
         >
           <Sparkles className="size-4" aria-hidden />
           Ver resultado ilustrativo
-        </button>
+        </Button>
 
         {!sample && (
           <div

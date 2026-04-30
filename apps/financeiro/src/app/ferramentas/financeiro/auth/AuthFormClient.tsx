@@ -13,6 +13,7 @@ import {
   focusRingLight,
 } from "@/modules/financeiro/lib/primitives";
 import { FINANCEIRO_AUTH_PATH, FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
+import { Button } from "@/components/ui/button";
 
 export function AuthFormClient() {
   const searchParams = useSearchParams();
@@ -80,7 +81,7 @@ export function AuthFormClient() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
+    <div className="flex min-h-screen flex-col bg-muted/60">
       <div className="flex flex-1 items-center justify-center px-4 py-10">
         <div className={cn(cardStaticLight, "w-full max-w-md space-y-8 p-8")}>
           <div>
@@ -95,7 +96,7 @@ export function AuthFormClient() {
             </p>
           </div>
 
-          <button
+          <Button variant="secondary"
             type="button"
             className={cn(
               "w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm font-semibold uppercase tracking-[0.25em] text-foreground transition hover:bg-muted",
@@ -120,10 +121,10 @@ export function AuthFormClient() {
             }}
           >
             Continuar com Google
-          </button>
+          </Button>
 
           <div className="grid grid-cols-2 gap-2">
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => setMode("password")}
               className={cn(
@@ -135,8 +136,8 @@ export function AuthFormClient() {
               )}
             >
               Senha
-            </button>
-            <button
+            </Button>
+            <Button variant="secondary"
               type="button"
               onClick={() => setMode("signup")}
               className={cn(
@@ -148,7 +149,7 @@ export function AuthFormClient() {
               )}
             >
               Cadastro
-            </button>
+            </Button>
           </div>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
@@ -184,7 +185,7 @@ export function AuthFormClient() {
               />
             </label>
 
-            <button
+            <Button variant="primary"
               type="submit"
               className={cn(
                 "w-full rounded-2xl bg-primary px-4 py-3 font-semibold uppercase tracking-[0.25em] text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50",
@@ -198,7 +199,7 @@ export function AuthFormClient() {
                 : mode === "password"
                   ? "Entrar"
                   : "Criar conta"}
-            </button>
+            </Button>
           </form>
 
           {mode === "password" ? (

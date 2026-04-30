@@ -5,6 +5,7 @@ import type { WaInboxThreadRow } from "./inboxTypes";
 import { bannerLabel, computeConversationActionBanner } from "./conversationActionBannerLogic";
 import { buttonClassName } from "@/components/ui/button";
 import { INBOX_CHAT_GUTTER_X } from "./inboxChatLayout";
+import { Button } from "@/components/ui/button";
 
 export function ConversationActionBanner({
   thread,
@@ -34,7 +35,7 @@ export function ConversationActionBanner({
       <div className="flex w-full flex-wrap items-center justify-between gap-3">
         <p className="min-w-0 text-sm font-medium text-amber-950">{text}</p>
         <div className="flex shrink-0 gap-2">
-          <button
+          <Button variant="secondary"
             type="button"
             className={buttonClassName("primary", "text-sm")}
             onClick={() => {
@@ -44,10 +45,10 @@ export function ConversationActionBanner({
             data-testid="banner-respond-now"
           >
             Responder agora
-          </button>
-          <button type="button" className="text-xs font-medium text-amber-900/70 underline" onClick={onDismiss}>
+          </Button>
+          <Button variant="secondary" type="button" className="text-xs font-medium text-amber-900/70 underline" onClick={onDismiss}>
             Ocultar
-          </button>
+          </Button>
         </div>
       </div>
     </div>

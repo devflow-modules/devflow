@@ -10,6 +10,7 @@ import {
 } from "@/components/admin/metrics";
 import type { MetricsPayload } from "./actions";
 import { getMetrics } from "./actions";
+import { Button } from "@/components/ui/button";
 
 type Props = { initialData: MetricsPayload };
 
@@ -86,14 +87,15 @@ export function MetricsDashboardClient({ initialData }: Props) {
           >
             Leads outbound
           </Link>
-          <button
+          <Button
             type="button"
+            variant="primary"
             onClick={refresh}
             disabled={loading}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+            className="rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary/90 disabled:opacity-60"
           >
             {loading ? "Atualizando…" : "Atualizar"}
-          </button>
+          </Button>
         </div>
       </div>
 

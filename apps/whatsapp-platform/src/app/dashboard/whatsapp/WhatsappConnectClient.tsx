@@ -247,13 +247,13 @@ export function WhatsappConnectClient() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-6 shadow-sm">
-          <div className="h-4 w-40 animate-pulse rounded bg-slate-200" />
+        <div className="rounded-2xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-elevated)_88%,transparent)] p-6 shadow-sm">
+          <div className="h-4 w-40 animate-pulse rounded bg-[color-mix(in_srgb,var(--df-border-dark)_65%,var(--df-bg-elevated))]" />
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="h-14 animate-pulse rounded-xl bg-slate-100" />
-            <div className="h-14 animate-pulse rounded-xl bg-slate-100" />
-            <div className="h-14 animate-pulse rounded-xl bg-slate-100" />
-            <div className="h-14 animate-pulse rounded-xl bg-slate-100" />
+            <div className="h-14 animate-pulse rounded-xl bg-[var(--df-bg-app)]" />
+            <div className="h-14 animate-pulse rounded-xl bg-[var(--df-bg-app)]" />
+            <div className="h-14 animate-pulse rounded-xl bg-[var(--df-bg-app)]" />
+            <div className="h-14 animate-pulse rounded-xl bg-[var(--df-bg-app)]" />
           </div>
         </div>
         <StateLoading message="A carregar o estado do canal WhatsApp…" />
@@ -266,17 +266,17 @@ export function WhatsappConnectClient() {
       {toastAnchor}
       {connectLoading ? (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-[2px]"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4 backdrop-blur-[2px]"
           role="status"
           aria-live="polite"
           aria-busy="true"
         >
-          <div className="rounded-2xl border border-white/20 bg-white px-8 py-6 text-center shadow-xl">
+          <div className="rounded-2xl border border-[color-mix(in_srgb,var(--df-border-subtle)_40%,transparent)] bg-[var(--df-bg-elevated)] px-8 py-6 text-center shadow-xl">
             <div
-              className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-[var(--df-brand-600)]"
+              className="mx-auto h-10 w-10 animate-spin rounded-full border-2 df-border-brand border-t-[var(--df-brand-600)]"
               aria-hidden
             />
-            <p className="mt-4 text-sm font-medium text-slate-800">Abrindo a Meta para conexão...</p>
+            <p className="mt-4 text-sm font-medium text-[var(--df-text-primary)]">Abrindo a Meta para conexão...</p>
           </div>
         </div>
       ) : null}
@@ -308,11 +308,11 @@ export function WhatsappConnectClient() {
 
       {stats.channelConnected ? (
         <section
-          className="rounded-2xl border border-emerald-200/80 bg-emerald-50/40 p-5 shadow-sm"
+          className="rounded-2xl border border-emerald-500/30 bg-emerald-950/25 p-5 shadow-sm"
           aria-label="Teste rápido"
         >
-          <h2 className="text-base font-semibold text-slate-900">Quer testar agora?</h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600">
+          <h2 className="text-base font-semibold text-[var(--df-text-primary)]">Quer testar agora?</h2>
+          <p className="mt-2 text-sm leading-relaxed text-[var(--df-text-secondary)]">
             Envie uma mensagem para seu número e veja ela aparecer na Inbox.
           </p>
           <Link
@@ -326,11 +326,11 @@ export function WhatsappConnectClient() {
 
       {SHOW_EMBEDDED_SIGNUP ? (
       <section className="rounded-2xl border border-[var(--df-brand-200)]/80 bg-[var(--df-brand-50)]/40 p-5 shadow-sm">
-        <h2 className="text-lg font-semibold tracking-tight text-slate-900">Ligue seu WhatsApp ao sistema</h2>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">
+        <h2 className="text-lg font-semibold tracking-tight text-[var(--df-text-primary)]">Ligue seu WhatsApp ao sistema</h2>
+        <p className="mt-2 text-sm leading-relaxed text-[var(--df-text-secondary)]">
           Você será redirecionado para a Meta (Facebook) para autorizar a conexão do seu número.
         </p>
-        <ul className="mt-4 space-y-2.5 text-sm text-slate-700">
+        <ul className="mt-4 space-y-2.5 text-sm text-[var(--df-text-secondary)]">
           <li className="flex gap-2">
             <span className="mt-0.5 text-[var(--df-brand-600)]" aria-hidden>
               ✓
@@ -350,7 +350,7 @@ export function WhatsappConnectClient() {
             <span>Leva cerca de 2 a 5 minutos</span>
           </li>
         </ul>
-        <div className="mt-5 rounded-xl border border-[var(--df-brand-100)] bg-white/70 px-4 py-3 text-sm leading-relaxed text-slate-700">
+        <div className="mt-5 rounded-xl border border-[var(--df-brand-100)] bg-[color-mix(in_srgb,var(--df-bg-elevated)_82%,transparent)] px-4 py-3 text-sm leading-relaxed text-[var(--df-text-secondary)]">
           Não precisa saber configurar nada — a Meta vai guiar você passo a passo.
         </div>
         <WhatsappConnectCta connectLoading={connectLoading} onConnect={handleConnect} />
@@ -369,12 +369,12 @@ export function WhatsappConnectClient() {
         <section aria-label="Números ligados">
           <div className="mb-4 flex items-end justify-between gap-3">
             <div>
-              <h2 className="text-sm font-semibold text-slate-900">Números ligados</h2>
-              <p className="mt-0.5 text-xs text-slate-500">Gestão da linha, etiquetas internas e envio</p>
+              <h2 className="text-sm font-semibold text-[var(--df-text-primary)]">Números ligados</h2>
+              <p className="mt-0.5 text-xs text-[var(--df-text-muted)]">Gestão da linha, etiquetas internas e envio</p>
             </div>
           </div>
           <ul
-            className={`space-y-4 transition-[box-shadow] duration-500 ${listHighlight ? "rounded-2xl ring-2 ring-[var(--df-brand-400)]/50 ring-offset-2 ring-offset-slate-50" : ""}`}
+            className={`space-y-4 transition-[box-shadow] duration-500 ${listHighlight ? "rounded-2xl ring-2 ring-[var(--df-brand-400)]/50 ring-offset-2 ring-offset-[var(--df-bg-app)]" : ""}`}
           >
             {numbers.map((n) => (
               <WhatsappPhoneNumberCard
@@ -400,37 +400,37 @@ export function WhatsappConnectClient() {
 
       {stats.channelConnected ? (
         <section
-          className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm"
+          className="rounded-2xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm"
           aria-label="Próximos passos"
         >
-          <h2 className="text-sm font-semibold text-slate-900">Próximos passos</h2>
-          <p className="mt-1 text-xs text-slate-500">Aproveite o canal ligado com estes atalhos.</p>
+          <h2 className="text-sm font-semibold text-[var(--df-text-primary)]">Próximos passos</h2>
+          <p className="mt-1 text-xs text-[var(--df-text-muted)]">Aproveite o canal ligado com estes atalhos.</p>
           <ul className="mt-4 grid gap-3 sm:grid-cols-1 md:grid-cols-3">
             <li>
               <Link
                 href="/inbox"
-                className="flex flex-col rounded-xl border border-slate-200/90 bg-slate-50/50 px-4 py-3 transition hover:border-[var(--df-brand-300)] hover:bg-white"
+                className="flex flex-col rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] px-4 py-3 transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-bg-elevated)]"
               >
-                <span className="text-sm font-medium text-slate-900">Responder mensagens</span>
-                <span className="mt-0.5 text-xs text-slate-500">Abrir a caixa de conversas</span>
+                <span className="text-sm font-medium text-[var(--df-text-primary)]">Responder mensagens</span>
+                <span className="mt-0.5 text-xs text-[var(--df-text-muted)]">Abrir a caixa de conversas</span>
               </Link>
             </li>
             <li>
               <Link
                 href="/settings/ai"
-                className="flex flex-col rounded-xl border border-slate-200/90 bg-slate-50/50 px-4 py-3 transition hover:border-[var(--df-brand-300)] hover:bg-white"
+                className="flex flex-col rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] px-4 py-3 transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-bg-elevated)]"
               >
-                <span className="text-sm font-medium text-slate-900">Configurar respostas automáticas</span>
-                <span className="mt-0.5 text-xs text-slate-500">IA e mensagens inteligentes</span>
+                <span className="text-sm font-medium text-[var(--df-text-primary)]">Configurar respostas automáticas</span>
+                <span className="mt-0.5 text-xs text-[var(--df-text-muted)]">IA e mensagens inteligentes</span>
               </Link>
             </li>
             <li>
               <Link
                 href="/automation"
-                className="flex flex-col rounded-xl border border-slate-200/90 bg-slate-50/50 px-4 py-3 transition hover:border-[var(--df-brand-300)] hover:bg-white"
+                className="flex flex-col rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] px-4 py-3 transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-bg-elevated)]"
               >
-                <span className="text-sm font-medium text-slate-900">Organizar atendimento</span>
-                <span className="mt-0.5 text-xs text-slate-500">Regras e fluxos</span>
+                <span className="text-sm font-medium text-[var(--df-text-primary)]">Organizar atendimento</span>
+                <span className="mt-0.5 text-xs text-[var(--df-text-muted)]">Regras e fluxos</span>
               </Link>
             </li>
           </ul>

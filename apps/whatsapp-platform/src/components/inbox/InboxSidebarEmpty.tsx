@@ -2,6 +2,7 @@
 
 import { buttonClassName } from "@/components/ui/button";
 import type { InboxConversationsFilter } from "./inboxTypes";
+import { Button } from "@/components/ui/button";
 
 /** Estado vazio quando o filtro não devolve conversas (tenant já tem dados). */
 export function InboxFilterEmpty({
@@ -46,12 +47,12 @@ export function InboxFilterEmpty({
             </svg>
           )}
         </div>
-        <h3 className="text-[15px] font-semibold tracking-tight text-slate-900">{title}</h3>
+        <h3 className="text-[15px] font-semibold tracking-tight df-text-primary">{title}</h3>
         <p className="df-text-muted mt-2">{body}</p>
         {!allClear ? (
-          <button type="button" className={`${buttonClassName("primary")} mt-8 w-full max-w-[240px]`} onClick={onSelectNeedsResponse}>
+          <Button variant="secondary" type="button" className={`${buttonClassName("primary")} mt-8 w-full max-w-[240px]`} onClick={onSelectNeedsResponse}>
             Precisa de resposta
-          </button>
+          </Button>
         ) : null}
       </div>
     </div>

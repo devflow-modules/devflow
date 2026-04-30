@@ -62,20 +62,14 @@ export default function CasesPage() {
     <main className="df-page">
       {/* Hero */}
       <section
-        className="df-brand-gradient relative overflow-hidden border-b df-border-brand py-16 sm:py-20 lg:py-24"
+        className="relative overflow-hidden border-b df-border-brand bg-gradient-to-br from-primary/[0.06] via-background to-background py-16 sm:py-20 lg:py-24"
         aria-labelledby="cases-hero-heading"
       >
         <div
           className="pointer-events-none absolute inset-0 -z-10 opacity-40"
           aria-hidden
         >
-          <div
-            className="absolute -top-24 right-0 h-72 w-72 rounded-full blur-3xl"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(34, 197, 94, 0.18) 0%, transparent 70%)",
-            }}
-          />
+          <div className="df-decor-radial-brand-soft absolute -top-24 right-0 h-72 w-72 rounded-full blur-3xl" />
         </div>
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <p className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">

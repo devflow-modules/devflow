@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/modules/financeiro/lib/cn";
 import { focusRingLight } from "@/modules/financeiro/lib/primitives";
 import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
+import { Button } from "@/components/ui/button";
 
 const BASE = FINANCEIRO_BASE_PATH;
 
@@ -65,17 +66,17 @@ export function Breadcrumbs() {
   return (
     <nav
       aria-label="Breadcrumb"
-      className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-foreground shadow-sm transition hover:shadow-md"
+      className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-3 py-2 text-foreground shadow-sm transition hover:shadow-md"
     >
       <div className="flex min-w-0 items-center gap-2">
-        <button
+        <Button variant="secondary"
           type="button"
           onClick={() => router.back()}
           aria-label="Voltar"
-          className={cn("inline-flex items-center rounded-xl border border-slate-200 bg-card px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-foreground transition hover:bg-slate-100 sm:hidden", focusRingLight)}
+          className={cn("inline-flex items-center rounded-xl border border-border bg-card px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-foreground transition hover:bg-muted sm:hidden", focusRingLight)}
         >
           Voltar
-        </button>
+        </Button>
 
         <ol className="hidden min-w-0 items-center gap-2 text-xs text-muted-foreground sm:flex">
           {crumbs.map((c, idx) => {
@@ -87,12 +88,12 @@ export function Breadcrumbs() {
                 ) : (
                   <Link
                     href={c.href}
-                    className={cn("min-w-0 truncate rounded-md px-1 py-0.5 hover:bg-slate-100", focusRingLight)}
+                    className={cn("min-w-0 truncate rounded-md px-1 py-0.5 hover:bg-muted", focusRingLight)}
                   >
                     {c.label}
                   </Link>
                 )}
-                {isLast ? null : <span className="text-slate-400">/</span>}
+                {isLast ? null : <span className="df-text-muted">/</span>}
               </li>
             );
           })}

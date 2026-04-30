@@ -85,18 +85,12 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
   };
 
   return (
-    <div className="min-h-screen min-w-0 overflow-x-clip bg-gradient-to-b from-white to-slate-50">
+    <div className="min-h-screen min-w-0 overflow-x-clip bg-gradient-to-b from-card to-muted/40">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       {/* Hero */}
       <section className="relative overflow-x-clip pt-10 pb-8 sm:pt-14 sm:pb-10 lg:pt-16 lg:pb-12">
         <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
-          <div
-            className="absolute -top-40 right-0 h-72 w-72 rounded-full opacity-20"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(34, 197, 94, 0.2) 0%, transparent 70%)",
-            }}
-          />
+          <div className="df-decor-radial-brand-soft absolute -top-40 right-0 h-72 w-72 rounded-full opacity-20" />
         </div>
         <div className="mx-auto max-w-[1200px] px-3 min-[400px]:px-4 sm:px-6 lg:px-8">
           <nav
@@ -123,11 +117,11 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
           <h1 className="mt-3 max-w-[820px] text-balance text-2xl font-bold tracking-tight text-foreground min-[400px]:text-[1.65rem] sm:mt-4 sm:text-4xl lg:text-[2.5rem] lg:leading-tight">
             {page.h1}
           </h1>
-          <p className="mt-4 max-w-[720px] text-base leading-relaxed text-slate-600 sm:mt-6 sm:text-lg">
+          <p className="mt-4 max-w-[720px] text-base leading-relaxed df-text-secondary sm:mt-6 sm:text-lg">
             {page.intro}
           </p>
           {page.pillarSlug && (
-            <p className="mt-4 max-w-[720px] text-sm text-slate-600">
+            <p className="mt-4 max-w-[720px] text-sm df-text-secondary">
               Para um guia completo, leia:{" "}
               <Link href={`/${page.pillarSlug}`} className="font-medium text-primary underline-offset-4 hover:underline">
                 {PILLAR_LABELS[page.pillarSlug] ?? page.pillarSlug}
@@ -162,7 +156,7 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
 
       {/* Problem */}
       <section
-        className="border-y border-border bg-white py-12 sm:py-14"
+        className="border-y border-border bg-card py-12 sm:py-14"
         aria-labelledby="growth-problem-heading"
       >
         <div className="mx-auto max-w-[720px] px-4 sm:px-6 lg:px-8">
@@ -172,7 +166,7 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
           >
             Onde a maioria erra
           </h2>
-          <p className="mt-4 text-base leading-relaxed text-slate-700">
+          <p className="mt-4 text-base leading-relaxed df-text-secondary">
             {page.problem}
           </p>
         </div>
@@ -188,7 +182,7 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
           >
             O que funciona na prática
           </h2>
-          <p className="mt-4 text-base leading-relaxed text-slate-700">
+          <p className="mt-4 text-base leading-relaxed df-text-secondary">
             {page.solution}
           </p>
         </div>
@@ -202,7 +196,7 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
       {/* Comparison (optional) */}
       {page.showComparison && (
         <section
-          className="border-t border-border bg-white py-14 sm:py-16"
+          className="border-t border-border bg-card py-14 sm:py-16"
           aria-labelledby="growth-compare-heading"
         >
           <div className="mx-auto max-w-[960px] px-4 sm:px-6 lg:px-8">
@@ -212,7 +206,7 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
             >
               Planilha × app comum × DevFlow
             </h2>
-            <p className="mt-2 max-w-2xl text-slate-600">
+            <p className="mt-2 max-w-2xl df-text-secondary">
               Visão honesta: cada coluna tem força em contextos diferentes. O DevFlow
               foi pensado para quem precisa de PF, PJ e casa no mesmo ecossistema.
             </p>
@@ -225,7 +219,7 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
 
       {/* Scenarios */}
       <section
-        className="border-t border-border bg-slate-50 py-12 sm:py-14"
+        className="border-t border-border bg-muted/60 py-12 sm:py-14"
         aria-labelledby="growth-scenarios-heading"
       >
         <div className="mx-auto max-w-[720px] px-4 sm:px-6 lg:px-8">
@@ -235,7 +229,7 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
           >
             Cenários reais
           </h2>
-          <p className="mt-3 text-base leading-relaxed text-slate-600">
+          <p className="mt-3 text-base leading-relaxed df-text-secondary">
             {page.scenarios}
           </p>
         </div>
@@ -243,7 +237,7 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
 
       {/* Extra sections (pilares: comparações, exemplos, checklist) */}
       {page.extraSections && page.extraSections.length > 0 && (
-        <div className="border-t border-border bg-white">
+        <div className="border-t border-border bg-card">
           {page.extraSections.map((sec, i) => (
             <section
               key={i}
@@ -257,7 +251,7 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
                 >
                   {sec.title}
                 </h2>
-                <p className="mt-3 text-base leading-relaxed text-slate-700">
+                <p className="mt-3 text-base leading-relaxed df-text-secondary">
                   {sec.content}
                 </p>
               </div>
@@ -268,7 +262,7 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
 
       {/* Tool CTA */}
       <section
-        className="border-t border-border bg-white py-14 sm:py-16"
+        className="border-t border-border bg-card py-14 sm:py-16"
         aria-labelledby="growth-tool-heading"
       >
         <div className="mx-auto max-w-[720px] px-4 sm:px-6 lg:px-8">
@@ -285,7 +279,7 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
               </p>
             </div>
             <div className="px-6 py-6 sm:px-8 sm:py-8">
-              <ul className="space-y-2 text-sm text-slate-700" role="list">
+              <ul className="space-y-2 text-sm df-text-secondary" role="list">
                 {tool.bullets.map((b) => (
                   <li key={b} className="flex gap-2">
                     <span className="text-primary" aria-hidden>
@@ -338,7 +332,7 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
             <h2 className="text-xl font-semibold text-foreground sm:text-2xl">
               Pronto para organizar de verdade?
             </h2>
-            <p className="mt-3 text-slate-600">
+            <p className="mt-3 df-text-secondary">
               Ferramentas gratuitas e produtos para escalar operação e atendimento.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:justify-center">
@@ -350,7 +344,7 @@ export function GrowthPageTemplate({ page, relatedPages }: Props) {
               </Link>
               <Link
                 href="/produtos"
-                className="inline-flex min-h-12 items-center justify-center rounded-xl border border-border bg-white px-6 py-3 font-semibold hover:bg-slate-50"
+                className="inline-flex min-h-12 items-center justify-center rounded-xl border border-border bg-card px-6 py-3 font-semibold hover:bg-muted/60"
               >
                 Começar agora
               </Link>

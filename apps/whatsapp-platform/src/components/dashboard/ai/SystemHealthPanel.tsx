@@ -5,6 +5,7 @@ import { buttonClassName } from "@/components/ui/button";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 import type { SystemHealthSnapshot } from "@/modules/dashboard/systemHealthService";
 import type { SystemHealthSummary } from "@/modules/dashboard/buildSystemHealthSummary";
+import { Button } from "@/components/ui/button";
 
 function formatAgo(iso: string | null): string {
   if (!iso) return "—";
@@ -111,9 +112,9 @@ export function SystemHealthPanel({
         data-testid="system-health-panel"
       >
         <p className="font-medium">Não foi possível carregar a saúde do canal.</p>
-        <button type="button" className={`${buttonClassName("secondary")} mt-2 text-xs`} onClick={onRefresh}>
+        <Button variant="secondary" type="button" className={`${buttonClassName("secondary")} mt-2 text-xs`} onClick={onRefresh}>
           Tentar novamente
-        </button>
+        </Button>
       </section>
     );
   }
@@ -121,10 +122,10 @@ export function SystemHealthPanel({
   if (!snapshot || !summary) {
     return (
       <div
-        className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.04]"
+        className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_80%,transparent)]"
         data-testid="system-health-panel"
       >
-        <div className="h-24 animate-pulse rounded-lg bg-slate-100" />
+        <div className="h-24 animate-pulse rounded-lg bg-[var(--df-bg-app)]" />
       </div>
     );
   }
@@ -154,32 +155,32 @@ export function SystemHealthPanel({
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">Canal WhatsApp</h2>
-          <ul className="mt-3 space-y-2 text-sm text-slate-800">
+        <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Canal WhatsApp</h2>
+          <ul className="mt-3 space-y-2 text-sm text-[var(--df-text-primary)]">
             <li>
               {rowOk(ch.phoneConnected)} Número conectado{" "}
-              {ch.displayPhone ? <span className="text-slate-600">({ch.displayPhone})</span> : null}
+              {ch.displayPhone ? <span className="text-[var(--df-text-secondary)]">({ch.displayPhone})</span> : null}
             </li>
-            <li className="text-slate-700">
+            <li className="text-[var(--df-text-secondary)]">
               Última mensagem recebida:{" "}
-              <span className="font-medium text-slate-900">{formatAgo(ch.lastInboundAt)}</span>
+              <span className="font-medium text-[var(--df-text-primary)]">{formatAgo(ch.lastInboundAt)}</span>
             </li>
-            <li className="text-slate-700">
+            <li className="text-[var(--df-text-secondary)]">
               Última mensagem enviada:{" "}
-              <span className="font-medium text-slate-900">{formatAgo(ch.lastOutboundAt)}</span>
+              <span className="font-medium text-[var(--df-text-primary)]">{formatAgo(ch.lastOutboundAt)}</span>
             </li>
             {ch.inboxActivityRecent ? (
-              <li className="text-xs text-slate-500">Inbox com actividade recente (sinal auxiliar).</li>
+              <li className="text-xs text-[var(--df-text-muted)]">Inbox com actividade recente (sinal auxiliar).</li>
             ) : null}
           </ul>
         </div>
 
-        <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">Webhook</h2>
+        <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Webhook</h2>
           <p className={`mt-2 text-sm font-semibold ${webhookTone(wh.status)}`}>{wh.label}</p>
-          <p className="mt-1 text-xs text-slate-600">{wh.detail}</p>
-          <ul className="mt-3 space-y-1 text-xs text-slate-600">
+          <p className="mt-1 text-xs text-[var(--df-text-secondary)]">{wh.detail}</p>
+          <ul className="mt-3 space-y-1 text-xs text-[var(--df-text-secondary)]">
             <li>Última recepção: {formatAgo(wh.lastReceivedAt)}</li>
             <li>Último sucesso: {formatAgo(wh.lastSuccessAt)}</li>
             <li>Último erro: {formatAgo(wh.lastErrorAt)}</li>
@@ -190,25 +191,25 @@ export function SystemHealthPanel({
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">Estado operacional</h2>
-        <ul className="mt-3 space-y-2 text-sm text-slate-800">
+      <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Estado operacional</h2>
+        <ul className="mt-3 space-y-2 text-sm text-[var(--df-text-primary)]">
           <li>
             <span className="font-medium">{au.aiLabel}</span>
           </li>
           <li>
             <span className="font-medium">{au.automationLabel}</span>
           </li>
-          <li className="text-xs text-slate-500">
+          <li className="text-xs text-[var(--df-text-muted)]">
             Controlos abaixo alteram só a camada operacional (não apagam a configuração da IA nas definições).
           </li>
         </ul>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">Erros (24 horas)</h2>
-          <p className="mt-2 text-sm text-slate-800">
+        <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Erros (24 horas)</h2>
+          <p className="mt-2 text-sm text-[var(--df-text-primary)]">
             <span
               className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold ${
                 snapshot.errorSummary.count24h > 0 ? "bg-red-100 text-red-900" : "bg-emerald-100 text-emerald-900"
@@ -219,8 +220,8 @@ export function SystemHealthPanel({
             </span>
           </p>
           {snapshot.errorSummary.lastThree.length > 0 ? (
-            <ul className="mt-3 space-y-1.5 text-xs text-slate-600">
-              <li className="font-medium text-slate-700">Últimos registos:</li>
+            <ul className="mt-3 space-y-1.5 text-xs text-[var(--df-text-secondary)]">
+              <li className="font-medium text-[var(--df-text-secondary)]">Últimos registos:</li>
               {snapshot.errorSummary.lastThree.map((e) => (
                 <li key={e.at + e.message} className="border-l-2 border-red-200 pl-2">
                   {formatAgo(e.at)} — {e.message}
@@ -228,13 +229,13 @@ export function SystemHealthPanel({
               ))}
             </ul>
           ) : (
-            <p className="mt-2 text-xs text-slate-500">Nenhum erro de IA nas últimas 24 horas.</p>
+            <p className="mt-2 text-xs text-[var(--df-text-muted)]">Nenhum erro de IA nas últimas 24 horas.</p>
           )}
         </div>
 
-        <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">Tarefas automáticas</h2>
-          <ul className="mt-3 space-y-1.5 text-sm text-slate-800" data-testid="health-task-counts">
+        <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Tarefas automáticas</h2>
+          <ul className="mt-3 space-y-1.5 text-sm text-[var(--df-text-primary)]" data-testid="health-task-counts">
             <li>
               Follow-ups agendados:{" "}
               <span className="font-semibold tabular-nums">{snapshot.taskCounts.followUpPending}</span>
@@ -252,9 +253,9 @@ export function SystemHealthPanel({
       </div>
 
       {snapshot.criticalLogs.length > 0 ? (
-        <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">Eventos importantes</h2>
-          <ul className="mt-3 max-h-48 space-y-2 overflow-y-auto text-xs text-slate-700">
+        <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Eventos importantes</h2>
+          <ul className="mt-3 max-h-48 space-y-2 overflow-y-auto text-xs text-[var(--df-text-secondary)]">
             {snapshot.criticalLogs.map((log) => (
               <li
                 key={log.at + log.message}
@@ -264,71 +265,71 @@ export function SystemHealthPanel({
                     : "border-l-2 border-amber-300 pl-2"
                 }
               >
-                <span className="text-slate-500">{new Date(log.at).toLocaleString("pt-BR")}</span> — {log.message}
+                <span className="text-[var(--df-text-muted)]">{new Date(log.at).toLocaleString("pt-BR")}</span> — {log.message}
               </li>
             ))}
           </ul>
         </div>
       ) : null}
 
-      <div className="rounded-xl border border-slate-200/90 bg-slate-50/80 p-4">
-        <h2 className="text-xs font-bold uppercase tracking-wide text-slate-600">Controles</h2>
-        <p className="mt-1 text-xs text-slate-500">
+      <div className="rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_52%,var(--df-bg-elevated))] p-4">
+        <h2 className="text-xs font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Controles</h2>
+        <p className="mt-1 text-xs text-[var(--df-text-muted)]">
           Pausas aplicam-se à automação; o inbox manual dos agentes continua disponível.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          <button
+          <Button variant="disabled"
             type="button"
             disabled={actionBusy !== null || !op.aiEnabled}
             className={buttonClassName("secondary", "text-xs")}
             onClick={() => void patchOperations({ aiEnabled: false })}
           >
             {actionBusy === "patch" ? "…" : "Pausar IA"}
-          </button>
-          <button
+          </Button>
+          <Button variant="disabled"
             type="button"
             disabled={actionBusy !== null || op.aiEnabled}
             className={buttonClassName("secondary", "text-xs")}
             onClick={() => void patchOperations({ aiEnabled: true })}
           >
             {actionBusy === "patch" ? "…" : "Ativar IA"}
-          </button>
-          <button
+          </Button>
+          <Button variant="disabled"
             type="button"
             disabled={actionBusy !== null || !op.automationEnabled}
             className={buttonClassName("secondary", "text-xs")}
             onClick={() => void patchOperations({ automationEnabled: false })}
           >
             Pausar automação
-          </button>
-          <button
+          </Button>
+          <Button variant="disabled"
             type="button"
             disabled={actionBusy !== null || op.automationEnabled}
             className={buttonClassName("secondary", "text-xs")}
             onClick={() => void patchOperations({ automationEnabled: true })}
           >
             Ativar automação
-          </button>
+          </Button>
         </div>
-        <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-200/80 pt-3">
-          <button
+        <div className="mt-3 flex flex-wrap gap-2 border-t df-border-brand pt-3">
+          <Button variant="disabled"
             type="button"
             disabled={actionBusy !== null}
             className={buttonClassName("primary", "text-xs")}
             onClick={() => void postJson("/api/admin/run-worker", "worker", { limit: 25 })}
           >
             {actionBusy === "worker" ? "…" : "Rodar worker agora"}
-          </button>
-          <button
+          </Button>
+          <Button variant="disabled"
             type="button"
             disabled={actionBusy !== null}
             className={buttonClassName("secondary", "text-xs")}
             onClick={() => void postJson("/api/admin/reprocess-followups", "reprocess")}
           >
             {actionBusy === "reprocess" ? "…" : "Reprocessar pendências"}
-          </button>
+          </Button>
         </div>
-        {actionMsg ? <p className="mt-2 text-xs text-slate-600">{actionMsg}</p> : null}
+        {actionMsg ? <p className="mt-2 text-xs text-[var(--df-text-secondary)]">{actionMsg}</p> : null}
       </div>
     </section>
   );

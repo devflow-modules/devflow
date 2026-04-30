@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvider";
 import { Skeleton } from "@/modules/financeiro/components/Skeleton";
 import { Breadcrumbs } from "@/modules/financeiro/components/Breadcrumbs";
+import { Button } from "@/components/ui/button";
 
 const MONTH_NAMES = [
   "", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
@@ -136,7 +137,7 @@ export default function HistoricoPage() {
             </h2>
 
             {currentSnapshot ? (
-              <div className="rounded-xl border border-indigo-200 bg-white p-4">
+              <div className="rounded-xl border border-indigo-200 bg-card p-4">
                 <p className="text-sm font-medium text-indigo-700 mb-2">✅ Mês já fechado</p>
                 <div className="grid grid-cols-3 gap-3 text-center text-xs">
                   <div>
@@ -154,37 +155,37 @@ export default function HistoricoPage() {
                     </p>
                   </div>
                 </div>
-                <button
+                <Button variant="disabled"
                   type="button"
                   onClick={handleClose}
                   disabled={closing}
                   className="mt-3 text-xs text-indigo-500 underline hover:text-indigo-700"
                 >
                   Atualizar snapshot
-                </button>
+                </Button>
               </div>
             ) : (
               <div className="space-y-3">
                 <textarea
                   rows={2}
                   placeholder="Observações do mês (opcional)"
-                  className="w-full rounded-xl border border-indigo-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  className="w-full rounded-xl border border-indigo-200 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                 />
-                <button
+                <Button variant="disabled"
                   type="button"
                   onClick={handleClose}
                   disabled={closing}
                   className="w-full rounded-xl bg-indigo-600 py-2.5 text-sm font-bold text-white hover:bg-indigo-700 disabled:opacity-60"
                 >
                   {closing ? "Fechando..." : `Fechar mês de ${MONTH_NAMES[currentMonth]}`}
-                </button>
+                </Button>
               </div>
             )}
 
             {/* Gerar recorrências */}
-            <div className="rounded-xl border border-indigo-200 bg-white p-4">
+            <div className="rounded-xl border border-indigo-200 bg-card p-4">
               <p className="mb-1 text-sm font-medium text-foreground">
                 🔁 Gerar recorrências do próximo mês
               </p>
@@ -194,14 +195,14 @@ export default function HistoricoPage() {
                 {currentMonth === 12 ? currentYear + 1 : currentYear}.
                 A operação é segura — não duplica se já existir.
               </p>
-              <button
+              <Button variant="disabled"
                 type="button"
                 onClick={handleGenerateRecurrence}
                 disabled={generating}
-                className="rounded-xl bg-slate-700 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
+                className="rounded-xl bg-muted px-4 py-2 text-xs font-semibold text-white hover:bg-muted disabled:opacity-60"
               >
                 {generating ? "Gerando..." : "Gerar recorrências"}
-              </button>
+              </Button>
             </div>
           </section>
         )}
@@ -216,7 +217,7 @@ export default function HistoricoPage() {
               <Skeleton className="h-20 w-full rounded-xl" />
             </div>
           ) : snapshots.length === 0 ? (
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-6 text-center">
+            <div className="rounded-xl border border-border bg-muted/60 p-6 text-center">
               <p className="text-sm text-muted-foreground">Nenhum mês fechado ainda.</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 Feche o mês corrente para começar o histórico.
@@ -259,7 +260,7 @@ export default function HistoricoPage() {
                       </div>
                       <div>
                         <p className="text-muted-foreground">A pagar</p>
-                        <p className={`font-medium ${Number(snap.pendingExpenses) > 0 ? "text-amber-600" : "text-slate-400"}`}>
+                        <p className={`font-medium ${Number(snap.pendingExpenses) > 0 ? "text-amber-600" : "df-text-muted"}`}>
                           {fmt(Number(snap.pendingExpenses))}
                         </p>
                       </div>

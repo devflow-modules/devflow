@@ -37,7 +37,7 @@ export function Processo3Passos() {
           >
             Como começamos
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="mt-3 df-text-secondary">
             Três passos simples. Reduz a sensação de complexidade.
           </p>
         </div>
@@ -52,7 +52,7 @@ export function Processo3Passos() {
                 <span className="text-lg font-bold text-primary">{passo.numero}</span>
               </div>
               <h3 className="mt-4 font-medium text-foreground">{passo.title}</h3>
-              <p className="mt-2 text-sm text-slate-600">{passo.description}</p>
+              <p className="mt-2 text-sm df-text-secondary">{passo.description}</p>
             </article>
           ))}
         </div>

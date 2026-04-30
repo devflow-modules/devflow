@@ -5,6 +5,7 @@ import type { FeatureNotAvailablePayload as FeatureBlockedApiPayload } from "@/l
 import { PLANS, type PlanKey } from "@/modules/billing/plans";
 import { isWhiteLabelMode } from "@/lib/productMode";
 import { SupportHelpButton } from "@/components/support/SupportHelpButton";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   blocked: Pick<FeatureBlockedApiPayload, "feature" | "currentPlan" | "requiredPlan" | "message">;
@@ -42,13 +43,13 @@ export function FeatureUpgradePrompt({
         </p>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           {onDismiss ? (
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={onDismiss}
               className="rounded-lg px-2 py-1.5 text-xs font-medium text-amber-900/80 hover:bg-amber-100/80"
             >
               Fechar
-            </button>
+            </Button>
           ) : null}
           <SupportHelpButton variant="inline" className="text-xs" />
         </div>
@@ -65,13 +66,13 @@ export function FeatureUpgradePrompt({
       <p className="min-w-0 leading-relaxed">{msg}</p>
       <div className="flex shrink-0 flex-wrap items-center gap-2">
         {onDismiss ? (
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={onDismiss}
             className="rounded-lg px-2 py-1.5 text-xs font-medium text-amber-900/80 hover:bg-amber-100/80"
           >
             Fechar
-          </button>
+          </Button>
         ) : null}
         <Link
           href={billingHref}

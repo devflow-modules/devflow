@@ -6,6 +6,7 @@ import { paymentDaySchema, sourceCreateSchema, sourceUpdateSchema } from "@/modu
 import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvider";
 import { Skeleton } from "@/modules/financeiro/components/Skeleton";
 import { Breadcrumbs } from "@/modules/financeiro/components/Breadcrumbs";
+import { Button } from "@/components/ui/button";
 
 type Cycle = {
   id: string;
@@ -287,14 +288,14 @@ export default function SourcesPage() {
                 <span className="text-sm text-muted-foreground">Fonte ativa</span>
               </div>
               <div className="flex items-center gap-4">
-                <button
+                <Button variant="primary"
                   className="flex-1 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
                   type="submit"
                 >
                   {editSourceId ? "Salvar" : "Criar"}
-                </button>
+                </Button>
                 {editSourceId ? (
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     className="text-xs font-semibold uppercase tracking-[0.4em] text-muted-foreground"
                     onClick={() => {
@@ -303,7 +304,7 @@ export default function SourcesPage() {
                     }}
                   >
                     Cancelar
-                  </button>
+                  </Button>
                 ) : null}
               </div>
             </form>
@@ -361,12 +362,12 @@ export default function SourcesPage() {
                   ))}
                 </select>
               </label>
-              <button
+              <Button variant="primary"
                 className="w-full rounded-2xl bg-primary px-4 py-3 text-sm font-semibold uppercase tracking-[0.4em] text-primary-foreground"
                 type="submit"
               >
                 Adicionar dia
-              </button>
+              </Button>
             </form>
           </div>
         </section>
@@ -438,14 +439,14 @@ export default function SourcesPage() {
                 </label>
               )}
               <div className="flex gap-2">
-                <button
+                <Button variant="primary"
                   className="rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
                   type="submit"
                 >
                   {editCycleId ? "Salvar ciclo" : "Criar ciclo"}
-                </button>
+                </Button>
                 {editCycleId && (
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     className="text-xs font-semibold uppercase tracking-[0.4em] text-muted-foreground"
                     onClick={() => {
@@ -454,7 +455,7 @@ export default function SourcesPage() {
                     }}
                   >
                     Cancelar
-                  </button>
+                  </Button>
                 )}
               </div>
             </form>
@@ -471,7 +472,7 @@ export default function SourcesPage() {
                     >
                       <span className="text-sm text-foreground">{cycleLabel(cycle)}</span>
                       <div className="flex gap-2">
-                        <button
+                        <Button variant="secondary"
                           type="button"
                           className="text-xs font-semibold uppercase tracking-[0.3em] text-primary"
                           onClick={() => {
@@ -485,14 +486,14 @@ export default function SourcesPage() {
                           }}
                         >
                           Editar
-                        </button>
-                        <button
+                        </Button>
+                        <Button variant="secondary"
                           type="button"
                           className="text-xs font-semibold uppercase tracking-[0.3em] text-destructive"
                           onClick={() => handleCycleDelete(cycle.id)}
                         >
                           Excluir
-                        </button>
+                        </Button>
                       </div>
                     </li>
                   ))}
@@ -540,7 +541,7 @@ export default function SourcesPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button
+                    <Button variant="secondary"
                       className="rounded-2xl border border-border px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-foreground"
                       onClick={() => {
                         setEditSourceId(source.id);
@@ -553,13 +554,13 @@ export default function SourcesPage() {
                       }}
                     >
                       Editar
-                    </button>
-                    <button
+                    </Button>
+                    <Button variant="secondary"
                       className="rounded-2xl border border-destructive/60 px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-destructive"
                       onClick={() => handleDelete(source.id)}
                     >
                       Excluir
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))

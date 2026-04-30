@@ -6,6 +6,7 @@ import { ruleCreateSchema, ruleUpdateSchema } from "@/modules/financeiro/schemas
 import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvider";
 import { Skeleton } from "@/modules/financeiro/components/Skeleton";
 import { Breadcrumbs } from "@/modules/financeiro/components/Breadcrumbs";
+import { Button } from "@/components/ui/button";
 
 type Source = { id: string; name: string };
 type Rule = {
@@ -233,12 +234,12 @@ export default function RulesPage() {
                 )}
               </div>
             </div>
-            <button
+            <Button variant="primary"
               type="submit"
               className="w-full rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
             >
               {editingId ? "Atualizar regra" : "Criar regra"}
-            </button>
+            </Button>
           </form>
         </Section>
 
@@ -269,7 +270,7 @@ export default function RulesPage() {
                       <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">{rule.ruleType}</p>
                     </div>
                     <div className="flex gap-2">
-                      <button
+                      <Button variant="secondary"
                         className="rounded-2xl border border-border px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-foreground"
                         onClick={() => {
                           setEditingId(rule.id);
@@ -285,13 +286,13 @@ export default function RulesPage() {
                         }}
                       >
                         Editar
-                      </button>
-                      <button
+                      </Button>
+                      <Button variant="secondary"
                         className="rounded-2xl border border-destructive/60 px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-destructive"
                         onClick={() => handleDelete(rule.id)}
                       >
                         Excluir
-                      </button>
+                      </Button>
                     </div>
                   </div>
                   <p className="mt-2 text-sm text-muted-foreground">{rule.description}</p>

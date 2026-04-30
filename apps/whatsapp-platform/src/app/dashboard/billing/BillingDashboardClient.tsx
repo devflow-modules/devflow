@@ -19,6 +19,7 @@ import { normalizePlan } from "@/modules/billing/plans";
 import { freeEvaluationStaleMessage } from "@/modules/billing/demoEvaluation";
 import { readBillingPostUrl } from "@/lib/api-json-client";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
+import { Button } from "@/components/ui/button";
 
 function formatBRL(value: number): string {
   return new Intl.NumberFormat("pt-BR", {
@@ -123,14 +124,14 @@ export function BillingDashboardClient() {
       tone="admin"
       quickActions={
         <>
-          <button
+          <Button variant="secondary"
             type="button"
             className="df-quick-action"
             onClick={() => void openPortal()}
             disabled={portalLoading}
           >
             {portalLoading ? "A abrir…" : "Ver portal de faturação"}
-          </button>
+          </Button>
           <Link href="/settings" className="df-quick-action">
             Configurações
           </Link>
@@ -182,22 +183,22 @@ export function BillingDashboardClient() {
       {isPastDue && (
         <div className="df-feedback-danger">
           <p className="font-medium">Pagamento falhou — atualize seu método de pagamento</p>
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => void openPortal()}
             disabled={portalLoading}
             className="mt-2 text-sm font-medium text-red-700 underline hover:no-underline"
           >
             {portalLoading ? "Abrindo…" : "Resolver pagamento"}
-          </button>
+          </Button>
         </div>
       )}
 
       {error ? <div className="df-feedback-danger">{error}</div> : null}
 
       {isFreePlan ? (
-        <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-5 text-sm text-slate-800 shadow-sm">
-          <p className="font-medium text-slate-900">Ambiente de avaliação guiada</p>
+        <div className="rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_52%,var(--df-bg-elevated))] p-5 text-sm text-[var(--df-text-primary)] shadow-sm">
+          <p className="font-medium text-[var(--df-text-primary)]">Ambiente de avaliação guiada</p>
           <p className="mt-2 leading-relaxed">
             Limites atuais: conversas e IA do período estão nos cartões abaixo. O que está bloqueado ou parcial segue
             o contrato da demonstração — a operação completa libera filas, equipa e volumes na implantação.
@@ -211,14 +212,14 @@ export function BillingDashboardClient() {
             A operação comercial é consultiva (implantação + mensalidade). Se já tiver acordo connosco e quiser
             ativar o pagamento recorrente aqui, pode continuar para o Stripe.
           </p>
-          <button
+          <Button variant="disabled"
             type="button"
             className="mt-4 rounded-lg bg-[var(--df-brand-600)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--df-brand-700)] disabled:opacity-60"
             disabled={checkoutBusy}
             onClick={() => void checkoutOperationalBase()}
           >
             {checkoutBusy ? "A redirecionar…" : "Ativar operação completa (Stripe)"}
-          </button>
+          </Button>
         </div>
       ) : null}
 
@@ -275,9 +276,9 @@ export function BillingDashboardClient() {
           estimatedCost={d.estimatedOverageCost}
         />
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:col-span-2 lg:col-span-2">
-          <h3 className="text-sm font-medium text-slate-600">Próxima cobrança</h3>
-          <p className="mt-1 text-slate-900">
+        <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm sm:col-span-2 lg:col-span-2">
+          <h3 className="text-sm font-medium text-[var(--df-text-secondary)]">Próxima cobrança</h3>
+          <p className="mt-1 text-[var(--df-text-primary)]">
             {d.nextInvoiceDate
               ? new Date(d.nextInvoiceDate).toLocaleDateString("pt-BR", {
                   day: "numeric",
@@ -287,17 +288,17 @@ export function BillingDashboardClient() {
               : "—"}
           </p>
           {d.lastInvoiceAmount != null && d.lastInvoiceAmount > 0 && (
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-[var(--df-text-secondary)]">
               Última fatura: {formatBRL(d.lastInvoiceAmount)}{" "}
               {d.lastInvoiceStatus && (
-                <span className="text-slate-500">({d.lastInvoiceStatus})</span>
+                <span className="text-[var(--df-text-muted)]">({d.lastInvoiceStatus})</span>
               )}
             </p>
           )}
         </div>
       </div>
 
-      <p className="text-center text-sm text-slate-500">
+      <p className="text-center text-sm text-[var(--df-text-muted)]">
         <Link href="/dashboard" className="font-medium text-[var(--df-brand-700)] hover:underline">
           ← Voltar ao painel
         </Link>

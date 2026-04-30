@@ -7,6 +7,7 @@ import { PasswordField } from "@/components/auth/PasswordField";
 import { COMMERCIAL_RECOMMENDED_BADGE } from "@/modules/billing/planPresentation";
 import { isWhiteLabelMode } from "@/lib/productMode";
 import { clientReadAffiliateRefCookie, clientSetAffiliateRefCookie } from "@/modules/affiliates/affiliateRef";
+import { Button } from "@/components/ui/button";
 
 type SignupPlanId = "free" | "pro";
 
@@ -93,7 +94,7 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
 
   const planCardClass = (selected: boolean) =>
     `relative flex cursor-pointer rounded-xl border p-4 text-left transition-shadow focus-within:ring-2 focus-within:ring-blue-500/30 ${
-      selected ? "border-blue-500 bg-blue-50/40 shadow-sm ring-2 ring-blue-500/20" : "border-slate-200 bg-white hover:border-slate-300"
+      selected ? "border-blue-500 bg-blue-50/40 shadow-sm ring-2 ring-blue-500/20" : "border-border bg-card hover:df-border-dark"
     }`;
 
   const whiteLabel = isWhiteLabelMode();
@@ -101,7 +102,7 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
   return (
     <form onSubmit={handleSubmit} className="space-y-5" aria-busy={loading} noValidate>
       <div>
-        <label htmlFor="signup-name" className="mb-1 block text-sm font-medium text-slate-700">
+        <label htmlFor="signup-name" className="mb-1 block text-sm font-medium df-text-secondary">
           Nome
         </label>
         <input
@@ -113,11 +114,11 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
           value={name}
           onChange={(e) => setName(e.target.value)}
           disabled={loading}
-          className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-60"
+          className="w-full rounded-md border df-border-dark bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-60"
         />
       </div>
       <div>
-        <label htmlFor="signup-email" className="mb-1 block text-sm font-medium text-slate-700">
+        <label htmlFor="signup-email" className="mb-1 block text-sm font-medium df-text-secondary">
           E-mail
         </label>
         <input
@@ -129,7 +130,7 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={loading}
-          className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-60"
+          className="w-full rounded-md border df-border-dark bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-60"
         />
       </div>
       <PasswordField
@@ -145,16 +146,16 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
       />
 
       {whiteLabel ? (
-        <div className="rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700">
-          <p className="font-medium text-slate-900">Ativação guiada</p>
-          <p className="mt-1 text-xs leading-relaxed text-slate-600">
+        <div className="rounded-xl border border-border bg-muted/60/80 px-4 py-3 text-sm df-text-secondary">
+          <p className="font-medium df-text-primary">Ativação guiada</p>
+          <p className="mt-1 text-xs leading-relaxed df-text-secondary">
             Criamos o espaço da sua operação. Na sequência, configure o canal e o atendimento — sem checkout nem
             pagamento nesta página.
           </p>
         </div>
       ) : (
         <fieldset disabled={loading} className="space-y-3">
-          <legend className="mb-1 text-sm font-medium text-slate-700">Plano</legend>
+          <legend className="mb-1 text-sm font-medium df-text-secondary">Plano</legend>
           <div className="grid gap-3">
             <label className={planCardClass(planId === "free")}>
               <input
@@ -166,8 +167,8 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
                 className="sr-only"
               />
               <div className="min-w-0 flex-1">
-                <span className="text-sm font-semibold text-slate-900">Avaliação guiada</span>
-                <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                <span className="text-sm font-semibold df-text-primary">Avaliação guiada</span>
+                <p className="mt-1 text-xs leading-relaxed df-text-secondary">
                   Demonstração da plataforma com limites claros — operação completa com implantação.
                 </p>
               </div>
@@ -184,25 +185,25 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
               />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-semibold text-slate-900">Pro</span>
+                  <span className="text-sm font-semibold df-text-primary">Pro</span>
                   <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950">
                     {COMMERCIAL_RECOMMENDED_BADGE}
                   </span>
                 </div>
-                <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                <p className="mt-1 text-xs leading-relaxed df-text-secondary">
                   Para operar com equipe, filas e IA de atendimento.
                 </p>
               </div>
             </label>
           </div>
 
-          <div className="space-y-1 rounded-lg bg-slate-50/90 px-3 py-2.5 text-xs leading-relaxed text-slate-600">
+          <div className="space-y-1 rounded-lg bg-muted/60/90 px-3 py-2.5 text-xs leading-relaxed df-text-secondary">
             <p>Sem cartão na fase de avaliação guiada.</p>
             <p>Pode alinhar a operação completa depois com a equipa.</p>
           </div>
 
           {planId === "pro" ? (
-            <p className="text-xs leading-relaxed text-slate-600">
+            <p className="text-xs leading-relaxed df-text-secondary">
               Após criar a conta, você poderá concluir a ativação do plano no checkout seguro (cartão).
             </p>
           ) : null}
@@ -214,14 +215,14 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
           {error}
         </div>
       )}
-      <button
+      <Button variant="primary"
         type="submit"
         disabled={loading}
         className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50"
       >
         {loading ? "A processar…" : whiteLabel ? "Solicitar acesso" : "Criar conta"}
-      </button>
-      <p className="text-center text-sm text-slate-600">
+      </Button>
+      <p className="text-center text-sm df-text-secondary">
         <Link href="/login" className="font-medium text-blue-600 hover:text-blue-800">
           Já tenho conta — entrar
         </Link>

@@ -17,7 +17,7 @@ export default function ResetPasswordPage() {
       title="Redefinir senha"
       description="Escolha uma senha forte. Todas as sessões anteriores deixam de ser válidas."
       footer={
-        <p className="text-center text-sm text-slate-600">
+        <p className="text-center text-sm df-text-secondary">
           Precisa de um novo link?{" "}
           <Link href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-800">
             Esqueci minha senha
@@ -28,7 +28,7 @@ export default function ResetPasswordPage() {
       <Suspense
         fallback={
           <div className="flex justify-center py-10">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-blue-600" />
           </div>
         }
       >

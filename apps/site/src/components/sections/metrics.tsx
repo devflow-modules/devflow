@@ -40,7 +40,7 @@ export function Metrics() {
           >
             Impacto operacional
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="mt-3 df-text-secondary">
             Números reais de operações usando a DevFlow.
           </p>
         </div>
@@ -59,7 +59,7 @@ export function Metrics() {
               </p>
               <p className="mt-2 font-medium text-foreground">{metric.label}</p>
               {metric.sub && (
-                <p className="mt-1 text-xs text-slate-600">{metric.sub}</p>
+                <p className="mt-1 text-xs df-text-secondary">{metric.sub}</p>
               )}
             </article>
           ))}

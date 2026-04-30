@@ -7,6 +7,7 @@ import { resolvePostLoginRedirect } from "@/lib/postLoginRedirect";
 import { unwrapApiData } from "@/lib/api-json-client";
 import { mapAuthHttpError } from "@/lib/auth-client-errors";
 import { PasswordField } from "@/components/auth/PasswordField";
+import { Button } from "@/components/ui/button";
 
 export function LoginForm() {
   const router = useRouter();
@@ -123,13 +124,13 @@ export function LoginForm() {
           {error}
         </div>
       )}
-      <button
+      <Button variant="primary"
         type="submit"
         disabled={loading}
         className="df-brand-gradient w-full rounded-md bg-[#00D084] px-4 py-2.5 text-sm font-semibold text-[#032316] shadow-sm transition-colors hover:bg-[#00A86B] disabled:opacity-50"
       >
         {loading ? "A entrar…" : "Entrar"}
-      </button>
+      </Button>
       <p className="text-center text-sm text-[var(--df-text-secondary)]">
         <Link href="/forgot-password" className="font-medium text-[var(--df-brand-500)] hover:text-[var(--df-brand-400)]">
           Esqueci minha senha

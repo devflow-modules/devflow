@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { fetchProtected } from "@/lib/protected-fetch";
 import { buttonClassName } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   SUPPORT_CATEGORY_LABELS,
   SUPPORT_CATEGORIES,
@@ -86,9 +87,9 @@ export function SupportModal({ open, onClose }: { open: boolean; onClose: () => 
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center p-4 sm:items-center" role="presentation">
-      <button
+      <Button variant="ghost"
         type="button"
-        className="absolute inset-0 bg-slate-900/50 backdrop-blur-[1px]"
+        className="absolute inset-0 bg-muted/50 backdrop-blur-[1px]"
         aria-label="Fechar"
         onClick={onClose}
       />
@@ -96,59 +97,59 @@ export function SupportModal({ open, onClose }: { open: boolean; onClose: () => 
         role="dialog"
         aria-modal="true"
         aria-labelledby="support-modal-title"
-        className="relative z-10 w-full max-w-lg rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xl"
+        className="relative z-10 w-full max-w-lg rounded-2xl border border-border/90 bg-card p-6 shadow-xl"
       >
         {step === "success" ? (
           <div className="space-y-4">
-            <h2 id="support-modal-title" className="text-lg font-semibold text-slate-900">
+            <h2 id="support-modal-title" className="text-lg font-semibold df-text-primary">
               Pedido enviado com sucesso ✔
             </h2>
-            <p className="text-sm leading-relaxed text-slate-600">Nossa equipe irá analisar.</p>
+            <p className="text-sm leading-relaxed df-text-secondary">Nossa equipe irá analisar.</p>
             {debugIdDisplay ? (
               <p className="rounded-lg border border-emerald-200/80 bg-emerald-50/80 px-3 py-2 font-mono text-sm text-emerald-950">
                 Se precisar, mencione este ID: <span className="font-semibold">{debugIdDisplay}</span>
               </p>
             ) : null}
-            <button type="button" className={buttonClassName("primary")} onClick={onClose}>
+            <Button variant="secondary" type="button" className={buttonClassName("primary")} onClick={onClose}>
               Fechar
-            </button>
+            </Button>
           </div>
         ) : step === "error" ? (
           <div className="space-y-4">
-            <h2 id="support-modal-title" className="text-lg font-semibold text-slate-900">
+            <h2 id="support-modal-title" className="text-lg font-semibold df-text-primary">
               Não conseguimos enviar agora.
             </h2>
-            <p className="text-sm text-slate-600">Tente novamente em instantes.</p>
+            <p className="text-sm df-text-secondary">Tente novamente em instantes.</p>
             <div className="flex gap-2">
-              <button type="button" className={buttonClassName("primary")} onClick={() => setStep("form")}>
+              <Button variant="secondary" type="button" className={buttonClassName("primary")} onClick={() => setStep("form")}>
                 Tentar de novo
-              </button>
-              <button type="button" className={buttonClassName("ghost")} onClick={onClose}>
+              </Button>
+              <Button variant="secondary" type="button" className={buttonClassName("ghost")} onClick={onClose}>
                 Fechar
-              </button>
+              </Button>
             </div>
           </div>
         ) : (
           <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
             <div>
-              <h2 id="support-modal-title" className="text-lg font-semibold text-slate-900">
+              <h2 id="support-modal-title" className="text-lg font-semibold df-text-primary">
                 Precisa de ajuda?
               </h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm df-text-muted">
                 Descreva o problema — enviamos contexto técnico seguro (sem palavras-passe nem tokens) para acelerar o
                 suporte.
               </p>
             </div>
 
             <div>
-              <label htmlFor="support-category" className="block text-sm font-medium text-slate-700">
+              <label htmlFor="support-category" className="block text-sm font-medium df-text-secondary">
                 Tipo do problema
               </label>
               <select
                 id="support-category"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as SupportCategory)}
-                className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-[var(--df-brand-500)] focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)]/25"
+                className="mt-1.5 w-full rounded-xl border border-border bg-card px-3 py-2.5 text-sm df-text-primary shadow-sm focus:border-[var(--df-brand-500)] focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)]/25"
               >
                 {SUPPORT_CATEGORIES.map((c) => (
                   <option key={c} value={c}>
@@ -159,7 +160,7 @@ export function SupportModal({ open, onClose }: { open: boolean; onClose: () => 
             </div>
 
             <div>
-              <label htmlFor="support-desc" className="block text-sm font-medium text-slate-700">
+              <label htmlFor="support-desc" className="block text-sm font-medium df-text-secondary">
                 O que aconteceu?
               </label>
               <textarea
@@ -170,17 +171,17 @@ export function SupportModal({ open, onClose }: { open: boolean; onClose: () => 
                 required
                 maxLength={8000}
                 placeholder="Descreva o que aconteceu..."
-                className="mt-1.5 w-full resize-y rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-[var(--df-brand-500)] focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)]/25"
+                className="mt-1.5 w-full resize-y rounded-xl border border-border bg-card px-3 py-2.5 text-sm df-text-primary shadow-sm placeholder:df-text-muted focus:border-[var(--df-brand-500)] focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)]/25"
               />
             </div>
 
             <div className="flex flex-wrap gap-2 pt-1">
-              <button type="submit" disabled={sending} className={buttonClassName("primary")}>
+              <Button variant="primary" type="submit" disabled={sending} className={buttonClassName("primary")}>
                 {sending ? "A enviar…" : "Enviar pedido"}
-              </button>
-              <button type="button" className={buttonClassName("ghost")} onClick={onClose} disabled={sending}>
+              </Button>
+              <Button variant="disabled" type="button" className={buttonClassName("ghost")} onClick={onClose} disabled={sending}>
                 Cancelar
-              </button>
+              </Button>
             </div>
           </form>
         )}

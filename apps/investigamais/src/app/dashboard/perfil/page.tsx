@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function PerfilPage() {
   const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
@@ -60,7 +61,7 @@ export default function PerfilPage() {
     <div className="p-6">
       <Link href="/dashboard" className="text-blue-600 underline">Voltar</Link>
       <h1 className="mt-4 text-2xl font-semibold">Perfil</h1>
-      <p className="mt-1 text-sm text-gray-600">Completude: {completion}%</p>
+      <p className="mt-1 text-sm df-text-secondary">Completude: {completion}%</p>
       {completion === 100 && profile?.bonus_concedido_at ? (
         <p className="mt-1 text-sm text-green-600">Bônus já concedido.</p>
       ) : null}
@@ -72,7 +73,7 @@ export default function PerfilPage() {
         <input type="text" placeholder="UF" value={form.uf} maxLength={2} onChange={(e) => setForm((f) => ({ ...f, uf: e.target.value.toUpperCase() }))} className="w-full rounded border px-3 py-2" />
         <input type="text" placeholder="Gênero" value={form.genero} onChange={(e) => setForm((f) => ({ ...f, genero: e.target.value }))} className="w-full rounded border px-3 py-2" />
         {message && <p className="text-sm text-green-600">{message}</p>}
-        <button type="submit" disabled={saving} className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50">Salvar</button>
+        <Button variant="primary" type="submit" disabled={saving} className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50">Salvar</Button>
       </form>
     </div>
   );

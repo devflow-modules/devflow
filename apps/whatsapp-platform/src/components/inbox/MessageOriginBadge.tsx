@@ -27,7 +27,7 @@ export function MessageOriginBadge({ kind }: { kind: NonNullable<OutboundUiKind>
   const m = META[kind];
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-md border border-white/25 bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white/95 backdrop-blur-[2px]"
+      className="inline-flex items-center gap-1 rounded-md border border-white/25 bg-card/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white/95 backdrop-blur-[2px]"
       title={m.title}
     >
       <span aria-hidden>{m.emoji}</span>

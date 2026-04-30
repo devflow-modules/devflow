@@ -34,7 +34,7 @@ export function RelatedPagesGrid({
         >
           {title}
         </h2>
-        <p className="mt-2 max-w-2xl text-slate-600">{subtitle}</p>
+        <p className="mt-2 max-w-2xl df-text-secondary">{subtitle}</p>
 
         <ul
           className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
@@ -52,7 +52,7 @@ export function RelatedPagesGrid({
                 <h3 className="font-semibold text-foreground group-hover:text-primary">
                   {p.h1}
                 </h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600 line-clamp-3">
+                <p className="mt-2 flex-1 text-sm leading-relaxed df-text-secondary line-clamp-3">
                   {p.description}
                 </p>
                 <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary">

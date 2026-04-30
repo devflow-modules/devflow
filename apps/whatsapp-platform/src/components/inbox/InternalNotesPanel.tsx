@@ -6,6 +6,7 @@ import { INBOX_QK } from "./inboxTypes";
 import { buttonClassName } from "@/components/ui/button";
 import { fieldControlBase } from "@/components/ui/form-field";
 import { useCallback, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export function InternalNotesPanel({
   threadId,
@@ -61,9 +62,9 @@ export function InternalNotesPanel({
               Guardadas no servidor · visíveis à equipa · não vão para o WhatsApp
             </p>
           </div>
-          <button type="button" className={buttonClassName("ghost")} onClick={onClose}>
+          <Button variant="secondary" type="button" className={buttonClassName("ghost")} onClick={onClose}>
             Fechar
-          </button>
+          </Button>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
           <label className="sr-only" htmlFor="internal-note">
@@ -76,9 +77,9 @@ export function InternalNotesPanel({
             placeholder="Lembrete para a equipa (não é enviado ao WhatsApp)…"
             rows={2}
             disabled={createMut.isPending}
-            className={`min-h-[44px] flex-1 resize-none text-sm ${fieldControlBase} border-amber-200 bg-white/90`}
+            className={`min-h-[44px] flex-1 resize-none text-sm ${fieldControlBase} border-amber-200 bg-card/90`}
           />
-          <button
+          <Button variant="disabled"
             type="button"
             className={buttonClassName("secondary")}
             disabled={createMut.isPending || !draft.trim()}
@@ -86,7 +87,7 @@ export function InternalNotesPanel({
             data-testid="internal-note-save"
           >
             {createMut.isPending ? "A guardar…" : "Guardar nota"}
-          </button>
+          </Button>
         </div>
         {createMut.isError && (
           <p className="text-xs text-red-600">
@@ -100,7 +101,7 @@ export function InternalNotesPanel({
             {notes.map((n) => (
               <li
                 key={n.id}
-                className="flex items-start justify-between gap-2 rounded-lg border border-amber-100/90 bg-white/80 px-3 py-2 text-amber-950"
+                className="flex items-start justify-between gap-2 rounded-lg border border-amber-100/90 bg-card/80 px-3 py-2 text-amber-950"
               >
                 <div>
                   <p className="whitespace-pre-wrap">{n.body}</p>
@@ -109,7 +110,7 @@ export function InternalNotesPanel({
                     {new Date(n.createdAt).toLocaleString("pt-BR")}
                   </p>
                 </div>
-                <button
+                <Button variant="disabled"
                   type="button"
                   className="shrink-0 text-xs text-amber-800/80 hover:text-amber-950 disabled:opacity-50"
                   disabled={deleteMut.isPending}
@@ -117,7 +118,7 @@ export function InternalNotesPanel({
                   aria-label="Remover nota"
                 >
                   ×
-                </button>
+                </Button>
               </li>
             ))}
           </ul>

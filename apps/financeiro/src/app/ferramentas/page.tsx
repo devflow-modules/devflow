@@ -53,7 +53,7 @@ export default function FerramentasPage() {
           <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Ferramentas gratuitas
           </h1>
-          <p className="mt-4 text-lg text-slate-600">
+          <p className="mt-4 text-lg df-text-secondary">
             Organize suas finanças, divida contas e planeje o mês. Use agora, sem
             cadastro obrigatório.
           </p>
@@ -70,7 +70,7 @@ export default function FerramentasPage() {
                 <h2 className="mt-4 text-xl font-semibold text-foreground">
                   {tool.title}
                 </h2>
-                <p className="mt-2 text-sm text-slate-600">{tool.description}</p>
+                <p className="mt-2 text-sm df-text-secondary">{tool.description}</p>
                 <span className="mt-4 inline-flex items-center text-sm font-medium text-primary">
                   Abrir ferramenta →
                 </span>
@@ -103,7 +103,7 @@ export default function FerramentasPage() {
           })}
         </div>
 
-        <p className="mx-auto mt-12 max-w-2xl text-center text-sm text-slate-500">
+        <p className="mx-auto mt-12 max-w-2xl text-center text-sm df-text-muted">
           Mais ferramentas em breve: calculadora de poupança, planejamento
           financeiro e controle de despesas fixas.
         </p>

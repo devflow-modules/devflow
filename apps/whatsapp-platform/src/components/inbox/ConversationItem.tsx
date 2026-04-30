@@ -10,6 +10,7 @@ import { slaWaitLabelClass } from "./inboxOperationalStyles";
 import { priorityGuidance } from "./leadPanelCopy";
 import { ResponseAlertBadge, getResponseAlertLevel } from "./ResponseAlertBadge";
 import { getConversationStateBadge } from "./conversationStateUi";
+import { Button } from "@/components/ui/button";
 import {
   isFollowUpDueOrOverdue,
   isSalesStage,
@@ -103,7 +104,7 @@ export const ConversationItem = memo(function ConversationItem({
       : crmTier === "MEDIUM"
         ? "text-amber-700 ring-amber-200/70"
         : crmTier === "LOW"
-          ? "text-slate-500 ring-slate-200/80"
+          ? "df-text-muted ring-slate-200/80"
           : "";
 
   const slaRank = (s: InboxSlaLevel | null | undefined): number =>
@@ -135,7 +136,7 @@ export const ConversationItem = memo(function ConversationItem({
         : noOwnerStripe
           ? `${noOwnerStripe} hover:bg-amber-50/55`
           : active
-            ? "bg-slate-50/95 shadow-[inset_4px_0_0_0_var(--df-brand-500)] ring-2 ring-[var(--df-brand-500)]/25 ring-inset"
+            ? "bg-muted/60/95 shadow-[inset_4px_0_0_0_var(--df-brand-500)] ring-2 ring-[var(--df-brand-500)]/25 ring-inset"
             : "bg-[var(--df-bg-elevated)] hover:bg-[var(--df-brand-100)] hover:shadow-[0_1px_4px_rgba(15,23,42,0.06)] active:bg-[var(--df-brand-50)]",
   ].join(" ");
 
@@ -149,7 +150,7 @@ export const ConversationItem = memo(function ConversationItem({
 
   return (
     <div className={rowClass} data-thread-id={thread.id}>
-      <button
+      <Button variant="secondary"
         type="button"
         onClick={() => onSelect(thread.id)}
         data-testid="conversation-item"
@@ -282,7 +283,7 @@ export const ConversationItem = memo(function ConversationItem({
             {needsReply && thread.status === "OPEN" && !state && <span className="df-chip-awaiting">À espera</span>}
           </div>
         </div>
-      </button>
+      </Button>
 
       {showActions && (canAssume || canClose) ? (
         <div
@@ -291,7 +292,7 @@ export const ConversationItem = memo(function ConversationItem({
           onKeyDown={(e) => e.stopPropagation()}
         >
           {canAssume ? (
-            <button
+            <Button variant="disabled"
               type="button"
               disabled={busyAction?.id === thread.id}
               className="df-inbox-row-action-primary"
@@ -299,10 +300,10 @@ export const ConversationItem = memo(function ConversationItem({
               data-testid="action-assume"
             >
               {busyAction?.id === thread.id && busyAction.kind === "assume" ? "…" : "Assumir"}
-            </button>
+            </Button>
           ) : null}
           {canClose ? (
-            <button
+            <Button variant="disabled"
               type="button"
               disabled={busyAction?.id === thread.id}
               className="df-inbox-row-action-secondary"
@@ -310,7 +311,7 @@ export const ConversationItem = memo(function ConversationItem({
               data-testid="action-close"
             >
               {busyAction?.id === thread.id && busyAction.kind === "close" ? "…" : "Fechar"}
-            </button>
+            </Button>
           ) : null}
         </div>
       ) : null}

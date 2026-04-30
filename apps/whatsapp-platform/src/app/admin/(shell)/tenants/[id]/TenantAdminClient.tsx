@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getImplantationCommissionBlockState } from "@/modules/affiliates/commissionUiState";
+import { Button } from "@/components/ui/button";
 
 type Panel = {
   tenant: {
@@ -71,7 +72,7 @@ function StateBadge({ children, tone }: { children: ReactNode; tone: "amber" | "
   const map = {
     amber: "bg-amber-100 text-amber-950 ring-1 ring-amber-200/80",
     emerald: "bg-emerald-100 text-emerald-900 ring-1 ring-emerald-200/80",
-    slate: "bg-slate-100 text-slate-700 ring-1 ring-slate-200/80",
+    slate: "bg-muted df-text-secondary ring-1 ring-slate-200/80",
     violet: "bg-violet-100 text-violet-900 ring-1 ring-violet-200/80",
   } as const;
   return (
@@ -213,7 +214,7 @@ export function TenantAdminClient({ tenantId }: { tenantId: string }) {
   };
 
   if (loading && !panel) {
-    return <p className="text-sm text-slate-500">A carregar…</p>;
+    return <p className="text-sm df-text-muted">A carregar…</p>;
   }
   if (!panel) {
     return <p className="text-sm text-red-600">{error ?? "Tenant não encontrado."}</p>;
@@ -222,11 +223,11 @@ export function TenantAdminClient({ tenantId }: { tenantId: string }) {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <div>
-        <Link href="/admin/tenants" className="text-sm font-medium text-slate-600 underline-offset-4 hover:underline">
+        <Link href="/admin/tenants" className="text-sm font-medium df-text-secondary underline-offset-4 hover:underline">
           ← Tenants
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{panel.tenant.name ?? "Tenant"}</h1>
-        <p className="font-mono text-xs text-slate-400">{panel.tenant.id}</p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight df-text-primary">{panel.tenant.name ?? "Tenant"}</h1>
+        <p className="font-mono text-xs df-text-muted">{panel.tenant.id}</p>
         <div className="mt-3 flex flex-wrap gap-2">
           {panel.tenant.gtmLifecycle === "IMPLANTADO" ? (
             <StateBadge tone="emerald">Implantado</StateBadge>
@@ -250,20 +251,20 @@ export function TenantAdminClient({ tenantId }: { tenantId: string }) {
         <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</div>
       ) : null}
 
-      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-900">Afiliado</h2>
+      <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
+        <h2 className="text-sm font-semibold df-text-primary">Afiliado</h2>
         {panel.affiliate ? (
-          <div className="mt-3 space-y-1 text-sm text-slate-700">
+          <div className="mt-3 space-y-1 text-sm df-text-secondary">
             <p>
-              <span className="text-slate-500">Indicado por:</span>{" "}
-              <span className="font-medium text-slate-900">{panel.affiliate.name}</span>
+              <span className="df-text-muted">Indicado por:</span>{" "}
+              <span className="font-medium df-text-primary">{panel.affiliate.name}</span>
             </p>
             {panel.affiliate.email ? <p>E-mail: {panel.affiliate.email}</p> : null}
             {panel.affiliate.phone ? <p>Telefone: {panel.affiliate.phone}</p> : null}
             <p>Taxa acordada: {formatPct(panel.affiliate.commissionRate)}</p>
-            <p className="flex flex-wrap items-center gap-2 text-slate-600">
+            <p className="flex flex-wrap items-center gap-2 df-text-secondary">
               <span>Origem da atribuição:</span>
-              <span className="font-medium text-slate-900">
+              <span className="font-medium df-text-primary">
                 {affiliateSourceLabel(panel.tenant.affiliateSource, true)}
               </span>
               {panel.tenant.affiliateSource === "ref" ? <StateBadge tone="emerald">Ref</StateBadge> : null}
@@ -274,16 +275,16 @@ export function TenantAdminClient({ tenantId }: { tenantId: string }) {
             </Link>
           </div>
         ) : (
-          <p className="mt-3 text-sm text-slate-600">Sem afiliado vinculado.</p>
+          <p className="mt-3 text-sm df-text-secondary">Sem afiliado vinculado.</p>
         )}
 
-        <div className="mt-5 border-t border-slate-100 pt-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Correção manual</p>
+        <div className="mt-5 border-t border-border pt-4">
+          <p className="text-xs font-medium uppercase tracking-wide df-text-muted">Correção manual</p>
           <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
-            <label className="block min-w-[200px] flex-1 text-xs text-slate-600">
+            <label className="block min-w-[200px] flex-1 text-xs df-text-secondary">
               Afiliado
               <select
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900"
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm df-text-primary"
                 value={selectedAffiliateId}
                 onChange={(e) => setSelectedAffiliateId(e.target.value)}
                 disabled={linkBusy}
@@ -296,37 +297,37 @@ export function TenantAdminClient({ tenantId }: { tenantId: string }) {
                 ))}
               </select>
             </label>
-            <button
+            <Button variant="disabled"
               type="button"
               disabled={linkBusy || !selectedAffiliateId}
               onClick={() => void linkAffiliate()}
-              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-lg bg-muted px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
               Vincular afiliado
-            </button>
-            <button
+            </Button>
+            <Button variant="disabled"
               type="button"
               disabled={linkBusy || !panel.tenant.affiliateId}
               onClick={() => void removeAffiliate()}
-              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 disabled:opacity-50"
+              className="rounded-lg border df-border-dark bg-card px-4 py-2 text-sm font-medium df-text-primary disabled:opacity-50"
             >
               Remover afiliado
-            </button>
+            </Button>
           </div>
         </div>
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-900">Comissão de implantação</h2>
+      <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
+        <h2 className="text-sm font-semibold df-text-primary">Comissão de implantação</h2>
         {commissionBlock ? (
-          <div className="mt-4 rounded-lg border border-slate-100 bg-slate-50/60 p-4">
+          <div className="mt-4 rounded-lg border border-border bg-muted/60/60 p-4">
             {commissionBlock.kind === "pendente" ? (
               <div className="space-y-2">
                 <StateBadge tone="amber">Comissão gerada</StateBadge>
-                <p className="text-sm font-medium text-slate-900">Estado: pendente de pagamento</p>
-                <p className="text-lg font-semibold tabular-nums text-slate-950">{formatBrl(commissionBlock.amount)}</p>
+                <p className="text-sm font-medium df-text-primary">Estado: pendente de pagamento</p>
+                <p className="text-lg font-semibold tabular-nums df-text-primary">{formatBrl(commissionBlock.amount)}</p>
                 {panel.commission ? (
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs df-text-muted">
                     Registada em {new Date(panel.commission.createdAt).toLocaleString("pt-BR")}
                   </p>
                 ) : null}
@@ -334,82 +335,82 @@ export function TenantAdminClient({ tenantId }: { tenantId: string }) {
             ) : commissionBlock.kind === "pago" ? (
               <div className="space-y-2">
                 <StateBadge tone="emerald">Comissão paga</StateBadge>
-                <p className="text-sm font-medium text-slate-900">Liquidada</p>
+                <p className="text-sm font-medium df-text-primary">Liquidada</p>
                 <p className="text-lg font-semibold tabular-nums text-emerald-900">{formatBrl(commissionBlock.amount)}</p>
               </div>
             ) : (
               <div className="space-y-2">
                 <StateBadge tone="slate">Sem comissão gerada</StateBadge>
-                <p className="text-sm text-slate-700">
-                  <span className="font-medium text-slate-900">Motivo:</span> {commissionBlock.reasonLabel}
+                <p className="text-sm df-text-secondary">
+                  <span className="font-medium df-text-primary">Motivo:</span> {commissionBlock.reasonLabel}
                 </p>
               </div>
             )}
           </div>
         ) : null}
 
-        <h3 className="mt-6 text-xs font-semibold uppercase tracking-wide text-slate-500">Valor comercial</h3>
+        <h3 className="mt-6 text-xs font-semibold uppercase tracking-wide df-text-muted">Valor comercial</h3>
         <dl className="mt-2 space-y-2 text-sm">
           <div>
-            <dt className="text-slate-500">Valor de implantação</dt>
-            <dd className="font-medium text-slate-900">
+            <dt className="df-text-muted">Valor de implantação</dt>
+            <dd className="font-medium df-text-primary">
               {panel.tenant.implantationPriceBrl != null && panel.tenant.implantationPriceBrl > 0
                 ? formatBrl(panel.tenant.implantationPriceBrl)
                 : "Valor de implantação não definido"}
             </dd>
           </div>
           <div>
-            <dt className="text-slate-500">Comissão prevista (regra actual)</dt>
-            <dd className="font-medium text-slate-900">
+            <dt className="df-text-muted">Comissão prevista (regra actual)</dt>
+            <dd className="font-medium df-text-primary">
               {panel.expectedCommissionBrl != null ? formatBrl(panel.expectedCommissionBrl) : "—"}
             </dd>
           </div>
         </dl>
 
-        <div className="mt-4 border-t border-slate-100 pt-4">
-          <p className="text-xs font-medium text-slate-500">Definir / corrigir valor (BRL)</p>
+        <div className="mt-4 border-t border-border pt-4">
+          <p className="text-xs font-medium df-text-muted">Definir / corrigir valor (BRL)</p>
           <div className="mt-2 flex flex-wrap items-end gap-2">
             <input
               type="text"
               inputMode="decimal"
-              className="w-40 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              className="w-40 rounded-lg border border-border px-3 py-2 text-sm"
               value={implantInput}
               onChange={(e) => setImplantInput(e.target.value)}
               placeholder="ex: 12000"
               disabled={implantBusy}
             />
-            <button
+            <Button variant="disabled"
               type="button"
               disabled={implantBusy}
               onClick={() => void saveImplantation()}
-              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-lg bg-muted px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
               Guardar valor
-            </button>
+            </Button>
           </div>
-          <p className="mt-2 text-xs text-slate-500">Ciclo GTM: {panel.tenant.gtmLifecycle}</p>
+          <p className="mt-2 text-xs df-text-muted">Ciclo GTM: {panel.tenant.gtmLifecycle}</p>
         </div>
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-900">Últimos eventos</h2>
-        <p className="mt-1 text-xs text-slate-500">Histórico mínimo de afiliado e comissão (sem abrir logs técnicos).</p>
+      <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
+        <h2 className="text-sm font-semibold df-text-primary">Últimos eventos</h2>
+        <p className="mt-1 text-xs df-text-muted">Histórico mínimo de afiliado e comissão (sem abrir logs técnicos).</p>
         {panel.auditTail.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-500">Sem eventos registados para este tenant.</p>
+          <p className="mt-2 text-sm df-text-muted">Sem eventos registados para este tenant.</p>
         ) : (
           <ul className="mt-3 space-y-2 text-sm">
             {panel.auditTail.map((a) => (
-              <li key={a.id} className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2">
-                <p className="text-slate-800">
-                  <span className="text-xs text-slate-500">
+              <li key={a.id} className="rounded-lg border border-border bg-muted/60/50 px-3 py-2">
+                <p className="df-text-primary">
+                  <span className="text-xs df-text-muted">
                     {new Date(a.createdAt).toLocaleString("pt-BR")}
                   </span>
                   <span className="ml-2 font-medium">{formatAuditActionPt(a.action)}</span>
                 </p>
                 {a.metadata != null ? (
                   <details className="mt-1">
-                    <summary className="cursor-pointer text-[11px] text-slate-500">Metadados técnicos</summary>
-                    <pre className="mt-1 max-h-28 overflow-auto text-[11px] text-slate-600">
+                    <summary className="cursor-pointer text-[11px] df-text-muted">Metadados técnicos</summary>
+                    <pre className="mt-1 max-h-28 overflow-auto text-[11px] df-text-secondary">
                       {JSON.stringify(a.metadata, null, 2)}
                     </pre>
                   </details>

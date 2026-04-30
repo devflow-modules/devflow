@@ -205,13 +205,13 @@ export function AiAnalyticsClient() {
         <div
           className={`rounded-xl border p-5 shadow-sm ring-1 ${
             atLimit
-              ? "border-red-300/90 bg-red-50/90 ring-red-900/[0.06]"
+              ? "border-red-500/40 bg-red-950/35 ring-red-500/15"
               : nearLimit
-                ? "border-amber-300/90 bg-amber-50/90 ring-amber-900/[0.06]"
-                : "border-slate-200/90 bg-white ring-slate-900/[0.03]"
+                ? "border-amber-500/35 bg-amber-950/30 ring-amber-500/12"
+                : "border df-border-brand bg-[var(--df-bg-elevated)] ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]"
           }`}
         >
-          <h2 className="mb-3 text-base font-bold tracking-tight text-slate-900">
+          <h2 className="mb-3 text-base font-bold tracking-tight text-[var(--df-text-primary)]">
             {wl ? (
               <>
                 {atLimit ? "Capacidade atingida — " : nearLimit ? "Atenção: margem de IA — " : "Margem de IA — "}
@@ -225,7 +225,7 @@ export function AiAnalyticsClient() {
             )}
           </h2>
           {remaining != null && remaining > 0 && !atLimit && (
-            <p className="text-sm font-medium text-slate-800 mb-2">
+            <p className="text-sm font-medium text-[var(--df-text-primary)] mb-2">
               Você ainda pode usar: <strong>{remaining} respostas com IA</strong> este mês.
             </p>
           )}
@@ -244,7 +244,7 @@ export function AiAnalyticsClient() {
             {usageStatus.percent_used != null && (
               <span
                 className={`text-sm font-medium ${
-                  atLimit ? "text-red-600" : nearLimit ? "text-amber-600" : "text-slate-600"
+                  atLimit ? "text-red-600" : nearLimit ? "text-amber-600" : "text-[var(--df-text-secondary)]"
                 }`}
               >
                 {usageStatus.percent_used}% usado
@@ -255,7 +255,7 @@ export function AiAnalyticsClient() {
                 <SupportHelpButton variant="inline" className="text-sm" />
               ) : (
                 <Link href="/billing">
-                  <Button size="sm">Fazer upgrade do plano</Button>
+                  <Button variant="secondary" size="sm">Fazer upgrade do plano</Button>
                 </Link>
               ))}
             {nearLimit && !atLimit &&
@@ -263,12 +263,12 @@ export function AiAnalyticsClient() {
                 <SupportHelpButton variant="inline" className="text-sm" />
               ) : (
                 <Link href="/billing">
-                  <Button size="sm">Continuar usando IA</Button>
+                  <Button variant="secondary" size="sm">Continuar usando IA</Button>
                 </Link>
               ))}
           </div>
           {atLimit && (
-            <p className="mt-3 text-sm text-red-800">
+            <p className="mt-3 text-sm text-red-200">
               Sua IA parou de responder automaticamente. As mensagens estão sendo respondidas de forma limitada.
             </p>
           )}
@@ -277,7 +277,7 @@ export function AiAnalyticsClient() {
             planInfo != null &&
             planInfo.ai_limit != null &&
             !wl && (
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-2 text-xs text-[var(--df-text-muted)]">
               Plano inclui {planInfo.ai_limit.toLocaleString("pt-BR")} respostas IA/mês. Upgrade oferece mais capacidade.
             </p>
           )}
@@ -285,11 +285,11 @@ export function AiAnalyticsClient() {
             planInfo != null &&
             usageStatus.ai_overage_billed != null &&
             usageStatus.ai_overage_billed > 0 && (
-              <div className="mt-3 rounded-xl border border-amber-200/90 bg-amber-50/80 p-3 ring-1 ring-amber-900/[0.04]">
-                <p className="text-sm font-medium text-amber-900">
+              <div className="mt-3 rounded-xl border border-amber-500/35 bg-amber-950/30 p-3 ring-1 ring-amber-500/12">
+                <p className="text-sm font-medium text-amber-100">
                   Você excedeu o plano, mas a IA continuou ativa
                 </p>
-                <div className="mt-2 space-y-1 text-sm text-amber-800">
+                <div className="mt-2 space-y-1 text-sm text-amber-200/95">
                   {planInfo.ai_limit != null && (
                     <p>
                       Incluído no plano: {planInfo.ai_limit.toLocaleString("pt-BR")} · Usado: {usageStatus.used.toLocaleString("pt-BR")} · Uso adicional faturado: <strong>{usageStatus.ai_overage_billed}</strong>
@@ -300,7 +300,7 @@ export function AiAnalyticsClient() {
                       <p>Custo estimado do uso adicional: <strong>R$ {usageStatus.ai_overage_cost_brl.toFixed(2)}</strong></p>
                     )}
                 </div>
-                <p className="mt-1 text-xs text-amber-700">
+                <p className="mt-1 text-xs text-amber-200/85">
                   Este valor aparece na fatura do período, com o mesmo nome de linha do Stripe.
                 </p>
               </div>
@@ -309,8 +309,8 @@ export function AiAnalyticsClient() {
       )}
 
       {/* Card: Uso */}
-      <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
-        <h2 className="mb-3 text-base font-bold tracking-tight text-slate-900">Uso</h2>
+      <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+        <h2 className="mb-3 text-base font-bold tracking-tight text-[var(--df-text-primary)]">Uso</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <MetricsCard label="Total mensagens" value={String(metrics.messages_total)} />
           <MetricsCard label="Respostas IA" value={String(metrics.ai_messages_total)} />
@@ -320,8 +320,8 @@ export function AiAnalyticsClient() {
 
       {/* Card: Custo (oculto em white-label — sem exposição de preço) */}
       {!wl && (
-        <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
-          <h2 className="mb-3 text-base font-bold tracking-tight text-slate-900">Custo</h2>
+        <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+          <h2 className="mb-3 text-base font-bold tracking-tight text-[var(--df-text-primary)]">Custo</h2>
           <div className="grid grid-cols-2 gap-4">
             <MetricsCard
               label="Tokens usados"
@@ -346,8 +346,8 @@ export function AiAnalyticsClient() {
       )}
 
       {/* Card: Saúde da IA */}
-      <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
-        <h2 className="mb-3 text-base font-bold tracking-tight text-slate-900">Saúde da IA</h2>
+      <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+        <h2 className="mb-3 text-base font-bold tracking-tight text-[var(--df-text-primary)]">Saúde da IA</h2>
         <div className="flex items-center gap-2">
           <span
             className={`text-lg font-medium ${getFallbackRateColor(fallbackRate)}`}
@@ -365,8 +365,8 @@ export function AiAnalyticsClient() {
       {/* Insights */}
       {insights.length > 0 && (
         <div className="rounded-xl border border-amber-200/90 bg-amber-50/90 p-5 ring-1 ring-amber-900/[0.05]">
-          <h2 className="mb-2 text-base font-bold tracking-tight text-slate-900">Insights</h2>
-          <ul className="space-y-1 text-sm text-slate-700">
+          <h2 className="mb-2 text-base font-bold tracking-tight text-[var(--df-text-primary)]">Insights</h2>
+          <ul className="space-y-1 text-sm text-[var(--df-text-secondary)]">
             {insights.map((msg, i) => (
               <li key={i}>{msg}</li>
             ))}

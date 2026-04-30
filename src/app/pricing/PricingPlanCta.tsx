@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { trackPricingPlanCtaClick, trackBillingCheckoutStarted } from "@/lib/analytics";
 import { financeiroAppUrl } from "@/lib/financeiro-app-url";
 import { trackUpgradeClicked } from "@/modules/billing/billingAnalytics";
@@ -108,17 +109,12 @@ export function PricingPlanCta({ planId, isPro, surface = "pricing" }: Props) {
 
   return (
     <div className="space-y-2">
-      <button
+      <Button
         type="button"
+        variant={isPro ? "primary" : "secondary"}
         onClick={handleUpgrade}
         disabled={busy}
-        className={cn(
-          "w-full rounded-xl px-4 py-3 text-center text-sm font-semibold",
-          busy && "df-btn-disabled",
-          isPro
-            ? "df-btn-primary"
-            : "df-btn-secondary"
-        )}
+        className="w-full px-4 py-3 text-center text-sm font-semibold"
       >
         {phase === "redirecting"
           ? "Abrindo checkout seguro…"
@@ -127,7 +123,7 @@ export function PricingPlanCta({ planId, isPro, surface = "pricing" }: Props) {
             : planId === "PRO"
               ? "Assinar PRO"
               : "Assinar TEAM"}
-      </button>
+      </Button>
       {error ? (
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
           <p>{error}</p>

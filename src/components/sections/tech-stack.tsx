@@ -23,7 +23,7 @@ export function TechStack() {
           >
             Tecnologia
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="mt-3 df-text-secondary">
             Stack técnica que garante credibilidade e performance.
           </p>
         </div>

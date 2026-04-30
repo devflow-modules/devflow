@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function ConsultaPage() {
   const [cnpj, setCnpj] = useState("");
@@ -40,13 +41,13 @@ export default function ConsultaPage() {
       <h1 className="mt-4 text-2xl font-semibold">Consultar CNPJ</h1>
       <form onSubmit={handleSubmit} className="mt-4 max-w-md">
         <input type="text" placeholder="00.000.000/0001-00" value={cnpj} onChange={(e) => setCnpj(e.target.value)} className="w-full rounded border px-3 py-2" />
-        <button type="submit" disabled={loading} className="mt-2 rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50">
+        <Button variant="primary" type="submit" disabled={loading} className="mt-2 rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50">
           {loading ? "Consultando…" : "Consultar"}
-        </button>
+        </Button>
       </form>
       {error && <p className="mt-2 text-red-600">{error}</p>}
       {result && "empresa" in result && result.empresa != null && (
-        <pre className="mt-4 overflow-auto rounded border bg-gray-50 p-4 text-sm">{JSON.stringify(result.empresa as object, null, 2)}</pre>
+        <pre className="mt-4 overflow-auto rounded border bg-muted/60 p-4 text-sm">{JSON.stringify(result.empresa as object, null, 2)}</pre>
       )}
     </div>
   );

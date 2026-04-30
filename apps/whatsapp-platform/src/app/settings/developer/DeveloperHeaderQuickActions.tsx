@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { isWhiteLabelMode } from "@/lib/productMode";
+import { Button } from "@/components/ui/button";
 
 export function DeveloperHeaderQuickActions() {
   return (
@@ -14,13 +15,13 @@ export function DeveloperHeaderQuickActions() {
           Cobrança
         </Link>
       ) : null}
-      <button
+      <Button variant="secondary"
         type="button"
         className="df-quick-action"
         onClick={() => document.getElementById("dev-api-generate-btn")?.click()}
       >
         Gerar ou regenerar chave
-      </button>
+      </Button>
     </>
   );
 }

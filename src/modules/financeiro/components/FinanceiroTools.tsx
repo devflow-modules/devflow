@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/modules/financeiro/lib/cn";
+import { Button } from "@/components/ui/button";
 import { DividirContasTool } from "@/modules/financeiro/components/DividirContasTool";
 import { ProjecaoFinanceiraTool } from "@/modules/financeiro/components/ProjecaoFinanceiraTool";
 import { DespesasFixasTool } from "@/modules/financeiro/components/DespesasFixasTool";
@@ -25,22 +26,22 @@ export function FinanceiroTools() {
         className="flex flex-wrap gap-2 border-b border-border pb-4"
       >
         {TABS.map((tab) => (
-          <button
+          <Button
             key={tab.id}
+            type="button"
             role="tab"
+            variant={active === tab.id ? "primary" : "secondary"}
             aria-selected={active === tab.id}
             aria-controls={`panel-${tab.id}`}
             id={`tab-${tab.id}`}
             onClick={() => setActive(tab.id)}
             className={cn(
-              "rounded-lg px-4 py-2 text-sm font-medium transition",
-              active === tab.id
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-muted/80"
+              "rounded-lg px-4 py-2 text-sm font-medium shadow-none transition",
+              active === tab.id ? "" : "bg-muted text-muted-foreground hover:bg-muted/80"
             )}
           >
             {tab.label}
-          </button>
+          </Button>
         ))}
       </div>
       <div

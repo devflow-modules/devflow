@@ -19,7 +19,7 @@ export default function SobrePage() {
           Sobre a DevFlow Labs
         </h1>
 
-        <div className="mt-8 space-y-6 text-slate-700">
+        <div className="mt-8 space-y-6 df-text-secondary">
           <p className="text-sm">
             A DevFlow Labs desenvolve software para automação, operação e produtos digitais. Nosso foco é construir plataformas que escalam atendimento, automatizam processos e entregam resultados mensuráveis.
           </p>

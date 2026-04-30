@@ -19,7 +19,7 @@ export function AgentRoleBadge({ role, size = "default", className = "" }: Agent
 
   return (
     <span
-      className={`inline-flex max-w-full shrink-0 items-center rounded-md border border-slate-200/90 bg-slate-100/90 text-slate-600 shadow-none ${sizeClass} ${className}`.trim()}
+      className={`inline-flex max-w-full shrink-0 items-center rounded-md border border-border/90 bg-muted/90 df-text-secondary shadow-none ${sizeClass} ${className}`.trim()}
       title={label}
     >
       {label}

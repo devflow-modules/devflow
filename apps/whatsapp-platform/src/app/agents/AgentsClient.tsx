@@ -31,13 +31,13 @@ type Viewer = {
 function filterClass(active: boolean): string {
   return active
     ? `${buttonClassName("primary")} text-xs`
-    : `${buttonClassName("secondary")} border-slate-200/90 text-xs`;
+    : `${buttonClassName("secondary")} border-border/90 text-xs`;
 }
 
 function QueueBadges({ queues }: { queues: OperationalAgentRow["queues"] }) {
   if (queues.length === 0) {
     return (
-      <span className="text-xs leading-snug text-slate-500">Nenhuma fila atribuída neste momento.</span>
+      <span className="text-xs leading-snug df-text-muted">Nenhuma fila atribuída neste momento.</span>
     );
   }
   const visible = queues.slice(0, QUEUE_PREVIEW_MAX);
@@ -47,7 +47,7 @@ function QueueBadges({ queues }: { queues: OperationalAgentRow["queues"] }) {
       {visible.map((q) => (
         <span
           key={q.id}
-          className="max-w-[10rem] truncate rounded-md border border-slate-200/80 bg-slate-50/90 px-2 py-0.5 text-[11px] font-medium text-slate-700"
+          className="max-w-[10rem] truncate rounded-md border border-border/80 bg-muted/60/90 px-2 py-0.5 text-[11px] font-medium df-text-secondary"
           title={q.name}
         >
           {q.name}
@@ -55,7 +55,7 @@ function QueueBadges({ queues }: { queues: OperationalAgentRow["queues"] }) {
       ))}
       {extra > 0 ? (
         <span
-          className="rounded-md border border-dashed border-slate-300/90 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-600"
+          className="rounded-md border border-dashed df-border-dark/90 bg-card px-2 py-0.5 text-[11px] font-medium df-text-secondary"
           title={`${extra} fila${extra > 1 ? "s" : ""} adicional${extra > 1 ? "is" : ""}`}
         >
           +{extra}
@@ -144,19 +144,19 @@ export function AgentsClient({
 
       {viewer ? (
         <section
-          className="rounded-lg border border-slate-200/80 bg-slate-50/50 px-3 py-2.5 text-sm shadow-none ring-1 ring-slate-900/[0.03]"
+          className="rounded-lg border border-border/80 bg-muted/60/50 px-3 py-2.5 text-sm shadow-none ring-1 ring-slate-900/[0.03]"
           aria-label="A sua sessão"
         >
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">A sua sessão</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">A sua sessão</p>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            <span className="text-sm font-semibold text-slate-800">{viewer.name}</span>
+            <span className="text-sm font-semibold df-text-primary">{viewer.name}</span>
             <AgentRoleBadge role={viewer.role} size="compact" />
-            <span className="rounded-md bg-white/90 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 ring-1 ring-slate-200/70">
+            <span className="rounded-md bg-card/90 px-1.5 py-0.5 text-[10px] font-medium df-text-muted ring-1 ring-slate-200/70">
               Você
             </span>
           </div>
-          <p className="mt-0.5 truncate text-xs text-slate-500">{viewer.email}</p>
-          <p className="mt-1.5 text-xs leading-snug text-slate-600">{roleScopeLine(viewer.role)}</p>
+          <p className="mt-0.5 truncate text-xs df-text-muted">{viewer.email}</p>
+          <p className="mt-1.5 text-xs leading-snug df-text-secondary">{roleScopeLine(viewer.role)}</p>
         </section>
       ) : null}
 
@@ -185,40 +185,40 @@ export function AgentsClient({
       ) : (
         <>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm df-text-secondary">
               {counts.total} membro{counts.total !== 1 ? "s" : ""}
               {counts.gestao > 0 || counts.operacao > 0 ? (
-                <span className="text-slate-500">
+                <span className="df-text-muted">
                   {" "}
                   · {counts.gestao} gestão · {counts.operacao} operação
                 </span>
               ) : null}
             </p>
             <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por tipo de papel">
-              <button type="button" className={filterClass(segment === "all")} onClick={() => setSegment("all")}>
+              <Button variant="secondary" type="button" className={filterClass(segment === "all")} onClick={() => setSegment("all")}>
                 Todos
-              </button>
-              <button
+              </Button>
+              <Button variant="secondary"
                 type="button"
                 className={filterClass(segment === "gestao")}
                 onClick={() => setSegment("gestao")}
               >
                 Gestão
-              </button>
-              <button
+              </Button>
+              <Button variant="secondary"
                 type="button"
                 className={filterClass(segment === "operacao")}
                 onClick={() => setSegment("operacao")}
               >
                 Operação
-              </button>
+              </Button>
             </div>
           </div>
 
           {filtered.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-200/90 bg-slate-50/40 px-4 py-8 text-center">
-              <p className="text-sm font-medium text-slate-700">Nenhum resultado neste filtro</p>
-              <p className="mt-1 text-xs leading-relaxed text-slate-500">
+            <div className="rounded-xl border border-dashed border-border/90 bg-muted/60/40 px-4 py-8 text-center">
+              <p className="text-sm font-medium df-text-secondary">Nenhum resultado neste filtro</p>
+              <p className="mt-1 text-xs leading-relaxed df-text-muted">
                 Experimente «Todos» ou outro segmento para ver a equipe completa.
               </p>
             </div>
@@ -235,15 +235,15 @@ export function AgentsClient({
                 return (
                   <li
                     key={a.userId}
-                    className="flex flex-col gap-2 rounded-xl border border-slate-200/80 bg-white p-3 shadow-sm ring-1 ring-slate-900/[0.025]"
+                    className="flex flex-col gap-2 rounded-xl border border-border/80 bg-card p-3 shadow-sm ring-1 ring-slate-900/[0.025]"
                   >
                     {/* 1 — Nome + role (badge menor) */}
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span className="min-w-0 truncate text-base font-semibold tracking-tight text-slate-900">
+                      <span className="min-w-0 truncate text-base font-semibold tracking-tight df-text-primary">
                         {a.name}
                       </span>
                       {isSelf ? (
-                        <span className="shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
+                        <span className="shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium df-text-secondary">
                           Você
                         </span>
                       ) : null}
@@ -256,7 +256,7 @@ export function AgentsClient({
                         <select
                           value={editStatus}
                           onChange={(e) => setEditStatus(e.target.value)}
-                          className="df-field-compact max-w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm"
+                          className="df-field-compact max-w-full rounded-lg border border-border bg-card px-2 py-1.5 text-sm"
                           aria-label="Novo estado operacional"
                         >
                           {STATUS_OPTIONS.map((s) => (
@@ -273,24 +273,24 @@ export function AgentsClient({
                     <p className="df-text-muted truncate text-sm">{a.email}</p>
 
                     {/* 3 — Função */}
-                    <p className="text-xs leading-relaxed text-slate-600">{roleScopeLine(a.role)}</p>
+                    <p className="text-xs leading-relaxed df-text-secondary">{roleScopeLine(a.role)}</p>
 
                     {/* 4–6 — Métricas */}
-                    <div className="space-y-2 border-t border-slate-100/90 pt-2">
+                    <div className="space-y-2 border-t border-border/90 pt-2">
                       <div className="flex items-baseline justify-between gap-2">
-                        <span className="text-xs text-slate-500">Conversas abertas ou pendentes</span>
-                        <span className="text-sm font-semibold tabular-nums text-slate-900">{a.activeThreadCount}</span>
+                        <span className="text-xs df-text-muted">Conversas abertas ou pendentes</span>
+                        <span className="text-sm font-semibold tabular-nums df-text-primary">{a.activeThreadCount}</span>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500">Filas</p>
+                        <p className="text-xs df-text-muted">Filas</p>
                         <div className="mt-1 min-w-0">
                           <QueueBadges queues={a.queues} />
                         </div>
                       </div>
                       <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-2">
-                        <span className="shrink-0 text-xs text-slate-500">Última atividade</span>
+                        <span className="shrink-0 text-xs df-text-muted">Última atividade</span>
                         <span
-                          className="text-xs text-slate-500 sm:min-w-0 sm:flex-1"
+                          className="text-xs df-text-muted sm:min-w-0 sm:flex-1"
                           title={activityTitle}
                         >
                           {a.lastActivityAt ? lastLabel : "Sem registo recente de presença ou conversa."}
@@ -299,11 +299,11 @@ export function AgentsClient({
                     </div>
 
                     {/* 7 — Ações */}
-                    <div className="flex flex-wrap gap-2 border-t border-slate-100/90 pt-2">
+                    <div className="flex flex-wrap gap-2 border-t border-border/90 pt-2">
                       <span className="sr-only">Ações</span>
                       {editing ? (
                         <>
-                          <Button size="sm" onClick={() => handleStatusSave(a.userId)} disabled={loading}>
+                          <Button variant="secondary" size="sm" onClick={() => handleStatusSave(a.userId)} disabled={loading}>
                             Guardar estado
                           </Button>
                           <Button

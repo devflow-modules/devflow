@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchPlaybookSuggestion } from "./inboxFetch";
 import { INBOX_QK } from "./inboxTypes";
 import { buttonClassName } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 
 export function PlaybookSuggest({
   threadId,
@@ -36,7 +37,7 @@ export function PlaybookSuggest({
 
   return (
     <div className="mb-3 space-y-2">
-      <button
+      <Button variant="disabled"
         type="button"
         disabled={mut.isPending || sendDisabled}
         title={sendDisabled && !mut.isPending ? "Disponível após ativação do número" : undefined}
@@ -45,7 +46,7 @@ export function PlaybookSuggest({
         data-testid="btn-playbook-suggest"
       >
         {mut.isPending ? "A analisar…" : "Sugerir ação"}
-      </button>
+      </Button>
       {mut.isError && (
         <p className="text-xs text-red-600">
           {mut.error instanceof Error ? mut.error.message : "Erro no playbook"}
@@ -54,22 +55,22 @@ export function PlaybookSuggest({
       {preview !== null && (
         <div className="df-panel-playbook" data-testid="playbook-preview">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-900">Playbook (IA)</p>
-          <dl className="mt-2 space-y-1.5 text-slate-800">
+          <dl className="mt-2 space-y-1.5 df-text-primary">
             <div>
-              <dt className="text-[10px] font-semibold text-slate-500">Intent</dt>
+              <dt className="text-[10px] font-semibold df-text-muted">Intent</dt>
               <dd>{preview.intent}</dd>
             </div>
             <div>
-              <dt className="text-[10px] font-semibold text-slate-500">Ação recomendada</dt>
+              <dt className="text-[10px] font-semibold df-text-muted">Ação recomendada</dt>
               <dd>{preview.recommendedAction}</dd>
             </div>
             <div>
-              <dt className="text-[10px] font-semibold text-slate-500">Resposta sugerida</dt>
+              <dt className="text-[10px] font-semibold df-text-muted">Resposta sugerida</dt>
               <dd className="whitespace-pre-wrap">{preview.suggestedResponse}</dd>
             </div>
           </dl>
           <div className="mt-3 flex flex-wrap gap-2">
-            <button
+            <Button variant="secondary"
               type="button"
               className={buttonClassName("primary")}
               onClick={() => {
@@ -78,10 +79,10 @@ export function PlaybookSuggest({
               }}
             >
               Usar resposta no editor
-            </button>
-            <button type="button" className={buttonClassName("secondary")} onClick={() => setPreview(null)}>
+            </Button>
+            <Button variant="secondary" type="button" className={buttonClassName("secondary")} onClick={() => setPreview(null)}>
               Fechar
-            </button>
+            </Button>
           </div>
         </div>
       )}

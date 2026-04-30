@@ -35,7 +35,7 @@ export default async function QueuesPage() {
   return (
     <Suspense
       fallback={
-        <div className="rounded-2xl border border-slate-100 bg-white px-6 py-12 text-center text-sm text-slate-500">
+        <div className="rounded-2xl border border-border bg-card px-6 py-12 text-center text-sm df-text-muted">
           A carregar filas…
         </div>
       }

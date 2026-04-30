@@ -11,6 +11,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { reportTyping } from "./inboxFetch";
+import { Button } from "@/components/ui/button";
 
 const TYPING_DEBOUNCE_MS = 400;
 const TYPING_STOP_DELAY_MS = 1500;
@@ -107,11 +108,11 @@ const InboxComposerTextFieldInner = forwardRef<InboxComposerHandle, Props>(funct
           rows={denseComposer ? 2 : 3}
           disabled={sendDisabled || composerLocked}
           title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
-          className={`df-field-control flex-1 resize-y text-[15px] leading-relaxed shadow-inner transition-colors duration-200 bg-slate-50/60 focus:bg-white ${
+          className={`df-field-control flex-1 resize-y text-[15px] leading-relaxed shadow-inner transition-colors duration-200 bg-muted/60/60 focus:bg-card ${
             denseComposer ? "min-h-[4.25rem]" : "min-h-[5.5rem]"
           }`}
         />
-        <button
+        <Button variant="disabled"
           type="button"
           onClick={send}
           disabled={sendDisabled || !text.trim() || composerLocked}
@@ -120,9 +121,9 @@ const InboxComposerTextFieldInner = forwardRef<InboxComposerHandle, Props>(funct
           data-testid="send-button"
         >
           {sendDisabled ? "A enviar…" : "Enviar"}
-        </button>
+        </Button>
       </div>
-      <p className={`px-0.5 text-[11px] text-slate-400 ${denseComposer ? "mt-1" : "mt-2"}`}>
+      <p className={`px-0.5 text-[11px] df-text-muted ${denseComposer ? "mt-1" : "mt-2"}`}>
         Enter envia · Shift+Enter nova linha
       </p>
     </>

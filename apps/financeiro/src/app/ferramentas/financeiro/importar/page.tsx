@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useHousehold } from "@/modules/financeiro/lib/household/HouseholdProvider";
 import { Breadcrumbs } from "@/modules/financeiro/components/Breadcrumbs";
 import type { FinancialContext } from "@/modules/financeiro/schemas";
+import { Button } from "@/components/ui/button";
 
 type ParsedRow = {
   date: string;
@@ -175,43 +176,43 @@ export default function ImportarPage() {
             <li>Valor: <code>350.00</code> ou <code>350,00</code> (aceita negativos)</li>
             <li>Colunas: <strong>data;descricao;valor</strong> (aceita variações)</li>
           </ul>
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => setCsvText(SAMPLE_CSV)}
             className="mt-3 text-xs font-semibold underline"
           >
             Usar exemplo
-          </button>
+          </Button>
         </div>
 
         {/* Upload ou colar */}
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-foreground hover:bg-slate-50"
+              className="rounded-xl border df-border-dark px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/60"
             >
               📁 Carregar arquivo
-            </button>
+            </Button>
             <span className="text-xs text-muted-foreground">ou cole o conteúdo abaixo</span>
             <input ref={fileRef} type="file" accept=".csv,.txt" className="hidden" onChange={handleFileUpload} />
           </div>
           <textarea
             rows={8}
             placeholder={`data;descricao;valor\n01/01/2026;Supermercado;350.00\n...`}
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 font-mono text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="w-full rounded-xl border border-border bg-card px-4 py-3 font-mono text-xs df-text-primary focus:outline-none focus:ring-2 focus:ring-indigo-400"
             value={csvText}
             onChange={(e) => { setCsvText(e.target.value); setRows([]); }}
           />
-          <button
+          <Button variant="disabled"
             type="button"
             onClick={handleParse}
             disabled={!csvText.trim()}
             className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
           >
             Analisar CSV
-          </button>
+          </Button>
         </div>
 
         {rows.length > 0 && (
@@ -229,9 +230,9 @@ export default function ImportarPage() {
                   )}
                 </div>
               </div>
-              <div className="max-h-64 overflow-y-auto rounded-xl border border-slate-200">
+              <div className="max-h-64 overflow-y-auto rounded-xl border border-border">
                 <table className="w-full text-xs">
-                  <thead className="sticky top-0 bg-slate-50 text-left">
+                  <thead className="sticky top-0 bg-muted/60 text-left">
                     <tr>
                       <th className="px-3 py-2 font-medium text-muted-foreground">Data</th>
                       <th className="px-3 py-2 font-medium text-muted-foreground">Descrição</th>
@@ -262,15 +263,15 @@ export default function ImportarPage() {
             </section>
 
             {/* Configurações da importação */}
-            <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <section className="rounded-xl border border-border bg-muted/60 p-4">
               <h3 className="mb-3 text-sm font-semibold text-foreground">Configurações da importação</h3>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600">Contexto padrão</label>
+                  <label className="mb-1 block text-xs font-medium df-text-secondary">Contexto padrão</label>
                   <select
                     value={context}
                     onChange={(e) => setContext(e.target.value as FinancialContext)}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                    className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm"
                   >
                     <option value="PERSONAL">👤 Pessoal</option>
                     <option value="BUSINESS">🏢 Empresa (PJ)</option>
@@ -278,11 +279,11 @@ export default function ImportarPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600">Fonte padrão (opcional)</label>
+                  <label className="mb-1 block text-xs font-medium df-text-secondary">Fonte padrão (opcional)</label>
                   <select
                     value={sourceId}
                     onChange={(e) => setSourceId(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                    className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm"
                   >
                     <option value="">Sem fonte</option>
                     {sources.map((s) => (
@@ -297,7 +298,7 @@ export default function ImportarPage() {
             </section>
 
             {/* Botão importar */}
-            <button
+            <Button variant="disabled"
               type="button"
               onClick={handleImport}
               disabled={importing || validCount === 0}
@@ -306,7 +307,7 @@ export default function ImportarPage() {
               {importing
                 ? "Importando..."
                 : `Importar ${validCount} despesa${validCount !== 1 ? "s" : ""}`}
-            </button>
+            </Button>
           </>
         )}
       </div>

@@ -15,12 +15,12 @@ function chipClass(active: boolean, tone: "ok" | "delay" | "critical" | "neutral
     if (tone === "ok") return `${base} border-emerald-300 bg-emerald-100 text-emerald-950 ring-2 ring-emerald-400/40`;
     if (tone === "delay") return `${base} border-amber-300 bg-amber-100 text-amber-950 ring-2 ring-amber-400/40`;
     if (tone === "critical") return `${base} border-red-300 bg-red-100 text-red-950 ring-2 ring-red-400/40`;
-    return `${base} border-slate-400 bg-slate-900 text-white`;
+    return `${base} df-border-dark bg-muted text-white`;
   }
-  if (tone === "ok") return `${base} border-emerald-200 bg-white text-emerald-900 hover:bg-emerald-50`;
-  if (tone === "delay") return `${base} border-amber-200 bg-white text-amber-900 hover:bg-amber-50`;
-  if (tone === "critical") return `${base} border-red-200 bg-white text-red-900 hover:bg-red-50`;
-  return `${base} border-slate-200 bg-white text-slate-800 hover:bg-slate-50`;
+  if (tone === "ok") return `${base} border-emerald-200 bg-card text-emerald-900 hover:bg-emerald-50`;
+  if (tone === "delay") return `${base} border-amber-200 bg-card text-amber-900 hover:bg-amber-50`;
+  if (tone === "critical") return `${base} border-red-200 bg-card text-red-900 hover:bg-red-50`;
+  return `${base} border-border bg-card df-text-primary hover:bg-muted/60`;
 }
 
 function hrefForFilter(f: PendingQueueFilter): string {
@@ -34,7 +34,7 @@ function hrefForFilter(f: PendingQueueFilter): string {
 export function PendingActivationToolbar({ buckets, activeFilter }: Props) {
   return (
     <div className="space-y-3">
-      <p className="df-label text-slate-600">Fila pendente — SLA</p>
+      <p className="df-label df-text-secondary">Fila pendente — SLA</p>
       <div className="flex flex-wrap gap-2" data-testid="pending-sla-summary">
         <Link
           href={hrefForFilter("all")}
@@ -43,7 +43,7 @@ export function PendingActivationToolbar({ buckets, activeFilter }: Props) {
         >
           Todos os pendentes
           {buckets != null ? (
-            <span className="tabular-nums text-slate-600">
+            <span className="tabular-nums df-text-secondary">
               ({buckets.ok + buckets.delay + buckets.critical})
             </span>
           ) : null}

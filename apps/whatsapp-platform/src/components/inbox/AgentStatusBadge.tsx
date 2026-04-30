@@ -17,7 +17,7 @@ type AgentStatusBadgeProps = {
 const SHELL_BY_PRESENCE: Record<OperationalPresence, string> = {
   available: "border-emerald-200/85 bg-emerald-50/90 text-emerald-950",
   busy: "border-red-200/85 bg-red-50/90 text-red-950",
-  offline: "border-slate-200/90 bg-slate-100/90 text-slate-600",
+  offline: "border-border/90 bg-muted/90 df-text-secondary",
 };
 
 /**

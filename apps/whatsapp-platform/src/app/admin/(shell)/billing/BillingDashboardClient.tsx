@@ -11,6 +11,7 @@ import {
 import type { BillingDashboardPayload } from "./actions";
 import { getBillingDashboard } from "./actions";
 import type { BillingTenantRow } from "@/modules/billing/admin/billingDashboardTypes";
+import { Button } from "@/components/ui/button";
 
 type Props = { initialData: BillingDashboardPayload };
 
@@ -68,18 +69,18 @@ export function BillingDashboardClient({ initialData }: Props) {
         <div className="flex gap-2 items-center">
           <a
             href="/admin/metrics"
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="rounded-lg border df-border-dark px-3 py-2 text-sm font-medium df-text-secondary hover:bg-muted/60"
           >
             ← Métricas
           </a>
-          <button
+          <Button variant="disabled"
             type="button"
             onClick={refresh}
             disabled={loading}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
           >
             {loading ? "Atualizando…" : "Atualizar"}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -138,13 +139,13 @@ export function BillingDashboardClient({ initialData }: Props) {
             <option value="system.error">Erro sistema</option>
             <option value="usage.threshold_warning">Uso ≥80%</option>
           </select>
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={refresh}
             className="rounded-lg border border-border px-3 py-2 text-sm font-medium hover:bg-muted"
           >
             Aplicar filtros
-          </button>
+          </Button>
         </div>
       </section>
 

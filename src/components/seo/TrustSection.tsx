@@ -20,7 +20,7 @@ export function TrustSection({
   return (
     <section
       className={cn(
-        "border-t border-border bg-slate-50/80 py-12 sm:py-14",
+        "border-t border-border bg-muted/60/80 py-12 sm:py-14",
         className
       )}
       aria-labelledby="trust-heading"
@@ -32,7 +32,7 @@ export function TrustSection({
         >
           Por que confiar no DevFlow?
         </h2>
-        <ul className="mt-6 space-y-4 text-base leading-relaxed text-slate-700" role="list">
+        <ul className="mt-6 space-y-4 text-base leading-relaxed df-text-secondary" role="list">
           <li className="flex gap-3">
             <span className="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-bold text-primary" aria-hidden>1</span>
             <span>

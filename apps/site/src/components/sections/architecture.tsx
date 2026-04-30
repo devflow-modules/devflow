@@ -34,7 +34,7 @@ export function Architecture() {
           >
             Infraestrutura DevFlow
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="mt-3 df-text-secondary">
             Engenharia real. Não é só chatbot, é plataforma.
           </p>
         </div>
@@ -53,7 +53,7 @@ export function Architecture() {
                 <span className="font-medium text-foreground">{layer.label}</span>
               </div>
               {i < layers.length - 1 && (
-                <ArrowDown className="my-1 size-5 text-slate-300" />
+                <ArrowDown className="my-1 size-5 df-text-muted" />
               )}
             </div>
           ))}
@@ -63,7 +63,7 @@ export function Architecture() {
           {components.map((comp) => (
             <span
               key={comp}
-              className="inline-flex items-center gap-2 rounded-lg border border-accent/30 bg-accent/5 px-4 py-2 text-sm font-medium text-slate-700"
+              className="inline-flex items-center gap-2 rounded-lg border border-accent/30 bg-accent/5 px-4 py-2 text-sm font-medium df-text-secondary"
             >
               <FileText className="size-4 text-accent" />
               {comp}

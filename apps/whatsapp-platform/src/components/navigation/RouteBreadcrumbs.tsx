@@ -27,19 +27,19 @@ export function RouteBreadcrumbs() {
       aria-label="Trilho de navegação"
       className="mb-6 flex flex-wrap items-start justify-between gap-x-4 gap-y-2"
     >
-      <ol className="flex min-w-0 max-w-full flex-nowrap items-center gap-1.5 overflow-x-auto pb-0.5 text-sm text-slate-500 [scrollbar-width:thin]">
+      <ol className="flex min-w-0 max-w-full flex-nowrap items-center gap-1.5 overflow-x-auto pb-0.5 text-sm df-text-muted [scrollbar-width:thin]">
         {items.map((crumb, i) => {
           const last = i === items.length - 1;
           return (
             <li key={`${crumb.href}-${i}`} className="flex min-w-0 max-w-[min(100%,14rem)] shrink-0 items-center gap-1.5 sm:max-w-[min(100%,18rem)]">
               {i > 0 ? (
-                <span className="text-slate-300" aria-hidden>
+                <span className="df-text-muted" aria-hidden>
                   /
                 </span>
               ) : null}
               {last ? (
                 <span
-                  className={`truncate font-medium text-slate-800 ${crumb.sensitive ? "rounded-md bg-amber-50 px-1.5 py-0.5 text-amber-950 ring-1 ring-amber-200/80" : ""}`}
+                  className={`truncate font-medium df-text-primary ${crumb.sensitive ? "rounded-md bg-amber-50 px-1.5 py-0.5 text-amber-950 ring-1 ring-amber-200/80" : ""}`}
                 >
                   {crumb.label}
                 </span>
@@ -56,7 +56,7 @@ export function RouteBreadcrumbs() {
         })}
       </ol>
       <span
-        className="hidden shrink-0 pt-0.5 text-[10px] font-medium tabular-nums text-slate-400 lg:inline"
+        className="hidden shrink-0 pt-0.5 text-[10px] font-medium tabular-nums df-text-muted lg:inline"
         title="Abrir navegação rápida"
       >
         ⌘K · Ctrl+K

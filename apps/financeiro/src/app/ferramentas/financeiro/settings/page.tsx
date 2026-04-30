@@ -10,6 +10,7 @@ import { createClient } from "@/modules/financeiro/lib/supabase/client";
 import { cn } from "@/modules/financeiro/lib/cn";
 import { focusRingLight } from "@/modules/financeiro/lib/primitives";
 import { FINANCEIRO_AUTH_PATH, FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
+import { Button } from "@/components/ui/button";
 
 type Invite = { id: string; email: string; role: "MEMBER" | "OWNER"; expiresAt: string; createdAt: string };
 type Member = {
@@ -141,7 +142,7 @@ export default function SettingsPage() {
               <h2 className="text-lg font-semibold text-foreground">Conta</h2>
               <p className="mt-1 text-sm text-muted-foreground">Logout encerra a sessão do Supabase neste navegador.</p>
             </div>
-            <button
+            <Button variant="secondary"
               type="button"
               className={cn("rounded-2xl border border-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-foreground transition hover:bg-muted", focusRingLight)}
               onClick={async () => {
@@ -154,7 +155,7 @@ export default function SettingsPage() {
               }}
             >
               Sair da conta
-            </button>
+            </Button>
           </div>
         </section>
 
@@ -193,13 +194,13 @@ export default function SettingsPage() {
         <section className="rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">Membros</h2>
-            <button
+            <Button variant="secondary"
               type="button"
               className="rounded-2xl border border-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-foreground"
               onClick={loadMembers}
             >
               Atualizar
-            </button>
+            </Button>
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
             Seu papel na casa ativa: <span className="text-muted-foreground">{activeMembershipRole ?? "—"}</span>
@@ -243,7 +244,7 @@ export default function SettingsPage() {
 
                   <div className="flex flex-wrap items-center gap-2">
                     {m.isMe ? (
-                      <button
+                      <Button variant="secondary"
                         type="button"
                         className="rounded-xl border border-border px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-foreground"
                         onClick={async () => {
@@ -276,11 +277,11 @@ export default function SettingsPage() {
                         }}
                       >
                         Sair desta casa
-                      </button>
+                      </Button>
                     ) : activeMembershipRole === "OWNER" ? (
                       <>
                         {m.role === "MEMBER" ? (
-                          <button
+                          <Button variant="disabled"
                             type="button"
                             className="rounded-xl border border-amber-500/40 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-amber-600 dark:text-amber-400 disabled:opacity-50"
                             disabled={transferringMembershipId !== null}
@@ -310,9 +311,9 @@ export default function SettingsPage() {
                             }}
                           >
                             {transferringMembershipId === m.membershipId ? "Transferindo..." : "Transferir ownership"}
-                          </button>
+                          </Button>
                         ) : null}
-                        <button
+                        <Button variant="secondary"
                           type="button"
                           className="rounded-xl border border-destructive/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-destructive"
                           onClick={async () => {
@@ -329,7 +330,7 @@ export default function SettingsPage() {
                           }}
                         >
                           Remover
-                        </button>
+                        </Button>
                       </>
                     ) : null}
                   </div>
@@ -375,7 +376,7 @@ export default function SettingsPage() {
           </p>
 
           <div className="mt-3">
-            <button
+            <Button variant="disabled"
               type="button"
               className="rounded-2xl bg-emerald-500 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground disabled:opacity-50"
               disabled={!householdCreate.name || !householdCreate.slug || createHouseholdLoading}
@@ -401,7 +402,7 @@ export default function SettingsPage() {
               }}
             >
               {createHouseholdLoading ? "Criando..." : "Criar casa"}
-            </button>
+            </Button>
           </div>
         </section>
 
@@ -409,13 +410,13 @@ export default function SettingsPage() {
         <section className="rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">Convites</h2>
-            <button
+            <Button variant="secondary"
               type="button"
               className="rounded-2xl border border-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-foreground"
               onClick={loadInvites}
             >
               Atualizar
-            </button>
+            </Button>
           </div>
 
           <div className="mt-4 grid gap-6 lg:grid-cols-2">
@@ -437,7 +438,7 @@ export default function SettingsPage() {
                   <option value="MEMBER">MEMBER</option>
                   <option value="OWNER">OWNER</option>
                 </select>
-                <button
+                <Button variant="disabled"
                   type="button"
                   className="rounded-2xl bg-primary px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground"
                   disabled={!inviteEmail || inviteSubmitting}
@@ -480,7 +481,7 @@ export default function SettingsPage() {
                   }}
                 >
                   {inviteSubmitting ? "Enviando..." : "Convidar"}
-                </button>
+                </Button>
               </div>
               <p className="mt-2 text-sm text-muted-foreground">
                 Se `RESEND_*` estiver configurado, o convite é enviado por e-mail. Caso contrário, o link é retornado na API e pode ser copiado no dashboard.
@@ -490,7 +491,7 @@ export default function SettingsPage() {
                   <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Link do convite</p>
                   <p className="mt-2 break-all text-sm text-foreground">{lastInviteUrl}</p>
                   <div className="mt-2">
-                    <button
+                    <Button variant="secondary"
                       type="button"
                       className="rounded-xl border border-border px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-foreground"
                       onClick={async () => {
@@ -503,7 +504,7 @@ export default function SettingsPage() {
                       }}
                     >
                       Copiar link
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : null}
@@ -528,7 +529,7 @@ export default function SettingsPage() {
                           {invite.role} · expira em {new Date(invite.expiresAt).toLocaleDateString("pt-BR")}
                         </p>
                       </div>
-                      <button
+                      <Button variant="secondary"
                         type="button"
                         className="rounded-xl border border-destructive/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-destructive"
                         onClick={async () => {
@@ -543,7 +544,7 @@ export default function SettingsPage() {
                         }}
                       >
                         Revogar
-                      </button>
+                      </Button>
                     </div>
                   ))
                 )}

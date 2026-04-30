@@ -12,10 +12,10 @@ export function HeroSection({
 }) {
   return (
     <section className="text-center">
-      <h1 className="text-balance text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl md:text-[2.5rem] md:leading-tight">
+      <h1 className="text-balance text-3xl font-semibold tracking-tight df-text-primary sm:text-4xl md:text-[2.5rem] md:leading-tight">
         Sistema profissional para organizar, controlar e escalar o atendimento da sua empresa no WhatsApp
       </h1>
-      <p className="mx-auto mt-5 max-w-2xl text-pretty text-base leading-relaxed text-slate-600 sm:text-lg">
+      <p className="mx-auto mt-5 max-w-2xl text-pretty text-base leading-relaxed df-text-secondary sm:text-lg">
         Uma operação clara: conversas num só lugar, equipa alinhada, automação e IA com controlo — implantação
         acompanhada, não um SaaS genérico.
       </p>

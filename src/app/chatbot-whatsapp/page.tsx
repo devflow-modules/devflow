@@ -51,7 +51,7 @@ export default function ChatbotWhatsAppPage() {
   return (
     <main>
       <section
-        className="relative overflow-hidden bg-gradient-to-b from-white to-slate-50 py-24"
+        className="relative overflow-hidden bg-gradient-to-b from-card to-muted/40 py-24"
         aria-labelledby="hero-heading"
       >
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -66,7 +66,7 @@ export default function ChatbotWhatsAppPage() {
             >
               Chatbot para WhatsApp
             </h1>
-            <p className="mt-4 text-lg text-slate-600">
+            <p className="mt-4 text-lg df-text-secondary">
               Bot de atendimento que responde clientes automaticamente e transfere
               para humano quando precisa. Vale a pena? Sim — quando feito direito.
             </p>
@@ -89,7 +89,7 @@ export default function ChatbotWhatsAppPage() {
           >
             Por que usar um chatbot no WhatsApp?
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-center text-slate-600">
+          <p className="mx-auto mt-3 max-w-xl text-center df-text-secondary">
             Clientes esperam resposta rápida. Um bot entrega isso sem sobrecarregar
             sua equipe.
           </p>
@@ -117,7 +117,7 @@ export default function ChatbotWhatsAppPage() {
           >
             O que o chatbot pode fazer
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-center text-slate-600">
+          <p className="mx-auto mt-3 max-w-xl text-center df-text-secondary">
             Casos de uso que automatizam a maior parte do atendimento.
           </p>
           <div className="mx-auto mt-12 flex max-w-2xl flex-wrap justify-center gap-3">
@@ -145,7 +145,7 @@ export default function ChatbotWhatsAppPage() {
             >
               Quer um chatbot para seu WhatsApp?
             </h2>
-            <p className="mt-4 text-slate-600">
+            <p className="mt-4 df-text-secondary">
               Piloto de 7 dias para testar. Sem compromisso.
             </p>
             <div className="mt-8">
@@ -158,7 +158,7 @@ export default function ChatbotWhatsAppPage() {
             <p className="mt-6">
               <Link
                 href="/automacao-whatsapp"
-                className="text-sm text-slate-600 hover:text-foreground"
+                className="text-sm df-text-secondary hover:text-foreground"
               >
                 ← Ver automação completa
               </Link>

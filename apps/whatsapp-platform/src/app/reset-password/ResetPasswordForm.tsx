@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { mapAuthHttpError } from "@/lib/auth-client-errors";
+import { Button } from "@/components/ui/button";
 
 export function ResetPasswordForm() {
   const router = useRouter();
@@ -85,24 +86,24 @@ export function ResetPasswordForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-5" aria-busy={loading} noValidate>
       {hasUrlToken && !showManualToken ? (
-        <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+        <p className="rounded-md border border-border bg-muted/60 px-3 py-2 text-sm df-text-secondary">
           Link do e-mail reconhecido. Defina a nova senha abaixo. Sessões anteriores serão encerradas após a alteração.
         </p>
       ) : null}
 
       {hasUrlToken && !showManualToken ? (
-        <button
+        <Button variant="secondary"
           type="button"
           className="text-sm font-medium text-blue-600 hover:text-blue-800"
           onClick={() => setShowManualToken(true)}
         >
           O link não funcionou? Colar token manualmente
-        </button>
+        </Button>
       ) : null}
 
       {showManualToken ? (
         <div>
-          <label htmlFor="reset-token" className="mb-1 block text-sm font-medium text-slate-700">
+          <label htmlFor="reset-token" className="mb-1 block text-sm font-medium df-text-secondary">
             Token do e-mail
           </label>
           <input
@@ -114,7 +115,7 @@ export function ResetPasswordForm() {
             placeholder="Cole o token completo"
             autoComplete="off"
             disabled={loading}
-            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-60"
+            className="w-full rounded-md border df-border-dark bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-60"
           />
         </div>
       ) : null}
@@ -148,14 +149,14 @@ export function ResetPasswordForm() {
         disabled={loading}
       />
 
-      <button
+      <Button variant="primary"
         type="submit"
         disabled={loading}
         className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50"
       >
         {loading ? "A guardar…" : "Redefinir senha"}
-      </button>
-      <p className="text-center text-sm text-slate-600">
+      </Button>
+      <p className="text-center text-sm df-text-secondary">
         <Link href="/login" className="font-medium text-blue-600 hover:text-blue-800">
           Voltar ao login
         </Link>

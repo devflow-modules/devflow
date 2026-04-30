@@ -139,21 +139,9 @@ export function HeroV2() {
     >
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
         <div className="absolute inset-0 df-gradient-text-scrim" />
-        <div
-          className="absolute -top-40 -right-40 h-96 w-96 rounded-full opacity-40 max-lg:opacity-25"
-          style={{ background: "radial-gradient(circle, rgba(34, 197, 94, 0.14) 0%, transparent 70%)" }}
-        />
-        <div
-          className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full opacity-30 max-lg:opacity-20"
-          style={{ background: "radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, transparent 70%)" }}
-        />
-        <div
-          className="absolute inset-0 opacity-[0.035]"
-          style={{
-            backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 23, 42, 0.5) 1px, transparent 1px)`,
-            backgroundSize: "40px 40px",
-          }}
-        />
+        <div className="df-decor-radial-brand absolute -top-40 -right-40 h-96 w-96 rounded-full opacity-40 max-lg:opacity-25" />
+        <div className="df-decor-radial-accent absolute -bottom-32 -left-32 h-80 w-80 rounded-full opacity-30 max-lg:opacity-20" />
+        <div className="df-decor-grid-mesh absolute inset-0 opacity-[0.035]" />
       </div>
 
       <div className="mx-auto max-w-[1200px] px-3 min-[400px]:px-4 sm:px-6 lg:px-8">

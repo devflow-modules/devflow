@@ -5,6 +5,7 @@ import type { WaInboxMessageRow } from "./inboxTypes";
 import { getOutboundKindFromMessage } from "./messageOutboundKind";
 import { MessageOriginBadge } from "./MessageOriginBadge";
 import { isNonTextMessage, MessageMediaPreview } from "./messageMediaPreview";
+import { Button } from "@/components/ui/button";
 
 function formatTime(iso: string): string {
   try {
@@ -32,14 +33,14 @@ function StatusTicks({ status, outbound }: { status: string; outbound: boolean }
   }
   if (s === "DELIVERED") {
     return (
-      <span className={outbound ? "text-white/55" : "text-slate-400"} title="Entregue">
+      <span className={outbound ? "text-white/55" : "df-text-muted"} title="Entregue">
         ✓✓
       </span>
     );
   }
   if (s === "SENT" || s === "RECEIVED") {
     return (
-      <span className={outbound ? "text-white/55" : "text-slate-400"} title="Enviada">
+      <span className={outbound ? "text-white/55" : "df-text-muted"} title="Enviada">
         ✓
       </span>
     );
@@ -59,14 +60,14 @@ function FailedResendHint({ textBody }: { textBody: string }) {
   return (
     <div className="mt-2 rounded-lg border border-white/25 bg-black/10 px-2.5 py-1.5">
       <p className="text-[10px] font-medium text-white/90">Não foi entregue — reenvie pelo compositor.</p>
-      <button
+      <Button variant="secondary"
         type="button"
         onClick={onCopy}
         className="mt-1 text-[11px] font-semibold text-white underline decoration-white/40 underline-offset-2 hover:decoration-white"
         data-testid="msg-failed-copy"
       >
         {copied ? "Texto copiado" : "Copiar texto da mensagem"}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -147,7 +148,7 @@ export const MessageBubble = memo(function MessageBubble({
                     : "Equipa"}
             </span>
             {typeLabel ? (
-              <span className="rounded bg-white/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white/90">
+              <span className="rounded bg-card/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white/90">
                 {typeLabel}
               </span>
             ) : null}

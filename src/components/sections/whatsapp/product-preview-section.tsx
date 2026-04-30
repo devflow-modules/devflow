@@ -70,14 +70,9 @@ export function ProductPreviewSection() {
       </div>
 
       <div className="mx-auto mt-12 max-w-6xl">
-        <div
-          className="rounded-[1.35rem] p-[1px] shadow-[0_28px_90px_-20px_rgba(15,23,42,0.22)]"
-          style={{
-            background: "linear-gradient(145deg, rgba(148,163,184,0.45), rgba(226,232,240,0.9))",
-          }}
-        >
+        <div className="df-wa-preview-frame rounded-[1.35rem] p-[1px] shadow-[0_28px_90px_-20px_rgba(15,23,42,0.22)]">
           <div className="overflow-hidden rounded-[1.3rem] border df-border-brand bg-card">
-            <div className="flex items-center gap-2 border-b border-border bg-slate-950 px-4 py-2.5">
+            <div className="flex items-center gap-2 border-b border-border bg-muted px-4 py-2.5">
               <span className="flex gap-1.5" aria-hidden>
                 <span className="size-2.5 rounded-full bg-red-400/90" />
                 <span className="size-2.5 rounded-full bg-amber-400/90" />
@@ -187,7 +182,7 @@ export function ProductPreviewSection() {
                       </span>
                       Vi renovação anual. Confirmo 42 licenças e já mando link de pagamento?
                     </div>
-                    <div className="ml-auto max-w-[88%] rounded-2xl rounded-tr-md bg-slate-900 px-3.5 py-2.5 text-xs leading-relaxed text-white shadow-md">
+                    <div className="ml-auto max-w-[88%] rounded-2xl rounded-tr-md bg-muted px-3.5 py-2.5 text-xs leading-relaxed text-white shadow-md">
                       <span className="df-text-secondary mb-1 block text-[10px] font-semibold uppercase tracking-wide">
                         Cliente · agora
                       </span>

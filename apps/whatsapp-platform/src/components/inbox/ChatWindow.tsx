@@ -13,6 +13,7 @@ import { reportViewing, fetchInboxThread } from "./inboxFetch";
 import { INBOX_QK, type WaInboxThreadRow } from "./inboxTypes";
 import { useMediaMinWidth } from "@/lib/useMediaMinWidth";
 import { INBOX_CHAT_GUTTER_X } from "./inboxChatLayout";
+import { Button } from "@/components/ui/button";
 
 /** Lista traz `unreadCount`; GET por id pode não — preservamos o da lista. */
 function mergeThreadRow(
@@ -168,7 +169,7 @@ export function ChatWindow({
               <div
                 className={`hidden shrink-0 border-t df-border-brand bg-[var(--df-bg-elevated)]/95 py-2 md:block md:py-2.5 xl:hidden ${INBOX_CHAT_GUTTER_X}`}
               >
-                <button
+                <Button variant="secondary"
                   type="button"
                   onClick={() => setCrmDrawerOpen(true)}
                   className="flex w-full items-center justify-center gap-2 rounded-lg border df-border-brand bg-[var(--df-bg-app)] px-3 py-2 text-xs font-semibold text-[var(--df-text-secondary)] shadow-sm transition hover:border-[var(--df-brand-500)]/40 hover:bg-[var(--df-brand-50)]"
@@ -177,7 +178,7 @@ export function ChatWindow({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   Contexto CRM
-                </button>
+                </Button>
               </div>
             ) : null}
             <MessageInput
@@ -201,7 +202,7 @@ export function ChatWindow({
       ) : null}
       {!auditTab && activeThread && crmDrawerOpen && crmDrawerMode ? (
         <div className="fixed inset-0 z-[45] md:block xl:hidden" role="presentation">
-          <button
+          <Button variant="ghost"
             type="button"
             className="absolute inset-0 bg-black/45 backdrop-blur-[1px] transition-opacity"
             aria-label="Fechar painel CRM"

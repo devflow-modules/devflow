@@ -37,7 +37,7 @@ export function StepsSection({
                 {index + 1}
               </span>
               <div className="min-w-0 pt-1">
-                <p className="text-base leading-relaxed text-slate-700">{step}</p>
+                <p className="text-base leading-relaxed df-text-secondary">{step}</p>
               </div>
             </li>
           ))}

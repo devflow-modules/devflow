@@ -21,6 +21,7 @@ import {
   trackDemoScenarioSelected,
 } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { DemoOpsPanel } from "./DemoOpsPanel";
 import { DemoScenarioPicker } from "./DemoScenarioPicker";
 
@@ -197,15 +198,16 @@ export function DemoGuidedExperience() {
                 no fluxo que implementamos em produção.
               </p>
             </div>
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={resetDemo}
               aria-label="Reiniciar demonstração do zero"
-              className="df-surface inline-flex items-center gap-2 self-start rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-primary/10"
+              className="df-surface inline-flex items-center gap-2 self-start rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground shadow-none transition-colors hover:bg-primary/10"
             >
               <RotateCcw className="size-4" aria-hidden />
               Reiniciar demo
-            </button>
+            </Button>
           </div>
 
           {phase === "success" ? (
@@ -232,14 +234,15 @@ export function DemoGuidedExperience() {
                   Ver produto completo
                 </Link>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={resetDemo}
                 aria-label="Recomeçar a demonstração guiada"
-                className="df-text-secondary mt-8 text-xs font-normal underline-offset-4 hover:text-foreground hover:underline"
+                className="df-text-secondary mt-8 h-auto min-h-0 px-0 py-0 text-xs font-normal underline-offset-4 shadow-none hover:text-foreground hover:underline"
               >
                 Ver a demo de novo
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="mt-8 grid min-w-0 gap-6 sm:mt-10 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
@@ -363,20 +366,21 @@ export function DemoGuidedExperience() {
                           <p className="mb-2 text-xs font-medium text-muted-foreground">Atalhos do roteiro</p>
                           <div className="flex flex-wrap gap-2">
                             {def.suggestedPrompts.map((prompt) => (
-                              <button
+                              <Button
                                 key={prompt}
                                 type="button"
+                                variant="secondary"
                                 disabled={isTyping}
                                 aria-label={`Enviar sugestão: ${prompt}`}
                                 onClick={() => sendMessage(prompt, "chip")}
                                 className={cn(
-                                  "df-surface rounded-lg border border-border bg-background px-3 py-1.5 text-left text-xs font-medium",
+                                  "df-surface h-auto min-h-0 justify-start rounded-lg border border-border bg-background px-3 py-1.5 text-left text-xs font-medium shadow-none",
                                   "text-foreground transition-colors hover:border-primary/50 hover:bg-primary/5",
-                                  isTyping && "pointer-events-none opacity-50"
+                                  isTyping && "opacity-50"
                                 )}
                               >
                                 {prompt}
-                              </button>
+                              </Button>
                             ))}
                           </div>
                         </div>
@@ -397,26 +401,28 @@ export function DemoGuidedExperience() {
                           disabled={isTyping}
                           className="df-surface min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:opacity-60 sm:px-4"
                         />
-                        <button
+                        <Button
                           type="button"
+                          variant="primary"
                           onClick={() => sendMessage(input, "input")}
                           disabled={isTyping || !input.trim()}
-                          className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-[#00A86B] disabled:opacity-50"
+                          className="size-10 shrink-0 rounded-lg p-0 hover:bg-primary/90 disabled:opacity-50"
                           aria-label="Enviar mensagem"
                         >
                           <Send className="size-5" />
-                        </button>
+                        </Button>
                       </div>
 
                       <div className="border-t border-border bg-primary/5 px-3 py-3">
-                        <button
+                        <Button
                           type="button"
+                          variant="secondary"
                           onClick={completeDemo}
                           aria-label="Finalizar demonstração e ver próximos passos"
-                          className="df-surface w-full rounded-lg border border-border bg-background py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-primary/10"
+                          className="df-surface w-full rounded-lg border border-border bg-background py-2.5 text-sm font-medium text-foreground shadow-none transition-colors hover:bg-primary/10"
                         >
                           Finalizar demonstração
-                        </button>
+                        </Button>
                       </div>
                     </>
                   )}

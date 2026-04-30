@@ -34,7 +34,7 @@ export function IntegraHumano() {
           >
             Integra com operação humana
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="mt-3 df-text-secondary">
             Muita gente teme perder controle com bot. Você não perde.
           </p>
         </div>
@@ -52,7 +52,7 @@ export function IntegraHumano() {
                 <step.icon className="size-6 text-primary" aria-hidden />
               </div>
               <h3 className="mt-4 font-medium text-foreground">{step.title}</h3>
-              <p className="mt-2 text-sm text-slate-600">{step.description}</p>
+              <p className="mt-2 text-sm df-text-secondary">{step.description}</p>
             </article>
           ))}
         </div>

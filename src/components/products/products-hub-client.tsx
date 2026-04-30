@@ -181,10 +181,7 @@ export function ProductsHubClient() {
       >
         <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
           <div
-            className="absolute -top-40 -right-40 h-80 w-80 rounded-full opacity-30"
-            style={{
-              background: "radial-gradient(circle, rgba(34, 197, 94, 0.15) 0%, transparent 70%)",
-            }}
+            className="df-decor-radial-brand absolute -top-40 -right-40 h-80 w-80 rounded-full opacity-30"
           />
         </div>
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">

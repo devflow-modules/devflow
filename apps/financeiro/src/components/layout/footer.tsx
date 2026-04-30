@@ -41,10 +41,10 @@ export function Footer() {
             >
               DevFlow Labs
             </Link>
-            <p className="max-w-xs text-sm text-slate-600">
+            <p className="max-w-xs text-sm df-text-secondary">
               Software Engineering • Automation • AI Systems • WhatsApp Automation Platform
             </p>
-            <address className="not-italic text-sm text-slate-600 space-y-1">
+            <address className="not-italic text-sm df-text-secondary space-y-1">
               <span>São Paulo — SP</span>
               <br />
               <span>CNPJ: 60.517.335/0001-03</span>

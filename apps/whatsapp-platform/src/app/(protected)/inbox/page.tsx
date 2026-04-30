@@ -10,7 +10,7 @@ export default function InboxPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[50vh] items-center justify-center bg-slate-50/80 p-6">
+        <div className="flex min-h-[50vh] items-center justify-center bg-muted/60/80 p-6">
           <StateLoading message="A carregar inbox…" />
         </div>
       }

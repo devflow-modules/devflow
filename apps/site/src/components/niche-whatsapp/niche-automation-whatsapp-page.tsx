@@ -58,18 +58,17 @@ function ChatExample({
 }) {
   return (
     <section
-      className="df-section-light bg-[#f1f5f9] py-20 sm:py-24"
+      className="df-section-light bg-muted/50 py-20 sm:py-24"
       aria-labelledby="niche-chat-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <h2
           id="niche-chat-heading"
           className="df-text-primary text-center text-2xl font-bold tracking-tight sm:text-3xl"
-          style={{ color: "#0f172a" }}
         >
           {title}
         </h2>
-        <p className="mx-auto mt-3 max-w-2xl text-center text-slate-600">{intro}</p>
+        <p className="mx-auto mt-3 max-w-2xl text-center df-text-secondary">{intro}</p>
         <div className="mx-auto mt-12 max-w-lg rounded-2xl border border-border bg-card p-6 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <div className="flex size-10 items-center justify-center rounded-full border border-primary/20 bg-primary/5">
@@ -104,20 +103,14 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
   return (
     <main>
       <section
-        className="df-section-light relative overflow-hidden bg-gradient-to-b from-white via-white to-slate-50 py-20 sm:py-24 lg:py-28"
+        className="df-section-light relative overflow-hidden bg-gradient-to-b from-card via-card to-muted/40 py-20 sm:py-24 lg:py-28"
         aria-labelledby="niche-hero-heading"
       >
         <div
           className="pointer-events-none absolute inset-0 -z-10 opacity-50"
           aria-hidden
         >
-          <div
-            className="absolute -top-24 right-0 h-72 w-72 rounded-full blur-3xl"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(34, 197, 94, 0.16) 0%, transparent 70%)",
-            }}
-          />
+          <div className="df-decor-radial-brand-soft absolute -top-24 right-0 h-72 w-72 rounded-full blur-3xl" />
         </div>
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
@@ -127,11 +120,10 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
             <h1
               id="niche-hero-heading"
               className="df-text-primary mt-4 text-balance text-3xl font-bold tracking-tight sm:text-5xl lg:text-[3.15rem] lg:leading-[1.08]"
-              style={{ color: "#0f172a" }}
             >
               {content.hero.h1}
             </h1>
-            <p className="mt-5 text-pretty text-lg leading-relaxed text-slate-600 sm:text-xl">
+            <p className="mt-5 text-pretty text-lg leading-relaxed df-text-secondary sm:text-xl">
               {content.hero.subheadline}
             </p>
             <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
@@ -158,18 +150,17 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
       </section>
 
       <section
-        className="df-section-light border-t border-border bg-[#f1f5f9] py-20 sm:py-24"
+        className="df-section-light border-t border-border bg-muted/50 py-20 sm:py-24"
         aria-labelledby="niche-pains-heading"
       >
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <h2
             id="niche-pains-heading"
             className="df-text-primary text-center text-2xl font-bold tracking-tight sm:text-3xl"
-            style={{ color: "#0f172a" }}
           >
             {content.problems.sectionTitle}
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-center text-slate-600">{content.problems.intro}</p>
+          <p className="mx-auto mt-3 max-w-2xl text-center df-text-secondary">{content.problems.intro}</p>
           <div className="mx-auto mt-12 grid max-w-5xl gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {content.problems.items.map((p) => (
               <article
@@ -180,7 +171,7 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
                 )}
               >
                 <h3 className="df-text-primary font-semibold">{p.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">{p.description}</p>
+                <p className="mt-2 text-sm leading-relaxed df-text-secondary">{p.description}</p>
               </article>
             ))}
           </div>
@@ -203,7 +194,7 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
           >
             {content.howItWorks.sectionTitle}
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-center text-slate-600">{content.howItWorks.intro}</p>
+          <p className="mx-auto mt-3 max-w-2xl text-center df-text-secondary">{content.howItWorks.intro}</p>
           <ol className="mx-auto mt-12 grid max-w-5xl gap-6 lg:grid-cols-3">
             {content.howItWorks.steps.map((step, index) => (
               <li
@@ -217,7 +208,7 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
                   {index + 1}
                 </span>
                 <h3 className="font-semibold text-foreground">{step.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">{step.description}</p>
+                <p className="mt-2 text-sm leading-relaxed df-text-secondary">{step.description}</p>
               </li>
             ))}
           </ol>
@@ -238,7 +229,7 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
           >
             {content.benefits.sectionTitle}
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-center text-slate-600">{content.benefits.intro}</p>
+          <p className="mx-auto mt-3 max-w-2xl text-center df-text-secondary">{content.benefits.intro}</p>
           <div className="mx-auto mt-12 grid max-w-5xl gap-5 sm:grid-cols-2">
             {content.benefits.items.map((b) => (
               <article
@@ -248,7 +239,7 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
                 <Check className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
                 <div>
                   <h3 className="font-semibold text-foreground">{b.title}</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-slate-600">{b.description}</p>
+                  <p className="mt-1 text-sm leading-relaxed df-text-secondary">{b.description}</p>
                 </div>
               </article>
             ))}
@@ -257,23 +248,22 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
       </section>
 
       <section
-        className="df-section-light border-t border-border bg-[#f1f5f9] py-20 sm:py-24"
+        className="df-section-light border-t border-border bg-muted/50 py-20 sm:py-24"
         aria-labelledby="niche-results-heading"
       >
         <div className="mx-auto max-w-[720px] px-4 sm:px-6 lg:px-8">
           <h2
             id="niche-results-heading"
             className="df-text-primary text-center text-2xl font-bold tracking-tight sm:text-3xl"
-            style={{ color: "#0f172a" }}
           >
             {content.results.sectionTitle}
           </h2>
-          <p className="mx-auto mt-3 text-center text-slate-600">{content.results.intro}</p>
+          <p className="mx-auto mt-3 text-center df-text-secondary">{content.results.intro}</p>
           <ul className="mt-10 space-y-4" role="list">
             {content.results.items.map((line) => (
               <li
                 key={line}
-                className="flex gap-3 rounded-xl border border-border bg-card p-4 text-left text-sm leading-relaxed text-slate-700 shadow-sm"
+                className="flex gap-3 rounded-xl border border-border bg-card p-4 text-left text-sm leading-relaxed df-text-secondary shadow-sm"
               >
                 <Check className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
                 <span>{line}</span>
@@ -292,14 +282,13 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
       </section>
 
       <section
-        className="df-section-light border-t border-border bg-slate-50/90 py-20 sm:py-24"
+        className="df-section-light border-t border-border bg-muted/55 py-20 sm:py-24"
         aria-labelledby="niche-faq-heading"
       >
         <div className="mx-auto max-w-[720px] px-4 sm:px-6 lg:px-8">
           <h2
             id="niche-faq-heading"
             className="df-text-primary text-center text-2xl font-bold tracking-tight sm:text-3xl"
-            style={{ color: "#0f172a" }}
           >
             Perguntas frequentes
           </h2>
@@ -313,12 +302,12 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
                   <span className="flex items-center justify-between gap-2">
                     {item.question}
                     <ChevronDown
-                      className="size-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180"
+                      className="size-4 shrink-0 df-text-muted transition-transform group-open:rotate-180"
                       aria-hidden
                     />
                   </span>
                 </summary>
-                <p className="mt-3 text-sm leading-relaxed text-slate-600">{item.answer}</p>
+                <p className="mt-3 text-sm leading-relaxed df-text-secondary">{item.answer}</p>
               </details>
             ))}
           </div>
@@ -334,7 +323,7 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
             >
               {content.finalCta.title}
             </h2>
-            <p className="mt-4 text-slate-600">{content.finalCta.subtitle}</p>
+            <p className="mt-4 df-text-secondary">{content.finalCta.subtitle}</p>
             <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
               <Link
                 href={PRIMARY_DEMO_HREF}
@@ -359,7 +348,7 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
             <p className="mt-8">
               <Link
                 href="/automacao-whatsapp"
-                className="text-sm font-medium text-slate-600 underline-offset-4 hover:text-foreground hover:underline"
+                className="text-sm font-medium df-text-secondary underline-offset-4 hover:text-foreground hover:underline"
               >
                 ← Ver automação WhatsApp e outros segmentos
               </Link>

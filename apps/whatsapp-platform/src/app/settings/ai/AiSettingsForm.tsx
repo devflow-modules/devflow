@@ -181,10 +181,10 @@ function StringListEditor(props: {
   return (
     <div className="space-y-2">
       <div>
-        <label className="text-sm font-medium text-slate-800" htmlFor={id}>
+        <label className="text-sm font-medium text-[var(--df-text-primary)]" htmlFor={id}>
           {label}
         </label>
-        {help ? <p className="mt-0.5 text-xs text-slate-500">{help}</p> : null}
+        {help ? <p className="mt-0.5 text-xs text-[var(--df-text-muted)]">{help}</p> : null}
       </div>
       <ul className="space-y-2">
         {values.map((line, i) => (
@@ -199,25 +199,25 @@ function StringListEditor(props: {
                 onChange(next);
               }}
               placeholder={placeholder}
-              className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[var(--df-brand-500)] focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)]/25"
+              className="flex-1 rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2 text-sm text-[var(--df-text-primary)] shadow-sm focus:border-[var(--df-brand-500)] focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)]/25"
             />
-            <button
+            <Button variant="secondary"
               type="button"
               className={buttonClassName("secondary", "shrink-0 px-2 text-xs")}
               onClick={() => onChange(values.filter((_, j) => j !== i))}
             >
               Remover
-            </button>
+            </Button>
           </li>
         ))}
       </ul>
-      <button
+      <Button variant="secondary"
         type="button"
         className={buttonClassName("secondary", "text-sm")}
         onClick={() => onChange([...values, ""])}
       >
         Adicionar linha
-      </button>
+      </Button>
     </div>
   );
 }
@@ -227,33 +227,33 @@ function IaCrossLinks() {
     <div className="grid gap-3 sm:grid-cols-3">
       <Link
         href="/settings"
-        className="group rounded-xl border border-slate-200/90 bg-slate-50/50 p-4 text-left shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)]/40"
+        className="group rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] p-4 text-left shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)]/40"
       >
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Motor</p>
-        <p className="mt-1 text-sm font-semibold text-slate-900 group-hover:text-[var(--df-brand-900)]">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Motor</p>
+        <p className="mt-1 text-sm font-semibold text-[var(--df-text-primary)] group-hover:text-[var(--df-brand-900)]">
           Configurações gerais
         </p>
-        <p className="mt-1 text-xs text-slate-600">OpenAI, Claude ou só regras</p>
+        <p className="mt-1 text-xs text-[var(--df-text-secondary)]">OpenAI, Claude ou só regras</p>
       </Link>
       <Link
         href="/settings/ai-analytics"
-        className="group rounded-xl border border-slate-200/90 bg-slate-50/50 p-4 text-left shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)]/40"
+        className="group rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] p-4 text-left shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)]/40"
       >
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Consumo</p>
-        <p className="mt-1 text-sm font-semibold text-slate-900 group-hover:text-[var(--df-brand-900)]">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Consumo</p>
+        <p className="mt-1 text-sm font-semibold text-[var(--df-text-primary)] group-hover:text-[var(--df-brand-900)]">
           Uso e custo de IA
         </p>
-        <p className="mt-1 text-xs text-slate-600">Tokens, limites do plano</p>
+        <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Tokens, limites do plano</p>
       </Link>
       <Link
         href="/dashboard/ai"
-        className="group rounded-xl border border-slate-200/90 bg-slate-50/50 p-4 text-left shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)]/40"
+        className="group rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] p-4 text-left shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)]/40"
       >
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Operação</p>
-        <p className="mt-1 text-sm font-semibold text-slate-900 group-hover:text-[var(--df-brand-900)]">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Operação</p>
+        <p className="mt-1 text-sm font-semibold text-[var(--df-text-primary)] group-hover:text-[var(--df-brand-900)]">
           Painel IA no atendimento
         </p>
-        <p className="mt-1 text-xs text-slate-600">Saúde, funil e eventos recentes</p>
+        <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Saúde, funil e eventos recentes</p>
       </Link>
     </div>
   );
@@ -269,11 +269,11 @@ function GuardrailsSummary(props: {
   const { enabled, autoReply, fallbackToHuman, planName, canUse } = props;
   const wl = isWhiteLabelMode();
   return (
-    <div className="rounded-xl border border-slate-200/90 bg-gradient-to-br from-slate-50/90 to-white p-4 text-sm text-slate-700 ring-1 ring-slate-900/[0.03]">
-      <p className="font-semibold text-slate-900">Guardrails e handoff (resumo)</p>
+    <div className="rounded-xl border df-border-brand bg-gradient-to-br from-[color-mix(in_srgb,var(--df-bg-app)_55%,var(--df-bg-elevated))] to-[var(--df-bg-elevated)] p-4 text-sm text-[var(--df-text-secondary)] ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+      <p className="font-semibold text-[var(--df-text-primary)]">Guardrails e handoff (resumo)</p>
       <ul className="mt-3 list-disc space-y-2 pl-5 leading-relaxed">
         <li>
-          <strong className="text-slate-800">Quando a IA pode responder:</strong> espaço com IA ativada, resposta
+          <strong className="text-[var(--df-text-primary)]">Quando a IA pode responder:</strong> espaço com IA ativada, resposta
           automática ligada, decisão dos guards a permitir e{" "}
           {canUse === false ? (
             <span className="text-amber-800">
@@ -291,7 +291,7 @@ function GuardrailsSummary(props: {
           .
         </li>
         <li>
-          <strong className="text-slate-800">Quando não responde sozinha:</strong>{" "}
+          <strong className="text-[var(--df-text-primary)]">Quando não responde sozinha:</strong>{" "}
           {!enabled ? (
             <span>IA desativada para o espaço de trabalho.</span>
           ) : !autoReply ? (
@@ -304,13 +304,13 @@ function GuardrailsSummary(props: {
           )}
         </li>
         <li>
-          <strong className="text-slate-800">Atendimento humano preferencial:</strong>{" "}
+          <strong className="text-[var(--df-text-primary)]">Atendimento humano preferencial:</strong>{" "}
           {fallbackToHuman
             ? "com baixa confiança ou bloqueio, o fluxo favorece transferência para humano (conforme automação)."
             : "desligado — reveja risco de respostas menos seguras em casos ambíguos."}
         </li>
         <li>
-          <strong className="text-slate-800">Erro ou indisponibilidade:</strong> a conversa pode ficar sem resposta
+          <strong className="text-[var(--df-text-primary)]">Erro ou indisponibilidade:</strong> a conversa pode ficar sem resposta
           automática; o painel de operação mostra fallbacks e erros para acompanhar.
         </li>
       </ul>
@@ -574,7 +574,7 @@ export function AiSettingsForm() {
       >
         <IaCrossLinks />
         {driver ? (
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-[var(--df-text-secondary)]">
             <span className="df-badge whitespace-nowrap">Override de motor só nesta IA</span>
           </p>
         ) : null}
@@ -585,16 +585,16 @@ export function AiSettingsForm() {
           </Link>
           . Aqui pode sobrescrever só para esta IA de atendimento na secção «Limites e segurança» (avançado).
         </FieldHelp>
-        <label className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/50 px-4 py-3">
+        <label className="flex items-start gap-3 rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] px-4 py-3">
           <input
             type="checkbox"
             checked={enabled}
             onChange={(e) => setEnabled(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-slate-300 text-[var(--df-brand-600)]"
+            className="mt-1 h-4 w-4 rounded border-[color-mix(in_srgb,var(--df-border-dark)_85%,var(--df-border-subtle))] text-[var(--df-brand-600)]"
           />
-          <span className="text-sm font-medium text-slate-800">
+          <span className="text-sm font-medium text-[var(--df-text-primary)]">
             IA ativada para o espaço de trabalho
-            <span className="mt-1 block text-xs font-normal text-slate-500">
+            <span className="mt-1 block text-xs font-normal text-[var(--df-text-muted)]">
               Sem isto, nenhuma resposta automática por IA é enviada, mesmo com regras ou prompt preenchidos.
             </span>
           </span>
@@ -614,8 +614,8 @@ export function AiSettingsForm() {
             })}
           />
         ) : null}
-        <div className="rounded-xl border border-dashed border-slate-200/90 bg-white/60 px-4 py-3 text-sm text-slate-600">
-          <p className="font-semibold text-slate-800">Ordem sugerida de configuração</p>
+        <div className="rounded-xl border border-dashed df-border-brand bg-[color-mix(in_srgb,var(--df-bg-elevated)_78%,transparent)] px-4 py-3 text-sm text-[var(--df-text-secondary)]">
+          <p className="font-semibold text-[var(--df-text-primary)]">Ordem sugerida de configuração</p>
           <ol className="mt-2 list-decimal space-y-1 pl-5">
             <li>Motor e quota (cartões acima)</li>
             <li>
@@ -656,21 +656,21 @@ export function AiSettingsForm() {
               return (
                 <div
                   key={p.id}
-                  className={`flex flex-col rounded-xl border bg-white p-4 text-left shadow-sm transition ${
+                  className={`flex flex-col rounded-xl border bg-[var(--df-bg-elevated)] p-4 text-left shadow-sm transition ${
                     selected
                       ? "border-[var(--df-brand-400)] ring-2 ring-[var(--df-brand-200)]/80"
-                      : "border-slate-200/90 ring-1 ring-slate-900/[0.03]"
+                      : "border df-border-brand ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]"
                   }`}
                 >
-                  <p className="text-sm font-bold text-slate-900">{p.label}</p>
-                  <p className="mt-1 flex-1 text-xs leading-relaxed text-slate-600">{p.description}</p>
-                  <button
+                  <p className="text-sm font-bold text-[var(--df-text-primary)]">{p.label}</p>
+                  <p className="mt-1 flex-1 text-xs leading-relaxed text-[var(--df-text-secondary)]">{p.description}</p>
+                  <Button variant="secondary"
                     type="button"
                     className={buttonClassName("secondary", "mt-3 w-full justify-center text-sm")}
                     onClick={() => applyPreset(p)}
                   >
                     Aplicar
-                  </button>
+                  </Button>
                 </div>
               );
             })}
@@ -686,7 +686,7 @@ export function AiSettingsForm() {
       >
         <div className="space-y-6">
           <AiSettingsSubheading>Identidade do assistente</AiSettingsSubheading>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[var(--df-text-muted)]">
             Nome e tom aparecem nas respostas ao cliente. Use quando quiser alinhar à marca (formal, comercial, suporte).
           </p>
         <FormField
@@ -700,7 +700,7 @@ export function AiSettingsForm() {
             type="text"
             value={assistantName}
             onChange={(e) => setAssistantName(e.target.value)}
-            className="w-full max-w-md rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            className="w-full max-w-md rounded-lg border df-border-brand px-3 py-2 text-sm"
             placeholder="Ex.: Equipa DevFlow"
           />
         </FormField>
@@ -725,9 +725,9 @@ export function AiSettingsForm() {
         </FormField>
         </div>
 
-        <div className="space-y-4 border-t border-slate-100 pt-6">
+        <div className="space-y-4 border-t df-border-brand pt-6">
           <AiSettingsSubheading>Contexto e objetivo</AiSettingsSubheading>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[var(--df-text-muted)]">
             Isto substitui boa parte do «prompt» em linguagem natural: quem são vocês e o que a IA deve perseguir neste
             canal (ex.: qualificar antes de preço).
           </p>
@@ -763,9 +763,9 @@ export function AiSettingsForm() {
           </FormField>
         </div>
 
-        <div className="space-y-4 border-t border-slate-100 pt-6">
+        <div className="space-y-4 border-t df-border-brand pt-6">
           <AiSettingsSubheading>Regras operacionais</AiSettingsSubheading>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[var(--df-text-muted)]">
             Instruções curtas em lista. Impacto: reduz alucinação e mensagens fora da política da empresa.
           </p>
           <StringListEditor
@@ -777,9 +777,9 @@ export function AiSettingsForm() {
           />
         </div>
 
-        <div className="space-y-4 border-t border-slate-100 pt-6">
+        <div className="space-y-4 border-t df-border-brand pt-6">
           <AiSettingsSubheading>Tópicos a evitar</AiSettingsSubheading>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[var(--df-text-muted)]">
             A IA recusa ou desvia educadamente. Impacto: menos risco legal/reputacional; pode aumentar handoff se o cliente
             insistir.
           </p>
@@ -791,9 +791,9 @@ export function AiSettingsForm() {
           />
         </div>
 
-        <div className="space-y-4 border-t border-slate-100 pt-6">
+        <div className="space-y-4 border-t df-border-brand pt-6">
           <AiSettingsSubheading>Playbook por fase do funil</AiSettingsSubheading>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[var(--df-text-muted)]">
             Opcional: afinar objetivo e linhas por estágio (lead → fechado). Quando usar: funis claros com equipas
             diferentes por fase. Impacto: mensagens mais específicas por momento da conversa.
           </p>
@@ -801,9 +801,9 @@ export function AiSettingsForm() {
           {FUNNEL_STAGES.map((stage) => (
             <div
               key={stage}
-              className="rounded-xl border border-slate-100 bg-slate-50/40 px-4 py-3"
+              className="rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_48%,var(--df-bg-elevated))] px-4 py-3"
             >
-              <p className="text-sm font-bold text-slate-900">{STAGE_LABELS[stage]}</p>
+              <p className="text-sm font-bold text-[var(--df-text-primary)]">{STAGE_LABELS[stage]}</p>
               <FormField
                 id={`pb-goal-${stage}`}
                 label="Objetivo"
@@ -819,7 +819,7 @@ export function AiSettingsForm() {
                       [stage]: { ...prev[stage], goal: e.target.value },
                     }))
                   }
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border df-border-brand px-3 py-2 text-sm"
                   placeholder="Opcional — sobrescreve o objetivo padrão deste estágio"
                 />
               </FormField>
@@ -854,16 +854,16 @@ export function AiSettingsForm() {
         title="Respostas automáticas e texto fixo"
         description="Define se a IA envia mensagens sozinha e mensagens de cortesia. Impacto na operação: com auto-resposta desligada, a equipa trata tudo na Inbox."
       >
-        <label className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/50 px-4 py-3">
+        <label className="flex items-start gap-3 rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] px-4 py-3">
           <input
             type="checkbox"
             checked={autoReply}
             onChange={(e) => setAutoReply(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-slate-300 text-[var(--df-brand-600)]"
+            className="mt-1 h-4 w-4 rounded border-[color-mix(in_srgb,var(--df-border-dark)_85%,var(--df-border-subtle))] text-[var(--df-brand-600)]"
           />
-          <span className="text-sm font-medium text-slate-800">
+          <span className="text-sm font-medium text-[var(--df-text-primary)]">
             Responder automaticamente a mensagens recebidas
-            <span className="mt-1 block text-xs font-normal text-slate-500">
+            <span className="mt-1 block text-xs font-normal text-[var(--df-text-muted)]">
               Quando usar: atendimento 24/7 com IA. Desligue se quiser só rascunhos ou revisão humana obrigatória. Impacto
               em custo: cada resposta automática conta no uso de IA do plano.
             </span>
@@ -892,16 +892,16 @@ export function AiSettingsForm() {
         title="Handoff, modelo e consumo"
         description="Gatilhos humanos, tamanho da resposta e temperatura influenciam segurança e custo. O comportamento em texto vem das fases anteriores (identidade, contexto, regras, funil)."
       >
-        <label className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/50 px-4 py-3">
+        <label className="flex items-start gap-3 rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] px-4 py-3">
           <input
             type="checkbox"
             checked={fallbackToHuman}
             onChange={(e) => setFallbackToHuman(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-slate-300 text-[var(--df-brand-600)]"
+            className="mt-1 h-4 w-4 rounded border-[color-mix(in_srgb,var(--df-border-dark)_85%,var(--df-border-subtle))] text-[var(--df-brand-600)]"
           />
-          <span className="text-sm font-medium text-slate-800">
+          <span className="text-sm font-medium text-[var(--df-text-primary)]">
             Preferir handoff para humano quando a IA não tiver confiança
-            <span className="mt-1 block text-xs font-normal text-slate-500">
+            <span className="mt-1 block text-xs font-normal text-[var(--df-text-muted)]">
               Recomendado em vendas e suporte sensível. Impacto: menos risco de resposta fraca; pode aumentar carga na
               equipa.
             </span>
@@ -921,15 +921,15 @@ export function AiSettingsForm() {
           planName={planInfo?.plan_name}
           canUse={usageStatus?.can_use}
         />
-        <details className="rounded-xl border border-slate-200/90 bg-slate-50/50 p-4 ring-1 ring-slate-900/[0.03]">
-          <summary className="cursor-pointer text-sm font-bold text-slate-900">
+        <details className="rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] p-4 ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+          <summary className="cursor-pointer text-sm font-bold text-[var(--df-text-primary)]">
             Avançado — motor LLM e parâmetros de geração
           </summary>
-          <div className="mt-4 space-y-4 border-t border-slate-200/80 pt-4">
+          <div className="mt-4 space-y-4 border-t df-border-brand pt-4">
             {planCaps && !planCaps.hasAdvancedAi && FEATURE_UPGRADE_COPY.ADVANCED_AI ? (
               <PricingContextHint message={FEATURE_UPGRADE_COPY.ADVANCED_AI} />
             ) : null}
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-[var(--df-text-secondary)]">
               Motor global do tenant: <strong>{tenantAiDriver ?? "não definido"}</strong>. Sobrescreva só se precisar de um
               fornecedor diferente só para esta IA de atendimento.
             </p>
@@ -983,7 +983,7 @@ export function AiSettingsForm() {
                   onChange={(e) => setTemperature(Number(e.target.value))}
                   className="h-2 w-full max-w-xs cursor-pointer accent-[var(--df-brand-600)]"
                 />
-                <span className="tabular-nums text-sm font-semibold text-slate-700">{temperature}</span>
+                <span className="tabular-nums text-sm font-semibold text-[var(--df-text-secondary)]">{temperature}</span>
               </div>
             </FormField>
             <FormField
@@ -1003,7 +1003,7 @@ export function AiSettingsForm() {
                   onChange={(e) => setMaxTokens(Number(e.target.value))}
                   className="h-2 w-full max-w-xs cursor-pointer accent-[var(--df-brand-600)]"
                 />
-                <span className="tabular-nums text-sm font-semibold text-slate-700">{maxTokens}</span>
+                <span className="tabular-nums text-sm font-semibold text-[var(--df-text-secondary)]">{maxTokens}</span>
               </div>
             </FormField>
           </div>
@@ -1018,10 +1018,10 @@ export function AiSettingsForm() {
       >
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-10">
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-slate-900" htmlFor="testMsg">
+            <label className="text-sm font-semibold text-[var(--df-text-primary)]" htmlFor="testMsg">
               Mensagem do cliente (entrada)
             </label>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[var(--df-text-muted)]">
               Escreva o que um cliente típico enviaria. Isto não fica guardado — só serve à simulação.
             </p>
             <textarea
@@ -1029,15 +1029,15 @@ export function AiSettingsForm() {
               value={testMessage}
               onChange={(e) => setTestMessage(e.target.value)}
               rows={5}
-              className={`${fieldTextareaClassName} rounded-2xl rounded-tl-md border-slate-200/90 bg-slate-50/90`}
+              className={`${fieldTextareaClassName} rounded-2xl rounded-tl-md border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_55%,var(--df-bg-elevated))]`}
               placeholder="Ex.: Olá, quanto custa o plano anual?"
             />
           </div>
 
           <div className="space-y-3">
-            <p className="text-sm font-semibold text-slate-900">Resposta simulada da IA</p>
-            <p className="text-xs text-slate-500">Pré-visualização do texto que o cliente veria (quando permitido pelos guards).</p>
-            <div className="min-h-[8rem] rounded-2xl rounded-tr-md border border-[var(--df-brand-200)]/90 bg-[var(--df-brand-50)]/90 p-4 text-sm text-slate-900 shadow-sm ring-1 ring-[var(--df-brand-100)]/80">
+            <p className="text-sm font-semibold text-[var(--df-text-primary)]">Resposta simulada da IA</p>
+            <p className="text-xs text-[var(--df-text-muted)]">Pré-visualização do texto que o cliente veria (quando permitido pelos guards).</p>
+            <div className="min-h-[8rem] rounded-2xl rounded-tr-md border border-[var(--df-brand-200)]/90 bg-[var(--df-brand-50)]/90 p-4 text-sm text-[var(--df-text-primary)] shadow-sm ring-1 ring-[var(--df-brand-100)]/80">
               {testLoading ? (
                 <div className="flex flex-col gap-2 animate-pulse">
                   <p className="text-xs font-medium text-[var(--df-brand-800)]">A gerar resposta…</p>
@@ -1050,7 +1050,7 @@ export function AiSettingsForm() {
                   {testRun.reply?.trim() ? testRun.reply : "— Sem texto gerado (ver detalhes abaixo)."}
                 </p>
               ) : (
-                <p className="text-slate-500">
+                <p className="text-[var(--df-text-muted)]">
                   Clique em «Testar resposta» para ver a saída aqui. Nada é enviado ao WhatsApp.
                 </p>
               )}
@@ -1058,15 +1058,15 @@ export function AiSettingsForm() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-6">
-          <button
+        <div className="flex flex-wrap items-center gap-3 border-t df-border-brand pt-6">
+          <Button variant="disabled"
             type="button"
             className={buttonClassName("primary")}
             disabled={testLoading}
             onClick={handleTest}
           >
             {testLoading ? "A gerar…" : "Testar resposta"}
-          </button>
+          </Button>
           <Link href="/inbox" className={`${buttonClassName("secondary")} inline-flex`}>
             Abrir Inbox
           </Link>
@@ -1087,14 +1087,14 @@ export function AiSettingsForm() {
         ) : null}
 
         {recentTestSnapshots.length > 0 ? (
-          <div className="rounded-xl border border-slate-100 bg-slate-50/50 px-4 py-3 text-xs text-slate-600">
-            <p className="font-semibold text-slate-800">Testes recentes (nesta sessão)</p>
+          <div className="rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] px-4 py-3 text-xs text-[var(--df-text-secondary)]">
+            <p className="font-semibold text-[var(--df-text-primary)]">Testes recentes (nesta sessão)</p>
             <ul className="mt-2 space-y-2">
               {recentTestSnapshots.map((s, i) => (
-                <li key={`${s.at}-${i}`} className="border-b border-slate-100/80 pb-2 last:border-0 last:pb-0">
-                  <span className="text-slate-500">{new Date(s.at).toLocaleTimeString("pt-BR", { timeStyle: "short" })}</span>
-                  <span className="mx-2 text-slate-300">·</span>
-                  <span className="line-clamp-2 text-slate-700">{s.reply || "(sem texto)"}</span>
+                <li key={`${s.at}-${i}`} className="border-b df-border-brand pb-2 last:border-0 last:pb-0">
+                  <span className="text-[var(--df-text-muted)]">{new Date(s.at).toLocaleTimeString("pt-BR", { timeStyle: "short" })}</span>
+                  <span className="mx-2 text-[color-mix(in_srgb,var(--df-text-muted)_40%,transparent)]">·</span>
+                  <span className="line-clamp-2 text-[var(--df-text-secondary)]">{s.reply || "(sem texto)"}</span>
                 </li>
               ))}
             </ul>
@@ -1102,45 +1102,45 @@ export function AiSettingsForm() {
         ) : null}
 
         {testRun ? (
-          <details className="rounded-xl border border-slate-200/90 bg-white p-4 text-sm ring-1 ring-slate-900/[0.03]">
-            <summary className="cursor-pointer font-semibold text-slate-800">Detalhes técnicos da simulação</summary>
-            <div className="mt-4 grid gap-4 border-t border-slate-100 pt-4 sm:grid-cols-2">
+          <details className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-4 text-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+            <summary className="cursor-pointer font-semibold text-[var(--df-text-primary)]">Detalhes técnicos da simulação</summary>
+            <div className="mt-4 grid gap-4 border-t df-border-brand pt-4 sm:grid-cols-2">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Decisão (guard)</p>
-                <p className="mt-1 font-medium text-slate-900">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Decisão (guard)</p>
+                <p className="mt-1 font-medium text-[var(--df-text-primary)]">
                   {testRun.decision.allow ? "Permitido" : "Bloqueado / handoff"}
                 </p>
-                <p className="mt-1 text-xs text-slate-600">{testRun.decision.reason}</p>
+                <p className="mt-1 text-xs text-[var(--df-text-secondary)]">{testRun.decision.reason}</p>
                 {testRun.decision.confidence != null ? (
-                  <p className="mt-1 text-xs text-slate-500">Confiança: {testRun.decision.confidence}</p>
+                  <p className="mt-1 text-xs text-[var(--df-text-muted)]">Confiança: {testRun.decision.confidence}</p>
                 ) : null}
               </div>
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Estado (funil)</p>
-                <p className="mt-1 font-mono text-sm font-semibold text-slate-900">{testRun.state}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Estado (funil)</p>
+                <p className="mt-1 font-mono text-sm font-semibold text-[var(--df-text-primary)]">{testRun.state}</p>
               </div>
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Execução</p>
-                <ul className="mt-1 space-y-0.5 text-slate-800">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Execução</p>
+                <ul className="mt-1 space-y-0.5 text-[var(--df-text-primary)]">
                   <li>
-                    <span className="text-slate-500">Motor:</span> {testRun.usedDriver}
+                    <span className="text-[var(--df-text-muted)]">Motor:</span> {testRun.usedDriver}
                   </li>
                   <li>
-                    <span className="text-slate-500">Modelo:</span> {testRun.usedModel || "—"}
+                    <span className="text-[var(--df-text-muted)]">Modelo:</span> {testRun.usedModel || "—"}
                   </li>
                   <li>
-                    <span className="text-slate-500">Latência:</span>{" "}
+                    <span className="text-[var(--df-text-muted)]">Latência:</span>{" "}
                     <span className="tabular-nums font-semibold">{testRun.latencyMs} ms</span>
                   </li>
                   <li>
-                    <span className="text-slate-500">Fallback:</span>{" "}
+                    <span className="text-[var(--df-text-muted)]">Fallback:</span>{" "}
                     <strong>{testRun.fallback ? "sim" : "não"}</strong>
                   </li>
                 </ul>
               </div>
               {testRun.error ? (
                 <div className="sm:col-span-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Nota do motor</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Nota do motor</p>
                   <p className="mt-1 rounded-md border border-amber-200/80 bg-amber-50 px-2 py-1.5 text-xs text-amber-950">
                     {testRun.error}
                   </p>
@@ -1152,7 +1152,7 @@ export function AiSettingsForm() {
       </AiSettingsPhase>
 
       {updatedAt ? (
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-[var(--df-text-muted)]">
           Versão {configVersion} · última alteração {new Date(updatedAt).toLocaleString("pt-BR")}
         </p>
       ) : null}
@@ -1164,7 +1164,7 @@ export function AiSettingsForm() {
       ) : null}
 
       <FormActions>
-        <Button type="submit" disabled={saving}>
+        <Button variant="primary" type="submit" disabled={saving}>
           {saving ? "A guardar…" : "Guardar alterações"}
         </Button>
         <Link href="/settings" className={buttonClassName("secondary")}>

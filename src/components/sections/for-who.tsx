@@ -44,7 +44,7 @@ export function ForWho() {
           >
             Para quem é a DevFlow
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="mt-3 df-text-secondary">
             Se você se identifica com um desses perfis, a DevFlow foi feita para você.
           </p>
         </div>
@@ -60,7 +60,7 @@ export function ForWho() {
               )}
             >
               <h3 className="font-semibold text-foreground">{segment.title}</h3>
-              <p className="mt-2 text-sm text-slate-600">{segment.description}</p>
+              <p className="mt-2 text-sm df-text-secondary">{segment.description}</p>
             </Link>
           ))}
         </div>

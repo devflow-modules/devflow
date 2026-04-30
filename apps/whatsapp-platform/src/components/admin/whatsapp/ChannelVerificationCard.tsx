@@ -129,8 +129,8 @@ export function ChannelVerificationCard({ channelId, onTimelineRefresh }: Props)
   if (loading) {
     return (
       <section className="mb-6 rounded-xl border df-border-brand bg-[var(--df-bg-elevated)]/80 p-4" aria-busy>
-        <div className="h-4 w-40 animate-pulse rounded bg-slate-200" />
-        <div className="mt-3 h-24 animate-pulse rounded-lg bg-slate-100" />
+        <div className="h-4 w-40 animate-pulse rounded bg-muted" />
+        <div className="mt-3 h-24 animate-pulse rounded-lg bg-muted" />
       </section>
     );
   }

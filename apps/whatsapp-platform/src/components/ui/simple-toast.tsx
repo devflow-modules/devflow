@@ -21,7 +21,7 @@ export function useSimpleToast(durationMs = 2600) {
       <div
         role="status"
         aria-live="polite"
-        className="pointer-events-none fixed bottom-6 left-1/2 z-[200] max-w-[min(90vw,20rem)] -translate-x-1/2 rounded-xl border border-slate-200/90 bg-slate-900 px-4 py-3 text-center text-sm font-medium text-white shadow-lg"
+        className="pointer-events-none fixed bottom-6 left-1/2 z-[200] max-w-[min(90vw,20rem)] -translate-x-1/2 rounded-xl border border-border/90 bg-muted px-4 py-3 text-center text-sm font-medium text-white shadow-lg"
       >
         {toast}
       </div>

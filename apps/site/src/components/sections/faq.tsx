@@ -83,7 +83,7 @@ export function Faq() {
           >
             Perguntas frequentes
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="mt-3 df-text-secondary">
             Dúvidas comuns sobre a automação de atendimento no WhatsApp.
           </p>
         </div>
@@ -98,7 +98,7 @@ export function Faq() {
                 {item.question}
                 <ChevronDown className="size-5 shrink-0 transition-transform group-open:rotate-180 text-muted-foreground" />
               </summary>
-              <p className="border-t border-border px-4 py-3 text-slate-600">
+              <p className="border-t border-border px-4 py-3 df-text-secondary">
                 {item.answer}
               </p>
             </details>

@@ -13,6 +13,7 @@ import { EvaluationModeRibbon } from "./EvaluationModeRibbon";
 import { SessionRoleModePill } from "./SessionRoleModePill";
 import { NavCommandPalette } from "@/components/navigation/NavCommandPalette";
 import { shellHomeHref } from "@/lib/roles";
+import { Button } from "@/components/ui/button";
 
 function MobileHeaderBrand() {
   const { role } = useSessionRole();
@@ -54,7 +55,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
   return (
     <div className="df-page flex h-dvh max-h-dvh w-full min-h-0 overflow-hidden">
       {mobileNavOpen ? (
-        <button
+        <Button variant="ghost"
           type="button"
           className="fixed inset-0 z-40 bg-black/55 backdrop-blur-[1px] lg:hidden"
           aria-label="Fechar menu"
@@ -66,7 +67,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
           mobileNavOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         } ${
           sidebarCollapsed
-            ? "lg:w-14 lg:min-w-[3.5rem] lg:border-slate-100/90 lg:shadow-[2px_0_20px_rgba(15,23,42,0.06)]"
+            ? "lg:w-14 lg:min-w-[3.5rem] lg:border-border/90 lg:shadow-[2px_0_20px_rgba(15,23,42,0.06)]"
             : "lg:w-60"
         }`}
       >
@@ -78,7 +79,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
         }`}
       >
         <header className="z-30 flex h-14 shrink-0 items-center gap-2 border-b df-border-brand bg-[var(--df-bg-elevated)]/95 px-3 backdrop-blur-md sm:gap-3 sm:px-4 lg:hidden">
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={() => setMobileNavOpen(true)}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2"
@@ -87,7 +88,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-          </button>
+          </Button>
           <MobileHeaderBrand />
           <SessionRoleModePill variant="header" />
           <span className="ml-auto shrink-0 text-[10px] text-[var(--df-text-muted)]" title="Paleta de navegação">
