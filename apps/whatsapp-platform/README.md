@@ -83,3 +83,26 @@ pnpm test
 ```
 
 Vitest: testes em `src/**/*.test.ts` (ex.: `modules/auth/__tests__/authService.test.ts`).
+
+## Accessibility
+
+This app includes Playwright + axe checks for critical WhatsApp Platform flows.
+
+Run locally:
+
+```bash
+pnpm test:a11y
+```
+
+Authenticated flows require:
+
+```bash
+E2E_WHATSAPP_ADMIN_EMAIL=
+E2E_WHATSAPP_ADMIN_PASSWORD=
+```
+
+Define both in `.env.local` (or the process environment). For axe coverage on `/admin/whatsapp`, the user must be `platform_admin`.
+
+Manual WCAG AA checklist:
+
+- [docs/accessibility/WCAG-AA-CHECKLIST.md](./docs/accessibility/WCAG-AA-CHECKLIST.md)
