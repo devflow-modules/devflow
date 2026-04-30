@@ -604,6 +604,11 @@ model WaInboxThread {
   leadScore              Int                   @default(0) @map("lead_score")
   /** Dados extraídos heurísticamente do cliente (merge incremental) */
   leadData               Json?                 @map("lead_data")
+  /**
+   * ID do `outbound_leads` no BD do portal (`Lead.id`, Prisma raiz). Cross-database — sem FK PostgreSQL.
+   * Espelha `Lead.conversationRef` → esta thread; necessário para funil, métricas e histórico comercial.
+   */
+  outboundLeadId         String?               @map("outbound_lead_id") @db.VarChar(40)
   /** Cliente sinalizou hesitação (ex.: "vou pensar") — fila recuperação comercial */
   needsRecovery          Boolean               @default(false) @map("needs_recovery")
   /** Contador de automações comerciais enviadas (follow-up / reativação / recuperação) */
@@ -628,6 +633,7 @@ model WaInboxThread {
   @@index([tenantId, status])
   @@index([tenantId, assignedToUserId])
   @@index([tenantId, queueId])
+  @@index([tenantId, outboundLeadId])
   @@map("wa_inbox_threads")
 }
 

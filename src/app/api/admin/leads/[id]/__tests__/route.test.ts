@@ -2,6 +2,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("@/lib/crm-whatsapp-auth", () => ({
   getCrmWhatsappSessionFromCookies: vi.fn().mockResolvedValue(null),
+  getCrmWhatsappSessionFromRequest: vi.fn().mockResolvedValue(null),
+}));
+
+const mockMirrorOutbound = vi.fn();
+vi.mock("@/lib/crm-sync", () => ({
+  mirrorOutboundLeadIdToThread: (...a: unknown[]) => mockMirrorOutbound(...a),
 }));
 
 vi.mock("@/lib/lead-operator-service", () => ({
@@ -42,6 +48,8 @@ describe("PATCH /api/admin/leads/[id]", () => {
     vi.mocked(prisma.lead.findUnique).mockReset();
     vi.mocked(prisma.lead.update).mockReset();
     vi.mocked(getCrmWhatsappSessionFromCookies).mockResolvedValue(null);
+    mockMirrorOutbound.mockReset();
+    mockMirrorOutbound.mockResolvedValue(undefined);
   });
 
   it("403 sem autorização", async () => {
@@ -134,6 +142,7 @@ describe("PATCH /api/admin/leads/[id]", () => {
     expect(res.status).toBe(200);
     const updateArg = vi.mocked(prisma.lead.update).mock.calls[0]?.[0] as { data: { conversationRef: string } };
     expect(updateArg.data.conversationRef).toBe("conv-uuid");
+    expect(mockMirrorOutbound).toHaveBeenCalledWith("conv-uuid", "lead-1");
   });
 
   it("rejeita atribuição a operador com sessão ausente", async () => {

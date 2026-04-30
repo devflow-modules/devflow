@@ -19,7 +19,7 @@ describe("P1 — Demo /demo", () => {
     render(<DemoPage />);
     expect(
       screen.getByRole("heading", {
-        name: /Veja como seu WhatsApp pode responder/i,
+        name: /Veja como a operação de atendimento e vendas funciona no WhatsApp/i,
       })
     ).toBeInTheDocument();
     expect(screen.getByText(/1\. Escolha o segmento/i)).toBeInTheDocument();

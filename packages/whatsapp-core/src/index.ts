@@ -11,3 +11,4 @@ export * from "./normalize";
 export * from "./retry";
 export * from "./adapter";
 export * from "./status";
+export * from "./externalCrmPayload";

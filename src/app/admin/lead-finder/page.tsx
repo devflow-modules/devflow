@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LeadFinderClient } from "./LeadFinderClient";
 
 export const metadata: Metadata = {
-  title: "Lead Finder | Admin",
-  description: "Atalho para busca no Maps e cadastro rápido de leads.",
+  title: "Prospecção DevFlow | Lead Finder",
+  description: "Ferramenta interna — Maps e cadastro rápido de leads (ligação ao Inbox via conversation ref).",
   robots: "noindex, nofollow",
 };
 

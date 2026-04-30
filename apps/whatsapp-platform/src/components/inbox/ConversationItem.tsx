@@ -91,11 +91,11 @@ export const ConversationItem = memo(function ConversationItem({
   const crmTier = thread.priority;
   const crmLabel =
     crmTier === "HIGH"
-      ? "Prioridade alta"
+      ? "Prioridade CRM — alta"
       : crmTier === "MEDIUM"
-        ? "Prioridade média"
+        ? "Prioridade CRM — média"
         : crmTier === "LOW"
-          ? "Prioridade baixa"
+          ? "Prioridade CRM — baixa"
           : null;
   const priorityHint = priorityGuidance(crmTier);
   const crmClass =

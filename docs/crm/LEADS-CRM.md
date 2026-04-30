@@ -1,6 +1,8 @@
 # `/admin/leads` — CRM outbound
 
-Painel **operacional** para leads manuais: listagem, filtros, notas, follow-up, métricas de funil e ações rápidas (incl. WhatsApp com templates).
+Arquitetura geral: **[CRM-ARCHITECTURE.md](./CRM-ARCHITECTURE.md)** (fonte de verdade no Inbox; portal = prospecção interna DevFlow).
+
+Painel **interno** para leads manuais: listagem, filtros, notas, follow-up, métricas de funil e ações rápidas (incl. WhatsApp com templates).
 
 ---
 

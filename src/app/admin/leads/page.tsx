@@ -3,8 +3,8 @@ import { Toaster } from "sonner";
 import { AdminLeadsClient } from "./AdminLeadsClient";
 
 export const metadata: Metadata = {
-  title: "Leads outbound | Admin",
-  description: "CRM mínimo para prospecção manual.",
+  title: "Prospecção DevFlow | Leads",
+  description: "Ferramenta interna DevFlow — prospecção outbound; não é CRM do produto para clientes.",
   robots: "noindex, nofollow",
 };
 

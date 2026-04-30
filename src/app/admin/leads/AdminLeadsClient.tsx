@@ -394,7 +394,14 @@ export function AdminLeadsClient() {
     <main className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Leads outbound</h1>
+          <div className="rounded-lg border border-amber-500/40 bg-amber-50/90 px-3 py-2 text-sm text-amber-950 dark:border-amber-600/50 dark:bg-amber-950/40 dark:text-amber-50">
+            <span className="font-semibold">Prospecção interna DevFlow</span>
+            <span className="text-amber-900/90 dark:text-amber-100/90">
+              {" "}
+              — ferramenta comercial interna; o estado operacional do cliente vive no Inbox (WhatsApp Platform).
+            </span>
+          </div>
+          <h1 className="mt-3 text-2xl font-bold text-foreground">Prospecção DevFlow</h1>
           <p className="mt-1 text-sm text-muted-foreground">Painel comercial: prospecção, follow-up e conversão.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">

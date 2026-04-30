@@ -54,6 +54,8 @@ export type WaInboxThreadRow = {
   lastMessagePreview: string | null;
   status: string;
   priority?: string;
+  /** ID do `Lead` no portal (`outbound_leads`), quando ligado à prospecção DevFlow. */
+  outboundLeadId?: string | null;
   /** CRM: pontuação automática (recalculada em cada inbound) */
   leadScore?: number;
   /** CRM: campos extraídos heurísticamente */

@@ -9,6 +9,8 @@ export const OUTBOUND_LEAD_ORIGINS = [
   "lead_finder_google_maps",
   "inbound_site",
   "demo",
+  /** Conversa existente no WhatsApp Platform (portal espelha; inbox = fonte de verdade). */
+  "inbound_whatsapp_thread",
 ] as const;
 
 export type OutboundLeadOrigin = (typeof OUTBOUND_LEAD_ORIGINS)[number];
@@ -25,6 +27,7 @@ export const OUTBOUND_LEAD_ORIGIN_LABELS: Record<OutboundLeadOrigin, string> = {
   lead_finder_google_maps: "Lead finder (Google Maps)",
   inbound_site: "Site / inbound",
   demo: "Demo / pedido de demo",
+  inbound_whatsapp_thread: "Inbox WhatsApp (conversa existente)",
 };
 
 /** POST /api/admin/leads — só canónicos ou `null` / omitido. */

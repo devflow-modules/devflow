@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { normalizeWebhookPayload } from "@devflow/whatsapp-core";
+import { buildExternalCrmLeadEventPayload, normalizeWebhookPayload } from "@devflow/whatsapp-core";
 import type { IncomingMessage } from "@devflow/whatsapp-core";
 import { tenantService } from "../services/TenantService.js";
 import { conversationService } from "../services/ConversationService.js";
@@ -14,6 +14,7 @@ function logStructured(obj: Record<string, unknown>): void {
   console.log(JSON.stringify({ ts: new Date().toISOString(), ...obj }));
 }
 
+/** Integração opcional: envia evento ao CRM externo sem alterar estado interno. */
 async function notifyCrmIfLead(
   tenant: { id: string; crmWebhookUrl?: string | null },
   phone: string,
@@ -22,16 +23,17 @@ async function notifyCrmIfLead(
 ): Promise<void> {
   if (!tenant.crmWebhookUrl?.trim() || intent !== "SALES") return;
   try {
-    await fetch(tenant.crmWebhookUrl, {
+    await fetch(tenant.crmWebhookUrl.trim(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        tenantId: tenant.id,
-        phone,
-        message,
-        intent,
-        source: "whatsapp",
-      }),
+      body: JSON.stringify(
+        buildExternalCrmLeadEventPayload({
+          tenantId: tenant.id,
+          phone,
+          message,
+          intent,
+        })
+      ),
     });
   } catch (e) {
     console.error("[Webhook] CRM webhook failed:", e);

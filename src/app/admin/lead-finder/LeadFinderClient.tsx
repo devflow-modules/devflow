@@ -140,9 +140,16 @@ export function LeadFinderClient() {
       <main className="mx-auto max-w-2xl px-4 py-8">
         <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
+            <div className="mb-3 rounded-lg border border-amber-500/40 bg-amber-50/90 px-3 py-2 text-sm text-amber-950 dark:border-amber-600/50 dark:bg-amber-950/40 dark:text-amber-50">
+              <span className="font-semibold">Prospecção interna DevFlow</span>
+              <span className="text-amber-900/90 dark:text-amber-100/90">
+                {" "}
+                — mesmo fluxo que Prospecção DevFlow; não é ferramenta do produto para o teu cliente final.
+              </span>
+            </div>
             <h1 className="text-2xl font-bold text-foreground">Lead Finder</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Busca no Google Maps e cadastro rápido no CRM (origem{" "}
+              Maps + cadastro rápido de lead (origem{" "}
               <code className="rounded bg-muted px-1">{LEAD_FINDER_ORIGIN}</code>).
             </p>
           </div>
@@ -150,7 +157,7 @@ export function LeadFinderClient() {
             href="/admin/leads"
             className="shrink-0 text-sm font-medium text-primary underline-offset-4 hover:underline"
           >
-            Ir para Leads →
+            Ir para Prospecção DevFlow →
           </Link>
         </div>
 
@@ -209,7 +216,7 @@ export function LeadFinderClient() {
         </section>
 
         <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
-          <h2 className="mb-3 text-sm font-semibold text-foreground">Adicionar ao CRM</h2>
+          <h2 className="mb-3 text-sm font-semibold text-foreground">Registar lead (Prospecção DevFlow)</h2>
           {error ? (
             <p className="mb-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {error}
@@ -263,7 +270,7 @@ export function LeadFinderClient() {
                 disabled={submitting}
                 className="rounded-md px-4 py-2.5 text-sm font-medium hover:opacity-95 disabled:opacity-50"
               >
-                {submitting ? "Salvando…" : "Adicionar ao CRM"}
+                {submitting ? "Salvando…" : "Registar lead"}
               </Button>
               <Button
                 type="button"

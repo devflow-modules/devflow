@@ -177,7 +177,7 @@ export function ChatWindow({
                   <svg className="h-4 w-4 text-[var(--df-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Contexto CRM
+                  Contexto do cliente
                 </Button>
               </div>
             ) : null}
@@ -205,14 +205,14 @@ export function ChatWindow({
           <Button variant="ghost"
             type="button"
             className="absolute inset-0 bg-black/45 backdrop-blur-[1px] transition-opacity"
-            aria-label="Fechar painel CRM"
+            aria-label="Fechar painel do cliente"
             onClick={() => setCrmDrawerOpen(false)}
           />
           <div
             className="absolute inset-y-0 right-0 flex w-[min(22rem,92vw)] max-w-full flex-col border-l df-border-brand bg-[var(--df-bg-elevated)] shadow-[0_0_40px_rgba(0,0,0,0.4)] motion-safe:animate-[dfInboxPaneEnter_200ms_ease-out] motion-reduce:animate-none"
             role="dialog"
             aria-modal="true"
-            aria-label="Contexto CRM"
+            aria-label="Contexto do cliente"
           >
             <LeadDataPanel
               thread={activeThread}

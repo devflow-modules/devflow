@@ -12,6 +12,10 @@ import { OperatorSuggestion } from "./OperatorSuggestion";
 import { generateOperatorSuggestion } from "./operatorSuggestion";
 import { aiStateFriendlyLabel, leadScoreHumanLabel, priorityGuidance } from "./leadPanelCopy";
 import {
+  deriveOperationalCrmPhase,
+  OPERATIONAL_CRM_PHASE_LABEL_PT,
+} from "@/modules/inbox/leadCrm";
+import {
   conversationStateOperationalHint,
   conversationStateSuggestedActions,
   getConversationStateBadge,
@@ -133,7 +137,7 @@ export function LeadDataPanel({
       <div className="border-b border-border/80 px-3 py-2.5">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <h3 className="text-xs font-bold uppercase tracking-wide df-text-secondary">Contexto CRM</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wide df-text-secondary">Contexto do cliente</h3>
             <p className="mt-0.5 text-[10px] df-text-muted">Decisão rápida — estado vem do servidor.</p>
           </div>
           {onClose ? (
@@ -141,7 +145,7 @@ export function LeadDataPanel({
               type="button"
               onClick={onClose}
               className="shrink-0 rounded-lg p-1.5 df-text-muted transition hover:bg-muted hover:df-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2"
-              aria-label="Fechar painel CRM"
+              aria-label="Fechar painel do cliente"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -189,6 +193,17 @@ export function LeadDataPanel({
                 <span className="text-xs df-text-muted">Estado indisponível</span>
               )}
             </div>
+            <div data-testid="operational-crm-phase">
+              <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">Fase comercial</p>
+              <p className="text-sm font-medium df-text-primary">
+                {OPERATIONAL_CRM_PHASE_LABEL_PT[
+                  deriveOperationalCrmPhase({
+                    threadStatus: thread.status,
+                    conversationState: convState,
+                  })
+                ]}
+              </p>
+            </div>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">Responsável</p>
               <p className="text-sm font-medium df-text-primary" data-testid="lead-panel-assignee">
@@ -203,7 +218,7 @@ export function LeadDataPanel({
         )}
 
         {panelSection(
-          "Operação sugerida",
+          "Próxima ação",
           bullets.length ? (
             <ul className="list-inside list-disc space-y-1 text-xs leading-relaxed df-text-secondary">
               {bullets.map((b) => (
@@ -216,11 +231,11 @@ export function LeadDataPanel({
         )}
 
         {panelSection(
-          "Lead / CRM",
+          "Prioridade CRM e score",
           <>
             {thread.priority ? (
               <div className="space-y-1">
-                <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">Prioridade</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">Prioridade CRM</p>
                 {priorityStripe(thread.priority)}
                 <p className="text-sm font-semibold df-text-primary">
                   {thread.priority === "HIGH" ? "Alta" : thread.priority === "MEDIUM" ? "Média" : "Baixa"}

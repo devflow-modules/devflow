@@ -4,12 +4,16 @@ Documentação do **CRM mínimo** embutido no portal DevFlow (`devflowlabs.com.b
 
 **Público:** equipa comercial interna (rotas `/admin/*` protegidas).
 
+**Arquitetura unificada (Inbox vs portal vs webhook):** [CRM-ARCHITECTURE.md](./CRM-ARCHITECTURE.md).
+
 ---
 
 ## Índice
 
 | Documento | Conteúdo |
 |-----------|----------|
+| [CRM-ARCHITECTURE.md](./CRM-ARCHITECTURE.md) | Fonte de verdade (Inbox), portal interno, integração externa |
+| [CRM-DEDUPE-AND-PORTAL-LINK.md](./CRM-DEDUPE-AND-PORTAL-LINK.md) | `outboundLeadId`, dedupe, automação inbound futura, `Lead.tenantId` |
 | [LEADS-CRM.md](./LEADS-CRM.md) | `/admin/leads` — ciclo de vida, status, conversão, conversa |
 | [LEAD-FINDER.md](./LEAD-FINDER.md) | `/admin/lead-finder` — Maps, presets, cadastro rápido |
 | [FOLLOW-UP-ENGINE.md](./FOLLOW-UP-ENGINE.md) | Parados, urgência, “Ações de hoje”, sugestões |
@@ -23,7 +27,7 @@ Documentação do **CRM mínimo** embutido no portal DevFlow (`devflowlabs.com.b
 - `PATCH /api/admin/leads/:id` — atualização parcial (incl. `conversationRef`)  
 - `POST /api/admin/leads/:id/convert` — marcação de conversão comercial  
 
-Autenticação: ver `src/lib/admin-leads-api-auth.ts` e variáveis `ADMIN_METRICS_SECRET` / cookie em produção (`src/middleware.ts`).
+Autenticação: ver `src/lib/admin-leads-api-auth.ts` — em **produção**: segredo métricas admin (legado Ops) **ou** JWT WhatsApp Platform com papel **`platform_admin`**; páginas `layout.tsx` em `/admin/leads` e `/admin/lead-finder` alinham o mesmo requisito em SSR.
 
 ---
 

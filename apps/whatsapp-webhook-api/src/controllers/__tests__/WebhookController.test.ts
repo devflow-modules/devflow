@@ -202,5 +202,57 @@ describe("WebhookController", () => {
         "user-agent-1"
       );
     });
+
+    it("com intent SALES e crmWebhookUrl envia POST com source devflow_whatsapp (sem alterar fluxo interno)", async () => {
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("ok", { status: 200 }));
+      mockTenantService.resolveTenant.mockResolvedValue({
+        id: "tenant-1",
+        phoneNumberId: "pn-1",
+        accessToken: "token",
+        aiDriver: "ruleBased",
+        crmWebhookUrl: "https://hooks.example/crm",
+      });
+      mockAiService.classifyIntent.mockResolvedValue({ intent: "SALES" });
+      const payload = {
+        object: "whatsapp_business_account",
+        entry: [
+          {
+            id: "1",
+            changes: [
+              {
+                value: {
+                  messaging_product: "whatsapp",
+                  metadata: { display_phone_number: "5511999999999", phone_number_id: "pn-1" },
+                  contacts: [{ profile: { name: "User" }, wa_id: "5511888888888" }],
+                  messages: [
+                    {
+                      from: "5511888888888",
+                      id: "wamid.sales",
+                      timestamp: "1704067200",
+                      type: "text",
+                      text: { body: "Quero comprar agora" },
+                    },
+                  ],
+                },
+                field: "messages",
+              },
+            ],
+          },
+        ],
+      };
+      const { req, res } = createMockReqRes(payload);
+
+      await controller.handleWebhook(req, res);
+      await new Promise((r) => setTimeout(r, 80));
+
+      expect(fetchSpy).toHaveBeenCalled();
+      const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+      expect(url).toBe("https://hooks.example/crm");
+      const body = JSON.parse(String(init.body)) as { source: string; intent: string };
+      expect(body.source).toBe("devflow_whatsapp");
+      expect(body.intent).toBe("SALES");
+      expect(mockConversationService.processInbound).toHaveBeenCalled();
+      fetchSpy.mockRestore();
+    });
   });
 });

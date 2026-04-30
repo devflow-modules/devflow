@@ -9,6 +9,7 @@ import {
   getWhatsappUserForDisplay,
   syncLeadAssigneeFromThreadIfEmpty,
 } from "@/lib/lead-operator-service";
+import { mirrorOutboundLeadIdToThread } from "@/lib/crm-sync";
 
 const patchLeadSchema = z.object({
   name: z.string().trim().max(200).optional().nullable(),
@@ -138,6 +139,19 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (!lead.assignedOperatorId && lead.conversationRef) {
       const synced = await syncLeadAssigneeFromThreadIfEmpty(lead);
       if (synced) lead = synced;
+    }
+
+    if (data.conversationRef !== undefined) {
+      const prevRef = current.conversationRef;
+      const nextRef = lead.conversationRef;
+      if (prevRef && prevRef !== nextRef) {
+        await mirrorOutboundLeadIdToThread(prevRef, null);
+      }
+      if (nextRef) {
+        await mirrorOutboundLeadIdToThread(nextRef, lead.id);
+      } else if (prevRef) {
+        await mirrorOutboundLeadIdToThread(prevRef, null);
+      }
     }
 
     let assignedOperator: { id: string; name: string; email: string } | null = null;

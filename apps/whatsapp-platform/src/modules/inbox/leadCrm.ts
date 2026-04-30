@@ -5,6 +5,7 @@ import {
   countInboundTextMessages,
   type AiState,
 } from "@/modules/ai/conversationStateService";
+import type { ConversationState } from "@/modules/inbox/waInboxConversationState";
 import {
   mergeProspectData,
   parseProspectFromUnknown,
@@ -103,6 +104,29 @@ export function getConversationPriority(leadScore: number): WaInboxThreadPriorit
   if (leadScore >= 20) return WaInboxThreadPriority.MEDIUM;
   return WaInboxThreadPriority.LOW;
 }
+
+/** Fase comercial resumida alinhada à operação inbox (não substitui enums Prisma de thread). */
+export type OperationalCrmPhase = "novo" | "em_contato" | "follow_up" | "fechado";
+
+export function deriveOperationalCrmPhase(input: {
+  threadStatus: string;
+  conversationState?: ConversationState | null;
+}): OperationalCrmPhase {
+  if (input.threadStatus === "CLOSED") return "fechado";
+  const s = input.conversationState;
+  if (s === "closed") return "fechado";
+  if (s === "awaiting_agent") return "novo";
+  if (s === "in_progress") return "em_contato";
+  if (s === "awaiting_customer") return "follow_up";
+  return "em_contato";
+}
+
+export const OPERATIONAL_CRM_PHASE_LABEL_PT: Record<OperationalCrmPhase, string> = {
+  novo: "Novo — a contactar",
+  em_contato: "Em contacto",
+  follow_up: "Follow-up / aguarda cliente",
+  fechado: "Fechado",
+};
 
 /** Parse seguro de `lead_data` (API + refresh inbound). */
 export function parseLeadDataJson(raw: unknown): LeadData {
