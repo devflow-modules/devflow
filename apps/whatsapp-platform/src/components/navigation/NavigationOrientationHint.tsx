@@ -33,7 +33,7 @@ export function NavigationOrientationHint() {
   if (dismissed) return null;
 
   return (
-    <div className="mb-6 flex flex-col gap-2 rounded-lg border border-border/90 bg-card/90 px-3 py-2.5 text-xs leading-relaxed df-text-secondary shadow-sm ring-1 ring-slate-900/[0.04] sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+    <div className="mb-6 flex flex-col gap-2 rounded-lg border border-border/90 bg-card/90 px-3 py-2.5 text-xs leading-relaxed df-text-secondary shadow-sm df-ring-elevated sm:flex-row sm:items-start sm:justify-between sm:gap-4">
       <p className="min-w-0">
         <span className="font-medium df-text-primary">Onde estou:</span> o menu à esquerda organiza o trabalho por
         área. Use{" "}

@@ -240,7 +240,7 @@ export default function ImportarPage() {
                       <th className="px-3 py-2 font-medium text-muted-foreground">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-neutral-100">
                     {rows.map((row, idx) => (
                       <tr key={idx} className={row.valid ? "" : "bg-red-50"}>
                         <td className="px-3 py-1.5 text-muted-foreground">{row.date}</td>

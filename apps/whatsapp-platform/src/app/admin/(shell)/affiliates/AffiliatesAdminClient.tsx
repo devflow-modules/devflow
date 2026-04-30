@@ -260,7 +260,7 @@ export function AffiliatesAdminClient({
             {createBusy ? "A guardar…" : "Criar"}
           </Button>
         </form>
-        {createError ? <p className="mt-2 text-sm text-red-600">{createError}</p> : null}
+        {createError ? <p className="df-text-error mt-2 text-sm">{createError}</p> : null}
       </section>
 
       <section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -281,7 +281,7 @@ export function AffiliatesAdminClient({
                 <th className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="df-divide-y-soft">
               {affiliates.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-8 text-center df-text-muted">
@@ -300,8 +300,8 @@ export function AffiliatesAdminClient({
                       <td className="px-4 py-3 df-text-secondary">{formatPct(a.commissionRate)}</td>
                       <td className="px-4 py-3 text-right tabular-nums df-text-primary">{a.clientCount}</td>
                       <td className="px-4 py-3 text-right tabular-nums df-text-primary">{formatBrl(a.totalEarned)}</td>
-                      <td className="px-4 py-3 text-right tabular-nums text-amber-800">{formatBrl(a.pendingTotal)}</td>
-                      <td className="px-4 py-3 text-right tabular-nums text-emerald-800">{formatBrl(a.paidTotal)}</td>
+                      <td className="df-text-warning px-4 py-3 text-right tabular-nums">{formatBrl(a.pendingTotal)}</td>
+                      <td className="df-text-success px-4 py-3 text-right tabular-nums">{formatBrl(a.paidTotal)}</td>
                       <td className="px-4 py-3">
                         <div className="flex max-w-[220px] flex-col gap-1.5">
                           <p className="text-[11px] leading-snug df-text-muted">Use este link para indicar clientes</p>
@@ -324,7 +324,7 @@ export function AffiliatesAdminClient({
                           <Button variant="secondary"
                             type="button"
                             onClick={() => openReferralLink(a.id)}
-                            className="w-max text-xs font-medium text-blue-700 underline-offset-4 hover:underline"
+                            className="df-text-info w-max text-xs font-medium underline-offset-4 hover:underline"
                           >
                             Abrir signup
                           </Button>
@@ -356,7 +356,7 @@ export function AffiliatesAdminClient({
                                     className={`rounded-full px-3 py-1 text-xs font-medium ${
                                       commissionFilter === f
                                         ? "bg-muted text-white"
-                                        : "bg-card df-text-secondary ring-1 ring-slate-200 hover:bg-muted/60"
+                                        : "bg-card df-text-secondary ring-1 ring-[color:var(--df-ring-soft)] hover:bg-muted/60"
                                     }`}
                                   >
                                     {f === "all" ? "Todas" : f === "pendente" ? "Pendentes" : "Pagas"}
@@ -375,9 +375,7 @@ export function AffiliatesAdminClient({
                                         <div className="flex flex-wrap items-center gap-2">
                                           <span
                                             className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
-                                              c.status === "pago"
-                                                ? "bg-emerald-100 text-emerald-900"
-                                                : "bg-amber-100 text-amber-900"
+                                              c.status === "pago" ? "df-badge-success" : "df-badge-warning"
                                             }`}
                                           >
                                             {c.status === "pago" ? "Pago" : "Pendente"}
@@ -398,7 +396,7 @@ export function AffiliatesAdminClient({
                                           </span>
                                           <Link
                                             href={`/admin/tenants/${c.tenantId}`}
-                                            className="font-medium text-blue-700 underline-offset-4 hover:underline"
+                                            className="df-text-info font-medium underline-offset-4 hover:underline"
                                           >
                                             Ver tenant
                                           </Link>

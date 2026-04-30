@@ -100,11 +100,11 @@ export const ConversationItem = memo(function ConversationItem({
   const priorityHint = priorityGuidance(crmTier);
   const crmClass =
     crmTier === "HIGH"
-      ? "text-red-600 ring-red-200/60"
+      ? "df-text-error ring-1 ring-[color:var(--df-danger-border)]"
       : crmTier === "MEDIUM"
-        ? "text-amber-700 ring-amber-200/70"
+        ? "df-text-warning ring-1 ring-[color:var(--df-warning-border)]"
         : crmTier === "LOW"
-          ? "df-text-muted ring-slate-200/80"
+          ? "df-text-muted ring-1 ring-[color:var(--df-ring-soft)]"
           : "";
 
   const slaRank = (s: InboxSlaLevel | null | undefined): number =>
@@ -130,20 +130,20 @@ export const ConversationItem = memo(function ConversationItem({
   const rowClass = [
     "group relative flex w-full items-stretch border-b df-border-brand transition-[background-color,box-shadow] duration-200 ease-out",
     isCritical
-      ? "bg-gradient-to-r from-red-50 via-red-50/95 to-red-50/80 shadow-[inset_4px_0_0_0_rgb(220,38,38),0_0_0_1px_rgba(248,113,113,0.25)]"
+      ? "bg-[color-mix(in_srgb,var(--df-danger-sla-bg)_92%,var(--df-bg-elevated))] shadow-[inset_4px_0_0_0_var(--df-danger-sla-border)] ring-1 ring-[color:var(--df-danger-border)] ring-inset"
       : isHigh
-        ? "bg-gradient-to-r from-orange-50/90 to-orange-50/60 shadow-[inset_4px_0_0_0_rgb(234,88,12)]"
+        ? "bg-[color-mix(in_srgb,var(--df-warning-bg)_85%,var(--df-bg-elevated))] shadow-[inset_4px_0_0_0_var(--df-warning-border)]"
         : noOwnerStripe
-          ? `${noOwnerStripe} hover:bg-amber-50/55`
+          ? `${noOwnerStripe} hover:bg-[color-mix(in_srgb,var(--df-warning-bg)_45%,transparent)]`
           : active
             ? "bg-muted/60/95 shadow-[inset_4px_0_0_0_var(--df-brand-500)] ring-2 ring-[var(--df-brand-500)]/25 ring-inset"
             : "bg-[var(--df-bg-elevated)] hover:bg-[var(--df-brand-100)] hover:shadow-[0_1px_4px_rgba(15,23,42,0.06)] active:bg-[var(--df-brand-50)]",
   ].join(" ");
 
   const avatarClass = isCritical
-    ? "bg-red-100 text-red-900 ring-2 ring-red-200/80"
+    ? "bg-[color:var(--df-danger-bg)] df-text-error ring-2 ring-[color:var(--df-danger-border)]"
     : isHigh
-      ? "bg-orange-100 text-orange-950 ring-1 ring-orange-200/80"
+      ? "bg-[color-mix(in_srgb,var(--df-warning-bg)_75%,var(--df-bg-elevated))] df-text-warning ring-1 ring-[color:var(--df-warning-border)]"
       : active
         ? "bg-[var(--df-brand-600)] text-white shadow-sm ring-0"
         : "bg-[var(--df-brand-100)] text-[var(--df-brand-900)] ring-1 ring-[var(--df-border-subtle)]";
@@ -236,7 +236,7 @@ export const ConversationItem = memo(function ConversationItem({
             ) : null}
             {devFlowProspectingUi && followUpDue ? (
               <span
-                className="rounded bg-red-100 px-1 py-0.5 text-[9px] font-bold text-red-950 ring-1 ring-red-200/85"
+                className="df-badge-error !rounded px-1 py-0.5 text-[9px] font-bold !normal-case !tracking-normal"
                 title="Follow-up comercial: hoje ou em atraso"
                 data-testid="prospect-followup-due-chip"
               >
@@ -257,7 +257,7 @@ export const ConversationItem = memo(function ConversationItem({
             ) : null}
             {thread.queue?.name ? (
               <span
-                className="max-w-[7rem] truncate rounded-md px-1.5 py-0.5 text-[9px] font-semibold ring-1 ring-slate-200/80"
+                className="max-w-[7rem] truncate rounded-md px-1.5 py-0.5 text-[9px] font-semibold ring-1 ring-[color:var(--df-ring-soft)]"
                 style={{
                   backgroundColor: thread.queue.color ? `${thread.queue.color}33` : "rgb(241 245 249)",
                 }}
@@ -273,7 +273,7 @@ export const ConversationItem = memo(function ConversationItem({
             ) : null}
             {showAguardandoCliente ? (
               <span
-                className="rounded bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-900 ring-1 ring-emerald-200/80"
+                className="df-badge-success !rounded-md !px-1.5 !py-0.5 !text-[9px] !font-semibold !normal-case !tracking-normal"
                 data-testid="awaiting-customer-chip"
                 title="Última resposta enviada; à espera do cliente"
               >

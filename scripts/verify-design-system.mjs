@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 /**
- * Enforcement manual do design system DevFlow (Tailwind legado + estilos inline).
- * Executar: `node scripts/verify-design-system.mjs`
- * Integrar em CI quando o repositório estiver sem violações.
+ * Enforcement DevFlow DS (Tailwind legado em TS/JS + CSS scoped).
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -22,9 +20,21 @@ const SKIP_DIR_NAMES = new Set([
   "generated",
 ]);
 
-const EXT_RE = /\.(tsx|ts|jsx|js)$/;
+const EXT_TS = /\.(tsx|ts|jsx|js)$/;
+const EXT_CSS = /\.(css|scss)$/;
 
-/** Padrões banidos em strings de className / JSX (não aplicar a ficheiros só de tokens CSS). */
+/** CSS de outras apps ainda com paleta Tailwind clássica (migração incremental). */
+const CSS_ALLOWLIST = new Set([
+  "apps/site/src/app/globals.css",
+  "apps/funklab/src/app/globals.css",
+  "apps/ops/src/app/globals.css",
+  "apps/investigamais/src/app/globals.css",
+  "apps/financeiro/src/app/globals.css",
+  "src/app/globals.css",
+  "templates/product-app/src/app/globals.css",
+]);
+
+/** Padrões banidos em className / CSS (exceto CSS allowlisted). */
 const BAN_SUBSTRINGS = [
   "text-slate-",
   "text-gray-",
@@ -40,11 +50,13 @@ const BAN_SUBSTRINGS = [
   "bg-gray-",
   "bg-zinc-",
   "bg-white",
+  "ring-slate-",
+  "divide-slate-",
+  "focus:ring-slate-",
 ];
 
 /**
- * `style={{ ... }}` com cor/fundo estático (hex, gradientes decorativos).
- * Permite: width/height %, animationDelay, display, margin, tipografia sem #.
+ * `style={{ ... }}` cor/fundo — só JSX/TSX.
  */
 function hasForbiddenStyleObject(source) {
   const re = /style=\{\{([\s\S]*?)\}\}/g;
@@ -60,6 +72,10 @@ function hasForbiddenStyleObject(source) {
   return false;
 }
 
+function stripLineCommentsCss(text) {
+  return text.replace(/\/\*[\s\S]*?\*\//g, " ");
+}
+
 function* walkFiles(dir) {
   if (!fs.existsSync(dir)) return;
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -68,7 +84,7 @@ function* walkFiles(dir) {
     if (e.isDirectory()) {
       if (SKIP_DIR_NAMES.has(e.name)) continue;
       yield* walkFiles(full);
-    } else if (e.isFile() && EXT_RE.test(e.name)) {
+    } else if (e.isFile() && (EXT_TS.test(e.name) || EXT_CSS.test(e.name))) {
       yield full;
     }
   }
@@ -99,7 +115,45 @@ function relative(p) {
   return path.relative(ROOT, p);
 }
 
+/** Relatório apenas (não falha o script): cores Tailwind cruas típicas de feedback na WhatsApp Platform. */
+function reportWhatsappPlatformFeedbackColors() {
+  const target = path.join(ROOT, "apps", "whatsapp-platform", "src");
+  if (!fs.existsSync(target)) {
+    console.log("[design-system:whatsapp-feedback] pasta ausente — ignorado.");
+    return;
+  }
+  const patterns = ["amber-", "red-", "green-", "blue-"];
+  const byFile = new Map();
+  for (const file of walkFiles(target)) {
+    const rel = relative(file);
+    const raw = fs.readFileSync(file, "utf8");
+    let n = 0;
+    for (const p of patterns) {
+      let idx = 0;
+      while ((idx = raw.indexOf(p, idx)) !== -1) {
+        n += 1;
+        idx += p.length;
+      }
+    }
+    if (n > 0) byFile.set(rel, n);
+  }
+  const total = [...byFile.values()].reduce((a, b) => a + b, 0);
+  const fileCount = byFile.size;
+  console.log(
+    `[design-system:whatsapp-feedback] (report-only, não bloqueia) ${total} ocorrência(s) de ${patterns.join(",")} em ${fileCount} ficheiro(s).`,
+  );
+  if (fileCount === 0) return;
+  const sorted = [...byFile.entries()].sort((a, b) => b[1] - a[1]);
+  for (const [rel, c] of sorted.slice(0, 20)) {
+    console.log(`  ${c}× ${rel}`);
+  }
+  if (sorted.length > 20) {
+    console.log(`  … e mais ${sorted.length - 20} ficheiro(s) com ocorrências.`);
+  }
+}
+
 function main() {
+  reportWhatsappPlatformFeedbackColors();
   const violations = [];
   const roots = collectRoots();
 
@@ -107,37 +161,54 @@ function main() {
     for (const file of walkFiles(root)) {
       const rel = relative(file);
       if (rel.startsWith(`scripts${path.sep}`)) continue;
-      /** React Email: estilos inline são requisito dos clientes de correio, não UI da app. */
       if (rel.includes(`${path.sep}modules${path.sep}email${path.sep}templates${path.sep}`)) continue;
 
-      const text = fs.readFileSync(file, "utf8");
+      const raw = fs.readFileSync(file, "utf8");
+      const isCss = EXT_CSS.test(file);
+      if (isCss) {
+        const key = rel.split(path.sep).join("/");
+        if (CSS_ALLOWLIST.has(key)) continue;
+        const scanText = stripLineCommentsCss(raw);
+        for (const sub of BAN_SUBSTRINGS) {
+          let idx = 0;
+          while ((idx = scanText.indexOf(sub, idx)) !== -1) {
+            const line = scanText.slice(0, idx).split("\n").length;
+            violations.push({ rel, line, rule: `substring: ${sub}`, kind: "css" });
+            idx += sub.length;
+          }
+        }
+        continue;
+      }
 
+      const text = raw;
       for (const sub of BAN_SUBSTRINGS) {
         let idx = 0;
         while ((idx = text.indexOf(sub, idx)) !== -1) {
           const line = text.slice(0, idx).split("\n").length;
-          violations.push({ rel, line, rule: `substring: ${sub}` });
+          violations.push({ rel, line, rule: `substring: ${sub}`, kind: "ts" });
           idx += sub.length;
         }
       }
 
       if (hasForbiddenStyleObject(text)) {
-        violations.push({ rel, line: null, rule: "style={{ ... color|background|gradient }}" });
+        violations.push({ rel, line: null, rule: "style={{ ... color|background|gradient }}", kind: "ts" });
       }
     }
   }
 
   if (violations.length) {
     console.error(`[design-system] ${violations.length} violação(ões):\n`);
-    for (const v of violations.slice(0, 80)) {
+    for (const v of violations.slice(0, 120)) {
       console.error(`  ${v.rel}${v.line != null ? `:${v.line}` : ""} — ${v.rule}`);
     }
-    if (violations.length > 80) console.error(`  … e mais ${violations.length - 80}`);
+    if (violations.length > 120) console.error(`  … e mais ${violations.length - 120}`);
     console.error("\nSubstituir por classes `df-*` / tokens em globals/tokens.");
     process.exit(1);
   }
 
-  console.log("[design-system] OK — sem text-slate|gray|zinc, border-slate, text-white/40–60 nem style color/background.");
+  console.log(
+    "[design-system] OK — TS/JS + CSS (exceto allowlist): sem paleta Tailwind crua banida nem style JSX com cor.",
+  );
 }
 
 main();

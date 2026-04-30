@@ -904,7 +904,7 @@ export default function AccountDetailPage() {
             Nenhuma despesa ainda. Toque em <strong>Nova despesa</strong> para começar — você pode marcar se já pagou.
           </p>
         ) : (
-          <ul className="mt-3 divide-y divide-slate-100">
+          <ul className="mt-3 divide-y divide-neutral-100">
             {account.expenses.map((exp) => (
               <li key={exp.id} className="py-3 first:pt-0">
                 <div className="flex items-start justify-between gap-2">

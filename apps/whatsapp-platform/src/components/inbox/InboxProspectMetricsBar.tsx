@@ -38,8 +38,8 @@ export function InboxProspectMetricsBar({
           onClick={() => onLensChange(null)}
           className={`rounded-md px-1.5 py-1 text-[10px] font-semibold ring-1 transition ${
             activeLens === null
-              ? "bg-muted text-white ring-slate-700"
-              : "bg-card df-text-secondary ring-slate-200 hover:bg-muted"
+              ? "bg-muted text-white ring-2 ring-[var(--df-brand-500)]/35"
+              : "bg-card df-text-secondary ring-1 ring-[color:var(--df-ring-soft)] hover:bg-muted"
           }`}
         >
           Todas <span className="tabular-nums opacity-80">({metrics.totalOpen})</span>
@@ -55,7 +55,7 @@ export function InboxProspectMetricsBar({
               className={`rounded-md px-1.5 py-1 text-[10px] font-semibold ring-1 transition ${
                 active
                   ? "bg-[var(--df-brand-600)] text-white ring-[var(--df-brand-500)]"
-                  : "bg-card df-text-secondary ring-slate-200 hover:bg-[var(--df-brand-50)]"
+                  : "bg-card df-text-secondary ring-1 ring-[color:var(--df-ring-soft)] hover:bg-[var(--df-brand-50)]"
               }`}
               title={INBOX_PROSPECT_LENS_LABELS[lens]}
             >

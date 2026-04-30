@@ -28,14 +28,15 @@ export function ConversationActionBanner({
 
   return (
     <div
-      className={`shrink-0 border-b border-amber-200/90 bg-gradient-to-r from-amber-50 to-amber-50/40 py-3 sm:py-3.5 ${INBOX_CHAT_GUTTER_X}`}
+      className={`shrink-0 df-feedback-warning rounded-none border-x-0 border-t-0 py-3 sm:py-3.5 ${INBOX_CHAT_GUTTER_X}`}
       data-testid="conversation-action-banner"
       role="status"
     >
       <div className="flex w-full flex-wrap items-center justify-between gap-3">
-        <p className="min-w-0 text-sm font-medium text-amber-950">{text}</p>
+        <p className="min-w-0 text-sm font-medium">{text}</p>
         <div className="flex shrink-0 gap-2">
-          <Button variant="secondary"
+          <Button
+            variant="secondary"
             type="button"
             className={buttonClassName("primary", "text-sm")}
             onClick={() => {
@@ -46,7 +47,12 @@ export function ConversationActionBanner({
           >
             Responder agora
           </Button>
-          <Button variant="secondary" type="button" className="text-xs font-medium text-amber-900/70 underline" onClick={onDismiss}>
+          <Button
+            variant="ghost"
+            type="button"
+            className="text-xs font-medium df-text-warning underline opacity-90 hover:opacity-100"
+            onClick={onDismiss}
+          >
             Ocultar
           </Button>
         </div>

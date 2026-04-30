@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   open: boolean;
@@ -55,7 +55,7 @@ export function ActivateChannelModal({ open, channelLabel, onClose, onSubmit }: 
               value={token}
               onChange={(ev) => setToken(ev.target.value)}
               rows={4}
-              className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm df-text-primary shadow-sm focus:df-border-dark focus:outline-none focus:ring-2 focus:ring-slate-200"
+              className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm df-text-primary shadow-sm focus:df-border-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)]/30"
               placeholder="Cole o token de acesso…"
               disabled={busy}
               autoComplete="off"

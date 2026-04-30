@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import { StateError, StateLoading } from "@/components/ui/app-states";
 import { HowFreePlanWorksSection } from "@/components/dashboard/billing/HowFreePlanWorksSection";
 import { HowUsageWorksSection } from "@/components/dashboard/billing/HowUsageWorksSection";
@@ -130,15 +130,15 @@ export function BillingSettingsClient() {
     <div className="min-w-0 space-y-8">
       {normalizePlan(sub?.plan ?? "") === "FREE" ? (
         <div
-          className="rounded-xl border border-sky-100 bg-sky-50/90 px-4 py-3 text-sm text-sky-950"
+          className="df-feedback-info !rounded-xl px-4 py-3 text-sm"
           data-testid="settings-evaluation-mode-hint"
           role="status"
         >
           <p className="font-medium">Modo avaliação ativo</p>
-          <p className="mt-1 text-xs leading-relaxed text-sky-900/95">
+          <p className="mt-1 text-xs leading-relaxed opacity-95">
             Limites da demonstração aplicam-se à conta. A operação completa é ativada com implantação e contrato.
           </p>
-          {evaluationStaleHint ? <p className="mt-2 text-xs text-amber-950">{evaluationStaleHint}</p> : null}
+          {evaluationStaleHint ? <p className="df-text-warning mt-2 text-xs">{evaluationStaleHint}</p> : null}
         </div>
       ) : null}
       {err ? (
@@ -241,7 +241,7 @@ export function BillingSettingsClient() {
                   <span className="text-[var(--df-text-muted)]"> / {usage.limits.messagesPerMonth}</span>
                 )}
                 {!usage.withinLimits.messages && (
-                  <span className="ml-2 text-amber-600 text-xs">no limite</span>
+                  <span className="df-text-warning ml-2 text-xs">no limite</span>
                 )}
               </dd>
             </div>
@@ -263,7 +263,7 @@ export function BillingSettingsClient() {
             </div>
             <div className="flex justify-between font-medium">
               <dt>Custo variável estimado (local)</dt>
-              <dd className="text-emerald-700">
+              <dd className="df-text-success">
                 R$ {usage.estimatedVariableCostBrl.toFixed(2)}
               </dd>
             </div>
@@ -283,7 +283,7 @@ export function BillingSettingsClient() {
                   </dd>
                 </div>
                 {usage.stripeMetered.pendingStripeReports > 0 && (
-                  <p className="text-amber-700 text-xs">
+                  <p className="df-text-warning text-xs">
                     {usage.stripeMetered.pendingStripeReports} evento(s) pendente(s) de sync — aguarde ou
                     rode o cron de retry.
                   </p>

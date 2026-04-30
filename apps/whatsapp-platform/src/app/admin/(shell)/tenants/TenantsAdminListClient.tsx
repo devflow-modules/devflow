@@ -79,7 +79,7 @@ export function TenantsAdminListClient({ initialRows }: { initialRows: TenantLis
               <th className="px-4 py-3 text-right" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="df-divide-y-soft">
             {filtered.map((t) => (
               <tr key={t.id} className="hover:bg-muted/60/80" data-testid={`tenant-row-${t.id}`}>
                 <td className="px-4 py-3">
@@ -90,12 +90,12 @@ export function TenantsAdminListClient({ initialRows }: { initialRows: TenantLis
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1.5">
                     {t.gtmLifecycle === "IMPLANTADO" ? (
-                      <Badge className="bg-emerald-100 text-emerald-900">Implantado</Badge>
+                      <Badge className="df-badge-success">Implantado</Badge>
                     ) : (
                       <Badge className="bg-muted df-text-primary">Avaliação</Badge>
                     )}
                     {t.isInternal ? (
-                      <Badge className="bg-amber-100 text-amber-950">Interno</Badge>
+                      <Badge className="df-badge-warning">Interno</Badge>
                     ) : null}
                     {t.affiliateId ? (
                       <Badge className="bg-violet-100 text-violet-900">Afiliado</Badge>
@@ -103,17 +103,17 @@ export function TenantsAdminListClient({ initialRows }: { initialRows: TenantLis
                       <Badge className="bg-muted df-text-secondary">Sem afiliado</Badge>
                     )}
                     {t.affiliateSource === "ref" ? (
-                      <Badge className="bg-sky-100 text-sky-900">Ref</Badge>
+                      <Badge className="df-badge-info">Ref</Badge>
                     ) : null}
                     {t.affiliateSource === "manual" ? (
-                      <Badge className="bg-amber-100 text-amber-950">Manual</Badge>
+                      <Badge className="df-badge-warning">Manual</Badge>
                     ) : null}
                   </div>
                 </td>
                 <td className="px-4 py-3 text-right">
                   <Link
                     href={`/admin/tenants/${t.id}`}
-                    className="text-sm font-medium text-blue-700 underline-offset-4 hover:underline"
+                    className="df-text-info text-sm font-medium underline-offset-4 hover:underline"
                   >
                     Detalhe
                   </Link>

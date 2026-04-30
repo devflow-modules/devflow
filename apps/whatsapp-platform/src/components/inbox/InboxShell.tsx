@@ -276,7 +276,7 @@ function InboxShellContent() {
       title={realtimeConnected ? "Tempo real ativo" : "A atualizar em intervalos…"}
     >
       <span
-        className={`h-2 w-2 shrink-0 rounded-full ${realtimeConnected ? "bg-emerald-500" : "bg-amber-400 animate-pulse"}`}
+        className={`h-2 w-2 shrink-0 rounded-full ${realtimeConnected ? "bg-[rgb(34_197_94)]" : "bg-[rgb(251_191_36)] animate-pulse"}`}
       />
       {realtimeConnected ? "Tempo real" : "A sincronizar"}
     </span>
@@ -290,10 +290,7 @@ function InboxShellContent() {
       data-testid="inbox-shell"
     >
       {channelAwaitingActivation ? (
-        <div
-          className="shrink-0 border-b border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm leading-relaxed text-amber-950 sm:px-6"
-          role="status"
-        >
+        <div className="df-feedback-warning shrink-0 rounded-none border-x-0 border-t-0 px-4 py-3 text-sm leading-relaxed sm:px-6" role="status">
           Seu canal está em ativação. Assim que aprovado, você poderá responder mensagens aqui.
         </div>
       ) : null}
@@ -357,18 +354,17 @@ function InboxShellContent() {
         <div className="shrink-0 space-y-2 px-4 pb-2 sm:px-6">
           {showFirstMessageCelebration ? (
             <div
-              className="flex flex-col gap-3 rounded-xl border border-emerald-200/90 bg-emerald-50/95 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+              className="df-feedback-success flex flex-col gap-3 rounded-xl px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
               role="status"
             >
               <div>
-                <p className="text-sm font-semibold text-emerald-950">Primeira mensagem recebida 🎉</p>
-                <p className="mt-0.5 text-xs text-emerald-900/90">
-                  Agora você pode começar a atender seus clientes.
-                </p>
+                <p className="text-sm font-semibold">Primeira mensagem recebida 🎉</p>
+                <p className="mt-0.5 text-xs opacity-90">Agora você pode começar a atender seus clientes.</p>
               </div>
-              <Button variant="secondary"
+              <Button
+                variant="primary"
                 type="button"
-                className="shrink-0 rounded-lg bg-emerald-700 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-800"
+                className="shrink-0 rounded-lg px-3 py-2 text-xs font-semibold"
                 onClick={() => {
                   markFirstMessageToastSeen();
                   setActivationUi(getActivationState());
@@ -401,20 +397,19 @@ function InboxShellContent() {
           ) : null}
           {showFirstReplyGate ? (
             <div
-              className="flex flex-col gap-3 rounded-xl border border-amber-200/90 bg-amber-50/95 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+              className="df-feedback-warning flex flex-col gap-3 rounded-xl px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
               role="region"
               aria-label="Primeira resposta"
             >
               <div>
-                <p className="text-sm font-semibold text-amber-950">Vamos responder sua primeira mensagem?</p>
-                <p className="mt-0.5 text-xs text-amber-950/85">
-                  Esse é o momento onde seu atendimento começa.
-                </p>
+                <p className="text-sm font-semibold">Vamos responder sua primeira mensagem?</p>
+                <p className="mt-0.5 text-xs opacity-90">Esse é o momento onde seu atendimento começa.</p>
               </div>
               <div className="flex shrink-0 flex-wrap gap-2">
-                <Button variant="secondary"
+                <Button
+                  variant="primary"
                   type="button"
-                  className="rounded-lg bg-amber-800 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-900"
+                  className="rounded-lg px-3 py-2 text-xs font-semibold"
                   onClick={() => {
                     setFilter("needs_response");
                     setActivationPickFirst(true);
@@ -424,7 +419,7 @@ function InboxShellContent() {
                 </Button>
                 <Button variant="secondary"
                   type="button"
-                  className="rounded-lg border border-amber-300/80 bg-card px-3 py-2 text-xs font-medium text-amber-950 hover:bg-amber-100/50"
+                  className="rounded-lg border border-border/80 bg-card px-3 py-2 text-xs font-medium df-text-primary hover:bg-muted/60"
                   onClick={() => {
                     dismissFirstReplyBanner();
                     setActivationUi(getActivationState());

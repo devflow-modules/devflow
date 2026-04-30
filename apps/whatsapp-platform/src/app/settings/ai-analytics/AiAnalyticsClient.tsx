@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { MetricsCard, Button } from "@devflow/ui";
+import { MetricsCard } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import { StateError, StateLoading } from "@/components/ui/app-states";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 import { isWhiteLabelMode } from "@/lib/productMode";

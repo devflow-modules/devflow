@@ -95,6 +95,28 @@ html[data-theme="devflow"],
   --df-shell-max-width: 72rem;
   --df-shell-px: 1rem;
   --df-shell-py: 2rem;
+
+  /* Superfícies / forms (sem Tailwind slate/white nos @apply) */
+  --df-form-control-border: color-mix(in srgb, var(--df-border-dark) 82%, var(--df-border-subtle));
+  --df-form-control-bg: var(--df-bg-elevated);
+  --df-form-text: var(--df-text-primary);
+  --df-form-focus-bg: color-mix(in srgb, var(--df-bg-elevated) 94%, white);
+  --df-chip-muted-bg: color-mix(in srgb, var(--df-bg-elevated) 88%, black);
+  --df-chip-muted-text: var(--df-text-muted);
+  --df-chip-strong-text: var(--df-text-secondary);
+  --df-inbox-sheet-bg: var(--df-bg-elevated);
+  --df-inbox-sheet-border: color-mix(in srgb, var(--df-border-dark) 72%, transparent);
+  --df-msg-inbound-bg: #fefefe;
+  --df-msg-inbound-fg: #0f172a;
+  --df-ring-soft: color-mix(in srgb, var(--df-border-dark) 65%, transparent);
+  --df-divide-soft: color-mix(in srgb, var(--df-border-dark) 55%, transparent);
+  --df-inbox-soft-shadow: rgba(0, 0, 0, 0.2);
+
+  /* Feedback — texto (inline / KPI / legendas) */
+  --df-feedback-warning-text: rgb(253 230 138);
+  --df-feedback-error-text: rgb(254 202 202);
+  --df-feedback-success-text: rgb(167 243 208);
+  --df-feedback-info-text: rgb(186 230 253);
 }
 
 html[data-theme="client_branded"] {
@@ -162,7 +184,7 @@ html[data-theme="client_branded"] {
 
   /**
    * Painéis da área Conta e canais (settings, WhatsApp, billing tenant).
-   * Preferir a isto em vez de bg-white + border-slate-*.
+   * Preferir estas classes a fundo claro + contorno genérico fora dos tokens df-*.
    */
   .df-panel {
     @apply rounded-xl shadow-sm;
@@ -218,7 +240,8 @@ html[data-theme="client_branded"] {
   }
 
   .df-eyebrow-admin {
-    @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-600/90;
+    @apply text-[11px] font-semibold uppercase tracking-[0.14em];
+    color: color-mix(in srgb, var(--df-feedback-warning-text) 90%, var(--df-text-muted));
   }
 
   .df-text-primary {
@@ -350,12 +373,22 @@ html[data-theme="client_branded"] {
   }
 
   .df-admin-badge {
-    @apply inline-flex items-center gap-1 rounded-full border border-amber-200/90 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900/90;
+    @apply inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide;
+    border-color: rgb(245 158 11 / 0.45);
+    background: rgb(245 158 11 / 0.12);
+    color: var(--df-feedback-warning-text);
   }
 
   /* --- Form controls (inputs alinhados ao form-field) --- */
   .df-field-control {
-    @apply w-full rounded-xl border border-slate-100 bg-white px-3.5 py-3 text-sm text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)] outline-none transition-[border-color,box-shadow,background-color] placeholder:text-slate-400 focus:border-[var(--df-brand-500)]/35 focus:bg-white focus:ring-2 focus:ring-[var(--df-brand-500)]/15 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply w-full rounded-xl px-3.5 py-3 text-sm outline-none shadow-[0_1px_2px_rgba(0,0,0,0.22)] transition-[border-color,box-shadow,background-color] focus:border-[var(--df-brand-500)]/35 focus:ring-2 focus:ring-[var(--df-brand-500)]/15 disabled:cursor-not-allowed disabled:opacity-50 placeholder:text-[var(--df-placeholder-muted,var(--df-text-muted))];
+    border: 1px solid var(--df-form-control-border);
+    background: var(--df-form-control-bg);
+    color: var(--df-form-text);
+  }
+
+  .df-field-control:focus {
+    background: var(--df-form-focus-bg);
   }
 
   .df-textarea-control {
@@ -363,7 +396,10 @@ html[data-theme="client_branded"] {
   }
 
   .df-field-compact {
-    @apply rounded-lg border border-slate-100 bg-white px-2.5 py-2 text-sm text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)] outline-none focus:border-[var(--df-brand-500)]/35 focus:ring-2 focus:ring-[var(--df-brand-500)]/15 disabled:opacity-50;
+    @apply rounded-lg px-2.5 py-2 text-sm outline-none shadow-[0_1px_2px_rgba(0,0,0,0.2)] focus:border-[var(--df-brand-500)]/35 focus:ring-2 focus:ring-[var(--df-brand-500)]/15 disabled:opacity-50;
+    border: 1px solid var(--df-form-control-border);
+    background: var(--df-form-control-bg);
+    color: var(--df-form-text);
   }
 
   /* --- Cartões --- */
@@ -398,7 +434,10 @@ html[data-theme="client_branded"] {
 
   /* --- Badges / chips --- */
   .df-badge {
-    @apply inline-flex items-center rounded-full border border-slate-200/90 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700;
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium;
+    border: 1px solid var(--df-chip-neutral-ring);
+    background: var(--df-chip-muted-bg);
+    color: var(--df-chip-strong-text);
   }
 
   .df-badge-brand {
@@ -406,19 +445,30 @@ html[data-theme="client_branded"] {
   }
 
   .df-badge-admin {
-    @apply inline-flex items-center rounded-full border border-amber-200/90 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-900/90;
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium;
+    border: 1px solid rgb(245 158 11 / 0.45);
+    background: rgb(245 158 11 / 0.14);
+    color: var(--df-feedback-warning-text);
   }
 
   .df-badge-success {
-    @apply inline-flex items-center rounded-full border border-emerald-200/90 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-900;
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium;
+    border: 1px solid rgb(16 185 129 / 0.45);
+    background: rgb(16 185 129 / 0.14);
+    color: var(--df-feedback-success-text);
   }
 
   .df-badge-danger {
-    @apply inline-flex items-center rounded-full border border-red-200/90 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-900;
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium;
+    border: 1px solid rgb(248 113 113 / 0.45);
+    background: rgb(248 113 113 / 0.14);
+    color: var(--df-feedback-error-text);
   }
 
   .df-badge-muted {
-    @apply inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600;
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium;
+    background: var(--df-chip-muted-bg);
+    color: var(--df-chip-muted-text);
   }
 
   /* --- Estados vazios / carregamento / erro --- */
@@ -442,22 +492,91 @@ html[data-theme="client_branded"] {
   }
 
   .df-feedback-success {
-    @apply rounded-lg border border-emerald-200/90 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-900;
+    @apply rounded-lg px-4 py-3 text-sm;
+    border: 1px solid rgb(16 185 129 / 0.35);
+    background: rgb(16 185 129 / 0.12);
+    color: var(--df-feedback-success-text);
   }
 
   .df-feedback-warning {
-    @apply rounded-lg border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-sm text-amber-950;
+    @apply rounded-lg px-4 py-3 text-sm;
+    border: 1px solid rgb(245 158 11 / 0.35);
+    background: rgb(245 158 11 / 0.12);
+    color: var(--df-feedback-warning-text);
   }
 
   .df-feedback-danger {
-    @apply rounded-lg border border-red-200/90 bg-red-50/90 px-4 py-3 text-sm text-red-900;
+    @apply rounded-lg px-4 py-3 text-sm;
+    border: 1px solid rgb(248 113 113 / 0.38);
+    background: rgb(248 113 113 / 0.12);
+    color: var(--df-feedback-error-text);
+  }
+
+  .df-feedback-error {
+    @apply rounded-lg px-4 py-3 text-sm;
+    border: 1px solid rgb(248 113 113 / 0.38);
+    background: rgb(248 113 113 / 0.12);
+    color: var(--df-feedback-error-text);
   }
 
   .df-feedback-info {
     @apply rounded-lg px-4 py-3 text-sm;
-    border: 1px solid var(--df-border-subtle);
-    background: color-mix(in srgb, var(--df-bg-elevated) 82%, black);
-    color: var(--df-text-primary);
+    border: 1px solid rgb(56 189 248 / 0.38);
+    background: rgb(56 189 248 / 0.1);
+    color: var(--df-feedback-info-text);
+  }
+
+  /** Texto semântico isolado (mensagens / legendas) */
+  .df-text-warning {
+    color: var(--df-feedback-warning-text);
+  }
+
+  .df-text-error {
+    color: var(--df-feedback-error-text);
+  }
+
+  .df-text-success {
+    color: var(--df-feedback-success-text);
+  }
+
+  .df-text-info {
+    color: var(--df-feedback-info-text);
+  }
+
+  /** Chips compactos — mesmo sistema que df-feedback-* (dark premium) */
+  .df-badge-warning {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide;
+    border: 1px solid rgb(245 158 11 / 0.45);
+    background: rgb(245 158 11 / 0.14);
+    color: var(--df-feedback-warning-text);
+  }
+
+  .df-badge-info {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide;
+    border: 1px solid rgb(56 189 248 / 0.45);
+    background: rgb(56 189 248 / 0.14);
+    color: var(--df-feedback-info-text);
+  }
+
+  .df-badge-error {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide;
+    border: 1px solid rgb(248 113 113 / 0.45);
+    background: rgb(248 113 113 / 0.14);
+    color: var(--df-feedback-error-text);
+  }
+
+  /** Subtil — anéis e divisores (substitui anéis/cores cinza crus em TSX) */
+  .df-ring-subtle {
+    @apply ring-1 ring-[color:var(--df-ring-soft)];
+  }
+
+  .df-divide-y-soft > :not([hidden]) ~ :not([hidden]) {
+    border-top: 1px solid var(--df-divide-soft);
+  }
+
+  /** Contorno tipo elevado sobre fundo escuro (evita tons cinza Tailwind crus). */
+  .df-ring-elevated {
+    @apply ring-1 ring-black/20;
   }
 
   /* --- Tabelas (shell dark premium) --- */
@@ -498,36 +617,56 @@ html[data-theme="client_branded"] {
 
   /* --- Inbox / chat operacional (SLA, chips, toolbar, timeline) --- */
   .df-inbox-header {
-    @apply flex flex-col border-b border-slate-100 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)];
+    @apply flex flex-col border-b shadow-[0_1px_2px_var(--df-inbox-soft-shadow)];
+    border-color: var(--df-inbox-sheet-border);
+    background: var(--df-inbox-sheet-bg);
   }
 
   /** SLA por nível — legibilidade e urgência preservadas */
   .df-badge-sla-ok {
-    @apply rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-700 ring-1 ring-slate-200/80;
+    @apply rounded-full px-2.5 py-0.5 text-[11px] font-bold ring-1 ring-[color:var(--df-ring-soft)];
+    background: var(--df-chip-muted-bg);
+    color: var(--df-chip-strong-text);
   }
 
   .df-badge-sla-medium {
-    @apply rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-950 ring-1 ring-amber-200/80;
+    @apply rounded-full px-2.5 py-0.5 text-[11px] font-bold ring-1;
+    background: rgb(245 158 11 / 0.14);
+    color: var(--df-feedback-warning-text);
+    --tw-ring-color: rgb(245 158 11 / 0.38);
   }
 
   .df-badge-sla-high {
-    @apply rounded-full bg-orange-100 px-2.5 py-0.5 text-[11px] font-bold text-orange-950 ring-1 ring-orange-200/70;
+    @apply rounded-full px-2.5 py-0.5 text-[11px] font-bold ring-1;
+    background: rgb(249 115 22 / 0.14);
+    color: var(--df-feedback-warning-text);
+    --tw-ring-color: rgb(249 115 22 / 0.42);
   }
 
   .df-badge-sla-critical {
-    @apply rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-bold text-red-950 ring-2 ring-red-400/80;
+    @apply rounded-full px-2.5 py-0.5 text-[11px] font-bold ring-2;
+    background: rgb(248 113 113 / 0.14);
+    color: var(--df-feedback-error-text);
+    --tw-ring-color: rgb(248 113 113 / 0.55);
   }
 
   .df-chip-conv-state {
-    @apply rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-800 ring-1 ring-slate-200/80;
+    @apply rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ring-[color:var(--df-ring-soft)];
+    background: var(--df-chip-muted-bg);
+    color: var(--df-text-primary);
   }
 
   .df-chip-status-open {
-    @apply rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-900 ring-1 ring-emerald-100;
+    @apply rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1;
+    background: rgb(16 185 129 / 0.14);
+    color: var(--df-feedback-success-text);
+    --tw-ring-color: rgb(16 185 129 / 0.38);
   }
 
   .df-chip-status-closed {
-    @apply rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-500;
+    @apply rounded-full px-2.5 py-0.5 text-[11px] font-semibold;
+    background: var(--df-chip-muted-bg);
+    color: var(--df-chip-muted-text);
   }
 
   .df-chip-status-pending {
@@ -535,15 +674,22 @@ html[data-theme="client_branded"] {
   }
 
   .df-chip-priority-high {
-    @apply rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-800;
+    @apply rounded px-1.5 py-0.5 text-[10px] font-medium;
+    background: rgb(248 113 113 / 0.14);
+    color: var(--df-feedback-error-text);
   }
 
   .df-chip-unassigned {
-    @apply rounded-md bg-amber-50 px-1.5 py-0.5 text-[9px] font-semibold text-amber-950 ring-1 ring-amber-200/70;
+    @apply rounded-md px-1.5 py-0.5 text-[9px] font-semibold ring-1;
+    background: rgb(245 158 11 / 0.12);
+    color: var(--df-feedback-warning-text);
+    --tw-ring-color: rgb(245 158 11 / 0.38);
   }
 
   .df-chip-awaiting {
-    @apply rounded-md bg-amber-100/90 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-amber-950;
+    @apply rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase;
+    background: rgb(245 158 11 / 0.18);
+    color: var(--df-feedback-warning-text);
   }
 
   .df-badge-pending-count {
@@ -551,48 +697,94 @@ html[data-theme="client_branded"] {
   }
 
   .df-inbox-toolbar-btn {
-    @apply inline-flex items-center rounded-lg border border-slate-200/90 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    @apply inline-flex items-center rounded-lg px-2.5 py-1.5 text-xs font-medium shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    border: 1px solid var(--df-inbox-sheet-border);
+    background: var(--df-bg-elevated);
+    color: var(--df-text-primary);
+  }
+
+  .df-inbox-toolbar-btn:hover {
+    background: color-mix(in srgb, var(--df-brand-50) 65%, var(--df-bg-elevated));
   }
 
   .df-inbox-dropdown {
-    @apply absolute left-0 top-full z-20 mt-1.5 rounded-xl border border-slate-100 bg-white py-1 shadow-lg shadow-slate-900/5;
+    @apply absolute left-0 top-full z-20 mt-1.5 rounded-xl py-1 shadow-lg;
+    border: 1px solid var(--df-inbox-sheet-border);
+    background: var(--df-bg-elevated);
+    box-shadow: 0 10px 40px rgb(0 0 0 / 0.35);
   }
 
   .df-inbox-dropdown-item {
-    @apply w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50;
+    @apply w-full px-3 py-2 text-left text-sm transition-colors;
+    color: var(--df-text-primary);
+  }
+
+  .df-inbox-dropdown-item:hover {
+    background: color-mix(in srgb, var(--df-brand-50) 55%, transparent);
   }
 
   .df-inbox-pill-notes {
-    @apply rounded-lg border border-amber-200/80 bg-amber-50/90 px-2.5 py-1.5 text-xs font-medium text-amber-950 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    @apply rounded-lg border px-2.5 py-1.5 text-xs font-medium shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    border-color: rgb(245 158 11 / 0.42);
+    background: rgb(245 158 11 / 0.1);
+    color: var(--df-feedback-warning-text);
   }
 
   .df-inbox-pill-audit-on {
-    @apply rounded-lg border border-emerald-200/80 bg-emerald-50/90 px-2.5 py-1.5 text-xs font-medium text-emerald-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    @apply rounded-lg border px-2.5 py-1.5 text-xs font-medium shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    border-color: rgb(16 185 129 / 0.42);
+    background: rgb(16 185 129 / 0.1);
+    color: var(--df-feedback-success-text);
   }
 
   .df-inbox-pill-audit-off {
-    @apply inline-flex items-center rounded-lg border border-slate-200/90 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    @apply inline-flex items-center rounded-lg px-2.5 py-1.5 text-xs font-medium shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    border: 1px solid var(--df-inbox-sheet-border);
+    background: var(--df-bg-elevated);
+    color: var(--df-text-secondary);
+  }
+
+  .df-inbox-pill-audit-off:hover {
+    background: color-mix(in srgb, var(--df-brand-50) 50%, transparent);
   }
 
   .df-inbox-tag-add {
-    @apply rounded-lg border border-dashed border-slate-200 bg-white/80 px-2 py-1 text-xs font-medium text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    @apply rounded-lg border border-dashed px-2 py-1 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    border-color: var(--df-inbox-sheet-border);
+    background: color-mix(in srgb, var(--df-bg-elevated) 88%, transparent);
+    color: var(--df-text-muted);
+  }
+
+  .df-inbox-tag-add:hover {
+    border-color: color-mix(in srgb, var(--df-brand-400) 40%, var(--df-inbox-sheet-border));
+    background: color-mix(in srgb, var(--df-brand-50) 55%, transparent);
   }
 
   .df-inbox-queue-select {
-    @apply w-full max-w-[min(100%,14rem)] rounded-lg border border-slate-100 bg-white px-2.5 py-2 text-[11px] text-slate-800 shadow-[0_1px_2px_rgba(15,23,42,0.04)] outline-none focus:border-[var(--df-brand-500)]/35 focus:ring-2 focus:ring-[var(--df-brand-500)]/15 disabled:opacity-50;
+    @apply w-full max-w-[min(100%,14rem)] rounded-lg px-2.5 py-2 text-[11px] shadow-[0_1px_2px_var(--df-inbox-soft-shadow)] outline-none focus:border-[var(--df-brand-500)]/35 focus:ring-2 focus:ring-[var(--df-brand-500)]/15 disabled:opacity-50;
+    border: 1px solid var(--df-form-control-border);
+    background: var(--df-form-control-bg);
+    color: var(--df-text-primary);
   }
 
   /** Lista — espera SLA compacta */
   .df-inbox-sla-wait-critical {
-    @apply inline-flex items-center rounded-md bg-red-600/15 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-red-800 ring-1 ring-red-300/50;
+    @apply inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-bold tabular-nums ring-1;
+    background: rgb(248 113 113 / 0.14);
+    color: var(--df-feedback-error-text);
+    --tw-ring-color: rgb(248 113 113 / 0.42);
   }
 
   .df-inbox-sla-wait-high {
-    @apply inline-flex items-center rounded-md bg-orange-500/15 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-orange-950 ring-1 ring-orange-300/50;
+    @apply inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-bold tabular-nums ring-1;
+    background: rgb(249 115 22 / 0.14);
+    color: var(--df-feedback-warning-text);
+    --tw-ring-color: rgb(249 115 22 / 0.4);
   }
 
   .df-inbox-sla-wait-muted {
-    @apply text-[11px] font-medium text-slate-600;
+    @apply text-[11px] font-medium;
+    color: var(--df-text-muted);
   }
 
   .df-inbox-row-action-primary {
@@ -600,12 +792,17 @@ html[data-theme="client_branded"] {
   }
 
   .df-inbox-row-action-secondary {
-    @apply rounded-lg bg-white px-2.5 py-1.5 text-[10px] font-semibold text-slate-700 shadow-md ring-1 ring-slate-200/90 hover:bg-slate-50 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    @apply rounded-lg px-2.5 py-1.5 text-[10px] font-semibold shadow-md ring-1 ring-[color:var(--df-ring-soft)] transition-colors hover:brightness-105 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    background: var(--df-bg-elevated);
+    color: var(--df-text-primary);
   }
 
   /** Timeline de mensagens */
   .df-timeline-day {
-    @apply rounded-full border border-slate-100 bg-white px-3.5 py-1 text-[11px] font-medium capitalize tracking-wide text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)];
+    @apply rounded-full px-3.5 py-1 text-[11px] font-medium capitalize tracking-wide shadow-[0_1px_2px_var(--df-inbox-soft-shadow)];
+    border: 1px solid var(--df-inbox-sheet-border);
+    background: var(--df-timeline-marker-bg);
+    color: var(--df-chip-muted-text);
   }
 
   .df-timeline-unread {
@@ -613,16 +810,28 @@ html[data-theme="client_branded"] {
   }
 
   .df-message-panel-inbound {
-    @apply bg-white text-slate-900 shadow-[0_1px_3px_rgba(15,23,42,0.06)];
+    box-shadow: 0 1px 3px var(--df-inbox-soft-shadow);
+    background: var(--df-msg-inbound-bg);
+    color: var(--df-msg-inbound-fg);
   }
 
   .df-message-panel-outbound {
-    @apply bg-[var(--df-brand-600)] text-white shadow-[0_1px_3px_rgba(15,23,42,0.06)];
+    @apply shadow-[0_1px_3px_var(--df-inbox-soft-shadow)];
+    background: var(--df-brand-600);
+    color: #fff;
   }
 
   /** Compositor: atalhos e sugestões */
   .df-inbox-template-chip {
-    @apply rounded-full border border-slate-200/90 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm ring-1 ring-slate-100/90 transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    @apply rounded-full px-3 py-1.5 text-[11px] font-semibold shadow-sm ring-1 ring-[color:var(--df-ring-soft)] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    border: 1px solid var(--df-inbox-sheet-border);
+    background: var(--df-bg-elevated);
+    color: var(--df-text-primary);
+  }
+
+  .df-inbox-template-chip:hover {
+    border-color: color-mix(in srgb, var(--df-brand-400) 45%, var(--df-inbox-sheet-border));
+    background: color-mix(in srgb, var(--df-brand-50) 52%, transparent);
   }
 
   .df-inbox-ai-chip {
@@ -639,16 +848,28 @@ html[data-theme="client_branded"] {
   }
 
   .df-panel-playbook {
-    @apply rounded-xl border border-sky-100 bg-sky-50/40 p-3 text-sm shadow-sm;
+    @apply rounded-xl p-3 text-sm shadow-sm;
+    border: 1px solid rgb(56 189 248 / 0.35);
+    background: rgb(56 189 248 / 0.1);
+    color: var(--df-feedback-info-text);
   }
 
   /** Estado vazio operacional (lista) */
   .df-inbox-filter-empty-card {
-    @apply mx-auto flex w-full max-w-sm flex-col items-center rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white via-white to-slate-50/95 px-6 py-10 text-center shadow-[0_8px_40px_rgba(15,23,42,0.06)];
+    @apply mx-auto flex w-full max-w-sm flex-col items-center rounded-2xl border px-6 py-10 text-center shadow-[0_8px_40px_rgba(0,0,0,0.2)];
+    border-color: var(--df-inbox-sheet-border);
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, #fefefe 90%, var(--df-bg-app) 10%),
+      color-mix(in srgb, var(--df-bg-elevated) 70%, var(--df-bg-app) 30%)
+    );
   }
 
   .df-inbox-empty-icon-success {
-    @apply mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-500/15;
+    @apply mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ring-1;
+    background: rgb(16 185 129 / 0.12);
+    color: var(--df-feedback-success-text);
+    --tw-ring-color: rgb(16 185 129 / 0.22);
   }
 
   .df-inbox-empty-icon-neutral {

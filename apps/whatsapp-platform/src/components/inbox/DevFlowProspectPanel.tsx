@@ -74,7 +74,7 @@ export function DevFlowProspectPanel({ thread }: { thread: WaInboxThreadRow }) {
   const fuBadges = prospectBadges({ prospect });
   const stage = prospect?.salesStage;
   const stageLabel = stage ? SALES_STAGE_LABELS_PT[stage] : "Sem etapa";
-  const stageClass = stage ? SALES_STAGE_BADGE_CLASS[stage] : "bg-muted df-text-secondary ring-1 ring-slate-200/90";
+  const stageClass = stage ? SALES_STAGE_BADGE_CLASS[stage] : "bg-muted df-text-secondary ring-1 ring-[color:var(--df-ring-soft)]";
 
   const [companyName, setCompanyName] = useState("");
   const [niche, setNiche] = useState("");

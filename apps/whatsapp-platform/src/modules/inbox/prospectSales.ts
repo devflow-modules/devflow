@@ -61,7 +61,7 @@ export const SALES_STAGE_LABELS_PT: Record<SalesStage, string> = {
 
 /** Badge de etapa (cores pedidas). */
 export const SALES_STAGE_BADGE_CLASS: Record<SalesStage, string> = {
-  NEW: "bg-muted df-text-primary ring-1 ring-slate-300/90",
+  NEW: "bg-muted df-text-primary ring-1 ring-[color:var(--df-ring-soft)]",
   CONTACTED: "bg-sky-200 text-sky-950 ring-1 ring-sky-300/80",
   REPLIED: "bg-violet-200 text-violet-950 ring-1 ring-violet-300/80",
   DIAGNOSIS_SCHEDULED: "bg-amber-200 text-amber-950 ring-1 ring-amber-300/80",
@@ -69,7 +69,7 @@ export const SALES_STAGE_BADGE_CLASS: Record<SalesStage, string> = {
   PROPOSAL_SENT: "bg-orange-200 text-orange-950 ring-1 ring-orange-300/80",
   WON: "bg-emerald-200 text-emerald-950 ring-1 ring-emerald-300/80",
   LOST: "bg-red-200 text-red-950 ring-1 ring-red-300/80",
-  NURTURE: "bg-muted df-text-primary ring-1 ring-slate-300/80",
+  NURTURE: "bg-muted df-text-primary ring-1 ring-[color:var(--df-ring-soft)]",
 };
 
 export type ProspectData = {

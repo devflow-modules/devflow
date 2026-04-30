@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import { PLANS, getPlan, normalizePlan, type PlanKey } from "@/modules/billing/plans";
 import {
   billingChangePlanButtonLabel,
@@ -233,7 +233,7 @@ export function BillingPageClient() {
   return (
     <div className="min-w-0 space-y-8">
       {successParam === "true" && (
-        <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+        <div className="df-feedback-success" role="status">
           <p className="font-medium">Plano atualizado com sucesso.</p>
         </div>
       )}
@@ -244,17 +244,14 @@ export function BillingPageClient() {
       )}
       {sub ? <CurrentPlanUpgradeHint plan={sub.plan} /> : null}
       {evaluationStaleHint ? (
-        <div
-          className="rounded-lg border border-sky-100 bg-sky-50/90 px-4 py-3 text-sm text-sky-950"
-          role="status"
-        >
+        <div className="df-feedback-info" role="status">
           {evaluationStaleHint}
         </div>
       ) : null}
       {beyondIncluded && usage?.enforceLimits && usage.allowsMeteredOverage && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-950">
+        <div className="df-feedback-warning py-4" role="alert">
           <p className="font-semibold">Limite incluído no plano atingido neste período</p>
-          <p className="mt-1 text-amber-900/95">
+          <p className="mt-1 opacity-95">
             Com o modo de enforcement ativo, o serviço pode limitar funcionalidades até atualizar o plano ou o período
             renovar. Prefira subir de nível para recuperar margem no pacote incluído.
           </p>
@@ -264,9 +261,9 @@ export function BillingPageClient() {
         </div>
       )}
       {beyondIncluded && usage?.enforceLimits && !usage.allowsMeteredOverage && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-950">
+        <div className="df-feedback-warning py-4" role="alert">
           <p className="font-semibold">Limite da avaliação guiada atingido neste período</p>
-          <p className="mt-1 text-amber-900/95">
+          <p className="mt-1 opacity-95">
             A demonstração não inclui expansão faturada. Para continuar o atendimento sem teto da avaliação, avance para
             a operação completa (implantação + mensalidade) com a nossa equipa.
           </p>
@@ -410,24 +407,22 @@ export function BillingPageClient() {
             />
           </div>
           {usage.allowsMeteredOverage && (!usage.withinLimits.messages || !usage.withinLimits.ai) ? (
-            <p className="mt-3 text-xs font-medium text-amber-900">
+            <p className="df-text-warning mt-3 text-xs font-medium">
               Parte do consumo está além do volume incluído — o uso adicional será refletido na fatura, sem interromper o
               serviço.
             </p>
           ) : null}
           <div className="mt-4 space-y-3">
             {usage.aiOverageBilled != null && usage.aiOverageBilled > 0 && (
-              <div className="mt-3 rounded border border-emerald-100 bg-emerald-50/80 p-3">
-                <p className="text-sm font-medium text-emerald-950">
-                  {STRIPE_USAGE_LINE_LABELS.extraAi} (expansão de uso)
-                </p>
-                <p className="mt-1 text-sm text-emerald-900">
+              <div className="df-feedback-success mt-3 !py-3">
+                <p className="text-sm font-medium">{STRIPE_USAGE_LINE_LABELS.extraAi} (expansão de uso)</p>
+                <p className="mt-1 text-sm">
                   <strong>{usage.aiOverageBilled.toLocaleString("pt-BR")}</strong> interações além do incluído
                   {usage.aiOverageCostBrl != null && usage.aiOverageCostBrl > 0 && (
                     <> · estimativa R$ {usage.aiOverageCostBrl.toFixed(2)}</>
                   )}
                 </p>
-                <p className="mt-1 text-xs text-emerald-800/90">
+                <p className="mt-1 text-xs opacity-90">
                   O mesmo nome aparece na fatura Stripe para facilitar a reconciliação.
                 </p>
               </div>
@@ -468,9 +463,9 @@ export function BillingPageClient() {
                 return (
                   <div
                     key={key}
-                    className={`rounded-xl border p-4 ${
+                    className={`rounded-xl p-4 ${
                       isRecommended && !isCurrent
-                        ? "border-amber-500/40 bg-gradient-to-br from-amber-950/40 to-[var(--df-bg-elevated)] shadow-md ring-2 ring-amber-400/35"
+                        ? "df-feedback-warning !rounded-xl shadow-md ring-2 ring-[color:rgb(245_158_11/0.35)]"
                         : "border df-border-brand bg-[var(--df-bg-elevated)]"
                     } ${isCurrent ? "opacity-90" : ""}`}
                   >
@@ -483,7 +478,7 @@ export function BillingPageClient() {
                       <div className="text-right">
                         <span className="text-sm font-semibold text-[var(--df-text-primary)]">{price}</span>
                         {isRecommended && !isCurrent ? (
-                          <span className="mt-1 block w-full rounded-full bg-amber-500/20 px-2 py-0.5 text-center text-[10px] font-bold uppercase text-amber-200">
+                          <span className="df-badge-warning mt-1 flex w-full justify-center">
                             {COMMERCIAL_RECOMMENDED_BADGE}
                           </span>
                         ) : null}
@@ -496,7 +491,7 @@ export function BillingPageClient() {
                     <ul className="mt-3 space-y-1.5 border-t df-border-brand pt-3 text-xs text-[var(--df-text-secondary)]">
                       {benefits.map((line) => (
                         <li key={line} className="flex gap-2">
-                          <span className="text-emerald-600" aria-hidden>
+                          <span className="df-text-success" aria-hidden>
                             ✓
                           </span>
                           <span>{line}</span>

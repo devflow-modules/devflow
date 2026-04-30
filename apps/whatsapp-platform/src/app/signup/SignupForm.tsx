@@ -93,8 +93,10 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
   };
 
   const planCardClass = (selected: boolean) =>
-    `relative flex cursor-pointer rounded-xl border p-4 text-left transition-shadow focus-within:ring-2 focus-within:ring-blue-500/30 ${
-      selected ? "border-blue-500 bg-blue-50/40 shadow-sm ring-2 ring-blue-500/20" : "border-border bg-card hover:df-border-dark"
+    `relative flex cursor-pointer rounded-xl border p-4 text-left transition-shadow focus-within:ring-2 focus-within:ring-[color:color-mix(in_srgb,var(--df-brand-500)_35%,transparent)] ${
+      selected
+        ? "border-[var(--df-brand-500)] bg-[color-mix(in_srgb,var(--df-brand-50)_55%,transparent)] shadow-sm ring-2 ring-[color:color-mix(in_srgb,var(--df-brand-500)_25%,transparent)]"
+        : "border-border bg-card hover:df-border-dark"
     }`;
 
   const whiteLabel = isWhiteLabelMode();
@@ -114,7 +116,7 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
           value={name}
           onChange={(e) => setName(e.target.value)}
           disabled={loading}
-          className="w-full rounded-md border df-border-dark bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-60"
+          className="w-full rounded-md border df-border-dark bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)] disabled:opacity-60"
         />
       </div>
       <div>
@@ -130,7 +132,7 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={loading}
-          className="w-full rounded-md border df-border-dark bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-60"
+          className="w-full rounded-md border df-border-dark bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)] disabled:opacity-60"
         />
       </div>
       <PasswordField
@@ -186,9 +188,7 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-semibold df-text-primary">Pro</span>
-                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950">
-                    {COMMERCIAL_RECOMMENDED_BADGE}
-                  </span>
+                  <span className="df-badge-warning inline-flex !normal-case">{COMMERCIAL_RECOMMENDED_BADGE}</span>
                 </div>
                 <p className="mt-1 text-xs leading-relaxed df-text-secondary">
                   Para operar com equipe, filas e IA de atendimento.
@@ -211,19 +211,19 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
       )}
 
       {error && (
-        <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+        <div role="alert" className="df-feedback-error !rounded-md">
           {error}
         </div>
       )}
       <Button variant="primary"
         type="submit"
         disabled={loading}
-        className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50"
+        className="w-full rounded-md px-4 py-2.5 text-sm font-semibold shadow-sm disabled:opacity-50"
       >
         {loading ? "A processar…" : whiteLabel ? "Solicitar acesso" : "Criar conta"}
       </Button>
       <p className="text-center text-sm df-text-secondary">
-        <Link href="/login" className="font-medium text-blue-600 hover:text-blue-800">
+        <Link href="/login" className="df-text-info font-medium hover:opacity-90">
           Já tenho conta — entrar
         </Link>
       </p>

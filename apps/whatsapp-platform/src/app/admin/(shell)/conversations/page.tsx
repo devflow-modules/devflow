@@ -4,7 +4,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { validateAuthToken } from "@/modules/auth";
-import { Button, cn } from "@devflow/ui";
+import { cn } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import { AppBadge } from "@/components/ui/app-badge";
 import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
 
@@ -127,7 +128,7 @@ export default async function AdminConversationsPage({
             Nenhuma conversa ainda. As conversas aparecem aqui quando mensagens forem recebidas via webhook.
           </div>
         ) : (
-          <ul className="divide-y divide-slate-200">
+          <ul className="df-divide-y-soft">
             {conversations.map((c) => (
               <li key={c.id}>
                 <Link

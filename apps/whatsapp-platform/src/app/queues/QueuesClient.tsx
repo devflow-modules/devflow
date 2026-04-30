@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { StateEmpty } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
@@ -226,7 +226,7 @@ export function QueuesClient({
       </Link>
 
       {error ? (
-        <div className="rounded-xl border border-red-200/90 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+        <div className="df-feedback-error !rounded-xl" role="alert">
           {error}
         </div>
       ) : null}
@@ -325,7 +325,7 @@ export function QueuesClient({
           }
         />
       ) : (
-        <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-border/90 bg-card shadow-sm ring-1 ring-slate-900/[0.03]">
+        <ul className="df-divide-y-soft overflow-hidden rounded-xl border border-border/90 bg-card shadow-sm df-ring-elevated">
           {queues.map((q) => (
             <li key={q.id} id={`queue-row-${q.id}`} className="flex flex-col gap-3 px-4 py-4 scroll-mt-24">
               {editingId === q.id ? (
@@ -423,7 +423,7 @@ export function QueuesClient({
                           Sem responsável: <strong>{q.unassignedCount}</strong>
                         </span>
                         <span>
-                          SLA crítico: <strong className="text-red-700">{q.criticalSlaCount}</strong>
+                          SLA crítico: <strong className="df-text-error">{q.criticalSlaCount}</strong>
                         </span>
                         {q.slaTargetMinutes != null ? (
                           <span className="df-text-muted">Meta: {q.slaTargetMinutes} min</span>
@@ -471,7 +471,7 @@ export function QueuesClient({
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="text-red-600 hover:text-red-700"
+                        className="df-text-error hover:opacity-90"
                         onClick={() => handleDelete(q.id)}
                         disabled={loading}
                       >
@@ -507,7 +507,7 @@ export function QueuesClient({
                             </span>
                             <Button variant="secondary"
                               type="button"
-                              className="text-xs text-red-600 hover:underline"
+                              className="df-text-error text-xs hover:underline"
                               onClick={() => handleRemoveMember(q.id, m.userId)}
                             >
                               Remover

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 import { useSimpleToast } from "@/components/ui/simple-toast";
 

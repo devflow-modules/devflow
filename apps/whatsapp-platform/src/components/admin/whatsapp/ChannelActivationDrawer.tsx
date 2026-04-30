@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import type { ChannelActivationEvent } from "@/modules/whatsapp/channelEventService";
 import type { AdminChannelDetail } from "@/modules/whatsapp/channelActivationService";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";

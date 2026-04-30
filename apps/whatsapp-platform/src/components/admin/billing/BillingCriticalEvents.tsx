@@ -39,10 +39,10 @@ export function BillingCriticalEvents({ events }: Props) {
             const severity = eventSeverity(ev.eventType);
             const badgeClass =
               severity === "critical"
-                ? "bg-red-100 text-red-800"
+                ? "df-badge-error !normal-case !font-medium"
                 : severity === "error"
-                  ? "bg-amber-100 text-amber-800"
-                  : "bg-yellow-100 text-yellow-800";
+                  ? "df-badge-warning !normal-case !font-medium"
+                  : "df-badge-info !normal-case !font-medium";
             const metaStr = ev.metadata
               ? JSON.stringify(ev.metadata).slice(0, 80) + (JSON.stringify(ev.metadata).length > 80 ? "…" : "")
               : "—";

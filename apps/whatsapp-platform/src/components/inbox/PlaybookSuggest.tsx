@@ -37,24 +37,25 @@ export function PlaybookSuggest({
 
   return (
     <div className="mb-3 space-y-2">
-      <Button variant="disabled"
+      <Button
+        variant="disabled"
         type="button"
         disabled={mut.isPending || sendDisabled}
         title={sendDisabled && !mut.isPending ? "Disponível após ativação do número" : undefined}
-        className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-950 transition hover:bg-sky-100 disabled:opacity-50 df-focus-brand"
+        className="rounded-full border border-[color:rgb(56_189_248/0.4)] bg-[rgb(56_189_248/0.12)] px-2.5 py-1 text-[11px] font-semibold df-text-info transition hover:bg-[rgb(56_189_248/0.18)] disabled:opacity-50 df-focus-brand"
         onClick={() => mut.mutate()}
         data-testid="btn-playbook-suggest"
       >
         {mut.isPending ? "A analisar…" : "Sugerir ação"}
       </Button>
       {mut.isError && (
-        <p className="text-xs text-red-600">
+        <p className="df-text-error text-xs">
           {mut.error instanceof Error ? mut.error.message : "Erro no playbook"}
         </p>
       )}
       {preview !== null && (
         <div className="df-panel-playbook" data-testid="playbook-preview">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-900">Playbook (IA)</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wide opacity-95">Playbook (IA)</p>
           <dl className="mt-2 space-y-1.5 df-text-primary">
             <div>
               <dt className="text-[10px] font-semibold df-text-muted">Intent</dt>
@@ -70,7 +71,8 @@ export function PlaybookSuggest({
             </div>
           </dl>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button variant="secondary"
+            <Button
+              variant="secondary"
               type="button"
               className={buttonClassName("primary")}
               onClick={() => {

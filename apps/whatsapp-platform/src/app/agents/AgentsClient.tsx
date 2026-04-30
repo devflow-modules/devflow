@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { StateEmpty } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
@@ -144,14 +144,14 @@ export function AgentsClient({
 
       {viewer ? (
         <section
-          className="rounded-lg border border-border/80 bg-muted/60/50 px-3 py-2.5 text-sm shadow-none ring-1 ring-slate-900/[0.03]"
+          className="rounded-lg border border-border/80 bg-muted/60/50 px-3 py-2.5 text-sm shadow-none df-ring-elevated"
           aria-label="A sua sessão"
         >
           <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">A sua sessão</p>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <span className="text-sm font-semibold df-text-primary">{viewer.name}</span>
             <AgentRoleBadge role={viewer.role} size="compact" />
-            <span className="rounded-md bg-card/90 px-1.5 py-0.5 text-[10px] font-medium df-text-muted ring-1 ring-slate-200/70">
+            <span className="rounded-md bg-card/90 px-1.5 py-0.5 text-[10px] font-medium df-text-muted ring-1 ring-[color:var(--df-ring-soft)]">
               Você
             </span>
           </div>
@@ -235,7 +235,7 @@ export function AgentsClient({
                 return (
                   <li
                     key={a.userId}
-                    className="flex flex-col gap-2 rounded-xl border border-border/80 bg-card p-3 shadow-sm ring-1 ring-slate-900/[0.025]"
+                    className="flex flex-col gap-2 rounded-xl border border-border/80 bg-card p-3 shadow-sm df-ring-elevated"
                   >
                     {/* 1 — Nome + role (badge menor) */}
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">

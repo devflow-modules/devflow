@@ -187,7 +187,7 @@ export function BillingDashboardClient() {
             type="button"
             onClick={() => void openPortal()}
             disabled={portalLoading}
-            className="mt-2 text-sm font-medium text-red-700 underline hover:no-underline"
+            className="df-text-error mt-2 text-sm font-medium underline hover:no-underline"
           >
             {portalLoading ? "Abrindo…" : "Resolver pagamento"}
           </Button>
@@ -204,7 +204,7 @@ export function BillingDashboardClient() {
             o contrato da demonstração — a operação completa libera filas, equipa e volumes na implantação.
           </p>
           {evaluationStaleHint ? (
-            <p className="mt-2 rounded-lg border border-amber-100 bg-amber-50/90 px-3 py-2 text-xs text-amber-950">
+            <p className="df-feedback-warning mt-2 !rounded-lg !py-2 !text-xs" role="status">
               {evaluationStaleHint}
             </p>
           ) : null}

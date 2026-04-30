@@ -74,7 +74,7 @@ export function MessageMediaPreview({
       <div className="flex items-start gap-2">
         <span
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg ${
-            outbound ? "bg-card/15" : "bg-card df-text-secondary shadow-sm ring-1 ring-slate-200/80"
+            outbound ? "bg-card/15" : "bg-card df-text-secondary shadow-sm ring-1 ring-[color:var(--df-ring-soft)]"
           }`}
           aria-hidden
         >

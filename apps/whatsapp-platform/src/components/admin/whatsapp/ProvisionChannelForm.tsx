@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import type { AdminTenantOption } from "./types";
 
 type Props = {

@@ -7,9 +7,13 @@ export function ManagerActionsList({ actions }: { actions: ManagerActionItem[] }
   if (actions.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-amber-500/35 bg-gradient-to-br from-amber-950/35 to-[var(--df-bg-elevated)] p-4 shadow-sm ring-1 ring-amber-500/15">
-      <h2 className="text-xs font-bold uppercase tracking-wide text-amber-100">Ações recomendadas</h2>
-      <p className="mt-1 text-xs text-amber-200/90">Clique para abrir o inbox com o filtro certo.</p>
+    <div
+      className="rounded-xl border border-[color:rgb(245_158_11/0.35)] bg-[linear-gradient(to_bottom_right,rgb(245_158_11/0.14),var(--df-bg-elevated))] p-4 shadow-sm ring-1 ring-[color:rgb(245_158_11/0.2)]"
+      role="region"
+      aria-label="Ações recomendadas"
+    >
+      <h2 className="df-text-warning text-xs font-bold uppercase tracking-wide">Ações recomendadas</h2>
+      <p className="mt-1 text-xs df-text-secondary">Clique para abrir o inbox com o filtro certo.</p>
       <ul className="mt-3 space-y-2">
         {actions.map((a) => (
           <li key={a.type}>

@@ -23,7 +23,7 @@ export function FeatureCards() {
         {ITEMS.map((item) => (
           <div
             key={item.title}
-            className="rounded-2xl border border-border/90 bg-card/80 p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06)] ring-1 ring-slate-900/[0.04] backdrop-blur-sm"
+            className="rounded-2xl border border-border/90 bg-card/80 p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06)] df-ring-elevated backdrop-blur-sm"
           >
             <h3 className="text-base font-semibold df-text-primary">{item.title}</h3>
             <p className="mt-2 text-sm leading-relaxed df-text-secondary">{item.body}</p>

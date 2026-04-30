@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Button, cn } from "@devflow/ui";
+import { cn } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 
 type MessageItem = {
@@ -105,7 +106,9 @@ export default function AdminConversationChatPage() {
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {error && (
-          <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+          <div className="df-feedback-error !mb-3 !rounded-lg" role="alert">
+            {error}
+          </div>
         )}
         <div className="space-y-3">
           {messages.map((m) => (
@@ -114,8 +117,8 @@ export default function AdminConversationChatPage() {
               className={cn(
                 "max-w-[85%] rounded-2xl px-4 py-2 text-sm",
                 m.direction === "inbound"
-                  ? "mr-auto bg-card df-text-primary shadow-sm ring-1 ring-slate-200/60"
-                  : "ml-auto bg-green-600 text-white"
+                  ? "mr-auto bg-card df-text-primary shadow-sm ring-1 ring-[color:var(--df-ring-soft)]"
+                  : "ml-auto bg-[var(--df-brand-600)] text-white"
               )}
             >
               <p className="whitespace-pre-wrap break-words">{m.body}</p>
@@ -146,7 +149,7 @@ export default function AdminConversationChatPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Digite sua mensagem..."
-            className="min-w-0 flex-1 rounded-xl border border-border bg-muted/60 px-4 py-2.5 text-sm df-text-primary placeholder:df-text-muted focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20"
+            className="min-w-0 flex-1 rounded-xl border border-border bg-muted/60 px-4 py-2.5 text-sm df-text-primary placeholder:df-text-muted focus:border-[var(--df-brand-500)] focus:outline-none focus:ring-2 focus:ring-[color:color-mix(in_srgb,var(--df-brand-500)_22%,transparent)]"
             disabled={sending}
           />
           <Button variant="primary" type="submit" disabled={sending || !input.trim()} size="default">

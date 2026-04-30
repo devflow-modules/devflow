@@ -70,9 +70,9 @@ function formatAuditActionPt(action: string): string {
 
 function StateBadge({ children, tone }: { children: ReactNode; tone: "amber" | "emerald" | "slate" | "violet" }) {
   const map = {
-    amber: "bg-amber-100 text-amber-950 ring-1 ring-amber-200/80",
-    emerald: "bg-emerald-100 text-emerald-900 ring-1 ring-emerald-200/80",
-    slate: "bg-muted df-text-secondary ring-1 ring-slate-200/80",
+    amber: "df-badge-warning",
+    emerald: "df-badge-success",
+    slate: "bg-muted df-text-secondary ring-1 ring-[color:var(--df-ring-soft)]",
     violet: "bg-violet-100 text-violet-900 ring-1 ring-violet-200/80",
   } as const;
   return (
@@ -217,7 +217,7 @@ export function TenantAdminClient({ tenantId }: { tenantId: string }) {
     return <p className="text-sm df-text-muted">A carregar…</p>;
   }
   if (!panel) {
-    return <p className="text-sm text-red-600">{error ?? "Tenant não encontrado."}</p>;
+    return <p className="df-text-error text-sm">{error ?? "Tenant não encontrado."}</p>;
   }
 
   return (
@@ -248,7 +248,9 @@ export function TenantAdminClient({ tenantId }: { tenantId: string }) {
       </div>
 
       {error ? (
-        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</div>
+        <div className="df-feedback-error !rounded-md" role="alert">
+          {error}
+        </div>
       ) : null}
 
       <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
@@ -270,7 +272,7 @@ export function TenantAdminClient({ tenantId }: { tenantId: string }) {
               {panel.tenant.affiliateSource === "ref" ? <StateBadge tone="emerald">Ref</StateBadge> : null}
               {panel.tenant.affiliateSource === "manual" ? <StateBadge tone="amber">Manual</StateBadge> : null}
             </p>
-            <Link href="/admin/affiliates" className="inline-block pt-2 text-sm font-medium text-blue-700 underline-offset-4 hover:underline">
+            <Link href="/admin/affiliates" className="df-text-info inline-block pt-2 text-sm font-medium underline-offset-4 hover:underline">
               Abrir afiliados
             </Link>
           </div>

@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import { AppBadge } from "@/components/ui/app-badge";
 import {
   fetchInboxConversations,
@@ -328,10 +328,7 @@ export function AutomationClient() {
       />
 
       {automationOutboundLocked ? (
-        <div
-          className="rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-sm text-amber-950"
-          role="status"
-        >
+        <div className="df-feedback-warning !rounded-xl px-4 py-3 text-sm" role="status">
           Automações que enviam mensagens ficam disponíveis após a Meta aprovar o número e o canal ser ativado com
           token.
         </div>
@@ -384,10 +381,10 @@ export function AutomationClient() {
 
       {(apiError || testResult) && (
         <div
-          className={`rounded-xl border px-4 py-3 text-sm shadow-sm ${
+          className={`rounded-xl px-4 py-3 text-sm shadow-sm ${
             apiError
-              ? "border-red-200/90 bg-red-50/90 text-red-800"
-              : "border-border/90 bg-muted/60/90 df-text-primary"
+              ? "df-feedback-error !rounded-xl"
+              : "border border-border/90 bg-muted/60/90 df-text-primary"
           }`}
           role={apiError ? "alert" : "status"}
         >
@@ -532,7 +529,7 @@ export function AutomationClient() {
           }
         />
       ) : (
-        <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-border/90 bg-card shadow-sm">
+        <ul className="df-divide-y-soft overflow-hidden rounded-xl border border-border/90 bg-card shadow-sm">
           {rules.map((r) => (
             <li key={r.id} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -575,7 +572,7 @@ export function AutomationClient() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="text-red-600 hover:text-red-700"
+                  className="df-text-error hover:opacity-90"
                   onClick={() => handleDelete(r.id)}
                   disabled={loading || r.isSystem}
                   title={r.isSystem ? "Regras de sistema não podem ser removidas" : undefined}
@@ -697,7 +694,7 @@ function ActionRow({
   const params = action.params ?? {};
 
   return (
-    <div className="flex flex-wrap items-end gap-2 rounded-xl border border-border/90 bg-muted/60/60 p-3 ring-1 ring-slate-900/[0.02]">
+    <div className="flex flex-wrap items-end gap-2 rounded-xl border border-border/90 bg-muted/60/60 p-3 df-ring-elevated">
       <select
         value={action.type}
         onChange={(e) => onChange({ type: e.target.value })}
@@ -782,7 +779,7 @@ function ActionRow({
         />
       )}
       {canRemove && (
-        <Button size="sm" variant="ghost" className="text-red-600" onClick={onRemove}>
+        <Button size="sm" variant="ghost" className="df-text-error" onClick={onRemove}>
           ×
         </Button>
       )}

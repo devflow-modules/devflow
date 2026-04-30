@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StateLoading } from "@/components/ui/app-states";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
@@ -75,12 +75,12 @@ export function DeveloperApiKeyClient() {
 
         {generated && (
           <div className="mt-4 space-y-2">
-            <p className="text-sm font-medium text-amber-900">Copia agora — não voltamos a mostrar a chave completa.</p>
+            <p className="df-text-warning text-sm font-medium">Copia agora — não voltamos a mostrar a chave completa.</p>
             <div className="break-all rounded-lg border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_45%,var(--df-bg-elevated))] p-3 font-mono text-sm">{generated}</div>
           </div>
         )}
 
-        {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+        {error && <p className="df-text-error mt-4 text-sm">{error}</p>}
 
         <div className="mt-6">
           <Button variant="disabled" id="dev-api-generate-btn" type="button" onClick={handleGenerate} disabled={working}>

@@ -10,6 +10,7 @@
     "lint": "eslint",
     "check:buttons": "node scripts/block-native-button.mjs",
     "lint:design-system": "node scripts/verify-design-system.mjs",
+    "report:feedback-wp": "node scripts/report-wp-feedback-colors.mjs",
     "lint:all": "eslint . && pnpm lint:design-system",
     "codemod:design-tokens": "node scripts/codemod-design-tokens.mjs",
     "lint:ci": "eslint --max-warnings 0 \"apps/financeiro/**/*.{ts,tsx}\" \"src/modules/financeiro/**/*.{ts,tsx}\"",

@@ -143,11 +143,11 @@ export function BillingTenantsTable({
               <td className="p-3">{row.plan}</td>
               <td className="p-3">
                 <span
-                  className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
+                  className={`inline-flex rounded px-2 py-0.5 text-xs font-medium ${
                     row.subscriptionStatus === "active"
-                      ? "bg-green-100 text-green-800"
+                      ? "df-badge-success !normal-case"
                       : row.subscriptionStatus === "past_due"
-                        ? "bg-amber-100 text-amber-800"
+                        ? "df-badge-warning !normal-case"
                         : row.subscriptionStatus === "canceled"
                           ? "bg-muted df-text-secondary"
                           : "bg-muted df-text-secondary"

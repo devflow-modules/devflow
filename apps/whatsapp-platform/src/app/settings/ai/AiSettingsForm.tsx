@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import { AiStatusBanner, type AiBannerState } from "@/components/ai/AiStatusBanner";
 import { StateLoading } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";

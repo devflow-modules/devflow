@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import type { PendingChannelRow, PendingQueueFilter } from "@/modules/whatsapp/channelActivationService";
 import { SlaBadge } from "./SlaBadge";
 
@@ -22,9 +22,11 @@ type Props = {
 };
 
 function rowTone(row: PendingChannelRow): string {
-  if (row.lastEvent?.type === "ERROR") return "bg-rose-50/60 ring-1 ring-rose-200/80";
-  if (row.slaStatus === "critical") return "border-l-4 border-red-600 bg-red-50/40 ring-1 ring-red-200/60";
-  if (row.possiblyStuck) return "bg-amber-50/45";
+  if (row.lastEvent?.type === "ERROR")
+    return "bg-[color:var(--df-danger-bg)] ring-1 ring-[color:var(--df-danger-border)]";
+  if (row.slaStatus === "critical")
+    return "border-l-4 border-[color:var(--df-danger-sla-border)] bg-[color:var(--df-danger-sla-bg)] ring-1 ring-[color:var(--df-danger-border)]";
+  if (row.possiblyStuck) return "bg-[color-mix(in_srgb,var(--df-warning-bg)_45%,transparent)]";
   return "";
 }
 
@@ -40,7 +42,7 @@ function AlertsCell({ row }: { row: PendingChannelRow }) {
   if (!row.alerts?.length && !row.lastEvent?.type) return <span className="df-text-muted">—</span>;
   return (
     <span
-      className="inline-flex max-w-[10rem] cursor-help items-center gap-1 text-amber-800"
+      className="inline-flex max-w-[10rem] cursor-help items-center gap-1 df-text-warning"
       title={summary || row.lastEvent?.message}
     >
       {row.alerts?.some((a) => a.level === "critical") ? (
@@ -126,7 +128,7 @@ export function ActivationQueueTable({
                   ) : null}
                   {row.autoHealStatus === "ACTIVE" && row.autoHealCandidate ? (
                     <span
-                      className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-950"
+                      className="df-badge-success inline-flex items-center gap-0.5 !px-2 !py-0.5 !text-[10px] !font-semibold !normal-case !tracking-normal"
                       title="Pode executar tentativa automática em segundo plano"
                       data-testid={`auto-heal-active-${row.id}`}
                     >
@@ -148,7 +150,7 @@ export function ActivationQueueTable({
                 <div className="font-mono text-xs df-text-muted">{row.tenantId}</div>
                 {row.possiblyStuck ? (
                   <span
-                    className="mt-1 inline-block rounded-md bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-950"
+                    className="df-badge-warning mt-1 inline-block !rounded-md !px-2 !py-0.5 !text-xs !font-medium !normal-case !tracking-normal"
                     title="Sem atualização há mais de 15 minutos"
                   >
                     Possível travamento
@@ -164,7 +166,7 @@ export function ActivationQueueTable({
                 <div className="space-y-1">
                   <SlaBadge status={row.slaStatus} urgent={row.slaStatus === "critical"} />
                   {row.slaStatus === "critical" ? (
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-red-800">
+                    <p className="df-text-error text-[11px] font-semibold uppercase tracking-wide">
                       Ação imediata necessária
                     </p>
                   ) : null}

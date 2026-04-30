@@ -166,7 +166,7 @@ function MessageInputInner({
     >
       {composerLocked ? (
         <p
-          className="mb-3 rounded-lg border border-amber-200/90 bg-amber-50/90 px-3 py-2 text-xs text-amber-950"
+          className="df-feedback-warning mb-3 rounded-lg px-3 py-2 text-xs"
           title={OUTBOUND_LOCKED_HINT}
         >
           Envio e sugestões com IA ficam disponíveis quando o canal WhatsApp estiver ativo na Meta.
@@ -182,12 +182,9 @@ function MessageInputInner({
         </p>
       )}
       {thread && followUpSuggestion(thread)?.show ? (
-        <div
-          className="mb-3 rounded-xl border border-amber-200/90 bg-amber-50/90 px-3 py-2.5 text-sm text-amber-950 shadow-sm"
-          data-testid="follow-up-banner"
-        >
+        <div className="df-feedback-warning mb-3 rounded-xl px-3 py-2.5 text-sm shadow-sm" data-testid="follow-up-banner">
           <p className="font-medium">Follow-up sugerido</p>
-          <p className="mt-1 text-xs text-amber-900/85">
+          <p className="mt-1 text-xs opacity-90">
             O cliente ainda não respondeu após a última mensagem sua — pode enviar um lembrete cordial.
           </p>
           <Button variant="secondary"
@@ -289,7 +286,7 @@ function MessageInputInner({
 
       {denseComposer ? (
         <details className="mb-2">
-          <summary className="cursor-pointer text-[11px] font-medium text-sky-800 marker:content-none [&::-webkit-details-marker]:hidden">
+          <summary className="df-text-info cursor-pointer text-[11px] font-medium marker:content-none [&::-webkit-details-marker]:hidden">
             Sugerir ação (playbook)
           </summary>
           <div className="mt-1">
@@ -309,7 +306,7 @@ function MessageInputInner({
       )}
 
       {suggestMut.isError && (
-        <p className="mb-2 text-xs text-red-600">
+        <p className="df-text-error mb-2 text-xs">
           {suggestMut.error instanceof Error ? suggestMut.error.message : "Erro ao gerar sugestão"}
         </p>
       )}

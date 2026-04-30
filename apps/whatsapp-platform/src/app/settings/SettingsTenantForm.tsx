@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { buttonClassName } from "@/components/ui/button";
 import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";

@@ -45,7 +45,7 @@ function scoreBar(score: number) {
   const pct = Math.min(100, Math.max(0, score));
   return (
     <div className="space-y-1.5" data-testid="lead-score-bar">
-      <div className="h-2 overflow-hidden rounded-full bg-muted ring-1 ring-slate-200/80">
+      <div className="h-2 overflow-hidden rounded-full bg-muted ring-1 ring-[color:var(--df-ring-soft)]">
         <div
           className="h-full rounded-full bg-gradient-to-r from-sky-500 to-[var(--df-brand-600)] transition-[width] duration-300"
           style={{ width: `${pct}%` }}

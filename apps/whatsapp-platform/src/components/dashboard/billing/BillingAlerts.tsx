@@ -131,10 +131,10 @@ export function BillingAlerts({
           key={i}
           className={`rounded-lg px-4 py-3 text-sm ${
             a.type === "danger"
-              ? "border border-red-500/40 bg-red-950/35 text-red-100"
+              ? "df-feedback-error"
               : a.type === "warning"
-                ? "border border-amber-500/40 bg-amber-950/30 text-amber-50"
-                : "border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_45%,var(--df-bg-elevated))] text-[var(--df-text-primary)]"
+                ? "df-feedback-warning"
+                : "df-feedback-info"
           }`}
           role="alert"
         >

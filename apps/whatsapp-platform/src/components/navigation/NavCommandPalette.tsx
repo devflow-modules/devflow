@@ -115,7 +115,7 @@ export function NavCommandPalette() {
         onClick={() => setOpen(false)}
       />
       <div
-        className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-border/90 bg-card shadow-2xl ring-1 ring-slate-900/5"
+        className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-border/90 bg-card shadow-2xl df-ring-elevated"
         role="dialog"
         aria-modal="true"
         aria-labelledby="nav-cmd-title"

@@ -23,7 +23,7 @@ type Props = {
 export function SlaBadge({ status, className: extra = "", urgent }: Props) {
   const urgentClass =
     status === "critical" && urgent
-      ? "px-3 py-1 text-sm ring-2 ring-red-400/70 shadow-sm"
+      ? "px-3 py-1 text-sm shadow-sm ring-2 ring-[color:var(--df-danger-border)]"
       : "";
   return (
     <span

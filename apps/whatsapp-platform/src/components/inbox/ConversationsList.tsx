@@ -240,11 +240,11 @@ export function ConversationsList({
               data-testid={`inbox-filter-${f}`}
               className={`rounded-full px-2.5 py-1.5 text-[10px] font-semibold transition-[background,color,box-shadow,ring] sm:text-[11px] ${
                 selected && isNeeds
-                  ? "bg-red-600 text-white shadow-md ring-2 ring-red-400/60"
+                  ? "bg-[rgb(220_38_38)] text-white shadow-md ring-2 ring-[color:rgb(248_113_113/0.55)]"
                   : selected
                     ? "bg-[var(--df-brand-600)] text-white shadow-[0_1px_2px_rgba(15,23,42,0.08)]"
                     : isNeeds
-                      ? "bg-red-50/95 text-red-900 ring-1 ring-red-200/90 hover:bg-red-100"
+                      ? "border border-[color:var(--df-danger-sla-border)] bg-[color:var(--df-danger-sla-bg)] df-text-error shadow-sm ring-1 ring-[color:var(--df-danger-border)] hover:bg-[color-mix(in_srgb,var(--df-danger-bg)_35%,var(--df-danger-sla-bg))]"
                       : "bg-[var(--df-bg-elevated)] text-[var(--df-text-secondary)] ring-1 ring-[var(--df-border-subtle)] hover:bg-[var(--df-brand-100)] hover:text-[var(--df-text-primary)]"
               }`}
             >
@@ -378,7 +378,7 @@ export function ConversationsList({
       {filterChrome}
       {responseAlertCriticalCount > 0 ? (
         <div
-          className="border-b border-red-200/90 bg-red-50/95 px-3 py-2 text-[11px] leading-snug text-red-950 sm:px-4"
+          className="border-b border-[color:var(--df-danger-sla-border)] bg-[color:var(--df-danger-sla-bg)] px-3 py-2 text-[11px] leading-snug sm:px-4 df-text-error"
           role="alert"
           data-testid="inbox-stale-alert-critical"
         >
@@ -389,7 +389,7 @@ export function ConversationsList({
         </div>
       ) : responseAlertWarningCount > 0 ? (
         <div
-          className="border-b border-amber-200/90 bg-amber-50/95 px-3 py-2 text-[11px] leading-snug text-amber-950 sm:px-4"
+          className="border-b border-[color:rgb(245_158_11/0.38)] bg-[color:rgb(245_158_11/0.12)] px-3 py-2 text-[11px] leading-snug sm:px-4 df-text-warning"
           role="status"
           data-testid="inbox-stale-alert-warning"
         >

@@ -104,7 +104,7 @@ export function ChatAuditTab({ threadId }: { threadId: string | null }) {
           return (
             <li
               key={log.id}
-              className="rounded-xl border border-border/90 bg-card px-4 py-3 shadow-sm ring-1 ring-slate-900/[0.03]"
+              className="rounded-xl border border-border/90 bg-card px-4 py-3 shadow-sm df-ring-elevated"
             >
               <p className="text-sm leading-snug df-text-primary">
                 <span className="font-semibold df-text-primary">{userName}</span> {label}

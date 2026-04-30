@@ -26,6 +26,6 @@ export function operationalStatusDotClass(presence: OperationalPresence): string
     case "busy":
       return "bg-red-500 ring-1 ring-red-600/25";
     default:
-      return "bg-muted-foreground/35 ring-1 ring-slate-500/15";
+      return "bg-muted-foreground/35 ring-1 ring-black/20";
   }
 }

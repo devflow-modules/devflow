@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import { isWhiteLabelMode } from "@/lib/productMode";
 import { SupportHelpButton } from "@/components/support/SupportHelpButton";
 
@@ -39,13 +39,13 @@ export function AiStatusBanner({
 
   if (state === "exceeded") {
     return (
-      <div className="mt-3 rounded-lg border border-amber-300 bg-amber-50/95 p-4">
-        <p className="text-sm font-semibold text-amber-950">
+      <div className="mt-3 df-feedback-warning">
+        <p className="text-sm font-semibold">
           {wl
             ? "Capacidade de IA da operação esgotada neste período"
             : "Interações de IA incluídas no plano esgotadas neste período"}
         </p>
-        <p className="mt-1 text-sm text-amber-900/95">
+        <p className="mt-1 text-sm">
           {wl
             ? "Contacte o suporte para alinhar a capacidade e continuar o atendimento com IA."
             : "Faça upgrade para recuperar margem no pacote incluído, ou veja em Plano e faturação como funciona o uso adicional (na fatura: «Uso adicional de IA»)."}
@@ -56,7 +56,9 @@ export function AiStatusBanner({
           </div>
         ) : (
           <Link href="/billing" className="mt-3 inline-block">
-            <Button variant="secondary" size="sm">Ver planos e faturação</Button>
+            <Button variant="secondary" size="sm">
+              Ver planos e faturação
+            </Button>
           </Link>
         )}
       </div>
@@ -65,13 +67,13 @@ export function AiStatusBanner({
 
   if (state === "near_limit") {
     return (
-      <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/80 p-4">
-        <p className="text-sm font-semibold text-amber-950">
+      <div className="mt-3 df-feedback-warning">
+        <p className="text-sm font-semibold">
           {wl
             ? `Próximo da margem de IA da operação (${percentUsed != null ? `${percentUsed}%` : "—"})`
             : `Próximo do que o plano inclui (${percentUsed != null ? `${percentUsed}%` : "—"} das interações de IA)`}
         </p>
-        <p className="mt-1 text-sm text-amber-900/90">
+        <p className="mt-1 text-sm">
           {wl
             ? "O suporte pode ajudar a ajustar a capacidade antes de atingir o limite."
             : "Isto não interrompe o serviço: além do incluído pode haver expansão de uso, conforme a sua fatura."}
@@ -94,24 +96,24 @@ export function AiStatusBanner({
   if (state === "active") {
     const remaining = limit != null ? limit - used : null;
     return (
-      <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-        <p className="text-sm font-medium text-emerald-900">IA ativa</p>
+      <div className="mt-3 df-feedback-success">
+        <p className="text-sm font-medium">IA ativa</p>
         {remaining != null && remaining > 0 ? (
-          <p className="mt-1 text-sm text-emerald-800">
+          <p className="mt-1 text-sm">
             Você ainda pode usar: <strong>{remaining} respostas com IA</strong> este mês.
           </p>
         ) : (
-          <p className="mt-1 text-sm text-emerald-800">
+          <p className="mt-1 text-sm">
             {used} respostas IA este mês
             {!wl && planName ? ` (plano ${planName})` : ""}.
           </p>
         )}
         {!wl ? (
-          <Link href="/settings/ai-analytics" className="mt-2 inline-block text-sm text-emerald-700 hover:underline">
+          <Link href="/settings/ai-analytics" className="mt-2 inline-block text-sm underline opacity-90 hover:opacity-100">
             Ver uso detalhado →
           </Link>
         ) : (
-          <p className="mt-2 text-sm text-emerald-800">Para detalhes de uso, contacte o suporte.</p>
+          <p className="mt-2 text-sm">Para detalhes de uso, contacte o suporte.</p>
         )}
       </div>
     );

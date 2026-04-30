@@ -28,12 +28,9 @@ export function WhatsappConnectErrorPanel({
   const supportHref = getWhatsappSupportHref();
 
   return (
-    <div
-      className="rounded-2xl border border-rose-500/35 bg-rose-950/30 px-4 py-4 shadow-sm"
-      role="alert"
-    >
-      <p className="text-sm font-semibold text-rose-100">{copy.title}</p>
-      <p className="mt-1.5 text-sm leading-relaxed text-rose-200/95">{copy.description}</p>
+    <div className="df-feedback-error rounded-2xl shadow-sm" role="alert">
+      <p className="text-sm font-semibold">{copy.title}</p>
+      <p className="mt-1.5 text-sm leading-relaxed opacity-95">{copy.description}</p>
 
       <div className="mt-4 flex flex-wrap gap-2">
         {onRetry ? (
@@ -56,12 +53,13 @@ export function WhatsappConnectErrorPanel({
         ) : null}
       </div>
 
-      <div className="mt-5 rounded-xl border border-rose-500/25 bg-[color-mix(in_srgb,var(--df-bg-elevated)_92%,black)] px-4 py-3">
+      <div className="mt-5 rounded-xl border border-border/80 bg-[color-mix(in_srgb,var(--df-bg-elevated)_92%,black)] px-4 py-3">
         <p className="text-sm font-medium text-[var(--df-text-primary)]">Precisa de ajuda para conectar?</p>
         <p className="mt-1 text-xs leading-relaxed text-[var(--df-text-secondary)]">
           Nós podemos te ajudar a configurar seu WhatsApp passo a passo.
         </p>
-        <Button variant="secondary"
+        <Button
+          variant="secondary"
           type="button"
           onClick={() => openSupport()}
           className={`${buttonClassName("secondary")} mt-3 w-full sm:w-auto`}

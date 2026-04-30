@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import { getPlan } from "@/modules/billing/plans";
 import {
   BILLING_HEADER_SUPPORTING_LINE,
@@ -41,12 +41,12 @@ export function BillingHeader({
             <span
               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                 isPastDue
-                  ? "bg-red-100 text-red-800"
+                  ? "df-badge-error !normal-case"
                   : status?.toLowerCase() === "active"
-                    ? "bg-emerald-100 text-emerald-800"
+                    ? "df-badge-success !normal-case"
                     : status?.toLowerCase() === "free"
                       ? "bg-[var(--df-bg-app)] text-[var(--df-text-secondary)]"
-                      : "bg-amber-100 text-amber-800"
+                      : "df-badge-warning !normal-case"
               }`}
             >
               {status ?? "—"}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import { AppBadge } from "@/components/ui/app-badge";
 import type { AdminWhatsappChannelRow, WhatsappChannelStatus } from "./types";
 
@@ -11,7 +11,7 @@ function StatusBadge({ status }: { status: WhatsappChannelStatus }) {
   }
   if (status === "PENDING_ACTIVATION") {
     return (
-      <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-950">
+      <span className="df-badge-warning inline-flex !rounded-full !px-2 !py-0.5 !text-xs !font-medium !normal-case !tracking-normal">
         PENDING_ACTIVATION
       </span>
     );
@@ -21,12 +21,12 @@ function StatusBadge({ status }: { status: WhatsappChannelStatus }) {
 
 function ReadyCell({ row }: { row: AdminWhatsappChannelRow }) {
   if (row.readyForOutbound) {
-    return <span className="text-sm text-emerald-800">✅ Pronto</span>;
+    return <span className="df-text-success text-sm">✅ Pronto</span>;
   }
   if (row.status === "ACTIVE" && !row.hasToken) {
-    return <span className="text-sm text-amber-800">⚠️ Token ausente</span>;
+    return <span className="df-text-warning text-sm">⚠️ Token ausente</span>;
   }
-  return <span className="text-sm text-red-800">❌ Não ativo</span>;
+  return <span className="df-text-error text-sm">❌ Não ativo</span>;
 }
 
 type Props = {
@@ -71,7 +71,9 @@ export function AdminWhatsappChannelsTable({ rows, loading, onActivate, onCopy, 
             return (
               <tr
                 key={row.id}
-                className={pending ? "bg-amber-50/40" : undefined}
+                className={
+                  pending ? "bg-[color-mix(in_srgb,var(--df-warning-bg)_40%,transparent)]" : undefined
+                }
                 data-testid={`channel-row-${row.id}`}
                 data-status={row.status}
               >

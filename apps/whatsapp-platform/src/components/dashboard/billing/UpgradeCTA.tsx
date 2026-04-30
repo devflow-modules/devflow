@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import { PLANS, normalizePlan } from "@/modules/billing/plans";
 import type { PlanKey } from "@/modules/billing/plans";
 import {
@@ -37,15 +37,16 @@ export function UpgradeCTA({
   const nextPlanDef = PLANS[nextPlan];
 
   return (
-    <div className="rounded-xl border-2 border-emerald-200 bg-emerald-50/60 p-6">
-      <h3 className="text-lg font-semibold text-emerald-900">{upgradeCtaHeadline(currentKey, nextPlan)}</h3>
-      <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-emerald-800/90">{nextPlanDef.name}</p>
-      <p className="mt-1 text-base font-semibold text-emerald-950">{COMMERCIAL_PLAN_HEADLINE[nextPlan]}</p>
-      <p className="mt-2 text-sm leading-relaxed text-emerald-900/95">{COMMERCIAL_PLAN_SUBTITLE[nextPlan]}</p>
-      <Button variant="secondary"
+    <div className="df-feedback-success rounded-xl p-6">
+      <h3 className="text-lg font-semibold">{upgradeCtaHeadline(currentKey, nextPlan)}</h3>
+      <p className="mt-1 text-xs font-semibold uppercase tracking-wide opacity-90">{nextPlanDef.name}</p>
+      <p className="mt-1 text-base font-semibold">{COMMERCIAL_PLAN_HEADLINE[nextPlan]}</p>
+      <p className="mt-2 text-sm leading-relaxed opacity-95">{COMMERCIAL_PLAN_SUBTITLE[nextPlan]}</p>
+      <Button
+        variant="primary"
         id={upgradeButtonId}
         type="button"
-        className="mt-4 bg-emerald-600 hover:bg-emerald-700"
+        className="mt-4"
         onClick={() => onUpgrade(nextPlan)}
         disabled={!!loadingPlan}
       >

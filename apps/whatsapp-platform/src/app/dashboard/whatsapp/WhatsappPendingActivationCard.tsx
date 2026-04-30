@@ -4,7 +4,7 @@
 export function WhatsappPendingActivationCard() {
   return (
     <section
-      className="rounded-2xl border border-amber-500/35 bg-amber-950/25 p-5 shadow-sm"
+      className="rounded-2xl border border-[color:rgb(245_158_11/0.35)] bg-[color-mix(in_srgb,var(--df-warning-bg)_65%,var(--df-bg-elevated))] p-5 shadow-sm ring-1 ring-[color:rgb(245_158_11/0.18)]"
       aria-label="Ativação do canal WhatsApp"
     >
       <div className="flex flex-wrap items-start gap-3">
@@ -16,7 +16,7 @@ export function WhatsappPendingActivationCard() {
           <p className="mt-2 text-sm leading-relaxed text-[var(--df-text-secondary)]">
             Estamos aguardando a aprovação da Meta para ativar o envio de mensagens.
           </p>
-          <p className="mt-3 inline-flex rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-200">
+          <p className="df-badge-warning mt-3 inline-flex !rounded-full !px-3 !py-1 !text-xs !font-semibold !normal-case !tracking-normal">
             Aguardando ativação
           </p>
         </div>

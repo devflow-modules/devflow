@@ -76,9 +76,9 @@ export function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-center text-sm text-emerald-900">
+      <div role="status" className="df-feedback-success !rounded-lg p-4 text-center">
         <p className="font-medium">Senha alterada com sucesso.</p>
-        <p className="mt-1 text-emerald-800">A redirecionar para o login…</p>
+        <p className="mt-1 opacity-95">A redirecionar para o login…</p>
       </div>
     );
   }
@@ -115,13 +115,13 @@ export function ResetPasswordForm() {
             placeholder="Cole o token completo"
             autoComplete="off"
             disabled={loading}
-            className="w-full rounded-md border df-border-dark bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-60"
+            className="w-full rounded-md border df-border-dark bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)] disabled:opacity-60"
           />
         </div>
       ) : null}
 
       {error && (
-        <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+        <div role="alert" className="df-feedback-error !rounded-md">
           {error}
         </div>
       )}
@@ -152,12 +152,12 @@ export function ResetPasswordForm() {
       <Button variant="primary"
         type="submit"
         disabled={loading}
-        className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50"
+        className="w-full rounded-md px-4 py-2.5 text-sm font-semibold shadow-sm disabled:opacity-50"
       >
         {loading ? "A guardar…" : "Redefinir senha"}
       </Button>
       <p className="text-center text-sm df-text-secondary">
-        <Link href="/login" className="font-medium text-blue-600 hover:text-blue-800">
+        <Link href="/login" className="df-text-info font-medium hover:opacity-90">
           Voltar ao login
         </Link>
       </p>

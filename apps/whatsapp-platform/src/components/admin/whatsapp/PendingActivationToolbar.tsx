@@ -9,17 +9,21 @@ type Props = {
 };
 
 function chipClass(active: boolean, tone: "ok" | "delay" | "critical" | "neutral") {
-  const base =
-    "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors";
+  const sizing =
+    "!px-3 !py-1.5 !text-xs !font-medium !normal-case !tracking-normal";
+  const base = `inline-flex items-center gap-1.5 rounded-full transition-colors ${sizing}`;
   if (active) {
-    if (tone === "ok") return `${base} border-emerald-300 bg-emerald-100 text-emerald-950 ring-2 ring-emerald-400/40`;
-    if (tone === "delay") return `${base} border-amber-300 bg-amber-100 text-amber-950 ring-2 ring-amber-400/40`;
-    if (tone === "critical") return `${base} border-red-300 bg-red-100 text-red-950 ring-2 ring-red-400/40`;
+    if (tone === "ok") return `${base} df-badge-success ring-2 ring-[color:rgb(16_185_129/0.45)]`;
+    if (tone === "delay") return `${base} df-badge-warning ring-2 ring-[color:rgb(245_158_11/0.45)]`;
+    if (tone === "critical") return `${base} df-badge-error ring-2 ring-[color:rgb(248_113_113/0.45)]`;
     return `${base} df-border-dark bg-muted text-white`;
   }
-  if (tone === "ok") return `${base} border-emerald-200 bg-card text-emerald-900 hover:bg-emerald-50`;
-  if (tone === "delay") return `${base} border-amber-200 bg-card text-amber-900 hover:bg-amber-50`;
-  if (tone === "critical") return `${base} border-red-200 bg-card text-red-900 hover:bg-red-50`;
+  if (tone === "ok")
+    return `${base} border border-[color:rgb(16_185_129/0.35)] bg-card df-text-success hover:bg-[color:rgb(16_185_129/0.08)]`;
+  if (tone === "delay")
+    return `${base} border border-[color:rgb(245_158_11/0.35)] bg-card df-text-warning hover:bg-[color:rgb(245_158_11/0.08)]`;
+  if (tone === "critical")
+    return `${base} border border-[color:rgb(248_113_113/0.35)] bg-card df-text-error hover:bg-[color:rgb(248_113_113/0.08)]`;
   return `${base} border-border bg-card df-text-primary hover:bg-muted/60`;
 }
 

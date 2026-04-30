@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@devflow/ui";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { fieldTextareaClassName } from "@/components/ui/form-field";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
