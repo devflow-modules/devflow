@@ -32,7 +32,11 @@ function MobileHeaderBrand() {
 
 function AppShellInner({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "";
-  const inboxFullBleed = pathname === "/inbox" || pathname.startsWith("/inbox/");
+  const inboxFullBleed =
+    pathname === "/inbox" ||
+    pathname.startsWith("/inbox/") ||
+    pathname === "/conversations" ||
+    pathname.startsWith("/conversations/");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { sidebarCollapsed } = useShellLayout();
 

@@ -17,4 +17,4 @@ export type {
 } from "@devflow/ui";
 
 /** Alias utilizado pelo shell / inbox antes da convergência. */
-export type ButtonVariant = ButtonClassNameVariant;
+export type ButtonVariant = import("@devflow/ui").ButtonClassNameVariant;

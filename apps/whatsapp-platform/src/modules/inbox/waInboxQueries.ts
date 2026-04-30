@@ -40,7 +40,20 @@ export type WaInboxThreadFilters = {
   queueId?: string;
   /** Filtro em `lead_data.prospect` / score (lista + contagem). */
   prospectLens?: InboxProspectLens;
+  /** ISO 8601 — `last_message_at >=` (histórico / relatórios; inbox não envia). */
+  lastMessageAtGte?: string;
+  /** ISO 8601 — `last_message_at <=` */
+  lastMessageAtLte?: string;
+  /** Busca em nome, telefone e texto de mensagens (histórico; inbox não envia). */
+  search?: string;
 };
+
+/** Padrão ILIKE seguro: sem `%`/`_` literais vindos do utilizador. */
+function inboxSearchIlikePattern(raw: string): string | null {
+  const t = raw.trim().slice(0, 120).replace(/[%_\\]/g, " ");
+  if (!t.trim()) return null;
+  return `%${t.trim()}%`;
+}
 
 const listInclude = {
   assignedToUser: { select: { id: true, name: true, email: true } },
@@ -124,6 +137,32 @@ function buildWaInboxThreadWhereParts(
     } else {
       and(Prisma.sql`t.queue_id = ${filters.queueId}`);
     }
+  }
+
+  if (filters?.lastMessageAtGte?.trim()) {
+    const d = new Date(filters.lastMessageAtGte.trim());
+    if (!Number.isNaN(d.getTime())) {
+      and(Prisma.sql`t.last_message_at >= ${d}`);
+    }
+  }
+  if (filters?.lastMessageAtLte?.trim()) {
+    const d = new Date(filters.lastMessageAtLte.trim());
+    if (!Number.isNaN(d.getTime())) {
+      and(Prisma.sql`t.last_message_at <= ${d}`);
+    }
+  }
+  const likePattern = filters?.search ? inboxSearchIlikePattern(filters.search) : null;
+  if (likePattern) {
+    and(Prisma.sql`(
+      COALESCE(t.contact_name, '') ILIKE ${likePattern}
+      OR t.phone_number ILIKE ${likePattern}
+      OR EXISTS (
+        SELECT 1 FROM wa_inbox_messages mx
+        WHERE mx.thread_id = t.id AND mx.tenant_id = t.tenant_id
+          AND mx.content_text IS NOT NULL AND btrim(mx.content_text) <> '' AND mx.content_text ILIKE ${likePattern}
+        LIMIT 1
+      )
+    )`);
   }
 
   const lens = filters?.prospectLens;
@@ -391,7 +430,36 @@ export async function waInboxCountThreads(
     where.threadTags = { some: { tenantId, tagId: filters.tag } };
   }
 
-  if (filters?.prospectLens) {
+  if (filters?.lastMessageAtGte?.trim()) {
+    const d = new Date(filters.lastMessageAtGte.trim());
+    if (!Number.isNaN(d.getTime())) {
+      where.lastMessageAt = {
+        ...(typeof where.lastMessageAt === "object" && where.lastMessageAt !== null
+          ? where.lastMessageAt
+          : {}),
+        gte: d,
+      };
+    }
+  }
+  if (filters?.lastMessageAtLte?.trim()) {
+    const d = new Date(filters.lastMessageAtLte.trim());
+    if (!Number.isNaN(d.getTime())) {
+      where.lastMessageAt = {
+        ...(typeof where.lastMessageAt === "object" && where.lastMessageAt !== null
+          ? where.lastMessageAt
+          : {}),
+        lte: d,
+      };
+    }
+  }
+
+  const needsRawCount =
+    Boolean(filters?.prospectLens) ||
+    Boolean(filters?.search?.trim()) ||
+    Boolean(filters?.lastMessageAtGte?.trim()) ||
+    Boolean(filters?.lastMessageAtLte?.trim());
+
+  if (needsRawCount) {
     const whereParts = buildWaInboxThreadWhereParts(tenantId, filters, currentUserId);
     const whereSql = combineWhereParts(whereParts);
     const rows = await prisma.$queryRaw<[{ c: bigint }]>(Prisma.sql`

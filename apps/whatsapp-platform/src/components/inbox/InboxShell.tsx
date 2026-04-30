@@ -116,6 +116,16 @@ function InboxShellContent() {
     });
   }, []);
 
+  const threadFromUrl = searchParams.get("thread")?.trim() ?? "";
+
+  useEffect(() => {
+    if (!threadFromUrl) return;
+    queueMicrotask(() => {
+      setSelectedId(threadFromUrl);
+      setMobileChat(true);
+    });
+  }, [threadFromUrl]);
+
   useEffect(() => {
     const legacy = searchParams.get("filter");
     const phaseParam = searchParams.get("phase");

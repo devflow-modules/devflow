@@ -68,18 +68,19 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     searchAliases: ["regras", "fluxos", "bots"],
   },
   "/conversations": {
-    label: "Conversas",
+    label: "Histórico",
     parent: null,
     section: "principal",
     roles: ["operator", "manager", "platform_admin"],
+    searchAliases: ["conversas", "lista", "histórico"],
   },
   "/settings/ai-analytics": {
-    label: "Análises de IA",
+    label: "Analytics de IA",
     parent: "/settings",
     section: "conta",
     roles: ["manager", "platform_admin"],
     sensitive: true,
-    searchAliases: ["custos ia", "tokens", "uso"],
+    searchAliases: ["custos ia", "tokens", "uso", "análises de ia"],
   },
   "/settings": {
     label: "Configurações",
@@ -90,12 +91,12 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     searchAliases: ["definições", "conta", "preferências", "equipa"],
   },
   "/settings/ai": {
-    label: "IA de atendimento",
+    label: "Configuração de IA",
     parent: "/settings",
     section: "conta",
     roles: ["manager", "platform_admin"],
     sensitive: true,
-    searchAliases: ["prompt", "comportamento", "tom", "playbook", "respostas automáticas"],
+    searchAliases: ["prompt", "comportamento", "tom", "playbook", "respostas automáticas", "ia de atendimento"],
   },
   "/settings/billing": {
     label: "Plano e faturação (resumo)",
@@ -119,11 +120,11 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     searchAliases: ["cobrança", "plano", "pagamento", "assinatura", "stripe", "fatura"],
   },
   "/agents": {
-    label: "Equipe",
+    label: "Agentes",
     parent: null,
     section: "operacao",
     roles: ["operator", "manager", "platform_admin"],
-    searchAliases: ["agentes", "time", "equipa", "pessoas", "colaboradores"],
+    searchAliases: ["equipe", "time", "equipa", "pessoas", "colaboradores"],
   },
   "/queues": {
     label: "Filas operacionais",
@@ -321,7 +322,7 @@ export const PALETTE_GROUP_ORDER: PaletteGroupId[] = ["operacao", "gestao", "con
 export const PALETTE_GROUP_LABEL: Record<PaletteGroupId, string> = {
   operacao: "Operação",
   gestao: "Gestão",
-  configuracao: "Conta e canais",
+  configuracao: "Conta",
   plataforma: "Ferramentas internas (DevFlow)",
 };
 

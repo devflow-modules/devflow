@@ -1,9 +1,10 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import { ConversationsHistoryClient } from "@/components/conversations-history/ConversationsHistoryClient";
 
-/**
- * Rota legada: lista Supabase `conversations` foi substituída pela Inbox canónica (Prisma).
- * @see docs/architecture/LEGACY-CLEANUP.md
- */
+export const metadata: Metadata = {
+  title: "Histórico de conversas | WhatsApp Platform",
+};
+
 export default function ConversationsPage() {
-  redirect("/inbox");
+  return <ConversationsHistoryClient />;
 }

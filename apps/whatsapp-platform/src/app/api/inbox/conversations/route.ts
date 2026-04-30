@@ -45,6 +45,9 @@ export async function GET(request: NextRequest) {
   const phaseParam = searchParams.get("phase")?.trim().toLowerCase() || undefined;
   const queueIdParam = searchParams.get("queueId")?.trim() || undefined;
   const prospectLensParam = searchParams.get("prospectLens")?.trim() || undefined;
+  const fromDay = searchParams.get("from")?.trim();
+  const toDay = searchParams.get("to")?.trim();
+  const searchQ = searchParams.get("q")?.trim().slice(0, 120) || undefined;
 
   const filters: {
     status?: WaInboxThreadStatus;
@@ -55,6 +58,9 @@ export async function GET(request: NextRequest) {
     conversationPhase?: WaInboxConversationPhaseFilter;
     queueId?: string;
     prospectLens?: InboxProspectLens;
+    lastMessageAtGte?: string;
+    lastMessageAtLte?: string;
+    search?: string;
   } = {};
   if (phaseParam && VALID_PHASE.has(phaseParam)) {
     filters.conversationPhase = phaseParam as WaInboxConversationPhaseFilter;
@@ -72,6 +78,15 @@ export async function GET(request: NextRequest) {
     if (isDevFlowProspectingEnabled(auth.payload.role)) {
       filters.prospectLens = prospectLensParam;
     }
+  }
+  if (fromDay && /^\d{4}-\d{2}-\d{2}$/.test(fromDay)) {
+    filters.lastMessageAtGte = `${fromDay}T00:00:00.000Z`;
+  }
+  if (toDay && /^\d{4}-\d{2}-\d{2}$/.test(toDay)) {
+    filters.lastMessageAtLte = `${toDay}T23:59:59.999Z`;
+  }
+  if (searchQ) {
+    filters.search = searchQ;
   }
 
   try {

@@ -5,57 +5,87 @@ import { isCommercialBillingVisible } from "@/lib/productMode";
 
 export type NavItem = { href: string; label: string; description?: string };
 
-/** Navegação principal — frequência de uso (máx. 6). Labels alinhados à matriz de produto. */
+function navItem(href: string): NavItem {
+  const m = ROUTE_META[href];
+  return {
+    href,
+    label: m?.label ?? href,
+    description: m?.searchAliases?.[0],
+  };
+}
+
+/** 1. Operação — painel, inbox, histórico, filas */
+export function navOperationItemsForRole(role: UserRole | string | null): NavItem[] {
+  const items = [
+    navItem("/dashboard"),
+    navItem("/inbox"),
+    navItem("/conversations"),
+    navItem("/queues"),
+  ];
+  if (!role) return items;
+  if (isOperator(role) && !isPlatformAdmin(role)) {
+    return items.filter((i) => i.href !== "/dashboard");
+  }
+  return items;
+}
+
+/** 2. Automação e IA */
+export function navAutomationItemsForRole(role: UserRole | string | null): NavItem[] {
+  const items = [
+    navItem("/automation"),
+    navItem("/dashboard/ai"),
+    navItem("/settings/ai"),
+    navItem("/settings/ai-analytics"),
+  ];
+  if (!role) return items;
+  if (isOperator(role) && !isPlatformAdmin(role)) {
+    return items.filter((i) => i.href === "/automation");
+  }
+  return items;
+}
+
+/** 3. Conta — WhatsApp, faturação, configurações, integrações */
+export function navAccountItemsForRole(role: UserRole | string | null): NavItem[] {
+  if (!role) {
+    const out: NavItem[] = [navItem("/dashboard/whatsapp")];
+    if (isCommercialBillingVisible()) out.push(navItem("/billing"));
+    out.push(navItem("/settings"), navItem("/settings/developer"));
+    return out;
+  }
+  if (isOperator(role) && !isPlatformAdmin(role)) return [];
+
+  const out: NavItem[] = [navItem("/dashboard/whatsapp")];
+  if (isCommercialBillingVisible()) {
+    out.push(navItem("/billing"));
+  }
+  out.push(navItem("/settings"));
+  if (isTenantManager(role) || isPlatformAdmin(role)) {
+    out.push(navItem("/settings/developer"));
+  }
+  return out;
+}
+
+/** 4. Equipe — agentes */
+export function navTeamItemsForRole(_role: UserRole | string | null): NavItem[] {
+  return [navItem("/agents")];
+}
+
+/** Compat: lista «principal» antiga (dashboard, inbox, histórico, automações — sem filas). */
 export const NAV_PRIMARY: NavItem[] = [
-  { href: "/dashboard", label: ROUTE_META["/dashboard"].label, description: "Resumo e próximos passos" },
-  { href: "/inbox", label: ROUTE_META["/inbox"].label, description: "Atendimento, histórico e filas" },
-  { href: "/conversations", label: ROUTE_META["/conversations"].label, description: "Lista de conversas do tenant" },
-  { href: "/automation", label: ROUTE_META["/automation"].label, description: "Regras e automação" },
+  navItem("/dashboard"),
+  navItem("/inbox"),
+  navItem("/conversations"),
+  navItem("/automation"),
 ];
 
-/**
- * Secundária — conta, canais, cobrança e configuração.
- * Ordem IA: Configurações (motor) → IA de atendimento (comportamento) → Análises de IA (uso/custo);
- * «IA — operação» no painel é métricas operacionais, não o mesmo ecrã que /settings/ai.
- */
-const NAV_SECONDARY_WITHOUT_BILLING: NavItem[] = [
-  { href: "/dashboard/whatsapp", label: ROUTE_META["/dashboard/whatsapp"].label, description: "Estado da ligação Meta" },
-  { href: "/dashboard/ai", label: ROUTE_META["/dashboard/ai"].label, description: "Métricas e guardas da IA" },
-  { href: "/settings", label: ROUTE_META["/settings"].label, description: "Conta e preferências" },
-  { href: "/settings/ai", label: ROUTE_META["/settings/ai"].label, description: "Prompt, tom e automação da IA no WhatsApp" },
-  { href: "/settings/ai-analytics", label: ROUTE_META["/settings/ai-analytics"].label, description: "Uso de IA e custos" },
-  { href: "/settings/developer", label: ROUTE_META["/settings/developer"].label, description: "Chave de API" },
-];
+/** Compat: secção Conta (sem entradas de IA — passaram para Automação e IA). */
+export const NAV_SECONDARY: NavItem[] = navAccountItemsForRole(null);
 
-const BILLING_NAV_ITEM: NavItem = {
-  href: "/billing",
-  label: ROUTE_META["/billing"].label,
-  description: "Plano e faturação",
-};
-
-export const NAV_SECONDARY: NavItem[] = !isCommercialBillingVisible()
-  ? NAV_SECONDARY_WITHOUT_BILLING
-  : [
-      { href: "/dashboard/whatsapp", label: ROUTE_META["/dashboard/whatsapp"].label, description: "Estado da ligação Meta" },
-      { href: "/dashboard/ai", label: ROUTE_META["/dashboard/ai"].label, description: "Métricas e guardas da IA" },
-      BILLING_NAV_ITEM,
-      { href: "/settings", label: ROUTE_META["/settings"].label, description: "Conta e preferências" },
-      { href: "/settings/ai", label: ROUTE_META["/settings/ai"].label, description: "Prompt, tom e automação da IA no WhatsApp" },
-      { href: "/settings/ai-analytics", label: ROUTE_META["/settings/ai-analytics"].label, description: "Uso de IA e custos" },
-      { href: "/settings/developer", label: ROUTE_META["/settings/developer"].label, description: "Chave de API" },
-    ];
-
-/** Operação — equipa e filas. */
-export const NAV_OPERATION: NavItem[] = [
-  { href: "/agents", label: ROUTE_META["/agents"].label },
-  { href: "/queues", label: ROUTE_META["/queues"].label },
-];
-
-export const NAV_ADMIN = { href: "/admin/metrics", label: "Métricas internas" };
+/** Compat: agentes + filas (estrutura antiga). */
+export const NAV_OPERATION: NavItem[] = [navItem("/agents"), navItem("/queues")];
 
 const OPERATOR_PRIMARY_HREFS = new Set<string>(["/inbox", "/conversations", "/automation"]);
 
-/** Navegação principal conforme role (operador não vê painel/análises). */
 export function primaryNavForRole(role: UserRole | string | null): NavItem[] {
   if (!role) return NAV_PRIMARY;
   if (isPlatformAdmin(role) || isTenantManager(role)) return NAV_PRIMARY;
@@ -65,12 +95,8 @@ export function primaryNavForRole(role: UserRole | string | null): NavItem[] {
   return NAV_PRIMARY;
 }
 
-/** Secundária: operador não vê conta/cobrança; API developer só para admin do tenant. */
 export function secondaryNavForRole(role: UserRole | string | null): NavItem[] {
-  if (!role) return NAV_SECONDARY;
-  if (isOperator(role) && !isPlatformAdmin(role)) return [];
-  return NAV_SECONDARY.filter((item) => {
-    if (item.href === "/settings/developer") return isTenantManager(role) || isPlatformAdmin(role);
-    return true;
-  });
+  return navAccountItemsForRole(role);
 }
+
+export const NAV_ADMIN = { href: "/admin/metrics", label: "Métricas internas" };

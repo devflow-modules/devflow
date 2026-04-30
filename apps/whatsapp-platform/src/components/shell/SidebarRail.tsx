@@ -21,6 +21,15 @@ function navIsActive(pathname: string, href: string) {
   return p === h || p.startsWith(`${h}/`);
 }
 
+function railLinkSensitive(href: string): boolean {
+  return (
+    href.includes("/settings/") ||
+    href.includes("ai-analytics") ||
+    href.includes("/billing") ||
+    href.startsWith("/dashboard/ai")
+  );
+}
+
 function iconForHref(href: string) {
   if (href.startsWith("/dashboard/whatsapp")) {
     return (
@@ -117,7 +126,7 @@ function RailNavLink({
   onNavigate?: () => void;
 }) {
   const active = navIsActive(pathname, item.href);
-  const sensitive = item.href.includes("/settings/") || item.href.includes("ai-analytics");
+  const sensitive = railLinkSensitive(item.href);
   return (
     <Link
       href={item.href}
@@ -140,18 +149,20 @@ function RailNavLink({
 export function SidebarRail({
   pathname,
   sessionRole,
-  primaryNav,
-  secondaryNav,
   operationNav,
+  automationNav,
+  accountNav,
+  teamNav,
   platformNav,
   onNavigate,
   onExpand,
 }: {
   pathname: string;
   sessionRole: UserRole | string | null;
-  primaryNav: NavItem[];
-  secondaryNav: NavItem[];
   operationNav: NavItem[];
+  automationNav: NavItem[];
+  accountNav: NavItem[];
+  teamNav: NavItem[];
   platformNav: NavItem[];
   onNavigate?: () => void;
   onExpand: () => void;
@@ -190,21 +201,33 @@ export function SidebarRail({
       </div>
 
       <nav className="flex min-h-0 flex-1 flex-col items-center gap-1.5 overflow-y-auto overflow-x-hidden px-1 py-3">
-        {primaryNav.map((item) => (
+        {operationNav.map((item) => (
           <RailNavLink key={item.href} item={item} pathname={pathname} onNavigate={onNavigate} />
         ))}
-        {secondaryNav.length > 0 ? (
+        {automationNav.length > 0 ? (
           <>
             <div className="my-1 h-px w-6 bg-muted/90" aria-hidden />
-            {secondaryNav.map((item) => (
+            {automationNav.map((item) => (
               <RailNavLink key={item.href} item={item} pathname={pathname} onNavigate={onNavigate} />
             ))}
           </>
         ) : null}
-        <div className="my-1 h-px w-6 bg-muted/90" aria-hidden />
-        {operationNav.map((item) => (
-          <RailNavLink key={item.href} item={item} pathname={pathname} onNavigate={onNavigate} />
-        ))}
+        {accountNav.length > 0 ? (
+          <>
+            <div className="my-1 h-px w-6 bg-muted/90" aria-hidden />
+            {accountNav.map((item) => (
+              <RailNavLink key={item.href} item={item} pathname={pathname} onNavigate={onNavigate} />
+            ))}
+          </>
+        ) : null}
+        {teamNav.length > 0 ? (
+          <>
+            <div className="my-1 h-px w-6 bg-muted/90" aria-hidden />
+            {teamNav.map((item) => (
+              <RailNavLink key={item.href} item={item} pathname={pathname} onNavigate={onNavigate} />
+            ))}
+          </>
+        ) : null}
         {platformNav.length > 0 ? (
           <>
             <div className="my-1 h-px w-6 bg-amber-200/80" aria-hidden />

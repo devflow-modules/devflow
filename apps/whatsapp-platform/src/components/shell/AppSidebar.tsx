@@ -8,9 +8,10 @@ import { SupportHelpButton } from "@/components/support/SupportHelpButton";
 import { useNavPreferences } from "@/components/navigation/useNavPreferences";
 import { useSessionRole } from "@/components/navigation/SessionRoleContext";
 import {
-  NAV_OPERATION,
-  primaryNavForRole,
-  secondaryNavForRole,
+  navAccountItemsForRole,
+  navAutomationItemsForRole,
+  navOperationItemsForRole,
+  navTeamItemsForRole,
   type NavItem,
 } from "./nav-config";
 import { ROUTE_META } from "@/lib/navigation/nav-matrix";
@@ -117,6 +118,15 @@ function navIsActive(pathname: string, href: string) {
   return p === h || p.startsWith(`${h}/`);
 }
 
+function navLinkSensitive(href: string): boolean {
+  return (
+    href.includes("/settings/") ||
+    href.includes("ai-analytics") ||
+    href.includes("/billing") ||
+    href.startsWith("/dashboard/ai")
+  );
+}
+
 export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const brandName = process.env.NEXT_PUBLIC_BRAND_NAME ?? "DevFlow Labs";
   const pathname = usePathname() ?? "";
@@ -125,16 +135,13 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const isLg = useMediaMinWidth(1024, true);
   const railMode = Boolean(shellLayout?.sidebarCollapsed && isLg);
 
-  const primaryNav = primaryNavForRole(sessionRole);
-  const secondaryNav = secondaryNavForRole(sessionRole);
+  const operationNav = useMemo(() => navOperationItemsForRole(sessionRole), [sessionRole]);
+  const automationNav = useMemo(() => navAutomationItemsForRole(sessionRole), [sessionRole]);
+  const accountNav = useMemo(() => navAccountItemsForRole(sessionRole), [sessionRole]);
+  const teamNav = useMemo(() => navTeamItemsForRole(sessionRole), [sessionRole]);
 
-  const principalSubtitle = useMemo(() => {
-    if (!sessionRole) return "Inbox, painel e automações — o essencial.";
-    if (isOperator(sessionRole) && !isPlatformAdmin(sessionRole)) {
-      return "Inbox e automações — foco no atendimento.";
-    }
-    return "Painel, inbox, billing e definições — administração da conta.";
-  }, [sessionRole]);
+  /** Microcopy do grupo Operação — rotina operacional, não arquitetura. */
+  const operacaoSubtitle = "Atendimento, fila e rotina diária";
 
   const platformNav: NavItem[] = useMemo(() => {
     if (!sessionRole || !isPlatformAdmin(sessionRole)) return [];
@@ -159,9 +166,10 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
       <SidebarRail
         pathname={pathname}
         sessionRole={sessionRole}
-        primaryNav={primaryNav}
-        secondaryNav={secondaryNav}
-        operationNav={NAV_OPERATION}
+        operationNav={operationNav}
+        automationNav={automationNav}
+        accountNav={accountNav}
+        teamNav={teamNav}
         platformNav={platformNav}
         onNavigate={onNavigate}
         onExpand={() => shellLayout.toggleSidebar()}
@@ -202,91 +210,93 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <nav className="flex-1 space-y-4 overflow-y-auto px-2 py-4">
-        <CollapsibleNavSection
-          sectionId="principal"
-          title="Trabalho do dia"
-          subtitle={principalSubtitle}
-        >
-          <div className="space-y-0.5">
-            {primaryNav.map((item) => (
+        <CollapsibleNavSection sectionId="operacao" title="Operação" subtitle={operacaoSubtitle}>
+          {operationNav.map((item) => (
+            <NavLink
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              active={navIsActive(pathname, item.href)}
+              sensitive={navLinkSensitive(item.href)}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </CollapsibleNavSection>
+
+        {automationNav.length > 0 ? (
+          <CollapsibleNavSection
+            sectionId="automacao-ia"
+            title="Automação e IA"
+            subtitle="Regras, painel de IA e analytics."
+            defaultSensitive
+          >
+            {automationNav.map((item) => (
               <NavLink
                 key={item.href}
                 href={item.href}
                 label={item.label}
                 active={navIsActive(pathname, item.href)}
-                sensitive={item.href.includes("/settings/") || item.href.includes("ai-analytics")}
+                sensitive={navLinkSensitive(item.href)}
                 onNavigate={onNavigate}
               />
             ))}
-          </div>
-        </CollapsibleNavSection>
-
-        {secondaryNav.length > 0 ? (
-          <CollapsibleNavSection
-            sectionId="conta"
-            title="Conta e canais"
-            subtitle={
-              !isCommercialBillingVisible()
-                ? "Linha WhatsApp, IA e definições do tenant."
-                : "Linha WhatsApp, IA, plano e definições do tenant."
-            }
-          defaultSensitive
-          >
-            <div className="space-y-0.5">
-              {secondaryNav.map((item) => (
-                <NavLink
-                  key={item.href}
-                  href={item.href}
-                  label={item.label}
-                  active={navIsActive(pathname, item.href)}
-                  sensitive
-                  onNavigate={onNavigate}
-                />
-              ))}
-            </div>
           </CollapsibleNavSection>
         ) : null}
 
-        <div className="border-t df-border-brand pt-3" aria-hidden />
-
-        <CollapsibleNavSection
-          sectionId="operacao"
-          title="Equipa e filas"
-          subtitle="Quem atende e distribuição operacional."
-        >
-          <div className="space-y-0.5">
-            {NAV_OPERATION.map((item) => (
+        {accountNav.length > 0 ? (
+          <CollapsibleNavSection
+            sectionId="conta"
+            title="Conta"
+            subtitle={
+              !isCommercialBillingVisible()
+                ? "WhatsApp, configurações e integrações."
+                : "WhatsApp, plano, configurações e integrações."
+            }
+            defaultSensitive
+          >
+            {accountNav.map((item) => (
               <NavLink
                 key={item.href}
                 href={item.href}
                 label={item.label}
                 active={navIsActive(pathname, item.href)}
+                sensitive={navLinkSensitive(item.href)}
                 onNavigate={onNavigate}
               />
             ))}
-          </div>
+          </CollapsibleNavSection>
+        ) : null}
+
+        <CollapsibleNavSection sectionId="equipe" title="Equipe" subtitle="Agentes que atendem.">
+          {teamNav.map((item) => (
+            <NavLink
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              active={navIsActive(pathname, item.href)}
+              onNavigate={onNavigate}
+            />
+          ))}
         </CollapsibleNavSection>
 
         {platformNav.length > 0 ? (
           <CollapsibleNavSection
             sectionId="plataforma"
-            title="Ferramentas internas"
-            subtitle="Só equipa DevFlow — não é a conta do cliente."
+            title="Plataforma"
+            subtitle="Ferramentas internas — só equipa DevFlow."
             defaultSensitive
           >
             <div className="mb-2 border-t-2 border-amber-200/70 pt-3" aria-hidden />
-            <div className="space-y-0.5">
-              {platformNav.map((item) => (
-                <NavLink
-                  key={item.href}
-                  href={item.href}
-                  label={item.label}
-                  active={navIsActive(pathname, item.href)}
-                  sensitive
-                  onNavigate={onNavigate}
-                />
-              ))}
-            </div>
+            {platformNav.map((item) => (
+              <NavLink
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                active={navIsActive(pathname, item.href)}
+                sensitive
+                onNavigate={onNavigate}
+              />
+            ))}
           </CollapsibleNavSection>
         ) : null}
       </nav>
