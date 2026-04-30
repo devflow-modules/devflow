@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 
 const mockAuth = vi.fn();
@@ -28,6 +28,7 @@ vi.mock("@/lib/prisma", () => ({
 describe("POST /api/stripe/checkout", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
     mockAuth.mockResolvedValue({ payload: { sub: "u1", tenantId: "t1" } });
     mockIsStripeConfigured.mockReturnValue(true);
     mockUserFindFirst.mockResolvedValue({ email: "user@test.com" });
@@ -35,6 +36,10 @@ describe("POST /api/stripe/checkout", () => {
     mockBillingSubFindUnique.mockResolvedValue(null);
     mockTenantFindUnique.mockResolvedValue(null);
     mockCreateCheckoutSession.mockResolvedValue({ checkoutUrl: "https://checkout.stripe.com/sess" });
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("401 sem auth", async () => {
