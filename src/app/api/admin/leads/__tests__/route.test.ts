@@ -24,6 +24,28 @@ vi.mock("@/lib/prisma-root", () => ({
 import { prisma } from "@/lib/prisma-root";
 import { GET, POST } from "../route";
 
+/** Contrato mínimo do JSON do GET /api/admin/leads para este ficheiro de testes */
+type AdminLeadResponseItem = {
+  id: string;
+  daysSinceLastContact: number | null;
+  leadActionState: { needsFollowUp: boolean; urgency: string; reason: string };
+  suggestedAction: { label: string; type: string };
+};
+
+type AdminLeadsGetResponse = {
+  leads: AdminLeadResponseItem[];
+  actionList: AdminLeadResponseItem[];
+  currentUserId: string | null;
+  operators?: unknown;
+  summary: {
+    byStatus: Record<string, number>;
+    countsByStatus: Record<string, number>;
+    funnelStageCounts: Record<string, number>;
+    total: number;
+    conversionMetrics: { novos: number; total: number };
+  };
+};
+
 const authHeaders = { "x-admin-metrics-secret": "secret-leads-test" };
 
 describe("/api/admin/leads", () => {
@@ -72,7 +94,7 @@ describe("/api/admin/leads", () => {
     expect(prisma.lead.findMany).toHaveBeenCalledWith({
       where: { status: "novo" },
     });
-    const body = (await res.json()) as { operators?: unknown; leads: { id: string }[] };
+    const body = (await res.json()) as AdminLeadsGetResponse;
     expect(body.leads).toHaveLength(1);
     expect(body.operators).toEqual([]);
     expect(body.leads[0].id).toBe("1");
