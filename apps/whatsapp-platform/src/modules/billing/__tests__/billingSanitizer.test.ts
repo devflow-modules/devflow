@@ -1,18 +1,4 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import {
-  isWhiteLabelBillingApi,
-  isBillingFullAccessUser,
-  sanitizeSubscriptionView,
-  sanitizeUsageDashboard,
-  sanitizeTenantBillingUI,
-  sanitizeAiPlanPayload,
-  sanitizeAiUsageStatusPayload,
-  sanitizeTenantMeGetPayload,
-  sanitizeAiUsageRouteMetrics,
-  sanitizeUsageLimitErrorPayload,
-  sanitizeFeatureNotAvailablePayload,
-  sanitizeBillingData,
-} from "../billingSanitizer";
 import type { SubscriptionView, UsageDashboard } from "../billingService";
 import type { TenantBillingUI } from "../tenantBillingUIService";
 
@@ -21,31 +7,53 @@ describe("billingSanitizer", () => {
     vi.unstubAllEnvs();
   });
 
-  describe("env e roles", () => {
-    it("WHITE_LABEL lido de NEXT_PUBLIC_PRODUCT_MODE", () => {
+  describe("env → isWhiteLabelBillingApi", () => {
+    it("WHITE_LABEL", async () => {
+      vi.resetModules();
+      vi.unstubAllEnvs();
       vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
+      const { isWhiteLabelBillingApi } = await import("../billingSanitizer");
       expect(isWhiteLabelBillingApi()).toBe(true);
-      vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
-      expect(isWhiteLabelBillingApi()).toBe(false);
     });
 
-    it("platform_admin tem acesso completo", () => {
+    it("SAAS", async () => {
+      vi.resetModules();
+      vi.unstubAllEnvs();
+      vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
+      const { isWhiteLabelBillingApi } = await import("../billingSanitizer");
+      expect(isWhiteLabelBillingApi()).toBe(false);
+    });
+  });
+
+  describe("isBillingFullAccessUser", () => {
+    beforeEach(() => {
+      vi.resetModules();
+      vi.unstubAllEnvs();
+      vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
+    });
+
+    it("platform_admin tem acesso completo", async () => {
+      const { isBillingFullAccessUser } = await import("../billingSanitizer");
       expect(isBillingFullAccessUser({ role: "platform_admin" })).toBe(true);
     });
 
-    it("manager não é admin de billing", () => {
+    it("manager não é admin de billing", async () => {
+      const { isBillingFullAccessUser } = await import("../billingSanitizer");
       expect(isBillingFullAccessUser({ role: "manager" })).toBe(false);
     });
   });
 
   describe("WHITE_LABEL + manager — remove dados sensíveis", () => {
     beforeEach(() => {
+      vi.resetModules();
+      vi.unstubAllEnvs();
       vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
     });
 
     const manager = { role: "manager" as const };
 
-    it("sanitizeSubscriptionView só mantém status operacional mínimo", () => {
+    it("sanitizeSubscriptionView só mantém status operacional mínimo", async () => {
+      const { sanitizeSubscriptionView } = await import("../billingSanitizer");
       const raw: SubscriptionView = {
         plan: "PRO",
         tenantCreatedAt: "2024-01-01",
@@ -67,7 +75,8 @@ describe("billingSanitizer", () => {
       expect(safe).not.toHaveProperty("stripeCustomerId");
     });
 
-    it("sanitizeUsageDashboard remove preços, limites e metering", () => {
+    it("sanitizeUsageDashboard remove preços, limites e metering", async () => {
+      const { sanitizeUsageDashboard } = await import("../billingSanitizer");
       const raw: UsageDashboard = {
         period: "2025-03",
         messagesSent: 10,
@@ -87,7 +96,8 @@ describe("billingSanitizer", () => {
       });
     });
 
-    it("sanitizeTenantBillingUI retorna objeto vazio", () => {
+    it("sanitizeTenantBillingUI retorna objeto vazio", async () => {
+      const { sanitizeTenantBillingUI } = await import("../billingSanitizer");
       const raw: TenantBillingUI = {
         plan: "PRO",
         tenantCreatedAt: null,
@@ -113,7 +123,8 @@ describe("billingSanitizer", () => {
       expect(sanitizeTenantBillingUI(raw, manager)).toEqual({});
     });
 
-    it("sanitizeAiPlanPayload retorna vazio", () => {
+    it("sanitizeAiPlanPayload retorna vazio", async () => {
+      const { sanitizeAiPlanPayload } = await import("../billingSanitizer");
       expect(
         sanitizeAiPlanPayload(
           { plan: "PRO", plan_name: "Pro", ai_limit: 100, ai_limit_label: "100/mês" },
@@ -122,7 +133,8 @@ describe("billingSanitizer", () => {
       ).toEqual({});
     });
 
-    it("sanitizeAiUsageStatusPayload mantém só gating operacional", () => {
+    it("sanitizeAiUsageStatusPayload mantém só gating operacional", async () => {
+      const { sanitizeAiUsageStatusPayload } = await import("../billingSanitizer");
       const safe = sanitizeAiUsageStatusPayload(
         {
           used: 80,
@@ -144,7 +156,8 @@ describe("billingSanitizer", () => {
       });
     });
 
-    it("sanitizeBillingData remove chaves no topo e em data", () => {
+    it("sanitizeBillingData remove chaves no topo e em data", async () => {
+      const { sanitizeBillingData } = await import("../billingSanitizer");
       const out = sanitizeBillingData(
         {
           foo: 1,
@@ -160,12 +173,15 @@ describe("billingSanitizer", () => {
 
   describe("WHITE_LABEL + platform_admin — dados completos", () => {
     beforeEach(() => {
+      vi.resetModules();
+      vi.unstubAllEnvs();
       vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
     });
 
     const admin = { role: "platform_admin" as const };
 
-    it("subscription inalterada", () => {
+    it("subscription inalterada", async () => {
+      const { sanitizeSubscriptionView } = await import("../billingSanitizer");
       const raw: SubscriptionView = {
         plan: "PRO",
         tenantCreatedAt: null,
@@ -184,7 +200,8 @@ describe("billingSanitizer", () => {
       expect(sanitizeSubscriptionView(raw, admin)).toBe(raw);
     });
 
-    it("ai-plan inalterado", () => {
+    it("ai-plan inalterado", async () => {
+      const { sanitizeAiPlanPayload } = await import("../billingSanitizer");
       const p = { plan: "PRO", plan_name: "Pro", ai_limit: 100, ai_limit_label: "100" };
       expect(sanitizeAiPlanPayload(p, admin)).toBe(p);
     });
@@ -192,10 +209,13 @@ describe("billingSanitizer", () => {
 
   describe("SAAS — sem sanitização", () => {
     beforeEach(() => {
+      vi.resetModules();
+      vi.unstubAllEnvs();
       vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
     });
 
-    it("manager vê payload completo de ai-usage", () => {
+    it("manager vê payload completo de ai-usage", async () => {
+      const { sanitizeAiUsageStatusPayload } = await import("../billingSanitizer");
       const raw = {
         used: 1,
         limit: 100,
@@ -209,12 +229,15 @@ describe("billingSanitizer", () => {
     });
   });
 
-  describe("tenant me + feature gate + usage limit", () => {
+  describe("tenant me + feature gate + usage limit (WHITE_LABEL)", () => {
     beforeEach(() => {
+      vi.resetModules();
+      vi.unstubAllEnvs();
       vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
     });
 
-    it("sanitizeTenantMeGetPayload remove plan", () => {
+    it("sanitizeTenantMeGetPayload remove plan", async () => {
+      const { sanitizeTenantMeGetPayload } = await import("../billingSanitizer");
       const out = sanitizeTenantMeGetPayload(
         { id: "t", name: "X", plan: "PRO", gtmLifecycle: "AVALIACAO" },
         { role: "manager" }
@@ -222,7 +245,8 @@ describe("billingSanitizer", () => {
       expect(out).toEqual({ id: "t", name: "X", gtmLifecycle: "AVALIACAO" });
     });
 
-    it("sanitizeAiUsageRouteMetrics remove custo", () => {
+    it("sanitizeAiUsageRouteMetrics remove custo", async () => {
+      const { sanitizeAiUsageRouteMetrics } = await import("../billingSanitizer");
       const out = sanitizeAiUsageRouteMetrics(
         {
           messages_total: 1,
@@ -236,7 +260,8 @@ describe("billingSanitizer", () => {
       expect(out).toEqual({ messages_total: 1, ai_messages_total: 2, fallback_total: 0 });
     });
 
-    it("sanitizeUsageLimitErrorPayload remove currentPlan", () => {
+    it("sanitizeUsageLimitErrorPayload remove currentPlan", async () => {
+      const { sanitizeUsageLimitErrorPayload } = await import("../billingSanitizer");
       const out = sanitizeUsageLimitErrorPayload(
         {
           message: "upgrade",
@@ -251,7 +276,8 @@ describe("billingSanitizer", () => {
       expect(out).not.toHaveProperty("upgradeRequired");
     });
 
-    it("sanitizeFeatureNotAvailablePayload remove plan keys", () => {
+    it("sanitizeFeatureNotAvailablePayload remove plan keys", async () => {
+      const { sanitizeFeatureNotAvailablePayload } = await import("../billingSanitizer");
       const out = sanitizeFeatureNotAvailablePayload(
         {
           success: false,

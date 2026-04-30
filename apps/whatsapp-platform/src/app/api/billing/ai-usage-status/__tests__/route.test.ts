@@ -19,8 +19,9 @@ vi.mock("@/modules/billing/aiOverageVisibilityService", () => ({
 
 describe("GET /api/billing/ai-usage-status", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetModules();
     vi.unstubAllEnvs();
+    vi.clearAllMocks();
     mockGetAuth.mockResolvedValue({
       payload: { tenantId: "t-status", sub: "u1", role: "manager" },
     });
@@ -41,6 +42,7 @@ describe("GET /api/billing/ai-usage-status", () => {
 
   it("401 sem auth", async () => {
     mockGetAuth.mockResolvedValue(null);
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
     const { GET } = await import("../route");
     const res = await GET(new NextRequest("http://x/api/billing/ai-usage-status"));
     expect(res.status).toBe(401);
@@ -59,19 +61,14 @@ describe("GET /api/billing/ai-usage-status", () => {
     expect(j.data.can_use).toBe(true);
   });
 
-  it("WHITE_LABEL + manager só expõe gating operacional", async () => {
+  it("WHITE_LABEL + manager — indisponível (gate antes da sanitização)", async () => {
     vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
     const { GET } = await import("../route");
     const res = await GET(new NextRequest("http://x/api/billing/ai-usage-status"));
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(403);
     const j = await res.json();
-    expect(j.data).toEqual({
-      can_use: true,
-      should_fallback_to_legacy: false,
-      period: "2025-03",
-    });
-    expect(j.data).not.toHaveProperty("plan");
-    expect(j.data).not.toHaveProperty("used");
+    expect(j.success).toBe(false);
+    expect(mockGetAiUsageStatus).not.toHaveBeenCalled();
   });
 
   it("WHITE_LABEL + platform_admin retorna payload completo", async () => {
@@ -81,6 +78,7 @@ describe("GET /api/billing/ai-usage-status", () => {
     });
     const { GET } = await import("../route");
     const res = await GET(new NextRequest("http://x/api/billing/ai-usage-status"));
+    expect(res.status).toBe(200);
     const j = await res.json();
     expect(j.data.used).toBe(80);
     expect(j.data.plan).toBe("STARTER");

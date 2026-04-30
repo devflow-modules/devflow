@@ -38,7 +38,7 @@ export function PlaybookSuggest({
   return (
     <div className="mb-3 space-y-2">
       <Button
-        variant="disabled"
+        variant="secondary"
         type="button"
         disabled={mut.isPending || sendDisabled}
         title={sendDisabled && !mut.isPending ? "Disponível após ativação do número" : undefined}

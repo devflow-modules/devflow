@@ -13,8 +13,9 @@ vi.mock("@/modules/billing/aiUsageLimitService", () => ({
 
 describe("GET /api/billing/ai-plan", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetModules();
     vi.unstubAllEnvs();
+    vi.clearAllMocks();
     mockGetAuth.mockResolvedValue({
       payload: { tenantId: "t-plan", sub: "u1", role: "manager" },
     });
@@ -32,6 +33,7 @@ describe("GET /api/billing/ai-plan", () => {
 
   it("401 sem auth", async () => {
     mockGetAuth.mockResolvedValue(null);
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
     const { GET } = await import("../route");
     const res = await GET(new NextRequest("http://x/api/billing/ai-plan"));
     expect(res.status).toBe(401);
@@ -49,14 +51,14 @@ describe("GET /api/billing/ai-plan", () => {
     expect(j.data.ai_limit).toBe(750);
   });
 
-  it("WHITE_LABEL + manager não expõe dados de plano", async () => {
+  it("WHITE_LABEL + manager — indisponível (gate antes da sanitização)", async () => {
     vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
     const { GET } = await import("../route");
     const res = await GET(new NextRequest("http://x/api/billing/ai-plan"));
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(403);
     const j = await res.json();
-    expect(j.success).toBe(true);
-    expect(j.data).toEqual({});
+    expect(j.success).toBe(false);
+    expect(mockGetAiPlanInfo).not.toHaveBeenCalled();
   });
 
   it("WHITE_LABEL + platform_admin retorna plano completo", async () => {

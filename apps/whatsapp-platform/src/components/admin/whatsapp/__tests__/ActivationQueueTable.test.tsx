@@ -52,9 +52,9 @@ describe("ActivationQueueTable", () => {
       />
     );
     const tags = screen.getAllByText("Possível travamento");
-    const orangeTag = tags.find((el) => el.className.includes("bg-orange-100"));
-    expect(orangeTag).toBeDefined();
-    expect(orangeTag).toHaveAttribute("title", "Sem atualização há mais de 15 minutos");
+    const warningTag = tags.find((el) => el.className.includes("df-badge-warning"));
+    expect(warningTag).toBeDefined();
+    expect(warningTag).toHaveAttribute("title", "Sem atualização há mais de 15 minutos");
   });
 
   it("mostra sugestão disponível quando playbookAvailable", () => {
@@ -100,7 +100,8 @@ describe("ActivationQueueTable", () => {
       />
     );
     const row = screen.getByTestId("pending-row-c3");
-    expect(row.className).toMatch(/rose/);
+    expect(row.className).toContain("bg-[color:var(--df-danger-bg)]");
+    expect(row.className).toContain("ring-[color:var(--df-danger-border)]");
     await user.click(within(row).getByRole("button", { name: /Timeline/i }));
     expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: "c3" }));
   });

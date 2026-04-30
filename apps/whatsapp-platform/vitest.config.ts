@@ -3,10 +3,33 @@ import path from "path";
 
 export default defineConfig({
   test: {
-    environment: "node",
-    include: ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.spec.ts"],
+    /**
+     * Projects separados para manter previsibilidade:
+     * - node: API/services
+     * - ui: componentes React/Testing Library
+     */
     globals: true,
-    setupFiles: ["./src/test/setup.ts"],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "node",
+          environment: "node",
+          include: ["src/**/*.test.ts", "src/**/*.spec.ts"],
+          exclude: ["src/**/*.test.tsx", "src/lib/__tests__/useMediaMinWidth.test.ts"],
+          setupFiles: ["./src/test/setup-node.ts"],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "ui",
+          environment: "jsdom",
+          include: ["src/**/*.test.tsx", "src/lib/__tests__/useMediaMinWidth.test.ts"],
+          setupFiles: ["./src/test/setup-ui.ts"],
+        },
+      },
+    ],
     coverage: {
       provider: "v8",
       reporter: ["text", "text-summary", "html"],

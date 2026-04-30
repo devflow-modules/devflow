@@ -229,7 +229,7 @@ function MessageInputInner({
           </summary>
           <div className="flex flex-wrap gap-1.5 border-t border-border/90 px-2.5 pb-2.5 pt-2">
             {QUICK_TEMPLATES.map((t) => (
-              <Button variant="disabled"
+              <Button variant="secondary"
                 key={t.label}
                 type="button"
                 disabled={composerLocked}
@@ -241,7 +241,7 @@ function MessageInputInner({
                 {t.label}
               </Button>
             ))}
-            <Button variant="disabled"
+            <Button variant="secondary"
               type="button"
               disabled={composerLocked || suggestMut.isPending || mutation.isPending}
               title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
@@ -258,7 +258,7 @@ function MessageInputInner({
           <p className="mb-2 text-[10px] font-bold uppercase tracking-wide df-text-muted">Respostas rápidas</p>
           <div className="flex flex-wrap gap-2">
             {QUICK_TEMPLATES.map((t) => (
-              <Button variant="disabled"
+              <Button variant="secondary"
                 key={t.label}
                 type="button"
                 disabled={composerLocked}
@@ -270,7 +270,7 @@ function MessageInputInner({
                 {t.label}
               </Button>
             ))}
-            <Button variant="disabled"
+            <Button variant="secondary"
               type="button"
               disabled={composerLocked || suggestMut.isPending || mutation.isPending}
               title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
@@ -324,7 +324,7 @@ function MessageInputInner({
             <Button variant="secondary" type="button" className={buttonClassName("secondary")} onClick={() => setAiPreview(null)}>
               Descartar
             </Button>
-            <Button variant="disabled"
+            <Button variant="secondary"
               type="button"
               className={buttonClassName("secondary")}
               disabled={mutation.isPending || composerLocked}

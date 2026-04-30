@@ -1,19 +1,32 @@
 /** @vitest-environment jsdom */
-import { describe, it, expect } from "vitest";
+import { beforeEach, afterEach, describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { FeatureUpgradePrompt } from "../FeatureUpgradePrompt";
+import { SupportProvider } from "@/components/support/SupportProvider";
 
 describe("FeatureUpgradePrompt", () => {
-  it("mostra mensagem e link Ver planos", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.unstubAllEnvs();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("mostra mensagem e link Ver planos", async () => {
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
+    const { FeatureUpgradePrompt } = await import("../FeatureUpgradePrompt");
     render(
-      <FeatureUpgradePrompt
-        blocked={{
-          feature: "QUEUES_TAGS",
-          currentPlan: "STARTER",
-          requiredPlan: "PRO",
-          message: "Upgrade para Pro para filas.",
-        }}
-      />
+      <SupportProvider>
+        <FeatureUpgradePrompt
+          blocked={{
+            feature: "QUEUES_TAGS",
+            currentPlan: "STARTER",
+            requiredPlan: "PRO",
+            message: "Upgrade para Pro para filas.",
+          }}
+        />
+      </SupportProvider>
     );
     expect(screen.getByTestId("feature-upgrade-prompt")).toBeInTheDocument();
     expect(screen.getByText(/Upgrade para Pro para filas/i)).toBeInTheDocument();

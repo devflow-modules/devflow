@@ -112,7 +112,7 @@ const InboxComposerTextFieldInner = forwardRef<InboxComposerHandle, Props>(funct
             denseComposer ? "min-h-[4.25rem]" : "min-h-[5.5rem]"
           }`}
         />
-        <Button variant="disabled"
+        <Button variant="secondary"
           type="button"
           onClick={send}
           disabled={sendDisabled || !text.trim() || composerLocked}

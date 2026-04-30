@@ -13,8 +13,9 @@ vi.mock("@/modules/billing/billingService", () => ({
 
 describe("GET /api/billing/usage", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetModules();
     vi.unstubAllEnvs();
+    vi.clearAllMocks();
     mockAuth.mockResolvedValue({ payload: { tenantId: "t-bill", role: "manager" } });
     mockDashboard.mockResolvedValue({
       period: "2025-03",
@@ -35,6 +36,7 @@ describe("GET /api/billing/usage", () => {
 
   it("401 sem auth", async () => {
     mockAuth.mockResolvedValue(null);
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
     const { GET } = await import("../route");
     const res = await GET(new NextRequest("http://x/api/billing/usage"));
     expect(res.status).toBe(401);
@@ -52,16 +54,13 @@ describe("GET /api/billing/usage", () => {
     expect(mockDashboard).toHaveBeenCalledWith("t-bill", undefined);
   });
 
-  it("WHITE_LABEL + manager remove contagens e preços", async () => {
+  it("WHITE_LABEL + manager — indisponível (gate antes da sanitização)", async () => {
     vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
     const { GET } = await import("../route");
     const res = await GET(new NextRequest("http://x/api/billing/usage"));
+    expect(res.status).toBe(403);
     const j = await res.json();
-    expect(j.data).toEqual({
-      period: "2025-03",
-      withinLimits: { messages: true, ai: true },
-      enforceLimits: true,
-    });
-    expect(j).not.toHaveProperty("examples");
+    expect(j.success).toBe(false);
+    expect(mockDashboard).not.toHaveBeenCalled();
   });
 });

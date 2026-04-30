@@ -1,10 +1,8 @@
 /** @vitest-environment jsdom */
 import type { ReactNode } from "react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { EvaluationModeRibbon } from "../EvaluationModeRibbon";
-import * as protectedFetch from "@/lib/protected-fetch";
 
 function renderWithQuery(ui: ReactNode) {
   const qc = new QueryClient({
@@ -15,39 +13,49 @@ function renderWithQuery(ui: ReactNode) {
 
 describe("EvaluationModeRibbon", () => {
   beforeEach(() => {
+    vi.resetModules();
+    vi.unstubAllEnvs();
     vi.clearAllMocks();
   });
 
-  it("mostra Modo avaliação quando API devolve FREE", async () => {
-    vi.spyOn(protectedFetch, "fetchProtected").mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          data: {
-            plan: "FREE",
-            tenantCreatedAt: "2026-01-20T00:00:00.000Z",
-            status: "free",
-            hasStripeCustomer: false,
-            messagesUsed: 0,
-            messagesLimit: 50,
-            aiUsed: 0,
-            aiLimit: 10,
-            usagePercentageMessages: 0,
-            usagePercentageAI: 0,
-            overageMessages: 0,
-            overageAI: 0,
-            estimatedOverageCost: 0,
-            messageUnitPriceBrl: 0,
-            aiUnitPriceBrl: 0,
-            nextInvoiceDate: null,
-            lastInvoiceAmount: null,
-            lastInvoiceStatus: null,
-            allowsMeteredOverage: false,
-            enforceLimits: true,
-          },
-        }),
-    } as unknown as Response);
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
 
+  it("mostra Modo avaliação quando API devolve FREE", async () => {
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
+    vi.doMock("@/lib/protected-fetch", () => ({
+      fetchProtected: vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            data: {
+              plan: "FREE",
+              tenantCreatedAt: "2026-01-20T00:00:00.000Z",
+              status: "free",
+              hasStripeCustomer: false,
+              messagesUsed: 0,
+              messagesLimit: 50,
+              aiUsed: 0,
+              aiLimit: 10,
+              usagePercentageMessages: 0,
+              usagePercentageAI: 0,
+              overageMessages: 0,
+              overageAI: 0,
+              estimatedOverageCost: 0,
+              messageUnitPriceBrl: 0,
+              aiUnitPriceBrl: 0,
+              nextInvoiceDate: null,
+              lastInvoiceAmount: null,
+              lastInvoiceStatus: null,
+              allowsMeteredOverage: false,
+              enforceLimits: true,
+            },
+          }),
+      }),
+    }));
+
+    const { EvaluationModeRibbon } = await import("../EvaluationModeRibbon");
     renderWithQuery(<EvaluationModeRibbon />);
 
     await waitFor(() => {
@@ -56,35 +64,39 @@ describe("EvaluationModeRibbon", () => {
   });
 
   it("não renderiza quando plano é pago", async () => {
-    vi.spyOn(protectedFetch, "fetchProtected").mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          data: {
-            plan: "OPERATIONAL_BASE",
-            tenantCreatedAt: null,
-            status: "active",
-            hasStripeCustomer: true,
-            messagesUsed: 0,
-            messagesLimit: 5000,
-            aiUsed: 0,
-            aiLimit: 750,
-            usagePercentageMessages: 0,
-            usagePercentageAI: 0,
-            overageMessages: 0,
-            overageAI: 0,
-            estimatedOverageCost: 0,
-            messageUnitPriceBrl: 0.01,
-            aiUnitPriceBrl: 0.02,
-            nextInvoiceDate: null,
-            lastInvoiceAmount: null,
-            lastInvoiceStatus: null,
-            allowsMeteredOverage: true,
-            enforceLimits: false,
-          },
-        }),
-    } as unknown as Response);
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
+    vi.doMock("@/lib/protected-fetch", () => ({
+      fetchProtected: vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            data: {
+              plan: "OPERATIONAL_BASE",
+              tenantCreatedAt: null,
+              status: "active",
+              hasStripeCustomer: true,
+              messagesUsed: 0,
+              messagesLimit: 5000,
+              aiUsed: 0,
+              aiLimit: 750,
+              usagePercentageMessages: 0,
+              usagePercentageAI: 0,
+              overageMessages: 0,
+              overageAI: 0,
+              estimatedOverageCost: 0,
+              messageUnitPriceBrl: 0.01,
+              aiUnitPriceBrl: 0.02,
+              nextInvoiceDate: null,
+              lastInvoiceAmount: null,
+              lastInvoiceStatus: null,
+              allowsMeteredOverage: true,
+              enforceLimits: false,
+            },
+          }),
+      }),
+    }));
 
+    const { EvaluationModeRibbon } = await import("../EvaluationModeRibbon");
     renderWithQuery(<EvaluationModeRibbon />);
 
     await waitFor(() => {

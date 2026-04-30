@@ -17,6 +17,8 @@ vi.mock("@/modules/ai/aiUsageService", () => ({
 
 describe("/api/ai/usage", () => {
   beforeEach(() => {
+    vi.resetModules();
+    vi.unstubAllEnvs();
     vi.clearAllMocks();
     vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
     mockGetAuth.mockResolvedValue({
@@ -56,6 +58,7 @@ describe("/api/ai/usage", () => {
   });
 
   it("WHITE_LABEL + manager omite custo e tokens", async () => {
+    vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
     const { GET } = await import("../route");
     const res = await GET(new NextRequest("http://x/api/ai/usage"));
@@ -69,6 +72,7 @@ describe("/api/ai/usage", () => {
   });
 
   it("WHITE_LABEL + platform_admin mantém métricas completas", async () => {
+    vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
     mockGetAuth.mockResolvedValue({
       payload: { tenantId: "t-usage", sub: "u1", role: "platform_admin" },

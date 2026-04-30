@@ -68,6 +68,8 @@ vi.mock("@/lib/platformAuditLog", () => ({
 
 describe("POST /api/auth/signup", () => {
   beforeEach(() => {
+    vi.resetModules();
+    vi.unstubAllEnvs();
     vi.clearAllMocks();
     vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
     process.env.NEXT_PUBLIC_WHATSAPP_APP_URL = "http://localhost:3000";
@@ -441,6 +443,8 @@ describe("POST /api/auth/signup", () => {
 
   describe("WHITE_LABEL", () => {
     beforeEach(() => {
+      vi.resetModules();
+      vi.unstubAllEnvs();
       vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
     });
 

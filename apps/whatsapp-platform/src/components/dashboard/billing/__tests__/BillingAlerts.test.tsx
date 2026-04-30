@@ -1,10 +1,20 @@
 /** @vitest-environment jsdom */
-import { describe, it, expect } from "vitest";
+import { beforeEach, afterEach, describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { BillingAlerts } from "../BillingAlerts";
 
 describe("BillingAlerts", () => {
-  it("FREE em 100% com enforcement mostra limite da avaliação", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.unstubAllEnvs();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("FREE em 100% com enforcement mostra limite da avaliação", async () => {
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
+    const { BillingAlerts } = await import("../BillingAlerts");
     render(
       <BillingAlerts
         currentPlan="FREE"
@@ -18,7 +28,9 @@ describe("BillingAlerts", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(/limite da avaliação/i);
   });
 
-  it("FREE entre 90 e 99% inclui contagem quando há limites", () => {
+  it("FREE entre 90 e 99% inclui contagem quando há limites", async () => {
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
+    const { BillingAlerts } = await import("../BillingAlerts");
     render(
       <BillingAlerts
         currentPlan="FREE"

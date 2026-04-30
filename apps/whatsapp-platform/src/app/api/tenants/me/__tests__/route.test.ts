@@ -31,6 +31,8 @@ const tenantRow = {
 
 describe("GET /api/tenants/me", () => {
   beforeEach(() => {
+    vi.resetModules();
+    vi.unstubAllEnvs();
     vi.clearAllMocks();
     vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
     mockResolvePrimaryPhoneNumber.mockResolvedValue({
@@ -87,6 +89,7 @@ describe("GET /api/tenants/me", () => {
   });
 
   it("WHITE_LABEL + manager não inclui plan nem activeUntil", async () => {
+    vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
     mockGetAuthFromRequest.mockResolvedValue({
       payload: { tenantId: "t1", sub: "u1", email: "a@b.com", name: "User", role: "manager" },
@@ -105,6 +108,7 @@ describe("GET /api/tenants/me", () => {
   });
 
   it("WHITE_LABEL + platform_admin mantém plan", async () => {
+    vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "WHITE_LABEL");
     mockGetAuthFromRequest.mockResolvedValue({
       payload: { tenantId: "t1", sub: "u1", email: "a@b.com", name: "User", role: "platform_admin" },
@@ -124,12 +128,18 @@ describe("GET /api/tenants/me", () => {
 
 describe("PATCH /api/tenants/me (aiDriver)", () => {
   beforeEach(() => {
+    vi.resetModules();
+    vi.unstubAllEnvs();
     vi.clearAllMocks();
     mockGetAuthFromRequest.mockResolvedValue({
       payload: { tenantId: "t1", sub: "u1", email: "a@b.com", name: "User", role: "manager" },
     });
     mockPrisma.tenant.findUnique.mockResolvedValue(tenantRow);
     mockPrisma.tenant.update.mockResolvedValue(tenantRow);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("retorna 401 quando não autenticado", async () => {
