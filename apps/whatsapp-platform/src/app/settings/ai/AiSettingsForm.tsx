@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AiStatusBanner, type AiBannerState } from "@/components/ai/AiStatusBanner";
-import { StateLoading } from "@/components/ui/app-states";
+import { StateError, StateLoading } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
 import {
   FormActions,
@@ -320,6 +320,8 @@ function GuardrailsSummary(props: {
 
 export function AiSettingsForm() {
   const [loading, setLoading] = useState(true);
+  /** Carregamento inicial de `/api/ai/config` bem-sucedido (evita formulário “vazio” com erro no fim da página). */
+  const [loadSucceeded, setLoadSucceeded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [presets, setPresets] = useState<AiBehaviorPreset[]>([]);
@@ -401,6 +403,8 @@ export function AiSettingsForm() {
   }, []);
 
   const load = useCallback(async () => {
+    setError(null);
+    setLoadSucceeded(false);
     try {
       const [rConfig, rStatus, rPlan] = await Promise.all([
         fetchProtected("/api/ai/config"),
@@ -419,6 +423,7 @@ export function AiSettingsForm() {
         setError(protectedApiUserMessage(rConfig.status, j));
         return;
       }
+      setLoadSucceeded(true);
       if (j.data) applyCfg(j.data);
       if (j.presets?.length) setPresets(j.presets);
 
@@ -431,7 +436,7 @@ export function AiSettingsForm() {
         if (jPlan.success) setPlanInfo(jPlan.data);
       }
     } catch {
-      setError("Erro de conexão");
+      setError("Erro de conexão. Verifique a rede e tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -559,8 +564,27 @@ export function AiSettingsForm() {
     return <StateLoading message="A carregar configuração de IA…" />;
   }
 
+  if (!loadSucceeded && error) {
+    return (
+      <StateError
+        title="Não foi possível carregar as definições"
+        message={error}
+        retryLabel="Tentar novamente"
+        onRetry={() => {
+          setLoading(true);
+          void load();
+        }}
+      />
+    );
+  }
+
   return (
     <form id="wf-ai-settings" onSubmit={handleSubmit} className="max-w-3xl space-y-10">
+      {error ? (
+        <div className="rounded-xl border border-red-200/90 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+          {error}
+        </div>
+      ) : null}
       <div className="space-y-3">
         <AiSettingsAnchorNav />
         <AiStatusSummary enabled={enabled} autoReply={autoReply} motorLabel={formatMotorLabel(previewDriver)} />
@@ -1155,12 +1179,6 @@ export function AiSettingsForm() {
         <p className="text-xs text-[var(--df-text-muted)]">
           Versão {configVersion} · última alteração {new Date(updatedAt).toLocaleString("pt-BR")}
         </p>
-      ) : null}
-
-      {error ? (
-        <div className="rounded-xl border border-red-200/90 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
-          {error}
-        </div>
       ) : null}
 
       <FormActions>
