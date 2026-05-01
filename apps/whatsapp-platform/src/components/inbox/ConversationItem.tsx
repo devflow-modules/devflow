@@ -193,11 +193,22 @@ export const ConversationItem = memo(function ConversationItem({
             </div>
           </div>
 
-          {stateBadge ? (
+          {stateBadge || (thread.dealSuggested && thread.dealStatus !== "won" && thread.dealStatus !== "lost") ? (
             <div className="mt-1 flex flex-wrap items-center gap-1.5">
-              <span className={stateBadge.className} data-testid="conversation-state-badge">
-                {stateBadge.label}
-              </span>
+              {stateBadge ? (
+                <span className={stateBadge.className} data-testid="conversation-state-badge">
+                  {stateBadge.label}
+                </span>
+              ) : null}
+              {thread.dealSuggested && thread.dealStatus !== "won" && thread.dealStatus !== "lost" ? (
+                <span
+                  className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-950 ring-1 ring-amber-300/80"
+                  title="Proposta de fecho à espera de confirmação do gestor"
+                  data-testid="deal-suggestion-pending-badge"
+                >
+                  Sugestão pendente
+                </span>
+              ) : null}
             </div>
           ) : null}
 

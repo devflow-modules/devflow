@@ -609,6 +609,20 @@ model WaInboxThread {
    * Espelha `Lead.conversationRef` → esta thread; necessário para funil, métricas e histórico comercial.
    */
   outboundLeadId         String?               @map("outbound_lead_id") @db.VarChar(40)
+  /** Negociação comercial: null = em aberto; `won` / `lost` após fecho explícito. */
+  dealStatus             String?               @map("deal_status") @db.VarChar(16)
+  dealValue              Float?                @map("deal_value")
+  dealCurrency           String                @default("BRL") @map("deal_currency") @db.VarChar(8)
+  dealClosedAt           DateTime?             @map("deal_closed_at")
+  /** Motivo de perda após fecho confirmado (`lost`). */
+  dealLostReason         String?               @map("deal_lost_reason") @db.VarChar(32)
+  /** Proposta de fecho à espera de confirmação do manager. */
+  dealSuggested          Boolean               @default(false) @map("deal_suggested")
+  dealSuggestedAt        DateTime?             @map("deal_suggested_at")
+  dealSuggestedBy        String?               @map("deal_suggested_by") @db.VarChar(128)
+  dealSuggestedStatus    String?               @map("deal_suggested_status") @db.VarChar(16)
+  dealSuggestedValue     Float?                @map("deal_suggested_value")
+  dealSuggestedLostReason String?              @map("deal_suggested_lost_reason") @db.VarChar(32)
   /** Cliente sinalizou hesitação (ex.: "vou pensar") — fila recuperação comercial */
   needsRecovery          Boolean               @default(false) @map("needs_recovery")
   /** Contador de automações comerciais enviadas (follow-up / reativação / recuperação) */
@@ -634,6 +648,7 @@ model WaInboxThread {
   @@index([tenantId, assignedToUserId])
   @@index([tenantId, queueId])
   @@index([tenantId, outboundLeadId])
+  @@index([tenantId, dealStatus])
   @@map("wa_inbox_threads")
 }
 

@@ -78,3 +78,9 @@ export {
   upsertAgentOperationalStatus,
   type OperationalAgentRow,
 } from "./operationsAgentsService";
+export { closeInboxThreadDeal } from "./threadDealService";
+export type { CloseDealStatus, CloseInboxThreadDealResult } from "./threadDealService";
+export { suggestInboxThreadDeal, clearDealSuggestion } from "./suggestDealService";
+export type { SuggestInboxThreadDealResult, ClearDealSuggestionResult } from "./suggestDealService";
+export { getTenantRevenueMetrics } from "./revenueMetricsService";
+export type { TenantRevenueMetrics } from "./revenueMetricsService";

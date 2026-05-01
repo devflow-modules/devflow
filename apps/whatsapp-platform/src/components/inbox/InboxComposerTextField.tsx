@@ -22,6 +22,7 @@ export type InboxComposerHandle = {
   setText: (value: string) => void;
   appendText: (value: string) => void;
   clear: () => void;
+  focus: () => void;
 };
 
 type Props = {
@@ -30,6 +31,8 @@ type Props = {
   composerLocked: boolean;
   sendDisabled: boolean;
   onSend: (body: string) => void;
+  /** Teclado móvel: área de escrita mais alta. */
+  tallMobile?: boolean;
 };
 
 /**
@@ -37,12 +40,13 @@ type Props = {
  * o resto de MessageInput a cada tecla (INP).
  */
 const InboxComposerTextFieldInner = forwardRef<InboxComposerHandle, Props>(function InboxComposerTextField(
-  { threadId, denseComposer, composerLocked, sendDisabled, onSend },
+  { threadId, denseComposer, composerLocked, sendDisabled, onSend, tallMobile = false },
   ref
 ) {
   const [text, setText] = useState("");
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stopTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useImperativeHandle(
     ref,
@@ -51,6 +55,7 @@ const InboxComposerTextFieldInner = forwardRef<InboxComposerHandle, Props>(funct
       appendText: (value: string) =>
         setText((prev) => (prev ? `${prev.trim()}\n\n${value}` : value)),
       clear: () => setText(""),
+      focus: () => textareaRef.current?.focus(),
     }),
     []
   );
@@ -100,6 +105,7 @@ const InboxComposerTextFieldInner = forwardRef<InboxComposerHandle, Props>(funct
           Mensagem para o cliente
         </label>
         <textarea
+          ref={textareaRef}
           id="inbox-composer"
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -109,7 +115,11 @@ const InboxComposerTextFieldInner = forwardRef<InboxComposerHandle, Props>(funct
           disabled={sendDisabled || composerLocked}
           title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
           className={`df-field-control flex-1 resize-y text-[15px] leading-relaxed shadow-inner transition-colors duration-200 bg-muted/60/60 focus:bg-card ${
-            denseComposer ? "min-h-[4.25rem]" : "min-h-[5.5rem]"
+            tallMobile
+              ? "min-h-[6.75rem] sm:min-h-[5.5rem]"
+              : denseComposer
+                ? "min-h-[4.25rem]"
+                : "min-h-[5.5rem]"
           }`}
         />
         <Button variant="secondary"

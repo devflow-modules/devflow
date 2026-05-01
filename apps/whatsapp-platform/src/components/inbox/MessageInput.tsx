@@ -33,6 +33,7 @@ function MessageInputInner({
   thread,
   onAgentMessageSent,
   denseComposer = false,
+  showMobileQuickBar = false,
 }: {
   threadId: string | null;
   thread?: WaInboxThreadRow | null;
@@ -40,6 +41,8 @@ function MessageInputInner({
   onAgentMessageSent?: () => void;
   /** Menos padding, respostas rápidas recolhíveis — liberta altura para o histórico. */
   denseComposer?: boolean;
+  /** Barra táctil (≤sm): Responder, Template, IA, Fechar venda. */
+  showMobileQuickBar?: boolean;
 }) {
   const [retryText, setRetryText] = useState<string | null>(null);
   const [aiPreview, setAiPreview] = useState<string | null>(null);
@@ -159,8 +162,8 @@ function MessageInputInner({
       id="inbox-composer-anchor"
       className={`shrink-0 rounded-t-2xl border-t border-border/90 bg-card shadow-[0_-10px_36px_rgba(15,23,42,0.045)] ${
         denseComposer
-          ? `${INBOX_CHAT_GUTTER_X_COMPACT} pb-2.5 pt-2 sm:pb-3 sm:pt-2.5`
-          : `${INBOX_CHAT_GUTTER_X} pb-4 pt-3.5 sm:pb-5 sm:pt-4`
+          ? `${INBOX_CHAT_GUTTER_X_COMPACT} max-sm:pb-[max(0.625rem,env(safe-area-inset-bottom))] pb-2.5 pt-2 sm:pb-3 sm:pt-2.5`
+          : `${INBOX_CHAT_GUTTER_X} max-sm:pb-[max(1rem,env(safe-area-inset-bottom))] pb-4 pt-3.5 sm:pb-5 sm:pt-4`
       }`}
       data-testid="message-input"
     >
@@ -181,6 +184,51 @@ function MessageInputInner({
           </span>
         </p>
       )}
+      {showMobileQuickBar ? (
+        <div className="mb-3 grid grid-cols-2 gap-2 sm:hidden">
+          <Button
+            variant="secondary"
+            type="button"
+            className="min-h-12 touch-manipulation text-sm font-semibold"
+            onClick={() => composerRef.current?.focus()}
+          >
+            Responder
+          </Button>
+          <Button
+            variant="secondary"
+            type="button"
+            className="min-h-12 touch-manipulation text-sm font-semibold"
+            disabled={composerLocked}
+            title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
+            onClick={() => applyTemplate(QUICK_TEMPLATES[0]!.text)}
+          >
+            Template
+          </Button>
+          <Button
+            variant="secondary"
+            type="button"
+            className="min-h-12 touch-manipulation text-sm font-semibold"
+            disabled={composerLocked || suggestMut.isPending || mutation.isPending}
+            title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
+            onClick={() => suggestMut.mutate(threadId)}
+          >
+            {suggestMut.isPending ? "IA…" : "IA"}
+          </Button>
+          <Button
+            variant="secondary"
+            type="button"
+            className="min-h-12 touch-manipulation text-sm font-semibold"
+            onClick={() =>
+              document.getElementById("inbox-deal-close")?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              })
+            }
+          >
+            Fechar venda
+          </Button>
+        </div>
+      ) : null}
       {thread && followUpSuggestion(thread)?.show ? (
         <div className="df-feedback-warning mb-3 rounded-xl px-3 py-2.5 text-sm shadow-sm" data-testid="follow-up-banner">
           <p className="font-medium">Follow-up sugerido</p>
@@ -348,6 +396,7 @@ function MessageInputInner({
         composerLocked={composerLocked}
         sendDisabled={mutation.isPending}
         onSend={handleComposerSend}
+        tallMobile={showMobileQuickBar}
       />
     </div>
   );

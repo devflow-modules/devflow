@@ -212,7 +212,8 @@ type OrderedListRow = {
 
 /**
  * Lista threads com ordenação: bucket (awaiting_agent → … → closed);
- * dentro de awaiting_agent: SLA (crítico primeiro) e maior atraso primeiro.
+ * dentro de awaiting_agent: SLA (crítico primeiro) e maior atraso primeiro;
+ * em qualquer bucket: conversas com sugestão de fecho pendente sobem (urgência comercial para o gestor).
  */
 export async function waInboxListThreads(
   tenantId: string,
@@ -252,7 +253,9 @@ export async function waInboxListThreads(
         t.last_message_at,
         t.status,
         t.assigned_to_user_id,
-        t.lead_score
+        t.lead_score,
+        t.deal_suggested,
+        t.deal_status
       FROM wa_inbox_threads t
       WHERE ${whereSql}
     ),
@@ -287,7 +290,13 @@ export async function waInboxListThreads(
           WHEN calc.response_delay_ms < ${SLA_TIER_MEDIUM_MAX_MS} THEN 2
           WHEN calc.response_delay_ms < ${SLA_TIER_HIGH_MAX_MS} THEN 3
           ELSE 4
-        END AS sla_sort
+        END AS sla_sort,
+        CASE
+          WHEN calc.deal_suggested IS TRUE
+            AND (calc.deal_status IS NULL OR calc.deal_status::text NOT IN ('won', 'lost'))
+          THEN TRUE
+          ELSE FALSE
+        END AS pending_deal_suggestion
       FROM calc
     )
     SELECT
@@ -302,6 +311,7 @@ export async function waInboxListThreads(
       ranked.sort_bucket ASC,
       CASE WHEN ranked.sort_bucket = 0 THEN ranked.sla_sort ELSE 0 END DESC,
       CASE WHEN ranked.sort_bucket = 0 THEN ranked.response_delay_ms ELSE 0 END DESC NULLS LAST,
+      ranked.pending_deal_suggestion DESC,
       ranked.lead_score DESC,
       ranked.last_message_at DESC
     LIMIT ${opts.take} OFFSET ${opts.skip}

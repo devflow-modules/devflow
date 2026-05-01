@@ -14,6 +14,7 @@ import { INBOX_QK, type WaInboxThreadRow } from "./inboxTypes";
 import { useMediaMinWidth } from "@/lib/useMediaMinWidth";
 import { INBOX_CHAT_GUTTER_X } from "./inboxChatLayout";
 import { Button } from "@/components/ui/button";
+import { DealClosePanel } from "./DealClosePanel";
 
 /** Lista traz `unreadCount`; GET por id pode não — preservamos o da lista. */
 function mergeThreadRow(
@@ -33,6 +34,17 @@ function mergeThreadRow(
     lastResponderType: fromApi.lastResponderType ?? fromList.lastResponderType,
     conversationState: fromApi.conversationState ?? fromList.conversationState,
     priority: fromApi.priority ?? fromList.priority,
+    dealStatus: fromApi.dealStatus ?? fromList.dealStatus,
+    dealValue: fromApi.dealValue ?? fromList.dealValue,
+    dealCurrency: fromApi.dealCurrency ?? fromList.dealCurrency,
+    dealClosedAt: fromApi.dealClosedAt ?? fromList.dealClosedAt,
+    dealLostReason: fromApi.dealLostReason ?? fromList.dealLostReason,
+    dealSuggested: fromApi.dealSuggested ?? fromList.dealSuggested,
+    dealSuggestedAt: fromApi.dealSuggestedAt ?? fromList.dealSuggestedAt,
+    dealSuggestedBy: fromApi.dealSuggestedBy ?? fromList.dealSuggestedBy,
+    dealSuggestedStatus: fromApi.dealSuggestedStatus ?? fromList.dealSuggestedStatus,
+    dealSuggestedValue: fromApi.dealSuggestedValue ?? fromList.dealSuggestedValue,
+    dealSuggestedLostReason: fromApi.dealSuggestedLostReason ?? fromList.dealSuggestedLostReason,
   };
 }
 
@@ -164,6 +176,7 @@ export function ChatWindow({
             </div>
             <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
               <MessageList threadId={threadId} thread={activeThread} />
+              <DealClosePanel threadId={threadId} thread={activeThread} />
             </div>
             {!auditTab && activeThread && crmDrawerMode ? (
               <div
@@ -186,6 +199,7 @@ export function ChatWindow({
               thread={activeThread}
               onAgentMessageSent={handleAgentMessageSent}
               denseComposer={compactChrome || shellSidebarCollapsed || inboxFocusMode}
+              showMobileQuickBar={!isMd}
             />
           </div>
         )}

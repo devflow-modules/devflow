@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { TenantSnapshot } from "@/lib/tenant-session";
 import { buttonClassName } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { fetchProtected } from "@/lib/protected-fetch";
 import { PostActivationGuide } from "@/components/dashboard/PostActivationGuide";
 import { SupportHelpButton } from "@/components/support/SupportHelpButton";
 import { isOperator, isTenantManager } from "@/lib/roles";
+import { fetchTenantRevenueMetrics, type TenantRevenueMetricsPayload } from "@/components/inbox/inboxFetch";
 import type { UserRole } from "@/modules/auth";
 import { isWhiteLabelMode } from "@/lib/productMode";
 
@@ -68,6 +69,8 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [metricsLoading, setMetricsLoading] = useState(() => snapshot.authenticated);
   const [sessionRole, setSessionRole] = useState<UserRole | null>(null);
+  const [revenue, setRevenue] = useState<TenantRevenueMetricsPayload | null>(null);
+  const [revenueLoading, setRevenueLoading] = useState(false);
 
   useEffect(() => {
     if (!snapshot.authenticated) return;
@@ -96,6 +99,25 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
     };
   }, [snapshot.authenticated]);
 
+  useEffect(() => {
+    if (!snapshot.authenticated || !sessionRole || !isTenantManager(sessionRole)) return;
+    let cancelled = false;
+    setRevenueLoading(true);
+    fetchTenantRevenueMetrics(30)
+      .then((d) => {
+        if (!cancelled) setRevenue(d);
+      })
+      .catch(() => {
+        if (!cancelled) setRevenue(null);
+      })
+      .finally(() => {
+        if (!cancelled) setRevenueLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [snapshot.authenticated, sessionRole]);
+
   if (!snapshot.authenticated) {
     return (
       <div className="df-stack">
@@ -123,6 +145,25 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
     overview && overview.totalMessages > 0
       ? Math.round((overview.automaticMessages / overview.totalMessages) * 100)
       : 0;
+
+  const revenueFmt = useMemo(
+    () =>
+      new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        maximumFractionDigits: 0,
+      }),
+    []
+  );
+  const pctFmt = useMemo(
+    () =>
+      new Intl.NumberFormat("pt-BR", {
+        style: "percent",
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }),
+    []
+  );
 
   const firstIncompleteHref = "/onboarding";
 
@@ -309,6 +350,55 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
             </p>
             <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Mensagens enviadas por pessoas</p>
           </Card>
+        </div>
+      )}
+
+      {activationComplete && sessionRole && isTenantManager(sessionRole) && (
+        <div className="df-stack-tight">
+          <PageHeader
+            eyebrow="Receita"
+            eyebrowTone="neutral"
+            title="Vendas no WhatsApp"
+            description={`Valores registados na inbox ao fechar negócio (últimos ${revenue?.days ?? 30} dias).`}
+            layout="split"
+            showDivider={false}
+            className="!pb-0"
+            actions={
+              <Link href="/inbox" className={`${buttonClassName("secondary")} shrink-0 text-sm`}>
+                Registar na inbox
+              </Link>
+            }
+          />
+          <div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card padding="md" className="!p-5 min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-secondary)]">Receita total</p>
+              <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-text-primary)]">
+                {revenueLoading ? "…" : revenueFmt.format(revenue?.totalRevenue ?? 0)}
+              </p>
+              <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Soma de vendas ganhas</p>
+            </Card>
+            <Card padding="md" className="!p-5 min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-secondary)]">Taxa de conversão</p>
+              <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-text-primary)]">
+                {revenueLoading ? "…" : pctFmt.format(revenue?.conversionRate ?? 0)}
+              </p>
+              <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Vendas ÷ conversas activas</p>
+            </Card>
+            <Card padding="md" className="!p-5 min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-secondary)]">Ticket médio</p>
+              <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-text-primary)]">
+                {revenueLoading ? "…" : revenueFmt.format(revenue?.avgTicket ?? 0)}
+              </p>
+              <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Por venda ganha</p>
+            </Card>
+            <Card padding="md" className="!p-5 min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-secondary)]">Vendas fechadas</p>
+              <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--df-text-primary)]">
+                {revenueLoading ? "…" : (revenue?.dealsWon ?? 0)}
+              </p>
+              <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Negócios ganhos no período</p>
+            </Card>
+          </div>
         </div>
       )}
 

@@ -56,6 +56,20 @@ export type WaInboxThreadRow = {
   priority?: string;
   /** ID do `Lead` no portal (`outbound_leads`), quando ligado à prospecção DevFlow. */
   outboundLeadId?: string | null;
+  /** Fecho comercial: null / ausente = em negociação; `won` / `lost` após registo. */
+  dealStatus?: string | null;
+  dealValue?: number | null;
+  dealCurrency?: string | null;
+  dealClosedAt?: string | null;
+  /** Motivo de perda após fecho confirmado (enum). */
+  dealLostReason?: string | null;
+  /** Proposta de fecho pelo operador — aguarda confirmação do manager. */
+  dealSuggested?: boolean | null;
+  dealSuggestedAt?: string | null;
+  dealSuggestedBy?: string | null;
+  dealSuggestedStatus?: "won" | "lost" | string | null;
+  dealSuggestedValue?: number | null;
+  dealSuggestedLostReason?: string | null;
   /** CRM: pontuação automática (recalculada em cada inbound) */
   leadScore?: number;
   /** CRM: campos extraídos heurísticamente */

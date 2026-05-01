@@ -135,6 +135,9 @@ function parseConversationsPath(pathname: string):
   | { kind: "send"; id: string }
   | { kind: "assign"; id: string }
   | { kind: "status"; id: string }
+  | { kind: "close-deal"; id: string }
+  | { kind: "suggest-deal"; id: string }
+  | { kind: "clear-deal-suggestion"; id: string }
   | { kind: "sub"; id: string; sub: string }
   | null {
   const prefix = "/api/inbox/conversations";
@@ -150,6 +153,9 @@ function parseConversationsPath(pathname: string):
   if (sub === "send") return { kind: "send", id };
   if (sub === "assign") return { kind: "assign", id };
   if (sub === "status") return { kind: "status", id };
+  if (sub === "close-deal") return { kind: "close-deal", id };
+  if (sub === "suggest-deal") return { kind: "suggest-deal", id };
+  if (sub === "clear-deal-suggestion") return { kind: "clear-deal-suggestion", id };
   return { kind: "sub", id, sub };
 }
 
@@ -330,6 +336,110 @@ export async function installInboxOperationalMocks(page: Page, store: InboxMockS
         unansweredInboundCount: 0,
       });
       return route.fulfill(json({ success: true, data: { assignedTo: "e2e-user" } }));
+    }
+
+    if (conv.kind === "close-deal" && method === "POST") {
+      let body: { status?: string; value?: number; lostReason?: string } = {};
+      try {
+        body = JSON.parse(req.postData() || "{}") as { status?: string; value?: number; lostReason?: string };
+      } catch {
+        body = {};
+      }
+      const st = body.status;
+      const now = iso();
+      if (st === "won") {
+        updateThread(store, conv.id, {
+          dealStatus: "won",
+          dealValue: body.value ?? null,
+          dealCurrency: "BRL",
+          dealClosedAt: now,
+          dealLostReason: null,
+          dealSuggested: false,
+          dealSuggestedAt: null,
+          dealSuggestedBy: null,
+          dealSuggestedStatus: null,
+          dealSuggestedValue: null,
+          dealSuggestedLostReason: null,
+        });
+      } else if (st === "lost") {
+        updateThread(store, conv.id, {
+          dealStatus: "lost",
+          dealValue: null,
+          dealCurrency: "BRL",
+          dealClosedAt: now,
+          dealLostReason: body.lostReason ?? null,
+          dealSuggested: false,
+          dealSuggestedAt: null,
+          dealSuggestedBy: null,
+          dealSuggestedStatus: null,
+          dealSuggestedValue: null,
+          dealSuggestedLostReason: null,
+        });
+      }
+      return route.fulfill(
+        json({
+          success: true,
+          data: {
+            status: st,
+            value: st === "won" ? body.value : null,
+            currency: "BRL",
+            lostReason: st === "lost" ? body.lostReason ?? null : null,
+          },
+          error: null,
+          trace_id: "e2e-close-deal",
+        })
+      );
+    }
+
+    if (conv.kind === "suggest-deal" && method === "POST") {
+      let body: { status?: string; value?: number; lostReason?: string } = {};
+      try {
+        body = JSON.parse(req.postData() || "{}") as { status?: string; value?: number; lostReason?: string };
+      } catch {
+        body = {};
+      }
+      const now = iso();
+      if (body.status === "won" && body.value != null && body.value > 0) {
+        updateThread(store, conv.id, {
+          dealSuggested: true,
+          dealSuggestedAt: now,
+          dealSuggestedBy: "e2e-user",
+          dealSuggestedStatus: "won",
+          dealSuggestedValue: body.value,
+          dealSuggestedLostReason: null,
+        });
+      } else if (body.status === "lost" && body.lostReason) {
+        updateThread(store, conv.id, {
+          dealSuggested: true,
+          dealSuggestedAt: now,
+          dealSuggestedBy: "e2e-user",
+          dealSuggestedStatus: "lost",
+          dealSuggestedValue: null,
+          dealSuggestedLostReason: body.lostReason,
+        });
+      }
+      return route.fulfill(
+        json({
+          success: true,
+          data: { suggested: true, status: body.status, value: body.value ?? null, lostReason: body.lostReason ?? null },
+          error: null,
+          trace_id: "e2e-suggest-deal",
+        })
+      );
+    }
+
+    if (conv.kind === "clear-deal-suggestion" && method === "POST") {
+      updateThread(store, conv.id, {
+        dealSuggested: false,
+        dealSuggestedAt: null,
+        dealSuggestedBy: null,
+        dealSuggestedStatus: null,
+        dealSuggestedValue: null,
+        dealSuggestedLostReason: null,
+      });
+      return route.fulfill(
+        json({ success: true, data: { cleared: true }, error: null, trace_id: "e2e-clear-deal-suggestion" })
+      );
     }
 
     if (conv.kind === "status" && method === "POST") {

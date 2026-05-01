@@ -521,3 +521,75 @@ export async function fetchInboxQueueNext(assign = true): Promise<InboxQueueNext
   if (!data) throw new Error("Resposta inválida");
   return data;
 }
+
+export type CloseInboxDealPayload = {
+  status: "won" | "lost";
+  value?: number;
+  currency?: string;
+  lostReason?: string;
+};
+
+export async function postCloseInboxDeal(threadId: string, body: CloseInboxDealPayload): Promise<void> {
+  const res = await fetchProtected(
+    `/api/inbox/conversations/${encodeURIComponent(threadId)}/close-deal`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
+}
+
+export type SuggestInboxDealPayload = {
+  status: "won" | "lost";
+  value?: number;
+  lostReason?: string;
+};
+
+export async function postSuggestInboxDeal(threadId: string, body: SuggestInboxDealPayload): Promise<void> {
+  const res = await fetchProtected(
+    `/api/inbox/conversations/${encodeURIComponent(threadId)}/suggest-deal`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
+}
+
+export async function postClearDealSuggestion(threadId: string): Promise<void> {
+  const res = await fetchProtected(
+    `/api/inbox/conversations/${encodeURIComponent(threadId)}/clear-deal-suggestion`,
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }
+  );
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
+}
+
+export type TenantRevenueMetricsPayload = {
+  totalRevenue: number;
+  dealsWon: number;
+  conversionRate: number;
+  avgTicket: number;
+  activeThreads: number;
+  days: number;
+};
+
+export async function fetchTenantRevenueMetrics(days = 30): Promise<TenantRevenueMetricsPayload> {
+  const res = await fetchProtected(`/api/metrics/revenue?days=${encodeURIComponent(String(days))}`);
+  if (!res.ok) throw new Error(await inboxFailMessage(res));
+  const raw = await res.json();
+  const data = unwrapApiData<TenantRevenueMetricsPayload>(raw);
+  if (!data) {
+    return {
+      totalRevenue: 0,
+      dealsWon: 0,
+      conversionRate: 0,
+      avgTicket: 0,
+      activeThreads: 0,
+      days,
+    };
+  }
+  return data;
+}

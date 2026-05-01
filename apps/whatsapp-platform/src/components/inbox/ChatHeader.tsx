@@ -241,10 +241,10 @@ export function ChatHeader({
           <Button variant="ghost"
             type="button"
             onClick={onBackMobile}
-            className="rounded-lg p-2 text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)] md:hidden df-focus-brand"
-            aria-label="Voltar"
+            className="shrink-0 rounded-lg px-2 py-2 text-sm font-semibold text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)] md:hidden df-focus-brand"
+            aria-label="Voltar à lista de conversas"
           >
-            ←
+            <span aria-hidden>←</span> Voltar
           </Button>
         )}
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--df-brand-600)] text-sm font-bold text-white">

@@ -515,7 +515,7 @@ function InboxShellContent() {
         )}
 
         {showChatColumn && (
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden max-md:min-h-[100dvh] max-md:max-h-[100dvh]">
             {selectedId ? (
               <ChatWindow
                 key={selectedId}

@@ -20,6 +20,9 @@ const ACTION_LABELS: Record<string, string> = {
   follow_up_prompt: "registou follow-up sugerido",
   notify: "notificação (regra)",
   automation_log: "registo de automação",
+  deal_close: "fechou negócio",
+  deal_suggest: "sugeriu fecho de negócio",
+  deal_suggestion_clear: "ignorou sugestão de fecho",
 };
 
 export function ChatAuditTab({ threadId }: { threadId: string | null }) {

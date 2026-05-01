@@ -20,7 +20,10 @@ export type AuditAction =
   | "internal_note_create"
   | "internal_note_delete"
   | "playbook_suggest"
-  | "follow_up_prompt";
+  | "follow_up_prompt"
+  | "deal_close"
+  | "deal_suggest"
+  | "deal_suggestion_clear";
 
 export async function logAction(
   tenantId: string,
