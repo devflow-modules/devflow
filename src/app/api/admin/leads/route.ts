@@ -128,7 +128,7 @@ export async function GET(request: Request) {
     ]);
 
     const syncConvo = searchParams.get("syncFromConversation") === "1";
-    let listAfterSync = rawList as Lead[];
+    const listAfterSync = rawList as Lead[];
     if (syncConvo) {
       const slice = listAfterSync.slice(0, 50).filter((l) => l.conversationRef && !l.assignedOperatorId);
       await Promise.all(

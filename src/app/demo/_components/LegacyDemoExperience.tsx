@@ -29,6 +29,11 @@ const QUICK_CHOICES = [
   { label: "Quero testar automação", value: "Quero testar automação" },
 ];
 
+/** Jitter for bot typing delay — module scope keeps the component render pure for React Compiler. */
+function pickBotReplyDelayMs(): number {
+  return 1000 + Math.floor(Math.random() * 500);
+}
+
 function getBotResponse(input: string): string {
   const lower = input.toLowerCase();
   for (const [key, response] of Object.entries(BOT_RESPONSES)) {
@@ -64,7 +69,7 @@ export function LegacyDemoExperience() {
       const response = getBotResponse(trimmed.toLowerCase());
       setMessages((prev) => [...prev, { type: "bot", text: response }]);
       setIsTyping(false);
-    }, 1000 + Math.random() * 500);
+    }, pickBotReplyDelayMs());
   };
 
   const handleSend = () => sendMessage(input);
