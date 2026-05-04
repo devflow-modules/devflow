@@ -13,9 +13,11 @@ import {
   getWhatsappCutoverRedirectUrl,
   WHATSAPP_PORTAL_JWT_PREFIXES,
 } from "@devflow/whatsapp-routes";
-import { whatsappAppLoginUrlWithNext } from "@/lib/portal-whatsapp-login-url";
-
-const ADMIN_METRICS_COOKIE = "admin_metrics_secret";
+import {
+  isSafePortalNextPathForWhatsappLogin,
+  whatsappAppLoginUrlWithNext,
+} from "@/lib/portal-whatsapp-login-url";
+import { ADMIN_METRICS_SECRET_COOKIE_NAME } from "@/lib/auth-config";
 
 /**
  * Paths que exigem JWT WhatsApp neste app (pacote @devflow/whatsapp-routes).
@@ -56,7 +58,14 @@ function redirectToLogin(request: NextRequest, clearCookie = false): NextRespons
 
 function redirectToAdminLogin(request: NextRequest, clearCookie = false): NextResponse {
   const url = new URL("/admin/login", request.url);
-  url.searchParams.set("next", request.nextUrl.pathname);
+  const pathname = request.nextUrl.pathname;
+  if (
+    pathname.startsWith("/admin/") &&
+    !pathname.startsWith("/admin/login") &&
+    isSafePortalNextPathForWhatsappLogin(pathname)
+  ) {
+    url.searchParams.set("next", pathname);
+  }
   const res = NextResponse.redirect(url);
   if (clearCookie) res.cookies.delete(JWT_COOKIE_NAME);
   return res;
@@ -120,7 +129,7 @@ export async function middleware(request: NextRequest) {
     ) {
       const adminSecret =
         process.env.WHATSAPP_ADMIN_METRICS_SECRET ?? process.env.ADMIN_METRICS_SECRET;
-      const adminCookie = request.cookies.get(ADMIN_METRICS_COOKIE)?.value;
+      const adminCookie = request.cookies.get(ADMIN_METRICS_SECRET_COOKIE_NAME)?.value;
       if (adminSecret && adminCookie === adminSecret) return await updateSession(request);
     }
 

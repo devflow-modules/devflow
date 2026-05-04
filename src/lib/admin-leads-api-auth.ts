@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
+import { ADMIN_METRICS_SECRET_COOKIE_NAME } from "@/lib/auth-config";
 import { getCrmWhatsappSessionFromCookies, getCrmWhatsappSessionFromRequest } from "@/lib/crm-whatsapp-auth";
-
-const ADMIN_METRICS_COOKIE = "admin_metrics_secret";
 
 function metricsSecretMatches(request: Request): boolean {
   const secret =
@@ -15,7 +14,7 @@ async function adminMetricsCookieValid(): Promise<boolean> {
     const secret = process.env.WHATSAPP_ADMIN_METRICS_SECRET ?? process.env.ADMIN_METRICS_SECRET;
     if (!secret) return false;
     const store = await cookies();
-    return store.get(ADMIN_METRICS_COOKIE)?.value === secret;
+    return store.get(ADMIN_METRICS_SECRET_COOKIE_NAME)?.value === secret;
   } catch {
     return false;
   }
