@@ -93,7 +93,9 @@ export function Faq() {
               key={i}
               className="group rounded-xl border border-border bg-card [&[open]]:border-primary/30"
             >
-              <summary className="df-text-primary flex cursor-pointer list-none items-center justify-between px-4 py-4 font-medium transition-colors hover:text-primary [&::-webkit-details-marker]:hidden">
+              <summary
+                className="df-text-primary flex cursor-pointer list-none items-center justify-between rounded-xl px-4 py-4 font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background [&::-webkit-details-marker]:hidden"
+              >
                 {item.question}
                 <ChevronDown className="df-text-secondary size-5 shrink-0 transition-transform group-open:rotate-180" />
               </summary>

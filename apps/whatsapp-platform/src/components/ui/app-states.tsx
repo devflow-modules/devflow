@@ -9,7 +9,12 @@ type LoadingProps = {
 
 export function StateLoading({ message = "A carregar…", className = "" }: LoadingProps) {
   return (
-    <div className={`df-state-loading ${className}`.trim()} role="status" aria-live="polite">
+    <div
+      className={`df-state-loading ${className}`.trim()}
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
       <span
         className="h-9 w-9 animate-spin rounded-full border-2 border-[var(--df-border-subtle)] border-t-[var(--df-brand-600)]"
         aria-hidden
