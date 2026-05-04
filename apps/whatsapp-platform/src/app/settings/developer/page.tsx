@@ -6,6 +6,7 @@ import { StateEmpty } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { canAccessDeveloperSettings } from "@/lib/permissions";
+import { loginUrlWithNext } from "@/lib/safe-redirect";
 import { validateAuthToken } from "@/modules/auth";
 import { DeveloperHeaderQuickActions } from "./DeveloperHeaderQuickActions";
 import { DeveloperApiKeyClient } from "./DeveloperApiKeyClient";
@@ -41,10 +42,7 @@ export default async function DeveloperSettingsPage() {
           title="Sessão necessária"
           description="Inicie sessão para aceder a esta página."
           action={
-            <Link
-              href={`/login?next=${encodeURIComponent("/settings/developer")}`}
-              className={buttonClassName("primary")}
-            >
+            <Link href={loginUrlWithNext("/settings/developer")} className={buttonClassName("primary")}>
               Ir para o login
             </Link>
           }

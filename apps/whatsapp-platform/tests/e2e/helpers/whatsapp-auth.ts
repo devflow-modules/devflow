@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { loginUrlWithNext } from "../../../src/lib/safe-redirect";
 
 export function getE2EWhatsappAdminCredentials(): { email: string; password: string } | null {
   const email = process.env.E2E_WHATSAPP_ADMIN_EMAIL?.trim() ?? "";
@@ -21,7 +22,7 @@ export async function loginAsWhatsappAdmin(page: Page, opts?: { next?: string })
   const c = getE2EWhatsappAdminCredentials();
   if (!c) throw new Error("Credenciais E2E em falta");
   const next = opts?.next ?? "/inbox";
-  await page.goto(`/login?next=${encodeURIComponent(next)}`);
+  await page.goto(loginUrlWithNext(next));
   await page.getByLabel("E-mail").fill(c.email);
   await page.getByLabel("Senha").fill(c.password);
   await page.getByRole("button", { name: "Entrar" }).click();

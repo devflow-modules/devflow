@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { buttonClassName } from "@/components/ui/button";
+import { loginUrlWithNext } from "@/lib/safe-redirect";
 
 export function HeroSection({
   isAuthenticated,
@@ -28,7 +29,7 @@ export function HeroSection({
         ) : (
           <>
             <Link
-              href="/login?next=%2Fdashboard%2Fai"
+              href={loginUrlWithNext("/dashboard/ai")}
               className={buttonClassName("primary", "min-h-[44px] w-full px-8 sm:w-auto")}
             >
               Entrar
