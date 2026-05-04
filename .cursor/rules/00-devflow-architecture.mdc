@@ -1,0 +1,15 @@
+---
+description: Monorepo DevFlow — limites entre apps, packages e documentação canónica
+alwaysApply: true
+---
+
+# Arquitetura DevFlow Labs
+
+- **Tooling:** pnpm workspaces + Turborepo; partilha só via `packages/*`.
+- **Boundary:** apps **não** importam outros apps — apenas `packages/*`.
+- **Portal (raiz):** `src/` + `next.config` na raiz — `devflowlabs.com.br`: marketing, hub, Financeiro sob rotas acordadas, middleware (ex. **308** para produtos com app dedicado). Constantes de cutover: `@devflow/whatsapp-routes`, `@devflow/financeiro-routes`.
+- **Produtos:** `apps/whatsapp-platform` (runtime canónico WhatsApp: auth, Stripe, webhook Meta, inbox), `apps/financeiro`, outros `apps/*` com ciclo próprio.
+- **Antes de mudar rotas ou middleware:** ler `ARCHITECTURE.md`, `docs/architecture/PLATFORM-STANDARD.md` e paridade portal↔app (`docs/architecture/WHATSAPP_PORTAL_APP_PARITY.md` quando aplicável).
+- **Documentação por domínio:** `docs/ecossistema/`, `docs/whatsapp/`, `docs/architecture/`.
+
+Mudanças estruturais (novos apps, novos packages, alteração de boundaries) exigem confirmação explícita da equipa.

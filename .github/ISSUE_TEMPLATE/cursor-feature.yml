@@ -1,0 +1,92 @@
+name: "Cursor — Nova funcionalidade"
+description: Pedido de funcionalidade para implementação com Cursor ou Cloud Agent (diff pequeno, alinhado a AGENTS.md).
+title: "[cursor] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Antes de preencher:** leia [`AGENTS.md`](https://github.com/gustavomarques00/devflow/blob/main/AGENTS.md) e as regras em `.cursor/rules/`.
+
+        **Nunca cole** API keys, tokens da Meta/Stripe, `DATABASE_URL`, JWT, payloads de webhook com assinatura ou dados pessoais reais. Use redacção (`***`) e exemplos fictícios.
+
+  - type: checkboxes
+    id: no_secrets
+    attributes:
+      label: Confirmação
+      options:
+        - label: Confirmo que não incluí secrets nem dados sensíveis reais neste issue
+          required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área / app
+      description: Onde a mudança deve viver (um principal).
+      options:
+        - area:portal
+        - area:whatsapp-platform
+        - area:financeiro
+        - area:healthsafe-rpa
+        - area:packages
+        - area:docs
+        - area:infra
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Resumo
+      description: O que se pretende e porquê (contexto de negócio ou técnico).
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de aceitação
+      description: Lista curta do que conta como “feito”.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: risks
+    attributes:
+      label: Riscos em que esta funcionalidade pode impactar (marque todos os aplicáveis)
+      options:
+        - label: "risk:auth — sessão, Supabase, roles, JWT"
+        - label: "risk:billing — Stripe, planos, quotas, checkout"
+        - label: "risk:db — Prisma, schema, queries, migrações"
+        - label: "risk:webhook — Meta WhatsApp, Stripe webhooks, retries"
+        - label: "risk:tenant-isolation — dados cruzados entre tenants"
+        - label: "risk:production — alteração visível ou crítica em produção"
+        - label: "risk:ui-regression — layout, acessibilidade, design system / tokens"
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Expectativas de validação
+      description: "O que deve passar antes de merge (ex.: testes Vitest específicos, smoke manual, revisão de rotas)."
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: needs
+    attributes:
+      label: Necessidades adicionais (opcional)
+      options:
+        - label: needs:smoke-routes
+        - label: needs:build
+        - label: needs:migration-review
+        - label: needs:security-review
+        - label: needs:docs-update
+
+  - type: checkboxes
+    id: cursor_hints
+    attributes:
+      label: Instruções para o agente (opcional)
+      options:
+        - label: cursor:small-diff — manter PR mínimo
+        - label: cursor:do-not-edit-env — não tocar em `.env*`
+        - label: cursor:do-not-touch-db — sem migrations nem alterações destrutivas
+        - label: cursor:requires-tests — acrescentar ou correr testes direcionados

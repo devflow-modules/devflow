@@ -1,0 +1,90 @@
+name: "Cursor — Revisão (PR / código)"
+description: Pedido de revisão com Cursor ou Cloud Agent, sem implementação ou com âmbito estritamente de review.
+title: "[cursor] review: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Antes de preencher:** alinhe com [`AGENTS.md`](https://github.com/gustavomarques00/devflow/blob/main/AGENTS.md) (segurança SaaS, tenant, webhooks, billing).
+
+        **Nunca cole** secrets, diffs com tokens, nem payloads de produção. Use links para PR e trechos redigidos.
+
+  - type: checkboxes
+    id: no_secrets
+    attributes:
+      label: Confirmação
+      options:
+        - label: Confirmo que não incluí secrets nem dados sensíveis reais neste issue
+          required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área / app principal do PR
+      options:
+        - area:portal
+        - area:whatsapp-platform
+        - area:financeiro
+        - area:healthsafe-rpa
+        - area:packages
+        - area:docs
+        - area:infra
+    validations:
+      required: true
+
+  - type: input
+    id: pr_url
+    attributes:
+      label: Link do Pull Request
+      description: URL do GitHub (branch de feature ou fix).
+    validations:
+      required: true
+
+  - type: textarea
+    id: focus
+    attributes:
+      label: Foco da revisão
+      description: "O que deve ser avaliado (ex.: isolamento tenant, idempotência webhook, performance, legibilidade)."
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: risks
+    attributes:
+      label: Superfícies sensíveis no PR (marque todas as aplicáveis)
+      options:
+        - label: "risk:auth"
+        - label: "risk:billing"
+        - label: "risk:db"
+        - label: "risk:webhook"
+        - label: "risk:tenant-isolation"
+        - label: "risk:production"
+        - label: "risk:ui-regression"
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Resultado esperado da revisão
+      description: "Ex.: lista de achados P0/P1, sugestões sem commit, ou aprovação com condições."
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: needs
+    attributes:
+      label: Necessidades adicionais (opcional)
+      options:
+        - label: needs:smoke-routes
+        - label: needs:build
+        - label: needs:security-review
+        - label: needs:docs-update
+
+  - type: checkboxes
+    id: cursor_hints
+    attributes:
+      label: Instruções para o agente (opcional)
+      options:
+        - label: cursor:review-only — não alterar código; apenas comentários ou checklist
+        - label: cursor:small-diff — se propor patches, que sejam mínimos
+        - label: cursor:do-not-edit-env
+        - label: cursor:do-not-touch-db

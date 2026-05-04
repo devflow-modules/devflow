@@ -1,0 +1,19 @@
+---
+description: Next.js App Router, middleware e UI no monorepo DevFlow
+globs:
+  - "src/**/*.tsx"
+  - "src/**/*.ts"
+  - "apps/**/*.tsx"
+  - "apps/**/*.ts"
+  - "packages/ui/**/*.tsx"
+alwaysApply: false
+---
+
+# Next.js (App Router)
+
+- **Padrões:** seguir estrutura existente de `app/`, layouts, `loading`/`error`, Server vs Client Components já usada no ficheiro em causa.
+- **Middleware (raiz):** atenção a **Edge** — envs lidas no bundle, redirects **308** e ordem relativamente a auth; alinhar com `@devflow/whatsapp-routes` / financeiro antes de novos prefixos.
+- **Data fetching:** preferir padrões já adoptados (server actions, route handlers, fetch cache) no mesmo app; não introduzir camadas paralelas sem necessidade.
+- **UI e design system:** reutilizar `packages/ui` e tokens/temas do app; **não** substituir classes de sistema visual por cores/espaçamentos arbitrários — ver `apps/whatsapp-platform/docs/DESIGN_SYSTEM.md` no app WhatsApp e documentação equivalente nos outros produtos.
+
+Inspeccionar componentes e hooks vizinhos antes de criar novos padrões.

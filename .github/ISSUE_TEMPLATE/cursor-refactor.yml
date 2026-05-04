@@ -1,0 +1,92 @@
+name: "Cursor — Refactor"
+description: Refactor interno com limites claros; evitar misturar com features (ver AGENTS.md).
+title: "[cursor] refactor: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Antes de preencher:** leia [`AGENTS.md`](https://github.com/gustavomarques00/devflow/blob/main/AGENTS.md) — alterações devem ser **pequenas e revistas**; evite refactors amplos num único PR sem acordo explícito.
+
+        **Nunca cole** secrets, credenciais de base de dados nem exemplos de env completos.
+
+  - type: checkboxes
+    id: no_secrets
+    attributes:
+      label: Confirmação
+      options:
+        - label: Confirmo que não incluí secrets nem dados sensíveis reais neste issue
+          required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área / app
+      options:
+        - area:portal
+        - area:whatsapp-platform
+        - area:financeiro
+        - area:healthsafe-rpa
+        - area:packages
+        - area:docs
+        - area:infra
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivação
+      description: Porque este refactor (duplicação, acoplamento, performance legível, etc.).
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Âmbito explícito
+      description: Ficheiros ou módulos incluídos — e o que **fica fora** deste trabalho.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: risks
+    attributes:
+      label: Riscos (marque todos os aplicáveis)
+      options:
+        - label: "risk:auth"
+        - label: "risk:billing"
+        - label: "risk:db"
+        - label: "risk:webhook"
+        - label: "risk:tenant-isolation"
+        - label: "risk:production"
+        - label: "risk:ui-regression"
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Expectativas de validação
+      description: "Testes/regressões que devem continuar a passar; comandos ou áreas Vitest."
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: needs
+    attributes:
+      label: Necessidades adicionais (opcional)
+      options:
+        - label: needs:smoke-routes
+        - label: needs:build
+        - label: needs:migration-review
+        - label: needs:security-review
+        - label: needs:docs-update
+
+  - type: checkboxes
+    id: cursor_hints
+    attributes:
+      label: Instruções para o agente (opcional)
+      options:
+        - label: cursor:small-diff — obrigatório para refactors incrementais
+        - label: cursor:needs-plan — pedir plano antes de grandes mudanças
+        - label: cursor:do-not-edit-env
+        - label: cursor:do-not-touch-db
+        - label: cursor:requires-tests

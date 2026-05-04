@@ -1,0 +1,97 @@
+name: "Cursor — Correção de bug"
+description: Bug a corrigir com Cursor ou Cloud Agent; incluir reprodução e riscos.
+title: "[cursor] bug: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Antes de preencher:** leia [`AGENTS.md`](https://github.com/gustavomarques00/devflow/blob/main/AGENTS.md) e `.cursor/rules/`.
+
+        **Nunca cole** secrets, URLs com tokens, cabeçalhos `Authorization`, corpo de webhook assinado ou dados reais de clientes. IDs internos podem ser anonimizados.
+
+  - type: checkboxes
+    id: no_secrets
+    attributes:
+      label: Confirmação
+      options:
+        - label: Confirmo que não incluí secrets nem dados sensíveis reais neste issue
+          required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área / app
+      options:
+        - area:portal
+        - area:whatsapp-platform
+        - area:financeiro
+        - area:healthsafe-rpa
+        - area:packages
+        - area:docs
+        - area:infra
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento esperado
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Comportamento actual
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Passos para reproduzir
+      description: "Ambiente: local / preview / produção. Passos numerados."
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: risks
+    attributes:
+      label: Riscos relacionados (marque todos os aplicáveis)
+      options:
+        - label: "risk:auth"
+        - label: "risk:billing"
+        - label: "risk:db"
+        - label: "risk:webhook"
+        - label: "risk:tenant-isolation"
+        - label: "risk:production"
+        - label: "risk:ui-regression"
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Expectativas de validação
+      description: "Testes a correr, cenários manuais, logs esperados (sem dados sensíveis)."
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: needs
+    attributes:
+      label: Necessidades adicionais (opcional)
+      options:
+        - label: needs:smoke-routes
+        - label: needs:build
+        - label: needs:migration-review
+        - label: needs:security-review
+        - label: needs:docs-update
+
+  - type: checkboxes
+    id: cursor_hints
+    attributes:
+      label: Instruções para o agente (opcional)
+      options:
+        - label: cursor:small-diff
+        - label: cursor:do-not-edit-env
+        - label: cursor:do-not-touch-db
+        - label: cursor:requires-tests

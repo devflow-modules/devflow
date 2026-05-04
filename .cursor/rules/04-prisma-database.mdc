@@ -1,0 +1,17 @@
+---
+description: Prisma, várias bases no monorepo e política de migrations
+globs:
+  - "**/prisma/**/*.prisma"
+  - "**/prisma/**/*.sql"
+  - "**/*prisma*.ts"
+alwaysApply: false
+---
+
+# Prisma e base de dados
+
+- **Vários contextos:** existe schema/migrations na **raiz** (`prisma/`) e em apps (ex. `apps/whatsapp-platform/prisma/`, `apps/financeiro/prisma/`). Confirmar **qual** `schema.prisma` e `DATABASE_URL` / `WHATSAPP_DATABASE_URL` aplicam ao trabalho em curso.
+- **Migrations:** não criar nem editar ficheiros em `prisma/migrations/` **a menos que** a tarefa o peça explicitamente. **Proibido** sem aprovação humana explícita: `DROP` de tabelas/colunas com dados, renames sem plano de backfill, ou alterações que quebrem deploys em voo.
+- **Runtime vs migrate:** pooler (6543) vs conexão directa (5432) — seguir convenção já documentada no projeto para migrations (`DIRECT_URL`).
+- **Integridade multi-tenant:** novos modelos ou relações devem incluir chave de tenant/organização onde o domínio o exige; índices alinhados a queries existentes.
+
+Preferir alterações de schema pequenas e reversíveis; documentar impacto em dados quando não for óbvio.

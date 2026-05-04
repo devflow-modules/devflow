@@ -1,0 +1,15 @@
+---
+description: HealthSafe × RPA SulAmérica — contratos e documentação de referência
+globs:
+  - "docs/healthsafe-rpa/**/*"
+alwaysApply: false
+---
+
+# HealthSafe × RPA
+
+- **Âmbito neste repo:** a implementação Playwright do robô vive tipicamente noutro repositório; aqui há **documentação de alinhamento** em `docs/healthsafe-rpa/` (payloads, campos críticos, respostas operacionais).
+- **Contratos:** respeitar JSON/schema referenciados na doc (cotação, contratação, `configuracao_rpa`, responsáveis etapa 4, etc.); não assumir campos que a doc marca como pendentes ou derivados pelo RPA quando o contrato exige valor explícito.
+- **Estabilidade:** mudanças que afectem integração devem ser coordenadas com o repo RPA (selectores, etapas, ficheiros de resultado); PRs pequenos e comunicação clara de breaking changes.
+- **Dados sensíveis:** propostas, CNPJ e dados de saúde — nunca exemplos reais em commits ou prompts.
+
+Para comandos e PDFs operacionais, seguir `docs/healthsafe-rpa/README.md` e `COMANDOS-HEALTHSAFE.md`.

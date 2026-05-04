@@ -1,0 +1,13 @@
+---
+description: Testes direcionados, contratos e gates de qualidade no monorepo
+alwaysApply: true
+---
+
+# Testes e qualidade
+
+- **Primeiro testes direcionados:** ao alterar um módulo, localizar testes Vitest mais próximos (mesmo diretório `*.test.ts` / `__tests__` / pacote) e corrê-los ou acrescentá-los antes de expandir para o workspace inteiro.
+- **Regressão:** após mudanças em webhooks, auth, billing ou middleware, incluir ou actualizar testes que cubram o comportamento crítico (incl. edge cases documentados em `docs/architecture/` quando existirem).
+- **Contratos:** APIs internas, payloads de webhook e DTOs partilhados — evitar mudanças silenciosas; se a assinatura mudar, actualizar consumidores e testes no mesmo PR quando possível.
+- **PRs pequenos:** facilita revisão e rollback; evitar misturar refactor grande com correção pontual.
+
+Comandos de workspace (`test:workspace`, etc.) são úteis antes de merge; o agente deve privilegiar o **caminho mínimo** de teste que prove a alteração.

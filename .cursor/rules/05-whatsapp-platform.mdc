@@ -1,0 +1,19 @@
+---
+description: WhatsApp Platform — webhook Meta, tenant, Stripe e docs canónicos
+globs:
+  - "apps/whatsapp-platform/**/*"
+  - "packages/whatsapp-core/**/*"
+  - "packages/whatsapp-routes/**/*"
+  - "apps/whatsapp-webhook-api/**/*"
+alwaysApply: false
+---
+
+# WhatsApp Platform
+
+- **Deploy canónico:** runtime do produto (webhook, dashboard, billing) em `apps/whatsapp-platform`; URL pública do webhook e OAuth devem coincidir com o host do app, não com atalhos legados do portal — ver `apps/whatsapp-platform/docs/DEPLOY_APP_SUBDOMAIN.md` e `PLANO_TRANSICAO_APP_SUBDOMINIO.md`.
+- **Tenant:** resolução via `phone_number_id` / modelos WhatsApp existentes; nunca processar inbound sem tenant válido.
+- **Webhook Meta:** GET (verify token) e POST (payload); tolerar retries; idempotência onde já implementada; não alterar contratos com a Meta sem rever `docs/architecture/WHATSAPP-WEBHOOK-HARDENING.md`.
+- **Stripe:** webhooks e quotas — alinhar a `packages/billing-core` e docs em `apps/whatsapp-platform/docs/billing/` e `docs/whatsapp-platform/STRIPE_INTEGRATION.md`.
+- **UI:** tokens `df-*` e componentes do design system do app — regra dedicada em `.cursor/rules/whatsapp-platform-design.mdc`.
+
+Alterações pequenas; inspeccionar serviços e handlers existentes antes de novos caminhos.
