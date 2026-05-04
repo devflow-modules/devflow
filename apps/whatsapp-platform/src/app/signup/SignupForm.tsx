@@ -7,6 +7,7 @@ import { PasswordField } from "@/components/auth/PasswordField";
 import { COMMERCIAL_RECOMMENDED_BADGE } from "@/modules/billing/planPresentation";
 import { isWhiteLabelMode } from "@/lib/productMode";
 import { clientReadAffiliateRefCookie, clientSetAffiliateRefCookie } from "@/modules/affiliates/affiliateRef";
+import { resolveSignupClientNavigationHref } from "@/lib/safe-redirect";
 import { Button } from "@/components/ui/button";
 
 type SignupPlanId = "free" | "pro";
@@ -78,12 +79,7 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
         return;
       }
 
-      if (data.redirectUrl) {
-        window.location.href = data.redirectUrl;
-        return;
-      }
-      const redirectTo = data.redirectTo ?? "/onboarding";
-      window.location.href = redirectTo;
+      window.location.href = resolveSignupClientNavigationHref(data);
     } catch {
       setError("Erro de conexão. Tente novamente.");
     } finally {

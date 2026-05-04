@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { isSafeInternalNextPath, loginUrlWithNext } from "../safe-redirect";
+import {
+  isSafeInternalNextPath,
+  isTrustedStripeCheckoutRedirectUrl,
+  loginUrlWithNext,
+  resolveSignupClientNavigationHref,
+} from "../safe-redirect";
 
 describe("isSafeInternalNextPath", () => {
   it("aceita path interno simples", () => {
@@ -72,5 +77,53 @@ describe("loginUrlWithNext", () => {
     expect(loginUrlWithNext("//evil.com")).toBe("/login");
     expect(loginUrlWithNext("https://x")).toBe("/login");
     expect(loginUrlWithNext("/open redirect")).toBe("/login");
+  });
+
+  it("alinha com guards admin: paths /admin internos incluem next na query", () => {
+    expect(loginUrlWithNext("/admin/agents")).toBe(
+      "/login?next=" + encodeURIComponent("/admin/agents")
+    );
+    expect(loginUrlWithNext("/admin/metrics")).toBe(
+      "/login?next=" + encodeURIComponent("/admin/metrics")
+    );
+  });
+});
+
+describe("isTrustedStripeCheckoutRedirectUrl", () => {
+  it("aceita apenas https em checkout.stripe.com", () => {
+    expect(
+      isTrustedStripeCheckoutRedirectUrl("https://checkout.stripe.com/c/pay/cs_test_abc")
+    ).toBe(true);
+    expect(isTrustedStripeCheckoutRedirectUrl("http://checkout.stripe.com/c/pay/x")).toBe(false);
+    expect(isTrustedStripeCheckoutRedirectUrl("https://evil.com/c/pay/x")).toBe(false);
+    expect(isTrustedStripeCheckoutRedirectUrl("https://checkout.stripe.com.evil.com/x")).toBe(false);
+    expect(isTrustedStripeCheckoutRedirectUrl("not-a-url")).toBe(false);
+  });
+});
+
+describe("resolveSignupClientNavigationHref", () => {
+  it("usa redirectUrl só quando for checkout Stripe", () => {
+    const stripe = "https://checkout.stripe.com/c/pay/cs_live_123";
+    expect(resolveSignupClientNavigationHref({ redirectUrl: stripe })).toBe(stripe);
+    expect(
+      resolveSignupClientNavigationHref({
+        redirectUrl: "https://evil.com/phish",
+        redirectTo: "/onboarding",
+      })
+    ).toBe("/onboarding");
+    expect(
+      resolveSignupClientNavigationHref({
+        redirectUrl: "https://evil.com/phish",
+        redirectTo: "/inbox",
+      })
+    ).toBe("/inbox");
+  });
+
+  it("usa redirectTo interno seguro ou cai em /onboarding", () => {
+    expect(resolveSignupClientNavigationHref({ redirectTo: "/onboarding" })).toBe("/onboarding");
+    expect(resolveSignupClientNavigationHref({ redirectTo: "/inbox?x=1" })).toBe("/inbox?x=1");
+    expect(resolveSignupClientNavigationHref({ redirectTo: "//evil.com" })).toBe("/onboarding");
+    expect(resolveSignupClientNavigationHref({ redirectTo: "https://evil.com" })).toBe("/onboarding");
+    expect(resolveSignupClientNavigationHref({})).toBe("/onboarding");
   });
 });

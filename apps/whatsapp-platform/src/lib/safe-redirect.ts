@@ -24,3 +24,30 @@ export function loginUrlWithNext(next: string | null | undefined): string {
   }
   return "/login";
 }
+
+/** Checkout alojado na Stripe (resposta típica de `redirectUrl` no signup). */
+export function isTrustedStripeCheckoutRedirectUrl(href: string): boolean {
+  try {
+    const u = new URL(href);
+    return u.protocol === "https:" && u.hostname === "checkout.stripe.com";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Destino seguro após signup bem-sucedido (defesa em profundidade no cliente).
+ * Preferência: `redirectUrl` só se for checkout Stripe; senão `redirectTo` se path interno seguro; senão `/onboarding`.
+ */
+export function resolveSignupClientNavigationHref(data: {
+  redirectUrl?: string;
+  redirectTo?: string;
+}): string {
+  if (typeof data.redirectUrl === "string" && isTrustedStripeCheckoutRedirectUrl(data.redirectUrl)) {
+    return data.redirectUrl;
+  }
+  if (typeof data.redirectTo === "string" && isSafeInternalNextPath(data.redirectTo)) {
+    return data.redirectTo;
+  }
+  return "/onboarding";
+}

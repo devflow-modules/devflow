@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCrmWhatsappSessionFromCookies } from "@/lib/crm-whatsapp-auth";
-import { whatsappAppUrl } from "@/lib/whatsapp-app-url";
+import { whatsappAppLoginUrlWithNext } from "@/lib/portal-whatsapp-login-url";
 
 /**
  * Páginas `/admin/leads` e `/admin/lead-finder`: ferramenta interna DevFlow.
@@ -10,6 +10,6 @@ export async function requireDevflowOutboundCrmPage(nextPath: string): Promise<v
   if (process.env.NODE_ENV !== "production") return;
   const session = await getCrmWhatsappSessionFromCookies();
   if (!session || session.role !== "platform_admin") {
-    redirect(whatsappAppUrl(`/login?next=${encodeURIComponent(nextPath)}`));
+    redirect(whatsappAppLoginUrlWithNext(nextPath));
   }
 }

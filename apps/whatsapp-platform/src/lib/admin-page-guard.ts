@@ -19,6 +19,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ADMIN_METRICS_SECRET_COOKIE_NAME, JWT_COOKIE_NAME } from "@/lib/auth-config";
+import { loginUrlWithNext } from "@/lib/safe-redirect";
 import { validateAuthToken } from "@/modules/auth";
 import { isPlatformAdmin, shellHomeHref } from "@/lib/roles";
 
@@ -38,7 +39,7 @@ export async function requireAdminOrMetricsSecretPage(nextPath: string): Promise
   const token = store.get(JWT_COOKIE_NAME)?.value;
   const auth = token ? await validateAuthToken(token) : null;
   if (!auth) {
-    redirect(`/login?next=${encodeURIComponent(nextPath)}`);
+    redirect(loginUrlWithNext(nextPath));
   }
   if (!isPlatformAdmin(auth.payload.role)) {
     redirect(shellHomeHref(auth.payload.role));
@@ -51,7 +52,7 @@ export async function requireJwtAdminPage(nextPath: string): Promise<void> {
   const token = store.get(JWT_COOKIE_NAME)?.value;
   const auth = token ? await validateAuthToken(token) : null;
   if (!auth) {
-    redirect(`/login?next=${encodeURIComponent(nextPath)}`);
+    redirect(loginUrlWithNext(nextPath));
   }
   if (!isPlatformAdmin(auth.payload.role)) {
     redirect(shellHomeHref(auth.payload.role));

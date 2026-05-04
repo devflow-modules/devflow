@@ -13,7 +13,7 @@ import {
   getWhatsappCutoverRedirectUrl,
   WHATSAPP_PORTAL_JWT_PREFIXES,
 } from "@devflow/whatsapp-routes";
-import { whatsappAppUrl } from "@/lib/whatsapp-app-url";
+import { whatsappAppLoginUrlWithNext } from "@/lib/portal-whatsapp-login-url";
 
 const ADMIN_METRICS_COOKIE = "admin_metrics_secret";
 
@@ -45,8 +45,8 @@ async function verifyJwt(
 }
 
 function redirectToLogin(request: NextRequest, clearCookie = false): NextResponse {
-  const target = whatsappAppUrl(
-    `/login?next=${encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search)}`
+  const target = whatsappAppLoginUrlWithNext(
+    request.nextUrl.pathname + request.nextUrl.search
   );
   const url = target.startsWith("http") ? new URL(target) : new URL(target, request.url);
   const res = NextResponse.redirect(url);
