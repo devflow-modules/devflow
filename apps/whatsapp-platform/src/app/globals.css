@@ -108,8 +108,10 @@ html[data-theme="devflow"],
   --df-chip-neutral-ring: color-mix(in srgb, var(--df-border-dark) 85%, var(--df-border-subtle));
   --df-inbox-sheet-bg: var(--df-bg-elevated);
   --df-inbox-sheet-border: color-mix(in srgb, var(--df-border-dark) 88%, transparent);
-  --df-msg-inbound-bg: #fefefe;
-  --df-msg-inbound-fg: #0f172a;
+  /** Bolha cliente — contraste legível sobre fundo app escuro (evitar texto claro sobre bolha clara). */
+  --df-msg-inbound-bg: color-mix(in srgb, var(--df-bg-elevated) 82%, rgb(148 163 184) 18%);
+  --df-msg-inbound-fg: var(--df-text-primary);
+  --df-msg-inbound-meta: var(--df-text-secondary);
   --df-ring-soft: color-mix(in srgb, var(--df-border-dark) 78%, transparent);
   --df-divide-soft: color-mix(in srgb, var(--df-border-dark) 68%, transparent);
   --df-inbox-soft-shadow: rgba(0, 0, 0, 0.28);
@@ -715,6 +717,19 @@ html[data-theme="client_branded"] {
     background: color-mix(in srgb, var(--df-brand-50) 65%, var(--df-bg-elevated));
   }
 
+  /** Toolbar inbox compacta — integrada no cabeçalho da conversa */
+  .df-inbox-toolbar-btn-compact {
+    @apply inline-flex items-center rounded-md px-2 py-1 text-[11px] font-semibold shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2;
+    border: 1px solid var(--df-inbox-sheet-border);
+    background: var(--df-bg-elevated);
+    color: var(--df-text-primary);
+    min-height: 2rem;
+  }
+
+  .df-inbox-toolbar-btn-compact:hover {
+    background: color-mix(in srgb, var(--df-brand-50) 65%, var(--df-bg-elevated));
+  }
+
   .df-inbox-dropdown {
     @apply absolute left-0 top-full z-20 mt-1.5 rounded-xl py-1 shadow-lg;
     border: 1px solid var(--df-inbox-sheet-border);
@@ -819,13 +834,22 @@ html[data-theme="client_branded"] {
 
   .df-message-panel-inbound {
     box-shadow: 0 1px 3px var(--df-inbox-soft-shadow);
+    border: 1px solid color-mix(in srgb, var(--df-border-dark) 72%, var(--df-border-subtle));
     background: var(--df-msg-inbound-bg);
     color: var(--df-msg-inbound-fg);
   }
 
   .df-message-panel-outbound {
-    @apply shadow-[0_1px_3px_var(--df-inbox-soft-shadow)];
-    background: var(--df-brand-600);
+    box-shadow:
+      0 1px 3px var(--df-inbox-soft-shadow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    border: 1px solid color-mix(in srgb, var(--df-brand-700) 55%, transparent);
+    background: linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--df-brand-600) 94%, white 6%) 0%,
+      var(--df-brand-600) 48%,
+      color-mix(in srgb, var(--df-brand-700) 72%, var(--df-brand-600) 28%) 100%
+    );
     color: #fff;
   }
 

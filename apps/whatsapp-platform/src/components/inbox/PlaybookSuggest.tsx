@@ -36,7 +36,7 @@ export function PlaybookSuggest({
   });
 
   return (
-    <div className="mb-3 space-y-2">
+    <div className="space-y-1.5">
       <Button
         variant="secondary"
         type="button"

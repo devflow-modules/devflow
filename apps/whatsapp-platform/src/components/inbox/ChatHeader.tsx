@@ -224,13 +224,14 @@ export function ChatHeader({
       })
     : null;
 
-  const headerMaxH = compactChrome ? "max-h-[min(20vh,180px)]" : "max-h-[min(22vh,240px)]";
+  /** Toolbar integrada no cabeçalho — menos uma faixa vertical dedicada a «Acções». */
+  const headerMaxH = compactChrome ? "max-h-[min(34vh,260px)]" : "max-h-[min(38vh,300px)]";
   const headerPad = compactChrome
-    ? `${INBOX_CHAT_GUTTER_X_COMPACT} py-2.5 sm:py-3`
-    : `${INBOX_CHAT_GUTTER_X} py-3 sm:py-4`;
-  const toolbarPad = compactChrome
     ? `${INBOX_CHAT_GUTTER_X_COMPACT} py-2 sm:py-2.5`
     : `${INBOX_CHAT_GUTTER_X} py-2.5 sm:py-3`;
+  const toolbarBtn = compactChrome ? "df-inbox-toolbar-btn-compact" : "df-inbox-toolbar-btn";
+  const primaryCompact =
+    "min-h-8 px-2.5 py-1 text-[11px] font-semibold sm:min-h-9 sm:px-3 sm:text-xs";
 
   return (
     <header
@@ -248,7 +249,11 @@ export function ChatHeader({
             <span aria-hidden>←</span> Voltar
           </Button>
         )}
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--df-brand-600)] text-sm font-bold text-white">
+        <div
+          className={`flex shrink-0 items-center justify-center rounded-full bg-[var(--df-brand-600)] font-bold text-white ${
+            compactChrome ? "h-9 w-9 text-xs" : "h-11 w-11 text-sm"
+          }`}
+        >
           {title.slice(0, 2).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
@@ -261,11 +266,11 @@ export function ChatHeader({
             </div>
             {authLoaded && authUser?.id ? (
               <div className="shrink-0 pt-0.5" data-testid="header-my-agent-status">
-                <AgentStatusBadge status={myAgentStatus} density="comfortable" />
+                <AgentStatusBadge status={myAgentStatus} density={compactChrome ? "compact" : "comfortable"} />
               </div>
             ) : null}
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             {stateBadge ? (
               <span className={stateBadge.className} data-testid="chat-header-state-badge">
                 {stateBadge.label}
@@ -293,7 +298,7 @@ export function ChatHeader({
           </div>
           {thread.assignedToUser && assigneeCopy ? (
             <>
-            <p className="mt-2 text-xs text-[var(--df-text-secondary)]" data-testid="chat-header-assignee">
+            <p className="mt-1.5 text-xs text-[var(--df-text-secondary)]" data-testid="chat-header-assignee">
                 <strong className="font-semibold text-[var(--df-text-primary)]">{assigneeCopy.line}</strong>
               </p>
               {assigneeCopy.note ? (
@@ -301,7 +306,7 @@ export function ChatHeader({
               ) : null}
             </>
           ) : (
-            <p className="mt-2 text-xs text-[var(--df-text-secondary)]">
+            <p className="mt-1.5 text-xs text-[var(--df-text-secondary)]">
               <span className="font-medium text-[var(--df-text-muted)]">Responsável: </span>
               {thread.status === "CLOSED" ? (
                 <span className="text-[var(--df-text-muted)]">—</span>
@@ -335,7 +340,7 @@ export function ChatHeader({
             </p>
           ) : null}
           {inboxQueues.length > 0 ? (
-            <div className="mt-2 flex flex-wrap items-center gap-2">
+            <div className="mt-1.5 flex flex-wrap items-center gap-2">
               <span className="text-[11px] font-medium text-[var(--df-text-secondary)]">Fila</span>
               <select
                 className="df-inbox-queue-select"
@@ -357,35 +362,34 @@ export function ChatHeader({
             </div>
           ) : null}
           {queueUpgradeBlock ? (
-            <div className="mt-3 max-w-xl">
+            <div className="mt-2 max-w-xl">
               <FeatureUpgradePrompt
                 blocked={queueUpgradeBlock}
                 onDismiss={() => setQueueUpgradeBlock(null)}
               />
             </div>
           ) : null}
-        </div>
-      </div>
 
-      <div className={`border-t df-border-brand bg-[var(--df-bg-app)]/70 ${toolbarPad}`}>
-        <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--df-text-muted)]">Acções</p>
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border df-border-brand bg-[var(--df-bg-elevated)]/95 p-2 shadow-sm">
+          <div
+            className={`mt-2 flex flex-wrap items-center gap-1.5 border-t border-border/35 pt-2 ${compactChrome ? "" : "sm:gap-2"}`}
+            data-testid="chat-header-actions"
+          >
           {canAssume ? (
             <Button variant="disabled"
               type="button"
               disabled={actionBusy}
-              className={`${buttonClassName("primary")} ${state === "awaiting_agent" ? "ring-2 ring-red-200/80" : ""}`}
+              className={`${buttonClassName("primary")} ${primaryCompact} ${state === "awaiting_agent" ? "ring-2 ring-red-200/80" : ""}`}
               onClick={() => handleAssign("me")}
               data-testid="header-assume"
             >
-              Assumir conversa
+              {compactChrome ? "Assumir" : "Assumir conversa"}
             </Button>
           ) : null}
           {canRelease ? (
             <Button variant="disabled"
               type="button"
               disabled={actionBusy}
-              className={buttonClassName("secondary")}
+              className={`${buttonClassName("secondary")} ${primaryCompact}`}
               onClick={() => handleAssign(null)}
               data-testid="header-release"
             >
@@ -396,7 +400,7 @@ export function ChatHeader({
             <Button variant="disabled"
               type="button"
               disabled={actionBusy}
-              className={buttonClassName("secondary")}
+              className={`${buttonClassName("secondary")} ${primaryCompact}`}
               onClick={() => handleStatus("CLOSED")}
               data-testid="header-close"
             >
@@ -407,7 +411,7 @@ export function ChatHeader({
             <Button variant="disabled"
               type="button"
               disabled={actionBusy}
-              className={buttonClassName("secondary")}
+              className={`${buttonClassName("secondary")} ${primaryCompact}`}
               onClick={() => handleStatus("OPEN")}
               data-testid="header-reopen"
             >
@@ -418,7 +422,7 @@ export function ChatHeader({
           <Button variant="secondary"
             type="button"
             onClick={() => setAssignOpen((o) => !o)}
-            className="df-inbox-toolbar-btn max-w-full min-w-0 justify-start df-text-secondary"
+            className={`${toolbarBtn} max-w-full min-w-0 justify-start df-text-secondary`}
           >
             {thread.assignedToUser ? thread.assignedToUser.name : "Responsável…"}
           </Button>
@@ -448,7 +452,7 @@ export function ChatHeader({
           <Button variant="secondary"
             type="button"
             onClick={() => setStatusOpen((o) => !o)}
-            className="df-inbox-toolbar-btn"
+            className={toolbarBtn}
             data-testid="header-thread-status-trigger"
           >
             Estado
@@ -518,7 +522,12 @@ export function ChatHeader({
         </div>
 
         {onOpenNotes ? (
-          <Button variant="secondary" type="button" onClick={onOpenNotes} className="df-inbox-pill-notes" data-testid="header-notes">
+          <Button variant="secondary"
+            type="button"
+            onClick={onOpenNotes}
+            className={compactChrome ? `${toolbarBtn} border-amber-400/40 bg-amber-500/12 text-amber-100` : "df-inbox-pill-notes"}
+            data-testid="header-notes"
+          >
             Notas
           </Button>
         ) : null}
@@ -527,11 +536,20 @@ export function ChatHeader({
           <Button variant="secondary"
             type="button"
             onClick={() => onAuditTabChange(!auditTab)}
-            className={auditTab ? "df-inbox-pill-audit-on" : "df-inbox-pill-audit-off"}
+            className={
+              auditTab
+                ? compactChrome
+                  ? `${toolbarBtn} border-emerald-400/35 bg-emerald-500/15 text-emerald-100`
+                  : "df-inbox-pill-audit-on"
+                : compactChrome
+                  ? toolbarBtn
+                  : "df-inbox-pill-audit-off"
+            }
           >
             Histórico
           </Button>
         ) : null}
+          </div>
         </div>
       </div>
     </header>

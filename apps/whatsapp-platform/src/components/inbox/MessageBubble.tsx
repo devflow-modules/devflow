@@ -128,7 +128,7 @@ export const MessageBubble = memo(function MessageBubble({
       >
         {!outbound && !compact && (
           <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-            <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--df-text-muted)]">Cliente</span>
+            <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--df-msg-inbound-meta)]">Cliente</span>
             {typeLabel ? (
               <span className="rounded bg-[var(--df-brand-100)] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--df-brand-900)]">
                 {typeLabel}
@@ -161,21 +161,21 @@ export const MessageBubble = memo(function MessageBubble({
 
         {showText ? (
           <p
-            className={`whitespace-pre-wrap break-words text-[15px] leading-relaxed ${outbound ? "text-white" : "text-[var(--df-text-primary)]"} ${hasMedia ? "mt-1" : ""}`}
+            className={`whitespace-pre-wrap break-words text-[15px] leading-relaxed ${outbound ? "text-white" : "text-[var(--df-msg-inbound-fg)]"} ${hasMedia ? "mt-1" : ""}`}
           >
             {textBody}
           </p>
         ) : null}
 
         {!showText && !hasMedia ? (
-          <p className={`text-sm italic ${outbound ? "text-white/80" : "text-[var(--df-text-secondary)]"}`}>
+          <p className={`text-sm italic ${outbound ? "text-white/80" : "text-[var(--df-msg-inbound-meta)]"}`}>
             [{message.messageType}]
           </p>
         ) : null}
 
         <div
           className={`mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] ${
-            outbound ? "justify-end text-white/85" : "justify-start text-[var(--df-text-secondary)]"
+            outbound ? "justify-end text-white/85" : "justify-start text-[var(--df-msg-inbound-meta)]"
           }`}
         >
           {outbound && outboundKind && !pendingOptimistic ? <MessageOriginBadge kind={outboundKind} /> : null}

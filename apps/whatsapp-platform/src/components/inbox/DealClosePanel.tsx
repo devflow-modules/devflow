@@ -28,9 +28,12 @@ function lostLabel(code: string | null | undefined): string {
 export function DealClosePanel({
   threadId,
   thread,
+  placement = "composer",
 }: {
   threadId: string | null;
   thread: WaInboxThreadRow | null;
+  /** `composer` — fora do scroll das mensagens, junto ao compositor (menos compressão vertical da thread). */
+  placement?: "composer" | "thread";
 }) {
   const qc = useQueryClient();
   const { role } = useSessionRole();
@@ -103,6 +106,8 @@ export function DealClosePanel({
 
   if (!threadId || !thread) return null;
 
+  const railPad = placement === "composer" ? `${INBOX_CHAT_GUTTER_X} py-1.5` : `${INBOX_CHAT_GUTTER_X} py-3`;
+
   if (dealStatus === "won") {
     const v = thread.dealValue;
     const cur = (thread.dealCurrency ?? "BRL").toUpperCase();
@@ -115,11 +120,13 @@ export function DealClosePanel({
     return (
       <div
         id="inbox-deal-close"
-        className={`shrink-0 border-t border-emerald-200/80 bg-emerald-50/50 ${INBOX_CHAT_GUTTER_X} py-3`}
+        className={`shrink-0 border-t border-emerald-200/75 bg-emerald-50/40 ${railPad}`}
         role="status"
       >
-        <p className="text-xs font-semibold uppercase tracking-wide text-emerald-900">Venda fechada</p>
-        <p className="mt-1 text-sm font-medium text-emerald-950">{formatted}</p>
+        <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-900">Venda fechada</p>
+          <p className="text-sm font-semibold text-emerald-950">{formatted}</p>
+        </div>
       </div>
     );
   }
@@ -128,22 +135,26 @@ export function DealClosePanel({
     return (
       <div
         id="inbox-deal-close"
-        className={`shrink-0 border-t df-border-brand bg-muted/50 ${INBOX_CHAT_GUTTER_X} py-3`}
+        className={`shrink-0 border-t df-border-brand bg-muted/45 ${railPad}`}
         role="status"
       >
-        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Oportunidade</p>
-        <p className="mt-1 text-sm font-medium text-[var(--df-text-secondary)]">Marcada como perdida</p>
-        {thread.dealLostReason ? (
-          <p className="mt-1 text-xs text-[var(--df-text-muted)]">
-            Motivo: <span className="font-medium text-[var(--df-text-secondary)]">{lostLabel(thread.dealLostReason)}</span>
-          </p>
-        ) : null}
+        <div className="flex flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-3 sm:gap-y-0.5">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Oportunidade perdida</p>
+          {thread.dealLostReason ? (
+            <p className="text-xs text-[var(--df-text-secondary)]">
+              <span className="text-[var(--df-text-muted)]">Motivo:</span>{" "}
+              <span className="font-medium">{lostLabel(thread.dealLostReason)}</span>
+            </p>
+          ) : (
+            <p className="text-xs text-[var(--df-text-secondary)]">Sem motivo registado.</p>
+          )}
+        </div>
       </div>
     );
   }
 
   const pendingBadge = (
-    <div className="mb-2 flex flex-wrap gap-2">
+    <div className="mb-1.5 flex flex-wrap gap-1.5">
       <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950 ring-1 ring-amber-300/80">
         Sugestão pendente
       </span>
@@ -160,17 +171,16 @@ export function DealClosePanel({
     return (
       <div
         id="inbox-deal-close"
-        className={`shrink-0 border-t df-border-brand bg-[var(--df-bg-elevated)]/90 ${INBOX_CHAT_GUTTER_X} py-3`}
+        className={`shrink-0 border-t border-border/45 bg-[var(--df-bg-elevated)]/88 ${railPad}`}
       >
         {hasPendingSuggestion ? pendingBadge : null}
-        <details className="rounded-lg border border-border/70 bg-card/60 shadow-sm">
-          <summary className="cursor-pointer list-none px-3 py-2.5 text-left text-xs font-semibold text-[var(--df-text-secondary)] marker:content-none [&::-webkit-details-marker]:hidden">
-            Negócio — sugerir resultado ao gestor
+        <details className="rounded-md border border-border/60 bg-card/55 shadow-sm">
+          <summary className="cursor-pointer list-none px-2.5 py-2 text-left text-[11px] font-semibold text-[var(--df-text-secondary)] marker:content-none [&::-webkit-details-marker]:hidden">
+            Registrar resultado — sugestão ao gestor
           </summary>
-          <div className="border-t border-border/60 px-3 pb-3 pt-2">
-        <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--df-text-muted)]">Fechar venda</p>
-        <p className="mt-0.5 text-xs text-[var(--df-text-secondary)]">
-          Sugira o resultado — só um gestor confirma o fecho.
+          <div className="border-t border-border/55 px-2.5 pb-2.5 pt-2">
+        <p className="text-xs text-[var(--df-text-secondary)]">
+          Sugira ganho ou perda — só um gestor confirma.
         </p>
         {suggestMode === null ? (
           <div className="mt-3 flex flex-col gap-2 sm:flex-row">
@@ -318,11 +328,11 @@ export function DealClosePanel({
     return (
       <div
         id="inbox-deal-close"
-        className={`shrink-0 border-t border-amber-200/90 bg-amber-50/40 ${INBOX_CHAT_GUTTER_X} py-3`}
+        className={`shrink-0 border-t border-amber-200/85 bg-amber-50/35 ${railPad}`}
       >
         {pendingBadge}
         <p className="text-[11px] font-bold uppercase tracking-wide text-amber-950/90">Operador sugeriu</p>
-        <div className="mt-2 rounded-lg border border-amber-200/80 bg-card/80 px-3 py-2.5 text-sm text-[var(--df-text-primary)]">
+        <div className="mt-1.5 rounded-lg border border-amber-200/75 bg-card/80 px-2.5 py-2 text-sm text-[var(--df-text-primary)]">
           {isWon ? (
             <>
               <span className="font-semibold text-emerald-800">Ganho</span>
@@ -342,7 +352,7 @@ export function DealClosePanel({
           )}
         </div>
         {isWon ? (
-          <div className="mt-3">
+          <div className="mt-2">
             <label htmlFor="deal-value-confirm" className="text-xs font-medium text-[var(--df-text-secondary)]">
               Confirmar valor (BRL)
             </label>
@@ -359,11 +369,11 @@ export function DealClosePanel({
             />
           </div>
         ) : null}
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <div className="mt-2 flex flex-col gap-2 sm:flex-row">
           <Button
             variant="primary"
             type="button"
-            className="min-h-12 min-w-[9rem] flex-1 px-4 text-sm font-semibold sm:flex-none"
+            className="min-h-10 min-w-[8rem] flex-1 px-3 text-sm font-semibold sm:flex-none"
             disabled={closeMut.isPending || clearMut.isPending}
             onClick={() => {
               if (isWon) {
@@ -391,7 +401,7 @@ export function DealClosePanel({
           <Button
             variant="secondary"
             type="button"
-            className="min-h-12 min-w-[9rem] flex-1 border border-border/90 bg-muted/50 px-4 text-sm font-semibold text-[var(--df-text-secondary)] hover:bg-muted sm:flex-none"
+            className="min-h-10 min-w-[8rem] flex-1 border border-border/90 bg-muted/50 px-3 text-sm font-semibold text-[var(--df-text-secondary)] hover:bg-muted sm:flex-none"
             disabled={closeMut.isPending || clearMut.isPending}
             onClick={() => {
               setError(null);
@@ -433,15 +443,14 @@ export function DealClosePanel({
   return (
     <div
       id="inbox-deal-close"
-      className={`shrink-0 border-t df-border-brand bg-[var(--df-bg-elevated)]/90 ${INBOX_CHAT_GUTTER_X} py-3`}
+      className={`shrink-0 border-t border-border/45 bg-[var(--df-bg-elevated)]/88 ${railPad}`}
     >
-      <details className="rounded-lg border border-border/70 bg-card/60 shadow-sm">
-        <summary className="cursor-pointer list-none px-3 py-2.5 text-left text-xs font-semibold text-[var(--df-text-secondary)] marker:content-none [&::-webkit-details-marker]:hidden">
-          Fechar venda ou registar perda
+      <details className="rounded-md border border-border/60 bg-card/55 shadow-sm">
+        <summary className="cursor-pointer list-none px-2.5 py-2 text-left text-[11px] font-semibold text-[var(--df-text-secondary)] marker:content-none [&::-webkit-details-marker]:hidden">
+          Registrar resultado (ganho ou perda)
         </summary>
-        <div className="border-t border-border/60 px-3 pb-3 pt-2">
-      <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--df-text-muted)]">Fechar venda</p>
-      <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="border-t border-border/55 px-2.5 pb-2.5 pt-2">
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-end">
         <div className="min-w-0 flex-1">
           <label htmlFor="deal-value-input" className="text-xs font-medium text-[var(--df-text-secondary)]">
             Valor (BRL)
