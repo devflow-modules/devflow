@@ -41,6 +41,8 @@ enum MetaBusinessVerificationStatus {
   REJECTED
 }
 
+/// Várias linhas por tenant; `phone_number_id` (Meta) é único globalmente.
+/// No máximo uma linha com `is_primary` / `is_default_outbound` por tenant (índices únicos parciais SQL).
 model WhatsappPhoneNumber {
   id                  String                   @id @default(cuid())
   tenantId            String                   @map("tenant_id")
@@ -73,6 +75,7 @@ model WhatsappPhoneNumber {
   channelEvents       WhatsappChannelEvent[]
 
   @@index([tenantId])
+  @@index([tenantId, createdAt])
   @@index([phoneNumberId])
   @@index([tenantId, isPrimary])
   @@index([tenantId, isDefaultOutbound])

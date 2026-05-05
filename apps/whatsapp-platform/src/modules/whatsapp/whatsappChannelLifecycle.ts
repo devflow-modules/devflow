@@ -36,36 +36,38 @@ export async function createWhatsappChannelManual(
     return existing;
   }
 
-  const row = await prisma.whatsappPhoneNumber.upsert({
-    where: { phoneNumberId: data.phoneNumberId.trim() },
-    create: {
-      tenantId: data.tenantId,
-      phoneNumberId: data.phoneNumberId.trim(),
-      displayPhoneNumber: data.phone.trim(),
-      wabaId: data.wabaId.trim(),
-      accessToken: null,
-      status: WhatsappPhoneNumberStatus.PENDING_ACTIVATION,
-      isPrimary: true,
-      isDefaultOutbound: true,
-    },
-    update: {
-      tenantId: data.tenantId,
-      displayPhoneNumber: data.phone.trim(),
-      wabaId: data.wabaId.trim(),
-      status: WhatsappPhoneNumberStatus.PENDING_ACTIVATION,
-    },
-  });
+  const phoneNumberId = data.phoneNumberId.trim();
+  const sameTenantRow =
+    existing && existing.tenantId === data.tenantId ? existing : null;
 
-  await prisma.whatsappPhoneNumber.updateMany({
-    where: { tenantId: data.tenantId, id: { not: row.id } },
-    data: { isPrimary: false, isDefaultOutbound: false },
-  });
+  const row = sameTenantRow
+    ? await prisma.whatsappPhoneNumber.update({
+        where: { id: sameTenantRow.id },
+        data: {
+          displayPhoneNumber: data.phone.trim(),
+          wabaId: data.wabaId.trim(),
+          status: WhatsappPhoneNumberStatus.PENDING_ACTIVATION,
+        },
+      })
+    : await prisma.whatsappPhoneNumber.create({
+        data: {
+          tenantId: data.tenantId,
+          phoneNumberId,
+          displayPhoneNumber: data.phone.trim(),
+          wabaId: data.wabaId.trim(),
+          accessToken: null,
+          status: WhatsappPhoneNumberStatus.PENDING_ACTIVATION,
+          isPrimary: false,
+          isDefaultOutbound: false,
+        },
+      });
+
   await ensureTenantHasPrimaryAndDefaultOutbound(data.tenantId);
 
   await logChannelEvent({
     channelId: row.id,
     type: "CHANNEL_CREATED",
-    message: existing
+    message: sameTenantRow
       ? "Canal atualizado para pendente (provisionamento manual)."
       : "Canal criado (provisionamento manual).",
     metadata: { tenantId: data.tenantId, phoneNumberId: row.phoneNumberId },
