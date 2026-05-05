@@ -41,6 +41,15 @@ enum MetaBusinessVerificationStatus {
   REJECTED
 }
 
+/** Finalidade operacional da linha WhatsApp (MVP multi-canal). */
+enum WhatsappChannelPurpose {
+  GENERAL
+  SUPPORT
+  SALES
+  PROSPECTING
+  FINANCE
+}
+
 /// Várias linhas por tenant; `phone_number_id` (Meta) é único globalmente.
 /// No máximo uma linha com `is_primary` / `is_default_outbound` por tenant (índices únicos parciais SQL).
 model WhatsappPhoneNumber {
@@ -55,6 +64,11 @@ model WhatsappPhoneNumber {
   isPrimary           Boolean                  @default(false) @map("is_primary")
   isDefaultOutbound   Boolean                  @default(false) @map("is_default_outbound")
   label               String?                  @map("label")
+  purpose             WhatsappChannelPurpose    @default(GENERAL) @map("purpose")
+  /** null = herdar `AiAgentConfig.auto_reply` do tenant. */
+  autoReplyEnabled    Boolean?                 @map("auto_reply_enabled")
+  /** Texto extra aplicado ao contexto do agente por canal; null = só config tenant. */
+  aiProfileOverride   String?                  @map("ai_profile_override") @db.Text
   /** Preenchido na primeira transição para ACTIVE (manual ou OAuth); não sobrescrito em reativações. */
   activatedAt         DateTime?                @map("activated_at")
   /** Tentativas automáticas de correção (auto-healing); máximo 2. */

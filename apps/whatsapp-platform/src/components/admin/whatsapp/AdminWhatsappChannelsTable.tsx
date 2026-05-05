@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AppBadge } from "@/components/ui/app-badge";
 import type { AdminWhatsappChannelRow, WhatsappChannelStatus } from "./types";
+import { WHATSAPP_CHANNEL_PURPOSE_PT } from "@/lib/whatsappChannelPurposeLabels";
 
 function StatusBadge({ status }: { status: WhatsappChannelStatus }) {
   if (status === "ACTIVE") {
@@ -36,9 +37,18 @@ type Props = {
   onCopy: (label: string, value: string) => void;
   onRefresh: () => void;
   onOpenTimeline?: (row: AdminWhatsappChannelRow) => void;
+  onOpenConfig?: (row: AdminWhatsappChannelRow) => void;
 };
 
-export function AdminWhatsappChannelsTable({ rows, loading, onActivate, onCopy, onRefresh, onOpenTimeline }: Props) {
+export function AdminWhatsappChannelsTable({
+  rows,
+  loading,
+  onActivate,
+  onCopy,
+  onRefresh,
+  onOpenTimeline,
+  onOpenConfig,
+}: Props) {
   if (loading) {
     return <p className="df-text-muted py-8 text-center">A carregar canais…</p>;
   }
@@ -57,6 +67,7 @@ export function AdminWhatsappChannelsTable({ rows, loading, onActivate, onCopy, 
         <thead>
           <tr>
             <th>Tenant</th>
+            <th>Canal</th>
             <th>Telefone</th>
             <th>Status</th>
             <th>Token</th>
@@ -81,6 +92,18 @@ export function AdminWhatsappChannelsTable({ rows, loading, onActivate, onCopy, 
                   <div className="font-medium df-text-primary">{row.tenantName}</div>
                   <div className="font-mono text-xs df-text-muted">{row.tenantId}</div>
                 </td>
+                <td className="max-w-[11rem]">
+                  <div className="truncate text-sm df-text-primary">
+                    {row.label?.trim() ? (
+                      row.label.trim()
+                    ) : (
+                      <span className="df-text-muted">—</span>
+                    )}
+                  </div>
+                  <div className="truncate text-[11px] df-text-muted">
+                    {WHATSAPP_CHANNEL_PURPOSE_PT[row.purpose] ?? row.purpose}
+                  </div>
+                </td>
                 <td className="font-mono text-sm">{row.phone}</td>
                 <td>
                   <StatusBadge status={row.status} />
@@ -100,6 +123,11 @@ export function AdminWhatsappChannelsTable({ rows, loading, onActivate, onCopy, 
                 </td>
                 <td className="text-right">
                   <div className="flex flex-wrap justify-end gap-1">
+                    {onOpenConfig ? (
+                      <Button type="button" size="sm" variant="outline" onClick={() => onOpenConfig(row)}>
+                        Canal
+                      </Button>
+                    ) : null}
                     {onOpenTimeline ? (
                       <Button
                         type="button"

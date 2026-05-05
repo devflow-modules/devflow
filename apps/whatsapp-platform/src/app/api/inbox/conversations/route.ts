@@ -134,6 +134,8 @@ export async function GET(request: NextRequest) {
         displayPhoneNumber: null,
         isPrimary: false,
         isDefaultOutbound: false,
+        status: "ACTIVE",
+        purpose: "GENERAL",
       },
     }));
     return jsonSuccess({

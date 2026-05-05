@@ -169,6 +169,7 @@ describe("Inbox UI", () => {
               isPrimary: true,
               isDefaultOutbound: true,
               status: "ACTIVE",
+              purpose: "SUPPORT",
             },
           };
           return Promise.resolve({
@@ -204,6 +205,7 @@ describe("Inbox UI", () => {
                 isPrimary: true,
                 isDefaultOutbound: true,
                 status: "ACTIVE",
+                purpose: "SUPPORT",
               },
             },
           ];
@@ -321,6 +323,7 @@ describe("Inbox UI", () => {
         isPrimary: true,
         isDefaultOutbound: true,
         status: "ACTIVE",
+        purpose: "GENERAL",
       },
     ];
     render(

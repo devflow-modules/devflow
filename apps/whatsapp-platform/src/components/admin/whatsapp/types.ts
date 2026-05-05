@@ -11,6 +11,10 @@ export type AdminWhatsappChannelRow = {
   hasToken: boolean;
   readyForOutbound: boolean;
   updatedAt: string;
+  label: string | null;
+  purpose: string;
+  autoReplyEnabled: boolean | null;
+  aiProfileOverride: string | null;
 };
 
 export type AdminTenantOption = {

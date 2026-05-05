@@ -14,11 +14,11 @@ import {
 import { digitsOnly } from "@/modules/inbox/waInboxUtils";
 import { generateReply } from "./aiService";
 import { openAiConfig } from "./openai";
+import { buildAgentSystemPrompt, hasEffectiveAgentPrompt } from "./prompt/agentSystemPrompt";
 import {
-  agentPromptInputFromConfig,
-  buildAgentSystemPrompt,
-  hasEffectiveAgentPrompt,
-} from "./prompt/agentSystemPrompt";
+  agentPromptInputFromConfigAndChannel,
+  resolveEffectiveAutoReply,
+} from "@/modules/whatsapp/channelAiBehavior";
 import { resolveEffectiveDriver } from "./resolveAiRuntimeConfig";
 import {
   generateReply as generateOpenAiReply,
@@ -96,15 +96,23 @@ export async function checkTenantAiAutomationReady(
   }
 
   const bizForLine = businessPhoneNumberId?.trim();
+  const channelRow = bizForLine
+    ? await prisma.whatsappPhoneNumber.findFirst({
+        where: { tenantId, phoneNumberId: bizForLine },
+        select: {
+          status: true,
+          accessToken: true,
+          autoReplyEnabled: true,
+          aiProfileOverride: true,
+        },
+      })
+    : null;
+
   if (bizForLine) {
-    const lineRow = await prisma.whatsappPhoneNumber.findFirst({
-      where: { tenantId, phoneNumberId: bizForLine },
-      select: { status: true, accessToken: true },
-    });
     if (
-      !lineRow ||
-      lineRow.status !== WhatsappPhoneNumberStatus.ACTIVE ||
-      !lineRow.accessToken?.trim()
+      !channelRow ||
+      channelRow.status !== WhatsappPhoneNumberStatus.ACTIVE ||
+      !channelRow.accessToken?.trim()
     ) {
       return { ready: false, reason: "channel_not_active" };
     }
@@ -117,10 +125,18 @@ export async function checkTenantAiAutomationReady(
     if (!cfgEarly.enabled) {
       return { ready: false, reason: "ai_disabled" };
     }
-    if (!cfgEarly.autoReply) {
+    const effectiveAutoEarly = resolveEffectiveAutoReply(
+      cfgEarly.autoReply,
+      channelRow?.autoReplyEnabled
+    );
+    if (!effectiveAutoEarly) {
       return { ready: false, reason: "auto_reply_off" };
     }
-    if (!hasEffectiveAgentPrompt(agentPromptInputFromConfig(cfgEarly))) {
+    if (
+      !hasEffectiveAgentPrompt(
+        agentPromptInputFromConfigAndChannel(cfgEarly, channelRow?.aiProfileOverride ?? null)
+      )
+    ) {
       return { ready: false, reason: "empty_prompt" };
     }
 
@@ -176,6 +192,17 @@ export async function checkTenantAiAutomationReady(
   if (!config?.enabled) {
     return { ready: false, reason: "ai_disabled" };
   }
+  const effectiveAuto = resolveEffectiveAutoReply(config.autoReply, channelRow?.autoReplyEnabled);
+  if (!effectiveAuto) {
+    return { ready: false, reason: "auto_reply_off" };
+  }
+  if (
+    !hasEffectiveAgentPrompt(
+      agentPromptInputFromConfigAndChannel(config, channelRow?.aiProfileOverride ?? null)
+    )
+  ) {
+    return { ready: false, reason: "empty_prompt" };
+  }
   if (!thread) {
     return { ready: false, reason: "no_thread" };
   }
@@ -193,10 +220,6 @@ export async function checkTenantAiAutomationReady(
   }
   if (!isProviderConfigured(kind)) {
     return { ready: false, reason: "no_api_key" };
-  }
-
-  if (!hasEffectiveAgentPrompt(agentPromptInputFromConfig(config))) {
-    return { ready: false, reason: "empty_prompt" };
   }
 
   if (!(await canUseFeature(tenantId, "AI_RESPONSE"))) {
@@ -297,6 +320,19 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
     .findUnique({ where: { tenantId } })
     .then((c) => c ?? getOrCreateAiAgentConfig(tenantId));
 
+  const channelForAi = await prisma.whatsappPhoneNumber.findFirst({
+    where: { tenantId, phoneNumberId: tenant.phoneNumberId },
+    select: { autoReplyEnabled: true, aiProfileOverride: true },
+  });
+  const effectiveConfig = {
+    ...config,
+    autoReply: resolveEffectiveAutoReply(config.autoReply, channelForAi?.autoReplyEnabled),
+  };
+  const agentPromptInput = agentPromptInputFromConfigAndChannel(
+    config,
+    channelForAi?.aiProfileOverride ?? null
+  );
+
   const inboundCount = await countInboundTextMessages(tenantId, thread.id);
   const playbook: AiPlaybookState = resolveNextState({
     previousState: thread.aiState,
@@ -309,7 +345,7 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
 
   const decision = shouldAiReply({
     messageText: textBody,
-    config,
+    config: effectiveConfig,
     thread: {
       id: thread.id,
       assignedToUserId: thread.assignedToUserId,
@@ -337,7 +373,7 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
   const rules = evaluateAutomationRules({
     messageText: textBody,
     aiState: playbook,
-    config,
+    config: effectiveConfig,
   });
 
   if (rules.shortCircuitReply) {
@@ -394,7 +430,7 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
     playbookOverlay,
     promptAugmentation: rules.promptAugmentation,
   };
-  const systemPrompt = buildAgentSystemPrompt(agentPromptInputFromConfig(config), promptOpts);
+  const systemPrompt = buildAgentSystemPrompt(agentPromptInput, promptOpts);
   const modelUsedBase = config.model ?? openAiConfig.model;
 
   if (isStandalone) {

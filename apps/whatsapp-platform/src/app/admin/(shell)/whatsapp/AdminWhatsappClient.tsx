@@ -11,6 +11,7 @@ import { ChannelActivationDrawer } from "@/components/admin/whatsapp/ChannelActi
 import { PendingActivationToolbar } from "@/components/admin/whatsapp/PendingActivationToolbar";
 import { PendingAlertBanner } from "@/components/admin/whatsapp/PendingAlertBanner";
 import { ProvisionChannelForm } from "@/components/admin/whatsapp/ProvisionChannelForm";
+import { ChannelLineConfigDrawer } from "@/components/admin/whatsapp/ChannelLineConfigDrawer";
 import type { AdminTenantOption, AdminWhatsappChannelRow, WhatsappChannelStatus } from "@/components/admin/whatsapp/types";
 import type {
   ActivationMetrics,
@@ -42,6 +43,16 @@ function parseChannelsPayload(data: unknown): AdminWhatsappChannelRow[] {
       hasToken: Boolean(r.hasToken),
       readyForOutbound: Boolean(r.readyForOutbound),
       updatedAt: String(r.updatedAt ?? ""),
+      label: typeof r.label === "string" || r.label === null ? (r.label as string | null) : null,
+      purpose: typeof r.purpose === "string" ? r.purpose : "GENERAL",
+      autoReplyEnabled:
+        typeof r.autoReplyEnabled === "boolean" || r.autoReplyEnabled === null
+          ? (r.autoReplyEnabled as boolean | null)
+          : null,
+      aiProfileOverride:
+        typeof r.aiProfileOverride === "string" || r.aiProfileOverride === null
+          ? (r.aiProfileOverride as string | null)
+          : null,
     };
   });
 }
@@ -124,6 +135,10 @@ function pendingToAdminRow(p: PendingChannelRow): AdminWhatsappChannelRow {
     hasToken: false,
     readyForOutbound: false,
     updatedAt: p.updatedAt,
+    label: null,
+    purpose: "GENERAL",
+    autoReplyEnabled: null,
+    aiProfileOverride: null,
   };
 }
 
@@ -144,6 +159,7 @@ export function AdminWhatsappClient() {
   const [tenantQuery, setTenantQuery] = useState("");
   const [activateRow, setActivateRow] = useState<AdminWhatsappChannelRow | null>(null);
   const [timelineChannelId, setTimelineChannelId] = useState<string | null>(null);
+  const [configRow, setConfigRow] = useState<AdminWhatsappChannelRow | null>(null);
 
   const loadMetrics = useCallback(async (opts?: { silent?: boolean }) => {
     if (!opts?.silent) setLoadingMetrics(true);
@@ -397,6 +413,7 @@ export function AdminWhatsappClient() {
               onCopy={copyLabel}
               onRefresh={() => void loadChannels()}
               onOpenTimeline={(row) => setTimelineChannelId(row.id)}
+              onOpenConfig={(row) => setConfigRow(row)}
             />
           </div>
         </Card>
@@ -426,6 +443,13 @@ export function AdminWhatsappClient() {
           const ch = channels.find((c) => c.id === id);
           if (ch) setActivateRow(ch);
         }}
+      />
+
+      <ChannelLineConfigDrawer
+        open={configRow !== null}
+        row={configRow}
+        onClose={() => setConfigRow(null)}
+        onSaved={() => void loadChannels({ silent: true })}
       />
     </div>
   );

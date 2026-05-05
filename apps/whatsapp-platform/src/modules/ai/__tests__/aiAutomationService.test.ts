@@ -109,6 +109,8 @@ function setupReadyTenant() {
   mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValue({
     status: WhatsappPhoneNumberStatus.ACTIVE,
     accessToken: "tok",
+    autoReplyEnabled: null,
+    aiProfileOverride: null,
   });
   const fullConfig = mockAgentConfig();
   mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(fullConfig);
@@ -152,6 +154,8 @@ describe("checkTenantAiAutomationReady", () => {
     mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValue({
       status: WhatsappPhoneNumberStatus.ACTIVE,
       accessToken: "tok",
+      autoReplyEnabled: null,
+      aiProfileOverride: null,
     });
     vi.stubEnv("OPENAI_API_KEY", "sk-test");
     isOpenAiConfigured.mockReturnValue(false);
@@ -243,6 +247,53 @@ describe("checkTenantAiAutomationReady", () => {
     expect(mockPrisma.aiAgentConfig.findUnique).toHaveBeenCalled();
   });
 
+  it("standalone: canal com auto_reply desactivado bloqueia mesmo com tenant activo", async () => {
+    isOpenAiConfigured.mockReturnValue(true);
+    mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValue({
+      status: WhatsappPhoneNumberStatus.ACTIVE,
+      accessToken: "tok",
+      autoReplyEnabled: false,
+      aiProfileOverride: null,
+    });
+    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(mockAgentConfig({ rules: ["ok"] }));
+    mockPrisma.waInboxThread.findUnique.mockResolvedValue({
+      id: "th-standalone",
+      status: WaInboxThreadStatus.OPEN,
+      assignedToUserId: null,
+    });
+    const { checkTenantAiAutomationReady } = await import("../aiAutomationService");
+    const r = await checkTenantAiAutomationReady("t1", "5511999999999", "pn-line");
+    expect(r).toEqual({ ready: false, reason: "auto_reply_off" });
+  });
+
+  it("standalone: perfil só no canal satisfaz prompt mínimo", async () => {
+    isOpenAiConfigured.mockReturnValue(true);
+    mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValue({
+      status: WhatsappPhoneNumberStatus.ACTIVE,
+      accessToken: "tok",
+      autoReplyEnabled: null,
+      aiProfileOverride: "Instrução só da linha.",
+    });
+    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(
+      mockAgentConfig({
+        rules: [],
+        forbiddenTopics: [],
+        handoffTriggers: [],
+        assistantName: null,
+        businessContext: null,
+        goal: null,
+      })
+    );
+    mockPrisma.waInboxThread.findUnique.mockResolvedValue({
+      id: "th-standalone",
+      status: WaInboxThreadStatus.OPEN,
+      assignedToUserId: null,
+    });
+    const { checkTenantAiAutomationReady } = await import("../aiAutomationService");
+    const r = await checkTenantAiAutomationReady("t1", "5511999999999", "pn-line");
+    expect(r).toEqual({ ready: true, reason: "openai_standalone" });
+  });
+
   it("rejeita standalone quando thread atribuída a humano", async () => {
     isOpenAiConfigured.mockReturnValue(true);
     mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(mockAgentConfig());
@@ -278,6 +329,8 @@ describe("checkTenantAiAutomationReady", () => {
     mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValueOnce({
       status: WhatsappPhoneNumberStatus.PENDING_ACTIVATION,
       accessToken: null,
+      autoReplyEnabled: null,
+      aiProfileOverride: null,
     });
     const { checkTenantAiAutomationReady } = await import("../aiAutomationService");
     const r = await checkTenantAiAutomationReady("t1", "5511999999999", "pn-line");
@@ -291,6 +344,8 @@ describe("runTenantAiAutoReply", () => {
     mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValue({
       status: WhatsappPhoneNumberStatus.ACTIVE,
       accessToken: "tok",
+      autoReplyEnabled: null,
+      aiProfileOverride: null,
     });
     vi.stubEnv("OPENAI_API_KEY", "sk-test");
     sendWebhookAutoReply.mockResolvedValue({ ok: true, messageId: "wam-out-1" });

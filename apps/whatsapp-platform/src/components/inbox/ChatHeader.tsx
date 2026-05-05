@@ -30,6 +30,7 @@ import { useSessionRole } from "@/components/navigation/SessionRoleContext";
 import { inboxAssigneeCopy } from "@/lib/roleProductLabels";
 import { INBOX_CHAT_GUTTER_X, INBOX_CHAT_GUTTER_X_COMPACT } from "./inboxChatLayout";
 import { Button } from "@/components/ui/button";
+import { WHATSAPP_CHANNEL_PURPOSE_PT } from "@/lib/whatsappChannelPurposeLabels";
 
 const SLA_LABEL: Record<InboxSlaLevel, string> = {
   low: "SLA OK",
@@ -323,6 +324,14 @@ export function ChatHeader({
               {thread.whatsappLine.label?.trim() ||
                 thread.whatsappLine.displayPhoneNumber?.trim() ||
                 `${thread.businessPhoneNumberId.slice(0, 10)}…`}
+              {thread.whatsappLine.purpose && thread.whatsappLine.purpose !== "GENERAL" ? (
+                <>
+                  {" "}
+                  ·{" "}
+                  {WHATSAPP_CHANNEL_PURPOSE_PT[thread.whatsappLine.purpose] ??
+                    thread.whatsappLine.purpose}
+                </>
+              ) : null}
             </p>
           ) : null}
           {inboxQueues.length > 0 ? (

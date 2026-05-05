@@ -13,6 +13,8 @@ export type WhatsappLineSummary = {
   isPrimary: boolean;
   isDefaultOutbound: boolean;
   status: string;
+  /** Valor enum Prisma `WhatsappChannelPurpose`. */
+  purpose: string;
 };
 
 /** Fila operacional (WaInboxQueue) associada à thread. */

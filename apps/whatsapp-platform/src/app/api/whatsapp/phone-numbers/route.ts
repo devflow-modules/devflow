@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
         isPrimary: true,
         isDefaultOutbound: true,
         label: true,
+        purpose: true,
         createdAt: true,
       },
       orderBy: { createdAt: "desc" },
@@ -46,6 +47,7 @@ export async function GET(request: NextRequest) {
       isPrimary: n.isPrimary,
       isDefaultOutbound: n.isDefaultOutbound,
       label: n.label,
+      purpose: n.purpose,
       createdAt: n.createdAt.toISOString(),
     }));
 

@@ -499,6 +499,7 @@ export type WhatsappLineSummary = {
   isPrimary: boolean;
   isDefaultOutbound: boolean;
   status: string;
+  purpose: string;
 };
 
 export async function fetchWhatsappLineSummaries(
@@ -516,6 +517,7 @@ export async function fetchWhatsappLineSummaries(
       isPrimary: true,
       isDefaultOutbound: true,
       status: true,
+      purpose: true,
     },
   });
   return new Map(
@@ -528,6 +530,7 @@ export async function fetchWhatsappLineSummaries(
         isPrimary: r.isPrimary,
         isDefaultOutbound: r.isDefaultOutbound,
         status: r.status,
+        purpose: r.purpose,
       },
     ])
   );

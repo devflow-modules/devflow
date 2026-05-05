@@ -35,6 +35,8 @@ export async function GET(
         displayPhoneNumber: null,
         isPrimary: false,
         isDefaultOutbound: false,
+        status: "ACTIVE",
+        purpose: "GENERAL",
       };
     const isAssignedToMe = thread.assignedToUserId === auth.payload.sub;
     const threadOut = {

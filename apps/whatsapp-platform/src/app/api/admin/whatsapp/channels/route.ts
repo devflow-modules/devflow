@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { jsonError, jsonSuccess, newTraceId } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
 import { gatePlatformAdminOrProvisionSecret } from "@/lib/adminApiAuth";
+import type { WhatsappChannelPurpose } from "@/generated/prisma-whatsapp";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,10 @@ export type AdminWhatsappChannelListItem = {
   hasToken: boolean;
   readyForOutbound: boolean;
   updatedAt: string;
+  label: string | null;
+  purpose: WhatsappChannelPurpose;
+  autoReplyEnabled: boolean | null;
+  aiProfileOverride: string | null;
 };
 
 /**
@@ -48,6 +53,10 @@ export async function GET(request: NextRequest) {
         hasToken,
         readyForOutbound,
         updatedAt: r.updatedAt.toISOString(),
+        label: r.label,
+        purpose: r.purpose,
+        autoReplyEnabled: r.autoReplyEnabled,
+        aiProfileOverride: r.aiProfileOverride,
       };
     });
 

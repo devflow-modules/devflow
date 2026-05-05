@@ -189,6 +189,7 @@ export async function fetchTenantWhatsappLines(): Promise<WhatsappLineSummary[]>
       isPrimary: boolean;
       isDefaultOutbound: boolean;
       status: string;
+      purpose?: string;
     }>;
   };
   const rows = json.data ?? [];
@@ -201,6 +202,7 @@ export async function fetchTenantWhatsappLines(): Promise<WhatsappLineSummary[]>
       isPrimary: r.isPrimary,
       isDefaultOutbound: r.isDefaultOutbound,
       status: r.status,
+      purpose: r.purpose ?? "GENERAL",
     }));
 }
 
