@@ -34,6 +34,7 @@ Variáveis obrigatórias em `.env.local` (root): `WHATSAPP_DATABASE_URL`, `WHATS
 | Arquivo | Descrição |
 |---------|-----------|
 | [WHATSAPP-PLATFORM-OVERVIEW.md](./WHATSAPP-PLATFORM-OVERVIEW.md) | Visão de produto e posicionamento (lançamento) |
+| [DEMO_AND_CLIENT_READINESS_PLAYBOOK.md](./DEMO_AND_CLIENT_READINESS_PLAYBOOK.md) | Demo comercial (~10 min), checklist primeiro cliente, handoff, smoke pré-demo, ecrãs a mostrar, notas white-label |
 | [OPERATIONAL_PLAYBOOK.md](./OPERATIONAL_PLAYBOOK.md) | Onboarding assistido: painel `/admin/whatsapp`, checklist, validação UI, ativação; curl/script como fallback |
 | [WHATSAPP-SETUP.md](./WHATSAPP-SETUP.md) | Setup Meta / WhatsApp Cloud API |
 | [WHATSAPP_CLOUD_ONBOARDING_SPRINT.md](./WHATSAPP_CLOUD_ONBOARDING_SPRINT.md) | Registro de número via Graph API (site DevFlow Labs) |

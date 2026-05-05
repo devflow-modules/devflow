@@ -40,13 +40,9 @@ export function StateError({
   className = "",
 }: ErrorProps) {
   return (
-    <div
-      className={`rounded-2xl border px-6 py-8 text-center shadow-sm ${className}`.trim()}
-      style={{ borderColor: "var(--df-danger-border)", background: "var(--df-danger-bg)" }}
-      role="alert"
-    >
-      <p className="text-sm font-semibold text-[var(--df-danger-text)]">{title}</p>
-      <p className="mt-2 text-sm leading-relaxed text-[var(--df-danger-text)]">{message}</p>
+    <div className={`df-state-error ${className}`.trim()} role="alert">
+      <p className="text-sm font-semibold">{title}</p>
+      <p className="mt-2 text-sm leading-relaxed opacity-95">{message}</p>
       {onRetry ? (
         <Button variant="secondary" type="button" className={`${buttonClassName("secondary")} mt-6`} onClick={onRetry}>
           {retryLabel}
