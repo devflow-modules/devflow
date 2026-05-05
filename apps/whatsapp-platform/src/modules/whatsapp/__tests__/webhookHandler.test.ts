@@ -52,16 +52,30 @@ describe("webhookHandler", () => {
       expect(await res.text()).toBe("META_CHALLENGE");
     });
 
-    it("não devolve challenge quando token não confere", async () => {
+    it("403 quando token não confere", async () => {
       const { handleWebhookVerification } = await import("../webhookHandler");
       const url = new URL("http://localhost/api/webhook/whatsapp");
       url.searchParams.set("hub.mode", "subscribe");
       url.searchParams.set("hub.verify_token", "wrong");
       const req = new NextRequest(url);
       const res = await handleWebhookVerification(req);
-      expect(res.status).toBe(200);
-      const data = await res.json();
-      expect(data.webhook).toBe("whatsapp");
+      expect(res.status).toBe(403);
+      const data = (await res.json()) as {
+        success: boolean;
+        error?: { code: string };
+      };
+      expect(data.success).toBe(false);
+      expect(data.error?.code).toBe("WEBHOOK_VERIFY_FORBIDDEN");
+    });
+
+    it("403 quando GET sem parâmetros hub (probing)", async () => {
+      const { handleWebhookVerification } = await import("../webhookHandler");
+      const req = new NextRequest(new URL("http://localhost/api/webhook/whatsapp"));
+      const res = await handleWebhookVerification(req);
+      expect(res.status).toBe(403);
+      const data = (await res.json()) as { success: boolean; error?: { code: string } };
+      expect(data.success).toBe(false);
+      expect(data.error?.code).toBe("WEBHOOK_VERIFY_FORBIDDEN");
     });
   });
 

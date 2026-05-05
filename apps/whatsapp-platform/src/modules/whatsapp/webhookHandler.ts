@@ -8,7 +8,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { normalizeWebhookPayload, type IncomingTextMessage } from "@devflow/whatsapp-core";
-import { APP_PRODUCT_SLUG } from "@/lib/constants";
 import { jsonError, newTraceId, withTraceHeaders } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
 import { resolveTenantByPhoneNumberId } from "@/modules/whatsapp/tenantResolutionService";
@@ -81,10 +80,7 @@ export async function handleWebhookVerification(request: NextRequest): Promise<N
     tokenPresent: Boolean(token),
     challengePresent: Boolean(challenge),
   });
-  return withTraceHeaders(
-    NextResponse.json({ product: APP_PRODUCT_SLUG, webhook: "whatsapp", method: "GET" }),
-    traceId
-  );
+  return jsonError("WEBHOOK_VERIFY_FORBIDDEN", "Webhook verification failed.", 403, { traceId });
 }
 
 export async function handleWebhookEvents(request: Request): Promise<NextResponse> {
