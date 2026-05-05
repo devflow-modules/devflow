@@ -4,9 +4,13 @@ import { NextRequest } from "next/server";
 const mockAuth = vi.fn();
 const mockDashboard = vi.fn();
 
-vi.mock("@/modules/auth", () => ({
-  getAuthFromRequest: (...a: unknown[]) => mockAuth(...a),
-}));
+vi.mock("@/modules/auth", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("@/modules/auth")>();
+  return {
+    ...mod,
+    getAuthFromRequest: (...a: unknown[]) => mockAuth(...a),
+  };
+});
 vi.mock("@/modules/billing/billingService", () => ({
   getUsageDashboard: (...a: unknown[]) => mockDashboard(...a),
 }));
@@ -61,6 +65,15 @@ describe("GET /api/billing/usage", () => {
     expect(res.status).toBe(403);
     const j = await res.json();
     expect(j.success).toBe(false);
+    expect(mockDashboard).not.toHaveBeenCalled();
+  });
+
+  it("403 para operador (SAAS)", async () => {
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
+    mockAuth.mockResolvedValue({ payload: { tenantId: "t-bill", role: "operator" } });
+    const { GET } = await import("../route");
+    const res = await GET(new NextRequest("http://x/api/billing/usage"));
+    expect(res.status).toBe(403);
     expect(mockDashboard).not.toHaveBeenCalled();
   });
 });

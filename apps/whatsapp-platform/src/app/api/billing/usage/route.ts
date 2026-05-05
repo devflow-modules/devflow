@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { getUsageDashboard } from "@/modules/billing/billingService";
 import {
   billingWriteForbiddenResponse,
@@ -13,6 +13,8 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
+  if (denied) return denied;
   if (!auth) {
     return NextResponse.json({ success: false, error: "Não autorizado" }, { status: 401 });
   }

@@ -4,9 +4,13 @@ import { NextRequest } from "next/server";
 const mockGetAuth = vi.fn();
 const mockGetAiPlanInfo = vi.fn();
 
-vi.mock("@/modules/auth", () => ({
-  getAuthFromRequest: (...a: unknown[]) => mockGetAuth(...a),
-}));
+vi.mock("@/modules/auth", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("@/modules/auth")>();
+  return {
+    ...mod,
+    getAuthFromRequest: (...a: unknown[]) => mockGetAuth(...a),
+  };
+});
 vi.mock("@/modules/billing/aiUsageLimitService", () => ({
   getAiPlanInfo: (...a: unknown[]) => mockGetAiPlanInfo(...a),
 }));
@@ -72,5 +76,16 @@ describe("GET /api/billing/ai-plan", () => {
     const j = await res.json();
     expect(j.data.plan).toBe("PRO");
     expect(j.data.plan_name).toBe("Pro");
+  });
+
+  it("403 para operador (SAAS)", async () => {
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
+    mockGetAuth.mockResolvedValue({
+      payload: { tenantId: "t-plan", sub: "u1", role: "operator" },
+    });
+    const { GET } = await import("../route");
+    const res = await GET(new NextRequest("http://x/api/billing/ai-plan"));
+    expect(res.status).toBe(403);
+    expect(mockGetAiPlanInfo).not.toHaveBeenCalled();
   });
 });

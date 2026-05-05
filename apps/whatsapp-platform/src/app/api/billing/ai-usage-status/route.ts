@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { getAiUsageStatus } from "@/modules/billing/aiUsageLimitService";
 import { getAiOverageBilledInPeriod } from "@/modules/billing/aiOverageVisibilityService";
 import { periodYYYYMM } from "@/modules/ai/aiUsageService";
@@ -14,6 +14,8 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthFromRequest(request);
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
+  if (denied) return denied;
   if (!auth) {
     return NextResponse.json({ success: false, error: "Não autorizado" }, { status: 401 });
   }
