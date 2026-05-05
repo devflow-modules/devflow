@@ -158,6 +158,27 @@ function InboxShellContent() {
     });
   }, [searchParams]);
 
+  useEffect(() => {
+    const lineParam = searchParams.get("businessPhoneNumberId")?.trim();
+    queueMicrotask(() => {
+      setLineFilter(lineParam || null);
+    });
+  }, [searchParams]);
+
+  const setLineFilterAndUrl = useCallback(
+    (id: string | null) => {
+      setLineFilter(id);
+      const params = new URLSearchParams(searchParams.toString());
+      if (id?.trim()) {
+        params.set("businessPhoneNumberId", id.trim());
+      } else {
+        params.delete("businessPhoneNumberId");
+      }
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
   const pollInterval = realtimeConnected ? POLL_INTERVAL_REALTIME_MS : POLL_INTERVAL_FALLBACK_MS;
 
   const { data: lines = [] } = useQuery({
@@ -500,7 +521,7 @@ function InboxShellContent() {
               }}
               lineFilter={lineFilter}
               lines={lines}
-              onLineFilterChange={setLineFilter}
+              onLineFilterChange={setLineFilterAndUrl}
               queueFilter={queueFilter}
               queues={inboxQueues}
               onQueueFilterChange={setQueueFilter}

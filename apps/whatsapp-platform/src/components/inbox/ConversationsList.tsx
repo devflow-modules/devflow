@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ConversationItem } from "./ConversationItem";
 import {
@@ -32,6 +32,7 @@ import { FirstConversationHint } from "./FirstConversationHint";
 import { InboxFilterEmpty } from "./InboxSidebarEmpty";
 import { getResponseAlertLevel } from "./ResponseAlertBadge";
 import { Button } from "@/components/ui/button";
+import { formatInboxLineFilterOptionLabel } from "./inboxLineFilterLabel";
 
 const POLL_INTERVAL_REALTIME_MS = 10_000;
 const POLL_INTERVAL_FALLBACK_MS = 5_000;
@@ -134,21 +135,8 @@ export function ConversationsList({
     return null;
   }, [assumeMut.isPending, assumeMut.variables, closeMut.isPending, closeMut.variables]);
 
-  const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
-  const moreFiltersRef = useRef<HTMLDivElement>(null);
   const hasLineFilter = Boolean(lineFilter);
   const hasSecondaryRefinement = hasLineFilter || queueFilter !== null;
-
-  useEffect(() => {
-    if (!moreFiltersOpen) return;
-    const onDoc = (e: MouseEvent) => {
-      if (moreFiltersRef.current && !moreFiltersRef.current.contains(e.target as Node)) {
-        setMoreFiltersOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, [moreFiltersOpen]);
 
   const effectiveProspectLens = prospectUiEnabled ? (prospectLens ?? null) : null;
 
@@ -217,7 +205,9 @@ export function ConversationsList({
     (lineFilter === null || lineFilter === "") &&
     queueFilter === null;
 
-  const showRefinementRow = queues.length > 0 || lines.length > 0;
+  /** Uma única linha: sem ruído visual. Várias linhas ou filas: barra de refinamento. */
+  const showLineFilterUi = lines.length > 1;
+  const showRefinementRow = queues.length > 0 || showLineFilterUi;
 
   const filterChrome = (
     <>
@@ -256,9 +246,38 @@ export function ConversationsList({
 
       {showRefinementRow ? (
         <div className="flex flex-wrap items-center gap-2 border-b df-border-brand bg-[var(--df-bg-elevated)] px-2 py-2">
+          {showLineFilterUi ? (
+            <div className="flex min-w-0 max-w-[min(100%,22rem)] flex-1 items-center gap-1.5">
+              <span className="shrink-0 text-[10px] font-medium text-[var(--df-text-secondary)]">Linha</span>
+              <select
+                className="min-w-0 flex-1 rounded-lg border df-border-brand bg-[var(--df-bg-app)] px-2 py-1.5 text-[11px] text-[var(--df-text-primary)]"
+                aria-label="Filtrar por linha WhatsApp"
+                data-testid="inbox-line-filter"
+                value={lineFilter ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  onLineFilterChange(v === "" ? null : v);
+                }}
+              >
+                <option value="">Todas as linhas</option>
+                {lines.map((l) => (
+                  <option key={l.phoneNumberId} value={l.phoneNumberId}>
+                    {formatInboxLineFilterOptionLabel(l)}
+                  </option>
+                ))}
+              </select>
+              {hasLineFilter ? (
+                <span
+                  className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--df-brand-500)]"
+                  aria-hidden
+                  title="Filtro de linha activo"
+                />
+              ) : null}
+            </div>
+          ) : null}
           {queues.length > 0 ? (
             <div className="flex min-w-0 max-w-[min(100%,18rem)] flex-1 items-center gap-1.5">
-                <span className="shrink-0 text-[10px] font-medium text-[var(--df-text-secondary)]">Fila</span>
+              <span className="shrink-0 text-[10px] font-medium text-[var(--df-text-secondary)]">Fila</span>
               <select
                 className="min-w-0 flex-1 rounded-lg border df-border-brand bg-[var(--df-bg-app)] px-2 py-1.5 text-[11px] text-[var(--df-text-primary)]"
                 aria-label="Filtrar por fila"
@@ -278,59 +297,6 @@ export function ConversationsList({
                   </option>
                 ))}
               </select>
-            </div>
-          ) : null}
-
-          {lines.length > 0 ? (
-            <div ref={moreFiltersRef} className="relative flex items-center gap-1.5">
-              <Button variant="secondary"
-                type="button"
-                onClick={() => setMoreFiltersOpen((o) => !o)}
-                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
-                  hasLineFilter
-                    ? "border-[var(--df-brand-500)]/40 bg-[var(--df-brand-50)] text-[var(--df-brand-800)]"
-                    : "border-[var(--df-border-subtle)] bg-[var(--df-bg-elevated)] text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)]"
-                }`}
-                aria-expanded={moreFiltersOpen}
-                aria-controls="inbox-more-filters"
-              >
-                Mais filtros
-                {hasLineFilter ? (
-                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--df-brand-500)]" aria-hidden />
-                ) : null}
-              </Button>
-              {moreFiltersOpen ? (
-                <div
-                  id="inbox-more-filters"
-                  className="absolute left-0 top-full z-30 mt-1 w-[min(calc(100vw-2rem),18rem)] rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-3 shadow-lg ring-1 ring-black/30"
-                >
-                  <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">
-                    Linha WhatsApp
-                  </label>
-                  <select
-                    className="w-full rounded-lg border df-border-brand bg-[var(--df-bg-app)] px-2 py-1.5 text-xs text-[var(--df-text-primary)]"
-                    value={lineFilter ?? ""}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      onLineFilterChange(v === "" ? null : v);
-                    }}
-                  >
-                    <option value="">Todos os números</option>
-                    {lines.map((l) => (
-                      <option key={l.phoneNumberId} value={l.phoneNumberId}>
-                        {l.label?.trim() ||
-                          l.displayPhoneNumber?.trim() ||
-                          l.phoneNumberId.slice(0, 12) + "…"}
-                        {l.isPrimary ? " · Principal" : ""}
-                        {l.isDefaultOutbound ? " · Envio" : ""}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="mt-2 text-[10px] leading-snug text-[var(--df-text-muted)]">
-                    Use a linha quando tiver vários números Business; a fila fica no controlo ao lado.
-                  </p>
-                </div>
-              ) : null}
             </div>
           ) : null}
         </div>
