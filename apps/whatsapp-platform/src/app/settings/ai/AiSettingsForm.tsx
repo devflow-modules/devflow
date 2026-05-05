@@ -594,7 +594,7 @@ export function AiSettingsForm() {
         id="visao-geral"
         phase="1 · Visão geral"
         title="Estado, motor e atalhos"
-        description="Ligações rápidas para o motor (fornecedor LLM), consumo e painel operacional. Depois afinamos comportamento → automação → limites → teste."
+        description="Ligações rápidas para o motor (fornecedor LLM), consumo e painel operacional. Isto é a IA base do workspace; cada canal pode herdar ou sobrescrever propósito, auto-resposta e perfil de IA em Admin · WhatsApp. Depois afinamos comportamento → automação → limites → teste."
       >
         <IaCrossLinks />
         {driver ? (
@@ -607,7 +607,9 @@ export function AiSettingsForm() {
           <Link href="/settings" className="font-semibold text-[var(--df-brand-700)] hover:underline">
             Configurações gerais
           </Link>
-          . Aqui pode sobrescrever só para esta IA de atendimento na secção «Limites e segurança» (avançado).
+          . Aqui pode sobrescrever só para esta{" "}
+          <strong className="font-semibold text-[var(--df-text-primary)]">IA base</strong> (workspace) na secção «Limites e
+          segurança» (avançado); canais podem ainda ter overrides próprios.
         </FieldHelp>
         <label className="flex items-start gap-3 rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] px-4 py-3">
           <input
@@ -619,7 +621,8 @@ export function AiSettingsForm() {
           <span className="text-sm font-medium text-[var(--df-text-primary)]">
             IA ativada para o espaço de trabalho
             <span className="mt-1 block text-xs font-normal text-[var(--df-text-muted)]">
-              Sem isto, nenhuma resposta automática por IA é enviada, mesmo com regras ou prompt preenchidos.
+              Sem isto, nenhuma resposta automática por IA é enviada a partir desta base, mesmo com regras ou prompt
+              preenchidos. Ajustes por linha seguem o que estiver definido em cada canal.
             </span>
           </span>
         </label>
@@ -706,7 +709,7 @@ export function AiSettingsForm() {
         id="comportamento"
         phase="2 · Comportamento"
         title="Identidade, instruções e funil"
-        description="Isto molda o texto que o cliente lê: tom, contexto do negócio, regras e playbook por fase. Impacta custo indiretamente (mensagens mais longas ou mais chamadas ao modelo)."
+        description="Isto molda o texto que o cliente lê: tom, contexto do negócio, regras e playbook por fase. Os canais herdam estes parâmetros como padrão; podem combinar com propósito e perfil de IA próprios por linha. Impacta custo indiretamente (mensagens mais longas ou mais chamadas ao modelo)."
       >
         <div className="space-y-6">
           <AiSettingsSubheading>Identidade do assistente</AiSettingsSubheading>
@@ -752,8 +755,9 @@ export function AiSettingsForm() {
         <div className="space-y-4 border-t df-border-brand pt-6">
           <AiSettingsSubheading>Contexto e objetivo</AiSettingsSubheading>
           <p className="text-xs text-[var(--df-text-muted)]">
-            Isto substitui boa parte do «prompt» em linguagem natural: quem são vocês e o que a IA deve perseguir neste
-            canal (ex.: qualificar antes de preço).
+            Isto substitui boa parte do «prompt» em linguagem natural: quem são vocês e o que a IA deve perseguir no
+            WhatsApp (ex.: qualificar antes de preço). O <strong className="font-semibold text-[var(--df-text-primary)]">propósito</strong>{" "}
+            específico de cada linha (Atendimento, Prospecção, etc.) pode ser definido ou refinado por canal.
           </p>
           <FormField
             id="biz"
@@ -876,7 +880,7 @@ export function AiSettingsForm() {
         id="automacao"
         phase="3 · Automação"
         title="Respostas automáticas e texto fixo"
-        description="Define se a IA envia mensagens sozinha e mensagens de cortesia. Impacto na operação: com auto-resposta desligada, a equipa trata tudo na Inbox."
+        description="Define se a IA envia mensagens sozinha e mensagens de cortesia a partir desta base. Por canal, a resposta automática pode ser sobrescrita sem alterar o padrão global. Impacto na operação: com auto-resposta desligada aqui, a equipa trata tudo na Inbox salvo override no canal."
       >
         <label className="flex items-start gap-3 rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] px-4 py-3">
           <input
@@ -888,8 +892,9 @@ export function AiSettingsForm() {
           <span className="text-sm font-medium text-[var(--df-text-primary)]">
             Responder automaticamente a mensagens recebidas
             <span className="mt-1 block text-xs font-normal text-[var(--df-text-muted)]">
-              Quando usar: atendimento 24/7 com IA. Desligue se quiser só rascunhos ou revisão humana obrigatória. Impacto
-              em custo: cada resposta automática conta no uso de IA do plano.
+              Quando usar: atendimento 24/7 com IA na base. Desligue se quiser só rascunhos ou revisão humana obrigatória
+              por omissão. Cada linha pode afinar se responde sozinha. Impacto em custo: cada resposta automática conta no
+              uso de IA do plano.
             </span>
           </span>
         </label>
@@ -955,7 +960,8 @@ export function AiSettingsForm() {
             ) : null}
             <p className="text-xs text-[var(--df-text-secondary)]">
               Motor global do tenant: <strong>{tenantAiDriver ?? "não definido"}</strong>. Sobrescreva só se precisar de um
-              fornecedor diferente só para esta IA de atendimento.
+              fornecedor diferente só para esta IA base (workspace); canais com perfil de IA próprio usam a resolução
+              definida no admin de canais.
             </p>
             <FormField
               id="drv"
@@ -1038,7 +1044,7 @@ export function AiSettingsForm() {
         id="teste"
         phase="5 · Teste e validação"
         title="Simular mensagem do cliente"
-        description="Usa o rascunho actual (inclui alterações não guardadas). Não envia WhatsApp real — ideal para validar tom e guardrails antes da Inbox."
+        description="Usa o rascunho actual desta IA base (inclui alterações não guardadas). Não envia WhatsApp real — ideal para validar tom e guardrails. Na Inbox, conversas reais podem refletir overrides de propósito, auto-resposta ou perfil por canal."
       >
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-10">
           <div className="space-y-3">

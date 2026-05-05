@@ -12,12 +12,17 @@ export default function AiSettingsPage() {
     <div className="df-page-narrow df-stack min-w-0">
       <PageHeader
         eyebrow="Inteligência"
-        title="IA de atendimento"
+        title="IA base do WhatsApp"
         description={
           wl ? (
             <>
-              Comportamento da IA no WhatsApp: identidade, regras, automação e teste. O fornecedor LLM (OpenAI / Claude /
-              regras) define-se em{" "}
+              <strong className="font-semibold text-[var(--df-text-primary)]">Padrão do workspace</strong> para o WhatsApp:
+              identidade, regras, automação e teste. As{" "}
+              <strong className="font-semibold text-[var(--df-text-primary)]">linhas e canais</strong> herdam esta base e
+              podem ajustar <strong className="font-semibold text-[var(--df-text-primary)]">propósito</strong>,{" "}
+              <strong className="font-semibold text-[var(--df-text-primary)]">resposta automática</strong> e{" "}
+              <strong className="font-semibold text-[var(--df-text-primary)]">perfil de IA</strong> por canal. O fornecedor
+              LLM (OpenAI / Claude / regras) define-se em{" "}
               <Link href="/settings" className="font-semibold text-[var(--df-brand-700)] hover:underline">
                 Configurações gerais
               </Link>
@@ -33,8 +38,13 @@ export default function AiSettingsPage() {
             </>
           ) : (
             <>
-              Comportamento da IA no WhatsApp: identidade, regras, automação e teste. O fornecedor LLM (OpenAI / Claude /
-              regras) define-se em{" "}
+              <strong className="font-semibold text-[var(--df-text-primary)]">Padrão do workspace</strong> para o WhatsApp:
+              identidade, regras, automação e teste. As{" "}
+              <strong className="font-semibold text-[var(--df-text-primary)]">linhas e canais</strong> herdam esta base e
+              podem ajustar <strong className="font-semibold text-[var(--df-text-primary)]">propósito</strong>,{" "}
+              <strong className="font-semibold text-[var(--df-text-primary)]">resposta automática</strong> e{" "}
+              <strong className="font-semibold text-[var(--df-text-primary)]">perfil de IA</strong> por canal. O fornecedor
+              LLM (OpenAI / Claude / regras) define-se em{" "}
               <Link href="/settings" className="font-semibold text-[var(--df-brand-700)] hover:underline">
                 Configurações gerais
               </Link>
@@ -75,6 +85,9 @@ export default function AiSettingsPage() {
             <Link href="/dashboard/ai" className="df-quick-action">
               Painel de operação
             </Link>
+            <Link href="/admin/whatsapp" className="df-quick-action">
+              Gerenciar canais
+            </Link>
             <Link href="/settings" className="df-quick-action">
               Motor (config. gerais)
             </Link>
@@ -89,6 +102,28 @@ export default function AiSettingsPage() {
           </>
         }
       />
+
+      <section
+        className="rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] p-4 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]"
+        aria-labelledby="wf-ai-channel-info-heading"
+      >
+        <h2
+          id="wf-ai-channel-info-heading"
+          className="text-sm font-semibold text-[var(--df-text-primary)]"
+        >
+          IA por canal
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-[var(--df-text-secondary)]">
+          Esta configuração é o padrão global. Linhas como Atendimento, Prospecção, Suporte ou Financeiro podem herdar esta
+          IA ou usar ajustes próprios.
+        </p>
+        <Link
+          href="/admin/whatsapp"
+          className="mt-3 inline-flex text-sm font-semibold text-[var(--df-brand-700)] hover:underline"
+        >
+          Gerenciar canais
+        </Link>
+      </section>
 
       <PricingContextHint message={CONTEXTUAL_UPGRADE_HINTS.aiSettings} />
 
