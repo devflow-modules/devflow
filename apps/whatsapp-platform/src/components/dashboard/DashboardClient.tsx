@@ -72,6 +72,25 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
   const [revenue, setRevenue] = useState<TenantRevenueMetricsPayload | null>(null);
   const [revenueLoading, setRevenueLoading] = useState(false);
 
+  const revenueFmt = useMemo(
+    () =>
+      new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        maximumFractionDigits: 0,
+      }),
+    []
+  );
+  const pctFmt = useMemo(
+    () =>
+      new Intl.NumberFormat("pt-BR", {
+        style: "percent",
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }),
+    []
+  );
+
   useEffect(() => {
     if (!snapshot.authenticated) return;
     fetchProtected("/api/metrics/overview")
@@ -102,7 +121,9 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
   useEffect(() => {
     if (!snapshot.authenticated || !sessionRole || !isTenantManager(sessionRole)) return;
     let cancelled = false;
-    setRevenueLoading(true);
+    void Promise.resolve().then(() => {
+      if (!cancelled) setRevenueLoading(true);
+    });
     fetchTenantRevenueMetrics(30)
       .then((d) => {
         if (!cancelled) setRevenue(d);
@@ -145,25 +166,6 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
     overview && overview.totalMessages > 0
       ? Math.round((overview.automaticMessages / overview.totalMessages) * 100)
       : 0;
-
-  const revenueFmt = useMemo(
-    () =>
-      new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-        maximumFractionDigits: 0,
-      }),
-    []
-  );
-  const pctFmt = useMemo(
-    () =>
-      new Intl.NumberFormat("pt-BR", {
-        style: "percent",
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
-      }),
-    []
-  );
 
   const firstIncompleteHref = "/onboarding";
 

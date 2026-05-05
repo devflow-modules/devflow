@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ConversationItem } from "@/components/inbox/ConversationItem";
-import type { WaInboxThreadRow } from "@/components/inbox/inboxTypes";
 import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
 import { StateError, StateLoading } from "@/components/ui/app-states";
@@ -73,7 +72,7 @@ export function ConversationsHistoryClient() {
     staleTime: 20_000,
   });
 
-  const threads = query.data?.threads ?? [];
+  const threads = useMemo(() => query.data?.threads ?? [], [query.data?.threads]);
   const total = query.data?.pagination.total ?? 0;
 
   const selected = useMemo(

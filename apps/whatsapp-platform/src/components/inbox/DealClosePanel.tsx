@@ -94,8 +94,11 @@ export function DealClosePanel({
 
   useEffect(() => {
     if (hasPendingSuggestion && thread?.dealSuggestedStatus === "won" && thread.dealSuggestedValue != null) {
-      setValue(String(thread.dealSuggestedValue));
+      const v = String(thread.dealSuggestedValue);
+      const id = window.setTimeout(() => setValue(v), 0);
+      return () => window.clearTimeout(id);
     }
+    return undefined;
   }, [hasPendingSuggestion, thread?.dealSuggestedStatus, thread?.dealSuggestedValue]);
 
   if (!threadId || !thread) return null;
