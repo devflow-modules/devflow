@@ -224,7 +224,7 @@ export function ChatHeader({
       })
     : null;
 
-  const headerMaxH = compactChrome ? "max-h-[min(22vh,200px)]" : "max-h-[min(26vh,280px)]";
+  const headerMaxH = compactChrome ? "max-h-[min(20vh,180px)]" : "max-h-[min(22vh,240px)]";
   const headerPad = compactChrome
     ? `${INBOX_CHAT_GUTTER_X_COMPACT} py-2.5 sm:py-3`
     : `${INBOX_CHAT_GUTTER_X} py-3 sm:py-4`;
@@ -368,7 +368,7 @@ export function ChatHeader({
       </div>
 
       <div className={`border-t df-border-brand bg-[var(--df-bg-app)]/70 ${toolbarPad}`}>
-        <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--df-text-muted)]">Operação</p>
+        <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--df-text-muted)]">Acções</p>
         <div className="flex flex-wrap items-center gap-2 rounded-xl border df-border-brand bg-[var(--df-bg-elevated)]/95 p-2 shadow-sm">
           {canAssume ? (
             <Button variant="disabled"
@@ -414,10 +414,6 @@ export function ChatHeader({
               Reabrir
             </Button>
           ) : null}
-        </div>
-
-        <p className="mb-2 mt-4 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--df-text-muted)]">Gestão</p>
-        <div className="flex flex-wrap items-center gap-2">
         <div className="relative" ref={assignRef}>
           <Button variant="secondary"
             type="button"

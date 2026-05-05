@@ -92,7 +92,6 @@ function InboxShellContent() {
 
   const shellLayout = useShellLayoutOptional();
   const shellSidebarCollapsed = Boolean(shellLayout?.sidebarCollapsed);
-  const metricsCompact = inboxFocusMode || shellSidebarCollapsed;
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -484,7 +483,7 @@ function InboxShellContent() {
         </div>
       ) : null}
 
-      {inboxFocusMode ? null : metricsCompact ? (
+      {inboxFocusMode ? null : (
         <details className="group shrink-0 border-b df-border-brand bg-[var(--df-bg-app)]/50">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-left text-xs font-semibold text-[var(--df-text-secondary)] marker:content-none [&::-webkit-details-marker]:hidden sm:px-4">
             <span>Métricas e equipa</span>
@@ -494,8 +493,6 @@ function InboxShellContent() {
           </summary>
           <InboxMetricsPanel onOpenThread={selectThread} />
         </details>
-      ) : (
-        <InboxMetricsPanel onOpenThread={selectThread} />
       )}
 
       <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden md:flex-row md:items-stretch">
@@ -531,6 +528,7 @@ function InboxShellContent() {
               prospectMetrics={prospectMetrics}
               prospectUiEnabled={prospectingEnabled}
               tenantThreadTotal={tenantThreadTotal}
+              hideProspectMetrics={inboxFocusMode}
             />
           </aside>
         )}

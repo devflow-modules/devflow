@@ -163,6 +163,11 @@ export function DealClosePanel({
         className={`shrink-0 border-t df-border-brand bg-[var(--df-bg-elevated)]/90 ${INBOX_CHAT_GUTTER_X} py-3`}
       >
         {hasPendingSuggestion ? pendingBadge : null}
+        <details className="rounded-lg border border-border/70 bg-card/60 shadow-sm">
+          <summary className="cursor-pointer list-none px-3 py-2.5 text-left text-xs font-semibold text-[var(--df-text-secondary)] marker:content-none [&::-webkit-details-marker]:hidden">
+            Negócio — sugerir resultado ao gestor
+          </summary>
+          <div className="border-t border-border/60 px-3 pb-3 pt-2">
         <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--df-text-muted)]">Fechar venda</p>
         <p className="mt-0.5 text-xs text-[var(--df-text-secondary)]">
           Sugira o resultado — só um gestor confirma o fecho.
@@ -299,6 +304,8 @@ export function DealClosePanel({
             {error}
           </p>
         ) : null}
+          </div>
+        </details>
       </div>
     );
   }
@@ -428,6 +435,11 @@ export function DealClosePanel({
       id="inbox-deal-close"
       className={`shrink-0 border-t df-border-brand bg-[var(--df-bg-elevated)]/90 ${INBOX_CHAT_GUTTER_X} py-3`}
     >
+      <details className="rounded-lg border border-border/70 bg-card/60 shadow-sm">
+        <summary className="cursor-pointer list-none px-3 py-2.5 text-left text-xs font-semibold text-[var(--df-text-secondary)] marker:content-none [&::-webkit-details-marker]:hidden">
+          Fechar venda ou registar perda
+        </summary>
+        <div className="border-t border-border/60 px-3 pb-3 pt-2">
       <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--df-text-muted)]">Fechar venda</p>
       <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="min-w-0 flex-1">
@@ -493,6 +505,8 @@ export function DealClosePanel({
           {error}
         </p>
       ) : null}
+        </div>
+      </details>
     </div>
   );
 }

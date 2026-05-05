@@ -80,7 +80,10 @@ export function ChatWindow({
   const isXl = useMediaMinWidth(1280, false);
   const showCrmChrome = !inboxFocusMode || evaluationMode;
   const crmStack = showCrmChrome && !isMd;
-  const crmDrawerMode = showCrmChrome && isMd && !isXl;
+  /** Drawer md–lg ou painel contextual em modo foco (md+). */
+  const legacyCrmDrawer = showCrmChrome && isMd && !isXl;
+  const focusContextOnDemand = inboxFocusMode && !evaluationMode && isMd;
+  const showContextTriggerBar = legacyCrmDrawer || focusContextOnDemand;
   const crmSide = showCrmChrome && isXl;
 
   useEffect(() => {
@@ -178,9 +181,9 @@ export function ChatWindow({
               <MessageList threadId={threadId} thread={activeThread} />
               <DealClosePanel threadId={threadId} thread={activeThread} />
             </div>
-            {!auditTab && activeThread && crmDrawerMode ? (
+            {!auditTab && activeThread && showContextTriggerBar ? (
               <div
-                className={`hidden shrink-0 border-t df-border-brand bg-[var(--df-bg-elevated)]/95 py-2 md:block md:py-2.5 xl:hidden ${INBOX_CHAT_GUTTER_X}`}
+                className={`hidden shrink-0 border-t df-border-brand bg-[var(--df-bg-elevated)]/95 py-2 md:block md:py-2.5 ${crmSide ? "xl:hidden" : ""} ${INBOX_CHAT_GUTTER_X}`}
               >
                 <Button variant="secondary"
                   type="button"
@@ -206,15 +209,16 @@ export function ChatWindow({
       </div>
       {!auditTab && activeThread && crmStack ? (
         <LeadDataPanel
+          key={activeThread.id}
           thread={activeThread}
           evaluationMode={evaluationMode}
           className="flex w-full shrink-0 overflow-y-auto border-t df-border-brand md:hidden max-h-[min(42vh,22rem)] sm:max-h-[min(44vh,24rem)]"
         />
       ) : null}
       {!auditTab && activeThread && crmSide ? (
-        <LeadDataPanel thread={activeThread} evaluationMode={evaluationMode} className={leadSideClass} />
+        <LeadDataPanel key={activeThread.id} thread={activeThread} evaluationMode={evaluationMode} className={leadSideClass} />
       ) : null}
-      {!auditTab && activeThread && crmDrawerOpen && crmDrawerMode ? (
+      {!auditTab && activeThread && crmDrawerOpen && showContextTriggerBar ? (
         <div className="fixed inset-0 z-[45] md:block xl:hidden" role="presentation">
           <Button variant="ghost"
             type="button"
@@ -229,6 +233,7 @@ export function ChatWindow({
             aria-label="Contexto do cliente"
           >
             <LeadDataPanel
+              key={activeThread.id}
               thread={activeThread}
               evaluationMode={evaluationMode}
               className="flex min-h-0 flex-1 flex-col border-0"

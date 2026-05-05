@@ -88,6 +88,7 @@ export function ConversationsList({
   prospectMetrics,
   prospectUiEnabled = false,
   tenantThreadTotal,
+  hideProspectMetrics = false,
 }: {
   selectedId: string | null;
   onSelect: (id: string) => void;
@@ -108,6 +109,8 @@ export function ConversationsList({
   prospectUiEnabled?: boolean;
   /** Total de conversas no espaço (sem filtro de fase); usado só para onboarding. */
   tenantThreadTotal?: number;
+  /** Modo foco inbox — esconde chips/métricas de prospecto para dar prioridade à lista. */
+  hideProspectMetrics?: boolean;
 }) {
   const qc = useQueryClient();
   const { connected: realtimeConnected } = useInboxRealtime();
@@ -211,7 +214,7 @@ export function ConversationsList({
 
   const filterChrome = (
     <>
-      {prospectUiEnabled && onProspectLensChange ? (
+      {prospectUiEnabled && onProspectLensChange && !hideProspectMetrics ? (
         <InboxProspectMetricsBar
           metrics={prospectMetrics}
           activeLens={prospectLens ?? null}
