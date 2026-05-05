@@ -43,12 +43,12 @@ export function AiStatusBanner({
         <p className="text-sm font-semibold">
           {wl
             ? "Capacidade de IA da operação esgotada neste período"
-            : "Interações de IA incluídas no plano esgotadas neste período"}
+            : "Interações de IA incluídas no contrato esgotadas neste período"}
         </p>
         <p className="mt-1 text-sm">
           {wl
             ? "Contacte o suporte para alinhar a capacidade e continuar o atendimento com IA."
-            : "Faça upgrade para recuperar margem no pacote incluído, ou veja em Plano e faturação como funciona o uso adicional (na fatura: «Uso adicional de IA»)."}
+            : "Peça revisão da capacidade ao suporte para recuperar margem no pacote incluído, ou veja em Contrato e uso como funciona o uso adicional (no extrato: «Uso adicional de IA»)."}
         </p>
         {wl ? (
           <div className="mt-3">
@@ -57,7 +57,7 @@ export function AiStatusBanner({
         ) : (
           <Link href="/billing" className="mt-3 inline-block">
             <Button variant="secondary" size="sm">
-              Ver planos e faturação
+              Contrato e uso
             </Button>
           </Link>
         )}
@@ -71,12 +71,12 @@ export function AiStatusBanner({
         <p className="text-sm font-semibold">
           {wl
             ? `Próximo da margem de IA da operação (${percentUsed != null ? `${percentUsed}%` : "—"})`
-            : `Próximo do que o plano inclui (${percentUsed != null ? `${percentUsed}%` : "—"} das interações de IA)`}
+            : `Próximo do que o contrato inclui (${percentUsed != null ? `${percentUsed}%` : "—"} das interações de IA)`}
         </p>
         <p className="mt-1 text-sm">
           {wl
             ? "O suporte pode ajudar a ajustar a capacidade antes de atingir o limite."
-            : "Isto não interrompe o serviço: além do incluído pode haver expansão de uso, conforme a sua fatura."}
+            : "Isto não interrompe o serviço: além do incluído pode haver expansão de uso, conforme o extrato do período."}
         </p>
         {wl ? (
           <div className="mt-3">
@@ -85,7 +85,7 @@ export function AiStatusBanner({
         ) : (
           <Link href="/billing" className="mt-3 inline-block">
             <Button size="sm" variant="outline">
-              Rever plano e limites
+              Contrato e capacidade
             </Button>
           </Link>
         )}
@@ -105,7 +105,7 @@ export function AiStatusBanner({
         ) : (
           <p className="mt-1 text-sm">
             {used} respostas IA este mês
-            {!wl && planName ? ` (plano ${planName})` : ""}.
+            {!wl && planName ? ` (contrato: ${planName})` : ""}.
           </p>
         )}
         {!wl ? (

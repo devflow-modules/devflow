@@ -9,7 +9,7 @@ type Props = {
 };
 
 /**
- * Dica contextual discreta para upgrade (Inbox, IA, canal) — não intrusiva.
+ * Dica contextual discreta sobre capacidade (Inbox, IA, canal) — não intrusiva.
  */
 export function PricingContextHint({ message, href = "/dashboard/billing" }: Props) {
   if (isWhiteLabelMode()) return null;

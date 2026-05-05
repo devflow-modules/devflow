@@ -8,7 +8,7 @@ export function SettingsAgentRestricted() {
     <div className="mx-auto max-w-lg py-12">
       <StateEmpty
         title="Acesso restrito"
-        description={`${permissionsMessages.adminOnly} As definições de IA e de faturação são apenas para perfis de gestão do espaço de trabalho.`}
+        description={`${permissionsMessages.adminOnly} As definições de IA e de contrato/uso são apenas para perfis de gestão do espaço de trabalho.`}
         action={
           <Link href="/inbox" className={buttonClassName("primary")}>
             Ir para a Inbox

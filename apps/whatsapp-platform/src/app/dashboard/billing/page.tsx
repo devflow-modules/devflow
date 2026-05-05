@@ -18,7 +18,7 @@ export default async function DashboardBillingPage() {
   }
   return (
     <div className="mx-auto max-w-4xl">
-      <Suspense fallback={<StateLoading message="A carregar faturação…" />}>
+      <Suspense fallback={<StateLoading message="A carregar contrato e uso…" />}>
         <BillingDashboardClient />
       </Suspense>
     </div>

@@ -158,7 +158,7 @@ export function LeadDataPanel({
               necessário ativar a operação com a implantação.
             </p>
             <p className="text-[11px] leading-relaxed df-text-muted">
-              Veja consumo e próximos passos em Consumo e faturação.
+              Veja consumo e próximos passos em Contrato e uso.
             </p>
           </>
         )

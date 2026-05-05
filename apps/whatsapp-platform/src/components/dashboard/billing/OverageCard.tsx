@@ -24,7 +24,7 @@ export function OverageCard({ overageMessages, overageAI, estimatedCost }: Props
     return (
       <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm">
         <h3 className="text-sm font-medium text-[var(--df-text-secondary)]">Expansão de uso (além do incluído)</h3>
-        <p className="mt-2 text-sm text-[var(--df-text-secondary)]">Ainda dentro do volume incluído no plano.</p>
+        <p className="mt-2 text-sm text-[var(--df-text-secondary)]">Ainda dentro do volume incluído no contrato.</p>
       </div>
     );
   }
@@ -33,7 +33,7 @@ export function OverageCard({ overageMessages, overageAI, estimatedCost }: Props
     <div className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-5 shadow-sm">
       <h3 className="text-sm font-medium text-emerald-950">Uso adicional (expansão)</h3>
       <p className="mt-1 text-xs text-emerald-900/80">
-        Volume além do incluído no plano — faturado de forma transparente, com os mesmos nomes na fatura Stripe.
+        Volume além do incluído no contrato — consolidado de forma transparente no extrato do período.
       </p>
       <dl className="mt-3 space-y-2 text-sm">
         <div className="flex justify-between gap-2">

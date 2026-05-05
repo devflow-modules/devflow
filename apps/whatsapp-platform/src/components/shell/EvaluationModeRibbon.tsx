@@ -51,7 +51,7 @@ export function EvaluationModeRibbon({ className = "" }: Props) {
         href="/dashboard/billing"
         className="mt-1 block font-semibold text-[var(--df-brand-700)] underline-offset-2 hover:underline sm:mt-0 sm:ml-3 sm:inline"
       >
-        Consumo e faturação →
+        Contrato e uso →
       </Link>
     </div>
   );

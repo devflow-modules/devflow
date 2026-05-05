@@ -86,7 +86,7 @@ export function WhatsappConnectClient() {
             setPhoneCapacityHint(
               maxPhones >= 3
                 ? "Atingiu o número de canais incluídos no pacote. Para mais linhas, contacte a equipa comercial."
-                : "Precisa de mais canais no mesmo espaço? O pacote operacional inclui mais linhas — veja Consumo e faturação."
+                : "Precisa de mais canais no mesmo espaço? O pacote operacional inclui mais linhas — veja Contrato e uso."
             );
           } else {
             setPhoneCapacityHint(null);

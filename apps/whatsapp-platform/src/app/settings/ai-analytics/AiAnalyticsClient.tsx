@@ -76,7 +76,7 @@ function getInsights(metrics: Metrics): string[] {
     metrics.tokens_used_total > 10000
   ) {
     insights.push(
-      `💰 Considere reduzir maxTokens nas configurações de IA para controlar o custo.`
+      `💰 Considere reduzir maxTokens nas configurações de IA para controlar o consumo.`
     );
   }
   if (metrics.ai_messages_total === 0 && metrics.messages_total > 0) {
@@ -99,13 +99,13 @@ function getLimitInsight(usageStatus: UsageStatus | null): string | null {
     return null;
   }
   if (!usageStatus.can_use) {
-    return "Incluído no plano esgotado para interações de IA neste período. Atualize o plano para voltar a ter margem no pacote incluído, ou confira em Plano e faturação como funciona o uso adicional («Uso adicional de IA» na fatura).";
+    return "Capacidade de IA incluída no contrato esgotada neste período. Peça revisão ao suporte para voltar a ter margem no pacote incluído, ou confira em Contrato e uso como funciona o uso adicional («Uso adicional de IA» no extrato).";
   }
   if (usageStatus.percent_used != null && usageStatus.percent_used >= 80) {
     return (
       "Está a utilizar cerca de " +
       usageStatus.percent_used +
-      "% das interações de IA incluídas no plano neste período. Aproximar-se do limite não corta o serviço — além do incluído, pode haver uso adicional conforme a fatura."
+      "% das interações de IA incluídas no contrato neste período. Aproximar-se do limite não corta o serviço — além do incluído, pode haver uso adicional conforme o extrato do período."
     );
   }
   return null;
@@ -201,7 +201,7 @@ export function AiAnalyticsClient() {
         </div>
       )}
 
-      {/* Card: capacidade de IA (SaaS inclui nome do plano; white-label só operação) */}
+      {/* Card: capacidade de IA (SaaS mostra nome comercial do pacote; white-label só operação) */}
       {usageStatus && (wl || planInfo) && (
         <div
           className={`rounded-xl border p-5 shadow-sm ring-1 ${
@@ -256,7 +256,7 @@ export function AiAnalyticsClient() {
                 <SupportHelpButton variant="inline" className="text-sm" />
               ) : (
                 <Link href="/billing">
-                  <Button variant="secondary" size="sm">Fazer upgrade do plano</Button>
+                  <Button variant="secondary" size="sm">Contrato e uso</Button>
                 </Link>
               ))}
             {nearLimit && !atLimit &&
@@ -279,7 +279,7 @@ export function AiAnalyticsClient() {
             planInfo.ai_limit != null &&
             !wl && (
             <p className="mt-2 text-xs text-[var(--df-text-muted)]">
-              Plano inclui {planInfo.ai_limit.toLocaleString("pt-BR")} respostas IA/mês. Upgrade oferece mais capacidade.
+              O contrato inclui {planInfo.ai_limit.toLocaleString("pt-BR")} respostas IA/mês. Fale com o suporte para mais capacidade.
             </p>
           )}
           {!wl &&
@@ -288,12 +288,12 @@ export function AiAnalyticsClient() {
             usageStatus.ai_overage_billed > 0 && (
               <div className="mt-3 rounded-xl border border-amber-500/35 bg-amber-950/30 p-3 ring-1 ring-amber-500/12">
                 <p className="text-sm font-medium text-amber-100">
-                  Você excedeu o plano, mas a IA continuou ativa
+                  Ultrapassou o incluído no contrato, mas a IA continuou ativa
                 </p>
                 <div className="mt-2 space-y-1 text-sm text-amber-200/95">
                   {planInfo.ai_limit != null && (
                     <p>
-                      Incluído no plano: {planInfo.ai_limit.toLocaleString("pt-BR")} · Usado: {usageStatus.used.toLocaleString("pt-BR")} · Uso adicional faturado: <strong>{usageStatus.ai_overage_billed}</strong>
+                      Incluído no contrato: {planInfo.ai_limit.toLocaleString("pt-BR")} · Usado: {usageStatus.used.toLocaleString("pt-BR")} · Uso adicional registado: <strong>{usageStatus.ai_overage_billed}</strong>
                     </p>
                   )}
                   {usageStatus.ai_overage_cost_brl != null &&
@@ -302,7 +302,7 @@ export function AiAnalyticsClient() {
                     )}
                 </div>
                 <p className="mt-1 text-xs text-amber-200/85">
-                  Este valor aparece na fatura do período, com o mesmo nome de linha do Stripe.
+                  Este valor aparece no extrato do período, com a mesma linha de descrição do uso adicional.
                 </p>
               </div>
             )}
@@ -322,14 +322,14 @@ export function AiAnalyticsClient() {
       {/* Card: Custo (oculto em white-label — sem exposição de preço) */}
       {!wl && (
         <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
-          <h2 className="mb-3 text-base font-bold tracking-tight text-[var(--df-text-primary)]">Custo</h2>
+          <h2 className="mb-3 text-base font-bold tracking-tight text-[var(--df-text-primary)]">Estimativa de consumo</h2>
           <div className="grid grid-cols-2 gap-4">
             <MetricsCard
               label="Tokens usados"
               value={metrics.tokens_used_total.toLocaleString()}
             />
             <MetricsCard
-              label="Custo estimado (USD)"
+              label="Referência (USD)"
               value={formatUSD(metrics.estimated_cost_usd)}
             />
           </div>
@@ -338,7 +338,7 @@ export function AiAnalyticsClient() {
             usageStatus.ai_overage_cost_brl != null &&
             usageStatus.ai_overage_cost_brl > 0 && (
               <p className="mt-3 text-sm text-amber-800">
-                Excedente IA este mês:{" "}
+                Uso adicional de IA este mês:{" "}
                 <strong>R$ {usageStatus.ai_overage_cost_brl.toFixed(2)}</strong>{" "}
                 ({usageStatus.ai_overage_billed} respostas)
               </p>

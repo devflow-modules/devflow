@@ -409,7 +409,7 @@ export async function sendInboxMessage(threadId: string, text: string): Promise<
       if (code === "FREE_PLAN_LIMIT_REACHED") {
         throw new Error(
           msg ??
-            "Atingiu o limite da avaliação guiada. A operação completa é liberada na implantação — veja Consumo e faturação ou fale connosco."
+            "Atingiu o limite da avaliação guiada. A operação completa é liberada na implantação — veja Contrato e uso ou fale connosco."
         );
       }
       throw new Error(msg ?? `Erro ${res.status}`);

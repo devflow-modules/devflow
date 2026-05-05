@@ -34,7 +34,7 @@ export default async function DashboardWhatsappPage() {
             </Link>
             {!wl ? (
               <Link href="/billing" className="df-quick-action">
-                Plano e faturação
+                Contrato e uso
               </Link>
             ) : null}
           </>

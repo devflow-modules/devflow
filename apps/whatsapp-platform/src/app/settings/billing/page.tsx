@@ -11,13 +11,13 @@ export default function BillingSettingsPage() {
     <div className="mx-auto min-w-0 max-w-4xl space-y-8">
       <PageHeader
         eyebrow="Conta"
-        title="Plano e faturação (resumo)"
+        title="Contrato e uso (resumo)"
         description={
           <>
-            Resumo da assinatura e do consumo. Para comparar planos por valor (operação, IA, equipa) e ver alertas,
+            Resumo da mensalidade e do consumo. Para comparar capacidades (operação, IA, equipa) e ver alertas,
             use{" "}
             <Link href="/dashboard/billing" className="font-semibold text-[var(--df-brand-700)] hover:underline">
-              Plano e faturação no painel
+              Contrato e uso no painel
             </Link>{" "}
             ou{" "}
             <Link href="/billing" className="font-semibold text-[var(--df-brand-700)] hover:underline">

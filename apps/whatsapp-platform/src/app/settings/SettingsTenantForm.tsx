@@ -134,7 +134,7 @@ export function SettingsTenantForm() {
 
       <div className="flex flex-wrap gap-4 text-sm">
         <Link href="/settings/ai" className="font-semibold text-[var(--df-brand-700)] hover:underline">
-          IA de atendimento automático →
+          IA base (WhatsApp) →
         </Link>
         {sessionRole && isTenantManager(sessionRole) ? (
           <Link href="/settings/developer" className="font-semibold text-[var(--df-brand-700)] hover:underline">
@@ -143,7 +143,7 @@ export function SettingsTenantForm() {
         ) : null}
         {!isWhiteLabelMode() ? (
           <Link href="/billing" className="font-semibold text-[var(--df-brand-700)] hover:underline">
-            Plano e uso →
+            Contrato e uso →
           </Link>
         ) : null}
       </div>

@@ -50,7 +50,7 @@ export default function AiSettingsPage() {
               </Link>
               ; consumo e limites em{" "}
               <Link href="/settings/ai-analytics" className="font-semibold text-[var(--df-brand-700)] hover:underline">
-                Uso e custo
+                Uso e desempenho
               </Link>
               ; saúde operacional em{" "}
               <Link href="/dashboard/ai" className="font-semibold text-[var(--df-brand-700)] hover:underline">
@@ -80,7 +80,7 @@ export default function AiSettingsPage() {
               Testar na Inbox
             </Link>
             <Link href="/settings/ai-analytics" className="df-quick-action">
-              {wl ? "Análises de IA" : "Uso e custo de IA"}
+              {wl ? "Análises de IA" : "Uso e desempenho da IA"}
             </Link>
             <Link href="/dashboard/ai" className="df-quick-action">
               Painel de operação
@@ -96,7 +96,7 @@ export default function AiSettingsPage() {
             </Link>
             {!wl ? (
               <Link href="/billing" className="df-quick-action">
-                Plano e faturação
+                Contrato e uso
               </Link>
             ) : null}
           </>

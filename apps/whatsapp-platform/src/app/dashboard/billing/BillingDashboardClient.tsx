@@ -108,7 +108,7 @@ export function BillingDashboardClient() {
           continue;
         }
       }
-      setError("Checkout indisponível");
+      setError("Ativação indisponível");
     } finally {
       setCheckoutBusy(false);
     }
@@ -117,7 +117,7 @@ export function BillingDashboardClient() {
   const billingHeader = (
     <PageHeader
       eyebrow="Conta"
-      title="Consumo e faturação"
+      title="Contrato e uso"
       description={BILLING_PAGE_HEADER_DESCRIPTION}
       layout="split"
       showDivider
@@ -130,7 +130,7 @@ export function BillingDashboardClient() {
             onClick={() => void openPortal()}
             disabled={portalLoading}
           >
-            {portalLoading ? "A abrir…" : "Ver portal de faturação"}
+            {portalLoading ? "A abrir…" : "Área de pagamentos e documentos"}
           </Button>
           <Link href="/settings" className="df-quick-action">
             Configurações
@@ -144,7 +144,7 @@ export function BillingDashboardClient() {
     return (
       <div className="df-stack-tight">
         {billingHeader}
-        <StateLoading message="A carregar consumo e faturação…" />
+        <StateLoading message="A carregar contrato e uso…" />
       </div>
     );
   }
@@ -171,12 +171,12 @@ export function BillingDashboardClient() {
 
       {successParam === "true" && (
         <div className="df-feedback-success" role="status">
-          Assinatura atualizada com sucesso.
+          Dados da mensalidade atualizados com sucesso.
         </div>
       )}
       {canceledParam === "true" && (
         <div className="df-feedback-info" role="status">
-          Checkout cancelado.
+          Ativação ou pagamento cancelado.
         </div>
       )}
 
@@ -210,7 +210,7 @@ export function BillingDashboardClient() {
           ) : null}
           <p className="mt-2 leading-relaxed">
             A operação comercial é consultiva (implantação + mensalidade). Se já tiver acordo connosco e quiser
-            ativar o pagamento recorrente aqui, pode continuar para o Stripe.
+            ativar o pagamento recorrente aqui, pode continuar no passo seguro de pagamento.
           </p>
           <Button variant="disabled"
             type="button"
@@ -218,7 +218,7 @@ export function BillingDashboardClient() {
             disabled={checkoutBusy}
             onClick={() => void checkoutOperationalBase()}
           >
-            {checkoutBusy ? "A redirecionar…" : "Ativar operação completa (Stripe)"}
+            {checkoutBusy ? "A redirecionar…" : "Ativar operação completa"}
           </Button>
         </div>
       ) : null}
@@ -248,7 +248,7 @@ export function BillingDashboardClient() {
           includedKindLabel="conversas incluídas"
         />
         <UsageCard
-          title="IA de atendimento"
+          title="IA no WhatsApp"
           used={d.aiUsed}
           limit={d.aiLimit}
           percentage={d.usagePercentageAI}
@@ -277,7 +277,7 @@ export function BillingDashboardClient() {
         />
 
         <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm sm:col-span-2 lg:col-span-2">
-          <h3 className="text-sm font-medium text-[var(--df-text-secondary)]">Próxima cobrança</h3>
+          <h3 className="text-sm font-medium text-[var(--df-text-secondary)]">Próximo ciclo mensal</h3>
           <p className="mt-1 text-[var(--df-text-primary)]">
             {d.nextInvoiceDate
               ? new Date(d.nextInvoiceDate).toLocaleDateString("pt-BR", {
@@ -289,7 +289,7 @@ export function BillingDashboardClient() {
           </p>
           {d.lastInvoiceAmount != null && d.lastInvoiceAmount > 0 && (
             <p className="mt-1 text-sm text-[var(--df-text-secondary)]">
-              Última fatura: {formatBRL(d.lastInvoiceAmount)}{" "}
+              Última cobrança registada: {formatBRL(d.lastInvoiceAmount)}{" "}
               {d.lastInvoiceStatus && (
                 <span className="text-[var(--df-text-muted)]">({d.lastInvoiceStatus})</span>
               )}

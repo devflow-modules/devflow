@@ -44,7 +44,7 @@ export const FEATURE_UPGRADE_COPY: Record<FeatureKey, string | undefined> = isWh
 /** Mensagem quando FREE atinge limite (API 402 ou paywall contextual). */
 export const FREE_PLAN_LIMIT_PAYWALL_MESSAGE = isWhiteLabelMode()
   ? "Atingiu a margem atual da operação neste período. Contacte o suporte para alinhar capacidade e continuar o atendimento."
-  : "Atingiu o limite da avaliação guiada. A operação completa (inbox, equipa, automações e volumes) é liberada na implantação — veja Consumo e faturação ou fale connosco.";
+  : "Atingiu o limite da avaliação guiada. A operação completa (inbox, equipa, automações e volumes) é liberada na implantação — veja Contrato e uso ou fale connosco.";
 
 function planDisplayName(plan: PlanKey): string {
   return PLANS[plan].name;
@@ -59,8 +59,8 @@ export function featureUpgradeShortMessage(feature: FeatureKey, requiredPlan: Pl
   }
   const base = FEATURE_UPGRADE_COPY[feature]?.trim();
   const target = planDisplayName(requiredPlan);
-  if (base) return `${base} Requisito mínimo: ${target}.`;
-  return `Esta funcionalidade requer a operação: ${target}.`;
+  if (base) return `${base} Capacidade necessária: ${target}.`;
+  return `Esta funcionalidade requer a operação em modalidade: ${target}.`;
 }
 
 /** Texto para hints preventivos (Inbox / IA / WhatsApp). */

@@ -18,7 +18,7 @@ export function CurrentPlanUpgradeHint({ plan }: Props) {
   return (
     <div className="rounded-xl border df-border-brand bg-gradient-to-br from-[color-mix(in_srgb,var(--df-bg-app)_55%,var(--df-bg-elevated))] to-[var(--df-bg-elevated)] px-4 py-3 shadow-sm">
       <p className="text-sm text-[var(--df-text-primary)]">
-        Está no plano <strong>{def.name}</strong>.
+        Está na modalidade <strong>{def.name}</strong>.
       </p>
       {hint ? (
         <p className="mt-2 text-sm text-[var(--df-text-secondary)]">

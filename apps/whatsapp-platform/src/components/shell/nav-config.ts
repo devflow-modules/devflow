@@ -50,7 +50,7 @@ export function navAutomationItemsForRole(role: UserRole | string | null): NavIt
   return items;
 }
 
-/** 3. Conta — WhatsApp, faturação, configurações, integrações */
+/** 3. Conta — WhatsApp, contrato e uso, configurações, integrações */
 export function navAccountItemsForRole(role: UserRole | string | null): NavItem[] {
   if (!role) {
     const out: NavItem[] = [navItem("/dashboard/whatsapp")];

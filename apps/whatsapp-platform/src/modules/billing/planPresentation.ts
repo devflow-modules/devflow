@@ -82,7 +82,7 @@ export const COMMERCIAL_RECOMMENDED_BADGE = "Recomendado";
 /** Subtítulo da página Consumo / faturação (PageHeader / contexto). */
 export const BILLING_PAGE_HEADER_DESCRIPTION = isWhiteLabelMode()
   ? "Acompanhe o estado da operação e o uso do sistema. Para ajustes, contacte o suporte."
-  : "Acompanhe o consumo do período e a sua assinatura. Ajustes de contrato e implantação são feitos com a nossa equipa.";
+  : "Acompanhe o uso do período e o contrato ativo. Ajustes de capacidade e implantação são feitos com a nossa equipa.";
 
 /** Secção de venda consultiva na página Plano / billing (FREE → operação completa). */
 export const HOW_FULL_OPERATION_WORKS = isWhiteLabelMode()
@@ -155,7 +155,7 @@ export const CONTEXTUAL_UPGRADE_HINTS = isWhiteLabelMode()
     } as const)
   : ({
       inbox:
-        "Neste ambiente de avaliação, filas e responsáveis avançados fazem parte da operação completa — combinamos na implantação. Veja consumo em Consumo e faturação.",
+        "Neste ambiente de avaliação, filas e responsáveis avançados fazem parte da operação completa — combinamos na implantação. Veja o resumo em Contrato e uso.",
       aiSettings:
         "Margem de IA e automação alinhadas ao contrato: na avaliação o uso é limitado; para expandir, avance para a operação completa com a equipa.",
       whatsappChannel:

@@ -147,13 +147,13 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
         <div className="rounded-xl border border-border bg-muted/60/80 px-4 py-3 text-sm df-text-secondary">
           <p className="font-medium df-text-primary">Ativação guiada</p>
           <p className="mt-1 text-xs leading-relaxed df-text-secondary">
-            Criamos o espaço da sua operação. Na sequência, configure o canal e o atendimento — sem checkout nem
-            pagamento nesta página.
+            Criamos o espaço da sua operação. Na sequência, configure o canal e o atendimento — sem pagamento nesta
+            página.
           </p>
         </div>
       ) : (
         <fieldset disabled={loading} className="space-y-3">
-          <legend className="mb-1 text-sm font-medium df-text-secondary">Plano</legend>
+          <legend className="mb-1 text-sm font-medium df-text-secondary">Modalidade de ativação</legend>
           <div className="grid gap-3">
             <label className={planCardClass(planId === "free")}>
               <input
@@ -183,7 +183,7 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
               />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-semibold df-text-primary">Pro</span>
+                  <span className="text-sm font-semibold df-text-primary">Operação contratada</span>
                   <span className="df-badge-warning inline-flex !normal-case">{COMMERCIAL_RECOMMENDED_BADGE}</span>
                 </div>
                 <p className="mt-1 text-xs leading-relaxed df-text-secondary">
@@ -200,7 +200,7 @@ export function SignupForm({ affiliateRefFromUrl }: { affiliateRefFromUrl?: stri
 
           {planId === "pro" ? (
             <p className="text-xs leading-relaxed df-text-secondary">
-              Após criar a conta, você poderá concluir a ativação do plano no checkout seguro (cartão).
+              Após criar a conta, poderá concluir a ativação com pagamento seguro no passo seguinte (cartão), com acompanhamento da equipa.
             </p>
           ) : null}
         </fieldset>

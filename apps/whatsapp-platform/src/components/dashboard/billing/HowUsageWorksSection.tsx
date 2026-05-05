@@ -16,7 +16,7 @@ type Props = {
 };
 
 /**
- * Bloco educativo para planos pagos (STARTER / PRO / SCALE): incluído, expansão faturada e preços.
+ * Bloco educativo para contratos com expansão de uso: incluído, uso adicional e referência de preço.
  * Plano FREE: usar `HowFreePlanWorksSection`.
  */
 export function HowUsageWorksSection({ unitPrices, className = "" }: Props) {
@@ -31,8 +31,8 @@ export function HowUsageWorksSection({ unitPrices, className = "" }: Props) {
         Como funciona o uso
       </h2>
       <p className="mt-1 text-sm text-[var(--df-text-secondary)]">
-        Cada plano inclui um volume de conversas e de interações de IA por mês. Isto é o pacote base da sua
-        subscrição.
+        O contrato inclui um volume de conversas e de interações de IA por mês. Isto é o pacote base da operação
+        contratada.
       </p>
       <ul className="mt-4 space-y-3 text-sm text-[var(--df-text-secondary)]">
         <li className="flex gap-2">
@@ -40,8 +40,8 @@ export function HowUsageWorksSection({ unitPrices, className = "" }: Props) {
             ✓
           </span>
           <span>
-            <strong className="text-[var(--df-text-primary)]">Incluído no plano:</strong> conversas e interações de IA até aos
-            limites do nível que escolheu (ver tabela de planos).
+            <strong className="text-[var(--df-text-primary)]">Incluído no contrato:</strong> conversas e interações de IA até aos
+            limites acordados (detalhe em Contrato e uso).
           </span>
         </li>
         <li className="flex gap-2">
@@ -78,8 +78,8 @@ export function HowUsageWorksSection({ unitPrices, className = "" }: Props) {
           ))}
         </ul>
         <p className="mt-3 text-xs leading-relaxed text-[var(--df-text-muted)]">
-          Na fatura, estes valores aparecem como «{STRIPE_USAGE_LINE_LABELS.extraConversations}» e «
-          {STRIPE_USAGE_LINE_LABELS.extraAi}», alinhados ao Stripe.
+          No extrato do período, estes valores aparecem como «{STRIPE_USAGE_LINE_LABELS.extraConversations}» e «
+          {STRIPE_USAGE_LINE_LABELS.extraAi}».
         </p>
       </div>
 

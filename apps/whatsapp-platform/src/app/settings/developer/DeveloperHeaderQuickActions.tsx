@@ -12,7 +12,7 @@ export function DeveloperHeaderQuickActions() {
       </Link>
       {!isWhiteLabelMode() ? (
         <Link href="/billing" className="df-quick-action">
-          Cobrança
+          Contrato e uso
         </Link>
       ) : null}
       <Button variant="secondary"

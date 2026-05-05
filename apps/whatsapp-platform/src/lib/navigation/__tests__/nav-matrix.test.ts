@@ -49,7 +49,7 @@ describe("nav-matrix", () => {
     const inbox = routes.find((r) => r.href === "/inbox");
     expect(inbox?.aliases).toContain("mensagens");
     const billing = routes.find((r) => r.href === "/billing");
-    expect(billing?.label).toBe("Plano e faturação");
+    expect(billing?.label).toBe("Contrato e uso");
     expect(billing?.aliases.some((a) => a.includes("cobran"))).toBe(true);
   });
 });

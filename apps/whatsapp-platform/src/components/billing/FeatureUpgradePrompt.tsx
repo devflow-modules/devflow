@@ -28,7 +28,7 @@ export function FeatureUpgradePrompt({
 }: Props) {
   const msg =
     blocked.message?.trim() ||
-    `Para usar esta funcionalidade, faça upgrade para o plano ${planLabel(blocked.requiredPlan)}.`;
+    `Esta funcionalidade faz parte da operação contratada ou requer capacidade adicional (pacote: ${planLabel(blocked.requiredPlan)}). Ajuste em Contrato e uso ou fale com o suporte.`;
 
   const shell =
     "df-feedback-warning flex flex-col gap-3 shadow-sm sm:flex-row sm:items-center sm:justify-between";
@@ -75,7 +75,7 @@ export function FeatureUpgradePrompt({
           href={billingHref}
           className="inline-flex items-center justify-center rounded-lg bg-[var(--df-brand-600)] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[var(--df-brand-700)]"
         >
-          Ver planos
+          Contrato e uso
         </Link>
       </div>
     </div>

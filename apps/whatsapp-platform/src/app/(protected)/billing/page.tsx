@@ -22,13 +22,13 @@ export default async function BillingPage() {
     <div className="mx-auto max-w-4xl space-y-8">
       <PageHeader
         eyebrow="Conta"
-        title="Plano e faturação"
+        title="Contrato e uso"
         description={BILLING_PAGE_HEADER_DESCRIPTION}
         layout="split"
         showDivider
         tone="admin"
       />
-      <Suspense fallback={<StateLoading message="A carregar dados de faturação…" />}>
+      <Suspense fallback={<StateLoading message="A carregar contrato e uso…" />}>
         <BillingPageClient />
       </Suspense>
     </div>

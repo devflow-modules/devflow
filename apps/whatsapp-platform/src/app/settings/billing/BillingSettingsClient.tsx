@@ -87,7 +87,7 @@ export function BillingSettingsClient() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j as { error?: string }));
       const url = readBillingPostUrl(j);
-      if (!url) throw new Error("URL do portal não disponível.");
+      if (!url) throw new Error("URL da área de pagamentos não disponível.");
       window.location.href = url;
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Portal indisponível");
@@ -108,17 +108,17 @@ export function BillingSettingsClient() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(protectedApiUserMessage(res.status, j as { error?: string }));
       const url = readBillingPostUrl(j);
-      if (!url) throw new Error("URL de checkout não disponível.");
+      if (!url) throw new Error("URL de ativação não disponível.");
       window.location.href = url;
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Checkout indisponível");
+      setErr(e instanceof Error ? e.message : "Ativação indisponível");
     } finally {
       setCheckoutLoading(null);
     }
   }
 
   if (loading) {
-    return <StateLoading message="A carregar faturação…" className="min-h-[14rem]" />;
+    return <StateLoading message="A carregar contrato e uso…" className="min-h-[14rem]" />;
   }
 
   const evaluationStaleHint =
@@ -153,15 +153,15 @@ export function BillingSettingsClient() {
       ) : null}
 
       <section className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)] sm:p-6">
-        <h2 className="mb-1 text-lg font-bold tracking-tight text-[var(--df-text-primary)]">Assinatura</h2>
+        <h2 className="mb-1 text-lg font-bold tracking-tight text-[var(--df-text-primary)]">Contrato ativo</h2>
         <p className="mb-3 text-sm text-[var(--df-text-secondary)]">
-          Plano ativo, renovação e faturação via Stripe. Limites técnicos e enforcement continuam definidos no
-          servidor — aqui vê o estado e acede ao portal.
+          Mensalidade, renovação e documentos de pagamento. Limites técnicos e regras da operação continuam definidos no
+          servidor — aqui vê o estado e acede à área segura de pagamento.
         </p>
         {sub && (
           <dl className="grid gap-2 text-sm">
             <div className="flex justify-between">
-              <dt className="text-[var(--df-text-muted)]">Plano</dt>
+              <dt className="text-[var(--df-text-muted)]">Pacote</dt>
               <dd className="font-medium uppercase">{sub.plan}</dd>
             </div>
             <div className="flex justify-between">
@@ -178,13 +178,13 @@ export function BillingSettingsClient() {
               <p className="text-amber-700 text-xs">Cancelamento agendado ao fim do período.</p>
             )}
             <div className="flex justify-between pt-2 border-t df-border-brand">
-              <dt className="text-[var(--df-text-muted)]">Uso variável Stripe</dt>
+              <dt className="text-[var(--df-text-muted)]">Uso variável da operação</dt>
               <dd>{sub.meteredBillingConfigured ? "Ativo" : "Não configurado"}</dd>
             </div>
             {sub.lastInvoiceId && (
               <>
                 <div className="flex justify-between">
-                  <dt className="text-[var(--df-text-muted)]">Última invoice</dt>
+                  <dt className="text-[var(--df-text-muted)]">Último documento</dt>
                   <dd className="text-xs font-mono truncate max-w-[180px]">{sub.lastInvoiceId}</dd>
                 </div>
                 <div className="flex justify-between">
@@ -193,7 +193,8 @@ export function BillingSettingsClient() {
                     {sub.lastInvoiceStatus}{" "}
                     {sub.lastInvoiceAmountPaid != null && (
                       <span className="text-[var(--df-text-secondary)]">
-                        ({(sub.lastInvoiceAmountPaid / 100).toFixed(2)} {sub.lastInvoiceAmountPaid > 0 ? "centavos/moeda Stripe" : ""})
+                        ({(sub.lastInvoiceAmountPaid / 100).toFixed(2)}{" "}
+                        {sub.lastInvoiceAmountPaid > 0 ? "valor bruto reportado" : ""})
                       </span>
                     )}
                   </dd>
@@ -205,7 +206,7 @@ export function BillingSettingsClient() {
         <div className="mt-4 flex flex-wrap gap-2">
           {sub?.stripeCustomerId ? (
             <Button variant="secondary" type="button" onClick={() => void openPortal()} disabled={portalLoading}>
-              {portalLoading ? "Abrindo…" : "Portal Stripe (faturas e pagamento)"}
+              {portalLoading ? "Abrindo…" : "Área de pagamentos e documentos"}
             </Button>
           ) : null}
           <Button
@@ -214,7 +215,7 @@ export function BillingSettingsClient() {
             onClick={() => void checkoutOperational()}
             disabled={!!checkoutLoading}
           >
-            {checkoutLoading === "OPERATIONAL_BASE" ? "…" : "Ativar operação contratada (Stripe)"}
+            {checkoutLoading === "OPERATIONAL_BASE" ? "…" : "Ativar operação contratada"}
           </Button>
         </div>
       </section>
@@ -269,15 +270,15 @@ export function BillingSettingsClient() {
             </div>
             {usage.stripeMetered && sub?.meteredBillingConfigured && (
               <div className="border-t df-border-brand pt-3 mt-2 space-y-2">
-                <p className="text-xs font-medium text-[var(--df-text-secondary)]">Enviado ao Stripe (metered)</p>
+                <p className="text-xs font-medium text-[var(--df-text-secondary)]">Uso adicional sincronizado</p>
                 <div className="flex justify-between text-sm">
-                  <dt>Mensagens faturáveis</dt>
+                  <dt>Conversas reportadas (uso adicional)</dt>
                   <dd className="font-mono">
                     {usage.stripeMetered.messagesReportedToStripe} / {usage.messagesSent}
                   </dd>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <dt>IA faturável</dt>
+                  <dt>IA reportada (uso adicional)</dt>
                   <dd className="font-mono">
                     {usage.stripeMetered.aiReportedToStripe} / {usage.aiResponses}
                   </dd>

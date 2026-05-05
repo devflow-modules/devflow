@@ -428,7 +428,7 @@ export function DashboardClient({ snapshot }: { snapshot: TenantSnapshot }) {
               </Link>
               {!isWhiteLabelMode() ? (
                 <Link href="/billing" className={`${buttonClassName("ghost")} w-full justify-center`}>
-                  Plano e uso
+                  Contrato e uso
                 </Link>
               ) : null}
             </div>

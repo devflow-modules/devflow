@@ -63,7 +63,7 @@ type Usage = {
   };
 };
 
-/** Planos mostrados no modal de checkout (venda consultiva: um pacote pago). */
+/** Pacotes mostrados no modal de ativação (venda consultiva: um pacote pago). */
 const MODAL_CHECKOUT_PLANS: PlanKey[] = ["OPERATIONAL_BASE"];
 
 function displayPlanName(plan: string | undefined): string {
@@ -72,7 +72,7 @@ function displayPlanName(plan: string | undefined): string {
 
 function subscriptionStatusPt(status: string | undefined): string {
   const s = (status ?? "").toUpperCase();
-  if (s === "ACTIVE") return "Ativo — cobrança em dia";
+  if (s === "ACTIVE") return "Ativo — pagamentos em dia";
   if (s === "TRIAL") return "Período de teste";
   if (s === "PAST_DUE") return "Pagamento em falta — atualize o método";
   if (s === "CANCELED" || s === "CANCELLED") return "Cancelado";
@@ -80,7 +80,7 @@ function subscriptionStatusPt(status: string | undefined): string {
 }
 
 function nextRenewalLabel(iso: string | null | undefined): string {
-  if (!iso) return "Quando ativar um plano pago, mostramos aqui a data da próxima renovação.";
+  if (!iso) return "Quando tiver mensalidade ativa, mostramos aqui a data da próxima renovação.";
   try {
     return new Date(iso).toLocaleDateString("pt-BR", {
       weekday: "long",
@@ -214,7 +214,7 @@ export function BillingPageClient() {
       await load();
       setShowUpgradeModal(false);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Erro ao fazer upgrade");
+      setErr(e instanceof Error ? e.message : "Erro ao ajustar o contrato");
     } finally {
       setUpgradeLoading(null);
     }
@@ -227,19 +227,19 @@ export function BillingPageClient() {
       : null;
 
   if (loading) {
-    return <StateLoading message="A carregar informação de plano…" className="min-h-[40vh]" />;
+    return <StateLoading message="A carregar contrato e uso…" className="min-h-[40vh]" />;
   }
 
   return (
     <div className="min-w-0 space-y-8">
       {successParam === "true" && (
         <div className="df-feedback-success" role="status">
-          <p className="font-medium">Plano atualizado com sucesso.</p>
+          <p className="font-medium">Contrato atualizado com sucesso.</p>
         </div>
       )}
       {canceledParam === "true" && (
         <div className="rounded-lg border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_45%,var(--df-bg-elevated))] px-4 py-3 text-sm text-[var(--df-text-secondary)]">
-          <p>Checkout cancelado.</p>
+          <p>Ativação ou pagamento cancelado.</p>
         </div>
       )}
       {sub ? <CurrentPlanUpgradeHint plan={sub.plan} /> : null}
@@ -250,13 +250,13 @@ export function BillingPageClient() {
       ) : null}
       {beyondIncluded && usage?.enforceLimits && usage.allowsMeteredOverage && (
         <div className="df-feedback-warning py-4" role="alert">
-          <p className="font-semibold">Limite incluído no plano atingido neste período</p>
+          <p className="font-semibold">Volume incluído no contrato atingido neste período</p>
           <p className="mt-1 opacity-95">
-            Com o modo de enforcement ativo, o serviço pode limitar funcionalidades até atualizar o plano ou o período
-            renovar. Prefira subir de nível para recuperar margem no pacote incluído.
+            Com o modo de enforcement ativo, o serviço pode limitar funcionalidades até rever a capacidade contratada ou o período
+            renovar. Fale com o suporte para alinhar margem no pacote incluído.
           </p>
           <Button variant="secondary" type="button" size="sm" className="mt-3" onClick={() => setShowUpgradeModal(true)}>
-            Ver planos e continuar
+            Ver capacidades e continuar
           </Button>
         </div>
       )}
@@ -274,10 +274,10 @@ export function BillingPageClient() {
       )}
       {beyondIncluded && usage && !usage.enforceLimits && (
         <div className="rounded-lg border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_45%,var(--df-bg-elevated))] px-4 py-4 text-sm text-[var(--df-text-primary)]">
-          <p className="font-semibold">Ultrapassou o incluído no plano — o atendimento continua</p>
+          <p className="font-semibold">Ultrapassou o incluído no contrato — o atendimento continua</p>
           <p className="mt-1 text-[var(--df-text-secondary)]">
             O uso adicional («{STRIPE_USAGE_LINE_LABELS.extraConversations}» e «{STRIPE_USAGE_LINE_LABELS.extraAi}») é
-            registado e cobrado no fim do período. {USAGE_ANTI_SURPRISE_LINE}
+            registado e consolidado no fim do período mensal. {USAGE_ANTI_SURPRISE_LINE}
           </p>
         </div>
       )}
@@ -296,7 +296,7 @@ export function BillingPageClient() {
       <section className="overflow-hidden rounded-2xl border df-border-brand bg-gradient-to-br from-[var(--df-bg-elevated)] to-[var(--df-bg-app)] p-5 shadow-md sm:p-8">
         <div className="flex min-w-0 flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--df-text-muted)]">O seu plano</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--df-text-muted)]">Contrato ativo</p>
             {sub ? (
               <>
                 <p className="mt-1 text-sm font-medium text-[var(--df-text-muted)]">{displayPlanName(sub.plan)}</p>
@@ -321,11 +321,11 @@ export function BillingPageClient() {
                 ? COMMERCIAL_CHECKOUT_CTA.OPERATIONAL_BASE
                 : sub
                   ? billingChangePlanButtonLabel(getPlan(sub.plan).key)
-                  : "Mudar de plano"}
+                  : "Ajustar contrato"}
             </Button>
             {sub?.stripeCustomerId ? (
               <Button type="button" variant="outline" onClick={() => void openPortal()} disabled={portalLoading}>
-                {portalLoading ? "A abrir…" : "Faturas e método de pagamento"}
+                {portalLoading ? "A abrir…" : "Documentos e método de pagamento"}
               </Button>
             ) : null}
           </div>
@@ -371,8 +371,8 @@ export function BillingPageClient() {
           <p className="mb-4 rounded-lg border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_52%,var(--df-bg-elevated))] px-3 py-2.5 text-xs leading-relaxed text-[var(--df-text-secondary)]">
             {usage.allowsMeteredOverage ? (
               <>
-                Comparado com o que o plano inclui por mês. Depois do incluído, entra em vigor o uso adicional — o
-                atendimento continua. Na fatura Stripe, aparece como «{STRIPE_USAGE_LINE_LABELS.extraConversations}» e «
+                Comparado com o que o contrato inclui por mês. Depois do incluído, entra em vigor o uso adicional — o
+                atendimento continua. No extrato do período, aparece como «{STRIPE_USAGE_LINE_LABELS.extraConversations}» e «
                 {STRIPE_USAGE_LINE_LABELS.extraAi}».
               </>
             ) : (
@@ -408,7 +408,7 @@ export function BillingPageClient() {
           </div>
           {usage.allowsMeteredOverage && (!usage.withinLimits.messages || !usage.withinLimits.ai) ? (
             <p className="df-text-warning mt-3 text-xs font-medium">
-              Parte do consumo está além do volume incluído — o uso adicional será refletido na fatura, sem interromper o
+              Parte do consumo está além do volume incluído — o uso adicional será refletido no extrato do período, sem interromper o
               serviço.
             </p>
           ) : null}
@@ -423,7 +423,7 @@ export function BillingPageClient() {
                   )}
                 </p>
                 <p className="mt-1 text-xs opacity-90">
-                  O mesmo nome aparece na fatura Stripe para facilitar a reconciliação.
+                  O mesmo nome aparece no extrato do período para facilitar o acompanhamento.
                 </p>
               </div>
             )}
@@ -456,7 +456,7 @@ export function BillingPageClient() {
                     ? `R$ ${def.priceBrl}/mês`
                     : key === "FREE"
                       ? "Avaliação (sem cobrança)"
-                      : "Mensalidade conforme Stripe / contrato";
+                      : "Mensalidade conforme contrato acordado";
                 const isRecommended = key === COMMERCIAL_RECOMMENDED_PLAN;
                 const benefits = COMMERCIAL_PLAN_BENEFITS[key];
                 const cta = COMMERCIAL_CHECKOUT_CTA[key];
@@ -506,7 +506,7 @@ export function BillingPageClient() {
                       disabled={isCurrent || !!checkoutLoading}
                     >
                       {isCurrent
-                        ? "Plano atual"
+                        ? "Contrato atual"
                         : checkoutLoading === key
                           ? "A redirecionar…"
                           : cta}

@@ -207,10 +207,10 @@ export function DashboardAiClient() {
             Motor (config. gerais)
           </Link>
           <Link href="/settings/ai" className="df-quick-action">
-            IA de atendimento
+            IA base (WhatsApp)
           </Link>
           <Link href="/settings/ai-analytics" className="df-quick-action">
-            Uso e custos de IA
+            Uso e desempenho da IA
           </Link>
           <Link href="/inbox" className="df-quick-action">
             Abrir Inbox

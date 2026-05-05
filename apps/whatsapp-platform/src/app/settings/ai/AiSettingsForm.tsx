@@ -243,7 +243,7 @@ function IaCrossLinks() {
         <p className="mt-1 text-sm font-semibold text-[var(--df-text-primary)] group-hover:text-[var(--df-brand-900)]">
           Uso e custo de IA
         </p>
-        <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Tokens, limites do plano</p>
+        <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Tokens e limites contratados</p>
       </Link>
       <Link
         href="/dashboard/ai"
@@ -277,15 +277,15 @@ function GuardrailsSummary(props: {
           automática ligada, decisão dos guards a permitir e{" "}
           {canUse === false ? (
             <span className="text-amber-800">
-              {wl ? "capacidade de IA da operação esgotada ou bloqueada" : "quota do plano esgotada ou bloqueada"}
+              {wl ? "capacidade de IA da operação esgotada ou bloqueada" : "capacidade de IA contratada esgotada ou bloqueada"}
             </span>
           ) : (
-            <span>{wl ? "margem de capacidade disponível para a operação" : "quota disponível no plano"}</span>
+            <span>{wl ? "margem de capacidade disponível para a operação" : "margem disponível no contrato"}</span>
           )}
           {!wl && planName ? (
             <>
               {" "}
-              (<span className="whitespace-nowrap">plano {planName}</span>)
+              (<span className="whitespace-nowrap">contrato: {planName}</span>)
             </>
           ) : null}
           .
@@ -644,7 +644,7 @@ export function AiSettingsForm() {
         <div className="rounded-xl border border-dashed df-border-brand bg-[color-mix(in_srgb,var(--df-bg-elevated)_78%,transparent)] px-4 py-3 text-sm text-[var(--df-text-secondary)]">
           <p className="font-semibold text-[var(--df-text-primary)]">Ordem sugerida de configuração</p>
           <ol className="mt-2 list-decimal space-y-1 pl-5">
-            <li>Motor e quota (cartões acima)</li>
+            <li>Motor e capacidade (cartões acima)</li>
             <li>
               <Link href="#comportamento" className="font-medium text-[var(--df-brand-700)] hover:underline">
                 Comportamento
@@ -894,7 +894,7 @@ export function AiSettingsForm() {
             <span className="mt-1 block text-xs font-normal text-[var(--df-text-muted)]">
               Quando usar: atendimento 24/7 com IA na base. Desligue se quiser só rascunhos ou revisão humana obrigatória
               por omissão. Cada linha pode afinar se responde sozinha. Impacto em custo: cada resposta automática conta no
-              uso de IA do plano.
+              uso de IA incluído no contrato.
             </span>
           </span>
         </label>
@@ -1060,7 +1060,7 @@ export function AiSettingsForm() {
               onChange={(e) => setTestMessage(e.target.value)}
               rows={5}
               className={`${fieldTextareaClassName} rounded-2xl rounded-tl-md border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_55%,var(--df-bg-elevated))]`}
-              placeholder="Ex.: Olá, quanto custa o plano anual?"
+              placeholder="Ex.: Olá, qual o valor da proposta anual?"
             />
           </div>
 

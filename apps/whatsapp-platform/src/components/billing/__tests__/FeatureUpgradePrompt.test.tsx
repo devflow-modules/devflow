@@ -13,7 +13,7 @@ describe("FeatureUpgradePrompt", () => {
     vi.unstubAllEnvs();
   });
 
-  it("mostra mensagem e link Ver planos", async () => {
+  it("mostra mensagem personalizada e link Contrato e uso", async () => {
     vi.stubEnv("NEXT_PUBLIC_PRODUCT_MODE", "SAAS");
     const { FeatureUpgradePrompt } = await import("../FeatureUpgradePrompt");
     render(
@@ -23,13 +23,15 @@ describe("FeatureUpgradePrompt", () => {
             feature: "QUEUES_TAGS",
             currentPlan: "STARTER",
             requiredPlan: "PRO",
-            message: "Upgrade para Pro para filas.",
+            message: "Filas completas fazem parte da operação contratada — fale com o suporte para incluir.",
           }}
         />
       </SupportProvider>
     );
     expect(screen.getByTestId("feature-upgrade-prompt")).toBeInTheDocument();
-    expect(screen.getByText(/Upgrade para Pro para filas/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /ver planos/i })).toHaveAttribute("href", "/dashboard/billing");
+    expect(
+      screen.getByText(/Filas completas fazem parte da operação contratada — fale com o suporte para incluir/i)
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /contrato e uso/i })).toHaveAttribute("href", "/dashboard/billing");
   });
 });

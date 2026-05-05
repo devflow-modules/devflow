@@ -38,12 +38,12 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     searchAliases: ["whatsapp", "meta", "business", "número", "ligar", "configurar whatsapp", "linha"],
   },
   "/dashboard/billing": {
-    label: "Plano e faturação",
+    label: "Contrato e uso",
     parent: "/dashboard",
     section: "conta",
     roles: ["manager", "platform_admin"],
     sensitive: true,
-    searchAliases: ["plano", "faturação", "fatura", "stripe"],
+    searchAliases: ["contrato", "mensalidade", "consumo", "uso", "capacidade"],
   },
   "/dashboard/ai": {
     label: "IA — operação",
@@ -99,7 +99,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     searchAliases: ["prompt", "comportamento", "tom", "playbook", "respostas automáticas", "ia de atendimento"],
   },
   "/settings/billing": {
-    label: "Plano e faturação (resumo)",
+    label: "Contrato e uso (resumo)",
     parent: "/settings",
     section: "conta",
     roles: ["manager", "platform_admin"],
@@ -113,11 +113,11 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     searchAliases: ["chave api", "webhook", "desenvolvedor"],
   },
   "/billing": {
-    label: "Plano e faturação",
+    label: "Contrato e uso",
     parent: null,
     section: "conta",
     roles: ["manager", "platform_admin"],
-    searchAliases: ["cobrança", "plano", "pagamento", "assinatura", "stripe", "fatura"],
+    searchAliases: ["cobrança", "contrato", "pagamento", "mensalidade", "consumo", "extrato"],
   },
   "/agents": {
     label: "Agentes",

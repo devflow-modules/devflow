@@ -50,7 +50,7 @@ export function UpgradeCTA({
         onClick={() => onUpgrade(nextPlan)}
         disabled={!!loadingPlan}
       >
-        {loadingPlan === nextPlan ? "A redirecionar…" : `Continuar com o plano ${nextPlanDef.name}`}
+        {loadingPlan === nextPlan ? "A redirecionar…" : `Continuar com ${nextPlanDef.name}`}
       </Button>
     </div>
   );

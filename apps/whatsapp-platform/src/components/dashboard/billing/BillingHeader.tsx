@@ -60,7 +60,7 @@ export function BillingHeader({
             onClick={onManageSubscription}
             disabled={manageLoading}
           >
-            {manageLoading ? "A abrir…" : "Gerir assinatura (Stripe)"}
+            {manageLoading ? "A abrir…" : "Gerir contrato e pagamento"}
           </Button>
         )}
       </div>

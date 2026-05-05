@@ -7,7 +7,7 @@ import { formatFreeEvaluationUsageCounts } from "@/modules/billing/demoEvaluatio
 import { isWhiteLabelMode } from "@/lib/productMode";
 
 type Props = {
-  /** Plano normalizado (ex.: tenant billing). */
+  /** Pacote normalizado (ex.: tenant billing). */
   currentPlan: string;
   usagePercentageMessages: number | null;
   usagePercentageAI: number | null;
@@ -72,8 +72,8 @@ export function BillingAlerts({
       alerts.push({
         type: "danger",
         message:
-          "Atingiu o limite da avaliação. Ative a operação contratada para continuar o atendimento — Consumo e faturação ou contacte a equipa.",
-        cta: { href: "/dashboard/billing", label: "Consumo e faturação" },
+          "Atingiu o limite da avaliação. Ative a operação contratada para continuar o atendimento — Contrato e uso ou contacte a equipa.",
+        cta: { href: "/dashboard/billing", label: "Contrato e uso" },
       });
     } else {
       alerts.push({
@@ -85,7 +85,7 @@ export function BillingAlerts({
   } else if (maxPct >= 100 && !enforceLimits) {
     alerts.push({
       type: "warning",
-      message: `Ultrapassou o volume incluído no pacote neste período. O uso adicional («${STRIPE_USAGE_LINE_LABELS.extraConversations}» e «${STRIPE_USAGE_LINE_LABELS.extraAi}» na fatura) é registado e faturado automaticamente — o atendimento segue sem interrupção.`,
+      message: `Ultrapassou o volume incluído no pacote neste período. O uso adicional («${STRIPE_USAGE_LINE_LABELS.extraConversations}» e «${STRIPE_USAGE_LINE_LABELS.extraAi}» no extrato) é registado conforme o contrato — o atendimento segue sem interrupção.`,
     });
   } else if (isFree && maxPct >= 90 && maxPct < 100) {
     const count = freeEvaluationCountLine(messagesUsed, messagesLimit, aiUsed, aiLimit);
@@ -94,7 +94,7 @@ export function BillingAlerts({
       message: count
         ? `${count} Recomendamos alinhar a operação completa antes de atingir o teto da avaliação.`
         : "Está a usar quase todo o incluído na avaliação neste período. Avance para a operação completa a tempo para não interromper o atendimento.",
-      cta: { href: "/dashboard/billing", label: "Consumo e faturação" },
+      cta: { href: "/dashboard/billing", label: "Contrato e uso" },
     });
   } else if (maxPct >= 80) {
     if (isFree) {
@@ -104,7 +104,7 @@ export function BillingAlerts({
         message: count
           ? `Está perto do limite da avaliação. ${count} A operação completa libera volumes e funcionalidades na implantação.`
           : "Está perto do limite da avaliação. Ative a operação contratada a tempo para não interromper o atendimento.",
-        cta: { href: "/dashboard/billing", label: "Consumo e faturação" },
+        cta: { href: "/dashboard/billing", label: "Contrato e uso" },
       });
     } else {
       alerts.push({
@@ -118,7 +118,7 @@ export function BillingAlerts({
   if (hasOverage && maxPct < 80 && !isFree) {
     alerts.push({
       type: "info",
-      message: `Já há uso adicional neste período (aparece como «${STRIPE_USAGE_LINE_LABELS.extraConversations}» e «${STRIPE_USAGE_LINE_LABELS.extraAi}» na fatura).`,
+      message: `Já há uso adicional neste período (aparece como «${STRIPE_USAGE_LINE_LABELS.extraConversations}» e «${STRIPE_USAGE_LINE_LABELS.extraAi}» no extrato).`,
     });
   }
 

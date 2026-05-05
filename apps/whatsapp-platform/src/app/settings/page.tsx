@@ -14,7 +14,7 @@ export default function SettingsPage() {
         description={
           !commercialVisible
             ? "Motor de IA, instruções de atendimento e atalhos para a operação. As alterações valem para todo o espaço de trabalho."
-            : "Motor de IA, instruções de atendimento e atalhos para plano e análises. As alterações valem para todo o espaço de trabalho."
+            : "Motor de IA, instruções de atendimento e atalhos para contrato e análises. As alterações valem para todo o espaço de trabalho."
         }
         layout="split"
         showDivider
@@ -25,7 +25,7 @@ export default function SettingsPage() {
               IA de atendimento
             </Link>
             <Link href="/settings/ai-analytics" className="df-quick-action">
-              {!commercialVisible ? "Desempenho da IA" : "Uso e custo de IA"}
+              {!commercialVisible ? "Desempenho da IA" : "Uso e desempenho da IA"}
             </Link>
             <Link href="/dashboard/ai" className="df-quick-action">
               Painel IA (operação)
@@ -35,7 +35,7 @@ export default function SettingsPage() {
             </Link>
             {commercialVisible ? (
               <Link href="/billing" className="df-quick-action">
-                Plano e faturação
+                Contrato e uso
               </Link>
             ) : null}
           </>
