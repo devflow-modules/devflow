@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { requireAdminOrMetricsSecretPage } from "@/lib/admin-page-guard";
 import { listAffiliatesWithStats } from "@/modules/affiliates/adminAffiliatesService";
+import { safeDateToIsoString } from "@/lib/safe-date-iso";
 import { getWhatsappAppPublicBaseUrl } from "@/modules/affiliates/affiliateSignupLink";
 import { AffiliatesAdminClient } from "./AffiliatesAdminClient";
 
@@ -17,7 +18,7 @@ export default async function AdminAffiliatesPage() {
   const rows = await listAffiliatesWithStats();
   const initialAffiliates = rows.map((a) => ({
     ...a,
-    createdAt: a.createdAt.toISOString(),
+    createdAt: safeDateToIsoString(a.createdAt) ?? "",
   }));
   const publicSignupBaseUrl = getWhatsappAppPublicBaseUrl();
   return (

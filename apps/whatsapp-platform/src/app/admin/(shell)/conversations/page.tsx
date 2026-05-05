@@ -7,6 +7,7 @@ import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { loginUrlWithNext } from "@/lib/safe-redirect";
 import { validateAuthToken } from "@/modules/auth";
 import { requireJwtAdminPage } from "@/lib/admin-page-guard";
+import { safeDateToIsoString } from "@/lib/safe-date-iso";
 import { buttonVariants, cn } from "@devflow/ui";
 import { AppBadge } from "@/components/ui/app-badge";
 import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
@@ -33,13 +34,6 @@ type ConversationItem = {
   lastMessageAt: string | null;
   unread: number;
 };
-
-/** Evita `RangeError` em `toISOString()` quando o valor vindo da DB não é uma data válida (derruba o RSC). */
-function safeDateToIsoString(value: Date | null | undefined): string | null {
-  if (!value) return null;
-  const ms = value.getTime();
-  return Number.isNaN(ms) ? null : value.toISOString();
-}
 
 async function getConversations(
   status: WaInboxThreadStatus | undefined,
