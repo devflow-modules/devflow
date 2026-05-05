@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
+import { loginUrlWithNext } from "@/lib/safe-redirect";
 import { validateAuthToken } from "@/modules/auth";
 import { requireJwtAdminPage } from "@/lib/admin-page-guard";
 import { cn } from "@devflow/ui";
@@ -33,6 +35,13 @@ type ConversationItem = {
   unread: number;
 };
 
+/** Evita `RangeError` em `toISOString()` quando o valor vindo da DB não é uma data válida (derruba o RSC). */
+function safeDateToIsoString(value: Date | null | undefined): string | null {
+  if (!value) return null;
+  const ms = value.getTime();
+  return Number.isNaN(ms) ? null : value.toISOString();
+}
+
 async function getConversations(
   status: WaInboxThreadStatus | undefined,
   tenantId: string
@@ -58,7 +67,7 @@ async function getConversations(
       id: t.id,
       customerName: t.contactName ?? t.phoneNumber,
       lastMessage: t.lastMessagePreview,
-      lastMessageAt: t.lastMessageAt?.toISOString() ?? null,
+      lastMessageAt: safeDateToIsoString(t.lastMessageAt),
       unread: t.unreadCount,
     }));
   } catch {
@@ -76,7 +85,10 @@ export default async function AdminConversationsPage({
   const store = await cookies();
   const token = store.get(JWT_COOKIE_NAME)?.value;
   const auth = token ? await validateAuthToken(token) : null;
-  const tenantId = auth!.payload.tenantId;
+  if (!auth) {
+    redirect(loginUrlWithNext("/admin/conversations"));
+  }
+  const tenantId = auth.payload.tenantId;
   const validStatus =
     status && TAB_STATUSES.some((t) => t.status === status)
       ? (status as WaInboxThreadStatus)
