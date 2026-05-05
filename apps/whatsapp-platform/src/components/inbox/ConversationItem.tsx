@@ -137,7 +137,9 @@ export const ConversationItem = memo(function ConversationItem({
           ? `${noOwnerStripe} hover:bg-[color-mix(in_srgb,var(--df-warning-bg)_45%,transparent)]`
           : active
             ? "bg-muted/60/95 shadow-[inset_4px_0_0_0_var(--df-brand-500)] ring-2 ring-[var(--df-brand-500)]/25 ring-inset"
-            : "bg-[var(--df-bg-elevated)] hover:bg-[var(--df-brand-100)] hover:shadow-[0_1px_4px_rgba(15,23,42,0.06)] active:bg-[var(--df-brand-50)]",
+            : thread.status === "CLOSED"
+              ? "border-b-[color:color-mix(in_srgb,var(--df-border-dark)_70%,var(--df-border-subtle))] bg-[color-mix(in_srgb,var(--df-bg-app)_26%,var(--df-bg-elevated))] hover:bg-[color-mix(in_srgb,var(--df-brand-100)_34%,var(--df-bg-elevated))] hover:shadow-[0_2px_14px_rgba(0,0,0,0.22)] active:bg-[color-mix(in_srgb,var(--df-brand-50)_42%,var(--df-bg-elevated))]"
+              : "bg-[var(--df-bg-elevated)] hover:bg-[var(--df-brand-100)] hover:shadow-[0_1px_4px_rgba(15,23,42,0.06)] active:bg-[var(--df-brand-50)]",
   ].join(" ");
 
   const avatarClass = isCritical
@@ -154,7 +156,9 @@ export const ConversationItem = memo(function ConversationItem({
         type="button"
         onClick={() => onSelect(thread.id)}
         data-testid="conversation-item"
-        className="flex min-w-0 flex-1 items-start gap-2.5 px-2 py-2.5 text-left sm:gap-3 sm:px-2.5 sm:py-2.5"
+        className={`flex min-w-0 flex-1 items-start gap-2.5 px-2 text-left sm:gap-3 sm:px-2.5 ${
+          thread.status === "CLOSED" ? "py-3.5 sm:py-4" : "py-2.5 sm:py-2.5"
+        }`}
       >
         <div
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[11px] font-bold tracking-tight transition-transform duration-200 ease-out group-hover:scale-[1.02] ${avatarClass}`}

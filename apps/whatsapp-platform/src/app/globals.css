@@ -862,25 +862,31 @@ html[data-theme="client_branded"] {
     color: var(--df-feedback-info-text);
   }
 
-  /** Estado vazio operacional (lista) */
+  /** Estado vazio operacional (lista) — alinhado às superfícies dark (sem cinza claro) */
   .df-inbox-filter-empty-card {
-    @apply mx-auto flex w-full max-w-sm flex-col items-center rounded-2xl border px-6 py-10 text-center shadow-[0_8px_40px_rgba(0,0,0,0.2)];
-    border-color: var(--df-inbox-sheet-border);
+    @apply mx-auto flex w-full max-w-sm flex-col items-center rounded-2xl border px-6 py-11 text-center;
+    border-color: color-mix(in srgb, var(--df-border-dark) 52%, var(--df-border-subtle));
     background: linear-gradient(
-      to bottom,
-      color-mix(in srgb, #fefefe 90%, var(--df-bg-app) 10%),
-      color-mix(in srgb, var(--df-bg-elevated) 70%, var(--df-bg-app) 30%)
+      165deg,
+      color-mix(in srgb, var(--df-bg-elevated) 94%, var(--df-brand-50) 6%) 0%,
+      color-mix(in srgb, var(--df-bg-app) 45%, var(--df-bg-elevated) 55%) 100%
     );
+    box-shadow:
+      0 14px 42px rgba(0, 0, 0, 0.38),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
   .df-inbox-empty-icon-success {
     @apply mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ring-1;
-    background: rgb(16 185 129 / 0.12);
+    background: rgb(16 185 129 / 0.18);
     color: var(--df-feedback-success-text);
-    --tw-ring-color: rgb(16 185 129 / 0.22);
+    --tw-ring-color: rgb(16 185 129 / 0.35);
   }
 
   .df-inbox-empty-icon-neutral {
-    @apply mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--df-brand-50)] text-[var(--df-brand-600)] ring-[var(--df-brand-500)]/15;
+    @apply mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ring-1;
+    background: color-mix(in srgb, var(--df-brand-100) 55%, var(--df-bg-elevated));
+    color: var(--df-brand-600);
+    --tw-ring-color: color-mix(in srgb, var(--df-brand-500) 35%, transparent);
   }
 }
