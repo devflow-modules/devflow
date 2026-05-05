@@ -7,8 +7,7 @@ import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { loginUrlWithNext } from "@/lib/safe-redirect";
 import { validateAuthToken } from "@/modules/auth";
 import { requireJwtAdminPage } from "@/lib/admin-page-guard";
-import { cn } from "@devflow/ui";
-import { Button } from "@/components/ui/button";
+import { buttonVariants, cn } from "@devflow/ui";
 import { AppBadge } from "@/components/ui/app-badge";
 import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
 
@@ -106,32 +105,29 @@ export default async function AdminConversationsPage({
                 tab.status !== undefined
                   ? `/admin/conversations?status=${tab.status}`
                   : "/admin/conversations";
+              const tabVariant =
+                (tab.status === undefined && validStatus === undefined) || tab.status === validStatus
+                  ? "default"
+                  : "ghost";
               return (
-                <Link key={tab.label} href={href}>
-                  <Button
-                    variant={
-                      (tab.status === undefined && validStatus === undefined) ||
-                      tab.status === validStatus
-                        ? "default"
-                        : "ghost"
-                    }
-                    size="sm"
-                  >
-                    {tab.label}
-                  </Button>
+                <Link
+                  key={tab.label}
+                  href={href}
+                  className={buttonVariants({ variant: tabVariant, size: "sm" })}
+                >
+                  {tab.label}
                 </Link>
               );
             })}
           </div>
-          <Link href="/distribuir" className="shrink-0">
-            <Button variant="outline" size="sm">
-              Distribuir
-            </Button>
+          <Link
+            href="/distribuir"
+            className={cn("shrink-0", buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            Distribuir
           </Link>
-          <Link href="/admin/metrics">
-            <Button variant="ghost" size="sm">
-              Métricas
-            </Button>
+          <Link href="/admin/metrics" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+            Métricas
           </Link>
         </div>
       </header>
