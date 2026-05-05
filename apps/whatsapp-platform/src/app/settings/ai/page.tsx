@@ -5,7 +5,6 @@ import { aiSettingsHref } from "./aiSettingsAnchors";
 import { PricingContextHint } from "@/components/dashboard/billing/PricingContextHint";
 import { CONTEXTUAL_UPGRADE_HINTS } from "@/modules/billing/planPresentation";
 import { isWhiteLabelMode } from "@/lib/productMode";
-import { Button } from "@/components/ui/button";
 
 export default function AiSettingsPage() {
   const wl = isWhiteLabelMode();
@@ -56,9 +55,14 @@ export default function AiSettingsPage() {
         tone="admin"
         quickActions={
           <>
-            <Button variant="primary" type="submit" form="wf-ai-settings" className="df-quick-action">
+            {/* Submit nativo: evita componente cliente no Server Component. */}
+            <button
+              type="submit"
+              form="wf-ai-settings"
+              className="df-btn-primary inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-semibold"
+            >
               Salvar alterações
-            </Button>
+            </button>
             <Link href={aiSettingsHref("teste")} className="df-quick-action">
               Ir para teste
             </Link>
