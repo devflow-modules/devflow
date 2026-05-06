@@ -1,9 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ConversationItem } from "@/components/inbox/ConversationItem";
+import { formatInboxLineFilterOptionLabel } from "@/components/inbox/inboxLineFilterLabel";
+import { fetchTenantWhatsappLines } from "@/components/inbox/inboxFetch";
+import { INBOX_QK } from "@/components/inbox/inboxTypes";
 import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
 import { StateError, StateLoading } from "@/components/ui/app-states";
@@ -22,8 +26,10 @@ const HISTORY_QK = {
     phase: HistoryPhaseFilter,
     from?: string,
     to?: string,
-    q?: string
-  ) => ["conversation-history", phase, from ?? "", to ?? "", q ?? ""] as const,
+    q?: string,
+    businessPhoneNumberId?: string
+  ) =>
+    ["conversation-history", phase, from ?? "", to ?? "", q ?? "", businessPhoneNumberId ?? ""] as const,
 };
 
 function formatDetailTime(iso: string): string {
@@ -41,6 +47,10 @@ function formatDetailTime(iso: string): string {
 }
 
 export function ConversationsHistoryClient() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [phase, setPhase] = useState<HistoryPhaseFilter>("closed");
   const [periodPreset, setPeriodPreset] = useState<HistoryPeriodPreset>("all");
   const [customFrom, setCustomFrom] = useState("");
@@ -48,6 +58,63 @@ export function ConversationsHistoryClient() {
   const [searchInput, setSearchInput] = useState("");
   const [searchApplied, setSearchApplied] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const paramLineId = searchParams.get("businessPhoneNumberId")?.trim() || null;
+
+  const { data: lines = [], isFetched: linesFetched } = useQuery({
+    queryKey: INBOX_QK.phoneLines,
+    queryFn: fetchTenantWhatsappLines,
+    staleTime: 60_000,
+  });
+
+  const showLineFilter = lines.length > 1;
+
+  const businessPhoneNumberIdForFetch = useMemo(() => {
+    if (!paramLineId) return undefined;
+    if (lines.length === 0) {
+      return paramLineId;
+    }
+    if (lines.length === 1) {
+      return undefined;
+    }
+    return lines.some((l) => l.phoneNumberId === paramLineId) ? paramLineId : undefined;
+  }, [lines, paramLineId]);
+
+  const replaceHistorySearch = useCallback(
+    (mutate: (p: URLSearchParams) => void) => {
+      const p = new URLSearchParams(searchParams.toString());
+      mutate(p);
+      const qs = p.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
+  /** Uma só linha: parâmetro na URL é redundante; limpar ao carregar. */
+  useEffect(() => {
+    if (lines.length !== 1 || !paramLineId) return;
+    replaceHistorySearch((p) => {
+      p.delete("businessPhoneNumberId");
+    });
+  }, [lines.length, paramLineId, replaceHistorySearch]);
+
+  /** Linha desconhecida no query string: remover para evitar estado ambíguo. */
+  useEffect(() => {
+    if (lines.length <= 1 || !paramLineId) return;
+    if (businessPhoneNumberIdForFetch === undefined) {
+      replaceHistorySearch((p) => {
+        p.delete("businessPhoneNumberId");
+      });
+    }
+  }, [lines.length, paramLineId, businessPhoneNumberIdForFetch, replaceHistorySearch]);
+
+  /** Tenant sem linhas registadas: limpar parâmetro órfão. */
+  useEffect(() => {
+    if (!linesFetched || lines.length > 0 || !paramLineId) return;
+    replaceHistorySearch((p) => {
+      p.delete("businessPhoneNumberId");
+    });
+  }, [linesFetched, lines.length, paramLineId, replaceHistorySearch]);
 
   const range = useMemo(() => {
     if (periodPreset === "custom") {
@@ -59,13 +126,14 @@ export function ConversationsHistoryClient() {
   }, [periodPreset, customFrom, customTo]);
 
   const query = useQuery({
-    queryKey: HISTORY_QK.root(phase, range.from, range.to, searchApplied),
+    queryKey: HISTORY_QK.root(phase, range.from, range.to, searchApplied, businessPhoneNumberIdForFetch),
     queryFn: () =>
       fetchConversationHistory({
         phase,
         from: range.from,
         to: range.to,
         q: searchApplied || undefined,
+        businessPhoneNumberId: businessPhoneNumberIdForFetch,
         limit: 100,
         offset: 0,
       }),
@@ -80,9 +148,30 @@ export function ConversationsHistoryClient() {
     [threads, selectedId]
   );
 
+  const inboxThreadHref = useMemo(() => {
+    if (!selected) return "/inbox";
+    const p = new URLSearchParams();
+    p.set("thread", selected.id);
+    if (businessPhoneNumberIdForFetch) {
+      p.set("businessPhoneNumberId", businessPhoneNumberIdForFetch);
+    }
+    return `/inbox?${p.toString()}`;
+  }, [selected, businessPhoneNumberIdForFetch]);
+
   const onSelect = useCallback((id: string) => {
     setSelectedId(id);
   }, []);
+
+  const onLineFilterChange = useCallback(
+    (next: string | null) => {
+      replaceHistorySearch((p) => {
+        const v = next?.trim();
+        if (v) p.set("businessPhoneNumberId", v);
+        else p.delete("businessPhoneNumberId");
+      });
+    },
+    [replaceHistorySearch]
+  );
 
   const applySearch = useCallback(() => {
     setSearchApplied(searchInput.trim());
@@ -133,6 +222,28 @@ export function ConversationsHistoryClient() {
 
       <Section tone="dark" className="rounded-2xl border df-border-brand p-4 sm:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end">
+          {showLineFilter ? (
+            <label className="flex min-w-[220px] flex-1 flex-col gap-1.5 text-xs font-medium text-[var(--df-text-secondary)]">
+              Linha WhatsApp
+              <select
+                className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2 text-sm text-[var(--df-text-primary)]"
+                value={businessPhoneNumberIdForFetch ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value.trim();
+                  onLineFilterChange(v || null);
+                }}
+                data-testid="history-filter-line"
+              >
+                <option value="">Todas as linhas</option>
+                {lines.map((l) => (
+                  <option key={l.phoneNumberId} value={l.phoneNumberId}>
+                    {formatInboxLineFilterOptionLabel(l)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
           <label className="flex min-w-[200px] flex-1 flex-col gap-1.5 text-xs font-medium text-[var(--df-text-secondary)]">
             Status
             <select
@@ -310,6 +421,14 @@ export function ConversationsHistoryClient() {
                     <dd className="text-[var(--df-text-primary)]">{selected.queue.name}</dd>
                   </div>
                 ) : null}
+                {selected.whatsappLine ? (
+                  <div>
+                    <dt className="text-[var(--df-text-muted)]">Linha WhatsApp</dt>
+                    <dd className="break-words text-[var(--df-text-primary)]">
+                      {formatInboxLineFilterOptionLabel(selected.whatsappLine)}
+                    </dd>
+                  </div>
+                ) : null}
               </dl>
               {selected.threadTags?.length ? (
                 <div className="flex flex-wrap gap-1">
@@ -325,7 +444,7 @@ export function ConversationsHistoryClient() {
               ) : null}
               <div className="mt-auto flex flex-wrap gap-2 border-t df-border-brand pt-4">
                 <Button variant="default" asChild>
-                  <Link href={`/inbox?thread=${encodeURIComponent(selected.id)}`}>Abrir na Inbox</Link>
+                  <Link href={inboxThreadHref}>Abrir na Inbox</Link>
                 </Button>
                 <Button type="button" variant="secondary" onClick={() => void copyPhone(selected.phoneNumber)}>
                   Copiar telefone

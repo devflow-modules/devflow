@@ -6,6 +6,26 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConversationsHistoryClient } from "../ConversationsHistoryClient";
 import * as protectedFetch from "@/lib/protected-fetch";
 
+const nav = vi.hoisted(() => {
+  let query = "";
+  return {
+    getQuery: () => query,
+    setQuery: (q: string) => {
+      query = q;
+    },
+    replaceMock: vi.fn((href: string) => {
+      const i = href.indexOf("?");
+      nav.setQuery(i >= 0 ? href.slice(i + 1) : "");
+    }),
+  };
+});
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/conversations",
+  useRouter: () => ({ replace: nav.replaceMock }),
+  useSearchParams: () => new URLSearchParams(nav.getQuery()),
+}));
+
 function requestUrl(input: RequestInfo | URL): string {
   if (typeof input === "string") return input;
   if (input instanceof URL) return input.href;
@@ -50,9 +70,18 @@ function renderHistory() {
   );
 }
 
+function jsonLines(lines: unknown[]) {
+  return Promise.resolve({
+    ok: true,
+    status: 200,
+    json: () => Promise.resolve({ success: true, data: lines }),
+  }) as ReturnType<typeof protectedFetch.fetchProtected>;
+}
+
 describe("ConversationsHistoryClient", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    nav.setQuery("");
   });
 
   it("renderiza título, subtítulo de consulta, filtro de status e link Voltar para Inbox", async () => {
@@ -60,6 +89,9 @@ describe("ConversationsHistoryClient", () => {
       const u = requestUrl(input);
       if (u.includes("/api/inbox/conversations")) {
         return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines([]);
       }
       return jsonThreads([], 0);
     });
@@ -83,6 +115,9 @@ describe("ConversationsHistoryClient", () => {
         expect(u).toContain("phase=closed");
         return jsonThreads([], 0);
       }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines([]);
+      }
       return jsonThreads([], 0);
     });
 
@@ -95,8 +130,12 @@ describe("ConversationsHistoryClient", () => {
 
   it("estado vazio para encerradas sem resultados", async () => {
     vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
-      if (requestUrl(input).includes("/api/inbox/conversations")) {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
         return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines([]);
       }
       return jsonThreads([], 0);
     });
@@ -113,8 +152,12 @@ describe("ConversationsHistoryClient", () => {
     const user = userEvent.setup();
     const t = threadRow();
     vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
-      if (requestUrl(input).includes("/api/inbox/conversations")) {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
         return jsonThreads([t], 1);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines([]);
       }
       return jsonThreads([t], 1);
     });
@@ -134,5 +177,126 @@ describe("ConversationsHistoryClient", () => {
         "/inbox?thread=th-1"
       );
     });
+  });
+
+  it("com duas linhas mostra filtro e envia businessPhoneNumberId na API quando na URL", async () => {
+    nav.setQuery("businessPhoneNumberId=pn-pros");
+    const lines = [
+      {
+        phoneNumberId: "pn-principal",
+        label: "Principal",
+        displayPhoneNumber: "+351 910 000 000",
+        isPrimary: true,
+        isDefaultOutbound: true,
+        status: "ACTIVE",
+        purpose: "GENERAL",
+      },
+      {
+        phoneNumberId: "pn-pros",
+        label: "Prospecção",
+        displayPhoneNumber: "+351 910 000 001",
+        isPrimary: false,
+        isDefaultOutbound: false,
+        status: "ACTIVE",
+        purpose: "PROSPECTING",
+      },
+    ];
+    const spy = vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
+        expect(u).toContain("businessPhoneNumberId=pn-pros");
+        return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines(lines);
+      }
+      return jsonThreads([], 0);
+    });
+
+    renderHistory();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("history-filter-line")).toBeInTheDocument();
+    });
+    expect(screen.getByTestId("history-filter-line")).toHaveValue("pn-pros");
+    await waitFor(() => {
+      expect(spy).toHaveBeenCalled();
+    });
+  });
+
+  it("com uma linha não mostra o select de linha", async () => {
+    const oneLine = [
+      {
+        phoneNumberId: "only-pn",
+        label: "Principal",
+        displayPhoneNumber: "+351 910 000 000",
+        isPrimary: true,
+        isDefaultOutbound: true,
+        status: "ACTIVE",
+        purpose: "GENERAL",
+      },
+    ];
+    vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
+        return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines(oneLine);
+      }
+      return jsonThreads([], 0);
+    });
+
+    renderHistory();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("history-filter-phase")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("history-filter-line")).not.toBeInTheDocument();
+  });
+
+  it("ao escolher linha chama router.replace com businessPhoneNumberId", async () => {
+    const user = userEvent.setup();
+    const lines = [
+      {
+        phoneNumberId: "pn-a",
+        label: "Linha A",
+        displayPhoneNumber: null,
+        isPrimary: true,
+        isDefaultOutbound: false,
+        status: "ACTIVE",
+        purpose: "GENERAL",
+      },
+      {
+        phoneNumberId: "pn-b",
+        label: "Linha B",
+        displayPhoneNumber: null,
+        isPrimary: false,
+        isDefaultOutbound: false,
+        status: "ACTIVE",
+        purpose: "SUPPORT",
+      },
+    ];
+    vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
+        return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines(lines);
+      }
+      return jsonThreads([], 0);
+    });
+
+    renderHistory();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("history-filter-line")).toBeInTheDocument();
+    });
+    await user.selectOptions(screen.getByTestId("history-filter-line"), "pn-b");
+    expect(nav.replaceMock).toHaveBeenCalledWith(
+      expect.stringContaining("businessPhoneNumberId=pn-b"),
+      expect.any(Object)
+    );
   });
 });

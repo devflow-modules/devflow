@@ -20,6 +20,8 @@ export function buildHistoryConversationsUrl(opts: {
   from?: string;
   to?: string;
   q?: string;
+  /** Meta `phone_number_id` da linha; omitir = todas as linhas. */
+  businessPhoneNumberId?: string;
   limit?: number;
   offset?: number;
 }): string {
@@ -30,6 +32,8 @@ export function buildHistoryConversationsUrl(opts: {
   if (opts.from?.trim()) params.set("from", opts.from.trim());
   if (opts.to?.trim()) params.set("to", opts.to.trim());
   if (opts.q?.trim()) params.set("q", opts.q.trim().slice(0, 120));
+  const lineId = opts.businessPhoneNumberId?.trim();
+  if (lineId) params.set("businessPhoneNumberId", lineId);
   return `/api/inbox/conversations?${params.toString()}`;
 }
 
@@ -38,6 +42,7 @@ export async function fetchConversationHistory(opts: {
   from?: string;
   to?: string;
   q?: string;
+  businessPhoneNumberId?: string;
   limit?: number;
   offset?: number;
 }): Promise<{
