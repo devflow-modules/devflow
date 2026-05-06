@@ -4,8 +4,13 @@ import { useEffect, useState } from "react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
 import { fetchProtected } from "@/lib/protected-fetch";
-import { fetchInboxOperationalQueues } from "@/components/inbox/inboxFetch";
+import {
+  fetchInboxOperationalQueues,
+  fetchTenantWhatsappLines,
+} from "@/components/inbox/inboxFetch";
+import { formatWhatsappLineFilterOptionLabel } from "@/lib/whatsapp-lines/linePresentation";
 import type { ManagerDashboardPayload } from "@/modules/metrics/managerDashboardService";
+import type { WhatsappLineSummary } from "@/components/inbox/inboxTypes";
 
 function formatMs(ms: number | null | undefined): string {
   if (ms == null || !Number.isFinite(ms)) return "—";
@@ -38,7 +43,9 @@ export function ManagerDashboardSection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [queueId, setQueueId] = useState<string | null>(null);
+  const [businessPhoneNumberId, setBusinessPhoneNumberId] = useState<string | null>(null);
   const [queues, setQueues] = useState<{ id: string; name: string }[]>([]);
+  const [lines, setLines] = useState<WhatsappLineSummary[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,9 +63,38 @@ export function ManagerDashboardSection() {
 
   useEffect(() => {
     let cancelled = false;
+    fetchTenantWhatsappLines()
+      .then((list) => {
+        if (cancelled) return;
+        setLines(list);
+        if (list.length <= 1) {
+          setBusinessPhoneNumberId(null);
+        } else if (
+          businessPhoneNumberId &&
+          !list.some((line) => line.phoneNumberId === businessPhoneNumberId)
+        ) {
+          setBusinessPhoneNumberId(null);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setLines([]);
+          setBusinessPhoneNumberId(null);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [businessPhoneNumberId]);
+
+  useEffect(() => {
+    let cancelled = false;
     const params = new URLSearchParams();
     if (queueId && queueId !== "all") {
       params.set("queueId", queueId);
+    }
+    if (businessPhoneNumberId && businessPhoneNumberId !== "all") {
+      params.set("businessPhoneNumberId", businessPhoneNumberId);
     }
     const url =
       params.toString().length > 0
@@ -78,7 +114,7 @@ export function ManagerDashboardSection() {
     return () => {
       cancelled = true;
     };
-  }, [queueId]);
+  }, [queueId, businessPhoneNumberId]);
 
   if (loading) {
     return (
@@ -114,32 +150,63 @@ export function ManagerDashboardSection() {
             Operação em tempo real; restantes métricas no período: <span className="font-medium text-[var(--df-text-primary)]">{rangeLabel}</span>
           </p>
         </div>
-        {queues.length > 0 ? (
-          <div className="flex flex-col gap-1">
-            <label htmlFor="manager-dash-queue" className="text-[11px] font-medium text-[var(--df-text-muted)]">
-              Fila
-            </label>
-            <select
-              id="manager-dash-queue"
-              className="rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2 text-sm text-[var(--df-text-primary)]"
-              value={queueId === null ? "all" : queueId}
-              onChange={(e) => {
-                const v = e.target.value;
-                setLoading(true);
-                setError(null);
-                setQueueId(v === "all" ? null : v);
-              }}
-            >
-              <option value="all">Todas as filas</option>
-              <option value="none">Sem fila</option>
-              {queues.map((q) => (
-                <option key={q.id} value={q.id}>
-                  {q.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : null}
+        <div className="flex flex-wrap gap-3">
+          {lines.length > 1 ? (
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="manager-dash-line"
+                className="text-[11px] font-medium text-[var(--df-text-muted)]"
+              >
+                Linha WhatsApp
+              </label>
+              <select
+                id="manager-dash-line"
+                data-testid="manager-dash-line"
+                className="rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2 text-sm text-[var(--df-text-primary)]"
+                value={businessPhoneNumberId === null ? "all" : businessPhoneNumberId}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setLoading(true);
+                  setError(null);
+                  setBusinessPhoneNumberId(v === "all" ? null : v);
+                }}
+              >
+                <option value="all">Todas as linhas</option>
+                {lines.map((line) => (
+                  <option key={line.phoneNumberId} value={line.phoneNumberId}>
+                    {formatWhatsappLineFilterOptionLabel(line)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+          {queues.length > 0 ? (
+            <div className="flex flex-col gap-1">
+              <label htmlFor="manager-dash-queue" className="text-[11px] font-medium text-[var(--df-text-muted)]">
+                Fila
+              </label>
+              <select
+                id="manager-dash-queue"
+                className="rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2 text-sm text-[var(--df-text-primary)]"
+                value={queueId === null ? "all" : queueId}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setLoading(true);
+                  setError(null);
+                  setQueueId(v === "all" ? null : v);
+                }}
+              >
+                <option value="all">Todas as filas</option>
+                <option value="none">Sem fila</option>
+                {queues.map((q) => (
+                  <option key={q.id} value={q.id}>
+                    {q.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

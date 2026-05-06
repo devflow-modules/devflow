@@ -7,6 +7,10 @@ import { type FunnelStageKey, pickHighestFunnelStage } from "./managerFunnelMap"
 
 export type ManagerDashboardPayload = {
   range: { dateFrom: string | null; dateTo: string | null };
+  filters?: {
+    queueId: string | null;
+    businessPhoneNumberId: string | null;
+  };
   operation: {
     awaiting: number;
     unassigned: number;
@@ -60,19 +64,22 @@ export type ManagerDashboardSearchOpts = {
   range?: DateRange;
   /** Filtra métricas pela fila da thread; `"none"` = sem fila. */
   queueId?: string;
+  /** Filtra métricas pela linha/canal WhatsApp da thread. */
+  businessPhoneNumberId?: string;
 };
 
 function normalizeDashboardInput(
   input?: DateRange | ManagerDashboardSearchOpts
-): { range: DateRange; queueId?: string } {
+): { range: DateRange; queueId?: string; businessPhoneNumberId?: string } {
   if (!input) {
     return { range: resolveRange(undefined) };
   }
-  if ("queueId" in input || "range" in input) {
+  if ("queueId" in input || "range" in input || "businessPhoneNumberId" in input) {
     const o = input as ManagerDashboardSearchOpts;
     return {
       range: resolveRange(o.range),
       queueId: o.queueId,
+      businessPhoneNumberId: o.businessPhoneNumberId,
     };
   }
   return { range: resolveRange(input as DateRange) };
@@ -84,7 +91,18 @@ function queueThreadFilterSql(queueId: string | undefined): Prisma.Sql {
   return Prisma.sql`AND t.queue_id = ${queueId}`;
 }
 
-async function countCriticalAwaiting(tenantId: string, queueId?: string): Promise<number> {
+function businessPhoneThreadFilterSql(
+  businessPhoneNumberId: string | undefined
+): Prisma.Sql {
+  if (businessPhoneNumberId === undefined) return Prisma.sql``;
+  return Prisma.sql`AND t.business_phone_number_id = ${businessPhoneNumberId}`;
+}
+
+async function countCriticalAwaiting(
+  tenantId: string,
+  queueId?: string,
+  businessPhoneNumberId?: string
+): Promise<number> {
   const rows = await prisma.$queryRaw<Array<{ c: bigint }>>`
     WITH base AS (
       SELECT
@@ -111,6 +129,7 @@ async function countCriticalAwaiting(tenantId: string, queueId?: string): Promis
       FROM wa_inbox_threads t
       WHERE t.tenant_id = ${tenantId}
       ${queueThreadFilterSql(queueId)}
+      ${businessPhoneThreadFilterSql(businessPhoneNumberId)}
     ),
     calc AS (
       SELECT *,
@@ -135,7 +154,8 @@ async function countCriticalAwaiting(tenantId: string, queueId?: string): Promis
 async function avgFirstResponseMsForRange(
   tenantId: string,
   range: DateRange,
-  queueId?: string
+  queueId?: string,
+  businessPhoneNumberId?: string
 ): Promise<number | null> {
   const tw = tsWhere(range);
   const rows = await prisma.$queryRaw<Array<{ avg: number | null }>>`
@@ -152,6 +172,7 @@ async function avgFirstResponseMsForRange(
     WHERE t.tenant_id = ${tenantId}
       AND t.first_response_at IS NOT NULL
       ${queueThreadFilterSql(queueId)}
+      ${businessPhoneThreadFilterSql(businessPhoneNumberId)}
       ${tw?.gte ? Prisma.sql`AND t.first_response_at >= ${tw.gte}` : Prisma.sql``}
       ${tw?.lte ? Prisma.sql`AND t.first_response_at <= ${tw.lte}` : Prisma.sql``}
   `;
@@ -163,7 +184,8 @@ async function avgFirstResponseMsForRange(
 async function teamAggregates(
   tenantId: string,
   range: DateRange,
-  queueId?: string
+  queueId?: string,
+  businessPhoneNumberId?: string
 ): Promise<{
   handled: number;
   avgResponseMs: number | null;
@@ -179,6 +201,7 @@ async function teamAggregates(
     WHERE a.tenant_id = ${tenantId}
       AND a.action = 'message_send'
       ${queueThreadFilterSql(queueId)}
+      ${businessPhoneThreadFilterSql(businessPhoneNumberId)}
       ${tw?.gte ? Prisma.sql`AND a.created_at >= ${tw.gte}` : Prisma.sql``}
       ${tw?.lte ? Prisma.sql`AND a.created_at <= ${tw.lte}` : Prisma.sql``}
   `;
@@ -190,6 +213,7 @@ async function teamAggregates(
     WHERE t.tenant_id = ${tenantId}
       AND t.status = 'CLOSED'
       ${queueThreadFilterSql(queueId)}
+      ${businessPhoneThreadFilterSql(businessPhoneNumberId)}
       ${tw?.gte ? Prisma.sql`AND t.updated_at >= ${tw.gte}` : Prisma.sql``}
       ${tw?.lte ? Prisma.sql`AND t.updated_at <= ${tw.lte}` : Prisma.sql``}
   `;
@@ -205,6 +229,7 @@ async function teamAggregates(
       AND t.last_customer_message_at IS NOT NULL
       AND t.last_agent_reply_at >= t.last_customer_message_at
       ${queueThreadFilterSql(queueId)}
+      ${businessPhoneThreadFilterSql(businessPhoneNumberId)}
       ${tw?.gte ? Prisma.sql`AND t.updated_at >= ${tw.gte}` : Prisma.sql``}
       ${tw?.lte ? Prisma.sql`AND t.updated_at <= ${tw.lte}` : Prisma.sql``}
   `;
@@ -212,7 +237,12 @@ async function teamAggregates(
   const avgResponseMs =
     ar != null && !Number.isNaN(ar) ? Math.round(ar) : null;
 
-  const avgFirst = await avgFirstResponseMsForRange(tenantId, range, queueId);
+  const avgFirst = await avgFirstResponseMsForRange(
+    tenantId,
+    range,
+    queueId,
+    businessPhoneNumberId
+  );
 
   return {
     handled,
@@ -225,7 +255,8 @@ async function teamAggregates(
 async function buildAgentRows(
   tenantId: string,
   range: DateRange,
-  queueId?: string
+  queueId?: string,
+  businessPhoneNumberId?: string
 ): Promise<ManagerAgentRow[]> {
   const tw = tsWhere(range);
   const users = await prisma.user.findMany({
@@ -245,6 +276,7 @@ async function buildAgentRows(
         AND a.user_id = ${u.id}
         AND a.action = 'message_send'
         ${queueThreadFilterSql(queueId)}
+        ${businessPhoneThreadFilterSql(businessPhoneNumberId)}
         ${tw?.gte ? Prisma.sql`AND a.created_at >= ${tw.gte}` : Prisma.sql``}
         ${tw?.lte ? Prisma.sql`AND a.created_at <= ${tw.lte}` : Prisma.sql``}
     `;
@@ -257,6 +289,7 @@ async function buildAgentRows(
         AND t.assigned_to_user_id = ${u.id}
         AND t.status = 'CLOSED'
         ${queueThreadFilterSql(queueId)}
+        ${businessPhoneThreadFilterSql(businessPhoneNumberId)}
         ${tw?.gte ? Prisma.sql`AND t.updated_at >= ${tw.gte}` : Prisma.sql``}
         ${tw?.lte ? Prisma.sql`AND t.updated_at <= ${tw.lte}` : Prisma.sql``}
     `;
@@ -273,6 +306,7 @@ async function buildAgentRows(
         AND t.last_customer_message_at IS NOT NULL
         AND t.last_agent_reply_at >= t.last_customer_message_at
         ${queueThreadFilterSql(queueId)}
+        ${businessPhoneThreadFilterSql(businessPhoneNumberId)}
     `;
     const ar = avgRespRows[0]?.avg;
     const avgResponseMs =
@@ -293,6 +327,7 @@ async function buildAgentRows(
         AND t.assigned_to_user_id = ${u.id}
         AND t.first_response_at IS NOT NULL
         ${queueThreadFilterSql(queueId)}
+        ${businessPhoneThreadFilterSql(businessPhoneNumberId)}
     `;
     const af = avgFirstRows[0]?.avg;
     const avgFirstResponseMs =
@@ -315,7 +350,8 @@ async function buildAgentRows(
 async function automationBlock(
   tenantId: string,
   range: DateRange,
-  queueId?: string
+  queueId?: string,
+  businessPhoneNumberId?: string
 ): Promise<ManagerDashboardPayload["automation"]> {
   const tw = tsWhere(range)!;
 
@@ -334,6 +370,7 @@ async function automationBlock(
     INNER JOIN wa_inbox_threads t ON t.id = m.thread_id AND t.tenant_id = m.tenant_id
     WHERE m.tenant_id = ${tenantId}
       ${queueThreadFilterSql(queueId)}
+      ${businessPhoneThreadFilterSql(businessPhoneNumberId)}
       ${tw?.gte ? Prisma.sql`AND m.ts >= ${tw.gte}` : Prisma.sql``}
       ${tw?.lte ? Prisma.sql`AND m.ts <= ${tw.lte}` : Prisma.sql``}
   `;
@@ -351,6 +388,7 @@ async function automationBlock(
     WHERE t.tenant_id = ${tenantId}
       AND t.status = 'CLOSED'
       ${queueThreadFilterSql(queueId)}
+      ${businessPhoneThreadFilterSql(businessPhoneNumberId)}
       ${tw?.gte ? Prisma.sql`AND t.updated_at >= ${tw.gte}` : Prisma.sql``}
       ${tw?.lte ? Prisma.sql`AND t.updated_at <= ${tw.lte}` : Prisma.sql``}
   `;
@@ -368,6 +406,7 @@ async function automationBlock(
     INNER JOIN wa_inbox_threads t ON t.id = m.thread_id AND t.tenant_id = m.tenant_id
     WHERE m.tenant_id = ${tenantId}
       ${queueThreadFilterSql(queueId)}
+      ${businessPhoneThreadFilterSql(businessPhoneNumberId)}
       ${tw?.gte ? Prisma.sql`AND m.ts >= ${tw.gte}` : Prisma.sql``}
       ${tw?.lte ? Prisma.sql`AND m.ts <= ${tw.lte}` : Prisma.sql``}
   `;
@@ -381,6 +420,7 @@ async function automationBlock(
     WHERE a.tenant_id = ${tenantId}
       AND a.action = 'playbook_suggest'
       ${queueThreadFilterSql(queueId)}
+      ${businessPhoneThreadFilterSql(businessPhoneNumberId)}
       ${tw?.gte ? Prisma.sql`AND a.created_at >= ${tw.gte}` : Prisma.sql``}
       ${tw?.lte ? Prisma.sql`AND a.created_at <= ${tw.lte}` : Prisma.sql``}
   `;
@@ -391,6 +431,7 @@ async function automationBlock(
     WHERE a.tenant_id = ${tenantId}
       AND a.action = 'follow_up_prompt'
       ${queueThreadFilterSql(queueId)}
+      ${businessPhoneThreadFilterSql(businessPhoneNumberId)}
       ${tw?.gte ? Prisma.sql`AND a.created_at >= ${tw.gte}` : Prisma.sql``}
       ${tw?.lte ? Prisma.sql`AND a.created_at <= ${tw.lte}` : Prisma.sql``}
   `;
@@ -409,7 +450,8 @@ async function automationBlock(
 
 async function funnelCounts(
   tenantId: string,
-  queueId?: string
+  queueId?: string,
+  businessPhoneNumberId?: string
 ): Promise<Record<FunnelStageKey, number>> {
   const empty: Record<FunnelStageKey, number> = {
     lead: 0,
@@ -427,10 +469,22 @@ async function funnelCounts(
         ? {
             thread:
               queueId === "none"
-                ? { queueId: null }
-                : { queueId },
+                ? {
+                    queueId: null,
+                    ...(businessPhoneNumberId
+                      ? { businessPhoneNumberId }
+                      : {}),
+                  }
+                : {
+                    queueId,
+                    ...(businessPhoneNumberId
+                      ? { businessPhoneNumberId }
+                      : {}),
+                  },
           }
-        : {}),
+        : businessPhoneNumberId
+          ? { thread: { businessPhoneNumberId } }
+          : {}),
     },
     select: {
       threadId: true,
@@ -457,29 +511,36 @@ export async function getManagerDashboard(
   tenantId: string,
   input?: DateRange | ManagerDashboardSearchOpts
 ): Promise<ManagerDashboardPayload> {
-  const { range: rangeIn, queueId } = normalizeDashboardInput(input);
+  const { range: rangeIn, queueId, businessPhoneNumberId } = normalizeDashboardInput(input);
   const range = rangeIn;
   const rangeIso = {
     dateFrom: range.dateFrom?.toISOString() ?? null,
     dateTo: range.dateTo?.toISOString() ?? null,
   };
 
-  const qf = queueId !== undefined ? { queueId } : {};
+  const qf = {
+    ...(queueId !== undefined ? { queueId } : {}),
+    ...(businessPhoneNumberId !== undefined ? { businessPhoneNumberId } : {}),
+  };
 
   const [awaiting, unassigned, critical, opAvgFirst, team, agents, automation, funnel] =
     await Promise.all([
       waInboxCountThreads(tenantId, { conversationPhase: "needs_response", ...qf }),
       waInboxCountThreads(tenantId, { conversationPhase: "unassigned", ...qf }),
-      countCriticalAwaiting(tenantId, queueId),
-      avgFirstResponseMsForRange(tenantId, range, queueId),
-      teamAggregates(tenantId, range, queueId),
-      buildAgentRows(tenantId, range, queueId),
-      automationBlock(tenantId, range, queueId),
-      funnelCounts(tenantId, queueId),
+      countCriticalAwaiting(tenantId, queueId, businessPhoneNumberId),
+      avgFirstResponseMsForRange(tenantId, range, queueId, businessPhoneNumberId),
+      teamAggregates(tenantId, range, queueId, businessPhoneNumberId),
+      buildAgentRows(tenantId, range, queueId, businessPhoneNumberId),
+      automationBlock(tenantId, range, queueId, businessPhoneNumberId),
+      funnelCounts(tenantId, queueId, businessPhoneNumberId),
     ]);
 
   return {
     range: rangeIso,
+    filters: {
+      queueId: queueId ?? null,
+      businessPhoneNumberId: businessPhoneNumberId ?? null,
+    },
     operation: {
       awaiting,
       unassigned,

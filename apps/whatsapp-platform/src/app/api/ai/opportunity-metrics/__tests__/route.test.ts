@@ -62,4 +62,19 @@ describe("GET /api/ai/opportunity-metrics", () => {
     expect(j.data.reactivationQueued).toBe(1);
     expect(mockGetOpportunityMetrics).toHaveBeenCalledWith("t1");
   });
+
+  it("retorna 403 para operator", async () => {
+    mockGetAuthFromRequest.mockResolvedValue({
+      payload: {
+        tenantId: "t1",
+        sub: "u-operator",
+        email: "o@b.com",
+        name: "Op",
+        role: "operator",
+      },
+    });
+    const { GET } = await import("../route");
+    const res = await GET(new NextRequest(new URL("http://localhost/api/ai/opportunity-metrics")));
+    expect(res.status).toBe(403);
+  });
 });

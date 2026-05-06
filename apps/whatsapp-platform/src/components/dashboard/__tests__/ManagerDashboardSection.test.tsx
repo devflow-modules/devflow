@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ManagerDashboardSection } from "../ManagerDashboardSection";
 
 const payload = {
@@ -42,10 +42,48 @@ const payload = {
 
 describe("ManagerDashboardSection", () => {
   const originalFetch = global.fetch;
+  const fetchMock = vi.fn();
 
   beforeEach(() => {
-    global.fetch = vi.fn().mockImplementation((url: string | URL) => {
+    fetchMock.mockImplementation((url: string | URL) => {
       const u = typeof url === "string" ? url : url.toString();
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            data: [
+              {
+                phoneNumberId: "line-principal",
+                label: "Principal",
+                displayPhoneNumber: "+55 11 90000-0000",
+                isPrimary: true,
+                isDefaultOutbound: true,
+                status: "ACTIVE",
+                purpose: "GENERAL",
+              },
+              {
+                phoneNumberId: "line-prospeccao",
+                label: "Prospecção",
+                displayPhoneNumber: "+55 13 99188-6087",
+                isPrimary: false,
+                isDefaultOutbound: false,
+                status: "ACTIVE",
+                purpose: "PROSPECTING",
+              },
+            ],
+          }),
+        } as Response);
+      }
+      if (u.includes("/api/queues")) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            data: {
+              queues: [{ id: "q-sales", name: "Vendas", slug: "vendas", color: null }],
+            },
+          }),
+        } as Response);
+      }
       if (u.includes("/api/metrics/manager-dashboard")) {
         return Promise.resolve({
           ok: true,
@@ -54,6 +92,7 @@ describe("ManagerDashboardSection", () => {
       }
       return Promise.resolve({ ok: false, json: async () => ({}) } as Response);
     });
+    global.fetch = fetchMock as typeof global.fetch;
   });
 
   afterEach(() => {
@@ -77,5 +116,51 @@ describe("ManagerDashboardSection", () => {
       expect(screen.getByTestId("manager-dashboard-funnel-empty")).toBeInTheDocument();
     });
     expect(screen.getByText("Sem tags de funil")).toBeInTheDocument();
+  });
+
+  it("mostra select de linha quando tenant possui múltiplas linhas", async () => {
+    render(<ManagerDashboardSection />);
+    await waitFor(() => {
+      expect(screen.getByTestId("manager-dash-line")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Linha WhatsApp")).toBeInTheDocument();
+  });
+
+  it("envia businessPhoneNumberId e combina com queueId na URL", async () => {
+    render(<ManagerDashboardSection />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("manager-dashboard")).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByTestId("manager-dash-line"), {
+      target: { value: "line-prospeccao" },
+    });
+
+    await waitFor(() => {
+      const metricCalls = fetchMock.mock.calls
+        .map((c) => String(c[0]))
+        .filter((u) => u.includes("/api/metrics/manager-dashboard"));
+      expect(
+        metricCalls.some((u) => u.includes("businessPhoneNumberId=line-prospeccao"))
+      ).toBe(true);
+    });
+
+    fireEvent.change(screen.getByLabelText("Fila"), {
+      target: { value: "q-sales" },
+    });
+
+    await waitFor(() => {
+      const metricCalls = fetchMock.mock.calls
+        .map((c) => String(c[0]))
+        .filter((u) => u.includes("/api/metrics/manager-dashboard"));
+      expect(
+        metricCalls.some(
+          (u) =>
+            u.includes("queueId=q-sales") &&
+            u.includes("businessPhoneNumberId=line-prospeccao")
+        )
+      ).toBe(true);
+    });
   });
 });
