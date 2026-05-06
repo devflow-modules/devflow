@@ -80,12 +80,19 @@ export function LegacyDemoExperience() {
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Simule um atendimento automatizado
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Modo compacto · alinhe com o diagnóstico multi-canal
+            </p>
+            <h1 className="mt-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              Simule mensagens rápidas no WhatsApp
             </h1>
             <p className="mt-4 df-text-secondary">
-              Digite uma pergunta e veja como a IA responde. Ex: &quot;tem essência de morango?&quot; ou &quot;qual o
-              cardápio?&quot;
+              Versão compacta focada só no chat — para a jornada completa (Principal, prospecção, painéis), agende um
+              diagnóstico ou leia{" "}
+              <Link href="/solucoes/whatsapp-multi-canal" className="font-semibold underline-offset-4 hover:underline">
+                a solução multi-canal
+              </Link>
+              .
             </p>
           </div>
 
@@ -196,18 +203,18 @@ export function LegacyDemoExperience() {
           </div>
 
           <div className="mx-auto mt-12 max-w-md text-center">
-            <p className="text-sm font-medium text-foreground">Pronto para automatizar de verdade?</p>
+            <p className="text-sm font-medium text-foreground">Chegou a hora de estruturar a operação?</p>
             <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               <WhatsAppCta
-                label="Testar no WhatsApp"
+                label="Agendar diagnóstico"
                 size="lg"
-                text="Vi a demonstração e quero automatizar meu negócio."
+                text="Vi a demo compacta e quero agendar um diagnóstico da operação no WhatsApp."
               />
               <Link
-                href="/automacao-whatsapp"
+                href="/solucoes/whatsapp-multi-canal"
                 className="inline-flex items-center justify-center rounded-xl border border-border bg-background px-6 py-3 text-base font-medium text-foreground transition-colors hover:bg-muted"
               >
-                Ver automação
+                Ver solução multi-canal
               </Link>
             </div>
           </div>

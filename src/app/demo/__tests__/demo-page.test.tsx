@@ -15,20 +15,18 @@ describe("P1 — Demo /demo", () => {
     vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "5511888888888");
   });
 
-  it("carrega experiência guiada, CTA especialista (wa.me) e Ver produto", () => {
+  it("carrega página alinhada à oferta multi-canal, CTAs WhatsApp + link solução", () => {
     render(<DemoPage />);
     expect(
       screen.getByRole("heading", {
-        name: /Veja como a operação de atendimento e vendas funciona no WhatsApp/i,
+        name: /Agende um diagnóstico da sua operação no WhatsApp/i,
       })
     ).toBeInTheDocument();
     expect(screen.getByText(/1\. Escolha o segmento/i)).toBeInTheDocument();
-    const wa = screen.getByRole("link", { name: /Falar com especialista/i });
-    expect(wa.getAttribute("href")).toMatch(/^https:\/\/wa\.me\/5511888888888/);
-    expect(
-      screen.getByRole("link", {
-        name: /Ver página do produto WhatsApp Platform/i,
-      })
-    ).toHaveAttribute("href", "/produtos/whatsapp-platform");
+    const waLinks = screen.getAllByRole("link", { name: /Agendar diagnóstico/i });
+    expect(waLinks[0].getAttribute("href")).toMatch(/^https:\/\/wa\.me\/5511888888888/);
+    const solutionLinks = screen.getAllByRole("link", { name: /Ver solução WhatsApp multi-canal/i });
+    expect(solutionLinks.length).toBeGreaterThan(0);
+    expect(solutionLinks[0]).toHaveAttribute("href", "/solucoes/whatsapp-multi-canal");
   });
 });

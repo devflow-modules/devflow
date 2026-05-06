@@ -11,12 +11,12 @@ const ICONS: Record<DemoScenarioId, typeof UtensilsCrossed> = {
   loja: Store,
 };
 
-type Props = {
+type ScenarioPickerAttrs = {
   onSelect: (id: DemoScenarioId) => void;
   disabled?: boolean;
 };
 
-export function DemoScenarioPicker({ onSelect, disabled }: Props) {
+export function DemoScenarioPicker({ onSelect, disabled }: ScenarioPickerAttrs) {
   const ids: DemoScenarioId[] = ["restaurante", "tabacaria", "loja"];
 
   return (

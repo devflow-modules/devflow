@@ -18,7 +18,7 @@ const STATUS_STYLE: Record<DemoOpsStatus, string> = {
   na_fila: "bg-blue-50 text-blue-900 ring-blue-200",
 };
 
-type Props =
+type DemoOpsPanelVariant =
   | { variant: "empty" }
   | {
       variant: "active";
@@ -28,7 +28,7 @@ type Props =
       queueHint: string;
     };
 
-export function DemoOpsPanel(props: Props) {
+export function DemoOpsPanel(props: DemoOpsPanelVariant) {
   if (props.variant === "empty") {
     return (
       <aside
@@ -52,7 +52,7 @@ export function DemoOpsPanel(props: Props) {
       aria-label="Prévia operacional da demonstração"
     >
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Prova operacional (simulada)
+        Evidência operacional (simulada)
       </p>
       <p className="mt-1 text-sm text-foreground">
         O que sua equipe veria no painel — sem dados reais nem rede.
