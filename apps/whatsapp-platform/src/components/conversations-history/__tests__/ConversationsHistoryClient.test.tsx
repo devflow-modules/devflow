@@ -179,6 +179,44 @@ describe("ConversationsHistoryClient", () => {
     });
   });
 
+  it("mostra chip de linha na lista e no painel ao seleccionar", async () => {
+    const user = userEvent.setup();
+    const t = threadRow({
+      whatsappLine: {
+        phoneNumberId: "pn-pros",
+        label: null,
+        displayPhoneNumber: "+351 910 000 002",
+        isPrimary: false,
+        isDefaultOutbound: false,
+        status: "ACTIVE",
+        purpose: "PROSPECTING",
+      },
+    });
+    vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
+        return jsonThreads([t], 1);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines([]);
+      }
+      return jsonThreads([t], 1);
+    });
+
+    renderHistory();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("history-thread-list")).toBeInTheDocument();
+    });
+    expect(screen.getByTestId("whatsapp-line-badge")).toHaveTextContent("Prospecção");
+
+    await user.click(screen.getByRole("button", { name: /Cliente A|\+351910000000/ }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("history-preview-line-badge")).toHaveTextContent("Prospecção");
+    });
+  });
+
   it("com duas linhas mostra filtro e envia businessPhoneNumberId na API quando na URL", async () => {
     nav.setQuery("businessPhoneNumberId=pn-pros");
     const lines = [

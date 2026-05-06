@@ -11,7 +11,11 @@ import { priorityGuidance } from "./leadPanelCopy";
 import { ResponseAlertBadge, getResponseAlertLevel } from "./ResponseAlertBadge";
 import { getConversationStateBadge } from "./conversationStateUi";
 import { Button } from "@/components/ui/button";
-import { WHATSAPP_CHANNEL_PURPOSE_PT } from "@/lib/whatsappChannelPurposeLabels";
+import {
+  formatWhatsappLineBadgeLabel,
+  formatWhatsappLineFilterOptionLabel,
+  getWhatsappLinePurposeTone,
+} from "@/lib/whatsapp-lines/linePresentation";
 import {
   isFollowUpDueOrOverdue,
   isSalesStage,
@@ -199,22 +203,15 @@ export const ConversationItem = memo(function ConversationItem({
           </div>
 
           {thread.whatsappLine ? (
-            <p
-              className="mt-0.5 truncate text-[10px] text-[var(--df-text-muted)]"
-              data-testid="conversation-item-channel"
-            >
-              {thread.whatsappLine.label?.trim() ||
-                thread.whatsappLine.displayPhoneNumber?.trim() ||
-                `${thread.whatsappLine.phoneNumberId.slice(0, 8)}…`}
-              {thread.whatsappLine.purpose && thread.whatsappLine.purpose !== "GENERAL" ? (
-                <>
-                  {" "}
-                  ·{" "}
-                  {WHATSAPP_CHANNEL_PURPOSE_PT[thread.whatsappLine.purpose] ??
-                    thread.whatsappLine.purpose}
-                </>
-              ) : null}
-            </p>
+            <div className="mt-1 flex min-w-0 flex-wrap items-center gap-1.5" data-testid="conversation-line-badge-row">
+              <span
+                className={getWhatsappLinePurposeTone(thread.whatsappLine).className}
+                data-testid="whatsapp-line-badge"
+                title={formatWhatsappLineFilterOptionLabel(thread.whatsappLine)}
+              >
+                {formatWhatsappLineBadgeLabel(thread.whatsappLine)}
+              </span>
+            </div>
           ) : null}
 
           {stateBadge || (thread.dealSuggested && thread.dealStatus !== "won" && thread.dealStatus !== "lost") ? (

@@ -5,7 +5,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ConversationItem } from "@/components/inbox/ConversationItem";
-import { formatInboxLineFilterOptionLabel } from "@/components/inbox/inboxLineFilterLabel";
+import {
+  formatWhatsappLineBadgeLabel,
+  formatWhatsappLineFilterOptionLabel,
+  getWhatsappLinePurposeTone,
+} from "@/lib/whatsapp-lines/linePresentation";
 import { fetchTenantWhatsappLines } from "@/components/inbox/inboxFetch";
 import { INBOX_QK } from "@/components/inbox/inboxTypes";
 import { PageHeader } from "@/components/ui/page-header";
@@ -237,7 +241,7 @@ export function ConversationsHistoryClient() {
                 <option value="">Todas as linhas</option>
                 {lines.map((l) => (
                   <option key={l.phoneNumberId} value={l.phoneNumberId}>
-                    {formatInboxLineFilterOptionLabel(l)}
+                    {formatWhatsappLineFilterOptionLabel(l)}
                   </option>
                 ))}
               </select>
@@ -399,6 +403,15 @@ export function ConversationsHistoryClient() {
                       </span>
                     );
                   })()}
+                  {selected.whatsappLine ? (
+                    <span
+                      className={getWhatsappLinePurposeTone(selected.whatsappLine).className}
+                      data-testid="history-preview-line-badge"
+                      title={formatWhatsappLineFilterOptionLabel(selected.whatsappLine)}
+                    >
+                      {formatWhatsappLineBadgeLabel(selected.whatsappLine)}
+                    </span>
+                  ) : null}
                   {selected.assignedToUser?.name ? (
                     <span className="text-xs text-[var(--df-text-muted)]">
                       Responsável: {selected.assignedToUser.name}
@@ -425,7 +438,7 @@ export function ConversationsHistoryClient() {
                   <div>
                     <dt className="text-[var(--df-text-muted)]">Linha WhatsApp</dt>
                     <dd className="break-words text-[var(--df-text-primary)]">
-                      {formatInboxLineFilterOptionLabel(selected.whatsappLine)}
+                      {formatWhatsappLineFilterOptionLabel(selected.whatsappLine)}
                     </dd>
                   </div>
                 ) : null}
