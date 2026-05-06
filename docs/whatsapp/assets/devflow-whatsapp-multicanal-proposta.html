@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DevFlow Labs — Operação WhatsApp Multi-canal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #0b1220;
+      --muted: #4b5563;
+      --line: #e2e8f0;
+      --bg: #f4f7f5;
+      --card: #ffffff;
+      --accent: #0f3d2e;
+      --accent-2: #166534;
+      --mint: #d1fae5;
+      --shadow: 0 4px 24px rgba(15, 61, 46, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "DM Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      font-size: 13.5px;
+      line-height: 1.55;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    @page { size: A4; margin: 14mm 16mm; }
+    @media print {
+      body { background: #fff; font-size: 11pt; }
+      .page { break-before: page; page-break-before: always; }
+      .no-print { display: none !important; }
+      a { color: inherit; text-decoration: none; }
+      tr, .card, .callout, .cover-inner { break-inside: avoid; page-break-inside: avoid; }
+    }
+    .screen-hint {
+      text-align: center;
+      padding: 10px;
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 12px;
+    }
+    /* Capa */
+    .cover {
+      min-height: calc(100vh - 0px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 28px;
+      background: linear-gradient(165deg, #f0fdf4 0%, #ecfdf5 35%, #ffffff 100%);
+      border-bottom: 6px solid var(--accent);
+    }
+    .cover-inner {
+      max-width: 560px;
+      text-align: center;
+    }
+    .cover-mark {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+      margin-bottom: 28px;
+    }
+    .cover h1 {
+      margin: 0 0 16px;
+      font-size: clamp(28px, 5vw, 36px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--ink);
+    }
+    .cover-sub {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+    .cover-lead {
+      font-size: 16px;
+      color: var(--muted);
+      margin: 0 auto 40px;
+      max-width: 480px;
+    }
+    .cover-foot {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    main { max-width: 820px; margin: 0 auto; padding: 32px 22px 56px; }
+    h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+      border-left: 4px solid var(--accent-2);
+      padding-left: 12px;
+    }
+    h3 {
+      margin: 20px 0 8px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    p { margin: 0 0 12px; color: var(--ink); }
+    .muted { color: var(--muted); font-size: 12.5px; }
+    .placeholders {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px 22px;
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
+    }
+    .placeholders h2 { border: none; padding: 0; margin-bottom: 12px; font-size: 16px; color: var(--ink); }
+    .placeholders dl {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 24px;
+      margin: 0;
+    }
+    .placeholders dt { font-weight: 600; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 10px; }
+    .placeholders dt:first-child { margin-top: 0; }
+    .placeholders dd { margin: 0; font-weight: 600; font-size: 14px; color: var(--ink); grid-column: span 1; }
+    @media (max-width: 600px) {
+      .placeholders dl { grid-template-columns: 1fr; }
+    }
+    .quotes {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .quote {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 14px 18px;
+      border: 1px solid var(--mint);
+      box-shadow: var(--shadow);
+      font-weight: 600;
+      font-size: 13.5px;
+      color: var(--accent);
+    }
+    .section { margin-bottom: 32px; }
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+    .card strong { color: var(--accent-2); }
+    ul.clean { margin: 0; padding-left: 20px; }
+    ul.clean li { margin-bottom: 6px; }
+    table.simple {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      margin: 12px 0 18px;
+    }
+    table.simple th, table.simple td {
+      border: 1px solid var(--line);
+      padding: 8px 10px;
+      vertical-align: top;
+    }
+    table.simple th {
+      background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
+      font-weight: 600;
+      color: var(--accent);
+      text-align: left;
+    }
+    .phase {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px 14px;
+      align-items: start;
+      margin-bottom: 10px;
+      padding: 12px;
+      background: var(--card);
+      border-radius: 10px;
+      border: 1px solid var(--line);
+    }
+    .phase-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      background: var(--accent);
+      padding: 4px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .callout {
+      background: linear-gradient(90deg, #ecfdf5, #ffffff);
+      border: 1px solid var(--mint);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    .cta {
+      margin-top: 8px;
+      padding: 32px 24px;
+      text-align: center;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent) 0%, #14532d 100%);
+      color: #ecfdf5;
+      box-shadow: var(--shadow);
+    }
+    .cta h2 { color: #fff; border: none; padding: 0; margin-bottom: 12px; font-size: 22px; }
+    .cta p { color: rgba(236,253,245,0.95); margin-bottom: 14px; }
+    .cta .btn-line {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid rgba(255,255,255,0.45);
+      padding: 10px 18px;
+      border-radius: 999px;
+    }
+    .footer-note {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 28px;
+    }
+  </style>
+</head>
+<body>
+  <div class="screen-hint no-print">Exporte para PDF com o script <code>generate-commercial-proposal-pdf.sh</code> ou impressão do navegador (A4).</div>
+
+  <section class="cover">
+    <div class="cover-inner">
+      <div class="cover-mark">DevFlow Labs</div>
+      <h1>Operação WhatsApp Multi-canal</h1>
+      <div class="cover-sub">Pr&#111;posta de implantação gerenciada</div>
+      <p class="cover-lead">Atendimento, prospecção, IA assistida e gestão por canal em uma operação única.</p>
+      <div class="cover-foot">Material comercial · DevFlow Labs</div>
+    </div>
+  </section>
+
+  <main>
+    <div class="placeholders">
+      <h2>Personalização (preencher antes do envio)</h2>
+      <dl>
+        <dt>Cliente</dt>
+        <dd>[Nome da empresa]</dd>
+        <dt>Implantação</dt>
+        <dd>R$ [valor]</dd>
+        <dt>Mensalidade</dt>
+        <dd>R$ [valor]</dd>
+        <dt>Prazo inicial</dt>
+        <dd>[X] dias úteis</dd>
+        <dt>Validade da proposta</dt>
+        <dd>[X] dias</dd>
+      </dl>
+    </div>
+
+    <div class="quotes">
+      <div class="quote">Separe atendimento e prospecção sem perder o controle da operação.</div>
+      <div class="quote">O operador conversa. O gestor acompanha. A DevFlow Labs sustenta a operação.</div>
+      <div class="quote">A IA acelera o atendimento sem remover a governança humana.</div>
+      <div class="quote">Cada canal pode ter objetivo, contexto e leitura gerencial própria.</div>
+    </div>
+
+    <section class="section page">
+      <h2>Resumo executivo</h2>
+      <div class="card">
+        <p>O WhatsApp concentra receita, suporte e captação. Quando tudo converge no mesmo fluxo mental, o time perde contexto e o gestor perde leitura confiável.</p>
+        <p><strong>A resposta é segmentar com método:</strong> uma linha para continuidade do relacionamento (<strong>Canal Principal</strong>) e outra para captação e qualificação (<strong>canal de prospecção</strong>) — com inbox unificada, histórico auditável e visão gerencial por linha.</p>
+        <p class="muted" style="margin-bottom:0">A DevFlow Labs conduz implantação gerenciada: configuração, treino, go-live assistido e acompanhamento inicial. Modelo típico: <strong>setup inicial + mensalidade</strong> de sustentação e evolução — sem exigir time de tecnologia dedicado do seu lado.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Situação e dores na operação</h2>
+      <p class="muted">Dores recorrentes quando canais distintos compartilham o mesmo modo de trabalho.</p>
+      <table class="simple">
+        <thead>
+          <tr><th>Dor</th><th>Sinal na operação</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Conversas misturadas</td><td>Cliente ativo, lead frio e cobrança competem pela mesma atenção.</td></tr>
+          <tr><td>Leads sem prioridade clara</td><td>Urgência percebida não reflete urgência real de negócio.</td></tr>
+          <tr><td>Equipe sem padrão</td><td>Tom e próximos passos variam por operador, gerando retrabalho.</td></tr>
+          <tr><td>Gestor sem métrica por canal</td><td>Agregados escondem se prospecção canibaliza atendimento (ou o inverso).</td></tr>
+          <tr><td>Histórico difícil de auditar</td><td>Rastrear conversas virou ruído entre aparelhos e prints soltos.</td></tr>
+          <tr><td>Follow-up esquecido</td><td>Compromissos de retorno somem antes da segunda medição.</td></tr>
+          <tr><td>Automação sem regra</td><td>Risco reputacional quando respostas escapam do tom ou do combinado jurídico.</td></tr>
+          <tr><td>Acesso amplo demais</td><td>Operador exposto a superfícies que deveriam ser só do gestor.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section page">
+      <h2>Solução DevFlow Labs</h2>
+      <table class="simple">
+        <thead>
+          <tr><th>Pilar</th><th>Valor entregue</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Canal Principal</td><td>Atendimento, suporte e continuidade de clientes em jornada.</td></tr>
+          <tr><td>Canal de prospecção</td><td>Entrada ordenada para captação, qualificação e handoff limpo.</td></tr>
+          <tr><td>Inbox multi-canal</td><td>Uma cockpit operacional com contexto visual do canal.</td></tr>
+          <tr><td>Histórico por canal</td><td>Auditoria e coaching sem misturar frentes de negócio.</td></tr>
+          <tr><td>Painel gerencial</td><td>Indicadores que respondem a perguntas de gestão, por linha.</td></tr>
+          <tr><td>IA assistida</td><td>Velocidade e consistência dentro de guardrails combinados na implantação.</td></tr>
+          <tr><td>Permissões por perfil</td><td>Menor privilégio: execução separada da leitura gerencial.</td></tr>
+          <tr><td>Operação gerenciada</td><td>Suporte especializado DevFlow Labs e evolução segura da plataforma.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Escopo de implantação (fases)</h2>
+      <div class="phase"><span class="phase-badge">Fase 1</span><div><strong>Diagnóstico operacional</strong><br /><span class="muted">Fluxo atual, canais desejados, perfil da equipe e metas combinadas.</span></div></div>
+      <div class="phase"><span class="phase-badge">Fase 2</span><div><strong>Configuração técnica</strong><br /><span class="muted">Tenant, linhas WhatsApp acordadas, perfis e painéis prioritários.</span></div></div>
+      <div class="phase"><span class="phase-badge">Fase 3</span><div><strong>Assistência e playbook</strong><br /><span class="muted">Tom de voz, instruções, limites de atuação e cenários de teste.</span></div></div>
+      <div class="phase"><span class="phase-badge">Fase 4</span><div><strong>Treinamento</strong><br /><span class="muted">Gestores e operadores na inbox, painel e governança.</span></div></div>
+      <div class="phase"><span class="phase-badge">Fase 5</span><div><strong>Acompanhamento inicial</strong><br /><span class="muted">Ajustes pontuais, leitura de métricas inicia e estabilização do ritmo.</span></div></div>
+    </section>
+
+    <section class="section page">
+      <h2>Entregáveis</h2>
+      <table class="simple">
+        <thead>
+          <tr><th>Entregável</th><th>Critério de pronto</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Tenant configurado</td><td>Ambiente validado para o cliente.</td></tr>
+          <tr><td>Canais combinados</td><td>Principal e prospecção ativos ou plano datado para segunda linha.</td></tr>
+          <tr><td>Inbox operacional</td><td>Uso cotidiano com marcação contextual de canal.</td></tr>
+          <tr><td>Painel gerencial</td><td>Gestores treinados para leitura mínima acordada.</td></tr>
+          <tr><td>Histórico segregável</td><td>Fluxo de auditoria demonstrado uma vez checklist.</td></tr>
+          <tr><td>IA assistida</td><td>Cenários aprovados + limites combinados registrados.</td></tr>
+          <tr><td>Usuários e permissões</td><td>Revisão de papéis com o gestor do cliente.</td></tr>
+          <tr><td>Treino</td><td>Equipe confortável com rotina e escalação.</td></tr>
+          <tr><td>Go-live assistido</td><td>Checklist formal concluído com responsáveis nomeados.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Modelo operacional</h2>
+      <table class="simple">
+        <thead>
+          <tr><th>Papel</th><th>Responsabilidade</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Operador</td><td>Conduz conversas, cumpre playbook e escala quando necessário.</td></tr>
+          <tr><td>Gestor</td><td>Acompanha métricas, prioriza filas e zela pela governança da assistência.</td></tr>
+          <tr><td>DevFlow Labs</td><td>Implantação, suporte especializado, evolução técnica e parâmetros profundos.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Segurança e permissões</h2>
+      <div class="card">
+        <ul class="clean">
+          <li>Operação em camadas: foco no que cada perfil precisa ver.</li>
+          <li>Isolamento por organização: dados e filtros respeitam o tenant do cliente.</li>
+          <li>Superfícies gerenciais conscientes — não expostas “por acaso” ao time de linha.</li>
+          <li>Materiais de treino e exemplos apenas com dados fictícios (ex.: <em>Empresa Demo</em>).</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section page">
+      <h2>IA assistida e governança</h2>
+      <table class="simple">
+        <thead>
+          <tr><th>Dimensão</th><th>Como funciona na prática</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Velocidade</td><td>Sugestões e rascunhos alinhados ao tom acordado.</td></tr>
+          <tr><td>Contexto por canal</td><td>Instruções distintas quando Principal e prospecção exigem posturas diferentes.</td></tr>
+          <tr><td>Humano no comando</td><td>Confirmação onde o risco reputacional ou jurídico exige validação.</td></tr>
+          <tr><td>Leitura gerencial</td><td>Indicadores de uso da assistência quando habilitados no painel.</td></tr>
+          <tr><td>Limites explícitos</td><td>Temas sensíveis e promessas fora do combinado ficam bloqueados ou escalonados.</td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        Expectativa responsável: a assistência varia conforme dados de contexto, disciplina do time e aderência ao treino — não substitui julgamento humano nem promete precisão absoluta fora do escopo combinado.
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Dashboard e acompanhamento</h2>
+      <p class="muted">O painel responde perguntas gerenciais; não é só “número solto”.</p>
+      <table class="simple">
+        <thead>
+          <tr><th>Leitura</th><th>Para que serve</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Visão inicial agregada</td><td>Entender ritmo macro enquanto o time estabiliza.</td></tr>
+          <tr><td>Por canal</td><td>Ver onde a capacidade está sendo consumida.</td></tr>
+          <tr><td>Principal vs prospecção</td><td>Separar esforço de retenção e de captação.</td></tr>
+          <tr><td>Tempos operacionais</td><td>Medir primeira resposta e permanência segundo acordo comercial.</td></tr>
+          <tr><td>Continuidade / funil</td><td>Onde aplicável ao modelo de vendas.</td></tr>
+          <tr><td>Qualidade da captação</td><td>Volume X relevância percebida pelo gestor.</td></tr>
+          <tr><td>Assistência supervisionada</td><td>Ver se a assistência acelera sem degradar qualidade.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section page">
+      <h2>Cronograma sugerido (7 dias úteis)</h2>
+      <table class="simple">
+        <thead>
+          <tr><th>Dia</th><th>Foco</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Diagnóstico + métricas-alvo iniciais.</td></tr>
+          <tr><td>2</td><td>Base técnica e testes de conectividade.</td></tr>
+          <tr><td>3</td><td>Perfis, permissões e linhas combinadas.</td></tr>
+          <tr><td>4</td><td>Biblioteca da assistência e baterias de cenário.</td></tr>
+          <tr><td>5</td><td>Ciclo integrado em ambiente controlado.</td></tr>
+          <tr><td>6</td><td>Treinos (gestão + operação).</td></tr>
+          <tr><td>7</td><td>Go-live assistido e ajuste imediato.</td></tr>
+        </tbody>
+      </table>
+      <p class="muted">Opcional dias 8–10: refinamentos de contexto e microcopy sem mudar decisões de arquitetura.</p>
+    </section>
+
+    <section class="section">
+      <h2>Modelo comercial</h2>
+      <table class="simple">
+        <thead>
+          <tr><th>Componente</th><th>Descrição</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Implantação</td><td>Diagnóstico, configuração, assistência inicial, treino e go-live.</td></tr>
+          <tr><td>Mensalidade</td><td>Sustentação, governança evolutiva e suporte no canal combinado.</td></tr>
+          <tr><td>Evoluções sob demanda</td><td>Escopo próprio sempre que ultrapassar ajustes paramétricos pequenos.</td></tr>
+          <tr><td>Novas linhas</td><td>Orçamento dedicado proporcional a treino e infraestrutura.</td></tr>
+          <tr><td>Treinamentos extras</td><td>Onboarding de novos colaboradores ou reciclagens periódicas.</td></tr>
+        </tbody>
+      </table>
+      <div class="placeholders" style="margin-top:16px">
+        <h2 style="font-size:15px">Quadro econômico (repetir no corpo do contrato)</h2>
+        <p><strong>Implantação:</strong> R$ [valor] &nbsp;·&nbsp; <strong>Mensalidade:</strong> R$ [valor]</p>
+        <p><strong>Prazo inicial:</strong> [X] dias úteis &nbsp;·&nbsp; <strong>Validade da proposta:</strong> [X] dias</p>
+        <p class="muted" style="margin:0">Valores finais confirmados formalmente antes do início da parametrização avançada.</p>
+      </div>
+    </section>
+
+    <section class="section page">
+      <h2>Fora de escopo (padrão)</h2>
+      <div class="card">
+        <ul class="clean">
+          <li>Aquisição física de chip ou número em nome do cliente (coordinamos após a linha existir).</li>
+          <li>Custos de infraestrutura externa da Meta / WhatsApp Business API, quando aplicáveis à conta.</li>
+          <li>Campanhas de mídia paga (fora do escopo da inbox, salvo projeto à parte).</li>
+          <li>Execução humana das conversas pelo time DevFlow Labs (somente com contrato específico de outsourcing).</li>
+          <li>Integrações avançadas ad hoc ou CRM externo sem escopo formal adicional.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Próximos passos</h2>
+      <div class="card">
+        <ol style="margin:0; padding-left:20px;">
+          <li>Aprovar escopo e confirmação econômica.</li>
+          <li>Listar linhas físicas disponíveis e expectativa da equipe no dia um.</li>
+          <li>Nomear “owner” operacional do lado do cliente com poder de decisão diária.</li>
+          <li>Agendar kickoff técnico com a DevFlow Labs.</li>
+          <li>Marcar treinamentos alinhados à agenda fiscal e operacional do cliente.</li>
+          <li>Definir data de go-live assistido com buffer de suporte reforçado.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="cta page">
+      <h2>Vamos estruturar sua operação no WhatsApp</h2>
+      <p>Responda com o melhor horário ou envie suas dúvidas finais. Em seguida formalizamos valores, datas e owner do projeto nos dois lados.</p>
+      <div class="btn-line">Próximo passo: alinhar disponibilidade e fechar escopo econômico</div>
+      <p class="muted" style="margin-top:18px;color:rgba(236,253,245,0.75);font-size:12px;margin-bottom:0">Referência institucional: https://devflowlabs.com.br/solucoes/whatsapp-multi-canal<br />Detalhes extensos, modelos de mensagem e checklist de envio seguem na versão completa em Markdown interno.</p>
+    </section>
+
+    <p class="footer-note">Versão sintética comercial gerada para PDF — DevFlow Labs · Operação WhatsApp Multi-canal</p>
+  </main>
+</body>
+</html>
