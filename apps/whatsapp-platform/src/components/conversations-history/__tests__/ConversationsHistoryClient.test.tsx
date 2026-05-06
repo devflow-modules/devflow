@@ -337,4 +337,148 @@ describe("ConversationsHistoryClient", () => {
       expect.any(Object)
     );
   });
+
+  it("inicializa phase a partir da URL", async () => {
+    nav.setQuery("phase=all");
+    const spy = vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
+        expect(u).toContain("phase=all");
+        return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines([]);
+      }
+      return jsonThreads([], 0);
+    });
+    renderHistory();
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+  });
+
+  it("inicializa busca a partir do parâmetro search", async () => {
+    nav.setQuery("search=maria");
+    const spy = vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
+        expect(u).toContain("q=maria");
+        return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines([]);
+      }
+      return jsonThreads([], 0);
+    });
+    renderHistory();
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    expect(screen.getByTestId("history-search-input")).toHaveValue("maria");
+  });
+
+  it("inicializa preset LAST_7_DAYS a partir da URL", async () => {
+    nav.setQuery("preset=LAST_7_DAYS");
+    const spy = vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
+        expect(u).toMatch(/from=\d{4}-\d{2}-\d{2}/);
+        expect(u).toMatch(/to=\d{4}-\d{2}-\d{2}/);
+        return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines([]);
+      }
+      return jsonThreads([], 0);
+    });
+    renderHistory();
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+  });
+
+  it("inicializa intervalo personalizado a partir de startDate e endDate", async () => {
+    nav.setQuery("preset=CUSTOM&startDate=2026-05-01&endDate=2026-05-05");
+    const spy = vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
+        expect(u).toContain("from=2026-05-01");
+        expect(u).toContain("to=2026-05-05");
+        return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines([]);
+      }
+      return jsonThreads([], 0);
+    });
+    renderHistory();
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+  });
+
+  it("aceita alias status= na URL como phase", async () => {
+    nav.setQuery("status=in_attendance");
+    const spy = vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
+        expect(u).toContain("phase=in_attendance");
+        return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines([]);
+      }
+      return jsonThreads([], 0);
+    });
+    renderHistory();
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+  });
+
+  it("ao mudar fase chama router.replace com phase na query", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
+        return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines([]);
+      }
+      return jsonThreads([], 0);
+    });
+    renderHistory();
+    await waitFor(() => expect(screen.getByTestId("history-filter-phase")).toBeInTheDocument());
+    await user.selectOptions(screen.getByTestId("history-filter-phase"), "all");
+    expect(nav.replaceMock).toHaveBeenCalledWith(expect.stringContaining("phase=all"), expect.any(Object));
+  });
+
+  it("mantém businessPhoneNumberId compatível com phase na URL", async () => {
+    nav.setQuery("businessPhoneNumberId=pn-pros&phase=all");
+    const lines = [
+      {
+        phoneNumberId: "pn-principal",
+        label: "Principal",
+        displayPhoneNumber: "+351 910 000 000",
+        isPrimary: true,
+        isDefaultOutbound: false,
+        status: "ACTIVE",
+        purpose: "GENERAL",
+      },
+      {
+        phoneNumberId: "pn-pros",
+        label: "Prospecção",
+        displayPhoneNumber: "+351 910 000 001",
+        isPrimary: false,
+        isDefaultOutbound: false,
+        status: "ACTIVE",
+        purpose: "PROSPECTING",
+      },
+    ];
+    const spy = vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
+        expect(u).toContain("businessPhoneNumberId=pn-pros");
+        expect(u).toContain("phase=all");
+        return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines(lines);
+      }
+      return jsonThreads([], 0);
+    });
+    renderHistory();
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+  });
 });

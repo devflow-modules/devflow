@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ConversationItem } from "@/components/inbox/ConversationItem";
 import {
@@ -16,6 +16,11 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
 import { StateError, StateLoading } from "@/components/ui/app-states";
 import { Button } from "@/components/ui/button";
+import {
+  buildConversationHistorySearchParams,
+  parseConversationHistoryFiltersFromSearchParams,
+  type ConversationHistoryUrlState,
+} from "@/lib/conversation-history/conversationHistoryUrlState";
 import {
   fetchConversationHistory,
   periodPresetToRange,
@@ -54,16 +59,23 @@ export function ConversationsHistoryClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const searchParamsString = searchParams.toString();
 
-  const [phase, setPhase] = useState<HistoryPhaseFilter>("closed");
-  const [periodPreset, setPeriodPreset] = useState<HistoryPeriodPreset>("all");
-  const [customFrom, setCustomFrom] = useState("");
-  const [customTo, setCustomTo] = useState("");
-  const [searchInput, setSearchInput] = useState("");
-  const [searchApplied, setSearchApplied] = useState("");
+  const parsed = useMemo(
+    () => parseConversationHistoryFiltersFromSearchParams(new URLSearchParams(searchParamsString)),
+    [searchParamsString]
+  );
+
+  const phase = parsed.phase;
+  const periodPreset = parsed.preset;
+  const customFrom = parsed.customFrom;
+  const customTo = parsed.customTo;
+  const searchApplied = parsed.search;
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const paramLineId = searchParams.get("businessPhoneNumberId")?.trim() || null;
+  const paramLineId = parsed.businessPhoneNumberId;
 
   const { data: lines = [], isFetched: linesFetched } = useQuery({
     queryKey: INBOX_QK.phoneLines,
@@ -84,11 +96,14 @@ export function ConversationsHistoryClient() {
     return lines.some((l) => l.phoneNumberId === paramLineId) ? paramLineId : undefined;
   }, [lines, paramLineId]);
 
-  const replaceHistorySearch = useCallback(
-    (mutate: (p: URLSearchParams) => void) => {
-      const p = new URLSearchParams(searchParams.toString());
-      mutate(p);
-      const qs = p.toString();
+  const commitHistoryUrl = useCallback(
+    (patch: Partial<ConversationHistoryUrlState>) => {
+      const base = parseConversationHistoryFiltersFromSearchParams(
+        new URLSearchParams(searchParams.toString())
+      );
+      const next: ConversationHistoryUrlState = { ...base, ...patch };
+      const params = buildConversationHistorySearchParams(next);
+      const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     },
     [pathname, router, searchParams]
@@ -97,28 +112,22 @@ export function ConversationsHistoryClient() {
   /** Uma só linha: parâmetro na URL é redundante; limpar ao carregar. */
   useEffect(() => {
     if (lines.length !== 1 || !paramLineId) return;
-    replaceHistorySearch((p) => {
-      p.delete("businessPhoneNumberId");
-    });
-  }, [lines.length, paramLineId, replaceHistorySearch]);
+    commitHistoryUrl({ businessPhoneNumberId: null });
+  }, [lines.length, paramLineId, commitHistoryUrl]);
 
   /** Linha desconhecida no query string: remover para evitar estado ambíguo. */
   useEffect(() => {
     if (lines.length <= 1 || !paramLineId) return;
     if (businessPhoneNumberIdForFetch === undefined) {
-      replaceHistorySearch((p) => {
-        p.delete("businessPhoneNumberId");
-      });
+      commitHistoryUrl({ businessPhoneNumberId: null });
     }
-  }, [lines.length, paramLineId, businessPhoneNumberIdForFetch, replaceHistorySearch]);
+  }, [lines.length, paramLineId, businessPhoneNumberIdForFetch, commitHistoryUrl]);
 
   /** Tenant sem linhas registadas: limpar parâmetro órfão. */
   useEffect(() => {
     if (!linesFetched || lines.length > 0 || !paramLineId) return;
-    replaceHistorySearch((p) => {
-      p.delete("businessPhoneNumberId");
-    });
-  }, [linesFetched, lines.length, paramLineId, replaceHistorySearch]);
+    commitHistoryUrl({ businessPhoneNumberId: null });
+  }, [linesFetched, lines.length, paramLineId, commitHistoryUrl]);
 
   const range = useMemo(() => {
     if (periodPreset === "custom") {
@@ -168,18 +177,48 @@ export function ConversationsHistoryClient() {
 
   const onLineFilterChange = useCallback(
     (next: string | null) => {
-      replaceHistorySearch((p) => {
-        const v = next?.trim();
-        if (v) p.set("businessPhoneNumberId", v);
-        else p.delete("businessPhoneNumberId");
-      });
+      const v = next?.trim() || null;
+      commitHistoryUrl({ businessPhoneNumberId: v });
     },
-    [replaceHistorySearch]
+    [commitHistoryUrl]
   );
 
   const applySearch = useCallback(() => {
-    setSearchApplied(searchInput.trim());
-  }, [searchInput]);
+    const v = searchInputRef.current?.value?.trim() ?? "";
+    commitHistoryUrl({ search: v });
+  }, [commitHistoryUrl]);
+
+  const setPhaseFilter = useCallback(
+    (next: HistoryPhaseFilter) => {
+      commitHistoryUrl({ phase: next });
+    },
+    [commitHistoryUrl]
+  );
+
+  const setPeriodPresetFilter = useCallback(
+    (next: HistoryPeriodPreset) => {
+      if (next === "custom") {
+        commitHistoryUrl({ preset: "custom" });
+      } else {
+        commitHistoryUrl({ preset: next, customFrom: "", customTo: "" });
+      }
+    },
+    [commitHistoryUrl]
+  );
+
+  const setCustomFromFilter = useCallback(
+    (v: string) => {
+      commitHistoryUrl({ preset: "custom", customFrom: v });
+    },
+    [commitHistoryUrl]
+  );
+
+  const setCustomToFilter = useCallback(
+    (v: string) => {
+      commitHistoryUrl({ preset: "custom", customTo: v });
+    },
+    [commitHistoryUrl]
+  );
 
   const copyPhone = useCallback(async (phone: string) => {
     try {
@@ -253,7 +292,7 @@ export function ConversationsHistoryClient() {
             <select
               className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2 text-sm text-[var(--df-text-primary)]"
               value={phase}
-              onChange={(e) => setPhase(e.target.value as HistoryPhaseFilter)}
+              onChange={(e) => setPhaseFilter(e.target.value as HistoryPhaseFilter)}
               data-testid="history-filter-phase"
             >
               <option value="closed">Encerradas</option>
@@ -281,7 +320,7 @@ export function ConversationsHistoryClient() {
                   variant={periodPreset === key ? "default" : "secondary"}
                   size="sm"
                   className="rounded-full"
-                  onClick={() => setPeriodPreset(key)}
+                  onClick={() => setPeriodPresetFilter(key)}
                 >
                   {label}
                 </Button>
@@ -293,14 +332,14 @@ export function ConversationsHistoryClient() {
                   type="date"
                   className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] px-2 py-1.5 text-sm"
                   value={customFrom}
-                  onChange={(e) => setCustomFrom(e.target.value)}
+                  onChange={(e) => setCustomFromFilter(e.target.value)}
                   aria-label="Data inicial"
                 />
                 <input
                   type="date"
                   className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] px-2 py-1.5 text-sm"
                   value={customTo}
-                  onChange={(e) => setCustomTo(e.target.value)}
+                  onChange={(e) => setCustomToFilter(e.target.value)}
                   aria-label="Data final"
                 />
               </div>
@@ -311,11 +350,12 @@ export function ConversationsHistoryClient() {
             <span className="text-xs font-medium text-[var(--df-text-secondary)]">Busca</span>
             <div className="flex gap-2">
               <input
+                ref={searchInputRef}
+                key={searchParamsString}
                 type="search"
                 placeholder="Nome, telefone ou mensagem…"
                 className="min-w-0 flex-1 rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2 text-sm text-[var(--df-text-primary)] placeholder:text-[var(--df-text-muted)]"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
+                defaultValue={parsed.search}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") applySearch();
                 }}
