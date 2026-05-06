@@ -17,6 +17,11 @@ import { Section } from "@/components/ui/section";
 import { StateError, StateLoading } from "@/components/ui/app-states";
 import { Button } from "@/components/ui/button";
 import {
+  CONVERSATION_HISTORY_QUICK_VIEWS,
+  conversationHistoryQuickViewUrlState,
+  matchesConversationHistoryQuickView,
+} from "@/lib/conversation-history/conversationHistoryQuickViews";
+import {
   buildConversationHistorySearchParams,
   parseConversationHistoryFiltersFromSearchParams,
   type ConversationHistoryUrlState,
@@ -220,6 +225,18 @@ export function ConversationsHistoryClient() {
     [commitHistoryUrl]
   );
 
+  const applyQuickView = useCallback(
+    (view: (typeof CONVERSATION_HISTORY_QUICK_VIEWS)[number]) => {
+      const line = businessPhoneNumberIdForFetch ?? null;
+      commitHistoryUrl(
+        conversationHistoryQuickViewUrlState(view, {
+          businessPhoneNumberId: line,
+        })
+      );
+    },
+    [businessPhoneNumberIdForFetch, commitHistoryUrl]
+  );
+
   const copyPhone = useCallback(async (phone: string) => {
     try {
       await navigator.clipboard.writeText(phone);
@@ -262,6 +279,30 @@ export function ConversationsHistoryClient() {
           </div>
         }
       />
+
+      <div className="flex flex-col gap-1.5">
+        <span className="text-xs font-medium text-[var(--df-text-secondary)]">Atalhos</span>
+        <div className="flex flex-wrap gap-2" data-testid="history-quick-views">
+          {CONVERSATION_HISTORY_QUICK_VIEWS.map((view) => {
+            const active = matchesConversationHistoryQuickView(parsed, view);
+            return (
+              <Button
+                key={view.id}
+                type="button"
+                size="sm"
+                variant={active ? "default" : "secondary"}
+                className="rounded-full"
+                data-testid={`history-quick-view-${view.id}`}
+                data-active={active ? "true" : "false"}
+                aria-pressed={active}
+                onClick={() => applyQuickView(view)}
+              >
+                {view.label}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
 
       <Section tone="dark" className="rounded-2xl border df-border-brand p-4 sm:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end">

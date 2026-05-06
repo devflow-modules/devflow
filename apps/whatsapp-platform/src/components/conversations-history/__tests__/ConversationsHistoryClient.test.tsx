@@ -481,4 +481,128 @@ describe("ConversationsHistoryClient", () => {
     renderHistory();
     await waitFor(() => expect(spy).toHaveBeenCalled());
   });
+
+  it("renderiza barra de vistas rápidas", async () => {
+    vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
+        return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines([]);
+      }
+      return jsonThreads([], 0);
+    });
+    renderHistory();
+    await waitFor(() => expect(screen.getByTestId("history-quick-views")).toBeInTheDocument());
+    expect(screen.getByTestId("history-quick-view-todas-7d")).toBeInTheDocument();
+  });
+
+  it("clicar em Todas — 7 dias chama replace com phase=all e preset LAST_7_DAYS", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
+        return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines([]);
+      }
+      return jsonThreads([], 0);
+    });
+    renderHistory();
+    await waitFor(() => expect(screen.getByTestId("history-quick-view-todas-7d")).toBeInTheDocument());
+    await user.click(screen.getByTestId("history-quick-view-todas-7d"));
+    expect(nav.replaceMock).toHaveBeenCalledWith(
+      expect.stringMatching(/[?&]phase=all(?:&|$)/),
+      expect.any(Object)
+    );
+    expect(nav.replaceMock).toHaveBeenCalledWith(
+      expect.stringMatching(/[?&]preset=LAST_7_DAYS(?:&|$)/),
+      expect.any(Object)
+    );
+  });
+
+  it("vista Encerradas recentes limpa a query excepto linha preservada", async () => {
+    const user = userEvent.setup();
+    nav.setQuery("phase=all&preset=LAST_7_DAYS&search=foo&businessPhoneNumberId=pn-b");
+    const lines = [
+      {
+        phoneNumberId: "pn-a",
+        label: "A",
+        displayPhoneNumber: null,
+        isPrimary: true,
+        isDefaultOutbound: false,
+        status: "ACTIVE",
+        purpose: "GENERAL",
+      },
+      {
+        phoneNumberId: "pn-b",
+        label: "B",
+        displayPhoneNumber: null,
+        isPrimary: false,
+        isDefaultOutbound: false,
+        status: "ACTIVE",
+        purpose: "GENERAL",
+      },
+    ];
+    vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
+        return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines(lines);
+      }
+      return jsonThreads([], 0);
+    });
+    renderHistory();
+    await waitFor(() => expect(screen.getByTestId("history-quick-view-encerradas-recentes")).toBeInTheDocument());
+    nav.replaceMock.mockClear();
+    await user.click(screen.getByTestId("history-quick-view-encerradas-recentes"));
+    const lastCall = nav.replaceMock.mock.calls.at(-1)?.[0] as string;
+    expect(lastCall).not.toMatch(/search=/);
+    expect(lastCall).not.toMatch(/phase=all/);
+    expect(lastCall).toMatch(/businessPhoneNumberId=pn-b/);
+  });
+
+  it("atalho limpa busca ao mudar de vista", async () => {
+    const user = userEvent.setup();
+    nav.setQuery("search=maria");
+    vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
+        return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines([]);
+      }
+      return jsonThreads([], 0);
+    });
+    renderHistory();
+    await waitFor(() => expect(screen.getByTestId("history-quick-view-em-atendimento")).toBeInTheDocument());
+    nav.replaceMock.mockClear();
+    await user.click(screen.getByTestId("history-quick-view-em-atendimento"));
+    const lastCall = nav.replaceMock.mock.calls.at(-1)?.[0] as string;
+    expect(lastCall).not.toMatch(/search=/);
+    expect(lastCall).toMatch(/phase=in_attendance/);
+  });
+
+  it("marca vista rápida activa conforme a URL", async () => {
+    nav.setQuery("phase=all&preset=LAST_7_DAYS");
+    vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
+        return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines([]);
+      }
+      return jsonThreads([], 0);
+    });
+    renderHistory();
+    await waitFor(() => expect(screen.getByTestId("history-quick-view-todas-7d")).toBeInTheDocument());
+    expect(screen.getByTestId("history-quick-view-todas-7d")).toHaveAttribute("data-active", "true");
+    expect(screen.getByTestId("history-quick-view-encerradas-recentes")).toHaveAttribute("data-active", "false");
+  });
 });
