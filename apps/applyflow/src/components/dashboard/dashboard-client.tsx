@@ -100,7 +100,7 @@ const filterSelectClass = cn(
 
 function DashboardMetricCard({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
-    <ApplyFlowCard variant="default" padding="md" className="shadow-sm">
+    <ApplyFlowCard variant="default" padding="md" className="shadow-sm ring-1 ring-white/[0.03]">
       <p className="text-xs font-medium uppercase tracking-wide text-[color:var(--af-text-muted)]">{label}</p>
       <p className="mt-1.5 text-2xl font-semibold tabular-nums text-[color:var(--af-text)]">{value}</p>
       {hint ? <p className="mt-1 text-[11px] leading-snug text-zinc-500">{hint}</p> : null}
@@ -311,7 +311,7 @@ export function DashboardClient() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-10 pb-12 sm:space-y-12">
+    <div className="mx-auto max-w-6xl space-y-10 overflow-x-hidden pb-12 sm:space-y-12">
       <ApplyFlowPrivacyNotice />
 
       <ApplyFlowSection

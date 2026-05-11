@@ -5,9 +5,11 @@ export type ApplyFlowCardVariant = "default" | "muted" | "highlight" | "danger" 
 
 const variantClass: Record<ApplyFlowCardVariant, string> = {
   default:
-    "border-[color:var(--af-border)] bg-[color:var(--af-surface)] shadow-[var(--af-shadow)]",
-  muted: "border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)]",
-  highlight: "border-emerald-500/40 bg-emerald-950/20 shadow-none",
+    "border-[color:var(--af-border)] bg-[color:var(--af-surface)] shadow-[var(--af-shadow)] transition-[border-color,box-shadow,background-color] hover:border-emerald-500/20 hover:shadow-[var(--af-shadow-elevated)]",
+  muted:
+    "border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] transition-[border-color,box-shadow,background-color] hover:border-emerald-500/20 hover:bg-[color:var(--af-surface)]/90 hover:shadow-md",
+  highlight:
+    "border-emerald-500/40 bg-emerald-950/25 shadow-none transition-[border-color,background-color] hover:border-emerald-400/55",
   danger: "border-red-500/45 bg-red-950/30 shadow-none",
   success: "border-emerald-500/35 bg-emerald-950/25 shadow-none",
   warning: "border-amber-500/45 bg-amber-950/28 shadow-none",

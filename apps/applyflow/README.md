@@ -1,76 +1,124 @@
-# ApplyFlow — Dashboard web (local-first)
+# ApplyFlow
 
-**Copiloto local-first para candidaturas no LinkedIn** — esta app é o **dashboard analítico** do ecossistema ApplyFlow: importas um JSON gerado na extensão (ou carregas uma demo fictícia) e vês funil, métricas e tabelas **só no browser**, sem backend ApplyFlow.
+**Copiloto local-first / privacy-first para candidaturas no LinkedIn Easy Apply** — produto autoral no monorepo **DevFlow Labs**: **dashboard Next.js** para análise no browser, **extensão Chrome (MV3)** para o fluxo no LinkedIn, pacotes TypeScript partilhados e documentação de produto em `docs/applyflow/`.
 
----
+![ApplyFlow — hero da landing](../../docs/applyflow/assets/01-applyflow-hero.png)
 
-## Visão geral
-
-| Rota | Função |
-|------|--------|
-| `/` | Landing de produto (problema, solução, privacidade, CTAs). |
-| `/dashboard` | Import JSON, drag-and-drop, **Carregar demo**, gráficos Recharts, filtros; `localStorage` (`APPLYFLOW_DASHBOARD_IMPORT_V1`). |
-| `/documentacao` | Índice dos ficheiros em `docs/applyflow/` do monorepo. |
-
-Documentação alinhada: [`docs/applyflow/`](../../docs/applyflow/) · Case study: [`CASE_STUDY.md`](../../docs/applyflow/CASE_STUDY.md).
+*Sem backend ApplyFlow obrigatório · sem auto-submit · dados no dispositivo · IA apenas opt-in.*
 
 ---
 
-## Problema
+## O que é o ApplyFlow?
 
-Candidaturas no **LinkedIn Easy Apply** são repetitivas e fáceis de desorganizar; ferramentas agressivas geram risco de política da plataforma e de privacidade. Falta um fluxo que acelere **com responsabilidade** e dados **no dispositivo**.
+O ApplyFlow é um **case de produto** que combina:
 
----
+1. **Extensão Chrome** — painel no Easy Apply com sugestões, autofill **assistido** (ação tua em cada campo), safety gate, histórico local em `chrome.storage.local`, export JSON e **IA opcional** (chave tua nas opções).
+2. **Dashboard web** (`apps/applyflow`) — importas o JSON exportado (ou carregas uma **demo fictícia**), e vês funil, métricas, tabelas e filtros **só no browser** (`localStorage` após import).
 
-## Solução
-
-**Extensão Chrome** (repositório irmão) + **este dashboard**: a ponte é um **export/import JSON** que tu controlas — sem servidor ApplyFlow a processar o teu histórico.
-
----
-
-## Why local-first?
-
-- **Sem backend ApplyFlow obrigatório** — não há API nossa a receber o teu histórico no MVP.
-- **Import/export JSON** — portabilidade e cópia de segurança sob controlo do utilizador.
-- **Dashboard só no navegador** — landing e métricas sem conta DevFlow.
-- **Dados permanecem localmente** (`localStorage` após import ou demo).
-- Uma **camada serverless/cloud** (sync, contas, IA gerida) pode surgir como **evolução Pro opcional**; não faz parte do produto base. Ver [`docs/applyflow/ADR-LOCAL_FIRST_VS_SERVERLESS.md`](../../docs/applyflow/ADR-LOCAL_FIRST_VS_SERVERLESS.md).
+Não existe **servidor ApplyFlow** no caminho crítico do MVP: o dashboard não envia o teu histórico para uma API nossa; a extensão não substitui o envio humano no LinkedIn.
 
 ---
 
-## Principais features
+## Porque existe
 
-- Import de ficheiro `.json` ou arrastar para a zona tracejada; validação com `@devflow/applyflow-core`.
-- **Carregar demo** — dataset público fictício (`public/demo/applications-demo.json`); confirmação antes de substituir dados existentes.
-- Métricas, funil por estado, distribuições (skills, modelo de trabalho, contrato, inglês).
-- Tabela filtrável (período, estado, skill, etc.).
-- Persistência apenas em **localStorage**.
+- **Easy Apply** repete perguntas e metadados — desgaste e erros.
+- **Histórico disperso** (abas, notas, folhas) dificulta funil e follow-ups.
+- Ferramentas agressivas (**mass apply**, **auto-submit**, scraping irresponsável) aumentam risco de política da plataforma e de privacidade.
+
+O ApplyFlow prioriza **controlo**, **transparência** e **dados no dispositivo** em vez de centralizar candidaturas num SaaS obrigatório.
 
 ---
 
-## Arquitetura (resumo)
+## Funcionalidades principais
+
+| Área | O que entrega |
+|------|-----------------|
+| **Extensão** | Deteção do modal Easy Apply, sugestões alinhadas ao perfil (`@devflow/applyflow-core`), classificação de campos (`@devflow/applyflow-linkedin`), autofill com confirmações, histórico local, opções de perfil e **Preview (captura)** para screenshots sem PII. |
+| **Dashboard** | Import / drag-and-drop de JSON, validação com o core, **Carregar demo**, gráficos (Recharts), métricas, tabela filtrável. |
+| **Documentação** | Rota `/documentacao` indexa `docs/applyflow/` (arquitectura, ADR local-first, roadmap, checklists). |
+| **IA** | **Opt-in** na extensão: só com chave configurada pelo utilizador; não é requisito para o resto do fluxo. |
+
+---
+
+## Screenshots (conjunto oficial)
+
+Os ficheiros abaixo vivem em [`docs/applyflow/assets/`](../../docs/applyflow/assets/) — nomes canónicos para README, portefólio e posts. Se ainda não estiverem no clone, vê o [índice da pasta `assets`](../../docs/applyflow/assets/README.md).
+
+### 01 — Hero (landing)
+
+![01 — Landing / hero](../../docs/applyflow/assets/01-applyflow-hero.png)
+
+### 02 — Dashboard (visão geral)
+
+![02 — Dashboard overview](../../docs/applyflow/assets/02-applyflow-dashboard-overview.png)
+
+### 03 — Analytics
+
+![03 — Analytics](../../docs/applyflow/assets/03-applyflow-analytics.png)
+
+### 04 — Tabela de candidaturas
+
+![04 — Applications table](../../docs/applyflow/assets/04-applyflow-applications-table.png)
+
+### 05 — Hub de documentação
+
+![05 — Documentation hub](../../docs/applyflow/assets/05-applyflow-documentation-hub.png)
+
+### 06 — Extensão Chrome (preview controlado)
+
+![06 — Chrome extension preview](../../docs/applyflow/assets/06-applyflow-chrome-extension-preview.png)
+
+*O print 6 deve ser obtido na extensão (**Opções → Preview (captura)**), sem depender do DOM do LinkedIn, para material público sem mensagens ou contactos reais.*
+
+---
+
+## Arquitectura
+
+| Caminho | Papel |
+|---------|--------|
+| [`apps/applyflow`](.) | App **Next.js** (App Router): `/`, `/dashboard`, `/documentacao`; import JSON + demo; persistência em `localStorage`. |
+| [`apps/applyflow-extension`](../applyflow-extension) | **Content script** no LinkedIn, **opções** em tab, **service worker** MV3; `chrome.storage.local`; build Vite (`content` + `options`). |
+| [`packages/applyflow-core`](../../packages/applyflow-core) | Tipos (`CandidateProfile`), validação, métricas, parse de import — partilhado entre dashboard e extensão. |
+| [`packages/applyflow-linkedin`](../../packages/applyflow-linkedin) | Heurísticas / classificação de campos no contexto LinkedIn — consumido sobretudo pela extensão. |
+| [`docs/applyflow`](../../docs/applyflow) | Produto, ADR, roadmap, checklists de publicação e **assets** oficiais de screenshot. |
+
+Diagrama lógico:
 
 ```
-apps/applyflow-extension  →  chrome.storage.local, export JSON manual
-         ↓ ficheiro
-apps/applyflow            →  Next.js 16 App Router, localStorage
-packages/applyflow-core   →  tipos, métricas, parse import, filtros (dist/)
-packages/applyflow-linkedin → parser/campos (usado pela extensão)
+apps/applyflow-extension  →  chrome.storage.local, export JSON (manual)
+         │ ficheiro
+         ▼
+apps/applyflow            →  Next.js, localStorage após import
+         ▲
+packages/applyflow-core   →  tipos, validação, métricas, filtros
+packages/applyflow-linkedin →  domínio LinkedIn / campos
 ```
 
-Detalhe: [`docs/applyflow/ARCHITECTURE.md`](../../docs/applyflow/ARCHITECTURE.md).
+Mais detalhe: [`docs/applyflow/ARCHITECTURE.md`](../../docs/applyflow/ARCHITECTURE.md).
 
 ---
 
-## Stack
+## Modelo local-first e privacidade
 
-- Next.js 16 · React 19 · TypeScript estrito  
-- Tailwind CSS v4 · Recharts  
-- `@devflow/applyflow-core` — **obrigatório** `pnpm --filter @devflow/applyflow-core build` antes de `next build`
+- **Sem backend ApplyFlow obrigatório** — o MVP não depende de API nossa para histórico ou dashboard.
+- **Sem auto-submit** — o envio da candidatura no LinkedIn é **sempre** humano; a extensão não automatiza o clique final de submissão.
+- **Dados no navegador** — extensão: `chrome.storage.local`; dashboard: `localStorage` após import ou demo; o JSON exportado é **teu** — trata-o como sensível se tiver candidaturas reais.
+- **IA opt-in** — só corre com configuração explícita; não é pilar de privacidade “escondida”.
+
+Leituras: [`ADR-LOCAL_FIRST_VS_SERVERLESS.md`](../../docs/applyflow/ADR-LOCAL_FIRST_VS_SERVERLESS.md) · [`CASE_STUDY.md`](../../docs/applyflow/CASE_STUDY.md).
 
 ---
 
-## Como rodar localmente
+## Stack técnica
+
+- **Next.js 16** · **React 19** · **TypeScript** estrito · **Tailwind CSS v4** · **Recharts**
+- **Workspace:** `pnpm` + `@devflow/applyflow-core` (é necessário **build do pacote** antes do `next build` do dashboard)
+
+---
+
+## Correr localmente (dashboard)
+
+Na raiz do monorepo:
 
 ```bash
 pnpm install
@@ -78,95 +126,80 @@ pnpm --filter @devflow/applyflow-core build
 pnpm --filter applyflow dev
 ```
 
-Por omissão o dev server do pacote expõe a app (ex.: [http://localhost:3010](http://localhost:3010)) — vê o output do terminal.
+O dev server usa por omissão a porta **3010** — confirma no output do terminal (`next dev --webpack`).
 
-### Middleware
-
-Não adicionar `src/middleware.ts` copiado do portal raiz do monorepo. Este dashboard é **local-first**, sem auth nem Supabase; o alias `@/` resolve apenas para `apps/applyflow/src`, por isso imports como `@/lib/auth-config` ou pacotes de cutover WhatsApp/Financeiro **não existem** aqui e quebram o dev. Se existir um `middleware.ts` indevido, remove-o (o app não depende de middleware para `/`, `/dashboard` ou `/documentacao`).
-
-O script `pnpm dev` usa **`next dev --webpack`** (igual ao eixo de `next build --webpack` neste pacote) para evitar o Turbopack do monorepo a resolver imports do `middleware` do portal quando não há `middleware.ts` nesta app.
-
-### Next dev: overlay «1 issue» / hidratação no `<body>`
-
-Se o overlay mostrar *hydration mismatch* com atributo `cz-shortcut-listen="true"` (ou similar) no `<body>`, isso **não** é gerado pelo React neste repo — costuma ser **extensão do browser** a alterar o DOM antes da hidratação (ex. ferramentas de cor). Confirma em **janela anónima sem extensões** ou perfil limpo; para screenshots estável, usa o mesmo ou `pnpm build` + `pnpm start` noutro porto. Ver também `docs/applyflow/PUBLICATION_CHECKLIST.md` e `SCREENSHOTS_CHECKLIST.md`.
-
----
-
-## Como buildar
+Build e servidor de produção local:
 
 ```bash
 pnpm --filter @devflow/applyflow-core build
 pnpm --filter applyflow build
+pnpm --filter applyflow start
 ```
 
-O projeto usa **webpack** no `next build` para conviver com o monorepo.
+### Middleware e monorepo
+
+Não adicionar `middleware.ts` copiado do portal raiz: este dashboard é **local-first**, sem auth Supabase neste fluxo. O alias `@/` resolve só para `apps/applyflow/src`. O `pnpm dev` usa **webpack** alinhado ao `next build --webpack` para evitar conflitos com o resto do monorepo.
+
+### Overlay «1 issue» / hidratação no `<body>`
+
+Atributos como `cz-shortcut-listen` injectados por **outras extensões** do Chrome podem causar *hydration mismatch* — não vêm do `layout.tsx` do ApplyFlow. Para capturas estáveis: **janela anónima sem extensões** ou `pnpm --filter applyflow build` + `pnpm --filter applyflow start`. Ver [`docs/applyflow/PUBLICATION_CHECKLIST.md`](../../docs/applyflow/PUBLICATION_CHECKLIST.md) e [`SCREENSHOTS_CHECKLIST.md`](../../docs/applyflow/SCREENSHOTS_CHECKLIST.md).
 
 ---
 
-## Como carregar a demo
+## Extensão Chrome
 
-1. Abre `/dashboard`.
-2. Clica **Carregar demo** (âncora `/dashboard#carregar-demo` na landing).
-3. Se já houver import, aparece `window.confirm` antes de substituir.
-4. Feedback com contagem de candidaturas fictícias e registos ignorados, se houver.
+- Código e instruções: [`apps/applyflow-extension/README.md`](../applyflow-extension/README.md).
+- Build: `pnpm --filter applyflow-extension build` (gera `dist/` com `content.js`, `options`, `background`).
+- **Preview (captura)** nas opções: painel demo para **Print 6** sem dados reais do LinkedIn.
 
----
-
-## Como usar com a extensão
-
-1. Instala e configura `apps/applyflow-extension` (perfil, opcionalmente IA opt-in).
-2. Usa Easy Apply com o painel ApplyFlow; mantém envio **manual**.
-3. Nas **Opções da extensão**, exporta o backup JSON (formato compatível com o schema do core — ver README da extensão).
-4. No dashboard: **Importar JSON** ou arrastar o ficheiro.
+Fluxo típico com o dashboard: exportar JSON nas opções da extensão → **Importar** no `/dashboard` (ou arrastar o ficheiro).
 
 ---
 
-## Privacidade
-
-- O conteúdo importado **não** é enviado a backends externos pela app; apenas leitura local e validação.
-- O `fetch` da demo acede só ao asset estático do **mesmo host** (`public/`).
-- Limpar dados do navegador remove a chave `localStorage` do dashboard.
-
----
-
-## Segurança
-
-- O dashboard não substitui políticas do LinkedIn: submit e login são sempre humanos no site oficial.
-- Trata o JSON exportado como **dado sensível** se contiver candidaturas reais.
-
----
-
-## Testes
+## Validação (comandos)
 
 ```bash
 pnpm --filter @devflow/applyflow-core build
+pnpm --filter applyflow lint
 pnpm --filter applyflow test
+pnpm --filter applyflow build
+pnpm --filter applyflow-extension test
+pnpm --filter applyflow-extension build
 ```
 
-Inclui validação de que `public/demo/applications-demo.json` é parseável.
-
 ---
 
-## Roadmap
+## Demo no dashboard
 
-Ver [`docs/applyflow/ROADMAP.md`](../../docs/applyflow/ROADMAP.md) — polish, materiais de portefólio; **fora de escopo**: auto-submit, mass apply, scraping agressivo.
-
-Checklist de publicação: [`docs/applyflow/PUBLICATION_CHECKLIST.md`](../../docs/applyflow/PUBLICATION_CHECKLIST.md).
-
----
-
-## Status do projeto
-
-**MVP técnico** pronto para demonstração: extensão + core + dashboard + testes e documentação de produto. Não implica disponibilidade na Chrome Web Store; distribuição é conforme o repositório e builds locais.
+1. Abre `/dashboard`.
+2. **Carregar demo** (dataset público fictício em `public/demo/`).
+3. Se já existir import, confirmação antes de substituir.
 
 ---
 
 ## Documentação relacionada
 
-- Extensão: `apps/applyflow-extension/README.md`  
-- Histórico local: `apps/applyflow-extension/docs/HISTORICO_LOCAL.md`  
-- IA opt-in: `apps/applyflow-extension/docs/IA_OPT_IN.md`  
-- Overview: `docs/applyflow/PRODUCT_OVERVIEW.md`
-- Sistema visual: `docs/applyflow/DESIGN_SYSTEM.md`
-- ADR local-first: `docs/applyflow/ADR-LOCAL_FIRST_VS_SERVERLESS.md`
-- Cloud futuro (opcional): `docs/applyflow/SERVERLESS_FUTURE.md`
+| Documento | Conteúdo |
+|-----------|------------|
+| [`PRODUCT_OVERVIEW.md`](../../docs/applyflow/PRODUCT_OVERVIEW.md) | Visão de produto |
+| [`DESIGN_SYSTEM.md`](../../docs/applyflow/DESIGN_SYSTEM.md) | Tokens e UI |
+| [`ROADMAP.md`](../../docs/applyflow/ROADMAP.md) | Evolução; **fora de escopo**: auto-submit, mass apply agressivo |
+| [`PUBLICATION_CHECKLIST.md`](../../docs/applyflow/PUBLICATION_CHECKLIST.md) | Antes de tornar materiais públicos |
+
+---
+
+## Estado do projecto
+
+**MVP técnico** demonstrável: extensão + core + dashboard + testes + documentação. **Não** implica listagem na Chrome Web Store nem deploy público gerido pelo repositório — distribuição conforme build local e políticas da equipa.
+
+---
+
+## Roadmap
+
+[`docs/applyflow/ROADMAP.md`](../../docs/applyflow/ROADMAP.md) — polish, materiais de portefólio; evolução cloud opcional documentada à parte (`SERVERLESS_FUTURE.md`), não como requisito do MVP.
+
+---
+
+## Autoria
+
+**ApplyFlow** é uma peça de produto **DevFlow Labs** no monorepo [`devflow`](../../README.md) (estrutura `apps/*`, `packages/*`). Case autoral focado em **responsabilidade de plataforma**, **privacidade por desenho** e **utilidade sem dependência de servidor**.

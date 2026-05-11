@@ -8,7 +8,8 @@ import { defineConfig } from "vite";
  */
 export default defineConfig({
   base: "./",
-  plugins: [react({ jsxRuntime: "classic" })],
+  /* Automatic JSX runtime (react-jsx): evita React.createElement sem `import React` nos .tsx das opções. */
+  plugins: [react()],
   publicDir: "public",
   build: {
     outDir: "dist",

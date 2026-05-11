@@ -2,6 +2,21 @@
 
 Para cada captura: **ficheiro sugerido**, **objetivo**, **uso** (README, LinkedIn, portefólio web). Preferir **1080p** ou superior; cropar UI sensível.
 
+### Conjunto oficial do README do dashboard (`docs/applyflow/assets/`)
+
+Ficheiros numerados consumidos por [`apps/applyflow/README.md`](../../apps/applyflow/README.md):
+
+| # | Ficheiro |
+|---|-----------|
+| 01 | `01-applyflow-hero.png` |
+| 02 | `02-applyflow-dashboard-overview.png` |
+| 03 | `03-applyflow-analytics.png` |
+| 04 | `04-applyflow-applications-table.png` |
+| 05 | `05-applyflow-documentation-hub.png` |
+| 06 | `06-applyflow-chrome-extension-preview.png` |
+
+Índice da pasta: [`assets/README.md`](./assets/README.md). O **06** deve idealmente vir das **Opções → Preview (captura)** da extensão.
+
 ### Antes de capturar (evitar falso «erro» do Next)
 
 Em **modo dev**, extensões (ex. ferramentas de cor / atalhos que injectam `cz-shortcut-listen="true"` no `<body>`) podem provocar *hydration mismatch* e o badge vermelho **«1 issue»** no overlay do Next — **não** vem do código do ApplyFlow (`layout.tsx` só define `className` no `<body>`). Para prints/GIF profissionais: **aba anónima sem extensões**, **perfil Chrome limpo**, ou **build de produção** (`pnpm --filter applyflow build` + `pnpm --filter applyflow start`) noutro porto.

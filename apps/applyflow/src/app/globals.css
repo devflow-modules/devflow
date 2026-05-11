@@ -5,23 +5,27 @@
 }
 
 :root {
-  --af-bg: #09090b;
-  --af-bg-soft: #0c0c0f;
-  --af-surface: rgba(24, 24, 27, 0.92);
-  --af-surface-muted: rgba(39, 39, 42, 0.45);
-  --af-border: rgba(63, 63, 70, 0.65);
-  --af-border-strong: rgba(82, 82, 91, 0.85);
+  --af-bg: #050506;
+  --af-bg-soft: #0a0a0c;
+  --af-bg-elevated: #0f0f12;
+  --af-surface: rgba(24, 24, 27, 0.94);
+  --af-surface-muted: rgba(39, 39, 42, 0.5);
+  --af-border: rgba(63, 63, 70, 0.55);
+  --af-border-strong: rgba(82, 82, 91, 0.88);
   --af-text: #fafafa;
   --af-text-muted: #a1a1aa;
   --af-brand: #34d399;
-  --af-brand-soft: rgba(52, 211, 153, 0.12);
-  --af-on-brand: #09090b;
+  --af-brand-soft: rgba(52, 211, 153, 0.14);
+  --af-on-brand: #050506;
   --af-success: #34d399;
   --af-warning: #fbbf24;
   --af-danger: #f87171;
-  --af-radius: 12px;
-  --af-radius-sm: 8px;
-  --af-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+  --af-radius: 14px;
+  --af-radius-sm: 9px;
+  --af-shadow: 0 16px 56px rgba(0, 0, 0, 0.55);
+  --af-shadow-elevated: 0 24px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --af-glow-hero: rgba(52, 211, 153, 0.22);
+  --af-glow-brand: 0 0 42px -8px rgba(52, 211, 153, 0.45);
 }
 
 html {
@@ -32,4 +36,7 @@ body {
   @apply antialiased;
   background-color: var(--af-bg);
   color: var(--af-text);
+  background-image: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(52, 211, 153, 0.08), transparent 55%),
+    radial-gradient(ellipse 80% 50% at 100% 0%, rgba(45, 212, 191, 0.05), transparent 45%);
+  background-attachment: fixed;
 }

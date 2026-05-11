@@ -27,6 +27,7 @@ Usar antes de tornar um **repo**, **post**, **vídeo** ou **deploy** público vi
 ## Mídia
 
 - [ ] **Screenshots** conforme `SCREENSHOTS_CHECKLIST.md`.
+- [ ] **Conjunto oficial do README** (`01`–`06`) em [`docs/applyflow/assets/`](./assets/README.md) com os nomes canónicos, para os links do [`apps/applyflow/README.md`](../../apps/applyflow/README.md) renderizarem no GitHub.
 - [ ] **Next dev overlay:** se aparecer **«1 issue»** / *hydration mismatch* no `<body>` com atributo `cz-shortcut-listen` (ou outro atributo estranho que **não** existe em `apps/applyflow/src/app/layout.tsx`), tratar como **extensão do browser** a mutar o DOM antes da hidratação — não é bug do ApplyFlow. Para capturas e gravações: **janela anónima**, **perfil Chrome sem extensões**, ou outro browser limpo; não mascarar o overlay com CSS nem adicionar `suppressHydrationWarning` só por isso.
 - [ ] **Vídeo** (opcional) seguindo `DEMO_SCRIPT.md`; áudio e legendas aceitáveis.
 - [ ] Tamanho de ficheiros OK para Git LFS ou hosting externo se necessário.
