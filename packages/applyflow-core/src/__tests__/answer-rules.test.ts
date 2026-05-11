@@ -8,9 +8,9 @@ describe("getSuggestedAnswer", () => {
     expect(r.confidence).toBe("high");
   });
 
-  it("anos com Next.js → 4", () => {
+  it("anos com Next.js → 5", () => {
     const r = getSuggestedAnswer("years of experience with Next.js");
-    expect(r.value).toBe("4");
+    expect(r.value).toBe("5");
   });
 
   it("anos com Node.js → 5", () => {
@@ -55,6 +55,7 @@ describe("getSuggestedAnswer", () => {
     expect(r.value).toContain("USD");
     expect(r.value).toContain("4,500");
     expect(r.value.toLowerCase()).toContain("month");
+    expect(r.value.toLowerCase()).toContain("contractor");
   });
 
   it("CLT Senior inclui valores do perfil", () => {

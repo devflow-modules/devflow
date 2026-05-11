@@ -3,7 +3,7 @@ import { APPLYFLOW_SKILL_KEYS, type CandidateProfile, validateCandidateProfile }
 
 const gustavoSkillYears: Record<ApplyflowSkillKey, number> = {
   React: 5,
-  Nextjs: 4,
+  Nextjs: 5,
   TypeScript: 5,
   Nodejs: 5,
   Python: 4,
@@ -12,7 +12,7 @@ const gustavoSkillYears: Record<ApplyflowSkillKey, number> = {
   Docker: 3,
   Jest: 3,
   Playwright: 2,
-  Tailwind: 3,
+  Tailwind: 4,
   AWS: 1,
   Java: 1,
   Elixir: 0,
@@ -21,7 +21,7 @@ const gustavoSkillYears: Record<ApplyflowSkillKey, number> = {
   HTML: 5,
   CSS: 5,
   Git: 5,
-  CI_CD: 3,
+  CI_CD: 4,
 };
 
 /** Perfil inicial — valores profissionais de referência (sem dados sensíveis). */
@@ -30,7 +30,13 @@ const gustavoDraft = {
   location: "Brazil",
   englishLevel: "Advanced" as const,
   comfortableInEnglish: true,
-  roles: ["Senior Software Engineer", "Full-stack (Web)", "Technical leadership"],
+  roles: [
+    "Senior Frontend Engineer",
+    "Senior Full-Stack Engineer",
+    "Product Engineer",
+    "React / Next.js Developer",
+    "SaaS Engineer",
+  ],
   skills: APPLYFLOW_SKILL_KEYS.reduce(
     (acc, k) => {
       acc[k] = gustavoSkillYears[k];
@@ -42,8 +48,8 @@ const gustavoDraft = {
     cltPleno: "R$ 10.000 CLT",
     cltSenior: "R$ 14.500 CLT",
     pjSenior: "R$ 17.500 PJ",
-    usdMonthly: "USD 4,500/month",
-    usdHourly: "USD 40/hour",
+    usdMonthly: "USD 4,500/month as contractor",
+    usdHourly: "USD 40/hour as contractor",
   },
 };
 
