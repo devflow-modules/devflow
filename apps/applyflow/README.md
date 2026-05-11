@@ -42,7 +42,7 @@ O ApplyFlow prioriza **controlo**, **transparência** e **dados no dispositivo**
 
 ## Screenshots (conjunto oficial)
 
-Os ficheiros abaixo vivem em [`docs/applyflow/assets/`](../../docs/applyflow/assets/) — nomes canónicos para README, portefólio e posts. Se ainda não estiverem no clone, vê o [índice da pasta `assets`](../../docs/applyflow/assets/README.md).
+Os ficheiros abaixo vivem em [`docs/applyflow/assets/`](../../docs/applyflow/assets/) — nomes canónicos para README, portefólio e posts. Índice e convenções: [`assets/README.md`](../../docs/applyflow/assets/README.md).
 
 ### 01 — Hero (landing)
 
@@ -202,4 +202,4 @@ pnpm --filter applyflow-extension build
 
 ## Autoria
 
-**ApplyFlow** é uma peça de produto **DevFlow Labs** no monorepo [`devflow`](../../README.md) (estrutura `apps/*`, `packages/*`). Case autoral focado em **responsabilidade de plataforma**, **privacidade por desenho** e **utilidade sem dependência de servidor**.
+**ApplyFlow** é uma peça de produto **DevFlow Labs** no monorepo DevFlow ([README na raiz do repositório](../../README.md); estrutura `apps/*`, `packages/*`). Case autoral focado em **responsabilidade de plataforma**, **privacidade por desenho** e **utilidade sem dependência de servidor**.
