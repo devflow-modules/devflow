@@ -26,7 +26,9 @@
       "@devflow/testing-utils": ["../testing-utils/src"],
       "@devflow/config": ["."],
       "@devflow/whatsapp-core": ["../whatsapp-core/src"],
-      "@devflow/ai-core": ["../ai-core/src"]
+      "@devflow/ai-core": ["../ai-core/src"],
+      "@devflow/applyflow-core": ["../applyflow-core/src"],
+      "@devflow/applyflow-linkedin": ["../applyflow-linkedin/src"]
     }
   },
   "exclude": ["node_modules"]

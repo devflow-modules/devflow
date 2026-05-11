@@ -9,6 +9,8 @@ const APP_NAMES = [
   "funklab",
   "whatsapp-platform",
   "ops",
+  "applyflow-extension",
+  "applyflow",
 ];
 
 const eslintConfig = defineConfig([
@@ -127,6 +129,8 @@ const eslintConfig = defineConfig([
       "**/generated/**",
       "**/__tests__/**",
       "**/*.{test,spec}.{ts,tsx}",
+      /** Dashboard ApplyFlow: UI autónoma dark (sem df-* do portal). */
+      "apps/applyflow/**",
     ],
     rules: {
       "no-restricted-syntax": [
