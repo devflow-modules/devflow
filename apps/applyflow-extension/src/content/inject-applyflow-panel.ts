@@ -36,15 +36,21 @@ function ensureHost(): Root {
     host = document.createElement("div");
     host.id = "applyflow-panel-host";
     host.setAttribute("data-applyflow-extension", "true");
+    /** Painel isolado do layout do LinkedIn: dimensão fixa, stacking próprio, scroll no interior do Shadow DOM. */
     Object.assign(host.style, {
       position: "fixed",
-      top: "80px",
-      right: "16px",
-      width: "360px",
-      maxHeight: "calc(100vh - 96px)",
-      overflow: "hidden",
-      zIndex: "2147483646",
+      top: "72px",
+      bottom: "16px",
+      right: "max(12px, env(safe-area-inset-right, 0px))",
+      width: "min(400px, calc(100vw - 24px))",
+      maxWidth: "420px",
+      minWidth: "280px",
+      boxSizing: "border-box",
+      zIndex: "2147483000",
       pointerEvents: "auto",
+      isolation: "isolate",
+      contain: "layout paint",
+      overflow: "hidden",
     });
     document.documentElement.appendChild(host);
 
@@ -53,7 +59,14 @@ function ensureHost(): Root {
     styleEl.textContent = panelCss;
     shadow.appendChild(styleEl);
     const appMount = document.createElement("div");
-    appMount.className = "af-root";
+    appMount.className = "af-root af-panel-mount af-panel-outer";
+    Object.assign(appMount.style, {
+      height: "100%",
+      minHeight: "0",
+      display: "flex",
+      flexDirection: "column",
+      boxSizing: "border-box",
+    });
     shadow.appendChild(appMount);
     root = createRoot(appMount);
   }

@@ -243,3 +243,40 @@ body {
 .af-opt-btn-secondary:hover {
   border-color: rgba(255, 255, 255, 0.22);
 }
+
+/* Preview estático Print 6 — painel centrado, largura ~painel real */
+.af-opt-preview-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding: 4px 0 40px;
+}
+
+.af-opt-preview-intro {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--af-text-muted);
+  max-width: 520px;
+}
+
+.af-opt-preview-intro strong {
+  color: #c4f1df;
+  font-weight: 650;
+}
+
+.af-opt-preview-panel {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.af-opt-preview-panel > .af-panel-outer {
+  display: flex;
+  flex-direction: column;
+  max-height: min(85vh, 720px);
+  min-height: 0;
+}

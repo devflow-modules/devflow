@@ -27,6 +27,99 @@
   color: var(--af-text);
 }
 
+/* Shell do painel injetado (LinkedIn): fundo opaco para não “misturar” com o feed nativo */
+.af-panel-outer {
+  background: linear-gradient(180deg, var(--af-bg-soft) 0%, var(--af-bg) 72%);
+  border: 1px solid var(--af-border-strong);
+  border-radius: 14px;
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.58),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.af-panel-header-bar {
+  flex: 0 0 auto;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--af-border);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.af-panel-brand {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: var(--af-text);
+}
+
+.af-panel-tagline {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--af-text-muted);
+}
+
+.af-demo-strip {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 11px;
+  line-height: 1.45;
+  border-bottom: 1px solid var(--af-border);
+}
+
+.af-demo-strip strong {
+  font-weight: 750;
+}
+
+.af-demo-strip--safe {
+  background: color-mix(in srgb, var(--af-brand) 12%, rgba(0, 0, 0, 0.35));
+  color: #ecfdf5;
+}
+
+.af-demo-strip--warn {
+  background: rgba(251, 191, 36, 0.1);
+  color: #fde68a;
+}
+
+.af-panel-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 10px 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overscroll-behavior: contain;
+}
+
+.af-panel-scroll .af-card {
+  margin-bottom: 0;
+}
+
+.af-field-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.af-panel-footer {
+  flex: 0 0 auto;
+  padding: 8px 12px 10px;
+  border-top: 1px solid var(--af-border);
+  background: rgba(0, 0, 0, 0.32);
+}
+
+.af-footer-line {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--af-text-muted);
+}
+
 .af-card {
   background: linear-gradient(155deg, var(--af-surface) 0%, var(--af-bg-soft) 100%);
   border: 1px solid var(--af-border);

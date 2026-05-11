@@ -47,6 +47,15 @@ function phaseCopy(phase: PanelPhaseView, fieldCount: number): { title: string; 
   };
 }
 
+function openOptionsPage(): void {
+  try {
+    const rt = typeof chrome !== "undefined" ? chrome.runtime : undefined;
+    void rt?.openOptionsPage?.();
+  } catch {
+    /* noop */
+  }
+}
+
 export function App(props: {
   panelPhase: PanelPhaseView;
   fieldCount: number;
@@ -68,88 +77,125 @@ export function App(props: {
   const sess = props.autofillSession ?? { filled: 0, failed: 0, blocked: 0 };
 
   return (
-    <div style={{ maxHeight: "100%", overflowY: "auto", paddingBottom: "8px" }} className="af-root">
-      <section className="af-card af-status-card">
-        <p className="af-panel-header">Estado do Easy Apply</p>
-        <p className="af-status-main">{title}</p>
-        <p className="af-status-detail">{detail}</p>
-      </section>
+    <div className="af-root af-panel-mount af-panel-outer">
+      <header className="af-panel-header-bar">
+        <p className="af-panel-brand">ApplyFlow</p>
+        <p className="af-panel-tagline">Copiloto local-first · assistido · sem auto-submit</p>
+      </header>
 
-      <section className="af-card">
-        <p className="af-panel-header">ApplyFlow</p>
-        <h1 className="af-title" style={{ marginTop: 0 }}>
-          Copiloto assistido
-        </h1>
-        <p className="af-muted">
-          Copiloto assistido — esta extensão nunca envia a candidatura, não resolve CAPTCHA nem ignora políticas da
-          plataforma.
-        </p>
-      </section>
-
-      <section className="af-card af-card-muted">
-        <p className="af-session-title">Autofill — sessão desta aba</p>
-        <p className="af-muted" style={{ marginBottom: "6px", marginTop: 0 }}>
-          Memória local; sem backend. Contadores reiniciam ao recarregar a página.
-        </p>
-        <ul className="af-muted" style={{ margin: "0 0 10px 16px", padding: 0, fontSize: "13px" }}>
-          <li>Preenchidos com sucesso: {sess.filled}</li>
-          <li>Falhas (DOM / modal): {sess.failed}</li>
-          <li>Bloqueados (segurança / confirmação): {sess.blocked}</li>
-        </ul>
-        {props.onClearAutofillSession ? (
-          <button type="button" className="af-btn-secondary" style={{ width: "auto" }} onClick={props.onClearAutofillSession}>
-            Limpar sessão
-          </button>
-        ) : null}
-      </section>
-
-      <PanelHistorySection
-        key={`${props.applicationsHistoryFingerprint}__${props.existingApplicationRecord?.id ?? "none"}__${props.existingApplicationRecord?.updatedAt ?? ""}`}
-        fingerprint={props.applicationsHistoryFingerprint}
-        existingApplication={props.existingApplicationRecord}
-        buildDraftBase={props.buildApplicationsHistoryDraft}
-        canSaveToHistory={props.applicationsHistoryAllowSave}
-      />
-
-      {props.panelPhase === "fields" ? (
-        <>
-          <FitScoreCard jobText={props.jobText} profile={props.profile} panelAi={props.panelAi} />
-          <JobIntelligenceCard jobText={props.jobText} />
-          <JobSummaryCard ctx={props.jobContext} />
-        </>
+      {props.panelPhase !== "fields" ? (
+        <div className="af-demo-strip af-demo-strip--safe" role="status">
+          <strong>Modo demo</strong> — nenhum dado pessoal da vaga é mostrado neste painel neste estado.
+        </div>
       ) : (
-        <section className="af-card af-card-muted">
-          <p className="af-muted">
-            Fit e resumo da vaga aparecem quando houver campos detetados no passo atual do Easy Apply.
-          </p>
-        </section>
+        <div className="af-demo-strip af-demo-strip--warn" role="status">
+          Conteúdo de vaga abaixo reflete a página do LinkedIn (local). Para screenshots sem PII do feed, enquadre só o
+          painel ou volte ao estado «Aguardando».
+        </div>
       )}
 
-      {props.panelPhase === "fields" ? (
-        <div>
-          {props.fields.map((f, i) => (
-            <FieldSuggestionCard
-              key={[
-                fieldIdFromApplyFlowLabel(f.label),
-                f.label,
-                f.classification.type,
-                f.classification.skill ?? "",
-                f.classification.confidence,
-                f.suggestion.confidence,
-                f.suggestion.value.length,
-                f.suggestion.value.slice(0, 96),
-                i,
-              ].join("\u241e")}
-              fieldId={fieldIdFromApplyFlowLabel(f.label)}
-              label={f.label}
-              classification={f.classification}
-              suggestion={f.suggestion}
-              attemptAutofill={props.attemptAutofill}
-              panelAi={props.panelAi}
-            />
-          ))}
+      <div className="af-panel-scroll">
+        <section className="af-card af-status-card">
+          <p className="af-panel-header">Estado do Easy Apply</p>
+          <p className="af-status-main">{title}</p>
+          <p className="af-status-detail">{detail}</p>
+          <p className="af-muted" style={{ marginTop: "8px", marginBottom: 0 }}>
+            Modo assistido apenas — nunca envia a candidatura automaticamente.
+          </p>
+        </section>
+
+        <section className="af-card af-card-muted">
+          <p className="af-panel-header">Safety gate</p>
+          <p className="af-muted" style={{ marginTop: 0 }}>
+            Preenchimento só após confirmação quando a classificação ou a confiança exigem; sem bypass de CAPTCHA; sem
+            clique em Submit.
+          </p>
+        </section>
+
+        <section className="af-card">
+          <p className="af-panel-header">Copiloto assistido</p>
+          <h2 className="af-title" style={{ marginTop: 0, fontSize: "14px" }}>
+            Sugestões e autofill campo a campo
+          </h2>
+          <p className="af-muted">
+            Esta extensão nunca envia a candidatura, não resolve CAPTCHA nem ignora políticas da plataforma.
+          </p>
+        </section>
+
+        <section className="af-card af-card-muted">
+          <p className="af-session-title">Autofill — sessão desta aba</p>
+          <p className="af-muted" style={{ marginBottom: "6px", marginTop: 0 }}>
+            Memória local; sem backend. Contadores reiniciam ao recarregar a página.
+          </p>
+          <ul className="af-muted" style={{ margin: "0 0 10px 16px", padding: 0, fontSize: "13px" }}>
+            <li>Preenchidos com sucesso: {sess.filled}</li>
+            <li>Falhas (DOM / modal): {sess.failed}</li>
+            <li>Bloqueados (segurança / confirmação): {sess.blocked}</li>
+          </ul>
+          {props.onClearAutofillSession ? (
+            <button type="button" className="af-btn-secondary" style={{ width: "auto" }} onClick={props.onClearAutofillSession}>
+              Limpar sessão
+            </button>
+          ) : null}
+        </section>
+
+        <PanelHistorySection
+          key={`${props.applicationsHistoryFingerprint}__${props.existingApplicationRecord?.id ?? "none"}__${props.existingApplicationRecord?.updatedAt ?? ""}`}
+          fingerprint={props.applicationsHistoryFingerprint}
+          existingApplication={props.existingApplicationRecord}
+          buildDraftBase={props.buildApplicationsHistoryDraft}
+          canSaveToHistory={props.applicationsHistoryAllowSave}
+        />
+
+        {props.panelPhase === "fields" ? (
+          <>
+            <FitScoreCard jobText={props.jobText} profile={props.profile} panelAi={props.panelAi} />
+            <JobIntelligenceCard jobText={props.jobText} />
+            <JobSummaryCard ctx={props.jobContext} />
+          </>
+        ) : (
+          <section className="af-card af-card-muted">
+            <p className="af-muted">
+              Fit e resumo da vaga aparecem quando houver campos detetados no passo atual do Easy Apply.
+            </p>
+          </section>
+        )}
+
+        {props.panelPhase === "fields" ? (
+          <div className="af-field-stack">
+            {props.fields.map((f, i) => (
+              <FieldSuggestionCard
+                key={[
+                  fieldIdFromApplyFlowLabel(f.label),
+                  f.label,
+                  f.classification.type,
+                  f.classification.skill ?? "",
+                  f.classification.confidence,
+                  f.suggestion.confidence,
+                  f.suggestion.value.length,
+                  f.suggestion.value.slice(0, 96),
+                  i,
+                ].join("\u241e")}
+                fieldId={fieldIdFromApplyFlowLabel(f.label)}
+                label={f.label}
+                classification={f.classification}
+                suggestion={f.suggestion}
+                attemptAutofill={props.attemptAutofill}
+                panelAi={props.panelAi}
+              />
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      <footer className="af-panel-footer">
+        <p className="af-footer-line">Os dados permanecem neste browser (chrome.storage.local). Sem backend ApplyFlow.</p>
+        <div className="af-action-row" style={{ marginTop: "6px" }}>
+          <button type="button" className="af-btn-secondary" style={{ width: "100%" }} onClick={() => openOptionsPage()}>
+            Abrir Opções (export JSON)
+          </button>
         </div>
-      ) : null}
+      </footer>
     </div>
   );
 }

@@ -8,8 +8,9 @@ import { DefaultsPanel } from "./components/DefaultsPanel";
 import { ProfileForm } from "./components/ProfileForm";
 import { SalaryEditor } from "./components/SalaryEditor";
 import { SkillsEditor } from "./components/SkillsEditor";
+import { ExtensionPreview } from "./components/ExtensionPreview";
 
-type OptionsTab = "profile" | "history" | "ai";
+type OptionsTab = "profile" | "history" | "ai" | "preview";
 
 export function OptionsApp() {
   const [tab, setTab] = useState<OptionsTab>("profile");
@@ -163,6 +164,16 @@ export function OptionsApp() {
         >
           IA
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "preview"}
+          className="af-opt-tab"
+          data-active={tab === "preview"}
+          onClick={() => setTab("preview")}
+        >
+          Preview (captura)
+        </button>
       </div>
 
       {tab === "profile" ? (
@@ -215,12 +226,19 @@ export function OptionsApp() {
           </h2>
           <ApplicationsHistoryPanel />
         </>
-      ) : (
+      ) : tab === "ai" ? (
         <>
           <h2 className="af-opt-heading" style={{ fontSize: "18px", marginBottom: "8px" }}>
             IA (opt-in)
           </h2>
           <AiSettingsPanel />
+        </>
+      ) : (
+        <>
+          <h2 className="af-opt-heading" style={{ fontSize: "18px", marginBottom: "8px" }}>
+            Preview da extensão (Print 6)
+          </h2>
+          <ExtensionPreview />
         </>
       )}
     </div>
