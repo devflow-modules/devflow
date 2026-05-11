@@ -80,6 +80,10 @@ pnpm --filter applyflow dev
 
 Por omissão o dev server do pacote expõe a app (ex.: [http://localhost:3010](http://localhost:3010)) — vê o output do terminal.
 
+### Middleware
+
+Não adicionar `src/middleware.ts` copiado do portal raiz do monorepo. Este dashboard é **local-first**, sem auth nem Supabase; o alias `@/` resolve apenas para `apps/applyflow/src`, por isso imports como `@/lib/auth-config` ou pacotes de cutover WhatsApp/Financeiro **não existem** aqui e quebram `pnpm dev`. Se existir um `middleware.ts` indevido, remove-o (o app não depende de middleware para `/`, `/dashboard` ou `/documentacao`).
+
 ---
 
 ## Como buildar
