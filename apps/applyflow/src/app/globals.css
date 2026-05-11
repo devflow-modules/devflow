@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: ui-sans-serif, system-ui, sans-serif, "Segoe UI", Roboto, sans-serif;
+}
+
+:root {
+  --af-bg: #09090b;
+  --af-bg-soft: #0c0c0f;
+  --af-surface: rgba(24, 24, 27, 0.92);
+  --af-surface-muted: rgba(39, 39, 42, 0.45);
+  --af-border: rgba(63, 63, 70, 0.65);
+  --af-border-strong: rgba(82, 82, 91, 0.85);
+  --af-text: #fafafa;
+  --af-text-muted: #a1a1aa;
+  --af-brand: #34d399;
+  --af-brand-soft: rgba(52, 211, 153, 0.12);
+  --af-on-brand: #09090b;
+  --af-success: #34d399;
+  --af-warning: #fbbf24;
+  --af-danger: #f87171;
+  --af-radius: 12px;
+  --af-radius-sm: 8px;
+  --af-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  @apply antialiased;
+  background-color: var(--af-bg);
+  color: var(--af-text);
+}
