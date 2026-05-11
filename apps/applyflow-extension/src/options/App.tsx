@@ -265,9 +265,10 @@ export function OptionsApp() {
         <div className="af-opt-tab-panel">
           <div className="af-opt-tab-hero">
             <p className="af-opt-section-kicker">Opcional</p>
-            <h2 className="af-opt-section-title">IA (opt-in)</h2>
+            <h2 className="af-opt-section-title">IA assistida (opt-in)</h2>
             <p className="af-opt-tab-lead">
-              Chave e chamadas no cliente; nunca substitui o envio manual da candidatura. Desactivado por omissão.
+              Activa sugestões assistidas para campos longos. A chave fica neste navegador e a candidatura continua sempre
+              manual — sem auto-submit e sem servidor ApplyFlow obrigatório.
             </p>
           </div>
           <AiSettingsPanel />
