@@ -82,7 +82,9 @@ Por omissão o dev server do pacote expõe a app (ex.: [http://localhost:3010](h
 
 ### Middleware
 
-Não adicionar `src/middleware.ts` copiado do portal raiz do monorepo. Este dashboard é **local-first**, sem auth nem Supabase; o alias `@/` resolve apenas para `apps/applyflow/src`, por isso imports como `@/lib/auth-config` ou pacotes de cutover WhatsApp/Financeiro **não existem** aqui e quebram `pnpm dev`. Se existir um `middleware.ts` indevido, remove-o (o app não depende de middleware para `/`, `/dashboard` ou `/documentacao`).
+Não adicionar `src/middleware.ts` copiado do portal raiz do monorepo. Este dashboard é **local-first**, sem auth nem Supabase; o alias `@/` resolve apenas para `apps/applyflow/src`, por isso imports como `@/lib/auth-config` ou pacotes de cutover WhatsApp/Financeiro **não existem** aqui e quebram o dev. Se existir um `middleware.ts` indevido, remove-o (o app não depende de middleware para `/`, `/dashboard` ou `/documentacao`).
+
+O script `pnpm dev` usa **`next dev --webpack`** (igual ao eixo de `next build --webpack` neste pacote) para evitar o Turbopack do monorepo a resolver imports do `middleware` do portal quando não há `middleware.ts` nesta app.
 
 ---
 
