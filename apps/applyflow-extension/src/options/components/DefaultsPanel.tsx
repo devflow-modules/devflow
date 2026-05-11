@@ -1,18 +1,30 @@
 export function DefaultsPanel() {
   return (
-    <section className="af-card af-card-muted" style={{ marginBottom: "16px" }}>
-      <h2 className="af-title" style={{ fontSize: "14px", marginBottom: "8px" }}>
-        Sobre dados locais
-      </h2>
-      <p className="af-muted" style={{ marginBottom: "8px" }}>
-        Informação orientada apenas a candidaturas Easy Apply, guardada só em <code style={{ opacity: 0.85 }}>chrome.storage.local</code> —
-        não há servidor, nem OpenAI nesta sprint. As sugestões no LinkedIn reflectem uma leitura do perfil válido sempre que abre/atualiza o
-        formulário (o painel reconcilia quando o modal muda ou quando altera o perfil noutro separador e o storage notifica o content script).
+    <section className="af-card af-opt-privacy-card" aria-labelledby="af-opt-privacy-heading">
+      <p id="af-opt-privacy-heading" className="af-opt-section-kicker">
+        Privacidade e armazenamento
       </p>
-      <ul className="af-muted" style={{ margin: 0, paddingLeft: "18px", lineHeight: 1.5 }}>
-        <li>Nunca enviamos ou preenchemos automaticamente candidaturas no LinkedIn.</li>
-        <li>Export/import JSON apenas para cópias de segurança locais suas.</li>
+      <h2 className="af-opt-section-title">Dados ficam neste navegador</h2>
+      <ul className="af-opt-privacy-list">
+        <li>
+          <strong>Perfil</strong> guardado em <code className="af-opt-code">chrome.storage.local</code> — sem servidor
+          ApplyFlow neste fluxo.
+        </li>
+        <li>
+          <strong>Export / import JSON</strong> só para cópias de segurança <em>suas</em>, no dispositivo.
+        </li>
+        <li>
+          <strong>IA</strong> apenas se activar nas opções (opt-in); não há OpenAI obrigatória para o núcleo de sugestões.
+        </li>
+        <li>
+          <strong>Nenhuma candidatura</strong> é enviada ou preenchida automaticamente no LinkedIn — o painel é assistido;
+          o submit é sempre manual no site oficial.
+        </li>
       </ul>
+      <p className="af-opt-privacy-foot">
+        Informação orientada a candidaturas Easy Apply. O painel reconcilia o perfil quando o modal muda ou quando
+        altera o perfil noutro separador e o storage notifica o content script.
+      </p>
     </section>
   );
 }

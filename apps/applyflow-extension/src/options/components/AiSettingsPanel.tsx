@@ -85,25 +85,30 @@ export function AiSettingsPanel() {
   }
 
   return (
-    <div>
-      <p className="af-opt-intro">
-        A chave OpenAI é guardada apenas em <strong>chrome.storage.local</strong> neste dispositivo. Ao gerar texto, excertos do
-        perfil e da vaga são enviados aos servidores da <strong>OpenAI</strong> conforme a sua política. ApplyFlow{" "}
-        <strong>nunca envia a candidatura</strong> automaticamente.
-      </p>
+    <div className="af-opt-ai-root">
+      <section className="af-card af-opt-form-card af-opt-ai-intro">
+        <p className="af-opt-section-kicker">Privacidade</p>
+        <p className="af-opt-intro af-opt-intro--compact" style={{ marginBottom: 0 }}>
+          A chave OpenAI é guardada apenas em <strong>chrome.storage.local</strong> neste dispositivo. Ao gerar texto,
+          excertos do perfil e da vaga são enviados aos servidores da <strong>OpenAI</strong> conforme a política deles.
+          ApplyFlow <strong>nunca envia a candidatura</strong> automaticamente.
+        </p>
+      </section>
 
-      <section className="af-card" style={{ marginBottom: "16px" }}>
-        <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}>
+      <section className="af-card af-opt-form-card" style={{ marginBottom: "16px" }}>
+        <p className="af-opt-section-kicker">Painel</p>
+        <label className="af-opt-label af-opt-label--row" style={{ cursor: "pointer" }}>
           <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
-          <span>Ativar IA no painel (opt-in)</span>
+          <span className="af-opt-label-text">Ativar IA no painel (opt-in)</span>
         </label>
       </section>
 
-      <section className="af-card" style={{ marginBottom: "16px" }}>
-        <p className="af-title" style={{ fontSize: "14px" }}>
+      <section className="af-card af-opt-form-card" style={{ marginBottom: "16px" }}>
+        <p className="af-opt-section-kicker">Fornecedor</p>
+        <p className="af-opt-section-title af-opt-section-title--sm" style={{ marginBottom: "12px" }}>
           OpenAI
         </p>
-        <label className="af-muted" style={{ display: "block", marginBottom: "4px", fontSize: "12px" }}>
+        <label className="af-opt-label-text" style={{ display: "block", marginBottom: "6px" }}>
           API key
         </label>
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "12px" }}>
@@ -124,12 +129,12 @@ export function AiSettingsPanel() {
           </button>
         </div>
 
-        <label className="af-muted" style={{ display: "block", marginBottom: "4px", fontSize: "12px" }}>
+        <label className="af-opt-label-text" style={{ display: "block", marginBottom: "6px" }}>
           Modelo
         </label>
         <input className="af-input" style={{ marginBottom: "12px" }} value={model} onChange={(e) => setModel(e.target.value)} />
 
-        <label className="af-muted" style={{ display: "block", marginBottom: "4px", fontSize: "12px" }}>
+        <label className="af-opt-label-text" style={{ display: "block", marginBottom: "6px" }}>
           Max tokens
         </label>
         <input
@@ -142,7 +147,7 @@ export function AiSettingsPanel() {
           onChange={(e) => setMaxTokens(Number(e.target.value))}
         />
 
-        <label className="af-muted" style={{ display: "block", marginBottom: "4px", fontSize: "12px" }}>
+        <label className="af-opt-label-text" style={{ display: "block", marginBottom: "6px" }}>
           Temperature (0–2)
         </label>
         <input
@@ -157,7 +162,7 @@ export function AiSettingsPanel() {
         />
       </section>
 
-      <div className="af-opt-actions">
+      <div className="af-opt-actions af-opt-actions--standalone">
         <button type="button" className="af-opt-btn-primary" onClick={() => void handleSave()}>
           Guardar IA
         </button>
@@ -174,7 +179,7 @@ export function AiSettingsPanel() {
         </button>
       </div>
 
-      <div className="af-opt-feedback">
+      <div className="af-opt-feedback af-opt-feedback--standalone">
         {msg ? <span className="af-opt-ok">{msg}</span> : null}
         {err ? <span className="af-opt-err">{err}</span> : null}
       </div>

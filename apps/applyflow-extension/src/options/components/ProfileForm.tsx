@@ -9,13 +9,18 @@ export function ProfileForm(props: {
   const { profile, onChange } = props;
 
   return (
-    <section className="af-card" style={{ marginBottom: "16px" }}>
-      <h2 className="af-title" style={{ fontSize: "16px", marginBottom: "14px" }}>
+    <section className="af-card af-opt-form-card" aria-labelledby="af-opt-identity-heading">
+      <p className="af-opt-section-kicker">Perfil</p>
+      <h2 id="af-opt-identity-heading" className="af-opt-section-title">
         Identidade
       </h2>
-      <div style={{ display: "grid", gap: "12px" }}>
-        <label className="af-field-label">
-          Nome público profissional
+      <p className="af-opt-section-lead">
+        Estes campos alimentam sugestões e classificações no Easy Apply. Edição usada apenas na extensão — sem backend nem
+        envio ao LinkedIn; sugestões informativas; envio da candidatura é sempre seu.
+      </p>
+      <div className="af-opt-field-grid">
+        <label className="af-opt-label">
+          <span className="af-opt-label-text">Nome público profissional</span>
           <input
             className="af-input"
             value={profile.name}
@@ -23,8 +28,8 @@ export function ProfileForm(props: {
             autoComplete="off"
           />
         </label>
-        <label className="af-field-label">
-          Localização (texto livre)
+        <label className="af-opt-label">
+          <span className="af-opt-label-text">Localização (texto livre)</span>
           <input
             className="af-input"
             value={profile.location}
@@ -32,14 +37,12 @@ export function ProfileForm(props: {
             autoComplete="off"
           />
         </label>
-        <label className="af-field-label">
-          Nível de inglês declarado
+        <label className="af-opt-label">
+          <span className="af-opt-label-text">Nível de inglês para candidaturas</span>
           <select
             className="af-input"
             value={profile.englishLevel}
-            onChange={(e) =>
-              onChange({ ...profile, englishLevel: e.target.value as EnglishLevel })
-            }
+            onChange={(e) => onChange({ ...profile, englishLevel: e.target.value as EnglishLevel })}
           >
             {LEVELS.map((l) => (
               <option key={l} value={l}>
@@ -48,16 +51,17 @@ export function ProfileForm(props: {
             ))}
           </select>
         </label>
-        <label className="af-field-label af-row-check">
+        <label className="af-opt-label af-opt-label--row">
           <input
             type="checkbox"
             checked={profile.comfortableInEnglish}
             onChange={(e) => onChange({ ...profile, comfortableInEnglish: e.target.checked })}
           />
-          À vontade a trabalhar em inglês (respostas sim/não)
+          <span className="af-opt-label-text">À vontade a trabalhar em inglês (respostas sim/não)</span>
         </label>
-        <label className="af-field-label">
-          Roles principais — um por linha
+        <label className="af-opt-label af-opt-label--full">
+          <span className="af-opt-label-text">Roles principais — uma por linha</span>
+          <span className="af-opt-label-hint">Alimenta contexto de cargo nas sugestões; seja específico (ex.: Staff Engineer, Product).</span>
           <textarea
             className="af-input af-input-area"
             rows={4}
@@ -65,7 +69,10 @@ export function ProfileForm(props: {
             onChange={(e) =>
               onChange({
                 ...profile,
-                roles: e.target.value.split("\n").map((s) => s.trim()).filter(Boolean),
+                roles: e.target.value
+                  .split("\n")
+                  .map((s) => s.trim())
+                  .filter(Boolean),
               })
             }
           />

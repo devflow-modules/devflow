@@ -5,10 +5,11 @@ import { getStoredCandidateProfile, resetCandidateProfile, saveCandidateProfile 
 import { AiSettingsPanel } from "./components/AiSettingsPanel";
 import { ApplicationsHistoryPanel } from "./components/ApplicationsHistoryPanel";
 import { DefaultsPanel } from "./components/DefaultsPanel";
+import { ExtensionPreview } from "./components/ExtensionPreview";
+import { OptionsProfileSummary } from "./components/OptionsProfileSummary";
 import { ProfileForm } from "./components/ProfileForm";
 import { SalaryEditor } from "./components/SalaryEditor";
 import { SkillsEditor } from "./components/SkillsEditor";
-import { ExtensionPreview } from "./components/ExtensionPreview";
 
 type OptionsTab = "profile" | "history" | "ai" | "preview";
 
@@ -131,7 +132,19 @@ export function OptionsApp() {
 
   return (
     <div className="af-opt-shell af-root">
-      <h1 className="af-opt-heading">ApplyFlow · Preferências locais</h1>
+      <header className="af-opt-page-header">
+        <div className="af-opt-page-header-text">
+          <h1 className="af-opt-heading">ApplyFlow · Preferências locais</h1>
+          <p className="af-opt-tagline">
+            Copiloto <strong>local-first</strong> no dispositivo — sem backend obrigatório, sem auto-submit. Sugestões
+            informativas; o envio de candidaturas é sempre teu no LinkedIn.
+          </p>
+        </div>
+        <div className="af-opt-header-pills" aria-hidden="true">
+          <span className="af-opt-pill af-opt-pill--outline">MV3</span>
+          <span className="af-opt-pill af-opt-pill--outline">chrome.storage</span>
+        </div>
+      </header>
 
       <div className="af-opt-tabs" role="tablist" aria-label="Secções ApplyFlow">
         <button
@@ -177,69 +190,97 @@ export function OptionsApp() {
       </div>
 
       {tab === "profile" ? (
-        <>
-          <p className="af-opt-intro">
-            Edição do perfil usado apenas na extensão — sem backend nem envio ao LinkedIn. As sugestões no painel continuam apenas
-            informativas; o envio da candidatura é sempre sua.
-          </p>
+        <div className="af-opt-profile-grid">
+          <div className="af-opt-profile-main">
+            <p className="af-opt-intro af-opt-intro--compact">
+              Edição do perfil usada apenas na extensão — sem backend nem envio ao LinkedIn. As sugestões no painel
+              continuam apenas informativas; o envio da candidatura é sempre seu.
+            </p>
 
-          <DefaultsPanel />
+            <DefaultsPanel />
 
-          <ProfileForm profile={profile} onChange={setProfile} />
-          <SkillsEditor profile={profile} onChange={setProfile} />
-          <SalaryEditor profile={profile} onChange={setProfile} />
+            <ProfileForm profile={profile} onChange={setProfile} />
+            <SkillsEditor profile={profile} onChange={setProfile} />
+            <SalaryEditor profile={profile} onChange={setProfile} />
 
-          <div className="af-opt-actions">
-            <button type="button" className="af-opt-btn-primary" onClick={() => void handleSave()}>
-              Salvar perfil
-            </button>
-            <button type="button" className="af-opt-btn-secondary" onClick={() => void handleReset()}>
-              Restaurar padrão de referência
-            </button>
-            <button type="button" className="af-opt-btn-secondary" onClick={handleExport}>
-              Exportar JSON
-            </button>
-            <button type="button" className="af-opt-btn-secondary" onClick={handleImportPick}>
-              Importar JSON
-            </button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".json,application/json"
-              style={{ display: "none" }}
-              onChange={(e) => {
-                void onImportFile(e.target.files);
-                e.target.value = "";
-              }}
-            />
+            <section className="af-card af-opt-actions-card" aria-labelledby="af-opt-actions-heading">
+              <p id="af-opt-actions-heading" className="af-opt-section-kicker">
+                Ações locais
+              </p>
+              <h2 className="af-opt-section-title af-opt-section-title--sm">Guardar, repor e backup</h2>
+              <p className="af-opt-section-lead af-opt-section-lead--tight">
+                Salve o perfil localmente ou use JSON apenas para backup e migração entre navegadores.
+              </p>
+              <div className="af-opt-actions af-opt-actions--in-card">
+                <button type="button" className="af-opt-btn-primary" onClick={() => void handleSave()}>
+                  Salvar perfil
+                </button>
+                <button type="button" className="af-opt-btn-secondary" onClick={() => void handleReset()}>
+                  Restaurar padrão de referência
+                </button>
+                <div className="af-opt-action-group">
+                  <span className="af-opt-action-group-label">Backup local</span>
+                  <div className="af-opt-action-group-row">
+                    <button type="button" className="af-opt-btn-secondary" onClick={handleExport}>
+                      Exportar JSON
+                    </button>
+                    <button type="button" className="af-opt-btn-secondary" onClick={handleImportPick}>
+                      Importar JSON
+                    </button>
+                  </div>
+                </div>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept=".json,application/json"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    void onImportFile(e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+              </div>
+              <div className="af-opt-feedback af-opt-feedback--in-card">
+                {savedMsg ? <span className="af-opt-ok">{savedMsg}</span> : null}
+                {errorMsg ? <span className="af-opt-err">{errorMsg}</span> : null}
+              </div>
+            </section>
           </div>
 
-          <div className="af-opt-feedback">
-            {savedMsg ? <span className="af-opt-ok">{savedMsg}</span> : null}
-            {errorMsg ? <span className="af-opt-err">{errorMsg}</span> : null}
-          </div>
-        </>
+          <OptionsProfileSummary profile={profile} />
+        </div>
       ) : tab === "history" ? (
-        <>
-          <h2 className="af-opt-heading" style={{ fontSize: "18px", marginBottom: "8px" }}>
-            Histórico de candidaturas
-          </h2>
+        <div className="af-opt-tab-panel">
+          <div className="af-opt-tab-hero">
+            <p className="af-opt-section-kicker">Candidaturas</p>
+            <h2 className="af-opt-section-title">Histórico local</h2>
+            <p className="af-opt-tab-lead">
+              Registos em <code className="af-opt-code">chrome.storage.local</code> — sem servidor. Export CSV/JSON
+              quando precisares de arquivo ou de importar no dashboard.
+            </p>
+          </div>
           <ApplicationsHistoryPanel />
-        </>
+        </div>
       ) : tab === "ai" ? (
-        <>
-          <h2 className="af-opt-heading" style={{ fontSize: "18px", marginBottom: "8px" }}>
-            IA (opt-in)
-          </h2>
+        <div className="af-opt-tab-panel">
+          <div className="af-opt-tab-hero">
+            <p className="af-opt-section-kicker">Opcional</p>
+            <h2 className="af-opt-section-title">IA (opt-in)</h2>
+            <p className="af-opt-tab-lead">
+              Chave e chamadas no cliente; nunca substitui o envio manual da candidatura. Desactivado por omissão.
+            </p>
+          </div>
           <AiSettingsPanel />
-        </>
+        </div>
       ) : (
-        <>
-          <h2 className="af-opt-heading" style={{ fontSize: "18px", marginBottom: "8px" }}>
-            Preview da extensão (Print 6)
-          </h2>
+        <div className="af-opt-tab-panel">
+          <div className="af-opt-tab-hero">
+            <p className="af-opt-section-kicker">Portefólio</p>
+            <h2 className="af-opt-section-title">Preview da extensão (Print 6)</h2>
+            <p className="af-opt-tab-lead">Dados fictícios — ideal para capturas públicas sem PII do LinkedIn.</p>
+          </div>
           <ExtensionPreview />
-        </>
+        </div>
       )}
     </div>
   );
