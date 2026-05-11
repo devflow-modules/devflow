@@ -1,0 +1,24 @@
+{
+  "name": "@devflow/applyflow-linkedin",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@devflow/applyflow-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@devflow/config": "workspace:*",
+    "typescript": "^5",
+    "vitest": "^4.1.0"
+  },
+  "files": ["src"]
+}

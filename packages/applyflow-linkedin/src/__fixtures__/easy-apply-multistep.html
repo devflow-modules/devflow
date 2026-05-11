@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Fixture — multistep</title>
+  </head>
+  <body>
+    <div role="dialog" class="jobs-easy-apply-modal">
+      <div class="jobs-easy-apply-modal-step" data-step="1">
+        <form>
+          <div class="jobs-easy-apply-form-element">
+            <label for="af-step1-email">Email address</label>
+            <input id="af-step1-email" type="email" />
+          </div>
+        </form>
+      </div>
+      <div class="jobs-easy-apply-modal-step" data-step="2" style="display: none">
+        <form>
+          <div class="jobs-easy-apply-form-element">
+            <label for="af-step2-phone">Phone number</label>
+            <input id="af-step2-phone" type="tel" />
+          </div>
+          <div class="jobs-easy-apply-form-element">
+            <label for="af-step2-react">How many years of experience do you have with React?</label>
+            <input id="af-step2-react" type="number" />
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
