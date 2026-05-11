@@ -1,0 +1,245 @@
+.af-opt-shell {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 28px 20px 48px;
+}
+
+.af-opt-heading {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  letter-spacing: -0.03em;
+  color: var(--af-text);
+}
+
+.af-opt-intro {
+  font-size: 13px;
+  color: var(--af-text-muted);
+  margin: 0 0 28px;
+  line-height: 1.55;
+}
+
+.af-opt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--af-border);
+}
+
+.af-opt-feedback {
+  min-height: 22px;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.af-opt-ok {
+  color: var(--af-success);
+  font-weight: 500;
+}
+
+.af-opt-err {
+  color: var(--af-danger);
+  font-weight: 500;
+}
+
+body {
+  margin: 0;
+  background: var(--af-bg);
+  color: var(--af-text);
+}
+
+.af-opt-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.af-opt-tab {
+  appearance: none;
+  border: 1px solid var(--af-border-strong);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--af-text-muted);
+  border-radius: var(--af-radius-sm);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.af-opt-tab:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--af-text);
+}
+
+.af-opt-tab[data-active="true"] {
+  border-color: color-mix(in srgb, var(--af-brand) 55%, transparent);
+  background: var(--af-brand-soft);
+  color: #ecfdf5;
+}
+
+.af-history-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-bottom: 8px;
+}
+
+.af-history-table-wrap {
+  overflow: auto;
+  border: 1px solid var(--af-border);
+  border-radius: var(--af-radius);
+  margin-top: 16px;
+  max-height: min(72vh, 640px);
+}
+
+.af-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  color: var(--af-text);
+}
+
+.af-history-table th,
+.af-history-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--af-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.af-history-table th {
+  position: sticky;
+  top: 0;
+  background: var(--af-surface-muted);
+  z-index: 1;
+  font-weight: 650;
+  color: #bcc6de;
+}
+
+.af-history-link {
+  color: var(--af-brand);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.af-history-link:hover {
+  text-decoration: underline;
+}
+
+.af-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.af-metric-card {
+  background: linear-gradient(155deg, var(--af-surface) 0%, var(--af-bg-soft) 100%);
+  border: 1px solid var(--af-border);
+  border-radius: var(--af-radius-sm);
+  padding: 10px 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+}
+
+.af-metric-value {
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+  color: var(--af-text);
+  margin: 0 0 4px;
+  line-height: 1.1;
+}
+
+.af-metric-label {
+  margin: 0;
+  font-size: 11px;
+  color: var(--af-text-muted);
+  line-height: 1.35;
+}
+
+.af-stale-chip {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 650;
+  color: #fcd34d;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.12);
+  vertical-align: middle;
+}
+
+.af-intel-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  max-width: 100%;
+}
+
+.af-intel-chip {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #a7f3d0;
+  border: 1px solid color-mix(in srgb, var(--af-brand) 35%, transparent);
+  background: var(--af-brand-soft);
+}
+
+.af-intel-chip-skill {
+  border-color: color-mix(in srgb, var(--af-info) 40%, transparent);
+  background: rgba(125, 211, 252, 0.1);
+  color: #bae6fd;
+}
+
+.af-export-hint {
+  font-size: 11px;
+  color: var(--af-text-muted);
+  margin: 10px 0 0;
+  line-height: 1.4;
+}
+
+/* Primário / secundário nas opções: reutiliza variáveis do painel */
+.af-opt-btn-primary {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--af-brand) 55%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--af-brand) 26%, transparent),
+    color-mix(in srgb, var(--af-brand) 10%, transparent)
+  );
+  color: var(--af-text);
+  border-radius: var(--af-radius-sm);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.af-opt-btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+.af-opt-btn-secondary {
+  appearance: none;
+  border: 1px solid var(--af-border-strong);
+  background: rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+  border-radius: var(--af-radius-sm);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.af-opt-btn-secondary:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+}

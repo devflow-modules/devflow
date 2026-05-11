@@ -1,0 +1,318 @@
+/* ApplyFlow — tokens partilhados (painel Shadow DOM + options page importam este ficheiro) */
+:root {
+  --af-bg: #080b0f;
+  --af-bg-soft: #0d1018;
+  --af-surface: #141824;
+  --af-surface-muted: rgba(16, 22, 34, 0.94);
+  --af-border: rgba(255, 255, 255, 0.09);
+  --af-border-strong: rgba(255, 255, 255, 0.14);
+  --af-text: #f4f6fb;
+  --af-text-muted: #98a2b3;
+  --af-brand: #34d399;
+  --af-brand-soft: rgba(52, 211, 153, 0.14);
+  --af-on-brand: #081014;
+  --af-success: #34d399;
+  --af-warning: #fbbf24;
+  --af-danger: #fb7185;
+  --af-info: #7dd3fc;
+  --af-radius: 12px;
+  --af-radius-sm: 8px;
+  --af-shadow: 0 14px 44px rgba(0, 0, 0, 0.42);
+}
+
+.af-root {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--af-text);
+}
+
+.af-card {
+  background: linear-gradient(155deg, var(--af-surface) 0%, var(--af-bg-soft) 100%);
+  border: 1px solid var(--af-border);
+  border-radius: var(--af-radius);
+  padding: 12px;
+  margin-bottom: 10px;
+  box-shadow: var(--af-shadow);
+}
+
+.af-title {
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  font-size: 15px;
+  margin: 0 0 4px;
+  color: var(--af-text);
+}
+
+.af-sub {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--af-text-muted);
+}
+
+.af-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.af-badge-high {
+  background: var(--af-brand-soft);
+  color: var(--af-brand);
+  border: 1px solid color-mix(in srgb, var(--af-brand) 42%, transparent);
+}
+
+.af-badge-medium {
+  background: rgba(251, 191, 36, 0.12);
+  color: #fcd34d;
+  border: 1px solid rgba(251, 191, 36, 0.28);
+}
+
+.af-badge-low {
+  background: rgba(148, 163, 184, 0.12);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.af-field-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: #aab4c5;
+  margin: 0 0 4px;
+}
+
+.af-field-label.af-row-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.af-field-value {
+  font-size: 13px;
+  color: var(--af-text);
+  margin: 0 0 8px;
+  word-break: break-word;
+}
+
+.af-warning {
+  font-size: 11px;
+  color: var(--af-warning);
+  margin: 0 0 8px;
+  line-height: 1.4;
+}
+
+.af-panel-header {
+  font-size: 11px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--af-brand);
+  margin: 0 0 6px;
+}
+
+/* Primário: copiar / acção principal */
+.af-btn {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--af-brand) 55%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--af-brand) 28%, transparent),
+    color-mix(in srgb, var(--af-brand) 12%, transparent)
+  );
+  color: var(--af-text);
+  border-radius: var(--af-radius-sm);
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  width: 100%;
+}
+
+.af-btn:hover {
+  border-color: color-mix(in srgb, var(--af-brand) 75%, transparent);
+  filter: brightness(1.06);
+}
+
+.af-btn:active {
+  transform: translateY(1px);
+}
+
+.af-btn-copied {
+  border-color: color-mix(in srgb, var(--af-brand) 65%, transparent) !important;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--af-brand) 22%, transparent),
+    color-mix(in srgb, var(--af-brand) 8%, transparent)
+  ) !important;
+  color: #ecfdf5 !important;
+}
+
+/* Secundário: preencher, confirmar */
+.af-btn-secondary,
+.af-btn-muted {
+  appearance: none;
+  border: 1px solid var(--af-border-strong);
+  background: rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+  border-radius: var(--af-radius-sm);
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  width: 100%;
+}
+
+.af-btn-secondary:hover,
+.af-btn-muted:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.af-muted {
+  font-size: 11px;
+  color: var(--af-text-muted);
+  margin: 8px 0 0;
+  line-height: 1.4;
+}
+
+.af-status-card {
+  border-color: color-mix(in srgb, var(--af-brand) 28%, var(--af-border));
+}
+
+.af-status-main {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--af-text);
+}
+
+.af-status-detail {
+  margin: 0;
+  font-size: 12px;
+  color: var(--af-text-muted);
+}
+
+.af-card-muted {
+  opacity: 0.97;
+}
+
+.af-meta {
+  margin: 0 0 6px;
+  font-size: 11px;
+  color: #7f8aa3;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.af-fit {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.af-score {
+  font-size: 28px;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  color: var(--af-text);
+}
+
+.af-input {
+  width: 100%;
+  border-radius: var(--af-radius-sm);
+  border: 1px solid var(--af-border-strong);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--af-text);
+  font-size: 13px;
+  padding: 8px 10px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.af-input:focus {
+  border-color: color-mix(in srgb, var(--af-brand) 55%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--af-brand) 25%, transparent);
+}
+
+.af-input-area {
+  min-height: 88px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.af-input-compact {
+  width: auto;
+  max-width: 88px;
+}
+
+.af-opt-skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.af-opt-skill-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.af-opt-skill-name {
+  font-size: 11px;
+  color: #9aa8c4;
+}
+
+.af-text-success {
+  margin-top: 10px;
+  margin-bottom: 0;
+  color: var(--af-success);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.af-ai-pre {
+  margin: 0;
+  padding: 10px;
+  border-radius: var(--af-radius-sm);
+  border: 1px solid var(--af-border);
+  background: rgba(0, 0, 0, 0.28);
+  font-size: 11px;
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow: auto;
+  color: var(--af-text-muted);
+  line-height: 1.45;
+}
+
+.af-session-title {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--af-text);
+  margin: 0 0 6px;
+}
+
+.af-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.af-action-row .af-btn,
+.af-action-row .af-btn-secondary {
+  width: auto;
+  min-width: 112px;
+  flex: 1 1 auto;
+}
+
+.af-btn-secondary.af-btn-copied {
+  border-color: color-mix(in srgb, var(--af-brand) 55%, transparent) !important;
+  background: color-mix(in srgb, var(--af-brand) 14%, transparent) !important;
+  color: #ecfdf5 !important;
+}

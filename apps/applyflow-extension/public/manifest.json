@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "ApplyFlow",
+  "version": "0.2.0",
+  "description": "Copiloto assistido para LinkedIn Easy Apply (DevFlow Labs). Não envia candidaturas automaticamente.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://www.linkedin.com/*"],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.linkedin.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
