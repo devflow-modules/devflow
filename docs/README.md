@@ -13,7 +13,7 @@ O hub **`devflowlabs.com.br`** posiciona-se hoje em torno de:
 
 **CRM interno** (equipa comercial DevFlow): `/admin/leads` e `/admin/lead-finder` — ver pasta [**crm/**](./crm/). Playbook comercial (ICP, outbound, funil, demo): [**GO-TO-MARKET.md**](./GO-TO-MARKET.md).
 
-Outros apps no repositório (Investigamais, FunkLab, etc.) mantêm documentação técnica própria, mas **não** são tratados como pilares do go-to-market público atual neste índice.
+Outros apps no repositório (**ApplyFlow** como case de portfólio local-first, Investigamais, FunkLab, etc.) mantêm documentação técnica própria; apenas WhatsApp + Financeiro são pilares do go-to-market público actual do hub neste índice.
 
 ---
 
@@ -25,6 +25,7 @@ Outros apps no repositório (Investigamais, FunkLab, etc.) mantêm documentaçã
 | [**whatsapp/**](./whatsapp/) | Cloud API, webhooks, onboarding, visão de produto |
 | [**whatsapp-platform/**](./whatsapp-platform/) | Inbox multi-tenant (`apps/whatsapp-platform`) |
 | [**financeiro/**](./financeiro/) | App controle financeiro (`apps/financeiro` + módulo site) |
+| [**applyflow/**](./applyflow/) | ApplyFlow: dashboard local-first, extensão Chrome, arquitectura, publicação e screenshots |
 | [**investigamais/**](./investigamais/) | Investiga+ (referência técnica; produto separado) |
 | [**shared/**](./shared/) | Monorepo, deploy, Prisma, monetização, ADRs |
 | [**ecossistema/**](./ecossistema/) | Rotas, URLs e visão do hub |
@@ -90,6 +91,9 @@ Outros apps no repositório (Investigamais, FunkLab, etc.) mantêm documentaçã
 - [crm/README.md](./crm/README.md)  
 - [financeiro/README.md](./financeiro/README.md)  
 - [whatsapp/README.md](./whatsapp/README.md)  
+- [applyflow/](./applyflow/) (índice em `docs/applyflow/` — ver também [ARCHITECTURE.md](./applyflow/ARCHITECTURE.md))  
+- [apps/applyflow/README.md](../apps/applyflow/README.md) (dashboard Next.js)  
+- [apps/applyflow-extension/README.md](../apps/applyflow-extension/README.md) (extensão Chrome MV3)  
 - [investigamais/README.md](./investigamais/README.md) (produto / app separado)  
 - [shared/README.md](./shared/README.md)  
 - [backlinks/README.md](./backlinks/README.md)  

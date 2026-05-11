@@ -130,10 +130,28 @@ Documentação: [`docs/crm/README.md`](docs/crm/README.md)
 
 ---
 
-## Outros produtos no monorepo (não foco do lançamento público atual)
+## Case de portfólio — ApplyFlow
 
-O repositório inclui apps e documentação para **Investigamais** (CNPJ / BI, produto com repositório próprio) e **FunkLab** (experiências musicais). Mantêm utilidade técnica e histórico; **não** entram na mensagem principal de go-to-market do hub neste momento.
+**ApplyFlow** é um copiloto **local-first** / **privacy-first** para candidaturas no **LinkedIn Easy Apply**, com **dashboard Next.js**, **extensão Chrome MV3**, histórico local, import/export JSON, métricas, documentação e **IA opt-in**. É um **case de produto autoral** dentro deste monorepo — **não** faz parte do go-to-market público actual do hub `devflowlabs.com.br` (WhatsApp + Financeiro acima).
 
+- **Sem backend ApplyFlow obrigatório** no MVP · **sem auto-submit** · dados no **navegador** (`chrome.storage.local` na extensão, `localStorage` no dashboard após import).
+
+**Onde aprofundar**
+
+| | |
+|--|--|
+| Dashboard | [`apps/applyflow/README.md`](apps/applyflow/README.md) |
+| Extensão | [`apps/applyflow-extension/README.md`](apps/applyflow-extension/README.md) |
+| Documentação de produto | [`docs/applyflow/`](docs/applyflow/) |
+| Screenshots oficiais | [`docs/applyflow/assets/README.md`](docs/applyflow/assets/README.md) |
+
+---
+
+## Outros produtos no monorepo (não foco do lançamento público actual)
+
+O repositório inclui, além do **ApplyFlow** (case de portfólio — ver secção anterior), apps e documentação para **Investigamais** (CNPJ / BI, produto com repositório próprio) e **FunkLab** (experiências musicais). Mantêm utilidade técnica e histórico; **não** entram na mensagem principal de go-to-market do hub neste momento.
+
+- ApplyFlow: [`docs/applyflow/ARCHITECTURE.md`](docs/applyflow/ARCHITECTURE.md) · pacotes `packages/applyflow-core`, `packages/applyflow-linkedin`  
 - Investigamais: [`docs/investigamais/README.md`](docs/investigamais/README.md)  
 - FunkLab (`apps/funklab`): [`apps/funklab/README.md`](apps/funklab/README.md)
 
@@ -244,7 +262,7 @@ Documentação: [`docs/shared/DEVFLOW-GROWTH-ANALYTICS.md`](docs/shared/DEVFLOW-
 pnpm test
 ```
 
-Cobertura atual: **104 testes** em services, adapters, events, analytics, billing e rotas de API.
+A contagem de testes **varia** por app e pacote; para o número actual no teu clone, corre `pnpm test` ou `pnpm test:workspace` (Vitest em todo o monorepo, quando configurado).
 
 ---
 
