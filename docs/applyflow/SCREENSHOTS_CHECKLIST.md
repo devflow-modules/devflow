@@ -2,6 +2,10 @@
 
 Para cada captura: **ficheiro sugerido**, **objetivo**, **uso** (README, LinkedIn, portefólio web). Preferir **1080p** ou superior; cropar UI sensível.
 
+### Antes de capturar (evitar falso «erro» do Next)
+
+Em **modo dev**, extensões (ex. ferramentas de cor / atalhos que injectam `cz-shortcut-listen="true"` no `<body>`) podem provocar *hydration mismatch* e o badge vermelho **«1 issue»** no overlay do Next — **não** vem do código do ApplyFlow (`layout.tsx` só define `className` no `<body>`). Para prints/GIF profissionais: **aba anónima sem extensões**, **perfil Chrome limpo**, ou **build de produção** (`pnpm --filter applyflow build` + `pnpm --filter applyflow start`) noutro porto.
+
 ---
 
 ## Landing e site

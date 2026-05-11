@@ -86,6 +86,10 @@ Não adicionar `src/middleware.ts` copiado do portal raiz do monorepo. Este dash
 
 O script `pnpm dev` usa **`next dev --webpack`** (igual ao eixo de `next build --webpack` neste pacote) para evitar o Turbopack do monorepo a resolver imports do `middleware` do portal quando não há `middleware.ts` nesta app.
 
+### Next dev: overlay «1 issue» / hidratação no `<body>`
+
+Se o overlay mostrar *hydration mismatch* com atributo `cz-shortcut-listen="true"` (ou similar) no `<body>`, isso **não** é gerado pelo React neste repo — costuma ser **extensão do browser** a alterar o DOM antes da hidratação (ex. ferramentas de cor). Confirma em **janela anónima sem extensões** ou perfil limpo; para screenshots estável, usa o mesmo ou `pnpm build` + `pnpm start` noutro porto. Ver também `docs/applyflow/PUBLICATION_CHECKLIST.md` e `SCREENSHOTS_CHECKLIST.md`.
+
 ---
 
 ## Como buildar
