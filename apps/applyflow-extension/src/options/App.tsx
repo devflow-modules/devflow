@@ -2,6 +2,7 @@ import type { CandidateProfile } from "@devflow/applyflow-core";
 import { gustavoProfile, validateCandidateProfile } from "@devflow/applyflow-core";
 import { useEffect, useRef, useState } from "react";
 import { getStoredCandidateProfile, resetCandidateProfile, saveCandidateProfile } from "../storage/profile-storage.js";
+import { AnswerBankEditor } from "./components/AnswerBankEditor";
 import { AiSettingsPanel } from "./components/AiSettingsPanel";
 import { ApplicationsHistoryPanel } from "./components/ApplicationsHistoryPanel";
 import { DefaultsPanel } from "./components/DefaultsPanel";
@@ -23,7 +24,15 @@ export function OptionsApp() {
 
   useEffect(() => {
     void getStoredCandidateProfile()
-      .then((p) => setProfile({ ...p, skills: { ...p.skills }, salary: { ...p.salary }, roles: [...p.roles] }))
+      .then((p) =>
+        setProfile({
+          ...p,
+          skills: { ...p.skills },
+          salary: { ...p.salary },
+          answerBank: { ...p.answerBank },
+          roles: [...p.roles],
+        }),
+      )
       .finally(() => setLoading(false));
   }, []);
 
@@ -38,7 +47,13 @@ export function OptionsApp() {
     try {
       const v = validateCandidateProfile(profile);
       await saveCandidateProfile(v);
-      setProfile(v);
+      setProfile({
+        ...v,
+        skills: { ...v.skills },
+        salary: { ...v.salary },
+        answerBank: { ...v.answerBank },
+        roles: [...v.roles],
+      });
       showSaved("Perfil válido — guardado com sucesso.");
     } catch (e) {
       setSavedMsg("");
@@ -55,6 +70,7 @@ export function OptionsApp() {
         ...p,
         skills: { ...p.skills },
         salary: { ...p.salary },
+        answerBank: { ...p.answerBank },
         roles: [...p.roles],
       });
       showSaved("Perfil reposto — alterações locais foram descartadas; em uso está o padrão de referência.");
@@ -111,6 +127,7 @@ export function OptionsApp() {
         ...v,
         skills: { ...v.skills },
         salary: { ...v.salary },
+        answerBank: { ...v.answerBank },
         roles: [...v.roles],
       });
       await saveCandidateProfile(v);
@@ -202,6 +219,7 @@ export function OptionsApp() {
             <ProfileForm profile={profile} onChange={setProfile} />
             <SkillsEditor profile={profile} onChange={setProfile} />
             <SalaryEditor profile={profile} onChange={setProfile} />
+            <AnswerBankEditor profile={profile} onChange={setProfile} />
 
             <section className="af-card af-opt-actions-card" aria-labelledby="af-opt-actions-heading">
               <p id="af-opt-actions-heading" className="af-opt-section-kicker">

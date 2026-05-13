@@ -1,6 +1,6 @@
 # ApplyFlow (extensão Chrome)
 
-ApplyFlow é um **copiloto assistido** para o fluxo **LinkedIn Easy Apply**, criado pela DevFlow Labs. Lê rótulos de campos visíveis no modal, gera **sugestões** com base num **perfil profissional** (por defeito o de referência “Gustavo”, ou o que configurar nas opções) e permite **copiar** ou **preencher campo a campo** — **sem enviar candidaturas**.
+ApplyFlow é um **copiloto assistido** para o fluxo **LinkedIn Easy Apply**, criado pela DevFlow Labs. Lê rótulos de campos visíveis no modal, gera **sugestões** com base num **perfil profissional** (por defeito um **perfil fictício de demonstração** incluído no pacote, substituível nas opções) e permite **copiar** ou **preencher campo a campo** — **sem enviar candidaturas**.
 
 ## Garantia importante
 
@@ -12,7 +12,7 @@ Existe uma app **Next.js** em `apps/applyflow` que importa o JSON exportado (ex.
 
 ## Local-first e evolução cloud (documentada, não implementada)
 
-- **Armazenamento:** perfil, histórico e definições em **`chrome.storage.local`** no dispositivo — sem servidor ApplyFlow no MVP.
+- **Armazenamento:** perfil (inclui **Answer Bank** — textos para perguntas abertas do Easy Apply), histórico e definições em **`chrome.storage.local`** no dispositivo — sem servidor ApplyFlow no MVP.
 - **Export:** backups JSON (perfil, histórico) para ficheiro; partilha só quando tu quiseres.
 - **Dashboard:** importação do JSON no site `apps/applyflow`; métricas e funil **no browser**.
 - **IA:** opt-in no cliente com a tua chave; sem backend ApplyFlow para texto gerado.
@@ -102,6 +102,17 @@ localStorage.removeItem("APPLYFLOW_DEBUG");
 - Burlar login, CAPTCHA ou limitações do LinkedIn.
 - Preencher sem clique seu em **Preencher / Confirmar**, nem campos não visíveis.
 
+## Answer Bank (Sprint 7.2) — respostas abertas locais
+
+Na página **Opções › Perfil**, a secção **Respostas abertas** guarda até quatro textos longos (`professionalSummary`, `tellUsAboutYourself`, `whyGoodFit`, `availability`) validados no pacote `@devflow/applyflow-core`. Estes campos:
+
+- Ficam **apenas** em `chrome.storage.local` neste navegador — **sem** envio ao DevFlow nem ao LinkedIn por este canal.
+- Alimentam **sugestões heurísticas** no painel quando o rótulo do campo Easy Apply corresponde a padrões conhecidos (ex.: «Tell us about yourself», «Why are you a good fit?», disponibilidade / remoto / ambiente anglófono, resumo / cover letter).
+- **Não** substituem a IA: a IA continua **opt-in**, separada, e só corre após clique em «Gerar com IA» quando configurada.
+- **Não** enviam candidatura nem alteram o safety gate do autofill.
+
+Import/export JSON do perfil inclui `answerBank`. Perfis antigos sem esta chave passam a ter campos vazios após validação.
+
 ## Sprint 5 — IA opt-in (OpenAI, local)
 
 Funcionalidade **desactivada por defeito**. Se activar em **Opções › IA**, a extensão pode, **após o seu clique em «Gerar com IA»**, enviar um pedido **HTTPS** à **OpenAI** com:
@@ -169,7 +180,7 @@ Colunas CSV: metadados + colunas de **job intelligence** (`seniority`, `roleType
 - **Painel:** cartão «Inteligência da vaga (local)» com resumo ao ver o modal com campos.
 - **Opções › Histórico:** coluna **Intel** com chips compactos + secção de métricas agregadas (top skills, modelos de trabalho, contratação, inglês).
 
-**Privacidade:** inferência apenas em excerto já carregado no browser para fit/histórico; sem envio ao servidor DevFlow/OpenAI.
+**Privacidade (job intelligence):** inferência só em excerto já no browser para fit/histórico; **sem** servidor DevFlow e **sem** chamadas OpenAI neste caminho (OpenAI só entra se activares IA opt-in e usares «Gerar com IA»).
 
 **Limitações:** regex e palavras‑chave — falsos positivos/negativos; anúncios ambíguos podem ficar em `unknown`.
 

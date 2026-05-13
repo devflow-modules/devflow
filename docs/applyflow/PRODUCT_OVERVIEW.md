@@ -6,7 +6,7 @@ Candidaturas em massa no LinkedIn Easy Apply são repetitivas, fáceis de desorg
 
 ## Solução
 
-**ApplyFlow** é um copiloto **local-first**: extensão Chrome que sugere respostas e assiste o preenchimento **campo a campo**, com gate de segurança e **sem** enviar a candidatura automaticamente. Complementado por um **dashboard web** que lê apenas um export JSON gerado no próprio dispositivo para métricas e funil.
+**ApplyFlow** (DevFlow Labs) é um copiloto **local-first**: extensão Chrome que sugere respostas e assiste o preenchimento **campo a campo**, com gate de segurança e **sem** enviar a candidatura automaticamente. Complementado por um **dashboard web** que lê apenas um export JSON gerado no próprio dispositivo para métricas e funil.
 
 ## Público-alvo
 
@@ -18,7 +18,7 @@ Candidaturas em massa no LinkedIn Easy Apply são repetitivas, fáceis de desorg
 
 | Área | O que faz |
 |------|------------|
-| Extensão | Parser de campos Easy Apply, perfil local validado (Zod), sugestões, autofill assistido, safety gate. |
+| Extensão | Parser Easy Apply, perfil local (Zod), **Answer Bank** (textos longos reutilizáveis, só no dispositivo), sugestões heurísticas, autofill assistido, safety gate. |
 | Job intelligence | Heurísticas locais sobre o anúncio (senioridade, modelo de trabalho, skills, inglês…). |
 | Histórico | Registos em `chrome.storage.local`, dedupe por URL, estados e notas. |
 | IA (opt-in) | Textos longos via API OpenAI configurada pelo utilizador; sem backend DevFlow. |
@@ -26,7 +26,7 @@ Candidaturas em massa no LinkedIn Easy Apply são repetitivas, fáceis de desorg
 
 ## Fluxo de uso
 
-1. Instalar e configurar a extensão; opcionalmente IA nas opções.
+1. Instalar e configurar a extensão (perfil, skills, salários e **Respostas abertas** / Answer Bank); opcionalmente IA nas opções.
 2. Abrir uma vaga Easy Apply; consultar o painel e usar Copiar / Preencher com confirmações.
 3. Guardar no histórico local conforme necessário.
 4. Exportar backup JSON nas opções carregar no dashboard para análise visual.

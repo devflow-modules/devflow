@@ -52,6 +52,34 @@ describe("profile-storage", () => {
     expect(restored.name).toBe(gustavoProfile.name);
   });
 
+  it("perfil em storage sem answerBank (legado) normaliza ao ler", async () => {
+    const legacy = {
+      name: "Legado",
+      location: "Brazil",
+      englishLevel: "Advanced",
+      comfortableInEnglish: true,
+      roles: ["Engineer"],
+      skills: { React: 5 },
+      salary: {
+        cltPleno: "R$ 1",
+        cltSenior: "R$ 2",
+        pjSenior: "R$ 3",
+        usdMonthly: "USD 1",
+        usdHourly: "USD 1",
+      },
+    };
+    chromeStorageBag.set(STORAGE_PROFILE_KEY, legacy as unknown);
+    invalidateStoredProfileCache();
+    const p = await getStoredCandidateProfile();
+    expect(p.name).toBe("Legado");
+    expect(p.answerBank).toEqual({
+      professionalSummary: "",
+      tellUsAboutYourself: "",
+      whyGoodFit: "",
+      availability: "",
+    });
+  });
+
   it("saveCandidateProfile lança se o perfil for inválido", async () => {
     await expect(
       saveCandidateProfile({} as import("@devflow/applyflow-core").CandidateProfile),

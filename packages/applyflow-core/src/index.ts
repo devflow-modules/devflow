@@ -1,8 +1,10 @@
 export { gustavoProfile, CANDIDATE_PROFILE } from "./candidate-profile.js";
-export type { CandidateProfile, EnglishLevel, ApplyflowSkillKey } from "./profile-schema.js";
+export type { CandidateProfile, EnglishLevel, ApplyflowSkillKey, AnswerBank } from "./profile-schema.js";
 export {
   APPLYFLOW_SKILL_KEYS,
   candidateProfileSchema,
+  EMPTY_ANSWER_BANK,
+  normalizeAnswerBank,
   resolveSkillCanonicalKey,
   validateCandidateProfile,
 } from "./profile-schema.js";

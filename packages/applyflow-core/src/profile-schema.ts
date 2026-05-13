@@ -29,6 +29,31 @@ export type ApplyflowSkillKey = (typeof APPLYFLOW_SKILL_KEYS)[number];
 const ENGLISH_LEVELS = ["Basic", "Intermediate", "Advanced", "Fluent"] as const;
 export type EnglishLevel = (typeof ENGLISH_LEVELS)[number];
 
+/** Textos longos reutilizáveis para perguntas abertas do Easy Apply (local-first). */
+export type AnswerBank = {
+  professionalSummary: string;
+  tellUsAboutYourself: string;
+  whyGoodFit: string;
+  availability: string;
+};
+
+export const EMPTY_ANSWER_BANK: AnswerBank = {
+  professionalSummary: "",
+  tellUsAboutYourself: "",
+  whyGoodFit: "",
+  availability: "",
+};
+
+export function normalizeAnswerBank(raw: Partial<AnswerBank> | undefined | null): AnswerBank {
+  if (raw == null) return { ...EMPTY_ANSWER_BANK };
+  return {
+    professionalSummary: (raw.professionalSummary ?? "").trim(),
+    tellUsAboutYourself: (raw.tellUsAboutYourself ?? "").trim(),
+    whyGoodFit: (raw.whyGoodFit ?? "").trim(),
+    availability: (raw.availability ?? "").trim(),
+  };
+}
+
 export type CandidateProfile = {
   name: string;
   location: string;
@@ -43,6 +68,7 @@ export type CandidateProfile = {
     usdMonthly: string;
     usdHourly: string;
   };
+  answerBank: AnswerBank;
 };
 
 const SKILL_ZERO: Record<ApplyflowSkillKey, number> = Object.fromEntries(
@@ -108,6 +134,13 @@ const salaryShape = {
   usdHourly: z.string().trim().min(1).max(400),
 };
 
+const answerBankShape = {
+  professionalSummary: z.string().max(5000).optional(),
+  tellUsAboutYourself: z.string().max(2500).optional(),
+  whyGoodFit: z.string().max(2500).optional(),
+  availability: z.string().max(1200).optional(),
+};
+
 export const candidateProfileSchema = z
   .object({
     name: z.string().trim().min(1).max(200),
@@ -117,12 +150,17 @@ export const candidateProfileSchema = z
     roles: z.array(z.string().trim().max(200)).max(30),
     skills: z.record(z.string(), z.number().int().min(0).max(80)),
     salary: z.object(salaryShape),
+    answerBank: z.object(answerBankShape).nullish(),
   })
-  .transform((data) => ({
-    ...data,
-    roles: data.roles.map((r) => r.trim()).filter(Boolean),
-    skills: mergeSkillsRecord(data.skills),
-  }));
+  .transform((data) => {
+    const { answerBank: rawBank, roles, skills, ...rest } = data;
+    return {
+      ...rest,
+      roles: roles.map((r) => r.trim()).filter(Boolean),
+      skills: mergeSkillsRecord(skills),
+      answerBank: normalizeAnswerBank(rawBank),
+    };
+  });
 
 /**
  * Valida e normaliza um candidato a perfil (import JSON, storage, formulário).

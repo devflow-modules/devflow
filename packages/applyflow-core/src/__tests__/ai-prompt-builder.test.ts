@@ -38,6 +38,12 @@ const baseProfile: CandidateProfile = {
     usdMonthly: "x",
     usdHourly: "x",
   },
+  answerBank: {
+    professionalSummary: "",
+    tellUsAboutYourself: "",
+    whyGoodFit: "",
+    availability: "",
+  },
 };
 
 describe("buildAiPrompt", () => {

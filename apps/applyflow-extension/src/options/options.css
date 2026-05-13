@@ -495,6 +495,18 @@ body {
   line-height: 1.35;
 }
 
+.af-opt-answer-bank-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.af-input-area--answer-bank {
+  min-height: 120px;
+  line-height: 1.5;
+}
+
 .af-opt-skills-premium {
   display: grid;
   gap: 8px;
