@@ -2,6 +2,14 @@ import { applyFlowButtonClass } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import Link from "next/link";
 
+/** Raiz dos Markdown de produto no GitHub (branch `main`). Atalhos abrem noutro separador; o dashboard não envia dados ao clicar. */
+const APPLYFLOW_DOCS_GITHUB_BASE =
+  "https://github.com/gustavomarques00/devflow/blob/main/docs/applyflow";
+
+function applyflowDocMarkdownUrl(file: string): string {
+  return `${APPLYFLOW_DOCS_GITHUB_BASE}/${file}`;
+}
+
 type DocItem = {
   file: string;
   title: string;
@@ -117,34 +125,45 @@ const CATEGORY_META: Array<{
 ];
 
 function DocCard({ doc, highlight = false }: { doc: DocItem; highlight?: boolean }) {
+  const href = applyflowDocMarkdownUrl(doc.file);
+  const label = `Abrir «${doc.title}» (${doc.file}) no GitHub`;
+
   return (
-    <ApplyFlowCard
-      variant={highlight ? "default" : "muted"}
-      padding="md"
-      className={[
-        "group h-full transition-[border-color,box-shadow,transform] hover:-translate-y-0.5",
-        highlight
-          ? "border-emerald-500/30 bg-emerald-500/[0.06] shadow-[0_14px_46px_rgba(0,0,0,0.35)] hover:border-emerald-400/55 hover:shadow-[0_20px_56px_rgba(0,0,0,0.45)]"
-          : "hover:border-emerald-500/30 hover:shadow-md",
-      ].join(" ")}
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      className="block h-full rounded-[var(--af-radius)] no-underline outline-none transition-[transform] focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--af-bg)]"
     >
-      <div className="flex items-start justify-between gap-3">
-        <span className="rounded-full border border-[color:var(--af-border)] bg-black/25 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-zinc-400">
-          {doc.category}
-        </span>
-        {doc.priority ? (
-          <span className="rounded-full border border-emerald-500/35 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">
-            {doc.priority}
+      <ApplyFlowCard
+        variant={highlight ? "default" : "muted"}
+        padding="md"
+        className={[
+          "group h-full cursor-pointer transition-[border-color,box-shadow,transform] hover:-translate-y-0.5",
+          highlight
+            ? "border-emerald-500/30 bg-emerald-500/[0.06] shadow-[0_14px_46px_rgba(0,0,0,0.35)] hover:border-emerald-400/55 hover:shadow-[0_20px_56px_rgba(0,0,0,0.45)]"
+            : "hover:border-emerald-500/30 hover:shadow-md",
+        ].join(" ")}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <span className="rounded-full border border-[color:var(--af-border)] bg-black/25 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-zinc-400">
+            {doc.category}
           </span>
-        ) : null}
-      </div>
-      <p className="mt-4 text-base font-semibold tracking-tight text-[color:var(--af-text)]">{doc.title}</p>
-      <p className="mt-2 text-sm leading-relaxed text-[color:var(--af-text-muted)]">{doc.desc}</p>
-      <div className="mt-4 flex items-center justify-between gap-3">
-        <code className="rounded border border-[color:var(--af-border)] bg-black/25 px-2 py-1 text-[11px] text-emerald-200/90">{doc.file}</code>
-        <span className="text-xs text-zinc-500 transition-colors group-hover:text-emerald-300">Abrir documento →</span>
-      </div>
-    </ApplyFlowCard>
+          {doc.priority ? (
+            <span className="rounded-full border border-emerald-500/35 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">
+              {doc.priority}
+            </span>
+          ) : null}
+        </div>
+        <p className="mt-4 text-base font-semibold tracking-tight text-[color:var(--af-text)]">{doc.title}</p>
+        <p className="mt-2 text-sm leading-relaxed text-[color:var(--af-text-muted)]">{doc.desc}</p>
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <code className="rounded border border-[color:var(--af-border)] bg-black/25 px-2 py-1 text-[11px] text-emerald-200/90">{doc.file}</code>
+          <span className="text-xs text-zinc-500 transition-colors group-hover:text-emerald-300">Abrir no GitHub →</span>
+        </div>
+      </ApplyFlowCard>
+    </a>
   );
 }
 
@@ -161,7 +180,7 @@ export default function DocumentacaoPage() {
             Documentação do produto
           </h1>
           <p className="mt-4 max-w-4xl text-sm leading-relaxed text-[color:var(--af-text-muted)] sm:text-[15px]">
-            Arquitetura, decisões técnicas, roadmap e materiais de publicação do ApplyFlow — um copiloto local-first para candidaturas no LinkedIn Easy Apply.
+            Arquitetura, decisões técnicas, roadmap e materiais de publicação do ApplyFlow — um copiloto local-first para candidaturas no LinkedIn Easy Apply. Os ficheiros Markdown completos abrem no GitHub (novo separador); o dashboard não envia os teus dados ao seguir estes atalhos.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
             {["Local-first", "Privacy-first", "Chrome Extension", "Next.js Dashboard", "TypeScript Monorepo"].map((badge) => (
@@ -232,22 +251,22 @@ export default function DocumentacaoPage() {
           Navega entre métricas, importação local e documentação técnica sem sair do contexto local-first.
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        <Link href="/dashboard" className={applyFlowButtonClass({ variant: "primary", size: "md", className: "justify-center sm:min-w-[160px]" })}>
-          Abrir dashboard
-        </Link>
-        <Link
-          href="/dashboard#como-importar"
-          className={applyFlowButtonClass({ variant: "secondary", size: "md", className: "justify-center sm:min-w-[160px]" })}
-        >
-          Importar JSON
-        </Link>
-        <Link
-          href="/"
-          className={applyFlowButtonClass({ variant: "ghost", size: "md", className: "justify-center border-transparent sm:min-w-[120px]" })}
-        >
-          ← Início
-        </Link>
-      </div>
+          <Link href="/dashboard" className={applyFlowButtonClass({ variant: "primary", size: "md", className: "justify-center sm:min-w-[160px]" })}>
+            Abrir dashboard
+          </Link>
+          <Link
+            href="/dashboard#como-importar"
+            className={applyFlowButtonClass({ variant: "secondary", size: "md", className: "justify-center sm:min-w-[160px]" })}
+          >
+            Importar JSON
+          </Link>
+          <Link
+            href="/"
+            className={applyFlowButtonClass({ variant: "ghost", size: "md", className: "justify-center border-transparent sm:min-w-[120px]" })}
+          >
+            ← Início
+          </Link>
+        </div>
       </section>
     </main>
   );

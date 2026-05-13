@@ -6,6 +6,17 @@
 
 *Sem backend ApplyFlow obrigatório · sem auto-submit · dados no dispositivo · IA apenas opt-in.*
 
+### Leitura rápida
+
+| Pergunta | Resposta curta |
+|----------|----------------|
+| **O que é?** | Copiloto **local-first** / **privacy-first** para **LinkedIn Easy Apply**: extensão MV3 + dashboard Next.js no monorepo **DevFlow Labs**. |
+| **Porque existe?** | Reduzir repetição no Easy Apply e dispersão do histórico **sem** mass apply, auto-submit nem SaaS obrigatório com os teus dados. |
+| **Como corro?** | `pnpm install` → `pnpm --filter @devflow/applyflow-core build` → `pnpm --filter applyflow dev` (ver secção «Correr localmente»). Extensão: `apps/applyflow-extension/README.md`. |
+| **Como valido?** | Comandos na secção **Validação**; gates em [`PUBLICATION_CHECKLIST.md`](../../docs/applyflow/PUBLICATION_CHECKLIST.md). |
+| **Privacidade?** | Histórico na extensão em `chrome.storage.local`; dashboard usa `localStorage` após import ou **demo fictícia**; **sem** API ApplyFlow a persistir o teu histórico no MVP. |
+| **Fora do escopo do MVP** | Backend obrigatório, sync cloud, login, billing, loja Chrome como *promessa* de produto — ver [`ROADMAP.md`](../../docs/applyflow/ROADMAP.md). |
+
 ---
 
 ## O que é o ApplyFlow?
@@ -35,14 +46,14 @@ O ApplyFlow prioriza **controlo**, **transparência** e **dados no dispositivo**
 |------|-----------------|
 | **Extensão** | Deteção do modal Easy Apply, sugestões alinhadas ao perfil (`@devflow/applyflow-core`), classificação de campos (`@devflow/applyflow-linkedin`), autofill com confirmações, histórico local, opções de perfil e **Preview (captura)** para screenshots sem PII. |
 | **Dashboard** | Import / drag-and-drop de JSON, validação com o core, **Carregar demo**, gráficos (Recharts), métricas, tabela filtrável. |
-| **Documentação** | Rota `/documentacao` indexa `docs/applyflow/` (arquitectura, ADR local-first, roadmap, checklists). |
+| **Documentação** | Rota `/documentacao` — índice com atalhos para Markdown em `docs/applyflow/` no GitHub (arquitectura, ADR, roadmap, checklists). |
 | **IA** | **Opt-in** na extensão: só com chave configurada pelo utilizador; não é requisito para o resto do fluxo. |
 
 ---
 
 ## Screenshots (conjunto oficial)
 
-Os ficheiros abaixo vivem em [`docs/applyflow/assets/`](../../docs/applyflow/assets/) — nomes canónicos para README, portefólio e posts. Índice e convenções: [`assets/README.md`](../../docs/applyflow/assets/README.md).
+Os ficheiros abaixo vivem em [`docs/applyflow/assets/`](../../docs/applyflow/assets/) — nomes canónicos para README, portefólio e posts. Índice, nomes exactos e regras de privacidade: [`assets/README.md`](../../docs/applyflow/assets/README.md). Para capturas e vídeo: [`SCREENSHOTS_CHECKLIST.md`](../../docs/applyflow/SCREENSHOTS_CHECKLIST.md) · [`DEMO_SCRIPT.md`](../../docs/applyflow/DEMO_SCRIPT.md).
 
 ### 01 — Hero (landing)
 
@@ -185,6 +196,10 @@ pnpm --filter applyflow-extension build
 | [`DESIGN_SYSTEM.md`](../../docs/applyflow/DESIGN_SYSTEM.md) | Tokens e UI |
 | [`ROADMAP.md`](../../docs/applyflow/ROADMAP.md) | Evolução; **fora de escopo**: auto-submit, mass apply agressivo |
 | [`PUBLICATION_CHECKLIST.md`](../../docs/applyflow/PUBLICATION_CHECKLIST.md) | Antes de tornar materiais públicos |
+| [`SCREENSHOTS_CHECKLIST.md`](../../docs/applyflow/SCREENSHOTS_CHECKLIST.md) | Conjunto oficial `01`–`06`, rotas, PII e browser limpo |
+| [`LINKEDIN_POST.md`](../../docs/applyflow/LINKEDIN_POST.md) | Copy de lançamento (LinkedIn + bloco técnico GitHub) |
+| [`ISSUE_28_CLOSE.md`](../../docs/applyflow/ISSUE_28_CLOSE.md) | Texto sugerido para fechar a issue #28 no GitHub |
+| [`DEMO_SCRIPT.md`](../../docs/applyflow/DEMO_SCRIPT.md) | Roteiro de vídeo 60–90 s (demo, import, preview, fecho) |
 
 ---
 

@@ -9,20 +9,20 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "ApplyFlow — Copiloto local-first para candidaturas",
+  title: "ApplyFlow — Copiloto local-first (DevFlow Labs)",
   description:
-    "Extensão Chrome e dashboard web para acompanhar candidaturas no LinkedIn: privado, sem backend, com IA opt-in.",
+    "Produto DevFlow Labs: extensão Chrome e dashboard Next.js para candidaturas no LinkedIn Easy Apply — local-first, sem backend ApplyFlow obrigatório, IA opt-in.",
   openGraph: {
-    title: "ApplyFlow",
+    title: "ApplyFlow — DevFlow Labs",
     description:
-      "Copiloto local-first e privacy-first para LinkedIn Easy Apply — métricas, histórico e autofill assistido sem enviar dados a um backend.",
+      "Copiloto local-first e privacy-first para LinkedIn Easy Apply — métricas, histórico e autofill assistido sem enviar dados a um backend ApplyFlow.",
     type: "website",
     locale: "pt_BR",
   },
   twitter: {
     card: "summary_large_image",
-    title: "ApplyFlow",
-    description: "Copiloto local-first para LinkedIn Easy Apply — sem backend obrigatório.",
+    title: "ApplyFlow — DevFlow Labs",
+    description: "Copiloto local-first para LinkedIn Easy Apply — sem backend ApplyFlow obrigatório.",
   },
 };
 
