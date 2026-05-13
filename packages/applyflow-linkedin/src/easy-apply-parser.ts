@@ -10,6 +10,8 @@ const LABEL_SELECTOR = [
   ".fb-dash-form-element__label",
   ".fb-dash-form-element__label-text",
   "[data-test-form-builder-modal-form-element] label",
+  "[data-test-form-builder-modal-form-element] .text-body-medium",
+  "[data-test-form-builder-modal-form-element] .text-body-small",
   /** Pergunta em span/div dentro do bloco de formulário */
   ".jobs-easy-apply-form-element .text-body-medium",
   ".jobs-easy-apply-form-element .text-body-small",
@@ -50,6 +52,11 @@ function defaultIsVisible(el: Element, modalRoot: HTMLElement): boolean {
   return r.width > 0 && r.height > 0;
 }
 
+/** Exportado para deteção do modal no content script (mesma semântica que o parser de campos). */
+export function isModalFieldElementVisible(el: Element, modalRoot: HTMLElement): boolean {
+  return defaultIsVisible(el, modalRoot);
+}
+
 function controlLabelFallback(ctrl: HTMLElement, modalRoot: HTMLElement): string | null {
   const win = getWindow(modalRoot);
   if (!win) return null;
@@ -83,11 +90,11 @@ function controlLabelFallback(ctrl: HTMLElement, modalRoot: HTMLElement): string
   }
 
   const wrap = ctrl.closest(
-    ".jobs-easy-apply-form-element, .fb-dash-form-element, [data-test-form-builder-modal-form-element]",
+    ".jobs-easy-apply-form-element, .fb-dash-form-element, [data-test-form-builder-modal-form-element], [data-test-single-line-text-form-component], [data-test-multiline-text-form-component]",
   );
   if (wrap) {
     const labelish = wrap.querySelector<HTMLElement>(
-      ".jobs-easy-apply-form-element__label, .jobs-easy-apply-form-element__label-text, .fb-dash-form-element__label, legend",
+      ".jobs-easy-apply-form-element__label, .jobs-easy-apply-form-element__label-text, .fb-dash-form-element__label, legend, .text-body-medium, .text-body-small",
     );
     if (labelish && defaultIsVisible(labelish, modalRoot)) {
       const t = normalizeLinkedInLabel(labelish.textContent ?? "");
@@ -98,8 +105,36 @@ function controlLabelFallback(ctrl: HTMLElement, modalRoot: HTMLElement): string
   return null;
 }
 
+function stripAccents(s: string): string {
+  return s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
+}
+
 function isNoiseLabel(raw: string): boolean {
-  return /^(voltar|back|cancel|discard|proximo|next|review|submit|enviar|discard application)$/i.test(raw);
+  const t = stripAccents(raw);
+  if (!t.length) return true;
+  const noise = new Set([
+    "voltar",
+    "back",
+    "cancel",
+    "discard",
+    "proximo",
+    "next",
+    "review",
+    "revisar",
+    "submit",
+    "enviar",
+    "continuar",
+    "continue",
+    "avancar",
+    "advance",
+    "save",
+    "discard application",
+    "salvar",
+    "fechar",
+    "close",
+  ]);
+  if (noise.has(t)) return true;
+  return /^(voltar|back|cancel|discard|proximo|next|review|revisar|submit|enviar|continuar|continue|avancar)$/i.test(raw.trim());
 }
 
 export type ParseEasyApplyModalOptions = {

@@ -5,11 +5,20 @@ import {
 } from "@devflow/applyflow-linkedin";
 import { invalidateStoredProfileCache } from "../storage/profile-storage.js";
 import { STORAGE_PROFILE_KEY } from "../storage/storage-types.js";
-import { applyFlowDebugLog } from "./applyflow-debug.js";
-import { findEasyApplyModal } from "./easy-apply-modal.js";
+import { applyFlowDebugEnabled, applyFlowDebugLog } from "./applyflow-debug.js";
+import {
+  debugScanEasyApplyModals,
+  findEasyApplyModal,
+  findEasyApplyModalWithMeta,
+} from "./easy-apply-modal.js";
 import { renderApplyFlowPanel } from "./inject-applyflow-panel.js";
 
-export { findEasyApplyModal };
+export { findEasyApplyModal, findEasyApplyModalWithMeta, debugScanEasyApplyModals };
+
+function truncateDebugLabel(label: string, max = 80): string {
+  const t = label.trim();
+  return t.length <= max ? t : `${t.slice(0, max)}…`;
+}
 
 function scrapeJobPageText(): string {
   const candidates = [
@@ -32,23 +41,44 @@ let lastSignature = "";
 
 export function startApplyFlowObserver(): void {
   const scan = async (): Promise<void> => {
-    const modal = findEasyApplyModal();
+    const meta = findEasyApplyModalWithMeta();
+    const modal = meta.modal;
     if (!modal) {
       lastSignature = "";
       await renderApplyFlowPanel({ phase: "waiting" });
-      applyFlowDebugLog("modal não encontrado");
+      if (applyFlowDebugEnabled()) {
+        applyFlowDebugLog("modal não encontrado", { via: meta.via, scan: debugScanEasyApplyModals() });
+      } else {
+        applyFlowDebugLog("modal não encontrado");
+      }
       return;
     }
 
-    applyFlowDebugLog("modal detectado");
+    if (applyFlowDebugEnabled()) {
+      applyFlowDebugLog("modal detectado", {
+        via: meta.via,
+        hintSelector: meta.hintSelector,
+        scan: debugScanEasyApplyModals(),
+      });
+    } else {
+      applyFlowDebugLog("modal detectado");
+    }
 
     const labels = parseEasyApplyModalFields(modal);
-    applyFlowDebugLog("campos parseados", { total: labels.length, labels });
+    if (applyFlowDebugEnabled()) {
+      applyFlowDebugLog("campos parseados", {
+        total: labels.length,
+        labelsPreview: labels.map(truncateDebugLabel),
+        fieldTypes: labels.map((label) => classifyLinkedInField(label).type),
+      });
+    } else {
+      applyFlowDebugLog("campos parseados", { total: labels.length });
+    }
 
     labels.forEach((label) => {
       const classification = classifyLinkedInField(label);
       if (classification.type === "unknown") {
-        applyFlowDebugLog("campo desconhecido", { label });
+        applyFlowDebugLog("campo desconhecido", { label: truncateDebugLabel(label) });
       }
     });
 

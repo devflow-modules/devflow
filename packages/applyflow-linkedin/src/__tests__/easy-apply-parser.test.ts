@@ -97,6 +97,16 @@ describe("parseEasyApplyModalFields + fixtures", () => {
     const labels = parseEasyApplyModalFields(modal);
     expect(labels).toContain("Carta de apresentação");
   });
+
+  it("Sprint 7.6: modal PT — Candidate-se na…, Perguntas adicionais, labels em .text-body-medium", () => {
+    const modal = mountDialogFromFixture("easy-apply-pt-brq-additional.html");
+    const labels = parseEasyApplyModalFields(modal);
+    expect(labels).toContain("Há quantos anos você já usa Amazon Web Services no trabalho?");
+    expect(labels).toContain("Há quantos anos você já usa React.js no trabalho?");
+    expect(labels.some((l) => l.includes("Module Federation"))).toBe(true);
+    expect(labels).toContain("Há quanto tempo atua com Angular 8+?");
+    expect(labels.some((l) => /^(Voltar|Revisar|Avançar)$/i.test(l))).toBe(false);
+  });
 });
 
 describe("classifyLinkedInField — variações Sprint 1.1", () => {

@@ -15,6 +15,14 @@ describe("classifyLinkedInField", () => {
     expect(r.skill).toBe("react");
   });
 
+  it("anos com Amazon Web Services por nome completo (PT)", () => {
+    const r = classifyLinkedInField(
+      "Há quantos anos você já usa Amazon Web Services no trabalho?",
+    );
+    expect(r.type).toBe("years_experience");
+    expect(r.skill).toBe("aws");
+  });
+
   it("nível de inglês (EN)", () => {
     const r = classifyLinkedInField("What is your level of proficiency in English?");
     expect(r.type).toBe("english");

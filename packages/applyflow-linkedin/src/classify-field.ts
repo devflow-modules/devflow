@@ -44,9 +44,9 @@ function matchSkill(normLabel: string): { skill: string } | null {
   const pairs: [RegExp, string][] = [
     [/next\.?\s*js|nextjs/, "nextjs"],
     [/node\.?\s*js|nodejs|\bnode\b/, "nodejs"],
-    [/\breact\b/, "react"],
+    [/amazon\s+web\s+services|\baws\b/, "aws"],
+    [/\breact(\.js)?\b/, "react"],
     [/typescript/, "typescript"],
-    [/\baws\b/, "aws"],
     [/\bjava\b/, "java"],
     [/\belixir\b/, "elixir"],
   ];
