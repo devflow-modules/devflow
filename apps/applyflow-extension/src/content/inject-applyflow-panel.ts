@@ -10,6 +10,7 @@ import { addAutofillAuditEntry } from "../storage/autofill-audit-storage.js";
 import { findApplicationByNormalizedJobUrl, normalizeStoredJobUrl, type ApplyFlowApplication } from "../storage/application-storage.js";
 import { getStoredCandidateProfile } from "../storage/profile-storage.js";
 import { getApplyFlowSettings, mergeAiSettings } from "../storage/applyflow-storage.js";
+import { getPanelUiPrefs, savePanelDock, type PanelDockSide } from "../storage/panel-ui-storage.js";
 import { App, type PanelField } from "../panel/App";
 import type { PanelAiBundle } from "../panel/panel-ai.js";
 import type { AutofillFieldTarget, AutofillResult } from "./autofill/autofill-types.js";
@@ -18,6 +19,8 @@ import { bumpAutofillSession, emptyAutofillSession, type AutofillSessionCounters
 import { applyFlowDebugLog } from "./applyflow-debug.js";
 import { computeJobSnapshotForHistory } from "./job-context-extractor.js";
 import { findEasyApplyModal } from "./easy-apply-modal.js";
+import { detectLinkedInMessagingChromeVisible } from "./linkedin-messaging-detect.js";
+import { applyPanelHostLayout } from "./panel-host-layout.js";
 
 export type PanelPayload =
   | { phase: "waiting" }
@@ -26,32 +29,21 @@ export type PanelPayload =
 
 let host: HTMLDivElement | null = null;
 let root: Root | null = null;
+let panelAppMount: HTMLDivElement | null = null;
 
 let lastPayload: PanelPayload = { phase: "waiting" };
 let auditJobSnap: { jobTitle?: string; companyName?: string } = {};
 let autofillSession: AutofillSessionCounters = emptyAutofillSession();
+
+/** Minimizar apenas nesta aba (memória; não persiste). */
+let panelMinimized = false;
 
 function ensureHost(): Root {
   if (!host) {
     host = document.createElement("div");
     host.id = "applyflow-panel-host";
     host.setAttribute("data-applyflow-extension", "true");
-    /** Painel isolado do layout do LinkedIn: dimensão fixa, stacking próprio, scroll no interior do Shadow DOM. */
-    Object.assign(host.style, {
-      position: "fixed",
-      top: "72px",
-      bottom: "16px",
-      right: "max(12px, env(safe-area-inset-right, 0px))",
-      width: "min(400px, calc(100vw - 24px))",
-      maxWidth: "420px",
-      minWidth: "280px",
-      boxSizing: "border-box",
-      zIndex: "2147483000",
-      pointerEvents: "auto",
-      isolation: "isolate",
-      contain: "layout paint",
-      overflow: "hidden",
-    });
+    host.style.display = "none";
     document.documentElement.appendChild(host);
 
     const shadow = host.attachShadow({ mode: "open" });
@@ -59,7 +51,7 @@ function ensureHost(): Root {
     styleEl.textContent = panelCss;
     shadow.appendChild(styleEl);
     const appMount = document.createElement("div");
-    appMount.className = "af-root af-panel-mount af-panel-outer";
+    appMount.className = "af-root af-panel-mount";
     Object.assign(appMount.style, {
       height: "100%",
       minHeight: "0",
@@ -68,6 +60,7 @@ function ensureHost(): Root {
       boxSizing: "border-box",
     });
     shadow.appendChild(appMount);
+    panelAppMount = appMount;
     root = createRoot(appMount);
   }
   if (!root) {
@@ -257,9 +250,48 @@ function handleClearSession(): void {
   void paintApplyFlowPanel();
 }
 
+async function handleTogglePanelDock(): Promise<void> {
+  const cur = await getPanelUiPrefs();
+  const next: PanelDockSide = cur.dock === "right" ? "left" : "right";
+  await savePanelDock(next);
+  await paintApplyFlowPanel();
+}
+
+function handlePanelMinimize(): void {
+  panelMinimized = true;
+  void paintApplyFlowPanel();
+}
+
+function handlePanelRestore(): void {
+  panelMinimized = false;
+  void paintApplyFlowPanel();
+}
+
 async function paintApplyFlowPanel(): Promise<void> {
   const r = ensureHost();
-  if (host) host.style.display = "block";
+  const panelPrefs = await getPanelUiPrefs();
+  if (host) {
+    applyPanelHostLayout(host, panelPrefs.dock, panelMinimized);
+    host.style.display = "block";
+  }
+  if (panelAppMount) {
+    if (panelMinimized) {
+      Object.assign(panelAppMount.style, {
+        height: "auto",
+        minHeight: "0",
+        display: "block",
+        boxSizing: "border-box",
+      });
+    } else {
+      Object.assign(panelAppMount.style, {
+        height: "100%",
+        minHeight: "0",
+        display: "flex",
+        flexDirection: "column",
+        boxSizing: "border-box",
+      });
+    }
+  }
   const profile = await resolveProfile();
 
   let existingApp: ApplyFlowApplication | null = null;
@@ -298,6 +330,7 @@ async function paintApplyFlowPanel(): Promise<void> {
   }
 
   const panelAi = await createPanelAiBundle(profile);
+  const messagingChromeVisible = detectLinkedInMessagingChromeVisible();
 
   const props = {
     ...mapPayloadToProps(lastPayload, profile),
@@ -309,6 +342,14 @@ async function paintApplyFlowPanel(): Promise<void> {
     buildApplicationsHistoryDraft,
     applicationsHistoryAllowSave: historyAllowSave,
     panelAi,
+    panelDock: panelPrefs.dock,
+    panelMinimized,
+    messagingChromeVisible,
+    onToggleDock: () => {
+      void handleTogglePanelDock();
+    },
+    onMinimizePanel: handlePanelMinimize,
+    onRestorePanel: handlePanelRestore,
   };
   r.render(createElement(App, props));
 }

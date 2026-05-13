@@ -10,6 +10,7 @@ import {
 } from "../content/autofill/autofill-types.js";
 import type { AutofillSessionCounters } from "../content/autofill/autofill-session.js";
 import type { ApplyFlowApplication, SaveApplicationInput } from "../storage/application-storage.js";
+import type { PanelDockSide } from "../storage/panel-ui-storage.js";
 import { FieldSuggestionCard } from "./components/FieldSuggestionCard";
 import { FitScoreCard } from "./components/FitScoreCard";
 import { JobIntelligenceCard } from "./components/JobIntelligenceCard";
@@ -72,16 +73,64 @@ export function App(props: {
   buildApplicationsHistoryDraft: () => SaveApplicationInput;
   applicationsHistoryAllowSave: boolean;
   panelAi?: PanelAiBundle;
+  panelDock: PanelDockSide;
+  panelMinimized: boolean;
+  messagingChromeVisible: boolean;
+  onToggleDock: () => void;
+  onMinimizePanel: () => void;
+  onRestorePanel: () => void;
 }) {
+  if (props.panelMinimized) {
+    return (
+      <div className="af-root af-panel-minimized-shell">
+        <button type="button" className="af-panel-minimized-tab" onClick={props.onRestorePanel} aria-label="Restaurar painel ApplyFlow">
+          ApplyFlow
+        </button>
+      </div>
+    );
+  }
+
   const { title, detail } = phaseCopy(props.panelPhase, props.fieldCount);
   const sess = props.autofillSession ?? { filled: 0, failed: 0, blocked: 0 };
+  const dockIsRight = props.panelDock === "right";
+  const moverTitle = dockIsRight
+    ? "Painel à direita. Clicar para fixar à esquerda (afasta do chat à direita)."
+    : "Painel à esquerda. Clicar para fixar à direita.";
 
   return (
     <div className="af-root af-panel-mount af-panel-outer">
-      <header className="af-panel-header-bar">
-        <p className="af-panel-brand">ApplyFlow</p>
-        <p className="af-panel-tagline">Copiloto local-first · assistido · sem auto-submit</p>
+      <header className="af-panel-header-bar af-panel-header-bar--toolbar">
+        <div className="af-panel-header-text">
+          <p className="af-panel-brand">ApplyFlow</p>
+          <p className="af-panel-tagline">Copiloto local-first · assistido · sem auto-submit</p>
+        </div>
+        <div className="af-panel-header-actions" role="toolbar" aria-label="Controlo do painel">
+          <button
+            type="button"
+            className="af-btn-secondary af-btn-panel-tool"
+            onClick={props.onToggleDock}
+            title={moverTitle}
+            aria-label={moverTitle}
+          >
+            Mover{dockIsRight ? " · dir." : " · esq."}
+          </button>
+          <button
+            type="button"
+            className="af-btn-secondary af-btn-panel-tool"
+            onClick={props.onMinimizePanel}
+            title="Minimizar o painel (só nesta aba)"
+            aria-label="Minimizar painel ApplyFlow"
+          >
+            Minimizar
+          </button>
+        </div>
       </header>
+
+      {props.messagingChromeVisible ? (
+        <p className="af-panel-chat-hint" role="status">
+          O chat do LinkedIn pode ficar atrás do ApplyFlow. Use «Mover» ou minimize o painel.
+        </p>
+      ) : null}
 
       {props.panelPhase !== "fields" ? (
         <div className="af-demo-strip af-demo-strip--safe" role="status">
