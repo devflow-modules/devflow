@@ -45,7 +45,7 @@ O ApplyFlow prioriza **controlo**, **transparência** e **dados no dispositivo**
 | Área | O que entrega |
 |------|-----------------|
 | **Extensão** | Deteção do modal Easy Apply, sugestões alinhadas ao perfil (`@devflow/applyflow-core`), classificação de campos (`@devflow/applyflow-linkedin`), autofill com confirmações, histórico local, opções de perfil e **Preview (captura)** para screenshots sem PII. |
-| **Dashboard** | Import / drag-and-drop de JSON, validação com o core, **Carregar demo**, gráficos (Recharts), métricas, tabela filtrável. |
+| **Dashboard** | Import / drag-and-drop de JSON, validação com o core, **Carregar demo**, gráficos (Recharts), métricas, tabela filtrável. **Interview Lab · exportação local:** export JSON, **Copy CareerBundle** (clipboard), **Open Interview Lab** (nova aba para `/import/applyflow?from=applyflow`). |
 | **Documentação** | Rota `/documentacao` — índice com atalhos para Markdown em `docs/applyflow/` no GitHub (arquitectura, ADR, roadmap, checklists). |
 | **IA** | **Opt-in** na extensão: só com chave configurada pelo utilizador; não é requisito para o resto do fluxo. |
 
@@ -106,6 +106,10 @@ packages/applyflow-linkedin →  domínio LinkedIn / campos
 ```
 
 Mais detalhe: [`docs/applyflow/ARCHITECTURE.md`](../../docs/applyflow/ARCHITECTURE.md).
+
+### Handoff com Interview Lab (clipboard)
+
+No **dashboard**, o cartão *Interview Lab · exportação local* inclui **Copy CareerBundle** (mesmo JSON que o export, para o clipboard), **Open Interview Lab** (nova aba em `/import/applyflow?from=applyflow`, sem dados na URL) e o **export .json** clássico. Opcional no build do ApplyFlow: `NEXT_PUBLIC_INTERVIEW_LAB_URL` (URL base do Interview Lab; default `http://localhost:3015`).
 
 ---
 

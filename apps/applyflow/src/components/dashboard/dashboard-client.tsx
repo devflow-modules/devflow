@@ -46,6 +46,11 @@ import {
   downloadCareerBundleJson,
   mapApplyFlowApplicationToCareer,
 } from "@/lib/career-bundle-export";
+import {
+  copyCareerBundleJsonToClipboard,
+  getInterviewLabImportHandoffUrl,
+  stringifyCareerBundleJson,
+} from "@/lib/interview-lab-handoff";
 import { cn } from "@/lib/cn";
 import { createCareerBundle, getInterviewReadyApplications } from "@devflow/career-core";
 
@@ -204,6 +209,28 @@ export function DashboardClient() {
       interviewReadyInHistory: interviewReady.length,
     };
   }, [applications]);
+
+  const [careerCopyFeedback, setCareerCopyFeedback] = useState<"idle" | "success" | "error">("idle");
+  const [careerCopyMessage, setCareerCopyMessage] = useState<string | null>(null);
+
+  const onCopyCareerBundleForInterviewLab = useCallback(async () => {
+    setCareerCopyFeedback("idle");
+    setCareerCopyMessage(null);
+    const bundle = buildInterviewLabCareerBundle(applications);
+    const json = stringifyCareerBundleJson(bundle);
+    const r = await copyCareerBundleJsonToClipboard(json);
+    if (r.ok) {
+      setCareerCopyFeedback("success");
+      window.setTimeout(() => setCareerCopyFeedback("idle"), 3200);
+    } else {
+      setCareerCopyFeedback("error");
+      setCareerCopyMessage(r.error);
+    }
+  }, [applications]);
+
+  const onOpenInterviewLabImport = useCallback(() => {
+    window.open(getInterviewLabImportHandoffUrl(), "_blank", "noopener,noreferrer");
+  }, []);
 
   const funnelData = useMemo(
     () =>
@@ -463,6 +490,12 @@ export function DashboardClient() {
                   prioridade do <code className="rounded bg-zinc-800/80 px-1 py-0.5 text-zinc-300">@devflow/career-core</code>{" "}
                   (entrevista → aplicadas/revisão → restantes).
                 </p>
+                <p className="text-[11px] leading-snug text-zinc-500">
+                  <strong className="font-medium text-zinc-400">Handoff rápido:</strong>{" "}
+                  <span className="text-zinc-500">Copy CareerBundle</span> copia o mesmo JSON para o clipboard;{" "}
+                  <span className="text-zinc-500">Open Interview Lab</span> abre o import no Interview Lab (nova aba). Sem dados na
+                  URL — continua local-first.
+                </p>
                 {careerExportPreview.interviewReadyInHistory === 0 ? (
                   <ApplyFlowCard variant="warning" padding="sm" className="text-xs text-amber-100/95">
                     <strong className="font-medium text-amber-100">Sem vagas em fase de entrevista</strong> neste
@@ -478,19 +511,40 @@ export function DashboardClient() {
                 )}
               </div>
               <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
-                <ApplyFlowButton
-                  type="button"
-                  variant="outlineBrand"
-                  size="md"
-                  className="font-medium"
-                  disabled={careerExportPreview.exportRowCount === 0}
-                  onClick={() => {
-                    const bundle = buildInterviewLabCareerBundle(applications);
-                    downloadCareerBundleJson(bundle);
-                  }}
-                >
-                  Exportar para Interview Lab
-                </ApplyFlowButton>
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+                  <ApplyFlowButton
+                    type="button"
+                    variant="outlineBrand"
+                    size="md"
+                    className="font-medium"
+                    disabled={careerExportPreview.exportRowCount === 0}
+                    onClick={() => void onCopyCareerBundleForInterviewLab()}
+                  >
+                    Copy CareerBundle
+                  </ApplyFlowButton>
+                  <ApplyFlowButton type="button" variant="outlineBrand" size="md" className="font-medium" onClick={onOpenInterviewLabImport}>
+                    Open Interview Lab
+                  </ApplyFlowButton>
+                  <ApplyFlowButton
+                    type="button"
+                    variant="outlineBrand"
+                    size="md"
+                    className="font-medium"
+                    disabled={careerExportPreview.exportRowCount === 0}
+                    onClick={() => {
+                      const bundle = buildInterviewLabCareerBundle(applications);
+                      downloadCareerBundleJson(bundle);
+                    }}
+                  >
+                    Exportar para Interview Lab
+                  </ApplyFlowButton>
+                </div>
+                {careerCopyFeedback === "success" ? (
+                  <p className="text-center text-[11px] font-medium text-emerald-300 sm:text-right">CareerBundle copied.</p>
+                ) : null}
+                {careerCopyFeedback === "error" && careerCopyMessage ? (
+                  <p className="max-w-xs text-center text-[11px] leading-snug text-amber-200/95 sm:text-right">{careerCopyMessage}</p>
+                ) : null}
                 <span className="text-center text-[10px] text-[color:var(--af-text-muted)] sm:text-right">
                   ~{careerExportPreview.exportRowCount} vaga(s) no JSON
                 </span>

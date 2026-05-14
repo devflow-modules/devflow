@@ -4,9 +4,15 @@ MVP **local-first** para treinar live coding em inglês: problemas guiados, edit
 
 ## ApplyFlow import (CareerBundle)
 
-1. No dashboard ApplyFlow (**Exportar para Interview Lab**) gera o JSON localmente.
-2. No Interview Lab, abre **`/import/applyflow`**, cola ou envia o ficheiro e usa **Parse field** / upload.
+**Fluxo rápido (clipboard + nova aba):** no dashboard ApplyFlow, **Copy CareerBundle** → **Open Interview Lab** (abre `/import/applyflow?from=applyflow`) → no Interview Lab, **Import from clipboard**. Nada vai na URL além do parâmetro `from=applyflow` (só UX).
+
+**Fluxo clássico:** **Exportar para Interview Lab** gera o `.json` localmente; no Interview Lab cola ou envia o ficheiro e usa **Parse field** / upload.
+
+1. ApplyFlow: copiar ou exportar o CareerBundle (JSON só no teu dispositivo).
+2. Interview Lab: **`/import/applyflow`** — **Import from clipboard**, ou cola + **Parse field**, ou upload.
 3. **Train for this role** abre a prática com o painel de preparação (`?careerPrep=`).
+
+Variável opcional no ApplyFlow (build): `NEXT_PUBLIC_INTERVIEW_LAB_URL` — URL base do Interview Lab quando não é `http://localhost:3015`.
 
 Detalhes e roteiro de demo: [`docs/career-suite/README.md`](../../docs/career-suite/README.md).
 

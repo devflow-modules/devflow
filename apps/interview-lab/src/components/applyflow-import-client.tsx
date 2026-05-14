@@ -10,6 +10,7 @@ import {
   type CareerApplication,
   type CareerBundle,
 } from "@devflow/career-core";
+import { parseCareerBundleFromClipboardText } from "@/lib/applyflow-clipboard-import";
 import { persistApplyFlowCareerBundle, clearApplyFlowCareerBundle } from "@/lib/applyflow-bundle-storage";
 import { appendCareerPrepRecord } from "@/lib/career-prep-storage";
 
@@ -35,8 +36,12 @@ function statusPillClass(status: CareerApplication["status"]): string {
 
 function ImportSteps() {
   const steps = [
-    { n: 1, title: "Export from ApplyFlow", body: "Open the ApplyFlow dashboard, load applications, then use Export to Interview Lab (local JSON download)." },
-    { n: 2, title: "Paste or upload CareerBundle JSON", body: "Drop the file here or paste JSON — validation runs only in this browser." },
+    {
+      n: 1,
+      title: "Export from ApplyFlow",
+      body: "Open the ApplyFlow dashboard, load applications, then Copy CareerBundle, Open Interview Lab, or download JSON — all local.",
+    },
+    { n: 2, title: "Paste, clipboard, or upload CareerBundle JSON", body: "Use Import from clipboard, drop a file, or paste and Parse field — validation runs only in this browser." },
     { n: 3, title: "Train for a selected role", body: "Pick a row and open practice with a deterministic prep panel (no AI, no backend)." },
   ];
   return (
@@ -83,11 +88,12 @@ function BundleSummaryCard({ bundle, interviewReadyCount }: { bundle: CareerBund
   );
 }
 
-export function ApplyflowImportClient() {
+export function ApplyflowImportClient({ fromApplyflowHandoff = false }: { fromApplyflowHandoff?: boolean }) {
   const router = useRouter();
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [bundle, setBundle] = useState<CareerBundle | null>(null);
+  const [clipboardBusy, setClipboardBusy] = useState(false);
 
   const applications = bundle?.applications ?? [];
 
@@ -96,17 +102,51 @@ export function ApplyflowImportClient() {
     [bundle],
   );
 
-  const applyParsed = useCallback((parsed: unknown) => {
+  const ingestValidatedBundle = useCallback((data: CareerBundle) => {
     setError(null);
-    const r = parseCareerBundle(parsed);
-    if (!r.ok) {
-      setError(r.error);
-      setBundle(null);
-      return;
-    }
-    persistApplyFlowCareerBundle(r.data);
-    setBundle(r.data);
+    persistApplyFlowCareerBundle(data);
+    setBundle(data);
+    setText(JSON.stringify(data, null, 2));
   }, []);
+
+  const applyParsed = useCallback(
+    (parsed: unknown) => {
+      setError(null);
+      const r = parseCareerBundle(parsed);
+      if (!r.ok) {
+        setError(r.error);
+        setBundle(null);
+        return;
+      }
+      ingestValidatedBundle(r.data);
+    },
+    [ingestValidatedBundle],
+  );
+
+  const importFromClipboard = useCallback(async () => {
+    setError(null);
+    setClipboardBusy(true);
+    try {
+      if (typeof navigator === "undefined" || !navigator.clipboard?.readText) {
+        setError("Clipboard read is not available in this browser. Paste JSON manually or use Upload JSON.");
+        setBundle(null);
+        return;
+      }
+      const raw = await navigator.clipboard.readText();
+      const r = parseCareerBundleFromClipboardText(raw);
+      if (!r.ok) {
+        setError(r.error);
+        setBundle(null);
+        return;
+      }
+      ingestValidatedBundle(r.data);
+    } catch {
+      setError("Could not read from clipboard. Paste JSON manually or use Upload JSON.");
+      setBundle(null);
+    } finally {
+      setClipboardBusy(false);
+    }
+  }, [ingestValidatedBundle]);
 
   const onFile = useCallback(
     (file: File | null) => {
@@ -165,10 +205,26 @@ export function ApplyflowImportClient() {
           Import a <strong className="text-neutral-200">CareerBundle</strong> JSON from the ApplyFlow dashboard. Data
           stays in your browser — same privacy model as both products.
         </p>
+        <p className="max-w-2xl text-xs leading-relaxed text-neutral-500">
+          No data is sent to DevFlow servers. The bundle stays in your browser or clipboard until you import it here.
+        </p>
         <Link href="/" className="inline-block text-sm font-medium text-emerald-400/90 hover:text-emerald-300">
           ← Home
         </Link>
       </header>
+
+      {fromApplyflowHandoff ? (
+        <div
+          role="status"
+          className="rounded-xl border border-emerald-500/35 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100/95"
+        >
+          <p className="font-medium text-emerald-200">ApplyFlow handoff detected.</p>
+          <p className="mt-1 text-xs leading-relaxed text-emerald-100/85">
+            Paste or import the CareerBundle copied from ApplyFlow (use <strong className="text-emerald-200">Import from clipboard</strong>{" "}
+            if you used Copy CareerBundle on the dashboard).
+          </p>
+        </div>
+      ) : null}
 
       <ImportSteps />
 
@@ -211,6 +267,14 @@ export function ApplyflowImportClient() {
           >
             Upload JSON
           </label>
+          <button
+            type="button"
+            disabled={clipboardBusy}
+            onClick={() => void importFromClipboard()}
+            className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-100 transition hover:border-emerald-400/60 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {clipboardBusy ? "Reading clipboard…" : "Import from clipboard"}
+          </button>
           <button
             type="button"
             onClick={() => onParsePasted()}
