@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
-import { parseEasyApplyModalFields } from "@devflow/applyflow-linkedin";
+import { detectApplyProviderFromModal, parseEasyApplyModalFields } from "@devflow/applyflow-linkedin";
 
 import { debugScanEasyApplyModals, findEasyApplyModalWithMeta } from "./easy-apply-modal.js";
 
@@ -76,6 +76,7 @@ describe("findEasyApplyModal (Sprint 7.6)", () => {
     expect(meta.modal).toBeTruthy();
     expect(meta.via).toBe("dialog_heuristic");
     const labels = parseEasyApplyModalFields(meta.modal!);
+    expect(detectApplyProviderFromModal(meta.modal!).provider).toBe("linkedin");
     expect(labels.length).toBeGreaterThanOrEqual(2);
     expect(labels).toContain("Há quantos anos você já usa Amazon Web Services no trabalho?");
     expect(labels).toContain("Há quantos anos você já usa React.js no trabalho?");

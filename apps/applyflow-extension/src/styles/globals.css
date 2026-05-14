@@ -366,6 +366,27 @@
   color: var(--af-text-muted);
 }
 
+.af-provider-flow {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--af-border) 72%, transparent);
+}
+
+.af-provider-flow-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--af-text);
+  line-height: 1.35;
+}
+
+.af-provider-flow-detail {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--af-text-muted);
+  line-height: 1.4;
+}
+
 .af-card-muted {
   opacity: 0.97;
 }

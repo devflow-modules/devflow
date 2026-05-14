@@ -1,7 +1,6 @@
 import type { CandidateProfile } from "@devflow/applyflow-core";
 import type { SuggestedAnswer } from "@devflow/applyflow-core";
-import type { FieldClassification } from "@devflow/applyflow-linkedin";
-import type { JobContext } from "@devflow/applyflow-linkedin";
+import type { ApplyProvider, FieldClassification, JobContext } from "@devflow/applyflow-linkedin";
 
 import {
   fieldIdFromApplyFlowLabel,
@@ -25,6 +24,31 @@ export type PanelField = {
   suggestion: SuggestedAnswer;
   classification: FieldClassification;
 };
+
+function applyProviderCopy(provider: ApplyProvider): { title: string; detail: string } {
+  switch (provider) {
+    case "linkedin":
+      return {
+        title: "Fluxo detectado: LinkedIn",
+        detail: "Suporte completo para Easy Apply.",
+      };
+    case "workable":
+      return {
+        title: "Fluxo detectado: Workable",
+        detail: "Suporte parcial. Use sugestões/cópia quando os campos forem compatíveis.",
+      };
+    case "lever":
+      return {
+        title: "Fluxo detectado: Lever",
+        detail: "Suporte parcial. Use sugestões/cópia quando os campos forem compatíveis.",
+      };
+    default:
+      return {
+        title: "Fluxo detectado: desconhecido",
+        detail: "Modo seguro: sugestões apenas quando houver confiança.",
+      };
+  }
+}
 
 function phaseCopy(phase: PanelPhaseView, fieldCount: number): { title: string; detail: string } {
   if (phase === "waiting") {
@@ -64,6 +88,7 @@ export function App(props: {
   jobText: string;
   jobContext: JobContext;
   profile: CandidateProfile;
+  applyProvider?: ApplyProvider;
   attemptAutofill?: (target: AutofillFieldTarget) => Promise<AutofillResult>;
   autofillSession?: AutofillSessionCounters;
   onClearAutofillSession?: () => void;
@@ -151,6 +176,12 @@ export function App(props: {
           <p className="af-muted" style={{ marginTop: "8px", marginBottom: 0 }}>
             Modo assistido apenas — nunca envia a candidatura automaticamente.
           </p>
+          {props.applyProvider != null ? (
+            <div className="af-provider-flow" role="note">
+              <p className="af-provider-flow-title">{applyProviderCopy(props.applyProvider).title}</p>
+              <p className="af-provider-flow-detail">{applyProviderCopy(props.applyProvider).detail}</p>
+            </div>
+          ) : null}
         </section>
 
         <section className="af-card af-card-muted">

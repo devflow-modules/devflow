@@ -1,5 +1,6 @@
 import {
   classifyLinkedInField,
+  detectApplyProviderFromModal,
   extractJobContextFromText,
   parseEasyApplyModalFields,
 } from "@devflow/applyflow-linkedin";
@@ -54,11 +55,15 @@ export function startApplyFlowObserver(): void {
       return;
     }
 
+    const providerDet = detectApplyProviderFromModal(modal);
+
     if (applyFlowDebugEnabled()) {
       applyFlowDebugLog("modal detectado", {
         via: meta.via,
         hintSelector: meta.hintSelector,
         scan: debugScanEasyApplyModals(),
+        provider: providerDet.provider,
+        providerReason: providerDet.reason,
       });
     } else {
       applyFlowDebugLog("modal detectado");
@@ -68,6 +73,10 @@ export function startApplyFlowObserver(): void {
     if (applyFlowDebugEnabled()) {
       applyFlowDebugLog("campos parseados", {
         total: labels.length,
+        provider: providerDet.provider,
+        providerReason: providerDet.reason,
+        via: meta.via,
+        hintSelector: meta.hintSelector,
         labelsPreview: labels.map(truncateDebugLabel),
         fieldTypes: labels.map((label) => classifyLinkedInField(label).type),
       });
@@ -82,10 +91,16 @@ export function startApplyFlowObserver(): void {
       }
     });
 
-    const sig = labels.join("|");
+    const sig = `${providerDet.provider}\u241e${labels.join("|")}`;
     if (!labels.length) {
       lastSignature = "";
-      await renderApplyFlowPanel({ phase: "modal_no_fields" });
+      await renderApplyFlowPanel({
+        phase: "modal_no_fields",
+        provider: providerDet.provider,
+        providerReason: providerDet.reason,
+        via: meta.via,
+        hintSelector: meta.hintSelector,
+      });
       applyFlowDebugLog("painel atualizado — sem campos neste step");
       return;
     }
@@ -100,6 +115,10 @@ export function startApplyFlowObserver(): void {
 
     await renderApplyFlowPanel({
       phase: "ready",
+      provider: providerDet.provider,
+      providerReason: providerDet.reason,
+      via: meta.via,
+      hintSelector: meta.hintSelector,
       labels,
       jobText,
       jobContext,

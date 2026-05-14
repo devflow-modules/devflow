@@ -1,6 +1,6 @@
 import type { AiTextTask, CandidateProfile } from "@devflow/applyflow-core";
 import { getSuggestedAnswer, gustavoProfile } from "@devflow/applyflow-core";
-import type { JobContext } from "@devflow/applyflow-linkedin";
+import type { ApplyProvider, JobContext } from "@devflow/applyflow-linkedin";
 import { classifyLinkedInField } from "@devflow/applyflow-linkedin";
 import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -19,13 +19,22 @@ import { bumpAutofillSession, emptyAutofillSession, type AutofillSessionCounters
 import { applyFlowDebugLog } from "./applyflow-debug.js";
 import { computeJobSnapshotForHistory } from "./job-context-extractor.js";
 import { findEasyApplyModal } from "./easy-apply-modal.js";
+import type { FindEasyApplyModalMeta } from "./easy-apply-modal.js";
 import { detectLinkedInMessagingChromeVisible } from "./linkedin-messaging-detect.js";
 import { applyPanelHostLayout } from "./panel-host-layout.js";
 
+type PanelDetectionMeta = {
+  provider: ApplyProvider;
+  /** Só para debug no detector — não exibir texto do modal no painel. */
+  providerReason: string;
+  via: FindEasyApplyModalMeta["via"];
+  hintSelector?: string;
+};
+
 export type PanelPayload =
   | { phase: "waiting" }
-  | { phase: "modal_no_fields" }
-  | { phase: "ready"; labels: string[]; jobText: string; jobContext: JobContext };
+  | ({ phase: "modal_no_fields" } & PanelDetectionMeta)
+  | ({ phase: "ready"; labels: string[]; jobText: string; jobContext: JobContext } & PanelDetectionMeta);
 
 let host: HTMLDivElement | null = null;
 let root: Root | null = null;
@@ -76,6 +85,7 @@ function mapPayloadToProps(payload: PanelPayload, profile: CandidateProfile): {
   jobText: string;
   jobContext: JobContext;
   profile: CandidateProfile;
+  applyProvider?: ApplyProvider;
 } {
   if (payload.phase === "waiting") {
     return {
@@ -95,6 +105,7 @@ function mapPayloadToProps(payload: PanelPayload, profile: CandidateProfile): {
       jobText: "",
       jobContext: {},
       profile,
+      applyProvider: payload.provider,
     };
   }
 
@@ -112,6 +123,7 @@ function mapPayloadToProps(payload: PanelPayload, profile: CandidateProfile): {
   applyFlowDebugLog("painel renderizado", {
     estado: "pronto",
     campos: fields.length,
+    provider: payload.provider,
   });
 
   return {
@@ -121,6 +133,7 @@ function mapPayloadToProps(payload: PanelPayload, profile: CandidateProfile): {
     jobText: payload.jobText,
     jobContext: payload.jobContext,
     profile,
+    applyProvider: payload.provider,
   };
 }
 
