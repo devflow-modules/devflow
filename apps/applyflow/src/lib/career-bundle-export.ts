@@ -58,6 +58,10 @@ export function mapApplyFlowApplicationToCareer(app: ApplyFlowApplication): Care
   };
 }
 
+export function buildSingleRowCareerBundleForInterviewLab(app: ApplyFlowApplication): CareerBundle {
+  return createCareerBundle([mapApplyFlowApplicationToCareer(app)]);
+}
+
 /** Preferência: entrevista; senão applied/saved; senão todas (ex.: só ignoradas no dataset). */
 export function selectApplicationsForInterviewLabBundle(mapped: CareerApplication[]): CareerApplication[] {
   const draft = createCareerBundle(mapped);

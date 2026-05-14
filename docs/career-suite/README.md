@@ -10,9 +10,9 @@ Full product story in this file; app READMEs stay short and link here.
 
 ## Product overview
 
-- **ApplyFlow** — LinkedIn Easy Apply copilot with a Next.js dashboard, Chrome MV3 extension, local history, funnel metrics, optional client-side AI. Users hand off a **`CareerBundle`** via **Prepare in Interview Lab** (`window.postMessage` + typed ACK, no bundle in the URL), **JSON download**, **Copy CareerBundle** (clipboard), or **Open Interview Lab** (opens import in a new tab).
-- **Interview Lab** — Next.js app for timed live-coding practice, English prompts, and reflection. Users import the bundle at **`/import/applyflow`** (automatic handoff when opened from ApplyFlow with `?handoff=postMessage`, **Import from clipboard**, paste + parse, or file upload), pick a role, and open practice with a **deterministic prep panel** (no LLM on this path).
-- **Handoff** — one JSON payload validated by **`@devflow/career-core`** (Zod), including **`devflow.careerBundle.v1`** / **`devflow.careerBundle.ack.v1`** envelopes for `postMessage`. Origins are allowlisted (`NEXT_PUBLIC_APPLYFLOW_URL` on Interview Lab when not using localhost defaults). Query params **`?from=applyflow`** / **`?handoff=postMessage`** are UX hints only — no CareerBundle in the URL.
+- **ApplyFlow** — LinkedIn Easy Apply copilot with a Next.js dashboard, Chrome MV3 extension, local history, funnel metrics, optional client-side AI. Users hand off a **`CareerBundle`** via **Prepare in Interview Lab** (import list: `window.postMessage` + typed ACK, no bundle in the URL), **Practice this role** on a table row (same postMessage channel with optional `intent: "practice"` + `selectedApplicationId`), **JSON download**, **Copy CareerBundle** (clipboard), or **Open Interview Lab** (opens import in a new tab).
+- **Interview Lab** — Next.js app for timed live-coding practice, English prompts, and reflection. Users import the bundle at **`/import/applyflow`** (automatic handoff when opened from ApplyFlow with `?handoff=postMessage`, optional **`?intent=practice`** for direct practice after import, **Import from clipboard**, paste + parse, or file upload), pick a role, or land straight on practice when the practice handoff succeeds. **Train for this role** (or auto-redirect) persists prep to **`localStorage`** and opens `/practice/...?careerPrep=`.
+- **Handoff** — one JSON payload validated by **`@devflow/career-core`** (Zod), including **`devflow.careerBundle.v1`** / **`devflow.careerBundle.ack.v1`** envelopes for `postMessage`. Optional fields **`intent`** (`"import"` \| `"practice"`, default `"import"`) and **`selectedApplicationId`**. Origins are allowlisted (`NEXT_PUBLIC_APPLYFLOW_URL` on Interview Lab when not using localhost defaults). Query params **`?from=applyflow`** / **`?handoff=postMessage`** / **`?intent=practice`** are UX hints only — no CareerBundle in the URL.
 
 ---
 
@@ -21,9 +21,9 @@ Full product story in this file; app READMEs stay short and link here.
 | Layer | Responsibility |
 |-------|----------------|
 | **`@devflow/career-core`** | `CareerApplication`, `CareerBundle`, `InterviewPreparation` (Zod); `parseCareerBundle`, `createCareerBundle`, `getInterviewReadyApplications`, `createInterviewPreparationFromApplication` (deterministic, no LLM); **ApplyFlow ↔ Interview Lab** `postMessage` envelopes (`devflow.careerBundle.v1` / `.ack.v1`) and origin helpers. |
-| **`apps/applyflow`** | Dashboard consumes `@devflow/applyflow-core` (unchanged). Maps rows → career schema, applies export selection rules, **Blob download** of JSON, **Prepare in Interview Lab** (`postMessage` + ACK / clipboard fallback), **Copy CareerBundle**, **Open Interview Lab**. |
+| **`apps/applyflow`** | Dashboard consumes `@devflow/applyflow-core` (unchanged). Maps rows → career schema, applies export selection rules, **Blob download** of JSON, **Prepare in Interview Lab** (import list: `postMessage` + ACK / clipboard fallback), **Practice this role** per row (single-row bundle + practice intent), **Copy CareerBundle**, **Open Interview Lab**. |
 | **`apps/applyflow-extension`** | Source of real application history (not part of the JSON handoff UI, but the upstream of dashboard imports). |
-| **`apps/interview-lab`** | `/import/applyflow` accepts **postMessage** handoff (allowlisted ApplyFlow origin), **Import from clipboard**, paste + **Parse field**, or upload; **Train for this role** persists prep to **`localStorage`** and opens `/practice/...?careerPrep=`. |
+| **`apps/interview-lab`** | `/import/applyflow` accepts **postMessage** handoff (allowlisted ApplyFlow origin), **Import from clipboard**, paste + **Parse field**, or upload; with **`intent=practice`** and a matching `selectedApplicationId`, auto-redirects to practice after persisting prep; otherwise **Train for this role** persists prep to **`localStorage`** and opens `/practice/...?careerPrep=`. |
 
 ```mermaid
 flowchart LR
@@ -50,7 +50,7 @@ flowchart LR
 - **Smaller surface** — no Career Suite backend; fewer moving parts for a portfolio narrative.
 - **Explicit trade-off** — sync is **explicit JSON** (file, clipboard, or `postMessage` between open tabs), not realtime cloud. Documented as a product choice, not a gap.
 - **Export / copy** — JSON built in the browser; no upload to DevFlow servers in this flow.
-- **Import** — parse and list client-side; **postMessage** (when opened from ApplyFlow with `?handoff=postMessage`), **clipboard**, or file; bundle optionally persisted in **`localStorage`** for the same browser profile.
+- **Import** — parse and list client-side; **postMessage** (when opened from ApplyFlow with `?handoff=postMessage`, optionally `?intent=practice` for direct practice), **clipboard**, or file; bundle optionally persisted in **`localStorage`** for the same browser profile.
 - **Preparation** — derived locally from role, skills, and optional job text; **no OpenAI** and no third-party APIs on this path.
 
 ---
@@ -69,7 +69,9 @@ Use a clean browser profile or incognito (avoid unrelated extensions on LinkedIn
 
    Open **`http://localhost:3010/dashboard`**, load **Carregar demo** (or import a real extension JSON).
 
-2. **Handoff (one click)** — In **Interview Lab · exportação local**, click **Prepare in Interview Lab**. Interview Lab opens with `?handoff=postMessage`, receives the bundle, validates it, and sends an ACK. If automatic delivery fails, ApplyFlow copies the JSON to the clipboard — use **Import from clipboard** in Interview Lab.
+2. **Handoff — import list (one click)** — In **Interview Lab · exportação local**, click **Prepare in Interview Lab**. Interview Lab opens with `?handoff=postMessage`, receives the bundle, validates it, and sends an ACK. If automatic delivery fails, ApplyFlow copies the JSON to the clipboard — use **Import from clipboard** in Interview Lab.
+
+   **Handoff — direct practice** — In the applications table, click **Practice this role** on a row. Interview Lab opens with `?intent=practice`, receives a single-row bundle, imports, and redirects to practice with `?careerPrep=` when the id matches.
 
    **Handoff (clipboard)** — **Copy CareerBundle**, then **Open Interview Lab**, then **Import from clipboard** (`?from=applyflow` is a UX hint only).
 
@@ -82,11 +84,11 @@ Use a clean browser profile or incognito (avoid unrelated extensions on LinkedIn
    pnpm --filter @devflow/app-interview-lab dev
    ```
 
-   Open **`http://localhost:3015/import/applyflow`** (or use **Prepare in Interview Lab** / **Open Interview Lab** from ApplyFlow). Use **Import from clipboard**, postMessage auto-import, or upload / paste JSON and **Parse field** after pasting.
+   Open **`http://localhost:3015/import/applyflow`** (or use **Prepare in Interview Lab**, **Practice this role**, or **Open Interview Lab** from ApplyFlow). Use **Import from clipboard**, postMessage auto-import, or upload / paste JSON and **Parse field** after pasting.
 
 4. **Review** — Check **Bundle summary** (source ApplyFlow, export date, totals).
 
-5. **Train** — **Train for this role** on a row → practice opens with **ApplyFlow · interview prep** and the five prep blocks.
+5. **Train / practice** — If you used **Prepare in Interview Lab**, use **Train for this role** on a row → practice opens with **ApplyFlow · interview prep** and the five prep blocks. If you used **Practice this role** from ApplyFlow, you should land on practice automatically when the handoff succeeds.
 
 **One-liner (LinkedIn / GitHub):** *Local-first Career Suite — ApplyFlow funnel to Interview Lab prep over a typed JSON bundle; no backend, no LLM on the path, browser-only handoff.*
 

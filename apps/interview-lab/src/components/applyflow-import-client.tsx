@@ -93,9 +93,12 @@ function BundleSummaryCard({ bundle, interviewReadyCount }: { bundle: CareerBund
 export function ApplyflowImportClient({
   fromApplyflowHandoff = false,
   expectPostMessageHandoff = false,
+  expectPracticeIntentFromUrl = false,
 }: {
   fromApplyflowHandoff?: boolean;
   expectPostMessageHandoff?: boolean;
+  /** URL `intent=practice` — copy while waiting for postMessage (no bundle in URL). */
+  expectPracticeIntentFromUrl?: boolean;
 }) {
   const router = useRouter();
   const [text, setText] = useState("");
@@ -153,18 +156,43 @@ export function ApplyflowImportClient({
         return;
       }
 
-      ingestValidatedBundle(evaled.bundle);
+      const { bundle, intent, selectedApplicationId } = evaled;
+
+      ingestValidatedBundle(bundle);
       setPostMessageReceived(true);
       try {
         window.opener?.postMessage(createCareerBundleHandshakeAck(true), ackTarget);
       } catch {
         /* ignore */
       }
+
+      if (intent === "practice" && selectedApplicationId) {
+        const found = bundle.applications.find((x) => x.id === selectedApplicationId);
+        if (!found) {
+          setError(
+            "Could not find the selected role in this bundle. The list below is already imported — use «Train for this role» on the row you want.",
+          );
+          return;
+        }
+        const preparation = createInterviewPreparationFromApplication(found);
+        const prepId = crypto.randomUUID();
+        appendCareerPrepRecord({
+          id: prepId,
+          applicationId: found.id,
+          company: found.company,
+          role: found.role,
+          status: found.status,
+          requiredSkills: found.requiredSkills,
+          preparation,
+          createdAt: new Date().toISOString(),
+        });
+        router.push(`/practice/${DEFAULT_PRACTICE_PROBLEM_ID}?careerPrep=${encodeURIComponent(prepId)}`);
+      }
     };
 
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [expectPostMessageHandoff, ingestValidatedBundle]);
+  }, [expectPostMessageHandoff, ingestValidatedBundle, router]);
 
   const importFromClipboard = useCallback(async () => {
     setError(null);
@@ -264,7 +292,11 @@ export function ApplyflowImportClient({
           {!postMessageReceived ? (
             <>
               <p className="font-medium text-emerald-200">ApplyFlow handoff detected.</p>
-              <p className="mt-1 text-xs leading-relaxed text-emerald-100/85">Waiting for CareerBundle...</p>
+              <p className="mt-1 text-xs leading-relaxed text-emerald-100/85">
+                {expectPracticeIntentFromUrl
+                  ? "Opening practice for selected role…"
+                  : "Waiting for CareerBundle…"}
+              </p>
             </>
           ) : (
             <p className="font-medium text-emerald-200">CareerBundle received from ApplyFlow.</p>

@@ -43,6 +43,7 @@ import {
 } from "@/lib/local-import-storage";
 import {
   buildInterviewLabCareerBundle,
+  buildSingleRowCareerBundleForInterviewLab,
   downloadCareerBundleJson,
   mapApplyFlowApplicationToCareer,
 } from "@/lib/career-bundle-export";
@@ -50,6 +51,7 @@ import { sendCareerBundleViaPostMessageWithRetry } from "@/lib/career-bundle-pos
 import {
   copyCareerBundleJsonToClipboard,
   getInterviewLabImportHandoffUrl,
+  getInterviewLabImportPostMessagePracticeHandoffUrl,
   stringifyCareerBundleJson,
 } from "@/lib/interview-lab-handoff";
 import { cn } from "@/lib/cn";
@@ -262,6 +264,46 @@ export function DashboardClient() {
       setPrepareHandoffMessage(null);
     }, 10000);
   }, [applications]);
+
+  const [practiceRowHandoffHint, setPracticeRowHandoffHint] = useState<"idle" | "ack" | "clipboard" | "error">("idle");
+  const [practiceRowHandoffMessage, setPracticeRowHandoffMessage] = useState<string | null>(null);
+  const [practiceHandoffBusy, setPracticeHandoffBusy] = useState(false);
+
+  const onPracticeThisRole = useCallback(async (app: ApplyFlowApplication) => {
+    setPracticeRowHandoffHint("idle");
+    setPracticeRowHandoffMessage(null);
+    setPracticeHandoffBusy(true);
+    const bundle = buildSingleRowCareerBundleForInterviewLab(app);
+    try {
+      const r = await sendCareerBundleViaPostMessageWithRetry({
+        bundle,
+        stringifyBundle: stringifyCareerBundleJson,
+        copyToClipboard: copyCareerBundleJsonToClipboard,
+        interviewLabUrl: getInterviewLabImportPostMessagePracticeHandoffUrl(),
+        handshake: { intent: "practice", selectedApplicationId: app.id },
+      });
+      if (r.kind === "ack") {
+        setPracticeRowHandoffHint("ack");
+        setPracticeRowHandoffMessage("Interview Lab opened for this role.");
+      } else if (r.kind === "fallback_clipboard_ok") {
+        setPracticeRowHandoffHint("clipboard");
+        setPracticeRowHandoffMessage(
+          "Automatic handoff failed. CareerBundle copied — use Import from clipboard on the Interview Lab tab.",
+        );
+      } else {
+        setPracticeRowHandoffHint("error");
+        setPracticeRowHandoffMessage(
+          `${r.error} Use Export JSON to download the CareerBundle, or Copy CareerBundle if clipboard works.`,
+        );
+      }
+    } finally {
+      setPracticeHandoffBusy(false);
+    }
+    window.setTimeout(() => {
+      setPracticeRowHandoffHint("idle");
+      setPracticeRowHandoffMessage(null);
+    }, 10000);
+  }, []);
 
   const funnelData = useMemo(
     () =>
@@ -523,8 +565,9 @@ export function DashboardClient() {
                 </p>
                 <p className="text-[11px] leading-snug text-zinc-500">
                   <strong className="font-medium text-zinc-400">Handoff rápido:</strong>{" "}
-                  <span className="text-zinc-500">Prepare in Interview Lab</span> abre o Interview Lab e envia o bundle por{" "}
-                  <code className="rounded bg-zinc-800/80 px-1 py-0.5 text-zinc-300">postMessage</code> (sem dados na URL).{" "}
+                  <span className="text-zinc-500">Prepare in Interview Lab</span> abre o Interview Lab na lista de importação e envia o bundle por{" "}
+                  <code className="rounded bg-zinc-800/80 px-1 py-0.5 text-zinc-300">postMessage</code> (sem dados na URL). Na tabela,{" "}
+                  <span className="text-zinc-500">Practice this role</span> envia uma linha e abre a prática directamente.{" "}
                   <span className="text-zinc-500">Copy CareerBundle</span> / <span className="text-zinc-500">Open Interview Lab</span>{" "}
                   / export JSON continuam como fallback.
                 </p>
@@ -854,7 +897,7 @@ export function DashboardClient() {
             ) : null}
 
             <div className="-mx-4 overflow-x-auto rounded-[var(--af-radius)] border border-[color:var(--af-border)] sm:mx-0">
-              <table className="w-full min-w-[920px] text-left text-sm">
+              <table className="w-full min-w-[1080px] text-left text-sm">
                 <thead className="border-b border-[color:var(--af-border)] bg-[color:var(--af-bg-soft)] text-[11px] uppercase tracking-wide text-[color:var(--af-text-muted)] sm:text-xs">
                   <tr>
                     <th className="whitespace-nowrap px-3 py-3.5">Data</th>
@@ -869,6 +912,7 @@ export function DashboardClient() {
                     <th className="px-3 py-3.5">Inglês</th>
                     <th className="px-3 py-3.5">Skills</th>
                     <th className="px-3 py-3.5">Notas</th>
+                    <th className="whitespace-nowrap px-3 py-3.5">Interview Lab</th>
                     <th className="px-3 py-3.5">Link</th>
                   </tr>
                 </thead>
@@ -926,6 +970,18 @@ export function DashboardClient() {
                       >
                         {a.notes ?? "—"}
                       </td>
+                      <td className="whitespace-nowrap px-3 py-3 align-top">
+                        <ApplyFlowButton
+                          type="button"
+                          variant="outlineBrand"
+                          size="sm"
+                          className="max-w-[140px] whitespace-normal text-center text-[11px] leading-tight sm:max-w-none"
+                          disabled={practiceHandoffBusy}
+                          onClick={() => void onPracticeThisRole(a)}
+                        >
+                          Practice this role
+                        </ApplyFlowButton>
+                      </td>
                       <td className="whitespace-nowrap px-3 py-3">
                         {a.jobUrl ? (
                           <a
@@ -945,6 +1001,15 @@ export function DashboardClient() {
                 </tbody>
               </table>
             </div>
+            {practiceRowHandoffHint === "ack" && practiceRowHandoffMessage ? (
+              <p className="mt-3 text-center text-[11px] font-medium text-emerald-300 sm:text-left">{practiceRowHandoffMessage}</p>
+            ) : null}
+            {practiceRowHandoffHint === "clipboard" && practiceRowHandoffMessage ? (
+              <p className="mt-3 max-w-xl text-center text-[11px] leading-snug text-amber-200/95 sm:text-left">{practiceRowHandoffMessage}</p>
+            ) : null}
+            {practiceRowHandoffHint === "error" && practiceRowHandoffMessage ? (
+              <p className="mt-3 max-w-xl text-center text-[11px] leading-snug text-red-200/95 sm:text-left">{practiceRowHandoffMessage}</p>
+            ) : null}
           </ApplyFlowSection>
         </>
       ) : null}

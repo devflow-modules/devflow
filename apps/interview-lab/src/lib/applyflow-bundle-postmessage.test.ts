@@ -1,4 +1,4 @@
-import { createCareerBundle } from "@devflow/career-core";
+import { createCareerBundle, createCareerBundleHandshakeMessage } from "@devflow/career-core";
 import { describe, expect, it } from "vitest";
 import { evaluateApplyflowBundlePostMessage } from "./applyflow-bundle-postmessage";
 
@@ -37,6 +37,22 @@ describe("evaluateApplyflowBundlePostMessage", () => {
     };
     const r = evaluateApplyflowBundlePostMessage({ origin: "http://localhost:3010", data: msg }, null);
     expect(r.action).toBe("accept");
-    if (r.action === "accept") expect(r.bundle.schemaVersion).toBe("1.0");
+    if (r.action === "accept") {
+      expect(r.bundle.schemaVersion).toBe("1.0");
+      expect(r.intent).toBe("import");
+    }
+  });
+
+  it("accepts practice intent with selectedApplicationId", () => {
+    const msg = createCareerBundleHandshakeMessage(bundle, {
+      intent: "practice",
+      selectedApplicationId: "row-1",
+    });
+    const r = evaluateApplyflowBundlePostMessage({ origin: "http://localhost:3010", data: msg }, null);
+    expect(r.action).toBe("accept");
+    if (r.action === "accept") {
+      expect(r.intent).toBe("practice");
+      expect(r.selectedApplicationId).toBe("row-1");
+    }
   });
 });

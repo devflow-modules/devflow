@@ -22,6 +22,7 @@ export type { ParseCareerBundleResult } from "./bundle-helpers.js";
 export {
   APPLYFLOW_POST_MESSAGE_SOURCE,
   buildAllowedApplyflowOriginsList,
+  careerBundleHandoffIntentSchema,
   createCareerBundleHandshakeAck,
   createCareerBundleHandshakeMessage,
   DEVFLOW_CAREER_BUNDLE_ACK_TYPE,
@@ -35,6 +36,9 @@ export {
 export type {
   CareerBundleHandshakeAck,
   CareerBundleHandshakeMessage,
+  CareerBundleHandoffIntent,
+  CreateCareerBundleHandshakeMessageOptions,
   ParseHandshakeAckResult,
   ParseHandshakeBundleMessageResult,
+  ParseHandshakeBundleMessageSuccess,
 } from "./bundle-postmessage.js";

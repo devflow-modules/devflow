@@ -19,6 +19,11 @@ export function getInterviewLabImportPostMessageHandoffUrl(): string {
   return `${getInterviewLabOrigin()}/import/applyflow?from=applyflow&handoff=postMessage`;
 }
 
+/** Same as {@link getInterviewLabImportPostMessageHandoffUrl} plus `intent=practice` for direct practice handoff. */
+export function getInterviewLabImportPostMessagePracticeHandoffUrl(): string {
+  return `${getInterviewLabOrigin()}/import/applyflow?from=applyflow&handoff=postMessage&intent=practice`;
+}
+
 /** Same JSON shape as file download (`JSON.stringify(bundle, null, 2)`). */
 export function stringifyCareerBundleJson(bundle: CareerBundle): string {
   return JSON.stringify(bundle, null, 2);

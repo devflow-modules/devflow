@@ -5,6 +5,7 @@ import {
   DEFAULT_INTERVIEW_LAB_ORIGIN,
   getInterviewLabImportHandoffUrl,
   getInterviewLabImportPostMessageHandoffUrl,
+  getInterviewLabImportPostMessagePracticeHandoffUrl,
   getInterviewLabOrigin,
   stringifyCareerBundleJson,
 } from "./interview-lab-handoff";
@@ -45,6 +46,20 @@ describe("getInterviewLabImportPostMessageHandoffUrl", () => {
     vi.stubEnv("NEXT_PUBLIC_INTERVIEW_LAB_URL", "");
     expect(getInterviewLabImportPostMessageHandoffUrl()).toContain("handoff=postMessage");
     expect(getInterviewLabImportPostMessageHandoffUrl()).toContain("from=applyflow");
+  });
+});
+
+describe("getInterviewLabImportPostMessagePracticeHandoffUrl", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("includes intent=practice and postMessage handoff", () => {
+    vi.stubEnv("NEXT_PUBLIC_INTERVIEW_LAB_URL", "");
+    const u = getInterviewLabImportPostMessagePracticeHandoffUrl();
+    expect(u).toContain("intent=practice");
+    expect(u).toContain("handoff=postMessage");
+    expect(u).toContain("from=applyflow");
   });
 });
 

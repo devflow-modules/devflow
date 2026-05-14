@@ -8,10 +8,15 @@ export const DEVFLOW_CAREER_BUNDLE_ACK_TYPE = "devflow.careerBundle.ack.v1" as c
 export const APPLYFLOW_POST_MESSAGE_SOURCE = "applyflow" as const;
 export const INTERVIEW_LAB_POST_MESSAGE_SOURCE = "interview-lab" as const;
 
+export const careerBundleHandoffIntentSchema = z.enum(["import", "practice"]);
+export type CareerBundleHandoffIntent = z.infer<typeof careerBundleHandoffIntentSchema>;
+
 const handshakeSchema = z.object({
   type: z.literal(DEVFLOW_CAREER_BUNDLE_MESSAGE_TYPE),
   source: z.literal(APPLYFLOW_POST_MESSAGE_SOURCE),
   payload: z.unknown(),
+  intent: careerBundleHandoffIntentSchema.optional(),
+  selectedApplicationId: z.string().min(1).optional(),
 });
 
 const ackSchema = z.object({
@@ -23,12 +28,27 @@ const ackSchema = z.object({
 export type CareerBundleHandshakeMessage = z.infer<typeof handshakeSchema>;
 export type CareerBundleHandshakeAck = z.infer<typeof ackSchema>;
 
-export function createCareerBundleHandshakeMessage(bundle: CareerBundle): CareerBundleHandshakeMessage {
-  return {
+export type CreateCareerBundleHandshakeMessageOptions = {
+  intent?: CareerBundleHandoffIntent;
+  selectedApplicationId?: string;
+};
+
+export function createCareerBundleHandshakeMessage(
+  bundle: CareerBundle,
+  opts?: CreateCareerBundleHandshakeMessageOptions,
+): CareerBundleHandshakeMessage {
+  const base: CareerBundleHandshakeMessage = {
     type: DEVFLOW_CAREER_BUNDLE_MESSAGE_TYPE,
     source: APPLYFLOW_POST_MESSAGE_SOURCE,
     payload: bundle,
   };
+  if (opts?.intent !== undefined) {
+    base.intent = opts.intent;
+  }
+  if (opts?.selectedApplicationId !== undefined && opts.selectedApplicationId.length > 0) {
+    base.selectedApplicationId = opts.selectedApplicationId;
+  }
+  return base;
 }
 
 export function createCareerBundleHandshakeAck(ok: boolean): CareerBundleHandshakeAck {
@@ -70,8 +90,15 @@ export function isAllowedApplyflowPostMessageOrigin(origin: string, configuredAp
   return allowed.includes(origin);
 }
 
+export type ParseHandshakeBundleMessageSuccess = {
+  bundle: CareerBundle;
+  /** Defaults to `"import"` when omitted (legacy messages). */
+  intent: CareerBundleHandoffIntent;
+  selectedApplicationId?: string;
+};
+
 export type ParseHandshakeBundleMessageResult =
-  | { ok: true; bundle: CareerBundle }
+  | ({ ok: true } & ParseHandshakeBundleMessageSuccess)
   | { ok: false; error: string; kind: "shape" | "bundle" };
 
 /** Validates handshake envelope + {@link parseCareerBundle} on payload. */
@@ -84,7 +111,13 @@ export function parseHandshakeCareerBundleMessage(data: unknown): ParseHandshake
   if (!r.ok) {
     return { ok: false, error: r.error, kind: "bundle" };
   }
-  return { ok: true, bundle: r.data };
+  const intent: CareerBundleHandoffIntent = env.data.intent ?? "import";
+  return {
+    ok: true,
+    bundle: r.data,
+    intent,
+    selectedApplicationId: env.data.selectedApplicationId,
+  };
 }
 
 export type ParseHandshakeAckResult = { ok: true; ack: CareerBundleHandshakeAck } | { ok: false };

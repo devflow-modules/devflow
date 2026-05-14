@@ -4,7 +4,9 @@ MVP **local-first** para treinar live coding em inglês: problemas guiados, edit
 
 ## ApplyFlow import (CareerBundle)
 
-**Um clique (recomendado):** no dashboard ApplyFlow, **Prepare in Interview Lab** abre `/import/applyflow?from=applyflow&handoff=postMessage` e envia o `CareerBundle` por `window.postMessage` (sem bundle na URL). O Interview Lab valida tipo, origem e payload (`@devflow/career-core`) e responde com ACK. Se o handoff automático falhar, o ApplyFlow tenta copiar o JSON para o clipboard como fallback.
+**Lista / importação (recomendado para várias vagas):** no dashboard ApplyFlow, **Prepare in Interview Lab** abre `/import/applyflow?from=applyflow&handoff=postMessage` e envia o `CareerBundle` por `window.postMessage` (sem bundle na URL; `intent` omitido = import). O Interview Lab valida tipo, origem e payload (`@devflow/career-core`) e responde com ACK. Se o handoff automático falhar, o ApplyFlow tenta copiar o JSON para o clipboard como fallback.
+
+**Prática directa (uma vaga):** na tabela do dashboard, **Practice this role** abre `/import/applyflow?from=applyflow&handoff=postMessage&intent=practice`, envia um bundle de **uma** linha com `intent: "practice"` e `selectedApplicationId`, e o Interview Lab importa, gera o prep e redirecciona para `/practice/most-frequent-category?careerPrep=…`. Se o id não existir no bundle, mostra a lista importada com mensagem amigável.
 
 **Fluxo clipboard + nova aba:** **Copy CareerBundle** → **Open Interview Lab** (`?from=applyflow`) → **Import from clipboard**.
 
@@ -62,7 +64,7 @@ pnpm --filter @devflow/app-interview-lab test
 | Rota | Descrição |
 |------|-----------|
 | `/` | Home com problemas por padrão + últimos treinos |
-| `/import/applyflow` | Importar `CareerBundle` exportado pelo ApplyFlow |
+| `/import/applyflow` | Importar `CareerBundle` do ApplyFlow (postMessage, clipboard, paste, ficheiro); `?intent=practice` com handoff postMessage abre prática directa |
 | `/briefing` | Interview Briefing Mode — preparação estruturada (local, sem IA externa) |
 | `/ai-review` | AI Answer Review — revisão escrita opt-in (mock local; OpenAI só com chave tua) |
 | `/practice/[problemId]` | Sala de prática (3 colunas em desktop); query `careerPrep` mostra painel ApplyFlow |

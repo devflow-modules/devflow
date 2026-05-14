@@ -3,12 +3,18 @@ import {
   normalizeWebOrigin,
   parseHandshakeCareerBundleMessage,
   type CareerBundle,
+  type CareerBundleHandoffIntent,
 } from "@devflow/career-core";
 
 export type EvaluateApplyflowBundlePostMessageResult =
   | { action: "ignore" }
   | { action: "invalid_bundle"; error: string }
-  | { action: "accept"; bundle: CareerBundle };
+  | {
+      action: "accept";
+      bundle: CareerBundle;
+      intent: CareerBundleHandoffIntent;
+      selectedApplicationId?: string;
+    };
 
 /**
  * Decides whether a window message is an ApplyFlow CareerBundle handshake and validates the payload.
@@ -28,7 +34,12 @@ export function evaluateApplyflowBundlePostMessage(
   if (!r.ok) {
     return { action: "invalid_bundle", error: r.error };
   }
-  return { action: "accept", bundle: r.bundle };
+  return {
+    action: "accept",
+    bundle: r.bundle,
+    intent: r.intent,
+    selectedApplicationId: r.selectedApplicationId,
+  };
 }
 
 export function getApplyflowAckTargetOrigin(): string {

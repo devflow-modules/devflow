@@ -60,6 +60,28 @@ describe("parseHandshakeCareerBundleMessage", () => {
     const r = parseHandshakeCareerBundleMessage(msg);
     expect(r.ok).toBe(true);
   });
+
+  it("defaults intent to import when omitted (legacy)", () => {
+    const bundle = createCareerBundle([]);
+    const msg = createCareerBundleHandshakeMessage(bundle);
+    const r = parseHandshakeCareerBundleMessage(msg);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.intent).toBe("import");
+  });
+
+  it("round-trips practice intent and selectedApplicationId", () => {
+    const bundle = createCareerBundle([]);
+    const msg = createCareerBundleHandshakeMessage(bundle, {
+      intent: "practice",
+      selectedApplicationId: "app-42",
+    });
+    const r = parseHandshakeCareerBundleMessage(msg);
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.intent).toBe("practice");
+      expect(r.selectedApplicationId).toBe("app-42");
+    }
+  });
 });
 
 describe("parseHandshakeCareerBundleAck", () => {

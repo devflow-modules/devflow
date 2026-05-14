@@ -3,6 +3,7 @@ import type { ApplyFlowApplication } from "@devflow/applyflow-core";
 import { parseCareerBundle } from "@devflow/career-core";
 import {
   buildInterviewLabCareerBundle,
+  buildSingleRowCareerBundleForInterviewLab,
   mapApplyFlowApplicationToCareer,
   selectApplicationsForInterviewLabBundle,
 } from "./career-bundle-export.js";
@@ -67,5 +68,19 @@ describe("buildInterviewLabCareerBundle", () => {
     const bundle = buildInterviewLabCareerBundle([af({ id: "z" })]);
     const r = parseCareerBundle(bundle);
     expect(r.ok).toBe(true);
+  });
+});
+
+describe("buildSingleRowCareerBundleForInterviewLab", () => {
+  it("contains only the selected application id", () => {
+    const app = af({ id: "only-one", jobTitle: "SRE" });
+    const bundle = buildSingleRowCareerBundleForInterviewLab(app);
+    const r = parseCareerBundle(bundle);
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.applications).toHaveLength(1);
+      expect(r.data.applications[0]!.id).toBe("only-one");
+      expect(r.data.applications[0]!.role).toContain("SRE");
+    }
   });
 });

@@ -1,4 +1,4 @@
-import type { CareerBundle } from "@devflow/career-core";
+import type { CareerBundle, CreateCareerBundleHandshakeMessageOptions } from "@devflow/career-core";
 import { createCareerBundleHandshakeMessage, parseHandshakeCareerBundleAck } from "@devflow/career-core";
 import { getInterviewLabImportPostMessageHandoffUrl, getInterviewLabOrigin } from "./interview-lab-handoff";
 
@@ -13,10 +13,13 @@ export async function sendCareerBundleViaPostMessageWithRetry(opts: {
   copyToClipboard: (json: string) => Promise<{ ok: true } | { ok: false; error: string }>;
   intervalMs?: number;
   totalWaitMs?: number;
+  /** Defaults to import handoff URL. */
+  interviewLabUrl?: string;
+  handshake?: CreateCareerBundleHandshakeMessageOptions;
 }): Promise<CareerPostMessageHandoffResult> {
   const targetOrigin = getInterviewLabOrigin();
-  const url = getInterviewLabImportPostMessageHandoffUrl();
-  const msg = createCareerBundleHandshakeMessage(opts.bundle);
+  const url = opts.interviewLabUrl ?? getInterviewLabImportPostMessageHandoffUrl();
+  const msg = createCareerBundleHandshakeMessage(opts.bundle, opts.handshake);
   const intervalMs = opts.intervalMs ?? 160;
   const totalWaitMs = opts.totalWaitMs ?? 8500;
 
