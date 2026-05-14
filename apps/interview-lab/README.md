@@ -8,7 +8,8 @@ MVP **local-first** para treinar live coding em inglês: problemas guiados, edit
 
 **Narrativa:** **Currículo (texto) → descrição da vaga → análise de match → gaps / keywords / sugestões → prática** com o mesmo painel de preparação que o fluxo ApplyFlow (`CareerPrep` em `localStorage`, depois `/practice/...?careerPrep=`).
 
-- **Heurística local e determinística** neste build — **não** é um ATS certificado; **sem** upload para servidores DevFlow e **sem** API externa obrigatória.
+- **Heurística local e determinística** neste build — **não** é um ATS certificado; **sem** upload para servidores DevFlow e **sem** API externa obrigatória na análise base.
+- **IA opcional (OpenAI):** depois da análise local, podes pedir **AI Resume Coaching** — só corre quando clicas em **Generate AI coaching**; usa a **mesma chave API** guardada no browser que a página **AI Answer Review** (opt-in, `localStorage`). Nada é enviado automaticamente.
 - **Demo rápida:** **Load sample analysis** (preenche CV + vaga genéricos) → **Analyze ATS match** → rever scores e secções → **Practice interview from this analysis** para abrir a simulação focada.
 
 ## ApplyFlow import (CareerBundle)
@@ -74,7 +75,7 @@ pnpm --filter @devflow/app-interview-lab test
 |------|-----------|
 | `/` | Home com problemas por padrão + últimos treinos |
 | `/import/applyflow` | Importar `CareerBundle` do ApplyFlow (postMessage, clipboard, paste, ficheiro); `?intent=practice` com handoff postMessage abre prática directa |
-| `/career/ats` | **Resume Match** — colar CV + vaga, análise estilo ATS (heurística local), **Load sample analysis** para demo; handoff **Practice interview from this analysis** → `?careerPrep=` |
+| `/career/ats` | **Resume Match** — análise local + opcional **AI Resume Coaching** (OpenAI só após clique, mesma chave que AI Answer Review); handoff **Practice interview from this analysis** → `?careerPrep=` |
 | `/briefing` | Interview Briefing Mode — preparação estruturada (local, sem IA externa) |
 | `/ai-review` | AI Answer Review — revisão escrita opt-in (mock local; OpenAI só com chave tua) |
 | `/practice/[problemId]` | Sala de prática (3 colunas em desktop); query `careerPrep` mostra painel de preparação (ApplyFlow ou ATS) |

@@ -5,6 +5,7 @@ import {
   parseReviewJsonResponse,
   runMockAnswerReview,
 } from "./ai-answer-review";
+import { postOpenAiChatJsonCompletion } from "./openai-chat-json";
 
 export type AiAnswerReviewProviderId = "mock" | "openai";
 
@@ -22,8 +23,6 @@ export function createMockAiAnswerReviewProvider(): AiAnswerReviewProvider {
   };
 }
 
-const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
-
 export function createOpenAiAnswerReviewProvider(apiKey: string): AiAnswerReviewProvider {
   const key = apiKey.trim();
   if (!key) {
@@ -32,39 +31,15 @@ export function createOpenAiAnswerReviewProvider(apiKey: string): AiAnswerReview
   return {
     id: "openai",
     async review(request) {
-      const body = {
+      const content = await postOpenAiChatJsonCompletion({
+        apiKey: key,
         model: "gpt-4o-mini",
         temperature: 0.3,
-        response_format: { type: "json_object" as const },
         messages: [
           { role: "system", content: buildReviewSystemPrompt() },
           { role: "user", content: buildReviewUserPrompt(request) },
         ],
-      };
-
-      const res = await fetch(OPENAI_URL, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${key}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
       });
-
-      const rawText = await res.text();
-      if (!res.ok) {
-        throw new Error(`OpenAI error ${res.status}: ${rawText.slice(0, 400)}`);
-      }
-
-      let content: string;
-      try {
-        const json = JSON.parse(rawText) as {
-          choices?: { message?: { content?: string } }[];
-        };
-        content = json.choices?.[0]?.message?.content ?? "";
-      } catch {
-        throw new Error("OpenAI response was not valid JSON");
-      }
 
       const parsed = parseReviewJsonResponse(content);
       if (!parsed.ok) {

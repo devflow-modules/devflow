@@ -10,6 +10,7 @@ import { sampleJobDescriptionText, sampleResumeText } from "@/lib/ats/atsSampleD
 import { buildCareerPrepRecordFromAtsAnalysis } from "@/lib/ats/atsPracticeAdapter";
 import { appendCareerPrepRecord } from "@/lib/career-prep-storage";
 import { practicePathWithCareerPrep } from "@/lib/default-practice-path";
+import { AiResumeCoachingPanel } from "@/components/ai-resume-coaching-panel";
 
 function ScoreCard({ label, value }: { label: string; value: number }) {
   const v = Math.max(0, Math.min(100, value));
@@ -278,6 +279,8 @@ export function AtsAnalyzerClient() {
           <Section title="7. Likely interview questions" subtitle="Derived from gaps and strengths — practice answers out loud.">
             <BulletList items={result.likelyInterviewQuestions} />
           </Section>
+
+          <AiResumeCoachingPanel resumeText={resume} jobDescriptionText={job} atsAnalysis={result} />
 
           <Section
             title="Turn this match into interview practice"
