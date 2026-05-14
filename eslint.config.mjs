@@ -7,6 +7,7 @@ const APP_NAMES = [
   "financeiro",
   "investigamais",
   "funklab",
+  "interview-lab",
   "whatsapp-platform",
   "ops",
   "applyflow-extension",
@@ -131,6 +132,8 @@ const eslintConfig = defineConfig([
       "**/*.{test,spec}.{ts,tsx}",
       /** Dashboard ApplyFlow: UI autónoma dark (sem df-* do portal). */
       "apps/applyflow/**",
+      /** Interview Lab: MVP dark local-first (tokens próprios). */
+      "apps/interview-lab/**",
     ],
     rules: {
       "no-restricted-syntax": [
