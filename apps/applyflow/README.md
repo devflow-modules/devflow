@@ -123,7 +123,7 @@ Leituras: [`ADR-LOCAL_FIRST_VS_SERVERLESS.md`](../../docs/applyflow/ADR-LOCAL_FI
 ## Stack técnica
 
 - **Next.js 16** · **React 19** · **TypeScript** estrito · **Tailwind CSS v4** · **Recharts**
-- **Workspace:** `pnpm` + `@devflow/applyflow-core` (é necessário **build do pacote** antes do `next build` do dashboard)
+- **Workspace:** `pnpm` + `@devflow/applyflow-core` + `@devflow/career-core` (build dos pacotes antes do `next build` do dashboard)
 
 ---
 
@@ -134,6 +134,7 @@ Na raiz do monorepo:
 ```bash
 pnpm install
 pnpm --filter @devflow/applyflow-core build
+pnpm --filter @devflow/career-core build
 pnpm --filter applyflow dev
 ```
 
@@ -143,6 +144,7 @@ Build e servidor de produção local:
 
 ```bash
 pnpm --filter @devflow/applyflow-core build
+pnpm --filter @devflow/career-core build
 pnpm --filter applyflow build
 pnpm --filter applyflow start
 ```
@@ -171,6 +173,7 @@ Fluxo típico com o dashboard: exportar JSON nas opções da extensão → **Imp
 
 ```bash
 pnpm --filter @devflow/applyflow-core build
+pnpm --filter @devflow/career-core build
 pnpm --filter applyflow lint
 pnpm --filter applyflow test
 pnpm --filter applyflow build
@@ -188,6 +191,14 @@ pnpm --filter applyflow-extension build
 
 ---
 
+## Interview Lab export (CareerBundle)
+
+Em **`/dashboard`**, com candidaturas carregadas, usa **Interview Lab · exportação local** → **Exportar para Interview Lab** para descarregar um JSON **`CareerBundle`** (`schemaVersion` **1.0**). Requer build de `@devflow/career-core` antes do `next build` / `next dev` do dashboard.
+
+Narrativa completa (fluxo, privacidade, demo script): [`docs/career-suite/README.md`](../../docs/career-suite/README.md).
+
+---
+
 ## Documentação relacionada
 
 | Documento | Conteúdo |
@@ -200,6 +211,7 @@ pnpm --filter applyflow-extension build
 | [`LINKEDIN_POST.md`](../../docs/applyflow/LINKEDIN_POST.md) | Copy de lançamento (LinkedIn + bloco técnico GitHub) |
 | [`ISSUE_28_CLOSE.md`](../../docs/applyflow/ISSUE_28_CLOSE.md) | Texto sugerido para fechar a issue #28 no GitHub |
 | [`DEMO_SCRIPT.md`](../../docs/applyflow/DEMO_SCRIPT.md) | Roteiro de vídeo 60–90 s (demo, import, preview, fecho) |
+| [`docs/career-suite/README.md`](../../docs/career-suite/README.md) | Ponte JSON ApplyFlow ↔ Interview Lab (local-first) |
 
 ---
 

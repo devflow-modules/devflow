@@ -145,6 +145,10 @@ Documentação: [`docs/crm/README.md`](docs/crm/README.md)
 | Documentação de produto | [`docs/applyflow/`](docs/applyflow/) |
 | Screenshots oficiais | [`docs/applyflow/assets/README.md`](docs/applyflow/assets/README.md) |
 
+### DevFlow Career Suite
+
+**ApplyFlow** organiza candidaturas e funil; **Interview Lab** (`apps/interview-lab`) usa esses dados para treino de entrevista técnica em inglês. A integração é **local-first**: exportação de um **`CareerBundle`** JSON (pacote `@devflow/career-core`) no dashboard ApplyFlow e importação no Interview Lab — sem backend partilhado entre os dois. Narrativa e demo: [`docs/career-suite/README.md`](docs/career-suite/README.md).
+
 ---
 
 ## Outros produtos no monorepo (não foco do lançamento público actual)
