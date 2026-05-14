@@ -10,6 +10,10 @@ MVP **local-first** para treinar live coding em inglês: problemas guiados, edit
 
 Detalhes e roteiro de demo: [`docs/career-suite/README.md`](../../docs/career-suite/README.md).
 
+## Interview Briefing Mode
+
+Rota **`/briefing`**: preparação final antes de entrevistas reais — formulário local, briefing **determinístico** (sem API externa, sem OpenAI), exportação Markdown, persistência em `localStorage`. **Não** é ferramenta de uso oculto: sem áudio, sem captura de ecrã, sem overlay invisível, sem assistência durante a entrevista.
+
 ## Como correr
 
 Na raiz do monorepo (com dependências já instaladas):
@@ -40,6 +44,7 @@ pnpm --filter @devflow/app-interview-lab test
 |------|-----------|
 | `/` | Home com problemas por padrão + últimos treinos |
 | `/import/applyflow` | Importar `CareerBundle` exportado pelo ApplyFlow |
+| `/briefing` | Interview Briefing Mode — preparação estruturada (local, sem IA externa) |
 | `/practice/[problemId]` | Sala de prática (3 colunas em desktop); query `careerPrep` mostra painel ApplyFlow |
 | `/session/[sessionId]` | Resumo após **Finish simulation** |
 

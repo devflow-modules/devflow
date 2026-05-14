@@ -39,6 +39,12 @@ export default function HomePage() {
         >
           Import from ApplyFlow
         </Link>
+        <Link
+          href="/briefing"
+          className="rounded-xl border border-neutral-600 bg-neutral-950/60 px-4 py-2 text-sm font-semibold text-neutral-100 transition hover:border-emerald-500/40"
+        >
+          Interview Briefing
+        </Link>
       </section>
 
       <section className="space-y-6">
