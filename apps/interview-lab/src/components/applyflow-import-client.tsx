@@ -15,6 +15,7 @@ import { evaluateApplyflowBundlePostMessage, getApplyflowAckTargetOrigin } from 
 import { parseCareerBundleFromClipboardText } from "@/lib/applyflow-clipboard-import";
 import { persistApplyFlowCareerBundle, clearApplyFlowCareerBundle } from "@/lib/applyflow-bundle-storage";
 import { appendCareerPrepRecord } from "@/lib/career-prep-storage";
+import { practicePathWithCareerPrep } from "@/lib/default-practice-path";
 
 const STATUS_LABEL: Record<CareerApplication["status"], string> = {
   saved: "Saved",
@@ -24,8 +25,6 @@ const STATUS_LABEL: Record<CareerApplication["status"], string> = {
   rejected: "Rejected",
   offer: "Offer",
 };
-
-const DEFAULT_PRACTICE_PROBLEM_ID = "most-frequent-category";
 
 function statusPillClass(status: CareerApplication["status"]): string {
   if (status === "interview_requested" || status === "interview_scheduled") {
@@ -186,7 +185,7 @@ export function ApplyflowImportClient({
           preparation,
           createdAt: new Date().toISOString(),
         });
-        router.push(`/practice/${DEFAULT_PRACTICE_PROBLEM_ID}?careerPrep=${encodeURIComponent(prepId)}`);
+        router.push(practicePathWithCareerPrep(prepId));
       }
     };
 
@@ -258,7 +257,7 @@ export function ApplyflowImportClient({
         preparation,
         createdAt: new Date().toISOString(),
       });
-      router.push(`/practice/${DEFAULT_PRACTICE_PROBLEM_ID}?careerPrep=${encodeURIComponent(id)}`);
+      router.push(practicePathWithCareerPrep(id));
     },
     [router],
   );

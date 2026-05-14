@@ -10,6 +10,8 @@ const careerPrepRecordSchema = z.object({
   requiredSkills: z.array(z.string()),
   preparation: interviewPreparationSchema,
   createdAt: z.string().min(1),
+  /** When set to `ats`, UI copy reflects resume–job analysis instead of ApplyFlow import. */
+  prepSource: z.enum(["applyflow", "ats"]).optional(),
 });
 
 export type CareerPrepRecord = z.infer<typeof careerPrepRecordSchema>;

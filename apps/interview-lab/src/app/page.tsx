@@ -30,7 +30,7 @@ export default function HomePage() {
         <div>
           <p className="text-sm font-medium text-white">DevFlow Career Suite</p>
           <p className="mt-1 text-xs text-neutral-500">
-            Import a <code className="text-neutral-400">CareerBundle</code> JSON from ApplyFlow (local-only).
+            ApplyFlow import, ATS-style resume ↔ job match, briefing, and answer review — all local in the browser.
           </p>
         </div>
         <Link
@@ -38,6 +38,12 @@ export default function HomePage() {
           className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-200 transition hover:border-emerald-400/60"
         >
           Import from ApplyFlow
+        </Link>
+        <Link
+          href="/career/ats"
+          className="rounded-xl border border-emerald-500/35 bg-neutral-950/80 px-4 py-2 text-sm font-semibold text-emerald-100 transition hover:border-emerald-500/50"
+        >
+          ATS-style resume match
         </Link>
         <Link
           href="/briefing"

@@ -33,4 +33,28 @@ describe("career-prep-storage", () => {
     expect(row!.preparation.applicationId).toBe("job-99");
     expect(row!.preparation.technicalQuestions.length).toBeGreaterThan(0);
   });
+
+  it("accepts optional prepSource ats", () => {
+    const preparation = createInterviewPreparationFromApplication({
+      id: "job-ats",
+      company: "Co",
+      role: "Dev",
+      source: "manual",
+      requiredSkills: ["Go"],
+      status: "applied",
+    });
+    appendCareerPrepRecord({
+      id: "prep-ats",
+      applicationId: "job-ats",
+      company: "Co",
+      role: "Dev",
+      status: "applied",
+      requiredSkills: ["Go"],
+      preparation,
+      createdAt: "2026-01-02T12:00:00.000Z",
+      prepSource: "ats",
+    });
+    const row = loadCareerPrepById("prep-ats");
+    expect(row?.prepSource).toBe("ats");
+  });
 });

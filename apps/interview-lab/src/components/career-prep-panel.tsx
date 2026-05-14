@@ -26,7 +26,7 @@ export function CareerPrepPanel({ record }: Props) {
     <div className="il-card border border-emerald-500/30 bg-gradient-to-b from-emerald-500/[0.07] to-neutral-950/40 p-4 sm:p-5">
       <header className="border-b border-neutral-800/80 pb-3">
         <p className="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-emerald-400/90">
-          ApplyFlow · interview prep
+          {record.prepSource === "ats" ? "ATS-style match · interview prep" : "ApplyFlow · interview prep"}
         </p>
         <h2 className="mt-2 break-words text-lg font-semibold leading-snug text-white sm:text-xl">{record.role}</h2>
         <p className="mt-1 text-sm text-neutral-400">

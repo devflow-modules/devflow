@@ -2,6 +2,8 @@
 
 MVP **local-first** para treinar live coding em inglês: problemas guiados, editor JavaScript, runner no browser, timer de 25 minutos, checklist de entrevista, speaking prompts, symbol pad e histórico em `localStorage`.
 
+**Ciclo Career Suite (tudo no browser):** **currículo + descrição da vaga → match ATS-style → prática de entrevista** (`/career/ats`, depois sala com `?careerPrep=`), em complemento ao import **ApplyFlow** em `/import/applyflow`.
+
 ## ApplyFlow import (CareerBundle)
 
 **Lista / importação (recomendado para várias vagas):** no dashboard ApplyFlow, **Prepare in Interview Lab** abre `/import/applyflow?from=applyflow&handoff=postMessage` e envia o `CareerBundle` por `window.postMessage` (sem bundle na URL; `intent` omitido = import). O Interview Lab valida tipo, origem e payload (`@devflow/career-core`) e responde com ACK. Se o handoff automático falhar, o ApplyFlow tenta copiar o JSON para o clipboard como fallback.
@@ -16,7 +18,7 @@ Variáveis opcionais (build): no ApplyFlow, `NEXT_PUBLIC_INTERVIEW_LAB_URL` (bas
 
 1. ApplyFlow: preparar / copiar / exportar o CareerBundle (JSON só no teu dispositivo).
 2. Interview Lab: **`/import/applyflow`** — import automático (postMessage), **Import from clipboard**, cola + **Parse field**, ou upload.
-3. **Train for this role** abre a prática com o painel de preparação (`?careerPrep=`).
+3. **Train for this role** abre a prática com o painel de preparação (`?careerPrep=`). **ATS-style resume match** em `/career/ats` gera análise local e pode abrir a mesma prática com contexto derivado do match.
 
 Detalhes e roteiro de demo: [`docs/career-suite/README.md`](../../docs/career-suite/README.md).
 
@@ -65,9 +67,10 @@ pnpm --filter @devflow/app-interview-lab test
 |------|-----------|
 | `/` | Home com problemas por padrão + últimos treinos |
 | `/import/applyflow` | Importar `CareerBundle` do ApplyFlow (postMessage, clipboard, paste, ficheiro); `?intent=practice` com handoff postMessage abre prática directa |
+| `/career/ats` | ATS-style resume ↔ job match (heurísticas locais); **Practice interview from this analysis** → mesma sala com prep panel (`?careerPrep=`) |
 | `/briefing` | Interview Briefing Mode — preparação estruturada (local, sem IA externa) |
 | `/ai-review` | AI Answer Review — revisão escrita opt-in (mock local; OpenAI só com chave tua) |
-| `/practice/[problemId]` | Sala de prática (3 colunas em desktop); query `careerPrep` mostra painel ApplyFlow |
+| `/practice/[problemId]` | Sala de prática (3 colunas em desktop); query `careerPrep` mostra painel de preparação (ApplyFlow ou ATS) |
 | `/session/[sessionId]` | Resumo após **Finish simulation** |
 
 ## Limitações
