@@ -26,37 +26,45 @@ export default function HomePage() {
 
       <RecentSessions />
 
-      <section className="flex flex-wrap items-center gap-4 rounded-xl border border-neutral-800 bg-neutral-950/50 px-4 py-4">
-        <div>
+      <section className="flex flex-col gap-4 rounded-xl border border-neutral-800 bg-neutral-950/50 px-4 py-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+        <div className="max-w-xl space-y-1">
           <p className="text-sm font-medium text-white">DevFlow Career Suite</p>
-          <p className="mt-1 text-xs text-neutral-500">
-            ApplyFlow import, ATS-style resume ↔ job match, briefing, and answer review — all local in the browser.
+          <p className="text-xs leading-relaxed text-neutral-500">
+            Import ApplyFlow bundles for role-specific prep, or run a <strong className="text-neutral-300">resume ↔ job</strong>{" "}
+            match and jump into the same interview practice flow — briefing and answer review stay one click away.
           </p>
         </div>
-        <Link
-          href="/import/applyflow"
-          className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-200 transition hover:border-emerald-400/60"
-        >
-          Import from ApplyFlow
-        </Link>
-        <Link
-          href="/career/ats"
-          className="rounded-xl border border-emerald-500/35 bg-neutral-950/80 px-4 py-2 text-sm font-semibold text-emerald-100 transition hover:border-emerald-500/50"
-        >
-          ATS-style resume match
-        </Link>
-        <Link
-          href="/briefing"
-          className="rounded-xl border border-neutral-600 bg-neutral-950/60 px-4 py-2 text-sm font-semibold text-neutral-100 transition hover:border-emerald-500/40"
-        >
-          Interview Briefing
-        </Link>
-        <Link
-          href="/ai-review"
-          className="rounded-xl border border-neutral-600 bg-neutral-950/60 px-4 py-2 text-sm font-semibold text-neutral-100 transition hover:border-emerald-500/40"
-        >
-          AI Answer Review
-        </Link>
+        <div className="flex flex-wrap items-start gap-3 sm:justify-end">
+          <Link
+            href="/import/applyflow"
+            className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-200 transition hover:border-emerald-400/60"
+          >
+            Import from ApplyFlow
+          </Link>
+          <div className="flex min-w-[180px] flex-col gap-1">
+            <Link
+              href="/career/ats"
+              className="rounded-xl border border-emerald-500/35 bg-neutral-950/80 px-4 py-2 text-center text-sm font-semibold text-emerald-100 transition hover:border-emerald-500/50 sm:text-left"
+            >
+              Resume Match
+            </Link>
+            <p className="text-[10px] leading-snug text-neutral-500 sm:max-w-[220px]">
+              Compare your resume with a job description and convert the analysis into interview practice.
+            </p>
+          </div>
+          <Link
+            href="/briefing"
+            className="rounded-xl border border-neutral-600 bg-neutral-950/60 px-4 py-2 text-sm font-semibold text-neutral-100 transition hover:border-emerald-500/40"
+          >
+            Interview Briefing
+          </Link>
+          <Link
+            href="/ai-review"
+            className="rounded-xl border border-neutral-600 bg-neutral-950/60 px-4 py-2 text-sm font-semibold text-neutral-100 transition hover:border-emerald-500/40"
+          >
+            AI Answer Review
+          </Link>
+        </div>
       </section>
 
       <section className="space-y-6">

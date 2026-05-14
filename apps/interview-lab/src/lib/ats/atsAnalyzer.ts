@@ -1,4 +1,4 @@
-import type { AtsAnalysisResult, AtsPracticeContext } from "./atsTypes";
+import type { AtsAnalysisResult, AtsPracticeContext, AtsRewrittenBullet } from "./atsTypes";
 import {
   extractCanonicalTechKeywordsFound,
   extractJobContentKeywords,

@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { useCallback, useMemo, useState } from "react";
 import { analyzeAtsMatch } from "@/lib/ats/atsAnalyzer";
 import type { AtsAnalysisResult } from "@/lib/ats/atsTypes";
+import { sampleJobDescriptionText, sampleResumeText } from "@/lib/ats/atsSampleData";
 import { buildCareerPrepRecordFromAtsAnalysis } from "@/lib/ats/atsPracticeAdapter";
 import { appendCareerPrepRecord } from "@/lib/career-prep-storage";
 import { practicePathWithCareerPrep } from "@/lib/default-practice-path";
@@ -98,23 +99,39 @@ export function AtsAnalyzerClient() {
     router.push(practicePathWithCareerPrep(id));
   }, [result, router]);
 
+  const onLoadSample = useCallback(() => {
+    setError(null);
+    setResult(null);
+    setResume(sampleResumeText);
+    setJob(sampleJobDescriptionText);
+  }, []);
+
   return (
     <div className="mx-auto flex min-h-screen max-w-4xl flex-col gap-10 px-4 py-10 md:max-w-5xl md:px-8">
-      <header className="space-y-3">
+      <header className="space-y-4">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-400/90">DevFlow Career Suite</p>
-        <h1 className="text-2xl font-semibold tracking-tight text-white md:text-3xl">ATS-style resume match</h1>
-        <p className="max-w-2xl text-sm leading-relaxed text-neutral-400">
-          Paste your resume and a job description. This page runs a <strong className="text-neutral-200">deterministic</strong>{" "}
-          keyword and seniority heuristic — <strong className="text-neutral-200">not</strong> a certified ATS parser and{" "}
-          <strong className="text-neutral-200">no</strong> external API. Use it to spot gaps, tune bullets, then jump into
-          interview practice with the same prep panel as ApplyFlow imports.
-        </p>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-semibold tracking-tight text-white md:text-3xl">Resume Match for Interview Preparation</h1>
+          <p className="max-w-2xl text-sm leading-relaxed text-neutral-300">
+            Paste your resume and a job description to get an <strong className="text-neutral-100">ATS-style</strong> match
+            analysis, identify gaps, and turn the result into targeted interview practice.
+          </p>
+          <p className="max-w-2xl rounded-lg border border-neutral-800/90 bg-neutral-950/70 px-3 py-2 text-xs leading-relaxed text-neutral-400">
+            <strong className="text-neutral-200">Local-first heuristic analysis.</strong> No upload, no external API, no
+            certified ATS claim — same inputs on this build always yield the same scores.
+          </p>
+        </div>
         <Link href="/" className="inline-block text-sm font-medium text-emerald-400/90 hover:text-emerald-300">
           ← Home
         </Link>
       </header>
 
       <section className="il-card space-y-5 p-5 md:p-6">
+        <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.06] px-3 py-2.5 text-xs leading-relaxed text-emerald-100/90">
+          <strong className="text-emerald-50">Try the demo in two clicks:</strong> load the sample resume and job posting,
+          then run <strong className="text-emerald-50">Analyze ATS match</strong> — ideal for README, GitHub, or LinkedIn
+          screen recordings.
+        </div>
         <div className="space-y-2">
           <label htmlFor="ats-resume" className="text-xs font-medium uppercase tracking-wide text-neutral-500">
             Resume text
@@ -125,7 +142,7 @@ export function AtsAnalyzerClient() {
             onChange={(e) => setResume(e.target.value)}
             rows={10}
             spellCheck={false}
-            placeholder="Paste the plain text of your resume…"
+            placeholder="Paste plain-text resume (or load the sample)…"
             className="w-full resize-y rounded-xl border border-neutral-800 bg-neutral-950 p-3 text-sm leading-relaxed text-neutral-100 outline-none ring-emerald-500/20 focus:ring-2"
           />
         </div>
@@ -139,7 +156,7 @@ export function AtsAnalyzerClient() {
             onChange={(e) => setJob(e.target.value)}
             rows={10}
             spellCheck={false}
-            placeholder="Paste the job posting (requirements + nice-to-haves)…"
+            placeholder="Paste the job posting — requirements and nice-to-haves (or load the sample)…"
             className="w-full resize-y rounded-xl border border-neutral-800 bg-neutral-950 p-3 text-sm leading-relaxed text-neutral-100 outline-none ring-emerald-500/20 focus:ring-2"
           />
         </div>
@@ -151,18 +168,33 @@ export function AtsAnalyzerClient() {
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
+            disabled={busy}
+            onClick={onLoadSample}
+            className="rounded-xl border border-neutral-600 bg-neutral-900/80 px-4 py-2.5 text-sm font-semibold text-neutral-100 transition hover:border-emerald-500/45 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Load sample analysis
+          </button>
+          <button
+            type="button"
             disabled={!canAnalyze || busy}
             onClick={onAnalyze}
             className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-900/20 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {busy ? "Analyzing…" : "Analyze ATS match"}
           </button>
-          <p className="text-xs text-neutral-500">All processing happens in this browser tab.</p>
+          <p className="text-xs text-neutral-500">All processing stays in this browser tab.</p>
         </div>
       </section>
 
       {result ? (
         <div className="flex flex-col gap-8">
+          <div className="il-card border border-neutral-800/80 bg-neutral-950/40 p-4 sm:p-5">
+            <p className="text-sm leading-relaxed text-neutral-200">
+              This result is designed to help you decide what to improve before applying and what to practice before
+              interviewing — not to predict a hiring outcome.
+            </p>
+          </div>
+
           <Section
             title="1. Match overview"
             subtitle="Weighted heuristic scores (0–100). Same inputs always yield the same output on this build."
@@ -248,10 +280,12 @@ export function AtsAnalyzerClient() {
           </Section>
 
           <Section
-            title="8. Practice handoff"
-            subtitle="Saves a prep record locally (same storage as ApplyFlow handoff) and opens the default practice room with the prep panel."
+            title="Turn this match into interview practice"
+            subtitle="Use the strengths, gaps, and likely questions from this analysis to start a focused interview simulation. Prep is saved locally (same CareerPrep storage as ApplyFlow) and opens the default practice room with the prep panel."
           >
-            <p className="text-sm text-neutral-300">{result.practiceContext.suggestedPitch}</p>
+            <p className="text-sm leading-relaxed text-neutral-300">
+              {result.practiceContext.suggestedPitch}
+            </p>
             <button
               type="button"
               onClick={onPractice}
