@@ -28,7 +28,7 @@ Variáveis opcionais (build): no ApplyFlow, `NEXT_PUBLIC_INTERVIEW_LAB_URL` (bas
 2. Interview Lab: **`/import/applyflow`** — import automático (postMessage), **Import from clipboard**, cola + **Parse field**, ou upload.
 3. **Train for this role** (import ApplyFlow) ou **Practice interview from this analysis** (**Resume Match** em `/career/ats`) abre a prática com o painel de preparação (`?careerPrep=`).
 
-Detalhes e roteiro de demo: [`docs/career-suite/README.md`](../../docs/career-suite/README.md).
+Detalhes, roteiro alargado e **case study de portefólio (Resume Match + IA opcional):** [`docs/career-suite/README.md`](../../docs/career-suite/README.md) · [`docs/career-suite/RESUME-MATCH-CASE-STUDY.md`](../../docs/career-suite/RESUME-MATCH-CASE-STUDY.md).
 
 ## Interview Briefing Mode
 

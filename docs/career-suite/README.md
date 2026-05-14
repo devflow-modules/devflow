@@ -4,7 +4,9 @@
 
 Portfolio case: **ApplyFlow** (capture and organise applications) + **Interview Lab** (role-specific technical interview practice in English), connected by a typed **`CareerBundle` JSON** — **local-first**, **privacy-first**, no shared backend between the two apps.
 
-Full product story in this file; app READMEs stay short and link here.
+**Deep dive (Resume Match + optional AI coaching):** [`RESUME-MATCH-CASE-STUDY.md`](./RESUME-MATCH-CASE-STUDY.md)
+
+Full Career Suite product overview remains in this file; app READMEs stay short and link here.
 
 ---
 
@@ -21,6 +23,7 @@ Full product story in this file; app READMEs stay short and link here.
 - **Optional AI (OpenAI):** After local results, **AI Resume Coaching** can generate summary, bullets, pitch, and talking points — **only** when the user clicks **Generate AI coaching**. Same browser-stored API key pattern as **`/ai-review`** (never sent to DevFlow servers; calls go directly to OpenAI from the browser when enabled).
 - **Practice connection:** **Practice interview from this analysis** builds an `InterviewPreparation`, stores a **`CareerPrep`** row in `localStorage` (same shape as ApplyFlow), and opens the default practice route with `?careerPrep=`.
 - **Demo loop (portfolio-friendly):** **Resume → Job description → Match analysis → Gap analysis → (optional AI coaching) → Interview practice** — use **Load sample analysis** + **Analyze ATS match** on a clean profile for a repeatable recording.
+- **Case study (portfolio narrative):** [`RESUME-MATCH-CASE-STUDY.md`](./RESUME-MATCH-CASE-STUDY.md) — problem, architecture, privacy, tests, limitations, roadmap, and a 60–90s demo script.
 
 ---
 
@@ -153,6 +156,7 @@ pnpm --filter @devflow/app-interview-lab test
 - `apps/applyflow/**` (export UI / `career-bundle-export` only when touching the bridge)
 - `apps/interview-lab/**` (import UI, prep panel, storage helpers)
 - `docs/career-suite/README.md`
+- `docs/career-suite/RESUME-MATCH-CASE-STUDY.md`
 - `README.md` / `docs/README.md` (short index links)
 - `pnpm-lock.yaml` (when dependencies change)
 
