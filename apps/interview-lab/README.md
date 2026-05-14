@@ -4,15 +4,17 @@ MVP **local-first** para treinar live coding em inglês: problemas guiados, edit
 
 ## ApplyFlow import (CareerBundle)
 
-**Fluxo rápido (clipboard + nova aba):** no dashboard ApplyFlow, **Copy CareerBundle** → **Open Interview Lab** (abre `/import/applyflow?from=applyflow`) → no Interview Lab, **Import from clipboard**. Nada vai na URL além do parâmetro `from=applyflow` (só UX).
+**Um clique (recomendado):** no dashboard ApplyFlow, **Prepare in Interview Lab** abre `/import/applyflow?from=applyflow&handoff=postMessage` e envia o `CareerBundle` por `window.postMessage` (sem bundle na URL). O Interview Lab valida tipo, origem e payload (`@devflow/career-core`) e responde com ACK. Se o handoff automático falhar, o ApplyFlow tenta copiar o JSON para o clipboard como fallback.
 
-**Fluxo clássico:** **Exportar para Interview Lab** gera o `.json` localmente; no Interview Lab cola ou envia o ficheiro e usa **Parse field** / upload.
+**Fluxo clipboard + nova aba:** **Copy CareerBundle** → **Open Interview Lab** (`?from=applyflow`) → **Import from clipboard**.
 
-1. ApplyFlow: copiar ou exportar o CareerBundle (JSON só no teu dispositivo).
-2. Interview Lab: **`/import/applyflow`** — **Import from clipboard**, ou cola + **Parse field**, ou upload.
+**Fluxo clássico:** **Exportar para Interview Lab** (`.json`) → colar/upload + **Parse field**.
+
+Variáveis opcionais (build): no ApplyFlow, `NEXT_PUBLIC_INTERVIEW_LAB_URL` (base do Interview Lab; default `http://localhost:3015`). No Interview Lab, `NEXT_PUBLIC_APPLYFLOW_URL` com o **mesmo origin** de onde abres o dashboard (default `http://localhost:3010`) — necessário para aceitar `postMessage` e para o ACK voltar ao opener em ambientes não locais.
+
+1. ApplyFlow: preparar / copiar / exportar o CareerBundle (JSON só no teu dispositivo).
+2. Interview Lab: **`/import/applyflow`** — import automático (postMessage), **Import from clipboard**, cola + **Parse field**, ou upload.
 3. **Train for this role** abre a prática com o painel de preparação (`?careerPrep=`).
-
-Variável opcional no ApplyFlow (build): `NEXT_PUBLIC_INTERVIEW_LAB_URL` — URL base do Interview Lab quando não é `http://localhost:3015`.
 
 Detalhes e roteiro de demo: [`docs/career-suite/README.md`](../../docs/career-suite/README.md).
 

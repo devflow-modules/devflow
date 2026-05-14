@@ -46,6 +46,7 @@ import {
   downloadCareerBundleJson,
   mapApplyFlowApplicationToCareer,
 } from "@/lib/career-bundle-export";
+import { sendCareerBundleViaPostMessageWithRetry } from "@/lib/career-bundle-postmessage-handoff";
 import {
   copyCareerBundleJsonToClipboard,
   getInterviewLabImportHandoffUrl,
@@ -231,6 +232,36 @@ export function DashboardClient() {
   const onOpenInterviewLabImport = useCallback(() => {
     window.open(getInterviewLabImportHandoffUrl(), "_blank", "noopener,noreferrer");
   }, []);
+
+  const [prepareHandoffHint, setPrepareHandoffHint] = useState<"idle" | "ack" | "clipboard" | "error">("idle");
+  const [prepareHandoffMessage, setPrepareHandoffMessage] = useState<string | null>(null);
+
+  const onPrepareInInterviewLab = useCallback(async () => {
+    setPrepareHandoffHint("idle");
+    setPrepareHandoffMessage(null);
+    const bundle = buildInterviewLabCareerBundle(applications);
+    const r = await sendCareerBundleViaPostMessageWithRetry({
+      bundle,
+      stringifyBundle: stringifyCareerBundleJson,
+      copyToClipboard: copyCareerBundleJsonToClipboard,
+    });
+    if (r.kind === "ack") {
+      setPrepareHandoffHint("ack");
+      setPrepareHandoffMessage("CareerBundle sent to Interview Lab.");
+    } else if (r.kind === "fallback_clipboard_ok") {
+      setPrepareHandoffHint("clipboard");
+      setPrepareHandoffMessage("Automatic handoff failed. CareerBundle copied — use Import from clipboard.");
+    } else {
+      setPrepareHandoffHint("error");
+      setPrepareHandoffMessage(
+        `${r.error} Use Export JSON to download the CareerBundle, or Copy CareerBundle if clipboard works.`,
+      );
+    }
+    window.setTimeout(() => {
+      setPrepareHandoffHint("idle");
+      setPrepareHandoffMessage(null);
+    }, 10000);
+  }, [applications]);
 
   const funnelData = useMemo(
     () =>
@@ -492,9 +523,10 @@ export function DashboardClient() {
                 </p>
                 <p className="text-[11px] leading-snug text-zinc-500">
                   <strong className="font-medium text-zinc-400">Handoff rápido:</strong>{" "}
-                  <span className="text-zinc-500">Copy CareerBundle</span> copia o mesmo JSON para o clipboard;{" "}
-                  <span className="text-zinc-500">Open Interview Lab</span> abre o import no Interview Lab (nova aba). Sem dados na
-                  URL — continua local-first.
+                  <span className="text-zinc-500">Prepare in Interview Lab</span> abre o Interview Lab e envia o bundle por{" "}
+                  <code className="rounded bg-zinc-800/80 px-1 py-0.5 text-zinc-300">postMessage</code> (sem dados na URL).{" "}
+                  <span className="text-zinc-500">Copy CareerBundle</span> / <span className="text-zinc-500">Open Interview Lab</span>{" "}
+                  / export JSON continuam como fallback.
                 </p>
                 {careerExportPreview.interviewReadyInHistory === 0 ? (
                   <ApplyFlowCard variant="warning" padding="sm" className="text-xs text-amber-100/95">
@@ -511,6 +543,16 @@ export function DashboardClient() {
                 )}
               </div>
               <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
+                <ApplyFlowButton
+                  type="button"
+                  variant="primary"
+                  size="md"
+                  className="w-full font-semibold sm:w-auto"
+                  disabled={careerExportPreview.exportRowCount === 0}
+                  onClick={() => void onPrepareInInterviewLab()}
+                >
+                  Prepare in Interview Lab
+                </ApplyFlowButton>
                 <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
                   <ApplyFlowButton
                     type="button"
@@ -539,6 +581,15 @@ export function DashboardClient() {
                     Exportar para Interview Lab
                   </ApplyFlowButton>
                 </div>
+                {prepareHandoffHint === "ack" && prepareHandoffMessage ? (
+                  <p className="text-center text-[11px] font-medium text-emerald-300 sm:text-right">{prepareHandoffMessage}</p>
+                ) : null}
+                {prepareHandoffHint === "clipboard" && prepareHandoffMessage ? (
+                  <p className="max-w-xs text-center text-[11px] leading-snug text-amber-200/95 sm:text-right">{prepareHandoffMessage}</p>
+                ) : null}
+                {prepareHandoffHint === "error" && prepareHandoffMessage ? (
+                  <p className="max-w-xs text-center text-[11px] leading-snug text-red-200/95 sm:text-right">{prepareHandoffMessage}</p>
+                ) : null}
                 {careerCopyFeedback === "success" ? (
                   <p className="text-center text-[11px] font-medium text-emerald-300 sm:text-right">CareerBundle copied.</p>
                 ) : null}

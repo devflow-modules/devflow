@@ -4,6 +4,7 @@ import {
   copyCareerBundleJsonToClipboard,
   DEFAULT_INTERVIEW_LAB_ORIGIN,
   getInterviewLabImportHandoffUrl,
+  getInterviewLabImportPostMessageHandoffUrl,
   getInterviewLabOrigin,
   stringifyCareerBundleJson,
 } from "./interview-lab-handoff";
@@ -32,6 +33,18 @@ describe("getInterviewLabImportHandoffUrl", () => {
   it("builds import path with from=applyflow", () => {
     vi.stubEnv("NEXT_PUBLIC_INTERVIEW_LAB_URL", "");
     expect(getInterviewLabImportHandoffUrl()).toBe(`${DEFAULT_INTERVIEW_LAB_ORIGIN}/import/applyflow?from=applyflow`);
+  });
+});
+
+describe("getInterviewLabImportPostMessageHandoffUrl", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("includes handoff=postMessage", () => {
+    vi.stubEnv("NEXT_PUBLIC_INTERVIEW_LAB_URL", "");
+    expect(getInterviewLabImportPostMessageHandoffUrl()).toContain("handoff=postMessage");
+    expect(getInterviewLabImportPostMessageHandoffUrl()).toContain("from=applyflow");
   });
 });
 

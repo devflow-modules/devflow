@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  createCareerBundleHandshakeAck,
   createInterviewPreparationFromApplication,
   getInterviewReadyApplications,
   parseCareerBundle,
   type CareerApplication,
   type CareerBundle,
 } from "@devflow/career-core";
+import { evaluateApplyflowBundlePostMessage, getApplyflowAckTargetOrigin } from "@/lib/applyflow-bundle-postmessage";
 import { parseCareerBundleFromClipboardText } from "@/lib/applyflow-clipboard-import";
 import { persistApplyFlowCareerBundle, clearApplyFlowCareerBundle } from "@/lib/applyflow-bundle-storage";
 import { appendCareerPrepRecord } from "@/lib/career-prep-storage";
@@ -39,7 +41,7 @@ function ImportSteps() {
     {
       n: 1,
       title: "Export from ApplyFlow",
-      body: "Open the ApplyFlow dashboard, load applications, then Copy CareerBundle, Open Interview Lab, or download JSON — all local.",
+      body: "Open the ApplyFlow dashboard, load applications, then Prepare in Interview Lab (one click), Copy CareerBundle, Open Interview Lab, or download JSON — all local.",
     },
     { n: 2, title: "Paste, clipboard, or upload CareerBundle JSON", body: "Use Import from clipboard, drop a file, or paste and Parse field — validation runs only in this browser." },
     { n: 3, title: "Train for a selected role", body: "Pick a row and open practice with a deterministic prep panel (no AI, no backend)." },
@@ -88,12 +90,19 @@ function BundleSummaryCard({ bundle, interviewReadyCount }: { bundle: CareerBund
   );
 }
 
-export function ApplyflowImportClient({ fromApplyflowHandoff = false }: { fromApplyflowHandoff?: boolean }) {
+export function ApplyflowImportClient({
+  fromApplyflowHandoff = false,
+  expectPostMessageHandoff = false,
+}: {
+  fromApplyflowHandoff?: boolean;
+  expectPostMessageHandoff?: boolean;
+}) {
   const router = useRouter();
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [bundle, setBundle] = useState<CareerBundle | null>(null);
   const [clipboardBusy, setClipboardBusy] = useState(false);
+  const [postMessageReceived, setPostMessageReceived] = useState(false);
 
   const applications = bundle?.applications ?? [];
 
@@ -122,6 +131,40 @@ export function ApplyflowImportClient({ fromApplyflowHandoff = false }: { fromAp
     },
     [ingestValidatedBundle],
   );
+
+  useEffect(() => {
+    if (!expectPostMessageHandoff) return;
+    const configured = process.env.NEXT_PUBLIC_APPLYFLOW_URL ?? null;
+
+    const onMessage = (ev: MessageEvent) => {
+      const evaled = evaluateApplyflowBundlePostMessage(ev, configured);
+      if (evaled.action === "ignore") return;
+
+      const ackTarget = getApplyflowAckTargetOrigin();
+
+      if (evaled.action === "invalid_bundle") {
+        setError(evaled.error);
+        setBundle(null);
+        try {
+          window.opener?.postMessage(createCareerBundleHandshakeAck(false), ackTarget);
+        } catch {
+          /* ignore */
+        }
+        return;
+      }
+
+      ingestValidatedBundle(evaled.bundle);
+      setPostMessageReceived(true);
+      try {
+        window.opener?.postMessage(createCareerBundleHandshakeAck(true), ackTarget);
+      } catch {
+        /* ignore */
+      }
+    };
+
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [expectPostMessageHandoff, ingestValidatedBundle]);
 
   const importFromClipboard = useCallback(async () => {
     setError(null);
@@ -192,7 +235,7 @@ export function ApplyflowImportClient({ fromApplyflowHandoff = false }: { fromAp
     [router],
   );
 
-  const isEmptyStart = !bundle && !error && !text.trim();
+  const isEmptyStart = !bundle && !error && !text.trim() && !expectPostMessageHandoff;
   const hasValidBundle = Boolean(bundle);
   const hasRoles = applications.length > 0;
 
@@ -213,7 +256,21 @@ export function ApplyflowImportClient({ fromApplyflowHandoff = false }: { fromAp
         </Link>
       </header>
 
-      {fromApplyflowHandoff ? (
+      {expectPostMessageHandoff ? (
+        <div
+          role="status"
+          className="rounded-xl border border-emerald-500/35 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100/95"
+        >
+          {!postMessageReceived ? (
+            <>
+              <p className="font-medium text-emerald-200">ApplyFlow handoff detected.</p>
+              <p className="mt-1 text-xs leading-relaxed text-emerald-100/85">Waiting for CareerBundle...</p>
+            </>
+          ) : (
+            <p className="font-medium text-emerald-200">CareerBundle received from ApplyFlow.</p>
+          )}
+        </div>
+      ) : fromApplyflowHandoff ? (
         <div
           role="status"
           className="rounded-xl border border-emerald-500/35 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100/95"
@@ -290,6 +347,7 @@ export function ApplyflowImportClient({ fromApplyflowHandoff = false }: { fromAp
                 setBundle(null);
                 setText("");
                 setError(null);
+                setPostMessageReceived(false);
               }}
               className="rounded-xl border border-red-500/40 px-4 py-2.5 text-sm font-medium text-red-200/90 hover:bg-red-500/10"
             >

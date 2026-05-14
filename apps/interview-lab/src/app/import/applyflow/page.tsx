@@ -1,7 +1,7 @@
 import { ApplyflowImportClient } from "@/components/applyflow-import-client";
 
 type PageProps = {
-  searchParams: Promise<{ from?: string | string[] }>;
+  searchParams: Promise<{ from?: string | string[]; handoff?: string | string[] }>;
 };
 
 export default async function ImportApplyflowPage({ searchParams }: PageProps) {
@@ -9,5 +9,10 @@ export default async function ImportApplyflowPage({ searchParams }: PageProps) {
   const from = sp.from;
   const fromApplyflowHandoff =
     from === "applyflow" || (Array.isArray(from) && from.includes("applyflow"));
-  return <ApplyflowImportClient fromApplyflowHandoff={fromApplyflowHandoff} />;
+  const handoff = sp.handoff;
+  const expectPostMessageHandoff =
+    handoff === "postMessage" || (Array.isArray(handoff) && handoff.includes("postMessage"));
+  return (
+    <ApplyflowImportClient fromApplyflowHandoff={fromApplyflowHandoff} expectPostMessageHandoff={expectPostMessageHandoff} />
+  );
 }
