@@ -45,6 +45,12 @@ export default function HomePage() {
         >
           Interview Briefing
         </Link>
+        <Link
+          href="/ai-review"
+          className="rounded-xl border border-neutral-600 bg-neutral-950/60 px-4 py-2 text-sm font-semibold text-neutral-100 transition hover:border-emerald-500/40"
+        >
+          AI Answer Review
+        </Link>
       </section>
 
       <section className="space-y-6">
