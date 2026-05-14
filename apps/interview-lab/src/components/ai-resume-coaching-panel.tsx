@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import { loadAiAnswerReviewSettings } from "@/lib/ai-answer-review-storage";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRefreshableAiAnswerReviewSettings } from "@/hooks/use-refreshable-ai-answer-review-settings";
 import { generateAiResumeCoaching } from "@/lib/ats/aiResumeCoachingClient";
 import { AI_COACHING_BADGE_LABEL, coachingUnavailableMessage } from "@/lib/ats/aiResumeCoachingFallback";
 import type { AiResumeCoachingInput, AiResumeCoachingResult } from "@/lib/ats/aiResumeCoachingTypes";
@@ -15,9 +15,11 @@ type Props = {
 };
 
 export function AiResumeCoachingPanel({ resumeText, jobDescriptionText, atsAnalysis }: Props) {
+  const settings = useRefreshableAiAnswerReviewSettings();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [coaching, setCoaching] = useState<AiResumeCoachingResult | null>(null);
+  const prevBlockedRef = useRef(Boolean(coachingUnavailableMessage(settings)));
 
   useEffect(() => {
     setCoaching(null);
@@ -25,9 +27,17 @@ export function AiResumeCoachingPanel({ resumeText, jobDescriptionText, atsAnaly
     setLoading(false);
   }, [resumeText, jobDescriptionText, atsAnalysis]);
 
+  const blocked = Boolean(coachingUnavailableMessage(settings));
+
+  useEffect(() => {
+    if (prevBlockedRef.current && !blocked) {
+      setError(null);
+    }
+    prevBlockedRef.current = blocked;
+  }, [blocked]);
+
   const onGenerate = useCallback(async () => {
     setError(null);
-    const settings = loadAiAnswerReviewSettings();
     const unavailable = coachingUnavailableMessage(settings);
     if (unavailable) {
       setError(unavailable);
@@ -43,7 +53,10 @@ export function AiResumeCoachingPanel({ resumeText, jobDescriptionText, atsAnaly
 
     setLoading(true);
     try {
-      const r = await generateAiResumeCoaching(input, settings);
+      const r = await generateAiResumeCoaching(input, {
+        preferOpenAi: settings.preferOpenAi,
+        openAiApiKey: settings.openAiApiKey,
+      });
       if (!r.ok) {
         setCoaching(null);
         setError(r.message);
@@ -54,10 +67,7 @@ export function AiResumeCoachingPanel({ resumeText, jobDescriptionText, atsAnaly
     } finally {
       setLoading(false);
     }
-  }, [resumeText, jobDescriptionText, atsAnalysis]);
-
-  const settings = loadAiAnswerReviewSettings();
-  const blocked = Boolean(coachingUnavailableMessage(settings));
+  }, [resumeText, jobDescriptionText, atsAnalysis, settings]);
 
   return (
     <section className="il-card border border-violet-500/25 bg-gradient-to-b from-violet-500/[0.06] to-neutral-950/50 p-5 sm:p-6">
