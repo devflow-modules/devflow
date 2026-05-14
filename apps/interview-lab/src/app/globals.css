@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", monospace;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    @apply min-h-screen bg-neutral-950 text-neutral-100 antialiased;
+  }
+}
+
+@layer utilities {
+  .il-card {
+    @apply rounded-2xl border border-neutral-800/80 bg-neutral-900/60 shadow-[0_0_0_1px_rgba(255,255,255,0.03)_inset];
+  }
+  .il-muted {
+    @apply text-neutral-400;
+  }
+  .il-accent {
+    @apply text-emerald-400;
+  }
+}

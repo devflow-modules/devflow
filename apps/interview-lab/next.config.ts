@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@devflow/applyflow-core", "@devflow/career-core"],
+  transpilePackages: ["@devflow/career-core"],
 };
 
 export default nextConfig;

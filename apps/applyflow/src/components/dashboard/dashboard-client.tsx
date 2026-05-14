@@ -41,7 +41,13 @@ import {
   loadDashboardImport,
   persistDashboardImport,
 } from "@/lib/local-import-storage";
+import {
+  buildInterviewLabCareerBundle,
+  downloadCareerBundleJson,
+  mapApplyFlowApplicationToCareer,
+} from "@/lib/career-bundle-export";
 import { cn } from "@/lib/cn";
+import { createCareerBundle, getInterviewReadyApplications } from "@devflow/career-core";
 
 const CHART_COLORS = ["#34d399", "#2dd4bf", "#22d3ee", "#a78bfa", "#fb923c", "#f472b6", "#94a3b8"];
 
@@ -188,6 +194,17 @@ export function DashboardClient() {
 
   const metrics = useMemo(() => computeApplicationMetrics(filtered, now), [filtered, now]);
 
+  const careerExportPreview = useMemo(() => {
+    const mapped = applications.map(mapApplyFlowApplicationToCareer);
+    const temp = createCareerBundle(mapped);
+    const interviewReady = getInterviewReadyApplications(temp);
+    const bundle = buildInterviewLabCareerBundle(applications);
+    return {
+      exportRowCount: bundle.applications.length,
+      interviewReadyInHistory: interviewReady.length,
+    };
+  }, [applications]);
+
   const funnelData = useMemo(
     () =>
       FUNNEL_STATUS_ORDER.map((status) => ({
@@ -317,7 +334,7 @@ export function DashboardClient() {
       <ApplyFlowSection
         id="como-importar"
         title="Dashboard"
-        description="Importa um backup JSON da extensão (Opções › Histórico) ou carrega o conjunto de demo para explorar métricas sem dados reais. Tudo é processado neste dispositivo."
+        description="Importa um backup JSON da extensão (Opções › Histórico) ou carrega o conjunto de demo para explorar métricas sem dados reais. Com dados carregados, podes exportar um **CareerBundle** para o Interview Lab (JSON local). Tudo é processado neste dispositivo."
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-stretch">
           <ApplyFlowCard
@@ -425,6 +442,60 @@ export function DashboardClient() {
                 Empresas e vagas são inteiramente fictícias (demonstração de portefólio).
               </span>
             ) : null}
+          </ApplyFlowCard>
+        ) : null}
+
+        {hasData ? (
+          <ApplyFlowCard variant="muted" padding="md" className="border border-[color:var(--af-border-strong)]/80">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="max-w-xl space-y-2">
+                <h3 className="text-sm font-semibold text-[color:var(--af-text)]">Interview Lab · exportação local</h3>
+                <p className="text-xs leading-relaxed text-[color:var(--af-text-muted)]">
+                  <span className="text-[color:var(--af-text)]">
+                    Export your selected applications as a CareerBundle and import them into Interview Lab for
+                    role-specific interview practice.
+                  </span>{" "}
+                  O ficheiro JSON é gerado <strong className="text-[color:var(--af-text)]">só neste browser</strong>{" "}
+                  (sem upload para servidores ApplyFlow ou Interview Lab).
+                </p>
+                <p className="text-[11px] leading-snug text-zinc-500">
+                  Este export usa as candidaturas carregadas no dashboard (histórico importado ou demo), com regras de
+                  prioridade do <code className="rounded bg-zinc-800/80 px-1 py-0.5 text-zinc-300">@devflow/career-core</code>{" "}
+                  (entrevista → aplicadas/revisão → restantes).
+                </p>
+                {careerExportPreview.interviewReadyInHistory === 0 ? (
+                  <ApplyFlowCard variant="warning" padding="sm" className="text-xs text-amber-100/95">
+                    <strong className="font-medium text-amber-100">Sem vagas em fase de entrevista</strong> neste
+                    conjunto (mapeadas como &quot;interview requested&quot; / &quot;scheduled&quot;). O export continua
+                    disponível e incluirá candidaturas em <strong>applied</strong>/<strong>saved</strong> ou o conjunto
+                    completo, conforme as regras do bundle.
+                  </ApplyFlowCard>
+                ) : (
+                  <p className="text-[11px] text-emerald-200/80">
+                    {careerExportPreview.interviewReadyInHistory} candidatura(s) mapeada(s) para fase de entrevista no
+                    histórico actual — o export prioriza essas linhas.
+                  </p>
+                )}
+              </div>
+              <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
+                <ApplyFlowButton
+                  type="button"
+                  variant="outlineBrand"
+                  size="md"
+                  className="font-medium"
+                  disabled={careerExportPreview.exportRowCount === 0}
+                  onClick={() => {
+                    const bundle = buildInterviewLabCareerBundle(applications);
+                    downloadCareerBundleJson(bundle);
+                  }}
+                >
+                  Exportar para Interview Lab
+                </ApplyFlowButton>
+                <span className="text-center text-[10px] text-[color:var(--af-text-muted)] sm:text-right">
+                  ~{careerExportPreview.exportRowCount} vaga(s) no JSON
+                </span>
+              </div>
+            </div>
           </ApplyFlowCard>
         ) : null}
 
