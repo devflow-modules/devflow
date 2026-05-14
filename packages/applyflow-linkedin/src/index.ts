@@ -1,3 +1,8 @@
+export {
+  detectApplyProviderFromModal,
+  normalizeApplyProviderSourceText,
+} from "./apply-provider.js";
+export type { ApplyProvider, ApplyProviderDetection } from "./apply-provider.js";
 export { normalizeLinkedInLabel } from "./normalize-label.js";
 export { classifyLinkedInField, looksLikeYearsExperienceLabel } from "./classify-field.js";
 export { extractJobContextFromText } from "./extract-job-context.js";
