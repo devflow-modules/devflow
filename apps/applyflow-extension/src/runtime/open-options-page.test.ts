@@ -4,28 +4,33 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   OPEN_OPTIONS_MESSAGE,
-  isValidExtensionUrl,
   openApplyFlowOptions,
   openOptionsPageInExtensionContext,
-  openOptionsViaValidatedWindowUrl,
+  openOptionsViaExtensionTab,
   sendOpenOptionsMessage,
 } from "./open-options-page.js";
 
-describe("isValidExtensionUrl", () => {
-  it("aceita URL real de extensão", () => {
-    expect(isValidExtensionUrl("chrome-extension://abcdefghij/options.html")).toBe(true);
-  });
-
-  it("rejeita chrome-extension://invalid/", () => {
-    expect(isValidExtensionUrl("chrome-extension://invalid/options.html")).toBe(false);
-    expect(isValidExtensionUrl("chrome-extension://invalid/")).toBe(false);
-  });
-
-  it("rejeita undefined e URLs não-extension", () => {
-    expect(isValidExtensionUrl(undefined)).toBe(false);
-    expect(isValidExtensionUrl("https://www.linkedin.com/")).toBe(false);
-  });
-});
+function stubValidExtensionContext(
+  overrides: Partial<{
+    sendMessage: typeof chrome.runtime.sendMessage;
+    openOptionsPage: typeof chrome.runtime.openOptionsPage;
+    getURL: typeof chrome.runtime.getURL;
+    tabsCreate: typeof chrome.tabs.create;
+  }> = {},
+) {
+  const optionsUrl = "chrome-extension://abcdefghij/options.html";
+  vi.stubGlobal("chrome", {
+    runtime: {
+      id: "abcdefghij",
+      sendMessage: overrides.sendMessage,
+      openOptionsPage: overrides.openOptionsPage,
+      getManifest: vi.fn().mockReturnValue({ manifest_version: 3 }),
+      getURL: overrides.getURL ?? vi.fn().mockReturnValue(optionsUrl),
+      lastError: undefined,
+    },
+    tabs: { create: overrides.tabsCreate ?? vi.fn() },
+  } as typeof chrome);
+}
 
 describe("open-options-page", () => {
   afterEach(() => {
@@ -35,23 +40,33 @@ describe("open-options-page", () => {
   });
 
   it("sendOpenOptionsMessage resolve com resposta do background", async () => {
-    const sendMessage = vi.fn((_payload: unknown, cb: (r: unknown) => void) => {
-      cb({ ok: true });
+    stubValidExtensionContext({
+      sendMessage: vi.fn((_payload: unknown, cb: (r: unknown) => void) => {
+        cb({ ok: true });
+      }),
     });
-    vi.stubGlobal("chrome", {
-      runtime: { sendMessage, lastError: undefined },
-    } as typeof chrome);
 
     await expect(sendOpenOptionsMessage(500)).resolves.toEqual({ ok: true });
-    expect(sendMessage).toHaveBeenCalledWith({ type: OPEN_OPTIONS_MESSAGE }, expect.any(Function));
+    expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      { type: OPEN_OPTIONS_MESSAGE },
+      expect.any(Function),
+    );
+  });
+
+  it("sendOpenOptionsMessage ignora lastError quando há resposta ok", async () => {
+    stubValidExtensionContext({
+      sendMessage: vi.fn((_payload: unknown, cb: (r: unknown) => void) => {
+        Object.assign(chrome.runtime, { lastError: { message: "port closed" } });
+        cb({ ok: true });
+      }),
+    });
+
+    await expect(sendOpenOptionsMessage(500)).resolves.toEqual({ ok: true });
   });
 
   it("sendOpenOptionsMessage termina em timeout sem resposta", async () => {
     vi.useFakeTimers();
-    const sendMessage = vi.fn();
-    vi.stubGlobal("chrome", {
-      runtime: { sendMessage, lastError: undefined },
-    } as typeof chrome);
+    stubValidExtensionContext({ sendMessage: vi.fn() });
 
     const pending = sendOpenOptionsMessage(1000);
     await vi.advanceTimersByTimeAsync(1000);
@@ -60,103 +75,78 @@ describe("open-options-page", () => {
 
   it("openOptionsPageInExtensionContext chama openOptionsPage", async () => {
     const openOptionsPage = vi.fn().mockResolvedValue(undefined);
-    vi.stubGlobal("chrome", {
-      runtime: { id: "testid", openOptionsPage, getURL: vi.fn() },
-      tabs: { create: vi.fn() },
-    } as typeof chrome);
+    stubValidExtensionContext({ openOptionsPage });
 
     await openOptionsPageInExtensionContext();
     expect(openOptionsPage).toHaveBeenCalledOnce();
   });
 
   it("openOptionsPageInExtensionContext usa tabs.create com URL válida se openOptionsPage falhar", async () => {
-    const url = "chrome-extension://testid/options.html";
-    const openOptionsPage = vi.fn().mockRejectedValue(new Error("fail"));
+    const tabsCreate = vi.fn().mockResolvedValue({});
+    stubValidExtensionContext({
+      openOptionsPage: vi.fn().mockRejectedValue(new Error("fail")),
+      tabsCreate,
+    });
+
+    await openOptionsPageInExtensionContext();
+    expect(tabsCreate).toHaveBeenCalledWith({
+      url: "chrome-extension://abcdefghij/options.html",
+    });
+  });
+
+  it("openOptionsViaExtensionTab não cria tab com URL invalid", async () => {
     const tabsCreate = vi.fn().mockResolvedValue({});
     vi.stubGlobal("chrome", {
       runtime: {
-        id: "testid",
-        openOptionsPage,
-        getURL: vi.fn().mockReturnValue(url),
+        id: "ghost",
+        getManifest: vi.fn().mockReturnValue({ manifest_version: 3 }),
+        getURL: vi.fn().mockReturnValue("chrome-extension://invalid/options.html"),
       },
       tabs: { create: tabsCreate },
     } as typeof chrome);
 
-    await openOptionsPageInExtensionContext();
-    expect(tabsCreate).toHaveBeenCalledWith({ url });
+    await expect(openOptionsViaExtensionTab()).resolves.toBe(false);
+    expect(tabsCreate).not.toHaveBeenCalled();
   });
 
-  it("openOptionsPageInExtensionContext rejeita URL invalid", async () => {
-    const openOptionsPage = vi.fn().mockRejectedValue(new Error("fail"));
-    vi.stubGlobal("chrome", {
-      runtime: {
-        id: "testid",
-        openOptionsPage,
-        getURL: vi.fn().mockReturnValue("chrome-extension://invalid/options.html"),
-      },
-      tabs: { create: vi.fn() },
-    } as typeof chrome);
-
-    await expect(openOptionsPageInExtensionContext()).rejects.toThrow(/Invalid options page URL/i);
-  });
-
-  it("openApplyFlowOptions envia mensagem e não abre janela quando background responde ok", async () => {
+  it("openApplyFlowOptions envia mensagem e não chama getURL no content script", async () => {
     const sendMessage = vi.fn((_payload: unknown, cb: (r: unknown) => void) => {
       cb({ ok: true });
     });
-    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
-    vi.stubGlobal("chrome", {
-      runtime: {
-        id: "testid",
-        sendMessage,
-        getURL: vi.fn(),
-        lastError: undefined,
-      },
-    } as typeof chrome);
+    const getURL = vi.fn();
+    stubValidExtensionContext({ sendMessage, getURL });
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     await openApplyFlowOptions();
     expect(sendMessage).toHaveBeenCalledOnce();
-    expect(openSpy).not.toHaveBeenCalled();
+    expect(getURL).not.toHaveBeenCalled();
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 
-  it("openApplyFlowOptions não chama window.open com getURL invalid", async () => {
-    const sendMessage = vi.fn((_payload: unknown, cb: (r: unknown) => void) => {
-      cb({ ok: false, error: "sw fail" });
-    });
-    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+  it("openApplyFlowOptions não chama getURL com contexto invalid", async () => {
+    const getURL = vi.fn().mockReturnValue("chrome-extension://invalid/options.html");
     vi.stubGlobal("chrome", {
       runtime: {
-        id: "testid",
-        sendMessage,
-        getURL: vi.fn().mockReturnValue("chrome-extension://invalid/options.html"),
-        lastError: undefined,
+        id: "ghost",
+        getURL,
+        sendMessage: vi.fn(),
+        getManifest: vi.fn(() => {
+          throw new Error("Extension context invalidated.");
+        }),
       },
     } as typeof chrome);
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     await openApplyFlowOptions();
-    expect(openSpy).not.toHaveBeenCalled();
+    expect(getURL).not.toHaveBeenCalled();
     expect(warnSpy).toHaveBeenCalled();
   });
 
-  it("openOptionsViaValidatedWindowUrl abre só URL válida", () => {
-    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
-    vi.stubGlobal("chrome", {
-      runtime: {
-        getURL: vi.fn().mockReturnValue("chrome-extension://abc/options.html"),
-      },
-    } as typeof chrome);
+  it("openApplyFlowOptions avisa uma vez se o service worker não responder", async () => {
+    stubValidExtensionContext({ sendMessage: vi.fn() });
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    expect(openOptionsViaValidatedWindowUrl()).toBe(true);
-    expect(openSpy).toHaveBeenCalledOnce();
-
-    openSpy.mockClear();
-    vi.stubGlobal("chrome", {
-      runtime: {
-        getURL: vi.fn().mockReturnValue("chrome-extension://invalid/options.html"),
-      },
-    } as typeof chrome);
-    expect(openOptionsViaValidatedWindowUrl()).toBe(false);
-    expect(openSpy).not.toHaveBeenCalled();
+    await openApplyFlowOptions();
+    expect(warnSpy).toHaveBeenCalledTimes(1);
   });
 });

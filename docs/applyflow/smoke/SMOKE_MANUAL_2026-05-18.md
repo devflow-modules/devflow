@@ -58,8 +58,8 @@ PASS with non-blocking notes.
 - [x] Status shows profile ready for suggestions
 - [x] Preview capture works
 - [x] Export JSON works
-- [ ] Injected panel button "Abrir Opções (export JSON)" opens extension options page — **pending re-validation** after fix for `chrome-extension://invalid/` console loop (prior attempt opened invalid URLs from content-script fallbacks)
-- [ ] No `chrome-extension://invalid/` loop in LinkedIn console when clicking the panel options button once
+- [ ] Injected panel button "Abrir Opções (export JSON)" opens extension options page — **pending re-validation** (content script no longer uses `getURL`/`window.open`; opener routes only via service worker)
+- [ ] No `chrome-extension://invalid/` loop in LinkedIn console when clicking the panel options button once — **pending** (prior noise traced to content-script `getURL` fallback after invalidated extension context or `sendMessage` timeout)
 
 ## Non-blocking follow-ups
 
