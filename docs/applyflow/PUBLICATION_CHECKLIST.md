@@ -22,6 +22,7 @@ Esta secção separa o que os **sprints de documentação e código** já alinha
 - Gravar **vídeo** (opcional) e validar áudio/legendas.
 - Verificar **demo JSON** / **posts** finais **sem** PII nem segredos visíveis *(screenshots oficiais já revistos; ver `SCREENSHOTS_CHECKLIST.md`).*
 - **Revisão final humana** (ortografia, coerência global, go/no-go público).
+- **Smoke manual (2026-05-18):** PASS com ressalvas não bloqueantes — registo em [`smoke/SMOKE_MANUAL_2026-05-18.md`](./smoke/SMOKE_MANUAL_2026-05-18.md).
 
 ### Pendente decisão (equipa / processo)
 
@@ -108,7 +109,7 @@ pnpm build
 
 | Item | Estado |
 |------|--------|
-| Uso pessoal | **OK** (gates técnicos ApplyFlow a verde; smoke manual local recomendado antes do dia a dia) |
+| Uso pessoal | **OK** (gates técnicos ApplyFlow a verde; smoke manual 2026-05-18 em [`smoke/SMOKE_MANUAL_2026-05-18.md`](./smoke/SMOKE_MANUAL_2026-05-18.md)) |
 | LinkedIn post | **OK** (texto em `LINKEDIN_POST.md`; publicação e links no perfil = acção humana) |
 | Screenshots | **OK** (conjunto canónico `01`–`06`; `05` com ficheiro maior documentado como esperado) |
 | Gates técnicos | **OK** (comandos abaixo, `exit 0`) |
