@@ -1,5 +1,3 @@
-import { initApplyFlowPanel } from "./inject-applyflow-panel.js";
-import { startApplyFlowObserver } from "./linkedin-easy-apply-detector.js";
+import { bootstrapApplyFlowContentScript } from "./content-bootstrap.js";
 
-void initApplyFlowPanel();
-startApplyFlowObserver();
+bootstrapApplyFlowContentScript();

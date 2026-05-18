@@ -21,6 +21,7 @@ import { computeJobSnapshotForHistory } from "./job-context-extractor.js";
 import { findEasyApplyModal } from "./easy-apply-modal.js";
 import type { FindEasyApplyModalMeta } from "./easy-apply-modal.js";
 import { detectLinkedInMessagingChromeVisible } from "./linkedin-messaging-detect.js";
+import { hasValidExtensionContext } from "../runtime/extension-runtime.js";
 import { applyPanelHostLayout } from "./panel-host-layout.js";
 
 type PanelDetectionMeta = {
@@ -281,6 +282,8 @@ function handlePanelRestore(): void {
 }
 
 async function paintApplyFlowPanel(): Promise<void> {
+  if (!hasValidExtensionContext()) return;
+
   const r = ensureHost();
   const panelPrefs = await getPanelUiPrefs();
   if (host) {
@@ -367,8 +370,26 @@ async function paintApplyFlowPanel(): Promise<void> {
   r.render(createElement(App, props));
 }
 
+/** Remove painel do DOM e libera React (ex.: sair de `/jobs` ou contexto invalidado). */
+export function teardownApplyFlowPanel(): void {
+  try {
+    root?.unmount();
+  } catch {
+    /* já desmontado */
+  }
+  root = null;
+  panelAppMount = null;
+  host?.remove();
+  host = null;
+  lastPayload = { phase: "waiting" };
+  auditJobSnap = {};
+  autofillSession = emptyAutofillSession();
+  panelMinimized = false;
+}
+
 /** Primeira montagem — estado \"aguardando modal\". */
 export async function initApplyFlowPanel(): Promise<void> {
+  if (host) return;
   lastPayload = { phase: "waiting" };
   await paintApplyFlowPanel();
   applyFlowDebugLog("painel inicializado");

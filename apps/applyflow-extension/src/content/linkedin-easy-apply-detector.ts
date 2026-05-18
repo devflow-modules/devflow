@@ -4,6 +4,7 @@ import {
   extractJobContextFromText,
   parseEasyApplyModalFields,
 } from "@devflow/applyflow-linkedin";
+import { hasValidExtensionContext } from "../runtime/extension-runtime.js";
 import { invalidateStoredProfileCache } from "../storage/profile-storage.js";
 import { STORAGE_PROFILE_KEY } from "../storage/storage-types.js";
 import { applyFlowDebugEnabled, applyFlowDebugLog } from "./applyflow-debug.js";
@@ -12,9 +13,12 @@ import {
   findEasyApplyModal,
   findEasyApplyModalWithMeta,
 } from "./easy-apply-modal.js";
+import { isApplyFlowSupportedLinkedInPage } from "./linkedin-page-guard.js";
 import { renderApplyFlowPanel } from "./inject-applyflow-panel.js";
 
 export { findEasyApplyModal, findEasyApplyModalWithMeta, debugScanEasyApplyModals };
+
+const SCAN_DEBOUNCE_MS = 150;
 
 function truncateDebugLabel(label: string, max = 80): string {
   const t = label.trim();
@@ -40,8 +44,28 @@ function scrapeJobPageText(): string {
 
 let lastSignature = "";
 
-export function startApplyFlowObserver(): void {
+export type StartApplyFlowObserverOptions = {
+  onDeactivate?: () => void;
+};
+
+export function startApplyFlowObserver(options: StartApplyFlowObserverOptions = {}): () => void {
+  const { onDeactivate } = options;
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let stopped = false;
+
+  const deactivate = () => {
+    if (stopped) return;
+    stopped = true;
+    onDeactivate?.();
+  };
+
   const scan = async (): Promise<void> => {
+    if (stopped) return;
+    if (!isApplyFlowSupportedLinkedInPage() || !hasValidExtensionContext()) {
+      deactivate();
+      return;
+    }
+
     const meta = findEasyApplyModalWithMeta();
     const modal = meta.modal;
     if (!modal) {
@@ -126,29 +150,50 @@ export function startApplyFlowObserver(): void {
     applyFlowDebugLog("painel atualizado — pronto para revisão");
   };
 
-  const obs = new MutationObserver(() => {
-    void scan();
-  });
+  const scheduleScan = () => {
+    if (stopped) return;
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      debounceTimer = null;
+      void scan();
+    }, SCAN_DEBOUNCE_MS);
+  };
+
+  const obs = new MutationObserver(scheduleScan);
   obs.observe(document.documentElement, { childList: true, subtree: true });
 
-  window.addEventListener("popstate", () => {
-    void scan();
-  });
-  document.addEventListener("visibilitychange", () => {
-    void scan();
-  });
+  const onPopState = () => scheduleScan();
+  const onVisibility = () => scheduleScan();
+
+  window.addEventListener("popstate", onPopState);
+  document.addEventListener("visibilitychange", onVisibility);
+
+  const storageListener = (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => {
+    if (stopped || areaName !== "local" || !(STORAGE_PROFILE_KEY in changes)) return;
+    invalidateStoredProfileCache();
+    lastSignature = "";
+    applyFlowDebugLog("storage: perfil alterado — reavaliar painel");
+    scheduleScan();
+  };
 
   try {
-    chrome.storage?.onChanged.addListener((changes, areaName) => {
-      if (areaName !== "local" || !(STORAGE_PROFILE_KEY in changes)) return;
-      invalidateStoredProfileCache();
-      lastSignature = "";
-      applyFlowDebugLog("storage: perfil alterado — reavaliar painel");
-      void scan();
-    });
+    chrome.storage?.onChanged.addListener(storageListener);
   } catch {
     /* ambiente de teste / sem chrome */
   }
 
   void scan();
+
+  return () => {
+    stopped = true;
+    if (debounceTimer) clearTimeout(debounceTimer);
+    obs.disconnect();
+    window.removeEventListener("popstate", onPopState);
+    document.removeEventListener("visibilitychange", onVisibility);
+    try {
+      chrome.storage?.onChanged.removeListener(storageListener);
+    } catch {
+      /* noop */
+    }
+  };
 }

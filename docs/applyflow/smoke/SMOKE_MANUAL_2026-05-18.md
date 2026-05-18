@@ -58,13 +58,14 @@ PASS with non-blocking notes.
 - [x] Status shows profile ready for suggestions
 - [x] Preview capture works
 - [x] Export JSON works
-- [x] Injected panel button "Abrir Opções (export JSON)" opens extension `options.html` (validated post-fix; opener via service worker only)
-- [x] `chrome-extension://invalid/` console noise **not caused by ApplyFlow** — persists with extension disabled, in incognito, and as `ERR_BLOCKED_BY_CLIENT` (adblock/filter/site); isolated 2026-05-18
+- [x] Injected panel button "Abrir Opções (export JSON)" opens extension `options.html` (service worker route)
+- [ ] No `chrome-extension://invalid/` loop on LinkedIn — **pending re-validation** after content-script guard (stack referenced `content.js` bundle with ApplyFlow code on `/notifications`; fix: activate panel/observer only on `/jobs*`)
 
-## Extension validation final (2026-05-18)
+## Extension validation final
 
 - [x] Panel options button opens `options.html`
-- [x] `chrome-extension://invalid/` loop ruled out as ApplyFlow-owned (error remains with ApplyFlow off; typical client-side block noise on LinkedIn)
+- [ ] `/notifications` (and non-`/jobs` routes) stay quiet in console for ~20s with extension loaded — **pending**
+- [ ] `/jobs/...` Easy Apply + panel + options button still OK — **pending**
 
 ## Non-blocking follow-ups
 
@@ -73,4 +74,4 @@ PASS with non-blocking notes.
 
 ## Verdict
 
-**ApplyFlow closed** for local use, technical demo, and **private/controlled portfolio** (monorepo private; no public repo at this time).
+PASS for core flows; **extension console hygiene on non-job LinkedIn routes pending** manual check after `content-bootstrap` guard (2026-05-18 follow-up).
