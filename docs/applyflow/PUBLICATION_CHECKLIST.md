@@ -23,10 +23,12 @@ Esta secção separa o que os **sprints de documentação e código** já alinha
 - Verificar **demo JSON** / **posts** finais **sem** PII nem segredos visíveis *(screenshots oficiais já revistos; ver `SCREENSHOTS_CHECKLIST.md`).*
 - **Revisão final humana** (ortografia, coerência global, go/no-go público).
 - **Smoke manual (2026-05-18):** PASS com ressalvas não bloqueantes — registo em [`smoke/SMOKE_MANUAL_2026-05-18.md`](./smoke/SMOKE_MANUAL_2026-05-18.md).
+- **Landing** revalidada em navegador limpo (2026-05-18); hidratação OK — aviso `cz-shortcut-listen` confirmado como ruído de extensão do browser.
 
 ### Pendente decisão (equipa / processo)
 
-- **Repo público vs privado** e **licença**.
+- **Publicação (decidido 2026-05-18):** monorepo **privado**; divulgação via portfólio controlado, prints limpos, case study e post LinkedIn — **sem** tornar o repo público neste momento.
+- **Repo público vs privado** e **licença** — decisão actual: manter privado.
 - **Deploy** do dashboard (se aplicável) e analytics.
 - **Publicar** post LinkedIn e actualizar links no perfil.
 
@@ -38,7 +40,7 @@ Esta secção separa o que os **sprints de documentação e código** já alinha
 - [x] **Não prometer** sync cloud automático, SaaS activo ou funcionalidades Pro que ainda não existem no código (copy revisada; futuro só como documentação).
 - [x] **Roadmap cloud** (se mencionado) como **opcional/futuro** — alinhar com [`ADR-LOCAL_FIRST_VS_SERVERLESS.md`](./ADR-LOCAL_FIRST_VS_SERVERLESS.md).
 - [x] **README** do dashboard (`apps/applyflow/README.md`) revisto (problema, solução, stack, demo, docs de mídia).
-- [ ] **Landing** (`/`) com CTAs correctos (dashboard, demo, documentação, import) — **validar visualmente** antes do go-live.
+- [x] **Landing** (`/`) com CTAs correctos (dashboard, demo, documentação, import) — revalidada em navegador limpo (2026-05-18; ver smoke manual).
 - [x] **Página `/documentacao`** coerente com ficheiros em `docs/applyflow/` (índice + links GitHub).
 - [x] **Posts** (`LINKEDIN_POST.md`) sem afirmar **Chrome Web Store** em produção salvo ser factual no teu caso.
 - [x] **Case study** (`CASE_STUDY.md`) sem métricas inventadas de utilizadores, receita ou adopção.

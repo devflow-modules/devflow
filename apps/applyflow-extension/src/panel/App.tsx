@@ -15,6 +15,7 @@ import { FitScoreCard } from "./components/FitScoreCard";
 import { JobIntelligenceCard } from "./components/JobIntelligenceCard";
 import { JobSummaryCard } from "./components/JobSummaryCard";
 import type { PanelAiBundle } from "./panel/panel-ai.js";
+import { openApplyFlowOptions } from "../runtime/open-options-page.js";
 import { PanelHistorySection } from "./components/PanelHistorySection";
 
 export type PanelPhaseView = "waiting" | "modal_empty" | "fields";
@@ -70,15 +71,6 @@ function phaseCopy(phase: PanelPhaseView, fieldCount: number): { title: string; 
         ? "1 campo encontrado — use Copiar ou Preencher campo a campo (opcional)."
         : `${fieldCount} campos encontrados — use Copiar ou Preencher campo a campo (opcional).`,
   };
-}
-
-function openOptionsPage(): void {
-  try {
-    const rt = typeof chrome !== "undefined" ? chrome.runtime : undefined;
-    void rt?.openOptionsPage?.();
-  } catch {
-    /* noop */
-  }
 }
 
 export function App(props: {
@@ -271,7 +263,14 @@ export function App(props: {
       <footer className="af-panel-footer">
         <p className="af-footer-line">Os dados permanecem neste browser (chrome.storage.local). Sem backend ApplyFlow.</p>
         <div className="af-action-row" style={{ marginTop: "6px" }}>
-          <button type="button" className="af-btn-secondary" style={{ width: "100%" }} onClick={() => openOptionsPage()}>
+          <button
+            type="button"
+            className="af-btn-secondary"
+            style={{ width: "100%" }}
+            onClick={() => {
+              void openApplyFlowOptions();
+            }}
+          >
             Abrir Opções (export JSON)
           </button>
         </div>

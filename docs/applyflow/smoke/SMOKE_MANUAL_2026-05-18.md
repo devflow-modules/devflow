@@ -12,8 +12,8 @@ PASS with non-blocking notes.
 - [x] Layout renders
 - [x] CTAs visible
 - [x] Copy is coherent with local-first/privacy-first positioning
-- [~] Hydration mismatch caused by browser extension attribute `cz-shortcut-listen`
-- [ ] Revalidate in clean browser profile/incognito without extensions
+- [x] Previous hydration mismatch (`cz-shortcut-listen`) confirmed as browser-extension noise, not an ApplyFlow bug
+- [x] Revalidated in clean browser profile/incognito without extensions; previous hydration warning confirmed as browser-extension noise.
 
 ## Dashboard `/dashboard`
 
@@ -58,13 +58,11 @@ PASS with non-blocking notes.
 - [x] Status shows profile ready for suggestions
 - [x] Preview capture works
 - [x] Export JSON works
-- [~] Injected panel button "Abrir Opções (export JSON)" did not open options directly
+- [x] Injected panel button "Abrir Opções (export JSON)" opens extension options page (fixed post-smoke)
 
 ## Non-blocking follow-ups
 
-1. Revalidate landing in a clean browser profile to avoid false hydration mismatch from extensions.
-2. Fix the injected panel button that should open the options page directly.
-3. Avoid using public screenshots containing real LinkedIn/profile PII.
+1. Avoid using public screenshots containing real LinkedIn/profile PII.
 
 ## Verdict
 
