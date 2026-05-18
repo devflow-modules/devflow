@@ -58,11 +58,13 @@ PASS with non-blocking notes.
 - [x] Status shows profile ready for suggestions
 - [x] Preview capture works
 - [x] Export JSON works
-- [x] Injected panel button "Abrir Opções (export JSON)" opens extension options page (fixed post-smoke)
+- [ ] Injected panel button "Abrir Opções (export JSON)" opens extension options page — **pending re-validation** after fix for `chrome-extension://invalid/` console loop (prior attempt opened invalid URLs from content-script fallbacks)
+- [ ] No `chrome-extension://invalid/` loop in LinkedIn console when clicking the panel options button once
 
 ## Non-blocking follow-ups
 
 1. Avoid using public screenshots containing real LinkedIn/profile PII.
+2. After reload of unpacked extension + LinkedIn tab: confirm panel options button opens `options.html` with a single click and clean console.
 
 ## Verdict
 

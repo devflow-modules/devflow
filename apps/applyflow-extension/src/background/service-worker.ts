@@ -1,18 +1,21 @@
 import {
   OPEN_OPTIONS_MESSAGE,
+  type OpenOptionsResponse,
   openOptionsPageInExtensionContext,
 } from "../runtime/open-options-page.js";
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message?.type !== OPEN_OPTIONS_MESSAGE) return;
+  if (message?.type !== OPEN_OPTIONS_MESSAGE) {
+    return false;
+  }
+
   void openOptionsPageInExtensionContext()
-    .then(() => sendResponse({ ok: true }))
-    .catch((err: unknown) =>
-      sendResponse({
-        ok: false,
-        error: err instanceof Error ? err.message : String(err),
-      }),
-    );
+    .then(() => sendResponse({ ok: true } satisfies OpenOptionsResponse))
+    .catch((err: unknown) => {
+      const error = err instanceof Error ? err.message : String(err);
+      sendResponse({ ok: false, error } satisfies OpenOptionsResponse);
+    });
+
   return true;
 });
 
