@@ -27,7 +27,7 @@ Esta secção separa o que os **sprints de documentação e código** já alinha
 
 ### Pendente decisão (equipa / processo)
 
-- **Publicação (decidido 2026-05-18):** monorepo **privado**; divulgação via portfólio controlado, prints limpos, case study e post LinkedIn — **sem** tornar o repo público neste momento.
+- **Publicação (decidido 2026-05-18):** monorepo **privado**; divulgação via portfólio controlado, prints limpos ([`PUBLIC_CASE_STUDY.md`](./PUBLIC_CASE_STUDY.md), selecção em [`SCREENSHOTS_CHECKLIST.md`](./SCREENSHOTS_CHECKLIST.md)), post LinkedIn — **sem** tornar o repo público neste momento.
 - **Repo público vs privado** e **licença** — decisão actual: manter privado.
 - **Deploy** do dashboard (se aplicável) e analytics.
 - **Publicar** post LinkedIn e actualizar links no perfil.
