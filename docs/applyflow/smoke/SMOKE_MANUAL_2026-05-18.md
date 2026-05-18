@@ -58,14 +58,19 @@ PASS with non-blocking notes.
 - [x] Status shows profile ready for suggestions
 - [x] Preview capture works
 - [x] Export JSON works
-- [ ] Injected panel button "Abrir Opções (export JSON)" opens extension options page — **pending re-validation** (content script no longer uses `getURL`/`window.open`; opener routes only via service worker)
-- [ ] No `chrome-extension://invalid/` loop in LinkedIn console when clicking the panel options button once — **pending** (prior noise traced to content-script `getURL` fallback after invalidated extension context or `sendMessage` timeout)
+- [x] Injected panel button "Abrir Opções (export JSON)" opens extension `options.html` (validated post-fix; opener via service worker only)
+- [x] `chrome-extension://invalid/` console noise **not caused by ApplyFlow** — persists with extension disabled, in incognito, and as `ERR_BLOCKED_BY_CLIENT` (adblock/filter/site); isolated 2026-05-18
+
+## Extension validation final (2026-05-18)
+
+- [x] Panel options button opens `options.html`
+- [x] `chrome-extension://invalid/` loop ruled out as ApplyFlow-owned (error remains with ApplyFlow off; typical client-side block noise on LinkedIn)
 
 ## Non-blocking follow-ups
 
 1. Avoid using public screenshots containing real LinkedIn/profile PII.
-2. After reload of unpacked extension + LinkedIn tab: confirm panel options button opens `options.html` with a single click and clean console.
+2. Public portfolio: case study + LinkedIn post + safe print selection (repo stays private).
 
 ## Verdict
 
-ApplyFlow is approved for local use, technical demo, and portfolio presentation.
+**ApplyFlow closed** for local use, technical demo, and **private/controlled portfolio** (monorepo private; no public repo at this time).
