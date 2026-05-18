@@ -141,7 +141,7 @@ Evoluções hipotéticas (sync, serverless) estão documentadas internamente com
 
 - **Repositório:** privado.
 - **Divulgação:** case público (este documento), post LinkedIn, capturas oficiais sem PII, demo ao vivo sob pedido.
-- **Próximo passo de mídia:** seleccionar prints seguros e publicar narrativa alinhada a *local-first* e *sem auto-submit*.
+- **Mídia:** conjunto canónico `01`–`06` em `docs/applyflow/assets/` — selecção para portefólio e posts em [`SCREENSHOTS_CHECKLIST.md`](./SCREENSHOTS_CHECKLIST.md) (secção *Pacote portfólio controlado*).
 
 ---
 

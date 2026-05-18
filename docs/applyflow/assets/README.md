@@ -28,5 +28,7 @@ Esta pasta contém o **conjunto canónico de 6 PNG** referenciado pelo [`apps/ap
 ## Checklists relacionados
 
 - Captura passo a passo: [`SCREENSHOTS_CHECKLIST.md`](../SCREENSHOTS_CHECKLIST.md)
+- **Selecção para portfólio / LinkedIn:** secção *Pacote portfólio controlado* no checklist acima
+- Case público: [`PUBLIC_CASE_STUDY.md`](../PUBLIC_CASE_STUDY.md)
 - Antes de tornar o caso público: [`PUBLICATION_CHECKLIST.md`](../PUBLICATION_CHECKLIST.md)
 - Roteiro de vídeo: [`DEMO_SCRIPT.md`](../DEMO_SCRIPT.md)

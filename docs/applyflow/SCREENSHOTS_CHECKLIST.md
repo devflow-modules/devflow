@@ -4,6 +4,45 @@ Objetivo: **pacote de mídia pública** alinhado ao [`PUBLICATION_CHECKLIST.md`]
 
 Preferir **1080p** ou superior; cropar barras de sistema ou UI sensível quando necessário.
 
+**Case público:** [`PUBLIC_CASE_STUDY.md`](./PUBLIC_CASE_STUDY.md) · **Smoke extensão (2026-05-18):** [`smoke/SMOKE_MANUAL_2026-05-18.md`](./smoke/SMOKE_MANUAL_2026-05-18.md).
+
+---
+
+## Pacote portfólio controlado (2026-05-18)
+
+Estratégia: **monorepo privado**; divulgar com case + posts + **só** os PNG já revistos abaixo. **Não** é obrigatório recapturar após o fecho da extensão — o conjunto `01`–`06` (revisão 2026-05-12) continua válido para material público se a passagem visual final confirmar PII/overlay.
+
+### Selecção recomendada (uso externo)
+
+| Uso | Ficheiros | Notas |
+|-----|-----------|--------|
+| **Post LinkedIn (1 imagem)** | `02` ou `06` | `02` = dashboard + demo fictícia; `06` = extensão sem DOM LinkedIn. |
+| **Post LinkedIn (carrossel 4)** | `01`, `02`, `03`, `06` | Narrativa: problema/landing → métricas → gráficos → copiloto MV3. |
+| **Case study público** | `01`, `02`, `06` | Mínimo; acrescentar `04` se quiseres tabela/filtros. |
+| **README / GitHub (se repo visível)** | `01`–`06` | Conjunto completo canónico. |
+| **Evitar em público** | Capturas **E1–E7** (LinkedIn real), imports JSON reais, opções com chave API visível | Usar **06** em vez de Easy Apply ao vivo. |
+
+### Antes de anexar a post ou PDF
+
+1. Abrir cada PNG em tamanho real — última passagem humana (30 s por imagem).
+2. Confirmar legenda alinhada: *demo fictícia*, *sem auto-submit*, *local-first*.
+3. **Não** publicar URLs de vaga, perfil LinkedIn, e-mail, telefone, salário real nem ID de extensão.
+
+```bash
+# Metadados dos ficheiros no repo (existência + tamanho)
+ls -lh docs/applyflow/assets/*.png
+```
+
+### Estado do pacote (2026-05-18)
+
+| Item | Estado |
+|------|--------|
+| 6 PNG canónicos no disco | [x] |
+| Revisão assistida PII/overlay (2026-05-12) | [x] |
+| Selecção portfólio documentada (esta secção) | [x] |
+| Recapture obrigatório pós-smoke extensão | [ ] — **não**; opcional só se UI mudou visualmente |
+| Post 2 / anexos finais validados pelo autor | [ ] — marcar após publicar |
+
 ---
 
 ## Instruções operacionais (captura sem PII)
