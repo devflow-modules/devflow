@@ -22,7 +22,7 @@ Esta secção separa o que os **sprints de documentação e código** já alinha
 - Gravar **vídeo** (opcional) e validar áudio/legendas.
 - Verificar **demo JSON** / **posts** finais **sem** PII nem segredos visíveis *(screenshots oficiais já revistos; ver `SCREENSHOTS_CHECKLIST.md`).*
 - **Revisão final humana** (ortografia, coerência global, go/no-go público).
-- **Smoke manual (2026-05-18):** PASS — extensão validada (botão opções + `options.html`); ruído `chrome-extension://invalid/` isolado como externo ao ApplyFlow — [`smoke/SMOKE_MANUAL_2026-05-18.md`](./smoke/SMOKE_MANUAL_2026-05-18.md).
+- **Smoke manual (2026-05-18):** PASS — extensão fechada (opções, guard `/jobs*`, `chrome-extension://invalid/` externo ao ApplyFlow) — [`smoke/SMOKE_MANUAL_2026-05-18.md`](./smoke/SMOKE_MANUAL_2026-05-18.md).
 - **Landing** revalidada em navegador limpo (2026-05-18); hidratação OK — aviso `cz-shortcut-listen` confirmado como ruído de extensão do browser.
 
 ### Pendente decisão (equipa / processo)
