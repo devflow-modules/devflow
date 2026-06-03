@@ -12,24 +12,25 @@ The main signal across the portfolio is not only feature implementation. It is t
 
 ### 1. DevFlow WhatsApp Platform
 
-**Repository:** `gustavomarques00/devflow-whatsapp-platform`
+**Repository:** `devflow-modules/devflow/apps/whatsapp-platform`
 
-A production-ready multi-tenant backend for WhatsApp Cloud API operations.
+A SaaS/white-label WhatsApp operations platform built inside the DevFlow monorepo with Next.js, TypeScript, Prisma, PostgreSQL, Stripe and WhatsApp workflow modules.
 
 **Why it matters:**
 
-- Demonstrates backend architecture with Node.js, TypeScript, Express, Prisma and PostgreSQL.
-- Uses tenant-scoped data access and webhook-based integrations.
-- Includes security-focused decisions such as token encryption, phone hashing, log redaction and rate limiting.
-- Shows operational thinking around customer support, automation, metrics and platform readiness.
+- Demonstrates product engineering around a real operational workflow.
+- Combines SaaS and white-label product architecture.
+- Includes authentication, tenant onboarding, billing, metrics, agents, queues, FAQ, feedback and exports.
+- Shows operational thinking around customer support, automation, dashboards and platform readiness.
 
 **Best for evaluating:**
 
-- Backend architecture
-- Multi-tenant SaaS design
-- API/webhook integrations
-- Security engineering
-- Production readiness
+- Product engineering
+- SaaS and white-label architecture
+- Next.js App Router product structure
+- Billing and webhook integrations
+- Operational dashboards
+- Business-focused automation
 
 ---
 
@@ -108,7 +109,7 @@ For a fast technical review, follow this order:
 
 1. GitHub profile README — for positioning and project map.
 2. `devflow-modules/devflow` — for DevFlow Labs ecosystem context.
-3. `gustavomarques00/devflow-whatsapp-platform` — for backend/platform depth.
+3. `devflow-modules/devflow/apps/whatsapp-platform` — for SaaS/white-label product engineering depth.
 4. `devflow-modules/investiga-mais` — for fullstack SaaS delivery.
 5. `devflow-modules/applyflow-case-study` — for product thinking, AI and privacy-first workflows.
 6. `devflow-modules/jwt-auth` — for reusable authentication package design.
@@ -116,7 +117,7 @@ For a fast technical review, follow this order:
 ## Technical Strengths Demonstrated
 
 - Fullstack SaaS architecture
-- Multi-tenant backend design
+- SaaS and white-label product design
 - Secure authentication flows
 - JWT and HttpOnly Cookie usage
 - REST APIs and webhook integrations
@@ -133,7 +134,7 @@ For a fast technical review, follow this order:
 The portfolio should be read as a product engineering ecosystem:
 
 - **DevFlow Labs** is the product lab and umbrella narrative.
-- **WhatsApp Platform** shows platform/backend depth.
+- **WhatsApp Platform** shows SaaS/white-label product engineering and operational platform thinking.
 - **Investiga+** shows complete SaaS delivery.
 - **ApplyFlow / Career Suite** shows product strategy, AI and privacy-first workflow design.
 - **jwt-auth** shows reusable module/package engineering.
