@@ -108,7 +108,7 @@ It demonstrates how a real business workflow can evolve from messaging automatio
 - **jose** for JWT handling
 - **bcryptjs** for password hashing
 - **Stripe** through `@devflow/billing-core`
-- **@devflow/whatsapp-core`
+- `@devflow/whatsapp-core`
 - **Vitest** for unit/integration tests
 - **Playwright + axe** for accessibility checks
 
