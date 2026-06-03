@@ -3,6 +3,8 @@
  */
 
 import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
+import { isShowcaseDemoMode } from "@/lib/demoMode";
+import { DEMO_AGENTS } from "@/demo/fixtures";
 import { prisma } from "@/lib/prisma";
 
 export type OperationalAgentQueue = { id: string; name: string };
@@ -33,6 +35,10 @@ function maxDate(a: Date | null | undefined, b: Date | null | undefined): Date |
 }
 
 export async function listOperationalAgents(tenantId: string): Promise<OperationalAgentRow[]> {
+  if (isShowcaseDemoMode()) {
+    void tenantId;
+    return DEMO_AGENTS;
+  }
   const users = await prisma.user.findMany({
     where: { tenantId },
     select: {

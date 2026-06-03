@@ -24,6 +24,7 @@ export function isAuthPublicUIPagePath(pathname: string): boolean {
 
 function shouldRedirectOn401(): boolean {
   if (typeof window === "undefined") return false;
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === "true") return false;
   return !isAuthPublicUIPagePath(window.location.pathname);
 }
 

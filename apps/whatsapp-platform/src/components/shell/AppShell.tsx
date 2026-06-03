@@ -9,6 +9,7 @@ import { SupportProvider } from "@/components/support/SupportProvider";
 import { SessionRoleProvider, useSessionRole } from "@/components/navigation/SessionRoleContext";
 import { ShellLayoutProvider, useShellLayout } from "./ShellLayoutContext";
 import { ShellPage } from "./ShellPage";
+import { ShowcaseDemoBanner } from "@/components/demo/ShowcaseDemoBanner";
 import { EvaluationModeRibbon } from "./EvaluationModeRibbon";
 import { PlatformAdminContextBanner } from "./PlatformAdminContextBanner";
 import { SessionRoleModePill } from "./SessionRoleModePill";
@@ -100,6 +101,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
             ⌘K
           </span>
         </header>
+        <ShowcaseDemoBanner />
         <EvaluationModeRibbon />
         <PlatformAdminContextBanner />
         <main className="min-h-0 w-full min-w-0 flex-1 overflow-hidden">

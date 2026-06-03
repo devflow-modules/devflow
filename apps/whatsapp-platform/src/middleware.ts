@@ -4,6 +4,8 @@ import { ADMIN_METRICS_SECRET_COOKIE_NAME, JWT_COOKIE_NAME } from "@/lib/auth-co
 import { loginUrlWithNext } from "@/lib/safe-redirect";
 import { logAuth } from "@/lib/auth-logger";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { isShowcaseDemoMode } from "@/lib/demoMode";
+import { resolveDemoApiResponse } from "@/demo/resolveDemoApiResponse";
 import { isCommercialBillingVisible } from "@/lib/productMode";
 
 /**
@@ -73,6 +75,28 @@ function redirectToMetricsSecretLogin(request: NextRequest): NextResponse {
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
+
+  if (isShowcaseDemoMode()) {
+    if (path.startsWith("/api/")) {
+      const mock = resolveDemoApiResponse(request);
+      if (mock !== null) {
+        if (mock.status === 204) {
+          return new NextResponse(null, { status: 204, headers: mock.headers });
+        }
+        return NextResponse.json(mock.body, {
+          status: mock.status,
+          headers: {
+            "Cache-Control": "no-store",
+            "X-Demo-Mode": "showcase",
+            ...mock.headers,
+          },
+        });
+      }
+    }
+    if (requiresTenantSession(path)) {
+      return NextResponse.next();
+    }
+  }
 
   if (!isCommercialBillingVisible()) {
     if (

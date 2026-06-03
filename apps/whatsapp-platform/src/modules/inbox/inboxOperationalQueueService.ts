@@ -3,6 +3,8 @@
  */
 
 import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
+import { isShowcaseDemoMode } from "@/lib/demoMode";
+import { DEMO_QUEUES } from "@/demo/fixtures";
 import { prisma } from "@/lib/prisma";
 import { SLA_TIER_HIGH_MAX_MS } from "./waInboxSla";
 
@@ -215,6 +217,10 @@ export type OperationalQueueWithMetrics = {
 export async function listOperationalQueuesWithMetrics(
   tenantId: string
 ): Promise<OperationalQueueWithMetrics[]> {
+  if (isShowcaseDemoMode()) {
+    void tenantId;
+    return DEMO_QUEUES;
+  }
   const queues = await prisma.waInboxQueue.findMany({
     where: { tenantId },
     orderBy: [{ isActive: "desc" }, { name: "asc" }],

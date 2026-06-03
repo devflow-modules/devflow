@@ -9,6 +9,44 @@ It is implemented as a **Next.js 16 + TypeScript** app inside the DevFlow monore
 
 ---
 
+## Demo / Showcase
+
+This app includes a safe demo mode for portfolio review.
+
+Enable it with:
+
+```env
+NEXT_PUBLIC_DEMO_MODE=true
+NEXT_PUBLIC_PRODUCT_MODE=SAAS
+```
+
+The demo mode uses mocked tenants, agents, queues, conversations, metrics and billing data. It does not require real Meta, Stripe, Supabase or database credentials.
+
+- [Demo Walkthrough](./docs/DEMO-WALKTHROUGH.md) — activation, tour, video script  
+- [Showcase Review](./docs/SHOWCASE-REVIEW.md) — what to look for as a reviewer  
+- [Assets checklist](./docs/assets/README.md) — screenshot filenames  
+
+```bash
+cd apps/whatsapp-platform && pnpm dev
+```
+
+## Screenshots (demo mode)
+
+> Capture PNGs under `docs/assets/` with `NEXT_PUBLIC_DEMO_MODE=true`, then uncomment:
+
+<!--
+![Dashboard metrics](./docs/assets/01-dashboard-metrics.png)
+![Onboarding wizard](./docs/assets/02-onboarding-wizard.png)
+![Agents screen](./docs/assets/03-agents-screen.png)
+![Queues screen](./docs/assets/04-queues-screen.png)
+![Inbox conversation](./docs/assets/05-inbox-conversation.png)
+![Settings page](./docs/assets/06-settings-page.png)
+![Billing plan](./docs/assets/07-billing-plan.png)
+![White-label mode](./docs/assets/08-white-label-mode.png)
+-->
+
+---
+
 ## Recruiter Summary
 
 This app is one of the strongest DevFlow Labs portfolio projects for evaluating product engineering, SaaS architecture, operational dashboards and business-focused automation.

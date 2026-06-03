@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isShowcaseDemoMode } from "@/lib/demoMode";
+import { getDemoAuthResult } from "@/demo/demoAuth";
 import { verifyTokenResult } from "./authService";
 import { getTokenFromCookie } from "./cookies";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
@@ -29,6 +31,9 @@ export interface AuthResult {
  * Claims finais vêm da DB (role, tenant, email, nome) para evitar dados obsoletos no token.
  */
 export async function validateAuthToken(rawToken: string): Promise<AuthResult | null> {
+  if (isShowcaseDemoMode()) {
+    return getDemoAuthResult();
+  }
   const verified = await verifyTokenResult(rawToken);
   if (!verified.ok) {
     logAuth({
@@ -104,6 +109,9 @@ export async function validateAuthToken(rawToken: string): Promise<AuthResult | 
 }
 
 export async function getAuthFromRequest(request: NextRequest): Promise<AuthResult | null> {
+  if (isShowcaseDemoMode()) {
+    return getDemoAuthResult();
+  }
   const fromCookie = request.cookies.get(JWT_COOKIE_NAME)?.value;
   const token = fromCookie ?? getTokenFromCookie(request.headers.get("cookie"));
   if (!token) return null;

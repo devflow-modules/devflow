@@ -1,5 +1,7 @@
 import { cookies } from "next/headers";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
+import { isShowcaseDemoMode } from "@/lib/demoMode";
+import { getDemoTenantSnapshot } from "@/demo/demoAuth";
 import { validateAuthToken } from "@/modules/auth/verifyToken";
 import { prisma } from "@/lib/prisma";
 import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
@@ -26,6 +28,9 @@ export type TenantSnapshot =
  * Estado mínimo do tenant para onboarding / dashboard (RSC).
  */
 export async function getTenantSnapshot(): Promise<TenantSnapshot> {
+  if (isShowcaseDemoMode()) {
+    return getDemoTenantSnapshot();
+  }
   try {
     const store = await cookies();
     const token = store.get(JWT_COOKIE_NAME)?.value;
