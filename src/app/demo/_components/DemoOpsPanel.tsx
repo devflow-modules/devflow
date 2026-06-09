@@ -13,9 +13,12 @@ const STATUS_LABEL: Record<DemoOpsStatus, string> = {
 
 const STATUS_STYLE: Record<DemoOpsStatus, string> = {
   nova: "bg-muted df-text-secondary ring-1 ring-border/55",
-  bot_ativo: "bg-emerald-50 text-emerald-800 ring-emerald-200",
-  aguardando_humano: "bg-amber-50 text-amber-900 ring-amber-200",
-  na_fila: "bg-blue-50 text-blue-900 ring-blue-200",
+  bot_ativo:
+    "df-bg-success-soft df-status-success ring-1 ring-inset ring-[color-mix(in_srgb,var(--devflow-success)_35%,transparent)]",
+  aguardando_humano:
+    "df-bg-warning-soft df-status-warning ring-1 ring-inset ring-[color-mix(in_srgb,var(--devflow-warning)_35%,transparent)]",
+  na_fila:
+    "df-bg-info-soft df-status-info ring-1 ring-inset ring-[color-mix(in_srgb,var(--devflow-info)_35%,transparent)]",
 };
 
 type DemoOpsPanelVariant =

@@ -19,8 +19,8 @@ const paths = [
     icon: MessageCircle,
     track: "hub_pillar_automation" as const,
     foot: "Solução principal · API oficial Meta",
-    accent: "border-emerald-500/30 bg-emerald-500/[0.06] hover:border-emerald-500/45",
-    iconClass: "bg-emerald-500/15 text-emerald-700",
+    accent: "df-border-brand df-bg-brand-soft hover:border-[color-mix(in_srgb,var(--devflow-brand)_40%,transparent)]",
+    iconClass: "df-bg-brand-soft df-status-brand",
     featured: true,
   },
   {
@@ -43,8 +43,8 @@ const paths = [
     icon: TrendingUp,
     track: "hub_pillar_products" as const,
     foot: "Complementar · Não substitui a WhatsApp Platform",
-    accent: "border-sky-400/35 bg-sky-400/[0.08] hover:border-sky-300/50",
-    iconClass: "bg-sky-400/20 text-sky-200",
+    accent: "df-border-brand bg-[var(--devflow-surface-elevated)] hover:border-[color-mix(in_srgb,var(--devflow-brand)_25%,transparent)]",
+    iconClass: "bg-muted/50 df-text-secondary",
     featured: false,
   },
 ];
@@ -82,7 +82,7 @@ export function WhereToStartSection() {
                   "shadow-sm transition-all duration-300",
                   "hover:-translate-y-1 hover:shadow-lg",
                   p.accent,
-                  p.featured && "ring-1 ring-emerald-500/20"
+                  p.featured && "ring-1 ring-[color-mix(in_srgb,var(--devflow-brand)_20%,transparent)]"
                 )}
               >
                 <div

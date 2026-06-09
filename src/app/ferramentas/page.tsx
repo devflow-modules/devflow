@@ -40,8 +40,8 @@ const TOOLS = [
   {
     slug: "consulta-cnpj",
     icon: Building2,
-    iconBg: "bg-orange-500/10",
-    iconColor: "text-orange-500",
+    iconBg: "bg-muted/50",
+    iconColor: "df-text-secondary",
     title: "Consulta CNPJ",
     description: "Dados de empresas na base da Receita Federal em segundos.",
     cta: "Usar agora",

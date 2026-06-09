@@ -47,11 +47,11 @@ export default function PricingPage() {
                 key={id}
                 className={cn(
                   "flex flex-col rounded-2xl border bg-card p-6 shadow-sm transition-shadow hover:shadow-md",
-                  isPro && "border-primary ring-2 ring-primary/20 lg:scale-[1.02] lg:shadow-lg"
+                  isPro && "df-bg-brand-soft ring-2 ring-[color-mix(in_srgb,var(--devflow-brand)_22%,transparent)] lg:scale-[1.02] lg:shadow-lg"
                 )}
               >
                 {isPro && (
-                  <span className="mb-2 inline-block w-fit rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+                  <span className="mb-2 inline-block w-fit rounded-full df-bg-brand-soft px-3 py-1 text-xs font-semibold uppercase tracking-wide df-status-brand">
                     CTA principal da demo
                   </span>
                 )}
@@ -72,16 +72,16 @@ export default function PricingPage() {
 
                 <ul className="mt-5 flex-1 space-y-2.5 text-sm text-foreground">
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 shrink-0 text-emerald-600" />
+                    <Check className="h-4 w-4 shrink-0 df-status-success" />
                     {plan.maxHouseholds === 1 ? "1 casa financeira" : `Até ${plan.maxHouseholds} casas`}
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 shrink-0 text-emerald-600" />
+                    <Check className="h-4 w-4 shrink-0 df-status-success" />
                     Até {plan.maxRules} regras de rateio
                   </li>
                   <li className="flex items-center gap-2">
                     {plan.features.advancedRules ? (
-                      <Check className="h-4 w-4 shrink-0 text-emerald-600" />
+                      <Check className="h-4 w-4 shrink-0 df-status-success" />
                     ) : (
                       <span className="h-4 w-4 shrink-0 text-center text-muted-foreground">—</span>
                     )}
@@ -89,7 +89,7 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-center gap-2">
                     {plan.features.exports ? (
-                      <Check className="h-4 w-4 shrink-0 text-emerald-600" />
+                      <Check className="h-4 w-4 shrink-0 df-status-success" />
                     ) : (
                       <span className="h-4 w-4 shrink-0 text-center text-muted-foreground">—</span>
                     )}
@@ -97,7 +97,7 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-center gap-2">
                     {plan.features.analytics ? (
-                      <Check className="h-4 w-4 shrink-0 text-emerald-600" />
+                      <Check className="h-4 w-4 shrink-0 df-status-success" />
                     ) : (
                       <span className="h-4 w-4 shrink-0 text-center text-muted-foreground">—</span>
                     )}

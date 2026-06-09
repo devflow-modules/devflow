@@ -36,7 +36,7 @@ export function CtaBlock({
 
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="df-surface-elevated mx-auto max-w-2xl rounded-2xl border border-border p-8 text-center shadow-sm sm:p-12">
-          <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
+          <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-[var(--devflow-brand)]" aria-hidden />
           <h2
             id="cta-block-heading"
             className="df-text-primary text-2xl font-semibold tracking-tight sm:text-3xl"
@@ -49,8 +49,7 @@ export function CtaBlock({
             <Link
               href={primaryHref}
               className={cn(
-                "inline-flex items-center justify-center gap-2 h-12 rounded-xl px-6 text-base font-semibold",
-                "bg-primary text-primary-foreground transition-all duration-200 hover:bg-[#00A86B]"
+                "df-btn-primary df-shadow-cta inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-base font-semibold"
               )}
             >
               {primaryLabel}
@@ -59,9 +58,7 @@ export function CtaBlock({
             {secondaryLink ? (
               <Link
                 href={secondaryLink.href}
-                className={cn(
-                  "inline-flex h-12 min-w-[10rem] items-center justify-center gap-2 rounded-xl border df-border-brand bg-background px-6 text-base font-semibold text-foreground transition-colors hover:bg-primary/10"
-                )}
+                className="df-btn-secondary inline-flex h-12 min-w-[10rem] items-center justify-center gap-2 rounded-xl px-6 text-base font-semibold transition-colors"
               >
                 {secondaryLink.label}
               </Link>

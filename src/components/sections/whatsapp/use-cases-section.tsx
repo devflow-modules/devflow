@@ -53,8 +53,8 @@ export function UseCasesSection() {
             key={item.segment}
             className="rounded-2xl border border-border bg-card p-6 shadow-[0_12px_40px_-18px_rgba(15,23,42,0.1)]"
           >
-            <div className="flex size-9 items-center justify-center rounded-xl bg-sky-500/10">
-              <item.icon className="size-4 text-sky-700" aria-hidden />
+            <div className="flex size-9 items-center justify-center rounded-xl df-bg-info-soft">
+              <item.icon className="size-4 df-status-info" aria-hidden />
             </div>
             <h3 className="mt-5 text-base font-bold tracking-tight text-foreground">{item.segment}</h3>
             <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">{item.result}</p>

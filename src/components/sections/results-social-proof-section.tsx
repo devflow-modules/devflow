@@ -7,17 +7,17 @@ const stories = [
   {
     antes: "Demorava horas pra organizar tudo",
     depois: "Agora faço em minutos",
-    accent: "border-l-primary",
+    accent: "border-l-[var(--devflow-brand)]",
   },
   {
     antes: "Cliente esperando resposta",
     depois: "Automático 24h",
-    accent: "border-l-emerald-500",
+    accent: "border-l-[var(--devflow-success)]",
   },
   {
     antes: "Planilha espalhada",
     depois: "Um painel, visão clara",
-    accent: "border-l-blue-500",
+    accent: "border-l-[var(--devflow-info)]",
   },
 ];
 
@@ -30,7 +30,7 @@ export function ResultsSocialProofSection() {
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+          <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border df-bg-brand-soft px-3 py-1 text-xs font-semibold df-status-brand">
             <TrendingUp className="size-3.5" aria-hidden />
             Antes → depois
           </div>
@@ -48,7 +48,7 @@ export function ResultsSocialProofSection() {
             <li
               key={s.antes}
               className={cn(
-                "rounded-2xl border border-border bg-card p-7 shadow-sm",
+                "df-surface rounded-2xl p-7 shadow-sm",
                 "transition-shadow hover:shadow-md"
               )}
             >
@@ -59,8 +59,8 @@ export function ResultsSocialProofSection() {
                 <p className="df-text-primary mt-2 text-sm font-medium leading-relaxed">{s.antes}</p>
               </div>
               <div className="my-5 h-px bg-border" aria-hidden />
-              <div className="rounded-xl bg-primary/5 px-4 py-3">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-primary">Depois</p>
+              <div className="rounded-xl df-bg-brand-soft px-4 py-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider df-status-brand">Depois</p>
                 <p className="df-text-primary mt-2 text-sm font-semibold leading-relaxed">{s.depois}</p>
               </div>
             </li>
@@ -72,7 +72,7 @@ export function ResultsSocialProofSection() {
             href="/projetos"
             className={cn(
               "df-btn-primary inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
-              "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)]"
+              "df-shadow-cta"
             )}
           >
             {VER_EXEMPLO_REAL_CTA_LABEL}

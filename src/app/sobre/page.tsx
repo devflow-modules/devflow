@@ -124,17 +124,16 @@ export default function SobrePage() {
           </div>
         </section>
 
-        <div className="mt-14 rounded-2xl border border-border bg-card p-6 shadow-[0_20px_60px_-28px_rgba(15,23,42,0.2)] sm:p-8">
-          <p className="text-center text-xs font-bold uppercase tracking-[0.2em] text-primary/90">
+        <div className="mt-14 df-surface-elevated rounded-2xl p-6 shadow-[0_20px_60px_-28px_rgba(0,0,0,0.32)] sm:p-8">
+          <p className="text-center text-xs font-bold uppercase tracking-[0.2em] df-status-brand">
             Próximo passo
           </p>
           <div className="mt-6 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
             <Link
               href="/demo"
               className={cn(
-                "inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-semibold text-primary-foreground",
-                "bg-primary shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] transition-all hover:brightness-[1.03] active:brightness-[0.98]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 focus-visible:ring-offset-2"
+                "df-btn-primary df-shadow-cta inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-semibold",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--devflow-brand)_50%,transparent)] focus-visible:ring-offset-2"
               )}
             >
               Ver demo

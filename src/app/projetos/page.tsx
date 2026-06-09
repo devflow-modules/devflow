@@ -44,9 +44,9 @@ const operationalProjects = projects.filter((p) => !p.isExperimental);
 const experimentalProjects = projects.filter((p) => p.isExperimental);
 
 const cardBase = cn(
-  "df-section-dark flex h-full flex-col rounded-2xl border df-border-dark bg-card",
-  "shadow-[0_18px_50px_-24px_rgba(15,23,42,0.18)] transition-all duration-200",
-  "hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_22px_55px_-20px_rgba(15,23,42,0.22)]"
+  "df-surface-elevated flex h-full flex-col rounded-2xl",
+  "shadow-[0_18px_50px_-24px_rgba(0,0,0,0.28)] transition-all duration-200",
+  "hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--devflow-brand)_28%,transparent)] hover:shadow-[0_22px_55px_-20px_rgba(0,0,0,0.35)]"
 );
 
 function ProjectCta({ project }: { project: Project }) {
@@ -76,7 +76,7 @@ function ProjectCta({ project }: { project: Project }) {
       href={project.url}
       className={cn(
         btnClass,
-        "df-btn-primary shadow-[0_12px_36px_-10px_rgba(22,163,74,0.45)] active:brightness-[0.98]"
+        "df-btn-primary df-shadow-cta-soft active:scale-[0.98]"
       )}
     >
       {project.ctaLabel}
@@ -95,7 +95,7 @@ function ProjectCard({ project }: { project: Project }) {
         featured
           ? cn(
               "p-8 sm:p-10 lg:p-12",
-              "ring-1 ring-primary/30 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.16),transparent_35%),linear-gradient(135deg,rgba(6,32,26,0.95),rgba(2,8,7,1))]"
+              "ring-1 ring-[color-mix(in_srgb,var(--devflow-brand)_30%,transparent)] bg-[radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--devflow-brand)_16%,transparent),transparent_35%),linear-gradient(135deg,var(--devflow-surface-elevated),var(--devflow-background))]"
             )
           : "p-6 sm:p-8",
         project.isExperimental &&
@@ -103,19 +103,19 @@ function ProjectCard({ project }: { project: Project }) {
       )}
     >
       {featured ? (
-        <span className="mb-4 inline-flex w-fit items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary sm:text-[0.8125rem]">
+        <span className="mb-4 inline-flex w-fit items-center rounded-full border df-bg-brand-soft px-3 py-1 text-xs font-bold uppercase tracking-wide df-status-brand sm:text-[0.8125rem]">
           Produto principal
         </span>
       ) : null}
       {project.isExperimental ? (
-        <span className="mb-3 inline-flex w-fit items-center rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-primary">
+        <span className="mb-3 inline-flex w-fit items-center rounded-full border df-border-brand bg-muted/30 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide df-text-secondary">
           Laboratório
         </span>
       ) : null}
 
       <h2
         className={cn(
-          "font-bold tracking-tight text-foreground",
+          "font-bold tracking-tight df-text-primary",
           featured ? "text-2xl sm:text-3xl" : "text-xl"
         )}
       >
@@ -123,7 +123,7 @@ function ProjectCard({ project }: { project: Project }) {
       </h2>
       <p
         className={cn(
-          "font-semibold text-primary",
+          "font-semibold df-status-brand",
           featured ? "mt-2 text-lg sm:text-xl" : "mt-1 text-base sm:text-[1.0625rem]"
         )}
       >
@@ -154,9 +154,9 @@ function ProjectCard({ project }: { project: Project }) {
 
 function EndCtaBlock() {
   return (
-    <div className="df-section-dark mx-auto mt-20 max-w-3xl rounded-2xl border df-border-dark bg-card px-6 py-10 text-center shadow-[0_24px_70px_-28px_rgba(15,23,42,0.2)] sm:px-12 sm:py-12">
-      <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary sm:text-xs">Próximo passo</p>
-      <h2 className="mt-3 text-balance text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+    <div className="df-surface-elevated mx-auto mt-20 max-w-3xl rounded-2xl px-6 py-10 text-center shadow-[0_24px_70px_-28px_rgba(0,0,0,0.35)] sm:px-12 sm:py-12">
+      <p className="text-sm font-bold uppercase tracking-[0.2em] df-status-brand sm:text-xs">Próximo passo</p>
+      <h2 className="mt-3 text-balance text-xl font-bold tracking-tight df-text-primary sm:text-2xl">
         Veja a WhatsApp Platform em ação
       </h2>
       <p className="df-text-secondary mx-auto mt-3 max-w-lg text-[0.9375rem] leading-relaxed sm:text-base">
@@ -167,7 +167,7 @@ function EndCtaBlock() {
           href="/demo"
           className={cn(
             "df-btn-primary h-12 flex-1 rounded-xl px-6 text-sm font-semibold",
-            "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] sm:min-w-[11rem]"
+            "df-shadow-cta sm:min-w-[11rem]"
           )}
         >
           Ver demo
@@ -200,16 +200,16 @@ export default function ProjetosPage() {
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <header className="mx-auto max-w-3xl text-center">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary/90">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] df-status-brand">
               Ecossistema DevFlow
             </p>
             <h1
               id="projetos-hero-heading"
-              className="mt-3 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+              className="mt-3 text-balance text-3xl font-bold tracking-tight df-text-primary sm:text-4xl"
             >
               Sistemas reais em operação no WhatsApp e financeiro
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg font-semibold leading-snug text-foreground sm:text-xl">
+            <p className="mx-auto mt-6 max-w-2xl text-lg font-semibold leading-snug df-text-primary sm:text-xl">
               Esses não são apenas projetos. São sistemas reais em operação.
             </p>
             <p className="df-text-secondary mx-auto mt-4 max-w-2xl text-[1.0625rem] leading-relaxed sm:text-[1.05rem]">
@@ -245,7 +245,7 @@ export default function ProjetosPage() {
           <p className="mt-14 text-center">
             <Link
               href="/"
-              className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
+              className="text-sm font-semibold df-status-brand underline-offset-4 hover:underline"
             >
               ← Voltar ao início
             </Link>

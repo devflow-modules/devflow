@@ -221,8 +221,8 @@ export function DemoGuidedExperience() {
             <Link
               href={PRIMARY_CONVERT_HREF}
               className={cn(
-                "inline-flex h-12 min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground",
-                "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] transition-colors hover:bg-[#16a34a]"
+                "df-btn-primary inline-flex h-12 min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
+                "df-shadow-cta"
               )}
               onClick={() =>
                 trackFunnelCtaClick({ cta: "agendar_diagnostico", surface: "demo_hero_primary" })
@@ -283,9 +283,9 @@ export function DemoGuidedExperience() {
           </div>
 
           {phase === "success" ? (
-            <div className="df-surface-elevated mx-auto mt-8 max-w-xl rounded-2xl border border-emerald-500/35 bg-emerald-500/10 p-6 text-center shadow-sm sm:mt-12 sm:p-8">
-              <CheckCircle2 className="mx-auto size-12 text-emerald-600" aria-hidden />
-              <h3 className="mt-4 text-balance text-xl font-semibold text-foreground">
+            <div className="df-surface-elevated mx-auto mt-8 max-w-xl rounded-2xl border df-bg-success-soft p-6 text-center shadow-sm sm:mt-12 sm:p-8">
+              <CheckCircle2 className="mx-auto size-12 df-status-success" aria-hidden />
+              <h3 className="mt-4 text-balance text-xl font-semibold df-text-primary">
                 Próximo passo: diagnóstico da sua operação
               </h3>
               <p className="df-text-secondary mt-2 text-sm leading-relaxed">
@@ -296,8 +296,8 @@ export function DemoGuidedExperience() {
                 <Link
                   href={PRIMARY_CONVERT_HREF}
                   className={cn(
-                    "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-base font-semibold text-primary-foreground",
-                    "shadow-[0_14px_40px_-6px_rgba(34,197,94,0.28)] hover:bg-[#16a34a]"
+                    "df-btn-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-base font-semibold",
+                    "df-shadow-cta"
                   )}
                   onClick={() =>
                     trackFunnelCtaClick({ cta: "agendar_diagnostico", surface: "demo_success_primary" })
@@ -367,16 +367,16 @@ export function DemoGuidedExperience() {
 
                   {handoffBanner && phase === "chat" && (
                     <div
-                      className="flex items-start gap-3 border-b border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
+                      className="flex items-start gap-3 border-b df-bg-warning-soft px-4 py-3 text-sm df-status-warning"
                       role="status"
                       aria-live="polite"
                     >
-                      <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-100">
+                      <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg df-bg-warning-soft df-status-warning">
                         <UserRound className="size-5" aria-hidden />
                       </span>
                       <div>
                         <p className="font-semibold">Handoff humano ativo</p>
-                        <p className="mt-0.5 text-amber-100/90">
+                        <p className="mt-0.5 df-text-secondary">
                           A IA encerrou a automação neste ponto. Na operação real, a conversa entra na fila com SLA,
                           prioridade e histórico completo para o atendente assumir.
                         </p>
@@ -413,7 +413,7 @@ export function DemoGuidedExperience() {
                                   ? "rounded-tr-md bg-primary text-primary-foreground"
                                   : "rounded-tl-md border df-border-brand bg-card/60 text-foreground",
                                 msg.handoff &&
-                                  "border-amber-500/35 bg-amber-500/10 text-amber-100 ring-1 ring-amber-500/25"
+                                  "df-bg-warning-soft df-status-warning ring-1 ring-[color-mix(in_srgb,var(--devflow-warning)_25%,transparent)]"
                               )}
                             >
                               <BubbleBody text={msg.text} />
@@ -547,7 +547,7 @@ export function DemoGuidedExperience() {
               href={PRIMARY_CONVERT_HREF}
               className={cn(
                 demoCtaSecondaryClass,
-                "border-transparent bg-primary text-primary-foreground hover:bg-[#16a34a] sm:min-h-12"
+                "df-btn-primary df-shadow-cta sm:min-h-12"
               )}
               onClick={() =>
                 trackFunnelCtaClick({ cta: "agendar_diagnostico", surface: "demo_footer_primary" })

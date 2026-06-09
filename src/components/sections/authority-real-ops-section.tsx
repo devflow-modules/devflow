@@ -23,7 +23,7 @@ export function AuthorityRealOpsSection() {
   return (
     <section
       id="autoridade-operacao"
-      className="border-y border-border bg-muted py-12 text-white sm:py-16 lg:py-20"
+      className="border-y df-border-brand bg-[var(--devflow-surface)] py-12 sm:py-16 lg:py-20"
       aria-labelledby="authority-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -45,12 +45,12 @@ export function AuthorityRealOpsSection() {
             <li
               key={p.title}
               className={cn(
-                "rounded-2xl border border-white/10 bg-card/5 p-7",
-                "transition-colors hover:border-primary/35"
+                "df-surface-elevated rounded-2xl p-7",
+                "transition-colors hover:border-[color-mix(in_srgb,var(--devflow-brand)_35%,transparent)]"
               )}
             >
-              <div className="flex size-11 items-center justify-center rounded-xl bg-primary/20">
-                <p.icon className="size-6 text-primary" aria-hidden />
+              <div className="flex size-11 items-center justify-center rounded-xl df-bg-brand-soft">
+                <p.icon className="size-6 df-status-brand" aria-hidden />
               </div>
               <h3 className="df-text-primary mt-5 font-bold">{p.title}</h3>
               <p className="df-text-secondary mt-3 text-sm leading-relaxed">{p.text}</p>

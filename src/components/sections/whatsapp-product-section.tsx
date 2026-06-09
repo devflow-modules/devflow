@@ -92,7 +92,7 @@ export function WhatsAppProductSection() {
                 aria-label="Ver página da WhatsApp Platform com detalhes do produto"
                 className={cn(
                   "df-btn-primary inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
-                  "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] sm:w-auto"
+                  "df-shadow-cta sm:w-auto"
                 )}
               >
                 {PLATFORM_IN_ACTION_CTA_LABEL}
@@ -116,15 +116,15 @@ export function WhatsAppProductSection() {
             <div className="df-surface-elevated rounded-2xl border-2 p-6 shadow-[0_12px_48px_rgba(0,0,0,0.25)]">
               <div className="mb-4 flex items-center justify-between">
                 <p className="df-text-primary text-sm font-bold">Painel — hoje</p>
-                <span className="rounded-full bg-primary/12 px-2.5 py-1 text-xs font-bold text-primary">
+                <span className="rounded-full df-bg-brand-soft px-2.5 py-1 text-xs font-bold df-status-brand">
                   Produção
                 </span>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { label: "Mensagens", value: "1.247", color: "text-primary" },
-                  { label: "No bot", value: "74%", color: "text-sky-600" },
-                  { label: "Humanos", value: "23", color: "text-orange-600" },
+                  { label: "Mensagens", value: "1.247", color: "df-status-brand" },
+                  { label: "No bot", value: "74%", color: "df-status-info" },
+                  { label: "Humanos", value: "23", color: "df-status-warning" },
                 ].map((stat) => (
                   <div key={stat.label} className="rounded-xl bg-muted/30 p-3 text-center">
                     <p className={cn("text-xl font-extrabold", stat.color)}>{stat.value}</p>
@@ -139,9 +139,9 @@ export function WhatsAppProductSection() {
                   Fila recente
                 </p>
                 {[
-                  { name: "Cliente A", status: "Resolvido pelo bot", time: "agora", dot: "bg-primary" },
-                  { name: "Cliente B", status: "Com atendente", time: "2 min", dot: "bg-orange-400" },
-                  { name: "Cliente C", status: "Aguardando", time: "5 min", dot: "bg-sky-500" },
+                  { name: "Cliente A", status: "Resolvido pelo bot", time: "agora", dot: "df-dot-brand" },
+                  { name: "Cliente B", status: "Com atendente", time: "2 min", dot: "df-dot-warning" },
+                  { name: "Cliente C", status: "Aguardando", time: "5 min", dot: "df-dot-info" },
                 ].map((conv) => (
                   <div
                     key={conv.name}

@@ -10,21 +10,21 @@ const inboxRows = [
     contact: "ACME · Upgrade anual",
     meta: "Digitando resposta… · SLA 6m",
     score: "94",
-    tone: "border-emerald-200/80 bg-emerald-50/60",
+    tone: "df-bg-success-soft",
   },
   {
     initials: "CH",
     contact: "Clínica Horizonte",
     meta: "Fluxo disparado há 9s · PDF enviado",
     score: "81",
-    tone: "border-sky-200/80 bg-sky-50/50",
+    tone: "df-bg-info-soft",
   },
   {
     initials: "SN",
     contact: "Studio North · Proposta",
     meta: "Carla assumiu há 1m · deal quente",
     score: "88",
-    tone: "border-amber-200/80 bg-amber-50/50",
+    tone: "df-bg-warning-soft",
   },
 ];
 
@@ -32,12 +32,12 @@ const automationRuns = [
   {
     name: "Qualificação B2B",
     status: "14/min",
-    tone: "text-emerald-700 bg-emerald-500/10 border-emerald-500/20",
+    tone: "df-bg-success-soft df-status-success",
   },
   {
     name: "Suporte nível 1",
     status: "Ativo",
-    tone: "text-sky-800 bg-sky-500/10 border-sky-500/20",
+    tone: "df-bg-info-soft df-status-info",
   },
   {
     name: "Pós-venda D+7",
@@ -56,10 +56,10 @@ export function ProductPreviewSection() {
   return (
     <Section aria-labelledby="product-preview-heading" className="py-20 sm:py-24">
       <div className="mx-auto max-w-3xl text-center">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary/90 sm:text-sm">Isso roda agora</p>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] df-status-brand sm:text-sm">Isso roda agora</p>
         <h2
           id="product-preview-heading"
-          className="mt-3 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+          className="mt-3 text-balance text-3xl font-bold tracking-tight df-text-primary sm:text-4xl"
         >
           Sua fila respondendo sozinha enquanto o comercial fecha no timing certo
         </h2>
@@ -74,26 +74,26 @@ export function ProductPreviewSection() {
           <div className="overflow-hidden rounded-[1.3rem] border df-border-brand bg-card">
             <div className="flex items-center gap-2 border-b border-border bg-muted px-4 py-2.5">
               <span className="flex gap-1.5" aria-hidden>
-                <span className="size-2.5 rounded-full bg-red-400/90" />
-                <span className="size-2.5 rounded-full bg-amber-400/90" />
-                <span className="size-2.5 rounded-full bg-emerald-400/90" />
+                <span className="size-2.5 rounded-full df-dot-danger opacity-90" />
+                <span className="size-2.5 rounded-full df-dot-warning opacity-90" />
+                <span className="size-2.5 rounded-full df-dot-brand opacity-90" />
               </span>
               <p className="df-text-secondary ml-2 min-w-0 flex-1 truncate text-center text-[11px] font-medium">
                 DevFlow WhatsApp Platform
               </p>
-              <span className="shrink-0 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-400">
+              <span className="shrink-0 rounded-full df-bg-brand-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide df-status-brand">
                 Produção
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-emerald-950/35 px-3 py-2 sm:px-4">
-              <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-emerald-200 sm:text-[11px]">
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5">
-                  <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" aria-hidden />
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b df-border-brand bg-[var(--devflow-surface-elevated)] px-3 py-2 sm:px-4">
+              <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wide df-text-secondary sm:text-[11px]">
+                <span className="inline-flex items-center gap-1 rounded-full df-bg-brand-soft px-2 py-0.5 df-status-brand">
+                  <span className="size-1.5 animate-pulse rounded-full df-dot-brand" aria-hidden />
                   14 msgs/min
                 </span>
-                <span className="rounded-full bg-muted/50 px-2 py-0.5 text-foreground ring-1 ring-border">3 fluxos ativos</span>
-                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-amber-100">2 SLA críticos</span>
+                <span className="rounded-full bg-muted/50 px-2 py-0.5 df-text-primary ring-1 ring-border">3 fluxos ativos</span>
+                <span className="rounded-full df-bg-warning-soft px-2 py-0.5 df-status-warning">2 SLA críticos</span>
               </div>
               <span className="df-text-secondary text-[10px] font-semibold sm:text-[11px]">Último evento há 3s</span>
             </div>
@@ -158,19 +158,19 @@ export function ProductPreviewSection() {
                       <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Conversa ativa</p>
                       <p className="mt-1 truncate text-sm font-bold text-foreground">ACME · Upgrade anual</p>
                       <div className="mt-2 flex flex-wrap gap-1.5">
-                        <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                        <span className="rounded-md df-bg-success-soft px-2 py-0.5 text-[10px] font-bold df-status-success">
                           Score 94
                         </span>
-                        <span className="rounded-md bg-muted/35 px-2 py-0.5 text-[10px] font-semibold text-foreground">
+                        <span className="rounded-md bg-muted/35 px-2 py-0.5 text-[10px] font-semibold df-text-primary">
                           SLA 8m
                         </span>
-                        <span className="rounded-md bg-sky-500/10 px-2 py-0.5 text-[10px] font-bold text-sky-900">
+                        <span className="rounded-md df-bg-info-soft px-2 py-0.5 text-[10px] font-bold df-status-info">
                           Vendas
                         </span>
                       </div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-1.5 rounded-full border border-amber-200/80 bg-amber-50 px-2.5 py-1 text-[10px] font-bold text-amber-950 shadow-sm">
-                      <Clock3 className="size-3.5 text-amber-700" aria-hidden />
+                    <div className="flex shrink-0 items-center gap-1.5 rounded-full df-bg-warning-soft px-2.5 py-1 text-[10px] font-bold df-status-warning shadow-sm">
+                      <Clock3 className="size-3.5" aria-hidden />
                       SLA 6m · fila quente
                     </div>
                   </div>
@@ -182,14 +182,14 @@ export function ProductPreviewSection() {
                       </span>
                       Vi renovação anual. Confirmo 42 licenças e já mando link de pagamento?
                     </div>
-                    <div className="ml-auto max-w-[88%] rounded-2xl rounded-tr-md bg-muted px-3.5 py-2.5 text-xs leading-relaxed text-white shadow-md">
+                    <div className="ml-auto max-w-[88%] rounded-2xl rounded-tr-md bg-muted px-3.5 py-2.5 text-xs leading-relaxed df-text-primary shadow-md">
                       <span className="df-text-secondary mb-1 block text-[10px] font-semibold uppercase tracking-wide">
                         Cliente · agora
                       </span>
                       São 42 licenças. Preciso falar com alguém sobre desconto progressivo.
                     </div>
-                    <div className="max-w-[88%] rounded-2xl rounded-tl-md border border-emerald-200/90 bg-emerald-50 px-3.5 py-2.5 text-xs font-medium leading-relaxed text-emerald-950 shadow-sm">
-                      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-emerald-800/80">
+                    <div className="max-w-[88%] rounded-2xl rounded-tl-md border df-bg-success-soft px-3.5 py-2.5 text-xs font-medium leading-relaxed df-text-primary shadow-sm">
+                      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide df-status-success">
                         Sistema · +1s
                       </span>
                       Carla já entrou com score, histórico e última proposta — zero retrabalho.
@@ -208,7 +208,7 @@ export function ProductPreviewSection() {
                   <article className="rounded-2xl border border-border bg-muted/15 p-4 shadow-sm sm:p-5">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-sm font-bold text-foreground">Automação em execução</p>
-                      <Bot className="size-4 text-primary" aria-hidden />
+                      <Bot className="size-4 df-status-brand" aria-hidden />
                     </div>
                     <div className="mt-3 flex flex-col gap-2">
                       {automationRuns.map((run) => (
@@ -229,7 +229,7 @@ export function ProductPreviewSection() {
                   <article className="rounded-2xl border border-border bg-muted/15 p-4 shadow-sm sm:p-5">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-sm font-bold text-foreground">Resultado hoje</p>
-                      <BarChart3 className="size-4 text-primary" aria-hidden />
+                      <BarChart3 className="size-4 df-status-brand" aria-hidden />
                     </div>
                     <div className="mt-4 space-y-3">
                       {metricBars.map((m) => (
@@ -237,13 +237,13 @@ export function ProductPreviewSection() {
                           <div className="flex items-baseline justify-between gap-2">
                             <p className="text-[11px] font-bold text-muted-foreground">
                               {m.label}{" "}
-                              <span className="font-semibold text-emerald-700">· {m.hint}</span>
+                              <span className="font-semibold df-status-success">· {m.hint}</span>
                             </p>
                             <p className="text-sm font-bold tabular-nums text-foreground">{m.value}</p>
                           </div>
                           <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-muted/50">
                             <div
-                              className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-sky-500"
+                              className="h-full rounded-full bg-[linear-gradient(to_right,var(--devflow-brand),var(--devflow-info))]"
                               style={{ width: `${m.pct}%` }}
                             />
                           </div>
@@ -264,7 +264,7 @@ export function ProductPreviewSection() {
           </p>
           <Link
             href="/demo"
-            className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-foreground px-6 text-sm font-bold text-background shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            className="df-btn-primary df-shadow-cta-soft inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl px-6 text-sm font-bold transition-transform hover:scale-[1.02] active:scale-[0.98]"
           >
             {PRIMARY_DEMO_CTA_LABEL}
             <ArrowRight className="size-4" aria-hidden />

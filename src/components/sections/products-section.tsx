@@ -34,10 +34,10 @@ const products = [
   },
   {
     icon: Wallet,
-    iconBg: "bg-sky-400/20",
-    iconColor: "text-sky-200",
+    iconBg: "bg-muted/50",
+    iconColor: "df-text-secondary",
     tag: "Complementar",
-    tagColor: "text-sky-200",
+    tagColor: "df-text-secondary",
     title: "Sistema Financeiro",
     subtitle: "Gestão financeira pessoal ou PJ",
     description:
@@ -51,7 +51,7 @@ const products = [
     cta: "Conhecer o Financeiro",
     href: "/ferramentas/financeiro",
     external: false,
-    accent: "border-sky-400/35",
+    accent: "df-border-brand",
     featured: false,
   },
   {
@@ -109,7 +109,7 @@ export function ProductsSection() {
                 "transition-all duration-300",
                 product.disabled
                   ? "df-text-muted"
-                  : "hover:-translate-y-1 hover:border-primary/20 hover:shadow-[0_16px_48px_rgba(15,23,42,0.1)]",
+                  : "hover:-translate-y-1 hover:border-[color-mix(in_srgb,var(--devflow-brand)_20%,transparent)] hover:shadow-[0_16px_48px_-20px_rgba(0,0,0,0.28)]",
                 product.accent
               )}
             >
@@ -145,7 +145,7 @@ export function ProductsSection() {
                   product.disabled
                     ? "df-text-secondary cursor-default border border-dashed border-border bg-muted/20 pointer-events-none"
                     : product.featured
-                      ? "bg-primary text-primary-foreground shadow-[0_4px_14px_rgba(34,197,94,0.28)] hover:bg-[#16a34a]"
+                      ? "df-btn-primary df-shadow-cta-soft"
                       : "df-surface-elevated border border-border text-foreground hover:bg-muted/20"
                 )}
                 tabIndex={product.disabled ? -1 : undefined}

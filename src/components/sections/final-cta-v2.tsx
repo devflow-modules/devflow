@@ -15,7 +15,7 @@ export function FinalCtaV2() {
   return (
     <section
       id="cta-final"
-      className="relative overflow-x-clip overflow-y-visible bg-gradient-to-b from-card to-muted py-10 text-foreground sm:py-14 lg:py-18"
+      className="relative overflow-x-clip overflow-y-visible bg-[var(--devflow-background)] py-10 sm:py-14 lg:py-18"
       aria-labelledby="final-cta-v2-heading"
     >
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
@@ -25,7 +25,7 @@ export function FinalCtaV2() {
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div
           className={cn(
-            "mx-auto max-w-xl rounded-2xl border border-white/10 bg-card/5 p-6 text-center backdrop-blur-sm sm:p-10 lg:p-12"
+            "mx-auto max-w-xl df-surface-elevated rounded-2xl p-6 text-center backdrop-blur-sm sm:p-10 lg:p-12"
           )}
         >
           <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
@@ -42,7 +42,7 @@ export function FinalCtaV2() {
             IA no repetitivo, humano no que importa — com WhatsApp Cloud API oficial, fila, handoff e dashboard.
           </p>
 
-          <p className="mt-2 text-xs font-medium text-emerald-400">
+          <p className="mt-2 text-xs font-medium df-status-brand">
             Operações reais em produção · implementação consultiva ponta a ponta
           </p>
 
@@ -54,9 +54,9 @@ export function FinalCtaV2() {
                 trackFunnelCtaClick({ cta: "agendar_diagnostico", surface: "final_cta_primary" })
               }
               className={cn(
-                "devflow-cta-elite inline-flex min-h-[3rem] items-center justify-center gap-2 rounded-xl px-6 text-sm font-bold text-primary-foreground sm:min-h-14 sm:min-w-[min(100%,300px)] sm:text-base",
-                "bg-primary shadow-[0_14px_40px_-6px_rgba(34,197,94,0.45)] transition-transform duration-200",
-                "hover:scale-[1.02] hover:brightness-[1.08] active:scale-[0.98] sm:hover:scale-[1.03]"
+                "df-btn-primary devflow-cta-elite inline-flex min-h-[3rem] items-center justify-center gap-2 rounded-xl px-6 text-sm font-bold sm:min-h-14 sm:min-w-[min(100%,300px)] sm:text-base",
+                "df-shadow-cta transition-transform duration-200",
+                "hover:scale-[1.02] active:scale-[0.98] sm:hover:scale-[1.03]"
               )}
             >
               {PRIMARY_CONVERT_CTA_LABEL}
@@ -68,7 +68,7 @@ export function FinalCtaV2() {
               onClick={() =>
                 trackFunnelCtaClick({ cta: "ver_demo_guiada", surface: "final_cta_secondary" })
               }
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/25 bg-transparent px-6 text-sm font-semibold text-white transition-colors hover:bg-card/10"
+              className="df-btn-secondary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold transition-colors"
             >
               {PRIMARY_DEMO_CTA_LABEL}
             </Link>

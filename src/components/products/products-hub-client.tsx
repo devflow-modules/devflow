@@ -28,8 +28,8 @@ const iconStyleById: Record<
   DevflowProductId,
   { wrap: string; icon: string }
 > = {
-  financeiro: { wrap: "bg-primary/10", icon: "text-primary" },
-  whatsapp_platform: { wrap: "bg-emerald-500/10", icon: "text-emerald-700" },
+  financeiro: { wrap: "bg-muted/50", icon: "df-text-secondary" },
+  whatsapp_platform: { wrap: "df-bg-brand-soft", icon: "df-status-brand" },
 };
 
 const comoEscolher = [
@@ -77,8 +77,7 @@ function ProductCard({ product }: { product: DevflowCatalogProduct }) {
           <Link
             href={PRIMARY_DEMO_HREF}
             className={cn(
-              "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold",
-              "bg-primary text-primary-foreground transition-colors hover:bg-[#00A86B]"
+              "df-btn-primary df-shadow-cta-soft inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold"
             )}
             onClick={() =>
               trackProductsPageCtaClicked({
@@ -144,7 +143,7 @@ function ProductCard({ product }: { product: DevflowCatalogProduct }) {
         <span
           className={cn(
             "mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold",
-            "bg-primary text-primary-foreground transition-colors group-hover:bg-primary/90"
+            "df-btn-secondary transition-colors"
           )}
         >
           Abrir
@@ -204,8 +203,7 @@ export function ProductsHubClient() {
               <Link
                 href={PRIMARY_DEMO_HREF}
                 className={cn(
-                  "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-base font-bold",
-                  "bg-primary text-primary-foreground shadow-[0_3px_14px_rgba(34,197,94,0.35)] transition-all hover:bg-[#16a34a] hover:shadow-md"
+                  "df-btn-primary df-shadow-cta-soft inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-base font-bold"
                 )}
                 onClick={() =>
                   trackProductsPageCtaClicked({
@@ -221,7 +219,7 @@ export function ProductsHubClient() {
               <Link
                 href={WHATSAPP_PRODUCT_HREF}
                 className={cn(
-                  "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-border bg-background px-6 text-base font-semibold text-foreground transition-colors hover:bg-muted/60"
+                  "df-btn-secondary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-base font-semibold transition-colors"
                 )}
                 onClick={() =>
                   trackProductsPageCtaClicked({

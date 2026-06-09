@@ -36,7 +36,7 @@ export function Metrics() {
           />
           <h2
             id="metrics-heading"
-            className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+            className="df-text-primary text-2xl font-semibold tracking-tight sm:text-3xl"
           >
             Impacto operacional
           </h2>
@@ -54,7 +54,7 @@ export function Metrics() {
                 "transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
               )}
             >
-              <p className="text-4xl font-bold text-primary sm:text-5xl">
+              <p className="text-4xl font-bold df-status-brand sm:text-5xl">
                 {metric.value}
               </p>
               <p className="df-text-primary mt-2 font-medium">{metric.label}</p>

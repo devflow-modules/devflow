@@ -71,7 +71,7 @@ function Cell({
 }) {
   if (level === "yes") {
     return (
-      <span className="inline-flex items-center justify-center gap-1 text-emerald-600">
+      <span className="inline-flex items-center justify-center gap-1 df-status-success">
         <Check className="size-4 shrink-0" aria-hidden />
         <span className="sr-only">Sim</span>
       </span>

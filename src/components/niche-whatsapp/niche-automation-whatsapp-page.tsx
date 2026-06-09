@@ -130,8 +130,7 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
               <Link
                 href="/demo"
                 className={cn(
-                  "inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold text-primary-foreground",
-                  "bg-primary shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] transition-all hover:brightness-[1.03] sm:min-w-[11rem]"
+                  "df-btn-primary df-shadow-cta inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold sm:min-w-[11rem]"
                 )}
               >
                 {NICHE_VER_NA_PRATICA_CTA_LABEL}
@@ -328,8 +327,7 @@ export function NicheAutomationWhatsAppPage({ content }: { content: NicheAutomat
               <Link
                 href={PRIMARY_DEMO_HREF}
                 className={cn(
-                  "inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold text-primary-foreground",
-                  "bg-primary shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] transition-all hover:brightness-[1.03] sm:min-w-[11rem]"
+                  "df-btn-primary df-shadow-cta inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold sm:min-w-[11rem]"
                 )}
               >
                 {PRIMARY_DEMO_CTA_LABEL}

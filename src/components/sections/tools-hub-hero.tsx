@@ -17,7 +17,7 @@ export function ToolsHubHero() {
 
       <div className="mx-auto max-w-[1200px] px-3 min-[400px]:px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-2.5 py-1 text-[11px] font-medium text-primary sm:mb-6 sm:px-3 sm:text-xs">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border df-bg-brand-soft px-2.5 py-1 text-[11px] font-medium df-status-brand sm:mb-6 sm:px-3 sm:text-xs">
             <Wrench className="size-3.5 shrink-0" aria-hidden />
             Hub de ferramentas
           </div>
@@ -36,8 +36,7 @@ export function ToolsHubHero() {
             <Link
               href="/demo"
               className={cn(
-                "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold sm:w-auto sm:px-6 sm:text-base",
-                "bg-primary text-primary-foreground transition-all duration-200 hover:bg-[#00A86B]"
+                "df-btn-primary df-shadow-cta inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold sm:w-auto sm:px-6 sm:text-base"
               )}
             >
               Ver demo
@@ -45,10 +44,7 @@ export function ToolsHubHero() {
             </Link>
             <Link
               href="/ferramentas/financeiro"
-              className={cn(
-                "df-surface inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border px-5 text-sm font-medium sm:w-auto sm:px-6 sm:text-base",
-                "text-foreground transition-colors hover:bg-primary/10"
-              )}
+              className="df-btn-secondary inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 text-sm font-medium sm:w-auto sm:px-6 sm:text-base"
             >
               Abrir ferramenta Financeiro
             </Link>

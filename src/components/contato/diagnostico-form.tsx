@@ -244,7 +244,7 @@ export function DiagnosticoForm() {
         type="submit"
         className={cn(
           "df-btn-primary mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
-          "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          "df-shadow-cta focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         )}
       >
         {CONTACT_FORM_SUBMIT_LABEL}

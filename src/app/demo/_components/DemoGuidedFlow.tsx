@@ -70,8 +70,8 @@ function StepContent({ stepId }: { stepId: number }) {
   if (stepId === 2) {
     return (
       <div className="space-y-3">
-        <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 p-4">
-          <div className="flex items-center gap-2 text-xs font-semibold text-sky-700">
+        <div className="rounded-xl border df-bg-info-soft p-4">
+          <div className="flex items-center gap-2 text-xs font-semibold df-status-info">
             <Zap className="size-4" aria-hidden />
             Análise da IA
           </div>
@@ -117,8 +117,8 @@ function StepContent({ stepId }: { stepId: number }) {
         <div className="ml-auto max-w-[90%] rounded-2xl rounded-tr-md bg-primary px-4 py-3 text-sm leading-relaxed text-primary-foreground">
           Consigo negociar um pedido maior para evento hoje?
         </div>
-        <div className="rounded-xl border border-orange-500/25 bg-orange-500/5 p-4">
-          <div className="flex items-center gap-2 text-xs font-semibold text-orange-700">
+        <div className="rounded-xl border df-bg-warning-soft p-4">
+          <div className="flex items-center gap-2 text-xs font-semibold df-status-warning">
             <UserRound className="size-4" aria-hidden />
             Handoff humano
           </div>
@@ -129,7 +129,7 @@ function StepContent({ stepId }: { stepId: number }) {
             </div>
             <div className="flex justify-between gap-4">
               <dt className="df-text-secondary">Ação</dt>
-              <dd className="font-semibold text-orange-600">Handoff para atendente</dd>
+              <dd className="font-semibold df-status-warning">Handoff para atendente</dd>
             </div>
           </dl>
         </div>

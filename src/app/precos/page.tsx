@@ -100,7 +100,7 @@ export default function PrecosPage() {
         <div className="mx-auto max-w-2xl text-center">
           <h1
             id="precos-heading"
-            className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl"
+            className="df-text-primary text-4xl font-bold tracking-tight sm:text-5xl"
           >
             Planos para operar seu WhatsApp com automação, inbox e atendimento humano
           </h1>
@@ -112,7 +112,7 @@ export default function PrecosPage() {
               href={PRIMARY_DEMO_HREF}
               className={cn(
                 "df-btn-primary inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
-                "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                "df-shadow-cta focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               )}
             >
               {PRIMARY_DEMO_CTA_LABEL}
@@ -132,22 +132,22 @@ export default function PrecosPage() {
             <article
               key={plan.name}
               className={cn(
-                "flex flex-col rounded-2xl border p-6",
+                "flex flex-col rounded-2xl p-6",
                 plan.featured
-                  ? "border-primary bg-primary/5 shadow-lg"
-                  : "border-border bg-card"
+                  ? "df-surface-elevated df-bg-brand-soft ring-1 ring-[color-mix(in_srgb,var(--devflow-brand)_22%,transparent)]"
+                  : "df-surface-elevated"
               )}
             >
               {plan.featured && (
-                <span className="mb-4 inline-block w-fit rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
+                <span className="mb-4 inline-block w-fit rounded-full df-bg-brand-soft px-3 py-1 text-xs font-medium df-status-brand">
                   {plan.badgeLabel}
                 </span>
               )}
-              <h2 className="text-xl font-semibold text-foreground">
+              <h2 className="text-xl font-semibold df-text-primary">
                 {plan.name}
               </h2>
               <p className="df-text-secondary mt-1 text-sm">{plan.description}</p>
-              <p className="mt-4 text-2xl font-bold text-foreground">
+              <p className="mt-4 text-2xl font-bold df-text-primary">
                 {plan.price}
               </p>
               <ul className="mt-6 flex-1 space-y-3" role="list">
@@ -156,7 +156,7 @@ export default function PrecosPage() {
                     key={f}
                     className="df-text-secondary flex items-start gap-2 text-sm"
                   >
-                    <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                    <Check className="mt-0.5 size-4 shrink-0 df-status-brand" />
                     {f}
                   </li>
                 ))}
@@ -173,8 +173,8 @@ export default function PrecosPage() {
           ))}
         </div>
 
-        <div className="mx-auto mt-12 max-w-lg rounded-2xl border border-border bg-muted/30 px-6 py-8 text-center">
-          <p className="text-sm font-medium text-foreground">
+        <div className="mx-auto mt-12 max-w-lg df-surface-elevated rounded-2xl px-6 py-8 text-center">
+          <p className="text-sm font-medium df-text-primary">
             Antes de falar com vendas, veja a plataforma funcionando
           </p>
           <p className="df-text-secondary mt-2 text-sm">
@@ -184,7 +184,7 @@ export default function PrecosPage() {
             href={PRIMARY_DEMO_HREF}
             className={cn(
               "df-btn-primary mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold sm:w-auto",
-              "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)]"
+              "df-shadow-cta-soft"
             )}
           >
             {PRIMARY_DEMO_CTA_LABEL}
@@ -199,25 +199,25 @@ export default function PrecosPage() {
         <section className="mx-auto mt-12 max-w-5xl" aria-labelledby="como-funciona-contratacao">
           <h2
             id="como-funciona-contratacao"
-            className="text-center text-2xl font-semibold tracking-tight text-foreground"
+            className="df-text-primary text-center text-2xl font-semibold tracking-tight"
           >
             Como funciona a contratação
           </h2>
           <div className="mt-6 grid gap-5 sm:grid-cols-3">
-            <article className="rounded-2xl border border-border bg-card p-5">
-              <h3 className="text-base font-semibold text-foreground">Diagnóstico da operação</h3>
+            <article className="df-surface-elevated rounded-2xl p-5">
+              <h3 className="text-base font-semibold df-text-primary">Diagnóstico da operação</h3>
               <p className="df-text-secondary mt-2 text-sm">
                 Entendemos volume, equipe, número de WhatsApp e gargalos.
               </p>
             </article>
-            <article className="rounded-2xl border border-border bg-card p-5">
-              <h3 className="text-base font-semibold text-foreground">Implantação guiada</h3>
+            <article className="df-surface-elevated rounded-2xl p-5">
+              <h3 className="text-base font-semibold df-text-primary">Implantação guiada</h3>
               <p className="df-text-secondary mt-2 text-sm">
                 Configuramos número, inbox, automações iniciais, handoff e métricas.
               </p>
             </article>
-            <article className="rounded-2xl border border-border bg-card p-5">
-              <h3 className="text-base font-semibold text-foreground">Mensalidade da plataforma</h3>
+            <article className="df-surface-elevated rounded-2xl p-5">
+              <h3 className="text-base font-semibold df-text-primary">Mensalidade da plataforma</h3>
               <p className="df-text-secondary mt-2 text-sm">
                 Após ativação, você mantém a operação rodando com suporte e evolução.
               </p>
@@ -228,7 +228,7 @@ export default function PrecosPage() {
               href="/contato"
               className={cn(
                 "df-btn-primary inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
-                "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)]"
+                "df-shadow-cta"
               )}
             >
               {PRIMARY_CONVERT_CTA_LABEL}
@@ -237,8 +237,8 @@ export default function PrecosPage() {
           </div>
         </section>
 
-        <div className="mx-auto mt-14 max-w-xl rounded-2xl border border-border bg-card px-6 py-8 text-center shadow-sm sm:px-10">
-          <p className="text-sm font-semibold text-foreground">Próximo passo</p>
+        <div className="mx-auto mt-14 max-w-xl df-surface-elevated rounded-2xl px-6 py-8 text-center shadow-sm sm:px-10">
+          <p className="text-sm font-semibold df-text-primary">Próximo passo</p>
           <p className="df-text-secondary mt-2 text-sm leading-relaxed">
             Veja a demo guiada para tirar dúvidas; quando fizer sentido, agendamos o diagnóstico da operação.
           </p>
@@ -247,7 +247,7 @@ export default function PrecosPage() {
               href={PRIMARY_DEMO_HREF}
               className={cn(
                 "df-btn-primary inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
-                "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)]"
+                "df-shadow-cta"
               )}
             >
               {PRIMARY_DEMO_CTA_LABEL}
@@ -265,7 +265,7 @@ export default function PrecosPage() {
         <p className="mt-8 text-center">
           <Link
             href="/produtos/whatsapp-platform"
-            className="text-sm font-medium text-primary hover:underline"
+            className="text-sm font-medium df-status-brand hover:underline"
           >
             Ver produto completo
           </Link>

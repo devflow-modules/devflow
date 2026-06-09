@@ -23,19 +23,19 @@ const queueItems = [
   {
     name: "ACME · Upgrade anual",
     status: "Score 94 · respondendo agora · SLA 6m restantes",
-    dot: "bg-emerald-500",
+    dot: "df-dot-success",
     tag: "Vendas",
   },
   {
     name: "Clínica Horizonte",
     status: "Automação disparada há 9s · doc no ar",
-    dot: "bg-sky-500",
+    dot: "df-dot-info",
     tag: "Suporte",
   },
   {
     name: "Studio North",
     status: "Handoff p/ Carla · deal quente preservado",
-    dot: "bg-amber-500",
+    dot: "df-dot-warning",
     tag: "Prioridade",
   },
 ];
@@ -58,8 +58,8 @@ export function HeroSection() {
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
           <div className="space-y-7">
             <span className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border df-border-brand bg-card/90 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide shadow-sm backdrop-blur-sm sm:text-xs">
-              <Radio className="size-3.5 shrink-0 text-emerald-500" aria-hidden />
-              <span className="text-emerald-400">Fila ativa</span>
+              <Radio className="size-3.5 shrink-0 df-status-brand" aria-hidden />
+              <span className="df-status-brand">Fila ativa</span>
               <span className="df-text-muted hidden sm:inline" aria-hidden>
                 ·
               </span>
@@ -85,9 +85,8 @@ export function HeroSection() {
                 label="Agendar diagnóstico"
                 text="Quero agendar um diagnóstico da minha operação de atendimento e vendas no WhatsApp."
                 className={cn(
-                  "w-full min-h-[3.25rem] justify-center shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] sm:w-auto sm:min-w-[min(100%,17.5rem)]",
-                  "ring-2 ring-emerald-400/35 ring-offset-2 ring-offset-background",
-                  "hover:brightness-[1.03] active:brightness-[0.98]"
+                  "w-full min-h-[3.25rem] justify-center df-shadow-cta sm:w-auto sm:min-w-[min(100%,17.5rem)]",
+                  "ring-2 ring-[color-mix(in_srgb,var(--devflow-brand)_35%,transparent)] ring-offset-2 ring-offset-background"
                 )}
               />
               <Link
@@ -108,7 +107,7 @@ export function HeroSection() {
                   key={point}
                   className="df-text-secondary flex items-start gap-3 text-sm leading-snug sm:text-[0.95rem]"
                 >
-                  <CheckCircle2 className="mt-0.5 size-[1.05rem] shrink-0 text-emerald-600" aria-hidden />
+                  <CheckCircle2 className="mt-0.5 size-[1.05rem] shrink-0 df-status-brand" aria-hidden />
                   <span>{point}</span>
                 </li>
               ))}
@@ -140,41 +139,41 @@ export function HeroSection() {
             <div className="df-surface-elevated overflow-hidden rounded-3xl border df-border-brand bg-card shadow-[0_24px_80px_-12px_rgba(0,0,0,0.35)]">
               <div className="flex items-center gap-2 border-b border-border bg-muted px-4 py-2.5">
                 <span className="flex gap-1.5" aria-hidden>
-                  <span className="size-2.5 rounded-full bg-red-400/90" />
-                  <span className="size-2.5 rounded-full bg-amber-400/90" />
-                  <span className="size-2.5 rounded-full bg-emerald-400/90" />
+                  <span className="size-2.5 rounded-full df-dot-danger opacity-90" />
+                  <span className="size-2.5 rounded-full df-dot-warning opacity-90" />
+                  <span className="size-2.5 rounded-full df-dot-brand opacity-90" />
                 </span>
                 <p className="df-text-secondary ml-2 min-w-0 flex-1 truncate text-center text-[11px] font-medium">
                   Operações · agora
                 </p>
-                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-400">
+                <span className="rounded-full df-bg-brand-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide df-status-brand">
                   Ao vivo
                 </span>
               </div>
 
               <div className="space-y-5 p-4 sm:p-6">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-semibold tracking-tight text-foreground">Painel operacional</p>
-                  <span className="text-[11px] font-semibold text-emerald-400/95">Atualizado agora</span>
+                  <p className="text-sm font-semibold tracking-tight df-text-primary">Painel operacional</p>
+                  <span className="text-[11px] font-semibold df-status-brand">Atualizado agora</span>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-3">
                   <article className="rounded-2xl border border-border bg-muted/20 p-4 shadow-sm">
-                    <MessageCircleMore className="size-4 text-primary" aria-hidden />
+                    <MessageCircleMore className="size-4 df-status-brand" aria-hidden />
                     <p className="df-text-primary mt-2.5 text-2xl font-bold tabular-nums tracking-tight">1.284</p>
                     <p className="df-text-secondary mt-0.5 text-[11px] font-medium leading-tight">
                       Mensagens · últimas 24h
                     </p>
                   </article>
                   <article className="rounded-2xl border border-border bg-muted/20 p-4 shadow-sm">
-                    <Users2 className="size-4 text-sky-600" aria-hidden />
+                    <Users2 className="size-4 df-status-info" aria-hidden />
                     <p className="df-text-primary mt-2.5 text-2xl font-bold tabular-nums tracking-tight">74%</p>
                     <p className="df-text-secondary mt-0.5 text-[11px] font-medium leading-tight">
                       Fechadas sem humano
                     </p>
                   </article>
                   <article className="rounded-2xl border border-border bg-muted/20 p-4 shadow-sm">
-                    <BarChart3 className="size-4 text-emerald-600" aria-hidden />
+                    <BarChart3 className="size-4 df-status-success" aria-hidden />
                     <p className="df-text-primary mt-2.5 text-2xl font-bold tabular-nums tracking-tight">+31%</p>
                     <p className="df-text-secondary mt-0.5 text-[11px] font-medium leading-tight">
                       Lead → venda · vs. semana passada
@@ -187,7 +186,7 @@ export function HeroSection() {
                     <p className="df-text-secondary text-[11px] font-bold uppercase tracking-wider">
                       Fila priorizada
                     </p>
-                    <span className="text-[10px] font-bold text-amber-700">2 SLA no limite</span>
+                    <span className="text-[10px] font-bold df-status-warning">2 SLA no limite</span>
                   </div>
                   <div className="mt-3 space-y-2.5">
                     {queueItems.map((item) => (

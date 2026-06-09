@@ -37,6 +37,7 @@ Outros apps no repositório (**ApplyFlow** como case de portfólio local-first, 
 | [**backlinks/**](./backlinks/) | Rascunhos de artigos / link building |
 | [**ai-ops/**](./ai-ops/) | Workflow de IA, checklists de demo |
 | [**architecture/**](./architecture/) | Cutover, guardrails, políticas |
+| [**brand/**](./brand/) | Marca, sistema visual e guidelines do portal |
 | [**healthsafe-rpa/**](./healthsafe-rpa/) | Referência HealthSafe × RPA |
 | [**_archive/**](./_archive/) | Migrações e relatórios históricos |
 
@@ -86,6 +87,11 @@ Outros apps no repositório (**ApplyFlow** como case de portfólio local-first, 
 | Variáveis de ambiente | [ENV_STRUCTURE.md](./ENV_STRUCTURE.md) |
 | Stripe / billing | [shared/DEVFLOW-PAYMENTS.md](./shared/DEVFLOW-PAYMENTS.md) |
 | Métricas dashboard | [shared/DEVFLOW-METRICS-DASHBOARD.md](./shared/DEVFLOW-METRICS-DASHBOARD.md) |
+
+### Marca e sistema visual
+
+- [DevFlow Brand Guidelines](brand/DEVFLOW_BRAND_GUIDELINES.md) — logo, naming, tom visual e diretrizes institucionais.
+- [DevFlow Brand System](brand/DEVFLOW-BRAND-SYSTEM.md) — paleta, tokens, utilities, semântica operacional, CTAs e regras de interface para o site/produto.
 
 ---
 

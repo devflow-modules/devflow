@@ -145,10 +145,10 @@ export function Header() {
 
   const headerCtaClass = cn(
     "df-btn-primary min-h-11 shrink-0 rounded-xl font-bold",
-    "shadow-[0_3px_14px_rgba(34,197,94,0.35)]",
+    "df-shadow-cta-soft",
     "px-3 text-xs min-[380px]:px-4 min-[380px]:text-sm",
     "transition-all duration-200 ease-out",
-    "hover:scale-[1.04] hover:shadow-[0_6px_22px_rgba(34,197,94,0.42)]",
+    "hover:scale-[1.04]",
     "active:scale-[0.98]"
   );
 

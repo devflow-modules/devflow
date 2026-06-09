@@ -379,11 +379,12 @@ html[data-theme="client_branded"] {
 
 .df-btn-primary {
   border: 1px solid transparent;
-  background: var(--primary);
+  background: var(--devflow-brand);
   color: var(--primary-foreground);
 }
 .df-btn-primary:hover {
-  filter: brightness(1.1);
+  background: var(--devflow-brand-hover);
+  filter: none;
 }
 
 .df-btn-secondary {
@@ -580,4 +581,71 @@ html[data-theme="client_branded"] {
     color-mix(in srgb, var(--chart-1) 14%, transparent) 45%,
     color-mix(in srgb, var(--foreground) 6%, transparent) 100%
   );
+}
+
+/** Status operacional — usar só para estados reais (não decoração) */
+.df-status-success {
+  color: var(--devflow-success);
+}
+.df-status-warning {
+  color: var(--devflow-warning);
+}
+.df-status-danger {
+  color: var(--devflow-danger);
+}
+.df-status-info {
+  color: var(--devflow-info);
+}
+.df-status-brand {
+  color: var(--devflow-brand);
+}
+
+.df-bg-success-soft {
+  background: var(--devflow-success-soft);
+  border-color: color-mix(in srgb, var(--devflow-success) 28%, transparent);
+}
+.df-bg-warning-soft {
+  background: var(--devflow-warning-soft);
+  border-color: color-mix(in srgb, var(--devflow-warning) 28%, transparent);
+}
+.df-bg-danger-soft {
+  background: var(--devflow-danger-soft);
+  border-color: color-mix(in srgb, var(--devflow-danger) 28%, transparent);
+}
+.df-bg-info-soft {
+  background: var(--devflow-info-soft);
+  border-color: color-mix(in srgb, var(--devflow-info) 28%, transparent);
+}
+.df-bg-brand-soft {
+  background: var(--devflow-brand-soft);
+  border-color: var(--devflow-border-brand);
+}
+
+.df-dot-success {
+  background-color: var(--devflow-success);
+}
+.df-dot-warning {
+  background-color: var(--devflow-warning);
+}
+.df-dot-danger {
+  background-color: var(--devflow-danger);
+}
+.df-dot-info {
+  background-color: var(--devflow-info);
+}
+.df-dot-brand {
+  background-color: var(--devflow-brand);
+}
+
+/** Glow de CTA alinhado à marca (#00d084) */
+.df-shadow-cta {
+  box-shadow: 0 14px 40px -6px rgba(0, 208, 132, 0.35);
+}
+.df-shadow-cta-soft {
+  box-shadow: 0 4px 14px rgba(0, 208, 132, 0.28);
+}
+@media (hover: hover) {
+  .df-shadow-cta-soft:hover {
+    box-shadow: 0 6px 22px rgba(0, 208, 132, 0.42);
+  }
 }

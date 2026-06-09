@@ -52,9 +52,9 @@ export const metadata: Metadata = {
 };
 
 const cardNiche = cn(
-  "flex h-full flex-col rounded-2xl border df-border-dark bg-card",
-  "shadow-[0_18px_50px_-24px_rgba(15,23,42,0.18)] transition-all duration-200",
-  "hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[0_22px_55px_-20px_rgba(15,23,42,0.22)]"
+  "df-surface-elevated flex h-full flex-col rounded-2xl",
+  "shadow-[0_18px_50px_-24px_rgba(0,0,0,0.28)] transition-all duration-200",
+  "hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--devflow-brand)_28%,transparent)] hover:shadow-[0_22px_55px_-20px_rgba(0,0,0,0.35)]"
 );
 
 export default function CasesPage() {
@@ -72,7 +72,7 @@ export default function CasesPage() {
           <div className="df-decor-radial-brand-soft absolute -top-24 right-0 h-72 w-72 rounded-full blur-3xl" />
         </div>
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-          <p className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
+          <p className="inline-flex items-center rounded-full border df-bg-brand-soft px-3 py-1 text-xs font-bold uppercase tracking-wider df-status-brand">
             Exemplos de operação
           </p>
           <h1
@@ -85,7 +85,7 @@ export default function CasesPage() {
             Modelos baseados em cenários comuns de atendimento no WhatsApp: mensagens perdidas, demora na
             resposta, falta de controle e ausência de métricas.
           </p>
-          <p className="df-text-muted mt-6 max-w-3xl rounded-xl border border-border/80 bg-card/40 px-4 py-3 text-sm leading-relaxed backdrop-blur-sm sm:text-[0.9375rem]">
+          <p className="df-text-muted mt-6 max-w-3xl rounded-xl border df-border-brand df-surface-elevated px-4 py-3 text-sm leading-relaxed backdrop-blur-sm sm:text-[0.9375rem]">
             {CASES_TRANSPARENCY_NOTE}
           </p>
           <div className="mt-10 flex max-w-xl flex-col gap-3 sm:flex-row sm:items-center">
@@ -93,7 +93,7 @@ export default function CasesPage() {
               href={PRIMARY_DEMO_HREF}
               className={cn(
                 "df-btn-primary inline-flex h-12 min-h-11 flex-1 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
-                "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                "df-shadow-cta focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               )}
             >
               {PRIMARY_DEMO_CTA_LABEL}
@@ -129,8 +129,8 @@ export default function CasesPage() {
               <li
                 key={c.title}
                 className={cn(
-                  "rounded-2xl border df-border-dark bg-card p-6",
-                  "shadow-[0_12px_40px_-20px_rgba(0,0,0,0.25)]"
+                  "df-surface-elevated rounded-2xl p-6",
+                  "shadow-[0_12px_40px_-20px_rgba(0,0,0,0.28)]"
                 )}
               >
                 <h3 className="df-text-primary text-base font-bold">{c.title}</h3>
@@ -159,31 +159,31 @@ export default function CasesPage() {
           <ul className="mt-12 grid gap-8 lg:grid-cols-2" role="list">
             {nicheExamples.map((n) => (
               <li key={n.slug} className={cn(cardNiche, "p-6 sm:p-8")}>
-                <span className="inline-flex w-fit rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-primary">
+                <span className="inline-flex w-fit rounded-full df-bg-brand-soft px-2.5 py-1 text-xs font-bold uppercase tracking-wide df-status-brand">
                   {n.badge}
                 </span>
                 <h3 className="df-text-primary mt-4 text-xl font-bold tracking-tight">{n.title}</h3>
 
                 <div className="mt-6 space-y-4">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-primary/90">Cenário</p>
+                    <p className="text-xs font-bold uppercase tracking-wider df-status-brand">Cenário</p>
                     <p className="df-text-secondary mt-1 text-sm leading-relaxed">{n.scenario}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-primary/90">
+                    <p className="text-xs font-bold uppercase tracking-wider df-status-brand">
                       Como a plataforma atua
                     </p>
                     <ul className="mt-2 space-y-2" role="list">
                       {n.platformHelps.map((line) => (
                         <li key={line} className="df-text-secondary flex gap-2 text-sm leading-relaxed">
-                          <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+                          <Check className="mt-0.5 size-4 shrink-0 df-status-success" aria-hidden />
                           <span>{line}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-primary/90">
+                    <p className="text-xs font-bold uppercase tracking-wider df-status-brand">
                       Resultado esperado
                     </p>
                     <p className="df-text-secondary mt-1 text-sm leading-relaxed">{n.expectedOutcome}</p>
@@ -196,7 +196,7 @@ export default function CasesPage() {
                       href={n.ctaHref}
                       className={cn(
                         "df-btn-primary inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
-                        "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+                        "df-shadow-cta focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card"
                       )}
                     >
                       {n.ctaLabel}
@@ -222,7 +222,7 @@ export default function CasesPage() {
 
       {/* Simulação → operação */}
       <section
-        className="border-y df-border-brand bg-muted py-16 sm:py-20"
+        className="border-y df-border-brand bg-[var(--devflow-surface)] py-16 sm:py-20"
         aria-labelledby="simulation-steps-heading"
       >
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -236,10 +236,10 @@ export default function CasesPage() {
             {operationSteps.map((step, i) => (
               <li
                 key={step.title}
-                className="relative rounded-2xl border df-border-dark bg-card p-6 shadow-sm"
+                className="relative df-surface-elevated rounded-2xl p-6 shadow-sm"
               >
                 <span
-                  className="mb-3 flex size-9 items-center justify-center rounded-full bg-primary/15 text-sm font-bold text-primary"
+                  className="mb-3 flex size-9 items-center justify-center rounded-full df-bg-brand-soft text-sm font-bold df-status-brand"
                   aria-hidden
                 >
                   {i + 1}
@@ -268,9 +268,9 @@ export default function CasesPage() {
             {authenticCaseSection.bullets.map((b) => (
               <li
                 key={b}
-                className="df-text-secondary flex gap-3 rounded-xl border df-border-dark bg-card px-4 py-3 text-sm leading-relaxed"
+                className="df-text-secondary flex gap-3 rounded-xl df-surface-elevated px-4 py-3 text-sm leading-relaxed"
               >
-                <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+                <Check className="mt-0.5 size-4 shrink-0 df-status-success" aria-hidden />
                 {b}
               </li>
             ))}
@@ -301,7 +301,7 @@ export default function CasesPage() {
               href={PRIMARY_DEMO_HREF}
               className={cn(
                 "df-btn-primary inline-flex h-12 min-h-11 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold sm:min-w-[12rem]",
-                "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                "df-shadow-cta focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               )}
             >
               {PRIMARY_DEMO_CTA_LABEL}

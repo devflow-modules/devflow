@@ -17,7 +17,7 @@ export function CrossSellBeyond({ className, variant = "default" }: Props) {
   return (
     <section
       className={cn(
-        "df-section-light rounded-2xl border-2 border-dashed border-primary/25 bg-gradient-to-br from-primary/[0.06] to-slate-100 p-5 sm:p-8 lg:p-10",
+        "df-section-light rounded-2xl border-2 border-dashed df-border-brand bg-gradient-to-br from-[color-mix(in_srgb,var(--devflow-brand)_6%,transparent)] to-[var(--devflow-surface)] p-5 sm:p-8 lg:p-10",
         className
       )}
       aria-labelledby="cross-sell-heading"
@@ -39,16 +39,16 @@ export function CrossSellBeyond({ className, variant = "default" }: Props) {
             "shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg"
           )}
         >
-          <div className="flex size-11 items-center justify-center rounded-xl bg-primary/12">
-            <Wallet className="size-6 text-primary" aria-hidden />
+          <div className="flex size-11 items-center justify-center rounded-xl bg-muted/50">
+            <Wallet className="size-6 df-text-secondary" aria-hidden />
           </div>
-          <h3 className="mt-4 font-bold text-foreground group-hover:text-primary">
+          <h3 className="mt-4 font-bold df-text-primary group-hover:text-[var(--devflow-brand)]">
             Sistema financeiro
           </h3>
           <p className="df-text-secondary mt-1 text-sm">
             PF, PJ e casal: orçamentos, recorrências, fechamento mensal e importação CSV.
           </p>
-          <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-primary">
+          <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold df-text-secondary group-hover:text-[var(--devflow-brand)]">
             Testar grátis
             <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" aria-hidden />
           </span>
@@ -60,19 +60,19 @@ export function CrossSellBeyond({ className, variant = "default" }: Props) {
           onClick={() => trackCrossSell("whatsapp")}
           className={cn(
             "group df-card-light flex h-full min-h-0 flex-col rounded-2xl border p-5 text-left sm:p-6",
-            "shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/35 hover:shadow-lg"
+            "shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--devflow-brand)_35%,transparent)] hover:shadow-lg"
           )}
         >
-          <div className="flex size-11 items-center justify-center rounded-xl bg-emerald-500/12">
-            <MessageCircle className="size-6 text-emerald-600" aria-hidden />
+          <div className="flex size-11 items-center justify-center rounded-xl df-bg-brand-soft">
+            <MessageCircle className="size-6 df-status-brand" aria-hidden />
           </div>
-          <h3 className="df-text-primary mt-4 font-bold group-hover:text-emerald-700">
+          <h3 className="df-text-primary mt-4 font-bold group-hover:text-[var(--devflow-brand)]">
             Automação WhatsApp
           </h3>
           <p className="df-text-secondary mt-1 text-sm">
             Respostas automáticas, handoff para humano e métricas — não perca mais venda por demora.
           </p>
-          <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-emerald-700">
+          <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold df-status-brand">
             Começar agora
             <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" aria-hidden />
           </span>

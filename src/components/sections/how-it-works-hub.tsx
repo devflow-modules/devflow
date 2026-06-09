@@ -101,8 +101,8 @@ export function HowItWorksHub() {
             href={PRIMARY_CONVERT_HREF}
             aria-label="Agendar diagnóstico da operação no WhatsApp"
             className={cn(
-              "inline-flex max-w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3.5 text-center text-sm font-bold leading-snug text-primary-foreground",
-              "shadow-[0_4px_14px_rgba(34,197,94,0.3)] transition-all hover:scale-[1.02] hover:bg-[#16a34a] sm:px-7 sm:text-base"
+              "df-btn-primary inline-flex max-w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-center text-sm font-bold leading-snug",
+              "df-shadow-cta-soft transition-all hover:scale-[1.02] sm:px-7 sm:text-base"
             )}
           >
             {PRIMARY_CONVERT_CTA_LABEL}
@@ -111,7 +111,7 @@ export function HowItWorksHub() {
           <Link
             href={PRIMARY_DEMO_HREF}
             aria-label="Ver demonstração guiada de atendimento no WhatsApp"
-            className="inline-flex max-w-full items-center justify-center gap-2 rounded-xl border-2 border-border bg-card px-5 py-3.5 text-center text-sm font-semibold leading-snug text-foreground transition-colors hover:border-primary/35 hover:bg-muted/30 sm:px-7 sm:text-base"
+            className="df-btn-secondary inline-flex max-w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-center text-sm font-semibold leading-snug transition-colors sm:px-7 sm:text-base"
           >
             {PRIMARY_DEMO_CTA_LABEL}
           </Link>

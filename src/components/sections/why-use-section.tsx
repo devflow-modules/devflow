@@ -6,22 +6,22 @@ const blocks = [
     icon: Zap,
     title: "Rápido",
     description: "Acesse no navegador, sem instalação. Ferramentas prontas para usar em segundos.",
-    color: "text-primary",
-    bg: "bg-primary/5 border-primary/20",
+    color: "df-status-brand",
+    bg: "df-bg-brand-soft",
   },
   {
     icon: ThumbsUp,
     title: "Útil",
     description: "Resolvem problemas reais: controle financeiro, divisão de contas, consulta de dados.",
-    color: "text-sky-700",
-    bg: "bg-sky-100 border-sky-300/60",
+    color: "df-status-info",
+    bg: "df-bg-info-soft",
   },
   {
     icon: Link2,
     title: "Integrado ao ecossistema",
     description: "Conectam com nossos produtos. Do Financeiro ao WhatsApp Platform, tudo na mesma casa.",
-    color: "text-orange-500",
-    bg: "bg-orange-500/5 border-orange-500/20",
+    color: "df-text-secondary",
+    bg: "bg-muted/30 border df-border-brand",
   },
 ];
 
@@ -34,7 +34,7 @@ export function WhyUseSection() {
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
+          <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-[var(--devflow-brand)]" aria-hidden />
           <h2 id="why-use-heading" className="df-text-primary text-2xl font-semibold tracking-tight sm:text-3xl">
             Por que usar
           </h2>
@@ -48,8 +48,8 @@ export function WhyUseSection() {
             <article
               key={block.title}
               className={cn(
-                "rounded-2xl border p-6 text-center",
-                "transition-all duration-200 hover:shadow-lg",
+                "df-surface-elevated rounded-2xl p-6 text-center",
+                "transition-all duration-200 hover:shadow-[0_16px_48px_-20px_rgba(0,0,0,0.28)]",
                 block.bg
               )}
             >

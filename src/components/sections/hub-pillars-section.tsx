@@ -15,8 +15,8 @@ const pillars = [
     cta: "Conhecer a plataforma",
     value: "Operação de atendimento e vendas com inbox, IA, handoff e dashboard.",
     href: "/produtos/whatsapp-platform",
-    accent: "border-emerald-500/25 bg-emerald-500/[0.04] hover:border-emerald-500/40",
-    iconBg: "bg-emerald-500/15 text-emerald-700",
+    accent: "df-border-brand df-bg-brand-soft hover:border-[color-mix(in_srgb,var(--devflow-brand)_35%,transparent)]",
+    iconBg: "df-bg-brand-soft df-status-brand",
   },
   {
     id: "tools" as const,
@@ -37,8 +37,8 @@ const pillars = [
     cta: "Ver catálogo",
     value: "Financeiro e outros módulos que complementam a operação.",
     href: "/produtos",
-    accent: "border-sky-400/30 bg-sky-400/[0.08] hover:border-sky-300/45",
-    iconBg: "bg-sky-400/20 text-sky-200",
+    accent: "df-border-brand bg-[var(--devflow-surface-elevated)] hover:border-[color-mix(in_srgb,var(--devflow-brand)_25%,transparent)]",
+    iconBg: "bg-muted/50 df-text-secondary",
   },
 ];
 

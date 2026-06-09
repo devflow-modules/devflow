@@ -32,10 +32,10 @@ const bullets = [
 
 function OperationalDashboardMock() {
   const metrics = [
-    { label: "Msg 24h", value: "1.247", color: "text-primary" },
-    { label: "Bot resolve", value: "74%", color: "text-sky-600" },
-    { label: "Com humano", value: "23", color: "text-orange-600" },
-    { label: "TMR médio", value: "2m12s", color: "text-emerald-600" },
+    { label: "Msg 24h", value: "1.247", color: "df-status-brand" },
+    { label: "Bot resolve", value: "74%", color: "df-status-info" },
+    { label: "Com humano", value: "23", color: "df-status-warning" },
+    { label: "TMR médio", value: "2m12s", color: "df-status-success" },
   ];
 
   const queue = [
@@ -43,36 +43,36 @@ function OperationalDashboardMock() {
       name: "Cliente B — Pedido #1042",
       status: "SLA em risco",
       time: "8 min",
-      dot: "bg-red-500",
-      badge: "bg-red-500/12 text-red-600",
+      dot: "df-dot-danger",
+      badge: "df-bg-danger-soft df-status-danger",
       icon: AlertTriangle,
     },
     {
       name: "Cliente A — Status entrega",
       status: "Resolvido pelo bot",
       time: "agora",
-      dot: "bg-primary",
-      badge: "bg-primary/12 text-primary",
+      dot: "df-dot-brand",
+      badge: "df-bg-brand-soft df-status-brand",
       icon: Bot,
     },
     {
       name: "Cliente C — Reclamação",
       status: "Handoff → Ana",
       time: "2 min",
-      dot: "bg-orange-400",
-      badge: "bg-orange-500/12 text-orange-600",
+      dot: "df-dot-warning",
+      badge: "df-bg-warning-soft df-status-warning",
       icon: UserRound,
     },
   ];
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-[0_8px_30px_rgba(0,0,0,0.07)] transition-shadow hover:shadow-[0_12px_40px_rgba(0,0,0,0.1)]">
+    <div className="df-surface-elevated rounded-xl p-4 shadow-[0_8px_30px_rgba(0,0,0,0.25)] transition-shadow hover:shadow-[0_12px_40px_rgba(0,0,0,0.32)]">
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
-          <BarChart3 className="size-4 shrink-0 text-primary" aria-hidden />
+          <BarChart3 className="size-4 shrink-0 df-status-brand" aria-hidden />
           <span className="df-text-secondary truncate text-xs font-medium">Painel operacional</span>
         </div>
-        <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+        <span className="shrink-0 rounded-full df-bg-brand-soft px-2 py-0.5 text-[10px] font-semibold df-status-brand">
           LIVE
         </span>
       </div>
@@ -98,7 +98,7 @@ function OperationalDashboardMock() {
             >
               <span className={cn("size-2 shrink-0 rounded-full", item.dot)} aria-hidden />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[11px] font-semibold text-foreground">{item.name}</p>
+                <p className="truncate text-[11px] font-semibold df-text-primary">{item.name}</p>
                 <span className={cn("inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[9px] font-semibold", item.badge)}>
                   <item.icon className="size-2.5" aria-hidden />
                   {item.status}
@@ -118,37 +118,37 @@ function OperationalDashboardMock() {
 
 function HandoffChatMock() {
   return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-[0_8px_30px_rgba(0,0,0,0.07)] transition-shadow hover:shadow-[0_12px_40px_rgba(0,0,0,0.1)]">
+    <div className="df-surface-elevated rounded-xl p-4 shadow-[0_8px_30px_rgba(0,0,0,0.25)] transition-shadow hover:shadow-[0_12px_40px_rgba(0,0,0,0.32)]">
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10">
-            <MessageCircle className="size-4 text-primary" aria-hidden />
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-full df-bg-brand-soft">
+            <MessageCircle className="size-4 df-status-brand" aria-hidden />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-foreground">Cliente C — Handoff</p>
-            <p className="flex items-center gap-1 text-[10px] text-orange-600">
+            <p className="text-xs font-semibold df-text-primary">Cliente C — Handoff</p>
+            <p className="flex items-center gap-1 text-[10px] df-status-warning">
               <UserRound className="size-2.5" aria-hidden />
               Ana · atendente humano
             </p>
           </div>
         </div>
-        <span className="shrink-0 rounded-full bg-orange-500/12 px-2 py-0.5 text-[9px] font-semibold text-orange-600">
+        <span className="shrink-0 rounded-full df-bg-warning-soft px-2 py-0.5 text-[9px] font-semibold df-status-warning">
           Handoff
         </span>
       </div>
       <div className="space-y-2">
-        <div className="max-w-[85%] rounded-2xl rounded-tl-md border border-border bg-muted/30 px-3 py-2 text-xs text-foreground">
-          <span className="mb-0.5 block text-[9px] font-semibold text-primary">Bot</span>
+        <div className="max-w-[85%] rounded-2xl rounded-tl-md border df-border-brand bg-muted/30 px-3 py-2 text-xs df-text-primary">
+          <span className="mb-0.5 block text-[9px] font-semibold df-status-brand">Bot</span>
           Entendi. Vou transferir para nossa equipe agora.
         </div>
-        <div className="mx-auto w-fit rounded-full bg-muted px-2 py-0.5 text-[9px] font-medium text-muted-foreground">
+        <div className="mx-auto w-fit rounded-full bg-muted px-2 py-0.5 text-[9px] font-medium df-text-muted">
           ↓ Handoff para atendente
         </div>
-        <div className="max-w-[85%] rounded-2xl rounded-tl-md border border-orange-500/20 bg-orange-500/5 px-3 py-2 text-xs text-foreground">
-          <span className="mb-0.5 block text-[9px] font-semibold text-orange-600">Ana</span>
+        <div className="max-w-[85%] rounded-2xl rounded-tl-md border df-bg-warning-soft px-3 py-2 text-xs df-text-primary">
+          <span className="mb-0.5 block text-[9px] font-semibold df-status-warning">Ana</span>
           Olá! Vi sua reclamação sobre o pedido #1042. Já estou verificando.
         </div>
-        <div className="ml-auto max-w-[85%] rounded-2xl rounded-tr-md bg-muted px-3 py-2 text-xs text-foreground">
+        <div className="ml-auto max-w-[85%] rounded-2xl rounded-tr-md bg-muted px-3 py-2 text-xs df-text-primary">
           Obrigado, preciso de uma solução rápida
         </div>
       </div>
@@ -158,16 +158,16 @@ function HandoffChatMock() {
 
 function BotResolvedMock() {
   return (
-    <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 shadow-sm">
+    <div className="rounded-xl border df-bg-success-soft p-4 shadow-sm">
       <div className="flex items-center gap-2">
-        <Bot className="size-4 text-primary" aria-hidden />
-        <p className="text-xs font-semibold text-primary">Conversa resolvida pelo bot</p>
+        <Bot className="size-4 df-status-success" aria-hidden />
+        <p className="text-xs font-semibold df-status-success">Conversa resolvida pelo bot</p>
       </div>
       <p className="df-text-secondary mt-2 text-[11px] leading-relaxed">
         Cliente A consultou status do pedido #1042 — resposta automática em 12s, sem escalar para humano.
       </p>
       <div className="mt-2 flex items-center gap-3 text-[10px] font-medium">
-        <span className="text-primary">✓ Resolvido</span>
+        <span className="df-status-success">✓ Resolvido</span>
         <span className="df-text-muted">·</span>
         <span className="df-text-secondary">12s de resposta</span>
       </div>
@@ -245,7 +245,7 @@ export function HeroV2() {
                   aria-label="Agendar diagnóstico da operação no WhatsApp"
                   className={cn(
                     "df-btn-primary devflow-cta-elite inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold leading-snug sm:min-h-14 sm:w-auto sm:min-w-[min(100%,280px)] sm:px-6 sm:text-base md:px-8 md:text-lg",
-                    "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] transition-transform duration-200 ease-out",
+                    "df-shadow-cta transition-transform duration-200 ease-out",
                     "hover:scale-[1.02] active:scale-[0.98] sm:hover:scale-[1.03]"
                   )}
                 >

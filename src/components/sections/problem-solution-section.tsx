@@ -48,12 +48,12 @@ export function ProblemSolutionSection() {
 
         <div className="mt-14 grid gap-8 lg:grid-cols-2 lg:gap-10">
           <article
-            className="rounded-2xl border border-red-500/25 bg-red-950/25 p-6 sm:p-8"
+            className="rounded-2xl border df-bg-danger-soft p-6 sm:p-8"
             aria-labelledby="problem-block-heading"
           >
             <div className="flex items-center gap-3">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-red-500/15">
-                <AlertTriangle className="size-5 text-red-400" aria-hidden />
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl df-bg-danger-soft">
+                <AlertTriangle className="size-5 df-status-danger" aria-hidden />
               </div>
               <h3 id="problem-block-heading" className="df-text-primary text-lg font-bold">
                 O problema
@@ -65,7 +65,7 @@ export function ProblemSolutionSection() {
             <ul className="mt-5 space-y-3" role="list">
               {problems.map((item) => (
                 <li key={item} className="flex items-start gap-2.5">
-                  <X className="mt-0.5 size-4 shrink-0 text-red-400" aria-hidden />
+                  <X className="mt-0.5 size-4 shrink-0 df-status-danger" aria-hidden />
                   <span className="df-text-primary text-sm leading-relaxed">{item}</span>
                 </li>
               ))}
@@ -73,12 +73,12 @@ export function ProblemSolutionSection() {
           </article>
 
           <article
-            className="rounded-2xl border border-primary/20 bg-primary/5 p-6 sm:p-8"
+            className="rounded-2xl border df-bg-brand-soft p-6 sm:p-8"
             aria-labelledby="solution-block-heading"
           >
             <div className="flex items-center gap-3">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/15">
-                <Check className="size-5 text-primary" aria-hidden />
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl df-bg-brand-soft">
+                <Check className="size-5 df-status-brand" aria-hidden />
               </div>
               <h3 id="solution-block-heading" className="df-text-primary text-lg font-bold">
                 A solução
@@ -90,7 +90,7 @@ export function ProblemSolutionSection() {
             <ul className="mt-5 space-y-3" role="list">
               {solutions.map((item) => (
                 <li key={item} className="flex items-start gap-2.5">
-                  <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+                  <Check className="mt-0.5 size-4 shrink-0 df-status-success" aria-hidden />
                   <span className="df-text-primary text-sm leading-relaxed">{item}</span>
                 </li>
               ))}
@@ -108,7 +108,7 @@ export function ProblemSolutionSection() {
             aria-label="Agendar diagnóstico da operação no WhatsApp"
             className={cn(
               "df-btn-primary inline-flex h-12 w-full min-w-0 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold sm:w-auto sm:min-w-[14rem]",
-              "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              "df-shadow-cta focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             )}
           >
             {PRIMARY_CONVERT_CTA_LABEL}
