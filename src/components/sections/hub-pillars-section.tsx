@@ -3,16 +3,28 @@
 import Link from "next/link";
 import { Wrench, Package, MessageCircle, ArrowRight } from "lucide-react";
 import { trackHomeCta } from "@/lib/analytics";
+import { ECOSYSTEM_SECTION_LABEL } from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
 
 const pillars = [
+  {
+    id: "automation" as const,
+    icon: MessageCircle,
+    title: "WhatsApp Platform",
+    badge: "Principal",
+    cta: "Conhecer a plataforma",
+    value: "Operação de atendimento e vendas com inbox, IA, handoff e dashboard.",
+    href: "/produtos/whatsapp-platform",
+    accent: "border-emerald-500/25 bg-emerald-500/[0.04] hover:border-emerald-500/40",
+    iconBg: "bg-emerald-500/15 text-emerald-700",
+  },
   {
     id: "tools" as const,
     icon: Wrench,
     title: "Ferramentas",
     badge: "Grátis",
-    cta: "Usar agora",
-    value: "Tarefas do dia a dia em segundos — sem instalar nada.",
+    cta: "Ver ferramentas",
+    value: "Utilitários no browser para tarefas pontuais do dia a dia.",
     href: "/ferramentas",
     accent: "border-primary/25 bg-primary/[0.04] hover:border-primary/40",
     iconBg: "bg-primary/15 text-primary",
@@ -21,23 +33,12 @@ const pillars = [
     id: "products" as const,
     icon: Package,
     title: "Produtos",
-    badge: "SaaS",
-    cta: "Começar agora",
-    value: "Escale com sistema que aguenta volume de verdade.",
+    badge: "Complementar",
+    cta: "Ver catálogo",
+    value: "Financeiro e outros módulos que complementam a operação.",
     href: "/produtos",
     accent: "border-sky-400/30 bg-sky-400/[0.08] hover:border-sky-300/45",
     iconBg: "bg-sky-400/20 text-sky-200",
-  },
-  {
-    id: "automation" as const,
-    icon: MessageCircle,
-    title: "Automações",
-    badge: "WhatsApp + IA",
-    cta: "Começar agora",
-    value: "Processos no automático — você só entra quando precisa.",
-    href: "/automacao-whatsapp",
-    accent: "border-emerald-500/25 bg-emerald-500/[0.04] hover:border-emerald-500/40",
-    iconBg: "bg-emerald-500/15 text-emerald-700",
   },
 ];
 
@@ -50,18 +51,16 @@ export function HubPillarsSection() {
     >
       <div className="mx-auto max-w-[1200px] px-3 min-[400px]:px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <div className="mx-auto mb-3 h-1 w-12 rounded-full bg-primary sm:mb-4" aria-hidden />
+          <div className="mx-auto mb-3 h-1 w-12 rounded-full bg-muted-foreground/30 sm:mb-4" aria-hidden />
+          <p className="text-xs font-medium text-muted-foreground sm:text-sm">{ECOSYSTEM_SECTION_LABEL}</p>
           <h2
             id="hub-pillars-heading"
             className="df-text-primary text-balance text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl"
           >
-            Um único hub para tudo que sua operação precisa
+            Tudo conectado — WhatsApp Platform no centro
           </h2>
           <p className="df-text-secondary mt-3 text-base leading-relaxed sm:text-lg">
-            Menos login, menos aba. Tudo aqui.
-          </p>
-          <p className="mt-4 text-sm font-medium text-primary">
-            O próximo passo é simples — escolha por onde entrar.
+            A operação no WhatsApp é a prioridade. Ferramentas e produtos complementam quando precisar.
           </p>
         </div>
 

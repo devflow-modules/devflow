@@ -33,10 +33,10 @@ export function AuthorityRealOpsSection() {
             id="authority-heading"
             className="df-text-primary text-2xl font-bold tracking-tight sm:text-3xl"
           >
-            Feito por quem opera de verdade
+            Operações reais em produção — não mockup de apresentação
           </h2>
           <p className="df-text-secondary mt-4 text-sm leading-relaxed sm:text-base">
-            Infra validada em produção — não protótipo.
+            WhatsApp Cloud API oficial, fila priorizada, handoff humano e dashboard operacional.
           </p>
         </div>
 

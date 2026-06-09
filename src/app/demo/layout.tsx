@@ -3,11 +3,14 @@ import type { Metadata } from "next";
 const baseUrl = "https://devflowlabs.com.br";
 const ogImage = `${baseUrl}/og-devflow.png`;
 
+const demoTitle = "Demo WhatsApp Platform | DevFlow Labs";
+const demoDescription =
+  "Veja na prática como a DevFlow organiza atendimento e vendas no WhatsApp com IA, handoff humano, fila, SLA e dashboard operacional.";
+
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
-  title: "Diagnóstico da operação no WhatsApp | DevFlow Labs",
-  description:
-    "Agende um diagnóstico consultivo da sua operação no WhatsApp: canais, equipe, prospecção, IA assistida e métricas. Simulação guiada e próximos passos com a DevFlow Labs.",
+  title: demoTitle,
+  description: demoDescription,
   alternates: {
     canonical: `${baseUrl}/demo`,
   },
@@ -15,24 +18,22 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pt_BR",
     siteName: "DevFlow Labs",
-    title: "Diagnóstico e demonstração — Operação WhatsApp multi-canal | DevFlow Labs",
-    description:
-      "Entenda gargalos de atendimento e prospecção e veja como separar canais com inbox unificada, dashboard por linha e implantação gerenciada.",
+    title: demoTitle,
+    description: demoDescription,
     url: `${baseUrl}/demo`,
     images: [
       {
         url: ogImage,
         width: 1200,
         height: 630,
-        alt: "DevFlow Labs — diagnóstico da operação no WhatsApp",
+        alt: "DevFlow Labs — demo da WhatsApp Platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Diagnóstico da operação no WhatsApp | DevFlow Labs",
-    description:
-      "Diagnóstico consultivo + simulação guiada. Próximo passo: conversa com a DevFlow Labs.",
+    title: demoTitle,
+    description: demoDescription,
     images: [ogImage],
   },
 };

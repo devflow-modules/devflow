@@ -1,5 +1,12 @@
 import Link from "next/link";
 import { MessageCircle, Wallet, Sparkles, ArrowRight, ExternalLink } from "lucide-react";
+import {
+  ECOSYSTEM_PRODUCTS_DESCRIPTION,
+  ECOSYSTEM_PRODUCTS_HEADING,
+  ECOSYSTEM_SECTION_LABEL,
+  PRIMARY_CONVERT_CTA_LABEL,
+  PRIMARY_CONVERT_HREF,
+} from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
 
 const products = [
@@ -7,43 +14,45 @@ const products = [
     icon: MessageCircle,
     iconBg: "bg-primary/10",
     iconColor: "text-primary",
-    tag: "Produto",
+    tag: "Solução principal",
     tagColor: "text-primary",
     title: "WhatsApp Platform",
-    subtitle: "Automação de Atendimento",
+    subtitle: "Atendimento e vendas no WhatsApp",
     description:
-      "Resposta na hora, 24h. Gente entra só quando o cliente pede.",
+      "Inbox multiatendente, IA no repetitivo, handoff humano, SLA e dashboard operacional.",
     highlights: [
-      "Automação 24/7 com IA",
-      "Handoff para equipe humana",
-      "Métricas operacionais",
       "WhatsApp Cloud API oficial",
+      "Fila priorizada e handoff",
+      "IA no repetitivo, humano no crítico",
+      "Diagnóstico e operação acompanhada",
     ],
-    cta: "Começar agora (leva menos de 1 min)",
-    href: "/produtos/whatsapp-platform",
+    cta: PRIMARY_CONVERT_CTA_LABEL,
+    href: PRIMARY_CONVERT_HREF,
     external: false,
-    accent: "border-primary/30",
+    accent: "border-primary/30 ring-1 ring-primary/10",
+    featured: true,
   },
   {
     icon: Wallet,
     iconBg: "bg-sky-400/20",
     iconColor: "text-sky-200",
-    tag: "SaaS",
+    tag: "Complementar",
     tagColor: "text-sky-200",
     title: "Sistema Financeiro",
-    subtitle: "Gestão Financeira Completa",
+    subtitle: "Gestão financeira pessoal ou PJ",
     description:
-      "Receitas, despesas, mês fechado — PF, PJ ou casal. Num lugar só.",
+      "Receitas, despesas e fechamento mensal — para quem precisa de controle além do atendimento.",
     highlights: [
       "Múltiplos contextos",
       "Recorrência automática",
       "Fechamento mensal",
       "Importação CSV",
     ],
-    cta: "Testar grátis — sem cartão",
+    cta: "Conhecer o Financeiro",
     href: "/ferramentas/financeiro",
     external: false,
     accent: "border-sky-400/35",
+    featured: false,
   },
   {
     icon: Sparkles,
@@ -54,7 +63,7 @@ const products = [
     title: "Próximo produto",
     subtitle: "Em desenvolvimento",
     description:
-      "Novos produtos e ferramentas chegando em breve para completar o ecossistema DevFlow Labs.",
+      "Novos módulos do ecossistema DevFlow Labs — complementares à operação no WhatsApp.",
     highlights: [
       "Acompanhe o lançamento",
       "Notificação por e-mail",
@@ -65,6 +74,7 @@ const products = [
     external: false,
     accent: "border-dashed border-border",
     disabled: true,
+    featured: false,
   },
 ];
 
@@ -76,23 +86,17 @@ export function ProductsSection() {
       aria-labelledby="products-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        {/* Cabeçalho */}
         <div className="mx-auto max-w-2xl text-center">
-          <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
+          <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-muted-foreground/30" aria-hidden />
+          <p className="text-xs font-medium text-muted-foreground sm:text-sm">{ECOSYSTEM_SECTION_LABEL}</p>
           <h2
             id="products-heading"
             className="df-text-primary text-2xl font-semibold tracking-tight sm:text-3xl"
           >
-            Quando ferramenta grátis não basta mais
+            {ECOSYSTEM_PRODUCTS_HEADING}
           </h2>
           <p className="df-text-secondary mt-3 leading-relaxed">
-            Quando precisa de mais que ferramenta avulsa.
-          </p>
-          <p className="mt-4 text-sm font-medium text-primary">
-            Agora que você viu o rápido, veja o que escala.
-          </p>
-          <p className="df-text-secondary mx-auto mt-6 max-w-lg text-sm leading-relaxed">
-            Teste sem risco — não fez sentido, você não usa.
+            {ECOSYSTEM_PRODUCTS_DESCRIPTION}
           </p>
         </div>
 
@@ -140,7 +144,9 @@ export function ProductsSection() {
                   "transition-all duration-200",
                   product.disabled
                     ? "df-text-secondary cursor-default border border-dashed border-border bg-muted/20 pointer-events-none"
-                    : "df-surface-elevated border border-border text-foreground hover:bg-muted/20"
+                    : product.featured
+                      ? "bg-primary text-primary-foreground shadow-[0_4px_14px_rgba(34,197,94,0.28)] hover:bg-[#16a34a]"
+                      : "df-surface-elevated border border-border text-foreground hover:bg-muted/20"
                 )}
                 tabIndex={product.disabled ? -1 : undefined}
                 aria-disabled={product.disabled}
@@ -156,7 +162,7 @@ export function ProductsSection() {
           ))}
         </div>
         <p className="df-text-muted mx-auto mt-10 max-w-md text-center text-xs leading-relaxed">
-          Onde for grátis: sem cartão. Pode parar quando quiser.
+          A WhatsApp Platform é a oferta principal — demais produtos complementam o ecossistema.
         </p>
       </div>
     </section>

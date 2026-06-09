@@ -2,7 +2,7 @@
 
 import { MessageCircle } from "lucide-react";
 import { getWhatsAppOrMailtoUrl, isWhatsAppNumberConfigured } from "@/lib/whatsapp";
-import { trackCtaWhatsAppClick } from "@/lib/analytics";
+import { trackCtaWhatsAppClick, trackFunnelCtaClick } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 interface WhatsAppCtaProps {
@@ -14,6 +14,10 @@ interface WhatsAppCtaProps {
   size?: "sm" | "default" | "lg";
   /** `secondary` quando o bloco já tem um CTA primário (ex.: diagnóstico + WhatsApp). */
   variant?: "primary" | "secondary";
+  /** Identificador estável para analytics (ex.: `hero_whatsapp`, `footer_whatsapp`). */
+  trackingSource?: string;
+  /** Dispara também `funnel_cta_click` com `falar_whatsapp`. */
+  trackFunnel?: boolean;
 }
 
 const sizeClasses = {
@@ -29,12 +33,18 @@ export function WhatsAppCta({
   className,
   size = "default",
   variant = "primary",
+  trackingSource,
+  trackFunnel = false,
 }: WhatsAppCtaProps) {
   const href = getWhatsAppOrMailtoUrl(text);
   const usesMailto = !isWhatsAppNumberConfigured();
 
   const handleClick = () => {
-    trackCtaWhatsAppClick(usesMailto ? `${label}_mailto_fallback` : label);
+    const source = trackingSource ?? (usesMailto ? `${label}_mailto_fallback` : label);
+    trackCtaWhatsAppClick(source);
+    if (trackFunnel) {
+      trackFunnelCtaClick({ cta: "falar_whatsapp", surface: source });
+    }
   };
 
   const computedAriaLabel =

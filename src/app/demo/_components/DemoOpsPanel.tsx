@@ -37,8 +37,8 @@ export function DemoOpsPanel(props: DemoOpsPanelVariant) {
       >
         <p className="text-sm font-medium text-foreground">Painel operacional (simulado)</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Nenhum lead na fila ainda. Escolha um cenário de negócio para ver conversa recebida, status e fila em
-          tempo real — tudo local, sem API externa.
+          Nenhuma conversa na fila ainda. Avance o fluxo guiado acima ou escolha um segmento abaixo para ver status,
+          handoff e fila em tempo real — tudo local, sem API externa.
         </p>
       </aside>
     );

@@ -2,8 +2,14 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Headphones, MessageCircle, RotateCcw, Send, UserRound } from "lucide-react";
+import { ArrowRight, CheckCircle2, Headphones, MessageCircle, RotateCcw, Send, UserRound } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
+import {
+  DEMO_WHATSAPP_CTA_TEXT,
+  PRIMARY_CONVERT_CTA_LABEL,
+  PRIMARY_CONVERT_HREF,
+  QUICK_WHATSAPP_CTA_LABEL,
+} from "@/lib/conversion-copy";
 import {
   DEMO_SCENARIOS,
   applyHandoffQueueVisual,
@@ -19,17 +25,14 @@ import {
   trackDemoHandoff,
   trackDemoMessageSent,
   trackDemoScenarioSelected,
+  trackFunnelCtaClick,
 } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { DemoGuidedFlow } from "./DemoGuidedFlow";
 import { DemoOpsPanel } from "./DemoOpsPanel";
 import { DemoScenarioPicker } from "./DemoScenarioPicker";
-import {
-  demoCardClass,
-  demoCtaSecondaryClass,
-  demoEyebrowClass,
-  demoSectionMutedClass,
-} from "@/components/demo/demoUi";
+import { demoCtaSecondaryClass, demoEyebrowClass, demoSectionMutedClass } from "@/components/demo/demoUi";
 
 type Phase = "pick" | "chat" | "success";
 
@@ -61,7 +64,6 @@ function BubbleBody({ text }: { text: string }) {
   );
 }
 
-/** Usa nome de campo por concatenação para não acionar filtros bobos por prefixo SaaS sobre o texto fonte. */
 function chipSuggestionsForScenario(id: DemoScenarioId): readonly string[] {
   const raw = DEMO_SCENARIOS[id];
   const key = ["suggestedP", "rompts"].join("");
@@ -77,68 +79,6 @@ function opsAfterScenarioSelect(scenario: DemoScenarioId): DemoOpsState {
     queueHint: "Aguardando a primeira mensagem do cliente",
   };
 }
-
-const DIAGNOSTIC_POINTS: { title: string; body: string }[] = [
-  {
-    title: "Volume e ritmo das conversas",
-    body: "Picos, filas e onde o time perde velocidade no dia a dia.",
-  },
-  {
-    title: "Canais e linhas em uso",
-    body: "Como chegam atendimento, suporte e captação hoje — e onde se misturam.",
-  },
-  {
-    title: "Equipe e permissões",
-    body: "Quem responde, quem enxerga métricas e onde há risco de exposição indevida.",
-  },
-  {
-    title: "Atritos de atendimento",
-    body: "Triagem, handoff humano, padrão de resposta e continuidade da conversa.",
-  },
-  {
-    title: "prospecção e retomada",
-    body: "Follow-up, priorização de leads e disciplina comercial no WhatsApp.",
-  },
-  {
-    title: "IA assistida e automações",
-    body: "Onde a assistência ajuda, onde precisa de trava humana e como medir impacto.",
-  },
-  {
-    title: "Histórico e leituras",
-    body: "Auditoria por canal, painel gerencial e indicadores que o gestor realmente usa.",
-  },
-];
-
-const DEMO_HIGHLIGHTS: string[] = [
-  "Inbox multi-canal com contexto visível da linha",
-  "Canal Principal e canal de prospecção separados com propósito claro",
-  "Histórico rastreável por frente de operação",
-  "Dashboard gerencial com leitura por canal",
-  "IA assistida com governança e confirmação humana onde importa",
-  "Papéis distintos: operador focado na conversa; gestor na visão e configuração",
-];
-
-const AUDIENCE_POINTS: string[] = [
-  "Empresas que vendem e atendem pelo WhatsApp como canal principal",
-  "Operações que misturam atendimento contínuo e captação no mesmo número ou equipe",
-  "Times em crescimento que precisam de mais previsibilidade e menos improviso",
-  "Negócios que já sentiram limite em grupos soltos ou soluções desconectadas",
-];
-
-const POST_CALL_STEPS: string[] = [
-  "Diagnóstico objetivo sobre canais, filas, equipe e indicadores combinados ao seu cenário.",
-  "Oferta sintética: escopo técnico, treino, go-live assistido e acompanhamento.",
-  "Implantação gerenciada com setup inicial e parametrização da operação.",
-  "Treino para gestores e operadores conforme combinado.",
-  "Ajustes nos primeiros dias e métricas para não “apagar incêndio” no escuro.",
-];
-
-const KEY_MESSAGES: string[] = [
-  "Separe atendimento e prospecção sem perder o controle da operação.",
-  "O operador conversa. O gestor acompanha. A DevFlow Labs sustenta a operação.",
-  "A IA acelera o atendimento sem remover a governança humana.",
-  "Cada canal pode ter objetivo, contexto e leitura gerencial própria.",
-];
 
 export function DemoGuidedExperience() {
   const heroTitleId = useId();
@@ -267,137 +207,54 @@ export function DemoGuidedExperience() {
         aria-labelledby={heroTitleId}
       >
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-          <div className={cn(demoEyebrowClass, "mb-4")}>
-            Diagnóstico operacional · WhatsApp multi-canal
-          </div>
+          <div className={cn(demoEyebrowClass, "mb-4")}>Demo · WhatsApp Platform</div>
           <h1
             id={heroTitleId}
             className="max-w-3xl text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-[2.5rem] lg:leading-tight"
           >
-            Agende um diagnóstico da sua operação no WhatsApp
+            Veja como uma operação WhatsApp organizada funciona
           </h1>
           <p className="df-text-secondary mt-4 max-w-3xl text-base leading-relaxed sm:text-lg">
-            Entenda onde sua equipe perde velocidade, contexto e oportunidades — e veja como uma operação
-            multi-canal pode separar atendimento, prospecção e gestão em um fluxo mais previsível.
+            Simule o fluxo de IA, handoff humano, fila e dashboard antes de agendar o diagnóstico.
           </p>
           <div className="mt-8 flex max-w-2xl flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <WhatsAppCta
-              label="Agendar diagnóstico"
-              ariaLabel="Agendar diagnóstico no WhatsApp com a DevFlow Labs"
-              size="lg"
-              text="Quero agendar um diagnóstico da minha operação no WhatsApp com a DevFlow Labs."
-            />
             <Link
-              href="/solucoes/whatsapp-multi-canal"
-              className={demoCtaSecondaryClass}
-              aria-label="Ver solução WhatsApp multi-canal da DevFlow Labs"
+              href={PRIMARY_CONVERT_HREF}
+              className={cn(
+                "inline-flex h-12 min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground",
+                "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] transition-colors hover:bg-[#16a34a]"
+              )}
+              onClick={() =>
+                trackFunnelCtaClick({ cta: "agendar_diagnostico", surface: "demo_hero_primary" })
+              }
             >
-              Ver solução multi-canal
+              {PRIMARY_CONVERT_CTA_LABEL}
+              <ArrowRight className="size-4 shrink-0" aria-hidden />
             </Link>
+            <WhatsAppCta
+              label={QUICK_WHATSAPP_CTA_LABEL}
+              ariaLabel="Falar no WhatsApp após ver a demo"
+              variant="secondary"
+              size="lg"
+              text={DEMO_WHATSAPP_CTA_TEXT}
+              trackingSource="demo_hero_whatsapp"
+              trackFunnel
+            />
           </div>
           <p className="df-text-secondary mt-6 max-w-2xl text-sm leading-relaxed">
-            Leia a visão completa da oferta em{" "}
-            <Link
-              href="/solucoes/whatsapp-multi-canal"
-              className="font-semibold text-primary underline-offset-4 hover:underline"
-            >
-              /solucoes/whatsapp-multi-canal
-            </Link>
-            . Modelo comercial típico: implantação gerenciada com setup inicial e mensalidade de acompanhamento —
-            conversamos valores na call.
+            IA no repetitivo, humano no que importa — WhatsApp Cloud API oficial, fila priorizada, SLA e dashboard
+            operacional. Diagnóstico consultivo antes da implementação.
           </p>
-        </div>
-      </section>
-
-      <section className={cn(demoSectionMutedClass, "py-14 sm:py-16")}>
-        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-          <h2 className="text-balance text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            O que avaliamos no diagnóstico
-          </h2>
-          <p className="df-text-secondary mt-3 max-w-2xl text-sm sm:text-base">
-            Uma conversa consultiva para mapear hoje e desenhar o que muda com canais separados, visão gerencial e
-            assistência disciplinada.
-          </p>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {DIAGNOSTIC_POINTS.map((item) => (
-              <div key={item.title} className={demoCardClass()}>
-                <h3 className="text-base font-semibold text-foreground">{item.title}</h3>
-                <p className="df-text-secondary mt-2 text-sm leading-relaxed">{item.body}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
       <section className="py-14 sm:py-16">
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-          <h2 className="text-balance text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            O que você verá na demonstração
-          </h2>
-          <p className="df-text-secondary mt-3 max-w-2xl text-sm sm:text-base">
-            Depois do diagnóstico alinhado, mostramos o fluxo real da plataforma — ou você pode encerrar aqui com a
-            simulação guiada abaixo.
-          </p>
-          <ul className="mt-8 grid gap-3 sm:grid-cols-2">
-            {DEMO_HIGHLIGHTS.map((line) => (
-              <li
-                key={line}
-                className="flex gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium text-foreground shadow-sm"
-              >
-                <span className="mt-1 size-2 shrink-0 rounded-full bg-primary" aria-hidden />
-                <span>{line}</span>
-              </li>
-            ))}
-          </ul>
+          <DemoGuidedFlow />
         </div>
       </section>
 
-      <section className={cn(demoSectionMutedClass, "py-14 sm:py-16")}>
-        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Para quem é</h2>
-          <ul className="mt-8 space-y-3 text-sm sm:text-base">
-            {AUDIENCE_POINTS.map((line) => (
-              <li key={line} className="flex gap-3 text-foreground">
-                <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
-                <span>{line}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      <section className="py-14 sm:py-16">
-        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            Depois da conversa: como seguimos
-          </h2>
-          <ol className="mt-8 list-decimal space-y-3 pl-5 text-sm text-foreground sm:text-base">
-            {POST_CALL_STEPS.map((step) => (
-              <li key={step} className="pl-1 leading-relaxed">
-                {step}
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      <div className="border-y border-border bg-primary/[0.04] py-10 sm:py-12">
-        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-          <p className="text-xs font-semibold uppercase tracking-wider text-primary">Como trabalhamos</p>
-          <ul className="mt-4 space-y-3">
-            {KEY_MESSAGES.map((msg) => (
-              <li
-                key={msg}
-                className="border-l-4 border-primary/40 pl-4 text-sm font-semibold leading-relaxed text-foreground sm:text-base"
-              >
-                {msg}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      <section className="py-8 sm:py-12 lg:py-16" aria-labelledby={simSectionId}>
+      <section className={cn(demoSectionMutedClass, "py-14 sm:py-16")} aria-labelledby={simSectionId}>
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="max-w-2xl">
@@ -406,11 +263,11 @@ export function DemoGuidedExperience() {
                 id={simSectionId}
                 className="mt-4 text-balance text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
               >
-                Demonstração guiada no simulador
+                Teste com um cenário do seu segmento
               </h2>
               <p className="df-text-secondary mt-3 leading-relaxed">
-                Simulação rápida: escolha um segmento, envie mensagens como cliente e veja triagem, assistência e
-                handoff humano — o mesmo tipo de fluxo que orientamos em implantação gerenciada.
+                Simulação interativa: envie mensagens como cliente e veja triagem, resposta automática e handoff
+                humano — o mesmo tipo de fluxo que implementamos na operação real.
               </p>
             </div>
             <Button
@@ -429,26 +286,35 @@ export function DemoGuidedExperience() {
             <div className="df-surface-elevated mx-auto mt-8 max-w-xl rounded-2xl border border-emerald-500/35 bg-emerald-500/10 p-6 text-center shadow-sm sm:mt-12 sm:p-8">
               <CheckCircle2 className="mx-auto size-12 text-emerald-600" aria-hidden />
               <h3 className="mt-4 text-balance text-xl font-semibold text-foreground">
-                Próximo passo: levar este fluxo para sua operação
+                Próximo passo: diagnóstico da sua operação
               </h3>
               <p className="df-text-secondary mt-2 text-sm leading-relaxed">
-                Você já viu a dinâmica. Agende o diagnóstico para cruzar com seu volume, canais e equipe — e receber
-                uma proposta alinhada à implantação gerenciada.
+                Você viu IA, handoff, fila e dashboard em ação. Agende o diagnóstico para mapear volume, gargalos e
+                o piloto guiado no seu WhatsApp.
               </p>
               <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
-                <WhatsAppCta
-                  label="Agendar diagnóstico"
-                  ariaLabel="Agendar diagnóstico no WhatsApp após a simulação"
-                  size="lg"
-                  text="Vi a simulação e quero agendar um diagnóstico da minha operação no WhatsApp."
-                />
                 <Link
-                  href="/solucoes/whatsapp-multi-canal"
-                  aria-label="Ver solução WhatsApp multi-canal"
-                  className="df-surface inline-flex min-h-12 items-center justify-center rounded-xl border border-emerald-500/30 bg-background px-6 py-3 text-base font-medium text-foreground transition-colors hover:bg-primary/10"
+                  href={PRIMARY_CONVERT_HREF}
+                  className={cn(
+                    "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-base font-semibold text-primary-foreground",
+                    "shadow-[0_14px_40px_-6px_rgba(34,197,94,0.28)] hover:bg-[#16a34a]"
+                  )}
+                  onClick={() =>
+                    trackFunnelCtaClick({ cta: "agendar_diagnostico", surface: "demo_success_primary" })
+                  }
                 >
-                  Ver solução multi-canal
+                  {PRIMARY_CONVERT_CTA_LABEL}
+                  <ArrowRight className="size-4 shrink-0" aria-hidden />
                 </Link>
+                <WhatsAppCta
+                  label={QUICK_WHATSAPP_CTA_LABEL}
+                  ariaLabel="Falar no WhatsApp após a simulação"
+                  variant="secondary"
+                  size="lg"
+                  text={DEMO_WHATSAPP_CTA_TEXT}
+                  trackingSource="demo_success_whatsapp"
+                  trackFunnel
+                />
               </div>
               <Button
                 type="button"
@@ -466,9 +332,9 @@ export function DemoGuidedExperience() {
                 {phase === "pick" && (
                   <div>
                     <p className="df-text-secondary text-sm font-medium">
-                      Escolha um cenário e simule como um cliente interage com seu WhatsApp.
+                      Escolha um segmento e simule como um cliente interage com sua operação no WhatsApp.
                     </p>
-                    <h3 className="mt-3 text-lg font-semibold text-foreground">1. Escolha o segmento</h3>
+                    <h3 className="mt-3 text-lg font-semibold text-foreground">Escolha o segmento</h3>
                     <p className="mt-1 text-sm text-muted-foreground">
                       Três roteiros prontos — cada um com atalhos alinhados ao nicho.
                     </p>
@@ -490,11 +356,11 @@ export function DemoGuidedExperience() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-foreground">
-                        {def ? `${def.shortLabel} — assistente` : "WhatsApp (simulado)"}
+                        {def ? `${def.shortLabel} — inbox simulado` : "WhatsApp (simulado)"}
                       </p>
                       <p className="flex items-center gap-1.5 text-xs text-primary">
                         <span className="size-1.5 shrink-0 rounded-full bg-primary" />
-                        {phase === "pick" ? "escolha um cenário" : "online — simulação guiada"}
+                        {phase === "pick" ? "escolha um cenário" : "online — simulação interativa"}
                       </p>
                     </div>
                   </div>
@@ -511,8 +377,8 @@ export function DemoGuidedExperience() {
                       <div>
                         <p className="font-semibold">Handoff humano ativo</p>
                         <p className="mt-0.5 text-amber-100/90">
-                          O bot encerrou a automação neste ponto. Na operação real, a conversa aparece na fila / inbox
-                          com histórico completo para o agente assumir.
+                          A IA encerrou a automação neste ponto. Na operação real, a conversa entra na fila com SLA,
+                          prioridade e histórico completo para o atendente assumir.
                         </p>
                       </div>
                     </div>
@@ -523,8 +389,7 @@ export function DemoGuidedExperience() {
                       <Headphones className="size-10 text-muted-foreground/60" aria-hidden />
                       <p className="text-sm font-medium text-foreground">Escolha um cenário para começar</p>
                       <p className="max-w-xs text-xs text-muted-foreground">
-                        Selecione restaurante, tabacaria ou loja/serviços para carregar o roteiro e as sugestões de
-                        mensagem.
+                        Restaurante, tabacaria ou loja/serviços — veja IA no repetitivo e handoff quando precisa.
                       </p>
                     </div>
                   ) : (
@@ -645,7 +510,7 @@ export function DemoGuidedExperience() {
                 </div>
 
                 <p className="df-text-secondary text-center text-sm leading-relaxed lg:text-left">
-                  Exemplo interativo do fluxo de atendimento e operação — complementa o diagnóstico ao vivo na call.
+                  Complemento interativo — o fluxo guiado acima mostra a operação completa antes do diagnóstico.
                 </p>
               </div>
 
@@ -671,26 +536,34 @@ export function DemoGuidedExperience() {
       <section className="border-t border-border bg-muted/25 py-12 sm:py-16">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <h2 className="text-balance text-xl font-bold text-foreground sm:text-2xl">
-            Prefere falar com alguém da DevFlow antes do simulador?
+            Pronto para organizar sua operação no WhatsApp?
           </h2>
           <p className="df-text-secondary mt-3 text-sm leading-relaxed sm:text-base">
-            Agende o diagnóstico no WhatsApp ou leia primeiro a página da solução multi-canal — os dois caminhos
-            conversam entre si.
+            Agende o diagnóstico consultivo ou fale no WhatsApp — mapeamos volume, gargalos, handoff, SLA e dashboard
+            antes de implementar.
           </p>
           <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap">
-            <WhatsAppCta
-              label="Agendar diagnóstico"
-              ariaLabel="Falar com especialista da DevFlow Labs no WhatsApp"
-              size="lg"
-              text="Quero agendar um diagnóstico da operação no WhatsApp com a DevFlow Labs."
-            />
             <Link
-              href="/solucoes/whatsapp-multi-canal"
-              className={cn(demoCtaSecondaryClass, "sm:min-h-12")}
-              aria-label="Abrir página solução WhatsApp multi-canal"
+              href={PRIMARY_CONVERT_HREF}
+              className={cn(
+                demoCtaSecondaryClass,
+                "border-transparent bg-primary text-primary-foreground hover:bg-[#16a34a] sm:min-h-12"
+              )}
+              onClick={() =>
+                trackFunnelCtaClick({ cta: "agendar_diagnostico", surface: "demo_footer_primary" })
+              }
             >
-              Ver solução multi-canal
+              {PRIMARY_CONVERT_CTA_LABEL}
+              <ArrowRight className="size-4 shrink-0" aria-hidden />
             </Link>
+            <WhatsAppCta
+              label={QUICK_WHATSAPP_CTA_LABEL}
+              ariaLabel="Falar no WhatsApp após ver a demo da DevFlow"
+              size="lg"
+              text={DEMO_WHATSAPP_CTA_TEXT}
+              trackingSource="demo_footer_whatsapp"
+              trackFunnel
+            />
           </div>
         </div>
       </section>

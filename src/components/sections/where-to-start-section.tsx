@@ -3,41 +3,49 @@
 import Link from "next/link";
 import { Zap, TrendingUp, MessageCircle, ArrowRight } from "lucide-react";
 import { trackHomeCta } from "@/lib/analytics";
+import {
+  ECOSYSTEM_SECTION_LABEL,
+  PRIMARY_CONVERT_CTA_LABEL,
+  PRIMARY_CONVERT_HREF,
+} from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
 
 const paths = [
   {
-    title: "Quer resolver rápido?",
-    body: "Ferramentas grátis no browser — CNPJ, divisão de contas, simuladores.",
-    cta: "Abrir ferramentas grátis",
+    title: "Quer operação no WhatsApp?",
+    body: "Diagnóstico, implementação guiada e inbox com IA, handoff humano e dashboard operacional.",
+    cta: PRIMARY_CONVERT_CTA_LABEL,
+    href: PRIMARY_CONVERT_HREF,
+    icon: MessageCircle,
+    track: "hub_pillar_automation" as const,
+    foot: "Solução principal · API oficial Meta",
+    accent: "border-emerald-500/30 bg-emerald-500/[0.06] hover:border-emerald-500/45",
+    iconClass: "bg-emerald-500/15 text-emerald-700",
+    featured: true,
+  },
+  {
+    title: "Precisa de uma ferramenta rápida?",
+    body: "Utilitários gratuitos no browser — CNPJ, divisão de contas e simuladores.",
+    cta: "Ver ferramentas gratuitas",
     href: "/ferramentas",
     icon: Zap,
     track: "hub_pillar_tools" as const,
-    foot: "Grátis · Sem cadastro pesado",
+    foot: "Grátis · Complementar à operação principal",
     accent: "border-primary/30 bg-primary/[0.06] hover:border-primary/50",
     iconClass: "bg-primary/15 text-primary",
+    featured: false,
   },
   {
-    title: "Quer escalar de verdade?",
-    body: "Sistemas completos: financeiro, WhatsApp Platform e o que vem na sequência.",
-    cta: "Começar agora (leva menos de 1 min)",
+    title: "Quer conhecer outros produtos?",
+    body: "Financeiro e módulos complementares do ecossistema DevFlow Labs.",
+    cta: "Ver catálogo de produtos",
     href: "/produtos",
     icon: TrendingUp,
     track: "hub_pillar_products" as const,
-    foot: "Não gostou? Não usa. Sem drama.",
+    foot: "Complementar · Não substitui a WhatsApp Platform",
     accent: "border-sky-400/35 bg-sky-400/[0.08] hover:border-sky-300/50",
     iconClass: "bg-sky-400/20 text-sky-200",
-  },
-  {
-    title: "Quer automatizar atendimento?",
-    body: "Resposta na hora, 24h, com humano quando precisar.",
-    cta: "Ver automação WhatsApp",
-    href: "/automacao-whatsapp",
-    icon: MessageCircle,
-    track: "hub_pillar_automation" as const,
-    foot: "Atendimento organizado 24h — você entra só no que importa",
-    accent: "border-emerald-500/30 bg-emerald-500/[0.06] hover:border-emerald-500/45",
-    iconClass: "bg-emerald-500/15 text-emerald-700",
+    featured: false,
   },
 ];
 
@@ -50,18 +58,16 @@ export function WhereToStartSection() {
     >
       <div className="mx-auto max-w-[1200px] px-3 min-[400px]:px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <div className="mx-auto mb-3 h-1 w-12 rounded-full bg-primary sm:mb-4" aria-hidden />
+          <div className="mx-auto mb-3 h-1 w-12 rounded-full bg-muted-foreground/30 sm:mb-4" aria-hidden />
+          <p className="text-xs font-medium text-muted-foreground sm:text-sm">{ECOSYSTEM_SECTION_LABEL}</p>
           <h2
             id="where-start-heading"
             className="df-text-primary text-balance text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl"
           >
-            Por onde começar?
+            Outros caminhos no ecossistema
           </h2>
           <p className="df-text-secondary mt-3 leading-relaxed">
-            Três caminhos. Um clique.
-          </p>
-          <p className="df-text-muted mt-4 text-sm leading-relaxed">
-            Agora que você viu o hub, escolhe o que resolve sua urgência de hoje.
+            Se atendimento no WhatsApp não é sua urgência agora, explore as opções complementares.
           </p>
         </div>
 
@@ -75,7 +81,8 @@ export function WhereToStartSection() {
                   "flex h-full min-h-0 flex-col rounded-2xl border-2 p-5 sm:p-6 lg:p-7",
                   "shadow-sm transition-all duration-300",
                   "hover:-translate-y-1 hover:shadow-lg",
-                  p.accent
+                  p.accent,
+                  p.featured && "ring-1 ring-emerald-500/20"
                 )}
               >
                 <div
@@ -89,14 +96,7 @@ export function WhereToStartSection() {
                 <h3 className="df-text-primary mt-3 text-pretty text-base font-bold sm:mt-4 sm:text-lg">{p.title}</h3>
                 <p className="df-text-secondary mt-2 flex-1 text-sm leading-relaxed">{p.body}</p>
                 <span className="mt-5 inline-flex min-h-10 flex-wrap items-center gap-2 text-left text-sm font-bold leading-snug text-primary sm:mt-6">
-                  {p.href === "/produtos" ? (
-                    <>
-                      <span className="sm:hidden">Começar agora (&lt;1 min)</span>
-                      <span className="hidden sm:inline">{p.cta}</span>
-                    </>
-                  ) : (
-                    p.cta
-                  )}
+                  {p.cta}
                   <ArrowRight className="size-4 shrink-0" aria-hidden />
                 </span>
                 <p className="df-text-muted mt-3 text-xs font-medium leading-relaxed">{p.foot}</p>

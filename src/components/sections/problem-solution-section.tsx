@@ -1,52 +1,27 @@
 import Link from "next/link";
-import { MessageCircle, Wallet, Database, ArrowRight, X } from "lucide-react";
+import { ArrowRight, X, Check, AlertTriangle } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
-import { QUICK_WHATSAPP_CTA_LABEL, VER_COMO_FUNCIONA_CTA_LABEL } from "@/lib/conversion-copy";
+import {
+  PRIMARY_CONVERT_CTA_LABEL,
+  PRIMARY_CONVERT_HREF,
+  QUICK_WHATSAPP_CTA_LABEL,
+} from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
 
-const pairs = [
-  {
-    problem: {
-      icon: MessageCircle,
-      text: "Atendimento no WhatsApp desorganizado",
-      detail: "Mensagens paradas, fila crescendo",
-    },
-    solution: {
-      label: "WhatsApp Platform",
-      text: "Bot + humano no mesmo fluxo",
-      detail: "Resposta na hora; gente quando precisa",
-      color: "text-primary",
-      bg: "bg-primary/5 border-primary/20",
-    },
-  },
-  {
-    problem: {
-      icon: Wallet,
-      text: "Controle financeiro em planilhas",
-      detail: "Número nunca bate, tudo espalhado",
-    },
-    solution: {
-      label: "Sistema Financeiro",
-      text: "Um painel, mês fechado",
-      detail: "Categorias, recorrência, visão clara",
-      color: "text-sky-200",
-      bg: "bg-sky-400/[0.08] border-sky-400/30",
-    },
-  },
-  {
-    problem: {
-      icon: Database,
-      text: "Dados de empresas difíceis de acessar",
-      detail: "Site lento, dado velho",
-    },
-    solution: {
-      label: "Ferramentas Integradas",
-      text: "Dado na hora",
-      detail: "CNPJ, rateio — abre e usa",
-      color: "text-orange-500",
-      bg: "bg-orange-500/5 border-orange-500/20",
-    },
-  },
+const problems = [
+  "Mensagens importantes se perdem no volume",
+  "Cliente espera resposta e procura outro fornecedor",
+  "Equipe responde manualmente as mesmas dúvidas todos os dias",
+  "Ninguém sabe exatamente o que está parado, atrasado ou em risco",
+  "Falta histórico, fila, prioridade e métrica",
+];
+
+const solutions = [
+  "IA responde dúvidas repetitivas 24h",
+  "Handoff leva a conversa para um humano quando precisa",
+  "Inbox multiatendente organiza a operação",
+  "SLA e fila priorizada mostram o que exige atenção",
+  "Dashboard dá visibilidade para decidir com dados",
 ];
 
 export function ProblemSolutionSection() {
@@ -57,81 +32,86 @@ export function ProblemSolutionSection() {
       aria-labelledby="problem-solution-heading"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        {/* Cabeçalho */}
         <div className="mx-auto max-w-2xl text-center">
           <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
           <h2
             id="problem-solution-heading"
             className="df-text-primary text-2xl font-semibold tracking-tight sm:text-3xl"
           >
-            Chega de app solto e planilha espalhada
+            Seu WhatsApp não precisa depender do improviso
           </h2>
-          <p className="df-text-secondary mt-3 leading-relaxed">Dor de um lado. Caminho do outro.</p>
-          <p className="df-text-muted mt-3 text-sm leading-relaxed">
-            O próximo passo é simples: escolha o par que combina com você.
+          <p className="df-text-secondary mt-3 text-base leading-relaxed sm:text-lg">
+            Quando tudo fica no celular, na memória da equipe ou em conversas soltas, o atendimento atrasa e a
+            venda esfria.
           </p>
         </div>
 
-        <div className="mt-14 space-y-8">
-          {pairs.map((pair, index) => (
-            <div
-              key={index}
-              className="grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-center"
-            >
-              {/* Problema */}
-              <div className="rounded-2xl border border-red-500/25 bg-red-950/25 p-5">
-                <div className="flex items-start gap-3">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-red-500/15">
-                    <pair.problem.icon className="size-5 text-red-400" aria-hidden />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <X className="size-3.5 text-red-400 shrink-0" aria-hidden />
-                      <p className="df-text-primary text-sm font-semibold">{pair.problem.text}</p>
-                    </div>
-                    <p className="df-text-secondary mt-1 text-xs leading-relaxed">{pair.problem.detail}</p>
-                  </div>
-                </div>
+        <div className="mt-14 grid gap-8 lg:grid-cols-2 lg:gap-10">
+          <article
+            className="rounded-2xl border border-red-500/25 bg-red-950/25 p-6 sm:p-8"
+            aria-labelledby="problem-block-heading"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-red-500/15">
+                <AlertTriangle className="size-5 text-red-400" aria-hidden />
               </div>
-
-              {/* Seta */}
-              <div className="flex justify-center">
-                <div className="df-surface flex size-8 items-center justify-center rounded-full shadow-sm">
-                  <ArrowRight className="size-4 text-primary" aria-hidden />
-                </div>
-              </div>
-
-              {/* Solução */}
-              <div className={cn("rounded-2xl border p-5", pair.solution.bg)}>
-                <div className="flex items-start gap-3">
-                  <div className={cn(
-                    "flex size-9 shrink-0 items-center justify-center rounded-xl",
-                    pair.solution.bg.replace("bg-", "bg-").replace("/5", "/10")
-                  )}>
-                    <span className={cn("text-lg font-bold", pair.solution.color)} aria-hidden>✓</span>
-                  </div>
-                  <div>
-                    <p className={cn("text-xs font-semibold uppercase tracking-wide", pair.solution.color)}>
-                      {pair.solution.label}
-                    </p>
-                    <p className="df-text-primary mt-0.5 text-sm font-semibold">{pair.solution.text}</p>
-                    <p className="df-text-secondary mt-1 text-xs leading-relaxed">{pair.solution.detail}</p>
-                  </div>
-                </div>
-              </div>
+              <h3 id="problem-block-heading" className="df-text-primary text-lg font-bold">
+                O problema
+              </h3>
             </div>
-          ))}
+            <p className="df-text-secondary mt-3 text-sm leading-relaxed">
+              WhatsApp desorganizado gera demora, mensagem perdida, equipe sobrecarregada e venda escapando.
+            </p>
+            <ul className="mt-5 space-y-3" role="list">
+              {problems.map((item) => (
+                <li key={item} className="flex items-start gap-2.5">
+                  <X className="mt-0.5 size-4 shrink-0 text-red-400" aria-hidden />
+                  <span className="df-text-primary text-sm leading-relaxed">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </article>
+
+          <article
+            className="rounded-2xl border border-primary/20 bg-primary/5 p-6 sm:p-8"
+            aria-labelledby="solution-block-heading"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/15">
+                <Check className="size-5 text-primary" aria-hidden />
+              </div>
+              <h3 id="solution-block-heading" className="df-text-primary text-lg font-bold">
+                A solução
+              </h3>
+            </div>
+            <p className="df-text-secondary mt-3 text-sm leading-relaxed">
+              IA no repetitivo, humano no que importa — com fila priorizada, SLA e dashboard operacional.
+            </p>
+            <ul className="mt-5 space-y-3" role="list">
+              {solutions.map((item) => (
+                <li key={item} className="flex items-start gap-2.5">
+                  <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+                  <span className="df-text-primary text-sm leading-relaxed">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </article>
         </div>
 
-        <div className="mt-14 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
+        <p className="df-text-primary mx-auto mt-10 max-w-xl text-center text-base font-semibold leading-relaxed sm:text-lg">
+          Menos mensagem perdida. Mais resposta no tempo certo. Mais venda preservada.
+        </p>
+
+        <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
           <Link
-            href="/como-funciona"
+            href={PRIMARY_CONVERT_HREF}
+            aria-label="Agendar diagnóstico da operação no WhatsApp"
             className={cn(
               "df-btn-primary inline-flex h-12 w-full min-w-0 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold sm:w-auto sm:min-w-[14rem]",
               "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             )}
           >
-            {VER_COMO_FUNCIONA_CTA_LABEL}
+            {PRIMARY_CONVERT_CTA_LABEL}
             <ArrowRight className="size-4 shrink-0" aria-hidden />
           </Link>
           <WhatsAppCta
@@ -140,7 +120,7 @@ export function ProblemSolutionSection() {
             variant="secondary"
             size="lg"
             className="w-full justify-center sm:w-auto sm:min-w-[14rem]"
-            text="Olá, vim pelo site. Quero falar sobre como organizar atendimento e processos no WhatsApp."
+            text="Olá, vim pelo site. Quero falar sobre organizar atendimento e vendas no WhatsApp com a DevFlow."
           />
         </div>
       </div>

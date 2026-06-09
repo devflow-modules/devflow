@@ -14,6 +14,44 @@ export function trackCtaDemoClick(source?: string): void {
   track("cta_demo_click", { source: source ?? "unknown" });
 }
 
+/** CTAs do funil WhatsApp Platform — home, demo, contato, header, footer. */
+export function trackFunnelCtaClick(props: {
+  cta: "agendar_diagnostico" | "ver_demo_guiada" | "falar_whatsapp";
+  surface: string;
+}): void {
+  track("funnel_cta_click", props);
+}
+
+/** Etapas do fluxo guiado em `/demo`. */
+export function trackDemoGuidedStep(props: {
+  step: number;
+  stepTitle: string;
+  action: "tab" | "next" | "prev";
+}): void {
+  track("demo_guided_step", props);
+}
+
+/** Envio do formulário de diagnóstico em `/contato`. */
+export function trackDiagnosticoFormSubmit(props: {
+  hasVolume: boolean;
+  hasProblema: boolean;
+}): void {
+  track("diagnostico_form_submit", props);
+}
+
+/** Links secundários do ecossistema (header, footer, home). */
+export function trackEcosystemLinkClick(props: { item: string; surface: string }): void {
+  track("ecosystem_link_click", props);
+}
+
+/** Footer — navegação por seção. */
+export function trackFooterLinkClick(props: {
+  item: string;
+  section: "funnel" | "ecossistema" | "segmentos" | "empresa" | "legal";
+}): void {
+  track("footer_link_click", props);
+}
+
 export function trackCtaScroll50(): void {
   track("cta_scroll_50");
 }
@@ -26,6 +64,7 @@ export function trackScrollDepth(percent: 25 | 50 | 75): void {
 /** CTAs da home — conversão */
 export function trackHomeCta(
   action:
+    | "hero_agendar_diagnostico"
     | "hero_ver_demo"
     | "hero_tools"
     | "hero_whatsapp"
@@ -53,7 +92,7 @@ export function trackHeaderNavClicked(props: { item: string; surface?: string })
 }
 
 export function trackHeaderCtaClicked(props: {
-  cta: "ver_demo" | "começar_grátis" | "entrar";
+  cta: "agendar_diagnostico" | "ver_demo" | "começar_grátis" | "entrar";
   surface?: string;
 }): void {
   track("header_cta_clicked", {

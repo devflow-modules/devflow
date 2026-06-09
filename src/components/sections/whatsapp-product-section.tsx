@@ -43,7 +43,7 @@ export function WhatsAppProductSection() {
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <p className="df-text-secondary mb-6 text-center text-sm font-medium sm:text-left">
-          O próximo passo, se atendimento é seu gargalo:
+          Solução principal da DevFlow Labs:
         </p>
         <div className="grid min-w-0 gap-8 lg:grid-cols-2 lg:gap-14 lg:items-center">
           <div className="space-y-8">
@@ -52,12 +52,12 @@ export function WhatsAppProductSection() {
                 id="whatsapp-product-heading"
                 className="df-text-primary text-3xl font-bold tracking-tight sm:text-4xl"
               >
-                WhatsApp que responde sozinho — e escala com você
+                WhatsApp Platform — operação previsível de atendimento e vendas
               </h2>
               <p className="df-text-secondary mt-4 text-lg leading-relaxed">
-                Cliente não espera: quem demora, perde pra quem responde na hora.
+                Mais resposta no tempo certo, com IA no repetitivo e handoff humano quando importa.
                 <span className="df-text-primary mt-2 block text-base font-medium">
-                  Você ganha tempo; o automático cobre o repetitivo.
+                  WhatsApp Cloud API oficial, sem número espelhado — fila, SLA e dashboard operacional.
                 </span>
               </p>
             </div>

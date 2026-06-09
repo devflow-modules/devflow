@@ -2,47 +2,48 @@
 
 import { ChevronDown } from "lucide-react";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
+import { QUICK_WHATSAPP_CTA_LABEL } from "@/lib/conversion-copy";
 
 const faqItems = [
   {
-    question: "Como funciona o robô?",
+    question: "Preciso trocar meu número de WhatsApp?",
     answer:
-      "O robô recebe mensagens no WhatsApp, identifica a intenção e responde automaticamente. Quando o cliente pede para falar com um atendente, fazemos o handoff para sua equipe na hora.",
+      "Não necessariamente. No diagnóstico, avaliamos o cenário atual do número, a estrutura da conta Meta/WhatsApp Business e a melhor forma de configurar a operação com segurança.",
   },
   {
-    question: "Preciso de API do WhatsApp?",
+    question: "É WhatsApp oficial ou gambiarra com QR Code?",
     answer:
-      "Sim. Usamos a WhatsApp Cloud API (oficial da Meta). A DevFlow gerencia a integração — você não precisa se preocupar com configurações técnicas.",
+      "A proposta é trabalhar com WhatsApp Cloud API oficial, webhooks e estrutura rastreável. Não é automação baseada em número espelhado ou solução frágil dependente de celular logado.",
   },
   {
-    question: "Funciona para qualquer negócio?",
+    question: "A IA responde tudo sozinha?",
     answer:
-      "Funciona melhor para negócios que recebem muitas mensagens repetidas: restaurantes, tabacarias, lojas, clínicas. Se sua equipe repete as mesmas respostas todo dia, a automação ajuda.",
+      "Não. A IA entra no repetitivo: dúvidas frequentes, triagem, status, links e orientações iniciais. Quando a conversa exige negociação, exceção ou contexto humano, o fluxo faz handoff para a equipe.",
   },
   {
-    question: "O WhatsApp pode bloquear?",
+    question: "Minha equipe consegue atender junto?",
     answer:
-      "Não, quando usado corretamente. Usamos a API oficial da Meta, em conformidade com as políticas. O robô não envia spam nem mensagens em massa não solicitadas.",
+      "Sim. A operação é pensada para inbox multiatendente, fila, responsáveis, status das conversas e visão do que está parado, em atendimento ou resolvido.",
   },
   {
-    question: "O cliente percebe que é automação?",
+    question: "Vocês só entregam o sistema ou ajudam a implementar?",
     answer:
-      "As mensagens são escritas para soar naturais. Se o cliente preferir falar com humano, é só pedir — o handoff transfere na hora para sua equipe.",
+      "A entrega é consultiva: diagnóstico da operação, desenho dos fluxos, implementação guiada, treinamento e acompanhamento inicial com base nas métricas reais.",
   },
   {
-    question: "Posso transferir para atendente?",
+    question: "Para quais negócios isso faz sentido?",
     answer:
-      "Sim. O handoff é configurável. Quando o cliente pede ou o fluxo identifica necessidade, a conversa vai direto para um atendente humano.",
+      "Faz sentido para negócios que recebem volume relevante de mensagens no WhatsApp: restaurantes, delivery, lojas, clínicas, serviços locais, eventos, suporte e times comerciais.",
   },
   {
-    question: "Preciso trocar meu número?",
+    question: "Quanto tempo leva para colocar no ar?",
     answer:
-      "Não. Usamos o mesmo número que você já tem no WhatsApp Business. A automação roda em paralelo ao atendimento humano.",
+      "Depende do escopo e da situação atual da conta, mas o processo começa com diagnóstico e pode evoluir para um piloto guiado com os principais fluxos antes de expandir a operação.",
   },
   {
-    question: "Posso começar pequeno?",
+    question: "O que eu ganho além de respostas automáticas?",
     answer:
-      "Sim. Temos plano Starter e piloto de 7 dias grátis. Você testa com volume real antes de escalar.",
+      "Você ganha operação: fila, prioridade, handoff humano, histórico, dashboard, SLA e clareza sobre onde o atendimento trava e onde a venda pode estar sendo perdida.",
   },
 ];
 
@@ -61,21 +62,14 @@ const faqSchema = {
 
 export function Faq() {
   return (
-    <section
-      id="faq"
-      className="py-24"
-      aria-labelledby="faq-heading"
-    >
+    <section id="faq" className="py-24" aria-labelledby="faq-heading">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <div
-            className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary"
-            aria-hidden
-          />
+          <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
           <h2
             id="faq-heading"
             className="df-text-primary text-2xl font-semibold tracking-tight sm:text-3xl"
@@ -83,19 +77,17 @@ export function Faq() {
             Perguntas frequentes
           </h2>
           <p className="df-text-secondary mt-3 leading-relaxed">
-            Dúvidas comuns sobre a automação de atendimento no WhatsApp.
+            Objeções comuns sobre operação de atendimento e vendas no WhatsApp com a DevFlow Labs.
           </p>
         </div>
 
         <div className="mx-auto mt-12 max-w-2xl space-y-2">
-          {faqItems.map((item, i) => (
+          {faqItems.map((item) => (
             <details
-              key={i}
+              key={item.question}
               className="group rounded-xl border border-border bg-card [&[open]]:border-primary/30"
             >
-              <summary
-                className="df-text-primary flex cursor-pointer list-none items-center justify-between rounded-xl px-4 py-4 font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background [&::-webkit-details-marker]:hidden"
-              >
+              <summary className="df-text-primary flex cursor-pointer list-none items-center justify-between rounded-xl px-4 py-4 font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background [&::-webkit-details-marker]:hidden">
                 {item.question}
                 <ChevronDown className="df-text-secondary size-5 shrink-0 transition-transform group-open:rotate-180" />
               </summary>
@@ -105,13 +97,15 @@ export function Faq() {
             </details>
           ))}
         </div>
+
         <div className="mx-auto mt-12 max-w-md text-center">
-          <p className="text-sm font-medium text-foreground">Ainda tem dúvidas?</p>
+          <p className="text-sm font-medium text-foreground">Ainda tem dúvidas sobre a operação no WhatsApp?</p>
           <div className="mt-3">
             <WhatsAppCta
-              label="Quero tirar dúvidas no WhatsApp"
+              label={QUICK_WHATSAPP_CTA_LABEL}
+              ariaLabel="Falar no WhatsApp com a DevFlow Labs"
               size="default"
-              text="Olá, tenho dúvidas sobre a automação da DevFlow."
+              text="Olá, tenho dúvidas sobre implementar atendimento e vendas no WhatsApp com a DevFlow."
             />
           </div>
         </div>

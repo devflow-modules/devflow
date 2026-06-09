@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Mail, MessageCircle, PlayCircle } from "lucide-react";
+import { Check, ArrowRight, MessageCircle } from "lucide-react";
+import { DiagnosticoForm } from "@/components/contato/diagnostico-form";
 import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
 import {
+  CONTACT_ANALYSIS_ITEMS,
+  CONTACT_DIAGNOSTIC_WHATSAPP_TEXT,
   PRIMARY_DEMO_CTA_LABEL,
   QUICK_WHATSAPP_CTA_LABEL,
 } from "@/lib/conversion-copy";
@@ -11,10 +14,12 @@ import { cn } from "@/lib/utils";
 const baseUrl = "https://devflowlabs.com.br";
 const ogImage = `${baseUrl}/og-devflow.png`;
 
+const contactDescription =
+  "Solicite um diagnóstico da sua operação de atendimento e vendas no WhatsApp. Mapeamos gargalos, automações possíveis, handoff humano, SLA e dashboard operacional.";
+
 export const metadata: Metadata = {
-  title: "Fale com a DevFlow Labs",
-  description:
-    "Demo guiada da WhatsApp Platform, conversa no WhatsApp ou e-mail para briefing — escolha o canal que combina com o seu ritmo de decisão.",
+  title: "Agendar Diagnóstico WhatsApp | DevFlow Labs",
+  description: contactDescription,
   alternates: {
     canonical: `${baseUrl}/contato`,
   },
@@ -22,38 +27,33 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pt_BR",
     siteName: "DevFlow Labs",
-    title: "Fale com a DevFlow Labs | Demo, WhatsApp ou e-mail",
-    description:
-      "Veja a plataforma em ação na demo, fale com o time no WhatsApp ou envie um briefing formal por e-mail.",
+    title: "Agendar Diagnóstico WhatsApp | DevFlow Labs",
+    description: contactDescription,
     url: `${baseUrl}/contato`,
     images: [
       {
         url: ogImage,
         width: 1200,
         height: 630,
-        alt: "DevFlow Labs — contato e demo",
+        alt: "DevFlow Labs — agendar diagnóstico da operação no WhatsApp",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fale com a DevFlow Labs",
-    description:
-      "Demo guiada, WhatsApp ou e-mail — contato alinhado ao funil da WhatsApp Platform.",
+    title: "Agendar Diagnóstico WhatsApp | DevFlow Labs",
+    description: contactDescription,
     images: [ogImage],
   },
 };
 
-const cardBase =
-  "flex h-full flex-col rounded-2xl border border-border bg-card p-6 shadow-[0_18px_50px_-24px_rgba(15,23,42,0.2)] sm:p-8";
+const sidebarCard =
+  "rounded-2xl border border-border bg-card p-6 shadow-[0_18px_50px_-24px_rgba(15,23,42,0.12)] sm:p-8";
 
 export default function ContatoPage() {
   return (
     <main className="relative overflow-hidden">
-      <div
-        className="pointer-events-none absolute inset-0 -z-10 opacity-40"
-        aria-hidden
-      >
+      <div className="pointer-events-none absolute inset-0 -z-10 opacity-40" aria-hidden>
         <div className="df-decor-radial-brand-soft absolute -top-40 right-0 h-96 w-96 rounded-full blur-3xl" />
         <div className="df-decor-radial-ink-soft absolute -bottom-32 left-0 h-80 w-80 rounded-full blur-3xl" />
       </div>
@@ -61,135 +61,85 @@ export default function ContatoPage() {
       <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
         <header className="mx-auto max-w-3xl text-center">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
-            Contato comercial
+            Diagnóstico da operação WhatsApp
           </p>
           <h1 className="mt-3 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-[2.35rem] lg:leading-tight">
-            Fale com a DevFlow Labs
+            Agende um diagnóstico da sua operação no WhatsApp
           </h1>
-          <p className="df-text-secondary mx-auto mt-4 max-w-2xl text-base font-semibold leading-snug sm:text-lg">
-            Escolha o melhor caminho para ver a plataforma em ação ou conversar sobre o seu caso.
+          <p className="df-text-secondary mx-auto mt-4 max-w-2xl text-base leading-relaxed sm:text-lg">
+            Entenda onde sua operação perde mensagens, tempo e vendas — e veja como organizar atendimento com IA,
+            humano e dashboard.
           </p>
-          <div className="mx-auto mt-8 flex max-w-lg flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
-            <Link
-              href="/demo"
-              className={cn(
-                "df-btn-primary inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
-                "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              )}
-            >
-              {PRIMARY_DEMO_CTA_LABEL}
-              <ArrowRight className="size-4 shrink-0" aria-hidden />
-            </Link>
-            <WhatsAppCta
-              label={QUICK_WHATSAPP_CTA_LABEL}
-              variant="secondary"
-              size="lg"
-              className="h-12 flex-1 justify-center px-6"
-              text="Olá, vim pelo site da DevFlow. Quero alinhar sobre a WhatsApp Platform e o meu caso de atendimento."
-            />
-          </div>
         </header>
 
-        <div className="mx-auto mt-14 grid max-w-5xl gap-6 lg:grid-cols-3">
-          <article className={cn(cardBase, "ring-1 ring-emerald-500/15")}>
-            <div className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <PlayCircle className="size-6" aria-hidden />
-            </div>
-            <h2 className="mt-5 text-lg font-bold tracking-tight text-foreground">
-              Ver demo guiada
-            </h2>
-            <p className="df-text-secondary mt-2 flex-1 text-sm leading-relaxed">
-              Dois minutos vendo fila, priorização e handoff — ideal para validar fit antes de falar com alguém.
-            </p>
-            <Link
-              href="/demo"
-              className={cn(
-                "df-btn-primary mt-8 h-12 w-full rounded-xl text-sm font-semibold",
-                "shadow-[0_14px_40px_-6px_rgba(22,163,74,0.45)] active:brightness-[0.98]",
-                "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              )}
-            >
-              {PRIMARY_DEMO_CTA_LABEL}
-              <ArrowRight className="size-4 shrink-0" aria-hidden />
-            </Link>
-          </article>
+        <div className="mx-auto mt-12 grid max-w-5xl gap-8 lg:grid-cols-[1fr_minmax(17rem,20rem)] lg:items-start">
+          <DiagnosticoForm />
 
-          <article className={cn(cardBase, "df-border-dark")}>
-            <div className="flex size-11 items-center justify-center rounded-xl bg-[#25D366]/12 text-[#128C7E]">
-              <MessageCircle className="size-6" aria-hidden />
+          <aside className="space-y-6" aria-labelledby="analise-heading">
+            <div className={sidebarCard}>
+              <h2 id="analise-heading" className="df-text-primary text-lg font-bold tracking-tight">
+                O que vamos analisar
+              </h2>
+              <ul className="mt-4 space-y-3" role="list">
+                {CONTACT_ANALYSIS_ITEMS.map((item) => (
+                  <li key={item} className="flex items-start gap-2.5">
+                    <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+                    <span className="df-text-secondary text-sm leading-relaxed">{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <h2 className="mt-5 text-lg font-bold tracking-tight text-foreground">
-              WhatsApp
-            </h2>
-            <p className="df-text-secondary mt-2 flex-1 text-sm leading-relaxed">
-              Canal principal em horário comercial: resposta em minutos para dúvidas, escopo e próximos passos.
-            </p>
-            <div className="mt-8">
-              <WhatsAppCta
-                label={QUICK_WHATSAPP_CTA_LABEL}
-                size="lg"
-                className="w-full justify-center"
-                text="Olá, vim pelo site da DevFlow. Quero alinhar sobre a WhatsApp Platform e o meu caso de atendimento."
-              />
-            </div>
-          </article>
 
-          <article className={cn(cardBase, "df-border-dark")}>
-            <div className="flex size-11 items-center justify-center rounded-xl bg-muted/5 df-text-secondary">
-              <Mail className="size-6" aria-hidden />
+            <div className={cn(sidebarCard, "border-primary/20 bg-primary/[0.03]")}>
+              <div className="flex size-10 items-center justify-center rounded-xl bg-[#25D366]/12 text-[#128C7E]">
+                <MessageCircle className="size-5" aria-hidden />
+              </div>
+              <h3 className="df-text-primary mt-4 text-base font-bold">Prefere ir direto ao WhatsApp?</h3>
+              <p className="df-text-secondary mt-2 text-sm leading-relaxed">
+                Envie a mensagem inicial e nossa equipe retoma o diagnóstico com você em minutos, em horário comercial.
+              </p>
+              <div className="mt-5">
+                <WhatsAppCta
+                  label={QUICK_WHATSAPP_CTA_LABEL}
+                  ariaLabel="Falar no WhatsApp para agendar diagnóstico da operação"
+                  variant="secondary"
+                  size="lg"
+                  className="w-full justify-center"
+                  text={CONTACT_DIAGNOSTIC_WHATSAPP_TEXT}
+                  trackingSource="contato_sidebar_whatsapp"
+                  trackFunnel
+                />
+              </div>
             </div>
-            <h2 className="mt-5 text-lg font-bold tracking-tight text-foreground">
-              E-mail
-            </h2>
-            <p className="df-text-secondary mt-2 flex-1 text-sm leading-relaxed">
-              Para propostas formais, anexos ou compras que exigem documentação por escrito.
-            </p>
-            <a
-              href="mailto:contato@devflowlabs.com.br"
-              className={cn(
-                "df-btn-secondary mt-8 h-12 w-full rounded-xl text-sm font-semibold"
-              )}
-            >
-              contato@devflowlabs.com.br
-            </a>
-          </article>
-        </div>
 
-        <div
-          className="df-section-dark mx-auto mt-12 max-w-3xl rounded-2xl border bg-card px-5 py-6 transition-all duration-200 hover:shadow-md sm:px-8 df-border-dark"
-          aria-label="Como escolher o canal"
-        >
-          <p className="df-text-muted text-center text-xs font-bold uppercase tracking-[0.18em]">
-            Decisão rápida
-          </p>
-          <ul className="df-text-secondary mt-4 space-y-3 text-sm leading-relaxed sm:text-[0.9375rem]">
-            <li>
-              <span className="df-text-primary font-semibold">Quer ver antes de falar?</span>{" "}
-              Vá para a{" "}
+            <div className={sidebarCard}>
+              <p className="df-text-secondary text-sm leading-relaxed">
+                Quer ver a plataforma antes? A{" "}
+                <Link href="/demo" className="font-semibold text-primary underline-offset-2 hover:underline">
+                  {PRIMARY_DEMO_CTA_LABEL}
+                </Link>{" "}
+                mostra fila, handoff e dashboard em poucos minutos.
+              </p>
               <Link
                 href="/demo"
-                className="font-medium text-primary underline decoration-primary/30 underline-offset-4 hover:decoration-primary"
+                className={cn(
+                  "mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background text-sm font-semibold",
+                  "transition-colors hover:border-primary/35 hover:bg-muted/30"
+                )}
               >
-                demo guiada
+                {PRIMARY_DEMO_CTA_LABEL}
+                <ArrowRight className="size-4 shrink-0" aria-hidden />
               </Link>
-              .
-            </li>
-            <li>
-              <span className="df-text-primary font-semibold">Quer discutir o seu caso?</span>{" "}
-              WhatsApp — conversa direta com o time.
-            </li>
-            <li>
-              <span className="df-text-primary font-semibold">Precisa de proposta formal?</span>{" "}
-              E-mail com contexto e anexos.
-            </li>
-          </ul>
+            </div>
+          </aside>
         </div>
 
         <p className="df-text-secondary mx-auto mt-10 max-w-xl text-center text-xs font-medium leading-relaxed sm:text-sm">
-          WhatsApp costuma responder em minutos em dias úteis. E-mail: até 24h úteis para retorno com leitura completa do briefing.
+          Diagnóstico consultivo focado em atendimento e vendas no WhatsApp — IA no repetitivo, handoff humano, SLA e
+          dashboard operacional.
         </p>
 
-        <p className="mt-12 text-center">
+        <p className="mt-10 text-center">
           <Link
             href="/"
             className="df-text-secondary text-sm font-semibold underline-offset-4 hover:text-foreground hover:underline"

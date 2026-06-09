@@ -29,7 +29,7 @@ export const DEVFLOW_PRODUCT_CATALOG: DevflowCatalogProduct[] = [
     id: "whatsapp_platform",
     navItemKey: "produto_whatsapp",
     name: "WhatsApp Platform",
-    summary: "Automatize atendimento e vendas no WhatsApp",
+    summary: "Inbox, IA no repetitivo, handoff humano e dashboard operacional",
     cardPitch: "Transforme volume de mensagens em operação previsível.",
     audience: "Negócios que vivem de WhatsApp e precisam de métricas e controle.",
     href: "/produtos/whatsapp-platform",
