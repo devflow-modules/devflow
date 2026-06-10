@@ -19,9 +19,9 @@ export function OnboardingProgress({ currentStep, allComplete }: OnboardingProgr
           return (
             <li key={label} className="flex min-w-0 flex-1 items-center gap-2">
               <span
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                className={`df-check-step ${
                   done
-                    ? "bg-emerald-500 text-white"
+                    ? "df-check-step--done"
                     : active
                       ? "bg-[var(--df-brand-600)] text-white ring-2 ring-[var(--df-brand-200)]"
                       : "bg-muted df-text-muted"
@@ -32,7 +32,7 @@ export function OnboardingProgress({ currentStep, allComplete }: OnboardingProgr
               </span>
               <span
                 className={`text-xs font-medium sm:text-sm ${
-                  active ? "df-text-primary" : done ? "text-emerald-800" : "df-text-muted"
+                  active ? "df-text-primary" : done ? "df-text-success" : "df-text-muted"
                 }`}
               >
                 {label}

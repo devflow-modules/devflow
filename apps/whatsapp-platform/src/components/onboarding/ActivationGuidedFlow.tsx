@@ -84,10 +84,11 @@ export function ActivationGuidedFlow() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <EvaluationModeRibbon className="mb-4 rounded-xl border border-sky-100/90 text-left" />
+      <EvaluationModeRibbon className="mb-4 rounded-xl border df-border-brand text-left" />
+
       <OnboardingProgress currentStep={currentStep} allComplete={allComplete} />
 
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <div className="df-onboarding-card">
         {!allComplete && currentStep === 1 ? (
           <>
             <h2 className="text-lg font-semibold df-text-primary">Conecte seu WhatsApp</h2>
@@ -143,7 +144,7 @@ export function ActivationGuidedFlow() {
 
         {allComplete ? (
           <div className="text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-2xl text-emerald-700">
+            <div className="df-onboarding-success-icon" aria-hidden>
               ✓
             </div>
             <h2 className="mt-4 text-lg font-semibold df-text-primary">Tudo certo — seu atendimento está ativo</h2>

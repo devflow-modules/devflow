@@ -293,7 +293,7 @@ export function BillingPageClient() {
         />
       ) : null}
 
-      <section className="overflow-hidden rounded-2xl border df-border-brand bg-gradient-to-br from-[var(--df-bg-elevated)] to-[var(--df-bg-app)] p-5 shadow-md sm:p-8">
+      <section className="df-metric-panel overflow-hidden bg-gradient-to-br from-[var(--df-bg-elevated)] to-[var(--df-bg-app)]">
         <div className="flex min-w-0 flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--df-text-muted)]">Contrato ativo</p>
@@ -340,7 +340,7 @@ export function BillingPageClient() {
         ))}
 
       {normalizedCurrentPlan === "FREE" ? (
-        <section className="rounded-2xl border df-border-brand bg-[var(--df-bg-elevated)] p-6 shadow-sm">
+        <section className="df-metric-panel">
           <h2 className="text-lg font-bold text-[var(--df-text-primary)]">{HOW_FULL_OPERATION_WORKS.title}</h2>
           <p className="mt-2 text-sm leading-relaxed text-[var(--df-text-secondary)]">{HOW_FULL_OPERATION_WORKS.intro}</p>
           <ul className="mt-4 list-inside list-disc space-y-2 text-sm text-[var(--df-text-secondary)]">
@@ -355,7 +355,7 @@ export function BillingPageClient() {
       ) : null}
 
       {usage && (
-        <section className="rounded-2xl border df-border-brand bg-[var(--df-bg-elevated)] p-6 shadow-sm">
+        <section className="df-metric-panel">
           <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-lg font-bold text-[var(--df-text-primary)]">Consumo do período</h2>

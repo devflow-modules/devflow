@@ -73,7 +73,7 @@ function StateBadge({ children, tone }: { children: ReactNode; tone: "amber" | "
     amber: "df-badge-warning",
     emerald: "df-badge-success",
     slate: "bg-muted df-text-secondary ring-1 ring-[color:var(--df-ring-soft)]",
-    violet: "bg-violet-100 text-violet-900 ring-1 ring-violet-200/80",
+    violet: "df-badge-info",
   } as const;
   return (
     <span
@@ -338,7 +338,7 @@ export function TenantAdminClient({ tenantId }: { tenantId: string }) {
               <div className="space-y-2">
                 <StateBadge tone="emerald">Comissão paga</StateBadge>
                 <p className="text-sm font-medium df-text-primary">Liquidada</p>
-                <p className="text-lg font-semibold tabular-nums text-emerald-900">{formatBrl(commissionBlock.amount)}</p>
+                <p className="text-lg font-semibold tabular-nums df-text-success">{formatBrl(commissionBlock.amount)}</p>
               </div>
             ) : (
               <div className="space-y-2">

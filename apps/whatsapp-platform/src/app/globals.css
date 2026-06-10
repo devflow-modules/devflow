@@ -1136,4 +1136,33 @@ html[data-theme="client_branded"] {
   .df-list-check-success {
     color: var(--df-feedback-success-text);
   }
+
+  /** Faixa modo avaliação (billing/onboarding) */
+  .df-evaluation-ribbon {
+    @apply shrink-0 border-b px-3 py-2 text-center text-[11px] leading-snug sm:px-4 sm:text-left;
+    border-color: color-mix(in srgb, rgb(56 189 248) 35%, var(--df-inbox-sheet-border));
+    background: color-mix(in srgb, rgb(56 189 248) 12%, var(--df-bg-elevated));
+    color: var(--df-feedback-info-text);
+  }
+
+  /** Realce de cabeçalho admin/settings */
+  .df-admin-header-ring {
+    @apply rounded-2xl border pl-4 ring-1;
+    border-color: color-mix(in srgb, var(--df-warning-border) 55%, var(--df-border-subtle));
+    background: color-mix(in srgb, var(--df-warning-bg) 35%, var(--df-bg-elevated));
+    --tw-ring-color: color-mix(in srgb, var(--df-warning-border) 40%, transparent);
+  }
+
+  .df-onboarding-card {
+    @apply rounded-2xl border p-6 shadow-sm;
+    border-color: color-mix(in srgb, var(--df-border-dark) 72%, var(--df-border-subtle));
+    background: var(--df-bg-elevated);
+  }
+
+  .df-onboarding-success-icon {
+    @apply mx-auto flex h-14 w-14 items-center justify-center rounded-full text-2xl ring-1;
+    background: rgb(16 185 129 / 0.18);
+    color: var(--df-feedback-success-text);
+    --tw-ring-color: rgb(16 185 129 / 0.35);
+  }
 }

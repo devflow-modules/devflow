@@ -276,7 +276,7 @@ function GuardrailsSummary(props: {
           <strong className="text-[var(--df-text-primary)]">Quando a IA pode responder:</strong> espaço com IA ativada, resposta
           automática ligada, decisão dos guards a permitir e{" "}
           {canUse === false ? (
-            <span className="text-amber-800">
+            <span className="df-text-warning">
               {wl ? "capacidade de IA da operação esgotada ou bloqueada" : "capacidade de IA contratada esgotada ou bloqueada"}
             </span>
           ) : (
@@ -581,7 +581,7 @@ export function AiSettingsForm() {
   return (
     <form id="wf-ai-settings" onSubmit={handleSubmit} className="max-w-3xl space-y-10">
       {error ? (
-        <div className="rounded-xl border border-red-200/90 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+        <div className="df-feedback-error rounded-xl text-sm" role="alert">
           {error}
         </div>
       ) : null}
@@ -1103,13 +1103,10 @@ export function AiSettingsForm() {
         </div>
 
         {testError ? (
-          <div
-            className="rounded-xl border border-amber-200/90 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-sm"
-            role="alert"
-          >
+          <div className="df-feedback-warning rounded-xl text-sm shadow-sm" role="alert">
             <p className="font-semibold">Não foi possível concluir a simulação</p>
-            <p className="mt-1 text-amber-900/95">{testError}</p>
-            <p className="mt-2 text-xs text-amber-800/90">
+            <p className="mt-1 opacity-95">{testError}</p>
+            <p className="mt-2 text-xs opacity-90">
               Verifique o motor em Configurações, a ligação à rede e tente outra vez. Os dados do formulário não foram
               gravados por isto.
             </p>
@@ -1171,7 +1168,7 @@ export function AiSettingsForm() {
               {testRun.error ? (
                 <div className="sm:col-span-2">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Nota do motor</p>
-                  <p className="mt-1 rounded-md border border-amber-200/80 bg-amber-50 px-2 py-1.5 text-xs text-amber-950">
+                  <p className="mt-1 df-feedback-warning rounded-md px-2 py-1.5 text-xs">
                     {testRun.error}
                   </p>
                 </div>

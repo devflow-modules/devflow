@@ -222,14 +222,14 @@ export function ChannelActivationDrawer({ channelId, open, onClose, onRetryActiv
                     </p>
                   ) : null}
                   {detail.autoHealFeatureEnabled && detail.autoHealStatus === "COOLDOWN" ? (
-                    <p className="mb-2 text-xs text-amber-800" data-testid="auto-heal-cooldown-hint">
+                    <p className="mb-2 text-xs df-text-warning" data-testid="auto-heal-cooldown-hint">
                       Em espera (cooldown): a próxima tentativa automática só após o intervalo definido.
                     </p>
                   ) : null}
                   {detail.autoHealFeatureEnabled &&
                   detail.autoHealStatus === "ACTIVE" &&
                   detail.autoHealCandidate ? (
-                    <p className="mb-2 text-xs font-medium text-emerald-800" data-testid="auto-heal-active-hint">
+                    <p className="mb-2 text-xs font-medium df-text-success" data-testid="auto-heal-active-hint">
                       Correção automática ativa — pode executar em segundo plano após carregar a fila.
                     </p>
                   ) : null}
@@ -251,11 +251,8 @@ export function ChannelActivationDrawer({ channelId, open, onClose, onRetryActiv
               ) : null}
 
               {detail?.playbook ? (
-                <section
-                  className="mb-6 rounded-xl border border-purple-200/80 bg-purple-50/50 p-4"
-                  data-testid="channel-playbook-section"
-                >
-                  <h3 className="df-label mb-2 text-purple-950">Sugestão de resolução</h3>
+                <section className="df-panel-playbook mb-6 p-4" data-testid="channel-playbook-section">
+                  <h3 className="df-label mb-2 df-text-info">Sugestão de resolução</h3>
                   <p className="mb-3 font-medium df-text-primary">{detail.playbook.title}</p>
                   <ol className="list-decimal space-y-2 pl-5 text-sm df-text-secondary">
                     {detail.playbook.steps.map((step, i) => (

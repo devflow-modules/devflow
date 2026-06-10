@@ -376,20 +376,38 @@ Auditoria baseada nas secções do [Product UI System](../brand/DEVFLOW-PRODUCT-
 
 **Fora de escopo deste pass (próximos P1):** `AiAnalyticsClient` (settings), `EvaluationModeRibbon`, onboarding (`OnboardingProgress`), admin/settings (`AiSettingsForm`, `AgentsClient`), auth legacy, inbox (salvo `empty-state` partilhado).
 
-**Próximo P1 recomendado:** billing/onboarding fora do dashboard → admin/settings → axe/Playwright.
+**Próximo P1 recomendado:** auth legacy (`PasswordField`, `ForgotPasswordForm`), shell navigation (`SidebarRail`), axe/Playwright.
+
+### Product UI Pass P1 — Billing and Onboarding (2026-06-09)
+
+| Área | Estado | Ficheiros principais |
+|------|--------|----------------------|
+| Billing settings / página consumo | ✅ Corrigido | `BillingSettingsClient.tsx`, `BillingPageClient.tsx` |
+| Onboarding / activação | ✅ Corrigido | `OnboardingProgress.tsx`, `ActivationGuidedFlow.tsx`, `EvaluationModeRibbon.tsx` |
+| Settings IA | ✅ Corrigido | `AiSettingsForm.tsx`, `AiAnalyticsClient.tsx` |
+| Equipa / agentes | ✅ Corrigido | `AgentsClient.tsx` |
+| Admin tenants / conversas / WhatsApp | ✅ Corrigido | `TenantsAdminListClient.tsx`, `TenantAdminClient.tsx`, `conversations/page.tsx`, `ChannelActivationDrawer.tsx` |
+| Cabeçalhos admin | ✅ Corrigido | `page-header.tsx` (`.df-admin-header-ring`) |
+| Utilities CSS | ✅ Novo | `.df-evaluation-ribbon`, `.df-admin-header-ring`, `.df-onboarding-card`, `.df-onboarding-success-icon` |
+
+**Ocorrências claras removidas:** `emerald-50/100/800`, `red-50`, `amber-50/800`, `sky-50`, `violet-100`, `purple-50`, `blue-50/50`, `teal-100` em billing/onboarding/settings/admin.
+
+**Fora de escopo deste pass:** inbox, dashboard (já P1 anterior), `/demo` público, auth login/signup completo, `SupportModal`, `SidebarRail` logout hover.
+
+**Próximo P1 recomendado:** contraste automatizado axe/Playwright; auth legacy focus rings; seed demo comercial P1.
 
 ### P1 — Corrigir antes de escalar
 
 | ID | Item | Ficheiro(s) | Estado |
 |----|------|-------------|--------|
-| P1-1 | Substituir `emerald-*`/`red-50`/`amber-*` em dashboard e billing por `--df-*-soft` | `DashboardAiClient`, `OverageCard`, `AiAnalyticsClient`, etc. | ✅ Dashboard/billing em dashboard (parcial global) |
-| P1-2 | `EvaluationModeRibbon` light `sky-50` → variante dark tokenizada | `EvaluationModeRibbon.tsx` |
+| P1-1 | Substituir `emerald-*`/`red-50`/`amber-*` em dashboard e billing por `--df-*-soft` | `DashboardAiClient`, `OverageCard`, `AiAnalyticsClient`, etc. | ✅ Dashboard + billing/onboarding/settings (parcial global) |
+| P1-2 | `EvaluationModeRibbon` light `sky-50` → variante dark tokenizada | `EvaluationModeRibbon.tsx` | ✅ Corrigido |
+| P1-8 | Unificar error states (`red-50` → `df-feedback-danger`) | settings, agents, admin | ✅ Parcial (settings/agents; auth legacy pendente) |
 | P1-3 | Auth `focus:ring-blue-600` → brand | `PasswordField`, `ForgotPasswordForm` |
 | P1-4 | Badge pending inbound/unread: brand → warning semântico | `globals.css`, `ConversationItem` |
 | P1-5 | Indicador `PENDING`/handoff no header da thread (warning) | `ChatHeader.tsx` |
 | P1-6 | Queue badge fallback claro e contraste de `tag.color` | `ConversationItem`, `ChatHeader` |
 | P1-7 | Toast com variantes semânticas e contraste verificado | `simple-toast.tsx` |
-| P1-8 | Unificar error states (`red-50` → `df-feedback-danger`) | settings, agents, admin |
 
 ### P2 — Refinamento
 
@@ -460,3 +478,4 @@ Auditoria baseada nas secções do [Product UI System](../brand/DEVFLOW-PRODUCT-
 | 2026-06-10 | Auditoria inicial vs Product UI System v1.0 |
 | 2026-06-09 | Product UI Pass P0 — 6 correções na inbox (thread, ticks, ações, chips, preview IA, dropdown focus) |
 | 2026-06-09 | Product UI Pass P1 — Dashboard and Cards (métricas, saúde, billing em dashboard, WhatsApp dashboard) |
+| 2026-06-09 | Product UI Pass P1 — Billing and Onboarding (settings billing, onboarding, IA analytics, admin tenants) |

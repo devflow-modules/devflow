@@ -152,7 +152,7 @@ export function BillingSettingsClient() {
         />
       ) : null}
 
-      <section className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)] sm:p-6">
+      <section className="df-metric-card sm:p-6">
         <h2 className="mb-1 text-lg font-bold tracking-tight text-[var(--df-text-primary)]">Contrato ativo</h2>
         <p className="mb-3 text-sm text-[var(--df-text-secondary)]">
           Mensalidade, renovação e documentos de pagamento. Limites técnicos e regras da operação continuam definidos no
@@ -175,7 +175,7 @@ export function BillingSettingsClient() {
               </div>
             )}
             {sub.cancelAtPeriodEnd && (
-              <p className="text-amber-700 text-xs">Cancelamento agendado ao fim do período.</p>
+              <p className="df-text-warning text-xs">Cancelamento agendado ao fim do período.</p>
             )}
             <div className="flex justify-between pt-2 border-t df-border-brand">
               <dt className="text-[var(--df-text-muted)]">Uso variável da operação</dt>
@@ -228,7 +228,7 @@ export function BillingSettingsClient() {
         ))}
 
       {usage && (
-        <section className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)] sm:p-6">
+        <section className="df-metric-card sm:p-6">
           <h2 className="mb-1 text-lg font-bold tracking-tight text-[var(--df-text-primary)]">Uso do mês ({usage.period})</h2>
           <p className="text-xs text-[var(--df-text-muted)] mb-4">
             Custos variáveis são estimados com base nos preços configurados no servidor (env).

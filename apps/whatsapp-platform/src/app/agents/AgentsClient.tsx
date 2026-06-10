@@ -144,7 +144,7 @@ export function AgentsClient({
 
       {viewer ? (
         <section
-          className="rounded-lg border border-border/80 bg-muted/60/50 px-3 py-2.5 text-sm shadow-none df-ring-elevated"
+          className="rounded-lg border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_45%,var(--df-bg-elevated))] px-3 py-2.5 text-sm"
           aria-label="A sua sessão"
         >
           <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">A sua sessão</p>
@@ -161,7 +161,7 @@ export function AgentsClient({
       ) : null}
 
       {error ? (
-        <div className="rounded-xl border border-red-200/90 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+        <div className="df-feedback-error rounded-xl text-sm" role="alert">
           {error}
         </div>
       ) : null}

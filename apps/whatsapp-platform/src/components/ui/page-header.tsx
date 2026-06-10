@@ -50,7 +50,7 @@ export function PageHeader({
   const titleClass = size === "compact" ? "df-text-page-title-sm mt-2" : "df-text-page-title mt-2";
 
   const dividerSplit = showDivider ? "border-b df-border-brand pb-8 sm:pb-10" : "pb-4 sm:pb-5";
-  const toneRing = tone === "admin" ? "rounded-2xl border border-amber-100/90 bg-amber-50/25 pl-4 ring-1 ring-amber-100/80" : "";
+  const toneRing = tone === "admin" ? "df-admin-header-ring" : "";
 
   if (layout === "split") {
     return (

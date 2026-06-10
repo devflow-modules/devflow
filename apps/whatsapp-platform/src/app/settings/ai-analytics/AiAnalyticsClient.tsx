@@ -46,9 +46,9 @@ function formatUSD(n: number) {
 }
 
 function getFallbackRateColor(rate: number): string {
-  if (rate < 0.05) return "text-emerald-600";
-  if (rate <= 0.15) return "text-amber-600";
-  return "text-red-600";
+  if (rate < 0.05) return "df-text-success";
+  if (rate <= 0.15) return "df-text-warning";
+  return "df-text-error";
 }
 
 function getFallbackRateLabel(rate: number): string {
@@ -190,12 +190,12 @@ export function AiAnalyticsClient() {
     <div className="min-w-0 space-y-6">
       {/* Card: Prova de valor (só exibe se tiver uso de IA) */}
       {metrics.ai_messages_total > 0 && (
-        <div className="rounded-xl border border-emerald-200/90 bg-emerald-50/90 p-5 shadow-sm ring-1 ring-emerald-900/[0.06]">
-          <h2 className="mb-2 text-base font-bold text-emerald-900">Valor gerado</h2>
-          <p className="text-sm text-emerald-800">
+        <div className="df-feedback-success rounded-xl p-5 shadow-sm">
+          <h2 className="mb-2 text-base font-bold">Valor gerado</h2>
+          <p className="text-sm">
             Você respondeu <strong>{metrics.ai_messages_total} clientes</strong> automaticamente este mês.
           </p>
-          <p className="mt-1 text-sm text-emerald-800">
+          <p className="mt-1 text-sm">
             Tempo economizado estimado: <strong>~{estimatedHours} horas</strong>
           </p>
         </div>
@@ -245,7 +245,7 @@ export function AiAnalyticsClient() {
             {usageStatus.percent_used != null && (
               <span
                 className={`text-sm font-medium ${
-                  atLimit ? "text-red-600" : nearLimit ? "text-amber-600" : "text-[var(--df-text-secondary)]"
+                  atLimit ? "df-text-error" : nearLimit ? "df-text-warning" : "text-[var(--df-text-secondary)]"
                 }`}
               >
                 {usageStatus.percent_used}% usado
@@ -269,7 +269,7 @@ export function AiAnalyticsClient() {
               ))}
           </div>
           {atLimit && (
-            <p className="mt-3 text-sm text-red-200">
+            <p className="mt-3 text-sm df-text-error">
               Sua IA parou de responder automaticamente. As mensagens estão sendo respondidas de forma limitada.
             </p>
           )}
@@ -337,7 +337,7 @@ export function AiAnalyticsClient() {
             usageStatus.ai_overage_billed > 0 &&
             usageStatus.ai_overage_cost_brl != null &&
             usageStatus.ai_overage_cost_brl > 0 && (
-              <p className="mt-3 text-sm text-amber-800">
+              <p className="mt-3 text-sm df-text-warning">
                 Uso adicional de IA este mês:{" "}
                 <strong>R$ {usageStatus.ai_overage_cost_brl.toFixed(2)}</strong>{" "}
                 ({usageStatus.ai_overage_billed} respostas)
@@ -365,7 +365,7 @@ export function AiAnalyticsClient() {
 
       {/* Insights */}
       {insights.length > 0 && (
-        <div className="rounded-xl border border-amber-200/90 bg-amber-50/90 p-5 ring-1 ring-amber-900/[0.05]">
+        <div className="df-feedback-warning rounded-xl p-5">
           <h2 className="mb-2 text-base font-bold tracking-tight text-[var(--df-text-primary)]">Insights</h2>
           <ul className="space-y-1 text-sm text-[var(--df-text-secondary)]">
             {insights.map((msg, i) => (

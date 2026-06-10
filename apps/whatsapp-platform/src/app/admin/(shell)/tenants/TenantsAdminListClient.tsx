@@ -98,7 +98,7 @@ export function TenantsAdminListClient({ initialRows }: { initialRows: TenantLis
                       <Badge className="df-badge-warning">Interno</Badge>
                     ) : null}
                     {t.affiliateId ? (
-                      <Badge className="bg-violet-100 text-violet-900">Afiliado</Badge>
+                      <Badge className="df-badge-info">Afiliado</Badge>
                     ) : (
                       <Badge className="bg-muted df-text-secondary">Sem afiliado</Badge>
                     )}
