@@ -120,7 +120,7 @@ export const ConversationItem = memo(function ConversationItem({
   const stageChip =
     prospectStage && isSalesStage(prospectStage) ? (
       <span
-        className={`max-w-[4.5rem] truncate rounded px-1 py-0.5 text-[9px] font-bold ring-1 ${SALES_STAGE_BADGE_CLASS[prospectStage]}`}
+        className={`df-inbox-list-chip max-w-[4.5rem] truncate rounded px-1 py-0.5 font-bold ring-1 ${SALES_STAGE_BADGE_CLASS[prospectStage]}`}
         title={SALES_STAGE_LABELS_PT[prospectStage]}
       >
         {SALES_STAGE_ABBREV[prospectStage]}
@@ -223,7 +223,7 @@ export const ConversationItem = memo(function ConversationItem({
               ) : null}
               {thread.dealSuggested && thread.dealStatus !== "won" && thread.dealStatus !== "lost" ? (
                 <span
-                  className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-950 ring-1 ring-amber-300/80"
+                  className="df-badge-warning df-inbox-list-chip !rounded-full !px-1.5 !py-0.5 !font-bold !uppercase !tracking-wide"
                   title="Proposta de fecho à espera de confirmação do gestor"
                   data-testid="deal-suggestion-pending-badge"
                 >
@@ -248,7 +248,7 @@ export const ConversationItem = memo(function ConversationItem({
           <div className="mt-1 flex flex-wrap items-center gap-1.5" data-testid="crm-inbox-row">
             {crmLabel ? (
               <span
-                className={`inline-flex flex-col rounded px-1 py-0.5 text-[9px] font-bold ring-1 ${crmClass}`}
+                className={`df-inbox-list-chip inline-flex flex-col rounded px-1 py-0.5 font-bold ring-1 ${crmClass}`}
                 title={priorityHint?.tooltip ?? "Prioridade da conversa"}
                 data-testid="crm-priority-badge"
               >
@@ -258,11 +258,11 @@ export const ConversationItem = memo(function ConversationItem({
                 ) : null}
               </span>
             ) : null}
-            <span className="tabular-nums text-[9px] font-semibold text-[var(--df-text-secondary)]" data-testid="lead-score-list">
+            <span className="df-inbox-list-chip tabular-nums font-semibold text-[var(--df-text-secondary)]" data-testid="lead-score-list">
               {thread.leadScore ?? 0} pts
             </span>
             {thread.aiState ? (
-              <span className="max-w-[5.5rem] truncate rounded bg-[var(--df-brand-100)] px-1 py-0.5 text-[9px] font-medium text-[var(--df-brand-900)] ring-1 ring-[var(--df-border-subtle)]">
+              <span className="df-inbox-list-chip max-w-[5.5rem] truncate rounded bg-[var(--df-brand-100)] px-1 py-0.5 font-medium text-[var(--df-brand-900)] ring-1 ring-[var(--df-border-subtle)]">
                 {thread.aiState}
               </span>
             ) : null}
@@ -289,9 +289,11 @@ export const ConversationItem = memo(function ConversationItem({
             ) : null}
             {thread.queue?.name ? (
               <span
-                className="max-w-[7rem] truncate rounded-md px-1.5 py-0.5 text-[9px] font-semibold ring-1 ring-[color:var(--df-ring-soft)]"
+                className="df-inbox-list-chip max-w-[7rem] truncate rounded-md px-1.5 py-0.5 font-semibold ring-1 ring-[color:var(--df-ring-soft)]"
                 style={{
-                  backgroundColor: thread.queue.color ? `${thread.queue.color}33` : "rgb(241 245 249)",
+                  backgroundColor: thread.queue.color
+                    ? `${thread.queue.color}33`
+                    : "var(--df-chip-muted-bg)",
                 }}
                 title={thread.queue.slug}
               >
@@ -305,7 +307,7 @@ export const ConversationItem = memo(function ConversationItem({
             ) : null}
             {showAguardandoCliente ? (
               <span
-                className="df-badge-success !rounded-md !px-1.5 !py-0.5 !text-[9px] !font-semibold !normal-case !tracking-normal"
+                className="df-badge-success df-inbox-list-chip !rounded-md !px-1.5 !py-0.5 !font-semibold !normal-case !tracking-normal"
                 data-testid="awaiting-customer-chip"
                 title="Última resposta enviada; à espera do cliente"
               >
@@ -319,7 +321,7 @@ export const ConversationItem = memo(function ConversationItem({
 
       {showActions && (canAssume || canClose) ? (
         <div
-          className="pointer-events-none absolute right-2 top-1/2 z-[2] flex -translate-y-1/2 translate-x-1 flex-col gap-1 opacity-0 shadow-sm transition-all duration-200 ease-out group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100"
+          className="df-inbox-row-actions"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
         >

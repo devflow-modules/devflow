@@ -193,7 +193,7 @@ export function MessageList({
   return (
     <div
       ref={messageListRef}
-      className={`flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden bg-gradient-to-b from-muted/40/90 via-card/40 to-slate-100/60 py-4 sm:py-5 ${INBOX_CHAT_GUTTER_X}`}
+      className={`df-message-list-scroll flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden py-4 sm:py-5 ${INBOX_CHAT_GUTTER_X}`}
       data-testid="message-list"
     >
       <div className="flex min-h-full w-full max-w-none flex-col">

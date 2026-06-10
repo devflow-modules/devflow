@@ -521,6 +521,7 @@ describe("Inbox UI", () => {
     render(<MessageBubble message={msg} />);
     const bubble = screen.getByTestId("message-bubble");
     expect(bubble).toHaveTextContent("Resposta");
+    expect(bubble).toHaveTextContent("Lida");
     expect(bubble.textContent).toMatch(/✓✓/);
   });
 });

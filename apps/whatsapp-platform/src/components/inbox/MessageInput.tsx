@@ -324,7 +324,7 @@ function MessageInputInner({
 
       {aiPreview !== null && (
         <div className="df-panel-ai-preview mb-2 transition-all duration-200" data-testid="ai-preview">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-violet-900">
+          <p className="df-text-info text-[11px] font-semibold uppercase tracking-wide">
             Pré-visualização (IA)
           </p>
           <p className="mt-2 whitespace-pre-wrap df-text-primary">{aiPreview}</p>

@@ -33,7 +33,7 @@ export function ResponseAlertBadge({ delayMs, className = "" }: ResponseAlertBad
 
   return (
     <span
-      className={`inline-flex items-center gap-1 !rounded-md px-1.5 py-0.5 text-[9px] font-semibold !normal-case !tracking-normal ${styles} ${className}`.trim()}
+      className={`df-inbox-list-chip inline-flex items-center gap-1 !rounded-md px-1.5 py-0.5 font-semibold !normal-case !tracking-normal ${styles} ${className}`.trim()}
       data-testid="response-alert-badge"
       data-alert-level={level}
       title={m > 0 ? `À espera há ~${m} min` : "À espera de resposta"}

@@ -7,20 +7,20 @@ const BADGE: Record<
 > = {
   awaiting_agent: {
     label: "Precisa resposta",
-    className: "df-badge-error !rounded-full !px-2 !py-0.5 !text-[10px] !shadow-sm",
+    className: "df-badge-error df-inbox-list-chip !rounded-full !px-2 !py-0.5 !shadow-sm",
   },
   in_progress: {
     label: "Em atendimento",
-    className: "df-badge-info !rounded-full !px-2 !py-0.5 !text-[10px] !shadow-sm",
+    className: "df-badge-info df-inbox-list-chip !rounded-full !px-2 !py-0.5 !shadow-sm",
   },
   awaiting_customer: {
     label: "Aguardando cliente",
-    className: "df-badge-warning !rounded-full !px-2 !py-0.5 !text-[10px] !shadow-sm",
+    className: "df-badge-warning df-inbox-list-chip !rounded-full !px-2 !py-0.5 !shadow-sm",
   },
   closed: {
     label: "Encerrada",
     className:
-      "rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide df-text-secondary ring-1 ring-[color:var(--df-ring-soft)]",
+      "df-inbox-list-chip rounded-full bg-muted px-2 py-0.5 font-bold uppercase tracking-wide df-text-secondary ring-1 ring-[color:var(--df-ring-soft)]",
   },
 };
 

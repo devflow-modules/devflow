@@ -16,36 +16,59 @@ function formatTime(iso: string): string {
   }
 }
 
-function StatusTicks({ status, outbound }: { status: string; outbound: boolean }) {
+type DeliveryStatusKind = "failed" | "read" | "delivered" | "sent";
+
+const DELIVERY_STATUS: Record<
+  DeliveryStatusKind,
+  { label: string; glyph: string; className: string }
+> = {
+  failed: {
+    label: "Falhou",
+    glyph: "!",
+    className: "df-delivery-status df-delivery-status--failed",
+  },
+  read: {
+    label: "Lida",
+    glyph: "✓✓",
+    className: "df-delivery-status df-delivery-status--read",
+  },
+  delivered: {
+    label: "Entregue",
+    glyph: "✓✓",
+    className: "df-delivery-status df-delivery-status--delivered",
+  },
+  sent: {
+    label: "Enviada",
+    glyph: "✓",
+    className: "df-delivery-status df-delivery-status--sent",
+  },
+};
+
+function resolveDeliveryStatus(status: string): DeliveryStatusKind | null {
   const s = status.toUpperCase();
-  const fail = (
-    <span className={outbound ? "text-amber-200" : "text-red-600"} title="Falha no envio">
-      !
+  if (s === "FAILED") return "failed";
+  if (s === "READ") return "read";
+  if (s === "DELIVERED") return "delivered";
+  if (s === "SENT" || s === "RECEIVED") return "sent";
+  return null;
+}
+
+function DeliveryStatus({ status, outbound }: { status: string; outbound: boolean }) {
+  const kind = resolveDeliveryStatus(status);
+  if (!kind) return null;
+  const meta = DELIVERY_STATUS[kind];
+  return (
+    <span
+      className={`${meta.className}${outbound ? " df-delivery-status--outbound" : ""}`}
+      aria-label={`Estado: ${meta.label}`}
+      data-testid={`delivery-status-${kind}`}
+    >
+      <span aria-hidden className="df-delivery-status-glyph">
+        {meta.glyph}
+      </span>
+      <span className="df-delivery-status-label">{meta.label}</span>
     </span>
   );
-  if (s === "FAILED") return fail;
-  if (s === "READ") {
-    return (
-      <span className={outbound ? "text-sky-200" : "text-sky-600"} title="Lida">
-        ✓✓
-      </span>
-    );
-  }
-  if (s === "DELIVERED") {
-    return (
-      <span className={outbound ? "text-white/55" : "df-text-muted"} title="Entregue">
-        ✓✓
-      </span>
-    );
-  }
-  if (s === "SENT" || s === "RECEIVED") {
-    return (
-      <span className={outbound ? "text-white/55" : "df-text-muted"} title="Enviada">
-        ✓
-      </span>
-    );
-  }
-  return null;
 }
 
 function FailedResendHint({ textBody }: { textBody: string }) {
@@ -59,11 +82,11 @@ function FailedResendHint({ textBody }: { textBody: string }) {
 
   return (
     <div className="mt-2 rounded-lg border border-white/25 bg-black/10 px-2.5 py-1.5">
-      <p className="text-[10px] font-medium text-white/90">Não foi entregue — reenvie pelo compositor.</p>
+      <p className="text-[11px] font-medium text-white/90">Não foi entregue — reenvie pelo compositor.</p>
       <Button variant="secondary"
         type="button"
         onClick={onCopy}
-        className="mt-1 text-[11px] font-semibold text-white underline decoration-white/40 underline-offset-2 hover:decoration-white"
+        className="mt-1 min-h-8 text-[11px] font-semibold text-white underline decoration-white/40 underline-offset-2 hover:decoration-white"
         data-testid="msg-failed-copy"
       >
         {copied ? "Texto copiado" : "Copiar texto da mensagem"}
@@ -128,9 +151,9 @@ export const MessageBubble = memo(function MessageBubble({
       >
         {!outbound && !compact && (
           <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-            <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--df-msg-inbound-meta)]">Cliente</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--df-msg-inbound-meta)]">Cliente</span>
             {typeLabel ? (
-              <span className="rounded bg-[var(--df-brand-100)] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--df-brand-900)]">
+              <span className="df-inbox-list-chip rounded bg-[var(--df-brand-100)] px-1.5 py-0.5 font-semibold uppercase tracking-wide text-[var(--df-brand-900)]">
                 {typeLabel}
               </span>
             ) : null}
@@ -138,7 +161,7 @@ export const MessageBubble = memo(function MessageBubble({
         )}
         {outbound && !compact && (
           <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-            <span className="text-[10px] font-medium uppercase tracking-wide text-white/75">
+            <span className="text-[11px] font-medium uppercase tracking-wide text-white/75">
               {outboundKind === "ai"
                 ? "Assistente IA"
                 : outboundKind === "automation"
@@ -148,7 +171,7 @@ export const MessageBubble = memo(function MessageBubble({
                     : "Equipa"}
             </span>
             {typeLabel ? (
-              <span className="rounded bg-card/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white/90">
+              <span className="df-inbox-list-chip rounded bg-card/15 px-1.5 py-0.5 font-semibold uppercase tracking-wide text-white/90">
                 {typeLabel}
               </span>
             ) : null}
@@ -181,15 +204,15 @@ export const MessageBubble = memo(function MessageBubble({
           {outbound && outboundKind && !pendingOptimistic ? <MessageOriginBadge kind={outboundKind} /> : null}
           <span className="tabular-nums opacity-90">{formatTime(message.ts)}</span>
           {outbound && pendingOptimistic ? (
-            <span className="text-[10px] italic opacity-90" data-testid="msg-pending">
+            <span className="text-[11px] italic opacity-90" data-testid="msg-pending" aria-label="A enviar">
               A enviar…
             </span>
           ) : outbound ? (
-            <StatusTicks status={message.status} outbound />
+            <DeliveryStatus status={message.status} outbound />
           ) : null}
         </div>
         {outbound && failed && !pendingOptimistic && message.errorMessage ? (
-          <p className="mt-2 text-[11px] leading-snug text-amber-100/95" data-testid="msg-failed-reason">
+          <p className="mt-2 text-[11px] leading-snug df-text-error" data-testid="msg-failed-reason">
             {message.errorMessage}
           </p>
         ) : null}
