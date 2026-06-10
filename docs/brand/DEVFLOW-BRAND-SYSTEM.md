@@ -4,7 +4,8 @@ Documentação oficial da identidade visual do portal **devflowlabs.com.br** e p
 
 **Fonte de verdade dos tokens:** [`src/styles/tokens.css`](../../src/styles/tokens.css)  
 **Utilities CSS:** [`src/app/globals.css`](../../src/app/globals.css) (classes `.df-*`)  
-**Complemento (logo, tipografia, naming):** [DEVFLOW_BRAND_GUIDELINES.md](./DEVFLOW_BRAND_GUIDELINES.md)
+**Complemento (logo, tipografia, naming):** [DEVFLOW_BRAND_GUIDELINES.md](./DEVFLOW_BRAND_GUIDELINES.md)  
+**Produto operacional (inbox, admin, densidade, estados):** [DEVFLOW-PRODUCT-UI-SYSTEM.md](./DEVFLOW-PRODUCT-UI-SYSTEM.md)
 
 ---
 

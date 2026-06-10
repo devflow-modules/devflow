@@ -100,7 +100,8 @@ Outros apps no repositório (**ApplyFlow** como case de portfólio local-first, 
 ### Marca e sistema visual
 
 - [DevFlow Brand Guidelines](brand/DEVFLOW_BRAND_GUIDELINES.md) — logo, naming, tom visual e diretrizes institucionais.
-- [DevFlow Brand System](brand/DEVFLOW-BRAND-SYSTEM.md) — paleta, tokens, utilities, semântica operacional, CTAs e regras de interface para o site/produto.
+- [DevFlow Brand System](brand/DEVFLOW-BRAND-SYSTEM.md) — paleta, tokens, utilities, semântica operacional, CTAs e regras de interface para o site/marketing.
+- [DevFlow Product UI System](brand/DEVFLOW-PRODUCT-UI-SYSTEM.md) — espaçamento, densidade, estados operacionais, acessibilidade e padrões de inbox/dashboard/admin (`apps/whatsapp-platform`).
 
 ---
 
