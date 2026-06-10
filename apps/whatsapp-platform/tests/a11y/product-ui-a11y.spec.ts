@@ -1,12 +1,13 @@
 import { expect, test } from "@playwright/test";
 import { createDefaultInboxMockStore, installInboxOperationalMocks } from "../e2e/helpers/inbox-api-mock";
-import { loginAsWhatsappAdmin, skipIfMissingWhatsappE2ECredentials } from "../e2e/helpers/whatsapp-auth";
+import { navigateAsWhatsappAdmin } from "../e2e/helpers/whatsapp-auth";
+import { useAuthenticatedA11yContext } from "./helpers/authenticated-context";
 import { expectNoSeriousViolationsForPage } from "./helpers/axe-wcag";
 import { expectHeadingLevel1, expectMainLandmark, waitAppStable } from "./helpers/page-stable";
 
 /**
- * Product UI Pass P2 — validação automatizada de contraste e acessibilidade (axe, WCAG 2.1 AA).
- * Cobre superfícies alinhadas nos passes P0/P1 (métricas, billing, onboarding, settings, admin).
+ * Product UI Pass P2 / P2.1 — validação automatizada de contraste e acessibilidade (axe, WCAG 2.1 AA).
+ * Sessão autenticada via `storageState` (global setup) quando credenciais E2E existem.
  *
  * Fluxos base (login, modal suporte) permanecem em `critical-flows.spec.ts`.
  */
@@ -14,13 +15,10 @@ test.describe("A11y — Product UI surfaces (axe, WCAG 2.1 AA)", () => {
   test.describe.configure({ timeout: 120_000 });
 
   test.describe("sessão E2E (E2E_WHATSAPP_ADMIN_EMAIL / E2E_WHATSAPP_ADMIN_PASSWORD)", () => {
-    test.beforeEach(async ({ context }) => {
-      skipIfMissingWhatsappE2ECredentials();
-      await context.clearCookies();
-    });
+    useAuthenticatedA11yContext();
 
     test("dashboard principal (/dashboard) — métricas e cartões P1", async ({ page }) => {
-      await loginAsWhatsappAdmin(page, { next: "/dashboard" });
+      await navigateAsWhatsappAdmin(page, { next: "/dashboard" });
       await waitAppStable(page);
       await expect(page).toHaveURL(/\/dashboard$/);
       await expectMainLandmark(page);
@@ -28,7 +26,7 @@ test.describe("A11y — Product UI surfaces (axe, WCAG 2.1 AA)", () => {
     });
 
     test("dashboard IA (/dashboard/ai) — painéis df-metric-* e df-status-summary-*", async ({ page }) => {
-      await loginAsWhatsappAdmin(page, { next: "/dashboard/ai" });
+      await navigateAsWhatsappAdmin(page, { next: "/dashboard/ai" });
       await waitAppStable(page);
       await expect(page).toHaveURL(/\/dashboard\/ai/);
       await expectHeadingLevel1(page, /IA no atendimento/i);
@@ -38,13 +36,13 @@ test.describe("A11y — Product UI surfaces (axe, WCAG 2.1 AA)", () => {
     test("inbox (/inbox) — shell P0 com mocks API", async ({ page }) => {
       const store = createDefaultInboxMockStore();
       await installInboxOperationalMocks(page, store);
-      await loginAsWhatsappAdmin(page, { next: "/inbox" });
+      await navigateAsWhatsappAdmin(page, { next: "/inbox" });
       await expect(page.getByTestId("inbox-shell")).toBeVisible({ timeout: 60_000 });
       await expectNoSeriousViolationsForPage(page, "product-ui/inbox");
     });
 
     test("billing comercial (/billing) — df-evaluation-ribbon e cartões", async ({ page }) => {
-      await loginAsWhatsappAdmin(page, { next: "/billing" });
+      await navigateAsWhatsappAdmin(page, { next: "/billing" });
       await waitAppStable(page);
       if (!/\/billing/.test(page.url())) {
         test.skip(
@@ -56,7 +54,7 @@ test.describe("A11y — Product UI surfaces (axe, WCAG 2.1 AA)", () => {
     });
 
     test("dashboard billing (/dashboard/billing) — resumo de plano e uso", async ({ page }) => {
-      await loginAsWhatsappAdmin(page, { next: "/dashboard/billing" });
+      await navigateAsWhatsappAdmin(page, { next: "/dashboard/billing" });
       await waitAppStable(page);
       if (!/\/dashboard\/billing/.test(page.url())) {
         test.skip(
@@ -68,7 +66,7 @@ test.describe("A11y — Product UI surfaces (axe, WCAG 2.1 AA)", () => {
     });
 
     test("settings billing (/settings/billing) — contrato e df-feedback-*", async ({ page }) => {
-      await loginAsWhatsappAdmin(page, { next: "/settings/billing" });
+      await navigateAsWhatsappAdmin(page, { next: "/settings/billing" });
       await waitAppStable(page);
       if (!/\/settings\/billing/.test(page.url())) {
         test.skip(
@@ -81,7 +79,7 @@ test.describe("A11y — Product UI surfaces (axe, WCAG 2.1 AA)", () => {
     });
 
     test("onboarding (/onboarding) — df-onboarding-card e fluxo de activação", async ({ page }) => {
-      await loginAsWhatsappAdmin(page, { next: "/onboarding" });
+      await navigateAsWhatsappAdmin(page, { next: "/onboarding" });
       await waitAppStable(page);
       if (!/\/onboarding/.test(page.url())) {
         test.skip(
@@ -94,7 +92,7 @@ test.describe("A11y — Product UI surfaces (axe, WCAG 2.1 AA)", () => {
     });
 
     test("settings IA (/settings/ai) — formulário e df-admin-header-ring", async ({ page }) => {
-      await loginAsWhatsappAdmin(page, { next: "/settings/ai" });
+      await navigateAsWhatsappAdmin(page, { next: "/settings/ai" });
       await waitAppStable(page);
       await expect(page).toHaveURL(/\/settings\/ai/);
       await expectHeadingLevel1(page, /IA base do WhatsApp/i);
@@ -102,7 +100,7 @@ test.describe("A11y — Product UI surfaces (axe, WCAG 2.1 AA)", () => {
     });
 
     test("AI analytics (/settings/ai-analytics) — métricas df-badge-* e painéis soft", async ({ page }) => {
-      await loginAsWhatsappAdmin(page, { next: "/settings/ai-analytics" });
+      await navigateAsWhatsappAdmin(page, { next: "/settings/ai-analytics" });
       await waitAppStable(page);
       await expect(page).toHaveURL(/\/settings\/ai-analytics/);
       await expectHeadingLevel1(page, /Uso e desempenho da IA/i);
@@ -110,7 +108,7 @@ test.describe("A11y — Product UI surfaces (axe, WCAG 2.1 AA)", () => {
     });
 
     test("equipe (/agents) — lista e badges operacionais", async ({ page }) => {
-      await loginAsWhatsappAdmin(page, { next: "/agents" });
+      await navigateAsWhatsappAdmin(page, { next: "/agents" });
       await waitAppStable(page);
       await expect(page).toHaveURL(/\/agents/);
       const restricted = page.getByRole("heading", { level: 1, name: /Acesso restrito/i });
@@ -121,7 +119,7 @@ test.describe("A11y — Product UI surfaces (axe, WCAG 2.1 AA)", () => {
     });
 
     test("settings gerais (/settings)", async ({ page }) => {
-      await loginAsWhatsappAdmin(page, { next: "/settings" });
+      await navigateAsWhatsappAdmin(page, { next: "/settings" });
       await waitAppStable(page);
       await expect(page).toHaveURL(/\/settings$/);
       await expectHeadingLevel1(page, /Configurações/i);
@@ -129,7 +127,7 @@ test.describe("A11y — Product UI surfaces (axe, WCAG 2.1 AA)", () => {
     });
 
     test("admin WhatsApp (/admin/whatsapp) — df-admin-header-ring", async ({ page }) => {
-      await loginAsWhatsappAdmin(page, { next: "/admin/whatsapp" });
+      await navigateAsWhatsappAdmin(page, { next: "/admin/whatsapp" });
       await waitAppStable(page);
       if (!page.url().includes("/admin/whatsapp")) {
         test.skip(
@@ -141,7 +139,7 @@ test.describe("A11y — Product UI surfaces (axe, WCAG 2.1 AA)", () => {
     });
 
     test("admin tenants (/admin/tenants) — lista plataforma", async ({ page }) => {
-      await loginAsWhatsappAdmin(page, { next: "/admin/tenants" });
+      await navigateAsWhatsappAdmin(page, { next: "/admin/tenants" });
       await waitAppStable(page);
       if (!page.url().includes("/admin/tenants")) {
         test.skip(

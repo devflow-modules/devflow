@@ -63,10 +63,25 @@ Objetivo: complementar `pnpm test:a11y` (axe + Playwright) com verificação hum
 | Comando | Descrição |
 |---------|-----------|
 | `pnpm test:a11y` | Playwright + `@axe-core/playwright`, tags `wcag2a`, `wcag2aa`, `wcag21aa`. **Falha** em violações **critical** / **serious**; **moderate** e inferiores são logados como aviso no stdout. |
-| `pnpm exec playwright test tests/a11y/product-ui-a11y.spec.ts` | Subconjunto Product UI Pass P2 (superfícies P0/P1). |
+| `pnpm test:a11y:product-ui` | Subconjunto Product UI (superfícies P0/P1). |
 | `pnpm exec playwright test tests/a11y/critical-flows.spec.ts` | Fluxos críticos base (login, inbox, modal suporte, etc.). |
 
-**Credenciais E2E:** com `E2E_WHATSAPP_ADMIN_EMAIL` e `E2E_WHATSAPP_ADMIN_PASSWORD`, os fluxos autenticados e admin executam; sem elas, esses testes são **skipped** (o teste público de `/login` continua a correr).
+### Credenciais e sessão autenticada (P2.1)
+
+| Variável | Uso |
+|----------|-----|
+| `E2E_WHATSAPP_ADMIN_EMAIL` | Login Playwright — tenant manager recomendado |
+| `E2E_WHATSAPP_ADMIN_PASSWORD` | Login Playwright — **nunca commitar** |
+| `E2E_WHATSAPP_BASE_URL` | Staging/CI (opcional); local omite → `http://127.0.0.1:3099` |
+| `E2E_BASE_URL` | Alias legado |
+
+**Sem credenciais:** testes autenticados são **skipped**; `/login` em `critical-flows` continua a correr.
+
+**Com credenciais:** `globalSetup` faz login uma vez → `tests/.auth/whatsapp-admin.json` (gitignored) → specs reutilizam `storageState`.
+
+**CI:** GitHub Actions `WhatsApp Platform A11y` — secrets `E2E_WHATSAPP_ADMIN_EMAIL`, `E2E_WHATSAPP_ADMIN_PASSWORD`, opcional `E2E_WHATSAPP_BASE_URL` para staging (sem webServer local).
+
+**Local:** definir variáveis em `.env.local` (app ou raiz do monorepo); ver `.env.example`.
 
 ---
 

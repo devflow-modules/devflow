@@ -313,12 +313,16 @@ Run locally:
 pnpm test:a11y
 ```
 
-Authenticated flows require:
+Authenticated flows require (never commit real values):
 
 ```bash
 E2E_WHATSAPP_ADMIN_EMAIL=
 E2E_WHATSAPP_ADMIN_PASSWORD=
+# optional staging/CI target:
+# E2E_WHATSAPP_BASE_URL=https://staging.example.com
 ```
+
+Session is reused via `tests/setup/global-auth.setup.ts` → `tests/.auth/` (gitignored).
 
 Define both in `.env.local` or in the process environment.
 
