@@ -35,6 +35,9 @@ jobs:
         run: pnpm install --frozen-lockfile
         working-directory: ${{ github.workspace }}
 
+      - name: Generate WhatsApp Prisma client
+        run: pnpm db:generate
+
       - name: check:buttons + lint:design-system + tsc
         run: |
           pnpm check:buttons
