@@ -9,6 +9,7 @@ import {
 import { trackCtaWhatsAppClick, trackDiagnosticoFormSubmit, trackFunnelCtaClick } from "@/lib/analytics";
 import { buildDiagnosticoMessage } from "@/lib/contato/diagnostico-lead";
 import { getWhatsAppOrMailtoUrl, isWhatsAppNumberConfigured } from "@/lib/whatsapp";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const inputClass =
@@ -291,8 +292,9 @@ export function DiagnosticoForm() {
         </p>
       )}
 
-      <button
+      <Button
         type="submit"
+        variant="primary"
         disabled={submitting}
         className={cn(
           "df-btn-primary mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
@@ -302,7 +304,7 @@ export function DiagnosticoForm() {
       >
         {CONTACT_FORM_SUBMIT_LABEL}
         <ArrowRight className="size-4 shrink-0" aria-hidden />
-      </button>
+      </Button>
 
       <p className="df-text-muted mt-3 text-center text-xs leading-relaxed">
         Ao enviar, você abre o WhatsApp com o briefing preenchido. Resposta em minutos em dias úteis.
