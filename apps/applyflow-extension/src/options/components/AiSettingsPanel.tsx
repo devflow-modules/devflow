@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
+import { ExtensionButton } from "../../components/ExtensionButton.js";
 import { openAiPing } from "../../ai/openai-client.js";
 import {
   exportApplyFlowSettingsJson,
@@ -207,12 +208,12 @@ export function AiSettingsPanel() {
             aria-describedby="af-opt-ai-key-hint"
           />
           <div className="af-opt-ai-key-actions">
-            <button type="button" className="af-opt-btn-secondary" onClick={() => setShowKey(!showKey)}>
+            <ExtensionButton type="button" className="af-opt-btn-secondary" onClick={() => setShowKey(!showKey)}>
               {showKey ? "Ocultar" : "Mostrar"}
-            </button>
-            <button type="button" className="af-opt-btn-secondary" onClick={() => setApiKey("")}>
+            </ExtensionButton>
+            <ExtensionButton type="button" className="af-opt-btn-secondary" onClick={() => setApiKey("")}>
               Limpar chave
-            </button>
+            </ExtensionButton>
           </div>
         </div>
         <p id="af-opt-ai-key-hint" className="af-opt-field-hint">
@@ -269,22 +270,22 @@ export function AiSettingsPanel() {
           Guarde depois de alterar a chave ou parâmetros. O export gera JSON sem expor a API key em claro.
         </p>
         <div className="af-opt-actions af-opt-actions--in-card">
-          <button type="button" className="af-opt-btn-primary" onClick={() => void handleSave()}>
+          <ExtensionButton type="button" className="af-opt-btn-primary" onClick={() => void handleSave()}>
             Guardar IA
-          </button>
-          <button type="button" className="af-opt-btn-secondary" onClick={() => void handleTest()}>
+          </ExtensionButton>
+          <ExtensionButton type="button" className="af-opt-btn-secondary" onClick={() => void handleTest()}>
             Testar configuração
-          </button>
+          </ExtensionButton>
           <div className="af-opt-action-group">
             <span className="af-opt-action-group-label">Backup de definições</span>
-            <button
+            <ExtensionButton
               type="button"
               className="af-opt-btn-secondary"
               onClick={handleExportSettingsSafe}
               title="JSON sem apiKey em claro"
             >
               Exportar definições (seguro)
-            </button>
+            </ExtensionButton>
           </div>
         </div>
         <div className="af-opt-feedback af-opt-feedback--in-card">

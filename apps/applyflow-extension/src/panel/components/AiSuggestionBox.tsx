@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { ExtensionButton } from "../../components/ExtensionButton.js";
 import type { AiTextTask } from "@devflow/applyflow-core";
 
 import type { AiAvailability } from "../panel-ai.js";
@@ -48,12 +49,12 @@ export function AiSuggestionBox(props: {
         IA (opt-in) · {props.task}
       </p>
       <div className="af-action-row" style={{ marginTop: 0, marginBottom: "8px" }}>
-        <button type="button" className="af-btn" disabled={props.busy} onClick={() => void props.onRun()}>
+        <ExtensionButton type="button" className="af-btn" disabled={props.busy} onClick={() => void props.onRun()}>
           {props.busy ? "A gerar…" : props.generatedText ? "Regerar com IA" : "Gerar com IA"}
-        </button>
+        </ExtensionButton>
         {props.generatedText ? (
           <>
-            <button
+            <ExtensionButton
               type="button"
               className={`af-btn-secondary ${copied ? "af-btn-copied" : ""}`}
               onClick={() => {
@@ -63,15 +64,15 @@ export function AiSuggestionBox(props: {
               }}
             >
               {copied ? "Copiado" : "Copiar texto IA"}
-            </button>
+            </ExtensionButton>
             {props.onFill ? (
-              <button type="button" className="af-btn-secondary" onClick={props.onFill}>
+              <ExtensionButton type="button" className="af-btn-secondary" onClick={props.onFill}>
                 Preencher com texto IA
-              </button>
+              </ExtensionButton>
             ) : null}
-            <button type="button" className="af-btn-secondary" onClick={props.onClear}>
+            <ExtensionButton type="button" className="af-btn-secondary" onClick={props.onClear}>
               Limpar IA
-            </button>
+            </ExtensionButton>
           </>
         ) : null}
       </div>

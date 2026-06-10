@@ -1,3 +1,4 @@
+import { ExtensionButton } from "../components/ExtensionButton.js";
 import type { CandidateProfile } from "@devflow/applyflow-core";
 import type { SuggestedAnswer } from "@devflow/applyflow-core";
 import type { ApplyProvider, FieldClassification, JobContext } from "@devflow/applyflow-linkedin";
@@ -100,9 +101,9 @@ export function App(props: {
   if (props.panelMinimized) {
     return (
       <div className="af-root af-panel-minimized-shell">
-        <button type="button" className="af-panel-minimized-tab" onClick={props.onRestorePanel} aria-label="Restaurar painel ApplyFlow">
+        <ExtensionButton type="button" className="af-panel-minimized-tab" onClick={props.onRestorePanel} aria-label="Restaurar painel ApplyFlow">
           ApplyFlow
-        </button>
+        </ExtensionButton>
       </div>
     );
   }
@@ -122,7 +123,7 @@ export function App(props: {
           <p className="af-panel-tagline">Copiloto local-first · assistido · sem auto-submit</p>
         </div>
         <div className="af-panel-header-actions" role="toolbar" aria-label="Controlo do painel">
-          <button
+          <ExtensionButton
             type="button"
             className="af-btn-secondary af-btn-panel-tool"
             onClick={props.onToggleDock}
@@ -130,8 +131,8 @@ export function App(props: {
             aria-label={moverTitle}
           >
             Mover{dockIsRight ? " · dir." : " · esq."}
-          </button>
-          <button
+          </ExtensionButton>
+          <ExtensionButton
             type="button"
             className="af-btn-secondary af-btn-panel-tool"
             onClick={props.onMinimizePanel}
@@ -139,7 +140,7 @@ export function App(props: {
             aria-label="Minimizar painel ApplyFlow"
           >
             Minimizar
-          </button>
+          </ExtensionButton>
         </div>
       </header>
 
@@ -205,9 +206,9 @@ export function App(props: {
             <li>Bloqueados (segurança / confirmação): {sess.blocked}</li>
           </ul>
           {props.onClearAutofillSession ? (
-            <button type="button" className="af-btn-secondary" style={{ width: "auto" }} onClick={props.onClearAutofillSession}>
+            <ExtensionButton type="button" className="af-btn-secondary" style={{ width: "auto" }} onClick={props.onClearAutofillSession}>
               Limpar sessão
-            </button>
+            </ExtensionButton>
           ) : null}
         </section>
 
@@ -263,7 +264,7 @@ export function App(props: {
       <footer className="af-panel-footer">
         <p className="af-footer-line">Os dados permanecem neste browser (chrome.storage.local). Sem backend ApplyFlow.</p>
         <div className="af-action-row" style={{ marginTop: "6px" }}>
-          <button
+          <ExtensionButton
             type="button"
             className="af-btn-secondary"
             style={{ width: "100%" }}
@@ -272,7 +273,7 @@ export function App(props: {
             }}
           >
             Abrir Opções (export JSON)
-          </button>
+          </ExtensionButton>
         </div>
       </footer>
     </div>

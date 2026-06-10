@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 
+import { ExtensionButton } from "../../components/ExtensionButton.js";
 import {
   APPLYFLOW_APPLICATION_STATUS_LABELS_PT,
   type ApplyFlowApplicationStatus,
@@ -97,7 +98,7 @@ export function PanelHistorySection(props: {
             ),
           )}
         </select>
-        <button
+        <ExtensionButton
           type="button"
           className="af-btn-secondary"
           disabled={busy || !props.canSaveToHistory}
@@ -110,7 +111,7 @@ export function PanelHistorySection(props: {
           }
         >
           Salvar no histórico
-        </button>
+        </ExtensionButton>
         {savedMsg ? <p className="af-text-success" style={{ margin: 0, fontSize: "12px" }}>{savedMsg}</p> : null}
         {err ? <p className="af-warning">{err}</p> : null}
         {persistedId ? (

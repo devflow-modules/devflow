@@ -1,3 +1,5 @@
+import { ExtensionButton } from "../../components/ExtensionButton.js";
+
 /**
  * Preview estático para capturas de portfólio (Print 6).
  * Não lê LinkedIn, chrome.storage nem perfil real — apenas texto e dados fictícios embutidos.
@@ -129,9 +131,9 @@ export function ExtensionPreview() {
               <span lang="en">No backend required.</span>
             </p>
             <div className="af-action-row" style={{ marginTop: "6px" }}>
-              <button type="button" className="af-btn-secondary" style={{ width: "100%" }} onClick={downloadDemoJson}>
+              <ExtensionButton type="button" className="af-btn-secondary" style={{ width: "100%" }} onClick={downloadDemoJson}>
                 Descarregar JSON de exemplo (demo)
-              </button>
+              </ExtensionButton>
             </div>
           </footer>
         </div>
