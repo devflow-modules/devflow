@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 type EmptyStateTone = "default" | "positive" | "muted";
 
 const toneClass: Record<EmptyStateTone, string> = {
-  default: "border-border/90 bg-card/95",
-  positive: "border-emerald-200/70 bg-emerald-50/40",
-  muted: "border-border/70 bg-muted/60/80",
+  default: "border-border/90 bg-[var(--df-bg-elevated)]",
+  positive: "border-[color:var(--df-success-border)] bg-[color-mix(in_srgb,var(--df-success-bg)_55%,var(--df-bg-elevated))]",
+  muted: "border-border/70 bg-[color-mix(in_srgb,var(--df-bg-app)_45%,var(--df-bg-elevated))]",
 };
 
 export type EmptyStateProps = {

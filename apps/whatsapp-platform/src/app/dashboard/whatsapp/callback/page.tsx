@@ -72,7 +72,7 @@ function WhatsappCallbackInner() {
           </div>
         )}
         {status === "success" && (
-          <p className="text-center text-sm text-emerald-700">A redirecionar…</p>
+          <p className="text-center text-sm df-text-success">A redirecionar…</p>
         )}
         {status === "error" && errorKind ? (
           <div className="space-y-4">

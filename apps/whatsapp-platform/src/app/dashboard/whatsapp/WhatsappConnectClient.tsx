@@ -23,6 +23,7 @@ import { CONTEXTUAL_UPGRADE_HINTS } from "@/modules/billing/planPresentation";
 import { getUiPlanCapabilities } from "@/modules/billing/planUiCapabilities";
 import { isWhiteLabelMode } from "@/lib/productMode";
 import { useSimpleToast } from "@/components/ui/simple-toast";
+import { buttonClassName } from "@/components/ui/button";
 
 type FriendlyError = {
   kind: OnboardingErrorKind;
@@ -308,7 +309,7 @@ export function WhatsappConnectClient() {
 
       {stats.channelConnected ? (
         <section
-          className="rounded-2xl border border-emerald-500/30 bg-emerald-950/25 p-5 shadow-sm"
+          className="df-feedback-success rounded-2xl p-5"
           aria-label="Teste rápido"
         >
           <h2 className="text-base font-semibold text-[var(--df-text-primary)]">Quer testar agora?</h2>
@@ -317,7 +318,7 @@ export function WhatsappConnectClient() {
           </p>
           <Link
             href="/inbox"
-            className="mt-4 inline-flex items-center justify-center rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800"
+            className={`${buttonClassName("primary")} mt-4 inline-flex`}
           >
             Abrir Inbox
           </Link>

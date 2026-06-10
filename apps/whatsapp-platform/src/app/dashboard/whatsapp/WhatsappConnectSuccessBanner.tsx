@@ -9,12 +9,13 @@ type WhatsappConnectSuccessBannerProps = {
 export function WhatsappConnectSuccessBanner({ onDismiss }: WhatsappConnectSuccessBannerProps) {
   return (
     <div
-      className="rounded-2xl border border-emerald-200/90 bg-emerald-50/90 px-4 py-4 shadow-sm sm:flex sm:flex-wrap sm:items-start sm:justify-between sm:gap-4"
+      className="df-feedback-success rounded-2xl px-4 py-4 sm:flex sm:flex-wrap sm:items-start sm:justify-between sm:gap-4"
       role="status"
+      aria-label="WhatsApp conectado com sucesso"
     >
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-emerald-950">WhatsApp conectado com sucesso</p>
-        <p className="mt-1 text-sm leading-relaxed text-emerald-900/90">
+        <p className="text-sm font-semibold df-text-success">WhatsApp conectado com sucesso</p>
+        <p className="mt-1 text-sm leading-relaxed text-[var(--df-text-secondary)]">
           Seu número já está pronto para receber mensagens aqui no sistema.
         </p>
         <Link

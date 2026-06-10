@@ -36,7 +36,7 @@ export function HowUsageWorksSection({ unitPrices, className = "" }: Props) {
       </p>
       <ul className="mt-4 space-y-3 text-sm text-[var(--df-text-secondary)]">
         <li className="flex gap-2">
-          <span className="mt-0.5 text-emerald-600" aria-hidden>
+          <span className="mt-0.5 df-list-check-success" aria-hidden>
             ✓
           </span>
           <span>
@@ -83,7 +83,7 @@ export function HowUsageWorksSection({ unitPrices, className = "" }: Props) {
         </p>
       </div>
 
-      <p className="mt-4 rounded-lg bg-emerald-50/80 px-3 py-2.5 text-sm leading-relaxed text-emerald-950/90">
+      <p className="df-feedback-info mt-4 text-sm leading-relaxed">
         {USAGE_ANTI_SURPRISE_LINE}
       </p>
     </section>

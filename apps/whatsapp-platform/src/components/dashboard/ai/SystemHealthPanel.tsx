@@ -19,10 +19,16 @@ function formatAgo(iso: string | null): string {
   return `há ${d} dia(s)`;
 }
 
-function statusDot(overall: SystemHealthSummary["overall"]): { emoji: string; className: string } {
-  if (overall === "ok") return { emoji: "✅", className: "text-emerald-700" };
-  if (overall === "attention") return { emoji: "⚠️", className: "text-amber-700" };
-  return { emoji: "❌", className: "text-red-700" };
+function summaryBannerClass(overall: SystemHealthSummary["overall"]): string {
+  if (overall === "ok") return "df-status-summary-banner--ok";
+  if (overall === "attention") return "df-status-summary-banner--attention";
+  return "df-status-summary-banner--critical";
+}
+
+function summaryStatusLabel(overall: SystemHealthSummary["overall"]): string {
+  if (overall === "ok") return "Estado: OK";
+  if (overall === "attention") return "Estado: atenção";
+  return "Estado: crítico";
 }
 
 function rowOk(ok: boolean): string {
@@ -30,9 +36,9 @@ function rowOk(ok: boolean): string {
 }
 
 function webhookTone(status: SystemHealthSnapshot["webhookHealth"]["status"]): string {
-  if (status === "ok") return "text-emerald-800";
-  if (status === "attention") return "text-amber-800";
-  return "text-red-800";
+  if (status === "ok") return "df-text-success";
+  if (status === "attention") return "df-text-warning";
+  return "df-text-error";
 }
 
 export function SystemHealthPanel({
@@ -107,10 +113,7 @@ export function SystemHealthPanel({
 
   if (error) {
     return (
-      <section
-        className="rounded-xl border border-red-200/90 bg-red-50/80 px-4 py-3 text-sm text-red-900"
-        data-testid="system-health-panel"
-      >
+      <section className="df-feedback-error rounded-xl px-4 py-3 text-sm" data-testid="system-health-panel" role="alert">
         <p className="font-medium">Não foi possível carregar a saúde do canal.</p>
         <Button variant="secondary" type="button" className={`${buttonClassName("secondary")} mt-2 text-xs`} onClick={onRefresh}>
           Tentar novamente
@@ -121,10 +124,7 @@ export function SystemHealthPanel({
 
   if (!snapshot || !summary) {
     return (
-      <div
-        className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_80%,transparent)]"
-        data-testid="system-health-panel"
-      >
+      <div className="df-metric-card" data-testid="system-health-panel">
         <div className="h-24 animate-pulse rounded-lg bg-[var(--df-bg-app)]" />
       </div>
     );
@@ -134,13 +134,7 @@ export function SystemHealthPanel({
   const wh = snapshot.webhookHealth;
   const op = snapshot.operationalControls;
   const au = snapshot.automationStatus;
-  const dot = statusDot(summary.overall);
-  const borderSummary =
-    summary.overall === "ok"
-      ? "border-emerald-200/90 bg-emerald-50/50"
-      : summary.overall === "attention"
-        ? "border-amber-200/90 bg-amber-50/40"
-        : "border-red-200/90 bg-red-50/50";
+  const statusLabel = summaryStatusLabel(summary.overall);
 
   return (
     <section
@@ -148,14 +142,15 @@ export function SystemHealthPanel({
       data-testid="system-health-panel"
       aria-label="Saúde do canal e automação"
     >
-      <div className={`rounded-xl border px-4 py-3 sm:px-5 ${borderSummary}`}>
-        <p className={`text-sm font-semibold ${dot.className}`}>
-          <span aria-hidden>{dot.emoji}</span> {summary.message}
+      <div className={summaryBannerClass(summary.overall)}>
+        <p className="text-sm font-semibold" aria-label={statusLabel}>
+          <span aria-hidden>{summary.overall === "ok" ? "✅" : summary.overall === "attention" ? "⚠️" : "❌"}</span>{" "}
+          {summary.message}
         </p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+        <div className="df-metric-card">
           <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Canal WhatsApp</h2>
           <ul className="mt-3 space-y-2 text-sm text-[var(--df-text-primary)]">
             <li>
@@ -176,7 +171,7 @@ export function SystemHealthPanel({
           </ul>
         </div>
 
-        <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+        <div className="df-metric-card">
           <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Webhook</h2>
           <p className={`mt-2 text-sm font-semibold ${webhookTone(wh.status)}`}>{wh.label}</p>
           <p className="mt-1 text-xs text-[var(--df-text-secondary)]">{wh.detail}</p>
@@ -191,7 +186,7 @@ export function SystemHealthPanel({
         </div>
       </div>
 
-      <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+      <div className="df-metric-card">
         <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Estado operacional</h2>
         <ul className="mt-3 space-y-2 text-sm text-[var(--df-text-primary)]">
           <li>
@@ -207,12 +202,12 @@ export function SystemHealthPanel({
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+        <div className="df-metric-card">
           <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Erros (24 horas)</h2>
           <p className="mt-2 text-sm text-[var(--df-text-primary)]">
             <span
               className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold ${
-                snapshot.errorSummary.count24h > 0 ? "bg-red-100 text-red-900" : "bg-emerald-100 text-emerald-900"
+                snapshot.errorSummary.count24h > 0 ? "df-badge-error" : "df-badge-success"
               }`}
               data-testid="health-error-count"
             >
@@ -223,7 +218,7 @@ export function SystemHealthPanel({
             <ul className="mt-3 space-y-1.5 text-xs text-[var(--df-text-secondary)]">
               <li className="font-medium text-[var(--df-text-secondary)]">Últimos registos:</li>
               {snapshot.errorSummary.lastThree.map((e) => (
-                <li key={e.at + e.message} className="border-l-2 border-red-200 pl-2">
+                <li key={e.at + e.message} className="border-l-2 border-[color:var(--df-danger-border)] pl-2">
                   {formatAgo(e.at)} — {e.message}
                 </li>
               ))}
@@ -233,7 +228,7 @@ export function SystemHealthPanel({
           )}
         </div>
 
-        <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+        <div className="df-metric-card">
           <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Tarefas automáticas</h2>
           <ul className="mt-3 space-y-1.5 text-sm text-[var(--df-text-primary)]" data-testid="health-task-counts">
             <li>
@@ -253,7 +248,7 @@ export function SystemHealthPanel({
       </div>
 
       {snapshot.criticalLogs.length > 0 ? (
-        <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+        <div className="df-metric-card">
           <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Eventos importantes</h2>
           <ul className="mt-3 max-h-48 space-y-2 overflow-y-auto text-xs text-[var(--df-text-secondary)]">
             {snapshot.criticalLogs.map((log) => (
@@ -261,8 +256,8 @@ export function SystemHealthPanel({
                 key={log.at + log.message}
                 className={
                   log.tone === "error"
-                    ? "border-l-2 border-red-400 pl-2"
-                    : "border-l-2 border-amber-300 pl-2"
+                    ? "border-l-2 border-[color:var(--df-danger-border)] pl-2"
+                    : "border-l-2 border-[color:var(--df-warning-border)] pl-2"
                 }
               >
                 <span className="text-[var(--df-text-muted)]">{new Date(log.at).toLocaleString("pt-BR")}</span> — {log.message}

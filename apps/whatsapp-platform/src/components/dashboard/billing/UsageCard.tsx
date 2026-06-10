@@ -11,9 +11,9 @@ type Props = {
 
 function getProgressColor(pct: number | null): string {
   if (pct == null) return "bg-[var(--df-text-muted)]";
-  if (pct < 70) return "bg-emerald-500";
-  if (pct < 90) return "bg-amber-500";
-  return "bg-red-500";
+  if (pct < 70) return "df-progress-bar-success";
+  if (pct < 90) return "df-progress-bar-warning";
+  return "df-progress-bar-danger";
 }
 
 export function UsageCard({ title, used, limit, percentage, includedKindLabel }: Props) {
@@ -22,7 +22,7 @@ export function UsageCard({ title, used, limit, percentage, includedKindLabel }:
   const isUnlimited = limit == null;
 
   return (
-    <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm">
+    <div className="df-metric-card">
       <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">{title}</h3>
       <div className="mt-3 flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
         <span className="text-3xl font-bold tabular-nums tracking-tight text-[var(--df-text-primary)]">

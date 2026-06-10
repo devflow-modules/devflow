@@ -989,4 +989,151 @@ html[data-theme="client_branded"] {
     color: var(--df-brand-600);
     --tw-ring-color: color-mix(in srgb, var(--df-brand-500) 35%, transparent);
   }
+
+  /** Dashboard — metric cards e sub-cards (Product UI P1) */
+  .df-metric-card {
+    @apply rounded-xl border p-5 shadow-sm ring-1;
+    border-color: color-mix(in srgb, var(--df-border-dark) 72%, var(--df-border-subtle));
+    background: var(--df-bg-elevated);
+    --tw-ring-color: color-mix(in srgb, var(--df-border-dark) 75%, transparent);
+  }
+
+  .df-metric-panel {
+    @apply rounded-xl border p-6 shadow-sm ring-1;
+    border-color: color-mix(in srgb, var(--df-border-dark) 80%, var(--df-border-subtle));
+    background: var(--df-bg-elevated);
+    --tw-ring-color: color-mix(in srgb, var(--df-border-dark) 80%, transparent);
+  }
+
+  .df-metric-subcard {
+    @apply rounded-lg border px-4 py-3;
+    border-color: color-mix(in srgb, var(--df-border-dark) 65%, var(--df-border-subtle));
+    background: color-mix(in srgb, var(--df-bg-app) 45%, var(--df-bg-elevated));
+  }
+
+  .df-metric-subcard-label {
+    @apply text-[11px] font-bold uppercase tracking-wide;
+    color: var(--df-text-secondary);
+  }
+
+  .df-metric-subcard-value {
+    @apply mt-1 text-2xl font-bold tabular-nums;
+    color: var(--df-text-primary);
+  }
+
+  .df-metric-subcard-hint {
+    @apply mt-1 text-[10px] leading-snug;
+    color: var(--df-text-muted);
+  }
+
+  .df-metric-subcard--danger {
+    border-color: color-mix(in srgb, var(--df-danger-border) 85%, transparent);
+    background: color-mix(in srgb, var(--df-danger-bg) 88%, var(--df-bg-elevated));
+  }
+
+  .df-metric-subcard--danger .df-metric-subcard-label {
+    color: var(--df-feedback-error-text);
+  }
+
+  .df-metric-subcard--danger .df-metric-subcard-value {
+    color: var(--df-danger-sla-value);
+  }
+
+  .df-metric-subcard--warning {
+    border-color: color-mix(in srgb, var(--df-warning-border) 85%, transparent);
+    background: color-mix(in srgb, var(--df-warning-bg) 88%, var(--df-bg-elevated));
+  }
+
+  .df-metric-subcard--warning .df-metric-subcard-label {
+    color: var(--df-feedback-warning-text);
+  }
+
+  .df-metric-subcard--success {
+    border-color: color-mix(in srgb, var(--df-success-border) 85%, transparent);
+    background: color-mix(in srgb, var(--df-success-bg) 88%, var(--df-bg-elevated));
+  }
+
+  .df-metric-subcard--success .df-metric-subcard-label {
+    color: var(--df-feedback-success-text);
+  }
+
+  .df-metric-subcard--success .df-metric-subcard-value {
+    color: var(--df-success-text);
+  }
+
+  .df-metric-subcard--info {
+    border-color: rgb(56 189 248 / 0.35);
+    background: rgb(56 189 248 / 0.1);
+  }
+
+  .df-metric-subcard--info .df-metric-subcard-label {
+    color: var(--df-feedback-info-text);
+  }
+
+  .df-status-summary-banner--ok {
+    @apply rounded-xl border px-4 py-3 sm:px-5;
+    border-color: color-mix(in srgb, var(--df-success-border) 90%, transparent);
+    background: color-mix(in srgb, var(--df-success-bg) 92%, var(--df-bg-elevated));
+    color: var(--df-feedback-success-text);
+  }
+
+  .df-status-summary-banner--attention {
+    @apply rounded-xl border px-4 py-3 sm:px-5;
+    border-color: color-mix(in srgb, var(--df-warning-border) 90%, transparent);
+    background: color-mix(in srgb, var(--df-warning-bg) 92%, var(--df-bg-elevated));
+    color: var(--df-feedback-warning-text);
+  }
+
+  .df-status-summary-banner--critical {
+    @apply rounded-xl border px-4 py-3 sm:px-5;
+    border-color: color-mix(in srgb, var(--df-danger-border) 90%, transparent);
+    background: color-mix(in srgb, var(--df-danger-bg) 92%, var(--df-bg-elevated));
+    color: var(--df-feedback-error-text);
+  }
+
+  .df-check-step {
+    @apply mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ring-1;
+  }
+
+  .df-check-step--done {
+    background: rgb(16 185 129 / 0.22);
+    color: var(--df-feedback-success-text);
+    --tw-ring-color: rgb(16 185 129 / 0.35);
+  }
+
+  .df-check-step--pending {
+    background: rgb(245 158 11 / 0.18);
+    color: var(--df-feedback-warning-text);
+    --tw-ring-color: rgb(245 158 11 / 0.38);
+  }
+
+  .df-status-dot--ok {
+    background: rgb(16 185 129 / 0.88);
+  }
+
+  .df-status-dot--muted {
+    background: var(--df-text-muted);
+  }
+
+  .df-progress-bar-success {
+    background: rgb(16 185 129 / 0.88);
+  }
+
+  .df-progress-bar-warning {
+    background: rgb(245 158 11 / 0.92);
+  }
+
+  .df-progress-bar-danger {
+    background: rgb(248 113 113 / 0.92);
+  }
+
+  .df-plan-column-highlight {
+    @apply relative z-[1] border-x-2;
+    border-color: color-mix(in srgb, var(--df-warning-border) 90%, transparent);
+    background: color-mix(in srgb, var(--df-warning-bg) 55%, var(--df-bg-elevated));
+  }
+
+  .df-list-check-success {
+    color: var(--df-feedback-success-text);
+  }
 }

@@ -52,20 +52,18 @@ export function PlanComparisonMatrix({ currentPlan }: Props) {
                     key={key}
                     scope="col"
                     className={`px-3 py-3 font-semibold text-[var(--df-text-primary)] sm:px-4 ${
-                      isPro
-                        ? "relative z-[1] border-x-2 border-amber-300 bg-gradient-to-b from-amber-50/90 to-amber-50/40 shadow-[0_4px_24px_-4px_rgba(245,158,11,0.35)]"
-                        : ""
+                      isPro ? "df-plan-column-highlight" : ""
                     } ${isCurrent ? "ring-1 ring-[var(--df-brand-400)]/40" : ""}`}
                   >
                     <span className="flex flex-col gap-1.5 text-left">
                       <span className="text-[11px] font-normal uppercase tracking-wide text-[var(--df-text-muted)]">
                         {PLANS[key].name}
                       </span>
-                      <span className={`text-sm font-semibold leading-snug ${isPro ? "text-amber-950" : ""}`}>
+                      <span className={`text-sm font-semibold leading-snug ${isPro ? "df-text-warning" : ""}`}>
                         {COMMERCIAL_PLAN_HEADLINE[key]}
                       </span>
                       {isPro ? (
-                        <span className="w-fit rounded-full bg-amber-200/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950">
+                        <span className="df-badge-warning w-fit !rounded-full !px-2 !py-0.5 !text-[10px] !font-bold !uppercase !tracking-wide">
                           {COMMERCIAL_RECOMMENDED_BADGE}
                         </span>
                       ) : null}
@@ -108,9 +106,7 @@ export function PlanComparisonMatrix({ currentPlan }: Props) {
                         <td
                           key={plan}
                           className={`px-3 py-2.5 text-[var(--df-text-primary)] sm:px-4 ${
-                            isPro
-                              ? "border-x-2 border-amber-200/90 bg-amber-50/25"
-                              : ""
+                            isPro ? "df-plan-column-highlight" : ""
                           }`}
                         >
                           {comparisonCellValue(row, plan)}
@@ -136,7 +132,7 @@ export function PlanComparisonMatrix({ currentPlan }: Props) {
                   <td
                     key={plan}
                     className={`px-3 py-3 text-xs leading-relaxed text-[var(--df-text-muted)] sm:px-4 ${
-                      isPro ? "border-x-2 border-amber-200/80 bg-amber-50/20" : ""
+                      isPro ? "df-plan-column-highlight" : ""
                     }`}
                   >
                     {formatIncludedLimitsLine(plan)}

@@ -41,12 +41,12 @@ export function WhatsappPhoneNumberCard({
         </div>
         <div className="mt-3 flex flex-wrap gap-2 sm:mt-0 sm:justify-end">
           {n.isPrimary ? (
-            <span className="inline-flex items-center rounded-full bg-violet-100 px-2.5 py-1 text-[11px] font-semibold text-violet-900">
+            <span className="df-badge-info !rounded-full !px-2.5 !py-1 !text-[11px] !font-semibold">
               Número principal
             </span>
           ) : null}
           {n.isDefaultOutbound ? (
-            <span className="inline-flex items-center rounded-full bg-teal-100 px-2.5 py-1 text-[11px] font-semibold text-teal-900">
+            <span className="df-badge-success !rounded-full !px-2.5 !py-1 !text-[11px] !font-semibold">
               Envio padrão
             </span>
           ) : null}
@@ -103,7 +103,7 @@ export function WhatsappPhoneNumberCard({
             type="button"
             onClick={onRemove}
             disabled={removing}
-            className={`${buttonClassName("secondary")} border-red-200 text-sm text-red-700 hover:bg-red-50`}
+            className={`${buttonClassName("secondary")} border-[color:var(--df-danger-border)] text-sm df-text-error hover:bg-[color-mix(in_srgb,var(--df-danger-bg)_45%,var(--df-bg-elevated))]`}
           >
             {removing ? "A remover…" : "Remover número"}
           </Button>

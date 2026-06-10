@@ -34,15 +34,15 @@ type LogRow = {
 function badgeClass(type: LogRow["type"]): string {
   switch (type) {
     case "auto_reply":
-      return "bg-emerald-100 text-emerald-900 ring-emerald-600/20";
+      return "df-badge-success !rounded-full !px-2.5 !py-0.5 !text-xs !font-semibold !ring-1";
     case "fallback":
-      return "bg-amber-100 text-amber-950 ring-amber-600/25";
+      return "df-badge-warning !rounded-full !px-2.5 !py-0.5 !text-xs !font-semibold !ring-1";
     case "error":
-      return "bg-red-100 text-red-900 ring-red-600/20";
+      return "df-badge-error !rounded-full !px-2.5 !py-0.5 !text-xs !font-semibold !ring-1";
     case "blocked_by_guard":
-      return "bg-[color-mix(in_srgb,var(--df-border-dark)_65%,var(--df-bg-elevated))] text-[var(--df-text-primary)] ring-[var(--df-border-dark)]";
+      return "df-badge-muted !rounded-full !px-2.5 !py-0.5 !text-xs !font-semibold !ring-1";
     default:
-      return "bg-[var(--df-bg-app)] text-[var(--df-text-primary)]";
+      return "df-badge-muted !rounded-full !px-2.5 !py-0.5 !text-xs !font-semibold !ring-1";
   }
 }
 
@@ -350,25 +350,20 @@ export function DashboardAiClient() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {kpiCards.map((c) => (
-          <div
+          <KpiCardEnhanced
             key={c.label}
-            className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]"
-          >
-            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">{c.label}</p>
-            <p
-              className={`mt-2 tabular-nums text-[var(--df-text-primary)] ${c.emphasis ? "text-3xl font-bold" : "text-2xl font-bold"}`}
-            >
-              {c.value}
-            </p>
-            <p className="mt-1 text-xs text-[var(--df-text-muted)]">{c.hint}</p>
-          </div>
+            label={c.label}
+            value={c.value}
+            hint={c.hint}
+            emphasis={c.emphasis}
+          />
         ))}
       </div>
 
       <ManagerInsights lines={insightLines} />
 
       {leadQuality && opportunities ? (
-        <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-6 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_80%,transparent)]">
+        <div className="df-metric-panel">
           <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Qualidade dos leads</h2>
           <p className="mt-2 text-sm text-[var(--df-text-secondary)]">
             Prioridade automática a partir do score CRM. Combine com pendências reais no inbox.
@@ -406,39 +401,35 @@ export function DashboardAiClient() {
       ) : null}
 
       {opportunities ? (
-        <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-6 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_80%,transparent)]">
+        <div className="df-metric-panel">
           <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Oportunidades</h2>
           <p className="mt-2 text-sm text-[var(--df-text-secondary)]">
             Sinais comerciais em tempo real (inbox + automações de follow-up / reativação).
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-lg border border-red-100 bg-red-50/80 px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-red-800">
-                Leads HIGH sem resposta
-              </p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-red-900">{opportunities.highPending}</p>
+            <div className="df-metric-subcard df-metric-subcard--danger">
+              <p className="df-metric-subcard-label">Leads HIGH sem resposta</p>
+              <p className="df-metric-subcard-value">{opportunities.highPending}</p>
             </div>
-            <div className="rounded-lg border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_45%,var(--df-bg-elevated))] px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Conversas paradas</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-[var(--df-text-primary)]">{opportunities.stalled}</p>
-              <p className="mt-1 text-[10px] text-[var(--df-text-muted)]">Qualificação/negociação sem mensagem há 2h+</p>
+            <div className="df-metric-subcard">
+              <p className="df-metric-subcard-label">Conversas paradas</p>
+              <p className="df-metric-subcard-value">{opportunities.stalled}</p>
+              <p className="df-metric-subcard-hint">Qualificação/negociação sem mensagem há 2h+</p>
             </div>
-            <div className="rounded-lg border border-emerald-100 bg-emerald-50/70 px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-900">Em negociação</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-950">{opportunities.negotiating}</p>
+            <div className="df-metric-subcard df-metric-subcard--success">
+              <p className="df-metric-subcard-label">Em negociação</p>
+              <p className="df-metric-subcard-value">{opportunities.negotiating}</p>
             </div>
-            <div className="rounded-lg border border-indigo-100 bg-indigo-50/80 px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-indigo-900">Reativações na fila</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-indigo-950">
-                {opportunities.reactivationQueued}
-              </p>
+            <div className="df-metric-subcard df-metric-subcard--info">
+              <p className="df-metric-subcard-label">Reativações na fila</p>
+              <p className="df-metric-subcard-value">{opportunities.reactivationQueued}</p>
             </div>
           </div>
         </div>
       ) : null}
 
       {funnel ? (
-        <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-6 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_80%,transparent)]">
+        <div className="df-metric-panel">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Funil comercial (conversas)</h2>
             <FunnelStageLegend />

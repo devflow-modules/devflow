@@ -92,7 +92,7 @@ export function PostActivationGuide({ displayNumber, phoneNumberId, lineStatus }
               </Link>
             </div>
             {waOpened ? (
-              <p className="mt-3 text-xs leading-relaxed text-emerald-800">
+              <p className="mt-3 text-xs leading-relaxed df-text-success">
                 Envie a mensagem no WhatsApp e volte aqui — atualizamos automaticamente.
               </p>
             ) : null}

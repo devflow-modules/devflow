@@ -41,9 +41,7 @@ function CheckRow({
     <div className="df-card-sm flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-start gap-3.5">
         <span
-          className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-            done ? "bg-emerald-500 text-white shadow-sm" : "bg-amber-100 text-amber-900"
-          }`}
+          className={`df-check-step ${done ? "df-check-step--done" : "df-check-step--pending"}`}
           aria-hidden
         >
           {done ? "✓" : "!"}

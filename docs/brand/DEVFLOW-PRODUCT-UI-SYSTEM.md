@@ -420,3 +420,4 @@ Mapeamento em `conversationStateUi.tsx`:
 |------|-----------|
 | 2026-06-10 | Versão inicial — Product UI System |
 | 2026-06-09 | Implementação P0 inbox WhatsApp Platform: `.df-message-list-scroll`, `.df-delivery-status-*`, `.df-inbox-row-actions`, `.df-inbox-list-chip`, `.df-panel-ai-preview` (dark) |
+| 2026-06-09 | Implementação P1 dashboard: `.df-metric-card`, `.df-metric-subcard--*`, `.df-status-summary-banner--*`, `.df-plan-column-highlight` |

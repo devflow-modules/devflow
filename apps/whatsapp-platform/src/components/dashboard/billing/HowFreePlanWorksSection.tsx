@@ -30,7 +30,7 @@ export function HowFreePlanWorksSection({ planKey, className = "" }: Props) {
       <ul className="mt-4 space-y-2.5 text-sm text-[var(--df-text-secondary)]">
         {bullets.map((line) => (
           <li key={line} className="flex gap-2">
-            <span className="mt-0.5 text-emerald-600" aria-hidden>
+            <span className="mt-0.5 df-list-check-success" aria-hidden>
               ✓
             </span>
             <span>{line}</span>

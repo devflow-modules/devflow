@@ -361,11 +361,28 @@ Auditoria baseada nas secções do [Product UI System](../brand/DEVFLOW-PRODUCT-
 
 **Notas da implementação (2026-06-09):** thread com gradiente escuro tokenizado; `DeliveryStatus` com glifo + label curto + `aria-label`; coluna lateral de acções sempre visível (`min-h-8`); chips lista ≥11px; preview IA em superfície elevated escura; dropdown com `focus-visible:ring-2` e offset. Testes `inboxUi.test.tsx` e `conversationStateUi.test.ts` verdes.
 
+### Product UI Pass P1 — Dashboard and Cards (2026-06-09)
+
+| Área | Estado | Ficheiros principais |
+|------|--------|----------------------|
+| Dashboard IA / KPIs | ✅ Corrigido | `DashboardAiClient.tsx`, `KpiCardEnhanced.tsx`, `SystemHealthPanel.tsx` |
+| Dashboard principal | ✅ Corrigido | `DashboardClient.tsx`, `PostActivationGuide.tsx` |
+| Billing no dashboard | ✅ Corrigido | `OverageCard.tsx`, `UsageCard.tsx`, `HowUsageWorksSection.tsx`, `HowFreePlanWorksSection.tsx`, `PlanComparisonMatrix.tsx`, `BillingAlerts.tsx` (já tokenizado) |
+| WhatsApp dashboard | ✅ Corrigido | `WhatsappConnectSuccessBanner.tsx`, `WhatsappConnectClient.tsx`, `WhatsappStatusSummary.tsx`, `WhatsappPhoneNumberCard.tsx`, `callback/page.tsx` |
+| Utilities CSS | ✅ Novo | `globals.css` — `.df-metric-card`, `.df-metric-panel`, `.df-metric-subcard--*`, `.df-status-summary-banner--*`, `.df-check-step--*`, `.df-progress-bar-*`, `.df-plan-column-highlight` |
+| Empty state partilhado | ✅ Corrigido | `empty-state.tsx` (tom `positive` dark) |
+
+**Ocorrências claras removidas no dashboard:** `emerald-50/100`, `red-50`, `amber-50/100`, `indigo-50`, `violet-100`, `teal-100`, `bg-emerald-500/700` decorativos; badges de log/evento migrados para `df-badge-*`; sub-cards de oportunidades com famílias semânticas.
+
+**Fora de escopo deste pass (próximos P1):** `AiAnalyticsClient` (settings), `EvaluationModeRibbon`, onboarding (`OnboardingProgress`), admin/settings (`AiSettingsForm`, `AgentsClient`), auth legacy, inbox (salvo `empty-state` partilhado).
+
+**Próximo P1 recomendado:** billing/onboarding fora do dashboard → admin/settings → axe/Playwright.
+
 ### P1 — Corrigir antes de escalar
 
-| ID | Item | Ficheiro(s) |
-|----|------|-------------|
-| P1-1 | Substituir `emerald-*`/`red-50`/`amber-*` em dashboard e billing por `--df-*-soft` | `DashboardAiClient`, `OverageCard`, `AiAnalyticsClient`, etc. |
+| ID | Item | Ficheiro(s) | Estado |
+|----|------|-------------|--------|
+| P1-1 | Substituir `emerald-*`/`red-50`/`amber-*` em dashboard e billing por `--df-*-soft` | `DashboardAiClient`, `OverageCard`, `AiAnalyticsClient`, etc. | ✅ Dashboard/billing em dashboard (parcial global) |
 | P1-2 | `EvaluationModeRibbon` light `sky-50` → variante dark tokenizada | `EvaluationModeRibbon.tsx` |
 | P1-3 | Auth `focus:ring-blue-600` → brand | `PasswordField`, `ForgotPasswordForm` |
 | P1-4 | Badge pending inbound/unread: brand → warning semântico | `globals.css`, `ConversationItem` |
@@ -442,3 +459,4 @@ Auditoria baseada nas secções do [Product UI System](../brand/DEVFLOW-PRODUCT-
 |------|-----------|
 | 2026-06-10 | Auditoria inicial vs Product UI System v1.0 |
 | 2026-06-09 | Product UI Pass P0 — 6 correções na inbox (thread, ticks, ações, chips, preview IA, dropdown focus) |
+| 2026-06-09 | Product UI Pass P1 — Dashboard and Cards (métricas, saúde, billing em dashboard, WhatsApp dashboard) |

@@ -19,7 +19,7 @@ export function KpiCardEnhanced({
 }) {
   return (
     <div
-      className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] p-5 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]"
+      className="df-metric-card"
       title={tooltip}
     >
       <p className="text-xs font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">{label}</p>

@@ -46,10 +46,11 @@ export function WhatsappStatusSummary({
           <dt className="text-xs font-medium text-[var(--df-text-muted)]">Canal</dt>
           <dd className="mt-1 flex items-center gap-2 text-sm font-semibold text-[var(--df-text-primary)]">
             <span
-              className={`inline-block h-2 w-2 shrink-0 rounded-full ${channelConnected ? "bg-emerald-500" : "bg-[var(--df-text-muted)]"}`}
+              className={`inline-block h-2 w-2 shrink-0 rounded-full ${channelConnected ? "df-status-dot--ok" : "df-status-dot--muted"}`}
               aria-hidden
             />
             {channelConnected ? "Ligado" : "Sem número ligado"}
+            <span className="sr-only">{channelConnected ? " — canal activo" : " — canal inactivo"}</span>
           </dd>
         </div>
         <div className="rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] px-4 py-3 lg:min-h-[5.25rem]">
