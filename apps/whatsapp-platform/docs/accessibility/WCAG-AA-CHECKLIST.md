@@ -63,6 +63,8 @@ Objetivo: complementar `pnpm test:a11y` (axe + Playwright) com verificação hum
 | Comando | Descrição |
 |---------|-----------|
 | `pnpm test:a11y` | Playwright + `@axe-core/playwright`, tags `wcag2a`, `wcag2aa`, `wcag21aa`. **Falha** em violações **critical** / **serious**; **moderate** e inferiores são logados como aviso no stdout. |
+| `pnpm exec playwright test tests/a11y/product-ui-a11y.spec.ts` | Subconjunto Product UI Pass P2 (superfícies P0/P1). |
+| `pnpm exec playwright test tests/a11y/critical-flows.spec.ts` | Fluxos críticos base (login, inbox, modal suporte, etc.). |
 
 **Credenciais E2E:** com `E2E_WHATSAPP_ADMIN_EMAIL` e `E2E_WHATSAPP_ADMIN_PASSWORD`, os fluxos autenticados e admin executam; sem elas, esses testes são **skipped** (o teste público de `/login` continua a correr).
 

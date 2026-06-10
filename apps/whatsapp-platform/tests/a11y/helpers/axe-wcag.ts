@@ -14,17 +14,35 @@ function formatViolation(v: Result): string {
 
 const SERIOUS_IMPACTS = new Set(["serious", "critical"]);
 
+export type AxeScanOptions = {
+  /** Limita a análise a regiões (seletores CSS aceites pelo axe `.include`). */
+  include?: string[];
+  /** Exclui regiões da análise (axe `.exclude`). */
+  exclude?: string[];
+  /** Desactiva regras específicas — usar só com comentário justificado no teste. */
+  disableRules?: string[];
+};
+
 /**
  * Análise alinhada a WCAG 2.1 AA via tags do axe-core (regras etiquetadas wcag2a / wcag2aa / wcag21aa).
+ * Inclui `color-contrast` e demais regras serious/critical associadas às tags WCAG.
  */
-export async function scanWcag21AA(page: Page): Promise<{
+export async function scanWcag21AA(page: Page, options?: AxeScanOptions): Promise<{
   criticalSerious: Result[];
   moderate: Result[];
   rest: Result[];
 }> {
-  const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
-    .analyze();
+  let builder = new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]);
+  for (const selector of options?.include ?? []) {
+    builder = builder.include(selector);
+  }
+  for (const selector of options?.exclude ?? []) {
+    builder = builder.exclude(selector);
+  }
+  if (options?.disableRules?.length) {
+    builder = builder.disableRules(options.disableRules);
+  }
+  const results = await builder.analyze();
 
   const criticalSerious = results.violations.filter((v) => v.impact && SERIOUS_IMPACTS.has(v.impact));
   const moderate = results.violations.filter((v) => v.impact === "moderate");
@@ -55,8 +73,12 @@ export function logRestWarnings(context: string, rest: Result[]): void {
   }
 }
 
-export async function expectNoSeriousViolationsForPage(page: Page, context: string): Promise<void> {
-  const { criticalSerious, moderate, rest } = await scanWcag21AA(page);
+export async function expectNoSeriousViolationsForPage(
+  page: Page,
+  context: string,
+  options?: AxeScanOptions
+): Promise<void> {
+  const { criticalSerious, moderate, rest } = await scanWcag21AA(page, options);
   logModerateWarnings(context, moderate);
   logRestWarnings(context, rest);
   assertNoCriticalOrSerious(context, criticalSerious);

@@ -411,14 +411,64 @@ Auditoria baseada nas secções do [Product UI System](../brand/DEVFLOW-PRODUCT-
 
 ### P2 — Refinamento
 
-| ID | Item |
-|----|------|
-| P2-1 | Remover/reduzir `df-glow-brand` no header mobile |
-| P2-2 | Tokens `--df-space-0.5` e `--df-space-5` |
-| P2-3 | Toggle densidade compact/comfortable na lista |
-| P2-4 | Storybook / página design-system interna |
-| P2-5 | Auditoria contraste automatizada (axe/Playwright) |
-| P2-6 | `MessageList` gap alinhado à escala 8px |
+| ID | Item | Estado |
+|----|------|--------|
+| P2-1 | Remover/reduzir `df-glow-brand` no header mobile | Pendente |
+| P2-2 | Tokens `--df-space-0.5` e `--df-space-5` | Pendente |
+| P2-3 | Toggle densidade compact/comfortable na lista | Pendente |
+| P2-4 | Storybook / página design-system interna | Pendente |
+| P2-5 | Auditoria contraste automatizada (axe/Playwright) | ✅ (2026-06-09) |
+| P2-6 | `MessageList` gap alinhado à escala 8px | Pendente |
+
+#### P2-5 — Validação automatizada (axe + Playwright)
+
+**Spec dedicado:** `apps/whatsapp-platform/tests/a11y/product-ui-a11y.spec.ts`  
+**Helper axe:** `tests/a11y/helpers/axe-wcag.ts` (tags `wcag2a`, `wcag2aa`, `wcag21aa`; falha em **critical/serious**)  
+**Helper estabilização:** `tests/a11y/helpers/page-stable.ts`
+
+**Comando:**
+
+```bash
+cd apps/whatsapp-platform && pnpm test:a11y
+```
+
+Para correr só as superfícies Product UI:
+
+```bash
+cd apps/whatsapp-platform && pnpm exec playwright test tests/a11y/product-ui-a11y.spec.ts
+```
+
+**Rotas cobertas (com credenciais E2E):**
+
+| Rota | Pass visual | Notas |
+|------|-------------|-------|
+| `/dashboard` | P1 cards | Landmark `main` |
+| `/dashboard/ai` | P1 métricas IA | Heading h1 |
+| `/inbox` | P0 inbox | Mocks API operacionais |
+| `/billing` | P1 billing | Skip se `PRODUCT_MODE≠SAAS` |
+| `/dashboard/billing` | P1 billing dashboard | Skip se WL ou redirect role |
+| `/settings/billing` | P1 settings billing | Heading h1 |
+| `/onboarding` | P1 onboarding | Skip se operator ou onboarding concluído |
+| `/settings/ai` | P1 IA settings | Heading h1 |
+| `/settings/ai-analytics` | P1 analytics | Heading h1 |
+| `/agents` | P1 team | Skip se role sem `canViewTeamPage` |
+| `/settings` | P1 settings hub | Heading h1 |
+| `/admin/whatsapp` | P1 admin | Skip se não `platform_admin` |
+| `/admin/tenants` | P1 admin tenants | Skip se não `platform_admin` |
+
+**Fluxos complementares** (spec `critical-flows.spec.ts`): `/login`, `/conversations`, modal suporte na inbox.
+
+**Regras axe:** todas as regras etiquetadas WCAG 2.1 AA, incluindo **`color-contrast`** (validação indirecta de `df-feedback-*`, `df-badge-*`, `df-onboarding-card`, `df-evaluation-ribbon`, superfícies soft P1).
+
+**Limitações conhecidas:**
+
+- Sem `E2E_WHATSAPP_ADMIN_EMAIL` / `E2E_WHATSAPP_ADMIN_PASSWORD`, testes autenticados são **skipped**; só `/login` em `critical-flows` corre.
+- Rotas condicionais (billing SAAS, admin, onboarding, agents) podem skip conforme ambiente.
+- Violações **moderate/minor** são logadas no stdout, não bloqueiam CI neste bloco.
+- Não existe rota de showcase do design system — contraste das utilities é validado nas telas reais onde aparecem.
+- Checklist manual de teclado/foco permanece em `docs/accessibility/WCAG-AA-CHECKLIST.md`.
+
+**Próxima cobertura sugerida:** auth legacy (`PasswordField`), toast semântico, modal de activação de canal, `/conversations` no spec Product UI, trap de foco explícito no modal suporte.
 
 ---
 
@@ -467,7 +517,7 @@ Auditoria baseada nas secções do [Product UI System](../brand/DEVFLOW-PRODUCT-
 | Backlog visual P0/P1/P2 criado | ✅ |
 | README whatsapp-platform linkado | ✅ (nesta entrega) |
 | P0 visual pass implementado (6 itens) | ✅ (2026-06-09) |
-| Contraste AA medido automaticamente | ❌ não confirmado — recomendado P2 |
+| Contraste AA medido automaticamente | ✅ P2-5 — `pnpm test:a11y` (axe serious/critical) |
 
 ---
 
@@ -479,3 +529,4 @@ Auditoria baseada nas secções do [Product UI System](../brand/DEVFLOW-PRODUCT-
 | 2026-06-09 | Product UI Pass P0 — 6 correções na inbox (thread, ticks, ações, chips, preview IA, dropdown focus) |
 | 2026-06-09 | Product UI Pass P1 — Dashboard and Cards (métricas, saúde, billing em dashboard, WhatsApp dashboard) |
 | 2026-06-09 | Product UI Pass P1 — Billing and Onboarding (settings billing, onboarding, IA analytics, admin tenants) |
+| 2026-06-09 | Product UI Pass P2 — validação automatizada axe/Playwright (`product-ui-a11y.spec.ts`) |

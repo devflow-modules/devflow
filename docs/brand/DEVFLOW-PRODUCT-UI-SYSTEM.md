@@ -145,6 +145,8 @@ Mapeamento conceptual → tokens `--df-*` / utilities `.df-*`:
 
 **Teste recomendado:** verificar pares principais no tema escuro actual antes de ship (Figma contrast ou DevTools).
 
+**Automatização (WhatsApp Platform):** `pnpm test:a11y` em `apps/whatsapp-platform` — Playwright + `@axe-core/playwright`, tags WCAG 2.1 AA; falha em violações **critical/serious** (inclui `color-contrast`). Superfícies Product UI: `tests/a11y/product-ui-a11y.spec.ts`. Detalhes em [PRODUCT-UI-AUDIT.md](../whatsapp-platform/PRODUCT-UI-AUDIT.md) (secção P2-5).
+
 ---
 
 ## 9. Focus e keyboard navigation
