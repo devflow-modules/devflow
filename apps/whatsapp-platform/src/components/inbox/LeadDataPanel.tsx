@@ -320,8 +320,9 @@ export function LeadDataPanel({
           aria-label="Secções do contexto"
         >
           {LEAD_TABS.map((t) => (
-            <button
+            <Button
               key={t.id}
+              variant="secondary"
               type="button"
               role="tab"
               aria-selected={tab === t.id}
@@ -334,7 +335,7 @@ export function LeadDataPanel({
               }`}
             >
               {t.label}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
