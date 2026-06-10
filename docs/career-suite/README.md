@@ -6,6 +6,8 @@ Portfolio case: **ApplyFlow** (capture and organise applications) + **Interview 
 
 **Deep dive (Resume Match + optional AI coaching):** [`RESUME-MATCH-CASE-STUDY.md`](./RESUME-MATCH-CASE-STUDY.md)
 
+**Demo checklist (recording / LinkedIn):** [`DEMO-CHECKLIST.md`](./DEMO-CHECKLIST.md)
+
 Full Career Suite product overview remains in this file; app READMEs stay short and link here.
 
 ---
@@ -14,7 +16,7 @@ Full Career Suite product overview remains in this file; app READMEs stay short 
 
 - **ApplyFlow** — LinkedIn Easy Apply copilot with a Next.js dashboard, Chrome MV3 extension, local history, funnel metrics, optional client-side AI. Users hand off a **`CareerBundle`** via **Prepare in Interview Lab** (import list: `window.postMessage` + typed ACK, no bundle in the URL), **Practice this role** on a table row (same postMessage channel with optional `intent: "practice"` + `selectedApplicationId`), **JSON download**, **Copy CareerBundle** (clipboard), or **Open Interview Lab** (opens import in a new tab).
 - **Interview Lab** — Next.js app for timed live-coding practice, English prompts, and reflection. Users import the bundle at **`/import/applyflow`** (automatic handoff when opened from ApplyFlow with `?handoff=postMessage`, optional **`?intent=practice`**, **Import from clipboard**, paste + parse, or file upload), use **`/career/ats` (Resume Match)** for deterministic resume–job analysis plus **optional OpenAI coaching** after an explicit click, pick a role from an import, or land straight on practice when the ApplyFlow practice handoff succeeds. **Train for this role** (or auto-redirect) persists prep to **`localStorage`** and opens `/practice/...?careerPrep=`.
-- **Handoff** — one JSON payload validated by **`@devflow/career-core`** (Zod), including **`devflow.careerBundle.v1`** / **`devflow.careerBundle.ack.v1`** envelopes for `postMessage`. Optional fields **`intent`** (`"import"` \| `"practice"`, default `"import"`) and **`selectedApplicationId`**. Origins are allowlisted (`NEXT_PUBLIC_APPLYFLOW_URL` on Interview Lab when not using localhost defaults). Query params **`?from=applyflow`** / **`?handoff=postMessage`** / **`?intent=practice`** are UX hints only — no CareerBundle in the URL.
+- **Handoff** — one JSON payload validated by **`@devflow/career-core`** (Zod), including **`devflow.careerBundle.v1`** / **`devflow.careerBundle.ack.v1`** envelopes for `postMessage`. ApplyFlow opens Interview Lab **without `noopener`** so the child tab can ACK delivery to the opener. Optional fields **`intent`** (`"import"` \| `"practice"`, default `"import"`) and **`selectedApplicationId`**. Origins are allowlisted (`NEXT_PUBLIC_APPLYFLOW_URL` on Interview Lab when not using localhost defaults). Query params **`?from=applyflow`** / **`?handoff=postMessage`** / **`?intent=practice`** are UX hints only — no CareerBundle in the URL.
 
 ### Resume match (`/career/ats`)
 
@@ -145,6 +147,21 @@ pnpm --filter @devflow/career-core test
 pnpm --filter applyflow test
 pnpm --filter @devflow/app-interview-lab test
 ```
+
+Handoff sender coverage: `apps/applyflow/src/lib/career-bundle-postmessage-handoff.test.ts` (ACK, timeout, popup blocked, wrong origin).
+
+---
+
+## Environment variables (handoff / staging)
+
+| Variable | Where | Purpose |
+|----------|-------|---------|
+| `NEXT_PUBLIC_INTERVIEW_LAB_URL` | ApplyFlow | Origin + URL for Interview Lab handoff |
+| `NEXT_PUBLIC_APPLYFLOW_URL` | Interview Lab | Allowlisted ApplyFlow origin for `postMessage` |
+
+Local defaults: ApplyFlow `localhost:3010` / `127.0.0.1:3010` → Interview Lab `localhost:3015`. Set both env vars in staging so origins match.
+
+No credentials are committed; see [`DEMO-CHECKLIST.md`](./DEMO-CHECKLIST.md).
 
 ---
 

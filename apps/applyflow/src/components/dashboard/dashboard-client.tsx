@@ -252,7 +252,9 @@ export function DashboardClient() {
       setPrepareHandoffMessage("CareerBundle sent to Interview Lab.");
     } else if (r.kind === "fallback_clipboard_ok") {
       setPrepareHandoffHint("clipboard");
-      setPrepareHandoffMessage("Automatic handoff failed. CareerBundle copied — use Import from clipboard.");
+      setPrepareHandoffMessage(
+        "Interview Lab did not confirm delivery in time (popup blocked, tab closed, or origin mismatch). CareerBundle copied — use Import from clipboard.",
+      );
     } else {
       setPrepareHandoffHint("error");
       setPrepareHandoffMessage(
@@ -288,7 +290,7 @@ export function DashboardClient() {
       } else if (r.kind === "fallback_clipboard_ok") {
         setPracticeRowHandoffHint("clipboard");
         setPracticeRowHandoffMessage(
-          "Automatic handoff failed. CareerBundle copied — use Import from clipboard on the Interview Lab tab.",
+          "Interview Lab did not confirm delivery in time. CareerBundle copied — use Import from clipboard on the Interview Lab tab.",
         );
       } else {
         setPracticeRowHandoffHint("error");
