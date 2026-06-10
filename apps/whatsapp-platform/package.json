@@ -19,6 +19,7 @@
         "test:coverage": "vitest run --coverage",
         "test:e2e": "playwright test tests/e2e",
         "test:a11y": "playwright test tests/a11y",
+        "test:a11y:product-ui": "playwright test tests/a11y/product-ui-a11y.spec.ts",
         "test:e2e:inbox": "playwright test tests/e2e/inbox.spec.ts",
         "smoke": "tsx ../../scripts/smoke-test-whatsapp.ts",
         "ops:check-channel": "tsx ../../scripts/ops/check-whatsapp-channel.ts",

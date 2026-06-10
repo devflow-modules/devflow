@@ -46,6 +46,7 @@ coverage/
 *.lcov
 **/test-results/
 **/playwright-report/
+**/tests/.auth/
 
 # --- IDE / Editor ---
 .idea/

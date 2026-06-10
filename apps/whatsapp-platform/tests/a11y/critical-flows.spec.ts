@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { createDefaultInboxMockStore, installInboxOperationalMocks } from "../e2e/helpers/inbox-api-mock";
-import { loginAsWhatsappAdmin, skipIfMissingWhatsappE2ECredentials } from "../e2e/helpers/whatsapp-auth";
+import { navigateAsWhatsappAdmin } from "../e2e/helpers/whatsapp-auth";
+import { useAuthenticatedA11yContext } from "./helpers/authenticated-context";
 import { expectNoSeriousViolationsForPage } from "./helpers/axe-wcag";
 
 /** Evitar `networkidle` no `next dev` (HMR / pedidos longos — nunca fica “idle”). */
@@ -18,13 +19,10 @@ test.describe("A11y — fluxos críticos (axe, WCAG 2.1 AA)", () => {
   });
 
   test.describe("sessão E2E (E2E_WHATSAPP_ADMIN_EMAIL / E2E_WHATSAPP_ADMIN_PASSWORD)", () => {
-    test.beforeEach(async ({ context }) => {
-      skipIfMissingWhatsappE2ECredentials();
-      await context.clearCookies();
-    });
+    useAuthenticatedA11yContext();
 
     test("dashboard (/dashboard)", async ({ page }) => {
-      await loginAsWhatsappAdmin(page, { next: "/dashboard" });
+      await navigateAsWhatsappAdmin(page, { next: "/dashboard" });
       await waitAppStable(page);
       await expect(page).toHaveURL(/\/dashboard/);
       await expectNoSeriousViolationsForPage(page, "dashboard");
@@ -33,27 +31,27 @@ test.describe("A11y — fluxos críticos (axe, WCAG 2.1 AA)", () => {
     test("inbox (/inbox) com mocks API", async ({ page }) => {
       const store = createDefaultInboxMockStore();
       await installInboxOperationalMocks(page, store);
-      await loginAsWhatsappAdmin(page, { next: "/inbox" });
+      await navigateAsWhatsappAdmin(page, { next: "/inbox" });
       await expect(page.getByTestId("inbox-shell")).toBeVisible({ timeout: 60_000 });
       await expectNoSeriousViolationsForPage(page, "inbox");
     });
 
     test("histórico de conversas (/conversations)", async ({ page }) => {
-      await loginAsWhatsappAdmin(page, { next: "/conversations" });
+      await navigateAsWhatsappAdmin(page, { next: "/conversations" });
       await waitAppStable(page);
       await expect(page).toHaveURL(/\/conversations/);
       await expectNoSeriousViolationsForPage(page, "conversations");
     });
 
     test("definições de IA (/settings/ai)", async ({ page }) => {
-      await loginAsWhatsappAdmin(page, { next: "/settings/ai" });
+      await navigateAsWhatsappAdmin(page, { next: "/settings/ai" });
       await waitAppStable(page);
       await expect(page).toHaveURL(/\/settings\/ai/);
       await expectNoSeriousViolationsForPage(page, "settings/ai");
     });
 
     test("billing (/billing) — apenas se rota comercial estiver visível", async ({ page }) => {
-      await loginAsWhatsappAdmin(page, { next: "/billing" });
+      await navigateAsWhatsappAdmin(page, { next: "/billing" });
       await waitAppStable(page);
       if (!/\/billing/.test(page.url())) {
         test.skip(
@@ -65,7 +63,7 @@ test.describe("A11y — fluxos críticos (axe, WCAG 2.1 AA)", () => {
     });
 
     test("admin WhatsApp (/admin/whatsapp) — apenas platform_admin", async ({ page }) => {
-      await loginAsWhatsappAdmin(page, { next: "/admin/whatsapp" });
+      await navigateAsWhatsappAdmin(page, { next: "/admin/whatsapp" });
       await waitAppStable(page);
       if (!page.url().includes("/admin/whatsapp")) {
         test.skip(
@@ -79,7 +77,7 @@ test.describe("A11y — fluxos críticos (axe, WCAG 2.1 AA)", () => {
     test("modal de suporte (inbox + diálogo aberto)", async ({ page }) => {
       const store = createDefaultInboxMockStore();
       await installInboxOperationalMocks(page, store);
-      await loginAsWhatsappAdmin(page, { next: "/inbox" });
+      await navigateAsWhatsappAdmin(page, { next: "/inbox" });
       await expect(page.getByTestId("inbox-shell")).toBeVisible({ timeout: 60_000 });
       await page.getByRole("button", { name: "Precisa de ajuda?" }).click();
       await expect(page.getByRole("dialog")).toBeVisible();

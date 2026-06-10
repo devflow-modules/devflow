@@ -120,22 +120,34 @@ Tests should cover:
 
 ## Accessibility Tests
 
-The app includes Playwright + axe checks for critical flows.
+The app includes Playwright + axe checks for critical flows and Product UI surfaces.
 
-Run locally:
+Run locally (no credentials — login only, authenticated tests skipped):
 
 ```bash
 pnpm test:a11y
 ```
 
-Authenticated flows require:
+Authenticated flows require env vars (in `.env.local`, never commit values):
 
 ```bash
 E2E_WHATSAPP_ADMIN_EMAIL=
 E2E_WHATSAPP_ADMIN_PASSWORD=
+# optional staging:
+E2E_WHATSAPP_BASE_URL=https://your-staging.example.com
 ```
 
+Product UI subset:
+
+```bash
+pnpm test:a11y:product-ui
+```
+
+Session reuse: `tests/setup/global-auth.setup.ts` saves `tests/.auth/whatsapp-admin.json` (gitignored).
+
 For axe coverage on `/admin/whatsapp`, the user must be `platform_admin`.
+
+CI: `.github/workflows/whatsapp-platform-a11y.yml` with GitHub secrets `E2E_WHATSAPP_*`.
 
 ## Main Commands
 
