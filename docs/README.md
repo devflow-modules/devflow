@@ -15,7 +15,7 @@ O hub **`devflowlabs.com.br`** posiciona-se hoje em torno de:
 
 Outros apps no repositório (**ApplyFlow** como case de portfólio local-first, Investigamais, FunkLab, etc.) mantêm documentação técnica própria; apenas WhatsApp + Financeiro são pilares do go-to-market público actual do hub neste índice.
 
-**DevFlow Career Suite** — ligação **local-first** entre ApplyFlow (candidaturas) e Interview Lab (treino de entrevista) via JSON **`CareerBundle`** (`@devflow/career-core`). Índice do case: [**career-suite/README.md**](./career-suite/README.md).
+**DevFlow Career Suite** — ligação **local-first** entre ApplyFlow (candidaturas) e Interview Lab (treino de entrevista) via JSON **`CareerBundle`** (`@devflow/career-core`). Índice técnico: [**career-suite/README.md**](./career-suite/README.md) · **case público (portfólio):** [**public-cases/CAREER-SUITE.md**](./public-cases/CAREER-SUITE.md).
 
 ---
 
@@ -29,6 +29,7 @@ Outros apps no repositório (**ApplyFlow** como case de portfólio local-first, 
 | [**financeiro/**](./financeiro/) | App controle financeiro (`apps/financeiro` + módulo site) |
 | [**applyflow/**](./applyflow/) | ApplyFlow: dashboard local-first, extensão Chrome, arquitectura, publicação e screenshots |
 | [**career-suite/**](./career-suite/) | DevFlow Career Suite: ponte ApplyFlow ↔ Interview Lab (CareerBundle, privacidade, demo) |
+| [**public-cases/**](./public-cases/) | Cases públicos de portfólio (narrativa para recrutadores / LinkedIn) |
 | [**investigamais/**](./investigamais/) | Investiga+ (referência técnica; produto separado) |
 | [**shared/**](./shared/) | Monorepo, deploy, Prisma, monetização, ADRs |
 | [**ecossistema/**](./ecossistema/) | Rotas, URLs e visão do hub |
@@ -112,6 +113,7 @@ Outros apps no repositório (**ApplyFlow** como case de portfólio local-first, 
 - [whatsapp/README.md](./whatsapp/README.md)  
 - [applyflow/](./applyflow/) (índice em `docs/applyflow/` — ver também [ARCHITECTURE.md](./applyflow/ARCHITECTURE.md))  
 - [career-suite/README.md](./career-suite/README.md) (ApplyFlow + Interview Lab, CareerBundle)  
+- [DevFlow Career Suite — public case](./public-cases/CAREER-SUITE.md) (portfólio / LinkedIn / demo script)  
 - [apps/applyflow/README.md](../apps/applyflow/README.md) (dashboard Next.js)  
 - [apps/applyflow-extension/README.md](../apps/applyflow-extension/README.md) (extensão Chrome MV3)  
 - [investigamais/README.md](./investigamais/README.md) (produto / app separado)  
