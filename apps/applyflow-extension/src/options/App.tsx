@@ -11,6 +11,7 @@ import { OptionsProfileSummary } from "./components/OptionsProfileSummary";
 import { ProfileForm } from "./components/ProfileForm";
 import { SalaryEditor } from "./components/SalaryEditor";
 import { SkillsEditor } from "./components/SkillsEditor";
+import { ExtensionButton } from "../components/ExtensionButton.js";
 
 type OptionsTab = "profile" | "history" | "ai" | "preview";
 
@@ -164,7 +165,7 @@ export function OptionsApp() {
       </header>
 
       <div className="af-opt-tabs" role="tablist" aria-label="Secções ApplyFlow">
-        <button
+        <ExtensionButton
           type="button"
           role="tab"
           aria-selected={tab === "profile"}
@@ -173,8 +174,8 @@ export function OptionsApp() {
           onClick={() => setTab("profile")}
         >
           Perfil
-        </button>
-        <button
+        </ExtensionButton>
+        <ExtensionButton
           type="button"
           role="tab"
           aria-selected={tab === "history"}
@@ -183,8 +184,8 @@ export function OptionsApp() {
           onClick={() => setTab("history")}
         >
           Histórico
-        </button>
-        <button
+        </ExtensionButton>
+        <ExtensionButton
           type="button"
           role="tab"
           aria-selected={tab === "ai"}
@@ -193,8 +194,8 @@ export function OptionsApp() {
           onClick={() => setTab("ai")}
         >
           IA
-        </button>
-        <button
+        </ExtensionButton>
+        <ExtensionButton
           type="button"
           role="tab"
           aria-selected={tab === "preview"}
@@ -203,7 +204,7 @@ export function OptionsApp() {
           onClick={() => setTab("preview")}
         >
           Preview (captura)
-        </button>
+        </ExtensionButton>
       </div>
 
       {tab === "profile" ? (
@@ -230,21 +231,21 @@ export function OptionsApp() {
                 Salve o perfil localmente ou use JSON apenas para backup e migração entre navegadores.
               </p>
               <div className="af-opt-actions af-opt-actions--in-card">
-                <button type="button" className="af-opt-btn-primary" onClick={() => void handleSave()}>
+                <ExtensionButton type="button" className="af-opt-btn-primary" onClick={() => void handleSave()}>
                   Salvar perfil
-                </button>
-                <button type="button" className="af-opt-btn-secondary" onClick={() => void handleReset()}>
+                </ExtensionButton>
+                <ExtensionButton type="button" className="af-opt-btn-secondary" onClick={() => void handleReset()}>
                   Restaurar padrão de referência
-                </button>
+                </ExtensionButton>
                 <div className="af-opt-action-group">
                   <span className="af-opt-action-group-label">Backup local</span>
                   <div className="af-opt-action-group-row">
-                    <button type="button" className="af-opt-btn-secondary" onClick={handleExport}>
+                    <ExtensionButton type="button" className="af-opt-btn-secondary" onClick={handleExport}>
                       Exportar JSON
-                    </button>
-                    <button type="button" className="af-opt-btn-secondary" onClick={handleImportPick}>
+                    </ExtensionButton>
+                    <ExtensionButton type="button" className="af-opt-btn-secondary" onClick={handleImportPick}>
                       Importar JSON
-                    </button>
+                    </ExtensionButton>
                   </div>
                 </div>
                 <input
