@@ -1,5 +1,6 @@
 "use client";
 
+import { InterviewLabButton } from "@/components/ui/InterviewLabButton";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
@@ -334,13 +335,13 @@ export function InterviewBriefingClient() {
         <div className="space-y-4">
           <div className="il-card space-y-4 p-4 md:p-5">
             <div className="flex flex-wrap gap-2">
-              <button
+              <InterviewLabButton
                 type="button"
                 onClick={newBriefing}
                 className="rounded-lg border border-neutral-600 px-3 py-1.5 text-xs font-medium text-neutral-200 hover:border-neutral-400"
               >
                 New briefing
-              </button>
+              </InterviewLabButton>
             </div>
 
             <fieldset className="space-y-2">
@@ -458,29 +459,29 @@ export function InterviewBriefingClient() {
             ) : null}
 
             <div className="flex flex-wrap gap-2">
-              <button
+              <InterviewLabButton
                 type="button"
                 onClick={() => handleGenerate()}
                 className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-neutral-950 hover:bg-emerald-400"
               >
                 Generate preview
-              </button>
-              <button
+              </InterviewLabButton>
+              <InterviewLabButton
                 type="button"
                 disabled={!preview || !previewInput}
                 onClick={() => handleSave()}
                 className="rounded-xl border border-neutral-600 px-4 py-2 text-sm font-semibold text-neutral-100 hover:border-neutral-400 disabled:opacity-40"
               >
                 Save briefing
-              </button>
-              <button
+              </InterviewLabButton>
+              <InterviewLabButton
                 type="button"
                 disabled={!preview || !previewInput}
                 onClick={() => handleExport()}
                 className="rounded-xl border border-emerald-500/40 px-4 py-2 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/10 disabled:opacity-40"
               >
                 Export Markdown
-              </button>
+              </InterviewLabButton>
             </div>
           </div>
 
@@ -498,14 +499,14 @@ export function InterviewBriefingClient() {
                     <p className="text-xs text-neutral-500">{new Date(r.updatedAt).toLocaleString()}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <button
+                    <InterviewLabButton
                       type="button"
                       onClick={() => handleLoad(r)}
                       className="rounded-lg border border-neutral-600 px-2 py-1 text-xs text-neutral-200 hover:border-neutral-400"
                     >
                       Load
-                    </button>
-                    <button
+                    </InterviewLabButton>
+                    <InterviewLabButton
                       type="button"
                       onClick={() =>
                         downloadMarkdown(
@@ -516,14 +517,14 @@ export function InterviewBriefingClient() {
                       className="rounded-lg border border-emerald-500/35 px-2 py-1 text-xs text-emerald-200"
                     >
                       Export MD
-                    </button>
-                    <button
+                    </InterviewLabButton>
+                    <InterviewLabButton
                       type="button"
                       onClick={() => handleDelete(r.id)}
                       className="rounded-lg border border-red-500/35 px-2 py-1 text-xs text-red-200/90"
                     >
                       Delete
-                    </button>
+                    </InterviewLabButton>
                   </div>
                 </li>
               ))}

@@ -1,5 +1,6 @@
 "use client";
 
+import { InterviewLabButton } from "@/components/ui/InterviewLabButton";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
@@ -167,22 +168,22 @@ export function AtsAnalyzerClient() {
           </p>
         ) : null}
         <div className="flex flex-wrap items-center gap-3">
-          <button
+          <InterviewLabButton
             type="button"
             disabled={busy}
             onClick={onLoadSample}
             className="rounded-xl border border-neutral-600 bg-neutral-900/80 px-4 py-2.5 text-sm font-semibold text-neutral-100 transition hover:border-emerald-500/45 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
           >
             Load sample analysis
-          </button>
-          <button
+          </InterviewLabButton>
+          <InterviewLabButton
             type="button"
             disabled={!canAnalyze || busy}
             onClick={onAnalyze}
             className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-900/20 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {busy ? "Analyzing…" : "Analyze ATS match"}
-          </button>
+          </InterviewLabButton>
           <p className="text-xs text-neutral-500">All processing stays in this browser tab.</p>
         </div>
       </section>
@@ -289,13 +290,13 @@ export function AtsAnalyzerClient() {
             <p className="text-sm leading-relaxed text-neutral-300">
               {result.practiceContext.suggestedPitch}
             </p>
-            <button
+            <InterviewLabButton
               type="button"
               onClick={onPractice}
               className="mt-4 rounded-xl border border-emerald-500/50 bg-emerald-500/15 px-5 py-2.5 text-sm font-semibold text-emerald-100 transition hover:border-emerald-400/70 hover:bg-emerald-500/25"
             >
               Practice interview from this analysis
-            </button>
+            </InterviewLabButton>
           </Section>
         </div>
       ) : null}

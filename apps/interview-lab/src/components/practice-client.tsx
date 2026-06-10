@@ -1,5 +1,6 @@
 "use client";
 
+import { InterviewLabButton } from "@/components/ui/InterviewLabButton";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ChecklistId, ChecklistState, ProblemDefinition, TestOutcome } from "@/lib/types";
@@ -206,21 +207,21 @@ export function PracticeClient({ problem, careerPrepId }: Props) {
 
       <main className="il-card flex min-h-[520px] flex-col p-4">
         <div className="flex flex-wrap items-center gap-2 border-b border-neutral-800/80 pb-3">
-          <button
+          <InterviewLabButton
             type="button"
             onClick={handleRun}
             disabled={runningTests}
             className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-neutral-950 transition hover:bg-emerald-400 disabled:opacity-50"
           >
             {runningTests ? "Running…" : "Run tests"}
-          </button>
-          <button
+          </InterviewLabButton>
+          <InterviewLabButton
             type="button"
             onClick={handleFinish}
             className="rounded-xl border border-neutral-600 px-4 py-2 text-sm font-semibold text-neutral-100 transition hover:border-neutral-400"
           >
             Finish simulation
-          </button>
+          </InterviewLabButton>
         </div>
         <label className="mt-3 flex flex-1 flex-col gap-2">
           <span className="text-xs font-medium uppercase tracking-wide text-neutral-500">JavaScript</span>
@@ -242,7 +243,7 @@ export function PracticeClient({ problem, careerPrepId }: Props) {
           <p className="mt-1 text-xs text-neutral-500">Optional · tap again to clear.</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {([1, 2, 3, 4, 5] as const).map((n) => (
-              <button
+              <InterviewLabButton
                 key={n}
                 type="button"
                 onClick={() => setConfidenceBefore((c) => (c === n ? null : n))}
@@ -253,7 +254,7 @@ export function PracticeClient({ problem, careerPrepId }: Props) {
                 }`}
               >
                 {n}
-              </button>
+              </InterviewLabButton>
             ))}
           </div>
         </div>
@@ -264,19 +265,19 @@ export function PracticeClient({ problem, careerPrepId }: Props) {
             {formatClock(remainingSec)}
           </p>
           <p className="mt-1 text-center text-xs text-neutral-500">25 minutes · counts down</p>
-          <button
+          <InterviewLabButton
             type="button"
             onClick={() => setTimerRunning((t) => !t)}
             className="mt-3 w-full rounded-lg border border-neutral-700 py-2 text-xs font-medium text-neutral-300 hover:border-neutral-500"
           >
             {timerRunning ? "Pause" : "Resume"}
-          </button>
+          </InterviewLabButton>
 
           <div className="mt-4 border-t border-neutral-800/70 pt-3">
             <p className="text-[0.65rem] font-semibold uppercase tracking-wide text-emerald-400/90">No Silence Mode</p>
             <div className="mt-2 flex gap-1">
               {(["off", "gentle", "interview"] as const).map((m) => (
-                <button
+                <InterviewLabButton
                   key={m}
                   type="button"
                   onClick={() => setNoSilenceMode(m)}
@@ -287,7 +288,7 @@ export function PracticeClient({ problem, careerPrepId }: Props) {
                   }`}
                 >
                   {formatNoSilenceModeLabel(m)}
-                </button>
+                </InterviewLabButton>
               ))}
             </div>
             <p className="mt-2 text-[0.65rem] text-neutral-500">
@@ -306,7 +307,7 @@ export function PracticeClient({ problem, careerPrepId }: Props) {
                 <span className="text-neutral-600">—</span>
               )}
             </p>
-            <button
+            <InterviewLabButton
               type="button"
               onClick={() => {
                 setSecondsSinceNudgeReset(0);
@@ -315,7 +316,7 @@ export function PracticeClient({ problem, careerPrepId }: Props) {
               className="mt-2 w-full rounded-lg border border-neutral-600 py-1.5 text-[0.65rem] font-medium text-neutral-200 hover:border-emerald-500/40"
             >
               I said something
-            </button>
+            </InterviewLabButton>
           </div>
         </div>
 

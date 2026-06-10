@@ -1,5 +1,6 @@
 "use client";
 
+import { InterviewLabButton } from "@/components/ui/InterviewLabButton";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRefreshableAiAnswerReviewSettings } from "@/hooks/use-refreshable-ai-answer-review-settings";
@@ -96,14 +97,14 @@ export function AiResumeCoachingPanel({ resumeText, jobDescriptionText, atsAnaly
       </div>
 
       <div className="mt-4 space-y-3">
-        <button
+        <InterviewLabButton
           type="button"
           disabled={loading || blocked}
           onClick={() => void onGenerate()}
           className="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-950/30 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? "Generating…" : "Generate AI coaching"}
-        </button>
+        </InterviewLabButton>
         {blocked ? (
           <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-100/95">
             {coachingUnavailableMessage(settings)}

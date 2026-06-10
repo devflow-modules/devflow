@@ -1,5 +1,6 @@
 "use client";
 
+import { InterviewLabButton } from "@/components/ui/InterviewLabButton";
 import { useCallback, useEffect, useState } from "react";
 import type { AiAnswerReviewRequest, AiAnswerReviewResult } from "@/lib/ai-answer-review";
 import {
@@ -188,12 +189,12 @@ export function AiAnswerReviewClient() {
           />
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
-          <button type="button" className={btn} onClick={saveSettings}>
+          <InterviewLabButton type="button" className={btn} onClick={saveSettings}>
             Save settings locally
-          </button>
-          <button type="button" className={btn} onClick={handleClearKey}>
+          </InterviewLabButton>
+          <InterviewLabButton type="button" className={btn} onClick={handleClearKey}>
             Remove key
-          </button>
+          </InterviewLabButton>
         </div>
         {hint ? <p className="mt-2 text-xs text-emerald-400/90">{hint}</p> : null}
         {preferOpenAi && !hasStoredKey && !apiKeyInput.trim() ? (
@@ -277,20 +278,20 @@ export function AiAnswerReviewClient() {
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          <button
+          <InterviewLabButton
             type="button"
             disabled={!canReview}
             onClick={() => void handleReview()}
             className="rounded-xl border border-emerald-500/50 bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-100 transition hover:border-emerald-400/70 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? "Reviewing…" : "Review answer"}
-          </button>
-          <button type="button" className={btn} onClick={loadLast}>
+          </InterviewLabButton>
+          <InterviewLabButton type="button" className={btn} onClick={loadLast}>
             Load last saved review
-          </button>
-          <button type="button" className={btn} onClick={clearLast}>
+          </InterviewLabButton>
+          <InterviewLabButton type="button" className={btn} onClick={clearLast}>
             Clear saved review
-          </button>
+          </InterviewLabButton>
         </div>
         {error ? <p className="mt-2 text-xs text-red-400">{error}</p> : null}
       </section>
@@ -304,9 +305,9 @@ export function AiAnswerReviewClient() {
                 {result.score}
                 <span className="text-sm font-normal text-neutral-500">/10</span>
               </p>
-              <button type="button" className={btn} onClick={exportReviewMarkdown}>
+              <InterviewLabButton type="button" className={btn} onClick={exportReviewMarkdown}>
                 Export Markdown
-              </button>
+              </InterviewLabButton>
             </div>
           </div>
           <div>
