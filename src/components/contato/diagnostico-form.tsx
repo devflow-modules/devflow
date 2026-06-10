@@ -7,6 +7,7 @@ import {
   CONTACT_MAIN_PROBLEM_OPTIONS,
 } from "@/lib/conversion-copy";
 import { trackCtaWhatsAppClick, trackDiagnosticoFormSubmit, trackFunnelCtaClick } from "@/lib/analytics";
+import { buildDiagnosticoMessage } from "@/lib/contato/diagnostico-lead";
 import { getWhatsAppOrMailtoUrl, isWhatsAppNumberConfigured } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 
@@ -50,36 +51,86 @@ const initialState: FormState = {
   horario: "",
 };
 
-function buildDiagnosticoMessage(data: FormState): string {
-  const lines = [
-    "Olá, vim pelo site e quero agendar um diagnóstico da minha operação no WhatsApp.",
-    "",
-    `Nome: ${data.nome.trim()}`,
-    `WhatsApp: ${data.whatsapp.trim()}`,
-    `Empresa: ${data.empresa.trim() || "—"}`,
-    `Segmento: ${data.segmento.trim() || "—"}`,
-    `Volume aproximado/dia: ${data.volume || "—"}`,
-    `Principal problema hoje: ${data.problema || "—"}`,
-    `Melhor horário para contato: ${data.horario || "—"}`,
-  ];
-  return lines.join("\n");
+async function persistDiagnosticoLead(
+  data: FormState
+): Promise<{ ok: true } | { ok: false; error: string; allowWhatsApp: boolean }> {
+  try {
+    const res = await fetch("/api/contato/diagnostico", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nome: data.nome,
+        whatsapp: data.whatsapp,
+        empresa: data.empresa,
+        segmento: data.segmento,
+        volume: data.volume,
+        problema: data.problema,
+        horario: data.horario,
+      }),
+    });
+
+    if (res.status === 400) {
+      const json = (await res.json().catch(() => null)) as { error?: string } | null;
+      return {
+        ok: false,
+        error: typeof json?.error === "string" ? json.error : "Dados inválidos.",
+        allowWhatsApp: false,
+      };
+    }
+
+    if (!res.ok) {
+      const json = (await res.json().catch(() => null)) as { error?: string } | null;
+      return {
+        ok: false,
+        error:
+          typeof json?.error === "string"
+            ? json.error
+            : "Não foi possível registrar automaticamente. Você pode continuar pelo WhatsApp.",
+        allowWhatsApp: true,
+      };
+    }
+
+    return { ok: true };
+  } catch {
+    return {
+      ok: false,
+      error: "Não foi possível registrar automaticamente. Você pode continuar pelo WhatsApp.",
+      allowWhatsApp: true,
+    };
+  }
 }
 
 export function DiagnosticoForm() {
   const [form, setForm] = useState<FormState>(initialState);
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const update = (field: keyof FormState) => (value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (error) setError(null);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!form.nome.trim() || !form.whatsapp.trim()) {
       setError("Informe seu nome e WhatsApp para solicitar o diagnóstico.");
       return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
+    const persistResult = await persistDiagnosticoLead(form);
+    setSubmitting(false);
+
+    if (!persistResult.ok && !persistResult.allowWhatsApp) {
+      setError(persistResult.error);
+      return;
+    }
+
+    if (!persistResult.ok && persistResult.allowWhatsApp) {
+      setError(persistResult.error);
     }
 
     const message = buildDiagnosticoMessage(form);
@@ -242,9 +293,11 @@ export function DiagnosticoForm() {
 
       <button
         type="submit"
+        disabled={submitting}
         className={cn(
           "df-btn-primary mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold",
-          "df-shadow-cta focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          "df-shadow-cta focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+          submitting && "pointer-events-none opacity-70"
         )}
       >
         {CONTACT_FORM_SUBMIT_LABEL}

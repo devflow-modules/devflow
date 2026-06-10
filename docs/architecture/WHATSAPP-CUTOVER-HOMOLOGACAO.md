@@ -86,4 +86,4 @@ Em `workflow_dispatch` dá para sobrescrever URLs e `strict_mode` pelos inputs (
 
 ### Middleware Edge (produção)
 
-O `src/middleware.ts` lê `NEXT_PUBLIC_WHATSAPP_APP_URL` e passa a base a `getWhatsappCutoverRedirectUrl(..., appBaseOverride)` para o valor ser **inlined no chunk Edge** (evita `process.env` vazio dentro do pacote `@devflow/whatsapp-routes` no bundle do middleware). Confirma `transpilePackages` com `@devflow/whatsapp-routes` em `next.config.ts` e **redeploy** do projeto Vercel que serve **devflowlabs.com.br** após definir a env.
+O `src/proxy.ts` lê `NEXT_PUBLIC_WHATSAPP_APP_URL` e passa a base a `getWhatsappCutoverRedirectUrl(..., appBaseOverride)` para o valor ser **inlined no chunk Edge** (evita `process.env` vazio dentro do pacote `@devflow/whatsapp-routes` no bundle do proxy). Confirma `transpilePackages` com `@devflow/whatsapp-routes` em `next.config.ts` e **redeploy** do projeto Vercel que serve **devflowlabs.com.br** após definir a env.

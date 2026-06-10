@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getAuthFromRequest } from "@/modules/auth";
 import { subscribe } from "@/modules/realtime/realtime.publisher";
 import { setOnline, setOffline, heartbeat } from "@/modules/presence";
+import { logWhatsappPilotEvent, WHATSAPP_PILOT_EVENTS } from "@/lib/observability";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -35,6 +36,10 @@ export async function GET(request: NextRequest) {
       };
 
       setOnline(tenantId, userId, { name: auth.payload.name, email: auth.payload.email });
+      logWhatsappPilotEvent("info", "inbox", WHATSAPP_PILOT_EVENTS.SSE_CLIENT_CONNECTED, {
+        tenantId,
+        origin: "sse",
+      });
       send({ type: "connected", tenantId, userId, ts: new Date().toISOString() });
 
       const unsubscribe = subscribe(tenantId, (event) => {
@@ -54,6 +59,10 @@ export async function GET(request: NextRequest) {
         clearInterval(heartbeatInterval);
         unsubscribe();
         setOffline(tenantId, userId);
+        logWhatsappPilotEvent("info", "inbox", WHATSAPP_PILOT_EVENTS.SSE_CLIENT_DISCONNECTED, {
+          tenantId,
+          origin: "sse",
+        });
       });
     },
   });

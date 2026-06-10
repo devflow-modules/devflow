@@ -18,12 +18,23 @@ import {
 import { checkTenantAiAutomationReady, runTenantAiAutoReply } from "@/modules/ai/aiAutomationService";
 import { persistWaInboxFromWebhook } from "@/modules/inbox";
 import { trackWebhookReceived } from "@/modules/analytics";
-import { bumpMetric, logError, logEvent } from "@/lib/observability";
+import {
+  bumpMetric,
+  logError,
+  logEvent,
+  logWhatsappPilotEvent,
+  WHATSAPP_PILOT_EVENTS,
+} from "@/lib/observability";
 import { recordWebhookProcessingSuccess } from "@/modules/operations/webhookHealthService";
 import { isOperationalAutomationEnabled } from "@/modules/operations/tenantOperationalConfigService";
 import { logWebhookVerifiedOnce } from "@/modules/whatsapp/channelEventService";
 import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
 import { logWhatsappWebhookDebug } from "@/lib/serverVerboseLog";
+import {
+  validateWebhookSignatureForRequest,
+  webhookSignatureFailureMessage,
+} from "@/modules/whatsapp/webhookSignature";
+
 type WabaWebhookShape = {
   entry?: Array<{
     changes?: Array<{ field?: string; value?: Record<string, unknown> }>;
@@ -65,7 +76,18 @@ export async function handleWebhookVerification(request: NextRequest): Promise<N
   const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN;
 
   const traceId = newTraceId();
+  logWhatsappPilotEvent("info", "webhook", WHATSAPP_PILOT_EVENTS.WEBHOOK_GET_VERIFY_RECEIVED, {
+    correlationId: traceId,
+    origin: "webhook",
+    status: mode ?? "(empty)",
+    reason: token ? "token_present" : "token_missing",
+  });
+
   if (mode === "subscribe" && token === verifyToken) {
+    logWhatsappPilotEvent("info", "webhook", WHATSAPP_PILOT_EVENTS.WEBHOOK_GET_VERIFY_SUCCESS, {
+      correlationId: traceId,
+      origin: "webhook",
+    });
     return withTraceHeaders(
       new NextResponse(challenge ?? "", {
         status: 200,
@@ -75,35 +97,75 @@ export async function handleWebhookVerification(request: NextRequest): Promise<N
     );
   }
 
-  console.warn("[WHATSAPP][INFO] GET webhook verify não corresponde", {
-    mode: mode ?? "(empty)",
-    tokenPresent: Boolean(token),
-    challengePresent: Boolean(challenge),
+  logWhatsappPilotEvent("warn", "webhook", WHATSAPP_PILOT_EVENTS.WEBHOOK_GET_VERIFY_FAILED, {
+    correlationId: traceId,
+    origin: "webhook",
+    reason: "verify_mismatch",
+    status: mode ?? "(empty)",
   });
   return jsonError("WEBHOOK_VERIFY_FORBIDDEN", "Webhook verification failed.", 403, { traceId });
 }
 
 export async function handleWebhookEvents(request: Request): Promise<NextResponse> {
+  const traceId = newTraceId();
+  let rawBody: string;
+  try {
+    rawBody = await request.text();
+  } catch {
+    logEvent("warn", "webhook", "invalid_body_read", {}, { trace_id: traceId });
+    return jsonError("INVALID_BODY", "Invalid request body", 400, { traceId });
+  }
+
+  const signatureHeader = request.headers.get("X-Hub-Signature-256");
+  const signatureResult = validateWebhookSignatureForRequest(rawBody, signatureHeader);
+
+  if (!signatureResult.ok) {
+    const logEventName =
+      signatureResult.code === "WEBHOOK_SIGNATURE_MISSING"
+        ? WHATSAPP_PILOT_EVENTS.WEBHOOK_SIGNATURE_MISSING
+        : WHATSAPP_PILOT_EVENTS.WEBHOOK_SIGNATURE_INVALID;
+    logWhatsappPilotEvent("warn", "webhook", logEventName, {
+      correlationId: traceId,
+      origin: "webhook",
+      errorCode: signatureResult.code,
+    });
+    return jsonError(
+      signatureResult.code,
+      webhookSignatureFailureMessage(signatureResult.code),
+      signatureResult.status,
+      { traceId }
+    );
+  }
+
+  if (signatureResult.bypass) {
+    logWhatsappPilotEvent("info", "webhook", WHATSAPP_PILOT_EVENTS.WEBHOOK_SIGNATURE_BYPASSED, {
+      correlationId: traceId,
+      origin: "webhook",
+    });
+  } else {
+    logWhatsappPilotEvent("info", "webhook", WHATSAPP_PILOT_EVENTS.WEBHOOK_SIGNATURE_VALIDATED, {
+      correlationId: traceId,
+      origin: "webhook",
+    });
+  }
+
   let body: unknown;
   try {
-    body = await request.json();
+    body = rawBody.length === 0 ? null : JSON.parse(rawBody);
   } catch {
-    const traceId = newTraceId();
     logEvent("warn", "webhook", "invalid_json", {}, { trace_id: traceId });
     return jsonError("INVALID_JSON_BODY", "Invalid JSON", 400, { traceId });
   }
 
   try {
-    return await handleWebhookEventsBody(body);
+    return await handleWebhookEventsBody(body, traceId);
   } catch (err) {
-    const traceId = newTraceId();
     logError("webhook", err, { phase: "handleWebhookEventsBody" }, { trace_id: traceId });
     return withTraceHeaders(NextResponse.json({ ok: true, trace_id: traceId }, { status: 200 }), traceId);
   }
 }
 
-async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
-  const traceId = newTraceId();
+async function handleWebhookEventsBody(body: unknown, traceId: string): Promise<NextResponse> {
   bumpMetric("webhook_posts");
   const bodyObj = body as Record<string, unknown> | null;
   const bodySummary =
@@ -134,26 +196,25 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
 
   const messagesCount = normalized.messages.length;
   const statusesCount = normalized.statuses.length;
-  console.log(
-    "[WHATSAPP][DEBUG] normalized",
-    JSON.stringify({
-      phoneNumberId: normalized.phoneNumberId || "(empty)",
-      messagesCount,
-      statusesCount,
-    })
-  );
-
-  if (messagesCount === 0 && statusesCount > 0) {
-    console.log(
-      "[WHATSAPP][INFO] status-only event — persisting statuses only, no inbound message to reply"
-    );
-  }
+  logWhatsappPilotEvent("info", "webhook", WHATSAPP_PILOT_EVENTS.WEBHOOK_POST_RECEIVED, {
+    correlationId: traceId,
+    origin: "webhook",
+    phoneNumberId: normalized.phoneNumberId || undefined,
+    messagesCount,
+    statusesCount,
+    statusOnly: messagesCount === 0 && statusesCount > 0,
+  });
 
   trackWebhookReceived();
 
   const tenant = await resolveTenantByPhoneNumberId(normalized.phoneNumberId).catch((err) => {
     const errMsg = err?.message ?? String(err);
-    logError("webhook", err, { phase: "tenant_resolution", phoneNumberId: normalized.phoneNumberId });
+    logError(
+      "webhook",
+      err,
+      { phase: "tenant_resolution", phoneNumberId: normalized.phoneNumberId },
+      { trace_id: traceId }
+    );
     if (errMsg.includes("prepared statement") && errMsg.includes("already exists")) {
       console.error(
         "[WHATSAPP][HINT] Se usar pooler (Supabase/Neon/Vercel Postgres), adicione ?pgbouncer=true na WHATSAPP_DATABASE_URL"
@@ -162,19 +223,21 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
     return null;
   });
   if (!tenant) {
-    logEvent(
-      "warn",
-      "webhook",
-      "tenant_unresolved",
-      {
-        phoneNumberId: normalized.phoneNumberId || "",
-        messagesCount: normalized.messages.length,
-      },
-      { trace_id: traceId }
-    );
+    logWhatsappPilotEvent("warn", "webhook", WHATSAPP_PILOT_EVENTS.WEBHOOK_TENANT_UNRESOLVED, {
+      correlationId: traceId,
+      origin: "webhook",
+      phoneNumberId: normalized.phoneNumberId || undefined,
+      messagesCount: normalized.messages.length,
+    });
     return withTraceHeaders(NextResponse.json({ ok: true, trace_id: traceId }, { status: 200 }), traceId);
   }
 
+  logWhatsappPilotEvent("info", "webhook", WHATSAPP_PILOT_EVENTS.WEBHOOK_TENANT_RESOLVED, {
+    correlationId: traceId,
+    origin: "webhook",
+    tenantId: tenant.id,
+    phoneNumberId: tenant.phoneNumberId,
+  });
   logWhatsappWebhookDebug("[WHATSAPP][DEBUG] tenant resolved", {
     tenantId: tenant.id,
     phoneNumberId: tenant.phoneNumberId,
@@ -188,7 +251,7 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
     await logWebhookVerifiedOnce(whatsappLine.id);
   }
 
-  await persistWaInboxFromWebhook(tenant.id, tenant.phoneNumberId, body).catch((err) =>
+  await persistWaInboxFromWebhook(tenant.id, tenant.phoneNumberId, body, { traceId }).catch((err) =>
     logError("webhook", err, { phase: "wa_inbox_persist", tenantId: tenant.id }, { trace_id: traceId, tenant_id: tenant.id })
   );
 
@@ -206,6 +269,7 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
     },
     { trace_id: traceId, tenant_id: tenant.id }
   );
+  // Alias legado mantido; evento canónico é webhook_post_received (acima).
 
   const seenConversations = new Set<string>();
   if (normalized.messages.length === 0) {
@@ -277,11 +341,12 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
         isNewConversation,
       });
     } catch (prepErr) {
-      console.error("[WHATSAPP][ERROR] prepareInboundConversation", {
-        msgId: msg.id,
-        tenantId: tenant.id,
-        err: prepErr instanceof Error ? prepErr.message : String(prepErr),
-      });
+      logError(
+        "webhook",
+        prepErr,
+        { phase: "prepare_inbound_conversation", meta_message_id: msg.id },
+        { trace_id: traceId, tenant_id: tenant.id }
+      );
       continue;
     }
     if (!prep) {
@@ -315,35 +380,40 @@ async function handleWebhookEventsBody(body: unknown): Promise<NextResponse> {
           try {
             await processLegacyInboundAutoReply(tenant, msg, prep.inboxThreadId, prep.textBody);
           } catch (legErr) {
-            console.error("[WHATSAPP][ERROR] legacy reply falhou após erro de IA", {
-              msgId: msg.id,
-              tenantId: tenant.id,
-              err: legErr instanceof Error ? legErr.message : String(legErr),
-            });
+            logError(
+              "webhook",
+              legErr,
+              { phase: "legacy_reply_after_ai_error", meta_message_id: msg.id },
+              { trace_id: traceId, tenant_id: tenant.id }
+            );
           }
         }
       } else {
-        console.log("[WHATSAPP][DEBUG] using legacy path", { msgId: msg.id, reason: aiReady.reason });
+        logWhatsappWebhookDebug("[WHATSAPP][DEBUG] using legacy path", { msgId: msg.id, reason: aiReady.reason });
         if (!(await isOperationalAutomationEnabled(tenant.id))) {
-          console.log("[WHATSAPP][DEBUG] skip legacy auto-reply — automação pausada", { tenantId: tenant.id });
+          logWhatsappWebhookDebug("[WHATSAPP][DEBUG] skip legacy auto-reply — automação pausada", {
+            tenantId: tenant.id,
+          });
           continue;
         }
         try {
           await processLegacyInboundAutoReply(tenant, msg, prep.inboxThreadId, prep.textBody);
         } catch (legErr) {
-          console.error("[WHATSAPP][ERROR] legacy reply falhou", {
-            msgId: msg.id,
-            tenantId: tenant.id,
-            err: legErr instanceof Error ? legErr.message : String(legErr),
-          });
+          logError(
+            "webhook",
+            legErr,
+            { phase: "legacy_reply", meta_message_id: msg.id },
+            { trace_id: traceId, tenant_id: tenant.id }
+          );
         }
       }
     } catch (pipeErr) {
-      console.error("[WHATSAPP][ERROR] pipeline de mensagem (AI/legacy)", {
-        msgId: msg.id,
-        tenantId: tenant.id,
-        err: pipeErr instanceof Error ? pipeErr.message : String(pipeErr),
-      });
+      logError(
+        "webhook",
+        pipeErr,
+        { phase: "inbound_pipeline", meta_message_id: msg.id },
+        { trace_id: traceId, tenant_id: tenant.id }
+      );
     }
   }
 

@@ -57,6 +57,12 @@ export type { SlaInfo } from "./slaService";
 export { logAction, getThreadAuditLog } from "./auditService";
 export type { AuditAction, AuditLogEntry } from "./auditService";
 export {
+  applyNeedsHumanHandoff,
+  type ApplyNeedsHumanHandoffInput,
+  type ApplyNeedsHumanHandoffResult,
+  type NeedsHumanHandoffReason,
+} from "./needsHumanHandoffService";
+export {
   listInternalNotes,
   createInternalNote,
   deleteInternalNote,

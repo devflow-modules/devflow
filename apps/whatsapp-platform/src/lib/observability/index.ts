@@ -7,4 +7,18 @@ export {
 export { logError } from "./log-error";
 export { bumpMetric, getMetricsSnapshot } from "./metrics";
 export { trackLoginFailureForAlert, trackOpsMetricsDeniedForAlert } from "./alerts";
-export { sanitizeLogData, maskPhoneLike, maskDocumentLike } from "./sanitize";
+export {
+  sanitizeLogData,
+  sanitizeLogPayload,
+  maskPhoneLike,
+  maskPhone,
+  maskDocumentLike,
+  maskToken,
+  truncateSafe,
+} from "./sanitize";
+export { WHATSAPP_PILOT_EVENTS, type WhatsappPilotEventName, type WhatsappPilotOrigin } from "./pilot-events";
+export {
+  logWhatsappPilotEvent,
+  parseCloudApiError,
+  type WhatsappPilotLogFields,
+} from "./whatsappLogger";

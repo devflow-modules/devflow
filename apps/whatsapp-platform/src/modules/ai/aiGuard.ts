@@ -24,7 +24,24 @@ export type AiGuardContext = {
   now?: Date;
 };
 
-const SENSITIVE_KEYWORDS = ["processo", "procon", "reclamação", "reclamacao", "cancelar"] as const;
+const SENSITIVE_KEYWORDS = [
+  "processo",
+  "procon",
+  "reclamação",
+  "reclamacao",
+  "cancelar",
+  "reembolso",
+  "jurídico",
+  "juridico",
+  "cobrança",
+  "cobranca",
+  "contestada",
+  "advogado",
+  "humano",
+  "atendente",
+] as const;
+
+const SENSITIVE_PHRASES = ["erro grave"] as const;
 
 function hourInSaoPaulo(d: Date): number {
   const parts = new Intl.DateTimeFormat("en-GB", {
@@ -79,7 +96,15 @@ export function shouldAiReply(ctx: AiGuardContext): AiGuardDecision {
       return { allow: false, reason: `sensitive_keyword:${kw}`, confidence: 1 };
     }
   }
+  for (const phrase of SENSITIVE_PHRASES) {
+    if (lower.includes(phrase)) {
+      return { allow: false, reason: `sensitive_keyword:${phrase}`, confidence: 1 };
+    }
+  }
 
+  if (ctx.thread.status === WaInboxThreadStatus.PENDING) {
+    return { allow: false, reason: "thread_pending_handoff", confidence: 1 };
+  }
   if (ctx.thread.status !== WaInboxThreadStatus.OPEN) {
     return { allow: false, reason: "thread_not_open", confidence: 1 };
   }

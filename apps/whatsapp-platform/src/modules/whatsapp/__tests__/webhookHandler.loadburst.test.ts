@@ -8,6 +8,7 @@ import * as webhookProcessing from "@/modules/messaging/webhookProcessingService
 import * as aiAutomation from "@/modules/ai/aiAutomationService";
 import * as tenantOps from "@/modules/operations/tenantOperationalConfigService";
 import { prisma } from "@/lib/prisma";
+import { enableWebhookSignatureBypassForTests, clearWebhookSignatureTestEnv } from "./webhookTestHelpers";
 
 const { mockResolveTenant, mockPersist } = vi.hoisted(() => ({
   mockResolveTenant: vi.fn(),
@@ -26,11 +27,16 @@ vi.mock("@/modules/analytics", () => ({
   trackWebhookReceived: vi.fn(),
 }));
 
-vi.mock("@/lib/observability", () => ({
-  bumpMetric: vi.fn(),
-  logError: vi.fn(),
-  logEvent: vi.fn(),
-}));
+vi.mock("@/lib/observability", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/observability")>();
+  return {
+    ...actual,
+    bumpMetric: vi.fn(),
+    logError: vi.fn(),
+    logEvent: vi.fn(),
+    logWhatsappPilotEvent: vi.fn(),
+  };
+});
 
 const BURST = 40;
 
@@ -40,6 +46,8 @@ describe("handleWebhookEvents — carga simples (reenvios)", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    clearWebhookSignatureTestEnv();
+    enableWebhookSignatureBypassForTests();
     findFirstSpy = vi.spyOn(prisma.whatsappPhoneNumber, "findFirst").mockResolvedValue({
       id: "line-test-1",
     } as Awaited<ReturnType<typeof prisma.whatsappPhoneNumber.findFirst>>);

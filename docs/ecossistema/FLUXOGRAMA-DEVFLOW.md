@@ -11,7 +11,7 @@ Como **usuários** e **requests HTTP** trafegam no ecossistema: middleware, auth
 
 ```mermaid
 flowchart TD
-  REQ[Request HTTP] --> MW{middleware.ts}
+  REQ[Request HTTP] --> MW{proxy.ts}
 
   MW -->|cutover Financeiro| FIN308[308 → NEXT_PUBLIC_FINANCEIRO_APP_URL]
   MW -->|cutover WhatsApp| WA308[308 → NEXT_PUBLIC_WHATSAPP_APP_URL]
@@ -41,7 +41,7 @@ flowchart TD
 
 No código atual, **quase todas** as rotas que não são JWT nem admin passam por `updateSession` — ou seja, **não há um “atalho” que pula o middleware** para páginas públicas. Isso **não bloqueia** quem não está logado; apenas **atualiza a sessão** do Supabase quando aplicável. O diagrama acima separa **conceitualmente** “público” vs “área que depende de sessão Financeiro” para uso comercial e onboarding de time; tecnicamente, `PUB` e `SB` convergem no mesmo handler de sessão na implementação.
 
-Fonte: `src/middleware.ts`.
+Fonte: `src/proxy.ts`.
 
 ---
 
@@ -174,8 +174,8 @@ flowchart TB
 
 ## 8. Versão curta para PR / commit
 
-> Mapa em dois níveis: **(1)** portal na raiz com cutover **308** para Financeiro e WhatsApp e **(2)** apps canónicos em `apps/*`. Middleware, JWT, Supabase e integrações Meta/Stripe alinhados ao código em `src/middleware.ts` e aos runbooks em `docs/architecture/`.
+> Mapa em dois níveis: **(1)** portal na raiz com cutover **308** para Financeiro e WhatsApp e **(2)** apps canónicos em `apps/*`. Proxy, JWT, Supabase e integrações Meta/Stripe alinhados ao código em `src/proxy.ts` e aos runbooks em `docs/architecture/`.
 
 ---
 
-*Última atualização: cutover WhatsApp + Financeiro no `src/middleware.ts`, [ROTAS-ECOSSISTEMA-DEVFLOWLABS.md](./ROTAS-ECOSSISTEMA-DEVFLOWLABS.md), [TOPOLOGIA-DEVFLOW.md](./TOPOLOGIA-DEVFLOW.md).*
+*Última atualização: cutover WhatsApp + Financeiro no `src/proxy.ts`, [ROTAS-ECOSSISTEMA-DEVFLOWLABS.md](./ROTAS-ECOSSISTEMA-DEVFLOWLABS.md), [TOPOLOGIA-DEVFLOW.md](./TOPOLOGIA-DEVFLOW.md).*

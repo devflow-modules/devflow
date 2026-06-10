@@ -79,7 +79,17 @@ describe("shouldAiReply", () => {
     expect(d.reason).toContain("sensitive_keyword");
   });
 
-  it("bloqueia thread não aberta", () => {
+  it("bloqueia thread PENDING (handoff)", () => {
+    const d = shouldAiReply({
+      messageText: "oi",
+      config: baseConfig(),
+      thread: { ...threadOpen, status: WaInboxThreadStatus.PENDING },
+    });
+    expect(d.allow).toBe(false);
+    expect(d.reason).toBe("thread_pending_handoff");
+  });
+
+  it("bloqueia thread não aberta (CLOSED)", () => {
     const d = shouldAiReply({
       messageText: "oi",
       config: baseConfig(),
@@ -112,9 +122,23 @@ describe("shouldAiReply", () => {
     expect(d.reason).toBe("outside_business_hours");
   });
 
+  it.each([
+    ["reembolso"],
+    ["humano"],
+    ["atendente"],
+  ] as const)("bloqueia palavra sensível piloto: %s", (word) => {
+    const d = shouldAiReply({
+      messageText: `preciso de ${word}`,
+      config: baseConfig(),
+      thread: threadOpen,
+    });
+    expect(d.allow).toBe(false);
+    expect(d.reason).toContain("sensitive_keyword");
+  });
+
   it("permite quando ok", () => {
     const d = shouldAiReply({
-      messageText: "preciso de um orçamento",
+      messageText: "qual o horário de funcionamento?",
       config: baseConfig(),
       thread: threadOpen,
       now: new Date("2026-04-08T15:00:00.000Z"),

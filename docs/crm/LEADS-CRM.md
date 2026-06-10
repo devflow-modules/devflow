@@ -46,7 +46,7 @@ Valores canónicos (recomendado, validados no **POST** da API e na UI de `/admin
 
 - `outbound_whatsapp` — prospecção WhatsApp  
 - `lead_finder_google_maps` — lead finder (Maps)  
-- `inbound_site` — site / inbound  
+- `inbound_site` — site / inbound (incl. formulário de diagnóstico `/contato` da WhatsApp Platform → `POST /api/contato/diagnostico`)
 - `demo` — pedido de demo / fluxo de demo  
 
 Leads antigos com texto livre podem ainda ser guardados/alterados vão **PATCH**; novos must usar o catálogo. Ver `src/lib/outbound-lead-origins.ts` e `docs/whatsapp/DATA-ISOLATION-LEADS-AND-OPERATORS.md`.
@@ -67,13 +67,24 @@ Data/hora do próximo toque planejado. A UI oferece atalhos (+1d / +3d / +7d) e 
 
 ## Conversão comercial (`POST …/convert`)
 
-Regista que o lead foi **convertido** comercialmente (sem criar tenant automaticamente):
+Regista que o lead foi **convertido** comercialmente para piloto WhatsApp Platform (sem criar tenant automaticamente):
 
 | Campo | Significado |
 |--------|-------------|
 | `convertedAt` | Data/hora da conversão |
-| `convertedToType` | Canal alvo (ex.: `whatsapp_platform`) |
-| `convertedToRef` | Referência opcional no sistema de destino (pode ser `null`) |
+| `convertedToType` | Canal alvo — `whatsapp_platform` |
+| `convertedToRef` | **Tenant ID** (cuid) na WhatsApp Platform |
+
+**Payload** (obrigatório desde P0-06):
+
+```json
+{ "tenantId": "cuid-do-tenant", "confirm": true, "internalOwner": "opcional" }
+```
+
+- Valida existência do tenant na BD WhatsApp (prod).
+- Append em `notes` bloco `[Piloto WhatsApp Platform — conversão CRM]` (IDs Meta públicos, **sem** access token).
+- UI: modal «Converter em piloto WhatsApp» em `/admin/leads`.
+- Runbook: [../whatsapp-platform/LEAD-TO-TENANT-PILOT.md](../whatsapp-platform/LEAD-TO-TENANT-PILOT.md).
 
 Após conversão, o lead costuma aparecer como **convertido** na UI e ações de mudança de status podem ficar restritas.
 

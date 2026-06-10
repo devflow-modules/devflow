@@ -23,7 +23,8 @@ export type AuditAction =
   | "follow_up_prompt"
   | "deal_close"
   | "deal_suggest"
-  | "deal_suggestion_clear";
+  | "deal_suggestion_clear"
+  | "handoff_requested";
 
 export async function logAction(
   tenantId: string,

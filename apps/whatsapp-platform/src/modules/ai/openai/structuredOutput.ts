@@ -8,6 +8,8 @@ export interface StructuredReply {
   intent: string;
   confidence: number;
   needs_human: boolean;
+  /** true quando o JSON não pôde ser interpretado de forma fiável. */
+  parseUncertain?: boolean;
 }
 
 const STRUCTURED_SYSTEM_SUFFIX = `
@@ -32,6 +34,7 @@ export function parseStructuredOutput(raw: string): StructuredReply {
       intent: "outro",
       confidence: 0,
       needs_human: false,
+      parseUncertain: true,
     };
   }
 
@@ -58,6 +61,7 @@ export function parseStructuredOutput(raw: string): StructuredReply {
       intent: "outro",
       confidence: 0,
       needs_human: false,
+      parseUncertain: true,
     };
   }
 }

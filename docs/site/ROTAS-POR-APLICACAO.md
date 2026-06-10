@@ -29,7 +29,7 @@ Este monorepo tem **vários produtos** e **dois “mundos” de auth** diferente
 
 ### WhatsApp — cutover portal → app
 
-Com **`NEXT_PUBLIC_WHATSAPP_APP_URL`**, o **`middleware.ts` na raiz** responde **308** para o mesmo path no host do **`apps/whatsapp-platform`** (ex.: `/login`, `/inbox`, `/dashboard/whatsapp`). As páginas e APIs JWT/webhook do produto **não** ficam em `src/app` — só no app dedicado (porta **3000** em dev).
+Com **`NEXT_PUBLIC_WHATSAPP_APP_URL`**, o **`proxy.ts` na raiz** responde **308** para o mesmo path no host do **`apps/whatsapp-platform`** (ex.: `/login`, `/inbox`, `/dashboard/whatsapp`). As páginas e APIs JWT/webhook do produto **não** ficam em `src/app` — só no app dedicado (porta **3000** em dev).
 
 Landings de marketing WhatsApp (`/produtos/whatsapp-platform`, `/automacao-whatsapp*`, …) **continuam** na raiz. Ver [CUTOVER-WHATSAPP-RUNBOOK-MAIN.md](../architecture/CUTOVER-WHATSAPP-RUNBOOK-MAIN.md).
 

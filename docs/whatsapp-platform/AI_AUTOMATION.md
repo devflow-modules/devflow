@@ -40,7 +40,55 @@ Migration: `prisma/migrations/20260317120000_ai_agent_config_and_logs/`.
 
 1. **Motor**: em `/settings`, escolher **OpenAI** ou **Claude** (`aiDriver`).
 2. **Prompt e toggle**: `/settings/ai` — ativar IA, editar prompt, tom, tokens e temperature.
-3. **Thread**: conversas com status **CLOSED** na inbox não recebem resposta automática da IA (fila humana).
+3. **Thread**: conversas com status **CLOSED** na inbox não recebem resposta automática da IA (fila humana). Status **PENDING** (handoff `needs_human`) também bloqueia novas respostas automáticas.
+
+## Handoff automático mínimo (P0-04)
+
+Quando a IA/regra detecta necessidade de humano:
+
+| Gatilho | Serviço |
+|---------|---------|
+| LLM `needs_human: true` | `aiAutomationService` → `applyNeedsHumanHandoff` |
+| `handoffTriggers` na config | `evaluateAutomationRules` |
+| Keywords sensíveis no guard | `shouldAiReply` → handoff |
+
+**Persistência:** `WaInboxThread.status = PENDING`, `priority = HIGH`, tag `needs_human`, audit `handoff_requested`.  
+**Assign opcional:** `WHATSAPP_HANDOFF_DEFAULT_USER_ID` ou primeiro `manager`/`platform_admin` do tenant.  
+**Fila opcional:** `WHATSAPP_HANDOFF_DEFAULT_QUEUE_SLUG` ou slugs `human`/`geral`/etc.
+
+Código: `src/modules/inbox/needsHumanHandoffService.ts`.
+
+## Safe mode piloto (P0-07)
+
+Política **assistiva e controlada** para piloto real — implementada em `aiPilotDecision.ts` + `aiGuard.ts` + `aiAutomationService.ts`.
+
+| Config / env | Default piloto | Efeito |
+|--------------|----------------|--------|
+| `WHATSAPP_AI_SAFE_MODE` | `1` (activo) | Temas comerciais/críticos e intents sensíveis → handoff |
+| `WHATSAPP_AI_MIN_CONFIDENCE` | `0.65` | Structured output abaixo do limiar → handoff |
+| `AiAgentConfig.fallbackToHuman` | `true` | Erro LLM / resposta vazia → handoff (não lança excepção) |
+
+### Decisão explícita (`AiDecision`)
+
+Cada inbound passa por:
+
+1. **Guard** (`shouldAiReply`) — bloqueia vazio, IA off, thread `PENDING`/`CLOSED`, humano atribuído, keywords sensíveis.
+2. **Regras** (`evaluateAutomationRules`) — `handoffTriggers`, saudação curta.
+3. **Safe pre-LLM** — preço/orçamento/reembolso/jurídico/etc. em safe mode → handoff.
+4. **LLM structured** — `needs_human`, confiança, intent `suporte`, parse incerto, erro → handoff via `commitAiDecision`.
+5. **Auto-reply** — só quando decisão `action: auto_reply`.
+
+Motivos auditados em `AiMessageLog.decisionReason` (sem corpo integral da mensagem): ex. `low_confidence|intent:informação|conf:0.42`, `pilot_safe_topic:orçamento`, `llm_error`.
+
+### Handoff vs no-reply
+
+| Situação | Acção |
+|----------|--------|
+| Keyword sensível / safe topic / LLM incerto | **Handoff** (`applyNeedsHumanHandoff`) |
+| Thread já `PENDING` | **no_reply** (sem novo handoff) |
+| IA desligada / quota | **no_reply** |
+
+Desactivar safe mode (apenas ambientes controlados): `WHATSAPP_AI_SAFE_MODE=0`.
 
 ## Exemplos de system prompt
 

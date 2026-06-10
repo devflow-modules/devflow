@@ -45,11 +45,18 @@ export async function waInboxTenantExists(tenantId: string): Promise<boolean> {
   return !!t;
 }
 
+export type WaInboxInboundPersistResult = {
+  threadId: string;
+  messageId: string;
+  wasNewConversation: boolean;
+};
+
 export async function waInboxCreateInbound(
   tenantId: string,
   businessPhoneNumberId: string,
-  p: ParsedWaInbound
-): Promise<void> {
+  p: ParsedWaInbound,
+  _options?: { traceId?: string }
+): Promise<WaInboxInboundPersistResult | null> {
   const customer = digitsOnly(p.from);
   const toBiz = p.displayPhone ? digitsOnly(p.displayPhone) : "";
   const ts = metaTsToDate(p.timestamp);
@@ -193,7 +200,9 @@ export async function waInboxCreateInbound(
         console.error("[wa-inbox] automation dispatch conversation_created", e)
       );
     }
+    return { threadId: thread.id, messageId: row.id, wasNewConversation };
   }
+  return null;
 }
 
 function isRecord(x: unknown): x is Record<string, unknown> {

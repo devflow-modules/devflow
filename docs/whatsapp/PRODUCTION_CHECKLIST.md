@@ -24,6 +24,7 @@ Opcionais: `OPENAI_API_KEY` ou `ANTHROPIC_API_KEY` para LLM; `WHATSAPP_PHONE_NUM
 | `WHATSAPP_DIRECT_URL` | Mesmo que no webhook-api |
 | `JWT_SECRET` | Chave para JWT (mín. 32 caracteres) |
 | `NEXT_PUBLIC_WHATSAPP_APP_URL` | URL base do app (ex.: `https://wa.seudominio.com`) |
+| `META_APP_SECRET` | App Secret Meta — validação HMAC do POST webhook (`X-Hub-Signature-256`); também usado no Embedded Signup |
 
 Para Supabase (filas/agentes/conversações no painel): `WHATSAPP_SUPABASE_URL`, `WHATSAPP_SUPABASE_SERVICE_ROLE_KEY`.
 

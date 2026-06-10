@@ -25,9 +25,16 @@ vi.mock("../aiService", () => ({
 
 const generateOpenAiReply = vi.hoisted(() => vi.fn());
 const isOpenAiConfigured = vi.hoisted(() => vi.fn().mockReturnValue(false));
+const applyNeedsHumanHandoff = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ applied: true, alreadyInHandoff: false, assignedToUserId: null })
+);
 vi.mock("../openaiReplyService", () => ({
   generateReply: (...a: unknown[]) => generateOpenAiReply(...a),
   isOpenAiConfigured: () => isOpenAiConfigured(),
+}));
+
+vi.mock("@/modules/inbox/needsHumanHandoffService", () => ({
+  applyNeedsHumanHandoff: (...a: unknown[]) => applyNeedsHumanHandoff(...a),
 }));
 
 vi.mock("@/modules/billing/featureGate", () => ({
@@ -156,6 +163,7 @@ describe("aiAutomationService — pipeline integrado", () => {
   });
 
   it("fluxo OK: LLM, envio, log auto_reply e tenantId/thread nos registos", async () => {
+    vi.stubEnv("WHATSAPP_AI_SAFE_MODE", "0");
     setupPipelineReady();
     generateReply.mockResolvedValue({
       text: "Resposta integrada",
@@ -176,10 +184,10 @@ describe("aiAutomationService — pipeline integrado", () => {
         id: "wam-in-int",
         from: "5511999999999",
         type: "text",
-        text: { body: "orçamento" },
+        text: { body: "bom dia, qual horário?" },
       } as never,
       inboxThreadId: "thread-int",
-      textBody: "orçamento",
+      textBody: "bom dia, qual horário?",
     });
     expect(mockPrisma.waInboxMessage.count).toHaveBeenCalled();
     expect(generateReply).toHaveBeenCalled();
@@ -196,7 +204,7 @@ describe("aiAutomationService — pipeline integrado", () => {
     );
   });
 
-  it("bloqueio pelo guard: sem LLM, log blocked_by_guard com motivo", async () => {
+  it("bloqueio pelo guard sensível: handoff + log handoff_requested", async () => {
     setupPipelineReady();
     const { runTenantAiAutoReply } = await import("../aiAutomationService");
     await runTenantAiAutoReply({
@@ -218,10 +226,17 @@ describe("aiAutomationService — pipeline integrado", () => {
     });
     expect(generateReply).not.toHaveBeenCalled();
     expect(sendWebhookAutoReply).not.toHaveBeenCalled();
+    expect(applyNeedsHumanHandoff).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tenantId: "t1",
+        threadId: "thread-int",
+        reason: "handoff_trigger_keyword",
+      })
+    );
     expect(mockPrisma.aiMessageLog.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          eventKind: "blocked_by_guard",
+          eventKind: "handoff_requested",
           decisionReason: expect.stringContaining("procon"),
           tenantId: "t1",
           waInboxThreadId: "thread-int",
@@ -230,7 +245,7 @@ describe("aiAutomationService — pipeline integrado", () => {
     );
   });
 
-  it("erro do provider: log error, não envia WhatsApp, lança erro", async () => {
+  it("erro do provider: handoff seguro, não envia WhatsApp", async () => {
     setupPipelineReady();
     generateReply.mockResolvedValue({
       text: "",
@@ -240,31 +255,29 @@ describe("aiAutomationService — pipeline integrado", () => {
       error: "Provider indisponível",
     });
     const { runTenantAiAutoReply } = await import("../aiAutomationService");
-    await expect(
-      runTenantAiAutoReply({
-        tenant: {
-          id: "t1",
-          phoneNumberId: "pid",
-          displayPhoneNumber: "55114000",
-          accessToken: "tok",
-          channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
-        },
-        message: {
-          id: "wam-err",
-          from: "5511999999999",
-          type: "text",
-          text: { body: "oi" },
-        } as never,
-        inboxThreadId: "thread-int",
-        textBody: "oi",
-      })
-    ).rejects.toThrow();
+    await runTenantAiAutoReply({
+      tenant: {
+        id: "t1",
+        phoneNumberId: "pid",
+        displayPhoneNumber: "55114000",
+        accessToken: "tok",
+        channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
+      },
+      message: {
+        id: "wam-err",
+        from: "5511999999999",
+        type: "text",
+        text: { body: "oi" },
+      } as never,
+      inboxThreadId: "thread-int",
+      textBody: "oi",
+    });
     expect(sendWebhookAutoReply).not.toHaveBeenCalled();
+    expect(applyNeedsHumanHandoff).toHaveBeenCalled();
     expect(mockPrisma.aiMessageLog.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          eventKind: "error",
-          errorMessage: expect.stringContaining("Provider"),
+          eventKind: "handoff_requested",
           tenantId: "t1",
         }),
       })

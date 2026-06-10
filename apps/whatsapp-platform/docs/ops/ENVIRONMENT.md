@@ -8,8 +8,11 @@ Validação automática no arranque do servidor Node (`instrumentation.ts` → `
 |----------|-------------|--------|
 | `JWT_SECRET` | Sim | Mínimo 32 caracteres. |
 | `WHATSAPP_DATABASE_URL` | Sim | Connection string PostgreSQL (pooler com `?pgbouncer=true` em serverless). |
-| `WHATSAPP_VERIFY_TOKEN` | Sim | Igual ao configurado na Meta (webhook). |
+| `WHATSAPP_VERIFY_TOKEN` | Sim | Igual ao configurado na Meta (webhook GET). |
+| `META_APP_SECRET` | Sim (prod) | Validação HMAC `X-Hub-Signature-256` no POST webhook. Fallback: `FACEBOOK_APP_SECRET`. |
 | `NEXT_PUBLIC_WHATSAPP_APP_URL` | Sim | URL pública HTTPS do deploy (ex. `https://whatsapp.devflowlabs.com.br`). |
+
+**Dev/test:** `WHATSAPP_SKIP_WEBHOOK_SIGNATURE=1` desliga validação de assinatura (ignorado em `NODE_ENV=production`).
 
 ### Emergência
 

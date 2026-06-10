@@ -49,7 +49,7 @@ export type WhatsappRedirectRequest = {
  * Cutover WhatsApp: UI operacional + auth + admin métricas/billing do produto no app canônico.
  * Não redireciona landings/SEO nem se origem = destino (evita loop).
  *
- * Passe `appBaseOverride` desde `src/middleware.ts` (mesma leitura de `NEXT_PUBLIC_WHATSAPP_APP_URL`)
+ * Passe `appBaseOverride` desde `src/proxy.ts` (mesma leitura de `NEXT_PUBLIC_WHATSAPP_APP_URL`)
  * para o valor ser inlined no chunk Edge do middleware.
  */
 export function getWhatsappCutoverRedirectUrl(

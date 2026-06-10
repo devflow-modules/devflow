@@ -5,6 +5,7 @@ export type AiOperationalEventKind =
   | "fallback"
   | "error"
   | "blocked_by_guard"
+  | "handoff_requested"
   /** legado */
   | "blocked";
 

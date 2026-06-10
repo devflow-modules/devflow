@@ -16,9 +16,16 @@ vi.mock("../aiService", () => ({
 
 const generateOpenAiReply = vi.hoisted(() => vi.fn().mockResolvedValue("Resposta OpenAI"));
 const isOpenAiConfigured = vi.hoisted(() => vi.fn().mockReturnValue(false));
+const applyNeedsHumanHandoff = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ applied: true, alreadyInHandoff: false, assignedToUserId: null })
+);
 vi.mock("../openaiReplyService", () => ({
   generateReply: (...a: unknown[]) => generateOpenAiReply(...a),
   isOpenAiConfigured: () => isOpenAiConfigured(),
+}));
+
+vi.mock("@/modules/inbox/needsHumanHandoffService", () => ({
+  applyNeedsHumanHandoff: (...a: unknown[]) => applyNeedsHumanHandoff(...a),
 }));
 
 vi.mock("@/modules/billing/featureGate", () => ({
@@ -483,9 +490,12 @@ describe("runTenantAiAutoReply", () => {
   });
 
   it("standalone OpenAI: usa generateOpenAiReply quando OPENAI_API_KEY existe", async () => {
+    vi.stubEnv("WHATSAPP_AI_SAFE_MODE", "0");
     isOpenAiConfigured.mockReturnValue(true);
     generateOpenAiReply.mockResolvedValue({
       reply: "Resposta via OpenAI",
+      confidence: 0.9,
+      intent: "informação",
       fallback: false,
       tokensUsed: 42,
       durationMs: 100,
@@ -527,13 +537,13 @@ describe("runTenantAiAutoReply", () => {
         id: "wam-standalone",
         from: "5511999999999",
         type: "text",
-        text: { body: "Preciso de um orçamento" },
+        text: { body: "Qual o horário de atendimento?" },
       } as never,
       inboxThreadId: "c1",
-      textBody: "Preciso de um orçamento",
+      textBody: "Qual o horário de atendimento?",
     });
     expect(generateOpenAiReply).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Preciso de um orçamento" })
+      expect.objectContaining({ message: "Qual o horário de atendimento?" })
     );
     expect(sendWebhookAutoReply).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -544,7 +554,94 @@ describe("runTenantAiAutoReply", () => {
     expect(generateReply).not.toHaveBeenCalled();
   });
 
-  it("fallback em erro: log com errorMessage, lança para handler fazer fallback", async () => {
+  it("standalone OpenAI: needsHuman aplica handoff e não envia resposta", async () => {
+    isOpenAiConfigured.mockReturnValue(true);
+    generateOpenAiReply.mockResolvedValue({
+      reply: "Vou pedir ajuda humana.",
+      needsHuman: true,
+      fallback: false,
+      tokensUsed: 10,
+      durationMs: 50,
+    });
+    mockPrisma.aiMessageLog.findFirst.mockResolvedValue(null);
+    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(mockAgentConfig());
+    mockPrisma.waInboxThread.findUnique.mockResolvedValue({
+      id: "thread-1",
+      status: WaInboxThreadStatus.OPEN,
+      assignedToUserId: null,
+      aiState: null,
+      leadScore: 0,
+    });
+    mockPrisma.waInboxThread.findFirst.mockResolvedValue({
+      status: WaInboxThreadStatus.OPEN,
+      assignedToUserId: null,
+    });
+    mockPrisma.waInboxMessage.findMany.mockResolvedValue([]);
+    mockPrisma.waInboxMessage.count.mockResolvedValue(1);
+
+    const { runTenantAiAutoReply } = await import("../aiAutomationService");
+    await runTenantAiAutoReply({
+      tenant: {
+        id: "t1",
+        phoneNumberId: "p",
+        displayPhoneNumber: "",
+        accessToken: "t",
+        channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
+      },
+      message: {
+        id: "wam-handoff",
+        from: "5511999999999",
+        type: "text",
+        text: { body: "Preciso de suporte especializado na integração" },
+      } as never,
+      inboxThreadId: "c1",
+      textBody: "Preciso de suporte especializado na integração",
+    });
+
+    expect(applyNeedsHumanHandoff).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tenantId: "t1",
+        threadId: "thread-1",
+        reason: "llm_needs_human",
+        inboundWaMessageId: "wam-handoff",
+      })
+    );
+    expect(sendWebhookAutoReply).not.toHaveBeenCalled();
+  });
+
+  it("handoffTriggers disparam handoff antes do LLM", async () => {
+    isOpenAiConfigured.mockReturnValue(false);
+    setupReadyTenant();
+    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(
+      mockAgentConfig({ handoffTriggers: ["falar com humano"] })
+    );
+    mockPrisma.aiMessageLog.findFirst.mockResolvedValue(null);
+
+    const { runTenantAiAutoReply } = await import("../aiAutomationService");
+    await runTenantAiAutoReply({
+      tenant: {
+        id: "t1",
+        phoneNumberId: "pid",
+        displayPhoneNumber: "55114000",
+        accessToken: "tok",
+        channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
+      },
+      message: {
+        id: "wam-trigger",
+        from: "5511999999999",
+        type: "text",
+        text: { body: "quero falar com humano agora" },
+      } as never,
+      inboxThreadId: "sup-conv",
+      textBody: "quero falar com humano agora",
+    });
+
+    expect(applyNeedsHumanHandoff).toHaveBeenCalled();
+    expect(generateReply).not.toHaveBeenCalled();
+    expect(sendWebhookAutoReply).not.toHaveBeenCalled();
+  });
+
+  it("fallback em erro: handoff seguro sem lançar", async () => {
     isOpenAiConfigured.mockReturnValue(false);
     setupReadyTenant();
     generateReply.mockResolvedValue({
@@ -555,28 +652,107 @@ describe("runTenantAiAutoReply", () => {
       error: "Timeout após 5000ms",
     });
     const { runTenantAiAutoReply } = await import("../aiAutomationService");
-    await expect(
-      runTenantAiAutoReply({
-        tenant: {
-          id: "t1",
-          phoneNumberId: "p",
-          displayPhoneNumber: "",
-          accessToken: "t",
-          channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
-        },
-        message: { id: "wam-err", from: "5511999999999", type: "text", text: { body: "?" } } as never,
-        inboxThreadId: "c",
-        textBody: "?",
-      })
-    ).rejects.toThrow();
+    await runTenantAiAutoReply({
+      tenant: {
+        id: "t1",
+        phoneNumberId: "p",
+        displayPhoneNumber: "",
+        accessToken: "t",
+        channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
+      },
+      message: { id: "wam-err", from: "5511999999999", type: "text", text: { body: "?" } } as never,
+      inboxThreadId: "c",
+      textBody: "?",
+    });
     expect(sendWebhookAutoReply).not.toHaveBeenCalled();
+    expect(applyNeedsHumanHandoff).toHaveBeenCalled();
     expect(mockPrisma.aiMessageLog.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          eventKind: "error",
-          errorMessage: expect.stringContaining("Timeout"),
+          eventKind: "handoff_requested",
         }),
       })
     );
+  });
+
+  it("safe mode: orçamento aplica handoff antes do LLM", async () => {
+    vi.stubEnv("WHATSAPP_AI_SAFE_MODE", "1");
+    isOpenAiConfigured.mockReturnValue(true);
+    setupReadyTenant();
+    mockPrisma.aiMessageLog.findFirst.mockResolvedValue(null);
+
+    const { runTenantAiAutoReply } = await import("../aiAutomationService");
+    await runTenantAiAutoReply({
+      tenant: {
+        id: "t1",
+        phoneNumberId: "p",
+        displayPhoneNumber: "",
+        accessToken: "t",
+        channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
+      },
+      message: {
+        id: "wam-budget",
+        from: "5511999999999",
+        type: "text",
+        text: { body: "Quanto custa o plano?" },
+      } as never,
+      inboxThreadId: "c1",
+      textBody: "Quanto custa o plano?",
+    });
+
+    expect(applyNeedsHumanHandoff).toHaveBeenCalled();
+    expect(generateOpenAiReply).not.toHaveBeenCalled();
+    expect(sendWebhookAutoReply).not.toHaveBeenCalled();
+  });
+
+  it("standalone OpenAI: baixa confiança aplica handoff", async () => {
+    isOpenAiConfigured.mockReturnValue(true);
+    generateOpenAiReply.mockResolvedValue({
+      reply: "Talvez possamos ajudar",
+      confidence: 0.3,
+      intent: "informação",
+      fallback: false,
+      tokensUsed: 10,
+      durationMs: 50,
+    });
+    mockPrisma.aiMessageLog.findFirst.mockResolvedValue(null);
+    mockPrisma.aiAgentConfig.findUnique.mockResolvedValue(mockAgentConfig());
+    mockPrisma.waInboxThread.findUnique.mockResolvedValue({
+      id: "thread-1",
+      status: WaInboxThreadStatus.OPEN,
+      assignedToUserId: null,
+      aiState: null,
+      leadScore: 0,
+    });
+    mockPrisma.waInboxThread.findFirst.mockResolvedValue({
+      status: WaInboxThreadStatus.OPEN,
+      assignedToUserId: null,
+    });
+    mockPrisma.waInboxMessage.findMany.mockResolvedValue([]);
+    mockPrisma.waInboxMessage.count.mockResolvedValue(1);
+
+    const { runTenantAiAutoReply } = await import("../aiAutomationService");
+    await runTenantAiAutoReply({
+      tenant: {
+        id: "t1",
+        phoneNumberId: "p",
+        displayPhoneNumber: "",
+        accessToken: "t",
+        channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
+      },
+      message: {
+        id: "wam-low-conf",
+        from: "5511999999999",
+        type: "text",
+        text: { body: "Horário?" },
+      } as never,
+      inboxThreadId: "c1",
+      textBody: "Horário?",
+    });
+
+    expect(applyNeedsHumanHandoff).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: "llm_low_confidence" })
+    );
+    expect(sendWebhookAutoReply).not.toHaveBeenCalled();
   });
 });

@@ -1,5 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
+import {
+  clearWebhookSignatureTestEnv,
+  enableWebhookSignatureBypassForTests,
+  metaWebhookTestHeaders,
+} from "./webhookTestHelpers";
 
 const mockResolveTenant = vi.fn();
 
@@ -22,7 +27,13 @@ vi.mock("@/modules/inbox", () => ({
 describe("webhookHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearWebhookSignatureTestEnv();
+    enableWebhookSignatureBypassForTests();
     process.env.WHATSAPP_VERIFY_TOKEN = "verify-secret";
+  });
+
+  afterEach(() => {
+    clearWebhookSignatureTestEnv();
   });
 
   describe("GET /api/webhook/whatsapp (route)", () => {
@@ -142,6 +153,78 @@ describe("webhookHandler", () => {
       expect(res.status).toBe(200);
       expect((await res.json()).ok).toBe(true);
       expect(mockResolveTenant).toHaveBeenCalledWith("pnid_test");
+    });
+  });
+
+  describe("handleWebhookEvents — assinatura Meta", () => {
+    const appSecret = "handler_test_secret";
+    const payload = { object: "other" };
+    const rawBody = JSON.stringify(payload);
+
+    beforeEach(() => {
+      delete process.env.WHATSAPP_SKIP_WEBHOOK_SIGNATURE;
+      process.env.META_APP_SECRET = appSecret;
+      process.env.NODE_ENV = "test";
+    });
+
+    it("aceita POST com assinatura válida", async () => {
+      const { handleWebhookEvents } = await import("../webhookHandler");
+      const res = await handleWebhookEvents(
+        new Request("http://localhost/api/webhook/whatsapp", {
+          method: "POST",
+          body: rawBody,
+          headers: metaWebhookTestHeaders(rawBody, appSecret),
+        })
+      );
+      expect(res.status).toBe(200);
+      expect((await res.json()).ok).toBe(true);
+    });
+
+    it("401 quando assinatura ausente", async () => {
+      const { handleWebhookEvents } = await import("../webhookHandler");
+      const res = await handleWebhookEvents(
+        new Request("http://localhost/api/webhook/whatsapp", {
+          method: "POST",
+          body: rawBody,
+          headers: { "Content-Type": "application/json" },
+        })
+      );
+      expect(res.status).toBe(401);
+      const j = (await res.json()) as { error?: { code: string } };
+      expect(j.error?.code).toBe("WEBHOOK_SIGNATURE_MISSING");
+      expect(mockResolveTenant).not.toHaveBeenCalled();
+    });
+
+    it("401 quando assinatura inválida", async () => {
+      const { handleWebhookEvents } = await import("../webhookHandler");
+      const res = await handleWebhookEvents(
+        new Request("http://localhost/api/webhook/whatsapp", {
+          method: "POST",
+          body: rawBody,
+          headers: {
+            "Content-Type": "application/json",
+            "X-Hub-Signature-256": "sha256=deadbeef",
+          },
+        })
+      );
+      expect(res.status).toBe(401);
+      const j = (await res.json()) as { error?: { code: string } };
+      expect(j.error?.code).toBe("WEBHOOK_SIGNATURE_INVALID");
+    });
+
+    it("403 quando META_APP_SECRET ausente (sem bypass)", async () => {
+      delete process.env.META_APP_SECRET;
+      const { handleWebhookEvents } = await import("../webhookHandler");
+      const res = await handleWebhookEvents(
+        new Request("http://localhost/api/webhook/whatsapp", {
+          method: "POST",
+          body: rawBody,
+          headers: metaWebhookTestHeaders(rawBody, appSecret),
+        })
+      );
+      expect(res.status).toBe(403);
+      const j = (await res.json()) as { error?: { code: string } };
+      expect(j.error?.code).toBe("WEBHOOK_APP_SECRET_MISSING");
     });
   });
 });

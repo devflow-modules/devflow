@@ -38,6 +38,7 @@ Outros apps no repositório (**ApplyFlow** como case de portfólio local-first, 
 | [**ai-ops/**](./ai-ops/) | Workflow de IA, checklists de demo |
 | [**architecture/**](./architecture/) | Cutover, guardrails, políticas |
 | [**brand/**](./brand/) | Marca, sistema visual e guidelines do portal |
+| [**products/**](./products/) | Governança, inventário e critérios de priorização dos produtos DevFlow |
 | [**healthsafe-rpa/**](./healthsafe-rpa/) | Referência HealthSafe × RPA |
 | [**_archive/**](./_archive/) | Migrações e relatórios históricos |
 
@@ -49,6 +50,7 @@ Outros apps no repositório (**ApplyFlow** como case de portfólio local-first, 
 
 | Preciso de… | Documento |
 |-------------|-----------|
+| **Auditoria de maturidade (piloto / GTM)** | [whatsapp-platform/WHATSAPP-PLATFORM-AUDIT.md](./whatsapp-platform/WHATSAPP-PLATFORM-AUDIT.md) |
 | **Visão de produto (lançamento)** | [whatsapp/WHATSAPP-PLATFORM-OVERVIEW.md](./whatsapp/WHATSAPP-PLATFORM-OVERVIEW.md) |
 | Setup Cloud API | [whatsapp/WHATSAPP-SETUP.md](./whatsapp/WHATSAPP-SETUP.md) |
 | Ativação real (runbook) | [whatsapp/WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md](./whatsapp/WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md) |
@@ -87,6 +89,13 @@ Outros apps no repositório (**ApplyFlow** como case de portfólio local-first, 
 | Variáveis de ambiente | [ENV_STRUCTURE.md](./ENV_STRUCTURE.md) |
 | Stripe / billing | [shared/DEVFLOW-PAYMENTS.md](./shared/DEVFLOW-PAYMENTS.md) |
 | Métricas dashboard | [shared/DEVFLOW-METRICS-DASHBOARD.md](./shared/DEVFLOW-METRICS-DASHBOARD.md) |
+
+### Produtos e governança
+
+| Preciso de… | Documento |
+|-------------|-----------|
+| **Regras de classificação e prioridade** | [products/PRODUCT-GOVERNANCE.md](./products/PRODUCT-GOVERNANCE.md) |
+| **Inventário de iniciativas** | [products/PRODUCT-INVENTORY.md](./products/PRODUCT-INVENTORY.md) |
 
 ### Marca e sistema visual
 

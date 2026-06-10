@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { maskDocumentLike, maskPhoneLike, sanitizeLogData } from "../observability/sanitize";
+import {
+  maskDocumentLike,
+  maskPhone,
+  maskPhoneLike,
+  maskToken,
+  sanitizeLogData,
+  sanitizeLogPayload,
+  truncateSafe,
+} from "../observability/sanitize";
 
 describe("maskPhoneLike", () => {
   it("telefone curto (< 6 dígitos) retorna ***", () => {
@@ -107,5 +115,35 @@ describe("sanitizeLogData", () => {
     ).toEqual({
       ref: "9998887776a",
     });
+  });
+
+  it("sanitizeLogPayload é alias de sanitizeLogData", () => {
+    const input = { access_token: "secret", phone: "11900001234" };
+    expect(sanitizeLogPayload(input)).toEqual(sanitizeLogData(input));
+  });
+});
+
+describe("maskPhone", () => {
+  it("delega para maskPhoneLike", () => {
+    expect(maskPhone("+55 11 90000-1234")).toBe(maskPhoneLike("+55 11 90000-1234"));
+  });
+});
+
+describe("maskToken", () => {
+  it("nunca expõe o valor", () => {
+    expect(maskToken("super-secret-token")).toBe("[REDACTED]");
+    expect(maskToken()).toBe("[REDACTED]");
+  });
+});
+
+describe("truncateSafe", () => {
+  it("trunca strings longas com reticências", () => {
+    const long = "a".repeat(150);
+    expect(truncateSafe(long, 120)).toHaveLength(121);
+    expect(truncateSafe(long, 120).endsWith("…")).toBe(true);
+  });
+
+  it("mantém strings curtas intactas", () => {
+    expect(truncateSafe("ok", 120)).toBe("ok");
   });
 });

@@ -43,6 +43,7 @@ export async function getAiOperationalMetrics(
         errors++;
         break;
       case "blocked_by_guard":
+      case "handoff_requested":
       case "blocked":
         blockedDecisions++;
         break;

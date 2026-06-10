@@ -40,4 +40,23 @@ describe("evaluateAutomationRules", () => {
     expect(r.shortCircuitReply).toBeNull();
     expect(r.promptAugmentation).toContain("comercial");
   });
+
+  it("handoffTriggers correspondentes → markNeedsHuman", () => {
+    const r = evaluateAutomationRules({
+      messageText: "quero falar com um atendente humano",
+      aiState: "support",
+      config: { ...baseConfig, handoffTriggers: ["atendente humano", "humano"] } as never,
+    });
+    expect(r.markNeedsHuman).toBe(true);
+    expect(r.shortCircuitReply).toBeNull();
+  });
+
+  it("sem trigger → markNeedsHuman false", () => {
+    const r = evaluateAutomationRules({
+      messageText: "obrigado",
+      aiState: "lead",
+      config: { ...baseConfig, handoffTriggers: ["cancelar"] } as never,
+    });
+    expect(r.markNeedsHuman).toBe(false);
+  });
 });

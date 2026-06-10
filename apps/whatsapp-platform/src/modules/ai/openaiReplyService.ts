@@ -28,6 +28,7 @@ export interface GenerateReplyOutput {
   intent?: string;
   confidence?: number;
   needsHuman?: boolean;
+  parseUncertain?: boolean;
   tokensUsed: number | null;
   durationMs: number;
   estimatedCostUsd?: number;
@@ -127,6 +128,7 @@ export async function generateReply(input: GenerateReplyInput): Promise<Generate
   let intent: string | undefined;
   let confidence: number | undefined;
   let needsHuman: boolean | undefined;
+  let parseUncertain: boolean | undefined;
 
   if (useStructured) {
     const parsed = parseStructuredOutput(result.text);
@@ -134,6 +136,7 @@ export async function generateReply(input: GenerateReplyInput): Promise<Generate
     intent = parsed.intent;
     confidence = parsed.confidence;
     needsHuman = parsed.needs_human;
+    parseUncertain = parsed.parseUncertain;
   } else {
     reply = result.text.trim();
   }
@@ -153,6 +156,7 @@ export async function generateReply(input: GenerateReplyInput): Promise<Generate
     intent,
     confidence,
     needsHuman,
+    parseUncertain,
     tokensUsed: result.tokensUsed,
     durationMs: result.durationMs,
     estimatedCostUsd: estimatedCost,

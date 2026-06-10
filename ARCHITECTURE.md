@@ -6,7 +6,7 @@ Este repositório é um **monorepo** com pnpm workspaces e Turborepo. Contém m�
 
 O app **na raiz** (`src/`) responde em **devflowlabs.com.br**: marketing, SEO, hub de ferramentas, **Financeiro** sob `/ferramentas/financeiro`, billing/upgrade onde aplicável, APIs de dados do Financeiro e **camada de entrada** para outros produtos.
 
-O **runtime operacional do WhatsApp Platform** (auth JWT, Stripe, webhook Meta, inbox, admin do produto) está em **`apps/whatsapp-platform`**, tipicamente em domínio próprio (ex.: `https://whatsapp.devflowlabs.com.br`). Com **`NEXT_PUBLIC_WHATSAPP_APP_URL`** no deploy do portal, o **`src/middleware.ts`** aplica **308** para esses paths antes da proteção JWT, usando **`@devflow/whatsapp-routes`** e leitura explícita da env no middleware (bundle Edge). Landings de marketing WhatsApp permanecem na raiz.
+O **runtime operacional do WhatsApp Platform** (auth JWT, Stripe, webhook Meta, inbox, admin do produto) está em **`apps/whatsapp-platform`**, tipicamente em domínio próprio (ex.: `https://whatsapp.devflowlabs.com.br`). Com **`NEXT_PUBLIC_WHATSAPP_APP_URL`** no deploy do portal, o **`src/proxy.ts`** aplica **308** para esses paths antes da proteção JWT, usando **`@devflow/whatsapp-routes`** e leitura explícita da env no proxy (bundle Edge). Landings de marketing WhatsApp permanecem na raiz.
 
 Os projetos em **`apps/*`** podem ter deploy e domínio separados na Vercel ou outro host.
 

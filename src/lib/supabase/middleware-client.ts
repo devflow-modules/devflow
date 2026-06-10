@@ -7,6 +7,7 @@ import {
   resolveFinanceiroResumeRedirectUrl,
 } from "@devflow/financeiro-routes";
 import { resolveFinanceiroResumeFromCookies } from "@/modules/financeiro/navigation/resumeFromCookies";
+import { shouldRunSupabaseSession } from "@/lib/supabase/should-run-supabase-session";
 
 type CookieOption = { name: string; value: string; options?: Record<string, unknown> };
 
@@ -15,6 +16,9 @@ const supabaseKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+
+let lastGetUserWarnAt = 0;
+const GET_USER_WARN_INTERVAL_MS = 30_000;
 
 function isFinanceiroLandingPath(pathname: string): boolean {
   return pathname === FINANCEIRO_BASE_PATH || pathname === `${FINANCEIRO_BASE_PATH}/`;
@@ -27,8 +31,22 @@ function copySetCookieHeaders(from: NextResponse, to: NextResponse): void {
   }
 }
 
+function warnGetUserFailure(detail: string): void {
+  if (process.env.NODE_ENV !== "development") return;
+  const now = Date.now();
+  if (now - lastGetUserWarnAt < GET_USER_WARN_INTERVAL_MS) return;
+  lastGetUserWarnAt = now;
+  console.warn(`[devflow/supabase/middleware] getUser skipped after failure: ${detail}`);
+}
+
 /** Sessão Supabase no portal + redirect autenticado da landing Financeiro (aquisição). */
 export async function updateSession(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  if (!shouldRunSupabaseSession(pathname)) {
+    return NextResponse.next({ request });
+  }
+
   if (!supabaseUrl || !supabaseKey) {
     return NextResponse.next({ request });
   }
@@ -50,10 +68,21 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const { data } = await supabase.auth.getUser();
-  const user = data?.user;
+  let user: { id: string } | null | undefined;
 
-  const pathname = request.nextUrl.pathname;
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) {
+      warnGetUserFailure(error.message);
+      return supabaseResponse;
+    }
+    user = data?.user;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "fetch failed";
+    warnGetUserFailure(message);
+    return supabaseResponse;
+  }
+
   const stay =
     request.nextUrl.searchParams.get(FINANCEIRO_STAY_PUBLIC_PARAM) === "1";
 
@@ -80,3 +109,5 @@ export async function updateSession(request: NextRequest) {
 
   return supabaseResponse;
 }
+
+export { shouldRunSupabaseSession } from "@/lib/supabase/should-run-supabase-session";

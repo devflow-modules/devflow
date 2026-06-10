@@ -1,6 +1,6 @@
 /**
  * Rotas no portal que exigem JWT (usuário já autenticado).
- * Alinhar com src/middleware.ts — não inclui /login nem fluxo de recuperação de senha.
+ * Alinhar com src/proxy.ts — não inclui /login nem fluxo de recuperação de senha.
  */
 export const WHATSAPP_PORTAL_JWT_PREFIXES: readonly string[] = [
   "/inbox",

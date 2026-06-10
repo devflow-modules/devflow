@@ -9,7 +9,14 @@ import { digitsOnly } from "@/modules/inbox/waInboxUtils";
 import { trackMessageSent } from "@/modules/analytics";
 import { trackUsage } from "@/modules/billing/usageService";
 import { UsageEventType } from "@/generated/prisma-whatsapp";
-import { bumpMetric, logEvent, maskPhoneLike } from "@/lib/observability";
+import {
+  bumpMetric,
+  logEvent,
+  logWhatsappPilotEvent,
+  maskPhoneLike,
+  parseCloudApiError,
+  WHATSAPP_PILOT_EVENTS,
+} from "@/lib/observability";
 import { prisma } from "@/lib/prisma";
 import {
   assertAutomaticOutboundAllowed,
@@ -54,14 +61,60 @@ async function sendCloudAndPersistOutbound(
     err.name = "ChannelSendError";
     throw err;
   }
-  const adapter = new WhatsAppCloudAdapter({ accessToken: input.tenant.accessToken });
-  const { messageId } = await adapter.sendText(input.tenant.phoneNumberId, {
-    to: input.to,
-    text: input.text,
+  logWhatsappPilotEvent("info", "inbox", WHATSAPP_PILOT_EVENTS.OUTBOUND_SEND_REQUESTED, {
+    tenantId: input.tenant.id,
+    threadId: input.inboxThreadId,
+    phoneNumberId: input.tenant.phoneNumberId,
+    correlationId: input.traceId,
+    origin: "outbound",
+    kind: outboundKind,
+    to_masked: maskPhoneLike(input.to),
   });
-  console.info(`[WHATSAPP] outbound tenant=${input.tenant.id} wa_id=${maskPhoneLike(input.to)}`);
+
+  const adapter = new WhatsAppCloudAdapter({ accessToken: input.tenant.accessToken });
+  let messageId: string;
+  try {
+    ({ messageId } = await adapter.sendText(input.tenant.phoneNumberId, {
+      to: input.to,
+      text: input.text,
+    }));
+  } catch (err) {
+    const cloudErr = parseCloudApiError(err);
+    logWhatsappPilotEvent("error", "inbox", WHATSAPP_PILOT_EVENTS.CLOUD_API_ERROR, {
+      tenantId: input.tenant.id,
+      threadId: input.inboxThreadId,
+      phoneNumberId: input.tenant.phoneNumberId,
+      correlationId: input.traceId,
+      origin: "outbound",
+      status: cloudErr.status,
+      errorCode: cloudErr.errorCode,
+      reason: cloudErr.message.slice(0, 200),
+    });
+    logWhatsappPilotEvent("error", "inbox", WHATSAPP_PILOT_EVENTS.OUTBOUND_SEND_FAILED, {
+      tenantId: input.tenant.id,
+      threadId: input.inboxThreadId,
+      phoneNumberId: input.tenant.phoneNumberId,
+      correlationId: input.traceId,
+      origin: "outbound",
+      kind: outboundKind,
+      errorCode: cloudErr.errorCode,
+      reason: cloudErr.message.slice(0, 200),
+    });
+    throw err;
+  }
+
   bumpMetric("messages_sent");
   bumpMetric("outbound_dispatch");
+  logWhatsappPilotEvent("info", "inbox", WHATSAPP_PILOT_EVENTS.OUTBOUND_SEND_SUCCESS, {
+    tenantId: input.tenant.id,
+    threadId: input.inboxThreadId,
+    metaMessageId: messageId,
+    phoneNumberId: input.tenant.phoneNumberId,
+    correlationId: input.traceId,
+    origin: "outbound",
+    kind: outboundKind,
+    to_masked: maskPhoneLike(input.to),
+  });
   logEvent(
     "info",
     "inbox",

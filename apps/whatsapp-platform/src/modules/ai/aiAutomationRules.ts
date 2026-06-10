@@ -21,6 +21,14 @@ function isVeryShortGreeting(text: string): boolean {
   return false;
 }
 
+function matchesHandoffTrigger(messageText: string, triggers: string[]): boolean {
+  const lower = messageText.toLowerCase();
+  return triggers.some((raw) => {
+    const trigger = raw.trim().toLowerCase();
+    return trigger.length > 0 && lower.includes(trigger);
+  });
+}
+
 /**
  * Regras leves antes do LLM — sem duplicar o guard (palavras sensíveis, horário, etc.).
  */
@@ -32,7 +40,9 @@ export function evaluateAutomationRules(input: {
   const text = input.messageText ?? "";
   const lower = text.toLowerCase();
   let promptAugmentation: string | null = null;
-  const markNeedsHuman = false;
+  const triggers = input.config.handoffTriggers ?? [];
+  const markNeedsHuman =
+    triggers.length > 0 && matchesHandoffTrigger(text, triggers);
 
   if (lower.includes("preço") || lower.includes("preco") || lower.includes("orçamento") || lower.includes("orcamento")) {
     promptAugmentation =

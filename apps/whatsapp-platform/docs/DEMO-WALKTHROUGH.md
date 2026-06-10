@@ -4,6 +4,8 @@ Modo **vitrine** para portfólio e recrutadores: navega pelas telas principais c
 
 > **Distinto de** `WHATSAPP_DEMO_MODE` (servidor): resposta automática à palavra «demo» no motor rule-based de IA — não activa esta vitrine.
 
+> **Demo comercial em call com prospect:** usar tenant demo no **app real** em staging — ver [REAL-APP-DEMO.md](../../../docs/whatsapp-platform/REAL-APP-DEMO.md). Este modo vitrine **não** substitui o app real na venda assistida.
+
 ---
 
 ## Objetivo

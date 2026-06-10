@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { jwtVerify } from "jose";
-import { updateSession } from "@/lib/supabase/middleware-client";
+import { updateSession, shouldRunSupabaseSession } from "@/lib/supabase/middleware-client";
 import { JWT_COOKIE_NAME } from "@/lib/auth-config";
 import { logAuth } from "@/lib/auth-logger";
 import {
@@ -71,7 +71,7 @@ function redirectToAdminLogin(request: NextRequest, clearCookie = false): NextRe
   return res;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // Governança de rotas (somente dev): avisa paths em Fase 2+ — docs/architecture/ROUTING_POLICY.md
@@ -88,7 +88,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(financeiroCutoverTarget, 308);
   }
 
-  // Base lida aqui (entrada do middleware) para o bundler Edge inlined NEXT_PUBLIC no chunk certo.
+  // Base lida aqui (entrada do proxy) para o bundler inlined NEXT_PUBLIC no chunk certo.
   const whatsappAppPublicBase = process.env.NEXT_PUBLIC_WHATSAPP_APP_URL?.trim() ?? "";
   const whatsappCutoverTarget = getWhatsappCutoverRedirectUrl(
     request,
@@ -151,7 +151,10 @@ export async function middleware(request: NextRequest) {
     return await updateSession(request);
   }
 
-  // 3. Demais rotas: Supabase (financeiro) ou next
+  // 3. Demais rotas: Supabase só onde a sessão é necessária
+  if (!shouldRunSupabaseSession(path)) {
+    return NextResponse.next();
+  }
   return await updateSession(request);
 }
 

@@ -49,8 +49,16 @@ import {
 import { evaluateAutomationRules } from "@/modules/ai/aiAutomationRules";
 import { executeAiActions } from "@/modules/ai/aiExecuteActions";
 import { logAiPipelineEvent } from "@/modules/ai/aiOperationalLogService";
+import { applyNeedsHumanHandoff } from "@/modules/inbox/needsHumanHandoffService";
 import { getOrCreateTenantOperationalConfig } from "@/modules/operations/tenantOperationalConfigService";
-import { bumpMetric, logEvent } from "@/lib/observability";
+import { bumpMetric, logEvent, logWhatsappPilotEvent, WHATSAPP_PILOT_EVENTS } from "@/lib/observability";
+import {
+  evaluatePilotSafePreLlm,
+  getAiPilotRuntimeConfig,
+  mapDecisionReasonToHandoffReason,
+  resolveStructuredLlmDecision,
+  type AiDecision,
+} from "@/modules/ai/aiPilotDecision";
 
 export async function getOrCreateAiAgentConfig(tenantId: string): Promise<AiAgentConfig> {
   const existing = await prisma.aiAgentConfig.findUnique({ where: { tenantId } });
@@ -66,6 +74,111 @@ export async function getOrCreateAiAgentConfig(tenantId: string): Promise<AiAgen
       fallbackToHuman: true,
     },
   });
+}
+
+function formatAiDecisionReason(decision: AiDecision): string {
+  const parts = [decision.reason];
+  if ("intent" in decision && decision.intent) parts.push(`intent:${decision.intent}`);
+  if ("confidence" in decision && typeof decision.confidence === "number") {
+    parts.push(`conf:${decision.confidence.toFixed(2)}`);
+  }
+  return parts.join("|");
+}
+
+async function commitAiDecision(
+  decision: AiDecision,
+  ctx: {
+    tenantId: string;
+    threadId: string;
+    inboundWaMessageId: string;
+    playbook: AiPlaybookState;
+    leadScore: number | null;
+    tokensUsed?: number | null;
+    durationMs?: number | null;
+    responsePreview?: string;
+    modelUsed?: string;
+    providerKind?: string | null;
+    errorMessage?: string | null;
+    correlationId?: string;
+  }
+): Promise<boolean> {
+  const decisionReason = formatAiDecisionReason(decision);
+
+  if (decision.action === "handoff") {
+    logWhatsappPilotEvent("info", "automation", WHATSAPP_PILOT_EVENTS.AI_DECISION_HANDOFF, {
+      tenantId: ctx.tenantId,
+      threadId: ctx.threadId,
+      metaMessageId: ctx.inboundWaMessageId,
+      correlationId: ctx.correlationId,
+      origin: "ia",
+      reason: decision.reason,
+      durationMs: ctx.durationMs ?? undefined,
+    });
+    await applyNeedsHumanHandoff({
+      tenantId: ctx.tenantId,
+      threadId: ctx.threadId,
+      reason: mapDecisionReasonToHandoffReason(decision.reason),
+      inboundWaMessageId: ctx.inboundWaMessageId,
+      correlationId: ctx.correlationId,
+    });
+    await logAiPipelineEvent({
+      tenantId: ctx.tenantId,
+      waInboxThreadId: ctx.threadId,
+      inboundWaMessageId: ctx.inboundWaMessageId,
+      promptUsed: "",
+      responseGenerated: ctx.responsePreview?.slice(0, 500) ?? "",
+      tokensUsed: ctx.tokensUsed ?? null,
+      durationMs: ctx.durationMs ?? null,
+      errorMessage: ctx.errorMessage ?? null,
+      eventKind: "handoff_requested",
+      decisionReason,
+      modelUsed: ctx.modelUsed,
+      providerKind: ctx.providerKind ?? undefined,
+      aiStateSnapshot: ctx.playbook,
+      leadScoreSnapshot: ctx.leadScore,
+    });
+    return false;
+  }
+
+  if (decision.action === "no_reply") {
+    logWhatsappPilotEvent("info", "automation", WHATSAPP_PILOT_EVENTS.AI_DECISION_NO_REPLY, {
+      tenantId: ctx.tenantId,
+      threadId: ctx.threadId,
+      metaMessageId: ctx.inboundWaMessageId,
+      correlationId: ctx.correlationId,
+      origin: "ia",
+      reason: decision.reason,
+      durationMs: ctx.durationMs ?? undefined,
+    });
+    await logAiPipelineEvent({
+      tenantId: ctx.tenantId,
+      waInboxThreadId: ctx.threadId,
+      inboundWaMessageId: ctx.inboundWaMessageId,
+      promptUsed: "",
+      responseGenerated: "",
+      tokensUsed: ctx.tokensUsed ?? null,
+      durationMs: ctx.durationMs ?? null,
+      errorMessage: ctx.errorMessage ?? null,
+      eventKind: "blocked_by_guard",
+      decisionReason,
+      modelUsed: ctx.modelUsed,
+      providerKind: ctx.providerKind ?? undefined,
+      aiStateSnapshot: ctx.playbook,
+      leadScoreSnapshot: ctx.leadScore,
+    });
+    return false;
+  }
+
+  logWhatsappPilotEvent("info", "automation", WHATSAPP_PILOT_EVENTS.AI_DECISION_AUTO_REPLY, {
+    tenantId: ctx.tenantId,
+    threadId: ctx.threadId,
+    metaMessageId: ctx.inboundWaMessageId,
+    correlationId: ctx.correlationId,
+    origin: "ia",
+    reason: decision.reason,
+    durationMs: ctx.durationMs ?? undefined,
+  });
+  return true;
 }
 
 export interface TenantAiReadyCheck {
@@ -354,6 +467,15 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
   });
 
   if (!decision.allow) {
+    if (decision.reason.startsWith("sensitive_keyword:")) {
+      await applyNeedsHumanHandoff({
+        tenantId,
+        threadId: thread.id,
+        reason: "handoff_trigger_keyword",
+        inboundWaMessageId: waMsgId,
+        correlationId: pipelineTraceId,
+      });
+    }
     await logAiPipelineEvent({
       tenantId,
       waInboxThreadId: thread.id,
@@ -362,7 +484,9 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
       responseGenerated: "",
       tokensUsed: null,
       durationMs: null,
-      eventKind: "blocked_by_guard",
+      eventKind: decision.reason.startsWith("sensitive_keyword:")
+        ? "handoff_requested"
+        : "blocked_by_guard",
       decisionReason: decision.reason,
       aiStateSnapshot: playbook,
       leadScoreSnapshot: thread.leadScore,
@@ -375,6 +499,47 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
     aiState: playbook,
     config: effectiveConfig,
   });
+
+  if (rules.markNeedsHuman) {
+    await applyNeedsHumanHandoff({
+      tenantId,
+      threadId: thread.id,
+      reason: "handoff_trigger_keyword",
+      inboundWaMessageId: waMsgId,
+      correlationId: pipelineTraceId,
+    });
+    await logAiPipelineEvent({
+      tenantId,
+      waInboxThreadId: thread.id,
+      inboundWaMessageId: waMsgId,
+      promptUsed: "",
+      responseGenerated: "",
+      tokensUsed: null,
+      durationMs: null,
+      eventKind: "handoff_requested",
+      decisionReason: "automation:handoff_trigger",
+      aiStateSnapshot: playbook,
+      leadScoreSnapshot: thread.leadScore,
+    });
+    return;
+  }
+
+  const pilotCfg = getAiPilotRuntimeConfig(effectiveConfig);
+  const preSafeDecision = evaluatePilotSafePreLlm({
+    messageText: textBody,
+    safeMode: pilotCfg.safeMode,
+  });
+  if (preSafeDecision) {
+    const proceed = await commitAiDecision(preSafeDecision, {
+      tenantId,
+      threadId: thread.id,
+      inboundWaMessageId: waMsgId,
+      playbook,
+      leadScore: thread.leadScore,
+      correlationId: pipelineTraceId,
+    });
+    if (!proceed) return;
+  }
 
   if (rules.shortCircuitReply) {
     const effDriver = isStandalone
@@ -441,28 +606,45 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
       model: modelUsedBase,
       maxTokens: config.maxTokens,
       temperature: config.temperature,
-      useStructuredOutput: false,
+      useStructuredOutput: true,
     });
 
-    if (gen.fallback || gen.error || !gen.reply?.trim()) {
+    const llmDecision = resolveStructuredLlmDecision({
+      needsHuman: gen.needsHuman,
+      confidence: gen.confidence,
+      intent: gen.intent,
+      reply: gen.reply,
+      fallback: gen.fallback,
+      error: gen.error,
+      parseUncertain: gen.parseUncertain,
+      pilot: pilotCfg,
+    });
+
+    const canAutoReply = await commitAiDecision(llmDecision, {
+      tenantId,
+      threadId: thread.id,
+      inboundWaMessageId: waMsgId,
+      playbook,
+      leadScore: thread.leadScore,
+      tokensUsed: gen.tokensUsed,
+      durationMs: gen.durationMs,
+      responsePreview: gen.reply,
+      modelUsed: modelUsedBase,
+      providerKind: "openai",
+      errorMessage: gen.error?.slice(0, 2000) ?? null,
+      correlationId: pipelineTraceId,
+    });
+    if (!canAutoReply || llmDecision.action !== "auto_reply") {
+      if (gen.fallback || gen.error) {
+        trackAiUsage(tenantId, "AI_FALLBACK");
+      }
+      return;
+    }
+
+    const replyText = llmDecision.reply ?? gen.reply;
+    if (!replyText?.trim()) {
       trackAiUsage(tenantId, "AI_FALLBACK");
-      await logAiPipelineEvent({
-        tenantId,
-        waInboxThreadId: thread.id,
-        inboundWaMessageId: waMsgId,
-        promptUsed: "",
-        responseGenerated: "",
-        tokensUsed: gen.tokensUsed,
-        durationMs: gen.durationMs,
-        errorMessage: gen.error?.slice(0, 2000) ?? null,
-        eventKind: "fallback",
-        modelUsed: modelUsedBase,
-        providerKind: "openai",
-        aiStateSnapshot: playbook,
-        leadScoreSnapshot: thread.leadScore,
-      });
-      console.warn("[WHATSAPP][WARN] OpenAI fallback para legacy", { reason: gen.error });
-      throw new Error(gen.error ?? "Resposta vazia");
+      return;
     }
 
     trackAiUsage(tenantId, "AI_SUCCESS", gen.tokensUsed ?? 0);
@@ -477,7 +659,7 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
       tenant,
       to: from,
       inboxThreadId,
-      text: gen.reply,
+      text: replyText,
       outboundKind: "ai",
       automaticTrigger: { inboundWaMessageId: waMsgId, triggerSource: "ai" },
       traceId: pipelineTraceId,
@@ -499,12 +681,13 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
       inboundWaMessageId: waMsgId,
       outboundWaMessageId: sendResult.messageId,
       promptUsed: "",
-      responseGenerated: gen.reply,
+      responseGenerated: replyText,
       tokensUsed: gen.tokensUsed,
       durationMs: gen.durationMs,
       eventKind: "auto_reply",
       modelUsed: modelUsedBase,
       providerKind: "openai",
+      decisionReason: formatAiDecisionReason(llmDecision),
       aiStateSnapshot: playbook,
       leadScoreSnapshot: thread.leadScore,
     });
@@ -534,22 +717,26 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
 
   if (gen.error || !gen.text) {
     trackAiUsage(tenantId, "AI_FALLBACK");
-    await logAiPipelineEvent({
+    const errorDecision = resolveStructuredLlmDecision({
+      fallback: true,
+      error: gen.error ?? "unknown",
+      reply: gen.text,
+      pilot: pilotCfg,
+    });
+    await commitAiDecision(errorDecision, {
       tenantId,
-      waInboxThreadId: thread.id,
+      threadId: thread.id,
       inboundWaMessageId: waMsgId,
-      promptUsed: gen.promptUsed || "(vazio)",
-      responseGenerated: "",
+      playbook,
+      leadScore: thread.leadScore,
       tokensUsed: gen.tokensUsed,
       durationMs: gen.durationMs,
-      errorMessage: (gen.error ?? "unknown").slice(0, 2000),
-      eventKind: "error",
       modelUsed: modelUsedBase,
       providerKind,
-      aiStateSnapshot: playbook,
-      leadScoreSnapshot: thread.leadScore,
+      errorMessage: (gen.error ?? "unknown").slice(0, 2000),
+      correlationId: pipelineTraceId,
     });
-    throw new Error(gen.error ?? "Falha ao gerar resposta IA");
+    return;
   }
 
   trackAiUsage(tenantId, "AI_SUCCESS", gen.tokensUsed ?? 0);

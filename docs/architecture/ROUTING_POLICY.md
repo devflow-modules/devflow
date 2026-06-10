@@ -68,7 +68,7 @@ Novas exceções: adicionar **tabela nesta seção** + linha na `MATRIZ-DECISAO-
 ## 6. Governança técnica
 
 - **`src/lib/routing-governance.ts`** — registro das rotas da **raiz** com `owner`, `phase`, notas de migração.  
-- **`src/middleware.ts`** — em **desenvolvimento**, avisos no console para rotas em Fase 2/3 (sem alterar resposta em produção por padrão).  
+- **`src/proxy.ts`** — em **desenvolvimento**, avisos no console para rotas em Fase 2/3 (sem alterar resposta em produção por padrão).  
 - **CI (enforce):** workflow **Routing governance** (`.github/workflows/routing-governance-check.yml`) — em todo PR que alterar `src/app/**/page.tsx`, `src/app/**/route.ts` ou `apps/**/src/app/**/{page.tsx,route.ts}`, o diff precisa incluir ao menos uma mudança em `routing-governance.ts`, `MATRIZ-DECISAO-ROTAS.md` ou `ROUTING_POLICY.md`. Rode localmente: `bash scripts/ci/check-routing-governance.sh origin/main HEAD`.  
 - Evolução futura (Fase 2+): redirects via `next.config` ou env (`NEXT_PUBLIC_*`) quando URLs canônicas estiverem fixas.
 

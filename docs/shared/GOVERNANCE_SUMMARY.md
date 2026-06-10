@@ -40,7 +40,7 @@ This document summarizes the governance, boundaries, and templates added to the 
 - **Contents:**
   - `src/app/layout.tsx`, `page.tsx`, `globals.css`
   - `src/app/api/health/route.ts`
-  - `src/middleware.ts`
+  - `src/proxy.ts`
   - `src/components/`, `src/lib/`, `src/modules/auth/`, `billing/`, `analytics/`, `domain/` (with `.gitkeep` and short comments on where product logic lives).
 
 ### Package template (Phase 5)

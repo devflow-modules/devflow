@@ -66,11 +66,16 @@ vi.mock("@/modules/inbox", () => ({
 
 vi.mock("@/modules/analytics", () => ({ trackMessageSent: vi.fn() }));
 vi.mock("@/modules/billing/usageService", () => ({ trackUsage: vi.fn() }));
-vi.mock("@/lib/observability", () => ({
-  bumpMetric: vi.fn(),
-  logEvent: vi.fn(),
-  maskPhoneLike: (s: string) => `***${String(s).replace(/\D/g, "").slice(-2)}`,
-}));
+vi.mock("@/lib/observability", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/observability")>();
+  return {
+    ...actual,
+    bumpMetric: vi.fn(),
+    logEvent: vi.fn(),
+    logWhatsappPilotEvent: vi.fn(),
+    maskPhoneLike: (s: string) => `***${String(s).replace(/\D/g, "").slice(-2)}`,
+  };
+});
 
 describe("sendWebhookAutoReply — gate + claim", () => {
   const tenant = {

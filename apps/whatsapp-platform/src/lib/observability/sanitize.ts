@@ -11,6 +11,9 @@ export function maskPhoneLike(value: string): string {
   return `${d.slice(0, 4)}***${d.slice(-3)}`;
 }
 
+/** Alias de `maskPhoneLike` para logs do piloto. */
+export const maskPhone = maskPhoneLike;
+
 /** Mascara sequência numérica longa (CPF/CNPJ em texto). */
 export function maskDocumentLike(value: string): string {
   const d = value.replace(/\D/g, "");
@@ -53,4 +56,18 @@ export function sanitizeLogData(obj: Record<string, unknown>): Record<string, un
     out[k] = sanitizeValue(k, v);
   }
   return out;
+}
+
+/** Alias de `sanitizeLogData` para payloads de log. */
+export const sanitizeLogPayload = sanitizeLogData;
+
+/** Nunca expõe tokens em logs — retorna marcador fixo. */
+export function maskToken(_value?: string | null): string {
+  return "[REDACTED]";
+}
+
+/** Trunca strings longas para evitar vazamento de conteúdo em logs. */
+export function truncateSafe(value: string, maxLen = 120): string {
+  if (value.length <= maxLen) return value;
+  return `${value.slice(0, maxLen)}…`;
 }

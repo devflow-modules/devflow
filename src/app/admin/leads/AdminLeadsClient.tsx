@@ -69,6 +69,13 @@ type SummaryPayload = {
 
 type WhatsappOperatorOption = { id: string; name: string; email: string };
 
+type WhatsappPilotTenantOption = {
+  id: string;
+  name: string | null;
+  gtmLifecycle: string;
+  whatsappPhone: string | null;
+};
+
 const STATUS_OPTIONS = [
   "novo",
   "contato_iniciado",
@@ -167,6 +174,14 @@ export function AdminLeadsClient() {
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [converting, setConverting] = useState<string | null>(null);
+  const [convertModalLead, setConvertModalLead] = useState<LeadRow | null>(null);
+  const [pilotTenants, setPilotTenants] = useState<WhatsappPilotTenantOption[]>([]);
+  const [pilotTenantsLoading, setPilotTenantsLoading] = useState(false);
+  const [pilotTenantsWarning, setPilotTenantsWarning] = useState<string | null>(null);
+  const [selectedPilotTenantId, setSelectedPilotTenantId] = useState("");
+  const [manualPilotTenantId, setManualPilotTenantId] = useState("");
+  const [pilotInternalOwner, setPilotInternalOwner] = useState("");
+  const [pilotConfirmChecked, setPilotConfirmChecked] = useState(false);
   const [form, setForm] = useState({ name: "", company: "", phone: "", origin: "", notes: "", nextFollowUpAt: "" });
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
   const [originDrafts, setOriginDrafts] = useState<Record<string, string>>({});
@@ -307,7 +322,50 @@ export function AdminLeadsClient() {
     await load();
   }
 
-  async function convertLead(id: string) {
+  async function loadPilotTenants() {
+    setPilotTenantsLoading(true);
+    setPilotTenantsWarning(null);
+    try {
+      const res = await fetch("/api/admin/leads/whatsapp-tenants", { credentials: "include" });
+      const data = (await res.json().catch(() => ({}))) as {
+        tenants?: WhatsappPilotTenantOption[];
+        warning?: string;
+        error?: string;
+      };
+      if (!res.ok) {
+        setPilotTenants([]);
+        setPilotTenantsWarning(data.error ?? "Não foi possível carregar tenants.");
+        return;
+      }
+      setPilotTenants(data.tenants ?? []);
+      setPilotTenantsWarning(data.warning ?? null);
+    } catch {
+      setPilotTenants([]);
+      setPilotTenantsWarning("Não foi possível carregar tenants.");
+    } finally {
+      setPilotTenantsLoading(false);
+    }
+  }
+
+  function openConvertModal(lead: LeadRow) {
+    setConvertModalLead(lead);
+    setSelectedPilotTenantId("");
+    setManualPilotTenantId("");
+    setPilotInternalOwner("");
+    setPilotConfirmChecked(false);
+    setError(null);
+    void loadPilotTenants();
+  }
+
+  function closeConvertModal() {
+    setConvertModalLead(null);
+    setSelectedPilotTenantId("");
+    setManualPilotTenantId("");
+    setPilotInternalOwner("");
+    setPilotConfirmChecked(false);
+  }
+
+  async function convertLead(id: string, tenantId: string) {
     setConverting(id);
     setError(null);
     try {
@@ -315,19 +373,39 @@ export function AdminLeadsClient() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify({
+          tenantId,
+          confirm: true,
+          internalOwner: pilotInternalOwner.trim() || undefined,
+        }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
         setError(data.error ?? `Erro ${res.status}`);
         return;
       }
+      closeConvertModal();
+      toast.success("Lead associado ao tenant piloto.");
       await load();
     } catch {
       setError("Falha ao converter lead");
     } finally {
       setConverting(null);
     }
+  }
+
+  async function submitPilotConversion() {
+    if (!convertModalLead) return;
+    const tenantId = selectedPilotTenantId || manualPilotTenantId.trim();
+    if (!tenantId) {
+      setError("Selecione ou informe o tenant piloto da WhatsApp Platform.");
+      return;
+    }
+    if (!pilotConfirmChecked) {
+      setError("Confirme a associação lead → tenant piloto.");
+      return;
+    }
+    await convertLead(convertModalLead.id, tenantId);
   }
 
   const logNba = useCallback((leadId: string, actionType: string) => {
@@ -790,6 +868,16 @@ export function AdminLeadsClient() {
                             Convertido
                           </span>
                         )}
+                        {lead.convertedAt && lead.convertedToRef && (
+                          <a
+                            href={whatsappAppUrl(`/admin/tenants/${lead.convertedToRef}`)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block w-fit rounded border border-primary/30 px-1.5 py-0.5 text-[10px] font-medium text-primary hover:underline"
+                          >
+                            Tenant piloto
+                          </a>
+                        )}
                         {urg === "overdue" && (
                           <span className="inline-block w-fit rounded bg-destructive/15 px-1.5 py-0.5 text-xs font-medium text-destructive">
                             Atrasado
@@ -1078,9 +1166,9 @@ export function AdminLeadsClient() {
                                 : ""
                             }`}
                             disabled={converting === lead.id}
-                            onClick={() => void convertLead(lead.id)}
+                            onClick={() => openConvertModal(lead)}
                           >
-                            {converting === lead.id ? "…" : "Converter em cliente"}
+                            {converting === lead.id ? "…" : "Converter em piloto WhatsApp"}
                           </Button>
                         )}
                         <a
@@ -1103,6 +1191,128 @@ export function AdminLeadsClient() {
           </tbody>
         </table>
       </section>
+
+      {convertModalLead && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="lead-pilot-convert-title"
+        >
+          <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-xl">
+            <h2 id="lead-pilot-convert-title" className="text-lg font-bold text-foreground">
+              Associar lead ao tenant piloto
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Lead:{" "}
+              <span className="font-medium text-foreground">
+                {convertModalLead.name ?? convertModalLead.company ?? convertModalLead.phone}
+              </span>
+              . Esta ação marca o lead como convertido e regista o tenant na WhatsApp Platform. Não cria tenant
+              automaticamente.
+            </p>
+
+            <div className="mt-4 space-y-3">
+              <label className="block text-sm font-medium text-foreground">
+                Tenant existente
+                <select
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  value={selectedPilotTenantId}
+                  onChange={(e) => {
+                    setSelectedPilotTenantId(e.target.value);
+                    if (e.target.value) setManualPilotTenantId("");
+                  }}
+                  disabled={pilotTenantsLoading}
+                >
+                  <option value="">Selecione um tenant…</option>
+                  {pilotTenants.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {(t.name ?? "Sem nome") + ` (${t.gtmLifecycle}) — ${t.id}`}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              {pilotTenantsWarning && (
+                <p className="text-xs text-amber-700 dark:text-amber-300">{pilotTenantsWarning}</p>
+              )}
+
+              <label className="block text-sm font-medium text-foreground">
+                Ou tenant ID manual
+                <input
+                  type="text"
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm"
+                  placeholder="cuid do tenant"
+                  value={manualPilotTenantId}
+                  onChange={(e) => {
+                    setManualPilotTenantId(e.target.value);
+                    if (e.target.value.trim()) setSelectedPilotTenantId("");
+                  }}
+                />
+              </label>
+
+              <label className="block text-sm font-medium text-foreground">
+                Responsável interno (opcional)
+                <input
+                  type="text"
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  placeholder="Nome do responsável DevFlow"
+                  value={pilotInternalOwner}
+                  onChange={(e) => setPilotInternalOwner(e.target.value)}
+                />
+              </label>
+
+              <label className="flex items-start gap-2 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={pilotConfirmChecked}
+                  onChange={(e) => setPilotConfirmChecked(e.target.checked)}
+                />
+                <span>
+                  Confirmo associar este lead ao tenant piloto selecionado. O lead permanece no CRM com trilha em{" "}
+                  <code className="text-xs">notes</code> e <code className="text-xs">convertedToRef</code>.
+                </span>
+              </label>
+
+              <p className="text-xs text-muted-foreground">
+                Criar tenant ou provisionar canal:{" "}
+                <a
+                  href={whatsappAppUrl("/admin/tenants")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-primary hover:underline"
+                >
+                  Admin tenants
+                </a>
+                {" · "}
+                <a
+                  href={whatsappAppUrl("/admin/whatsapp")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-primary hover:underline"
+                >
+                  Provisionamento WhatsApp
+                </a>
+              </p>
+            </div>
+
+            <div className="mt-6 flex flex-wrap justify-end gap-2">
+              <Button type="button" variant="disabled" className="rounded-lg border border-border px-4 py-2 text-sm" onClick={closeConvertModal}>
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                disabled={converting === convertModalLead.id}
+                onClick={() => void submitPilotConversion()}
+              >
+                {converting === convertModalLead.id ? "Convertendo…" : "Confirmar conversão"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

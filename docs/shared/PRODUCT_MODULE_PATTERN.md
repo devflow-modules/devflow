@@ -31,7 +31,7 @@ modules/
 - **Purpose:** Session, user resolution, protected routes.
 - **Allowed:** Use `@devflow/auth-core` (e.g. `getAuthUser`), `@devflow/supabase-utils` (server/browser client).
 - **Place in app:** `modules/auth/authService.ts`, `authRepository.ts` (if you need DB-backed session data).
-- **Middleware:** Session refresh/redirect can live in root `middleware.ts` using the same Supabase client (e.g. from supabase-utils).
+- **Proxy:** Session refresh/redirect can live in root `proxy.ts` using the same Supabase client (e.g. from supabase-utils).
 
 ## Billing module
 
