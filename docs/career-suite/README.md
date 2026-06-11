@@ -8,7 +8,7 @@ Portfolio case: **ApplyFlow** (capture and organise applications) + **Interview 
 
 **Deep dive (Resume Match + optional AI coaching):** [`RESUME-MATCH-CASE-STUDY.md`](./RESUME-MATCH-CASE-STUDY.md)
 
-**Integration labs (LibreChat, MCP — docs only):** [`integrations/README.md`](./integrations/README.md)
+**Integration labs (LibreChat, MCP, Nango — docs only):** [`integrations/README.md`](./integrations/README.md)
 
 **Demo checklist (recording / LinkedIn):** [`DEMO-CHECKLIST.md`](./DEMO-CHECKLIST.md)
 
@@ -147,6 +147,7 @@ See **[Roadmap Execution](./ROADMAP-EXECUTION.md)** for the versioned phase plan
 
 Short list (product ideas — may overlap with phased plan):
 
+- **[Nango Gmail/Calendar sync](./integrations/NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth adapter via Nango; [data boundaries](./integrations/SYNC-DATA-BOUNDARIES.md); read-only derived signals; not MVP-required.
 - **[LibreChat + MCP lab](./integrations/LIBRECHAT-MCP-LAB.md)** — experimentation UI over deterministic MCP tools (docs/lab; not product runtime).
 - Optional **encrypted cloud sync** with explicit opt-in and user-held keys.
 - **Richer job text** in the bundle when ApplyFlow can safely expose more context (still user-controlled).
@@ -199,7 +200,7 @@ No credentials are committed; see [`DEMO-CHECKLIST.md`](./DEMO-CHECKLIST.md).
 
 ## Related READMEs
 
-- [Integrations (LibreChat, MCP lab)](./integrations/README.md)
+- [Integrations (LibreChat, MCP, Nango)](./integrations/README.md)
 - [`apps/applyflow/README.md`](../../apps/applyflow/README.md)  
 - [`apps/interview-lab/README.md`](../../apps/interview-lab/README.md)  
 - [`apps/applyflow-extension/README.md`](../../apps/applyflow-extension/README.md)  
