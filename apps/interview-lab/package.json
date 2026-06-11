@@ -10,6 +10,7 @@
     "test": "vitest run --config vitest.config.mts"
   },
   "dependencies": {
+    "@devflow/career-agents": "workspace:*",
     "@devflow/career-core": "workspace:*",
     "next": "16.1.6",
     "react": "19.2.3",

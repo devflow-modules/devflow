@@ -11,6 +11,18 @@ export type AtsPracticeContext = {
   suggestedPitch: string;
 };
 
+export type AtsScoreBreakdownView = {
+  requiredScore: number;
+  niceToHaveScore: number;
+  evidenceScore: number;
+};
+
+export type AtsGapSeverityItem = {
+  skill: string;
+  severity: "high" | "medium" | "low";
+  reason: string;
+};
+
 export type AtsAnalysisResult = {
   overallScore: number;
   technicalScore: number;
@@ -25,4 +37,7 @@ export type AtsAnalysisResult = {
   rewrittenBullets: AtsRewrittenBullet[];
   likelyInterviewQuestions: string[];
   practiceContext: AtsPracticeContext;
+  /** From {@link @devflow/career-agents} match breakdown (required + nice = overallScore). */
+  scoreBreakdown?: AtsScoreBreakdownView;
+  gapSeverity?: AtsGapSeverityItem[];
 };
