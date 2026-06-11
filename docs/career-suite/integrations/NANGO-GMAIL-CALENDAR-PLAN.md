@@ -34,6 +34,10 @@ Nango-derived signals may **enrich** metadata later; they must not replace user-
 
 `@devflow/career-sync` can build a local Calendar sync preview from Calendar-like or Nango-like event fixtures. The prototype returns derived signals and enrichment metadata only; no OAuth, provider calls, raw event persistence, meeting-link retention, or event creation behavior is included.
 
+### Phase 5 — CareerBundle sync enrichment
+
+`@devflow/career-sync` can combine Gmail and Calendar derived signals into a unified CareerBundle sync enrichment contract. This contract contains only normalized, redacted, reviewable signals and does not retain raw provider payloads, raw messages, raw events, attachments, or meeting links.
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab

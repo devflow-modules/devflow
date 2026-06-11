@@ -48,6 +48,7 @@ export {
 
 export type {
   BuildCareerBundleGmailEnrichmentOptions,
+  CareerBundleGmailEnrichment,
   CareerBundleSyncEnrichment,
   GmailSyncPreview,
   GmailSyncPreviewInput,
@@ -76,3 +77,19 @@ export {
   buildNangoCalendarSyncPreview,
   summarizeCalendarSignals,
 } from "./calendar-sync/index.js";
+
+export type {
+  BuildCareerBundleSyncEnrichmentOptions,
+  CareerBundleSyncEnrichmentInput,
+  CareerBundleSyncPrivacy,
+  CareerBundleSyncSource,
+  CareerBundleSyncSummary,
+  CareerBundleUnifiedSyncEnrichment,
+} from "./career-bundle/types.js";
+
+export {
+  buildCareerBundleSyncEnrichment,
+  buildCareerBundleSyncSummary,
+  sortCombinedSignals,
+  summarizeCareerBundleSync,
+} from "./career-bundle/index.js";

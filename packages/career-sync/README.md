@@ -98,3 +98,34 @@ const enrichment = buildCareerBundleCalendarEnrichment(preview.signals, {
   generatedAt: "2026-06-09T12:00:00.000Z",
 });
 ```
+
+## CareerBundle sync enrichment contract
+
+The CareerBundle sync enrichment contract combines safe Gmail and Calendar derived signals into a single reviewable structure for future CareerBundle usage.
+
+It does not include raw provider data, raw email bodies, raw calendar descriptions, attachments, meeting links, OAuth tokens, or provider payloads.
+
+The enrichment is designed to be user-reviewable before any product flow consumes it.
+
+```ts
+import {
+  buildCareerBundleGmailEnrichment,
+  buildCareerBundleCalendarEnrichment,
+  buildCareerBundleSyncEnrichment,
+  buildGmailSyncPreview,
+  buildCalendarSyncPreview,
+  sampleRecruiterEmail,
+  sampleInterviewCalendarEvent,
+} from "@devflow/career-sync";
+
+const gmail = buildCareerBundleGmailEnrichment(
+  buildGmailSyncPreview({ messages: [sampleRecruiterEmail] }).signals,
+);
+const calendar = buildCareerBundleCalendarEnrichment(
+  buildCalendarSyncPreview({ events: [sampleInterviewCalendarEvent] }).signals,
+);
+const unified = buildCareerBundleSyncEnrichment(
+  { gmail, calendar },
+  { generatedAt: "2026-06-09T12:00:00.000Z", now: "2026-06-09T12:00:00.000Z" },
+);
+```
