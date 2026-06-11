@@ -23,6 +23,10 @@ The lab answers: *“Can we give power users a chat interface over the same dete
 
 LibreChat/MCP **must not** become a mandatory backend for end users in the MVP Career Suite story.
 
+## Phase 1 scaffold (shipped)
+
+[`@devflow/career-agents-mcp`](../../../packages/career-agents-mcp/) provides **pure deterministic tool handlers** and a registry (`CAREER_AGENTS_MCP_TOOLS`) for local testing. MCP stdio/HTTP transport and LibreChat wiring are **not** in this scaffold — they land in follow-up PRs.
+
 ## Existing core (do not replace)
 
 - **`@devflow/career-agents`** — `analyzeJob`, `analyzeResume`, `matchJobToResume`, `scoreBreakdown`, `gapSeverity`
