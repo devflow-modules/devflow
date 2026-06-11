@@ -53,3 +53,25 @@ import {
 const signals = extractSignalsFromNangoGmail([sampleNangoRecruiterMessage]);
 // signals[0].processStage === "screening"
 ```
+
+## Gmail read-only sync prototype
+
+The Gmail sync prototype transforms Gmail-like or Nango Gmail-like message objects into safe derived career signals.
+
+It does not call Gmail, does not require OAuth, does not persist raw provider data, and does not send emails.
+
+```ts
+import {
+  buildGmailSyncPreview,
+  buildCareerBundleGmailEnrichment,
+  sampleRecruiterEmail,
+  sampleInterviewInviteEmail,
+} from "@devflow/career-sync";
+
+const preview = buildGmailSyncPreview({
+  messages: [sampleRecruiterEmail, sampleInterviewInviteEmail],
+});
+const enrichment = buildCareerBundleGmailEnrichment(preview.signals, {
+  generatedAt: "2026-06-09T12:00:00.000Z",
+});
+```

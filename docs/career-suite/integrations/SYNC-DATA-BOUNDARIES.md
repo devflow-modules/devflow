@@ -8,6 +8,8 @@ Privacy and data-minimization rules for **future** Gmail and Google Calendar syn
 
 Simulated Nango payload mappers live in `@devflow/career-sync` (`mapNangoGmailMessage`, `mapNangoCalendarEvent`) and feed the same deterministic extractors — no OAuth, SDK, or raw persistence.
 
+Gmail read-only sync preview (`buildGmailSyncPreview`, `buildCareerBundleGmailEnrichment`) produces derived signals and CareerBundle enrichment metadata from fixtures only — no raw messages, attachments, or provider calls.
+
 ## Principles
 
 - **Privacy-first** — collect the minimum needed for career workflow hints
