@@ -199,15 +199,22 @@ export function AtsAnalyzerClient() {
 
           <Section
             title="1. Match overview"
-            subtitle="Weighted heuristic scores (0–100). Same inputs always yield the same output on this build."
+            subtitle="Powered by @devflow/career-agents — weighted heuristic scores (0–100). Same inputs always yield the same output on this build."
           >
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               <ScoreCard label="Overall" value={result.overallScore} />
-              <ScoreCard label="Technical keywords" value={result.technicalScore} />
+              <ScoreCard label="Required skills" value={result.technicalScore} />
               <ScoreCard label="Seniority signals" value={result.seniorityScore} />
-              <ScoreCard label="Vocabulary coverage" value={result.keywordCoverageScore} />
+              <ScoreCard label="Nice-to-have / evidence" value={result.keywordCoverageScore} />
               <ScoreCard label="Interview readiness" value={result.interviewReadinessScore} />
             </div>
+            {result.scoreBreakdown ? (
+              <p className="mt-4 text-xs leading-relaxed text-emerald-100/85">
+                Required match {result.scoreBreakdown.requiredScore}/80 · Nice-to-have{" "}
+                {result.scoreBreakdown.niceToHaveScore}/20 · Evidence quality{" "}
+                {result.scoreBreakdown.evidenceScore}/100
+              </p>
+            ) : null}
           </Section>
 
           <Section title="2. Matched keywords" subtitle="Canonical tech terms from the job description that also appear in your resume.">
@@ -227,10 +234,10 @@ export function AtsAnalyzerClient() {
             </div>
           </Section>
 
-          <Section title="3. Missing keywords" subtitle="Job mentions these stack signals, but they were not detected in the resume text.">
+          <Section title="3. Missing keywords" subtitle="Required stack signals from the job not detected in your resume.">
             <div className="flex flex-wrap gap-2">
               {result.missingKeywords.length === 0 ? (
-                <span className="text-sm text-neutral-500">None from the canonical list — still review vocabulary coverage.</span>
+                <span className="text-sm text-neutral-500">None from required skills — review nice-to-have gaps below.</span>
               ) : (
                 result.missingKeywords.map((k) => (
                   <span
@@ -242,6 +249,15 @@ export function AtsAnalyzerClient() {
                 ))
               )}
             </div>
+            {result.gapSeverity && result.gapSeverity.length > 0 ? (
+              <div className="mt-4 border-t border-neutral-800/80 pt-4">
+                <BulletList
+                  items={result.gapSeverity.slice(0, 8).map(
+                    (gap) => `[${gap.severity.toUpperCase()}] ${gap.skill} — ${gap.reason}`,
+                  )}
+                />
+              </div>
+            ) : null}
           </Section>
 
           <Section title="4. Strengths">
