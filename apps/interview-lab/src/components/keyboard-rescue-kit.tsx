@@ -1,5 +1,6 @@
 "use client";
 
+import { InterviewLabButton } from "@/components/ui/InterviewLabButton";
 import { useCallback, useEffect, useState } from "react";
 import {
   EMERGENCY_SYMBOL_VALUES,
@@ -59,14 +60,14 @@ export function KeyboardRescueKit() {
         </p>
         <div className="mt-2 flex flex-wrap gap-1">
           {EMERGENCY_SYMBOL_VALUES.map((v) => (
-            <button
+            <InterviewLabButton
               key={v}
               type="button"
               onClick={() => void copyText(v)}
               className="rounded-md border border-amber-500/30 bg-neutral-950 px-2 py-1 font-mono text-[0.65rem] text-amber-100/90 hover:border-amber-400/50"
             >
               Copy {v}
-            </button>
+            </InterviewLabButton>
           ))}
         </div>
       </div>
@@ -79,7 +80,7 @@ export function KeyboardRescueKit() {
             ["checklist", "Checklist"],
           ] as const
         ).map(([id, label]) => (
-          <button
+          <InterviewLabButton
             key={id}
             type="button"
             onClick={() => setTab(id)}
@@ -88,7 +89,7 @@ export function KeyboardRescueKit() {
             }`}
           >
             {label}
-          </button>
+          </InterviewLabButton>
         ))}
       </div>
 
@@ -112,13 +113,13 @@ export function KeyboardRescueKit() {
                         <span className="font-mono text-xs text-emerald-200/90">{sym.label}</span>
                         <p className="mt-0.5 text-[0.6rem] leading-snug text-neutral-500">{sym.description}</p>
                       </div>
-                      <button
+                      <InterviewLabButton
                         type="button"
                         onClick={() => void copyText(sym.value)}
                         className="shrink-0 rounded border border-neutral-600 px-2 py-0.5 text-[0.6rem] font-medium text-neutral-200 hover:border-emerald-500/40"
                       >
                         Copy
-                      </button>
+                      </InterviewLabButton>
                     </li>
                   ))}
                 </ul>
@@ -139,13 +140,13 @@ export function KeyboardRescueKit() {
                   <p className="mt-1 text-[0.65rem] text-neutral-500">{snip.description}</p>
                   {snip.pattern ? <p className="mt-1 text-[0.6rem] text-neutral-600">{snip.pattern}</p> : null}
                 </div>
-                <button
+                <InterviewLabButton
                   type="button"
                   onClick={() => void copyText(snip.code)}
                   className="shrink-0 rounded border border-neutral-600 px-2 py-1 text-[0.6rem] font-medium text-neutral-200 hover:border-emerald-500/40"
                 >
                   Copy snippet
-                </button>
+                </InterviewLabButton>
               </div>
               <pre className="mt-2 max-h-40 overflow-auto rounded border border-neutral-800/80 bg-neutral-950 p-2 font-mono text-[0.6rem] leading-relaxed text-emerald-100/85">
                 {snip.code}
@@ -173,13 +174,13 @@ export function KeyboardRescueKit() {
                 <p className="mt-1 pl-6 text-[0.6rem] text-neutral-500">{item.description}</p>
                 {item.symbolValue || item.id === "kbd-freq-snippet" ? (
                   <div className="mt-2 pl-6">
-                    <button
+                    <InterviewLabButton
                       type="button"
                       onClick={() => copySnippetForChecklist(item)}
                       className="rounded border border-neutral-600 px-2 py-0.5 text-[0.6rem] text-neutral-300 hover:border-emerald-500/40"
                     >
                       {item.id === "kbd-freq-snippet" ? "Copy frequency snippet" : "Copy"}
-                    </button>
+                    </InterviewLabButton>
                   </div>
                 ) : null}
               </li>

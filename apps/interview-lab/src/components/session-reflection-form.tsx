@@ -1,5 +1,6 @@
 "use client";
 
+import { InterviewLabButton } from "@/components/ui/InterviewLabButton";
 import { useEffect, useState } from "react";
 import type { SessionRecord } from "@/lib/types";
 import { FREEZE_REASON_OPTIONS } from "@/lib/types";
@@ -85,7 +86,7 @@ export function SessionReflectionForm({ sessionId, initial, onSaved }: Props) {
         <p className="mt-1 text-xs text-neutral-500">Optional — 1 = low, 5 = high.</p>
         <div className="mt-2 flex flex-wrap gap-1.5">
           {([1, 2, 3, 4, 5] as const).map((n) => (
-            <button
+            <InterviewLabButton
               key={n}
               type="button"
               onClick={() => setAfter((c) => (c === n ? null : n))}
@@ -96,7 +97,7 @@ export function SessionReflectionForm({ sessionId, initial, onSaved }: Props) {
               }`}
             >
               {n}
-            </button>
+            </InterviewLabButton>
           ))}
         </div>
       </div>
@@ -179,13 +180,13 @@ export function SessionReflectionForm({ sessionId, initial, onSaved }: Props) {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button
+        <InterviewLabButton
           type="button"
           onClick={save}
           className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-neutral-950 transition hover:bg-emerald-400"
         >
           Save reflection
-        </button>
+        </InterviewLabButton>
         {feedback ? <span className="text-sm text-emerald-400/90">{feedback}</span> : null}
       </div>
     </section>

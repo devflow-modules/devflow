@@ -1303,6 +1303,7 @@ export function AdminLeadsClient() {
               </Button>
               <Button
                 type="button"
+                variant="primary"
                 className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
                 disabled={converting === convertModalLead.id}
                 onClick={() => void submitPilotConversion()}

@@ -199,9 +199,10 @@ export function DemoGuidedFlow() {
         aria-label="Etapas da demonstração"
       >
         {STEPS.map((s, i) => (
-          <button
+          <Button
             key={s.id}
             type="button"
+            variant={i === stepIndex ? "primary" : "secondary"}
             onClick={() => goToStep(i, "tab")}
             aria-current={i === stepIndex ? "step" : undefined}
             className={cn(
@@ -212,7 +213,7 @@ export function DemoGuidedFlow() {
             )}
           >
             {s.id}. {s.title}
-          </button>
+          </Button>
         ))}
       </nav>
 

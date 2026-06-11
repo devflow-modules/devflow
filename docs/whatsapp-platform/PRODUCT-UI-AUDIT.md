@@ -470,6 +470,39 @@ cd apps/whatsapp-platform && pnpm exec playwright test tests/a11y/product-ui-a11
 
 **Próxima cobertura sugerida:** auth legacy (`PasswordField`), toast semântico, modal de activação de canal, `/conversations` no spec Product UI, trap de foco explícito no modal suporte.
 
+#### P2.1 — Execução autenticada (staging/CI)
+
+**Estado:** ✅ (2026-06-09)
+
+**Autenticação:** login único no `globalSetup` (`tests/setup/global-auth.setup.ts`) → `tests/.auth/whatsapp-admin.json` (gitignored). Specs autenticados reutilizam `storageState` via `useAuthenticatedA11yContext()` e navegam com `navigateAsWhatsappAdmin()` (fallback para login se sessão expirou).
+
+**Variáveis de ambiente:**
+
+| Variável | Obrigatória | Descrição |
+|----------|-------------|-----------|
+| `E2E_WHATSAPP_ADMIN_EMAIL` | Para rotas autenticadas | Conta tenant manager recomendada |
+| `E2E_WHATSAPP_ADMIN_PASSWORD` | Para rotas autenticadas | Nunca commitar |
+| `E2E_WHATSAPP_BASE_URL` | Opcional | Staging/produção de teste; omitir = `http://127.0.0.1:3099` |
+| `E2E_BASE_URL` | Opcional | Alias legado (mesmo efeito) |
+
+**Local sem credenciais:** `pnpm test:a11y` → `/login` passa; autenticados skipped (comportamento esperado).
+
+**Local autenticado:**
+
+```bash
+cd apps/whatsapp-platform
+# credenciais em .env.local (não versionado)
+pnpm test:a11y
+# ou só Product UI:
+pnpm test:a11y:product-ui
+```
+
+**CI:** workflow `.github/workflows/whatsapp-platform-a11y.yml` — secrets `E2E_WHATSAPP_*`; `E2E_WHATSAPP_BASE_URL` opcional (staging desactiva webServer local).
+
+**Skips legítimos restantes:** billing WL/≠SAAS, admin sem `platform_admin`, onboarding concluído/operator, agents sem `canViewTeamPage`.
+
+**Pendências de violações:** a documentar após primeira execução CI/staging com credenciais reais.
+
 ---
 
 ## 12. Recomendações de implementação
@@ -530,3 +563,4 @@ cd apps/whatsapp-platform && pnpm exec playwright test tests/a11y/product-ui-a11
 | 2026-06-09 | Product UI Pass P1 — Dashboard and Cards (métricas, saúde, billing em dashboard, WhatsApp dashboard) |
 | 2026-06-09 | Product UI Pass P1 — Billing and Onboarding (settings billing, onboarding, IA analytics, admin tenants) |
 | 2026-06-09 | Product UI Pass P2 — validação automatizada axe/Playwright (`product-ui-a11y.spec.ts`) |
+| 2026-06-09 | Product UI Pass P2.1 — storageState autenticado, staging/CI documentado |

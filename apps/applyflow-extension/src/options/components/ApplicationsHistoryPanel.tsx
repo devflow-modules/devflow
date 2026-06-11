@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
+import { ExtensionButton } from "../../components/ExtensionButton.js";
 import {
   computeApplicationMetrics,
   getApplicationsByPeriod,
@@ -364,18 +365,18 @@ export function ApplicationsHistoryPanel() {
         </div>
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center", marginTop: "14px" }}>
-          <button type="button" className="af-opt-btn-secondary" style={{ width: "auto" }} onClick={() => handleExportCsvFiltered()}>
+          <ExtensionButton type="button" className="af-opt-btn-secondary" style={{ width: "auto" }} onClick={() => handleExportCsvFiltered()}>
             Exportar CSV (filtro)
-          </button>
-          <button type="button" className="af-opt-btn-secondary" style={{ width: "auto" }} onClick={() => handleExportJsonFiltered()}>
+          </ExtensionButton>
+          <ExtensionButton type="button" className="af-opt-btn-secondary" style={{ width: "auto" }} onClick={() => handleExportJsonFiltered()}>
             Exportar JSON (filtro)
-          </button>
-          <button type="button" className="af-opt-btn-secondary" style={{ width: "auto" }} onClick={() => void handleExportJsonFull()}>
+          </ExtensionButton>
+          <ExtensionButton type="button" className="af-opt-btn-secondary" style={{ width: "auto" }} onClick={() => void handleExportJsonFull()}>
             Backup JSON completo
-          </button>
-          <button type="button" className="af-opt-btn-secondary" style={{ width: "auto" }} onClick={() => void onClearAll()}>
+          </ExtensionButton>
+          <ExtensionButton type="button" className="af-opt-btn-secondary" style={{ width: "auto" }} onClick={() => void onClearAll()}>
             Limpar histórico
-          </button>
+          </ExtensionButton>
         </div>
       </div>
 
@@ -470,14 +471,14 @@ export function ApplicationsHistoryPanel() {
                       />
                     </td>
                     <td>
-                      <button
+                      <ExtensionButton
                         type="button"
                         className="af-opt-btn-secondary"
                         style={{ width: "auto", padding: "4px 8px" }}
                         onClick={() => void onDelete(r.id)}
                       >
                         Excluir
-                      </button>
+                      </ExtensionButton>
                     </td>
                   </tr>
                 );

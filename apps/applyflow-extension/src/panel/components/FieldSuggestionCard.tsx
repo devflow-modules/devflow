@@ -1,3 +1,4 @@
+import { ExtensionButton } from "../../components/ExtensionButton.js";
 import type { SuggestedAnswer } from "@devflow/applyflow-core";
 import type { FieldClassification } from "@devflow/applyflow-linkedin";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -152,23 +153,23 @@ export function FieldSuggestionCard(props: {
         <p className="af-muted">Texto longo: considerar Copiar e colar se o formulário usar um editor especial.</p>
       ) : null}
       <div className="af-action-row">
-        <button type="button" className={`af-btn ${copied ? "af-btn-copied" : ""}`} onClick={() => void copy()}>
+        <ExtensionButton type="button" className={`af-btn ${copied ? "af-btn-copied" : ""}`} onClick={() => void copy()}>
           {copied ? "Copiado" : "Copiar"}
-        </button>
+        </ExtensionButton>
         {props.attemptAutofill && needsRiskConfirm ? (
-          <button type="button" className="af-btn-secondary" onClick={() => setRiskAcknowledged(true)}>
+          <ExtensionButton type="button" className="af-btn-secondary" onClick={() => setRiskAcknowledged(true)}>
             Confirmar preenchimento
-          </button>
+          </ExtensionButton>
         ) : null}
         {props.attemptAutofill && gate.allowed ? (
-          <button
+          <ExtensionButton
             type="button"
             className="af-btn-secondary"
             disabled={fillStatus === "loading" || !displayValue || hardBlock}
             onClick={() => void fill()}
           >
             {fillStatus === "loading" ? "A preencher…" : preencherLabel}
-          </button>
+          </ExtensionButton>
         ) : null}
       </div>
       {fillStatus === "ok" ? <p className="af-text-success">{fillDetail}</p> : null}

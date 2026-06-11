@@ -2,6 +2,8 @@
 
 > DevFlow Career Suite — A local-first career workflow connecting job applications to role-specific interview preparation.
 
+**Public portfolio case (recruiters / LinkedIn):** [`../public-cases/CAREER-SUITE.md`](../public-cases/CAREER-SUITE.md)
+
 Portfolio case: **ApplyFlow** (capture and organise applications) + **Interview Lab** (role-specific technical interview practice in English), connected by a typed **`CareerBundle` JSON** — **local-first**, **privacy-first**, no shared backend between the two apps.
 
 **Deep dive (Resume Match + optional AI coaching):** [`RESUME-MATCH-CASE-STUDY.md`](./RESUME-MATCH-CASE-STUDY.md)

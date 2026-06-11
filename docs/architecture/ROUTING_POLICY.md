@@ -74,6 +74,14 @@ Novas exceções: adicionar **tabela nesta seção** + linha na `MATRIZ-DECISAO-
 
 ---
 
+## Notas de governança
+
+Alterações cosméticas em `page.tsx` ou `route.ts` (sem mudança de path, ownership ou contrato) ainda disparam o gate de CI; registre aqui o motivo quando o diff for apenas conformidade de design system ou lint.
+
+- **2026-06-10** — PR #36 tocou `apps/whatsapp-platform/src/app/settings/ai/page.tsx` apenas para substituir um `<button>` nativo de submit pelo primitivo compartilhado `Button`. Alteração de conformidade com design system (`check:buttons`); não altera path da rota, ownership, navegação, fronteira de autenticação, contrato HTTP ou semântica do formulário.
+
+---
+
 ## 7. Responsabilidade
 
 - **Dono da política:** time de engenharia / arquitetura (revisar a cada trimestre ou após novo produto).  

@@ -199,7 +199,7 @@ pnpm --filter applyflow-extension build
 
 Em **`/dashboard`**, com candidaturas carregadas, usa **Interview Lab · exportação local** → **Exportar para Interview Lab** para descarregar um JSON **`CareerBundle`** (`schemaVersion` **1.0**). Requer build de `@devflow/career-core` antes do `next build` / `next dev` do dashboard.
 
-Narrativa completa (fluxo, privacidade, demo script): [`docs/career-suite/README.md`](../../docs/career-suite/README.md) · [`docs/career-suite/DEMO-CHECKLIST.md`](../../docs/career-suite/DEMO-CHECKLIST.md).
+Narrativa completa (fluxo, privacidade, demo script): [`docs/career-suite/README.md`](../../docs/career-suite/README.md) · [`docs/career-suite/DEMO-CHECKLIST.md`](../../docs/career-suite/DEMO-CHECKLIST.md) · **case público:** [`docs/public-cases/CAREER-SUITE.md`](../../docs/public-cases/CAREER-SUITE.md).
 
 ---
 
@@ -216,6 +216,7 @@ Narrativa completa (fluxo, privacidade, demo script): [`docs/career-suite/README
 | [`ISSUE_28_CLOSE.md`](../../docs/applyflow/ISSUE_28_CLOSE.md) | Texto sugerido para fechar a issue #28 no GitHub |
 | [`DEMO_SCRIPT.md`](../../docs/applyflow/DEMO_SCRIPT.md) | Roteiro de vídeo 60–90 s (demo, import, preview, fecho) |
 | [`docs/career-suite/README.md`](../../docs/career-suite/README.md) | Ponte JSON ApplyFlow ↔ Interview Lab (local-first) |
+| [`docs/public-cases/CAREER-SUITE.md`](../../docs/public-cases/CAREER-SUITE.md) | Case público — portfólio, LinkedIn, demo script |
 
 ---
 

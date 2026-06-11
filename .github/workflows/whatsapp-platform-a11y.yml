@@ -1,5 +1,6 @@
 # Gate opcional: a11y automatizado + checagens leves do monorepo na app WhatsApp Platform.
 # Segredos opcionais E2E_WHATSAPP_* desbloqueiam fluxos autenticados (sem eles: /login + skips).
+# E2E_WHATSAPP_BASE_URL (secret opcional): aponta para staging — desactiva webServer local no Playwright.
 
 name: WhatsApp Platform A11y
 
@@ -34,15 +35,23 @@ jobs:
         run: pnpm install --frozen-lockfile
         working-directory: ${{ github.workspace }}
 
+      - name: Generate WhatsApp Prisma client
+        run: pnpm db:generate
+
       - name: check:buttons + lint:design-system + tsc
         run: |
           pnpm check:buttons
           pnpm lint:design-system
           pnpm exec tsc --noEmit
 
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
       - name: test:a11y (axe + Playwright)
         env:
           CI: "1"
           E2E_WHATSAPP_ADMIN_EMAIL: ${{ secrets.E2E_WHATSAPP_ADMIN_EMAIL }}
           E2E_WHATSAPP_ADMIN_PASSWORD: ${{ secrets.E2E_WHATSAPP_ADMIN_PASSWORD }}
+          E2E_WHATSAPP_BASE_URL: ${{ secrets.E2E_WHATSAPP_BASE_URL }}
+          E2E_BASE_URL: ${{ secrets.E2E_WHATSAPP_BASE_URL }}
         run: pnpm test:a11y

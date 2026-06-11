@@ -1,5 +1,6 @@
 "use client";
 
+import { InterviewLabButton } from "@/components/ui/InterviewLabButton";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -357,23 +358,23 @@ export function ApplyflowImportClient({
           >
             Upload JSON
           </label>
-          <button
+          <InterviewLabButton
             type="button"
             disabled={clipboardBusy}
             onClick={() => void importFromClipboard()}
             className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-100 transition hover:border-emerald-400/60 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {clipboardBusy ? "Reading clipboard…" : "Import from clipboard"}
-          </button>
-          <button
+          </InterviewLabButton>
+          <InterviewLabButton
             type="button"
             onClick={() => onParsePasted()}
             className="rounded-xl border border-neutral-600 px-4 py-2.5 text-sm font-semibold text-neutral-100 transition hover:border-neutral-400"
           >
             Parse field
-          </button>
+          </InterviewLabButton>
           {hasValidBundle ? (
-            <button
+            <InterviewLabButton
               type="button"
               onClick={() => {
                 clearApplyFlowCareerBundle();
@@ -385,7 +386,7 @@ export function ApplyflowImportClient({
               className="rounded-xl border border-red-500/40 px-4 py-2.5 text-sm font-medium text-red-200/90 hover:bg-red-500/10"
             >
               Clear import
-            </button>
+            </InterviewLabButton>
           ) : null}
         </div>
         {error ? (
@@ -455,13 +456,13 @@ export function ApplyflowImportClient({
                   )}
                 </div>
                 <div className="flex shrink-0 flex-col justify-center border-t border-neutral-800 pt-4 md:border-l md:border-t-0 md:pl-5 md:pt-0">
-                  <button
+                  <InterviewLabButton
                     type="button"
                     onClick={() => trainFor(app)}
                     className="rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-neutral-950 shadow-sm transition hover:bg-emerald-400 md:min-w-[11rem]"
                   >
                     Train for this role
-                  </button>
+                  </InterviewLabButton>
                 </div>
               </li>
             ))}

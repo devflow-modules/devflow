@@ -4,8 +4,15 @@ import path from "node:path";
 
 const ROOT = process.cwd();
 const SCAN_DIRS = ["src", "apps"];
+/** Files that may contain the canonical native `<button>` primitive for their app/design system. */
 const ALLOWED_SNIPPETS = [
   `${path.sep}components${path.sep}ui${path.sep}button.tsx`,
+  // ApplyFlow local button primitive — native <button> only here (see ApplyFlowButton.tsx).
+  `${path.sep}apps${path.sep}applyflow${path.sep}src${path.sep}components${path.sep}ui${path.sep}ApplyFlowButton.tsx`,
+  // ApplyFlow extension (MV3) button primitive — isolated CSS, not portal Button.
+  `${path.sep}apps${path.sep}applyflow-extension${path.sep}src${path.sep}components${path.sep}ExtensionButton.tsx`,
+  // Interview Lab local button primitive — native <button> only here.
+  `${path.sep}apps${path.sep}interview-lab${path.sep}src${path.sep}components${path.sep}ui${path.sep}InterviewLabButton.tsx`,
   `${path.sep}modules${path.sep}email${path.sep}templates${path.sep}`,
   `${path.sep}node_modules${path.sep}`,
   `${path.sep}.next${path.sep}`,

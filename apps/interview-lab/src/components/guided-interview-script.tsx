@@ -1,5 +1,6 @@
 "use client";
 
+import { InterviewLabButton } from "@/components/ui/InterviewLabButton";
 import { useCallback, useMemo, useState } from "react";
 import {
   INTERVIEW_SCRIPT_PHASES,
@@ -61,15 +62,15 @@ export function GuidedInterviewScript() {
       </p>
 
       <div className="mt-3 flex flex-wrap gap-1.5">
-        <button type="button" className={btnQuick} onClick={() => void copyText(buildQuickOpeningCopy())}>
+        <InterviewLabButton type="button" className={btnQuick} onClick={() => void copyText(buildQuickOpeningCopy())}>
           Copy opening
-        </button>
-        <button type="button" className={btnQuick} onClick={() => void copyText(buildQuickStuckCopy())}>
+        </InterviewLabButton>
+        <InterviewLabButton type="button" className={btnQuick} onClick={() => void copyText(buildQuickStuckCopy())}>
           Copy stuck phrase
-        </button>
-        <button type="button" className={btnQuick} onClick={() => void copyText(buildQuickComplexityCopy())}>
+        </InterviewLabButton>
+        <InterviewLabButton type="button" className={btnQuick} onClick={() => void copyText(buildQuickComplexityCopy())}>
           Copy complexity template
-        </button>
+        </InterviewLabButton>
       </div>
 
       {copyHint ? <p className="mt-2 text-[0.65rem] text-emerald-400/90">{copyHint}</p> : null}
@@ -79,7 +80,7 @@ export function GuidedInterviewScript() {
           const isOpen = Boolean(expanded[phase.id]);
           return (
             <div key={phase.id} className="rounded-lg border border-neutral-800/90 bg-neutral-950/50">
-              <button
+              <InterviewLabButton
                 type="button"
                 onClick={() => togglePhase(phase.id)}
                 className="flex w-full items-start justify-between gap-2 px-2.5 py-2 text-left"
@@ -90,7 +91,7 @@ export function GuidedInterviewScript() {
                   <span className="mt-0.5 block text-[0.65rem] leading-snug text-neutral-500">{phase.shortDescription}</span>
                 </span>
                 <span className="shrink-0 pt-0.5 text-[0.65rem] text-neutral-500">{isOpen ? "−" : "+"}</span>
-              </button>
+              </InterviewLabButton>
               {isOpen ? (
                 <ul className="space-y-1.5 border-t border-neutral-800/70 px-2.5 py-2">
                   {phase.prompts.map((line, i) => {
@@ -105,12 +106,12 @@ export function GuidedInterviewScript() {
                       >
                         <p className={done ? "text-neutral-400 line-through decoration-neutral-500" : ""}>{line}</p>
                         <div className="mt-1.5 flex flex-wrap gap-1">
-                          <button type="button" className={btnGhost} onClick={() => void copyText(line, "Copied.")}>
+                          <InterviewLabButton type="button" className={btnGhost} onClick={() => void copyText(line, "Copied.")}>
                             Copy
-                          </button>
-                          <button type="button" className={btnGhost} onClick={() => toggleSpoken(pk)}>
+                          </InterviewLabButton>
+                          <InterviewLabButton type="button" className={btnGhost} onClick={() => toggleSpoken(pk)}>
                             {done ? "Unmark" : "Mark as spoken"}
-                          </button>
+                          </InterviewLabButton>
                           {done ? (
                             <span className="self-center text-[0.6rem] font-medium uppercase tracking-wide text-emerald-500/90">
                               Spoken
