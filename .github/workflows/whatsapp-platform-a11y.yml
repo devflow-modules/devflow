@@ -44,6 +44,9 @@ jobs:
           pnpm lint:design-system
           pnpm exec tsc --noEmit
 
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
       - name: test:a11y (axe + Playwright)
         env:
           CI: "1"
