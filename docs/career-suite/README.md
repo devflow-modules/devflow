@@ -10,6 +10,12 @@ Portfolio case: **ApplyFlow** (capture and organise applications) + **Interview 
 
 **Demo checklist (recording / LinkedIn):** [`DEMO-CHECKLIST.md`](./DEMO-CHECKLIST.md)
 
+**Roadmap execution (agent-ready core):**
+
+- [Roadmap Execution](./ROADMAP-EXECUTION.md)
+- [Agent Contracts](./AGENT-CONTRACTS.md)
+- [Agent Architecture](./AGENT-ARCHITECTURE.md)
+
 Full Career Suite product overview remains in this file; app READMEs stay short and link here.
 
 ---
@@ -134,6 +140,10 @@ Use a clean browser profile or incognito (avoid unrelated extensions on LinkedIn
 ---
 
 ## Future roadmap (not implemented)
+
+See **[Roadmap Execution](./ROADMAP-EXECUTION.md)** for the versioned phase plan (deterministic `career-agents` package, Interview Lab integration, then optional LibreChat / Nango / multi-agent / OpenClaw accelerators).
+
+Short list (product ideas — may overlap with phased plan):
 
 - Optional **encrypted cloud sync** with explicit opt-in and user-held keys.
 - **Richer job text** in the bundle when ApplyFlow can safely expose more context (still user-controlled).
