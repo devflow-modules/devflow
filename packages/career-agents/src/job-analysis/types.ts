@@ -14,4 +14,10 @@ export type JobAnalysisOutput = {
   domainSignals: string[];
   riskFlags: string[];
   interviewTopics: string[];
+  skillGroups?: Record<string, CareerSkill[]>;
+  seniorityEvidence?: string[];
+  requirementsDensity?: {
+    requiredCount: number;
+    niceToHaveCount: number;
+  };
 };

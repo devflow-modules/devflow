@@ -21,3 +21,46 @@ export const sampleResumeInput: ResumeAnalysisInput = {
   ],
   education: ["B.S. Computer Science"],
 };
+
+export const sampleJuniorResume: ResumeAnalysisInput = {
+  headline: "Desenvolvedor Júnior Frontend",
+  summary: "Apaixonado por tecnologia.",
+  experiences: [
+    {
+      title: "Estágio em Desenvolvimento",
+      company: "Startup Local",
+      description: "Apoio em telas com React.",
+    },
+  ],
+  skills: ["react", "js", "html", "css", "tailwindcss"],
+  education: ["Tecnólogo em Análise e Desenvolvimento de Sistemas"],
+};
+
+export const sampleSeniorProductEngineerResume: ResumeAnalysisInput = {
+  headline: "Senior Product Engineer",
+  summary:
+    "Product-minded engineer shipping SaaS dashboards with measurable adoption gains (+18% activation).",
+  experiences: [
+    {
+      title: "Senior Product Engineer",
+      company: "MetricsFlow",
+      description:
+        "Owned analytics dashboard modules in React and Next.js. Integrated REST APIs, JWT auth, and PostgreSQL via Prisma. Led rollout with Jest and Playwright.",
+    },
+    {
+      title: "Fullstack Developer",
+      company: "HealthOps",
+      description:
+        "Built automation workflows for health sales teams using Node.js, Express, and Docker.",
+    },
+  ],
+  skills: ["React", "Next.js", "TypeScript", "Node.js", "Prisma", "PostgreSQL", "Docker", "SaaS"],
+  projects: [
+    {
+      name: "Activation analytics hub",
+      description: "Self-serve analytics dashboard for product squads.",
+      stack: ["React", "Next.js", "PostgreSQL", "REST"],
+    },
+  ],
+  education: ["B.S. Software Engineering"],
+};
