@@ -8,6 +8,8 @@ Portfolio case: **ApplyFlow** (capture and organise applications) + **Interview 
 
 **Deep dive (Resume Match + optional AI coaching):** [`RESUME-MATCH-CASE-STUDY.md`](./RESUME-MATCH-CASE-STUDY.md)
 
+**Integration labs (LibreChat, MCP — docs only):** [`integrations/README.md`](./integrations/README.md)
+
 **Demo checklist (recording / LinkedIn):** [`DEMO-CHECKLIST.md`](./DEMO-CHECKLIST.md)
 
 **Roadmap execution (agent-ready core):**
@@ -28,7 +30,7 @@ Full Career Suite product overview remains in this file; app READMEs stay short 
 
 ### Resume match (`/career/ats`)
 
-- **What it is:** Paste **resume text** and a **job description** in the browser; a deterministic **ATS-style** keyword and seniority heuristic runs locally. It is **not** a certified ATS parser and does not call external APIs for the **core** analysis.
+- **What it is:** Paste **resume text** and a **job description** in the browser; a deterministic **ATS-style** keyword and seniority heuristic runs locally (see **`@devflow/career-agents`** when that package is present in the monorepo). It is **not** a certified ATS parser and does not call external APIs for the **core** analysis.
 - **What you get:** Scores (0–100), matched/missing canonical tech keywords, vocabulary coverage, strengths, gaps, improvement suggestions, draft bullets, likely interview questions — then a one-click handoff into practice.
 - **Optional AI (OpenAI):** After local results, **AI Resume Coaching** can generate summary, bullets, pitch, and talking points — **only** when the user clicks **Generate AI coaching**. Same browser-stored API key pattern as **`/ai-review`** (never sent to DevFlow servers; calls go directly to OpenAI from the browser when enabled).
 - **Practice connection:** **Practice interview from this analysis** builds an `InterviewPreparation`, stores a **`CareerPrep`** row in `localStorage` (same shape as ApplyFlow), and opens the default practice route with `?careerPrep=`.
@@ -145,10 +147,12 @@ See **[Roadmap Execution](./ROADMAP-EXECUTION.md)** for the versioned phase plan
 
 Short list (product ideas — may overlap with phased plan):
 
+- **[LibreChat + MCP lab](./integrations/LIBRECHAT-MCP-LAB.md)** — experimentation UI over deterministic MCP tools (docs/lab; not product runtime).
 - Optional **encrypted cloud sync** with explicit opt-in and user-held keys.
 - **Richer job text** in the bundle when ApplyFlow can safely expose more context (still user-controlled).
 - **Monaco / worker** isolation for the Interview Lab runner (orthogonal to Career Suite).
 - **Import history** UI (versioned bundles, diff between exports).
+- **Nango Gmail/Calendar** — deferred; see [integrations](./integrations/README.md).
 
 ---
 
@@ -195,6 +199,7 @@ No credentials are committed; see [`DEMO-CHECKLIST.md`](./DEMO-CHECKLIST.md).
 
 ## Related READMEs
 
+- [Integrations (LibreChat, MCP lab)](./integrations/README.md)
 - [`apps/applyflow/README.md`](../../apps/applyflow/README.md)  
 - [`apps/interview-lab/README.md`](../../apps/interview-lab/README.md)  
 - [`apps/applyflow-extension/README.md`](../../apps/applyflow-extension/README.md)  
