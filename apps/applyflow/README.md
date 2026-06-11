@@ -199,7 +199,7 @@ pnpm --filter applyflow-extension build
 
 Em **`/dashboard`**, com candidaturas carregadas, usa **Interview Lab · exportação local** → **Exportar para Interview Lab** para descarregar um JSON **`CareerBundle`** (`schemaVersion` **1.0**). Requer build de `@devflow/career-core` antes do `next build` / `next dev` do dashboard.
 
-Narrativa completa (fluxo, privacidade, demo script): [`docs/career-suite/README.md`](../../docs/career-suite/README.md).
+Narrativa completa (fluxo, privacidade, demo script): [`docs/career-suite/README.md`](../../docs/career-suite/README.md) · [`docs/career-suite/DEMO-CHECKLIST.md`](../../docs/career-suite/DEMO-CHECKLIST.md).
 
 ---
 

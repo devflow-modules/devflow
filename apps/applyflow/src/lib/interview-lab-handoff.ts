@@ -2,6 +2,7 @@ import type { CareerBundle } from "@devflow/career-core";
 
 /** Default when `NEXT_PUBLIC_INTERVIEW_LAB_URL` is unset (local Interview Lab). */
 export const DEFAULT_INTERVIEW_LAB_ORIGIN = "http://localhost:3015";
+export const DEFAULT_INTERVIEW_LAB_ORIGIN_ALT = "http://127.0.0.1:3015";
 
 export function getInterviewLabOrigin(): string {
   const raw = process.env.NEXT_PUBLIC_INTERVIEW_LAB_URL?.trim();

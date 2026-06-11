@@ -23,7 +23,9 @@ export async function sendCareerBundleViaPostMessageWithRetry(opts: {
   const intervalMs = opts.intervalMs ?? 160;
   const totalWaitMs = opts.totalWaitMs ?? 8500;
 
-  const win = typeof window !== "undefined" ? window.open(url, "_blank", "noopener,noreferrer") : null;
+  // Sem `noopener`: Interview Lab precisa de `window.opener` para enviar ACK.
+  // Origens são validadas em `@devflow/career-core` (allowlist postMessage).
+  const win = typeof window !== "undefined" ? window.open(url, "_blank") : null;
   if (!win) {
     const c = await opts.copyToClipboard(opts.stringifyBundle(opts.bundle));
     return c.ok ? { kind: "fallback_clipboard_ok" } : { kind: "fallback_clipboard_failed", error: c.error };

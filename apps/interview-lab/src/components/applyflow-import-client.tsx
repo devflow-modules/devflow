@@ -223,25 +223,27 @@ export function ApplyflowImportClient({
       if (!file) return;
       void file.text().then((t) => {
         setText(t);
-        try {
-          applyParsed(JSON.parse(t) as unknown);
-        } catch {
-          setError("Invalid JSON file.");
+        const r = parseCareerBundleFromClipboardText(t);
+        if (!r.ok) {
+          setError(r.error);
           setBundle(null);
+          return;
         }
+        ingestValidatedBundle(r.data);
       });
     },
-    [applyParsed],
+    [ingestValidatedBundle],
   );
 
   const onParsePasted = useCallback(() => {
-    try {
-      applyParsed(JSON.parse(text) as unknown);
-    } catch {
-      setError("Could not parse JSON.");
+    const r = parseCareerBundleFromClipboardText(text);
+    if (!r.ok) {
+      setError(r.error);
       setBundle(null);
+      return;
     }
-  }, [applyParsed, text]);
+    ingestValidatedBundle(r.data);
+  }, [ingestValidatedBundle, text]);
 
   const trainFor = useCallback(
     (app: CareerApplication) => {
