@@ -31,3 +31,15 @@ export {
   invokeCareerAgentsMcpTool,
   type CareerAgentsMcpToolDefinition,
 } from "./server.js";
+
+export {
+  CAREER_AGENTS_MCP_SERVER_INFO,
+  createCareerAgentsMcpServer,
+  formatToolError,
+  formatToolHandlerError,
+  formatToolResult,
+  getCareerAgentsToolTransportDefinitions,
+  registerCareerAgentsTools,
+  type McpToolTextResult,
+} from "./transport/register-tools.js";
+export { startCareerAgentsStdioTransport } from "./transport/stdio.js";
