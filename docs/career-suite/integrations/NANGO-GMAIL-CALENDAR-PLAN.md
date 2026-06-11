@@ -22,6 +22,10 @@ Nango-derived signals may **enrich** metadata later; they must not replace user-
 
 **Phase 2 foundation:** `@devflow/career-sync` defines deterministic sync signal contracts before Nango OAuth integration.
 
+### Phase 2 — Nango adapter sandbox
+
+`@devflow/career-sync` includes simulated Nango payload mappers that convert Gmail and Google Calendar provider-like objects into safe local contracts before signal extraction.
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab

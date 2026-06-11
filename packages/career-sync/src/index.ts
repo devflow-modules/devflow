@@ -23,3 +23,24 @@ export {
   sampleInterviewCalendarEvent,
   samplePrivateCalendarEvent,
 } from "./fixtures/sample-calendar.js";
+
+export type {
+  NangoCalendarEventLike,
+  NangoGmailMessageLike,
+  NangoProvider,
+} from "./nango/types.js";
+
+export {
+  mapNangoCalendarEvent,
+  mapNangoGmailMessage,
+  extractSignalsFromNangoCalendar,
+  extractSignalsFromNangoGmail,
+} from "./nango/index.js";
+
+export {
+  sampleNangoCalendarInterviewEvent,
+  sampleNangoInterviewMessage,
+  sampleNangoPrivateCalendarEvent,
+  sampleNangoRecruiterMessage,
+  sampleNangoTechnicalAssignmentMessage,
+} from "./fixtures/sample-nango.js";
