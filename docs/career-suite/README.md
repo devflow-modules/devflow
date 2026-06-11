@@ -8,6 +8,8 @@ Portfolio case: **ApplyFlow** (capture and organise applications) + **Interview 
 
 **Deep dive (Resume Match + optional AI coaching):** [`RESUME-MATCH-CASE-STUDY.md`](./RESUME-MATCH-CASE-STUDY.md)
 
+**Integration labs (LibreChat, MCP, Nango — docs only):** [`integrations/README.md`](./integrations/README.md)
+
 **Demo checklist (recording / LinkedIn):** [`DEMO-CHECKLIST.md`](./DEMO-CHECKLIST.md)
 
 Full Career Suite product overview remains in this file; app READMEs stay short and link here.
@@ -135,6 +137,8 @@ Use a clean browser profile or incognito (avoid unrelated extensions on LinkedIn
 
 ## Future roadmap (not implemented)
 
+- **[Nango Gmail/Calendar sync](./integrations/NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth adapter via Nango; [data boundaries](./integrations/SYNC-DATA-BOUNDARIES.md); read-only derived signals; not MVP-required.
+- **[LibreChat + MCP lab](./integrations/LIBRECHAT-MCP-LAB.md)** — local experimentation over `@devflow/career-agents-mcp`.
 - Optional **encrypted cloud sync** with explicit opt-in and user-held keys.
 - **Richer job text** in the bundle when ApplyFlow can safely expose more context (still user-controlled).
 - **Monaco / worker** isolation for the Interview Lab runner (orthogonal to Career Suite).
@@ -185,6 +189,7 @@ No credentials are committed; see [`DEMO-CHECKLIST.md`](./DEMO-CHECKLIST.md).
 
 ## Related READMEs
 
+- [Integrations (LibreChat, MCP, Nango)](./integrations/README.md)
 - [`apps/applyflow/README.md`](../../apps/applyflow/README.md)  
 - [`apps/interview-lab/README.md`](../../apps/interview-lab/README.md)  
 - [`apps/applyflow-extension/README.md`](../../apps/applyflow-extension/README.md)  
