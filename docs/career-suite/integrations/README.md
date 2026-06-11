@@ -5,9 +5,10 @@ This folder documents **external integration labs** for the Career Suite. These 
 ## Current order
 
 1. **[LibreChat + MCP lab](./LIBRECHAT-MCP-LAB.md)** — local agent UI over deterministic tools
-2. **Nango Gmail/Calendar sync** — deferred; documented when planned
-3. **Multi-agent orchestration** — after MCP tools are stable
-4. **OpenClaw POC** — optional automation surface; not product-critical
+2. **[LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)** — connect upstream LibreChat to `@devflow/career-agents-mcp` stdio
+3. **Nango Gmail/Calendar sync** — deferred; documented when planned
+4. **Multi-agent orchestration** — after MCP tools are stable
+5. **OpenClaw POC** — optional automation surface; not product-critical
 
 See also: **[MCP server candidates](./MCP-SERVER-CANDIDATES.md)**.
 
@@ -35,6 +36,7 @@ Integrations **accelerate** experimentation; they do **not** replace this stack.
 | Integration | Status | In repo? |
 |-------------|--------|----------|
 | LibreChat + MCP lab | **Documented lab plan** | Docs only — no LibreChat dependency |
+| LibreChat local wiring | **Documented** | [LIBRECHAT-LOCAL-WIRING.md](./LIBRECHAT-LOCAL-WIRING.md) |
 | Career Agents MCP Server | **Scaffold + stdio transport** | `@devflow/career-agents-mcp` in monorepo |
 | CareerBundle MCP Server | **Candidate (Phase 2)** | Not implemented |
 | Nango Gmail/Calendar | **Deferred** | Not implemented |
@@ -43,4 +45,6 @@ Integrations **accelerate** experimentation; they do **not** replace this stack.
 ## Related docs
 
 - [Career Suite overview](../README.md)
+- [LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)
 - [`@devflow/career-agents` README](../../../packages/career-agents/README.md)
+- [`@devflow/career-agents-mcp` README](../../../packages/career-agents-mcp/README.md)
