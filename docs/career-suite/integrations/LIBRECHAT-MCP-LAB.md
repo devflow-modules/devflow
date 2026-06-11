@@ -29,6 +29,8 @@ LibreChat/MCP **must not** become a mandatory backend for end users in the MVP C
 
 **Phase 2 stdio transport** is available through `@devflow/career-agents-mcp` (`pnpm --filter @devflow/career-agents-mcp start`). LibreChat wiring remains **local/manual** and **outside** product runtime.
 
+**Phase 3 local wiring** is documented in [LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md).
+
 ## Existing core (do not replace)
 
 - **`@devflow/career-agents`** — `analyzeJob`, `analyzeResume`, `matchJobToResume`, `scoreBreakdown`, `gapSeverity`
@@ -113,10 +115,11 @@ Before promoting any lab pattern into product:
 - Run MCP server as a **separate process** (Node), importing `@devflow/career-agents` from the monorepo via workspace build output or `pnpm` link — still **not** a dependency of `apps/interview-lab`
 - Reuse mapping ideas from `apps/interview-lab/src/lib/career-agents-adapter.ts` for plain-text → package inputs
 - Add Vitest coverage on MCP tool handlers mirroring adapter tests
-- Document local setup in a follow-up PR when the first MCP server lands — **not in this docs-only PR**
+- See [LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md) for manual LibreChat connection steps
 
-## Related
+## Related docs
 
 - [Integrations overview](./README.md)
+- [LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)
 - [MCP server candidates](./MCP-SERVER-CANDIDATES.md)
 - [Career Suite README](../README.md)
