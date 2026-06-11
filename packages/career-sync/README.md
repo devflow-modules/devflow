@@ -75,3 +75,26 @@ const enrichment = buildCareerBundleGmailEnrichment(preview.signals, {
   generatedAt: "2026-06-09T12:00:00.000Z",
 });
 ```
+
+## Calendar read-only sync prototype
+
+The Calendar sync prototype transforms Calendar-like or Nango Calendar-like event objects into safe derived career signals.
+
+It does not call Google Calendar, does not require OAuth, does not persist raw provider data, does not retain meeting links, and does not create events.
+
+```ts
+import {
+  buildCalendarSyncPreview,
+  buildCareerBundleCalendarEnrichment,
+  sampleInterviewCalendarEvent,
+  sampleTechnicalCalendarEvent,
+} from "@devflow/career-sync";
+
+const preview = buildCalendarSyncPreview(
+  { events: [sampleInterviewCalendarEvent, sampleTechnicalCalendarEvent] },
+  { now: "2026-06-09T12:00:00.000Z" },
+);
+const enrichment = buildCareerBundleCalendarEnrichment(preview.signals, {
+  generatedAt: "2026-06-09T12:00:00.000Z",
+});
+```

@@ -22,6 +22,7 @@ export {
 export {
   sampleInterviewCalendarEvent,
   samplePrivateCalendarEvent,
+  sampleTechnicalCalendarEvent,
 } from "./fixtures/sample-calendar.js";
 
 export type {
@@ -59,3 +60,19 @@ export {
   buildNangoGmailSyncPreview,
   summarizeGmailSignals,
 } from "./gmail-sync/index.js";
+
+export type {
+  BuildCalendarSyncPreviewOptions,
+  BuildCareerBundleCalendarEnrichmentOptions,
+  CalendarSyncPreview,
+  CalendarSyncPreviewInput,
+  CareerBundleCalendarEnrichment,
+  NangoCalendarSyncPreviewInput,
+} from "./calendar-sync/types.js";
+
+export {
+  buildCalendarSyncPreview,
+  buildCareerBundleCalendarEnrichment,
+  buildNangoCalendarSyncPreview,
+  summarizeCalendarSignals,
+} from "./calendar-sync/index.js";
