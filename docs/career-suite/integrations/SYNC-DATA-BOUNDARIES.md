@@ -6,6 +6,8 @@ Privacy and data-minimization rules for **future** Gmail and Google Calendar syn
 
 **Phase 2 foundation:** `@devflow/career-sync` defines deterministic sync signal contracts before Nango OAuth integration.
 
+Simulated Nango payload mappers live in `@devflow/career-sync` (`mapNangoGmailMessage`, `mapNangoCalendarEvent`) and feed the same deterministic extractors — no OAuth, SDK, or raw persistence.
+
 ## Principles
 
 - **Privacy-first** — collect the minimum needed for career workflow hints
