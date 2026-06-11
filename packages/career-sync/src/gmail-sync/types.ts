@@ -32,6 +32,8 @@ export type CareerBundleSyncEnrichment = {
   rawRetained: false;
 };
 
+export type CareerBundleGmailEnrichment = CareerBundleSyncEnrichment;
+
 export type BuildCareerBundleGmailEnrichmentOptions = {
   generatedAt?: string;
 };

@@ -14,6 +14,8 @@ Calendar read-only sync preview (`buildCalendarSyncPreview`, `buildCareerBundleC
 
 Calendar sync previews must not retain meeting links, raw event descriptions, private unrelated events, or provider payloads. Derived signals should be reviewable and deletable by the user.
 
+Unified CareerBundle sync enrichment must remain derived-signal-only. Gmail and Calendar raw inputs must not be embedded in CareerBundle. The user should be able to review and delete sync enrichment data.
+
 ## Principles
 
 - **Privacy-first** — collect the minimum needed for career workflow hints
