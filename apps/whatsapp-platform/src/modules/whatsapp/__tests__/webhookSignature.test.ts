@@ -4,6 +4,7 @@ import {
   validateWebhookSignatureForRequest,
   verifyMetaWebhookSignature,
 } from "../webhookSignature";
+import { setProcessEnvNodeEnv } from "./webhookTestHelpers";
 
 describe("webhookSignature", () => {
   const secret = "test_meta_app_secret";
@@ -13,7 +14,7 @@ describe("webhookSignature", () => {
     delete process.env.META_APP_SECRET;
     delete process.env.FACEBOOK_APP_SECRET;
     delete process.env.WHATSAPP_SKIP_WEBHOOK_SIGNATURE;
-    process.env.NODE_ENV = "test";
+    setProcessEnvNodeEnv("test");
   });
 
   afterEach(() => {
@@ -79,7 +80,7 @@ describe("webhookSignature", () => {
   });
 
   it("validateWebhookSignatureForRequest ignora bypass em produção", () => {
-    process.env.NODE_ENV = "production";
+    setProcessEnvNodeEnv("production");
     process.env.WHATSAPP_SKIP_WEBHOOK_SIGNATURE = "1";
     const result = validateWebhookSignatureForRequest(rawBody, null);
     expect(result).toEqual({

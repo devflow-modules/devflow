@@ -4,6 +4,7 @@ import {
   clearWebhookSignatureTestEnv,
   enableWebhookSignatureBypassForTests,
   metaWebhookTestHeaders,
+  setProcessEnvNodeEnv,
 } from "./webhookTestHelpers";
 
 const mockResolveTenant = vi.fn();
@@ -164,7 +165,7 @@ describe("webhookHandler", () => {
     beforeEach(() => {
       delete process.env.WHATSAPP_SKIP_WEBHOOK_SIGNATURE;
       process.env.META_APP_SECRET = appSecret;
-      process.env.NODE_ENV = "test";
+      setProcessEnvNodeEnv("test");
     });
 
     it("aceita POST com assinatura válida", async () => {
