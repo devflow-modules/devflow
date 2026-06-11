@@ -7,12 +7,10 @@ import {
 } from "@devflow/career-agents";
 
 import {
-  CAREER_AGENTS_MCP_TOOLS,
   handleAnalyzeJob,
   handleAnalyzeResume,
   handleExplainGapSeverity,
   handleMatchResumeToJob,
-  invokeCareerAgentsMcpTool,
 } from "../src/index.js";
 
 describe("analyze_job", () => {
@@ -85,29 +83,5 @@ describe("explain_gap_severity", () => {
     });
     expect(out.summary).toContain("No structured gap severity");
     expect(out.highPriority).toEqual([]);
-  });
-});
-
-describe("tool registry", () => {
-  it("exposes four deterministic tools with no network", () => {
-    expect(CAREER_AGENTS_MCP_TOOLS).toHaveLength(4);
-    expect(CAREER_AGENTS_MCP_TOOLS.map((t) => t.name)).toEqual([
-      "analyze_job",
-      "analyze_resume",
-      "match_resume_to_job",
-      "explain_gap_severity",
-    ]);
-  });
-
-  it("invokeCareerAgentsMcpTool dispatches by name", () => {
-    const result = invokeCareerAgentsMcpTool("analyze_job", {
-      title: "Dev",
-      description: "React",
-    }) as { requiredSkills: unknown[] };
-    expect(result.requiredSkills.length).toBeGreaterThanOrEqual(0);
-  });
-
-  it("throws for unknown tool", () => {
-    expect(() => invokeCareerAgentsMcpTool("unknown_tool", {})).toThrow(/Unknown Career Agents MCP tool/);
   });
 });

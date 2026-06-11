@@ -35,7 +35,7 @@ Integrations **accelerate** experimentation; they do **not** replace this stack.
 | Integration | Status | In repo? |
 |-------------|--------|----------|
 | LibreChat + MCP lab | **Documented lab plan** | Docs only — no LibreChat dependency |
-| Career Agents MCP Server | **Scaffold (handlers)** | `@devflow/career-agents-mcp` in monorepo |
+| Career Agents MCP Server | **Scaffold + stdio transport** | `@devflow/career-agents-mcp` in monorepo |
 | CareerBundle MCP Server | **Candidate (Phase 2)** | Not implemented |
 | Nango Gmail/Calendar | **Deferred** | Not implemented |
 | OpenClaw POC | **Future** | Not implemented |

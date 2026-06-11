@@ -25,7 +25,9 @@ LibreChat/MCP **must not** become a mandatory backend for end users in the MVP C
 
 ## Phase 1 scaffold (shipped)
 
-[`@devflow/career-agents-mcp`](../../../packages/career-agents-mcp/) provides **pure deterministic tool handlers** and a registry (`CAREER_AGENTS_MCP_TOOLS`) for local testing. MCP stdio/HTTP transport and LibreChat wiring are **not** in this scaffold — they land in follow-up PRs.
+[`@devflow/career-agents-mcp`](../../../packages/career-agents-mcp/) provides **pure deterministic tool handlers**, a registry (`CAREER_AGENTS_MCP_TOOLS`), and **stdio transport** for local MCP clients.
+
+**Phase 2 stdio transport** is available through `@devflow/career-agents-mcp` (`pnpm --filter @devflow/career-agents-mcp start`). LibreChat wiring remains **local/manual** and **outside** product runtime.
 
 ## Existing core (do not replace)
 
