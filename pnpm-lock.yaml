@@ -388,6 +388,9 @@ importers:
 
   apps/interview-lab:
     dependencies:
+      '@devflow/career-agents':
+        specifier: workspace:*
+        version: link:../../packages/career-agents
       '@devflow/career-core':
         specifier: workspace:*
         version: link:../../packages/career-core

@@ -25,7 +25,7 @@ describe("analyzeAtsMatch", () => {
     const r = analyzeAtsMatch(RESUME, JOB);
     expect(r.matchedKeywords).toContain("React");
     expect(r.matchedKeywords).toContain("TypeScript");
-    expect(r.missingKeywords).toContain("AWS");
+    expect(r.missingKeywords).toContain("GraphQL");
     expect(r.missingKeywords).toContain("Docker");
   });
 
