@@ -115,7 +115,7 @@ Before promoting any lab pattern into product:
 - Run MCP server as a **separate process** (Node), importing `@devflow/career-agents` from the monorepo via workspace build output or `pnpm` link — still **not** a dependency of `apps/interview-lab`
 - Reuse mapping ideas from `apps/interview-lab/src/lib/career-agents-adapter.ts` for plain-text → package inputs
 - Add Vitest coverage on MCP tool handlers mirroring adapter tests
-- Document local setup in a follow-up PR when the first MCP server lands — **not in this docs-only PR**
+- See [LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md) for manual LibreChat connection steps
 
 ## Related docs
 
