@@ -44,3 +44,18 @@ export {
   sampleNangoRecruiterMessage,
   sampleNangoTechnicalAssignmentMessage,
 } from "./fixtures/sample-nango.js";
+
+export type {
+  BuildCareerBundleGmailEnrichmentOptions,
+  CareerBundleSyncEnrichment,
+  GmailSyncPreview,
+  GmailSyncPreviewInput,
+  NangoGmailSyncPreviewInput,
+} from "./gmail-sync/types.js";
+
+export {
+  buildCareerBundleGmailEnrichment,
+  buildGmailSyncPreview,
+  buildNangoGmailSyncPreview,
+  summarizeGmailSignals,
+} from "./gmail-sync/index.js";

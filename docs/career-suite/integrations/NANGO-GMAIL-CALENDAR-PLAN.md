@@ -26,6 +26,10 @@ Nango-derived signals may **enrich** metadata later; they must not replace user-
 
 `@devflow/career-sync` includes simulated Nango payload mappers that convert Gmail and Google Calendar provider-like objects into safe local contracts before signal extraction.
 
+### Phase 3 — Gmail read-only sync prototype
+
+`@devflow/career-sync` can build a local Gmail sync preview from Gmail-like or Nango-like message fixtures. The prototype returns derived signals and enrichment metadata only; no OAuth, provider calls, raw body persistence, or auto-send behavior is included.
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab
