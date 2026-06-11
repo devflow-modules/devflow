@@ -15,3 +15,11 @@ export const samplePrivateCalendarEvent: RawCalendarEventLike = {
   start: "2026-06-11T08:00:00.000Z",
   end: "2026-06-11T09:00:00.000Z",
 };
+
+export const sampleTechnicalCalendarEvent: RawCalendarEventLike = {
+  id: "cal-technical-001",
+  summary: "Technical interview — Beta Corp",
+  description: "Panel technical round",
+  start: "2026-06-12T10:00:00.000Z",
+  end: "2026-06-12T11:00:00.000Z",
+};
