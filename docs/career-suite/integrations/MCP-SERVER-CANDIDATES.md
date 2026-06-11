@@ -4,7 +4,9 @@ MCP servers described here are **candidates for lab and future optional layers**
 
 ## Career Agents MCP Server (Phase 1 — priority)
 
-**Phase 1 scaffold:** [`@devflow/career-agents-mcp`](../../../packages/career-agents-mcp/) exposes deterministic handlers (`analyze_job`, `analyze_resume`, `match_resume_to_job`, `explain_gap_severity`) for local lab testing. MCP stdio transport is a follow-up PR.
+**Phase 1 scaffold:** [`@devflow/career-agents-mcp`](../../../packages/career-agents-mcp/) exposes deterministic handlers and **stdio MCP transport** for local lab testing.
+
+**Phase 2 stdio transport** is available through `@devflow/career-agents-mcp`. LibreChat wiring remains local/manual and outside product runtime.
 
 **Purpose:** Expose deterministic Career Suite analysis tools to LibreChat or other MCP clients.
 
@@ -90,7 +92,7 @@ Document separately when the POC starts; not part of Phase 1–2.
 
 | Phase | Server | Status |
 |-------|--------|--------|
-| **1** | Career Agents MCP Server | **Scaffold shipped** — `@devflow/career-agents-mcp` handlers; transport next |
+| **1** | Career Agents MCP Server | **Scaffold + stdio transport** — `@devflow/career-agents-mcp` |
 | **2** | CareerBundle MCP Server | Planned after Phase 1 eval |
 | **3** | Gmail/Calendar via Nango | Deferred |
 | **4** | OpenClaw POC | Optional / exploratory |

@@ -26,7 +26,7 @@ export type CareerAgentsMcpToolDefinition = {
 };
 
 /**
- * Tool registry for local lab use. MCP stdio/HTTP transport lands in a follow-up PR.
+ * Tool registry for local lab use. Stdio transport: {@link ./transport/stdio.js}.
  */
 export const CAREER_AGENTS_MCP_TOOLS: readonly CareerAgentsMcpToolDefinition[] = [
   {

@@ -25,9 +25,35 @@ Local MCP lab scaffold for Career Suite **deterministic** agents.
 
 Registry: `CAREER_AGENTS_MCP_TOOLS` / `invokeCareerAgentsMcpTool(name, input)`.
 
-## MCP transport
+## Local stdio transport
 
-This package ships **pure tool handlers + Zod schemas** only. Stdio/HTTP MCP transport (`@modelcontextprotocol/sdk`) is planned for a follow-up PR — keeping this scaffold free of transport coupling.
+Build dependencies, then start the lab server:
+
+```bash
+pnpm --filter @devflow/career-agents build
+pnpm --filter @devflow/career-agents-mcp build
+pnpm --filter @devflow/career-agents-mcp start
+```
+
+This starts a **local MCP stdio server** for lab usage (no network port, no persistence).
+
+After build, you can also run the compiled bin:
+
+```bash
+pnpm --filter @devflow/career-agents-mcp start:dist
+# or: pnpm exec career-agents-mcp  (when linked)
+```
+
+### Example tools exposed over stdio
+
+- `analyze_job`
+- `analyze_resume`
+- `match_resume_to_job`
+- `explain_gap_severity`
+
+## MCP transport (in-process)
+
+Handlers and Zod schemas work without stdio — useful for unit tests and Interview Lab-style adapters:
 
 ## Usage (in-process lab)
 
@@ -51,7 +77,7 @@ handleAnalyzeJob({ title: "Engineer", description: "React, TypeScript" });
 
 ## Relationship with LibreChat
 
-[LibreChat](https://github.com/danny-avila/LibreChat) may call this server in a **future local lab**. This package does **not** require LibreChat and does not install it.
+[LibreChat](https://github.com/danny-avila/LibreChat) may call this stdio server in a **local manual lab setup**. This package does **not** require LibreChat, does not install it, and does not include wiring instructions beyond [`docs/career-suite/integrations/LIBRECHAT-MCP-LAB.md`](../../docs/career-suite/integrations/LIBRECHAT-MCP-LAB.md).
 
 ## Scripts
 
