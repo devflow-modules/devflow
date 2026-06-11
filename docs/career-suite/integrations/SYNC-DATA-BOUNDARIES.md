@@ -2,7 +2,9 @@
 
 Privacy and data-minimization rules for **future** Gmail and Google Calendar sync via Nango in the Career Suite. Applies to all sync adapters, MCP tools, and agents that consume provider data.
 
-**Status:** Planning document only — no sync implementation in the monorepo yet.
+**Status:** Planning document for production sync. Deterministic normalizers live in `@devflow/career-sync` (foundation only — no OAuth, no Nango SDK, no provider calls).
+
+**Phase 2 foundation:** `@devflow/career-sync` defines deterministic sync signal contracts before Nango OAuth integration.
 
 ## Principles
 

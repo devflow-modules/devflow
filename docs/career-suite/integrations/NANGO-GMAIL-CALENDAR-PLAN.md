@@ -20,6 +20,8 @@ Nango is an **integration adapter**, not the Career Suite core. Scoring, job/res
 
 Nango-derived signals may **enrich** metadata later; they must not replace user-controlled application rows or deterministic scores.
 
+**Phase 2 foundation:** `@devflow/career-sync` defines deterministic sync signal contracts before Nango OAuth integration.
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab
