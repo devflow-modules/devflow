@@ -1,5 +1,7 @@
 import type { CareerSkill } from "../shared/types.js";
 
+export type SkillEvidenceLevel = "strong" | "weak" | "listed";
+
 export type ResumeAnalysisInput = {
   headline?: string;
   summary?: string;
@@ -24,4 +26,5 @@ export type ResumeAnalysisOutput = {
   weakEvidence: string[];
   missingEvidence: string[];
   portfolioOpportunities: string[];
+  skillEvidence?: Record<string, SkillEvidenceLevel>;
 };

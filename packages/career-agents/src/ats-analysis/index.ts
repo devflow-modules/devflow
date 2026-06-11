@@ -1,2 +1,2 @@
 export { matchJobToResume } from "./match-job-resume.js";
-export type { AtsMatchOutput } from "./types.js";
+export type { AtsMatchOutput, GapSeverity } from "./types.js";
