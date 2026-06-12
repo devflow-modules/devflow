@@ -73,6 +73,18 @@ Nango is a **provider adapter layer**, not a core dependency of CareerBundle, `@
 
 ---
 
+## Explicit provider consent UI
+
+ApplyFlow requires explicit user confirmation before a provider connection launcher request can be made.
+
+This UI does not import provider data and does not store provider tokens.
+
+The consent panel shows provider selection, Nango runtime, scope previews, data boundaries, and a required checkbox before enabling the launcher check button. Results are client-safe JSON only; Nango Connect UI is not enabled in this step.
+
+Implementation: `apps/applyflow/src/components/dashboard/provider-consent-confirmation-panel.tsx`.
+
+---
+
 ## Consent model
 
 Future provider integration **must** include:

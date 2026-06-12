@@ -62,7 +62,11 @@ ApplyFlow
 * [ ] Required tests before OAuth are documented
 * [ ] ApplyFlow Nango connect session server boundary exists
 * [ ] ApplyFlow Nango connect session launcher route exists
-* [ ] Connect session UI remains preview-only until explicitly enabled
+* [ ] Explicit provider consent UI is visible
+* [ ] Provider scopes are visible before launcher request
+* [ ] Data boundaries are visible before launcher request
+* [ ] Launcher request cannot be triggered without explicit consent
+* [ ] Connect UI is not enabled yet
 
 ## Interview Lab checks
 

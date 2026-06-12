@@ -120,7 +120,15 @@ ApplyFlow includes a server-side launcher route for future Nango connect session
 
 The route is protected by feature flags and consent gates, returns only client-safe JSON, and does not import Gmail or Calendar data.
 
-Implementation: `apps/applyflow/src/app/provider-runtime/nango/connect/route.ts` with handler `nango-connect-session-launcher.ts`. Consent remains absent by default (preview-only); the route returns `blocked` until explicit consent UI is enabled.
+Implementation: `apps/applyflow/src/app/provider-runtime/nango/connect/route.ts` with handler `nango-connect-session-launcher.ts`. Server-side consent gates remain enforced on the route; client UI collects explicit confirmation before calling the launcher.
+
+### Explicit provider consent UI
+
+ApplyFlow includes an explicit provider consent UI before any real Connect UI is enabled.
+
+The consent UI explains scopes, data boundaries, token boundaries, and the fact that Gmail/Calendar data import is not part of this step.
+
+Implementation: `apps/applyflow/src/components/dashboard/provider-consent-confirmation-panel.tsx` with client-safe launcher fetch helper. React local state only — no token storage, no Connect UI, no provider data import.
 
 ## Why Nango
 
