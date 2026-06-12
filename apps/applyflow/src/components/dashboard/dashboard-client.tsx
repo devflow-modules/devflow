@@ -43,9 +43,11 @@ import {
 } from "@/lib/local-import-storage";
 import {
   buildInterviewLabCareerBundle,
+  buildInterviewLabCareerBundleForExport,
   buildSingleRowCareerBundleForInterviewLab,
   downloadCareerBundleJson,
   mapApplyFlowApplicationToCareer,
+  stringifyInterviewLabCareerBundleExport,
 } from "@/lib/career-bundle-export";
 import { sendCareerBundleViaPostMessageWithRetry } from "@/lib/career-bundle-postmessage-handoff";
 import {
@@ -215,12 +217,17 @@ export function DashboardClient() {
 
   const [careerCopyFeedback, setCareerCopyFeedback] = useState<"idle" | "success" | "error">("idle");
   const [careerCopyMessage, setCareerCopyMessage] = useState<string | null>(null);
+  const [includeDemoSyncEnrichment, setIncludeDemoSyncEnrichment] = useState(false);
+
+  const buildExportCareerBundle = useCallback(() => {
+    return buildInterviewLabCareerBundleForExport(applications, { includeDemoSyncEnrichment });
+  }, [applications, includeDemoSyncEnrichment]);
 
   const onCopyCareerBundleForInterviewLab = useCallback(async () => {
     setCareerCopyFeedback("idle");
     setCareerCopyMessage(null);
-    const bundle = buildInterviewLabCareerBundle(applications);
-    const json = stringifyCareerBundleJson(bundle);
+    const bundle = buildExportCareerBundle();
+    const json = stringifyInterviewLabCareerBundleExport(bundle);
     const r = await copyCareerBundleJsonToClipboard(json);
     if (r.ok) {
       setCareerCopyFeedback("success");
@@ -229,7 +236,7 @@ export function DashboardClient() {
       setCareerCopyFeedback("error");
       setCareerCopyMessage(r.error);
     }
-  }, [applications]);
+  }, [buildExportCareerBundle]);
 
   const onOpenInterviewLabImport = useCallback(() => {
     window.open(getInterviewLabImportHandoffUrl(), "_blank", "noopener,noreferrer");
@@ -241,10 +248,10 @@ export function DashboardClient() {
   const onPrepareInInterviewLab = useCallback(async () => {
     setPrepareHandoffHint("idle");
     setPrepareHandoffMessage(null);
-    const bundle = buildInterviewLabCareerBundle(applications);
+    const bundle = buildExportCareerBundle();
     const r = await sendCareerBundleViaPostMessageWithRetry({
       bundle,
-      stringifyBundle: stringifyCareerBundleJson,
+      stringifyBundle: stringifyInterviewLabCareerBundleExport,
       copyToClipboard: copyCareerBundleJsonToClipboard,
     });
     if (r.kind === "ack") {
@@ -265,7 +272,7 @@ export function DashboardClient() {
       setPrepareHandoffHint("idle");
       setPrepareHandoffMessage(null);
     }, 10000);
-  }, [applications]);
+  }, [buildExportCareerBundle]);
 
   const [practiceRowHandoffHint, setPracticeRowHandoffHint] = useState<"idle" | "ack" | "clipboard" | "error">("idle");
   const [practiceRowHandoffMessage, setPracticeRowHandoffMessage] = useState<string | null>(null);
@@ -586,6 +593,20 @@ export function DashboardClient() {
                     histórico actual — o export prioriza essas linhas.
                   </p>
                 )}
+                <label className="mt-2 flex cursor-pointer items-start gap-2.5 rounded-lg border border-[color:var(--af-border-strong)]/60 bg-[color:var(--af-surface)]/40 p-3">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 size-4 shrink-0 accent-emerald-500"
+                    checked={includeDemoSyncEnrichment}
+                    onChange={(e) => setIncludeDemoSyncEnrichment(e.target.checked)}
+                  />
+                  <span className="text-left text-[11px] leading-snug text-[color:var(--af-text-muted)]">
+                    <span className="font-medium text-[color:var(--af-text)]">Demo sync enrichment</span>
+                    {" — "}
+                    Adds fake/sandbox derived signals to the exported CareerBundle so Interview Lab can show the
+                    read-only sync enrichment preview. No Gmail or Calendar connection is made.
+                  </span>
+                </label>
               </div>
               <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
                 <ApplyFlowButton
@@ -619,8 +640,7 @@ export function DashboardClient() {
                     className="font-medium"
                     disabled={careerExportPreview.exportRowCount === 0}
                     onClick={() => {
-                      const bundle = buildInterviewLabCareerBundle(applications);
-                      downloadCareerBundleJson(bundle);
+                      downloadCareerBundleJson(buildExportCareerBundle());
                     }}
                   >
                     Exportar para Interview Lab

@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { ApplyFlowApplication } from "@devflow/applyflow-core";
-import { parseCareerBundle } from "@devflow/career-core";
+import { parseCareerBundle, parseCareerBundleWithSyncEnrichment } from "@devflow/career-core";
 import {
   buildInterviewLabCareerBundle,
+  buildInterviewLabCareerBundleForExport,
   buildSingleRowCareerBundleForInterviewLab,
   mapApplyFlowApplicationToCareer,
   selectApplicationsForInterviewLabBundle,
+  stringifyInterviewLabCareerBundleExport,
 } from "./career-bundle-export.js";
 
 const af = (over: Partial<ApplyFlowApplication>): ApplyFlowApplication => ({
@@ -82,5 +84,36 @@ describe("buildSingleRowCareerBundleForInterviewLab", () => {
       expect(r.data.applications[0]!.id).toBe("only-one");
       expect(r.data.applications[0]!.role).toContain("SRE");
     }
+  });
+});
+
+describe("buildInterviewLabCareerBundleForExport", () => {
+  it("does not include syncEnrichment by default", () => {
+    const bundle = buildInterviewLabCareerBundleForExport([af({ id: "z" })]);
+    expect(bundle).not.toHaveProperty("syncEnrichment");
+    const json = stringifyInterviewLabCareerBundleExport(bundle);
+    expect(JSON.parse(json)).not.toHaveProperty("syncEnrichment");
+  });
+
+  it("includes validated syncEnrichment when opt-in is enabled", () => {
+    const bundle = buildInterviewLabCareerBundleForExport([af({ id: "z" })], {
+      includeDemoSyncEnrichment: true,
+    });
+    expect(bundle.syncEnrichment).toBeDefined();
+    const parsed = parseCareerBundleWithSyncEnrichment(JSON.parse(stringifyInterviewLabCareerBundleExport(bundle)));
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.syncEnrichmentStatus).toBe("provided");
+      expect(parsed.data.syncEnrichment?.combinedSignals.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("serialized opt-in export avoids raw provider data and meeting links", () => {
+    const bundle = buildInterviewLabCareerBundleForExport([af()], { includeDemoSyncEnrichment: true });
+    const json = stringifyInterviewLabCareerBundleExport(bundle);
+    expect(json).not.toMatch(/threadId/i);
+    expect(json).not.toMatch(/"snippet"/);
+    expect(json).not.toMatch(/"description"/);
+    expect(json).not.toMatch(/hangoutLink|htmlLink|meet\.google\.com/i);
   });
 });

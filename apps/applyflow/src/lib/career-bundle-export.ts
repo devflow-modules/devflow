@@ -1,10 +1,15 @@
 import type { ApplyFlowApplication, ApplyFlowApplicationStatus } from "@devflow/applyflow-core";
 import {
   createCareerBundle,
+  createCareerBundleWithSyncEnrichment,
   getInterviewReadyApplications,
+  serializeCareerBundleWithSyncEnrichment,
   type CareerApplication,
   type CareerBundle,
+  type CareerBundleWithSyncEnrichment,
 } from "@devflow/career-core";
+import { buildApplyFlowDemoSyncEnrichment } from "./career-bundle-demo-sync-enrichment";
+import { stringifyCareerBundleJson } from "./interview-lab-handoff";
 
 function mapApplyFlowStatus(status: ApplyFlowApplicationStatus): CareerApplication["status"] {
   switch (status) {
@@ -80,8 +85,35 @@ export function buildInterviewLabCareerBundle(applications: ApplyFlowApplication
   return createCareerBundle(subset);
 }
 
-export function downloadCareerBundleJson(bundle: CareerBundle): void {
-  const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+export type InterviewLabCareerBundleExportOptions = {
+  includeDemoSyncEnrichment?: boolean;
+};
+
+export function buildInterviewLabCareerBundleForExport(
+  applications: ApplyFlowApplication[],
+  options?: InterviewLabCareerBundleExportOptions,
+): CareerBundle | CareerBundleWithSyncEnrichment {
+  const base = buildInterviewLabCareerBundle(applications);
+  if (!options?.includeDemoSyncEnrichment) {
+    return base;
+  }
+  return createCareerBundleWithSyncEnrichment(base.applications, {
+    syncEnrichment: buildApplyFlowDemoSyncEnrichment({ generatedAt: base.exportedAt }),
+    exportedAt: base.exportedAt,
+  });
+}
+
+export function stringifyInterviewLabCareerBundleExport(
+  bundle: CareerBundle | CareerBundleWithSyncEnrichment,
+): string {
+  if ("syncEnrichment" in bundle && bundle.syncEnrichment != null) {
+    return serializeCareerBundleWithSyncEnrichment(bundle);
+  }
+  return stringifyCareerBundleJson(bundle);
+}
+
+export function downloadCareerBundleJson(bundle: CareerBundle | CareerBundleWithSyncEnrichment): void {
+  const blob = new Blob([stringifyInterviewLabCareerBundleExport(bundle)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   const stamp = bundle.exportedAt.slice(0, 10);
