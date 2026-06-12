@@ -1,6 +1,17 @@
+"use client";
+
 import { ApplyFlowBadge } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
+import type { ProviderConnectionActionResult } from "@devflow/career-sync";
+import { useState } from "react";
+import {
+  formatProviderConsentActionReasons,
+  formatProviderConsentActionSnapshotStatus,
+  formatProviderConsentActionStatus,
+  PROVIDER_CONSENT_PREVIEW_REQUESTED_AT,
+  runProviderConsentActionMock,
+} from "./provider-consent-action-mock";
 import {
   PROVIDER_CONSENT_MOCK_ACTIONS,
   PROVIDER_CONSENT_MOCK_BADGE,
@@ -21,10 +32,88 @@ import {
 
 /**
  * Read-only mock panel for future provider consent flow.
- * Renders fake/sandbox ProviderConnectionSnapshot data from @devflow/career-sync.
+ * Simulates connect/revoke/delete actions locally via @devflow/career-sync action mock.
  * Does not connect providers, request OAuth, store tokens, or fetch Gmail/Calendar data.
  */
+
+export function ProviderConsentMockActionResultPreview({
+  result,
+}: {
+  result: ProviderConnectionActionResult;
+}) {
+  return (
+    <ApplyFlowCard
+      variant="default"
+      padding="sm"
+      className="border border-cyan-500/25 bg-cyan-950/15"
+      data-testid="provider-consent-mock-action-result"
+    >
+      <div className="space-y-2 text-[11px] leading-snug text-[color:var(--af-text-muted)]">
+        <p className="text-xs font-semibold text-cyan-100/95">Mock action result</p>
+        <p>
+          Status:{" "}
+          <span className="font-medium text-[color:var(--af-text)]">
+            {formatProviderConsentActionStatus(result.status)}
+          </span>
+        </p>
+        <p>
+          Runtime disabled:{" "}
+          <span className="font-medium text-[color:var(--af-text)]">
+            {formatProviderCapabilityYesNo(result.runtimeDisabled)}
+          </span>
+        </p>
+        <p>
+          OAuth started:{" "}
+          <span className="font-medium text-[color:var(--af-text)]">
+            {formatProviderCapabilityYesNo(result.canStartOAuth)}
+          </span>
+        </p>
+        <p>
+          Provider call:{" "}
+          <span className="font-medium text-[color:var(--af-text)]">
+            {formatProviderCapabilityYesNo(result.canCallProvider)}
+          </span>
+        </p>
+        <p>
+          Token stored:{" "}
+          <span className="font-medium text-[color:var(--af-text)]">
+            {formatProviderCapabilityYesNo(result.canStoreToken)}
+          </span>
+        </p>
+        <p>
+          Provider data persisted:{" "}
+          <span className="font-medium text-[color:var(--af-text)]">
+            {formatProviderCapabilityYesNo(result.canPersistProviderData)}
+          </span>
+        </p>
+        <p>
+          Snapshot:{" "}
+          <span className="font-medium text-[color:var(--af-text)]">
+            {formatProviderConsentActionSnapshotStatus(result)}
+          </span>
+        </p>
+        <p>
+          Derived data deletion available:{" "}
+          <span className="font-medium text-[color:var(--af-text)]">
+            {formatProviderCapabilityYesNo(result.connectionSnapshot.capability.canDeleteDerivedData)}
+          </span>
+        </p>
+        <p>
+          Reason:{" "}
+          <span className="font-medium text-[color:var(--af-text)]">
+            {formatProviderConsentActionReasons(result)}
+          </span>
+        </p>
+      </div>
+    </ApplyFlowCard>
+  );
+}
+
 export function ProviderConsentMockPanel() {
+  const [lastActionResult, setLastActionResult] = useState<ProviderConnectionActionResult | null>(
+    null,
+  );
+
   return (
     <ApplyFlowCard variant="muted" padding="md" className="border border-[color:var(--af-border-strong)]/80">
       <div className="space-y-4">
@@ -133,21 +222,43 @@ export function ProviderConsentMockPanel() {
           </ul>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-          {PROVIDER_CONSENT_MOCK_ACTIONS.map((action) => (
-            <ApplyFlowButton
-              key={action.id}
-              type="button"
-              variant="outlineBrand"
-              size="sm"
-              disabled
-              aria-disabled="true"
-              title="Coming soon — mock panel only"
-              className="cursor-not-allowed opacity-60"
-            >
-              {action.label}
-            </ApplyFlowButton>
-          ))}
+        <div className="space-y-2">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-[color:var(--af-text-muted)]">
+            Preview actions · Local simulation only
+          </p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            {PROVIDER_CONSENT_MOCK_ACTIONS.map((action) => (
+              <ApplyFlowButton
+                key={action.id}
+                type="button"
+                variant="outlineBrand"
+                size="sm"
+                onClick={() => {
+                  setLastActionResult(
+                    runProviderConsentActionMock(
+                      action.action,
+                      action.provider,
+                      PROVIDER_CONSENT_PREVIEW_REQUESTED_AT,
+                    ),
+                  );
+                }}
+              >
+                {action.label}
+              </ApplyFlowButton>
+            ))}
+          </div>
+        </div>
+
+        {lastActionResult ? <ProviderConsentMockActionResultPreview result={lastActionResult} /> : null}
+
+        <div className="rounded-md border border-[color:var(--af-border-strong)]/60 bg-[color:var(--af-surface)]/40 p-3 text-[11px] leading-snug text-[color:var(--af-text-muted)]">
+          <p className="font-medium text-[color:var(--af-text)]">Safety boundaries</p>
+          <ul className="mt-1 list-inside list-disc space-y-1">
+            <li>No OAuth started</li>
+            <li>No provider call made</li>
+            <li>No token stored</li>
+            <li>No provider data persisted</li>
+          </ul>
         </div>
       </div>
     </ApplyFlowCard>

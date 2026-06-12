@@ -30,6 +30,7 @@ Versioned execution plan for the next Career Suite phase: **deterministic agent-
 | **Provider runtime flag evaluation helpers** | `@devflow/career-sync` `provider-runtime-flags` — no runtime activation |
 | **Disabled provider runtime shell** | `@devflow/career-sync` `provider-runtime` — gates + consent only, always disabled |
 | **Consent-gated provider connection action mock** | `@devflow/career-sync` `provider-connection-action` — mock snapshots only |
+| **ApplyFlow consent panel action simulation** | Dashboard previews connect/revoke/delete via action mock — read-only |
 | LibreChat / Nango / OpenClaw | **Not** MVP dependencies — accelerators after core |
 
 **Next step:** Real provider integration only behind explicit consent; LibreChat/MCP lab over deterministic signals.
@@ -73,6 +74,14 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 - Provider runtime feature flag plan — [`integrations/PROVIDER-RUNTIME-FEATURE-FLAGS.md`](./integrations/PROVIDER-RUNTIME-FEATURE-FLAGS.md)
 - Provider runtime feature flag evaluation helpers — `@devflow/career-sync` `provider-runtime-flags` module
 - Disabled provider runtime shell — `@devflow/career-sync` `provider-runtime` module
+- Consent-gated provider connection action mock — `@devflow/career-sync` `provider-connection-action` module
+- ApplyFlow consent panel action simulation — dashboard preview actions via action mock
+
+### ApplyFlow consent panel action simulation
+
+The ApplyFlow provider consent mock panel can simulate connect/revoke/delete-derived-data actions locally through the `@devflow/career-sync` provider connection action mock.
+
+The simulation remains read-only and does not start OAuth, call providers, store tokens, persist provider data, or run sync jobs.
 
 ### Provider consent mock panel
 
@@ -93,7 +102,6 @@ This remains read-only and does not activate OAuth, Nango runtime, provider call
 ### Next
 
 - Runtime shell wired to explicit app action mock
-- ApplyFlow consent panel action simulation
 - Real Nango OAuth only behind explicit flags and consent
 
 ### Future roadmap
