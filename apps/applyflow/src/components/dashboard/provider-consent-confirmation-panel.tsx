@@ -6,6 +6,7 @@ import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import type { ApplyFlowNangoConnectLauncherResponse } from "@/lib/provider-runtime/nango-connect-session-launcher";
 import type { ProviderKind, ProviderRuntimeConnectionStatus } from "@devflow/career-sync";
 import { createProviderRuntimeConnectionStatusFromConnectEvent } from "@devflow/career-sync";
+import type { ProviderConnectionVerificationResult } from "@devflow/career-sync";
 import { useState } from "react";
 import {
   PROVIDER_CONSENT_CONFIRMATION_BADGE,
@@ -24,6 +25,7 @@ import { runProviderConsentLauncherCheck } from "./provider-consent-launcher-cli
 import { ProviderNangoConnectUi } from "./provider-nango-connect-ui";
 import { openNangoConnectUiWithFrontendSdk } from "./provider-nango-connect-client";
 import { ProviderConnectionStatusPanel } from "./provider-connection-status-panel";
+import { runProviderConnectionVerificationCheck } from "./provider-connection-verification-client";
 
 /**
  * Explicit provider consent UI with Nango Connect UI behind runtime flags.
@@ -96,10 +98,40 @@ export function ProviderConsentConfirmationPanel() {
       updatedAt: new Date(0).toISOString(),
     }),
   );
+  const [verificationResult, setVerificationResult] =
+    useState<ProviderConnectionVerificationResult | null>(null);
+  const [isVerifyingConnection, setIsVerifyingConnection] = useState(false);
+  const [verificationErrorMessage, setVerificationErrorMessage] = useState<string | null>(null);
 
   const scopesPreview = PROVIDER_CONSENT_CONFIRMATION_SCOPES[selectedProvider].join(", ");
   const neverStored = PROVIDER_CONSENT_CONFIRMATION_NEVER_STORED[selectedProvider];
   const startDisabled = !explicitConsentChecked || isLoading;
+
+  async function handleVerifyConnection() {
+    if (!explicitConsentChecked || connectionStatus.state !== "connected") {
+      return;
+    }
+
+    setIsVerifyingConnection(true);
+    setVerificationErrorMessage(null);
+
+    try {
+      const outcome = await runProviderConnectionVerificationCheck({
+        explicitConsentChecked,
+        provider: selectedProvider,
+      });
+
+      if (outcome.called) {
+        setVerificationResult(outcome.result);
+      }
+    } catch {
+      setVerificationErrorMessage(
+        "Could not reach the server-side verification boundary. No tokens or provider data were stored.",
+      );
+    } finally {
+      setIsVerifyingConnection(false);
+    }
+  }
 
   async function handleStartConnectionCheck() {
     if (!explicitConsentChecked) {
@@ -158,6 +190,8 @@ export function ProviderConsentConfirmationPanel() {
               setSelectedProvider(nextProvider);
               setLastLauncherResult(null);
               setErrorMessage(null);
+              setVerificationResult(null);
+              setVerificationErrorMessage(null);
               setConnectionStatus(
                 createProviderRuntimeConnectionStatusFromConnectEvent({
                   provider: nextProvider,
@@ -208,6 +242,8 @@ export function ProviderConsentConfirmationPanel() {
               setExplicitConsentChecked(event.target.checked);
               if (!event.target.checked) {
                 setLastLauncherResult(null);
+                setVerificationResult(null);
+                setVerificationErrorMessage(null);
               }
             }}
             className="mt-0.5"
@@ -237,7 +273,23 @@ export function ProviderConsentConfirmationPanel() {
 
         {lastLauncherResult ? <ProviderConsentLauncherResultPreview result={lastLauncherResult} /> : null}
 
-        {explicitConsentChecked ? <ProviderConnectionStatusPanel status={connectionStatus} /> : null}
+        {explicitConsentChecked ? (
+          <ProviderConnectionStatusPanel
+            status={connectionStatus}
+            verificationResult={verificationResult}
+            isVerifying={isVerifyingConnection}
+            explicitConsentChecked={explicitConsentChecked}
+            onVerifyConnection={() => {
+              void handleVerifyConnection();
+            }}
+          />
+        ) : null}
+
+        {verificationErrorMessage ? (
+          <p className="text-[11px] text-amber-200/90" data-testid="provider-verification-error">
+            {verificationErrorMessage}
+          </p>
+        ) : null}
 
         <ProviderNangoConnectUi
           provider={selectedProvider}

@@ -98,6 +98,7 @@ Decisão **pragmática** alinhada ao diagnóstico de sobreposição raiz ↔ app
 | `/api/admin/metrics`, `revenue` | Definir por produto | Raiz | ambígua | **migrar** para app dono |
 | `/api/health` | Cada app | Vários | ok | **manter** em cada deploy |
 | `/provider-runtime/nango/connect` (GET, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — launcher server-side Nango Connect session readiness; client-safe JSON + short-lived connect session token when allowed; requires feature flags + explicit consent (`explicit_consent=1`); no Gmail/Calendar import; no sync job; no raw payload persistence; no OAuth token exposure; no CareerBundle mutation |
+| `/provider-runtime/nango/connection-status` (POST, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — server-side Nango connection verification boundary; client-safe JSON snapshot only; requires feature flags + explicit consent; uses `listConnections` without credentials; no Gmail/Calendar import; no sync job; no raw payload persistence; no OAuth token exposure; no CareerBundle mutation |
 | Sitemaps | Raiz | Raiz | ok | **manter** |
 
 ---

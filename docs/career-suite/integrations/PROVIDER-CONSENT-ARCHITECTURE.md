@@ -345,6 +345,18 @@ Public exports: `ProviderRuntimeConnectionStatus`, `createProviderRuntimeConnect
 
 Location: ApplyFlow dashboard — `ProviderConnectionStatusPanel` within `ProviderConsentConfirmationPanel` after explicit consent.
 
+## Server-side connection verification
+
+ApplyFlow can verify provider connection existence through a server-only Nango runtime boundary after explicit consent and local Connect UI completion.
+
+The verification uses `@nangohq/node` `listConnections` (returns connections without credentials) filtered by stable `end_user_id` tag and integration ID. It returns `ProviderConnectionVerificationResult` — a client-safe snapshot distinguishing local Connect UI completion from server-verified connection state.
+
+The UI exposes an explicit **Verify connection** button (no automatic hidden verification). Verification does not import Gmail or Calendar data, run sync jobs, persist raw provider payloads, expose OAuth tokens, or alter CareerBundle exports.
+
+Public exports: `ProviderConnectionVerificationResult`, `createProviderConnectionVerificationResult`, `isProviderConnectionVerificationResultSafeForClient`.
+
+Route: `POST /provider-runtime/nango/connection-status` (ApplyFlow server-only).
+
 ---
 
 ## Provider connection action mock
