@@ -335,6 +335,16 @@ The model can represent not connected, connected, expired, revoked, error, sync 
 
 Public exports: `ProviderConnectionSnapshot`, `createProviderConnectionSnapshot`, `isProviderConnected`, `canProviderSync`, `summarizeProviderConnections`, `collectProviderConnectionWarnings`.
 
+## Provider runtime connection status
+
+After Nango Connect UI events, ApplyFlow can display a client-safe provider runtime connection status from `@devflow/career-sync`.
+
+The runtime status represents local Connect UI flow state only (`not_connected`, `connecting`, `connected`, `error`, `revoked`). It does not import Gmail or Calendar data, run sync jobs, persist raw provider payloads, expose OAuth tokens, or alter CareerBundle exports.
+
+Public exports: `ProviderRuntimeConnectionStatus`, `createProviderRuntimeConnectionStatus`, `createProviderRuntimeConnectionStatusFromConnectEvent`, `isProviderRuntimeConnectionStatusSafeForClient`.
+
+Location: ApplyFlow dashboard — `ProviderConnectionStatusPanel` within `ProviderConsentConfirmationPanel` after explicit consent.
+
 ---
 
 ## Provider connection action mock

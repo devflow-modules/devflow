@@ -3,11 +3,17 @@
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import type { ApplyFlowNangoConnectLauncherResponse } from "@/lib/provider-runtime/nango-connect-session-launcher";
-import { useState } from "react";
+import {
+  createProviderRuntimeConnectionStatusFromConnectEvent,
+  type ProviderKind,
+  type ProviderRuntimeConnectionStatus,
+} from "@devflow/career-sync";
+import { useEffect, useState } from "react";
 import {
   type NangoConnectUiEvent,
   type OpenNangoConnectUiFn,
 } from "./provider-nango-connect-client";
+import { mapNangoInteractionToConnectEvent } from "./provider-connection-runtime-status";
 
 export type NangoConnectUiStatus =
   | "idle"
@@ -68,13 +74,17 @@ export function resolveNangoConnectUiAvailability(input: {
 }
 
 export function ProviderNangoConnectUi({
+  provider,
   explicitConsentChecked,
   launcherResult,
   openNangoConnectUi,
+  onConnectionStatusChange,
 }: {
+  provider: ProviderKind;
   explicitConsentChecked: boolean;
   launcherResult: ApplyFlowNangoConnectLauncherResponse | null;
   openNangoConnectUi?: OpenNangoConnectUiFn;
+  onConnectionStatusChange?: (status: ProviderRuntimeConnectionStatus) => void;
 }) {
   const availability = resolveNangoConnectUiAvailability({
     explicitConsentChecked,
@@ -82,6 +92,26 @@ export function ProviderNangoConnectUi({
   });
   const [interactionStatus, setInteractionStatus] = useState<NangoConnectUiInteractionStatus>("idle");
   const [connectUiError, setConnectUiError] = useState<string | null>(null);
+
+  function publishConnectionStatus(event: Parameters<typeof createProviderRuntimeConnectionStatusFromConnectEvent>[0]["event"]) {
+    const status = createProviderRuntimeConnectionStatusFromConnectEvent({
+      provider,
+      event,
+      updatedAt: new Date().toISOString(),
+    });
+    onConnectionStatusChange?.(status);
+    return status;
+  }
+
+  useEffect(() => {
+    if (!explicitConsentChecked) {
+      return;
+    }
+
+    publishConnectionStatus("idle");
+    setInteractionStatus("idle");
+    setConnectUiError(null);
+  }, [provider, explicitConsentChecked]);
 
   if (!explicitConsentChecked || !launcherResult) {
     return null;
@@ -99,12 +129,15 @@ export function ProviderNangoConnectUi({
 
     setInteractionStatus("starting");
     setConnectUiError(null);
+    publishConnectionStatus("connect_start");
 
     try {
       await openNangoConnectUi({
         sessionToken: launcherResult.connectSessionToken,
         onEvent: (event) => {
-          setInteractionStatus((previous) => mapNangoConnectUiEventToStatus(event, previous));
+          const nextInteractionStatus = mapNangoConnectUiEventToStatus(event, "starting");
+          setInteractionStatus(nextInteractionStatus);
+          publishConnectionStatus(mapNangoInteractionToConnectEvent(nextInteractionStatus));
           if (event.type === "error") {
             setConnectUiError("Nango Connect UI reported an error. No provider data was stored.");
           }
@@ -112,6 +145,7 @@ export function ProviderNangoConnectUi({
       });
     } catch {
       setInteractionStatus("error");
+      publishConnectionStatus("connect_error");
       setConnectUiError("Could not open Nango Connect UI. No provider data was stored.");
     }
   }

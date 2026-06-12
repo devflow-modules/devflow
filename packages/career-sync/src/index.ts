@@ -149,6 +149,16 @@ export {
   createProviderConnectionSnapshot,
   isProviderConnected,
   summarizeProviderConnections,
+  createProviderRuntimeConnectionStatus,
+  createProviderRuntimeConnectionStatusFromConnectEvent,
+  isProviderRuntimeConnectionStatusSafeForClient,
+  mapProviderRuntimeConnectEventToState,
+} from "./provider-connection/index.js";
+
+export type {
+  ProviderRuntimeConnectEvent,
+  ProviderRuntimeConnectionState,
+  ProviderRuntimeConnectionStatus,
 } from "./provider-connection/index.js";
 
 export type {
