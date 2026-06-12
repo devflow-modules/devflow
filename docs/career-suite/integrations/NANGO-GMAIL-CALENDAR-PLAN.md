@@ -114,6 +114,14 @@ The boundary is protected by feature flags and explicit consent, returns only cl
 
 Implementation: `apps/applyflow/src/lib/provider-runtime/nango-connect-session-boundary.ts` with server-only `nango-server-provider.ts` (`@nangohq/node` `createConnectSession`).
 
+### ApplyFlow Nango connect session launcher
+
+ApplyFlow includes a server-side launcher route for future Nango connect sessions.
+
+The route is protected by feature flags and consent gates, returns only client-safe JSON, and does not import Gmail or Calendar data.
+
+Implementation: `apps/applyflow/src/app/provider-runtime/nango/connect/route.ts` with handler `nango-connect-session-launcher.ts`. Consent remains absent by default (preview-only); the route returns `blocked` until explicit consent UI is enabled.
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab

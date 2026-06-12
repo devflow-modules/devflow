@@ -97,6 +97,7 @@ Decisão **pragmática** alinhada ao diagnóstico de sobreposição raiz ↔ app
 | `/api/admin/conversations`, `/api/admin/whatsapp/*` | `apps/whatsapp-platform` | Removido da raiz | ok | **manter** só no app |
 | `/api/admin/metrics`, `revenue` | Definir por produto | Raiz | ambígua | **migrar** para app dono |
 | `/api/health` | Cada app | Vários | ok | **manter** em cada deploy |
+| `/provider-runtime/nango/connect` (GET, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — launcher server-side Nango connect session; client-safe JSON only; blocked-by-default (feature flags + explicit consent); no Gmail/Calendar import; no token exposure; no provider payload persistence |
 | Sitemaps | Raiz | Raiz | ok | **manter** |
 
 ---
@@ -110,6 +111,7 @@ Decisão **pragmática** alinhada ao diagnóstico de sobreposição raiz ↔ app
 | `apps/investigamais` | Produto Investigamais | ok | **manter** |
 | `apps/funklab` | FunkLab | ok | **manter** |
 | `apps/ops` | Interno | ok | **manter** |
+| `apps/applyflow` | ApplyFlow (Career Suite) | ok | **manter**; rotas server-side de provider runtime só no app |
 | `apps/site` | Marketing espelho | duplicado com raiz | **depreciar** → **remover** ou fundir |
 
 ---

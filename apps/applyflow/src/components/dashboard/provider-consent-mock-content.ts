@@ -47,4 +47,5 @@ export const PROVIDER_CONSENT_MOCK_BOUNDARIES = [
   "No token storage in ApplyFlow",
   "Derived signals only after explicit user review",
   "Real provider runtime boundary is available behind server-side flags and consent, but UI remains preview-only",
+  "Server-side connect session launcher exists behind flags and consent. UI remains preview-only until consent flow is enabled",
 ] as const;

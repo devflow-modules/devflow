@@ -61,6 +61,7 @@ ApplyFlow
 * [ ] Raw provider data boundaries are documented
 * [ ] Required tests before OAuth are documented
 * [ ] ApplyFlow Nango connect session server boundary exists
+* [ ] ApplyFlow Nango connect session launcher route exists
 * [ ] Connect session UI remains preview-only until explicitly enabled
 
 ## Interview Lab checks

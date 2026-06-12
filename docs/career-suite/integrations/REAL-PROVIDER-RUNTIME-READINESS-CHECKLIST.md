@@ -22,6 +22,7 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - provider runtime environment and secrets boundary
 - first real Nango OAuth boundary behind explicit flags and consent
 - ApplyFlow Nango connect session server boundary
+- ApplyFlow Nango connect session launcher route
 
 **Not implemented:**
 
