@@ -42,7 +42,11 @@ ApplyFlow
 * [ ] Confirm `Practice this role` behavior is unchanged
 * [ ] Provider consent preview is visible
 * [ ] Provider consent preview is marked mock/read-only
-* [ ] Connect actions are disabled or marked Coming soon
+* [ ] Provider consent action preview is visible
+* [ ] Preview actions do not start OAuth
+* [ ] Preview actions do not call providers
+* [ ] Preview actions do not store tokens
+* [ ] Preview actions show blocked/mocked result
 * [ ] No provider calls are triggered
 * [ ] Provider consent preview uses fake/sandbox provider connection snapshots
 * [ ] Provider consent preview shows scopes as preview only

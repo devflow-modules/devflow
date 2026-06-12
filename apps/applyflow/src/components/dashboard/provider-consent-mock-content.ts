@@ -1,3 +1,5 @@
+import type { ProviderConnectionActionKind, ProviderKind } from "@devflow/career-sync";
+
 /**
  * Static copy for the provider consent mock panel.
  * Read-only roadmap preview — no OAuth, Nango runtime, or provider calls.
@@ -13,10 +15,30 @@ export const PROVIDER_CONSENT_MOCK_DESCRIPTION =
 export const PROVIDER_CONSENT_MOCK_RUNTIME = "Future Nango adapter";
 
 export const PROVIDER_CONSENT_MOCK_ACTIONS = [
-  { id: "connect-gmail", label: "Connect Gmail — Coming soon" },
-  { id: "connect-calendar", label: "Connect Calendar — Coming soon" },
-  { id: "revoke", label: "Revoke access — Coming soon" },
-  { id: "delete-derived", label: "Delete derived data — Coming soon" },
+  {
+    id: "preview-connect-gmail",
+    label: "Connect Gmail — Preview only",
+    action: "connect" satisfies ProviderConnectionActionKind,
+    provider: "gmail" satisfies ProviderKind,
+  },
+  {
+    id: "preview-connect-calendar",
+    label: "Connect Calendar — Preview only",
+    action: "connect" satisfies ProviderConnectionActionKind,
+    provider: "calendar" satisfies ProviderKind,
+  },
+  {
+    id: "preview-revoke",
+    label: "Revoke access — Preview only",
+    action: "revoke" satisfies ProviderConnectionActionKind,
+    provider: "gmail" satisfies ProviderKind,
+  },
+  {
+    id: "preview-delete-derived",
+    label: "Delete derived data — Preview only",
+    action: "delete_derived_data" satisfies ProviderConnectionActionKind,
+    provider: "gmail" satisfies ProviderKind,
+  },
 ] as const;
 
 export const PROVIDER_CONSENT_MOCK_BOUNDARIES = [

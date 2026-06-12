@@ -335,6 +335,16 @@ Public exports: `createProviderConnectionActionMock`, `createProviderConnectionA
 
 ---
 
+## ApplyFlow consent action simulation
+
+ApplyFlow uses the provider connection action mock to simulate future consent actions in a controlled, read-only UI.
+
+This is not a real provider connection flow. It is a local simulation of the runtime gate and consent boundary.
+
+Location: ApplyFlow dashboard — `ProviderConsentMockPanel` preview action buttons.
+
+---
+
 ## Provider runtime feature flags
 
 Real provider runtime must be gated by feature flags before any OAuth, Nango runtime, Gmail connector, or Calendar connector is introduced.

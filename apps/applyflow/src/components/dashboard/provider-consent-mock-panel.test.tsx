@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
+import { runProviderConsentActionMock } from "./provider-consent-action-mock";
 import {
   PROVIDER_CONSENT_MOCK_ACTIONS,
   PROVIDER_CONSENT_MOCK_BADGE,
@@ -11,7 +12,10 @@ import {
   getProviderConsentMockCapabilities,
   providerConsentMockConnections,
 } from "./provider-consent-mock-data";
-import { ProviderConsentMockPanel } from "./provider-consent-mock-panel";
+import {
+  ProviderConsentMockActionResultPreview,
+  ProviderConsentMockPanel,
+} from "./provider-consent-mock-panel";
 
 describe("providerConsentMockConnections", () => {
   it("uses ProviderConnectionSnapshot model from career-sync", () => {
@@ -55,9 +59,9 @@ describe("ProviderConsentMockPanel content", () => {
     expect(PROVIDER_CONSENT_MOCK_DESCRIPTION).toMatch(/Calendar API/i);
   });
 
-  it("marks connect/revoke/delete actions as coming soon", () => {
+  it("marks preview actions as preview only", () => {
     for (const action of PROVIDER_CONSENT_MOCK_ACTIONS) {
-      expect(action.label).toMatch(/Coming soon/i);
+      expect(action.label).toMatch(/Preview only/i);
     }
   });
 });
@@ -87,17 +91,19 @@ describe("ProviderConsentMockPanel render", () => {
     expect(html).toMatch(/User review required:[\s\S]*Yes/);
   });
 
-  it("renders OAuth inactive messaging and disabled Coming soon actions", () => {
+  it("renders preview action buttons and safety boundaries", () => {
     const html = renderToStaticMarkup(<ProviderConsentMockPanel />);
-    expect(html).toContain("No OAuth");
-    expect(html).toContain("Nango runtime");
-    expect(html).toContain("Gmail API");
-    expect(html).toContain("Calendar API");
-    expect(html).toContain("Connect Gmail — Coming soon");
-    expect(html).toContain("Connect Calendar — Coming soon");
-    expect(html).toContain("Revoke access — Coming soon");
-    expect(html).toContain("Delete derived data — Coming soon");
-    expect(html).toMatch(/disabled/);
+    expect(html).toContain("Connect Gmail — Preview only");
+    expect(html).toContain("Connect Calendar — Preview only");
+    expect(html).toContain("Revoke access — Preview only");
+    expect(html).toContain("Delete derived data — Preview only");
+    expect(html).toContain("Preview actions · Local simulation only");
+    expect(html).toContain("No OAuth started");
+    expect(html).toContain("No provider call made");
+    expect(html).toContain("No token stored");
+    expect(html).toContain("No provider data persisted");
+    expect(html).not.toMatch(/aria-disabled="true"/);
+    expect(html).not.toMatch(/Coming soon/i);
     expect(html).not.toMatch(/fetch\(/);
   });
 
@@ -110,5 +116,39 @@ describe("ProviderConsentMockPanel render", () => {
     expect(html).not.toMatch(/googleapis/);
     expect(html).not.toContain("raw email body");
     expect(html).not.toContain("raw calendar description");
+  });
+});
+
+describe("ProviderConsentMockActionResultPreview", () => {
+  it("renders blocked Gmail connect mock result with runtime disabled", () => {
+    const result = runProviderConsentActionMock("connect", "gmail");
+    const html = renderToStaticMarkup(<ProviderConsentMockActionResultPreview result={result} />);
+
+    expect(html).toContain("Mock action result");
+    expect(html).toContain("blocked");
+    expect(html).toContain("Runtime disabled:");
+    expect(html).toMatch(/Runtime disabled:[\s\S]*Yes/);
+    expect(html).toMatch(/OAuth started:[\s\S]*No/);
+    expect(html).toMatch(/Provider call:[\s\S]*No/);
+    expect(html).toMatch(/Token stored:[\s\S]*No/);
+    expect(html).toMatch(/Provider data persisted:[\s\S]*No/);
+    expect(html).toContain("not_connected");
+    expect(html).toContain("career_provider_runtime_disabled");
+  });
+
+  it("renders Calendar connect preview result", () => {
+    const result = runProviderConsentActionMock("connect", "calendar");
+    const html = renderToStaticMarkup(<ProviderConsentMockActionResultPreview result={result} />);
+
+    expect(html).toContain("blocked");
+    expect(html).toContain("not_connected");
+  });
+
+  it("renders revoke preview snapshot details", () => {
+    const result = runProviderConsentActionMock("revoke", "gmail");
+    const html = renderToStaticMarkup(<ProviderConsentMockActionResultPreview result={result} />);
+
+    expect(html).toContain("revoked");
+    expect(html).toMatch(/Derived data deletion available:[\s\S]*Yes/);
   });
 });
