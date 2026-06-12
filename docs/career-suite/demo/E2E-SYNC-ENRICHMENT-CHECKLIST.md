@@ -71,6 +71,7 @@ ApplyFlow
 * [ ] Nango Connect UI does not store provider tokens in browser storage
 * [ ] Nango Connect UI result remains local/client-safe
 * [ ] Provider connection status is visible after Connect UI events
+* [ ] Server verification distinguishes local Connect UI completion from server-verified connection state
 * [ ] Connected status does not imply Gmail/Calendar data import
 * [ ] Status remains client-safe and token-free
 

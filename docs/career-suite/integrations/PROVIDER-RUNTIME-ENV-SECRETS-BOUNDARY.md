@@ -33,6 +33,8 @@ The ApplyFlow Nango connect session boundary must keep Nango secrets server-side
 
 The ApplyFlow Nango connect session launcher route (`GET /provider-runtime/nango/connect?provider=gmail|calendar&explicit_consent=1`) reads runtime flags and secrets server-side only, delegates to the connect session boundary, and returns client-safe JSON including a short-lived Nango connect session token when allowed. It never returns `NANGO_SECRET_KEY`, OAuth access tokens, or refresh tokens. Connect session tokens are passed to `@nangohq/frontend` only in memory and are not stored in browser storage or CareerBundle.
 
+The ApplyFlow Nango connection verification route (`POST /provider-runtime/nango/connection-status`) reads runtime flags and secrets server-side only, calls `@nangohq/node` `listConnections` (no credentials) with stable `end_user_id` tag matching the connect session boundary, and returns a client-safe verification snapshot (`ProviderConnectionVerificationResult`). It never returns `NANGO_SECRET_KEY`, OAuth access tokens, refresh tokens, raw connection objects, or provider payloads. Verification requires explicit consent and cannot bypass consent gates.
+
 Secrets and tokens must never be returned to client components or stored in CareerBundle.
 
 `NANGO_SECRET_KEY` is read only in ApplyFlow server/runtime code (`nango-server-provider.ts`), never in client components or public env vars.

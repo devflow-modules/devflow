@@ -159,6 +159,14 @@ export type {
   ProviderRuntimeConnectEvent,
   ProviderRuntimeConnectionState,
   ProviderRuntimeConnectionStatus,
+  ProviderConnectionVerificationRequest,
+  ProviderConnectionVerificationResult,
+  ProviderConnectionVerificationState,
+} from "./provider-connection/index.js";
+
+export {
+  createProviderConnectionVerificationResult,
+  isProviderConnectionVerificationResultSafeForClient,
 } from "./provider-connection/index.js";
 
 export type {

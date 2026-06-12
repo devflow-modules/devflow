@@ -29,3 +29,14 @@ export {
   isProviderRuntimeConnectionStatusSafeForClient,
   mapProviderRuntimeConnectEventToState,
 } from "./runtime-status.js";
+
+export type {
+  ProviderConnectionVerificationRequest,
+  ProviderConnectionVerificationResult,
+  ProviderConnectionVerificationState,
+} from "./runtime-verification.js";
+
+export {
+  createProviderConnectionVerificationResult,
+  isProviderConnectionVerificationResultSafeForClient,
+} from "./runtime-verification.js";
