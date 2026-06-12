@@ -55,6 +55,11 @@ ApplyFlow
 * [ ] All real provider runtime flags default to false
 * [ ] Missing provider runtime flags are treated as disabled
 * [ ] Sandbox/mock/demo flows continue to work with runtime flags disabled
+* [ ] Real provider runtime readiness checklist exists
+* [ ] First OAuth PR scope is documented
+* [ ] Token boundary requirements are documented
+* [ ] Raw provider data boundaries are documented
+* [ ] Required tests before OAuth are documented
 
 ## Interview Lab checks
 

@@ -80,6 +80,14 @@ Before real Nango runtime is introduced, Career Suite includes a disabled provid
 
 The shell proves the gate hierarchy and consent checks without adding Nango SDK, OAuth, provider calls, token storage, or sync jobs.
 
+### Real runtime readiness checklist
+
+Real Nango OAuth must not be introduced until the readiness checklist is satisfied.
+
+The first runtime PR must be disabled by default and limited to OAuth initiation behind explicit feature flags and consent.
+
+See [`REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md`](./REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md).
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab
