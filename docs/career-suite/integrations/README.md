@@ -4,12 +4,13 @@ This folder documents **external integration labs** for the Career Suite. These 
 
 ## Current order
 
-1. **[LibreChat + MCP lab](./LIBRECHAT-MCP-LAB.md)** — local agent UI over deterministic tools
-2. **[LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)** — connect upstream LibreChat to `@devflow/career-agents-mcp` stdio
-3. **[Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth/sync adapter (docs + sandbox contracts; no runtime OAuth in apps)
-4. **[Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)** — privacy rules for Gmail/Calendar derived signals and CareerBundle sync enrichment
-5. **Multi-agent orchestration** — after MCP tools and sync boundaries are stable
-6. **OpenClaw POC** — optional automation surface; not product-critical
+1. **[Provider consent integration architecture](./PROVIDER-CONSENT-ARCHITECTURE.md)** — consent, revocation, least-data, and adapter boundaries before real OAuth
+2. **[LibreChat + MCP lab](./LIBRECHAT-MCP-LAB.md)** — local agent UI over deterministic tools
+3. **[LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)** — connect upstream LibreChat to `@devflow/career-agents-mcp` stdio
+4. **[Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth/sync adapter (docs + sandbox contracts; no runtime OAuth in apps)
+5. **[Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)** — privacy rules for Gmail/Calendar derived signals and CareerBundle sync enrichment
+6. **Multi-agent orchestration** — after MCP tools and sync boundaries are stable
+7. **OpenClaw POC** — optional automation surface; not product-critical
 
 See also: **[MCP server candidates](./MCP-SERVER-CANDIDATES.md)**.
 
@@ -46,17 +47,21 @@ No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persisten
 
 | Integration | Status | In repo? |
 |-------------|--------|----------|
-| LibreChat + MCP lab | **Documented lab plan** | Docs only — no LibreChat dependency |
+| Provider consent architecture | **Documented** | [PROVIDER-CONSENT-ARCHITECTURE.md](./PROVIDER-CONSENT-ARCHITECTURE.md) — planning only |
+| MCP SDK | **Implemented locally** | `@devflow/career-agents-mcp` stdio transport |
+| LibreChat + MCP lab | **Lab docs only** | No LibreChat product dependency |
 | LibreChat local wiring | **Documented** | [LIBRECHAT-LOCAL-WIRING.md](./LIBRECHAT-LOCAL-WIRING.md) |
 | Career Agents MCP Server | **Scaffold + stdio transport** | `@devflow/career-agents-mcp` in monorepo |
 | CareerBundle MCP Server | **Candidate (Phase 2)** | Not implemented |
-| Nango Gmail/Calendar | **Contract + sandbox in `@devflow/career-sync`** | [NANGO-GMAIL-CALENDAR-PLAN.md](./NANGO-GMAIL-CALENDAR-PLAN.md) — no production OAuth in apps |
+| Nango | **Future provider adapter** | [NANGO-GMAIL-CALENDAR-PLAN.md](./NANGO-GMAIL-CALENDAR-PLAN.md) — no runtime yet |
+| Gmail / Calendar | **Future consent-based providers** | No live connector yet — sandbox fixtures in `@devflow/career-sync` |
 | CareerBundle sync enrichment | **Implemented** (core adapter, export/import, IL preview) | Public case: [CAREER-SUITE.md](../../public-cases/CAREER-SUITE.md#sync-enrichment-flow) |
 | OpenClaw POC | **Future** | Not implemented |
 
 ## Related docs
 
 - [Career Suite overview](../README.md)
+- [Provider consent integration architecture](./PROVIDER-CONSENT-ARCHITECTURE.md)
 - [LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)
 - [Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)
 - [Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)

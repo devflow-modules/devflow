@@ -39,6 +39,14 @@ Interview Lab can display a read-only preview of validated sync enrichment embed
 
 ApplyFlow can export a CareerBundle with optional demo/sandbox sync enrichment when explicitly enabled by the user on the dashboard export card. This does not connect to Gmail or Google Calendar, does not use Nango runtime, does not fetch provider data, and does not include raw provider payloads or meeting links.
 
+## Future provider integration boundaries
+
+Future provider integrations must remain **consent-based**, **revocable**, and **least-data**.
+
+Raw provider payloads must not be embedded in CareerBundle. Provider tokens must not be stored in client apps. Meeting links, raw email bodies, raw calendar descriptions, attachments, provider IDs, and provider payloads must be excluded from exported bundles and app previews.
+
+Full consent model, adapter isolation, and implementation gates: [`PROVIDER-CONSENT-ARCHITECTURE.md`](./PROVIDER-CONSENT-ARCHITECTURE.md).
+
 ## Principles
 
 - **Privacy-first** — collect the minimum needed for career workflow hints

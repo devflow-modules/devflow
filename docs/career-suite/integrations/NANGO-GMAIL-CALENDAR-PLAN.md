@@ -42,6 +42,12 @@ Nango-derived signals may **enrich** metadata later; they must not replace user-
 
 `@devflow/career-core` can optionally attach and validate `CareerBundleUnifiedSyncEnrichment` from `@devflow/career-sync`. The adapter preserves existing CareerBundle fields, rejects unsafe privacy flags, and does not fetch provider data or persist raw payloads.
 
+## Provider consent architecture
+
+Before adding real Nango/OAuth runtime, Career Suite defines provider consent, revocation, least-data, raw payload discard, and derived-signal-only boundaries in [`PROVIDER-CONSENT-ARCHITECTURE.md`](./PROVIDER-CONSENT-ARCHITECTURE.md).
+
+Nango should be treated as a **provider adapter layer**, not as a core dependency of CareerBundle, `@devflow/career-core`, ApplyFlow, or Interview Lab.
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab
