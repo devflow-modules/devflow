@@ -21,6 +21,7 @@ This document defines the feature flag plan required before any real OAuth, Nang
 - Provider runtime feature flag evaluation helpers (`provider-runtime-flags` module)
 - Disabled provider runtime shell (`provider-runtime` module)
 - Consent-gated provider connection action mock (`provider-connection-action` module)
+- Provider runtime app boundary contract (`provider-runtime-app-boundary` module)
 
 **Not implemented today:**
 
@@ -77,6 +78,16 @@ Public exports: `createProviderConnectionActionMock`, `createProviderConnectionA
 Before any real runtime PR is introduced, Career Suite must satisfy the real provider runtime readiness checklist.
 
 See [`REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md`](./REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md).
+
+---
+
+## App boundary contract
+
+The provider runtime app boundary contract defines how apps may request future provider runtime actions without calling runtime directly.
+
+The current boundary remains mock/disabled and safe for client consumption.
+
+Public exports: `createProviderRuntimeAppBoundaryResult`, `isProviderRuntimeAppBoundaryResultSafeForClient`.
 
 ---
 
