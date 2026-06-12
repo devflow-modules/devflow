@@ -12,7 +12,7 @@ Portfolio case: **ApplyFlow** (capture and organise applications) + **Interview 
 
 **Demo checklist (recording / LinkedIn):** [`DEMO-CHECKLIST.md`](./DEMO-CHECKLIST.md)
 
-**Sync enrichment demo (fake fixture + walkthrough):** [`demo/README.md`](./demo/README.md) · [`demo/CAREER-SUITE-WALKTHROUGH.md`](./demo/CAREER-SUITE-WALKTHROUGH.md) · [`demo/DEMO-READINESS-CHECKLIST.md`](./demo/DEMO-READINESS-CHECKLIST.md)
+**Sync enrichment demo (fake fixture + walkthrough):** [`demo/README.md`](./demo/README.md) · [`demo/CAREER-SUITE-WALKTHROUGH.md`](./demo/CAREER-SUITE-WALKTHROUGH.md) · [`demo/DEMO-READINESS-CHECKLIST.md`](./demo/DEMO-READINESS-CHECKLIST.md) · [`demo/E2E-SYNC-ENRICHMENT-CHECKLIST.md`](./demo/E2E-SYNC-ENRICHMENT-CHECKLIST.md)
 
 **Roadmap execution (agent-ready core):**
 
@@ -47,7 +47,7 @@ Full Career Suite product overview remains in this file; app READMEs stay short 
 |-------|----------------|
 | **`@devflow/career-core`** | `CareerApplication`, `CareerBundle`, `InterviewPreparation` (Zod); `parseCareerBundle`, `createCareerBundle`, sync enrichment adapter/export helpers; **ApplyFlow ↔ Interview Lab** `postMessage` envelopes and origin helpers. |
 | **`@devflow/career-sync`** | Derived Gmail/Calendar signal contracts, unified sync enrichment builder — **fixtures/sandbox**; no OAuth runtime in apps. |
-| **`apps/applyflow`** | Dashboard consumes `@devflow/applyflow-core` (unchanged). Maps rows → career schema, export selection, handoff to Interview Lab. **Does not yet expose sync enrichment export in UI.** |
+| **`apps/applyflow`** | Dashboard consumes `@devflow/applyflow-core` (unchanged). Maps rows → career schema, export selection, opt-in demo sync enrichment export, handoff to Interview Lab. |
 | **`apps/applyflow-extension`** | Source of real application history (not part of the JSON handoff UI, but the upstream of dashboard imports). |
 | **`apps/interview-lab`** | `/import/applyflow` + optional **sync enrichment read-only preview**; **`/career/ats`** Resume Match; practice at `/practice/...?careerPrep=`. |
 
