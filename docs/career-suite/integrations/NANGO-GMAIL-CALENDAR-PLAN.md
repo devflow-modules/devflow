@@ -74,6 +74,12 @@ The first runtime implementation must remain disabled by default and must requir
 
 See [`PROVIDER-RUNTIME-FEATURE-FLAGS.md`](./PROVIDER-RUNTIME-FEATURE-FLAGS.md).
 
+### Disabled runtime shell
+
+Before real Nango runtime is introduced, Career Suite includes a disabled provider runtime shell.
+
+The shell proves the gate hierarchy and consent checks without adding Nango SDK, OAuth, provider calls, token storage, or sync jobs.
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab
