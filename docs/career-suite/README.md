@@ -12,7 +12,7 @@ Portfolio case: **ApplyFlow** (capture and organise applications) + **Interview 
 
 **Demo checklist (recording / LinkedIn):** [`DEMO-CHECKLIST.md`](./DEMO-CHECKLIST.md)
 
-**Sync enrichment demo (fake fixture + walkthrough):** [`demo/README.md`](./demo/README.md) · [`demo/CAREER-SUITE-WALKTHROUGH.md`](./demo/CAREER-SUITE-WALKTHROUGH.md)
+**Sync enrichment demo (fake fixture + walkthrough):** [`demo/README.md`](./demo/README.md) · [`demo/CAREER-SUITE-WALKTHROUGH.md`](./demo/CAREER-SUITE-WALKTHROUGH.md) · [`demo/DEMO-READINESS-CHECKLIST.md`](./demo/DEMO-READINESS-CHECKLIST.md)
 
 **Roadmap execution (agent-ready core):**
 

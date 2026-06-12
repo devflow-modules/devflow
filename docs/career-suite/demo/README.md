@@ -7,7 +7,8 @@ The demo uses **fake/sandbox data only**.
 It shows how a CareerBundle can carry optional **sync enrichment** as derived metadata and how Interview Lab can render a **read-only preview** without provider calls, OAuth, persistence, raw email bodies, raw calendar descriptions, provider payloads, attachments, or meeting links.
 
 **Walkthrough:** [`CAREER-SUITE-WALKTHROUGH.md`](./CAREER-SUITE-WALKTHROUGH.md)  
-**Fixture:** [`fixtures/career-bundle-with-sync-enrichment.demo.json`](./fixtures/career-bundle-with-sync-enrichment.demo.json)
+**Fixture:** [`fixtures/career-bundle-with-sync-enrichment.demo.json`](./fixtures/career-bundle-with-sync-enrichment.demo.json)  
+**Readiness checklist:** [`DEMO-READINESS-CHECKLIST.md`](./DEMO-READINESS-CHECKLIST.md)
 
 ---
 
@@ -33,6 +34,7 @@ It shows how a CareerBundle can carry optional **sync enrichment** as derived me
 |------|-------------|
 | [`README.md`](./README.md) | This overview |
 | [`CAREER-SUITE-WALKTHROUGH.md`](./CAREER-SUITE-WALKTHROUGH.md) | Step-by-step recording script |
+| [`DEMO-READINESS-CHECKLIST.md`](./DEMO-READINESS-CHECKLIST.md) | Pre-recording / publish validation |
 | [`fixtures/README.md`](./fixtures/README.md) | Fixture safety notes |
 | [`fixtures/career-bundle-with-sync-enrichment.demo.json`](./fixtures/career-bundle-with-sync-enrichment.demo.json) | Fake bundle + sync enrichment |
 
