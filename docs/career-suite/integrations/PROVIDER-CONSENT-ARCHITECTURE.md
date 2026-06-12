@@ -299,6 +299,14 @@ It is intended to validate adapter boundaries before a real provider runtime exi
 
 Public exports: `createNangoSandboxAdapter`, `mapNangoSandboxPayloadToProviderNormalized`, `NangoSandboxPayload`, `createNangoSandboxSyncRequest`.
 
+## Consent UI mock
+
+The ApplyFlow consent mock panel is a read-only product surface for demonstrating future provider consent boundaries.
+
+It does not connect to providers, does not request OAuth, does not store tokens, and does not fetch Gmail or Calendar data.
+
+Location: ApplyFlow dashboard — `ProviderConsentMockPanel` near the Interview Lab export card.
+
 ---
 
 ## Safety gates before implementation
@@ -338,7 +346,7 @@ Safe implementation order:
 | **E** | `feat: add provider connection status model` | Connection metadata schema — no provider calls |
 | **F** | `feat: add real Nango OAuth behind feature flag` | Live OAuth only after A–E gates pass |
 
-**PR A, PR B, and PR C are complete.** No runtime OAuth, Nango SDK, or live Gmail/Calendar connector ships until PR D–F gates pass.
+**PR A, PR B, PR C, and PR D (consent mock panel) are complete.** No runtime OAuth, Nango SDK, or live Gmail/Calendar connector ships until PR E–F gates pass.
 
 ---
 

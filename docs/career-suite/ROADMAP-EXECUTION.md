@@ -23,6 +23,7 @@ Versioned execution plan for the next Career Suite phase: **deterministic agent-
 | **Provider consent architecture** | Documented — [`integrations/PROVIDER-CONSENT-ARCHITECTURE.md`](./integrations/PROVIDER-CONSENT-ARCHITECTURE.md) |
 | **Provider adapter interface contracts** | `@devflow/career-sync` types + safety helpers — no OAuth runtime |
 | **Nango adapter sandbox** | Fake payloads via `ProviderAdapter` contracts — no Nango SDK |
+| **ApplyFlow provider consent mock panel** | Read-only UI preview — no OAuth or provider calls |
 | LibreChat / Nango / OpenClaw | **Not** MVP dependencies — accelerators after core |
 
 **Next step:** Real provider integration only behind explicit consent; LibreChat/MCP lab over deterministic signals.
@@ -60,6 +61,11 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 - Provider consent integration architecture — [`integrations/PROVIDER-CONSENT-ARCHITECTURE.md`](./integrations/PROVIDER-CONSENT-ARCHITECTURE.md)
 - Provider adapter interface contracts — `@devflow/career-sync` `provider-adapter` module
 - Nango adapter sandbox using provider contracts — `@devflow/career-sync` `nango-adapter` module
+- ApplyFlow provider consent mock panel — read-only consent preview on dashboard
+
+### Provider consent mock panel
+
+ApplyFlow includes a read-only provider consent preview panel that demonstrates the future consent-based Gmail/Calendar integration model without activating OAuth, Nango runtime, provider calls, token storage, or sync jobs.
 
 **Current status:**
 
@@ -69,7 +75,6 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 
 ### Next
 
-- Consent UI mock / read-only connection state
 - Provider connection status model
 - Real Nango OAuth only behind feature flag and explicit consent
 
