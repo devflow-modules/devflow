@@ -8,7 +8,8 @@ It shows how a CareerBundle can carry optional **sync enrichment** as derived me
 
 **Walkthrough:** [`CAREER-SUITE-WALKTHROUGH.md`](./CAREER-SUITE-WALKTHROUGH.md)  
 **Fixture:** [`fixtures/career-bundle-with-sync-enrichment.demo.json`](./fixtures/career-bundle-with-sync-enrichment.demo.json)  
-**Readiness checklist:** [`DEMO-READINESS-CHECKLIST.md`](./DEMO-READINESS-CHECKLIST.md)
+**Readiness checklist:** [`DEMO-READINESS-CHECKLIST.md`](./DEMO-READINESS-CHECKLIST.md)  
+**End-to-end sync enrichment checklist:** [`E2E-SYNC-ENRICHMENT-CHECKLIST.md`](./E2E-SYNC-ENRICHMENT-CHECKLIST.md)
 
 ---
 
@@ -35,6 +36,7 @@ It shows how a CareerBundle can carry optional **sync enrichment** as derived me
 | [`README.md`](./README.md) | This overview |
 | [`CAREER-SUITE-WALKTHROUGH.md`](./CAREER-SUITE-WALKTHROUGH.md) | Step-by-step recording script |
 | [`DEMO-READINESS-CHECKLIST.md`](./DEMO-READINESS-CHECKLIST.md) | Pre-recording / publish validation |
+| [`E2E-SYNC-ENRICHMENT-CHECKLIST.md`](./E2E-SYNC-ENRICHMENT-CHECKLIST.md) | End-to-end technical validation before provider integration |
 | [`fixtures/README.md`](./fixtures/README.md) | Fixture safety notes |
 | [`fixtures/career-bundle-with-sync-enrichment.demo.json`](./fixtures/career-bundle-with-sync-enrichment.demo.json) | Fake bundle + sync enrichment |
 

@@ -22,11 +22,21 @@ Versioned execution plan for the next Career Suite phase: **deterministic agent-
 | **ApplyFlow opt-in demo export** | Dashboard checkbox for sandbox sync enrichment in CareerBundle export |
 | LibreChat / Nango / OpenClaw | **Not** MVP dependencies — accelerators after core |
 
-**Next step:** LibreChat/MCP lab over deterministic signals; real Nango OAuth only after explicit consent UX.
+**Next step:** Real provider integration only behind explicit consent; LibreChat/MCP lab over deterministic signals.
 
 ### ApplyFlow opt-in sync enrichment export
 
 ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichment when explicitly enabled by the user on the dashboard export card. This does not connect to Gmail or Google Calendar, does not use Nango runtime, does not fetch provider data, and does not include raw provider payloads or meeting links.
+
+### Completed — End-to-end sync enrichment loop
+
+- ApplyFlow opt-in demo sync enrichment export
+- CareerBundle export/import with optional sync enrichment
+- career-core privacy validation
+- Interview Lab read-only import preview
+- Demo fixture and walkthrough
+- Demo readiness checklist
+- End-to-end technical validation checklist
 
 ### Completed — sync enrichment stack (documented in public case)
 
@@ -39,12 +49,17 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 | `@devflow/career-core` adapter | Done |
 | CareerBundle export/import support | Done |
 | Interview Lab read-only import preview | Done — not persisted |
+| ApplyFlow opt-in demo export | Done — PR #57 |
+| End-to-end validation checklist | Done — [`demo/E2E-SYNC-ENRICHMENT-CHECKLIST.md`](./demo/E2E-SYNC-ENRICHMENT-CHECKLIST.md) |
 
-### Future — after current stack
+### Future roadmap
 
-- Real Nango OAuth integration behind explicit user consent
+- Real provider integration only behind explicit consent
+- Nango OAuth integration as adapter, not core dependency
+- Gmail/Calendar provider connectors with least-data boundaries
+- Recording notes and LinkedIn publish pack
+- Multi-agent advisory layer over deterministic signals
 - LibreChat / MCP lab demonstration over deterministic signals
-- Multi-agent advisory layer over derived signals (not replacement of deterministic core)
 
 ---
 
