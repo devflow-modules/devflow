@@ -24,6 +24,7 @@ Versioned execution plan for the next Career Suite phase: **deterministic agent-
 | **Provider adapter interface contracts** | `@devflow/career-sync` types + safety helpers — no OAuth runtime |
 | **Nango adapter sandbox** | Fake payloads via `ProviderAdapter` contracts — no Nango SDK |
 | **ApplyFlow provider consent mock panel** | Read-only UI preview — no OAuth or provider calls |
+| **Provider connection status model** | `@devflow/career-sync` snapshots + capabilities — no persistence |
 | LibreChat / Nango / OpenClaw | **Not** MVP dependencies — accelerators after core |
 
 **Next step:** Real provider integration only behind explicit consent; LibreChat/MCP lab over deterministic signals.
@@ -62,6 +63,7 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 - Provider adapter interface contracts — `@devflow/career-sync` `provider-adapter` module
 - Nango adapter sandbox using provider contracts — `@devflow/career-sync` `nango-adapter` module
 - ApplyFlow provider consent mock panel — read-only consent preview on dashboard
+- Provider connection status model — `@devflow/career-sync` `provider-connection` module
 
 ### Provider consent mock panel
 
@@ -75,8 +77,9 @@ ApplyFlow includes a read-only provider consent preview panel that demonstrates 
 
 ### Next
 
-- Provider connection status model
-- Real Nango OAuth only behind feature flag and explicit consent
+- Feature flag plan for real provider runtime
+- Consent UI state wired to mock connection model
+- Real Nango OAuth only behind explicit feature flag and consent
 
 ### Future roadmap
 

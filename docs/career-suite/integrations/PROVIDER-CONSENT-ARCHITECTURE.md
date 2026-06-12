@@ -307,6 +307,14 @@ It does not connect to providers, does not request OAuth, does not store tokens,
 
 Location: ApplyFlow dashboard — `ProviderConsentMockPanel` near the Interview Lab export card.
 
+## Provider connection status model
+
+`@devflow/career-sync` defines provider connection status models for future consent-based integrations.
+
+The model can represent not connected, connected, expired, revoked, error, sync available, and sync disabled states without implementing OAuth, Nango runtime, provider calls, token storage, or persistence.
+
+Public exports: `ProviderConnectionSnapshot`, `createProviderConnectionSnapshot`, `isProviderConnected`, `canProviderSync`, `summarizeProviderConnections`, `collectProviderConnectionWarnings`.
+
 ---
 
 ## Safety gates before implementation
@@ -346,7 +354,7 @@ Safe implementation order:
 | **E** | `feat: add provider connection status model` | Connection metadata schema — no provider calls |
 | **F** | `feat: add real Nango OAuth behind feature flag` | Live OAuth only after A–E gates pass |
 
-**PR A, PR B, PR C, and PR D (consent mock panel) are complete.** No runtime OAuth, Nango SDK, or live Gmail/Calendar connector ships until PR E–F gates pass.
+**PR A through PR E (connection status model) are complete.** No runtime OAuth, Nango SDK, or live Gmail/Calendar connector ships until PR F gates pass.
 
 ---
 

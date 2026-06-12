@@ -60,6 +60,12 @@ The Nango adapter sandbox proves the provider adapter interface with fake payloa
 
 It does not connect to Nango, does not perform OAuth, does not fetch Gmail or Calendar data, does not store tokens, and does not retain raw provider payloads.
 
+### Provider connection status model
+
+Before real Nango runtime is introduced, Career Suite models connection status and capabilities as pure domain data.
+
+This allows future UI and adapter work to reason about connection state without storing tokens or calling providers.
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab
