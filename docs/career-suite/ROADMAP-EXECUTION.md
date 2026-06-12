@@ -29,6 +29,7 @@ Versioned execution plan for the next Career Suite phase: **deterministic agent-
 | **Provider runtime feature flag plan** | Documented — [`integrations/PROVIDER-RUNTIME-FEATURE-FLAGS.md`](./integrations/PROVIDER-RUNTIME-FEATURE-FLAGS.md) |
 | **Provider runtime flag evaluation helpers** | `@devflow/career-sync` `provider-runtime-flags` — no runtime activation |
 | **Disabled provider runtime shell** | `@devflow/career-sync` `provider-runtime` — gates + consent only, always disabled |
+| **Consent-gated provider connection action mock** | `@devflow/career-sync` `provider-connection-action` — mock snapshots only |
 | LibreChat / Nango / OpenClaw | **Not** MVP dependencies — accelerators after core |
 
 **Next step:** Real provider integration only behind explicit consent; LibreChat/MCP lab over deterministic signals.
@@ -91,8 +92,8 @@ This remains read-only and does not activate OAuth, Nango runtime, provider call
 
 ### Next
 
-- Consent-gated provider connection action mock
 - Runtime shell wired to explicit app action mock
+- ApplyFlow consent panel action simulation
 - Real Nango OAuth only behind explicit flags and consent
 
 ### Future roadmap

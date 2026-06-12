@@ -325,6 +325,16 @@ Public exports: `ProviderConnectionSnapshot`, `createProviderConnectionSnapshot`
 
 ---
 
+## Provider connection action mock
+
+The provider connection action mock models the future connect/revoke/delete-derived-data actions without activating provider runtime.
+
+It is consent-gated and runtime-gated, but remains read-only and disabled by design.
+
+Public exports: `createProviderConnectionActionMock`, `createProviderConnectionActionSnapshot`.
+
+---
+
 ## Provider runtime feature flags
 
 Real provider runtime must be gated by feature flags before any OAuth, Nango runtime, Gmail connector, or Calendar connector is introduced.

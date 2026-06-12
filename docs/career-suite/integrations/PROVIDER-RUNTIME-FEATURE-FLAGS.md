@@ -20,6 +20,7 @@ This document defines the feature flag plan required before any real OAuth, Nang
 - ApplyFlow mock panel wired to fake/sandbox connection snapshots
 - Provider runtime feature flag evaluation helpers (`provider-runtime-flags` module)
 - Disabled provider runtime shell (`provider-runtime` module)
+- Consent-gated provider connection action mock (`provider-connection-action` module)
 
 **Not implemented today:**
 
@@ -56,6 +57,18 @@ The shell evaluates runtime gates and consent state, but it never starts OAuth, 
 Even when all gates evaluate to allowed, the current shell returns a disabled runtime result until a future runtime PR explicitly implements behavior behind feature flags and consent.
 
 Public exports: `evaluateProviderRuntimeGate`, `createDisabledProviderRuntimeResult`, `createDisabledProviderRuntimeShell`.
+
+---
+
+## Consent-gated provider connection action mock
+
+`@devflow/career-sync` includes a mock/read-only provider connection action.
+
+The action evaluates the disabled runtime shell and returns a deterministic connection snapshot, but it never starts OAuth, calls providers, stores tokens, persists data, or changes app state.
+
+Even when runtime gates are allowed, the action remains mocked until a future runtime PR explicitly enables real behavior behind flags and consent.
+
+Public exports: `createProviderConnectionActionMock`, `createProviderConnectionActionSnapshot`.
 
 ---
 
