@@ -40,6 +40,10 @@ ApplyFlow
 * [ ] Export with option on
 * [ ] Confirm exported JSON contains `syncEnrichment`
 * [ ] Confirm `Practice this role` behavior is unchanged
+* [ ] Provider consent preview is visible
+* [ ] Provider consent preview is marked mock/read-only
+* [ ] Connect actions are disabled or marked Coming soon
+* [ ] No provider calls are triggered
 
 ## Interview Lab checks
 

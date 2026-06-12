@@ -1,5 +1,6 @@
 "use client";
 
+import { ProviderConsentMockPanel } from "@/components/dashboard/provider-consent-mock-panel";
 import { ApplyFlowBadge, type ApplyFlowBadgeTone } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton, applyFlowButtonClass } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
@@ -668,6 +669,8 @@ export function DashboardClient() {
             </div>
           </ApplyFlowCard>
         ) : null}
+
+        <ProviderConsentMockPanel />
 
         {hasData ? (
           <div className="flex flex-wrap items-center gap-4">
