@@ -138,6 +138,14 @@ This starts the provider connection flow only. It does not import Gmail or Calen
 
 Implementation: `apps/applyflow/src/components/dashboard/provider-nango-connect-ui.tsx` with `@nangohq/frontend` `openConnectUI` and short-lived `connectSessionToken` from the server launcher. Session token is client-safe per Nango docs (30-minute connect session); it is not persisted in browser storage or CareerBundle.
 
+### Provider connection status
+
+ApplyFlow can represent a client-safe provider connection status after the Nango Connect UI flow.
+
+This status does not import Gmail or Calendar data, run sync jobs, persist raw provider payloads, or expose provider tokens.
+
+Implementation: `@devflow/career-sync` `provider-connection/runtime-status.ts` with `ProviderRuntimeConnectionStatus` and ApplyFlow `provider-connection-status-panel.tsx` wired to Connect UI events. Status is local/ephemeral React state only — no backend persistence, no token storage, no CareerBundle changes.
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab

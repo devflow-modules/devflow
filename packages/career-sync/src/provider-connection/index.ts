@@ -16,3 +16,16 @@ export {
   isProviderConnected,
   summarizeProviderConnections,
 } from "./status.js";
+
+export type {
+  ProviderRuntimeConnectEvent,
+  ProviderRuntimeConnectionState,
+  ProviderRuntimeConnectionStatus,
+} from "./runtime-status.js";
+
+export {
+  createProviderRuntimeConnectionStatus,
+  createProviderRuntimeConnectionStatusFromConnectEvent,
+  isProviderRuntimeConnectionStatusSafeForClient,
+  mapProviderRuntimeConnectEventToState,
+} from "./runtime-status.js";

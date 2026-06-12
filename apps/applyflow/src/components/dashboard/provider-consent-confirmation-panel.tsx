@@ -4,7 +4,8 @@ import { ApplyFlowBadge } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import type { ApplyFlowNangoConnectLauncherResponse } from "@/lib/provider-runtime/nango-connect-session-launcher";
-import type { ProviderKind } from "@devflow/career-sync";
+import type { ProviderKind, ProviderRuntimeConnectionStatus } from "@devflow/career-sync";
+import { createProviderRuntimeConnectionStatusFromConnectEvent } from "@devflow/career-sync";
 import { useState } from "react";
 import {
   PROVIDER_CONSENT_CONFIRMATION_BADGE,
@@ -22,6 +23,7 @@ import { formatProviderCapabilityYesNo } from "./provider-consent-mock-data";
 import { runProviderConsentLauncherCheck } from "./provider-consent-launcher-client";
 import { ProviderNangoConnectUi } from "./provider-nango-connect-ui";
 import { openNangoConnectUiWithFrontendSdk } from "./provider-nango-connect-client";
+import { ProviderConnectionStatusPanel } from "./provider-connection-status-panel";
 
 /**
  * Explicit provider consent UI with Nango Connect UI behind runtime flags.
@@ -87,6 +89,13 @@ export function ProviderConsentConfirmationPanel() {
   const [lastLauncherResult, setLastLauncherResult] =
     useState<ApplyFlowNangoConnectLauncherResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<ProviderRuntimeConnectionStatus>(() =>
+    createProviderRuntimeConnectionStatusFromConnectEvent({
+      provider: "gmail",
+      event: "idle",
+      updatedAt: new Date(0).toISOString(),
+    }),
+  );
 
   const scopesPreview = PROVIDER_CONSENT_CONFIRMATION_SCOPES[selectedProvider].join(", ");
   const neverStored = PROVIDER_CONSENT_CONFIRMATION_NEVER_STORED[selectedProvider];
@@ -145,9 +154,17 @@ export function ProviderConsentConfirmationPanel() {
             id="provider-consent-provider-select"
             value={selectedProvider}
             onChange={(event) => {
-              setSelectedProvider(event.target.value as ProviderKind);
+              const nextProvider = event.target.value as ProviderKind;
+              setSelectedProvider(nextProvider);
               setLastLauncherResult(null);
               setErrorMessage(null);
+              setConnectionStatus(
+                createProviderRuntimeConnectionStatusFromConnectEvent({
+                  provider: nextProvider,
+                  event: "idle",
+                  updatedAt: new Date().toISOString(),
+                }),
+              );
             }}
             className="w-full max-w-xs rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface)] px-3 py-2 text-xs text-[color:var(--af-text)]"
           >
@@ -220,10 +237,14 @@ export function ProviderConsentConfirmationPanel() {
 
         {lastLauncherResult ? <ProviderConsentLauncherResultPreview result={lastLauncherResult} /> : null}
 
+        {explicitConsentChecked ? <ProviderConnectionStatusPanel status={connectionStatus} /> : null}
+
         <ProviderNangoConnectUi
+          provider={selectedProvider}
           explicitConsentChecked={explicitConsentChecked}
           launcherResult={lastLauncherResult}
           openNangoConnectUi={openNangoConnectUiWithFrontendSdk}
+          onConnectionStatusChange={setConnectionStatus}
         />
       </div>
     </ApplyFlowCard>

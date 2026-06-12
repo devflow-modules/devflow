@@ -70,6 +70,7 @@ describe("ProviderNangoConnectUi render", () => {
   it("does not render before explicit consent", () => {
     const html = renderToStaticMarkup(
       <ProviderNangoConnectUi
+        provider="gmail"
         explicitConsentChecked={false}
         launcherResult={readyLauncherResult}
         openNangoConnectUi={vi.fn()}
@@ -82,6 +83,7 @@ describe("ProviderNangoConnectUi render", () => {
   it("shows Connect UI unavailable when launcher is blocked", () => {
     const html = renderToStaticMarkup(
       <ProviderNangoConnectUi
+        provider="gmail"
         explicitConsentChecked={true}
         launcherResult={blockedLauncherResult}
         openNangoConnectUi={vi.fn()}
@@ -95,6 +97,7 @@ describe("ProviderNangoConnectUi render", () => {
   it("shows Start Nango Connect when launcher is oauth_start_ready", () => {
     const html = renderToStaticMarkup(
       <ProviderNangoConnectUi
+        provider="gmail"
         explicitConsentChecked={true}
         launcherResult={readyLauncherResult}
         openNangoConnectUi={vi.fn()}
