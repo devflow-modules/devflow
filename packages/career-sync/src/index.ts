@@ -180,3 +180,15 @@ export {
   createDisabledProviderRuntimeShell,
   evaluateProviderRuntimeGate,
 } from "./provider-runtime/index.js";
+
+export type {
+  ProviderConnectionActionKind,
+  ProviderConnectionActionMode,
+  ProviderConnectionActionRequest,
+  ProviderConnectionActionResult,
+} from "./provider-connection-action/index.js";
+
+export {
+  createProviderConnectionActionMock,
+  createProviderConnectionActionSnapshot,
+} from "./provider-connection-action/index.js";
