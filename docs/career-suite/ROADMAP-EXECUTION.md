@@ -26,6 +26,7 @@ Versioned execution plan for the next Career Suite phase: **deterministic agent-
 | **ApplyFlow provider consent mock panel** | Read-only UI preview — no OAuth or provider calls |
 | **Provider connection status model** | `@devflow/career-sync` snapshots + capabilities — no persistence |
 | **ApplyFlow consent mock ↔ connection model** | Panel renders `ProviderConnectionSnapshot` fake data — read-only |
+| **Provider runtime feature flag plan** | Documented — [`integrations/PROVIDER-RUNTIME-FEATURE-FLAGS.md`](./integrations/PROVIDER-RUNTIME-FEATURE-FLAGS.md) |
 | LibreChat / Nango / OpenClaw | **Not** MVP dependencies — accelerators after core |
 
 **Next step:** Real provider integration only behind explicit consent; LibreChat/MCP lab over deterministic signals.
@@ -66,6 +67,7 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 - ApplyFlow provider consent mock panel — read-only consent preview on dashboard
 - Provider connection status model — `@devflow/career-sync` `provider-connection` module
 - ApplyFlow consent mock wired to provider connection model — dashboard snapshots from `@devflow/career-sync`
+- Provider runtime feature flag plan — [`integrations/PROVIDER-RUNTIME-FEATURE-FLAGS.md`](./integrations/PROVIDER-RUNTIME-FEATURE-FLAGS.md)
 
 ### Provider consent mock panel
 
@@ -85,8 +87,10 @@ This remains read-only and does not activate OAuth, Nango runtime, provider call
 
 ### Next
 
-- Feature flag plan for real provider runtime
-- Real Nango OAuth only behind explicit feature flag and consent
+- Feature flag evaluation helpers
+- Disabled provider runtime shell
+- Consent-gated provider connection action mock
+- Real Nango OAuth only behind explicit flags and consent
 
 ### Future roadmap
 

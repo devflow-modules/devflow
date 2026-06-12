@@ -47,6 +47,10 @@ ApplyFlow
 * [ ] Provider consent preview uses fake/sandbox provider connection snapshots
 * [ ] Provider consent preview shows scopes as preview only
 * [ ] Provider consent preview does not store provider state
+* [ ] Provider runtime feature flags are documented
+* [ ] All real provider runtime flags default to false
+* [ ] Missing provider runtime flags are treated as disabled
+* [ ] Sandbox/mock/demo flows continue to work with runtime flags disabled
 
 ## Interview Lab checks
 

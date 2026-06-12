@@ -47,6 +47,14 @@ Raw provider payloads must not be embedded in CareerBundle. Provider tokens must
 
 Full consent model, adapter isolation, and implementation gates: [`PROVIDER-CONSENT-ARCHITECTURE.md`](./PROVIDER-CONSENT-ARCHITECTURE.md).
 
+## Feature flag boundary
+
+Feature flags do not weaken the sync data boundaries.
+
+Even when real runtime flags are enabled, raw provider payloads, tokens, raw email bodies, raw calendar descriptions, meeting links, attendee emails, attachments, headers, and provider IDs must not enter CareerBundle or app-level exports.
+
+See [`PROVIDER-RUNTIME-FEATURE-FLAGS.md`](./PROVIDER-RUNTIME-FEATURE-FLAGS.md).
+
 ## Principles
 
 - **Privacy-first** — collect the minimum needed for career workflow hints
