@@ -54,6 +54,12 @@ Before adding the Nango SDK, Career Suite defines provider adapter interfaces in
 
 Nango should later implement these interfaces instead of leaking provider-specific payloads into apps or CareerBundle.
 
+### Nango adapter sandbox
+
+The Nango adapter sandbox proves the provider adapter interface with fake payloads only.
+
+It does not connect to Nango, does not perform OAuth, does not fetch Gmail or Calendar data, does not store tokens, and does not retain raw provider payloads.
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab
