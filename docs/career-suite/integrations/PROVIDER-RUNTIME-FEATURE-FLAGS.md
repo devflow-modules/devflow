@@ -4,7 +4,7 @@ Career Suite must keep all real provider runtimes disabled by default.
 
 This document defines the feature flag plan required before any real OAuth, Nango runtime, Gmail connector, or Calendar connector is introduced.
 
-**Status:** Planning only — no runtime flags are implemented in apps or packages yet.
+**Status:** Flag plan documented; pure evaluation helpers implemented in `@devflow/career-sync`. No runtime activation in apps yet.
 
 ---
 
@@ -18,6 +18,7 @@ This document defines the feature flag plan required before any real OAuth, Nang
 - Provider connection status model
 - ApplyFlow consent mock panel
 - ApplyFlow mock panel wired to fake/sandbox connection snapshots
+- Provider runtime feature flag evaluation helpers (`provider-runtime-flags` module)
 
 **Not implemented today:**
 
@@ -29,7 +30,20 @@ This document defines the feature flag plan required before any real OAuth, Nang
 - Provider sync jobs
 - Background sync
 - Persisted provider connection state
-- Feature flag evaluation helpers in code
+- Disabled provider runtime shell
+- Runtime flag wiring in apps
+
+---
+
+## Evaluation helpers
+
+`@devflow/career-sync` includes pure feature flag evaluation helpers.
+
+The helpers receive an explicit flag map and do not read `process.env` directly.
+
+They do not activate runtime behavior. They only evaluate whether a future runtime would be allowed to proceed.
+
+Public exports: `readProviderRuntimeFlag`, `evaluateProviderRuntimeFlags`, `canUseProviderRuntime`, `canUseNangoRuntime`, `canUseGmailProvider`, `canUseCalendarProvider`.
 
 ---
 
