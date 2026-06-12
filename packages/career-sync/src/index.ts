@@ -192,3 +192,14 @@ export {
   createProviderConnectionActionMock,
   createProviderConnectionActionSnapshot,
 } from "./provider-connection-action/index.js";
+
+export type {
+  ProviderRuntimeAppBoundaryMode,
+  ProviderRuntimeAppBoundaryRequest,
+  ProviderRuntimeAppBoundaryResult,
+} from "./provider-runtime-app-boundary/index.js";
+
+export {
+  createProviderRuntimeAppBoundaryResult,
+  isProviderRuntimeAppBoundaryResultSafeForClient,
+} from "./provider-runtime-app-boundary/index.js";

@@ -18,6 +18,7 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - disabled provider runtime shell
 - consent-gated provider connection action mock
 - ApplyFlow consent panel action simulation
+- provider runtime app boundary contract
 
 **Not implemented:**
 
@@ -29,6 +30,16 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - provider sync jobs
 - persisted provider connection state
 - real provider data import
+
+---
+
+## Provider runtime app boundary contract
+
+Before real OAuth is introduced, Career Suite defines an app boundary contract for future provider runtime actions.
+
+The boundary returns client-safe results and does not expose tokens, raw provider payloads, provider calls, or persistence behavior.
+
+Public exports: `createProviderRuntimeAppBoundaryResult`, `isProviderRuntimeAppBoundaryResultSafeForClient`.
 
 ---
 
