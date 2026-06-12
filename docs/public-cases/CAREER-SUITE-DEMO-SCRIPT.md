@@ -14,6 +14,7 @@ Record a **60–90 second** screen demo that shows:
 2. One-click handoff to Interview Lab with ACK.
 3. Resume Match running deterministically in the browser.
 4. Practice session with role-specific prep panel.
+5. *(Optional)* Sync enrichment read-only preview when demoing derived-signal import.
 
 Audience: recruiter, tech lead, or founder evaluating **product engineering + privacy + applied AI judgment**.
 
@@ -105,3 +106,27 @@ Add to the 60s script:
 > “When the browser blocks the popup, the bundle is copied to the clipboard — still explicit, still local, still validated by the same schema.”
 
 Do not edit the recording to hide failures; either retry with popups allowed or use the honest fallback line — it reinforces the privacy/explicit-handoff story.
+
+---
+
+## Step — Import CareerBundle with sync enrichment
+
+*(Optional segment — use when demoing the sync enrichment contract, not the default ApplyFlow handoff.)*
+
+**Screen:** Interview Lab `/import/applyflow` after importing a CareerBundle JSON that includes a validated `syncEnrichment` (e.g. from a test fixture or serialized export with safe derived signals).
+
+**Action:** Point to the **Sync enrichment detected** panel — summary, signal counts, company hints, privacy line.
+
+**Say:**
+
+> “When a bundle includes optional sync enrichment, Interview Lab shows a read-only aggregated preview. It does not connect to Gmail or Calendar, does not persist sync data, and does not display raw email bodies, calendar descriptions, provider payloads, attachments, or meeting links.”
+
+**Key talking point:**
+
+> “This is not automation that applies to jobs for the user. It is a privacy-safe context layer that helps the candidate understand process signals before preparing for interviews.”
+
+**Honesty guardrails:**
+
+- Gmail/Calendar integration is **sandbox / derived-signal contract** today — not production OAuth.
+- ApplyFlow does not yet expose a user-facing export toggle for sync enrichment in the default demo path.
+- Sync preview disappears on refresh unless the user re-imports a bundle with enrichment.

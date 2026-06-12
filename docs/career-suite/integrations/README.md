@@ -6,8 +6,8 @@ This folder documents **external integration labs** for the Career Suite. These 
 
 1. **[LibreChat + MCP lab](./LIBRECHAT-MCP-LAB.md)** — local agent UI over deterministic tools
 2. **[LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)** — connect upstream LibreChat to `@devflow/career-agents-mcp` stdio
-3. **[Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth/sync adapter (docs phase; not in repo)
-4. **[Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)** — privacy rules for future Gmail/Calendar sync
+3. **[Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth/sync adapter (docs + sandbox contracts; no runtime OAuth in apps)
+4. **[Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)** — privacy rules for Gmail/Calendar derived signals and CareerBundle sync enrichment
 5. **Multi-agent orchestration** — after MCP tools and sync boundaries are stable
 6. **OpenClaw POC** — optional automation surface; not product-critical
 
@@ -28,9 +28,19 @@ See also: **[MCP server candidates](./MCP-SERVER-CANDIDATES.md)**.
 - **`@devflow/career-agents`** — deterministic job/resume/ATS analysis (package)
 - **`CareerBundle` JSON** — typed handoff contract (`@devflow/career-core`)
 - **ApplyFlow** — capture and organise applications
-- **Interview Lab** — import, Resume Match (`/career/ats`), practice prep
+- **Interview Lab** — import, Resume Match (`/career/ats`), practice prep, **read-only sync enrichment preview** on import (not persisted)
 
 Integrations **accelerate** experimentation; they do **not** replace this stack.
+
+## Sync enrichment (implemented contract)
+
+| Layer | Role |
+|-------|------|
+| **`@devflow/career-sync`** | Derived Gmail/Calendar signals, unified `CareerBundleUnifiedSyncEnrichment` — fixtures/sandbox only |
+| **`@devflow/career-core`** | Privacy validation, optional attach, export/import helpers |
+| **Interview Lab** | Aggregated read-only preview when imported bundle includes valid `syncEnrichment` |
+
+No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persistence in Interview Lab today.
 
 ## Status
 
@@ -40,7 +50,8 @@ Integrations **accelerate** experimentation; they do **not** replace this stack.
 | LibreChat local wiring | **Documented** | [LIBRECHAT-LOCAL-WIRING.md](./LIBRECHAT-LOCAL-WIRING.md) |
 | Career Agents MCP Server | **Scaffold + stdio transport** | `@devflow/career-agents-mcp` in monorepo |
 | CareerBundle MCP Server | **Candidate (Phase 2)** | Not implemented |
-| Nango Gmail/Calendar | **Planned / docs phase** | [NANGO-GMAIL-CALENDAR-PLAN.md](./NANGO-GMAIL-CALENDAR-PLAN.md) |
+| Nango Gmail/Calendar | **Contract + sandbox in `@devflow/career-sync`** | [NANGO-GMAIL-CALENDAR-PLAN.md](./NANGO-GMAIL-CALENDAR-PLAN.md) — no production OAuth in apps |
+| CareerBundle sync enrichment | **Implemented** (core adapter, export/import, IL preview) | Public case: [CAREER-SUITE.md](../../public-cases/CAREER-SUITE.md#sync-enrichment-flow) |
 | OpenClaw POC | **Future** | Not implemented |
 
 ## Related docs
