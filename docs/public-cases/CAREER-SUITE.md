@@ -129,6 +129,8 @@ Interview Lab read-only preview (/import/applyflow)
 
 This is a **privacy-safe context layer** for understanding process signals before interview prep — **not** automation that applies to jobs on the user's behalf.
 
+A **safe demo fixture** is available under [`docs/career-suite/demo/fixtures/`](../career-suite/demo/fixtures/) to demonstrate the CareerBundle sync enrichment import flow without using real provider data. See [`docs/career-suite/demo/README.md`](../career-suite/demo/README.md) and [`CAREER-SUITE-WALKTHROUGH.md`](../career-suite/demo/CAREER-SUITE-WALKTHROUGH.md).
+
 ---
 
 ## Privacy-first decisions
@@ -285,4 +287,5 @@ Optional: ApplyFlow ACK success state, AI coaching panel (only if demoing opt-in
 | [`../career-suite/DEMO-CHECKLIST.md`](../career-suite/DEMO-CHECKLIST.md) | Pre-demo validation |
 | [`CAREER-SUITE-LINKEDIN-POST.md`](./CAREER-SUITE-LINKEDIN-POST.md) | Draft posts (PT-BR) |
 | [`CAREER-SUITE-DEMO-SCRIPT.md`](./CAREER-SUITE-DEMO-SCRIPT.md) | Screen recording script |
+| [`../career-suite/demo/README.md`](../career-suite/demo/README.md) | Safe demo fixture + walkthrough index |
 | [`../applyflow/PUBLIC_CASE_STUDY.md`](../applyflow/PUBLIC_CASE_STUDY.md) | ApplyFlow-only public case |

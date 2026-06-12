@@ -130,3 +130,15 @@ Do not edit the recording to hide failures; either retry with popups allowed or 
 - Gmail/Calendar integration is **sandbox / derived-signal contract** today — not production OAuth.
 - ApplyFlow does not yet expose a user-facing export toggle for sync enrichment in the default demo path.
 - Sync preview disappears on refresh unless the user re-imports a bundle with enrichment.
+
+### Optional demo fixture
+
+Use:
+
+```txt
+docs/career-suite/demo/fixtures/career-bundle-with-sync-enrichment.demo.json
+```
+
+This fixture uses **fake/sandbox data only** and is intended to demonstrate the import preview flow safely in Interview Lab (`/import/applyflow` → paste → **Parse field**).
+
+Full walkthrough: [`../career-suite/demo/CAREER-SUITE-WALKTHROUGH.md`](../career-suite/demo/CAREER-SUITE-WALKTHROUGH.md)

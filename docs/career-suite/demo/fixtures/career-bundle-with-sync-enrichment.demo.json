@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "1.0",
+  "exportedAt": "2026-06-09T14:00:00.000Z",
+  "sourceProduct": "applyflow",
+  "candidate": {
+    "name": "Demo Candidate",
+    "targetRole": "Senior Frontend Engineer",
+    "mainStack": ["React", "TypeScript", "Next.js"]
+  },
+  "applications": [
+    {
+      "id": "demo-application-001",
+      "company": "Acme SaaS Brasil",
+      "role": "Senior Frontend Engineer",
+      "location": "São Paulo, BR",
+      "remote": true,
+      "seniority": "senior",
+      "source": "linkedin",
+      "jobDescription": "Fake demo description for portfolio recording only. Build accessible UI with React and TypeScript.",
+      "requiredSkills": ["React", "TypeScript", "Next.js", "Accessibility"],
+      "status": "interview_scheduled",
+      "appliedAt": "2026-06-01T10:00:00.000Z",
+      "notes": "Sandbox demo row — not a real application."
+    },
+    {
+      "id": "demo-application-002",
+      "company": "Beta Platform Labs",
+      "role": "Frontend Engineer",
+      "source": "manual",
+      "requiredSkills": ["JavaScript", "CSS"],
+      "status": "applied",
+      "appliedAt": "2026-06-05T09:30:00.000Z"
+    }
+  ],
+  "syncEnrichment": {
+    "source": "sync",
+    "summary": "Demo sync enrichment: 4 derived signals for Acme SaaS Brasil (2 Gmail-like, 2 Calendar-like). Sandbox fixture only — no provider data retained.",
+    "generatedAt": "2026-06-09T14:00:00.000Z",
+    "privacy": {
+      "rawRetained": false,
+      "redacted": true,
+      "meetingLinksRemoved": true,
+      "providerPayloadRetained": false,
+      "userReviewRequired": true
+    },
+    "stats": {
+      "totalSignals": 4,
+      "actionRequiredCount": 1,
+      "upcomingCount": 1,
+      "stageCounts": {
+        "screening": 1,
+        "interview": 1,
+        "technical": 1,
+        "unknown": 1
+      },
+      "sourceCounts": {
+        "gmail": 2,
+        "calendar": 2
+      },
+      "companyHints": ["Acme SaaS Brasil", "Beta Platform Labs"]
+    },
+    "combinedSignals": [
+      {
+        "id": "demo-signal-001",
+        "source": "gmail",
+        "companyHint": "Acme SaaS Brasil",
+        "roleHint": "Senior Frontend Engineer",
+        "processStage": "screening",
+        "actionRequired": false,
+        "receivedAt": "2026-06-07T11:00:00.000Z",
+        "confidence": "high",
+        "safeSummary": "Recruiter screening invite for Senior Frontend Engineer at Acme SaaS Brasil (derived signal — fake demo).",
+        "rawRetained": false
+      },
+      {
+        "id": "demo-signal-002",
+        "source": "gmail",
+        "companyHint": "Acme SaaS Brasil",
+        "roleHint": "Senior Frontend Engineer",
+        "processStage": "technical",
+        "actionRequired": true,
+        "receivedAt": "2026-06-08T15:30:00.000Z",
+        "confidence": "medium",
+        "safeSummary": "Follow-up required: technical assignment reminder for Acme SaaS Brasil (derived signal — fake demo).",
+        "rawRetained": false
+      },
+      {
+        "id": "demo-signal-003",
+        "source": "calendar",
+        "companyHint": "Acme SaaS Brasil",
+        "roleHint": "Senior Frontend Engineer",
+        "processStage": "interview",
+        "actionRequired": false,
+        "eventAt": "2026-07-15T18:00:00.000Z",
+        "confidence": "high",
+        "safeSummary": "Upcoming interview block for Senior Frontend Engineer at Acme SaaS Brasil (derived signal — fake demo).",
+        "rawRetained": false
+      },
+      {
+        "id": "demo-signal-004",
+        "source": "calendar",
+        "companyHint": "Beta Platform Labs",
+        "roleHint": "Frontend Engineer",
+        "processStage": "unknown",
+        "actionRequired": false,
+        "eventAt": "2026-06-20T16:00:00.000Z",
+        "confidence": "low",
+        "safeSummary": "Technical interview preparation window for Frontend Engineer at Beta Platform Labs (derived signal — fake demo).",
+        "rawRetained": false
+      }
+    ]
+  }
+}
