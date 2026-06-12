@@ -1,5 +1,6 @@
 "use client";
 
+import { ProviderConsentConfirmationPanel } from "@/components/dashboard/provider-consent-confirmation-panel";
 import { ProviderConsentMockPanel } from "@/components/dashboard/provider-consent-mock-panel";
 import { ApplyFlowBadge, type ApplyFlowBadgeTone } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton, applyFlowButtonClass } from "@/components/ui/ApplyFlowButton";
@@ -671,6 +672,8 @@ export function DashboardClient() {
         ) : null}
 
         <ProviderConsentMockPanel />
+
+        <ProviderConsentConfirmationPanel />
 
         {hasData ? (
           <div className="flex flex-wrap items-center gap-4">
