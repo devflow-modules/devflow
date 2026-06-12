@@ -13,10 +13,12 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@devflow/career-sync": "workspace:*",
     "zod": "^3.23.0"
   },
   "devDependencies": {

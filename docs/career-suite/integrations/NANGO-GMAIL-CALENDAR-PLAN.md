@@ -38,6 +38,10 @@ Nango-derived signals may **enrich** metadata later; they must not replace user-
 
 `@devflow/career-sync` can combine Gmail and Calendar derived signals into a unified CareerBundle sync enrichment contract. This contract contains only normalized, redacted, reviewable signals and does not retain raw provider payloads, raw messages, raw events, attachments, or meeting links.
 
+### Phase 6 — CareerBundle sync enrichment adapter
+
+`@devflow/career-core` can optionally attach and validate `CareerBundleUnifiedSyncEnrichment` from `@devflow/career-sync`. The adapter preserves existing CareerBundle fields, rejects unsafe privacy flags, and does not fetch provider data or persist raw payloads.
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab
