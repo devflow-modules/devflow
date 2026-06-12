@@ -25,6 +25,7 @@ Versioned execution plan for the next Career Suite phase: **deterministic agent-
 | **Nango adapter sandbox** | Fake payloads via `ProviderAdapter` contracts — no Nango SDK |
 | **ApplyFlow provider consent mock panel** | Read-only UI preview — no OAuth or provider calls |
 | **Provider connection status model** | `@devflow/career-sync` snapshots + capabilities — no persistence |
+| **ApplyFlow consent mock ↔ connection model** | Panel renders `ProviderConnectionSnapshot` fake data — read-only |
 | LibreChat / Nango / OpenClaw | **Not** MVP dependencies — accelerators after core |
 
 **Next step:** Real provider integration only behind explicit consent; LibreChat/MCP lab over deterministic signals.
@@ -64,10 +65,17 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 - Nango adapter sandbox using provider contracts — `@devflow/career-sync` `nango-adapter` module
 - ApplyFlow provider consent mock panel — read-only consent preview on dashboard
 - Provider connection status model — `@devflow/career-sync` `provider-connection` module
+- ApplyFlow consent mock wired to provider connection model — dashboard snapshots from `@devflow/career-sync`
 
 ### Provider consent mock panel
 
 ApplyFlow includes a read-only provider consent preview panel that demonstrates the future consent-based Gmail/Calendar integration model without activating OAuth, Nango runtime, provider calls, token storage, or sync jobs.
+
+### ApplyFlow consent mock wired to provider connection model
+
+The ApplyFlow provider consent mock panel now renders fake/sandbox provider connection snapshots using the pure connection status model from `@devflow/career-sync`.
+
+This remains read-only and does not activate OAuth, Nango runtime, provider calls, token storage, persistence, or sync jobs.
 
 **Current status:**
 
@@ -78,7 +86,6 @@ ApplyFlow includes a read-only provider consent preview panel that demonstrates 
 ### Next
 
 - Feature flag plan for real provider runtime
-- Consent UI state wired to mock connection model
 - Real Nango OAuth only behind explicit feature flag and consent
 
 ### Future roadmap

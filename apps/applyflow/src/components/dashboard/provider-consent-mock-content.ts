@@ -12,31 +12,6 @@ export const PROVIDER_CONSENT_MOCK_DESCRIPTION =
 
 export const PROVIDER_CONSENT_MOCK_RUNTIME = "Future Nango adapter";
 
-export type ProviderConsentMockProviderCard = {
-  id: "gmail" | "calendar";
-  label: string;
-  status: string;
-  allowedSignals: string;
-  neverStored: string;
-};
-
-export const PROVIDER_CONSENT_MOCK_PROVIDERS: ProviderConsentMockProviderCard[] = [
-  {
-    id: "gmail",
-    label: "Gmail",
-    status: "Not connected",
-    allowedSignals: "recruiter screening, follow-up, offer/rejection, company hints",
-    neverStored: "raw body, thread ID, message ID, attachments, tokens",
-  },
-  {
-    id: "calendar",
-    label: "Calendar",
-    status: "Not connected",
-    allowedSignals: "interview event, technical stage, company hints, event time",
-    neverStored: "descriptions, meeting links, attendee emails, event IDs, tokens",
-  },
-];
-
 export const PROVIDER_CONSENT_MOCK_ACTIONS = [
   { id: "connect-gmail", label: "Connect Gmail — Coming soon" },
   { id: "connect-calendar", label: "Connect Calendar — Coming soon" },
