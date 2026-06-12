@@ -49,6 +49,8 @@ CareerBundle JSON (export · postMessage · clipboard · file)
         ↓
 Interview Lab Import (/import/applyflow)
         ↓
+Optional sync enrichment preview (read-only, not persisted)
+        ↓
 Resume Match (/career/ats) — optional branch
         ↓
 Interview Practice (/practice/...?careerPrep=)
@@ -65,8 +67,9 @@ Interview Practice (/practice/...?careerPrep=)
 ```txt
 apps/applyflow              — dashboard, CareerBundle export, postMessage sender
 apps/applyflow-extension    — upstream capture (LinkedIn Easy Apply, chrome.storage.local)
-apps/interview-lab          — import, Resume Match, practice UI, optional AI coaching
-packages/career-core        — Zod schemas, parse/create bundle, prep builders, postMessage envelopes
+apps/interview-lab          — import, Resume Match, practice UI, optional AI coaching, sync enrichment preview
+packages/career-core        — Zod schemas, parse/create bundle, prep builders, postMessage envelopes, sync enrichment adapter/export
+packages/career-sync        — derived Gmail/Calendar signal contracts (sandbox/fixtures; no OAuth runtime)
 packages/applyflow-core     — application types, metrics, import validation (ApplyFlow domain)
 docs/career-suite/          — internal product docs, demo checklist, Resume Match case study
 ```
@@ -77,10 +80,54 @@ Shared package between ApplyFlow and Interview Lab:
 
 - **`CareerBundle`**, **`CareerApplication`**, **`InterviewPreparation`** — Zod-validated types.
 - **`parseCareerBundle`** / **`createCareerBundle`** — single validation path for clipboard, file, paste and postMessage payload.
+- **`parseCareerBundleWithSyncEnrichment`** / **`serializeCareerBundleWithSyncEnrichment`** — optional `syncEnrichment` export/import with privacy validation.
+- **`validateCareerBundleSyncEnrichment`** — rejects unsafe provider/raw retention flags before attach or import.
 - **`createInterviewPreparationFromApplication`** — deterministic prep (skills, role, company) without LLM.
 - **PostMessage contract** — `devflow.careerBundle.v1` / `devflow.careerBundle.ack.v1`, origin allowlist, optional `intent` and `selectedApplicationId`.
 
 Monorepo boundary: apps share **only** via `packages/*`; no shared backend for this MVP.
+
+---
+
+## Sync enrichment flow
+
+Career Suite supports an **optional** sync enrichment flow for CareerBundle imports. The design centres on **derived, reviewable metadata** — not raw provider data.
+
+```txt
+Gmail-like / Calendar-like signals (fixtures / sandbox)
+        ↓
+@devflow/career-sync
+        ↓
+CareerBundleUnifiedSyncEnrichment
+        ↓
+@devflow/career-core privacy validation
+        ↓
+CareerBundle export/import helpers
+        ↓
+Interview Lab read-only preview (/import/applyflow)
+```
+
+**What exists today**
+
+- **`@devflow/career-sync`** — deterministic normalizers and read-only Gmail/Calendar **preview** builders from fixtures and Nango-like sandbox payloads. **No OAuth, no Nango SDK at runtime, no provider API calls.**
+- **`@devflow/career-core`** — validates privacy flags (`rawRetained`, `providerPayloadRetained`, `meetingLinksRemoved`, etc.) before attaching or importing `syncEnrichment`.
+- **Interview Lab** — when an imported CareerBundle includes a **valid** `syncEnrichment`, shows an aggregated **read-only** preview (summary, signal counts, company hints, privacy metadata). **Sync enrichment is not persisted** in Interview Lab — only the base CareerBundle is stored in `localStorage`.
+
+**What the preview shows (aggregated only)**
+
+- Summary · total signals · action-required count · upcoming events count
+- Source counts (Gmail / Calendar labels) · stage counts · company hints
+- Privacy metadata (derived-only, no raw retention)
+
+**What it deliberately does not show**
+
+- Raw email bodies · raw calendar descriptions · provider payloads · attachments · meeting links
+
+**What is not implemented yet**
+
+- Real Gmail or Google Calendar OAuth · Nango production connector · ApplyFlow UI to opt into export with sync enrichment · persistent sync storage in apps
+
+This is a **privacy-safe context layer** for understanding process signals before interview prep — **not** automation that applies to jobs on the user's behalf.
 
 ---
 
@@ -92,7 +139,7 @@ Monorepo boundary: apps share **only** via `packages/*`; no shared backend for t
 | **No auto-submit in ApplyFlow** | Human action on every form step; aligned with platform rules and trust. |
 | **No bundle in URL** | Query params are UX hints only (`?from=applyflow`, `?handoff=postMessage`). |
 | **postMessage + ACK** | Typed, origin-checked handoff between open tabs; clipboard/file as explicit fallback. |
-| **Browser storage** | Extension `chrome.storage.local`, dashboard `localStorage`, Interview Lab prep persistence — all client-side. |
+| **Browser storage** | Extension `chrome.storage.local`, dashboard `localStorage`, Interview Lab prep persistence — all client-side. **Sync enrichment preview is session-only in Interview Lab; not written to storage.** |
 | **AI opt-in only** | Resume Match core runs offline in the browser; OpenAI calls only after **Generate AI coaching**. |
 | **No DevFlow server for resume text** | Coaching requests go from browser to OpenAI when enabled — not through a DevFlow API in this build. |
 
@@ -106,7 +153,7 @@ Monorepo boundary: apps share **only** via `packages/*`; no shared backend for t
 - **Local-first design** — explicit handoff instead of silent cloud sync
 - **Deterministic scoring** — Resume Match heuristics (keywords, seniority signals, coverage) — reproducible in tests
 - **postMessage ACK** — ApplyFlow knows when Interview Lab accepted the bundle; clipboard fallback on timeout or blocked popup
-- **Vitest** — unit tests on bundle parse, handoff sender/receiver, ATS analyzer, prep adapters
+- **Vitest** — unit tests on bundle parse, handoff sender/receiver, ATS analyzer, prep adapters, sync enrichment validation and Interview Lab preview helpers
 - **pnpm workspace + Turbo** — shared `career-core` without coupling app runtimes
 
 ---
@@ -131,14 +178,15 @@ pnpm --filter applyflow test
 pnpm --filter @devflow/app-interview-lab test
 ```
 
-**Current baseline:** 17 + 22 + 136 = **175 tests passing** (Career Suite scope).
+**Current baseline:** **200+ tests passing** in Career Suite scope (`career-core`, ApplyFlow, Interview Lab, `career-sync`).
 
 | Area | What tests protect |
 |------|-------------------|
 | **Bundle schema** | Valid/invalid JSON, Zod error messages, interview-ready selection |
 | **Export mapping** | ApplyFlow row → `CareerApplication`, single-row practice bundle |
 | **Handoff** | postMessage envelopes, ACK parsing, wrong origin, sender timeout/clipboard fallback |
-| **Import** | Clipboard parse, storage round-trip, postMessage evaluation |
+| **Import** | Clipboard parse, storage round-trip, postMessage evaluation, sync enrichment preview (read-only) |
+| **Sync enrichment** | Privacy validation, export/import round-trip, invalid enrichment ignored, no raw payload in preview |
 | **Preparation** | Deterministic `InterviewPreparation` from application fields |
 | **Resume Match** | Keyword extraction, score stability, practice adapter from ATS result |
 | **AI coaching** | Prompt shape, response parse, unavailable states — **not** called in deterministic core tests |
@@ -152,9 +200,10 @@ pnpm --filter @devflow/app-interview-lab test
 1. Open **ApplyFlow** dashboard → **Load demo** — show funnel and application table.
 2. Click **Prepare in Interview Lab** — new tab opens; confirm **ACK** message on ApplyFlow (bundle imported).
 3. In Interview Lab import screen — show **Bundle summary** and role list.
-4. Click **Train for this role** **or** use **Practice this role** from ApplyFlow for direct redirect.
-5. Open **`/career/ats`** → **Load sample analysis** → **Analyze ATS match** — show scores without network for core pass.
-6. **Practice interview from this analysis** — practice room with prep panel (`?careerPrep=`).
+4. *(Optional)* If the bundle includes validated **`syncEnrichment`**, show the **read-only sync preview** — explain aggregated signals only, no Gmail/Calendar connection, no persistence.
+5. Click **Train for this role** **or** use **Practice this role** from ApplyFlow for direct redirect.
+6. Open **`/career/ats`** → **Load sample analysis** → **Analyze ATS match** — show scores without network for core pass.
+7. **Practice interview from this analysis** — practice room with prep panel (`?careerPrep=`).
 
 Full checklist: [`../career-suite/DEMO-CHECKLIST.md`](../career-suite/DEMO-CHECKLIST.md) · recording script: [`CAREER-SUITE-DEMO-SCRIPT.md`](./CAREER-SUITE-DEMO-SCRIPT.md)
 
@@ -166,7 +215,7 @@ Capture after running the local demo (do not commit placeholder images):
 
 ```txt
 docs/career-suite/assets/applyflow-dashboard.png       — demo loaded, export card visible
-docs/career-suite/assets/interview-lab-import.png     — bundle summary after handoff
+docs/career-suite/assets/interview-lab-import.png     — bundle summary after handoff (optional sync preview if demoing enrichment)
 docs/career-suite/assets/resume-match-score.png       — /career/ats scores + keyword sections
 docs/career-suite/assets/interview-practice-prep.png  — practice UI with Career prep panel
 ```
@@ -184,21 +233,33 @@ Optional: ApplyFlow ACK success state, AI coaching panel (only if demoing opt-in
 | **Resume Match is heuristic** | Not a certified ATS parser; useful for gap awareness and practice context, not hiring decisions. |
 | **AI requires user action + key** | No “magic score from the cloud”; demos work fully without OpenAI. |
 | **JSON handoff vs realtime** | Simpler security model; two tabs or file transfer instead of WebSocket sync. |
+| **Sync enrichment is optional** | Strong privacy defaults; bundles without enrichment behave exactly as before. |
+| **Gmail/Calendar signals are sandbox today** | Derived-signal contracts and preview UX exist; real OAuth connectors are future work. |
 | **Limited job text in bundle today** | Skills and metadata export; full job description enrichment is roadmap (still user-controlled). |
 
 ---
 
 ## Roadmap
 
-Not implemented in this case — documented as honest next steps:
+**Implemented and documented (sync enrichment stack):**
 
-- **Encrypted cloud sync** — opt-in, user-held keys
-- **Richer job context** in CareerBundle when ApplyFlow can expose more text safely
-- **Import history** — versioned bundles, diff between exports
-- **Better analytics** — funnel → prep → practice completion (still privacy-preserving)
-- **Optional integrations** — Gmail, Calendar, ATS exports via explicit connectors
-- **Nango / unified OAuth** — possible future path for integrations without owning all APIs
-- **Internal coaching agents** — structured agents on top of deterministic prep, not replacement of it
+- Career sync foundation (`@devflow/career-sync`)
+- Gmail read-only sync preview (fixtures / sandbox)
+- Calendar read-only sync preview (fixtures / sandbox)
+- CareerBundle unified sync enrichment contract
+- `@devflow/career-core` adapter + export/import helpers
+- Interview Lab read-only import preview (not persisted)
+
+**Future — not implemented in this case:**
+
+- **ApplyFlow opt-in export surface** for sync enrichment
+- **Real Nango OAuth integration** behind explicit user consent
+- **LibreChat / MCP lab** demonstration over deterministic signals
+- **Multi-agent advisory layer** on top of derived signals (not replacement of deterministic core)
+- Encrypted cloud sync — opt-in, user-held keys
+- Richer job context in CareerBundle when ApplyFlow can expose more text safely
+- Import history — versioned bundles, diff between exports
+- Better analytics — funnel → prep → practice completion (still privacy-preserving)
 
 ---
 

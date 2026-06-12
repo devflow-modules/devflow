@@ -21,19 +21,26 @@ Versioned execution plan for the next Career Suite phase: **deterministic agent-
 | **Interview Lab sync preview** | Read-only import preview for validated sync enrichment |
 | LibreChat / Nango / OpenClaw | **Not** MVP dependencies — accelerators after core |
 
-**Next step:** explicit user-review UI before automated product actions consume sync enrichment.
+**Next step:** ApplyFlow opt-in export surface for sync enrichment; real Nango OAuth only after explicit consent UX.
 
-### CareerBundle sync enrichment adapter
+### Completed — sync enrichment stack (documented in public case)
 
-The CareerBundle core adapter recognizes safe sync enrichments produced by `@devflow/career-sync`. It only accepts derived, redacted, user-reviewable enrichment data and does not consume provider raw payloads.
+| Milestone | State |
+|-----------|--------|
+| Career sync foundation (`@devflow/career-sync`) | Done — fixtures/sandbox, no OAuth runtime |
+| Gmail read-only sync preview | Done |
+| Calendar read-only sync preview | Done |
+| CareerBundle unified sync enrichment contract | Done |
+| `@devflow/career-core` adapter | Done |
+| CareerBundle export/import support | Done |
+| Interview Lab read-only import preview | Done — not persisted |
 
-### CareerBundle export support
+### Future — after current stack
 
-CareerBundle export support may include validated sync enrichment as optional derived data. Raw provider payloads, raw email bodies, raw calendar descriptions, attachments, and meeting links must not be embedded in exported bundles.
-
-### Interview Lab sync enrichment import preview
-
-Interview Lab can display a read-only preview of validated sync enrichment embedded in an imported CareerBundle. The preview only shows aggregated, derived metadata and does not fetch provider data, persist sync data, display raw email/calendar content, expose meeting links, or trigger automated actions.
+- ApplyFlow opt-in export surface for sync enrichment
+- Real Nango OAuth integration behind explicit user consent
+- LibreChat / MCP lab demonstration over deterministic signals
+- Multi-agent advisory layer over derived signals (not replacement of deterministic core)
 
 ---
 

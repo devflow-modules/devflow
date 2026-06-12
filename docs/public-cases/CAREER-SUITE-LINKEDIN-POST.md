@@ -12,11 +12,32 @@ O handoff ApplyFlow → Interview Lab usa `postMessage` com ACK (confirmação d
 
 O núcleo é **determinístico**: análise estilo ATS, gaps, perguntas prováveis e prep panel gerados no browser. **IA é opcional** — só roda quando o usuário pede coaching, com chave no próprio navegador.
 
-Cobertura de testes no escopo Career Suite: **175 testes** (bundle, handoff, import, Resume Match).
+Cobertura de testes no escopo Career Suite: **200+ testes** (bundle, handoff, import, Resume Match, sync enrichment).
 
 Case técnico de Product Engineering + integração de IA com critério — produto e privacidade antes de hype.
 
 Material do case (documentação interna do projeto): Career Suite public case + demo script.
+
+---
+
+# LinkedIn post — sync enrichment (EN)
+
+I added a privacy-safe sync enrichment flow to Career Suite.
+
+Instead of storing raw Gmail or Calendar data, the system works with **derived signals only**.
+
+The flow:
+
+CareerBundle → optional sync enrichment → privacy validation in `@devflow/career-core` → read-only preview in Interview Lab
+
+No OAuth runtime integration yet.  
+No raw email bodies.  
+No calendar descriptions.  
+No meeting links.  
+No provider payloads.  
+No auto-submit.
+
+The goal is to show how product integrations can be designed around **data minimization from day one**.
 
 ---
 
@@ -55,7 +76,7 @@ pnpm --filter @devflow/app-interview-lab test  # 136
 Cobertura: schema, export mapping, sender/receiver postMessage, prep determinístico, ATS heuristics — IA isolada dos gates core.
 
 **Próximos passos (roadmap honesto)**  
-Sync cloud opt-in criptografado, job context mais rico no bundle, histórico de imports, integrações explícitas (ATS/calendar) — não promessa de produto público hoje; evolução documentada.
+ApplyFlow opt-in export for sync enrichment, real Nango OAuth behind explicit consent, LibreChat/MCP lab over deterministic signals — **not** production Gmail/Calendar today. Sync cloud opt-in criptografado, job context mais rico no bundle, histórico de imports — evolução documentada.
 
 **O que isso demonstra**  
 Arquitetura de produto multi-app, DX com contratos compartilhados, integração segura entre superfícies, IA como amplificador — não motor oculto.
