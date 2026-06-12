@@ -407,6 +407,9 @@ importers:
         specifier: ^3.23.0
         version: 3.25.76
     devDependencies:
+      '@devflow/career-sync':
+        specifier: workspace:*
+        version: link:../../packages/career-sync
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.2.1

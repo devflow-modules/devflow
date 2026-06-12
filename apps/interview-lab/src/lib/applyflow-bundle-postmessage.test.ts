@@ -40,6 +40,7 @@ describe("evaluateApplyflowBundlePostMessage", () => {
     if (r.action === "accept") {
       expect(r.bundle.schemaVersion).toBe("1.0");
       expect(r.intent).toBe("import");
+      expect(r.syncPreview.status).toBe("not_provided");
     }
   });
 
