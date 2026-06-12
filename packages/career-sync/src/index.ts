@@ -115,3 +115,19 @@ export {
   createProviderAdapterSafetyPolicy,
   isProviderAdapterSafetyPolicySafe,
 } from "./provider-adapter/index.js";
+
+export type {
+  NangoSandboxAdapterInput,
+  NangoSandboxAdapterOutput,
+  NangoSandboxCalendarPayload,
+  NangoSandboxGmailPayload,
+  NangoSandboxPayload,
+  NangoSandboxProvider,
+  NangoSandboxRuntime,
+} from "./nango-adapter/index.js";
+
+export {
+  createNangoSandboxAdapter,
+  createNangoSandboxSyncRequest,
+  mapNangoSandboxPayloadToProviderNormalized,
+} from "./nango-adapter/index.js";

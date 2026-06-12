@@ -289,6 +289,16 @@ These contracts do not implement OAuth, Nango runtime, Gmail API, Calendar API, 
 
 Public exports: `ProviderAdapter`, `ProviderSyncRequest`, `ProviderNormalizedMessage`, `ProviderNormalizedEvent`, `ProviderAdapterResult`, `ProviderAdapterSafetyPolicy`, and safety helpers (`createProviderAdapterSafetyPolicy`, `assertProviderAdapterResultSafe`, etc.).
 
+## Nango sandbox adapter
+
+`@devflow/career-sync` includes a Nango sandbox adapter that implements the provider adapter contracts without adding the Nango SDK or OAuth runtime.
+
+The sandbox adapter accepts fake Nango-like payloads and maps them into safe `ProviderNormalizedMessage` and `ProviderNormalizedEvent` objects.
+
+It is intended to validate adapter boundaries before a real provider runtime exists.
+
+Public exports: `createNangoSandboxAdapter`, `mapNangoSandboxPayloadToProviderNormalized`, `NangoSandboxPayload`, `createNangoSandboxSyncRequest`.
+
 ---
 
 ## Safety gates before implementation
@@ -328,7 +338,7 @@ Safe implementation order:
 | **E** | `feat: add provider connection status model` | Connection metadata schema — no provider calls |
 | **F** | `feat: add real Nango OAuth behind feature flag` | Live OAuth only after A–E gates pass |
 
-**PR A and PR B are complete.** No runtime OAuth, Nango SDK, or live Gmail/Calendar connector ships until PR C–F gates pass.
+**PR A, PR B, and PR C are complete.** No runtime OAuth, Nango SDK, or live Gmail/Calendar connector ships until PR D–F gates pass.
 
 ---
 

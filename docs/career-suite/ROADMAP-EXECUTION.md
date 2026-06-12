@@ -22,6 +22,7 @@ Versioned execution plan for the next Career Suite phase: **deterministic agent-
 | **ApplyFlow opt-in demo export** | Dashboard checkbox for sandbox sync enrichment in CareerBundle export |
 | **Provider consent architecture** | Documented — [`integrations/PROVIDER-CONSENT-ARCHITECTURE.md`](./integrations/PROVIDER-CONSENT-ARCHITECTURE.md) |
 | **Provider adapter interface contracts** | `@devflow/career-sync` types + safety helpers — no OAuth runtime |
+| **Nango adapter sandbox** | Fake payloads via `ProviderAdapter` contracts — no Nango SDK |
 | LibreChat / Nango / OpenClaw | **Not** MVP dependencies — accelerators after core |
 
 **Next step:** Real provider integration only behind explicit consent; LibreChat/MCP lab over deterministic signals.
@@ -58,23 +59,22 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 
 - Provider consent integration architecture — [`integrations/PROVIDER-CONSENT-ARCHITECTURE.md`](./integrations/PROVIDER-CONSENT-ARCHITECTURE.md)
 - Provider adapter interface contracts — `@devflow/career-sync` `provider-adapter` module
+- Nango adapter sandbox using provider contracts — `@devflow/career-sync` `nango-adapter` module
 
 **Current status:**
 
 - Demo/sandbox sync enrichment loop is complete.
 - Real provider integration is **not implemented yet**.
-- Architecture, safety gates, and adapter contracts are defined before any OAuth runtime.
+- Architecture, safety gates, adapter contracts, and Nango sandbox adapter are defined before any OAuth runtime.
 
 ### Next
 
-- Nango adapter sandbox implementation using provider adapter contracts
+- Consent UI mock / read-only connection state
+- Provider connection status model
+- Real Nango OAuth only behind feature flag and explicit consent
 
 ### Future roadmap
 
-- Nango provider adapter sandbox (fixtures only)
-- Consent UI mock / read-only connection state
-- Provider connection status model
-- Real Nango OAuth behind feature flag (after safety gates)
 - Gmail/Calendar provider connectors with least-data boundaries
 - Recording notes and LinkedIn publish pack
 - Multi-agent advisory layer over deterministic signals
