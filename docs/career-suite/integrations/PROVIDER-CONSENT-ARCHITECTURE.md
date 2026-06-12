@@ -345,6 +345,16 @@ Location: ApplyFlow dashboard — `ProviderConsentMockPanel` preview action butt
 
 ---
 
+## Real provider runtime readiness
+
+The consent architecture requires a final readiness checklist before real OAuth or provider runtime is introduced.
+
+The checklist covers feature flags, explicit consent, token boundaries, raw data boundaries, revoke/delete flows, and tests required before runtime code can ship.
+
+See [`REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md`](./REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md).
+
+---
+
 ## Provider runtime feature flags
 
 Real provider runtime must be gated by feature flags before any OAuth, Nango runtime, Gmail connector, or Calendar connector is introduced.

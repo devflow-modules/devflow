@@ -72,6 +72,14 @@ Public exports: `createProviderConnectionActionMock`, `createProviderConnectionA
 
 ---
 
+## Real runtime readiness
+
+Before any real runtime PR is introduced, Career Suite must satisfy the real provider runtime readiness checklist.
+
+See [`REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md`](./REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md).
+
+---
+
 ## Required flags
 
 | Flag | Default | Purpose |
