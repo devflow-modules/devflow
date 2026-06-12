@@ -4,7 +4,7 @@ Career Suite must keep all real provider runtimes disabled by default.
 
 This document defines the feature flag plan required before any real OAuth, Nango runtime, Gmail connector, or Calendar connector is introduced.
 
-**Status:** Flag plan documented; pure evaluation helpers implemented in `@devflow/career-sync`. No runtime activation in apps yet.
+**Status:** Flag plan documented; evaluation helpers and disabled runtime shell implemented in `@devflow/career-sync`. No runtime activation in apps yet.
 
 ---
 
@@ -19,6 +19,7 @@ This document defines the feature flag plan required before any real OAuth, Nang
 - ApplyFlow consent mock panel
 - ApplyFlow mock panel wired to fake/sandbox connection snapshots
 - Provider runtime feature flag evaluation helpers (`provider-runtime-flags` module)
+- Disabled provider runtime shell (`provider-runtime` module)
 
 **Not implemented today:**
 
@@ -30,7 +31,6 @@ This document defines the feature flag plan required before any real OAuth, Nang
 - Provider sync jobs
 - Background sync
 - Persisted provider connection state
-- Disabled provider runtime shell
 - Runtime flag wiring in apps
 
 ---
@@ -44,6 +44,18 @@ The helpers receive an explicit flag map and do not read `process.env` directly.
 They do not activate runtime behavior. They only evaluate whether a future runtime would be allowed to proceed.
 
 Public exports: `readProviderRuntimeFlag`, `evaluateProviderRuntimeFlags`, `canUseProviderRuntime`, `canUseNangoRuntime`, `canUseGmailProvider`, `canUseCalendarProvider`.
+
+---
+
+## Disabled provider runtime shell
+
+`@devflow/career-sync` includes a disabled provider runtime shell.
+
+The shell evaluates runtime gates and consent state, but it never starts OAuth, calls Nango, calls Gmail or Calendar APIs, stores tokens, persists provider data, or runs sync jobs.
+
+Even when all gates evaluate to allowed, the current shell returns a disabled runtime result until a future runtime PR explicitly implements behavior behind feature flags and consent.
+
+Public exports: `evaluateProviderRuntimeGate`, `createDisabledProviderRuntimeResult`, `createDisabledProviderRuntimeShell`.
 
 ---
 

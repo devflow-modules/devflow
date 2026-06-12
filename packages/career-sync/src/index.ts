@@ -165,3 +165,18 @@ export {
   evaluateProviderRuntimeFlags,
   readProviderRuntimeFlag,
 } from "./provider-runtime-flags/index.js";
+
+export type {
+  DisabledProviderRuntimeResult,
+  ProviderRuntimeBlockReason,
+  ProviderRuntimeConsentState,
+  ProviderRuntimeGateRequest,
+  ProviderRuntimeGateResult,
+  ProviderRuntimeGateStatus,
+} from "./provider-runtime/index.js";
+
+export {
+  createDisabledProviderRuntimeResult,
+  createDisabledProviderRuntimeShell,
+  evaluateProviderRuntimeGate,
+} from "./provider-runtime/index.js";
