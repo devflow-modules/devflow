@@ -150,3 +150,18 @@ export {
   isProviderConnected,
   summarizeProviderConnections,
 } from "./provider-connection/index.js";
+
+export type {
+  ProviderRuntimeFlagEvaluation,
+  ProviderRuntimeFlagMap,
+  ProviderRuntimeFlagName,
+} from "./provider-runtime-flags/index.js";
+
+export {
+  canUseCalendarProvider,
+  canUseGmailProvider,
+  canUseNangoRuntime,
+  canUseProviderRuntime,
+  evaluateProviderRuntimeFlags,
+  readProviderRuntimeFlag,
+} from "./provider-runtime-flags/index.js";
