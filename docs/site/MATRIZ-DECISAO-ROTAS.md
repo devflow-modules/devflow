@@ -97,7 +97,7 @@ Decisão **pragmática** alinhada ao diagnóstico de sobreposição raiz ↔ app
 | `/api/admin/conversations`, `/api/admin/whatsapp/*` | `apps/whatsapp-platform` | Removido da raiz | ok | **manter** só no app |
 | `/api/admin/metrics`, `revenue` | Definir por produto | Raiz | ambígua | **migrar** para app dono |
 | `/api/health` | Cada app | Vários | ok | **manter** em cada deploy |
-| `/provider-runtime/nango/connect` (GET, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — launcher server-side Nango connect session; client-safe JSON only; blocked-by-default (feature flags + explicit consent); no Gmail/Calendar import; no token exposure; no provider payload persistence |
+| `/provider-runtime/nango/connect` (GET, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — launcher server-side Nango Connect session readiness; client-safe JSON + short-lived connect session token when allowed; requires feature flags + explicit consent (`explicit_consent=1`); no Gmail/Calendar import; no sync job; no raw payload persistence; no OAuth token exposure; no CareerBundle mutation |
 | Sitemaps | Raiz | Raiz | ok | **manter** |
 
 ---

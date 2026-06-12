@@ -1,6 +1,7 @@
 import type { NangoOAuthBoundaryRequest, NangoOAuthUrlProvider, ProviderKind } from "@devflow/career-sync";
 import {
   createApplyFlowNangoConnectSessionBoundary,
+  type ApplyFlowNangoConnectSessionDeps,
   type ApplyFlowNangoConnectSessionEnv,
   type ApplyFlowNangoConnectSessionResult,
 } from "./nango-connect-session-boundary";
@@ -8,6 +9,7 @@ import {
 export type ApplyFlowNangoConnectLauncherQuery = {
   provider?: string | null;
   redirectUri?: string | null;
+  explicitConsent?: string | null;
 };
 
 export type ApplyFlowNangoConnectLauncherResponse = {
@@ -17,6 +19,7 @@ export type ApplyFlowNangoConnectLauncherResponse = {
   runtime: "nango";
   canStartOAuth: boolean;
   connectSessionUrl?: string;
+  connectSessionToken?: string;
   messages: string[];
   reasons: string[];
 };
@@ -24,6 +27,11 @@ export type ApplyFlowNangoConnectLauncherResponse = {
 const PREVIEW_ONLY_CONSENT = {
   hasExplicitConsent: false,
   scopes: [] as string[],
+};
+
+const PROVIDER_SCOPES: Record<ProviderKind, string[]> = {
+  gmail: ["gmail.metadata.read"],
+  calendar: ["calendar.events.read"],
 };
 
 export function readApplyFlowNangoConnectSessionEnv(
@@ -46,6 +54,22 @@ export function parseConnectLauncherProvider(
   }
 
   return null;
+}
+
+export function parseConnectLauncherExplicitConsent(
+  explicitConsent: string | null | undefined,
+  provider: ProviderKind,
+  requestedAt: string,
+): NangoOAuthBoundaryRequest["consent"] {
+  if (explicitConsent === "1" || explicitConsent === "true") {
+    return {
+      hasExplicitConsent: true,
+      consentedAt: requestedAt,
+      scopes: PROVIDER_SCOPES[provider],
+    };
+  }
+
+  return PREVIEW_ONLY_CONSENT;
 }
 
 function blockedLauncherResponse(input: {
@@ -74,6 +98,7 @@ function toLauncherResponse(
     runtime: result.runtime,
     canStartOAuth: result.canStartOAuth,
     connectSessionUrl: result.connectSessionUrl,
+    connectSessionToken: result.connectSessionToken,
     messages: result.messages,
     reasons: result.reasons,
   };
@@ -83,19 +108,20 @@ export async function handleApplyFlowNangoConnectSessionLauncher(
   query: ApplyFlowNangoConnectLauncherQuery,
   deps: {
     env: ApplyFlowNangoConnectSessionEnv;
-    oauthUrlProvider: NangoOAuthUrlProvider;
-    consent?: NangoOAuthBoundaryRequest["consent"];
+    sessionDeps: ApplyFlowNangoConnectSessionDeps;
+    oauthUrlProvider?: NangoOAuthUrlProvider;
     requestedAt?: string;
   },
 ): Promise<ApplyFlowNangoConnectLauncherResponse> {
   const providerValue = query.provider?.trim();
+  const requestedAt = deps.requestedAt ?? new Date().toISOString();
 
   if (!providerValue) {
     return blockedLauncherResponse({
       reasons: ["missing_provider"],
       messages: [
         "Provider query parameter is required.",
-        "Launcher remains preview-only until explicit consent UI is enabled.",
+        "Launcher requires explicit consent before Connect UI can start.",
       ],
     });
   }
@@ -107,7 +133,7 @@ export async function handleApplyFlowNangoConnectSessionLauncher(
       reasons: ["invalid_provider"],
       messages: [
         "Provider query parameter must be gmail or calendar.",
-        "Launcher remains preview-only until explicit consent UI is enabled.",
+        "Launcher requires explicit consent before Connect UI can start.",
       ],
     });
   }
@@ -117,13 +143,13 @@ export async function handleApplyFlowNangoConnectSessionLauncher(
       provider,
       runtime: "nango",
       flags: {},
-      consent: deps.consent ?? PREVIEW_ONLY_CONSENT,
-      requestedAt: deps.requestedAt ?? new Date().toISOString(),
+      consent: parseConnectLauncherExplicitConsent(query.explicitConsent, provider, requestedAt),
+      requestedAt,
       source: "applyflow",
       redirectUri: query.redirectUri?.trim() || undefined,
     },
     deps.env,
-    deps.oauthUrlProvider,
+    deps.sessionDeps,
   );
 
   return toLauncherResponse(boundaryResult);

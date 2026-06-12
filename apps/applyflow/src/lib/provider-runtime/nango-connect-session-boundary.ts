@@ -6,6 +6,7 @@ import {
   type NangoOAuthUrlProvider,
   type ProviderRuntimeFlagMap,
 } from "@devflow/career-sync";
+import type { ApplyFlowNangoConnectSessionProvider } from "./nango-server-provider";
 
 export type ApplyFlowNangoConnectSessionEnv = {
   CAREER_PROVIDER_RUNTIME_ENABLED?: string;
@@ -22,8 +23,14 @@ export type ApplyFlowNangoConnectSessionResult = {
   runtime: "nango";
   canStartOAuth: boolean;
   connectSessionUrl?: string;
+  connectSessionToken?: string;
   messages: string[];
   reasons: string[];
+};
+
+export type ApplyFlowNangoConnectSessionDeps = {
+  oauthUrlProvider?: NangoOAuthUrlProvider;
+  connectSessionProvider?: ApplyFlowNangoConnectSessionProvider;
 };
 
 export function envToProviderRuntimeFlags(
@@ -39,6 +46,7 @@ export function envToProviderRuntimeFlags(
 
 function toApplyFlowConnectSessionResult(
   boundaryResult: NangoOAuthBoundaryResult,
+  session?: { connectSessionUrl: string; connectSessionToken: string },
 ): ApplyFlowNangoConnectSessionResult {
   return {
     safeForClient: true,
@@ -46,7 +54,8 @@ function toApplyFlowConnectSessionResult(
     provider: boundaryResult.provider,
     runtime: boundaryResult.runtime,
     canStartOAuth: boundaryResult.canStartOAuth,
-    connectSessionUrl: boundaryResult.redirectTo,
+    connectSessionUrl: session?.connectSessionUrl ?? boundaryResult.redirectTo,
+    connectSessionToken: session?.connectSessionToken,
     messages: boundaryResult.messages,
     reasons: boundaryResult.reasons,
   };
@@ -55,7 +64,7 @@ function toApplyFlowConnectSessionResult(
 export async function createApplyFlowNangoConnectSessionBoundary(
   request: NangoOAuthBoundaryRequest,
   env: ApplyFlowNangoConnectSessionEnv,
-  oauthUrlProvider: NangoOAuthUrlProvider,
+  deps: ApplyFlowNangoConnectSessionDeps,
 ): Promise<ApplyFlowNangoConnectSessionResult> {
   const boundaryRequest: NangoOAuthBoundaryRequest = {
     ...request,
@@ -78,15 +87,54 @@ export async function createApplyFlowNangoConnectSessionBoundary(
       messages: [
         ...evaluation.messages,
         "Nango secret key is required server-side before OAuth can start.",
-        "No secret or token is returned to the client.",
+        "No secret or OAuth token is returned to the client.",
       ],
       reasons: [...evaluation.reasons, "nango_secret_missing"],
     };
   }
 
+  if (deps.connectSessionProvider) {
+    const session = await deps.connectSessionProvider.createConnectSession({
+      provider: boundaryRequest.provider,
+      redirectUri: boundaryRequest.redirectUri,
+    });
+
+    return {
+      safeForClient: true,
+      status: "oauth_start_ready",
+      provider: evaluation.provider,
+      runtime: evaluation.runtime,
+      canStartOAuth: true,
+      connectSessionUrl: session.connectSessionUrl,
+      connectSessionToken: session.connectSessionToken,
+      messages: [
+        ...evaluation.messages,
+        "Nango Connect session token is client-safe and short-lived.",
+        "No OAuth access token, refresh token, authorization code, or secret is included.",
+        "Provider API calls and sync jobs remain disabled in this release.",
+      ],
+      reasons: evaluation.reasons,
+    };
+  }
+
+  if (!deps.oauthUrlProvider) {
+    return {
+      safeForClient: true,
+      status: "blocked",
+      provider: evaluation.provider,
+      runtime: evaluation.runtime,
+      canStartOAuth: false,
+      messages: [
+        ...evaluation.messages,
+        "Connect session provider is unavailable server-side.",
+      ],
+      reasons: [...evaluation.reasons, "nango_connect_session_provider_missing"],
+    };
+  }
+
   const boundaryResult = await createNangoOAuthBoundaryResult(
     boundaryRequest,
-    oauthUrlProvider,
+    deps.oauthUrlProvider,
   );
 
   return toApplyFlowConnectSessionResult(boundaryResult);

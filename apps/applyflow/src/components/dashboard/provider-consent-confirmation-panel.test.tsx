@@ -59,12 +59,12 @@ describe("provider consent confirmation content", () => {
 });
 
 describe("provider consent launcher client", () => {
-  it("builds launcher URL without secrets or tokens", () => {
-    expect(buildProviderConsentLauncherUrl("gmail")).toBe(
+  it("builds launcher URL without secrets or OAuth tokens", () => {
+    expect(buildProviderConsentLauncherUrl("gmail", false)).toBe(
       "/provider-runtime/nango/connect?provider=gmail",
     );
-    expect(buildProviderConsentLauncherUrl("calendar")).toBe(
-      "/provider-runtime/nango/connect?provider=calendar",
+    expect(buildProviderConsentLauncherUrl("calendar", true)).toBe(
+      "/provider-runtime/nango/connect?provider=calendar&explicit_consent=1",
     );
   });
 
@@ -108,7 +108,7 @@ describe("provider consent launcher client", () => {
       json: async () => readyLauncherResult,
     })) as unknown as typeof fetch;
 
-    const result = await fetchProviderConsentLauncher("gmail", fetchImpl);
+    const result = await fetchProviderConsentLauncher("gmail", true, fetchImpl);
     expect(result.status).toBe("oauth_start_ready");
     expect(result.canStartOAuth).toBe(true);
   });
@@ -127,7 +127,7 @@ describe("ProviderConsentConfirmationPanel render", () => {
     expect(html).toContain("raw body, thread ID");
     expect(PROVIDER_CONSENT_CONFIRMATION_NEVER_STORED.calendar).toContain("meeting links");
     expect(html).toContain("This does not import Gmail or Calendar data.");
-    expect(html).toContain("Connect UI not enabled");
+    expect(html).not.toContain("Connect UI not enabled");
   });
 
   it("disables start button until explicit consent checkbox is checked", () => {

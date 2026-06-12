@@ -80,6 +80,7 @@ Alterações cosméticas em `page.tsx` ou `route.ts` (sem mudança de path, owne
 
 - **2026-06-10** — PR #36 tocou `apps/whatsapp-platform/src/app/settings/ai/page.tsx` apenas para substituir um `<button>` nativo de submit pelo primitivo compartilhado `Button`. Alteração de conformidade com design system (`check:buttons`); não altera path da rota, ownership, navegação, fronteira de autenticação, contrato HTTP ou semântica do formulário.
 - **2026-06-12** — PR #75 adiciona `GET /provider-runtime/nango/connect` em `apps/applyflow` (`route.ts`). Rota server-side de launcher Nango connect session: JSON client-safe only; blocked-by-default (feature flags + consentimento explícito); sem import Gmail/Calendar; sem sync; sem exposição de token; sem persistência de provider payload. UI principal permanece preview-only.
+- **2026-06-12** — PR #77 altera a rota existente `GET /provider-runtime/nango/connect` em `apps/applyflow` para retornar readiness de Connect UI com `connectSessionToken` client-safe quando flags, secret server-side e consentimento explícito permitem. A UI de consentimento explícito chama o launcher e, em `oauth_start_ready`, abre Nango Connect UI via `@nangohq/frontend`. Path inalterado; sem import Gmail/Calendar; sem sync job; sem persistência de provider payload; sem exposição de OAuth access/refresh token; sem mutação de CareerBundle; secrets permanecem server-side.
 
 ---
 

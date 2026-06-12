@@ -3,32 +3,32 @@ import {
   handleApplyFlowNangoConnectSessionLauncher,
   readApplyFlowNangoConnectSessionEnv,
 } from "@/lib/provider-runtime/nango-connect-session-launcher";
-import { createNangoServerOAuthUrlProvider } from "@/lib/provider-runtime/nango-server-provider";
+import { createNangoServerConnectSessionProvider } from "@/lib/provider-runtime/nango-server-provider";
 
 /**
  * Server-side Nango connect session launcher.
- * Do not expose secrets or session tokens in responses.
+ * Returns client-safe JSON including short-lived connect session token when allowed.
+ * Never returns NANGO_SECRET_KEY or OAuth access/refresh tokens.
  */
 
 export async function GET(request: NextRequest) {
   const env = readApplyFlowNangoConnectSessionEnv();
   const provider = request.nextUrl.searchParams.get("provider");
   const redirectUri = request.nextUrl.searchParams.get("redirect_uri");
+  const explicitConsent = request.nextUrl.searchParams.get("explicit_consent");
 
-  const oauthUrlProvider = env.NANGO_SECRET_KEY?.trim()
-    ? createNangoServerOAuthUrlProvider({
-        secretKey: env.NANGO_SECRET_KEY,
-        connectLauncherBasePath: "/provider-runtime/nango/connect",
-      })
-    : {
-        createAuthorizationUrl: async () => {
-          throw new Error("Nango OAuth URL provider is unavailable without server secret.");
-        },
-      };
+  const sessionDeps = env.NANGO_SECRET_KEY?.trim()
+    ? {
+        connectSessionProvider: createNangoServerConnectSessionProvider({
+          secretKey: env.NANGO_SECRET_KEY,
+          connectLauncherBasePath: "/provider-runtime/nango/connect",
+        }),
+      }
+    : {};
 
   const result = await handleApplyFlowNangoConnectSessionLauncher(
-    { provider, redirectUri },
-    { env, oauthUrlProvider },
+    { provider, redirectUri, explicitConsent },
+    { env, sessionDeps },
   );
 
   const statusCode =

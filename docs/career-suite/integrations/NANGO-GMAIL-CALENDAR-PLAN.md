@@ -128,7 +128,15 @@ ApplyFlow includes an explicit provider consent UI before any real Connect UI is
 
 The consent UI explains scopes, data boundaries, token boundaries, and the fact that Gmail/Calendar data import is not part of this step.
 
-Implementation: `apps/applyflow/src/components/dashboard/provider-consent-confirmation-panel.tsx` with client-safe launcher fetch helper. React local state only — no token storage, no Connect UI, no provider data import.
+Implementation: `apps/applyflow/src/components/dashboard/provider-consent-confirmation-panel.tsx` with client-safe launcher fetch helper. React local state only — no OAuth token storage, no provider data import.
+
+### Nango Connect UI integration
+
+ApplyFlow integrates Nango Connect UI behind explicit provider consent and runtime flags.
+
+This starts the provider connection flow only. It does not import Gmail or Calendar data, run sync jobs, persist raw provider payloads, or expose OAuth tokens.
+
+Implementation: `apps/applyflow/src/components/dashboard/provider-nango-connect-ui.tsx` with `@nangohq/frontend` `openConnectUI` and short-lived `connectSessionToken` from the server launcher. Session token is client-safe per Nango docs (30-minute connect session); it is not persisted in browser storage or CareerBundle.
 
 ## Why Nango
 

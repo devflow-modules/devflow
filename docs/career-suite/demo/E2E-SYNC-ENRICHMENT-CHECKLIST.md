@@ -66,7 +66,10 @@ ApplyFlow
 * [ ] Provider scopes are visible before launcher request
 * [ ] Data boundaries are visible before launcher request
 * [ ] Launcher request cannot be triggered without explicit consent
-* [ ] Connect UI is not enabled yet
+* [ ] Nango Connect UI only appears after explicit consent
+* [ ] Nango Connect UI does not import provider data
+* [ ] Nango Connect UI does not store provider tokens in browser storage
+* [ ] Nango Connect UI result remains local/client-safe
 
 ## Interview Lab checks
 

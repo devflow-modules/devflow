@@ -14,6 +14,18 @@ export type NangoServerOAuthUrlProviderConfig = {
   connectLauncherBasePath?: string;
 };
 
+export type NangoServerConnectSession = {
+  connectSessionUrl: string;
+  connectSessionToken: string;
+};
+
+export type ApplyFlowNangoConnectSessionProvider = {
+  createConnectSession(input: {
+    provider: ProviderKind;
+    redirectUri?: string;
+  }): Promise<NangoServerConnectSession>;
+};
+
 function buildConnectLauncherUrl(
   provider: ProviderKind,
   redirectUri: string | undefined,
@@ -27,31 +39,54 @@ function buildConnectLauncherUrl(
   return `${basePath}?${params.toString()}`;
 }
 
+async function createNangoConnectSessionOnServer(
+  config: NangoServerOAuthUrlProviderConfig,
+  input: { provider: ProviderKind; redirectUri?: string },
+): Promise<NangoServerConnectSession> {
+  const nango = new Nango({ secretKey: config.secretKey });
+  const integrationId = NANGO_INTEGRATION_BY_PROVIDER[input.provider];
+  const connectLauncherBasePath =
+    config.connectLauncherBasePath ?? "/provider-runtime/nango/connect";
+
+  const { data } = await nango.createConnectSession({
+    tags: {
+      end_user_id: `applyflow-${input.provider}-runtime-boundary`,
+    },
+    allowed_integrations: [integrationId],
+  });
+
+  return {
+    connectSessionUrl: buildConnectLauncherUrl(
+      input.provider,
+      input.redirectUri,
+      connectLauncherBasePath,
+    ),
+    connectSessionToken: data.token,
+  };
+}
+
 /**
- * Nango's current server flow uses `createConnectSession` (session token).
- * This provider validates the server session server-side and returns only a
- * client-safe launcher URL. Session token bridging to Connect UI is deferred
- * to a follow-up route/UI PR.
+ * Nango's server flow uses `createConnectSession` (short-lived client-safe token).
+ * Returns launcher URL and connect session token for Connect UI — never secrets or OAuth tokens.
+ */
+export function createNangoServerConnectSessionProvider(
+  config: NangoServerOAuthUrlProviderConfig,
+): ApplyFlowNangoConnectSessionProvider {
+  return {
+    createConnectSession: (input) => createNangoConnectSessionOnServer(config, input),
+  };
+}
+
+/**
+ * Legacy URL-only provider for tests and backward-compatible adapters.
  */
 export function createNangoServerOAuthUrlProvider(
   config: NangoServerOAuthUrlProviderConfig,
 ): NangoOAuthUrlProvider {
-  const connectLauncherBasePath =
-    config.connectLauncherBasePath ?? "/provider-runtime/nango/connect";
-
   return {
-    async createAuthorizationUrl({ provider, redirectUri }) {
-      const nango = new Nango({ secretKey: config.secretKey });
-      const integrationId = NANGO_INTEGRATION_BY_PROVIDER[provider];
-
-      await nango.createConnectSession({
-        tags: {
-          end_user_id: `applyflow-${provider}-runtime-boundary`,
-        },
-        allowed_integrations: [integrationId],
-      });
-
-      return buildConnectLauncherUrl(provider, redirectUri, connectLauncherBasePath);
+    async createAuthorizationUrl(input) {
+      const session = await createNangoConnectSessionOnServer(config, input);
+      return session.connectSessionUrl;
     },
   };
 }

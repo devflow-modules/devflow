@@ -156,6 +156,9 @@ importers:
       '@devflow/career-sync':
         specifier: workspace:*
         version: link:../../packages/career-sync
+      '@nangohq/frontend':
+        specifier: ^0.70.6
+        version: 0.70.6
       '@nangohq/node':
         specifier: ^0.70.6
         version: 0.70.6
@@ -1897,6 +1900,9 @@ packages:
   '@mswjs/interceptors@0.41.3':
     resolution: {integrity: sha512-cXu86tF4VQVfwz8W1SPbhoRyHJkti6mjH/XJIxp40jhO4j2k1m4KYrEykxqWPkFF3vrK4rgQppBh//AwyGSXPA==}
     engines: {node: '>=18'}
+
+  '@nangohq/frontend@0.70.6':
+    resolution: {integrity: sha512-GJZvZwfnKTMRHieAJ5pw9M2cdDo2/cwP0vs5s9YQhQg/VLxQSBS8HVdu6AVhMiJRny/5FyWKEGr+Q9kPi977XA==}
 
   '@nangohq/node@0.70.6':
     resolution: {integrity: sha512-rFeMLiSBok4eK/C0dL93QwUXVndjAFGFNcTxYHOI1EN1j/aIhy+Y+OsMUdhgaH/K6vt8J4zpCfNt1BF9zyvlzw==}
@@ -9597,6 +9603,13 @@ snapshots:
       is-node-process: 1.2.0
       outvariant: 1.4.3
       strict-event-emitter: 0.5.1
+
+  '@nangohq/frontend@0.70.6':
+    dependencies:
+      '@nangohq/types': 0.70.6
+    transitivePeerDependencies:
+      - debug
+      - supports-color
 
   '@nangohq/node@0.70.6':
     dependencies:

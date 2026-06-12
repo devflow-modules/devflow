@@ -31,15 +31,24 @@ const oauthUrlProvider: NangoOAuthUrlProvider = {
   ),
 };
 
+const connectSessionProvider = {
+  createConnectSession: vi.fn(async () => ({
+    connectSessionUrl: "/provider-runtime/nango/connect?provider=gmail",
+    connectSessionToken: "client-safe-connect-session-token",
+  })),
+};
+
 describe("createApplyFlowNangoConnectSessionBoundary", () => {
   beforeEach(() => {
     vi.mocked(oauthUrlProvider.createAuthorizationUrl).mockClear();
+    vi.mocked(connectSessionProvider.createConnectSession).mockClear();
   });
+
   it("blocks connect session when runtime flags are absent", async () => {
     const result = await createApplyFlowNangoConnectSessionBoundary(
       baseRequest,
       {},
-      oauthUrlProvider,
+      { oauthUrlProvider },
     );
 
     expect(result.status).toBe("blocked");
@@ -55,7 +64,7 @@ describe("createApplyFlowNangoConnectSessionBoundary", () => {
         ...allFlagsOnEnv,
         CAREER_PROVIDER_RUNTIME_ENABLED: "false",
       },
-      oauthUrlProvider,
+      { oauthUrlProvider },
     );
 
     expect(result.status).toBe("blocked");
@@ -69,7 +78,7 @@ describe("createApplyFlowNangoConnectSessionBoundary", () => {
         ...allFlagsOnEnv,
         NANGO_RUNTIME_ENABLED: "false",
       },
-      oauthUrlProvider,
+      { oauthUrlProvider },
     );
 
     expect(result.status).toBe("blocked");
@@ -83,7 +92,7 @@ describe("createApplyFlowNangoConnectSessionBoundary", () => {
         ...allFlagsOnEnv,
         GMAIL_PROVIDER_ENABLED: "false",
       },
-      oauthUrlProvider,
+      { oauthUrlProvider },
     );
 
     expect(result.status).toBe("blocked");
@@ -104,7 +113,7 @@ describe("createApplyFlowNangoConnectSessionBoundary", () => {
         ...allFlagsOnEnv,
         CALENDAR_PROVIDER_ENABLED: "false",
       },
-      oauthUrlProvider,
+      { oauthUrlProvider },
     );
 
     expect(result.status).toBe("blocked");
@@ -121,7 +130,7 @@ describe("createApplyFlowNangoConnectSessionBoundary", () => {
         },
       },
       allFlagsOnEnv,
-      oauthUrlProvider,
+      { oauthUrlProvider },
     );
 
     expect(result.status).toBe("blocked");
@@ -141,7 +150,7 @@ describe("createApplyFlowNangoConnectSessionBoundary", () => {
         GMAIL_PROVIDER_ENABLED: "true",
         CALENDAR_PROVIDER_ENABLED: "true",
       },
-      provider,
+      { oauthUrlProvider: provider },
     );
 
     expect(result.status).toBe("blocked");
@@ -157,7 +166,7 @@ describe("createApplyFlowNangoConnectSessionBoundary", () => {
     const result = await createApplyFlowNangoConnectSessionBoundary(
       baseRequest,
       allFlagsOnEnv,
-      provider,
+      { oauthUrlProvider: provider },
     );
 
     expect(result.status).toBe("oauth_start_ready");
@@ -167,23 +176,35 @@ describe("createApplyFlowNangoConnectSessionBoundary", () => {
     expect(result.safeForClient).toBe(true);
   });
 
+  it("returns connect session token from connectSessionProvider", async () => {
+    const result = await createApplyFlowNangoConnectSessionBoundary(
+      baseRequest,
+      allFlagsOnEnv,
+      { connectSessionProvider },
+    );
+
+    expect(result.status).toBe("oauth_start_ready");
+    expect(result.connectSessionToken).toBe("client-safe-connect-session-token");
+    expect(connectSessionProvider.createConnectSession).toHaveBeenCalledOnce();
+  });
+
   it("does not call oauthUrlProvider when blocked", async () => {
     const provider = {
       createAuthorizationUrl: vi.fn(async () => "/provider-runtime/nango/connect?provider=gmail"),
     };
 
-    await createApplyFlowNangoConnectSessionBoundary(baseRequest, {}, provider);
+    await createApplyFlowNangoConnectSessionBoundary(baseRequest, {}, { oauthUrlProvider: provider });
 
     expect(provider.createAuthorizationUrl).not.toHaveBeenCalled();
   });
 });
 
 describe("applyflow nango connect session safety", () => {
-  it("client-safe result does not contain secrets, tokens, or provider payloads", async () => {
+  it("client-safe result does not contain secrets, OAuth tokens, or provider payloads", async () => {
     const result = await createApplyFlowNangoConnectSessionBoundary(
       baseRequest,
       allFlagsOnEnv,
-      oauthUrlProvider,
+      { connectSessionProvider },
     );
     const serialized = JSON.stringify(result);
 
