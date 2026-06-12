@@ -20,6 +20,7 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - ApplyFlow consent panel action simulation
 - provider runtime app boundary contract
 - provider runtime environment and secrets boundary
+- first real Nango OAuth boundary behind explicit flags and consent
 
 **Not implemented:**
 
@@ -51,6 +52,16 @@ Before real OAuth is introduced, Career Suite must define where runtime flags an
 Secrets must remain server/runtime-only and must not reach client components, CareerBundle exports, Interview Lab imports, logs, fixtures, or demo JSON.
 
 See [`PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md`](./PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md).
+
+---
+
+## First OAuth boundary status
+
+The first OAuth boundary validates the gate and consent model for future Nango runtime.
+
+It is not a Gmail or Calendar data integration.
+
+Public exports: `evaluateNangoOAuthBoundary`, `createNangoOAuthBoundaryResult`.
 
 ---
 
