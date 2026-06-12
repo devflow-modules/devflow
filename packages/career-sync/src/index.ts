@@ -131,3 +131,22 @@ export {
   createNangoSandboxSyncRequest,
   mapNangoSandboxPayloadToProviderNormalized,
 } from "./nango-adapter/index.js";
+
+export type {
+  ProviderConnectionCapability,
+  ProviderConnectionSnapshot,
+  ProviderConnectionState,
+  ProviderConnectionStatusSummary,
+  ProviderSyncAvailability,
+} from "./provider-connection/index.js";
+
+export {
+  canDeleteProviderDerivedData,
+  canProviderSync,
+  canRevokeProviderConnection,
+  collectProviderConnectionWarnings,
+  createProviderConnectionCapability,
+  createProviderConnectionSnapshot,
+  isProviderConnected,
+  summarizeProviderConnections,
+} from "./provider-connection/index.js";
