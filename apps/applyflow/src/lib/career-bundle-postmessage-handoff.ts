@@ -1,4 +1,8 @@
-import type { CareerBundle, CreateCareerBundleHandshakeMessageOptions } from "@devflow/career-core";
+import type {
+  CareerBundle,
+  CareerBundleWithSyncEnrichment,
+  CreateCareerBundleHandshakeMessageOptions,
+} from "@devflow/career-core";
 import { createCareerBundleHandshakeMessage, parseHandshakeCareerBundleAck } from "@devflow/career-core";
 import { getInterviewLabImportPostMessageHandoffUrl, getInterviewLabOrigin } from "./interview-lab-handoff";
 
@@ -8,8 +12,8 @@ export type CareerPostMessageHandoffResult =
   | { kind: "fallback_clipboard_failed"; error: string };
 
 export async function sendCareerBundleViaPostMessageWithRetry(opts: {
-  bundle: CareerBundle;
-  stringifyBundle: (b: CareerBundle) => string;
+  bundle: CareerBundle | CareerBundleWithSyncEnrichment;
+  stringifyBundle: (b: CareerBundle | CareerBundleWithSyncEnrichment) => string;
   copyToClipboard: (json: string) => Promise<{ ok: true } | { ok: false; error: string }>;
   intervalMs?: number;
   totalWaitMs?: number;

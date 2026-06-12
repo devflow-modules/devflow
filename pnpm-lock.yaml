@@ -153,6 +153,9 @@ importers:
       '@devflow/career-core':
         specifier: workspace:*
         version: link:../../packages/career-core
+      '@devflow/career-sync':
+        specifier: workspace:*
+        version: link:../../packages/career-sync
       clsx:
         specifier: ^2.1.1
         version: 2.1.1

@@ -28,6 +28,14 @@ Navigate to `http://localhost:3015/import/applyflow`.
 
 ### 2. Load the demo fixture
 
+**Option A — ApplyFlow opt-in export**
+
+1. Open ApplyFlow dashboard with demo data loaded.
+2. Enable **Demo sync enrichment** (checkbox, off by default).
+3. Click **Copy CareerBundle** or **Exportar para Interview Lab**.
+
+**Option B — Static fixture file**
+
 Open `docs/career-suite/demo/fixtures/career-bundle-with-sync-enrichment.demo.json` in your editor.
 
 Copy the **entire** JSON file.

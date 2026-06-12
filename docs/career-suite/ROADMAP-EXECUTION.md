@@ -19,9 +19,14 @@ Versioned execution plan for the next Career Suite phase: **deterministic agent-
 | **`packages/career-core` sync adapter** | Optional attach/validate for `CareerBundleUnifiedSyncEnrichment` |
 | **`packages/career-core` export support** | Optional export/import helpers for validated sync enrichment |
 | **Interview Lab sync preview** | Read-only import preview for validated sync enrichment |
+| **ApplyFlow opt-in demo export** | Dashboard checkbox for sandbox sync enrichment in CareerBundle export |
 | LibreChat / Nango / OpenClaw | **Not** MVP dependencies — accelerators after core |
 
-**Next step:** ApplyFlow opt-in export surface for sync enrichment; real Nango OAuth only after explicit consent UX.
+**Next step:** LibreChat/MCP lab over deterministic signals; real Nango OAuth only after explicit consent UX.
+
+### ApplyFlow opt-in sync enrichment export
+
+ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichment when explicitly enabled by the user on the dashboard export card. This does not connect to Gmail or Google Calendar, does not use Nango runtime, does not fetch provider data, and does not include raw provider payloads or meeting links.
 
 ### Completed — sync enrichment stack (documented in public case)
 
@@ -37,7 +42,6 @@ Versioned execution plan for the next Career Suite phase: **deterministic agent-
 
 ### Future — after current stack
 
-- ApplyFlow opt-in export surface for sync enrichment
 - Real Nango OAuth integration behind explicit user consent
 - LibreChat / MCP lab demonstration over deterministic signals
 - Multi-agent advisory layer over derived signals (not replacement of deterministic core)

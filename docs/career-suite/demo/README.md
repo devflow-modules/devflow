@@ -41,11 +41,14 @@ It shows how a CareerBundle can carry optional **sync enrichment** as derived me
 ## How to use the fixture
 
 1. Start Interview Lab: `pnpm --filter @devflow/app-interview-lab dev` → `http://localhost:3015`
-2. Open **`/import/applyflow`**
-3. Copy the full contents of `fixtures/career-bundle-with-sync-enrichment.demo.json`
-4. Paste into the CareerBundle JSON field → **Parse field** (or upload the file)
-5. Confirm **Bundle summary** and **Sync enrichment detected** preview
-6. Optional: **Train for this role** on a demo application row
+2. *(Optional)* Start ApplyFlow: `pnpm --filter applyflow dev` → `http://localhost:3010/dashboard`
+3. On ApplyFlow dashboard, enable **Demo sync enrichment** on the export card (opt-in checkbox)
+4. Use **Copy CareerBundle**, **Prepare in Interview Lab**, or **Exportar para Interview Lab**
+5. Or open `docs/career-suite/demo/fixtures/career-bundle-with-sync-enrichment.demo.json` and paste into Interview Lab
+6. Open **`/import/applyflow`**
+7. Paste/upload → **Parse field**
+8. Confirm **Bundle summary** and **Sync enrichment detected** preview
+9. Optional: **Train for this role** on a demo application row
 
 ## Privacy boundaries
 

@@ -42,6 +42,7 @@ The demo uses **fake/sandbox data only** and demonstrates a privacy-safe CareerB
 
 - [ ] Interview Lab dev server running (`pnpm --filter @devflow/app-interview-lab dev` → `http://localhost:3015`)
 - [ ] open `/import/applyflow`
+- [ ] *(optional)* ApplyFlow **Demo sync enrichment** checkbox enabled before export
 - [ ] paste or upload the demo CareerBundle fixture
 - [ ] CareerBundle summary renders
 - [ ] sync enrichment preview renders (**Sync enrichment detected**)
