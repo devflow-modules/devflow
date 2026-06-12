@@ -20,6 +20,10 @@ Unified CareerBundle sync enrichment must remain derived-signal-only. Gmail and 
 
 The CareerBundle core adapter recognizes safe sync enrichments produced by `@devflow/career-sync`. It only accepts derived, redacted, user-reviewable enrichment data and does not consume provider raw payloads.
 
+### CareerBundle export support
+
+CareerBundle export support may include validated sync enrichment as optional derived data. Raw provider payloads, raw email bodies, raw calendar descriptions, attachments, and meeting links must not be embedded in exported bundles.
+
 ## Principles
 
 - **Privacy-first** — collect the minimum needed for career workflow hints
