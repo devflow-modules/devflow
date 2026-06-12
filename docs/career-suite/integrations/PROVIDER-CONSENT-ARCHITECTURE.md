@@ -272,6 +272,25 @@ Apps **must not** import Nango SDK, Gmail API client, or Calendar API client dir
 
 ---
 
+## Provider adapter contracts
+
+`@devflow/career-sync` defines provider adapter contracts before any real provider runtime is added.
+
+The contracts define:
+
+- provider connection metadata
+- explicit consent metadata
+- sync request shape
+- normalized message/event shapes
+- adapter result shape
+- safety policy flags
+
+These contracts do not implement OAuth, Nango runtime, Gmail API, Calendar API, or provider calls.
+
+Public exports: `ProviderAdapter`, `ProviderSyncRequest`, `ProviderNormalizedMessage`, `ProviderNormalizedEvent`, `ProviderAdapterResult`, `ProviderAdapterSafetyPolicy`, and safety helpers (`createProviderAdapterSafetyPolicy`, `assertProviderAdapterResultSafe`, etc.).
+
+---
+
 ## Safety gates before implementation
 
 ## Implementation readiness checklist
@@ -284,7 +303,7 @@ Before adding OAuth/Nango runtime:
 - [ ] delete derived data path designed
 - [ ] raw payload discard policy documented
 - [ ] token storage boundary documented
-- [ ] provider adapter interface designed
+- [x] provider adapter interface designed
 - [ ] sync preview reviewed before use
 - [ ] no app imports provider SDK directly
 - [ ] tests cover raw payload exclusion
@@ -309,7 +328,7 @@ Safe implementation order:
 | **E** | `feat: add provider connection status model` | Connection metadata schema — no provider calls |
 | **F** | `feat: add real Nango OAuth behind feature flag` | Live OAuth only after A–E gates pass |
 
-**Current PR is PR A only.** No runtime OAuth, Nango SDK, or live Gmail/Calendar connector ships in this sequence step.
+**PR A and PR B are complete.** No runtime OAuth, Nango SDK, or live Gmail/Calendar connector ships until PR C–F gates pass.
 
 ---
 

@@ -93,3 +93,25 @@ export {
   sortCombinedSignals,
   summarizeCareerBundleSync,
 } from "./career-bundle/index.js";
+
+export type {
+  ProviderAdapter,
+  ProviderAdapterResult,
+  ProviderAdapterSafetyPolicy,
+  ProviderConnectionMetadata,
+  ProviderConnectionStatus,
+  ProviderKind,
+  ProviderNormalizedEvent,
+  ProviderNormalizedMessage,
+  ProviderRuntime,
+  ProviderSyncConsent,
+  ProviderSyncRequest,
+} from "./provider-adapter/index.js";
+
+export {
+  assertProviderAdapterResultSafe,
+  assertProviderAdapterSafetyPolicy,
+  collectProviderAdapterSafetyWarnings,
+  createProviderAdapterSafetyPolicy,
+  isProviderAdapterSafetyPolicySafe,
+} from "./provider-adapter/index.js";

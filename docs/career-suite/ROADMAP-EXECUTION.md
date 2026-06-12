@@ -20,6 +20,8 @@ Versioned execution plan for the next Career Suite phase: **deterministic agent-
 | **`packages/career-core` export support** | Optional export/import helpers for validated sync enrichment |
 | **Interview Lab sync preview** | Read-only import preview for validated sync enrichment |
 | **ApplyFlow opt-in demo export** | Dashboard checkbox for sandbox sync enrichment in CareerBundle export |
+| **Provider consent architecture** | Documented — [`integrations/PROVIDER-CONSENT-ARCHITECTURE.md`](./integrations/PROVIDER-CONSENT-ARCHITECTURE.md) |
+| **Provider adapter interface contracts** | `@devflow/career-sync` types + safety helpers — no OAuth runtime |
 | LibreChat / Nango / OpenClaw | **Not** MVP dependencies — accelerators after core |
 
 **Next step:** Real provider integration only behind explicit consent; LibreChat/MCP lab over deterministic signals.
@@ -52,21 +54,23 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 | ApplyFlow opt-in demo export | Done — PR #57 |
 | End-to-end validation checklist | Done — [`demo/E2E-SYNC-ENRICHMENT-CHECKLIST.md`](./demo/E2E-SYNC-ENRICHMENT-CHECKLIST.md) |
 
-### Next — Provider consent architecture
+### Completed / In progress — provider integration foundation
 
-Before implementing real Nango/Gmail/Calendar runtime, define consent, revocation, scope, storage, adapter, and audit boundaries.
+- Provider consent integration architecture — [`integrations/PROVIDER-CONSENT-ARCHITECTURE.md`](./integrations/PROVIDER-CONSENT-ARCHITECTURE.md)
+- Provider adapter interface contracts — `@devflow/career-sync` `provider-adapter` module
 
 **Current status:**
 
 - Demo/sandbox sync enrichment loop is complete.
 - Real provider integration is **not implemented yet**.
-- Provider integration must start with architecture and safety gates.
+- Architecture, safety gates, and adapter contracts are defined before any OAuth runtime.
 
-**Document:** [`integrations/PROVIDER-CONSENT-ARCHITECTURE.md`](./integrations/PROVIDER-CONSENT-ARCHITECTURE.md)
+### Next
+
+- Nango adapter sandbox implementation using provider adapter contracts
 
 ### Future roadmap
 
-- Provider adapter interface contracts (no OAuth)
 - Nango provider adapter sandbox (fixtures only)
 - Consent UI mock / read-only connection state
 - Provider connection status model

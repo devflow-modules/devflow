@@ -48,6 +48,12 @@ Before adding real Nango/OAuth runtime, Career Suite defines provider consent, r
 
 Nango should be treated as a **provider adapter layer**, not as a core dependency of CareerBundle, `@devflow/career-core`, ApplyFlow, or Interview Lab.
 
+### Provider adapter interface contracts
+
+Before adding the Nango SDK, Career Suite defines provider adapter interfaces in `@devflow/career-sync`.
+
+Nango should later implement these interfaces instead of leaking provider-specific payloads into apps or CareerBundle.
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab
