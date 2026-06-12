@@ -96,6 +96,16 @@ Future Nango and Google secrets must remain server/runtime-only.
 
 See [`PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md`](./PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md).
 
+### First real Nango OAuth boundary
+
+Career Suite includes a first minimal OAuth boundary for Nango behind explicit runtime flags and consent.
+
+This boundary may only initiate OAuth readiness. It does not import Gmail or Calendar data, does not run sync jobs, does not persist raw provider payloads, and does not expose tokens to the client.
+
+Server adapters should implement `NangoOAuthUrlProvider` using Nango's current connect-session flow (`@nangohq/node` `createConnectSession`) without returning secrets or tokens to apps.
+
+Public exports: `evaluateNangoOAuthBoundary`, `createNangoOAuthBoundaryResult`.
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab

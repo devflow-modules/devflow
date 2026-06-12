@@ -203,3 +203,15 @@ export {
   createProviderRuntimeAppBoundaryResult,
   isProviderRuntimeAppBoundaryResultSafeForClient,
 } from "./provider-runtime-app-boundary/index.js";
+
+export type {
+  NangoOAuthBoundaryRequest,
+  NangoOAuthBoundaryResult,
+  NangoOAuthBoundaryStatus,
+  NangoOAuthUrlProvider,
+} from "./nango-runtime/index.js";
+
+export {
+  createNangoOAuthBoundaryResult,
+  evaluateNangoOAuthBoundary,
+} from "./nango-runtime/index.js";

@@ -22,6 +22,7 @@ This document defines the feature flag plan required before any real OAuth, Nang
 - Disabled provider runtime shell (`provider-runtime` module)
 - Consent-gated provider connection action mock (`provider-connection-action` module)
 - Provider runtime app boundary contract (`provider-runtime-app-boundary` module)
+- First real Nango OAuth boundary (`nango-runtime` module)
 
 **Not implemented today:**
 
@@ -98,6 +99,16 @@ Runtime flags must be evaluated inside approved runtime boundaries.
 Provider secrets must not be exposed to client components or app-level exports.
 
 See [`PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md`](./PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md).
+
+---
+
+## First Nango OAuth boundary
+
+`evaluateNangoOAuthBoundary` and `createNangoOAuthBoundaryResult` gate OAuth start behind runtime flags and explicit consent.
+
+The boundary never imports Gmail or Calendar data, never stores tokens in the client, and never persists provider payloads.
+
+`createNangoOAuthBoundaryResult` accepts an injected `NangoOAuthUrlProvider` for server-side Nango connect-session URL generation.
 
 ---
 
