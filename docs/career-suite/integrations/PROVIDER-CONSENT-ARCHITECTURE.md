@@ -325,6 +325,16 @@ Public exports: `ProviderConnectionSnapshot`, `createProviderConnectionSnapshot`
 
 ---
 
+## Provider runtime feature flags
+
+Real provider runtime must be gated by feature flags before any OAuth, Nango runtime, Gmail connector, or Calendar connector is introduced.
+
+All runtime flags default to `false`. Missing flags are treated as disabled.
+
+See [`PROVIDER-RUNTIME-FEATURE-FLAGS.md`](./PROVIDER-RUNTIME-FEATURE-FLAGS.md).
+
+---
+
 ## Safety gates before implementation
 
 ## Implementation readiness checklist
@@ -362,7 +372,7 @@ Safe implementation order:
 | **E** | `feat: add provider connection status model` | Connection metadata schema — no provider calls |
 | **F** | `feat: add real Nango OAuth behind feature flag` | Live OAuth only after A–E gates pass |
 
-**PR A through PR E (connection status model) are complete.** No runtime OAuth, Nango SDK, or live Gmail/Calendar connector ships until PR F gates pass.
+**PR A through PR E and the feature flag plan are complete.** No runtime OAuth, Nango SDK, or live Gmail/Calendar connector ships until flag helpers, disabled runtime shell, and consent gates pass.
 
 ---
 

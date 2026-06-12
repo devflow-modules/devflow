@@ -66,6 +66,14 @@ Before real Nango runtime is introduced, Career Suite models connection status a
 
 This allows future UI and adapter work to reason about connection state without storing tokens or calling providers.
 
+### Runtime feature flag plan
+
+Real Nango runtime must not be introduced without feature flags.
+
+The first runtime implementation must remain disabled by default and must require explicit user consent before any OAuth or provider call can start.
+
+See [`PROVIDER-RUNTIME-FEATURE-FLAGS.md`](./PROVIDER-RUNTIME-FEATURE-FLAGS.md).
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab
