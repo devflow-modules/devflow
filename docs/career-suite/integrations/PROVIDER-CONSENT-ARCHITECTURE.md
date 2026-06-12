@@ -307,6 +307,14 @@ It does not connect to providers, does not request OAuth, does not store tokens,
 
 Location: ApplyFlow dashboard — `ProviderConsentMockPanel` near the Interview Lab export card.
 
+## Consent mock connection model
+
+The ApplyFlow mock panel consumes fake/sandbox `ProviderConnectionSnapshot` data from `@devflow/career-sync`.
+
+This demonstrates how future provider connection states can be displayed without connecting to providers or storing tokens.
+
+Data source: `providerConsentMockConnections` in `apps/applyflow/src/components/dashboard/provider-consent-mock-data.ts`.
+
 ## Provider connection status model
 
 `@devflow/career-sync` defines provider connection status models for future consent-based integrations.

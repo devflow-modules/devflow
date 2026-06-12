@@ -44,6 +44,9 @@ ApplyFlow
 * [ ] Provider consent preview is marked mock/read-only
 * [ ] Connect actions are disabled or marked Coming soon
 * [ ] No provider calls are triggered
+* [ ] Provider consent preview uses fake/sandbox provider connection snapshots
+* [ ] Provider consent preview shows scopes as preview only
+* [ ] Provider consent preview does not store provider state
 
 ## Interview Lab checks
 
