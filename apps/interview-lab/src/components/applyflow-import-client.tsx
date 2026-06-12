@@ -8,12 +8,17 @@ import {
   createCareerBundleHandshakeAck,
   createInterviewPreparationFromApplication,
   getInterviewReadyApplications,
-  parseCareerBundle,
   type CareerApplication,
   type CareerBundle,
 } from "@devflow/career-core";
 import { evaluateApplyflowBundlePostMessage, getApplyflowAckTargetOrigin } from "@/lib/applyflow-bundle-postmessage";
-import { parseCareerBundleFromClipboardText } from "@/lib/applyflow-clipboard-import";
+import {
+  parseCareerBundleFromClipboardTextWithSyncPreview,
+} from "@/lib/applyflow-clipboard-import";
+import {
+  EMPTY_SYNC_ENRICHMENT_PREVIEW,
+  type InterviewLabSyncEnrichmentPreview,
+} from "@/lib/career-bundle-sync-preview";
 import { persistApplyFlowCareerBundle, clearApplyFlowCareerBundle } from "@/lib/applyflow-bundle-storage";
 import { appendCareerPrepRecord } from "@/lib/career-prep-storage";
 import { practicePathWithCareerPrep } from "@/lib/default-practice-path";
@@ -90,6 +95,84 @@ function BundleSummaryCard({ bundle, interviewReadyCount }: { bundle: CareerBund
   );
 }
 
+function formatSyncSourceCounts(sourceCounts?: Record<string, number>): string {
+  if (!sourceCounts) return "—";
+  const gmail = sourceCounts.gmail ?? 0;
+  const calendar = sourceCounts.calendar ?? 0;
+  return `Gmail ${gmail} · Calendar ${calendar}`;
+}
+
+function SyncEnrichmentPreviewPanel({ preview }: { preview: InterviewLabSyncEnrichmentPreview }) {
+  if (preview.status === "not_provided") {
+    return null;
+  }
+
+  if (preview.status === "invalid") {
+    return (
+      <div
+        role="status"
+        className="il-card border border-amber-500/35 bg-amber-500/10 p-4 text-sm text-amber-100/95"
+      >
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-amber-300/90">Sync enrichment</h2>
+        <p className="mt-2 font-medium text-amber-100">Sync enrichment ignored for privacy reasons.</p>
+        {preview.warnings.length > 0 ? (
+          <ul className="mt-2 list-inside list-disc text-xs leading-relaxed text-amber-200/80">
+            {preview.warnings.map((warning) => (
+              <li key={warning}>{warning}</li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (!preview.available) {
+    return null;
+  }
+
+  const companyHints = preview.companyHints?.length ? preview.companyHints.join(", ") : "—";
+
+  return (
+    <div className="il-card border border-sky-500/25 bg-sky-500/[0.06] p-4">
+      <h2 className="text-xs font-semibold uppercase tracking-wide text-sky-300/90">Sync enrichment detected</h2>
+      <p className="mt-1 text-[0.65rem] uppercase tracking-wide text-sky-200/70">Read-only preview · not stored</p>
+
+      <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <dt className="text-[0.65rem] font-medium uppercase tracking-wide text-sky-200/70">Summary</dt>
+          <dd className="mt-0.5 leading-relaxed text-sky-100/95">{preview.summary ?? "—"}</dd>
+        </div>
+        <div>
+          <dt className="text-[0.65rem] font-medium uppercase tracking-wide text-sky-200/70">Signals</dt>
+          <dd className="mt-0.5 font-mono tabular-nums text-white">{preview.totalSignals ?? 0}</dd>
+        </div>
+        <div>
+          <dt className="text-[0.65rem] font-medium uppercase tracking-wide text-sky-200/70">Pending actions</dt>
+          <dd className="mt-0.5 font-mono tabular-nums text-white">{preview.actionRequiredCount ?? 0}</dd>
+        </div>
+        <div>
+          <dt className="text-[0.65rem] font-medium uppercase tracking-wide text-sky-200/70">Upcoming events</dt>
+          <dd className="mt-0.5 font-mono tabular-nums text-white">{preview.upcomingCount ?? 0}</dd>
+        </div>
+        <div>
+          <dt className="text-[0.65rem] font-medium uppercase tracking-wide text-sky-200/70">Sources</dt>
+          <dd className="mt-0.5 text-sky-100/95">{formatSyncSourceCounts(preview.sourceCounts)}</dd>
+        </div>
+        <div className="sm:col-span-2">
+          <dt className="text-[0.65rem] font-medium uppercase tracking-wide text-sky-200/70">Detected companies</dt>
+          <dd className="mt-0.5 text-sky-100/95">{companyHints}</dd>
+        </div>
+        <div className="sm:col-span-2">
+          <dt className="text-[0.65rem] font-medium uppercase tracking-wide text-sky-200/70">Privacy</dt>
+          <dd className="mt-0.5 text-xs leading-relaxed text-sky-200/80">
+            Raw data not retained · provider payload not retained · meeting links removed · user review required
+          </dd>
+        </div>
+      </dl>
+    </div>
+  );
+}
+
 export function ApplyflowImportClient({
   fromApplyflowHandoff = false,
   expectPostMessageHandoff = false,
@@ -104,6 +187,9 @@ export function ApplyflowImportClient({
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [bundle, setBundle] = useState<CareerBundle | null>(null);
+  const [syncPreview, setSyncPreview] = useState<InterviewLabSyncEnrichmentPreview>(
+    EMPTY_SYNC_ENRICHMENT_PREVIEW,
+  );
   const [clipboardBusy, setClipboardBusy] = useState(false);
   const [postMessageReceived, setPostMessageReceived] = useState(false);
 
@@ -114,25 +200,15 @@ export function ApplyflowImportClient({
     [bundle],
   );
 
-  const ingestValidatedBundle = useCallback((data: CareerBundle) => {
-    setError(null);
-    persistApplyFlowCareerBundle(data);
-    setBundle(data);
-    setText(JSON.stringify(data, null, 2));
-  }, []);
-
-  const applyParsed = useCallback(
-    (parsed: unknown) => {
+  const ingestValidatedBundle = useCallback(
+    (data: CareerBundle, preview: InterviewLabSyncEnrichmentPreview = EMPTY_SYNC_ENRICHMENT_PREVIEW) => {
       setError(null);
-      const r = parseCareerBundle(parsed);
-      if (!r.ok) {
-        setError(r.error);
-        setBundle(null);
-        return;
-      }
-      ingestValidatedBundle(r.data);
+      persistApplyFlowCareerBundle(data);
+      setBundle(data);
+      setSyncPreview(preview);
+      setText(JSON.stringify(data, null, 2));
     },
-    [ingestValidatedBundle],
+    [],
   );
 
   useEffect(() => {
@@ -148,6 +224,7 @@ export function ApplyflowImportClient({
       if (evaled.action === "invalid_bundle") {
         setError(evaled.error);
         setBundle(null);
+        setSyncPreview(EMPTY_SYNC_ENRICHMENT_PREVIEW);
         try {
           window.opener?.postMessage(createCareerBundleHandshakeAck(false), ackTarget);
         } catch {
@@ -156,9 +233,9 @@ export function ApplyflowImportClient({
         return;
       }
 
-      const { bundle, intent, selectedApplicationId } = evaled;
+      const { bundle, syncPreview, intent, selectedApplicationId } = evaled;
 
-      ingestValidatedBundle(bundle);
+      ingestValidatedBundle(bundle, syncPreview);
       setPostMessageReceived(true);
       try {
         window.opener?.postMessage(createCareerBundleHandshakeAck(true), ackTarget);
@@ -204,13 +281,14 @@ export function ApplyflowImportClient({
         return;
       }
       const raw = await navigator.clipboard.readText();
-      const r = parseCareerBundleFromClipboardText(raw);
+      const r = parseCareerBundleFromClipboardTextWithSyncPreview(raw);
       if (!r.ok) {
         setError(r.error);
         setBundle(null);
+        setSyncPreview(EMPTY_SYNC_ENRICHMENT_PREVIEW);
         return;
       }
-      ingestValidatedBundle(r.data);
+      ingestValidatedBundle(r.bundle, r.preview);
     } catch {
       setError("Could not read from clipboard. Paste JSON manually or use Upload JSON.");
       setBundle(null);
@@ -224,26 +302,28 @@ export function ApplyflowImportClient({
       if (!file) return;
       void file.text().then((t) => {
         setText(t);
-        const r = parseCareerBundleFromClipboardText(t);
+        const r = parseCareerBundleFromClipboardTextWithSyncPreview(t);
         if (!r.ok) {
           setError(r.error);
           setBundle(null);
+          setSyncPreview(EMPTY_SYNC_ENRICHMENT_PREVIEW);
           return;
         }
-        ingestValidatedBundle(r.data);
+        ingestValidatedBundle(r.bundle, r.preview);
       });
     },
     [ingestValidatedBundle],
   );
 
   const onParsePasted = useCallback(() => {
-    const r = parseCareerBundleFromClipboardText(text);
+    const r = parseCareerBundleFromClipboardTextWithSyncPreview(text);
     if (!r.ok) {
       setError(r.error);
       setBundle(null);
+      setSyncPreview(EMPTY_SYNC_ENRICHMENT_PREVIEW);
       return;
     }
-    ingestValidatedBundle(r.data);
+    ingestValidatedBundle(r.bundle, r.preview);
   }, [ingestValidatedBundle, text]);
 
   const trainFor = useCallback(
@@ -379,6 +459,7 @@ export function ApplyflowImportClient({
               onClick={() => {
                 clearApplyFlowCareerBundle();
                 setBundle(null);
+                setSyncPreview(EMPTY_SYNC_ENRICHMENT_PREVIEW);
                 setText("");
                 setError(null);
                 setPostMessageReceived(false);
@@ -401,6 +482,8 @@ export function ApplyflowImportClient({
       </section>
 
       {bundle && !error ? <BundleSummaryCard bundle={bundle} interviewReadyCount={interviewReadyCount} /> : null}
+
+      {bundle && !error ? <SyncEnrichmentPreviewPanel preview={syncPreview} /> : null}
 
       {bundle && !error && !hasRoles ? (
         <div className="il-card border border-amber-500/30 bg-amber-500/5 p-5 text-sm text-amber-100/95">

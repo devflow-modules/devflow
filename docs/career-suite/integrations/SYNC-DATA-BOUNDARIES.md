@@ -24,6 +24,10 @@ The CareerBundle core adapter recognizes safe sync enrichments produced by `@dev
 
 CareerBundle export support may include validated sync enrichment as optional derived data. Raw provider payloads, raw email bodies, raw calendar descriptions, attachments, and meeting links must not be embedded in exported bundles.
 
+### Interview Lab sync enrichment import preview
+
+Interview Lab can display a read-only preview of validated sync enrichment embedded in an imported CareerBundle. The preview only shows aggregated, derived metadata and does not fetch provider data, persist sync data, display raw email/calendar content, expose meeting links, or trigger automated actions.
+
 ## Principles
 
 - **Privacy-first** — collect the minimum needed for career workflow hints

@@ -5,6 +5,10 @@ import {
   type CareerBundle,
   type CareerBundleHandoffIntent,
 } from "@devflow/career-core";
+import {
+  parseCareerBundleImportWithSyncPreview,
+  type InterviewLabSyncEnrichmentPreview,
+} from "./career-bundle-sync-preview";
 
 export type EvaluateApplyflowBundlePostMessageResult =
   | { action: "ignore" }
@@ -12,6 +16,7 @@ export type EvaluateApplyflowBundlePostMessageResult =
   | {
       action: "accept";
       bundle: CareerBundle;
+      syncPreview: InterviewLabSyncEnrichmentPreview;
       intent: CareerBundleHandoffIntent;
       selectedApplicationId?: string;
     };
@@ -34,9 +39,20 @@ export function evaluateApplyflowBundlePostMessage(
   if (!r.ok) {
     return { action: "invalid_bundle", error: r.error };
   }
+
+  const payload =
+    event.data != null && typeof event.data === "object" && "payload" in event.data
+      ? (event.data as { payload: unknown }).payload
+      : undefined;
+  const imported = parseCareerBundleImportWithSyncPreview(payload ?? r.bundle);
+  if (!imported.ok) {
+    return { action: "invalid_bundle", error: imported.error };
+  }
+
   return {
     action: "accept",
-    bundle: r.bundle,
+    bundle: imported.bundle,
+    syncPreview: imported.preview,
     intent: r.intent,
     selectedApplicationId: r.selectedApplicationId,
   };
