@@ -12,7 +12,7 @@ vi.mock("@nangohq/node", () => ({
   }),
 }));
 
-import { createNangoServerOAuthUrlProvider } from "./nango-server-provider.js";
+import { createNangoServerConnectSessionProvider, createNangoServerOAuthUrlProvider } from "./nango-server-provider.js";
 
 describe("createNangoServerOAuthUrlProvider", () => {
   beforeEach(() => {
@@ -40,6 +40,19 @@ describe("createNangoServerOAuthUrlProvider", () => {
       "/provider-runtime/nango/connect?provider=gmail&redirect_uri=https%3A%2F%2Fapplyflow.example%2Foauth%2Fcallback",
     );
     expect(url).not.toMatch(/nango-session-token|server-only-secret|access_token/i);
+  });
+
+  it("returns client-safe connect session token from connect session provider", async () => {
+    const provider = createNangoServerConnectSessionProvider({
+      secretKey: "server-only-secret",
+    });
+
+    const session = await provider.createConnectSession({ provider: "gmail" });
+
+    expect(createConnectSession).toHaveBeenCalledOnce();
+    expect(session.connectSessionUrl).toBe("/provider-runtime/nango/connect?provider=gmail");
+    expect(session.connectSessionToken).toBe("nango-session-token-should-not-leak");
+    expect(JSON.stringify(session)).not.toMatch(/server-only-secret|access_token|refresh_token/i);
   });
 
   it("maps calendar provider to google-calendar integration", async () => {

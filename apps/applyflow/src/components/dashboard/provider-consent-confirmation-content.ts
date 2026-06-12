@@ -8,7 +8,7 @@ import type { ProviderKind } from "@devflow/career-sync";
 export const PROVIDER_CONSENT_CONFIRMATION_TITLE = "Provider connection consent";
 
 export const PROVIDER_CONSENT_CONFIRMATION_BADGE =
-  "Explicit consent · Launcher check only · No Connect UI yet";
+  "Explicit consent · Nango Connect UI · No provider data import";
 
 export const PROVIDER_CONSENT_CONFIRMATION_RUNTIME = "Nango";
 

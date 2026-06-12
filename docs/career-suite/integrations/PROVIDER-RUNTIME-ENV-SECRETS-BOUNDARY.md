@@ -31,7 +31,7 @@ This document defines the environment and secrets boundary required before Caree
 
 The ApplyFlow Nango connect session boundary must keep Nango secrets server-side and return only client-safe session/redirect information.
 
-The ApplyFlow Nango connect session launcher route (`GET /provider-runtime/nango/connect?provider=gmail|calendar`) reads runtime flags and secrets server-side only, delegates to the connect session boundary, and returns client-safe JSON. It does not expose connect session tokens until Connect UI integration is explicitly enabled.
+The ApplyFlow Nango connect session launcher route (`GET /provider-runtime/nango/connect?provider=gmail|calendar&explicit_consent=1`) reads runtime flags and secrets server-side only, delegates to the connect session boundary, and returns client-safe JSON including a short-lived Nango connect session token when allowed. It never returns `NANGO_SECRET_KEY`, OAuth access tokens, or refresh tokens. Connect session tokens are passed to `@nangohq/frontend` only in memory and are not stored in browser storage or CareerBundle.
 
 Secrets and tokens must never be returned to client components or stored in CareerBundle.
 

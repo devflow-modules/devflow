@@ -3,18 +3,29 @@ import type { ProviderKind } from "@devflow/career-sync";
 
 /**
  * Client-safe launcher fetch helper.
- * Does not send secrets, tokens, or provider payloads.
+ * Sends explicit consent signal only — no secrets, OAuth tokens, or provider payloads.
  */
 
-export function buildProviderConsentLauncherUrl(provider: ProviderKind): string {
-  return `/provider-runtime/nango/connect?provider=${encodeURIComponent(provider)}`;
+export function buildProviderConsentLauncherUrl(
+  provider: ProviderKind,
+  explicitConsentChecked: boolean,
+): string {
+  const params = new URLSearchParams({ provider });
+  if (explicitConsentChecked) {
+    params.set("explicit_consent", "1");
+  }
+
+  return `/provider-runtime/nango/connect?${params.toString()}`;
 }
 
 export async function fetchProviderConsentLauncher(
   provider: ProviderKind,
+  explicitConsentChecked: boolean,
   fetchImpl: typeof fetch = fetch,
 ): Promise<ApplyFlowNangoConnectLauncherResponse> {
-  const response = await fetchImpl(buildProviderConsentLauncherUrl(provider));
+  const response = await fetchImpl(
+    buildProviderConsentLauncherUrl(provider, explicitConsentChecked),
+  );
 
   if (!response.ok && response.status >= 500) {
     throw new Error(`Launcher request failed with status ${response.status}`);
@@ -32,6 +43,10 @@ export async function runProviderConsentLauncherCheck(input: {
     return { called: false };
   }
 
-  const result = await fetchProviderConsentLauncher(input.provider, input.fetchImpl);
+  const result = await fetchProviderConsentLauncher(
+    input.provider,
+    input.explicitConsentChecked,
+    input.fetchImpl,
+  );
   return { called: true, result };
 }

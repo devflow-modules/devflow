@@ -79,9 +79,9 @@ ApplyFlow requires explicit user confirmation before a provider connection launc
 
 This UI does not import provider data and does not store provider tokens.
 
-The consent panel shows provider selection, Nango runtime, scope previews, data boundaries, and a required checkbox before enabling the launcher check button. Results are client-safe JSON only; Nango Connect UI is not enabled in this step.
+The consent panel shows provider selection, Nango runtime, scope previews, data boundaries, and a required checkbox before enabling the launcher check button. When the launcher returns `oauth_start_ready`, ApplyFlow can open Nango Connect UI with a short-lived client-safe connect session token. Results remain local React state only — no OAuth token storage, no provider data import, no sync jobs.
 
-Implementation: `apps/applyflow/src/components/dashboard/provider-consent-confirmation-panel.tsx`.
+Implementation: `apps/applyflow/src/components/dashboard/provider-consent-confirmation-panel.tsx` and `apps/applyflow/src/components/dashboard/provider-nango-connect-ui.tsx`.
 
 ---
 

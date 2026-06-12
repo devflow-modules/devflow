@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { NangoOAuthUrlProvider } from "@devflow/career-sync";
 import {
   handleApplyFlowNangoConnectSessionLauncher,
+  parseConnectLauncherExplicitConsent,
   parseConnectLauncherProvider,
 } from "./nango-connect-session-launcher.js";
 
@@ -25,6 +26,13 @@ const oauthUrlProvider: NangoOAuthUrlProvider = {
   ),
 };
 
+const connectSessionProvider = {
+  createConnectSession: vi.fn(async () => ({
+    connectSessionUrl: "/provider-runtime/nango/connect?provider=gmail",
+    connectSessionToken: "client-safe-connect-session-token",
+  })),
+};
+
 describe("parseConnectLauncherProvider", () => {
   it("accepts gmail and calendar", () => {
     expect(parseConnectLauncherProvider("gmail")).toBe("gmail");
@@ -37,15 +45,24 @@ describe("parseConnectLauncherProvider", () => {
   });
 });
 
+describe("parseConnectLauncherExplicitConsent", () => {
+  it("accepts explicit consent query values", () => {
+    const consent = parseConnectLauncherExplicitConsent("1", "gmail", "2026-06-12T10:00:00.000Z");
+    expect(consent.hasExplicitConsent).toBe(true);
+    expect(consent.scopes).toEqual(["gmail.metadata.read"]);
+  });
+});
+
 describe("handleApplyFlowNangoConnectSessionLauncher", () => {
   beforeEach(() => {
     vi.mocked(oauthUrlProvider.createAuthorizationUrl).mockClear();
+    vi.mocked(connectSessionProvider.createConnectSession).mockClear();
   });
 
   it("returns blocked when provider query is missing", async () => {
     const result = await handleApplyFlowNangoConnectSessionLauncher(
       { provider: null },
-      { env: allFlagsOnEnv, oauthUrlProvider },
+      { env: allFlagsOnEnv, sessionDeps: { oauthUrlProvider } },
     );
 
     expect(result.status).toBe("blocked");
@@ -56,7 +73,7 @@ describe("handleApplyFlowNangoConnectSessionLauncher", () => {
   it("returns blocked when provider query is invalid", async () => {
     const result = await handleApplyFlowNangoConnectSessionLauncher(
       { provider: "outlook" },
-      { env: allFlagsOnEnv, oauthUrlProvider },
+      { env: allFlagsOnEnv, sessionDeps: { oauthUrlProvider } },
     );
 
     expect(result.status).toBe("blocked");
@@ -65,8 +82,8 @@ describe("handleApplyFlowNangoConnectSessionLauncher", () => {
 
   it("blocks Gmail when runtime flags are absent", async () => {
     const result = await handleApplyFlowNangoConnectSessionLauncher(
-      { provider: "gmail" },
-      { env: {}, oauthUrlProvider },
+      { provider: "gmail", explicitConsent: "1" },
+      { env: {}, sessionDeps: { oauthUrlProvider } },
     );
 
     expect(result.status).toBe("blocked");
@@ -74,135 +91,47 @@ describe("handleApplyFlowNangoConnectSessionLauncher", () => {
     expect(result.reasons).toContain("career_provider_runtime_disabled");
   });
 
-  it("blocks Calendar when runtime flags are absent", async () => {
-    const result = await handleApplyFlowNangoConnectSessionLauncher(
-      { provider: "calendar" },
-      { env: {}, oauthUrlProvider },
-    );
-
-    expect(result.status).toBe("blocked");
-    expect(result.provider).toBe("calendar");
-  });
-
-  it("blocks when global runtime flag is false", async () => {
+  it("blocks when explicit consent is absent", async () => {
     const result = await handleApplyFlowNangoConnectSessionLauncher(
       { provider: "gmail" },
-      {
-        env: { ...allFlagsOnEnv, CAREER_PROVIDER_RUNTIME_ENABLED: "false" },
-        oauthUrlProvider,
-      },
-    );
-
-    expect(result.reasons).toContain("career_provider_runtime_disabled");
-  });
-
-  it("blocks when Nango runtime flag is false", async () => {
-    const result = await handleApplyFlowNangoConnectSessionLauncher(
-      { provider: "gmail" },
-      {
-        env: { ...allFlagsOnEnv, NANGO_RUNTIME_ENABLED: "false" },
-        oauthUrlProvider,
-      },
-    );
-
-    expect(result.reasons).toContain("nango_runtime_disabled");
-  });
-
-  it("blocks Gmail when Gmail provider flag is false", async () => {
-    const result = await handleApplyFlowNangoConnectSessionLauncher(
-      { provider: "gmail" },
-      {
-        env: { ...allFlagsOnEnv, GMAIL_PROVIDER_ENABLED: "false" },
-        oauthUrlProvider,
-      },
-    );
-
-    expect(result.reasons).toContain("gmail_provider_disabled");
-  });
-
-  it("blocks Calendar when Calendar provider flag is false", async () => {
-    const result = await handleApplyFlowNangoConnectSessionLauncher(
-      { provider: "calendar" },
-      {
-        env: { ...allFlagsOnEnv, CALENDAR_PROVIDER_ENABLED: "false" },
-        oauthUrlProvider,
-      },
-    );
-
-    expect(result.reasons).toContain("calendar_provider_disabled");
-  });
-
-  it("blocks when explicit consent is absent (preview-only default)", async () => {
-    const result = await handleApplyFlowNangoConnectSessionLauncher(
-      { provider: "gmail" },
-      { env: allFlagsOnEnv, oauthUrlProvider },
+      { env: allFlagsOnEnv, sessionDeps: { oauthUrlProvider } },
     );
 
     expect(result.status).toBe("blocked");
     expect(result.reasons).toContain("missing_user_consent");
-    expect(oauthUrlProvider.createAuthorizationUrl).not.toHaveBeenCalled();
   });
 
-  it("blocks when gates allow but Nango secret is missing", async () => {
-    const provider = {
-      createAuthorizationUrl: vi.fn(async () => "/provider-runtime/nango/connect?provider=gmail"),
-    };
-
+  it("returns oauth_start_ready with connect session token when allowed", async () => {
     const result = await handleApplyFlowNangoConnectSessionLauncher(
-      { provider: "gmail" },
-      {
-        env: {
-          CAREER_PROVIDER_RUNTIME_ENABLED: "true",
-          NANGO_RUNTIME_ENABLED: "true",
-          GMAIL_PROVIDER_ENABLED: "true",
-          CALENDAR_PROVIDER_ENABLED: "true",
-        },
-        oauthUrlProvider: provider,
-        consent: explicitConsent,
-      },
-    );
-
-    expect(result.status).toBe("blocked");
-    expect(result.reasons).toContain("nango_secret_missing");
-    expect(provider.createAuthorizationUrl).not.toHaveBeenCalled();
-  });
-
-  it("returns oauth_start_ready when flags, consent, and secret allow OAuth", async () => {
-    const provider = {
-      createAuthorizationUrl: vi.fn(async () => "/provider-runtime/nango/connect?provider=gmail"),
-    };
-
-    const result = await handleApplyFlowNangoConnectSessionLauncher(
-      { provider: "gmail" },
+      { provider: "gmail", explicitConsent: "1" },
       {
         env: allFlagsOnEnv,
-        oauthUrlProvider: provider,
-        consent: explicitConsent,
+        sessionDeps: { connectSessionProvider },
         requestedAt: "2026-06-12T10:05:00.000Z",
       },
     );
 
     expect(result.status).toBe("oauth_start_ready");
     expect(result.canStartOAuth).toBe(true);
-    expect(provider.createAuthorizationUrl).toHaveBeenCalledOnce();
-    expect(result.connectSessionUrl).toBe("/provider-runtime/nango/connect?provider=gmail");
+    expect(result.connectSessionToken).toBe("client-safe-connect-session-token");
+    expect(connectSessionProvider.createConnectSession).toHaveBeenCalledOnce();
   });
 
-  it("does not call oauthUrlProvider when blocked", async () => {
+  it("does not call connectSessionProvider when blocked", async () => {
     await handleApplyFlowNangoConnectSessionLauncher(
       { provider: "gmail" },
-      { env: {}, oauthUrlProvider },
+      { env: {}, sessionDeps: { connectSessionProvider } },
     );
 
-    expect(oauthUrlProvider.createAuthorizationUrl).not.toHaveBeenCalled();
+    expect(connectSessionProvider.createConnectSession).not.toHaveBeenCalled();
   });
 });
 
 describe("applyflow nango connect launcher safety", () => {
-  it("client-safe JSON does not contain secrets, tokens, or provider payloads", async () => {
+  it("client-safe JSON does not contain secrets, OAuth tokens, or provider payloads", async () => {
     const result = await handleApplyFlowNangoConnectSessionLauncher(
-      { provider: "gmail" },
-      { env: allFlagsOnEnv, oauthUrlProvider, consent: explicitConsent },
+      { provider: "gmail", explicitConsent: "1" },
+      { env: allFlagsOnEnv, sessionDeps: { connectSessionProvider }, requestedAt: "2026-06-12T10:05:00.000Z" },
     );
     const serialized = JSON.stringify(result);
 

@@ -24,6 +24,7 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - ApplyFlow Nango connect session server boundary
 - ApplyFlow Nango connect session launcher route
 - ApplyFlow explicit provider consent UI
+- Nango Connect UI integration behind flags and explicit consent
 
 **Not implemented:**
 

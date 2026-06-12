@@ -20,9 +20,11 @@ import {
 } from "./provider-consent-confirmation-content";
 import { formatProviderCapabilityYesNo } from "./provider-consent-mock-data";
 import { runProviderConsentLauncherCheck } from "./provider-consent-launcher-client";
+import { ProviderNangoConnectUi } from "./provider-nango-connect-ui";
+import { openNangoConnectUiWithFrontendSdk } from "./provider-nango-connect-client";
 
 /**
- * Explicit provider consent UI before any Nango Connect UI is enabled.
+ * Explicit provider consent UI with Nango Connect UI behind runtime flags.
  * Uses React local state only — no browser persistence or backend storage.
  * Does not import Gmail/Calendar data or expose tokens.
  */
@@ -218,13 +220,11 @@ export function ProviderConsentConfirmationPanel() {
 
         {lastLauncherResult ? <ProviderConsentLauncherResultPreview result={lastLauncherResult} /> : null}
 
-        <div className="rounded-md border border-[color:var(--af-border-strong)]/60 bg-[color:var(--af-surface)]/40 p-3 text-[11px] leading-snug text-[color:var(--af-text-muted)]">
-          <p className="font-medium text-[color:var(--af-text)]">Connect UI not enabled</p>
-          <p className="mt-1">
-            This step only runs a client-safe launcher check. Nango Connect UI, provider sync, and data import
-            are not part of this release.
-          </p>
-        </div>
+        <ProviderNangoConnectUi
+          explicitConsentChecked={explicitConsentChecked}
+          launcherResult={lastLauncherResult}
+          openNangoConnectUi={openNangoConnectUiWithFrontendSdk}
+        />
       </div>
     </ApplyFlowCard>
   );
