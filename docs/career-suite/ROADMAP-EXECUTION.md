@@ -52,10 +52,25 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 | ApplyFlow opt-in demo export | Done — PR #57 |
 | End-to-end validation checklist | Done — [`demo/E2E-SYNC-ENRICHMENT-CHECKLIST.md`](./demo/E2E-SYNC-ENRICHMENT-CHECKLIST.md) |
 
+### Next — Provider consent architecture
+
+Before implementing real Nango/Gmail/Calendar runtime, define consent, revocation, scope, storage, adapter, and audit boundaries.
+
+**Current status:**
+
+- Demo/sandbox sync enrichment loop is complete.
+- Real provider integration is **not implemented yet**.
+- Provider integration must start with architecture and safety gates.
+
+**Document:** [`integrations/PROVIDER-CONSENT-ARCHITECTURE.md`](./integrations/PROVIDER-CONSENT-ARCHITECTURE.md)
+
 ### Future roadmap
 
-- Real provider integration only behind explicit consent
-- Nango OAuth integration as adapter, not core dependency
+- Provider adapter interface contracts (no OAuth)
+- Nango provider adapter sandbox (fixtures only)
+- Consent UI mock / read-only connection state
+- Provider connection status model
+- Real Nango OAuth behind feature flag (after safety gates)
 - Gmail/Calendar provider connectors with least-data boundaries
 - Recording notes and LinkedIn publish pack
 - Multi-agent advisory layer over deterministic signals
