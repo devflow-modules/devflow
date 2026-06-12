@@ -33,6 +33,7 @@ Versioned execution plan for the next Career Suite phase: **deterministic agent-
 | **ApplyFlow consent panel action simulation** | Dashboard previews connect/revoke/delete via action mock — read-only |
 | **Real provider runtime readiness checklist** | Documented — [`integrations/REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md`](./integrations/REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md) |
 | **Provider runtime app boundary contract** | `@devflow/career-sync` `provider-runtime-app-boundary` — client-safe mock boundary |
+| **Provider runtime environment and secrets boundary** | Documented — [`integrations/PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md`](./integrations/PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md) |
 | LibreChat / Nango / OpenClaw | **Not** MVP dependencies — accelerators after core |
 
 **Next step:** Real provider integration only behind explicit consent; LibreChat/MCP lab over deterministic signals.
@@ -80,6 +81,7 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 - ApplyFlow consent panel action simulation — dashboard preview actions via action mock
 - Real provider runtime readiness checklist — [`integrations/REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md`](./integrations/REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md)
 - Provider runtime app boundary contract — `@devflow/career-sync` `provider-runtime-app-boundary` module
+- Provider runtime environment and secrets boundary — [`integrations/PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md`](./integrations/PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md)
 
 ### ApplyFlow consent panel action simulation
 

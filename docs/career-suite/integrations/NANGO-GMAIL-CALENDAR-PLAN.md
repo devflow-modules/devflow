@@ -88,6 +88,14 @@ The first runtime PR must be disabled by default and limited to OAuth initiation
 
 See [`REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md`](./REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md).
 
+### Environment and secrets boundary
+
+Real Nango OAuth must not be introduced until runtime flags and secrets boundaries are documented.
+
+Future Nango and Google secrets must remain server/runtime-only.
+
+See [`PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md`](./PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md).
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab

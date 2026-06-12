@@ -91,6 +91,16 @@ Public exports: `createProviderRuntimeAppBoundaryResult`, `isProviderRuntimeAppB
 
 ---
 
+## Environment boundary
+
+Runtime flags must be evaluated inside approved runtime boundaries.
+
+Provider secrets must not be exposed to client components or app-level exports.
+
+See [`PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md`](./PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md).
+
+---
+
 ## Required flags
 
 | Flag | Default | Purpose |
