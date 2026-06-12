@@ -27,6 +27,16 @@ This document defines the environment and secrets boundary required before Caree
 
 ---
 
+## ApplyFlow server boundary
+
+The ApplyFlow Nango connect session boundary must keep Nango secrets server-side and return only client-safe session/redirect information.
+
+Secrets and tokens must never be returned to client components or stored in CareerBundle.
+
+`NANGO_SECRET_KEY` is read only in ApplyFlow server/runtime code (`nango-server-provider.ts`), never in client components or public env vars.
+
+---
+
 ## Runtime flags
 
 The following flags are required and must default to disabled:
