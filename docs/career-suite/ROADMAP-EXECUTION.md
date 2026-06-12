@@ -17,13 +17,18 @@ Versioned execution plan for the next Career Suite phase: **deterministic agent-
 | **`packages/career-agents`** | Deterministic core merged (job/resume/ATS) |
 | **`packages/career-sync`** | Gmail/Calendar read-only prototypes + unified CareerBundle sync enrichment |
 | **`packages/career-core` sync adapter** | Optional attach/validate for `CareerBundleUnifiedSyncEnrichment` |
+| **`packages/career-core` export support** | Optional export/import helpers for validated sync enrichment |
 | LibreChat / Nango / OpenClaw | **Not** MVP dependencies — accelerators after core |
 
-**Next step:** consume sync enrichment in product flows only after explicit user review UI — adapter contract is in `@devflow/career-core`.
+**Next step:** user-review UI before product flows consume exported sync enrichment — no app integration in adapter/export PRs.
 
 ### CareerBundle sync enrichment adapter
 
 The CareerBundle core adapter recognizes safe sync enrichments produced by `@devflow/career-sync`. It only accepts derived, redacted, user-reviewable enrichment data and does not consume provider raw payloads.
+
+### CareerBundle export support
+
+CareerBundle export support may include validated sync enrichment as optional derived data. Raw provider payloads, raw email bodies, raw calendar descriptions, attachments, and meeting links must not be embedded in exported bundles.
 
 ---
 
