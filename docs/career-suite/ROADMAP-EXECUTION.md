@@ -35,6 +35,7 @@ Versioned execution plan for the next Career Suite phase: **deterministic agent-
 | **Provider runtime app boundary contract** | `@devflow/career-sync` `provider-runtime-app-boundary` — client-safe mock boundary |
 | **Provider runtime environment and secrets boundary** | Documented — [`integrations/PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md`](./integrations/PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md) |
 | **First real Nango OAuth boundary** | `@devflow/career-sync` `nango-runtime` — flags + consent, no data import |
+| **ApplyFlow Nango connect session server boundary** | `apps/applyflow` `provider-runtime` — `@nangohq/node` server-only |
 | LibreChat / Nango / OpenClaw | **Not** MVP dependencies — accelerators after core |
 
 **Next step:** Real provider integration only behind explicit consent; LibreChat/MCP lab over deterministic signals.
@@ -84,6 +85,7 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 - Provider runtime app boundary contract — `@devflow/career-sync` `provider-runtime-app-boundary` module
 - Provider runtime environment and secrets boundary — [`integrations/PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md`](./integrations/PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md)
 - First real Nango OAuth boundary behind explicit flags and consent — `@devflow/career-sync` `nango-runtime` module
+- ApplyFlow Nango connect session server boundary — `apps/applyflow/src/lib/provider-runtime/`
 
 ### ApplyFlow consent panel action simulation
 
@@ -109,6 +111,7 @@ This remains read-only and does not activate OAuth, Nango runtime, provider call
 
 ### Next
 
+- Connect session UI behind explicit feature flags
 - Connection status from real runtime boundary
 - Gmail read-only adapter only after OAuth boundary is validated
 - Calendar read-only adapter only after OAuth boundary is validated

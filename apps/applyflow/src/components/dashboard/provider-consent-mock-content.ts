@@ -46,4 +46,5 @@ export const PROVIDER_CONSENT_MOCK_BOUNDARIES = [
   "Raw provider payloads discarded before CareerBundle",
   "No token storage in ApplyFlow",
   "Derived signals only after explicit user review",
+  "Real provider runtime boundary is available behind server-side flags and consent, but UI remains preview-only",
 ] as const;

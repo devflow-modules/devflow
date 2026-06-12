@@ -106,6 +106,14 @@ Server adapters should implement `NangoOAuthUrlProvider` using Nango's current c
 
 Public exports: `evaluateNangoOAuthBoundary`, `createNangoOAuthBoundaryResult`.
 
+### ApplyFlow Nango connect session server boundary
+
+ApplyFlow includes a server/runtime boundary for future Nango connect sessions.
+
+The boundary is protected by feature flags and explicit consent, returns only client-safe results, and does not import Gmail or Calendar data.
+
+Implementation: `apps/applyflow/src/lib/provider-runtime/nango-connect-session-boundary.ts` with server-only `nango-server-provider.ts` (`@nangohq/node` `createConnectSession`).
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab

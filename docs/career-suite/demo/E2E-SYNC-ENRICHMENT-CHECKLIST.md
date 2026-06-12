@@ -60,6 +60,8 @@ ApplyFlow
 * [ ] Token boundary requirements are documented
 * [ ] Raw provider data boundaries are documented
 * [ ] Required tests before OAuth are documented
+* [ ] ApplyFlow Nango connect session server boundary exists
+* [ ] Connect session UI remains preview-only until explicitly enabled
 
 ## Interview Lab checks
 
