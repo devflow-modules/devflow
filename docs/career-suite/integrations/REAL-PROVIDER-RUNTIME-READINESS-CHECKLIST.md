@@ -19,6 +19,7 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - consent-gated provider connection action mock
 - ApplyFlow consent panel action simulation
 - provider runtime app boundary contract
+- provider runtime environment and secrets boundary
 
 **Not implemented:**
 
@@ -40,6 +41,16 @@ Before real OAuth is introduced, Career Suite defines an app boundary contract f
 The boundary returns client-safe results and does not expose tokens, raw provider payloads, provider calls, or persistence behavior.
 
 Public exports: `createProviderRuntimeAppBoundaryResult`, `isProviderRuntimeAppBoundaryResultSafeForClient`.
+
+---
+
+## Environment and secrets boundary
+
+Before real OAuth is introduced, Career Suite must define where runtime flags and secrets may live.
+
+Secrets must remain server/runtime-only and must not reach client components, CareerBundle exports, Interview Lab imports, logs, fixtures, or demo JSON.
+
+See [`PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md`](./PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md).
 
 ---
 

@@ -7,12 +7,13 @@ This folder documents **external integration labs** for the Career Suite. These 
 1. **[Provider consent integration architecture](./PROVIDER-CONSENT-ARCHITECTURE.md)** — consent, revocation, least-data, and adapter boundaries before real OAuth
 2. **[Provider runtime feature flags](./PROVIDER-RUNTIME-FEATURE-FLAGS.md)** — default-off gates before any real OAuth/Nango/Gmail/Calendar runtime
 3. **[Real Provider Runtime Readiness Checklist](./REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md)** — final gates before any real OAuth/Nango/Gmail/Calendar runtime PR
-4. **[LibreChat + MCP lab](./LIBRECHAT-MCP-LAB.md)** — local agent UI over deterministic tools
-5. **[LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)** — connect upstream LibreChat to `@devflow/career-agents-mcp` stdio
-6. **[Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth/sync adapter (docs + sandbox contracts; no runtime OAuth in apps)
-7. **[Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)** — privacy rules for Gmail/Calendar derived signals and CareerBundle sync enrichment
-8. **Multi-agent orchestration** — after MCP tools and sync boundaries are stable
-9. **OpenClaw POC** — optional automation surface; not product-critical
+4. **[Provider Runtime Environment and Secrets Boundary](./PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md)** — server/runtime-only flags and secrets before real OAuth
+5. **[LibreChat + MCP lab](./LIBRECHAT-MCP-LAB.md)** — local agent UI over deterministic tools
+6. **[LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)** — connect upstream LibreChat to `@devflow/career-agents-mcp` stdio
+7. **[Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth/sync adapter (docs + sandbox contracts; no runtime OAuth in apps)
+8. **[Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)** — privacy rules for Gmail/Calendar derived signals and CareerBundle sync enrichment
+9. **Multi-agent orchestration** — after MCP tools and sync boundaries are stable
+10. **OpenClaw POC** — optional automation surface; not product-critical
 
 See also: **[MCP server candidates](./MCP-SERVER-CANDIDATES.md)**.
 
@@ -52,6 +53,7 @@ No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persisten
 | Provider consent architecture | **Documented** | [PROVIDER-CONSENT-ARCHITECTURE.md](./PROVIDER-CONSENT-ARCHITECTURE.md) — planning only |
 | Provider runtime feature flags | **Documented** | [PROVIDER-RUNTIME-FEATURE-FLAGS.md](./PROVIDER-RUNTIME-FEATURE-FLAGS.md) — default off |
 | Real provider runtime readiness | **Documented** | [REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md](./REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md) — pre-OAuth gates |
+| Provider runtime env/secrets boundary | **Documented** | [PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md](./PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md) — server/runtime only |
 | MCP SDK | **Implemented locally** | `@devflow/career-agents-mcp` stdio transport |
 | LibreChat + MCP lab | **Lab docs only** | No LibreChat product dependency |
 | LibreChat local wiring | **Documented** | [LIBRECHAT-LOCAL-WIRING.md](./LIBRECHAT-LOCAL-WIRING.md) |
@@ -68,6 +70,7 @@ No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persisten
 - [Provider consent integration architecture](./PROVIDER-CONSENT-ARCHITECTURE.md)
 - [Provider runtime feature flags](./PROVIDER-RUNTIME-FEATURE-FLAGS.md)
 - [Real Provider Runtime Readiness Checklist](./REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md)
+- [Provider Runtime Environment and Secrets Boundary](./PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md)
 - [LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)
 - [Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)
 - [Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)
