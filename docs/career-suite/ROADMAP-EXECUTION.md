@@ -14,10 +14,16 @@ Versioned execution plan for the next Career Suite phase: **deterministic agent-
 | ApplyFlow → CareerBundle → Interview Lab | Documented and demo-ready |
 | Resume Match (`/career/ats`) | Deterministic heuristics + optional OpenAI coaching (opt-in) |
 | CI / design governance | Strengthened (button primitives, design-system baseline, routing notes) |
-| **`packages/career-agents`** | Not started — next technical phase |
+| **`packages/career-agents`** | Deterministic core merged (job/resume/ATS) |
+| **`packages/career-sync`** | Gmail/Calendar read-only prototypes + unified CareerBundle sync enrichment |
+| **`packages/career-core` sync adapter** | Optional attach/validate for `CareerBundleUnifiedSyncEnrichment` |
 | LibreChat / Nango / OpenClaw | **Not** MVP dependencies — accelerators after core |
 
-**Next step:** agent-ready **deterministic core** in `packages/career-agents`, then Interview Lab integration.
+**Next step:** consume sync enrichment in product flows only after explicit user review UI — adapter contract is in `@devflow/career-core`.
+
+### CareerBundle sync enrichment adapter
+
+The CareerBundle core adapter recognizes safe sync enrichments produced by `@devflow/career-sync`. It only accepts derived, redacted, user-reviewable enrichment data and does not consume provider raw payloads.
 
 ---
 

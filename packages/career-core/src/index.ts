@@ -42,3 +42,14 @@ export type {
   ParseHandshakeBundleMessageResult,
   ParseHandshakeBundleMessageSuccess,
 } from "./bundle-postmessage.js";
+export {
+  attachSyncEnrichmentToCareerBundle,
+  hasCareerBundleSyncEnrichment,
+  validateCareerBundleSyncEnrichment,
+} from "./career-bundle/index.js";
+export type {
+  CareerBundleSyncEnrichmentAdapterInput,
+  CareerBundleSyncEnrichmentAdapterResult,
+  CareerBundleSyncEnrichmentStatus,
+  CareerBundleWithSyncEnrichment,
+} from "./career-bundle/index.js";

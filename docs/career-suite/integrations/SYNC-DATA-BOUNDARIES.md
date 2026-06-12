@@ -16,6 +16,10 @@ Calendar sync previews must not retain meeting links, raw event descriptions, pr
 
 Unified CareerBundle sync enrichment must remain derived-signal-only. Gmail and Calendar raw inputs must not be embedded in CareerBundle. The user should be able to review and delete sync enrichment data.
 
+### CareerBundle sync enrichment adapter
+
+The CareerBundle core adapter recognizes safe sync enrichments produced by `@devflow/career-sync`. It only accepts derived, redacted, user-reviewable enrichment data and does not consume provider raw payloads.
+
 ## Principles
 
 - **Privacy-first** — collect the minimum needed for career workflow hints
