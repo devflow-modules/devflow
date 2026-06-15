@@ -9,12 +9,13 @@ The contract does not call Gmail, import messages, retain bodies or snippets, ex
 | Item | State |
 |------|--------|
 | Contract types and safety policy | **Defined** in `@devflow/career-sync` `gmail-readonly-adapter` |
+| Sandbox adapter (`GmailReadOnlyAdapter`) | **Implemented** — see [GMAIL-READONLY-SANDBOX-ADAPTER.md](./GMAIL-READONLY-SANDBOX-ADAPTER.md) |
 | Gmail API runtime | **Not implemented** |
 | Nango proxy for Gmail | **Not implemented** |
 | ApplyFlow UI changes | **Out of scope** |
 | CareerBundle enrichment from live Gmail | **Not implemented** |
 
-This document is **contract-only**. No OAuth, Nango SDK, `googleapis`, sync jobs, or message fetch exists in this PR.
+This document is **contract-only** for the formal boundary. The deterministic sandbox implementation lives in [GMAIL-READONLY-SANDBOX-ADAPTER.md](./GMAIL-READONLY-SANDBOX-ADAPTER.md). No OAuth, Nango SDK, `googleapis`, sync jobs, or live message fetch exists in the sandbox adapter.
 
 ## Objective
 
