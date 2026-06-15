@@ -9,6 +9,7 @@ The contract does not call Calendar, import events, retain descriptions, locatio
 | Item | State |
 |------|--------|
 | Contract types and safety policy | **Defined** in `@devflow/career-sync` `calendar-readonly-adapter` |
+| Sandbox adapter implementation | **Implemented** — `createCalendarReadOnlySandboxAdapter` |
 | Google Calendar API runtime | **Not implemented** |
 | Nango proxy for Calendar | **Not implemented** |
 | ApplyFlow UI changes | **Out of scope** |
@@ -34,7 +35,8 @@ Define pure, client/runtime-safe contracts for a future Calendar read-only adapt
 |--------|------|
 | `provider-adapter` | Generic provider adapter boundary (`ProviderNormalizedEvent`) |
 | `calendar-sync` | Fixture/sandbox sync preview (`buildCalendarSyncPreview`, `CareerSyncSignal`) |
-| `calendar-readonly-adapter` | **Future** live read-only adapter contract with verified-connection gate |
+| `calendar-readonly-adapter` contract | Formal read-only boundary with verified-connection gate |
+| `calendar-readonly-adapter` sandbox | **Implemented** — `createCalendarReadOnlySandboxAdapter` with `CalendarDerivedSignal` |
 | `gmail-readonly-adapter` | Symmetric Gmail read-only contract |
 | `provider-connection/runtime-verification` | Server-side connection verification prerequisite for `nango` runtime |
 
@@ -149,7 +151,7 @@ export type CalendarReadOnlyMetadataProvider = {
 };
 ```
 
-No implementation ships in this contract PR.
+No live `nango` implementation ships in this contract. Sandbox implementation: [CALENDAR-READONLY-SANDBOX-ADAPTER.md](./CALENDAR-READONLY-SANDBOX-ADAPTER.md).
 
 ## Block reasons
 
@@ -180,6 +182,7 @@ From `@devflow/career-sync`:
 
 - Types: `CalendarReadOnlyAdapterRequest`, `CalendarReadOnlyAdapterResult`, `CalendarDerivedSignal`, …
 - Helpers: `createCalendarReadOnlyAdapterRequest`, `evaluateCalendarReadOnlyAdapterRequest`, `createCalendarReadOnlyAdapterResult`, `createBlockedCalendarReadOnlyAdapterResult`, `isCalendarReadOnlyAdapterResultSafe`
+- Sandbox: `createCalendarReadOnlySandboxAdapter`, `createCalendarSandboxScenarioProvider`, `deriveCalendarSignalsFromSandboxEvents`
 - Limits: `CALENDAR_READONLY_DEFAULT_MAX_EVENTS = 25`, `CALENDAR_READONLY_MAX_SAFE_EVENT_LIMIT = 50`
 
 ## What this PR does not claim
@@ -194,6 +197,7 @@ Do **not** state:
 ## Related docs
 
 - [Gmail Read-Only Adapter Contract](./GMAIL-READONLY-ADAPTER-CONTRACT.md)
+- [Calendar Read-Only Sandbox Adapter](./CALENDAR-READONLY-SANDBOX-ADAPTER.md)
 - [Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)
 - [Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)
 - [Provider Consent Architecture](./PROVIDER-CONSENT-ARCHITECTURE.md)

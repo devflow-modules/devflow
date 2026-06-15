@@ -176,7 +176,13 @@ Career Suite defines a privacy-first Calendar read-only adapter contract for fut
 
 The contract does not call Calendar, import events, retain descriptions, locations, attendee addresses or meeting links, expose provider tokens, or update applications automatically.
 
-Implementation: `@devflow/career-sync` `calendar-readonly-adapter/` — request/result types, safety policy, block reasons, and `CalendarReadOnlyAdapter` interface only. Requires server-verified connection for future `nango` runtime. Complements existing `calendar-sync` fixture previews and `provider-adapter` generic contracts.
+Implementation: `@devflow/career-sync` `calendar-readonly-adapter/` — request/result types, safety policy, block reasons, and `CalendarReadOnlyAdapter` interface. Sandbox implementation: `createCalendarReadOnlySandboxAdapter` with fake event metadata fixtures — see [CALENDAR-READONLY-SANDBOX-ADAPTER.md](./CALENDAR-READONLY-SANDBOX-ADAPTER.md).
+
+### Calendar read-only sandbox adapter
+
+Career Suite includes a deterministic Calendar read-only sandbox adapter using fake event metadata fixtures.
+
+The sandbox adapter does not call Calendar, import real events, retain descriptions, locations, attendee addresses or meeting links, expose provider tokens, or update applications automatically.
 
 ## Why Nango
 

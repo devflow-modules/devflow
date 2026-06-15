@@ -30,6 +30,7 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - Gmail read-only adapter contract — `@devflow/career-sync` `gmail-readonly-adapter`
 - Gmail read-only sandbox adapter — `@devflow/career-sync` `createGmailReadOnlySandboxAdapter`
 - Calendar read-only adapter contract — `@devflow/career-sync` `calendar-readonly-adapter`
+- Calendar read-only sandbox adapter — `@devflow/career-sync` `createCalendarReadOnlySandboxAdapter`
 
 **Not implemented:**
 
