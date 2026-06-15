@@ -208,6 +208,14 @@ The composition does not access real provider data, retain raw payloads, expose 
 
 Implementation: `@devflow/career-sync` `provider-derived-signals/` — see [PROVIDER-DERIVED-SANDBOX-COMPOSITION.md](./PROVIDER-DERIVED-SANDBOX-COMPOSITION.md).
 
+### Provider-derived runtime composition
+
+Career Suite can compose client-safe, review-required derived signals from server-only Gmail and Calendar read-only runtime boundaries.
+
+The runtime composition does not retain raw provider data, expose OAuth credentials, modify CareerBundle, persist results, run in the background, or update applications automatically.
+
+Implementation: ApplyFlow `apps/applyflow/src/lib/provider-runtime/provider-derived-runtime-boundary.ts` — see [PROVIDER-DERIVED-RUNTIME-COMPOSITION.md](./PROVIDER-DERIVED-RUNTIME-COMPOSITION.md).
+
 ### Provider-derived enrichment adapter
 
 Career Suite includes a deterministic compatibility adapter from sandbox provider-derived signals to the existing sync enrichment contract.

@@ -11,7 +11,8 @@ The composition does not access real provider data, retain raw payloads, expose 
 | Gmail read-only sandbox adapter | **Implemented** — `createGmailReadOnlySandboxAdapter` |
 | Calendar read-only sandbox adapter | **Implemented** — `createCalendarReadOnlySandboxAdapter` |
 | Provider-derived sandbox composition | **Implemented** — `composeProviderDerivedSignals` |
-| Gmail/Calendar API runtime | **Not implemented** |
+| Provider-derived runtime composition | **Implemented** — ApplyFlow `executeApplyFlowProviderDerivedRuntimeBoundary` |
+| Gmail/Calendar API runtime | **Implemented** (metadata-only, server-side) |
 | CareerBundle mutation from composition | **Not implemented** |
 
 ## Objective
@@ -117,5 +118,6 @@ Do **not** state:
 - [Gmail Read-Only Sandbox Adapter](./GMAIL-READONLY-SANDBOX-ADAPTER.md)
 - [Calendar Read-Only Sandbox Adapter](./CALENDAR-READONLY-SANDBOX-ADAPTER.md)
 - [Provider-Derived Enrichment Adapter](./PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md)
+- [Provider-Derived Runtime Composition](./PROVIDER-DERIVED-RUNTIME-COMPOSITION.md)
 - [Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)
 - [Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)
