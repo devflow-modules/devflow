@@ -10,5 +10,19 @@ export const PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_BADGE_NOT_SAVED = "Not saved";
 
 export const PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_BUILD_LABEL = "Build enrichment proposal";
 
+export const PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_DOWNLOAD_LABEL = "Download proposal";
+
+export const PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_DOWNLOAD_HELPER =
+  "Downloads a local JSON file. The proposal is not saved or applied in ApplyFlow.";
+
+export const PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_DOWNLOADED_MESSAGE =
+  "Proposal downloaded locally. Nothing was saved or applied in ApplyFlow.";
+
+export const PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_INVALID_MESSAGE =
+  "The current proposal is not valid for download.";
+
+export const PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_ERROR_MESSAGE =
+  "The proposal could not be downloaded safely.";
+
 export const PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_NOT_APPLIED_MESSAGE =
   "This proposal is not saved and has not been applied to CareerBundle or applications.";

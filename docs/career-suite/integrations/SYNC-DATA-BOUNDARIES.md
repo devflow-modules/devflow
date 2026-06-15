@@ -32,6 +32,8 @@ Provider-derived runtime review (`ProviderDerivedRuntimeReviewPanel`) operates o
 
 Provider-derived enrichment proposal (`buildProviderDerivedEnrichmentProposal`) builds an ephemeral `CareerBundleUnifiedSyncEnrichment` proposal from explicitly selected signals via `createSelectedSignalsComposition` and `adaptProviderDerivedSignalsToSyncEnrichment`. The proposal is not persisted, not applied to CareerBundle or applications, and does not trigger provider calls.
 
+Provider-derived enrichment proposal export (`buildProviderDerivedEnrichmentProposalExport`) allows the user to download a ready proposal as a local JSON file in the browser. The file is not uploaded or retained by ApplyFlow and does not modify CareerBundle or applications.
+
 Provider-derived sandbox composition (`composeProviderDerivedSignals`, `createProviderDerivedSandboxCompositionResult`) deterministically combines `GmailDerivedSignal` and `CalendarDerivedSignal` into `ProviderDerivedSignal`.
 
 Provider-derived enrichment adapter (`adaptProviderDerivedSignalsToSyncEnrichment`) maps sandbox composition results to existing `CareerBundleUnifiedSyncEnrichment` without altering the CareerBundle schema or auto-attaching enrichment.
