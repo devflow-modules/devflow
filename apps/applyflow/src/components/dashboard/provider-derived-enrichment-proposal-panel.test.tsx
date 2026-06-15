@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { createEmptyProviderDerivedSignalSummary } from "@devflow/career-sync";
+import { createEmptyProviderDerivedSignalSummary, createProviderDerivedSignalId } from "@devflow/career-sync";
 import {
   buildProviderDerivedEnrichmentProposal,
   canBuildEnrichmentProposal,
@@ -21,8 +21,16 @@ import {
 
 const generatedAt = "2026-06-15T12:00:00.000Z";
 
+const reviewableGmailSignalId =
+  createProviderDerivedSignalId({
+    source: "gmail",
+    kind: "follow_up_required",
+    occurredAt: "2026-06-01T10:00:00.000Z",
+    sequence: 1,
+  }) ?? "invalid-id";
+
 const reviewableSignal = {
-  id: "gmail-sandbox-follow_up_required-2026-06-01T10-00-00-000Z-0",
+  id: reviewableGmailSignalId,
   source: "gmail" as const,
   kind: "follow_up_required" as const,
   occurredAt: "2026-06-01T10:00:00.000Z",
@@ -72,7 +80,7 @@ function readyReviewState(result: ProviderDerivedRuntimePreviewClientResult) {
   return markProviderDerivedSelectionReady(
     toggleProviderDerivedSignalSelection(
       initializeProviderDerivedRuntimeReview(result),
-      "gmail-sandbox-follow_up_required-2026-06-01T10-00-00-000Z-0",
+      reviewableGmailSignalId,
       result.signals,
     ),
   );

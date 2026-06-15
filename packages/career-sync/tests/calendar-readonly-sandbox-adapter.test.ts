@@ -160,15 +160,15 @@ describe("sandbox fixture classification", () => {
 
     expect(first).toEqual(second);
     expect(first.signals).toHaveLength(2);
-    expect(first.signals[0]?.id).toMatch(/^calendar-sandbox-/);
+    expect(first.signals[0]?.id).toMatch(/^provider-signal-calendar-/);
   });
 
   it("uses deterministic signal IDs", () => {
     const signals = deriveCalendarSignalsFromSandboxEvents(CALENDAR_SANDBOX_FIXTURE_MULTI_SIGNAL.events);
 
     expect(signals.map((signal) => signal.id)).toEqual([
-      "calendar-sandbox-interview_scheduled-2026-06-26T14-00-00-000Z-0",
-      "calendar-sandbox-application_deadline_detected-2026-06-27T00-00-00-000Z-1",
+      "provider-signal-calendar-interview_scheduled-2026-06-26T14-00-00-000Z-001",
+      "provider-signal-calendar-application_deadline_detected-2026-06-27T00-00-00-000Z-002",
     ]);
   });
 

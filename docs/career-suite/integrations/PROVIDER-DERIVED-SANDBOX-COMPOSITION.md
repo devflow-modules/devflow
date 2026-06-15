@@ -38,6 +38,8 @@ createProviderDerivedSandboxCompositionResult → ProviderDerivedSandboxComposit
 
 Legacy `gmail-sync`, `calendar-sync`, and `buildCareerBundleSyncEnrichment` remain unchanged. Adapting composed signals to `CareerBundleUnifiedSyncEnrichment` is a separate step — see [PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md](./PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md).
 
+Signal IDs are runtime-neutral — see [PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md](./PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md).
+
 ## Normalized signal type
 
 `ProviderDerivedSignal` is provider-agnostic and includes only:

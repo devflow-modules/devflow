@@ -69,13 +69,13 @@ Confidence is fixed per kind (0.75–0.90). All signals require user review.
 
 ## Deterministic IDs
 
-Signal IDs follow:
+Signal IDs use the shared runtime-neutral contract — see [PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md](./PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md).
 
 ```txt
-calendar-sandbox-{kind}-{startsAt-normalized}-{index}
+provider-signal-calendar-{kind}-{startsAt-normalized-utc}-{sequence}
 ```
 
-Example: `calendar-sandbox-interview_scheduled-2026-06-20T14-00-00-000Z-0`
+Example: `provider-signal-calendar-interview_scheduled-2026-06-20T14-00-00-000Z-001`
 
 ## Public API
 

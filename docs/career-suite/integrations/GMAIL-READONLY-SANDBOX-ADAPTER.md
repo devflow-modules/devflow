@@ -63,6 +63,16 @@ Company is derived only from `company.{slug}` labels (e.g. `company.acme` → `A
 
 Confidence is fixed per kind (0.75–0.90). All signals require user review.
 
+## Deterministic IDs
+
+Signal IDs use the shared runtime-neutral contract — see [PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md](./PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md).
+
+```txt
+provider-signal-gmail-{kind}-{occurredAt-normalized-utc}-{sequence}
+```
+
+Example: `provider-signal-gmail-application_detected-2026-06-11T09-00-00-000Z-001`
+
 ## Public API
 
 ```ts

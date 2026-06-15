@@ -147,15 +147,15 @@ describe("sandbox fixture classification", () => {
 
     expect(first).toEqual(second);
     expect(first.signals).toHaveLength(2);
-    expect(first.signals[0]?.id).toMatch(/^gmail-sandbox-/);
+    expect(first.signals[0]?.id).toMatch(/^provider-signal-gmail-/);
   });
 
   it("uses deterministic signal IDs and ordering", () => {
     const signals = deriveGmailSignalsFromEphemeralMetadata(GMAIL_SANDBOX_FIXTURE_MULTI_SIGNAL.metadata);
 
     expect(signals.map((signal) => signal.id)).toEqual([
-      "gmail-sandbox-application_detected-2026-06-11T09-00-00-000Z-0",
-      "gmail-sandbox-interview_likely-2026-06-11T10-00-00-000Z-1",
+      "provider-signal-gmail-application_detected-2026-06-11T09-00-00-000Z-001",
+      "provider-signal-gmail-interview_likely-2026-06-11T10-00-00-000Z-002",
     ]);
     expect(signals[0]?.occurredAt.localeCompare(signals[1]?.occurredAt ?? "")).toBeLessThanOrEqual(0);
   });

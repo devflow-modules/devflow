@@ -28,6 +28,8 @@ executeApplyFlowProviderDerivedRuntimeBoundary
     → ProviderDerivedRuntimeCompositionResult
 ```
 
+Composed signal IDs use the runtime-neutral format — see [PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md](./PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md).
+
 ApplyFlow location: `apps/applyflow/src/lib/provider-runtime/`
 
 | Module | Role |

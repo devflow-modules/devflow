@@ -48,7 +48,6 @@ export {
 } from "./sandbox-fixtures.js";
 
 export {
-  buildGmailSandboxSignalId,
   deriveGmailSignalsFromEphemeralMetadata,
 } from "./sandbox-classifier.js";
 

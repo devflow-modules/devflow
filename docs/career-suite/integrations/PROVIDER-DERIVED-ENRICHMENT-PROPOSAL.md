@@ -15,6 +15,8 @@ The proposal is created locally in memory, is not persisted, is not applied to C
 | CareerBundle attach / import / persistence | **Not implemented** |
 | Application updates | **Not implemented** |
 
+Selected and composed signals use runtime-neutral IDs — see [PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md](./PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md).
+
 ## Flow
 
 ```txt
