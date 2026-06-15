@@ -25,12 +25,15 @@ export function downloadProviderDerivedEnrichmentProposal(
   const url = dependencies.createObjectURL(blob);
   const anchor = dependencies.createAnchor();
 
-  anchor.href = url;
-  anchor.download = input.filename;
   anchor.style.display = "none";
-
   dependencies.appendChild(anchor);
-  anchor.click();
-  dependencies.removeChild(anchor);
-  dependencies.revokeObjectURL(url);
+
+  try {
+    anchor.href = url;
+    anchor.download = input.filename;
+    anchor.click();
+  } finally {
+    dependencies.removeChild(anchor);
+    dependencies.revokeObjectURL(url);
+  }
 }

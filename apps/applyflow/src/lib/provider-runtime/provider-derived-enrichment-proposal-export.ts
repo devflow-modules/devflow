@@ -7,13 +7,24 @@ export const PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_SCHEMA =
 
 export const PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_VERSION = 1 as const;
 
+export const PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_DOCUMENT_KEYS = [
+  "schema",
+  "version",
+  "exportedAt",
+  "generatedAt",
+  "sourceSignalCount",
+  "reviewRequired",
+  "persistedByApplyFlow",
+  "appliedToCareerBundle",
+  "appliedToApplications",
+  "enrichment",
+] as const;
+
 export type ProviderDerivedEnrichmentProposalExport = {
   schema: typeof PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_SCHEMA;
   version: typeof PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_VERSION;
   exportedAt: string;
   generatedAt: string;
-  sourcePreviewFingerprint: string;
-  selectedSignalIds: string[];
   sourceSignalCount: number;
   reviewRequired: true;
   persistedByApplyFlow: false;
@@ -42,7 +53,7 @@ const EXPORT_READY_MESSAGE =
 const EXPORT_INVALID_MESSAGE = "The current proposal is not valid for download.";
 const EXPORT_ERROR_MESSAGE = "The proposal could not be downloaded safely.";
 
-const FORBIDDEN_JSON_PATTERNS = [
+const FORBIDDEN_JSON_KEYS = new Set([
   "access_token",
   "refresh_token",
   "client_secret",
@@ -50,6 +61,7 @@ const FORBIDDEN_JSON_PATTERNS = [
   "connectionId",
   "end_user_id",
   "providerPayload",
+  "providerId",
   "messageId",
   "threadId",
   "eventId",
@@ -62,34 +74,13 @@ const FORBIDDEN_JSON_PATTERNS = [
   "meetingLink",
   "attendeeEmail",
   "organizerEmail",
-] as const;
+  "rawPayload",
+  "rawMessage",
+  "rawEvent",
+]);
 
 function isValidIsoTimestamp(value: string | undefined): value is string {
   return typeof value === "string" && value.length > 0 && Number.isFinite(Date.parse(value));
-}
-
-export function isSelectedSignalIdSafeForExport(signalId: string): boolean {
-  if (!signalId || signalId.length > 256) {
-    return false;
-  }
-
-  if (!/^[a-zA-Z0-9_-]+$/.test(signalId)) {
-    return false;
-  }
-
-  const lower = signalId.toLowerCase();
-  const forbiddenFragments = [
-    "messageid",
-    "threadid",
-    "eventid",
-    "calendarid",
-    "connectionid",
-    "end_user_id",
-    "nango-sandbox-message",
-    "nango-sandbox-event",
-  ];
-
-  return !forbiddenFragments.some((fragment) => lower.includes(fragment));
 }
 
 export function createProviderDerivedEnrichmentProposalFilename(
@@ -157,13 +148,6 @@ function validateProposalForExport(proposal: ProviderDerivedEnrichmentProposal):
     warnings.push("invalid_generated_at");
   }
 
-  for (const signalId of proposal.selectedSignalIds) {
-    if (!isSelectedSignalIdSafeForExport(signalId)) {
-      warnings.push("selected_signal_id_unsafe");
-      break;
-    }
-  }
-
   return warnings;
 }
 
@@ -219,7 +203,9 @@ function serializeCareerBundleUnifiedSyncEnrichment(
         gmail: enrichment.stats.sourceCounts.gmail,
         calendar: enrichment.stats.sourceCounts.calendar,
       },
-      companyHints: [...enrichment.stats.companyHints],
+      companyHints: [...enrichment.stats.companyHints].sort((left, right) =>
+        left.localeCompare(right),
+      ),
     },
     generatedAt: enrichment.generatedAt,
     privacy: {
@@ -265,10 +251,6 @@ function buildExportDocument(input: {
     version: PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_VERSION,
     exportedAt: input.exportedAt,
     generatedAt: input.proposal.generatedAt!,
-    sourcePreviewFingerprint: input.proposal.sourcePreviewFingerprint,
-    selectedSignalIds: [...input.proposal.selectedSignalIds].sort((left, right) =>
-      left.localeCompare(right),
-    ),
     sourceSignalCount: input.proposal.sourceSignalCount,
     reviewRequired: true,
     persistedByApplyFlow: false,
@@ -278,19 +260,54 @@ function buildExportDocument(input: {
   };
 }
 
-export function assertExportJsonSafe(json: string): boolean {
-  for (const pattern of FORBIDDEN_JSON_PATTERNS) {
-    const keyPattern = new RegExp(`"${pattern}"\\s*:`);
-    if (keyPattern.test(json)) {
-      return false;
-    }
-  }
-
-  if (/"providerId"\s*:/.test(json)) {
+function hasForbiddenJsonKeys(value: unknown): boolean {
+  if (value == null || typeof value !== "object") {
     return false;
   }
 
-  return true;
+  if (Array.isArray(value)) {
+    return value.some((entry) => hasForbiddenJsonKeys(entry));
+  }
+
+  for (const [key, child] of Object.entries(value)) {
+    if (FORBIDDEN_JSON_KEYS.has(key)) {
+      return true;
+    }
+
+    if (hasForbiddenJsonKeys(child)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function assertExportJsonSafe(json: string): boolean {
+  try {
+    const parsed = JSON.parse(json) as unknown;
+    return !hasForbiddenJsonKeys(parsed);
+  } catch {
+    return false;
+  }
+}
+
+export function serializeProviderDerivedEnrichmentProposalExport(
+  exportDocument: ProviderDerivedEnrichmentProposalExport,
+): string {
+  const orderedDocument: ProviderDerivedEnrichmentProposalExport = {
+    schema: exportDocument.schema,
+    version: exportDocument.version,
+    exportedAt: exportDocument.exportedAt,
+    generatedAt: exportDocument.generatedAt,
+    sourceSignalCount: exportDocument.sourceSignalCount,
+    reviewRequired: exportDocument.reviewRequired,
+    persistedByApplyFlow: exportDocument.persistedByApplyFlow,
+    appliedToCareerBundle: exportDocument.appliedToCareerBundle,
+    appliedToApplications: exportDocument.appliedToApplications,
+    enrichment: exportDocument.enrichment,
+  };
+
+  return `${JSON.stringify(orderedDocument, null, 2)}\n`;
 }
 
 export function buildProviderDerivedEnrichmentProposalExport(
@@ -333,7 +350,7 @@ export function buildProviderDerivedEnrichmentProposalExport(
       proposal: input.proposal,
       exportedAt: input.exportedAt,
     });
-    const json = `${JSON.stringify(exportDocument, null, 2)}\n`;
+    const json = serializeProviderDerivedEnrichmentProposalExport(exportDocument);
     const filename = createProviderDerivedEnrichmentProposalFilename(input.exportedAt);
 
     if (!filename || !assertExportJsonSafe(json)) {
