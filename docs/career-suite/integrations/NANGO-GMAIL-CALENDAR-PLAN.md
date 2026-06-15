@@ -170,6 +170,14 @@ Career Suite includes a deterministic Gmail read-only sandbox adapter using fake
 
 The sandbox adapter does not call Gmail, import real messages, retain bodies or snippets, expose provider tokens, or update applications automatically.
 
+### Gmail read-only Nango runtime adapter
+
+Career Suite includes a server-only Gmail read-only runtime adapter through Nango.
+
+The adapter processes limited Gmail metadata without retaining message bodies, snippets, attachments, provider identifiers or OAuth credentials. Derived signals remain review-required, and this runtime is not connected to automatic CareerBundle enrichment.
+
+Implementation: ApplyFlow `apps/applyflow/src/lib/provider-runtime/gmail-readonly-runtime-boundary.ts` — see [GMAIL-READONLY-NANGO-RUNTIME-ADAPTER.md](./GMAIL-READONLY-NANGO-RUNTIME-ADAPTER.md).
+
 ### Calendar read-only adapter contract
 
 Career Suite defines a privacy-first Calendar read-only adapter contract for future derived career signals.

@@ -14,12 +14,13 @@ This folder documents **external integration labs** for the Career Suite. These 
 8. **[Calendar Read-Only Sandbox Adapter](./CALENDAR-READONLY-SANDBOX-ADAPTER.md)** — deterministic sandbox implementation of `CalendarReadOnlyAdapter`
 9. **[Provider-Derived Sandbox Composition](./PROVIDER-DERIVED-SANDBOX-COMPOSITION.md)** — deterministic composition of Gmail + Calendar sandbox signals
 10. **[Provider-Derived Enrichment Adapter](./PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md)** — compatibility adapter to `CareerBundleUnifiedSyncEnrichment`
-11. **[LibreChat + MCP lab](./LIBRECHAT-MCP-LAB.md)** — local agent UI over deterministic tools
-12. **[LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)** — connect upstream LibreChat to `@devflow/career-agents-mcp` stdio
-13. **[Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth/sync adapter (docs + sandbox contracts; no runtime OAuth in apps)
-14. **[Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)** — privacy rules for Gmail/Calendar derived signals and CareerBundle sync enrichment
-15. **Multi-agent orchestration** — after MCP tools and sync boundaries are stable
-16. **OpenClaw POC** — optional automation surface; not product-critical
+11. **[Gmail Read-Only Nango Runtime Adapter](./GMAIL-READONLY-NANGO-RUNTIME-ADAPTER.md)** — server-only Gmail metadata via Nango (ApplyFlow)
+12. **[LibreChat + MCP lab](./LIBRECHAT-MCP-LAB.md)** — local agent UI over deterministic tools
+13. **[LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)** — connect upstream LibreChat to `@devflow/career-agents-mcp` stdio
+14. **[Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth/sync adapter (docs + sandbox contracts; no runtime OAuth in apps)
+15. **[Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)** — privacy rules for Gmail/Calendar derived signals and CareerBundle sync enrichment
+16. **Multi-agent orchestration** — after MCP tools and sync boundaries are stable
+17. **OpenClaw POC** — optional automation surface; not product-critical
 
 See also: **[MCP server candidates](./MCP-SERVER-CANDIDATES.md)**.
 
@@ -62,6 +63,7 @@ No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persisten
 | Provider runtime env/secrets boundary | **Documented** | [PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md](./PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md) — server/runtime only |
 | Gmail read-only adapter contract | **Contract only** | [GMAIL-READONLY-ADAPTER-CONTRACT.md](./GMAIL-READONLY-ADAPTER-CONTRACT.md) — no Gmail API runtime |
 | Gmail read-only sandbox adapter | **Sandbox impl** | [GMAIL-READONLY-SANDBOX-ADAPTER.md](./GMAIL-READONLY-SANDBOX-ADAPTER.md) — fake fixtures only |
+| Gmail read-only Nango runtime adapter | **Server runtime** | [GMAIL-READONLY-NANGO-RUNTIME-ADAPTER.md](./GMAIL-READONLY-NANGO-RUNTIME-ADAPTER.md) — metadata only, no CareerBundle attach |
 | Calendar read-only adapter contract | **Contract only** | [CALENDAR-READONLY-ADAPTER-CONTRACT.md](./CALENDAR-READONLY-ADAPTER-CONTRACT.md) — no Calendar API runtime |
 | Calendar read-only sandbox adapter | **Sandbox impl** | [CALENDAR-READONLY-SANDBOX-ADAPTER.md](./CALENDAR-READONLY-SANDBOX-ADAPTER.md) — fake fixtures only |
 | Provider-derived sandbox composition | **Sandbox impl** | [PROVIDER-DERIVED-SANDBOX-COMPOSITION.md](./PROVIDER-DERIVED-SANDBOX-COMPOSITION.md) — Gmail + Calendar signal composition |
@@ -72,7 +74,7 @@ No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persisten
 | Career Agents MCP Server | **Scaffold + stdio transport** | `@devflow/career-agents-mcp` in monorepo |
 | CareerBundle MCP Server | **Candidate (Phase 2)** | Not implemented |
 | Nango | **Future provider adapter** | [NANGO-GMAIL-CALENDAR-PLAN.md](./NANGO-GMAIL-CALENDAR-PLAN.md) — no runtime yet |
-| Gmail / Calendar | **Future consent-based providers** | No live connector yet — sandbox fixtures in `@devflow/career-sync` |
+| Gmail / Calendar | **Gmail runtime (metadata)** | ApplyFlow server-only read-only Gmail via Nango — Calendar runtime not yet implemented |
 | CareerBundle sync enrichment | **Implemented** (core adapter, export/import, IL preview) | Public case: [CAREER-SUITE.md](../../public-cases/CAREER-SUITE.md#sync-enrichment-flow) |
 | OpenClaw POC | **Future** | Not implemented |
 
@@ -85,6 +87,7 @@ No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persisten
 - [Provider Runtime Environment and Secrets Boundary](./PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md)
 - [Gmail Read-Only Adapter Contract](./GMAIL-READONLY-ADAPTER-CONTRACT.md)
 - [Gmail Read-Only Sandbox Adapter](./GMAIL-READONLY-SANDBOX-ADAPTER.md)
+- [Gmail Read-Only Nango Runtime Adapter](./GMAIL-READONLY-NANGO-RUNTIME-ADAPTER.md)
 - [Calendar Read-Only Adapter Contract](./CALENDAR-READONLY-ADAPTER-CONTRACT.md)
 - [Calendar Read-Only Sandbox Adapter](./CALENDAR-READONLY-SANDBOX-ADAPTER.md)
 - [Provider-Derived Sandbox Composition](./PROVIDER-DERIVED-SANDBOX-COMPOSITION.md)

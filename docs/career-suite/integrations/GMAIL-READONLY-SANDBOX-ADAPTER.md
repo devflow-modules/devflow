@@ -98,6 +98,7 @@ Do **not** state:
 ## Related docs
 
 - [Gmail Read-Only Adapter Contract](./GMAIL-READONLY-ADAPTER-CONTRACT.md)
+- [Gmail Read-Only Nango Runtime Adapter](./GMAIL-READONLY-NANGO-RUNTIME-ADAPTER.md)
 - [Provider-Derived Sandbox Composition](./PROVIDER-DERIVED-SANDBOX-COMPOSITION.md)
 - [Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)
 - [Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)
