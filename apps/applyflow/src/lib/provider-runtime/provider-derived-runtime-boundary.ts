@@ -5,7 +5,7 @@ import type { CalendarReadOnlyAdapterResult, GmailReadOnlyAdapterResult } from "
 import {
   executeProviderDerivedRuntimeComposition,
   type ProviderDerivedRuntimeCompositionResult,
-} from "./provider-derived-runtime-composition.js";
+} from "./provider-derived-runtime-composition";
 
 export async function executeApplyFlowProviderDerivedRuntimeBoundary(input: {
   executeGmail: () => Promise<GmailReadOnlyAdapterResult>;

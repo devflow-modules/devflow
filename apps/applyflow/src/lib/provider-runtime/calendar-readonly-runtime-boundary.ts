@@ -3,14 +3,14 @@ import {
   evaluateProviderRuntimeFlags,
   type CalendarReadOnlyAdapterResult,
 } from "@devflow/career-sync";
-import { createCalendarReadOnlyNangoRuntimeAdapter } from "./calendar-readonly-nango-adapter.js";
-import type { CalendarNangoRuntimeMetadataProvider } from "./calendar-readonly-nango-provider.js";
-import { createCalendarNangoRuntimeMetadataProvider } from "./calendar-readonly-nango-provider.js";
+import { createCalendarReadOnlyNangoRuntimeAdapter } from "./calendar-readonly-nango-adapter";
+import type { CalendarNangoRuntimeMetadataProvider } from "./calendar-readonly-nango-provider";
+import { createCalendarNangoRuntimeMetadataProvider } from "./calendar-readonly-nango-provider";
 import {
   envToProviderRuntimeFlags,
   type ApplyFlowNangoConnectSessionEnv,
-} from "./nango-connect-session-boundary.js";
-import { parseConnectionVerificationExplicitConsent } from "./nango-connection-verification-boundary.js";
+} from "./nango-connect-session-boundary";
+import { parseConnectionVerificationExplicitConsent } from "./nango-connection-verification-boundary";
 
 export type ApplyFlowCalendarReadOnlyRuntimeQuery = {
   explicitConsent?: string | boolean | null;

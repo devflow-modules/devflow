@@ -26,6 +26,8 @@ Calendar read-only Nango runtime adapter (`executeApplyFlowCalendarReadOnlyRunti
 
 Provider-derived runtime composition (`executeApplyFlowProviderDerivedRuntimeBoundary`) composes client-safe `ProviderDerivedSignal` output from Gmail and Calendar runtime boundaries without retaining raw metadata, exposing tokens, or attaching to CareerBundle.
 
+Provider-derived runtime preview (`POST /provider-runtime/nango/derived-preview`) runs the composition ephemerally on explicit user action after consent and verified Gmail/Calendar connections. Results are client-safe, review-required, and not persisted.
+
 Provider-derived sandbox composition (`composeProviderDerivedSignals`, `createProviderDerivedSandboxCompositionResult`) deterministically combines `GmailDerivedSignal` and `CalendarDerivedSignal` into `ProviderDerivedSignal`.
 
 Provider-derived enrichment adapter (`adaptProviderDerivedSignalsToSyncEnrichment`) maps sandbox composition results to existing `CareerBundleUnifiedSyncEnrichment` without altering the CareerBundle schema or auto-attaching enrichment.
