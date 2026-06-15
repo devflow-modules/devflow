@@ -356,3 +356,15 @@ export {
   normalizeGmailDerivedSignal,
   summarizeProviderDerivedSignals,
 } from "./provider-derived-signals/index.js";
+
+export type {
+  ProviderDerivedEnrichmentAdapterInput,
+  ProviderDerivedEnrichmentAdapterResult,
+} from "./provider-derived-enrichment/index.js";
+
+export {
+  adaptProviderDerivedSignalsToSyncEnrichment,
+  mapProviderDerivedSignalToCareerSyncSignal,
+  mapProviderDerivedSignalsToCareerSyncSignals,
+  validateAdaptedCareerBundleSyncEnrichment,
+} from "./provider-derived-enrichment/index.js";

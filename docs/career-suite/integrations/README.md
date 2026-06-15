@@ -13,12 +13,13 @@ This folder documents **external integration labs** for the Career Suite. These 
 7. **[Gmail Read-Only Sandbox Adapter](./GMAIL-READONLY-SANDBOX-ADAPTER.md)** — deterministic sandbox implementation of `GmailReadOnlyAdapter`
 8. **[Calendar Read-Only Sandbox Adapter](./CALENDAR-READONLY-SANDBOX-ADAPTER.md)** — deterministic sandbox implementation of `CalendarReadOnlyAdapter`
 9. **[Provider-Derived Sandbox Composition](./PROVIDER-DERIVED-SANDBOX-COMPOSITION.md)** — deterministic composition of Gmail + Calendar sandbox signals
-10. **[LibreChat + MCP lab](./LIBRECHAT-MCP-LAB.md)** — local agent UI over deterministic tools
-11. **[LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)** — connect upstream LibreChat to `@devflow/career-agents-mcp` stdio
-12. **[Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth/sync adapter (docs + sandbox contracts; no runtime OAuth in apps)
-13. **[Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)** — privacy rules for Gmail/Calendar derived signals and CareerBundle sync enrichment
-14. **Multi-agent orchestration** — after MCP tools and sync boundaries are stable
-15. **OpenClaw POC** — optional automation surface; not product-critical
+10. **[Provider-Derived Enrichment Adapter](./PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md)** — compatibility adapter to `CareerBundleUnifiedSyncEnrichment`
+11. **[LibreChat + MCP lab](./LIBRECHAT-MCP-LAB.md)** — local agent UI over deterministic tools
+12. **[LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)** — connect upstream LibreChat to `@devflow/career-agents-mcp` stdio
+13. **[Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth/sync adapter (docs + sandbox contracts; no runtime OAuth in apps)
+14. **[Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)** — privacy rules for Gmail/Calendar derived signals and CareerBundle sync enrichment
+15. **Multi-agent orchestration** — after MCP tools and sync boundaries are stable
+16. **OpenClaw POC** — optional automation surface; not product-critical
 
 See also: **[MCP server candidates](./MCP-SERVER-CANDIDATES.md)**.
 
@@ -64,6 +65,7 @@ No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persisten
 | Calendar read-only adapter contract | **Contract only** | [CALENDAR-READONLY-ADAPTER-CONTRACT.md](./CALENDAR-READONLY-ADAPTER-CONTRACT.md) — no Calendar API runtime |
 | Calendar read-only sandbox adapter | **Sandbox impl** | [CALENDAR-READONLY-SANDBOX-ADAPTER.md](./CALENDAR-READONLY-SANDBOX-ADAPTER.md) — fake fixtures only |
 | Provider-derived sandbox composition | **Sandbox impl** | [PROVIDER-DERIVED-SANDBOX-COMPOSITION.md](./PROVIDER-DERIVED-SANDBOX-COMPOSITION.md) — Gmail + Calendar signal composition |
+| Provider-derived enrichment adapter | **Sandbox impl** | [PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md](./PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md) — maps to `CareerBundleUnifiedSyncEnrichment` |
 | MCP SDK | **Implemented locally** | `@devflow/career-agents-mcp` stdio transport |
 | LibreChat + MCP lab | **Lab docs only** | No LibreChat product dependency |
 | LibreChat local wiring | **Documented** | [LIBRECHAT-LOCAL-WIRING.md](./LIBRECHAT-LOCAL-WIRING.md) |
@@ -86,6 +88,7 @@ No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persisten
 - [Calendar Read-Only Adapter Contract](./CALENDAR-READONLY-ADAPTER-CONTRACT.md)
 - [Calendar Read-Only Sandbox Adapter](./CALENDAR-READONLY-SANDBOX-ADAPTER.md)
 - [Provider-Derived Sandbox Composition](./PROVIDER-DERIVED-SANDBOX-COMPOSITION.md)
+- [Provider-Derived Enrichment Adapter](./PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md)
 - [LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)
 - [Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)
 - [Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)
