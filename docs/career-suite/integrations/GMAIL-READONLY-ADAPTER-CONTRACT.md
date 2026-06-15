@@ -10,8 +10,9 @@ The contract does not call Gmail, import messages, retain bodies or snippets, ex
 |------|--------|
 | Contract types and safety policy | **Defined** in `@devflow/career-sync` `gmail-readonly-adapter` |
 | Sandbox adapter (`GmailReadOnlyAdapter`) | **Implemented** — see [GMAIL-READONLY-SANDBOX-ADAPTER.md](./GMAIL-READONLY-SANDBOX-ADAPTER.md) |
-| Gmail API runtime | **Not implemented** |
-| Nango proxy for Gmail | **Not implemented** |
+| Nango runtime adapter (`runtime: "nango"`) | **Implemented** — see [GMAIL-READONLY-NANGO-RUNTIME-ADAPTER.md](./GMAIL-READONLY-NANGO-RUNTIME-ADAPTER.md) |
+| Gmail API runtime | **Implemented** (server-only metadata via Nango proxy) |
+| Nango proxy for Gmail | **Implemented** (ApplyFlow server boundary) |
 | ApplyFlow UI changes | **Out of scope** |
 | CareerBundle enrichment from live Gmail | **Not implemented** |
 
