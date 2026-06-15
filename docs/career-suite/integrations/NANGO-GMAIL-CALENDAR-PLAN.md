@@ -192,6 +192,14 @@ Career Suite includes a deterministic Calendar read-only sandbox adapter using f
 
 The sandbox adapter does not call Calendar, import real events, retain descriptions, locations, attendee addresses or meeting links, expose provider tokens, or update applications automatically.
 
+### Calendar read-only Nango runtime adapter
+
+Career Suite includes a server-only Calendar read-only runtime adapter through Nango.
+
+The adapter processes limited Calendar metadata without retaining event titles, descriptions, locations, attendee addresses, meeting links, provider identifiers or OAuth credentials. Derived signals remain review-required, and this runtime is not connected to automatic CareerBundle enrichment.
+
+Implementation: ApplyFlow `apps/applyflow/src/lib/provider-runtime/calendar-readonly-runtime-boundary.ts` — see [CALENDAR-READONLY-NANGO-RUNTIME-ADAPTER.md](./CALENDAR-READONLY-NANGO-RUNTIME-ADAPTER.md).
+
 ### Provider-derived sandbox composition
 
 Career Suite can deterministically compose review-required derived signals from fake Gmail and Calendar sandbox metadata.

@@ -15,12 +15,13 @@ This folder documents **external integration labs** for the Career Suite. These 
 9. **[Provider-Derived Sandbox Composition](./PROVIDER-DERIVED-SANDBOX-COMPOSITION.md)** — deterministic composition of Gmail + Calendar sandbox signals
 10. **[Provider-Derived Enrichment Adapter](./PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md)** — compatibility adapter to `CareerBundleUnifiedSyncEnrichment`
 11. **[Gmail Read-Only Nango Runtime Adapter](./GMAIL-READONLY-NANGO-RUNTIME-ADAPTER.md)** — server-only Gmail metadata via Nango (ApplyFlow)
-12. **[LibreChat + MCP lab](./LIBRECHAT-MCP-LAB.md)** — local agent UI over deterministic tools
-13. **[LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)** — connect upstream LibreChat to `@devflow/career-agents-mcp` stdio
-14. **[Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth/sync adapter (docs + sandbox contracts; no runtime OAuth in apps)
-15. **[Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)** — privacy rules for Gmail/Calendar derived signals and CareerBundle sync enrichment
-16. **Multi-agent orchestration** — after MCP tools and sync boundaries are stable
-17. **OpenClaw POC** — optional automation surface; not product-critical
+12. **[Calendar Read-Only Nango Runtime Adapter](./CALENDAR-READONLY-NANGO-RUNTIME-ADAPTER.md)** — server-only Calendar metadata via Nango (ApplyFlow)
+13. **[LibreChat + MCP lab](./LIBRECHAT-MCP-LAB.md)** — local agent UI over deterministic tools
+14. **[LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)** — connect upstream LibreChat to `@devflow/career-agents-mcp` stdio
+15. **[Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth/sync adapter (docs + sandbox contracts; no runtime OAuth in apps)
+16. **[Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)** — privacy rules for Gmail/Calendar derived signals and CareerBundle sync enrichment
+17. **Multi-agent orchestration** — after MCP tools and sync boundaries are stable
+18. **OpenClaw POC** — optional automation surface; not product-critical
 
 See also: **[MCP server candidates](./MCP-SERVER-CANDIDATES.md)**.
 
@@ -66,6 +67,7 @@ No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persisten
 | Gmail read-only Nango runtime adapter | **Server runtime** | [GMAIL-READONLY-NANGO-RUNTIME-ADAPTER.md](./GMAIL-READONLY-NANGO-RUNTIME-ADAPTER.md) — metadata only, no CareerBundle attach |
 | Calendar read-only adapter contract | **Contract only** | [CALENDAR-READONLY-ADAPTER-CONTRACT.md](./CALENDAR-READONLY-ADAPTER-CONTRACT.md) — no Calendar API runtime |
 | Calendar read-only sandbox adapter | **Sandbox impl** | [CALENDAR-READONLY-SANDBOX-ADAPTER.md](./CALENDAR-READONLY-SANDBOX-ADAPTER.md) — fake fixtures only |
+| Calendar read-only Nango runtime adapter | **Server runtime** | [CALENDAR-READONLY-NANGO-RUNTIME-ADAPTER.md](./CALENDAR-READONLY-NANGO-RUNTIME-ADAPTER.md) — metadata only, no CareerBundle attach |
 | Provider-derived sandbox composition | **Sandbox impl** | [PROVIDER-DERIVED-SANDBOX-COMPOSITION.md](./PROVIDER-DERIVED-SANDBOX-COMPOSITION.md) — Gmail + Calendar signal composition |
 | Provider-derived enrichment adapter | **Sandbox impl** | [PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md](./PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md) — maps to `CareerBundleUnifiedSyncEnrichment` |
 | MCP SDK | **Implemented locally** | `@devflow/career-agents-mcp` stdio transport |
@@ -74,7 +76,7 @@ No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persisten
 | Career Agents MCP Server | **Scaffold + stdio transport** | `@devflow/career-agents-mcp` in monorepo |
 | CareerBundle MCP Server | **Candidate (Phase 2)** | Not implemented |
 | Nango | **Future provider adapter** | [NANGO-GMAIL-CALENDAR-PLAN.md](./NANGO-GMAIL-CALENDAR-PLAN.md) — no runtime yet |
-| Gmail / Calendar | **Gmail runtime (metadata)** | ApplyFlow server-only read-only Gmail via Nango — Calendar runtime not yet implemented |
+| Gmail / Calendar | **Gmail + Calendar runtime (metadata)** | ApplyFlow server-only read-only Gmail and Calendar via Nango — no CareerBundle auto-attach |
 | CareerBundle sync enrichment | **Implemented** (core adapter, export/import, IL preview) | Public case: [CAREER-SUITE.md](../../public-cases/CAREER-SUITE.md#sync-enrichment-flow) |
 | OpenClaw POC | **Future** | Not implemented |
 

@@ -32,6 +32,7 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - Gmail read-only Nango runtime adapter — ApplyFlow `executeApplyFlowGmailReadOnlyRuntimeBoundary`
 - Calendar read-only adapter contract — `@devflow/career-sync` `calendar-readonly-adapter`
 - Calendar read-only sandbox adapter — `@devflow/career-sync` `createCalendarReadOnlySandboxAdapter`
+- Calendar read-only Nango runtime adapter — ApplyFlow `executeApplyFlowCalendarReadOnlyRuntimeBoundary`
 - Provider-derived sandbox composition — `@devflow/career-sync` `composeProviderDerivedSignals`
 - Provider-derived enrichment adapter — `@devflow/career-sync` `adaptProviderDerivedSignalsToSyncEnrichment`
 

@@ -10,8 +10,8 @@ The sandbox adapter does not call Calendar, import real events, retain descripti
 |------|--------|
 | `CalendarReadOnlyAdapter` contract | **Defined** in `calendar-readonly-adapter/` |
 | Sandbox adapter implementation | **Implemented** — `createCalendarReadOnlySandboxAdapter` |
-| Google Calendar API runtime | **Not implemented** |
-| Nango proxy for Calendar | **Not implemented** |
+| Google Calendar API runtime | **Implemented** — ApplyFlow server-only metadata via Nango |
+| Nango proxy for Calendar | **Implemented** — see [CALENDAR-READONLY-NANGO-RUNTIME-ADAPTER.md](./CALENDAR-READONLY-NANGO-RUNTIME-ADAPTER.md) |
 
 ## Objective
 
@@ -116,6 +116,7 @@ Do **not** state:
 ## Related docs
 
 - [Calendar Read-Only Adapter Contract](./CALENDAR-READONLY-ADAPTER-CONTRACT.md)
+- [Calendar Read-Only Nango Runtime Adapter](./CALENDAR-READONLY-NANGO-RUNTIME-ADAPTER.md)
 - [Provider-Derived Sandbox Composition](./PROVIDER-DERIVED-SANDBOX-COMPOSITION.md)
 - [Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)
 - [Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)
