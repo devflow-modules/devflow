@@ -162,7 +162,13 @@ Career Suite defines a privacy-first Gmail read-only adapter contract for future
 
 The contract does not call Gmail, import messages, retain bodies or snippets, expose provider tokens, or update applications automatically.
 
-Implementation: `@devflow/career-sync` `gmail-readonly-adapter/` — request/result types, safety policy, block reasons, and `GmailReadOnlyAdapter` interface only. Requires server-verified connection for future `nango` runtime. Complements existing `gmail-sync` fixture previews and `provider-adapter` generic contracts.
+Implementation: `@devflow/career-sync` `gmail-readonly-adapter/` — request/result types, safety policy, block reasons, and `GmailReadOnlyAdapter` interface. Sandbox implementation: `createGmailReadOnlySandboxAdapter` with fake metadata fixtures — see [GMAIL-READONLY-SANDBOX-ADAPTER.md](./GMAIL-READONLY-SANDBOX-ADAPTER.md).
+
+### Gmail read-only sandbox adapter
+
+Career Suite includes a deterministic Gmail read-only sandbox adapter using fake metadata fixtures.
+
+The sandbox adapter does not call Gmail, import real messages, retain bodies or snippets, expose provider tokens, or update applications automatically.
 
 ### Calendar read-only adapter contract
 

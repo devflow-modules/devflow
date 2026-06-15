@@ -12,6 +12,8 @@ Gmail read-only sync preview (`buildGmailSyncPreview`, `buildCareerBundleGmailEn
 
 Gmail read-only adapter contract (`gmail-readonly-adapter`) defines future live read-only boundaries with verified-connection gates, ephemeral metadata input, and derived-signal-only results — no Gmail API, Nango proxy, or raw retention in the contract layer.
 
+Gmail read-only sandbox adapter (`createGmailReadOnlySandboxAdapter`) implements `GmailReadOnlyAdapter` with deterministic fake metadata fixtures and `GmailDerivedSignal` output — complements legacy `gmail-sync` previews without replacing them.
+
 Calendar read-only sync preview (`buildCalendarSyncPreview`, `buildCareerBundleCalendarEnrichment`) produces derived signals and CareerBundle enrichment metadata from fixtures only — no raw events, meeting links, or provider calls.
 
 Calendar read-only adapter contract (`calendar-readonly-adapter`) defines future live read-only boundaries with verified-connection gates, ephemeral event metadata input, and derived-signal-only results — no Calendar API, Nango proxy, or raw retention in the contract layer.
