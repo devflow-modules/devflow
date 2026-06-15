@@ -38,7 +38,7 @@ type ProviderDerivedRuntimeReviewState = {
 };
 ```
 
-Only signal IDs are stored in review state. Signals come from the current preview result.
+Only signal IDs are stored in review state. Signals come from the current preview result. IDs use the runtime-neutral format — see [PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md](./PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md).
 
 ## Fingerprint
 

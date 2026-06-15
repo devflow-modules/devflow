@@ -277,7 +277,6 @@ export {
   GMAIL_SANDBOX_FIXTURE_RECRUITER_RESPONSE,
   GMAIL_SANDBOX_FIXTURE_REJECTION_LIKELY,
   SANDBOX_BASE_TIME,
-  buildGmailSandboxSignalId,
   createGmailReadOnlySandboxAdapter,
   createGmailSandboxMetadataProvider,
   deriveGmailSignalsFromEphemeralMetadata,
@@ -303,7 +302,6 @@ export {
   CALENDAR_READONLY_DEFAULT_MAX_EVENTS,
   CALENDAR_READONLY_MAX_SAFE_EVENT_LIMIT,
   assertCalendarReadOnlySafetyPolicy,
-  buildCalendarSandboxSignalId,
   CALENDAR_SANDBOX_ALL_FIXTURES,
   CALENDAR_SANDBOX_FIXTURE_APPLICATION_DEADLINE,
   CALENDAR_SANDBOX_FIXTURE_FOLLOW_UP_EVENT_DUE,
@@ -344,6 +342,7 @@ export type {
   ProviderDerivedSignalKind,
   ProviderDerivedSignalSource,
   ProviderDerivedSignalSummary,
+  CreateProviderDerivedSignalIdInput,
 } from "./provider-derived-signals/index.js";
 
 export {
@@ -352,10 +351,14 @@ export {
   createEmptyProviderDerivedSignalSummary,
   createFailedProviderDerivedSandboxCompositionResult,
   createProviderDerivedSandboxCompositionResult,
+  createProviderDerivedSignalId,
   createSelectedSignalsComposition,
   executeProviderDerivedSandboxComposition,
+  isProviderDerivedSignalId,
   normalizeCalendarDerivedSignal,
   normalizeGmailDerivedSignal,
+  normalizeTimestampForProviderDerivedSignalId,
+  PROVIDER_DERIVED_SIGNAL_ID_PREFIX,
   summarizeProviderDerivedSignals,
 } from "./provider-derived-signals/index.js";
 

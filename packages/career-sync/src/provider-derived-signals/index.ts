@@ -21,3 +21,12 @@ export {
   createSelectedSignalsComposition,
   executeProviderDerivedSandboxComposition,
 } from "./sandbox-composition.js";
+
+export {
+  createProviderDerivedSignalId,
+  isProviderDerivedSignalId,
+  normalizeTimestampForProviderDerivedSignalId,
+  PROVIDER_DERIVED_SIGNAL_ID_PREFIX,
+} from "./signal-id.js";
+
+export type { CreateProviderDerivedSignalIdInput } from "./signal-id.js";

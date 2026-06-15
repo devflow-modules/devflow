@@ -1,3 +1,4 @@
+import { createProviderDerivedSignalId } from "../provider-derived-signals/signal-id.js";
 import type { GmailDerivedSignal, GmailDerivedSignalKind, GmailEphemeralMessageMetadata } from "./types.js";
 
 const LABEL_KIND_ORDER: readonly { label: string; kind: GmailDerivedSignalKind }[] = [
@@ -19,10 +20,6 @@ const CONFIDENCE_BY_KIND: Readonly<Record<GmailDerivedSignalKind, number>> = {
 };
 
 const COMPANY_LABEL_PREFIX = "company.";
-
-function normalizeOccurredAtForId(occurredAt: string): string {
-  return occurredAt.replace(/[:.]/g, "-");
-}
 
 function deriveCompanyFromLabels(labels: string[] | undefined): string | undefined {
   if (!labels) {
@@ -72,14 +69,6 @@ function compareMetadata(
   return leftDomain.localeCompare(rightDomain);
 }
 
-export function buildGmailSandboxSignalId(input: {
-  kind: GmailDerivedSignalKind;
-  occurredAt: string;
-  index: number;
-}): string {
-  return `gmail-sandbox-${input.kind}-${normalizeOccurredAtForId(input.occurredAt)}-${input.index}`;
-}
-
 export function deriveGmailSignalsFromEphemeralMetadata(
   metadata: GmailEphemeralMessageMetadata[],
 ): GmailDerivedSignal[] {
@@ -94,8 +83,19 @@ export function deriveGmailSignalsFromEphemeralMetadata(
       continue;
     }
 
+    const id = createProviderDerivedSignalId({
+      source: "gmail",
+      kind,
+      occurredAt: item.occurredAt,
+      sequence: index + 1,
+    });
+
+    if (!id) {
+      continue;
+    }
+
     signals.push({
-      id: buildGmailSandboxSignalId({ kind, occurredAt: item.occurredAt, index }),
+      id,
       kind,
       provider: "gmail",
       occurredAt: item.occurredAt,

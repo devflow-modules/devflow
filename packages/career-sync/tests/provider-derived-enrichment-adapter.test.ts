@@ -12,6 +12,7 @@ import {
   createGmailReadOnlySandboxAdapter,
   createGmailSandboxMetadataProvider,
   createProviderDerivedSandboxCompositionResult,
+  createProviderDerivedSignalId,
   executeProviderDerivedSandboxComposition,
   GMAIL_SANDBOX_FIXTURE_APPLICATION_DETECTED,
   GMAIL_SANDBOX_FIXTURE_INTERVIEW_LIKELY,
@@ -45,7 +46,13 @@ describe("mapProviderDerivedSignalToCareerSyncSignal", () => {
   it("maps Gmail source with receivedAt and without eventAt", () => {
     const mapped = mapProviderDerivedSignalToCareerSyncSignal(
       providerSignal({
-        id: "gmail-sandbox-interview_likely-2026-06-20T14-00-00-000Z-0",
+        id:
+          createProviderDerivedSignalId({
+            source: "gmail",
+            kind: "interview_likely",
+            occurredAt: "2026-06-20T14:00:00.000Z",
+            sequence: 1,
+          }) ?? "invalid-id",
         source: "gmail",
         kind: "interview_likely",
         occurredAt: "2026-06-20T14:00:00.000Z",
@@ -65,7 +72,13 @@ describe("mapProviderDerivedSignalToCareerSyncSignal", () => {
   it("maps Calendar interview scheduled with eventAt from startsAt", () => {
     const mapped = mapProviderDerivedSignalToCareerSyncSignal(
       providerSignal({
-        id: "calendar-sandbox-interview_scheduled-2026-06-20T14-00-00-000Z-0",
+        id:
+          createProviderDerivedSignalId({
+            source: "calendar",
+            kind: "interview_scheduled",
+            occurredAt: "2026-06-20T14:00:00.000Z",
+            sequence: 1,
+          }) ?? "invalid-id",
         source: "calendar",
         kind: "interview_scheduled",
         occurredAt: "2026-06-20T14:00:00.000Z",
@@ -122,7 +135,13 @@ describe("adaptProviderDerivedSignalsToSyncEnrichment", () => {
     const composition = createProviderDerivedSandboxCompositionResult({
       gmailSignals: [
         {
-          id: "gmail-sandbox-application_detected-2026-06-11T09-00-00-000Z-0",
+          id:
+            createProviderDerivedSignalId({
+              source: "gmail",
+              kind: "application_detected",
+              occurredAt: "2026-06-11T09:00:00.000Z",
+              sequence: 1,
+            }) ?? "invalid-id",
           kind: "application_detected",
           provider: "gmail",
           occurredAt: "2026-06-11T09:00:00.000Z",
@@ -134,7 +153,13 @@ describe("adaptProviderDerivedSignalsToSyncEnrichment", () => {
       ],
       calendarSignals: [
         {
-          id: "calendar-sandbox-interview_scheduled-2026-06-20T14-00-00-000Z-0",
+          id:
+            createProviderDerivedSignalId({
+              source: "calendar",
+              kind: "interview_scheduled",
+              occurredAt: "2026-06-20T14:00:00.000Z",
+              sequence: 1,
+            }) ?? "invalid-id",
           kind: "interview_scheduled",
           provider: "calendar",
           occurredAt: "2026-06-20T14:00:00.000Z",
@@ -382,7 +407,13 @@ describe("adaptProviderDerivedSignalsToSyncEnrichment", () => {
     const composition = createProviderDerivedSandboxCompositionResult({
       gmailSignals: [
         {
-          id: "gmail-sandbox-offer_likely-2026-06-10T08-00-00-000Z-0",
+          id:
+            createProviderDerivedSignalId({
+              source: "gmail",
+              kind: "offer_likely",
+              occurredAt: "2026-06-10T08:00:00.000Z",
+              sequence: 1,
+            }) ?? "invalid-id",
           kind: "offer_likely",
           provider: "gmail",
           occurredAt: "2026-06-10T08:00:00.000Z",
@@ -394,7 +425,13 @@ describe("adaptProviderDerivedSignalsToSyncEnrichment", () => {
       ],
       calendarSignals: [
         {
-          id: "calendar-sandbox-interview_scheduled-2026-06-20T14-00-00-000Z-0",
+          id:
+            createProviderDerivedSignalId({
+              source: "calendar",
+              kind: "interview_scheduled",
+              occurredAt: "2026-06-20T14:00:00.000Z",
+              sequence: 1,
+            }) ?? "invalid-id",
           kind: "interview_scheduled",
           provider: "calendar",
           occurredAt: "2026-06-20T14:00:00.000Z",

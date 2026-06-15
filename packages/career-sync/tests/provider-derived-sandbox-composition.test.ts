@@ -23,6 +23,7 @@ import {
   createEmptyProviderDerivedSignalSummary,
   createFailedProviderDerivedSandboxCompositionResult,
   createProviderDerivedSandboxCompositionResult,
+  createProviderDerivedSignalId,
   createSelectedSignalsComposition,
   executeProviderDerivedSandboxComposition,
   normalizeCalendarDerivedSignal,
@@ -34,7 +35,13 @@ const requestedAt = "2026-06-15T12:00:00.000Z";
 
 function gmailSignal(overrides?: Partial<GmailDerivedSignal>): GmailDerivedSignal {
   return {
-    id: "gmail-sandbox-application_detected-2026-06-11T09-00-00-000Z-0",
+    id:
+      createProviderDerivedSignalId({
+        source: "gmail",
+        kind: "application_detected",
+        occurredAt: "2026-06-11T09:00:00.000Z",
+        sequence: 1,
+      }) ?? "invalid-id",
     kind: "application_detected",
     provider: "gmail",
     occurredAt: "2026-06-11T09:00:00.000Z",
@@ -48,7 +55,13 @@ function gmailSignal(overrides?: Partial<GmailDerivedSignal>): GmailDerivedSigna
 
 function calendarSignal(overrides?: Partial<CalendarDerivedSignal>): CalendarDerivedSignal {
   return {
-    id: "calendar-sandbox-interview_scheduled-2026-06-20T14-00-00-000Z-0",
+    id:
+      createProviderDerivedSignalId({
+        source: "calendar",
+        kind: "interview_scheduled",
+        occurredAt: "2026-06-20T14:00:00.000Z",
+        sequence: 1,
+      }) ?? "invalid-id",
     kind: "interview_scheduled",
     provider: "calendar",
     occurredAt: "2026-06-20T14:00:00.000Z",
@@ -384,6 +397,8 @@ describe("executeProviderDerivedSandboxComposition", () => {
     expect(result.signals.length).toBeGreaterThan(2);
     expect(result.signals.some((signal) => signal.source === "gmail" && signal.kind === "interview_likely")).toBe(true);
     expect(result.signals.some((signal) => signal.source === "calendar" && signal.kind === "interview_scheduled")).toBe(true);
+    expect(result.signals.every((signal) => signal.id.startsWith("provider-signal-"))).toBe(true);
+    expect(result.signals.every((signal) => !signal.id.includes("-sandbox-"))).toBe(true);
   });
 });
 
@@ -396,6 +411,7 @@ describe("provider-derived sandbox boundaries", () => {
     "composition.ts",
     "summary.ts",
     "sandbox-composition.ts",
+    "signal-id.ts",
     "index.ts",
   ];
 

@@ -58,9 +58,9 @@ The export envelope does **not** include UI-only or session-local fields from th
 | `sourcePreviewFingerprint` | Staleness control for the review UI only; no independent validation meaning |
 | `selectedSignalIds` | Review selection state only; `sourceSignalCount` is sufficient for the exported document |
 
-### Technical debt: internal signal IDs in enrichment
+### Internal signal IDs in enrichment
 
-`enrichment.combinedSignals[].id` may still use deterministic internal IDs produced by the sandbox classifier (e.g. `gmail-sandbox-*`, `calendar-sandbox-*`) even when the runtime preview uses real provider data. Those prefixes describe the **ID builder**, not proof of sandbox runtime origin, and must not be interpreted as Gmail/Calendar/Nango provider identifiers. Runtime ID builders for real provider data are tracked separately; this PR does not change enrichment ID semantics.
+`enrichment.combinedSignals[].id` uses the runtime-neutral format documented in [PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md](./PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md). Export schema v1 is unchanged. Legacy exports may still contain old `gmail-sandbox-*` / `calendar-sandbox-*` values; those documents remain valid JSON but the prefix did not indicate provider origin.
 
 ## Filename
 

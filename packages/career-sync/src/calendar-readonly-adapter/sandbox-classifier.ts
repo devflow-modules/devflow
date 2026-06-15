@@ -1,3 +1,4 @@
+import { createProviderDerivedSignalId } from "../provider-derived-signals/signal-id.js";
 import type { CalendarDerivedSignal, CalendarDerivedSignalKind } from "./types.js";
 import type {
   CalendarSandboxCompanySlug,
@@ -30,10 +31,6 @@ const COMPANY_BY_SLUG: Readonly<Record<CalendarSandboxCompanySlug, string>> = {
   beta: "Beta",
 };
 
-function normalizeStartsAtForId(startsAt: string): string {
-  return startsAt.replace(/[:.]/g, "-");
-}
-
 function compareSandboxEvents(
   left: CalendarSandboxFixtureEvent,
   right: CalendarSandboxFixtureEvent,
@@ -46,14 +43,6 @@ function compareSandboxEvents(
   const leftDomain = left.metadata.organizerDomain ?? "";
   const rightDomain = right.metadata.organizerDomain ?? "";
   return leftDomain.localeCompare(rightDomain);
-}
-
-export function buildCalendarSandboxSignalId(input: {
-  kind: CalendarDerivedSignalKind;
-  startsAt: string;
-  index: number;
-}): string {
-  return `calendar-sandbox-${input.kind}-${normalizeStartsAtForId(input.startsAt)}-${input.index}`;
 }
 
 function deriveCompany(companySlug: CalendarSandboxCompanySlug | undefined): string | undefined {
@@ -79,12 +68,19 @@ export function deriveCalendarSignalsFromSandboxEvents(
 
     const kind = SCENARIO_TO_KIND[event.scenario];
 
+    const id = createProviderDerivedSignalId({
+      source: "calendar",
+      kind,
+      occurredAt: event.metadata.startsAt,
+      sequence: index + 1,
+    });
+
+    if (!id) {
+      continue;
+    }
+
     signals.push({
-      id: buildCalendarSandboxSignalId({
-        kind,
-        startsAt: event.metadata.startsAt,
-        index,
-      }),
+      id,
       kind,
       provider: "calendar",
       occurredAt: event.metadata.startsAt,

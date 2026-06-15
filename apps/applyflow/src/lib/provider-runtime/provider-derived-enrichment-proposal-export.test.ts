@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CareerSyncSignal, ProviderDerivedSignal } from "@devflow/career-sync";
+import { createProviderDerivedSignalId } from "@devflow/career-sync";
 import {
   initializeProviderDerivedRuntimeReview,
   markProviderDerivedSelectionReady,
@@ -20,6 +21,21 @@ import {
 const generatedAt = "2026-06-15T12:00:00.000Z";
 const exportedAt = "2026-06-15T18:30:00.000Z";
 
+const gmailFollowUpSignalId =
+  createProviderDerivedSignalId({
+    source: "gmail",
+    kind: "follow_up_required",
+    occurredAt: "2026-06-12T10:00:00.000Z",
+    sequence: 1,
+  }) ?? "invalid-id";
+const calendarInterviewSignalId =
+  createProviderDerivedSignalId({
+    source: "calendar",
+    kind: "interview_scheduled",
+    occurredAt: "2026-06-20T14:00:00.000Z",
+    sequence: 1,
+  }) ?? "invalid-id";
+
 function createSignal(
   overrides: Partial<ProviderDerivedSignal> & Pick<ProviderDerivedSignal, "id" | "source" | "kind" | "occurredAt">,
 ): ProviderDerivedSignal {
@@ -38,14 +54,14 @@ function createPreviewResult(): ProviderDerivedRuntimeReviewablePreviewResult {
     processedEventCount: 1,
     signals: [
       createSignal({
-        id: "gmail-sandbox-follow_up_required-2026-06-12T10-00-00-000Z-0",
+        id: gmailFollowUpSignalId,
         source: "gmail",
         kind: "follow_up_required",
         occurredAt: "2026-06-12T10:00:00.000Z",
         company: "Acme",
       }),
       createSignal({
-        id: "calendar-sandbox-interview_scheduled-2026-06-20T14-00-00-000Z-0",
+        id: calendarInterviewSignalId,
         source: "calendar",
         kind: "interview_scheduled",
         occurredAt: "2026-06-20T14:00:00.000Z",
@@ -61,12 +77,12 @@ function readyProposal(): ProviderDerivedEnrichmentProposal {
   const initialized = initializeProviderDerivedRuntimeReview(preview);
   const selected = toggleProviderDerivedSignalSelection(
     initialized,
-    "gmail-sandbox-follow_up_required-2026-06-12T10-00-00-000Z-0",
+    gmailFollowUpSignalId,
     preview.signals,
   );
   const selectedBoth = toggleProviderDerivedSignalSelection(
     selected,
-    "calendar-sandbox-interview_scheduled-2026-06-20T14-00-00-000Z-0",
+    calendarInterviewSignalId,
     preview.signals,
   );
 
@@ -147,6 +163,7 @@ describe("buildProviderDerivedEnrichmentProposalExport", () => {
       true,
     );
     expect(assertExportJsonSafe(result.json!)).toBe(true);
+    expect(result.json).not.toMatch(/-sandbox-/);
   });
 
   it("uses exact schema and version literals", () => {
@@ -295,7 +312,7 @@ describe("buildProviderDerivedEnrichmentProposalExport", () => {
       warnings: ["internal_warning"],
       messages: ["internal_message"],
       sourcePreviewFingerprint: "ui-only-fingerprint",
-      selectedSignalIds: ["gmail-sandbox-follow_up_required-2026-06-12T10-00-00-000Z-0"],
+      selectedSignalIds: [gmailFollowUpSignalId],
     };
     const result = buildProviderDerivedEnrichmentProposalExport({ proposal, exportedAt });
     const parsed = JSON.parse(result.json!) as Record<string, unknown>;

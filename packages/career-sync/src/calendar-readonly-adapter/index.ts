@@ -54,7 +54,6 @@ export {
 } from "./sandbox-fixtures.js";
 
 export {
-  buildCalendarSandboxSignalId,
   deriveCalendarSignalsFromSandboxEvents,
 } from "./sandbox-classifier.js";
 
