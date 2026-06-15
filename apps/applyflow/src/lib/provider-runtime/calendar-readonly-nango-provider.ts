@@ -6,7 +6,7 @@ import type { CalendarEphemeralEventMetadata } from "@devflow/career-sync";
 import {
   buildApplyFlowNangoEndUserId,
   NANGO_INTEGRATION_BY_PROVIDER,
-} from "./nango-server-provider.js";
+} from "./nango-server-provider";
 import {
   detectCalendarHasConference,
   detectCalendarIsRecurring,
@@ -16,7 +16,7 @@ import {
   normalizeCalendarEventEnd,
   normalizeCalendarEventStart,
   normalizeCalendarEventStatus,
-} from "./calendar-runtime-normalization.js";
+} from "./calendar-runtime-normalization";
 
 export const CALENDAR_RUNTIME_INTEGRATION_ID = NANGO_INTEGRATION_BY_PROVIDER.calendar;
 export const CALENDAR_EVENTS_LIST_ENDPOINT = "/calendar/v3/calendars/primary/events";

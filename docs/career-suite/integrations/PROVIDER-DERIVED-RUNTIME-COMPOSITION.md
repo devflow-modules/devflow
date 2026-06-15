@@ -11,7 +11,7 @@ The runtime composition does not retain raw provider data, expose OAuth credenti
 | Gmail read-only Nango runtime | **Implemented** — `executeApplyFlowGmailReadOnlyRuntimeBoundary` |
 | Calendar read-only Nango runtime | **Implemented** — `executeApplyFlowCalendarReadOnlyRuntimeBoundary` |
 | Provider-derived runtime composition | **Implemented** — `executeApplyFlowProviderDerivedRuntimeBoundary` |
-| HTTP route / UI | **Not implemented** |
+| Opt-in runtime preview (HTTP + UI) | **Implemented** — `POST /provider-runtime/nango/derived-preview` |
 | CareerBundle auto-enrichment | **Not implemented** |
 | Background sync | **Not implemented** |
 

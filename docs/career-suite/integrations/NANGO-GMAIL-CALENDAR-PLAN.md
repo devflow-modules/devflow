@@ -216,6 +216,14 @@ The runtime composition does not retain raw provider data, expose OAuth credenti
 
 Implementation: ApplyFlow `apps/applyflow/src/lib/provider-runtime/provider-derived-runtime-boundary.ts` — see [PROVIDER-DERIVED-RUNTIME-COMPOSITION.md](./PROVIDER-DERIVED-RUNTIME-COMPOSITION.md).
 
+### Provider-derived runtime preview
+
+ApplyFlow includes an explicitly triggered, read-only preview of client-safe derived signals from verified Gmail and Calendar runtime connections.
+
+The preview is ephemeral, requires user consent and verified connections, does not retain raw provider data, does not persist results, and does not modify CareerBundle or applications automatically.
+
+Implementation: `POST /provider-runtime/nango/derived-preview` — see [PROVIDER-DERIVED-RUNTIME-PREVIEW.md](./PROVIDER-DERIVED-RUNTIME-PREVIEW.md).
+
 ### Provider-derived enrichment adapter
 
 Career Suite includes a deterministic compatibility adapter from sandbox provider-derived signals to the existing sync enrichment contract.

@@ -3,14 +3,14 @@ import {
   evaluateProviderRuntimeFlags,
   type GmailReadOnlyAdapterResult,
 } from "@devflow/career-sync";
-import { createGmailReadOnlyNangoRuntimeAdapter } from "./gmail-readonly-nango-adapter.js";
-import type { GmailNangoRuntimeMetadataProvider } from "./gmail-readonly-nango-provider.js";
-import { createGmailNangoRuntimeMetadataProvider } from "./gmail-readonly-nango-provider.js";
+import { createGmailReadOnlyNangoRuntimeAdapter } from "./gmail-readonly-nango-adapter";
+import type { GmailNangoRuntimeMetadataProvider } from "./gmail-readonly-nango-provider";
+import { createGmailNangoRuntimeMetadataProvider } from "./gmail-readonly-nango-provider";
 import {
   envToProviderRuntimeFlags,
   type ApplyFlowNangoConnectSessionEnv,
-} from "./nango-connect-session-boundary.js";
-import { parseConnectionVerificationExplicitConsent } from "./nango-connection-verification-boundary.js";
+} from "./nango-connect-session-boundary";
+import { parseConnectionVerificationExplicitConsent } from "./nango-connection-verification-boundary";
 
 export type ApplyFlowGmailReadOnlyRuntimeQuery = {
   explicitConsent?: string | boolean | null;

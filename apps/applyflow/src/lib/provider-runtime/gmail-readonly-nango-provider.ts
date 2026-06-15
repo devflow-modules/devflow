@@ -6,14 +6,14 @@ import type { GmailEphemeralMessageMetadata } from "@devflow/career-sync";
 import {
   buildApplyFlowNangoEndUserId,
   NANGO_INTEGRATION_BY_PROVIDER,
-} from "./nango-server-provider.js";
+} from "./nango-server-provider";
 import {
   extractSanitizedEmailDomain,
   extractSanitizedEmailDomains,
   getHeaderValue,
   parseMetadataDateHeader,
   sanitizeGmailLabelIds,
-} from "./gmail-runtime-normalization.js";
+} from "./gmail-runtime-normalization";
 
 export const GMAIL_RUNTIME_INTEGRATION_ID = NANGO_INTEGRATION_BY_PROVIDER.gmail;
 export const GMAIL_MESSAGES_LIST_ENDPOINT = "/gmail/v1/users/me/messages";

@@ -10,8 +10,8 @@ import {
   type CalendarReadOnlyAdapterRequest,
   type CalendarReadOnlyAdapterResult,
 } from "@devflow/career-sync";
-import { deriveCalendarRuntimeSignalsFromMetadata } from "./calendar-runtime-classifier.js";
-import type { CalendarNangoRuntimeMetadataProvider } from "./calendar-readonly-nango-provider.js";
+import { deriveCalendarRuntimeSignalsFromMetadata } from "./calendar-runtime-classifier";
+import type { CalendarNangoRuntimeMetadataProvider } from "./calendar-readonly-nango-provider";
 
 const COMPLETED_MESSAGE =
   "Calendar metadata was processed through the read-only runtime boundary. No raw event content was retained.";

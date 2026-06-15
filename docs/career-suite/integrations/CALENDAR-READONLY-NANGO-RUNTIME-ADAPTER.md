@@ -11,6 +11,7 @@ The adapter processes limited Calendar metadata without retaining event titles, 
 | Calendar read-only adapter contract | **Defined** in `@devflow/career-sync` |
 | Calendar sandbox adapter | **Implemented** |
 | Calendar Nango runtime adapter | **Implemented** — ApplyFlow server-only |
+| Provider-derived runtime preview | **Implemented** — via composition route; see [PROVIDER-DERIVED-RUNTIME-PREVIEW.md](./PROVIDER-DERIVED-RUNTIME-PREVIEW.md) |
 | CareerBundle auto-enrichment from runtime | **Not implemented** |
 | Background sync | **Not implemented** |
 
@@ -81,7 +82,7 @@ ApplyFlow location: `apps/applyflow/src/lib/provider-runtime/`
 | `calendar-readonly-nango-adapter.ts` | `CalendarReadOnlyAdapter` for `runtime: "nango"` |
 | `calendar-readonly-runtime-boundary.ts` | Feature flags, consent, verification gates |
 
-No HTTP route or UI in this PR — boundary is tested directly.
+No dedicated HTTP route for Calendar alone — the Calendar boundary is invoked server-side by the opt-in provider-derived runtime preview (`POST /provider-runtime/nango/derived-preview`). See [PROVIDER-DERIVED-RUNTIME-PREVIEW.md](./PROVIDER-DERIVED-RUNTIME-PREVIEW.md).
 
 ## Ephemeral metadata produced
 

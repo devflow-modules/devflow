@@ -10,8 +10,8 @@ import {
   type GmailReadOnlyAdapterRequest,
   type GmailReadOnlyAdapterResult,
 } from "@devflow/career-sync";
-import { deriveGmailRuntimeSignalsFromMetadata } from "./gmail-runtime-classifier.js";
-import type { GmailNangoRuntimeMetadataProvider } from "./gmail-readonly-nango-provider.js";
+import { deriveGmailRuntimeSignalsFromMetadata } from "./gmail-runtime-classifier";
+import type { GmailNangoRuntimeMetadataProvider } from "./gmail-readonly-nango-provider";
 
 const COMPLETED_MESSAGE =
   "Gmail metadata was processed through the read-only runtime boundary. No raw message content was retained.";

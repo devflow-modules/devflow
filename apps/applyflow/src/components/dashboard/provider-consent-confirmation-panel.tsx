@@ -26,6 +26,7 @@ import { ProviderNangoConnectUi } from "./provider-nango-connect-ui";
 import { openNangoConnectUiWithFrontendSdk } from "./provider-nango-connect-client";
 import { ProviderConnectionStatusPanel } from "./provider-connection-status-panel";
 import { runProviderConnectionVerificationCheck } from "./provider-connection-verification-client";
+import { ProviderDerivedRuntimePreviewPanel } from "./provider-derived-runtime-preview-panel";
 
 /**
  * Explicit provider consent UI with Nango Connect UI behind runtime flags.
@@ -98,10 +99,16 @@ export function ProviderConsentConfirmationPanel() {
       updatedAt: new Date(0).toISOString(),
     }),
   );
-  const [verificationResult, setVerificationResult] =
-    useState<ProviderConnectionVerificationResult | null>(null);
+  const [verificationByProvider, setVerificationByProvider] = useState<
+    Record<ProviderKind, ProviderConnectionVerificationResult | null>
+  >({
+    gmail: null,
+    calendar: null,
+  });
   const [isVerifyingConnection, setIsVerifyingConnection] = useState(false);
   const [verificationErrorMessage, setVerificationErrorMessage] = useState<string | null>(null);
+
+  const verificationResult = verificationByProvider[selectedProvider];
 
   const scopesPreview = PROVIDER_CONSENT_CONFIRMATION_SCOPES[selectedProvider].join(", ");
   const neverStored = PROVIDER_CONSENT_CONFIRMATION_NEVER_STORED[selectedProvider];
@@ -122,7 +129,10 @@ export function ProviderConsentConfirmationPanel() {
       });
 
       if (outcome.called) {
-        setVerificationResult(outcome.result);
+        setVerificationByProvider((current) => ({
+          ...current,
+          [selectedProvider]: outcome.result,
+        }));
       }
     } catch {
       setVerificationErrorMessage(
@@ -190,7 +200,6 @@ export function ProviderConsentConfirmationPanel() {
               setSelectedProvider(nextProvider);
               setLastLauncherResult(null);
               setErrorMessage(null);
-              setVerificationResult(null);
               setVerificationErrorMessage(null);
               setConnectionStatus(
                 createProviderRuntimeConnectionStatusFromConnectEvent({
@@ -242,7 +251,7 @@ export function ProviderConsentConfirmationPanel() {
               setExplicitConsentChecked(event.target.checked);
               if (!event.target.checked) {
                 setLastLauncherResult(null);
-                setVerificationResult(null);
+                setVerificationByProvider({ gmail: null, calendar: null });
                 setVerificationErrorMessage(null);
               }
             }}
@@ -298,6 +307,14 @@ export function ProviderConsentConfirmationPanel() {
           openNangoConnectUi={openNangoConnectUiWithFrontendSdk}
           onConnectionStatusChange={setConnectionStatus}
         />
+
+        {explicitConsentChecked ? (
+          <ProviderDerivedRuntimePreviewPanel
+            explicitConsentChecked={explicitConsentChecked}
+            gmailVerification={verificationByProvider.gmail}
+            calendarVerification={verificationByProvider.calendar}
+          />
+        ) : null}
       </div>
     </ApplyFlowCard>
   );
