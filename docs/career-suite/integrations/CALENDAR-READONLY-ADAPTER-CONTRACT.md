@@ -10,12 +10,12 @@ The contract does not call Calendar, import events, retain descriptions, locatio
 |------|--------|
 | Contract types and safety policy | **Defined** in `@devflow/career-sync` `calendar-readonly-adapter` |
 | Sandbox adapter implementation | **Implemented** — `createCalendarReadOnlySandboxAdapter` |
-| Google Calendar API runtime | **Not implemented** |
-| Nango proxy for Calendar | **Not implemented** |
-| ApplyFlow UI changes | **Out of scope** |
+| Google Calendar API runtime | **Implemented** — ApplyFlow server-only metadata via Nango |
+| Nango proxy for Calendar | **Implemented** — `executeApplyFlowCalendarReadOnlyRuntimeBoundary` |
+| ApplyFlow UI changes | **Out of scope** for runtime PR |
 | CareerBundle enrichment from live Calendar | **Not implemented** |
 
-This document is **contract-only**. No OAuth, Nango SDK, `googleapis`, sync jobs, or event fetch exists in this PR.
+The contract layer remains pure. Live Calendar metadata fetch is implemented in ApplyFlow — see [CALENDAR-READONLY-NANGO-RUNTIME-ADAPTER.md](./CALENDAR-READONLY-NANGO-RUNTIME-ADAPTER.md).
 
 ## Objective
 

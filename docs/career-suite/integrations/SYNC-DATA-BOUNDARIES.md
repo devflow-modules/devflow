@@ -22,6 +22,8 @@ Calendar read-only adapter contract (`calendar-readonly-adapter`) defines future
 
 Calendar read-only sandbox adapter (`createCalendarReadOnlySandboxAdapter`) implements `CalendarReadOnlyAdapter` with deterministic fake event metadata fixtures and `CalendarDerivedSignal` output — complements legacy `calendar-sync` previews without replacing them.
 
+Calendar read-only Nango runtime adapter (`executeApplyFlowCalendarReadOnlyRuntimeBoundary`) fetches limited real Calendar metadata server-side through Nango without retaining titles, descriptions, locations, attendee addresses, meeting links, provider identifiers or tokens — not connected to CareerBundle enrichment in this release.
+
 Provider-derived sandbox composition (`composeProviderDerivedSignals`, `createProviderDerivedSandboxCompositionResult`) deterministically combines `GmailDerivedSignal` and `CalendarDerivedSignal` into `ProviderDerivedSignal`.
 
 Provider-derived enrichment adapter (`adaptProviderDerivedSignalsToSyncEnrichment`) maps sandbox composition results to existing `CareerBundleUnifiedSyncEnrichment` without altering the CareerBundle schema or auto-attaching enrichment.

@@ -96,6 +96,7 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 - Gmail read-only Nango runtime adapter — ApplyFlow `executeApplyFlowGmailReadOnlyRuntimeBoundary`
 - Calendar read-only adapter contract — `@devflow/career-sync` `calendar-readonly-adapter/`
 - Calendar read-only sandbox adapter — `@devflow/career-sync` `createCalendarReadOnlySandboxAdapter`
+- Calendar read-only Nango runtime adapter — ApplyFlow `executeApplyFlowCalendarReadOnlyRuntimeBoundary`
 - Provider-derived sandbox composition — `@devflow/career-sync` `composeProviderDerivedSignals`
 - Provider-derived enrichment adapter — `@devflow/career-sync` `adaptProviderDerivedSignalsToSyncEnrichment`
 
@@ -119,12 +120,13 @@ This remains read-only and does not activate OAuth, Nango runtime, provider call
 
 - Demo/sandbox sync enrichment loop is complete.
 - Gmail read-only Nango runtime (metadata-only, server-side) is **implemented** behind flags and consent.
-- Calendar runtime and background sync are **not implemented yet**.
+- Calendar read-only Nango runtime (metadata-only, server-side) is **implemented** behind flags and consent.
+- Background sync and CareerBundle auto-enrichment from runtime are **not implemented yet**.
 
 ### Next
 
-- Calendar read-only Nango runtime adapter
 - Provider-derived signals wiring after runtime metadata (no CareerBundle auto-attach)
+- Gmail + Calendar runtime composition
 
 ### Future roadmap
 
