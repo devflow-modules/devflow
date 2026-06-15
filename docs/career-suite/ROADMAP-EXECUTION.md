@@ -90,6 +90,7 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 - ApplyFlow explicit provider consent UI — `apps/applyflow/src/components/dashboard/provider-consent-confirmation-panel.tsx`
 - Nango Connect UI integration behind flags and explicit consent — `apps/applyflow/src/components/dashboard/provider-nango-connect-ui.tsx`
 - Provider connection status from Nango runtime boundary — `@devflow/career-sync` `provider-connection/runtime-status.ts` and ApplyFlow `provider-connection-status-panel.tsx`
+- Server-side Nango connection verification boundary — `@devflow/career-sync` `provider-connection/runtime-verification.ts` and ApplyFlow `nango-connection-verification-boundary.ts`
 
 ### ApplyFlow consent panel action simulation
 
@@ -115,9 +116,9 @@ This remains read-only and does not activate OAuth, Nango runtime, provider call
 
 ### Next
 
-- Real connection status verification from Nango server boundary
-- Gmail read-only adapter after connection boundary is validated
-- Calendar read-only adapter after connection boundary is validated
+- Gmail read-only adapter contract
+- Calendar read-only adapter contract
+- Provider-derived signals only after connection verification
 
 ### Future roadmap
 

@@ -26,6 +26,7 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - ApplyFlow explicit provider consent UI
 - Nango Connect UI integration behind flags and explicit consent
 - Provider connection status from Nango runtime boundary
+- Server-side Nango connection verification boundary
 
 **Not implemented:**
 

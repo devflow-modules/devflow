@@ -146,6 +146,16 @@ This status does not import Gmail or Calendar data, run sync jobs, persist raw p
 
 Implementation: `@devflow/career-sync` `provider-connection/runtime-status.ts` with `ProviderRuntimeConnectionStatus` and ApplyFlow `provider-connection-status-panel.tsx` wired to Connect UI events. Status is local/ephemeral React state only — no backend persistence, no token storage, no CareerBundle changes.
 
+### Server-side connection verification
+
+ApplyFlow can verify provider connection existence through a server-only Nango runtime boundary.
+
+The verification returns only a client-safe connection state. It does not import Gmail or Calendar data, expose OAuth credentials, run sync jobs, or persist raw provider payloads.
+
+Implementation: `@devflow/career-sync` `provider-connection/runtime-verification.ts` with `ProviderConnectionVerificationResult`; ApplyFlow `nango-connection-verification-provider.ts` uses `@nangohq/node` `listConnections` (no credentials) filtered by stable `end_user_id` tag and integration ID; `POST /provider-runtime/nango/connection-status` route returns sanitized snapshot; UI exposes explicit **Verify connection** button after local Connect UI completion.
+
+Official Nango method: `listConnections({ integrationId, tags: { end_user_id }, limit })` — returns connections **without credentials**. Discarded fields: `connection_id`, `metadata`, `tags`, `errors` details, provider payloads. Client-safe fields: `state` (`connected` | `not_connected` | `error`), invariant safety flags, messages/warnings.
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab
