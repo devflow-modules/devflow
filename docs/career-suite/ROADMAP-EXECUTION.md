@@ -95,6 +95,7 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 - Gmail read-only sandbox adapter — `@devflow/career-sync` `createGmailReadOnlySandboxAdapter`
 - Calendar read-only adapter contract — `@devflow/career-sync` `calendar-readonly-adapter/`
 - Calendar read-only sandbox adapter — `@devflow/career-sync` `createCalendarReadOnlySandboxAdapter`
+- Provider-derived sandbox composition — `@devflow/career-sync` `composeProviderDerivedSignals`
 
 ### ApplyFlow consent panel action simulation
 
@@ -120,7 +121,7 @@ This remains read-only and does not activate OAuth, Nango runtime, provider call
 
 ### Next
 
-- Provider-derived signals runtime after connection verification
+- Provider-derived signals runtime after connection verification (live `nango` adapters)
 
 ### Future roadmap
 
