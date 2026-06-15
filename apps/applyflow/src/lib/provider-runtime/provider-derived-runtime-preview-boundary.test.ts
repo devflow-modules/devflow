@@ -125,6 +125,27 @@ describe("parseProviderDerivedRuntimePreviewRequest", () => {
     }
   });
 
+  it("rejects non-integer and out-of-range limits", () => {
+    expect(
+      parseProviderDerivedRuntimePreviewRequest({
+        ...validRequestBody,
+        limits: { maxMessages: Number.NaN, maxEvents: 10 },
+      }).ok,
+    ).toBe(false);
+    expect(
+      parseProviderDerivedRuntimePreviewRequest({
+        ...validRequestBody,
+        limits: { maxMessages: Number.POSITIVE_INFINITY, maxEvents: 10 },
+      }).ok,
+    ).toBe(false);
+    expect(
+      parseProviderDerivedRuntimePreviewRequest({
+        ...validRequestBody,
+        limits: { maxMessages: 10.5, maxEvents: 10 },
+      }).ok,
+    ).toBe(false);
+  });
+
   it("rejects missing consent", () => {
     const parsed = parseProviderDerivedRuntimePreviewRequest({
       ...validRequestBody,
@@ -269,6 +290,69 @@ describe("handleProviderDerivedRuntimePreview", () => {
 
     expect(result.status).toBe("blocked");
     expect(result.warnings).toContain("calendar_connection_not_verified");
+    expect(executeComposition).not.toHaveBeenCalled();
+  });
+
+  it("blocks full attacker bypass payload without reflecting extra fields", async () => {
+    verifyGmailConnection.mockResolvedValueOnce(notConnectedVerification("gmail"));
+    verifyCalendarConnection.mockResolvedValueOnce(notConnectedVerification("calendar"));
+
+    const parsed = parseProviderDerivedRuntimePreviewRequest({
+      explicitConsent: true,
+      gmailConnectionVerified: true,
+      calendarConnectionVerified: true,
+      connectionId: "attacker-controlled",
+      access_token: "fake-token",
+      end_user_id: "attacker-user",
+      limits: { maxMessages: 10, maxEvents: 10 },
+    });
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+
+    const result = await handleProviderDerivedRuntimePreview(parsed.request, {
+      env: allFlagsOnEnv,
+      requestedAt,
+      verifyGmailConnection,
+      verifyCalendarConnection,
+      executeComposition,
+    });
+
+    const serialized = JSON.stringify(result);
+    expect(result.status).toBe("blocked");
+    expect(result.signals).toEqual([]);
+    expect(result.processedMessageCount).toBe(0);
+    expect(result.processedEventCount).toBe(0);
+    expect(executeComposition).not.toHaveBeenCalled();
+    expect(serialized).not.toMatch(
+      /attacker-controlled|fake-token|attacker-user|connectionId|access_token|end_user_id/i,
+    );
+  });
+
+  it("blocks when both verifications fail without calling runtimes", async () => {
+    verifyGmailConnection.mockResolvedValueOnce(errorVerification("gmail"));
+    verifyCalendarConnection.mockResolvedValueOnce(errorVerification("calendar"));
+
+    const parsed = parseProviderDerivedRuntimePreviewRequest(validRequestBody);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+
+    const result = await handleProviderDerivedRuntimePreview(parsed.request, {
+      env: allFlagsOnEnv,
+      requestedAt,
+      verifyGmailConnection,
+      verifyCalendarConnection,
+      executeComposition,
+    });
+
+    expect(result.status).toBe("blocked");
+    expect(result.warnings).toEqual([
+      "gmail_connection_verification_error",
+      "calendar_connection_verification_error",
+    ]);
     expect(executeComposition).not.toHaveBeenCalled();
   });
 

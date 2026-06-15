@@ -250,6 +250,7 @@ export async function handleProviderDerivedRuntimePreview(
 
   const executeComposition = deps.executeComposition ?? executeApplyFlowProviderDerivedRuntimeBoundary;
 
+  // connectionVerified is set only after successful server-side Nango verification above.
   return executeComposition({
     executeGmail: () =>
       executeApplyFlowGmailReadOnlyRuntimeBoundary(
