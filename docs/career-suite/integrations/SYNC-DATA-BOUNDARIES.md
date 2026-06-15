@@ -18,6 +18,8 @@ Calendar read-only sync preview (`buildCalendarSyncPreview`, `buildCareerBundleC
 
 Calendar read-only adapter contract (`calendar-readonly-adapter`) defines future live read-only boundaries with verified-connection gates, ephemeral event metadata input, and derived-signal-only results — no Calendar API, Nango proxy, or raw retention in the contract layer.
 
+Calendar read-only sandbox adapter (`createCalendarReadOnlySandboxAdapter`) implements `CalendarReadOnlyAdapter` with deterministic fake event metadata fixtures and `CalendarDerivedSignal` output — complements legacy `calendar-sync` previews without replacing them.
+
 Calendar sync previews must not retain meeting links, raw event descriptions, private unrelated events, or provider payloads. Derived signals should be reviewable and deletable by the user.
 
 Unified CareerBundle sync enrichment must remain derived-signal-only. Gmail and Calendar raw inputs must not be embedded in CareerBundle. The user should be able to review and delete sync enrichment data.
