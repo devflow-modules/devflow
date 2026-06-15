@@ -74,6 +74,8 @@ function uiMessageForState(state: ProviderDerivedRuntimePreviewUiState): string 
 
 /**
  * Explicitly triggered read-only runtime preview panel.
+ * Client-side connection state controls button availability only.
+ * The server independently verifies both provider connections.
  * Uses React local state only — no browser persistence.
  */
 

@@ -1,12 +1,20 @@
 // Server-only provider-derived runtime preview boundary.
 // Do not import this file from client components.
 
-import { createEmptyProviderDerivedSignalSummary } from "@devflow/career-sync";
+import {
+  createEmptyProviderDerivedSignalSummary,
+  type ProviderConnectionVerificationResult,
+  type ProviderConnectionVerificationState,
+} from "@devflow/career-sync";
 import { executeApplyFlowCalendarReadOnlyRuntimeBoundary } from "./calendar-readonly-runtime-boundary";
 import type { ApplyFlowCalendarReadOnlyRuntimeDeps } from "./calendar-readonly-runtime-boundary";
 import { executeApplyFlowGmailReadOnlyRuntimeBoundary } from "./gmail-readonly-runtime-boundary";
 import type { ApplyFlowGmailReadOnlyRuntimeDeps } from "./gmail-readonly-runtime-boundary";
 import type { ApplyFlowNangoConnectSessionEnv } from "./nango-connect-session-boundary";
+import {
+  handleApplyFlowNangoConnectionVerification,
+  type ApplyFlowNangoConnectionVerificationDeps,
+} from "./nango-connection-verification-boundary";
 import { executeApplyFlowProviderDerivedRuntimeBoundary } from "./provider-derived-runtime-boundary";
 import type { ProviderDerivedRuntimeCompositionResult } from "./provider-derived-runtime-composition";
 
@@ -15,12 +23,10 @@ export const PROVIDER_DERIVED_RUNTIME_PREVIEW_DEFAULT_MESSAGES = 10;
 export const PROVIDER_DERIVED_RUNTIME_PREVIEW_DEFAULT_EVENTS = 10;
 
 export const PROVIDER_DERIVED_RUNTIME_PREVIEW_BLOCKED_MESSAGE =
-  "Provider preview is blocked until consent and verified connections are available.";
+  "Provider preview is blocked until verified Gmail and Calendar connections are available.";
 
 export type ProviderDerivedRuntimePreviewRequest = {
   explicitConsent: true;
-  gmailConnectionVerified: true;
-  calendarConnectionVerified: true;
   window?: {
     from?: string;
     to?: string;
@@ -34,10 +40,16 @@ export type ProviderDerivedRuntimePreviewRequest = {
 export type ProviderDerivedRuntimePreviewRequestError =
   | "invalid_json"
   | "missing_consent"
-  | "gmail_not_verified"
-  | "calendar_not_verified"
   | "invalid_limits"
   | "invalid_window";
+
+export type ProviderDerivedRuntimePreviewDependencies = {
+  verifyGmailConnection: () => Promise<ProviderConnectionVerificationResult>;
+  verifyCalendarConnection: () => Promise<ProviderConnectionVerificationResult>;
+  executeComposition?: typeof executeApplyFlowProviderDerivedRuntimeBoundary;
+  gmailRuntimeDeps?: ApplyFlowGmailReadOnlyRuntimeDeps;
+  calendarRuntimeDeps?: ApplyFlowCalendarReadOnlyRuntimeDeps;
+};
 
 function isValidIsoDate(value: string): boolean {
   return Number.isFinite(Date.parse(value));
@@ -75,6 +87,21 @@ function createBlockedPreviewResult(warnings: string[]): ProviderDerivedRuntimeC
   };
 }
 
+function connectionWarningForState(
+  provider: "gmail" | "calendar",
+  state: ProviderConnectionVerificationState,
+): string {
+  if (state === "not_connected") {
+    return provider === "gmail"
+      ? "gmail_connection_not_verified"
+      : "calendar_connection_not_verified";
+  }
+
+  return provider === "gmail"
+    ? "gmail_connection_verification_error"
+    : "calendar_connection_verification_error";
+}
+
 export function parseProviderDerivedRuntimePreviewRequest(body: unknown):
   | { ok: true; request: ProviderDerivedRuntimePreviewRequest }
   | {
@@ -84,18 +111,6 @@ export function parseProviderDerivedRuntimePreviewRequest(body: unknown):
     } {
   if (!isPlainObject(body)) {
     return { ok: false, error: "invalid_json", httpStatus: 400 };
-  }
-
-  if (body.explicitConsent !== true) {
-    return { ok: false, error: "missing_consent", httpStatus: 403 };
-  }
-
-  if (body.gmailConnectionVerified !== true) {
-    return { ok: false, error: "gmail_not_verified", httpStatus: 403 };
-  }
-
-  if (body.calendarConnectionVerified !== true) {
-    return { ok: false, error: "calendar_not_verified", httpStatus: 403 };
   }
 
   if (!isPlainObject(body.limits)) {
@@ -155,12 +170,14 @@ export function parseProviderDerivedRuntimePreviewRequest(body: unknown):
     };
   }
 
+  if (body.explicitConsent !== true) {
+    return { ok: false, error: "missing_consent", httpStatus: 403 };
+  }
+
   return {
     ok: true,
     request: {
       explicitConsent: true,
-      gmailConnectionVerified: true,
-      calendarConnectionVerified: true,
       window,
       limits: {
         maxMessages,
@@ -170,16 +187,67 @@ export function parseProviderDerivedRuntimePreviewRequest(body: unknown):
   };
 }
 
+export function createApplyFlowProviderDerivedRuntimePreviewVerifiers(input: {
+  env: ApplyFlowNangoConnectSessionEnv;
+  requestedAt: string;
+  verificationDeps: ApplyFlowNangoConnectionVerificationDeps;
+}): Pick<
+  ProviderDerivedRuntimePreviewDependencies,
+  "verifyGmailConnection" | "verifyCalendarConnection"
+> {
+  return {
+    verifyGmailConnection: () =>
+      handleApplyFlowNangoConnectionVerification(
+        { provider: "gmail", explicitConsent: true },
+        {
+          env: input.env,
+          verificationDeps: input.verificationDeps,
+          requestedAt: input.requestedAt,
+        },
+      ),
+    verifyCalendarConnection: () =>
+      handleApplyFlowNangoConnectionVerification(
+        { provider: "calendar", explicitConsent: true },
+        {
+          env: input.env,
+          verificationDeps: input.verificationDeps,
+          requestedAt: input.requestedAt,
+        },
+      ),
+  };
+}
+
 export async function handleProviderDerivedRuntimePreview(
   request: ProviderDerivedRuntimePreviewRequest,
   deps: {
     env: ApplyFlowNangoConnectSessionEnv;
     requestedAt: string;
+    verifyGmailConnection: () => Promise<ProviderConnectionVerificationResult>;
+    verifyCalendarConnection: () => Promise<ProviderConnectionVerificationResult>;
     gmailRuntimeDeps?: ApplyFlowGmailReadOnlyRuntimeDeps;
     calendarRuntimeDeps?: ApplyFlowCalendarReadOnlyRuntimeDeps;
     executeComposition?: typeof executeApplyFlowProviderDerivedRuntimeBoundary;
   },
 ): Promise<ProviderDerivedRuntimeCompositionResult> {
+  const [gmailVerification, calendarVerification] = await Promise.all([
+    deps.verifyGmailConnection(),
+    deps.verifyCalendarConnection(),
+  ]);
+
+  const warnings: string[] = [];
+
+  if (gmailVerification.state !== "connected") {
+    warnings.push(connectionWarningForState("gmail", gmailVerification.state));
+  }
+
+  if (calendarVerification.state !== "connected") {
+    warnings.push(connectionWarningForState("calendar", calendarVerification.state));
+  }
+
+  if (warnings.length > 0) {
+    return createBlockedPreviewResult(warnings);
+  }
+
   const executeComposition = deps.executeComposition ?? executeApplyFlowProviderDerivedRuntimeBoundary;
 
   return executeComposition({
@@ -227,13 +295,6 @@ export function resolveProviderDerivedRuntimePreviewHttpStatus(input: {
   result?: ProviderDerivedRuntimeCompositionResult;
 }): number {
   if (input.requestError === "missing_consent") {
-    return 403;
-  }
-
-  if (
-    input.requestError === "gmail_not_verified" ||
-    input.requestError === "calendar_not_verified"
-  ) {
     return 403;
   }
 

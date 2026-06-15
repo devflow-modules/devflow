@@ -35,7 +35,7 @@ const completedResult = {
 };
 
 describe("buildProviderDerivedRuntimePreviewRequest", () => {
-  it("returns null when prerequisites are missing", () => {
+  it("returns null when UX prerequisites are missing", () => {
     expect(
       buildProviderDerivedRuntimePreviewRequest({
         explicitConsentChecked: false,
@@ -45,7 +45,7 @@ describe("buildProviderDerivedRuntimePreviewRequest", () => {
     ).toBeNull();
   });
 
-  it("builds a safe request with default limits", () => {
+  it("builds a safe request with default limits and no connection authorization fields", () => {
     const request = buildProviderDerivedRuntimePreviewRequest({
       explicitConsentChecked: true,
       gmailConnectionVerified: true,
@@ -54,15 +54,15 @@ describe("buildProviderDerivedRuntimePreviewRequest", () => {
 
     expect(request).toEqual({
       explicitConsent: true,
-      gmailConnectionVerified: true,
-      calendarConnectionVerified: true,
       limits: { maxMessages: 10, maxEvents: 10 },
     });
+    expect(request).not.toHaveProperty("gmailConnectionVerified");
+    expect(request).not.toHaveProperty("calendarConnectionVerified");
   });
 });
 
 describe("fetchProviderDerivedRuntimePreview", () => {
-  it("uses POST with explicit consent and safe limits", async () => {
+  it("uses POST with explicit consent and safe limits only", async () => {
     const fetchImpl = vi.fn(async () => ({
       ok: true,
       status: 200,
@@ -72,8 +72,6 @@ describe("fetchProviderDerivedRuntimePreview", () => {
     const outcome = await fetchProviderDerivedRuntimePreview(
       {
         explicitConsent: true,
-        gmailConnectionVerified: true,
-        calendarConnectionVerified: true,
         limits: { maxMessages: 10, maxEvents: 10 },
       },
       fetchImpl,
@@ -86,35 +84,34 @@ describe("fetchProviderDerivedRuntimePreview", () => {
         method: "POST",
         body: JSON.stringify({
           explicitConsent: true,
-          gmailConnectionVerified: true,
-          calendarConnectionVerified: true,
           limits: { maxMessages: 10, maxEvents: 10 },
         }),
       }),
     );
 
     const body = JSON.parse(String((fetchImpl.mock.calls[0]?.[1] as RequestInit).body));
+    expect(body).not.toHaveProperty("gmailConnectionVerified");
+    expect(body).not.toHaveProperty("calendarConnectionVerified");
     expect(body).not.toHaveProperty("access_token");
     expect(body).not.toHaveProperty("connectionId");
+    expect(body).not.toHaveProperty("end_user_id");
     expect(body).not.toHaveProperty("providerPayload");
   });
 
   it("handles blocked responses", async () => {
     const fetchImpl = vi.fn(async () => ({
       ok: true,
-      status: 403,
+      status: 200,
       json: async () => ({
         ...completedResult,
         status: "blocked",
-        warnings: ["preview_request_missing_consent"],
+        warnings: ["gmail_connection_not_verified"],
       }),
     })) as unknown as typeof fetch;
 
     const outcome = await fetchProviderDerivedRuntimePreview(
       {
         explicitConsent: true,
-        gmailConnectionVerified: true,
-        calendarConnectionVerified: true,
         limits: { maxMessages: 10, maxEvents: 10 },
       },
       fetchImpl,
@@ -136,8 +133,6 @@ describe("fetchProviderDerivedRuntimePreview", () => {
     const outcome = await fetchProviderDerivedRuntimePreview(
       {
         explicitConsent: true,
-        gmailConnectionVerified: true,
-        calendarConnectionVerified: true,
         limits: { maxMessages: 10, maxEvents: 10 },
       },
       fetchImpl,
@@ -148,7 +143,7 @@ describe("fetchProviderDerivedRuntimePreview", () => {
 });
 
 describe("runProviderDerivedRuntimePreview", () => {
-  it("does not call fetch when prerequisites are missing", async () => {
+  it("does not call fetch when UX prerequisites are missing", async () => {
     const fetchImpl = vi.fn();
     const outcome = await runProviderDerivedRuntimePreview({
       explicitConsentChecked: false,

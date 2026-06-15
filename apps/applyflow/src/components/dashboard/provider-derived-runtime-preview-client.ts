@@ -9,15 +9,14 @@ import {
 
 /**
  * Client-safe provider-derived runtime preview fetch helper.
- * Sends explicit consent and verification flags only — no secrets, tokens, or provider payloads.
+ * Sends explicit consent and limits only — no secrets, tokens, or provider payloads.
+ * Client-side connection state controls button availability only; the server verifies connections.
  */
 
 export const PROVIDER_DERIVED_RUNTIME_PREVIEW_URL = "/provider-runtime/nango/derived-preview";
 
 export type ProviderDerivedRuntimePreviewClientRequest = {
   explicitConsent: true;
-  gmailConnectionVerified: true;
-  calendarConnectionVerified: true;
   window?: {
     from?: string;
     to?: string;
@@ -85,8 +84,6 @@ export function buildProviderDerivedRuntimePreviewRequest(input: {
 
   return {
     explicitConsent: true,
-    gmailConnectionVerified: true,
-    calendarConnectionVerified: true,
     window: input.window,
     limits: {
       maxMessages: input.limits?.maxMessages ?? PROVIDER_DERIVED_RUNTIME_PREVIEW_DEFAULT_MESSAGES,

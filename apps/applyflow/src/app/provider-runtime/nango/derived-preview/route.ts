@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readApplyFlowNangoConnectSessionEnv } from "@/lib/provider-runtime/nango-connect-session-launcher";
+import { createNangoConnectionVerificationProvider } from "@/lib/provider-runtime/nango-connection-verification-provider";
 import {
+  createApplyFlowProviderDerivedRuntimePreviewVerifiers,
   createBlockedProviderDerivedRuntimePreviewResult,
   handleProviderDerivedRuntimePreview,
   parseProviderDerivedRuntimePreviewRequest,
@@ -10,6 +12,8 @@ import { createEmptyProviderDerivedSignalSummary } from "@devflow/career-sync";
 
 /**
  * Server-side provider-derived runtime preview boundary.
+ * Verifies Gmail and Calendar connections independently on the server.
+ * Client-provided connection state is never trusted for authorization.
  * Returns client-safe composition result only — never secrets, metadata, or raw provider payloads.
  */
 
@@ -33,9 +37,26 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const env = readApplyFlowNangoConnectSessionEnv();
+    const requestedAt = new Date().toISOString();
+    const verificationDeps = env.NANGO_SECRET_KEY?.trim()
+      ? {
+          verificationProvider: createNangoConnectionVerificationProvider({
+            secretKey: env.NANGO_SECRET_KEY,
+          }),
+        }
+      : {};
+
+    const verifiers = createApplyFlowProviderDerivedRuntimePreviewVerifiers({
+      env,
+      requestedAt,
+      verificationDeps,
+    });
+
     const result = await handleProviderDerivedRuntimePreview(parsed.request, {
-      env: readApplyFlowNangoConnectSessionEnv(),
-      requestedAt: new Date().toISOString(),
+      env,
+      requestedAt,
+      ...verifiers,
     });
 
     return NextResponse.json(result, {

@@ -15,7 +15,7 @@ export const PROVIDER_DERIVED_RUNTIME_PREVIEW_UI_MESSAGES = {
   partial:
     "Read-only provider preview completed partially. Available signals require manual review.",
   blocked:
-    "Provider preview is blocked until consent and verified connections are available.",
+    "Provider preview is blocked until verified Gmail and Calendar connections are available.",
   error: "Provider preview failed safely. No provider data was stored.",
   idle: "Preview runs only after explicit consent and verified Gmail and Calendar connections.",
 } as const;

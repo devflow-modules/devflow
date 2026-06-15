@@ -5,6 +5,7 @@ import {
   createCalendarReadOnlyAdapterResult,
   createEmptyProviderDerivedSignalSummary,
   createGmailReadOnlyAdapterResult,
+  createProviderConnectionVerificationResult,
 } from "@devflow/career-sync";
 import { executeApplyFlowCalendarReadOnlyRuntimeBoundary } from "./calendar-readonly-runtime-boundary.js";
 import { executeApplyFlowGmailReadOnlyRuntimeBoundary } from "./gmail-readonly-runtime-boundary.js";
@@ -36,10 +37,42 @@ const requestedAt = "2026-06-15T12:00:00.000Z";
 
 const validRequestBody = {
   explicitConsent: true,
+  limits: { maxMessages: 10, maxEvents: 10 },
+};
+
+const bypassRequestBody = {
+  explicitConsent: true,
   gmailConnectionVerified: true,
   calendarConnectionVerified: true,
   limits: { maxMessages: 10, maxEvents: 10 },
 };
+
+function connectedVerification(provider: "gmail" | "calendar") {
+  return createProviderConnectionVerificationResult({
+    provider,
+    runtime: "nango",
+    state: "connected",
+    checkedAt: requestedAt,
+  });
+}
+
+function notConnectedVerification(provider: "gmail" | "calendar") {
+  return createProviderConnectionVerificationResult({
+    provider,
+    runtime: "nango",
+    state: "not_connected",
+    checkedAt: requestedAt,
+  });
+}
+
+function errorVerification(provider: "gmail" | "calendar") {
+  return createProviderConnectionVerificationResult({
+    provider,
+    runtime: "nango",
+    state: "error",
+    checkedAt: requestedAt,
+  });
+}
 
 function completedCompositionResult(): ProviderDerivedRuntimeCompositionResult {
   return {
@@ -70,13 +103,25 @@ function completedCompositionResult(): ProviderDerivedRuntimeCompositionResult {
 }
 
 describe("parseProviderDerivedRuntimePreviewRequest", () => {
-  it("accepts a valid preview request", () => {
+  it("accepts a valid preview request without client connection fields", () => {
     const parsed = parseProviderDerivedRuntimePreviewRequest(validRequestBody);
 
     expect(parsed.ok).toBe(true);
     if (parsed.ok) {
       expect(parsed.request.limits.maxMessages).toBe(10);
       expect(parsed.request.limits.maxEvents).toBe(10);
+      expect(parsed.request).not.toHaveProperty("gmailConnectionVerified");
+      expect(parsed.request).not.toHaveProperty("calendarConnectionVerified");
+    }
+  });
+
+  it("ignores client connection booleans and still accepts structurally valid request", () => {
+    const parsed = parseProviderDerivedRuntimePreviewRequest(bypassRequestBody);
+
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.request.explicitConsent).toBe(true);
+      expect(parsed.request).not.toHaveProperty("gmailConnectionVerified");
     }
   });
 
@@ -90,30 +135,6 @@ describe("parseProviderDerivedRuntimePreviewRequest", () => {
     if (!parsed.ok) {
       expect(parsed.error).toBe("missing_consent");
       expect(parsed.httpStatus).toBe(403);
-    }
-  });
-
-  it("rejects unverified Gmail", () => {
-    const parsed = parseProviderDerivedRuntimePreviewRequest({
-      ...validRequestBody,
-      gmailConnectionVerified: false,
-    });
-
-    expect(parsed.ok).toBe(false);
-    if (!parsed.ok) {
-      expect(parsed.error).toBe("gmail_not_verified");
-    }
-  });
-
-  it("rejects unverified Calendar", () => {
-    const parsed = parseProviderDerivedRuntimePreviewRequest({
-      ...validRequestBody,
-      calendarConnectionVerified: false,
-    });
-
-    expect(parsed.ok).toBe(false);
-    if (!parsed.ok) {
-      expect(parsed.error).toBe("calendar_not_verified");
     }
   });
 
@@ -156,6 +177,8 @@ describe("parseProviderDerivedRuntimePreviewRequest", () => {
 });
 
 describe("handleProviderDerivedRuntimePreview", () => {
+  const verifyGmailConnection = vi.fn(async () => connectedVerification("gmail"));
+  const verifyCalendarConnection = vi.fn(async () => connectedVerification("calendar"));
   const executeComposition = vi.fn(async (input: {
     executeGmail: () => Promise<unknown>;
     executeCalendar: () => Promise<unknown>;
@@ -168,7 +191,12 @@ describe("handleProviderDerivedRuntimePreview", () => {
   beforeEach(() => {
     vi.mocked(executeApplyFlowGmailReadOnlyRuntimeBoundary).mockReset();
     vi.mocked(executeApplyFlowCalendarReadOnlyRuntimeBoundary).mockReset();
+    verifyGmailConnection.mockReset();
+    verifyCalendarConnection.mockReset();
     executeComposition.mockReset();
+
+    verifyGmailConnection.mockResolvedValue(connectedVerification("gmail"));
+    verifyCalendarConnection.mockResolvedValue(connectedVerification("calendar"));
     executeComposition.mockImplementation(async (input: {
       executeGmail: () => Promise<unknown>;
       executeCalendar: () => Promise<unknown>;
@@ -196,7 +224,79 @@ describe("handleProviderDerivedRuntimePreview", () => {
     );
   });
 
-  it("calls Gmail and Calendar boundaries and composition once for valid request", async () => {
+  it("blocks bypass payload when Gmail is not connected server-side", async () => {
+    verifyGmailConnection.mockResolvedValueOnce(notConnectedVerification("gmail"));
+
+    const parsed = parseProviderDerivedRuntimePreviewRequest(bypassRequestBody);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+
+    const result = await handleProviderDerivedRuntimePreview(parsed.request, {
+      env: allFlagsOnEnv,
+      requestedAt,
+      verifyGmailConnection,
+      verifyCalendarConnection,
+      executeComposition,
+    });
+
+    expect(result.status).toBe("blocked");
+    expect(result.warnings).toContain("gmail_connection_not_verified");
+    expect(result.processedMessageCount).toBe(0);
+    expect(result.processedEventCount).toBe(0);
+    expect(executeComposition).not.toHaveBeenCalled();
+    expect(executeApplyFlowGmailReadOnlyRuntimeBoundary).not.toHaveBeenCalled();
+    expect(executeApplyFlowCalendarReadOnlyRuntimeBoundary).not.toHaveBeenCalled();
+  });
+
+  it("blocks bypass payload when Calendar is not connected server-side", async () => {
+    verifyCalendarConnection.mockResolvedValueOnce(notConnectedVerification("calendar"));
+
+    const parsed = parseProviderDerivedRuntimePreviewRequest(bypassRequestBody);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+
+    const result = await handleProviderDerivedRuntimePreview(parsed.request, {
+      env: allFlagsOnEnv,
+      requestedAt,
+      verifyGmailConnection,
+      verifyCalendarConnection,
+      executeComposition,
+    });
+
+    expect(result.status).toBe("blocked");
+    expect(result.warnings).toContain("calendar_connection_not_verified");
+    expect(executeComposition).not.toHaveBeenCalled();
+  });
+
+  it("verifies Gmail and Calendar on the server before runtimes", async () => {
+    const parsed = parseProviderDerivedRuntimePreviewRequest(validRequestBody);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+
+    await handleProviderDerivedRuntimePreview(parsed.request, {
+      env: allFlagsOnEnv,
+      requestedAt,
+      verifyGmailConnection,
+      verifyCalendarConnection,
+      executeComposition,
+    });
+
+    expect(verifyGmailConnection).toHaveBeenCalledOnce();
+    expect(verifyCalendarConnection).toHaveBeenCalledOnce();
+    expect(executeComposition).toHaveBeenCalledOnce();
+    expect(executeApplyFlowGmailReadOnlyRuntimeBoundary).toHaveBeenCalledOnce();
+    expect(executeApplyFlowCalendarReadOnlyRuntimeBoundary).toHaveBeenCalledOnce();
+  });
+
+  it("does not call runtimes when Gmail verification errors", async () => {
+    verifyGmailConnection.mockResolvedValueOnce(errorVerification("gmail"));
+
     const parsed = parseProviderDerivedRuntimePreviewRequest(validRequestBody);
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) {
@@ -206,16 +306,39 @@ describe("handleProviderDerivedRuntimePreview", () => {
     const result = await handleProviderDerivedRuntimePreview(parsed.request, {
       env: allFlagsOnEnv,
       requestedAt,
+      verifyGmailConnection,
+      verifyCalendarConnection,
       executeComposition,
     });
 
-    expect(executeComposition).toHaveBeenCalledOnce();
-    expect(executeApplyFlowGmailReadOnlyRuntimeBoundary).toHaveBeenCalledOnce();
-    expect(executeApplyFlowCalendarReadOnlyRuntimeBoundary).toHaveBeenCalledOnce();
-    expect(result.status).toBe("completed");
+    expect(result.status).toBe("blocked");
+    expect(result.warnings).toContain("gmail_connection_verification_error");
+    expect(executeComposition).not.toHaveBeenCalled();
   });
 
-  it("passes window and limits to runtime boundaries", async () => {
+  it("does not call runtimes when Calendar verification errors", async () => {
+    verifyCalendarConnection.mockResolvedValueOnce(errorVerification("calendar"));
+
+    const parsed = parseProviderDerivedRuntimePreviewRequest(validRequestBody);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+
+    const result = await handleProviderDerivedRuntimePreview(parsed.request, {
+      env: allFlagsOnEnv,
+      requestedAt,
+      verifyGmailConnection,
+      verifyCalendarConnection,
+      executeComposition,
+    });
+
+    expect(result.status).toBe("blocked");
+    expect(result.warnings).toContain("calendar_connection_verification_error");
+    expect(executeComposition).not.toHaveBeenCalled();
+  });
+
+  it("passes window and limits to runtime boundaries after verification", async () => {
     const parsed = parseProviderDerivedRuntimePreviewRequest({
       ...validRequestBody,
       window: {
@@ -232,6 +355,8 @@ describe("handleProviderDerivedRuntimePreview", () => {
     await handleProviderDerivedRuntimePreview(parsed.request, {
       env: allFlagsOnEnv,
       requestedAt,
+      verifyGmailConnection,
+      verifyCalendarConnection,
       executeComposition,
     });
 
@@ -267,6 +392,8 @@ describe("handleProviderDerivedRuntimePreview", () => {
     const result = await handleProviderDerivedRuntimePreview(parsed.request, {
       env: allFlagsOnEnv,
       requestedAt,
+      verifyGmailConnection,
+      verifyCalendarConnection,
       executeComposition,
     });
 
@@ -274,14 +401,8 @@ describe("handleProviderDerivedRuntimePreview", () => {
   });
 
   it("returns blocked composition result without leaking secrets", async () => {
-    executeComposition.mockResolvedValueOnce({
-      ...completedCompositionResult(),
-      status: "blocked",
-      gmailStatus: "blocked",
-      calendarStatus: "blocked",
-      warnings: ["gmail_blocked"],
-      messages: ["Provider-derived runtime composition was blocked by runtime safety gates."],
-    });
+    verifyGmailConnection.mockResolvedValueOnce(notConnectedVerification("gmail"));
+    verifyCalendarConnection.mockResolvedValueOnce(notConnectedVerification("calendar"));
 
     const parsed = parseProviderDerivedRuntimePreviewRequest(validRequestBody);
     expect(parsed.ok).toBe(true);
@@ -292,6 +413,8 @@ describe("handleProviderDerivedRuntimePreview", () => {
     const result = await handleProviderDerivedRuntimePreview(parsed.request, {
       env: allFlagsOnEnv,
       requestedAt,
+      verifyGmailConnection,
+      verifyCalendarConnection,
       executeComposition,
     });
 
@@ -318,16 +441,23 @@ describe("createBlockedProviderDerivedRuntimePreviewResult", () => {
   });
 });
 
-describe("invalid request does not call runtime boundaries", () => {
+describe("invalid request does not call verifiers or runtime boundaries", () => {
+  const verifyGmailConnection = vi.fn(async () => connectedVerification("gmail"));
+  const verifyCalendarConnection = vi.fn(async () => connectedVerification("calendar"));
+
   beforeEach(() => {
     vi.mocked(executeApplyFlowGmailReadOnlyRuntimeBoundary).mockClear();
     vi.mocked(executeApplyFlowCalendarReadOnlyRuntimeBoundary).mockClear();
+    verifyGmailConnection.mockClear();
+    verifyCalendarConnection.mockClear();
   });
 
-  it("skips boundaries when parse fails", () => {
+  it("skips verifiers and boundaries when parse fails", async () => {
     const parsed = parseProviderDerivedRuntimePreviewRequest({ explicitConsent: false });
 
     expect(parsed.ok).toBe(false);
+    expect(verifyGmailConnection).not.toHaveBeenCalled();
+    expect(verifyCalendarConnection).not.toHaveBeenCalled();
     expect(executeApplyFlowGmailReadOnlyRuntimeBoundary).not.toHaveBeenCalled();
     expect(executeApplyFlowCalendarReadOnlyRuntimeBoundary).not.toHaveBeenCalled();
   });

@@ -124,7 +124,7 @@ This remains read-only and does not activate OAuth, Nango runtime, provider call
 - Gmail read-only Nango runtime (metadata-only, server-side) is **implemented** behind flags and consent.
 - Calendar read-only Nango runtime (metadata-only, server-side) is **implemented** behind flags and consent.
 - Provider-derived runtime composition (Gmail + Calendar signals) is **implemented** — no CareerBundle auto-attach.
-- Provider-derived runtime preview (opt-in HTTP + UI) is **implemented** — ephemeral, no persistence.
+- Provider-derived runtime preview (opt-in HTTP + UI) is **implemented** — ephemeral, no persistence; server independently verifies both Nango connections (client state is UX-only).
 - Background sync and CareerBundle auto-enrichment from runtime are **not implemented yet**.
 
 ### Next

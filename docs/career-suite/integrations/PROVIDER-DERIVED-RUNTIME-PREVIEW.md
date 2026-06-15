@@ -23,11 +23,15 @@ user confirms explicit consent
   → user verifies Calendar connection (server-side)
   → user clicks "Run read-only preview"
   → POST /provider-runtime/nango/derived-preview
+  → server verifies Gmail connection (Nango)
+  → server verifies Calendar connection (Nango)
   → executeApplyFlowGmailReadOnlyRuntimeBoundary
   → executeApplyFlowCalendarReadOnlyRuntimeBoundary
   → executeApplyFlowProviderDerivedRuntimeBoundary
   → ProviderDerivedRuntimeCompositionResult (client-safe)
 ```
+
+**Trust boundary:** Client connection state controls button availability only. The preview route verifies both Nango connections independently on the server. Client-provided connection booleans are never trusted for authorization.
 
 ## Route
 
@@ -53,8 +57,6 @@ Implementation: `apps/applyflow/src/app/provider-runtime/nango/derived-preview/r
 ```ts
 export type ProviderDerivedRuntimePreviewRequest = {
   explicitConsent: true;
-  gmailConnectionVerified: true;
-  calendarConnectionVerified: true;
   window?: {
     from?: string;
     to?: string;
@@ -68,7 +70,9 @@ export type ProviderDerivedRuntimePreviewRequest = {
 
 UI defaults: `maxMessages: 10`, `maxEvents: 10`.
 
-Blocked before runtime when consent is missing, either connection is unverified, limits are invalid, or the window is invalid. Invalid requests do not call Gmail/Calendar boundaries.
+Blocked before runtime when consent is missing, server-side Gmail/Calendar verification is not `connected`, limits are invalid, or the window is invalid. Invalid requests do not call verifiers or Gmail/Calendar boundaries.
+
+Server-side verification uses `handleApplyFlowNangoConnectionVerification` with `createNangoConnectionVerificationProvider` — the same boundary as `POST /provider-runtime/nango/connection-status`. Verification runs in parallel before any runtime execution.
 
 ## Response
 
@@ -87,7 +91,7 @@ HTTP status (conservative):
 | Case | Status |
 |------|--------|
 | completed / partial / runtime blocked | 200 |
-| missing consent / unverified connection | 403 |
+| missing consent | 403 |
 | invalid JSON / limits / window | 400 |
 | internal failure (sanitized) | 500 |
 
@@ -96,7 +100,7 @@ HTTP status (conservative):
 `ProviderDerivedRuntimePreviewPanel` in the consent/status dashboard:
 
 - Badges: Read-only, Ephemeral, User review required, No raw provider data retained, No CareerBundle changes
-- Button **Run read-only preview** enabled only when consent is active and both Gmail and Calendar server verification report `connected`
+- Button **Run read-only preview** enabled only when consent is active and both Gmail and Calendar server verification report `connected` (UX gate only — server re-verifies on every request)
 - States: idle, loading, completed, partial, blocked, error
 - Preview clears when consent or verification changes (no localStorage/sessionStorage)
 - Execution only on explicit click — no auto-run, polling, or background refresh
@@ -105,7 +109,7 @@ HTTP status (conservative):
 
 | Module | Role |
 |--------|------|
-| `provider-derived-runtime-preview-boundary.ts` | Request parsing, preview orchestration |
+| `provider-derived-runtime-preview-boundary.ts` | Request parsing, server-side connection verification, preview orchestration |
 | `gmail-readonly-runtime-boundary.ts` | Gmail runtime (flags, consent, SDK, sanitization) |
 | `calendar-readonly-runtime-boundary.ts` | Calendar runtime |
 | `provider-derived-runtime-boundary.ts` | Composition entry |

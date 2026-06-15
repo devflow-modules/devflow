@@ -27,8 +27,6 @@ vi.mock("@/lib/provider-runtime/provider-derived-runtime-preview-boundary", asyn
 
 const validBody = {
   explicitConsent: true,
-  gmailConnectionVerified: true,
-  calendarConnectionVerified: true,
   limits: { maxMessages: 10, maxEvents: 10 },
 };
 
@@ -94,20 +92,22 @@ describe("POST /provider-runtime/nango/derived-preview", () => {
     expect(handlePreview).not.toHaveBeenCalled();
   });
 
-  it("rejects unverified Gmail with 403", async () => {
-    const response = await POST(
-      makePostRequest({ ...validBody, gmailConnectionVerified: false }) as never,
-    );
-    expect(response.status).toBe(403);
-    expect(handlePreview).not.toHaveBeenCalled();
+  it("accepts request without client connection fields", async () => {
+    const response = await POST(makePostRequest(validBody) as never);
+    expect(response.status).toBe(200);
+    expect(handlePreview).toHaveBeenCalledOnce();
   });
 
-  it("rejects unverified Calendar with 403", async () => {
+  it("ignores client connection booleans and still calls handler", async () => {
     const response = await POST(
-      makePostRequest({ ...validBody, calendarConnectionVerified: false }) as never,
+      makePostRequest({
+        ...validBody,
+        gmailConnectionVerified: true,
+        calendarConnectionVerified: true,
+      }) as never,
     );
-    expect(response.status).toBe(403);
-    expect(handlePreview).not.toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    expect(handlePreview).toHaveBeenCalledOnce();
   });
 
   it("rejects invalid maxMessages limits", async () => {
@@ -142,12 +142,6 @@ describe("POST /provider-runtime/nango/derived-preview", () => {
     );
     expect(response.status).toBe(400);
     expect(handlePreview).not.toHaveBeenCalled();
-  });
-
-  it("calls preview handler once for valid request", async () => {
-    const response = await POST(makePostRequest(validBody) as never);
-    expect(response.status).toBe(200);
-    expect(handlePreview).toHaveBeenCalledOnce();
   });
 
   it("returns client-safe completed body", async () => {
@@ -186,6 +180,7 @@ describe("POST /provider-runtime/nango/derived-preview", () => {
       status: "blocked",
       gmailStatus: "blocked",
       calendarStatus: "blocked",
+      warnings: ["gmail_connection_not_verified"],
     });
 
     const response = await POST(makePostRequest(validBody) as never);

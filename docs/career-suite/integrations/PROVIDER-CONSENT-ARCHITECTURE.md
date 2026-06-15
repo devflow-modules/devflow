@@ -357,6 +357,10 @@ Public exports: `ProviderConnectionVerificationResult`, `createProviderConnectio
 
 Route: `POST /provider-runtime/nango/connection-status` (ApplyFlow server-only).
 
+### Provider-derived runtime preview (server re-verification)
+
+`POST /provider-runtime/nango/derived-preview` independently verifies Gmail and Calendar connections on the server before executing runtime boundaries. Client connection state controls button availability only in the UI — it is never trusted for authorization. See [PROVIDER-DERIVED-RUNTIME-PREVIEW.md](./PROVIDER-DERIVED-RUNTIME-PREVIEW.md).
+
 ---
 
 ## Provider connection action mock
