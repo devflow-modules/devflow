@@ -11,7 +11,8 @@ The proposal is created locally in memory, is not persisted, is not applied to C
 | Provider runtime preview | **Implemented** — see [PROVIDER-DERIVED-RUNTIME-PREVIEW.md](./PROVIDER-DERIVED-RUNTIME-PREVIEW.md) |
 | In-memory signal review | **Implemented** — see [PROVIDER-DERIVED-RUNTIME-REVIEW.md](./PROVIDER-DERIVED-RUNTIME-REVIEW.md) |
 | Enrichment proposal from selected signals | **Implemented** |
-| CareerBundle attach / export / persistence | **Not implemented** |
+| Local JSON export of ready proposal | **Implemented** — see [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT.md) |
+| CareerBundle attach / import / persistence | **Not implemented** |
 | Application updates | **Not implemented** |
 
 ## Flow
@@ -23,6 +24,7 @@ user runs read-only preview
   → user clicks "Build enrichment proposal"
   → buildProviderDerivedEnrichmentProposal (pure, client-side)
   → ProviderDerivedEnrichmentProposal in React state
+  → optional "Download proposal" (local JSON file)
   → no save, no apply, no provider calls
 ```
 

@@ -8,6 +8,8 @@ import {
 import type { ProviderDerivedRuntimePreviewClientResult } from "./provider-derived-runtime-preview-client";
 import {
   PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_BUILD_LABEL,
+  PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_DOWNLOAD_LABEL,
+  PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_DOWNLOADED_MESSAGE,
   PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_TITLE,
 } from "./provider-derived-enrichment-proposal-content";
 import { ProviderDerivedEnrichmentProposalPanelView } from "./provider-derived-enrichment-proposal-panel";
@@ -20,7 +22,7 @@ import {
 const generatedAt = "2026-06-15T12:00:00.000Z";
 
 const reviewableSignal = {
-  id: "signal-1",
+  id: "gmail-sandbox-follow_up_required-2026-06-01T10-00-00-000Z-0",
   source: "gmail" as const,
   kind: "follow_up_required" as const,
   occurredAt: "2026-06-01T10:00:00.000Z",
@@ -28,6 +30,12 @@ const reviewableSignal = {
   confidence: 0.82,
   reviewRequired: true as const,
   sourceCount: 1,
+};
+
+const noopViewProps = {
+  downloadEnabled: false,
+  exportStatus: "idle" as const,
+  onDownloadProposal: () => undefined,
 };
 
 function completedResult(
@@ -64,7 +72,7 @@ function readyReviewState(result: ProviderDerivedRuntimePreviewClientResult) {
   return markProviderDerivedSelectionReady(
     toggleProviderDerivedSignalSelection(
       initializeProviderDerivedRuntimeReview(result),
-      "signal-1",
+      "gmail-sandbox-follow_up_required-2026-06-01T10-00-00-000Z-0",
       result.signals,
     ),
   );
@@ -80,6 +88,7 @@ describe("ProviderDerivedEnrichmentProposalPanelView", () => {
         isPreviewLoading={false}
         proposal={null}
         buildEnabled={false}
+        {...noopViewProps}
         onBuildProposal={() => undefined}
       />,
     );
@@ -104,6 +113,7 @@ describe("ProviderDerivedEnrichmentProposalPanelView", () => {
         isPreviewLoading={false}
         proposal={null}
         buildEnabled={buildEnabled}
+        {...noopViewProps}
         onBuildProposal={() => undefined}
       />,
     );
@@ -128,6 +138,7 @@ describe("ProviderDerivedEnrichmentProposalPanelView", () => {
         isPreviewLoading={false}
         proposal={proposal}
         buildEnabled={true}
+        {...noopViewProps}
         onBuildProposal={() => undefined}
       />,
     );
@@ -158,6 +169,7 @@ describe("ProviderDerivedEnrichmentProposalPanelView", () => {
         isPreviewLoading={false}
         proposal={proposal}
         buildEnabled={false}
+        {...noopViewProps}
         onBuildProposal={() => undefined}
       />,
     );
@@ -179,6 +191,9 @@ describe("ProviderDerivedEnrichmentProposalPanelView", () => {
         proposal={null}
         buildEnabled={true}
         onBuildProposal={onBuildProposal}
+        downloadEnabled={false}
+        exportStatus="idle"
+        onDownloadProposal={() => undefined}
       />,
     );
 
@@ -193,11 +208,96 @@ describe("ProviderDerivedEnrichmentProposalPanelView", () => {
         isPreviewLoading={false}
         proposal={null}
         buildEnabled={true}
+        {...noopViewProps}
         onBuildProposal={() => undefined}
       />,
     );
 
     expect(html).toContain(`aria-label="${PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_BUILD_LABEL}"`);
+  });
+
+  it("shows disabled download button for invalid proposal", () => {
+    const result = completedResult([reviewableSignal]);
+    const proposal = buildProviderDerivedEnrichmentProposal({
+      previewResult: result,
+      reviewState: initializeProviderDerivedRuntimeReview(result),
+      generatedAt,
+    });
+
+    const html = renderToStaticMarkup(
+      <ProviderDerivedEnrichmentProposalPanelView
+        previewResult={result}
+        reviewState={initializeProviderDerivedRuntimeReview(result)}
+        isPreviewLoading={false}
+        proposal={proposal}
+        buildEnabled={false}
+        downloadEnabled={false}
+        exportStatus="idle"
+        onBuildProposal={() => undefined}
+        onDownloadProposal={() => undefined}
+      />,
+    );
+
+    expect(proposal.status).toBe("invalid");
+    expect(html).not.toContain('data-testid="provider-derived-enrichment-proposal-download"');
+  });
+
+  it("enables download button for ready proposal and shows downloaded status", () => {
+    const result = completedResult([reviewableSignal]);
+    const reviewState = readyReviewState(result);
+    const proposal = buildProviderDerivedEnrichmentProposal({
+      previewResult: result,
+      reviewState,
+      generatedAt,
+    });
+
+    const html = renderToStaticMarkup(
+      <ProviderDerivedEnrichmentProposalPanelView
+        previewResult={result}
+        reviewState={reviewState}
+        isPreviewLoading={false}
+        proposal={proposal}
+        buildEnabled={true}
+        downloadEnabled={true}
+        exportStatus="downloaded"
+        onBuildProposal={() => undefined}
+        onDownloadProposal={() => undefined}
+      />,
+    );
+
+    expect(html).toContain('data-testid="provider-derived-enrichment-proposal-download"');
+    expect(html).not.toMatch(/disabled=""[^>]*data-testid="provider-derived-enrichment-proposal-download"/);
+    expect(html).toContain(PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_DOWNLOAD_LABEL);
+    expect(html).toContain(PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_DOWNLOADED_MESSAGE);
+    expect(html).not.toContain('"schema":"devflow.provider-derived-enrichment-proposal"');
+    expect(html).not.toMatch(/data-testid="provider-derived-enrichment-proposal-import"/);
+  });
+
+  it("does not invoke download handler from static render", () => {
+    const onDownloadProposal = vi.fn();
+    const result = completedResult([reviewableSignal]);
+    const reviewState = readyReviewState(result);
+    const proposal = buildProviderDerivedEnrichmentProposal({
+      previewResult: result,
+      reviewState,
+      generatedAt,
+    });
+
+    renderToStaticMarkup(
+      <ProviderDerivedEnrichmentProposalPanelView
+        previewResult={result}
+        reviewState={reviewState}
+        isPreviewLoading={false}
+        proposal={proposal}
+        buildEnabled={true}
+        downloadEnabled={true}
+        exportStatus="idle"
+        onBuildProposal={() => undefined}
+        onDownloadProposal={onDownloadProposal}
+      />,
+    );
+
+    expect(onDownloadProposal).not.toHaveBeenCalled();
   });
 });
 
@@ -212,8 +312,16 @@ describe("ProviderDerivedEnrichmentProposalPanel module boundaries", () => {
 
     if (panelSource && "default" in panelSource) {
       expect(String(panelSource.default)).not.toMatch(
-        /localStorage|sessionStorage|fetch\(|axios|applyToCareerBundle|exportCareerBundle|prisma/i,
+        /localStorage|sessionStorage|fetch\(|axios|importCareerBundle|saveProposal|persistProposal|prisma/i,
       );
+    }
+
+    const exportSource = await import(
+      "../lib/provider-runtime/provider-derived-enrichment-proposal-export.ts?raw"
+    ).catch(() => null);
+
+    if (exportSource && "default" in exportSource) {
+      expect(String(exportSource.default)).not.toMatch(/localStorage|sessionStorage|fetch\(/i);
     }
 
     if (proposalSource && "default" in proposalSource) {

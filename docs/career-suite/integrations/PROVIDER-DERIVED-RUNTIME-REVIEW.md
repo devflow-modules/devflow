@@ -23,6 +23,7 @@ user runs read-only preview
   → user selects or dismisses signals
   → optional "Mark selection ready"
   → optional "Build enrichment proposal" (see [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md))
+  → optional "Download proposal" (see [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT.md))
   → no save, no apply, no provider calls
 ```
 
