@@ -263,3 +263,33 @@ export {
   isGmailReadOnlyAdapterResultSafe,
   isGmailReadOnlySafetyPolicySafe,
 } from "./gmail-readonly-adapter/index.js";
+
+export type {
+  CalendarDerivedSignal,
+  CalendarDerivedSignalKind,
+  CalendarEphemeralEventMetadata,
+  CalendarReadOnlyAdapter,
+  CalendarReadOnlyAdapterBlockReason,
+  CalendarReadOnlyAdapterRequest,
+  CalendarReadOnlyAdapterRequestEvaluation,
+  CalendarReadOnlyAdapterResult,
+  CalendarReadOnlyAdapterStatus,
+  CalendarReadOnlyMetadataProvider,
+  CalendarReadOnlyRuntime,
+  CalendarReadOnlySafetyPolicy,
+} from "./calendar-readonly-adapter/index.js";
+
+export {
+  CALENDAR_READONLY_DEFAULT_MAX_EVENTS,
+  CALENDAR_READONLY_MAX_SAFE_EVENT_LIMIT,
+  assertCalendarReadOnlySafetyPolicy,
+  collectCalendarReadOnlyAdapterWarnings,
+  collectCalendarReadOnlySafetyPolicyWarnings,
+  createBlockedCalendarReadOnlyAdapterResult,
+  createCalendarReadOnlyAdapterRequest,
+  createCalendarReadOnlyAdapterResult,
+  createCalendarReadOnlySafetyPolicy,
+  evaluateCalendarReadOnlyAdapterRequest,
+  isCalendarReadOnlyAdapterResultSafe,
+  isCalendarReadOnlySafetyPolicySafe,
+} from "./calendar-readonly-adapter/index.js";

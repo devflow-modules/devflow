@@ -164,6 +164,14 @@ The contract does not call Gmail, import messages, retain bodies or snippets, ex
 
 Implementation: `@devflow/career-sync` `gmail-readonly-adapter/` — request/result types, safety policy, block reasons, and `GmailReadOnlyAdapter` interface only. Requires server-verified connection for future `nango` runtime. Complements existing `gmail-sync` fixture previews and `provider-adapter` generic contracts.
 
+### Calendar read-only adapter contract
+
+Career Suite defines a privacy-first Calendar read-only adapter contract for future derived career signals.
+
+The contract does not call Calendar, import events, retain descriptions, locations, attendee addresses or meeting links, expose provider tokens, or update applications automatically.
+
+Implementation: `@devflow/career-sync` `calendar-readonly-adapter/` — request/result types, safety policy, block reasons, and `CalendarReadOnlyAdapter` interface only. Requires server-verified connection for future `nango` runtime. Complements existing `calendar-sync` fixture previews and `provider-adapter` generic contracts.
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab

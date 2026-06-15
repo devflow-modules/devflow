@@ -28,6 +28,7 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - Provider connection status from Nango runtime boundary
 - Server-side Nango connection verification boundary
 - Gmail read-only adapter contract — `@devflow/career-sync` `gmail-readonly-adapter`
+- Calendar read-only adapter contract — `@devflow/career-sync` `calendar-readonly-adapter`
 
 **Not implemented:**
 

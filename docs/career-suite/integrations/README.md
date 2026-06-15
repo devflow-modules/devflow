@@ -9,12 +9,13 @@ This folder documents **external integration labs** for the Career Suite. These 
 3. **[Real Provider Runtime Readiness Checklist](./REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md)** — final gates before any real OAuth/Nango/Gmail/Calendar runtime PR
 4. **[Provider Runtime Environment and Secrets Boundary](./PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md)** — server/runtime-only flags and secrets before real OAuth
 5. **[Gmail Read-Only Adapter Contract](./GMAIL-READONLY-ADAPTER-CONTRACT.md)** — privacy-first derived-signal contract (no Gmail API runtime)
-6. **[LibreChat + MCP lab](./LIBRECHAT-MCP-LAB.md)** — local agent UI over deterministic tools
-7. **[LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)** — connect upstream LibreChat to `@devflow/career-agents-mcp` stdio
-8. **[Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth/sync adapter (docs + sandbox contracts; no runtime OAuth in apps)
-9. **[Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)** — privacy rules for Gmail/Calendar derived signals and CareerBundle sync enrichment
-10. **Multi-agent orchestration** — after MCP tools and sync boundaries are stable
-11. **OpenClaw POC** — optional automation surface; not product-critical
+6. **[Calendar Read-Only Adapter Contract](./CALENDAR-READONLY-ADAPTER-CONTRACT.md)** — privacy-first derived-signal contract (no Calendar API runtime)
+7. **[LibreChat + MCP lab](./LIBRECHAT-MCP-LAB.md)** — local agent UI over deterministic tools
+8. **[LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)** — connect upstream LibreChat to `@devflow/career-agents-mcp` stdio
+9. **[Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth/sync adapter (docs + sandbox contracts; no runtime OAuth in apps)
+10. **[Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)** — privacy rules for Gmail/Calendar derived signals and CareerBundle sync enrichment
+11. **Multi-agent orchestration** — after MCP tools and sync boundaries are stable
+12. **OpenClaw POC** — optional automation surface; not product-critical
 
 See also: **[MCP server candidates](./MCP-SERVER-CANDIDATES.md)**.
 
@@ -56,6 +57,7 @@ No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persisten
 | Real provider runtime readiness | **Documented** | [REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md](./REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md) — pre-OAuth gates |
 | Provider runtime env/secrets boundary | **Documented** | [PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md](./PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md) — server/runtime only |
 | Gmail read-only adapter contract | **Contract only** | [GMAIL-READONLY-ADAPTER-CONTRACT.md](./GMAIL-READONLY-ADAPTER-CONTRACT.md) — no Gmail API runtime |
+| Calendar read-only adapter contract | **Contract only** | [CALENDAR-READONLY-ADAPTER-CONTRACT.md](./CALENDAR-READONLY-ADAPTER-CONTRACT.md) — no Calendar API runtime |
 | MCP SDK | **Implemented locally** | `@devflow/career-agents-mcp` stdio transport |
 | LibreChat + MCP lab | **Lab docs only** | No LibreChat product dependency |
 | LibreChat local wiring | **Documented** | [LIBRECHAT-LOCAL-WIRING.md](./LIBRECHAT-LOCAL-WIRING.md) |
@@ -74,6 +76,7 @@ No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persisten
 - [Real Provider Runtime Readiness Checklist](./REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md)
 - [Provider Runtime Environment and Secrets Boundary](./PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md)
 - [Gmail Read-Only Adapter Contract](./GMAIL-READONLY-ADAPTER-CONTRACT.md)
+- [Calendar Read-Only Adapter Contract](./CALENDAR-READONLY-ADAPTER-CONTRACT.md)
 - [LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)
 - [Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)
 - [Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)
