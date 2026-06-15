@@ -100,6 +100,7 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 - Provider-derived runtime composition — ApplyFlow `executeApplyFlowProviderDerivedRuntimeBoundary`
 - Provider-derived runtime preview — ApplyFlow `POST /provider-runtime/nango/derived-preview` (explicit click, no persistence)
 - Provider-derived runtime review — ApplyFlow in-memory review of preview signals (select/dismiss locally; no persistence, no CareerBundle mutation)
+- Provider-derived enrichment proposal — ApplyFlow ephemeral enrichment proposal from selected signals (no persistence, no CareerBundle mutation)
 - Provider-derived sandbox composition — `@devflow/career-sync` `composeProviderDerivedSignals`
 - Provider-derived enrichment adapter — `@devflow/career-sync` `adaptProviderDerivedSignalsToSyncEnrichment`
 
@@ -127,6 +128,7 @@ This remains read-only and does not activate OAuth, Nango runtime, provider call
 - Provider-derived runtime composition (Gmail + Calendar signals) is **implemented** — no CareerBundle auto-attach.
 - Provider-derived runtime preview (opt-in HTTP + UI) is **implemented** — ephemeral, no persistence; server independently verifies both Nango connections (client state is UX-only).
 - Provider-derived runtime review (in-memory UI) is **implemented** — users select or dismiss preview signals locally; nothing is saved, applied to CareerBundle, or sent to providers.
+- Provider-derived enrichment proposal (in-memory UI) is **implemented** — users can build a temporary enrichment proposal from selected signals; nothing is saved or applied automatically.
 - Background sync and CareerBundle auto-enrichment from runtime are **not implemented yet**.
 
 ### Next

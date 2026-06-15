@@ -22,6 +22,7 @@ user runs read-only preview
   → review panel initializes in-memory state
   → user selects or dismisses signals
   → optional "Mark selection ready"
+  → optional "Build enrichment proposal" (see [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md))
   → no save, no apply, no provider calls
 ```
 

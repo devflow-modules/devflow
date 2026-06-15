@@ -1,11 +1,14 @@
 import type { CalendarReadOnlyAdapter, CalendarReadOnlyAdapterRequest } from "../calendar-readonly-adapter/types.js";
 import type { GmailReadOnlyAdapter, GmailReadOnlyAdapterRequest } from "../gmail-readonly-adapter/types.js";
-import { composeProviderDerivedSignals } from "./composition.js";
+import { composeProviderDerivedSignals, sortProviderDerivedSignals } from "./composition.js";
 import { createEmptyProviderDerivedSignalSummary, summarizeProviderDerivedSignals } from "./summary.js";
-import type { ProviderDerivedSandboxCompositionResult } from "./types.js";
+import type { ProviderDerivedSandboxCompositionResult, ProviderDerivedSignal } from "./types.js";
 
 const COMPLETED_MESSAGE =
   "Sandbox provider-derived signals were composed safely from fake Gmail and Calendar metadata.";
+
+const SELECTED_SIGNALS_MESSAGE =
+  "Selected provider-derived signals were composed for enrichment compatibility.";
 
 const ERROR_MESSAGE = "Sandbox provider-derived signal composition failed safely.";
 
@@ -39,6 +42,21 @@ function createSandboxCompositionSafetyFlags(): Pick<
     retainedProviderIdentifiers: false,
     hasToken: false,
     userReviewRequired: true,
+  };
+}
+
+export function createSelectedSignalsComposition(
+  signals: readonly ProviderDerivedSignal[],
+): ProviderDerivedSandboxCompositionResult {
+  const sorted = sortProviderDerivedSignals(signals);
+
+  return {
+    ...createSandboxCompositionSafetyFlags(),
+    status: "completed",
+    signals: sorted,
+    summary: summarizeProviderDerivedSignals(sorted),
+    warnings: [],
+    messages: [SELECTED_SIGNALS_MESSAGE],
   };
 }
 

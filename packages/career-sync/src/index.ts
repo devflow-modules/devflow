@@ -348,9 +348,11 @@ export type {
 
 export {
   composeProviderDerivedSignals,
+  sortProviderDerivedSignals,
   createEmptyProviderDerivedSignalSummary,
   createFailedProviderDerivedSandboxCompositionResult,
   createProviderDerivedSandboxCompositionResult,
+  createSelectedSignalsComposition,
   executeProviderDerivedSandboxComposition,
   normalizeCalendarDerivedSignal,
   normalizeGmailDerivedSignal,

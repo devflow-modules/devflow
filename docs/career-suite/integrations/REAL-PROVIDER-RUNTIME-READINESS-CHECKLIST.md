@@ -36,6 +36,7 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - Provider-derived runtime composition — ApplyFlow `executeApplyFlowProviderDerivedRuntimeBoundary`
 - Provider-derived runtime preview — ApplyFlow `POST /provider-runtime/nango/derived-preview` (opt-in, ephemeral; server verifies Gmail + Calendar via Nango before runtimes; client connection state is UX-only)
 - Provider-derived runtime review — ApplyFlow `ProviderDerivedRuntimeReviewPanel` (in-memory selection/dismiss of preview signals; no persistence, no CareerBundle mutation, no provider calls)
+- Provider-derived enrichment proposal — ApplyFlow `buildProviderDerivedEnrichmentProposal` (ephemeral proposal from selected signals; no persistence, no CareerBundle mutation)
 - Provider-derived sandbox composition — `@devflow/career-sync` `composeProviderDerivedSignals`
 - Provider-derived enrichment adapter — `@devflow/career-sync` `adaptProviderDerivedSignalsToSyncEnrichment`
 

@@ -30,6 +30,8 @@ Provider-derived runtime preview (`POST /provider-runtime/nango/derived-preview`
 
 Provider-derived runtime review (`ProviderDerivedRuntimeReviewPanel`) operates only on client-safe `ProviderDerivedSignal[]` already returned by the preview. Users can select or dismiss signals in memory before any future explicit action. Review state is not persisted, does not modify CareerBundle or applications, and does not trigger provider calls or background processing.
 
+Provider-derived enrichment proposal (`buildProviderDerivedEnrichmentProposal`) builds an ephemeral `CareerBundleUnifiedSyncEnrichment` proposal from explicitly selected signals via `createSelectedSignalsComposition` and `adaptProviderDerivedSignalsToSyncEnrichment`. The proposal is not persisted, not applied to CareerBundle or applications, and does not trigger provider calls.
+
 Provider-derived sandbox composition (`composeProviderDerivedSignals`, `createProviderDerivedSandboxCompositionResult`) deterministically combines `GmailDerivedSignal` and `CalendarDerivedSignal` into `ProviderDerivedSignal`.
 
 Provider-derived enrichment adapter (`adaptProviderDerivedSignalsToSyncEnrichment`) maps sandbox composition results to existing `CareerBundleUnifiedSyncEnrichment` without altering the CareerBundle schema or auto-attaching enrichment.

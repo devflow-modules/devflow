@@ -5,6 +5,7 @@ import {
   PROVIDER_DERIVED_RUNTIME_PREVIEW_TITLE,
 } from "./provider-derived-runtime-preview-content";
 import { PROVIDER_DERIVED_RUNTIME_REVIEW_TITLE } from "./provider-derived-runtime-review-content";
+import { PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_TITLE } from "./provider-derived-enrichment-proposal-content";
 import { ProviderDerivedRuntimePreviewPanel } from "./provider-derived-runtime-preview-panel";
 
 const connectedVerification = (provider: "gmail" | "calendar") => ({
@@ -37,6 +38,7 @@ describe("ProviderDerivedRuntimePreviewPanel render", () => {
     expect(html).toContain("No raw provider data retained");
     expect(html).toContain("No CareerBundle changes");
     expect(html).toContain(PROVIDER_DERIVED_RUNTIME_REVIEW_TITLE);
+    expect(html).toContain(PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_TITLE);
     expect(html).toContain('disabled=""');
     expect(html).not.toMatch(/access_token|connectionId|providerPayload/i);
   });
@@ -50,7 +52,8 @@ describe("ProviderDerivedRuntimePreviewPanel render", () => {
       />,
     );
 
-    expect(html).not.toContain('disabled=""');
+    expect(html).not.toMatch(/disabled=""[^>]*data-testid="provider-derived-runtime-preview-button"/);
+    expect(html).not.toMatch(/data-testid="provider-derived-runtime-preview-button"[^>]*disabled=""/);
   });
 
   it("keeps preview button disabled without Gmail verification", () => {

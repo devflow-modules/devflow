@@ -10,6 +10,8 @@ The adapter does not access real provider data, modify the CareerBundle schema, 
 |------|--------|
 | Provider-derived sandbox composition | **Implemented** — `composeProviderDerivedSignals` |
 | Enrichment compatibility adapter | **Implemented** — `adaptProviderDerivedSignalsToSyncEnrichment` |
+| Selected-signals composition helper | **Implemented** — `createSelectedSignalsComposition` (compatibility bridge for runtime-selected signals) |
+| ApplyFlow enrichment proposal UI | **Implemented** — see [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md) |
 | CareerBundle schema change | **Not in this PR** |
 | Automatic CareerBundle attachment | **Not implemented** |
 

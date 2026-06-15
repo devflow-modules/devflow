@@ -23,6 +23,7 @@ import {
   createEmptyProviderDerivedSignalSummary,
   createFailedProviderDerivedSandboxCompositionResult,
   createProviderDerivedSandboxCompositionResult,
+  createSelectedSignalsComposition,
   executeProviderDerivedSandboxComposition,
   normalizeCalendarDerivedSignal,
   normalizeGmailDerivedSignal,
@@ -493,5 +494,23 @@ describe("summary flags", () => {
     expect(interviewSummary.hasPendingActionSignal).toBe(false);
     expect(pendingSummary.hasInterviewSignal).toBe(false);
     expect(pendingSummary.hasPendingActionSignal).toBe(true);
+  });
+});
+
+describe("createSelectedSignalsComposition", () => {
+  it("builds completed composition from selected provider signals with recalculated summary", () => {
+    const signals = composeProviderDerivedSignals({
+      gmailSignals: [gmailSignal({ company: "Acme" })],
+      calendarSignals: [calendarSignal({ company: "Beta" })],
+    });
+    const selected = createSelectedSignalsComposition([signals[1]!]);
+
+    expect(selected.status).toBe("completed");
+    expect(selected.runtime).toBe("sandbox");
+    expect(selected.signals).toHaveLength(1);
+    expect(selected.summary.totalSignals).toBe(1);
+    expect(selected.summary.calendarSignalCount).toBe(1);
+    expect(selected.summary.gmailSignalCount).toBe(0);
+    expect(selected.summary.companies).toEqual(["Beta"]);
   });
 });
