@@ -1,4 +1,5 @@
 const EMAIL_DOMAIN_PATTERN = /^[^\s@]+@([a-z0-9.-]+\.[a-z]{2,})$/i;
+const CALENDAR_DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 type CalendarDateTimeLike = {
   dateTime?: string;
@@ -9,6 +10,39 @@ type CalendarDateTimeLike = {
 function normalizeDomain(value: string): string | undefined {
   const trimmed = value.trim().toLowerCase();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function isValidCalendarDateOnly(date: string): boolean {
+  const trimmed = date.trim();
+
+  if (!CALENDAR_DATE_ONLY_PATTERN.test(trimmed)) {
+    return false;
+  }
+
+  const parsed = Date.parse(`${trimmed}T00:00:00.000Z`);
+
+  if (!Number.isFinite(parsed)) {
+    return false;
+  }
+
+  return new Date(parsed).toISOString().slice(0, 10) === trimmed;
+}
+
+function toIsoFromDateOnly(date: string): string | undefined {
+  if (!isValidCalendarDateOnly(date)) {
+    return undefined;
+  }
+
+  return `${date.trim()}T00:00:00.000Z`;
+}
+
+function toIsoFromDateTime(dateTime: string): string | undefined {
+  const parsed = Date.parse(dateTime.trim());
+  if (!Number.isFinite(parsed)) {
+    return undefined;
+  }
+
+  return new Date(parsed).toISOString();
 }
 
 export function extractCalendarEmailDomain(value: string | undefined): string | undefined {
@@ -36,17 +70,8 @@ export function extractCalendarEmailDomains(values: Array<string | undefined>): 
   return [...new Set(domains)].sort((left, right) => left.localeCompare(right));
 }
 
-function toIsoFromDateOnly(date: string): string {
-  return `${date.trim()}T00:00:00.000Z`;
-}
-
-function toIsoFromDateTime(dateTime: string): string | undefined {
-  const parsed = Date.parse(dateTime.trim());
-  if (!Number.isFinite(parsed)) {
-    return undefined;
-  }
-
-  return new Date(parsed).toISOString();
+export function isCalendarEventTimeWindowValid(startsAt: string, endsAt: string): boolean {
+  return endsAt > startsAt;
 }
 
 export function normalizeCalendarEventStart(input: unknown): {
@@ -61,8 +86,14 @@ export function normalizeCalendarEventStart(input: unknown): {
   const value = input as CalendarDateTimeLike;
 
   if (typeof value.date === "string" && value.date.trim().length > 0) {
+    const startsAt = toIsoFromDateOnly(value.date);
+
+    if (!startsAt) {
+      return { isAllDay: false };
+    }
+
     return {
-      startsAt: toIsoFromDateOnly(value.date),
+      startsAt,
       timezone: value.timeZone?.trim() || undefined,
       isAllDay: true,
     };
@@ -96,7 +127,7 @@ export function normalizeCalendarEventEnd(
   const value = input as CalendarDateTimeLike;
 
   if (isAllDay && typeof value.date === "string" && value.date.trim().length > 0) {
-    return `${value.date.trim()}T23:59:59.000Z`;
+    return toIsoFromDateOnly(value.date);
   }
 
   if (typeof value.dateTime === "string" && value.dateTime.trim().length > 0) {

@@ -160,7 +160,9 @@ describe("executeApplyFlowCalendarReadOnlyRuntimeBoundary", () => {
   it("returns sanitized provider error without partial data", async () => {
     const failingProvider: CalendarNangoRuntimeMetadataProvider = {
       listEventMetadata: vi.fn(async () => {
-        throw new Error("nango sdk failure access_token");
+        throw new Error(
+          "nango sdk failure access_token connectionId evt-1 recruiter@jobs.example stack",
+        );
       }),
     };
 
@@ -174,8 +176,29 @@ describe("executeApplyFlowCalendarReadOnlyRuntimeBoundary", () => {
       },
     );
 
+    const serialized = JSON.stringify(result);
+
     expect(result.status).toBe("error");
     expect(result.signals).toEqual([]);
-    expect(JSON.stringify(result)).not.toMatch(/access_token/);
+    expect(serialized).not.toMatch(/access_token|connectionId|evt-1|@jobs\.example|stack/i);
+  });
+
+  it("blocks invalid request window before provider call", async () => {
+    const result = await executeApplyFlowCalendarReadOnlyRuntimeBoundary(
+      { explicitConsent: true },
+      {
+        env: allFlagsOnEnv,
+        connectionVerified: true,
+        requestedAt,
+        window: {
+          from: "2026-06-30T00:00:00.000Z",
+          to: "2026-06-01T00:00:00.000Z",
+        },
+        runtimeDeps: { metadataProvider },
+      },
+    );
+
+    expect(result.status).toBe("blocked");
+    expect(metadataProvider.listEventMetadata).not.toHaveBeenCalled();
   });
 });

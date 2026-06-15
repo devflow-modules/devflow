@@ -33,7 +33,22 @@ The adapter processes limited Calendar metadata without retaining event titles, 
 | `orderBy` | `startTime` |
 | `timeMin` / `timeMax` | From request window when provided |
 | `fields` | `items(start,end,status,attendees,organizer,conferenceData,recurrence),nextPageToken` |
-| Pagination | First page only; stops at requested limit — no unlimited follow |
+| Pagination | v1 processes only the first bounded page — no recursive `nextPageToken` follow |
+| OAuth scope | `calendar.events.read` (connect session launcher) |
+
+### All-day event semantics
+
+Google Calendar uses an **exclusive** `end.date` for all-day events. Example: `start.date=2026-06-20`, `end.date=2026-06-21` represents only 20 June.
+
+Normalized output:
+
+```txt
+startsAt = 2026-06-20T00:00:00.000Z
+endsAt   = 2026-06-21T00:00:00.000Z   (exclusive boundary, not 23:59:59)
+isAllDay = true
+```
+
+Events with invalid dates or `endsAt <= startsAt` are discarded.
 
 ### Fields deliberately not requested
 
@@ -75,14 +90,14 @@ No HTTP route or UI in this PR — boundary is tested directly.
 - `startsAt`, `endsAt`, `timezone?`
 - `status` (`confirmed` | `tentative` | `cancelled` | `unknown`)
 - `isAllDay`
-- `attendeeCount`, `externalAttendeeCount` (always `0` when internal/external cannot be distinguished safely)
+- `attendeeCount`, `externalAttendeeCount` (`0` in v1 means **not evaluated**, not definitively internal)
 - `organizerDomain?`, `attendeeDomains[]` (domains only)
 - `hasConference` (boolean — conference payload discarded)
 - `isRecurring` (boolean — RRULE payload discarded)
 
 ## Runtime classifier
 
-**Separate from sandbox.** Does not use `CalendarSandboxScenario` markers. First runtime release returns `[]` unless future PRs add documented metadata-only rules with unequivocal evidence.
+**Separate from sandbox.** Does not use `CalendarSandboxScenario` markers. First runtime release returns `[]` by default unless future PRs add documented metadata-only rules with unequivocal evidence.
 
 Does **not** infer `interview_scheduled`, `interview_cancelled`, `recruiter_call_likely`, or `application_deadline_detected` from conference flags, attendee counts, or duration alone.
 

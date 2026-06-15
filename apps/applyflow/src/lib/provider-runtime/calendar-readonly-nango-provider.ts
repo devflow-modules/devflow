@@ -12,6 +12,7 @@ import {
   detectCalendarIsRecurring,
   extractCalendarEmailDomain,
   extractCalendarEmailDomains,
+  isCalendarEventTimeWindowValid,
   normalizeCalendarEventEnd,
   normalizeCalendarEventStart,
   normalizeCalendarEventStatus,
@@ -87,7 +88,12 @@ function normalizeCalendarEventMetadata(event: CalendarEventRaw): CalendarEpheme
     return null;
   }
 
-  const endsAt = normalizeCalendarEventEnd(event.end, start.isAllDay) ?? start.startsAt;
+  const endsAt = normalizeCalendarEventEnd(event.end, start.isAllDay);
+
+  if (!endsAt || !isCalendarEventTimeWindowValid(start.startsAt, endsAt)) {
+    return null;
+  }
+
   const attendeeEmails = (event.attendees ?? []).map((attendee) => attendee.email);
   const attendeeDomains = extractCalendarEmailDomains(attendeeEmails);
 

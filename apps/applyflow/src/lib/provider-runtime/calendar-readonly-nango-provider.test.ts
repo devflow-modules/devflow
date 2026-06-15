@@ -112,7 +112,7 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
     expect(CALENDAR_EVENTS_LIST_ENDPOINT).toContain("/calendars/primary/events");
   });
 
-  it("normalizes all-day events", async () => {
+  it("normalizes single-day all-day events with exclusive end.date", async () => {
     listConnections.mockResolvedValue({
       connections: [{ connection_id: "conn-cal-1" }],
     });
@@ -121,8 +121,8 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
         items: [
           {
             status: "confirmed",
-            start: { date: "2026-06-25" },
-            end: { date: "2026-06-25" },
+            start: { date: "2026-06-20" },
+            end: { date: "2026-06-21" },
           },
         ],
       },
@@ -135,9 +135,122 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     const metadata = await provider.listEventMetadata({ limit: 5 });
 
+    expect(metadata).toHaveLength(1);
     expect(metadata[0]?.isAllDay).toBe(true);
-    expect(metadata[0]?.startsAt).toBe("2026-06-25T00:00:00.000Z");
-    expect(metadata[0]?.endsAt).toBe("2026-06-25T23:59:59.000Z");
+    expect(metadata[0]?.startsAt).toBe("2026-06-20T00:00:00.000Z");
+    expect(metadata[0]?.endsAt).toBe("2026-06-21T00:00:00.000Z");
+  });
+
+  it("normalizes multi-day all-day events with exclusive end.date", async () => {
+    listConnections.mockResolvedValue({
+      connections: [{ connection_id: "conn-cal-1" }],
+    });
+    get.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            start: { date: "2026-06-20" },
+            end: { date: "2026-06-23" },
+          },
+        ],
+      },
+    });
+
+    const provider = createCalendarNangoRuntimeMetadataProvider({
+      secretKey: "test-secret",
+      sdk,
+    });
+
+    const metadata = await provider.listEventMetadata({ limit: 5 });
+
+    expect(metadata[0]?.startsAt).toBe("2026-06-20T00:00:00.000Z");
+    expect(metadata[0]?.endsAt).toBe("2026-06-23T00:00:00.000Z");
+  });
+
+  it("discards all-day events with invalid start date", async () => {
+    listConnections.mockResolvedValue({
+      connections: [{ connection_id: "conn-cal-1" }],
+    });
+    get.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            start: { date: "invalid" },
+            end: { date: "2026-06-21" },
+          },
+        ],
+      },
+    });
+
+    const provider = createCalendarNangoRuntimeMetadataProvider({
+      secretKey: "test-secret",
+      sdk,
+    });
+
+    const metadata = await provider.listEventMetadata({ limit: 5 });
+
+    expect(metadata).toEqual([]);
+  });
+
+  it("discards events when end is not after start", async () => {
+    listConnections.mockResolvedValue({
+      connections: [{ connection_id: "conn-cal-1" }],
+    });
+    get.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            start: { dateTime: "2026-06-20T15:00:00.000Z" },
+            end: { dateTime: "2026-06-20T14:00:00.000Z" },
+          },
+          {
+            start: { date: "2026-06-20" },
+            end: { date: "2026-06-20" },
+          },
+        ],
+      },
+    });
+
+    const provider = createCalendarNangoRuntimeMetadataProvider({
+      secretKey: "test-secret",
+      sdk,
+    });
+
+    const metadata = await provider.listEventMetadata({ limit: 5 });
+
+    expect(metadata).toEqual([]);
+  });
+
+  it("counts attendee entries and keeps unique attendee domains", async () => {
+    listConnections.mockResolvedValue({
+      connections: [{ connection_id: "conn-cal-1" }],
+    });
+    get.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            start: { dateTime: "2026-06-20T10:00:00.000Z" },
+            end: { dateTime: "2026-06-20T11:00:00.000Z" },
+            attendees: [
+              { email: "a@beta.example" },
+              { email: "b@beta.example" },
+              { email: "invalid" },
+            ],
+          },
+        ],
+      },
+    });
+
+    const provider = createCalendarNangoRuntimeMetadataProvider({
+      secretKey: "test-secret",
+      sdk,
+    });
+
+    const metadata = await provider.listEventMetadata({ limit: 5 });
+
+    expect(metadata[0]?.attendeeCount).toBe(3);
+    expect(metadata[0]?.externalAttendeeCount).toBe(0);
+    expect(metadata[0]?.attendeeDomains).toEqual(["beta.example"]);
   });
 
   it("respects maxResults limit and stops at requested limit", async () => {
