@@ -116,5 +116,6 @@ Do **not** state:
 ## Related docs
 
 - [Calendar Read-Only Adapter Contract](./CALENDAR-READONLY-ADAPTER-CONTRACT.md)
+- [Provider-Derived Sandbox Composition](./PROVIDER-DERIVED-SANDBOX-COMPOSITION.md)
 - [Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)
 - [Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)

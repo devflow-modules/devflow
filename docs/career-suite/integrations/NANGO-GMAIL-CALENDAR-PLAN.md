@@ -184,6 +184,14 @@ Career Suite includes a deterministic Calendar read-only sandbox adapter using f
 
 The sandbox adapter does not call Calendar, import real events, retain descriptions, locations, attendee addresses or meeting links, expose provider tokens, or update applications automatically.
 
+### Provider-derived sandbox composition
+
+Career Suite can deterministically compose review-required derived signals from fake Gmail and Calendar sandbox metadata.
+
+The composition does not access real provider data, retain raw payloads, expose tokens, update CareerBundle, or make automatic career decisions.
+
+Implementation: `@devflow/career-sync` `provider-derived-signals/` — see [PROVIDER-DERIVED-SANDBOX-COMPOSITION.md](./PROVIDER-DERIVED-SANDBOX-COMPOSITION.md).
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab

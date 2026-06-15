@@ -337,3 +337,22 @@ export type {
   CalendarSandboxScenario,
   CalendarSandboxScenarioProvider,
 } from "./calendar-readonly-adapter/index.js";
+
+export type {
+  ProviderDerivedSandboxCompositionResult,
+  ProviderDerivedSignal,
+  ProviderDerivedSignalKind,
+  ProviderDerivedSignalSource,
+  ProviderDerivedSignalSummary,
+} from "./provider-derived-signals/index.js";
+
+export {
+  composeProviderDerivedSignals,
+  createEmptyProviderDerivedSignalSummary,
+  createFailedProviderDerivedSandboxCompositionResult,
+  createProviderDerivedSandboxCompositionResult,
+  executeProviderDerivedSandboxComposition,
+  normalizeCalendarDerivedSignal,
+  normalizeGmailDerivedSignal,
+  summarizeProviderDerivedSignals,
+} from "./provider-derived-signals/index.js";
