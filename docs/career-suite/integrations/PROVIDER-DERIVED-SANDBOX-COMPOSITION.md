@@ -35,7 +35,7 @@ createProviderDerivedSandboxCompositionResult → ProviderDerivedSandboxComposit
 
 `ProviderDerivedSandboxCompositionResult` is a new composition boundary. Adapting it to `CareerBundleUnifiedSyncEnrichment` is a **separate future PR**. This PR does not alter CareerBundle schema or exports.
 
-Legacy modules (`gmail-sync`, `calendar-sync`, individual sandbox adapters) remain unchanged.
+Legacy `gmail-sync`, `calendar-sync`, and `buildCareerBundleSyncEnrichment` remain unchanged. Adapting composed signals to `CareerBundleUnifiedSyncEnrichment` is a separate step — see [PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md](./PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md).
 
 ## Normalized signal type
 
@@ -116,5 +116,6 @@ Do **not** state:
 
 - [Gmail Read-Only Sandbox Adapter](./GMAIL-READONLY-SANDBOX-ADAPTER.md)
 - [Calendar Read-Only Sandbox Adapter](./CALENDAR-READONLY-SANDBOX-ADAPTER.md)
+- [Provider-Derived Enrichment Adapter](./PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md)
 - [Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)
 - [Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)

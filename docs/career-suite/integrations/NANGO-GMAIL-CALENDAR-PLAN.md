@@ -192,6 +192,14 @@ The composition does not access real provider data, retain raw payloads, expose 
 
 Implementation: `@devflow/career-sync` `provider-derived-signals/` — see [PROVIDER-DERIVED-SANDBOX-COMPOSITION.md](./PROVIDER-DERIVED-SANDBOX-COMPOSITION.md).
 
+### Provider-derived enrichment adapter
+
+Career Suite includes a deterministic compatibility adapter from sandbox provider-derived signals to the existing sync enrichment contract.
+
+The adapter does not access real provider data, modify the CareerBundle schema, retain raw provider payloads, expose tokens, or update applications automatically.
+
+Implementation: `@devflow/career-sync` `adaptProviderDerivedSignalsToSyncEnrichment` — see [PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md](./PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md).
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab

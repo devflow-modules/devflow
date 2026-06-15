@@ -20,7 +20,9 @@ Calendar read-only adapter contract (`calendar-readonly-adapter`) defines future
 
 Calendar read-only sandbox adapter (`createCalendarReadOnlySandboxAdapter`) implements `CalendarReadOnlyAdapter` with deterministic fake event metadata fixtures and `CalendarDerivedSignal` output — complements legacy `calendar-sync` previews without replacing them.
 
-Provider-derived sandbox composition (`composeProviderDerivedSignals`, `createProviderDerivedSandboxCompositionResult`) deterministically combines `GmailDerivedSignal` and `CalendarDerivedSignal` into `ProviderDerivedSignal` — separate from `CareerBundleUnifiedSyncEnrichment`; CareerBundle schema unchanged in this PR.
+Provider-derived sandbox composition (`composeProviderDerivedSignals`, `createProviderDerivedSandboxCompositionResult`) deterministically combines `GmailDerivedSignal` and `CalendarDerivedSignal` into `ProviderDerivedSignal`.
+
+Provider-derived enrichment adapter (`adaptProviderDerivedSignalsToSyncEnrichment`) maps sandbox composition results to existing `CareerBundleUnifiedSyncEnrichment` without altering the CareerBundle schema or auto-attaching enrichment.
 
 Calendar sync previews must not retain meeting links, raw event descriptions, private unrelated events, or provider payloads. Derived signals should be reviewable and deletable by the user.
 
