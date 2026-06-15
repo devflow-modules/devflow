@@ -38,6 +38,7 @@ import { ProviderDerivedRuntimeSignalCard } from "./provider-derived-runtime-sig
 export type ProviderDerivedRuntimeReviewPanelProps = {
   result: ProviderDerivedRuntimePreviewClientResult | null;
   isPreviewLoading: boolean;
+  onReviewStateChange?: (state: ProviderDerivedRuntimeReviewState) => void;
 };
 
 function reviewEmptyMessage(input: {
@@ -230,6 +231,7 @@ export function ProviderDerivedRuntimeReviewPanelView({
 export function ProviderDerivedRuntimeReviewPanel({
   result,
   isPreviewLoading,
+  onReviewStateChange,
 }: ProviderDerivedRuntimeReviewPanelProps) {
   const [reviewState, setReviewState] = useState<ProviderDerivedRuntimeReviewState>(() =>
     syncReviewStateWithPreview(
@@ -246,6 +248,10 @@ export function ProviderDerivedRuntimeReviewPanel({
   useEffect(() => {
     setReviewState((previous) => syncReviewStateWithPreview(previous, { result, isPreviewLoading }));
   }, [result, isPreviewLoading]);
+
+  useEffect(() => {
+    onReviewStateChange?.(reviewState);
+  }, [onReviewStateChange, reviewState]);
 
   return (
     <ProviderDerivedRuntimeReviewPanelView

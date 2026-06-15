@@ -5,6 +5,12 @@ import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import type { ProviderConnectionVerificationResult } from "@devflow/career-sync";
 import { useEffect, useState } from "react";
+import { isEnrichmentProposalStale, type ProviderDerivedEnrichmentProposal } from "@/lib/provider-runtime/provider-derived-enrichment-proposal";
+import { ProviderDerivedEnrichmentProposalPanel } from "./provider-derived-enrichment-proposal-panel";
+import {
+  createInitialProviderDerivedRuntimeReviewState,
+  type ProviderDerivedRuntimeReviewState,
+} from "./provider-derived-runtime-review-state";
 import {
   runProviderDerivedRuntimePreview,
   type ProviderDerivedRuntimePreviewClientResult,
@@ -92,6 +98,11 @@ export function ProviderDerivedRuntimePreviewPanel({
   const [uiState, setUiState] = useState<ProviderDerivedRuntimePreviewUiState>("idle");
   const [previewResult, setPreviewResult] =
     useState<ProviderDerivedRuntimePreviewClientResult | null>(null);
+  const [reviewState, setReviewState] = useState<ProviderDerivedRuntimeReviewState>(
+    createInitialProviderDerivedRuntimeReviewState,
+  );
+  const [enrichmentProposal, setEnrichmentProposal] =
+    useState<ProviderDerivedEnrichmentProposal | null>(null);
 
   const gmailVerified = isGmailServerVerified(gmailVerification);
   const calendarVerified = isCalendarServerVerified(calendarVerification);
@@ -102,6 +113,8 @@ export function ProviderDerivedRuntimePreviewPanel({
   useEffect(() => {
     setPreviewResult(null);
     setUiState("idle");
+    setReviewState(createInitialProviderDerivedRuntimeReviewState());
+    setEnrichmentProposal(null);
   }, [
     explicitConsentChecked,
     gmailVerification?.state,
@@ -110,6 +123,18 @@ export function ProviderDerivedRuntimePreviewPanel({
     calendarVerification?.checkedAt,
   ]);
 
+  useEffect(() => {
+    if (
+      isEnrichmentProposalStale(enrichmentProposal, {
+        previewResult,
+        reviewState,
+        isPreviewLoading: uiState === "loading",
+      })
+    ) {
+      setEnrichmentProposal(null);
+    }
+  }, [enrichmentProposal, previewResult, reviewState, uiState]);
+
   async function handleRunPreview() {
     if (!previewEnabled) {
       return;
@@ -117,6 +142,7 @@ export function ProviderDerivedRuntimePreviewPanel({
 
     setUiState("loading");
     setPreviewResult(null);
+    setEnrichmentProposal(null);
 
     const outcome = await runProviderDerivedRuntimePreview({
       explicitConsentChecked,
@@ -269,6 +295,15 @@ export function ProviderDerivedRuntimePreviewPanel({
         <ProviderDerivedRuntimeReviewPanel
           result={previewResult}
           isPreviewLoading={uiState === "loading"}
+          onReviewStateChange={setReviewState}
+        />
+
+        <ProviderDerivedEnrichmentProposalPanel
+          previewResult={previewResult}
+          reviewState={reviewState}
+          isPreviewLoading={uiState === "loading"}
+          proposal={enrichmentProposal}
+          onProposalChange={setEnrichmentProposal}
         />
       </div>
     </ApplyFlowCard>

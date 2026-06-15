@@ -13,6 +13,7 @@ The preview is ephemeral, requires user consent and verified connections, does n
 | Provider-derived runtime composition | **Implemented** |
 | Opt-in runtime preview (HTTP + UI) | **Implemented** |
 | In-memory signal review workflow | **Implemented** — see [PROVIDER-DERIVED-RUNTIME-REVIEW.md](./PROVIDER-DERIVED-RUNTIME-REVIEW.md) |
+| Enrichment proposal from selected signals | **Implemented** — see [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md) |
 | Persistence / background sync | **Not implemented** |
 | CareerBundle auto-enrichment | **Not implemented** |
 
@@ -106,6 +107,7 @@ HTTP status (conservative):
 - Preview clears when consent or verification changes (no localStorage/sessionStorage)
 - Execution only on explicit click — no auto-run, polling, or background refresh
 - After a successful `completed` or `partial` preview, `ProviderDerivedRuntimeReviewPanel` lets users select or dismiss client-safe signals in memory — see [PROVIDER-DERIVED-RUNTIME-REVIEW.md](./PROVIDER-DERIVED-RUNTIME-REVIEW.md)
+- After selection is ready, `ProviderDerivedEnrichmentProposalPanel` can build an ephemeral enrichment proposal locally — see [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md)
 
 ## Boundaries
 

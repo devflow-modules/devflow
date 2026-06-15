@@ -57,6 +57,12 @@ function dedupeProviderDerivedSignals(signals: ProviderDerivedSignal[]): Provide
   return deduped;
 }
 
+export function sortProviderDerivedSignals(
+  signals: readonly ProviderDerivedSignal[],
+): ProviderDerivedSignal[] {
+  return [...signals].sort(compareProviderDerivedSignals);
+}
+
 export function composeProviderDerivedSignals(input: {
   gmailSignals: GmailDerivedSignal[];
   calendarSignals: CalendarDerivedSignal[];

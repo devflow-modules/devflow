@@ -8,7 +8,7 @@ export type {
 
 export { normalizeCalendarDerivedSignal, normalizeGmailDerivedSignal } from "./normalization.js";
 
-export { composeProviderDerivedSignals } from "./composition.js";
+export { composeProviderDerivedSignals, sortProviderDerivedSignals } from "./composition.js";
 
 export {
   createEmptyProviderDerivedSignalSummary,
@@ -18,5 +18,6 @@ export {
 export {
   createFailedProviderDerivedSandboxCompositionResult,
   createProviderDerivedSandboxCompositionResult,
+  createSelectedSignalsComposition,
   executeProviderDerivedSandboxComposition,
 } from "./sandbox-composition.js";
