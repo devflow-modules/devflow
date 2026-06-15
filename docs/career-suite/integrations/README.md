@@ -14,6 +14,7 @@ This folder documents **external integration labs** for the Career Suite. These 
 8. **[Calendar Read-Only Sandbox Adapter](./CALENDAR-READONLY-SANDBOX-ADAPTER.md)** — deterministic sandbox implementation of `CalendarReadOnlyAdapter`
 9. **[Provider-Derived Sandbox Composition](./PROVIDER-DERIVED-SANDBOX-COMPOSITION.md)** — deterministic composition of Gmail + Calendar sandbox signals
 9b. **[Provider-Derived Signal ID Contract](./PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md)** — runtime-neutral deterministic internal signal IDs
+9c. **[Unified Sync Enrichment Contract](./UNIFIED-SYNC-ENRICHMENT-CONTRACT.md)** — canonical `CareerBundleUnifiedSyncEnrichment` validator
 10. **[Provider-Derived Enrichment Adapter](./PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md)** — compatibility adapter to `CareerBundleUnifiedSyncEnrichment`
 11. **[Gmail Read-Only Nango Runtime Adapter](./GMAIL-READONLY-NANGO-RUNTIME-ADAPTER.md)** — server-only Gmail metadata via Nango (ApplyFlow)
 12. **[Calendar Read-Only Nango Runtime Adapter](./CALENDAR-READONLY-NANGO-RUNTIME-ADAPTER.md)** — server-only Calendar metadata via Nango (ApplyFlow)

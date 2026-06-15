@@ -1,5 +1,6 @@
 import { buildCareerBundleSyncEnrichment } from "../career-bundle/build-career-bundle-sync-enrichment.js";
-import type { CareerBundleUnifiedSyncEnrichment } from "../career-bundle/types.js";
+import type { CareerBundleUnifiedSyncEnrichment } from "../unified-sync-enrichment/types.js";
+import { validateCareerBundleUnifiedSyncEnrichment } from "../unified-sync-enrichment/validation.js";
 import { buildCareerBundleCalendarEnrichment } from "../calendar-sync/build-calendar-sync-preview.js";
 import { buildCareerBundleGmailEnrichment } from "../gmail-sync/build-gmail-sync-preview.js";
 import type { ProviderDerivedSignalSummary } from "../provider-derived-signals/types.js";
@@ -29,81 +30,26 @@ function createAdapterSafetyFlags(): Pick<
   };
 }
 
-function collectPrivacyValidationWarnings(
-  enrichment: CareerBundleUnifiedSyncEnrichment,
-): { warnings: string[]; critical: boolean } {
-  const warnings: string[] = [];
-  let critical = false;
-  const { privacy } = enrichment;
-
-  if (privacy.rawRetained !== false) {
-    warnings.push("privacy.rawRetained must be false.");
-    critical = true;
-  }
-  if (privacy.redacted !== true) {
-    warnings.push("privacy.redacted must be true.");
-  }
-  if (privacy.meetingLinksRemoved !== true) {
-    warnings.push("privacy.meetingLinksRemoved must be true.");
-    critical = true;
-  }
-  if (privacy.providerPayloadRetained !== false) {
-    warnings.push("privacy.providerPayloadRetained must be false.");
-    critical = true;
-  }
-  if (privacy.userReviewRequired !== true) {
-    warnings.push("privacy.userReviewRequired must be true.");
-  }
-
-  for (const signal of enrichment.combinedSignals) {
-    if (signal.rawRetained !== false) {
-      warnings.push("combinedSignals must not retain raw provider data.");
-      critical = true;
-      break;
-    }
-    if (signal.providerId != null) {
-      warnings.push("combinedSignals must not include provider identifiers.");
-      critical = true;
-      break;
-    }
-  }
-
-  return { warnings, critical };
-}
-
 export function validateAdaptedCareerBundleSyncEnrichment(
   enrichment: CareerBundleUnifiedSyncEnrichment,
   expectedSummary?: ProviderDerivedSignalSummary,
 ): { valid: boolean; warnings: string[] } {
-  const { warnings, critical } = collectPrivacyValidationWarnings(enrichment);
+  const validation = validateCareerBundleUnifiedSyncEnrichment(enrichment, {
+    expectedSummary,
+    rejectProviderIdentifiers: true,
+  });
 
-  if (critical) {
-    return { valid: false, warnings };
+  if (!validation.valid) {
+    return {
+      valid: false,
+      warnings: [...validation.errors, ...validation.warnings],
+    };
   }
 
-  if (expectedSummary) {
-    if (enrichment.stats.totalSignals !== expectedSummary.totalSignals) {
-      warnings.push("stats.totalSignals does not match composition summary.");
-      return { valid: false, warnings };
-    }
-    if (enrichment.stats.sourceCounts.gmail !== expectedSummary.gmailSignalCount) {
-      warnings.push("stats.sourceCounts.gmail does not match composition summary.");
-      return { valid: false, warnings };
-    }
-    if (enrichment.stats.sourceCounts.calendar !== expectedSummary.calendarSignalCount) {
-      warnings.push("stats.sourceCounts.calendar does not match composition summary.");
-      return { valid: false, warnings };
-    }
-    const companyHints = [...expectedSummary.companies].sort((left, right) =>
-      left.localeCompare(right),
-    );
-    if (JSON.stringify(enrichment.stats.companyHints) !== JSON.stringify(companyHints)) {
-      warnings.push("stats.companyHints does not match composition summary.");
-      return { valid: false, warnings };
-    }
-  }
-
-  return { valid: true, warnings };
+  return {
+    valid: true,
+    warnings: validation.warnings,
+  };
 }
 
 function buildUnifiedSyncEnrichment(input: {

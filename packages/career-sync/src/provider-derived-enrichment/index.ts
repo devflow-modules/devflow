@@ -12,3 +12,5 @@ export {
   adaptProviderDerivedSignalsToSyncEnrichment,
   validateAdaptedCareerBundleSyncEnrichment,
 } from "./adapter.js";
+
+export { validateCareerBundleUnifiedSyncEnrichment } from "../unified-sync-enrichment/validation.js";

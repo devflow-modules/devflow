@@ -64,3 +64,5 @@ export type {
   ParseCareerBundleWithSyncEnrichmentResult,
 } from "./career-bundle/index.js";
 export type { CareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
+export type { CareerBundleUnifiedSyncEnrichmentValidationResult } from "@devflow/career-sync";
+export { validateCareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";

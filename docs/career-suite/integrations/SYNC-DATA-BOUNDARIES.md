@@ -36,6 +36,8 @@ Provider-derived enrichment proposal export (`buildProviderDerivedEnrichmentProp
 
 Provider-derived signal IDs (`createProviderDerivedSignalId`) are runtime-neutral internal identifiers — not Gmail/Calendar/Nango provider IDs. See [PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md](./PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md).
 
+`CareerBundleUnifiedSyncEnrichment` validation uses the canonical validator — see [UNIFIED-SYNC-ENRICHMENT-CONTRACT.md](./UNIFIED-SYNC-ENRICHMENT-CONTRACT.md).
+
 Provider-derived sandbox composition (`composeProviderDerivedSignals`, `createProviderDerivedSandboxCompositionResult`) deterministically combines `GmailDerivedSignal` and `CalendarDerivedSignal` into `ProviderDerivedSignal`.
 
 Provider-derived enrichment adapter (`adaptProviderDerivedSignalsToSyncEnrichment`) maps sandbox composition results to existing `CareerBundleUnifiedSyncEnrichment` without altering the CareerBundle schema or auto-attaching enrichment.

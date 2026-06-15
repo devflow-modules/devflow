@@ -82,14 +82,9 @@ No partial enrichment on failure.
 
 ## Validation
 
-`validateAdaptedCareerBundleSyncEnrichment` mirrors `@devflow/career-core` privacy rules (package boundary prevents importing career-core from career-sync):
+Canonical validator: `validateCareerBundleUnifiedSyncEnrichment` in `@devflow/career-sync/unified-sync-enrichment` — see [UNIFIED-SYNC-ENRICHMENT-CONTRACT.md](./UNIFIED-SYNC-ENRICHMENT-CONTRACT.md).
 
-- `privacy.rawRetained === false`
-- `privacy.redacted === true`
-- `privacy.meetingLinksRemoved === true`
-- `privacy.providerPayloadRetained === false`
-- `privacy.userReviewRequired === true`
-- no `providerId` on combined signals
+`validateAdaptedCareerBundleSyncEnrichment` is a compatibility alias used by the adapter (optional `expectedSummary` for composition consistency).
 
 Adapter returns `completed` only when validation passes.
 
