@@ -4,6 +4,7 @@ import {
   PROVIDER_DERIVED_RUNTIME_PREVIEW_BUTTON_LABEL,
   PROVIDER_DERIVED_RUNTIME_PREVIEW_TITLE,
 } from "./provider-derived-runtime-preview-content";
+import { PROVIDER_DERIVED_RUNTIME_REVIEW_TITLE } from "./provider-derived-runtime-review-content";
 import { ProviderDerivedRuntimePreviewPanel } from "./provider-derived-runtime-preview-panel";
 
 const connectedVerification = (provider: "gmail" | "calendar") => ({
@@ -35,6 +36,7 @@ describe("ProviderDerivedRuntimePreviewPanel render", () => {
     expect(html).toContain(PROVIDER_DERIVED_RUNTIME_PREVIEW_BUTTON_LABEL);
     expect(html).toContain("No raw provider data retained");
     expect(html).toContain("No CareerBundle changes");
+    expect(html).toContain(PROVIDER_DERIVED_RUNTIME_REVIEW_TITLE);
     expect(html).toContain('disabled=""');
     expect(html).not.toMatch(/access_token|connectionId|providerPayload/i);
   });

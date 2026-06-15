@@ -19,6 +19,7 @@ import {
   PROVIDER_DERIVED_RUNTIME_PREVIEW_TITLE,
   PROVIDER_DERIVED_RUNTIME_PREVIEW_UI_MESSAGES,
 } from "./provider-derived-runtime-preview-content";
+import { ProviderDerivedRuntimeReviewPanel } from "./provider-derived-runtime-review-panel";
 
 export type ProviderDerivedRuntimePreviewUiState =
   | "idle"
@@ -262,21 +263,13 @@ export function ProviderDerivedRuntimePreviewPanel({
                 ))}
               </ul>
             ) : null}
-            {previewResult.signals.length > 0 ? (
-              <ul
-                className="list-inside list-disc space-y-1"
-                data-testid="provider-derived-runtime-preview-signals"
-              >
-                {previewResult.signals.map((signal) => (
-                  <li key={signal.id}>
-                    {signal.source} · {signal.kind} · {signal.occurredAt}
-                    {signal.company ? ` · ${signal.company}` : ""} · confidence {signal.confidence}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
           </div>
         ) : null}
+
+        <ProviderDerivedRuntimeReviewPanel
+          result={previewResult}
+          isPreviewLoading={uiState === "loading"}
+        />
       </div>
     </ApplyFlowCard>
   );
