@@ -233,3 +233,33 @@ export {
   createNangoOAuthBoundaryResult,
   evaluateNangoOAuthBoundary,
 } from "./nango-runtime/index.js";
+
+export type {
+  GmailDerivedSignal,
+  GmailDerivedSignalKind,
+  GmailEphemeralMessageMetadata,
+  GmailReadOnlyAdapter,
+  GmailReadOnlyAdapterBlockReason,
+  GmailReadOnlyAdapterRequest,
+  GmailReadOnlyAdapterRequestEvaluation,
+  GmailReadOnlyAdapterResult,
+  GmailReadOnlyAdapterStatus,
+  GmailReadOnlyMetadataProvider,
+  GmailReadOnlyRuntime,
+  GmailReadOnlySafetyPolicy,
+} from "./gmail-readonly-adapter/index.js";
+
+export {
+  GMAIL_READONLY_DEFAULT_MAX_MESSAGES,
+  GMAIL_READONLY_MAX_SAFE_MESSAGE_LIMIT,
+  assertGmailReadOnlySafetyPolicy,
+  collectGmailReadOnlyAdapterWarnings,
+  collectGmailReadOnlySafetyPolicyWarnings,
+  createBlockedGmailReadOnlyAdapterResult,
+  createGmailReadOnlyAdapterRequest,
+  createGmailReadOnlyAdapterResult,
+  createGmailReadOnlySafetyPolicy,
+  evaluateGmailReadOnlyAdapterRequest,
+  isGmailReadOnlyAdapterResultSafe,
+  isGmailReadOnlySafetyPolicySafe,
+} from "./gmail-readonly-adapter/index.js";

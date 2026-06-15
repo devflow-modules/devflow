@@ -156,6 +156,14 @@ Implementation: `@devflow/career-sync` `provider-connection/runtime-verification
 
 Official Nango method: `listConnections({ integrationId, tags: { end_user_id }, limit })` — returns connections **without credentials**. Discarded fields: `connection_id`, `metadata`, `tags`, `errors` details, provider payloads. Client-safe fields: `state` (`connected` | `not_connected` | `error`), invariant safety flags, messages/warnings.
 
+### Gmail read-only adapter contract
+
+Career Suite defines a privacy-first Gmail read-only adapter contract for future derived career signals.
+
+The contract does not call Gmail, import messages, retain bodies or snippets, expose provider tokens, or update applications automatically.
+
+Implementation: `@devflow/career-sync` `gmail-readonly-adapter/` — request/result types, safety policy, block reasons, and `GmailReadOnlyAdapter` interface only. Requires server-verified connection for future `nango` runtime. Complements existing `gmail-sync` fixture previews and `provider-adapter` generic contracts.
+
 ## Why Nango
 
 - **Centralize OAuth** — avoid bespoke Google OAuth in ApplyFlow and Interview Lab

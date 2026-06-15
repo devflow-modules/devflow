@@ -10,6 +10,8 @@ Simulated Nango payload mappers live in `@devflow/career-sync` (`mapNangoGmailMe
 
 Gmail read-only sync preview (`buildGmailSyncPreview`, `buildCareerBundleGmailEnrichment`) produces derived signals and CareerBundle enrichment metadata from fixtures only — no raw messages, attachments, or provider calls.
 
+Gmail read-only adapter contract (`gmail-readonly-adapter`) defines future live read-only boundaries with verified-connection gates, ephemeral metadata input, and derived-signal-only results — no Gmail API, Nango proxy, or raw retention in the contract layer.
+
 Calendar read-only sync preview (`buildCalendarSyncPreview`, `buildCareerBundleCalendarEnrichment`) produces derived signals and CareerBundle enrichment metadata from fixtures only — no raw events, meeting links, or provider calls.
 
 Calendar sync previews must not retain meeting links, raw event descriptions, private unrelated events, or provider payloads. Derived signals should be reviewable and deletable by the user.
