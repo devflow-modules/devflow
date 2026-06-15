@@ -92,4 +92,4 @@ The export envelope does **not** include UI-only or session-local fields from th
 
 ## Validation note
 
-Export reuses `validateAdaptedCareerBundleSyncEnrichment` from `@devflow/career-sync`. That validator mirrors career-core privacy rules but may diverge over time; structural allowlisting in the export builder remains the primary safety boundary.
+Export reuses `validateCareerBundleUnifiedSyncEnrichment` from `@devflow/career-sync`. Structural allowlisting in the export builder remains the primary safety boundary for serialized fields.

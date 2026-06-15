@@ -87,12 +87,19 @@ export type {
   CareerBundleUnifiedSyncEnrichment,
 } from "./career-bundle/types.js";
 
+export type {
+  CareerBundleUnifiedSyncEnrichmentValidationResult,
+  ValidateCareerBundleUnifiedSyncEnrichmentOptions,
+} from "./unified-sync-enrichment/index.js";
+
 export {
   buildCareerBundleSyncEnrichment,
   buildCareerBundleSyncSummary,
   sortCombinedSignals,
   summarizeCareerBundleSync,
 } from "./career-bundle/index.js";
+
+export { validateCareerBundleUnifiedSyncEnrichment } from "./unified-sync-enrichment/index.js";
 
 export type {
   ProviderAdapter,

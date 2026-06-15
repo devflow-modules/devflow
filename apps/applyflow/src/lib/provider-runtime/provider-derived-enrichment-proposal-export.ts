@@ -1,5 +1,5 @@
 import type { CareerBundleUnifiedSyncEnrichment, CareerSyncSignal } from "@devflow/career-sync";
-import { validateAdaptedCareerBundleSyncEnrichment } from "@devflow/career-sync";
+import { validateCareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
 import type { ProviderDerivedEnrichmentProposal } from "./provider-derived-enrichment-proposal";
 
 export const PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_SCHEMA =
@@ -334,13 +334,15 @@ export function buildProviderDerivedEnrichmentProposalExport(
   }
 
   const enrichment = input.proposal.enrichment!;
-  const validation = validateAdaptedCareerBundleSyncEnrichment(enrichment);
+  const validation = validateCareerBundleUnifiedSyncEnrichment(enrichment, {
+    rejectProviderIdentifiers: true,
+  });
 
   if (!validation.valid) {
     return createExportResult({
       status: "invalid",
       downloadable: false,
-      warnings: ["invalid_enrichment", ...validation.warnings],
+      warnings: ["invalid_enrichment", ...validation.errors, ...validation.warnings],
       messages: [EXPORT_INVALID_MESSAGE],
     });
   }

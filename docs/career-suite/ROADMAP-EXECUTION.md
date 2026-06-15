@@ -103,6 +103,7 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 - Provider-derived enrichment proposal — ApplyFlow ephemeral enrichment proposal from selected signals (no persistence, no CareerBundle mutation)
 - Provider-derived enrichment proposal export — ApplyFlow local JSON download of ready proposals (browser-only, no upload)
 - Provider-derived runtime-neutral signal IDs — shared deterministic internal ID format (`createProviderDerivedSignalId`)
+- Unified sync enrichment contract — canonical validator (`validateCareerBundleUnifiedSyncEnrichment`)
 - Provider-derived sandbox composition — `@devflow/career-sync` `composeProviderDerivedSignals`
 - Provider-derived enrichment adapter — `@devflow/career-sync` `adaptProviderDerivedSignalsToSyncEnrichment`
 
