@@ -57,8 +57,14 @@ Validation does not sanitize the document; cross-boundary consumers must still s
 
 `buildProviderDerivedEnrichmentProposalExport` validates the in-memory proposal, builds the allowlisted document, runs `validateProviderDerivedEnrichmentProposalExportV1`, then serializes with the existing fixed-order allowlist. The validator complements — it does not replace — structural serialization allowlisting.
 
+## Lifecycle context
+
+Validation confirms structural conformance for inspection and programmatic audit. It does **not** prove authorship, enable import, or authorize CareerBundle or application mutation. See [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md) (sections 4, 6, 14) and [ADR-002: export-only](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md).
+
 ## Related docs
 
 - [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT.md)
+- [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md)
 - [UNIFIED-SYNC-ENRICHMENT-CONTRACT.md](./UNIFIED-SYNC-ENRICHMENT-CONTRACT.md)
 - [SYNC-DATA-BOUNDARIES.md](./SYNC-DATA-BOUNDARIES.md)
+- [ADR-002: export-only](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md)
