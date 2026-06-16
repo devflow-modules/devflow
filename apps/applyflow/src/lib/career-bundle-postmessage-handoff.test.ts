@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { createCareerBundle } from "@devflow/career-core";
+import { createCareerBundle, createCareerBundleWithSyncEnrichment } from "@devflow/career-core";
+import { buildApplyFlowDemoSyncEnrichment } from "./career-bundle-demo-sync-enrichment";
 import { sendCareerBundleViaPostMessageWithRetry } from "./career-bundle-postmessage-handoff.js";
 
 const bundle = createCareerBundle([
@@ -128,5 +129,56 @@ describe("sendCareerBundleViaPostMessageWithRetry", () => {
 
     await vi.advanceTimersByTimeAsync(200);
     await expect(promise).resolves.toEqual({ kind: "fallback_clipboard_ok" });
+  });
+
+  it("posts bundle with sync enrichment without proposal metadata", async () => {
+    vi.useFakeTimers();
+    const enrichment = buildApplyFlowDemoSyncEnrichment({
+      generatedAt: "2026-06-15T12:00:00.000Z",
+      now: "2026-06-15T12:00:00.000Z",
+    });
+    const bundle = createCareerBundleWithSyncEnrichment(
+      [
+        {
+          id: "a1",
+          company: "Co",
+          role: "Engineer",
+          source: "linkedin",
+          requiredSkills: ["TypeScript"],
+          status: "applied",
+        },
+      ],
+      { syncEnrichment: enrichment },
+    );
+
+    const promise = sendCareerBundleViaPostMessageWithRetry({
+      bundle,
+      stringifyBundle: (b) => JSON.stringify(b),
+      copyToClipboard: vi.fn(),
+      intervalMs: 50,
+      totalWaitMs: 500,
+      interviewLabUrl: "http://localhost:3015/import/applyflow?handoff=postMessage",
+    });
+
+    await vi.advanceTimersByTimeAsync(60);
+    for (const fn of listeners) {
+      fn(
+        new MessageEvent("message", {
+          origin: "http://localhost:3015",
+          data: {
+            type: "devflow.careerBundle.ack.v1",
+            source: "interview-lab",
+            ok: true,
+          },
+        }),
+      );
+    }
+
+    await expect(promise).resolves.toEqual({ kind: "ack" });
+    const posted = mockWin.postMessage.mock.calls[0]?.[0] as {
+      payload?: { syncEnrichment?: unknown };
+    };
+    expect(posted?.payload?.syncEnrichment).toBeDefined();
+    expect(JSON.stringify(posted)).not.toMatch(/selectedSignalIds|sourcePreviewFingerprint/i);
   });
 });

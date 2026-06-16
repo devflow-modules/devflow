@@ -11,6 +11,7 @@ Nothing is applied, persisted, imported, or sent to providers.
 | Enrichment change preview | **Implemented** — ApplyFlow proposal flow |
 | Current CareerBundle enrichment wiring | **Implemented** — optional dashboard baseline via `extractCareerBundleSyncEnrichment` |
 | Provider-derived enrichment export composition | **Implemented** — transient export preview from eligible proposals |
+| Export source visibility + handoff validation | **Implemented** — UI badge + integration tests |
 | Enrichment apply workflow | **Explicitly deferred** — requires separate ADR and threat model |
 | Import workflow | **Explicitly deferred** — [ADR-002](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md) |
 

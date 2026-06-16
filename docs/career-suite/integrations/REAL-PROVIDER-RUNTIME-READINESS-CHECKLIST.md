@@ -44,6 +44,7 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - Provider-derived enrichment change preview — ApplyFlow `ProviderDerivedEnrichmentChangePreviewPanel` (read-only diff, no apply)
 - Current CareerBundle enrichment wiring — optional dashboard baseline via `deriveDashboardCareerBundleSyncEnrichmentBaseline` + `extractCareerBundleSyncEnrichment` (no import, no apply, no bundle mutation)
 - Provider-derived enrichment export composition — transient provider-derived enrichment in dashboard export preview via `deriveDashboardCareerBundleExportComposition` (no auto-export, no persistence)
+- Export source visibility + Interview Lab handoff validation — `deriveExportCompositionSourceViewModel`, `career-bundle-export-session-consistency` tests
 - Provider-derived sandbox composition — `@devflow/career-sync` `composeProviderDerivedSignals`
 - Provider-derived enrichment adapter — `@devflow/career-sync` `adaptProviderDerivedSignalsToSyncEnrichment`
 

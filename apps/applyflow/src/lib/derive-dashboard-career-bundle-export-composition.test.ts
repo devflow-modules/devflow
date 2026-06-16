@@ -28,6 +28,7 @@ describe("deriveDashboardCareerBundleExportComposition", () => {
 
     expect(result.sourceKind).toBe("none");
     expect(result.syncEnrichment).toBeNull();
+    expect(result.bundle).toBeNull();
   });
 
   it("uses demo source when demo is enabled and provider enrichment is absent", () => {
@@ -39,6 +40,8 @@ describe("deriveDashboardCareerBundleExportComposition", () => {
 
     expect(result.sourceKind).toBe("demo");
     expect(result.syncEnrichment).not.toBeNull();
+    expect(result.bundle).not.toBeNull();
+    expect(result.bundle?.syncEnrichment).toBeDefined();
   });
 
   it("uses provider-derived source when eligible enrichment is present", () => {
@@ -70,5 +73,26 @@ describe("deriveDashboardCareerBundleExportComposition", () => {
     });
 
     expect(result.sourceKind).toBe("provider-derived-proposal");
+  });
+
+  it("falls back to demo when eligible provider enrichment is removed", () => {
+    const enrichment = buildApplyFlowDemoSyncEnrichment({
+      generatedAt: "2026-06-15T12:00:00.000Z",
+      now: "2026-06-15T12:00:00.000Z",
+    });
+
+    const withProvider = deriveDashboardCareerBundleExportComposition({
+      applications: [app()],
+      includeDemoSyncEnrichment: true,
+      eligibleProviderEnrichment: enrichment,
+    });
+    expect(withProvider.sourceKind).toBe("provider-derived-proposal");
+
+    const staleFallback = deriveDashboardCareerBundleExportComposition({
+      applications: [app()],
+      includeDemoSyncEnrichment: true,
+      eligibleProviderEnrichment: null,
+    });
+    expect(staleFallback.sourceKind).toBe("demo");
   });
 });
