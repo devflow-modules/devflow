@@ -8,6 +8,8 @@
 
 **One-liner:** Local-first career workflow — organize applications, review provider-derived signals, compose a typed `CareerBundle`, and hand off to Interview Lab — human-reviewed, privacy-first, no auto-apply.
 
+[![ApplyFlow dashboard — Career Suite demo](./docs/career-suite/assets/01-applyflow-dashboard.png)](docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md)
+
 | | |
 |--|--|
 | **Full case** | [`docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md`](docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md) |
