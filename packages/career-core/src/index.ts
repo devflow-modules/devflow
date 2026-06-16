@@ -50,6 +50,7 @@ export type {
 export {
   attachSyncEnrichmentToCareerBundle,
   createCareerBundleWithSyncEnrichment,
+  deriveCareerBundleEnrichmentChangePreview,
   hasCareerBundleSyncEnrichment,
   parseCareerBundleWithSyncEnrichment,
   serializeCareerBundleWithSyncEnrichment,
@@ -61,6 +62,7 @@ export type {
   CareerBundleSyncEnrichmentStatus,
   CareerBundleWithSyncEnrichment,
   CreateCareerBundleWithSyncEnrichmentOptions,
+  DeriveCareerBundleEnrichmentChangePreviewInput,
   ParseCareerBundleWithSyncEnrichmentResult,
 } from "./career-bundle/index.js";
 export type { CareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";

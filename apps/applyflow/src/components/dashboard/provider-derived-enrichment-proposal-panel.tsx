@@ -32,6 +32,8 @@ import {
 } from "./provider-derived-enrichment-proposal-content";
 import type { ProviderDerivedRuntimeReviewState } from "./provider-derived-runtime-review-state";
 import { useEffect, useState } from "react";
+import { ProviderDerivedEnrichmentChangePreviewPanel } from "./provider-derived-enrichment-change-preview-panel";
+import type { CareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
 
 export type ProviderDerivedEnrichmentProposalExportUiStatus =
   | "idle"
@@ -45,6 +47,7 @@ export type ProviderDerivedEnrichmentProposalPanelProps = {
   isPreviewLoading: boolean;
   proposal: ProviderDerivedEnrichmentProposal | null;
   onProposalChange: (proposal: ProviderDerivedEnrichmentProposal | null) => void;
+  currentSyncEnrichment?: CareerBundleUnifiedSyncEnrichment | null;
 };
 
 function renderProposalSummary(proposal: ProviderDerivedEnrichmentProposal) {
@@ -140,6 +143,7 @@ export function ProviderDerivedEnrichmentProposalPanelView({
   buildEnabled,
   downloadEnabled,
   exportStatus,
+  currentSyncEnrichment,
   onBuildProposal,
   onDownloadProposal,
 }: {
@@ -150,6 +154,7 @@ export function ProviderDerivedEnrichmentProposalPanelView({
   buildEnabled: boolean;
   downloadEnabled: boolean;
   exportStatus: ProviderDerivedEnrichmentProposalExportUiStatus;
+  currentSyncEnrichment?: CareerBundleUnifiedSyncEnrichment | null;
   onBuildProposal: () => void;
   onDownloadProposal: () => void;
 }) {
@@ -195,6 +200,13 @@ export function ProviderDerivedEnrichmentProposalPanelView({
 
         {proposal && proposal.status === "ready" ? (
           <>
+            {renderProposalSummary(proposal)}
+            <ProviderDerivedEnrichmentChangePreviewPanel
+              currentSyncEnrichment={currentSyncEnrichment}
+              proposal={proposal}
+              reviewState={reviewState}
+              exportAvailable={downloadEnabled}
+            />
             <p>{PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_DOWNLOAD_HELPER}</p>
             <ApplyFlowButton
               type="button"
@@ -220,7 +232,9 @@ export function ProviderDerivedEnrichmentProposalPanelView({
           </p>
         ) : null}
 
-        {proposal && proposal.status !== "idle" ? renderProposalSummary(proposal) : null}
+        {proposal && proposal.status !== "idle" && proposal.status !== "ready"
+          ? renderProposalSummary(proposal)
+          : null}
 
         {!previewResult && !isPreviewLoading ? (
           <p role="status" aria-live="polite" data-testid="provider-derived-enrichment-proposal-empty">
@@ -242,6 +256,7 @@ export function ProviderDerivedEnrichmentProposalPanel({
   isPreviewLoading,
   proposal,
   onProposalChange,
+  currentSyncEnrichment = null,
 }: ProviderDerivedEnrichmentProposalPanelProps) {
   const [exportStatus, setExportStatus] =
     useState<ProviderDerivedEnrichmentProposalExportUiStatus>("idle");
@@ -276,6 +291,7 @@ export function ProviderDerivedEnrichmentProposalPanel({
       buildEnabled={buildEnabled}
       downloadEnabled={downloadEnabled}
       exportStatus={exportStatus}
+      currentSyncEnrichment={currentSyncEnrichment}
       onBuildProposal={() => {
         if (!previewResult || !buildEnabled) {
           return;
