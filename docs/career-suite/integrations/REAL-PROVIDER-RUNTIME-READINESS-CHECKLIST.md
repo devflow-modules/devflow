@@ -42,6 +42,7 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - Provider-derived enrichment proposal export lifecycle and trust model — documented export-only artifact boundaries ([PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md), [ADR-002](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md))
 - Provider-derived career insights (read-only) — ApplyFlow `ProviderDerivedCareerInsightsPanel` (session metrics only, no persistence)
 - Provider-derived enrichment change preview — ApplyFlow `ProviderDerivedEnrichmentChangePreviewPanel` (read-only diff, no apply)
+- Current CareerBundle enrichment wiring — optional dashboard baseline via `deriveDashboardCareerBundleSyncEnrichmentBaseline` + `extractCareerBundleSyncEnrichment` (no import, no apply, no bundle mutation)
 - Provider-derived sandbox composition — `@devflow/career-sync` `composeProviderDerivedSignals`
 - Provider-derived enrichment adapter — `@devflow/career-sync` `adaptProviderDerivedSignalsToSyncEnrichment`
 

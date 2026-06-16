@@ -89,6 +89,7 @@ No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persisten
 | Provider-derived enrichment proposal export lifecycle | **Documented** | [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md) — export-only artifact; [ADR-002](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md) |
 | Provider-derived career insights | **UI only** | [PROVIDER-DERIVED-CAREER-INSIGHTS.md](./PROVIDER-DERIVED-CAREER-INSIGHTS.md) — read-only session metrics, no persistence |
 | Provider-derived enrichment change preview | **UI only** | [PROVIDER-DERIVED-ENRICHMENT-CHANGE-PREVIEW.md](./PROVIDER-DERIVED-ENRICHMENT-CHANGE-PREVIEW.md) — read-only diff, no apply |
+| Current CareerBundle enrichment wiring (change preview baseline) | **UI only** | Optional dashboard `syncEnrichment` baseline via `extractCareerBundleSyncEnrichment` — no import, no apply |
 | Enrichment apply workflow | **Explicitly deferred** | Requires separate ADR — not planned in current cycle |
 | Proposal export import workflow | **Explicitly deferred** | Not planned in current cycle — see lifecycle doc |
 | Provider-derived enrichment adapter | **Sandbox impl** | [PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md](./PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md) — maps to `CareerBundleUnifiedSyncEnrichment` |

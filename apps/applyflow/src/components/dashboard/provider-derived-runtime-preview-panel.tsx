@@ -3,6 +3,7 @@
 import { ApplyFlowBadge } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
+import type { CareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
 import type { ProviderConnectionVerificationResult } from "@devflow/career-sync";
 import { useEffect, useState } from "react";
 import { isEnrichmentProposalStale, type ProviderDerivedEnrichmentProposal } from "@/lib/provider-runtime/provider-derived-enrichment-proposal";
@@ -86,10 +87,12 @@ export function ProviderDerivedRuntimePreviewPanel({
   explicitConsentChecked,
   gmailVerification,
   calendarVerification,
+  currentSyncEnrichment = null,
 }: {
   explicitConsentChecked: boolean;
   gmailVerification: ProviderConnectionVerificationResult | null;
   calendarVerification: ProviderConnectionVerificationResult | null;
+  currentSyncEnrichment?: CareerBundleUnifiedSyncEnrichment | null;
 }) {
   const [uiState, setUiState] = useState<ProviderDerivedRuntimePreviewUiState>("idle");
   const [previewResult, setPreviewResult] =
@@ -300,6 +303,7 @@ export function ProviderDerivedRuntimePreviewPanel({
           isPreviewLoading={uiState === "loading"}
           proposal={enrichmentProposal}
           onProposalChange={setEnrichmentProposal}
+          currentSyncEnrichment={currentSyncEnrichment}
         />
 
         <ProviderDerivedCareerInsightsPanel

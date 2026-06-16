@@ -124,6 +124,14 @@ export function ProviderDerivedEnrichmentChangePreviewPanelView({
           {viewModel.headline}
         </p>
 
+        <p
+          role="status"
+          aria-live="polite"
+          data-testid="provider-derived-enrichment-change-preview-baseline-notice"
+        >
+          {viewModel.baselineNotice}
+        </p>
+
         {statusCounts ? (
           <div
             className="grid grid-cols-2 gap-x-3 gap-y-1 sm:grid-cols-3"
