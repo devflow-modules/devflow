@@ -104,6 +104,7 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 - Provider-derived enrichment proposal export — ApplyFlow local JSON download of ready proposals (browser-only, no upload)
 - Provider-derived enrichment proposal export validation — standalone v1 document validator in `@devflow/career-sync` (pure, no import/persistence)
 - Provider-derived enrichment proposal export lifecycle and trust model — [integrations/PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md](./integrations/PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md); ADR: [ADR-002](../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md)
+- Provider-derived career insights (read-only) — ApplyFlow in-memory insights panel — [integrations/PROVIDER-DERIVED-CAREER-INSIGHTS.md](./integrations/PROVIDER-DERIVED-CAREER-INSIGHTS.md)
 - **Import workflow (proposal export)** — **explicitly deferred** — not planned in current cycle
 - Provider-derived runtime-neutral signal IDs — shared deterministic internal ID format (`createProviderDerivedSignalId`)
 - Unified sync enrichment contract — canonical validator (`validateCareerBundleUnifiedSyncEnrichment`)
@@ -138,6 +139,7 @@ This remains read-only and does not activate OAuth, Nango runtime, provider call
 - Provider-derived enrichment proposal export (browser download) is **implemented** — users can download a ready proposal as local JSON; ApplyFlow does not upload or retain the file.
 - Provider-derived enrichment proposal export validation is **implemented** — `@devflow/career-sync` validates v1 export documents without import or persistence.
 - Provider-derived enrichment proposal export lifecycle and trust model is **documented** — export-only artifact; lifecycle ends at download ([lifecycle doc](./integrations/PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md), [ADR-002](../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md)).
+- Provider-derived career insights (read-only panel) is **implemented** — aggregated session metrics only; no persistence ([career insights doc](./integrations/PROVIDER-DERIVED-CAREER-INSIGHTS.md)).
 - **Import workflow (proposal export): explicitly deferred** — next initiatives must not assume import exists.
 - Background sync and CareerBundle auto-enrichment from runtime are **not implemented yet**.
 

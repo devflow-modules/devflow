@@ -396,3 +396,12 @@ export {
   validateProviderDerivedEnrichmentProposalExport,
   validateProviderDerivedEnrichmentProposalExportV1,
 } from "./provider-derived-enrichment-export/index.js";
+
+export type {
+  DeriveProviderDerivedCareerInsightsMetricsInput,
+  ProviderDerivedCareerInsightsMetrics,
+  ProviderDerivedConfidenceBucket,
+  ProviderDerivedSignalKindCount,
+} from "./provider-derived-insights/index.js";
+
+export { deriveProviderDerivedCareerInsightsMetrics } from "./provider-derived-insights/index.js";
