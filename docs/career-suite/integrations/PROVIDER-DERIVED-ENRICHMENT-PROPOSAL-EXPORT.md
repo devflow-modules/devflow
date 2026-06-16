@@ -10,7 +10,7 @@ The file is generated in the browser, is not uploaded or retained by ApplyFlow, 
 |------|--------|
 | Enrichment proposal (in-memory) | **Implemented** — see [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md) |
 | Local JSON export | **Implemented** |
-| Import / apply / persistence | **Not implemented** |
+| Import / apply / persistence | **Explicitly deferred** — see [lifecycle](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md) and [ADR-002](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md) |
 
 ## Flow
 
@@ -47,7 +47,7 @@ This is **not** a full CareerBundle export. No import compatibility is promised 
 - `schema` and `version` are fixed literals in version 1.
 - Incompatible document changes require a new `version`.
 - New optional top-level fields require explicit contract review.
-- Import, apply, and server-side persistence remain out of scope.
+- Import, apply, and server-side persistence remain **explicitly deferred** — not planned in the current cycle.
 
 ## Fields intentionally excluded
 
@@ -95,3 +95,7 @@ The export envelope does **not** include UI-only or session-local fields from th
 Export reuses `validateCareerBundleUnifiedSyncEnrichment` from `@devflow/career-sync`. After building the allowlisted document, ApplyFlow also runs `validateProviderDerivedEnrichmentProposalExportV1` before serialization. Structural allowlisting in the export builder remains the primary safety boundary for serialized fields.
 
 The version 1 provider-derived enrichment proposal export has a standalone, pure validator. The validator checks the strict document envelope, schema, version, canonical timestamps, fixed safety flags, prohibited keys and the canonical unified sync enrichment contract. It does not read files, import data, persist anything, sanitize payloads or apply changes to CareerBundle or applications. See [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT-VALIDATION.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT-VALIDATION.md).
+
+## Lifecycle and trust model
+
+The export lifecycle ends at browser download. The file is a local, human-auditable artifact — not an import payload or mutation command. Trust boundaries, consumer model, validation semantics, and the formal import decision are documented in [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md). Architectural decision: [ADR-002: export-only](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md).

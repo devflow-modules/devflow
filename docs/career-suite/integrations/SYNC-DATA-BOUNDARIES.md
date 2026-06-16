@@ -36,6 +36,8 @@ Provider-derived enrichment proposal export (`buildProviderDerivedEnrichmentProp
 
 The version 1 export document has a standalone validator in `@devflow/career-sync` (`validateProviderDerivedEnrichmentProposalExportV1`). It validates envelope, flags, forbidden keys and enrichment contract without reading files, importing data, persisting anything or sanitizing payloads. See [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT-VALIDATION.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT-VALIDATION.md).
 
+The export lifecycle ends at browser download. The file is a local, human-auditable artifact — not an import payload or mutation command. Trust boundaries, consumer model, and the formal import decision: [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md). ADR: [ADR-002: export-only](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md).
+
 Provider-derived signal IDs (`createProviderDerivedSignalId`) are runtime-neutral internal identifiers — not Gmail/Calendar/Nango provider IDs. See [PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md](./PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md).
 
 `CareerBundleUnifiedSyncEnrichment` validation uses the canonical validator — see [UNIFIED-SYNC-ENRICHMENT-CONTRACT.md](./UNIFIED-SYNC-ENRICHMENT-CONTRACT.md).

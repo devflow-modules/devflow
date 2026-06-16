@@ -12,8 +12,9 @@ The proposal is created locally in memory, is not persisted, is not applied to C
 | In-memory signal review | **Implemented** — see [PROVIDER-DERIVED-RUNTIME-REVIEW.md](./PROVIDER-DERIVED-RUNTIME-REVIEW.md) |
 | Enrichment proposal from selected signals | **Implemented** |
 | Local JSON export of ready proposal | **Implemented** — see [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT.md) |
-| CareerBundle attach / import / persistence | **Not implemented** |
-| Application updates | **Not implemented** |
+| CareerBundle attach / import / persistence | **Explicitly deferred** — see [lifecycle](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md) |
+| Application updates | **Explicitly deferred** |
+| Export lifecycle and trust model | **Documented** — [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md) |
 
 Selected and composed signals use runtime-neutral IDs — see [PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md](./PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md).
 
@@ -90,3 +91,7 @@ Proposal clears when preview, review selection, consent, or connection state cha
 | `provider-derived-enrichment-proposal-panel.tsx` | In-memory proposal UI |
 | `provider-derived-runtime-preview-panel.tsx` | Hosts preview + review + proposal |
 | `@devflow/career-sync` `createSelectedSignalsComposition` | Intermediate sandbox-compatible composition |
+
+## Export lifecycle
+
+Ready proposals may be downloaded as local JSON. The lifecycle ends at download; ApplyFlow does not import, persist, or re-open exported files. See [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md) and [ADR-002: export-only](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md).

@@ -39,6 +39,7 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - Provider-derived enrichment proposal — ApplyFlow `buildProviderDerivedEnrichmentProposal` (ephemeral proposal from selected signals; no persistence, no CareerBundle mutation)
 - Provider-derived enrichment proposal export — ApplyFlow browser-side JSON download of ready proposals (no upload, no persistence)
 - Provider-derived enrichment proposal export validation — `@devflow/career-sync` standalone v1 document validator (no import, no persistence)
+- Provider-derived enrichment proposal export lifecycle and trust model — documented export-only artifact boundaries ([PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md), [ADR-002](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md))
 - Provider-derived sandbox composition — `@devflow/career-sync` `composeProviderDerivedSignals`
 - Provider-derived enrichment adapter — `@devflow/career-sync` `adaptProviderDerivedSignalsToSyncEnrichment`
 
@@ -263,4 +264,6 @@ Career Suite has a consent-gated provider runtime architecture, sandbox adapters
 - [Provider Runtime Feature Flags](./PROVIDER-RUNTIME-FEATURE-FLAGS.md)
 - [Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)
 - [Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)
+- [Provider-Derived Enrichment Proposal Export Lifecycle](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md)
+- [ADR-002: export-only](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md)
 - [E2E sync enrichment checklist](../demo/E2E-SYNC-ENRICHMENT-CHECKLIST.md)
