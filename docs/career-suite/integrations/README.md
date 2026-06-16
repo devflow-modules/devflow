@@ -28,6 +28,7 @@ This folder documents **external integration labs** for the Career Suite. These 
 17d. **[Provider-Derived Career Insights](./PROVIDER-DERIVED-CAREER-INSIGHTS.md)** — read-only aggregated insights from in-memory signals (ApplyFlow)
 17e. **[Provider-Derived Enrichment Change Preview](./PROVIDER-DERIVED-ENRICHMENT-CHANGE-PREVIEW.md)** — read-only current vs. proposed sync enrichment comparison (ApplyFlow)
 17f. **[Provider-Derived Enrichment Export Composition](./PROVIDER-DERIVED-ENRICHMENT-EXPORT-COMPOSITION.md)** — transient provider-derived enrichment in dashboard export preview (ApplyFlow)
+17g. **[Provider-Derived Export Handoff Validation](./PROVIDER-DERIVED-EXPORT-HANDOFF-VALIDATION.md)** — source visibility and Interview Lab handoff consistency (ApplyFlow)
 18. **[LibreChat + MCP lab](./LIBRECHAT-MCP-LAB.md)** — local agent UI over deterministic tools
 18. **[LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)** — connect upstream LibreChat to `@devflow/career-agents-mcp` stdio
 19. **[Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth/sync adapter (docs + sandbox contracts; no runtime OAuth in apps)
@@ -92,6 +93,7 @@ No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persisten
 | Provider-derived enrichment change preview | **UI only** | [PROVIDER-DERIVED-ENRICHMENT-CHANGE-PREVIEW.md](./PROVIDER-DERIVED-ENRICHMENT-CHANGE-PREVIEW.md) — read-only diff, no apply |
 | Current CareerBundle enrichment wiring (change preview baseline) | **UI only** | Optional dashboard `syncEnrichment` baseline via `extractCareerBundleSyncEnrichment` — no import, no apply |
 | Provider-derived enrichment export composition | **UI only** | [PROVIDER-DERIVED-ENRICHMENT-EXPORT-COMPOSITION.md](./PROVIDER-DERIVED-ENRICHMENT-EXPORT-COMPOSITION.md) — transient export preview, no auto-export |
+| Export source visibility + handoff validation | **UI + tests** | [PROVIDER-DERIVED-EXPORT-HANDOFF-VALIDATION.md](./PROVIDER-DERIVED-EXPORT-HANDOFF-VALIDATION.md) |
 | Enrichment apply workflow | **Explicitly deferred** | Requires separate ADR — not planned in current cycle |
 | Proposal export import workflow | **Explicitly deferred** | Not planned in current cycle — see lifecycle doc |
 | Provider-derived enrichment adapter | **Sandbox impl** | [PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md](./PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md) — maps to `CareerBundleUnifiedSyncEnrichment` |

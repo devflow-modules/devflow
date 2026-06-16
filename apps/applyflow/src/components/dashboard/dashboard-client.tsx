@@ -52,12 +52,8 @@ import {
   stringifyInterviewLabCareerBundleExport,
 } from "@/lib/career-bundle-export";
 import { deriveDashboardCareerBundleExportComposition } from "@/lib/derive-dashboard-career-bundle-export-composition";
-import {
-  DASHBOARD_CAREER_EXPORT_ENRICHMENT_SOURCE_DEMO,
-  DASHBOARD_CAREER_EXPORT_ENRICHMENT_SOURCE_NONE,
-  DASHBOARD_CAREER_EXPORT_ENRICHMENT_SOURCE_PROVIDER_DERIVED,
-  DASHBOARD_CAREER_EXPORT_READ_ONLY_NOTICE,
-} from "@/components/dashboard/dashboard-career-export-content";
+import { DashboardCareerExportCompositionSource } from "@/components/dashboard/dashboard-career-export-composition-source";
+import { DASHBOARD_CAREER_EXPORT_READ_ONLY_NOTICE } from "@/components/dashboard/dashboard-career-export-content";
 import type { CareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
 import { sendCareerBundleViaPostMessageWithRetry } from "@/lib/career-bundle-postmessage-handoff";
 import {
@@ -241,23 +237,17 @@ export function DashboardClient() {
     [applications, includeDemoSyncEnrichment, eligibleProviderEnrichment],
   );
 
-  const buildExportCareerBundle = useCallback(() => {
-    return buildInterviewLabCareerBundleForExport(applications, {
-      syncEnrichmentSource: exportComposition.source,
-    });
-  }, [applications, exportComposition.source]);
+  const exportCareerBundle = exportComposition.bundle;
 
-  const exportEnrichmentSourceNotice = useMemo(() => {
-    switch (exportComposition.sourceKind) {
-      case "provider-derived-proposal":
-        return DASHBOARD_CAREER_EXPORT_ENRICHMENT_SOURCE_PROVIDER_DERIVED;
-      case "demo":
-        return DASHBOARD_CAREER_EXPORT_ENRICHMENT_SOURCE_DEMO;
-      case "none":
-      default:
-        return DASHBOARD_CAREER_EXPORT_ENRICHMENT_SOURCE_NONE;
+  const buildExportCareerBundle = useCallback(() => {
+    if (exportCareerBundle == null) {
+      return buildInterviewLabCareerBundleForExport(applications, {
+        syncEnrichmentSource: exportComposition.source,
+      });
     }
-  }, [exportComposition.sourceKind]);
+
+    return exportCareerBundle;
+  }, [applications, exportCareerBundle, exportComposition.source]);
 
   const onCopyCareerBundleForInterviewLab = useCallback(async () => {
     setCareerCopyFeedback("idle");
@@ -629,12 +619,7 @@ export function DashboardClient() {
                     histórico actual — o export prioriza essas linhas.
                   </p>
                 )}
-                <p
-                  className="text-[11px] leading-snug text-[color:var(--af-text-muted)]"
-                  data-testid="dashboard-career-export-enrichment-source-notice"
-                >
-                  {exportEnrichmentSourceNotice}
-                </p>
+                <DashboardCareerExportCompositionSource sourceKind={exportComposition.sourceKind} />
                 <p className="text-[11px] leading-snug text-[color:var(--af-text-muted)]">
                   {DASHBOARD_CAREER_EXPORT_READ_ONLY_NOTICE}
                 </p>

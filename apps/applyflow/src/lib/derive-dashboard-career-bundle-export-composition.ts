@@ -1,5 +1,6 @@
 import type { ApplyFlowApplication } from "@devflow/applyflow-core";
 import { extractCareerBundleSyncEnrichment } from "@devflow/career-core";
+import type { CareerBundle, CareerBundleWithSyncEnrichment } from "@devflow/career-core";
 import type { CareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
 import {
   buildInterviewLabCareerBundleForExport,
@@ -21,6 +22,7 @@ export type DashboardCareerBundleExportComposition = {
   source: CareerBundleSyncEnrichmentSource;
   sourceKind: CareerBundleSyncEnrichmentSourceKind;
   syncEnrichment: CareerBundleUnifiedSyncEnrichment | null;
+  bundle: CareerBundle | CareerBundleWithSyncEnrichment | null;
 };
 
 /**
@@ -34,6 +36,7 @@ export function deriveDashboardCareerBundleExportComposition(
       source: { kind: "none" },
       sourceKind: "none",
       syncEnrichment: null,
+      bundle: null,
     };
   }
 
@@ -50,5 +53,6 @@ export function deriveDashboardCareerBundleExportComposition(
     source,
     sourceKind: careerBundleSyncEnrichmentSourceKind(source),
     syncEnrichment: extractCareerBundleSyncEnrichment(bundle),
+    bundle,
   };
 }

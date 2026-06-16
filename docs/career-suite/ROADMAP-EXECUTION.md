@@ -108,6 +108,7 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 - Provider-derived enrichment change preview — read-only current vs. proposed comparison — [integrations/PROVIDER-DERIVED-ENRICHMENT-CHANGE-PREVIEW.md](./integrations/PROVIDER-DERIVED-ENRICHMENT-CHANGE-PREVIEW.md)
 - Current CareerBundle enrichment wiring (change preview baseline) — optional dashboard export-shape baseline — [integrations/PROVIDER-DERIVED-ENRICHMENT-CHANGE-PREVIEW.md](./integrations/PROVIDER-DERIVED-ENRICHMENT-CHANGE-PREVIEW.md#optional-current-baseline-dashboard)
 - Provider-derived enrichment export composition — transient provider-derived enrichment in dashboard export preview — [integrations/PROVIDER-DERIVED-ENRICHMENT-EXPORT-COMPOSITION.md](./integrations/PROVIDER-DERIVED-ENRICHMENT-EXPORT-COMPOSITION.md)
+- Export source visibility + Interview Lab handoff validation — [integrations/PROVIDER-DERIVED-EXPORT-HANDOFF-VALIDATION.md](./integrations/PROVIDER-DERIVED-EXPORT-HANDOFF-VALIDATION.md)
 - **Enrichment apply workflow** — **explicitly deferred**
 - **Import workflow (proposal export)** — **explicitly deferred** — not planned in current cycle
 - Provider-derived runtime-neutral signal IDs — shared deterministic internal ID format (`createProviderDerivedSignalId`)
@@ -147,6 +148,7 @@ This remains read-only and does not activate OAuth, Nango runtime, provider call
 - Provider-derived enrichment change preview is **implemented** — read-only current vs. proposed comparison; no apply ([change preview doc](./integrations/PROVIDER-DERIVED-ENRICHMENT-CHANGE-PREVIEW.md)).
 - Current CareerBundle enrichment wiring for change preview baseline is **implemented** — optional dashboard export-shape `syncEnrichment`; falls back to `null` when unavailable ([change preview doc](./integrations/PROVIDER-DERIVED-ENRICHMENT-CHANGE-PREVIEW.md#optional-current-baseline-dashboard)).
 - Provider-derived enrichment export composition is **implemented** — eligible ready proposals compose into transient export preview; no auto-export ([export composition doc](./integrations/PROVIDER-DERIVED-ENRICHMENT-EXPORT-COMPOSITION.md)).
+- Export source visibility and Interview Lab handoff validation are **implemented** — single composition policy across preview, handoff, and download ([handoff validation doc](./integrations/PROVIDER-DERIVED-EXPORT-HANDOFF-VALIDATION.md)).
 - **Enrichment apply workflow: explicitly deferred** — change preview does not mutate CareerBundle or applications.
 - **Import workflow (proposal export): explicitly deferred** — next initiatives must not assume import exists.
 - Background sync and CareerBundle auto-enrichment from runtime are **not implemented yet**.
