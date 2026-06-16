@@ -1,6 +1,6 @@
 # Career Suite — Curriculum and profile entries
 
-**Copy-ready.** Replace `[PERIOD]` and `[REPO_OR_CASE_URL]` before external use.  
+**Copy-ready.** Public Career Suite case link and project period verified on 2026-06-16.
 Do not invent employment dates or commercial outcomes.
 
 ---
@@ -45,8 +45,8 @@ architecture
 
 **Projeto:** DevFlow Career Suite (ApplyFlow + Interview Lab)  
 **Papel:** Product Engineer / autor do case (portfólio)  
-**Período:** `[PERIOD]`  
-**Link:** `[REPO_OR_CASE_URL]` → `docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md`
+**Período:** 2026 — presente
+**Link:** https://github.com/devflow-modules/devflow/blob/main/docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md
 
 **Impacto (bullets):**
 
@@ -64,8 +64,8 @@ architecture
 
 **Project:** DevFlow Career Suite (ApplyFlow + Interview Lab)  
 **Role:** Product Engineer / case author (portfolio)  
-**Period:** `[PERIOD]`  
-**Link:** `[REPO_OR_CASE_URL]` → `docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md`
+**Period:** 2026 — present
+**Link:** https://github.com/devflow-modules/devflow/blob/main/docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md
 
 **Impact (bullets):**
 
@@ -91,7 +91,7 @@ Portfolio case connecting ApplyFlow (applications dashboard + Chrome extension) 
 
 **Media:** Upload `01-applyflow-dashboard.png` or `06-interview-lab-handoff.png`
 
-**Link:** `[REPO_OR_CASE_URL]` or deep link to case markdown on GitHub
+**Link:** https://github.com/devflow-modules/devflow/blob/main/docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md
 
 ---
 
