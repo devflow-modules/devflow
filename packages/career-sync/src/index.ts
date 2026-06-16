@@ -405,3 +405,27 @@ export type {
 } from "./provider-derived-insights/index.js";
 
 export { deriveProviderDerivedCareerInsightsMetrics } from "./provider-derived-insights/index.js";
+
+export type {
+  DeriveEnrichmentChangePreviewInput,
+  EnrichmentChangePreviewField,
+  EnrichmentChangePreviewItem,
+  EnrichmentChangePreviewResult,
+  EnrichmentChangePreviewStatus,
+  SafeDisplayValue,
+} from "./enrichment-change-preview/index.js";
+
+export {
+  ENRICHMENT_CHANGE_PREVIEW_FIELDS,
+  ENRICHMENT_CHANGE_PREVIEW_MAX_ITEMS,
+  ENRICHMENT_CHANGE_PREVIEW_MAX_LIST_ITEMS,
+  ENRICHMENT_CHANGE_PREVIEW_MAX_STRING_LENGTH,
+  ENRICHMENT_CHANGE_PREVIEW_MAX_WARNINGS_PER_ITEM,
+  ENRICHMENT_CHANGE_PREVIEW_MIN_CONFIDENCE,
+  assertEnrichmentChangePreviewSafe,
+  deriveEnrichmentChangePreview,
+  displayValuesEqual,
+  normalizeCompanyHints,
+  serializeSafeDisplayValue,
+  toSafeList,
+} from "./enrichment-change-preview/index.js";

@@ -288,16 +288,6 @@ export function ProviderDerivedRuntimePreviewPanel({
           </div>
         ) : null}
 
-        <ProviderDerivedCareerInsightsPanel
-          explicitConsentChecked={explicitConsentChecked}
-          gmailVerification={gmailVerification}
-          calendarVerification={calendarVerification}
-          previewUiState={uiState}
-          previewResult={previewResult}
-          reviewState={reviewState}
-          proposal={enrichmentProposal}
-        />
-
         <ProviderDerivedRuntimeReviewPanel
           result={previewResult}
           isPreviewLoading={uiState === "loading"}
@@ -310,6 +300,16 @@ export function ProviderDerivedRuntimePreviewPanel({
           isPreviewLoading={uiState === "loading"}
           proposal={enrichmentProposal}
           onProposalChange={setEnrichmentProposal}
+        />
+
+        <ProviderDerivedCareerInsightsPanel
+          explicitConsentChecked={explicitConsentChecked}
+          gmailVerification={gmailVerification}
+          calendarVerification={calendarVerification}
+          previewUiState={uiState}
+          previewResult={previewResult}
+          reviewState={reviewState}
+          proposal={enrichmentProposal}
         />
       </div>
     </ApplyFlowCard>
