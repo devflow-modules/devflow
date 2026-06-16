@@ -27,6 +27,8 @@ A future workflow could allow a user to **manually** persist reviewed provider-d
 
 The threat model [PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md](../career-suite/integrations/PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md) analyzes risks and prerequisites. It is **not** an implementation specification and does **not** approve Apply.
 
+Candidate contracts and architectural gates are proposed in [PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md](../career-suite/integrations/PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md) and [ADR-004](./ADR-004-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE-PROPOSED.md) (Status: **Proposed**). These do **not** approve implementation.
+
 ## Decision
 
 **Provider-derived enrichment application remains explicitly deferred.**
@@ -97,6 +99,8 @@ Automatic or batch application (decision matrix option D) is **incompatible** wi
 
 ## References
 
+- [PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md](../career-suite/integrations/PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md)
+- [ADR-004: Contract architecture proposed](./ADR-004-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE-PROPOSED.md)
 - [PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md](../career-suite/integrations/PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md)
 - [ADR-002: Enrichment proposal export-only](./ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md)
 - [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md](../career-suite/integrations/PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md)

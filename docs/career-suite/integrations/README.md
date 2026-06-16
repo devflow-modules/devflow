@@ -30,6 +30,7 @@ This folder documents **external integration labs** for the Career Suite. These 
 17f. **[Provider-Derived Enrichment Export Composition](./PROVIDER-DERIVED-ENRICHMENT-EXPORT-COMPOSITION.md)** — transient provider-derived enrichment in dashboard export preview (ApplyFlow)
 17g. **[Provider-Derived Export Handoff Validation](./PROVIDER-DERIVED-EXPORT-HANDOFF-VALIDATION.md)** — source visibility and Interview Lab handoff consistency (ApplyFlow)
 17h. **[Provider-Derived Enrichment Application Threat Model](./PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md)** — future apply analysis only; [ADR-003](../../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md)
+17i. **[Provider-Derived Enrichment Application Contract Architecture](./PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md)** — proposed contracts and gates; [ADR-004](../../adr/ADR-004-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE-PROPOSED.md) (Proposed)
 18. **[LibreChat + MCP lab](./LIBRECHAT-MCP-LAB.md)** — local agent UI over deterministic tools
 18. **[LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)** — connect upstream LibreChat to `@devflow/career-agents-mcp` stdio
 19. **[Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth/sync adapter (docs + sandbox contracts; no runtime OAuth in apps)
@@ -96,6 +97,7 @@ No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persisten
 | Provider-derived enrichment export composition | **UI only** | [PROVIDER-DERIVED-ENRICHMENT-EXPORT-COMPOSITION.md](./PROVIDER-DERIVED-ENRICHMENT-EXPORT-COMPOSITION.md) — transient export preview, no auto-export |
 | Export source visibility + handoff validation | **UI + tests** | [PROVIDER-DERIVED-EXPORT-HANDOFF-VALIDATION.md](./PROVIDER-DERIVED-EXPORT-HANDOFF-VALIDATION.md) |
 | Enrichment application threat model | **Documented** | [PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md](./PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md); [ADR-003](../../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md) |
+| Enrichment application contract architecture | **Proposed** | [PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md](./PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md); [ADR-004](../../adr/ADR-004-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE-PROPOSED.md) |
 | Enrichment apply workflow | **Explicitly deferred** | [ADR-003](../../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md) — not part of current lifecycle |
 | Proposal export import workflow | **Explicitly deferred** | Not planned in current cycle — see lifecycle doc |
 | Provider-derived enrichment adapter | **Sandbox impl** | [PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md](./PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md) — maps to `CareerBundleUnifiedSyncEnrichment` |
@@ -126,7 +128,9 @@ No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persisten
 - [Provider-Derived Enrichment Proposal Export Lifecycle](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md)
 - [ADR-002: export-only](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md)
 - [ADR-003: application deferred](../../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md)
+- [ADR-004: contract architecture proposed](../../adr/ADR-004-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE-PROPOSED.md)
 - [Provider-Derived Enrichment Application Threat Model](./PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md)
+- [Provider-Derived Enrichment Application Contract Architecture](./PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md)
 - [LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)
 - [Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)
 - [Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)

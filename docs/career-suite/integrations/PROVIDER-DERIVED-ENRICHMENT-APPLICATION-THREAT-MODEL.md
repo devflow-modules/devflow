@@ -7,6 +7,8 @@ It is **not** an implementation specification. It does **not** approve Apply. It
 **Related:**
 
 - [ADR-003: Application explicitly deferred](../../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md)
+- [ADR-004: Contract architecture proposed](../../adr/ADR-004-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE-PROPOSED.md)
+- [PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md](./PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md)
 - [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md)
 - [PROVIDER-DERIVED-ENRICHMENT-EXPORT-COMPOSITION.md](./PROVIDER-DERIVED-ENRICHMENT-EXPORT-COMPOSITION.md)
 - [PROVIDER-DERIVED-EXPORT-HANDOFF-VALIDATION.md](./PROVIDER-DERIVED-EXPORT-HANDOFF-VALIDATION.md)
@@ -494,10 +496,10 @@ All must **fail closed** (no partial unauthorized persist):
 
 Before **any** implementation:
 
-- [ ] Dedicated ADR approving mutation contract (separate from this threat model)
+- [ ] Dedicated ADR approving mutation contract (separate from this threat model) — see [ADR-004](../../adr/ADR-004-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE-PROPOSED.md) (Proposed) and [CONTRACT-ARCHITECTURE](./PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md)
 - [ ] This threat model reviewed and accepted by security/privacy stakeholders
-- [ ] Versioned field allowlist published
-- [ ] Versioned mutation contract (`devflow.enrichment-apply` or equivalent)
+- [ ] Versioned field allowlist published — proposed as `devflow.enrichment-apply-field-allowlist@1` in [CONTRACT-ARCHITECTURE](./PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md) (not approved)
+- [ ] Versioned mutation contract (`devflow.enrichment-apply@1`) — proposed in [CONTRACT-ARCHITECTURE](./PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md) (not approved)
 - [ ] Server-side validator (not client-only)
 - [ ] Authorization policy (user + tenant + bundle)
 - [ ] Optimistic concurrency mechanism

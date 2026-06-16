@@ -109,8 +109,9 @@ ApplyFlow can export a CareerBundle with optional **demo/sandbox** sync enrichme
 - Current CareerBundle enrichment wiring (change preview baseline) — optional dashboard export-shape baseline — [integrations/PROVIDER-DERIVED-ENRICHMENT-CHANGE-PREVIEW.md](./integrations/PROVIDER-DERIVED-ENRICHMENT-CHANGE-PREVIEW.md#optional-current-baseline-dashboard)
 - Provider-derived enrichment export composition — transient provider-derived enrichment in dashboard export preview — [integrations/PROVIDER-DERIVED-ENRICHMENT-EXPORT-COMPOSITION.md](./integrations/PROVIDER-DERIVED-ENRICHMENT-EXPORT-COMPOSITION.md)
 - Export source visibility + Interview Lab handoff validation — [integrations/PROVIDER-DERIVED-EXPORT-HANDOFF-VALIDATION.md](./integrations/PROVIDER-DERIVED-EXPORT-HANDOFF-VALIDATION.md)
-- Enrichment application threat model — [integrations/PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md](./integrations/PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md); [ADR-003](../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md)
-- **Enrichment apply workflow** — **explicitly deferred** ([ADR-003](../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md))
+- Enrichment application threat model — [PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md](./integrations/PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md); [ADR-003](../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md)
+- Enrichment application contract architecture — [PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md](./integrations/PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md); [ADR-004](../adr/ADR-004-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE-PROPOSED.md) (Proposed)
+- **Enrichment apply workflow** — **explicitly deferred** ([ADR-003](../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md)); implementation **blocked** until implementation gate approved
 - **Import workflow (proposal export)** — **explicitly deferred** — not planned in current cycle
 - Provider-derived runtime-neutral signal IDs — shared deterministic internal ID format (`createProviderDerivedSignalId`)
 - Unified sync enrichment contract — canonical validator (`validateCareerBundleUnifiedSyncEnrichment`)
@@ -151,7 +152,8 @@ This remains read-only and does not activate OAuth, Nango runtime, provider call
 - Provider-derived enrichment export composition is **implemented** — eligible ready proposals compose into transient export preview; no auto-export ([export composition doc](./integrations/PROVIDER-DERIVED-ENRICHMENT-EXPORT-COMPOSITION.md)).
 - Export source visibility and Interview Lab handoff validation are **implemented** — single composition policy across preview, handoff, and download ([handoff validation doc](./integrations/PROVIDER-DERIVED-EXPORT-HANDOFF-VALIDATION.md)).
 - Enrichment application threat model is **documented** — apply remains explicitly deferred ([threat model](./integrations/PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md), [ADR-003](../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md)).
-- **Enrichment apply workflow: explicitly deferred** — requires dedicated mutation ADR and prerequisites; not part of the current lifecycle.
+- Enrichment application contract architecture is **proposed** — contracts and gates for review; implementation **blocked** ([contract architecture](./integrations/PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md), [ADR-004](../adr/ADR-004-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE-PROPOSED.md)).
+- **Enrichment apply workflow: explicitly deferred** — implementation blocked until implementation gate approved; not part of the current lifecycle.
 - **Import workflow (proposal export): explicitly deferred** — separate from application ([ADR-002](../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md)).
 - Background sync and CareerBundle auto-enrichment from runtime are **explicitly out of scope** for the current read-only lifecycle.
 

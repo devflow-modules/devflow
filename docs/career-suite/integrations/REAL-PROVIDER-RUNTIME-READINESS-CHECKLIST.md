@@ -46,6 +46,7 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - Provider-derived enrichment export composition — transient provider-derived enrichment in dashboard export preview via `deriveDashboardCareerBundleExportComposition` (no auto-export, no persistence)
 - Export source visibility + Interview Lab handoff validation — `deriveExportCompositionSourceViewModel`, `career-bundle-export-session-consistency` tests
 - Enrichment application threat model — [PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md](./PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md), [ADR-003](../../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md)
+- Enrichment application contract architecture — [PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md](./PROVIDER-DERIVED-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE.md), [ADR-004](../../adr/ADR-004-ENRICHMENT-APPLICATION-CONTRACT-ARCHITECTURE-PROPOSED.md) (Proposed)
 - Provider-derived sandbox composition — `@devflow/career-sync` `composeProviderDerivedSignals`
 - Provider-derived enrichment adapter — `@devflow/career-sync` `adaptProviderDerivedSignalsToSyncEnrichment`
 
