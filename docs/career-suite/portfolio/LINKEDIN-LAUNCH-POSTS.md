@@ -5,7 +5,7 @@
 
 **Suggested hero image:** `01-applyflow-dashboard.png` (posts 1–2) · `06-interview-lab-handoff.png` (handoff-focused)
 
-**Link placeholder:** `[REPO_OR_CASE_URL]` — use public case or repo URL when available.
+**Canonical case link:** https://github.com/devflow-modules/devflow/blob/main/docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md
 
 ---
 
@@ -17,7 +17,7 @@ No **DevFlow Career Suite** (case de portfólio), conectei **ApplyFlow** + **Int
 
 **1.045 testes Vitest** no escopo Career Suite. Apply e import de propostas **explicitamente deferred**.
 
-Case + screenshots reais: `[REPO_OR_CASE_URL]`
+Case + screenshots reais: `https://github.com/devflow-modules/devflow/blob/main/docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md`
 
 #ProductEngineering #LocalFirst #TypeScript #NextJS
 
@@ -37,7 +37,7 @@ Stack: TypeScript, pnpm workspaces, Turborepo, Vitest (**443+54+396+152 = 1.045*
 
 Não é auto-apply nem plataforma autónoma — é engenharia com **human-in-the-loop** e export explícito.
 
-`[REPO_OR_CASE_URL]`
+`https://github.com/devflow-modules/devflow/blob/main/docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md`
 
 ---
 
@@ -55,7 +55,7 @@ Destaques de engenharia: composição com origem auditável (`demo` / `provider-
 
 Screenshots capturados da app real (dados demo). Vídeo: roteiro pronto, gravação pendente.
 
-Explorar o case: `[REPO_OR_CASE_URL]`
+Explorar o case: `https://github.com/devflow-modules/devflow/blob/main/docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md`
 
 ---
 
@@ -67,7 +67,7 @@ Job applications and interview prep usually live in different tools.
 
 **1,045 Vitest tests** on the Career Suite scope. Apply and proposal import are **explicitly deferred**.
 
-Case + verified screenshots: `[REPO_OR_CASE_URL]`
+Case + verified screenshots: `https://github.com/devflow-modules/devflow/blob/main/docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md`
 
 ---
 
@@ -81,7 +81,7 @@ Case + verified screenshots: `[REPO_OR_CASE_URL]`
 | **Thesis** | Local-first = user-controlled artifacts on device; explicit export/handoff instead of silent sync. |
 | **Evidence** | Case §7; CareerBundle built in browser; no bundle in URL. |
 | **Image** | `01-applyflow-dashboard.png` |
-| **CTA** | “Full trust model in the case doc → `[REPO_OR_CASE_URL]`” |
+| **CTA** | “Full trust model in the case doc → `https://github.com/devflow-modules/devflow/blob/main/docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md`” |
 
 ### Post 2 — CareerBundle e interoperabilidade
 
