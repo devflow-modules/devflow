@@ -1,6 +1,33 @@
 # DevFlow
 
-**Hub central do ecossistema DevFlow** — sob `devflowlabs.com.br`, o foco público atual é **automação de atendimento no WhatsApp** (com demo e páginas de produto) e o **Financeiro** como segunda ferramenta SaaS ativa. Tudo com SEO consolidado no mesmo domínio.
+**Hub central do ecossistema DevFlow** — sob `devflowlabs.com.br`, o foco público atual é **automação de atendimento no WhatsApp** (com demo e páginas de produto) e o **Financeiro** como segunda ferramenta SaaS ativa. O monorepo inclui também a **Career Suite** como case de portfólio de produto e engenharia (ApplyFlow + Interview Lab).
+
+---
+
+## Career Suite — product & engineering case
+
+**One-liner:** Local-first career workflow — organize applications, review provider-derived signals, compose a typed `CareerBundle`, and hand off to Interview Lab — human-reviewed, privacy-first, no auto-apply.
+
+| | |
+|--|--|
+| **Full case** | [`docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md`](docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md) |
+| **Landing** | [`docs/career-suite/README.md`](docs/career-suite/README.md) |
+| **Public narrative** | [`docs/public-cases/CAREER-SUITE.md`](docs/public-cases/CAREER-SUITE.md) |
+
+**Modules:** ApplyFlow · Interview Lab · `@devflow/career-core` · `@devflow/career-sync` · ApplyFlow Extension
+
+**Trust:** read-only provider-derived lifecycle complete · export/handoff explicit · **Apply deferred** (ADR-003) · **import deferred** (ADR-002)
+
+```bash
+pnpm install
+pnpm --filter @devflow/career-core build && pnpm --filter @devflow/career-sync build
+pnpm --filter applyflow dev                    # http://localhost:3010/dashboard
+pnpm --filter @devflow/app-interview-lab dev   # http://localhost:3015
+```
+
+**Tests:** 1,045 Vitest tests across Career Suite packages (`career-sync` 443 · `career-core` 54 · `applyflow` 396 · `interview-lab` 152). No ApplyFlow Playwright E2E — see case doc.
+
+---
 
 ```
 devflowlabs.com.br
@@ -147,7 +174,15 @@ Documentação: [`docs/crm/README.md`](docs/crm/README.md)
 
 ### DevFlow Career Suite
 
-**ApplyFlow** organiza candidaturas e funil; **Interview Lab** (`apps/interview-lab`) usa esses dados para treino de entrevista técnica em inglês. A integração é **local-first**: exportação de um **`CareerBundle`** JSON (pacote `@devflow/career-core`) no dashboard ApplyFlow e importação no Interview Lab — sem backend partilhado entre os dois. Narrativa técnica: [`docs/career-suite/README.md`](docs/career-suite/README.md) · **case público:** [`docs/public-cases/CAREER-SUITE.md`](docs/public-cases/CAREER-SUITE.md).
+**ApplyFlow** organiza candidaturas; **Interview Lab** prepara entrevistas. Integração **local-first** via **`CareerBundle`** JSON (`@devflow/career-core`).
+
+| Documento | Conteúdo |
+|-----------|----------|
+| **Case completo** | [`docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md`](docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md) |
+| Landing Career Suite | [`docs/career-suite/README.md`](docs/career-suite/README.md) |
+| Case público (recruiters) | [`docs/public-cases/CAREER-SUITE.md`](docs/public-cases/CAREER-SUITE.md) |
+
+Provider-derived enrichment: read-only até export/handoff. Apply e import **explicitly deferred** (ADR-002, ADR-003).
 
 ---
 

@@ -123,7 +123,10 @@ Interview Lab read-only preview (/import/applyflow)
 
 - Raw email bodies · raw calendar descriptions · provider payloads · attachments · meeting links
 
-**What is not implemented yet**
+**What is not implemented**
+
+- Proposal import — **explicitly deferred** ([ADR-002](../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md))
+- Enrichment apply / persistence — **explicitly deferred** ([ADR-003](../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md))
 
 - Real Gmail or Google Calendar OAuth · Nango production connector · ApplyFlow UI to opt into export with sync enrichment · persistent sync storage in apps
 
