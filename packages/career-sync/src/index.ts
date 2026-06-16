@@ -192,6 +192,23 @@ export {
 } from "./provider-runtime-flags/index.js";
 
 export type {
+  CareerProviderRuntimePreflightEnv,
+  CareerProviderRuntimePreflightReport,
+  PreflightEnvPresence,
+} from "./provider-runtime-preflight/index.js";
+
+export {
+  CAREER_PROVIDER_RUNTIME_ENV_NAMES,
+  NANGO_INTEGRATION_CONFIG_KEYS,
+  PROVIDER_RUNTIME_SCOPES,
+  assertPreflightOutputIsSafe,
+  classifyProviderRuntimeEnvValue,
+  evaluateCareerProviderRuntimePreflight,
+  formatCareerProviderRuntimePreflightLines,
+  isProviderRuntimeDefaultOff,
+} from "./provider-runtime-preflight/index.js";
+
+export type {
   DisabledProviderRuntimeResult,
   ProviderRuntimeBlockReason,
   ProviderRuntimeConsentState,
