@@ -1,37 +1,22 @@
 import type { CareerBundleUnifiedSyncEnrichment, CareerSyncSignal } from "@devflow/career-sync";
-import { validateCareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
+import {
+  PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_DOCUMENT_KEYS,
+  PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_SCHEMA,
+  PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_VERSION,
+  collectForbiddenKeysInDocument,
+  validateCareerBundleUnifiedSyncEnrichment,
+  validateProviderDerivedEnrichmentProposalExportV1,
+  type ProviderDerivedEnrichmentProposalExport,
+} from "@devflow/career-sync";
 import type { ProviderDerivedEnrichmentProposal } from "./provider-derived-enrichment-proposal";
 
-export const PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_SCHEMA =
-  "devflow.provider-derived-enrichment-proposal" as const;
+export type { ProviderDerivedEnrichmentProposalExport } from "@devflow/career-sync";
 
-export const PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_VERSION = 1 as const;
-
-export const PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_DOCUMENT_KEYS = [
-  "schema",
-  "version",
-  "exportedAt",
-  "generatedAt",
-  "sourceSignalCount",
-  "reviewRequired",
-  "persistedByApplyFlow",
-  "appliedToCareerBundle",
-  "appliedToApplications",
-  "enrichment",
-] as const;
-
-export type ProviderDerivedEnrichmentProposalExport = {
-  schema: typeof PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_SCHEMA;
-  version: typeof PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_VERSION;
-  exportedAt: string;
-  generatedAt: string;
-  sourceSignalCount: number;
-  reviewRequired: true;
-  persistedByApplyFlow: false;
-  appliedToCareerBundle: false;
-  appliedToApplications: false;
-  enrichment: CareerBundleUnifiedSyncEnrichment;
-};
+export {
+  PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_DOCUMENT_KEYS,
+  PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_SCHEMA,
+  PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_VERSION,
+} from "@devflow/career-sync";
 
 export type BuildProviderDerivedEnrichmentProposalExportInput = {
   proposal: ProviderDerivedEnrichmentProposal;
@@ -52,32 +37,6 @@ const EXPORT_READY_MESSAGE =
   "Proposal downloaded locally. Nothing was saved or applied in ApplyFlow.";
 const EXPORT_INVALID_MESSAGE = "The current proposal is not valid for download.";
 const EXPORT_ERROR_MESSAGE = "The proposal could not be downloaded safely.";
-
-const FORBIDDEN_JSON_KEYS = new Set([
-  "access_token",
-  "refresh_token",
-  "client_secret",
-  "authorization_code",
-  "connectionId",
-  "end_user_id",
-  "providerPayload",
-  "providerId",
-  "messageId",
-  "threadId",
-  "eventId",
-  "calendarId",
-  "subject",
-  "snippet",
-  "body",
-  "description",
-  "location",
-  "meetingLink",
-  "attendeeEmail",
-  "organizerEmail",
-  "rawPayload",
-  "rawMessage",
-  "rawEvent",
-]);
 
 function isValidIsoTimestamp(value: string | undefined): value is string {
   return typeof value === "string" && value.length > 0 && Number.isFinite(Date.parse(value));
@@ -260,32 +219,10 @@ function buildExportDocument(input: {
   };
 }
 
-function hasForbiddenJsonKeys(value: unknown): boolean {
-  if (value == null || typeof value !== "object") {
-    return false;
-  }
-
-  if (Array.isArray(value)) {
-    return value.some((entry) => hasForbiddenJsonKeys(entry));
-  }
-
-  for (const [key, child] of Object.entries(value)) {
-    if (FORBIDDEN_JSON_KEYS.has(key)) {
-      return true;
-    }
-
-    if (hasForbiddenJsonKeys(child)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 export function assertExportJsonSafe(json: string): boolean {
   try {
     const parsed = JSON.parse(json) as unknown;
-    return !hasForbiddenJsonKeys(parsed);
+    return collectForbiddenKeysInDocument(parsed).length === 0;
   } catch {
     return false;
   }
@@ -352,6 +289,17 @@ export function buildProviderDerivedEnrichmentProposalExport(
       proposal: input.proposal,
       exportedAt: input.exportedAt,
     });
+    const documentValidation = validateProviderDerivedEnrichmentProposalExportV1(exportDocument);
+
+    if (!documentValidation.valid) {
+      return createExportResult({
+        status: "error",
+        downloadable: false,
+        warnings: [...documentValidation.errors, ...documentValidation.warnings],
+        messages: [EXPORT_ERROR_MESSAGE],
+      });
+    }
+
     const json = serializeProviderDerivedEnrichmentProposalExport(exportDocument);
     const filename = createProviderDerivedEnrichmentProposalFilename(input.exportedAt);
 
@@ -369,7 +317,7 @@ export function buildProviderDerivedEnrichmentProposalExport(
       downloadable: true,
       filename,
       json,
-      warnings: validation.warnings,
+      warnings: [...validation.warnings, ...documentValidation.warnings],
       messages: [EXPORT_READY_MESSAGE],
     });
   } catch {

@@ -60,4 +60,5 @@ Legacy Zod structural parsing in `career-core` (`careerBundleSyncEnrichmentSchem
 
 - [Provider-Derived Enrichment Adapter](./PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md)
 - [Provider-Derived Enrichment Proposal Export](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT.md)
+- [Provider-Derived Enrichment Proposal Export Validation](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT-VALIDATION.md)
 - [Sync Data Boundaries](./SYNC-DATA-BOUNDARIES.md)

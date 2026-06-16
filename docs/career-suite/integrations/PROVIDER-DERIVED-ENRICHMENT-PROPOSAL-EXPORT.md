@@ -92,4 +92,6 @@ The export envelope does **not** include UI-only or session-local fields from th
 
 ## Validation note
 
-Export reuses `validateCareerBundleUnifiedSyncEnrichment` from `@devflow/career-sync`. Structural allowlisting in the export builder remains the primary safety boundary for serialized fields.
+Export reuses `validateCareerBundleUnifiedSyncEnrichment` from `@devflow/career-sync`. After building the allowlisted document, ApplyFlow also runs `validateProviderDerivedEnrichmentProposalExportV1` before serialization. Structural allowlisting in the export builder remains the primary safety boundary for serialized fields.
+
+The version 1 provider-derived enrichment proposal export has a standalone, pure validator. The validator checks the strict document envelope, schema, version, canonical timestamps, fixed safety flags, prohibited keys and the canonical unified sync enrichment contract. It does not read files, import data, persist anything, sanitize payloads or apply changes to CareerBundle or applications. See [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT-VALIDATION.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT-VALIDATION.md).

@@ -34,6 +34,8 @@ Provider-derived enrichment proposal (`buildProviderDerivedEnrichmentProposal`) 
 
 Provider-derived enrichment proposal export (`buildProviderDerivedEnrichmentProposalExport`) allows the user to download a ready proposal as a local JSON file in the browser. The file is not uploaded or retained by ApplyFlow and does not modify CareerBundle or applications.
 
+The version 1 export document has a standalone validator in `@devflow/career-sync` (`validateProviderDerivedEnrichmentProposalExportV1`). It validates envelope, flags, forbidden keys and enrichment contract without reading files, importing data, persisting anything or sanitizing payloads. See [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT-VALIDATION.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT-VALIDATION.md).
+
 Provider-derived signal IDs (`createProviderDerivedSignalId`) are runtime-neutral internal identifiers — not Gmail/Calendar/Nango provider IDs. See [PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md](./PROVIDER-DERIVED-SIGNAL-ID-CONTRACT.md).
 
 `CareerBundleUnifiedSyncEnrichment` validation uses the canonical validator — see [UNIFIED-SYNC-ENRICHMENT-CONTRACT.md](./UNIFIED-SYNC-ENRICHMENT-CONTRACT.md).
