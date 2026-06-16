@@ -9,7 +9,7 @@ Nothing is applied, persisted, imported, or downloaded automatically.
 | Item | State |
 |------|--------|
 | Provider-derived enrichment export composition | **Implemented** — ApplyFlow dashboard export preview |
-| Enrichment apply workflow | **Explicitly deferred** — separate ADR required |
+| Enrichment apply workflow | **Explicitly deferred** — [ADR-003](../../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md) |
 | Import workflow | **Explicitly deferred** — [ADR-002](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md) |
 
 ## Purpose
@@ -116,6 +116,8 @@ Not propagated: full proposal, `selectedSignalIds`, fingerprints, review state, 
 ## Related docs
 
 - [PROVIDER-DERIVED-EXPORT-HANDOFF-VALIDATION.md](./PROVIDER-DERIVED-EXPORT-HANDOFF-VALIDATION.md)
+- [PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md](./PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md)
+- [ADR-003](../../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md)
 - [PROVIDER-DERIVED-ENRICHMENT-CHANGE-PREVIEW.md](./PROVIDER-DERIVED-ENRICHMENT-CHANGE-PREVIEW.md)
 - [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md)
 - [ADR-002](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md)

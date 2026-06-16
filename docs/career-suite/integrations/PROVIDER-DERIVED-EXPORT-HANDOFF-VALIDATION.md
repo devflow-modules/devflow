@@ -8,7 +8,8 @@ Read-only validation that dashboard export composition, change preview, Intervie
 |------|--------|
 | Export source visibility | **Implemented** — dashboard UI badge + description |
 | Interview Lab handoff validation | **Implemented** — integration tests on postMessage payload |
-| Enrichment apply workflow | **Explicitly deferred** |
+| Enrichment apply workflow | **Explicitly deferred** — [ADR-003](../../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md) |
+| Application threat model | **Documented** — [PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md](./PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md) |
 | Import workflow | **Explicitly deferred** — [ADR-002](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md) |
 
 ## Purpose
@@ -103,4 +104,4 @@ No Playwright E2E in ApplyFlow today — integration tests at lib/component leve
 
 ## Read-only lifecycle
 
-Export composition → explicit handoff or download → lifecycle ends. No server persistence. ADR-002 export-only remains in force.
+Export composition → explicit handoff or download → lifecycle ends. No server persistence. Application is explicitly deferred ([ADR-003](../../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md)). ADR-002 export-only remains in force.

@@ -12,7 +12,7 @@ Nothing is applied, persisted, imported, or sent to providers.
 | Current CareerBundle enrichment wiring | **Implemented** — optional dashboard baseline via `extractCareerBundleSyncEnrichment` |
 | Provider-derived enrichment export composition | **Implemented** — transient export preview from eligible proposals |
 | Export source visibility + handoff validation | **Implemented** — UI badge + integration tests |
-| Enrichment apply workflow | **Explicitly deferred** — requires separate ADR and threat model |
+| Enrichment apply workflow | **Explicitly deferred** — [ADR-003](../../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md), [threat model](./PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md) |
 | Import workflow | **Explicitly deferred** — [ADR-002](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md) |
 
 ## Purpose
@@ -147,7 +147,7 @@ Change preview does not alter the export v1 contract or validator.
 
 ## Future apply decision
 
-Any future **apply** workflow requires a separate ADR, threat model, user confirmation, idempotency, and rollback — independent of this read-only preview. ADR-002 remains export-only.
+Any future **apply** workflow requires [ADR-003](../../adr/ADR-003-PROVIDER-DERIVED-ENRICHMENT-APPLICATION-DEFERRED.md), the [application threat model](./PROVIDER-DERIVED-ENRICHMENT-APPLICATION-THREAT-MODEL.md), a dedicated mutation ADR, field-level consent, idempotency, optimistic concurrency, and rollback — independent of this read-only preview. ADR-002 remains export-only.
 
 ## Related docs
 
