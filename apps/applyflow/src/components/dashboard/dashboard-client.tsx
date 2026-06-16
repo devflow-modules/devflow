@@ -51,7 +51,14 @@ import {
   mapApplyFlowApplicationToCareer,
   stringifyInterviewLabCareerBundleExport,
 } from "@/lib/career-bundle-export";
-import { deriveDashboardCareerBundleSyncEnrichmentBaseline } from "@/lib/derive-dashboard-career-bundle-sync-enrichment-baseline";
+import { deriveDashboardCareerBundleExportComposition } from "@/lib/derive-dashboard-career-bundle-export-composition";
+import {
+  DASHBOARD_CAREER_EXPORT_ENRICHMENT_SOURCE_DEMO,
+  DASHBOARD_CAREER_EXPORT_ENRICHMENT_SOURCE_NONE,
+  DASHBOARD_CAREER_EXPORT_ENRICHMENT_SOURCE_PROVIDER_DERIVED,
+  DASHBOARD_CAREER_EXPORT_READ_ONLY_NOTICE,
+} from "@/components/dashboard/dashboard-career-export-content";
+import type { CareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
 import { sendCareerBundleViaPostMessageWithRetry } from "@/lib/career-bundle-postmessage-handoff";
 import {
   copyCareerBundleJsonToClipboard,
@@ -221,19 +228,36 @@ export function DashboardClient() {
   const [careerCopyFeedback, setCareerCopyFeedback] = useState<"idle" | "success" | "error">("idle");
   const [careerCopyMessage, setCareerCopyMessage] = useState<string | null>(null);
   const [includeDemoSyncEnrichment, setIncludeDemoSyncEnrichment] = useState(false);
+  const [eligibleProviderEnrichment, setEligibleProviderEnrichment] =
+    useState<CareerBundleUnifiedSyncEnrichment | null>(null);
 
-  const buildExportCareerBundle = useCallback(() => {
-    return buildInterviewLabCareerBundleForExport(applications, { includeDemoSyncEnrichment });
-  }, [applications, includeDemoSyncEnrichment]);
-
-  const currentSyncEnrichment = useMemo(
+  const exportComposition = useMemo(
     () =>
-      deriveDashboardCareerBundleSyncEnrichmentBaseline({
+      deriveDashboardCareerBundleExportComposition({
         applications,
         includeDemoSyncEnrichment,
+        eligibleProviderEnrichment,
       }),
-    [applications, includeDemoSyncEnrichment],
+    [applications, includeDemoSyncEnrichment, eligibleProviderEnrichment],
   );
+
+  const buildExportCareerBundle = useCallback(() => {
+    return buildInterviewLabCareerBundleForExport(applications, {
+      syncEnrichmentSource: exportComposition.source,
+    });
+  }, [applications, exportComposition.source]);
+
+  const exportEnrichmentSourceNotice = useMemo(() => {
+    switch (exportComposition.sourceKind) {
+      case "provider-derived-proposal":
+        return DASHBOARD_CAREER_EXPORT_ENRICHMENT_SOURCE_PROVIDER_DERIVED;
+      case "demo":
+        return DASHBOARD_CAREER_EXPORT_ENRICHMENT_SOURCE_DEMO;
+      case "none":
+      default:
+        return DASHBOARD_CAREER_EXPORT_ENRICHMENT_SOURCE_NONE;
+    }
+  }, [exportComposition.sourceKind]);
 
   const onCopyCareerBundleForInterviewLab = useCallback(async () => {
     setCareerCopyFeedback("idle");
@@ -605,6 +629,15 @@ export function DashboardClient() {
                     histórico actual — o export prioriza essas linhas.
                   </p>
                 )}
+                <p
+                  className="text-[11px] leading-snug text-[color:var(--af-text-muted)]"
+                  data-testid="dashboard-career-export-enrichment-source-notice"
+                >
+                  {exportEnrichmentSourceNotice}
+                </p>
+                <p className="text-[11px] leading-snug text-[color:var(--af-text-muted)]">
+                  {DASHBOARD_CAREER_EXPORT_READ_ONLY_NOTICE}
+                </p>
                 <label className="mt-2 flex cursor-pointer items-start gap-2.5 rounded-lg border border-[color:var(--af-border-strong)]/60 bg-[color:var(--af-surface)]/40 p-3">
                   <input
                     type="checkbox"
@@ -683,7 +716,11 @@ export function DashboardClient() {
 
         <ProviderConsentMockPanel />
 
-        <ProviderConsentConfirmationPanel currentSyncEnrichment={currentSyncEnrichment} />
+        <ProviderConsentConfirmationPanel
+          currentSyncEnrichment={exportComposition.syncEnrichment}
+          baselineSourceKind={exportComposition.sourceKind}
+          onEligibleProviderEnrichmentChange={setEligibleProviderEnrichment}
+        />
 
         {hasData ? (
           <div className="flex flex-wrap items-center gap-4">

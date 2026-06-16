@@ -52,6 +52,7 @@ export {
   createCareerBundleWithSyncEnrichment,
   deriveCareerBundleEnrichmentChangePreview,
   extractCareerBundleSyncEnrichment,
+  composeCareerBundleExportWithSyncEnrichment,
   hasCareerBundleSyncEnrichment,
   parseCareerBundleWithSyncEnrichment,
   serializeCareerBundleWithSyncEnrichment,

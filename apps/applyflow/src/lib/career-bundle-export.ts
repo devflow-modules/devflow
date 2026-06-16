@@ -1,5 +1,6 @@
 import type { ApplyFlowApplication, ApplyFlowApplicationStatus } from "@devflow/applyflow-core";
 import {
+  composeCareerBundleExportWithSyncEnrichment,
   createCareerBundle,
   createCareerBundleWithSyncEnrichment,
   getInterviewReadyApplications,
@@ -8,8 +9,11 @@ import {
   type CareerBundle,
   type CareerBundleWithSyncEnrichment,
 } from "@devflow/career-core";
+import type { CareerBundleSyncEnrichmentSource } from "./career-bundle-sync-enrichment-source";
 import { buildApplyFlowDemoSyncEnrichment } from "./career-bundle-demo-sync-enrichment";
 import { stringifyCareerBundleJson } from "./interview-lab-handoff";
+
+export type { CareerBundleSyncEnrichmentSource } from "./career-bundle-sync-enrichment-source";
 
 function mapApplyFlowStatus(status: ApplyFlowApplicationStatus): CareerApplication["status"] {
   switch (status) {
@@ -86,21 +90,43 @@ export function buildInterviewLabCareerBundle(applications: ApplyFlowApplication
 }
 
 export type InterviewLabCareerBundleExportOptions = {
+  /** @deprecated Prefer `syncEnrichmentSource` for explicit mutually exclusive sources. */
   includeDemoSyncEnrichment?: boolean;
+  syncEnrichmentSource?: CareerBundleSyncEnrichmentSource;
 };
+
+function resolveSyncEnrichmentSource(
+  options?: InterviewLabCareerBundleExportOptions,
+): CareerBundleSyncEnrichmentSource {
+  if (options?.syncEnrichmentSource) {
+    return options.syncEnrichmentSource;
+  }
+
+  if (options?.includeDemoSyncEnrichment) {
+    return { kind: "demo" };
+  }
+
+  return { kind: "none" };
+}
 
 export function buildInterviewLabCareerBundleForExport(
   applications: ApplyFlowApplication[],
   options?: InterviewLabCareerBundleExportOptions,
 ): CareerBundle | CareerBundleWithSyncEnrichment {
   const base = buildInterviewLabCareerBundle(applications);
-  if (!options?.includeDemoSyncEnrichment) {
-    return base;
+  const source = resolveSyncEnrichmentSource(options);
+
+  switch (source.kind) {
+    case "none":
+      return base;
+    case "demo":
+      return createCareerBundleWithSyncEnrichment(base.applications, {
+        syncEnrichment: buildApplyFlowDemoSyncEnrichment({ generatedAt: base.exportedAt }),
+        exportedAt: base.exportedAt,
+      });
+    case "provider-derived-proposal":
+      return composeCareerBundleExportWithSyncEnrichment(base, source.enrichment);
   }
-  return createCareerBundleWithSyncEnrichment(base.applications, {
-    syncEnrichment: buildApplyFlowDemoSyncEnrichment({ generatedAt: base.exportedAt }),
-    exportedAt: base.exportedAt,
-  });
 }
 
 export function stringifyInterviewLabCareerBundleExport(
