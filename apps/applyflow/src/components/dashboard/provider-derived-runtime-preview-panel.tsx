@@ -14,6 +14,7 @@ import {
 import {
   runProviderDerivedRuntimePreview,
   type ProviderDerivedRuntimePreviewClientResult,
+  type ProviderDerivedRuntimePreviewUiState,
 } from "./provider-derived-runtime-preview-client";
 import {
   PROVIDER_DERIVED_RUNTIME_PREVIEW_BADGE,
@@ -26,14 +27,9 @@ import {
   PROVIDER_DERIVED_RUNTIME_PREVIEW_UI_MESSAGES,
 } from "./provider-derived-runtime-preview-content";
 import { ProviderDerivedRuntimeReviewPanel } from "./provider-derived-runtime-review-panel";
+import { ProviderDerivedCareerInsightsPanel } from "./provider-derived-career-insights-panel";
 
-export type ProviderDerivedRuntimePreviewUiState =
-  | "idle"
-  | "loading"
-  | "completed"
-  | "partial"
-  | "blocked"
-  | "error";
+export type { ProviderDerivedRuntimePreviewUiState } from "./provider-derived-runtime-preview-client";
 
 function isGmailServerVerified(
   verification: ProviderConnectionVerificationResult | null,
@@ -291,6 +287,16 @@ export function ProviderDerivedRuntimePreviewPanel({
             ) : null}
           </div>
         ) : null}
+
+        <ProviderDerivedCareerInsightsPanel
+          explicitConsentChecked={explicitConsentChecked}
+          gmailVerification={gmailVerification}
+          calendarVerification={calendarVerification}
+          previewUiState={uiState}
+          previewResult={previewResult}
+          reviewState={reviewState}
+          proposal={enrichmentProposal}
+        />
 
         <ProviderDerivedRuntimeReviewPanel
           result={previewResult}

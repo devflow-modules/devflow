@@ -40,6 +40,7 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - Provider-derived enrichment proposal export — ApplyFlow browser-side JSON download of ready proposals (no upload, no persistence)
 - Provider-derived enrichment proposal export validation — `@devflow/career-sync` standalone v1 document validator (no import, no persistence)
 - Provider-derived enrichment proposal export lifecycle and trust model — documented export-only artifact boundaries ([PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-LIFECYCLE.md), [ADR-002](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md))
+- Provider-derived career insights (read-only) — ApplyFlow `ProviderDerivedCareerInsightsPanel` (session metrics only, no persistence)
 - Provider-derived sandbox composition — `@devflow/career-sync` `composeProviderDerivedSignals`
 - Provider-derived enrichment adapter — `@devflow/career-sync` `adaptProviderDerivedSignalsToSyncEnrichment`
 

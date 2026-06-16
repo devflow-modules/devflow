@@ -13,6 +13,14 @@ import {
  * Client-side connection state controls button availability only; the server verifies connections.
  */
 
+export type ProviderDerivedRuntimePreviewUiState =
+  | "idle"
+  | "loading"
+  | "completed"
+  | "partial"
+  | "blocked"
+  | "error";
+
 export const PROVIDER_DERIVED_RUNTIME_PREVIEW_URL = "/provider-runtime/nango/derived-preview";
 
 export type ProviderDerivedRuntimePreviewClientRequest = {
