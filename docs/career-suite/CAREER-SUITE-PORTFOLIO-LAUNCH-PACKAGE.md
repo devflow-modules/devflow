@@ -203,13 +203,15 @@ Full text: [portfolio/CURRICULUM-AND-PROFILE-ENTRIES.md](./portfolio/CURRICULUM-
 
 Copy-ready PT/EN: [portfolio/CURRICULUM-AND-PROFILE-ENTRIES.md](./portfolio/CURRICULUM-AND-PROFILE-ENTRIES.md)
 
-Placeholders: `[PERIOD]`, `[REPO_OR_CASE_URL]`
+**Status:** Project period resolved (`2026 — presente` / `2026 — present`). Canonical public case URL resolved. Curriculum/profile entries ready.
 
 ---
 
 ## 12. LinkedIn launch posts
 
 Three launch variants + EN short: [portfolio/LINKEDIN-LAUNCH-POSTS.md](./portfolio/LINKEDIN-LAUNCH-POSTS.md)
+
+**Status:** LinkedIn launch posts ready — canonical case URL embedded in all CTAs.
 
 ---
 
@@ -268,7 +270,14 @@ Summary: [portfolio/EVIDENCE-AND-CLAIMS-MATRIX.md § Claims policy](./portfolio/
 
 *Human actions — not executed by automation.*
 
-- [ ] Merge PR #106 (this package)
+### Copy preparation (ready for external use)
+
+- [x] Period filled — `2026 — presente` / `2026 — present` in [CURRICULUM-AND-PROFILE-ENTRIES.md](./portfolio/CURRICULUM-AND-PROFILE-ENTRIES.md)
+- [x] Canonical link filled — https://github.com/devflow-modules/devflow/blob/main/docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md
+- [x] Copy placeholders resolved — curriculum/profile entries and [LinkedIn launch posts](./portfolio/LINKEDIN-LAUNCH-POSTS.md)
+
+### External actions (pending)
+
 - [ ] Verify public repository visibility policy (monorepo may stay private — see ApplyFlow publication checklist)
 - [ ] Verify README links to case + launch package
 - [ ] Verify all image paths render on GitHub
@@ -276,7 +285,7 @@ Summary: [portfolio/EVIDENCE-AND-CLAIMS-MATRIX.md § Claims policy](./portfolio/
 - [ ] Select hero: `01-applyflow-dashboard.png`
 - [ ] Publish LinkedIn post (choose variant from [LINKEDIN-LAUNCH-POSTS.md](./portfolio/LINKEDIN-LAUNCH-POSTS.md))
 - [ ] Add LinkedIn project entry
-- [ ] Update curriculum with `[PERIOD]` filled
+- [ ] Update curriculum externally (copy from [CURRICULUM-AND-PROFILE-ENTRIES.md](./portfolio/CURRICULUM-AND-PROFILE-ENTRIES.md))
 - [ ] Pin repository or case link on profile (if public)
 - [ ] Collect feedback from 2–3 reviewers (recruiter, engineer, coach)
 
