@@ -3,6 +3,7 @@
 import { ApplyFlowBadge } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import type { CareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
+import type { CareerBundleSyncEnrichmentSourceKind } from "@/lib/career-bundle-sync-enrichment-source";
 import {
   deriveProviderEnrichmentChangePreviewViewModel,
   formatEnrichmentChangePreviewValue,
@@ -23,6 +24,7 @@ import {
 
 export type ProviderDerivedEnrichmentChangePreviewPanelProps = {
   currentSyncEnrichment?: CareerBundleUnifiedSyncEnrichment | null;
+  baselineSourceKind?: CareerBundleSyncEnrichmentSourceKind;
   proposal: ProviderDerivedEnrichmentProposal | null;
   reviewState: ProviderDerivedRuntimeReviewState;
   exportAvailable: boolean;

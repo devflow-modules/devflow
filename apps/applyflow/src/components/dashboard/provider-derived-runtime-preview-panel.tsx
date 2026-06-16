@@ -6,6 +6,8 @@ import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import type { CareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
 import type { ProviderConnectionVerificationResult } from "@devflow/career-sync";
 import { useEffect, useState } from "react";
+import { deriveEligibleProviderEnrichmentForExport } from "@/lib/derive-eligible-provider-enrichment-for-export";
+import type { CareerBundleSyncEnrichmentSourceKind } from "@/lib/career-bundle-sync-enrichment-source";
 import { isEnrichmentProposalStale, type ProviderDerivedEnrichmentProposal } from "@/lib/provider-runtime/provider-derived-enrichment-proposal";
 import { ProviderDerivedEnrichmentProposalPanel } from "./provider-derived-enrichment-proposal-panel";
 import {
@@ -88,11 +90,15 @@ export function ProviderDerivedRuntimePreviewPanel({
   gmailVerification,
   calendarVerification,
   currentSyncEnrichment = null,
+  baselineSourceKind = "none",
+  onEligibleProviderEnrichmentChange,
 }: {
   explicitConsentChecked: boolean;
   gmailVerification: ProviderConnectionVerificationResult | null;
   calendarVerification: ProviderConnectionVerificationResult | null;
   currentSyncEnrichment?: CareerBundleUnifiedSyncEnrichment | null;
+  baselineSourceKind?: CareerBundleSyncEnrichmentSourceKind;
+  onEligibleProviderEnrichmentChange?: (enrichment: CareerBundleUnifiedSyncEnrichment | null) => void;
 }) {
   const [uiState, setUiState] = useState<ProviderDerivedRuntimePreviewUiState>("idle");
   const [previewResult, setPreviewResult] =
@@ -133,6 +139,27 @@ export function ProviderDerivedRuntimePreviewPanel({
       setEnrichmentProposal(null);
     }
   }, [enrichmentProposal, previewResult, reviewState, uiState]);
+
+  useEffect(() => {
+    if (!onEligibleProviderEnrichmentChange) {
+      return;
+    }
+
+    onEligibleProviderEnrichmentChange(
+      deriveEligibleProviderEnrichmentForExport({
+        proposal: enrichmentProposal,
+        previewResult,
+        reviewState,
+        isPreviewLoading: uiState === "loading",
+      }),
+    );
+  }, [
+    enrichmentProposal,
+    previewResult,
+    reviewState,
+    uiState,
+    onEligibleProviderEnrichmentChange,
+  ]);
 
   async function handleRunPreview() {
     if (!previewEnabled) {
@@ -304,6 +331,7 @@ export function ProviderDerivedRuntimePreviewPanel({
           proposal={enrichmentProposal}
           onProposalChange={setEnrichmentProposal}
           currentSyncEnrichment={currentSyncEnrichment}
+          baselineSourceKind={baselineSourceKind}
         />
 
         <ProviderDerivedCareerInsightsPanel

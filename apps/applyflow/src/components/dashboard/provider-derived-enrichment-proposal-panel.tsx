@@ -34,6 +34,7 @@ import type { ProviderDerivedRuntimeReviewState } from "./provider-derived-runti
 import { useEffect, useState } from "react";
 import { ProviderDerivedEnrichmentChangePreviewPanel } from "./provider-derived-enrichment-change-preview-panel";
 import type { CareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
+import type { CareerBundleSyncEnrichmentSourceKind } from "@/lib/career-bundle-sync-enrichment-source";
 
 export type ProviderDerivedEnrichmentProposalExportUiStatus =
   | "idle"
@@ -48,6 +49,7 @@ export type ProviderDerivedEnrichmentProposalPanelProps = {
   proposal: ProviderDerivedEnrichmentProposal | null;
   onProposalChange: (proposal: ProviderDerivedEnrichmentProposal | null) => void;
   currentSyncEnrichment?: CareerBundleUnifiedSyncEnrichment | null;
+  baselineSourceKind?: CareerBundleSyncEnrichmentSourceKind;
 };
 
 function renderProposalSummary(proposal: ProviderDerivedEnrichmentProposal) {
@@ -144,6 +146,7 @@ export function ProviderDerivedEnrichmentProposalPanelView({
   downloadEnabled,
   exportStatus,
   currentSyncEnrichment,
+  baselineSourceKind = "none",
   onBuildProposal,
   onDownloadProposal,
 }: {
@@ -155,6 +158,7 @@ export function ProviderDerivedEnrichmentProposalPanelView({
   downloadEnabled: boolean;
   exportStatus: ProviderDerivedEnrichmentProposalExportUiStatus;
   currentSyncEnrichment?: CareerBundleUnifiedSyncEnrichment | null;
+  baselineSourceKind?: CareerBundleSyncEnrichmentSourceKind;
   onBuildProposal: () => void;
   onDownloadProposal: () => void;
 }) {
@@ -203,6 +207,7 @@ export function ProviderDerivedEnrichmentProposalPanelView({
             {renderProposalSummary(proposal)}
             <ProviderDerivedEnrichmentChangePreviewPanel
               currentSyncEnrichment={currentSyncEnrichment}
+              baselineSourceKind={baselineSourceKind}
               proposal={proposal}
               reviewState={reviewState}
               exportAvailable={downloadEnabled}
@@ -257,6 +262,7 @@ export function ProviderDerivedEnrichmentProposalPanel({
   proposal,
   onProposalChange,
   currentSyncEnrichment = null,
+  baselineSourceKind = "none",
 }: ProviderDerivedEnrichmentProposalPanelProps) {
   const [exportStatus, setExportStatus] =
     useState<ProviderDerivedEnrichmentProposalExportUiStatus>("idle");
@@ -292,6 +298,7 @@ export function ProviderDerivedEnrichmentProposalPanel({
       downloadEnabled={downloadEnabled}
       exportStatus={exportStatus}
       currentSyncEnrichment={currentSyncEnrichment}
+      baselineSourceKind={baselineSourceKind}
       onBuildProposal={() => {
         if (!previewResult || !buildEnabled) {
           return;

@@ -1,11 +1,11 @@
 import type { ApplyFlowApplication } from "@devflow/applyflow-core";
-import { extractCareerBundleSyncEnrichment } from "@devflow/career-core";
 import type { CareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
-import { buildInterviewLabCareerBundleForExport } from "./career-bundle-export";
+import { deriveDashboardCareerBundleExportComposition } from "./derive-dashboard-career-bundle-export-composition";
 
 export type DeriveDashboardCareerBundleSyncEnrichmentBaselineInput = {
   applications: readonly ApplyFlowApplication[];
   includeDemoSyncEnrichment: boolean;
+  eligibleProviderEnrichment?: CareerBundleUnifiedSyncEnrichment | null;
 };
 
 /**
@@ -15,13 +15,9 @@ export type DeriveDashboardCareerBundleSyncEnrichmentBaselineInput = {
 export function deriveDashboardCareerBundleSyncEnrichmentBaseline(
   input: DeriveDashboardCareerBundleSyncEnrichmentBaselineInput,
 ): CareerBundleUnifiedSyncEnrichment | null {
-  if (input.applications.length === 0) {
-    return null;
-  }
-
-  const bundle = buildInterviewLabCareerBundleForExport([...input.applications], {
+  return deriveDashboardCareerBundleExportComposition({
+    applications: input.applications,
     includeDemoSyncEnrichment: input.includeDemoSyncEnrichment,
-  });
-
-  return extractCareerBundleSyncEnrichment(bundle);
+    eligibleProviderEnrichment: input.eligibleProviderEnrichment ?? null,
+  }).syncEnrichment;
 }

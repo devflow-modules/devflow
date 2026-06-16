@@ -5,12 +5,14 @@ import {
   type EnrichmentChangePreviewResult,
   type SafeDisplayValue,
 } from "@devflow/career-sync";
+import type { CareerBundleSyncEnrichmentSourceKind } from "@/lib/career-bundle-sync-enrichment-source";
 import type { ProviderDerivedEnrichmentProposal } from "@/lib/provider-runtime/provider-derived-enrichment-proposal";
 import type { ProviderDerivedRuntimeReviewState } from "@/components/dashboard/provider-derived-runtime-review-state";
 import {
   PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_EMPTY_PROPOSAL,
   PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_INVALID_PROPOSAL,
-  PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_AVAILABLE,
+  PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_DEMO,
+  PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_PROVIDER_DERIVED,
   PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_NO_BASELINE,
   PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_NO_CHANGES,
   PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_READ_ONLY_MESSAGE,
@@ -33,6 +35,7 @@ export type ProviderEnrichmentChangePreviewViewModel = {
   headline: string;
   hasCurrentBaseline: boolean;
   baselineNotice: string;
+  baselineSourceKind: CareerBundleSyncEnrichmentSourceKind;
   safeForClient: true;
   readOnly: true;
   appliedToCareerBundle: false;
@@ -42,6 +45,7 @@ export type ProviderEnrichmentChangePreviewViewModel = {
 
 export type DeriveProviderEnrichmentChangePreviewInput = {
   currentSyncEnrichment?: CareerBundleUnifiedSyncEnrichment | null;
+  baselineSourceKind?: CareerBundleSyncEnrichmentSourceKind;
   proposal: ProviderDerivedEnrichmentProposal | null;
   reviewState: ProviderDerivedRuntimeReviewState;
   exportAvailable: boolean;
@@ -128,6 +132,25 @@ function deriveHeadline(phase: ProviderEnrichmentChangePreviewUiPhase): string {
   }
 }
 
+function deriveBaselineNotice(
+  hasCurrentBaseline: boolean,
+  sourceKind: CareerBundleSyncEnrichmentSourceKind,
+): string {
+  if (!hasCurrentBaseline) {
+    return PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_NO_BASELINE;
+  }
+
+  switch (sourceKind) {
+    case "provider-derived-proposal":
+      return PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_PROVIDER_DERIVED;
+    case "demo":
+      return PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_DEMO;
+    case "none":
+    default:
+      return PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_NO_BASELINE;
+  }
+}
+
 export function deriveProviderEnrichmentChangePreviewViewModel(
   input: DeriveProviderEnrichmentChangePreviewInput,
 ): ProviderEnrichmentChangePreviewViewModel {
@@ -147,9 +170,8 @@ export function deriveProviderEnrichmentChangePreviewViewModel(
   });
 
   const hasCurrentBaseline = input.currentSyncEnrichment != null;
-  const baselineNotice = hasCurrentBaseline
-    ? PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_AVAILABLE
-    : PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_NO_BASELINE;
+  const baselineSourceKind = input.baselineSourceKind ?? "none";
+  const baselineNotice = deriveBaselineNotice(hasCurrentBaseline, baselineSourceKind);
 
   return {
     phase,
@@ -157,6 +179,7 @@ export function deriveProviderEnrichmentChangePreviewViewModel(
     headline: deriveHeadline(phase),
     hasCurrentBaseline,
     baselineNotice,
+    baselineSourceKind,
     safeForClient: true,
     readOnly: true,
     appliedToCareerBundle: false,

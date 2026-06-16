@@ -8,6 +8,7 @@ import type { ProviderKind, ProviderRuntimeConnectionStatus } from "@devflow/car
 import { createProviderRuntimeConnectionStatusFromConnectEvent } from "@devflow/career-sync";
 import type { ProviderConnectionVerificationResult } from "@devflow/career-sync";
 import type { CareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
+import type { CareerBundleSyncEnrichmentSourceKind } from "@/lib/career-bundle-sync-enrichment-source";
 import { useState } from "react";
 import {
   PROVIDER_CONSENT_CONFIRMATION_BADGE,
@@ -88,8 +89,12 @@ export function ProviderConsentLauncherResultPreview({
 
 export function ProviderConsentConfirmationPanel({
   currentSyncEnrichment = null,
+  baselineSourceKind = "none",
+  onEligibleProviderEnrichmentChange,
 }: {
   currentSyncEnrichment?: CareerBundleUnifiedSyncEnrichment | null;
+  baselineSourceKind?: CareerBundleSyncEnrichmentSourceKind;
+  onEligibleProviderEnrichmentChange?: (enrichment: CareerBundleUnifiedSyncEnrichment | null) => void;
 }) {
   const [selectedProvider, setSelectedProvider] = useState<ProviderKind>("gmail");
   const [explicitConsentChecked, setExplicitConsentChecked] = useState(false);
@@ -319,6 +324,8 @@ export function ProviderConsentConfirmationPanel({
             gmailVerification={verificationByProvider.gmail}
             calendarVerification={verificationByProvider.calendar}
             currentSyncEnrichment={currentSyncEnrichment}
+            baselineSourceKind={baselineSourceKind}
+            onEligibleProviderEnrichmentChange={onEligibleProviderEnrichmentChange}
           />
         ) : null}
       </div>

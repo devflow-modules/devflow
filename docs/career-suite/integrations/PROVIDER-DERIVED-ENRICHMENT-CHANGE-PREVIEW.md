@@ -10,6 +10,7 @@ Nothing is applied, persisted, imported, or sent to providers.
 |------|--------|
 | Enrichment change preview | **Implemented** — ApplyFlow proposal flow |
 | Current CareerBundle enrichment wiring | **Implemented** — optional dashboard baseline via `extractCareerBundleSyncEnrichment` |
+| Provider-derived enrichment export composition | **Implemented** — transient export preview from eligible proposals |
 | Enrichment apply workflow | **Explicitly deferred** — requires separate ADR and threat model |
 | Import workflow | **Explicitly deferred** — [ADR-002](../../adr/ADR-002-ENRICHMENT-PROPOSAL-EXPORT-ONLY.md) |
 
@@ -73,6 +74,8 @@ Otherwise `currentSyncEnrichment = null`. Absence is supported; the UI shows a n
 **Context isolation** — No cross-application or cross-session correlation. The baseline is always the active dashboard export shape, not a file upload or stored bundle.
 
 **Not sent to the preview UI** — candidate, applications, `exportedAt`, `sourceProduct`, full bundle JSON, provider raw payloads, tokens, or connection identifiers.
+
+Change preview baseline uses the **same** export composition policy as dashboard export (`deriveDashboardCareerBundleExportComposition`). Source kind (`none` / `demo` / `provider-derived-proposal`) is surfaced in the view model only.
 
 ## Comparison semantics
 

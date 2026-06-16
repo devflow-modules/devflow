@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
-  PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_AVAILABLE,
+  PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_DEMO,
   PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_NO_BASELINE,
   PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_NO_CAREER_BUNDLE,
   PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_TITLE,
@@ -59,7 +59,8 @@ describe("ProviderDerivedEnrichmentChangePreviewPanel render", () => {
 
     expect(html).toContain("No current sync enrichment was found in this session");
     expect(html).toContain("empty baseline");
-    expect(html).not.toContain(PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_AVAILABLE);
+    expect(html).not.toContain("provider-derived sync enrichment composed");
+    expect(html).not.toContain(PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_DEMO);
   });
 
   it("renders baseline-available notice when currentSyncEnrichment is provided", () => {
@@ -71,13 +72,14 @@ describe("ProviderDerivedEnrichmentChangePreviewPanel render", () => {
     const html = renderToStaticMarkup(
       <ProviderDerivedEnrichmentChangePreviewPanel
         currentSyncEnrichment={enrichment}
+        baselineSourceKind="demo"
         proposal={readyProposal(enrichment)}
         reviewState={createInitialProviderDerivedRuntimeReviewState()}
         exportAvailable={false}
       />,
     );
 
-    expect(html).toContain(PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_AVAILABLE);
+    expect(html).toContain("Comparing against demo sync enrichment");
     expect(html).not.toContain(PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_NO_BASELINE);
     expect(html).not.toMatch(/data-testid="[^"]*apply|>Apply<|>Save<|Confirm changes|Update profile|Synchronize/i);
   });

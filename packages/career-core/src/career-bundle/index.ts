@@ -25,3 +25,4 @@ export { deriveCareerBundleEnrichmentChangePreview } from "./enrichment-change-p
 export type { DeriveCareerBundleEnrichmentChangePreviewInput } from "./enrichment-change-preview.js";
 
 export { extractCareerBundleSyncEnrichment } from "./extract-sync-enrichment.js";
+export { composeCareerBundleExportWithSyncEnrichment } from "./compose-export-with-sync-enrichment.js";

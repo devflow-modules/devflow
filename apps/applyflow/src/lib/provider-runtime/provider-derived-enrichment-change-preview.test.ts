@@ -8,7 +8,8 @@ import { buildProviderDerivedEnrichmentProposal } from "./provider-derived-enric
 import { deriveProviderEnrichmentChangePreviewViewModel } from "./provider-derived-enrichment-change-preview";
 import type { ProviderDerivedRuntimeReviewablePreviewResult } from "@/components/dashboard/provider-derived-runtime-review-state";
 import {
-  PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_AVAILABLE,
+  PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_DEMO,
+  PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_PROVIDER_DERIVED,
   PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_NO_BASELINE,
 } from "@/components/dashboard/provider-derived-enrichment-change-preview-content";
 import { buildApplyFlowDemoSyncEnrichment } from "@/lib/career-bundle-demo-sync-enrichment";
@@ -90,13 +91,15 @@ describe("deriveProviderEnrichmentChangePreviewViewModel", () => {
 
     const viewModel = deriveProviderEnrichmentChangePreviewViewModel({
       currentSyncEnrichment: enrichment,
+      baselineSourceKind: "demo",
       proposal: readyProposalWithEnrichment(enrichment),
       reviewState: initializeProviderDerivedRuntimeReview(previewWithSignals()),
       exportAvailable: false,
     });
 
     expect(viewModel.hasCurrentBaseline).toBe(true);
-    expect(viewModel.baselineNotice).toBe(PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_AVAILABLE);
+    expect(viewModel.baselineNotice).toBe(PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_DEMO);
+    expect(viewModel.baselineSourceKind).toBe("demo");
     expect(viewModel.phase).toBe("no_changes");
   });
 
@@ -117,6 +120,26 @@ describe("deriveProviderEnrichmentChangePreviewViewModel", () => {
 
     expect(viewModel.hasCurrentBaseline).toBe(true);
     expect(viewModel.preview?.statusCounts.unchanged).toBeGreaterThan(0);
+  });
+
+  it("reports provider-derived baseline notice when source kind is provider-derived-proposal", () => {
+    const enrichment = buildApplyFlowDemoSyncEnrichment({
+      generatedAt: "2026-06-15T12:00:00.000Z",
+      now: "2026-06-15T12:00:00.000Z",
+    });
+
+    const viewModel = deriveProviderEnrichmentChangePreviewViewModel({
+      currentSyncEnrichment: enrichment,
+      baselineSourceKind: "provider-derived-proposal",
+      proposal: readyProposalWithEnrichment(enrichment),
+      reviewState: initializeProviderDerivedRuntimeReview(previewWithSignals()),
+      exportAvailable: false,
+    });
+
+    expect(viewModel.baselineNotice).toBe(
+      PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_PROVIDER_DERIVED,
+    );
+    expect(viewModel.baselineSourceKind).toBe("provider-derived-proposal");
   });
 
   it("returns no_proposal when proposal is missing", () => {

@@ -116,4 +116,37 @@ describe("buildInterviewLabCareerBundleForExport", () => {
     expect(json).not.toMatch(/"description"/);
     expect(json).not.toMatch(/hangoutLink|htmlLink|meet\.google\.com/i);
   });
+
+  it("composes provider-derived enrichment without mixing demo", () => {
+    const demoBundle = buildInterviewLabCareerBundleForExport([af()], { includeDemoSyncEnrichment: true });
+    const demoEnrichment = demoBundle.syncEnrichment;
+    expect(demoEnrichment).toBeDefined();
+
+    const bundle = buildInterviewLabCareerBundleForExport([af()], {
+      syncEnrichmentSource: {
+        kind: "provider-derived-proposal",
+        enrichment: demoEnrichment!,
+      },
+    });
+
+    expect(bundle.syncEnrichment).toEqual(demoEnrichment);
+    const parsed = parseCareerBundleWithSyncEnrichment(JSON.parse(stringifyInterviewLabCareerBundleExport(bundle)));
+    expect(parsed.ok).toBe(true);
+  });
+
+  it("provider-derived source takes precedence over includeDemoSyncEnrichment flag", () => {
+    const enrichment = buildInterviewLabCareerBundleForExport([af()], {
+      includeDemoSyncEnrichment: true,
+    }).syncEnrichment!;
+
+    const bundle = buildInterviewLabCareerBundleForExport([af()], {
+      includeDemoSyncEnrichment: false,
+      syncEnrichmentSource: {
+        kind: "provider-derived-proposal",
+        enrichment,
+      },
+    });
+
+    expect(bundle.syncEnrichment).toEqual(enrichment);
+  });
 });

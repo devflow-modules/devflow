@@ -30,6 +30,12 @@ export const PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_NO_BASELINE =
 export const PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_AVAILABLE =
   "Comparing against the validated sync enrichment from the current dashboard CareerBundle export shape.";
 
+export const PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_PROVIDER_DERIVED =
+  "Comparing against provider-derived sync enrichment composed into this session's CareerBundle export preview.";
+
+export const PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_DEMO =
+  "Comparing against demo sync enrichment in this session's CareerBundle export preview.";
+
 export const PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_NO_CHANGES =
   "No differences detected between current and proposed enrichment.";
 
