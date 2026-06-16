@@ -7,6 +7,7 @@ This folder documents **external integration labs** for the Career Suite. These 
 1. **[Provider consent integration architecture](./PROVIDER-CONSENT-ARCHITECTURE.md)** — consent, revocation, least-data, and adapter boundaries before real OAuth
 2. **[Provider runtime feature flags](./PROVIDER-RUNTIME-FEATURE-FLAGS.md)** — default-off gates before any real OAuth/Nango/Gmail/Calendar runtime
 3. **[Real Provider Runtime Readiness Checklist](./REAL-PROVIDER-RUNTIME-READINESS-CHECKLIST.md)** — final gates before any real OAuth/Nango/Gmail/Calendar runtime PR
+3b. **[Nango Sandbox Runtime Validation Runbook](./NANGO-SANDBOX-RUNTIME-VALIDATION-RUNBOOK.md)** — operational sandbox validation (Gmail/Calendar, local preflight, blockers)
 4. **[Provider Runtime Environment and Secrets Boundary](./PROVIDER-RUNTIME-ENV-SECRETS-BOUNDARY.md)** — server/runtime-only flags and secrets before real OAuth
 5. **[Gmail Read-Only Adapter Contract](./GMAIL-READONLY-ADAPTER-CONTRACT.md)** — privacy-first derived-signal contract (no Gmail API runtime)
 6. **[Calendar Read-Only Adapter Contract](./CALENDAR-READONLY-ADAPTER-CONTRACT.md)** — privacy-first derived-signal contract (no Calendar API runtime)

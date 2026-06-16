@@ -61,6 +61,32 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - persisted provider connection state
 - real provider data import
 
+> **Note (2026-06-16):** Server-side Nango boundaries and read-only Gmail/Calendar adapters **are implemented** behind default-off flags. The list above reflects historical checklist wording — see **Sandbox validation status** below and [NANGO-SANDBOX-RUNTIME-VALIDATION-RUNBOOK.md](./NANGO-SANDBOX-RUNTIME-VALIDATION-RUNBOOK.md).
+
+---
+
+## Sandbox validation status (2026-06-16)
+
+| Area | State | Evidence |
+|------|-------|----------|
+| Static code readiness | **verified in code** | Boundaries, routes, adapters, flags |
+| Local preflight | **verified by preflight** | `pnpm check:career-provider-runtime` |
+| Env template | **verified** | `apps/applyflow/.env.example` |
+| Gmail runtime validation | **requires sandbox** | Dedicated Google test account + Nango secret |
+| Calendar runtime validation | **requires sandbox** | Same |
+| Security validation (live) | **blocked** | No personal accounts; external credentials |
+| Operational validation | **blocked** | Disconnect/revoke procedures not exercised in CI |
+
+**Do not mark Gmail or Calendar as runtime-validated** until [NANGO-SANDBOX-RUNTIME-VALIDATION-RUNBOOK.md](./NANGO-SANDBOX-RUNTIME-VALIDATION-RUNBOOK.md) §14 approval checklist is completed manually.
+
+### Preflight command
+
+```bash
+pnpm check:career-provider-runtime
+```
+
+Exits `0` when configuration is coherent (default-off with no secret is valid). Exits `1` when flags are incoherent or runtime is enabled without a configured secret.
+
 ---
 
 ## Provider runtime app boundary contract
