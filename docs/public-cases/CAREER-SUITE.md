@@ -1,7 +1,7 @@
 # DevFlow Career Suite — Local-first career workflow
 
 > **Public case study** — portfolio narrative for recruiters, tech leads and founders.  
-> Technical deep dives: [`../career-suite/README.md`](../career-suite/README.md) · [`../career-suite/RESUME-MATCH-CASE-STUDY.md`](../career-suite/RESUME-MATCH-CASE-STUDY.md) · [`CAREER-SUITE-DEMO-SCRIPT.md`](./CAREER-SUITE-DEMO-SCRIPT.md)
+> Technical deep dives: [`../career-suite/README.md`](../career-suite/README.md) · [`../career-suite/RESUME-MATCH-CASE-STUDY.md`](../career-suite/RESUME-MATCH-CASE-STUDY.md) · [`CAREER-SUITE-DEMO-SCRIPT.md`](./CAREER-SUITE-DEMO-SCRIPT.md) · [**Launch package**](../career-suite/CAREER-SUITE-PORTFOLIO-LAUNCH-PACKAGE.md)
 
 ---
 

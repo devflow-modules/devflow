@@ -5,7 +5,8 @@
 **Full product & architecture case (recruiters, engineers, partners):**  
 **[CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md](./CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md)**
 
-**Public portfolio narrative:** [`../public-cases/CAREER-SUITE.md`](../public-cases/CAREER-SUITE.md)
+**Public portfolio narrative:** [`../public-cases/CAREER-SUITE.md`](../public-cases/CAREER-SUITE.md)  
+**Portfolio launch package (LinkedIn, CV, interviews):** [`CAREER-SUITE-PORTFOLIO-LAUNCH-PACKAGE.md`](./CAREER-SUITE-PORTFOLIO-LAUNCH-PACKAGE.md)
 
 ---
 
@@ -102,6 +103,7 @@ Tests (1,045 across Career Suite packages): [case §12](./CAREER-SUITE-PRODUCT-A
 | Topic | Link |
 |-------|------|
 | **Product & architecture case** | [CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md](./CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md) |
+| **Portfolio launch package** | [CAREER-SUITE-PORTFOLIO-LAUNCH-PACKAGE.md](./CAREER-SUITE-PORTFOLIO-LAUNCH-PACKAGE.md) · [LinkedIn](./portfolio/LINKEDIN-LAUNCH-POSTS.md) · [Video](./portfolio/VIDEO-SCRIPTS.md) · [Evidence](./portfolio/EVIDENCE-AND-CLAIMS-MATRIX.md) |
 | Roadmap execution | [ROADMAP-EXECUTION.md](./ROADMAP-EXECUTION.md) |
 | Provider integrations | [integrations/README.md](./integrations/README.md) |
 | Demo walkthrough | [demo/CAREER-SUITE-WALKTHROUGH.md](./demo/CAREER-SUITE-WALKTHROUGH.md) |
