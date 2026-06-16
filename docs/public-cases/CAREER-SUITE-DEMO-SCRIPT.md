@@ -2,7 +2,9 @@
 
 **Central message:** A local-first flow that turns job applications into practical interview preparation — without a mandatory backend or required upload of sensitive data.
 
-**Companion docs:** [`CAREER-SUITE.md`](./CAREER-SUITE.md) · [`../career-suite/DEMO-CHECKLIST.md`](../career-suite/DEMO-CHECKLIST.md)
+**Companion docs:** [`CAREER-SUITE.md`](./CAREER-SUITE.md) · [`../career-suite/assets/README.md`](../career-suite/assets/README.md) · [`../career-suite/demo/CAREER-SUITE-WALKTHROUGH.md`](../career-suite/demo/CAREER-SUITE-WALKTHROUGH.md)
+
+**Verified screenshots:** captured 2026-06-16 from commit `769b082` — see [asset checklist](../career-suite/assets/README.md).
 
 ---
 
@@ -11,12 +13,14 @@
 Record a **60–90 second** screen demo that shows:
 
 1. ApplyFlow organising applications (demo data).
-2. One-click handoff to Interview Lab with ACK.
-3. Resume Match running deterministically in the browser.
-4. Practice session with role-specific prep panel.
-5. *(Optional)* Sync enrichment read-only preview when demoing derived-signal import.
+2. Demo sync enrichment + composition source visibility.
+3. One-click handoff to Interview Lab with ACK (or honest clipboard fallback).
+4. Resume Match running deterministically in the browser.
+5. *(Optional)* Sync enrichment read-only preview via fixture paste.
 
 Audience: recruiter, tech lead, or founder evaluating **product engineering + privacy + applied AI judgment**.
+
+**Not in scope:** provider-derived signal review / change preview (requires Nango runtime — screenshots blocked).
 
 ---
 
@@ -28,6 +32,7 @@ Audience: recruiter, tech lead, or founder evaluating **product engineering + pr
 # Terminal 1 — from monorepo root
 pnpm --filter @devflow/applyflow-core build
 pnpm --filter @devflow/career-core build
+pnpm --filter @devflow/career-sync build
 pnpm --filter applyflow dev
 # → http://localhost:3010/dashboard
 
@@ -36,109 +41,97 @@ pnpm --filter @devflow/app-interview-lab dev
 # → http://localhost:3015
 ```
 
-- Clean browser profile or incognito (no unrelated extensions on LinkedIn).
-- Close noisy notifications.
-- Resolution: 1920×1080 or 1440×900; zoom 100%.
-- **Do not** show real API keys, real resumes, or real employer names — use **Carregar demo** only.
-- Optional env (only if not using localhost defaults): `NEXT_PUBLIC_INTERVIEW_LAB_URL`, `NEXT_PUBLIC_APPLYFLOW_URL`.
+- Clean browser profile or incognito
+- Resolution: **1440×900** (matches committed assets) or 1920×1080; zoom 100%
+- **Carregar demo** only — no real employer history
+- Allow popups for **Prepare in Interview Lab**
+- Optional env: `NEXT_PUBLIC_INTERVIEW_LAB_URL`, `NEXT_PUBLIC_APPLYFLOW_URL` (localhost defaults work)
 
 ---
 
-## 60-second version
+## 60–90 second version (recommended)
 
 | Sec | Screen | Action | Say (voiceover hint) |
 |-----|--------|--------|----------------------|
-| 0–8 | ApplyFlow dashboard | Load demo | “This is ApplyFlow — applications stay on the device, organised in a funnel.” |
-| 8–18 | Export card | Click **Prepare in Interview Lab** | “One click sends a typed CareerBundle — postMessage with ACK, no data in the URL.” |
-| 18–28 | Interview Lab import | Show bundle summary | “Interview Lab validates the same Zod schema — import confirmed.” |
-| 28–38 | Role list | **Train for this role** or show practice redirect | “Prep is generated deterministically from role and skills — no LLM on this path.” |
-| 38–50 | `/career/ats` | Load sample → **Analyze ATS match** | “Resume Match runs locally — scores and gaps before any optional AI.” |
-| 50–60 | Practice room | Show prep panel | “Same prep model whether you come from ApplyFlow or Resume Match — practice with context.” |
+| 0–10 | ApplyFlow dashboard | **Carregar demo** | “ApplyFlow keeps applications on the device — organised funnel, no upload.” |
+| 10–25 | Provider consent preview + export card | Scroll; mention mock boundaries | “Provider enrichment is consent-based — raw payloads never reach the UI.” |
+| 25–40 | Export card | Enable **Demo sync enrichment**; show **Demonstrativo** badge | “Composition source is explicit — demo sandbox signals today.” |
+| 40–55 | Export card | **Prepare in Interview Lab** | “One click — typed CareerBundle, postMessage with ACK, nothing in the URL.” |
+| 55–70 | Interview Lab import | Bundle summary (+ sync preview if exported with demo enrichment) | “Same Zod schema on both sides — import confirmed locally.” |
+| 70–90 | Case doc or split view | Trust model / ADRs | “Read-only lifecycle complete; Apply and proposal import explicitly deferred.” |
+
+*No video file is committed — this is the recording script only.*
 
 ---
 
-## 90-second version
-
-Add to the 60s script:
+## Extended 90-second add-ons
 
 | Sec | Screen | Action | Say |
 |-----|--------|--------|-----|
-| 60–72 | ApplyFlow table | **Practice this role** on one row | “Single-row bundle with practice intent — straight to the interview room.” |
-| 72–82 | `/career/ats` | Scroll gaps / keywords | “Heuristic ATS-style signals — not a certified parser, but useful for interview focus.” |
-| 82–90 | Closing | ApplyFlow + IL tabs | “Local-first by design: explicit handoff, optional AI, 175 automated tests on the Career Suite scope.” |
-
-**Do not demo AI coaching** unless you intentionally show opt-in — keep core path credible without API keys.
+| +0–12 | `/career/ats` | Load sample → **Analyze ATS match** | “Resume Match runs in the browser — deterministic gaps before optional AI.” |
+| +12–20 | ApplyFlow table | **Practice this role** on one row | “Single-row bundle with practice intent — straight to prep.” |
+| +20–30 | Closing | Tabs overview | “1,045 Vitest tests on Career Suite packages — governance without overclaiming E2E.” |
 
 ---
 
 ## Recording checklist
 
 - [ ] Demo data loaded (no PII)
-- [ ] ACK message visible on ApplyFlow after handoff (or explain clipboard fallback honestly if blocked)
+- [ ] ACK or honest clipboard fallback shown
 - [ ] Bundle summary visible in Interview Lab
-- [ ] Resume Match scores visible on `/career/ats`
-- [ ] Practice prep panel visible with company/role context
+- [ ] Composition source badge visible if showing sync enrichment
+- [ ] Resume Match scores visible (optional segment)
 - [ ] No `.env`, API keys, or personal LinkedIn visible
-- [ ] Cursor movement slow enough to read headings
-- [ ] Audio clear; optional captions for PT or EN audience
+- [ ] Did not claim live Gmail/Calendar unless runtime explicitly configured
 
-**Screenshots to export after recording** (see [`CAREER-SUITE.md`](./CAREER-SUITE.md#screenshots-to-add)):
+**Committed screenshot paths:**
 
-- `docs/career-suite/assets/applyflow-dashboard.png`
-- `docs/career-suite/assets/interview-lab-import.png`
-- `docs/career-suite/assets/resume-match-score.png`
-- `docs/career-suite/assets/interview-practice-prep.png`
+| File | Scene |
+|------|-------|
+| `docs/career-suite/assets/01-applyflow-dashboard.png` | Dashboard + demo |
+| `docs/career-suite/assets/05-export-composition-source.png` | Demo sync enrichment + badge |
+| `docs/career-suite/assets/06-interview-lab-handoff.png` | postMessage handoff received |
+| `docs/career-suite/assets/07-resume-match.png` | ATS match |
+| `docs/career-suite/assets/09-explicit-export.png` | Explicit JSON export |
+
+**Blocked (document only):** `02-provider-derived-review.png`, `03-career-insights.png`, `04-enrichment-change-preview.png`
 
 ---
 
 ## Voiceover
 
-**Opening (EN alternative for international audience):**
+**Opening (EN):**
 
-> “Job applications and interview prep usually live in different tools. Career Suite connects them with a typed JSON handoff — everything defaults to the browser, and AI is optional.”
+> “Job applications and interview prep usually live in different tools. Career Suite connects them with a typed JSON handoff — everything defaults to the browser, and sensitive automation is explicitly deferred.”
 
 **Closing (PT-BR):**
 
-> “Isso é engenharia de produto com privacidade no centro: captura local, contrato tipado entre apps, análise determinística e prática com contexto da vaga — sem backend obrigatório no MVP.”
+> “Engenharia de produto com privacidade no centro: captura local, contrato tipado, handoff explícito e testes automatizados — sem auto-apply e sem import de propostas exportadas.”
 
-**If popup blocked / clipboard fallback happens during recording:**
+**If popup blocked / clipboard fallback:**
 
 > “When the browser blocks the popup, the bundle is copied to the clipboard — still explicit, still local, still validated by the same schema.”
 
-Do not edit the recording to hide failures; either retry with popups allowed or use the honest fallback line — it reinforces the privacy/explicit-handoff story.
-
 ---
 
-## Step — Import CareerBundle with sync enrichment
+## Optional — Sync enrichment fixture segment
 
-*(Optional segment — use when demoing the sync enrichment contract, not the default ApplyFlow handoff.)*
-
-**Screen:** Interview Lab `/import/applyflow` after importing a CareerBundle JSON that includes a validated `syncEnrichment` (e.g. from a test fixture or serialized export with safe derived signals).
-
-**Action:** Point to the **Sync enrichment detected** panel — summary, signal counts, company hints, privacy line.
-
-**Say:**
-
-> “When a bundle includes optional sync enrichment, Interview Lab shows a read-only aggregated preview. It does not connect to Gmail or Calendar, does not persist sync data, and does not display raw email bodies, calendar descriptions, provider payloads, attachments, or meeting links.”
-
-**Key talking point:**
-
-> “This is not automation that applies to jobs for the user. It is a privacy-safe context layer that helps the candidate understand process signals before preparing for interviews.”
-
-**Honesty guardrails:**
-
-- Gmail/Calendar integration is **sandbox / derived-signal contract** today — not production OAuth.
-- ApplyFlow does not yet expose a user-facing export toggle for sync enrichment in the default demo path.
-- Sync preview disappears on refresh unless the user re-imports a bundle with enrichment.
-
-### Optional demo fixture
-
-Use:
+**Screen:** Interview Lab `/import/applyflow` after pasting:
 
 ```txt
 docs/career-suite/demo/fixtures/career-bundle-with-sync-enrichment.demo.json
 ```
 
-This fixture uses **fake/sandbox data only** and is intended to demonstrate the import preview flow safely in Interview Lab (`/import/applyflow` → paste → **Parse field**).
+**Action:** **Parse field** → **Sync enrichment detected** panel.
 
-Full walkthrough: [`../career-suite/demo/CAREER-SUITE-WALKTHROUGH.md`](../career-suite/demo/CAREER-SUITE-WALKTHROUGH.md)
+**Say:**
+
+> “Optional sync enrichment is read-only in Interview Lab — not persisted, no Gmail API call in this demo.”
+
+**Honesty guardrails:**
+
+- Production provider runtime needs documented flags + Nango — not shown in default demo
+- ApplyFlow **Demo sync enrichment** checkbox is the safe export path for sandbox signals
+- Sync preview disappears on refresh unless user re-imports
+
+Full steps: [`../career-suite/demo/CAREER-SUITE-WALKTHROUGH.md`](../career-suite/demo/CAREER-SUITE-WALKTHROUGH.md)

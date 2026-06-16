@@ -1,139 +1,137 @@
-# Career Suite walkthrough — sync enrichment demo
+# Career Suite walkthrough — verified demo path
 
 **Audience:** portfolio recording, GitHub README, LinkedIn demo clip  
-**Data:** fake/sandbox only — [`fixtures/career-bundle-with-sync-enrichment.demo.json`](./fixtures/career-bundle-with-sync-enrichment.demo.json)  
-**Duration:** ~2–3 minutes (sync segment only)
+**Data:** fake/sandbox only — demo dashboard + optional [fixture](./fixtures/career-bundle-with-sync-enrichment.demo.json)  
+**Screenshots:** [assets checklist](../assets/README.md) (captured 2026-06-16 @ `769b082`)
 
 ---
 
 ## Prerequisites
 
 ```bash
+pnpm install
+pnpm --filter @devflow/applyflow-core build
 pnpm --filter @devflow/career-core build
+pnpm --filter @devflow/career-sync build
+
+# Terminal 1
+pnpm --filter applyflow dev
+# → http://localhost:3010/dashboard
+
+# Terminal 2
 pnpm --filter @devflow/app-interview-lab dev
-# → http://localhost:3015/import/applyflow
+# → http://localhost:3015
 ```
 
-Use a clean browser profile. Do not show real resumes, API keys, or personal LinkedIn data.
+- Clean browser profile — no real resumes, API keys, or personal LinkedIn data
+- Popups allowed for **Prepare in Interview Lab** (postMessage handoff)
+- **No feature flags required** for the default demo path (provider-derived panels 02–04 need Nango — see [blocked captures](../assets/README.md#blocked-captures))
 
 ---
 
-## Step-by-step
+## Full walkthrough (ApplyFlow → Interview Lab)
 
-### 1. Open Interview Lab
+### 1. ApplyFlow dashboard
 
-Navigate to `http://localhost:3015/import/applyflow`.
+Navigate to `http://localhost:3010/dashboard` → **Carregar demo**.
 
-**Say:** “Interview Lab imports a typed CareerBundle from ApplyFlow — everything validates in the browser.”
+**Expected:** ~20 fictitious applications (Northwind Apps (demo), Contoso Labs (demo), …), funnel metrics, provider consent **preview** (mock — no OAuth).
 
-### 2. Load the demo fixture
+**Screenshot:** [`01-applyflow-dashboard.png`](../assets/01-applyflow-dashboard.png)
 
-**Option A — ApplyFlow opt-in export**
+### 2. Composition source (demo sync enrichment)
 
-1. Open ApplyFlow dashboard with demo data loaded.
-2. Enable **Demo sync enrichment** (checkbox, off by default).
-3. Click **Copy CareerBundle** or **Exportar para Interview Lab**.
+Scroll to **Interview Lab · exportação local**.
 
-**Option B — Static fixture file**
+Enable **Demo sync enrichment** (checkbox, off by default).
 
-Open `docs/career-suite/demo/fixtures/career-bundle-with-sync-enrichment.demo.json` in your editor.
+**Expected:** Composition source badge **Demonstrativo**; export includes sandbox derived signals in CareerBundle JSON.
 
-Copy the **entire** JSON file.
+**Screenshot:** [`05-export-composition-source.png`](../assets/05-export-composition-source.png)
 
-### 3. Paste and parse
+### 3. Handoff — Prepare in Interview Lab
 
-Paste into the **CareerBundle JSON** textarea.
+Click **Prepare in Interview Lab**.
 
-Click **Parse field** (or upload the `.json` file).
+**Expected:** New tab `http://localhost:3015/import/applyflow?from=applyflow&handoff=postMessage` → **CareerBundle received from ApplyFlow** + bundle summary + ACK on ApplyFlow tab.
 
-**Say:** “This bundle is fake demo data — fictional company, fictional candidate, no real provider payloads.”
+**Screenshot:** [`06-interview-lab-handoff.png`](../assets/06-interview-lab-handoff.png)
 
-### 4. Show Bundle summary
+**Fallbacks:**
 
-Point to **Bundle summary**: source ApplyFlow, exported time, role count, interview-ready count.
+| Condition | Action |
+|-----------|--------|
+| Popup blocked | **Copy CareerBundle** → **Open Interview Lab** → **Import from clipboard** |
+| postMessage timeout | Paste JSON → **Parse field** |
+| Sync enrichment preview demo | Paste [fixture](./fixtures/career-bundle-with-sync-enrichment.demo.json) → **Parse field** → **Sync enrichment detected** panel |
 
-**Say:** “The base bundle still works the same way — applications, skills, status — even when sync enrichment is present.”
+### 4. Explicit JSON export (alternative)
 
-### 5. Show Sync enrichment preview
+On ApplyFlow dashboard with demo loaded: **Exportar para Interview Lab** (downloads `.json` locally).
 
-Point to **Sync enrichment detected** (read-only panel).
+**Screenshot:** [`09-explicit-export.png`](../assets/09-explicit-export.png)
 
-Highlight:
+### 5. Resume Match (Interview Lab)
 
-| Field | Demo value (approx.) |
-|-------|----------------------|
-| Summary | Derived signals for Acme SaaS Brasil |
-| Signals | 4 |
-| Pending actions | 1 |
-| Upcoming events | 1 |
-| Sources | Gmail 2 · Calendar 2 |
-| Companies | Acme SaaS Brasil, Beta Platform Labs |
-| Privacy line | Raw data not retained · meeting links removed |
+Navigate to `http://localhost:3015/career/ats` → **Load sample analysis** → **Analyze ATS match**.
 
-**Say:** “This is not an email client integration. This is a privacy-safe derived context layer.”
+**Expected:** Deterministic scores/gaps in browser — no mandatory LLM.
 
-### 6. Explain stats and privacy metadata
+**Screenshot:** [`07-resume-match.png`](../assets/07-resume-match.png)
 
-**Say:** “The app never shows raw email bodies, raw calendar descriptions, attachments, provider payloads, or meeting links — only aggregated, reviewable metadata.”
+### 6. Provider-derived path (blocked in default env)
 
-**Say:** “Privacy flags are validated in career-core before the preview renders. Unsafe enrichment would be ignored.”
+Signal review, Career Insights, and Enrichment change preview require:
 
-### 7. Explain non-persistence
+- Server env: `CAREER_PROVIDER_RUNTIME_ENABLED`, `NANGO_RUNTIME_ENABLED`, `GMAIL_PROVIDER_ENABLED`, `CALENDAR_PROVIDER_ENABLED`, `NANGO_SECRET_KEY`
+- Completed consent + **Start provider connection check**
 
-Refresh the page or open DevTools → Application → Local Storage.
-
-**Say:** “Sync enrichment is not persisted in Interview Lab. Only the base CareerBundle is stored for practice flows.”
-
-### 8. Explain no provider calls
-
-**Say:** “There is no Gmail API call, no Calendar API call, and no OAuth in this build. Signals come from a sandbox contract — production connectors would be a separate, consent-based phase.”
-
-### 9. Optional — Train for this role
-
-Click **Train for this role** on **Acme SaaS Brasil / Senior Frontend Engineer**.
-
-**Say:** “Practice prep is still deterministic from application fields — sync enrichment adds context for the human reviewing the import, not hidden automation.”
-
-### 10. Close with architecture
-
-Show the flow (screen or doc):
-
-```txt
-Fake Gmail/Calendar-like signals (sandbox)
-→ @devflow/career-sync contract
-→ CareerBundleUnifiedSyncEnrichment
-→ @devflow/career-core privacy validation
-→ Interview Lab read-only preview
-```
-
-**Say:** “The enrichment is optional. Old CareerBundles without syncEnrichment keep working exactly as before.”
+**Not capturable** without configured Nango test account — do not use personal Gmail/Calendar.
 
 ---
 
-## Suggested voiceover lines (EN)
+## 60–90 second recording script
 
-> “This is not an email client integration. This is a privacy-safe derived context layer.”
+| Time | Screen | Action | Say (hint) |
+|------|--------|--------|------------|
+| 0–10s | ApplyFlow dashboard | **Carregar demo** | “Applications stay on the device — local-first, no mandatory backend.” |
+| 10–25s | Export card | Enable **Demo sync enrichment**; point to consent preview boundaries | “Provider signals are derived and reviewed — raw email never reaches the UI.” |
+| 25–40s | Export card | Show **Demonstrativo** badge | “Composition source is visible before export — demo sandbox today.” |
+| 40–55s | Handoff | **Prepare in Interview Lab** | “Typed CareerBundle via postMessage — validated schema, ACK, no data in the URL.” |
+| 55–70s | Interview Lab import | Bundle summary (+ sync preview if fixture used) | “Interview Lab imports read-only; sync enrichment is not persisted.” |
+| 70–90s | Case doc / architecture | Trust model + ADRs | “Apply and import are explicitly deferred — lifecycle ends at export/handoff.” |
 
-> “The app never shows raw email bodies, raw calendar descriptions, attachments, provider payloads, or meeting links.”
+*Video not included in repo — script only.*
 
-> “The enrichment is optional. Old CareerBundles keep working.”
+---
 
-> “This is not automation that applies to jobs for the user — it helps the candidate understand process signals before interview prep.”
+## Sync enrichment fixture path (optional segment)
 
-## Suggested voiceover lines (PT-BR)
+Use when postMessage handoff is blocked or when demoing the sync preview panel explicitly.
 
-> “Isso não é integração com caixa de entrada — é uma camada de contexto derivado, pensada para privacidade.”
+1. Open `docs/career-suite/demo/fixtures/career-bundle-with-sync-enrichment.demo.json`
+2. Interview Lab `/import/applyflow` → paste → **Parse field**
+3. Point to **Sync enrichment detected** — summary, counts, privacy line
 
-> “O app não mostra corpo de e-mail, descrição de evento, anexos, payload de provider nem links de reunião.”
-
-> “O enrichment é opcional. Bundles antigos continuam válidos.”
+**Say:** “Fake Gmail/Calendar-like signals — sandbox contract only. No OAuth in this build.”
 
 ---
 
 ## Honesty checklist (before publishing)
 
-- [ ] Stated that data is fake/sandbox
-- [ ] Did not claim live Gmail/Calendar connection
-- [ ] Did not claim sync enrichment is persisted
+- [ ] Stated that dashboard data is demo/fictitious
+- [ ] Did not claim live Gmail/Calendar connection (unless flags + test account explicitly shown)
+- [ ] Did not claim sync enrichment is persisted in Interview Lab
 - [ ] Did not show real PII
-- [ ] Linked to public case or repo docs for depth
+- [ ] Did not claim provider-derived review screenshots if only demo path was recorded
+- [ ] Linked to [full case](../CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md) for ADRs and limitations
+
+---
+
+## Suggested voiceover (PT-BR)
+
+> “Isso não é integração com caixa de entrada — é uma camada de contexto derivado, pensada para privacidade.”
+
+> “O handoff é explícito: postMessage com ACK ou export JSON — nada na URL.”
+
+> “Apply e import de propostas continuam deferred — o ciclo read-only termina no export.”

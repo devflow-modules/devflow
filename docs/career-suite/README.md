@@ -20,6 +20,10 @@
 
 **Current product posture:** read-only provider-derived lifecycle **complete** through export/handoff. **Apply** and proposal **import** are **explicitly deferred** (ADR-002, ADR-003).
 
+![ApplyFlow dashboard — demo carregado, funil e exportação local para Interview Lab](./assets/01-applyflow-dashboard.png)
+
+*Dashboard com ~20 candidaturas fictícias. Galeria completa e estados bloqueados: [assets checklist](./assets/README.md).*
+
 ---
 
 ## User journey (summary)
@@ -103,6 +107,7 @@ Tests (1,045 across Career Suite packages): [case §12](./CAREER-SUITE-PRODUCT-A
 | Demo walkthrough | [demo/CAREER-SUITE-WALKTHROUGH.md](./demo/CAREER-SUITE-WALKTHROUGH.md) |
 | Resume Match case | [RESUME-MATCH-CASE-STUDY.md](./RESUME-MATCH-CASE-STUDY.md) |
 | Screenshot checklist | [assets/README.md](./assets/README.md) |
+| Verified screenshots | [01 dashboard](./assets/01-applyflow-dashboard.png) · [05 composition](./assets/05-export-composition-source.png) · [06 handoff](./assets/06-interview-lab-handoff.png) |
 | Agent architecture | [AGENT-ARCHITECTURE.md](./AGENT-ARCHITECTURE.md) |
 
 ---

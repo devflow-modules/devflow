@@ -98,6 +98,10 @@ CareerBundle import (postMessage · clipboard · file)
 
 Steps **not** in the journey today: automatic apply, save enrichment to server, proposal import, background export.
 
+![ApplyFlow dashboard com conjunto de demo carregado — métricas, funil e tabela de candidaturas fictícias](./assets/01-applyflow-dashboard.png)
+
+O dashboard organiza candidaturas importadas ou demo (~20 vagas fictícias) inteiramente no browser. Nenhum upload para servidores ApplyFlow.
+
 ---
 
 ## 6. Architecture overview
@@ -206,6 +210,12 @@ flowchart LR
 
 Source precedence (export composition): `provider-derived-proposal > demo > none` (mutually exclusive).
 
+**Screenshots (provider-derived review, insights, change preview):** capture **blocked** without configured Nango runtime — see [assets checklist](./assets/README.md#blocked-captures). The consent preview (mock boundaries) is visible on the dashboard without OAuth; signal review requires documented server flags.
+
+![Origem da composição com enrichment demonstrativo — badge Demonstrativo e checkbox Demo sync enrichment](./assets/05-export-composition-source.png)
+
+Com **Demo sync enrichment** activado, o export mostra origem `demo` e inclui sinais sandbox no CareerBundle — sem ligação Gmail ou Calendar. A comparação provider-derived vs. baseline (change preview) só aparece após runtime preview completo.
+
 ---
 
 ## 10. CareerBundle
@@ -219,6 +229,14 @@ Source precedence (export composition): `provider-derived-proposal > demo > none
 **Handoff:** ApplyFlow opens Interview Lab without `noopener`; sends `devflow.careerBundle.v1` envelope; Interview Lab ACKs with `devflow.careerBundle.ack.v1`. Origins allowlisted via env vars. **No bundle data in URL query strings.**
 
 **Provider-derived export:** Dashboard uses one canonical composition function (`deriveDashboardCareerBundleExportComposition`) for preview, handoff, and download — documented in [handoff validation](./integrations/PROVIDER-DERIVED-EXPORT-HANDOFF-VALIDATION.md).
+
+![Handoff postMessage — CareerBundle recebido no Interview Lab após Prepare in Interview Lab](./assets/06-interview-lab-handoff.png)
+
+O Interview Lab valida o envelope `devflow.careerBundle.v1`, confirma recepção (ACK) e mostra o resumo do bundle — sem dados na URL. Sync enrichment opcional aparece em painel read-only quando presente no JSON exportado.
+
+![Export explícito — botão Exportar para Interview Lab e origem da composição visíveis](./assets/09-explicit-export.png)
+
+O utilizador pode alternativamente descarregar JSON localmente (**Exportar para Interview Lab**) — acção explícita, sem persistência server-side.
 
 ---
 
@@ -425,7 +443,7 @@ This case demonstrates:
 
 ### Next product-facing work (no Apply)
 
-- Capture Career Suite screenshots per [assets checklist](./assets/README.md)
+- Provider-derived screenshot captures when Nango sandbox is configured ([assets checklist](./assets/README.md#blocked-captures))
 - Security/privacy review of ADR-004 gates
 - Provider runtime hardening behind flags
 
@@ -516,22 +534,37 @@ Reproducible path (sandbox data):
 6. **Interview Lab** — import screen shows bundle summary; optional sync enrichment preview
 7. **Practice** — **Train for this role** or Resume Match branch
 
+![Resume Match — análise ATS determinística no browser](./assets/07-resume-match.png)
+
+O ramo Resume Match (`/career/ats`) corre localmente com dados de amostra — scores e gaps sem LLM obrigatório.
+
+**Fallbacks:** popup bloqueado → clipboard + **Import from clipboard**; postMessage timeout → colar JSON + **Parse field** com [fixture demo](./demo/fixtures/career-bundle-with-sync-enrichment.demo.json).
+
 Extended scripts: [demo/CAREER-SUITE-WALKTHROUGH.md](./demo/CAREER-SUITE-WALKTHROUGH.md) · [public demo script](../public-cases/CAREER-SUITE-DEMO-SCRIPT.md)
 
 ---
 
 ## 24. Screenshots and media
 
-**Career Suite–specific screenshots:** not yet in repo — see [assets/README.md](./assets/README.md) for capture checklist.
+**Verified captures** (real application states, commit `769b082`, 2026-06-16): see [assets/README.md](./assets/README.md).
 
-**Existing ApplyFlow assets** (reusable for dashboard context):
+| Asset | Path | Status |
+|-------|------|--------|
+| ApplyFlow dashboard (demo) | [`01-applyflow-dashboard.png`](./assets/01-applyflow-dashboard.png) | captured |
+| Provider-derived review | [`02-provider-derived-review.png`](./assets/02-provider-derived-review.png) | **blocked** — Nango runtime required |
+| Career insights | [`03-career-insights.png`](./assets/03-career-insights.png) | **blocked** — depends on runtime preview |
+| Enrichment change preview | [`04-enrichment-change-preview.png`](./assets/04-enrichment-change-preview.png) | **blocked** — depends on ready proposal |
+| Composition source (demo) | [`05-export-composition-source.png`](./assets/05-export-composition-source.png) | captured |
+| Interview Lab handoff | [`06-interview-lab-handoff.png`](./assets/06-interview-lab-handoff.png) | captured |
+| Resume Match | [`07-resume-match.png`](./assets/07-resume-match.png) | captured |
+| Explicit JSON export | [`09-explicit-export.png`](./assets/09-explicit-export.png) | captured |
+
+**Existing ApplyFlow assets** (general dashboard context):
 
 | Asset | Path |
 |-------|------|
 | Dashboard overview | [`docs/applyflow/assets/02-applyflow-dashboard-overview.png`](../applyflow/assets/02-applyflow-dashboard-overview.png) |
 | Applications table | [`docs/applyflow/assets/04-applyflow-applications-table.png`](../applyflow/assets/04-applyflow-applications-table.png) |
-
-Pending captures: provider review, career insights, change preview, composition source, Interview Lab handoff.
 
 ---
 
