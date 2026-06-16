@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CareerSyncSignal, ProviderDerivedSignal } from "@devflow/career-sync";
-import { createProviderDerivedSignalId } from "@devflow/career-sync";
+import { createProviderDerivedSignalId, validateProviderDerivedEnrichmentProposalExportV1 } from "@devflow/career-sync";
 import {
   initializeProviderDerivedRuntimeReview,
   markProviderDerivedSelectionReady,
@@ -367,5 +367,52 @@ describe("buildProviderDerivedEnrichmentProposalExport", () => {
     const keyOrder = [...json.matchAll(/^  "([^"]+)":/gm)].map((match) => match[1]).slice(0, 10);
 
     expect(keyOrder).toEqual([...PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_DOCUMENT_KEYS]);
+  });
+
+  it("validates built export document with standalone v1 validator", () => {
+    const result = buildProviderDerivedEnrichmentProposalExport({
+      proposal: readyProposal(),
+      exportedAt,
+    });
+
+    expect(result.status).toBe("ready");
+    const parsed = JSON.parse(result.json!) as unknown;
+    const validation = validateProviderDerivedEnrichmentProposalExportV1(parsed);
+
+    expect(validation.valid).toBe(true);
+  });
+
+  it("does not serialize forbidden keys from proposal signals", () => {
+    const proposal = readyProposal();
+    const enrichment = structuredClone(proposal.enrichment!);
+    enrichment.combinedSignals = enrichment.combinedSignals.map((signal) => ({
+      ...signal,
+      access_token: "secret",
+    })) as CareerSyncSignal[];
+
+    const result = buildProviderDerivedEnrichmentProposalExport({
+      proposal: { ...proposal, enrichment },
+      exportedAt,
+    });
+
+    expect(result.status).toBe("ready");
+    expect(result.json).not.toContain("access_token");
+    expect(assertExportJsonSafe(result.json!)).toBe(true);
+    expect(validateProviderDerivedEnrichmentProposalExportV1(JSON.parse(result.json!)).valid).toBe(true);
+  });
+
+  it("keeps golden JSON bytes unchanged for valid ready proposal", () => {
+    const first = buildProviderDerivedEnrichmentProposalExport({
+      proposal: readyProposal(),
+      exportedAt,
+    });
+    const second = buildProviderDerivedEnrichmentProposalExport({
+      proposal: readyProposal(),
+      exportedAt,
+    });
+
+    expect(first.status).toBe("ready");
+    expect(second.json).toBe(first.json);
+    expect(first.json).toMatch(/\n$/);
   });
 });

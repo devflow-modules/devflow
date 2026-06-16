@@ -38,6 +38,7 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - Provider-derived runtime review — ApplyFlow `ProviderDerivedRuntimeReviewPanel` (in-memory selection/dismiss of preview signals; no persistence, no CareerBundle mutation, no provider calls)
 - Provider-derived enrichment proposal — ApplyFlow `buildProviderDerivedEnrichmentProposal` (ephemeral proposal from selected signals; no persistence, no CareerBundle mutation)
 - Provider-derived enrichment proposal export — ApplyFlow browser-side JSON download of ready proposals (no upload, no persistence)
+- Provider-derived enrichment proposal export validation — `@devflow/career-sync` standalone v1 document validator (no import, no persistence)
 - Provider-derived sandbox composition — `@devflow/career-sync` `composeProviderDerivedSignals`
 - Provider-derived enrichment adapter — `@devflow/career-sync` `adaptProviderDerivedSignalsToSyncEnrichment`
 

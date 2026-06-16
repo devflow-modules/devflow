@@ -23,6 +23,7 @@ This folder documents **external integration labs** for the Career Suite. These 
 15. **[Provider-Derived Runtime Review](./PROVIDER-DERIVED-RUNTIME-REVIEW.md)** — in-memory review of preview signals (ApplyFlow)
 16. **[Provider-Derived Enrichment Proposal](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md)** — ephemeral enrichment proposal from selected signals (ApplyFlow)
 17. **[Provider-Derived Enrichment Proposal Export](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT.md)** — local JSON download of ready proposals (ApplyFlow)
+17b. **[Provider-Derived Enrichment Proposal Export Validation](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT-VALIDATION.md)** — standalone v1 document validator (`@devflow/career-sync`)
 18. **[LibreChat + MCP lab](./LIBRECHAT-MCP-LAB.md)** — local agent UI over deterministic tools
 18. **[LibreChat Local MCP Wiring](./LIBRECHAT-LOCAL-WIRING.md)** — connect upstream LibreChat to `@devflow/career-agents-mcp` stdio
 19. **[Nango Gmail/Calendar Plan](./NANGO-GMAIL-CALENDAR-PLAN.md)** — OAuth/sync adapter (docs + sandbox contracts; no runtime OAuth in apps)
@@ -81,6 +82,7 @@ No OAuth runtime, no Nango SDK in apps, no provider API calls, no sync persisten
 | Provider-derived runtime review | **UI only** | [PROVIDER-DERIVED-RUNTIME-REVIEW.md](./PROVIDER-DERIVED-RUNTIME-REVIEW.md) — in-memory signal selection, no persistence |
 | Provider-derived enrichment proposal | **UI only** | [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md) — ephemeral proposal from selected signals, no persistence |
 | Provider-derived enrichment proposal export | **UI only** | [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT.md) — browser-side JSON download, no upload |
+| Provider-derived enrichment proposal export validation | **Package API** | [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT-VALIDATION.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL-EXPORT-VALIDATION.md) — pure v1 validator, no import |
 | Provider-derived enrichment adapter | **Sandbox impl** | [PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md](./PROVIDER-DERIVED-ENRICHMENT-ADAPTER.md) — maps to `CareerBundleUnifiedSyncEnrichment` |
 | MCP SDK | **Implemented locally** | `@devflow/career-agents-mcp` stdio transport |
 | LibreChat + MCP lab | **Lab docs only** | No LibreChat product dependency |

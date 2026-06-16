@@ -380,3 +380,19 @@ export {
   mapProviderDerivedSignalsToCareerSyncSignals,
   validateAdaptedCareerBundleSyncEnrichment,
 } from "./provider-derived-enrichment/index.js";
+
+export type {
+  ProviderDerivedEnrichmentProposalExport,
+  ProviderDerivedEnrichmentProposalExportValidationResult,
+} from "./provider-derived-enrichment-export/index.js";
+
+export {
+  PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_DOCUMENT_KEYS,
+  PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_SCHEMA,
+  PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_VERSION,
+  PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_FORBIDDEN_KEYS,
+  collectForbiddenKeysInDocument,
+  hasForbiddenKeysInDocument,
+  validateProviderDerivedEnrichmentProposalExport,
+  validateProviderDerivedEnrichmentProposalExportV1,
+} from "./provider-derived-enrichment-export/index.js";
