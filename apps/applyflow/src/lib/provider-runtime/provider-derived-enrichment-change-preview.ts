@@ -10,6 +10,8 @@ import type { ProviderDerivedRuntimeReviewState } from "@/components/dashboard/p
 import {
   PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_EMPTY_PROPOSAL,
   PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_INVALID_PROPOSAL,
+  PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_AVAILABLE,
+  PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_NO_BASELINE,
   PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_NO_CHANGES,
   PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_READ_ONLY_MESSAGE,
 } from "@/components/dashboard/provider-derived-enrichment-change-preview-content";
@@ -29,6 +31,8 @@ export type ProviderEnrichmentChangePreviewViewModel = {
   phase: ProviderEnrichmentChangePreviewUiPhase;
   preview: EnrichmentChangePreviewResult | null;
   headline: string;
+  hasCurrentBaseline: boolean;
+  baselineNotice: string;
   safeForClient: true;
   readOnly: true;
   appliedToCareerBundle: false;
@@ -142,10 +146,17 @@ export function deriveProviderEnrichmentChangePreviewViewModel(
     exportAvailable: input.exportAvailable,
   });
 
+  const hasCurrentBaseline = input.currentSyncEnrichment != null;
+  const baselineNotice = hasCurrentBaseline
+    ? PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_AVAILABLE
+    : PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_NO_BASELINE;
+
   return {
     phase,
     preview,
     headline: deriveHeadline(phase),
+    hasCurrentBaseline,
+    baselineNotice,
     safeForClient: true,
     readOnly: true,
     appliedToCareerBundle: false,

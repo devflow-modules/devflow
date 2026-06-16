@@ -23,3 +23,5 @@ export type {
 
 export { deriveCareerBundleEnrichmentChangePreview } from "./enrichment-change-preview.js";
 export type { DeriveCareerBundleEnrichmentChangePreviewInput } from "./enrichment-change-preview.js";
+
+export { extractCareerBundleSyncEnrichment } from "./extract-sync-enrichment.js";

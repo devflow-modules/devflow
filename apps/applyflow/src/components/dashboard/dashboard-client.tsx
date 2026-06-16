@@ -51,6 +51,7 @@ import {
   mapApplyFlowApplicationToCareer,
   stringifyInterviewLabCareerBundleExport,
 } from "@/lib/career-bundle-export";
+import { deriveDashboardCareerBundleSyncEnrichmentBaseline } from "@/lib/derive-dashboard-career-bundle-sync-enrichment-baseline";
 import { sendCareerBundleViaPostMessageWithRetry } from "@/lib/career-bundle-postmessage-handoff";
 import {
   copyCareerBundleJsonToClipboard,
@@ -224,6 +225,15 @@ export function DashboardClient() {
   const buildExportCareerBundle = useCallback(() => {
     return buildInterviewLabCareerBundleForExport(applications, { includeDemoSyncEnrichment });
   }, [applications, includeDemoSyncEnrichment]);
+
+  const currentSyncEnrichment = useMemo(
+    () =>
+      deriveDashboardCareerBundleSyncEnrichmentBaseline({
+        applications,
+        includeDemoSyncEnrichment,
+      }),
+    [applications, includeDemoSyncEnrichment],
+  );
 
   const onCopyCareerBundleForInterviewLab = useCallback(async () => {
     setCareerCopyFeedback("idle");
@@ -673,7 +683,7 @@ export function DashboardClient() {
 
         <ProviderConsentMockPanel />
 
-        <ProviderConsentConfirmationPanel />
+        <ProviderConsentConfirmationPanel currentSyncEnrichment={currentSyncEnrichment} />
 
         {hasData ? (
           <div className="flex flex-wrap items-center gap-4">

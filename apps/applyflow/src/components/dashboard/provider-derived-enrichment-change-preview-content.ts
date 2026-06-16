@@ -24,6 +24,12 @@ export const PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_EMPTY_PROPOSAL =
 export const PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_INVALID_PROPOSAL =
   "The current proposal cannot be previewed safely.";
 
+export const PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_NO_BASELINE =
+  "No current sync enrichment was found in this session's CareerBundle export shape. Suggestions are compared against an empty baseline.";
+
+export const PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_BASELINE_AVAILABLE =
+  "Comparing against the validated sync enrichment from the current dashboard CareerBundle export shape.";
+
 export const PROVIDER_DERIVED_ENRICHMENT_CHANGE_PREVIEW_NO_CHANGES =
   "No differences detected between current and proposed enrichment.";
 
