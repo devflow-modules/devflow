@@ -13,6 +13,7 @@
 | | |
 |--|--|
 | **Full case** | [`docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md`](docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md) |
+| **Launch package** | [`docs/career-suite/CAREER-SUITE-PORTFOLIO-LAUNCH-PACKAGE.md`](docs/career-suite/CAREER-SUITE-PORTFOLIO-LAUNCH-PACKAGE.md) |
 | **Landing** | [`docs/career-suite/README.md`](docs/career-suite/README.md) |
 | **Public narrative** | [`docs/public-cases/CAREER-SUITE.md`](docs/public-cases/CAREER-SUITE.md) |
 
