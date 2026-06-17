@@ -1,5 +1,18 @@
+import { ApplyFlowBadge } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import type { ProviderDerivedSignal } from "@devflow/career-sync";
+
+function formatSignalKind(kind: ProviderDerivedSignal["kind"]): string {
+  return kind.replaceAll("_", " ");
+}
+
+function formatConfidence(signal: ProviderDerivedSignal): string {
+  if (signal.confidenceLevel) {
+    return signal.confidenceLevel;
+  }
+
+  return String(signal.confidence);
+}
 
 export function ProviderDerivedRuntimeSignalCard({
   signal,
@@ -37,13 +50,15 @@ export function ProviderDerivedRuntimeSignalCard({
         ) : null}
         <div className="min-w-0 flex-1 space-y-1">
           <label htmlFor={dismissed ? undefined : checkboxId} className="block text-[color:var(--af-text)]">
-            <span className="font-medium">{signal.source}</span> · {signal.kind}
+            <span className="font-medium">{signal.source}</span> · {formatSignalKind(signal.kind)}
           </label>
           <p>Occurred: {signal.occurredAt}</p>
           {signal.startsAt ? <p>Starts: {signal.startsAt}</p> : null}
-          {signal.company ? <p>Company: {signal.company}</p> : null}
-          <p>Confidence: {signal.confidence}</p>
-          <p>Review required: yes</p>
+          {signal.company ? <p>Domain: {signal.company}</p> : null}
+          <p>Confidence: {formatConfidence(signal)}</p>
+          {signal.reason ? <p>Reason: {signal.reason}</p> : null}
+          <p>Evidence count: {signal.sourceCount}</p>
+          <ApplyFlowBadge tone="intel">Manual review</ApplyFlowBadge>
         </div>
       </div>
       <div className="mt-2 flex flex-wrap gap-2">

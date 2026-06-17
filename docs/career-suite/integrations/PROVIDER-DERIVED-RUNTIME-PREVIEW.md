@@ -11,6 +11,7 @@ The preview is ephemeral, requires user consent and verified connections, does n
 | Gmail read-only Nango runtime | **Implemented** |
 | Calendar read-only Nango runtime | **Implemented** |
 | Provider-derived runtime composition | **Implemented** |
+| Conservative provider metadata signals (runtime) | **Implemented** — factual Gmail/Calendar activity, temporal clusters, follow-up windows |
 | Opt-in runtime preview (HTTP + UI) | **Implemented** |
 | In-memory signal review workflow | **Implemented** — see [PROVIDER-DERIVED-RUNTIME-REVIEW.md](./PROVIDER-DERIVED-RUNTIME-REVIEW.md) |
 | Enrichment proposal from selected signals | **Implemented** — see [PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md](./PROVIDER-DERIVED-ENRICHMENT-PROPOSAL.md) |
@@ -83,7 +84,7 @@ Returns only `ProviderDerivedRuntimeCompositionResult`:
 - `status`: `completed` \| `partial` \| `blocked` \| `error`
 - `processedMessageCount` / `processedEventCount`
 - `signals` (derived, review-required)
-- `summary` (aggregated flags and counts)
+- `summary` (aggregated flags and counts, including `correlationSignalCount` and `lowConfidenceSignalCount`)
 - sanitized `warnings` and `messages`
 
 Never includes: Gmail/Calendar metadata, bodies, snippets, subjects, descriptions, locations, meeting links, message/thread/event/calendar IDs, connection IDs, `end_user_id`, OAuth tokens, or Nango payloads.
@@ -117,7 +118,43 @@ HTTP status (conservative):
 | `gmail-readonly-runtime-boundary.ts` | Gmail runtime (flags, consent, SDK, sanitization) |
 | `calendar-readonly-runtime-boundary.ts` | Calendar runtime |
 | `provider-derived-runtime-boundary.ts` | Composition entry |
-| `provider-derived-runtime-composition.ts` | Parallel execution + signal aggregation |
+| `provider-derived-runtime-composition.ts` | Parallel execution + correlation + signal aggregation (max 25 signals) |
+| `gmail-runtime-classifier.ts` | Rule A — `provider_email_activity` |
+| `calendar-runtime-classifier.ts` | Rule B — `provider_calendar_activity` |
+| `provider-runtime-correlation-classifier.ts` | Rules C/D — `provider_activity_cluster`, `provider_follow_up_window` |
+
+## Runtime signal taxonomy (conservative)
+
+Deterministic, metadata-only signals — **not** application status inference:
+
+| Kind | Source | Confidence | Rule |
+|------|--------|------------|------|
+| `provider_email_activity` | gmail | high | At least one valid sanitized Gmail metadata item |
+| `provider_calendar_activity` | calendar | high | Valid normalized Calendar event metadata |
+| `provider_activity_cluster` | gmail | medium | Email within **72h inclusive** before a **future** Calendar event |
+| `provider_follow_up_window` | gmail | low | Known `inbound`/`outbound` email, no cluster, elapsed 24h–14d |
+
+Each signal includes `reason`, `confidenceLevel`, `sourceCount` (evidence count), and `reviewRequired: true`.
+
+Ordering: `occurredAt` ascending → `source` (calendar, gmail) → `kind` → `id`.
+
+Truncation: max **25** signals per preview; warning `provider_signals_truncated` when truncated.
+
+Review UI disclaimer: *These signals are derived from limited metadata. They are suggestions for review, not confirmed application status changes.*
+
+### Allowed metadata inputs
+
+**Gmail:** `occurredAt`, `direction`, `senderDomain`, `recipientDomains`, `hasAttachment`, sanitized system `labels`.
+
+**Calendar:** `startsAt`, `endsAt`, `timezone`, `status`, `isAllDay`, `attendeeCount`, `externalAttendeeCount`, `organizerDomain`, `attendeeDomains`, `hasConference`, `isRecurring`.
+
+### Explicitly not used
+
+Subject, snippet, body, full addresses, message/thread/event IDs, event title, description, location, meeting links, attendee emails, raw provider payloads, tokens.
+
+### Not inferred
+
+`application_detected`, `interview_*`, `offer_likely`, `rejection_likely`, or any automatic application status change.
 
 Environment and gates reuse `readApplyFlowNangoConnectSessionEnv` and existing Nango integration IDs — not duplicated in the preview route.
 

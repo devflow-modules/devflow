@@ -8,8 +8,11 @@ export function normalizeGmailDerivedSignal(signal: GmailDerivedSignal): Provide
     source: "gmail",
     kind: signal.kind,
     occurredAt: signal.occurredAt,
+    startsAt: signal.startsAt,
     company: signal.company,
     confidence: signal.confidence,
+    confidenceLevel: signal.confidenceLevel,
+    reason: signal.reason,
     reviewRequired: true,
     sourceCount: signal.sourceCount,
   };
@@ -26,6 +29,8 @@ export function normalizeCalendarDerivedSignal(
     startsAt: signal.startsAt,
     company: signal.company,
     confidence: signal.confidence,
+    confidenceLevel: signal.confidenceLevel,
+    reason: signal.reason,
     reviewRequired: true,
     sourceCount: signal.sourceCount,
   };

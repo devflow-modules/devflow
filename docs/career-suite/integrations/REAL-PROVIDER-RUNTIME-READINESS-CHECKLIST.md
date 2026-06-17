@@ -34,6 +34,7 @@ This checklist must be completed before Career Suite introduces any real OAuth, 
 - Calendar read-only sandbox adapter — `@devflow/career-sync` `createCalendarReadOnlySandboxAdapter`
 - Calendar read-only Nango runtime adapter — ApplyFlow `executeApplyFlowCalendarReadOnlyRuntimeBoundary`
 - Provider-derived runtime composition — ApplyFlow `executeApplyFlowProviderDerivedRuntimeBoundary`
+- Conservative provider metadata signals — factual `provider_email_activity`, `provider_calendar_activity`, `provider_activity_cluster`, `provider_follow_up_window` (deterministic, review-required; no LLM; max 25 signals per preview)
 - Provider-derived runtime preview — ApplyFlow `POST /provider-runtime/nango/derived-preview` (opt-in, ephemeral; server verifies Gmail + Calendar via Nango before runtimes; client connection state is UX-only)
 - Provider-derived runtime review — ApplyFlow `ProviderDerivedRuntimeReviewPanel` (in-memory selection/dismiss of preview signals; no persistence, no CareerBundle mutation, no provider calls)
 - Provider-derived enrichment proposal — ApplyFlow `buildProviderDerivedEnrichmentProposal` (ephemeral proposal from selected signals; no persistence, no CareerBundle mutation)

@@ -48,7 +48,10 @@ export type CalendarDerivedSignalKind =
   | "interview_cancelled"
   | "recruiter_call_likely"
   | "follow_up_event_due"
-  | "application_deadline_detected";
+  | "application_deadline_detected"
+  | "provider_calendar_activity";
+
+export type CalendarDerivedSignalConfidenceLevel = "low" | "medium" | "high";
 
 export type CalendarDerivedSignal = {
   id: string;
@@ -58,6 +61,8 @@ export type CalendarDerivedSignal = {
   startsAt?: string;
   company?: string;
   confidence: number;
+  confidenceLevel?: CalendarDerivedSignalConfidenceLevel;
+  reason?: string;
   reviewRequired: true;
   sourceCount: number;
 };

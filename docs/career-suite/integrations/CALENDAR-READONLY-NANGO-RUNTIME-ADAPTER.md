@@ -78,7 +78,7 @@ ApplyFlow location: `apps/applyflow/src/lib/provider-runtime/`
 |--------|------|
 | `calendar-readonly-nango-provider.ts` | Nango `listConnections` + Calendar events.list |
 | `calendar-runtime-normalization.ts` | Start/end/all-day, domains, status, conference/recurrence booleans |
-| `calendar-runtime-classifier.ts` | Conservative runtime signals (empty in v1) |
+| `calendar-runtime-classifier.ts` | Rule B — factual `provider_calendar_activity` |
 | `calendar-readonly-nango-adapter.ts` | `CalendarReadOnlyAdapter` for `runtime: "nango"` |
 | `calendar-readonly-runtime-boundary.ts` | Feature flags, consent, verification gates |
 
@@ -98,9 +98,15 @@ No dedicated HTTP route for Calendar alone — the Calendar boundary is invoked 
 
 ## Runtime classifier
 
-**Separate from sandbox.** Does not use `CalendarSandboxScenario` markers. First runtime release returns `[]` by default unless future PRs add documented metadata-only rules with unequivocal evidence.
+**Separate from sandbox.** Does not use `CalendarSandboxScenario` markers.
 
-Does **not** infer `interview_scheduled`, `interview_cancelled`, `recruiter_call_likely`, or `application_deadline_detected` from conference flags, attendee counts, or duration alone.
+| Rule | Kind | Confidence |
+|------|------|------------|
+| B — valid event metadata | `provider_calendar_activity` | high |
+
+Uses only normalized temporal metadata and aggregated counts. `reason` includes future/past state and duration bucket (`short` / `medium` / `long`).
+
+Does **not** infer `interview_scheduled`, `interview_cancelled`, `recruiter_call_likely`, or `application_deadline_detected`. Does **not** read title, description, location, or attendee addresses.
 
 ## Gates
 
@@ -119,7 +125,7 @@ All must pass before Nango SDK is called:
 | Case | Outcome |
 |------|---------|
 | Gate failure | `blocked`, no SDK call |
-| Success | `completed`, `processedEventCount` may be > 0, `signals` may be `[]` |
+| Success | `completed`, `processedEventCount` may be > 0, `signals` may include `provider_calendar_activity` |
 | SDK/Calendar failure | `error`, sanitized message, no raw payload |
 
 Invariant flags: `importedRawEvents: false`, `retainedRawPayload: false`, `retainedDescriptions: false`, `retainedLocations: false`, `retainedMeetingLinks: false`, `retainedAttendeeAddresses: false`, `hasToken: false`, `userReviewRequired: true`.

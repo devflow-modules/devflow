@@ -58,7 +58,7 @@ ApplyFlow location: `apps/applyflow/src/lib/provider-runtime/`
 |--------|------|
 | `gmail-readonly-nango-provider.ts` | Nango `listConnections` + Gmail metadata fetch |
 | `gmail-runtime-normalization.ts` | Domain extraction, header parsing |
-| `gmail-runtime-classifier.ts` | Conservative runtime signals (empty in v1) |
+| `gmail-runtime-classifier.ts` | Rule A — factual `provider_email_activity` |
 | `gmail-readonly-nango-adapter.ts` | `GmailReadOnlyAdapter` for `runtime: "nango"` |
 | `gmail-readonly-runtime-boundary.ts` | Feature flags, consent, verification gates |
 
@@ -77,9 +77,15 @@ No dedicated HTTP route for Gmail alone — the Gmail boundary is invoked server
 
 ## Runtime classifier
 
-**Separate from sandbox.** Does not use `career.*` labels. First runtime release returns `[]` unless future PRs add documented metadata-only rules with unequivocal evidence.
+**Separate from sandbox.** Does not use `career.*` labels.
 
-Does **not** infer `interview_likely`, `offer_likely`, or `rejection_likely` from domains or timestamps alone.
+| Rule | Kind | Confidence |
+|------|------|------------|
+| A — valid metadata item | `provider_email_activity` | high |
+
+Uses only: `occurredAt`, `direction`, `senderDomain`, `recipientDomains`, `hasAttachment`, authorized system `labels` (referenced in `reason` only).
+
+Does **not** infer `application_detected`, `interview_likely`, `offer_likely`, or `rejection_likely`. Does **not** read subject, snippet, or body.
 
 ## Gates
 
@@ -98,7 +104,7 @@ All must pass before Nango SDK is called:
 | Case | Outcome |
 |------|---------|
 | Gate failure | `blocked`, no SDK call |
-| Success | `completed`, `processedMessageCount` may be > 0, `signals` may be `[]` |
+| Success | `completed`, `processedMessageCount` may be > 0, `signals` may include `provider_email_activity` |
 | SDK/Gmail failure | `error`, sanitized message, no raw payload |
 
 Invariant flags: `importedRawMessages: false`, `retainedBodies: false`, `hasToken: false`, etc.

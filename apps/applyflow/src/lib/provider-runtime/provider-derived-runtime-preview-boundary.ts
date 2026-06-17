@@ -2,13 +2,17 @@
 // Do not import this file from client components.
 
 import {
+  createCalendarReadOnlyAdapterRequest,
+  createGmailReadOnlyAdapterRequest,
   createEmptyProviderDerivedSignalSummary,
   type ProviderConnectionVerificationResult,
   type ProviderConnectionVerificationState,
 } from "@devflow/career-sync";
-import { executeApplyFlowCalendarReadOnlyRuntimeBoundary } from "./calendar-readonly-runtime-boundary";
+import { executeCalendarReadOnlyNangoRuntime } from "./calendar-readonly-nango-adapter";
+import { createCalendarNangoRuntimeMetadataProvider } from "./calendar-readonly-nango-provider";
 import type { ApplyFlowCalendarReadOnlyRuntimeDeps } from "./calendar-readonly-runtime-boundary";
-import { executeApplyFlowGmailReadOnlyRuntimeBoundary } from "./gmail-readonly-runtime-boundary";
+import { executeGmailReadOnlyNangoRuntime } from "./gmail-readonly-nango-adapter";
+import { createGmailNangoRuntimeMetadataProvider } from "./gmail-readonly-nango-provider";
 import type { ApplyFlowGmailReadOnlyRuntimeDeps } from "./gmail-readonly-runtime-boundary";
 import type { ApplyFlowNangoConnectSessionEnv } from "./nango-connect-session-boundary";
 import {
@@ -252,11 +256,18 @@ export async function handleProviderDerivedRuntimePreview(
 
   // connectionVerified is set only after successful server-side Nango verification above.
   return executeComposition({
-    executeGmail: () =>
-      executeApplyFlowGmailReadOnlyRuntimeBoundary(
-        { explicitConsent: true },
-        {
-          env: deps.env,
+    referenceMs: Date.parse(deps.requestedAt),
+    executeGmail: async () => {
+      const metadataProvider =
+        deps.gmailRuntimeDeps?.metadataProvider ??
+        createGmailNangoRuntimeMetadataProvider({
+          secretKey: deps.env.NANGO_SECRET_KEY ?? "",
+        });
+
+      return executeGmailReadOnlyNangoRuntime({
+        metadataProvider,
+        request: createGmailReadOnlyAdapterRequest({
+          runtime: "nango",
           connectionVerified: true,
           requestedAt: deps.requestedAt,
           window: {
@@ -264,14 +275,20 @@ export async function handleProviderDerivedRuntimePreview(
             to: request.window?.to,
             maxMessages: request.limits.maxMessages,
           },
-          runtimeDeps: deps.gmailRuntimeDeps,
-        },
-      ),
-    executeCalendar: () =>
-      executeApplyFlowCalendarReadOnlyRuntimeBoundary(
-        { explicitConsent: true },
-        {
-          env: deps.env,
+        }),
+      });
+    },
+    executeCalendar: async () => {
+      const metadataProvider =
+        deps.calendarRuntimeDeps?.metadataProvider ??
+        createCalendarNangoRuntimeMetadataProvider({
+          secretKey: deps.env.NANGO_SECRET_KEY ?? "",
+        });
+
+      return executeCalendarReadOnlyNangoRuntime({
+        metadataProvider,
+        request: createCalendarReadOnlyAdapterRequest({
+          runtime: "nango",
           connectionVerified: true,
           requestedAt: deps.requestedAt,
           window: {
@@ -279,9 +296,9 @@ export async function handleProviderDerivedRuntimePreview(
             to: request.window?.to,
             maxEvents: request.limits.maxEvents,
           },
-          runtimeDeps: deps.calendarRuntimeDeps,
-        },
-      ),
+        }),
+      });
+    },
   });
 }
 

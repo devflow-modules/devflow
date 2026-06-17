@@ -24,6 +24,10 @@ const VALID_KINDS = new Set<ProviderDerivedSignalKind>([
   "recruiter_call_likely",
   "follow_up_event_due",
   "application_deadline_detected",
+  "provider_email_activity",
+  "provider_calendar_activity",
+  "provider_activity_cluster",
+  "provider_follow_up_window",
 ]);
 
 const FORBIDDEN_ID_FRAGMENTS = [
