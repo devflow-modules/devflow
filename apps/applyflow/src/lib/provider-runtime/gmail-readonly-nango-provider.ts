@@ -20,6 +20,23 @@ export const GMAIL_MESSAGES_LIST_ENDPOINT = "/gmail/v1/users/me/messages";
 export const GMAIL_MESSAGE_METADATA_FORMAT = "metadata" as const;
 export const GMAIL_MESSAGE_METADATA_HEADERS = ["From", "To", "Date"] as const;
 
+/**
+ * Gmail expects repeated `metadataHeaders` query params. Nango's proxy serializes
+ * object params with `URLSearchParams.set`, which coerces arrays to a single
+ * comma-separated value and prevents Date/From/To from being returned.
+ */
+export function buildGmailMessageMetadataRequestParams(): string {
+  const params = new URLSearchParams();
+
+  params.set("format", GMAIL_MESSAGE_METADATA_FORMAT);
+
+  for (const header of GMAIL_MESSAGE_METADATA_HEADERS) {
+    params.append("metadataHeaders", header);
+  }
+
+  return params.toString();
+}
+
 export type GmailNangoRuntimeMetadataProvider = {
   listMessageMetadata(input: {
     from?: string;
@@ -179,10 +196,7 @@ export function createGmailNangoRuntimeMetadataProvider(input: {
           providerConfigKey: GMAIL_RUNTIME_INTEGRATION_ID,
           connectionId,
           endpoint: buildMessageMetadataEndpoint(ephemeralMessageId),
-          params: {
-            format: GMAIL_MESSAGE_METADATA_FORMAT,
-            metadataHeaders: [...GMAIL_MESSAGE_METADATA_HEADERS],
-          },
+          params: buildGmailMessageMetadataRequestParams(),
         });
 
         const normalized = normalizeGmailMessageMetadata(detailResponse.data);

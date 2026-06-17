@@ -29,6 +29,16 @@ describe("parseMetadataDateHeader", () => {
   it("parses RFC2822 date to ISO", () => {
     expect(parseMetadataDateHeader("Fri, 20 Jun 2026 14:00:00 +0000")).toBe("2026-06-20T14:00:00.000Z");
   });
+
+  it("parses RFC2822 dates with numeric timezone offsets", () => {
+    expect(parseMetadataDateHeader("Mon, 16 Jun 2026 09:00:00 -0300")).toBe("2026-06-16T12:00:00.000Z");
+    expect(parseMetadataDateHeader("Mon, 16 Jun 2026 13:00:00 +0530")).toBe("2026-06-16T07:30:00.000Z");
+  });
+
+  it("rejects invalid date headers", () => {
+    expect(parseMetadataDateHeader("not-a-date")).toBeUndefined();
+    expect(parseMetadataDateHeader("")).toBeUndefined();
+  });
 });
 
 describe("getHeaderValue", () => {
