@@ -31,6 +31,7 @@ import {
 } from "./provider-derived-runtime-preview-content";
 import { ProviderDerivedRuntimeReviewPanel } from "./provider-derived-runtime-review-panel";
 import { ProviderDerivedCareerInsightsPanel } from "./provider-derived-career-insights-panel";
+import { ProviderInsightsTimeline } from "./provider-insights-timeline";
 
 export type { ProviderDerivedRuntimePreviewUiState } from "./provider-derived-runtime-preview-client";
 
@@ -322,6 +323,12 @@ export function ProviderDerivedRuntimePreviewPanel({
           result={previewResult}
           isPreviewLoading={uiState === "loading"}
           onReviewStateChange={setReviewState}
+        />
+
+        <ProviderInsightsTimeline
+          previewUiState={uiState}
+          previewResult={previewResult}
+          isPreviewLoading={uiState === "loading"}
         />
 
         <ProviderDerivedEnrichmentProposalPanel
