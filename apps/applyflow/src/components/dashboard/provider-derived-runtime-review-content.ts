@@ -1,6 +1,8 @@
 export const PROVIDER_DERIVED_RUNTIME_REVIEW_TITLE = "Review derived signals";
 export const PROVIDER_DERIVED_RUNTIME_REVIEW_DESCRIPTION =
   "Review and select the signals you consider relevant. Nothing will be saved or applied automatically.";
+export const PROVIDER_DERIVED_RUNTIME_REVIEW_SIGNALS_DISCLAIMER =
+  "These signals are derived from limited metadata. They are suggestions for review, not confirmed application status changes.";
 export const PROVIDER_DERIVED_RUNTIME_REVIEW_BADGE_IN_MEMORY = "In-memory only";
 export const PROVIDER_DERIVED_RUNTIME_REVIEW_BADGE_MANUAL = "Manual review";
 export const PROVIDER_DERIVED_RUNTIME_REVIEW_BADGE_NO_AUTO = "No automatic changes";

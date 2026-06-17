@@ -18,11 +18,25 @@ const PENDING_ACTION_KINDS = new Set<ProviderDerivedSignalKind>([
   "application_deadline_detected",
 ]);
 
+const CORRELATION_KINDS = new Set<ProviderDerivedSignalKind>(["provider_activity_cluster"]);
+
+const LOW_CONFIDENCE_LEVELS = new Set(["low"]);
+
+function isLowConfidenceSignal(signal: ProviderDerivedSignal): boolean {
+  if (signal.confidenceLevel != null) {
+    return LOW_CONFIDENCE_LEVELS.has(signal.confidenceLevel);
+  }
+
+  return signal.confidence <= 0.45;
+}
+
 export function createEmptyProviderDerivedSignalSummary(): ProviderDerivedSignalSummary {
   return {
     totalSignals: 0,
     gmailSignalCount: 0,
     calendarSignalCount: 0,
+    correlationSignalCount: 0,
+    lowConfidenceSignalCount: 0,
     reviewRequiredCount: 0,
     companies: [],
     kinds: [],
@@ -61,11 +75,17 @@ export function summarizeProviderDerivedSignals(
 
   const gmailSignalCount = signals.filter((signal) => signal.source === "gmail").length;
   const calendarSignalCount = signals.filter((signal) => signal.source === "calendar").length;
+  const correlationSignalCount = signals.filter((signal) =>
+    CORRELATION_KINDS.has(signal.kind),
+  ).length;
+  const lowConfidenceSignalCount = signals.filter((signal) => isLowConfidenceSignal(signal)).length;
 
   return {
     totalSignals: signals.length,
     gmailSignalCount,
     calendarSignalCount,
+    correlationSignalCount,
+    lowConfidenceSignalCount,
     reviewRequiredCount: signals.filter((signal) => signal.reviewRequired).length,
     companies,
     kinds,

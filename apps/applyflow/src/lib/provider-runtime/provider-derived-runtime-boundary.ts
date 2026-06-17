@@ -4,15 +4,12 @@
 import type { CalendarReadOnlyAdapterResult, GmailReadOnlyAdapterResult } from "@devflow/career-sync";
 import {
   executeProviderDerivedRuntimeComposition,
+  type ProviderDerivedRuntimeCompositionDependencies,
   type ProviderDerivedRuntimeCompositionResult,
 } from "./provider-derived-runtime-composition";
 
-export async function executeApplyFlowProviderDerivedRuntimeBoundary(input: {
-  executeGmail: () => Promise<GmailReadOnlyAdapterResult>;
-  executeCalendar: () => Promise<CalendarReadOnlyAdapterResult>;
-}): Promise<ProviderDerivedRuntimeCompositionResult> {
-  return executeProviderDerivedRuntimeComposition({
-    executeGmail: input.executeGmail,
-    executeCalendar: input.executeCalendar,
-  });
+export async function executeApplyFlowProviderDerivedRuntimeBoundary(
+  input: ProviderDerivedRuntimeCompositionDependencies,
+): Promise<ProviderDerivedRuntimeCompositionResult> {
+  return executeProviderDerivedRuntimeComposition(input);
 }

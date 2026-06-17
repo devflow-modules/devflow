@@ -7,8 +7,8 @@ import {
   createGmailReadOnlyAdapterResult,
   createProviderConnectionVerificationResult,
 } from "@devflow/career-sync";
-import { executeApplyFlowCalendarReadOnlyRuntimeBoundary } from "./calendar-readonly-runtime-boundary.js";
-import { executeApplyFlowGmailReadOnlyRuntimeBoundary } from "./gmail-readonly-runtime-boundary.js";
+import { executeCalendarReadOnlyNangoRuntime } from "./calendar-readonly-nango-adapter.js";
+import { executeGmailReadOnlyNangoRuntime } from "./gmail-readonly-nango-adapter.js";
 import {
   createBlockedProviderDerivedRuntimePreviewResult,
   handleProviderDerivedRuntimePreview,
@@ -17,12 +17,12 @@ import {
 } from "./provider-derived-runtime-preview-boundary.js";
 import type { ProviderDerivedRuntimeCompositionResult } from "./provider-derived-runtime-composition.js";
 
-vi.mock("./gmail-readonly-runtime-boundary.js", () => ({
-  executeApplyFlowGmailReadOnlyRuntimeBoundary: vi.fn(),
+vi.mock("./gmail-readonly-nango-adapter.js", () => ({
+  executeGmailReadOnlyNangoRuntime: vi.fn(),
 }));
 
-vi.mock("./calendar-readonly-runtime-boundary.js", () => ({
-  executeApplyFlowCalendarReadOnlyRuntimeBoundary: vi.fn(),
+vi.mock("./calendar-readonly-nango-adapter.js", () => ({
+  executeCalendarReadOnlyNangoRuntime: vi.fn(),
 }));
 
 const allFlagsOnEnv = {
@@ -210,8 +210,8 @@ describe("handleProviderDerivedRuntimePreview", () => {
   });
 
   beforeEach(() => {
-    vi.mocked(executeApplyFlowGmailReadOnlyRuntimeBoundary).mockReset();
-    vi.mocked(executeApplyFlowCalendarReadOnlyRuntimeBoundary).mockReset();
+    vi.mocked(executeGmailReadOnlyNangoRuntime).mockReset();
+    vi.mocked(executeCalendarReadOnlyNangoRuntime).mockReset();
     verifyGmailConnection.mockReset();
     verifyCalendarConnection.mockReset();
     executeComposition.mockReset();
@@ -227,22 +227,24 @@ describe("handleProviderDerivedRuntimePreview", () => {
       return completedCompositionResult();
     });
 
-    vi.mocked(executeApplyFlowGmailReadOnlyRuntimeBoundary).mockResolvedValue(
-      createGmailReadOnlyAdapterResult({
+    vi.mocked(executeGmailReadOnlyNangoRuntime).mockResolvedValue({
+      result: createGmailReadOnlyAdapterResult({
         runtime: "nango",
         status: "completed",
         connectionVerified: true,
         processedMessageCount: 2,
       }),
-    );
-    vi.mocked(executeApplyFlowCalendarReadOnlyRuntimeBoundary).mockResolvedValue(
-      createCalendarReadOnlyAdapterResult({
+      metadata: [],
+    });
+    vi.mocked(executeCalendarReadOnlyNangoRuntime).mockResolvedValue({
+      result: createCalendarReadOnlyAdapterResult({
         runtime: "nango",
         status: "completed",
         connectionVerified: true,
         processedEventCount: 3,
       }),
-    );
+      metadata: [],
+    });
   });
 
   it("blocks bypass payload when Gmail is not connected server-side", async () => {
@@ -267,8 +269,8 @@ describe("handleProviderDerivedRuntimePreview", () => {
     expect(result.processedMessageCount).toBe(0);
     expect(result.processedEventCount).toBe(0);
     expect(executeComposition).not.toHaveBeenCalled();
-    expect(executeApplyFlowGmailReadOnlyRuntimeBoundary).not.toHaveBeenCalled();
-    expect(executeApplyFlowCalendarReadOnlyRuntimeBoundary).not.toHaveBeenCalled();
+    expect(executeGmailReadOnlyNangoRuntime).not.toHaveBeenCalled();
+    expect(executeCalendarReadOnlyNangoRuntime).not.toHaveBeenCalled();
   });
 
   it("blocks bypass payload when Calendar is not connected server-side", async () => {
@@ -374,8 +376,8 @@ describe("handleProviderDerivedRuntimePreview", () => {
     expect(verifyGmailConnection).toHaveBeenCalledOnce();
     expect(verifyCalendarConnection).toHaveBeenCalledOnce();
     expect(executeComposition).toHaveBeenCalledOnce();
-    expect(executeApplyFlowGmailReadOnlyRuntimeBoundary).toHaveBeenCalledOnce();
-    expect(executeApplyFlowCalendarReadOnlyRuntimeBoundary).toHaveBeenCalledOnce();
+    expect(executeGmailReadOnlyNangoRuntime).toHaveBeenCalledOnce();
+    expect(executeCalendarReadOnlyNangoRuntime).toHaveBeenCalledOnce();
   });
 
   it("does not call runtimes when Gmail verification errors", async () => {
@@ -444,16 +446,18 @@ describe("handleProviderDerivedRuntimePreview", () => {
       executeComposition,
     });
 
-    expect(executeApplyFlowGmailReadOnlyRuntimeBoundary).toHaveBeenCalledWith(
-      { explicitConsent: true },
+    expect(executeGmailReadOnlyNangoRuntime).toHaveBeenCalledWith(
       expect.objectContaining({
-        window: expect.objectContaining({ maxMessages: 5 }),
+        request: expect.objectContaining({
+          window: expect.objectContaining({ maxMessages: 5 }),
+        }),
       }),
     );
-    expect(executeApplyFlowCalendarReadOnlyRuntimeBoundary).toHaveBeenCalledWith(
-      { explicitConsent: true },
+    expect(executeCalendarReadOnlyNangoRuntime).toHaveBeenCalledWith(
       expect.objectContaining({
-        window: expect.objectContaining({ maxEvents: 7 }),
+        request: expect.objectContaining({
+          window: expect.objectContaining({ maxEvents: 7 }),
+        }),
       }),
     );
   });
@@ -530,8 +534,9 @@ describe("invalid request does not call verifiers or runtime boundaries", () => 
   const verifyCalendarConnection = vi.fn(async () => connectedVerification("calendar"));
 
   beforeEach(() => {
-    vi.mocked(executeApplyFlowGmailReadOnlyRuntimeBoundary).mockClear();
-    vi.mocked(executeApplyFlowCalendarReadOnlyRuntimeBoundary).mockClear();
+    vi.mocked(executeGmailReadOnlyNangoRuntime).mockClear();
+    vi.mocked(executeCalendarReadOnlyNangoRuntime).mockClear();
+    vi.mocked(executeCalendarReadOnlyNangoRuntime).mockClear();
     verifyGmailConnection.mockClear();
     verifyCalendarConnection.mockClear();
   });
@@ -542,8 +547,8 @@ describe("invalid request does not call verifiers or runtime boundaries", () => 
     expect(parsed.ok).toBe(false);
     expect(verifyGmailConnection).not.toHaveBeenCalled();
     expect(verifyCalendarConnection).not.toHaveBeenCalled();
-    expect(executeApplyFlowGmailReadOnlyRuntimeBoundary).not.toHaveBeenCalled();
-    expect(executeApplyFlowCalendarReadOnlyRuntimeBoundary).not.toHaveBeenCalled();
+    expect(executeGmailReadOnlyNangoRuntime).not.toHaveBeenCalled();
+    expect(executeCalendarReadOnlyNangoRuntime).not.toHaveBeenCalled();
   });
 });
 

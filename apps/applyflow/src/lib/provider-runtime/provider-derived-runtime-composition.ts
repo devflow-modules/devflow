@@ -2,16 +2,25 @@
 // Do not import this file from client components.
 
 import {
-  composeProviderDerivedSignals,
   createEmptyProviderDerivedSignalSummary,
   isCalendarReadOnlyAdapterResultSafe,
   isGmailReadOnlyAdapterResultSafe,
   summarizeProviderDerivedSignals,
+  type CalendarEphemeralEventMetadata,
   type CalendarReadOnlyAdapterResult,
+  type GmailEphemeralMessageMetadata,
   type GmailReadOnlyAdapterResult,
   type ProviderDerivedSignal,
   type ProviderDerivedSignalSummary,
 } from "@devflow/career-sync";
+import {
+  deriveProviderActivityClusterSignals,
+  deriveProviderFollowUpWindowSignals,
+} from "./provider-runtime-correlation-classifier";
+import {
+  composeAndLimitProviderRuntimeSignals,
+  PROVIDER_SIGNALS_TRUNCATED_WARNING,
+} from "./provider-runtime-signal-limits";
 
 export type ProviderDerivedRuntimeCompositionStatus =
   | "blocked"
@@ -45,9 +54,20 @@ export type ProviderDerivedRuntimeCompositionResult = {
   messages: string[];
 };
 
+export type ProviderRuntimeGmailExecution = {
+  result: GmailReadOnlyAdapterResult;
+  metadata?: GmailEphemeralMessageMetadata[];
+};
+
+export type ProviderRuntimeCalendarExecution = {
+  result: CalendarReadOnlyAdapterResult;
+  metadata?: CalendarEphemeralEventMetadata[];
+};
+
 export type ProviderDerivedRuntimeCompositionDependencies = {
-  executeGmail: () => Promise<GmailReadOnlyAdapterResult>;
-  executeCalendar: () => Promise<CalendarReadOnlyAdapterResult>;
+  executeGmail: () => Promise<ProviderRuntimeGmailExecution | GmailReadOnlyAdapterResult>;
+  executeCalendar: () => Promise<ProviderRuntimeCalendarExecution | CalendarReadOnlyAdapterResult>;
+  referenceMs?: number;
 };
 
 const COMPLETED_MESSAGE =
@@ -72,6 +92,7 @@ type GmailRuntimeOutcome =
       kind: "completed";
       signals: GmailReadOnlyAdapterResult["signals"];
       processedMessageCount: number;
+      metadata: GmailEphemeralMessageMetadata[];
     }
   | { kind: "blocked" }
   | { kind: "failed"; warning: GmailRuntimeWarning };
@@ -81,6 +102,7 @@ type CalendarRuntimeOutcome =
       kind: "completed";
       signals: CalendarReadOnlyAdapterResult["signals"];
       processedEventCount: number;
+      metadata: CalendarEphemeralEventMetadata[];
     }
   | { kind: "blocked" }
   | { kind: "failed"; warning: CalendarRuntimeWarning };
@@ -128,14 +150,35 @@ export function isSafeCalendarRuntimeResult(result: CalendarReadOnlyAdapterResul
   return isCalendarReadOnlyAdapterResultSafe(result);
 }
 
+function unwrapGmailExecution(
+  value: ProviderRuntimeGmailExecution | GmailReadOnlyAdapterResult,
+): ProviderRuntimeGmailExecution {
+  if ("result" in value) {
+    return value;
+  }
+
+  return { result: value, metadata: [] };
+}
+
+function unwrapCalendarExecution(
+  value: ProviderRuntimeCalendarExecution | CalendarReadOnlyAdapterResult,
+): ProviderRuntimeCalendarExecution {
+  if ("result" in value) {
+    return value;
+  }
+
+  return { result: value, metadata: [] };
+}
+
 function resolveGmailRuntimeOutcome(
-  settled: PromiseSettledResult<GmailReadOnlyAdapterResult>,
+  settled: PromiseSettledResult<ProviderRuntimeGmailExecution | GmailReadOnlyAdapterResult>,
 ): GmailRuntimeOutcome {
   if (settled.status === "rejected") {
     return { kind: "failed", warning: "gmail_runtime_error" };
   }
 
-  const result = settled.value;
+  const execution = unwrapGmailExecution(settled.value);
+  const result = execution.result;
 
   if (!isSafeGmailRuntimeResult(result)) {
     return { kind: "failed", warning: "gmail_unsafe_result" };
@@ -146,6 +189,7 @@ function resolveGmailRuntimeOutcome(
       kind: "completed",
       signals: result.signals,
       processedMessageCount: result.processedMessageCount,
+      metadata: execution.metadata ?? [],
     };
   }
 
@@ -157,13 +201,14 @@ function resolveGmailRuntimeOutcome(
 }
 
 function resolveCalendarRuntimeOutcome(
-  settled: PromiseSettledResult<CalendarReadOnlyAdapterResult>,
+  settled: PromiseSettledResult<ProviderRuntimeCalendarExecution | CalendarReadOnlyAdapterResult>,
 ): CalendarRuntimeOutcome {
   if (settled.status === "rejected") {
     return { kind: "failed", warning: "calendar_runtime_error" };
   }
 
-  const result = settled.value;
+  const execution = unwrapCalendarExecution(settled.value);
+  const result = execution.result;
 
   if (!isSafeCalendarRuntimeResult(result)) {
     return { kind: "failed", warning: "calendar_unsafe_result" };
@@ -174,6 +219,7 @@ function resolveCalendarRuntimeOutcome(
       kind: "completed",
       signals: result.signals,
       processedEventCount: result.processedEventCount,
+      metadata: execution.metadata ?? [],
     };
   }
 
@@ -295,13 +341,44 @@ export async function executeProviderDerivedRuntimeComposition(
     const status = resolveCompositionStatus(gmailOutcome, calendarOutcome);
     const warnings = collectRuntimeWarnings(gmailOutcome, calendarOutcome);
 
-    const gmailSignals = gmailOutcome.kind === "completed" ? gmailOutcome.signals : [];
+    const referenceMs = dependencies.referenceMs ?? Date.now();
+
+    const gmailAdapterSignals = gmailOutcome.kind === "completed" ? gmailOutcome.signals : [];
     const calendarSignals = calendarOutcome.kind === "completed" ? calendarOutcome.signals : [];
 
-    const signals =
+    const gmailMetadata = gmailOutcome.kind === "completed" ? gmailOutcome.metadata : [];
+    const calendarMetadata = calendarOutcome.kind === "completed" ? calendarOutcome.metadata : [];
+
+    const clusterSignals =
       status === "blocked" || status === "error"
         ? []
-        : composeProviderDerivedSignals({ gmailSignals, calendarSignals });
+        : deriveProviderActivityClusterSignals({
+            gmailMetadata,
+            calendarMetadata,
+            referenceMs,
+          });
+
+    const followUpSignals =
+      status === "blocked" || status === "error"
+        ? []
+        : deriveProviderFollowUpWindowSignals({
+            gmailMetadata,
+            clusterSignals,
+            referenceMs,
+          });
+
+    const gmailSignals = [...gmailAdapterSignals, ...clusterSignals, ...followUpSignals];
+
+    const limited =
+      status === "blocked" || status === "error"
+        ? { signals: [] as ProviderDerivedSignal[], truncated: false }
+        : composeAndLimitProviderRuntimeSignals({ gmailSignals, calendarSignals });
+
+    if (limited.truncated) {
+      warnings.push(PROVIDER_SIGNALS_TRUNCATED_WARNING);
+    }
+
+    const signals = limited.signals;
 
     const summary =
       status === "blocked" || status === "error"

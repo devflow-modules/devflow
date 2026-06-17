@@ -53,7 +53,7 @@ describe("createGmailReadOnlyNangoRuntimeAdapter", () => {
     expect(provider.listMessageMetadata).not.toHaveBeenCalled();
   });
 
-  it("completes with zero signals when metadata has no safe runtime evidence", async () => {
+  it("completes with factual provider_email_activity signals for valid metadata", async () => {
     const provider: GmailNangoRuntimeMetadataProvider = {
       listMessageMetadata: vi.fn(async () => [
         {
@@ -72,7 +72,8 @@ describe("createGmailReadOnlyNangoRuntimeAdapter", () => {
 
     expect(result.status).toBe("completed");
     expect(result.processedMessageCount).toBe(1);
-    expect(result.signals).toEqual([]);
+    expect(result.signals).toHaveLength(1);
+    expect(result.signals[0]?.kind).toBe("provider_email_activity");
     expect(result.importedRawMessages).toBe(false);
     expect(result.retainedBodies).toBe(false);
     expect(result.retainedSnippets).toBe(false);
@@ -119,7 +120,7 @@ describe("createGmailReadOnlyNangoRuntimeAdapter", () => {
 
     expect(result.status).toBe("completed");
     expect(result.processedMessageCount).toBe(5);
-    expect(result.signals).toEqual([]);
+    expect(result.signals).toHaveLength(5);
   });
 
   it("does not expose forbidden fields in completed result", async () => {

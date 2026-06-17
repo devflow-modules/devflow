@@ -44,15 +44,23 @@ export type GmailDerivedSignalKind =
   | "follow_up_required"
   | "recruiter_response_detected"
   | "rejection_likely"
-  | "offer_likely";
+  | "offer_likely"
+  | "provider_email_activity"
+  | "provider_activity_cluster"
+  | "provider_follow_up_window";
+
+export type GmailDerivedSignalConfidenceLevel = "low" | "medium" | "high";
 
 export type GmailDerivedSignal = {
   id: string;
   kind: GmailDerivedSignalKind;
   provider: "gmail";
   occurredAt: string;
+  startsAt?: string;
   company?: string;
   confidence: number;
+  confidenceLevel?: GmailDerivedSignalConfidenceLevel;
+  reason?: string;
   reviewRequired: true;
   sourceCount: number;
 };

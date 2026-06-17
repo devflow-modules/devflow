@@ -17,6 +17,9 @@ const CONFIDENCE_BY_KIND: Readonly<Record<GmailDerivedSignalKind, number>> = {
   recruiter_response_detected: 0.8,
   rejection_likely: 0.85,
   offer_likely: 0.9,
+  provider_email_activity: 0.9,
+  provider_activity_cluster: 0.6,
+  provider_follow_up_window: 0.3,
 };
 
 const COMPANY_LABEL_PREFIX = "company.";

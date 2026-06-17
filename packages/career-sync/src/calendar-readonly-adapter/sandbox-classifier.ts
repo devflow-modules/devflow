@@ -24,6 +24,7 @@ const CONFIDENCE_BY_KIND: Readonly<Record<CalendarDerivedSignalKind, number>> = 
   recruiter_call_likely: 0.75,
   follow_up_event_due: 0.75,
   application_deadline_detected: 0.85,
+  provider_calendar_activity: 0.9,
 };
 
 const COMPANY_BY_SLUG: Readonly<Record<CalendarSandboxCompanySlug, string>> = {

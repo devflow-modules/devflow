@@ -72,7 +72,7 @@ describe("createCalendarReadOnlyNangoRuntimeAdapter", () => {
     expect(provider.listEventMetadata).not.toHaveBeenCalled();
   });
 
-  it("completes with zero signals when metadata has no safe runtime evidence", async () => {
+  it("completes with factual provider_calendar_activity signals for valid metadata", async () => {
     const provider: CalendarNangoRuntimeMetadataProvider = {
       listEventMetadata: vi.fn(async () => [
         {
@@ -95,7 +95,8 @@ describe("createCalendarReadOnlyNangoRuntimeAdapter", () => {
 
     expect(result.status).toBe("completed");
     expect(result.processedEventCount).toBe(1);
-    expect(result.signals).toEqual([]);
+    expect(result.signals).toHaveLength(1);
+    expect(result.signals[0]?.kind).toBe("provider_calendar_activity");
     expect(result.importedRawEvents).toBe(false);
     expect(result.retainedRawPayload).toBe(false);
     expect(result.retainedDescriptions).toBe(false);

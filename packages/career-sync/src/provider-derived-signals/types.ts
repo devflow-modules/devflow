@@ -5,6 +5,8 @@
 
 export type ProviderDerivedSignalSource = "gmail" | "calendar";
 
+export type ProviderDerivedSignalConfidenceLevel = "low" | "medium" | "high";
+
 export type ProviderDerivedSignalKind =
   | "application_detected"
   | "interview_likely"
@@ -17,7 +19,11 @@ export type ProviderDerivedSignalKind =
   | "interview_cancelled"
   | "recruiter_call_likely"
   | "follow_up_event_due"
-  | "application_deadline_detected";
+  | "application_deadline_detected"
+  | "provider_email_activity"
+  | "provider_calendar_activity"
+  | "provider_activity_cluster"
+  | "provider_follow_up_window";
 
 export type ProviderDerivedSignal = {
   id: string;
@@ -27,6 +33,8 @@ export type ProviderDerivedSignal = {
   startsAt?: string;
   company?: string;
   confidence: number;
+  confidenceLevel?: ProviderDerivedSignalConfidenceLevel;
+  reason?: string;
   reviewRequired: true;
   sourceCount: number;
 };
@@ -35,6 +43,8 @@ export type ProviderDerivedSignalSummary = {
   totalSignals: number;
   gmailSignalCount: number;
   calendarSignalCount: number;
+  correlationSignalCount: number;
+  lowConfidenceSignalCount: number;
   reviewRequiredCount: number;
   companies: string[];
   kinds: ProviderDerivedSignalKind[];
