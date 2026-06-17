@@ -29,6 +29,7 @@ import { openNangoConnectUiWithFrontendSdk } from "./provider-nango-connect-clie
 import { ProviderConnectionStatusPanel } from "./provider-connection-status-panel";
 import { runProviderConnectionVerificationCheck } from "./provider-connection-verification-client";
 import { ProviderDerivedRuntimePreviewPanel } from "./provider-derived-runtime-preview-panel";
+import { ProviderConnectionDisconnectPanel } from "./provider-connection-disconnect-panel";
 
 /**
  * Explicit provider consent UI with Nango Connect UI behind runtime flags.
@@ -177,6 +178,24 @@ export function ProviderConsentConfirmationPanel({
     }
   }
 
+  function handleProviderDisconnected(provider: ProviderKind) {
+    setVerificationByProvider((current) => ({
+      ...current,
+      [provider]: null,
+    }));
+    if (provider === selectedProvider) {
+      setConnectionStatus(
+        createProviderRuntimeConnectionStatusFromConnectEvent({
+          provider,
+          event: "not_connected",
+          updatedAt: new Date().toISOString(),
+        }),
+      );
+      setLastLauncherResult(null);
+    }
+    setVerificationErrorMessage(null);
+  }
+
   return (
     <ApplyFlowCard variant="muted" padding="md" className="border border-[color:var(--af-border-strong)]/80">
       <div className="space-y-4" data-testid="provider-consent-confirmation-panel">
@@ -309,6 +328,18 @@ export function ProviderConsentConfirmationPanel({
             {verificationErrorMessage}
           </p>
         ) : null}
+
+        <div className="grid gap-3 md:grid-cols-2">
+          {(["gmail", "calendar"] as const).map((provider) => (
+            <ProviderConnectionDisconnectPanel
+              key={provider}
+              provider={provider}
+              explicitConsentChecked={explicitConsentChecked}
+              verificationResult={verificationByProvider[provider]}
+              onDisconnected={handleProviderDisconnected}
+            />
+          ))}
+        </div>
 
         <ProviderNangoConnectUi
           provider={selectedProvider}

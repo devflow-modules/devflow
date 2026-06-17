@@ -216,7 +216,7 @@ Before a real OAuth PR is allowed:
 - [ ] no token reaches localStorage/sessionStorage
 - [ ] no raw provider payload is persisted
 - [ ] no raw provider payload reaches apps
-- [ ] revoke/disconnect path is designed
+- [x] revoke/disconnect path is designed (`POST /provider-runtime/nango/disconnect`; Google revocation remains manual)
 - [ ] delete derived data path is designed
 - [ ] sandbox flows still work with runtime flags disabled
 - [ ] tests prove disabled-by-default behavior

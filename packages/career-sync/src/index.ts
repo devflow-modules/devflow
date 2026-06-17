@@ -169,11 +169,16 @@ export type {
   ProviderConnectionVerificationRequest,
   ProviderConnectionVerificationResult,
   ProviderConnectionVerificationState,
+  ProviderConnectionDisconnectRequest,
+  ProviderConnectionDisconnectResult,
+  ProviderConnectionDisconnectStatus,
 } from "./provider-connection/index.js";
 
 export {
   createProviderConnectionVerificationResult,
   isProviderConnectionVerificationResultSafeForClient,
+  createProviderConnectionDisconnectResult,
+  isProviderConnectionDisconnectResultSafeForClient,
 } from "./provider-connection/index.js";
 
 export type {
