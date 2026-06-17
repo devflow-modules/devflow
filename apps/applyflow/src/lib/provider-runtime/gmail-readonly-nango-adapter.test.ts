@@ -100,6 +100,28 @@ describe("createGmailReadOnlyNangoRuntimeAdapter", () => {
     expect(JSON.stringify(result)).not.toMatch(/"body"/i);
   });
 
+  it("reports processedMessageCount for five provider messages", async () => {
+    const provider: GmailNangoRuntimeMetadataProvider = {
+      listMessageMetadata: vi.fn(async () =>
+        Array.from({ length: 5 }, (_, index) => ({
+          occurredAt: `2026-06-16T1${index}:00:00.000Z`,
+          direction: "unknown" as const,
+          senderDomain: "demo.example",
+          recipientDomains: ["candidate.example"],
+          hasAttachment: false,
+          labels: ["INBOX"],
+        })),
+      ),
+    };
+    const adapter = createGmailReadOnlyNangoRuntimeAdapter({ metadataProvider: provider });
+
+    const result = await adapter.execute(nangoRequest());
+
+    expect(result.status).toBe("completed");
+    expect(result.processedMessageCount).toBe(5);
+    expect(result.signals).toEqual([]);
+  });
+
   it("does not expose forbidden fields in completed result", async () => {
     const provider: GmailNangoRuntimeMetadataProvider = {
       listMessageMetadata: vi.fn(async () => [
