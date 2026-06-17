@@ -40,3 +40,14 @@ export {
   createProviderConnectionVerificationResult,
   isProviderConnectionVerificationResultSafeForClient,
 } from "./runtime-verification.js";
+
+export type {
+  ProviderConnectionDisconnectRequest,
+  ProviderConnectionDisconnectResult,
+  ProviderConnectionDisconnectStatus,
+} from "./runtime-disconnect.js";
+
+export {
+  createProviderConnectionDisconnectResult,
+  isProviderConnectionDisconnectResultSafeForClient,
+} from "./runtime-disconnect.js";

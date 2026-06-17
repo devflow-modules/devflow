@@ -160,7 +160,8 @@ pnpm check:career-provider-runtime          # no env → ready, all disabled
 → POST /provider-runtime/nango/connection-status
 → POST /provider-runtime/nango/derived-preview (limits low)
 → inspect client-safe signals + manual review UI
-→ disconnect / revoke
+→ POST /provider-runtime/nango/disconnect (explicit confirmation; per provider)
+→ optional Google Account third-party revocation (manual; not performed by disconnect endpoint)
 → repeat for Calendar separately
 → clear .env.local flags (return to default-off)
 ```
@@ -182,8 +183,8 @@ pnpm check:career-provider-runtime          # no env → ready, all disabled
 | Signal derivation | **implemented** | Normalizers + classifiers | Preview route | Medium | — |
 | Client-safe response | **implemented** | Boundary + forbidden key guards | — | Critical | — |
 | Manual review UI | **implemented** | `ProviderDerivedRuntimeReviewPanel` | In-memory preview | Low | Screenshots need runtime |
-| Disconnect | **partially implemented** | Consent UI mock + Nango ops | Manual in Nango | Medium | Procedure untested |
-| Revocation | **documented only** | Consent architecture | Google account | Medium | Manual |
+| Disconnect | **implemented** | `POST /provider-runtime/nango/disconnect` + consent UI | Flags + secret + `Connections: delete` on API key | Medium | Sandbox key permission |
+| Revocation | **documented only** | Google Account third-party access (manual) | Google account | Medium | Manual |
 | Expired connection | **partially implemented** | Verification `error` state | — | Low | Needs sandbox test |
 | Rate-limit handling | **not found** | No explicit handler | — | — | Document as gap |
 | Timeout handling | **not found** | Implicit fetch failures | — | — | Document as gap |
@@ -292,7 +293,12 @@ pnpm check:career-provider-runtime          # no env → ready, all disabled
 |--------|------|
 | GET | `/provider-runtime/nango/connect` |
 | POST | `/provider-runtime/nango/connection-status` |
+| POST | `/provider-runtime/nango/disconnect` |
 | POST | `/provider-runtime/nango/derived-preview` |
+
+**Disconnect API key permission:** the dedicated sandbox key (`applyflow-career-sandbox-local`) must include **Connections → delete** in addition to list/read. Do not grant `with_credentials`, admin, deploy, syncs, records, or MCP. If delete is missing, the endpoint returns a safe blocked response (`nango_connection_delete_failed`) — treat as an operational blocker, not a reason to enable Full access.
+
+**Google revocation:** `POST /disconnect` removes the Nango connection used by ApplyFlow only. Revoking OAuth in Google Account → Security → Third-party connections remains a separate manual step.
 
 ---
 
