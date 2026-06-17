@@ -221,6 +221,14 @@ export function DashboardClient() {
     };
   }, [applications]);
 
+  const careerBundleForAgents = useMemo(() => {
+    if (applications.length === 0) {
+      return null;
+    }
+
+    return buildInterviewLabCareerBundle(applications);
+  }, [applications]);
+
   const [careerCopyFeedback, setCareerCopyFeedback] = useState<"idle" | "success" | "error">("idle");
   const [careerCopyMessage, setCareerCopyMessage] = useState<string | null>(null);
   const [includeDemoSyncEnrichment, setIncludeDemoSyncEnrichment] = useState(false);
@@ -705,6 +713,7 @@ export function DashboardClient() {
           currentSyncEnrichment={exportComposition.syncEnrichment}
           baselineSourceKind={exportComposition.sourceKind}
           onEligibleProviderEnrichmentChange={setEligibleProviderEnrichment}
+          careerBundle={careerBundleForAgents}
         />
 
         {hasData ? (

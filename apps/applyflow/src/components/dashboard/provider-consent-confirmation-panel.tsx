@@ -7,6 +7,7 @@ import type { ApplyFlowNangoConnectLauncherResponse } from "@/lib/provider-runti
 import type { ProviderKind, ProviderRuntimeConnectionStatus } from "@devflow/career-sync";
 import { createProviderRuntimeConnectionStatusFromConnectEvent } from "@devflow/career-sync";
 import type { ProviderConnectionVerificationResult } from "@devflow/career-sync";
+import type { CareerBundle } from "@devflow/career-core";
 import type { CareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
 import type { CareerBundleSyncEnrichmentSourceKind } from "@/lib/career-bundle-sync-enrichment-source";
 import { useState } from "react";
@@ -92,10 +93,12 @@ export function ProviderConsentConfirmationPanel({
   currentSyncEnrichment = null,
   baselineSourceKind = "none",
   onEligibleProviderEnrichmentChange,
+  careerBundle = null,
 }: {
   currentSyncEnrichment?: CareerBundleUnifiedSyncEnrichment | null;
   baselineSourceKind?: CareerBundleSyncEnrichmentSourceKind;
   onEligibleProviderEnrichmentChange?: (enrichment: CareerBundleUnifiedSyncEnrichment | null) => void;
+  careerBundle?: CareerBundle | null;
 }) {
   const [selectedProvider, setSelectedProvider] = useState<ProviderKind>("gmail");
   const [explicitConsentChecked, setExplicitConsentChecked] = useState(false);
@@ -357,6 +360,7 @@ export function ProviderConsentConfirmationPanel({
             currentSyncEnrichment={currentSyncEnrichment}
             baselineSourceKind={baselineSourceKind}
             onEligibleProviderEnrichmentChange={onEligibleProviderEnrichmentChange}
+            careerBundle={careerBundle}
           />
         ) : null}
       </div>
