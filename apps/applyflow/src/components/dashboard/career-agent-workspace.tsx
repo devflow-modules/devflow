@@ -32,6 +32,8 @@ import {
   runCareerAgentOrchestration,
   type CareerAgentWorkspaceUiState,
 } from "./career-agent-workspace-client";
+import { CareerToolPermissionReview } from "./career-tool-permission-review";
+import { deriveCareerAgentRequestId } from "@devflow/career-core";
 
 export type CareerAgentWorkspaceProps = {
   careerBundle: CareerBundle | null;
@@ -326,21 +328,43 @@ export function CareerAgentWorkspace({
   }
 
   return (
-    <CareerAgentWorkspaceView
-      careerBundle={careerBundle}
-      selectedSignalIds={selectedSignalIds}
-      availableSignals={availableSignals}
-      intent={intent}
-      explicitConsent={explicitConsent}
-      uiState={uiState}
-      result={result}
-      errorMessage={errorMessage}
-      onIntentChange={setIntent}
-      onConsentChange={setExplicitConsent}
-      onRunAnalysis={() => {
-        void handleRunAnalysis();
-      }}
-      isRunning={isRunning}
-    />
+    <>
+      <CareerAgentWorkspaceView
+        careerBundle={careerBundle}
+        selectedSignalIds={selectedSignalIds}
+        availableSignals={availableSignals}
+        intent={intent}
+        explicitConsent={explicitConsent}
+        uiState={uiState}
+        result={result}
+        errorMessage={errorMessage}
+        onIntentChange={setIntent}
+        onConsentChange={setExplicitConsent}
+        onRunAnalysis={() => {
+          void handleRunAnalysis();
+        }}
+        isRunning={isRunning}
+      />
+
+      {result?.status === "completed" && careerBundle ? (
+        <CareerToolPermissionReview
+          agentResult={result}
+          orchestration={{
+            intent,
+            explicitConsent: true,
+            context: {
+              careerBundle,
+              selectedSignalIds,
+              availableSignals,
+            },
+          }}
+          agentRequestId={deriveCareerAgentRequestId({
+            intent,
+            careerBundle,
+            selectedSignalIds,
+          })}
+        />
+      ) : null}
+    </>
   );
 }
