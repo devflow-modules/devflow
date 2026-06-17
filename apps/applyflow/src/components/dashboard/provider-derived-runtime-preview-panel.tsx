@@ -3,8 +3,8 @@
 import { ApplyFlowBadge } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
-import type { CareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
-import type { ProviderConnectionVerificationResult } from "@devflow/career-sync";
+import type { CareerBundle } from "@devflow/career-core";
+import type { CareerBundleUnifiedSyncEnrichment, ProviderConnectionVerificationResult } from "@devflow/career-sync";
 import { useEffect, useState } from "react";
 import { deriveEligibleProviderEnrichmentForExport } from "@/lib/derive-eligible-provider-enrichment-for-export";
 import type { CareerBundleSyncEnrichmentSourceKind } from "@/lib/career-bundle-sync-enrichment-source";
@@ -32,6 +32,7 @@ import {
 import { ProviderDerivedRuntimeReviewPanel } from "./provider-derived-runtime-review-panel";
 import { ProviderDerivedCareerInsightsPanel } from "./provider-derived-career-insights-panel";
 import { ProviderInsightsTimeline } from "./provider-insights-timeline";
+import { CareerAgentWorkspace } from "./career-agent-workspace";
 
 export type { ProviderDerivedRuntimePreviewUiState } from "./provider-derived-runtime-preview-client";
 
@@ -93,6 +94,7 @@ export function ProviderDerivedRuntimePreviewPanel({
   currentSyncEnrichment = null,
   baselineSourceKind = "none",
   onEligibleProviderEnrichmentChange,
+  careerBundle = null,
 }: {
   explicitConsentChecked: boolean;
   gmailVerification: ProviderConnectionVerificationResult | null;
@@ -100,6 +102,7 @@ export function ProviderDerivedRuntimePreviewPanel({
   currentSyncEnrichment?: CareerBundleUnifiedSyncEnrichment | null;
   baselineSourceKind?: CareerBundleSyncEnrichmentSourceKind;
   onEligibleProviderEnrichmentChange?: (enrichment: CareerBundleUnifiedSyncEnrichment | null) => void;
+  careerBundle?: CareerBundle | null;
 }) {
   const [uiState, setUiState] = useState<ProviderDerivedRuntimePreviewUiState>("idle");
   const [previewResult, setPreviewResult] =
@@ -329,6 +332,12 @@ export function ProviderDerivedRuntimePreviewPanel({
           previewUiState={uiState}
           previewResult={previewResult}
           isPreviewLoading={uiState === "loading"}
+        />
+
+        <CareerAgentWorkspace
+          careerBundle={careerBundle}
+          selectedSignalIds={reviewState.selectedSignalIds}
+          availableSignals={previewResult?.signals ?? []}
         />
 
         <ProviderDerivedEnrichmentProposalPanel
