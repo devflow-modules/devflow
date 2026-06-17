@@ -93,7 +93,21 @@ export function evaluateCareerToolPermission(input: {
     };
   }
 
-  if (!input.executionPlan.allowedCapabilities.includes(definition.requiredCapability)) {
+  const capabilityOnPlan = input.executionPlan.allowedCapabilities.includes(definition.requiredCapability);
+  const agentHasCapability = isCareerAgentCapabilityAllowed(
+    input.executionPlan.selectedAgent,
+    definition.requiredCapability,
+  );
+
+  if (!capabilityOnPlan && agentHasCapability) {
+    return {
+      allowed: false,
+      code: "tool_not_allowed",
+      message: "Tool is not allowed for the current execution plan.",
+    };
+  }
+
+  if (!capabilityOnPlan) {
     return {
       allowed: false,
       code: "capability_not_allowed",
@@ -101,7 +115,7 @@ export function evaluateCareerToolPermission(input: {
     };
   }
 
-  if (!isCareerAgentCapabilityAllowed(input.executionPlan.selectedAgent, definition.requiredCapability)) {
+  if (!agentHasCapability) {
     return {
       allowed: false,
       code: "agent_tool_mismatch",
