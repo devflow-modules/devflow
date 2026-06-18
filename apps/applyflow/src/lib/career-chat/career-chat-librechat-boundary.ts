@@ -13,7 +13,7 @@ export const CAREER_CHAT_LIBRECHAT_BLOCKED_MESSAGE =
 export type CareerChatLibrechatRequestError = "invalid_json" | "invalid_request";
 
 export function isLibreChatAdapterEnabled(
-  env: { LIBRECHAT_ADAPTER_ENABLED?: string } = process.env,
+  env: { [key: string]: string | undefined; LIBRECHAT_ADAPTER_ENABLED?: string } = process.env,
 ): boolean {
   return env.LIBRECHAT_ADAPTER_ENABLED === "true";
 }

@@ -6,6 +6,7 @@
  * automation provider stays `mock`, and OpenClaw stays disabled.
  */
 export type CareerFeatureFlagsEnv = {
+  [key: string]: string | undefined;
   CAREER_AGENTS_ENABLED?: string;
   LIBRECHAT_ADAPTER_ENABLED?: string;
   LIBRECHAT_TRANSPORT_ENABLED?: string;

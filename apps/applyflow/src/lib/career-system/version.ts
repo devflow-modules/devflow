@@ -1,4 +1,4 @@
-import type { CareerRuntimeEnvironment } from "./environment";
+import type { CareerRuntimeEnvironment, CareerRuntimeEnv } from "./environment";
 import { resolveCareerRuntimeEnvironment } from "./environment";
 
 /**
@@ -14,10 +14,11 @@ export type CareerBuildMetadata = {
 };
 
 type CareerBuildEnv = {
+  [key: string]: string | undefined;
   NEXT_PUBLIC_APP_VERSION?: string;
   NEXT_PUBLIC_COMMIT_SHA?: string;
   NEXT_PUBLIC_BUILD_TIMESTAMP?: string;
-} & Parameters<typeof resolveCareerRuntimeEnvironment>[0];
+} & CareerRuntimeEnv;
 
 const UNKNOWN = "unknown";
 

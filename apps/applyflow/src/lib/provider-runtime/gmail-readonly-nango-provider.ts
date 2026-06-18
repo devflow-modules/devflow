@@ -55,7 +55,7 @@ export type GmailNangoRuntimeSdk = {
     endpoint: string;
     providerConfigKey: string;
     connectionId: string;
-    params?: Record<string, string | number | string[]>;
+    params?: Record<string, string | number | string[]> | string;
   }): Promise<{ data: T }>;
 };
 
