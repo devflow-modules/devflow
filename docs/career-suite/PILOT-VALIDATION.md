@@ -4,10 +4,20 @@ How to run and validate the controlled user pilot.
 
 ## Enabling pilot mode
 
+Full preview matrix (flags, build metadata, adapter vs transport): see
+[`DEPLOYMENT.md` § Preview environment](./DEPLOYMENT.md#preview-environment-controlled-pilot).
+
+Minimum pilot UI flags:
+
 ```env
 CAREER_PILOT_MODE=true
 NEXT_PUBLIC_CAREER_PILOT_MODE=true
+LIBRECHAT_ADAPTER_ENABLED=true
+LIBRECHAT_TRANSPORT_ENABLED=false
 ```
+
+Career Chat requires `LIBRECHAT_ADAPTER_ENABLED=true` (in-process boundary). Keep transport off
+unless an external LibreChat server is intentionally configured server-side.
 
 When active, the Career Chat Workspace shows:
 

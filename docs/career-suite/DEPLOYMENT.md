@@ -51,6 +51,55 @@ build metadata via `NEXT_PUBLIC_APP_VERSION`, `NEXT_PUBLIC_COMMIT_SHA`,
 No client-side flag contains a secret. Secrets (`OPENAI_API_KEY`, `LIBRECHAT_API_KEY`,
 `NANGO_SECRET_KEY`, `OPENCLAW_API_KEY`) are server-side only. See `apps/applyflow/.env.example`.
 
+## Preview environment (controlled pilot)
+
+Use this matrix for a **Vercel preview** or local smoke that exercises Career Chat without
+external providers. Do not add API keys or `DATABASE_URL` unless a real database is wired.
+
+| Variable | Preview value | Scope | Notes |
+|----------|---------------|-------|-------|
+| `CAREER_RUNTIME_ENVIRONMENT` | `preview` | server | Explicit override; preview ≠ development |
+| `CAREER_AGENTS_ENABLED` | `true` | server | Deterministic core (default on) |
+| `CAREER_PILOT_MODE` | `true` | server | Pilot posture / logging |
+| `NEXT_PUBLIC_CAREER_PILOT_MODE` | `true` | **client** | Pilot badge, notice, feedback UI |
+| `CAREER_SYSTEM_STATUS_ENABLED` | `true` | server | Optional in preview (page is open when env ≠ production); required in production |
+| `CAREER_LLM_ENABLED` | `false` | server | No OpenAI |
+| `CAREER_LLM_PROVIDER` | `mock` | server | Deterministic, no network |
+| `LIBRECHAT_ADAPTER_ENABLED` | **`true`** | server | **Required for Career Chat.** In-process boundary at `POST /career-chat/librechat`; not an external LibreChat server call |
+| `LIBRECHAT_TRANSPORT_ENABLED` | `false` | server | Real LibreChat transport stays off |
+| `CAREER_AUTOMATION_ENABLED` | `false` | server | No automation execution |
+| `CAREER_AUTOMATION_PROVIDER` | `mock` | server | Stays mock in pilot |
+| `OPENCLAW_ENABLED` | `false` | server | Stays off |
+| `NEXT_PUBLIC_APP_VERSION` | `preview` | **client** | Build metadata |
+| `NEXT_PUBLIC_COMMIT_SHA` | deploy commit (short) | **client** | Build metadata |
+| `NEXT_PUBLIC_BUILD_TIMESTAMP` | ISO timestamp | **client** | Build metadata |
+
+**Keep absent in preview:** `DATABASE_URL`, `OPENAI_API_KEY`, `LIBRECHAT_API_KEY`,
+`LIBRECHAT_BASE_URL`, `NANGO_SECRET_KEY`, `OPENCLAW_API_KEY`, `OPENCLAW_BASE_URL`,
+`CAREER_PROVIDER_RUNTIME_ENABLED`, `NANGO_RUNTIME_ENABLED`, `GMAIL_PROVIDER_ENABLED`,
+`CALENDAR_PROVIDER_ENABLED`.
+
+> **Common mistake:** setting `LIBRECHAT_ADAPTER_ENABLED=false` blocks Career Chat with
+> `librechat_adapter_disabled` (HTTP 403). The adapter flag gates the **local** chat boundary;
+> only `LIBRECHAT_TRANSPORT_ENABLED=true` (with server-side URL/key) reaches an external
+> LibreChat instance.
+
+Local smoke (after `pnpm install --frozen-lockfile`):
+
+```bash
+export CAREER_RUNTIME_ENVIRONMENT=preview \
+  CAREER_AGENTS_ENABLED=true CAREER_PILOT_MODE=true NEXT_PUBLIC_CAREER_PILOT_MODE=true \
+  CAREER_SYSTEM_STATUS_ENABLED=true CAREER_LLM_ENABLED=false CAREER_LLM_PROVIDER=mock \
+  LIBRECHAT_ADAPTER_ENABLED=true LIBRECHAT_TRANSPORT_ENABLED=false \
+  CAREER_AUTOMATION_ENABLED=false CAREER_AUTOMATION_PROVIDER=mock OPENCLAW_ENABLED=false \
+  NEXT_PUBLIC_APP_VERSION=preview NEXT_PUBLIC_COMMIT_SHA=<sha> \
+  NEXT_PUBLIC_BUILD_TIMESTAMP=<iso>
+pnpm --filter applyflow dev   # port 3010
+```
+
+Validate: [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md) smoke checklist and
+`/career-system/{livez,readyz,health}`.
+
 ## Production deployment checklist
 
 1. `pnpm install --frozen-lockfile` and `pnpm -w run build` succeed.
