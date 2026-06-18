@@ -35,6 +35,7 @@ import { ProviderInsightsTimeline } from "./provider-insights-timeline";
 import { CareerAgentWorkspace } from "./career-agent-workspace";
 import { CareerChatWorkspace } from "./career-chat-workspace";
 import { CareerAiDraft } from "./career-ai-draft";
+import { ApprovedAutomationReview } from "./approved-automation-review";
 
 export type { ProviderDerivedRuntimePreviewUiState } from "./provider-derived-runtime-preview-client";
 
@@ -349,6 +350,12 @@ export function ProviderDerivedRuntimePreviewPanel({
         />
 
         <CareerAiDraft
+          careerBundle={careerBundle}
+          selectedSignalIds={reviewState.selectedSignalIds}
+          availableSignals={previewResult?.signals ?? []}
+        />
+
+        <ApprovedAutomationReview
           careerBundle={careerBundle}
           selectedSignalIds={reviewState.selectedSignalIds}
           availableSignals={previewResult?.signals ?? []}
