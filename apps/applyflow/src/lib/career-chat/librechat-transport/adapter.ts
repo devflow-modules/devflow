@@ -124,6 +124,42 @@ export class LibreChatTransportAdapter {
     }
 
     const envelope = body as LibreChatTransportOpenAiEnvelope;
+    const careerEnvelopeMessage =
+      typeof envelope.message === "string" && envelope.message.trim().length > 0
+        ? envelope.message.trim()
+        : null;
+    const careerEnvelopeAction = envelope.career?.action;
+    const careerEnvelopeConsent = envelope.explicitConsent ?? envelope.career?.explicitConsent;
+    const careerEnvelopeContext = envelope.career?.context;
+
+    if (
+      careerEnvelopeMessage &&
+      typeof careerEnvelopeAction === "string" &&
+      isCareerChatAction(careerEnvelopeAction) &&
+      careerEnvelopeConsent === true &&
+      careerEnvelopeContext != null
+    ) {
+      const mappedCareerEnvelope = parseLibreChatCareerChatBody({
+        action: careerEnvelopeAction,
+        message: careerEnvelopeMessage,
+        explicitConsent: true,
+        conversationId: envelope.career?.conversationId,
+        context: careerEnvelopeContext,
+      });
+
+      if (mappedCareerEnvelope.ok) {
+        return { ok: true, body: mappedCareerEnvelope.value, format: "librechat_openai" };
+      }
+
+      return {
+        ok: false,
+        error: buildTransportError(
+          "invalid_transport_request",
+          "LibreChat transport envelope could not be mapped to the career chat boundary.",
+        ),
+      };
+    }
+
     const message = extractUserMessage(envelope.messages);
     const action = envelope.career?.action;
     const explicitConsent = envelope.career?.explicitConsent;
@@ -255,23 +291,47 @@ export class LibreChatTransportAdapter {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.config.timeoutMs);
     const startedAt = Date.now();
+    const healthPaths = ["/health", "/livez", "/readyz", "/api/health"];
 
     try {
-      const response = await this.fetchImpl(new URL("/health", this.config.baseUrl).toString(), {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${this.apiKey}`,
-        },
-        signal: controller.signal,
-      });
+      let lastStatus: number | null = null;
+
+      for (const healthPath of healthPaths) {
+        try {
+          const response = await this.fetchImpl(new URL(healthPath, this.config.baseUrl).toString(), {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+            },
+            signal: controller.signal,
+          });
+
+          lastStatus = response.status;
+
+          if (response.ok || response.status === 503) {
+            return {
+              transportEnabled: true,
+              adapterEnabled,
+              configured: true,
+              reachable: response.ok,
+              latencyMs: Date.now() - startedAt,
+              upstreamStatus: response.status,
+              safeForClient: true,
+              hasToken: false,
+            };
+          }
+        } catch {
+          continue;
+        }
+      }
 
       return {
         transportEnabled: true,
         adapterEnabled,
         configured: true,
-        reachable: response.ok,
+        reachable: false,
         latencyMs: Date.now() - startedAt,
-        upstreamStatus: response.status,
+        upstreamStatus: lastStatus,
         safeForClient: true,
         hasToken: false,
       };

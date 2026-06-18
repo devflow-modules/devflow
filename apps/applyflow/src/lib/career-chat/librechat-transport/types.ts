@@ -30,6 +30,8 @@ export type LibreChatTransportOpenAiEnvelope = {
   model?: string;
   messages?: Array<{ role?: string; content?: string }>;
   stream?: boolean;
+  message?: string;
+  explicitConsent?: boolean;
   career?: {
     action?: string;
     explicitConsent?: boolean;

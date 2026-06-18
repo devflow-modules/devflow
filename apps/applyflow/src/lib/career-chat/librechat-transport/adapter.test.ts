@@ -111,6 +111,25 @@ describe("LibreChatTransportAdapter", () => {
     expect(mapped.ok).toBe(false);
   });
 
+  it("maps a LibreChat career transport envelope with top-level message and consent", () => {
+    const adapter = createLibreChatTransportAdapter(enabledConfig(), {
+      LIBRECHAT_API_KEY: "secret",
+    });
+    const mapped = adapter.mapInboundToCareerChatBody({
+      message: "Focus on React architecture and technical leadership.",
+      explicitConsent: true,
+      career: {
+        action: "prepare_interview",
+        context: validCareerBody.context,
+      },
+    });
+    expect(mapped.ok).toBe(true);
+    if (mapped.ok) {
+      expect(mapped.body.action).toBe("prepare_interview");
+      expect(mapped.format).toBe("librechat_openai");
+    }
+  });
+
   it("maps upstream 401 health checks without serializing secrets", async () => {
     const fetchImpl = vi.fn(() => Promise.resolve(jsonResponse(401)));
     const adapter = createLibreChatTransportAdapter(
