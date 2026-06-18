@@ -36,7 +36,7 @@ without passing the policy of the stage below it, and every stage emits a **clie
 | **timeline** | Deterministic ordering/grouping of applications and reviewed signals | Provider-derived insights (in-memory) |
 | **orchestrator** | Typed request → policy → deterministic agent selection → execution plan | `career-agents` (PR #114) |
 | **tool permission** | Allowlisted tool contracts + permission decision + pure local execution | `career-tools` (PR #115) |
-| **chat adapter** | LibreChat-compatible payload → deterministic intent → orchestration → proposals | `career-llm`/chat adapter (PR #116) |
+| **chat adapter** | LibreChat-compatible payload → deterministic intent → orchestration → proposals | `career-chat` (PR #116) |
 | **controlled LLM** | Structured content **inside a known schema**, no authority over decisions | `career-llm` (PR #117) |
 | **approved automation** | One allowlisted, non-destructive tool run, only after explicit approval | `career-automation` (PR #118) |
 
@@ -72,8 +72,9 @@ automation never runs without a request-scoped human approval.
 | **#117** | Controlled LLM Boundary | Produce structured content within a known schema for an already-selected agent/task | `POST /career-llm/generate` | LLM has no authority over intent/agent/tool/risk/approval/execution; server-owned prompt; validated structured output; mock provider default | [controlled LLM](./agents/CAREER-LLM-CONTROLLED-BOUNDARY.md) · [ADR-008](../adr/ADR-008-CONTROLLED-LLM-EXECUTION-BOUNDARY.md) |
 | **#118** | Approved Automation Boundary | Run exactly one allowlisted, non-destructive tool after explicit, request-scoped approval | `POST /career-automation/execute` | Deny by default; fixed `kind → tool` allowlist; server-derived proposal; revocable approval; no schedule/background/persistence; flag off by default | [automation boundary](./agents/CAREER-AUTOMATION-APPROVAL-BOUNDARY.md) · [ADR-009](../adr/ADR-009-APPROVED-AUTOMATION-EXECUTION-BOUNDARY.md) |
 
-All five endpoints are **feature-flagged**, **server-side**, return **client-safe JSON**, and reject
-`GET` with `405`. Routing governance: [`../architecture/ROUTING_POLICY.md`](../architecture/ROUTING_POLICY.md).
+The chat, LLM, and automation endpoints are **feature-flagged**. All five endpoints are
+**server-side**, return **client-safe JSON**, and reject `GET` with `405`. Routing governance:
+[`../architecture/ROUTING_POLICY.md`](../architecture/ROUTING_POLICY.md).
 
 ---
 
