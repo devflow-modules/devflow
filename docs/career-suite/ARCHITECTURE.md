@@ -78,6 +78,29 @@ The chat, LLM, and automation endpoints are **feature-flagged**. All five endpoi
 
 ---
 
+## Specialist agents (PR #123)
+
+Three deterministic specialist agents extend the existing multi-agent boundary **without** any new
+orchestrator, endpoint, provider, LLM layer, tool boundary, automation, persistence, memory, or
+background job. They reuse `career-core`, `career-agents`, `career-chat`, `career-llm`, and
+`career-tools` and run over the existing `POST /career-agents/orchestrate`,
+`POST /career-chat/librechat`, and `POST /career-llm/generate` endpoints.
+
+| Intent | Agent | Deterministic task | Doc |
+|--------|-------|--------------------|-----|
+| `analyze_resume` | `resume_analyst` | `analyze_resume_structure` | [RESUME-AGENT](./agents/RESUME-AGENT.md) |
+| `analyze_ats_compatibility` | `ats_analyst` | `calculate_ats_compatibility` | [ATS-AGENT](./agents/ATS-AGENT.md) |
+| `plan_career_strategy` | `career_strategy_advisor` | `build_career_strategy_plan` | [CAREER-STRATEGY-AGENT](./agents/CAREER-STRATEGY-AGENT.md) |
+
+Specialist inputs arrive in a strict, sanitized `context.analysisInput` (resume/job snapshots,
+targets, availability, constraints). The ATS score is computed by a documented, bounded (0–100)
+rubric — never by the LLM. Each agent attaches a **non-executable** review proposal
+(`career.prepare_resume_review` / `career.prepare_ats_review` / `career.prepare_strategy_review`
+plus `career.export_review_payload`) that is never invoked via `/career-tools/invoke`. See
+[orchestration](./agents/CAREER-AGENT-ORCHESTRATION.md).
+
+---
+
 ## Key concepts
 
 ### Deterministic-first

@@ -8,6 +8,12 @@ const TASK_INSTRUCTIONS: Record<CareerLlmTask, string> = {
     "Write a reviewable explanation of profile gaps strictly from the provided deterministic analysis. Do not invent gaps or evidence.",
   generate_interview_preparation_content:
     "Write reviewable interview preparation content strictly from the provided deterministic plan. Do not invent companies, roles, or signals.",
+  generate_resume_improvement_explanation:
+    "Explain and organize the provided deterministic resume analysis for human review. Improve clarity only. Never invent metrics, skills, or experience, and never rewrite the resume automatically.",
+  generate_ats_compatibility_explanation:
+    "Explain the provided deterministic ATS analysis for human review. Never recompute or change the compatibility score, and never recommend keyword stuffing.",
+  generate_career_strategy_explanation:
+    "Explain and organize the provided deterministic career strategy plan for human review. Never promise hiring, recommend auto-apply, or invent experience.",
   generate_review_proposal_copy:
     "Write reviewable copy for a human-approval proposal strictly from the provided deterministic analysis. Do not propose execution.",
 };

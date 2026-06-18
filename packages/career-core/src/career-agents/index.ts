@@ -31,8 +31,10 @@ export {
 export type { CareerAgentOrchestrationBody } from "./schemas.js";
 export {
   containsForbiddenCareerAgentKey,
+  containsForbiddenCareerAnalysisInputKey,
   isCareerAgentContextSafe,
   scanCareerAgentPayloadForForbiddenKeys,
+  scanCareerAnalysisInputForForbiddenKeys,
 } from "./security.js";
 export {
   appendCareerAgentTraceStep,
@@ -42,8 +44,11 @@ export {
 export {
   CAREER_AGENT_INTENTS,
   CAREER_AGENT_KINDS,
+  CAREER_AGENT_PROPOSAL_TOOLS,
 } from "./types.js";
 export type {
+  AtsAnalysis,
+  AtsRequirementCoverage,
   CareerAgentContext,
   CareerAgentExecutionPlan,
   CareerAgentFinding,
@@ -51,16 +56,29 @@ export type {
   CareerAgentKind,
   CareerAgentPolicy,
   CareerAgentPolicyBlockCode,
+  CareerAgentProposalToolName,
   CareerAgentRecommendation,
   CareerAgentRequest,
   CareerAgentResult,
+  CareerAgentReviewProposal,
   CareerAgentStructuredItem,
   CareerAgentTrace,
   CareerAgentTraceStep,
   CareerAgentWarning,
   CareerAgentWarningCode,
+  CareerAnalysisInput,
+  CareerJobSnapshot,
+  CareerResumeSnapshot,
+  CareerStrategyPlan,
+  CareerStrategyPriorityRole,
+  CareerStrategySkillPriority,
   InterviewPreparationProposal,
+  ResumeAnalysis,
+  ResumeBulletRecommendation,
 } from "./types.js";
 export { runApplicationAnalyst } from "./agents/application-analyst.js";
+export { runAtsAnalyst } from "./agents/ats-analyst.js";
+export { runCareerStrategyAdvisor } from "./agents/career-strategy-advisor.js";
 export { runInterviewCoach } from "./agents/interview-coach.js";
 export { runProfileGapAnalyst } from "./agents/profile-gap-analyst.js";
+export { runResumeAnalyst } from "./agents/resume-analyst.js";

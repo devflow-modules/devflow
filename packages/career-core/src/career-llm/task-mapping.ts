@@ -12,12 +12,18 @@ export const CAREER_LLM_TASK_BY_AGENT: Record<
   application_analyst: "generate_application_fit_explanation",
   profile_gap_analyst: "generate_profile_gap_explanation",
   interview_coach: "generate_interview_preparation_content",
+  resume_analyst: "generate_resume_improvement_explanation",
+  ats_analyst: "generate_ats_compatibility_explanation",
+  career_strategy_advisor: "generate_career_strategy_explanation",
 };
 
 export const CAREER_LLM_TASK_BY_INTENT: Record<CareerAgentIntent, CareerLlmTask> = {
   analyze_application_fit: "generate_application_fit_explanation",
   analyze_profile_gaps: "generate_profile_gap_explanation",
   prepare_interview: "generate_interview_preparation_content",
+  analyze_resume: "generate_resume_improvement_explanation",
+  analyze_ats_compatibility: "generate_ats_compatibility_explanation",
+  plan_career_strategy: "generate_career_strategy_explanation",
 };
 
 export type ResolveCareerLlmTaskResult =

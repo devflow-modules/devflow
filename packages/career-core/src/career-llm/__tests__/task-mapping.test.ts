@@ -17,6 +17,29 @@ describe("resolveCareerLlmTask", () => {
     expect(result).toEqual({ ok: true, task: "generate_interview_preparation_content" });
   });
 
+  it("maps resume_analyst to resume improvement explanation", () => {
+    const result = resolveCareerLlmTask("resume_analyst", "analyze_resume");
+    expect(result).toEqual({ ok: true, task: "generate_resume_improvement_explanation" });
+  });
+
+  it("maps ats_analyst to ats compatibility explanation", () => {
+    const result = resolveCareerLlmTask("ats_analyst", "analyze_ats_compatibility");
+    expect(result).toEqual({ ok: true, task: "generate_ats_compatibility_explanation" });
+  });
+
+  it("maps career_strategy_advisor to career strategy explanation", () => {
+    const result = resolveCareerLlmTask("career_strategy_advisor", "plan_career_strategy");
+    expect(result).toEqual({ ok: true, task: "generate_career_strategy_explanation" });
+  });
+
+  it("blocks specialist agent-task mismatch", () => {
+    const result = resolveCareerLlmTask("resume_analyst", "analyze_ats_compatibility");
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.code).toBe("agent_task_mismatch");
+    }
+  });
+
   it("blocks the orchestrator agent", () => {
     const result = resolveCareerLlmTask("career_orchestrator", "analyze_application_fit");
     expect(result).toEqual({
