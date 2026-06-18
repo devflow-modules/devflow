@@ -59,10 +59,30 @@ testes, smoke local sem custo e como fallback controlado. Reporta `externalCall:
 ### OpenAI provider (opcional, atrás de flag)
 
 `OpenAiCareerLlmProvider` (`apps/applyflow/src/lib/career-llm/openai-provider.ts`) é
-server-side only: timeout explícito, sem streaming, sem function/tool calling,
-`response_format: json_object`, sem conversation persistence, sem retry infinito. Configuração
-server-owned (`model`, `temperature`, `max output`, `timeout`); nenhum parâmetro do cliente. A
-API key nunca é serializada na resposta ou trace. Reporta `externalCall: true`.
+server-side only e usa a **Responses API** (`POST /v1/responses`) com **Structured Outputs**
+estritos (`text.format.type = "json_schema"`, `strict: true`, schema espelhando exatamente
+`CareerLlmStructuredOutput`). Configura explicitamente `store: false` e `stream: false`. Sem
+streaming, sem function/tool calling, sem `tool_choice`, sem background mode, sem conversation
+persistence. Timeout explícito (`AbortController`) e retry **limitado** (`CAREER_LLM_MAX_RETRIES`,
+default 1). Configuração server-owned (`model`, `temperature`, `max output`, `timeout`, retries);
+nenhum parâmetro do cliente, modelo nunca hardcoded. A API key nunca é serializada na resposta,
+trace ou observabilidade. Reporta `externalCall: true`.
+
+Mapeamento de resposta → código client-safe (sem stack trace nem payload bruto):
+
+| Situação | Código |
+|----------|--------|
+| Sem API key ou modelo | `provider_not_configured` |
+| 401 / 403 | `provider_auth_failed` |
+| 429 | `provider_rate_limited` |
+| Timeout / abort | `provider_timeout` |
+| `refusal` no output | `provider_refused` |
+| 5xx / falha de rede após retry | `provider_request_failed` |
+| JSON inválido / vazio / não-schema | `invalid_structured_output` |
+| `incomplete` por `max_output_tokens` | `output_limit_exceeded` |
+
+**Retry** (máx. `CAREER_LLM_MAX_RETRIES`, teto 3): apenas `429`, `502`, `503`, `504` e timeout
+transitório. Nunca repete `400`, `401`, `403`, refusal nem schema inválido.
 
 ## Structured output
 
@@ -108,6 +128,21 @@ Códigos de bloqueio: `llm_disabled`, `explicit_consent_required`, `unsupported_
 `unsupported_llm_task`, `agent_task_mismatch`, `unsafe_llm_context`, `invalid_llm_input`,
 `prompt_injection_pattern_detected`, `provider_not_configured`, `provider_request_failed`,
 `invalid_structured_output`, `output_limit_exceeded`.
+
+## Health / status
+
+`GET /career-llm/health` (`apps/applyflow/src/app/career-llm/health/route.ts`) retorna apenas
+status client-safe:
+
+```json
+{ "enabled": false, "provider": "mock", "configured": true, "modelAlias": "career-mock-1", "reachable": null }
+```
+
+Nunca retorna secrets, model id bruto nem URL interna. **Não** chama a API do provider em todo
+request: `reachable` fica `null` por padrão. Apenas com probe explícito e controlado
+(`GET /career-llm/health?probe=true`) é feita uma verificação leve, sem custo de tokens
+(model lookup com timeout), retornando `reachable: true|false`. O mock é sempre `reachable: true`
+(sem rede). `POST` → 405.
 
 ## Endpoint
 
@@ -174,8 +209,9 @@ de prompt (tokens, secrets, `Authorization`, IDs de provider, `subject`/`body`/`
 `location`, `rawProviderPayload`, `systemPrompt`/`developerPrompt`/`hiddenPrompt`/`promptOverride`,
 `toolRegistry`/`allowedCapabilities`/`executionPlan`, `functionCall`/`toolCall`, `command`/`url`/
 `headers`/`filesystemPath`, `temperature`/`model`/`prompt`). Observabilidade client-safe expõe
-apenas `provider`, `modelAlias`, `durationMs`, `outputItemCount`, `validationStatus` e usage
-agregado (`inputUnits`/`outputUnits`).
+apenas `provider`, `modelAlias`, `durationMs`, `externalProviderCalled`, `validationStatus`,
+`retryCount`, `outputItemCount` e usage agregado (`inputUnits`/`outputUnits`). Nunca expõe API
+key, raw prompt, raw response, provider request ID, authorization header ou chain of thought.
 
 ## Non-goals
 

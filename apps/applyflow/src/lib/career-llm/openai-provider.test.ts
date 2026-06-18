@@ -19,7 +19,20 @@ function sampleRequest(): CareerLlmProviderRequest {
   };
 }
 
-function jsonResponse(body: unknown, ok = true, status = 200): Response {
+function responsesPayload(output: unknown) {
+  return {
+    status: "completed",
+    output: [
+      {
+        type: "message",
+        content: [{ type: "output_text", text: JSON.stringify(output) }],
+      },
+    ],
+    usage: { input_tokens: 10, output_tokens: 5 },
+  };
+}
+
+function httpResponse(body: unknown, ok = true, status = 200): Response {
   return {
     ok,
     status,
@@ -36,27 +49,25 @@ const validOutput = {
   warnings: [],
 };
 
-describe("OpenAiCareerLlmProvider", () => {
-  it("returns provider_not_configured without an api key", async () => {
-    const provider = createOpenAiCareerLlmProvider({ apiKey: "", model: "gpt-4o-mini", modelAlias: "career-openai-1" });
-    const response = await provider.generate(sampleRequest());
-    expect(response.ok).toBe(false);
-    expect(response.externalCall).toBe(false);
-    expect(response.error?.code).toBe("provider_not_configured");
+describe("OpenAiCareerLlmProvider (Responses API)", () => {
+  it("returns provider_not_configured without an api key or model", async () => {
+    const noKey = createOpenAiCareerLlmProvider({ apiKey: "", model: "gpt-x", modelAlias: "career-openai-1" });
+    const noModel = createOpenAiCareerLlmProvider({ apiKey: "sk-test", model: "", modelAlias: "career-openai-1" });
+
+    const a = await noKey.generate(sampleRequest());
+    const b = await noModel.generate(sampleRequest());
+
+    expect(a.ok).toBe(false);
+    expect(a.externalCall).toBe(false);
+    expect(a.error?.code).toBe("provider_not_configured");
+    expect(b.error?.code).toBe("provider_not_configured");
   });
 
-  it("performs a server-side request without streaming or tools", async () => {
-    const fetchImpl = vi.fn(() =>
-      Promise.resolve(
-        jsonResponse({
-          choices: [{ message: { content: JSON.stringify(validOutput) } }],
-          usage: { prompt_tokens: 10, completion_tokens: 5 },
-        }),
-      ),
-    );
+  it("calls the Responses API with structured outputs, store:false and stream:false, no tools", async () => {
+    const fetchImpl = vi.fn(() => Promise.resolve(httpResponse(responsesPayload(validOutput))));
     const provider = createOpenAiCareerLlmProvider({
       apiKey: "sk-test",
-      model: "gpt-4o-mini",
+      model: "gpt-x",
       modelAlias: "career-openai-1",
       fetchImpl: fetchImpl as unknown as typeof fetch,
     });
@@ -65,35 +76,48 @@ describe("OpenAiCareerLlmProvider", () => {
     expect(response.ok).toBe(true);
     expect(response.externalCall).toBe(true);
     expect(response.usage).toEqual({ inputUnits: 10, outputUnits: 5 });
+    expect(response.retryCount).toBe(0);
 
-    const [, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
-    const requestBody = JSON.parse(String(init.body));
-    expect(requestBody.stream).toBe(false);
-    expect(requestBody).not.toHaveProperty("tools");
-    expect(requestBody).not.toHaveProperty("functions");
-    expect(requestBody.response_format).toEqual({ type: "json_object" });
+    const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("https://api.openai.com/v1/responses");
+    const body = JSON.parse(String(init.body));
+    expect(body.model).toBe("gpt-x");
+    expect(body.store).toBe(false);
+    expect(body.stream).toBe(false);
+    expect(body.text.format.type).toBe("json_schema");
+    expect(body.text.format.strict).toBe(true);
+    expect(body.text.format.schema.additionalProperties).toBe(false);
+    expect(body).not.toHaveProperty("tools");
+    expect(body).not.toHaveProperty("tool_choice");
+    expect(body).not.toHaveProperty("functions");
+    expect(body).not.toHaveProperty("response_format");
   });
 
-  it("maps a provider http error to provider_request_failed", async () => {
-    const fetchImpl = vi.fn(() => Promise.resolve(jsonResponse({}, false, 500)));
+  it("maps a refusal to provider_refused", async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(
+        httpResponse({
+          status: "completed",
+          output: [{ type: "message", content: [{ type: "refusal", refusal: "I cannot help with that." }] }],
+        }),
+      ),
+    );
     const provider = createOpenAiCareerLlmProvider({
       apiKey: "sk-test",
-      model: "gpt-4o-mini",
+      model: "gpt-x",
       modelAlias: "career-openai-1",
       fetchImpl: fetchImpl as unknown as typeof fetch,
     });
     const response = await provider.generate(sampleRequest());
     expect(response.ok).toBe(false);
-    expect(response.error?.code).toBe("provider_request_failed");
+    expect(response.error?.code).toBe("provider_refused");
   });
 
-  it("maps invalid JSON to invalid_structured_output", async () => {
-    const fetchImpl = vi.fn(() =>
-      Promise.resolve(jsonResponse({ choices: [{ message: { content: "not json" } }] })),
-    );
+  it("maps an empty response to invalid_structured_output", async () => {
+    const fetchImpl = vi.fn(() => Promise.resolve(httpResponse({ status: "completed", output: [] })));
     const provider = createOpenAiCareerLlmProvider({
       apiKey: "sk-test",
-      model: "gpt-4o-mini",
+      model: "gpt-x",
       modelAlias: "career-openai-1",
       fetchImpl: fetchImpl as unknown as typeof fetch,
     });
@@ -102,28 +126,128 @@ describe("OpenAiCareerLlmProvider", () => {
     expect(response.error?.code).toBe("invalid_structured_output");
   });
 
-  it("maps a network failure or timeout to provider_request_failed", async () => {
-    const fetchImpl = vi.fn(() => Promise.reject(new Error("network")));
+  it("maps an incomplete (max tokens) response to output_limit_exceeded", async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(
+        httpResponse({ status: "incomplete", incomplete_details: { reason: "max_output_tokens" }, output: [] }),
+      ),
+    );
     const provider = createOpenAiCareerLlmProvider({
       apiKey: "sk-test",
-      model: "gpt-4o-mini",
+      model: "gpt-x",
       modelAlias: "career-openai-1",
       fetchImpl: fetchImpl as unknown as typeof fetch,
     });
     const response = await provider.generate(sampleRequest());
     expect(response.ok).toBe(false);
-    expect(response.error?.code).toBe("provider_request_failed");
+    expect(response.error?.code).toBe("output_limit_exceeded");
   });
 
-  it("never serializes the api key into the response", async () => {
+  it("maps invalid JSON content to invalid_structured_output", async () => {
     const fetchImpl = vi.fn(() =>
       Promise.resolve(
-        jsonResponse({ choices: [{ message: { content: JSON.stringify(validOutput) } }] }),
+        httpResponse({
+          status: "completed",
+          output: [{ type: "message", content: [{ type: "output_text", text: "not json" }] }],
+        }),
       ),
     );
     const provider = createOpenAiCareerLlmProvider({
+      apiKey: "sk-test",
+      model: "gpt-x",
+      modelAlias: "career-openai-1",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    const response = await provider.generate(sampleRequest());
+    expect(response.ok).toBe(false);
+    expect(response.error?.code).toBe("invalid_structured_output");
+  });
+
+  it("maps 401 to provider_auth_failed without retrying", async () => {
+    const fetchImpl = vi.fn(() => Promise.resolve(httpResponse({}, false, 401)));
+    const provider = createOpenAiCareerLlmProvider({
+      apiKey: "sk-test",
+      model: "gpt-x",
+      modelAlias: "career-openai-1",
+      maxRetries: 1,
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    const response = await provider.generate(sampleRequest());
+    expect(response.ok).toBe(false);
+    expect(response.error?.code).toBe("provider_auth_failed");
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries once on 429 then succeeds and reports retryCount", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(httpResponse({}, false, 429))
+      .mockResolvedValueOnce(httpResponse(responsesPayload(validOutput)));
+    const provider = createOpenAiCareerLlmProvider({
+      apiKey: "sk-test",
+      model: "gpt-x",
+      modelAlias: "career-openai-1",
+      maxRetries: 1,
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    const response = await provider.generate(sampleRequest());
+    expect(response.ok).toBe(true);
+    expect(response.retryCount).toBe(1);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  it("stops after one retry on persistent 503 and maps to rate/request failure", async () => {
+    const fetchImpl = vi.fn(() => Promise.resolve(httpResponse({}, false, 503)));
+    const provider = createOpenAiCareerLlmProvider({
+      apiKey: "sk-test",
+      model: "gpt-x",
+      modelAlias: "career-openai-1",
+      maxRetries: 1,
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    const response = await provider.generate(sampleRequest());
+    expect(response.ok).toBe(false);
+    expect(response.error?.code).toBe("provider_request_failed");
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not retry when maxRetries is 0", async () => {
+    const fetchImpl = vi.fn(() => Promise.resolve(httpResponse({}, false, 500)));
+    const provider = createOpenAiCareerLlmProvider({
+      apiKey: "sk-test",
+      model: "gpt-x",
+      modelAlias: "career-openai-1",
+      maxRetries: 0,
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    const response = await provider.generate(sampleRequest());
+    expect(response.ok).toBe(false);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it("maps an aborted/timed-out request to provider_timeout", async () => {
+    const fetchImpl = vi.fn(() => {
+      const error = new Error("aborted");
+      error.name = "AbortError";
+      return Promise.reject(error);
+    });
+    const provider = createOpenAiCareerLlmProvider({
+      apiKey: "sk-test",
+      model: "gpt-x",
+      modelAlias: "career-openai-1",
+      maxRetries: 0,
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    const response = await provider.generate(sampleRequest());
+    expect(response.ok).toBe(false);
+    expect(response.error?.code).toBe("provider_timeout");
+  });
+
+  it("never serializes the api key into the response", async () => {
+    const fetchImpl = vi.fn(() => Promise.resolve(httpResponse(responsesPayload(validOutput))));
+    const provider = createOpenAiCareerLlmProvider({
       apiKey: "sk-super-secret",
-      model: "gpt-4o-mini",
+      model: "gpt-x",
       modelAlias: "career-openai-1",
       fetchImpl: fetchImpl as unknown as typeof fetch,
     });

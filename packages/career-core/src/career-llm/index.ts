@@ -22,6 +22,8 @@ export {
   scanCareerLlmPayloadForForbiddenKeys,
 } from "./security.js";
 export {
+  CAREER_LLM_STRUCTURED_OUTPUT_JSON_SCHEMA,
+  CAREER_LLM_STRUCTURED_OUTPUT_SCHEMA_NAME,
   careerLlmStructuredOutputSchema,
   describeCareerLlmOutputSchema,
   validateCareerLlmStructuredOutput,
@@ -51,6 +53,7 @@ export type {
   CareerLlmProvider,
   CareerLlmProviderAdapter,
   CareerLlmProviderConfig,
+  CareerLlmProviderErrorCode,
   CareerLlmProviderRequest,
   CareerLlmProviderResponse,
   CareerLlmRequest,

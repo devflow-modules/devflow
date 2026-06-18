@@ -64,7 +64,24 @@ export type CareerLlmPolicyBlockCode =
   | "invalid_structured_output"
   | "output_limit_exceeded";
 
-export type CareerLlmWarningCode = CareerLlmPolicyBlockCode | "unsupported_llm_task";
+/**
+ * Client-safe provider error codes. These never carry stack traces, raw payloads,
+ * provider request IDs, or secrets.
+ */
+export type CareerLlmProviderErrorCode =
+  | "provider_not_configured"
+  | "provider_auth_failed"
+  | "provider_rate_limited"
+  | "provider_timeout"
+  | "provider_refused"
+  | "provider_request_failed"
+  | "invalid_structured_output"
+  | "output_limit_exceeded";
+
+export type CareerLlmWarningCode =
+  | CareerLlmPolicyBlockCode
+  | CareerLlmProviderErrorCode
+  | "unsupported_llm_task";
 
 export type CareerLlmWarning = {
   code: CareerLlmWarningCode | string;
@@ -122,6 +139,8 @@ export type CareerLlmObservability = {
   durationMs: number;
   outputItemCount: number;
   validationStatus: "valid" | "invalid" | "skipped";
+  externalProviderCalled: boolean;
+  retryCount: number;
   usage?: CareerLlmUsage;
 };
 
@@ -161,7 +180,8 @@ export type CareerLlmProviderResponse = {
   modelAlias?: string;
   usage?: CareerLlmUsage;
   durationMs?: number;
-  error?: { code: CareerLlmPolicyBlockCode; message: string };
+  retryCount?: number;
+  error?: { code: CareerLlmProviderErrorCode; message: string };
 };
 
 export interface CareerLlmProviderAdapter {
