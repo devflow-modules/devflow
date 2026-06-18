@@ -19,6 +19,7 @@ export const CAREER_LLM_BLOCKED_MESSAGE =
 export type CareerLlmRequestError = "invalid_json" | "invalid_request";
 
 type CareerLlmEnv = {
+  [key: string]: string | undefined;
   CAREER_LLM_ENABLED?: string;
   CAREER_LLM_PROVIDER?: string;
   CAREER_LLM_MODEL?: string;

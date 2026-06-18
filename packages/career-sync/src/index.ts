@@ -368,6 +368,7 @@ export type {
 export type {
   ProviderDerivedSandboxCompositionResult,
   ProviderDerivedSignal,
+  ProviderDerivedSignalConfidenceLevel,
   ProviderDerivedSignalKind,
   ProviderDerivedSignalSource,
   ProviderDerivedSignalSummary,

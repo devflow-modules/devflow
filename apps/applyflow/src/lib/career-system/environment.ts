@@ -23,6 +23,7 @@ export const CAREER_RUNTIME_ENVIRONMENTS = [
 export type CareerRuntimeEnvironment = (typeof CAREER_RUNTIME_ENVIRONMENTS)[number];
 
 export type CareerRuntimeEnv = {
+  [key: string]: string | undefined;
   NODE_ENV?: string;
   VERCEL_ENV?: string;
   CAREER_RUNTIME_ENVIRONMENT?: string;

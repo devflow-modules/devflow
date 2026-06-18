@@ -354,7 +354,7 @@ export class LibreChatTransportAdapter {
 
 export function createLibreChatTransportAdapter(
   config: LibreChatTransportConfig,
-  env: { LIBRECHAT_API_KEY?: string } = process.env,
+  env: { [key: string]: string | undefined; LIBRECHAT_API_KEY?: string } = process.env,
   fetchImpl?: typeof fetch,
 ): LibreChatTransportAdapter {
   return new LibreChatTransportAdapter({

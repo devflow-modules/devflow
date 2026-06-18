@@ -18,6 +18,7 @@ export const CAREER_AUTOMATION_BLOCKED_MESSAGE =
 export type CareerAutomationRequestError = "invalid_json" | "invalid_request";
 
 type CareerAutomationEnv = {
+  [key: string]: string | undefined;
   CAREER_AUTOMATION_ENABLED?: string;
   CAREER_AUTOMATION_PROVIDER?: string;
   OPENCLAW_API_KEY?: string;

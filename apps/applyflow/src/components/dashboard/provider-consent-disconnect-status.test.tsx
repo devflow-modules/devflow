@@ -39,13 +39,14 @@ vi.mock("./provider-connection-disconnect-panel", () => ({
     onDisconnected: (provider: "gmail" | "calendar") => void;
     provider: "gmail" | "calendar";
   }) => (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       data-testid={`provider-disconnect-trigger-${provider}`}
       onClick={() => onDisconnected(provider)}
     >
       Trigger disconnect
-    </button>
+    </div>
   ),
 }));
 

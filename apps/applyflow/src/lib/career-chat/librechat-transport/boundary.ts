@@ -15,6 +15,7 @@ import type {
 } from "./types";
 
 type LibreChatTransportEnv = {
+  [key: string]: string | undefined;
   LIBRECHAT_ADAPTER_ENABLED?: string;
   LIBRECHAT_TRANSPORT_ENABLED?: string;
   LIBRECHAT_BASE_URL?: string;

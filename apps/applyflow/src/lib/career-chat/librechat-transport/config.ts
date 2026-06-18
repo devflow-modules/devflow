@@ -3,6 +3,7 @@ import type { LibreChatTransportConfig } from "./types";
 export const LIBRECHAT_TRANSPORT_DEFAULT_TIMEOUT_MS = 10_000;
 
 type LibreChatTransportEnv = {
+  [key: string]: string | undefined;
   LIBRECHAT_TRANSPORT_ENABLED?: string;
   LIBRECHAT_BASE_URL?: string;
   LIBRECHAT_API_KEY?: string;
