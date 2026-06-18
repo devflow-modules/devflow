@@ -44,6 +44,33 @@ Adicionar o módulo `career-llm` em `@devflow/career-core` e o boundary ApplyFlo
    policy → envelope → provider → validação → `CareerLlmResult`.
 8. **Endpoint** — `POST /career-llm/generate`; `GET` → 405; flags `CAREER_LLM_ENABLED` (default
    off) e `CAREER_LLM_PROVIDER` (default `mock`).
+
+## Production rollout (controlled OpenAI provider)
+
+O `OpenAiCareerLlmProvider` foi colocado em condição real de produção sem alterar a autoridade
+de orquestração/policy nem o human-in-the-loop:
+
+- **Responses API** — `POST /v1/responses` com **Structured Outputs** estritos
+  (`text.format.type = "json_schema"`, `strict: true`, schema espelhando exatamente
+  `CareerLlmStructuredOutput`); `store: false`, `stream: false`; sem `tools`/`tool_choice`/
+  function calling; sem background mode; sem conversation persistence.
+- **Configuração validada** — `CAREER_LLM_TIMEOUT_MS` (default 15000) e `CAREER_LLM_MAX_RETRIES`
+  (default 1) server-owned e bounded; `openai` só é `configured` com **API key e modelo**
+  presentes; modelo server-owned (sem hardcode, nunca do cliente); **sem fallback silencioso**
+  de `openai` para `mock` (não configurado → bloqueado por policy).
+- **Erros client-safe** — `provider_not_configured`, `provider_auth_failed`,
+  `provider_rate_limited`, `provider_timeout`, `provider_refused`, `provider_request_failed`,
+  `invalid_structured_output`, `output_limit_exceeded`; sem stack trace nem payload bruto.
+- **Retry limitado** — apenas `429`/`502`/`503`/`504`/timeout transitório; nunca `400`/`401`/
+  `403`/refusal/schema inválido.
+- **Observabilidade** — `provider`, `modelAlias`, `durationMs`, `externalProviderCalled`,
+  `validationStatus`, `retryCount`, `inputUnits`/`outputUnits`; nunca API key, raw prompt/response,
+  provider request ID, authorization header ou chain of thought.
+- **Health/status** — `GET /career-llm/health` client-safe (`enabled`, `provider`, `configured`,
+  `modelAlias`, `reachable`); não chama a API em todo request — `reachable` só com probe explícito
+  e controlado.
+- **CI** — testes com rede mockada; API real nunca usada em CI. `mock` permanece o provider
+  padrão; OpenAI é opt-in.
 9. **UI** — painel `Career AI Draft` com consent, structured output, trace, review badge,
    disclaimer; sem ações proibidas.
 

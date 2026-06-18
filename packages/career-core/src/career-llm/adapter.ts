@@ -375,6 +375,8 @@ export async function runCareerLlmGeneration(input: {
       durationMs: providerResponse.durationMs ?? 0,
       outputItemCount: validation.value.findings.length + validation.value.recommendations.length,
       validationStatus: "valid",
+      externalProviderCalled,
+      retryCount: providerResponse.retryCount ?? 0,
       usage: providerResponse.usage,
     },
   };

@@ -65,6 +65,55 @@ export function validateCareerLlmStructuredOutput(
   return { ok: true, value: parsed.data };
 }
 
+/**
+ * Strict JSON Schema for provider structured outputs (`type: "json_schema"`, `strict: true`).
+ * Mirrors `CareerLlmStructuredOutput` exactly: every property is required and
+ * `additionalProperties` is false, as required by strict mode. Length and item-count
+ * limits are enforced server-side by {@link validateCareerLlmStructuredOutput}; strict
+ * mode does not reliably support `maxLength`/`maxItems`, so they are intentionally omitted.
+ */
+export const CAREER_LLM_STRUCTURED_OUTPUT_JSON_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["title", "summary", "findings", "recommendations", "evidenceReferences", "warnings"],
+  properties: {
+    title: { type: "string" },
+    summary: { type: "string" },
+    findings: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["category", "text", "priority", "evidenceIds"],
+        properties: {
+          category: { type: "string" },
+          text: { type: "string" },
+          priority: { type: "string", enum: ["high", "medium", "low"] },
+          evidenceIds: { type: "array", items: { type: "string" } },
+        },
+      },
+    },
+    recommendations: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["category", "text", "priority", "evidenceIds"],
+        properties: {
+          category: { type: "string" },
+          text: { type: "string" },
+          priority: { type: "string", enum: ["high", "medium", "low"] },
+          evidenceIds: { type: "array", items: { type: "string" } },
+        },
+      },
+    },
+    evidenceReferences: { type: "array", items: { type: "string" } },
+    warnings: { type: "array", items: { type: "string" } },
+  },
+} as const;
+
+export const CAREER_LLM_STRUCTURED_OUTPUT_SCHEMA_NAME = "career_llm_structured_output";
+
 export function describeCareerLlmOutputSchema(): string {
   return [
     "Return JSON only with this exact shape:",
