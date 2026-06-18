@@ -19,6 +19,8 @@
 
 **Modules:** ApplyFlow · Interview Lab · `@devflow/career-core` · `@devflow/career-sync` · ApplyFlow Extension
 
+**Agent layer (PRs #114–#118):** deterministic, policy-gated stack — `metadata → signals → timeline → orchestrator → tool permission → chat adapter → controlled LLM → approved automation`. See [`docs/career-suite/ARCHITECTURE.md`](docs/career-suite/ARCHITECTURE.md) and the demo [`docs/career-suite/DEMO.md`](docs/career-suite/DEMO.md). Principles: deterministic-first · server-authoritative · human-in-the-loop · no auto-apply · no silent persistence · temporary approvals · LLM without authority · automation without permanent autonomy.
+
 **Trust:** read-only provider-derived lifecycle complete · export/handoff explicit · **Apply deferred** (ADR-003) · **import deferred** (ADR-002)
 
 ```bash
