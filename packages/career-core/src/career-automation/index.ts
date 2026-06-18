@@ -34,6 +34,7 @@ export {
 } from "./trace.js";
 export type {
   CareerAutomationAdapter,
+  CareerAutomationAdapterErrorCode,
   CareerAutomationAdapterRequest,
   CareerAutomationAdapterResponse,
   CareerAutomationApproval,

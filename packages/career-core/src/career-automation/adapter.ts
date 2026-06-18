@@ -316,6 +316,8 @@ export async function executeCareerAutomation(input: {
       automationKind: body.kind,
       toolName: proposal.requestedTool,
       validationStatus: "valid",
+      externalProviderCalled: externalCall,
+      retryCount: response.retryCount ?? 0,
     },
   };
 }

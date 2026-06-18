@@ -282,6 +282,7 @@ export {
 } from "./career-automation/index.js";
 export type {
   CareerAutomationAdapter,
+  CareerAutomationAdapterErrorCode,
   CareerAutomationAdapterRequest,
   CareerAutomationAdapterResponse,
   CareerAutomationApproval,

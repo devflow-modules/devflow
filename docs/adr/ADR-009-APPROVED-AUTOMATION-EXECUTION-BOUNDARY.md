@@ -76,9 +76,57 @@ proíbe `fetch`/fs/storage/stream/timers/SDK externo, mas **permite** o reuso se
 
 ### Deferred
 
-- Integração externa real OpenClaw (interface estável entregue; sem rede neste PR)
+- ~~Integração externa real OpenClaw~~ — entregue no rollout abaixo (single execution, sem rede no core)
 - Qualquer forma de scheduling/recorrência/background processing (`scheduling deferred`)
 - Persistência de proposal/approval/resultado
+
+## Production rollout (controlled OpenClaw single-execution adapter)
+
+PR #122 implementa o provider externo `openclaw` previsto acima, mantendo o core puro e todas as
+camadas server-authoritative.
+
+1. **App-layer adapter** — `createOpenClawCareerAutomationAdapter` em
+   `apps/applyflow/src/lib/career-automation/openclaw-provider.ts` faz transporte HTTP real
+   (`POST <baseUrl>/v1/executions`) com `fetch` server-side e `AbortController`. O core
+   (`career-automation`) continua sem SDK, sem rede, sem timers, sem fs (boundary test mantido).
+2. **Flow inalterado** — `automation request → server reconstructs proposal → policy validation →
+   explicit approval validation → fixed allowlisted tool → OpenClaw transport → structured result
+   validation → human review`. OpenClaw nunca escolhe kind, tool, capability, arguments, risk,
+   approval, retry, schedule ou next action.
+3. **Configuração** — `CAREER_AUTOMATION_ENABLED=false`, `CAREER_AUTOMATION_PROVIDER=mock`,
+   `OPENCLAW_ENABLED=false`, `OPENCLAW_BASE_URL=`, `OPENCLAW_API_KEY=`, `OPENCLAW_TIMEOUT_MS=10000`.
+   Default off; mock continua padrão; secrets server-side; sem fallback silencioso `openclaw → mock`
+   (provider permanece openclaw e bloqueia com código OpenClaw client-safe).
+4. **Envelope** — somente `requestId`, `proposalId`, `automationKind`, `approvedTool`,
+   `approvedCapability`, `sanitizedInput`, `executionMode: single_execution`, `reviewRequired: true`.
+   Tokens, execution plan completo, tool registry, raw provider data, callbacks/webhooks, filesystem,
+   shell, URLs arbitrárias, conversation history e memória persistente nunca são enviados.
+5. **Mappings fixos** — `prepare_application_review → career.derive_fit_summary`,
+   `prepare_profile_gap_review → career.derive_gap_analysis`,
+   `prepare_interview_plan → career.derive_interview_plan`,
+   `prepare_review_export → career.export_review_payload`. Uma request → uma tool → uma execução.
+6. **Auth/timeout/retry** — `Authorization: Bearer <OPENCLAW_API_KEY>` server-side (browser nunca
+   envia API key). Timeout explícito; `retryCount` máximo 0 (sem retry; nova tentativa exige nova
+   approval).
+7. **Validação da resposta** — aceita apenas structured JSON (`status`, `proposalId`,
+   `automationKind`, `toolName`, `result`, `warnings`, `durationMs`); valida correspondência de
+   `proposalId`/`automationKind`/`toolName`, exige resultado client-safe e rejeita `nextAction`,
+   `toolCalls`, `commands`, `filesystem`, `schedule`, `background`, `callback`, `webhook`, `memory`,
+   `session`.
+8. **Erros client-safe** — `openclaw_disabled`, `openclaw_not_configured`, `openclaw_auth_failed`,
+   `openclaw_timeout`, `openclaw_unreachable`, `openclaw_request_failed`, `openclaw_response_invalid`,
+   `openclaw_proposal_mismatch`, `openclaw_tool_mismatch`, `openclaw_unsafe_response`. Sem raw
+   response, stack trace ou secret.
+9. **Observability** — `provider`, `durationMs`, `validationStatus`, `externalProviderCalled`,
+   `retryCount`, `automationKind`, `toolName`. Nunca API key, base URL, raw request/response,
+   provider request ID ou internal session ID.
+10. **Health** — `GET /career-automation/health` retorna `{ enabled, provider, configured,
+    reachable, timeoutMs }` (client-safe; `reachable` apenas em probe explícito `?probe=true`);
+    `POST` → 405.
+11. **Endpoint principal** — `POST /career-automation/execute` mantido; sem novo endpoint de
+    execução. Flags `executedExternally: true` significa apenas que o adapter OpenClaw foi chamado;
+    `persisted/scheduled/backgroundExecution` permanecem `false` e `reviewRequired/safeForClient`
+    permanecem `true`.
 
 ## References
 

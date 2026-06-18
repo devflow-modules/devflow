@@ -9,15 +9,17 @@ const DASHBOARD_ROOT = join(process.cwd(), "src/components/dashboard");
  * The automation boundary may reuse the pure career tool engine server-side
  * (invokeCareerTool) but must never schedule, queue, stream, persist, or open
  * arbitrary network. The OpenClaw adapter is server-side only and is named here on
- * purpose, so the "OpenClaw" string itself is not banned.
+ * purpose, so the "OpenClaw" string itself is not banned. The OpenClaw adapter
+ * legitimately uses server-side fetch to reach the controlled transport, so it is
+ * excluded from the fetch ban; it is still scanned for storage/stream/scheduler deps.
  */
-const FORBIDDEN_PATTERNS: Array<{ label: string; pattern: RegExp }> = [
+const FORBIDDEN_PATTERNS: Array<{ label: string; pattern: RegExp; appliesTo?: (file: string) => boolean }> = [
   { label: "Anthropic", pattern: /Anthropic/ },
   { label: "OpenAI", pattern: /OpenAI/ },
   { label: "LibreChat", pattern: /LibreChat/ },
   { label: "MCP SDK", pattern: /@modelcontextprotocol/ },
   { label: "Nango", pattern: /Nango/ },
-  { label: "fetch", pattern: /\bfetch\s*\(/ },
+  { label: "fetch", pattern: /\bfetch\s*\(/, appliesTo: (file) => !file.endsWith("openclaw-provider.ts") },
   { label: "WebSocket", pattern: /WebSocket/ },
   { label: "SSE", pattern: /EventSource/ },
   { label: "ReadableStream", pattern: /ReadableStream/ },
@@ -42,6 +44,9 @@ describe("applyflow career-automation boundary", () => {
     it(`${filePath.replace(`${process.cwd()}/`, "")} avoids forbidden runtime dependencies`, () => {
       const source = readFileSync(filePath, "utf8");
       for (const forbidden of FORBIDDEN_PATTERNS) {
+        if (forbidden.appliesTo && !forbidden.appliesTo(filePath)) {
+          continue;
+        }
         expect(source, forbidden.label).not.toMatch(forbidden.pattern);
       }
     });

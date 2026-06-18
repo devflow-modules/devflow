@@ -75,7 +75,8 @@ mutation, rede externa, filesystem, shell, background job ou scheduler.
 
 Result (flags sempre): `reviewRequired: true`, `safeForClient: true`, `hasToken: false`,
 `persisted: false`, `backgroundExecution: false`, `scheduled: false`. `executedExternally` é
-`false` para mock/local e só seria `true` para um adapter externo real.
+`false` para mock/local e `true` quando o adapter externo OpenClaw é chamado — significando apenas
+execução remota de uma única tool já aprovada, nunca seleção de tool pelo provider.
 
 Trace permitido: `automation_request_received`, `proposal_resolved`, `execution_plan_resolved`,
 `automation_policy_evaluated`, `approval_validated`, `tool_permission_validated`,
@@ -119,6 +120,12 @@ career-agent scanner: `command`, `url`, `headers`, `filesystemPath`, `cron`, `sc
 `developerPrompt`, `hiddenPrompt`, `toolRegistry`, `allowedCapabilities`, `executionPlan` enviado
 pelo cliente.
 
+Para o adapter OpenClaw, um scanner adicional app-layer (`scanOpenClawPayloadForForbiddenKeys`)
+rejeita, no envelope de saída e na resposta de entrada: `command`, `shell`, `script`, `filesystem`,
+`path`, `url`, `headers`, `callbackUrl`, `webhookUrl`, `schedule`, `cron`, `background`,
+`retryPolicy`, `nextAction`, `toolCalls`, `functionCall`, `memory`, `session`, `authorization`,
+`apiKey`, `accessToken`, `refreshToken`.
+
 ## UI
 
 Painel `Approved Automation Review` (após `Career AI Draft`): automation kind, proposal title,
@@ -137,13 +144,66 @@ Sem cron, queue, worker, scheduler, delayed execution, recurrence ou background 
 (`scheduling deferred`). Sem persistência de proposal/approval/resultado/job. Sem autonomia
 irrestrita e sem execução silenciosa.
 
-## OpenClaw future adapter
+## OpenClaw single-execution adapter
 
-OpenClaw é tratado como `CareerAutomationAdapter` (server-side only, feature-flagged). Neste PR a
-interface é estável e o mock determinístico é entregue; a integração externa real fica deferred. O
-adapter real nunca recebe tool registry completo, capabilities completas, raw CareerBundle, raw
-provider metadata ou approval persistida, e nunca abre sockets, agenda jobs, faz retry infinito,
-streaming ou callbacks externos.
+OpenClaw é um `CareerAutomationAdapter` real (app layer, server-side only, opt-in). O core
+permanece sem SDK e sem rede; o transporte HTTP vive em `apps/applyflow/src/lib/career-automation/
+openclaw-provider.ts`.
+
+Flags (default off; mock continua padrão; sem fallback silencioso `openclaw → mock`):
+
+```
+CAREER_AUTOMATION_ENABLED=false
+CAREER_AUTOMATION_PROVIDER=mock
+OPENCLAW_ENABLED=false
+OPENCLAW_BASE_URL=
+OPENCLAW_API_KEY=
+OPENCLAW_TIMEOUT_MS=10000
+```
+
+Fluxo: `automation request → server reconstructs proposal → policy validation → explicit approval
+validation → fixed allowlisted tool → OpenClaw transport → structured result validation → human
+review`. OpenClaw **nunca** escolhe automation kind, tool, capability, arguments, risk, approval,
+retry policy, schedule ou next action.
+
+Autenticação: `Authorization: Bearer <OPENCLAW_API_KEY>` server-side. A API key enviada pelo
+browser nunca é aceita. URL e API key nunca chegam ao cliente.
+
+Envelope enviado (`POST <baseUrl>/v1/executions`) contém **somente**: `requestId`, `proposalId`,
+`automationKind`, `approvedTool`, `approvedCapability`, `sanitizedInput`, `executionMode:
+single_execution`, `reviewRequired: true`. Nunca: tool registry, full execution plan, provider
+tokens, raw Gmail/Calendar data, approval internals, filesystem paths, shell commands, arbitrary
+URLs, callback URLs, webhooks, conversation history ou persistent memory.
+
+Timeout explícito (`OPENCLAW_TIMEOUT_MS`, default 10000). Retry: `retryCount` máximo **0** — sem
+retry automático; nova tentativa exige nova approval. Uma request → no máximo uma tool → no máximo
+uma execução → nenhum passo adicional. Proibido: loops, sub-agents, child jobs, recurrence,
+background, queue, cron, scheduler, callbacks, webhooks, browser control, shell, filesystem,
+provider mutation, email/WhatsApp send, application submit.
+
+Validação da resposta (apenas structured JSON: `status`, `proposalId`, `automationKind`,
+`toolName`, `result`, `warnings`, `durationMs`): `proposalId` corresponde, `automationKind`
+corresponde, `toolName` corresponde, resultado client-safe, nenhum campo extra executável, nenhum
+segundo passo. Rejeita `nextAction`, `toolCalls`, `commands`, `filesystem`, `schedule`,
+`background`, `callback`, `webhook`, `memory`, `session`.
+
+Erros client-safe (sem raw response, stack trace ou secret): `openclaw_disabled`,
+`openclaw_not_configured`, `openclaw_auth_failed`, `openclaw_timeout`, `openclaw_unreachable`,
+`openclaw_request_failed`, `openclaw_response_invalid`, `openclaw_proposal_mismatch`,
+`openclaw_tool_mismatch`, `openclaw_unsafe_response`.
+
+## Health / status
+
+`GET /career-automation/health` retorna apenas `{ enabled, provider, configured, reachable,
+timeoutMs }`. Sem secrets, base URL ou IDs internos. `reachable` é `null` por padrão; só com
+`?probe=true` é feito um probe leve e controlado (mock é sempre reachable; OpenClaw faz um GET
+`/health` server-side com timeout). `POST` → 405.
+
+## Observability
+
+Expõe somente: `provider`, `durationMs`, `validationStatus`, `externalProviderCalled`,
+`retryCount`, `automationKind`, `toolName`. Nunca expõe API key, base URL, raw request, raw
+response, provider request ID ou internal session ID.
 
 ## References
 

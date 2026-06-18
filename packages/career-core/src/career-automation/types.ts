@@ -65,6 +65,23 @@ export type CareerAutomationPolicyBlockCode =
   | "automation_execution_failed"
   | "automation_result_invalid";
 
+/**
+ * Client-safe error codes returned by an external automation adapter. These never
+ * carry raw responses, stack traces, secrets, base URLs, or provider request IDs.
+ */
+export type CareerAutomationAdapterErrorCode =
+  | CareerAutomationPolicyBlockCode
+  | "openclaw_disabled"
+  | "openclaw_not_configured"
+  | "openclaw_auth_failed"
+  | "openclaw_timeout"
+  | "openclaw_unreachable"
+  | "openclaw_request_failed"
+  | "openclaw_response_invalid"
+  | "openclaw_proposal_mismatch"
+  | "openclaw_tool_mismatch"
+  | "openclaw_unsafe_response";
+
 export type CareerAutomationPolicyDecision = {
   allowed: boolean;
   code?: CareerAutomationPolicyBlockCode;
@@ -83,7 +100,7 @@ export type CareerAutomationExecutionPlan = {
 };
 
 export type CareerAutomationWarning = {
-  code: CareerAutomationPolicyBlockCode | "automation_already_running" | "invalid_automation_request";
+  code: CareerAutomationAdapterErrorCode | "automation_already_running" | "invalid_automation_request";
   message: string;
 };
 
@@ -121,6 +138,8 @@ export type CareerAutomationObservability = {
   automationKind: CareerAutomationKind | "unsupported_automation_kind";
   toolName: CareerToolName | "unknown";
   validationStatus: "valid" | "invalid" | "skipped";
+  externalProviderCalled: boolean;
+  retryCount: number;
 };
 
 export type CareerAutomationExecutionResult = {
@@ -167,7 +186,8 @@ export type CareerAutomationAdapterResponse = {
   data: Record<string, unknown>;
   toolResult?: CareerToolExecutionResult;
   durationMs?: number;
-  error?: { code: CareerAutomationPolicyBlockCode; message: string };
+  retryCount?: number;
+  error?: { code: CareerAutomationAdapterErrorCode; message: string };
 };
 
 export type CareerAutomationAdapter = {
