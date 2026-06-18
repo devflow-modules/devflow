@@ -57,6 +57,26 @@ Boundaries and packages: [case §6](./CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE
 
 ---
 
+## Agent layer (PRs #114–#118)
+
+Deterministic, policy-gated agent/automation stack — consolidated technical presentation:
+
+```txt
+metadata → signals → timeline → orchestrator → tool permission
+→ chat adapter → controlled LLM → approved automation
+```
+
+| Doc | Content |
+|-----|---------|
+| **[ARCHITECTURE.md](./ARCHITECTURE.md)** | End-to-end flow, PR #114–#118 map (responsibilities + guarantees), key concepts |
+| **[DEMO.md](./DEMO.md)** | Client-safe visual walkthrough (Career Chat · AI Draft · Approved Automation) |
+| Per-boundary docs | [`agents/`](./agents/) · ADRs [005](../adr/ADR-005-CAREER-AGENT-ORCHESTRATION-BOUNDARY.md)–[009](../adr/ADR-009-APPROVED-AUTOMATION-EXECUTION-BOUNDARY.md) |
+
+**Principles:** deterministic-first · server-authoritative · human-in-the-loop · no auto-apply ·
+no silent persistence · temporary approvals · LLM without authority · automation without permanent autonomy.
+
+---
+
 ## Trust model
 
 - Provider raw does not reach the UI
@@ -111,6 +131,7 @@ Tests (1,045 across Career Suite packages): [case §12](./CAREER-SUITE-PRODUCT-A
 | Screenshot checklist | [assets/README.md](./assets/README.md) |
 | Verified screenshots | [01 dashboard](./assets/01-applyflow-dashboard.png) · [05 composition](./assets/05-export-composition-source.png) · [06 handoff](./assets/06-interview-lab-handoff.png) |
 | Agent architecture | [AGENT-ARCHITECTURE.md](./AGENT-ARCHITECTURE.md) |
+| Agent layer (PRs #114–#118) | [ARCHITECTURE.md](./ARCHITECTURE.md) · [DEMO.md](./DEMO.md) · [agents/](./agents/) |
 
 ---
 
