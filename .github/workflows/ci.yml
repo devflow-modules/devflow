@@ -45,3 +45,68 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Secret scan — fail if a real-looking secret appears committed (ignores .env.example).
+      - name: Secret scan
+        run: pnpm check:secrets
+
+      # Design-system + native button governance.
+      - name: Buttons
+        run: pnpm check:buttons
+
+      - name: Design system
+        run: pnpm -w run lint:design-system
+
+      # Migration / Prisma schema validation (no real DB; generate validates the schema).
+      - name: Validate Prisma schema
+        run: pnpm db:generate
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CAREER_RUNTIME_ENVIRONMENT: test
+      CAREER_AGENTS_ENABLED: "true"
+      LIBRECHAT_ADAPTER_ENABLED: "false"
+      LIBRECHAT_TRANSPORT_ENABLED: "false"
+      CAREER_LLM_ENABLED: "false"
+      CAREER_LLM_PROVIDER: mock
+      CAREER_AUTOMATION_ENABLED: "false"
+      CAREER_AUTOMATION_PROVIDER: mock
+      OPENCLAW_ENABLED: "false"
+      CAREER_PILOT_MODE: "false"
+      NEXT_PUBLIC_CAREER_PILOT_MODE: "false"
+      NEXT_PUBLIC_APP_VERSION: ci
+      NEXT_PUBLIC_COMMIT_SHA: ci
+      NEXT_PUBLIC_BUILD_TIMESTAMP: "1970-01-01T00:00:00.000Z"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm -w run build

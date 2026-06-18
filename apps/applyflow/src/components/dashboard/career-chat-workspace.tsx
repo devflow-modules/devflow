@@ -43,6 +43,13 @@ import {
   CAREER_CHAT_WORKSPACE_JOB_REQUIREMENTS_LABEL,
   CAREER_CHAT_WORKSPACE_TARGET_ROLES_LABEL,
   CAREER_CHAT_WORKSPACE_AVAILABILITY_LABEL,
+  CAREER_CHAT_WORKSPACE_PILOT_BADGE,
+  CAREER_CHAT_WORKSPACE_PILOT_NOTICE,
+  CAREER_CHAT_WORKSPACE_FEEDBACK_PROMPT,
+  CAREER_CHAT_WORKSPACE_FEEDBACK_HELPFUL_LABEL,
+  CAREER_CHAT_WORKSPACE_FEEDBACK_PARTIAL_LABEL,
+  CAREER_CHAT_WORKSPACE_FEEDBACK_NOT_HELPFUL_LABEL,
+  CAREER_CHAT_WORKSPACE_FEEDBACK_THANKS,
 } from "./career-chat-workspace-content";
 
 const SPECIALIST_INTENTS: CareerChatIntent[] = [
@@ -140,9 +147,13 @@ export function buildSpecialistAnalysisInput(input: {
   };
 }
 import {
+  careerFeedbackCategoryForIntent,
   runCareerChatLibrechat,
+  submitCareerFeedback,
   type CareerChatWorkspaceUiState,
+  type CareerFeedbackRating,
 } from "./career-chat-workspace-client";
+import { isCareerPilotModeClient } from "@/lib/career-system/feature-flags";
 
 export type CareerChatWorkspaceProps = {
   careerBundle: CareerBundle | null;
@@ -214,6 +225,9 @@ export function CareerChatWorkspaceView({
   isSending,
   specialistFields = EMPTY_SPECIALIST_FIELDS,
   onSpecialistFieldChange,
+  pilotMode = false,
+  feedbackSubmitted = false,
+  onSubmitFeedback,
 }: CareerChatWorkspaceProps & {
   action: CareerChatIntent;
   message: string;
@@ -234,6 +248,9 @@ export function CareerChatWorkspaceView({
   isSending: boolean;
   specialistFields?: CareerSpecialistFields;
   onSpecialistFieldChange?: (field: keyof CareerSpecialistFields, value: string) => void;
+  pilotMode?: boolean;
+  feedbackSubmitted?: boolean;
+  onSubmitFeedback?: (rating: CareerFeedbackRating) => void;
 }) {
   const messageLength = message.length;
   const showSpecialist = isSpecialistIntent(action);
@@ -271,7 +288,22 @@ export function CareerChatWorkspaceView({
               Review required
             </ApplyFlowBadge>
           ) : null}
+          {pilotMode ? (
+            <ApplyFlowBadge tone="brand" data-testid="career-chat-pilot-badge">
+              {CAREER_CHAT_WORKSPACE_PILOT_BADGE}
+            </ApplyFlowBadge>
+          ) : null}
         </div>
+
+        {pilotMode ? (
+          <p
+            role="note"
+            className="rounded-[var(--af-radius-sm)] border border-emerald-500/25 bg-emerald-950/20 px-2 py-1.5 text-emerald-200/90"
+            data-testid="career-chat-pilot-notice"
+          >
+            {CAREER_CHAT_WORKSPACE_PILOT_NOTICE}
+          </p>
+        ) : null}
 
         <p>{CAREER_CHAT_WORKSPACE_DESCRIPTION}</p>
         <p data-testid="career-chat-workspace-disclaimer">{CAREER_CHAT_WORKSPACE_DISCLAIMER}</p>
@@ -563,6 +595,49 @@ export function CareerChatWorkspaceView({
             </ol>
           </div>
         ) : null}
+
+        {pilotMode && response?.status === "completed" ? (
+          <div className="space-y-1.5" data-testid="career-chat-feedback">
+            <p className="font-medium text-[color:var(--af-text)]">
+              {CAREER_CHAT_WORKSPACE_FEEDBACK_PROMPT}
+            </p>
+            {feedbackSubmitted ? (
+              <p role="status" data-testid="career-chat-feedback-thanks">
+                {CAREER_CHAT_WORKSPACE_FEEDBACK_THANKS}
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                <ApplyFlowButton
+                  type="button"
+                  variant="outlineBrand"
+                  size="sm"
+                  onClick={() => onSubmitFeedback?.("helpful")}
+                  data-testid="career-chat-feedback-helpful"
+                >
+                  {CAREER_CHAT_WORKSPACE_FEEDBACK_HELPFUL_LABEL}
+                </ApplyFlowButton>
+                <ApplyFlowButton
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onSubmitFeedback?.("partially_helpful")}
+                  data-testid="career-chat-feedback-partial"
+                >
+                  {CAREER_CHAT_WORKSPACE_FEEDBACK_PARTIAL_LABEL}
+                </ApplyFlowButton>
+                <ApplyFlowButton
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onSubmitFeedback?.("not_helpful")}
+                  data-testid="career-chat-feedback-not-helpful"
+                >
+                  {CAREER_CHAT_WORKSPACE_FEEDBACK_NOT_HELPFUL_LABEL}
+                </ApplyFlowButton>
+              </div>
+            )}
+          </div>
+        ) : null}
       </div>
     </ApplyFlowCard>
   );
@@ -584,6 +659,8 @@ export function CareerChatWorkspace({
   const [specialistFields, setSpecialistFields] = useState<CareerSpecialistFields>(
     EMPTY_SPECIALIST_FIELDS,
   );
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const pilotMode = isCareerPilotModeClient();
 
   const uiState = useMemo(
     () =>
@@ -606,6 +683,7 @@ export function CareerChatWorkspace({
     setErrorMessage(null);
     setSelectedProposal(null);
     setApprovedOnce(false);
+    setFeedbackSubmitted(false);
 
     try {
       const analysisInput = buildSpecialistAnalysisInput({
@@ -687,9 +765,19 @@ export function CareerChatWorkspace({
         onSpecialistFieldChange={(field, value) =>
           setSpecialistFields((current) => ({ ...current, [field]: value }))
         }
+        pilotMode={pilotMode}
+        feedbackSubmitted={feedbackSubmitted}
+        onSubmitFeedback={(rating) => {
+          setFeedbackSubmitted(true);
+          void submitCareerFeedback({
+            rating,
+            category: careerFeedbackCategoryForIntent(action),
+            consentToStore: false,
+          });
+        }}
       />
 
-      {approvedOnce && selectedProposal && orchestration && response?.agentResult?.status === "completed" ? (
+      {approvedOnce && selectedProposal && orchestration && careerBundle && response?.agentResult?.status === "completed" ? (
         <CareerToolPermissionReview
           agentResult={response.agentResult}
           orchestration={orchestration}
