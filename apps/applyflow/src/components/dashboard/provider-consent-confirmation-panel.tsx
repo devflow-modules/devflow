@@ -5,7 +5,10 @@ import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import type { ApplyFlowNangoConnectLauncherResponse } from "@/lib/provider-runtime/nango-connect-session-launcher";
 import type { ProviderKind, ProviderRuntimeConnectionStatus } from "@devflow/career-sync";
-import { createProviderRuntimeConnectionStatusFromConnectEvent } from "@devflow/career-sync";
+import {
+  createProviderRuntimeConnectionStatus,
+  createProviderRuntimeConnectionStatusFromConnectEvent,
+} from "@devflow/career-sync";
 import type { ProviderConnectionVerificationResult } from "@devflow/career-sync";
 import type { CareerBundle } from "@devflow/career-core";
 import type { CareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
@@ -188,9 +191,10 @@ export function ProviderConsentConfirmationPanel({
     }));
     if (provider === selectedProvider) {
       setConnectionStatus(
-        createProviderRuntimeConnectionStatusFromConnectEvent({
+        createProviderRuntimeConnectionStatus({
           provider,
-          event: "not_connected",
+          runtime: "nango",
+          state: "not_connected",
           updatedAt: new Date().toISOString(),
         }),
       );
