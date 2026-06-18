@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  createBlockedCareerChatResponse,
-  handleCareerChatLibrechat,
-  isLibreChatAdapterEnabled,
-  parseCareerChatLibrechatRequest,
-  resolveCareerChatLibrechatHttpStatus,
-} from "@/lib/career-chat/career-chat-librechat-boundary";
+import { createBlockedCareerChatResponse } from "@/lib/career-chat/career-chat-librechat-boundary";
+import { handleLibreChatTransportRequest } from "@/lib/career-chat/librechat-transport/boundary";
 
 /**
  * Server-side LibreChat adapter boundary.
- * Normalizes chat input, routes to career agent orchestrator, and returns tool proposals only.
+ * Accepts UI and LibreChat transport payloads, delivers to the existing career-chat
+ * boundary, and returns client-safe proposals only.
  */
 
 export async function POST(request: NextRequest) {
@@ -21,21 +17,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(createBlockedCareerChatResponse("invalid_json"), { status: 400 });
   }
 
-  const parsed = parseCareerChatLibrechatRequest(body);
-  if (!parsed.ok) {
-    return NextResponse.json(createBlockedCareerChatResponse(parsed.error), {
-      status: parsed.error === "invalid_json" ? 400 : 403,
-    });
-  }
-
   try {
-    const result = handleCareerChatLibrechat(
-      parsed.request,
-      new Date().toISOString(),
-      isLibreChatAdapterEnabled(),
-    );
-    return NextResponse.json(result, {
-      status: resolveCareerChatLibrechatHttpStatus(result),
+    const result = await handleLibreChatTransportRequest({
+      body,
+      headers: request.headers,
+      requestedAt: new Date().toISOString(),
+    });
+
+    return NextResponse.json(result.payload, {
+      status: result.httpStatus,
     });
   } catch {
     return NextResponse.json(createBlockedCareerChatResponse("adapter_failed"), { status: 500 });

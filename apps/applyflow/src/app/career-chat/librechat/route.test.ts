@@ -41,6 +41,7 @@ function postLibrechat(body: unknown) {
 describe("POST /career-chat/librechat", () => {
   beforeEach(() => {
     vi.stubEnv("LIBRECHAT_ADAPTER_ENABLED", "true");
+    vi.stubEnv("LIBRECHAT_TRANSPORT_ENABLED", "false");
   });
 
   afterEach(() => {
@@ -114,6 +115,21 @@ describe("POST /career-chat/librechat", () => {
       ...createValidBody(),
       message: "x".repeat(4001),
     });
+
+    expect(response.status).toBe(403);
+  });
+
+  it("blocks client Authorization when transport is disabled", async () => {
+    const response = await POST(
+      new Request("http://localhost/career-chat/librechat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer secret",
+        },
+        body: JSON.stringify(createValidBody()),
+      }) as never,
+    );
 
     expect(response.status).toBe(403);
   });
