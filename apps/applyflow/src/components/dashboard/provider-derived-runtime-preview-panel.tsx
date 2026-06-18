@@ -33,6 +33,7 @@ import { ProviderDerivedRuntimeReviewPanel } from "./provider-derived-runtime-re
 import { ProviderDerivedCareerInsightsPanel } from "./provider-derived-career-insights-panel";
 import { ProviderInsightsTimeline } from "./provider-insights-timeline";
 import { CareerAgentWorkspace } from "./career-agent-workspace";
+import { CareerChatWorkspace } from "./career-chat-workspace";
 
 export type { ProviderDerivedRuntimePreviewUiState } from "./provider-derived-runtime-preview-client";
 
@@ -335,6 +336,12 @@ export function ProviderDerivedRuntimePreviewPanel({
         />
 
         <CareerAgentWorkspace
+          careerBundle={careerBundle}
+          selectedSignalIds={reviewState.selectedSignalIds}
+          availableSignals={previewResult?.signals ?? []}
+        />
+
+        <CareerChatWorkspace
           careerBundle={careerBundle}
           selectedSignalIds={reviewState.selectedSignalIds}
           availableSignals={previewResult?.signals ?? []}
