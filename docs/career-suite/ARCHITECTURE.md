@@ -167,6 +167,28 @@ Every stage upholds the same client-safe contract:
 
 ---
 
+## Production pilot readiness (this PR)
+
+Operational layer for a controlled production pilot — no new agents, providers, automations,
+integrations, background jobs, or silent persistence. See
+[`PRODUCTION-READINESS.md`](./PRODUCTION-READINESS.md), [`DEPLOYMENT.md`](./DEPLOYMENT.md),
+[`OBSERVABILITY.md`](./OBSERVABILITY.md), [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md), and
+[`SECURITY-CHECKLIST.md`](./SECURITY-CHECKLIST.md).
+
+- **Environment matrix** — `resolveCareerRuntimeEnvironment()` (`development|test|preview|production`);
+  `test` never reaches the network; `production` fails safe on missing required config (no partial start).
+- **Config validation** — `resolveCareerComponentStatuses()` returns client-safe component status
+  (`enabled`/`configured`/`required`/`status`), never secrets.
+- **Operational endpoints** — `GET /career-system/health` (aggregated; `?probe=true` bounded),
+  `GET /career-system/livez`, `GET /career-system/readyz`; all `POST` → `405`; no token/tool/persistence.
+- **Observability** — `CareerOperationalEvent` (allowlisted names), sanitizing structured logger,
+  `career_<uuid>` correlation id, in-memory `CareerMetricsAdapter` (no Prometheus/Datadog).
+- **Pilot mode & feedback** — `NEXT_PUBLIC_CAREER_PILOT_MODE` badge/notice + `POST /career-feedback`
+  (consent-gated; default `discard` repository; `GET` → `405`).
+- **Diagnostic page** — `/dashboard/system-status` (dev-only or gated by `CAREER_SYSTEM_STATUS_ENABLED`).
+
+---
+
 ## Non-goals
 
 - No autonomous agents, no auto-apply, no auto-submit, no provider mutation.

@@ -41,6 +41,15 @@ export const CAREER_CHAT_WORKSPACE_ACTION_LABELS: Record<CareerChatIntent, strin
   plan_career_strategy: "Planejar estratégia de carreira",
 };
 
+export const CAREER_CHAT_WORKSPACE_PILOT_BADGE = "Pilot";
+export const CAREER_CHAT_WORKSPACE_PILOT_NOTICE =
+  "Pilot mode: every suggestion requires human review, no application is ever submitted, suggestions may need correction, and all actions are reversible.";
+export const CAREER_CHAT_WORKSPACE_FEEDBACK_PROMPT = "Was this pilot result helpful?";
+export const CAREER_CHAT_WORKSPACE_FEEDBACK_HELPFUL_LABEL = "Helpful";
+export const CAREER_CHAT_WORKSPACE_FEEDBACK_PARTIAL_LABEL = "Partially";
+export const CAREER_CHAT_WORKSPACE_FEEDBACK_NOT_HELPFUL_LABEL = "Not helpful";
+export const CAREER_CHAT_WORKSPACE_FEEDBACK_THANKS = "Thanks — feedback recorded for this session.";
+
 export const CAREER_CHAT_WORKSPACE_SPECIALIST_LABEL = "Specialist inputs (review only)";
 export const CAREER_CHAT_WORKSPACE_RESUME_BULLETS_LABEL = "Resume bullets (one per line)";
 export const CAREER_CHAT_WORKSPACE_RESUME_SKILLS_LABEL = "Resume skills (comma-separated)";

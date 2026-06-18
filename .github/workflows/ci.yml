@@ -45,3 +45,34 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Secret scan — fail if a real-looking secret appears committed (ignores .env.example).
+      - name: Secret scan
+        run: pnpm check:secrets
+
+      # Design-system + native button governance.
+      - name: Buttons
+        run: pnpm check:buttons
+
+      - name: Design system
+        run: pnpm -w run lint:design-system
+
+      # Migration / Prisma schema validation (no real DB; generate validates the schema).
+      - name: Validate Prisma schema
+        run: pnpm db:generate

@@ -174,6 +174,11 @@ function defaultToolForIntent(intent: CareerAgentOrchestrationBody["intent"]): C
       return "career.derive_gap_analysis";
     case "prepare_interview":
       return "career.derive_interview_plan";
+    case "analyze_resume":
+    case "analyze_ats_compatibility":
+    case "plan_career_strategy":
+    default:
+      return "career.create_review_proposal";
   }
 }
 

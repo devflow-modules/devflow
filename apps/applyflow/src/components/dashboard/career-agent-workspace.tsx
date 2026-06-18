@@ -137,7 +137,11 @@ export function CareerAgentWorkspaceView({
             onChange={(event) => onIntentChange(event.target.value as CareerAgentIntent)}
             data-testid="career-agent-intent-select"
           >
-            {(Object.keys(CAREER_AGENT_WORKSPACE_INTENT_LABELS) as CareerAgentIntent[]).map((value) => (
+            {(
+              Object.keys(CAREER_AGENT_WORKSPACE_INTENT_LABELS) as Array<
+                keyof typeof CAREER_AGENT_WORKSPACE_INTENT_LABELS
+              >
+            ).map((value) => (
               <option key={value} value={value}>
                 {CAREER_AGENT_WORKSPACE_INTENT_LABELS[value]}
               </option>

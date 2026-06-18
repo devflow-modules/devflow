@@ -89,6 +89,16 @@ provider, LLM layer, tool boundary, automation, or persistence):
 The ATS compatibility score is deterministic and bounded (0–100); the LLM only explains results.
 Each agent emits a non-executable review proposal for human review.
 
+### Production pilot readiness
+
+Operational layer for a controlled pilot (no new agents/providers/automations/persistence):
+environment matrix, config validation, aggregated health + `livez`/`readyz`, client-safe
+observability + in-memory metrics, pilot mode + consent-gated feedback, and an internal
+diagnostic page. See [`PRODUCTION-READINESS.md`](./PRODUCTION-READINESS.md),
+[`DEPLOYMENT.md`](./DEPLOYMENT.md), [`OBSERVABILITY.md`](./OBSERVABILITY.md),
+[`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md), and
+[`SECURITY-CHECKLIST.md`](./SECURITY-CHECKLIST.md).
+
 ---
 
 ## Trust model

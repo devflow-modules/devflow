@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "check:buttons": "node scripts/block-native-button.mjs",
+    "check:secrets": "node scripts/ci/check-secret-scan.mjs",
     "check:career-provider-runtime": "node scripts/career-provider-runtime-preflight.mjs",
     "lint:design-system": "node scripts/verify-design-system.mjs",
     "report:feedback-wp": "node scripts/report-wp-feedback-colors.mjs",

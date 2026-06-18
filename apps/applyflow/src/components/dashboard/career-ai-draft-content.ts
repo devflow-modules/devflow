@@ -36,4 +36,7 @@ export const CAREER_AI_DRAFT_ACTION_LABELS: Record<CareerChatIntent, string> = {
   analyze_application_fit: "Analyze application fit",
   analyze_profile_gaps: "Analyze profile gaps",
   prepare_interview: "Prepare interview",
+  analyze_resume: "Analisar currículo",
+  analyze_ats_compatibility: "Verificar compatibilidade ATS",
+  plan_career_strategy: "Planejar estratégia de carreira",
 };
