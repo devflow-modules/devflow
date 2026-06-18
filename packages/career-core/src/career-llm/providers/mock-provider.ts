@@ -13,6 +13,9 @@ const TASK_TITLES: Record<CareerLlmTask, string> = {
   generate_application_fit_explanation: "Application fit explanation (draft)",
   generate_profile_gap_explanation: "Profile gap explanation (draft)",
   generate_interview_preparation_content: "Interview preparation content (draft)",
+  generate_resume_improvement_explanation: "Resume improvement explanation (draft)",
+  generate_ats_compatibility_explanation: "ATS compatibility explanation (draft)",
+  generate_career_strategy_explanation: "Career strategy explanation (draft)",
   generate_review_proposal_copy: "Review proposal copy (draft)",
 };
 

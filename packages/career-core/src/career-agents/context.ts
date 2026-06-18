@@ -26,6 +26,7 @@ export function buildCareerAgentContext(request: CareerAgentRequest): CareerAgen
       selectedSignalIds: request.context.selectedSignalIds,
       availableSignals: request.context.availableSignals,
     }),
+    analysisInput: request.context.analysisInput ?? {},
     sanitized: true,
     rawProviderData: false,
     hasToken: false,

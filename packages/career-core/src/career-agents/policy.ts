@@ -1,5 +1,9 @@
 import { careerBundleSchema } from "../schemas/careerBundle.js";
-import { isCareerAgentContextSafe, scanCareerAgentPayloadForForbiddenKeys } from "./security.js";
+import {
+  isCareerAgentContextSafe,
+  scanCareerAgentPayloadForForbiddenKeys,
+  scanCareerAnalysisInputForForbiddenKeys,
+} from "./security.js";
 import type { CareerAgentContext, CareerAgentPolicyBlockCode, CareerAgentRequest } from "./types.js";
 
 export type CareerAgentPolicyEvaluation = {
@@ -62,6 +66,17 @@ export function evaluateCareerAgentPolicy(
       allowed: false,
       code: "unsafe_context",
       message: "Request context contains forbidden provider or secret fields.",
+    };
+  }
+
+  if (
+    request.context.analysisInput &&
+    scanCareerAnalysisInputForForbiddenKeys(request.context.analysisInput).length > 0
+  ) {
+    return {
+      allowed: false,
+      code: "unsafe_context",
+      message: "Analysis input contains forbidden control or secret fields.",
     };
   }
 

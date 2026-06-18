@@ -42,6 +42,7 @@ export function buildCareerAgentRequest(
       careerBundle: body.context.careerBundle,
       selectedSignalIds: stableSort(body.context.selectedSignalIds),
       availableSignals: body.context.availableSignals as ProviderDerivedSignal[] | undefined,
+      analysisInput: body.context.analysisInput,
     },
   };
 }

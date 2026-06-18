@@ -36,4 +36,14 @@ export const CAREER_CHAT_WORKSPACE_ACTION_LABELS: Record<CareerChatIntent, strin
   analyze_application_fit: "Analyze application fit",
   analyze_profile_gaps: "Analyze profile gaps",
   prepare_interview: "Prepare interview",
+  analyze_resume: "Analisar currículo",
+  analyze_ats_compatibility: "Verificar compatibilidade ATS",
+  plan_career_strategy: "Planejar estratégia de carreira",
 };
+
+export const CAREER_CHAT_WORKSPACE_SPECIALIST_LABEL = "Specialist inputs (review only)";
+export const CAREER_CHAT_WORKSPACE_RESUME_BULLETS_LABEL = "Resume bullets (one per line)";
+export const CAREER_CHAT_WORKSPACE_RESUME_SKILLS_LABEL = "Resume skills (comma-separated)";
+export const CAREER_CHAT_WORKSPACE_JOB_REQUIREMENTS_LABEL = "Job requirements (one per line)";
+export const CAREER_CHAT_WORKSPACE_TARGET_ROLES_LABEL = "Target roles (comma-separated)";
+export const CAREER_CHAT_WORKSPACE_AVAILABILITY_LABEL = "Availability (e.g. 10h/week)";

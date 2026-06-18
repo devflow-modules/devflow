@@ -19,6 +19,12 @@ function requiredInputsForIntent(intent: CareerAgentIntent): string[] {
       return ["careerBundle.applications"];
     case "prepare_interview":
       return ["careerBundle.applications"];
+    case "analyze_resume":
+      return ["analysisInput.resumeSnapshot"];
+    case "analyze_ats_compatibility":
+      return ["analysisInput.resumeSnapshot", "analysisInput.jobSnapshot"];
+    case "plan_career_strategy":
+      return ["careerBundle"];
     default:
       return ["careerBundle"];
   }
@@ -29,6 +35,21 @@ function resolveMissingInputs(context: CareerAgentContext, requiredInputs: strin
 
   if (requiredInputs.includes("careerBundle.applications") && context.careerBundle.applications.length === 0) {
     missing.push("careerBundle.applications");
+  }
+
+  const resume = context.analysisInput.resumeSnapshot;
+  if (
+    requiredInputs.includes("analysisInput.resumeSnapshot") &&
+    (!resume || resume.skills.length + resume.experiences.length === 0)
+  ) {
+    missing.push("analysisInput.resumeSnapshot");
+  }
+
+  if (
+    requiredInputs.includes("analysisInput.jobSnapshot") &&
+    !context.analysisInput.jobSnapshot
+  ) {
+    missing.push("analysisInput.jobSnapshot");
   }
 
   return missing;

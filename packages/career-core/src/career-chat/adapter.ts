@@ -44,6 +44,7 @@ export function buildCareerAgentOrchestrationFromChat(
       careerBundle: normalized.context.careerBundle,
       selectedSignalIds: normalized.context.selectedSignalIds,
       availableSignals: normalized.context.availableSignals,
+      analysisInput: normalized.context.analysisInput,
     },
   };
 }

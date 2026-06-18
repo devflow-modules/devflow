@@ -28,6 +28,7 @@ export type CareerChatRequest = {
     careerBundle: import("../schemas/careerBundle.js").CareerBundle;
     selectedSignalIds: string[];
     availableSignals?: import("@devflow/career-sync").ProviderDerivedSignal[];
+    analysisInput?: import("../career-agents/types.js").CareerAnalysisInput;
   };
 };
 

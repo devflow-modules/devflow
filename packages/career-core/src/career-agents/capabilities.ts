@@ -4,6 +4,9 @@ export const CAREER_AGENT_ALLOWED_CAPABILITIES = [
   "derive_fit_summary",
   "derive_gap_analysis",
   "derive_interview_plan",
+  "derive_resume_analysis",
+  "derive_ats_analysis",
+  "derive_career_strategy",
   "create_review_proposal",
 ] as const;
 
@@ -40,6 +43,22 @@ export const CAREER_AGENT_CAPABILITIES_BY_AGENT = {
     "read_career_bundle",
     "read_selected_signals",
     "derive_interview_plan",
+    "create_review_proposal",
+  ] as const,
+  resume_analyst: [
+    "read_career_bundle",
+    "derive_resume_analysis",
+    "create_review_proposal",
+  ] as const,
+  ats_analyst: [
+    "read_career_bundle",
+    "derive_ats_analysis",
+    "create_review_proposal",
+  ] as const,
+  career_strategy_advisor: [
+    "read_career_bundle",
+    "read_selected_signals",
+    "derive_career_strategy",
     "create_review_proposal",
   ] as const,
 } satisfies Record<string, readonly CareerAgentAllowedCapability[]>;

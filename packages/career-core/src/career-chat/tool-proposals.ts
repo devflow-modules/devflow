@@ -7,6 +7,9 @@ const TOOLS_BY_INTENT: Record<CareerAgentIntent, CareerToolName[]> = {
   analyze_application_fit: ["career.derive_fit_summary", "career.create_review_proposal"],
   analyze_profile_gaps: ["career.derive_gap_analysis", "career.create_review_proposal"],
   prepare_interview: ["career.derive_interview_plan", "career.create_review_proposal"],
+  analyze_resume: ["career.create_review_proposal", "career.export_review_payload"],
+  analyze_ats_compatibility: ["career.create_review_proposal", "career.export_review_payload"],
+  plan_career_strategy: ["career.create_review_proposal", "career.export_review_payload"],
 };
 
 function buildInputPreview(

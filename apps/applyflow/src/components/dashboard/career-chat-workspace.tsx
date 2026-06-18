@@ -6,6 +6,7 @@ import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import {
   CAREER_CHAT_MAX_MESSAGE_LENGTH,
   deriveCareerAgentRequestId,
+  type CareerAnalysisInput,
   type CareerChatIntent,
   type CareerChatResponse,
   type CareerChatToolProposal,
@@ -36,7 +37,108 @@ import {
   CAREER_CHAT_WORKSPACE_SEND_LABEL,
   CAREER_CHAT_WORKSPACE_TITLE,
   CAREER_CHAT_WORKSPACE_VALIDATING_MESSAGE,
+  CAREER_CHAT_WORKSPACE_SPECIALIST_LABEL,
+  CAREER_CHAT_WORKSPACE_RESUME_BULLETS_LABEL,
+  CAREER_CHAT_WORKSPACE_RESUME_SKILLS_LABEL,
+  CAREER_CHAT_WORKSPACE_JOB_REQUIREMENTS_LABEL,
+  CAREER_CHAT_WORKSPACE_TARGET_ROLES_LABEL,
+  CAREER_CHAT_WORKSPACE_AVAILABILITY_LABEL,
 } from "./career-chat-workspace-content";
+
+const SPECIALIST_INTENTS: CareerChatIntent[] = [
+  "analyze_resume",
+  "analyze_ats_compatibility",
+  "plan_career_strategy",
+];
+
+function isSpecialistIntent(action: CareerChatIntent): boolean {
+  return SPECIALIST_INTENTS.includes(action);
+}
+
+export type CareerSpecialistFields = {
+  resumeBullets: string;
+  resumeSkills: string;
+  jobRequirements: string;
+  targetRoles: string;
+  availability: string;
+};
+
+export const EMPTY_SPECIALIST_FIELDS: CareerSpecialistFields = {
+  resumeBullets: "",
+  resumeSkills: "",
+  jobRequirements: "",
+  targetRoles: "",
+  availability: "",
+};
+
+function toLines(value: string): string[] {
+  return value
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 50);
+}
+
+function toCommaList(value: string): string[] {
+  return value
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .slice(0, 50);
+}
+
+export function buildSpecialistAnalysisInput(input: {
+  action: CareerChatIntent;
+  fields: CareerSpecialistFields;
+  mainStack: string[];
+  fallbackRole: string;
+}): CareerAnalysisInput | undefined {
+  const { action, fields, mainStack, fallbackRole } = input;
+  if (!isSpecialistIntent(action)) {
+    return undefined;
+  }
+
+  const skills = toCommaList(fields.resumeSkills);
+  const resolvedSkills = skills.length > 0 ? skills : mainStack;
+  const bullets = toLines(fields.resumeBullets);
+  const resumeSnapshot = {
+    skills: resolvedSkills,
+    experiences:
+      bullets.length > 0
+        ? [{ title: fallbackRole || "Experience", company: "—", bullets }]
+        : [],
+  };
+
+  if (action === "analyze_resume") {
+    return {
+      resumeSnapshot,
+      targetRole: fallbackRole || undefined,
+      targetStack: mainStack.length > 0 ? mainStack : undefined,
+    };
+  }
+
+  if (action === "analyze_ats_compatibility") {
+    const requirements = toLines(fields.jobRequirements);
+    return {
+      resumeSnapshot,
+      jobSnapshot: {
+        title: fallbackRole || "Target role",
+        requiredRequirements: requirements,
+        keywords: requirements.flatMap((req) =>
+          req
+            .toLowerCase()
+            .split(/[^a-z0-9+#.]+/)
+            .filter((token) => token.length >= 3),
+        ),
+      },
+    };
+  }
+
+  return {
+    targetRoles: toCommaList(fields.targetRoles),
+    availability: fields.availability.trim() || undefined,
+  };
+}
 import {
   runCareerChatLibrechat,
   type CareerChatWorkspaceUiState,
@@ -110,6 +212,8 @@ export function CareerChatWorkspaceView({
   onCancelReview,
   onCopyResponse,
   isSending,
+  specialistFields = EMPTY_SPECIALIST_FIELDS,
+  onSpecialistFieldChange,
 }: CareerChatWorkspaceProps & {
   action: CareerChatIntent;
   message: string;
@@ -128,8 +232,15 @@ export function CareerChatWorkspaceView({
   onCancelReview: () => void;
   onCopyResponse: () => void;
   isSending: boolean;
+  specialistFields?: CareerSpecialistFields;
+  onSpecialistFieldChange?: (field: keyof CareerSpecialistFields, value: string) => void;
 }) {
   const messageLength = message.length;
+  const showSpecialist = isSpecialistIntent(action);
+  const resumeAnalysis = response?.agentResult?.resumeAnalysis;
+  const atsAnalysis = response?.agentResult?.atsAnalysis;
+  const careerStrategyPlan = response?.agentResult?.careerStrategyPlan;
+  const reviewProposal = response?.agentResult?.reviewProposal;
   const emptyMessage = !careerBundle
     ? CAREER_CHAT_WORKSPACE_NO_BUNDLE_MESSAGE
     : uiState === "blocked" && response?.warnings.some((w) => w.code === "librechat_adapter_disabled")
@@ -183,6 +294,79 @@ export function CareerChatWorkspaceView({
             ))}
           </select>
         </div>
+
+        {showSpecialist ? (
+          <div
+            className="space-y-2 rounded-[var(--af-radius-sm)] border border-violet-500/25 p-2"
+            data-testid="career-chat-specialist-inputs"
+          >
+            <p className="font-medium text-[color:var(--af-text)]">
+              {CAREER_CHAT_WORKSPACE_SPECIALIST_LABEL}
+            </p>
+            {action !== "plan_career_strategy" ? (
+              <>
+                <label htmlFor="career-chat-resume-bullets" className="block">
+                  {CAREER_CHAT_WORKSPACE_RESUME_BULLETS_LABEL}
+                </label>
+                <textarea
+                  id="career-chat-resume-bullets"
+                  className="min-h-[64px] w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface)] px-2 py-1.5 text-[11px] text-[color:var(--af-text)]"
+                  value={specialistFields.resumeBullets}
+                  onChange={(event) => onSpecialistFieldChange?.("resumeBullets", event.target.value)}
+                  data-testid="career-chat-resume-bullets"
+                />
+                <label htmlFor="career-chat-resume-skills" className="block">
+                  {CAREER_CHAT_WORKSPACE_RESUME_SKILLS_LABEL}
+                </label>
+                <input
+                  id="career-chat-resume-skills"
+                  className="w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface)] px-2 py-1.5 text-[11px] text-[color:var(--af-text)]"
+                  value={specialistFields.resumeSkills}
+                  onChange={(event) => onSpecialistFieldChange?.("resumeSkills", event.target.value)}
+                  data-testid="career-chat-resume-skills"
+                />
+              </>
+            ) : null}
+            {action === "analyze_ats_compatibility" ? (
+              <>
+                <label htmlFor="career-chat-job-requirements" className="block">
+                  {CAREER_CHAT_WORKSPACE_JOB_REQUIREMENTS_LABEL}
+                </label>
+                <textarea
+                  id="career-chat-job-requirements"
+                  className="min-h-[64px] w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface)] px-2 py-1.5 text-[11px] text-[color:var(--af-text)]"
+                  value={specialistFields.jobRequirements}
+                  onChange={(event) => onSpecialistFieldChange?.("jobRequirements", event.target.value)}
+                  data-testid="career-chat-job-requirements"
+                />
+              </>
+            ) : null}
+            {action === "plan_career_strategy" ? (
+              <>
+                <label htmlFor="career-chat-target-roles" className="block">
+                  {CAREER_CHAT_WORKSPACE_TARGET_ROLES_LABEL}
+                </label>
+                <input
+                  id="career-chat-target-roles"
+                  className="w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface)] px-2 py-1.5 text-[11px] text-[color:var(--af-text)]"
+                  value={specialistFields.targetRoles}
+                  onChange={(event) => onSpecialistFieldChange?.("targetRoles", event.target.value)}
+                  data-testid="career-chat-target-roles"
+                />
+                <label htmlFor="career-chat-availability" className="block">
+                  {CAREER_CHAT_WORKSPACE_AVAILABILITY_LABEL}
+                </label>
+                <input
+                  id="career-chat-availability"
+                  className="w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface)] px-2 py-1.5 text-[11px] text-[color:var(--af-text)]"
+                  value={specialistFields.availability}
+                  onChange={(event) => onSpecialistFieldChange?.("availability", event.target.value)}
+                  data-testid="career-chat-availability"
+                />
+              </>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="space-y-2">
           <label htmlFor="career-chat-message-input" className="font-medium text-[color:var(--af-text)]">
@@ -240,6 +424,59 @@ export function CareerChatWorkspaceView({
             <p>Status: {response.agentResult.status}</p>
             <p>Agent: {response.agentResult.agent}</p>
             <p>Summary: {response.agentResult.summary}</p>
+          </div>
+        ) : null}
+
+        {resumeAnalysis ? (
+          <div className="space-y-1" data-testid="career-chat-resume-analysis">
+            <p className="font-medium text-[color:var(--af-text)]">Resume analysis</p>
+            <p>Score: {resumeAnalysis.score}/100</p>
+            <p>Strengths: {resumeAnalysis.strengths.join("; ") || "—"}</p>
+            <p>Weaknesses: {resumeAnalysis.weaknesses.join("; ") || "—"}</p>
+            <p>Risks: {resumeAnalysis.risks.join("; ") || "—"}</p>
+            <p>Recommendations: {resumeAnalysis.sectionRecommendations.join("; ") || "—"}</p>
+          </div>
+        ) : null}
+
+        {atsAnalysis ? (
+          <div className="space-y-1" data-testid="career-chat-ats-analysis">
+            <p className="font-medium text-[color:var(--af-text)]">ATS analysis</p>
+            <p>Compatibility score: {atsAnalysis.compatibilityScore}/100</p>
+            <p>Matched keywords: {atsAnalysis.matchedKeywords.join(", ") || "—"}</p>
+            <p>Missing keywords: {atsAnalysis.missingKeywords.join(", ") || "—"}</p>
+            <p>Structure risks: {atsAnalysis.structureRisks.join("; ") || "—"}</p>
+            <p>Recommendations: {atsAnalysis.recommendations.join("; ") || "—"}</p>
+          </div>
+        ) : null}
+
+        {careerStrategyPlan ? (
+          <div className="space-y-1" data-testid="career-chat-strategy-plan">
+            <p className="font-medium text-[color:var(--af-text)]">Career strategy plan</p>
+            <p>Positioning: {careerStrategyPlan.positioningSummary}</p>
+            <p>
+              Priority roles:{" "}
+              {careerStrategyPlan.priorityRoles
+                .map((role) => `${role.role} (${role.readiness})`)
+                .join(", ") || "—"}
+            </p>
+            <p>
+              Skill priorities:{" "}
+              {careerStrategyPlan.skillPriorities
+                .map((item) => `${item.skill} (${item.priority})`)
+                .join(", ") || "—"}
+            </p>
+            <p>30-day: {careerStrategyPlan.thirtyDayPlan.join("; ") || "—"}</p>
+            <p>Risks: {careerStrategyPlan.risks.join("; ") || "—"}</p>
+          </div>
+        ) : null}
+
+        {reviewProposal ? (
+          <div className="space-y-1" data-testid="career-chat-review-proposal">
+            <p className="font-medium text-[color:var(--af-text)]">Review proposal</p>
+            <p>{reviewProposal.title}</p>
+            <p>Proposal tool: {reviewProposal.proposalTool}</p>
+            <p>Export tool: {reviewProposal.exportTool}</p>
+            <p>Executed: {String(reviewProposal.executed)}</p>
           </div>
         ) : null}
 
@@ -344,6 +581,9 @@ export function CareerChatWorkspace({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedProposal, setSelectedProposal] = useState<CareerChatToolProposal | null>(null);
   const [approvedOnce, setApprovedOnce] = useState(false);
+  const [specialistFields, setSpecialistFields] = useState<CareerSpecialistFields>(
+    EMPTY_SPECIALIST_FIELDS,
+  );
 
   const uiState = useMemo(
     () =>
@@ -368,6 +608,14 @@ export function CareerChatWorkspace({
     setApprovedOnce(false);
 
     try {
+      const analysisInput = buildSpecialistAnalysisInput({
+        action,
+        fields: specialistFields,
+        mainStack: careerBundle.candidate?.mainStack ?? [],
+        fallbackRole:
+          careerBundle.candidate?.targetRole ?? careerBundle.applications[0]?.role ?? "",
+      });
+
       const nextResponse = await runCareerChatLibrechat({
         action,
         message: message.trim(),
@@ -376,6 +624,7 @@ export function CareerChatWorkspace({
           careerBundle,
           selectedSignalIds,
           availableSignals,
+          ...(analysisInput ? { analysisInput } : {}),
         },
       });
       setResponse(nextResponse);
@@ -434,6 +683,10 @@ export function CareerChatWorkspace({
           }
         }}
         isSending={isSending}
+        specialistFields={specialistFields}
+        onSpecialistFieldChange={(field, value) =>
+          setSpecialistFields((current) => ({ ...current, [field]: value }))
+        }
       />
 
       {approvedOnce && selectedProposal && orchestration && response?.agentResult?.status === "completed" ? (

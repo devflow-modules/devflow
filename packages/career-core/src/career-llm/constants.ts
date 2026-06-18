@@ -4,6 +4,9 @@ export const CAREER_LLM_TASKS = [
   "generate_application_fit_explanation",
   "generate_profile_gap_explanation",
   "generate_interview_preparation_content",
+  "generate_resume_improvement_explanation",
+  "generate_ats_compatibility_explanation",
+  "generate_career_strategy_explanation",
   "generate_review_proposal_copy",
 ] as const;
 

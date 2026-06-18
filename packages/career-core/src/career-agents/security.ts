@@ -39,6 +39,52 @@ export function scanCareerAgentPayloadForForbiddenKeys(value: unknown, path = ""
   return [];
 }
 
+/**
+ * Stricter forbidden-key set for specialist analysis inputs. The client may never
+ * smuggle an agent/task/model/tool/capability/approval/execution selector or any
+ * command/script/url/secret through analysisInput. Anchored to avoid matching
+ * legitimate keys such as `requestedAgent`.
+ */
+const FORBIDDEN_ANALYSIS_INPUT_KEY_PATTERN =
+  /^agent$|^task$|^tasks$|^model$|^models$|^provider$|systemprompt|system_prompt|developerprompt|developer_prompt|hiddenprompt|hidden_prompt|^tool$|^tools$|toolcall|tool_call|functioncall|function_call|^capability$|^capabilities$|executionplan|execution_plan|^approval$|^command$|^commands$|^script$|^shell$|filesystempath|filesystem_path|^path$|^url$|^urls$|^headers$|^authorization$|apikey|api_key|accesstoken|access_token|refreshtoken|refresh_token/i;
+
+export function containsForbiddenCareerAnalysisInputKey(key: string): boolean {
+  return FORBIDDEN_ANALYSIS_INPUT_KEY_PATTERN.test(key) || containsForbiddenCareerAgentKey(key);
+}
+
+export function scanCareerAnalysisInputForForbiddenKeys(value: unknown, path = ""): string[] {
+  if (value == null) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap((entry, index) =>
+      scanCareerAnalysisInputForForbiddenKeys(entry, `${path}[${index}]`),
+    );
+  }
+
+  if (typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    const hits: string[] = [];
+
+    for (const [key, nested] of Object.entries(record)) {
+      const nextPath = path ? `${path}.${key}` : key;
+      if (containsForbiddenCareerAnalysisInputKey(key)) {
+        hits.push(nextPath);
+      }
+      hits.push(...scanCareerAnalysisInputForForbiddenKeys(nested, nextPath));
+    }
+
+    return hits;
+  }
+
+  if (typeof value === "string" && FORBIDDEN_VALUE_PATTERN.test(value)) {
+    return [path || "value"];
+  }
+
+  return [];
+}
+
 export function isCareerAgentContextSafe(value: unknown): boolean {
   if (value == null || typeof value !== "object") {
     return false;

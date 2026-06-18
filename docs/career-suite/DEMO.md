@@ -100,6 +100,30 @@ persisted `false`, executed-externally `false`). A new run always requires a new
 
 ---
 
+## 4. Specialist agents via Career Chat (PR #123)
+
+The Career Chat Workspace exposes three new deterministic actions — **Analisar currículo**
+(`analyze_resume`), **Verificar compatibilidade ATS** (`analyze_ats_compatibility`), and
+**Planejar estratégia de carreira** (`plan_career_strategy`). Selecting one reveals review-only
+specialist inputs (resume bullets/skills, job requirements, or target roles + availability).
+
+Each request returns a **deterministic** result rendered in-place:
+
+- **Resume** — structure score (0–100), strengths, weaknesses, risks, recommendations.
+- **ATS** — bounded compatibility score (0–100), matched/missing keywords, structure risks. The
+  score is computed by a documented rubric, **never** by the LLM.
+- **Career strategy** — positioning, ≤ 3 priority roles, ≤ 3 skill priorities, 30/60/90-day plan, risks.
+
+Every result shows the selected agent, the score when applicable, evidence, risks, recommendations,
+and a **non-executable review proposal** (`career.prepare_*_review` + `career.export_review_payload`).
+No tool runs, no `/career-tools/invoke` call, no mutation, no persistence — `reviewRequired: true`,
+`safeForClient: true`, `hasToken: false`, `persisted: false`, `toolExecutionOccurred: false`.
+
+> Reproduce: load the demo, consent, pick a specialist action, fill the review-only inputs, send.
+> The optional controlled LLM draft (mock by default) only explains the deterministic result.
+
+---
+
 ## What the demo proves
 
 - **Deterministic-first** — same input → same plan/proposal across chat, LLM, and automation.

@@ -1,6 +1,9 @@
 import { runApplicationAnalyst } from "./agents/application-analyst.js";
+import { runAtsAnalyst } from "./agents/ats-analyst.js";
+import { runCareerStrategyAdvisor } from "./agents/career-strategy-advisor.js";
 import { runInterviewCoach } from "./agents/interview-coach.js";
 import { runProfileGapAnalyst } from "./agents/profile-gap-analyst.js";
+import { runResumeAnalyst } from "./agents/resume-analyst.js";
 import { buildCareerAgentContext } from "./context.js";
 import { buildCareerAgentExecutionPlan, selectCareerAgent } from "./execution-plan.js";
 import { evaluateCareerAgentPolicy } from "./policy.js";
@@ -14,9 +17,72 @@ import {
 import type {
   CareerAgentKind,
   CareerAgentResult,
+  CareerAgentReviewProposal,
   CareerAgentTrace,
   CareerAgentWarning,
 } from "./types.js";
+
+function buildReviewProposal(input: {
+  agent: CareerAgentKind;
+  output:
+    | ReturnType<typeof runResumeAnalyst>
+    | ReturnType<typeof runAtsAnalyst>
+    | ReturnType<typeof runCareerStrategyAdvisor>;
+}): CareerAgentReviewProposal | undefined {
+  if (input.agent === "resume_analyst" && "resumeAnalysis" in input.output) {
+    const analysis = input.output.resumeAnalysis;
+    return {
+      proposalTool: "career.prepare_resume_review",
+      exportTool: "career.export_review_payload",
+      title: "Resume review proposal",
+      summary: input.output.summary,
+      sanitizedArguments: {
+        score: analysis.score,
+        weaknessCount: analysis.weaknesses.length,
+        bulletRecommendationCount: analysis.bulletRecommendations.length,
+        missingEvidenceCount: analysis.missingEvidence.length,
+      },
+      reviewRequired: true,
+      executed: false,
+    };
+  }
+  if (input.agent === "ats_analyst" && "atsAnalysis" in input.output) {
+    const analysis = input.output.atsAnalysis;
+    return {
+      proposalTool: "career.prepare_ats_review",
+      exportTool: "career.export_review_payload",
+      title: "ATS review proposal",
+      summary: input.output.summary,
+      sanitizedArguments: {
+        compatibilityScore: analysis.compatibilityScore,
+        matchedKeywordCount: analysis.matchedKeywords.length,
+        missingKeywordCount: analysis.missingKeywords.length,
+        uncoveredRequiredCount: analysis.requiredRequirementCoverage.filter(
+          (item) => item.status === "missing",
+        ).length,
+      },
+      reviewRequired: true,
+      executed: false,
+    };
+  }
+  if (input.agent === "career_strategy_advisor" && "careerStrategyPlan" in input.output) {
+    const plan = input.output.careerStrategyPlan;
+    return {
+      proposalTool: "career.prepare_strategy_review",
+      exportTool: "career.export_review_payload",
+      title: "Career strategy review proposal",
+      summary: input.output.summary,
+      sanitizedArguments: {
+        priorityRoleCount: plan.priorityRoles.length,
+        skillPriorityCount: plan.skillPriorities.length,
+        riskCount: plan.risks.length,
+      },
+      reviewRequired: true,
+      executed: false,
+    };
+  }
+  return undefined;
+}
 
 function blockedResult(input: {
   requestId: string;
@@ -189,7 +255,10 @@ export function orchestrateCareerAgents(
   let output:
     | ReturnType<typeof runApplicationAnalyst>
     | ReturnType<typeof runProfileGapAnalyst>
-    | ReturnType<typeof runInterviewCoach>;
+    | ReturnType<typeof runInterviewCoach>
+    | ReturnType<typeof runResumeAnalyst>
+    | ReturnType<typeof runAtsAnalyst>
+    | ReturnType<typeof runCareerStrategyAdvisor>;
 
   switch (selection.agent) {
     case "application_analyst":
@@ -200,6 +269,15 @@ export function orchestrateCareerAgents(
       break;
     case "interview_coach":
       output = runInterviewCoach(context);
+      break;
+    case "resume_analyst":
+      output = runResumeAnalyst(context);
+      break;
+    case "ats_analyst":
+      output = runAtsAnalyst(context);
+      break;
+    case "career_strategy_advisor":
+      output = runCareerStrategyAdvisor(context);
       break;
     default:
       return blockedResult({
@@ -248,5 +326,20 @@ export function orchestrateCareerAgents(
     executionPlan,
     interviewPreparationProposal:
       "interviewPreparationProposal" in output ? output.interviewPreparationProposal : undefined,
+    resumeAnalysis: "resumeAnalysis" in output ? output.resumeAnalysis : undefined,
+    atsAnalysis: "atsAnalysis" in output ? output.atsAnalysis : undefined,
+    careerStrategyPlan: "careerStrategyPlan" in output ? output.careerStrategyPlan : undefined,
+    reviewProposal:
+      selection.agent === "resume_analyst" ||
+      selection.agent === "ats_analyst" ||
+      selection.agent === "career_strategy_advisor"
+        ? buildReviewProposal({
+            agent: selection.agent,
+            output: output as
+              | ReturnType<typeof runResumeAnalyst>
+              | ReturnType<typeof runAtsAnalyst>
+              | ReturnType<typeof runCareerStrategyAdvisor>,
+          })
+        : undefined,
   };
 }

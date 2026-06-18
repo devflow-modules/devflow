@@ -75,6 +75,20 @@ metadata → signals → timeline → orchestrator → tool permission
 **Principles:** deterministic-first · server-authoritative · human-in-the-loop · no auto-apply ·
 no silent persistence · temporary approvals · LLM without authority · automation without permanent autonomy.
 
+### Specialist agents (PR #123)
+
+Three deterministic specialist agents reuse the existing boundary (no new orchestrator, endpoint,
+provider, LLM layer, tool boundary, automation, or persistence):
+
+| Intent | Agent | Doc |
+|--------|-------|-----|
+| `analyze_resume` | `resume_analyst` | [RESUME-AGENT](./agents/RESUME-AGENT.md) |
+| `analyze_ats_compatibility` | `ats_analyst` | [ATS-AGENT](./agents/ATS-AGENT.md) |
+| `plan_career_strategy` | `career_strategy_advisor` | [CAREER-STRATEGY-AGENT](./agents/CAREER-STRATEGY-AGENT.md) |
+
+The ATS compatibility score is deterministic and bounded (0–100); the LLM only explains results.
+Each agent emits a non-executable review proposal for human review.
+
 ---
 
 ## Trust model

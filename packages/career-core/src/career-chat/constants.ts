@@ -6,4 +6,7 @@ export const CAREER_CHAT_ACTIONS = [
   "analyze_application_fit",
   "analyze_profile_gaps",
   "prepare_interview",
+  "analyze_resume",
+  "analyze_ats_compatibility",
+  "plan_career_strategy",
 ] as const;
