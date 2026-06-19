@@ -61,6 +61,8 @@ For `analyze_resume`, `analyze_ats_compatibility`, `plan_career_strategy`,
 - `reviewRequired:true`, `persisted:false`, `toolExecutionOccurred:false`;
 - feedback without consent is discarded; with consent and `discard` repo it stores nothing;
 - `health` (no probe), `livez`, `readyz` return expected status;
+- `/dashboard/system-status` shows the **real deployment commit** (`VERCEL_GIT_COMMIT_SHA` on
+  Vercel; do not rely on a manually configured `NEXT_PUBLIC_COMMIT_SHA` in Preview);
 - no secret in Network/Console/response; correlation id present;
 - UI works on desktop and mobile.
 
@@ -72,6 +74,18 @@ from a linked `devflow-applyflow` project, or validate UI in an authenticated br
 Never commit protection-bypass tokens. Record **`PREVIEW PROTECTED`** in the operator report.
 
 Production smoke does **not** substitute Preview validation during the pilot.
+
+### Deployment commit metadata
+
+ApplyFlow resolves the commit SHA shown on `/dashboard/system-status` in this order:
+
+1. `VERCEL_GIT_COMMIT_SHA` (authoritative on Vercel Git deployments)
+2. `NEXT_PUBLIC_COMMIT_SHA` (local/CI fallback only)
+3. `unknown`
+
+After merging the metadata fix, **remove** any manually configured `NEXT_PUBLIC_COMMIT_SHA` from
+the Vercel Preview environment and redeploy Preview. Only future deployments reflect the change.
+Do not register fixed SHAs in Preview — they go stale and mask the real deployment commit.
 
 ## Response contract notes (post-pilot debt)
 

@@ -15,6 +15,7 @@ export type CareerBuildMetadata = {
 
 type CareerBuildEnv = {
   [key: string]: string | undefined;
+  VERCEL_GIT_COMMIT_SHA?: string;
   NEXT_PUBLIC_APP_VERSION?: string;
   NEXT_PUBLIC_COMMIT_SHA?: string;
   NEXT_PUBLIC_BUILD_TIMESTAMP?: string;
@@ -29,6 +30,10 @@ function shortenSha(value: string | undefined): string {
   return value.trim().slice(0, 12);
 }
 
+function resolveCommitSha(env: CareerBuildEnv): string {
+  return shortenSha(env.VERCEL_GIT_COMMIT_SHA ?? env.NEXT_PUBLIC_COMMIT_SHA);
+}
+
 export function resolveCareerBuildMetadata(
   env: CareerBuildEnv = process.env,
 ): CareerBuildMetadata {
@@ -37,7 +42,7 @@ export function resolveCareerBuildMetadata(
       typeof env.NEXT_PUBLIC_APP_VERSION === "string" && env.NEXT_PUBLIC_APP_VERSION.trim().length > 0
         ? env.NEXT_PUBLIC_APP_VERSION.trim()
         : "0.1.0",
-    commitSha: shortenSha(env.NEXT_PUBLIC_COMMIT_SHA),
+    commitSha: resolveCommitSha(env),
     buildTimestamp:
       typeof env.NEXT_PUBLIC_BUILD_TIMESTAMP === "string" &&
       env.NEXT_PUBLIC_BUILD_TIMESTAMP.trim().length > 0

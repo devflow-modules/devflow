@@ -80,6 +80,33 @@ describe("build metadata", () => {
       environment: "production",
     });
   });
+
+  it("prefers VERCEL_GIT_COMMIT_SHA over a stale NEXT_PUBLIC_COMMIT_SHA", () => {
+    const meta = resolveCareerBuildMetadata({
+      VERCEL_GIT_COMMIT_SHA: "ee4f2e9836660c1918cbefc265f3d9f3291ba7b8",
+      NEXT_PUBLIC_COMMIT_SHA: "1dfb9de",
+    });
+    expect(meta.commitSha).toBe("ee4f2e983666");
+  });
+
+  it("falls back to NEXT_PUBLIC_COMMIT_SHA for local and CI builds", () => {
+    const meta = resolveCareerBuildMetadata({
+      NEXT_PUBLIC_COMMIT_SHA: "abc123456789",
+    });
+    expect(meta.commitSha).toBe("abc123456789");
+  });
+
+  it("returns unknown when no commit sha is configured", () => {
+    expect(resolveCareerBuildMetadata({}).commitSha).toBe("unknown");
+  });
+
+  it("trims whitespace and limits commit sha to 12 characters", () => {
+    const meta = resolveCareerBuildMetadata({
+      VERCEL_GIT_COMMIT_SHA: "  ee4f2e9836660c1918cbefc265f3d9f3291ba7b8  ",
+    });
+    expect(meta.commitSha).toBe("ee4f2e983666");
+    expect(meta.commitSha).toHaveLength(12);
+  });
 });
 
 describe("feature flags", () => {
