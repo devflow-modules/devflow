@@ -64,6 +64,27 @@ For `analyze_resume`, `analyze_ats_compatibility`, `plan_career_strategy`,
 - no secret in Network/Console/response; correlation id present;
 - UI works on desktop and mobile.
 
+### Protected Preview smoke
+
+If the Vercel preview returns **401** to plain `curl`, the deployment is likely SSO-protected.
+Do **not** disable Deployment Protection. Use [`vercel curl`](./DEPLOYMENT.md#protected-vercel-previews-smoke-without-disabling-protection)
+from a linked `devflow-applyflow` project, or validate UI in an authenticated browser session.
+Never commit protection-bypass tokens. Record **`PREVIEW PROTECTED`** in the operator report.
+
+Production smoke does **not** substitute Preview validation during the pilot.
+
+## Response contract notes (post-pilot debt)
+
+| Surface | Execution guarantee field |
+|---------|---------------------------|
+| `POST /career-feedback` | `toolExecutionOccurred: false` (explicit) |
+| `POST /career-chat/librechat` | `executedExternally: false` (explicit); proposals never executed |
+
+`CareerChatResponse` intentionally omits `toolExecutionOccurred`; absence on Career Chat is
+**not** a contract break. Tool non-execution is covered by `executedExternally: false`,
+`persisted: false`, `reviewRequired: true`, and proposal statuses (`ready_for_review`,
+`approval_required`). Aligning field names across surfaces is optional post-pilot cleanup.
+
 ## What success looks like
 
 - Users complete resume/ATS/strategy/interview flows and submit feedback.

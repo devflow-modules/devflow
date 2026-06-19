@@ -100,6 +100,72 @@ pnpm --filter applyflow dev   # port 3010
 Validate: [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md) smoke checklist and
 `/career-system/{livez,readyz,health}`.
 
+## Protected Vercel previews (smoke without disabling protection)
+
+ApplyFlow previews on Vercel may use **Deployment Protection** (SSO). An unauthenticated
+`curl https://<preview-url>/career-system/livez` can return **HTTP 401** — that is expected.
+**Do not disable protection** to run smoke.
+
+Recommended approaches:
+
+1. **`vercel curl`** (from a linked project directory, with Vercel CLI authenticated):
+
+   ```bash
+   cd apps/applyflow   # or repo root after `vercel link --project devflow-applyflow`
+   vercel curl --deployment "<preview-url-or-id>" --yes /career-system/livez
+   vercel curl --deployment "<preview-url-or-id>" --yes /career-system/readyz
+   vercel curl --deployment "<preview-url-or-id>" --yes /career-system/health
+   vercel curl --deployment "<preview-url-or-id>" --yes "/career-system/health?probe=true"
+   ```
+
+   Flags supported by the current CLI: `--deployment`, `--yes`, `--protection-bypass` (only when
+   explicitly issued for automation — **never commit bypass secrets**), `--json`, `--trace`.
+
+2. **Authenticated browser** — validate UI routes (e.g. `/dashboard/system-status`, Career Chat
+   workspace) while logged into the Vercel team.
+
+Record **`PREVIEW PROTECTED`** in operator reports when smoke used bypass/authenticated access.
+**Production must not replace Preview smoke** — validate the preview deployment and matrix before
+any Production promotion.
+
+## Production branch policy (controlled pilot)
+
+During the controlled pilot, **`main` is not the Vercel Production Branch**. Only the
+**`production`** Git branch may trigger Production deployments for `devflow-applyflow`.
+
+Recommended flow:
+
+```text
+feature branch
+→ pull request
+→ preview of the branch
+→ review and smoke
+→ merge into main
+→ integrated preview on main
+→ explicit promotion main → production (human approval)
+→ Production deployment
+```
+
+Safe promotion (fast-forward only):
+
+```bash
+git checkout production
+git pull --ff-only origin production
+git merge --ff-only origin/main
+git push origin production
+git checkout main
+```
+
+Rules:
+
+- promotion requires **explicit human approval**;
+- do **not** use `vercel deploy --prod` during the pilot;
+- merging into **`main` alone must not alter Production**;
+- do not add API keys or `DATABASE_URL` in this phase.
+
+Configure Vercel: **Production Branch = `production`**, Preview deployments from other branches
+(including `main`).
+
 ## Production deployment checklist
 
 1. `pnpm install --frozen-lockfile` and `pnpm -w run build` succeed.

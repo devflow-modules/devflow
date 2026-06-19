@@ -34,8 +34,9 @@ next-env.d.ts
 # Env local para smoke de rotas (copiar de validate-routes.financeiro.env.example)
 scripts/ops/validate-routes.financeiro.env
 
-# --- Vercel ---
-.vercel
+# --- Vercel (CLI link metadata — root and nested apps) ---
+.vercel/
+**/.vercel/
 
 # --- Turbo ---
 .turbo
