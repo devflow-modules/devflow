@@ -96,7 +96,7 @@ environment matrix, config validation, aggregated health + `livez`/`readyz`, cli
 observability + in-memory metrics, pilot mode + consent-gated feedback, and an internal
 diagnostic page. See [`PRODUCTION-READINESS.md`](./PRODUCTION-READINESS.md),
 [`DEPLOYMENT.md`](./DEPLOYMENT.md), [`OBSERVABILITY.md`](./OBSERVABILITY.md),
-[`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md), and
+[`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md), [`PILOT-RUNBOOK.md`](./PILOT-RUNBOOK.md), and
 [`SECURITY-CHECKLIST.md`](./SECURITY-CHECKLIST.md).
 
 ---
@@ -148,6 +148,7 @@ Tests (1,045 across Career Suite packages): [case §12](./CAREER-SUITE-PRODUCT-A
 |-------|------|
 | **Product & architecture case** | [CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md](./CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md) |
 | **Portfolio launch package** | [CAREER-SUITE-PORTFOLIO-LAUNCH-PACKAGE.md](./CAREER-SUITE-PORTFOLIO-LAUNCH-PACKAGE.md) · [LinkedIn](./portfolio/LINKEDIN-LAUNCH-POSTS.md) · [Video](./portfolio/VIDEO-SCRIPTS.md) · [Evidence](./portfolio/EVIDENCE-AND-CLAIMS-MATRIX.md) |
+| **Closed pilot runbook** | [PILOT-RUNBOOK.md](./PILOT-RUNBOOK.md) |
 | Roadmap execution | [ROADMAP-EXECUTION.md](./ROADMAP-EXECUTION.md) |
 | Provider integrations | [integrations/README.md](./integrations/README.md) |
 | Demo walkthrough | [demo/CAREER-SUITE-WALKTHROUGH.md](./demo/CAREER-SUITE-WALKTHROUGH.md) |

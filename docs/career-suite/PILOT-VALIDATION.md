@@ -2,6 +2,9 @@
 
 How to run and validate the controlled user pilot.
 
+**Operational plan (7-day closed cohort, participants, success criteria, incidents):**
+[`PILOT-RUNBOOK.md`](./PILOT-RUNBOOK.md)
+
 ## Enabling pilot mode
 
 Full preview matrix (flags, build metadata, adapter vs transport): see
@@ -100,6 +103,9 @@ Do not register fixed SHAs in Preview — they go stale and mask the real deploy
 `approval_required`). Aligning field names across surfaces is optional post-pilot cleanup.
 
 ## What success looks like
+
+See [`PILOT-RUNBOOK.md` § Success criteria](./PILOT-RUNBOOK.md#success-criteria-pilot-hypotheses)
+and [Go / Iterate / No-Go](./PILOT-RUNBOOK.md#go--iterate--no-go-day-7) for cohort-level targets.
 
 - Users complete resume/ATS/strategy/interview flows and submit feedback.
 - No accidental side effects (no apply, no mutation, no persistence, no tool execution).
