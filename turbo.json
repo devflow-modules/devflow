@@ -3,7 +3,32 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "CAREER_RUNTIME_ENVIRONMENT",
+        "CAREER_AGENTS_ENABLED",
+        "CAREER_PILOT_MODE",
+        "NEXT_PUBLIC_CAREER_PILOT_MODE",
+        "CAREER_SYSTEM_STATUS_ENABLED",
+        "CAREER_LLM_ENABLED",
+        "CAREER_LLM_PROVIDER",
+        "CAREER_LLM_MODEL",
+        "CAREER_LLM_TIMEOUT_MS",
+        "LIBRECHAT_ADAPTER_ENABLED",
+        "LIBRECHAT_TRANSPORT_ENABLED",
+        "LIBRECHAT_BASE_URL",
+        "CAREER_AUTOMATION_ENABLED",
+        "CAREER_AUTOMATION_PROVIDER",
+        "OPENCLAW_ENABLED",
+        "OPENCLAW_BASE_URL",
+        "CAREER_PROVIDER_RUNTIME_ENABLED",
+        "NANGO_RUNTIME_ENABLED",
+        "GMAIL_PROVIDER_ENABLED",
+        "CALENDAR_PROVIDER_ENABLED",
+        "NEXT_PUBLIC_APP_VERSION",
+        "NEXT_PUBLIC_COMMIT_SHA",
+        "NEXT_PUBLIC_BUILD_TIMESTAMP"
+      ]
     },
     "dev": {
       "cache": false,
