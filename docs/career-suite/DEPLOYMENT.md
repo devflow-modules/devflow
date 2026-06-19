@@ -28,8 +28,28 @@ Reuses the **existing** monorepo deployment setup. No platform migration.
 | Production deploy | `pnpm deploy:prod` (`vercel --prod`) — **requires explicit approval** |
 
 Reproducible build: `pnpm install --frozen-lockfile` + `pnpm -w run build`. Set client-safe
-build metadata via `NEXT_PUBLIC_APP_VERSION`, `NEXT_PUBLIC_COMMIT_SHA`,
-`NEXT_PUBLIC_BUILD_TIMESTAMP`.
+build metadata via `NEXT_PUBLIC_APP_VERSION`, `NEXT_PUBLIC_BUILD_TIMESTAMP`, and optionally
+`NEXT_PUBLIC_COMMIT_SHA` for local/CI fallback. On Vercel, `VERCEL_GIT_COMMIT_SHA` (injected
+automatically per deployment) is the authoritative commit source for `/dashboard/system-status`
+and health metadata — do not register a fixed SHA manually in Preview.
+
+## Build metadata (commit SHA)
+
+Resolution order in `resolveCareerBuildMetadata()`:
+
+1. **`VERCEL_GIT_COMMIT_SHA`** — authoritative on Vercel Git deployments (full SHA, shortened
+   client-safe to 12 characters).
+2. **`NEXT_PUBLIC_COMMIT_SHA`** — fallback for local dev, CI, and smoke scripts.
+3. **`unknown`** — when neither is set.
+
+Only the shortened SHA is exposed. No Vercel tokens, project IDs, org IDs, or internal URLs are
+returned.
+
+**Preview operator note:** do **not** configure a fixed `NEXT_PUBLIC_COMMIT_SHA` in the Vercel
+Preview environment — a stale manual value previously masked the real deployment commit. After
+merging the metadata fix, **remove** `NEXT_PUBLIC_COMMIT_SHA` from Preview and redeploy; only
+future deployments pick up the change. `NEXT_PUBLIC_BUILD_TIMESTAMP` may remain manual until a
+follow-up improvement.
 
 ## Feature flag matrix
 
@@ -71,8 +91,10 @@ external providers. Do not add API keys or `DATABASE_URL` unless a real database
 | `CAREER_AUTOMATION_PROVIDER` | `mock` | server | Stays mock in pilot |
 | `OPENCLAW_ENABLED` | `false` | server | Stays off |
 | `NEXT_PUBLIC_APP_VERSION` | `preview` | **client** | Build metadata |
-| `NEXT_PUBLIC_COMMIT_SHA` | deploy commit (short) | **client** | Build metadata |
-| `NEXT_PUBLIC_BUILD_TIMESTAMP` | ISO timestamp | **client** | Build metadata |
+| `NEXT_PUBLIC_BUILD_TIMESTAMP` | ISO timestamp | **client** | Build metadata (manual until follow-up) |
+
+**Do not configure in Preview:** a fixed `NEXT_PUBLIC_COMMIT_SHA` — Vercel injects
+`VERCEL_GIT_COMMIT_SHA` per deployment; ApplyFlow resolves the real commit automatically.
 
 **Keep absent in preview:** `DATABASE_URL`, `OPENAI_API_KEY`, `LIBRECHAT_API_KEY`,
 `LIBRECHAT_BASE_URL`, `NANGO_SECRET_KEY`, `OPENCLAW_API_KEY`, `OPENCLAW_BASE_URL`,
@@ -96,6 +118,9 @@ export CAREER_RUNTIME_ENVIRONMENT=preview \
   NEXT_PUBLIC_BUILD_TIMESTAMP=<iso>
 pnpm --filter applyflow dev   # port 3010
 ```
+
+On Vercel Preview, omit `NEXT_PUBLIC_COMMIT_SHA` — the platform injects `VERCEL_GIT_COMMIT_SHA`
+per deployment. Use `NEXT_PUBLIC_COMMIT_SHA` only for local/CI smoke when simulating a commit.
 
 Validate: [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md) smoke checklist and
 `/career-system/{livez,readyz,health}`.
