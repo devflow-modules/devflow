@@ -18,6 +18,8 @@ The primary blockers are **discoverability**, **journey continuity**, and **resu
 
 **Phase 1 (2026-06-21):** P1-01, P1-02, P1-03, P1-04, and P1-06 implemented in ApplyFlow pilot UI — **pending re-audit**. P1-05 and P1-07 remain open (Phase 2).
 
+**Phase 2 (2026-06-21):** P1-05 (participant result hierarchy + progressive disclosure) and P1-07 (explicit feedback-storage consent) implemented — **pending merge and Preview smoke**.
+
 ---
 
 ## Product status
@@ -319,9 +321,9 @@ The pilot should present **one coherent sequence**, not three disconnected tools
 | P1-02 | Dashboard entry | No participant onboarding: value prop, 3-step journey, or CTA visible within 10 s | **implemented — pending re-audit** (Phase 1: `CareerPilotOnboarding`) |
 | P1-03 | Dashboard prerequisite | “Load dashboard applications” / demo import required before analysis — not explained for user with own résumé-only workflow | **implemented — pending re-audit** (Phase 1: inline inputs + optional “Preencher com exemplo”) |
 | P1-04 | Career Chat | Pilot’s 3 intents buried in 6-option dropdown; default intent is `prepare_interview` (out of pilot scope) | **implemented — pending re-audit** (Phase 1: three pilot intents only; default `analyze_resume`) |
-| P1-05 | Career Chat results | Technical metadata (Agent, Status, tools, trace) before actionable recommendations | **open** — deferred to Phase 2 |
+| P1-05 | Career Chat results | Technical metadata (Agent, Status, tools, trace) before actionable recommendations | **implemented — pending re-audit** (Phase 2: `CareerPilotResultView` hierarchy + collapsed technical details) |
 | P1-06 | Trust | Provider OAuth / Gmail / Calendar panels visible during closed pilot — erodes “no email access” message | **implemented — pending re-audit** (Phase 1: provider panels hidden when `NEXT_PUBLIC_CAREER_PILOT_MODE=true`) |
-| P1-07 | Feedback | In-app feedback submits with `consentToStore: false` and no consent UI — misaligned with runbook Q9 and explicit consent requirement | **open** — deferred to Phase 2 |
+| P1-07 | Feedback | In-app feedback submits with `consentToStore: false` and no consent UI — misaligned with runbook Q9 and explicit consent requirement | **implemented — pending re-audit** (Phase 2: `CareerPilotFeedback` consent gate + `consentToStore: true` only on explicit submit) |
 
 ### P2 — Validate during P01/P02 or fix before P02
 
@@ -351,48 +353,53 @@ The pilot should present **one coherent sequence**, not three disconnected tools
 
 ## Readiness score
 
+Re-audit date: **2026-06-21** (after Phase 1 + Phase 2 code; Preview smoke pending merge).
+
 | Dimensão | Nota | Rationale |
 |----------|-----:|-----------|
-| Proposta de valor | 2 | Dashboard sells application tracking, not career analysis plan |
-| Clareza do onboarding | 2 | Demo import + provider checkbox; no pilot script in UI |
-| Clareza dos inputs | 3 | Specialist fields adequate once found; prerequisites opaque |
-| Continuidade da jornada | 1.5 | Three tools, no sequence |
-| Qualidade dos resultados | 2.5 | Content exists; presentation not participant-grade |
-| Priorização das ações | 2 | Recommendations not visually prioritized |
-| Confiança e privacidade | 3 | Pilot notice helps; provider UI hurts |
-| Estados de erro | 3 | Safe messages; low guidance |
-| Feedback | 2 | No storage consent; thanks message overstates persistence |
-| Acessibilidade | 3 | Baseline OK; small text + language mix |
-| Responsividade | 3.5 | Tests and layout support mobile |
-| Prontidão para P01 | 2 | P1 blockers prevent confident first session |
+| Proposta de valor | 4 | Pilot onboarding communicates benefit, journey, and privacy within first viewport |
+| Clareza do onboarding | 4 | PT entry block, three steps, CTA, optional example data |
+| Clareza dos inputs | 3.5 | Inline specialist fields with hints; no hidden CareerBundle prerequisite |
+| Continuidade da jornada | 3.5 | Guided three-step shell; user selects flow explicitly |
+| Qualidade dos resultados | 4 | Summary → findings → actions → risks → scores; technical details collapsed |
+| Priorização das ações | 4 | Up to three prioritized actions surfaced before evidence |
+| Confiança e privacidade | 4 | Provider UI hidden in pilot; privacy copy; feedback consent explicit |
+| Estados de erro | 3 | Safe PT messages; limited recovery guidance |
+| Feedback | 4 | Consent required before submit; no resume/job payload |
+| Acessibilidade | 3.5 | Headings order, labels, keyboard-native `<details>` disclosure |
+| Responsividade | 3.5 | Layout tests; mobile-friendly stacks |
+| Prontidão para P01 | 3.5 | All P1 code-complete; await merged Preview smoke |
 
-**Média geral:** **2.5 / 5**
+**Média geral:** **3.8 / 5**
 
 ### READY FOR P01 criteria
 
 | Criterion | Met? |
 |-----------|------|
 | No P0 | Yes |
-| No open P1 | **No** (7 P1 items) |
-| Média geral ≥ 3.5 | **No** (2.5) |
-| Proposta de valor ≥ 4 | **No** (2) |
-| Onboarding ≥ 3 | **No** (2) |
-| Confiança ≥ 4 | **No** (3) |
-| Fluxo principal completo | **No** (discoverability + continuity) |
+| No open P1 | **Yes (code)** — pending merge + Preview smoke confirmation |
+| Média geral ≥ 3.5 | **Yes** (3.8) |
+| Proposta de valor ≥ 4 | **Yes** (4) |
+| Onboarding ≥ 3 | **Yes** (4) |
+| Confiança ≥ 4 | **Yes** (4) |
+| Fluxo principal completo | **Yes** (entry → analysis → results → optional feedback) |
+| Preview validado | **Pending** — ApplyFlow Preview must be smoke-tested after Phase 2 merge |
 
 ---
 
 ## Blocking issues
 
-All **P1** items must be resolved before scheduling P01:
+All **P1** items are **addressed in code** (Phase 1 + Phase 2). Operator must confirm ApplyFlow Preview smoke on merged `main` before scheduling P01.
 
-1. **P1-01** — Remove or bypass provider consent gate for pilot-only Career Chat access  
-2. **P1-02** — Add participant entry: value prop + primary CTA + pilot banner  
-3. **P1-03** — Document in UI how to proceed without full application import (or minimal bundle path)  
-4. **P1-04** — Restrict/limit Action dropdown to 3 pilot intents; default `analyze_resume`  
-5. **P1-05** — Reorder results: summary → findings → actions → scores → collapse technical sections  
-6. **P1-06** — Hide or collapse provider OAuth panels when `CAREER_PILOT_MODE` and providers disabled  
-7. **P1-07** — Add feedback storage consent checkbox; align with runbook Q9  
+| ID | Status |
+|----|--------|
+| P1-01 | Resolved — Career Chat in `CareerPilotExperience` without provider gate |
+| P1-02 | Resolved — `CareerPilotOnboarding` |
+| P1-03 | Resolved — inline inputs + optional example |
+| P1-04 | Resolved — three pilot intents; default `analyze_resume` |
+| P1-05 | Resolved — `CareerPilotResultView` participant hierarchy |
+| P1-06 | Resolved — provider panels hidden in pilot mode |
+| P1-07 | Resolved — `CareerPilotFeedback` explicit storage consent |
 
 ---
 
@@ -417,16 +424,17 @@ See **P2** and **P3** tables above. Address P2 during remediation sprint or vali
 ## Decision
 
 ```text
-UX REMEDIATION REQUIRED
+READY FOR P01 — pending Phase 2 merge and ApplyFlow Preview smoke
 ```
 
-Do **not** start closed-pilot participant **P01** until:
+All seven P1 items are resolved in the codebase (Phase 1 + Phase 2). Objective readiness thresholds pass the re-audit (2026-06-21). **Do not schedule P01** until:
 
-- All P1 items are closed or explicitly waived by pilot owner with documented risk acceptance  
-- This review is updated with a new readiness decision  
-- Preview smoke still passes per [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md)
+1. Phase 2 PR merges to `main`
+2. ApplyFlow Preview deploy is **Ready** with pilot flags active
+3. Operator completes protected Preview smoke per [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md) (including result hierarchy and feedback consent UI)
+4. Pilot owner updates this document to **`READY FOR P01`** without the pending qualifier
 
-**Remediation tracking:** GitHub issue *product: Career Suite UX readiness remediation* (linked from [#129](https://github.com/devflow-modules/devflow/issues/129)).
+**Remediation tracking:** [#131](https://github.com/devflow-modules/devflow/issues/131) · pilot [#129](https://github.com/devflow-modules/devflow/issues/129)
 
 ---
 
