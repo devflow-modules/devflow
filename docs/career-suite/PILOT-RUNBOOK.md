@@ -19,7 +19,7 @@ document complements — and does not replace — [`PILOT-VALIDATION.md`](./PILO
 | No open P1 UX blockers | Remediation issue (linked from [#129](https://github.com/devflow-modules/devflow/issues/129)) |
 | Technical Preview smoke | [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md) |
 
-Current decision (2026-06-21): **`READY FOR P01 — pending Phase 2 merge and ApplyFlow Preview smoke`** — see [`PRODUCT-UX-READINESS-REVIEW.md`](./PRODUCT-UX-READINESS-REVIEW.md).
+Current decision (2026-06-21): **`READY FOR P01`** — validated on ApplyFlow Preview `main` @ `1c371923` ([`PRODUCT-UX-READINESS-REVIEW.md`](./PRODUCT-UX-READINESS-REVIEW.md)).
 
 ---
 
@@ -200,7 +200,7 @@ blocker.
 
 ### Before session
 
-- [ ] Product/UX readiness decision is **`READY FOR P01`** (no pending qualifier) ([`PRODUCT-UX-READINESS-REVIEW.md`](./PRODUCT-UX-READINESS-REVIEW.md))
+- [ ] Product/UX readiness decision is **`READY FOR P01`** ([`PRODUCT-UX-READINESS-REVIEW.md`](./PRODUCT-UX-READINESS-REVIEW.md))
 - [ ] Preview deployment **Ready** (`devflow-applyflow`)
 - [ ] `GET /career-system/readyz` → `environment: preview`, `blockers: []`
 - [ ] `/dashboard/system-status` shows current commit (via `VERCEL_GIT_COMMIT_SHA`)
