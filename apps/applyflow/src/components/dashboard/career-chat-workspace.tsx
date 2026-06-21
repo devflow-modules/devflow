@@ -78,6 +78,9 @@ import {
   CAREER_PILOT_SEND_LABEL,
   isCareerPilotIntent,
 } from "./career-pilot-content";
+import { buildCareerPilotResultModel } from "./career-pilot-result-mapper";
+import { CareerPilotResultView } from "./career-pilot-result-view";
+import { CareerPilotFeedback } from "./career-pilot-feedback";
 
 const SPECIALIST_INTENTS: CareerChatIntent[] = [
   "analyze_resume",
@@ -252,6 +255,7 @@ export function CareerChatWorkspaceView({
   pilotPresentation = false,
   feedbackSubmitted = false,
   onSubmitFeedback,
+  onSubmitPilotFeedback,
   submitDisabled = false,
 }: CareerChatWorkspaceProps & {
   action: CareerChatIntent;
@@ -277,6 +281,10 @@ export function CareerChatWorkspaceView({
   pilotPresentation?: boolean;
   feedbackSubmitted?: boolean;
   onSubmitFeedback?: (rating: CareerFeedbackRating) => void;
+  onSubmitPilotFeedback?: (input: {
+    rating: CareerFeedbackRating;
+    consentToStore: boolean;
+  }) => Promise<{ ok: boolean }>;
   submitDisabled?: boolean;
 }) {
   const messageLength = message.length;
@@ -285,6 +293,10 @@ export function CareerChatWorkspaceView({
   const atsAnalysis = response?.agentResult?.atsAnalysis;
   const careerStrategyPlan = response?.agentResult?.careerStrategyPlan;
   const reviewProposal = response?.agentResult?.reviewProposal;
+  const pilotResultModel =
+    pilotPresentation && response?.status === "completed"
+      ? buildCareerPilotResultModel({ intent: action, response })
+      : null;
   const visibleActions = pilotPresentation ? CAREER_PILOT_INTENTS : (Object.keys(CAREER_CHAT_WORKSPACE_ACTION_LABELS) as CareerChatIntent[]);
   const actionLabels = pilotPresentation ? CAREER_PILOT_ACTION_LABELS : CAREER_CHAT_WORKSPACE_ACTION_LABELS;
 
@@ -501,6 +513,8 @@ export function CareerChatWorkspaceView({
           </p>
         ) : null}
 
+        {pilotResultModel ? <CareerPilotResultView model={pilotResultModel} /> : null}
+
         {response?.agentResult && !pilotPresentation ? (
           <div className="space-y-2" data-testid="career-chat-agent-result">
             <p className="font-medium text-[color:var(--af-text)]">Agent response</p>
@@ -510,14 +524,7 @@ export function CareerChatWorkspaceView({
           </div>
         ) : null}
 
-        {response?.agentResult && pilotPresentation && response.agentResult.summary ? (
-          <div className="space-y-2" data-testid="career-chat-agent-result">
-            <p className="font-medium text-[color:var(--af-text)]">Resumo</p>
-            <p>{response.agentResult.summary}</p>
-          </div>
-        ) : null}
-
-        {resumeAnalysis ? (
+        {!pilotPresentation && resumeAnalysis ? (
           <div className="space-y-1" data-testid="career-chat-resume-analysis">
             <p className="font-medium text-[color:var(--af-text)]">Resume analysis</p>
             <p>Score: {resumeAnalysis.score}/100</p>
@@ -528,7 +535,7 @@ export function CareerChatWorkspaceView({
           </div>
         ) : null}
 
-        {atsAnalysis ? (
+        {!pilotPresentation && atsAnalysis ? (
           <div className="space-y-1" data-testid="career-chat-ats-analysis">
             <p className="font-medium text-[color:var(--af-text)]">ATS analysis</p>
             <p>Compatibility score: {atsAnalysis.compatibilityScore}/100</p>
@@ -539,7 +546,7 @@ export function CareerChatWorkspaceView({
           </div>
         ) : null}
 
-        {careerStrategyPlan ? (
+        {!pilotPresentation && careerStrategyPlan ? (
           <div className="space-y-1" data-testid="career-chat-strategy-plan">
             <p className="font-medium text-[color:var(--af-text)]">Career strategy plan</p>
             <p>Positioning: {careerStrategyPlan.positioningSummary}</p>
@@ -654,7 +661,11 @@ export function CareerChatWorkspaceView({
           </div>
         ) : null}
 
-        {pilotMode && response?.status === "completed" ? (
+        {pilotPresentation && response?.status === "completed" && onSubmitPilotFeedback ? (
+          <CareerPilotFeedback onSubmit={onSubmitPilotFeedback} />
+        ) : null}
+
+        {!pilotPresentation && pilotMode && response?.status === "completed" ? (
           <div className="space-y-1.5" data-testid="career-chat-feedback">
             <p className="font-medium text-[color:var(--af-text)]">
               {CAREER_CHAT_WORKSPACE_FEEDBACK_PROMPT}
@@ -871,6 +882,16 @@ export function CareerChatWorkspace({
         pilotMode={pilotMode}
         pilotPresentation={pilotPresentation}
         submitDisabled={submitDisabled}
+        onSubmitPilotFeedback={
+          pilotPresentation
+            ? async (input) =>
+                submitCareerFeedback({
+                  rating: input.rating,
+                  category: careerFeedbackCategoryForIntent(action),
+                  consentToStore: input.consentToStore,
+                })
+            : undefined
+        }
         feedbackSubmitted={feedbackSubmitted}
         onSubmitFeedback={(rating) => {
           setFeedbackSubmitted(true);
