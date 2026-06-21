@@ -16,6 +16,8 @@ The primary blockers are **discoverability**, **journey continuity**, and **resu
 
 **Decision:** **UX REMEDIATION REQUIRED** — do not start P01 until P1 items in the remediation backlog are resolved and this document is updated to **READY FOR P01**.
 
+**Phase 1 (2026-06-21):** P1-01, P1-02, P1-03, P1-04, and P1-06 implemented in ApplyFlow pilot UI — **pending re-audit**. P1-05 and P1-07 remain open (Phase 2).
+
 ---
 
 ## Product status
@@ -311,15 +313,15 @@ The pilot should present **one coherent sequence**, not three disconnected tools
 
 ### P1 — Blocking for P01
 
-| ID | Surface | Description |
-|----|---------|-------------|
-| P1-01 | Dashboard / provider gate | Career Chat only renders after **provider consent checkbox** — contradicts pilot scope (providers off) and runbook quick reference |
-| P1-02 | Dashboard entry | No participant onboarding: value prop, 3-step journey, or CTA visible within 10 s |
-| P1-03 | Dashboard prerequisite | “Load dashboard applications” / demo import required before analysis — not explained for user with own résumé-only workflow |
-| P1-04 | Career Chat | Pilot’s 3 intents buried in 6-option dropdown; default intent is `prepare_interview` (out of pilot scope) |
-| P1-05 | Career Chat results | Technical metadata (Agent, Status, tools, trace) before actionable recommendations |
-| P1-06 | Trust | Provider OAuth / Gmail / Calendar panels visible during closed pilot — erodes “no email access” message |
-| P1-07 | Feedback | In-app feedback submits with `consentToStore: false` and no consent UI — misaligned with runbook Q9 and explicit consent requirement |
+| ID | Surface | Description | Remediation |
+|----|---------|-------------|-------------|
+| P1-01 | Dashboard / provider gate | Career Chat only renders after **provider consent checkbox** — contradicts pilot scope (providers off) and runbook quick reference | **implemented — pending re-audit** (Phase 1: `CareerPilotExperience` decouples chat from provider consent) |
+| P1-02 | Dashboard entry | No participant onboarding: value prop, 3-step journey, or CTA visible within 10 s | **implemented — pending re-audit** (Phase 1: `CareerPilotOnboarding`) |
+| P1-03 | Dashboard prerequisite | “Load dashboard applications” / demo import required before analysis — not explained for user with own résumé-only workflow | **implemented — pending re-audit** (Phase 1: inline inputs + optional “Preencher com exemplo”) |
+| P1-04 | Career Chat | Pilot’s 3 intents buried in 6-option dropdown; default intent is `prepare_interview` (out of pilot scope) | **implemented — pending re-audit** (Phase 1: three pilot intents only; default `analyze_resume`) |
+| P1-05 | Career Chat results | Technical metadata (Agent, Status, tools, trace) before actionable recommendations | **open** — deferred to Phase 2 |
+| P1-06 | Trust | Provider OAuth / Gmail / Calendar panels visible during closed pilot — erodes “no email access” message | **implemented — pending re-audit** (Phase 1: provider panels hidden when `NEXT_PUBLIC_CAREER_PILOT_MODE=true`) |
+| P1-07 | Feedback | In-app feedback submits with `consentToStore: false` and no consent UI — misaligned with runbook Q9 and explicit consent requirement | **open** — deferred to Phase 2 |
 
 ### P2 — Validate during P01/P02 or fix before P02
 

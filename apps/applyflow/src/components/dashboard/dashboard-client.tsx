@@ -1,7 +1,9 @@
 "use client";
 
+import { CareerPilotExperience } from "@/components/dashboard/career-pilot-experience";
 import { ProviderConsentConfirmationPanel } from "@/components/dashboard/provider-consent-confirmation-panel";
 import { ProviderConsentMockPanel } from "@/components/dashboard/provider-consent-mock-panel";
+import { isCareerPilotModeClient } from "@/lib/career-system/feature-flags";
 import { ApplyFlowBadge, type ApplyFlowBadgeTone } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton, applyFlowButtonClass } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
@@ -461,6 +463,7 @@ export function DashboardClient() {
 
   const hasData = applications.length > 0;
   const tableEmpty = hasData && filtered.length === 0;
+  const pilotMode = isCareerPilotModeClient();
 
   if (!hydrated) {
     return (
@@ -473,6 +476,8 @@ export function DashboardClient() {
   return (
     <div className="mx-auto max-w-6xl space-y-10 overflow-x-hidden pb-12 sm:space-y-12">
       <ApplyFlowPrivacyNotice />
+
+      {pilotMode ? <CareerPilotExperience /> : null}
 
       <ApplyFlowSection
         id="como-importar"
@@ -707,14 +712,18 @@ export function DashboardClient() {
           </ApplyFlowCard>
         ) : null}
 
-        <ProviderConsentMockPanel />
+        {!pilotMode ? (
+          <>
+            <ProviderConsentMockPanel />
 
-        <ProviderConsentConfirmationPanel
-          currentSyncEnrichment={exportComposition.syncEnrichment}
-          baselineSourceKind={exportComposition.sourceKind}
-          onEligibleProviderEnrichmentChange={setEligibleProviderEnrichment}
-          careerBundle={careerBundleForAgents}
-        />
+            <ProviderConsentConfirmationPanel
+              currentSyncEnrichment={exportComposition.syncEnrichment}
+              baselineSourceKind={exportComposition.sourceKind}
+              onEligibleProviderEnrichmentChange={setEligibleProviderEnrichment}
+              careerBundle={careerBundleForAgents}
+            />
+          </>
+        ) : null}
 
         {hasData ? (
           <div className="flex flex-wrap items-center gap-4">

@@ -335,7 +335,7 @@ Link this runbook in the issue body. Update checkboxes as the pilot progresses.
 | Preview URL | Vercel dashboard → `devflow-applyflow` → latest **Preview** on `main` |
 | Protected access | `vercel curl --deployment "<url>" --yes /career-system/readyz` |
 | System status | `/dashboard/system-status` |
-| Career Chat | `/dashboard` → Career Chat → three specialist intents |
+| Career Chat | `/dashboard` → **Career Suite** section (pilot mode) → three specialist intents |
 | Feedback API | `POST /career-feedback` — see [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md) |
 
 **Production:** not in scope. Do not promote `production` branch or use `vercel --prod` during this

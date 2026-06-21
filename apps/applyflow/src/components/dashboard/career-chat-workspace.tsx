@@ -51,6 +51,33 @@ import {
   CAREER_CHAT_WORKSPACE_FEEDBACK_NOT_HELPFUL_LABEL,
   CAREER_CHAT_WORKSPACE_FEEDBACK_THANKS,
 } from "./career-chat-workspace-content";
+import {
+  careerFeedbackCategoryForIntent,
+  runCareerChatLibrechat,
+  submitCareerFeedback,
+  type CareerChatWorkspaceUiState,
+  type CareerFeedbackRating,
+} from "./career-chat-workspace-client";
+import { isCareerPilotModeClient } from "@/lib/career-system/feature-flags";
+import {
+  buildPilotCareerBundleFromFields,
+  hasPilotAnalysisInputs,
+} from "./build-pilot-career-bundle";
+import {
+  CAREER_PILOT_ACTION_LABEL,
+  CAREER_PILOT_ACTION_LABELS,
+  CAREER_PILOT_CHAT_DESCRIPTION,
+  CAREER_PILOT_CHAT_TITLE,
+  CAREER_PILOT_CONSENT_LABEL,
+  CAREER_PILOT_DEFAULT_MESSAGE,
+  CAREER_PILOT_EMPTY_ATS_HINT,
+  CAREER_PILOT_EMPTY_RESUME_HINT,
+  CAREER_PILOT_EMPTY_STRATEGY_HINT,
+  CAREER_PILOT_INTENTS,
+  CAREER_PILOT_MESSAGE_LABEL,
+  CAREER_PILOT_SEND_LABEL,
+  isCareerPilotIntent,
+} from "./career-pilot-content";
 
 const SPECIALIST_INTENTS: CareerChatIntent[] = [
   "analyze_resume",
@@ -146,19 +173,14 @@ export function buildSpecialistAnalysisInput(input: {
     availability: fields.availability.trim() || undefined,
   };
 }
-import {
-  careerFeedbackCategoryForIntent,
-  runCareerChatLibrechat,
-  submitCareerFeedback,
-  type CareerChatWorkspaceUiState,
-  type CareerFeedbackRating,
-} from "./career-chat-workspace-client";
-import { isCareerPilotModeClient } from "@/lib/career-system/feature-flags";
 
 export type CareerChatWorkspaceProps = {
   careerBundle: CareerBundle | null;
   selectedSignalIds: string[];
   availableSignals: ProviderDerivedSignal[];
+  pilotPresentation?: boolean;
+  initialSpecialistFields?: CareerSpecialistFields;
+  onPilotActionChange?: (action: CareerChatIntent) => void;
 };
 
 function resolveUiState(input: {
@@ -167,6 +189,7 @@ function resolveUiState(input: {
   isSending: boolean;
   response: CareerChatResponse | null;
   errorMessage: string | null;
+  pilotPresentation?: boolean;
 }): CareerChatWorkspaceUiState {
   if (input.isSending) {
     return "validating";
@@ -185,7 +208,7 @@ function resolveUiState(input: {
   }
 
   if (!input.hasBundle) {
-    return "blocked";
+    return input.pilotPresentation ? "idle" : "blocked";
   }
 
   if (!input.explicitConsent) {
@@ -226,8 +249,10 @@ export function CareerChatWorkspaceView({
   specialistFields = EMPTY_SPECIALIST_FIELDS,
   onSpecialistFieldChange,
   pilotMode = false,
+  pilotPresentation = false,
   feedbackSubmitted = false,
   onSubmitFeedback,
+  submitDisabled = false,
 }: CareerChatWorkspaceProps & {
   action: CareerChatIntent;
   message: string;
@@ -249,26 +274,48 @@ export function CareerChatWorkspaceView({
   specialistFields?: CareerSpecialistFields;
   onSpecialistFieldChange?: (field: keyof CareerSpecialistFields, value: string) => void;
   pilotMode?: boolean;
+  pilotPresentation?: boolean;
   feedbackSubmitted?: boolean;
   onSubmitFeedback?: (rating: CareerFeedbackRating) => void;
+  submitDisabled?: boolean;
 }) {
   const messageLength = message.length;
-  const showSpecialist = isSpecialistIntent(action);
+  const showSpecialist = pilotPresentation || isSpecialistIntent(action);
   const resumeAnalysis = response?.agentResult?.resumeAnalysis;
   const atsAnalysis = response?.agentResult?.atsAnalysis;
   const careerStrategyPlan = response?.agentResult?.careerStrategyPlan;
   const reviewProposal = response?.agentResult?.reviewProposal;
-  const emptyMessage = !careerBundle
-    ? CAREER_CHAT_WORKSPACE_NO_BUNDLE_MESSAGE
-    : uiState === "blocked" && response?.warnings.some((w) => w.code === "librechat_adapter_disabled")
+  const visibleActions = pilotPresentation ? CAREER_PILOT_INTENTS : (Object.keys(CAREER_CHAT_WORKSPACE_ACTION_LABELS) as CareerChatIntent[]);
+  const actionLabels = pilotPresentation ? CAREER_PILOT_ACTION_LABELS : CAREER_CHAT_WORKSPACE_ACTION_LABELS;
+
+  const pilotEmptyHint =
+    action === "plan_career_strategy"
+      ? CAREER_PILOT_EMPTY_STRATEGY_HINT
+      : action === "analyze_ats_compatibility"
+        ? CAREER_PILOT_EMPTY_ATS_HINT
+        : CAREER_PILOT_EMPTY_RESUME_HINT;
+
+  const emptyMessage = pilotPresentation
+    ? uiState === "blocked" && response?.warnings.some((w) => w.code === "librechat_adapter_disabled")
       ? CAREER_CHAT_WORKSPACE_ADAPTER_DISABLED_MESSAGE
       : uiState === "blocked"
         ? CAREER_CHAT_WORKSPACE_BLOCKED_MESSAGE
-        : uiState === "idle"
-          ? CAREER_CHAT_WORKSPACE_IDLE_MESSAGE
+        : uiState === "idle" && !explicitConsent
+          ? pilotEmptyHint
           : uiState === "validating"
             ? CAREER_CHAT_WORKSPACE_VALIDATING_MESSAGE
-            : null;
+            : null
+    : !careerBundle
+      ? CAREER_CHAT_WORKSPACE_NO_BUNDLE_MESSAGE
+      : uiState === "blocked" && response?.warnings.some((w) => w.code === "librechat_adapter_disabled")
+        ? CAREER_CHAT_WORKSPACE_ADAPTER_DISABLED_MESSAGE
+        : uiState === "blocked"
+          ? CAREER_CHAT_WORKSPACE_BLOCKED_MESSAGE
+          : uiState === "idle"
+            ? CAREER_CHAT_WORKSPACE_IDLE_MESSAGE
+            : uiState === "validating"
+              ? CAREER_CHAT_WORKSPACE_VALIDATING_MESSAGE
+              : null;
 
   return (
     <ApplyFlowCard
@@ -279,13 +326,15 @@ export function CareerChatWorkspaceView({
     >
       <div className="space-y-3 text-[11px] leading-snug text-[color:var(--af-text-muted)]">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="text-xs font-semibold text-violet-100/95">{CAREER_CHAT_WORKSPACE_TITLE}</h3>
+          <h3 className="text-xs font-semibold text-violet-100/95">
+            {pilotPresentation ? CAREER_PILOT_CHAT_TITLE : CAREER_CHAT_WORKSPACE_TITLE}
+          </h3>
           <ApplyFlowBadge tone="neutral">{CAREER_CHAT_WORKSPACE_BADGE_READ_ONLY}</ApplyFlowBadge>
           <ApplyFlowBadge tone="intel">{CAREER_CHAT_WORKSPACE_BADGE_MANUAL}</ApplyFlowBadge>
           <ApplyFlowBadge tone="neutral">{CAREER_CHAT_WORKSPACE_BADGE_IN_MEMORY}</ApplyFlowBadge>
           {response?.reviewRequired ? (
             <ApplyFlowBadge tone="warning" data-testid="career-chat-review-badge">
-              Review required
+              {pilotPresentation ? "Revise antes de usar" : "Review required"}
             </ApplyFlowBadge>
           ) : null}
           {pilotMode ? (
@@ -305,12 +354,14 @@ export function CareerChatWorkspaceView({
           </p>
         ) : null}
 
-        <p>{CAREER_CHAT_WORKSPACE_DESCRIPTION}</p>
-        <p data-testid="career-chat-workspace-disclaimer">{CAREER_CHAT_WORKSPACE_DISCLAIMER}</p>
+        <p>{pilotPresentation ? CAREER_PILOT_CHAT_DESCRIPTION : CAREER_CHAT_WORKSPACE_DESCRIPTION}</p>
+        {!pilotPresentation ? (
+          <p data-testid="career-chat-workspace-disclaimer">{CAREER_CHAT_WORKSPACE_DISCLAIMER}</p>
+        ) : null}
 
         <div className="space-y-2">
           <label htmlFor="career-chat-action-select" className="font-medium text-[color:var(--af-text)]">
-            {CAREER_CHAT_WORKSPACE_ACTION_LABEL}
+            {pilotPresentation ? CAREER_PILOT_ACTION_LABEL : CAREER_CHAT_WORKSPACE_ACTION_LABEL}
           </label>
           <select
             id="career-chat-action-select"
@@ -319,9 +370,9 @@ export function CareerChatWorkspaceView({
             onChange={(event) => onActionChange(event.target.value as CareerChatIntent)}
             data-testid="career-chat-action-select"
           >
-            {(Object.keys(CAREER_CHAT_WORKSPACE_ACTION_LABELS) as CareerChatIntent[]).map((value) => (
+            {visibleActions.map((value) => (
               <option key={value} value={value}>
-                {CAREER_CHAT_WORKSPACE_ACTION_LABELS[value]}
+                {actionLabels[value as keyof typeof actionLabels] ?? value}
               </option>
             ))}
           </select>
@@ -333,7 +384,7 @@ export function CareerChatWorkspaceView({
             data-testid="career-chat-specialist-inputs"
           >
             <p className="font-medium text-[color:var(--af-text)]">
-              {CAREER_CHAT_WORKSPACE_SPECIALIST_LABEL}
+              {pilotPresentation ? "Informações para análise" : CAREER_CHAT_WORKSPACE_SPECIALIST_LABEL}
             </p>
             {action !== "plan_career_strategy" ? (
               <>
@@ -402,7 +453,7 @@ export function CareerChatWorkspaceView({
 
         <div className="space-y-2">
           <label htmlFor="career-chat-message-input" className="font-medium text-[color:var(--af-text)]">
-            {CAREER_CHAT_WORKSPACE_MESSAGE_LABEL}
+            {pilotPresentation ? CAREER_PILOT_MESSAGE_LABEL : CAREER_CHAT_WORKSPACE_MESSAGE_LABEL}
           </label>
           <textarea
             id="career-chat-message-input"
@@ -424,18 +475,18 @@ export function CareerChatWorkspaceView({
             onChange={(event) => onConsentChange(event.target.checked)}
             data-testid="career-chat-consent-checkbox"
           />
-          <span>{CAREER_CHAT_WORKSPACE_CONSENT_LABEL}</span>
+          <span>{pilotPresentation ? CAREER_PILOT_CONSENT_LABEL : CAREER_CHAT_WORKSPACE_CONSENT_LABEL}</span>
         </label>
 
         <ApplyFlowButton
           type="button"
           variant="primary"
           size="sm"
-          disabled={!careerBundle || !explicitConsent || !message.trim() || isSending}
+          disabled={submitDisabled || isSending}
           onClick={onSend}
           data-testid="career-chat-send-button"
         >
-          {isSending ? "Sending…" : CAREER_CHAT_WORKSPACE_SEND_LABEL}
+          {isSending ? "Enviando…" : pilotPresentation ? CAREER_PILOT_SEND_LABEL : CAREER_CHAT_WORKSPACE_SEND_LABEL}
         </ApplyFlowButton>
 
         {emptyMessage ? (
@@ -450,12 +501,19 @@ export function CareerChatWorkspaceView({
           </p>
         ) : null}
 
-        {response?.agentResult ? (
+        {response?.agentResult && !pilotPresentation ? (
           <div className="space-y-2" data-testid="career-chat-agent-result">
             <p className="font-medium text-[color:var(--af-text)]">Agent response</p>
             <p>Status: {response.agentResult.status}</p>
             <p>Agent: {response.agentResult.agent}</p>
             <p>Summary: {response.agentResult.summary}</p>
+          </div>
+        ) : null}
+
+        {response?.agentResult && pilotPresentation && response.agentResult.summary ? (
+          <div className="space-y-2" data-testid="career-chat-agent-result">
+            <p className="font-medium text-[color:var(--af-text)]">Resumo</p>
+            <p>{response.agentResult.summary}</p>
           </div>
         ) : null}
 
@@ -502,7 +560,7 @@ export function CareerChatWorkspaceView({
           </div>
         ) : null}
 
-        {reviewProposal ? (
+        {reviewProposal && !pilotPresentation ? (
           <div className="space-y-1" data-testid="career-chat-review-proposal">
             <p className="font-medium text-[color:var(--af-text)]">Review proposal</p>
             <p>{reviewProposal.title}</p>
@@ -512,7 +570,7 @@ export function CareerChatWorkspaceView({
           </div>
         ) : null}
 
-        {response?.toolProposals.length ? (
+        {response?.toolProposals.length && !pilotPresentation ? (
           <div className="space-y-2" data-testid="career-chat-tool-proposals">
             <p className="font-medium text-[color:var(--af-text)]">Tool proposals</p>
             <ul className="space-y-2">
@@ -540,7 +598,7 @@ export function CareerChatWorkspaceView({
           </div>
         ) : null}
 
-        {selectedProposal ? (
+        {selectedProposal && !pilotPresentation ? (
           <div
             className="space-y-2 rounded-[var(--af-radius-sm)] border border-violet-500/30 p-2"
             data-testid="career-chat-proposal-review-panel"
@@ -583,7 +641,7 @@ export function CareerChatWorkspaceView({
           </div>
         ) : null}
 
-        {response?.trace ? (
+        {response?.trace && !pilotPresentation ? (
           <div data-testid="career-chat-trace">
             <p className="font-medium text-[color:var(--af-text)]">Execution trace</p>
             <ol className="list-inside list-decimal">
@@ -647,9 +705,16 @@ export function CareerChatWorkspace({
   careerBundle,
   selectedSignalIds,
   availableSignals,
+  pilotPresentation = false,
+  initialSpecialistFields,
+  onPilotActionChange,
 }: CareerChatWorkspaceProps) {
-  const [action, setAction] = useState<CareerChatIntent>("prepare_interview");
-  const [message, setMessage] = useState("Focus on frontend architecture");
+  const [action, setAction] = useState<CareerChatIntent>(
+    pilotPresentation ? "analyze_resume" : "prepare_interview",
+  );
+  const [message, setMessage] = useState(
+    pilotPresentation ? CAREER_PILOT_DEFAULT_MESSAGE : "Focus on frontend architecture",
+  );
   const [explicitConsent, setExplicitConsent] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [response, setResponse] = useState<CareerChatResponse | null>(null);
@@ -657,25 +722,59 @@ export function CareerChatWorkspace({
   const [selectedProposal, setSelectedProposal] = useState<CareerChatToolProposal | null>(null);
   const [approvedOnce, setApprovedOnce] = useState(false);
   const [specialistFields, setSpecialistFields] = useState<CareerSpecialistFields>(
-    EMPTY_SPECIALIST_FIELDS,
+    initialSpecialistFields ?? EMPTY_SPECIALIST_FIELDS,
   );
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
-  const pilotMode = isCareerPilotModeClient();
+  const pilotMode = pilotPresentation || isCareerPilotModeClient();
+
+  const effectiveBundle = useMemo(() => {
+    if (careerBundle && careerBundle.applications.length > 0) {
+      return careerBundle;
+    }
+    if (!pilotPresentation || !isCareerPilotIntent(action)) {
+      return null;
+    }
+    if (!hasPilotAnalysisInputs(action, specialistFields)) {
+      return null;
+    }
+    return buildPilotCareerBundleFromFields(specialistFields);
+  }, [action, careerBundle, pilotPresentation, specialistFields]);
+
+  const hasBundle = pilotPresentation
+    ? effectiveBundle != null
+    : careerBundle != null && careerBundle.applications.length > 0;
 
   const uiState = useMemo(
     () =>
       resolveUiState({
-        hasBundle: careerBundle != null && careerBundle.applications.length > 0,
+        hasBundle,
         explicitConsent,
         isSending,
         response,
         errorMessage,
+        pilotPresentation,
       }),
-    [careerBundle, errorMessage, explicitConsent, isSending, response],
+    [errorMessage, explicitConsent, hasBundle, isSending, pilotPresentation, response],
   );
 
+  const submitDisabled = pilotPresentation
+    ? !explicitConsent ||
+      !isCareerPilotIntent(action) ||
+      !hasPilotAnalysisInputs(action, specialistFields)
+    : !careerBundle || !explicitConsent || !message.trim();
+
+  function handleActionChange(nextAction: CareerChatIntent) {
+    setAction(nextAction);
+    onPilotActionChange?.(nextAction);
+  }
+
   async function handleSend() {
-    if (!careerBundle || !explicitConsent || !message.trim()) {
+    if (!effectiveBundle || !explicitConsent) {
+      return;
+    }
+
+    const outboundMessage = message.trim() || (pilotPresentation ? CAREER_PILOT_DEFAULT_MESSAGE : "");
+    if (!pilotPresentation && !outboundMessage) {
       return;
     }
 
@@ -689,17 +788,17 @@ export function CareerChatWorkspace({
       const analysisInput = buildSpecialistAnalysisInput({
         action,
         fields: specialistFields,
-        mainStack: careerBundle.candidate?.mainStack ?? [],
+        mainStack: effectiveBundle.candidate?.mainStack ?? [],
         fallbackRole:
-          careerBundle.candidate?.targetRole ?? careerBundle.applications[0]?.role ?? "",
+          effectiveBundle.candidate?.targetRole ?? effectiveBundle.applications[0]?.role ?? "",
       });
 
       const nextResponse = await runCareerChatLibrechat({
         action,
-        message: message.trim(),
+        message: outboundMessage,
         explicitConsent: true,
         context: {
-          careerBundle,
+          careerBundle: effectiveBundle,
           selectedSignalIds,
           availableSignals,
           ...(analysisInput ? { analysisInput } : {}),
@@ -707,19 +806,23 @@ export function CareerChatWorkspace({
       });
       setResponse(nextResponse);
     } catch {
-      setErrorMessage("Career chat adapter failed safely.");
+      setErrorMessage(
+        pilotPresentation
+          ? "Não foi possível concluir a análise. Tente novamente."
+          : "Career chat adapter failed safely.",
+      );
     } finally {
       setIsSending(false);
     }
   }
 
   const orchestration =
-    response?.agentResult?.status === "completed" && careerBundle
+    response?.agentResult?.status === "completed" && effectiveBundle
       ? {
           intent: action,
           explicitConsent: true as const,
           context: {
-            careerBundle,
+            careerBundle: effectiveBundle,
             selectedSignalIds,
             availableSignals,
           },
@@ -729,7 +832,7 @@ export function CareerChatWorkspace({
   return (
     <>
       <CareerChatWorkspaceView
-        careerBundle={careerBundle}
+        careerBundle={effectiveBundle}
         selectedSignalIds={selectedSignalIds}
         availableSignals={availableSignals}
         action={action}
@@ -740,7 +843,7 @@ export function CareerChatWorkspace({
         errorMessage={errorMessage}
         selectedProposal={selectedProposal}
         approvedOnce={approvedOnce}
-        onActionChange={setAction}
+        onActionChange={handleActionChange}
         onMessageChange={setMessage}
         onConsentChange={setExplicitConsent}
         onSend={() => {
@@ -766,6 +869,8 @@ export function CareerChatWorkspace({
           setSpecialistFields((current) => ({ ...current, [field]: value }))
         }
         pilotMode={pilotMode}
+        pilotPresentation={pilotPresentation}
+        submitDisabled={submitDisabled}
         feedbackSubmitted={feedbackSubmitted}
         onSubmitFeedback={(rating) => {
           setFeedbackSubmitted(true);
@@ -777,13 +882,18 @@ export function CareerChatWorkspace({
         }}
       />
 
-      {approvedOnce && selectedProposal && orchestration && careerBundle && response?.agentResult?.status === "completed" ? (
+      {!pilotPresentation &&
+      approvedOnce &&
+      selectedProposal &&
+      orchestration &&
+      effectiveBundle &&
+      response?.agentResult?.status === "completed" ? (
         <CareerToolPermissionReview
           agentResult={response.agentResult}
           orchestration={orchestration}
           agentRequestId={deriveCareerAgentRequestId({
             intent: action,
-            careerBundle,
+            careerBundle: effectiveBundle,
             selectedSignalIds,
           })}
         />
