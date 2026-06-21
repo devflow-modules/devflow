@@ -4,8 +4,22 @@ Operational plan for a **seven-day closed cohort** on the controlled ApplyFlow P
 document complements — and does not replace — [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md)
 (technical smoke) and [`DEPLOYMENT.md`](./DEPLOYMENT.md) (environment matrix).
 
-**Related:** [`README.md`](./README.md) · [`SECURITY-CHECKLIST.md`](./SECURITY-CHECKLIST.md) ·
-[`OBSERVABILITY.md`](./OBSERVABILITY.md)
+**Related:** [`README.md`](./README.md) · [`PRODUCT-UX-READINESS-REVIEW.md`](./PRODUCT-UX-READINESS-REVIEW.md) ·
+[`SECURITY-CHECKLIST.md`](./SECURITY-CHECKLIST.md) · [`OBSERVABILITY.md`](./OBSERVABILITY.md)
+
+---
+
+## Product & UX gate (before P01)
+
+**Do not schedule participant P01** until the readiness review records decision **`READY FOR P01`**.
+
+| Gate | Source |
+|------|--------|
+| Product/UX audit complete | [`PRODUCT-UX-READINESS-REVIEW.md`](./PRODUCT-UX-READINESS-REVIEW.md) |
+| No open P1 UX blockers | Remediation issue (linked from [#129](https://github.com/devflow-modules/devflow/issues/129)) |
+| Technical Preview smoke | [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md) |
+
+Current decision (2026-06-18): **`UX REMEDIATION REQUIRED`** — see the review document for P1 items and remediation sequence.
 
 ---
 
@@ -186,6 +200,7 @@ blocker.
 
 ### Before session
 
+- [ ] Product/UX readiness decision is **`READY FOR P01`** ([`PRODUCT-UX-READINESS-REVIEW.md`](./PRODUCT-UX-READINESS-REVIEW.md))
 - [ ] Preview deployment **Ready** (`devflow-applyflow`)
 - [ ] `GET /career-system/readyz` → `environment: preview`, `blockers: []`
 - [ ] `/dashboard/system-status` shows current commit (via `VERCEL_GIT_COMMIT_SHA`)
