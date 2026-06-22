@@ -3,46 +3,67 @@
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
 import type { CareerChatIntent } from "@devflow/career-core";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { CareerChatWorkspace } from "./career-chat-workspace";
-import { CareerPilotJourney } from "./career-pilot-journey";
-import { CareerPilotOnboarding } from "./career-pilot-onboarding";
+import { CareerJourneyStepper } from "./career-journey-stepper";
+import { CareerProductHeader } from "./career-product-header";
 import {
   CAREER_PILOT_EXAMPLE_BUTTON_LABEL,
   CAREER_PILOT_EXAMPLE_FIELDS,
+  CAREER_PILOT_EXAMPLE_HINT,
   CAREER_PILOT_WORKSPACE_ID,
+  type CareerPilotIntent,
 } from "./career-pilot-content";
 
 export function CareerPilotExperience() {
   const [activeIntent, setActiveIntent] = useState<CareerChatIntent>("analyze_resume");
+  const [completedIntents, setCompletedIntents] = useState<Set<CareerPilotIntent>>(new Set());
   const [exampleKey, setExampleKey] = useState(0);
+
+  const handleIntentSelect = useCallback((intent: CareerPilotIntent) => {
+    setActiveIntent(intent);
+  }, []);
+
+  const handleAnalysisComplete = useCallback((intent: CareerPilotIntent) => {
+    setCompletedIntents((current) => {
+      if (current.has(intent)) {
+        return current;
+      }
+      const next = new Set(current);
+      next.add(intent);
+      return next;
+    });
+  }, []);
 
   return (
     <ApplyFlowSection
       id="career-suite-piloto"
-      eyebrow="Piloto fechado"
       title="Career Suite"
-      description="Siga as três etapas abaixo para revisar currículo, compatibilidade com uma vaga e plano de ação."
+      description="Entenda seu currículo, compare com uma vaga e transforme os achados em um plano de ação."
+      className="mx-auto max-w-4xl"
     >
-      <div className="space-y-5">
-        <CareerPilotOnboarding />
+      <div className="space-y-6">
+        <CareerProductHeader />
 
-        <CareerPilotJourney activeIntent={activeIntent} />
+        <CareerJourneyStepper
+          activeIntent={activeIntent}
+          completedIntents={completedIntents}
+          onSelectIntent={handleIntentSelect}
+        />
 
-        <div id={CAREER_PILOT_WORKSPACE_ID} className="scroll-mt-24 space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
+        <div id={CAREER_PILOT_WORKSPACE_ID} className="scroll-mt-24 space-y-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <ApplyFlowButton
               type="button"
-              variant="outlineBrand"
+              variant="ghost"
               size="sm"
+              className="w-full sm:w-auto"
               data-testid="career-pilot-example-button"
               onClick={() => setExampleKey((current) => current + 1)}
             >
               {CAREER_PILOT_EXAMPLE_BUTTON_LABEL}
             </ApplyFlowButton>
-            <p className="text-[11px] text-[color:var(--af-text-muted)]">
-              Exemplo fictício — substitua pelos seus dados reais.
-            </p>
+            <p className="text-sm text-[color:var(--af-text-muted)]">{CAREER_PILOT_EXAMPLE_HINT}</p>
           </div>
 
           <CareerChatWorkspace
@@ -51,10 +72,10 @@ export function CareerPilotExperience() {
             selectedSignalIds={[]}
             availableSignals={[]}
             pilotPresentation
-            initialSpecialistFields={
-              exampleKey > 0 ? CAREER_PILOT_EXAMPLE_FIELDS : undefined
-            }
+            pilotIntent={activeIntent}
             onPilotActionChange={setActiveIntent}
+            onPilotAnalysisComplete={handleAnalysisComplete}
+            initialSpecialistFields={exampleKey > 0 ? CAREER_PILOT_EXAMPLE_FIELDS : undefined}
           />
         </div>
       </div>

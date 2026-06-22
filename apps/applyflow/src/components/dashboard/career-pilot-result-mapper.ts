@@ -48,23 +48,27 @@ function mapResumeAnalysis(
   analysis: ResumeAnalysis,
   agentResult: CareerAgentResult,
 ): Omit<CareerPilotResultModel, "flowTitle" | "technicalLines" | "traceSteps"> {
+  const strengths = analysis.strengths ?? [];
+  const weaknesses = analysis.weaknesses ?? [];
+  const missingEvidence = analysis.missingEvidence ?? [];
+  const bulletRecommendations = analysis.bulletRecommendations ?? [];
+  const sectionRecommendations = analysis.sectionRecommendations ?? [];
+  const risks = analysis.risks ?? [];
+  const nextActions = analysis.nextActions ?? [];
+  const evidence = agentResult.evidence ?? [];
+
   return {
     summary,
-    strengths: takeTopUnique(analysis.strengths, 3),
-    improvements: takeTopUnique([...analysis.weaknesses, ...analysis.missingEvidence], 3),
-    nextActions: takeTopUnique(
-      [...analysis.nextActions, ...analysis.sectionRecommendations],
-      3,
-    ),
-    risks: takeTopUnique(analysis.risks, 5),
+    strengths: takeTopUnique(strengths, 3),
+    improvements: takeTopUnique([...weaknesses, ...missingEvidence], 3),
+    nextActions: takeTopUnique([...nextActions, ...sectionRecommendations], 3),
+    risks: takeTopUnique(risks, 5),
     scores: [{ label: "Qualidade da estrutura", value: analysis.score, max: 100 }],
     evidence: takeTopUnique(
       [
-        ...analysis.bulletRecommendations.map(
-          (item) => `${item.section}: ${item.recommendation}`,
-        ),
-        ...analysis.sectionRecommendations,
-        ...agentResult.evidence,
+        ...bulletRecommendations.map((item) => `${item.section}: ${item.recommendation}`),
+        ...sectionRecommendations,
+        ...evidence,
       ],
       8,
     ),
@@ -76,10 +80,19 @@ function mapAtsAnalysis(
   analysis: AtsAnalysis,
   agentResult: CareerAgentResult,
 ): Omit<CareerPilotResultModel, "flowTitle" | "technicalLines" | "traceSteps"> {
-  const covered = analysis.requiredRequirementCoverage
+  const requiredRequirementCoverage = analysis.requiredRequirementCoverage ?? [];
+  const matchedKeywords = analysis.matchedKeywords ?? [];
+  const missingKeywords = analysis.missingKeywords ?? [];
+  const recommendations = analysis.recommendations ?? [];
+  const structureRisks = analysis.structureRisks ?? [];
+  const parsingRisks = analysis.parsingRisks ?? [];
+  const keywordStuffingWarnings = analysis.keywordStuffingWarnings ?? [];
+  const evidence = agentResult.evidence ?? [];
+
+  const covered = requiredRequirementCoverage
     .filter((item) => item.status === "covered")
     .map((item) => item.requirement);
-  const gaps = analysis.requiredRequirementCoverage
+  const gaps = requiredRequirementCoverage
     .filter((item) => item.status !== "covered")
     .map((item) => `${item.requirement} (${item.status === "partial" ? "parcial" : "ausente"})`);
 
@@ -87,36 +100,27 @@ function mapAtsAnalysis(
     summary,
     strengths: takeTopUnique(
       [
-        ...analysis.matchedKeywords.map((keyword) => `Palavra-chave presente: ${keyword}`),
+        ...matchedKeywords.map((keyword) => `Palavra-chave presente: ${keyword}`),
         ...covered.map((requirement) => `Requisito atendido: ${requirement}`),
       ],
       3,
     ),
     improvements: takeTopUnique(
       [
-        ...analysis.missingKeywords.map((keyword) => `Palavra-chave ausente: ${keyword}`),
+        ...missingKeywords.map((keyword) => `Palavra-chave ausente: ${keyword}`),
         ...gaps,
       ],
       3,
     ),
-    nextActions: takeTopUnique(analysis.recommendations, 3),
-    risks: takeTopUnique(
-      [
-        ...analysis.structureRisks,
-        ...analysis.parsingRisks,
-        ...analysis.keywordStuffingWarnings,
-      ],
-      5,
-    ),
+    nextActions: takeTopUnique(recommendations, 3),
+    risks: takeTopUnique([...structureRisks, ...parsingRisks, ...keywordStuffingWarnings], 5),
     scores: [
       { label: "Compatibilidade estimada", value: analysis.compatibilityScore, max: 100 },
     ],
     evidence: takeTopUnique(
       [
-        ...analysis.requiredRequirementCoverage.map(
-          (item) => `${item.requirement}: ${item.status}`,
-        ),
-        ...agentResult.evidence,
+        ...requiredRequirementCoverage.map((item) => `${item.requirement}: ${item.status}`),
+        ...evidence,
       ],
       8,
     ),
@@ -128,28 +132,35 @@ function mapCareerStrategyPlan(
   plan: CareerStrategyPlan,
   agentResult: CareerAgentResult,
 ): Omit<CareerPilotResultModel, "flowTitle" | "technicalLines" | "traceSteps"> {
+  const priorityRoles = plan.priorityRoles ?? [];
+  const skillPriorities = plan.skillPriorities ?? [];
+  const thirtyDayPlan = plan.thirtyDayPlan ?? [];
+  const applicationStrategy = plan.applicationStrategy ?? [];
+  const risks = plan.risks ?? [];
+  const portfolioPriorities = plan.portfolioPriorities ?? [];
+  const sixtyDayPlan = plan.sixtyDayPlan ?? [];
+  const ninetyDayPlan = plan.ninetyDayPlan ?? [];
+  const evidence = agentResult.evidence ?? [];
+
   return {
     summary: plan.positioningSummary || summary,
     strengths: takeTopUnique(
-      plan.priorityRoles.map((role) => `${role.role} — ${role.rationale}`),
+      priorityRoles.map((role) => `${role.role} — ${role.rationale}`),
       3,
     ),
     improvements: takeTopUnique(
-      plan.skillPriorities.map((item) => `${item.skill}: ${item.reason}`),
+      skillPriorities.map((item) => `${item.skill}: ${item.reason}`),
       3,
     ),
-    nextActions: takeTopUnique(
-      [...plan.thirtyDayPlan, ...plan.applicationStrategy],
-      3,
-    ),
-    risks: takeTopUnique(plan.risks, 5),
+    nextActions: takeTopUnique([...thirtyDayPlan, ...applicationStrategy], 3),
+    risks: takeTopUnique(risks, 5),
     scores: [],
     evidence: takeTopUnique(
       [
-        ...plan.portfolioPriorities,
-        ...plan.sixtyDayPlan.map((item) => `60 dias: ${item}`),
-        ...plan.ninetyDayPlan.map((item) => `90 dias: ${item}`),
-        ...agentResult.evidence,
+        ...portfolioPriorities,
+        ...sixtyDayPlan.map((item) => `60 dias: ${item}`),
+        ...ninetyDayPlan.map((item) => `90 dias: ${item}`),
+        ...evidence,
       ],
       8,
     ),
@@ -160,24 +171,29 @@ function fallbackFromAgentResult(agentResult: CareerAgentResult): Omit<
   CareerPilotResultModel,
   "flowTitle" | "technicalLines" | "traceSteps"
 > {
+  const findings = agentResult.findings ?? [];
+  const recommendations = agentResult.recommendations ?? [];
+  const warnings = agentResult.warnings ?? [];
+  const evidence = agentResult.evidence ?? [];
+
   return {
     summary: agentResult.summary,
     strengths: takeTopUnique(
-      agentResult.findings
+      findings
         .filter((item) => item.priority !== "high")
         .map((item) => item.title),
       3,
     ),
     improvements: takeTopUnique(
-      agentResult.findings
+      findings
         .filter((item) => item.priority === "high")
         .map((item) => item.title),
       3,
     ),
-    nextActions: takeTopUnique(agentResult.recommendations.map((item) => item.title), 3),
-    risks: takeTopUnique(agentResult.warnings.map((item) => item.message), 5),
+    nextActions: takeTopUnique(recommendations.map((item) => item.title), 3),
+    risks: takeTopUnique(warnings.map((item) => item.message), 5),
     scores: [],
-    evidence: takeTopUnique(agentResult.evidence, 8),
+    evidence: takeTopUnique(evidence, 8),
   };
 }
 
@@ -203,7 +219,10 @@ export function buildCareerPilotResultModel(input: {
     return null;
   }
 
-  const summary = agentResult.summary.trim();
+  const summary = (agentResult.summary ?? "").trim();
+  if (!summary) {
+    return null;
+  }
   let core: Omit<CareerPilotResultModel, "flowTitle" | "technicalLines" | "traceSteps">;
 
   if (agentResult.resumeAnalysis) {
