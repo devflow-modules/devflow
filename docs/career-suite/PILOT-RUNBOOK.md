@@ -11,15 +11,17 @@ document complements — and does not replace — [`PILOT-VALIDATION.md`](./PILO
 
 ## Product & UX gate (before P01)
 
-**Do not schedule participant P01** until the readiness review records decision **`READY FOR P01`**.
+**P01 scheduling resumed** after PR #136 merged and `main` Preview smoke passed (2026-06-22).
 
 | Gate | Source |
 |------|--------|
 | Product/UX audit complete | [`PRODUCT-UX-READINESS-REVIEW.md`](./PRODUCT-UX-READINESS-REVIEW.md) |
-| No open P1 UX blockers | Remediation issue (linked from [#129](https://github.com/devflow-modules/devflow/issues/129)) |
-| Technical Preview smoke | [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md) |
+| UI/UX polish merged | PR [#136](https://github.com/devflow-modules/devflow/pull/136) → `main` @ `7e5dfbc` |
+| Visual walkthrough approved | Desktop 1440/1280, mobile 375/390, error recovery, feedback consent |
+| No open P1 UX blockers | W-01/W-02 resolved; W-04 non-blocking P2 outside pilot surface |
+| Technical Preview smoke | [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md) + `main` smoke 2026-06-22 |
 
-Current decision (2026-06-21): **`READY FOR P01`** — validated on ApplyFlow Preview `main` @ `1c371923` ([`PRODUCT-UX-READINESS-REVIEW.md`](./PRODUCT-UX-READINESS-REVIEW.md)).
+Current decision (2026-06-22): **`READY FOR P01`** — validated on ApplyFlow Preview `main` @ `7e5dfbc` ([`PRODUCT-UX-READINESS-REVIEW.md`](./PRODUCT-UX-READINESS-REVIEW.md), PR #136 visual revalidation).
 
 ---
 

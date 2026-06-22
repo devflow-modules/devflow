@@ -6,6 +6,8 @@ Refine the participant-facing Career Suite pilot experience into a professional,
 
 P01 scheduling was intentionally paused for this optional UI/UX polish cycle. Functional readiness remains **`READY FOR P01`** per [`PRODUCT-UX-READINESS-REVIEW.md`](./PRODUCT-UX-READINESS-REVIEW.md).
 
+**Status (2026-06-22):** PR [#136](https://github.com/devflow-modules/devflow/pull/136) merged to `main` as squash `7e5dfbc`. Visual walkthrough approved (desktop + mobile, error recovery, feedback consent). P01 scheduling **resumed** after `main` Preview smoke.
+
 ## Visual direction
 
 - Professional, trustworthy, contemporary, calm, action-oriented
@@ -95,7 +97,8 @@ Validate viewports: **375×812**, **390×844**, **1280×800**, **1440×900**.
 - `pnpm --filter applyflow test`
 - `pnpm --filter applyflow build`
 - Lint, button governance, design-system checks, secret scan
-- **Visual review required** on ApplyFlow Preview (desktop + mobile) before merge
+- Visual review completed on ApplyFlow Preview (desktop + mobile) — see PR #136 walkthrough
+- `main` Preview smoke recorded after merge (`7e5dfbc`)
 
 ## Remaining P2/P3
 
