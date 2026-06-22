@@ -140,7 +140,7 @@ export const CAREER_PILOT_EXAMPLE_FIELDS: CareerSpecialistFields = {
 
 export const CAREER_PILOT_EXAMPLE_SIMPLE_INPUTS: CareerPilotSimpleInputs = {
   targetRole: "Engenheiro de Software Backend",
-  resumeText: `Maria Souza — Desenvolvedora de Software
+  resumeText: `Maria Souza — Desenvolvedora de Software Sênior
 
 Experiência profissional
 TechCorp (2021–presente) — Desenvolvedora Backend

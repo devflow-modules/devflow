@@ -47,6 +47,19 @@ const SECTION_HEADER_PATTERN =
 const ACTION_LINE_PATTERN =
   /\b(desenvolvi|implementei|reduzi|criei|liderei|constru[ií]|built|led|developed|implemented|reduced)\b/i;
 
+const IDENTITY_LINE_PATTERN = /^([\p{L}\s.'-]+)\s*[—–-]\s*([\p{L}\s.'-]+)$/u;
+
+const COMPANY_PERIOD_HEADER_PATTERN =
+  /^[\p{L}\d\s.&''\-]+[\(（]\s*(19|20)\d{2}\s*[–\-—]\s*(presente|(19|20)\d{2})\s*[\)）]/iu;
+
+const ROLE_PERIOD_PATTERN = /[\—\-–]\s*(19|20)\d{2}\s*(a|até|–|-)\s*(19|20)\d{2}\b/i;
+
+const PROFESSIONAL_TITLE_PATTERN =
+  /\b(desenvolvedor|desenvolvedora|engenheir|analista|designer|gerente|coordenador|consultor|arquiteto|software|backend|frontend|full[\s-]?stack|sênior|senior|pleno|júnior|junior)\b/i;
+
+const EXPERIENCE_BULLET_PREFIX_PATTERN =
+  /^(trabalhei|ajudei|participei|responsável|responsavel|atuei|colabor|conhecimento|fiz|realizei|executei)\b/i;
+
 function isSectionHeader(line: string): boolean {
   const trimmed = line.trim();
   if (trimmed.length > 60 || ACTION_LINE_PATTERN.test(trimmed)) {
@@ -61,13 +74,108 @@ function isSkillListLine(line: string): boolean {
   return SKILL_LINE_PATTERN.test(line.trim());
 }
 
-function isLikelyTitleOnly(line: string): boolean {
+function parseIdentityLine(line: string): { name: string; role: string } | null {
+  const match = line.trim().match(IDENTITY_LINE_PATTERN);
+  if (!match?.[1] || !match[2]) {
+    return null;
+  }
+  return { name: match[1].trim(), role: match[2].trim() };
+}
+
+function isCompanyPeriodHeader(line: string): boolean {
   const trimmed = line.trim();
-  if (trimmed.length < 12) {
+  return COMPANY_PERIOD_HEADER_PATTERN.test(trimmed) || ROLE_PERIOD_PATTERN.test(trimmed);
+}
+
+function looksLikeExperienceBulletLine(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed) {
+    return false;
+  }
+  if (ACTION_LINE_PATTERN.test(trimmed)) {
     return true;
   }
-  if (/^[\p{L}\s.'-]+ — [\p{L}\s.'-]+$/u.test(trimmed) && trimmed.length < 60) {
+  if (EXPERIENCE_BULLET_PREFIX_PATTERN.test(trimmed)) {
+    return true;
+  }
+  if (isCompanyPeriodHeader(trimmed)) {
+    return true;
+  }
+  return /[.!?]$/.test(trimmed) && trimmed.split(/\s+/).length <= 10 && trimmed.length < 90;
+}
+
+function isProfessionalTitleLine(line: string): boolean {
+  const trimmed = line.trim();
+  if (trimmed.length < 15 || trimmed.length > 80) {
     return false;
+  }
+  if (parseIdentityLine(trimmed)) {
+    return false;
+  }
+  if (isSectionHeader(trimmed) || isSkillListLine(trimmed) || isCompanyPeriodHeader(trimmed)) {
+    return false;
+  }
+  if (ACTION_LINE_PATTERN.test(trimmed) || EXPERIENCE_BULLET_PREFIX_PATTERN.test(trimmed)) {
+    return false;
+  }
+  return PROFESSIONAL_TITLE_PATTERN.test(trimmed);
+}
+
+function isDescriptiveSummaryParagraph(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed.length < 20 || isSkillListLine(trimmed) || parseIdentityLine(trimmed)) {
+    return false;
+  }
+
+  const sentences = trimmed.split(/(?<=[.!?])\s+/).filter(Boolean);
+  if (sentences.length >= 2) {
+    const experienceLikeCount = sentences.filter((sentence) => looksLikeExperienceBulletLine(sentence)).length;
+    if (experienceLikeCount >= 2) {
+      return false;
+    }
+  }
+
+  if (/\bcom experiência\b/i.test(trimmed) || /\bcom experiencia\b/i.test(trimmed)) {
+    return true;
+  }
+
+  if (
+    /\b(experiência|experiencia|especializad[oa]|focad[oa]|profissional)\b/i.test(trimmed) &&
+    trimmed.length >= 30
+  ) {
+    return true;
+  }
+
+  if (sentences.length === 1 && !looksLikeExperienceBulletLine(trimmed)) {
+    return trimmed.length >= 25 && /\b(em|com|para|usando|através|atraves)\b/i.test(trimmed);
+  }
+
+  return false;
+}
+
+function extractRoleFromIdentityLine(line: string): string | null {
+  const identity = parseIdentityLine(line);
+  if (!identity || identity.role.length < 10) {
+    return null;
+  }
+  return identity.role.slice(0, MAX_SUMMARY_LENGTH);
+}
+
+function lineMatchesSummary(line: string, summary: string): boolean {
+  const lowered = line.trim().toLowerCase();
+  const summaryNorm = summary.trim().toLowerCase();
+  if (!summaryNorm) {
+    return false;
+  }
+  if (lowered === summaryNorm) {
+    return true;
+  }
+  if (summaryNorm.includes(lowered) || lowered.includes(summaryNorm)) {
+    return true;
+  }
+  const identity = parseIdentityLine(line);
+  if (identity && identity.role.toLowerCase() === summaryNorm) {
+    return true;
   }
   return false;
 }
@@ -84,6 +192,7 @@ export function extractProfessionalSummary(resumeText: string): string {
 
   const rawLines = normalized.split("\n").map((line) => line.trim());
   const paragraphs: string[] = [];
+  const preSectionLines: string[] = [];
   let current: string[] = [];
 
   for (const line of rawLines) {
@@ -102,7 +211,9 @@ export function extractProfessionalSummary(resumeText: string): string {
     }
 
     const trimmed = line.replace(/^[\s•\-*]+/, "").trim();
-    if (ACTION_LINE_PATTERN.test(trimmed)) {
+    preSectionLines.push(trimmed);
+
+    if (looksLikeExperienceBulletLine(trimmed)) {
       if (current.length > 0) {
         paragraphs.push(current.join(" "));
         current = [];
@@ -118,23 +229,19 @@ export function extractProfessionalSummary(resumeText: string): string {
 
   for (const paragraph of paragraphs) {
     const candidate = paragraph.trim();
-    if (candidate.length < 20) {
-      continue;
+    if (isDescriptiveSummaryParagraph(candidate)) {
+      return candidate.slice(0, MAX_SUMMARY_LENGTH);
     }
-    if (isSkillListLine(candidate)) {
-      continue;
+  }
+
+  for (const line of preSectionLines) {
+    const roleFromIdentity = extractRoleFromIdentityLine(line);
+    if (roleFromIdentity) {
+      return roleFromIdentity;
     }
-    if (/^[\p{L}\s.'-]+ — [\p{L}\s.'-]+$/u.test(candidate) && !/\bcom experiência\b/i.test(candidate)) {
-      const rolePart = candidate.split("—").pop()?.trim() ?? "";
-      if (rolePart.length >= 15 && /\b(com|em|para)\b/i.test(rolePart)) {
-        return rolePart.slice(0, MAX_SUMMARY_LENGTH);
-      }
-      continue;
+    if (isProfessionalTitleLine(line)) {
+      return line.trim().slice(0, MAX_SUMMARY_LENGTH);
     }
-    if (isLikelyTitleOnly(candidate) && !/\bcom experiência\b/i.test(candidate)) {
-      continue;
-    }
-    return candidate.slice(0, MAX_SUMMARY_LENGTH);
   }
 
   return "";
@@ -146,7 +253,6 @@ export function extractResumeLines(resumeText: string, summaryToExclude?: string
     return [];
   }
 
-  const summaryNorm = summaryToExclude?.trim().toLowerCase() ?? "";
   const rawLines = normalized
     .split("\n")
     .map((line) => line.replace(/^[\s•\-*]+/, "").trim())
@@ -157,13 +263,8 @@ export function extractResumeLines(resumeText: string, summaryToExclude?: string
   let reachedBody = !hasStructuredSections;
 
   for (const line of rawLines) {
-    const lowered = line.toLowerCase();
-
-    if (summaryNorm && !reachedBody) {
-      if (lowered === summaryNorm || summaryNorm.includes(lowered) || lowered.includes(summaryNorm.slice(0, 40))) {
-        reachedBody = false;
-        continue;
-      }
+    if (summaryToExclude && lineMatchesSummary(line, summaryToExclude)) {
+      continue;
     }
 
     if (isSectionHeader(line)) {
@@ -179,17 +280,12 @@ export function extractResumeLines(resumeText: string, summaryToExclude?: string
       continue;
     }
 
-    if (summaryNorm && (lowered === summaryNorm || summaryNorm.includes(lowered))) {
-      continue;
-    }
-
     lines.push(line.slice(0, MAX_LINE_LENGTH));
   }
 
   if (lines.length === 0 && rawLines.length > 0) {
     for (const line of rawLines) {
-      const lowered = line.toLowerCase();
-      if (summaryNorm && (lowered === summaryNorm || summaryNorm.includes(lowered))) {
+      if (summaryToExclude && lineMatchesSummary(line, summaryToExclude)) {
         continue;
       }
       if (isSectionHeader(line) || isSkillListLine(line)) {
@@ -207,10 +303,7 @@ export function extractResumeLines(resumeText: string, summaryToExclude?: string
     .split(/(?<=[.!?])\s+/)
     .map((sentence) => sentence.trim())
     .filter((sentence) => sentence.length >= 8)
-    .filter((sentence) => {
-      if (!summaryNorm) return true;
-      return !summaryNorm.includes(sentence.toLowerCase());
-    })
+    .filter((sentence) => !summaryToExclude || !lineMatchesSummary(sentence, summaryToExclude))
     .slice(0, MAX_LINES);
 
   return sentenceLines.length > 0 ? sentenceLines : lines.slice(0, MAX_LINES);

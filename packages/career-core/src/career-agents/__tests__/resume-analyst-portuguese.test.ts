@@ -107,7 +107,7 @@ const FIXTURE_E: CareerAnalysisInput = {
 };
 
 describe("resume_analyst Portuguese action verbs", () => {
-  const { startsWithActionVerb, hasMetric, isVagueBullet, isStrongBullet, firstToken } =
+  const { startsWithActionVerb, hasMetric, hasNumber, hasMeaningfulMetric, isVagueBullet, isStrongBullet, firstToken } =
     __resumeAnalystTestUtils;
 
   it("recognizes Portuguese past-tense verbs on the first token", () => {
@@ -139,6 +139,22 @@ describe("resume_analyst Portuguese action verbs", () => {
     expect(hasMetric("Reduzi o tempo de deploy em 30%.")).toBe(true);
   });
 
+  it("separates isolated years from meaningful metrics", () => {
+    expect(hasNumber("TechCorp (2021–presente)")).toBe(true);
+    expect(hasMeaningfulMetric("TechCorp (2021–presente)")).toBe(false);
+    expect(hasMeaningfulMetric("Desenvolvedor — 2020 a 2023")).toBe(false);
+    expect(hasMeaningfulMetric("Reduzi deploy em 30%")).toBe(true);
+    expect(hasMeaningfulMetric("Liderei 4 pessoas")).toBe(true);
+    expect(hasMeaningfulMetric("Integrei 12 parceiros")).toBe(true);
+    expect(hasMeaningfulMetric("Atendi 10 mil usuários")).toBe(true);
+  });
+
+  it("uses correct plural for mensuráveis in participant summary", () => {
+    const result = runResumeAnalyst(ctx(FIXTURE_A));
+    expect(result.summary).toMatch(/mensuráveis/);
+    expect(result.summary).not.toMatch(/mensurávelis/);
+  });
+
   it("marks strong bullets with metrics and verbs as non-vague", () => {
     expect(isStrongBullet("Reduzi o tempo de deploy em 30% com pipelines CI/CD.")).toBe(true);
     expect(isVagueBullet("Reduzi o tempo de deploy em 30% com pipelines CI/CD.")).toBe(false);
@@ -146,9 +162,14 @@ describe("resume_analyst Portuguese action verbs", () => {
 });
 
 describe("resume_analyst Portuguese fixtures", () => {
+  const { hasMeaningfulMetric } = __resumeAnalystTestUtils;
+
   it("Fixture A — exemplo atual: score coerente, PT, verbos e métricas", () => {
     const result = runResumeAnalyst(ctx(FIXTURE_A));
     const analysis = result.resumeAnalysis;
+    const quantified = FIXTURE_A.resumeSnapshot!.experiences![0]!.bullets!.filter((bullet) =>
+      hasMeaningfulMetric(bullet),
+    );
 
     expect(result.summary).toMatch(/Análise concluída com pontuação estrutural/i);
     expect(result.summary).not.toMatch(/Resume review completed/i);
@@ -156,6 +177,7 @@ describe("resume_analyst Portuguese fixtures", () => {
     expect(analysis.score).toBeLessThanOrEqual(85);
     expect(analysis.strengths.some((s) => /resumo profissional/i.test(s))).toBe(true);
     expect(analysis.strengths.some((s) => /métricas verificáveis/i.test(s))).toBe(true);
+    expect(quantified).toHaveLength(2);
     expect(analysis.strengths.some((s) => /liderança/i.test(s))).toBe(true);
     expect(analysis.bulletRecommendations.filter((b) => b.reason.includes("vago")).length).toBe(0);
     expect(analysis.weaknesses.every((w) => !/\bResume\b/i.test(w))).toBe(true);

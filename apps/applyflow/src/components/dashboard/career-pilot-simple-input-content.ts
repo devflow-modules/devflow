@@ -41,3 +41,6 @@ export const CAREER_PILOT_EMPTY_JOB_MESSAGE = "Cole a descrição da vaga que de
 
 export const CAREER_PILOT_EMPTY_CAREER_GOAL_MESSAGE =
   "Informe seu objetivo profissional para montar o plano.";
+
+export const CAREER_PILOT_INSUFFICIENT_CONTENT_MESSAGE =
+  "Não foi possível identificar conteúdo suficiente para analisar. Adicione experiências, responsabilidades ou resultados do seu currículo.";

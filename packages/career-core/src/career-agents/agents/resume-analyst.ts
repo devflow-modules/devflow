@@ -135,14 +135,69 @@ function firstToken(bullet: string): string {
   return raw.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "").toLowerCase();
 }
 
-function hasMetric(bullet: string): boolean {
+function hasNumber(text: string): boolean {
+  return /\d/.test(text);
+}
+
+function isCompanyOrPeriodHeader(text: string): boolean {
+  const trimmed = text.trim();
   return (
-    /\d/.test(bullet) ||
-    bullet.includes("%") ||
-    /\b\d+\s*(pessoas?|membros?|devs?|engenheiros?|squads?|times?|clientes?|parceiros?)\b/i.test(
-      bullet,
-    )
+    /[\(（]\s*(19|20)\d{2}\s*[–\-—]\s*(presente|(19|20)\d{2})\s*[\)）]/i.test(trimmed) ||
+    /[\—\-–]\s*(19|20)\d{2}\s*(a|até|–|-)\s*(19|20)\d{2}\b/i.test(trimmed)
   );
+}
+
+function hasMeaningfulMetric(bullet: string): boolean {
+  const trimmed = bullet.trim();
+
+  if (isCompanyOrPeriodHeader(trimmed)) {
+    return false;
+  }
+
+  if (/\d+\s*%/.test(trimmed)) {
+    return true;
+  }
+
+  if (
+    /\b\d+\s*(pessoas?|membros?|devs?|engenheiros?|squads?|times?|clientes?|parceiros?|usuários?|usuarios?)\b/i.test(
+      trimmed,
+    )
+  ) {
+    return true;
+  }
+
+  if (/R\$\s*[\d.,]+(\s*(mil|milhões?|mi))?/i.test(trimmed)) {
+    return true;
+  }
+
+  if (/\b\d+[\d.,]*\s*(mil|milhões?|mi)\b/i.test(trimmed)) {
+    return true;
+  }
+
+  if (/\b\d+x\b/i.test(trimmed)) {
+    return true;
+  }
+
+  if (/\b\d+\s*(horas?|dias?|semanas?|meses?)\b/i.test(trimmed)) {
+    return true;
+  }
+
+  if (/\b(19|20)\d{2}\b/.test(trimmed)) {
+    return false;
+  }
+
+  if (hasNumber(trimmed)) {
+    if (/\b(node\.js|react|vue|angular|python|java|go|ruby|typescript)\s*\d+/i.test(trimmed)) {
+      return false;
+    }
+    return true;
+  }
+
+  return trimmed.includes("%");
+}
+
+function hasMetric(bullet: string): boolean {
+  return hasMeaningfulMetric(bullet);
 }
 
 function hasLeadershipEvidence(bullet: string): boolean {
@@ -435,7 +490,7 @@ export function runResumeAnalyst(context: CareerAgentContext): ResumeAnalystOutp
 
   const summary =
     `Análise concluída com pontuação estrutural de ${score}/100. ` +
-    `Foram identificados ${quantifiedBullets} resultado${quantifiedBullets === 1 ? "" : "s"} mensurável${quantifiedBullets === 1 ? "" : "is"} e ${clarityNote}`;
+    `Foram identificados ${quantifiedBullets} resultado${quantifiedBullets === 1 ? "" : "s"} ${quantifiedBullets === 1 ? "mensurável" : "mensuráveis"} e ${clarityNote}`;
 
   const resumeAnalysis: ResumeAnalysis = {
     score,
@@ -462,6 +517,8 @@ export function runResumeAnalyst(context: CareerAgentContext): ResumeAnalystOutp
 export const __resumeAnalystTestUtils = {
   firstToken,
   startsWithActionVerb,
+  hasNumber,
+  hasMeaningfulMetric,
   hasMetric,
   isVagueBullet,
   isStrongBullet,

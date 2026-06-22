@@ -35,6 +35,31 @@ Desenvolvi APIs REST.`);
     );
   });
 
+  it("P1-A — extracts role from official example identity line without full name", () => {
+    const resumeText = `Maria Souza — Desenvolvedora de Software Sênior
+
+Experiência profissional
+TechCorp (2021–presente) — Desenvolvedora Backend
+Desenvolvi APIs REST em Node.js para integração com parceiros.
+Reduzi o tempo de deploy em 30% com pipelines CI/CD.
+Liderei um squad de 4 pessoas em projeto de migração cloud.`;
+    expect(extractProfessionalSummary(resumeText)).toBe("Desenvolvedora de Software Sênior");
+  });
+
+  it("accepts standalone professional title line when no descriptive paragraph exists", () => {
+    expect(extractProfessionalSummary("Engenheiro de Software Backend Sênior\n\nExperiência\nDesenvolvi APIs.")).toBe(
+      "Engenheiro de Software Backend Sênior",
+    );
+  });
+
+  it("does not treat weak multi-line resume text as summary", () => {
+    const resumeText = `Trabalhei com sistemas.
+Ajudei em projetos.
+Responsável por algumas tarefas.
+Conhecimento em tecnologia.`;
+    expect(extractProfessionalSummary(resumeText)).toBe("");
+  });
+
   it("does not duplicate summary lines as resume bullets", () => {
     const resumeText = `Desenvolvedor Full Stack com experiência em React, Next.js, TypeScript e Node.js.
 
@@ -52,6 +77,16 @@ describe("extractResumeLines", () => {
     const lines = extractResumeLines("Experiência A\n• Resultado B\n\nResultado C");
     expect(lines.length).toBeGreaterThanOrEqual(2);
     expect(lines[0]).toContain("Experiência");
+  });
+
+  it("P1-B — preserves weak resume lines as bullet candidates", () => {
+    const resumeText = `Trabalhei com sistemas.
+Ajudei em projetos.
+Responsável por algumas tarefas.
+Conhecimento em tecnologia.`;
+    const lines = extractResumeLines(resumeText);
+    expect(lines.length).toBe(4);
+    expect(lines.some((line) => line.includes("Trabalhei"))).toBe(true);
   });
 
   it("splits single-block text into sentences when needed", () => {
