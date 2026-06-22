@@ -2,7 +2,7 @@
 
 **Related:** [`PILOT-RUNBOOK.md`](./PILOT-RUNBOOK.md) · [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md) · [`UI-UX-POLISH.md`](./UI-UX-POLISH.md)
 
-**Operational status (2026-06-22):** `P01 READY TO SCHEDULE` — Preview `main` validated (`7e5dfbc`), preflight técnico e smoke funcional aprovados. Production não promovida.
+**Operational status (2026-06-22):** `P01 SCHEDULING PAUSED — SIMPLIFIED INPUT UX IN PROGRESS` — entrada simplificada em implementação na branch `feat/career-suite-simplified-inputs`. Ver [`SIMPLIFIED-INPUT-UX.md`](./SIMPLIFIED-INPUT-UX.md). Production não promovida (`1dfb9de`).
 
 **Preview URL (moderador):** `https://devflow-applyflow-git-main-gustavos-projects-74c68bcc.vercel.app`
 
@@ -644,10 +644,10 @@ Template: participante, dispositivo, duração, resultado, fluxos, compreensão,
 
 | Fase | Status |
 |------|--------|
-| Antes da sessão | `P01 READY TO SCHEDULE` |
+| Antes da sessão | `P01 SCHEDULING PAUSED — SIMPLIFIED INPUT UX IN PROGRESS` |
 | Após agendamento | `P01 SCHEDULED` |
 | Durante | `P01 IN PROGRESS` |
 | Após conclusão | `P01 COMPLETED — REVIEW PENDING` |
 | Após avaliação | `P01 PASS — CONTINUE TO P02` / `P01 PASS WITH OBSERVATIONS` / `P01 FAILED — FIX BEFORE P02` / `PILOT STOPPED` |
 
-**Estado atual (2026-06-22):** `P01 READY TO SCHEDULE`
+**Estado atual (2026-06-22):** `P01 SCHEDULING PAUSED — SIMPLIFIED INPUT UX IN PROGRESS`

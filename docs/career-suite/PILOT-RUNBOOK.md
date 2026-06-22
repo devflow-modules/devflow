@@ -11,7 +11,7 @@ document complements — and does not replace — [`PILOT-VALIDATION.md`](./PILO
 
 ## Product & UX gate (before P01)
 
-**P01 scheduling resumed** after PR #136 merged and `main` Preview smoke passed (2026-06-22).
+**P01 scheduling paused** during simplified-input implementation (2026-06-22). See [`SIMPLIFIED-INPUT-UX.md`](./SIMPLIFIED-INPUT-UX.md).
 
 | Gate | Source |
 |------|--------|
@@ -21,9 +21,9 @@ document complements — and does not replace — [`PILOT-VALIDATION.md`](./PILO
 | No open P1 UX blockers | W-01/W-02 resolved; W-04 non-blocking P2 outside pilot surface |
 | Technical Preview smoke | [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md) + `main` smoke 2026-06-22 |
 
-Current decision (2026-06-22): **`READY FOR P01`** — validated on ApplyFlow Preview `main` @ `7e5dfbc` ([`PRODUCT-UX-READINESS-REVIEW.md`](./PRODUCT-UX-READINESS-REVIEW.md), PR #136 visual revalidation).
+Current decision (2026-06-22): **`SIMPLIFIED INPUT UX IN PROGRESS`** — P01 scheduling paused until Preview visual validation of [`SIMPLIFIED-INPUT-UX.md`](./SIMPLIFIED-INPUT-UX.md) on the feature branch.
 
-**Operational status:** `P01 READY TO SCHEDULE` — use [`P01-OPERATIONAL-KIT.md`](./P01-OPERATIONAL-KIT.md) for moderator scripts, observation sheets, and preflight checklist.
+**Operational status:** `P01 SCHEDULING PAUSED — SIMPLIFIED INPUT UX IN PROGRESS` — use [`P01-OPERATIONAL-KIT.md`](./P01-OPERATIONAL-KIT.md) for moderator scripts; do not schedule P01 until simplified inputs are validated on Preview.
 
 ---
 

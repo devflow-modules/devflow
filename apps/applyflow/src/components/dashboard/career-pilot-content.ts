@@ -1,5 +1,6 @@
 import type { CareerChatIntent } from "@devflow/career-core";
 import type { CareerSpecialistFields } from "./career-chat-workspace";
+import type { CareerPilotSimpleInputs } from "./career-pilot-simple-inputs";
 
 export const CAREER_PILOT_EYEBROW = "Piloto Career Suite";
 
@@ -113,13 +114,13 @@ export const CAREER_PILOT_MESSAGE_LABEL = "Contexto adicional (opcional)";
 export const CAREER_PILOT_DEFAULT_MESSAGE = "Quero melhorar meu posicionamento profissional.";
 
 export const CAREER_PILOT_EMPTY_RESUME_HINT =
-  "Informe ao menos uma experiência ou habilidade do seu currículo para iniciar a análise.";
+  "Cole um trecho suficiente do currículo para realizar a análise.";
 
 export const CAREER_PILOT_EMPTY_ATS_HINT =
-  "Informe experiências ou habilidades do currículo e os requisitos da vaga para comparar.";
+  "Cole o currículo e a descrição da vaga que deseja comparar.";
 
 export const CAREER_PILOT_EMPTY_STRATEGY_HINT =
-  "Informe os cargos-alvo que deseja perseguir para montar o plano.";
+  "Informe seu objetivo profissional para montar o plano.";
 
 export const CAREER_PILOT_ERROR_TITLE = "Não foi possível concluir a análise.";
 
@@ -134,6 +135,31 @@ export const CAREER_PILOT_EXAMPLE_FIELDS: CareerSpecialistFields = {
     "3+ anos com backend\nExperiência com TypeScript\nConhecimento em cloud (AWS ou GCP)\nInglês intermediário",
   targetRoles: "Engenheiro de Software Backend, Desenvolvedor Node.js",
   availability: "10h/semana",
+};
+
+export const CAREER_PILOT_EXAMPLE_SIMPLE_INPUTS: CareerPilotSimpleInputs = {
+  targetRole: "Engenheiro de Software Backend",
+  resumeText: `Maria Souza — Desenvolvedora de Software
+
+Experiência profissional
+TechCorp (2021–presente) — Desenvolvedora Backend
+Desenvolvi APIs REST em Node.js para integração com parceiros externos.
+Reduzi o tempo de deploy em 30% com pipelines CI/CD no GitHub Actions.
+Liderei um squad de 4 pessoas em projeto de migração para AWS.
+
+Competências: TypeScript, Node.js, PostgreSQL, AWS, Docker, Git`,
+  jobDescription: `Engenheiro de Software Backend — Empresa SaaS
+
+Requisitos:
+- 3+ anos de experiência com backend
+- Experiência com TypeScript
+- Conhecimento em cloud (AWS ou GCP)
+- Inglês intermediário
+- Experiência com APIs REST`,
+  careerGoal:
+    "Conseguir uma vaga como Engenheiro de Software Backend Sênior nos próximos 90 dias.",
+  weeklyAvailability: "10 horas por semana",
+  constraints: "Trabalho remoto, empresas SaaS e contratação CLT",
 };
 
 export const CAREER_PILOT_INTENTS = [

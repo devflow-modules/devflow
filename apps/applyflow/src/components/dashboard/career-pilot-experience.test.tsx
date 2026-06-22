@@ -125,6 +125,9 @@ describe("CareerChatWorkspaceView pilot presentation", () => {
     expect(html).not.toContain("Approve once");
     expect(html).not.toContain("Execution trace");
     expect(html).not.toContain("career-chat-action-select");
+    expect(html).not.toContain("Resume bullets");
+    expect(html).not.toContain("Resume skills");
+    expect(html).not.toContain("Job requirements");
   });
 
   it("shows accessible loading state while sending", () => {
@@ -169,6 +172,8 @@ describe("CareerPilotExperience", () => {
     expect(html).toContain(CAREER_PILOT_ONBOARDING_TITLE);
     expect(html).toContain("Preencher com exemplo");
     expect(html).toContain('data-testid="career-chat-workspace-panel"');
+    expect(html).toContain("Seu currículo");
+    expect(html).not.toContain("Resume bullets");
     expect(html).not.toContain("provider-consent");
     expect(html).not.toContain("Gmail");
     expect(html).not.toContain("Google Calendar");

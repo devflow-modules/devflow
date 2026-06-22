@@ -432,6 +432,22 @@ describe("buildSpecialistAnalysisInput", () => {
     ]);
   });
 
+  it("extracts Unicode keywords for Portuguese job requirements", () => {
+    const input = buildSpecialistAnalysisInput({
+      action: "analyze_ats_compatibility",
+      fields: {
+        ...EMPTY_SPECIALIST_FIELDS,
+        jobRequirements: "Experiência com backend\nInglês intermediário\nConhecimento em cloud",
+      },
+      mainStack: ["TypeScript"],
+      fallbackRole: "Backend Engineer",
+    });
+    expect(input?.jobSnapshot?.keywords).toContain("experiência");
+    expect(input?.jobSnapshot?.keywords).toContain("inglês");
+    expect(input?.jobSnapshot?.keywords).toContain("intermediário");
+    expect(input?.jobSnapshot?.keywords).toContain("conhecimento");
+  });
+
   it("builds target roles for plan_career_strategy", () => {
     const input = buildSpecialistAnalysisInput({
       action: "plan_career_strategy",
