@@ -66,7 +66,58 @@ describe("buildCareerPilotResultModel", () => {
     expect(model?.summary.length).toBeGreaterThan(0);
     expect(model?.nextActions.length).toBeLessThanOrEqual(3);
     expect(model?.scores[0]?.label).toBe("Qualidade da estrutura");
+    expect(model?.summary).toMatch(/Análise concluída/i);
+    expect(model?.technicalLines).toEqual([]);
+    expect(model?.traceSteps).toEqual([]);
+  });
+
+  it("exposes diagnostic metadata outside participant surface", () => {
+    const agentResult = orchestrateCareerAgents(
+      {
+        intent: "analyze_resume",
+        explicitConsent: true,
+        context: {
+          careerBundle: bundle,
+          selectedSignalIds: [],
+          analysisInput: {
+            resumeSnapshot: {
+              skills: ["TypeScript", "Node.js"],
+              experiences: [
+                {
+                  title: "Engineer",
+                  company: "Acme",
+                  bullets: ["Reduced API latency by 35%"],
+                },
+              ],
+            },
+            targetRole: "Backend Engineer",
+          },
+        },
+      },
+      "2026-06-21T12:00:00.000Z",
+    );
+
+    const response = {
+      status: "completed" as const,
+      intent: "analyze_resume" as const,
+      reviewRequired: true,
+      safeForClient: true,
+      hasToken: false,
+      persisted: false,
+      executedExternally: false,
+      warnings: [],
+      toolProposals: [],
+      trace: { steps: [{ code: "review_required", message: "Human review", timestamp: "t" }] },
+      agentResult,
+    };
+
+    const model = buildCareerPilotResultModel({
+      intent: "analyze_resume",
+      response,
+      participantSurface: false,
+    });
     expect(model?.technicalLines.some((line) => line.includes("Nenhuma candidatura"))).toBe(true);
+    expect(model?.traceSteps.length).toBeGreaterThan(0);
   });
 
   it("maps ATS score label to compatibilidade estimada", () => {

@@ -11,9 +11,21 @@ import type {
  * Deterministic resume analysis. No LLM is involved here: every output is derived
  * from documented heuristics over the sanitized resume snapshot. The agent never
  * invents metrics, skills, or experience and never rewrites the resume automatically.
+ *
+ * Rubric (normalized 0..100 — only applicable dimensions count):
+ * | Dimension                         | Max |
+ * |-----------------------------------|-----|
+ * | Resumo profissional               |  15 |
+ * | Skills                            |  20 |
+ * | Qualidade dos bullets             |  30 |
+ * | Resultados mensuráveis            |  25 |
+ * | Evidência de contexto/liderança   |  10 |
+ * | Total                             | 100 |
+ *
+ * Projects and education are optional inputs; they are never penalized when absent.
  */
 
-const ACTION_VERBS = new Set([
+const ACTION_VERBS_EN = new Set([
   "led",
   "built",
   "designed",
@@ -34,6 +46,54 @@ const ACTION_VERBS = new Set([
   "owned",
   "drove",
   "refactored",
+  "managed",
+  "coordinated",
+  "structured",
+  "integrated",
+]);
+
+const ACTION_VERBS_PT = new Set([
+  "desenvolvi",
+  "implementei",
+  "criei",
+  "liderei",
+  "reduzi",
+  "aumentei",
+  "automatizei",
+  "migrei",
+  "otimizei",
+  "entreguei",
+  "projetei",
+  "arquitetei",
+  "refatorei",
+  "gerenciei",
+  "coordenei",
+  "estruturei",
+  "integrei",
+  "construí",
+  "construi",
+  "melhorei",
+  "participei",
+  "desenvolveu",
+  "implementou",
+  "criou",
+  "liderou",
+  "reduziu",
+  "automatizou",
+  "otimizou",
+  "integrou",
+  "construiu",
+  "melhorou",
+  "entregou",
+  "projetou",
+  "arquitetou",
+  "refatorou",
+  "gerenciou",
+  "coordenou",
+  "estruturou",
+  "migrou",
+  "aumentou",
+  "participou",
 ]);
 
 const EXAGGERATION_TERMS = [
@@ -47,30 +107,86 @@ const EXAGGERATION_TERMS = [
   "perfect",
   "unmatched",
   "10x",
+  "especialista",
+  "perfeito",
+  "perfeita",
+  "imbatível",
+  "imbativel",
+  "melhor engenheiro",
+  "world class",
 ];
+
+const NON_VERB_PREFIXES = new Set([
+  "desenvolvimento",
+  "implementação",
+  "implementacao",
+  "liderança",
+  "lideranca",
+  "experiência",
+  "experiencia",
+]);
 
 function normalize(value: string): string {
   return value.trim().toLowerCase();
 }
 
+function firstToken(bullet: string): string {
+  const raw = bullet.trim().split(/\s+/)[0] ?? "";
+  return raw.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "").toLowerCase();
+}
+
 function hasMetric(bullet: string): boolean {
-  return /\d/.test(bullet) || bullet.includes("%");
+  return (
+    /\d/.test(bullet) ||
+    bullet.includes("%") ||
+    /\b\d+\s*(pessoas?|membros?|devs?|engenheiros?|squads?|times?|clientes?|parceiros?)\b/i.test(
+      bullet,
+    )
+  );
+}
+
+function hasLeadershipEvidence(bullet: string): boolean {
+  return (
+    /\b(liderei|liderou|gerenciei|gerenciou|coordenei|coordenou)\b/i.test(bullet) ||
+    /\b(squad|time|equipe)\b/i.test(bullet)
+  );
 }
 
 function startsWithActionVerb(bullet: string): boolean {
-  const first = normalize(bullet).split(/\s+/)[0] ?? "";
-  return ACTION_VERBS.has(first);
+  const token = firstToken(bullet);
+  if (!token || token.length < 3) {
+    return false;
+  }
+  if (NON_VERB_PREFIXES.has(token)) {
+    return false;
+  }
+  return ACTION_VERBS_EN.has(token) || ACTION_VERBS_PT.has(token);
 }
 
 function wordCount(bullet: string): number {
   return bullet.trim().split(/\s+/).filter(Boolean).length;
 }
 
+function isStrongBullet(bullet: string): boolean {
+  const hasAction = startsWithActionVerb(bullet);
+  const measurable = hasMetric(bullet);
+  if (measurable && hasAction) {
+    return true;
+  }
+  if (measurable && hasLeadershipEvidence(bullet)) {
+    return true;
+  }
+  return false;
+}
+
 function isVagueBullet(bullet: string): boolean {
+  if (isStrongBullet(bullet)) {
+    return false;
+  }
   if (wordCount(bullet) < 6) {
     return true;
   }
-  return !hasMetric(bullet) && !startsWithActionVerb(bullet);
+  return !hasMetric(bullet);
 }
 
 function collectBullets(resume: CareerResumeSnapshot): Array<{ section: string; text: string }> {
@@ -82,7 +198,7 @@ function collectBullets(resume: CareerResumeSnapshot): Array<{ section: string; 
   }
   for (const project of resume.projects ?? []) {
     for (const bullet of project.bullets) {
-      bullets.push({ section: `Project: ${project.name}`, text: bullet });
+      bullets.push({ section: `Projeto: ${project.name}`, text: bullet });
     }
   }
   return bullets;
@@ -90,6 +206,49 @@ function collectBullets(resume: CareerResumeSnapshot): Array<{ section: string; 
 
 function clampScore(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function buildBulletRecommendation(bullet: { section: string; text: string }): ResumeBulletRecommendation {
+  const text = bullet.text;
+  if (isStrongBullet(text)) {
+    return {
+      section: bullet.section,
+      originalSummary: text.slice(0, 160),
+      recommendation: "Este bullet já contém ação, resultado mensurável e contexto técnico.",
+      reason: "Bullet forte — nenhuma alteração obrigatória.",
+    };
+  }
+
+  if (startsWithActionVerb(text) && !hasMetric(text)) {
+    return {
+      section: bullet.section,
+      originalSummary: text.slice(0, 160),
+      recommendation:
+        "Explique qual ganho operacional, escopo ou volume ocorreu, somente se esses dados forem reais e verificáveis.",
+      reason: "O bullet inicia com verbo de ação, mas ainda não apresenta impacto mensurável.",
+    };
+  }
+
+  if (hasMetric(text) && !startsWithActionVerb(text)) {
+    return {
+      section: bullet.section,
+      originalSummary: text.slice(0, 160),
+      recommendation:
+        "Reescreva iniciando com um verbo de ação claro (por exemplo, Desenvolvi, Implementei, Reduzi) mantendo a métrica informada.",
+      reason: "Há métrica, mas falta um verbo de ação no início.",
+    };
+  }
+
+  const contextualHint = text.toLowerCase().includes("api")
+    ? "Explique quantos parceiros foram integrados, qual processo foi automatizado ou qual ganho operacional ocorreu, somente se esses dados forem reais."
+    : "Reescreva iniciando com um verbo de ação concreto e inclua um resultado verificável que você já alcançou — sem inventar números.";
+
+  return {
+    section: bullet.section,
+    originalSummary: text.slice(0, 160),
+    recommendation: contextualHint,
+    reason: "Bullet vago: falta verbo de ação claro e resultado mensurável.",
+  };
 }
 
 export type ResumeAnalystOutput = {
@@ -113,132 +272,170 @@ export function runResumeAnalyst(context: CareerAgentContext): ResumeAnalystOutp
 
   const quantifiedBullets = bullets.filter((bullet) => hasMetric(bullet.text)).length;
   const vagueBullets = bullets.filter((bullet) => isVagueBullet(bullet.text));
-
-  // Documented deterministic rubric (0..100):
-  // summary 15 | skills up to 15 | quantified bullets up to 30 |
-  // low vagueness up to 25 | projects 7.5 | education 7.5
-  const summaryScore = resume.summary && resume.summary.trim().length > 0 ? 15 : 0;
-  const skillsScore = (Math.min(skills.length, 8) / 8) * 15;
-  const quantifiedRatio = totalBullets === 0 ? 0 : quantifiedBullets / totalBullets;
-  const quantifiedScore = quantifiedRatio * 30;
-  const vagueRatio = totalBullets === 0 ? 1 : vagueBullets.length / totalBullets;
-  const clarityScore = (1 - vagueRatio) * 25;
-  const projectsScore = (resume.projects?.length ?? 0) > 0 ? 7.5 : 0;
-  const educationScore = (resume.education?.length ?? 0) > 0 ? 7.5 : 0;
-  const score = clampScore(
-    summaryScore + skillsScore + quantifiedScore + clarityScore + projectsScore + educationScore,
+  const strongBullets = bullets.filter((bullet) => isStrongBullet(bullet.text));
+  const actionBullets = bullets.filter((bullet) => startsWithActionVerb(bullet.text)).length;
+  const adequateLengthBullets = bullets.filter((bullet) => wordCount(bullet.text) >= 6).length;
+  const hasContextEvidence = bullets.some(
+    (bullet) => hasLeadershipEvidence(bullet.text) || wordCount(bullet.text) >= 10,
   );
 
+  const hasSummary = Boolean(resume.summary && resume.summary.trim().length > 0);
+  const summaryPoints = hasSummary ? 15 : 0;
+  const skillsPoints = totalBullets === 0 && skills.length === 0 ? 0 : (Math.min(skills.length, 8) / 8) * 20;
+  const actionRatio = totalBullets === 0 ? 0 : actionBullets / totalBullets;
+  const lengthRatio = totalBullets === 0 ? 0 : adequateLengthBullets / totalBullets;
+  const bulletQualityPoints = totalBullets === 0 ? 0 : actionRatio * 15 + lengthRatio * 15;
+  const measurableRatio = totalBullets === 0 ? 0 : quantifiedBullets / totalBullets;
+  const measurablePoints = measurableRatio * 25;
+  const contextPoints = hasContextEvidence ? 10 : 0;
+
+  const applicableMax =
+    15 +
+    (skills.length > 0 || totalBullets > 0 ? 20 : 0) +
+    (totalBullets > 0 ? 30 : 0) +
+    (totalBullets > 0 ? 25 : 0) +
+    (totalBullets > 0 ? 10 : 0);
+
+  const rawPoints =
+    summaryPoints + skillsPoints + bulletQualityPoints + measurablePoints + contextPoints;
+  const score =
+    applicableMax === 0 ? 0 : clampScore((rawPoints / applicableMax) * 100);
+
   const strengths: string[] = [];
-  if (summaryScore > 0) strengths.push("Resume includes a professional summary.");
-  if (skills.length >= 5) strengths.push(`Skills section lists ${skills.length} skills.`);
+  if (hasSummary) strengths.push("O currículo apresenta um resumo profissional.");
+  if (skills.length >= 5)
+    strengths.push(`A seção de competências contém ${skills.length} tecnologias.`);
+  else if (skills.length >= 3)
+    strengths.push(`Foram identificadas ${skills.length} competências técnicas.`);
   if (quantifiedBullets > 0)
-    strengths.push(`${quantifiedBullets} bullet(s) include measurable outcomes.`);
-  if ((resume.projects?.length ?? 0) > 0) strengths.push("Projects section is present.");
-  if (strengths.length === 0) strengths.push("Resume provides a baseline structure to build on.");
+    strengths.push(
+      `${quantifiedBullets} resultado${quantifiedBullets > 1 ? "s" : ""} apresenta${quantifiedBullets > 1 ? "m" : ""} métricas verificáveis.`,
+    );
+  if (strongBullets.length > 0)
+    strengths.push(`${strongBullets.length} bullet(s) combinam ação clara e impacto mensurável.`);
+  if (bullets.some((b) => hasLeadershipEvidence(b.text)))
+    strengths.push("Há evidência de liderança de equipe.");
+  if (strengths.length === 0)
+    strengths.push("O currículo oferece uma base estrutural para evoluir com mais clareza de impacto.");
 
   const weaknesses: string[] = [];
-  if (summaryScore === 0) weaknesses.push("No professional summary is present.");
-  if (skills.length < 5) weaknesses.push("Skills section is sparse (fewer than 5 skills).");
+  if (!hasSummary) weaknesses.push("Não há resumo profissional identificado.");
+  if (skills.length < 5 && skills.length > 0)
+    weaknesses.push("A seção de competências está enxuta (menos de 5 tecnologias).");
+  if (skills.length === 0) weaknesses.push("Nenhuma competência técnica foi identificada.");
   if (totalBullets > 0 && quantifiedBullets === 0)
-    weaknesses.push("No experience bullets include measurable outcomes.");
+    weaknesses.push("Nenhum resultado apresenta impacto mensurável.");
   if (vagueBullets.length > 0)
-    weaknesses.push(`${vagueBullets.length} bullet(s) read as vague or low-impact.`);
+    weaknesses.push(`${vagueBullets.length} bullet(s) ainda não apresentam impacto mensurável.`);
+  if (totalBullets > 0 && !hasContextEvidence)
+    weaknesses.push("A experiência pode ganhar mais contexto sobre escopo e responsabilidade.");
 
   const missingStack = targetStack.filter((item) => !skillSet.has(item));
   const missingEvidence: string[] = [];
   for (const experience of resume.experiences) {
     if (experience.bullets.length === 0) {
-      missingEvidence.push(`No evidence bullets for ${experience.title} @ ${experience.company}.`);
+      missingEvidence.push(
+        `Sem bullets de evidência para ${experience.title} @ ${experience.company}.`,
+      );
     }
   }
   for (const item of missingStack) {
-    missingEvidence.push(`Target stack "${item}" is not listed in skills.`);
+    missingEvidence.push(`A stack alvo "${item}" não aparece nas competências listadas.`);
   }
 
-  const bulletRecommendations: ResumeBulletRecommendation[] = vagueBullets
-    .slice(0, 10)
-    .map((bullet) => ({
-      section: bullet.section,
-      originalSummary: bullet.text.slice(0, 160),
-      recommendation:
-        "Rephrase to lead with a concrete action and the real, verifiable outcome you already achieved.",
-      reason: hasMetric(bullet.text)
-        ? "Bullet lacks a clear action verb."
-        : "Bullet lacks an action verb and a measurable, factual result.",
-    }));
+  const vagueOnly = vagueBullets.slice(0, 10);
+  const bulletRecommendations: ResumeBulletRecommendation[] = [
+    ...vagueOnly.map((bullet) => buildBulletRecommendation(bullet)),
+    ...bullets
+      .filter((b) => isStrongBullet(b.text))
+      .slice(0, 3)
+      .map((bullet) => buildBulletRecommendation(bullet)),
+  ].slice(0, 10);
 
   const sectionRecommendations: string[] = [];
-  if (summaryScore === 0)
-    sectionRecommendations.push("Add a concise summary aligned with the target role at the top.");
-  if (skills.length < 5)
-    sectionRecommendations.push("Expand the skills section with technologies you can evidence.");
+  if (!hasSummary)
+    sectionRecommendations.push(
+      "Adicione um parágrafo inicial com seu perfil e foco profissional alinhado ao cargo desejado.",
+    );
+  if (skills.length < 5 && skills.length > 0)
+    sectionRecommendations.push(
+      "Amplie a seção de competências com tecnologias que você consegue evidenciar na prática.",
+    );
   if (resume.experiences.length > 1)
-    sectionRecommendations.push("Order experience by relevance to the target role, most recent first.");
-  if ((resume.projects?.length ?? 0) === 0)
-    sectionRecommendations.push("Consider a short projects section to evidence target skills.");
+    sectionRecommendations.push(
+      "Ordene as experiências pela relevância para o cargo alvo, começando pela mais recente.",
+    );
 
   const risks: string[] = [];
   for (const bullet of bullets) {
     const lowered = normalize(bullet.text);
     const term = EXAGGERATION_TERMS.find((candidate) => lowered.includes(candidate));
     if (term) {
-      risks.push(`Possible overstatement ("${term}") in ${bullet.section}; keep claims verifiable.`);
+      risks.push(
+        `Possível exagero ("${term}") em ${bullet.section}; mantenha apenas afirmações verificáveis.`,
+      );
     }
   }
   if (risks.length === 0)
-    risks.push("No automatic claim is added; verify every bullet remains factual before sharing.");
+    risks.push(
+      "Nenhuma afirmação automática foi adicionada; confirme que cada bullet permanece factual antes de compartilhar.",
+    );
 
   const nextActions: string[] = [
-    "Review the suggested bullet rewrites and keep only factual changes.",
-    "Confirm missing evidence items reflect real experience before adding them.",
-    "Export the review payload manually after human approval.",
+    "Revise os bullets sugeridos e mantenha apenas alterações factuais.",
+    "Confirme os resultados mensuráveis antes de incluí-los.",
+    "Adicione evidências somente quando corresponderem à sua experiência real.",
   ];
+
+  const clarityNote =
+    vagueBullets.length > 0
+      ? `${vagueBullets.length} ponto(s) podem ganhar mais clareza.`
+      : "A estrutura geral está clara; refine detalhes conforme necessário.";
 
   const findings: CareerAgentFinding[] = [
     {
       kind: "evidence",
-      title: "Resume structure overview",
+      title: "Visão geral da estrutura do currículo",
       category: "structure",
       evidence: [
-        `score:${score}`,
-        `skills:${skills.length}`,
+        `pontuação:${score}`,
+        `competências:${skills.length}`,
         `bullets:${totalBullets}`,
-        `quantified_bullets:${quantifiedBullets}`,
-        `vague_bullets:${vagueBullets.length}`,
+        `mensuráveis:${quantifiedBullets}`,
+        `vagos:${vagueBullets.length}`,
       ],
       recommendation:
         weaknesses.length > 0
-          ? "Address the listed weaknesses before applying to the target role."
-          : "Resume structure is solid; refine bullet impact where possible.",
+          ? "Enderece os pontos de atenção antes de aplicar para o cargo alvo."
+          : "A estrutura do currículo está sólida; refine o impacto dos bullets onde fizer sentido.",
       priority: vagueBullets.length > 0 || quantifiedBullets === 0 ? "high" : "medium",
     },
   ];
   if (missingEvidence.length > 0) {
     findings.push({
       kind: "gap",
-      title: "Missing evidence",
+      title: "Evidências ausentes",
       category: "evidence",
       evidence: missingEvidence.slice(0, 8),
-      recommendation: "Collect verifiable evidence; do not invent metrics or skills.",
+      recommendation: "Colete evidências verificáveis; não invente métricas ou competências.",
       priority: "high",
     });
   }
 
   const recommendations: CareerAgentRecommendation[] = [
     {
-      title: "Improve bullet impact",
+      title: "Melhorar impacto dos bullets",
       category: "next_steps",
       evidence: bulletRecommendations.slice(0, 5).map((item) => item.section),
       recommendation:
-        "Rewrite vague bullets to lead with an action and a real outcome, preserving factuality.",
+        "Reescreva bullets vagos iniciando com ação e resultado real, preservando a factualidade.",
       priority: vagueBullets.length > 0 ? "high" : "low",
     },
   ];
 
   const summary =
-    `Resume review completed with a deterministic structure score of ${score}/100 ` +
-    `(${quantifiedBullets}/${totalBullets} quantified bullets, ${vagueBullets.length} vague).`;
+    `Análise concluída com pontuação estrutural de ${score}/100. ` +
+    `Foram identificados ${quantifiedBullets} resultado${quantifiedBullets === 1 ? "" : "s"} mensurável${quantifiedBullets === 1 ? "" : "is"} e ${clarityNote}`;
 
   const resumeAnalysis: ResumeAnalysis = {
     score,
@@ -256,7 +453,18 @@ export function runResumeAnalyst(context: CareerAgentContext): ResumeAnalystOutp
     summary,
     findings,
     recommendations,
-    evidence: [`resume_score:${score}`, ...skills.slice(0, 10)],
+    evidence: [`pontuação_currículo:${score}`, ...skills.slice(0, 10)],
     resumeAnalysis,
   };
 }
+
+// Exported for tests
+export const __resumeAnalystTestUtils = {
+  firstToken,
+  startsWithActionVerb,
+  hasMetric,
+  isVagueBullet,
+  isStrongBullet,
+  ACTION_VERBS_PT,
+  ACTION_VERBS_EN,
+};

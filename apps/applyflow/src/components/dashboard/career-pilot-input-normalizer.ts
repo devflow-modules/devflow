@@ -39,6 +39,182 @@ export const PILOT_SKILL_CATALOG = [
 
 const MAX_LINES = 50;
 const MAX_LINE_LENGTH = 500;
+const MAX_SUMMARY_LENGTH = 500;
+
+const SECTION_HEADER_PATTERN =
+  /^(experi[eê]ncia(\s+profissional)?|form[aã]o(\s+acad[eê]mica)?|compet[eê]ncias|competencias|habilidades|skills|education|experience|projects?|projetos?|certifica[cç][oõ]es|idiomas|resumo( profissional)?|summary|work history|employment)$/i;
+
+const ACTION_LINE_PATTERN =
+  /\b(desenvolvi|implementei|reduzi|criei|liderei|constru[ií]|built|led|developed|implemented|reduced)\b/i;
+
+function isSectionHeader(line: string): boolean {
+  const trimmed = line.trim();
+  if (trimmed.length > 60 || ACTION_LINE_PATTERN.test(trimmed)) {
+    return false;
+  }
+  return SECTION_HEADER_PATTERN.test(trimmed);
+}
+
+const SKILL_LINE_PATTERN = /^(compet[eê]ncias|competencias|habilidades|skills)\s*:/i;
+
+function isSkillListLine(line: string): boolean {
+  return SKILL_LINE_PATTERN.test(line.trim());
+}
+
+function isLikelyTitleOnly(line: string): boolean {
+  const trimmed = line.trim();
+  if (trimmed.length < 12) {
+    return true;
+  }
+  if (/^[\p{L}\s.'-]+ — [\p{L}\s.'-]+$/u.test(trimmed) && trimmed.length < 60) {
+    return false;
+  }
+  return false;
+}
+
+/**
+ * Extracts the first descriptive paragraph before experience sections.
+ * Preserves original text; does not summarize with AI.
+ */
+export function extractProfessionalSummary(resumeText: string): string {
+  const normalized = normalizeResumeText(resumeText);
+  if (!normalized) {
+    return "";
+  }
+
+  const rawLines = normalized.split("\n").map((line) => line.trim());
+  const paragraphs: string[] = [];
+  let current: string[] = [];
+
+  for (const line of rawLines) {
+    if (!line) {
+      if (current.length > 0) {
+        paragraphs.push(current.join(" "));
+        current = [];
+      }
+      continue;
+    }
+    if (isSectionHeader(line) || isSkillListLine(line)) {
+      if (current.length > 0) {
+        paragraphs.push(current.join(" "));
+      }
+      break;
+    }
+
+    const trimmed = line.replace(/^[\s•\-*]+/, "").trim();
+    if (ACTION_LINE_PATTERN.test(trimmed)) {
+      if (current.length > 0) {
+        paragraphs.push(current.join(" "));
+        current = [];
+      }
+      break;
+    }
+
+    current.push(trimmed);
+  }
+  if (current.length > 0) {
+    paragraphs.push(current.join(" "));
+  }
+
+  for (const paragraph of paragraphs) {
+    const candidate = paragraph.trim();
+    if (candidate.length < 20) {
+      continue;
+    }
+    if (isSkillListLine(candidate)) {
+      continue;
+    }
+    if (/^[\p{L}\s.'-]+ — [\p{L}\s.'-]+$/u.test(candidate) && !/\bcom experiência\b/i.test(candidate)) {
+      const rolePart = candidate.split("—").pop()?.trim() ?? "";
+      if (rolePart.length >= 15 && /\b(com|em|para)\b/i.test(rolePart)) {
+        return rolePart.slice(0, MAX_SUMMARY_LENGTH);
+      }
+      continue;
+    }
+    if (isLikelyTitleOnly(candidate) && !/\bcom experiência\b/i.test(candidate)) {
+      continue;
+    }
+    return candidate.slice(0, MAX_SUMMARY_LENGTH);
+  }
+
+  return "";
+}
+
+export function extractResumeLines(resumeText: string, summaryToExclude?: string): string[] {
+  const normalized = normalizeResumeText(resumeText);
+  if (!normalized) {
+    return [];
+  }
+
+  const summaryNorm = summaryToExclude?.trim().toLowerCase() ?? "";
+  const rawLines = normalized
+    .split("\n")
+    .map((line) => line.replace(/^[\s•\-*]+/, "").trim())
+    .filter(Boolean);
+
+  const lines: string[] = [];
+  const hasStructuredSections = rawLines.some((line) => isSectionHeader(line));
+  let reachedBody = !hasStructuredSections;
+
+  for (const line of rawLines) {
+    const lowered = line.toLowerCase();
+
+    if (summaryNorm && !reachedBody) {
+      if (lowered === summaryNorm || summaryNorm.includes(lowered) || lowered.includes(summaryNorm.slice(0, 40))) {
+        reachedBody = false;
+        continue;
+      }
+    }
+
+    if (isSectionHeader(line)) {
+      reachedBody = true;
+      continue;
+    }
+
+    if (!reachedBody) {
+      continue;
+    }
+
+    if (isSkillListLine(line)) {
+      continue;
+    }
+
+    if (summaryNorm && (lowered === summaryNorm || summaryNorm.includes(lowered))) {
+      continue;
+    }
+
+    lines.push(line.slice(0, MAX_LINE_LENGTH));
+  }
+
+  if (lines.length === 0 && rawLines.length > 0) {
+    for (const line of rawLines) {
+      const lowered = line.toLowerCase();
+      if (summaryNorm && (lowered === summaryNorm || summaryNorm.includes(lowered))) {
+        continue;
+      }
+      if (isSectionHeader(line) || isSkillListLine(line)) {
+        continue;
+      }
+      lines.push(line.slice(0, MAX_LINE_LENGTH));
+    }
+  }
+
+  if (lines.length > 1) {
+    return lines.slice(0, MAX_LINES);
+  }
+
+  const sentenceLines = normalized
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter((sentence) => sentence.length >= 8)
+    .filter((sentence) => {
+      if (!summaryNorm) return true;
+      return !summaryNorm.includes(sentence.toLowerCase());
+    })
+    .slice(0, MAX_LINES);
+
+  return sentenceLines.length > 0 ? sentenceLines : lines.slice(0, MAX_LINES);
+}
 
 export function normalizeResumeText(value: string): string {
   return value
@@ -56,29 +232,6 @@ export function normalizeJobDescription(value: string): string {
     .replace(/\n{3,}/g, "\n\n")
     .trim()
     .slice(0, MAX_PILOT_JOB_DESCRIPTION_LENGTH);
-}
-
-export function extractResumeLines(resumeText: string): string[] {
-  const normalized = normalizeResumeText(resumeText);
-  if (!normalized) {
-    return [];
-  }
-
-  const lines = normalized
-    .split("\n")
-    .map((line) => line.replace(/^[\s•\-*]+/, "").trim())
-    .filter(Boolean)
-    .map((line) => line.slice(0, MAX_LINE_LENGTH));
-
-  if (lines.length > 1) {
-    return lines.slice(0, MAX_LINES);
-  }
-
-  return normalized
-    .split(/(?<=[.!?])\s+/)
-    .map((sentence) => sentence.trim())
-    .filter((sentence) => sentence.length >= 8)
-    .slice(0, MAX_LINES);
 }
 
 function escapeRegExp(value: string): string {
@@ -158,27 +311,30 @@ export function buildCareerSpecialistFieldsFromSimpleInputs(
 ): CareerSpecialistFields {
   const resumeText = normalizeResumeText(input.resumeText);
   const jobDescription = normalizeJobDescription(input.jobDescription);
-  const resumeLines = extractResumeLines(resumeText);
+  const resumeSummary = extractProfessionalSummary(resumeText);
+  const resumeLines = extractResumeLines(resumeText, resumeSummary);
   const skills = extractLikelySkills(resumeText);
   const requirements = extractJobRequirements(jobDescription);
   const availabilityParts = [input.weeklyAvailability.trim(), input.constraints.trim()].filter(Boolean);
 
+  const baseFields = {
+    resumeSummary,
+    resumeBullets: resumeLines.join("\n"),
+    resumeSkills: skills.join(", "),
+    jobRequirements: requirements.join("\n"),
+    availability: availabilityParts.join(" · "),
+  };
+
   if (isCareerPilotIntent(intent) && intent === "plan_career_strategy") {
     return {
-      resumeBullets: resumeLines.join("\n"),
-      resumeSkills: skills.join(", "),
-      jobRequirements: requirements.join("\n"),
+      ...baseFields,
       targetRoles: joinTargetRoles(input.careerGoal),
-      availability: availabilityParts.join(" · "),
     };
   }
 
   return {
-    resumeBullets: resumeLines.join("\n"),
-    resumeSkills: skills.join(", "),
-    jobRequirements: requirements.join("\n"),
+    ...baseFields,
     targetRoles: input.targetRole.trim(),
-    availability: availabilityParts.join(" · "),
   };
 }
 

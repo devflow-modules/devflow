@@ -128,6 +128,7 @@ export const CAREER_PILOT_ERROR_DESCRIPTION =
   "Revise os dados e tente novamente. Se o problema continuar, registre o horário da tentativa.";
 
 export const CAREER_PILOT_EXAMPLE_FIELDS: CareerSpecialistFields = {
+  resumeSummary: "Desenvolvedora de Software com experiência em backend e integrações.",
   resumeBullets:
     "Desenvolvi APIs REST em Node.js para integração com parceiros\nReduzi tempo de deploy em 30% com pipelines CI/CD\nLiderei squad de 4 pessoas em projeto de migração cloud",
   resumeSkills: "TypeScript, Node.js, PostgreSQL, AWS",

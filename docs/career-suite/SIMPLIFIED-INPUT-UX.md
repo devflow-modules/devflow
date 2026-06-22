@@ -33,7 +33,8 @@ Participants use `CareerPilotSimpleInputs`:
 `career-pilot-input-normalizer.ts` maps simple inputs to `CareerSpecialistFields`:
 
 - `normalizeResumeText` / `normalizeJobDescription` — line breaks, empty lines, length limits
-- `extractResumeLines` — bullets from lines or sentences (no invented content)
+- `extractProfessionalSummary` — first descriptive paragraph before sections/experience bullets; feeds `resumeSnapshot.summary` (see [`RESUME-ANALYSIS-QUALITY.md`](./RESUME-ANALYSIS-QUALITY.md))
+- `extractResumeLines` — bullets from lines or sentences (excludes summary paragraph; no invented content)
 - `extractLikelySkills` — small catalog, case-insensitive, deduplicated
 - `extractJobRequirements` — lines or sentences from job text
 - `extractJobKeywords` — Unicode-safe tokenization (`/[^\p{L}\p{N}+#.]+/u`)
@@ -71,6 +72,6 @@ Data stays in React state for the open page and in the current `/career-chat/lib
 
 ## Pilot impact
 
-**Operational status:** `P01 SCHEDULING PAUSED — SIMPLIFIED INPUT UX IN PROGRESS`
+**Operational status:** `P01 SCHEDULING PAUSED — RESUME ANALYSIS QUALITY FIX IN PROGRESS` — see [`RESUME-ANALYSIS-QUALITY.md`](./RESUME-ANALYSIS-QUALITY.md).
 
-P01 scheduling remains paused until Preview visual validation (desktop 1440×900, mobile 375×812) is completed on the feature branch PR.
+P01 scheduling remains paused until Portuguese resume analysis quality (issue #138) is merged and validated on Preview.

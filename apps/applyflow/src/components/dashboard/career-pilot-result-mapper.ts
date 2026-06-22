@@ -13,6 +13,12 @@ export type CareerPilotScoreItem = {
   max?: number;
 };
 
+export type CareerPilotBulletSuggestion = {
+  original: string;
+  recommendation: string;
+  section?: string;
+};
+
 export type CareerPilotResultModel = {
   flowTitle: string;
   summary: string;
@@ -22,9 +28,22 @@ export type CareerPilotResultModel = {
   risks: string[];
   scores: CareerPilotScoreItem[];
   evidence: string[];
+  bulletSuggestions: CareerPilotBulletSuggestion[];
+  humanReviewNotice: string;
   technicalLines: string[];
   traceSteps: { code: string; message: string }[];
 };
+
+const INTERNAL_EVIDENCE_PATTERN =
+  /^(score:|pontuação|pontuacao|resume_score|pontuação_currículo|skills:|bullets:|quantified|mensuráveis|vagos:)/i;
+
+function isParticipantSafeEvidence(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed) return false;
+  if (INTERNAL_EVIDENCE_PATTERN.test(trimmed)) return false;
+  if (/^[\w_]+:\d+/i.test(trimmed)) return false;
+  return true;
+}
 
 export function takeTopUnique(items: string[], limit: number): string[] {
   const seen = new Set<string>();
@@ -43,19 +62,43 @@ export function takeTopUnique(items: string[], limit: number): string[] {
   return result;
 }
 
+function mapBulletSuggestions(analysis: ResumeAnalysis): CareerPilotBulletSuggestion[] {
+  return (analysis.bulletRecommendations ?? [])
+    .filter((item) => !item.reason?.includes("forte"))
+    .slice(0, 5)
+    .map((item) => ({
+      original: item.originalSummary,
+      recommendation: item.recommendation,
+      section: item.section,
+    }));
+}
+
 function mapResumeAnalysis(
   summary: string,
   analysis: ResumeAnalysis,
   agentResult: CareerAgentResult,
+  participantSurface: boolean,
 ): Omit<CareerPilotResultModel, "flowTitle" | "technicalLines" | "traceSteps"> {
   const strengths = analysis.strengths ?? [];
   const weaknesses = analysis.weaknesses ?? [];
   const missingEvidence = analysis.missingEvidence ?? [];
-  const bulletRecommendations = analysis.bulletRecommendations ?? [];
   const sectionRecommendations = analysis.sectionRecommendations ?? [];
   const risks = analysis.risks ?? [];
   const nextActions = analysis.nextActions ?? [];
   const evidence = agentResult.evidence ?? [];
+
+  const participantEvidence = participantSurface
+    ? takeTopUnique(sectionRecommendations, 3)
+    : takeTopUnique(
+        [
+          ...(analysis.bulletRecommendations ?? []).map(
+            (item) => `${item.section}: ${item.recommendation}`,
+          ),
+          ...sectionRecommendations,
+          ...evidence.filter(isParticipantSafeEvidence),
+        ],
+        8,
+      );
 
   return {
     summary,
@@ -64,14 +107,9 @@ function mapResumeAnalysis(
     nextActions: takeTopUnique([...nextActions, ...sectionRecommendations], 3),
     risks: takeTopUnique(risks, 5),
     scores: [{ label: "Qualidade da estrutura", value: analysis.score, max: 100 }],
-    evidence: takeTopUnique(
-      [
-        ...bulletRecommendations.map((item) => `${item.section}: ${item.recommendation}`),
-        ...sectionRecommendations,
-        ...evidence,
-      ],
-      8,
-    ),
+    evidence: participantEvidence,
+    bulletSuggestions: mapBulletSuggestions(analysis),
+    humanReviewNotice: "Revise cada sugestão com critério humano antes de alterar seu currículo.",
   };
 }
 
@@ -79,6 +117,7 @@ function mapAtsAnalysis(
   summary: string,
   analysis: AtsAnalysis,
   agentResult: CareerAgentResult,
+  participantSurface: boolean,
 ): Omit<CareerPilotResultModel, "flowTitle" | "technicalLines" | "traceSteps"> {
   const requiredRequirementCoverage = analysis.requiredRequirementCoverage ?? [];
   const matchedKeywords = analysis.matchedKeywords ?? [];
@@ -117,13 +156,17 @@ function mapAtsAnalysis(
     scores: [
       { label: "Compatibilidade estimada", value: analysis.compatibilityScore, max: 100 },
     ],
-    evidence: takeTopUnique(
-      [
-        ...requiredRequirementCoverage.map((item) => `${item.requirement}: ${item.status}`),
-        ...evidence,
-      ],
-      8,
-    ),
+    evidence: participantSurface
+      ? takeTopUnique(recommendations, 3)
+      : takeTopUnique(
+          [
+            ...requiredRequirementCoverage.map((item) => `${item.requirement}: ${item.status}`),
+            ...evidence.filter(isParticipantSafeEvidence),
+          ],
+          8,
+        ),
+    bulletSuggestions: [],
+    humanReviewNotice: "Revise cada sugestão com critério humano antes de alterar seu currículo.",
   };
 }
 
@@ -131,6 +174,7 @@ function mapCareerStrategyPlan(
   summary: string,
   plan: CareerStrategyPlan,
   agentResult: CareerAgentResult,
+  participantSurface: boolean,
 ): Omit<CareerPilotResultModel, "flowTitle" | "technicalLines" | "traceSteps"> {
   const priorityRoles = plan.priorityRoles ?? [];
   const skillPriorities = plan.skillPriorities ?? [];
@@ -155,22 +199,26 @@ function mapCareerStrategyPlan(
     nextActions: takeTopUnique([...thirtyDayPlan, ...applicationStrategy], 3),
     risks: takeTopUnique(risks, 5),
     scores: [],
-    evidence: takeTopUnique(
-      [
-        ...portfolioPriorities,
-        ...sixtyDayPlan.map((item) => `60 dias: ${item}`),
-        ...ninetyDayPlan.map((item) => `90 dias: ${item}`),
-        ...evidence,
-      ],
-      8,
-    ),
+    evidence: participantSurface
+      ? takeTopUnique([...thirtyDayPlan, ...applicationStrategy], 3)
+      : takeTopUnique(
+          [
+            ...portfolioPriorities,
+            ...sixtyDayPlan.map((item) => `60 dias: ${item}`),
+            ...ninetyDayPlan.map((item) => `90 dias: ${item}`),
+            ...evidence.filter(isParticipantSafeEvidence),
+          ],
+          8,
+        ),
+    bulletSuggestions: [],
+    humanReviewNotice: "Revise cada sugestão com critério humano antes de alterar seu currículo.",
   };
 }
 
-function fallbackFromAgentResult(agentResult: CareerAgentResult): Omit<
-  CareerPilotResultModel,
-  "flowTitle" | "technicalLines" | "traceSteps"
-> {
+function fallbackFromAgentResult(
+  agentResult: CareerAgentResult,
+  participantSurface: boolean,
+): Omit<CareerPilotResultModel, "flowTitle" | "technicalLines" | "traceSteps"> {
   const findings = agentResult.findings ?? [];
   const recommendations = agentResult.recommendations ?? [];
   const warnings = agentResult.warnings ?? [];
@@ -193,7 +241,11 @@ function fallbackFromAgentResult(agentResult: CareerAgentResult): Omit<
     nextActions: takeTopUnique(recommendations.map((item) => item.title), 3),
     risks: takeTopUnique(warnings.map((item) => item.message), 5),
     scores: [],
-    evidence: takeTopUnique(evidence, 8),
+    evidence: participantSurface
+      ? []
+      : takeTopUnique(evidence.filter(isParticipantSafeEvidence), 8),
+    bulletSuggestions: [],
+    humanReviewNotice: "Revise cada sugestão com critério humano antes de alterar seu currículo.",
   };
 }
 
@@ -213,7 +265,9 @@ function flowTitleForIntent(intent: CareerChatIntent): string {
 export function buildCareerPilotResultModel(input: {
   intent: CareerChatIntent;
   response: CareerChatResponse;
+  participantSurface?: boolean;
 }): CareerPilotResultModel | null {
+  const participantSurface = input.participantSurface !== false;
   const agentResult = input.response.agentResult;
   if (!agentResult || input.response.status !== "completed") {
     return null;
@@ -226,28 +280,30 @@ export function buildCareerPilotResultModel(input: {
   let core: Omit<CareerPilotResultModel, "flowTitle" | "technicalLines" | "traceSteps">;
 
   if (agentResult.resumeAnalysis) {
-    core = mapResumeAnalysis(summary, agentResult.resumeAnalysis, agentResult);
+    core = mapResumeAnalysis(summary, agentResult.resumeAnalysis, agentResult, participantSurface);
   } else if (agentResult.atsAnalysis) {
-    core = mapAtsAnalysis(summary, agentResult.atsAnalysis, agentResult);
+    core = mapAtsAnalysis(summary, agentResult.atsAnalysis, agentResult, participantSurface);
   } else if (agentResult.careerStrategyPlan) {
-    core = mapCareerStrategyPlan(summary, agentResult.careerStrategyPlan, agentResult);
+    core = mapCareerStrategyPlan(summary, agentResult.careerStrategyPlan, agentResult, participantSurface);
   } else {
-    core = fallbackFromAgentResult(agentResult);
+    core = fallbackFromAgentResult(agentResult, participantSurface);
   }
 
-  const technicalLines = [
-    "Nenhuma candidatura foi enviada.",
-    "Nenhuma alteração externa foi executada.",
-    input.response.persisted === false
-      ? "Seus dados não foram armazenados nesta sessão."
-      : "Registro limitado conforme consentimento.",
-    `Revisão humana necessária: ${input.response.reviewRequired ? "sim" : "não"}`,
-  ];
+  const technicalLines = participantSurface
+    ? []
+    : [
+        "Nenhuma candidatura foi enviada.",
+        "Nenhuma alteração externa foi executada.",
+        input.response.persisted === false
+          ? "Seus dados não foram armazenados nesta sessão."
+          : "Registro limitado conforme consentimento.",
+        `Revisão humana necessária: ${input.response.reviewRequired ? "sim" : "não"}`,
+      ];
 
   return {
     flowTitle: flowTitleForIntent(input.intent),
     ...core,
     technicalLines,
-    traceSteps: input.response.trace?.steps ?? [],
+    traceSteps: participantSurface ? [] : (input.response.trace?.steps ?? []),
   };
 }

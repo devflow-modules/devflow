@@ -4,6 +4,9 @@ export const CAREER_PILOT_RESULT_STRENGTHS_TITLE = "Pontos fortes";
 export const CAREER_PILOT_RESULT_IMPROVEMENTS_TITLE = "O que merece atenção";
 export const CAREER_PILOT_RESULT_NEXT_ACTIONS_TITLE = "Próximas ações";
 export const CAREER_PILOT_RESULT_RISKS_TITLE = "Pontos de atenção";
+export const CAREER_PILOT_RESULT_BULLET_SUGGESTIONS_TITLE = "Sugestões por experiência";
+export const CAREER_PILOT_RESULT_REVIEW_NOTICE =
+  "Revise cada sugestão com critério humano. Nenhuma alteração é aplicada automaticamente ao seu currículo.";
 export const CAREER_PILOT_RESULT_SCORES_TITLE = "Indicadores";
 export const CAREER_PILOT_RESULT_EVIDENCE_TITLE = "Evidências e detalhes";
 export const CAREER_PILOT_RESULT_TECHNICAL_TITLE = "Detalhes técnicos";

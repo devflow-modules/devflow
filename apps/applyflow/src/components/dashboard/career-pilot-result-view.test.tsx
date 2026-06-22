@@ -17,20 +17,37 @@ const model: CareerPilotResultModel = {
   risks: ["Bullets genéricos podem reduzir impacto"],
   scores: [{ label: "Qualidade da estrutura", value: 72, max: 100 }],
   evidence: ["Experiências: detalhar impacto"],
+  bulletSuggestions: [
+    {
+      original: "Desenvolvi APIs REST em Node.js.",
+      recommendation: "Explique quantos parceiros foram integrados, somente se esses dados forem reais.",
+    },
+  ],
+  humanReviewNotice: "Revise cada sugestão com critério humano antes de alterar seu currículo.",
   technicalLines: ["Nenhuma candidatura foi enviada."],
   traceSteps: [{ code: "review_required", message: "Human review required" }],
 };
 
 describe("CareerPilotResultView", () => {
-  it("renders participant hierarchy with technical details collapsed by default", () => {
+  it("renders participant hierarchy with technical details hidden by default", () => {
     const html = renderToStaticMarkup(<CareerPilotResultView model={model} intent="analyze_resume" />);
 
     expect(html.indexOf("Resumo")).toBeLessThan(html.indexOf("Principais achados"));
-    expect(html.indexOf("Principais achados")).toBeLessThan(html.indexOf("Próximas ações"));
-    expect(html.indexOf("Próximas ações")).toBeLessThan(html.indexOf("Detalhes técnicos"));
-    expect(html).toContain("<details");
+    expect(html.indexOf("Principais achados")).toBeLessThan(html.indexOf("Sugestões por experiência"));
+    expect(html.indexOf("Sugestões por experiência")).toBeLessThan(html.indexOf("Próximas ações"));
+    expect(html.indexOf("Próximas ações")).toBeLessThan(html.indexOf("Pontos de atenção"));
+    expect(html).toContain("career-pilot-result-review-notice");
+    expect(html).not.toContain("Detalhes técnicos");
+    expect(html).not.toContain("review_required");
     expect(html).not.toContain("Agent response");
-    expect(html).not.toContain("reviewRequired");
+  });
+
+  it("shows technical details only in diagnostic surface", () => {
+    const html = renderToStaticMarkup(
+      <CareerPilotResultView model={model} intent="analyze_resume" participantSurface={false} />,
+    );
+    expect(html).toContain("Detalhes técnicos");
+    expect(html).toContain("review_required");
   });
 
   it("shows Portuguese flow titles for the three pilot flows", () => {

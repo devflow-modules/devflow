@@ -4,6 +4,7 @@ import {
   extractJobKeywords,
   extractJobRequirements,
   extractLikelySkills,
+  extractProfessionalSummary,
   extractResumeLines,
   hasSimplePilotAnalysisInputs,
   normalizeJobDescription,
@@ -19,6 +20,30 @@ describe("normalizeResumeText", () => {
 
   it("returns empty string for blank input", () => {
     expect(normalizeResumeText("   \n  ")).toBe("");
+  });
+});
+
+describe("extractProfessionalSummary", () => {
+  it("extracts the first descriptive paragraph before experience sections", () => {
+    const summary = extractProfessionalSummary(`Desenvolvedor Full Stack com experiência em React, Next.js, TypeScript e Node.js.
+
+Experiência profissional
+TechCorp — Desenvolvedor
+Desenvolvi APIs REST.`);
+    expect(summary).toBe(
+      "Desenvolvedor Full Stack com experiência em React, Next.js, TypeScript e Node.js.",
+    );
+  });
+
+  it("does not duplicate summary lines as resume bullets", () => {
+    const resumeText = `Desenvolvedor Full Stack com experiência em React, Next.js, TypeScript e Node.js.
+
+Experiência profissional
+Desenvolvi APIs REST em Node.js.`;
+    const summary = extractProfessionalSummary(resumeText);
+    const lines = extractResumeLines(resumeText, summary);
+    expect(lines.join("\n")).not.toContain("Desenvolvedor Full Stack com experiência");
+    expect(lines.some((line) => line.includes("Desenvolvi APIs"))).toBe(true);
   });
 });
 
@@ -89,6 +114,14 @@ describe("extractJobKeywords", () => {
 });
 
 describe("buildCareerSpecialistFieldsFromSimpleInputs", () => {
+  it("does not treat action-only resume text as professional summary", () => {
+    const resumeText =
+      "Desenvolvi APIs em Node.js com TypeScript.\nReduzi deploy em 30% com CI/CD no GitHub Actions.";
+    expect(extractProfessionalSummary(resumeText)).toBe("");
+    const lines = extractResumeLines(resumeText);
+    expect(lines.some((line) => line.includes("Node.js"))).toBe(true);
+  });
+
   it("maps simple resume inputs to specialist fields", () => {
     const fields = buildCareerSpecialistFieldsFromSimpleInputs(
       {
@@ -102,6 +135,7 @@ describe("buildCareerSpecialistFieldsFromSimpleInputs", () => {
     expect(fields.resumeBullets).toContain("Node.js");
     expect(fields.resumeSkills).toContain("TypeScript");
     expect(fields.targetRoles).toBe("Desenvolvedor Full Stack");
+    expect(fields.resumeSummary).toBe("");
   });
 
   it("maps job description to requirements for ATS flow", () => {

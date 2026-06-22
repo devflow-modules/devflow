@@ -120,6 +120,7 @@ function isSpecialistIntent(action: CareerChatIntent): boolean {
 }
 
 export type CareerSpecialistFields = {
+  resumeSummary: string;
   resumeBullets: string;
   resumeSkills: string;
   jobRequirements: string;
@@ -128,6 +129,7 @@ export type CareerSpecialistFields = {
 };
 
 export const EMPTY_SPECIALIST_FIELDS: CareerSpecialistFields = {
+  resumeSummary: "",
   resumeBullets: "",
   resumeSkills: "",
   jobRequirements: "",
@@ -165,7 +167,9 @@ export function buildSpecialistAnalysisInput(input: {
   const skills = toCommaList(fields.resumeSkills);
   const resolvedSkills = skills.length > 0 ? skills : mainStack;
   const bullets = toLines(fields.resumeBullets);
+  const summary = fields.resumeSummary.trim() || undefined;
   const resumeSnapshot = {
+    ...(summary ? { summary } : {}),
     skills: resolvedSkills,
     experiences:
       bullets.length > 0
@@ -331,7 +335,11 @@ export function CareerChatWorkspaceView({
   const reviewProposal = response?.agentResult?.reviewProposal;
   const pilotResultModel =
     pilotPresentation && response?.status === "completed"
-      ? buildCareerPilotResultModel({ intent: action, response })
+      ? buildCareerPilotResultModel({
+          intent: action,
+          response,
+          participantSurface: pilotPresentation,
+        })
       : null;
   const visibleActions = pilotPresentation ? CAREER_PILOT_INTENTS : (Object.keys(CAREER_CHAT_WORKSPACE_ACTION_LABELS) as CareerChatIntent[]);
   const actionLabels = pilotPresentation ? CAREER_PILOT_ACTION_LABELS : CAREER_CHAT_WORKSPACE_ACTION_LABELS;
