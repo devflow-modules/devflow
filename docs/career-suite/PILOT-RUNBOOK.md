@@ -5,7 +5,7 @@ document complements — and does not replace — [`PILOT-VALIDATION.md`](./PILO
 (technical smoke) and [`DEPLOYMENT.md`](./DEPLOYMENT.md) (environment matrix).
 
 **Related:** [`README.md`](./README.md) · [`PRODUCT-UX-READINESS-REVIEW.md`](./PRODUCT-UX-READINESS-REVIEW.md) ·
-[`SECURITY-CHECKLIST.md`](./SECURITY-CHECKLIST.md) · [`OBSERVABILITY.md`](./OBSERVABILITY.md)
+[`P01-OPERATIONAL-KIT.md`](./P01-OPERATIONAL-KIT.md) · [`SECURITY-CHECKLIST.md`](./SECURITY-CHECKLIST.md) · [`OBSERVABILITY.md`](./OBSERVABILITY.md)
 
 ---
 
@@ -22,6 +22,8 @@ document complements — and does not replace — [`PILOT-VALIDATION.md`](./PILO
 | Technical Preview smoke | [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md) + `main` smoke 2026-06-22 |
 
 Current decision (2026-06-22): **`READY FOR P01`** — validated on ApplyFlow Preview `main` @ `7e5dfbc` ([`PRODUCT-UX-READINESS-REVIEW.md`](./PRODUCT-UX-READINESS-REVIEW.md), PR #136 visual revalidation).
+
+**Operational status:** `P01 READY TO SCHEDULE` — use [`P01-OPERATIONAL-KIT.md`](./P01-OPERATIONAL-KIT.md) for moderator scripts, observation sheets, and preflight checklist.
 
 ---
 
