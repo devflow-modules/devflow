@@ -53,16 +53,12 @@ import {
 } from "./career-chat-workspace-content";
 import {
   careerFeedbackCategoryForIntent,
+  CareerChatRequestError,
   runCareerChatLibrechat,
   submitCareerFeedback,
   type CareerChatWorkspaceUiState,
   type CareerFeedbackRating,
 } from "./career-chat-workspace-client";
-import { isCareerPilotModeClient } from "@/lib/career-system/feature-flags";
-import {
-  buildPilotCareerBundleFromFields,
-  hasPilotAnalysisInputs,
-} from "./build-pilot-career-bundle";
 import {
   CAREER_PILOT_ACTION_LABEL,
   CAREER_PILOT_ACTION_LABELS,
@@ -71,6 +67,8 @@ import {
   CAREER_PILOT_EMPTY_ATS_HINT,
   CAREER_PILOT_EMPTY_RESUME_HINT,
   CAREER_PILOT_EMPTY_STRATEGY_HINT,
+  CAREER_PILOT_ERROR_DESCRIPTION,
+  CAREER_PILOT_ERROR_TITLE,
   CAREER_PILOT_INTENTS,
   CAREER_PILOT_MESSAGE_LABEL,
   CAREER_PILOT_SEND_LABEL,
@@ -78,6 +76,11 @@ import {
   type CareerPilotIntent,
   isCareerPilotIntent,
 } from "./career-pilot-content";
+import { isCareerPilotModeClient } from "@/lib/career-system/feature-flags";
+import {
+  buildPilotCareerBundleFromFields,
+  hasPilotAnalysisInputs,
+} from "./build-pilot-career-bundle";
 import { buildCareerPilotResultModel } from "./career-pilot-result-mapper";
 import { CareerPilotResultView } from "./career-pilot-result-view";
 import { CareerPilotFeedback } from "./career-pilot-feedback";
@@ -230,7 +233,7 @@ function resolveUiState(input: {
     return "idle";
   }
 
-  return input.response ? "completed" : "idle";
+  return "idle";
 }
 
 function defaultToolInput(
@@ -303,6 +306,8 @@ export function CareerChatWorkspaceView({
 }) {
   const messageLength = message.length;
   const showSpecialist = pilotPresentation || isSpecialistIntent(action);
+  const warnings = response?.warnings ?? [];
+  const toolProposals = response?.toolProposals ?? [];
   const resumeAnalysis = response?.agentResult?.resumeAnalysis;
   const atsAnalysis = response?.agentResult?.atsAnalysis;
   const careerStrategyPlan = response?.agentResult?.careerStrategyPlan;
@@ -322,7 +327,7 @@ export function CareerChatWorkspaceView({
         : CAREER_PILOT_EMPTY_RESUME_HINT;
 
   const emptyMessage = pilotPresentation
-    ? uiState === "blocked" && response?.warnings.some((w) => w.code === "librechat_adapter_disabled")
+    ? uiState === "blocked" && warnings.some((w) => w.code === "librechat_adapter_disabled")
       ? CAREER_CHAT_WORKSPACE_ADAPTER_DISABLED_MESSAGE
       : uiState === "blocked"
         ? CAREER_CHAT_WORKSPACE_BLOCKED_MESSAGE
@@ -333,7 +338,7 @@ export function CareerChatWorkspaceView({
             : null
     : !careerBundle
       ? CAREER_CHAT_WORKSPACE_NO_BUNDLE_MESSAGE
-      : uiState === "blocked" && response?.warnings.some((w) => w.code === "librechat_adapter_disabled")
+      : uiState === "blocked" && warnings.some((w) => w.code === "librechat_adapter_disabled")
         ? CAREER_CHAT_WORKSPACE_ADAPTER_DISABLED_MESSAGE
         : uiState === "blocked"
           ? CAREER_CHAT_WORKSPACE_BLOCKED_MESSAGE
@@ -664,11 +669,11 @@ export function CareerChatWorkspaceView({
           </div>
         ) : null}
 
-        {response?.toolProposals.length && !pilotPresentation ? (
+        {toolProposals.length > 0 && !pilotPresentation ? (
           <div className="space-y-2" data-testid="career-chat-tool-proposals">
             <p className="font-medium text-[color:var(--af-text)]">Tool proposals</p>
             <ul className="space-y-2">
-              {response.toolProposals.map((proposal) => (
+              {toolProposals.map((proposal) => (
                 <li
                   key={proposal.toolName}
                   className="rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] p-2"
@@ -887,6 +892,7 @@ export function CareerChatWorkspace({
 
     setIsSending(true);
     setErrorMessage(null);
+    setResponse(null);
     setSelectedProposal(null);
     setApprovedOnce(false);
     setFeedbackSubmitted(false);
@@ -911,6 +917,11 @@ export function CareerChatWorkspace({
           ...(analysisInput ? { analysisInput } : {}),
         },
       });
+
+      if (nextResponse.status !== "completed" && nextResponse.status !== "blocked") {
+        throw new CareerChatRequestError();
+      }
+
       setResponse(nextResponse);
       if (
         pilotPresentation &&
@@ -920,9 +931,10 @@ export function CareerChatWorkspace({
         onPilotAnalysisComplete?.(action);
       }
     } catch {
+      setResponse(null);
       setErrorMessage(
         pilotPresentation
-          ? "Não foi possível concluir a análise. Tente novamente."
+          ? `${CAREER_PILOT_ERROR_TITLE} ${CAREER_PILOT_ERROR_DESCRIPTION}`
           : "Career chat adapter failed safely.",
       );
     } finally {

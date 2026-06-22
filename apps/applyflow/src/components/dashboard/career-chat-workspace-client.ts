@@ -9,17 +9,55 @@ export type CareerChatWorkspaceUiState =
   | "completed"
   | "error";
 
+export class CareerChatRequestError extends Error {
+  readonly kind = "career_chat_request_error" as const;
+
+  constructor(message = "Career chat request failed") {
+    super(message);
+    this.name = "CareerChatRequestError";
+  }
+}
+
+function isCareerChatResponse(payload: unknown): payload is CareerChatResponse {
+  if (!payload || typeof payload !== "object") {
+    return false;
+  }
+
+  const status = (payload as CareerChatResponse).status;
+  return status === "completed" || status === "blocked" || status === "error";
+}
+
 export async function runCareerChatLibrechat(
   body: LibreChatCareerChatBody,
   fetchImpl: typeof fetch = fetch,
 ): Promise<CareerChatResponse> {
-  const response = await fetchImpl(CAREER_CHAT_LIBRECHAT_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  let response: Response;
+  try {
+    response = await fetchImpl(CAREER_CHAT_LIBRECHAT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new CareerChatRequestError();
+  }
 
-  return (await response.json()) as CareerChatResponse;
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new CareerChatRequestError();
+  }
+
+  if (!response.ok || !isCareerChatResponse(payload)) {
+    throw new CareerChatRequestError();
+  }
+
+  if (payload.status === "error") {
+    throw new CareerChatRequestError();
+  }
+
+  return payload;
 }
 
 export const CAREER_FEEDBACK_URL = "/career-feedback";

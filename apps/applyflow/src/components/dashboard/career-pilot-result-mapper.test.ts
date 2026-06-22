@@ -113,4 +113,75 @@ describe("buildCareerPilotResultModel", () => {
     expect(model?.flowTitle).toBe("Compatibilidade com a vaga");
     expect(model?.scores[0]?.label).toBe("Compatibilidade estimada");
   });
+
+  it("returns null for incomplete completed responses without summary", () => {
+    const model = buildCareerPilotResultModel({
+      intent: "analyze_resume",
+      response: {
+        status: "completed",
+        intent: "analyze_resume",
+        reviewRequired: true,
+        safeForClient: true,
+        hasToken: false,
+        persisted: false,
+        executedExternally: false,
+        agentResult: {
+          status: "completed",
+          agent: "resume_analyst",
+          summary: "",
+          findings: [],
+          recommendations: [],
+          evidence: [],
+          warnings: [],
+          reviewRequired: true,
+          safeForClient: true,
+          hasToken: false,
+          rawProviderDataUsed: false,
+          persisted: false,
+          trace: { requestId: "req-1", steps: [] },
+        },
+      } as never,
+    });
+
+    expect(model).toBeNull();
+  });
+
+  it("does not crash when optional analysis arrays are missing", () => {
+    const model = buildCareerPilotResultModel({
+      intent: "analyze_resume",
+      response: {
+        status: "completed",
+        intent: "analyze_resume",
+        reviewRequired: true,
+        safeForClient: true,
+        hasToken: false,
+        persisted: false,
+        executedExternally: false,
+        warnings: [],
+        toolProposals: [],
+        trace: { steps: [] },
+        agentResult: {
+          status: "completed",
+          agent: "resume_analyst",
+          summary: "Resumo parcial",
+          findings: [],
+          recommendations: [],
+          evidence: [],
+          warnings: [],
+          reviewRequired: true,
+          safeForClient: true,
+          hasToken: false,
+          rawProviderDataUsed: false,
+          persisted: false,
+          trace: { requestId: "req-1", steps: [] },
+          resumeAnalysis: {
+            score: 50,
+          },
+        },
+      } as never,
+    });
+
+    expect(model?.summary).toBe("Resumo parcial");
+    expect(model?.strengths).toEqual([]);
+  });
 });
