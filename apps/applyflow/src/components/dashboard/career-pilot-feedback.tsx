@@ -1,6 +1,7 @@
 "use client";
 
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
+import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import { useState } from "react";
 import type { CareerFeedbackRating } from "./career-chat-workspace-client";
 import {
@@ -14,6 +15,7 @@ import {
   CAREER_PILOT_FEEDBACK_SUBMIT_LABEL,
   CAREER_PILOT_FEEDBACK_THANKS,
 } from "./career-pilot-result-content";
+import { careerPolishSectionSurface } from "./career-polish-classes";
 
 export function CareerPilotFeedback({
   onSubmit,
@@ -56,21 +58,33 @@ export function CareerPilotFeedback({
 
   if (submitted) {
     return (
-      <p role="status" className="text-sm text-emerald-200/90" data-testid="career-pilot-feedback-thanks">
+      <p
+        role="status"
+        aria-live="polite"
+        className="rounded-[var(--af-radius-sm)] border border-emerald-500/25 bg-emerald-950/15 px-4 py-3 text-sm text-emerald-200/95"
+        data-testid="career-pilot-feedback-thanks"
+      >
         {CAREER_PILOT_FEEDBACK_THANKS}
       </p>
     );
   }
 
   return (
-    <div className="space-y-3" data-testid="career-pilot-feedback">
-      <p className="text-sm text-[color:var(--af-text-muted)]">{CAREER_PILOT_FEEDBACK_INTRO}</p>
-      <p className="text-sm font-medium text-[color:var(--af-text)]">{CAREER_PILOT_FEEDBACK_PROMPT}</p>
+    <ApplyFlowCard
+      variant="muted"
+      padding="md"
+      className={`${careerPolishSectionSurface} space-y-4`}
+      data-testid="career-pilot-feedback"
+    >
+      <div className="space-y-1">
+        <p className="text-sm text-[color:var(--af-text-muted)]">{CAREER_PILOT_FEEDBACK_INTRO}</p>
+        <p className="text-sm font-medium text-[color:var(--af-text)]">{CAREER_PILOT_FEEDBACK_PROMPT}</p>
+      </div>
 
       <div className="flex flex-wrap gap-2" role="group" aria-label={CAREER_PILOT_FEEDBACK_PROMPT}>
         <ApplyFlowButton
           type="button"
-          variant={selectedRating === "helpful" ? "primary" : "outlineBrand"}
+          variant={selectedRating === "helpful" ? "primary" : "secondary"}
           size="sm"
           aria-pressed={selectedRating === "helpful"}
           onClick={() => setSelectedRating("helpful")}
@@ -100,20 +114,24 @@ export function CareerPilotFeedback({
         </ApplyFlowButton>
       </div>
 
-      <label className="flex items-start gap-2 text-sm text-[color:var(--af-text-muted)]">
-        <input
-          type="checkbox"
-          checked={consentChecked}
-          onChange={(event) => setConsentChecked(event.target.checked)}
-          data-testid="career-pilot-feedback-consent"
-        />
-        <span>{CAREER_PILOT_FEEDBACK_CONSENT_LABEL}</span>
-      </label>
+      <div className="rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface)] px-3 py-3">
+        <label className="flex items-start gap-3 text-sm text-[color:var(--af-text-muted)]">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--af-border-strong)]"
+            checked={consentChecked}
+            onChange={(event) => setConsentChecked(event.target.checked)}
+            data-testid="career-pilot-feedback-consent"
+          />
+          <span>{CAREER_PILOT_FEEDBACK_CONSENT_LABEL}</span>
+        </label>
+      </div>
 
       <ApplyFlowButton
         type="button"
-        variant="outlineBrand"
-        size="sm"
+        variant="primary"
+        size="md"
+        className="w-full sm:w-auto"
         disabled={!consentChecked || !selectedRating || isSubmitting}
         onClick={() => {
           void handleSubmit();
@@ -128,6 +146,6 @@ export function CareerPilotFeedback({
           {errorMessage}
         </p>
       ) : null}
-    </div>
+    </ApplyFlowCard>
   );
 }

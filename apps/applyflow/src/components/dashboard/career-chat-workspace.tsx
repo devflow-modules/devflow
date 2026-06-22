@@ -14,7 +14,7 @@ import {
 } from "@devflow/career-core";
 import type { ProviderDerivedSignal } from "@devflow/career-sync";
 import type { CareerBundle } from "@devflow/career-core";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CareerToolPermissionReview } from "./career-tool-permission-review";
 import {
   CAREER_CHAT_WORKSPACE_ACTION_LABEL,
@@ -66,8 +66,6 @@ import {
 import {
   CAREER_PILOT_ACTION_LABEL,
   CAREER_PILOT_ACTION_LABELS,
-  CAREER_PILOT_CHAT_DESCRIPTION,
-  CAREER_PILOT_CHAT_TITLE,
   CAREER_PILOT_CONSENT_LABEL,
   CAREER_PILOT_DEFAULT_MESSAGE,
   CAREER_PILOT_EMPTY_ATS_HINT,
@@ -76,11 +74,23 @@ import {
   CAREER_PILOT_INTENTS,
   CAREER_PILOT_MESSAGE_LABEL,
   CAREER_PILOT_SEND_LABEL,
+  CAREER_PILOT_WORKFLOW_COPY,
+  type CareerPilotIntent,
   isCareerPilotIntent,
 } from "./career-pilot-content";
 import { buildCareerPilotResultModel } from "./career-pilot-result-mapper";
 import { CareerPilotResultView } from "./career-pilot-result-view";
 import { CareerPilotFeedback } from "./career-pilot-feedback";
+import { CareerAnalysisLoading } from "./career-analysis-loading";
+import { CareerAnalysisError } from "./career-analysis-error";
+import {
+  careerPolishBodyText,
+  careerPolishInput,
+  careerPolishLabel,
+  careerPolishSectionSurface,
+  careerPolishTextarea,
+} from "./career-polish-classes";
+import { cn } from "@/lib/cn";
 
 const SPECIALIST_INTENTS: CareerChatIntent[] = [
   "analyze_resume",
@@ -182,8 +192,10 @@ export type CareerChatWorkspaceProps = {
   selectedSignalIds: string[];
   availableSignals: ProviderDerivedSignal[];
   pilotPresentation?: boolean;
+  pilotIntent?: CareerChatIntent;
   initialSpecialistFields?: CareerSpecialistFields;
   onPilotActionChange?: (action: CareerChatIntent) => void;
+  onPilotAnalysisComplete?: (intent: CareerPilotIntent) => void;
 };
 
 function resolveUiState(input: {
@@ -257,6 +269,7 @@ export function CareerChatWorkspaceView({
   onSubmitFeedback,
   onSubmitPilotFeedback,
   submitDisabled = false,
+  onDismissError,
 }: CareerChatWorkspaceProps & {
   action: CareerChatIntent;
   message: string;
@@ -286,6 +299,7 @@ export function CareerChatWorkspaceView({
     consentToStore: boolean;
   }) => Promise<{ ok: boolean }>;
   submitDisabled?: boolean;
+  onDismissError?: () => void;
 }) {
   const messageLength = message.length;
   const showSpecialist = pilotPresentation || isSpecialistIntent(action);
@@ -329,34 +343,53 @@ export function CareerChatWorkspaceView({
               ? CAREER_CHAT_WORKSPACE_VALIDATING_MESSAGE
               : null;
 
+  const workflowCopy =
+    pilotPresentation && isCareerPilotIntent(action)
+      ? CAREER_PILOT_WORKFLOW_COPY[action]
+      : null;
+
   return (
     <ApplyFlowCard
       variant="default"
-      padding="sm"
-      className="border border-violet-500/25 bg-violet-950/10"
+      padding={pilotPresentation ? "md" : "sm"}
+      className={cn(
+        pilotPresentation
+          ? `${careerPolishSectionSurface} space-y-5`
+          : "border border-violet-500/25 bg-violet-950/10",
+      )}
       data-testid="career-chat-workspace-panel"
     >
-      <div className="space-y-3 text-[11px] leading-snug text-[color:var(--af-text-muted)]">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="text-xs font-semibold text-violet-100/95">
-            {pilotPresentation ? CAREER_PILOT_CHAT_TITLE : CAREER_CHAT_WORKSPACE_TITLE}
-          </h3>
-          <ApplyFlowBadge tone="neutral">{CAREER_CHAT_WORKSPACE_BADGE_READ_ONLY}</ApplyFlowBadge>
-          <ApplyFlowBadge tone="intel">{CAREER_CHAT_WORKSPACE_BADGE_MANUAL}</ApplyFlowBadge>
-          <ApplyFlowBadge tone="neutral">{CAREER_CHAT_WORKSPACE_BADGE_IN_MEMORY}</ApplyFlowBadge>
-          {response?.reviewRequired ? (
-            <ApplyFlowBadge tone="warning" data-testid="career-chat-review-badge">
-              {pilotPresentation ? "Revise antes de usar" : "Review required"}
-            </ApplyFlowBadge>
-          ) : null}
-          {pilotMode ? (
-            <ApplyFlowBadge tone="brand" data-testid="career-chat-pilot-badge">
-              {CAREER_CHAT_WORKSPACE_PILOT_BADGE}
-            </ApplyFlowBadge>
-          ) : null}
-        </div>
+      <div
+        className={cn(
+          "space-y-4",
+          pilotPresentation ? "text-sm leading-relaxed" : "space-y-3 text-[11px] leading-snug text-[color:var(--af-text-muted)]",
+        )}
+      >
+        {pilotPresentation && workflowCopy ? (
+          <header className="space-y-1 border-b border-[color:var(--af-border)] pb-4">
+            <h3 className="text-lg font-semibold text-[color:var(--af-text)]">{workflowCopy.title}</h3>
+            <p className={careerPolishBodyText}>{workflowCopy.description}</p>
+          </header>
+        ) : (
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-xs font-semibold text-violet-100/95">{CAREER_CHAT_WORKSPACE_TITLE}</h3>
+            <ApplyFlowBadge tone="neutral">{CAREER_CHAT_WORKSPACE_BADGE_READ_ONLY}</ApplyFlowBadge>
+            <ApplyFlowBadge tone="intel">{CAREER_CHAT_WORKSPACE_BADGE_MANUAL}</ApplyFlowBadge>
+            <ApplyFlowBadge tone="neutral">{CAREER_CHAT_WORKSPACE_BADGE_IN_MEMORY}</ApplyFlowBadge>
+            {response?.reviewRequired ? (
+              <ApplyFlowBadge tone="warning" data-testid="career-chat-review-badge">
+                Review required
+              </ApplyFlowBadge>
+            ) : null}
+            {pilotMode ? (
+              <ApplyFlowBadge tone="brand" data-testid="career-chat-pilot-badge">
+                {CAREER_CHAT_WORKSPACE_PILOT_BADGE}
+              </ApplyFlowBadge>
+            ) : null}
+          </div>
+        )}
 
-        {pilotMode ? (
+        {!pilotPresentation && pilotMode ? (
           <p
             role="note"
             className="rounded-[var(--af-radius-sm)] border border-emerald-500/25 bg-emerald-950/20 px-2 py-1.5 text-emerald-200/90"
@@ -366,56 +399,93 @@ export function CareerChatWorkspaceView({
           </p>
         ) : null}
 
-        <p>{pilotPresentation ? CAREER_PILOT_CHAT_DESCRIPTION : CAREER_CHAT_WORKSPACE_DESCRIPTION}</p>
         {!pilotPresentation ? (
-          <p data-testid="career-chat-workspace-disclaimer">{CAREER_CHAT_WORKSPACE_DISCLAIMER}</p>
+          <>
+            <p>{CAREER_CHAT_WORKSPACE_DESCRIPTION}</p>
+            <p data-testid="career-chat-workspace-disclaimer">{CAREER_CHAT_WORKSPACE_DISCLAIMER}</p>
+          </>
         ) : null}
 
         <div className="space-y-2">
-          <label htmlFor="career-chat-action-select" className="font-medium text-[color:var(--af-text)]">
+          <p className={pilotPresentation ? careerPolishLabel : "font-medium text-[color:var(--af-text)]"}>
             {pilotPresentation ? CAREER_PILOT_ACTION_LABEL : CAREER_CHAT_WORKSPACE_ACTION_LABEL}
-          </label>
-          <select
-            id="career-chat-action-select"
-            className="w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface)] px-2 py-1.5 text-[11px] text-[color:var(--af-text)]"
-            value={action}
-            onChange={(event) => onActionChange(event.target.value as CareerChatIntent)}
-            data-testid="career-chat-action-select"
-          >
-            {visibleActions.map((value) => (
-              <option key={value} value={value}>
-                {actionLabels[value as keyof typeof actionLabels] ?? value}
-              </option>
-            ))}
-          </select>
+          </p>
+          {pilotPresentation ? (
+            <div
+              className="grid gap-2 sm:grid-cols-3"
+              role="group"
+              aria-label={CAREER_PILOT_ACTION_LABEL}
+              data-testid="career-pilot-intent-group"
+            >
+              {visibleActions.map((value) => {
+                const intent = value as CareerPilotIntent;
+                const isSelected = action === intent;
+                return (
+                  <ApplyFlowButton
+                    key={value}
+                    type="button"
+                    variant={isSelected ? "primary" : "secondary"}
+                    size="md"
+                    className="h-auto min-h-[2.75rem] w-full whitespace-normal py-2.5 text-left text-sm"
+                    aria-pressed={isSelected}
+                    onClick={() => onActionChange(intent)}
+                    data-testid={`career-pilot-intent-${intent}`}
+                  >
+                    {actionLabels[intent]}
+                  </ApplyFlowButton>
+                );
+              })}
+            </div>
+          ) : (
+            <select
+              id="career-chat-action-select"
+              className="w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface)] px-2 py-1.5 text-[11px] text-[color:var(--af-text)]"
+              value={action}
+              onChange={(event) => onActionChange(event.target.value as CareerChatIntent)}
+              data-testid="career-chat-action-select"
+            >
+              {visibleActions.map((value) => (
+                <option key={value} value={value}>
+                  {actionLabels[value as keyof typeof actionLabels] ?? value}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         {showSpecialist ? (
           <div
-            className="space-y-2 rounded-[var(--af-radius-sm)] border border-violet-500/25 p-2"
+            className={cn(
+              "space-y-3",
+              pilotPresentation
+                ? "rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] p-4"
+                : "space-y-2 rounded-[var(--af-radius-sm)] border border-violet-500/25 p-2",
+            )}
             data-testid="career-chat-specialist-inputs"
           >
-            <p className="font-medium text-[color:var(--af-text)]">
-              {pilotPresentation ? "Informações para análise" : CAREER_CHAT_WORKSPACE_SPECIALIST_LABEL}
-            </p>
+            {!pilotPresentation ? (
+              <p className="font-medium text-[color:var(--af-text)]">
+                {CAREER_CHAT_WORKSPACE_SPECIALIST_LABEL}
+              </p>
+            ) : null}
             {action !== "plan_career_strategy" ? (
               <>
-                <label htmlFor="career-chat-resume-bullets" className="block">
+                <label htmlFor="career-chat-resume-bullets" className={careerPolishLabel}>
                   {CAREER_CHAT_WORKSPACE_RESUME_BULLETS_LABEL}
                 </label>
                 <textarea
                   id="career-chat-resume-bullets"
-                  className="min-h-[64px] w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface)] px-2 py-1.5 text-[11px] text-[color:var(--af-text)]"
+                  className={careerPolishTextarea}
                   value={specialistFields.resumeBullets}
                   onChange={(event) => onSpecialistFieldChange?.("resumeBullets", event.target.value)}
                   data-testid="career-chat-resume-bullets"
                 />
-                <label htmlFor="career-chat-resume-skills" className="block">
+                <label htmlFor="career-chat-resume-skills" className={careerPolishLabel}>
                   {CAREER_CHAT_WORKSPACE_RESUME_SKILLS_LABEL}
                 </label>
                 <input
                   id="career-chat-resume-skills"
-                  className="w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface)] px-2 py-1.5 text-[11px] text-[color:var(--af-text)]"
+                  className={careerPolishInput}
                   value={specialistFields.resumeSkills}
                   onChange={(event) => onSpecialistFieldChange?.("resumeSkills", event.target.value)}
                   data-testid="career-chat-resume-skills"
@@ -424,12 +494,12 @@ export function CareerChatWorkspaceView({
             ) : null}
             {action === "analyze_ats_compatibility" ? (
               <>
-                <label htmlFor="career-chat-job-requirements" className="block">
+                <label htmlFor="career-chat-job-requirements" className={careerPolishLabel}>
                   {CAREER_CHAT_WORKSPACE_JOB_REQUIREMENTS_LABEL}
                 </label>
                 <textarea
                   id="career-chat-job-requirements"
-                  className="min-h-[64px] w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface)] px-2 py-1.5 text-[11px] text-[color:var(--af-text)]"
+                  className={careerPolishTextarea}
                   value={specialistFields.jobRequirements}
                   onChange={(event) => onSpecialistFieldChange?.("jobRequirements", event.target.value)}
                   data-testid="career-chat-job-requirements"
@@ -438,22 +508,22 @@ export function CareerChatWorkspaceView({
             ) : null}
             {action === "plan_career_strategy" ? (
               <>
-                <label htmlFor="career-chat-target-roles" className="block">
+                <label htmlFor="career-chat-target-roles" className={careerPolishLabel}>
                   {CAREER_CHAT_WORKSPACE_TARGET_ROLES_LABEL}
                 </label>
                 <input
                   id="career-chat-target-roles"
-                  className="w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface)] px-2 py-1.5 text-[11px] text-[color:var(--af-text)]"
+                  className={careerPolishInput}
                   value={specialistFields.targetRoles}
                   onChange={(event) => onSpecialistFieldChange?.("targetRoles", event.target.value)}
                   data-testid="career-chat-target-roles"
                 />
-                <label htmlFor="career-chat-availability" className="block">
+                <label htmlFor="career-chat-availability" className={careerPolishLabel}>
                   {CAREER_CHAT_WORKSPACE_AVAILABILITY_LABEL}
                 </label>
                 <input
                   id="career-chat-availability"
-                  className="w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface)] px-2 py-1.5 text-[11px] text-[color:var(--af-text)]"
+                  className={careerPolishInput}
                   value={specialistFields.availability}
                   onChange={(event) => onSpecialistFieldChange?.("availability", event.target.value)}
                   data-testid="career-chat-availability"
@@ -464,25 +534,28 @@ export function CareerChatWorkspaceView({
         ) : null}
 
         <div className="space-y-2">
-          <label htmlFor="career-chat-message-input" className="font-medium text-[color:var(--af-text)]">
+          <label htmlFor="career-chat-message-input" className={careerPolishLabel}>
             {pilotPresentation ? CAREER_PILOT_MESSAGE_LABEL : CAREER_CHAT_WORKSPACE_MESSAGE_LABEL}
           </label>
           <textarea
             id="career-chat-message-input"
-            className="min-h-[96px] w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface)] px-2 py-1.5 text-[11px] text-[color:var(--af-text)]"
+            className={pilotPresentation ? careerPolishTextarea : "min-h-[96px] w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface)] px-2 py-1.5 text-[11px] text-[color:var(--af-text)]"}
             value={message}
             maxLength={CAREER_CHAT_MAX_MESSAGE_LENGTH}
             onChange={(event) => onMessageChange(event.target.value)}
             data-testid="career-chat-message-input"
           />
-          <p data-testid="career-chat-character-counter">
-            {messageLength}/{CAREER_CHAT_MAX_MESSAGE_LENGTH}
-          </p>
+          {!pilotPresentation ? (
+            <p data-testid="career-chat-character-counter">
+              {messageLength}/{CAREER_CHAT_MAX_MESSAGE_LENGTH}
+            </p>
+          ) : null}
         </div>
 
-        <label className="flex items-start gap-2">
+        <label className="flex items-start gap-3 rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] px-3 py-3 text-sm text-[color:var(--af-text-muted)]">
           <input
             type="checkbox"
+            className="mt-0.5 h-4 w-4 shrink-0"
             checked={explicitConsent}
             onChange={(event) => onConsentChange(event.target.checked)}
             data-testid="career-chat-consent-checkbox"
@@ -493,7 +566,8 @@ export function CareerChatWorkspaceView({
         <ApplyFlowButton
           type="button"
           variant="primary"
-          size="sm"
+          size={pilotPresentation ? "lg" : "sm"}
+          className={pilotPresentation ? "w-full sm:w-auto" : undefined}
           disabled={submitDisabled || isSending}
           onClick={onSend}
           data-testid="career-chat-send-button"
@@ -501,19 +575,32 @@ export function CareerChatWorkspaceView({
           {isSending ? "Enviando…" : pilotPresentation ? CAREER_PILOT_SEND_LABEL : CAREER_CHAT_WORKSPACE_SEND_LABEL}
         </ApplyFlowButton>
 
-        {emptyMessage ? (
-          <p role="status" data-testid="career-chat-status-message">
+        {pilotPresentation && isSending ? <CareerAnalysisLoading intent={action} /> : null}
+
+        {emptyMessage && !(pilotPresentation && isSending) ? (
+          <p role="status" className="text-sm text-[color:var(--af-text-muted)]" data-testid="career-chat-status-message">
             {emptyMessage}
           </p>
         ) : null}
 
         {errorMessage ? (
-          <p role="alert" className="text-amber-200/90" data-testid="career-chat-error-message">
-            {errorMessage}
-          </p>
+          pilotPresentation ? (
+            <CareerAnalysisError
+              onRetry={() => {
+                onDismissError?.();
+                onSend();
+              }}
+            />
+          ) : (
+            <p role="alert" className="text-amber-200/90" data-testid="career-chat-error-message">
+              {errorMessage}
+            </p>
+          )
         ) : null}
 
-        {pilotResultModel ? <CareerPilotResultView model={pilotResultModel} /> : null}
+        {pilotResultModel ? (
+          <CareerPilotResultView model={pilotResultModel} intent={action} />
+        ) : null}
 
         {response?.agentResult && !pilotPresentation ? (
           <div className="space-y-2" data-testid="career-chat-agent-result">
@@ -717,11 +804,13 @@ export function CareerChatWorkspace({
   selectedSignalIds,
   availableSignals,
   pilotPresentation = false,
+  pilotIntent,
   initialSpecialistFields,
   onPilotActionChange,
+  onPilotAnalysisComplete,
 }: CareerChatWorkspaceProps) {
   const [action, setAction] = useState<CareerChatIntent>(
-    pilotPresentation ? "analyze_resume" : "prepare_interview",
+    pilotPresentation ? (pilotIntent ?? "analyze_resume") : "prepare_interview",
   );
   const [message, setMessage] = useState(
     pilotPresentation ? CAREER_PILOT_DEFAULT_MESSAGE : "Focus on frontend architecture",
@@ -737,6 +826,13 @@ export function CareerChatWorkspace({
   );
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const pilotMode = pilotPresentation || isCareerPilotModeClient();
+
+  useEffect(() => {
+    if (!pilotPresentation || !pilotIntent || !isCareerPilotIntent(pilotIntent)) {
+      return;
+    }
+    setAction(pilotIntent);
+  }, [pilotIntent, pilotPresentation]);
 
   const effectiveBundle = useMemo(() => {
     if (careerBundle && careerBundle.applications.length > 0) {
@@ -816,6 +912,13 @@ export function CareerChatWorkspace({
         },
       });
       setResponse(nextResponse);
+      if (
+        pilotPresentation &&
+        nextResponse.status === "completed" &&
+        isCareerPilotIntent(action)
+      ) {
+        onPilotAnalysisComplete?.(action);
+      }
     } catch {
       setErrorMessage(
         pilotPresentation
@@ -882,6 +985,7 @@ export function CareerChatWorkspace({
         pilotMode={pilotMode}
         pilotPresentation={pilotPresentation}
         submitDisabled={submitDisabled}
+        onDismissError={() => setErrorMessage(null)}
         onSubmitPilotFeedback={
           pilotPresentation
             ? async (input) =>

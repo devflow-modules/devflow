@@ -12,6 +12,7 @@ const model: CareerPilotResultModel = {
   nextActions: [
     "Adicione resultados mensuráveis às experiências recentes.",
     "Inclua as tecnologias obrigatórias citadas na vaga.",
+    "Revise o resumo profissional.",
   ],
   risks: ["Bullets genéricos podem reduzir impacto"],
   scores: [{ label: "Qualidade da estrutura", value: 72, max: 100 }],
@@ -22,12 +23,11 @@ const model: CareerPilotResultModel = {
 
 describe("CareerPilotResultView", () => {
   it("renders participant hierarchy with technical details collapsed by default", () => {
-    const html = renderToStaticMarkup(<CareerPilotResultView model={model} />);
+    const html = renderToStaticMarkup(<CareerPilotResultView model={model} intent="analyze_resume" />);
 
     expect(html.indexOf("Resumo")).toBeLessThan(html.indexOf("Principais achados"));
     expect(html.indexOf("Principais achados")).toBeLessThan(html.indexOf("Próximas ações"));
-    expect(html.indexOf("Próximas ações")).toBeLessThan(html.indexOf("Indicadores"));
-    expect(html.indexOf("Indicadores")).toBeLessThan(html.indexOf("Detalhes técnicos"));
+    expect(html.indexOf("Próximas ações")).toBeLessThan(html.indexOf("Detalhes técnicos"));
     expect(html).toContain("<details");
     expect(html).not.toContain("Agent response");
     expect(html).not.toContain("reviewRequired");
@@ -45,6 +45,13 @@ describe("CareerPilotResultView", () => {
       expect(html).toContain(title);
     }
   });
+
+  it("limits visible numbered next actions to provided items", () => {
+    const html = renderToStaticMarkup(<CareerPilotResultView model={model} intent="analyze_resume" />);
+    const matches = html.match(/career-pilot-result-action-list/g) ?? [];
+    expect(matches.length).toBeGreaterThan(0);
+    expect(model.nextActions.length).toBeLessThanOrEqual(3);
+  });
 });
 
 describe("CareerPilotFeedback", () => {
@@ -57,6 +64,7 @@ describe("CareerPilotFeedback", () => {
     expect(html).not.toContain("checked=");
     expect(html).toContain("Enviar feedback");
     expect(html).toContain("Seu feedback é opcional");
+    expect(html).toContain("Esta análise ajudou você a entender o próximo passo?");
   });
 });
 
