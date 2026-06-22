@@ -12,6 +12,7 @@ import {
   CareerChatWorkspaceView,
   EMPTY_SPECIALIST_FIELDS,
 } from "./career-chat-workspace";
+import { EMPTY_CAREER_PILOT_SIMPLE_INPUTS } from "./career-pilot-simple-inputs";
 import * as careerChatClient from "./career-chat-workspace-client";
 
 const bundle = createCareerBundle([
@@ -156,6 +157,8 @@ describe("CareerChatWorkspace retry flow", () => {
 
   it("preserves form data, shows the error panel, and completes after retry", async () => {
     const user = userEvent.setup();
+    const resumeText =
+      "Desenvolvi APIs REST em Node.js com TypeScript. Reduzi deploy em 30% com pipelines CI/CD.";
     const runSpy = vi
       .spyOn(careerChatClient, "runCareerChatLibrechat")
       .mockRejectedValueOnce(new careerChatClient.CareerChatRequestError())
@@ -168,17 +171,13 @@ describe("CareerChatWorkspace retry flow", () => {
         availableSignals={[]}
         pilotPresentation
         pilotIntent="analyze_resume"
-        initialSpecialistFields={{
-          ...EMPTY_SPECIALIST_FIELDS,
-          resumeBullets: "Built APIs",
-          resumeSkills: "TypeScript",
-        }}
+        simpleInputs={{ ...EMPTY_CAREER_PILOT_SIMPLE_INPUTS, resumeText }}
+        onSimpleInputsChange={() => undefined}
       />,
     );
 
     const panel = within(view.getByTestId("career-chat-workspace-panel"));
-    const bullets = panel.getByTestId("career-chat-resume-bullets") as HTMLTextAreaElement;
-    const skills = panel.getByTestId("career-chat-resume-skills") as HTMLInputElement;
+    const resume = panel.getByTestId("career-pilot-resume-text") as HTMLTextAreaElement;
 
     await user.click(panel.getByTestId("career-chat-consent-checkbox"));
     await user.click(panel.getByTestId("career-chat-send-button"));
@@ -187,8 +186,7 @@ describe("CareerChatWorkspace retry flow", () => {
       expect(panel.getByTestId("career-pilot-analysis-error")).toBeTruthy();
     });
     expect(panel.queryByTestId("career-pilot-result-view")).toBeNull();
-    expect(bullets.value).toBe("Built APIs");
-    expect(skills.value).toBe("TypeScript");
+    expect(resume.value).toBe(resumeText);
 
     await user.click(panel.getByTestId("career-pilot-analysis-retry"));
 
@@ -197,8 +195,7 @@ describe("CareerChatWorkspace retry flow", () => {
     });
 
     expect(runSpy).toHaveBeenCalledTimes(2);
-    expect(bullets.value).toBe("Built APIs");
-    expect(skills.value).toBe("TypeScript");
+    expect(resume.value).toBe(resumeText);
     expect(panel.queryByTestId("career-pilot-analysis-error")).toBeNull();
   });
 });

@@ -9,16 +9,23 @@ import { CareerJourneyStepper } from "./career-journey-stepper";
 import { CareerProductHeader } from "./career-product-header";
 import {
   CAREER_PILOT_EXAMPLE_BUTTON_LABEL,
-  CAREER_PILOT_EXAMPLE_FIELDS,
   CAREER_PILOT_EXAMPLE_HINT,
+  CAREER_PILOT_EXAMPLE_SIMPLE_INPUTS,
   CAREER_PILOT_WORKSPACE_ID,
   type CareerPilotIntent,
 } from "./career-pilot-content";
+import {
+  EMPTY_CAREER_PILOT_SIMPLE_INPUTS,
+  type CareerPilotSimpleInputs,
+} from "./career-pilot-simple-inputs";
 
 export function CareerPilotExperience() {
   const [activeIntent, setActiveIntent] = useState<CareerChatIntent>("analyze_resume");
   const [completedIntents, setCompletedIntents] = useState<Set<CareerPilotIntent>>(new Set());
   const [exampleKey, setExampleKey] = useState(0);
+  const [simpleInputs, setSimpleInputs] = useState<CareerPilotSimpleInputs>(
+    EMPTY_CAREER_PILOT_SIMPLE_INPUTS,
+  );
 
   const handleIntentSelect = useCallback((intent: CareerPilotIntent) => {
     setActiveIntent(intent);
@@ -59,7 +66,10 @@ export function CareerPilotExperience() {
               size="sm"
               className="w-full sm:w-auto"
               data-testid="career-pilot-example-button"
-              onClick={() => setExampleKey((current) => current + 1)}
+              onClick={() => {
+                setSimpleInputs(CAREER_PILOT_EXAMPLE_SIMPLE_INPUTS);
+                setExampleKey((current) => current + 1);
+              }}
             >
               {CAREER_PILOT_EXAMPLE_BUTTON_LABEL}
             </ApplyFlowButton>
@@ -75,7 +85,8 @@ export function CareerPilotExperience() {
             pilotIntent={activeIntent}
             onPilotActionChange={setActiveIntent}
             onPilotAnalysisComplete={handleAnalysisComplete}
-            initialSpecialistFields={exampleKey > 0 ? CAREER_PILOT_EXAMPLE_FIELDS : undefined}
+            simpleInputs={simpleInputs}
+            onSimpleInputsChange={setSimpleInputs}
           />
         </div>
       </div>

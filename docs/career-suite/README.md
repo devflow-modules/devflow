@@ -98,8 +98,10 @@ diagnostic page. See [`PRODUCTION-READINESS.md`](./PRODUCTION-READINESS.md),
 [`DEPLOYMENT.md`](./DEPLOYMENT.md), [`OBSERVABILITY.md`](./OBSERVABILITY.md),
 [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md), [`PILOT-RUNBOOK.md`](./PILOT-RUNBOOK.md),
 [`PRODUCT-UX-READINESS-REVIEW.md`](./PRODUCT-UX-READINESS-REVIEW.md),
-[`UI-UX-POLISH.md`](./UI-UX-POLISH.md), and
+[`UI-UX-POLISH.md`](./UI-UX-POLISH.md), [`SIMPLIFIED-INPUT-UX.md`](./SIMPLIFIED-INPUT-UX.md), and
 [`SECURITY-CHECKLIST.md`](./SECURITY-CHECKLIST.md).
+
+**Pilot operational status (2026-06-22):** `P01 SCHEDULING PAUSED — SIMPLIFIED INPUT UX IN PROGRESS`.
 
 ---
 
@@ -154,6 +156,7 @@ Tests (1,045 across Career Suite packages): [case §12](./CAREER-SUITE-PRODUCT-A
 | **P01 operational kit** | [P01-OPERATIONAL-KIT.md](./P01-OPERATIONAL-KIT.md) |
 | **Product & UX readiness review** | [PRODUCT-UX-READINESS-REVIEW.md](./PRODUCT-UX-READINESS-REVIEW.md) |
 | **UI/UX product polish (pilot)** | [UI-UX-POLISH.md](./UI-UX-POLISH.md) |
+| **Simplified participant inputs (P01 gate)** | [SIMPLIFIED-INPUT-UX.md](./SIMPLIFIED-INPUT-UX.md) |
 | Roadmap execution | [ROADMAP-EXECUTION.md](./ROADMAP-EXECUTION.md) |
 | Provider integrations | [integrations/README.md](./integrations/README.md) |
 | Demo walkthrough | [demo/CAREER-SUITE-WALKTHROUGH.md](./demo/CAREER-SUITE-WALKTHROUGH.md) |

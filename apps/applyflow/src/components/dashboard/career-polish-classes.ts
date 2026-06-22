@@ -10,6 +10,12 @@ export const careerPolishInput =
 
 export const careerPolishTextarea = `${careerPolishInput} min-h-[5.5rem]`;
 
+export const careerPolishResumeTextarea =
+  `${careerPolishInput} min-h-[11.25rem] resize-y sm:min-h-[13.75rem]`;
+
+export const careerPolishJobTextarea =
+  `${careerPolishInput} min-h-[11.25rem] resize-y sm:min-h-[13.75rem] w-full`;
+
 export const careerPolishSectionSurface =
   "rounded-[var(--af-radius)] border border-[color:var(--af-border)] bg-[color:var(--af-surface)]";
 

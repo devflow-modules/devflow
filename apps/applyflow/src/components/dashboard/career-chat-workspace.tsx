@@ -84,6 +84,20 @@ import {
 import { buildCareerPilotResultModel } from "./career-pilot-result-mapper";
 import { CareerPilotResultView } from "./career-pilot-result-view";
 import { CareerPilotFeedback } from "./career-pilot-feedback";
+import { CareerPilotInputReview } from "./career-pilot-input-review";
+import { CareerPilotSimpleInputsForm } from "./career-pilot-simple-inputs-form";
+import {
+  buildCareerSpecialistFieldsFromSimpleInputs,
+  extractJobKeywords,
+  hasSimplePilotAnalysisInputs,
+} from "./career-pilot-input-normalizer";
+import {
+  CAREER_PILOT_EMPTY_CAREER_GOAL_MESSAGE,
+  CAREER_PILOT_EMPTY_JOB_MESSAGE,
+  CAREER_PILOT_EMPTY_RESUME_MESSAGE,
+} from "./career-pilot-simple-input-content";
+import type { CareerPilotSimpleInputs } from "./career-pilot-simple-inputs";
+import { EMPTY_CAREER_PILOT_SIMPLE_INPUTS } from "./career-pilot-simple-inputs";
 import { CareerAnalysisLoading } from "./career-analysis-loading";
 import { CareerAnalysisError } from "./career-analysis-error";
 import {
@@ -174,12 +188,7 @@ export function buildSpecialistAnalysisInput(input: {
       jobSnapshot: {
         title: fallbackRole || "Target role",
         requiredRequirements: requirements,
-        keywords: requirements.flatMap((req) =>
-          req
-            .toLowerCase()
-            .split(/[^a-z0-9+#.]+/)
-            .filter((token) => token.length >= 3),
-        ),
+        keywords: extractJobKeywords(requirements.join(" ")),
       },
     };
   }
@@ -197,6 +206,8 @@ export type CareerChatWorkspaceProps = {
   pilotPresentation?: boolean;
   pilotIntent?: CareerChatIntent;
   initialSpecialistFields?: CareerSpecialistFields;
+  simpleInputs?: CareerPilotSimpleInputs;
+  onSimpleInputsChange?: (next: CareerPilotSimpleInputs) => void;
   onPilotActionChange?: (action: CareerChatIntent) => void;
   onPilotAnalysisComplete?: (intent: CareerPilotIntent) => void;
 };
@@ -273,6 +284,9 @@ export function CareerChatWorkspaceView({
   onSubmitPilotFeedback,
   submitDisabled = false,
   onDismissError,
+  simpleInputs,
+  onSimpleInputsChange,
+  validationMessage = null,
 }: CareerChatWorkspaceProps & {
   action: CareerChatIntent;
   message: string;
@@ -303,6 +317,9 @@ export function CareerChatWorkspaceView({
   }) => Promise<{ ok: boolean }>;
   submitDisabled?: boolean;
   onDismissError?: () => void;
+  simpleInputs?: CareerPilotSimpleInputs;
+  onSimpleInputsChange?: (next: CareerPilotSimpleInputs) => void;
+  validationMessage?: string | null;
 }) {
   const messageLength = message.length;
   const showSpecialist = pilotPresentation || isSpecialistIntent(action);
@@ -319,8 +336,9 @@ export function CareerChatWorkspaceView({
   const visibleActions = pilotPresentation ? CAREER_PILOT_INTENTS : (Object.keys(CAREER_CHAT_WORKSPACE_ACTION_LABELS) as CareerChatIntent[]);
   const actionLabels = pilotPresentation ? CAREER_PILOT_ACTION_LABELS : CAREER_CHAT_WORKSPACE_ACTION_LABELS;
 
-  const pilotEmptyHint =
-    action === "plan_career_strategy"
+  const pilotEmptyHint = validationMessage
+    ? validationMessage
+    : action === "plan_career_strategy"
       ? CAREER_PILOT_EMPTY_STRATEGY_HINT
       : action === "analyze_ats_compatibility"
         ? CAREER_PILOT_EMPTY_ATS_HINT
@@ -458,21 +476,32 @@ export function CareerChatWorkspaceView({
           )}
         </div>
 
-        {showSpecialist ? (
+        {showSpecialist && pilotPresentation && simpleInputs && onSimpleInputsChange ? (
           <div
-            className={cn(
-              "space-y-3",
-              pilotPresentation
-                ? "rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] p-4"
-                : "space-y-2 rounded-[var(--af-radius-sm)] border border-violet-500/25 p-2",
-            )}
+            className="space-y-4 rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] p-4"
             data-testid="career-chat-specialist-inputs"
           >
-            {!pilotPresentation ? (
-              <p className="font-medium text-[color:var(--af-text)]">
-                {CAREER_CHAT_WORKSPACE_SPECIALIST_LABEL}
-              </p>
-            ) : null}
+            <CareerPilotSimpleInputsForm
+              intent={action}
+              value={simpleInputs}
+              onChange={onSimpleInputsChange}
+            />
+            <CareerPilotInputReview
+              intent={action}
+              fields={specialistFields}
+              onFieldChange={(field, value) => onSpecialistFieldChange?.(field, value)}
+            />
+          </div>
+        ) : null}
+
+        {showSpecialist && !pilotPresentation ? (
+          <div
+            className="space-y-2 rounded-[var(--af-radius-sm)] border border-violet-500/25 p-2"
+            data-testid="career-chat-specialist-inputs"
+          >
+            <p className="font-medium text-[color:var(--af-text)]">
+              {CAREER_CHAT_WORKSPACE_SPECIALIST_LABEL}
+            </p>
             {action !== "plan_career_strategy" ? (
               <>
                 <label htmlFor="career-chat-resume-bullets" className={careerPolishLabel}>
@@ -811,6 +840,8 @@ export function CareerChatWorkspace({
   pilotPresentation = false,
   pilotIntent,
   initialSpecialistFields,
+  simpleInputs: simpleInputsProp,
+  onSimpleInputsChange,
   onPilotActionChange,
   onPilotAnalysisComplete,
 }: CareerChatWorkspaceProps) {
@@ -829,8 +860,64 @@ export function CareerChatWorkspace({
   const [specialistFields, setSpecialistFields] = useState<CareerSpecialistFields>(
     initialSpecialistFields ?? EMPTY_SPECIALIST_FIELDS,
   );
+  const [localSimpleInputs, setLocalSimpleInputs] = useState<CareerPilotSimpleInputs>(
+    simpleInputsProp ?? EMPTY_CAREER_PILOT_SIMPLE_INPUTS,
+  );
+  const [reviewOverrides, setReviewOverrides] = useState<Partial<CareerSpecialistFields> | null>(
+    null,
+  );
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const pilotMode = pilotPresentation || isCareerPilotModeClient();
+
+  const simpleInputs = simpleInputsProp ?? localSimpleInputs;
+
+  function handleSimpleInputsChange(next: CareerPilotSimpleInputs) {
+    if (onSimpleInputsChange) {
+      onSimpleInputsChange(next);
+    } else {
+      setLocalSimpleInputs(next);
+    }
+    setReviewOverrides(null);
+  }
+
+  const normalizedFields = useMemo(() => {
+    if (!pilotPresentation || !isCareerPilotIntent(action)) {
+      return specialistFields;
+    }
+    return buildCareerSpecialistFieldsFromSimpleInputs(simpleInputs, action);
+  }, [action, pilotPresentation, simpleInputs, specialistFields]);
+
+  const effectiveSpecialistFields = useMemo(() => {
+    if (!pilotPresentation) {
+      return specialistFields;
+    }
+    if (!reviewOverrides) {
+      return normalizedFields;
+    }
+    return { ...normalizedFields, ...reviewOverrides };
+  }, [normalizedFields, pilotPresentation, reviewOverrides, specialistFields]);
+
+  const pilotValidationMessage = useMemo(() => {
+    if (!pilotPresentation || !isCareerPilotIntent(action) || explicitConsent) {
+      return null;
+    }
+    if (action === "analyze_resume" || action === "analyze_ats_compatibility") {
+      const resumeOk = hasSimplePilotAnalysisInputs("analyze_resume", simpleInputs);
+      if (!resumeOk) {
+        return CAREER_PILOT_EMPTY_RESUME_MESSAGE;
+      }
+    }
+    if (action === "analyze_ats_compatibility") {
+      const atsOk = hasSimplePilotAnalysisInputs("analyze_ats_compatibility", simpleInputs);
+      if (!atsOk) {
+        return CAREER_PILOT_EMPTY_JOB_MESSAGE;
+      }
+    }
+    if (action === "plan_career_strategy" && !simpleInputs.careerGoal.trim()) {
+      return CAREER_PILOT_EMPTY_CAREER_GOAL_MESSAGE;
+    }
+    return null;
+  }, [action, explicitConsent, pilotPresentation, simpleInputs]);
 
   useEffect(() => {
     if (!pilotPresentation || !pilotIntent || !isCareerPilotIntent(pilotIntent)) {
@@ -846,11 +933,11 @@ export function CareerChatWorkspace({
     if (!pilotPresentation || !isCareerPilotIntent(action)) {
       return null;
     }
-    if (!hasPilotAnalysisInputs(action, specialistFields)) {
+    if (!hasPilotAnalysisInputs(action, effectiveSpecialistFields)) {
       return null;
     }
-    return buildPilotCareerBundleFromFields(specialistFields);
-  }, [action, careerBundle, pilotPresentation, specialistFields]);
+    return buildPilotCareerBundleFromFields(effectiveSpecialistFields);
+  }, [action, careerBundle, effectiveSpecialistFields, pilotPresentation]);
 
   const hasBundle = pilotPresentation
     ? effectiveBundle != null
@@ -872,7 +959,7 @@ export function CareerChatWorkspace({
   const submitDisabled = pilotPresentation
     ? !explicitConsent ||
       !isCareerPilotIntent(action) ||
-      !hasPilotAnalysisInputs(action, specialistFields)
+      !hasSimplePilotAnalysisInputs(action, simpleInputs)
     : !careerBundle || !explicitConsent || !message.trim();
 
   function handleActionChange(nextAction: CareerChatIntent) {
@@ -900,7 +987,7 @@ export function CareerChatWorkspace({
     try {
       const analysisInput = buildSpecialistAnalysisInput({
         action,
-        fields: specialistFields,
+        fields: effectiveSpecialistFields,
         mainStack: effectiveBundle.candidate?.mainStack ?? [],
         fallbackRole:
           effectiveBundle.candidate?.targetRole ?? effectiveBundle.applications[0]?.role ?? "",
@@ -990,10 +1077,20 @@ export function CareerChatWorkspace({
           }
         }}
         isSending={isSending}
-        specialistFields={specialistFields}
-        onSpecialistFieldChange={(field, value) =>
-          setSpecialistFields((current) => ({ ...current, [field]: value }))
-        }
+        specialistFields={effectiveSpecialistFields}
+        onSpecialistFieldChange={(field, value) => {
+          if (pilotPresentation) {
+            setReviewOverrides((current) => ({
+              ...(current ?? normalizedFields),
+              [field]: value,
+            }));
+            return;
+          }
+          setSpecialistFields((current) => ({ ...current, [field]: value }));
+        }}
+        simpleInputs={pilotPresentation ? simpleInputs : undefined}
+        onSimpleInputsChange={pilotPresentation ? handleSimpleInputsChange : undefined}
+        validationMessage={pilotValidationMessage}
         pilotMode={pilotMode}
         pilotPresentation={pilotPresentation}
         submitDisabled={submitDisabled}
