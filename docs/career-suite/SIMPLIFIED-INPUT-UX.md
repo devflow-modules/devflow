@@ -72,6 +72,4 @@ Data stays in React state for the open page and in the current `/career-chat/lib
 
 ## Pilot impact
 
-**Operational status:** `P01 SCHEDULING PAUSED — RESUME ANALYSIS QUALITY FIX IN PROGRESS` — see [`RESUME-ANALYSIS-QUALITY.md`](./RESUME-ANALYSIS-QUALITY.md).
-
-P01 scheduling remains paused until Portuguese resume analysis quality (issue #138) is merged and validated on Preview.
+**Operational status:** `P01 READY TO SCHEDULE` — PR #139 merged on `main` @ `4d8d332`; Fixture A smoke validated on Preview (2026-06-23). See [`RESUME-ANALYSIS-QUALITY.md`](./RESUME-ANALYSIS-QUALITY.md).

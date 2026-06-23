@@ -101,7 +101,7 @@ diagnostic page. See [`PRODUCTION-READINESS.md`](./PRODUCTION-READINESS.md),
 [`UI-UX-POLISH.md`](./UI-UX-POLISH.md), [`SIMPLIFIED-INPUT-UX.md`](./SIMPLIFIED-INPUT-UX.md), and
 [`SECURITY-CHECKLIST.md`](./SECURITY-CHECKLIST.md).
 
-**Pilot operational status (2026-06-22):** `P01 SCHEDULING PAUSED — SIMPLIFIED INPUT UX IN PROGRESS`.
+**Pilot operational status (2026-06-23):** `P01 READY TO SCHEDULE` — PR #139 merged; resume analysis quality validated on `main` Preview.
 
 ---
 

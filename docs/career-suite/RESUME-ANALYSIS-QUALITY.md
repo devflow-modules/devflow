@@ -2,7 +2,7 @@
 
 Quality gate before **P01** closed pilot. Addresses [issue #138](https://github.com/devflow-modules/devflow/issues/138).
 
-**Operational status:** `P01 SCHEDULING PAUSED — RESUME ANALYSIS QUALITY FIX IN PROGRESS`
+**Operational status:** `P01 READY TO SCHEDULE` — merged in PR #139 (`main` @ `4d8d332`, closes #138); Preview smoke Fixture A passed 2026-06-23.
 
 ---
 

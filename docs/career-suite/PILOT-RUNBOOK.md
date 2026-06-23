@@ -11,7 +11,7 @@ document complements — and does not replace — [`PILOT-VALIDATION.md`](./PILO
 
 ## Product & UX gate (before P01)
 
-**P01 scheduling paused** during resume analysis quality fix (2026-06-22). See [`RESUME-ANALYSIS-QUALITY.md`](./RESUME-ANALYSIS-QUALITY.md) and issue #138. Simplified inputs merged in PR #137.
+Portuguese resume analysis quality fix merged in PR [#139](https://github.com/devflow-modules/devflow/pull/139) (`main` @ `4d8d332`, closes #138). Simplified inputs merged in PR #137.
 
 | Gate | Source |
 |------|--------|
@@ -21,9 +21,9 @@ document complements — and does not replace — [`PILOT-VALIDATION.md`](./PILO
 | No open P1 UX blockers | W-01/W-02 resolved; W-04 non-blocking P2 outside pilot surface |
 | Technical Preview smoke | [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md) + `main` smoke 2026-06-22 |
 
-Current decision (2026-06-22): **`RESUME ANALYSIS QUALITY FIX IN PROGRESS`** — P01 scheduling paused until issue #138 is merged; simplified inputs on `main` @ `e5d5443`.
+Current decision (2026-06-23): **`READY FOR P01`** — PR #139 merged; Fixture A validated on `main` Preview @ `4d8d332` (API smoke 2026-06-23).
 
-**Operational status:** `P01 SCHEDULING PAUSED — RESUME ANALYSIS QUALITY FIX IN PROGRESS` — use [`P01-OPERATIONAL-KIT.md`](./P01-OPERATIONAL-KIT.md) for moderator scripts; do not schedule P01 until Portuguese resume analysis is validated on Preview.
+**Operational status:** `P01 READY TO SCHEDULE` — use [`P01-OPERATIONAL-KIT.md`](./P01-OPERATIONAL-KIT.md) for moderator scripts; schedule the first closed-pilot session when the operator is ready.
 
 ---
 
