@@ -128,6 +128,12 @@ export type CareerSpecialistFields = {
   resumeExperienceCompany: string;
   resumeExperienceTitle: string;
   resumeExperiencesJson: string;
+  resumeProjectsJson: string;
+  resumeEducationJson: string;
+  resumeLanguagesJson: string;
+  resumeParseConfidence: "high" | "medium" | "low";
+  resumeParseSummary: string;
+  resumeUnusedInfoCount: string;
   jobRequirements: string;
   targetRoles: string;
   availability: string;
@@ -140,6 +146,12 @@ export const EMPTY_SPECIALIST_FIELDS: CareerSpecialistFields = {
   resumeExperienceCompany: "",
   resumeExperienceTitle: "",
   resumeExperiencesJson: "",
+  resumeProjectsJson: "",
+  resumeEducationJson: "",
+  resumeLanguagesJson: "",
+  resumeParseConfidence: "low",
+  resumeParseSummary: "",
+  resumeUnusedInfoCount: "0",
   jobRequirements: "",
   targetRoles: "",
   availability: "",
@@ -183,6 +195,11 @@ export function buildSpecialistAnalysisInput(input: {
     bullets?: string[];
   };
 
+  type ParsedProjectPayload = {
+    name?: string;
+    bullets?: string[];
+  };
+
   let experiences: Array<{ title: string; company: string; bullets: string[] }> = [];
   if (fields.resumeExperiencesJson.trim()) {
     try {
@@ -202,6 +219,35 @@ export function buildSpecialistAnalysisInput(input: {
     }
   }
 
+  let projects: Array<{ name: string; bullets: string[] }> = [];
+  if (fields.resumeProjectsJson.trim()) {
+    try {
+      const parsed = JSON.parse(fields.resumeProjectsJson) as ParsedProjectPayload[];
+      if (Array.isArray(parsed)) {
+        projects = parsed
+          .map((entry) => ({
+            name: entry.name?.trim() || "Projeto",
+            bullets: (entry.bullets ?? []).map((bullet) => bullet.trim()).filter(Boolean),
+          }))
+          .filter((entry) => entry.bullets.length > 0);
+      }
+    } catch {
+      projects = [];
+    }
+  }
+
+  let education: string[] = [];
+  if (fields.resumeEducationJson.trim()) {
+    try {
+      const parsed = JSON.parse(fields.resumeEducationJson) as string[];
+      if (Array.isArray(parsed)) {
+        education = parsed.map((entry) => entry.trim()).filter(Boolean);
+      }
+    } catch {
+      education = [];
+    }
+  }
+
   if (experiences.length === 0 && bullets.length > 0) {
     experiences = [
       {
@@ -216,6 +262,8 @@ export function buildSpecialistAnalysisInput(input: {
     ...(summary ? { summary } : {}),
     skills: resolvedSkills,
     experiences,
+    ...(projects.length > 0 ? { projects } : {}),
+    ...(education.length > 0 ? { education } : {}),
   };
 
   if (action === "analyze_resume") {

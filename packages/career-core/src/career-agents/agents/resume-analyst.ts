@@ -147,10 +147,31 @@ function isCompanyOrPeriodHeader(text: string): boolean {
   );
 }
 
+const VERSION_TECH_PATTERN =
+  /\b(node\.js|react|next\.js|vue|angular|python|java|typescript|express|prisma)\s*\d+/i;
+const COURSE_DURATION_PATTERN =
+  /\b\d+\s*horas?\b.*\b(curso|certifica|formacao|capacita|treinamento)\b|\b(curso|certifica|formacao)\b.*\b\d+\s*horas?\b/i;
+
 function hasMeaningfulMetric(bullet: string): boolean {
   const trimmed = bullet.trim();
 
   if (isCompanyOrPeriodHeader(trimmed)) {
+    return false;
+  }
+
+  if (VERSION_TECH_PATTERN.test(trimmed)) {
+    return false;
+  }
+
+  if (
+    COURSE_DURATION_PATTERN.test(trimmed) ||
+    (/\b\d+\s*horas?\b/i.test(trimmed) &&
+      /\b(curso|certifica|formacao|capacita|treinamento|pós-gradua|pos-gradua)\b/i.test(trimmed))
+  ) {
+    return false;
+  }
+
+  if (/^(19|20)\d{2}$/.test(trimmed)) {
     return false;
   }
 
@@ -178,16 +199,16 @@ function hasMeaningfulMetric(bullet: string): boolean {
     return true;
   }
 
-  if (/\b\d+\s*(horas?|dias?|semanas?|meses?)\b/i.test(trimmed)) {
+  if (/\b(reduzi|economizei|otimizei|reduced|saved)\b.*\b\d+\s*(horas?|dias?|semanas?)\b/i.test(trimmed)) {
     return true;
   }
 
-  if (/\b(19|20)\d{2}\b/.test(trimmed)) {
+  if (/\b(19|20)\d{2}\b/.test(trimmed) && !/\d+\s*%/.test(trimmed)) {
     return false;
   }
 
   if (hasNumber(trimmed)) {
-    if (/\b(node\.js|react|vue|angular|python|java|go|ruby|typescript)\s*\d+/i.test(trimmed)) {
+    if (/\b(node\.js|react|vue|angular|python|java|go|ruby|typescript|next\.js|express|prisma)\s*\d+/i.test(trimmed)) {
       return false;
     }
     return true;

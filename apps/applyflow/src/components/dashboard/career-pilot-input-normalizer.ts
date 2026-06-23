@@ -1,14 +1,8 @@
 import type { CareerChatIntent } from "@devflow/career-core";
 import type { CareerSpecialistFields } from "./career-chat-workspace";
 import { isCareerPilotIntent, type CareerPilotIntent } from "./career-pilot-content";
-import {
-  extractResumeBulletLines,
-  extractResumeExperiences,
-  isExperienceHeader,
-} from "./career-pilot-resume-line-parser";
-
-export { extractResumeExperiences } from "./career-pilot-resume-line-parser";
-export type { ParsedResumeExperience } from "./career-pilot-resume-line-parser";
+export { PILOT_SKILL_CATALOG } from "./career-pilot-skill-catalog";
+import { PILOT_SKILL_CATALOG } from "./career-pilot-skill-catalog";
 import {
   type CareerPilotSimpleInputs,
   MAX_PILOT_JOB_DESCRIPTION_LENGTH,
@@ -16,34 +10,17 @@ import {
   MIN_PILOT_JOB_DESCRIPTION_LENGTH,
   MIN_PILOT_RESUME_TEXT_LENGTH,
 } from "./career-pilot-simple-inputs";
+import {
+  buildParticipantParseSummary,
+  extractResumeBulletsFromDocument,
+  mapParsedResumeToLineExperiences,
+  mapParsedResumeToProjects,
+  parseResumeDocument,
+} from "./career-pilot-resume-section-parser";
+import { isExperienceHeader, type ParsedResumeExperience } from "./career-pilot-resume-line-parser";
 
-export const PILOT_SKILL_CATALOG = [
-  "JavaScript",
-  "TypeScript",
-  "React",
-  "Next.js",
-  "Node.js",
-  "Express",
-  "NestJS",
-  "Prisma",
-  "PostgreSQL",
-  "MySQL",
-  "MongoDB",
-  "Redis",
-  "AWS",
-  "Azure",
-  "GCP",
-  "Docker",
-  "Kubernetes",
-  "Jest",
-  "Vitest",
-  "Playwright",
-  "Cypress",
-  "Git",
-  "GitHub Actions",
-  "REST",
-  "GraphQL",
-] as const;
+export type { ParsedResumeExperience } from "./career-pilot-resume-line-parser";
+export type { ResumeParseConfidence } from "./career-pilot-resume-section-parser";
 
 const MAX_LINES = 50;
 const MAX_LINE_LENGTH = 500;
@@ -188,11 +165,31 @@ function lineMatchesSummary(line: string, summary: string): boolean {
   return false;
 }
 
+export function parseResumeFromText(resumeText: string) {
+  return parseResumeDocument(normalizeResumeText(resumeText));
+}
+
+export function extractResumeExperiences(resumeText: string, _summaryToExclude?: string): ParsedResumeExperience[] {
+  return mapParsedResumeToLineExperiences(parseResumeFromText(resumeText));
+}
+
+export function extractResumeBulletLines(resumeText: string, _summaryToExclude?: string): string[] {
+  return extractResumeBulletsFromDocument(parseResumeFromText(resumeText));
+}
+
 /**
  * Extracts the first descriptive paragraph before experience sections.
  * Preserves original text; does not summarize with AI.
  */
 export function extractProfessionalSummary(resumeText: string): string {
+  const parsed = parseResumeFromText(resumeText);
+  if (parsed.summary?.trim()) {
+    return parsed.summary.trim().slice(0, MAX_SUMMARY_LENGTH);
+  }
+  if (parsed.identity?.targetRole?.trim()) {
+    return parsed.identity.targetRole.trim().slice(0, MAX_SUMMARY_LENGTH);
+  }
+
   const normalized = normalizeResumeText(resumeText);
   if (!normalized) {
     return "";
@@ -256,7 +253,8 @@ export function extractProfessionalSummary(resumeText: string): string {
 }
 
 export function extractResumeLines(resumeText: string, summaryToExclude?: string): string[] {
-  return extractResumeBulletLines(resumeText, summaryToExclude);
+  void summaryToExclude;
+  return extractResumeBulletLines(resumeText);
 }
 
 export function normalizeResumeText(value: string): string {
@@ -354,13 +352,20 @@ export function buildCareerSpecialistFieldsFromSimpleInputs(
 ): CareerSpecialistFields {
   const resumeText = normalizeResumeText(input.resumeText);
   const jobDescription = normalizeJobDescription(input.jobDescription);
+  const parsedResume = parseResumeFromText(resumeText);
   const resumeSummary = extractProfessionalSummary(resumeText);
-  const parsedExperiences = extractResumeExperiences(resumeText, resumeSummary);
-  const resumeLines = extractResumeLines(resumeText, resumeSummary);
+  const parsedExperiences = mapParsedResumeToLineExperiences(parsedResume);
+  const resumeLines = extractResumeBulletsFromDocument(parsedResume);
   const primaryExperience = parsedExperiences[0];
-  const skills = extractLikelySkills(resumeText);
+  const skills =
+    parsedResume.skills.length > 0 ? parsedResume.skills : extractLikelySkills(resumeText);
+  const projects = mapParsedResumeToProjects(parsedResume);
   const requirements = extractJobRequirements(jobDescription);
   const availabilityParts = [input.weeklyAvailability.trim(), input.constraints.trim()].filter(Boolean);
+  const unusedInfoCount =
+    parsedResume.unclassifiedLines.length +
+    parsedResume.contactLines.length +
+    parsedResume.linkLines.length;
 
   const baseFields = {
     resumeSummary,
@@ -369,6 +374,12 @@ export function buildCareerSpecialistFieldsFromSimpleInputs(
     resumeExperienceCompany: primaryExperience?.company !== "—" ? (primaryExperience?.company ?? "") : "",
     resumeExperienceTitle: primaryExperience?.title !== "—" ? (primaryExperience?.title ?? "") : "",
     resumeExperiencesJson: JSON.stringify(parsedExperiences),
+    resumeProjectsJson: JSON.stringify(projects),
+    resumeEducationJson: JSON.stringify(parsedResume.education),
+    resumeLanguagesJson: JSON.stringify(parsedResume.languages),
+    resumeParseConfidence: parsedResume.confidence,
+    resumeParseSummary: buildParticipantParseSummary(parsedResume),
+    resumeUnusedInfoCount: String(unusedInfoCount),
     jobRequirements: requirements.join("\n"),
     availability: availabilityParts.join(" · "),
   };

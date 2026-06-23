@@ -29,7 +29,14 @@ export const CAREER_PILOT_REVIEW_DISCLOSURE_HINT =
   "A revisão é opcional. Ajuste apenas se alguma informação tiver sido interpretada incorretamente.";
 
 export const CAREER_PILOT_REVIEW_EXPERIENCES_LABEL = "Experiências e resultados";
+export const CAREER_PILOT_REVIEW_SUMMARY_LABEL = "Resumo identificado";
+export const CAREER_PILOT_REVIEW_PROJECTS_LABEL = "Projetos identificados";
 export const CAREER_PILOT_REVIEW_SKILLS_LABEL = "Principais competências";
+export const CAREER_PILOT_REVIEW_UNUSED_LABEL = "Informações não utilizadas na análise";
+export const CAREER_PILOT_REVIEW_LOW_CONFIDENCE_HINT =
+  "A estrutura do currículo não foi identificada com confiança suficiente. Revise as informações extraídas antes de considerar a pontuação.";
+export const CAREER_PILOT_REVIEW_AMBIGUOUS_HINT =
+  "Algumas informações não puderam ser classificadas automaticamente. Revise os dados extraídos antes de continuar.";
 export const CAREER_PILOT_REVIEW_REQUIREMENTS_LABEL = "Requisitos identificados";
 export const CAREER_PILOT_REVIEW_TARGET_ROLE_LABEL = "Cargo desejado";
 export const CAREER_PILOT_REVIEW_AVAILABILITY_LABEL = "Tempo disponível";
