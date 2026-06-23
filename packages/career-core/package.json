@@ -15,7 +15,8 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "pilot:curator": "tsx src/research/cli/index.ts"
   },
   "dependencies": {
     "@devflow/career-sync": "workspace:*",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@devflow/config": "workspace:*",
+    "tsx": "^4.19.0",
     "typescript": "^5",
     "vitest": "^4.1.0"
   },

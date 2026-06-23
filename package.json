@@ -27,6 +27,7 @@
     "dev:workspace": "turbo run dev",
     "test:workspace": "turbo run test",
     "lint:workspace": "turbo run lint",
+    "pilot:curator": "pnpm --filter @devflow/career-core pilot:curator",
     "create-product": "node scripts/create-product.mjs"
   },
   "dependencies": {
