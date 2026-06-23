@@ -8,15 +8,15 @@ import { runCareerPilotCurator } from "../../curator-agent.js";
 import { countFindingsBySeverity } from "../../finding-classifier.js";
 import { formatSynthesisMarkdown } from "../formatters/markdown.js";
 import { readPilotJsonInput } from "../io/input-reader.js";
-import { defaultSessionOutputDir } from "../io/safe-path.js";
-import { writePilotOutputFileSync } from "../io/output-writer.js";
+import { defaultSessionOutputDir, CliPathError } from "../io/safe-path.js";
+import { writePilotOutputFile } from "../io/output-writer.js";
 import type { ParsedCliArgs } from "../parse-args.js";
 import { flagBoolean, flagString, requireFlag } from "../parse-args.js";
 import { CLI_EXIT, HUMAN_APPROVAL_BANNER, HUMAN_REVIEW_BANNER } from "../constants.js";
 import type { CliCommandResult } from "./types.js";
 
 type SessionInput = {
-  observations?: PilotObservation[];
+  observations?: Array<Partial<PilotObservation> & Pick<PilotObservation, "observation">>;
   findings?: PilotFinding[];
   taskCompletions?: PilotTaskCompletion[];
   durationMinutes?: number;
@@ -26,11 +26,28 @@ type SessionInput = {
   notes?: string[];
 };
 
+function normalizeObservations(
+  observations: SessionInput["observations"],
+): PilotObservation[] {
+  return (observations ?? []).map((item) => ({
+    type: item.type ?? "unknown",
+    observation: item.observation,
+    interpretation: item.interpretation,
+    evidence: item.evidence ?? [item.observation],
+    confidence: item.confidence ?? "medium",
+    affectedFlow: item.affectedFlow,
+    sourceNoteIndex: item.sourceNoteIndex,
+  }));
+}
+
 export type SynthesizeCommandOptions = {
   repoRoot: string;
 };
 
-export function runSynthesizeCommand(args: ParsedCliArgs, options: SynthesizeCommandOptions): CliCommandResult {
+export async function runSynthesizeCommand(
+  args: ParsedCliArgs,
+  options: SynthesizeCommandOptions,
+): Promise<CliCommandResult> {
   const sessionId = requireFlag(args, "session");
   const participantId = requireFlag(args, "participant");
   const inputPath = requireFlag(args, "input");
@@ -43,7 +60,7 @@ export function runSynthesizeCommand(args: ParsedCliArgs, options: SynthesizeCom
 
   const sessionInput = readPilotJsonInput<SessionInput>(inputPath);
 
-  let observations = sessionInput.observations ?? [];
+  let observations = normalizeObservations(sessionInput.observations);
   if (!observations.length && sessionInput.notes?.length) {
     observations = runCareerPilotCurator({
       mode: "structure_notes",
@@ -71,20 +88,23 @@ export function runSynthesizeCommand(args: ParsedCliArgs, options: SynthesizeCom
 
   let writtenPath: string | undefined;
   try {
-    writtenPath = writePilotOutputFileSync(outputPath, markdown, {
+    await writePilotOutputFile(outputPath, markdown, {
       repoRoot: options.repoRoot,
       allowRepoOutput,
       yes,
-      skipConfirm: false,
       confirmMessage:
         "A saída foi sanitizada, mas ainda exige revisão humana.\nContinuar e escrever o ficheiro?",
     });
+    writtenPath = outputPath;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to write output";
-    if (message.includes("Unsafe output path")) {
+    if (error instanceof CliPathError) {
+      return { exitCode: error.exitCode, stderr: `${message}\n`, stdout: "" };
+    }
+    if (message.includes("UNSAFE_OUTPUT_PATH") || message.includes("Unsafe output path")) {
       return { exitCode: CLI_EXIT.UNSAFE_OUTPUT_PATH, stderr: `${message}\n`, stdout: "" };
     }
-    if (message.includes("cancelled")) {
+    if (message.includes("cancelled") || message.includes("confirmation")) {
       return { exitCode: CLI_EXIT.VALIDATION_ERROR, stderr: `${message}\n`, stdout: "" };
     }
     return { exitCode: CLI_EXIT.INTERNAL_ERROR, stderr: `${message}\n`, stdout: "" };

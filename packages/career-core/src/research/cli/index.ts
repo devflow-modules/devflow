@@ -7,6 +7,8 @@ import { runNotesCommand } from "./commands/notes.js";
 import { runPrepareCommand } from "./commands/prepare.js";
 import { runSynthesizeCommand } from "./commands/synthesize.js";
 import { CLI_EXIT } from "./constants.js";
+import { CliInputError } from "./io/input-reader.js";
+import { CliPathError } from "./io/safe-path.js";
 import { logCliSummary } from "./io/output-writer.js";
 import { parseCliArgs } from "./parse-args.js";
 
@@ -62,7 +64,7 @@ async function main(): Promise<void> {
         result = runClassifyCommand(args, { repoRoot: REPO_ROOT });
         break;
       case "synthesize":
-        result = runSynthesizeCommand(args, { repoRoot: REPO_ROOT });
+        result = await runSynthesizeCommand(args, { repoRoot: REPO_ROOT });
         break;
       default:
         console.error(`Unknown command: ${command}`);
@@ -87,9 +89,11 @@ async function main(): Promise<void> {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal CLI error";
     const exitCode =
-      error instanceof Error && "exitCode" in error && typeof error.exitCode === "number"
+      error instanceof CliPathError
         ? error.exitCode
-        : CLI_EXIT.INTERNAL_ERROR;
+        : error instanceof CliInputError
+          ? error.exitCode
+          : CLI_EXIT.INTERNAL_ERROR;
     console.error(message);
     process.exit(exitCode);
   }

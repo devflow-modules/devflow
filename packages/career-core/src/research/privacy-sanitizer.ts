@@ -8,6 +8,9 @@ const GITHUB_USER_PATTERN = /\bgithub\.com\/[A-Za-z0-9_-]+\b/gi;
 const ADDRESS_PATTERN =
   /\b(rua|avenida|av\.|r\.|logradouro|cep\s*:?\s*\d{5}-?\d{3})\b/gi;
 const EXPLICIT_NAME_PATTERN = /\b(nome|name)\s*:\s*[A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Ú][a-zà-ú]+)+\b/gi;
+const PERSON_ROLE_NAME_PATTERN =
+  /\b(?:a\s+)?(participante|moderador|candidato|candidata)\s+[A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Ú][a-zà-ú]+)*/gi;
+const STANDALONE_PERSON_NAME_LINE = /^[A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Ú][a-zà-ú]+){1,3}$/;
 
 const RESUME_SECTION_MARKERS =
   /\b(experiência|experiencia|formação|formacao|education|skills|competências|competencias|projects|projetos|currículo|curriculo|resume)\b/gi;
@@ -76,8 +79,17 @@ export function sanitizePilotContent(input: string): PilotContentSanitizationRes
   sanitized = replaceWithToken(sanitized, GITHUB_USER_PATTERN, "[URL REDACTED]", redactions);
   sanitized = replaceWithToken(sanitized, ADDRESS_PATTERN, "[PERSONAL DATA REDACTED]", redactions);
   sanitized = replaceWithToken(sanitized, EXPLICIT_NAME_PATTERN, "[PERSONAL DATA REDACTED]", redactions);
+  sanitized = sanitized.replace(PERSON_ROLE_NAME_PATTERN, (_match, role: string) => {
+    redactions.push("person_name");
+    return `a ${role} [PERSONAL DATA REDACTED]`;
+  });
 
-  const wordCount = sanitized.split(/\s+/).length;
+  if (STANDALONE_PERSON_NAME_LINE.test(sanitized)) {
+    redactions.push("standalone_name");
+    sanitized = "[PERSONAL DATA REDACTED]";
+  }
+
+  const wordCount = sanitized.split(/\s+/).filter(Boolean).length;
   if (RESUME_SECTION_MARKERS.test(sanitized) && wordCount > 40) {
     return {
       sanitized: "[RESUME CONTENT REDACTED]",
