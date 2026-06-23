@@ -89,20 +89,58 @@ function runPilotPipeline(resumeText: string, targetRole = "Engenheiro Backend")
   const vague =
     result.resumeAnalysis?.bulletRecommendations.filter((item) => item.reason.includes("vago"))
       .length ?? 0;
+  const headerRecommendations =
+    result.resumeAnalysis?.bulletRecommendations.filter(
+      (item) =>
+        item.originalSummary.includes("TechCorp") ||
+        (item.originalSummary.includes("2021") && item.originalSummary.includes("presente")),
+    ).length ?? 0;
+  const strongWithoutMetric = bullets.filter(
+    (bullet) => __resumeAnalystTestUtils.classifyBulletStrength(bullet) === "strong_without_metric",
+  ).length;
+  const experience = analysisInput?.resumeSnapshot?.experiences?.[0];
 
-  return { fields, canSubmit, result, quantified, vague };
+  return {
+    fields,
+    canSubmit,
+    result,
+    quantified,
+    vague,
+    headerRecommendations,
+    strongWithoutMetric,
+    experience,
+    bullets,
+  };
 }
 
 describe("career pilot walkthrough fixtures", () => {
   it("Fixture A — official simplified input end-to-end", () => {
-    const { fields, canSubmit, result, quantified, vague } = runPilotPipeline(FIXTURE_A_TEXT);
+    const {
+      fields,
+      canSubmit,
+      result,
+      quantified,
+      vague,
+      headerRecommendations,
+      strongWithoutMetric,
+      experience,
+      bullets,
+    } = runPilotPipeline(FIXTURE_A_TEXT);
     expect(fields.resumeSummary).toBe("Desenvolvedora de Software Sênior");
+    expect(fields.resumeExperienceCompany).toBe("TechCorp");
+    expect(fields.resumeExperienceTitle).toBe("Desenvolvedora Backend");
     expect(canSubmit).toBe(true);
     expect(result.status).toBe("completed");
-    expect(result.resumeAnalysis?.score).toBeGreaterThanOrEqual(65);
-    expect(result.resumeAnalysis?.score).toBeLessThanOrEqual(90);
+    expect(result.resumeAnalysis?.score).toBeGreaterThanOrEqual(70);
+    expect(result.resumeAnalysis?.score).toBeLessThanOrEqual(95);
+    expect(bullets).toHaveLength(3);
+    expect(experience?.company).toBe("TechCorp");
+    expect(experience?.title).toBe("Desenvolvedora Backend");
+    expect(experience?.bullets).toHaveLength(3);
     expect(quantified).toBe(2);
-    expect(vague).toBeGreaterThanOrEqual(1);
+    expect(headerRecommendations).toBe(0);
+    expect(vague).toBe(0);
+    expect(strongWithoutMetric).toBeGreaterThanOrEqual(1);
     expect(result.summary).toMatch(/Análise concluída/i);
     expect(result.summary).not.toMatch(/mensurávelis/);
   });

@@ -222,26 +222,52 @@ function wordCount(bullet: string): number {
   return bullet.trim().split(/\s+/).filter(Boolean).length;
 }
 
-function isStrongBullet(bullet: string): boolean {
+function hasTechnicalContext(bullet: string): boolean {
+  if (wordCount(bullet) >= 8) {
+    return true;
+  }
+  return /\b(api|apis|rest|node|react|typescript|integra|sistem|plataforma|deploy|ci\/cd|postgresql|aws|docker|jwt|saas|backend|frontend|microserv|cloud|migr|parceir|autentica|prisma|express)\b/i.test(
+    bullet,
+  );
+}
+
+export type BulletStrength = "strong_with_metric" | "strong_without_metric" | "vague";
+
+function classifyBulletStrength(bullet: string): BulletStrength {
+  if (isCompanyOrPeriodHeader(bullet)) {
+    return "vague";
+  }
+
   const hasAction = startsWithActionVerb(bullet);
   const measurable = hasMetric(bullet);
-  if (measurable && hasAction) {
-    return true;
+
+  if (hasAction && measurable) {
+    return "strong_with_metric";
   }
-  if (measurable && hasLeadershipEvidence(bullet)) {
-    return true;
+  if (hasAction && (hasTechnicalContext(bullet) || hasLeadershipEvidence(bullet) || wordCount(bullet) >= 7)) {
+    return "strong_without_metric";
   }
-  return false;
+  if (hasAction) {
+    return "strong_without_metric";
+  }
+  if (wordCount(bullet) < 6) {
+    return "vague";
+  }
+  if (/\b(responsável|responsavel|algumas|diversas|tarefas genéricas|tarefas genericas)\b/i.test(bullet)) {
+    return "vague";
+  }
+  if (!measurable) {
+    return "vague";
+  }
+  return "strong_without_metric";
+}
+
+function isStrongBullet(bullet: string): boolean {
+  return classifyBulletStrength(bullet) === "strong_with_metric";
 }
 
 function isVagueBullet(bullet: string): boolean {
-  if (isStrongBullet(bullet)) {
-    return false;
-  }
-  if (wordCount(bullet) < 6) {
-    return true;
-  }
-  return !hasMetric(bullet);
+  return classifyBulletStrength(bullet) === "vague";
 }
 
 function collectBullets(resume: CareerResumeSnapshot): Array<{ section: string; text: string }> {
@@ -265,7 +291,9 @@ function clampScore(value: number): number {
 
 function buildBulletRecommendation(bullet: { section: string; text: string }): ResumeBulletRecommendation {
   const text = bullet.text;
-  if (isStrongBullet(text)) {
+  const strength = classifyBulletStrength(text);
+
+  if (strength === "strong_with_metric") {
     return {
       section: bullet.section,
       originalSummary: text.slice(0, 160),
@@ -274,13 +302,13 @@ function buildBulletRecommendation(bullet: { section: string; text: string }): R
     };
   }
 
-  if (startsWithActionVerb(text) && !hasMetric(text)) {
+  if (strength === "strong_without_metric") {
     return {
       section: bullet.section,
       originalSummary: text.slice(0, 160),
       recommendation:
-        "Explique qual ganho operacional, escopo ou volume ocorreu, somente se esses dados forem reais e verificáveis.",
-      reason: "O bullet inicia com verbo de ação, mas ainda não apresenta impacto mensurável.",
+        "O bullet apresenta ação e contexto técnico. Acrescente escala ou impacto verificável somente se essa informação for real.",
+      reason: "Ação clara, mas sem resultado mensurável.",
     };
   }
 
@@ -326,8 +354,11 @@ export function runResumeAnalyst(context: CareerAgentContext): ResumeAnalystOutp
   const totalBullets = bullets.length;
 
   const quantifiedBullets = bullets.filter((bullet) => hasMetric(bullet.text)).length;
-  const vagueBullets = bullets.filter((bullet) => isVagueBullet(bullet.text));
-  const strongBullets = bullets.filter((bullet) => isStrongBullet(bullet.text));
+  const vagueBullets = bullets.filter((bullet) => classifyBulletStrength(bullet.text) === "vague");
+  const strongWithoutMetricBullets = bullets.filter(
+    (bullet) => classifyBulletStrength(bullet.text) === "strong_without_metric",
+  );
+  const strongBullets = bullets.filter((bullet) => classifyBulletStrength(bullet.text) === "strong_with_metric");
   const actionBullets = bullets.filter((bullet) => startsWithActionVerb(bullet.text)).length;
   const adequateLengthBullets = bullets.filter((bullet) => wordCount(bullet.text) >= 6).length;
   const hasContextEvidence = bullets.some(
@@ -381,7 +412,9 @@ export function runResumeAnalyst(context: CareerAgentContext): ResumeAnalystOutp
   if (totalBullets > 0 && quantifiedBullets === 0)
     weaknesses.push("Nenhum resultado apresenta impacto mensurável.");
   if (vagueBullets.length > 0)
-    weaknesses.push(`${vagueBullets.length} bullet(s) ainda não apresentam impacto mensurável.`);
+    weaknesses.push(`${vagueBullets.length} bullet(s) ainda estão vagos ou genéricos.`);
+  if (totalBullets > 0 && quantifiedBullets === 0 && strongWithoutMetricBullets.length > 0)
+    weaknesses.push("Alguns bullets têm ação clara, mas ainda sem impacto mensurável.");
   if (totalBullets > 0 && !hasContextEvidence)
     weaknesses.push("A experiência pode ganhar mais contexto sobre escopo e responsabilidade.");
 
@@ -401,10 +434,8 @@ export function runResumeAnalyst(context: CareerAgentContext): ResumeAnalystOutp
   const vagueOnly = vagueBullets.slice(0, 10);
   const bulletRecommendations: ResumeBulletRecommendation[] = [
     ...vagueOnly.map((bullet) => buildBulletRecommendation(bullet)),
-    ...bullets
-      .filter((b) => isStrongBullet(b.text))
-      .slice(0, 3)
-      .map((bullet) => buildBulletRecommendation(bullet)),
+    ...strongWithoutMetricBullets.slice(0, 5).map((bullet) => buildBulletRecommendation(bullet)),
+    ...strongBullets.slice(0, 3).map((bullet) => buildBulletRecommendation(bullet)),
   ].slice(0, 10);
 
   const sectionRecommendations: string[] = [];
@@ -522,6 +553,7 @@ export const __resumeAnalystTestUtils = {
   hasMetric,
   isVagueBullet,
   isStrongBullet,
+  classifyBulletStrength,
   ACTION_VERBS_PT,
   ACTION_VERBS_EN,
 };

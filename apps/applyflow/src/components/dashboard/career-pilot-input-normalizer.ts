@@ -2,6 +2,14 @@ import type { CareerChatIntent } from "@devflow/career-core";
 import type { CareerSpecialistFields } from "./career-chat-workspace";
 import { isCareerPilotIntent, type CareerPilotIntent } from "./career-pilot-content";
 import {
+  extractResumeBulletLines,
+  extractResumeExperiences,
+  isExperienceHeader,
+} from "./career-pilot-resume-line-parser";
+
+export { extractResumeExperiences } from "./career-pilot-resume-line-parser";
+export type { ParsedResumeExperience } from "./career-pilot-resume-line-parser";
+import {
   type CareerPilotSimpleInputs,
   MAX_PILOT_JOB_DESCRIPTION_LENGTH,
   MAX_PILOT_RESUME_TEXT_LENGTH,
@@ -98,8 +106,8 @@ function looksLikeExperienceBulletLine(line: string): boolean {
   if (EXPERIENCE_BULLET_PREFIX_PATTERN.test(trimmed)) {
     return true;
   }
-  if (isCompanyPeriodHeader(trimmed)) {
-    return true;
+  if (isExperienceHeader(trimmed)) {
+    return false;
   }
   return /[.!?]$/.test(trimmed) && trimmed.split(/\s+/).length <= 10 && trimmed.length < 90;
 }
@@ -248,65 +256,7 @@ export function extractProfessionalSummary(resumeText: string): string {
 }
 
 export function extractResumeLines(resumeText: string, summaryToExclude?: string): string[] {
-  const normalized = normalizeResumeText(resumeText);
-  if (!normalized) {
-    return [];
-  }
-
-  const rawLines = normalized
-    .split("\n")
-    .map((line) => line.replace(/^[\s•\-*]+/, "").trim())
-    .filter(Boolean);
-
-  const lines: string[] = [];
-  const hasStructuredSections = rawLines.some((line) => isSectionHeader(line));
-  let reachedBody = !hasStructuredSections;
-
-  for (const line of rawLines) {
-    if (summaryToExclude && lineMatchesSummary(line, summaryToExclude)) {
-      continue;
-    }
-
-    if (isSectionHeader(line)) {
-      reachedBody = true;
-      continue;
-    }
-
-    if (!reachedBody) {
-      continue;
-    }
-
-    if (isSkillListLine(line)) {
-      continue;
-    }
-
-    lines.push(line.slice(0, MAX_LINE_LENGTH));
-  }
-
-  if (lines.length === 0 && rawLines.length > 0) {
-    for (const line of rawLines) {
-      if (summaryToExclude && lineMatchesSummary(line, summaryToExclude)) {
-        continue;
-      }
-      if (isSectionHeader(line) || isSkillListLine(line)) {
-        continue;
-      }
-      lines.push(line.slice(0, MAX_LINE_LENGTH));
-    }
-  }
-
-  if (lines.length > 1) {
-    return lines.slice(0, MAX_LINES);
-  }
-
-  const sentenceLines = normalized
-    .split(/(?<=[.!?])\s+/)
-    .map((sentence) => sentence.trim())
-    .filter((sentence) => sentence.length >= 8)
-    .filter((sentence) => !summaryToExclude || !lineMatchesSummary(sentence, summaryToExclude))
-    .slice(0, MAX_LINES);
-
-  return sentenceLines.length > 0 ? sentenceLines : lines.slice(0, MAX_LINES);
+  return extractResumeBulletLines(resumeText, summaryToExclude);
 }
 
 export function normalizeResumeText(value: string): string {
@@ -405,7 +355,9 @@ export function buildCareerSpecialistFieldsFromSimpleInputs(
   const resumeText = normalizeResumeText(input.resumeText);
   const jobDescription = normalizeJobDescription(input.jobDescription);
   const resumeSummary = extractProfessionalSummary(resumeText);
+  const parsedExperiences = extractResumeExperiences(resumeText, resumeSummary);
   const resumeLines = extractResumeLines(resumeText, resumeSummary);
+  const primaryExperience = parsedExperiences[0];
   const skills = extractLikelySkills(resumeText);
   const requirements = extractJobRequirements(jobDescription);
   const availabilityParts = [input.weeklyAvailability.trim(), input.constraints.trim()].filter(Boolean);
@@ -414,6 +366,9 @@ export function buildCareerSpecialistFieldsFromSimpleInputs(
     resumeSummary,
     resumeBullets: resumeLines.join("\n"),
     resumeSkills: skills.join(", "),
+    resumeExperienceCompany: primaryExperience?.company !== "—" ? (primaryExperience?.company ?? "") : "",
+    resumeExperienceTitle: primaryExperience?.title !== "—" ? (primaryExperience?.title ?? "") : "",
+    resumeExperiencesJson: JSON.stringify(parsedExperiences),
     jobRequirements: requirements.join("\n"),
     availability: availabilityParts.join(" · "),
   };

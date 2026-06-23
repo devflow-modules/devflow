@@ -107,8 +107,16 @@ const FIXTURE_E: CareerAnalysisInput = {
 };
 
 describe("resume_analyst Portuguese action verbs", () => {
-  const { startsWithActionVerb, hasMetric, hasNumber, hasMeaningfulMetric, isVagueBullet, isStrongBullet, firstToken } =
-    __resumeAnalystTestUtils;
+  const {
+    startsWithActionVerb,
+    hasMetric,
+    hasNumber,
+    hasMeaningfulMetric,
+    isVagueBullet,
+    isStrongBullet,
+    firstToken,
+    classifyBulletStrength,
+  } = __resumeAnalystTestUtils;
 
   it("recognizes Portuguese past-tense verbs on the first token", () => {
     expect(startsWithActionVerb("Desenvolvi APIs REST em Node.js.")).toBe(true);
@@ -147,6 +155,7 @@ describe("resume_analyst Portuguese action verbs", () => {
     expect(hasMeaningfulMetric("Liderei 4 pessoas")).toBe(true);
     expect(hasMeaningfulMetric("Integrei 12 parceiros")).toBe(true);
     expect(hasMeaningfulMetric("Atendi 10 mil usuários")).toBe(true);
+    expect(hasMeaningfulMetric("Reduzi custos em 20% entre 2021 e 2023.")).toBe(true);
   });
 
   it("uses correct plural for mensuráveis in participant summary", () => {
@@ -155,9 +164,13 @@ describe("resume_analyst Portuguese action verbs", () => {
     expect(result.summary).not.toMatch(/mensurávelis/);
   });
 
-  it("marks strong bullets with metrics and verbs as non-vague", () => {
-    expect(isStrongBullet("Reduzi o tempo de deploy em 30% com pipelines CI/CD.")).toBe(true);
-    expect(isVagueBullet("Reduzi o tempo de deploy em 30% com pipelines CI/CD.")).toBe(false);
+  it("classifies strong bullets without metrics separately from vague bullets", () => {
+    const { classifyBulletStrength } = __resumeAnalystTestUtils;
+    expect(classifyBulletStrength("Desenvolvi APIs REST em Node.js para integração com parceiros.")).toBe(
+      "strong_without_metric",
+    );
+    expect(classifyBulletStrength("Responsável por algumas tarefas.")).toBe("vague");
+    expect(isVagueBullet("Desenvolvi APIs REST em Node.js para integração com parceiros.")).toBe(false);
   });
 });
 
@@ -190,7 +203,7 @@ describe("resume_analyst Portuguese fixtures", () => {
     expect(analysis.score).toBeGreaterThanOrEqual(30);
     expect(analysis.score).toBeLessThanOrEqual(75);
     expect(analysis.weaknesses.some((w) => /mensurável/i.test(w))).toBe(true);
-    expect(analysis.bulletRecommendations.some((b) => /somente se esses dados forem reais/i.test(b.recommendation))).toBe(
+    expect(analysis.bulletRecommendations.some((b) => /somente se essa informação for real/i.test(b.recommendation))).toBe(
       true,
     );
     expect(JSON.stringify(analysis)).not.toMatch(/\d{2,}%/);
@@ -309,7 +322,8 @@ describe("resume_analyst contextual recommendations", () => {
       }),
     );
     const rec = result.resumeAnalysis.bulletRecommendations[0];
-    expect(rec?.recommendation).toMatch(/parceiros|automatizado|ganho operacional/i);
+    expect(rec?.reason).toMatch(/sem resultado mensurável/i);
+    expect(rec?.recommendation).toMatch(/ação e contexto técnico/i);
     expect(rec?.recommendation).not.toMatch(/30%|50%/);
   });
 });

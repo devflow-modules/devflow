@@ -5,6 +5,7 @@ import {
   extractJobRequirements,
   extractLikelySkills,
   extractProfessionalSummary,
+  extractResumeExperiences,
   extractResumeLines,
   hasSimplePilotAnalysisInputs,
   normalizeJobDescription,
@@ -89,11 +90,22 @@ Conhecimento em tecnologia.`;
     expect(lines.some((line) => line.includes("Trabalhei"))).toBe(true);
   });
 
-  it("splits single-block text into sentences when needed", () => {
-    const lines = extractResumeLines(
-      "Desenvolvi APIs REST em Node.js. Reduzi tempo de deploy em 30% com CI/CD.",
-    );
-    expect(lines.length).toBeGreaterThanOrEqual(1);
+  it("P1 — excludes experience header from resume bullets and recommendations", () => {
+    const resumeText = `Maria Souza — Desenvolvedora de Software Sênior
+
+Experiência profissional
+TechCorp (2021–presente) — Desenvolvedora Backend
+Desenvolvi APIs REST em Node.js para integração com parceiros.
+Reduzi o tempo de deploy em 30% com pipelines CI/CD.
+Liderei um squad de 4 pessoas em projeto de migração cloud.`;
+    const summary = extractProfessionalSummary(resumeText);
+    const lines = extractResumeLines(resumeText, summary);
+    expect(lines.some((line) => line.includes("TechCorp (2021"))).toBe(false);
+    expect(lines).toHaveLength(3);
+
+    const experiences = extractResumeExperiences(resumeText, summary);
+    expect(experiences[0]?.company).toBe("TechCorp");
+    expect(experiences[0]?.title).toBe("Desenvolvedora Backend");
   });
 });
 

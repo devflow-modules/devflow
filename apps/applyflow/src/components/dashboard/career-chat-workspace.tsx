@@ -125,6 +125,9 @@ export type CareerSpecialistFields = {
   resumeSummary: string;
   resumeBullets: string;
   resumeSkills: string;
+  resumeExperienceCompany: string;
+  resumeExperienceTitle: string;
+  resumeExperiencesJson: string;
   jobRequirements: string;
   targetRoles: string;
   availability: string;
@@ -134,6 +137,9 @@ export const EMPTY_SPECIALIST_FIELDS: CareerSpecialistFields = {
   resumeSummary: "",
   resumeBullets: "",
   resumeSkills: "",
+  resumeExperienceCompany: "",
+  resumeExperienceTitle: "",
+  resumeExperiencesJson: "",
   jobRequirements: "",
   targetRoles: "",
   availability: "",
@@ -170,13 +176,46 @@ export function buildSpecialistAnalysisInput(input: {
   const resolvedSkills = skills.length > 0 ? skills : mainStack;
   const bullets = toLines(fields.resumeBullets);
   const summary = fields.resumeSummary.trim() || undefined;
+
+  type ParsedExperiencePayload = {
+    title?: string;
+    company?: string;
+    bullets?: string[];
+  };
+
+  let experiences: Array<{ title: string; company: string; bullets: string[] }> = [];
+  if (fields.resumeExperiencesJson.trim()) {
+    try {
+      const parsed = JSON.parse(fields.resumeExperiencesJson) as ParsedExperiencePayload[];
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        experiences = parsed
+          .filter((entry) => (entry.bullets?.length ?? 0) > 0 || entry.company || entry.title)
+          .map((entry) => ({
+            title: entry.title?.trim() || fields.resumeExperienceTitle.trim() || fallbackRole || "Experience",
+            company: entry.company?.trim() || fields.resumeExperienceCompany.trim() || "—",
+            bullets: (entry.bullets ?? []).map((bullet) => bullet.trim()).filter(Boolean),
+          }))
+          .filter((entry) => entry.bullets.length > 0);
+      }
+    } catch {
+      experiences = [];
+    }
+  }
+
+  if (experiences.length === 0 && bullets.length > 0) {
+    experiences = [
+      {
+        title: fields.resumeExperienceTitle.trim() || fallbackRole || "Experience",
+        company: fields.resumeExperienceCompany.trim() || "—",
+        bullets,
+      },
+    ];
+  }
+
   const resumeSnapshot = {
     ...(summary ? { summary } : {}),
     skills: resolvedSkills,
-    experiences:
-      bullets.length > 0
-        ? [{ title: fallbackRole || "Experience", company: "—", bullets }]
-        : [],
+    experiences,
   };
 
   if (action === "analyze_resume") {

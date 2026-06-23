@@ -132,6 +132,19 @@ export const CAREER_PILOT_EXAMPLE_FIELDS: CareerSpecialistFields = {
   resumeBullets:
     "Desenvolvi APIs REST em Node.js para integração com parceiros\nReduzi tempo de deploy em 30% com pipelines CI/CD\nLiderei squad de 4 pessoas em projeto de migração cloud",
   resumeSkills: "TypeScript, Node.js, PostgreSQL, AWS",
+  resumeExperienceCompany: "TechCorp",
+  resumeExperienceTitle: "Desenvolvedora Backend",
+  resumeExperiencesJson: JSON.stringify([
+    {
+      company: "TechCorp",
+      title: "Desenvolvedora Backend",
+      bullets: [
+        "Desenvolvi APIs REST em Node.js para integração com parceiros",
+        "Reduzi tempo de deploy em 30% com pipelines CI/CD",
+        "Liderei squad de 4 pessoas em projeto de migração cloud",
+      ],
+    },
+  ]),
   jobRequirements:
     "3+ anos com backend\nExperiência com TypeScript\nConhecimento em cloud (AWS ou GCP)\nInglês intermediário",
   targetRoles: "Engenheiro de Software Backend, Desenvolvedor Node.js",
