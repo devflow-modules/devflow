@@ -145,6 +145,12 @@ export const CAREER_PILOT_EXAMPLE_FIELDS: CareerSpecialistFields = {
       ],
     },
   ]),
+  resumeProjectsJson: "[]",
+  resumeEducationJson: "[]",
+  resumeLanguagesJson: "[]",
+  resumeParseConfidence: "high",
+  resumeParseSummary: "",
+  resumeUnusedInfoCount: "0",
   jobRequirements:
     "3+ anos com backend\nExperiência com TypeScript\nConhecimento em cloud (AWS ou GCP)\nInglês intermediário",
   targetRoles: "Engenheiro de Software Backend, Desenvolvedor Node.js",

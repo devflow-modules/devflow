@@ -75,9 +75,11 @@ Desenvolvi APIs REST em Node.js.`;
 
 describe("extractResumeLines", () => {
   it("extracts multiple lines from a multiline resume", () => {
-    const lines = extractResumeLines("Experiência A\n• Resultado B\n\nResultado C");
+    const lines = extractResumeLines(
+      "Desenvolvi resultado A.\n• Reduzi tempo em 30%.\n\nLiderei migração cloud.",
+    );
     expect(lines.length).toBeGreaterThanOrEqual(2);
-    expect(lines[0]).toContain("Experiência");
+    expect(lines.some((line) => line.includes("Reduzi"))).toBe(true);
   });
 
   it("P1-B — preserves weak resume lines as bullet candidates", () => {

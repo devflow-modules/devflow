@@ -2,7 +2,7 @@
 
 Quality gate before **P01** closed pilot. Addresses [issue #138](https://github.com/devflow-modules/devflow/issues/138).
 
-**Operational status:** `P01 READY TO SCHEDULE` — merged in PR #139 (`main` @ `4d8d332`, closes #138); Preview smoke Fixture A passed 2026-06-23.
+**Operational status:** `P01 SCHEDULING PAUSED — REAL RESUME PARSING FIX IN PROGRESS` — section-aware parser in PR for [#140](https://github.com/devflow-modules/devflow/issues/140); P01 scheduling paused until Preview validation. Prior quality fix merged in PR #139 (`main` @ `aba7381`, closes #138).
 
 ---
 
@@ -139,6 +139,7 @@ English resumes remain supported (regression fixture D).
 |---------|------|
 | `@devflow/career-core` | `resume-analyst-portuguese.test.ts` (fixtures A–E) |
 | `@devflow/career-core` | `specialist-agents.test.ts` |
+| `applyflow` | `career-pilot-resume-section-parser.test.ts` (fixtures F–J, invariants) |
 | `applyflow` | `career-pilot-input-normalizer.test.ts` |
 | `applyflow` | `career-pilot-result-mapper.test.ts` |
 | `applyflow` | `career-pilot-result-view.test.tsx` |
@@ -147,6 +148,7 @@ English resumes remain supported (regression fixture D).
 
 ## Related docs
 
+- [`REAL-RESUME-PARSING.md`](./REAL-RESUME-PARSING.md) — section-aware parser (issue #140)
 - [`SIMPLIFIED-INPUT-UX.md`](./SIMPLIFIED-INPUT-UX.md)
 - [`PILOT-RUNBOOK.md`](./PILOT-RUNBOOK.md)
 - [`agents/RESUME-AGENT.md`](./agents/RESUME-AGENT.md) — update when agent contract changes
