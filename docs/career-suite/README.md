@@ -154,6 +154,7 @@ Tests (1,045 across Career Suite packages): [case §12](./CAREER-SUITE-PRODUCT-A
 | **Portfolio launch package** | [CAREER-SUITE-PORTFOLIO-LAUNCH-PACKAGE.md](./CAREER-SUITE-PORTFOLIO-LAUNCH-PACKAGE.md) · [LinkedIn](./portfolio/LINKEDIN-LAUNCH-POSTS.md) · [Video](./portfolio/VIDEO-SCRIPTS.md) · [Evidence](./portfolio/EVIDENCE-AND-CLAIMS-MATRIX.md) |
 | **Closed pilot runbook** | [PILOT-RUNBOOK.md](./PILOT-RUNBOOK.md) |
 | **P01 operational kit** | [P01-OPERATIONAL-KIT.md](./P01-OPERATIONAL-KIT.md) |
+| **Career Pilot Curator (CLI)** | [CAREER-PILOT-CURATOR.md](./CAREER-PILOT-CURATOR.md) — offline moderator support; no LLM, no GitHub publish |
 | **Product & UX readiness review** | [PRODUCT-UX-READINESS-REVIEW.md](./PRODUCT-UX-READINESS-REVIEW.md) |
 | **UI/UX product polish (pilot)** | [UI-UX-POLISH.md](./UI-UX-POLISH.md) |
 | **Simplified participant inputs (P01 gate)** | [SIMPLIFIED-INPUT-UX.md](./SIMPLIFIED-INPUT-UX.md) |

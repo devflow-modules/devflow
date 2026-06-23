@@ -5,7 +5,7 @@ document complements — and does not replace — [`PILOT-VALIDATION.md`](./PILO
 (technical smoke) and [`DEPLOYMENT.md`](./DEPLOYMENT.md) (environment matrix).
 
 **Related:** [`README.md`](./README.md) · [`PRODUCT-UX-READINESS-REVIEW.md`](./PRODUCT-UX-READINESS-REVIEW.md) ·
-[`P01-OPERATIONAL-KIT.md`](./P01-OPERATIONAL-KIT.md) · [`SECURITY-CHECKLIST.md`](./SECURITY-CHECKLIST.md) · [`OBSERVABILITY.md`](./OBSERVABILITY.md)
+[`P01-OPERATIONAL-KIT.md`](./P01-OPERATIONAL-KIT.md) · [`CAREER-PILOT-CURATOR.md`](./CAREER-PILOT-CURATOR.md) · [`SECURITY-CHECKLIST.md`](./SECURITY-CHECKLIST.md) · [`OBSERVABILITY.md`](./OBSERVABILITY.md)
 
 ---
 
@@ -74,6 +74,10 @@ trust that **no application is submitted** and **no data is stored silently**.
 | Silent résumé or job persistence | Off |
 | Background jobs | Off |
 | Production deployment | Off |
+
+### Moderator support CLI (optional)
+
+Deterministic offline CLI documented in [`CAREER-PILOT-CURATOR.md`](./CAREER-PILOT-CURATOR.md). Commands: `prepare`, `assist`, `notes`, `classify`, `synthesize` via `pnpm pilot:curator`. **Moderator support only** — no LLM, no providers, no GitHub publishing, no PII in repo by default.
 
 **Included flows only:** `analyze_resume` · `analyze_ats_compatibility` · `plan_career_strategy`
 

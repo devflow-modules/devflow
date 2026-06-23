@@ -92,6 +92,7 @@ Evitar como P01:
 - acesso autenticado ao Preview;
 - roteiro da sessão;
 - ficha de observação;
+- **Career Pilot Curator CLI** (opcional, offline) — ver [`CAREER-PILOT-CURATOR.md`](./CAREER-PILOT-CURATOR.md); `pnpm pilot:curator prepare|assist|notes|classify|synthesize`; saídas **fora do repo** por padrão;
 - cronômetro;
 - identificador anônimo do participante;
 - plano de contingência;
