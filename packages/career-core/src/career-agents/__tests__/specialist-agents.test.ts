@@ -83,7 +83,7 @@ describe("resume_analyst", () => {
 
     expect(result.status).toBe("completed");
     const analysis = result.resumeAnalysis;
-    expect(analysis?.weaknesses.some((w) => w.toLowerCase().includes("summary"))).toBe(true);
+    expect(analysis?.weaknesses.some((w) => /resumo/i.test(w))).toBe(true);
     expect(analysis?.bulletRecommendations.length).toBeGreaterThan(0);
     expect(analysis?.missingEvidence.some((e) => e.toLowerCase().includes("kubernetes"))).toBe(true);
   });
@@ -105,9 +105,7 @@ describe("resume_analyst", () => {
       }),
       REQUESTED_AT,
     );
-    expect(result.resumeAnalysis?.risks.some((r) => r.toLowerCase().includes("overstatement"))).toBe(
-      true,
-    );
+    expect(result.resumeAnalysis?.risks.some((r) => /exagero/i.test(r))).toBe(true);
   });
 
   it("blocks when resume snapshot is missing", () => {

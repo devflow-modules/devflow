@@ -4,8 +4,10 @@ import type { CareerChatIntent } from "@devflow/career-core";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import type { CareerPilotResultModel } from "./career-pilot-result-mapper";
 import {
+  CAREER_PILOT_RESULT_BULLET_SUGGESTIONS_TITLE,
   CAREER_PILOT_RESULT_EVIDENCE_TITLE,
   CAREER_PILOT_RESULT_NEXT_ACTIONS_TITLE,
+  CAREER_PILOT_RESULT_REVIEW_NOTICE,
   CAREER_PILOT_RESULT_RISKS_TITLE,
   CAREER_PILOT_RESULT_SUMMARY_TITLE,
   CAREER_PILOT_RESULT_TECHNICAL_TITLE,
@@ -141,6 +143,55 @@ export function CareerPilotEvidenceDetails({ evidence }: { evidence: string[] })
   );
 }
 
+export function CareerPilotBulletSuggestions({
+  suggestions = [],
+}: {
+  suggestions?: CareerPilotResultModel["bulletSuggestions"];
+}) {
+  if (suggestions.length === 0) {
+    return null;
+  }
+
+  return (
+    <section
+      aria-labelledby="career-pilot-result-suggestions-title"
+      data-testid="career-pilot-result-suggestions"
+    >
+      <h4 id="career-pilot-result-suggestions-title" className="text-sm font-semibold text-[color:var(--af-text)]">
+        {CAREER_PILOT_RESULT_BULLET_SUGGESTIONS_TITLE}
+      </h4>
+      <ul className="mt-3 space-y-3">
+        {suggestions.map((item) => (
+          <li
+            key={`${item.section ?? "bullet"}-${item.original}`}
+            className="rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface)] px-3 py-2 text-sm leading-relaxed text-[color:var(--af-text-muted)]"
+          >
+            <p className="font-medium text-[color:var(--af-text)]">Original:</p>
+            <p className="mt-1">{item.original}</p>
+            <p className="mt-2 font-medium text-[color:var(--af-text)]">Sugestão:</p>
+            <p className="mt-1">{item.recommendation}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+export function CareerPilotHumanReviewNotice({ notice }: { notice: string }) {
+  if (!notice) {
+    return null;
+  }
+
+  return (
+    <p
+      className="rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] px-3 py-2 text-sm leading-relaxed text-[color:var(--af-text-muted)]"
+      data-testid="career-pilot-result-review-notice"
+    >
+      {notice}
+    </p>
+  );
+}
+
 export function CareerPilotTechnicalDetails({
   technicalLines,
   traceSteps,
@@ -191,15 +242,18 @@ export function CareerPilotTechnicalDetails({
 export function CareerPilotResultView({
   model,
   intent,
+  participantSurface = true,
 }: {
   model: CareerPilotResultModel;
   intent?: CareerChatIntent;
+  participantSurface?: boolean;
 }) {
   const resolvedIntent = intent && isCareerPilotIntent(intent) ? intent : undefined;
   const primaryScore = model.scores[0];
   const completionMessage = resolvedIntent
     ? careerPilotCompletionMessage(resolvedIntent, model.flowTitle)
     : `${model.flowTitle} concluída`;
+  const showDiagnostics = !participantSurface;
 
   return (
     <ApplyFlowCard
@@ -216,10 +270,16 @@ export function CareerPilotResultView({
       <CareerPilotResultSummary summary={model.summary} />
       <CareerPilotScoreDetails scores={model.scores} hidePrimary={Boolean(primaryScore)} />
       <CareerFindingGroup strengths={model.strengths} improvements={model.improvements} />
+      <CareerPilotBulletSuggestions suggestions={model.bulletSuggestions} />
       <CareerPilotNextActions actions={model.nextActions} />
       <CareerPilotRisks risks={model.risks} />
-      <CareerPilotEvidenceDetails evidence={model.evidence} />
-      <CareerPilotTechnicalDetails technicalLines={model.technicalLines} traceSteps={model.traceSteps} />
+      <CareerPilotHumanReviewNotice notice={model.humanReviewNotice} />
+      {showDiagnostics ? (
+        <>
+          <CareerPilotEvidenceDetails evidence={model.evidence} />
+          <CareerPilotTechnicalDetails technicalLines={model.technicalLines} traceSteps={model.traceSteps} />
+        </>
+      ) : null}
     </ApplyFlowCard>
   );
 }

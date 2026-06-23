@@ -1,5 +1,15 @@
 import { createCareerBundle, type CareerBundle } from "@devflow/career-core";
 import type { CareerSpecialistFields } from "./career-chat-workspace";
+import {
+  normalizeJobDescription,
+  normalizeResumeText,
+} from "./career-pilot-input-normalizer";
+import {
+  MIN_PILOT_JOB_DESCRIPTION_LENGTH,
+  MIN_PILOT_RESUME_TEXT_LENGTH,
+  type CareerPilotSimpleInputs,
+} from "./career-pilot-simple-inputs";
+import type { CareerPilotIntent } from "./career-pilot-content";
 
 function toLines(value: string): string[] {
   return value
@@ -59,4 +69,28 @@ export function hasPilotAnalysisInputs(
   }
 
   return hasResume;
+}
+
+export function canSubmitResumeAnalysis(
+  action: CareerPilotIntent,
+  simpleInputs: CareerPilotSimpleInputs,
+  fields: CareerSpecialistFields,
+): boolean {
+  if (action === "plan_career_strategy") {
+    return simpleInputs.careerGoal.trim().length > 0;
+  }
+
+  const resumeText = normalizeResumeText(simpleInputs.resumeText);
+  if (resumeText.length < MIN_PILOT_RESUME_TEXT_LENGTH) {
+    return false;
+  }
+
+  if (action === "analyze_ats_compatibility") {
+    const jobDescription = normalizeJobDescription(simpleInputs.jobDescription);
+    if (jobDescription.length < MIN_PILOT_JOB_DESCRIPTION_LENGTH) {
+      return false;
+    }
+  }
+
+  return hasPilotAnalysisInputs(action, fields);
 }

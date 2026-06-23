@@ -128,9 +128,23 @@ export const CAREER_PILOT_ERROR_DESCRIPTION =
   "Revise os dados e tente novamente. Se o problema continuar, registre o horário da tentativa.";
 
 export const CAREER_PILOT_EXAMPLE_FIELDS: CareerSpecialistFields = {
+  resumeSummary: "Desenvolvedora de Software com experiência em backend e integrações.",
   resumeBullets:
     "Desenvolvi APIs REST em Node.js para integração com parceiros\nReduzi tempo de deploy em 30% com pipelines CI/CD\nLiderei squad de 4 pessoas em projeto de migração cloud",
   resumeSkills: "TypeScript, Node.js, PostgreSQL, AWS",
+  resumeExperienceCompany: "TechCorp",
+  resumeExperienceTitle: "Desenvolvedora Backend",
+  resumeExperiencesJson: JSON.stringify([
+    {
+      company: "TechCorp",
+      title: "Desenvolvedora Backend",
+      bullets: [
+        "Desenvolvi APIs REST em Node.js para integração com parceiros",
+        "Reduzi tempo de deploy em 30% com pipelines CI/CD",
+        "Liderei squad de 4 pessoas em projeto de migração cloud",
+      ],
+    },
+  ]),
   jobRequirements:
     "3+ anos com backend\nExperiência com TypeScript\nConhecimento em cloud (AWS ou GCP)\nInglês intermediário",
   targetRoles: "Engenheiro de Software Backend, Desenvolvedor Node.js",
@@ -139,7 +153,7 @@ export const CAREER_PILOT_EXAMPLE_FIELDS: CareerSpecialistFields = {
 
 export const CAREER_PILOT_EXAMPLE_SIMPLE_INPUTS: CareerPilotSimpleInputs = {
   targetRole: "Engenheiro de Software Backend",
-  resumeText: `Maria Souza — Desenvolvedora de Software
+  resumeText: `Maria Souza — Desenvolvedora de Software Sênior
 
 Experiência profissional
 TechCorp (2021–presente) — Desenvolvedora Backend

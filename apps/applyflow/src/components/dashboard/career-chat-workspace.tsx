@@ -79,6 +79,7 @@ import {
 import { isCareerPilotModeClient } from "@/lib/career-system/feature-flags";
 import {
   buildPilotCareerBundleFromFields,
+  canSubmitResumeAnalysis,
   hasPilotAnalysisInputs,
 } from "./build-pilot-career-bundle";
 import { buildCareerPilotResultModel } from "./career-pilot-result-mapper";
@@ -95,6 +96,7 @@ import {
   CAREER_PILOT_EMPTY_CAREER_GOAL_MESSAGE,
   CAREER_PILOT_EMPTY_JOB_MESSAGE,
   CAREER_PILOT_EMPTY_RESUME_MESSAGE,
+  CAREER_PILOT_INSUFFICIENT_CONTENT_MESSAGE,
 } from "./career-pilot-simple-input-content";
 import type { CareerPilotSimpleInputs } from "./career-pilot-simple-inputs";
 import { EMPTY_CAREER_PILOT_SIMPLE_INPUTS } from "./career-pilot-simple-inputs";
@@ -120,16 +122,24 @@ function isSpecialistIntent(action: CareerChatIntent): boolean {
 }
 
 export type CareerSpecialistFields = {
+  resumeSummary: string;
   resumeBullets: string;
   resumeSkills: string;
+  resumeExperienceCompany: string;
+  resumeExperienceTitle: string;
+  resumeExperiencesJson: string;
   jobRequirements: string;
   targetRoles: string;
   availability: string;
 };
 
 export const EMPTY_SPECIALIST_FIELDS: CareerSpecialistFields = {
+  resumeSummary: "",
   resumeBullets: "",
   resumeSkills: "",
+  resumeExperienceCompany: "",
+  resumeExperienceTitle: "",
+  resumeExperiencesJson: "",
   jobRequirements: "",
   targetRoles: "",
   availability: "",
@@ -165,12 +175,47 @@ export function buildSpecialistAnalysisInput(input: {
   const skills = toCommaList(fields.resumeSkills);
   const resolvedSkills = skills.length > 0 ? skills : mainStack;
   const bullets = toLines(fields.resumeBullets);
+  const summary = fields.resumeSummary.trim() || undefined;
+
+  type ParsedExperiencePayload = {
+    title?: string;
+    company?: string;
+    bullets?: string[];
+  };
+
+  let experiences: Array<{ title: string; company: string; bullets: string[] }> = [];
+  if (fields.resumeExperiencesJson.trim()) {
+    try {
+      const parsed = JSON.parse(fields.resumeExperiencesJson) as ParsedExperiencePayload[];
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        experiences = parsed
+          .filter((entry) => (entry.bullets?.length ?? 0) > 0 || entry.company || entry.title)
+          .map((entry) => ({
+            title: entry.title?.trim() || fields.resumeExperienceTitle.trim() || fallbackRole || "Experience",
+            company: entry.company?.trim() || fields.resumeExperienceCompany.trim() || "—",
+            bullets: (entry.bullets ?? []).map((bullet) => bullet.trim()).filter(Boolean),
+          }))
+          .filter((entry) => entry.bullets.length > 0);
+      }
+    } catch {
+      experiences = [];
+    }
+  }
+
+  if (experiences.length === 0 && bullets.length > 0) {
+    experiences = [
+      {
+        title: fields.resumeExperienceTitle.trim() || fallbackRole || "Experience",
+        company: fields.resumeExperienceCompany.trim() || "—",
+        bullets,
+      },
+    ];
+  }
+
   const resumeSnapshot = {
+    ...(summary ? { summary } : {}),
     skills: resolvedSkills,
-    experiences:
-      bullets.length > 0
-        ? [{ title: fallbackRole || "Experience", company: "—", bullets }]
-        : [],
+    experiences,
   };
 
   if (action === "analyze_resume") {
@@ -331,7 +376,11 @@ export function CareerChatWorkspaceView({
   const reviewProposal = response?.agentResult?.reviewProposal;
   const pilotResultModel =
     pilotPresentation && response?.status === "completed"
-      ? buildCareerPilotResultModel({ intent: action, response })
+      ? buildCareerPilotResultModel({
+          intent: action,
+          response,
+          participantSurface: pilotPresentation,
+        })
       : null;
   const visibleActions = pilotPresentation ? CAREER_PILOT_INTENTS : (Object.keys(CAREER_CHAT_WORKSPACE_ACTION_LABELS) as CareerChatIntent[]);
   const actionLabels = pilotPresentation ? CAREER_PILOT_ACTION_LABELS : CAREER_CHAT_WORKSPACE_ACTION_LABELS;
@@ -906,6 +955,9 @@ export function CareerChatWorkspace({
       if (!resumeOk) {
         return CAREER_PILOT_EMPTY_RESUME_MESSAGE;
       }
+      if (!canSubmitResumeAnalysis(action, simpleInputs, normalizedFields)) {
+        return CAREER_PILOT_INSUFFICIENT_CONTENT_MESSAGE;
+      }
     }
     if (action === "analyze_ats_compatibility") {
       const atsOk = hasSimplePilotAnalysisInputs("analyze_ats_compatibility", simpleInputs);
@@ -917,7 +969,7 @@ export function CareerChatWorkspace({
       return CAREER_PILOT_EMPTY_CAREER_GOAL_MESSAGE;
     }
     return null;
-  }, [action, explicitConsent, pilotPresentation, simpleInputs]);
+  }, [action, explicitConsent, normalizedFields, pilotPresentation, simpleInputs]);
 
   useEffect(() => {
     if (!pilotPresentation || !pilotIntent || !isCareerPilotIntent(pilotIntent)) {
@@ -959,7 +1011,7 @@ export function CareerChatWorkspace({
   const submitDisabled = pilotPresentation
     ? !explicitConsent ||
       !isCareerPilotIntent(action) ||
-      !hasSimplePilotAnalysisInputs(action, simpleInputs)
+      !canSubmitResumeAnalysis(action, simpleInputs, effectiveSpecialistFields)
     : !careerBundle || !explicitConsent || !message.trim();
 
   function handleActionChange(nextAction: CareerChatIntent) {
@@ -968,7 +1020,21 @@ export function CareerChatWorkspace({
   }
 
   async function handleSend() {
-    if (!effectiveBundle || !explicitConsent) {
+    if (!explicitConsent) {
+      return;
+    }
+
+    if (pilotPresentation && isCareerPilotIntent(action)) {
+      if (!canSubmitResumeAnalysis(action, simpleInputs, effectiveSpecialistFields)) {
+        setErrorMessage(CAREER_PILOT_INSUFFICIENT_CONTENT_MESSAGE);
+        return;
+      }
+    } else if (!effectiveBundle) {
+      return;
+    }
+
+    if (!effectiveBundle) {
+      setErrorMessage(CAREER_PILOT_INSUFFICIENT_CONTENT_MESSAGE);
       return;
     }
 

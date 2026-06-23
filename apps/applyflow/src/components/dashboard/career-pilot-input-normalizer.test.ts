@@ -4,6 +4,8 @@ import {
   extractJobKeywords,
   extractJobRequirements,
   extractLikelySkills,
+  extractProfessionalSummary,
+  extractResumeExperiences,
   extractResumeLines,
   hasSimplePilotAnalysisInputs,
   normalizeJobDescription,
@@ -22,6 +24,55 @@ describe("normalizeResumeText", () => {
   });
 });
 
+describe("extractProfessionalSummary", () => {
+  it("extracts the first descriptive paragraph before experience sections", () => {
+    const summary = extractProfessionalSummary(`Desenvolvedor Full Stack com experiência em React, Next.js, TypeScript e Node.js.
+
+Experiência profissional
+TechCorp — Desenvolvedor
+Desenvolvi APIs REST.`);
+    expect(summary).toBe(
+      "Desenvolvedor Full Stack com experiência em React, Next.js, TypeScript e Node.js.",
+    );
+  });
+
+  it("P1-A — extracts role from official example identity line without full name", () => {
+    const resumeText = `Maria Souza — Desenvolvedora de Software Sênior
+
+Experiência profissional
+TechCorp (2021–presente) — Desenvolvedora Backend
+Desenvolvi APIs REST em Node.js para integração com parceiros.
+Reduzi o tempo de deploy em 30% com pipelines CI/CD.
+Liderei um squad de 4 pessoas em projeto de migração cloud.`;
+    expect(extractProfessionalSummary(resumeText)).toBe("Desenvolvedora de Software Sênior");
+  });
+
+  it("accepts standalone professional title line when no descriptive paragraph exists", () => {
+    expect(extractProfessionalSummary("Engenheiro de Software Backend Sênior\n\nExperiência\nDesenvolvi APIs.")).toBe(
+      "Engenheiro de Software Backend Sênior",
+    );
+  });
+
+  it("does not treat weak multi-line resume text as summary", () => {
+    const resumeText = `Trabalhei com sistemas.
+Ajudei em projetos.
+Responsável por algumas tarefas.
+Conhecimento em tecnologia.`;
+    expect(extractProfessionalSummary(resumeText)).toBe("");
+  });
+
+  it("does not duplicate summary lines as resume bullets", () => {
+    const resumeText = `Desenvolvedor Full Stack com experiência em React, Next.js, TypeScript e Node.js.
+
+Experiência profissional
+Desenvolvi APIs REST em Node.js.`;
+    const summary = extractProfessionalSummary(resumeText);
+    const lines = extractResumeLines(resumeText, summary);
+    expect(lines.join("\n")).not.toContain("Desenvolvedor Full Stack com experiência");
+    expect(lines.some((line) => line.includes("Desenvolvi APIs"))).toBe(true);
+  });
+});
+
 describe("extractResumeLines", () => {
   it("extracts multiple lines from a multiline resume", () => {
     const lines = extractResumeLines("Experiência A\n• Resultado B\n\nResultado C");
@@ -29,11 +80,32 @@ describe("extractResumeLines", () => {
     expect(lines[0]).toContain("Experiência");
   });
 
-  it("splits single-block text into sentences when needed", () => {
-    const lines = extractResumeLines(
-      "Desenvolvi APIs REST em Node.js. Reduzi tempo de deploy em 30% com CI/CD.",
-    );
-    expect(lines.length).toBeGreaterThanOrEqual(1);
+  it("P1-B — preserves weak resume lines as bullet candidates", () => {
+    const resumeText = `Trabalhei com sistemas.
+Ajudei em projetos.
+Responsável por algumas tarefas.
+Conhecimento em tecnologia.`;
+    const lines = extractResumeLines(resumeText);
+    expect(lines.length).toBe(4);
+    expect(lines.some((line) => line.includes("Trabalhei"))).toBe(true);
+  });
+
+  it("P1 — excludes experience header from resume bullets and recommendations", () => {
+    const resumeText = `Maria Souza — Desenvolvedora de Software Sênior
+
+Experiência profissional
+TechCorp (2021–presente) — Desenvolvedora Backend
+Desenvolvi APIs REST em Node.js para integração com parceiros.
+Reduzi o tempo de deploy em 30% com pipelines CI/CD.
+Liderei um squad de 4 pessoas em projeto de migração cloud.`;
+    const summary = extractProfessionalSummary(resumeText);
+    const lines = extractResumeLines(resumeText, summary);
+    expect(lines.some((line) => line.includes("TechCorp (2021"))).toBe(false);
+    expect(lines).toHaveLength(3);
+
+    const experiences = extractResumeExperiences(resumeText, summary);
+    expect(experiences[0]?.company).toBe("TechCorp");
+    expect(experiences[0]?.title).toBe("Desenvolvedora Backend");
   });
 });
 
@@ -89,6 +161,14 @@ describe("extractJobKeywords", () => {
 });
 
 describe("buildCareerSpecialistFieldsFromSimpleInputs", () => {
+  it("does not treat action-only resume text as professional summary", () => {
+    const resumeText =
+      "Desenvolvi APIs em Node.js com TypeScript.\nReduzi deploy em 30% com CI/CD no GitHub Actions.";
+    expect(extractProfessionalSummary(resumeText)).toBe("");
+    const lines = extractResumeLines(resumeText);
+    expect(lines.some((line) => line.includes("Node.js"))).toBe(true);
+  });
+
   it("maps simple resume inputs to specialist fields", () => {
     const fields = buildCareerSpecialistFieldsFromSimpleInputs(
       {
@@ -102,6 +182,7 @@ describe("buildCareerSpecialistFieldsFromSimpleInputs", () => {
     expect(fields.resumeBullets).toContain("Node.js");
     expect(fields.resumeSkills).toContain("TypeScript");
     expect(fields.targetRoles).toBe("Desenvolvedor Full Stack");
+    expect(fields.resumeSummary).toBe("");
   });
 
   it("maps job description to requirements for ATS flow", () => {
