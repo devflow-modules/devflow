@@ -2,7 +2,7 @@
 
 Deterministic, section-aware parsing for realistic Portuguese resumes copied from PDF or ATS documents. Addresses [issue #140](https://github.com/devflow-modules/devflow/issues/140).
 
-**Operational status:** `P01 SCHEDULING PAUSED — REAL RESUME PARSING FIX IN PROGRESS`
+**Operational status:** `P01 READY TO SCHEDULE` — merged in PR [#141](https://github.com/devflow-modules/devflow/pull/141) on `main` @ `b9fc3b2` (closes [#140](https://github.com/devflow-modules/devflow/issues/140)); post-merge Fixture F smoke passed on `main` Preview (2026-06-23).
 
 ---
 
@@ -291,16 +291,16 @@ Tests: `career-pilot-resume-section-parser.test.ts`, `career-pilot-input-normali
 **Gate to resume scheduling:**
 
 ```text
-REAL RESUME PARSER READY FOR CONTENT REVIEW
+P01 READY TO SCHEDULE
 ```
 
-**Blocker:**
+**Blocker (historical):**
 
 ```text
 REAL RESUME PARSER BLOCKED
 ```
 
-P01 remains paused until Preview content-quality walkthrough passes. Production unchanged (`1dfb9de`).
+P01 scheduling resumes after merge and `main` Preview validation. Production unchanged (`1dfb9de`).
 
 ---
 

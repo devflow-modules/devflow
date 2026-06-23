@@ -2,7 +2,7 @@
 
 **Related:** [`PILOT-RUNBOOK.md`](./PILOT-RUNBOOK.md) · [`PILOT-VALIDATION.md`](./PILOT-VALIDATION.md) · [`UI-UX-POLISH.md`](./UI-UX-POLISH.md)
 
-**Operational status (2026-06-22):** `P01 SCHEDULING PAUSED — REAL RESUME PARSING FIX IN PROGRESS` — real multi-section resume parser in progress ([#140](https://github.com/devflow-modules/devflow/issues/140)); see [`REAL-RESUME-PARSING.md`](./REAL-RESUME-PARSING.md). PR #139 merged on `main` @ `aba7381`. Production não promovida (`1dfb9de`).
+**Operational status (2026-06-23):** `P01 READY TO SCHEDULE` — PR [#141](https://github.com/devflow-modules/devflow/pull/141) merged on `main` @ `b9fc3b2` (closes [#140](https://github.com/devflow-modules/devflow/issues/140)); Fixture F post-merge smoke passed on `main` Preview. See [`REAL-RESUME-PARSING.md`](./REAL-RESUME-PARSING.md). Production não promovida (`1dfb9de`).
 
 **Preview URL (moderador):** `https://devflow-applyflow-git-main-gustavos-projects-74c68bcc.vercel.app`
 
@@ -644,10 +644,10 @@ Template: participante, dispositivo, duração, resultado, fluxos, compreensão,
 
 | Fase | Status |
 |------|--------|
-| Antes da sessão | `P01 SCHEDULING PAUSED — REAL RESUME PARSING FIX IN PROGRESS` |
+| Antes da sessão | `P01 READY TO SCHEDULE` |
 | Após agendamento | `P01 SCHEDULED` |
 | Durante | `P01 IN PROGRESS` |
 | Após conclusão | `P01 COMPLETED — REVIEW PENDING` |
 | Após avaliação | `P01 PASS — CONTINUE TO P02` / `P01 PASS WITH OBSERVATIONS` / `P01 FAILED — FIX BEFORE P02` / `PILOT STOPPED` |
 
-**Estado atual (2026-06-22):** `P01 SCHEDULING PAUSED — REAL RESUME PARSING FIX IN PROGRESS`
+**Estado atual (2026-06-23):** `P01 READY TO SCHEDULE`

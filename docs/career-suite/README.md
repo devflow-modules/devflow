@@ -101,7 +101,7 @@ diagnostic page. See [`PRODUCTION-READINESS.md`](./PRODUCTION-READINESS.md),
 [`UI-UX-POLISH.md`](./UI-UX-POLISH.md), [`SIMPLIFIED-INPUT-UX.md`](./SIMPLIFIED-INPUT-UX.md), [`REAL-RESUME-PARSING.md`](./REAL-RESUME-PARSING.md), and
 [`SECURITY-CHECKLIST.md`](./SECURITY-CHECKLIST.md).
 
-**Pilot operational status (2026-06-22):** `P01 SCHEDULING PAUSED — REAL RESUME PARSING FIX IN PROGRESS` — see [`REAL-RESUME-PARSING.md`](./REAL-RESUME-PARSING.md) (issue #140). Prior PR #139 merged on `main` @ `aba7381`.
+**Pilot operational status (2026-06-23):** `P01 READY TO SCHEDULE` — PR [#141](https://github.com/devflow-modules/devflow/pull/141) merged; real multi-section resume parser active on `main` @ `b9fc3b2`. See [`REAL-RESUME-PARSING.md`](./REAL-RESUME-PARSING.md).
 
 ---
 

@@ -72,4 +72,4 @@ Data stays in React state for the open page and in the current `/career-chat/lib
 
 ## Pilot impact
 
-**Operational status:** `P01 SCHEDULING PAUSED — REAL RESUME PARSING FIX IN PROGRESS` — section parser ([#140](https://github.com/devflow-modules/devflow/issues/140)); see [`REAL-RESUME-PARSING.md`](./REAL-RESUME-PARSING.md). PR #139 merged on `main` @ `aba7381`.
+**Operational status:** `P01 READY TO SCHEDULE` — PR [#141](https://github.com/devflow-modules/devflow/pull/141) merged on `main` @ `b9fc3b2` (closes [#140](https://github.com/devflow-modules/devflow/issues/140)); Fixture F validated on `main` Preview (2026-06-23). See [`REAL-RESUME-PARSING.md`](./REAL-RESUME-PARSING.md).

@@ -2,7 +2,7 @@
 
 Quality gate before **P01** closed pilot. Addresses [issue #138](https://github.com/devflow-modules/devflow/issues/138).
 
-**Operational status:** `P01 SCHEDULING PAUSED — REAL RESUME PARSING FIX IN PROGRESS` — section-aware parser in PR for [#140](https://github.com/devflow-modules/devflow/issues/140); P01 scheduling paused until Preview validation. Prior quality fix merged in PR #139 (`main` @ `aba7381`, closes #138).
+**Operational status:** `P01 READY TO SCHEDULE` — PR [#141](https://github.com/devflow-modules/devflow/pull/141) merged on `main` @ `b9fc3b2` (closes [#140](https://github.com/devflow-modules/devflow/issues/140)); post-merge Fixture F smoke passed on `main` Preview (2026-06-23). Prior quality fix merged in PR #139 (`aba7381`, closes #138).
 
 ---
 
