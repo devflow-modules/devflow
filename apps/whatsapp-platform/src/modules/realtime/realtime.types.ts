@@ -60,6 +60,8 @@ export type ConversationAssignedPayload = {
   threadId: string;
   assignedToUserId: string | null;
   assignedToUser?: { id: string; name: string; email: string } | null;
+  /** Presente em eventos novos; ausente em payloads legados. */
+  previousAssigneeId?: string | null;
 };
 
 export type ConversationStatusChangedPayload = {

@@ -1,13 +1,34 @@
 /**
  * Atribuição de conversas (threads) a utilizadores do tenant.
  *
- * Fonte de verdade operacional: `WaInboxThread.assignedToUserId`.
- * Presença auxiliar (`whatsapp_agent_status`): ao atribuir, o interveniente fica `busy`
- * com `currentConversationId` = thread; ao libertar ou transferir, o anterior deixa de
- * apontar para essa thread quando aplicável. Ver `docs/architecture/CONVERSATION_OWNERSHIP_AND_HANDOFF.md`.
+ * Política: claim só se unassigned (CAS); transferência/liberação autorizada;
+ * CLOSED bloqueia mudanças de ownership; no-ops sem side effects.
+ * Ver `docs/architecture/CONVERSATION_OWNERSHIP_AND_HANDOFF.md`.
  */
 
+import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
+import type { UserRole } from "@/modules/auth";
+import { ROLES_OPERATIONAL } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
+
+const CAS_ATTEMPTS = 2;
+
+export type AssignmentActorRole = UserRole | "system";
+
+export type AssignmentResult =
+  | { ok: true; changed: boolean }
+  | {
+      ok: false;
+      reason: "not_found" | "target_not_found" | "forbidden" | "conflict" | "closed";
+    };
+
+function canManageOthersAssignment(role: AssignmentActorRole): boolean {
+  return role === "manager" || role === "platform_admin" || role === "system";
+}
+
+function isOperationalRole(role: string): role is UserRole {
+  return (ROLES_OPERATIONAL as string[]).includes(role);
+}
 
 async function syncAgentBusyOnThread(tenantId: string, userId: string, threadId: string): Promise<void> {
   await prisma.agentStatus.upsert({
@@ -47,72 +68,202 @@ async function releaseAgentCurrentThreadIfMatches(
   });
 }
 
+async function publishAndAuditAssign(params: {
+  tenantId: string;
+  threadId: string;
+  previousAssigneeId: string | null;
+  assignedToUserId: string;
+  assignedToUser: { id: string; name: string; email: string };
+  callerUserId: string;
+}): Promise<void> {
+  const { tenantId, threadId, previousAssigneeId, assignedToUserId, assignedToUser, callerUserId } =
+    params;
+  if (previousAssigneeId && previousAssigneeId !== assignedToUserId) {
+    await releaseAgentCurrentThreadIfMatches(tenantId, previousAssigneeId, threadId);
+  }
+  await syncAgentBusyOnThread(tenantId, assignedToUserId, threadId);
+
+  const { publishInboxEvent, eventConversationAssigned } = await import(
+    "@/modules/realtime/realtime.service"
+  );
+  publishInboxEvent(
+    tenantId,
+    eventConversationAssigned(tenantId, {
+      threadId,
+      assignedToUserId,
+      assignedToUser,
+      previousAssigneeId,
+    })
+  );
+  const { logAction } = await import("./auditService");
+  await logAction(tenantId, threadId, callerUserId, "assign", {
+    previousAssigneeId,
+    assignedToUserId,
+  });
+}
+
+async function publishAndAuditUnassign(params: {
+  tenantId: string;
+  threadId: string;
+  previousAssigneeId: string;
+  callerUserId: string;
+}): Promise<void> {
+  const { tenantId, threadId, previousAssigneeId, callerUserId } = params;
+  await releaseAgentCurrentThreadIfMatches(tenantId, previousAssigneeId, threadId);
+
+  const { publishInboxEvent, eventConversationAssigned } = await import(
+    "@/modules/realtime/realtime.service"
+  );
+  publishInboxEvent(
+    tenantId,
+    eventConversationAssigned(tenantId, {
+      threadId,
+      assignedToUserId: null,
+      assignedToUser: null,
+      previousAssigneeId,
+    })
+  );
+  const { logAction } = await import("./auditService");
+  await logAction(tenantId, threadId, callerUserId, "unassign", {
+    previousAssigneeId,
+    assignedToUserId: null,
+  });
+}
+
+/**
+ * Claim (unassigned → target) ou transferência (owner → target).
+ * `callerRole: "system"` para automações/handoff (não inventar round-robin).
+ */
 export async function assignThread(
   tenantId: string,
   threadId: string,
-  userId: string,
-  callerUserId?: string
-): Promise<boolean> {
-  const user = await prisma.user.findFirst({
-    where: { id: userId, tenantId },
-    select: { id: true, name: true, email: true },
+  targetUserId: string,
+  callerUserId: string,
+  callerRole: AssignmentActorRole
+): Promise<AssignmentResult> {
+  const target = await prisma.user.findFirst({
+    where: { id: targetUserId, tenantId },
+    select: { id: true, name: true, email: true, role: true },
   });
-  if (!user) return false;
-
-  const before = await prisma.waInboxThread.findFirst({
-    where: { id: threadId, tenantId },
-    select: { assignedToUserId: true },
-  });
-  if (!before) return false;
-
-  const previousAssigneeId = before.assignedToUserId;
-
-  const updated = await prisma.waInboxThread.updateMany({
-    where: { id: threadId, tenantId },
-    data: { assignedToUserId: userId },
-  });
-  if (updated.count === 0) return false;
-
-  if (previousAssigneeId && previousAssigneeId !== userId) {
-    await releaseAgentCurrentThreadIfMatches(tenantId, previousAssigneeId, threadId);
+  if (!target || !isOperationalRole(target.role)) {
+    return { ok: false, reason: "target_not_found" };
   }
-  await syncAgentBusyOnThread(tenantId, userId, threadId);
 
-  const { publishInboxEvent, eventConversationAssigned } = await import("@/modules/realtime/realtime.service");
-  publishInboxEvent(tenantId, eventConversationAssigned(tenantId, { threadId, assignedToUserId: userId, assignedToUser: user }));
-  const { logAction } = await import("./auditService");
-  await logAction(tenantId, threadId, callerUserId ?? userId, "assign", { assignedToUserId: userId });
-  return true;
+  for (let attempt = 0; attempt < CAS_ATTEMPTS; attempt++) {
+    const thread = await prisma.waInboxThread.findFirst({
+      where: { id: threadId, tenantId },
+      select: { assignedToUserId: true, status: true },
+    });
+    if (!thread) return { ok: false, reason: "not_found" };
+    if (thread.status === WaInboxThreadStatus.CLOSED) {
+      return { ok: false, reason: "closed" };
+    }
+
+    const previousAssigneeId = thread.assignedToUserId;
+    if (previousAssigneeId === targetUserId) {
+      return { ok: true, changed: false };
+    }
+
+    if (previousAssigneeId !== null) {
+      const isOwner = callerUserId === previousAssigneeId;
+      const canTransfer = isOwner || canManageOthersAssignment(callerRole);
+      if (!canTransfer) {
+        // Claim sobre conversa alheia → conflito; transferir alheia → proibido
+        return {
+          ok: false,
+          reason: targetUserId === callerUserId ? "conflict" : "forbidden",
+        };
+      }
+    }
+
+    const updated = await prisma.waInboxThread.updateMany({
+      where: {
+        id: threadId,
+        tenantId,
+        assignedToUserId: previousAssigneeId,
+        status: { not: WaInboxThreadStatus.CLOSED },
+      },
+      data: { assignedToUserId: targetUserId },
+    });
+
+    if (updated.count > 0) {
+      await publishAndAuditAssign({
+        tenantId,
+        threadId,
+        previousAssigneeId,
+        assignedToUserId: targetUserId,
+        assignedToUser: { id: target.id, name: target.name, email: target.email },
+        callerUserId,
+      });
+      return { ok: true, changed: true };
+    }
+  }
+
+  const final = await prisma.waInboxThread.findFirst({
+    where: { id: threadId, tenantId },
+    select: { assignedToUserId: true, status: true },
+  });
+  if (!final) return { ok: false, reason: "not_found" };
+  if (final.status === WaInboxThreadStatus.CLOSED) return { ok: false, reason: "closed" };
+  if (final.assignedToUserId === targetUserId) return { ok: true, changed: false };
+  return { ok: false, reason: "conflict" };
 }
 
 export async function unassignThread(
   tenantId: string,
   threadId: string,
-  callerUserId?: string
-): Promise<boolean> {
-  const before = await prisma.waInboxThread.findFirst({
-    where: { id: threadId, tenantId },
-    select: { assignedToUserId: true },
-  });
-  if (!before) return false;
+  callerUserId: string,
+  callerRole: AssignmentActorRole
+): Promise<AssignmentResult> {
+  for (let attempt = 0; attempt < CAS_ATTEMPTS; attempt++) {
+    const thread = await prisma.waInboxThread.findFirst({
+      where: { id: threadId, tenantId },
+      select: { assignedToUserId: true, status: true },
+    });
+    if (!thread) return { ok: false, reason: "not_found" };
+    if (thread.status === WaInboxThreadStatus.CLOSED) {
+      return { ok: false, reason: "closed" };
+    }
 
-  const previousAssigneeId = before.assignedToUserId;
+    const previousAssigneeId = thread.assignedToUserId;
+    if (previousAssigneeId === null) {
+      return { ok: true, changed: false };
+    }
 
-  const updated = await prisma.waInboxThread.updateMany({
-    where: { id: threadId, tenantId },
-    data: { assignedToUserId: null },
-  });
-  if (updated.count === 0) return false;
+    const isOwner = callerUserId === previousAssigneeId;
+    if (!isOwner && !canManageOthersAssignment(callerRole)) {
+      return { ok: false, reason: "forbidden" };
+    }
 
-  if (previousAssigneeId) {
-    await releaseAgentCurrentThreadIfMatches(tenantId, previousAssigneeId, threadId);
+    const updated = await prisma.waInboxThread.updateMany({
+      where: {
+        id: threadId,
+        tenantId,
+        assignedToUserId: previousAssigneeId,
+        status: { not: WaInboxThreadStatus.CLOSED },
+      },
+      data: { assignedToUserId: null },
+    });
+
+    if (updated.count > 0) {
+      await publishAndAuditUnassign({
+        tenantId,
+        threadId,
+        previousAssigneeId,
+        callerUserId,
+      });
+      return { ok: true, changed: true };
+    }
   }
 
-  const { publishInboxEvent, eventConversationAssigned } = await import("@/modules/realtime/realtime.service");
-  publishInboxEvent(tenantId, eventConversationAssigned(tenantId, { threadId, assignedToUserId: null, assignedToUser: null }));
-  const { logAction } = await import("./auditService");
-  await logAction(tenantId, threadId, callerUserId ?? "system", "unassign", {});
-  return true;
+  const final = await prisma.waInboxThread.findFirst({
+    where: { id: threadId, tenantId },
+    select: { assignedToUserId: true, status: true },
+  });
+  if (!final) return { ok: false, reason: "not_found" };
+  if (final.status === WaInboxThreadStatus.CLOSED) return { ok: false, reason: "closed" };
+  if (final.assignedToUserId === null) return { ok: true, changed: false };
+  return { ok: false, reason: "conflict" };
 }
 
 export async function getAssignedThreads(tenantId: string, userId: string) {
@@ -122,10 +273,11 @@ export async function getAssignedThreads(tenantId: string, userId: string) {
   });
 }
 
+/** Utilizadores operacionais do tenant (candidatos a responsável). */
 export async function listUsersByTenant(tenantId: string) {
   return prisma.user.findMany({
-    where: { tenantId },
-    select: { id: true, name: true, email: true },
+    where: { tenantId, role: { in: [...ROLES_OPERATIONAL] } },
+    select: { id: true, name: true, email: true, role: true },
     orderBy: { name: "asc" },
   });
 }

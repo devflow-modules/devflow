@@ -39,23 +39,35 @@ export async function POST(
     auth!.payload.tenantId,
     threadId,
     parsed.data.userId,
-    auth!.payload.sub
+    auth!.payload.sub,
+    auth!.payload.role
   );
-  if (!assigned) {
-    return NextResponse.json({ error: "Não foi possível atribuir" }, { status: 400 });
+  if (!assigned.ok) {
+    const status =
+      assigned.reason === "forbidden"
+        ? 403
+        : assigned.reason === "conflict" || assigned.reason === "closed"
+          ? 409
+          : assigned.reason === "target_not_found" || assigned.reason === "not_found"
+            ? 404
+            : 400;
+    return NextResponse.json({ error: "Não foi possível atribuir", reason: assigned.reason }, { status });
   }
 
-  recordPlatformAudit({
-    action: "admin.conversation.assign",
-    tenantId: auth!.payload.tenantId,
-    userId: auth!.payload.sub,
-    resourceType: "wa_inbox_thread",
-    resourceId: threadId,
-    metadata: {
-      assignedUserId: parsed.data.userId,
-      ip: getClientIp(request),
-    },
-  });
+  // No-op idempotente (já atribuído ao destino): sem audit de plataforma.
+  if (assigned.changed) {
+    recordPlatformAudit({
+      action: "admin.conversation.assign",
+      tenantId: auth!.payload.tenantId,
+      userId: auth!.payload.sub,
+      resourceType: "wa_inbox_thread",
+      resourceId: threadId,
+      metadata: {
+        assignedUserId: parsed.data.userId,
+        ip: getClientIp(request),
+      },
+    });
+  }
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, changed: assigned.changed });
 }

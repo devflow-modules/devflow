@@ -67,6 +67,7 @@ export function ChatHeader({
   const [tagOpen, setTagOpen] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
+  const [assignError, setAssignError] = useState<string | null>(null);
   const [queueUpgradeBlock, setQueueUpgradeBlock] = useState<FeatureNotAvailablePayload | null>(null);
   const assignRef = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLDivElement>(null);
@@ -138,12 +139,18 @@ export function ChatHeader({
   if (!threadId || !thread) return null;
 
   const handleAssign = async (userId: string | null) => {
+    setAssignError(null);
     try {
       setActionBusy(true);
       await assignConversation(threadId, userId);
       invalidate();
     } catch (err) {
       console.error(err);
+      setAssignError(
+        err instanceof Error && err.message.trim()
+          ? err.message
+          : "Não foi possível atualizar o responsável. Tente novamente."
+      );
     } finally {
       setActionBusy(false);
     }
@@ -216,10 +223,17 @@ export function ChatHeader({
       ? formatWaitDurationMs(thread.responseDelayMs)
       : null;
 
-  const canAssume = !thread.isAssignedToMe && thread.status !== "CLOSED";
-  const canRelease = Boolean(thread.isAssignedToMe && thread.status !== "CLOSED");
-  const canClose = thread.status !== "CLOSED";
-  const canReopen = thread.status === "CLOSED";
+  const isClosed = thread.status === "CLOSED";
+  const isUnassigned = thread.isUnassigned ?? thread.assignedToUser == null;
+  const canManageOthers = sessionRole === "manager" || sessionRole === "platform_admin";
+  /** Claim só sem responsável. */
+  const canAssume = Boolean(isUnassigned && !isClosed);
+  /** Owner ou manager+ podem liberar. */
+  const canRelease = Boolean(!isClosed && (thread.isAssignedToMe || canManageOthers) && !isUnassigned);
+  /** Unassigned (atribuir) ou owner/manager+ (transferir). */
+  const canChangeAssignee = Boolean(!isClosed && (isUnassigned || thread.isAssignedToMe || canManageOthers));
+  const canClose = !isClosed;
+  const canReopen = isClosed;
 
   const assigneeCopy = thread.assignedToUser
     ? inboxAssigneeCopy({
@@ -439,26 +453,56 @@ export function ChatHeader({
             </p>
           ) : null}
         <div className="relative" ref={assignRef}>
-          <Button variant="secondary"
-            type="button"
-            onClick={() => setAssignOpen((o) => !o)}
-            className={`${toolbarBtn} max-w-full min-w-0 justify-start df-text-secondary`}
-          >
-            {thread.assignedToUser ? thread.assignedToUser.name : "Responsável…"}
-          </Button>
-          {assignOpen && (
+          {canChangeAssignee ? (
+            <Button
+              variant="secondary"
+              type="button"
+              disabled={actionBusy}
+              onClick={() => setAssignOpen((o) => !o)}
+              className={`${toolbarBtn} max-w-full min-w-0 justify-start df-text-secondary`}
+              data-testid="header-assignee-menu"
+            >
+              {thread.assignedToUser ? thread.assignedToUser.name : "Responsável…"}
+            </Button>
+          ) : (
+            <span
+              className={`${toolbarBtn} max-w-full min-w-0 justify-start df-text-secondary pointer-events-none`}
+              data-testid="header-assignee-readonly"
+            >
+              {thread.assignedToUser ? thread.assignedToUser.name : "Sem responsável"}
+            </span>
+          )}
+          {assignOpen && canChangeAssignee && (
             <div className="df-inbox-dropdown w-52 max-w-[min(100vw-2rem,13rem)]">
-              <Button variant="secondary" type="button" className="df-inbox-dropdown-item" onClick={() => handleAssign("me")}>
-                Eu como responsável
-              </Button>
-              <Button variant="secondary" type="button" className="df-inbox-dropdown-item" onClick={() => handleAssign(null)}>
-                Remover responsável
-              </Button>
+              {canAssume || thread.isAssignedToMe || canManageOthers ? (
+                <Button
+                  variant="secondary"
+                  type="button"
+                  className="df-inbox-dropdown-item"
+                  data-testid="header-assign-me"
+                  onClick={() => handleAssign("me")}
+                >
+                  Eu como responsável
+                </Button>
+              ) : null}
+              {canRelease ? (
+                <Button
+                  variant="secondary"
+                  type="button"
+                  className="df-inbox-dropdown-item"
+                  data-testid="header-unassign"
+                  onClick={() => handleAssign(null)}
+                >
+                  Remover responsável
+                </Button>
+              ) : null}
               {usersFetched.map((u: { id: string; name: string }) => (
-                <Button variant="secondary"
+                <Button
+                  variant="secondary"
                   key={u.id}
                   type="button"
                   className="df-inbox-dropdown-item"
+                  data-testid={`header-assign-user-${u.id}`}
                   onClick={() => handleAssign(u.id)}
                 >
                   {u.name}
@@ -467,6 +511,15 @@ export function ChatHeader({
             </div>
           )}
         </div>
+        {assignError ? (
+          <p
+            className="basis-full text-xs font-medium text-red-700"
+            role="alert"
+            data-testid="header-assign-error"
+          >
+            {assignError}
+          </p>
+        ) : null}
 
         <div className="relative" ref={statusRef}>
           <Button variant="secondary"

@@ -39,6 +39,8 @@ export {
   unassignThread,
   getAssignedThreads,
   listUsersByTenant,
+  type AssignmentResult,
+  type AssignmentActorRole,
 } from "./threadAssignmentService";
 export {
   updateThreadStatus,

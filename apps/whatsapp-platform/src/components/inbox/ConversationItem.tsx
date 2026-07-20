@@ -79,7 +79,8 @@ export const ConversationItem = memo(function ConversationItem({
     !isCritical &&
     (thread.slaLevel === "high" || responseAlert === "warning");
   const showActions = Boolean(onAssume || onClose);
-  const canAssume = Boolean(onAssume && !thread.isAssignedToMe && thread.status !== "CLOSED");
+  const isUnassigned = thread.isUnassigned ?? thread.assignedToUser == null;
+  const canAssume = Boolean(onAssume && thread.status !== "CLOSED" && isUnassigned);
   const canClose = Boolean(onClose && thread.status !== "CLOSED");
   /** Sem responsável humano: pendência inbound e ninguém atribuído. */
   const showSemDono = Boolean(

@@ -6,8 +6,8 @@ import { INBOX_QK } from "./inboxTypes";
 import { StateEmpty, StateError, StateLoading } from "@/components/ui/app-states";
 
 const ACTION_LABELS: Record<string, string> = {
-  assign: "atribuiu para",
-  unassign: "desatribuiu",
+  assign: "alterou responsável",
+  unassign: "alterou responsável",
   status_change: "mudou status para",
   tag_add: "adicionou tag",
   tag_remove: "removeu tag",
@@ -85,6 +85,11 @@ export function ChatAuditTab({ threadId }: { threadId: string | null }) {
         {logs.map((log) => {
           const label = ACTION_LABELS[log.action] ?? log.action;
           const userName = log.user?.name ?? log.userId;
+          const assigneeLabel = (id: string | null | undefined) => {
+            if (id == null || id === "") return "Sem responsável";
+            const u = logs?.find((l) => l.userId === id)?.user;
+            return u?.name ?? id;
+          };
           const extra =
             log.action === "status_change" && log.metadata && typeof log.metadata === "object" && "status" in log.metadata
               ? (() => {
@@ -93,6 +98,29 @@ export function ChatAuditTab({ threadId }: { threadId: string | null }) {
                     ? ` ${meta.previousStatus} → ${meta.status}`
                     : ` ${meta.status}`;
                 })()
+              : (log.action === "assign" || log.action === "unassign") &&
+                  log.metadata &&
+                  typeof log.metadata === "object"
+                ? (() => {
+                    const meta = log.metadata as {
+                      previousAssigneeId?: string | null;
+                      assignedToUserId?: string | null;
+                    };
+                    if ("previousAssigneeId" in meta || "assignedToUserId" in meta) {
+                      const from = assigneeLabel(
+                        "previousAssigneeId" in meta ? meta.previousAssigneeId ?? null : undefined
+                      );
+                      const to = assigneeLabel(
+                        log.action === "unassign" ? null : (meta.assignedToUserId ?? null)
+                      );
+                      if ("previousAssigneeId" in meta) {
+                        return ` ${from} → ${to}`;
+                      }
+                      // Legado: só assignedToUserId
+                      return meta.assignedToUserId ? ` ${assigneeLabel(meta.assignedToUserId)}` : "";
+                    }
+                    return "";
+                  })()
               : log.action === "tag_add" && log.metadata && typeof log.metadata === "object" && "tagName" in log.metadata
                 ? ` «${String((log.metadata as { tagName: string }).tagName)}»`
                 : log.action === "tag_remove" && log.metadata && typeof log.metadata === "object" && "tagName" in log.metadata

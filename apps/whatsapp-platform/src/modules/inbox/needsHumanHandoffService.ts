@@ -150,8 +150,14 @@ export async function applyNeedsHumanHandoff(
   if (!assignedToUserId) {
     const defaultUserId = await resolveDefaultHandoffAssigneeId(tenantId);
     if (defaultUserId) {
-      const ok = await assignThread(tenantId, threadId, defaultUserId, HANDOFF_ACTOR);
-      if (ok) assignedToUserId = defaultUserId;
+      const assignResult = await assignThread(
+        tenantId,
+        threadId,
+        defaultUserId,
+        HANDOFF_ACTOR,
+        "system"
+      );
+      if (assignResult.ok) assignedToUserId = defaultUserId;
     }
   }
 
