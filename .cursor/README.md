@@ -18,7 +18,9 @@ Automações Cursor em modo revisão: [`docs/operations/CURSOR_AUTOMATIONS.md`](
 
 ---
 
-## 2. Hierarquia e precedência
+## 2. Camadas operacionais e precedência
+
+### Ordem de descoberta e uso
 
 ```text
 AGENTS.md
@@ -31,7 +33,9 @@ AGENTS.md
 → CI (GitHub Actions / scripts)
 ```
 
-**Precedência (do mais forte ao mais fraco):**
+Essa sequência descreve **como navegar** pela plataforma operacional, **não** a precedência em caso de conflito.
+
+### Precedência em conflito (do mais forte ao mais fraco)
 
 1. Código e contratos reais (tipos, testes, schema, handlers)
 2. Documentação canônica do domínio
@@ -43,6 +47,8 @@ AGENTS.md
 8. Command
 
 Um **command não pode** sobrescrever rule, contrato real ou decisão de produto documentada. Em conflito: parar e pedir decisão humana.
+
+O **CI** não redefine o contrato do domínio, mas constitui **enforcement obrigatório**: um gate falhando bloqueia a entrega até correção ou decisão humana explícita conforme a governança do repositório.
 
 ---
 
