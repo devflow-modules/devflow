@@ -200,6 +200,12 @@ export async function waInboxCreateInbound(
         console.error("[wa-inbox] automation dispatch conversation_created", e)
       );
     }
+    // Reabre CLOSED/PENDING → OPEN via transição canónica (idempotente se já OPEN).
+    // Erros secundários não devem invalidar a persistência inbound já concluída.
+    const { autoUpdateStatusOnNewMessage } = await import("./threadStatusService");
+    await autoUpdateStatusOnNewMessage(tenantId, thread.id, "INBOUND").catch((e) =>
+      console.error("[wa-inbox] status update after inbound", e)
+    );
     return { threadId: thread.id, messageId: row.id, wasNewConversation };
   }
   return null;
