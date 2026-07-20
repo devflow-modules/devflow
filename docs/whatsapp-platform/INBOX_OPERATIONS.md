@@ -36,6 +36,13 @@ Contrato: **400** / **401** / **403** / **404** (thread ou destino) / **409** (c
 
 **Serviço:** `threadAssignmentService.ts` — `assignThread`, `unassignThread`, `getAssignedThreads`, `listUsersByTenant` (resultado discriminado `AssignmentResult`).
 
+### Fila `GET /api/inbox/queue/next`
+
+- Com `assign=true` (default): encontra unassigned e faz **claim CAS**; a thread só é devolvida se o assign tiver sucesso.
+- Se outro operador vencer o CAS → **409** (`queue_next_assign_conflict`), sem `thread` no body — o cliente deve tentar de novo.
+- `closed` / outras falhas de assign também **não** devolvem a thread (409/403/404 conforme o motivo).
+- `assign=false`: peek sem claim (sem ownership).
+
 ## Status
 
 - **OPEN** — em atendimento / aguardando resposta do agente.

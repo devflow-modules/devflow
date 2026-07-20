@@ -117,7 +117,7 @@ Não usar exceções para resultados operacionais esperados.
 | Listagem de “agentes” para UI | `src/modules/inbox/operationsAgentsService.ts` |
 | API produto (inbox) | `POST /api/inbox/conversations/[id]/assign` — `{ userId }`, `{ unassign: true }`, ou omitir `userId` / `"me"` para assumir |
 | API staff (admin) | `POST /api/admin/conversations/[id]/assign` — mesmo serviço |
-| Próxima da fila + atribuir | `GET /api/inbox/queue/next` — `assignThread` com role do JWT |
+| Próxima da fila + atribuir | `GET /api/inbox/queue/next` — `assignThread` com role do JWT; com `assign=true`, só devolve thread se o claim CAS tiver sucesso; conflito → **409** sem thread |
 | Presença manual | `GET/PATCH /api/admin/agent-status` |
 
 ---

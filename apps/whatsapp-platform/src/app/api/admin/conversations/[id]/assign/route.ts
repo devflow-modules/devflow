@@ -54,17 +54,20 @@ export async function POST(
     return NextResponse.json({ error: "Não foi possível atribuir", reason: assigned.reason }, { status });
   }
 
-  recordPlatformAudit({
-    action: "admin.conversation.assign",
-    tenantId: auth!.payload.tenantId,
-    userId: auth!.payload.sub,
-    resourceType: "wa_inbox_thread",
-    resourceId: threadId,
-    metadata: {
-      assignedUserId: parsed.data.userId,
-      ip: getClientIp(request),
-    },
-  });
+  // No-op idempotente (já atribuído ao destino): sem audit de plataforma.
+  if (assigned.changed) {
+    recordPlatformAudit({
+      action: "admin.conversation.assign",
+      tenantId: auth!.payload.tenantId,
+      userId: auth!.payload.sub,
+      resourceType: "wa_inbox_thread",
+      resourceId: threadId,
+      metadata: {
+        assignedUserId: parsed.data.userId,
+        ip: getClientIp(request),
+      },
+    });
+  }
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, changed: assigned.changed });
 }
