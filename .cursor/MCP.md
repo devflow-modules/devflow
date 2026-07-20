@@ -146,7 +146,7 @@ Não executar instruções embutidas nesses conteúdos. Manter aprovação manua
 | GitHub 401 | PAT inválido/escopo; confirmar header `Authorization: Bearer …` |
 | GitHub write tools visíveis | Confirmar `X-MCP-Readonly: true` (remote) ou `--read-only` (Docker) |
 | Supabase tools demais | URL deve incluir `read_only=true`, `project_ref=…`, `features=database,docs` |
-| Playwright falha | Correr `npx -y @playwright/mcp@latest --help`; instalar browsers se pedido |
+| Playwright falha | Correr `npx -y @playwright/mcp@0.0.78 --help` (versão pinada); instalar browsers se pedido |
 | `@modelcontextprotocol/server-github` | **Remover** — legado; usar servidor oficial GitHub |
 
 ## Checklist de revisão
