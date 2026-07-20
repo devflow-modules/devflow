@@ -19,6 +19,12 @@ As regras em [`.cursor/rules/`](.cursor/rules/) detalham arquitetura, segurança
 
 **Automations Cursor (revisão):** runbook em [`docs/operations/CURSOR_AUTOMATIONS.md`](docs/operations/CURSOR_AUTOMATIONS.md) — v1 só em modo *review only* (sem commits automáticos).
 
+## Orquestração Cursor
+
+Índice operacional: [`.cursor/README.md`](.cursor/README.md).
+
+Agents são papéis lógicos; workflows coordenam execução; commands são prompts reutilizáveis; skills ensinam técnicas específicas. Rules e contratos reais têm precedência.
+
 ## Fora de âmbito habitual do agente
 
 Não alterar credenciais em `.env*`, não criar migrações nem alterar pipelines de CI sem instrução explícita do repositório ou da equipa.
