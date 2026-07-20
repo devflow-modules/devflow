@@ -224,7 +224,7 @@ export function ChatHeader({
       : null;
 
   const isClosed = thread.status === "CLOSED";
-  const isUnassigned = !thread.assignedToUserId && !thread.assignedToUser;
+  const isUnassigned = thread.isUnassigned ?? thread.assignedToUser == null;
   const canManageOthers = sessionRole === "manager" || sessionRole === "platform_admin";
   /** Claim só sem responsável. */
   const canAssume = Boolean(isUnassigned && !isClosed);

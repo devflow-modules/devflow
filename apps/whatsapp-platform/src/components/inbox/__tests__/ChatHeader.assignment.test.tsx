@@ -5,11 +5,19 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ChatHeader } from "../ChatHeader";
 import type { WaInboxThreadRow } from "../inboxTypes";
+import type { UserRole } from "@/modules/auth";
 
 const mockAssignConversation = vi.fn();
 const mockInvalidateQueries = vi.fn();
-const mockSessionRole = vi.fn(() => ({
-  role: "operator" as const,
+
+type SessionRoleMockValue = {
+  role: UserRole;
+  tenantId: string;
+  loading: boolean;
+};
+
+const mockSessionRole = vi.fn<() => SessionRoleMockValue>(() => ({
+  role: "operator",
   tenantId: "t1",
   loading: false,
 }));
@@ -85,10 +93,9 @@ describe("ChatHeader assignment policy", () => {
   it("mostra Assumir só sem responsável", async () => {
     renderHeader(
       baseThread({
-        assignedToUserId: undefined,
         assignedToUser: null,
-        isAssignedToMe: false,
         isUnassigned: true,
+        isAssignedToMe: false,
       })
     );
     expect(await screen.findByTestId("header-assume")).toBeInTheDocument();
@@ -96,10 +103,9 @@ describe("ChatHeader assignment policy", () => {
     cleanup();
     renderHeader(
       baseThread({
-        assignedToUserId: "u2",
         assignedToUser: { id: "u2", name: "Bruno", email: "b@x.com" },
-        isAssignedToMe: false,
         isUnassigned: false,
+        isAssignedToMe: false,
       })
     );
     await waitFor(() => {
@@ -111,10 +117,9 @@ describe("ChatHeader assignment policy", () => {
   it("owner vê Liberar; operador terceiro não", async () => {
     renderHeader(
       baseThread({
-        assignedToUserId: "u1",
         assignedToUser: { id: "u1", name: "Ana", email: "a@x.com" },
-        isAssignedToMe: true,
         isUnassigned: false,
+        isAssignedToMe: true,
       })
     );
     expect(await screen.findByTestId("header-release")).toBeInTheDocument();
@@ -122,10 +127,9 @@ describe("ChatHeader assignment policy", () => {
     cleanup();
     renderHeader(
       baseThread({
-        assignedToUserId: "u2",
         assignedToUser: { id: "u2", name: "Bruno", email: "b@x.com" },
-        isAssignedToMe: false,
         isUnassigned: false,
+        isAssignedToMe: false,
       })
     );
     await waitFor(() => {
@@ -137,10 +141,9 @@ describe("ChatHeader assignment policy", () => {
     mockSessionRole.mockReturnValue({ role: "manager", tenantId: "t1", loading: false });
     renderHeader(
       baseThread({
-        assignedToUserId: "u2",
         assignedToUser: { id: "u2", name: "Bruno", email: "b@x.com" },
-        isAssignedToMe: false,
         isUnassigned: false,
+        isAssignedToMe: false,
       })
     );
     expect(await screen.findByTestId("header-assignee-menu")).toBeInTheDocument();
@@ -152,10 +155,9 @@ describe("ChatHeader assignment policy", () => {
       baseThread({
         status: "CLOSED",
         conversationState: "closed",
-        assignedToUserId: "u1",
         assignedToUser: { id: "u1", name: "Ana", email: "a@x.com" },
-        isAssignedToMe: true,
         isUnassigned: false,
+        isAssignedToMe: true,
       })
     );
     await waitFor(() => {
@@ -174,8 +176,8 @@ describe("ChatHeader assignment policy", () => {
 
     renderHeader(
       baseThread({
-        isUnassigned: true,
         assignedToUser: null,
+        isUnassigned: true,
         isAssignedToMe: false,
       })
     );
