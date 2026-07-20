@@ -29,12 +29,14 @@ Estados derivados: `src/modules/inbox/waInboxConversationState.ts` e filtros em 
 ## Transições principais
 
 1. **Inbound** → cria/atualiza thread; pode incrementar `unansweredInboundCount`.
-2. **Outbound** (humano/IA/automação) → reduz pendência; atualiza preview e eventual `leadScore`.
-3. **Assumir** → `assignThread` preenche `assignedToUserId` (IA automática pode ser suprimida se política exigir humano).
-4. **Liberar** → `assignedToUserId = null`.
-5. **Fechar / Reabrir** → `status` OPEN/PENDING/CLOSED`.
+2. **`CLOSED` + inbound → `OPEN`** — reabertura automática via `updateThreadStatus` (métrica, audit com `previousStatus`/`status`, realtime, automação). Se a thread já está `OPEN`, a transição é no-op (sem side effects).
+3. **Outbound** (humano/IA/automação) → reduz pendência; atualiza preview e eventual `leadScore`.
+4. **Assumir** → `assignThread` preenche `assignedToUserId` (IA automática pode ser suprimida se política exigir humano).
+5. **Liberar** → `assignedToUserId = null`.
+6. **Fechar / Reabrir (manual)** → `POST /api/inbox/conversations/:id/status` com `OPEN` | `PENDING` | `CLOSED`. Transição para o status já corrente é idempotente.
 
 ## Consistência
 
 - Ordenação da lista: ver `waInboxListThreads` (bucket por estado + SLA).
 - Não existe estado fantasma persistido como “IA owner”: a UX traduz `lastResponderType` + `conversationState`.
+- Enquanto `status = CLOSED`, `conversationState` derivado permanece `closed`; por isso o inbound deve reabrir para a conversa voltar aos filtros operacionais.

@@ -35,7 +35,11 @@ A inbox permite operação em nível de equipe: atribuição de conversas, statu
 **API:** `POST /api/inbox/conversations/:id/status`  
 Body: `{ status: "OPEN" | "PENDING" | "CLOSED" }`.
 
-**Regra automática:** nova mensagem **inbound** reabre a thread (status → OPEN).
+**Regra automática:** `CLOSED` + nova mensagem **inbound** válida → `OPEN` (reabertura automática). O mesmo aplica-se a `PENDING` + inbound → `OPEN`. Implementação: `autoUpdateStatusOnNewMessage` → `updateThreadStatus` após persistir o inbound.
+
+**Idempotência:** selecionar o status já atual (ex.: `OPEN` → `OPEN`, `CLOSED` → `CLOSED`) é no-op — não gera nova métrica, audit log, evento realtime nem automação `STATUS_CHANGED`. A persistência usa compare-and-set (`updateMany` com `status` esperado); em corrida, há retry limitado e a API pode responder `409` se o estado continuar divergente.
+
+**Auditoria:** mudanças reais registam `status_change` com metadata `{ previousStatus, status }`. Logs antigos podem ter apenas `{ status }`.
 
 ## Tags
 

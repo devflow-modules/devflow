@@ -34,13 +34,19 @@ export async function POST(
     return NextResponse.json({ error: "status inválido (OPEN, PENDING, CLOSED)" }, { status: 400 });
   }
 
-  const ok = await updateThreadStatus(
+  const result = await updateThreadStatus(
     auth.payload.tenantId,
     threadId,
     parsed.data.status,
     auth.payload.sub
   );
-  if (!ok) {
+  if (!result.ok) {
+    if (result.reason === "conflict") {
+      return NextResponse.json(
+        { error: "Conflito: o estado da conversa foi alterado. Atualize e tente novamente." },
+        { status: 409 }
+      );
+    }
     return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 });
   }
   return NextResponse.json({ success: true, data: { status: parsed.data.status } });

@@ -87,7 +87,12 @@ export function ChatAuditTab({ threadId }: { threadId: string | null }) {
           const userName = log.user?.name ?? log.userId;
           const extra =
             log.action === "status_change" && log.metadata && typeof log.metadata === "object" && "status" in log.metadata
-              ? ` ${String((log.metadata as { status: string }).status)}`
+              ? (() => {
+                  const meta = log.metadata as { status: string; previousStatus?: string };
+                  return meta.previousStatus
+                    ? ` ${meta.previousStatus} → ${meta.status}`
+                    : ` ${meta.status}`;
+                })()
               : log.action === "tag_add" && log.metadata && typeof log.metadata === "object" && "tagName" in log.metadata
                 ? ` «${String((log.metadata as { tagName: string }).tagName)}»`
                 : log.action === "tag_remove" && log.metadata && typeof log.metadata === "object" && "tagName" in log.metadata

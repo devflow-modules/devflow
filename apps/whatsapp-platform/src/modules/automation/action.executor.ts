@@ -104,12 +104,12 @@ export async function executeAction(
         if (!status || !["OPEN", "PENDING", "CLOSED"].includes(status)) {
           return { ok: false, error: "invalid_status" };
         }
-        const ok = await updateThreadStatus(
+        const result = await updateThreadStatus(
           context.tenantId,
           context.threadId,
           status as WaInboxThreadStatus
         );
-        return { ok };
+        return { ok: result.ok, ...(result.ok ? {} : { error: result.reason }) };
       }
 
       case "addTag": {

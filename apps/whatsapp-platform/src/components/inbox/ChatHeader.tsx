@@ -66,6 +66,7 @@ export function ChatHeader({
   const [statusOpen, setStatusOpen] = useState(false);
   const [tagOpen, setTagOpen] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const [queueUpgradeBlock, setQueueUpgradeBlock] = useState<FeatureNotAvailablePayload | null>(null);
   const assignRef = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLDivElement>(null);
@@ -150,12 +151,18 @@ export function ChatHeader({
   };
 
   const handleStatus = async (status: "OPEN" | "PENDING" | "CLOSED") => {
+    setStatusError(null);
     try {
       setActionBusy(true);
       await updateConversationStatus(threadId, status);
       invalidate();
     } catch (err) {
       console.error(err);
+      setStatusError(
+        err instanceof Error && err.message.trim()
+          ? err.message
+          : "Não foi possível atualizar o estado da conversa. Tente novamente."
+      );
     } finally {
       setActionBusy(false);
     }
@@ -375,7 +382,8 @@ export function ChatHeader({
             data-testid="chat-header-actions"
           >
           {canAssume ? (
-            <Button variant="disabled"
+            <Button
+              variant="primary"
               type="button"
               disabled={actionBusy}
               className={`${buttonClassName("primary")} ${primaryCompact} ${state === "awaiting_agent" ? "ring-2 ring-red-200/80" : ""}`}
@@ -386,7 +394,8 @@ export function ChatHeader({
             </Button>
           ) : null}
           {canRelease ? (
-            <Button variant="disabled"
+            <Button
+              variant="secondary"
               type="button"
               disabled={actionBusy}
               className={`${buttonClassName("secondary")} ${primaryCompact}`}
@@ -397,7 +406,8 @@ export function ChatHeader({
             </Button>
           ) : null}
           {canClose ? (
-            <Button variant="disabled"
+            <Button
+              variant="secondary"
               type="button"
               disabled={actionBusy}
               className={`${buttonClassName("secondary")} ${primaryCompact}`}
@@ -408,7 +418,8 @@ export function ChatHeader({
             </Button>
           ) : null}
           {canReopen ? (
-            <Button variant="disabled"
+            <Button
+              variant="secondary"
               type="button"
               disabled={actionBusy}
               className={`${buttonClassName("secondary")} ${primaryCompact}`}
@@ -417,6 +428,15 @@ export function ChatHeader({
             >
               Reabrir
             </Button>
+          ) : null}
+          {statusError ? (
+            <p
+              className="basis-full text-xs font-medium text-red-700"
+              role="alert"
+              data-testid="header-status-error"
+            >
+              {statusError}
+            </p>
           ) : null}
         <div className="relative" ref={assignRef}>
           <Button variant="secondary"

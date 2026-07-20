@@ -107,6 +107,7 @@ describe("realtime publish integration", () => {
   });
 
   it("updateThreadStatus publica conversation.status_changed", async () => {
+    mockPrisma.waInboxThread.findFirst.mockResolvedValue({ status: "OPEN" });
     mockPrisma.waInboxThread.updateMany.mockResolvedValue({ count: 1 });
 
     const { updateThreadStatus } = await import("@/modules/inbox/threadStatusService");
@@ -119,6 +120,16 @@ describe("realtime publish integration", () => {
         payload: { threadId: "thread1", status: "CLOSED" },
       })
     );
+  });
+
+  it("updateThreadStatus não publica em transição idempotente", async () => {
+    mockPrisma.waInboxThread.findFirst.mockResolvedValue({ status: "CLOSED" });
+
+    const { updateThreadStatus } = await import("@/modules/inbox/threadStatusService");
+    await updateThreadStatus("tenant1", "thread1", "CLOSED");
+
+    expect(mockPrisma.waInboxThread.updateMany).not.toHaveBeenCalled();
+    expect(mockPublish).not.toHaveBeenCalled();
   });
 
   it("assignTagToThread publica conversation.tags_changed", async () => {
