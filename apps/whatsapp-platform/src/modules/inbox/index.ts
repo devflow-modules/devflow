@@ -40,7 +40,11 @@ export {
   getAssignedThreads,
   listUsersByTenant,
 } from "./threadAssignmentService";
-export { updateThreadStatus, autoUpdateStatusOnNewMessage } from "./threadStatusService";
+export {
+  updateThreadStatus,
+  autoUpdateStatusOnNewMessage,
+  type UpdateThreadStatusResult,
+} from "./threadStatusService";
 export {
   createTag,
   listTagsByTenant,

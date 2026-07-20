@@ -2,35 +2,27 @@
  * Status da conversa (OPEN, PENDING, CLOSED).
  * Regras: inbound → OPEN; outbound pode manter ou PENDING conforme política.
  * Transições redundantes (mesmo status) são no-op sem side effects.
+ * Atualização usa compare-and-set (status atual esperado) com retry limitado.
  */
 
 import { WaInboxThreadStatus } from "@/generated/prisma-whatsapp";
 import { prisma } from "@/lib/prisma";
 import { bumpMetric } from "@/lib/observability";
 
-export async function updateThreadStatus(
+/** Tentativas de leitura + CAS (inclui o primeiro passe). */
+const STATUS_CAS_ATTEMPTS = 2;
+
+export type UpdateThreadStatusResult =
+  | { ok: true }
+  | { ok: false; reason: "not_found" | "conflict" };
+
+async function applyStatusSideEffects(
   tenantId: string,
   threadId: string,
+  previousStatus: WaInboxThreadStatus,
   status: WaInboxThreadStatus,
   callerUserId?: string
-): Promise<boolean> {
-  const existing = await prisma.waInboxThread.findFirst({
-    where: { id: threadId, tenantId },
-    select: { status: true },
-  });
-  if (!existing) return false;
-
-  const previousStatus = existing.status;
-  if (previousStatus === status) {
-    return true;
-  }
-
-  const updated = await prisma.waInboxThread.updateMany({
-    where: { id: threadId, tenantId },
-    data: { status },
-  });
-  if (updated.count === 0) return false;
-
+): Promise<void> {
   if (status === WaInboxThreadStatus.CLOSED) bumpMetric("threads_closed");
   if (status === WaInboxThreadStatus.OPEN) bumpMetric("threads_opened");
 
@@ -49,8 +41,45 @@ export async function updateThreadStatus(
   dispatchStatusChanged(tenantId, threadId, status).catch((e) =>
     console.error("[thread-status] automation dispatch", e)
   );
+}
 
-  return true;
+export async function updateThreadStatus(
+  tenantId: string,
+  threadId: string,
+  status: WaInboxThreadStatus,
+  callerUserId?: string
+): Promise<UpdateThreadStatusResult> {
+  for (let attempt = 0; attempt < STATUS_CAS_ATTEMPTS; attempt++) {
+    const existing = await prisma.waInboxThread.findFirst({
+      where: { id: threadId, tenantId },
+      select: { status: true },
+    });
+    if (!existing) return { ok: false, reason: "not_found" };
+
+    const previousStatus = existing.status;
+    if (previousStatus === status) {
+      return { ok: true };
+    }
+
+    const updated = await prisma.waInboxThread.updateMany({
+      where: { id: threadId, tenantId, status: previousStatus },
+      data: { status },
+    });
+
+    if (updated.count > 0) {
+      await applyStatusSideEffects(tenantId, threadId, previousStatus, status, callerUserId);
+      return { ok: true };
+    }
+    // count === 0: outro writer alterou o status — reler e tentar de novo
+  }
+
+  const final = await prisma.waInboxThread.findFirst({
+    where: { id: threadId, tenantId },
+    select: { status: true },
+  });
+  if (!final) return { ok: false, reason: "not_found" };
+  if (final.status === status) return { ok: true };
+  return { ok: false, reason: "conflict" };
 }
 
 /**

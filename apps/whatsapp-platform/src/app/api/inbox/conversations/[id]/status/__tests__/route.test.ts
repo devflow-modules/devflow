@@ -15,7 +15,7 @@ describe("POST /api/inbox/conversations/[id]/status", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockAuth.mockResolvedValue({ payload: { tenantId: "t1", sub: "user1" } });
-    mockUpdateThreadStatus.mockResolvedValue(true);
+    mockUpdateThreadStatus.mockResolvedValue({ ok: true });
   });
 
   it("retorna 401 sem autenticação", async () => {
@@ -44,7 +44,7 @@ describe("POST /api/inbox/conversations/[id]/status", () => {
   });
 
   it("retorna 404 quando thread não existe no tenant", async () => {
-    mockUpdateThreadStatus.mockResolvedValue(false);
+    mockUpdateThreadStatus.mockResolvedValue({ ok: false, reason: "not_found" });
     const { POST } = await import("../route");
     const req = new NextRequest("http://localhost/status", {
       method: "POST",
@@ -54,6 +54,20 @@ describe("POST /api/inbox/conversations/[id]/status", () => {
     const res = await POST(req, { params: Promise.resolve({ id: "missing" }) });
     expect(res.status).toBe(404);
     expect(mockUpdateThreadStatus).toHaveBeenCalledWith("t1", "missing", "CLOSED", "user1");
+  });
+
+  it("retorna 409 em conflito concorrente", async () => {
+    mockUpdateThreadStatus.mockResolvedValue({ ok: false, reason: "conflict" });
+    const { POST } = await import("../route");
+    const req = new NextRequest("http://localhost/status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "OPEN" }),
+    });
+    const res = await POST(req, { params: Promise.resolve({ id: "thread1" }) });
+    expect(res.status).toBe(409);
+    const json = await res.json();
+    expect(json.error).toMatch(/conflito/i);
   });
 
   it("retorna 200 em mudança real", async () => {
@@ -71,7 +85,7 @@ describe("POST /api/inbox/conversations/[id]/status", () => {
   });
 
   it("retorna 200 em transição idempotente (contrato: sucesso sem erro)", async () => {
-    mockUpdateThreadStatus.mockResolvedValue(true);
+    mockUpdateThreadStatus.mockResolvedValue({ ok: true });
     const { POST } = await import("../route");
     const req = new NextRequest("http://localhost/status", {
       method: "POST",

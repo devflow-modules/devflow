@@ -126,7 +126,7 @@ describe("waInboxCreateInbound idempotência", () => {
 
     expect(createMsg).toHaveBeenCalledTimes(1);
     expect(updateManyThread).toHaveBeenCalledWith({
-      where: { id: "th1", tenantId: "tenant-a" },
+      where: { id: "th1", tenantId: "tenant-a", status: "CLOSED" },
       data: { status: "OPEN" },
     });
   });
