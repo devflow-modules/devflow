@@ -16,6 +16,8 @@ Não substitui código, contratos reais nem CI. Organiza **papéis**, **fluxos**
 
 Automações Cursor em modo revisão: [`docs/operations/CURSOR_AUTOMATIONS.md`](../docs/operations/CURSOR_AUTOMATIONS.md) — **review-only**; sem commit/merge automático sem autorização explícita.
 
+Política de engenharia assistida por IA: [`docs/operations/AI_ENGINEERING_POLICY.md`](../docs/operations/AI_ENGINEERING_POLICY.md).
+
 ---
 
 ## 2. Camadas operacionais e precedência
@@ -187,6 +189,14 @@ Ver [`docs/operations/CURSOR_AUTOMATIONS.md`](../docs/operations/CURSOR_AUTOMATI
 
 - Automações v1 **não** devem editar, commitar, abrir branch ou mergear sem autorização explícita.
 - Agents/workflows/commands aqui são **orientação versionada**, não substitutos de Automations configuradas no produto Cursor.
+
+---
+
+## Manutenção
+
+Política de manutenção: [`MAINTENANCE.md`](./MAINTENANCE.md).
+
+A estrutura `.cursor` deve evoluir por uso real, incidentes, mudanças arquiteturais e retrospectivas — não por expansão automática.
 
 ---
 
