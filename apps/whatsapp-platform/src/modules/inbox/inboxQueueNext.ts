@@ -7,6 +7,7 @@ import { findNextUnassignedQueueThread } from "./waInboxQueueService";
 import { assignThread } from "./threadAssignmentService";
 import { logEvent } from "@/lib/observability";
 import { WaInboxDirection } from "@/generated/prisma-whatsapp";
+import type { UserRole } from "@/modules/auth";
 
 export type QueueNextThreadPayload = {
   id: string;
@@ -31,11 +32,12 @@ export type QueueNextResult =
 export async function runQueueNext(opts: {
   tenantId: string;
   userId: string;
+  role: UserRole;
   assign: boolean;
   /** default "admin" — inbox usa "inbox" nos logs */
   logSource?: "admin" | "inbox";
 }): Promise<QueueNextResult> {
-  const { tenantId, userId, assign, logSource = "admin" } = opts;
+  const { tenantId, userId, role, assign, logSource = "admin" } = opts;
   const thread = await findNextUnassignedQueueThread(tenantId);
 
   if (!thread) {
@@ -48,8 +50,17 @@ export async function runQueueNext(opts: {
   }
 
   if (assign) {
-    await assignThread(tenantId, thread.id, userId, userId);
-    logEvent("info", logSource, "queue_next_assigned", { tenantId, threadId: thread.id, userId });
+    const result = await assignThread(tenantId, thread.id, userId, userId, role);
+    if (!result.ok) {
+      logEvent("warn", logSource, "queue_next_assign_failed", {
+        tenantId,
+        threadId: thread.id,
+        userId,
+        reason: result.reason,
+      });
+    } else {
+      logEvent("info", logSource, "queue_next_assigned", { tenantId, threadId: thread.id, userId });
+    }
   }
 
   const chronological = [...thread.messages].reverse();

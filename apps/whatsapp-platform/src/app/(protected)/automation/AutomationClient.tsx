@@ -725,15 +725,20 @@ function ActionRow({
       </select>
       {action.type === "assignConversation" && (
         <select
-          value={(params.userId as string) ?? "auto"}
+          value={
+            params.userId && params.userId !== "auto" && params.userId !== "automation"
+              ? String(params.userId)
+              : ""
+          }
           onChange={(e) =>
             onChange({
-              params: { ...params, userId: e.target.value === "auto" ? "auto" : e.target.value },
+              params: { ...params, userId: e.target.value || undefined },
             })
           }
           className={fieldControlCompact}
+          aria-label="Responsável da atribuição"
         >
-          <option value="auto">Automático</option>
+          <option value="">Selecione um responsável</option>
           {users.map((u) => (
             <option key={u.id} value={u.id}>
               {u.name}

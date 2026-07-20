@@ -39,10 +39,19 @@ export async function POST(
     auth!.payload.tenantId,
     threadId,
     parsed.data.userId,
-    auth!.payload.sub
+    auth!.payload.sub,
+    auth!.payload.role
   );
-  if (!assigned) {
-    return NextResponse.json({ error: "Não foi possível atribuir" }, { status: 400 });
+  if (!assigned.ok) {
+    const status =
+      assigned.reason === "forbidden"
+        ? 403
+        : assigned.reason === "conflict" || assigned.reason === "closed"
+          ? 409
+          : assigned.reason === "target_not_found" || assigned.reason === "not_found"
+            ? 404
+            : 400;
+    return NextResponse.json({ error: "Não foi possível atribuir", reason: assigned.reason }, { status });
   }
 
   recordPlatformAudit({

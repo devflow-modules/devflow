@@ -13,7 +13,7 @@ const DEFAULT_RULES: Array<{
   actions: Prisma.InputJsonValue;
 }> = [
   {
-    name: "[Sistema] SLA crítico — atribuir equipa",
+    name: "[Sistema] SLA crítico — notificar equipa",
     triggerType: "TIME_ELAPSED",
     isActive: true,
     conditions: [
@@ -21,12 +21,11 @@ const DEFAULT_RULES: Array<{
       { field: "slaLevel", operator: "equals", value: "critical" },
     ],
     actions: [
-      { type: "assignConversation", params: { userId: "auto" } },
       {
         type: "notify",
         params: {
           title: "SLA crítico",
-          body: "Conversa atribuída automaticamente (regra sistema).",
+          body: "Conversa sem responsável com SLA crítico. Routing automático ainda não configurado — assuma manualmente na inbox.",
         },
       },
     ],
@@ -66,11 +65,20 @@ const DEFAULT_RULES: Array<{
     ],
   },
   {
+    // Follow-up: routing determinístico (fila/round-robin). `userId: auto` é rejeitado em runtime.
     name: "[Sistema] Auto-atribuir conversa nova",
     triggerType: "MESSAGE_INBOUND",
-    isActive: true,
+    isActive: false,
     conditions: [{ field: "isUnassigned", operator: "equals", value: true }],
-    actions: [{ type: "assignConversation", params: { userId: "auto" } }],
+    actions: [
+      {
+        type: "notify",
+        params: {
+          title: "Conversa sem responsável",
+          body: "Nova conversa unassigned. Atribuição automática ainda não configurada.",
+        },
+      },
+    ],
   },
 ];
 

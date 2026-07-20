@@ -76,27 +76,16 @@ export async function executeAction(
       case "assignConversation": {
         const userId = normalized.params?.userId as string | undefined;
         if (userId === "auto" || userId === "automation" || !userId) {
-          const users = await prisma.user.findMany({
-            where: { tenantId: context.tenantId },
-            select: { id: true },
-            take: 1,
-          });
-          if (users.length > 0) {
-            const ok = await assignThread(
-              context.tenantId,
-              context.threadId,
-              users[0].id
-            );
-            return { ok };
-          }
-          return { ok: false, error: "no_user_to_assign" };
+          return { ok: false, error: "automatic_assignment_not_configured" };
         }
-        const ok = await assignThread(
+        const result = await assignThread(
           context.tenantId,
           context.threadId,
-          userId
+          userId,
+          "automation",
+          "system"
         );
-        return { ok };
+        return { ok: result.ok, ...(result.ok ? {} : { error: result.reason }) };
       }
 
       case "updateStatus": {

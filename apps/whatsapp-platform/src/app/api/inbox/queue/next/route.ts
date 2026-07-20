@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
     const result = await runQueueNext({
       tenantId,
       userId,
+      role: auth!.payload.role,
       assign,
       logSource: "inbox",
     });
