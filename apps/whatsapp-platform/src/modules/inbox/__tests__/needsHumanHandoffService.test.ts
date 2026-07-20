@@ -4,7 +4,7 @@ import {
   WaInboxThreadStatus,
 } from "@/generated/prisma-whatsapp";
 
-const assignThread = vi.hoisted(() => vi.fn().mockResolvedValue(true));
+const assignThread = vi.hoisted(() => vi.fn().mockResolvedValue({ ok: true, changed: true }));
 const assignTagToThread = vi.hoisted(() => vi.fn().mockResolvedValue(true));
 const logAction = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const publishInboxEvent = vi.hoisted(() => vi.fn());
@@ -123,7 +123,13 @@ describe("applyNeedsHumanHandoff", () => {
       reason: "handoff_trigger_keyword",
     });
 
-    expect(assignThread).toHaveBeenCalledWith("tenant-a", "thread-1", "mgr-1", "automation");
+    expect(assignThread).toHaveBeenCalledWith(
+      "tenant-a",
+      "thread-1",
+      "mgr-1",
+      "automation",
+      "system"
+    );
     expect(result.assignedToUserId).toBe("mgr-1");
   });
 

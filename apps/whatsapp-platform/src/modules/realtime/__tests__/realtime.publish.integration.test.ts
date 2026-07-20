@@ -66,8 +66,21 @@ describe("realtime publish integration", () => {
     mockPrisma.waInboxThread.updateMany.mockResolvedValue({ count: 1 });
     mockPrisma.agentStatus.upsert.mockResolvedValue({});
 
+    mockPrisma.user.findFirst.mockResolvedValue({
+      id: "u1",
+      name: "User 1",
+      email: "u1@test.com",
+      role: "operator",
+    });
+    mockPrisma.waInboxThread.findFirst.mockResolvedValue({
+      assignedToUserId: null,
+      status: "OPEN",
+    });
+    mockPrisma.waInboxThread.updateMany.mockResolvedValue({ count: 1 });
+    mockPrisma.agentStatus.upsert.mockResolvedValue({});
+
     const { assignThread } = await import("@/modules/inbox/threadAssignmentService");
-    await assignThread("tenant1", "thread1", "u1");
+    await assignThread("tenant1", "thread1", "u1", "u1", "operator");
 
     expect(mockPublish).toHaveBeenCalledTimes(1);
     expect(mockPublish).toHaveBeenCalledWith(
@@ -77,13 +90,17 @@ describe("realtime publish integration", () => {
         payload: expect.objectContaining({
           threadId: "thread1",
           assignedToUserId: "u1",
+          previousAssigneeId: null,
         }),
       })
     );
   });
 
   it("unassignThread publica conversation.assigned com null", async () => {
-    mockPrisma.waInboxThread.findFirst.mockResolvedValue({ assignedToUserId: "u1" });
+    mockPrisma.waInboxThread.findFirst.mockResolvedValue({
+      assignedToUserId: "u1",
+      status: "OPEN",
+    });
     mockPrisma.waInboxThread.updateMany.mockResolvedValue({ count: 1 });
     mockPrisma.agentStatus.findUnique.mockResolvedValue({
       tenantId: "tenant1",
@@ -92,7 +109,7 @@ describe("realtime publish integration", () => {
     mockPrisma.agentStatus.update.mockResolvedValue({});
 
     const { unassignThread } = await import("@/modules/inbox/threadAssignmentService");
-    await unassignThread("tenant1", "thread1");
+    await unassignThread("tenant1", "thread1", "u1", "operator");
 
     expect(mockPublish).toHaveBeenCalledWith(
       "tenant1",
@@ -101,6 +118,7 @@ describe("realtime publish integration", () => {
         payload: expect.objectContaining({
           threadId: "thread1",
           assignedToUserId: null,
+          previousAssigneeId: "u1",
         }),
       })
     );

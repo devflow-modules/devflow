@@ -73,7 +73,7 @@ describe("GET /api/inbox/queue/next", () => {
       ],
     });
     const assignMod = await import("@/modules/inbox/threadAssignmentService");
-    vi.spyOn(assignMod, "assignThread").mockResolvedValue(true);
+    vi.spyOn(assignMod, "assignThread").mockResolvedValue({ ok: true, changed: true });
     const { GET } = await import("../route");
     const req = new NextRequest("http://localhost/api/inbox/queue/next");
     const res = await GET(req);
@@ -81,6 +81,6 @@ describe("GET /api/inbox/queue/next", () => {
     const j = (await res.json()) as { success: boolean; data: { thread: { id: string } } };
     expect(j.success).toBe(true);
     expect(j.data.thread.id).toBe("th1");
-    expect(assignMod.assignThread).toHaveBeenCalledWith("t1", "th1", "u1", "u1");
+    expect(assignMod.assignThread).toHaveBeenCalledWith("t1", "th1", "u1", "u1", "operator");
   });
 });
