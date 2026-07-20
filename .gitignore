@@ -56,6 +56,12 @@ coverage/
 *.swo
 *~
 
+# --- Cursor MCP local (credenciais / estado — nunca versionar) ---
+.cursor/mcp.local.json
+.cursor/**/*.local.json
+.playwright-mcp/
+**/mcp-playwright-profile/
+
 # --- OS ---
 .DS_Store
 Thumbs.db

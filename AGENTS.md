@@ -25,6 +25,8 @@ As regras em [`.cursor/rules/`](.cursor/rules/) detalham arquitetura, segurança
 
 Agents são papéis lógicos; workflows coordenam execução; commands são prompts reutilizáveis; skills ensinam técnicas específicas. Rules e contratos reais têm precedência.
 
+**MCP:** ferramentas externas — política [`.cursor/MCP.md`](.cursor/MCP.md). Sem segredos no Git; read-only por padrão; não substituem testes nem CI.
+
 ## Fora de âmbito habitual do agente
 
 Não alterar credenciais em `.env*`, não criar migrações nem alterar pipelines de CI sem instrução explícita do repositório ou da equipa.

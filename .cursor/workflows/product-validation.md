@@ -55,6 +55,8 @@ Decision: go | no-go | defer
 
 Implementação de código; inventar regra de produto sem evidência.
 
+MCP pode trazer dados de apoio (ex. issues GitHub read-only), mas: não inventar evidência; diferenciar fonte externa de inferência; não aceder a PII de clientes ([`../MCP.md`](../MCP.md)).
+
 ## Template de entrega
 
 Usar saídas das skills `product-grill` + `revenue-centric-design`, mais a decisão final.

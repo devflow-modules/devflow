@@ -24,6 +24,7 @@ Definir e executar estratégia de testes por **risco**: node/UI/E2E, regressões
 - Correr gates mínimos do owner; depois expandir se necessário
 - Documentar o que não correu por ambiente (ex. E2E sem credenciais)
 - Nunca reportar skipped como sucesso
+- Playwright MCP é apoio investigativo; testes E2E/UI **versionados** permanecem a fonte de verdade ([`../MCP.md`](../MCP.md))
 
 ## Decisões permitidas
 

@@ -1,0 +1,8 @@
+{
+  "_comment": "EXAMPLE ONLY — not loaded automatically. Copy into ~/.cursor/mcp.json after replacing YOUR_DEV_PROJECT_REF with a non-production Supabase project. Prefer OAuth prompted by Cursor/Supabase; do not commit tokens or production refs. Monorepo has multiple Supabase surfaces — never put a shared production project_ref in .cursor/mcp.json.",
+  "mcpServers": {
+    "supabase": {
+      "url": "https://mcp.supabase.com/mcp?project_ref=YOUR_DEV_PROJECT_REF&read_only=true&features=database,docs"
+    }
+  }
+}

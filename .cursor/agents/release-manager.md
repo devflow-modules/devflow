@@ -24,6 +24,7 @@ Garantir **readiness** para merge/release: CI honesto, riscos, rollback, notas e
 - Confirmar riscos e itens deferidos no corpo do PR
 - Plano de rollback / smoke pós-merge
 - Manter PR em draft até checks bloqueantes verdes (quando política do time exigir)
+- MCP não altera definição de gate; confirmar que nenhuma credencial/PAT entrou no diff ([`../MCP.md`](../MCP.md))
 
 ## Decisões permitidas
 
