@@ -1,0 +1,13 @@
+{
+  "_comment": "EXAMPLE ONLY — not loaded by Cursor from this path. Copy the mcpServers block into ~/.cursor/mcp.json (or Cursor Settings → Tools & MCP). Replace YOUR_GITHUB_PAT manually outside Git. Do not commit real tokens. Official server only — never @modelcontextprotocol/server-github.",
+  "mcpServers": {
+    "github": {
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer YOUR_GITHUB_PAT",
+        "X-MCP-Readonly": "true",
+        "X-MCP-Toolsets": "repos,issues,pull_requests,actions"
+      }
+    }
+  }
+}

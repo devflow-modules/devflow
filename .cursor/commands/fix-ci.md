@@ -21,6 +21,8 @@ identificar job
 → atualizar PR (manter draft se política exigir)
 ```
 
+GitHub MCP **read-only** (config global; ver [`../MCP.md`](../MCP.md)) pode ajudar a consultar checks/logs/job. **Não** usar MCP para: reexecutar workflow, alterar branch, editar PR, aprovar ou mergear.
+
 ### Exemplos conceituais de jobs (não acoplar a um PR específico)
 
 | Sintoma | Direção típica |

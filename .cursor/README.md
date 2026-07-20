@@ -33,6 +33,8 @@ AGENTS.md
 → CI (GitHub Actions / scripts)
 ```
 
+Ferramentas externas (**MCP**) ficam **ao lado** desta navegação — ver [§ MCPs](#mcps). Não fazem parte da cadeia de autoridade.
+
 Essa sequência descreve **como navegar** pela plataforma operacional, **não** a precedência em caso de conflito.
 
 ### Precedência em conflito (do mais forte ao mais fraco)
@@ -66,6 +68,32 @@ O **CI** não redefine o contrato do domínio, mas constitui **enforcement obrig
 | **CI** | Gates objetivos | routing-governance, test:node, lint:design-system |
 
 Inventário pré-orquestração: [`INVENTORY.md`](./INVENTORY.md).
+
+---
+
+## MCPs
+
+Política: [`MCP.md`](./MCP.md). Inventário da fundação: [`MCP-INVENTORY.md`](./MCP-INVENTORY.md).
+
+MCPs fornecem **ferramentas externas**. Não substituem agents, workflows, rules, testes ou CI.
+
+```text
+rules / workflows / agents
+→ autorizam e orientam uso
+→ MCP executa consulta ou ação externa
+→ revisão humana
+→ CI
+```
+
+| Configuração | Conteúdo |
+|--------------|----------|
+| Partilhada (Git) | [`.cursor/mcp.json`](./mcp.json) — sem segredos (Playwright isolado nesta fundação) |
+| Com credenciais | `~/.cursor/mcp.json` ou UI Cursor — **nunca** versionada |
+| Exemplos | [`examples/`](./examples/) — **não** carregados automaticamente |
+
+Aprovados (fundação): Playwright (projeto), GitHub read-only (global), Supabase read-only project-scoped (global/local). Deferidos: Filesystem/Git genéricos, Stripe, Meta/WhatsApp Cloud, Postgres de produção, comunitários sem review.
+
+Command: [`/audit-mcp`](./commands/audit-mcp.md).
 
 ---
 
@@ -203,6 +231,7 @@ Ver [`docs/operations/CURSOR_AUTOMATIONS.md`](../docs/operations/CURSOR_AUTOMATI
 | `/release-notes` | [`commands/release-notes.md`](./commands/release-notes.md) |
 | `/retro` | [`commands/retro.md`](./commands/retro.md) |
 | `/validate-product` | [`commands/validate-product.md`](./commands/validate-product.md) |
+| `/audit-mcp` | [`commands/audit-mcp.md`](./commands/audit-mcp.md) |
 
 ### Skills (técnicas + produto)
 

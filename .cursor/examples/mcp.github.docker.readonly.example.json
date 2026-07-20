@@ -1,0 +1,28 @@
+{
+  "_comment": "EXAMPLE ONLY — Docker alternative to the hosted GitHub MCP. Copy into ~/.cursor/mcp.json. Replace YOUR_GITHUB_PAT outside Git. Requires Docker. Official image ghcr.io/github/github-mcp-server only.",
+  "mcpServers": {
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "-e",
+        "GITHUB_READ_ONLY",
+        "-e",
+        "GITHUB_TOOLSETS",
+        "ghcr.io/github/github-mcp-server",
+        "stdio",
+        "--read-only",
+        "--toolsets=repos,issues,pull_requests,actions"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_PAT",
+        "GITHUB_READ_ONLY": "true",
+        "GITHUB_TOOLSETS": "repos,issues,pull_requests,actions"
+      }
+    }
+  }
+}

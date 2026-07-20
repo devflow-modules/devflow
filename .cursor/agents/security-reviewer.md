@@ -24,6 +24,7 @@ Rever **auth**, **roles**, **tenant**, **secrets**, **webhooks**, **PII**, **abu
 - Validação de assinatura / challenge em webhooks
 - Audit trail presente em mudanças sensíveis (e ausente em no-ops)
 - Abrir finding bloqueante se caminho alternativo contornar a política
+- MCP: rever origem oficial, permissões, segredos, prompt injection; exigir least privilege / read-only; impedir produção write ([`../MCP.md`](../MCP.md))
 
 ## Decisões permitidas
 

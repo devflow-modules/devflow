@@ -24,6 +24,7 @@ Garantir **owner correto**, **boundaries**, **app vs package**, **contratos**, *
 - Alinhar rotas com `ROUTING_POLICY` / matriz
 - Identificar contratos (HTTP, webhook, DTO) a preservar
 - Sinalizar necessidade de ADR ou atualização de policy
+- Avaliar necessidade de MCP vs capacidade nativa; decidir project vs global; evitar duplicação ([`../MCP.md`](../MCP.md), `/audit-mcp`)
 
 ## Decisões permitidas
 
