@@ -12,10 +12,26 @@ vi.mock("@/modules/commercial", () => ({
 vi.mock("@/modules/realtime/realtime.service", () => ({
   publishInboxEvent: vi.fn(),
   eventMessageCreated: vi.fn(() => ({})),
+  eventConversationStatusChanged: vi.fn((_t: string, p: unknown) => ({
+    type: "conversation.status_changed",
+    payload: p,
+  })),
+}));
+
+vi.mock("@/modules/automation", () => ({
+  dispatchMessageInbound: vi.fn().mockResolvedValue(undefined),
+  dispatchConversationCreated: vi.fn().mockResolvedValue(undefined),
+  dispatchStatusChanged: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@/lib/observability", () => ({
+  bumpMetric: vi.fn(),
 }));
 
 const findUniqueMsg = vi.fn();
 const createMsg = vi.fn();
+const findFirstThread = vi.fn();
+const updateManyThread = vi.fn();
 
 const mockTx = {
   waInboxMessage: {
@@ -42,6 +58,13 @@ const mockTx = {
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     $transaction: (fn: (tx: typeof mockTx) => Promise<unknown>) => fn(mockTx),
+    waInboxThread: {
+      findFirst: (...a: unknown[]) => findFirstThread(...a),
+      updateMany: (...a: unknown[]) => updateManyThread(...a),
+    },
+    waInboxAuditLog: {
+      create: vi.fn().mockResolvedValue({}),
+    },
   },
 }));
 
@@ -67,6 +90,7 @@ describe("waInboxCreateInbound idempotência", () => {
     findUniqueMsg
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce({ id: "existing", waMessageId: "wam_dup_test" });
+    findFirstThread.mockResolvedValue({ status: "OPEN" });
 
     const { waInboxCreateInbound } = await import("../waInboxMessageService");
 
@@ -83,5 +107,45 @@ describe("waInboxCreateInbound idempotência", () => {
     await waInboxCreateInbound("tenant-a", "pnid-1", parsed);
 
     expect(createMsg).toHaveBeenCalledTimes(1);
+  });
+
+  it("inbound em thread CLOSED reabre para OPEN após persistir a mensagem", async () => {
+    findUniqueMsg.mockResolvedValue(null);
+    findFirstThread.mockResolvedValue({ status: "CLOSED" });
+    updateManyThread.mockResolvedValue({ count: 1 });
+
+    const { waInboxCreateInbound } = await import("../waInboxMessageService");
+    await waInboxCreateInbound("tenant-a", "pnid-1", {
+      waMessageId: "wam_reopen",
+      from: "5511999999999",
+      timestamp: "1700000000",
+      type: "text",
+      field: "messages",
+      raw: { type: "text", text: { body: "voltei" } },
+    });
+
+    expect(createMsg).toHaveBeenCalledTimes(1);
+    expect(updateManyThread).toHaveBeenCalledWith({
+      where: { id: "th1", tenantId: "tenant-a" },
+      data: { status: "OPEN" },
+    });
+  });
+
+  it("inbound em thread já OPEN não chama updateMany de status", async () => {
+    findUniqueMsg.mockResolvedValue(null);
+    findFirstThread.mockResolvedValue({ status: "OPEN" });
+
+    const { waInboxCreateInbound } = await import("../waInboxMessageService");
+    await waInboxCreateInbound("tenant-a", "pnid-1", {
+      waMessageId: "wam_open",
+      from: "5511999999999",
+      timestamp: "1700000000",
+      type: "text",
+      field: "messages",
+      raw: { type: "text", text: { body: "oi" } },
+    });
+
+    expect(createMsg).toHaveBeenCalledTimes(1);
+    expect(updateManyThread).not.toHaveBeenCalled();
   });
 });
