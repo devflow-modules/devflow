@@ -16,4 +16,4 @@ alwaysApply: false
 - **Tabelas admin:** `df-table-wrap` + `df-table`. **Feedback:** `df-feedback-*`.
 - **Evitar:** Tailwind longo duplicado quando existe `df-*`; cinzentos fora de `slate`; sombras pesadas.
 
-Documentação: `apps/whatsapp-platform/docs/DESIGN_SYSTEM.md` · checklist de PR: `docs/VISUAL_REVIEW_CHECKLIST.md`.
+Documentação: `apps/whatsapp-platform/docs/DESIGN_SYSTEM.md` · checklist de PR: `apps/whatsapp-platform/docs/VISUAL_REVIEW_CHECKLIST.md` · escopo/arquitetura: `docs/whatsapp-platform/CURRENT-SCOPE.md`, `ARCHITECTURE.md`.

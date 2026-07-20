@@ -1,19 +1,69 @@
 ---
-description: WhatsApp Platform — webhook Meta, tenant, Stripe e docs canónicos
+description: WhatsApp Platform — ownership, boundaries, webhook, tenant, Stripe, gates
 globs:
   - "apps/whatsapp-platform/**/*"
   - "packages/whatsapp-core/**/*"
   - "packages/whatsapp-routes/**/*"
+  - "packages/billing-core/**/*"
+  - "packages/ai-core/**/*"
+  - "packages/analytics-core/**/*"
   - "apps/whatsapp-webhook-api/**/*"
 alwaysApply: false
 ---
 
 # WhatsApp Platform
 
-- **Deploy canónico:** runtime do produto (webhook, dashboard, billing) em `apps/whatsapp-platform`; URL pública do webhook e OAuth devem coincidir com o host do app, não com atalhos legados do portal — ver `apps/whatsapp-platform/docs/DEPLOY_APP_SUBDOMAIN.md` e `PLANO_TRANSICAO_APP_SUBDOMINIO.md`.
-- **Tenant:** resolução via `phone_number_id` / modelos WhatsApp existentes; nunca processar inbound sem tenant válido.
-- **Webhook Meta:** GET (verify token) e POST (payload); tolerar retries; idempotência onde já implementada; não alterar contratos com a Meta sem rever `docs/architecture/WHATSAPP-WEBHOOK-HARDENING.md`.
-- **Stripe:** webhooks e quotas — alinhar a `packages/billing-core` e docs em `apps/whatsapp-platform/docs/billing/` e `docs/whatsapp-platform/STRIPE_INTEGRATION.md`.
-- **UI:** tokens `df-*` e componentes do design system do app — regra dedicada em `.cursor/rules/whatsapp-platform-design.mdc`.
+Canonical docs: `docs/whatsapp-platform/CURRENT-SCOPE.md`, `ARCHITECTURE.md`, `DOCUMENTATION-MAP.md`.  
+Safe-change skill: `.cursor/skills/whatsapp-platform-safe-change.md`.  
+UI: `.cursor/rules/whatsapp-platform-design.mdc`.
 
-Alterações pequenas; inspeccionar serviços e handlers existentes antes de novos caminhos.
+## Ownership (where work belongs)
+
+| Path | Responsibility | Status |
+|------|----------------|--------|
+| `apps/whatsapp-platform` | Canonical runtime: UI, handlers, Prisma, auth composition, webhook Meta, Stripe, inbox | **active** |
+| `packages/whatsapp-core` | Pure rules, contracts, reusable WhatsApp domain logic | **shared** |
+| `packages/whatsapp-routes` | Cutover/landing/route constants for portal & shared surfaces | **shared** |
+| `packages/billing-core` | Shared plans, quotas, billing, entitlement rules | **shared** |
+| `packages/ai-core` | Shared AI contracts / mechanisms | **shared** |
+| `packages/analytics-core` | Shared metrics / events | **shared** |
+| `src/` (portal) | Public acquisition, commercial pages, demo mock, internal CRM | **active** (non-ops) |
+| `apps/whatsapp-webhook-api` | Legacy Express surface — keep compatible; **no new product features** | **legacy-compatible** |
+
+Status: `active` | `shared` | `legacy-compatible` | `migration-source` | `deprecated` | `historical`.
+
+Prefer packages for reusable pure logic; compose in the app. Do not implement new ops features in the portal or `whatsapp-webhook-api`.
+
+## Boundaries (forbidden)
+
+- `packages/whatsapp-core` — no Next.js, Prisma Client, Stripe SDK, or Meta SDK.
+- `packages/whatsapp-routes` — do not redefine domain rules that belong in core/app.
+- `apps/whatsapp-platform` — do not duplicate contracts already in packages; extend packages instead.
+- Portal `src/` — no WhatsApp app Prisma; no imports from `apps/whatsapp-platform` (CI guard).
+- UI — does not authoritatively resolve tenant, entitlement, or authorization.
+- Client — must not choose authoritative `tenantId`, `phoneNumberId`, or plan limits.
+
+## Non-negotiables
+
+- **Deploy:** webhook URL and OAuth on the **app** host (`NEXT_PUBLIC_WHATSAPP_APP_URL`) — `apps/whatsapp-platform/docs/DEPLOY_APP_SUBDOMAIN.md`.
+- **Tenant:** resolve via `phone_number_id` / existing models; never process inbound without a valid tenant.
+- **Webhook Meta:** GET verify + POST; signature; retries; idempotency — `docs/architecture/WHATSAPP-WEBHOOK-HARDENING.md`.
+- **Stripe / quotas:** align with `packages/billing-core` and app billing docs.
+- **Audit:** keep or extend audit trails on sensitive inbox/ops changes.
+- **Before first edit:** produce the impact map required by the safe-change skill (domain, owners, tenant, auth, tests, out-of-scope).
+
+## Quality gates (minimum)
+
+| Change | Gates |
+|--------|--------|
+| Pure domain (app modules) | `test:node` on `apps/whatsapp-platform` |
+| `packages/whatsapp-core` | package test/typecheck when available + consumer `test:node` (package has no `test` script today) |
+| Component/UI | `test:ui`, lint, design system |
+| Inbox | `test:node`, `test:ui`, `test:e2e:inbox` |
+| Critical visual | E2E + a11y |
+| Webhook Meta | `test:node`, `smoke`, `ops:check-channel` |
+| Billing | `test:node`, integration/idempotency review |
+| Prisma | generate, migration validation, tenant isolation tests |
+| Design system | visual lint + `test:a11y:product-ui` |
+
+Small diffs; inspect existing handlers/services before new paths.
