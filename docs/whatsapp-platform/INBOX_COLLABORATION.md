@@ -118,8 +118,8 @@ model WaInboxAuditLog {
 
 | Ação           | Quando                         |
 |----------------|--------------------------------|
-| assign         | Atribuir conversa a usuário    |
-| unassign       | Desatribuir                    |
+| assign         | Claim/transferência (metadata: `previousAssigneeId`, `assignedToUserId`) |
+| unassign       | Liberação (metadata: `previousAssigneeId`, `assignedToUserId: null`) |
 | status_change  | Alterar status (OPEN/PENDING/CLOSED) |
 | tag_add        | Adicionar tag                  |
 | tag_remove     | Remover tag                    |

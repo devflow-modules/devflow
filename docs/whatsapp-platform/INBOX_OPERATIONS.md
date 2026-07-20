@@ -12,19 +12,29 @@ A inbox permite operação em nível de equipe: atribuição de conversas, statu
 2. **Agente responde** → `lastAgentReplyAt` é atualizado; na primeira resposta do agente, `firstResponseAt` é preenchido.
 3. **Status** pode ser alterado manualmente para **PENDING** (aguardando cliente) ou **CLOSED** (encerrada).
 
-## Atribuição (Assign)
+## Atribuição (Assign) — ownership lifecycle
 
-- **Atribuir a mim:** a conversa fica sob responsabilidade do usuário logado.
-- **Atribuir a outro:** escolher um usuário do mesmo tenant na lista.
-- **Desatribuir:** remover a atribuição.
+Fonte canónica: `apps/whatsapp-platform/docs/architecture/CONVERSATION_OWNERSHIP_AND_HANDOFF.md`.
+
+Política resumida:
+
+- **Claim** só quando `assignedToUserId` é `null` (CAS first-writer-wins); se já houver outro owner → **409**.
+- **Transferência** autorizada: owner atual, `manager`, `platform_admin`. Operador comum não transfere conversa alheia → **403**.
+- **Liberação** autorizada: owner atual, `manager`, `platform_admin`. `null → null` é no-op sem side effects.
+- **CLOSED** rejeita mudança de ownership (**409**). Fechar / reabrir / inbound `CLOSED→OPEN` **conserva** o responsável.
+- Assignment idempotente (já sou o destino → **200** sem audit/realtime).
+- Enquanto houver responsável, IA automática permanece bloqueada pelos guards atuais.
+- Automação `userId: auto` → `automatic_assignment_not_configured` (routing automático é follow-up).
 
 **API:** `POST /api/inbox/conversations/:id/assign`
 
-- Body `{}` ou `{ userId: "me" }` → atribui ao usuário logado.
-- Body `{ userId: "<id>" }` → atribui ao usuário indicado.
-- Body `{ unassign: true }` → desatribui.
+- Body `{}` ou `{ userId: "me" }` → claim/atribuir ao usuário logado.
+- Body `{ userId: "<id>" }` → claim (se unassigned) ou transferência (se autorizado).
+- Body `{ unassign: true }` → liberar (se autorizado).
 
-**Serviço:** `threadAssignmentService.ts` — `assignThread`, `unassignThread`, `getAssignedThreads`, `listUsersByTenant`.
+Contrato: **400** / **401** / **403** / **404** (thread ou destino) / **409** (conflito ou CLOSED) / **200** (`changed: true|false`).
+
+**Serviço:** `threadAssignmentService.ts` — `assignThread`, `unassignThread`, `getAssignedThreads`, `listUsersByTenant` (resultado discriminado `AssignmentResult`).
 
 ## Status
 
