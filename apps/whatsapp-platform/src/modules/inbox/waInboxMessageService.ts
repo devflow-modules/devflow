@@ -201,11 +201,20 @@ export async function waInboxCreateInbound(
       );
     }
     // Reabre CLOSED/PENDING → OPEN via transição canónica (idempotente se já OPEN).
-    // Erros secundários não devem invalidar a persistência inbound já concluída.
+    // Falha/conflito da transição é observável mas não invalida a mensagem já persistida.
     const { autoUpdateStatusOnNewMessage } = await import("./threadStatusService");
-    await autoUpdateStatusOnNewMessage(tenantId, thread.id, "INBOUND").catch((e) =>
-      console.error("[wa-inbox] status update after inbound", e)
-    );
+    try {
+      const statusResult = await autoUpdateStatusOnNewMessage(tenantId, thread.id, "INBOUND");
+      if (statusResult && !statusResult.ok) {
+        console.error("[wa-inbox] inbound reopen failed", {
+          tenantId,
+          threadId: thread.id,
+          reason: statusResult.reason,
+        });
+      }
+    } catch (e) {
+      console.error("[wa-inbox] status update after inbound", e);
+    }
     return { threadId: thread.id, messageId: row.id, wasNewConversation };
   }
   return null;

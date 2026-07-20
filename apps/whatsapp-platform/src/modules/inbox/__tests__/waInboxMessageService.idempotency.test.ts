@@ -148,4 +148,37 @@ describe("waInboxCreateInbound idempotência", () => {
     expect(createMsg).toHaveBeenCalledTimes(1);
     expect(updateManyThread).not.toHaveBeenCalled();
   });
+
+  it("inbound com CAS conflict persistente mantém mensagem e regista o conflito", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    findUniqueMsg.mockResolvedValue(null);
+    findFirstThread.mockResolvedValue({ status: "CLOSED" });
+    updateManyThread.mockResolvedValue({ count: 0 });
+
+    const { waInboxCreateInbound } = await import("../waInboxMessageService");
+    const result = await waInboxCreateInbound("tenant-a", "pnid-1", {
+      waMessageId: "wam_conflict",
+      from: "5511999999999",
+      timestamp: "1700000000",
+      type: "text",
+      field: "messages",
+      raw: { type: "text", text: { body: "ainda aqui" } },
+    });
+
+    expect(result).toEqual({
+      threadId: "th1",
+      messageId: "row1",
+      wasNewConversation: true,
+    });
+    expect(createMsg).toHaveBeenCalledTimes(1);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "[wa-inbox] inbound reopen failed",
+      expect.objectContaining({
+        tenantId: "tenant-a",
+        threadId: "th1",
+        reason: "conflict",
+      })
+    );
+    errorSpy.mockRestore();
+  });
 });

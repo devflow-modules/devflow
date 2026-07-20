@@ -86,14 +86,17 @@ export async function updateThreadStatus(
  * Chamado ao persistir mensagem: inbound → OPEN (reabre CLOSED/PENDING).
  * Delega a `updateThreadStatus` para partilhar idempotência, audit e realtime.
  * No-op se a thread já estiver OPEN (sem side effects redundantes).
+ * Não lança em conflito/`not_found` — o caller deve observar o resultado.
+ * Retorna `null` para OUTBOUND (sem transição).
  */
 export async function autoUpdateStatusOnNewMessage(
   tenantId: string,
   threadId: string,
   direction: "INBOUND" | "OUTBOUND"
-): Promise<void> {
+): Promise<UpdateThreadStatusResult | null> {
   if (direction === "INBOUND") {
-    await updateThreadStatus(tenantId, threadId, WaInboxThreadStatus.OPEN, "system");
+    return updateThreadStatus(tenantId, threadId, WaInboxThreadStatus.OPEN, "system");
   }
   // outbound: opcionalmente PENDING; não alteramos para não fechar fluxo
+  return null;
 }
