@@ -254,7 +254,8 @@ Run from `apps/whatsapp-platform` unless noted. Prefer the **minimum** set that 
 
 | Change type | Minimum gates |
 |-------------|---------------|
-| Pure domain (`whatsapp-core`, pure TS in modules) | `pnpm test:node` |
+| Pure domain in app modules | `pnpm test:node` (from `apps/whatsapp-platform`) |
+| `packages/whatsapp-core` | Package `test` / typecheck **when available** + relevant consumer tests in `apps/whatsapp-platform` (`pnpm test:node`). Today the package has no `test` script — do not treat app `test:node` alone as a direct package suite. |
 | Component / UI | `pnpm test:ui`, `pnpm lint`, design system (`lint:design-system` / checklist) |
 | Inbox | `pnpm test:node`, `pnpm test:ui`, `pnpm test:e2e:inbox` |
 | Critical visual flow | E2E relevant + `pnpm test:a11y` (or `test:a11y:product-ui`) |
@@ -263,7 +264,7 @@ Run from `apps/whatsapp-platform` unless noted. Prefer the **minimum** set that 
 | Prisma | `pnpm db:generate`, migration validation per `04-prisma` / skill, tenant isolation tests |
 | Design system | visual lint + `pnpm test:a11y:product-ui` |
 
-Also available: `pnpm test`, `pnpm test:coverage`, `pnpm test:e2e`.
+Rule of thumb: run tests for the **owner** that changed. Also available on the app: `pnpm test`, `pnpm test:coverage`, `pnpm test:e2e`.
 
 ---
 

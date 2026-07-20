@@ -75,11 +75,12 @@ Antes de editar: serviços, route handlers, middleware e testes no mesmo domíni
 
 ## 4. Quality gates por tipo de mudança
 
-Correr em `apps/whatsapp-platform` (e testes do package se o package mudou):
+Correr os testes do **owner** afectado. Em `apps/whatsapp-platform` salvo nota:
 
 | Mudança | Gates mínimos |
 |---------|----------------|
-| Domínio puro | `pnpm test:node` |
+| Domínio puro (módulos do app) | `pnpm test:node` |
+| `packages/whatsapp-core` | `test`/typecheck do package **quando existir** + testes consumidores relevantes no app (`pnpm test:node`). Hoje o package **não** tem script `test` — não tratar `test:node` do app como suite directa do core. |
 | Componente/UI | `pnpm test:ui`, lint, design system |
 | Inbox | `pnpm test:node`, `pnpm test:ui`, `pnpm test:e2e:inbox` |
 | Fluxo crítico visual | E2E relevante + `pnpm test:a11y` / `test:a11y:product-ui` |

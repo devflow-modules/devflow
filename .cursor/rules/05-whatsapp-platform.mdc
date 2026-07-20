@@ -56,7 +56,8 @@ Prefer packages for reusable pure logic; compose in the app. Do not implement ne
 
 | Change | Gates |
 |--------|--------|
-| Pure domain | `test:node` |
+| Pure domain (app modules) | `test:node` on `apps/whatsapp-platform` |
+| `packages/whatsapp-core` | package test/typecheck when available + consumer `test:node` (package has no `test` script today) |
 | Component/UI | `test:ui`, lint, design system |
 | Inbox | `test:node`, `test:ui`, `test:e2e:inbox` |
 | Critical visual | E2E + a11y |
