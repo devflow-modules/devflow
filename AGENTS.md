@@ -19,6 +19,8 @@ As regras em [`.cursor/rules/`](.cursor/rules/) detalham arquitetura, segurança
 
 **Automations Cursor (revisão):** runbook em [`docs/operations/CURSOR_AUTOMATIONS.md`](docs/operations/CURSOR_AUTOMATIONS.md) — v1 só em modo *review only* (sem commits automáticos).
 
+**Uso de IA na engenharia:** [`docs/operations/AI_ENGINEERING_POLICY.md`](docs/operations/AI_ENGINEERING_POLICY.md).
+
 ## Orquestração Cursor
 
 Índice operacional: [`.cursor/README.md`](.cursor/README.md).

@@ -1,6 +1,6 @@
 # Cursor Automations — DevFlow Labs (runbook)
 
-Runbook para **automations em modo revisão** (primeira versão: **sem** commits, edições, branches ou PRs — só relatório/comentário). Alinhar com [`AGENTS.md`](../../AGENTS.md), [`docs/operations/REDIRECT_SAFETY.md`](./REDIRECT_SAFETY.md) e [`docs/operations/GITHUB_LABELS.md`](./GITHUB_LABELS.md).
+Runbook para **automations em modo revisão** (primeira versão: **sem** commits, edições, branches ou PRs — só relatório/comentário). Alinhar com [`AGENTS.md`](../../AGENTS.md), [`AI_ENGINEERING_POLICY.md`](./AI_ENGINEERING_POLICY.md), [`docs/operations/REDIRECT_SAFETY.md`](./REDIRECT_SAFETY.md) e [`docs/operations/GITHUB_LABELS.md`](./GITHUB_LABELS.md).
 
 ---
 
