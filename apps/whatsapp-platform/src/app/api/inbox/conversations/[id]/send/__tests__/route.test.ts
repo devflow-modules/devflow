@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
+import type { UsageLimitExceededError as UsageLimitExceededErrorType } from "@/modules/billing/enforcementService";
+import type { UsageLimitErrorPayload } from "@/modules/billing/billingSanitizer";
 
 const mocks = vi.hoisted(() => {
   class UsageLimitExceededError extends Error {}
@@ -14,12 +16,20 @@ const mocks = vi.hoisted(() => {
     logError: vi.fn(),
     logEvent: vi.fn(),
     resolveMessagingTenant: vi.fn(),
-    sanitizeUsagePayload: vi.fn((payload: unknown) => payload),
+    sanitizeUsagePayload: vi.fn(
+      (payload: UsageLimitErrorPayload, user: { role?: string }) => {
+        void user;
+        return payload;
+      }
+    ),
     trackUsage: vi.fn(),
-    usageLimitPayload: vi.fn(() => ({
-      code: "FREE_PLAN_LIMIT_REACHED",
-      message: "Limite atingido",
-    })),
+    usageLimitPayload: vi.fn((error: UsageLimitExceededErrorType) => {
+      void error;
+      return {
+        code: "FREE_PLAN_LIMIT_REACHED",
+        message: "Limite atingido",
+      };
+    }),
     waInboxCreateOutbound: vi.fn(),
     findThread: vi.fn(),
     findTenant: vi.fn(),
@@ -70,11 +80,15 @@ vi.mock("@/modules/whatsapp/whatsappChannelGuards", () => ({
 vi.mock("@/modules/billing/enforcementService", () => ({
   enforceUsageOrThrow: (...args: unknown[]) => mocks.enforceUsage(...args),
   UsageLimitExceededError: mocks.UsageLimitExceededError,
-  usageLimitErrorToPayload: (...args: unknown[]) => mocks.usageLimitPayload(...args),
+  usageLimitErrorToPayload: (error: UsageLimitExceededErrorType) =>
+    mocks.usageLimitPayload(error),
 }));
 
 vi.mock("@/modules/billing/billingSanitizer", () => ({
-  sanitizeUsageLimitErrorPayload: (...args: unknown[]) => mocks.sanitizeUsagePayload(...args),
+  sanitizeUsageLimitErrorPayload: (
+    payload: UsageLimitErrorPayload,
+    user: { role?: string }
+  ) => mocks.sanitizeUsagePayload(payload, user),
 }));
 
 vi.mock("@/modules/billing/usageService", () => ({

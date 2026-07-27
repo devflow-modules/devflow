@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+type EventMessageCreatedArgs = Parameters<
+  typeof import("@/modules/realtime/realtime.service").eventMessageCreated
+>;
+
 const mocks = vi.hoisted(() => ({
   dispatchMessageOutbound: vi.fn(),
   eventMessageCreated: vi.fn((_tenantId: string, payload: unknown) => payload),
@@ -45,7 +49,8 @@ vi.mock("../waInboxThreadMetrics", () => ({
 }));
 
 vi.mock("@/modules/realtime/realtime.service", () => ({
-  eventMessageCreated: (...args: unknown[]) => mocks.eventMessageCreated(...args),
+  eventMessageCreated: (...args: EventMessageCreatedArgs) =>
+    mocks.eventMessageCreated(...args),
   publishInboxEvent: (...args: unknown[]) => mocks.publishInboxEvent(...args),
 }));
 
