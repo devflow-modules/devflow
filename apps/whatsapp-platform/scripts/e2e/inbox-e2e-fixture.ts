@@ -99,17 +99,28 @@ export function targetFingerprint(datasourceUrl: string): string {
   if (parsed.protocol !== "postgresql:" && parsed.protocol !== "postgres:") {
     throw new Error("Target de banco não é PostgreSQL");
   }
-  const database = parsed.pathname.replace(/^\/+/, "");
+  const decodeAndNormalize = (value: string): string => {
+    try {
+      return decodeURIComponent(value).trim().normalize("NFC");
+    } catch {
+      throw new Error("Target de banco inválido");
+    }
+  };
+  const protocol = "postgresql:";
+  const hostname = parsed.hostname.trim().toLowerCase().replace(/\.$/, "");
+  const database = decodeAndNormalize(parsed.pathname.replace(/^\/+/, ""));
+  const username = decodeAndNormalize(parsed.username);
   if (!parsed.hostname || !database) {
     throw new Error("Target de banco incompleto");
   }
-  // O digest inclui apenas endpoint e database; nunca username, password, query ou URL integral.
+  // Username participa somente do digest; password, query e URL integral ficam excluídos.
   return sha256(
     JSON.stringify({
-      protocol: parsed.protocol,
-      hostname: parsed.hostname.toLowerCase(),
+      protocol,
+      hostname,
       port: parsed.port || "5432",
       database,
+      username,
     })
   );
 }

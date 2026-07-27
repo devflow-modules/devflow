@@ -2,6 +2,7 @@ import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  InboxMarkerPreservationError,
   resolveInstalledCli,
   runInboxLifecycle,
   type InboxLifecycleDependencies,
@@ -66,6 +67,12 @@ function dependencies(
     async cleanup() {
       events.push("cleanup");
     },
+    receiptExists() {
+      return false;
+    },
+    releaseLock() {
+      events.push("release:lock");
+    },
     ...overrides,
   };
 }
@@ -84,10 +91,11 @@ describe("safe inbox process lifecycle", () => {
       "stop:playwright",
       "stop:server",
       "cleanup",
+      "release:lock",
     ]);
   });
 
-  it("cleans up after Playwright failure only after both process stops", async () => {
+  it("releases both markers after a thrown Playwright failure and successful cleanup", async () => {
     const events: string[] = [];
     const deps = dependencies(events, {
       async startPlaywright() {
@@ -98,10 +106,15 @@ describe("safe inbox process lifecycle", () => {
       },
     });
     await expect(runInboxLifecycle(deps)).rejects.toThrow("Playwright failed");
-    expect(events.slice(-3)).toEqual(["stop:playwright", "stop:server", "cleanup"]);
+    expect(events.slice(-4)).toEqual([
+      "stop:playwright",
+      "stop:server",
+      "cleanup",
+      "release:lock",
+    ]);
   });
 
-  it("preserves a nonzero Playwright result after cleanup", async () => {
+  it("returns a failed Playwright exit after successful cleanup releases both markers", async () => {
     const events: string[] = [];
     const deps = dependencies(events, {
       async startPlaywright() {
@@ -110,7 +123,48 @@ describe("safe inbox process lifecycle", () => {
       },
     });
     await expect(runInboxLifecycle(deps)).resolves.toBe(7);
-    expect(events.slice(-3)).toEqual(["stop:playwright", "stop:server", "cleanup"]);
+    expect(events.slice(-4)).toEqual([
+      "stop:playwright",
+      "stop:server",
+      "cleanup",
+      "release:lock",
+    ]);
+  });
+
+  it("does not clean up or release markers when process shutdown fails", async () => {
+    const events: string[] = [];
+    const deps = dependencies(events, {
+      async startPlaywright() {
+        events.push("start:playwright");
+        return {
+          wait: async () => {
+            events.push("wait:playwright");
+            return 0;
+          },
+          stop: async () => {
+            events.push("stop:playwright");
+            throw new Error("shutdown failed with private process details");
+          },
+        };
+      },
+    });
+    const result = runInboxLifecycle(deps);
+    await expect(result).rejects.toEqual(expect.any(InboxMarkerPreservationError));
+    await expect(result).rejects.not.toThrow(/private process details/);
+    expect(events).not.toContain("cleanup");
+    expect(events).not.toContain("release:lock");
+  });
+
+  it("preserves the lock when cleanup resolves but leaves the receipt", async () => {
+    const events: string[] = [];
+    const deps = dependencies(events, {
+      receiptExists: () => true,
+    });
+    await expect(runInboxLifecycle(deps)).rejects.toEqual(
+      expect.any(InboxMarkerPreservationError)
+    );
+    expect(events).toContain("cleanup");
+    expect(events).not.toContain("release:lock");
   });
 
   it.each([
@@ -140,7 +194,103 @@ describe("safe inbox process lifecycle", () => {
       },
     });
     await expect(runInboxLifecycle(deps)).resolves.toBe(expectedCode);
-    expect(events.slice(-3)).toEqual(["stop:playwright", "stop:server", "cleanup"]);
+    expect(events.slice(-4)).toEqual([
+      "stop:playwright",
+      "stop:server",
+      "cleanup",
+      "release:lock",
+    ]);
+  });
+
+  it.each(["guard failure", "cleanup failure", "negative verification failure"])(
+    "preserves receipt and lock after %s",
+    async (failure) => {
+      const events: string[] = [];
+      const deps = dependencies(events, {
+        async cleanup() {
+          events.push("cleanup");
+          throw new Error(`${failure}: private database details`);
+        },
+      });
+      const result = runInboxLifecycle(deps);
+      await expect(result).rejects.toEqual(expect.any(InboxMarkerPreservationError));
+      await expect(result).rejects.not.toThrow(/private database details/);
+      expect(events).not.toContain("release:lock");
+    }
+  );
+
+  it("releases the attempt lock when provisioning fails before a receipt remains", async () => {
+    const events: string[] = [];
+    const deps = dependencies(events, {
+      async provision() {
+        events.push("provision");
+        throw new Error("provision failed");
+      },
+    });
+    await expect(runInboxLifecycle(deps)).rejects.toThrow("provision failed");
+    expect(events).toEqual(["provision", "release:lock"]);
+  });
+
+  it("preserves markers when failed provisioning leaves a receipt", async () => {
+    const events: string[] = [];
+    const deps = dependencies(events, {
+      async provision() {
+        events.push("provision");
+        throw new Error("provision failed after receipt");
+      },
+      receiptExists: () => true,
+      async cleanup() {
+        events.push("cleanup");
+        throw new Error("guard rejected incomplete fixture");
+      },
+    });
+    await expect(runInboxLifecycle(deps)).rejects.toEqual(
+      expect.any(InboxMarkerPreservationError)
+    );
+    expect(events).toEqual(["provision", "cleanup"]);
+  });
+
+  it("preserves the lock when a signal arrives and cleanup does not complete", async () => {
+    const events: string[] = [];
+    const signals = new FakeSignals();
+    let releaseWait: ((code: number) => void) | undefined;
+    let rejectCleanup: ((error: Error) => void) | undefined;
+    let cleanupStarted: (() => void) | undefined;
+    const cleanupStartedPromise = new Promise<void>((resolve) => {
+      cleanupStarted = resolve;
+    });
+    const deps = dependencies(events, {
+      signals,
+      async startPlaywright() {
+        events.push("start:playwright");
+        return {
+          wait: async () => {
+            events.push("wait:playwright");
+            queueMicrotask(() => signals.emit("SIGTERM"));
+            return new Promise<number>((resolve) => {
+              releaseWait = resolve;
+            });
+          },
+          stop: async () => {
+            events.push("stop:playwright");
+            releaseWait?.(1);
+          },
+        };
+      },
+      cleanup: () => {
+        events.push("cleanup");
+        cleanupStarted?.();
+        return new Promise<void>((_resolve, reject) => {
+          rejectCleanup = reject;
+        });
+      },
+    });
+    const result = runInboxLifecycle(deps);
+    await cleanupStartedPromise;
+    expect(events).not.toContain("release:lock");
+    rejectCleanup?.(new Error("cleanup interrupted"));
+    await expect(result).rejects.toEqual(expect.any(InboxMarkerPreservationError));
+    expect(events).not.toContain("release:lock");
   });
 
   it("resolves installed Next and Playwright CLIs without pnpm", () => {

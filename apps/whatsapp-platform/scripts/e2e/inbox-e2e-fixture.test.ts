@@ -16,7 +16,9 @@ import {
 import { provisionInboxFixture, type ProvisionClient } from "./provision-inbox-e2e";
 import { cleanupInboxFixture, type CleanupClient } from "./cleanup-inbox-e2e";
 
-const DATABASE_URL = "postgresql://secret-user:secret-pass@db.example.test:5432/fixture?sslmode=require";
+const PROJECT_REF = "project-ref-secret";
+const DATABASE_HOSTNAME = `${PROJECT_REF}.db.example.test`;
+const DATABASE_URL = `postgresql://secret-user:secret-pass@${DATABASE_HOSTNAME}:5432/fixture?sslmode=require`;
 const tempDirs: string[] = [];
 
 function tempPath(name = "receipt.json"): string {
@@ -329,19 +331,46 @@ describe("safe inbox fixture receipt", () => {
     expect(raw).not.toContain(identity.password);
     expect(raw).not.toContain("secret-user");
     expect(raw).not.toContain("secret-pass");
+    expect(raw).not.toContain(PROJECT_REF);
+    expect(raw).not.toContain(DATABASE_HOSTNAME);
+    expect(raw).not.toContain(DATABASE_URL);
     expect(Object.keys(readReceipt(receiptPath)).sort()).toEqual(
       ["emailHash", "runId", "targetFingerprint", "tenantId", "userId", "version"].sort()
     );
   });
 
-  it("creates a stable sanitized target fingerprint", () => {
+  it("changes the fingerprint when the normalized username changes", () => {
     const first = targetFingerprint(DATABASE_URL);
-    const changedCredentials = targetFingerprint(
-      "postgresql://another:password@db.example.test:5432/fixture?other=true"
+    const changedUsername = targetFingerprint(
+      `postgresql://another:secret-pass@${DATABASE_HOSTNAME}:5432/fixture?sslmode=require`
     );
-    expect(first).toBe(changedCredentials);
+    expect(first).not.toBe(changedUsername);
     expect(first).toMatch(/^[a-f0-9]{64}$/);
-    expect(first).not.toContain("db.example.test");
+    expect(first).not.toContain(DATABASE_HOSTNAME);
+  });
+
+  it("uses interpreted percent-decoded username values", () => {
+    expect(
+      targetFingerprint("postgresql://fixture%2Duser:one@db.example.test/fixture")
+    ).toBe(targetFingerprint("postgresql://fixture-user:two@db.example.test/fixture"));
+  });
+
+  it("excludes password and query from the fingerprint", () => {
+    expect(
+      targetFingerprint("postgresql://fixture-user:first@db.example.test/fixture?sslmode=require")
+    ).toBe(
+      targetFingerprint("postgresql://fixture-user:second@db.example.test/fixture?application_name=x")
+    );
+  });
+
+  it("normalizes equivalent protocol, hostname, port, database and username values", () => {
+    const encoded = targetFingerprint(
+      "POSTGRES://%20fixture%2Duser%20:one@DB.EXAMPLE.TEST.:5432/%20fixture%20"
+    );
+    const normalized = targetFingerprint(
+      "postgresql://fixture-user:two@db.example.test/fixture"
+    );
+    expect(encoded).toBe(normalized);
   });
 
   it("contains no adopt/update/name-selection or empty-delete fallback", () => {

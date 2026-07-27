@@ -1,4 +1,5 @@
 import { spawn, type ChildProcess } from "node:child_process";
+import fs from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -6,6 +7,7 @@ import { config } from "dotenv";
 import { PrismaClient } from "../../src/generated/prisma-whatsapp";
 import {
   APP_ROOT,
+  RECEIPT_PATH,
   acquireFixtureLock,
   resolveDatasourceUrl,
 } from "./inbox-e2e-fixture";
@@ -63,8 +65,23 @@ export type InboxLifecycleDependencies = {
   waitForServer(server: ManagedProcess): Promise<void>;
   startPlaywright(identity: RunnerIdentity): Promise<ManagedProcess>;
   cleanup(): Promise<void>;
+  receiptExists(): boolean;
+  releaseLock(): void;
   signals?: SignalSource;
 };
+
+type FixtureMarkerState =
+  | "attempt-lock-held"
+  | "receipt-and-lock-held"
+  | "cleanup-complete"
+  | "released";
+
+export class InboxMarkerPreservationError extends Error {
+  constructor(options?: ErrorOptions) {
+    super("Ciclo abortado; recibo e lock preservados para verificação segura", options);
+    this.name = "InboxMarkerPreservationError";
+  }
+}
 
 export async function runInboxLifecycle(deps: InboxLifecycleDependencies): Promise<number> {
   const signals = deps.signals ?? process;
@@ -72,7 +89,7 @@ export async function runInboxLifecycle(deps: InboxLifecycleDependencies): Promi
   let playwright: ManagedProcess | null = null;
   let serverStopped = false;
   let playwrightStopped = false;
-  let provisioned = false;
+  let markerState: FixtureMarkerState = "attempt-lock-held";
   let interruptedSignal: NodeJS.Signals | null = null;
   let stopPromise: Promise<void> = Promise.resolve();
 
@@ -97,9 +114,10 @@ export async function runInboxLifecycle(deps: InboxLifecycleDependencies): Promi
   try {
     let testExitCode = 1;
     let executionError: unknown;
+    let shutdownError: unknown;
     try {
       const identity = await deps.provision();
-      provisioned = true;
+      markerState = "receipt-and-lock-held";
       if (!interruptedSignal) {
         server = await deps.startServer();
         if (!interruptedSignal) await deps.waitForServer(server);
@@ -109,13 +127,42 @@ export async function runInboxLifecycle(deps: InboxLifecycleDependencies): Promi
         if (!interruptedSignal) testExitCode = await playwright.wait();
       }
     } catch (error) {
+      if (markerState === "attempt-lock-held" && deps.receiptExists()) {
+        markerState = "receipt-and-lock-held";
+      }
       executionError = error;
     } finally {
-      await stopPromise;
-      await stopProcesses();
+      try {
+        await stopPromise;
+        await stopProcesses();
+      } catch (error) {
+        shutdownError = error;
+      }
     }
 
-    if (provisioned) await deps.cleanup();
+    if (shutdownError) {
+      if (markerState === "receipt-and-lock-held") {
+        throw new InboxMarkerPreservationError({ cause: shutdownError });
+      }
+      deps.releaseLock();
+      markerState = "released";
+      throw shutdownError;
+    }
+    if (markerState === "receipt-and-lock-held") {
+      try {
+        await deps.cleanup();
+        if (deps.receiptExists()) {
+          throw new Error("Cleanup incompleto: recibo ainda presente");
+        }
+        markerState = "cleanup-complete";
+      } catch (error) {
+        throw new InboxMarkerPreservationError({ cause: error });
+      }
+    }
+    if (markerState === "attempt-lock-held" || markerState === "cleanup-complete") {
+      deps.releaseLock();
+      markerState = "released";
+    }
     if (executionError && !interruptedSignal) throw executionError;
     return interruptedSignal === "SIGTERM" ? 143 : interruptedSignal ? 130 : testExitCode;
   } finally {
@@ -181,8 +228,7 @@ export async function runInboxE2E(): Promise<number> {
   loadLocalEnvironment();
   const datasourceUrl = resolveDatasourceUrl();
   const lock = acquireFixtureLock();
-  try {
-    return await runInboxLifecycle({
+  return runInboxLifecycle({
       async provision() {
         const client = new PrismaClient({ datasources: { db: { url: datasourceUrl } } });
         try {
@@ -249,10 +295,9 @@ export async function runInboxE2E(): Promise<number> {
           await client.$disconnect();
         }
       },
+      receiptExists: () => fs.existsSync(RECEIPT_PATH),
+      releaseLock: () => lock.release(),
     });
-  } finally {
-    lock.release();
-  }
 }
 
 const isDirectExecution =
@@ -263,8 +308,11 @@ if (isDirectExecution) {
       process.exitCode = code;
     })
     .catch((error: unknown) => {
-      console.error("Execução abortada; valide o recibo antes de nova tentativa");
-      console.error(error instanceof Error ? error.message : "Falha no ciclo Inbox E2E");
+      console.error(
+        error instanceof InboxMarkerPreservationError
+          ? error.message
+          : "Falha no ciclo Inbox E2E; consulte os logs sanitizados"
+      );
       process.exitCode = 1;
     });
 }
