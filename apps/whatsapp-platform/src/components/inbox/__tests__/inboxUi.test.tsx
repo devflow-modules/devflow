@@ -10,13 +10,16 @@ import { ChatWindow } from "../ChatWindow";
 import { MessageInput } from "../MessageInput";
 import { ChatHeader } from "../ChatHeader";
 import { InternalNotesPanel } from "../InternalNotesPanel";
-import type { WaInboxMessageRow, WaInboxThreadRow } from "../inboxTypes";
+import { INBOX_QK, type WaInboxMessageRow, type WaInboxThreadRow } from "../inboxTypes";
 import { SupportProvider } from "@/components/support/SupportProvider";
 
-function createWrapper() {
-  const qc = new QueryClient({
+function createQueryClient() {
+  return new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
+}
+
+function createWrapper(qc = createQueryClient()) {
   return function Wrapper({ children }: { children: React.ReactNode }) {
     return (
       <QueryClientProvider client={qc}>
@@ -298,6 +301,73 @@ describe("Inbox UI", () => {
     expect(screen.getByTestId("messages-loading")).toBeInTheDocument();
   });
 
+  it("MessageList mostra erro acessível e retry recupera para o estado vazio", async () => {
+    const user = userEvent.setup();
+    const originalFetch = vi.mocked(fetch).getMockImplementation();
+    let messageRequests = 0;
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/api/inbox/conversations/thread-1/messages")) {
+        messageRequests += 1;
+        if (messageRequests === 1) {
+          return Promise.resolve({
+            ok: false,
+            status: 503,
+            json: async () => ({ error: "Falha temporária" }),
+          } as Response);
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            success: true,
+            data: { messages: [], pagination: {} },
+          }),
+        } as Response);
+      }
+      return originalFetch!(input, init);
+    });
+
+    render(<MessageList threadId="thread-1" />, { wrapper: createWrapper() });
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Não foi possível carregar as mensagens");
+    expect(alert).toHaveTextContent("Falha temporária");
+
+    await user.click(within(alert).getByRole("button", { name: "Tentar novamente" }));
+
+    expect(await screen.findByText("Sem mensagens nesta conversa")).toBeInTheDocument();
+    expect(messageRequests).toBe(2);
+  });
+
+  it("MessageList vazio permite atualizar sem alterar o contrato da consulta", async () => {
+    const user = userEvent.setup();
+    const originalFetch = vi.mocked(fetch).getMockImplementation();
+    let messageRequests = 0;
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/api/inbox/conversations/thread-1/messages")) {
+        messageRequests += 1;
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            success: true,
+            data: { messages: [], pagination: {} },
+          }),
+        } as Response);
+      }
+      return originalFetch!(input, init);
+    });
+
+    render(<MessageList threadId="thread-1" />, { wrapper: createWrapper() });
+
+    expect(await screen.findByText("Sem mensagens nesta conversa")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Atualizar" }));
+
+    await waitFor(() => expect(messageRequests).toBe(2));
+  });
+
   it("lista vazia sem threads no tenant mostra guia da primeira mensagem", async () => {
     vi.mocked(fetch).mockImplementation((input: RequestInfo | URL) => {
       const url = String(input);
@@ -348,6 +418,96 @@ describe("Inbox UI", () => {
     expect(screen.getByText(/\+351 910 000 000/)).toBeInTheDocument();
   });
 
+  it("lista vazia por filtro mantém próximo passo para Precisa de resposta", async () => {
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/inbox/conversations") && !url.includes("/messages")) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: { threads: [], pagination: { total: 0, limit: 100, offset: 0 } },
+          }),
+        } as Response);
+      }
+      return Promise.resolve({ ok: false, status: 404 } as Response);
+    });
+    const onFilterChange = vi.fn();
+
+    render(
+      <ConversationsList
+        selectedId={null}
+        onSelect={vi.fn()}
+        filter="mine"
+        onFilterChange={onFilterChange}
+        lineFilter={null}
+        lines={[]}
+        onLineFilterChange={vi.fn()}
+        queueFilter={null}
+        queues={[]}
+        onQueueFilterChange={vi.fn()}
+        tenantThreadTotal={3}
+      />,
+      { wrapper: createWrapper() }
+    );
+
+    expect(await screen.findByText("Nada por aqui neste filtro")).toBeInTheDocument();
+    await userEvent.setup().click(
+      screen.getByRole("button", { name: "Precisa de resposta" })
+    );
+    expect(onFilterChange).toHaveBeenCalledWith("needs_response");
+  });
+
+  it("lista mostra erro acessível e retry refaz a consulta", async () => {
+    const user = userEvent.setup();
+    let conversationRequests = 0;
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/inbox/conversations") && !url.includes("/messages")) {
+        conversationRequests += 1;
+        if (conversationRequests === 1) {
+          return Promise.resolve({
+            ok: false,
+            status: 503,
+            json: async () => ({ error: "Inbox indisponível" }),
+          } as Response);
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: { threads: [], pagination: { total: 0, limit: 100, offset: 0 } },
+          }),
+        } as Response);
+      }
+      return Promise.resolve({ ok: false, status: 404 } as Response);
+    });
+
+    render(
+      <ConversationsList
+        selectedId={null}
+        onSelect={vi.fn()}
+        filter="needs_response"
+        onFilterChange={vi.fn()}
+        lineFilter={null}
+        lines={[]}
+        onLineFilterChange={vi.fn()}
+        queueFilter={null}
+        queues={[]}
+        onQueueFilterChange={vi.fn()}
+        tenantThreadTotal={2}
+      />,
+      { wrapper: createWrapper() }
+    );
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Não foi possível carregar as conversas");
+    await user.click(within(alert).getByRole("button", { name: "Tentar novamente" }));
+
+    expect(await screen.findByText("Tudo em dia")).toBeInTheDocument();
+    expect(conversationRequests).toBe(2);
+  });
+
   it("ChatHeader mostra tags da thread", async () => {
     const thread: WaInboxThreadRow = {
       id: "thread-1",
@@ -378,6 +538,90 @@ describe("Inbox UI", () => {
     });
     await waitFor(() => {
       expect(screen.getByText(/Ainda não há notas/)).toBeInTheDocument();
+    });
+  });
+
+  it("InternalNotesPanel renderiza autor, cria nota e invalida notas e audit", async () => {
+    const user = userEvent.setup();
+    const originalFetch = vi.mocked(fetch).getMockImplementation();
+    const createdAt = "2026-07-27T15:00:00.000Z";
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/internal-notes")) {
+        if (init?.method === "POST") {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: {
+                note: {
+                  id: "note-2",
+                  body: "Nova nota",
+                  userId: "u1",
+                  authorName: "Agente",
+                  createdAt,
+                  updatedAt: createdAt,
+                },
+              },
+            }),
+          } as Response);
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: {
+              notes: [
+                {
+                  id: "note-1",
+                  body: "Nota inicial",
+                  userId: "u1",
+                  authorName: "Agente",
+                  createdAt,
+                  updatedAt: createdAt,
+                },
+              ],
+            },
+          }),
+        } as Response);
+      }
+      return originalFetch!(input, init);
+    });
+    const queryClient = createQueryClient();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    render(<InternalNotesPanel threadId="thread-1" onClose={vi.fn()} />, {
+      wrapper: createWrapper(queryClient),
+    });
+
+    expect(await screen.findByText("Nota inicial")).toBeInTheDocument();
+    expect(screen.getByText(/Agente ·/)).toBeInTheDocument();
+
+    const saveButton = screen.getByTestId("internal-note-save");
+    expect(saveButton).toBeDisabled();
+    await user.type(
+      screen.getByPlaceholderText("Lembrete para a equipa (não é enviado ao WhatsApp)…"),
+      "Nova nota"
+    );
+    expect(saveButton).toBeEnabled();
+    await user.click(saveButton);
+
+    await waitFor(() => {
+      expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+        expect.stringContaining("/internal-notes"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ body: "Nova nota" }),
+        })
+      );
+    });
+    await waitFor(() => {
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: INBOX_QK.internalNotes("thread-1"),
+      });
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: INBOX_QK.audit("thread-1"),
+      });
     });
   });
 
@@ -499,6 +743,112 @@ describe("Inbox UI", () => {
         expect.stringContaining("/api/inbox/conversations/thread-1/send"),
         expect.objectContaining({ method: "POST" })
       );
+    });
+  });
+
+  it("MessageInput bloqueia double-click enquanto o primeiro envio está pendente", async () => {
+    const user = userEvent.setup();
+    const originalFetch = vi.mocked(fetch).getMockImplementation();
+    let resolveSend: ((response: Response) => void) | undefined;
+    const pendingSend = new Promise<Response>((resolve) => {
+      resolveSend = resolve;
+    });
+    let sendRequests = 0;
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/send") && init?.method === "POST") {
+        sendRequests += 1;
+        return pendingSend;
+      }
+      return originalFetch!(input, init);
+    });
+
+    render(<MessageInput threadId="thread-1" thread={null} />, { wrapper: createWrapper() });
+    const textarea = await screen.findByPlaceholderText("Escreva a mensagem…");
+    await user.type(textarea, "Uma resposta");
+    await user.dblClick(screen.getByTestId("send-button"));
+
+    await waitFor(() => {
+      expect(sendRequests).toBe(1);
+      expect(screen.getByTestId("send-button")).toBeDisabled();
+      expect(screen.getByTestId("send-button")).toHaveTextContent("A enviar…");
+    });
+
+    resolveSend?.({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true }),
+    } as Response);
+    await waitFor(() => {
+      expect(screen.getByTestId("send-button")).toHaveTextContent("Enviar");
+      expect(textarea).not.toBeDisabled();
+    });
+  });
+
+  it("MessageInput reverte optimistic, preserva texto e retry envia uma única vez", async () => {
+    const user = userEvent.setup();
+    const originalFetch = vi.mocked(fetch).getMockImplementation();
+    let sendRequests = 0;
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/send") && init?.method === "POST") {
+        sendRequests += 1;
+        if (sendRequests === 1) {
+          return Promise.resolve({
+            ok: false,
+            status: 502,
+            json: async () => ({
+              success: false,
+              error: { message: "Cloud indisponível" },
+            }),
+          } as Response);
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ success: true }),
+        } as Response);
+      }
+      return originalFetch!(input, init);
+    });
+    const existingMessage: WaInboxMessageRow = {
+      id: "existing-message",
+      waMessageId: "wamid.inbound-1",
+      direction: "INBOUND",
+      fromNumber: "5511999990000",
+      toNumber: "551133334444",
+      messageType: "TEXT",
+      contentText: "Mensagem anterior",
+      contentJson: null,
+      ts: "2026-07-27T14:59:00.000Z",
+      status: "RECEIVED",
+      errorCode: null,
+      errorMessage: null,
+      createdAt: "2026-07-27T14:59:00.000Z",
+    };
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(INBOX_QK.messages("thread-1"), [existingMessage]);
+
+    render(<MessageInput threadId="thread-1" thread={null} />, {
+      wrapper: createWrapper(queryClient),
+    });
+    const textarea = await screen.findByPlaceholderText("Escreva a mensagem…");
+    await user.type(textarea, "Resposta preservada");
+    await user.click(screen.getByTestId("send-button"));
+
+    expect(await screen.findByText("Não enviámos a mensagem.")).toBeInTheDocument();
+    expect(textarea).toHaveValue("Resposta preservada");
+    expect(queryClient.getQueryData(INBOX_QK.messages("thread-1"))).toEqual([
+      existingMessage,
+    ]);
+    expect(sendRequests).toBe(1);
+
+    await user.click(screen.getByRole("button", { name: "Tentar novamente" }));
+
+    await waitFor(() => {
+      expect(sendRequests).toBe(2);
+      expect(screen.queryByText("Não enviámos a mensagem.")).not.toBeInTheDocument();
+      expect(textarea).toHaveValue("");
     });
   });
 

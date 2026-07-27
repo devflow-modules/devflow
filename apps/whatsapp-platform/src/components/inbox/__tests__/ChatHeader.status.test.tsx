@@ -128,4 +128,28 @@ describe("ChatHeader status lifecycle", () => {
       expect(screen.queryByTestId("header-status-error")).not.toBeInTheDocument();
     });
   });
+
+  it("mantém conflito 409 visível e permite repetir a transição", async () => {
+    const user = userEvent.setup();
+    mockUpdateConversationStatus
+      .mockRejectedValueOnce(
+        new Error("Conflito ao atualizar conversa. Atualize e tente novamente.")
+      )
+      .mockResolvedValueOnce(undefined);
+
+    renderHeader(baseThread("CLOSED"));
+    await user.click(await screen.findByTestId("header-reopen"));
+
+    const alert = await screen.findByTestId("header-status-error");
+    expect(alert).toHaveAttribute("role", "alert");
+    expect(alert).toHaveTextContent(
+      "Conflito ao atualizar conversa. Atualize e tente novamente."
+    );
+
+    await user.click(screen.getByTestId("header-reopen"));
+    await waitFor(() => {
+      expect(mockUpdateConversationStatus).toHaveBeenCalledTimes(2);
+      expect(screen.queryByTestId("header-status-error")).not.toBeInTheDocument();
+    });
+  });
 });
