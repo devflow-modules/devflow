@@ -80,7 +80,7 @@ export function InternalNotesPanel({
             className={`min-h-[44px] flex-1 resize-none text-sm ${fieldControlBase} border-[rgb(245_158_11/0.35)] bg-card/90`}
           />
           <Button
-            variant="disabled"
+            variant="secondary"
             type="button"
             className={buttonClassName("secondary")}
             disabled={createMut.isPending || !draft.trim()}
