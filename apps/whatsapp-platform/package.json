@@ -21,6 +21,7 @@
         "test:a11y": "playwright test tests/a11y",
         "test:a11y:product-ui": "playwright test tests/a11y/product-ui-a11y.spec.ts",
         "test:e2e:inbox": "playwright test tests/e2e/inbox.spec.ts",
+        "test:e2e:inbox:safe": "tsx scripts/e2e/run-inbox-e2e.ts",
         "smoke": "tsx ../../scripts/smoke-test-whatsapp.ts",
         "ops:check-channel": "tsx ../../scripts/ops/check-whatsapp-channel.ts",
         "ops:promote-admin": "tsx scripts/promote-platform-admin.ts",
