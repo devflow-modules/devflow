@@ -9,7 +9,7 @@ import { useSessionRole } from "@/components/navigation/SessionRoleContext";
 import { inboxAssigneeCopy } from "@/lib/roleProductLabels";
 import type { WaInboxThreadRow } from "./inboxTypes";
 import type { ConversationState } from "@/modules/inbox/waInboxConversationState";
-import { OperatorSuggestion } from "./OperatorSuggestion";
+import { OperatorSuggestion } from "./OperatorSuggestionPanel";
 import { generateOperatorSuggestion } from "./operatorSuggestion";
 import { aiStateFriendlyLabel, leadScoreHumanLabel, priorityGuidance } from "./leadPanelCopy";
 import {
