@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   createDefaultInboxMockStore,
+  finalizeInboxIsolationEvidence,
   installInboxOperationalMocks,
   type InboxMockStore,
 } from "./helpers/inbox-api-mock";
@@ -12,6 +13,10 @@ async function setupInboxPage(page: import("@playwright/test").Page, store: Inbo
   await expect(page.getByTestId("inbox-shell")).toBeVisible({ timeout: 60_000 });
   await expect(page.getByTestId("conversations-list")).toBeVisible({ timeout: 60_000 });
 }
+
+test.afterAll(() => {
+  finalizeInboxIsolationEvidence();
+});
 
 test.describe("Inbox operacional", () => {
   test.beforeEach(async ({ context }) => {

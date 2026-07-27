@@ -50,10 +50,16 @@ function dependencies(
   const signals = new FakeSignals();
   return {
     signals,
+    verifyTargetFingerprint: async () => undefined,
     async provision() {
       events.push("provision");
-      return { email: "fixture@example.invalid", password: "not-persisted" };
+      return {
+        runId: "1234567890abcdef1234567890abcdef",
+        email: "fixture@example.invalid",
+        password: "not-persisted",
+      };
     },
+    prepareArtifacts: async () => undefined,
     async startServer() {
       events.push("start:server");
       return processHandle("server", events, async () => 0);
@@ -65,6 +71,8 @@ function dependencies(
       events.push("start:playwright");
       return processHandle("playwright", events, async () => 0);
     },
+    cleanupArtifacts: async () => undefined,
+    artifactsAbsent: () => true,
     async cleanup() {
       events.push("cleanup");
     },
@@ -74,6 +82,7 @@ function dependencies(
     releaseLock() {
       events.push("release:lock");
     },
+    reportCompletion: () => undefined,
     ...overrides,
   };
 }
@@ -94,6 +103,129 @@ describe("safe inbox process lifecycle", () => {
       "cleanup",
       "release:lock",
     ]);
+  });
+
+  it("removes and confirms artifacts after shutdown and before database cleanup", async () => {
+    const events: string[] = [];
+    let absent = false;
+    const code = await runInboxLifecycle(
+      dependencies(events, {
+        async cleanupArtifacts() {
+          events.push("cleanup:artifacts");
+          absent = true;
+        },
+        artifactsAbsent() {
+          events.push("verify:artifacts-absent");
+          return absent;
+        },
+      })
+    );
+    expect(code).toBe(0);
+    expect(events).toEqual([
+      "provision",
+      "start:server",
+      "ready:server",
+      "start:playwright",
+      "wait:playwright",
+      "stop:playwright",
+      "stop:server",
+      "cleanup:artifacts",
+      "verify:artifacts-absent",
+      "cleanup",
+      "release:lock",
+    ]);
+  });
+
+  it.each([
+    ["removal failure", async () => {
+      throw new Error("private artifact path");
+    }, () => true],
+    ["absence failure", async () => undefined, () => false],
+  ])("preserves receipt and lock on artifact %s", async (_label, cleanupArtifacts, artifactsAbsent) => {
+    const events: string[] = [];
+    const result = runInboxLifecycle(
+      dependencies(events, {
+        cleanupArtifacts,
+        artifactsAbsent,
+      })
+    );
+    await expect(result).rejects.toEqual(expect.any(InboxMarkerPreservationError));
+    await expect(result).rejects.not.toThrow(/private artifact path/);
+    expect(events).not.toContain("cleanup");
+    expect(events).not.toContain("release:lock");
+  });
+
+  it("removes artifacts after a functional failure when integral cleanup succeeds", async () => {
+    const events: string[] = [];
+    const original = new Error("functional failure");
+    const result = runInboxLifecycle(
+      dependencies(events, {
+        async startPlaywright() {
+          return processHandle("playwright", events, async () => {
+            throw original;
+          });
+        },
+        async cleanupArtifacts() {
+          events.push("cleanup:artifacts");
+        },
+      })
+    );
+    await expect(result).rejects.toBe(original);
+    expect(events.indexOf("cleanup:artifacts")).toBeGreaterThan(events.indexOf("stop:server"));
+    expect(events.indexOf("cleanup")).toBeGreaterThan(events.indexOf("cleanup:artifacts"));
+    expect(events).toContain("release:lock");
+  });
+
+  it("verifies one target fingerprint for provision, execution and cleanup", async () => {
+    const events: string[] = [];
+    const stages: string[] = [];
+    let reported = false;
+    await runInboxLifecycle(
+      dependencies(events, {
+        verifyTargetFingerprint(stage) {
+          stages.push(stage);
+        },
+        reportCompletion() {
+          reported = true;
+        },
+      })
+    );
+    expect(stages).toEqual(["provision", "execution", "cleanup"]);
+    expect(reported).toBe(true);
+  });
+
+  it("fails before database cleanup when the final target diverges", async () => {
+    const events: string[] = [];
+    const result = runInboxLifecycle(
+      dependencies(events, {
+        verifyTargetFingerprint(stage) {
+          if (stage === "cleanup") throw new Error("target divergence");
+        },
+      })
+    );
+    await expect(result).rejects.toEqual(expect.any(InboxMarkerPreservationError));
+    expect(events).not.toContain("cleanup");
+    expect(events).not.toContain("release:lock");
+  });
+
+  it("preserves receipt and lock when post-provision artifact preparation fails", async () => {
+    const events: string[] = [];
+    const result = runInboxLifecycle(
+      dependencies(events, {
+        prepareArtifacts() {
+          events.push("prepare:artifacts");
+          throw new Error("private preparation path");
+        },
+        async cleanupArtifacts() {
+          events.push("cleanup:artifacts");
+        },
+      })
+    );
+    await expect(result).rejects.toEqual(expect.any(InboxMarkerPreservationError));
+    await expect(result).rejects.not.toThrow(/private preparation path/);
+    expect(events).toEqual(["provision", "prepare:artifacts"]);
+    expect(events).not.toContain("cleanup");
+    expect(events).not.toContain("release:lock");
   });
 
   it("releases both markers after a thrown Playwright failure and successful cleanup", async () => {
@@ -132,7 +264,7 @@ describe("safe inbox process lifecycle", () => {
     ]);
   });
 
-  it("does not clean up or release markers when process shutdown fails", async () => {
+  it("preserves artifacts, receipt and lock when process shutdown fails", async () => {
     const events: string[] = [];
     const deps = dependencies(events, {
       async startPlaywright() {
@@ -148,12 +280,16 @@ describe("safe inbox process lifecycle", () => {
           },
         };
       },
+      async cleanupArtifacts() {
+        events.push("cleanup:artifacts");
+      },
     });
     const result = runInboxLifecycle(deps);
     await expect(result).rejects.toEqual(expect.any(InboxMarkerPreservationError));
     await expect(result).rejects.not.toThrow(/private process details/);
     expect(events).not.toContain("cleanup");
     expect(events).not.toContain("release:lock");
+    expect(events).not.toContain("cleanup:artifacts");
   });
 
   it("still stops Next when Playwright shutdown fails", async () => {
@@ -438,6 +574,37 @@ describe("safe inbox process lifecycle", () => {
     expect(events).not.toContain("release:lock");
   });
 
+  it("preserves fail-closed markers when a signal cannot remove artifacts", async () => {
+    const events: string[] = [];
+    const signals = new FakeSignals();
+    let releaseWait: ((code: number) => void) | undefined;
+    const result = runInboxLifecycle(
+      dependencies(events, {
+        signals,
+        async startPlaywright() {
+          return {
+            wait: async () => {
+              queueMicrotask(() => signals.emit("SIGINT"));
+              return new Promise<number>((resolve) => {
+                releaseWait = resolve;
+              });
+            },
+            stop: async () => {
+              releaseWait?.(1);
+            },
+          };
+        },
+        async cleanupArtifacts() {
+          throw new Error("private removal failure");
+        },
+      })
+    );
+    await expect(result).rejects.toEqual(expect.any(InboxMarkerPreservationError));
+    await expect(result).rejects.not.toThrow(/private removal failure/);
+    expect(events).not.toContain("cleanup");
+    expect(events).not.toContain("release:lock");
+  });
+
   it("resolves installed Next and Playwright CLIs without pnpm", () => {
     expect(resolveInstalledCli("next/dist/bin/next")).toMatch(/next[\\/]dist[\\/]bin[\\/]next/);
     expect(resolveInstalledCli("@playwright/test/cli")).toMatch(/playwright[\\/]test[\\/]cli\.js$/);
@@ -446,5 +613,8 @@ describe("safe inbox process lifecycle", () => {
     expect(source).toContain('resolveInstalledCli("next/dist/bin/next")');
     expect(source).toContain('[nextCli, "dev", "-H", "127.0.0.1", "-p", "3099"]');
     expect(source).toContain('PLAYWRIGHT_SKIP_WEBSERVER: "1"');
+    expect(source).toContain("E2E_AUTH_STORAGE_STATE_PATH");
+    expect(source).toContain("INBOX_E2E_ATTEMPT_ID");
+    expect(source).toContain('INBOX_E2E_SAFE_MODE: "1"');
   });
 });

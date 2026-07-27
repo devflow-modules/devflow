@@ -1,9 +1,12 @@
 import type { Page, Route } from "@playwright/test";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   classifyNextImageRequest,
   createDefaultInboxMockStore,
+  finalizeInboxIsolationEvidence,
+  getInboxIsolationEvidence,
   installInboxOperationalMocks,
+  resetInboxIsolationEvidenceForTests,
 } from "./inbox-api-mock";
 
 type Handler = (route: Route) => Promise<unknown>;
@@ -36,13 +39,20 @@ async function installedHandler(
   return Object.assign(handler!, { websocketHandler: websocketHandler! });
 }
 
-async function dispatch(handler: Handler, url: string, method = "GET", body?: unknown) {
+async function dispatch(
+  handler: Handler,
+  url: string,
+  method = "GET",
+  body?: unknown,
+  headers: Record<string, string> = {}
+) {
   const calls: Array<{ kind: string; value?: unknown }> = [];
   const route = {
     request: () => ({
       url: () => url,
       method: () => method,
       postData: () => (body === undefined ? null : JSON.stringify(body)),
+      headers: () => headers,
     }),
     fulfill: async (value: unknown) => calls.push({ kind: "fulfill", value }),
     continue: async () => calls.push({ kind: "continue" }),
@@ -53,6 +63,83 @@ async function dispatch(handler: Handler, url: string, method = "GET", body?: un
 }
 
 describe("inbox API fail-closed mock", () => {
+  beforeEach(() => {
+    resetInboxIsolationEvidenceForTests();
+  });
+
+  it("reports every isolation category with explicit zero observations", async () => {
+    await installedHandler();
+    finalizeInboxIsolationEvidence();
+    const evidence = getInboxIsolationEvidence();
+    expect(evidence.complete).toBe(true);
+    expect(evidence.externalRealRequests).toBe(0);
+    expect(Object.values(evidence.categories)).toHaveLength(11);
+    for (const counter of Object.values(evidence.categories)) {
+      expect(counter).toEqual({
+        observed: 0,
+        blocked: 0,
+        allowed: 0,
+        realNetworkReached: 0,
+      });
+    }
+  });
+
+  it("aggregates allowed, blocked and real-network decisions without sensitive data", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const handler = await installedHandler();
+    await dispatch(handler, "http://127.0.0.1:3099/api/auth/login", "POST");
+    await dispatch(handler, "http://127.0.0.1:3099/api/auth/verify");
+    await dispatch(handler, "http://127.0.0.1:3099/api/realtime/stream");
+    await dispatch(handler, "http://127.0.0.1:3099/_next/image?token=private");
+    await dispatch(handler, "http://127.0.0.1:3099/__nextjs_launch-editor?file=private.ts");
+    await dispatch(handler, "http://127.0.0.1:3099/api/unknown?secret=private");
+    await dispatch(
+      handler,
+      "http://127.0.0.1:3099/action?secret=private",
+      "POST",
+      undefined,
+      { "next-action": "private-action-id" }
+    );
+    await dispatch(handler, "http://127.0.0.1:3099/inbox", "POST");
+    await dispatch(handler, "http://127.0.0.1:3100/api/auth/verify");
+    await dispatch(handler, "https://external.example.test/private?token=private");
+    await handler.websocketHandler({
+      url: () => "wss://external.example.test/private?token=private",
+      close: async () => undefined,
+    });
+    finalizeInboxIsolationEvidence();
+
+    const evidence = getInboxIsolationEvidence();
+    expect(evidence.categories.authorizedBackendLogin).toEqual({
+      observed: 1,
+      blocked: 0,
+      allowed: 1,
+      realNetworkReached: 1,
+    });
+    expect(evidence.categories.blockedNextImage.blocked).toBe(1);
+    expect(evidence.categories.blockedNextDevelopment.blocked).toBe(1);
+    expect(evidence.categories.blockedUnknownLocalApi.blocked).toBe(1);
+    expect(evidence.categories.blockedServerAction.blocked).toBe(1);
+    expect(evidence.categories.blockedUnauthorizedLocalMutation.blocked).toBe(1);
+    expect(evidence.categories.blockedOtherOriginPort).toMatchObject({
+      observed: 2,
+      blocked: 2,
+      allowed: 0,
+      realNetworkReached: 0,
+    });
+    expect(evidence.externalRealRequests).toBe(0);
+    expect(evidence.categories.externalRealRequests).toMatchObject({
+      observed: 0,
+      blocked: 0,
+      allowed: 0,
+      realNetworkReached: 0,
+    });
+    expect(evidence.categories.blockedWebSocket.blocked).toBe(1);
+    const serialized = JSON.stringify(evidence);
+    expect(serialized).not.toMatch(/private|token|secret|example\.test|action-id/);
+    expect(error.mock.calls.flat().join(" ")).not.toMatch(/token=|secret=|private-action-id/);
+  });
+
   it("returns deterministic billing UI data", async () => {
     const handler = await installedHandler();
     const first = await dispatch(handler, "http://127.0.0.1:3099/api/billing/ui");
@@ -167,7 +254,7 @@ describe("inbox API fail-closed mock", () => {
       "http://127.0.0.1:3099/_next/image?url=/api/billing/ui&token=query-secret"
     );
     expect(error).toHaveBeenLastCalledWith(
-      "[inbox-e2e] blocked request: GET /_next/image (image-optimizer-disabled)"
+      "[inbox-e2e] blocked request: GET category=image-optimizer-disabled"
     );
     expect(error.mock.calls.flat().join(" ")).not.toMatch(
       /billing|query-secret|token/
@@ -222,7 +309,7 @@ describe("inbox API fail-closed mock", () => {
     }
   });
 
-  it("logs blocked diagnostics with method and pathname only", async () => {
+  it("logs blocked diagnostics with method and sanitized category only", async () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const handler = await installedHandler();
     await dispatch(
@@ -231,7 +318,9 @@ describe("inbox API fail-closed mock", () => {
       "POST",
       { password: "body-secret" }
     );
-    expect(error).toHaveBeenLastCalledWith("[inbox-e2e] blocked request: POST /api/unknown");
+    expect(error).toHaveBeenLastCalledWith(
+      "[inbox-e2e] blocked request: POST category=unknown-local-api"
+    );
     expect(error.mock.calls.flat().join(" ")).not.toMatch(/query-secret|body-secret|token|password/);
   });
 

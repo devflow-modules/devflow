@@ -8,8 +8,20 @@ import {
   APP_ROOT,
   RECEIPT_PATH,
   acquireFixtureLock,
+  targetFingerprint,
 } from "./inbox-e2e-fixture";
-import { resolveInboxE2EEnvironment } from "./inbox-e2e-environment";
+import {
+  attemptArtifactsAreAbsent,
+  consumeAggregatedIsolationEvidence,
+  prepareAttemptArtifacts,
+  removeControlledArtifact,
+  type AttemptArtifacts,
+  type IsolationEvidence,
+} from "./inbox-e2e-artifacts";
+import {
+  resolveInboxE2EEnvironment,
+  verifyTargetFingerprint as verifyFingerprint,
+} from "./inbox-e2e-environment";
 import { cleanupInboxFixture, type CleanupClient } from "./cleanup-inbox-e2e";
 import { provisionInboxFixture, type ProvisionClient } from "./provision-inbox-e2e";
 
@@ -46,7 +58,7 @@ export type ManagedProcess = {
   stop(): Promise<void>;
 };
 
-export type RunnerIdentity = { email: string; password: string };
+export type RunnerIdentity = { runId: string; email: string; password: string };
 
 export type SignalSource = {
   once(signal: "SIGINT" | "SIGTERM", listener: (signal: NodeJS.Signals) => void): unknown;
@@ -54,13 +66,18 @@ export type SignalSource = {
 };
 
 export type InboxLifecycleDependencies = {
+  verifyTargetFingerprint(stage: "provision" | "execution" | "cleanup"): Promise<void> | void;
   provision(): Promise<RunnerIdentity>;
+  prepareArtifacts(identity: RunnerIdentity): Promise<void> | void;
   startServer(): Promise<ManagedProcess>;
   waitForServer(server: ManagedProcess): Promise<void>;
   startPlaywright(identity: RunnerIdentity): Promise<ManagedProcess>;
+  cleanupArtifacts(): Promise<void>;
+  artifactsAbsent(): boolean;
   cleanup(): Promise<void>;
   receiptExists(): boolean;
   releaseLock(): void;
+  reportCompletion(): void;
   signals?: SignalSource;
 };
 
@@ -96,6 +113,12 @@ export async function runInboxLifecycle(deps: InboxLifecycleDependencies): Promi
   let markerState: FixtureMarkerState = "attempt-lock-held";
   let interruptedSignal: NodeJS.Signals | null = null;
   let stopPromise: Promise<void> = Promise.resolve();
+  const verifiedTargetStages = new Set<"provision" | "execution" | "cleanup">();
+
+  const verifyTarget = async (stage: "provision" | "execution" | "cleanup") => {
+    await deps.verifyTargetFingerprint(stage);
+    verifiedTargetStages.add(stage);
+  };
 
   const stopProcesses = async () => {
     const stops: Array<{ resource: string; promise: Promise<void> }> = [];
@@ -133,9 +156,19 @@ export async function runInboxLifecycle(deps: InboxLifecycleDependencies): Promi
     let testExitCode = 1;
     let executionError: unknown;
     let shutdownError: unknown;
+    let artifactError: unknown;
+    let artifactPreparationFailed = false;
     try {
+      await verifyTarget("provision");
       const identity = await deps.provision();
       markerState = "receipt-and-lock-held";
+      try {
+        await deps.prepareArtifacts(identity);
+      } catch (error) {
+        artifactPreparationFailed = true;
+        throw error;
+      }
+      await verifyTarget("execution");
       if (!interruptedSignal) {
         server = await deps.startServer();
         if (!interruptedSignal) await deps.waitForServer(server);
@@ -159,23 +192,47 @@ export async function runInboxLifecycle(deps: InboxLifecycleDependencies): Promi
     }
 
     if (shutdownError) {
-      let surfacedShutdownError: unknown = shutdownError;
+      let surfacedInfrastructureError: unknown = shutdownError;
       if (markerState === "receipt-and-lock-held") {
-        surfacedShutdownError = new InboxMarkerPreservationError({ cause: shutdownError });
+        surfacedInfrastructureError = new InboxMarkerPreservationError({
+          cause: shutdownError,
+        });
       } else {
         deps.releaseLock();
         markerState = "released";
       }
       if (executionError) {
         throw new AggregateError(
-          [executionError, surfacedShutdownError],
-          "Falha de execução e shutdown no Inbox E2E"
+          [executionError, surfacedInfrastructureError],
+          "Falha de execução e infraestrutura no Inbox E2E"
         );
       }
-      throw surfacedShutdownError;
+      throw surfacedInfrastructureError;
+    }
+
+    if (artifactPreparationFailed) {
+      throw new InboxMarkerPreservationError({ cause: executionError });
+    }
+
+    try {
+      await deps.cleanupArtifacts();
+      if (!deps.artifactsAbsent()) {
+        throw new Error("Artefatos E2E ainda presentes");
+      }
+    } catch (error) {
+      artifactError = error;
+    }
+    if (artifactError) {
+      if (markerState === "receipt-and-lock-held") {
+        throw new InboxMarkerPreservationError({ cause: artifactError });
+      }
+      deps.releaseLock();
+      markerState = "released";
+      throw artifactError;
     }
     if (markerState === "receipt-and-lock-held") {
       try {
+        await verifyTarget("cleanup");
         await deps.cleanup();
         if (deps.receiptExists()) {
           throw new Error("Cleanup incompleto: recibo ainda presente");
@@ -189,6 +246,7 @@ export async function runInboxLifecycle(deps: InboxLifecycleDependencies): Promi
       deps.releaseLock();
       markerState = "released";
     }
+    if (verifiedTargetStages.size === 3) deps.reportCompletion();
     if (executionError && !interruptedSignal) throw executionError;
     return interruptedSignal === "SIGTERM" ? 143 : interruptedSignal ? 130 : testExitCode;
   } finally {
@@ -252,9 +310,21 @@ export async function waitForHttpReadiness(
 
 export async function runInboxE2E(): Promise<number> {
   const resolvedEnvironment = resolveInboxE2EEnvironment();
-  const { datasourceUrl, env } = resolvedEnvironment;
+  const { datasourceUrl, env, targetFingerprint: expectedTargetFingerprint } = resolvedEnvironment;
   const lock = acquireFixtureLock();
+  let artifacts: AttemptArtifacts | undefined;
+  let playwrightWasStarted = false;
+  let isolationEvidence: IsolationEvidence | undefined;
   return runInboxLifecycle({
+      verifyTargetFingerprint(stage) {
+        const stageFingerprint =
+          stage === "cleanup"
+            ? resolveInboxE2EEnvironment().targetFingerprint
+            : targetFingerprint(datasourceUrl);
+        const currentFinalFingerprint = resolveInboxE2EEnvironment().targetFingerprint;
+        verifyFingerprint(expectedTargetFingerprint, stageFingerprint);
+        verifyFingerprint(expectedTargetFingerprint, currentFinalFingerprint);
+      },
       async provision() {
         const client = new PrismaClient({ datasources: { db: { url: datasourceUrl } } });
         try {
@@ -266,6 +336,9 @@ export async function runInboxE2E(): Promise<number> {
         } finally {
           await client.$disconnect();
         }
+      },
+      prepareArtifacts(identity) {
+        artifacts = prepareAttemptArtifacts(identity.runId);
       },
       async startServer() {
         const nextCli = resolveInstalledCli("next/dist/bin/next");
@@ -288,8 +361,9 @@ export async function runInboxE2E(): Promise<number> {
       },
       waitForServer: (server) => waitForHttpReadiness(server),
       async startPlaywright(identity) {
+        if (!artifacts) throw new Error("Artefatos da tentativa não preparados");
         const playwrightCli = resolveInstalledCli("@playwright/test/cli");
-        return managedChild(
+        const child = managedChild(
           spawn(
             process.execPath,
             [playwrightCli, "test", "tests/e2e/inbox.spec.ts"],
@@ -303,11 +377,31 @@ export async function runInboxE2E(): Promise<number> {
                 E2E_WHATSAPP_BASE_URL: SAFE_BASE_URL,
                 E2E_WHATSAPP_ADMIN_EMAIL: identity.email,
                 E2E_WHATSAPP_ADMIN_PASSWORD: identity.password,
+                E2E_AUTH_STORAGE_STATE_PATH: artifacts.storageStatePath,
+                INBOX_E2E_ATTEMPT_ID: artifacts.runId,
+                INBOX_E2E_SAFE_MODE: "1",
                 PLAYWRIGHT_SKIP_WEBSERVER: "1",
               },
             }
           )
         );
+        playwrightWasStarted = true;
+        return child;
+      },
+      async cleanupArtifacts() {
+        if (!artifacts) return;
+        removeControlledArtifact(artifacts.storageStatePath, "storage");
+        if (playwrightWasStarted) {
+          try {
+            isolationEvidence = consumeAggregatedIsolationEvidence(artifacts.runId);
+          } catch {
+            throw new Error("Relatório de isolamento não aprovado");
+          }
+        }
+      },
+      artifactsAbsent() {
+        if (!artifacts) return true;
+        return attemptArtifactsAreAbsent(artifacts);
       },
       async cleanup() {
         const client = new PrismaClient({ datasources: { db: { url: datasourceUrl } } });
@@ -323,6 +417,12 @@ export async function runInboxE2E(): Promise<number> {
       },
       receiptExists: () => fs.existsSync(RECEIPT_PATH),
       releaseLock: () => lock.release(),
+      reportCompletion() {
+        console.info("[inbox-e2e] " + JSON.stringify({ targetFingerprintVerified: true }));
+        if (isolationEvidence) {
+          console.info("[inbox-e2e:isolation] " + JSON.stringify(isolationEvidence));
+        }
+      },
     });
 }
 

@@ -18,6 +18,24 @@ export type ResolveInboxE2EEnvironmentOptions = {
   appEnvPath?: string;
 };
 
+export type TargetFingerprintReport = Readonly<{
+  targetFingerprintVerified: true;
+}>;
+
+export function verifyTargetFingerprint(
+  expected: string,
+  actual: string
+): TargetFingerprintReport {
+  if (
+    !/^[a-f0-9]{64}$/i.test(expected) ||
+    !/^[a-f0-9]{64}$/i.test(actual) ||
+    expected !== actual
+  ) {
+    throw new Error("Target fingerprint divergente");
+  }
+  return Object.freeze({ targetFingerprintVerified: true });
+}
+
 function parseEnvironmentFile(filePath: string): Record<string, string> {
   if (!fs.existsSync(filePath)) return {};
   return parse(fs.readFileSync(filePath));

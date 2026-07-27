@@ -3,7 +3,9 @@ import path from "node:path";
 import { loginUrlWithNext } from "../../../src/lib/safe-redirect";
 
 /** Ficheiro gerado por `tests/setup/global-auth.setup.ts` — não commitar. */
-export const AUTH_STORAGE_STATE_PATH = path.join(__dirname, "../../.auth/whatsapp-admin.json");
+export const AUTH_STORAGE_STATE_PATH =
+  process.env.E2E_AUTH_STORAGE_STATE_PATH?.trim() ||
+  path.join(__dirname, "../../.auth/whatsapp-admin.json");
 
 export function getE2EWhatsappAdminCredentials(): { email: string; password: string } | null {
   const email = process.env.E2E_WHATSAPP_ADMIN_EMAIL?.trim() ?? "";

@@ -3,7 +3,10 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { targetFingerprint } from "./inbox-e2e-fixture";
-import { resolveInboxE2EEnvironment } from "./inbox-e2e-environment";
+import {
+  resolveInboxE2EEnvironment,
+  verifyTargetFingerprint,
+} from "./inbox-e2e-environment";
 
 const tempDirs: string[] = [];
 const processTarget = "postgresql://process@process.example.test/process";
@@ -108,6 +111,30 @@ describe("inbox E2E environment resolution", () => {
       appTarget,
     ]);
     expect(runner.targetFingerprint).toBe(targetFingerprint(appTarget));
+  });
+
+  it("reports only successful equality without exposing target material or full hashes", () => {
+    const fingerprint = targetFingerprint(appTarget);
+    const report = verifyTargetFingerprint(fingerprint, fingerprint);
+    expect(report).toEqual({ targetFingerprintVerified: true });
+    const serialized = JSON.stringify(report);
+    expect(serialized).not.toContain(fingerprint);
+    expect(serialized).not.toMatch(/app\.example|postgres|fixture|@/);
+  });
+
+  it("rejects fingerprint divergence with a sanitized error", () => {
+    const expected = targetFingerprint(appTarget);
+    const actual = targetFingerprint(rootTarget);
+    expect(() => verifyTargetFingerprint(expected, actual)).toThrow(
+      "Target fingerprint divergente"
+    );
+    try {
+      verifyTargetFingerprint(expected, actual);
+    } catch (error) {
+      expect(String(error)).not.toContain(expected);
+      expect(String(error)).not.toContain(actual);
+      expect(String(error)).not.toMatch(/example\.test|postgresql/);
+    }
   });
 
   it("does not mutate or leak file values into the process source", () => {

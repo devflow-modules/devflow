@@ -1,4 +1,11 @@
 import type { Page } from "@playwright/test";
+import {
+  createIsolationEvidence,
+  recordIsolationDecision,
+  writeIsolationShard,
+  type IsolationCategory,
+  type IsolationEvidence,
+} from "../../../scripts/e2e/inbox-e2e-artifacts";
 import { getE2EBaseURL, isLocalE2EBaseURL } from "./whatsapp-auth";
 
 /** IDs estáveis para interceptação — não existem na DB real. */
@@ -170,13 +177,48 @@ function updateThread(store: InboxMockStore, id: string, patch: Partial<ThreadRo
   store.threads[i] = { ...store.threads[i], ...patch };
 }
 
-const LOCAL_PASSTHROUGH = new Set([
-  "POST /api/auth/login",
-  "GET /api/auth/verify",
-  "GET /api/realtime/stream",
-]);
-
 const DOCUMENT_PASSTHROUGH = new Set(["GET /login", "GET /inbox"]);
+
+let isolationEvidence = createIsolationEvidence();
+
+function persistIsolationEvidence(): void {
+  if (process.env.INBOX_E2E_SAFE_MODE !== "1") return;
+  const runId = process.env.INBOX_E2E_ATTEMPT_ID?.trim() ?? "";
+  writeIsolationShard(runId, "test-worker", isolationEvidence);
+}
+
+function observeIsolationDecision(
+  category: IsolationCategory,
+  outcome: "blocked" | "allowed",
+  realNetworkReached = false
+): void {
+  recordIsolationDecision(isolationEvidence, category, outcome, realNetworkReached);
+  persistIsolationEvidence();
+}
+
+export function finalizeInboxIsolationEvidence(): void {
+  isolationEvidence.complete = true;
+  persistIsolationEvidence();
+}
+
+export function getInboxIsolationEvidence(): IsolationEvidence {
+  return structuredClone(isolationEvidence);
+}
+
+export function resetInboxIsolationEvidenceForTests(): void {
+  isolationEvidence = createIsolationEvidence();
+}
+
+function authorizedCategory(key: string): IsolationCategory | null {
+  if (key === "POST /api/auth/login") return "authorizedBackendLogin";
+  if (key === "GET /api/auth/verify") return "authorizedBackendVerify";
+  if (key === "GET /api/realtime/stream") return "authorizedBackendRealtime";
+  return null;
+}
+
+function logBlockedRequest(method: string, category: string): void {
+  console.error(`[inbox-e2e] blocked request: ${method} category=${category}`);
+}
 
 export function classifyNextImageRequest(
   pathname: string
@@ -209,6 +251,7 @@ export async function installInboxOperationalMocks(
     throw new Error("Inbox E2E mocks require an explicit local base URL");
   }
   const allowedOrigin = new URL(configuredBaseUrl).origin;
+  persistIsolationEvidence();
   const handler = async (route: import("@playwright/test").Route) => {
     const req = route.request();
     const url = new URL(req.url());
@@ -216,19 +259,30 @@ export async function installInboxOperationalMocks(
     const key = `${method} ${url.pathname}`;
 
     if (url.origin !== allowedOrigin) {
-      console.error(`[inbox-e2e] blocked request: ${method} ${url.pathname}`);
+      observeIsolationDecision("blockedOtherOriginPort", "blocked");
+      logBlockedRequest(method, "other-origin-port");
       return route.abort("blockedbyclient");
     }
 
     if (classifyNextImageRequest(url.pathname) === "blocked-image-optimizer-disabled") {
-      console.error(
-        `[inbox-e2e] blocked request: ${method} ${url.pathname} (image-optimizer-disabled)`
-      );
+      observeIsolationDecision("blockedNextImage", "blocked");
+      logBlockedRequest(method, "image-optimizer-disabled");
       return route.abort("blockedbyclient");
     }
 
+    if (url.pathname.startsWith("/__nextjs_")) {
+      observeIsolationDecision("blockedNextDevelopment", "blocked");
+      logBlockedRequest(method, "next-development");
+      return route.abort("blockedbyclient");
+    }
+
+    const authorized = authorizedCategory(key);
+    if (authorized) {
+      observeIsolationDecision(authorized, "allowed", true);
+      return route.continue();
+    }
+
     if (
-      LOCAL_PASSTHROUGH.has(key) ||
       DOCUMENT_PASSTHROUGH.has(key) ||
       isNextAssetPassthrough(method, url.pathname)
     ) {
@@ -600,14 +654,26 @@ export async function installInboxOperationalMocks(
       }
     }
 
-    console.error(`[inbox-e2e] blocked request: ${method} ${url.pathname}`);
+    const headers = req.headers();
+    let blockedCategory = "unknown-local-request";
+    if (typeof headers["next-action"] === "string") {
+      observeIsolationDecision("blockedServerAction", "blocked");
+      blockedCategory = "server-action";
+    } else if (url.pathname.startsWith("/api/")) {
+      observeIsolationDecision("blockedUnknownLocalApi", "blocked");
+      blockedCategory = "unknown-local-api";
+    } else if (method !== "GET" && method !== "HEAD") {
+      observeIsolationDecision("blockedUnauthorizedLocalMutation", "blocked");
+      blockedCategory = "unauthorized-local-mutation";
+    }
+    logBlockedRequest(method, blockedCategory);
     return route.abort("blockedbyclient");
   };
 
   await page.route("**/*", handler);
   await page.routeWebSocket("**/*", (socket) => {
-    const url = new URL(socket.url());
-    console.error(`[inbox-e2e] blocked request: WEBSOCKET ${url.pathname}`);
+    observeIsolationDecision("blockedWebSocket", "blocked");
+    logBlockedRequest("WEBSOCKET", "websocket");
     return socket.close({ code: 1008, reason: "Inbox E2E network allowlist" });
   });
 }
