@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { getE2EBaseURL, isLocalE2EBaseURL } from "./whatsapp-auth";
 
 /** IDs estáveis para interceptação — não existem na DB real. */
 export const E2E_INBOX_THREAD_A = "e2e-wa-inbox-thread-a";
@@ -169,15 +170,53 @@ function updateThread(store: InboxMockStore, id: string, patch: Partial<ThreadRo
   store.threads[i] = { ...store.threads[i], ...patch };
 }
 
+const LOCAL_PASSTHROUGH = new Set([
+  "POST /api/auth/login",
+  "GET /api/auth/verify",
+  "GET /api/realtime/stream",
+]);
+
 /**
- * Intercepta APIs usadas pela inbox com dados controlados (sem tocar na regra de negócio do servidor).
- * Pedidos não cobertos continuam para o backend (`route.continue()`).
+ * Intercepta toda a rede da inbox. Só auth/realtime locais chegam ao backend;
+ * endpoints operacionais conhecidos são mockados e qualquer outra rede falha fechada.
  */
-export async function installInboxOperationalMocks(page: Page, store: InboxMockStore): Promise<void> {
+export async function installInboxOperationalMocks(
+  page: Page,
+  store: InboxMockStore,
+  configuredBaseUrl = getE2EBaseURL()
+): Promise<void> {
+  if (!isLocalE2EBaseURL(configuredBaseUrl)) {
+    throw new Error("Inbox E2E mocks require an explicit local base URL");
+  }
+  const allowedOrigin = new URL(configuredBaseUrl).origin;
   const handler = async (route: import("@playwright/test").Route) => {
     const req = route.request();
     const url = new URL(req.url());
     const method = req.method();
+    const key = `${method} ${url.pathname}`;
+
+    if (url.origin !== allowedOrigin) {
+      console.error(`[inbox-e2e] blocked disallowed origin: ${url.origin}`);
+      return route.abort("blockedbyclient");
+    }
+
+    if (LOCAL_PASSTHROUGH.has(key)) {
+      return route.continue();
+    }
+
+    if (url.pathname === "/api/billing/ui" && method === "GET") {
+      return route.fulfill(
+        json({
+          success: true,
+          data: {
+            plan: "FREE",
+            status: "ACTIVE",
+            features: { inbox: true },
+            usage: { messages: 0, ai: 0 },
+          },
+        })
+      );
+    }
 
     if (url.pathname === "/api/whatsapp/phone-numbers" && method === "GET") {
       return route.fulfill(
@@ -251,6 +290,20 @@ export async function installInboxOperationalMocks(page: Page, store: InboxMockS
       return route.fulfill(json({ success: true, data: { users: [] } }));
     }
 
+    if (url.pathname === "/api/inbox/presence" && method === "GET") {
+      return route.fulfill(json({ success: true, data: { users: [] } }));
+    }
+
+    if (url.pathname === "/api/inbox/queue/next" && method === "GET") {
+      return route.fulfill(json({ success: true, data: { thread: null } }));
+    }
+
+    if (url.pathname === "/api/metrics/revenue" && method === "GET") {
+      return route.fulfill(
+        json({ success: true, data: { wonCount: 0, lostCount: 0, totalWonValue: 0 } })
+      );
+    }
+
     if (url.pathname === "/api/inbox/prospect-metrics" && method === "GET") {
       const open = store.threads.filter((t) => (t as { status?: string }).status !== "CLOSED").length;
       const hot = store.threads.filter((t) => Number((t as { leadScore?: number }).leadScore) >= 40).length;
@@ -274,9 +327,8 @@ export async function installInboxOperationalMocks(page: Page, store: InboxMockS
     }
 
     const conv = parseConversationsPath(url.pathname);
-    if (!conv) return route.continue();
 
-    if (conv.kind === "list" && method === "GET") {
+    if (conv?.kind === "list" && method === "GET") {
       const phase = url.searchParams.get("phase") ?? "";
       const prospectLens = url.searchParams.get("prospectLens") ?? "";
       let threads = [...store.threads];
@@ -311,13 +363,13 @@ export async function installInboxOperationalMocks(page: Page, store: InboxMockS
       );
     }
 
-    if (conv.kind === "thread" && method === "GET") {
+    if (conv?.kind === "thread" && method === "GET") {
       const t = findThread(store, conv.id);
       if (!t) return route.fulfill(json({ success: false, error: { message: "não encontrada" } }, 404));
       return route.fulfill(json({ success: true, data: { thread: t } }));
     }
 
-    if (conv.kind === "messages" && method === "GET") {
+    if (conv?.kind === "messages" && method === "GET") {
       const messages = store.messagesByThread[conv.id] ?? [];
       return route.fulfill(
         json({
@@ -327,7 +379,7 @@ export async function installInboxOperationalMocks(page: Page, store: InboxMockS
       );
     }
 
-    if (conv.kind === "assign" && method === "POST") {
+    if (conv?.kind === "assign" && method === "POST") {
       updateThread(store, conv.id, {
         assignedToUser: { id: "e2e-user", name: "Operador E2E", email: "op@test.dev" },
         isAssignedToMe: true,
@@ -338,7 +390,7 @@ export async function installInboxOperationalMocks(page: Page, store: InboxMockS
       return route.fulfill(json({ success: true, data: { assignedTo: "e2e-user" } }));
     }
 
-    if (conv.kind === "close-deal" && method === "POST") {
+    if (conv?.kind === "close-deal" && method === "POST") {
       let body: { status?: string; value?: number; lostReason?: string } = {};
       try {
         body = JSON.parse(req.postData() || "{}") as { status?: string; value?: number; lostReason?: string };
@@ -391,7 +443,7 @@ export async function installInboxOperationalMocks(page: Page, store: InboxMockS
       );
     }
 
-    if (conv.kind === "suggest-deal" && method === "POST") {
+    if (conv?.kind === "suggest-deal" && method === "POST") {
       let body: { status?: string; value?: number; lostReason?: string } = {};
       try {
         body = JSON.parse(req.postData() || "{}") as { status?: string; value?: number; lostReason?: string };
@@ -428,7 +480,7 @@ export async function installInboxOperationalMocks(page: Page, store: InboxMockS
       );
     }
 
-    if (conv.kind === "clear-deal-suggestion" && method === "POST") {
+    if (conv?.kind === "clear-deal-suggestion" && method === "POST") {
       updateThread(store, conv.id, {
         dealSuggested: false,
         dealSuggestedAt: null,
@@ -442,7 +494,7 @@ export async function installInboxOperationalMocks(page: Page, store: InboxMockS
       );
     }
 
-    if (conv.kind === "status" && method === "POST") {
+    if (conv?.kind === "status" && method === "POST") {
       let body: { status?: string } = {};
       try {
         body = JSON.parse(req.postData() || "{}") as { status?: string };
@@ -469,7 +521,7 @@ export async function installInboxOperationalMocks(page: Page, store: InboxMockS
       return route.fulfill(json({ success: true, data: { status: st } }));
     }
 
-    if (conv.kind === "send" && method === "POST") {
+    if (conv?.kind === "send" && method === "POST") {
       if (store.sendShouldFailOnce && !store.sendFailConsumed) {
         store.sendFailConsumed = true;
         return route.fulfill(
@@ -493,19 +545,41 @@ export async function installInboxOperationalMocks(page: Page, store: InboxMockS
       return route.fulfill(json({ success: true, data: { messageId: "e2e-mid", waMessageId: "e2e-mid" } }));
     }
 
-    if (conv.kind === "sub" && method === "POST") {
-      return route.fulfill(json({ success: true, data: {} }));
+    if (conv?.kind === "sub") {
+      const knownSubMethods: Record<string, ReadonlySet<string>> = {
+        view: new Set(["POST"]),
+        typing: new Set(["POST"]),
+        audit: new Set(["GET"]),
+        "internal-notes": new Set(["GET", "POST", "DELETE"]),
+        prospect: new Set(["PATCH"]),
+        queue: new Set(["PATCH"]),
+        tags: new Set(["POST"]),
+        "suggest-reply": new Set(["POST"]),
+        "suggest-playbook": new Set(["POST"]),
+        "follow-up": new Set(["POST"]),
+      };
+      if (knownSubMethods[conv.sub]?.has(method)) {
+        if (conv.sub === "audit") {
+          return route.fulfill(json({ success: true, data: { logs: [] } }));
+        }
+        if (conv.sub === "internal-notes" && method === "GET") {
+          return route.fulfill(json({ success: true, data: { notes: [] } }));
+        }
+        return route.fulfill(json({ success: true, data: {} }));
+      }
     }
 
+    if (url.pathname.startsWith("/api/")) {
+      console.error(`[inbox-e2e] blocked unknown local API: ${method} ${url.pathname}`);
+      return route.abort("blockedbyclient");
+    }
     return route.continue();
   };
 
-  await page.route("**/api/whatsapp/phone-numbers**", handler);
-  await page.route("**/api/queues**", handler);
-  await page.route("**/api/inbox/metrics**", handler);
-  await page.route("**/api/inbox/team**", handler);
-  await page.route("**/api/inbox/tags**", handler);
-  await page.route("**/api/inbox/users**", handler);
-  await page.route("**/api/inbox/prospect-metrics**", handler);
-  await page.route("**/api/inbox/conversations**", handler);
+  await page.route("**/*", handler);
+  await page.routeWebSocket("**/*", (socket) => {
+    const url = new URL(socket.url());
+    console.error(`[inbox-e2e] blocked WebSocket origin: ${url.origin}`);
+    return socket.close({ code: 1008, reason: "Inbox E2E network allowlist" });
+  });
 }
