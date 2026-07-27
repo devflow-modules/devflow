@@ -1,9 +1,9 @@
 # WhatsApp Client 1 — Production Readiness, UX Simplification & Activation
 
-**Status:** `VALIDATE`  
-**Classe:** `current` / `backlog`  
-**Data:** 2026-07-27  
-**Runtime canónico:** `apps/whatsapp-platform`  
+**Status:** `VALIDATE`
+**Classe:** `current` / `backlog`
+**Data:** 2026-07-27
+**Runtime canónico:** `apps/whatsapp-platform`
 **Epic proposta:** `ux(whatsapp): simplify operator inbox for Client 1 pilot`
 
 Plano versionável para preparar o primeiro cliente real sem reescrever a aplicação nem remover capacidades.

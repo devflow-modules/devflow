@@ -176,6 +176,26 @@ const LOCAL_PASSTHROUGH = new Set([
   "GET /api/realtime/stream",
 ]);
 
+const DOCUMENT_PASSTHROUGH = new Set(["GET /login", "GET /inbox"]);
+
+export function classifyNextImageRequest(
+  pathname: string
+): "not-image-optimizer" | "blocked-image-optimizer-disabled" {
+  return pathname === "/_next/image"
+    ? "blocked-image-optimizer-disabled"
+    : "not-image-optimizer";
+}
+
+function isNextAssetPassthrough(method: string, pathname: string): boolean {
+  if (method !== "GET") return false;
+  return (
+    pathname.startsWith("/_next/static/") ||
+    pathname.startsWith("/_next/data/") ||
+    pathname === "/_next/webpack-hmr" ||
+    pathname === "/favicon.ico"
+  );
+}
+
 /**
  * Intercepta toda a rede da inbox. Só auth/realtime locais chegam ao backend;
  * endpoints operacionais conhecidos são mockados e qualquer outra rede falha fechada.
@@ -196,11 +216,22 @@ export async function installInboxOperationalMocks(
     const key = `${method} ${url.pathname}`;
 
     if (url.origin !== allowedOrigin) {
-      console.error(`[inbox-e2e] blocked disallowed origin: ${url.origin}`);
+      console.error(`[inbox-e2e] blocked request: ${method} ${url.pathname}`);
       return route.abort("blockedbyclient");
     }
 
-    if (LOCAL_PASSTHROUGH.has(key)) {
+    if (classifyNextImageRequest(url.pathname) === "blocked-image-optimizer-disabled") {
+      console.error(
+        `[inbox-e2e] blocked request: ${method} ${url.pathname} (image-optimizer-disabled)`
+      );
+      return route.abort("blockedbyclient");
+    }
+
+    if (
+      LOCAL_PASSTHROUGH.has(key) ||
+      DOCUMENT_PASSTHROUGH.has(key) ||
+      isNextAssetPassthrough(method, url.pathname)
+    ) {
       return route.continue();
     }
 
@@ -569,17 +600,14 @@ export async function installInboxOperationalMocks(
       }
     }
 
-    if (url.pathname.startsWith("/api/")) {
-      console.error(`[inbox-e2e] blocked unknown local API: ${method} ${url.pathname}`);
-      return route.abort("blockedbyclient");
-    }
-    return route.continue();
+    console.error(`[inbox-e2e] blocked request: ${method} ${url.pathname}`);
+    return route.abort("blockedbyclient");
   };
 
   await page.route("**/*", handler);
   await page.routeWebSocket("**/*", (socket) => {
     const url = new URL(socket.url());
-    console.error(`[inbox-e2e] blocked WebSocket origin: ${url.origin}`);
+    console.error(`[inbox-e2e] blocked request: WEBSOCKET ${url.pathname}`);
     return socket.close({ code: 1008, reason: "Inbox E2E network allowlist" });
   });
 }

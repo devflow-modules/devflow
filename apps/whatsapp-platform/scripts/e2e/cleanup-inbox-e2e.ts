@@ -1,10 +1,8 @@
-import { config } from "dotenv";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Prisma, PrismaClient } from "../../src/generated/prisma-whatsapp";
 import {
-  APP_ROOT,
   AUDIT_ACTION_ALLOWLIST,
   LOCK_PATH,
   RECEIPT_PATH,
@@ -15,10 +13,13 @@ import {
   maskedId,
   readReceipt,
   removeReceipt,
-  resolveDatasourceUrl,
   targetFingerprint,
   type FixtureLock,
 } from "./inbox-e2e-fixture";
+import {
+  resolveInboxE2EEnvironment,
+  type InboxE2EEnvironment,
+} from "./inbox-e2e-environment";
 
 type CountResult = { count: number };
 type CleanupTx = {
@@ -220,14 +221,10 @@ export async function cleanupInboxFixture(options: CleanupOptions): Promise<Clea
   }
 }
 
-function loadLocalEnvironment(): void {
-  config({ path: path.resolve(APP_ROOT, "../../.env.local") });
-  config({ path: path.resolve(APP_ROOT, ".env.local") });
-}
-
-export async function cleanupMain(): Promise<void> {
-  loadLocalEnvironment();
-  const datasourceUrl = resolveDatasourceUrl();
+export async function cleanupMain(
+  resolvedEnvironment: InboxE2EEnvironment = resolveInboxE2EEnvironment()
+): Promise<void> {
+  const { datasourceUrl } = resolvedEnvironment;
   const prisma = new PrismaClient({ datasources: { db: { url: datasourceUrl } } });
   try {
     await cleanupInboxFixture({ client: prisma as unknown as CleanupClient, datasourceUrl });

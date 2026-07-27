@@ -3,23 +3,17 @@ import fs from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { config } from "dotenv";
 import { PrismaClient } from "../../src/generated/prisma-whatsapp";
 import {
   APP_ROOT,
   RECEIPT_PATH,
   acquireFixtureLock,
-  resolveDatasourceUrl,
 } from "./inbox-e2e-fixture";
+import { resolveInboxE2EEnvironment } from "./inbox-e2e-environment";
 import { cleanupInboxFixture, type CleanupClient } from "./cleanup-inbox-e2e";
 import { provisionInboxFixture, type ProvisionClient } from "./provision-inbox-e2e";
 
 export const SAFE_BASE_URL = "http://127.0.0.1:3099";
-
-function loadLocalEnvironment(): void {
-  config({ path: path.resolve(APP_ROOT, "../../.env.local") });
-  config({ path: path.resolve(APP_ROOT, ".env.local") });
-}
 
 export function waitForExit(child: ChildProcess): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -83,6 +77,16 @@ export class InboxMarkerPreservationError extends Error {
   }
 }
 
+export class InboxShutdownError extends AggregateError {
+  constructor(resources: string[]) {
+    super(
+      resources.map((resource) => new Error(`Falha sanitizada ao parar ${resource}`)),
+      `Falha sanitizada no shutdown: ${resources.join(", ")}`
+    );
+    this.name = "InboxShutdownError";
+  }
+}
+
 export async function runInboxLifecycle(deps: InboxLifecycleDependencies): Promise<number> {
   const signals = deps.signals ?? process;
   let server: ManagedProcess | null = null;
@@ -94,13 +98,27 @@ export async function runInboxLifecycle(deps: InboxLifecycleDependencies): Promi
   let stopPromise: Promise<void> = Promise.resolve();
 
   const stopProcesses = async () => {
+    const stops: Array<{ resource: string; promise: Promise<void> }> = [];
     if (playwright && !playwrightStopped) {
       playwrightStopped = true;
-      await playwright.stop();
+      stops.push({
+        resource: "Playwright",
+        promise: Promise.resolve().then(() => playwright!.stop()),
+      });
     }
     if (server && !serverStopped) {
       serverStopped = true;
-      await server.stop();
+      stops.push({
+        resource: "Next",
+        promise: Promise.resolve().then(() => server!.stop()),
+      });
+    }
+    const results = await Promise.allSettled(stops.map(({ promise }) => promise));
+    const failedResources = results.flatMap((result, index) =>
+      result.status === "rejected" ? [stops[index]!.resource] : []
+    );
+    if (failedResources.length > 0) {
+      throw new InboxShutdownError(failedResources);
     }
   };
 
@@ -141,12 +159,20 @@ export async function runInboxLifecycle(deps: InboxLifecycleDependencies): Promi
     }
 
     if (shutdownError) {
+      let surfacedShutdownError: unknown = shutdownError;
       if (markerState === "receipt-and-lock-held") {
-        throw new InboxMarkerPreservationError({ cause: shutdownError });
+        surfacedShutdownError = new InboxMarkerPreservationError({ cause: shutdownError });
+      } else {
+        deps.releaseLock();
+        markerState = "released";
       }
-      deps.releaseLock();
-      markerState = "released";
-      throw shutdownError;
+      if (executionError) {
+        throw new AggregateError(
+          [executionError, surfacedShutdownError],
+          "Falha de execução e shutdown no Inbox E2E"
+        );
+      }
+      throw surfacedShutdownError;
     }
     if (markerState === "receipt-and-lock-held") {
       try {
@@ -225,8 +251,8 @@ export async function waitForHttpReadiness(
 }
 
 export async function runInboxE2E(): Promise<number> {
-  loadLocalEnvironment();
-  const datasourceUrl = resolveDatasourceUrl();
+  const resolvedEnvironment = resolveInboxE2EEnvironment();
+  const { datasourceUrl, env } = resolvedEnvironment;
   const lock = acquireFixtureLock();
   return runInboxLifecycle({
       async provision() {
@@ -253,7 +279,7 @@ export async function runInboxE2E(): Promise<number> {
               detached: process.platform !== "win32",
               windowsHide: true,
               env: {
-                ...process.env,
+                ...env,
                 WHATSAPP_SKIP_CLOUD_CREDENTIAL_VALIDATE: "1",
               },
             }
@@ -273,7 +299,7 @@ export async function runInboxE2E(): Promise<number> {
               detached: process.platform !== "win32",
               windowsHide: true,
               env: {
-                ...process.env,
+                ...env,
                 E2E_WHATSAPP_BASE_URL: SAFE_BASE_URL,
                 E2E_WHATSAPP_ADMIN_EMAIL: identity.email,
                 E2E_WHATSAPP_ADMIN_PASSWORD: identity.password,

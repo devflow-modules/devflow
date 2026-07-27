@@ -1,8 +1,9 @@
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   InboxMarkerPreservationError,
+  InboxShutdownError,
   resolveInstalledCli,
   runInboxLifecycle,
   type InboxLifecycleDependencies,
@@ -151,6 +152,150 @@ describe("safe inbox process lifecycle", () => {
     const result = runInboxLifecycle(deps);
     await expect(result).rejects.toEqual(expect.any(InboxMarkerPreservationError));
     await expect(result).rejects.not.toThrow(/private process details/);
+    expect(events).not.toContain("cleanup");
+    expect(events).not.toContain("release:lock");
+  });
+
+  it("still stops Next when Playwright shutdown fails", async () => {
+    const events: string[] = [];
+    const deps = dependencies(events, {
+      async startPlaywright() {
+        events.push("start:playwright");
+        return {
+          wait: async () => 0,
+          stop: async () => {
+            events.push("stop:playwright");
+            throw new Error("private Playwright details");
+          },
+        };
+      },
+    });
+    const result = runInboxLifecycle(deps);
+    await expect(result).rejects.toEqual(expect.any(InboxMarkerPreservationError));
+    expect(events).toContain("stop:server");
+    expect(events).not.toContain("cleanup");
+  });
+
+  it("still stops Playwright when Next shutdown fails", async () => {
+    const events: string[] = [];
+    const deps = dependencies(events, {
+      async startServer() {
+        events.push("start:server");
+        return {
+          wait: async () => 0,
+          stop: async () => {
+            events.push("stop:server");
+            throw new Error("private Next details");
+          },
+        };
+      },
+    });
+    const result = runInboxLifecycle(deps);
+    await expect(result).rejects.toEqual(expect.any(InboxMarkerPreservationError));
+    expect(events).toContain("stop:playwright");
+    expect(events).not.toContain("cleanup");
+  });
+
+  it("aggregates two sanitized shutdown failures", async () => {
+    const events: string[] = [];
+    const failingProcess = (name: string): ManagedProcess => ({
+      wait: async () => 0,
+      stop: async () => {
+        events.push(`stop:${name}`);
+        throw new Error(`private ${name} details`);
+      },
+    });
+    const deps = dependencies(events, {
+      async startServer() {
+        events.push("start:server");
+        return failingProcess("server");
+      },
+      async startPlaywright() {
+        events.push("start:playwright");
+        return failingProcess("playwright");
+      },
+    });
+    const error = await runInboxLifecycle(deps).catch((value: unknown) => value);
+    expect(error).toEqual(expect.any(InboxMarkerPreservationError));
+    const shutdown = (error as Error & { cause?: unknown }).cause;
+    expect(shutdown).toEqual(expect.any(InboxShutdownError));
+    expect((shutdown as AggregateError).errors).toHaveLength(2);
+    expect(String(shutdown)).toMatch(/Playwright, Next/);
+    expect(String(shutdown)).not.toMatch(/private/);
+    expect(events).not.toContain("cleanup");
+  });
+
+  it("waits for every shutdown attempt before cleanup", async () => {
+    const events: string[] = [];
+    let finishPlaywright: (() => void) | undefined;
+    let finishServer: (() => void) | undefined;
+    const deps = dependencies(events, {
+      async startServer() {
+        events.push("start:server");
+        return {
+          wait: async () => 0,
+          stop: () =>
+            new Promise<void>((resolve) => {
+              events.push("stop:server");
+              finishServer = () => {
+                events.push("stopped:server");
+                resolve();
+              };
+            }),
+        };
+      },
+      async startPlaywright() {
+        events.push("start:playwright");
+        return {
+          wait: async () => 0,
+          stop: () =>
+            new Promise<void>((resolve) => {
+              events.push("stop:playwright");
+              finishPlaywright = () => {
+                events.push("stopped:playwright");
+                resolve();
+              };
+            }),
+        };
+      },
+    });
+    const result = runInboxLifecycle(deps);
+    await vi.waitFor(() => {
+      expect(events).toContain("stop:playwright");
+      expect(events).toContain("stop:server");
+    });
+    expect(events).not.toContain("cleanup");
+    finishPlaywright?.();
+    await Promise.resolve();
+    expect(events).not.toContain("cleanup");
+    finishServer?.();
+    await expect(result).resolves.toBe(0);
+    expect(events.indexOf("cleanup")).toBeGreaterThan(events.indexOf("stopped:server"));
+  });
+
+  it("preserves the original execution error before sanitized marker errors", async () => {
+    const events: string[] = [];
+    const original = new Error("original test failure");
+    const deps = dependencies(events, {
+      async startPlaywright() {
+        events.push("start:playwright");
+        return {
+          wait: async () => {
+            throw original;
+          },
+          stop: async () => {
+            throw new Error("private shutdown details");
+          },
+        };
+      },
+    });
+    const error = await runInboxLifecycle(deps).catch((value: unknown) => value);
+    expect(error).toEqual(expect.any(AggregateError));
+    expect((error as AggregateError).errors[0]).toBe(original);
+    expect((error as AggregateError).errors[1]).toEqual(
+      expect.any(InboxMarkerPreservationError)
+    );
+    expect(String((error as AggregateError).errors[1])).not.toMatch(/private shutdown details/);
     expect(events).not.toContain("cleanup");
     expect(events).not.toContain("release:lock");
   });

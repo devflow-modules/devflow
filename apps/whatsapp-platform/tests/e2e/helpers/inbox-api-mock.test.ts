@@ -1,6 +1,10 @@
 import type { Page, Route } from "@playwright/test";
 import { describe, expect, it, vi } from "vitest";
-import { createDefaultInboxMockStore, installInboxOperationalMocks } from "./inbox-api-mock";
+import {
+  classifyNextImageRequest,
+  createDefaultInboxMockStore,
+  installInboxOperationalMocks,
+} from "./inbox-api-mock";
 
 type Handler = (route: Route) => Promise<unknown>;
 type WebSocketHandler = (socket: {
@@ -74,6 +78,120 @@ describe("inbox API fail-closed mock", () => {
     ).resolves.toEqual([{ kind: "continue" }]);
   });
 
+  it("allows only known documents and required Next assets", async () => {
+    const handler = await installedHandler();
+    for (const pathname of [
+      "/login?next=%2Finbox",
+      "/inbox?filter=open",
+      "/_next/static/chunks/app/inbox.js",
+      "/_next/static/css/app.css",
+      "/_next/data/build/inbox.json",
+      "/_next/webpack-hmr",
+      "/favicon.ico",
+    ]) {
+      await expect(
+        dispatch(handler, `http://127.0.0.1:3099${pathname}`)
+      ).resolves.toEqual([{ kind: "continue" }]);
+    }
+  });
+
+  it("blocks Next development endpoints with local side effects", async () => {
+    const handler = await installedHandler();
+    for (const pathname of [
+      "/__nextjs_attach-nodejs-inspector",
+      "/__nextjs_launch-editor?file=private-source.ts&lineNumber=1&column=1",
+      "/__nextjs_original-stack-frames?source=private-source.ts",
+    ]) {
+      const calls = await dispatch(handler, `http://127.0.0.1:3099${pathname}`);
+      expect(calls).toEqual([{ kind: "abort", value: "blockedbyclient" }]);
+      expect(calls.some((call) => call.kind === "continue")).toBe(false);
+    }
+  });
+
+  it("classifies the Image Optimizer as disabled for this image-free E2E app", () => {
+    expect(classifyNextImageRequest("/_next/image")).toBe(
+      "blocked-image-optimizer-disabled"
+    );
+    expect(classifyNextImageRequest("/_next/static/logo.png")).toBe(
+      "not-image-optimizer"
+    );
+  });
+
+  it("blocks every Image Optimizer target before Next can proxy it", async () => {
+    const handler = await installedHandler();
+    const rejectedRequests: Array<[string, string]> = [
+      ["/_next/image?url=/logo.png&w=64&q=75", "GET"],
+      ["/_next/image?url=/api/billing/ui&w=640&q=75", "GET"],
+      ["/_next/image?url=/api%2Fbilling%2Fui&w=640&q=75", "GET"],
+      ["/_next/image?url=%2Fapi%2Fbilling%2Fui&w=640&q=75", "GET"],
+      ["/_next/image?url=%252Fapi%252Fbilling%252Fui&w=640&q=75", "GET"],
+      [
+        "/_next/image?url=http%3A%2F%2F127.0.0.1%3A3099%2Fapi%2Fbilling%2Fui",
+        "GET",
+      ],
+      ["/_next/image?url=https%3A%2F%2Fexternal.example.test%2Fimage.png", "GET"],
+      ["/_next/image?url=%2F%2Fexternal.example.test%2Fimage.png", "GET"],
+      [
+        "/_next/image?url=http%3A%2F%2F127.0.0.1%3A3100%2Fstatic%2Fimage.png",
+        "GET",
+      ],
+      ["/_next/image?url=ftp%3A%2F%2Fexternal.example.test%2Fimage.png", "GET"],
+      [
+        "/_next/image?url=http%3A%2F%2Fuser%3Apassword%40127.0.0.1%3A3099%2Fimage.png",
+        "GET",
+      ],
+      ["/_next/image?url=%5Capi%5Cbilling%5Cui", "GET"],
+      ["/_next/image?url=%2Fimages%2F..%2Fapi%2Fbilling%2Fui", "GET"],
+      ["/_next/image?url=%2Fimage.png%23fragment", "GET"],
+      ["/_next/image?url=%E0%A4%A", "GET"],
+      ["/_next/image?w=640&q=75", "GET"],
+      ["/_next/image?url=/one.png&url=/two.png", "GET"],
+      ["/_next/image?url=/logo.png", "HEAD"],
+      ["/_next/image?url=/logo.png", "POST"],
+    ];
+
+    for (const [pathname, method] of rejectedRequests) {
+      const calls = await dispatch(handler, `http://127.0.0.1:3099${pathname}`, method);
+      expect(calls, `${method} ${pathname}`).toEqual([
+        { kind: "abort", value: "blockedbyclient" },
+      ]);
+      expect(calls.some((call) => call.kind === "continue")).toBe(false);
+    }
+  });
+
+  it("does not expose Image Optimizer targets in blocked diagnostics", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const handler = await installedHandler();
+    await dispatch(
+      handler,
+      "http://127.0.0.1:3099/_next/image?url=/api/billing/ui&token=query-secret"
+    );
+    expect(error).toHaveBeenLastCalledWith(
+      "[inbox-e2e] blocked request: GET /_next/image (image-optimizer-disabled)"
+    );
+    expect(error.mock.calls.flat().join(" ")).not.toMatch(
+      /billing|query-secret|token/
+    );
+  });
+
+  it("blocks unknown same-origin documents and every unknown mutation", async () => {
+    const handler = await installedHandler();
+    await expect(
+      dispatch(handler, "http://127.0.0.1:3099/dashboard")
+    ).resolves.toEqual([{ kind: "abort", value: "blockedbyclient" }]);
+    for (const [pathname, method] of [
+      ["/inbox", "POST"],
+      ["/login", "PUT"],
+      ["/_next/static/chunks/app/inbox.js", "DELETE"],
+      ["/possible-server-action", "POST"],
+      ["/api/auth/verify", "POST"],
+    ]) {
+      await expect(
+        dispatch(handler, `http://127.0.0.1:3099${pathname}`, method)
+      ).resolves.toEqual([{ kind: "abort", value: "blockedbyclient" }]);
+    }
+  });
+
   it("blocks other local ports, hosts and schemes", async () => {
     const handler = await installedHandler();
     for (const url of [
@@ -93,8 +211,28 @@ describe("inbox API fail-closed mock", () => {
 
   it("aborts an unknown local API with no backend call", async () => {
     const handler = await installedHandler();
-    const calls = await dispatch(handler, "http://127.0.0.1:3099/api/unknown");
-    expect(calls).toEqual([{ kind: "abort", value: "blockedbyclient" }]);
+    for (const method of ["GET", "POST", "PATCH", "DELETE"]) {
+      const calls = await dispatch(
+        handler,
+        "http://127.0.0.1:3099/api/unknown?secret=query",
+        method,
+        { secret: "body" }
+      );
+      expect(calls).toEqual([{ kind: "abort", value: "blockedbyclient" }]);
+    }
+  });
+
+  it("logs blocked diagnostics with method and pathname only", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const handler = await installedHandler();
+    await dispatch(
+      handler,
+      "http://127.0.0.1:3099/api/unknown?token=query-secret",
+      "POST",
+      { password: "body-secret" }
+    );
+    expect(error).toHaveBeenLastCalledWith("[inbox-e2e] blocked request: POST /api/unknown");
+    expect(error.mock.calls.flat().join(" ")).not.toMatch(/query-secret|body-secret|token|password/);
   });
 
   it("blocks every external browser origin", async () => {
@@ -144,6 +282,42 @@ describe("inbox API fail-closed mock", () => {
       await expect(
         dispatch(handler, `http://127.0.0.1:3099${pathname}`, "POST")
       ).resolves.toEqual([{ kind: "abort", value: "blockedbyclient" }]);
+    }
+  });
+
+  it("never continues operational requests to the real backend", async () => {
+    const handler = await installedHandler();
+    const requests: Array<[string, string, unknown?]> = [
+      ["/api/billing/ui", "GET"],
+      ["/api/whatsapp/phone-numbers", "GET"],
+      ["/api/queues", "GET"],
+      ["/api/inbox/metrics", "GET"],
+      ["/api/inbox/team", "GET"],
+      ["/api/inbox/tags", "GET"],
+      ["/api/inbox/users", "GET"],
+      ["/api/inbox/presence", "GET"],
+      ["/api/inbox/queue/next", "GET"],
+      ["/api/metrics/revenue", "GET"],
+      ["/api/inbox/prospect-metrics", "GET"],
+      ["/api/inbox/conversations", "GET"],
+      ["/api/inbox/conversations/e2e-wa-inbox-thread-a/messages", "GET"],
+      [
+        "/api/inbox/conversations/e2e-wa-inbox-thread-a/send",
+        "POST",
+        { text: "safe" },
+      ],
+      ["/api/stripe/webhook", "POST"],
+      ["/api/webhooks/meta", "POST"],
+    ];
+    for (const [pathname, method, body] of requests) {
+      const calls = await dispatch(
+        handler,
+        `http://127.0.0.1:3099${pathname}`,
+        method,
+        body
+      );
+      expect(calls.some((call) => call.kind === "continue"), `${method} ${pathname}`).toBe(false);
+      expect(calls).toHaveLength(1);
     }
   });
 });
