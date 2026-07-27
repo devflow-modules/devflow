@@ -75,6 +75,7 @@ When two documents disagree:
 | [DOCUMENTATION-MAP.md](./DOCUMENTATION-MAP.md) | `current` | This file |
 | [CURRENT-SCOPE.md](./CURRENT-SCOPE.md) | `current` | Active product scope |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | `current` | Cross-cutting architecture & ownership |
+| [WHATSAPP-CLIENT-1-READINESS-PLAN.md](./WHATSAPP-CLIENT-1-READINESS-PLAN.md) | `current` / `backlog` | Approved pilot decisions, Inbox UX roadmap, and first test-hardening issue |
 | [PILOT-RUNBOOK.md](./PILOT-RUNBOOK.md) | `runbook` | Primary pilot procedure |
 | [SMOKE-TEST-INBOUND-OUTBOUND.md](./SMOKE-TEST-INBOUND-OUTBOUND.md) | `runbook` | E2E smoke for pilot |
 | [LEAD-TO-TENANT-PILOT.md](./LEAD-TO-TENANT-PILOT.md) | `runbook` | CRM lead → tenant assisted flow |
