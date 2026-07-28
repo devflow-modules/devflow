@@ -15,11 +15,17 @@ import {
   removeReceipt,
   targetFingerprint,
   type FixtureLock,
+  type FixtureReceipt,
 } from "./inbox-e2e-fixture";
 import {
   resolveInboxE2EEnvironment,
   type InboxE2EEnvironment,
 } from "./inbox-e2e-environment";
+import {
+  isLegacyRecoveryInvocation,
+  parseLegacyRecoveryArgs,
+  recoverLegacyPidLockOnce,
+} from "./inbox-e2e-recovery";
 
 type CountResult = { count: number };
 type CleanupTx = {
@@ -70,13 +76,16 @@ export type CleanupOptions = {
   datasourceUrl: string;
   receiptPath?: string;
   heldLock?: FixtureLock;
+  validatedReceipt?: FixtureReceipt;
+  removeReceiptOnSuccess?: boolean;
+  allowAlreadyDeleted?: boolean;
 };
 
 export type CleanupResult = {
   auditsDeleted: number;
   sessionsDeleted: number;
-  usersDeleted: 1;
-  tenantsDeleted: 1;
+  usersDeleted: 0 | 1;
+  tenantsDeleted: 0 | 1;
 };
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
@@ -89,7 +98,8 @@ export async function cleanupInboxFixture(options: CleanupOptions): Promise<Clea
   const activeLock = options.heldLock ?? acquireFixtureLock(lockPath);
   const ownsLock = !options.heldLock;
   try {
-    const receipt = readReceipt(receiptPath);
+    // Recovery injects an immutable snapshot. Never re-read a mutable path for identity.
+    const receipt = options.validatedReceipt ?? readReceipt(receiptPath);
     const fingerprint = targetFingerprint(options.datasourceUrl);
     assertEqual(fingerprint, receipt.targetFingerprint, "target fingerprint");
     if (ownsLock) activeLock.bindReceipt(receipt);
@@ -101,17 +111,36 @@ export async function cleanupInboxFixture(options: CleanupOptions): Promise<Clea
       where: { id: receipt.tenantId },
       select: { id: true, name: true, isInternal: true, plan: true },
     });
-    if (!tenant) throw new Error("Guard mismatch: tenant ausente");
+    const user = await options.client.user.findUnique({
+      where: { id: receipt.userId },
+      select: { id: true, tenantId: true, email: true, name: true, role: true },
+    });
+
+    if (!tenant || !user) {
+      if (!options.allowAlreadyDeleted) {
+        throw new Error(tenant ? "Guard mismatch: user ausente" : "Guard mismatch: tenant ausente");
+      }
+      const [tenantCount, userCount, sessionCount, auditCount] = await Promise.all([
+        options.client.tenant.count({ where: { id: receipt.tenantId } }),
+        options.client.user.count({ where: { id: receipt.userId, tenantId: receipt.tenantId } }),
+        options.client.userSession.count({ where: { userId: receipt.userId } }),
+        options.client.auditLog.count({
+          where: { tenantId: receipt.tenantId, userId: receipt.userId },
+        }),
+      ]);
+      assertEqual(tenantCount, 0, "tenant negative verification");
+      assertEqual(userCount, 0, "user negative verification");
+      assertEqual(sessionCount, 0, "session negative verification");
+      assertEqual(auditCount, 0, "audit negative verification");
+      if (options.removeReceiptOnSuccess !== false) removeReceipt(receiptPath);
+      return { auditsDeleted: 0, sessionsDeleted: 0, usersDeleted: 0, tenantsDeleted: 0 };
+    }
+
     assertEqual(tenant.id, receipt.tenantId, "tenant id");
     assertEqual(tenant.name, expected.tenantName, "tenant name");
     assertEqual(tenant.isInternal, false, "tenant internal");
     assertEqual(tenant.plan, "free", "tenant plan");
 
-    const user = await options.client.user.findUnique({
-      where: { id: receipt.userId },
-      select: { id: true, tenantId: true, email: true, name: true, role: true },
-    });
-    if (!user) throw new Error("Guard mismatch: user ausente");
     assertEqual(user.id, receipt.userId, "user id");
     assertEqual(user.tenantId, receipt.tenantId, "user tenant");
     assertEqual(user.name, expected.userName, "user name");
@@ -213,7 +242,7 @@ export async function cleanupInboxFixture(options: CleanupOptions): Promise<Clea
     assertEqual(sessionCount, 0, "session negative verification");
     assertEqual(auditCount, 0, "audit negative verification");
 
-    removeReceipt(receiptPath);
+    if (options.removeReceiptOnSuccess !== false) removeReceipt(receiptPath);
     console.info(
       `[inbox-e2e:${abbreviatedRunId(receipt.runId)}] cleaned tenant=${maskedId(receipt.tenantId)} user=${maskedId(receipt.userId)} sessions=${deletedCounts.sessionsDeleted} audits=${deletedCounts.auditsDeleted}`
     );
@@ -238,11 +267,25 @@ export async function cleanupMain(
 const isDirectExecution =
   Boolean(process.argv[1]) && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
 if (isDirectExecution) {
-  cleanupMain().catch((error: unknown) => {
-    if (fs.existsSync(RECEIPT_PATH)) {
-      console.error("Cleanup abortado; recibo preservado");
-    }
-    console.error(error instanceof Error ? error.message : "Falha na limpeza");
-    process.exitCode = 1;
-  });
+  const argv = process.argv.slice(2);
+  if (isLegacyRecoveryInvocation(argv)) {
+    Promise.resolve()
+      .then(async () => {
+        const args = parseLegacyRecoveryArgs(argv);
+        if (!args) throw new Error("Argumentos de recovery inválidos");
+        await recoverLegacyPidLockOnce({ args });
+      })
+      .catch((error: unknown) => {
+        console.error(error instanceof Error ? error.message : "Falha no recovery legado");
+        process.exitCode = 1;
+      });
+  } else {
+    cleanupMain().catch((error: unknown) => {
+      if (fs.existsSync(RECEIPT_PATH)) {
+        console.error("Cleanup abortado; recibo preservado");
+      }
+      console.error(error instanceof Error ? error.message : "Falha na limpeza");
+      process.exitCode = 1;
+    });
+  }
 }
