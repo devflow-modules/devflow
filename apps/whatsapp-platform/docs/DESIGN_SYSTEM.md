@@ -119,7 +119,7 @@ Páginas full-bleed sem `PageHeader` global; hierarquia mantém-se com **título
 | `df-message-panel-inbound` / `outbound` | Bolhas de mensagem |
 | `df-inbox-template-chip`, `df-inbox-ai-chip` | Atalhos e “Gerar com IA” no compositor |
 | `df-panel-ai-preview`, `df-panel-playbook` | Pré-visualizações IA / playbook |
-| `df-inbox-filter-empty-card`, `df-inbox-empty-icon-*` | Estado vazio da lista com filtro |
+| `df-inbox-filter-empty-card`, `df-inbox-filter-empty-card--clear|--filtered`, `df-inbox-empty-icon-*`, `df-inbox-filter-empty-eyebrow|title|body` | Estado vazio da lista com filtro (experimento frontend-design) |
 
 Constantes de mapeamento SLA: `src/components/inbox/inboxOperationalStyles.ts`.
 
