@@ -39,54 +39,59 @@ Não usar para inventar regra de produto, implementar feature em `apps/whatsapp-
    - elevação admin / platform path (documentar risco e aceite);
    - outro — só se documentado no domínio.
 3. No WhatsApp Platform, isolation root canônico é `Tenant` / `tenantId` (não inventar `Organization` se o schema do app não a usar).
-4. Inspecionar `where`/filtros em leituras e escritas de dados de cliente; caminhos alternativos (`admin/*`, automation, `queue/next`, claim/transfer/release).
-5. Verificar boundaries:
+4. Tratar queries de dados de cliente como **tenant-scoped por padrão**. Qualquer leitura/escrita sem `where`/filtro de tenant do modelo do app é finding `block`, salvo caminho de plataforma justificado no passo 5.
+5. Acesso **cross-tenant** só é aceitável com **contexto de plataforma** documentado (ex. `platform_admin` / ops) **e** autorização explícita humana no pedido ou aceite. Sem os dois → `block`.
+6. Verificar boundaries:
    - UI/cliente sem authz autoritativa;
    - portal `src/` sem Prisma WhatsApp / sem imports de `apps/whatsapp-platform`;
    - webhook sem processar inbound sem tenant válido;
-   - audit presente em mudanças sensíveis (não no-op silencioso).
-6. Classificar findings (`block` | `follow-up`) e emitir veredito `safe` | `safe with follow-up` | `block`.
-7. Em modo review/audit: **não editar**. Corrigir só se o usuário autorizar explicitamente.
+   - audit presente em mudanças sensíveis (não no-op silencioso);
+   - caminhos alternativos (`admin/*`, automation, `queue/next`, claim/transfer/release).
+7. Classificar findings (`block` | `follow-up`) e emitir veredito `safe` | `safe with follow-up` | `block`.
+8. Em modo review/audit: **não editar**. Esta skill **não** autoriza alterar produção, schema Prisma ou migrations; correções de código só se o usuário autorizar explicitamente e fora desses escopos proibidos.
 
 ## Guardrails
 
 - Não confiar em `tenantId`, `phoneNumberId`, role ou limites de plano vindos só do cliente.
-- Não aceitar query de dados de cliente sem escopo de tenant conforme o modelo do app.
+- Queries de dados de cliente: tenant-scoped por padrão; ausência de escopo = `block`.
+- Cross-tenant: exige contexto de plataforma + autorização explícita; caso contrário = `block`.
 - Não tratar UI, deck comercial ou mock como autoridade de isolamento.
 - Não misturar DB do portal (ex. Lead/CRM) com DB WhatsApp Tenant como se fossem a mesma autoridade.
 - Não enfraquecer auth, assinatura de webhook, idempotência ou audit “para facilitar”.
 - Não colar secrets, payloads assinados, dumps ou PII real no relatório.
-- Não expor cross-tenant “temporário” sem decisão humana explícita.
+- Não alterar produção, schema ou migrations sob esta skill.
 
 ## Stop conditions
 
-Parar e escalar quando:
+Parar com veredito `block` (ou escalar humano) quando:
 
+- faltar contexto de tenant/autoridade, evidência no diff ou teste de isolamento aplicável e não executável/justificável;
 - aceite de produto ou escopo de `platform_admin` cross-tenant estiver ambíguo;
 - for pedido relaxar isolamento, auth ou webhook;
 - docs canônicas contradisserem o contrato real no código;
-- correção exigir redesign estrutural / novo boundary sem confirmação;
+- correção exigir redesign estrutural / novo boundary, produção, schema ou migration;
 - modo review-only / `/audit-domain` e a correção ainda não estiver autorizada;
-- ambiente ou evidência exigir produção ou dados reais de cliente.
+- ambiente exigir produção ou dados reais de cliente.
 
 ## Validações
 
-- Achados ligados a path + evidência no diff (não genéricos).
-- Caminhos alternativos relevantes revisados ou marcados `not run` com motivo.
-- Testes de isolamento/forbidden vizinhos: `pass` | `fail` | `blocked` | `not run`.
+- Achados ligados a path + evidência no diff (não genéricos). Sem evidência → `block`.
+- Caminhos alternativos relevantes revisados; se obrigatórios e sem revisão/evidência → `block` (não basta `not run` silencioso).
+- Testes de isolamento/forbidden vizinhos: `pass` | `fail` | `blocked` | `not run`. Superfície tenant alterada sem teste e sem justificativa explícita → `block`.
 - Boundary CI / docs de guardrail citados quando a superfície portal↔app mudar.
 - Nunca reportar skipped como sucesso.
-- Edits: `none` ou resumo só se autorizados.
+- Edits: `none` (default) — nunca schema/migration/produção via esta skill.
 
 ## Formato da entrega
 
 ```text
 Scope / surfaces:
 Tenant authority source: session | phone_number_id | admin elevation | other
+Cross-tenant: none | platform context + explicit auth | block
 Findings:
   - [block|follow-up] path — issue — evidence
 Alternative paths reviewed:
-Query / where coverage:
+Query / where coverage: tenant-scoped default | exceptions
 Portal↔app boundary:
 Webhook resolution:
 Auth / roles:
@@ -94,7 +99,7 @@ Audit trail:
 Verdict: safe | safe with follow-up | block
 Tests: pass | fail | blocked | not run
 Docs cited:
-Authorized edits: none | <summary>
+Authorized edits: none | <summary> (never schema/migration/production)
 Product decisions required:
 Deferred / out of scope:
 ```
