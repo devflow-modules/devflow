@@ -48,7 +48,7 @@ Rever **auth**, **roles**, **tenant**, **secrets**, **webhooks**, **PII**, **abu
 ## Entregáveis
 
 - Lista de findings com severidade e ficheiro
-- Veredito: safe / safe with follow-up / block
+- Em superfície multi-tenant: veredito da skill [`devflow-multitenancy-review`](../skills/devflow-multitenancy-review/SKILL.md) — `APPROVE` | `FIX` | `BLOCK`
 - Testes de segurança pedidos
 
 ## Handoff para outros papéis

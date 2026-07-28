@@ -32,7 +32,7 @@ Papéis: Security + QA + Architect conforme risco. Em superfície multi-tenant, 
 
 ## Saída obrigatória
 
-Findings por severidade + veredito (`safe` / `safe with follow-up` / `block`) + follow-ups.
+Findings por severidade + veredito. Em superfície multi-tenant: `APPROVE` | `FIX` | `BLOCK` (skill `devflow-multitenancy-review`); nos demais casos: `safe` / `safe with follow-up` / `block`. Incluir follow-ups.
 
 ## Restrições
 
