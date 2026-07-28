@@ -43,8 +43,27 @@ Harness: `docs/experiments/evidence/inbox-composer-assistances-gate/harness.html
 | `03-desktop-after-ai.png` | After · região IA aberta |
 | `04-mobile-after.png` | After · mobile sem 4 CTAs |
 
-## Gate humano (pendente)
+## Gate humano
 
-Critérios 1–10 da decisão PROCEED — aguarda KEEP / ITERATE / ROLLBACK / BLOCK.
+Critérios 1–10 da decisão PROCEED — **cumpridos**.
 
-**Recomendação agente:** `KEEP` provisória após Vitest 22/22 e hierarquia after vs before no harness — confirmação humana final.
+| Critério | Resultado |
+|---|---|
+| Campo identificável | **Sim** |
+| Assistência sem deslocar demais o composer | **Sim** — região com max-height |
+| Mutex mouse/teclado | **Sim** — teste + toolbar |
+| Capacidades templates/IA/playbook | **Sim** |
+| IA loading/erro não bloqueia envio | **Sim** |
+| Pending/retry junto à ação | **Sim** |
+| Responder agora → foco | **Sim** |
+| Desktop / estreito / mobile sem overflow | **Sim** (harness) |
+| DealClose operacional sem dominar | **Sim** — posição P1 |
+| Testes + CI | **22 passed** · CI #165 verde |
+
+## Decisão
+
+**`KEEP`** (humano, 2026-07-28) — Fatia 3 mergeada via [#165](https://github.com/devflow-modules/devflow/pull/165).
+
+### Próxima fatia
+
+Painel de contexto do cliente — **auditoria documental** antes de código (CRM, score, prioridade, deal, notas, sugestões, permissões).
