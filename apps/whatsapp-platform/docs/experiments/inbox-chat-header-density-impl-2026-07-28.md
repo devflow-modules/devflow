@@ -61,21 +61,31 @@ Código de produto **congelado** durante o gate. Comparação via harness estát
 
 - Harness: `docs/experiments/evidence/inbox-chat-header-density-gate/harness.html`
 - Desktop: `1440 × 900` · Mobile: `390 × 844`
-- Estados: unassigned+SLA+banner, assigned, CLOSED, Mais aberto, foco em Assumir / Encerrar
+- Estados: unassigned+SLA+banner, assigned, CLOSED, Mais aberto, foco em Assumir
 
-## Gate humano (pendente)
+### Screenshots
+
+| Arquivo | Conteúdo |
+|---|---|
+| `evidence/.../01-desktop-after-all.png` | After · 3 estados (desktop) |
+| `evidence/.../02-desktop-before-all.png` | Before · mesma matriz |
+| `evidence/.../03-mobile-after-all.png` | After · mobile 390×844 |
+| `evidence/.../04-desktop-after-assume-focus.png` | Tab/foco em Assumir |
+| `evidence/.../05-desktop-after-mais-open.png` | Mais aberto (overflow) |
+
+## Gate — evidência agente (aguarda confirmação humana)
 
 | # | Critério | Resultado |
 |---|---|---|
-| 1 | Leitura contato → estado → responsável → ação | _pendente_ |
-| 2 | Sem repetição operacional relevante | _pendente_ |
-| 3 | Header + banner sem pilha excessiva | _pendente_ |
-| 4 | Assumir / Encerrar mouse + teclado | _pendente_ |
-| 5 | Histórico com nome acessível | _pendente_ |
-| 6 | Desktop / viewport estreito sem overflow | _pendente_ |
-| 7 | Testes / CI verdes | Vitest local OK · CI na PR |
-| 8 | Diff limitado à Fatia 2 | Sim |
+| 1 | Leitura contato → estado → responsável → ação | **Sim** — hierarquia clara no after vs chips Before |
+| 2 | Sem repetição operacional relevante | **Sim** — status OPEN/linha/fila/tags fora da faixa; Assumir ≠ “Responder agora” |
+| 3 | Header + banner sem pilha excessiva | **Aceitável** — banner + header mais baixos que Before; residual banner fora de escopo |
+| 4 | Assumir / Encerrar mouse + teclado | **Sim** — Zona B permanente; foco ring no harness (#04); testes assignment/status |
+| 5 | Histórico com nome acessível | **Sim** — role/button “Histórico” / “Ocultar histórico” |
+| 6 | Desktop / viewport estreito sem overflow | **Sim** — mobile wrap sem truncar CTAs principais |
+| 7 | Testes / CI verdes | Vitest **30 passed** · CI na PR #164 |
+| 8 | Diff limitado à Fatia 2 | **Sim** — ChatHeader + testes + e2e + docs/evidence |
 
 ## Decisão
 
-**Pendente** — `KEEP` / `ITERATE` / `ROLLBACK` / `BLOCK` após evidência visual equivalente.
+**Recomendação agente: `KEEP`** — confirmação humana final ainda necessária (`KEEP` / `ITERATE` / `ROLLBACK` / `BLOCK`).
