@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Inbox empty — frontend-design evidence</title>
+  <style>
+    :root {
+      --df-brand-50: rgba(0, 208, 132, 0.08);
+      --df-brand-100: rgba(0, 208, 132, 0.12);
+      --df-brand-500: #00d084;
+      --df-brand-600: #00d084;
+      --df-brand-800: #008a57;
+      --df-bg-app: #0a1110;
+      --df-bg-elevated: #131f1d;
+      --df-border-subtle: rgba(0, 208, 132, 0.22);
+      --df-border-dark: rgba(148, 163, 184, 0.26);
+      --df-text-primary: #f4faf8;
+      --df-text-muted: #b9c7c1;
+      --df-feedback-success-text: #c4ffe6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, Segoe UI, sans-serif;
+      background: var(--df-bg-app);
+      color: var(--df-text-primary);
+    }
+    .frame {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #0d1614;
+      border-right: 1px solid rgba(148, 163, 184, 0.18);
+    }
+    .toolbar {
+      padding: 12px 16px;
+      font-size: 12px;
+      color: var(--df-text-muted);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    }
+    .wrap { display: flex; min-height: 0; flex: 1; flex-direction: column; padding: 16px; }
+    .btn {
+      margin-top: 32px;
+      width: 100%;
+      max-width: 240px;
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #04140f;
+      background: var(--df-brand-600);
+      cursor: pointer;
+    }
+    .btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--df-bg-app), 0 0 0 4px var(--df-brand-500);
+    }
+
+    /* BEFORE */
+    .before .df-inbox-filter-empty-card {
+      margin: 0 auto;
+      display: flex;
+      width: 100%;
+      max-width: 24rem;
+      flex-direction: column;
+      align-items: center;
+      border-radius: 1rem;
+      border: 1px solid color-mix(in srgb, var(--df-border-dark) 52%, var(--df-border-subtle));
+      padding: 2.75rem 1.5rem;
+      text-align: center;
+      background: linear-gradient(
+        165deg,
+        color-mix(in srgb, var(--df-bg-elevated) 94%, var(--df-brand-50) 6%) 0%,
+        color-mix(in srgb, var(--df-bg-app) 45%, var(--df-bg-elevated) 55%) 100%
+      );
+      box-shadow: 0 14px 42px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+    .before h3 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--df-text-primary);
+    }
+    .before p.body {
+      margin: 8px 0 0;
+      color: var(--df-text-muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    /* AFTER */
+    .after .df-inbox-filter-empty-card {
+      position: relative;
+      margin: 0 auto;
+      display: flex;
+      width: 100%;
+      max-width: 24rem;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+      border-radius: 1rem;
+      border: 1px solid color-mix(in srgb, var(--df-border-dark) 52%, var(--df-border-subtle));
+      padding: 2.75rem 1.5rem;
+      text-align: center;
+      background: linear-gradient(
+        165deg,
+        color-mix(in srgb, var(--df-bg-elevated) 94%, var(--df-brand-50) 6%) 0%,
+        color-mix(in srgb, var(--df-bg-app) 45%, var(--df-bg-elevated) 55%) 100%
+      );
+      box-shadow: 0 14px 42px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+    .after .df-inbox-filter-empty-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 3px;
+      background: color-mix(in srgb, var(--df-brand-500) 72%, transparent);
+    }
+    .after .df-inbox-filter-empty-card--clear::before {
+      background: color-mix(in srgb, var(--df-feedback-success-text) 55%, var(--df-brand-500));
+    }
+    .after .df-inbox-filter-empty-card--filtered::before {
+      background: color-mix(in srgb, var(--df-brand-500) 85%, var(--df-brand-800));
+    }
+    .after .df-inbox-filter-empty-eyebrow {
+      margin: 0 0 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--df-text-muted);
+    }
+    .after .df-inbox-filter-empty-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--df-text-primary);
+    }
+    .after .df-inbox-filter-empty-body {
+      margin: 8px 0 0;
+      max-width: 28ch;
+      color: var(--df-text-muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .icon {
+      margin-bottom: 1.25rem;
+      display: flex;
+      height: 3.5rem;
+      width: 3.5rem;
+      align-items: center;
+      justify-content: center;
+      border-radius: 1rem;
+      box-shadow: 0 0 0 1px var(--ring);
+    }
+    .icon-success {
+      background: rgb(16 185 129 / 0.18);
+      color: var(--df-feedback-success-text);
+      --ring: rgb(16 185 129 / 0.35);
+    }
+    .icon-neutral {
+      background: color-mix(in srgb, var(--df-brand-100) 55%, var(--df-bg-elevated));
+      color: var(--df-brand-600);
+      --ring: color-mix(in srgb, var(--df-brand-500) 35%, transparent);
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="app" class="frame after">
+    <div class="toolbar" id="label">after · clear · desktop</div>
+    <div class="wrap" id="mount"></div>
+  </div>
+  <script>
+    const copy = {
+      clear: {
+        title: "Tudo em dia",
+        body: "Nenhuma conversa aguarda resposta neste momento. Quando chegar mensagem nova, aparece aqui.",
+        eyebrow: "Fila operacional",
+        tone: "clear",
+        cta: false,
+      },
+      filtered: {
+        title: "Nada por aqui neste filtro",
+        body: "Ajuste o filtro de fase acima ou volte a «Precisa de resposta» para priorizar o atendimento.",
+        eyebrow: "Filtro ativo",
+        tone: "filtered",
+        cta: true,
+      },
+    };
+
+    function icon(success) {
+      if (success) {
+        return `<div class="icon icon-success" aria-hidden="true"><svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>`;
+      }
+      return `<div class="icon icon-neutral" aria-hidden="true"><svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></div>`;
+    }
+
+    function render() {
+      const params = new URLSearchParams(location.search);
+      const version = params.get("v") === "before" ? "before" : "after";
+      const state = params.get("state") === "filtered" ? "filtered" : "clear";
+      const c = copy[state];
+      document.getElementById("app").className = `frame ${version}`;
+      document.getElementById("label").textContent = `${version} · ${state}`;
+      const eyebrow = version === "after"
+        ? `<p class="df-inbox-filter-empty-eyebrow">${c.eyebrow}</p>`
+        : "";
+      const titleClass = version === "after" ? "df-inbox-filter-empty-title" : "";
+      const bodyClass = version === "after" ? "df-inbox-filter-empty-body" : "body";
+      const tone = version === "after" ? ` df-inbox-filter-empty-card--${c.tone}` : "";
+      const cta = c.cta
+        ? `<button class="btn" type="button" id="cta">Precisa de resposta</button>`
+        : "";
+      document.getElementById("mount").innerHTML = `
+        <div class="df-inbox-filter-empty-card${tone}" role="status" aria-live="polite" data-testid="conversations-empty-card">
+          ${eyebrow}
+          ${icon(state === "clear")}
+          <h3 class="${titleClass}">${c.title}</h3>
+          <p class="${bodyClass}">${c.body}</p>
+          ${cta}
+        </div>`;
+      if (params.get("focus") === "1" && c.cta) {
+        requestAnimationFrame(() => document.getElementById("cta")?.focus());
+      }
+    }
+    render();
+  </script>
+</body>
+</html>
