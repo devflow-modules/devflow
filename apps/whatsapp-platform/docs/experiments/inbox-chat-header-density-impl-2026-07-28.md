@@ -73,7 +73,7 @@ Código de produto **congelado** durante o gate. Comparação via harness estát
 | `evidence/.../04-desktop-after-assume-focus.png` | Tab/foco em Assumir |
 | `evidence/.../05-desktop-after-mais-open.png` | Mais aberto (overflow) |
 
-## Gate — evidência agente (aguarda confirmação humana)
+## Gate — evidência
 
 | # | Critério | Resultado |
 |---|---|---|
@@ -83,9 +83,17 @@ Código de produto **congelado** durante o gate. Comparação via harness estát
 | 4 | Assumir / Encerrar mouse + teclado | **Sim** — Zona B permanente; foco ring no harness (#04); testes assignment/status |
 | 5 | Histórico com nome acessível | **Sim** — role/button “Histórico” / “Ocultar histórico” |
 | 6 | Desktop / viewport estreito sem overflow | **Sim** — mobile wrap sem truncar CTAs principais |
-| 7 | Testes / CI verdes | Vitest **30 passed** · CI na PR #164 |
+| 7 | Testes / CI verdes | Vitest **30 passed** · CI #164 SUCCESS |
 | 8 | Diff limitado à Fatia 2 | **Sim** — ChatHeader + testes + e2e + docs/evidence |
 
 ## Decisão
 
-**Recomendação agente: `KEEP`** — confirmação humana final ainda necessária (`KEEP` / `ITERATE` / `ROLLBACK` / `BLOCK`).
+**`KEEP`** (humano, 2026-07-28) — Fatia 2 mergeada via [#164](https://github.com/devflow-modules/devflow/pull/164).
+
+### Residual (não bloqueia)
+
+`Mais` usa `role="menu"` com controlos complexos (tags, select de fila). Em fatia posterior: validar setas/Escape ou migrar para painel/popover. Não ampliar esta PR.
+
+### Próxima fatia
+
+Editor e assistências — **auditoria documental** antes de código.
