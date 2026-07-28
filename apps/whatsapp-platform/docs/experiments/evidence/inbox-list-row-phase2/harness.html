@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Inbox list row — Phase 2 wireframe</title>
+  <style>
+    :root {
+      --df-bg-app: #0a1110;
+      --df-bg-elevated: #131f1d;
+      --df-brand-100: rgba(0, 208, 132, 0.12);
+      --df-brand-500: #00d084;
+      --df-brand-700: #009e64;
+      --df-text-primary: #f4faf8;
+      --df-text-secondary: #c5d4ce;
+      --df-text-muted: #8fa39b;
+      --df-warning: #d97706;
+      --df-danger: #ef4444;
+      --df-border: rgba(148, 163, 184, 0.22);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, Segoe UI, sans-serif;
+      background: var(--df-bg-app);
+      color: var(--df-text-primary);
+      padding: 24px;
+    }
+    h1 { font-size: 18px; margin: 0 0 8px; }
+    p.lead { color: var(--df-text-muted); font-size: 13px; margin: 0 0 24px; max-width: 62ch; }
+    .grid { display: grid; gap: 28px; grid-template-columns: 1fr 1fr; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .col h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--df-text-muted); margin: 0 0 12px; }
+    .frame {
+      width: 300px;
+      max-width: 100%;
+      background: #0d1614;
+      border: 1px solid var(--df-border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .frame.mobile { width: 390px; }
+    .label { font-size: 11px; color: var(--df-text-muted); padding: 8px 10px; border-bottom: 1px solid var(--df-border); }
+    .row {
+      position: relative;
+      display: flex;
+      align-items: stretch;
+      border-bottom: 1px solid var(--df-border);
+      background: var(--df-bg-elevated);
+    }
+    .row.selected { box-shadow: inset 4px 0 0 var(--df-brand-500); background: color-mix(in srgb, var(--df-bg-elevated) 88%, var(--df-brand-100)); }
+    .row.urgent { box-shadow: inset 4px 0 0 var(--df-warning); background: color-mix(in srgb, #3a2a12 35%, var(--df-bg-elevated)); }
+    .row.closed { opacity: 0.72; }
+    .main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      text-align: left;
+    }
+    .av {
+      width: 40px; height: 40px; border-radius: 999px; flex-shrink: 0;
+      display: grid; place-items: center; font-size: 11px; font-weight: 700;
+      background: var(--df-brand-100); color: var(--df-brand-500);
+    }
+    .row.selected .av { background: var(--df-brand-500); color: #04140f; }
+    .body { min-width: 0; flex: 1; }
+    .top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+    .name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+    .time { font-size: 11px; color: var(--df-text-muted); font-variant-numeric: tabular-nums; }
+    .time.warn { color: var(--df-warning); font-weight: 700; }
+    .unread {
+      min-width: 1.25rem; padding: 2px 6px; border-radius: 999px;
+      background: var(--df-brand-700); color: #fff; font-size: 10px; font-weight: 700; text-align: center;
+    }
+    .preview { margin: 6px 0 0; font-size: 12px; line-height: 1.35; color: var(--df-text-secondary);
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .preview .pfx { color: var(--df-text-muted); font-weight: 600; }
+    .foot { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .state {
+      font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
+      background: rgba(0,208,132,0.12); color: var(--df-brand-500);
+      border: 1px solid rgba(0,208,132,0.28);
+    }
+    .state.wait { background: rgba(0,208,132,0.08); color: var(--df-text-secondary); border-color: var(--df-border); }
+    .state.need { background: rgba(217,119,6,0.15); color: #fbbf24; border-color: rgba(217,119,6,0.35); }
+    .owner { font-size: 10px; color: var(--df-warning); font-weight: 600; }
+    .actions { display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 8px; border-left: 1px solid var(--df-border); }
+    .btn {
+      border: 0; border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 700; cursor: default;
+      background: var(--df-brand-500); color: #04140f; min-height: 32px;
+    }
+    .btn.ghost { background: transparent; color: var(--df-text-muted); border: 1px solid var(--df-border); }
+    .before .clutter {
+      margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px;
+    }
+    .chip {
+      font-size: 9px; padding: 2px 5px; border-radius: 4px; border: 1px solid var(--df-border);
+      color: var(--df-text-muted);
+    }
+    .note { margin-top: 20px; font-size: 12px; color: var(--df-text-muted); max-width: 72ch; }
+    code { color: var(--df-brand-500); }
+  </style>
+</head>
+<body>
+  <h1>Fatia 1 — wireframe da row (Phase 2)</h1>
+  <p class="lead">Proposta auditável · sem código de produto. Esquerda = after (3 faixas). Direita = before (densidade atual, esquemática).</p>
+
+  <div class="grid">
+    <div class="col">
+      <h2>After · desktop 300px</h2>
+      <div class="frame">
+        <div class="label">after · anatomia alvo</div>
+
+        <div class="row selected">
+          <div class="main">
+            <div class="av">MR</div>
+            <div class="body">
+              <div class="top">
+                <div class="name">Maria Reis</div>
+                <div class="meta"><span class="time">agora</span><span class="unread">2</span></div>
+              </div>
+              <p class="preview"><span class="pfx">Cliente</span> · Posso ligar amanhã?</p>
+              <div class="foot"><span class="state need">Precisa resposta</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row urgent">
+          <div class="main">
+            <div class="av">AB</div>
+            <div class="body">
+              <div class="top">
+                <div class="name">Ana Barbosa</div>
+                <div class="meta"><span class="time warn">12m</span></div>
+              </div>
+              <p class="preview"><span class="pfx">Cliente</span> · Quero fechar hoje</p>
+              <div class="foot">
+                <span class="state need">Precisa resposta</span>
+                <span class="owner">Sem responsável</span>
+              </div>
+            </div>
+          </div>
+          <div class="actions"><button class="btn" type="button">Assumir</button></div>
+        </div>
+
+        <div class="row">
+          <div class="main">
+            <div class="av">CR</div>
+            <div class="body">
+              <div class="top">
+                <div class="name">Carlos Rua</div>
+                <div class="meta"><span class="time">1h</span></div>
+              </div>
+              <p class="preview"><span class="pfx">Você</span> · Enviámos a proposta</p>
+              <div class="foot"><span class="state wait">Aguardando cliente</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row closed">
+          <div class="main">
+            <div class="av">LP</div>
+            <div class="body">
+              <div class="top">
+                <div class="name">Loja Porto</div>
+                <div class="meta"><span class="time">2d</span></div>
+              </div>
+              <p class="preview"><span class="pfx">Você</span> · Encerrámos o atendimento</p>
+              <div class="foot"><span class="state wait">Encerrada</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col before">
+      <h2>Before · densidade atual (esquema)</h2>
+      <div class="frame">
+        <div class="label">before · 5–7 faixas + chips</div>
+        <div class="row urgent">
+          <div class="main">
+            <div class="av">AB</div>
+            <div class="body">
+              <div class="top">
+                <div class="name">Ana Barbosa</div>
+                <div class="meta"><span class="time warn">12m</span></div>
+              </div>
+              <div class="foot"><span class="chip">Linha vendas</span></div>
+              <div class="foot"><span class="state need">Precisa resposta</span><span class="chip">Sugestão pendente</span></div>
+              <p class="preview" style="margin-top:4px;font-size:10px;color:var(--df-text-muted)">Responsável: Sem responsável</p>
+              <p class="preview"><span class="pfx">Cliente</span> · Quero fechar hoje</p>
+              <div class="clutter">
+                <span class="chip">Prioridade CRM — alta</span>
+                <span class="chip">Agir nas próximas horas</span>
+                <span class="chip">42 pts</span>
+                <span class="chip">ai_qualify</span>
+                <span class="chip">NEG</span>
+                <span class="chip">FU hoje</span>
+                <span class="chip">Crítico · 12m</span>
+                <span class="chip">2</span>
+                <span class="chip">Fila VIP</span>
+                <span class="chip">Sem responsável</span>
+              </div>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn" type="button">Assumir</button>
+            <button class="btn ghost" type="button">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col" style="margin-top:28px">
+    <h2>After · mobile 390px</h2>
+    <div class="frame mobile">
+      <div class="label">after · mobile (mesma anatomia, hit area maior)</div>
+      <div class="row urgent">
+        <div class="main" style="padding:12px">
+          <div class="av">AB</div>
+          <div class="body">
+            <div class="top">
+              <div class="name">Ana Barbosa</div>
+              <div class="meta"><span class="time warn">12m</span></div>
+            </div>
+            <p class="preview"><span class="pfx">Cliente</span> · Quero fechar hoje</p>
+            <div class="foot">
+              <span class="state need">Precisa resposta</span>
+              <span class="owner">Sem responsável</span>
+            </div>
+          </div>
+        </div>
+        <div class="actions"><button class="btn" type="button" style="min-height:40px">Assumir</button></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">
+    Documento: <code>docs/experiments/inbox-list-row-phase2-proposal-2026-07-28.md</code>.
+    Decisão proposta: <strong>PROCEED</strong>. Nenhum componente React foi alterado.
+  </p>
+</body>
+</html>
