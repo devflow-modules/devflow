@@ -14,6 +14,7 @@ Rever **auth**, **roles**, **tenant**, **secrets**, **webhooks**, **PII**, **abu
 
 - Diff completo das superfícies sensíveis
 - [`.cursor/rules/01-security-and-secrets.mdc`](../rules/01-security-and-secrets.mdc)
+- Skill [`devflow-multitenancy-review`](../skills/devflow-multitenancy-review/SKILL.md)
 - Runbooks do domínio (webhook, auth validation) quando existirem
 
 ## Responsabilidades
