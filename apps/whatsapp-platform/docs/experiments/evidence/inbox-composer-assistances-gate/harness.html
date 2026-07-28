@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Inbox composer Fatia 3 — gate</title>
+  <style>
+    :root {
+      --bg: #0a1110; --elev: #131f1d; --brand: #00d084; --text: #f4faf8;
+      --muted: #8fa39b; --sec: #c5d4ce; --border: rgba(148,163,184,.22); --danger: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: ui-sans-serif, system-ui, Segoe UI, sans-serif; background: var(--bg); color: var(--text); }
+    .page { padding: 16px; max-width: 980px; margin: 0 auto; }
+    .tb { font-size: 12px; color: var(--muted); margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .tb button { font: inherit; font-size: 11px; font-weight: 600; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--elev); color: var(--sec); cursor: pointer; }
+    .tb button.active { border-color: var(--brand); color: var(--brand); }
+    .panel { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #0d1614; margin-bottom: 16px; }
+    .panel h2 { margin: 0; padding: 10px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); border-bottom: 1px solid var(--border); }
+    .col { display: flex; flex-direction: column; min-height: 420px; }
+    .msgs { flex: 1; padding: 12px; font-size: 12px; color: var(--sec); }
+    .bubble { max-width: 80%; padding: 8px 10px; border-radius: 10px; background: var(--elev); margin-bottom: 8px; }
+    .deal { padding: 6px 12px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); }
+    .composer { padding: 12px; border-top: 1px solid var(--border); background: var(--elev); }
+    .state { font-size: 11px; margin-bottom: 8px; padding: 6px 8px; border-radius: 8px; }
+    .warn { background: rgba(217,119,6,.15); color: #fbbf24; }
+    .err { background: rgba(239,68,68,.15); color: #fca5a5; }
+    .row { display: flex; gap: 8px; align-items: flex-end; }
+    textarea { flex: 1; min-height: 72px; resize: vertical; border-radius: 8px; border: 1px solid var(--border); background: #0a1210; color: var(--text); padding: 8px; font: inherit; }
+    textarea:disabled { opacity: .55; }
+    .send { border: 0; border-radius: 8px; padding: 10px 14px; font-weight: 700; background: var(--brand); color: #04140f; min-height: 40px; }
+    .send:disabled { opacity: .5; }
+    .send:focus-visible, .tbtn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--brand); }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .tbtn { border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 600; background: transparent; color: var(--sec); cursor: pointer; }
+    .tbtn[aria-expanded="true"] { border-color: var(--brand); color: var(--brand); }
+    .region { margin-top: 8px; max-height: 160px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; padding: 8px; background: #0a1210; font-size: 12px; }
+    .chip { display: inline-block; margin: 2px; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--border); font-size: 10px; }
+    .before-stack { font-size: 11px; color: var(--muted); padding: 8px 0; border-bottom: 1px dashed var(--border); margin-bottom: 8px; }
+    .mobile .row { flex-direction: column; align-items: stretch; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="tb">
+      <span id="label">gate · after · desktop</span>
+      <button type="button" data-mode="after" class="active">After</button>
+      <button type="button" data-mode="before">Before</button>
+      <button type="button" data-vp="desktop" class="active">1440</button>
+      <button type="button" data-vp="mobile">390</button>
+      <button type="button" data-assist="none" class="active">Fechado</button>
+      <button type="button" data-assist="templates">Templates</button>
+      <button type="button" data-assist="ai">IA</button>
+      <button type="button" data-assist="playbook">Playbook</button>
+      <button type="button" data-state="idle" class="active">Idle</button>
+      <button type="button" data-state="pending">Pending</button>
+      <button type="button" data-state="error">Erro</button>
+      <button type="button" data-state="lock">Lock</button>
+    </div>
+    <div id="mount"></div>
+  </div>
+  <script>
+    let mode = "after", vp = "desktop", assist = "none", state = "idle";
+
+    function render() {
+      document.getElementById("label").textContent = `gate · ${mode} · ${vp} · assist=${assist} · ${state}`;
+      const mobile = vp === "mobile";
+      const locked = state === "lock";
+      const pending = state === "pending";
+      const err = state === "error";
+
+      let beforeAssist = "";
+      if (mode === "before") {
+        beforeAssist = `<div class="before-stack">
+          ${mobile ? "<div>Responder · Template · IA · Fechar venda</div>" : ""}
+          <div>▸ Respostas rápidas e IA</div>
+          <div>▸ Playbook — sugerir ação</div>
+        </div>`;
+      }
+
+      let region = "";
+      if (mode === "after" && assist !== "none") {
+        region = `<div class="region" role="region">`;
+        if (assist === "templates") region += `<span class="chip">Saudação</span><span class="chip">Aguardar</span><span class="chip">Dados</span>`;
+        if (assist === "ai") region += `<p>Pré-visualização (IA)</p><p>Texto sugerido…</p><button type="button" class="tbtn">Usar no editor</button>`;
+        if (assist === "playbook") region += `<p>Playbook · Intent / ação / resposta</p><button type="button" class="tbtn">Usar resposta no editor</button>`;
+        region += `</div>`;
+      }
+
+      const toolbar = mode === "after"
+        ? `<div class="toolbar" role="toolbar" aria-label="Assistências">
+            <button type="button" class="tbtn" aria-expanded="${assist==="templates"}">Templates</button>
+            <button type="button" class="tbtn" aria-expanded="${assist==="ai"}">IA</button>
+            <button type="button" class="tbtn" aria-expanded="${assist==="playbook"}">Playbook</button>
+          </div>${region}`
+        : "";
+
+      const fieldFirst = mode === "after";
+      const composerInner = `
+        ${locked ? `<div class="state warn">Envio bloqueado — canal não ACTIVE</div>` : ""}
+        ${err ? `<div class="state err">Não enviámos a mensagem. <u>Tentar novamente</u></div>` : ""}
+        ${!fieldFirst ? beforeAssist : ""}
+        <div class="row">
+          <textarea ${locked||pending?"disabled":""} placeholder="Escreva a mensagem…">${pending?"…":""}</textarea>
+          <button type="button" class="send" ${locked||pending?"disabled":""}>${pending?"A enviar…":"Enviar"}</button>
+        </div>
+        ${fieldFirst ? toolbar : beforeAssist && mode==="before" ? "" : ""}
+        ${!fieldFirst && mode==="before" ? `<p style="font-size:11px;color:var(--muted);margin:8px 0 0">Enter envia · Shift+Enter nova linha</p>` : `<p style="font-size:11px;color:var(--muted);margin:8px 0 0">Enter envia · Shift+Enter nova linha</p>`}
+      `;
+
+      document.getElementById("mount").innerHTML = `
+        <section class="panel ${mobile?"mobile":""}">
+          <h2>Coluna chat · ${mode}</h2>
+          <div class="col">
+            <div class="msgs"><div class="bubble">Cliente: Preciso de uma proposta hoje.</div></div>
+            <div class="deal">▸ Registrar resultado</div>
+            <div class="composer">${composerInner}</div>
+          </div>
+        </section>`;
+    }
+
+    document.querySelector(".tb").addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      for (const k of ["mode","vp","assist","state"]) {
+        if (b.dataset[k] != null) {
+          if (k==="mode") mode = b.dataset.mode;
+          if (k==="vp") vp = b.dataset.vp;
+          if (k==="assist") assist = b.dataset.assist;
+          if (k==="state") state = b.dataset.state;
+          document.querySelectorAll(`[data-${k}]`).forEach((x) => x.classList.toggle("active", x === b));
+        }
+      }
+      render();
+    });
+    render();
+  </script>
+</body>
+</html>

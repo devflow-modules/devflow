@@ -666,6 +666,7 @@ describe("Inbox UI", () => {
   it("MessageInput aplica template rápido ao clicar", async () => {
     const user = userEvent.setup();
     render(<MessageInput threadId="thread-1" thread={null} />, { wrapper: createWrapper() });
+    await user.click(screen.getByRole("button", { name: "Templates" }));
     await user.click(screen.getByTestId("template-Saudação"));
     const ta = screen.getByPlaceholderText("Escreva a mensagem…") as HTMLTextAreaElement;
     expect(ta.value).toContain("Olá! Obrigado pelo contacto");
@@ -713,6 +714,7 @@ describe("Inbox UI", () => {
       return orig!(input, init);
     });
     render(<MessageInput threadId="thread-1" />, { wrapper: createWrapper() });
+    await user.click(screen.getByRole("button", { name: "Playbook" }));
     await user.click(screen.getByTestId("btn-playbook-suggest"));
     await waitFor(() => {
       expect(screen.getByTestId("playbook-preview")).toHaveTextContent("Dúvida sobre prazo");
@@ -733,10 +735,25 @@ describe("Inbox UI", () => {
       return orig!(input, init);
     });
     render(<MessageInput threadId="thread-1" />, { wrapper: createWrapper() });
+    await user.click(screen.getByRole("button", { name: "IA" }));
     await user.click(screen.getByTestId("btn-ai-suggest"));
     await waitFor(() => {
       expect(screen.getByTestId("ai-preview")).toHaveTextContent("Resposta sugerida pela IA");
     });
+  });
+
+  it("MessageInput mutex: só uma assistência aberta por vez", async () => {
+    const user = userEvent.setup();
+    render(<MessageInput threadId="thread-1" thread={null} />, { wrapper: createWrapper() });
+    await user.click(screen.getByRole("button", { name: "Templates" }));
+    expect(screen.getByTestId("template-Saudação")).toBeInTheDocument();
+    expect(screen.queryByTestId("btn-ai-suggest")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "IA" }));
+    expect(screen.queryByTestId("template-Saudação")).not.toBeInTheDocument();
+    expect(screen.getByTestId("btn-ai-suggest")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Playbook" }));
+    expect(screen.queryByTestId("btn-ai-suggest")).not.toBeInTheDocument();
+    expect(screen.getByTestId("btn-playbook-suggest")).toBeInTheDocument();
   });
 
   it("MessageInput envia resposta: POST /send e optimista na thread", async () => {

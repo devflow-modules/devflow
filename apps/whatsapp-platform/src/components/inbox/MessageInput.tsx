@@ -28,6 +28,13 @@ const QUICK_TEMPLATES: { label: string; text: string }[] = [
   { label: "Encerrar", text: "Posso ajudar em mais alguma coisa? Se não, tenha um bom dia!" },
 ];
 
+type AssistPanel = "templates" | "ai" | "playbook" | null;
+
+/**
+ * Fatia 3 — composer-first.
+ * PRIMARY: textarea + Enviar.
+ * REVEAL: toolbar Templates | IA | Playbook (mutex — uma região por vez).
+ */
 function MessageInputInner({
   threadId,
   thread,
@@ -39,13 +46,14 @@ function MessageInputInner({
   thread?: WaInboxThreadRow | null;
   /** Chamado após envio bem-sucedido de mensagem humana (limpa banner de acção, etc.). */
   onAgentMessageSent?: () => void;
-  /** Menos padding, respostas rápidas recolhíveis — liberta altura para o histórico. */
+  /** Menos padding — liberta altura para o histórico. */
   denseComposer?: boolean;
-  /** Barra táctil (≤sm): Responder, Template, IA, Fechar venda. */
+  /** Viewport estreito: textarea um pouco mais alto (sem grelha de 4 CTAs). */
   showMobileQuickBar?: boolean;
 }) {
   const [retryText, setRetryText] = useState<string | null>(null);
   const [aiPreview, setAiPreview] = useState<string | null>(null);
+  const [assistPanel, setAssistPanel] = useState<AssistPanel>(null);
   const qc = useQueryClient();
   const composerRef = useRef<InboxComposerHandle>(null);
 
@@ -71,7 +79,10 @@ function MessageInputInner({
 
   const suggestMut = useMutation({
     mutationFn: (tid: string) => fetchSuggestedReply(tid),
-    onSuccess: (data) => setAiPreview(data.text),
+    onSuccess: (data) => {
+      setAiPreview(data.text);
+      setAssistPanel("ai");
+    },
   });
 
   const mutation = useMutation({
@@ -116,6 +127,7 @@ function MessageInputInner({
       composerRef.current?.clear();
       setRetryText(null);
       setAiPreview(null);
+      setAssistPanel(null);
       markFirstReplySent();
       onAgentMessageSent?.();
     },
@@ -130,24 +142,39 @@ function MessageInputInner({
     [threadId, sendMessage]
   );
 
+  const toggleAssist = useCallback((panel: Exclude<AssistPanel, null>) => {
+    setAssistPanel((prev) => (prev === panel ? null : panel));
+  }, []);
+
   const applyTemplate = useCallback(
     (tpl: string) => {
       const name = thread?.contactName?.trim();
       const personalized = name ? tpl.replace(/\{\{nome\}\}/g, name) : tpl;
       composerRef.current?.appendText(personalized);
+      composerRef.current?.focus();
     },
     [thread?.contactName]
   );
 
   const handlePlaybookUse = useCallback((t: string) => {
     composerRef.current?.setText(t);
+    setAssistPanel(null);
+    composerRef.current?.focus();
   }, []);
 
   const handleAiPreviewUseInEditor = useCallback(() => {
     if (aiPreview === null) return;
     composerRef.current?.setText(aiPreview);
     setAiPreview(null);
+    setAssistPanel(null);
+    composerRef.current?.focus();
   }, [aiPreview]);
+
+  const discardAiPreview = useCallback(() => {
+    setAiPreview(null);
+    setAssistPanel(null);
+    composerRef.current?.focus();
+  }, []);
 
   if (!threadId) {
     return (
@@ -156,6 +183,9 @@ function MessageInputInner({
       </div>
     );
   }
+
+  const toolbarBtn = denseComposer ? "df-inbox-toolbar-btn-compact" : "df-inbox-toolbar-btn";
+  const assistOpen = assistPanel !== null;
 
   return (
     <div
@@ -169,7 +199,7 @@ function MessageInputInner({
     >
       {composerLocked ? (
         <p
-          className="df-feedback-warning mb-3 rounded-lg px-3 py-2 text-xs"
+          className="df-feedback-warning mb-2 rounded-lg px-3 py-2 text-xs"
           title={OUTBOUND_LOCKED_HINT}
         >
           Envio e sugestões com IA ficam disponíveis quando o canal WhatsApp estiver ativo na Meta.
@@ -184,64 +214,24 @@ function MessageInputInner({
           </span>
         </p>
       )}
-      {showMobileQuickBar ? (
-        <div className="mb-2 grid grid-cols-2 gap-1.5 sm:hidden">
-          <Button
-            variant="secondary"
-            type="button"
-            className="min-h-11 touch-manipulation text-xs font-semibold sm:text-sm"
-            onClick={() => composerRef.current?.focus()}
-          >
-            Responder
-          </Button>
-          <Button
-            variant="secondary"
-            type="button"
-            className="min-h-11 touch-manipulation text-xs font-semibold sm:text-sm"
-            disabled={composerLocked}
-            title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
-            onClick={() => applyTemplate(QUICK_TEMPLATES[0]!.text)}
-          >
-            Template
-          </Button>
-          <Button
-            variant="secondary"
-            type="button"
-            className="min-h-11 touch-manipulation text-xs font-semibold sm:text-sm"
-            disabled={composerLocked || suggestMut.isPending || mutation.isPending}
-            title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
-            onClick={() => suggestMut.mutate(threadId)}
-          >
-            {suggestMut.isPending ? "IA…" : "IA"}
-          </Button>
-          <Button
-            variant="secondary"
-            type="button"
-            className="min-h-11 touch-manipulation text-xs font-semibold sm:text-sm"
-            onClick={() =>
-              document.getElementById("inbox-deal-close")?.scrollIntoView({
-                behavior: "smooth",
-                block: "center",
-              })
-            }
-          >
-            Fechar venda
-          </Button>
-        </div>
-      ) : null}
+
       {thread && followUpSuggestion(thread)?.show ? (
-        <div className="df-feedback-warning mb-2 rounded-lg px-2.5 py-2 text-sm shadow-sm" data-testid="follow-up-banner">
-          <p className="font-medium">Follow-up sugerido</p>
-          <p className="mt-1 text-xs opacity-90">
-            O cliente ainda não respondeu após a última mensagem sua — pode enviar um lembrete cordial.
+        <div
+          className="df-feedback-warning mb-2 flex flex-wrap items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm shadow-sm"
+          data-testid="follow-up-banner"
+        >
+          <p className="min-w-0 flex-1 text-xs font-medium sm:text-sm">
+            Follow-up sugerido — cliente ainda não respondeu após a sua última mensagem.
           </p>
-          <Button variant="secondary"
+          <Button
+            variant="secondary"
             type="button"
-            className={`${buttonClassName("secondary")} mt-2 text-xs`}
+            className={`${buttonClassName("secondary")} shrink-0 text-xs`}
             onClick={async () => {
               const fu = followUpSuggestion(thread);
               if (!fu?.show) return;
               composerRef.current?.setText(fu.suggestedText);
+              composerRef.current?.focus();
               void logFollowUpUse(threadId);
               await qc.invalidateQueries({ queryKey: INBOX_QK.audit(threadId) });
             }}
@@ -251,11 +241,12 @@ function MessageInputInner({
         </div>
       ) : null}
 
-      {mutation.isError && (
-        <div className="df-feedback-danger mb-3 flex flex-wrap items-center gap-2">
+      {mutation.isError ? (
+        <div className="df-feedback-danger mb-2 flex flex-wrap items-center gap-2" role="alert">
           <span className="font-medium">Não enviámos a mensagem.</span>
           {retryText ? (
-            <Button variant="secondary"
+            <Button
+              variant="secondary"
               type="button"
               className="font-semibold text-red-900 underline decoration-red-300 underline-offset-2 hover:decoration-red-800"
               onClick={() => {
@@ -268,88 +259,7 @@ function MessageInputInner({
             </Button>
           ) : null}
         </div>
-      )}
-
-      <details
-        className={`mb-1.5 rounded-lg border border-border/80 bg-muted/55/60 ${denseComposer ? "" : "sm:mb-2"}`}
-      >
-        <summary className="cursor-pointer list-none px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide df-text-muted marker:content-none [&::-webkit-details-marker]:hidden">
-          Respostas rápidas e IA ▾
-        </summary>
-        <div className="flex flex-wrap gap-1 border-t border-border/90 px-2.5 pb-2 pt-1.5">
-          {QUICK_TEMPLATES.map((t) => (
-            <Button variant="secondary"
-              key={t.label}
-              type="button"
-              disabled={composerLocked}
-              title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
-              className="df-inbox-template-chip py-1 text-[10px] sm:text-[11px]"
-              onClick={() => applyTemplate(t.text)}
-              data-testid={`template-${t.label}`}
-            >
-              {t.label}
-            </Button>
-          ))}
-          <Button variant="secondary"
-            type="button"
-            disabled={composerLocked || suggestMut.isPending || mutation.isPending}
-            title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
-            className="df-inbox-ai-chip py-1 text-[10px] font-semibold sm:text-[11px]"
-            onClick={() => suggestMut.mutate(threadId)}
-            data-testid="btn-ai-suggest"
-          >
-            {suggestMut.isPending ? "A gerar…" : "Gerar com IA"}
-          </Button>
-        </div>
-      </details>
-
-      <details className={`mb-1.5 ${denseComposer ? "" : "rounded-lg border border-border/55 bg-muted/30 px-2 py-1 sm:mb-2"}`}>
-        <summary className="df-text-info cursor-pointer px-0.5 py-0.5 text-[10px] font-semibold marker:content-none [&::-webkit-details-marker]:hidden sm:text-[11px]">
-          Playbook — sugerir ação ▾
-        </summary>
-        <div className={denseComposer ? "mt-1" : "mt-1 pb-1"}>
-          <PlaybookSuggest
-            threadId={threadId}
-            sendDisabled={mutation.isPending || composerLocked}
-            onUseResponse={handlePlaybookUse}
-          />
-        </div>
-      </details>
-
-      {suggestMut.isError && (
-        <p className="df-text-error mb-2 text-xs">
-          {suggestMut.error instanceof Error ? suggestMut.error.message : "Erro ao gerar sugestão"}
-        </p>
-      )}
-
-      {aiPreview !== null && (
-        <div className="df-panel-ai-preview mb-2 transition-all duration-200" data-testid="ai-preview">
-          <p className="df-text-info text-[11px] font-semibold uppercase tracking-wide">
-            Pré-visualização (IA)
-          </p>
-          <p className="mt-2 whitespace-pre-wrap df-text-primary">{aiPreview}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button variant="secondary" type="button" className={buttonClassName("primary")} onClick={handleAiPreviewUseInEditor}>
-              Usar no editor
-            </Button>
-            <Button variant="secondary" type="button" className={buttonClassName("secondary")} onClick={() => setAiPreview(null)}>
-              Descartar
-            </Button>
-            <Button variant="secondary"
-              type="button"
-              className={buttonClassName("secondary")}
-              disabled={mutation.isPending || composerLocked}
-              title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
-              onClick={() => {
-                if (!threadId) return;
-                mutation.mutate({ tid: threadId, body: aiPreview });
-              }}
-            >
-              Enviar direto
-            </Button>
-          </div>
-        </div>
-      )}
+      ) : null}
 
       <InboxComposerTextField
         key={threadId}
@@ -361,6 +271,155 @@ function MessageInputInner({
         onSend={handleComposerSend}
         tallMobile={showMobileQuickBar}
       />
+
+      <div
+        className={`mt-2 flex flex-wrap items-center gap-1.5 ${denseComposer ? "gap-1" : ""}`}
+        role="toolbar"
+        aria-label="Assistências do composer"
+        data-testid="composer-assist-toolbar"
+      >
+        <Button
+          variant="secondary"
+          type="button"
+          className={toolbarBtn}
+          aria-expanded={assistPanel === "templates"}
+          aria-controls="composer-assist-region"
+          disabled={composerLocked}
+          title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
+          onClick={() => toggleAssist("templates")}
+        >
+          Templates
+        </Button>
+        <Button
+          variant="secondary"
+          type="button"
+          className={toolbarBtn}
+          aria-expanded={assistPanel === "ai"}
+          aria-controls="composer-assist-region"
+          disabled={composerLocked || mutation.isPending}
+          title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
+          onClick={() => toggleAssist("ai")}
+        >
+          IA
+        </Button>
+        <Button
+          variant="secondary"
+          type="button"
+          className={toolbarBtn}
+          aria-expanded={assistPanel === "playbook"}
+          aria-controls="composer-assist-region"
+          disabled={composerLocked || mutation.isPending}
+          title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
+          onClick={() => toggleAssist("playbook")}
+        >
+          Playbook
+        </Button>
+      </div>
+
+      {assistOpen ? (
+        <div
+          id="composer-assist-region"
+          className="mt-2 max-h-[min(40vh,16rem)] overflow-y-auto rounded-lg border border-border/80 bg-muted/40 p-2"
+          role="region"
+          aria-label={
+            assistPanel === "templates"
+              ? "Respostas rápidas"
+              : assistPanel === "ai"
+                ? "Assistência de IA"
+                : "Playbook"
+          }
+          data-testid="composer-assist-region"
+        >
+          {assistPanel === "templates" ? (
+            <div className="flex flex-wrap gap-1">
+              {QUICK_TEMPLATES.map((t) => (
+                <Button
+                  variant="secondary"
+                  key={t.label}
+                  type="button"
+                  disabled={composerLocked}
+                  title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
+                  className="df-inbox-template-chip py-1 text-[10px] sm:text-[11px]"
+                  onClick={() => applyTemplate(t.text)}
+                  data-testid={`template-${t.label}`}
+                >
+                  {t.label}
+                </Button>
+              ))}
+            </div>
+          ) : null}
+
+          {assistPanel === "ai" ? (
+            <div className="space-y-2">
+              <Button
+                variant="secondary"
+                type="button"
+                disabled={composerLocked || suggestMut.isPending || mutation.isPending}
+                title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
+                className="df-inbox-ai-chip py-1 text-[10px] font-semibold sm:text-[11px]"
+                onClick={() => suggestMut.mutate(threadId)}
+                data-testid="btn-ai-suggest"
+              >
+                {suggestMut.isPending ? "A gerar…" : "Gerar com IA"}
+              </Button>
+              {suggestMut.isError ? (
+                <p className="df-text-error text-xs" role="alert">
+                  {suggestMut.error instanceof Error
+                    ? suggestMut.error.message
+                    : "Erro ao gerar sugestão"}
+                </p>
+              ) : null}
+              {aiPreview !== null ? (
+                <div className="df-panel-ai-preview transition-all duration-200" data-testid="ai-preview">
+                  <p className="df-text-info text-[11px] font-semibold uppercase tracking-wide">
+                    Pré-visualização (IA)
+                  </p>
+                  <p className="mt-2 whitespace-pre-wrap df-text-primary">{aiPreview}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Button
+                      variant="secondary"
+                      type="button"
+                      className={buttonClassName("primary")}
+                      onClick={handleAiPreviewUseInEditor}
+                    >
+                      Usar no editor
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      type="button"
+                      className={buttonClassName("secondary")}
+                      onClick={discardAiPreview}
+                    >
+                      Descartar
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      type="button"
+                      className={buttonClassName("secondary")}
+                      disabled={mutation.isPending || composerLocked}
+                      title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
+                      onClick={() => {
+                        if (!threadId) return;
+                        mutation.mutate({ tid: threadId, body: aiPreview });
+                      }}
+                    >
+                      Enviar direto
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {assistPanel === "playbook" ? (
+            <PlaybookSuggest
+              threadId={threadId}
+              sendDisabled={mutation.isPending || composerLocked}
+              onUseResponse={handlePlaybookUse}
+            />
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
