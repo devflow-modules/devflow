@@ -208,8 +208,8 @@ export function snapshotMarker(filePath: string): MarkerSnapshot {
   try {
     const stat = fs.fstatSync(fd, { bigint: true });
     if (!stat.isFile()) fail("Marker não é arquivo regular");
-    if (stat.nlink !== 1n) fail("Marker com hardlink não autorizado");
-    if (stat.dev === 0n || stat.ino === 0n) fail("Identidade de inode inválida");
+    if (stat.nlink !== BigInt(1)) fail("Marker com hardlink não autorizado");
+    if (stat.dev === BigInt(0) || stat.ino === BigInt(0)) fail("Identidade de inode inválida");
     const bytes = Buffer.alloc(Number(stat.size));
     let offset = 0;
     while (offset < bytes.length) {
