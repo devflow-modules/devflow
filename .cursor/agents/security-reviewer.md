@@ -15,6 +15,7 @@ Rever **auth**, **roles**, **tenant**, **secrets**, **webhooks**, **PII**, **abu
 - Diff completo das superfícies sensíveis
 - [`.cursor/rules/01-security-and-secrets.mdc`](../rules/01-security-and-secrets.mdc)
 - Skill [`devflow-multitenancy-review`](../skills/devflow-multitenancy-review/SKILL.md)
+- Ativação de cliente real WhatsApp/Meta: skill [`whatsapp-client-onboarding`](../skills/whatsapp-client-onboarding/SKILL.md)
 - Runbooks do domínio (webhook, auth validation) quando existirem
 
 ## Responsabilidades
@@ -49,6 +50,7 @@ Rever **auth**, **roles**, **tenant**, **secrets**, **webhooks**, **PII**, **abu
 
 - Lista de findings com severidade e ficheiro
 - Em superfície multi-tenant: veredito da skill [`devflow-multitenancy-review`](../skills/devflow-multitenancy-review/SKILL.md) — `APPROVE` | `FIX` | `BLOCK`
+- Em onboarding/ativação de cliente WhatsApp: veredito da skill [`whatsapp-client-onboarding`](../skills/whatsapp-client-onboarding/SKILL.md) — `APPROVE` | `FIX` | `BLOCK`
 - Testes de segurança pedidos
 
 ## Handoff para outros papéis

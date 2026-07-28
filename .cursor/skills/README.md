@@ -24,6 +24,7 @@ O `name` deve coincidir com o diretório, usar apenas letras minúsculas, númer
 |---|---|---|---|
 | [`whatsapp-platform-safe-change`](./whatsapp-platform-safe-change/SKILL.md) | domínio | action-enabled | Mudanças autorizadas no runtime canônico do WhatsApp |
 | [`whatsapp-e2e-safe-gate`](./whatsapp-e2e-safe-gate/SKILL.md) | técnica | action-enabled com aprovação | Gate E2E seguro da inbox (provision → Playwright → cleanup) |
+| [`whatsapp-client-onboarding`](./whatsapp-client-onboarding/SKILL.md) | operação | action-enabled com aprovação | Gate de onboarding de cliente real Meta/WABA (`APPROVE`/`FIX`/`BLOCK`; default review-only) |
 | [`devflow-multitenancy-review`](./devflow-multitenancy-review/SKILL.md) | técnica | action-enabled | Review multi-tenant (`APPROVE`/`FIX`/`BLOCK`; default review-only) |
 | [`devflow-safe-release`](./devflow-safe-release/SKILL.md) | operação | action-enabled com aprovação | Readiness/release seguro (preflight → rollback) |
 | [`prisma-safe-migration`](./prisma-safe-migration/SKILL.md) | técnica | action-enabled com aprovação | Schema, migrations, índices e backfills Prisma |
@@ -50,6 +51,7 @@ AGENTS.md + rules + contratos reais
 |---|---|---|---|
 | `whatsapp-platform-safe-change` | Platform Architect, Backend Engineer | feature, bugfix, audit-hardening | `/map-impact`, `/audit-domain` |
 | `whatsapp-e2e-safe-gate` | QA Engineer, Backend Engineer | feature, bugfix, audit-hardening | `/create-tests`, `/fix-ci` |
+| `whatsapp-client-onboarding` | Security Reviewer, Product Owner, Release Manager, Platform Architect | audit-hardening, release | `/audit-domain` |
 | `devflow-multitenancy-review` | Security Reviewer, Backend Engineer, Database Engineer, Platform Architect | audit-hardening, feature, bugfix, migration | `/audit-domain`, `/review-pr`, `/map-impact` |
 | `devflow-safe-release` | Release Manager, QA Engineer, Security Reviewer, Documentation Engineer | release | `/release-notes`, `/fix-ci`, `/review-pr` |
 | `prisma-safe-migration` | Database Engineer, Security Reviewer | migration | `/map-impact`, `/review-pr` |

@@ -31,6 +31,7 @@ Não usar para implementar features, improvisar scripts ausentes, recovery opera
   - [`AGENTS.md`](../../../AGENTS.md);
   - [`DEPLOYMENT.md`](../../../docs/shared/DEPLOYMENT.md);
   - WhatsApp: [`PRODUCTION_CHECKLIST.md`](../../../docs/whatsapp/PRODUCTION_CHECKLIST.md), [`WHATSAPP-PRODUCTION-SIGNOFF.md`](../../../docs/architecture/WHATSAPP-PRODUCTION-SIGNOFF.md), [`GO_LIVE_WHATSAPP_PLATFORM.md`](../../../apps/whatsapp-platform/docs/ops/GO_LIVE_WHATSAPP_PLATFORM.md);
+  - cliente real / Meta: [`whatsapp-client-onboarding`](../whatsapp-client-onboarding/SKILL.md) antes de tráfego;
   - migrations: [`prisma-safe-migration`](../prisma-safe-migration/SKILL.md).
 - Plano de rollback do domínio (secção existente no runbook) ou `blocked` se indefinido para produção.
 - Autorização explícita antes de qualquer migrate/deploy em produção.

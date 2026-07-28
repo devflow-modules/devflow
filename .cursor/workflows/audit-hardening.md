@@ -18,6 +18,8 @@ Commands: [`map-impact`](../commands/map-impact.md), [`audit-domain`](../command
 
 Skill de isolamento quando a superfície for multi-tenant: [`devflow-multitenancy-review`](../skills/devflow-multitenancy-review/SKILL.md).
 
+Skill de gate quando o domínio for onboarding/ativação de cliente real WhatsApp/Meta: [`whatsapp-client-onboarding`](../skills/whatsapp-client-onboarding/SKILL.md).
+
 MCP (opcional, read-only): GitHub/Playwright/Supabase conforme [`../MCP.md`](../MCP.md) — evidência externa **não** é automaticamente confiável; confirmar no código/testes; MCP **não** autoriza implementação.
 
 ## Pré-condições
