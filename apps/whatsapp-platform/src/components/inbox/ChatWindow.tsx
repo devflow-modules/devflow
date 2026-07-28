@@ -174,7 +174,9 @@ export function ChatWindow({
                 thread={activeThread}
                 dismissed={actionBannerDismissed}
                 onDismiss={() => setActionBannerDismissed(true)}
-                onRespondNow={() => {}}
+                onRespondNow={() => {
+                  document.getElementById("inbox-composer")?.focus();
+                }}
               />
             </div>
             <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
