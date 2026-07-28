@@ -15,6 +15,8 @@ Seguir [`../workflows/audit-hardening.md`](../workflows/audit-hardening.md) até
 
 Inspecionar UI → API → service → persistence → audit → realtime → tests → docs.
 
+Se a superfície for multi-tenant (authz, Prisma, webhook, jobs, ownership): aplicar skill [`devflow-multitenancy-review`](../skills/devflow-multitenancy-review/SKILL.md) e incorporar o veredito `APPROVE` | `FIX` | `BLOCK` na saída.
+
 ## Saída obrigatória
 
 Lista de achados classificados:

@@ -16,6 +16,8 @@ Platform Architect + Product Owner (decisões) → Backend/Frontend (implementa�
 
 Commands: [`map-impact`](../commands/map-impact.md), [`audit-domain`](../commands/audit-domain.md), [`review-pr`](../commands/review-pr.md), [`fix-ci`](../commands/fix-ci.md)
 
+Skill de isolamento quando a superfície for multi-tenant: [`devflow-multitenancy-review`](../skills/devflow-multitenancy-review/SKILL.md).
+
 MCP (opcional, read-only): GitHub/Playwright/Supabase conforme [`../MCP.md`](../MCP.md) — evidência externa **não** é automaticamente confiável; confirmar no código/testes; MCP **não** autoriza implementação.
 
 ## Pré-condições
