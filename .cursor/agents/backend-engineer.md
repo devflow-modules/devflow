@@ -40,7 +40,7 @@ Implementar APIs e serviços com **idempotência**, **concorrência segura**, au
 ## Guardrails
 
 - [`.cursor/rules/01-security-and-secrets.mdc`](../rules/01-security-and-secrets.mdc)
-- WhatsApp: skill [`whatsapp-platform-safe-change`](../skills/whatsapp-platform-safe-change.md)
+- WhatsApp: skill [`whatsapp-platform-safe-change`](../skills/whatsapp-platform-safe-change/SKILL.md)
 - Workflow [`audit-hardening`](../workflows/audit-hardening.md) para gaps de lifecycle
 
 ## Entregáveis

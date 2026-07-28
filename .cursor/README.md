@@ -123,7 +123,7 @@ Listas detalhadas de comandos **envelhecem**. Preferir:
 | Fonte | Conteúdo |
 |-------|----------|
 | [`.cursor/rules/02-testing-quality-gates.mdc`](./rules/02-testing-quality-gates.mdc) | Política de testes |
-| [`.cursor/skills/whatsapp-platform-safe-change.md`](./skills/whatsapp-platform-safe-change.md) | Gates por tipo de mudança no WhatsApp |
+| [`.cursor/skills/whatsapp-platform-safe-change/SKILL.md`](./skills/whatsapp-platform-safe-change/SKILL.md) | Gates por tipo de mudança no WhatsApp |
 | [`.cursor/rules/05-whatsapp-platform.mdc`](./rules/05-whatsapp-platform.mdc) | Boundaries e gates WhatsApp |
 | `apps/<app>/package.json` scripts | `test:node`, `test:ui`, `lint`, etc. |
 | `scripts/ci/*` + `.github/workflows/*` | Gates de monorepo (ex. routing-governance) |
@@ -235,12 +235,7 @@ Ver [`docs/operations/CURSOR_AUTOMATIONS.md`](../docs/operations/CURSOR_AUTOMATI
 
 ### Skills (técnicas + produto)
 
-Skills existentes (intactas): `whatsapp-platform-safe-change`, `prisma-safe-migration`, `test-hardening`, `nextjs-ui-polish`, `devflow-github-issue`.
-
-Skills de produto (esta camada):
-
-- [`skills/product-grill.md`](./skills/product-grill.md)
-- [`skills/revenue-centric-design.md`](./skills/revenue-centric-design.md)
+Catálogo, contrato e classificação de capacidade: [`.cursor/skills/README.md`](./skills/README.md).
 
 ### Rules
 

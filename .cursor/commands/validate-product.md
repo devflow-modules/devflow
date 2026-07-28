@@ -12,8 +12,8 @@ Executar validação de produto (go/no-go) antes de implementar.
 
 Seguir workflow [`../workflows/product-validation.md`](../workflows/product-validation.md) usando:
 
-- [`../skills/product-grill.md`](../skills/product-grill.md)
-- [`../skills/revenue-centric-design.md`](../skills/revenue-centric-design.md)
+- [`product-grill`](../skills/product-grill/SKILL.md)
+- [`revenue-centric-design`](../skills/revenue-centric-design/SKILL.md)
 
 ## Saída obrigatória
 

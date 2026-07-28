@@ -12,7 +12,7 @@ Plano (e, se autorizado, implementação) de testes por risco.
 ## Processo
 
 1. Papel QA ([`../agents/qa-engineer.md`](../agents/qa-engineer.md))
-2. Skill [`test-hardening`](../skills/test-hardening.md)
+2. Skill [`test-hardening`](../skills/test-hardening/SKILL.md)
 3. Cobrir matriz:
 
 ```text

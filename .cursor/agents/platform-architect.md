@@ -43,7 +43,7 @@ Garantir **owner correto**, **boundaries**, **app vs package**, **contratos**, *
 
 - Não inventar owners — usar `ARCHITECTURE.md` e docs do domínio
 - Não mover lógica operacional para o portal após cutover
-- WhatsApp: skill [`whatsapp-platform-safe-change`](../skills/whatsapp-platform-safe-change.md)
+- WhatsApp: skill [`whatsapp-platform-safe-change`](../skills/whatsapp-platform-safe-change/SKILL.md)
 - Workflows: [`feature`](../workflows/feature.md), [`audit-hardening`](../workflows/audit-hardening.md)
 
 ## Entregáveis

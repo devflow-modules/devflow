@@ -14,7 +14,7 @@ alwaysApply: false
 # WhatsApp Platform
 
 Canonical docs: `docs/whatsapp-platform/CURRENT-SCOPE.md`, `ARCHITECTURE.md`, `DOCUMENTATION-MAP.md`.  
-Safe-change skill: `.cursor/skills/whatsapp-platform-safe-change.md`.  
+Safe-change skill: `.cursor/skills/whatsapp-platform-safe-change/SKILL.md`.
 UI: `.cursor/rules/whatsapp-platform-design.mdc`.
 
 ## Ownership (where work belongs)

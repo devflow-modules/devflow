@@ -55,4 +55,4 @@ Não mover ficheiros só por reorganização — actualizar o [DOCUMENTATION-MAP
 
 - Regra: `.cursor/rules/05-whatsapp-platform.mdc`
 - Design: `.cursor/rules/whatsapp-platform-design.mdc`
-- Skill: `.cursor/skills/whatsapp-platform-safe-change.md`
+- Skill: `.cursor/skills/whatsapp-platform-safe-change/SKILL.md`

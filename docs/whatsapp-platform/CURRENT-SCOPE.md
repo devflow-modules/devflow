@@ -157,7 +157,7 @@ Status vocabulary (also in ARCHITECTURE.md):
 | Portal lead/CRM | `src/` (portal Prisma — **not** WhatsApp Prisma) |
 | Webhook Meta | `apps/whatsapp-platform` webhook handlers only |
 
-Full ownership, forbidden imports, and impact maps: [ARCHITECTURE.md](./ARCHITECTURE.md) and `.cursor/skills/whatsapp-platform-safe-change.md`.
+Full ownership, forbidden imports, and impact maps: [ARCHITECTURE.md](./ARCHITECTURE.md) and `.cursor/skills/whatsapp-platform-safe-change/SKILL.md`.
 
 ---
 

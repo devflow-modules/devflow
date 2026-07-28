@@ -41,7 +41,7 @@ Definir **problema**, **persona**, **valor**, **escopo**, **aceite**, **risco de
 
 - Não decide schema, CAS, stack ou boundaries de packages
 - Não autoriza implementação sem mapa de impacto em mudanças críticas
-- Skills: [`product-grill`](../skills/product-grill.md), [`revenue-centric-design`](../skills/revenue-centric-design.md)
+- Skills: [`product-grill`](../skills/product-grill/SKILL.md), [`revenue-centric-design`](../skills/revenue-centric-design/SKILL.md)
 - Workflow: [`product-validation`](../workflows/product-validation.md), [`audit-hardening`](../workflows/audit-hardening.md)
 
 ## Entregáveis

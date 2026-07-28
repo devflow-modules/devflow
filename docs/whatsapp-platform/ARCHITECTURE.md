@@ -280,4 +280,4 @@ Rule of thumb: run tests for the **owner** that changed. Also available on the a
 | Portal parity | `docs/architecture/WHATSAPP_PORTAL_APP_PARITY.md` |
 | Webhook hardening | `docs/architecture/WHATSAPP-WEBHOOK-HARDENING.md` |
 | CI boundary | `docs/architecture/WHATSAPP-ARCHITECTURE-GUARDRAILS.md` |
-| Agent rule / skill | `.cursor/rules/05-whatsapp-platform.mdc`, `.cursor/skills/whatsapp-platform-safe-change.md` |
+| Agent rule / skill | `.cursor/rules/05-whatsapp-platform.mdc`, `.cursor/skills/whatsapp-platform-safe-change/SKILL.md` |
