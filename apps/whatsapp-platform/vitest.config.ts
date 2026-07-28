@@ -15,7 +15,12 @@ export default defineConfig({
         test: {
           name: "node",
           environment: "node",
-          include: ["src/**/*.test.ts", "src/**/*.spec.ts"],
+          include: [
+            "src/**/*.test.ts",
+            "src/**/*.spec.ts",
+            "scripts/**/*.test.ts",
+            "tests/e2e/helpers/**/*.test.ts",
+          ],
           exclude: ["src/**/*.test.tsx", "src/lib/__tests__/useMediaMinWidth.test.ts"],
           setupFiles: ["./src/test/setup-node.ts"],
         },

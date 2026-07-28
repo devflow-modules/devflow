@@ -143,7 +143,7 @@ Product UI subset:
 pnpm test:a11y:product-ui
 ```
 
-Session reuse: `tests/setup/global-auth.setup.ts` saves `tests/.auth/whatsapp-admin.json` (gitignored).
+Session reuse: `tests/setup/global-auth.setup.mts` saves `tests/.auth/whatsapp-admin.json` (gitignored).
 
 For axe coverage on `/admin/whatsapp`, the user must be `platform_admin`.
 

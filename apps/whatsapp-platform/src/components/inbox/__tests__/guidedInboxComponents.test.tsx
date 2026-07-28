@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ConversationActionBanner } from "../ConversationActionBanner";
 import { ConversationTimeline } from "../ConversationTimeline";
-import { OperatorSuggestion } from "../OperatorSuggestion";
+import { OperatorSuggestion } from "../OperatorSuggestionPanel";
 import type { WaInboxMessageRow, WaInboxThreadRow } from "../inboxTypes";
 
 describe("guided inbox components", () => {

@@ -1,16 +1,29 @@
-import { chromium, type FullConfig } from "@playwright/test";
+import { chromium } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
-import { loginUrlWithNext } from "../../src/lib/safe-redirect";
+import {
+  createIsolationEvidence,
+  initializeSafeStorageState,
+  writeIsolationShard,
+} from "../../scripts/e2e/inbox-e2e-artifacts";
 import {
   AUTH_STORAGE_STATE_PATH,
   getE2EBaseURL,
   getE2EWhatsappAdminCredentials,
-} from "../e2e/helpers/whatsapp-auth";
+} from "../e2e/helpers/whatsapp-auth-state.mts";
 
-async function globalSetup(_config: FullConfig): Promise<void> {
+async function globalSetup(): Promise<void> {
+  if (process.env.INBOX_E2E_SAFE_MODE === "1") {
+    const runId = process.env.INBOX_E2E_ATTEMPT_ID?.trim() ?? "";
+    initializeSafeStorageState(AUTH_STORAGE_STATE_PATH, runId);
+    const evidence = createIsolationEvidence();
+    evidence.complete = true;
+    writeIsolationShard(runId, "global-setup", evidence);
+    console.log("[e2e:auth] Storage state efêmero inicializado pelo runner seguro");
+    return;
+  }
+
   fs.mkdirSync(path.dirname(AUTH_STORAGE_STATE_PATH), { recursive: true });
-
   const creds = getE2EWhatsappAdminCredentials();
   if (!creds) {
     console.log(
@@ -21,13 +34,13 @@ async function globalSetup(_config: FullConfig): Promise<void> {
   }
 
   const baseURL = getE2EBaseURL();
-  console.log(`[e2e:auth] Login único (${baseURL}) → ${AUTH_STORAGE_STATE_PATH}`);
+  console.log("[e2e:auth] Login único com storage state efêmero");
 
   const browser = await chromium.launch();
   const context = await browser.newContext({ baseURL });
   const page = await context.newPage();
 
-  await page.goto(loginUrlWithNext("/inbox"));
+  await page.goto("/login");
   await page.getByLabel("E-mail").fill(creds.email);
   await page.getByLabel("Senha").fill(creds.password);
   await page.getByRole("button", { name: "Entrar" }).click();

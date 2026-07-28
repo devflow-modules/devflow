@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- configuração explicitamente CommonJS */
 const path = require("path");
 const { defineConfig, devices } = require("@playwright/test");
 require("dotenv").config({ path: path.resolve(__dirname, "../../.env.local") });
@@ -23,7 +24,7 @@ const useLocalWebServer =
 module.exports = defineConfig({
   /** Inclui `tests/e2e` e `tests/a11y`; filtre com `pnpm exec playwright test tests/e2e` ou `tests/a11y`. */
   testDir: "./tests",
-  globalSetup: require.resolve("./tests/setup/global-auth.setup.ts"),
+  globalSetup: require.resolve("./tests/setup/global-auth.setup.mts"),
   fullyParallel: false,
   workers: 1,
   forbidOnly: Boolean(process.env.CI),
