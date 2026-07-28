@@ -258,6 +258,14 @@ describe("Inbox UI", () => {
     expect(within(row).getAllByText("Cliente").length).toBeGreaterThanOrEqual(1);
     expect(within(row).getByText("última msg")).toBeInTheDocument();
     expect(screen.getByTestId("pending-inbound-badge")).toHaveTextContent("2");
+    // Fatia 1 — densificação: CRM/score fora da row; unread+pending e assignee preservados
+    expect(within(row).queryByTestId("crm-inbox-row")).not.toBeInTheDocument();
+    expect(within(row).queryByTestId("lead-score-list")).not.toBeInTheDocument();
+    expect(within(row).queryByTestId("whatsapp-line-badge")).not.toBeInTheDocument();
+    expect(within(row).queryByTestId("response-alert-badge")).not.toBeInTheDocument();
+    expect(within(row).getByTestId("assignee-line")).toHaveTextContent(/Sem responsável/i);
+    expect(within(row).getByTestId("conversation-state-badge")).toHaveTextContent(/Precisa resposta/i);
+    expect(within(row).getByTestId("unread-count-badge")).toHaveTextContent("2");
   });
 
   it("seleciona conversa ao clicar", async () => {

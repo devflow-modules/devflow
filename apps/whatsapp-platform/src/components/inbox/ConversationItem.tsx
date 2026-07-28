@@ -7,22 +7,9 @@ import { type ConversationState } from "@/modules/inbox/waInboxConversationState
 import { formatCompactWaitDurationMs } from "@/modules/inbox/waInboxSla";
 import { conversationPreviewPrefix } from "./conversationPreviewPrefix";
 import { slaWaitLabelClass } from "./inboxOperationalStyles";
-import { priorityGuidance } from "./leadPanelCopy";
-import { ResponseAlertBadge, getResponseAlertLevel } from "./ResponseAlertBadge";
+import { getResponseAlertLevel } from "./ResponseAlertBadge";
 import { getConversationStateBadge } from "./conversationStateUi";
 import { Button } from "@/components/ui/button";
-import {
-  formatWhatsappLineBadgeLabel,
-  formatWhatsappLineFilterOptionLabel,
-  getWhatsappLinePurposeTone,
-} from "@/lib/whatsapp-lines/linePresentation";
-import {
-  isFollowUpDueOrOverdue,
-  isSalesStage,
-  SALES_STAGE_ABBREV,
-  SALES_STAGE_BADGE_CLASS,
-  SALES_STAGE_LABELS_PT,
-} from "@/modules/inbox/prospectSales";
 
 function formatListTimeCompact(iso: string): string {
   try {
@@ -38,6 +25,15 @@ function formatListTimeCompact(iso: string): string {
   }
 }
 
+function slaRank(s: InboxSlaLevel | null | undefined): number {
+  return s === "critical" ? 0 : s === "high" ? 1 : s === "medium" ? 2 : 3;
+}
+
+/**
+ * Fatia 1 — densidade operacional da row.
+ * Mantém unread + pending e responsável nomeado (decisões de produto bloqueadas).
+ * CRM/score/linha/fila/alertas redundantes saem da lista (header/painel).
+ */
 export const ConversationItem = memo(function ConversationItem({
   thread,
   active,
@@ -45,7 +41,8 @@ export const ConversationItem = memo(function ConversationItem({
   onAssume,
   onClose,
   busyAction,
-  devFlowProspectingUi = false,
+  /** Reservado: prospect UI na lista desligada nesta fatia; prop preservada para callers. */
+  devFlowProspectingUi: _devFlowProspectingUi = false,
 }: {
   thread: WaInboxThreadRow;
   active: boolean;
@@ -53,9 +50,11 @@ export const ConversationItem = memo(function ConversationItem({
   onAssume?: (id: string) => void;
   onClose?: (id: string) => void;
   busyAction?: { id: string; kind: "assume" | "close" } | null;
-  /** CRM comercial DevFlow (interno): etapa + FU hoje na linha. */
+  /** CRM comercial DevFlow (interno) — não renderizado na row densificada. */
   devFlowProspectingUi?: boolean;
 }) {
+  void _devFlowProspectingUi;
+
   const title = thread.contactName?.trim() || thread.phoneNumber;
   const initials = title.slice(0, 2).toUpperCase();
   const rawPreview = thread.lastMessagePreview?.trim() || "—";
@@ -68,8 +67,7 @@ export const ConversationItem = memo(function ConversationItem({
     thread.status === "CLOSED"
       ? null
       : thread.assignedToUser?.name?.trim() || "Sem responsável";
-  const showSlaWait = state === "awaiting_agent" && thread.responseDelayMs != null;
-  const waitLabel = showSlaWait ? formatCompactWaitDurationMs(thread.responseDelayMs!) : null;
+
   const responseAlert = state === "awaiting_agent" ? getResponseAlertLevel(thread.responseDelayMs) : "none";
   const isCritical =
     state === "awaiting_agent" &&
@@ -78,55 +76,25 @@ export const ConversationItem = memo(function ConversationItem({
     state === "awaiting_agent" &&
     !isCritical &&
     (thread.slaLevel === "high" || responseAlert === "warning");
+
+  /** SLA na lista = exceção acionável (limiares ResponseAlertBadge / sla high|critical). */
+  const showSlaWait =
+    state === "awaiting_agent" &&
+    thread.responseDelayMs != null &&
+    (responseAlert !== "none" || thread.slaLevel === "high" || thread.slaLevel === "critical");
+  const waitLabel = showSlaWait ? formatCompactWaitDurationMs(thread.responseDelayMs!) : null;
+
   const showActions = Boolean(onAssume || onClose);
   const isUnassigned = thread.isUnassigned ?? thread.assignedToUser == null;
   const canAssume = Boolean(onAssume && thread.status !== "CLOSED" && isUnassigned);
   const canClose = Boolean(onClose && thread.status !== "CLOSED");
-  /** Sem responsável humano: pendência inbound e ninguém atribuído. */
   const showSemDono = Boolean(
     (thread.isUnassigned || !thread.assignedToUser) &&
       thread.status !== "CLOSED" &&
       state === "awaiting_agent"
   );
-  const showAguardandoCliente = Boolean(
-    (thread.isUnassigned || !thread.assignedToUser) &&
-      thread.status !== "CLOSED" &&
-      state === "awaiting_customer"
-  );
 
-  const crmTier = thread.priority;
-  const crmLabel =
-    crmTier === "HIGH"
-      ? "Prioridade CRM — alta"
-      : crmTier === "MEDIUM"
-        ? "Prioridade CRM — média"
-        : crmTier === "LOW"
-          ? "Prioridade CRM — baixa"
-          : null;
-  const priorityHint = priorityGuidance(crmTier);
-  const crmClass =
-    crmTier === "HIGH"
-      ? "df-text-error ring-1 ring-[color:var(--df-danger-border)]"
-      : crmTier === "MEDIUM"
-        ? "df-text-warning ring-1 ring-[color:var(--df-warning-border)]"
-        : crmTier === "LOW"
-          ? "df-text-muted ring-1 ring-[color:var(--df-ring-soft)]"
-          : "";
-
-  const slaRank = (s: InboxSlaLevel | null | undefined): number =>
-    s === "critical" ? 0 : s === "high" ? 1 : s === "medium" ? 2 : 3;
-
-  const followUpDue = isFollowUpDueOrOverdue(thread.leadData?.prospect?.nextFollowUpAt);
-  const prospectStage = thread.leadData?.prospect?.salesStage;
-  const stageChip =
-    prospectStage && isSalesStage(prospectStage) ? (
-      <span
-        className={`df-inbox-list-chip max-w-[4.5rem] truncate rounded px-1 py-0.5 font-bold ring-1 ${SALES_STAGE_BADGE_CLASS[prospectStage]}`}
-        title={SALES_STAGE_LABELS_PT[prospectStage]}
-      >
-        {SALES_STAGE_ABBREV[prospectStage]}
-      </span>
-    ) : null;
+  const legacyNeedsReply = Boolean(needsReply && thread.status === "OPEN" && !state);
 
   const noOwnerStripe =
     showSemDono && !isCritical && !isHigh && !active
@@ -158,29 +126,29 @@ export const ConversationItem = memo(function ConversationItem({
 
   return (
     <div className={rowClass} data-thread-id={thread.id}>
-      <Button variant="secondary"
+      <Button
+        variant="secondary"
         type="button"
         onClick={() => onSelect(thread.id)}
         data-testid="conversation-item"
-        className={`flex min-w-0 flex-1 items-start gap-2.5 px-2 text-left sm:gap-3 sm:px-2.5 ${
+        className={`df-focus-brand flex min-w-0 flex-1 items-start gap-2.5 px-2 text-left sm:gap-3 sm:px-2.5 max-md:px-3 max-md:py-3 ${
           thread.status === "CLOSED" ? "py-3.5 sm:py-4" : "py-2.5 sm:py-2.5"
         }`}
       >
         <div
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[11px] font-bold tracking-tight transition-transform duration-200 ease-out group-hover:scale-[1.02] ${avatarClass}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[11px] font-bold tracking-tight transition-transform duration-200 ease-out group-hover:scale-[1.02] motion-reduce:transition-none motion-reduce:group-hover:scale-100 ${avatarClass}`}
           aria-hidden
         >
           {initials}
         </div>
         <div className="min-w-0 flex-1 pr-1">
+          {/* Faixa 1 — identidade + tempo/SLA-exceção + unread */}
           <div className="flex min-w-0 items-start justify-between gap-2">
-            <span
-              className={`truncate text-[13px] font-semibold leading-tight ${active ? "text-[var(--df-text-primary)]" : "text-[var(--df-text-primary)]"}`}
-            >
+            <span className="truncate text-[13px] font-semibold leading-tight text-[var(--df-text-primary)]">
               {title}
             </span>
             <div className="flex shrink-0 flex-col items-end gap-0.5 text-right">
-              {state === "awaiting_agent" && waitLabel ? (
+              {waitLabel ? (
                 <span
                   className={`inline-flex items-center tabular-nums ${slaWaitLabelClass(isCritical, isHigh)}`}
                   data-testid="sla-wait-label"
@@ -189,7 +157,9 @@ export const ConversationItem = memo(function ConversationItem({
                   {waitLabel}
                 </span>
               ) : (
-                <span className="text-[11px] tabular-nums text-[var(--df-text-muted)]">{formatListTimeCompact(thread.lastMessageAt)}</span>
+                <span className="text-[11px] tabular-nums text-[var(--df-text-muted)]">
+                  {formatListTimeCompact(thread.lastMessageAt)}
+                </span>
               )}
               {thread.unreadCount > 0 ? (
                 <span
@@ -203,120 +173,43 @@ export const ConversationItem = memo(function ConversationItem({
             </div>
           </div>
 
-          {thread.whatsappLine ? (
-            <div className="mt-1 flex min-w-0 flex-wrap items-center gap-1.5" data-testid="conversation-line-badge-row">
-              <span
-                className={getWhatsappLinePurposeTone(thread.whatsappLine).className}
-                data-testid="whatsapp-line-badge"
-                title={formatWhatsappLineFilterOptionLabel(thread.whatsappLine)}
-              >
-                {formatWhatsappLineBadgeLabel(thread.whatsappLine)}
-              </span>
-            </div>
-          ) : null}
-
-          {stateBadge || (thread.dealSuggested && thread.dealStatus !== "won" && thread.dealStatus !== "lost") ? (
-            <div className="mt-1 flex flex-wrap items-center gap-1.5">
-              {stateBadge ? (
-                <span className={stateBadge.className} data-testid="conversation-state-badge">
-                  {stateBadge.label}
-                </span>
-              ) : null}
-              {thread.dealSuggested && thread.dealStatus !== "won" && thread.dealStatus !== "lost" ? (
-                <span
-                  className="df-badge-warning df-inbox-list-chip !rounded-full !px-1.5 !py-0.5 !font-bold !uppercase !tracking-wide"
-                  title="Proposta de fecho à espera de confirmação do gestor"
-                  data-testid="deal-suggestion-pending-badge"
-                >
-                  Sugestão pendente
-                </span>
-              ) : null}
-            </div>
-          ) : null}
-
-          {assigneeLabel ? (
-            <p className="mt-0.5 truncate text-left text-[10px] font-medium text-[var(--df-text-muted)]" data-testid="assignee-line">
-              Responsável: <span className="text-[var(--df-text-secondary)]">{assigneeLabel}</span>
-            </p>
-          ) : null}
-
+          {/* Faixa 2 — prévia */}
           <p className="mt-1 line-clamp-2 text-left text-[12px] leading-snug text-[var(--df-text-secondary)]">
             <span className="font-semibold text-[var(--df-text-muted)]">{prefix}</span>
             <span className="text-[var(--df-text-muted)]"> · </span>
             <span>{rawPreview}</span>
           </p>
 
-          <div className="mt-1 flex flex-wrap items-center gap-1.5" data-testid="crm-inbox-row">
-            {crmLabel ? (
-              <span
-                className={`df-inbox-list-chip inline-flex flex-col rounded px-1 py-0.5 font-bold ring-1 ${crmClass}`}
-                title={priorityHint?.tooltip ?? "Prioridade da conversa"}
-                data-testid="crm-priority-badge"
-              >
-                <span>{crmLabel}</span>
-                {priorityHint ? (
-                  <span className="font-normal normal-case opacity-90">{priorityHint.line}</span>
-                ) : null}
+          {/* Faixa 3 — estado dominante + responsável (comportamento atual) + pending */}
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            {stateBadge ? (
+              <span className={stateBadge.className} data-testid="conversation-state-badge">
+                {stateBadge.label}
               </span>
-            ) : null}
-            <span className="df-inbox-list-chip tabular-nums font-semibold text-[var(--df-text-secondary)]" data-testid="lead-score-list">
-              {thread.leadScore ?? 0} pts
-            </span>
-            {thread.aiState ? (
-              <span className="df-inbox-list-chip max-w-[5.5rem] truncate rounded bg-[var(--df-brand-100)] px-1 py-0.5 font-medium text-[var(--df-brand-900)] ring-1 ring-[var(--df-border-subtle)]">
-                {thread.aiState}
+            ) : legacyNeedsReply ? (
+              <span className="df-chip-awaiting" data-testid="conversation-state-badge">
+                Precisa resposta
               </span>
-            ) : null}
-            {devFlowProspectingUi && followUpDue ? (
-              <span
-                className="df-badge-error !rounded px-1 py-0.5 text-[9px] font-bold !normal-case !tracking-normal"
-                title="Follow-up comercial: hoje ou em atraso"
-                data-testid="prospect-followup-due-chip"
-              >
-                FU hoje
-              </span>
-            ) : null}
-            {devFlowProspectingUi ? stageChip : null}
-          </div>
-
-          <div className="mt-1 flex flex-wrap items-center gap-1">
-            {state === "awaiting_agent" && responseAlert !== "none" ? (
-              <ResponseAlertBadge delayMs={thread.responseDelayMs} />
             ) : null}
             {pendingCount > 0 ? (
-              <span className="df-badge-pending-count" data-testid="pending-inbound-badge" title="Inbounds sem resposta">
+              <span
+                className="df-badge-pending-count"
+                data-testid="pending-inbound-badge"
+                title="Inbounds sem resposta"
+              >
                 {pendingCount > 99 ? "99+" : pendingCount}
               </span>
             ) : null}
-            {thread.queue?.name ? (
-              <span
-                className="df-inbox-list-chip max-w-[7rem] truncate rounded-md px-1.5 py-0.5 font-semibold ring-1 ring-[color:var(--df-ring-soft)]"
-                style={{
-                  backgroundColor: thread.queue.color
-                    ? `${thread.queue.color}33`
-                    : "var(--df-chip-muted-bg)",
-                }}
-                title={thread.queue.slug}
-              >
-                {thread.queue.name}
-              </span>
-            ) : null}
-            {showSemDono ? (
-              <span className="df-chip-unassigned" data-testid="unassigned-chip">
-                Sem responsável
-              </span>
-            ) : null}
-            {showAguardandoCliente ? (
-              <span
-                className="df-badge-success df-inbox-list-chip !rounded-md !px-1.5 !py-0.5 !font-semibold !normal-case !tracking-normal"
-                data-testid="awaiting-customer-chip"
-                title="Última resposta enviada; à espera do cliente"
-              >
-                {thread.lastResponderType === "ai" ? "IA · aguarda cliente" : "Aguardando cliente"}
-              </span>
-            ) : null}
-            {needsReply && thread.status === "OPEN" && !state && <span className="df-chip-awaiting">À espera</span>}
           </div>
+
+          {assigneeLabel ? (
+            <p
+              className="mt-1 truncate text-left text-[10px] font-medium text-[var(--df-text-muted)]"
+              data-testid="assignee-line"
+            >
+              Responsável: <span className="text-[var(--df-text-secondary)]">{assigneeLabel}</span>
+            </p>
+          ) : null}
         </div>
       </Button>
 
@@ -327,10 +220,11 @@ export const ConversationItem = memo(function ConversationItem({
           onKeyDown={(e) => e.stopPropagation()}
         >
           {canAssume ? (
-            <Button variant="disabled"
+            <Button
+              variant="disabled"
               type="button"
               disabled={busyAction?.id === thread.id}
-              className="df-inbox-row-action-primary"
+              className="df-inbox-row-action-primary max-md:min-h-10"
               onClick={() => onAssume?.(thread.id)}
               data-testid="action-assume"
             >
@@ -338,10 +232,11 @@ export const ConversationItem = memo(function ConversationItem({
             </Button>
           ) : null}
           {canClose ? (
-            <Button variant="disabled"
+            <Button
+              variant="disabled"
               type="button"
               disabled={busyAction?.id === thread.id}
-              className="df-inbox-row-action-secondary"
+              className="df-inbox-row-action-secondary max-md:min-h-10"
               onClick={() => onClose?.(thread.id)}
               data-testid="action-close"
             >
