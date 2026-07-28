@@ -16,6 +16,7 @@ Entregar UI alinhada ao design system: React/Next, acessibilidade, cache cliente
 - Contratos da API já existentes (não inferir DTO inexistente)
 - Design rules do app (ex. `whatsapp-platform-design.mdc`)
 - Skill [`nextjs-ui-polish`](../skills/nextjs-ui-polish/SKILL.md) quando for polish
+- Skill [`frontend-design`](../skills/frontend-design/SKILL.md) quando for direção visual / identidade autoral (escopo aprovado)
 
 ## Responsabilidades
 

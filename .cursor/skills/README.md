@@ -32,6 +32,7 @@ O `name` deve coincidir com o diretório, usar apenas letras minúsculas, númer
 | [`prisma-safe-migration`](./prisma-safe-migration/SKILL.md) | técnica | action-enabled com aprovação | Schema, migrations, índices e backfills Prisma |
 | [`test-hardening`](./test-hardening/SKILL.md) | técnica | action-enabled | Regressão, cobertura e flakiness em Vitest |
 | [`nextjs-ui-polish`](./nextjs-ui-polish/SKILL.md) | técnica | action-enabled | Ajustes visuais sem alterar contratos de produto |
+| [`frontend-design`](./frontend-design/SKILL.md) | técnica (externa adaptada) | action-enabled | Direção visual autoral; preserva design system DevFlow |
 | [`devflow-github-issue`](./devflow-github-issue/SKILL.md) | operação externa | action-enabled com autorização | Preparação e criação de issues no GitHub |
 | [`product-grill`](./product-grill/SKILL.md) | decisão | advisory-only | Validação de problema, evidência e MVP |
 | [`revenue-centric-design`](./revenue-centric-design/SKILL.md) | decisão | advisory-only | Priorização por outcomes, custo e risco |
@@ -63,6 +64,7 @@ AGENTS.md + rules + contratos reais
 | `prisma-safe-migration` | Database Engineer, Security Reviewer | migration | `/map-impact`, `/review-pr` |
 | `test-hardening` | QA Engineer | feature, bugfix, audit-hardening | `/create-tests`, `/fix-ci` |
 | `nextjs-ui-polish` | Frontend Engineer, QA Engineer | feature, bugfix | `/create-tests`, `/review-pr` |
+| `frontend-design` | Frontend Engineer, Product Owner, Documentation Engineer | feature, product-validation | `/plan-feature`, `/review-pr` |
 | `devflow-github-issue` | Product Owner, Platform Architect | qualquer workflow após triagem | `/plan-feature`, `/map-impact` |
 | `product-grill` | Product Owner | product-validation | `/validate-product` |
 | `revenue-centric-design` | Product Owner | product-validation | `/validate-product` |
@@ -87,7 +89,8 @@ Mudanças de comportamento ou guardrails exigem revisão humana e devem ser desc
 - Links e caminhos relativos válidos.
 - Frontmatter consistente e nomes únicos.
 - Nenhum arquivo legado `.cursor/skills/*.md`, exceto `README.md` e `BASELINE.md`.
-- Baseline interna congelada em [`BASELINE.md`](./BASELINE.md) após 13 skills.
+- Baseline interna congelada em [`BASELINE.md`](./BASELINE.md) (atualizar só por decisão explícita; intake externo documentado lá).
+- Primeira skill externa adaptada: [`frontend-design`](./frontend-design/SKILL.md) (quarentena + auditoria em [`.cursor/external-skills/`](../external-skills/quarantine/frontend-design/AUDIT.md)).
 - Nenhuma instrução contradiz `AGENTS.md`, rules de segurança ou documentação canônica.
 - Nenhum secret, dado real de cliente ou comando destrutivo sem aprovação explícita.
 - Capacidade de ação e stop conditions explícitas.

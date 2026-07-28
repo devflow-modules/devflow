@@ -1,20 +1,22 @@
 # Internal skills baseline — frozen
 
-Data de congelamento: **2026-07-28**.  
-Commit de referência na `main`: merge da fundação de 13 skills (`devflow-product-evidence` + este baseline).
+Data de congelamento da fundação interna: **2026-07-28** (13 skills).
+Primeira extensão externa adaptada (decisão explícita): **2026-07-28** — `frontend-design` (piloto ADAPT).
 
-Este ficheiro é a **referência imutável** da fundação interna de skills DevFlow. Não atualizar automaticamente. Qualquer mudança de contagem, contrato ou capacidade exige **decisão humana explícita** e PR dedicado que altere este ficheiro de propósito.
+Este ficheiro é a **referência controlada** do inventário confiável de skills DevFlow. Não atualizar automaticamente. Qualquer mudança de contagem, contrato ou capacidade exige **decisão humana explícita** e PR dedicado que altere este ficheiro de propósito.
 
 ## Contagem
 
 | Item | Valor |
 |---|---|
-| Skills validadas | **13** |
+| Skills validadas | **14** |
+| Fundação interna (freeze) | **13** |
+| Externas adaptadas | **1** (`frontend-design`) |
 | Validador | `node .cursor/skills/validate-skills.mjs` |
 | Layout | `.cursor/skills/<name>/SKILL.md` |
 | Contrato | objetivo, gatilhos, entradas, fluxo, guardrails, stop conditions, validações, formato da entrega |
 
-## Inventário (baseline)
+## Inventário — fundação interna (imutável salvo decisão)
 
 | Skill | Capacidade | Papel |
 |---|---|---|
@@ -32,7 +34,13 @@ Este ficheiro é a **referência imutável** da fundação interna de skills Dev
 | `product-grill` | advisory-only | Validação pré-build |
 | `revenue-centric-design` | advisory-only | Priorização por outcomes |
 
-## Auditoria consolidada (aceite da baseline)
+## Inventário — externas adaptadas (decisão explícita)
+
+| Skill | Decisão | Origem | Quarentena / auditoria |
+|---|---|---|---|
+| `frontend-design` | **ADAPT** (piloto 2026-07-28) | Anthropic `anthropics/skills` · Apache 2.0 | [AUDIT.md](../external-skills/quarantine/frontend-design/AUDIT.md) |
+
+## Auditoria consolidada (aceite da fundação interna)
 
 - [x] Formato `SKILL.md` em pasta; sem legado `.cursor/skills/*.md` (exceto `README.md` / este baseline).
 - [x] Frontmatter `name` + `description`; `name` = diretório.
@@ -46,13 +54,12 @@ Este ficheiro é a **referência imutável** da fundação interna de skills Dev
 
 ## Imutabilidade
 
-- A baseline **não** muda por importação automática, Dependabot ou cópia de skill externa.
-- Editar este ficheiro só quando a equipa decidir explicitamente alterar o inventário interno.
-- Skills da baseline podem receber correções pontuais via PR pequeno **sem** reescrever a baseline, desde que contagem/contrato/capacidade permaneçam iguais; se mudarem, atualizar este ficheiro no mesmo PR.
+- A fundação interna de 13 **não** muda por importação automática, Dependabot ou cópia de skill externa.
+- Editar este ficheiro só quando a equipa decidir explicitamente alterar o inventário.
+- Skills internas podem receber correções pontuais via PR pequeno **sem** reescrever a baseline, desde que contagem/contrato/capacidade permaneçam iguais; se mudarem, atualizar este ficheiro no mesmo PR.
+- Externas adaptadas entram **uma por PR**, com quarentena + auditoria; nunca `npx skills add` direto no catálogo confiável.
 
-## Intake de skills externas (pós-baseline)
-
-Fluxo obrigatório — **uma skill externa por PR**; nunca copiar direto para o catálogo confiável:
+## Intake de skills externas
 
 ```text
 quarentena
@@ -65,14 +72,14 @@ quarentena
 
 Regras:
 
-1. Manter o material externo em quarentena (fora de `.cursor/skills/<name>/` confiável) até a PR de adaptação.
-2. Distinguir claramente **conteúdo importado** vs **autoria interna** (origem, licença, data, URL).
+1. Snapshot verbatim fora de `.cursor/skills/<name>/` confiável até a adaptação.
+2. Distinguir **importado** vs **autoria DevFlow** (origem, licença, hash, URL).
 3. Bloquear comandos, fallbacks ou permissões não documentadas; entrypoint ausente → `BLOCK`.
-4. Exigir **ganho claro** sobre as 13 skills atuais; rejeitar duplicação/sobreposição sem benefício.
+4. Exigir **ganho claro** sobre o inventário atual; rejeitar duplicação sem benefício.
 5. Segurança: sem secrets, PII, production write implícito, ou bypass de rules/`AGENTS.md`.
-6. Atualizar esta baseline **somente** por decisão explícita após merge aceite — nunca como efeito colateral do import.
+6. Atualizar esta baseline **somente** por decisão explícita no PR de intake.
 
-Próximo passo recomendado após este freeze: escolher **uma** candidata externa e submetê-la a auditoria piloto completa — não importar em lote.
+Próxima candidata (não iniciada): `mcp-builder` — após aplicação controlada de `frontend-design` numa tela real e medição de ganho.
 
 ## Como revalidar
 
@@ -80,4 +87,4 @@ Próximo passo recomendado após este freeze: escolher **uma** candidata externa
 node .cursor/skills/validate-skills.mjs
 ```
 
-Esperado após este freeze: `OK: 13 skills validadas.`
+Esperado após este piloto: `OK: 14 skills validadas.`
