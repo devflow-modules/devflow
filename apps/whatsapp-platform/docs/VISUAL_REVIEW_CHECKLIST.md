@@ -42,7 +42,7 @@ Usar em PRs que toquem UI (`apps/whatsapp-platform`). Não substitui testes nem 
 - [ ] Cabeçalho de conversa usa `df-inbox-header` e toolbar `df-inbox-toolbar-btn` / dropdowns padronizados?
 - [ ] Timeline: `df-timeline-day` / `df-timeline-unread`; bolhas: `df-message-panel-*`?
 - [ ] Compositor: `df-feedback-warning` (follow-up), `df-feedback-danger` (erro envio), `df-inbox-template-chip` / `df-inbox-ai-chip`, `df-panel-*` para pré-visualizações?
-- [ ] Lista vazia com filtro: `df-inbox-filter-empty-card`?
+- [ ] Lista vazia com filtro: `df-inbox-filter-empty-card` (+ `--clear` / `--filtered`, eyebrow operacional)?
 
 ## Referência rápida
 

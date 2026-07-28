@@ -29,9 +29,19 @@ export function InboxFilterEmpty({
       ? "Alargue em «Mais filtros» (linha) ou mude a fila, ou volte a um filtro de fase acima."
       : "Ajuste o filtro de fase acima ou volte a «Precisa de resposta» para priorizar o atendimento.";
 
+  const eyebrow = allClear ? "Fila operacional" : "Filtro ativo";
+  const cardTone = allClear
+    ? "df-inbox-filter-empty-card--clear"
+    : "df-inbox-filter-empty-card--filtered";
+
   return (
     <div className="flex min-h-0 flex-1 flex-col p-4" data-testid="conversations-empty">
-      <div className="df-inbox-filter-empty-card">
+      <div
+        className={`df-inbox-filter-empty-card ${cardTone}`}
+        role="status"
+        aria-live="polite"
+      >
+        <p className="df-inbox-filter-empty-eyebrow">{eyebrow}</p>
         <div className={allClear ? "df-inbox-empty-icon-success" : "df-inbox-empty-icon-neutral"} aria-hidden>
           {allClear ? (
             <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
@@ -47,8 +57,8 @@ export function InboxFilterEmpty({
             </svg>
           )}
         </div>
-        <h3 className="text-[15px] font-semibold tracking-tight df-text-primary">{title}</h3>
-        <p className="df-text-muted mt-2">{body}</p>
+        <h3 className="df-inbox-filter-empty-title">{title}</h3>
+        <p className="df-inbox-filter-empty-body">{body}</p>
         {!allClear ? (
           <Button variant="secondary" type="button" className={`${buttonClassName("primary")} mt-8 w-full max-w-[240px]`} onClick={onSelectNeedsResponse}>
             Precisa de resposta

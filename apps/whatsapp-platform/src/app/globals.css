@@ -962,9 +962,9 @@ html[data-theme="client_branded"] {
     color: var(--df-feedback-info-text);
   }
 
-  /** Estado vazio operacional (lista) — alinhado às superfícies dark (sem cinza claro) */
+  /** Estado vazio operacional (lista) — assinatura: trilho de estado + superfície dark do DS */
   .df-inbox-filter-empty-card {
-    @apply mx-auto flex w-full max-w-sm flex-col items-center rounded-2xl border px-6 py-11 text-center;
+    @apply relative mx-auto flex w-full max-w-sm flex-col items-center overflow-hidden rounded-2xl border px-6 py-11 text-center;
     border-color: color-mix(in srgb, var(--df-border-dark) 52%, var(--df-border-subtle));
     background: linear-gradient(
       165deg,
@@ -974,6 +974,38 @@ html[data-theme="client_branded"] {
     box-shadow:
       0 14px 42px rgba(0, 0, 0, 0.38),
       inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .df-inbox-filter-empty-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: color-mix(in srgb, var(--df-brand-500) 72%, transparent);
+  }
+
+  .df-inbox-filter-empty-card--clear::before {
+    background: color-mix(in srgb, var(--df-feedback-success-text) 55%, var(--df-brand-500));
+  }
+
+  .df-inbox-filter-empty-card--filtered::before {
+    background: color-mix(in srgb, var(--df-brand-500) 85%, var(--df-brand-800));
+  }
+
+  .df-inbox-filter-empty-eyebrow {
+    @apply mb-3 text-[11px] font-semibold uppercase;
+    letter-spacing: 0.08em;
+    color: var(--df-text-muted);
+  }
+
+  .df-inbox-filter-empty-title {
+    @apply text-[15px] font-semibold tracking-tight;
+    color: var(--df-text-primary);
+  }
+
+  .df-inbox-filter-empty-body {
+    @apply mt-2 max-w-[28ch];
+    color: var(--df-text-muted);
   }
 
   .df-inbox-empty-icon-success {
@@ -988,6 +1020,13 @@ html[data-theme="client_branded"] {
     background: color-mix(in srgb, var(--df-brand-100) 55%, var(--df-bg-elevated));
     color: var(--df-brand-600);
     --tw-ring-color: color-mix(in srgb, var(--df-brand-500) 35%, transparent);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .df-inbox-filter-empty-card .df-inbox-empty-icon-success,
+    .df-inbox-filter-empty-card .df-inbox-empty-icon-neutral {
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
   }
 
   /** Dashboard — metric cards e sub-cards (Product UI P1) */
