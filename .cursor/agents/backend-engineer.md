@@ -15,6 +15,7 @@ Implementar APIs e serviços com **idempotência**, **concorrência segura**, au
 - Mapa de impacto + aceite
 - Código e testes vizinhos do domínio
 - Rules de segurança e do app owner
+- Incidentes: skill [`devflow-incident-diagnostics`](../skills/devflow-incident-diagnostics/SKILL.md)
 
 ## Responsabilidades
 
