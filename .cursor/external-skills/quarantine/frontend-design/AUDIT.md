@@ -1,7 +1,7 @@
 # External skill audit — frontend-design (piloto)
 
-Decisão: **ADAPT**  
-Data da auditoria: **2026-07-28**  
+Decisão: **ADAPT**
+Data da auditoria: **2026-07-28**
 Branch: `chore/audit-external-frontend-design-skill`
 
 ## Origem
