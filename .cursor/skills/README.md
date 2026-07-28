@@ -28,12 +28,15 @@ O `name` deve coincidir com o diretório, usar apenas letras minúsculas, númer
 | [`devflow-multitenancy-review`](./devflow-multitenancy-review/SKILL.md) | técnica | action-enabled | Review multi-tenant (`APPROVE`/`FIX`/`BLOCK`; default review-only) |
 | [`devflow-safe-release`](./devflow-safe-release/SKILL.md) | operação | action-enabled com aprovação | Readiness/release seguro (preflight → rollback) |
 | [`devflow-incident-diagnostics`](./devflow-incident-diagnostics/SKILL.md) | operação | action-enabled com aprovação | Diagnóstico fail-closed de incidentes (default review-only) |
+| [`devflow-product-evidence`](./devflow-product-evidence/SKILL.md) | decisão | advisory-only | Evidência acionável pós-piloto (`SCALE`/`ITERATE`/`STOP`/`BLOCK`) |
 | [`prisma-safe-migration`](./prisma-safe-migration/SKILL.md) | técnica | action-enabled com aprovação | Schema, migrations, índices e backfills Prisma |
 | [`test-hardening`](./test-hardening/SKILL.md) | técnica | action-enabled | Regressão, cobertura e flakiness em Vitest |
 | [`nextjs-ui-polish`](./nextjs-ui-polish/SKILL.md) | técnica | action-enabled | Ajustes visuais sem alterar contratos de produto |
 | [`devflow-github-issue`](./devflow-github-issue/SKILL.md) | operação externa | action-enabled com autorização | Preparação e criação de issues no GitHub |
 | [`product-grill`](./product-grill/SKILL.md) | decisão | advisory-only | Validação de problema, evidência e MVP |
 | [`revenue-centric-design`](./revenue-centric-design/SKILL.md) | decisão | advisory-only | Priorização por outcomes, custo e risco |
+
+Inventário pré-orquestração e freeze da fundação interna: [`BASELINE.md`](./BASELINE.md).
 
 `action-enabled` permite editar ou executar ações apenas quando o pedido do usuário autorizar. `action-enabled com aprovação` também exige a aprovação indicada pela própria skill. `advisory-only` produz análise e recomendações, sem autorizar implementação ou escrita externa.
 
@@ -56,6 +59,7 @@ AGENTS.md + rules + contratos reais
 | `devflow-multitenancy-review` | Security Reviewer, Backend Engineer, Database Engineer, Platform Architect | audit-hardening, feature, bugfix, migration | `/audit-domain`, `/review-pr`, `/map-impact` |
 | `devflow-safe-release` | Release Manager, QA Engineer, Security Reviewer, Documentation Engineer | release | `/release-notes`, `/fix-ci`, `/review-pr` |
 | `devflow-incident-diagnostics` | Security Reviewer, Backend Engineer, QA Engineer, Release Manager | bugfix, audit-hardening | `/audit-domain`, `/fix-ci`, `/review-pr` |
+| `devflow-product-evidence` | Product Owner, Platform Architect, Documentation Engineer | product-validation | `/validate-product` |
 | `prisma-safe-migration` | Database Engineer, Security Reviewer | migration | `/map-impact`, `/review-pr` |
 | `test-hardening` | QA Engineer | feature, bugfix, audit-hardening | `/create-tests`, `/fix-ci` |
 | `nextjs-ui-polish` | Frontend Engineer, QA Engineer | feature, bugfix | `/create-tests`, `/review-pr` |
@@ -82,7 +86,8 @@ Mudanças de comportamento ou guardrails exigem revisão humana e devem ser desc
 - Validador local aprovado.
 - Links e caminhos relativos válidos.
 - Frontmatter consistente e nomes únicos.
-- Nenhum arquivo legado `.cursor/skills/*.md`, exceto este `README.md`.
+- Nenhum arquivo legado `.cursor/skills/*.md`, exceto `README.md` e `BASELINE.md`.
+- Baseline interna congelada em [`BASELINE.md`](./BASELINE.md) após 13 skills.
 - Nenhuma instrução contradiz `AGENTS.md`, rules de segurança ou documentação canônica.
 - Nenhum secret, dado real de cliente ou comando destrutivo sem aprovação explícita.
 - Capacidade de ação e stop conditions explícitas.

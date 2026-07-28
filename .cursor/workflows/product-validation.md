@@ -17,6 +17,7 @@ Skills obrigatórias:
 
 - [`product-grill`](../skills/product-grill/SKILL.md)
 - [`revenue-centric-design`](../skills/revenue-centric-design/SKILL.md)
+- [`devflow-product-evidence`](../skills/devflow-product-evidence/SKILL.md) quando houver evidência pós-piloto/experimento
 
 Command: [`validate-product`](../commands/validate-product.md)
 

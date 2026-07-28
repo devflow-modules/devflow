@@ -59,9 +59,10 @@ function validateLegacyReferences(directory) {
   }
 }
 
+const allowedRootMarkdown = new Set(["README.md", "BASELINE.md"]);
 const rootMarkdownFiles = readdirSync(skillsRoot).filter((entry) => entry.endsWith(".md"));
 for (const file of rootMarkdownFiles) {
-  if (file !== "README.md") {
+  if (!allowedRootMarkdown.has(file)) {
     errors.push(`${displayPath(join(skillsRoot, file))}: skill no formato legado`);
   }
 }
@@ -124,6 +125,11 @@ if (!existsSync(readmePath)) {
   errors.push(`${displayPath(readmePath)}: catálogo ausente`);
 } else {
   validateLinks(readmePath, readFileSync(readmePath, "utf8"));
+}
+
+const baselinePath = join(skillsRoot, "BASELINE.md");
+if (existsSync(baselinePath)) {
+  validateLinks(baselinePath, readFileSync(baselinePath, "utf8"));
 }
 
 validateLegacyReferences(repositoryRoot);
