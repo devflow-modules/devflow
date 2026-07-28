@@ -79,7 +79,9 @@ Regras:
 5. Segurança: sem secrets, PII, production write implícito, ou bypass de rules/`AGENTS.md`.
 6. Atualizar esta baseline **somente** por decisão explícita no PR de intake.
 
-Próxima candidata (não iniciada): `mcp-builder` — após aplicação controlada de `frontend-design` numa tela real e medição de ganho.
+Piloto `frontend-design` × Inbox: **KEEP** ([#161](https://github.com/devflow-modules/devflow/pull/161), 2026-07-28).
+
+Próxima candidata **em auditoria** (congelamento levantado): `mcp-builder` — quarentena em [`.cursor/external-skills/quarantine/mcp-builder/`](../external-skills/quarantine/mcp-builder/AUDIT.md). **Ainda não** no catálogo confiável.
 
 ## Como revalidar
 
