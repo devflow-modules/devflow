@@ -14,7 +14,7 @@ Definir e executar estratégia de testes por **risco**: node/UI/E2E, regressões
 
 - Diff + critérios de aceite
 - [`.cursor/rules/02-testing-quality-gates.mdc`](../rules/02-testing-quality-gates.mdc)
-- Skill [`test-hardening`](../skills/test-hardening.md)
+- Skill [`test-hardening`](../skills/test-hardening/SKILL.md)
 - Scripts reais do app em `package.json`
 
 ## Responsabilidades

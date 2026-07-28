@@ -16,7 +16,7 @@ This map does **not** move files. It records the intended division of ownership 
 | `docs/whatsapp-platform/` | Product scope, cross-cutting architecture, pilot, billing/inbox product docs, governance | **active** — canonical product index |
 | `apps/whatsapp-platform/docs/` | Runtime-specific architecture, deploy, security, billing implementation, testing, design system | **active** — canonical for app runtime |
 | `docs/architecture/WHATSAPP-*` | Platform cutover, auth/billing validation, webhook hardening, portal↔app parity | **active** for platform boundaries |
-| `.cursor/rules/05-whatsapp-platform.mdc` + `.cursor/skills/whatsapp-platform-safe-change.md` | Agent governance (ownership, impact map, gates) | **active** |
+| `.cursor/rules/05-whatsapp-platform.mdc` + `.cursor/skills/whatsapp-platform-safe-change/SKILL.md` | Agent governance (ownership, impact map, gates) | **active** |
 
 ### Conflict resolution
 
@@ -63,7 +63,7 @@ When two documents disagree:
 | Webhook hardening | `docs/architecture/WHATSAPP-WEBHOOK-HARDENING.md` |
 | Design system | `apps/whatsapp-platform/docs/DESIGN_SYSTEM.md` |
 | Agent rules | `.cursor/rules/05-whatsapp-platform.mdc` |
-| Agent safe-change skill | `.cursor/skills/whatsapp-platform-safe-change.md` |
+| Agent safe-change skill | `.cursor/skills/whatsapp-platform-safe-change/SKILL.md` |
 
 ---
 
@@ -204,6 +204,6 @@ When two documents disagree:
 |----------|------|
 | `.cursor/rules/05-whatsapp-platform.mdc` | Ownership, surface status, boundaries, quality gate pointers |
 | `.cursor/rules/whatsapp-platform-design.mdc` | Visual tokens / components (unchanged by this map) |
-| `.cursor/skills/whatsapp-platform-safe-change.md` | Mandatory impact map + gates before editing |
+| `.cursor/skills/whatsapp-platform-safe-change/SKILL.md` | Mandatory impact map + gates before editing |
 | `AGENTS.md` (repo root) | Monorepo-wide agent behavior |
 | `ARCHITECTURE.md` (repo root) | Monorepo architecture |

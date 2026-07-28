@@ -15,8 +15,8 @@ Product Owner (lead) → Platform Architect (viabilidade grosseira) → Document
 
 Skills obrigatórias:
 
-- [`product-grill`](../skills/product-grill.md)
-- [`revenue-centric-design`](../skills/revenue-centric-design.md)
+- [`product-grill`](../skills/product-grill/SKILL.md)
+- [`revenue-centric-design`](../skills/revenue-centric-design/SKILL.md)
 
 Command: [`validate-product`](../commands/validate-product.md)
 

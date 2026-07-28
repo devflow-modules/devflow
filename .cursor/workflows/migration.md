@@ -14,7 +14,7 @@ Mudança de schema Prisma, SQL, backfill ou índice com impacto em dados.
 **Obrigatório:** Database Engineer → Security Reviewer → QA Engineer  
 Também: Backend (consumidores), Documentation, Release
 
-Skill obrigatória: [`prisma-safe-migration`](../skills/prisma-safe-migration.md)
+Skill obrigatória: [`prisma-safe-migration`](../skills/prisma-safe-migration/SKILL.md)
 
 ## Pré-condições
 

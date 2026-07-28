@@ -16,7 +16,7 @@ Mapa de impacto obrigatório antes de editar domínios sensíveis.
 3. Identificar testes e docs canônicas
 4. Declarar fora de escopo
 
-Alinhar a skill [`whatsapp-platform-safe-change`](../skills/whatsapp-platform-safe-change.md) quando o domínio for WhatsApp.
+Alinhar a skill [`whatsapp-platform-safe-change`](../skills/whatsapp-platform-safe-change/SKILL.md) quando o domínio for WhatsApp.
 
 ## Saída obrigatória
 

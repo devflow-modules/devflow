@@ -65,7 +65,7 @@ Commits, patches, alterar CI, `.env`, `package.json`.
 ```
 Review only. Do not edit files.
 
-Follow AGENTS.md and .cursor/skills/test-hardening.md.
+Follow AGENTS.md and .cursor/skills/test-hardening/SKILL.md.
 
 Scan src/lib and packages/*-routes for pure functions with few or no Vitest tests. List candidates with file path, why low risk to test, suggested 1–2 behaviour tests (no implementation). Exclude auth/billing/Prisma/webhook core.
 

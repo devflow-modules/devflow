@@ -12,7 +12,7 @@ Cuidar de **schema**, **migrations**, **integridade**, **índices**, **backfill*
 
 ## Entradas obrigatórias
 
-- Skill obrigatória: [`prisma-safe-migration`](../skills/prisma-safe-migration.md)
+- Skill obrigatória: [`prisma-safe-migration`](../skills/prisma-safe-migration/SKILL.md)
 - Rule: [`.cursor/rules/04-prisma-database.mdc`](../rules/04-prisma-database.mdc)
 - Identificação do Prisma do app certo
 
@@ -56,6 +56,6 @@ Cuidar de **schema**, **migrations**, **integridade**, **índices**, **backfill*
 
 ## Fontes canônicas
 
-- [`prisma-safe-migration`](../skills/prisma-safe-migration.md)
+- [`prisma-safe-migration`](../skills/prisma-safe-migration/SKILL.md)
 - Schemas em `**/prisma/`
 - [`AGENTS.md`](../../AGENTS.md) (migrations)
