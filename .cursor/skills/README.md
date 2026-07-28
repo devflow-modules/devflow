@@ -24,6 +24,7 @@ O `name` deve coincidir com o diretório, usar apenas letras minúsculas, númer
 |---|---|---|---|
 | [`whatsapp-platform-safe-change`](./whatsapp-platform-safe-change/SKILL.md) | domínio | action-enabled | Mudanças autorizadas no runtime canônico do WhatsApp |
 | [`whatsapp-e2e-safe-gate`](./whatsapp-e2e-safe-gate/SKILL.md) | técnica | action-enabled com aprovação | Gate E2E seguro da inbox (provision → Playwright → cleanup) |
+| [`devflow-multitenancy-review`](./devflow-multitenancy-review/SKILL.md) | técnica | action-enabled | Review de isolamento multi-tenant (default review-only) |
 | [`prisma-safe-migration`](./prisma-safe-migration/SKILL.md) | técnica | action-enabled com aprovação | Schema, migrations, índices e backfills Prisma |
 | [`test-hardening`](./test-hardening/SKILL.md) | técnica | action-enabled | Regressão, cobertura e flakiness em Vitest |
 | [`nextjs-ui-polish`](./nextjs-ui-polish/SKILL.md) | técnica | action-enabled | Ajustes visuais sem alterar contratos de produto |
@@ -48,6 +49,7 @@ AGENTS.md + rules + contratos reais
 |---|---|---|---|
 | `whatsapp-platform-safe-change` | Platform Architect, Backend Engineer | feature, bugfix, audit-hardening | `/map-impact`, `/audit-domain` |
 | `whatsapp-e2e-safe-gate` | QA Engineer, Backend Engineer | feature, bugfix, audit-hardening | `/create-tests`, `/fix-ci` |
+| `devflow-multitenancy-review` | Security Reviewer, Backend Engineer, Database Engineer, Platform Architect | audit-hardening, feature, bugfix, migration | `/audit-domain`, `/review-pr`, `/map-impact` |
 | `prisma-safe-migration` | Database Engineer, Security Reviewer | migration | `/map-impact`, `/review-pr` |
 | `test-hardening` | QA Engineer | feature, bugfix, audit-hardening | `/create-tests`, `/fix-ci` |
 | `nextjs-ui-polish` | Frontend Engineer, QA Engineer | feature, bugfix | `/create-tests`, `/review-pr` |

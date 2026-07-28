@@ -28,7 +28,7 @@ regressions
 alternative paths
 ```
 
-Papéis: Security + QA + Architect conforme risco. Ver também [`CURSOR_AUTOMATIONS.md`](../../docs/operations/CURSOR_AUTOMATIONS.md).
+Papéis: Security + QA + Architect conforme risco. Em superfície multi-tenant, usar skill [`devflow-multitenancy-review`](../skills/devflow-multitenancy-review/SKILL.md). Ver também [`CURSOR_AUTOMATIONS.md`](../../docs/operations/CURSOR_AUTOMATIONS.md).
 
 ## Saída obrigatória
 
