@@ -13,6 +13,8 @@ Defeito reproduzível com correção mínima.
 
 Backend/Frontend (causa) → Security (se superfície sensível) → QA → Documentation (se contrato/docs mentiam) → Release
 
+Incidente operacional (produção/piloto): skill [`devflow-incident-diagnostics`](../skills/devflow-incident-diagnostics/SKILL.md) antes de mitigar.
+
 ## Pré-condições
 
 - Reprodução (passos ou teste que falha)

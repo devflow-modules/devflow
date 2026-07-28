@@ -16,6 +16,7 @@ Rever **auth**, **roles**, **tenant**, **secrets**, **webhooks**, **PII**, **abu
 - [`.cursor/rules/01-security-and-secrets.mdc`](../rules/01-security-and-secrets.mdc)
 - Skill [`devflow-multitenancy-review`](../skills/devflow-multitenancy-review/SKILL.md)
 - Ativação de cliente real WhatsApp/Meta: skill [`whatsapp-client-onboarding`](../skills/whatsapp-client-onboarding/SKILL.md)
+- Incidentes operacionais: skill [`devflow-incident-diagnostics`](../skills/devflow-incident-diagnostics/SKILL.md)
 - Runbooks do domínio (webhook, auth validation) quando existirem
 
 ## Responsabilidades

@@ -27,6 +27,7 @@ O `name` deve coincidir com o diretório, usar apenas letras minúsculas, númer
 | [`whatsapp-client-onboarding`](./whatsapp-client-onboarding/SKILL.md) | operação | action-enabled com aprovação | Gate de onboarding de cliente real Meta/WABA (`APPROVE`/`FIX`/`BLOCK`; default review-only) |
 | [`devflow-multitenancy-review`](./devflow-multitenancy-review/SKILL.md) | técnica | action-enabled | Review multi-tenant (`APPROVE`/`FIX`/`BLOCK`; default review-only) |
 | [`devflow-safe-release`](./devflow-safe-release/SKILL.md) | operação | action-enabled com aprovação | Readiness/release seguro (preflight → rollback) |
+| [`devflow-incident-diagnostics`](./devflow-incident-diagnostics/SKILL.md) | operação | action-enabled com aprovação | Diagnóstico fail-closed de incidentes (default review-only) |
 | [`prisma-safe-migration`](./prisma-safe-migration/SKILL.md) | técnica | action-enabled com aprovação | Schema, migrations, índices e backfills Prisma |
 | [`test-hardening`](./test-hardening/SKILL.md) | técnica | action-enabled | Regressão, cobertura e flakiness em Vitest |
 | [`nextjs-ui-polish`](./nextjs-ui-polish/SKILL.md) | técnica | action-enabled | Ajustes visuais sem alterar contratos de produto |
@@ -54,6 +55,7 @@ AGENTS.md + rules + contratos reais
 | `whatsapp-client-onboarding` | Security Reviewer, Product Owner, Release Manager, Platform Architect | audit-hardening, release | `/audit-domain` |
 | `devflow-multitenancy-review` | Security Reviewer, Backend Engineer, Database Engineer, Platform Architect | audit-hardening, feature, bugfix, migration | `/audit-domain`, `/review-pr`, `/map-impact` |
 | `devflow-safe-release` | Release Manager, QA Engineer, Security Reviewer, Documentation Engineer | release | `/release-notes`, `/fix-ci`, `/review-pr` |
+| `devflow-incident-diagnostics` | Security Reviewer, Backend Engineer, QA Engineer, Release Manager | bugfix, audit-hardening | `/audit-domain`, `/fix-ci`, `/review-pr` |
 | `prisma-safe-migration` | Database Engineer, Security Reviewer | migration | `/map-impact`, `/review-pr` |
 | `test-hardening` | QA Engineer | feature, bugfix, audit-hardening | `/create-tests`, `/fix-ci` |
 | `nextjs-ui-polish` | Frontend Engineer, QA Engineer | feature, bugfix | `/create-tests`, `/review-pr` |
