@@ -516,7 +516,8 @@ describe("Inbox UI", () => {
     expect(conversationRequests).toBe(2);
   });
 
-  it("ChatHeader mostra tags da thread", async () => {
+  it("ChatHeader mostra tags da thread em Mais", async () => {
+    const user = userEvent.setup();
     const thread: WaInboxThreadRow = {
       id: "thread-1",
       phoneNumber: "5511999999999",
@@ -534,6 +535,7 @@ describe("Inbox UI", () => {
       <ChatHeader threadId="thread-1" thread={thread} onAuditTabChange={vi.fn()} />,
       { wrapper: createWrapper() }
     );
+    await user.click(screen.getByRole("button", { name: "Mais" }));
     await waitFor(() => {
       expect(screen.getByTestId("chat-thread-tags")).toHaveTextContent("VIP");
     });
@@ -633,7 +635,7 @@ describe("Inbox UI", () => {
     });
   });
 
-  it("ChatWindow mostra badge de SLA no header", async () => {
+  it("ChatWindow mostra badge de SLA excepcional no header", async () => {
     const thread: WaInboxThreadRow = {
       id: "thread-1",
       phoneNumber: "5511999999999",
@@ -644,8 +646,8 @@ describe("Inbox UI", () => {
       unansweredInboundCount: 1,
       conversationState: "awaiting_agent",
       lastResponderType: null,
-      responseDelayMs: 60_000,
-      slaLevel: "medium",
+      responseDelayMs: 7 * 60_000,
+      slaLevel: "high",
       isUnassigned: false,
       isAssignedToMe: true,
       lastUnansweredInboundAt: new Date().toISOString(),
