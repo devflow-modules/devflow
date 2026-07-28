@@ -204,7 +204,62 @@ export function removeReceipt(receiptPath = RECEIPT_PATH): void {
   fs.unlinkSync(receiptPath);
 }
 
-export type FixtureLock = { release(): void };
+export const LOCK_VERSION = 1 as const;
+
+export type FixtureLockRecord = {
+  version: typeof LOCK_VERSION;
+  pid: number;
+  runId: string;
+  receiptDigest: string;
+};
+
+export function digestReceipt(receipt: FixtureReceipt): string {
+  const canonical = {
+    version: receipt.version,
+    runId: receipt.runId.toLowerCase(),
+    tenantId: receipt.tenantId,
+    userId: receipt.userId,
+    emailHash: receipt.emailHash.toLowerCase(),
+    targetFingerprint: receipt.targetFingerprint.toLowerCase(),
+  };
+  return sha256(JSON.stringify(canonical));
+}
+
+export function validateLockRecord(value: unknown): FixtureLockRecord {
+  if (!value || typeof value !== "object") throw new Error("Lock inválido");
+  const row = value as Record<string, unknown>;
+  const allowed = ["version", "pid", "runId", "receiptDigest"];
+  if (Object.keys(row).some((key) => !allowed.includes(key))) {
+    throw new Error("Lock contém campos não autorizados");
+  }
+  if (
+    row.version !== LOCK_VERSION ||
+    typeof row.pid !== "number" ||
+    !Number.isInteger(row.pid) ||
+    row.pid <= 0 ||
+    typeof row.runId !== "string" ||
+    !/^[a-f0-9]{32}$/i.test(row.runId) ||
+    typeof row.receiptDigest !== "string" ||
+    !/^[a-f0-9]{64}$/i.test(row.receiptDigest)
+  ) {
+    throw new Error("Lock inválido");
+  }
+  return {
+    version: LOCK_VERSION,
+    pid: row.pid,
+    runId: row.runId.toLowerCase(),
+    receiptDigest: row.receiptDigest.toLowerCase(),
+  };
+}
+
+export function readLockRecord(lockPath = LOCK_PATH): FixtureLockRecord {
+  return validateLockRecord(JSON.parse(fs.readFileSync(lockPath, "utf8")) as unknown);
+}
+
+export type FixtureLock = {
+  release(): void;
+  bindReceipt(receipt: FixtureReceipt): void;
+};
 
 export function acquireFixtureLock(lockPath = LOCK_PATH): FixtureLock {
   fs.mkdirSync(path.dirname(lockPath), { recursive: true, mode: 0o700 });
@@ -216,10 +271,27 @@ export function acquireFixtureLock(lockPath = LOCK_PATH): FixtureLock {
     if (code === "EEXIST") throw new Error("Outra execução ou limpeza está ativa");
     throw error;
   }
-  fs.writeFileSync(fd, String(process.pid), "utf8");
+  // Exclusive marker only until bindReceipt writes runId + receipt digest.
+  fs.writeFileSync(fd, `${JSON.stringify({ version: LOCK_VERSION, pid: process.pid })}\n`, "utf8");
   fs.fsyncSync(fd);
   let released = false;
+  let bound = false;
   return {
+    bindReceipt(receipt: FixtureReceipt) {
+      if (released) throw new Error("Lock já foi liberado");
+      if (bound) throw new Error("Lock já está vinculado ao recibo");
+      const record = validateLockRecord({
+        version: LOCK_VERSION,
+        pid: process.pid,
+        runId: receipt.runId,
+        receiptDigest: digestReceipt(receipt),
+      });
+      const payload = `${JSON.stringify(record)}\n`;
+      fs.ftruncateSync(fd, 0);
+      fs.writeSync(fd, payload, 0, "utf8");
+      fs.fsyncSync(fd);
+      bound = true;
+    },
     release() {
       if (released) return;
       released = true;

@@ -86,11 +86,13 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 export async function cleanupInboxFixture(options: CleanupOptions): Promise<CleanupResult> {
   const receiptPath = options.receiptPath ?? RECEIPT_PATH;
   const lockPath = options.receiptPath ? `${receiptPath}.lock` : LOCK_PATH;
-  const ownLock = options.heldLock ? undefined : acquireFixtureLock(lockPath);
+  const activeLock = options.heldLock ?? acquireFixtureLock(lockPath);
+  const ownsLock = !options.heldLock;
   try {
     const receipt = readReceipt(receiptPath);
     const fingerprint = targetFingerprint(options.datasourceUrl);
     assertEqual(fingerprint, receipt.targetFingerprint, "target fingerprint");
+    if (ownsLock) activeLock.bindReceipt(receipt);
 
     const expected = identityFromReceipt(receipt);
     assertEqual(hashEmail(expected.email), receipt.emailHash, "email hash derivation");
@@ -217,7 +219,7 @@ export async function cleanupInboxFixture(options: CleanupOptions): Promise<Clea
     );
     return deletedCounts;
   } finally {
-    ownLock?.release();
+    if (ownsLock) activeLock.release();
   }
 }
 

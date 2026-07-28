@@ -6,8 +6,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   acquireFixtureLock,
   buildIdentity,
+  digestReceipt,
   hashEmail,
   identityFromReceipt,
+  readLockRecord,
   readReceipt,
   receiptFor,
   targetFingerprint,
@@ -320,6 +322,22 @@ describe("safe inbox fixture receipt", () => {
     const lock = acquireFixtureLock(lockPath);
     expect(() => acquireFixtureLock(lockPath)).toThrow(/execução ou limpeza/);
     lock.release();
+  });
+
+  it("binds runId and receipt digest into the lock after receipt write", () => {
+    const receiptPath = tempPath();
+    const lockPath = path.join(path.dirname(receiptPath), "fixture.lock");
+    const { receipt } = createReceipt();
+    const lock = acquireFixtureLock(lockPath);
+    lock.bindReceipt(receipt);
+    const record = readLockRecord(lockPath);
+    expect(record.runId).toBe(receipt.runId);
+    expect(record.receiptDigest).toBe(digestReceipt(receipt));
+    expect(record.pid).toBe(process.pid);
+    expect(record.version).toBe(1);
+    expect(() => lock.bindReceipt(receipt)).toThrow(/já está vinculado/);
+    lock.release();
+    expect(fs.existsSync(lockPath)).toBe(false);
   });
 
   it("stores only ownership identifiers, hash, version and fingerprint", () => {

@@ -64,7 +64,8 @@ export type ProvisionOptions = {
 export async function provisionInboxFixture(options: ProvisionOptions): Promise<FixtureIdentity> {
   const receiptPath = options.receiptPath ?? RECEIPT_PATH;
   const lockPath = options.receiptPath ? `${receiptPath}.lock` : LOCK_PATH;
-  const ownLock = options.heldLock ? undefined : acquireFixtureLock(lockPath);
+  const activeLock = options.heldLock ?? acquireFixtureLock(lockPath);
+  const ownsLock = !options.heldLock;
   const suppliedIdentity = options.identity ?? buildIdentity();
   const normalizedEmail = normalizeEmail(suppliedIdentity.email);
   const identity: FixtureIdentity = {
@@ -76,8 +77,10 @@ export async function provisionInboxFixture(options: ProvisionOptions): Promise<
   let receiptWritten = false;
 
   try {
-    writeReceiptAtomic(receiptFor(identity, fingerprint), receiptPath);
+    const receipt = receiptFor(identity, fingerprint);
+    writeReceiptAtomic(receipt, receiptPath);
     receiptWritten = true;
+    activeLock.bindReceipt(receipt);
     const passwordHash = await bcrypt.hash(identity.password, 10);
 
     await options.client.$transaction(
@@ -123,7 +126,7 @@ export async function provisionInboxFixture(options: ProvisionOptions): Promise<
     if (receiptWritten && fs.existsSync(receiptPath)) removeReceipt(receiptPath);
     throw error;
   } finally {
-    ownLock?.release();
+    if (ownsLock) activeLock.release();
   }
 }
 
