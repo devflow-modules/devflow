@@ -124,6 +124,7 @@ Listas detalhadas de comandos **envelhecem**. Preferir:
 |-------|----------|
 | [`.cursor/rules/02-testing-quality-gates.mdc`](./rules/02-testing-quality-gates.mdc) | Política de testes |
 | [`.cursor/skills/whatsapp-platform-safe-change/SKILL.md`](./skills/whatsapp-platform-safe-change/SKILL.md) | Gates por tipo de mudança no WhatsApp |
+| [`.cursor/skills/whatsapp-client-onboarding/SKILL.md`](./skills/whatsapp-client-onboarding/SKILL.md) | Gate de onboarding de cliente real (ownership / Meta) |
 | [`.cursor/rules/05-whatsapp-platform.mdc`](./rules/05-whatsapp-platform.mdc) | Boundaries e gates WhatsApp |
 | `apps/<app>/package.json` scripts | `test:node`, `test:ui`, `lint`, etc. |
 | `scripts/ci/*` + `.github/workflows/*` | Gates de monorepo (ex. routing-governance) |

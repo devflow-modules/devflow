@@ -18,7 +18,7 @@ Executar mudanças autorizadas no runtime canônico do WhatsApp com impacto expl
 - Mudança em package compartilhado que afete auth, billing, inbox, webhook Meta ou Cloud API.
 - Correção ou feature em fluxo crítico do produto WhatsApp.
 
-Não usar para implementar features em `apps/whatsapp-webhook-api`, que é `legacy-compatible`, nem para decisões de produto ainda sem aceite.
+Não usar para implementar features em `apps/whatsapp-webhook-api`, que é `legacy-compatible`, nem para decisões de produto ainda sem aceite, nem para gate de ativação de cliente real Meta (usar [`whatsapp-client-onboarding`](../whatsapp-client-onboarding/SKILL.md)).
 
 ## Entradas obrigatórias
 

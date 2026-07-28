@@ -16,6 +16,7 @@ Garantir **readiness** para merge/release: CI honesto, riscos, rollback, notas e
 - Diff final + docs
 - Workflow [`release`](../workflows/release.md)
 - Skill [`devflow-safe-release`](../skills/devflow-safe-release/SKILL.md)
+- Go-live / piloto com cliente real WhatsApp: skill [`whatsapp-client-onboarding`](../skills/whatsapp-client-onboarding/SKILL.md) antes de tráfego real
 - Command [`release-notes`](../commands/release-notes.md) quando aplicável
 
 ## Responsabilidades

@@ -17,6 +17,8 @@ Inspecionar UI → API → service → persistence → audit → realtime → te
 
 Se a superfície for multi-tenant (authz, Prisma, webhook, jobs, ownership): aplicar skill [`devflow-multitenancy-review`](../skills/devflow-multitenancy-review/SKILL.md) e incorporar o veredito `APPROVE` | `FIX` | `BLOCK` na saída.
 
+Se o domínio for onboarding/ativação de cliente real no WhatsApp Business Platform (Meta Portfolio, WABA, número, tokens, webhook de cliente): aplicar skill [`whatsapp-client-onboarding`](../skills/whatsapp-client-onboarding/SKILL.md) e incorporar o veredito `APPROVE` | `FIX` | `BLOCK` na saída.
+
 ## Saída obrigatória
 
 Lista de achados classificados:
