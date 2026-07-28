@@ -13,6 +13,8 @@ Preparar merge/release ou validar readiness de um PR crítico.
 
 Release Manager (lead) + QA + Security (se risco) + Documentation
 
+Skill obrigatória de readiness: [`devflow-safe-release`](../skills/devflow-safe-release/SKILL.md).
+
 ## Pré-condições
 
 - Diff estável
