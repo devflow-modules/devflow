@@ -36,6 +36,15 @@ Comportamento atual preservado (sem persistência de rascunho, sem novo “Envia
 
 Harness: `docs/experiments/evidence/inbox-composer-assistances-gate/harness.html`
 
+| Arquivo | Conteúdo |
+|---|---|
+| `01-desktop-after.png` | After · assistências fechadas |
+| `02-desktop-before.png` | Before · pilha details + CTAs |
+| `03-desktop-after-ai.png` | After · região IA aberta |
+| `04-mobile-after.png` | After · mobile sem 4 CTAs |
+
 ## Gate humano (pendente)
 
 Critérios 1–10 da decisão PROCEED — aguarda KEEP / ITERATE / ROLLBACK / BLOCK.
+
+**Recomendação agente:** `KEEP` provisória após Vitest 22/22 e hierarquia after vs before no harness — confirmação humana final.
