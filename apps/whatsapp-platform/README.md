@@ -322,7 +322,7 @@ E2E_WHATSAPP_ADMIN_PASSWORD=
 # E2E_WHATSAPP_BASE_URL=https://staging.example.com
 ```
 
-Session is reused via `tests/setup/global-auth.setup.ts` → `tests/.auth/` (gitignored).
+Session is reused via `tests/setup/global-auth.setup.mts` → `tests/.auth/` (gitignored).
 
 Define both in `.env.local` or in the process environment.
 
