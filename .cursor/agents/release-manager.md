@@ -15,6 +15,7 @@ Garantir **readiness** para merge/release: CI honesto, riscos, rollback, notas e
 - Resultados reais dos gates (passados / falhos / skipped)
 - Diff final + docs
 - Workflow [`release`](../workflows/release.md)
+- Skill [`devflow-safe-release`](../skills/devflow-safe-release/SKILL.md)
 - Command [`release-notes`](../commands/release-notes.md) quando aplicável
 
 ## Responsabilidades
