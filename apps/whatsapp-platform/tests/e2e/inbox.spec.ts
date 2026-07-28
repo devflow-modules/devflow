@@ -64,6 +64,7 @@ test.describe("Inbox operacional", () => {
     await setupInboxPage(page, store);
     await page.getByRole("button", { name: /Cliente Alfa/i }).click();
     const header = page.locator(".df-inbox-header");
+    await header.getByRole("button", { name: "Mais" }).click();
     await header.getByTestId("header-thread-status-trigger").click();
     await page.getByTestId("header-thread-status-PENDING").click();
     await expect(header.getByText("Pendente").first()).toBeVisible();

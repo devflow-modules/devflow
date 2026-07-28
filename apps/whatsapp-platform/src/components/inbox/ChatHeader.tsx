@@ -11,13 +11,11 @@ import {
   fetchInboxTags,
   fetchInboxUsers,
   fetchInboxOperationalQueues,
-  fetchInboxTeam,
   updateThreadQueue,
 } from "./inboxFetch";
 import { INBOX_QK } from "./inboxTypes";
 import { readVerifyPayload } from "@/lib/api-json-client";
 import { fetchProtected } from "@/lib/protected-fetch";
-import { AgentStatusBadge } from "./AgentStatusBadge";
 import { getConversationStateBadge } from "./conversationStateUi";
 import { formatWaitDurationMs } from "@/modules/inbox/waInboxSla";
 import type { InboxSlaLevel } from "./inboxTypes";
@@ -31,6 +29,7 @@ import { inboxAssigneeCopy } from "@/lib/roleProductLabels";
 import { INBOX_CHAT_GUTTER_X, INBOX_CHAT_GUTTER_X_COMPACT } from "./inboxChatLayout";
 import { Button } from "@/components/ui/button";
 import { WHATSAPP_CHANNEL_PURPOSE_PT } from "@/lib/whatsappChannelPurposeLabels";
+import { getResponseAlertLevel } from "./ResponseAlertBadge";
 
 const SLA_LABEL: Record<InboxSlaLevel, string> = {
   low: "SLA OK",
@@ -51,6 +50,12 @@ type ChatHeaderProps = {
   compactChrome?: boolean;
 };
 
+/**
+ * Fatia 2 — header densificado.
+ * Zona A: identidade + estado + SLA excepcional.
+ * Zona B: Assumir (se aplicável) + Encerrar/Reabrir + responsável + Liberar.
+ * Mais: Estado thread, tags, notas, histórico, linha, fila.
+ */
 export function ChatHeader({
   threadId,
   thread,
@@ -65,6 +70,7 @@ export function ChatHeader({
   const [assignOpen, setAssignOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
   const [tagOpen, setTagOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [assignError, setAssignError] = useState<string | null>(null);
@@ -72,6 +78,7 @@ export function ChatHeader({
   const assignRef = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLDivElement>(null);
   const tagRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
 
   const { data: tagsFetched = [] } = useQuery({
     queryKey: INBOX_QK.tags,
@@ -90,7 +97,7 @@ export function ChatHeader({
 
   const { role: sessionRole } = useSessionRole();
 
-  const { data: authUser, isSuccess: authLoaded } = useQuery({
+  const { data: authUser } = useQuery({
     queryKey: ["inbox-header-auth-user"],
     queryFn: async () => {
       const res = await fetchProtected("/api/auth/verify");
@@ -99,16 +106,6 @@ export function ChatHeader({
     },
     staleTime: 60_000,
   });
-
-  const { data: teamMembers = [] } = useQuery({
-    queryKey: INBOX_QK.team,
-    queryFn: fetchInboxTeam,
-    staleTime: 30_000,
-  });
-
-  const myAgentStatus = authUser?.id
-    ? teamMembers.find((m) => m.userId === authUser.id)?.status
-    : undefined;
 
   const threadTagIds = new Set(thread?.threadTags?.map((tt) => tt.tag.id) ?? []);
 
@@ -125,11 +122,13 @@ export function ChatHeader({
       const outside =
         !assignRef.current?.contains(target) &&
         !statusRef.current?.contains(target) &&
-        !tagRef.current?.contains(target);
+        !tagRef.current?.contains(target) &&
+        !moreRef.current?.contains(target);
       if (outside) {
         setAssignOpen(false);
         setStatusOpen(false);
         setTagOpen(false);
+        setMoreOpen(false);
       }
     }
     document.addEventListener("click", close);
@@ -174,6 +173,7 @@ export function ChatHeader({
       setActionBusy(false);
     }
     setStatusOpen(false);
+    setMoreOpen(false);
   };
 
   const handleAddTag = async (tagId: string) => {
@@ -212,7 +212,9 @@ export function ChatHeader({
     }
   };
 
-  const title = thread.contactName?.trim() || thread.phoneNumber || "Conversa";
+  const contactName = thread.contactName?.trim() || "";
+  const title = contactName || thread.phoneNumber || "Conversa";
+  const showPhoneUnderTitle = Boolean(contactName && thread.phoneNumber);
   const state = thread.conversationState;
   const stateBadge = getConversationStateBadge(state);
   const slaLevel = thread.slaLevel;
@@ -222,15 +224,17 @@ export function ChatHeader({
     thread.responseDelayMs != null && state === "awaiting_agent"
       ? formatWaitDurationMs(thread.responseDelayMs)
       : null;
+  const responseAlert = state === "awaiting_agent" ? getResponseAlertLevel(thread.responseDelayMs) : "none";
+  /** SLA no header = exceção (alinhado à lista densificada). */
+  const showSlaException =
+    Boolean(wait) &&
+    (responseAlert !== "none" || slaLevel === "high" || slaLevel === "critical");
 
   const isClosed = thread.status === "CLOSED";
   const isUnassigned = thread.isUnassigned ?? thread.assignedToUser == null;
   const canManageOthers = sessionRole === "manager" || sessionRole === "platform_admin";
-  /** Claim só sem responsável. */
   const canAssume = Boolean(isUnassigned && !isClosed);
-  /** Owner ou manager+ podem liberar. */
   const canRelease = Boolean(!isClosed && (thread.isAssignedToMe || canManageOthers) && !isUnassigned);
-  /** Unassigned (atribuir) ou owner/manager+ (transferir). */
   const canChangeAssignee = Boolean(!isClosed && (isUnassigned || thread.isAssignedToMe || canManageOthers));
   const canClose = !isClosed;
   const canReopen = isClosed;
@@ -245,8 +249,20 @@ export function ChatHeader({
       })
     : null;
 
-  /** Toolbar integrada no cabeçalho — menos uma faixa vertical dedicada a «Acções». */
-  const headerMaxH = compactChrome ? "max-h-[min(34vh,260px)]" : "max-h-[min(38vh,300px)]";
+  const lineLabel = thread.whatsappLine
+    ? [
+        thread.whatsappLine.label?.trim() ||
+          thread.whatsappLine.displayPhoneNumber?.trim() ||
+          `${thread.businessPhoneNumberId.slice(0, 10)}…`,
+        thread.whatsappLine.purpose && thread.whatsappLine.purpose !== "GENERAL"
+          ? WHATSAPP_CHANNEL_PURPOSE_PT[thread.whatsappLine.purpose] ?? thread.whatsappLine.purpose
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : null;
+
+  const headerMaxH = compactChrome ? "max-h-[min(28vh,200px)]" : "max-h-[min(32vh,240px)]";
   const headerPad = compactChrome
     ? `${INBOX_CHAT_GUTTER_X_COMPACT} py-2 sm:py-2.5`
     : `${INBOX_CHAT_GUTTER_X} py-2.5 sm:py-3`;
@@ -260,8 +276,9 @@ export function ChatHeader({
       data-testid="chat-header"
     >
       <div className={`flex items-start gap-3 ${headerPad}`}>
-        {showBack && (
-          <Button variant="ghost"
+        {showBack ? (
+          <Button
+            variant="ghost"
             type="button"
             onClick={onBackMobile}
             className="shrink-0 rounded-lg px-2 py-2 text-sm font-semibold text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)] md:hidden df-focus-brand"
@@ -269,73 +286,58 @@ export function ChatHeader({
           >
             <span aria-hidden>←</span> Voltar
           </Button>
-        )}
+        ) : null}
         <div
           className={`flex shrink-0 items-center justify-center rounded-full bg-[var(--df-brand-600)] font-bold text-white ${
             compactChrome ? "h-9 w-9 text-xs" : "h-11 w-11 text-sm"
           }`}
+          aria-hidden
         >
           {title.slice(0, 2).toUpperCase()}
         </div>
+
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <div className="min-w-0">
-              <h2 className="df-text-section-title truncate text-[var(--df-text-primary)]">{title}</h2>
-              {thread.phoneNumber && (
-                <p className="truncate text-xs text-[var(--df-text-secondary)]">{thread.phoneNumber}</p>
-              )}
-            </div>
-            {authLoaded && authUser?.id ? (
-              <div className="shrink-0 pt-0.5" data-testid="header-my-agent-status">
-                <AgentStatusBadge status={myAgentStatus} density={compactChrome ? "compact" : "comfortable"} />
-              </div>
+          {/* Zona A — identidade + estado + SLA excepcional */}
+          <div className="min-w-0">
+            <h2 className="df-text-section-title truncate text-[var(--df-text-primary)]">{title}</h2>
+            {showPhoneUnderTitle ? (
+              <p className="truncate text-xs text-[var(--df-text-secondary)]">{thread.phoneNumber}</p>
             ) : null}
           </div>
+
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             {stateBadge ? (
               <span className={stateBadge.className} data-testid="chat-header-state-badge">
                 {stateBadge.label}
               </span>
             ) : null}
-            {slaBadgeClass && slaLabel && wait ? (
+            {showSlaException && slaBadgeClass && slaLabel && wait ? (
               <span className={slaBadgeClass} data-testid="chat-header-sla">
                 {slaLabel} · {wait}
               </span>
-            ) : wait ? (
-              <span className="df-inbox-sla-wait-muted">À espera há {wait}</span>
+            ) : showSlaException && wait ? (
+              <span className="df-inbox-sla-wait-muted" data-testid="chat-header-sla">
+                À espera há {wait}
+              </span>
             ) : null}
-            <span
-              className={
-                thread.status === "OPEN"
-                  ? "df-chip-status-open"
-                  : thread.status === "CLOSED"
-                    ? "df-chip-status-closed"
-                    : "df-chip-status-pending"
-              }
-            >
-              {thread.status === "OPEN" ? "Aberta" : thread.status === "CLOSED" ? "Fechada" : "Pendente"}
-            </span>
-            {thread.priority === "HIGH" ? <span className="df-chip-priority-high">Prioridade alta</span> : null}
           </div>
+
           {thread.assignedToUser && assigneeCopy ? (
-            <>
-            <p className="mt-1.5 text-xs text-[var(--df-text-secondary)]" data-testid="chat-header-assignee">
-                <strong className="font-semibold text-[var(--df-text-primary)]">{assigneeCopy.line}</strong>
-              </p>
-              {assigneeCopy.note ? (
-                <p className="mt-1 text-[11px] leading-snug text-[var(--df-brand-400)]">{assigneeCopy.note}</p>
-              ) : null}
-            </>
+            <p className="mt-1.5 truncate text-xs text-[var(--df-text-secondary)]" data-testid="chat-header-assignee">
+              <strong className="font-semibold text-[var(--df-text-primary)]">{assigneeCopy.line}</strong>
+            </p>
           ) : (
-            <p className="mt-1.5 text-xs text-[var(--df-text-secondary)]">
+            <p className="mt-1.5 text-xs text-[var(--df-text-secondary)]" data-testid="chat-header-assignee">
               <span className="font-medium text-[var(--df-text-muted)]">Responsável: </span>
               {thread.status === "CLOSED" ? (
                 <span className="text-[var(--df-text-muted)]">—</span>
               ) : thread.conversationState === "awaiting_customer" ? (
-                <span className={thread.lastResponderType === "ai" ? "text-[var(--df-brand-400)]" : "text-[var(--df-text-secondary)]"}>
-                  {thread.lastResponderType === "ai"
-                    ? "Assistente IA (aguarda cliente)"
-                    : "Aguardando cliente"}
+                <span
+                  className={
+                    thread.lastResponderType === "ai" ? "text-[var(--df-brand-400)]" : "text-[var(--df-text-secondary)]"
+                  }
+                >
+                  {thread.lastResponderType === "ai" ? "Assistente IA (aguarda cliente)" : "Aguardando cliente"}
                 </span>
               ) : thread.conversationState === "awaiting_agent" ? (
                 <span className="text-amber-800">Sem responsável — precisa de resposta humana</span>
@@ -344,284 +346,327 @@ export function ChatHeader({
               )}
             </p>
           )}
-          {thread.whatsappLine ? (
-            <p className="mt-1 truncate text-[11px] text-[var(--df-text-muted)]">
-              Linha:{" "}
-              {thread.whatsappLine.label?.trim() ||
-                thread.whatsappLine.displayPhoneNumber?.trim() ||
-                `${thread.businessPhoneNumberId.slice(0, 10)}…`}
-              {thread.whatsappLine.purpose && thread.whatsappLine.purpose !== "GENERAL" ? (
-                <>
-                  {" "}
-                  ·{" "}
-                  {WHATSAPP_CHANNEL_PURPOSE_PT[thread.whatsappLine.purpose] ??
-                    thread.whatsappLine.purpose}
-                </>
-              ) : null}
-            </p>
-          ) : null}
-          {inboxQueues.length > 0 ? (
-            <div className="mt-1.5 flex flex-wrap items-center gap-2">
-              <span className="text-[11px] font-medium text-[var(--df-text-secondary)]">Fila</span>
-              <select
-                className="df-inbox-queue-select"
-                disabled={actionBusy}
-                value={thread.queue?.id ?? ""}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  void handleQueueChange(v === "" ? null : v);
-                }}
-                aria-label="Fila da conversa"
-              >
-                <option value="">Nenhuma</option>
-                {inboxQueues.map((q) => (
-                  <option key={q.id} value={q.id}>
-                    {q.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : null}
-          {queueUpgradeBlock ? (
-            <div className="mt-2 max-w-xl">
-              <FeatureUpgradePrompt
-                blocked={queueUpgradeBlock}
-                onDismiss={() => setQueueUpgradeBlock(null)}
-              />
-            </div>
-          ) : null}
 
+          {/* Zona B — Assumir dominante + Encerrar + responsável */}
           <div
             className={`mt-2 flex flex-wrap items-center gap-1.5 border-t border-border/35 pt-2 ${compactChrome ? "" : "sm:gap-2"}`}
             data-testid="chat-header-actions"
           >
-          {canAssume ? (
-            <Button
-              variant="primary"
-              type="button"
-              disabled={actionBusy}
-              className={`${buttonClassName("primary")} ${primaryCompact} ${state === "awaiting_agent" ? "ring-2 ring-red-200/80" : ""}`}
-              onClick={() => handleAssign("me")}
-              data-testid="header-assume"
-            >
-              {compactChrome ? "Assumir" : "Assumir conversa"}
-            </Button>
-          ) : null}
-          {canRelease ? (
-            <Button
-              variant="secondary"
-              type="button"
-              disabled={actionBusy}
-              className={`${buttonClassName("secondary")} ${primaryCompact}`}
-              onClick={() => handleAssign(null)}
-              data-testid="header-release"
-            >
-              Liberar
-            </Button>
-          ) : null}
-          {canClose ? (
-            <Button
-              variant="secondary"
-              type="button"
-              disabled={actionBusy}
-              className={`${buttonClassName("secondary")} ${primaryCompact}`}
-              onClick={() => handleStatus("CLOSED")}
-              data-testid="header-close"
-            >
-              Encerrar
-            </Button>
-          ) : null}
-          {canReopen ? (
-            <Button
-              variant="secondary"
-              type="button"
-              disabled={actionBusy}
-              className={`${buttonClassName("secondary")} ${primaryCompact}`}
-              onClick={() => handleStatus("OPEN")}
-              data-testid="header-reopen"
-            >
-              Reabrir
-            </Button>
-          ) : null}
-          {statusError ? (
-            <p
-              className="basis-full text-xs font-medium text-red-700"
-              role="alert"
-              data-testid="header-status-error"
-            >
-              {statusError}
-            </p>
-          ) : null}
-        <div className="relative" ref={assignRef}>
-          {canChangeAssignee ? (
-            <Button
-              variant="secondary"
-              type="button"
-              disabled={actionBusy}
-              onClick={() => setAssignOpen((o) => !o)}
-              className={`${toolbarBtn} max-w-full min-w-0 justify-start df-text-secondary`}
-              data-testid="header-assignee-menu"
-            >
-              {thread.assignedToUser ? thread.assignedToUser.name : "Responsável…"}
-            </Button>
-          ) : (
-            <span
-              className={`${toolbarBtn} max-w-full min-w-0 justify-start df-text-secondary pointer-events-none`}
-              data-testid="header-assignee-readonly"
-            >
-              {thread.assignedToUser ? thread.assignedToUser.name : "Sem responsável"}
-            </span>
-          )}
-          {assignOpen && canChangeAssignee && (
-            <div className="df-inbox-dropdown w-52 max-w-[min(100vw-2rem,13rem)]">
-              {canAssume || thread.isAssignedToMe || canManageOthers ? (
-                <Button
-                  variant="secondary"
-                  type="button"
-                  className="df-inbox-dropdown-item"
-                  data-testid="header-assign-me"
-                  onClick={() => handleAssign("me")}
-                >
-                  Eu como responsável
-                </Button>
-              ) : null}
-              {canRelease ? (
-                <Button
-                  variant="secondary"
-                  type="button"
-                  className="df-inbox-dropdown-item"
-                  data-testid="header-unassign"
-                  onClick={() => handleAssign(null)}
-                >
-                  Remover responsável
-                </Button>
-              ) : null}
-              {usersFetched.map((u: { id: string; name: string }) => (
-                <Button
-                  variant="secondary"
-                  key={u.id}
-                  type="button"
-                  className="df-inbox-dropdown-item"
-                  data-testid={`header-assign-user-${u.id}`}
-                  onClick={() => handleAssign(u.id)}
-                >
-                  {u.name}
-                </Button>
-              ))}
-            </div>
-          )}
-        </div>
-        {assignError ? (
-          <p
-            className="basis-full text-xs font-medium text-red-700"
-            role="alert"
-            data-testid="header-assign-error"
-          >
-            {assignError}
-          </p>
-        ) : null}
-
-        <div className="relative" ref={statusRef}>
-          <Button variant="secondary"
-            type="button"
-            onClick={() => setStatusOpen((o) => !o)}
-            className={toolbarBtn}
-            data-testid="header-thread-status-trigger"
-          >
-            Estado
-          </Button>
-          {statusOpen && (
-            <div className="df-inbox-dropdown w-40">
-              {(["OPEN", "PENDING", "CLOSED"] as const).map((s) => (
-                <Button variant="secondary"
-                  key={s}
-                  type="button"
-                  className="df-inbox-dropdown-item"
-                  data-testid={`header-thread-status-${s}`}
-                  onClick={() => handleStatus(s)}
-                >
-                  {s === "OPEN" ? "Aberta" : s === "CLOSED" ? "Fechada" : "Pendente"}
-                </Button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div
-          className="relative flex flex-wrap items-center gap-1"
-          ref={tagRef}
-          data-testid="chat-thread-tags"
-        >
-          {thread.threadTags?.map((tt) => (
-            <span
-              key={tt.tag.id}
-              className={
-                "inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs text-white " +
-                (tt.tag.color ? "" : "bg-muted-foreground")
-              }
-              style={tt.tag.color ? { backgroundColor: tt.tag.color } : undefined}
-            >
-              {tt.tag.name}
-              <Button variant="ghost"
+            {canAssume ? (
+              <Button
+                variant="primary"
                 type="button"
-                aria-label={`Remover ${tt.tag.name}`}
-                className="hover:opacity-80"
-                onClick={() => handleRemoveTag(tt.tag.id)}
+                disabled={actionBusy}
+                className={`${buttonClassName("primary")} ${primaryCompact} ${
+                  state === "awaiting_agent" ? "ring-2 ring-red-200/80" : ""
+                }`}
+                onClick={() => handleAssign("me")}
+                data-testid="header-assume"
               >
-                ×
+                Assumir
               </Button>
-            </span>
-          ))}
-          <Button variant="secondary" type="button" onClick={() => setTagOpen((o) => !o)} className="df-inbox-tag-add">
-            + Tag
-          </Button>
-          {tagOpen && (
-            <div className="df-inbox-dropdown max-h-44 w-52 overflow-y-auto">
-              {tagsFetched.filter((t: { id: string }) => !threadTagIds.has(t.id)).map((t: { id: string; name: string }) => (
-                <Button variant="secondary"
-                  key={t.id}
+            ) : null}
+            {canClose ? (
+              <Button
+                variant="secondary"
+                type="button"
+                disabled={actionBusy}
+                className={`${buttonClassName("secondary")} ${primaryCompact}`}
+                onClick={() => handleStatus("CLOSED")}
+                data-testid="header-close"
+              >
+                Encerrar
+              </Button>
+            ) : null}
+            {canReopen ? (
+              <Button
+                variant="secondary"
+                type="button"
+                disabled={actionBusy}
+                className={`${buttonClassName("secondary")} ${primaryCompact}`}
+                onClick={() => handleStatus("OPEN")}
+                data-testid="header-reopen"
+              >
+                Reabrir
+              </Button>
+            ) : null}
+            {canRelease ? (
+              <Button
+                variant="secondary"
+                type="button"
+                disabled={actionBusy}
+                className={`${buttonClassName("secondary")} ${primaryCompact}`}
+                onClick={() => handleAssign(null)}
+                data-testid="header-release"
+              >
+                Liberar
+              </Button>
+            ) : null}
+
+            <div className="relative" ref={assignRef}>
+              {canChangeAssignee ? (
+                <Button
+                  variant="secondary"
                   type="button"
-                  className="df-inbox-dropdown-item"
-                  onClick={() => handleAddTag(t.id)}
+                  disabled={actionBusy}
+                  onClick={() => {
+                    setMoreOpen(false);
+                    setAssignOpen((o) => !o);
+                  }}
+                  className={`${toolbarBtn} max-w-full min-w-0 justify-start df-text-secondary`}
+                  data-testid="header-assignee-menu"
                 >
-                  {t.name}
+                  {thread.assignedToUser ? thread.assignedToUser.name : "Responsável…"}
                 </Button>
-              ))}
-              {tagsFetched.length === 0 && (
-                <p className="px-3 py-2 text-xs text-[var(--df-text-secondary)]">Crie tags nas definições.</p>
+              ) : (
+                <span
+                  className={`${toolbarBtn} max-w-full min-w-0 justify-start df-text-secondary pointer-events-none`}
+                  data-testid="header-assignee-readonly"
+                >
+                  {thread.assignedToUser ? thread.assignedToUser.name : "Sem responsável"}
+                </span>
               )}
+              {assignOpen && canChangeAssignee ? (
+                <div className="df-inbox-dropdown w-52 max-w-[min(100vw-2rem,13rem)]">
+                  {canAssume || thread.isAssignedToMe || canManageOthers ? (
+                    <Button
+                      variant="secondary"
+                      type="button"
+                      className="df-inbox-dropdown-item"
+                      data-testid="header-assign-me"
+                      onClick={() => handleAssign("me")}
+                    >
+                      Eu como responsável
+                    </Button>
+                  ) : null}
+                  {canRelease ? (
+                    <Button
+                      variant="secondary"
+                      type="button"
+                      className="df-inbox-dropdown-item"
+                      data-testid="header-unassign"
+                      onClick={() => handleAssign(null)}
+                    >
+                      Remover responsável
+                    </Button>
+                  ) : null}
+                  {usersFetched.map((u: { id: string; name: string }) => (
+                    <Button
+                      variant="secondary"
+                      key={u.id}
+                      type="button"
+                      className="df-inbox-dropdown-item"
+                      data-testid={`header-assign-user-${u.id}`}
+                      onClick={() => handleAssign(u.id)}
+                    >
+                      {u.name}
+                    </Button>
+                  ))}
+                </div>
+              ) : null}
             </div>
-          )}
-        </div>
 
-        {onOpenNotes ? (
-          <Button variant="secondary"
-            type="button"
-            onClick={onOpenNotes}
-            className={compactChrome ? `${toolbarBtn} border-amber-400/40 bg-amber-500/12 text-amber-100` : "df-inbox-pill-notes"}
-            data-testid="header-notes"
-          >
-            Notas
-          </Button>
-        ) : null}
+            <div className="relative" ref={moreRef}>
+              <Button
+                variant="secondary"
+                type="button"
+                className={toolbarBtn}
+                aria-expanded={moreOpen}
+                aria-haspopup="menu"
+                onClick={() => {
+                  setAssignOpen(false);
+                  setMoreOpen((o) => !o);
+                }}
+              >
+                Mais
+              </Button>
+              {moreOpen ? (
+                <div
+                  className="df-inbox-dropdown w-[min(100vw-2rem,18rem)] max-h-[min(50vh,22rem)] overflow-y-auto p-2"
+                  role="menu"
+                  aria-label="Mais ações da conversa"
+                >
+                  <div className="relative mb-2" ref={statusRef}>
+                    <Button
+                      variant="secondary"
+                      type="button"
+                      onClick={() => setStatusOpen((o) => !o)}
+                      className={`${toolbarBtn} w-full justify-start`}
+                      data-testid="header-thread-status-trigger"
+                      role="menuitem"
+                    >
+                      Estado da thread
+                    </Button>
+                    {statusOpen ? (
+                      <div className="df-inbox-dropdown relative left-0 top-1 w-full shadow-none ring-1 ring-[color:var(--df-ring-soft)]">
+                        {(["OPEN", "PENDING", "CLOSED"] as const).map((s) => (
+                          <Button
+                            variant="secondary"
+                            key={s}
+                            type="button"
+                            className="df-inbox-dropdown-item"
+                            data-testid={`header-thread-status-${s}`}
+                            onClick={() => handleStatus(s)}
+                          >
+                            {s === "OPEN" ? "Aberta" : s === "CLOSED" ? "Fechada" : "Pendente"}
+                          </Button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
 
-        {onAuditTabChange ? (
-          <Button variant="secondary"
-            type="button"
-            onClick={() => onAuditTabChange(!auditTab)}
-            className={
-              auditTab
-                ? compactChrome
-                  ? `${toolbarBtn} border-emerald-400/35 bg-emerald-500/15 text-emerald-100`
-                  : "df-inbox-pill-audit-on"
-                : compactChrome
-                  ? toolbarBtn
-                  : "df-inbox-pill-audit-off"
-            }
-          >
-            Histórico
-          </Button>
-        ) : null}
+                  <div
+                    className="relative mb-2 flex flex-wrap items-center gap-1 border-t border-border/30 pt-2"
+                    ref={tagRef}
+                    data-testid="chat-thread-tags"
+                  >
+                    {thread.threadTags?.map((tt) => (
+                      <span
+                        key={tt.tag.id}
+                        className={
+                          "inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs text-white " +
+                          (tt.tag.color ? "" : "bg-muted-foreground")
+                        }
+                        style={tt.tag.color ? { backgroundColor: tt.tag.color } : undefined}
+                      >
+                        {tt.tag.name}
+                        <Button
+                          variant="ghost"
+                          type="button"
+                          aria-label={`Remover ${tt.tag.name}`}
+                          className="hover:opacity-80"
+                          onClick={() => handleRemoveTag(tt.tag.id)}
+                        >
+                          ×
+                        </Button>
+                      </span>
+                    ))}
+                    <Button
+                      variant="secondary"
+                      type="button"
+                      onClick={() => setTagOpen((o) => !o)}
+                      className="df-inbox-tag-add"
+                    >
+                      + Tag
+                    </Button>
+                    {tagOpen ? (
+                      <div className="df-inbox-dropdown max-h-44 w-52 overflow-y-auto">
+                        {tagsFetched
+                          .filter((t: { id: string }) => !threadTagIds.has(t.id))
+                          .map((t: { id: string; name: string }) => (
+                            <Button
+                              variant="secondary"
+                              key={t.id}
+                              type="button"
+                              className="df-inbox-dropdown-item"
+                              onClick={() => handleAddTag(t.id)}
+                            >
+                              {t.name}
+                            </Button>
+                          ))}
+                        {tagsFetched.length === 0 ? (
+                          <p className="px-3 py-2 text-xs text-[var(--df-text-secondary)]">
+                            Crie tags nas definições.
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {onOpenNotes ? (
+                    <Button
+                      variant="secondary"
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        onOpenNotes();
+                        setMoreOpen(false);
+                      }}
+                      className={`${toolbarBtn} mb-1 w-full justify-start`}
+                      data-testid="header-notes"
+                    >
+                      Notas
+                    </Button>
+                  ) : null}
+
+                  {onAuditTabChange ? (
+                    <Button
+                      variant="secondary"
+                      type="button"
+                      role="menuitem"
+                      aria-pressed={Boolean(auditTab)}
+                      onClick={() => {
+                        onAuditTabChange(!auditTab);
+                        setMoreOpen(false);
+                      }}
+                      className={`${toolbarBtn} mb-1 w-full justify-start`}
+                    >
+                      {auditTab ? "Ocultar histórico" : "Histórico"}
+                    </Button>
+                  ) : null}
+
+                  {lineLabel ? (
+                    <p className="mb-2 mt-1 truncate px-1 text-[11px] text-[var(--df-text-muted)]">
+                      Linha: {lineLabel}
+                    </p>
+                  ) : null}
+
+                  {inboxQueues.length > 0 ? (
+                    <div className="mt-1 flex flex-wrap items-center gap-2 border-t border-border/30 pt-2">
+                      <label className="text-[11px] font-medium text-[var(--df-text-secondary)]" htmlFor="inbox-header-queue">
+                        Fila
+                      </label>
+                      <select
+                        id="inbox-header-queue"
+                        className="df-inbox-queue-select"
+                        disabled={actionBusy}
+                        value={thread.queue?.id ?? ""}
+                        aria-label="Fila da conversa"
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          void handleQueueChange(v === "" ? null : v);
+                        }}
+                      >
+                        <option value="">Nenhuma</option>
+                        {inboxQueues.map((q) => (
+                          <option key={q.id} value={q.id}>
+                            {q.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null}
+
+                  {queueUpgradeBlock ? (
+                    <div className="mt-2 max-w-xl">
+                      <FeatureUpgradePrompt
+                        blocked={queueUpgradeBlock}
+                        onDismiss={() => setQueueUpgradeBlock(null)}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+
+            {statusError ? (
+              <p
+                className="basis-full text-xs font-medium text-red-700"
+                role="alert"
+                data-testid="header-status-error"
+              >
+                {statusError}
+              </p>
+            ) : null}
+            {assignError ? (
+              <p
+                className="basis-full text-xs font-medium text-red-700"
+                role="alert"
+                data-testid="header-assign-error"
+              >
+                {assignError}
+              </p>
+            ) : null}
           </div>
         </div>
       </div>
