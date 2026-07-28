@@ -1,8 +1,9 @@
 # Internal skills baseline — frozen
 
-Data de congelamento: **2026-07-28**.
+Data de congelamento: **2026-07-28**.  
+Commit de referência na `main`: merge da fundação de 13 skills (`devflow-product-evidence` + este baseline).
 
-Este ficheiro congela a **fundação interna** de skills DevFlow após a conclusão do catálogo planejado. Skills externas só entram depois, em quarentena e **uma por PR**.
+Este ficheiro é a **referência imutável** da fundação interna de skills DevFlow. Não atualizar automaticamente. Qualquer mudança de contagem, contrato ou capacidade exige **decisão humana explícita** e PR dedicado que altere este ficheiro de propósito.
 
 ## Contagem
 
@@ -43,10 +44,35 @@ Este ficheiro congela a **fundação interna** de skills DevFlow após a conclus
 - [x] Catálogo e mapa agents/workflows/commands em [`README.md`](./README.md).
 - [x] Precedência: código/contratos → docs → `AGENTS.md` → rules → workflows → agents → skills → commands.
 
-## Fora da baseline (próxima fase)
+## Imutabilidade
 
-- Skills externas / comunitárias: **quarentena**, uma por PR, `/audit`-style review, sem merge em lote.
-- Alterações a skills da baseline: PR pequeno, atualizar este ficheiro se mudar contagem/contrato/capacidade.
+- A baseline **não** muda por importação automática, Dependabot ou cópia de skill externa.
+- Editar este ficheiro só quando a equipa decidir explicitamente alterar o inventário interno.
+- Skills da baseline podem receber correções pontuais via PR pequeno **sem** reescrever a baseline, desde que contagem/contrato/capacidade permaneçam iguais; se mudarem, atualizar este ficheiro no mesmo PR.
+
+## Intake de skills externas (pós-baseline)
+
+Fluxo obrigatório — **uma skill externa por PR**; nunca copiar direto para o catálogo confiável:
+
+```text
+quarentena
+→ auditoria de origem/licença
+→ análise de segurança
+→ adaptação ao contrato DevFlow
+→ validação (validate-skills.mjs)
+→ PR isolada
+```
+
+Regras:
+
+1. Manter o material externo em quarentena (fora de `.cursor/skills/<name>/` confiável) até a PR de adaptação.
+2. Distinguir claramente **conteúdo importado** vs **autoria interna** (origem, licença, data, URL).
+3. Bloquear comandos, fallbacks ou permissões não documentadas; entrypoint ausente → `BLOCK`.
+4. Exigir **ganho claro** sobre as 13 skills atuais; rejeitar duplicação/sobreposição sem benefício.
+5. Segurança: sem secrets, PII, production write implícito, ou bypass de rules/`AGENTS.md`.
+6. Atualizar esta baseline **somente** por decisão explícita após merge aceite — nunca como efeito colateral do import.
+
+Próximo passo recomendado após este freeze: escolher **uma** candidata externa e submetê-la a auditoria piloto completa — não importar em lote.
 
 ## Como revalidar
 
