@@ -221,7 +221,7 @@ export function ConversationsList({
           onLensChange={onProspectLensChange}
         />
       ) : null}
-      <div className="flex flex-wrap gap-1.5 border-b df-border-brand bg-[var(--df-bg-elevated)] px-2 py-2.5">
+      <div className="flex flex-wrap gap-1 border-b df-border-brand bg-[var(--df-bg-elevated)] px-2 py-1.5">
         {FILTER_ORDER.map((f) => {
           const isNeeds = f === "needs_response";
           const selected = filter === f;
@@ -231,7 +231,7 @@ export function ConversationsList({
               type="button"
               onClick={() => onFilterChange(f)}
               data-testid={`inbox-filter-${f}`}
-              className={`rounded-full px-2.5 py-1.5 text-[10px] font-semibold transition-[background,color,box-shadow,ring] sm:text-[11px] ${
+              className={`rounded-full px-2 py-1 text-[10px] font-semibold transition-[background,color,box-shadow,ring] sm:text-[10px] ${
                 selected && isNeeds
                   ? "bg-[rgb(220_38_38)] text-white shadow-md ring-2 ring-[color:rgb(248_113_113/0.55)]"
                   : selected
@@ -248,12 +248,12 @@ export function ConversationsList({
       </div>
 
       {showRefinementRow ? (
-        <div className="flex flex-wrap items-center gap-2 border-b df-border-brand bg-[var(--df-bg-elevated)] px-2 py-2">
+        <div className="flex flex-wrap items-center gap-1.5 border-b df-border-brand bg-[var(--df-bg-elevated)] px-2 py-1.5">
           {showLineFilterUi ? (
             <div className="flex min-w-0 max-w-[min(100%,22rem)] flex-1 items-center gap-1.5">
-              <span className="shrink-0 text-[10px] font-medium text-[var(--df-text-secondary)]">Linha</span>
+              <span className="shrink-0 text-[9px] font-medium text-[var(--df-text-secondary)]">Linha</span>
               <select
-                className="min-w-0 flex-1 rounded-lg border df-border-brand bg-[var(--df-bg-app)] px-2 py-1.5 text-[11px] text-[var(--df-text-primary)]"
+                className="min-w-0 flex-1 rounded-md border df-border-brand bg-[var(--df-bg-app)] px-2 py-1 text-[10px] text-[var(--df-text-primary)]"
                 aria-label="Filtrar por linha WhatsApp"
                 data-testid="inbox-line-filter"
                 value={lineFilter ?? ""}
@@ -280,9 +280,9 @@ export function ConversationsList({
           ) : null}
           {queues.length > 0 ? (
             <div className="flex min-w-0 max-w-[min(100%,18rem)] flex-1 items-center gap-1.5">
-              <span className="shrink-0 text-[10px] font-medium text-[var(--df-text-secondary)]">Fila</span>
+              <span className="shrink-0 text-[9px] font-medium text-[var(--df-text-secondary)]">Fila</span>
               <select
-                className="min-w-0 flex-1 rounded-lg border df-border-brand bg-[var(--df-bg-app)] px-2 py-1.5 text-[11px] text-[var(--df-text-primary)]"
+                className="min-w-0 flex-1 rounded-md border df-border-brand bg-[var(--df-bg-app)] px-2 py-1 text-[10px] text-[var(--df-text-primary)]"
                 aria-label="Filtrar por fila"
                 value={queueFilter === "none" ? "__none__" : queueFilter ?? ""}
                 onChange={(e) => {
@@ -347,7 +347,7 @@ export function ConversationsList({
       {filterChrome}
       {responseAlertCriticalCount > 0 ? (
         <div
-          className="border-b border-[color:var(--df-danger-sla-border)] bg-[color:var(--df-danger-sla-bg)] px-3 py-2 text-[11px] leading-snug sm:px-4 df-text-error"
+          className="border-b border-[color:var(--df-danger-sla-border)] bg-[color:var(--df-danger-sla-bg)] px-3 py-1.5 text-[10px] leading-snug sm:px-4 df-text-error"
           role="alert"
           data-testid="inbox-stale-alert-critical"
         >
@@ -358,7 +358,7 @@ export function ConversationsList({
         </div>
       ) : responseAlertWarningCount > 0 ? (
         <div
-          className="border-b border-[color:rgb(245_158_11/0.38)] bg-[color:rgb(245_158_11/0.12)] px-3 py-2 text-[11px] leading-snug sm:px-4 df-text-warning"
+          className="border-b border-[color:rgb(245_158_11/0.38)] bg-[color:rgb(245_158_11/0.12)] px-3 py-1.5 text-[10px] leading-snug sm:px-4 df-text-warning"
           role="status"
           data-testid="inbox-stale-alert-warning"
         >
@@ -375,14 +375,14 @@ export function ConversationsList({
           return (
             <Fragment key={section}>
               <div
-                className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b df-border-brand bg-[var(--df-bg-elevated)]/95 px-3 py-2 backdrop-blur-md sm:px-4"
+                className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b df-border-brand bg-[var(--df-bg-elevated)]/95 px-3 py-1.5 backdrop-blur-md sm:px-4"
                 data-testid={`inbox-group-${section}`}
               >
-                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--df-text-secondary)]">
+                <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--df-text-secondary)]">
                   {INBOX_SIDEBAR_SECTION_LABELS[section]}
                 </span>
                 <span
-                  className="inline-flex min-h-[1.35rem] min-w-[1.35rem] items-center justify-center rounded-full bg-[var(--df-brand-100)] px-2 text-[10px] font-bold tabular-nums text-[var(--df-brand-900)] ring-1 ring-[var(--df-border-subtle)]"
+                  className="inline-flex min-h-[1.2rem] min-w-[1.2rem] items-center justify-center rounded-full bg-[var(--df-brand-100)] px-1.5 text-[9px] font-bold tabular-nums text-[var(--df-brand-900)] ring-1 ring-[var(--df-border-subtle)]"
                   data-testid={`inbox-group-count-${section}`}
                 >
                   {group.length}

@@ -18,8 +18,9 @@ export function OnlineUsersBadge() {
 
   return (
     <span
-      className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700"
+      className="flex items-center gap-1 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] text-emerald-700"
       title={userList.map((u) => u.name || u.userId).join(", ")}
+      data-testid="inbox-online-users-badge"
     >
       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
       {userList.length} {userList.length === 1 ? "online" : "online"}

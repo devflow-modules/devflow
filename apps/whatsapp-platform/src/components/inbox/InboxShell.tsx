@@ -302,11 +302,11 @@ function InboxShellContent() {
 
   const statusPill = (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full border df-border-brand bg-[var(--df-bg-elevated)] px-2.5 py-1 text-xs font-medium text-[var(--df-text-secondary)] shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+      className="inline-flex items-center gap-1 rounded-full border df-border-brand bg-[var(--df-bg-elevated)] px-2 py-0.5 text-[11px] font-medium text-[var(--df-text-secondary)] shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
       title={realtimeConnected ? "Tempo real ativo" : "A atualizar em intervalos…"}
     >
       <span
-        className={`h-2 w-2 shrink-0 rounded-full ${realtimeConnected ? "bg-[rgb(34_197_94)]" : "bg-[rgb(251_191_36)] animate-pulse"}`}
+        className={`h-1.5 w-1.5 shrink-0 rounded-full ${realtimeConnected ? "bg-[rgb(34_197_94)]" : "bg-[rgb(251_191_36)] animate-pulse"}`}
       />
       {realtimeConnected ? "Tempo real" : "A sincronizar"}
     </span>
@@ -320,36 +320,28 @@ function InboxShellContent() {
       data-testid="inbox-shell"
     >
       {channelAwaitingActivation ? (
-        <div className="df-feedback-warning shrink-0 rounded-none border-x-0 border-t-0 px-4 py-3 text-sm leading-relaxed sm:px-6" role="status">
+        <div className="df-feedback-warning shrink-0 rounded-none border-x-0 border-t-0 px-3 py-2 text-xs leading-relaxed sm:px-4" role="status">
           Seu canal está em ativação. Assim que aprovado, você poderá responder mensagens aqui.
         </div>
       ) : null}
         <div
           className={`shrink-0 border-b df-border-brand bg-[var(--df-bg-elevated)] shadow-[0_1px_0_rgba(15,23,42,0.04)] ${
-          inboxFocusMode ? "px-3 py-2.5 sm:px-4 sm:py-3" : "px-4 py-4 sm:px-6 sm:py-5"
+          inboxFocusMode ? "px-3 py-1.5 sm:px-4 sm:py-2" : "px-3 py-2 sm:px-4 sm:py-2.5"
         }`}
       >
         <PageHeader
-          eyebrow="Atendimento"
           title="Inbox"
-          description={
-            inboxFocusMode
-              ? undefined
-              : awaitingFirstMessage
-                ? "Envie uma mensagem para o seu número para testar — a conversa aparece na lista à esquerda."
-                : "Escolha uma conversa à esquerda para ver e responder."
-          }
           layout="split"
           size="compact"
           showDivider={false}
-          className="!pb-0"
+          className="!pb-0 [&_h1]:!mt-0"
           actions={
-            <div className="flex w-full flex-wrap items-center gap-2 sm:gap-3 lg:w-auto lg:justify-end">
+            <div className="flex w-full flex-wrap items-center gap-1.5 sm:gap-2 lg:w-auto lg:justify-end">
               {shellLayout ? (
                 <Button variant="secondary"
                   type="button"
                   onClick={() => shellLayout.toggleSidebar()}
-                  className="hidden rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-2 py-1.5 text-xs font-medium text-[var(--df-text-secondary)] shadow-sm transition hover:bg-[var(--df-brand-100)] lg:inline-flex"
+                  className="hidden rounded-lg border df-border-brand bg-[var(--df-bg-elevated)] px-2 py-1 text-[11px] font-medium text-[var(--df-text-secondary)] shadow-sm transition hover:bg-[var(--df-brand-100)] lg:inline-flex"
                   title="Menu compacto com ícones — mais espaço para o conteúdo. Clique de novo para expandir."
                 >
                   {shellSidebarCollapsed ? "Expandir menu" : "Menu compacto"}
@@ -358,7 +350,9 @@ function InboxShellContent() {
               <Button variant="secondary"
                 type="button"
                 onClick={toggleInboxFocusMode}
-                className={`rounded-lg border px-2 py-1.5 text-xs font-semibold shadow-sm transition ${
+                aria-pressed={inboxFocusMode}
+                data-testid="inbox-focus-toggle"
+                className={`rounded-lg border px-2 py-1 text-[11px] font-semibold shadow-sm transition ${
                   inboxFocusMode
                     ? "border-[var(--df-brand-300)] bg-[var(--df-brand-50)] text-[var(--df-brand-900)]"
                     : "border-[var(--df-border-subtle)] bg-[var(--df-bg-elevated)] text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)]"
@@ -368,10 +362,10 @@ function InboxShellContent() {
                 {inboxFocusMode ? "Sair do modo foco" : "Modo foco"}
               </Button>
               {statusPill}
-              <SupportHelpButton variant="compact" className="rounded-lg px-2 py-1.5 no-underline hover:bg-muted/60" />
+              <SupportHelpButton variant="compact" className="rounded-lg px-2 py-1 no-underline hover:bg-muted/60" />
               <Link
                 href="/settings"
-                className="rounded-lg px-2 py-1.5 text-sm font-medium text-[var(--df-text-secondary)] transition hover:bg-[var(--df-brand-100)] hover:text-[var(--df-text-primary)]"
+                className="rounded-lg px-2 py-1 text-xs font-medium text-[var(--df-text-secondary)] transition hover:bg-[var(--df-brand-100)] hover:text-[var(--df-text-primary)]"
               >
                 Ajustes
               </Link>
@@ -381,20 +375,20 @@ function InboxShellContent() {
       </div>
 
       {(showFirstMessageCelebration || showFirstReplyCelebration || showFirstReplyGate) && (
-        <div className="shrink-0 space-y-2 px-4 pb-2 sm:px-6">
+        <div className="shrink-0 space-y-1.5 px-3 pb-1.5 sm:px-4">
           {showFirstMessageCelebration ? (
             <div
-              className="df-feedback-success flex flex-col gap-3 rounded-xl px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+              className="df-feedback-success flex flex-col gap-2 rounded-lg px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
               role="status"
             >
               <div>
-                <p className="text-sm font-semibold">Primeira mensagem recebida 🎉</p>
-                <p className="mt-0.5 text-xs opacity-90">Agora você pode começar a atender seus clientes.</p>
+                <p className="text-xs font-semibold">Primeira mensagem recebida 🎉</p>
+                <p className="mt-0.5 text-[11px] opacity-90">Agora você pode começar a atender seus clientes.</p>
               </div>
               <Button
                 variant="primary"
                 type="button"
-                className="shrink-0 rounded-lg px-3 py-2 text-xs font-semibold"
+                className="shrink-0 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold"
                 onClick={() => {
                   markFirstMessageToastSeen();
                   setActivationUi(getActivationState());
@@ -406,16 +400,16 @@ function InboxShellContent() {
           ) : null}
           {showFirstReplyCelebration ? (
             <div
-              className="flex flex-col gap-3 rounded-xl border border-[var(--df-brand-200)] bg-[var(--df-brand-50)]/95 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-2 rounded-lg border border-[var(--df-brand-200)] bg-[var(--df-brand-50)]/95 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
               role="status"
             >
               <div>
-                <p className="text-sm font-semibold df-text-primary">Primeiro atendimento realizado 🚀</p>
-                <p className="mt-0.5 text-xs df-text-secondary">Seu sistema já está funcionando.</p>
+                <p className="text-xs font-semibold df-text-primary">Primeiro atendimento realizado 🚀</p>
+                <p className="mt-0.5 text-[11px] df-text-secondary">Seu sistema já está funcionando.</p>
               </div>
               <Button variant="secondary"
                 type="button"
-                className="shrink-0 rounded-lg bg-[var(--df-brand-600)] px-3 py-2 text-xs font-semibold text-white hover:bg-[var(--df-brand-700)]"
+                className="shrink-0 rounded-lg bg-[var(--df-brand-600)] px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-[var(--df-brand-700)]"
                 onClick={() => {
                   markFirstReplyToastSeen();
                   setActivationUi(getActivationState());
@@ -427,19 +421,19 @@ function InboxShellContent() {
           ) : null}
           {showFirstReplyGate ? (
             <div
-              className="df-feedback-warning flex flex-col gap-3 rounded-xl px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+              className="df-feedback-warning flex flex-col gap-2 rounded-lg px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
               role="region"
               aria-label="Primeira resposta"
             >
               <div>
-                <p className="text-sm font-semibold">Vamos responder sua primeira mensagem?</p>
-                <p className="mt-0.5 text-xs opacity-90">Esse é o momento onde seu atendimento começa.</p>
+                <p className="text-xs font-semibold">Vamos responder sua primeira mensagem?</p>
+                <p className="mt-0.5 text-[11px] opacity-90">Esse é o momento onde seu atendimento começa.</p>
               </div>
-              <div className="flex shrink-0 flex-wrap gap-2">
+              <div className="flex shrink-0 flex-wrap gap-1.5">
                 <Button
                   variant="primary"
                   type="button"
-                  className="rounded-lg px-3 py-2 text-xs font-semibold"
+                  className="rounded-lg px-2.5 py-1.5 text-[11px] font-semibold"
                   onClick={() => {
                     setFilter("needs_response");
                     setActivationPickFirst(true);
@@ -449,7 +443,7 @@ function InboxShellContent() {
                 </Button>
                 <Button variant="secondary"
                   type="button"
-                  className="rounded-lg border border-border/80 bg-card px-3 py-2 text-xs font-medium df-text-primary hover:bg-muted/60"
+                  className="rounded-lg border border-border/80 bg-card px-2.5 py-1.5 text-[11px] font-medium df-text-primary hover:bg-muted/60"
                   onClick={() => {
                     dismissFirstReplyBanner();
                     setActivationUi(getActivationState());
@@ -465,9 +459,10 @@ function InboxShellContent() {
 
       {!inboxFocusMode && !isWhiteLabelMode() ? (
         <div
-          className={`shrink-0 space-y-2 px-4 pb-2 sm:px-6 ${shellSidebarCollapsed ? "pt-0.5" : ""}`}
+          className={`shrink-0 space-y-1 px-3 pb-1.5 sm:px-4 ${shellSidebarCollapsed ? "pt-0" : ""}`}
         >
           <PricingContextHint
+            className="!rounded-md !px-2 !py-1 !text-[11px] !leading-snug"
             message={
               billingUi?.messagesLimit != null
                 ? contextualInboxUsageHint(billingUi.messagesLimit, {
@@ -478,16 +473,22 @@ function InboxShellContent() {
             }
           />
           {caps && !caps.hasQueuesAndTags && FEATURE_UPGRADE_COPY.QUEUES_TAGS ? (
-            <PricingContextHint message={FEATURE_UPGRADE_COPY.QUEUES_TAGS} />
+            <PricingContextHint
+              className="!rounded-md !px-2 !py-1 !text-[11px] !leading-snug"
+              message={FEATURE_UPGRADE_COPY.QUEUES_TAGS}
+            />
           ) : null}
         </div>
       ) : null}
 
       {inboxFocusMode ? null : (
-        <details className="group shrink-0 border-b df-border-brand bg-[var(--df-bg-app)]/50">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-left text-xs font-semibold text-[var(--df-text-secondary)] marker:content-none [&::-webkit-details-marker]:hidden sm:px-4">
+        <details
+          className="group shrink-0 border-b df-border-brand bg-[var(--df-bg-app)]/50"
+          data-testid="inbox-metrics-details"
+        >
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-1.5 text-left text-[11px] font-semibold text-[var(--df-text-secondary)] marker:content-none [&::-webkit-details-marker]:hidden sm:px-4">
             <span>Métricas e equipa</span>
-            <span className="text-[10px] text-[var(--df-text-muted)] transition group-open:rotate-180" aria-hidden>
+            <span className="text-[9px] text-[var(--df-text-muted)] transition group-open:rotate-180" aria-hidden>
               ▼
             </span>
           </summary>
@@ -504,8 +505,8 @@ function InboxShellContent() {
                 : "md:w-[260px] md:min-w-[240px] md:max-w-[280px] xl:w-[300px] xl:min-w-[280px] xl:max-w-[300px]"
             }`}
           >
-            <div className="flex items-center justify-between border-b df-border-brand px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--df-text-muted)]">Conversas</p>
+            <div className="flex items-center justify-between border-b df-border-brand px-3 py-1.5 sm:px-4">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--df-text-muted)]">Conversas</p>
               <OnlineUsersBadge />
             </div>
             <ConversationsList

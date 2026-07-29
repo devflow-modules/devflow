@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Inbox shell chrome Fatia 6 — gate</title>
+  <style>
+    :root {
+      --bg:#0a1110; --elev:#131f1d; --brand:#00d084; --text:#f4faf8; --muted:#8fa39b; --sec:#c5d4ce;
+      --border:rgba(148,163,184,.22); --chip:#1a2623; --danger:#7f1d1d;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:ui-sans-serif,system-ui,Segoe UI,sans-serif;background:var(--bg);color:var(--text)}
+    .page{padding:16px;max-width:960px;margin:0 auto}
+    .tb{font-size:12px;color:var(--muted);margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .tb button{font:inherit;font-size:11px;font-weight:600;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--elev);color:var(--sec);cursor:pointer}
+    .tb button.active{border-color:var(--brand);color:var(--brand)}
+    .shell{border:1px solid var(--border);border-radius:12px;background:#0d1614;overflow:hidden;min-height:560px;display:grid;grid-template-columns:280px 1fr}
+    .header{grid-column:1/-1;border-bottom:1px solid var(--border);background:var(--elev)}
+    .header.loose{padding:14px 16px}
+    .header.dense{padding:8px 12px}
+    .header h1{margin:0;font-size:18px}
+    .header.loose h1{margin-top:6px;font-size:22px}
+    .header .eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0}
+    .header .desc{margin:6px 0 0;font-size:12px;color:var(--muted)}
+    .header .actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    .header.dense .actions{margin-top:0}
+    .btn{font:inherit;font-size:11px;font-weight:600;padding:4px 8px;border-radius:8px;border:1px solid var(--border);background:#0d1614;color:var(--sec)}
+    .pricing{grid-column:1/-1;padding:10px 16px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border)}
+    .pricing.dense{padding:4px 12px;font-size:11px}
+    details{grid-column:1/-1;border-bottom:1px solid var(--border);background:rgba(19,31,29,.5)}
+    summary{cursor:pointer;list-style:none;padding:10px 16px;font-size:12px;font-weight:600;color:var(--sec)}
+    details.dense summary{padding:6px 12px;font-size:11px}
+    .metrics{padding:12px 16px;display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px}
+    .metrics.dense{padding:6px 12px;gap:6px}
+    .card{border:1px solid var(--border);border-radius:10px;padding:10px;background:var(--elev)}
+    .card.dense{border-radius:6px;padding:6px 8px}
+    .card .lbl{font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700}
+    .card.dense .lbl{font-size:9px}
+    .card .val{font-size:18px;font-weight:800;margin-top:4px}
+    .card.dense .val{font-size:16px;margin-top:2px}
+    .aside{border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:360px}
+    .aside-hd{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+    .aside-hd.dense{padding:6px 12px}
+    .online{font-size:10px;color:#6ee7b7;background:rgba(16,185,129,.12);padding:2px 6px;border-radius:999px;text-transform:none;letter-spacing:0}
+    .prospect{padding:8px;border-bottom:1px solid var(--border);background:rgba(148,163,184,.08)}
+    .prospect.dense{padding:6px 8px}
+    .prospect .lbl{font-size:9px;font-weight:800;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+    .prospect.dense .lbl{font-size:8px;margin-bottom:4px}
+    .chips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 8px;border-bottom:1px solid var(--border)}
+    .chips.dense{gap:4px;padding:6px 8px}
+    .chip{font-size:10px;font-weight:700;padding:6px 10px;border-radius:999px;background:var(--chip);border:1px solid var(--border);color:var(--sec)}
+    .chip.dense{padding:4px 8px;font-size:10px}
+    .chip.on{background:var(--brand);color:#04140f;border-color:transparent}
+    .chip.danger{background:rgba(220,38,38,.15);color:#fecaca;border-color:rgba(248,113,113,.4)}
+    .sticky{position:sticky;top:0;padding:8px 12px;background:rgba(19,31,29,.95);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--sec)}
+    .sticky.dense{padding:6px 12px;font-size:9px}
+    .row{padding:10px 12px;border-bottom:1px solid var(--border);font-size:12px}
+    .row .meta{font-size:11px;color:var(--muted);margin-top:2px}
+    .main{padding:16px;color:var(--muted);font-size:12px}
+    .mobile .shell{grid-template-columns:1fr;max-width:390px;margin:0 auto}
+    .mobile .main{display:none}
+    .note{margin-top:10px;font-size:11px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="tb">
+      <span id="label">gate</span>
+      <button type="button" data-mode="after" class="active">After</button>
+      <button type="button" data-mode="before">Before</button>
+      <button type="button" data-scene="default" class="active">lista primeiro</button>
+      <button type="button" data-scene="metrics-open">métricas abertas</button>
+      <button type="button" data-scene="focus">modo foco</button>
+      <button type="button" data-vp="desk" class="active">desktop</button>
+      <button type="button" data-vp="mobile">mobile 390</button>
+    </div>
+    <div id="mount"></div>
+    <p class="note">Fatia 6 · direção B — chrome densificado; métricas fechadas por padrão; focus opt-in; fila KEEP 1 como âncora.</p>
+  </div>
+  <script>
+    let mode="after", scene="default", vp="desk";
+    function render(){
+      document.getElementById("label").textContent=`Fatia 6 · ${mode} · ${scene} · ${vp}`;
+      document.getElementById("mount").className = vp==="mobile" ? "mobile" : "";
+      const after = mode==="after";
+      const focus = scene==="focus";
+      const metricsOpen = scene==="metrics-open";
+      const hCls = after ? "header dense" : "header loose";
+      const eyebrow = after || focus ? "" : `<p class="eyebrow">Operação</p>`;
+      const desc = after || focus ? "" : `<p class="desc">Atenda conversas, filtre a fila e acompanhe a equipa.</p>`;
+      const pricing = focus ? "" : `<div class="pricing ${after?"dense":""}">Plano Free · 42/100 mensagens este mês — upgrade desbloqueia filas.</div>`;
+      const metrics = focus ? "" : `
+        <details class="${after?"dense":""}" ${metricsOpen?"open":""} data-testid="inbox-metrics-details">
+          <summary>Métricas e equipa <span style="float:right;font-size:9px;color:var(--muted)">▼</span></summary>
+          <div class="metrics ${after?"dense":""}">
+            <div class="card ${after?"dense":""}"><div class="lbl">Tempo médio em fila</div><div class="val">1 min</div></div>
+            <div class="card ${after?"dense":""}"><div class="lbl">Tempo médio de atendimento</div><div class="val">5 min</div></div>
+            <div class="card ${after?"dense":""}"><div class="lbl">Conversas por responsável</div><div class="val">3</div></div>
+            <button class="btn" type="button">Assumir próxima</button>
+          </div>
+        </details>`;
+      const prospect = focus ? "" : `
+        <div class="prospect ${after?"dense":""}" data-testid="inbox-prospect-metrics-bar">
+          <div class="lbl">Prospecção (abertas)</div>
+          <div style="display:flex;flex-wrap:wrap;gap:${after?"2px":"4px"}">
+            <span class="chip ${after?"dense":""} on">Todas (12)</span>
+            <span class="chip ${after?"dense":""}">Follow-up (3)</span>
+            <span class="chip ${after?"dense":""}">Proposta (2)</span>
+          </div>
+        </div>`;
+      const mount = document.getElementById("mount");
+      mount.innerHTML = `
+        <div class="shell" data-testid="inbox-shell">
+          <div class="${hCls}">
+            ${eyebrow}
+            <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center">
+              <h1>Inbox</h1>
+              <div class="actions">
+                <button class="btn" type="button" data-testid="inbox-focus-toggle">${focus?"Sair do modo foco":"Modo foco"}</button>
+                <span class="chip ${after?"dense":""} on" style="border-radius:999px">Tempo real</span>
+                <button class="btn" type="button">Ajustes</button>
+              </div>
+            </div>
+            ${desc}
+          </div>
+          ${pricing}
+          ${metrics}
+          <aside class="aside">
+            <div class="aside-hd ${after?"dense":""}"><span>Conversas</span><span class="online">2 online</span></div>
+            ${prospect}
+            <div class="chips ${after?"dense":""}">
+              <span class="chip ${after?"dense":""} danger on">A responder</span>
+              <span class="chip ${after?"dense":""}">Minhas</span>
+              <span class="chip ${after?"dense":""}">Sem responsável</span>
+              <span class="chip ${after?"dense":""}">Todas</span>
+            </div>
+            <div class="sticky ${after?"dense":""}"><span>Aguardando agente</span><span style="background:rgba(0,208,132,.15);color:var(--brand);padding:2px 6px;border-radius:999px">3</span></div>
+            <div class="row"><strong>Cliente Alfa</strong><div class="meta">Preciso de proposta… · 2 min</div></div>
+            <div class="row"><strong>Cliente Beta</strong><div class="meta">Olá, ainda estão aí? · 8 min</div></div>
+            <div class="row"><strong>Cliente Gama</strong><div class="meta">Fechou? · 12 min</div></div>
+          </aside>
+          <div class="main">Painel do chat (KEEP 2–5) — fora do escopo densificado desta fatia.</div>
+        </div>`;
+    }
+    document.querySelectorAll("[data-mode]").forEach(b=>b.addEventListener("click",()=>{
+      mode=b.dataset.mode; document.querySelectorAll("[data-mode]").forEach(x=>x.classList.toggle("active",x===b)); render();
+    }));
+    document.querySelectorAll("[data-scene]").forEach(b=>b.addEventListener("click",()=>{
+      scene=b.dataset.scene; document.querySelectorAll("[data-scene]").forEach(x=>x.classList.toggle("active",x===b)); render();
+    }));
+    document.querySelectorAll("[data-vp]").forEach(b=>b.addEventListener("click",()=>{
+      vp=b.dataset.vp; document.querySelectorAll("[data-vp]").forEach(x=>x.classList.toggle("active",x===b)); render();
+    }));
+    render();
+  </script>
+</body>
+</html>
