@@ -3,6 +3,7 @@ import {
   getFinanceiroCutoverRedirectUrl,
   isFinanceiroLandingOrDemoPath,
   isFinanceiroOperationalPath,
+  shouldOmitPortalMarketingChromeForFinanceiro,
 } from "@devflow/financeiro-routes";
 
 describe("@devflow/financeiro-routes — cutover e rotas", () => {
@@ -17,6 +18,41 @@ describe("@devflow/financeiro-routes — cutover e rotas", () => {
     expect(isFinanceiroLandingOrDemoPath("/ferramentas/financeiro/demo")).toBe(true);
     expect(isFinanceiroOperationalPath("/ferramentas/financeiro")).toBe(false);
     expect(isFinanceiroOperationalPath("/ferramentas/financeiro/dashboard")).toBe(true);
+  });
+
+  it("omite chrome marketing do portal em rotas de app Financeiro (incl. contas/importar)", () => {
+    expect(shouldOmitPortalMarketingChromeForFinanceiro("/")).toBe(false);
+    expect(shouldOmitPortalMarketingChromeForFinanceiro("/ferramentas/financeiro")).toBe(
+      false
+    );
+    expect(shouldOmitPortalMarketingChromeForFinanceiro("/ferramentas/financeiro/demo")).toBe(
+      false
+    );
+    expect(shouldOmitPortalMarketingChromeForFinanceiro("/ferramentas/financeiro/auth")).toBe(
+      false
+    );
+    expect(
+      shouldOmitPortalMarketingChromeForFinanceiro("/ferramentas/financeiro/auth/callback")
+    ).toBe(false);
+
+    for (const segment of [
+      "dashboard",
+      "sources",
+      "expenses",
+      "rules",
+      "settings",
+      "onboarding",
+      "invites/accept",
+      "contas",
+      "contas/abc",
+      "proximas-contas",
+      "historico",
+      "importar",
+    ]) {
+      expect(
+        shouldOmitPortalMarketingChromeForFinanceiro(`/ferramentas/financeiro/${segment}`)
+      ).toBe(true);
+    }
   });
 
   it("getFinanceiroCutoverRedirectUrl envia rotas operacionais e billing para o app, preserva query e evita loop", () => {
