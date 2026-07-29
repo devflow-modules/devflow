@@ -6,8 +6,9 @@ import {
 } from "./helpers/inbox-api-mock";
 
 /**
- * Smoke mobile + superfície de fecho de venda (UI).
+ * Smoke mobile + superfície de registo de resultado (UI).
  * iPhone 12 ≈ 390×844; viewport Android comum 360.
+ * Fatia 5: copy alinhado a “Registrar resultado…” / “Fechou venda” (não “Fechar venda”).
  */
 test.describe("Inbox mobile + venda", () => {
   test.beforeEach(async ({ context }) => {
@@ -27,11 +28,12 @@ test.describe("Inbox mobile + venda", () => {
     await expect(page.getByRole("button", { name: /Voltar/i })).toBeVisible();
     await expect(page.getByTestId("message-input")).toBeVisible();
     await expect(page.getByRole("button", { name: "Responder" })).toBeVisible();
-    await expect(page.getByText("Fechar venda").first()).toBeVisible();
+    await expect(page.locator("#inbox-deal-close")).toBeVisible();
+    await expect(page.getByText("Registrar resultado (ganho ou perda)")).toBeVisible();
     await ctx.close();
   });
 
-  test("Android 360 — ações rápidas e scroll até fecho", async ({ browser }) => {
+  test("Android 360 — abrir registo de resultado e âncora deal", async ({ browser }) => {
     const ctx = await browser.newContext({ viewport: { width: 360, height: 800 } });
     const page = await ctx.newPage();
     const store = createDefaultInboxMockStore();
@@ -39,11 +41,10 @@ test.describe("Inbox mobile + venda", () => {
     await loginAsWhatsappAdmin(page, { next: "/inbox" });
     await expect(page.getByTestId("inbox-shell")).toBeVisible({ timeout: 60_000 });
     await page.getByRole("button", { name: /Cliente Alfa/i }).click();
-    await page.getByRole("button", { name: "Fechar venda" }).first().click();
     const dealAnchor = page.locator("#inbox-deal-close");
-    if ((await dealAnchor.count()) > 0) {
-      await expect(dealAnchor).toBeVisible();
-    }
+    await expect(dealAnchor).toBeVisible();
+    await page.getByText("Registrar resultado (ganho ou perda)").click();
+    await expect(page.getByRole("button", { name: "Fechou venda" })).toBeVisible();
     await ctx.close();
   });
 });

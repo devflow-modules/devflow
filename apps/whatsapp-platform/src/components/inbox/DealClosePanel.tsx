@@ -106,7 +106,7 @@ export function DealClosePanel({
 
   if (!threadId || !thread) return null;
 
-  const railPad = placement === "composer" ? `${INBOX_CHAT_GUTTER_X} py-1.5` : `${INBOX_CHAT_GUTTER_X} py-3`;
+  const railPad = placement === "composer" ? `${INBOX_CHAT_GUTTER_X} py-1` : `${INBOX_CHAT_GUTTER_X} py-2`;
 
   if (dealStatus === "won") {
     const v = thread.dealValue;
@@ -123,9 +123,9 @@ export function DealClosePanel({
         className={`shrink-0 border-t border-emerald-200/75 bg-emerald-50/40 ${railPad}`}
         role="status"
       >
-        <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-900">Venda fechada</p>
-          <p className="text-sm font-semibold text-emerald-950">{formatted}</p>
+        <div className="flex flex-col gap-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-900">Venda fechada</p>
+          <p className="text-xs font-semibold text-emerald-950 sm:text-sm">{formatted}</p>
         </div>
       </div>
     );
@@ -138,28 +138,31 @@ export function DealClosePanel({
         className={`shrink-0 border-t df-border-brand bg-muted/45 ${railPad}`}
         role="status"
       >
-        <div className="flex flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-3 sm:gap-y-0.5">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Oportunidade perdida</p>
+        <div className="flex flex-col gap-0 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-2 sm:gap-y-0">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Oportunidade perdida</p>
           {thread.dealLostReason ? (
-            <p className="text-xs text-[var(--df-text-secondary)]">
+            <p className="text-[11px] text-[var(--df-text-secondary)] sm:text-xs">
               <span className="text-[var(--df-text-muted)]">Motivo:</span>{" "}
               <span className="font-medium">{lostLabel(thread.dealLostReason)}</span>
             </p>
           ) : (
-            <p className="text-xs text-[var(--df-text-secondary)]">Sem motivo registado.</p>
+            <p className="text-[11px] text-[var(--df-text-secondary)] sm:text-xs">Sem motivo registado.</p>
           )}
         </div>
       </div>
     );
   }
 
+  /** Fatia 5 / D5-R1-B: conversa CLOSED com deal ainda aberto — ocultar formulários; won/lost já saíram acima. */
+  if (thread.status === "CLOSED") return null;
+
   const pendingBadge = (
-    <div className="mb-1.5 flex flex-wrap gap-1.5">
-      <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950 ring-1 ring-amber-300/80">
+    <div className="mb-1 flex flex-wrap gap-1">
+      <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-950 ring-1 ring-amber-300/80">
         Sugestão pendente
       </span>
       {canManage ? (
-        <span className="inline-flex items-center rounded-full bg-sky-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sky-950 ring-1 ring-sky-300/80">
+        <span className="inline-flex items-center rounded-full bg-sky-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-sky-950 ring-1 ring-sky-300/80">
           Aguardando confirmação
         </span>
       ) : null}
@@ -175,19 +178,19 @@ export function DealClosePanel({
       >
         {hasPendingSuggestion ? pendingBadge : null}
         <details className="rounded-md border border-border/60 bg-card/55 shadow-sm">
-          <summary className="cursor-pointer list-none px-2.5 py-2 text-left text-[11px] font-semibold text-[var(--df-text-secondary)] marker:content-none [&::-webkit-details-marker]:hidden">
+          <summary className="cursor-pointer list-none px-2 py-1.5 text-left text-[11px] font-semibold text-[var(--df-text-secondary)] marker:content-none [&::-webkit-details-marker]:hidden">
             Registrar resultado — sugestão ao gestor
           </summary>
-          <div className="border-t border-border/55 px-2.5 pb-2.5 pt-2">
-        <p className="text-xs text-[var(--df-text-secondary)]">
+          <div className="border-t border-border/55 px-2 pb-2 pt-1.5">
+        <p className="text-[11px] text-[var(--df-text-secondary)]">
           Sugira ganho ou perda — só um gestor confirma.
         </p>
         {suggestMode === null ? (
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+          <div className="mt-2 flex flex-col gap-1.5 sm:flex-row">
             <Button
               type="button"
               variant="primary"
-              className="min-h-12 w-full text-sm font-semibold sm:flex-1"
+              className="min-h-10 w-full text-xs font-semibold sm:flex-1 sm:text-sm"
               disabled={suggestMut.isPending || hasPendingSuggestion}
               onClick={() => {
                 setError(null);
@@ -199,7 +202,7 @@ export function DealClosePanel({
             <Button
               type="button"
               variant="secondary"
-              className="min-h-12 w-full border border-border/90 bg-muted/50 text-sm font-semibold text-[var(--df-text-secondary)] hover:bg-muted sm:flex-1"
+              className="min-h-10 w-full border border-border/90 bg-muted/50 text-xs font-semibold text-[var(--df-text-secondary)] hover:bg-muted sm:flex-1 sm:text-sm"
               disabled={suggestMut.isPending || hasPendingSuggestion}
               onClick={() => {
                 setError(null);
@@ -210,8 +213,8 @@ export function DealClosePanel({
             </Button>
           </div>
         ) : suggestMode === "won" ? (
-          <div className="mt-3 space-y-2">
-            <label className="text-xs font-medium text-[var(--df-text-secondary)]" htmlFor="suggest-deal-value">
+          <div className="mt-2 space-y-1.5">
+            <label className="text-[11px] font-medium text-[var(--df-text-secondary)]" htmlFor="suggest-deal-value">
               Valor sugerido (BRL)
             </label>
             <input
@@ -223,13 +226,13 @@ export function DealClosePanel({
               onChange={(e) => setSuggestValue(e.target.value)}
               placeholder="ex.: 1500"
               disabled={suggestMut.isPending}
-              className="w-full rounded-lg border df-border-dark bg-card px-3 py-3 text-base text-[var(--df-text-primary)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)]/30 disabled:opacity-60"
+              className="w-full rounded-lg border df-border-dark bg-card px-2.5 py-2 text-sm text-[var(--df-text-primary)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)]/30 disabled:opacity-60"
             />
-            <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="flex flex-col gap-1.5 sm:flex-row">
               <Button
                 type="button"
                 variant="primary"
-                className="min-h-12 flex-1 text-sm font-semibold"
+                className="min-h-10 flex-1 text-xs font-semibold sm:text-sm"
                 disabled={suggestMut.isPending}
                 onClick={() => {
                   const normalized = suggestValue.replace(",", ".").trim();
@@ -247,7 +250,7 @@ export function DealClosePanel({
               <Button
                 type="button"
                 variant="secondary"
-                className="min-h-12 flex-1 text-sm font-semibold"
+                className="min-h-10 flex-1 text-xs font-semibold sm:text-sm"
                 disabled={suggestMut.isPending}
                 onClick={() => {
                   setSuggestMode(null);
@@ -259,8 +262,8 @@ export function DealClosePanel({
             </div>
           </div>
         ) : (
-          <div className="mt-3 space-y-2">
-            <label htmlFor="suggest-lost-reason" className="text-xs font-medium text-[var(--df-text-secondary)]">
+          <div className="mt-2 space-y-1.5">
+            <label htmlFor="suggest-lost-reason" className="text-[11px] font-medium text-[var(--df-text-secondary)]">
               Motivo da perda
             </label>
             <select
@@ -268,7 +271,7 @@ export function DealClosePanel({
               value={suggestLostReason}
               onChange={(e) => setSuggestLostReason(e.target.value as DealLostReason | "")}
               disabled={suggestMut.isPending}
-              className="w-full rounded-lg border df-border-dark bg-card px-3 py-3 text-base text-[var(--df-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)]/30 disabled:opacity-60"
+              className="w-full rounded-lg border df-border-dark bg-card px-2.5 py-2 text-sm text-[var(--df-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)]/30 disabled:opacity-60"
             >
               <option value="">Selecione…</option>
               {DEAL_LOST_REASONS.map((r) => (
@@ -277,11 +280,11 @@ export function DealClosePanel({
                 </option>
               ))}
             </select>
-            <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="flex flex-col gap-1.5 sm:flex-row">
               <Button
                 type="button"
                 variant="primary"
-                className="min-h-12 flex-1 text-sm font-semibold"
+                className="min-h-10 flex-1 text-xs font-semibold sm:text-sm"
                 disabled={suggestMut.isPending}
                 onClick={() => {
                   if (!suggestLostReason) {
@@ -297,7 +300,7 @@ export function DealClosePanel({
               <Button
                 type="button"
                 variant="secondary"
-                className="min-h-12 flex-1 text-sm font-semibold"
+                className="min-h-10 flex-1 text-xs font-semibold sm:text-sm"
                 disabled={suggestMut.isPending}
                 onClick={() => {
                   setSuggestMode(null);
@@ -310,7 +313,7 @@ export function DealClosePanel({
           </div>
         )}
         {error ? (
-          <p className="mt-2 text-xs font-medium text-red-700" role="alert">
+          <p className="mt-1.5 text-[11px] font-medium text-red-700" role="alert">
             {error}
           </p>
         ) : null}
@@ -331,13 +334,13 @@ export function DealClosePanel({
         className={`shrink-0 border-t border-amber-200/85 bg-amber-50/35 ${railPad}`}
       >
         {pendingBadge}
-        <p className="text-[11px] font-bold uppercase tracking-wide text-amber-950/90">Operador sugeriu</p>
-        <div className="mt-1.5 rounded-lg border border-amber-200/75 bg-card/80 px-2.5 py-2 text-sm text-[var(--df-text-primary)]">
+        <p className="text-[10px] font-bold uppercase tracking-wide text-amber-950/90">Operador sugeriu</p>
+        <div className="mt-1 rounded-lg border border-amber-200/75 bg-card/80 px-2 py-1.5 text-xs text-[var(--df-text-primary)] sm:text-sm">
           {isWon ? (
             <>
               <span className="font-semibold text-emerald-800">Ganho</span>
               {thread.dealSuggestedValue != null ? (
-                <span className="mt-1 block text-[var(--df-text-secondary)]">
+                <span className="mt-0.5 block text-[var(--df-text-secondary)]">
                   Valor: {moneyFmt.format(thread.dealSuggestedValue)}
                 </span>
               ) : null}
@@ -345,15 +348,15 @@ export function DealClosePanel({
           ) : (
             <>
               <span className="font-semibold text-[var(--df-text-secondary)]">Perda</span>
-              <span className="mt-1 block text-[var(--df-text-secondary)]">
+              <span className="mt-0.5 block text-[var(--df-text-secondary)]">
                 Motivo: {lostLabel(thread.dealSuggestedLostReason)}
               </span>
             </>
           )}
         </div>
         {isWon ? (
-          <div className="mt-2">
-            <label htmlFor="deal-value-confirm" className="text-xs font-medium text-[var(--df-text-secondary)]">
+          <div className="mt-1.5">
+            <label htmlFor="deal-value-confirm" className="text-[11px] font-medium text-[var(--df-text-secondary)]">
               Confirmar valor (BRL)
             </label>
             <input
@@ -365,15 +368,15 @@ export function DealClosePanel({
               onChange={(e) => setValue(e.target.value)}
               placeholder="ex.: 1500"
               disabled={closeMut.isPending}
-              className="mt-1 w-full rounded-lg border df-border-dark bg-card px-3 py-2.5 text-sm text-[var(--df-text-primary)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)]/30 disabled:opacity-60"
+              className="mt-0.5 w-full rounded-lg border df-border-dark bg-card px-2.5 py-2 text-sm text-[var(--df-text-primary)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)]/30 disabled:opacity-60"
             />
           </div>
         ) : null}
-        <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+        <div className="mt-1.5 flex flex-col gap-1.5 sm:flex-row">
           <Button
             variant="primary"
             type="button"
-            className="min-h-10 min-w-[8rem] flex-1 px-3 text-sm font-semibold sm:flex-none"
+            className="min-h-9 min-w-[7.5rem] flex-1 px-3 text-xs font-semibold sm:flex-none sm:text-sm"
             disabled={closeMut.isPending || clearMut.isPending}
             onClick={() => {
               if (isWon) {
@@ -401,7 +404,7 @@ export function DealClosePanel({
           <Button
             variant="secondary"
             type="button"
-            className="min-h-10 min-w-[8rem] flex-1 border border-border/90 bg-muted/50 px-3 text-sm font-semibold text-[var(--df-text-secondary)] hover:bg-muted sm:flex-none"
+            className="min-h-9 min-w-[7.5rem] flex-1 border border-border/90 bg-muted/50 px-3 text-xs font-semibold text-[var(--df-text-secondary)] hover:bg-muted sm:flex-none sm:text-sm"
             disabled={closeMut.isPending || clearMut.isPending}
             onClick={() => {
               setError(null);
@@ -412,7 +415,7 @@ export function DealClosePanel({
           </Button>
         </div>
         {error ? (
-          <p className="mt-2 text-xs font-medium text-red-700" role="alert">
+          <p className="mt-1.5 text-[11px] font-medium text-red-700" role="alert">
             {error}
           </p>
         ) : null}
@@ -446,13 +449,13 @@ export function DealClosePanel({
       className={`shrink-0 border-t border-border/45 bg-[var(--df-bg-elevated)]/88 ${railPad}`}
     >
       <details className="rounded-md border border-border/60 bg-card/55 shadow-sm">
-        <summary className="cursor-pointer list-none px-2.5 py-2 text-left text-[11px] font-semibold text-[var(--df-text-secondary)] marker:content-none [&::-webkit-details-marker]:hidden">
+        <summary className="cursor-pointer list-none px-2 py-1.5 text-left text-[11px] font-semibold text-[var(--df-text-secondary)] marker:content-none [&::-webkit-details-marker]:hidden">
           Registrar resultado (ganho ou perda)
         </summary>
-        <div className="border-t border-border/55 px-2.5 pb-2.5 pt-2">
-      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-end">
+        <div className="border-t border-border/55 px-2 pb-2 pt-1.5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
         <div className="min-w-0 flex-1">
-          <label htmlFor="deal-value-input" className="text-xs font-medium text-[var(--df-text-secondary)]">
+          <label htmlFor="deal-value-input" className="text-[11px] font-medium text-[var(--df-text-secondary)]">
             Valor (BRL)
           </label>
           <input
@@ -464,14 +467,14 @@ export function DealClosePanel({
             onChange={(e) => setValue(e.target.value)}
             placeholder="ex.: 1500"
             disabled={closeMut.isPending}
-            className="mt-1 w-full rounded-lg border df-border-dark bg-card px-3 py-2.5 text-sm text-[var(--df-text-primary)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)]/30 disabled:opacity-60"
+            className="mt-0.5 w-full rounded-lg border df-border-dark bg-card px-2.5 py-2 text-sm text-[var(--df-text-primary)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)]/30 disabled:opacity-60"
           />
         </div>
-        <div className="flex flex-wrap gap-2 sm:shrink-0">
+        <div className="flex flex-wrap gap-1.5 sm:shrink-0">
           <Button
             variant="primary"
             type="button"
-            className="min-h-11 min-w-[8.5rem] flex-1 px-4 text-sm font-semibold sm:flex-none"
+            className="min-h-10 min-w-[8rem] flex-1 px-3 text-xs font-semibold sm:flex-none sm:text-sm"
             disabled={closeMut.isPending}
             onClick={submitWon}
           >
@@ -479,17 +482,17 @@ export function DealClosePanel({
           </Button>
         </div>
       </div>
-      <div className="mt-4 border-t border-border/60 pt-3">
-        <label htmlFor="deal-lost-reason" className="text-xs font-medium text-[var(--df-text-secondary)]">
+      <div className="mt-3 border-t border-border/60 pt-2">
+        <label htmlFor="deal-lost-reason" className="text-[11px] font-medium text-[var(--df-text-secondary)]">
           Perda — motivo
         </label>
-        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-stretch">
+        <div className="mt-1.5 flex flex-col gap-1.5 sm:flex-row sm:items-stretch">
           <select
             id="deal-lost-reason"
             value={lostReason}
             onChange={(e) => setLostReason(e.target.value as DealLostReason | "")}
             disabled={closeMut.isPending}
-            className="w-full min-h-11 flex-1 rounded-lg border df-border-dark bg-card px-3 py-2.5 text-sm text-[var(--df-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)]/30 disabled:opacity-60 sm:max-w-xs"
+            className="w-full min-h-10 flex-1 rounded-lg border df-border-dark bg-card px-2.5 py-2 text-sm text-[var(--df-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--df-brand-500)]/30 disabled:opacity-60 sm:max-w-xs"
           >
             <option value="">Selecione para registar perda…</option>
             {DEAL_LOST_REASONS.map((r) => (
@@ -501,7 +504,7 @@ export function DealClosePanel({
           <Button
             variant="secondary"
             type="button"
-            className="min-h-11 min-w-[8.5rem] flex-1 border border-border/90 bg-muted/50 px-4 text-sm font-semibold text-[var(--df-text-secondary)] hover:bg-muted sm:flex-none"
+            className="min-h-10 min-w-[8rem] flex-1 border border-border/90 bg-muted/50 px-3 text-xs font-semibold text-[var(--df-text-secondary)] hover:bg-muted sm:flex-none sm:text-sm"
             disabled={closeMut.isPending}
             onClick={submitLost}
           >
@@ -510,7 +513,7 @@ export function DealClosePanel({
         </div>
       </div>
       {error ? (
-        <p className="mt-2 text-xs font-medium text-red-700" role="alert">
+        <p className="mt-1.5 text-[11px] font-medium text-red-700" role="alert">
           {error}
         </p>
       ) : null}

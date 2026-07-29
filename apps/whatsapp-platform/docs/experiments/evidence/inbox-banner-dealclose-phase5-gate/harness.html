@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Inbox banner + DealClose Fatia 5 — gate</title>
+  <style>
+    :root {
+      --bg:#0a1110; --elev:#131f1d; --brand:#00d084; --text:#f4faf8; --muted:#8fa39b; --sec:#c5d4ce;
+      --border:rgba(148,163,184,.22); --warn-bg:#3b2f14; --warn-border:#a16207; --warn-text:#fde68a;
+      --deal:#0d1614; --pend:#3b2f14;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:ui-sans-serif,system-ui,Segoe UI,sans-serif;background:var(--bg);color:var(--text)}
+    .page{padding:16px;max-width:720px;margin:0 auto}
+    .tb{font-size:12px;color:var(--muted);margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .tb button{font:inherit;font-size:11px;font-weight:600;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--elev);color:var(--sec);cursor:pointer}
+    .tb button.active{border-color:var(--brand);color:var(--brand)}
+    .col{border:1px solid var(--border);border-radius:12px;background:#0d1614;overflow:hidden;display:flex;flex-direction:column;min-height:480px}
+    .hd{padding:10px 12px;border-bottom:1px solid var(--border);font-size:12px}
+    .hd .state{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;background:#1a2623;color:var(--brand);font-size:10px;font-weight:700}
+    .banner{background:var(--warn-bg);border-bottom:1px solid var(--warn-border);color:var(--warn-text);padding:12px 12px;font-size:14px;font-weight:600;display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}
+    .banner.compact{padding:6px 12px;font-size:12px}
+    .banner button{font:inherit;font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;border:0;cursor:pointer}
+    .banner .pri{background:var(--brand);color:#04140f}
+    .banner .ghost{background:transparent;color:var(--warn-text);text-decoration:underline}
+    .msgs{flex:1;padding:12px;font-size:12px;color:var(--sec)}
+    .bubble{background:var(--elev);padding:8px 10px;border-radius:10px;max-width:80%;margin-bottom:8px}
+    .deal{border-top:1px solid var(--border);background:var(--deal);padding:10px 12px}
+    .deal.compact{padding:4px 12px}
+    .deal details{border:1px solid var(--border);border-radius:8px;background:rgba(19,31,29,.88)}
+    .deal summary{cursor:pointer;list-style:none;padding:8px 10px;font-size:11px;font-weight:600;color:var(--sec)}
+    .deal.compact summary{padding:6px 8px}
+    .deal .body{padding:8px 10px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+    .deal.pending{background:#2a2416;border-top-color:#a16207;padding:8px 12px}
+    .deal.won{background:rgba(16,185,129,.12);border-top-color:#34d399;padding:6px 12px}
+    .badge{display:inline-block;font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:#78350f;color:#fde68a;margin-right:4px}
+    .composer{padding:10px 12px;border-top:1px solid var(--border)}
+    .composer textarea{width:100%;min-height:56px;border-radius:8px;border:1px solid var(--border);background:var(--elev);color:var(--text);padding:8px;font:inherit;font-size:13px;resize:none}
+    .note{font-size:10px;color:#fbbf24;margin:0 0 8px}
+    .mobile .col{max-width:390px;margin:0 auto;min-height:640px}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="tb">
+      <span id="label">gate</span>
+      <button type="button" data-mode="after" class="active">After</button>
+      <button type="button" data-mode="before">Before</button>
+      <button type="button" data-scene="waiting" class="active">awaiting (no HIGH)</button>
+      <button type="button" data-scene="high">HIGH wait</button>
+      <button type="button" data-scene="open">deal details</button>
+      <button type="button" data-scene="pending">pending</button>
+      <button type="button" data-scene="won">won</button>
+      <button type="button" data-scene="closed">CLOSED+open deal</button>
+      <button type="button" data-vp="desk" class="active">desktop</button>
+      <button type="button" data-vp="mobile">mobile 390</button>
+    </div>
+    <div id="mount"></div>
+  </div>
+  <script>
+    let mode="after", scene="waiting", vp="desk";
+    function render(){
+      document.getElementById("label").textContent=`Fatia 5 · ${mode} · ${scene} · ${vp}`;
+      const after = mode==="after";
+      let banner="";
+      if(scene==="high"){
+        banner = after
+          ? `<div class="banner compact"><span><span aria-hidden="true">🔥 </span>Lead HIGH aguardando resposta há 12 min</span><span><button class="pri" type="button">Responder agora</button> <button class="ghost" type="button">Ocultar</button></span></div>`
+          : `<div class="banner"><span>🔥 Lead HIGH aguardando resposta há 12 min</span><span><button class="pri" type="button">Responder agora</button> <button class="ghost" type="button">Ocultar</button></span></div>`;
+      } else if(scene==="waiting" && !after){
+        banner = `<div class="banner"><span>👤 Cliente aguardando resposta</span><span><button class="pri" type="button">Responder agora</button> <button class="ghost" type="button">Ocultar</button></span></div>`;
+      }
+      // after + waiting → no banner (P5-B)
+
+      let deal="";
+      if(scene==="won"){
+        deal=`<div class="deal won compact" id="inbox-deal-close"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#6ee7b7">Venda fechada</div><div style="font-size:12px;font-weight:700">R$&nbsp;1.500,00</div></div>`;
+      } else if(scene==="pending"){
+        deal=`<div class="deal pending" id="inbox-deal-close"><span class="badge">Sugestão pendente</span><span class="badge" style="background:#0c4a6e;color:#e0f2fe">Aguardando confirmação</span><div style="margin-top:6px;font-size:10px;font-weight:800;text-transform:uppercase">Operador sugeriu</div><div style="font-size:12px;margin:4px 0 8px">Ganho · R$ 1.500,00</div><button type="button" style="margin-right:6px">Confirmar</button><button type="button">Ignorar</button></div>`;
+      } else if(scene==="closed" && after){
+        deal=`<!-- D5-R1: forms hidden -->`;
+      } else if(scene==="closed" && !after){
+        deal=`<div class="deal" id="inbox-deal-close"><details open><summary>Registrar resultado (ganho ou perda)</summary><div class="body">Forms ainda visíveis em CLOSED (before)</div></details></div>`;
+      } else {
+        const pad = after ? "deal compact" : "deal";
+        deal=`<div class="${pad}" id="inbox-deal-close"><details ${scene==="open"?"open":""}><summary>Registrar resultado (ganho ou perda)</summary><div class="body">Valor (BRL) · Fechou venda · Perdeu venda</div></details></div>`;
+      }
+
+      const note = after && scene==="waiting"
+        ? `<p class="note">After P5-B: sem banner customer_waiting — header já mostra “Precisa resposta”.</p>`
+        : after && scene==="closed"
+          ? `<p class="note">After D5-R1: CLOSED + deal aberto → formulários omitidos.</p>`
+          : "";
+
+      document.getElementById("mount").innerHTML=`
+        <div class="${vp==="mobile"?"mobile":""}">
+          ${note}
+          <section class="col">
+            <div class="hd">Cliente Alfa <span class="state">Precisa resposta</span> · Assumir · Encerrar</div>
+            ${banner}
+            <div class="msgs">
+              <div class="bubble">Cliente: Preciso de uma proposta hoje.</div>
+              <div class="bubble" style="margin-left:auto;background:#14352c">Operador: Já estou a ver.</div>
+            </div>
+            ${deal}
+            <div class="composer"><textarea placeholder="Escreva a mensagem…"></textarea></div>
+          </section>
+        </div>`;
+    }
+    document.querySelector(".tb").addEventListener("click",(e)=>{
+      const b=e.target.closest("button"); if(!b) return;
+      if(b.dataset.mode){ mode=b.dataset.mode; document.querySelectorAll("[data-mode]").forEach(x=>x.classList.toggle("active",x===b)); }
+      if(b.dataset.scene){ scene=b.dataset.scene; document.querySelectorAll("[data-scene]").forEach(x=>x.classList.toggle("active",x===b)); }
+      if(b.dataset.vp){ vp=b.dataset.vp; document.querySelectorAll("[data-vp]").forEach(x=>x.classList.toggle("active",x===b)); }
+      render();
+    });
+    render();
+  </script>
+</body>
+</html>

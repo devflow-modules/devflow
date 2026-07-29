@@ -35,6 +35,34 @@ describe("guided inbox components", () => {
     expect(screen.getByText(/Lead HIGH aguardando resposta/)).toBeInTheDocument();
   });
 
+  it("P5-B: ConversationActionBanner omite awaiting_agent sem HIGH", () => {
+    const thread: WaInboxThreadRow = {
+      id: "t1",
+      phoneNumber: "5511",
+      businessPhoneNumberId: "pn",
+      contactName: "Ana",
+      lastMessageAt: new Date().toISOString(),
+      unreadCount: 1,
+      lastMessagePreview: "Oi",
+      status: "OPEN",
+      priority: "MEDIUM",
+      conversationState: "awaiting_agent",
+      lastUnansweredInboundAt: new Date(Date.now() - 8 * 60_000).toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const { container } = render(
+      <ConversationActionBanner
+        thread={thread}
+        dismissed={false}
+        onDismiss={vi.fn()}
+        onRespondNow={vi.fn()}
+      />
+    );
+    expect(screen.queryByTestId("conversation-action-banner")).not.toBeInTheDocument();
+    expect(container).toBeEmptyDOMElement();
+  });
+
   it("ConversationTimeline renderiza resumo quando há mensagens suficientes", () => {
     const messages: WaInboxMessageRow[] = [
       {

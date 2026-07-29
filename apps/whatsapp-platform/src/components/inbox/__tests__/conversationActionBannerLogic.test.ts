@@ -50,13 +50,22 @@ describe("computeConversationActionBanner", () => {
     expect(v).toEqual({ kind: "negotiation_stalled", minutes: 35 });
   });
 
-  it("awaiting_agent sem HIGH → customer_waiting", () => {
+  it("P5-B: awaiting_agent sem HIGH → null (sem customer_waiting)", () => {
     const t = baseThread({
       priority: "MEDIUM",
       conversationState: "awaiting_agent",
       lastUnansweredInboundAt: new Date("2026-04-09T11:59:00.000Z").toISOString(),
     });
     const v = computeConversationActionBanner(t);
-    expect(v).toEqual({ kind: "customer_waiting" });
+    expect(v).toBeNull();
+  });
+
+  it("CLOSED → null", () => {
+    const t = baseThread({
+      status: "CLOSED",
+      priority: "HIGH",
+      conversationState: "awaiting_agent",
+    });
+    expect(computeConversationActionBanner(t)).toBeNull();
   });
 });
