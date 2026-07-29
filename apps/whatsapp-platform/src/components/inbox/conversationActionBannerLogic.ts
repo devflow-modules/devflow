@@ -5,7 +5,6 @@ import { threadNeedsAgentReply } from "./messageOutboundKind";
 export type ConversationBannerVariant =
   | { kind: "high_wait"; minutes: number }
   | { kind: "negotiation_stalled"; minutes: number }
-  | { kind: "customer_waiting" }
   | null;
 
 function minutesSince(iso: string | null | undefined): number | null {
@@ -17,6 +16,8 @@ function minutesSince(iso: string | null | undefined): number | null {
 
 /**
  * Decide se mostra banner de acção no topo do chat (sem chamadas de rede).
+ * Fatia 5 / P5-B: omite `customer_waiting` — header/lista já cobrem “precisa resposta”;
+ * mantém apenas HIGH wait e negotiation_stalled.
  */
 export function computeConversationActionBanner(thread: WaInboxThreadRow | null): ConversationBannerVariant {
   if (!thread || thread.status === "CLOSED") return null;
@@ -38,10 +39,6 @@ export function computeConversationActionBanner(thread: WaInboxThreadRow | null)
     return { kind: "negotiation_stalled", minutes: stallMin };
   }
 
-  if (state === "awaiting_agent" || needsHuman) {
-    return { kind: "customer_waiting" };
-  }
-
   return null;
 }
 
@@ -50,8 +47,5 @@ export function bannerLabel(v: ConversationBannerVariant): string {
   if (v.kind === "high_wait") {
     return `Lead HIGH aguardando resposta há ${v.minutes} min`;
   }
-  if (v.kind === "negotiation_stalled") {
-    return `Negociação parada há ${v.minutes} min`;
-  }
-  return "Cliente aguardando resposta";
+  return `Negociação parada há ${v.minutes} min`;
 }
