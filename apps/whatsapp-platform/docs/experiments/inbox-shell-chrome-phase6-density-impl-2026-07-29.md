@@ -82,14 +82,19 @@ Script: `scripts/e2e/capture-phase6-gate.mjs`.
 | S6-3 A prospect CSS only | **Sim** |
 | Filtros/URL/sort/sticky intactos | **Sim** |
 | KEEP 1–5 intactos | **Sim** |
-| Vitest Shell + Metrics (+ inbox UI) | **31 passed** |
+| Vitest Shell + Metrics (+ inbox UI) | **40 passed** (após fix TS2554) |
 | Lint / design-system / buttons / tsc / build | **OK** |
 | A11y inbox axe | **passed** (seletor visível) |
+| CI / Routing / Architecture Guard / Vercel | **success** @ `14f0a387` |
 | Evidência responsiva | **Harness + 6 PNGs** |
 
 ## Decisão
 
-**Pendente humano:** `KEEP` / `ITERATE` / `ROLLBACK` / `BLOCK`
+**`KEEP`** (humano, 2026-07-29) — Fatia 6 mergeada via [#168](https://github.com/devflow-modules/devflow/pull/168) @ `14f0a387`.
+
+### Série Inbox 1–6
+
+Reanálise concluída: Fatias **1–6** em **`KEEP`**.
 
 ### Nota de bugfix colateral (funcional)
 
@@ -98,3 +103,8 @@ Script: `scripts/e2e/capture-phase6-gate.mjs`.
 ### Nota a11y
 
 `product-ui-a11y.spec.ts` (inbox): espera o shell **visível** e limita o axe a `[data-testid="inbox-shell"]`, porque `next dev` pode manter um nó transitório hidden durante soft nav/hidratação.
+
+### Nota ITERATE (`14f0a387`)
+
+- `InboxShell.test.tsx`: mock `searchParamsGet` tipado `(_key: string) => null` (TS2554).
+- `setup-ui.ts`: garante `NODE_ENV=test` para expor `React.act` no bundle de desenvolvimento.
