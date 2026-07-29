@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { InboxShell } from "../InboxShell";
 
 const replace = vi.fn();
-const searchParamsGet = vi.fn(() => null);
+const searchParamsGet = vi.fn((_key: string) => null);
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/inbox",

@@ -1,6 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 import { vi } from "vitest";
 
+// React 19 exposes `act` only in the development bundle.
+// Vitest does not always set NODE_ENV=test before module resolution.
+if (typeof process !== "undefined" && process.env.NODE_ENV !== "test") {
+  (process.env as Record<string, string>)["NODE_ENV"] = "test";
+}
+
 if (typeof Element !== "undefined") {
   Element.prototype.scrollIntoView = function () {} as typeof Element.prototype.scrollIntoView;
 }
