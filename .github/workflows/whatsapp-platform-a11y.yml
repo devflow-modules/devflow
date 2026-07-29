@@ -50,13 +50,11 @@ jobs:
       - name: test:a11y (axe + Playwright)
         env:
           CI: "1"
-          E2E_WHATSAPP_ADMIN_EMAIL: ${{ secrets.E2E_WHATSAPP_ADMIN_EMAIL }}
-          E2E_WHATSAPP_ADMIN_PASSWORD: ${{ secrets.E2E_WHATSAPP_ADMIN_PASSWORD }}
-          E2E_WHATSAPP_BASE_URL: ${{ secrets.E2E_WHATSAPP_BASE_URL }}
-          E2E_BASE_URL: ${{ secrets.E2E_WHATSAPP_BASE_URL }}
+          # Sem E2E_WHATSAPP_* aqui: fluxos autenticados ficam skipped (matriz estável pré-secrets).
+          # Smoke autenticado Fatia 5 corre no step seguinte com base local + mocks.
         run: pnpm test:a11y
 
-      # Fatia 5 smoke: mocks exigem base local (não usar staging BASE_URL neste step).
+      # Fatia 5: iPhone 12 + 360 + DealClose. Mocks exigem base local; credenciais via secrets.
       - name: test:e2e inbox-mobile-revenue
         env:
           CI: "1"
@@ -64,4 +62,6 @@ jobs:
           E2E_WHATSAPP_ADMIN_PASSWORD: ${{ secrets.E2E_WHATSAPP_ADMIN_PASSWORD }}
           E2E_WHATSAPP_BASE_URL: http://127.0.0.1:3099
           E2E_BASE_URL: http://127.0.0.1:3099
+          DATABASE_URL: ${{ secrets.WHATSAPP_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.WHATSAPP_DATABASE_URL }}
         run: pnpm exec playwright test tests/e2e/inbox-mobile-revenue.spec.ts
