@@ -14,9 +14,9 @@ import {
 import { HEADER_CTA_LABEL, PRIMARY_DEMO_HREF } from "@/lib/conversion-copy";
 import { PRODUTOS_HUB_PATH } from "@/lib/devflow-product-catalog";
 import { FINANCEIRO_BASE_PATH } from "@devflow/financeiro-routes";
-import { whatsappAppUrl } from "@/lib/whatsapp-app-url";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { HeaderAccessProducts } from "@/components/layout/header-access-products";
 
 const COMO_FUNCIONA_PATH = "/como-funciona";
 const DIAGNOSTICO_PATH = "/contato";
@@ -319,13 +319,11 @@ export function Header() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-1.5 min-[400px]:gap-2 sm:gap-2">
-          <Link
-            href={whatsappAppUrl("/login")}
-            className={cn(secondaryBtnClass, "hidden lg:inline-flex")}
-            onClick={() => trackHeaderCtaClicked({ cta: "entrar", surface: "desktop" })}
-          >
-            Entrar
-          </Link>
+          <HeaderAccessProducts
+            surface="desktop"
+            triggerClassName={secondaryBtnClass}
+            onNavigate={() => setEcosystemOpen(false)}
+          />
           <Link
             href={DIAGNOSTICO_PATH}
             aria-label="Agendar diagnóstico da operação no WhatsApp"
@@ -370,16 +368,14 @@ export function Header() {
             >
               {HEADER_CTA_LABEL}
             </Link>
-            <Link
-              href={whatsappAppUrl("/login")}
-              className={cn(secondaryBtnClass, "w-full")}
-              onClick={() => {
-                trackHeaderCtaClicked({ cta: "entrar", surface: "mobile" });
+            <HeaderAccessProducts
+              surface="mobile"
+              linkClassName={cn(secondaryBtnClass, "w-full justify-center text-center")}
+              onNavigate={() => {
                 setMobileOpen(false);
+                setEcosystemOpen(false);
               }}
-            >
-              Entrar
-            </Link>
+            />
           </div>
 
           <nav aria-label="Navegação mobile">
