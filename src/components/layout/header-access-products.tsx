@@ -40,6 +40,7 @@ export function HeaderAccessProducts({
   const targets = getHeaderProductAccessTargets();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const menuId = useId();
 
   useEffect(() => {
@@ -49,7 +50,10 @@ export function HeaderAccessProducts({
       setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      setOpen(false);
+      triggerRef.current?.focus();
     };
     document.addEventListener("mousedown", onDoc);
     document.addEventListener("keydown", onKey);
@@ -85,6 +89,7 @@ export function HeaderAccessProducts({
   return (
     <div ref={wrapRef} className="relative hidden lg:block" data-testid="header-access-products-desktop">
       <Button
+        ref={triggerRef}
         type="button"
         variant="ghost"
         className={cn(triggerClassName, "inline-flex items-center gap-1 shadow-none")}

@@ -35,7 +35,7 @@ describe("HeaderAccessProducts", () => {
     delete process.env.NEXT_PUBLIC_FINANCEIRO_APP_URL;
   });
 
-  it("desktop: abre menu, expõe links WA e Financeiro, fecha com Escape", async () => {
+  it("desktop: Escape fecha o menu e devolve o foco ao botão Acessar produtos", async () => {
     const user = userEvent.setup();
     render(<HeaderAccessProducts surface="desktop" triggerClassName="test-trigger" />);
 
@@ -56,9 +56,13 @@ describe("HeaderAccessProducts", () => {
     expect(wa).toHaveAttribute("href", "/login");
     expect(fin).toHaveAttribute("href", "/ferramentas/financeiro/auth");
 
+    await user.tab();
+    expect(wa).toHaveFocus();
+
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("menu")).toBeNull();
     expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(trigger).toHaveFocus();
   });
 
   it("desktop: clique em destino dispara analytics e fecha o menu", async () => {
