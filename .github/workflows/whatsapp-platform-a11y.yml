@@ -65,4 +65,5 @@ jobs:
           WHATSAPP_DATABASE_URL: ${{ secrets.WHATSAPP_DATABASE_URL }}
           DATABASE_URL: ${{ secrets.WHATSAPP_DATABASE_URL }}
           DIRECT_URL: ${{ secrets.WHATSAPP_DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: pnpm exec playwright test tests/e2e/inbox-mobile-revenue.spec.ts
