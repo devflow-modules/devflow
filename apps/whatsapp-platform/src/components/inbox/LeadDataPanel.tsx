@@ -36,11 +36,15 @@ const LEAD_TABS: { id: LeadTab; label: string }[] = [
   { id: "contexto", label: "Contexto" },
 ];
 
-function panelSection(title: string, children: ReactNode) {
+function panelSection(title: string, children: ReactNode, compact = false) {
   return (
-    <section className="rounded-xl border border-border/85 bg-card/95 px-3 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+    <section
+      className={`rounded-xl border border-border/85 bg-card/95 shadow-[0_1px_2px_rgba(15,23,42,0.04)] ${
+        compact ? "px-3 py-2" : "px-3 py-2.5"
+      }`}
+    >
       <h4 className="text-[10px] font-bold uppercase tracking-wide df-text-muted">{title}</h4>
-      <div className="mt-2 space-y-2">{children}</div>
+      <div className={compact ? "mt-1.5 space-y-1.5" : "mt-2 space-y-2"}>{children}</div>
     </section>
   );
 }
@@ -87,6 +91,11 @@ function priorityStripe(priority: string | undefined) {
   return <div className={`h-1 w-full rounded-full ${stripe}`} aria-hidden data-testid="lead-priority-stripe" />;
 }
 
+/**
+ * Fatia 4 — contexto progressivo (direção B).
+ * Resumo glance-first: prioridade + score, depois Situação compacta.
+ * Quatro tabs preservadas; CRM mantém glance duplicado (C4); Prospect gated.
+ */
 export function LeadDataPanel({
   thread,
   className = "",
@@ -139,6 +148,14 @@ export function LeadDataPanel({
         ? "—"
         : "Sem responsável";
 
+  const phaseLabel =
+    OPERATIONAL_CRM_PHASE_LABEL_PT[
+      deriveOperationalCrmPhase({
+        threadStatus: thread.status,
+        conversationState: convState,
+      })
+    ];
+
   const evaluationBlock = evaluationMode
     ? panelSection(
         isWhiteLabelMode() ? "Operação em configuração" : "Avaliação em andamento",
@@ -161,48 +178,12 @@ export function LeadDataPanel({
               Veja consumo e próximos passos em Contrato e uso.
             </p>
           </>
-        )
+        ),
+        true
       )
     : null;
 
-  const situacaoSection = panelSection(
-    "Situação da conversa",
-    <>
-      <div className="flex flex-wrap items-center gap-2">
-        {stateBadge ? (
-          <span className={stateBadge.className} data-testid="lead-panel-state-badge">
-            {stateBadge.label}
-          </span>
-        ) : (
-          <span className="text-xs df-text-muted">Estado indisponível</span>
-        )}
-      </div>
-      <div data-testid="operational-crm-phase">
-        <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">Fase comercial</p>
-        <p className="text-sm font-medium df-text-primary">
-          {
-            OPERATIONAL_CRM_PHASE_LABEL_PT[
-              deriveOperationalCrmPhase({
-                threadStatus: thread.status,
-                conversationState: convState,
-              })
-            ]
-          }
-        </p>
-      </div>
-      <div>
-        <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">Responsável</p>
-        <p className="text-sm font-medium df-text-primary" data-testid="lead-panel-assignee">
-          {assignee}
-        </p>
-        {assigneeCopy?.note ? (
-          <p className="mt-1 text-[11px] leading-snug text-emerald-900/85">{assigneeCopy.note}</p>
-        ) : null}
-      </div>
-      {hint ? <p className="text-xs leading-relaxed df-text-secondary">{hint}</p> : null}
-    </>
-  );
-
+  /** Glance comercial — único de relance na abertura (testids E2E). */
   const glanceScoreSection = panelSection(
     "Prioridade e score",
     <>
@@ -225,22 +206,62 @@ export function LeadDataPanel({
     </>
   );
 
+  /** Situação compacta — tipografia secundária ao glance; sem CTAs (header KEEP). */
+  const situacaoSection = panelSection(
+    "Situação",
+    <>
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        {stateBadge ? (
+          <span className={stateBadge.className} data-testid="lead-panel-state-badge">
+            {stateBadge.label}
+          </span>
+        ) : (
+          <span className="text-xs df-text-muted">Estado indisponível</span>
+        )}
+        <span className="text-[10px] df-text-muted" aria-hidden>
+          ·
+        </span>
+        <span data-testid="operational-crm-phase" className="text-xs df-text-secondary">
+          <span className="sr-only">Fase comercial: </span>
+          {phaseLabel}
+        </span>
+      </div>
+      <p className="text-xs df-text-secondary">
+        <span className="df-text-muted">Responsável: </span>
+        <span className="font-medium df-text-primary" data-testid="lead-panel-assignee">
+          {assignee}
+        </span>
+      </p>
+      {assigneeCopy?.note ? (
+        <p className="text-[11px] leading-snug text-emerald-900/85">{assigneeCopy.note}</p>
+      ) : null}
+      {hint ? <p className="text-[11px] leading-snug df-text-muted">{hint}</p> : null}
+    </>,
+    true
+  );
+
   const proximaSection = panelSection(
-    "Próxima ação",
-    bullets.length ? (
-      <ul className="list-inside list-disc space-y-1 text-xs leading-relaxed df-text-secondary">
-        {bullets.map((b) => (
-          <li key={b}>{b}</li>
-        ))}
-      </ul>
-    ) : (
-      <p className="text-xs df-text-muted">Sem sugestões adicionais para este estado.</p>
-    )
+    "Orientação textual",
+    <>
+      <p className="text-[10px] leading-snug df-text-muted">
+        Checklist por estado — não envia mensagem. Para gerar texto, use Playbook ou IA no composer.
+      </p>
+      {bullets.length ? (
+        <ul className="list-inside list-disc space-y-1 text-xs leading-relaxed df-text-secondary">
+          {bullets.map((b) => (
+            <li key={b}>{b}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-xs df-text-muted">Sem sugestões adicionais para este estado.</p>
+      )}
+    </>
   );
 
   const crmDetailSection = panelSection(
     "CRM e dados extraídos",
     <>
+      {/* C4: duplicata de score/prioridade preservada até decisão de produto */}
       {thread.priority ? (
         <div className="space-y-1">
           <p className="text-[10px] font-semibold uppercase tracking-wide df-text-muted">Prioridade CRM</p>
@@ -280,8 +301,11 @@ export function LeadDataPanel({
   );
 
   const contextoSection = panelSection(
-    "Sugestão de ação",
+    "Sugestão textual",
     <>
+      <p className="text-[10px] leading-snug df-text-muted">
+        Frase de orientação por estágio — distinta do Playbook do composer (não gera nem envia mensagem).
+      </p>
       <OperatorSuggestion thread={thread} />
       {!hasOperatorSuggestion ? (
         <p className="text-xs df-text-muted">Nenhuma sugestão automática para este contexto.</p>
@@ -299,10 +323,11 @@ export function LeadDataPanel({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <h3 className="text-xs font-bold uppercase tracking-wide df-text-secondary">Contexto do cliente</h3>
-            <p className="mt-0.5 text-[10px] df-text-muted">Separado por separadores — menos ruído visual.</p>
+            <p className="mt-0.5 text-[10px] df-text-muted">Glance comercial primeiro — detalhes nas tabs.</p>
           </div>
           {onClose ? (
-            <Button variant="ghost"
+            <Button
+              variant="ghost"
               type="button"
               onClick={onClose}
               className="shrink-0 rounded-lg p-1.5 df-text-muted transition hover:bg-muted hover:df-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2"
@@ -325,7 +350,9 @@ export function LeadDataPanel({
               variant="secondary"
               type="button"
               role="tab"
+              id={`lead-tab-btn-${t.id}`}
               aria-selected={tab === t.id}
+              aria-controls={`lead-tabpanel-${t.id}`}
               data-testid={`lead-tab-${t.id}`}
               onClick={() => setTab(t.id)}
               className={`rounded-full px-2.5 py-1 text-[10px] font-semibold transition sm:text-[11px] ${
@@ -341,20 +368,38 @@ export function LeadDataPanel({
       </div>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3 text-left">
         {tab === "resumo" ? (
-          <>
-            {evaluationBlock}
-            {situacaoSection}
+          <div
+            role="tabpanel"
+            id="lead-tabpanel-resumo"
+            aria-labelledby="lead-tab-btn-resumo"
+            className="space-y-3"
+          >
             {glanceScoreSection}
-          </>
+            {situacaoSection}
+            {evaluationBlock}
+          </div>
         ) : null}
-        {tab === "proxima" ? proximaSection : null}
+        {tab === "proxima" ? (
+          <div role="tabpanel" id="lead-tabpanel-proxima" aria-labelledby="lead-tab-btn-proxima">
+            {proximaSection}
+          </div>
+        ) : null}
         {tab === "crm" ? (
-          <>
+          <div
+            role="tabpanel"
+            id="lead-tabpanel-crm"
+            aria-labelledby="lead-tab-btn-crm"
+            className="space-y-3"
+          >
             {crmDetailSection}
             {!evaluationMode && devFlowProspectingUi ? <DevFlowProspectPanel thread={thread} /> : null}
-          </>
+          </div>
         ) : null}
-        {tab === "contexto" ? contextoSection : null}
+        {tab === "contexto" ? (
+          <div role="tabpanel" id="lead-tabpanel-contexto" aria-labelledby="lead-tab-btn-contexto">
+            {contextoSection}
+          </div>
+        ) : null}
       </div>
     </aside>
   );
