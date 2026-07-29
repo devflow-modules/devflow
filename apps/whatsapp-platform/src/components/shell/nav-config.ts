@@ -19,6 +19,12 @@ function navItem(href: string): NavItem {
   };
 }
 
+/**
+ * Fail-closed enquanto `role === null` (verify ainda a carregar ou falhou):
+ * nunca expor itens de manager/platform_admin (dashboard, billing, settings, IA avançada, equipe).
+ * Mostra o mínimo seguro alinhado ao operator.
+ */
+
 /** 1. Operação — painel, inbox, histórico, filas */
 export function navOperationItemsForRole(role: UserRole | string | null): NavItem[] {
   const items = [
@@ -27,8 +33,7 @@ export function navOperationItemsForRole(role: UserRole | string | null): NavIte
     navItem("/conversations"),
     navItem("/queues"),
   ];
-  if (!role) return items;
-  if (isOperator(role) && !isPlatformAdmin(role)) {
+  if (!role || (isOperator(role) && !isPlatformAdmin(role))) {
     return items.filter((i) => i.href !== "/dashboard");
   }
   return items;
@@ -36,14 +41,16 @@ export function navOperationItemsForRole(role: UserRole | string | null): NavIte
 
 /** 2. Automação e IA */
 export function navAutomationItemsForRole(role: UserRole | string | null): NavItem[] {
-  if (role && !canViewAutomation(role)) return [];
+  if (!role) {
+    return [navItem("/automation")];
+  }
+  if (!canViewAutomation(role)) return [];
   const items = [
     navItem("/automation"),
     navItem("/dashboard/ai"),
     navItem("/settings/ai"),
     navItem("/settings/ai-analytics"),
   ];
-  if (!role) return items;
   if (isOperator(role) && !isPlatformAdmin(role)) {
     return items.filter((i) => i.href === "/automation");
   }
@@ -52,12 +59,7 @@ export function navAutomationItemsForRole(role: UserRole | string | null): NavIt
 
 /** 3. Conta — WhatsApp, contrato e uso, configurações, integrações */
 export function navAccountItemsForRole(role: UserRole | string | null): NavItem[] {
-  if (!role) {
-    const out: NavItem[] = [navItem("/dashboard/whatsapp")];
-    if (isCommercialBillingVisible()) out.push(navItem("/billing"));
-    out.push(navItem("/settings"));
-    return out;
-  }
+  if (!role) return [];
   if (isOperator(role) && !isPlatformAdmin(role)) return [];
 
   const out: NavItem[] = [navItem("/dashboard/whatsapp")];
@@ -73,7 +75,7 @@ export function navAccountItemsForRole(role: UserRole | string | null): NavItem[
 
 /** 4. Equipe — agentes */
 export function navTeamItemsForRole(role: UserRole | string | null): NavItem[] {
-  if (role && !canViewTeamPage(role)) return [];
+  if (!role || !canViewTeamPage(role)) return [];
   return [navItem("/agents")];
 }
 
@@ -86,7 +88,7 @@ export const NAV_PRIMARY: NavItem[] = [
 ];
 
 /** Compat: secção Conta (sem entradas de IA — passaram para Automação e IA). */
-export const NAV_SECONDARY: NavItem[] = navAccountItemsForRole(null);
+export const NAV_SECONDARY: NavItem[] = [];
 
 /** Compat: agentes + filas (estrutura antiga). */
 export const NAV_OPERATION: NavItem[] = [navItem("/agents"), navItem("/queues")];
@@ -94,7 +96,9 @@ export const NAV_OPERATION: NavItem[] = [navItem("/agents"), navItem("/queues")]
 const OPERATOR_PRIMARY_HREFS = new Set<string>(["/inbox", "/conversations", "/automation"]);
 
 export function primaryNavForRole(role: UserRole | string | null): NavItem[] {
-  if (!role) return NAV_PRIMARY;
+  if (!role) {
+    return NAV_PRIMARY.filter((i) => OPERATOR_PRIMARY_HREFS.has(i.href));
+  }
   if (isPlatformAdmin(role) || isTenantManager(role)) return NAV_PRIMARY;
   if (isOperator(role)) {
     return NAV_PRIMARY.filter((i) => OPERATOR_PRIMARY_HREFS.has(i.href));

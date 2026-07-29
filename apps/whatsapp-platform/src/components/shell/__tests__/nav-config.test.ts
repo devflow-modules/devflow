@@ -9,6 +9,23 @@ import {
 } from "../nav-config";
 
 describe("nav-config (produto por role)", () => {
+  it("role null: fail-closed — só mínimo de operator, sem dashboard/billing/settings/equipe", () => {
+    expect(primaryNavForRole(null).map((i) => i.href)).toEqual([
+      "/inbox",
+      "/conversations",
+      "/automation",
+    ]);
+    expect(navOperationItemsForRole(null).map((i) => i.href)).toEqual([
+      "/inbox",
+      "/conversations",
+      "/queues",
+    ]);
+    expect(navAutomationItemsForRole(null).map((i) => i.href)).toEqual(["/automation"]);
+    expect(navAccountItemsForRole(null)).toEqual([]);
+    expect(navTeamItemsForRole(null)).toEqual([]);
+    expect(secondaryNavForRole(null)).toEqual([]);
+  });
+
   it("operador: compat NAV_PRIMARY = Inbox + Histórico + Automações; sem secundária", () => {
     const primary = primaryNavForRole("operator");
     expect(primary.map((i) => i.href)).toEqual(["/inbox", "/conversations", "/automation"]);
