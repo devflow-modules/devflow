@@ -6,7 +6,7 @@ Referência da implementação **canónica**: `src/components/layout/header.tsx`
 
 **Rotas de qual app?** Marketing vs Financeiro vs WhatsApp Platform → ver **`docs/site/ROTAS-POR-APLICACAO.md`**.
 
-O Header é **WhatsApp-first** e **não auth-aware** (sempre mostra «Entrar» para o app WhatsApp). Modelo «Acessar produtos» (WA vs Financeiro) está em VALIDATE em #174 — não implementar a partir desta doc.
+O Header é **WhatsApp-first** e **comercial** (sem sessão unificada). Em vez de um único «Entrar», o controlo **«Acessar produtos»** aponta para as auths de cada produto (nav F3/F4 / #179). Sem «Continuar no produto» nesta versão.
 
 ---
 
@@ -57,7 +57,10 @@ Da esquerda para a direita:
      - Primeira abertura na sessão dispara `header_products_opened` com `surface: header_desktop_ecosystem` (chave `header_ecosystem_opened_session`).
 
 3. **Bloco de ações (direita)**
-   - **Entrar** (visível ≥ `lg`) → `whatsappAppUrl("/login")` (app WhatsApp canónico, não `/login` do portal)
+   - **Acessar produtos** (visível ≥ `lg`) — botão com dropdown (`HeaderAccessProducts`):
+     - **WhatsApp Platform** → `whatsappAppUrl("/login")`
+     - **Financeiro** → `financeiroAppHref(FINANCEIRO_AUTH_PATH)` (`/ferramentas/financeiro/auth` ou host do app)
+     - Fecha com clique fora ou `Esc`. Abertura dispara `header_cta_clicked` com `cta: acessar_produtos_open`.
    - **Agendar diagnóstico** (`HEADER_CTA_LABEL` / `PRIMARY_CONVERT_CTA_LABEL`) → `/contato`
    - Hambúrguer só em `< lg`
 
@@ -70,7 +73,7 @@ Comportamento: **sticky**, sombra/blur após `scrollY > 8`.
 - O menu hambúrguer abre um **painel full-height** (`#mobile-nav`, `role="dialog"`) abaixo do header; `body` fica com `overflow: hidden` enquanto aberto.
 - **Topo do painel** (ordem de conversão):
   1. Agendar diagnóstico → `/contato`
-  2. Entrar → `whatsappAppUrl("/login")`
+  2. Secção **Acessar produtos** — links **WhatsApp Platform** e **Financeiro** (mesmos hrefs do desktop; sem dropdown)
 - Depois:
   - Secção **WhatsApp Platform:** WhatsApp Platform, Demo, Como funciona, FAQ
   - Secção **Ecossistema:** mesmos links do dropdown desktop (ferramentas + produtos + mais)
@@ -96,12 +99,12 @@ Em landing / demo / auth Financeiro o grupo **Ecossistema** fica activo (prefixo
 ## Analytics ligados ao header
 
 - `header_nav_clicked` — itens de navegação (`whatsapp_platform`, `demo`, `como_funciona`, `faq`, links do ecossistema via `onNav`, `agendar_diagnostico`, `logo_home`, …) com `surface` desktop/mobile.
-- `header_cta_clicked` — `entrar` e `agendar_diagnostico` (desktop/mobile).
+- `header_cta_clicked` — `agendar_diagnostico`, `acessar_produtos_open`, `acessar_whatsapp`, `acessar_financeiro` (desktop/mobile).
 - `funnel_cta_click` (via `trackFunnelCtaClick`) — `agendar_diagnostico` (`header_desktop` / `header_mobile`) e `ver_demo_guiada` (`header_nav_desktop` / `header_nav_mobile`).
 - `header_products_opened` — primeira abertura do dropdown **Ecossistema** na sessão (desktop).
 - `ecosystem_link_click` (via `trackEcosystemLinkClick`) — cada item do Ecossistema com `surface` `desktop_header` / `mobile_header`.
 
-Eventos antigos da doc anterior (`header_demo_clicked`, `products_dropdown_item_clicked`, CTAs «Começar grátis» / «Ver exemplo») **não** descrevem o Header actual.
+O CTA único «Entrar»→WA foi substituído por **Acessar produtos** (#179). Eventos antigos `cta: entrar` / «Começar grátis» / «Ver exemplo» **não** descrevem o Header actual.
 
 Na página **`/produtos`** podem existir eventos de página (`products_page_*`) fora do Header — ver implementação da página.
 

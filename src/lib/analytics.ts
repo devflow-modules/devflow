@@ -92,7 +92,14 @@ export function trackHeaderNavClicked(props: { item: string; surface?: string })
 }
 
 export function trackHeaderCtaClicked(props: {
-  cta: "agendar_diagnostico" | "ver_demo" | "começar_grátis" | "entrar";
+  cta:
+    | "agendar_diagnostico"
+    | "ver_demo"
+    | "começar_grátis"
+    | "entrar"
+    | "acessar_produtos_open"
+    | "acessar_whatsapp"
+    | "acessar_financeiro";
   surface?: string;
 }): void {
   track("header_cta_clicked", {
