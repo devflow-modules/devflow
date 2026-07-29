@@ -38,7 +38,7 @@ graph TD
   root --> apps
   root --> packages
 
-  apps --> site["apps/site — espelho parcial marketing"]
+  apps --> site["apps/site — LEGACY (não canónico)"]
   apps --> financeiro["apps/financeiro — Financeiro SaaS"]
   apps --> investigamais["apps/investigamais — scaffold"]
   apps --> funklab["apps/funklab — scaffold"]
@@ -63,7 +63,7 @@ graph TD
 | Caminho | Descrição |
 |---------|-----------|
 | **`src/` (raiz)** | Next.js do **portal** em devflowlabs.com.br: páginas públicas, ferramentas, Financeiro (UI + parte das APIs), middleware (cutover 308 Financeiro + WhatsApp), `next.config.ts` na raiz. |
-| `apps/site` | Variante / espelho parcial de marketing; o canónico de rotas públicas costuma ser a raiz. |
+| `apps/site` | **LEGACY** — espelho / variante histórica de marketing; **não** é fonte de verdade. Portal canónico = `src/` na raiz. Ver `apps/site/README.md` e #173 (nav F6). Não abrir features novas aqui. |
 | `apps/financeiro` | Produto Financeiro com deploy próprio; mesmo base path `/ferramentas/financeiro` quando aplicável. |
 | `apps/whatsapp-platform` | Produto **WhatsApp Platform**: auth, Stripe, webhook, dashboard, Prisma/DB dedicados. |
 | `apps/investigamais`, `apps/funklab`, `apps/ops` | Scaffolds ou apps com ciclo independente. |

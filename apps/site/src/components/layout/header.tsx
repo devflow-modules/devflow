@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * @deprecated LEGACY mirror — do not treat as source of truth.
+ *
+ * Canonical portal Header: `src/components/layout/header.tsx` (WhatsApp-first).
+ * This file still implements the older «Nossos produtos» catalog nav.
+ * See `apps/site/README.md` and nav F6 / #173 — do not sync or grow this mirror.
+ */
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
