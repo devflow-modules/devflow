@@ -31,11 +31,11 @@ describe("roles", () => {
     expect(isPathRestrictedForOperator("/automation")).toBe(false);
   });
 
-  it("shellHomeHref — operador na Inbox; gestores no painel IA", () => {
+  it("shellHomeHref — operador na Inbox; gestores no painel IA; null fail-closed na Inbox", () => {
     expect(shellHomeHref("operator")).toBe("/inbox");
     expect(shellHomeHref("manager")).toBe("/dashboard/ai");
     expect(shellHomeHref("platform_admin")).toBe("/dashboard/ai");
-    expect(shellHomeHref(null)).toBe("/dashboard/ai");
-    expect(shellHomeHref(undefined)).toBe("/dashboard/ai");
+    expect(shellHomeHref(null)).toBe("/inbox");
+    expect(shellHomeHref(undefined)).toBe("/inbox");
   });
 });

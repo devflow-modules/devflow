@@ -17,7 +17,8 @@ export function isTenantManager(role: string | null | undefined): boolean {
 
 /** Destino do logotipo / marca na shell (alinhado ao pós-login e à home autenticada). */
 export function shellHomeHref(role: string | null | undefined): string {
-  if (isOperator(role)) return "/inbox";
+  // Fail-closed: role ainda null → destino seguro de operator (não /dashboard/*).
+  if (!role || isOperator(role)) return "/inbox";
   if (isTenantManager(role)) return "/dashboard/ai";
   return "/dashboard/ai";
 }
