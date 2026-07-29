@@ -7,6 +7,33 @@ export function isFinanceiroLandingOrDemoPath(pathname: string): boolean {
   return false;
 }
 
+/** Auth do produto — permanece com chrome marketing no portal quando servida aí. */
+export function isFinanceiroAuthPath(pathname: string): boolean {
+  return (
+    pathname === `${FINANCEIRO_BASE_PATH}/auth` ||
+    pathname.startsWith(`${FINANCEIRO_BASE_PATH}/auth/`)
+  );
+}
+
+/**
+ * Superfícies Financeiro que ainda usam Header/Footer do portal (aquisição).
+ * Landing, demo e auth — não o AppShell autenticado.
+ */
+export function isFinanceiroPortalMarketingChromePath(pathname: string): boolean {
+  if (!pathname.startsWith(FINANCEIRO_BASE_PATH)) return false;
+  return isFinanceiroLandingOrDemoPath(pathname) || isFinanceiroAuthPath(pathname);
+}
+
+/**
+ * Rotas autenticadas / de produto sob o base path: o portal NÃO deve renderizar
+ * Header marketing + Footer + FloatingWhatsAppCta (evita chrome duplo com AppShell).
+ * Preferir isto a listas hardcoded de segmentos — evita regressões tipo contas/importar.
+ */
+export function shouldOmitPortalMarketingChromeForFinanceiro(pathname: string): boolean {
+  if (!pathname.startsWith(FINANCEIRO_BASE_PATH)) return false;
+  return !isFinanceiroPortalMarketingChromePath(pathname);
+}
+
 /** Rotas operacionais do produto (não servidas no portal após cutover). */
 export function isFinanceiroOperationalPath(pathname: string): boolean {
   if (!pathname.startsWith(FINANCEIRO_BASE_PATH)) return false;
