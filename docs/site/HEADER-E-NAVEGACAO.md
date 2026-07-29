@@ -2,7 +2,7 @@
 
 Referência da implementação **canónica**: `src/components/layout/header.tsx` e `src/components/layout/body-chrome.tsx`.
 
-**Portal canónico:** `src/` na raiz do monorepo. O espelho em `apps/site` é **legado** (não editar como fonte de verdade; ver #173 / nav F6).
+**Portal canónico:** `src/` na raiz do monorepo. O espelho em `apps/site` é **LEGACY** (não editar como fonte de verdade; decisão nav F6 / #173 opção A — ver `apps/site/README.md`).
 
 **Rotas de qual app?** Marketing vs Financeiro vs WhatsApp Platform → ver **`docs/site/ROTAS-POR-APLICACAO.md`**.
 

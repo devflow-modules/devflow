@@ -1,6 +1,6 @@
 # AGENTS.md — DevFlow Labs
 
-Este repositório é o **monorepo DevFlow Labs** (pnpm workspaces + Turborepo): portal na raiz (`src/`), produtos em `apps/*`, partilha em `packages/*`. Ver [`ARCHITECTURE.md`](ARCHITECTURE.md) e [`docs/README.md`](docs/README.md).
+Este repositório é o **monorepo DevFlow Labs** (pnpm workspaces + Turborepo): portal canónico na raiz (`src/`), produtos em `apps/*`, partilha em `packages/*`. Ver [`ARCHITECTURE.md`](ARCHITECTURE.md) e [`docs/README.md`](docs/README.md). **`apps/site` é LEGACY** (espelho marketing); não editar Header/nav aí — usar `src/` (ver `apps/site/README.md`).
 
 ## Comportamento esperado do agente
 
