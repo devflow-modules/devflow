@@ -44,7 +44,8 @@ async function globalSetup(): Promise<void> {
   await page.getByLabel("E-mail").fill(creds.email);
   await page.getByLabel("Senha").fill(creds.password);
   await page.getByRole("button", { name: "Entrar" }).click();
-  await page.waitForURL(/\/(inbox|dashboard|onboarding)(\?|$)/, { timeout: 90_000 });
+  // Manager/platform_admin aterrissam em /dashboard/ai; operator em /inbox; onboarding possível.
+  await page.waitForURL(/\/(inbox|dashboard|onboarding)(\/|\?|$)/, { timeout: 90_000 });
 
   await context.storageState({ path: AUTH_STORAGE_STATE_PATH });
   await browser.close();

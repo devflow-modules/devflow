@@ -55,3 +55,13 @@ jobs:
           E2E_WHATSAPP_BASE_URL: ${{ secrets.E2E_WHATSAPP_BASE_URL }}
           E2E_BASE_URL: ${{ secrets.E2E_WHATSAPP_BASE_URL }}
         run: pnpm test:a11y
+
+      # Fatia 5 smoke: mocks exigem base local (não usar staging BASE_URL neste step).
+      - name: test:e2e inbox-mobile-revenue
+        env:
+          CI: "1"
+          E2E_WHATSAPP_ADMIN_EMAIL: ${{ secrets.E2E_WHATSAPP_ADMIN_EMAIL }}
+          E2E_WHATSAPP_ADMIN_PASSWORD: ${{ secrets.E2E_WHATSAPP_ADMIN_PASSWORD }}
+          E2E_WHATSAPP_BASE_URL: http://127.0.0.1:3099
+          E2E_BASE_URL: http://127.0.0.1:3099
+        run: pnpm exec playwright test tests/e2e/inbox-mobile-revenue.spec.ts

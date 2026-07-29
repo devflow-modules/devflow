@@ -27,7 +27,7 @@ test.describe("Inbox mobile + venda", () => {
     await expect(page.getByTestId("chat-window")).toBeVisible();
     await expect(page.getByRole("button", { name: /Voltar/i })).toBeVisible();
     await expect(page.getByTestId("message-input")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Responder" })).toBeVisible();
+    // Fatia 3 KEEP removeu a grelha mobile “Responder”; composer densificado + DealClose (Fatia 5).
     await expect(page.locator("#inbox-deal-close")).toBeVisible();
     await expect(page.getByText("Registrar resultado (ganho ou perda)")).toBeVisible();
     await ctx.close();
