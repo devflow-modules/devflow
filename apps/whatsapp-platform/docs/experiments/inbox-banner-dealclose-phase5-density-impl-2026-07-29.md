@@ -41,7 +41,7 @@ vitest:
 Total: 17 passed
 ```
 
-E2E `inbox-mobile-revenue.spec.ts`: selectors alinhados ao DOM actual (execução com credenciais E2E fica para CI/local autenticado).
+E2E `inbox-mobile-revenue.spec.ts`: **2 passed** local (iPhone 12 + Android 360 / DealClose) e step CI verde na Draft #167.
 
 ## Evidência visual
 
@@ -72,15 +72,13 @@ Script de captura: `scripts/e2e/capture-phase5-gate.mjs`.
 | D5-R1 CLOSED | **Sim** (teste UI) |
 | Roles/HTTP intactos | **Sim** |
 | Vitest DealClose UI | **9 passed** |
-| E2E selectors alinhados | **Sim** (diff) |
+| E2E autenticado (local + CI) | **2 passed** + step CI success |
+| CI / a11y / Vercel | **Verde** @ `b14cf4b7` |
 
-## Decisão pedida
+## Decisão
 
-| Decisão | Significado |
-|---|---|
-| **KEEP** | Aceitar; merge/PR quando autorizado |
-| **ITERATE** | Ajustar densidade/copy/gates |
-| **ROLLBACK** | Reverter branch |
-| **BLOCK** | Parar |
+**`KEEP`** (humano, 2026-07-29) — Fatia 5 mergeada via [#167](https://github.com/devflow-modules/devflow/pull/167) @ `b14cf4b7`.
 
-Commit / push / PR: **não executados** nesta etapa (aguardam instrução).
+### Próxima fatia
+
+Resta **Fatia 6** (chrome do `InboxShell` acima da lista). Fatias **1–5** estão KEEP.
