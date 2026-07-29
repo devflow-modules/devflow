@@ -26,17 +26,17 @@ export function InboxProspectMetricsBar({
 
   return (
     <div
-      className="border-b df-border-brand bg-muted/60/90 px-2 py-2"
+      className="border-b df-border-brand bg-muted/60/90 px-2 py-1.5"
       data-testid="inbox-prospect-metrics-bar"
       role="toolbar"
       aria-label="Métricas de prospecção"
     >
-      <p className="mb-1.5 text-[9px] font-bold uppercase tracking-wide df-text-muted">Prospecção (abertas)</p>
-      <div className="flex flex-wrap gap-1">
+      <p className="mb-1 text-[8px] font-bold uppercase tracking-wide df-text-muted">Prospecção (abertas)</p>
+      <div className="flex flex-wrap gap-0.5">
         <Button variant="secondary"
           type="button"
           onClick={() => onLensChange(null)}
-          className={`rounded-md px-1.5 py-1 text-[10px] font-semibold ring-1 transition ${
+          className={`rounded px-1.5 py-0.5 text-[9px] font-semibold ring-1 transition ${
             activeLens === null
               ? "bg-muted text-white ring-2 ring-[var(--df-brand-500)]/35"
               : "bg-card df-text-secondary ring-1 ring-[color:var(--df-ring-soft)] hover:bg-muted"
@@ -52,7 +52,7 @@ export function InboxProspectMetricsBar({
               key={lens}
               type="button"
               onClick={() => onLensChange(active ? null : lens)}
-              className={`rounded-md px-1.5 py-1 text-[10px] font-semibold ring-1 transition ${
+              className={`rounded px-1.5 py-0.5 text-[9px] font-semibold ring-1 transition ${
                 active
                   ? "bg-[var(--df-brand-600)] text-white ring-[var(--df-brand-500)]"
                   : "bg-card df-text-secondary ring-1 ring-[color:var(--df-ring-soft)] hover:bg-[var(--df-brand-50)]"

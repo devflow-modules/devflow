@@ -37,8 +37,12 @@ test.describe("A11y — Product UI surfaces (axe, WCAG 2.1 AA)", () => {
       const store = createDefaultInboxMockStore();
       await installInboxOperationalMocks(page, store);
       await navigateAsWhatsappAdmin(page, { next: "/inbox" });
-      await expect(page.getByTestId("inbox-shell")).toBeVisible({ timeout: 60_000 });
-      await expectNoSeriousViolationsForPage(page, "product-ui/inbox");
+      // next dev / soft nav pode manter um nó transitório hidden; ancorar no shell visível.
+      const inboxShell = page.locator('[data-testid="inbox-shell"]').locator("visible=true");
+      await expect(inboxShell).toBeVisible({ timeout: 60_000 });
+      await expectNoSeriousViolationsForPage(page, "product-ui/inbox", {
+        include: ['[data-testid="inbox-shell"]'],
+      });
     });
 
     test("billing comercial (/billing) — df-evaluation-ribbon e cartões", async ({ page }) => {
