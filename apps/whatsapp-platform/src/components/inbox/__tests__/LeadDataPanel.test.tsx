@@ -54,7 +54,7 @@ function baseThread(partial: Partial<WaInboxThreadRow> = {}): WaInboxThreadRow {
     conversationState: "awaiting_agent",
     priority: "HIGH",
     leadScore: 72,
-    leadData: { name: "Alfa", interest: "Plano Pro", budget: null, urgency: "alta" },
+    leadData: { name: "Alfa", interest: "Plano Pro", budget: undefined, urgency: "alta" },
     aiState: "qualifying",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
