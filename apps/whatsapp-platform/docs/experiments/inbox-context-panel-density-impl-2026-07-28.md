@@ -41,6 +41,21 @@ Duplicata score na CRM mantida (C4); 4 tabs; Situação; sugestões ambas; Prosp
 | `05-stack-after-resumo.png` | Stack mobile |
 | `06-focus-mobile-no-crm.png` | Focus mobile sem CRM (C5) |
 
-## Gate humano (pendente)
+## Gate humano
 
-KEEP / ITERATE / ROLLBACK / BLOCK após revisão da evidência.
+| Critério | Resultado |
+|---|---|
+| Hierarquia glance-first | **Sim** |
+| Contratos C1–C8 conservadores | **Sim** |
+| Prospect gated | **Sim** |
+| Testids E2E | **Sim** |
+| Vitest LeadDataPanel | **8 passed** |
+| CI + a11y (Playwright/axe) | **SUCCESS** (`415e25cd`) |
+
+## Decisão
+
+**`KEEP`** (humano, 2026-07-29) — Fatia 4 mergeada via [#166](https://github.com/devflow-modules/devflow/pull/166).
+
+### Próximas fatias
+
+Restam Fatias 5 e 6 da reanálise da Inbox (após lista, header, composer e painel de contexto).
