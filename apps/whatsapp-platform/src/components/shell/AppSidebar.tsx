@@ -15,31 +15,37 @@ import {
   type NavItem,
 } from "./nav-config";
 import { ROUTE_META } from "@/lib/navigation/nav-matrix";
-import { isOperator, isPlatformAdmin, isTenantManager, shellHomeHref } from "@/lib/roles";
+import { navIsActive } from "@/lib/navigation/nav-active";
+import { isPlatformAdmin, shellHomeHref, showDistribuirInShellNav } from "@/lib/roles";
 import { SessionRoleModePill } from "./SessionRoleModePill";
 import { useShellLayoutOptional } from "./ShellLayoutContext";
 import { SidebarRail } from "./SidebarRail";
 import { useMediaMinWidth } from "@/lib/useMediaMinWidth";
 import { isCommercialBillingVisible } from "@/lib/productMode";
 import { Button } from "@/components/ui/button";
+
 function NavLink({
   href,
   label,
   active,
   sensitive,
   onNavigate,
+  testId,
 }: {
   href: string;
   label: string;
   active: boolean;
   sensitive?: boolean;
   onNavigate?: () => void;
+  testId?: string;
 }) {
   return (
     <Link
       href={href}
       onClick={() => onNavigate?.()}
       title={label}
+      aria-current={active ? "page" : undefined}
+      data-testid={testId}
       className={`block rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
         active
           ? "bg-[var(--df-brand-50)]/95 font-semibold text-[var(--df-brand-900)] ring-1 ring-[var(--df-brand-200)]/90 shadow-sm"
@@ -72,7 +78,8 @@ function CollapsibleNavSection({
 
   return (
     <div className={defaultSensitive ? "rounded-xl ring-1 ring-amber-100/90 bg-amber-50/20" : ""}>
-      <Button variant="secondary"
+      <Button
+        variant="secondary"
         type="button"
         onClick={() => setSectionCollapsed(sectionId, !collapsed)}
         className={`mb-1.5 flex w-full items-start justify-between gap-2 px-3 py-1 text-left text-[11px] font-semibold uppercase tracking-[0.1em] ${
@@ -95,27 +102,6 @@ function CollapsibleNavSection({
       {!collapsed ? <div className="space-y-0.5">{children}</div> : null}
     </div>
   );
-}
-
-function normalizeNavPath(path: string): string {
-  const p = path.split("?")[0] ?? path;
-  if (p.length > 1 && p.endsWith("/")) return p.slice(0, -1);
-  return p || "/";
-}
-
-/**
- * Destaque da rota atual. Cuidado com prefixos: `/settings` não pode activar-se em `/settings/developer`
- * (senão «Configurações» e o filho ficam os dois seleccionados).
- */
-function navIsActive(pathname: string, href: string) {
-  const p = normalizeNavPath(pathname);
-  const h = normalizeNavPath(href);
-
-  if (h === "/dashboard") return p === "/dashboard";
-
-  if (h === "/settings") return p === "/settings";
-
-  return p === h || p.startsWith(`${h}/`);
 }
 
 function navLinkSensitive(href: string): boolean {
@@ -178,7 +164,11 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   }
 
   return (
-    <aside className="df-page flex h-full w-full min-w-0 shrink-0 flex-col">
+    <aside
+      className="df-page flex h-full w-full min-w-0 shrink-0 flex-col"
+      aria-label="Navegação principal"
+      data-testid="app-sidebar"
+    >
       <div className="flex items-start justify-between gap-2 border-b df-border-brand px-3 py-4 sm:px-4 sm:py-5">
         <Link
           href={shellHomeHref(sessionRole)}
@@ -195,7 +185,8 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
           <SessionRoleModePill variant="sidebar" />
         </Link>
         {shellLayout ? (
-          <Button variant="secondary"
+          <Button
+            variant="secondary"
             type="button"
             onClick={() => shellLayout.toggleSidebar()}
             className="hidden shrink-0 rounded-lg p-2 text-[var(--df-text-secondary)] transition hover:bg-[var(--df-brand-100)] hover:text-[var(--df-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2 lg:flex"
@@ -225,7 +216,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
         {automationNav.length > 0 ? (
           <CollapsibleNavSection
-            sectionId="automacao-ia"
+            sectionId="automacao_ia"
             title="Automação e IA"
             subtitle="Regras, painel de IA e analytics."
             defaultSensitive
@@ -305,14 +296,14 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       <div className="border-t df-border-brand p-3">
         <SupportHelpButton variant="sidebar" className="mb-3" />
-        {sessionRole && (isOperator(sessionRole) || isTenantManager(sessionRole)) ? (
-          <Link
+        {showDistribuirInShellNav(sessionRole) ? (
+          <NavLink
             href="/distribuir"
-            className="mb-2 block rounded-lg px-3 py-2 text-xs font-medium text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)] hover:text-[var(--df-text-primary)]"
-            onClick={() => onNavigate?.()}
-          >
-            {ROUTE_META["/distribuir"].label}
-          </Link>
+            label={ROUTE_META["/distribuir"].label}
+            active={navIsActive(pathname, "/distribuir")}
+            onNavigate={onNavigate}
+            testId="sidebar-distribuir"
+          />
         ) : null}
         <Link
           href="/login"
@@ -321,7 +312,8 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
         >
           Entrar (outra conta)
         </Link>
-        <Button variant="secondary"
+        <Button
+          variant="secondary"
           type="button"
           onClick={() => void logout()}
           className="w-full rounded-lg px-3 py-2 text-left text-xs font-medium text-[var(--df-danger-text)] hover:bg-[var(--df-danger-bg)]"

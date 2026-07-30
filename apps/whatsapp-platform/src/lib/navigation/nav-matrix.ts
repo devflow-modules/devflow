@@ -3,7 +3,7 @@ import { isOperator, isPlatformAdmin } from "@/lib/roles";
 import { isCommercialBillingVisible } from "@/lib/productMode";
 
 /** Secções da sidebar (colapsáveis + plataforma separada). */
-export type NavSectionId = "principal" | "conta" | "operacao" | "plataforma";
+export type NavSectionId = "operacao" | "automacao_ia" | "conta" | "equipe" | "plataforma";
 
 export type RouteMeta = {
   label: string;
@@ -25,7 +25,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/dashboard": {
     label: "Painel",
     parent: null,
-    section: "principal",
+    section: "operacao",
     roles: ["manager", "platform_admin"],
     searchAliases: ["resumo", "início", "home", "métricas gerais"],
   },
@@ -48,7 +48,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/dashboard/ai": {
     label: "IA — operação",
     parent: "/dashboard",
-    section: "conta",
+    section: "automacao_ia",
     roles: ["manager", "platform_admin"],
     sensitive: true,
     searchAliases: ["inteligência artificial", "métricas ia", "saúde", "guardas"],
@@ -56,28 +56,28 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/inbox": {
     label: "Inbox",
     parent: null,
-    section: "principal",
+    section: "operacao",
     roles: ["operator", "manager", "platform_admin"],
     searchAliases: ["mensagens", "conversas", "atendimento", "chat", "caixa de entrada", "inbox"],
   },
   "/automation": {
     label: "Automações",
     parent: null,
-    section: "principal",
+    section: "automacao_ia",
     roles: ["operator", "manager", "platform_admin"],
     searchAliases: ["regras", "fluxos", "bots"],
   },
   "/conversations": {
     label: "Histórico",
     parent: null,
-    section: "principal",
+    section: "operacao",
     roles: ["operator", "manager", "platform_admin"],
     searchAliases: ["conversas", "lista", "histórico"],
   },
   "/settings/ai-analytics": {
     label: "Analytics de IA",
     parent: "/settings",
-    section: "conta",
+    section: "automacao_ia",
     roles: ["manager", "platform_admin"],
     sensitive: true,
     searchAliases: ["custos ia", "tokens", "uso", "análises de ia"],
@@ -93,7 +93,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/settings/ai": {
     label: "Configuração de IA",
     parent: "/settings",
-    section: "conta",
+    section: "automacao_ia",
     roles: ["manager", "platform_admin"],
     sensitive: true,
     searchAliases: ["prompt", "comportamento", "tom", "playbook", "respostas automáticas", "ia de atendimento"],
@@ -122,7 +122,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/agents": {
     label: "Agentes",
     parent: null,
-    section: "operacao",
+    section: "equipe",
     roles: ["manager", "platform_admin"],
     searchAliases: ["equipe", "time", "equipa", "pessoas", "colaboradores"],
   },
@@ -270,7 +270,7 @@ export function getBreadcrumbs(
     const m = ROUTE_META[key] ?? {
       label: segmentFallbackLabel(key),
       parent: null,
-      section: "principal" as const,
+      section: "operacao" as const,
       roles: ["operator", "manager", "platform_admin"] as const,
     };
     chain.unshift({ href: key, label: m.label, sensitive: m.sensitive });
@@ -315,29 +315,27 @@ export function routeAllowedForRole(href: string, role: UserRole | null): boolea
 }
 
 /** Grupos macro da paleta (alinhados à sidebar e ao tipo de trabalho). */
-export type PaletteGroupId = "operacao" | "gestao" | "configuracao" | "plataforma";
+export type PaletteGroupId = NavSectionId;
 
 /** Ordem fixa dos grupos na paleta (sidebar mental model). */
-export const PALETTE_GROUP_ORDER: PaletteGroupId[] = ["operacao", "gestao", "configuracao", "plataforma"];
+export const PALETTE_GROUP_ORDER: PaletteGroupId[] = [
+  "operacao",
+  "automacao_ia",
+  "conta",
+  "equipe",
+  "plataforma",
+];
 
 export const PALETTE_GROUP_LABEL: Record<PaletteGroupId, string> = {
   operacao: "Operação",
-  gestao: "Gestão",
-  configuracao: "Conta",
+  automacao_ia: "Automação e IA",
+  conta: "Conta",
+  equipe: "Equipe",
   plataforma: "Ferramentas internas (DevFlow)",
 };
 
-function paletteGroupForRoute(path: string, meta: RouteMeta): PaletteGroupId {
-  if (meta.platformOnly) return "plataforma";
-  if (path === "/dashboard" || path === "/dashboard/billing" || path === "/billing") return "gestao";
-  if (
-    path.startsWith("/settings") ||
-    path === "/dashboard/whatsapp" ||
-    path === "/onboarding"
-  ) {
-    return "configuracao";
-  }
-  return "operacao";
+function paletteGroupForRoute(_path: string, meta: RouteMeta): PaletteGroupId {
+  return meta.section;
 }
 
 export type CommandPaletteRoute = {
