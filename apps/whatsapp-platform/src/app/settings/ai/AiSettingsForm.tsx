@@ -17,6 +17,7 @@ import { AiSettingsPhase, AiSettingsSubheading } from "./AiSettingsPhase";
 import { AiSettingsAnchorNav } from "./AiSettingsAnchorNav";
 import { AiStatusSummary } from "./AiStatusSummary";
 import { AiTestReplyButton } from "./AiTestReplyButton";
+import { AI_SETTINGS_GOAL_FIELD_LABEL, AI_SETTINGS_PLAYBOOK_DETAILS_SUMMARY } from "./aiSettingsCopy";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 import { isWhiteLabelMode } from "@/lib/productMode";
 import { PricingContextHint } from "@/components/dashboard/billing/PricingContextHint";
@@ -628,8 +629,8 @@ export function AiSettingsForm() {
       <AiSettingsPhase
         id="comportamento"
         phase="2 · Comportamento"
-        title="Identidade, instruções e funil"
-        description="Isto molda o texto que o cliente lê: tom, contexto do negócio, regras e playbook por fase. Os canais herdam estes parâmetros como padrão; podem combinar com propósito e perfil de IA próprios por linha. Impacta custo indiretamente (mensagens mais longas ou mais chamadas ao modelo)."
+        title="Identidade e instruções"
+        description="Isto molda o texto que o cliente lê: tom, contexto do negócio e regras. Os canais herdam estes parâmetros como padrão. O playbook por fase do funil fica opcional e colapsado abaixo."
       >
         <div className="space-y-6">
           <AiSettingsSubheading>Identidade do assistente</AiSettingsSubheading>
@@ -696,9 +697,9 @@ export function AiSettingsForm() {
           </FormField>
           <FormField
             id="goal"
-            label="Objetivo da IA neste canal"
+            label={AI_SETTINGS_GOAL_FIELD_LABEL}
             htmlFor="goal"
-            help="Quando usar: definir prioridade (vendas vs suporte). Impacto: orienta o próximo passo sugerido ao cliente."
+            help="Quando usar: definir prioridade da IA base do workspace (vendas vs suporte). Impacto: orienta o próximo passo sugerido ao cliente. Canais podem refinar o propósito por linha."
           >
             <textarea
               id="goal"
@@ -739,61 +740,62 @@ export function AiSettingsForm() {
           />
         </div>
 
-        <div className="space-y-4 border-t df-border-brand pt-6">
-          <AiSettingsSubheading>Playbook por fase do funil</AiSettingsSubheading>
-          <p className="text-xs text-[var(--df-text-muted)]">
-            Opcional: afinar objetivo e linhas por estágio (lead → fechado). Quando usar: funis claros com equipas
-            diferentes por fase. Impacto: mensagens mais específicas por momento da conversa.
-          </p>
-        <div className="space-y-6">
-          {FUNNEL_STAGES.map((stage) => (
-            <div
-              key={stage}
-              className="rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_48%,var(--df-bg-elevated))] px-4 py-3"
-            >
-              <p className="text-sm font-bold text-[var(--df-text-primary)]">{STAGE_LABELS[stage]}</p>
-              <FormField
-                id={`pb-goal-${stage}`}
-                label="Objetivo"
-                htmlFor={`pb-goal-${stage}`}
+        <details className="space-y-4 rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-elevated)_78%,transparent)] p-4 ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+          <summary className="cursor-pointer text-sm font-bold text-[var(--df-text-primary)]">
+            {AI_SETTINGS_PLAYBOOK_DETAILS_SUMMARY}
+            <span className="mt-1 block text-xs font-normal text-[var(--df-text-muted)]">
+              Até 10 campos avançados — afinar objetivo e regras por estágio (lead → fechado). Fechado por omissão.
+            </span>
+          </summary>
+          <div className="mt-4 space-y-6 border-t df-border-brand pt-4">
+            {FUNNEL_STAGES.map((stage) => (
+              <div
+                key={stage}
+                className="rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_48%,var(--df-bg-elevated))] px-4 py-3"
               >
-                <input
+                <p className="text-sm font-bold text-[var(--df-text-primary)]">{STAGE_LABELS[stage]}</p>
+                <FormField
                   id={`pb-goal-${stage}`}
-                  type="text"
-                  value={playbookDraft[stage].goal}
-                  onChange={(e) =>
-                    setPlaybookDraft((prev) => ({
-                      ...prev,
-                      [stage]: { ...prev[stage], goal: e.target.value },
-                    }))
-                  }
-                  className="w-full rounded-lg border df-border-brand px-3 py-2 text-sm"
-                  placeholder="Opcional — sobrescreve o objetivo padrão deste estágio"
-                />
-              </FormField>
-              <FormField
-                id={`pb-rules-${stage}`}
-                label="Regras / orientações (uma por linha)"
-                htmlFor={`pb-rules-${stage}`}
-              >
-                <textarea
+                  label="Objetivo"
+                  htmlFor={`pb-goal-${stage}`}
+                >
+                  <input
+                    id={`pb-goal-${stage}`}
+                    type="text"
+                    value={playbookDraft[stage].goal}
+                    onChange={(e) =>
+                      setPlaybookDraft((prev) => ({
+                        ...prev,
+                        [stage]: { ...prev[stage], goal: e.target.value },
+                      }))
+                    }
+                    className="w-full rounded-lg border df-border-brand px-3 py-2 text-sm"
+                    placeholder="Opcional — sobrescreve o objetivo padrão deste estágio"
+                  />
+                </FormField>
+                <FormField
                   id={`pb-rules-${stage}`}
-                  rows={3}
-                  value={playbookDraft[stage].rulesText}
-                  onChange={(e) =>
-                    setPlaybookDraft((prev) => ({
-                      ...prev,
-                      [stage]: { ...prev[stage], rulesText: e.target.value },
-                    }))
-                  }
-                  className={fieldTextareaClassName}
-                  placeholder="Ex.: perguntar orçamento antes de preço"
-                />
-              </FormField>
-            </div>
-          ))}
-        </div>
-        </div>
+                  label="Regras / orientações (uma por linha)"
+                  htmlFor={`pb-rules-${stage}`}
+                >
+                  <textarea
+                    id={`pb-rules-${stage}`}
+                    rows={3}
+                    value={playbookDraft[stage].rulesText}
+                    onChange={(e) =>
+                      setPlaybookDraft((prev) => ({
+                        ...prev,
+                        [stage]: { ...prev[stage], rulesText: e.target.value },
+                      }))
+                    }
+                    className={fieldTextareaClassName}
+                    placeholder="Ex.: perguntar orçamento antes de preço"
+                  />
+                </FormField>
+              </div>
+            ))}
+          </div>
+        </details>
       </AiSettingsPhase>
 
       <AiSettingsPhase
