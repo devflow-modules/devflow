@@ -1,7 +1,7 @@
 # Legacy audit e cleanup — WhatsApp Platform
 
 Documento vivo: consolida duplicidades, caminhos legados e decisões de consolidação.  
-Última revisão: sprint de hardening — métricas Prisma, API padronizada, billing, testes de idempotência.
+Última revisão: SB-6 — `/conversations` como Histórico activo (já não redirect para Inbox).
 
 ---
 
@@ -11,10 +11,10 @@ Documento vivo: consolida duplicidades, caminhos legados e decisões de consolid
 |------|----------|-------------------|---------|
 | Threads e mensagens operacionais | Prisma `wa_inbox_threads`, `wa_inbox_messages` | Tabela Supabase `conversations` + `modules/conversations` | **Legado** só para código que ainda importa o repositório Supabase (ex.: leituras pontuais); **não** usar para métricas admin/ops, export CSV nem inbox UX. |
 | Métricas admin / ops / export | `waInboxOpsMetrics`, `waInboxMessageStats` (Prisma) | — | **Fonte única** para contagens e CSV de threads/mensagens. |
-| Página `/conversations` | — | Lista simples via `listConversations` (Supabase) | **Redirect 308 para `/inbox`**; entrada duplicada na navegação removida. |
-| Inbox operacional | `/inbox` + APIs `/api/inbox/conversations/*` | — | **Único fluxo de atendimento.** |
+| Página `/conversations` (Histórico) | `ConversationsHistoryClient` + APIs inbox Prisma (`/api/inbox/conversations/*`) | Antiga lista simples via `listConversations` (Supabase) | **Canónico:** histórico de conversas na shell (item «Histórico» em Operação). **Não** é redirect para `/inbox`. |
+| Inbox operacional | `/inbox` + APIs `/api/inbox/conversations/*` | — | **Fluxo de atendimento em tempo real** (lista + chat). Distinto do Histórico. |
 
-**Risco mitigado:** utilizadores deixam de ver duas entradas “Conversas” vs “Inbox” com semânticas diferentes; números operacionais alinham com a inbox real.
+**Risco mitigado:** atendimento (`/inbox`) e histórico (`/conversations`) têm papéis distintos; números operacionais e export alinham com Prisma `wa_inbox_*`, não com a tabela Supabase legada.
 
 ---
 
@@ -66,10 +66,11 @@ Documento vivo: consolida duplicidades, caminhos legados e decisões de consolid
 
 ---
 
-## 8. Removido nesta sprint (consolidação UX)
+## 8. Consolidação UX — histórico vs inbox (actualizado SB-6)
 
-- Item de navegação **duplicado** “Conversas” (`/conversations`) na barra principal — consolidado na **Inbox**.
-- Rota `/conversations`: **redirect permanente** para `/inbox` (bookmarks e links antigos).
+- **Antes (nota desactualizada):** chegou a planear-se redirect 308 `/conversations` → `/inbox` e remoção do item de nav.
+- **Estado actual no código:** `/conversations` é a página **Histórico** (`ConversationsHistoryClient`), listada na secção Operação da sidebar; `/inbox` permanece o atendimento operacional.
+- **Não** tratar `/conversations` como legado a remover enquanto for a superfície de histórico do produto.
 
 ---
 
@@ -86,11 +87,12 @@ Documento vivo: consolida duplicidades, caminhos legados e decisões de consolid
 
 ## 10. Checklist de aceite (hardening)
 
-- [x] Fluxo principal de atendimento não depende da página `/conversations` nem da tabela Supabase para UX.
+- [x] Fluxo principal de atendimento usa `/inbox` + Prisma `wa_inbox_*` (não a tabela Supabase) para UX operacional.
+- [x] `/conversations` é Histórico activo (não redirect para Inbox); dados via APIs inbox Prisma.
 - [x] Métricas admin/ops/export usam Prisma (`wa_inbox_*`, tenants).
 - [x] Testes cobrem idempotência webhook (pipeline) e persistência inbox (`waMessageId` único).
 - [x] Teste de idempotência Stripe webhook (`ensureWebhookIdempotency`).
-- [x] Documentação alinhada com o código (este ficheiro).
+- [x] Documentação alinhada com o código (este ficheiro — SB-6).
 
 ---
 
