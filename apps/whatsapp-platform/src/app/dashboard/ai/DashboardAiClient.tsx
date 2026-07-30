@@ -310,10 +310,11 @@ export function DashboardAiClient() {
       {aiDashboardHeader}
 
       <SystemHealthPanel
-        snapshot={healthLoading ? null : healthSnapshot}
-        summary={healthLoading ? null : healthSummary}
+        snapshot={healthSnapshot}
+        summary={healthSummary}
         error={healthError}
         onRefresh={() => {
+          // Mantém snapshot anterior durante refresh para não apagar feedback dos controlos.
           setHealthLoading(true);
           void loadHealth();
         }}
