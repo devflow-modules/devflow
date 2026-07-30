@@ -93,28 +93,14 @@ export function generateManagerInsights(
 ): string[] {
   const insights: string[] = [];
 
-  if (metrics && metrics.totalMessages > 0 && metrics.automationPercent != null) {
-    insights.push(
-      `A IA respondeu cerca de ${metrics.automationPercent}% dos eventos registados no período (${metrics.periodDays} dias).`
-    );
-  }
+  // F2: não repetir % automação (KPI essencial) nem highPending/stalled (ações recomendadas).
 
   if (leadQuality && opportunities) {
-    if (opportunities.highPending > 0) {
-      insights.push(
-        `${opportunities.highPending} lead(s) HIGH aguardam resposta da equipa — alta chance de conversão se responder rápido.`
-      );
-    } else if (leadQuality.high > 0) {
+    if (opportunities.highPending === 0 && leadQuality.high > 0) {
       insights.push(
         `${leadQuality.high} conversa(s) classificadas como HIGH pelo score CRM — acompanhe as mais quentes primeiro.`
       );
     }
-  }
-
-  if (opportunities && opportunities.stalled > 0) {
-    insights.push(
-      `${opportunities.stalled} negociação(ões) ou qualificações sem mensagem há mais de 2 horas — risco de arrefecimento.`
-    );
   }
 
   if (funnel && funnel.negotiating > 0 && insights.length < 3) {
@@ -124,6 +110,12 @@ export function generateManagerInsights(
   if (metrics && metrics.fallbacks > 0 && insights.length < 3) {
     insights.push(
       `${metrics.fallbacks} fallback(s) de LLM no período — rever prompt ou casos limite nas definições de IA.`
+    );
+  }
+
+  if (metrics && metrics.errors > 0 && insights.length < 3) {
+    insights.push(
+      `${metrics.errors} erro(s) de provedor ou pipeline no período — rever motor e logs recentes.`
     );
   }
 

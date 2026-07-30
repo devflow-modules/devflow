@@ -26,7 +26,7 @@ describe("buildManagerActions", () => {
   });
 });
 
-describe("generateManagerInsights", () => {
+describe("generateManagerInsights (dashboard-ai F2)", () => {
   it("limita a 3 insights", () => {
     const lines = generateManagerInsights(
       {
@@ -48,12 +48,46 @@ describe("generateManagerInsights", () => {
     expect(lines.length).toBeLessThanOrEqual(3);
   });
 
-  it("menciona automação quando há métricas", () => {
+  it("não repete % automação nem highPending/stalled cobertos por ações", () => {
+    const lines = generateManagerInsights(
+      {
+        totalMessages: 100,
+        autoReplies: 80,
+        fallbacks: 0,
+        errors: 0,
+        blockedDecisions: 0,
+        avgLatency: 0,
+        periodDays: 7,
+        automationPercent: 80,
+        fallbackPercent: null,
+        errorPercent: null,
+      },
+      { lead: 1, qualifying: 0, negotiating: 2, support: 0, closed: 0 },
+      { highPending: 3, stalled: 2, negotiating: 1, reactivationQueued: 0 },
+      { high: 5, medium: 1, low: 0, avgScore: 50 }
+    );
+    expect(lines.some((l) => l.includes("80%"))).toBe(false);
+    expect(lines.some((l) => /HIGH aguardam resposta/i.test(l))).toBe(false);
+    expect(lines.some((l) => /sem mensagem há mais de 2 horas/i.test(l))).toBe(false);
+    expect(lines.some((l) => /negociação/i.test(l))).toBe(true);
+  });
+
+  it("menciona HIGH do CRM quando não há pendência accionável", () => {
+    const lines = generateManagerInsights(
+      null,
+      null,
+      { highPending: 0, stalled: 0, negotiating: 0, reactivationQueued: 0 },
+      { high: 4, medium: 1, low: 0, avgScore: 60 }
+    );
+    expect(lines.some((l) => l.includes("4") && /HIGH/i.test(l))).toBe(true);
+  });
+
+  it("menciona fallbacks quando há métricas", () => {
     const lines = generateManagerInsights(
       {
         totalMessages: 10,
         autoReplies: 8,
-        fallbacks: 0,
+        fallbacks: 2,
         errors: 0,
         blockedDecisions: 0,
         avgLatency: 0,
@@ -66,6 +100,6 @@ describe("generateManagerInsights", () => {
       null,
       null
     );
-    expect(lines.some((l) => l.includes("80%"))).toBe(true);
+    expect(lines.some((l) => /fallback/i.test(l))).toBe(true);
   });
 });
