@@ -15,12 +15,24 @@ export function isTenantManager(role: string | null | undefined): boolean {
   return isManager(role) || isPlatformAdmin(role);
 }
 
-/** Destino do logotipo / marca na shell (alinhado ao pós-login e à home autenticada). */
+/**
+ * «Distribuir próxima» no chrome da shell (sidebar expandida + rail).
+ * Fail-closed: só operator e manager de tenant — não platform_admin nem role null.
+ */
+export function showDistribuirInShellNav(role: string | null | undefined): boolean {
+  return isOperator(role) || isManager(role);
+}
+
+/**
+ * Destino do logotipo / marca na shell.
+ * Operator (e role null): Inbox. Manager / platform_admin: Painel geral (`/dashboard`).
+ * IA operação (`/dashboard/ai`) fica na secção Automação e IA — não é home da marca.
+ */
 export function shellHomeHref(role: string | null | undefined): string {
   // Fail-closed: role ainda null → destino seguro de operator (não /dashboard/*).
   if (!role || isOperator(role)) return "/inbox";
-  if (isTenantManager(role)) return "/dashboard/ai";
-  return "/dashboard/ai";
+  if (isTenantManager(role)) return "/dashboard";
+  return "/dashboard";
 }
 
 /** Caminhos que o operador não deve usar (configuração / monetização / painel). */

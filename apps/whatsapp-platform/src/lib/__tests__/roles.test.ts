@@ -6,6 +6,7 @@ import {
   isPlatformAdmin,
   isTenantManager,
   shellHomeHref,
+  showDistribuirInShellNav,
 } from "../roles";
 
 describe("roles", () => {
@@ -31,11 +32,19 @@ describe("roles", () => {
     expect(isPathRestrictedForOperator("/automation")).toBe(false);
   });
 
-  it("shellHomeHref — operador na Inbox; gestores no painel IA; null fail-closed na Inbox", () => {
+  it("shellHomeHref — operador na Inbox; gestores no painel; null fail-closed na Inbox", () => {
     expect(shellHomeHref("operator")).toBe("/inbox");
-    expect(shellHomeHref("manager")).toBe("/dashboard/ai");
-    expect(shellHomeHref("platform_admin")).toBe("/dashboard/ai");
+    expect(shellHomeHref("manager")).toBe("/dashboard");
+    expect(shellHomeHref("platform_admin")).toBe("/dashboard");
     expect(shellHomeHref(null)).toBe("/inbox");
     expect(shellHomeHref(undefined)).toBe("/inbox");
+  });
+
+  it("showDistribuirInShellNav — operator e manager; fail-closed para platform_admin e null", () => {
+    expect(showDistribuirInShellNav("operator")).toBe(true);
+    expect(showDistribuirInShellNav("manager")).toBe(true);
+    expect(showDistribuirInShellNav("platform_admin")).toBe(false);
+    expect(showDistribuirInShellNav(null)).toBe(false);
+    expect(showDistribuirInShellNav(undefined)).toBe(false);
   });
 });
