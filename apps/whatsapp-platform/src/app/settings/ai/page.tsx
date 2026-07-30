@@ -2,64 +2,25 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { AiSettingsForm } from "./AiSettingsForm";
 import { AiSettingsSaveHeaderButton } from "./AiSettingsSaveHeaderButton";
-import { aiSettingsHref } from "./aiSettingsAnchors";
+import { AI_SETTINGS_HEADER_QUICK_LINKS } from "./aiSettingsQuickActions";
 import { PricingContextHint } from "@/components/dashboard/billing/PricingContextHint";
 import { CONTEXTUAL_UPGRADE_HINTS } from "@/modules/billing/planPresentation";
-import { isWhiteLabelMode } from "@/lib/productMode";
 
+/**
+ * `/settings/ai` — chrome F1: header curto, Salvar + ≤2 quick links, sem cartão «IA por canal».
+ */
 export default function AiSettingsPage() {
-  const wl = isWhiteLabelMode();
   return (
     <div className="df-page-narrow df-stack min-w-0">
       <PageHeader
         eyebrow="Inteligência"
         title="IA base do WhatsApp"
         description={
-          wl ? (
-            <>
-              <strong className="font-semibold text-[var(--df-text-primary)]">Padrão do workspace</strong> para o WhatsApp:
-              identidade, regras, automação e teste. As{" "}
-              <strong className="font-semibold text-[var(--df-text-primary)]">linhas e canais</strong> herdam esta base e
-              podem ajustar <strong className="font-semibold text-[var(--df-text-primary)]">propósito</strong>,{" "}
-              <strong className="font-semibold text-[var(--df-text-primary)]">resposta automática</strong> e{" "}
-              <strong className="font-semibold text-[var(--df-text-primary)]">perfil de IA</strong> por canal. O fornecedor
-              LLM (OpenAI / Claude / regras) define-se em{" "}
-              <Link href="/settings" className="font-semibold text-[var(--df-brand-700)] hover:underline">
-                Configurações gerais
-              </Link>
-              ; desempenho em{" "}
-              <Link href="/settings/ai-analytics" className="font-semibold text-[var(--df-brand-700)] hover:underline">
-                Análises de IA
-              </Link>
-              ; saúde operacional em{" "}
-              <Link href="/dashboard/ai" className="font-semibold text-[var(--df-brand-700)] hover:underline">
-                Painel IA
-              </Link>
-              .
-            </>
-          ) : (
-            <>
-              <strong className="font-semibold text-[var(--df-text-primary)]">Padrão do workspace</strong> para o WhatsApp:
-              identidade, regras, automação e teste. As{" "}
-              <strong className="font-semibold text-[var(--df-text-primary)]">linhas e canais</strong> herdam esta base e
-              podem ajustar <strong className="font-semibold text-[var(--df-text-primary)]">propósito</strong>,{" "}
-              <strong className="font-semibold text-[var(--df-text-primary)]">resposta automática</strong> e{" "}
-              <strong className="font-semibold text-[var(--df-text-primary)]">perfil de IA</strong> por canal. O fornecedor
-              LLM (OpenAI / Claude / regras) define-se em{" "}
-              <Link href="/settings" className="font-semibold text-[var(--df-brand-700)] hover:underline">
-                Configurações gerais
-              </Link>
-              ; consumo e limites em{" "}
-              <Link href="/settings/ai-analytics" className="font-semibold text-[var(--df-brand-700)] hover:underline">
-                Uso e desempenho
-              </Link>
-              ; saúde operacional em{" "}
-              <Link href="/dashboard/ai" className="font-semibold text-[var(--df-brand-700)] hover:underline">
-                Painel IA
-              </Link>
-              .
-            </>
-          )
+          <>
+            <strong className="font-semibold text-[var(--df-text-primary)]">Padrão do workspace</strong> para
+            identidade, regras, automação e teste. Canais herdam esta base e podem ajustar propósito, auto-resposta e
+            perfil em Admin · WhatsApp.
+          </>
         }
         layout="split"
         showDivider
@@ -67,57 +28,14 @@ export default function AiSettingsPage() {
         quickActions={
           <>
             <AiSettingsSaveHeaderButton />
-            <Link href={aiSettingsHref("teste")} className="df-quick-action">
-              Ir para teste
-            </Link>
-            <Link href="/inbox" className="df-quick-action">
-              Testar na Inbox
-            </Link>
-            <Link href="/settings/ai-analytics" className="df-quick-action">
-              {wl ? "Análises de IA" : "Uso e desempenho da IA"}
-            </Link>
-            <Link href="/dashboard/ai" className="df-quick-action">
-              Painel de operação
-            </Link>
-            <Link href="/admin/whatsapp" className="df-quick-action">
-              Gerenciar canais
-            </Link>
-            <Link href="/settings" className="df-quick-action">
-              Motor (config. gerais)
-            </Link>
-            <Link href="/settings/developer" className="df-quick-action">
-              API e integrações
-            </Link>
-            {!wl ? (
-              <Link href="/billing" className="df-quick-action">
-                Contrato e uso
+            {AI_SETTINGS_HEADER_QUICK_LINKS.map((item) => (
+              <Link key={item.href} href={item.href} className="df-quick-action">
+                {item.label}
               </Link>
-            ) : null}
+            ))}
           </>
         }
       />
-
-      <section
-        className="rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] p-4 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]"
-        aria-labelledby="wf-ai-channel-info-heading"
-      >
-        <h2
-          id="wf-ai-channel-info-heading"
-          className="text-sm font-semibold text-[var(--df-text-primary)]"
-        >
-          IA por canal
-        </h2>
-        <p className="mt-2 text-sm leading-relaxed text-[var(--df-text-secondary)]">
-          Esta configuração é o padrão global. Linhas como Atendimento, Prospecção, Suporte ou Financeiro podem herdar esta
-          IA ou usar ajustes próprios.
-        </p>
-        <Link
-          href="/admin/whatsapp"
-          className="mt-3 inline-flex text-sm font-semibold text-[var(--df-brand-700)] hover:underline"
-        >
-          Gerenciar canais
-        </Link>
-      </section>
 
       <PricingContextHint message={CONTEXTUAL_UPGRADE_HINTS.aiSettings} />
 
