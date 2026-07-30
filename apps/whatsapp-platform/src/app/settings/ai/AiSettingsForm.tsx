@@ -22,7 +22,6 @@ import { isWhiteLabelMode } from "@/lib/productMode";
 import { PricingContextHint } from "@/components/dashboard/billing/PricingContextHint";
 import { getUiPlanCapabilities } from "@/modules/billing/planUiCapabilities";
 import { FEATURE_UPGRADE_COPY } from "@/modules/billing/featureUpgradeCopy";
-import { contextualAiUsageHint } from "@/modules/billing/usageCommunication";
 import type { AiAgentTone } from "@/generated/prisma-whatsapp";
 import type { AiBehaviorPreset, AiBehaviorPresetId } from "@/modules/ai/aiPresets";
 import type { AiState, PlaybookJson } from "@/modules/ai/conversationStateService";
@@ -232,19 +231,31 @@ function GuardrailsSummary(props: {
 }) {
   const { enabled, autoReply, fallbackToHuman, planName, canUse } = props;
   const wl = isWhiteLabelMode();
+  const capacityOk = canUse !== false;
+  const oneLiner = !enabled
+    ? "IA desativada — sem resposta automática a partir desta base."
+    : !autoReply
+      ? "IA activa em modo assistido — a equipa responde na Inbox."
+      : fallbackToHuman
+        ? "Automático com handoff humano quando a confiança for baixa."
+        : "Automático sem preferência explícita de handoff humano.";
+
   return (
-    <div className="rounded-xl border df-border-brand bg-gradient-to-br from-[color-mix(in_srgb,var(--df-bg-app)_55%,var(--df-bg-elevated))] to-[var(--df-bg-elevated)] p-4 text-sm text-[var(--df-text-secondary)] ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
-      <p className="font-semibold text-[var(--df-text-primary)]">Guardrails e handoff (resumo)</p>
-      <ul className="mt-3 list-disc space-y-2 pl-5 leading-relaxed">
+    <details className="rounded-xl border df-border-brand bg-gradient-to-br from-[color-mix(in_srgb,var(--df-bg-app)_55%,var(--df-bg-elevated))] to-[var(--df-bg-elevated)] p-4 text-sm text-[var(--df-text-secondary)] ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_75%,transparent)]">
+      <summary className="cursor-pointer font-semibold text-[var(--df-text-primary)]">
+        Guardrails e handoff
+        <span className="mt-1 block text-xs font-normal text-[var(--df-text-secondary)]">{oneLiner}</span>
+      </summary>
+      <ul className="mt-3 list-disc space-y-2 border-t df-border-brand pt-3 pl-5 leading-relaxed">
         <li>
           <strong className="text-[var(--df-text-primary)]">Quando a IA pode responder:</strong> espaço com IA ativada, resposta
           automática ligada, decisão dos guards a permitir e{" "}
-          {canUse === false ? (
+          {capacityOk ? (
+            <span>{wl ? "margem de capacidade disponível para a operação" : "margem disponível no contrato"}</span>
+          ) : (
             <span className="df-text-warning">
               {wl ? "capacidade de IA da operação esgotada ou bloqueada" : "capacidade de IA contratada esgotada ou bloqueada"}
             </span>
-          ) : (
-            <span>{wl ? "margem de capacidade disponível para a operação" : "margem disponível no contrato"}</span>
           )}
           {!wl && planName ? (
             <>
@@ -255,30 +266,13 @@ function GuardrailsSummary(props: {
           .
         </li>
         <li>
-          <strong className="text-[var(--df-text-primary)]">Quando não responde sozinha:</strong>{" "}
-          {!enabled ? (
-            <span>IA desativada para o espaço de trabalho.</span>
-          ) : !autoReply ? (
-            <span>resposta automática desligada — a equipa trata manualmente na Inbox.</span>
-          ) : (
-            <span>
-              se os guards bloquearem, se os gatilhos de handoff corresponderem, ou em falha técnica (registado como
-              fallback no painel).
-            </span>
-          )}
-        </li>
-        <li>
           <strong className="text-[var(--df-text-primary)]">Atendimento humano preferencial:</strong>{" "}
           {fallbackToHuman
-            ? "com baixa confiança ou bloqueio, o fluxo favorece transferência para humano (conforme automação)."
+            ? "com baixa confiança ou bloqueio, o fluxo favorece transferência para humano."
             : "desligado — reveja risco de respostas menos seguras em casos ambíguos."}
         </li>
-        <li>
-          <strong className="text-[var(--df-text-primary)]">Erro ou indisponibilidade:</strong> a conversa pode ficar sem resposta
-          automática; o painel de operação mostra fallbacks e erros para acompanhar.
-        </li>
       </ul>
-    </div>
+    </details>
   );
 }
 
@@ -597,13 +591,6 @@ export function AiSettingsForm() {
           percentUsed={usageStatus?.percent_used ?? undefined}
           planName={planInfo?.plan_name}
         />
-        {planCaps ? (
-          <PricingContextHint
-            message={contextualAiUsageHint(planCaps.limits.aiCallsPerMonth, {
-              isFreePlan: planCaps.planKey === "FREE",
-            })}
-          />
-        ) : null}
         <div>
           <AiSettingsSubheading>Templates por caso de uso</AiSettingsSubheading>
           <FieldHelp className="mb-3">

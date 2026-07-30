@@ -1,5 +1,6 @@
 /**
  * Resumo operacional da IA — leitura em ~1s, sem chamadas extra.
+ * F2: sem badge «Modo» derivado de enabled+autoReply.
  */
 export function AiStatusSummary(props: { enabled: boolean; autoReply: boolean; motorLabel: string; className?: string }) {
   const { enabled, autoReply, motorLabel, className = "" } = props;
@@ -24,13 +25,6 @@ export function AiStatusSummary(props: { enabled: boolean; autoReply: boolean; m
           )
         ) : (
           <span className="df-badge whitespace-nowrap text-[var(--df-text-muted)]">Auto-resposta —</span>
-        )}
-        {!enabled ? (
-          <span className="df-badge whitespace-nowrap">Modo inativo</span>
-        ) : autoReply ? (
-          <span className="df-badge-brand whitespace-nowrap">Modo automático</span>
-        ) : (
-          <span className="df-badge whitespace-nowrap">Modo assistido</span>
         )}
       </div>
       <p className="text-xs text-[var(--df-text-muted)]">

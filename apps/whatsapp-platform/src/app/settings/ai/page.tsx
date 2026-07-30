@@ -3,11 +3,9 @@ import { PageHeader } from "@/components/ui/page-header";
 import { AiSettingsForm } from "./AiSettingsForm";
 import { AiSettingsSaveHeaderButton } from "./AiSettingsSaveHeaderButton";
 import { AI_SETTINGS_HEADER_QUICK_LINKS } from "./aiSettingsQuickActions";
-import { PricingContextHint } from "@/components/dashboard/billing/PricingContextHint";
-import { CONTEXTUAL_UPGRADE_HINTS } from "@/modules/billing/planPresentation";
 
 /**
- * `/settings/ai` — chrome F1: header curto, Salvar + ≤2 quick links, sem cartão «IA por canal».
+ * `/settings/ai` — F1 chrome + F2: sem PricingHint na página (faixa de capacidade fica no form/banner).
  */
 export default function AiSettingsPage() {
   return (
@@ -36,8 +34,6 @@ export default function AiSettingsPage() {
           </>
         }
       />
-
-      <PricingContextHint message={CONTEXTUAL_UPGRADE_HINTS.aiSettings} />
 
       <AiSettingsForm />
     </div>
