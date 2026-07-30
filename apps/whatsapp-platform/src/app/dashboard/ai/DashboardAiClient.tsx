@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
-import { StateEmpty, StateError } from "@/components/ui/app-states";
+import { StateEmpty } from "@/components/ui/app-states";
 import { buttonClassName } from "@/components/ui/button";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 import {
@@ -17,13 +17,16 @@ import {
 import { ManagerActionsList } from "@/components/dashboard/ai/ManagerActionsList";
 import { ManagerInsights } from "@/components/dashboard/ai/ManagerInsights";
 import { KpiCardEnhanced } from "@/components/dashboard/ai/KpiCardEnhanced";
-import { DashboardAiSkeleton } from "@/components/dashboard/ai/DashboardAiSkeleton";
+import {
+  DashboardAiBlockSkeleton,
+  DashboardAiSkeleton,
+} from "@/components/dashboard/ai/DashboardAiSkeleton";
+import { DashboardAiSurfaceError } from "@/components/dashboard/ai/DashboardAiSurfaceError";
 import { FunnelStageLegend } from "@/components/dashboard/ai/FunnelStageLegend";
 import { SystemHealthPanel } from "@/components/dashboard/ai/SystemHealthPanel";
 import { HealthCriticalSignal } from "@/components/dashboard/ai/HealthCriticalSignal";
 import type { SystemHealthSnapshot } from "@/modules/dashboard/systemHealthService";
 import type { SystemHealthSummary } from "@/modules/dashboard/buildSystemHealthSummary";
-import { Button } from "@/components/ui/button";
 import {
   DASHBOARD_AI_DESCRIPTION,
   DASHBOARD_AI_HEADER_QUICK_LINKS,
@@ -41,6 +44,12 @@ import {
   buildInboxConversationHref,
   inboxConversationLinkLabel,
 } from "./dashboardAiEventLinks";
+import {
+  applySurfaceResult,
+  fetchAiSurfaceData,
+  initialSurface,
+  type SurfaceSnapshot,
+} from "./dashboardAiSurfaces";
 
 type LogRow = {
   type: "auto_reply" | "fallback" | "error" | "blocked_by_guard";
@@ -80,13 +89,20 @@ function typeLabel(type: LogRow["type"]): string {
 }
 
 export function DashboardAiClient() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [metrics, setMetrics] = useState<ManagerDashboardMetrics | null>(null);
-  const [logs, setLogs] = useState<LogRow[] | null>(null);
-  const [funnel, setFunnel] = useState<ManagerDashboardFunnel | null>(null);
-  const [leadQuality, setLeadQuality] = useState<ManagerDashboardLeadQuality | null>(null);
-  const [opportunities, setOpportunities] = useState<ManagerDashboardOpportunities | null>(null);
+  const [metrics, setMetrics] = useState<SurfaceSnapshot<ManagerDashboardMetrics>>(() =>
+    initialSurface()
+  );
+  const [logs, setLogs] = useState<SurfaceSnapshot<LogRow[]>>(() => initialSurface());
+  const [funnel, setFunnel] = useState<SurfaceSnapshot<ManagerDashboardFunnel>>(() =>
+    initialSurface()
+  );
+  const [leadQuality, setLeadQuality] = useState<SurfaceSnapshot<ManagerDashboardLeadQuality>>(
+    () => initialSurface()
+  );
+  const [opportunities, setOpportunities] = useState<
+    SurfaceSnapshot<ManagerDashboardOpportunities>
+  >(() => initialSurface());
+
   const [healthSnapshot, setHealthSnapshot] = useState<SystemHealthSnapshot | null>(null);
   const [healthSummary, setHealthSummary] = useState<SystemHealthSummary | null>(null);
   const [healthError, setHealthError] = useState<string | null>(null);
@@ -122,93 +138,66 @@ export function DashboardAiClient() {
     }
   }, []);
 
-  const load = useCallback(async () => {
-    setError(null);
-    setLoading(true);
-    try {
-      const [resM, resL, resF, resQ, resO] = await Promise.all([
-        fetchProtected("/api/ai/metrics?days=30"),
-        fetchProtected("/api/ai/logs?limit=40"),
-        fetchProtected("/api/ai/funnel-metrics"),
-        fetchProtected("/api/ai/lead-metrics"),
-        fetchProtected("/api/ai/opportunity-metrics"),
-      ]);
+  const loadMetrics = useCallback(async () => {
+    setMetrics((prev) => ({ ...prev, status: "loading", error: null }));
+    const result = await fetchAiSurfaceData<ManagerDashboardMetrics>("/api/ai/metrics?days=30");
+    setMetrics((prev) => applySurfaceResult(result, prev.data));
+  }, []);
 
-      const jm = (await resM.json().catch(() => ({}))) as {
-        success?: boolean;
-        data?: ManagerDashboardMetrics;
-        error?: string;
-      };
-      const jl = (await resL.json().catch(() => ({}))) as {
-        success?: boolean;
-        data?: LogRow[];
-        error?: string;
-      };
-      const jf = (await resF.json().catch(() => ({}))) as {
-        success?: boolean;
-        data?: ManagerDashboardFunnel;
-        error?: string;
-      };
-      const jq = (await resQ.json().catch(() => ({}))) as {
-        success?: boolean;
-        data?: ManagerDashboardLeadQuality;
-        error?: string;
-      };
-      const jo = (await resO.json().catch(() => ({}))) as {
-        success?: boolean;
-        data?: ManagerDashboardOpportunities;
-        error?: string;
-      };
+  const loadLogs = useCallback(async () => {
+    setLogs((prev) => ({ ...prev, status: "loading", error: null }));
+    const result = await fetchAiSurfaceData<LogRow[]>("/api/ai/logs?limit=40", {
+      allowEmptyArray: true,
+    });
+    setLogs((prev) => applySurfaceResult(result, prev.data));
+  }, []);
 
-      if (!resM.ok) {
-        setError(protectedApiUserMessage(resM.status, jm));
-        return;
-      }
-      if (!resL.ok) {
-        setError(protectedApiUserMessage(resL.status, jl));
-        return;
-      }
-      if (!resF.ok) {
-        setError(protectedApiUserMessage(resF.status, jf));
-        return;
-      }
-      if (!resQ.ok) {
-        setError(protectedApiUserMessage(resQ.status, jq));
-        return;
-      }
-      if (!resO.ok) {
-        setError(protectedApiUserMessage(resO.status, jo));
-        return;
-      }
-      if (jm.data) setMetrics(jm.data);
-      setLogs(jl.data ?? []);
-      if (jf.data) setFunnel(jf.data);
-      if (jq.data) setLeadQuality(jq.data);
-      if (jo.data) setOpportunities(jo.data);
-    } catch {
-      setError("Erro ao carregar dados");
-    } finally {
-      setLoading(false);
-    }
+  const loadFunnel = useCallback(async () => {
+    setFunnel((prev) => ({ ...prev, status: "loading", error: null }));
+    const result = await fetchAiSurfaceData<ManagerDashboardFunnel>("/api/ai/funnel-metrics");
+    setFunnel((prev) => applySurfaceResult(result, prev.data));
+  }, []);
+
+  const loadLeadQuality = useCallback(async () => {
+    setLeadQuality((prev) => ({ ...prev, status: "loading", error: null }));
+    const result = await fetchAiSurfaceData<ManagerDashboardLeadQuality>("/api/ai/lead-metrics");
+    setLeadQuality((prev) => applySurfaceResult(result, prev.data));
+  }, []);
+
+  const loadOpportunities = useCallback(async () => {
+    setOpportunities((prev) => ({ ...prev, status: "loading", error: null }));
+    const result = await fetchAiSurfaceData<ManagerDashboardOpportunities>(
+      "/api/ai/opportunity-metrics"
+    );
+    setOpportunities((prev) => applySurfaceResult(result, prev.data));
   }, []);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    void loadMetrics();
+    void loadLogs();
+    void loadFunnel();
+    void loadLeadQuality();
+    void loadOpportunities();
+  }, [loadMetrics, loadLogs, loadFunnel, loadLeadQuality, loadOpportunities]);
 
   useEffect(() => {
     setHealthLoading(true);
     void loadHealth();
   }, [loadHealth]);
 
+  const essentialBootstrapping =
+    (metrics.status === "loading" && metrics.data == null) ||
+    (opportunities.status === "loading" && opportunities.data == null);
+
   const managerActions = useMemo(
-    () => buildManagerActions(opportunities, funnel),
-    [opportunities, funnel]
+    () => buildManagerActions(opportunities.data, funnel.data),
+    [opportunities.data, funnel.data]
   );
 
   const insightLines = useMemo(
-    () => generateManagerInsights(metrics, funnel, opportunities, leadQuality),
-    [metrics, funnel, opportunities, leadQuality]
+    () =>
+      generateManagerInsights(metrics.data, funnel.data, opportunities.data, leadQuality.data),
+    [metrics.data, funnel.data, opportunities.data, leadQuality.data]
   );
 
   const aiDashboardHeader = (
@@ -231,7 +220,7 @@ export function DashboardAiClient() {
     />
   );
 
-  if (loading) {
+  if (essentialBootstrapping) {
     return (
       <div className="df-stack min-w-0">
         {aiDashboardHeader}
@@ -240,38 +229,15 @@ export function DashboardAiClient() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="df-stack min-w-0">
-        {aiDashboardHeader}
-        <StateError message={error} onRetry={load} retryLabel="Tentar novamente" />
-      </div>
-    );
-  }
+  const metricsData = metrics.data;
+  const isEmpty = metricsData != null && metricsData.totalMessages === 0;
+  const essentialKpis = metricsData ? buildEssentialKpiCards(metricsData) : [];
+  const extraEventKpis = metricsData ? buildExtraEventKpiCards(metricsData) : [];
 
-  if (!metrics) {
-    return (
-      <div className="df-stack min-w-0">
-        {aiDashboardHeader}
-        <StateEmpty
-          title="Métricas indisponíveis"
-          description="Não foi possível obter o resumo de IA para o período."
-          nextStep="Verifique a sessão ou tente novamente dentro de instantes."
-          action={
-            <Button variant="secondary" type="button" className={buttonClassName("primary")} onClick={() => void load()}>
-              Recarregar
-            </Button>
-          }
-        />
-      </div>
-    );
-  }
-
-  const isEmpty = metrics.totalMessages === 0;
-  const essentialKpis = buildEssentialKpiCards(metrics);
-  const extraEventKpis = buildExtraEventKpiCards(metrics);
-
-  const showDecisionEmpty = managerActions.length === 0;
+  const showDecisionEmpty =
+    opportunities.status === "ready" &&
+    opportunities.data != null &&
+    managerActions.length === 0;
   const healthDetailsOpen =
     Boolean(healthError) ||
     healthSummary?.overall === "error" ||
@@ -287,7 +253,16 @@ export function DashboardAiClient() {
         loading={healthLoading}
       />
 
-      {showDecisionEmpty ? (
+      {opportunities.status === "loading" && opportunities.data == null ? (
+        <DashboardAiBlockSkeleton heightClass="h-28" testId="dashboard-ai-actions-skeleton" />
+      ) : opportunities.status === "error" && opportunities.data == null ? (
+        <DashboardAiSurfaceError
+          title="Ações indisponíveis"
+          message={opportunities.error ?? "Não foi possível carregar as prioridades."}
+          onRetry={() => void loadOpportunities()}
+          testId="dashboard-ai-actions-error"
+        />
+      ) : showDecisionEmpty ? (
         <div data-testid="dashboard-ai-actions-empty">
           <StateEmpty
             title="Sem ações urgentes"
@@ -296,9 +271,9 @@ export function DashboardAiClient() {
             className="border border-dashed df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_55%,var(--df-bg-elevated))] py-8"
           />
         </div>
-      ) : (
+      ) : managerActions.length > 0 ? (
         <ManagerActionsList actions={managerActions} />
-      )}
+      ) : null}
 
       <details
         className="rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_52%,var(--df-bg-elevated))] open:pb-4"
@@ -315,7 +290,6 @@ export function DashboardAiClient() {
             error={healthError}
             hideSummaryBanner
             onRefresh={() => {
-              // Mantém snapshot anterior durante refresh para não apagar feedback dos controlos.
               setHealthLoading(true);
               void loadHealth();
             }}
@@ -323,17 +297,28 @@ export function DashboardAiClient() {
         </div>
       </details>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="dashboard-ai-essential-kpis">
-        {essentialKpis.map((c) => (
-          <KpiCardEnhanced
-            key={c.label}
-            label={c.label}
-            value={c.value}
-            hint={c.hint}
-            emphasis={c.emphasis}
-          />
-        ))}
-      </div>
+      {metrics.status === "loading" && metricsData == null ? (
+        <DashboardAiBlockSkeleton heightClass="h-28" testId="dashboard-ai-metrics-skeleton" />
+      ) : metrics.status === "error" && metricsData == null ? (
+        <DashboardAiSurfaceError
+          title="Métricas indisponíveis"
+          message={metrics.error ?? "Não foi possível obter o resumo de IA para o período."}
+          onRetry={() => void loadMetrics()}
+          testId="dashboard-ai-metrics-error"
+        />
+      ) : metricsData ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="dashboard-ai-essential-kpis">
+          {essentialKpis.map((c) => (
+            <KpiCardEnhanced
+              key={c.label}
+              label={c.label}
+              value={c.value}
+              hint={c.hint}
+              emphasis={c.emphasis}
+            />
+          ))}
+        </div>
+      ) : null}
 
       <ManagerInsights lines={insightLines} />
 
@@ -345,7 +330,16 @@ export function DashboardAiClient() {
           {DASHBOARD_AI_ADVANCED_METRICS_SUMMARY}
         </summary>
         <div className="space-y-4 border-t df-border-brand px-4 pt-4">
-          {leadQuality && opportunities ? (
+          {leadQuality.status === "loading" && leadQuality.data == null ? (
+            <DashboardAiBlockSkeleton heightClass="h-36" testId="dashboard-ai-lead-skeleton" />
+          ) : leadQuality.status === "error" && leadQuality.data == null ? (
+            <DashboardAiSurfaceError
+              title="Qualidade de leads indisponível"
+              message={leadQuality.error ?? "Não foi possível carregar a qualidade dos leads."}
+              onRetry={() => void loadLeadQuality()}
+              testId="dashboard-ai-lead-error"
+            />
+          ) : leadQuality.data && opportunities.data ? (
             <div className="df-metric-panel" data-testid="dashboard-ai-lead-quality">
               <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">
                 Qualidade dos leads
@@ -356,20 +350,40 @@ export function DashboardAiClient() {
               <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <KpiCardEnhanced
                   label="High"
-                  value={leadQuality.high}
+                  value={leadQuality.data.high}
                   subHint={
-                    opportunities.highPending > 0
-                      ? `(${opportunities.highPending} sem resposta)`
+                    opportunities.data.highPending > 0
+                      ? `(${opportunities.data.highPending} sem resposta)`
                       : "(nenhuma pendência HIGH)"
                   }
                   hint="Prioridade CRM"
                   emphasis
                 />
-                <KpiCardEnhanced label="Medium" value={leadQuality.medium} hint="Prioridade CRM" />
-                <KpiCardEnhanced label="Low" value={leadQuality.low} hint="Prioridade CRM" />
+                <KpiCardEnhanced label="Medium" value={leadQuality.data.medium} hint="Prioridade CRM" />
+                <KpiCardEnhanced label="Low" value={leadQuality.data.low} hint="Prioridade CRM" />
                 <KpiCardEnhanced
                   label="Score médio"
-                  value={leadQuality.avgScore}
+                  value={leadQuality.data.avgScore}
+                  hint="Média nas conversas abertas"
+                  tooltip="Score alto = maior chance de fechar. Score baixo = pouco engajamento."
+                />
+              </div>
+            </div>
+          ) : leadQuality.data ? (
+            <div className="df-metric-panel" data-testid="dashboard-ai-lead-quality">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">
+                Qualidade dos leads
+              </h2>
+              <p className="mt-2 text-sm text-[var(--df-text-secondary)]">
+                Prioridade automática a partir do score CRM. Combine com pendências reais no inbox.
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <KpiCardEnhanced label="High" value={leadQuality.data.high} hint="Prioridade CRM" emphasis />
+                <KpiCardEnhanced label="Medium" value={leadQuality.data.medium} hint="Prioridade CRM" />
+                <KpiCardEnhanced label="Low" value={leadQuality.data.low} hint="Prioridade CRM" />
+                <KpiCardEnhanced
+                  label="Score médio"
+                  value={leadQuality.data.avgScore}
                   hint="Média nas conversas abertas"
                   tooltip="Score alto = maior chance de fechar. Score baixo = pouco engajamento."
                 />
@@ -377,7 +391,16 @@ export function DashboardAiClient() {
             </div>
           ) : null}
 
-          {opportunities ? (
+          {opportunities.status === "loading" && opportunities.data == null ? (
+            <DashboardAiBlockSkeleton heightClass="h-36" testId="dashboard-ai-opportunities-skeleton" />
+          ) : opportunities.status === "error" && opportunities.data == null ? (
+            <DashboardAiSurfaceError
+              title="Oportunidades indisponíveis"
+              message={opportunities.error ?? "Não foi possível carregar as oportunidades."}
+              onRetry={() => void loadOpportunities()}
+              testId="dashboard-ai-opportunities-error"
+            />
+          ) : opportunities.data ? (
             <div className="df-metric-panel" data-testid="dashboard-ai-opportunities">
               <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">
                 Oportunidades
@@ -388,26 +411,35 @@ export function DashboardAiClient() {
               <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="df-metric-subcard df-metric-subcard--danger">
                   <p className="df-metric-subcard-label">Leads HIGH sem resposta</p>
-                  <p className="df-metric-subcard-value">{opportunities.highPending}</p>
+                  <p className="df-metric-subcard-value">{opportunities.data.highPending}</p>
                 </div>
                 <div className="df-metric-subcard">
                   <p className="df-metric-subcard-label">Conversas paradas</p>
-                  <p className="df-metric-subcard-value">{opportunities.stalled}</p>
+                  <p className="df-metric-subcard-value">{opportunities.data.stalled}</p>
                   <p className="df-metric-subcard-hint">Qualificação/negociação sem mensagem há 2h+</p>
                 </div>
                 <div className="df-metric-subcard df-metric-subcard--success">
                   <p className="df-metric-subcard-label">Em negociação</p>
-                  <p className="df-metric-subcard-value">{opportunities.negotiating}</p>
+                  <p className="df-metric-subcard-value">{opportunities.data.negotiating}</p>
                 </div>
                 <div className="df-metric-subcard df-metric-subcard--info">
                   <p className="df-metric-subcard-label">Reativações na fila</p>
-                  <p className="df-metric-subcard-value">{opportunities.reactivationQueued}</p>
+                  <p className="df-metric-subcard-value">{opportunities.data.reactivationQueued}</p>
                 </div>
               </div>
             </div>
           ) : null}
 
-          {funnel ? (
+          {funnel.status === "loading" && funnel.data == null ? (
+            <DashboardAiBlockSkeleton heightClass="h-48" testId="dashboard-ai-funnel-skeleton" />
+          ) : funnel.status === "error" ? (
+            <DashboardAiSurfaceError
+              title="Funil indisponível"
+              message={funnel.error ?? "Não foi possível carregar o funil comercial."}
+              onRetry={() => void loadFunnel()}
+              testId="dashboard-ai-funnel-error"
+            />
+          ) : funnel.data ? (
             <div className="df-metric-panel" data-testid="dashboard-ai-funnel">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">
@@ -416,25 +448,25 @@ export function DashboardAiClient() {
                 <FunnelStageLegend />
               </div>
               <p className="mt-2 text-sm text-[var(--df-text-secondary)]">
-                <span className="font-semibold text-[var(--df-brand-700)]">{funnel.lead}</span> leads
+                <span className="font-semibold text-[var(--df-brand-700)]">{funnel.data.lead}</span> leads
                 activos ·{" "}
                 <span className="font-semibold text-[var(--df-text-primary)]">
-                  {funnel.qualifying + funnel.negotiating}
+                  {funnel.data.qualifying + funnel.data.negotiating}
                 </span>{" "}
                 em qualificação/negociação ·{" "}
-                <span className="font-semibold text-[var(--df-text-primary)]">{funnel.closed}</span>{" "}
+                <span className="font-semibold text-[var(--df-text-primary)]">{funnel.data.closed}</span>{" "}
                 fechados
               </p>
               <div className="mt-4 space-y-3">
                 {DASHBOARD_AI_FUNNEL_STAGES.map(({ key, label }) => {
-                  const n = funnel[key];
+                  const n = funnel.data![key];
                   const max = Math.max(
                     1,
-                    funnel.lead +
-                      funnel.qualifying +
-                      funnel.negotiating +
-                      funnel.support +
-                      funnel.closed
+                    funnel.data!.lead +
+                      funnel.data!.qualifying +
+                      funnel.data!.negotiating +
+                      funnel.data!.support +
+                      funnel.data!.closed
                   );
                   const pct = Math.round((n / max) * 100);
                   return (
@@ -458,21 +490,23 @@ export function DashboardAiClient() {
         </div>
       </details>
 
-      <details
-        className="rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] open:pb-4"
-        data-testid="dashboard-ai-extra-event-metrics"
-      >
-        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-[var(--df-text-primary)] [&::-webkit-details-marker]:hidden">
-          {DASHBOARD_AI_EXTRA_EVENT_METRICS_SUMMARY}
-        </summary>
-        <div className="border-t df-border-brand px-4 pt-4">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {extraEventKpis.map((c) => (
-              <KpiCardEnhanced key={c.label} label={c.label} value={c.value} hint={c.hint} />
-            ))}
+      {metricsData ? (
+        <details
+          className="rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] open:pb-4"
+          data-testid="dashboard-ai-extra-event-metrics"
+        >
+          <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-[var(--df-text-primary)] [&::-webkit-details-marker]:hidden">
+            {DASHBOARD_AI_EXTRA_EVENT_METRICS_SUMMARY}
+          </summary>
+          <div className="border-t df-border-brand px-4 pt-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {extraEventKpis.map((c) => (
+                <KpiCardEnhanced key={c.label} label={c.label} value={c.value} hint={c.hint} />
+              ))}
+            </div>
           </div>
-        </div>
-      </details>
+        </details>
+      ) : null}
 
       {isEmpty ? (
         <StateEmpty
@@ -490,8 +524,22 @@ export function DashboardAiClient() {
 
       <section className="min-w-0">
         <h2 className="text-sm font-bold text-[var(--df-text-primary)]">Eventos recentes</h2>
-        <p className="mt-1 text-xs text-[var(--df-text-muted)]">Últimos registos operacionais (tipo, motivo, conversa).</p>
-        {!logs || logs.length === 0 ? (
+        <p className="mt-1 text-xs text-[var(--df-text-muted)]">
+          Últimos registos operacionais (tipo, motivo, conversa).
+        </p>
+        {logs.status === "loading" && logs.data == null ? (
+          <div className="mt-4">
+            <DashboardAiBlockSkeleton heightClass="h-40" testId="dashboard-ai-logs-skeleton" />
+          </div>
+        ) : logs.status === "error" && (logs.data == null || logs.data.length === 0) ? (
+          <DashboardAiSurfaceError
+            title="Eventos indisponíveis"
+            message={logs.error ?? "Não foi possível carregar os eventos recentes."}
+            onRetry={() => void loadLogs()}
+            testId="dashboard-ai-logs-error"
+            className="mt-4"
+          />
+        ) : !logs.data || logs.data.length === 0 ? (
           <StateEmpty
             title="Sem eventos recentes na lista"
             description="Os últimos registos de automação e erros aparecem aqui quando existirem."
@@ -510,7 +558,7 @@ export function DashboardAiClient() {
                 </tr>
               </thead>
               <tbody>
-                {logs.map((row, i) => (
+                {logs.data.map((row, i) => (
                   <tr key={`${row.createdAt}-${i}`} className="border-b df-border-brand last:border-0">
                     <td className="px-4 py-3 align-top">
                       <span
