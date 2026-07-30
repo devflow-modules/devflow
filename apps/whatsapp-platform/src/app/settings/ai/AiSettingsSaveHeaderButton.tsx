@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { AI_SETTINGS_SAVE_LABEL } from "./aiSettingsCopy";
 
 /**
  * Submit do formulário `#wf-ai-settings` no PageHeader.
@@ -15,7 +16,7 @@ export function AiSettingsSaveHeaderButton() {
       form="wf-ai-settings"
       className="df-btn-primary inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-semibold"
     >
-      Salvar alterações
+      {AI_SETTINGS_SAVE_LABEL}
     </Button>
   );
 }
