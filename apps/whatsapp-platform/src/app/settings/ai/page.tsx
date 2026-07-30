@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { AiSettingsForm } from "./AiSettingsForm";
+import { AiSettingsSaveHeaderButton } from "./AiSettingsSaveHeaderButton";
 import { aiSettingsHref } from "./aiSettingsAnchors";
 import { PricingContextHint } from "@/components/dashboard/billing/PricingContextHint";
 import { CONTEXTUAL_UPGRADE_HINTS } from "@/modules/billing/planPresentation";
@@ -66,14 +66,7 @@ export default function AiSettingsPage() {
         tone="admin"
         quickActions={
           <>
-            <Button
-              variant="primary"
-              type="submit"
-              form="wf-ai-settings"
-              className="df-btn-primary inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-semibold"
-            >
-              Salvar alterações
-            </Button>
+            <AiSettingsSaveHeaderButton />
             <Link href={aiSettingsHref("teste")} className="df-quick-action">
               Ir para teste
             </Link>

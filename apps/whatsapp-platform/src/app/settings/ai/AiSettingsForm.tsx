@@ -16,6 +16,7 @@ import {
 import { AiSettingsPhase, AiSettingsSubheading } from "./AiSettingsPhase";
 import { AiSettingsAnchorNav } from "./AiSettingsAnchorNav";
 import { AiStatusSummary } from "./AiStatusSummary";
+import { AiTestReplyButton } from "./AiTestReplyButton";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 import { isWhiteLabelMode } from "@/lib/productMode";
 import { PricingContextHint } from "@/components/dashboard/billing/PricingContextHint";
@@ -1089,14 +1090,7 @@ export function AiSettingsForm() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 border-t df-border-brand pt-6">
-          <Button variant="disabled"
-            type="button"
-            className={buttonClassName("primary")}
-            disabled={testLoading}
-            onClick={handleTest}
-          >
-            {testLoading ? "A gerar…" : "Testar resposta"}
-          </Button>
+          <AiTestReplyButton loading={testLoading} onClick={handleTest} />
           <Link href="/inbox" className={`${buttonClassName("secondary")} inline-flex`}>
             Abrir Inbox
           </Link>
