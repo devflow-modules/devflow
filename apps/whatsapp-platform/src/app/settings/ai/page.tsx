@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { buttonClassName } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { AiSettingsForm } from "./AiSettingsForm";
 import { aiSettingsHref } from "./aiSettingsAnchors";
@@ -66,14 +66,13 @@ export default function AiSettingsPage() {
         tone="admin"
         quickActions={
           <>
-            <Button
-              variant="primary"
+            <button
               type="submit"
               form="wf-ai-settings"
-              className="df-btn-primary inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-semibold"
+              className={`${buttonClassName("primary")} inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-semibold`}
             >
               Salvar alterações
-            </Button>
+            </button>
             <Link href={aiSettingsHref("teste")} className="df-quick-action">
               Ir para teste
             </Link>
