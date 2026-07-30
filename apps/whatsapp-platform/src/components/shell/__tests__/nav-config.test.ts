@@ -3,10 +3,12 @@ import {
   navAccountItemsForRole,
   navAutomationItemsForRole,
   navOperationItemsForRole,
+  navPlatformItemsForRole,
   navTeamItemsForRole,
   primaryNavForRole,
   secondaryNavForRole,
 } from "../nav-config";
+import { ROUTE_META } from "@/lib/navigation/nav-matrix";
 
 describe("nav-config (produto por role)", () => {
   it("role null: fail-closed — só mínimo de operator, sem dashboard/billing/settings/equipe", () => {
@@ -72,5 +74,40 @@ describe("nav-config (produto por role)", () => {
     expect(secondary.some((i) => i.href === "/settings")).toBe(true);
     vi.unstubAllEnvs();
     vi.resetModules();
+  });
+
+  it("SB-8: platformNav fail-closed — só platform_admin; null/operator/manager → []", () => {
+    expect(navPlatformItemsForRole(null)).toEqual([]);
+    expect(navPlatformItemsForRole("operator")).toEqual([]);
+    expect(navPlatformItemsForRole("manager")).toEqual([]);
+  });
+
+  it("SB-8: cada rota platformOnly aparece exactamente uma vez, com labels de ROUTE_META", () => {
+    const platformOnlyHrefs = Object.entries(ROUTE_META)
+      .filter(([, meta]) => meta.platformOnly === true)
+      .map(([href]) => href);
+
+    const items = navPlatformItemsForRole("platform_admin");
+    const hrefs = items.map((i) => i.href);
+
+    expect(hrefs).toEqual(platformOnlyHrefs);
+    expect(new Set(hrefs).size).toBe(hrefs.length);
+    expect(hrefs.length).toBeGreaterThan(0);
+
+    for (const item of items) {
+      expect(item.label).toBe(ROUTE_META[item.href].label);
+    }
+  });
+
+  it("SB-8: ordem canónica preservada (métricas → … → whatsapp)", () => {
+    expect(navPlatformItemsForRole("platform_admin").map((i) => i.href)).toEqual([
+      "/admin/metrics",
+      "/admin/billing",
+      "/admin/affiliates",
+      "/admin/tenants",
+      "/admin/agents",
+      "/admin/conversations",
+      "/admin/whatsapp",
+    ]);
   });
 });
