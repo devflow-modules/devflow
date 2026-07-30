@@ -23,6 +23,12 @@ import { SidebarRail } from "./SidebarRail";
 import { useMediaMinWidth } from "@/lib/useMediaMinWidth";
 import { isCommercialBillingVisible } from "@/lib/productMode";
 import { Button } from "@/components/ui/button";
+import {
+  DF_NAV_SENSITIVE_DIVIDER_EXPANDED,
+  DF_NAV_SENSITIVE_IDLE,
+  DF_NAV_SENSITIVE_SECTION,
+  DF_NAV_SENSITIVE_SECTION_TITLE,
+} from "./nav-sensitive-classes";
 
 function NavLink({
   href,
@@ -50,7 +56,7 @@ function NavLink({
         active
           ? "bg-[var(--df-brand-50)]/95 font-semibold text-[var(--df-brand-900)] ring-1 ring-[var(--df-brand-200)]/90 shadow-sm"
           : sensitive
-            ? "text-amber-200/95 hover:bg-amber-950/35 hover:text-amber-50"
+            ? DF_NAV_SENSITIVE_IDLE
             : "text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)] hover:text-[var(--df-text-primary)]"
       }`}
     >
@@ -77,13 +83,16 @@ function CollapsibleNavSection({
   const collapsed = prefs.collapsedSections[sectionId] ?? false;
 
   return (
-    <div className={defaultSensitive ? "rounded-xl ring-1 ring-amber-100/90 bg-amber-50/20" : ""}>
+    <div
+      className={defaultSensitive ? DF_NAV_SENSITIVE_SECTION : ""}
+      data-testid={defaultSensitive ? `sidebar-sensitive-section-${sectionId}` : undefined}
+    >
       <Button
         variant="secondary"
         type="button"
         onClick={() => setSectionCollapsed(sectionId, !collapsed)}
         className={`mb-1.5 flex w-full items-start justify-between gap-2 px-3 py-1 text-left text-[11px] font-semibold uppercase tracking-[0.1em] ${
-          defaultSensitive ? "text-amber-800/90" : "text-[var(--df-text-muted)]"
+          defaultSensitive ? DF_NAV_SENSITIVE_SECTION_TITLE : "text-[var(--df-text-muted)]"
         }`}
         aria-expanded={!collapsed}
       >
@@ -279,7 +288,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
             subtitle="Ferramentas internas — só equipa DevFlow."
             defaultSensitive
           >
-            <div className="mb-2 border-t-2 border-amber-200/70 pt-3" aria-hidden />
+            <div className={DF_NAV_SENSITIVE_DIVIDER_EXPANDED} aria-hidden />
             {platformNav.map((item) => (
               <NavLink
                 key={item.href}
@@ -288,6 +297,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
                 active={navIsActive(pathname, item.href)}
                 sensitive
                 onNavigate={onNavigate}
+                testId={item.href === "/admin/metrics" ? "sidebar-sensitive-link" : undefined}
               />
             ))}
           </CollapsibleNavSection>

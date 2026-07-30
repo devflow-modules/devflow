@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SidebarRail } from "../SidebarRail";
 import {
@@ -9,6 +9,7 @@ import {
   navOperationItemsForRole,
   navTeamItemsForRole,
 } from "../nav-config";
+import { DF_NAV_SENSITIVE_IDLE } from "../nav-sensitive-classes";
 import type { UserRole } from "@/modules/auth";
 
 const openSupport = vi.fn();
@@ -128,5 +129,29 @@ describe("SidebarRail", () => {
     renderRail("operator", "/inbox");
     const inbox = screen.getByRole("link", { name: "Inbox" });
     expect(inbox).toHaveAttribute("aria-current", "page");
+  });
+
+  it("SB-7: divider Plataforma usa --df-admin-* (sem amber)", () => {
+    renderRail("platform_admin");
+    const divider = screen.getByTestId("sidebar-rail-sensitive-divider");
+    expect(divider.className).toMatch(/--df-admin-/);
+    expect(divider.className).not.toMatch(/\bamber-/);
+  });
+
+  it("SB-7: link sensível idle usa --df-admin-*; activo usa marca", () => {
+    renderRail("manager", "/inbox");
+    const idle = document.querySelector('a[href="/settings/ai"]');
+    expect(idle).toBeTruthy();
+    expect(idle!.className).toContain(DF_NAV_SENSITIVE_IDLE);
+    expect(idle!.className).not.toMatch(/\bamber-/);
+    expect(idle).not.toHaveAttribute("aria-current");
+
+    cleanup();
+    renderRail("manager", "/settings/ai");
+    const active = document.querySelector('a[href="/settings/ai"]');
+    expect(active).toHaveAttribute("aria-current", "page");
+    expect(active!.className).toMatch(/--df-brand-/);
+    expect(active!.className).not.toContain(DF_NAV_SENSITIVE_IDLE);
+    expect(active!.className).not.toMatch(/\bamber-/);
   });
 });
