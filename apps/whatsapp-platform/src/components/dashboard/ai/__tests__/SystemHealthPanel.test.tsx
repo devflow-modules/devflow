@@ -205,4 +205,19 @@ describe("SystemHealthPanel controls (dashboard-ai F0)", () => {
       expect(screen.getByTestId("health-control-feedback")).toBeInTheDocument();
     });
   });
+
+  it("hideSummaryBanner omite o banner duplicado", () => {
+    mockRole("manager");
+    render(
+      <SystemHealthPanel
+        snapshot={snapshot}
+        summary={summary}
+        error={null}
+        hideSummaryBanner
+        onRefresh={vi.fn()}
+      />
+    );
+    expect(screen.queryByLabelText("Estado: OK")).not.toBeInTheDocument();
+    expect(screen.getByTestId("health-tenant-controls")).toBeInTheDocument();
+  });
 });

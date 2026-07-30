@@ -20,9 +20,16 @@ import { KpiCardEnhanced } from "@/components/dashboard/ai/KpiCardEnhanced";
 import { DashboardAiSkeleton } from "@/components/dashboard/ai/DashboardAiSkeleton";
 import { FunnelStageLegend } from "@/components/dashboard/ai/FunnelStageLegend";
 import { SystemHealthPanel } from "@/components/dashboard/ai/SystemHealthPanel";
+import { HealthCriticalSignal } from "@/components/dashboard/ai/HealthCriticalSignal";
 import type { SystemHealthSnapshot } from "@/modules/dashboard/systemHealthService";
 import type { SystemHealthSummary } from "@/modules/dashboard/buildSystemHealthSummary";
 import { Button } from "@/components/ui/button";
+import {
+  DASHBOARD_AI_DESCRIPTION,
+  DASHBOARD_AI_HEADER_QUICK_LINKS,
+  DASHBOARD_AI_HEALTH_DETAILS_SUMMARY,
+  DASHBOARD_AI_TITLE,
+} from "./dashboardAiChrome";
 
 type LogRow = {
   type: "auto_reply" | "fallback" | "error" | "blocked_by_guard";
@@ -196,25 +203,18 @@ export function DashboardAiClient() {
   const aiDashboardHeader = (
     <PageHeader
       eyebrow="Operação"
-      title="IA no atendimento"
-      description="Saúde do canal (webhook, filas), automação, funil e oportunidades — visão de gestão para afinar IA e priorizar conversas."
+      title={DASHBOARD_AI_TITLE}
+      description={DASHBOARD_AI_DESCRIPTION}
       layout="split"
       showDivider
       tone="admin"
       quickActions={
         <>
-          <Link href="/settings" className="df-quick-action">
-            Motor (config. gerais)
-          </Link>
-          <Link href="/settings/ai" className="df-quick-action">
-            IA base (WhatsApp)
-          </Link>
-          <Link href="/settings/ai-analytics" className="df-quick-action">
-            Uso e desempenho da IA
-          </Link>
-          <Link href="/inbox" className="df-quick-action">
-            Abrir Inbox
-          </Link>
+          {DASHBOARD_AI_HEADER_QUICK_LINKS.map((item) => (
+            <Link key={item.href} href={item.href} className="df-quick-action">
+              {item.label}
+            </Link>
+          ))}
         </>
       }
     />
@@ -299,55 +299,57 @@ export function DashboardAiClient() {
     },
   ];
 
-  const showDecisionEmpty =
-    managerActions.length === 0 &&
-    insightLines.length === 0 &&
-    isEmpty &&
-    (!leadQuality || leadQuality.high + leadQuality.medium + leadQuality.low === 0);
+  const showDecisionEmpty = managerActions.length === 0;
+  const healthDetailsOpen =
+    Boolean(healthError) ||
+    healthSummary?.overall === "error" ||
+    healthSummary?.overall === "attention";
 
   return (
-    <div className="df-stack min-w-0">
+    <div className="df-stack min-w-0" data-testid="dashboard-ai-page">
       {aiDashboardHeader}
 
-      <SystemHealthPanel
-        snapshot={healthSnapshot}
+      <HealthCriticalSignal
         summary={healthSummary}
         error={healthError}
-        onRefresh={() => {
-          // Mantém snapshot anterior durante refresh para não apagar feedback dos controlos.
-          setHealthLoading(true);
-          void loadHealth();
-        }}
+        loading={healthLoading}
       />
 
-      <ManagerActionsList actions={managerActions} />
-
-      <div className="flex flex-wrap gap-2">
-        <Link
-          href="/inbox?filter=high_no_response"
-          className={buttonClassName("secondary", "inline-flex text-sm")}
-        >
-          Ver leads HIGH
-        </Link>
-        <Link
-          href="/inbox?phase=in_attendance"
-          className={buttonClassName("secondary", "inline-flex text-sm")}
-        >
-          Ver negociações
-        </Link>
-        <Link href="/inbox" className={buttonClassName("primary", "inline-flex text-sm")}>
-          Ir para inbox
-        </Link>
-      </div>
-
       {showDecisionEmpty ? (
-        <StateEmpty
-          title="Ainda não há decisões sugeridas"
-          description="Insights e acções recomendadas aparecem quando houver conversas e sinais de funil no período."
-          nextStep="Abra a Inbox para gerar tráfego ou ajuste a IA em Configurações."
-          className="border border-dashed df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_55%,var(--df-bg-elevated))] py-8"
-        />
-      ) : null}
+        <div data-testid="dashboard-ai-actions-empty">
+          <StateEmpty
+            title="Sem ações urgentes"
+            description="Quando houver leads HIGH, conversas paradas ou reativações, as prioridades aparecem aqui."
+            nextStep="Abra a Inbox quando quiser trabalhar a fila, ou afine a IA em Configurações."
+            className="border border-dashed df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_55%,var(--df-bg-elevated))] py-8"
+          />
+        </div>
+      ) : (
+        <ManagerActionsList actions={managerActions} />
+      )}
+
+      <details
+        className="rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_52%,var(--df-bg-elevated))] open:pb-4"
+        data-testid="system-health-details"
+        open={healthDetailsOpen || undefined}
+      >
+        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-[var(--df-text-primary)] [&::-webkit-details-marker]:hidden">
+          {DASHBOARD_AI_HEALTH_DETAILS_SUMMARY}
+        </summary>
+        <div className="border-t df-border-brand px-4 pt-4">
+          <SystemHealthPanel
+            snapshot={healthSnapshot}
+            summary={healthSummary}
+            error={healthError}
+            hideSummaryBanner
+            onRefresh={() => {
+              // Mantém snapshot anterior durante refresh para não apagar feedback dos controlos.
+              setHealthLoading(true);
+              void loadHealth();
+            }}
+          />
+        </div>
+      </details>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {kpiCards.map((c) => (

@@ -54,11 +54,14 @@ export function SystemHealthPanel({
   summary,
   error,
   onRefresh,
+  hideSummaryBanner = false,
 }: {
   snapshot: SystemHealthSnapshot | null;
   summary: SystemHealthSummary | null;
   error: string | null;
   onRefresh: () => void;
+  /** Quando o banner curto já está na 1ª dobra (dashboard-ai F1). */
+  hideSummaryBanner?: boolean;
 }) {
   const { role, loading: roleLoading } = useSessionRole();
   const [actionBusy, setActionBusy] = useState<string | null>(null);
@@ -171,12 +174,14 @@ export function SystemHealthPanel({
       data-testid="system-health-panel"
       aria-label="Saúde do canal e automação"
     >
-      <div className={summaryBannerClass(summary.overall)}>
-        <p className="text-sm font-semibold" aria-label={statusLabel}>
-          <span aria-hidden>{summary.overall === "ok" ? "✅" : summary.overall === "attention" ? "⚠️" : "❌"}</span>{" "}
-          {summary.message}
-        </p>
-      </div>
+      {!hideSummaryBanner ? (
+        <div className={summaryBannerClass(summary.overall)}>
+          <p className="text-sm font-semibold" aria-label={statusLabel}>
+            <span aria-hidden>{summary.overall === "ok" ? "✅" : summary.overall === "attention" ? "⚠️" : "❌"}</span>{" "}
+            {summary.message}
+          </p>
+        </div>
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="df-metric-card">
