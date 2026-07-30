@@ -36,6 +36,11 @@ import {
   buildEssentialKpiCards,
   buildExtraEventKpiCards,
 } from "./dashboardAiMetrics";
+import { DASHBOARD_AI_FUNNEL_STAGES } from "./dashboardAiFunnelCopy";
+import {
+  buildInboxConversationHref,
+  inboxConversationLinkLabel,
+} from "./dashboardAiEventLinks";
 
 type LogRow = {
   type: "auto_reply" | "fallback" | "error" | "blocked_by_guard";
@@ -421,15 +426,8 @@ export function DashboardAiClient() {
                 fechados
               </p>
               <div className="mt-4 space-y-3">
-                {(
-                  [
-                    ["lead", "Lead", funnel.lead],
-                    ["qualifying", "Qualificação", funnel.qualifying],
-                    ["negotiating", "Negociação", funnel.negotiating],
-                    ["support", "Suporte", funnel.support],
-                    ["closed", "Fechado", funnel.closed],
-                  ] as const
-                ).map(([key, label, n]) => {
+                {DASHBOARD_AI_FUNNEL_STAGES.map(({ key, label }) => {
+                  const n = funnel[key];
                   const max = Math.max(
                     1,
                     funnel.lead +
@@ -532,12 +530,27 @@ export function DashboardAiClient() {
                         minute: "2-digit",
                       })}
                     </td>
-                    <td className="px-4 py-3 align-top font-mono text-xs text-[var(--df-text-muted)]">
-                      {row.conversationId ? (
-                        <span className="break-all">{row.conversationId.slice(0, 12)}…</span>
-                      ) : (
-                        "—"
-                      )}
+                    <td className="px-4 py-3 align-top text-xs text-[var(--df-text-muted)]">
+                      {(() => {
+                        const href = buildInboxConversationHref(row.conversationId);
+                        if (!href || !row.conversationId) {
+                          return <span aria-label="Sem conversa associada">—</span>;
+                        }
+                        const short =
+                          row.conversationId.length > 12
+                            ? `${row.conversationId.slice(0, 12)}…`
+                            : row.conversationId;
+                        return (
+                          <Link
+                            href={href}
+                            data-testid="dashboard-ai-event-conversation-link"
+                            aria-label={inboxConversationLinkLabel(row.conversationId)}
+                            className="break-all font-mono text-[var(--df-brand-700)] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-brand-500)] focus-visible:ring-offset-2 rounded-sm"
+                          >
+                            {short}
+                          </Link>
+                        );
+                      })()}
                     </td>
                   </tr>
                 ))}

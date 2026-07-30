@@ -53,7 +53,7 @@ export function buildManagerActions(
   if (opportunities.highPending > 0) {
     out.push({
       type: "high_no_response",
-      label: `🔥 ${opportunities.highPending} lead(s) HIGH sem resposta (pendente na equipa)`,
+      label: `Urgente: ${opportunities.highPending} lead(s) HIGH sem resposta (pendente na equipa)`,
       action: "/inbox?filter=high_no_response",
     });
   }
@@ -61,7 +61,7 @@ export function buildManagerActions(
   if (opportunities.stalled > 0) {
     out.push({
       type: "stalled",
-      label: `⏳ ${opportunities.stalled} conversa(s) paradas (qualificação/negociação sem actividade)`,
+      label: `Atenção: ${opportunities.stalled} conversa(s) paradas (qualificação/negociação sem actividade)`,
       action: "/inbox?filter=stalled",
     });
   }
@@ -69,7 +69,7 @@ export function buildManagerActions(
   if (opportunities.reactivationQueued > 0) {
     out.push({
       type: "reactivation",
-      label: `🔄 ${opportunities.reactivationQueued} reativação(ões) na fila automática`,
+      label: `${opportunities.reactivationQueued} reativação(ões) na fila automática`,
       action: "/inbox?filter=reactivation",
     });
   }
@@ -77,7 +77,7 @@ export function buildManagerActions(
   if (funnel && funnel.negotiating > 0 && opportunities.stalled === 0 && opportunities.highPending === 0) {
     out.push({
       type: "negotiating_watch",
-      label: `💰 ${funnel.negotiating} conversa(s) em negociação — rever oportunidades`,
+      label: `${funnel.negotiating} conversa(s) em negociação — rever oportunidades`,
       action: "/inbox?phase=in_attendance",
     });
   }

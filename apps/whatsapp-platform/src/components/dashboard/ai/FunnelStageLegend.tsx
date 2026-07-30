@@ -1,12 +1,6 @@
 "use client";
 
-const STAGES = [
-  ["Lead", "primeiro contacto"],
-  ["Qualifying", "entender necessidade"],
-  ["Negotiating", "tentar fechar"],
-  ["Closed", "venda concluída"],
-  ["Support", "atendimento"],
-] as const;
+import { DASHBOARD_AI_FUNNEL_STAGES } from "@/app/dashboard/ai/dashboardAiFunnelCopy";
 
 export function FunnelStageLegend() {
   return (
@@ -23,10 +17,10 @@ export function FunnelStageLegend() {
         </span>
       </summary>
       <ul className="mt-2 space-y-1 border-t df-border-brand pt-2">
-        {STAGES.map(([name, desc]) => (
-          <li key={name}>
-            <span className="font-semibold text-[var(--df-text-primary)]">{name}</span>
-            <span className="text-[var(--df-text-muted)]"> → {desc}</span>
+        {DASHBOARD_AI_FUNNEL_STAGES.map(({ label, description }) => (
+          <li key={label}>
+            <span className="font-semibold text-[var(--df-text-primary)]">{label}</span>
+            <span className="text-[var(--df-text-muted)]"> → {description}</span>
           </li>
         ))}
       </ul>
