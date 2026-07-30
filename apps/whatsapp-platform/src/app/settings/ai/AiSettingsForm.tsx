@@ -223,43 +223,6 @@ function StringListEditor(props: {
   );
 }
 
-function IaCrossLinks() {
-  return (
-    <div className="grid gap-3 sm:grid-cols-3">
-      <Link
-        href="/settings"
-        className="group rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] p-4 text-left shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)]/40"
-      >
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Motor</p>
-        <p className="mt-1 text-sm font-semibold text-[var(--df-text-primary)] group-hover:text-[var(--df-brand-900)]">
-          Configurações gerais
-        </p>
-        <p className="mt-1 text-xs text-[var(--df-text-secondary)]">OpenAI, Claude ou só regras</p>
-      </Link>
-      <Link
-        href="/settings/ai-analytics"
-        className="group rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] p-4 text-left shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)]/40"
-      >
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Consumo</p>
-        <p className="mt-1 text-sm font-semibold text-[var(--df-text-primary)] group-hover:text-[var(--df-brand-900)]">
-          Uso e custo de IA
-        </p>
-        <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Tokens e limites contratados</p>
-      </Link>
-      <Link
-        href="/dashboard/ai"
-        className="group rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] p-4 text-left shadow-sm transition hover:border-[var(--df-brand-300)] hover:bg-[var(--df-brand-50)]/40"
-      >
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--df-text-muted)]">Operação</p>
-        <p className="mt-1 text-sm font-semibold text-[var(--df-text-primary)] group-hover:text-[var(--df-brand-900)]">
-          Painel IA no atendimento
-        </p>
-        <p className="mt-1 text-xs text-[var(--df-text-secondary)]">Saúde, funil e eventos recentes</p>
-      </Link>
-    </div>
-  );
-}
-
 function GuardrailsSummary(props: {
   enabled: boolean;
   autoReply: boolean;
@@ -594,10 +557,9 @@ export function AiSettingsForm() {
       <AiSettingsPhase
         id="visao-geral"
         phase="1 · Visão geral"
-        title="Estado, motor e atalhos"
-        description="Ligações rápidas para o motor (fornecedor LLM), consumo e painel operacional. Isto é a IA base do workspace; cada canal pode herdar ou sobrescrever propósito, auto-resposta e perfil de IA em Admin · WhatsApp. Depois afinamos comportamento → automação → limites → teste."
+        title="Estado e motor"
+        description="Active a IA base do workspace e confirme o estado. O fornecedor LLM define-se em Configurações gerais; canais podem herdar ou ajustar esta base."
       >
-        <IaCrossLinks />
         {driver ? (
           <p className="text-xs text-[var(--df-text-secondary)]">
             <span className="df-badge whitespace-nowrap">Override de motor só nesta IA</span>
@@ -642,36 +604,6 @@ export function AiSettingsForm() {
             })}
           />
         ) : null}
-        <div className="rounded-xl border border-dashed df-border-brand bg-[color-mix(in_srgb,var(--df-bg-elevated)_78%,transparent)] px-4 py-3 text-sm text-[var(--df-text-secondary)]">
-          <p className="font-semibold text-[var(--df-text-primary)]">Ordem sugerida de configuração</p>
-          <ol className="mt-2 list-decimal space-y-1 pl-5">
-            <li>Motor e capacidade (cartões acima)</li>
-            <li>
-              <Link href="#comportamento" className="font-medium text-[var(--df-brand-700)] hover:underline">
-                Comportamento
-              </Link>
-              : identidade, contexto, regras e funil
-            </li>
-            <li>
-              <Link href="#automacao" className="font-medium text-[var(--df-brand-700)] hover:underline">
-                Automação
-              </Link>
-              : resposta automática e texto fixo
-            </li>
-            <li>
-              <Link href="#limites" className="font-medium text-[var(--df-brand-700)] hover:underline">
-                Limites
-              </Link>
-              : handoff, tokens e modelo (se necessário)
-            </li>
-            <li>
-              <Link href="#teste" className="font-medium text-[var(--df-brand-700)] hover:underline">
-                Teste rápido
-              </Link>{" "}
-              antes de publicar na Inbox
-            </li>
-          </ol>
-        </div>
         <div>
           <AiSettingsSubheading>Templates por caso de uso</AiSettingsSubheading>
           <FieldHelp className="mb-3">
