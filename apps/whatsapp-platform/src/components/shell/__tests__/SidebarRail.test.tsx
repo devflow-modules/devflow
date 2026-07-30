@@ -170,4 +170,18 @@ describe("SidebarRail", () => {
       expect(document.querySelector(`a[href="${item.href}"]`)).toBeTruthy();
     }
   });
+
+  it("SB-10: cada rota admin no rail tem data-rail-icon distinto e aria-label preservado", () => {
+    renderRail("platform_admin");
+    const expected = navPlatformItemsForRole("platform_admin");
+    const iconIds = expected.map((item) => {
+      const link = document.querySelector(`a[href="${item.href}"]`);
+      expect(link).toHaveAttribute("aria-label", item.label);
+      const svg = link!.querySelector("svg[data-rail-icon]");
+      expect(svg).toBeTruthy();
+      return svg!.getAttribute("data-rail-icon");
+    });
+    expect(iconIds.every((id) => id && id !== "generic")).toBe(true);
+    expect(new Set(iconIds).size).toBe(expected.length);
+  });
 });
