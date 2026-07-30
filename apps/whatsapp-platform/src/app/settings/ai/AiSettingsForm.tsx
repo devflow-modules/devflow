@@ -17,7 +17,7 @@ import { AiSettingsPhase, AiSettingsSubheading } from "./AiSettingsPhase";
 import { AiSettingsAnchorNav } from "./AiSettingsAnchorNav";
 import { AiStatusSummary } from "./AiStatusSummary";
 import { AiTestReplyButton } from "./AiTestReplyButton";
-import { AI_SETTINGS_GOAL_FIELD_LABEL, AI_SETTINGS_PLAYBOOK_DETAILS_SUMMARY } from "./aiSettingsCopy";
+import { AI_SETTINGS_GOAL_FIELD_LABEL, AI_SETTINGS_PLAYBOOK_DETAILS_SUMMARY, AI_SETTINGS_SAVE_LABEL, AI_SETTINGS_SAVING_LABEL } from "./aiSettingsCopy";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
 import { isWhiteLabelMode } from "@/lib/productMode";
 import { PricingContextHint } from "@/components/dashboard/billing/PricingContextHint";
@@ -561,13 +561,11 @@ export function AiSettingsForm() {
           </p>
         ) : null}
         <FieldHelp>
-          O fornecedor base (OpenAI, Claude ou só regras) define-se em{" "}
+          Fornecedor LLM em{" "}
           <Link href="/settings" className="font-semibold text-[var(--df-brand-700)] hover:underline">
             Configurações gerais
           </Link>
-          . Aqui pode sobrescrever só para esta{" "}
-          <strong className="font-semibold text-[var(--df-text-primary)]">IA base</strong> (workspace) na secção «Limites e
-          segurança» (avançado); canais podem ainda ter overrides próprios.
+          ; override desta IA base em «Limites» (avançado).
         </FieldHelp>
         <label className="flex items-start gap-3 rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] px-4 py-3">
           <input
@@ -595,8 +593,7 @@ export function AiSettingsForm() {
         <div>
           <AiSettingsSubheading>Templates por caso de uso</AiSettingsSubheading>
           <FieldHelp className="mb-3">
-            Escolha o cenário mais próximo do seu negócio — preenchem tom, objetivo, contexto e listas (não alteram o nome
-            do assistente). Pode aplicar outro template a qualquer momento.
+            Preenche tom, objetivo, contexto e listas (não altera o nome do assistente).
           </FieldHelp>
           <div className="grid gap-3 sm:grid-cols-2">
             {presets.map((p) => {
@@ -641,7 +638,6 @@ export function AiSettingsForm() {
           id="assistantName"
           label="Nome do assistente"
           htmlFor="assistantName"
-          help="Apresentação ao cliente. Opcional; se vazio, o produto pode usar um nome padrão."
         >
           <input
             id="assistantName"
@@ -656,7 +652,6 @@ export function AiSettingsForm() {
           id="tone"
           label="Tom de voz"
           htmlFor="tone"
-          help="Afeta estilo e vocabulário. Comercial e suporte tendem a respostas mais longas; neutro é o mais previsível."
         >
           <select
             id="tone"
@@ -684,7 +679,6 @@ export function AiSettingsForm() {
             id="biz"
             label="O que a empresa faz"
             htmlFor="biz"
-            help="Quando usar: sempre que o cliente não conheça o negócio. Impacto: respostas mais alinhadas à oferta real."
           >
             <textarea
               id="biz"
@@ -699,7 +693,6 @@ export function AiSettingsForm() {
             id="goal"
             label={AI_SETTINGS_GOAL_FIELD_LABEL}
             htmlFor="goal"
-            help="Quando usar: definir prioridade da IA base do workspace (vendas vs suporte). Impacto: orienta o próximo passo sugerido ao cliente. Canais podem refinar o propósito por linha."
           >
             <textarea
               id="goal"
@@ -715,7 +708,7 @@ export function AiSettingsForm() {
         <div className="space-y-4 border-t df-border-brand pt-6">
           <AiSettingsSubheading>Regras operacionais</AiSettingsSubheading>
           <p className="text-xs text-[var(--df-text-muted)]">
-            Instruções curtas em lista. Impacto: reduz alucinação e mensagens fora da política da empresa.
+            Instruções curtas em lista — reduz respostas fora da política.
           </p>
           <StringListEditor
             id="rules"
@@ -729,8 +722,7 @@ export function AiSettingsForm() {
         <div className="space-y-4 border-t df-border-brand pt-6">
           <AiSettingsSubheading>Tópicos a evitar</AiSettingsSubheading>
           <p className="text-xs text-[var(--df-text-muted)]">
-            A IA recusa ou desvia educadamente. Impacto: menos risco legal/reputacional; pode aumentar handoff se o cliente
-            insistir.
+            A IA recusa ou desvia educadamente estes tópicos.
           </p>
           <StringListEditor
             id="forbidden"
@@ -802,7 +794,7 @@ export function AiSettingsForm() {
         id="automacao"
         phase="3 · Automação"
         title="Respostas automáticas e texto fixo"
-        description="Define se a IA envia mensagens sozinha e mensagens de cortesia a partir desta base. Por canal, a resposta automática pode ser sobrescrita sem alterar o padrão global. Impacto na operação: com auto-resposta desligada aqui, a equipa trata tudo na Inbox salvo override no canal."
+        description="Define se a IA envia mensagens sozinha a partir desta base. Por canal, a auto-resposta pode ser sobrescrita."
       >
         <label className="flex items-start gap-3 rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] px-4 py-3">
           <input
@@ -814,9 +806,7 @@ export function AiSettingsForm() {
           <span className="text-sm font-medium text-[var(--df-text-primary)]">
             Responder automaticamente a mensagens recebidas
             <span className="mt-1 block text-xs font-normal text-[var(--df-text-muted)]">
-              Quando usar: atendimento 24/7 com IA na base. Desligue se quiser só rascunhos ou revisão humana obrigatória
-              por omissão. Cada linha pode afinar se responde sozinha. Impacto em custo: cada resposta automática conta no
-              uso de IA incluído no contrato.
+              Com auto-resposta ligada, a IA pode enviar mensagens sozinha a partir desta base.
             </span>
           </span>
         </label>
@@ -824,7 +814,7 @@ export function AiSettingsForm() {
           id="outOfHours"
           label="Resposta fora de horário (texto fixo)"
           htmlFor="outOfHours"
-          help="Opcional. Mensagem curta quando não houver agente — o motor de horários pode evoluir noutro módulo. Impacto: cliente vê texto previsível sem gastar tokens de LLM."
+          help="Texto fixo opcional — sem tokens de LLM."
         >
           <textarea
             id="outOfHours"
@@ -853,15 +843,14 @@ export function AiSettingsForm() {
           <span className="text-sm font-medium text-[var(--df-text-primary)]">
             Preferir handoff para humano quando a IA não tiver confiança
             <span className="mt-1 block text-xs font-normal text-[var(--df-text-muted)]">
-              Recomendado em vendas e suporte sensível. Impacto: menos risco de resposta fraca; pode aumentar carga na
-              equipa.
+              Recomendado em vendas e suporte sensível — pode aumentar carga na equipa.
             </span>
           </span>
         </label>
         <StringListEditor
           id="handoff"
           label="Gatilhos de transferência para humano"
-          help="Quando usar: frases ou situações que exigem pessoa (reclamação grave, pedido explícito, negociação). Impacto: conversa deixa de ser só IA e entra na fila humana."
+          help="Frases ou situações que exigem pessoa (reclamação grave, pedido explícito)."
           values={handoffTriggers}
           onChange={setHandoffTriggers}
         />
@@ -889,7 +878,7 @@ export function AiSettingsForm() {
               id="drv"
               label="Motor (override)"
               htmlFor="drv"
-              help="Impacto: troca custo e latência (OpenAI vs Claude vs regras)."
+              help="Troca custo e latência (OpenAI vs Claude vs regras)."
             >
               <select
                 id="drv"
@@ -908,7 +897,7 @@ export function AiSettingsForm() {
               id="model"
               label="Modelo"
               htmlFor="model"
-              help="Modelos maiores: melhor qualidade, mais custo por mensagem."
+              help="Modelos maiores: melhor qualidade, mais custo."
             >
               <select
                 id="model"
@@ -923,7 +912,7 @@ export function AiSettingsForm() {
                 ))}
               </select>
             </FormField>
-            <FormField id="temp" label="Temperatura" htmlFor="temp" help="Mais alto = mais variação e risco de desvio do script; mais baixo = mais previsível.">
+            <FormField id="temp" label="Temperatura" htmlFor="temp" help="Mais alto = mais variação; mais baixo = mais previsível.">
               <div className="flex flex-wrap items-center gap-3">
                 <input
                   id="temp"
@@ -942,7 +931,7 @@ export function AiSettingsForm() {
               id="maxTok"
               label="Máximo de tokens na resposta"
               htmlFor="maxTok"
-              help="Limite superior do tamanho da resposta. Mais tokens ≈ mensagens mais longas e maior custo."
+              help="Teto do tamanho da resposta (mais tokens ≈ mais custo)."
             >
               <div className="flex flex-wrap items-center gap-3">
                 <input
@@ -1101,7 +1090,7 @@ export function AiSettingsForm() {
 
       <FormActions>
         <Button variant="primary" type="submit" disabled={saving}>
-          {saving ? "A guardar…" : "Guardar alterações"}
+          {saving ? AI_SETTINGS_SAVING_LABEL : AI_SETTINGS_SAVE_LABEL}
         </Button>
         <Link href="/settings" className={buttonClassName("secondary")}>
           Voltar às configurações
