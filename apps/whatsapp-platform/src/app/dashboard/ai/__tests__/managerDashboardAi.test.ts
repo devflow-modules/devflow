@@ -8,9 +8,10 @@ describe("buildManagerActions", () => {
       { lead: 1, qualifying: 0, negotiating: 0, support: 0, closed: 0 }
     );
     expect(actions.some((a) => a.type === "high_no_response")).toBe(true);
-    expect(actions.find((a) => a.type === "high_no_response")?.action).toBe(
-      "/inbox?filter=high_no_response"
-    );
+    const high = actions.find((a) => a.type === "high_no_response");
+    expect(high?.action).toBe("/inbox?filter=high_no_response");
+    expect(high?.label).toMatch(/^Urgente:/);
+    expect(high?.label).not.toMatch(/[\u{1F300}-\u{1FAFF}]/u);
   });
 
   it("gera stalled e reactivation quando contagens > 0", () => {
@@ -19,6 +20,10 @@ describe("buildManagerActions", () => {
       { lead: 0, qualifying: 0, negotiating: 0, support: 0, closed: 0 }
     );
     expect(actions.map((a) => a.type)).toEqual(["stalled", "reactivation"]);
+    for (const a of actions) {
+      expect(a.label).not.toMatch(/[\u{1F300}-\u{1FAFF}]/u);
+    }
+    expect(actions.find((a) => a.type === "stalled")?.label).toMatch(/^Atenção:/);
   });
 
   it("retorna vazio sem oportunidades", () => {
