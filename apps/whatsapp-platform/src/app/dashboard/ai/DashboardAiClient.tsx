@@ -30,6 +30,12 @@ import {
   DASHBOARD_AI_HEALTH_DETAILS_SUMMARY,
   DASHBOARD_AI_TITLE,
 } from "./dashboardAiChrome";
+import {
+  DASHBOARD_AI_ADVANCED_METRICS_SUMMARY,
+  DASHBOARD_AI_EXTRA_EVENT_METRICS_SUMMARY,
+  buildEssentialKpiCards,
+  buildExtraEventKpiCards,
+} from "./dashboardAiMetrics";
 
 type LogRow = {
   type: "auto_reply" | "fallback" | "error" | "blocked_by_guard";
@@ -257,47 +263,8 @@ export function DashboardAiClient() {
   }
 
   const isEmpty = metrics.totalMessages === 0;
-  const automation = metrics.automationPercent;
-  const humanish = metrics.blockedDecisions + metrics.fallbacks + metrics.errors;
-
-  const kpiCards = [
-    {
-      label: "Total de eventos",
-      value: metrics.totalMessages,
-      hint: `Últimos ${metrics.periodDays} dias`,
-      emphasis: true,
-    },
-    {
-      label: "Respostas automáticas",
-      value: metrics.autoReplies,
-      hint: "IA gerou e enviou",
-      emphasis: false,
-    },
-    {
-      label: "Fallbacks",
-      value: metrics.fallbacks,
-      hint: "LLM sem resposta útil",
-      emphasis: false,
-    },
-    {
-      label: "Erros",
-      value: metrics.errors,
-      hint: "Provedor ou pipeline",
-      emphasis: false,
-    },
-    {
-      label: "% automação",
-      value: automation != null ? `${automation}%` : "—",
-      hint: "auto_reply ÷ total de eventos",
-      emphasis: true,
-    },
-    {
-      label: "Latência média",
-      value: `${metrics.avgLatency} ms`,
-      hint: "Quando registado",
-      emphasis: false,
-    },
-  ];
+  const essentialKpis = buildEssentialKpiCards(metrics);
+  const extraEventKpis = buildExtraEventKpiCards(metrics);
 
   const showDecisionEmpty = managerActions.length === 0;
   const healthDetailsOpen =
@@ -351,8 +318,8 @@ export function DashboardAiClient() {
         </div>
       </details>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {kpiCards.map((c) => (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="dashboard-ai-essential-kpis">
+        {essentialKpis.map((c) => (
           <KpiCardEnhanced
             key={c.label}
             label={c.label}
@@ -365,117 +332,149 @@ export function DashboardAiClient() {
 
       <ManagerInsights lines={insightLines} />
 
-      {leadQuality && opportunities ? (
-        <div className="df-metric-panel">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Qualidade dos leads</h2>
-          <p className="mt-2 text-sm text-[var(--df-text-secondary)]">
-            Prioridade automática a partir do score CRM. Combine com pendências reais no inbox.
-          </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCardEnhanced
-              label="High"
-              value={leadQuality.high}
-              subHint={
-                opportunities.highPending > 0
-                  ? `(${opportunities.highPending} sem resposta)`
-                  : "(nenhuma pendência HIGH)"
-              }
-              hint="Prioridade CRM"
-              emphasis
-            />
-            <KpiCardEnhanced
-              label="Medium"
-              value={leadQuality.medium}
-              hint="Prioridade CRM"
-            />
-            <KpiCardEnhanced
-              label="Low"
-              value={leadQuality.low}
-              hint="Prioridade CRM"
-            />
-            <KpiCardEnhanced
-              label="Score médio"
-              value={leadQuality.avgScore}
-              hint="Média nas conversas abertas"
-              tooltip="Score alto = maior chance de fechar. Score baixo = pouco engajamento."
-            />
-          </div>
-        </div>
-      ) : null}
+      <details
+        className="rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] open:pb-4"
+        data-testid="dashboard-ai-advanced-metrics"
+      >
+        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-[var(--df-text-primary)] [&::-webkit-details-marker]:hidden">
+          {DASHBOARD_AI_ADVANCED_METRICS_SUMMARY}
+        </summary>
+        <div className="space-y-4 border-t df-border-brand px-4 pt-4">
+          {leadQuality && opportunities ? (
+            <div className="df-metric-panel" data-testid="dashboard-ai-lead-quality">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">
+                Qualidade dos leads
+              </h2>
+              <p className="mt-2 text-sm text-[var(--df-text-secondary)]">
+                Prioridade automática a partir do score CRM. Combine com pendências reais no inbox.
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <KpiCardEnhanced
+                  label="High"
+                  value={leadQuality.high}
+                  subHint={
+                    opportunities.highPending > 0
+                      ? `(${opportunities.highPending} sem resposta)`
+                      : "(nenhuma pendência HIGH)"
+                  }
+                  hint="Prioridade CRM"
+                  emphasis
+                />
+                <KpiCardEnhanced label="Medium" value={leadQuality.medium} hint="Prioridade CRM" />
+                <KpiCardEnhanced label="Low" value={leadQuality.low} hint="Prioridade CRM" />
+                <KpiCardEnhanced
+                  label="Score médio"
+                  value={leadQuality.avgScore}
+                  hint="Média nas conversas abertas"
+                  tooltip="Score alto = maior chance de fechar. Score baixo = pouco engajamento."
+                />
+              </div>
+            </div>
+          ) : null}
 
-      {opportunities ? (
-        <div className="df-metric-panel">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Oportunidades</h2>
-          <p className="mt-2 text-sm text-[var(--df-text-secondary)]">
-            Sinais comerciais em tempo real (inbox + automações de follow-up / reativação).
-          </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="df-metric-subcard df-metric-subcard--danger">
-              <p className="df-metric-subcard-label">Leads HIGH sem resposta</p>
-              <p className="df-metric-subcard-value">{opportunities.highPending}</p>
-            </div>
-            <div className="df-metric-subcard">
-              <p className="df-metric-subcard-label">Conversas paradas</p>
-              <p className="df-metric-subcard-value">{opportunities.stalled}</p>
-              <p className="df-metric-subcard-hint">Qualificação/negociação sem mensagem há 2h+</p>
-            </div>
-            <div className="df-metric-subcard df-metric-subcard--success">
-              <p className="df-metric-subcard-label">Em negociação</p>
-              <p className="df-metric-subcard-value">{opportunities.negotiating}</p>
-            </div>
-            <div className="df-metric-subcard df-metric-subcard--info">
-              <p className="df-metric-subcard-label">Reativações na fila</p>
-              <p className="df-metric-subcard-value">{opportunities.reactivationQueued}</p>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {funnel ? (
-        <div className="df-metric-panel">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Funil comercial (conversas)</h2>
-            <FunnelStageLegend />
-          </div>
-          <p className="mt-2 text-sm text-[var(--df-text-secondary)]">
-            <span className="font-semibold text-[var(--df-brand-700)]">{funnel.lead}</span> leads activos ·{" "}
-            <span className="font-semibold text-[var(--df-text-primary)]">{funnel.qualifying + funnel.negotiating}</span> em
-            qualificação/negociação · <span className="font-semibold text-[var(--df-text-primary)]">{funnel.closed}</span>{" "}
-            fechados
-          </p>
-          <div className="mt-4 space-y-3">
-            {(
-              [
-                ["lead", "Lead", funnel.lead],
-                ["qualifying", "Qualificação", funnel.qualifying],
-                ["negotiating", "Negociação", funnel.negotiating],
-                ["support", "Suporte", funnel.support],
-                ["closed", "Fechado", funnel.closed],
-              ] as const
-            ).map(([key, label, n]) => {
-              const max = Math.max(
-                1,
-                funnel.lead + funnel.qualifying + funnel.negotiating + funnel.support + funnel.closed
-              );
-              const pct = Math.round((n / max) * 100);
-              return (
-                <div key={key}>
-                  <div className="mb-1 flex justify-between text-xs font-medium text-[var(--df-text-secondary)]">
-                    <span>{label}</span>
-                    <span className="tabular-nums text-[var(--df-text-primary)]">{n}</span>
-                  </div>
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--df-bg-app)]">
-                    <div
-                      className="h-full rounded-full bg-[var(--df-brand-500)]/85"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
+          {opportunities ? (
+            <div className="df-metric-panel" data-testid="dashboard-ai-opportunities">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">
+                Oportunidades
+              </h2>
+              <p className="mt-2 text-sm text-[var(--df-text-secondary)]">
+                Sinais comerciais em tempo real (inbox + automações de follow-up / reativação).
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="df-metric-subcard df-metric-subcard--danger">
+                  <p className="df-metric-subcard-label">Leads HIGH sem resposta</p>
+                  <p className="df-metric-subcard-value">{opportunities.highPending}</p>
                 </div>
-              );
-            })}
+                <div className="df-metric-subcard">
+                  <p className="df-metric-subcard-label">Conversas paradas</p>
+                  <p className="df-metric-subcard-value">{opportunities.stalled}</p>
+                  <p className="df-metric-subcard-hint">Qualificação/negociação sem mensagem há 2h+</p>
+                </div>
+                <div className="df-metric-subcard df-metric-subcard--success">
+                  <p className="df-metric-subcard-label">Em negociação</p>
+                  <p className="df-metric-subcard-value">{opportunities.negotiating}</p>
+                </div>
+                <div className="df-metric-subcard df-metric-subcard--info">
+                  <p className="df-metric-subcard-label">Reativações na fila</p>
+                  <p className="df-metric-subcard-value">{opportunities.reactivationQueued}</p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {funnel ? (
+            <div className="df-metric-panel" data-testid="dashboard-ai-funnel">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">
+                  Funil comercial (conversas)
+                </h2>
+                <FunnelStageLegend />
+              </div>
+              <p className="mt-2 text-sm text-[var(--df-text-secondary)]">
+                <span className="font-semibold text-[var(--df-brand-700)]">{funnel.lead}</span> leads
+                activos ·{" "}
+                <span className="font-semibold text-[var(--df-text-primary)]">
+                  {funnel.qualifying + funnel.negotiating}
+                </span>{" "}
+                em qualificação/negociação ·{" "}
+                <span className="font-semibold text-[var(--df-text-primary)]">{funnel.closed}</span>{" "}
+                fechados
+              </p>
+              <div className="mt-4 space-y-3">
+                {(
+                  [
+                    ["lead", "Lead", funnel.lead],
+                    ["qualifying", "Qualificação", funnel.qualifying],
+                    ["negotiating", "Negociação", funnel.negotiating],
+                    ["support", "Suporte", funnel.support],
+                    ["closed", "Fechado", funnel.closed],
+                  ] as const
+                ).map(([key, label, n]) => {
+                  const max = Math.max(
+                    1,
+                    funnel.lead +
+                      funnel.qualifying +
+                      funnel.negotiating +
+                      funnel.support +
+                      funnel.closed
+                  );
+                  const pct = Math.round((n / max) * 100);
+                  return (
+                    <div key={key}>
+                      <div className="mb-1 flex justify-between text-xs font-medium text-[var(--df-text-secondary)]">
+                        <span>{label}</span>
+                        <span className="tabular-nums text-[var(--df-text-primary)]">{n}</span>
+                      </div>
+                      <div className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--df-bg-app)]">
+                        <div
+                          className="h-full rounded-full bg-[var(--df-brand-500)]/85"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </details>
+
+      <details
+        className="rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_50%,var(--df-bg-elevated))] open:pb-4"
+        data-testid="dashboard-ai-extra-event-metrics"
+      >
+        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-[var(--df-text-primary)] [&::-webkit-details-marker]:hidden">
+          {DASHBOARD_AI_EXTRA_EVENT_METRICS_SUMMARY}
+        </summary>
+        <div className="border-t df-border-brand px-4 pt-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {extraEventKpis.map((c) => (
+              <KpiCardEnhanced key={c.label} label={c.label} value={c.value} hint={c.hint} />
+            ))}
           </div>
         </div>
-      ) : null}
+      </details>
 
       {isEmpty ? (
         <StateEmpty
@@ -489,29 +488,6 @@ export function DashboardAiClient() {
             </Link>
           }
         />
-      ) : null}
-
-      {!isEmpty ? (
-        <div className="rounded-xl border df-border-brand bg-gradient-to-br from-[var(--df-bg-app)] to-[var(--df-bg-elevated)] p-6 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--df-border-dark)_80%,transparent)]">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Resumo</h2>
-          <ul className="mt-4 space-y-3 text-base text-[var(--df-text-primary)]">
-            <li>
-              <span className="font-semibold text-[var(--df-brand-700)]">
-                {automation != null ? `${automation}%` : "—"}
-              </span>{" "}
-              dos eventos registados foram respostas automáticas bem concluídas (no período).
-            </li>
-            <li>
-              <span className="font-semibold text-[var(--df-text-primary)]">{humanish}</span> eventos indicam conversas que
-              não seguiram só com resposta automática (bloqueio do guard, fallback de LLM ou erro).
-            </li>
-          </ul>
-          <p className="mt-3 text-xs text-[var(--df-text-muted)]">
-            Percentagens de fallback e erro vs. total:{" "}
-            {metrics.fallbackPercent != null ? `${metrics.fallbackPercent}%` : "—"} fallback ·{" "}
-            {metrics.errorPercent != null ? `${metrics.errorPercent}%` : "—"} erros
-          </p>
-        </div>
       ) : null}
 
       <section className="min-w-0">
