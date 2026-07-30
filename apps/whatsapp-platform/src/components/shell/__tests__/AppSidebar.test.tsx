@@ -7,6 +7,7 @@ import {
   DF_NAV_SENSITIVE_SECTION,
   DF_NAV_SENSITIVE_SECTION_TITLE,
 } from "../nav-sensitive-classes";
+import { navPlatformItemsForRole } from "../nav-config";
 
 const pathnameMock = vi.hoisted(() => ({ value: "/inbox" }));
 const sessionRoleMock = vi.hoisted(() => ({
@@ -112,5 +113,26 @@ describe("AppSidebar (expandida a11y + home)", () => {
     expect(metrics.className).toMatch(/--df-brand-/);
     expect(metrics.className).not.toContain(DF_NAV_SENSITIVE_IDLE);
     expect(metrics.className).not.toMatch(/\bamber-/);
+  });
+
+  it("SB-8: expandida lista exactamente as platformOnly (paridade com navPlatformItemsForRole)", () => {
+    sessionRoleMock.role = "platform_admin";
+    render(<AppSidebar />);
+
+    const expected = navPlatformItemsForRole("platform_admin");
+    expect(expected.length).toBeGreaterThan(0);
+
+    for (const item of expected) {
+      const links = document.querySelectorAll(`aside[data-testid="app-sidebar"] a[href="${item.href}"]`);
+      expect(links).toHaveLength(1);
+      expect(links[0]?.textContent).toBe(item.label);
+    }
+  });
+
+  it("SB-8: manager não vê Plataforma nem rotas /admin/*", () => {
+    sessionRoleMock.role = "manager";
+    render(<AppSidebar />);
+    expect(screen.queryByTestId("sidebar-sensitive-section-plataforma")).not.toBeInTheDocument();
+    expect(document.querySelector('a[href="/admin/metrics"]')).toBeNull();
   });
 });

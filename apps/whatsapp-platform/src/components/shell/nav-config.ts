@@ -79,6 +79,17 @@ export function navTeamItemsForRole(role: UserRole | string | null): NavItem[] {
   return [navItem("/agents")];
 }
 
+/**
+ * 5. Plataforma — rotas `platformOnly` em `ROUTE_META` (ordem de definição).
+ * Fail-closed: só `platform_admin`; role null / outros → [].
+ */
+export function navPlatformItemsForRole(role: UserRole | string | null): NavItem[] {
+  if (!role || !isPlatformAdmin(role)) return [];
+  return Object.entries(ROUTE_META)
+    .filter(([, meta]) => meta.platformOnly === true)
+    .map(([href]) => navItem(href));
+}
+
 /** Compat: lista «principal» antiga (dashboard, inbox, histórico, automações — sem filas). */
 export const NAV_PRIMARY: NavItem[] = [
   navItem("/dashboard"),

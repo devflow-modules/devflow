@@ -7,6 +7,7 @@ import {
   navAccountItemsForRole,
   navAutomationItemsForRole,
   navOperationItemsForRole,
+  navPlatformItemsForRole,
   navTeamItemsForRole,
 } from "../nav-config";
 import { DF_NAV_SENSITIVE_IDLE } from "../nav-sensitive-classes";
@@ -39,10 +40,7 @@ vi.mock("next/link", () => ({
 function renderRail(role: UserRole | null, pathname = "/inbox") {
   const onExpand = vi.fn();
   const onNavigate = vi.fn();
-  const platformNav =
-    role === "platform_admin"
-      ? [{ href: "/admin/metrics", label: "Métricas internas" }]
-      : [];
+  const platformNav = navPlatformItemsForRole(role);
 
   render(
     <SidebarRail
@@ -58,7 +56,7 @@ function renderRail(role: UserRole | null, pathname = "/inbox") {
     />
   );
 
-  return { onExpand, onNavigate };
+  return { onExpand, onNavigate, platformNav };
 }
 
 describe("SidebarRail", () => {
@@ -153,5 +151,23 @@ describe("SidebarRail", () => {
     expect(active!.className).toMatch(/--df-brand-/);
     expect(active!.className).not.toContain(DF_NAV_SENSITIVE_IDLE);
     expect(active!.className).not.toMatch(/\bamber-/);
+  });
+
+  it("SB-8: rail recebe o mesmo platformNav canónico (todas as platformOnly, uma vez)", () => {
+    const { platformNav } = renderRail("platform_admin");
+    const expected = navPlatformItemsForRole("platform_admin");
+    expect(platformNav).toEqual(expected);
+    expect(platformNav.map((i) => i.href)).toEqual([
+      "/admin/metrics",
+      "/admin/billing",
+      "/admin/affiliates",
+      "/admin/tenants",
+      "/admin/agents",
+      "/admin/conversations",
+      "/admin/whatsapp",
+    ]);
+    for (const item of expected) {
+      expect(document.querySelector(`a[href="${item.href}"]`)).toBeTruthy();
+    }
   });
 });

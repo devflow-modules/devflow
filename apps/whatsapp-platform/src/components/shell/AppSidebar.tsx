@@ -11,12 +11,12 @@ import {
   navAccountItemsForRole,
   navAutomationItemsForRole,
   navOperationItemsForRole,
+  navPlatformItemsForRole,
   navTeamItemsForRole,
-  type NavItem,
 } from "./nav-config";
 import { ROUTE_META } from "@/lib/navigation/nav-matrix";
 import { navIsActive } from "@/lib/navigation/nav-active";
-import { isPlatformAdmin, shellHomeHref, showDistribuirInShellNav } from "@/lib/roles";
+import { shellHomeHref, showDistribuirInShellNav } from "@/lib/roles";
 import { SessionRoleModePill } from "./SessionRoleModePill";
 import { useShellLayoutOptional } from "./ShellLayoutContext";
 import { SidebarRail } from "./SidebarRail";
@@ -134,22 +134,10 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const automationNav = useMemo(() => navAutomationItemsForRole(sessionRole), [sessionRole]);
   const accountNav = useMemo(() => navAccountItemsForRole(sessionRole), [sessionRole]);
   const teamNav = useMemo(() => navTeamItemsForRole(sessionRole), [sessionRole]);
+  const platformNav = useMemo(() => navPlatformItemsForRole(sessionRole), [sessionRole]);
 
   /** Microcopy do grupo Operação — rotina operacional, não arquitetura. */
   const operacaoSubtitle = "Atendimento, fila e rotina diária";
-
-  const platformNav: NavItem[] = useMemo(() => {
-    if (!sessionRole || !isPlatformAdmin(sessionRole)) return [];
-    return [
-      { href: "/admin/metrics", label: ROUTE_META["/admin/metrics"].label },
-      { href: "/admin/billing", label: ROUTE_META["/admin/billing"].label },
-      { href: "/admin/affiliates", label: ROUTE_META["/admin/affiliates"].label },
-      { href: "/admin/tenants", label: ROUTE_META["/admin/tenants"].label },
-      { href: "/admin/agents", label: ROUTE_META["/admin/agents"].label },
-      { href: "/admin/conversations", label: ROUTE_META["/admin/conversations"].label },
-      { href: "/admin/whatsapp", label: ROUTE_META["/admin/whatsapp"].label },
-    ];
-  }, [sessionRole]);
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
