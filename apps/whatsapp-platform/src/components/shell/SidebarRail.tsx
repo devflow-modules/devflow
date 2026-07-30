@@ -8,6 +8,10 @@ import { shellHomeHref, showDistribuirInShellNav } from "@/lib/roles";
 import type { UserRole } from "@/modules/auth";
 import { useSupport } from "@/components/support/SupportProvider";
 import { Button } from "@/components/ui/button";
+import {
+  DF_NAV_SENSITIVE_DIVIDER_RAIL,
+  DF_NAV_SENSITIVE_IDLE,
+} from "./nav-sensitive-classes";
 
 function railLinkSensitive(href: string): boolean {
   return (
@@ -135,7 +139,7 @@ function RailNavLink({
         active
           ? "bg-[var(--df-brand-50)] text-[var(--df-brand-900)] ring-1 ring-[var(--df-brand-200)]/90 shadow-sm"
           : sensitive
-            ? "text-amber-200/95 hover:bg-amber-950/35"
+            ? DF_NAV_SENSITIVE_IDLE
             : "text-[var(--df-text-secondary)] hover:bg-[var(--df-brand-100)]/20 hover:text-[var(--df-text-primary)]"
       }`}
     >
@@ -237,7 +241,11 @@ export function SidebarRail({
         ) : null}
         {platformNav.length > 0 ? (
           <>
-            <div className="my-1 h-px w-6 bg-amber-500/40" aria-hidden />
+            <div
+              className={DF_NAV_SENSITIVE_DIVIDER_RAIL}
+              aria-hidden
+              data-testid="sidebar-rail-sensitive-divider"
+            />
             {platformNav.map((item) => (
               <RailNavLink key={item.href} item={item} pathname={pathname} onNavigate={onNavigate} />
             ))}
