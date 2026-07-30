@@ -1,11 +1,19 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { buttonClassName } from "@/components/ui/button";
 import { fetchProtected, protectedApiUserMessage } from "@/lib/protected-fetch";
+import { useSessionRole } from "@/components/navigation/SessionRoleContext";
 import type { SystemHealthSnapshot } from "@/modules/dashboard/systemHealthService";
 import type { SystemHealthSummary } from "@/modules/dashboard/buildSystemHealthSummary";
 import { Button } from "@/components/ui/button";
+import {
+  PLATFORM_REPROCESS_FOLLOWUPS_PATH,
+  PLATFORM_RUN_WORKER_PATH,
+  TENANT_OPERATIONS_PATH,
+  canManageTenantOperationalControls,
+  canRunPlatformOperationalJobs,
+} from "./systemHealthControls";
 
 function formatAgo(iso: string | null): string {
   if (!iso) return "—";
@@ -52,29 +60,43 @@ export function SystemHealthPanel({
   error: string | null;
   onRefresh: () => void;
 }) {
+  const { role, loading: roleLoading } = useSessionRole();
   const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [actionMsg, setActionMsg] = useState<string | null>(null);
+  const [actionTone, setActionTone] = useState<"success" | "error" | null>(null);
+  const inFlightRef = useRef(false);
+
+  const showTenantControls = canManageTenantOperationalControls(role, roleLoading);
+  const showPlatformJobs = canRunPlatformOperationalJobs(role, roleLoading);
+  const controlsBusy = actionBusy !== null;
 
   const patchOperations = useCallback(
     async (body: { aiEnabled?: boolean; automationEnabled?: boolean }) => {
+      if (inFlightRef.current) return;
+      inFlightRef.current = true;
       setActionBusy("patch");
       setActionMsg(null);
+      setActionTone(null);
       try {
-        const res = await fetchProtected("/api/admin/operations", {
+        const res = await fetchProtected(TENANT_OPERATIONS_PATH, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
         const j = (await res.json().catch(() => ({}))) as { success?: boolean; error?: string };
         if (!res.ok) {
+          setActionTone("error");
           setActionMsg(protectedApiUserMessage(res.status, j));
           return;
         }
+        setActionTone("success");
         setActionMsg("Alteração guardada.");
         onRefresh();
       } catch {
+        setActionTone("error");
         setActionMsg("Erro de rede");
       } finally {
+        inFlightRef.current = false;
         setActionBusy(null);
       }
     },
@@ -83,8 +105,11 @@ export function SystemHealthPanel({
 
   const postJson = useCallback(
     async (url: string, busyKey: string, body?: Record<string, unknown>) => {
+      if (inFlightRef.current) return;
+      inFlightRef.current = true;
       setActionBusy(busyKey);
       setActionMsg(null);
+      setActionTone(null);
       try {
         const res = await fetchProtected(url, {
           method: "POST",
@@ -97,14 +122,18 @@ export function SystemHealthPanel({
           error?: string;
         };
         if (!res.ok) {
+          setActionTone("error");
           setActionMsg(protectedApiUserMessage(res.status, j));
           return;
         }
+        setActionTone("success");
         setActionMsg("Pedido concluído.");
         onRefresh();
       } catch {
+        setActionTone("error");
         setActionMsg("Erro de rede");
       } finally {
+        inFlightRef.current = false;
         setActionBusy(null);
       }
     },
@@ -267,65 +296,100 @@ export function SystemHealthPanel({
         </div>
       ) : null}
 
-      <div className="rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_52%,var(--df-bg-elevated))] p-4">
-        <h2 className="text-xs font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Controles</h2>
-        <p className="mt-1 text-xs text-[var(--df-text-muted)]">
-          Pausas aplicam-se à automação; o inbox manual dos agentes continua disponível.
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Button variant="disabled"
-            type="button"
-            disabled={actionBusy !== null || !op.aiEnabled}
-            className={buttonClassName("secondary", "text-xs")}
-            onClick={() => void patchOperations({ aiEnabled: false })}
-          >
-            {actionBusy === "patch" ? "…" : "Pausar IA"}
-          </Button>
-          <Button variant="disabled"
-            type="button"
-            disabled={actionBusy !== null || op.aiEnabled}
-            className={buttonClassName("secondary", "text-xs")}
-            onClick={() => void patchOperations({ aiEnabled: true })}
-          >
-            {actionBusy === "patch" ? "…" : "Ativar IA"}
-          </Button>
-          <Button variant="disabled"
-            type="button"
-            disabled={actionBusy !== null || !op.automationEnabled}
-            className={buttonClassName("secondary", "text-xs")}
-            onClick={() => void patchOperations({ automationEnabled: false })}
-          >
-            Pausar automação
-          </Button>
-          <Button variant="disabled"
-            type="button"
-            disabled={actionBusy !== null || op.automationEnabled}
-            className={buttonClassName("secondary", "text-xs")}
-            onClick={() => void patchOperations({ automationEnabled: true })}
-          >
-            Ativar automação
-          </Button>
+      {showTenantControls || showPlatformJobs ? (
+        <div
+          className="rounded-xl border df-border-brand bg-[color-mix(in_srgb,var(--df-bg-app)_52%,var(--df-bg-elevated))] p-4"
+          data-testid="health-controls"
+          aria-busy={controlsBusy}
+        >
+          <h2 className="text-xs font-bold uppercase tracking-wide text-[var(--df-text-secondary)]">Controles</h2>
+          <p className="mt-1 text-xs text-[var(--df-text-muted)]">
+            Pausas aplicam-se à automação; o inbox manual dos agentes continua disponível.
+          </p>
+          {showTenantControls ? (
+            <div className="mt-3 flex flex-wrap gap-2" data-testid="health-tenant-controls">
+              <Button
+                variant="secondary"
+                type="button"
+                disabled={controlsBusy || !op.aiEnabled}
+                className={buttonClassName("secondary", "text-xs")}
+                data-testid="health-control-pause-ai"
+                onClick={() => void patchOperations({ aiEnabled: false })}
+              >
+                {actionBusy === "patch" && op.aiEnabled ? "A pausar…" : "Pausar IA"}
+              </Button>
+              <Button
+                variant="secondary"
+                type="button"
+                disabled={controlsBusy || op.aiEnabled}
+                className={buttonClassName("secondary", "text-xs")}
+                data-testid="health-control-resume-ai"
+                onClick={() => void patchOperations({ aiEnabled: true })}
+              >
+                {actionBusy === "patch" && !op.aiEnabled ? "A ativar…" : "Ativar IA"}
+              </Button>
+              <Button
+                variant="secondary"
+                type="button"
+                disabled={controlsBusy || !op.automationEnabled}
+                className={buttonClassName("secondary", "text-xs")}
+                data-testid="health-control-pause-automation"
+                onClick={() => void patchOperations({ automationEnabled: false })}
+              >
+                Pausar automação
+              </Button>
+              <Button
+                variant="secondary"
+                type="button"
+                disabled={controlsBusy || op.automationEnabled}
+                className={buttonClassName("secondary", "text-xs")}
+                data-testid="health-control-resume-automation"
+                onClick={() => void patchOperations({ automationEnabled: true })}
+              >
+                Ativar automação
+              </Button>
+            </div>
+          ) : null}
+          {showPlatformJobs ? (
+            <div
+              className={`flex flex-wrap gap-2 ${showTenantControls ? "mt-3 border-t df-border-brand pt-3" : "mt-3"}`}
+              data-testid="health-platform-controls"
+            >
+              <Button
+                variant="primary"
+                type="button"
+                disabled={controlsBusy}
+                className={buttonClassName("primary", "text-xs")}
+                data-testid="health-control-run-worker"
+                onClick={() => void postJson(PLATFORM_RUN_WORKER_PATH, "worker", { limit: 25 })}
+              >
+                {actionBusy === "worker" ? "A executar…" : "Rodar worker agora"}
+              </Button>
+              <Button
+                variant="secondary"
+                type="button"
+                disabled={controlsBusy}
+                className={buttonClassName("secondary", "text-xs")}
+                data-testid="health-control-reprocess"
+                onClick={() => void postJson(PLATFORM_REPROCESS_FOLLOWUPS_PATH, "reprocess")}
+              >
+                {actionBusy === "reprocess" ? "A reprocessar…" : "Reprocessar pendências"}
+              </Button>
+            </div>
+          ) : null}
+          {actionMsg ? (
+            <p
+              className={`mt-2 text-xs ${
+                actionTone === "error" ? "df-text-error" : "text-[var(--df-text-secondary)]"
+              }`}
+              data-testid="health-control-feedback"
+              role="status"
+            >
+              {actionMsg}
+            </p>
+          ) : null}
         </div>
-        <div className="mt-3 flex flex-wrap gap-2 border-t df-border-brand pt-3">
-          <Button variant="disabled"
-            type="button"
-            disabled={actionBusy !== null}
-            className={buttonClassName("primary", "text-xs")}
-            onClick={() => void postJson("/api/admin/run-worker", "worker", { limit: 25 })}
-          >
-            {actionBusy === "worker" ? "…" : "Rodar worker agora"}
-          </Button>
-          <Button variant="disabled"
-            type="button"
-            disabled={actionBusy !== null}
-            className={buttonClassName("secondary", "text-xs")}
-            onClick={() => void postJson("/api/admin/reprocess-followups", "reprocess")}
-          >
-            {actionBusy === "reprocess" ? "…" : "Reprocessar pendências"}
-          </Button>
-        </div>
-        {actionMsg ? <p className="mt-2 text-xs text-[var(--df-text-secondary)]">{actionMsg}</p> : null}
-      </div>
+      ) : null}
     </section>
   );
 }
