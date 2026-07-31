@@ -2,12 +2,20 @@ import {
   WhatsappPhoneNumberStatus,
   type WhatsappPhoneNumber,
 } from "@/generated/prisma-whatsapp";
+import { hasStoredLineAccessToken } from "./lineAccessToken";
 
 export function isWhatsappLineReadyForOutbound(row: {
   status: WhatsappPhoneNumberStatus;
   accessToken: string | null;
+  accessTokenEncrypted?: string | null;
 }): boolean {
-  return row.status === WhatsappPhoneNumberStatus.ACTIVE && Boolean(row.accessToken?.trim());
+  return (
+    row.status === WhatsappPhoneNumberStatus.ACTIVE &&
+    hasStoredLineAccessToken({
+      accessToken: row.accessToken,
+      accessTokenEncrypted: row.accessTokenEncrypted ?? null,
+    })
+  );
 }
 
 export function assertWhatsappPhoneNumberSendable(row: WhatsappPhoneNumber | null): void {

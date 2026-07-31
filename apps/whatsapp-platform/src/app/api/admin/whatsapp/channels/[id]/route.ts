@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getChannelAdminDetail } from "@/modules/whatsapp/channelActivationService";
 import { gatePlatformAdminOrProvisionSecret } from "@/lib/adminApiAuth";
 import { WhatsappChannelPurpose } from "@/generated/prisma-whatsapp";
+import { hasStoredLineAccessToken } from "@/modules/whatsapp/lineAccessToken";
 
 export const dynamic = "force-dynamic";
 
@@ -95,7 +96,7 @@ export async function PATCH(
       include: { tenant: { select: { name: true } } },
     });
 
-    const hasToken = Boolean(updated.accessToken?.trim());
+    const hasToken = hasStoredLineAccessToken(updated);
     const readyForOutbound = updated.status === "ACTIVE" && hasToken;
 
     return jsonSuccess(

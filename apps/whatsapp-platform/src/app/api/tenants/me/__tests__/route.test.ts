@@ -6,14 +6,26 @@ const mockPrisma = {
     findUnique: vi.fn(),
     update: vi.fn(),
   },
+  whatsappPhoneNumber: {
+    findUnique: vi.fn(),
+    upsert: vi.fn(),
+  },
 };
 
 const mockResolvePrimaryPhoneNumber = vi.fn();
+const mockValidateCreds = vi.fn();
+const mockEnsureOutbound = vi.fn();
 
 vi.mock("@/modules/auth", () => ({ getAuthFromRequest: (...args: unknown[]) => mockGetAuthFromRequest(...args) }));
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 vi.mock("@/modules/whatsapp/whatsappPhoneResolution", () => ({
   resolvePrimaryPhoneNumber: (...args: unknown[]) => mockResolvePrimaryPhoneNumber(...args),
+}));
+vi.mock("@/modules/whatsapp/validateWhatsappCloudCredentials", () => ({
+  validateWhatsappCloudCredentials: (...args: unknown[]) => mockValidateCreds(...args),
+}));
+vi.mock("@/modules/whatsapp/whatsappPhonePolicy", () => ({
+  ensureTenantHasPrimaryAndDefaultOutbound: (...args: unknown[]) => mockEnsureOutbound(...args),
 }));
 
 const tenantRow = {
@@ -184,5 +196,96 @@ describe("PATCH /api/tenants/me (aiDriver)", () => {
         data: expect.objectContaining({ aiDriver: "openAI" }),
       })
     );
+  });
+});
+
+const TEST_KEY_B64 = Buffer.alloc(32, 13).toString("base64");
+
+describe("PATCH /api/tenants/me (SEC-1a dual-write WhatsApp)", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.unstubAllEnvs();
+    vi.clearAllMocks();
+    process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY = TEST_KEY_B64;
+    process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY_ID = "tenants-me-k1";
+    process.env.WHATSAPP_SKIP_CLOUD_CREDENTIAL_VALIDATE = "1";
+    mockGetAuthFromRequest.mockResolvedValue({
+      payload: { tenantId: "t1", sub: "u1", email: "a@b.com", name: "User", role: "manager" },
+    });
+    mockPrisma.tenant.findUnique.mockResolvedValue(tenantRow);
+    mockPrisma.whatsappPhoneNumber.findUnique.mockResolvedValue(null);
+    mockPrisma.whatsappPhoneNumber.upsert.mockResolvedValue({ id: "w1" });
+    mockValidateCreds.mockResolvedValue({ ok: true, displayPhoneNumber: "+5511999999999" });
+    mockEnsureOutbound.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    delete process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY;
+    delete process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY_ID;
+    delete process.env.WHATSAPP_SKIP_CLOUD_CREDENTIAL_VALIDATE;
+    vi.unstubAllEnvs();
+  });
+
+  it("grava accessToken + accessTokenEncrypted no upsert Prisma", async () => {
+    const { PATCH } = await import("../route");
+    const { resolveLineAccessToken } = await import("@/modules/whatsapp/lineAccessToken");
+    const { loadTokenEncryptionKeyringFromEnv } = await import(
+      "@/lib/secrets/tokenEncryptionKeyring"
+    );
+
+    const req = new Request("http://localhost/api/tenants/me", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        phoneNumberId: "pn-sec1a",
+        accessToken: "1234567890abcdef",
+        displayPhoneNumber: "+5511999999999",
+      }),
+    });
+    const res = await PATCH(req as never);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body).not.toHaveProperty("accessToken");
+    expect(body).not.toHaveProperty("accessTokenEncrypted");
+
+    expect(mockPrisma.whatsappPhoneNumber.upsert).toHaveBeenCalledTimes(1);
+    const upsertArg = mockPrisma.whatsappPhoneNumber.upsert.mock.calls[0][0] as {
+      create: { accessToken: string; accessTokenEncrypted: string };
+      update: { accessToken: string; accessTokenEncrypted: string };
+    };
+    expect(upsertArg.create.accessToken).toBe("1234567890abcdef");
+    expect(upsertArg.create.accessTokenEncrypted).toMatch(/^dfwa1\./);
+    expect(upsertArg.update.accessToken).toBe("1234567890abcdef");
+    expect(upsertArg.update.accessTokenEncrypted).toMatch(/^dfwa1\./);
+
+    const ring = loadTokenEncryptionKeyringFromEnv();
+    const roundTrip = resolveLineAccessToken(
+      {
+        accessToken: upsertArg.create.accessToken,
+        accessTokenEncrypted: upsertArg.create.accessTokenEncrypted,
+      },
+      ring
+    );
+    expect(roundTrip.ok && roundTrip.token).toBe("1234567890abcdef");
+  });
+
+  it("sem chave de criptografia não chama upsert (sem plaintext isolado)", async () => {
+    delete process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY;
+    delete process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY_ID;
+    const { PATCH } = await import("../route");
+    const req = new Request("http://localhost/api/tenants/me", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        phoneNumberId: "pn-sec1a",
+        accessToken: "1234567890abcdef",
+      }),
+    });
+    const res = await PATCH(req as never);
+    expect(res.status).toBe(503);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.code).toBe("ENCRYPTION_KEY_MISSING");
+    expect(JSON.stringify(body)).not.toContain("1234567890abcdef");
+    expect(mockPrisma.whatsappPhoneNumber.upsert).not.toHaveBeenCalled();
   });
 });

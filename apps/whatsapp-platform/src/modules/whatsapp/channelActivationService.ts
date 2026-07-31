@@ -19,6 +19,7 @@ import {
   getLastEventsForChannelIds,
   type ChannelAlert,
 } from "@/modules/whatsapp/channelEventService";
+import { hasStoredLineAccessToken } from "@/modules/whatsapp/lineAccessToken";
 
 export type SlaStatus = "ok" | "delay" | "critical";
 
@@ -229,7 +230,7 @@ export async function getPendingChannels(options: {
       lastEvent,
       autoHealAttempts: row.autoHealAttempts,
       lastAutoHealAt: row.lastAutoHealAt ? new Date(row.lastAutoHealAt) : null,
-      hasStoredAccessToken: Boolean(raw?.accessToken?.trim()),
+      hasStoredAccessToken: raw ? hasStoredLineAccessToken(raw) : false,
     };
     const autoHealStatus = computeAutoHealStatus(autoHealEval);
     const autoHealCandidate = canAutoHeal(autoHealEval);
@@ -308,7 +309,7 @@ export async function getChannelAdminDetail(channelId: string): Promise<AdminCha
     lastEvent: lastEventPayload,
     autoHealAttempts: row.autoHealAttempts,
     lastAutoHealAt: row.lastAutoHealAt,
-    hasStoredAccessToken: Boolean(row.accessToken?.trim()),
+    hasStoredAccessToken: hasStoredLineAccessToken(row),
   };
   const autoHealStatus = computeAutoHealStatus(autoHealEval);
   const autoHealCandidate = canAutoHeal(autoHealEval);

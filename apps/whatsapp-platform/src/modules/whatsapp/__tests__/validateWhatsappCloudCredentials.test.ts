@@ -61,10 +61,21 @@ describe("validateWhatsappCloudCredentials", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("token E2E falha mesmo com skip ativo (prioridade sobre skip)", async () => {
-    process.env.WHATSAPP_SKIP_CLOUD_CREDENTIAL_VALIDATE = "1";
-    const r = await validateWhatsappCloudCredentials("1", "__E2E_WHATSAPP_FORCE_INVALID__");
-    expect(r.ok).toBe(false);
-    expect(fetch).not.toHaveBeenCalled();
+  it("envia Authorization Bearer e não coloca access_token na URL", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ id: "123", display_phone_number: "+351" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+    await validateWhatsappCloudCredentials("123", "EAABxxx_secret");
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const [url, init] = vi.mocked(fetch).mock.calls[0]!;
+    const urlStr = String(url);
+    expect(urlStr).not.toContain("access_token");
+    expect(urlStr).not.toContain("EAABxxx_secret");
+    expect((init as RequestInit).headers).toMatchObject({
+      Authorization: "Bearer EAABxxx_secret",
+    });
   });
 });

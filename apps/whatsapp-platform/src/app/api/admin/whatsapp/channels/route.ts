@@ -3,6 +3,7 @@ import { jsonError, jsonSuccess, newTraceId } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
 import { gatePlatformAdminOrProvisionSecret } from "@/lib/adminApiAuth";
 import type { WhatsappChannelPurpose } from "@/generated/prisma-whatsapp";
+import { hasStoredLineAccessToken } from "@/modules/whatsapp/lineAccessToken";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
     });
 
     const channels: AdminWhatsappChannelListItem[] = rows.map((r) => {
-      const hasToken = Boolean(r.accessToken?.trim());
+      const hasToken = hasStoredLineAccessToken(r);
       const readyForOutbound = r.status === "ACTIVE" && hasToken;
       return {
         id: r.id,
