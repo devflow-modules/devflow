@@ -54,7 +54,7 @@ export async function validateWhatsappCloudCredentials(
   }
 
   const base = `https://graph.facebook.com/${graphApiVersion()}`;
-  const url = `${base}/${encodeURIComponent(phoneNumberId)}?fields=id%2Cdisplay_phone_number&access_token=${encodeURIComponent(accessToken)}`;
+  const url = `${base}/${encodeURIComponent(phoneNumberId)}?fields=id%2Cdisplay_phone_number`;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 12_000);
@@ -63,7 +63,10 @@ export async function validateWhatsappCloudCredentials(
     const res = await fetch(url, {
       method: "GET",
       signal: controller.signal,
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${accessToken.trim()}`,
+      },
     });
     clearTimeout(timeout);
 

@@ -19,6 +19,7 @@ import {
   agentPromptInputFromConfigAndChannel,
   resolveEffectiveAutoReply,
 } from "@/modules/whatsapp/channelAiBehavior";
+import { hasStoredLineAccessToken } from "@/modules/whatsapp/lineAccessToken";
 import { resolveEffectiveDriver } from "./resolveAiRuntimeConfig";
 import {
   generateReply as generateOpenAiReply,
@@ -215,6 +216,7 @@ export async function checkTenantAiAutomationReady(
         select: {
           status: true,
           accessToken: true,
+          accessTokenEncrypted: true,
           autoReplyEnabled: true,
           aiProfileOverride: true,
         },
@@ -225,7 +227,7 @@ export async function checkTenantAiAutomationReady(
     if (
       !channelRow ||
       channelRow.status !== WhatsappPhoneNumberStatus.ACTIVE ||
-      !channelRow.accessToken?.trim()
+      !hasStoredLineAccessToken(channelRow)
     ) {
       return { ready: false, reason: "channel_not_active" };
     }

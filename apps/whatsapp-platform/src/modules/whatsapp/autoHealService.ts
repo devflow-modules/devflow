@@ -7,6 +7,10 @@ import {
 } from "@/modules/whatsapp/activationPlaybookService";
 import { logChannelEvent } from "@/modules/whatsapp/channelEventService";
 import { activateWhatsappChannel } from "@/modules/whatsapp/whatsappChannelLifecycle";
+import {
+  hasStoredLineAccessToken,
+  resolveLineAccessToken,
+} from "@/modules/whatsapp/lineAccessToken";
 
 export const AUTO_HEAL_MAX_ATTEMPTS = 2;
 
@@ -128,7 +132,7 @@ export async function attemptAutoHeal(channelId: string): Promise<void> {
     lastEvent,
     autoHealAttempts: row.autoHealAttempts,
     lastAutoHealAt: row.lastAutoHealAt,
-    hasStoredAccessToken: Boolean(row.accessToken?.trim()),
+    hasStoredAccessToken: hasStoredLineAccessToken(row),
   };
 
   if (!canAutoHeal(evalInput)) {
@@ -164,19 +168,22 @@ async function attemptTokenAutoHeal(row: {
   id: string;
   phoneNumberId: string;
   accessToken: string | null;
+  accessTokenEncrypted: string | null;
   autoHealAttempts: number;
 }): Promise<void> {
-  const token = row.accessToken?.trim();
-  if (!token) {
+  const resolved = resolveLineAccessToken(row);
+  if (!resolved.ok) {
     await logChannelEvent({
       channelId: row.id,
       type: "AUTO_HEAL_SKIPPED",
-      message: "Ignorado: sem token armazenado para repetir a validação automaticamente.",
+      message: "Ignorado: sem token armazenado utilizável para repetir a validação automaticamente.",
       metadata: { reason: "no_stored_token", errorType: "TOKEN_INVALID" },
     });
     shouldLogSkipped("no token", { channelId: row.id });
     return;
   }
+
+  const token = resolved.token;
 
   if (row.autoHealAttempts >= AUTO_HEAL_MAX_ATTEMPTS) return;
 

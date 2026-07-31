@@ -10,6 +10,8 @@ import { resolvePrimaryPhoneNumber } from "@/modules/whatsapp/whatsappPhoneResol
 import { ensureTenantHasPrimaryAndDefaultOutbound } from "@/modules/whatsapp/whatsappPhonePolicy";
 import { validateWhatsappCloudCredentials } from "@/modules/whatsapp/validateWhatsappCloudCredentials";
 import { sanitizeTenantMeGetPayload } from "@/modules/billing/billingSanitizer";
+import { buildDualWriteAccessTokenFields } from "@/modules/whatsapp/lineAccessToken";
+import { TokenEncryptionError } from "@/lib/secrets/tokenEncryption";
 
 const AI_DRIVERS = ["ruleBased", "openAI", "claude"] as const;
 
@@ -142,6 +144,19 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    let dualWrite: { accessToken: string; accessTokenEncrypted: string };
+    try {
+      dualWrite = buildDualWriteAccessTokenFields(accessToken);
+    } catch (e) {
+      if (e instanceof TokenEncryptionError) {
+        return NextResponse.json(
+          { error: e.message, code: e.code },
+          { status: 503 }
+        );
+      }
+      throw e;
+    }
+
     const displayFromForm = data.displayPhoneNumber?.trim() || null;
     const displayFromMeta =
       validation.ok && validation.displayPhoneNumber ? validation.displayPhoneNumber.trim() : null;
@@ -153,7 +168,8 @@ export async function PATCH(request: NextRequest) {
         tenantId: auth.payload.tenantId,
         phoneNumberId,
         displayPhoneNumber,
-        accessToken,
+        accessToken: dualWrite.accessToken,
+        accessTokenEncrypted: dualWrite.accessTokenEncrypted,
         status: WhatsappPhoneNumberStatus.ACTIVE,
       },
       update: {
@@ -162,7 +178,8 @@ export async function PATCH(request: NextRequest) {
           data.displayPhoneNumber !== undefined
             ? data.displayPhoneNumber.trim() || displayFromMeta || null
             : displayFromMeta ?? undefined,
-        accessToken,
+        accessToken: dualWrite.accessToken,
+        accessTokenEncrypted: dualWrite.accessTokenEncrypted,
         status: WhatsappPhoneNumberStatus.ACTIVE,
       },
     });

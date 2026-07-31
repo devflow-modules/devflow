@@ -26,6 +26,13 @@ describe("whatsappChannelGuards", () => {
         accessToken: "EAAG",
       })
     ).toBe(true);
+    expect(
+      isWhatsappLineReadyForOutbound({
+        status: WhatsappPhoneNumberStatus.ACTIVE,
+        accessToken: null,
+        accessTokenEncrypted: "dfwa1.k.a.b.c",
+      })
+    ).toBe(true);
   });
 
   it("assertWhatsappPhoneNumberSendable: CHANNEL_NOT_ACTIVE", () => {

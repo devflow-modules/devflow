@@ -8,6 +8,10 @@ import {
   type WhatsappPhoneNumber,
 } from "@/generated/prisma-whatsapp";
 import type { ResolvedTenant } from "./resolvedTenant";
+import {
+  hasStoredLineAccessToken,
+  resolveLineAccessToken,
+} from "./lineAccessToken";
 
 const CONNECTED_LINE_STATUSES: WhatsappPhoneNumberStatus[] = [
   WhatsappPhoneNumberStatus.ACTIVE,
@@ -47,18 +51,36 @@ export async function resolvePhoneNumberById(
   });
 }
 
+/**
+ * Maps a phone row to ResolvedTenant. Decrypts encrypted token in memory when present.
+ * Decrypt failure → accessToken null (fail-closed; never falls back to legacy plaintext).
+ */
 export function whatsappRowToResolvedTenant(
   tenantId: string,
   row: WhatsappPhoneNumber
 ): ResolvedTenant {
+  const resolved = resolveLineAccessToken(row);
   return {
     id: tenantId,
     phoneNumberId: row.phoneNumberId,
     displayPhoneNumber: row.displayPhoneNumber ?? "",
-    accessToken: row.accessToken,
+    accessToken: resolved.ok ? resolved.token : null,
     channelStatus: row.status,
     whatsappPhoneNumberId: row.id,
   };
+}
+
+function resolvedTenantIfSendable(
+  tenantId: string,
+  row: WhatsappPhoneNumber
+): ResolvedTenant | null {
+  if (!hasStoredLineAccessToken(row)) return null;
+  const tenant = whatsappRowToResolvedTenant(tenantId, row);
+  if (!tenant.accessToken?.trim()) {
+    // Encrypted present but unusable — fail-closed for outbound (do not use legacy plaintext).
+    return null;
+  }
+  return tenant;
 }
 
 /**
@@ -77,10 +99,13 @@ export async function resolveMessagingTenantForOutbound(
         status: WhatsappPhoneNumberStatus.ACTIVE,
       },
     });
-    if (wpn?.accessToken?.trim()) return whatsappRowToResolvedTenant(tenantId, wpn);
+    if (wpn) {
+      const resolved = resolvedTenantIfSendable(tenantId, wpn);
+      if (resolved) return resolved;
+    }
   }
   const def = await resolveDefaultOutboundPhone(tenantId);
-  if (def?.accessToken?.trim()) return whatsappRowToResolvedTenant(tenantId, def);
+  if (def) return resolvedTenantIfSendable(tenantId, def);
   return null;
 }
 

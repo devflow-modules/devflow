@@ -59,10 +59,21 @@ export async function POST(request: NextRequest) {
     );
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
+    const code = (e as Error & { code?: string }).code;
     if (msg === "CHANNEL_NOT_FOUND") {
       return jsonError("CHANNEL_NOT_FOUND", "Canal não encontrado.", 404, { traceId });
     }
-    const code = (e as Error & { code?: string }).code;
+    if (
+      code === "ENCRYPTION_KEY_MISSING" ||
+      code === "CREDENTIAL_ENCRYPT_FAILED"
+    ) {
+      return jsonError(
+        code,
+        "Não foi possível proteger a credencial. Verifique a configuração de criptografia.",
+        503,
+        { traceId }
+      );
+    }
     await logChannelEvent({
       channelId: parsed.data.channelId,
       type: "ERROR",
