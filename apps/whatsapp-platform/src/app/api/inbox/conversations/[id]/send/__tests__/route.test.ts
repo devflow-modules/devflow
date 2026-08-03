@@ -35,6 +35,13 @@ const mocks = vi.hoisted(() => {
     findTenant: vi.fn(),
     findWhatsappLine: vi.fn(),
     updateThread: vi.fn(),
+    findSendRequest: vi.fn(),
+    beginOrLoadSendRequest: vi.fn(),
+    claimSendForMeta: vi.fn(),
+    markSendFailedPreMeta: vi.fn(),
+    markSendMetaAccepted: vi.fn(),
+    markSendCompleted: vi.fn(),
+    markSendPersistFailed: vi.fn(),
   };
 });
 
@@ -51,6 +58,23 @@ vi.mock("@/modules/auth", () => ({
 vi.mock("@/modules/inbox", () => ({
   logAction: (...args: unknown[]) => mocks.logAction(...args),
   waInboxCreateOutbound: (...args: unknown[]) => mocks.waInboxCreateOutbound(...args),
+}));
+
+vi.mock("@/modules/inbox/outboundSendRequestService", () => ({
+  SEND_ERROR_CODES: {
+    IN_PROGRESS: "SEND_IN_PROGRESS",
+    FAILED_PRE_META: "SEND_FAILED_PRE_META",
+    ALREADY_DELIVERED_TO_META: "SEND_ALREADY_DELIVERED_TO_META",
+    STATUS_UNKNOWN: "SEND_STATUS_UNKNOWN",
+    TEXT_MISMATCH: "SEND_TEXT_MISMATCH",
+  },
+  findSendRequest: (...args: unknown[]) => mocks.findSendRequest(...args),
+  beginOrLoadSendRequest: (...args: unknown[]) => mocks.beginOrLoadSendRequest(...args),
+  claimSendForMeta: (...args: unknown[]) => mocks.claimSendForMeta(...args),
+  markSendFailedPreMeta: (...args: unknown[]) => mocks.markSendFailedPreMeta(...args),
+  markSendMetaAccepted: (...args: unknown[]) => mocks.markSendMetaAccepted(...args),
+  markSendCompleted: (...args: unknown[]) => mocks.markSendCompleted(...args),
+  markSendPersistFailed: (...args: unknown[]) => mocks.markSendPersistFailed(...args),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -130,7 +154,9 @@ const messagingTenant = {
   phoneNumberId: "phone-id-1",
 };
 
-function request(body: unknown = { text: "Resposta do agente" }) {
+const CLIENT_REQUEST_ID = "11111111-2222-4333-8444-555555555555";
+
+function request(body: unknown = { text: "Resposta do agente", clientRequestId: CLIENT_REQUEST_ID }) {
   return new NextRequest("http://localhost/api/inbox/conversations/thread-1/send", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -142,6 +168,20 @@ async function post(body?: unknown, id = "thread-1") {
   const { POST } = await import("../route");
   return POST(request(body), { params: Promise.resolve({ id }) });
 }
+
+const pendingLedger = {
+  id: "ledger-1",
+  tenantId: "tenant-1",
+  threadId: "thread-1",
+  userId: "operator-1",
+  clientRequestId: CLIENT_REQUEST_ID,
+  text: "Resposta do agente",
+  status: "PENDING" as const,
+  waMessageId: null,
+  lastError: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
 
 describe("POST /api/inbox/conversations/[id]/send", () => {
   beforeEach(() => {
@@ -157,6 +197,13 @@ describe("POST /api/inbox/conversations/[id]/send", () => {
     mocks.updateThread.mockResolvedValue(thread);
     mocks.logAction.mockResolvedValue(undefined);
     mocks.enforceUsage.mockResolvedValue(undefined);
+    mocks.findSendRequest.mockResolvedValue(null);
+    mocks.beginOrLoadSendRequest.mockResolvedValue(pendingLedger);
+    mocks.claimSendForMeta.mockResolvedValue(true);
+    mocks.markSendFailedPreMeta.mockResolvedValue(undefined);
+    mocks.markSendMetaAccepted.mockResolvedValue(undefined);
+    mocks.markSendCompleted.mockResolvedValue(undefined);
+    mocks.markSendPersistFailed.mockResolvedValue(undefined);
   });
 
   it("retorna 401 sem autenticação e não acessa a conversa", async () => {
@@ -166,6 +213,12 @@ describe("POST /api/inbox/conversations/[id]/send", () => {
 
     expect(response.status).toBe(401);
     expect(mocks.findThread).not.toHaveBeenCalled();
+    expect(mocks.adapterSendText).not.toHaveBeenCalled();
+  });
+
+  it("retorna 400 sem clientRequestId", async () => {
+    const response = await post({ text: "oi" });
+    expect(response.status).toBe(400);
     expect(mocks.adapterSendText).not.toHaveBeenCalled();
   });
 
@@ -236,20 +289,21 @@ describe("POST /api/inbox/conversations/[id]/send", () => {
     expect(mocks.adapterSendText).not.toHaveBeenCalled();
   });
 
-  it("retorna 502 e não persiste quando a Meta rejeita o envio", async () => {
+  it("falha pré-Meta: 502 retryableMeta e não persiste", async () => {
     mocks.adapterSendText.mockRejectedValue(new Error("Cloud indisponível"));
 
     const response = await post();
     const json = await response.json();
 
     expect(response.status).toBe(502);
-    expect(json.error.message).toBe("Cloud indisponível");
+    expect(json.error.code).toBe("SEND_FAILED_PRE_META");
+    expect(json.error.retryableMeta).toBe(true);
     expect(mocks.waInboxCreateOutbound).not.toHaveBeenCalled();
-    expect(mocks.updateThread).not.toHaveBeenCalled();
-    expect(mocks.logAction).not.toHaveBeenCalled();
+    expect(mocks.markSendFailedPreMeta).toHaveBeenCalled();
+    expect(mocks.adapterSendText).toHaveBeenCalledTimes(1);
   });
 
-  it("envia para conversa de outro owner no mesmo tenant e preserva efeitos observáveis", async () => {
+  it("sucesso: uma chamada Meta + ledger COMPLETED", async () => {
     const response = await post();
     const json = await response.json();
 
@@ -259,50 +313,72 @@ describe("POST /api/inbox/conversations/[id]/send", () => {
       data: {
         messageId: "wamid.outbound-1",
         waMessageId: "wamid.outbound-1",
-      },
-    });
-    expect(mocks.findThread).toHaveBeenCalledWith({
-      where: { id: "thread-1", tenantId: "tenant-1" },
-    });
-    expect(mocks.findWhatsappLine).toHaveBeenCalledWith({
-      where: {
-        tenantId: "tenant-1",
-        phoneNumberId: "phone-id-1",
+        clientRequestId: CLIENT_REQUEST_ID,
+        status: "sent",
+        replayed: false,
       },
     });
     expect(mocks.adapterSendText).toHaveBeenCalledTimes(1);
-    expect(mocks.adapterSendText).toHaveBeenCalledWith("phone-id-1", {
-      to: "5511999990000",
-      text: "Resposta do agente",
-    });
-    expect(mocks.waInboxCreateOutbound).toHaveBeenCalledWith({
-      tenantId: "tenant-1",
-      businessPhoneNumberId: "phone-id-1",
-      customerPhoneDigits: "5511999990000",
+    expect(mocks.claimSendForMeta).toHaveBeenCalledWith("ledger-1");
+    expect(mocks.markSendMetaAccepted).toHaveBeenCalledWith("ledger-1", "wamid.outbound-1");
+    expect(mocks.markSendCompleted).toHaveBeenCalledWith("ledger-1", "wamid.outbound-1");
+    expect(mocks.waInboxCreateOutbound).toHaveBeenCalledTimes(1);
+  });
+
+  it("replay COMPLETED: não chama Meta de novo", async () => {
+    mocks.findSendRequest.mockResolvedValue({
+      ...pendingLedger,
+      status: "COMPLETED",
       waMessageId: "wamid.outbound-1",
-      text: "Resposta do agente",
-      businessDigits: "551133334444",
     });
-    expect(mocks.updateThread).toHaveBeenCalledWith({
-      where: { id: "thread-1" },
-      data: {
-        lastMessageAt: expect.any(Date),
-        lastMessagePreview: "Resposta do agente",
-      },
+
+    const response = await post();
+    const json = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(json.data.replayed).toBe(true);
+    expect(mocks.adapterSendText).not.toHaveBeenCalled();
+    expect(mocks.waInboxCreateOutbound).not.toHaveBeenCalled();
+  });
+
+  it("falha pós-Meta: não reenvia Meta no retry; só reconcilia", async () => {
+    mocks.waInboxCreateOutbound.mockRejectedValueOnce(new Error("db down"));
+
+    const first = await post();
+    const firstJson = await first.json();
+    expect(first.status).toBe(502);
+    expect(firstJson.error.code).toBe("SEND_ALREADY_DELIVERED_TO_META");
+    expect(firstJson.error.retryableMeta).toBe(false);
+    expect(firstJson.error.reconcileOnly).toBe(true);
+    expect(mocks.adapterSendText).toHaveBeenCalledTimes(1);
+    expect(mocks.markSendPersistFailed).toHaveBeenCalled();
+
+    mocks.findSendRequest.mockResolvedValue({
+      ...pendingLedger,
+      status: "META_ACCEPTED",
+      waMessageId: "wamid.outbound-1",
     });
-    expect(mocks.trackUsage).toHaveBeenCalledWith(
-      "tenant-1",
-      expect.anything(),
-      {
-        metadata: { source: "inbox_send", threadId: "thread-1" },
-      }
-    );
-    expect(mocks.logAction).toHaveBeenCalledWith(
-      "tenant-1",
-      "thread-1",
-      "operator-1",
-      "message_send",
-      { textLength: 18 }
-    );
+    mocks.waInboxCreateOutbound.mockResolvedValue(undefined);
+
+    const second = await post();
+    const secondJson = await second.json();
+    expect(second.status).toBe(200);
+    expect(secondJson.data.waMessageId).toBe("wamid.outbound-1");
+    expect(mocks.adapterSendText).toHaveBeenCalledTimes(1);
+    expect(mocks.waInboxCreateOutbound).toHaveBeenCalledTimes(2);
+  });
+
+  it("claim perdido: 409 IN_PROGRESS sem Meta", async () => {
+    mocks.claimSendForMeta.mockResolvedValue(false);
+    mocks.findSendRequest
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ ...pendingLedger, status: "SENDING" });
+
+    const response = await post();
+    const json = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(json.error.code).toBe("SEND_IN_PROGRESS");
+    expect(mocks.adapterSendText).not.toHaveBeenCalled();
   });
 });

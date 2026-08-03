@@ -54,9 +54,18 @@ describe("Inbox UI", () => {
           });
         }
         if (url.includes("/api/inbox/conversations/") && url.includes("/send") && init?.method === "POST") {
+          const body = JSON.parse(String(init.body ?? "{}")) as { clientRequestId?: string };
           return Promise.resolve({
             ok: true,
-            json: async () => ({ success: true }),
+            json: async () => ({
+              success: true,
+              data: {
+                waMessageId: "wamid.default-send",
+                clientRequestId: body.clientRequestId ?? "cr-default",
+                status: "sent",
+                replayed: false,
+              },
+            }),
           } as Response);
         }
         if (url.includes("/api/inbox/tags")) {
@@ -804,7 +813,15 @@ describe("Inbox UI", () => {
     resolveSend?.({
       ok: true,
       status: 200,
-      json: async () => ({ success: true }),
+      json: async () => ({
+        success: true,
+        data: {
+          waMessageId: "wamid.ok",
+          clientRequestId: "cr-test",
+          status: "sent",
+          replayed: false,
+        },
+      }),
     } as Response);
     await waitFor(() => {
       expect(screen.getByTestId("send-button")).toHaveTextContent("Enviar");
@@ -812,28 +829,47 @@ describe("Inbox UI", () => {
     });
   });
 
-  it("MessageInput reverte optimistic, preserva texto e retry envia uma única vez", async () => {
+  it("MessageInput reverte optimistic, preserva texto e retry reutiliza clientRequestId", async () => {
     const user = userEvent.setup();
     const originalFetch = vi.mocked(fetch).getMockImplementation();
     let sendRequests = 0;
+    const clientRequestIds: string[] = [];
     vi.mocked(fetch).mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.includes("/send") && init?.method === "POST") {
         sendRequests += 1;
+        const body = JSON.parse(String(init.body ?? "{}")) as {
+          text?: string;
+          clientRequestId?: string;
+        };
+        if (body.clientRequestId) clientRequestIds.push(body.clientRequestId);
         if (sendRequests === 1) {
           return Promise.resolve({
             ok: false,
             status: 502,
             json: async () => ({
               success: false,
-              error: { message: "Cloud indisponível" },
+              error: {
+                code: "SEND_FAILED_PRE_META",
+                message: "Cloud indisponível",
+                clientRequestId: body.clientRequestId,
+                retryableMeta: true,
+              },
             }),
           } as Response);
         }
         return Promise.resolve({
           ok: true,
           status: 200,
-          json: async () => ({ success: true }),
+          json: async () => ({
+            success: true,
+            data: {
+              waMessageId: "wamid.retry-ok",
+              clientRequestId: body.clientRequestId,
+              status: "sent",
+              replayed: false,
+            },
+          }),
         } as Response);
       }
       return originalFetch!(input, init);
@@ -863,20 +899,84 @@ describe("Inbox UI", () => {
     await user.type(textarea, "Resposta preservada");
     await user.click(screen.getByTestId("send-button"));
 
-    expect(await screen.findByText("Não enviámos a mensagem.")).toBeInTheDocument();
+    expect(await screen.findByTestId("send-status-failed")).toBeInTheDocument();
+    expect(screen.getByText("Não enviámos a mensagem.")).toBeInTheDocument();
     expect(textarea).toHaveValue("Resposta preservada");
     expect(queryClient.getQueryData(INBOX_QK.messages("thread-1"))).toEqual([
       existingMessage,
     ]);
     expect(sendRequests).toBe(1);
 
-    await user.click(screen.getByRole("button", { name: "Tentar novamente" }));
+    await user.click(screen.getByTestId("send-retry"));
 
     await waitFor(() => {
       expect(sendRequests).toBe(2);
-      expect(screen.queryByText("Não enviámos a mensagem.")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("send-status-failed")).not.toBeInTheDocument();
       expect(textarea).toHaveValue("");
     });
+    expect(clientRequestIds).toHaveLength(2);
+    expect(clientRequestIds[0]).toBe(clientRequestIds[1]);
+  });
+
+  it("MessageInput pós-Meta: reconcile sem novo clientRequestId e sem rotular como não enviado", async () => {
+    const user = userEvent.setup();
+    const originalFetch = vi.mocked(fetch).getMockImplementation();
+    let sendRequests = 0;
+    const clientRequestIds: string[] = [];
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/send") && init?.method === "POST") {
+        sendRequests += 1;
+        const body = JSON.parse(String(init.body ?? "{}")) as { clientRequestId?: string };
+        if (body.clientRequestId) clientRequestIds.push(body.clientRequestId);
+        if (sendRequests === 1) {
+          return Promise.resolve({
+            ok: false,
+            status: 502,
+            json: async () => ({
+              success: false,
+              error: {
+                code: "SEND_ALREADY_DELIVERED_TO_META",
+                message: "sync fail",
+                waMessageId: "wamid.meta-1",
+                clientRequestId: body.clientRequestId,
+                retryableMeta: false,
+                reconcileOnly: true,
+              },
+            }),
+          } as Response);
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            success: true,
+            data: {
+              waMessageId: "wamid.meta-1",
+              clientRequestId: body.clientRequestId,
+              status: "sent",
+              replayed: false,
+            },
+          }),
+        } as Response);
+      }
+      return originalFetch!(input, init);
+    });
+
+    render(<MessageInput threadId="thread-1" thread={null} />, { wrapper: createWrapper() });
+    const textarea = await screen.findByPlaceholderText("Escreva a mensagem…");
+    await user.type(textarea, "Já na Meta");
+    await user.click(screen.getByTestId("send-button"));
+
+    const failed = await screen.findByTestId("send-status-failed");
+    expect(failed).toHaveAttribute("data-failure-kind", "reconcile");
+    expect(screen.queryByText("Não enviámos a mensagem.")).not.toBeInTheDocument();
+    await user.click(screen.getByTestId("send-reconcile"));
+    await waitFor(() => {
+      expect(sendRequests).toBe(2);
+      expect(screen.queryByTestId("send-status-failed")).not.toBeInTheDocument();
+    });
+    expect(clientRequestIds[0]).toBe(clientRequestIds[1]);
   });
 
   it("MessageBubble outbound mostra status read", () => {

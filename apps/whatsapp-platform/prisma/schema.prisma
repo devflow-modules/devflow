@@ -137,6 +137,7 @@ model Tenant {
   waInboxTags          WaInboxTag[]
   waInboxAuditLogs     WaInboxAuditLog[]
   waInboxInternalNotes WaInboxInternalNote[]
+  waInboxSendRequests  WaInboxSendRequest[]
   waAutomationRules    WaAutomationRule[]
   waAutomationPlaybooks WaAutomationPlaybook[]
   aiAgentConfig        AiAgentConfig?
@@ -712,6 +713,34 @@ model WaInboxInternalNote {
 
   @@index([tenantId, threadId, createdAt(sort: Desc)])
   @@map("wa_inbox_internal_notes")
+}
+
+/** Ledger de envio humano com clientRequestId — evita reenvio Meta em retry pós-aceitação. */
+enum WaInboxSendRequestStatus {
+  PENDING
+  SENDING
+  META_ACCEPTED
+  COMPLETED
+  FAILED_PRE_META
+}
+
+model WaInboxSendRequest {
+  id              String                   @id @default(cuid())
+  tenantId        String                   @map("tenant_id")
+  threadId        String                   @map("thread_id")
+  userId          String                   @map("user_id")
+  clientRequestId String                   @map("client_request_id") @db.VarChar(128)
+  text            String                   @db.Text
+  status          WaInboxSendRequestStatus
+  waMessageId     String?                  @map("wa_message_id") @db.VarChar(256)
+  lastError       String?                  @map("last_error") @db.VarChar(2000)
+  createdAt       DateTime                 @default(now()) @map("created_at")
+  updatedAt       DateTime                 @updatedAt @map("updated_at")
+  tenant          Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, clientRequestId])
+  @@index([tenantId, threadId])
+  @@map("wa_inbox_send_requests")
 }
 
 model WaInboxMessage {
