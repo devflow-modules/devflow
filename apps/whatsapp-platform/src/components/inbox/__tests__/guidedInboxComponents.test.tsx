@@ -115,7 +115,9 @@ describe("guided inbox components", () => {
       updatedAt: new Date().toISOString(),
     };
     render(<OperatorSuggestion thread={thread} />);
-    expect(screen.getByTestId("operator-suggestion")).toBeInTheDocument();
+    const panel = screen.getByTestId("operator-suggestion");
+    expect(panel).toBeInTheDocument();
+    expect(panel.className).toContain("df-feedback-info");
     expect(screen.getByText(/Sugestão/)).toBeInTheDocument();
   });
 });

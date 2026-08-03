@@ -15,9 +15,9 @@ type AgentStatusBadgeProps = {
 };
 
 const SHELL_BY_PRESENCE: Record<OperationalPresence, string> = {
-  available: "border-emerald-200/85 bg-emerald-50/90 text-emerald-950",
-  busy: "border-red-200/85 bg-red-50/90 text-red-950",
-  offline: "border-border/90 bg-muted/90 df-text-secondary",
+  available: "df-badge-success !rounded-md !normal-case !tracking-normal",
+  busy: "df-badge-danger !rounded-md !normal-case !tracking-normal",
+  offline: "df-badge-muted !rounded-md !normal-case !tracking-normal",
 };
 
 /**
@@ -36,7 +36,7 @@ export function AgentStatusBadge({ status, density = "compact", className = "" }
 
   return (
     <span
-      className={`inline-flex max-w-full items-center truncate rounded-md border font-medium shadow-none ${shell} ${pad} ${className}`.trim()}
+      className={`inline-flex max-w-full items-center truncate font-medium shadow-none ${shell} ${pad} ${className}`.trim()}
       title={label}
     >
       <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${operationalStatusDotClass(presence)}`} aria-hidden />
