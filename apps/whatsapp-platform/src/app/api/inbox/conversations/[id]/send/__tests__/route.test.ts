@@ -381,4 +381,101 @@ describe("POST /api/inbox/conversations/[id]/send", () => {
     expect(json.error.code).toBe("SEND_IN_PROGRESS");
     expect(mocks.adapterSendText).not.toHaveBeenCalled();
   });
+
+  it("duas POSTs simultâneas com o mesmo clientRequestId: Meta exatamente 1×", async () => {
+    let claimed = false;
+    let ledgerStatus: "PENDING" | "SENDING" | "META_ACCEPTED" | "COMPLETED" = "PENDING";
+    let waMessageId: string | null = null;
+    let releaseMeta: (() => void) | undefined;
+    const metaGate = new Promise<void>((resolve) => {
+      releaseMeta = resolve;
+    });
+
+    mocks.findSendRequest.mockImplementation(async () => ({
+      ...pendingLedger,
+      status: ledgerStatus,
+      waMessageId,
+    }));
+    mocks.beginOrLoadSendRequest.mockImplementation(async () => ({
+      ...pendingLedger,
+      status: ledgerStatus === "SENDING" ? "PENDING" : ledgerStatus,
+      waMessageId,
+    }));
+    mocks.claimSendForMeta.mockImplementation(async () => {
+      if (claimed || (ledgerStatus !== "PENDING" && ledgerStatus !== "FAILED_PRE_META")) {
+        return false;
+      }
+      claimed = true;
+      ledgerStatus = "SENDING";
+      return true;
+    });
+    mocks.adapterSendText.mockImplementation(async () => {
+      await metaGate;
+      return { messageId: "wamid.outbound-1" };
+    });
+    mocks.markSendMetaAccepted.mockImplementation(async (_id: string, id: string) => {
+      waMessageId = id;
+      ledgerStatus = "META_ACCEPTED";
+    });
+    mocks.markSendCompleted.mockImplementation(async (_id: string, id: string) => {
+      waMessageId = id;
+      ledgerStatus = "COMPLETED";
+    });
+
+    const started = Promise.all([post(), post()]);
+    // Ambos entram no handler; o vencedor fica bloqueado na Meta até o perdedor concluir.
+    await vi.waitFor(() => {
+      expect(mocks.claimSendForMeta.mock.calls.length).toBeGreaterThanOrEqual(1);
+    });
+    // Permite ao segundo request observar SENDING / claim perdido antes do COMPLETED.
+    await Promise.resolve();
+    await Promise.resolve();
+    releaseMeta!();
+
+    const [a, b] = await started;
+    const pair = [a.status, b.status].sort((x, y) => x - y);
+
+    expect(mocks.adapterSendText).toHaveBeenCalledTimes(1);
+    expect(pair).toEqual([200, 409]);
+    expect(ledgerStatus).toBe("COMPLETED");
+    const bodies = await Promise.all([a.json(), b.json()]);
+    const ok = bodies.find((j) => j.success === true);
+    const busy = bodies.find((j) => j.success === false);
+    expect(ok?.data.waMessageId).toBe("wamid.outbound-1");
+    expect(busy?.error.code).toBe("SEND_IN_PROGRESS");
+  });
+
+  it("META_ACCEPTED: retomada só reconcilia e não chama Meta", async () => {
+    mocks.findSendRequest.mockResolvedValue({
+      ...pendingLedger,
+      status: "META_ACCEPTED",
+      waMessageId: "wamid.already",
+    });
+
+    const response = await post();
+    const json = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(json.data.waMessageId).toBe("wamid.already");
+    expect(mocks.adapterSendText).not.toHaveBeenCalled();
+    expect(mocks.claimSendForMeta).not.toHaveBeenCalled();
+    expect(mocks.waInboxCreateOutbound).toHaveBeenCalledTimes(1);
+    expect(mocks.markSendCompleted).toHaveBeenCalledWith("ledger-1", "wamid.already");
+  });
+
+  it("SENDING abandonado: fail-closed 409 sem Meta (sem reclaim automático)", async () => {
+    mocks.findSendRequest.mockResolvedValue({
+      ...pendingLedger,
+      status: "SENDING",
+      waMessageId: null,
+    });
+
+    const response = await post();
+    const json = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(json.error.code).toBe("SEND_IN_PROGRESS");
+    expect(mocks.adapterSendText).not.toHaveBeenCalled();
+    expect(mocks.claimSendForMeta).not.toHaveBeenCalled();
+  });
 });

@@ -104,4 +104,31 @@ describe("outboundSendRequestService", () => {
       data: { status: "COMPLETED", waMessageId: "wamid.1", lastError: null },
     });
   });
+
+  it("claim CAS concorrente: exatamente um vencedor entre N callers", async () => {
+    const row = {
+      id: "ledger-race",
+      status: "PENDING" as string,
+      waMessageId: null as string | null,
+    };
+    mocks.updateMany.mockImplementation(async (args: {
+      where: { id: string; status: { in: string[] }; waMessageId: null };
+      data: { status: string };
+    }) => {
+      const eligible =
+        row.id === args.where.id &&
+        args.where.status.in.includes(row.status) &&
+        row.waMessageId === null;
+      if (!eligible) return { count: 0 };
+      row.status = args.data.status;
+      return { count: 1 };
+    });
+
+    const results = await Promise.all(
+      Array.from({ length: 32 }, () => claimSendForMeta("ledger-race"))
+    );
+
+    expect(results.filter(Boolean)).toHaveLength(1);
+    expect(row.status).toBe("SENDING");
+  });
 });
