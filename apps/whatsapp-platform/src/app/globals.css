@@ -1150,6 +1150,10 @@ html[data-theme="client_branded"] {
     background: rgb(16 185 129 / 0.88);
   }
 
+  .df-status-dot--busy {
+    background: rgb(248 113 113 / 0.88);
+  }
+
   .df-status-dot--muted {
     background: var(--df-text-muted);
   }

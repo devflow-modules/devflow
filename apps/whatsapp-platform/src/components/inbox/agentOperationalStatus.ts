@@ -18,14 +18,14 @@ export const OPERATIONAL_STATUS_LABEL: Record<OperationalPresence, string> = {
   offline: "Offline",
 };
 
-/** Classes do indicador (ponto) — verde / vermelho / cinza */
+/** Classes do indicador (ponto) — alinhadas a `.df-status-dot--*` em globals.css */
 export function operationalStatusDotClass(presence: OperationalPresence): string {
   switch (presence) {
     case "available":
-      return "bg-emerald-500 ring-1 ring-emerald-600/20";
+      return "df-status-dot--ok";
     case "busy":
-      return "bg-red-500 ring-1 ring-red-600/25";
+      return "df-status-dot--busy";
     default:
-      return "bg-muted-foreground/35 ring-1 ring-black/20";
+      return "df-status-dot--muted";
   }
 }

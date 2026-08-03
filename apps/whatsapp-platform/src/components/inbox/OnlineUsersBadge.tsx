@@ -18,12 +18,12 @@ export function OnlineUsersBadge() {
 
   return (
     <span
-      className="flex items-center gap-1 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] text-emerald-700"
+      className="df-badge-success inline-flex items-center gap-1 !px-1.5 !py-0.5 !text-[10px] !font-medium !normal-case !tracking-normal"
       title={userList.map((u) => u.name || u.userId).join(", ")}
       data-testid="inbox-online-users-badge"
     >
-      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-      {userList.length} {userList.length === 1 ? "online" : "online"}
+      <span className="h-1.5 w-1.5 shrink-0 rounded-full df-status-dot--ok" aria-hidden />
+      {userList.length} online
     </span>
   );
 }
