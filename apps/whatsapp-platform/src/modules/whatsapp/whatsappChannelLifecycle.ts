@@ -5,7 +5,7 @@ import { logChannelEvent } from "@/modules/whatsapp/channelEventService";
 import { validateWhatsappCloudCredentials } from "@/modules/whatsapp/validateWhatsappCloudCredentials";
 import { ensureTenantHasPrimaryAndDefaultOutbound } from "@/modules/whatsapp/whatsappPhonePolicy";
 import {
-  buildDualWriteAccessTokenFields,
+  buildEncryptedAccessTokenFields,
   hasStoredLineAccessToken,
 } from "@/modules/whatsapp/lineAccessToken";
 import { TokenEncryptionError } from "@/lib/secrets/tokenEncryption";
@@ -60,7 +60,7 @@ export async function createWhatsappChannelManual(
           phoneNumberId,
           displayPhoneNumber: data.phone.trim(),
           wabaId: data.wabaId.trim(),
-          accessToken: null,
+          accessTokenEncrypted: null,
           status: WhatsappPhoneNumberStatus.PENDING_ACTIVATION,
           isPrimary: false,
           isDefaultOutbound: false,
@@ -114,9 +114,9 @@ export async function activateWhatsappChannel(
     throw err;
   }
 
-  let dualWrite: { accessToken: string; accessTokenEncrypted: string };
+  let encryptedFields: { accessTokenEncrypted: string };
   try {
-    dualWrite = buildDualWriteAccessTokenFields(token);
+    encryptedFields = buildEncryptedAccessTokenFields(token);
   } catch (e) {
     if (e instanceof TokenEncryptionError) {
       const err = new Error(e.message);
@@ -139,8 +139,7 @@ export async function activateWhatsappChannel(
   const updated = await prisma.whatsappPhoneNumber.update({
     where: { id: row.id },
     data: {
-      accessToken: dualWrite.accessToken,
-      accessTokenEncrypted: dualWrite.accessTokenEncrypted,
+      accessTokenEncrypted: encryptedFields.accessTokenEncrypted,
       status: WhatsappPhoneNumberStatus.ACTIVE,
       displayPhoneNumber: display ?? row.displayPhoneNumber,
       ...(row.activatedAt == null ? { activatedAt: new Date() } : {}),

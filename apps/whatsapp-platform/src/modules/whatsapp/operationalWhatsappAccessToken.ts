@@ -4,7 +4,7 @@
  * ## Quando usar
  * Cenários como webhook único, scripts ou integrações que não passam pelo OAuth do utilizador final.
  * O tráfego normal do produto costuma usar o token **por linha** em
- * `WhatsappPhoneNumber` (`accessToken` legado + `accessTokenEncrypted` SEC-1a; dual-read via `resolveLineAccessToken`).
+ * `WhatsappPhoneNumber` (`accessTokenEncrypted` SEC-1-final; decrypt via `resolveLineAccessToken`).
  *
  * ## O que NUNCA fazer
  * Não chamar {@link getOperationalWhatsappAccessTokenFromEnv} (nem qualquer token vindo só do env)

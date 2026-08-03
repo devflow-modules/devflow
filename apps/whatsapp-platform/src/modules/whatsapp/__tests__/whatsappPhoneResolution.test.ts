@@ -1,5 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
+import {
+  TOKEN_ENCRYPTION_KEY_BYTES,
+  encryptSecret,
+} from "@/lib/secrets/tokenEncryption";
+import { loadTokenEncryptionKeyringFromEnv } from "@/lib/secrets/tokenEncryptionKeyring";
+
+const TEST_KEY_B64 = Buffer.alloc(TOKEN_ENCRYPTION_KEY_BYTES, 19).toString("base64");
 
 const mockFindFirst = vi.fn();
 const mockFindUnique = vi.fn();
@@ -13,9 +20,22 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
+function enc(token: string): string {
+  const ring = loadTokenEncryptionKeyringFromEnv();
+  if (!ring) throw new Error("test keyring missing");
+  return encryptSecret(token, ring);
+}
+
 describe("whatsappPhoneResolution", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY = TEST_KEY_B64;
+    process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY_ID = "resolution-k1";
+  });
+
+  afterEach(() => {
+    delete process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY;
+    delete process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY_ID;
   });
 
   it("resolvePrimaryPhoneNumber usa isPrimary + ACTIVE ou PENDING_ACTIVATION", async () => {
@@ -23,7 +43,7 @@ describe("whatsappPhoneResolution", () => {
       id: "w1",
       tenantId: "t1",
       phoneNumberId: "pn1",
-      accessToken: "tok",
+      accessTokenEncrypted: enc("tok"),
       isPrimary: true,
       status: WhatsappPhoneNumberStatus.ACTIVE,
     });
@@ -48,7 +68,7 @@ describe("whatsappPhoneResolution", () => {
       id: "w2",
       tenantId: "t1",
       phoneNumberId: "pn-def",
-      accessToken: "tok",
+      accessTokenEncrypted: enc("tok"),
       isDefaultOutbound: true,
       status: WhatsappPhoneNumberStatus.ACTIVE,
     });
@@ -63,12 +83,13 @@ describe("whatsappPhoneResolution", () => {
       tenantId: "t1",
       phoneNumberId: "pn-conv",
       displayPhoneNumber: "+1",
-      accessToken: "tok",
+      accessTokenEncrypted: enc("tok"),
       status: WhatsappPhoneNumberStatus.ACTIVE,
     });
     const { resolveMessagingTenantForOutbound } = await import("../whatsappPhoneResolution");
     const r = await resolveMessagingTenantForOutbound("t1", "pn-conv");
     expect(r?.phoneNumberId).toBe("pn-conv");
+    expect(r?.accessToken).toBe("tok");
     expect(mockFindFirst).toHaveBeenCalledTimes(1);
   });
 
@@ -80,7 +101,7 @@ describe("whatsappPhoneResolution", () => {
         tenantId: "t1",
         phoneNumberId: "pn-default",
         displayPhoneNumber: "",
-        accessToken: "tok2",
+        accessTokenEncrypted: enc("tok2"),
         status: WhatsappPhoneNumberStatus.ACTIVE,
         isDefaultOutbound: true,
       });
@@ -95,7 +116,7 @@ describe("whatsappPhoneResolution", () => {
       id: "w5",
       tenantId: "t9",
       phoneNumberId: "meta-99",
-      accessToken: "t",
+      accessTokenEncrypted: enc("t"),
       status: WhatsappPhoneNumberStatus.ACTIVE,
     });
     const { resolvePhoneNumberById } = await import("../whatsappPhoneResolution");

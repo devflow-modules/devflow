@@ -1,46 +1,40 @@
-import { describe, it, expect } from "vitest";
-import type { WhatsappPhoneNumber } from "@/generated/prisma-whatsapp";
+import { describe, expect, it } from "vitest";
+import { isWhatsappLineReadyForOutbound } from "../whatsappChannelGuards";
 import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
-import {
-  assertWhatsappPhoneNumberSendable,
-  isWhatsappLineReadyForOutbound,
-} from "../whatsappChannelGuards";
 
-describe("whatsappChannelGuards", () => {
-  it("isWhatsappLineReadyForOutbound: só ACTIVE com token", () => {
+describe("isWhatsappLineReadyForOutbound", () => {
+  it("false quando inactive", () => {
     expect(
       isWhatsappLineReadyForOutbound({
         status: WhatsappPhoneNumberStatus.PENDING_ACTIVATION,
-        accessToken: null,
+        accessTokenEncrypted: null,
       })
     ).toBe(false);
+  });
+
+  it("false quando ACTIVE sem encrypted", () => {
     expect(
       isWhatsappLineReadyForOutbound({
         status: WhatsappPhoneNumberStatus.ACTIVE,
-        accessToken: "  ",
+        accessTokenEncrypted: "  ",
       })
     ).toBe(false);
+  });
+
+  it("true quando ACTIVE com encrypted", () => {
     expect(
       isWhatsappLineReadyForOutbound({
         status: WhatsappPhoneNumberStatus.ACTIVE,
-        accessToken: "EAAG",
-      })
-    ).toBe(true);
-    expect(
-      isWhatsappLineReadyForOutbound({
-        status: WhatsappPhoneNumberStatus.ACTIVE,
-        accessToken: null,
         accessTokenEncrypted: "dfwa1.k.a.b.c",
       })
     ).toBe(true);
   });
 
-  it("assertWhatsappPhoneNumberSendable: CHANNEL_NOT_ACTIVE", () => {
-    expect(() =>
-      assertWhatsappPhoneNumberSendable({
-        status: WhatsappPhoneNumberStatus.PENDING_ACTIVATION,
-        accessToken: null,
-      } as WhatsappPhoneNumber)
-    ).toThrowError("CHANNEL_NOT_ACTIVE");
+  it("false quando ACTIVE só com campo ausente", () => {
+    expect(
+      isWhatsappLineReadyForOutbound({
+        status: WhatsappPhoneNumberStatus.ACTIVE,
+      })
+    ).toBe(false);
   });
 });

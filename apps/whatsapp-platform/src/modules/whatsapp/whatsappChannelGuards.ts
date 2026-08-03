@@ -6,13 +6,11 @@ import { hasStoredLineAccessToken } from "./lineAccessToken";
 
 export function isWhatsappLineReadyForOutbound(row: {
   status: WhatsappPhoneNumberStatus;
-  accessToken: string | null;
   accessTokenEncrypted?: string | null;
 }): boolean {
   return (
     row.status === WhatsappPhoneNumberStatus.ACTIVE &&
     hasStoredLineAccessToken({
-      accessToken: row.accessToken,
       accessTokenEncrypted: row.accessTokenEncrypted ?? null,
     })
   );

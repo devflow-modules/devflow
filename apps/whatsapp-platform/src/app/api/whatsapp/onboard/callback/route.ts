@@ -11,7 +11,7 @@ import { exchangeCodeAndFetchPhoneNumbers } from "@/modules/whatsapp/embeddedSig
 import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
 import { logChannelEvent } from "@/modules/whatsapp/channelEventService";
 import { ensureTenantHasPrimaryAndDefaultOutbound } from "@/modules/whatsapp/whatsappPhonePolicy";
-import { buildDualWriteAccessTokenFields } from "@/modules/whatsapp/lineAccessToken";
+import { buildEncryptedAccessTokenFields } from "@/modules/whatsapp/lineAccessToken";
 import { TokenEncryptionError } from "@/lib/secrets/tokenEncryption";
 
 export const dynamic = "force-dynamic";
@@ -72,9 +72,9 @@ export async function POST(request: NextRequest) {
     const created: string[] = [];
 
     for (const pn of phoneNumbers) {
-      let dualWrite: { accessToken: string; accessTokenEncrypted: string };
+      let encryptedFields: { accessTokenEncrypted: string };
       try {
-        dualWrite = buildDualWriteAccessTokenFields(pn.accessToken);
+        encryptedFields = buildEncryptedAccessTokenFields(pn.accessToken);
       } catch (e) {
         if (e instanceof TokenEncryptionError) {
           return NextResponse.json(
@@ -99,8 +99,7 @@ export async function POST(request: NextRequest) {
         await prisma.whatsappPhoneNumber.update({
           where: { id: existing.id },
           data: {
-            accessToken: dualWrite.accessToken,
-            accessTokenEncrypted: dualWrite.accessTokenEncrypted,
+            accessTokenEncrypted: encryptedFields.accessTokenEncrypted,
             displayPhoneNumber: pn.displayPhoneNumber,
             wabaId: pn.wabaId,
             businessId: pn.businessId,
@@ -128,8 +127,7 @@ export async function POST(request: NextRequest) {
             phoneNumberId: pn.phoneNumberId,
             displayPhoneNumber: pn.displayPhoneNumber,
             wabaId: pn.wabaId,
-            accessToken: dualWrite.accessToken,
-            accessTokenEncrypted: dualWrite.accessTokenEncrypted,
+            accessTokenEncrypted: encryptedFields.accessTokenEncrypted,
             businessId: pn.businessId,
             status: WhatsappPhoneNumberStatus.ACTIVE,
             activatedAt: new Date(),
