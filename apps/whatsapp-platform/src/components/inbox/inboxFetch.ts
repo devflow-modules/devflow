@@ -375,15 +375,45 @@ export async function fetchInboxAuditLog(threadId: string): Promise<
   return json.data.logs ?? [];
 }
 
-export async function sendInboxMessage(threadId: string, text: string): Promise<void> {
+export type SendInboxMessageResult = {
+  waMessageId: string;
+  clientRequestId: string;
+  status: "sent";
+  replayed: boolean;
+};
+
+export type SendInboxMessageError = Error & {
+  code?: string;
+  status?: number;
+  waMessageId?: string;
+  clientRequestId?: string;
+  retryableMeta?: boolean;
+  reconcileOnly?: boolean;
+};
+
+export async function sendInboxMessage(
+  threadId: string,
+  text: string,
+  clientRequestId: string
+): Promise<SendInboxMessageResult> {
   const res = await fetchProtected(`/api/inbox/conversations/${encodeURIComponent(threadId)}/send`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, clientRequestId }),
   });
   if (!res.ok) {
     const j = (await res.json().catch(() => ({}))) as {
-      error?: string | { message?: string; code?: string; upgradeRequired?: boolean };
+      error?:
+        | string
+        | {
+            message?: string;
+            code?: string;
+            upgradeRequired?: boolean;
+            waMessageId?: string;
+            clientRequestId?: string;
+            retryableMeta?: boolean;
+            reconcileOnly?: boolean;
+          };
       message?: string;
       code?: string;
     };
@@ -414,14 +444,52 @@ export async function sendInboxMessage(threadId: string, text: string): Promise<
       }
       throw new Error(msg ?? `Erro ${res.status}`);
     }
+    const nested =
+      j.error && typeof j.error === "object"
+        ? (j.error as {
+            message?: string;
+            code?: string;
+            waMessageId?: string;
+            clientRequestId?: string;
+            retryableMeta?: boolean;
+            reconcileOnly?: boolean;
+          })
+        : null;
     const msg =
       typeof j.error === "string"
         ? j.error
-        : j.error && typeof j.error === "object" && "message" in j.error
-          ? String(j.error.message)
+        : nested?.message
+          ? String(nested.message)
           : `Erro ${res.status}`;
-    throw new Error(msg);
+    const err = new Error(msg) as SendInboxMessageError;
+    err.status = res.status;
+    err.code = nested?.code;
+    err.waMessageId = nested?.waMessageId;
+    err.clientRequestId = nested?.clientRequestId ?? clientRequestId;
+    err.retryableMeta = nested?.retryableMeta;
+    err.reconcileOnly = nested?.reconcileOnly;
+    throw err;
   }
+  const json = (await res.json()) as {
+    success: boolean;
+    data?: {
+      waMessageId?: string;
+      messageId?: string;
+      clientRequestId?: string;
+      status?: string;
+      replayed?: boolean;
+    };
+  };
+  const waMessageId = json.data?.waMessageId ?? json.data?.messageId;
+  if (!json.success || !waMessageId) {
+    throw new Error("Resposta inválida ao enviar mensagem");
+  }
+  return {
+    waMessageId,
+    clientRequestId: json.data?.clientRequestId ?? clientRequestId,
+    status: "sent",
+    replayed: Boolean(json.data?.replayed),
+  };
 }
 
 export type InboxQueueOption = {

@@ -8,6 +8,7 @@ import {
   logFollowUpUse,
   fetchTenantWhatsappLines,
   isWhatsappOutboundEnabledForThread,
+  type SendInboxMessageError,
 } from "./inboxFetch";
 import { INBOX_QK, type WaInboxMessageRow, type WaInboxThreadRow } from "./inboxTypes";
 import { buttonClassName } from "@/components/ui/button";
@@ -19,6 +20,15 @@ import { InboxComposerTextField, type InboxComposerHandle } from "./InboxCompose
 import { Button } from "@/components/ui/button";
 
 const OUTBOUND_LOCKED_HINT = "Disponível após ativação do número";
+
+type SendFailureKind = "pre_meta" | "reconcile" | "unknown";
+
+function newClientRequestId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `cr-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
 
 const QUICK_TEMPLATES: { label: string; text: string }[] = [
   { label: "Saudação", text: "Olá! Obrigado pelo contacto. Como posso ajudar?" },
@@ -52,6 +62,9 @@ function MessageInputInner({
   showMobileQuickBar?: boolean;
 }) {
   const [retryText, setRetryText] = useState<string | null>(null);
+  const [activeClientRequestId, setActiveClientRequestId] = useState<string | null>(null);
+  const [failureKind, setFailureKind] = useState<SendFailureKind | null>(null);
+  const [failureMessage, setFailureMessage] = useState<string | null>(null);
   const [aiPreview, setAiPreview] = useState<string | null>(null);
   const [assistPanel, setAssistPanel] = useState<AssistPanel>(null);
   const qc = useQueryClient();
@@ -86,13 +99,23 @@ function MessageInputInner({
   });
 
   const mutation = useMutation({
-    mutationFn: ({ tid, body }: { tid: string; body: string }) =>
-      sendInboxMessage(tid, body),
-    onMutate: async ({ tid, body }) => {
+    mutationFn: ({
+      tid,
+      body,
+      clientRequestId,
+    }: {
+      tid: string;
+      body: string;
+      clientRequestId: string;
+    }) => sendInboxMessage(tid, body, clientRequestId),
+    onMutate: async ({ tid, body, clientRequestId }) => {
+      setActiveClientRequestId(clientRequestId);
+      setFailureKind(null);
+      setFailureMessage(null);
       await qc.cancelQueries({ queryKey: INBOX_QK.messages(tid) });
       const prev = qc.getQueryData<WaInboxMessageRow[]>(INBOX_QK.messages(tid));
       const optimistic: WaInboxMessageRow = {
-        id: `optimistic-${Date.now()}`,
+        id: `optimistic-${clientRequestId}`,
         waMessageId: "pending",
         direction: "OUTBOUND",
         fromNumber: "",
@@ -101,7 +124,7 @@ function MessageInputInner({
         contentText: body,
         contentJson: null,
         ts: new Date().toISOString(),
-        status: "SENT",
+        status: "PENDING",
         errorCode: null,
         errorMessage: null,
         createdAt: new Date().toISOString(),
@@ -112,11 +135,21 @@ function MessageInputInner({
       ]);
       return { prev, tid };
     },
-    onError: (_err, vars, ctx) => {
+    onError: (err, vars, ctx) => {
       if (ctx?.prev) {
         qc.setQueryData(INBOX_QK.messages(vars.tid), ctx.prev);
       }
       setRetryText(vars.body);
+      setActiveClientRequestId(vars.clientRequestId);
+      const sendErr = err as SendInboxMessageError;
+      if (sendErr.reconcileOnly || sendErr.code === "SEND_ALREADY_DELIVERED_TO_META") {
+        setFailureKind("reconcile");
+      } else if (sendErr.retryableMeta === false) {
+        setFailureKind("unknown");
+      } else {
+        setFailureKind("pre_meta");
+      }
+      setFailureMessage(sendErr.message || "Não foi possível confirmar o envio.");
     },
     onSettled: (_d, _e, vars) => {
       qc.invalidateQueries({ queryKey: INBOX_QK.messages(vars.tid) });
@@ -126,6 +159,9 @@ function MessageInputInner({
     onSuccess: () => {
       composerRef.current?.clear();
       setRetryText(null);
+      setActiveClientRequestId(null);
+      setFailureKind(null);
+      setFailureMessage(null);
       setAiPreview(null);
       setAssistPanel(null);
       markFirstReplySent();
@@ -137,10 +173,22 @@ function MessageInputInner({
   const handleComposerSend = useCallback(
     (body: string) => {
       if (!threadId) return;
-      sendMessage({ tid: threadId, body });
+      sendMessage({ tid: threadId, body, clientRequestId: newClientRequestId() });
     },
     [threadId, sendMessage]
   );
+
+  const handleRetrySameAttempt = useCallback(() => {
+    if (!threadId || !retryText || !activeClientRequestId) return;
+    mutation.reset();
+    sendMessage({ tid: threadId, body: retryText, clientRequestId: activeClientRequestId });
+  }, [threadId, retryText, activeClientRequestId, mutation, sendMessage]);
+
+  const handleForceNewAttempt = useCallback(() => {
+    if (!threadId || !retryText) return;
+    mutation.reset();
+    sendMessage({ tid: threadId, body: retryText, clientRequestId: newClientRequestId() });
+  }, [threadId, retryText, mutation, sendMessage]);
 
   const toggleAssist = useCallback((panel: Exclude<AssistPanel, null>) => {
     setAssistPanel((prev) => (prev === panel ? null : panel));
@@ -196,6 +244,9 @@ function MessageInputInner({
           : `${INBOX_CHAT_GUTTER_X} max-sm:pb-[max(0.75rem,env(safe-area-inset-bottom))] pb-3 pt-2.5 sm:pb-4 sm:pt-3`
       }`}
       data-testid="message-input"
+      data-send-state={
+        mutation.isPending ? "sending" : failureKind ? "failed" : mutation.isSuccess ? "sent" : "idle"
+      }
     >
       {composerLocked ? (
         <p
@@ -241,21 +292,58 @@ function MessageInputInner({
         </div>
       ) : null}
 
-      {mutation.isError ? (
-        <div className="df-feedback-danger mb-2 flex flex-wrap items-center gap-2" role="alert">
-          <span className="font-medium">Não enviámos a mensagem.</span>
-          {retryText ? (
+      {mutation.isPending ? (
+        <p className="df-feedback-info mb-2 rounded-lg px-3 py-2 text-xs" data-testid="send-status-sending">
+          A enviar…
+        </p>
+      ) : null}
+
+      {failureKind ? (
+        <div
+          className="df-feedback-danger mb-2 flex flex-wrap items-center gap-2"
+          role="alert"
+          data-testid="send-status-failed"
+          data-failure-kind={failureKind}
+        >
+          <span className="font-medium">
+            {failureKind === "reconcile"
+              ? "A Meta aceitou a mensagem, mas a sincronização falhou."
+              : failureKind === "unknown"
+                ? "Não confirmámos o resultado do envio."
+                : "Não enviámos a mensagem."}
+          </span>
+          {failureMessage ? <span className="text-xs opacity-90">{failureMessage}</span> : null}
+          {retryText && failureKind === "pre_meta" ? (
             <Button
               variant="secondary"
               type="button"
               className="font-semibold text-red-900 underline decoration-red-300 underline-offset-2 hover:decoration-red-800"
-              onClick={() => {
-                if (!threadId) return;
-                mutation.reset();
-                mutation.mutate({ tid: threadId, body: retryText });
-              }}
+              onClick={handleRetrySameAttempt}
+              data-testid="send-retry"
             >
               Tentar novamente
+            </Button>
+          ) : null}
+          {retryText && failureKind === "reconcile" ? (
+            <Button
+              variant="secondary"
+              type="button"
+              className="font-semibold text-red-900 underline decoration-red-300 underline-offset-2 hover:decoration-red-800"
+              onClick={handleRetrySameAttempt}
+              data-testid="send-reconcile"
+            >
+              Tentar sincronizar
+            </Button>
+          ) : null}
+          {retryText && failureKind === "unknown" ? (
+            <Button
+              variant="secondary"
+              type="button"
+              className="font-semibold text-red-900 underline decoration-red-300 underline-offset-2 hover:decoration-red-800"
+              onClick={handleForceNewAttempt}
+              data-testid="send-force-new"
+            >
+              Nova tentativa (só se tiver a certeza)
             </Button>
           ) : null}
         </div>
@@ -400,7 +488,11 @@ function MessageInputInner({
                       title={composerLocked ? OUTBOUND_LOCKED_HINT : undefined}
                       onClick={() => {
                         if (!threadId) return;
-                        mutation.mutate({ tid: threadId, body: aiPreview });
+                        mutation.mutate({
+                          tid: threadId,
+                          body: aiPreview,
+                          clientRequestId: newClientRequestId(),
+                        });
                       }}
                     >
                       Enviar direto

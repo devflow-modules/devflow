@@ -74,6 +74,17 @@ export {
   deleteInternalNote,
 } from "./internalNoteService";
 export type { InternalNoteDto } from "./internalNoteService";
+export {
+  SEND_ERROR_CODES,
+  findSendRequest,
+  beginOrLoadSendRequest,
+  claimSendForMeta,
+  markSendFailedPreMeta,
+  markSendMetaAccepted,
+  markSendCompleted,
+  markSendPersistFailed,
+} from "./outboundSendRequestService";
+export type { OutboundSendLedgerRow } from "./outboundSendRequestService";
 export { suggestInboxPlaybook } from "./inboxPlaybookService";
 export type { InboxPlaybookResult } from "./inboxPlaybookService";
 export { findNextUnassignedQueueThread, listPendingQueueThreads } from "./waInboxQueueService";
