@@ -384,7 +384,12 @@ describe("POST /api/inbox/conversations/[id]/send", () => {
 
   it("duas POSTs simultâneas com o mesmo clientRequestId: Meta exatamente 1×", async () => {
     let claimed = false;
-    let ledgerStatus: "PENDING" | "SENDING" | "META_ACCEPTED" | "COMPLETED" = "PENDING";
+    let ledgerStatus:
+      | "PENDING"
+      | "SENDING"
+      | "META_ACCEPTED"
+      | "COMPLETED"
+      | "FAILED_PRE_META" = "PENDING";
     let waMessageId: string | null = null;
     let releaseMeta: (() => void) | undefined;
     const metaGate = new Promise<void>((resolve) => {
