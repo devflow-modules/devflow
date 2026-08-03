@@ -41,7 +41,7 @@ vi.mock("@/modules/whatsapp/whatsappPhonePolicy", () => ({
   ensureTenantHasPrimaryAndDefaultOutbound: (...a: unknown[]) => mockEnsure(...a),
 }));
 
-describe("POST /api/whatsapp/onboard/callback SEC-1a dual-write", () => {
+describe("POST /api/whatsapp/onboard/callback SEC-1-final encrypt-only", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
@@ -71,7 +71,7 @@ describe("POST /api/whatsapp/onboard/callback SEC-1a dual-write", () => {
     delete process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY_ID;
   });
 
-  it("create grava accessToken + accessTokenEncrypted e resposta sem secrets", async () => {
+  it("create grava somente accessTokenEncrypted e resposta sem secrets", async () => {
     const { POST } = await import("../route");
     const { resolveLineAccessToken } = await import("@/modules/whatsapp/lineAccessToken");
     const { loadTokenEncryptionKeyringFromEnv } = await import(
@@ -92,21 +92,18 @@ describe("POST /api/whatsapp/onboard/callback SEC-1a dual-write", () => {
 
     expect(mockCreate).toHaveBeenCalledTimes(1);
     const data = mockCreate.mock.calls[0][0].data as {
-      accessToken: string;
       accessTokenEncrypted: string;
+      accessToken?: unknown;
     };
-    expect(data.accessToken).toBe("EAAG_ONBOARD_TOKEN_VALUE");
+    expect(data).not.toHaveProperty("accessToken");
     expect(data.accessTokenEncrypted).toMatch(/^dfwa1\./);
 
     const ring = loadTokenEncryptionKeyringFromEnv();
-    const rt = resolveLineAccessToken(
-      { accessToken: data.accessToken, accessTokenEncrypted: data.accessTokenEncrypted },
-      ring
-    );
+    const rt = resolveLineAccessToken({ accessTokenEncrypted: data.accessTokenEncrypted }, ring);
     expect(rt.ok && rt.token).toBe("EAAG_ONBOARD_TOKEN_VALUE");
   });
 
-  it("update existente substitui ambos os campos", async () => {
+  it("update existente substitui accessTokenEncrypted", async () => {
     mockFindUnique.mockResolvedValue({
       id: "existing",
       tenantId: "t1",
@@ -127,11 +124,12 @@ describe("POST /api/whatsapp/onboard/callback SEC-1a dual-write", () => {
       expect.objectContaining({
         where: { id: "existing" },
         data: expect.objectContaining({
-          accessToken: "EAAG_ONBOARD_TOKEN_VALUE",
           accessTokenEncrypted: expect.stringMatching(/^dfwa1\./),
         }),
       })
     );
+    const data = mockUpdate.mock.calls[0][0].data as Record<string, unknown>;
+    expect(data).not.toHaveProperty("accessToken");
     expect(mockCreate).not.toHaveBeenCalled();
   });
 

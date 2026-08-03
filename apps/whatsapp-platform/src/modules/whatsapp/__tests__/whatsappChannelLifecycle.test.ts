@@ -63,7 +63,7 @@ describe("whatsappChannelLifecycle — createWhatsappChannelManual", () => {
       tenantId: "t1",
       phoneNumberId: "pn1",
       status: WhatsappPhoneNumberStatus.PENDING_ACTIVATION,
-      accessToken: null,
+      accessTokenEncrypted: null,
     });
     mockUpdate.mockResolvedValue({ id: "row1", tenantId: "t1", phoneNumberId: "pn1" });
 

@@ -115,7 +115,7 @@ function mockAgentConfig(over: Record<string, unknown> = {}) {
 function setupReadyTenant() {
   mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValue({
     status: WhatsappPhoneNumberStatus.ACTIVE,
-    accessToken: "tok",
+    accessTokenEncrypted: "dfwa1.k.a.b.c",
     autoReplyEnabled: null,
     aiProfileOverride: null,
   });
@@ -160,7 +160,7 @@ describe("checkTenantAiAutomationReady", () => {
     });
     mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValue({
       status: WhatsappPhoneNumberStatus.ACTIVE,
-      accessToken: "tok",
+      accessTokenEncrypted: "dfwa1.k.a.b.c",
       autoReplyEnabled: null,
       aiProfileOverride: null,
     });
@@ -258,7 +258,7 @@ describe("checkTenantAiAutomationReady", () => {
     isOpenAiConfigured.mockReturnValue(true);
     mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValue({
       status: WhatsappPhoneNumberStatus.ACTIVE,
-      accessToken: "tok",
+      accessTokenEncrypted: "dfwa1.k.a.b.c",
       autoReplyEnabled: false,
       aiProfileOverride: null,
     });
@@ -277,7 +277,7 @@ describe("checkTenantAiAutomationReady", () => {
     isOpenAiConfigured.mockReturnValue(true);
     mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValue({
       status: WhatsappPhoneNumberStatus.ACTIVE,
-      accessToken: "tok",
+      accessTokenEncrypted: "dfwa1.k.a.b.c",
       autoReplyEnabled: null,
       aiProfileOverride: "Instrução só da linha.",
     });
@@ -335,7 +335,7 @@ describe("checkTenantAiAutomationReady", () => {
   it("rejeita canal em pending_activation", async () => {
     mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValueOnce({
       status: WhatsappPhoneNumberStatus.PENDING_ACTIVATION,
-      accessToken: null,
+      accessTokenEncrypted: null,
       autoReplyEnabled: null,
       aiProfileOverride: null,
     });
@@ -350,7 +350,7 @@ describe("runTenantAiAutoReply", () => {
     vi.clearAllMocks();
     mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValue({
       status: WhatsappPhoneNumberStatus.ACTIVE,
-      accessToken: "tok",
+      accessTokenEncrypted: "dfwa1.k.a.b.c",
       autoReplyEnabled: null,
       aiProfileOverride: null,
     });
@@ -376,7 +376,7 @@ describe("runTenantAiAutoReply", () => {
         id: "env",
         phoneNumberId: "x",
         displayPhoneNumber: "",
-        accessToken: "t",
+        accessToken: "tok",
         channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
       },
       message: { id: "m1", from: "5511", type: "text", text: { body: "oi" } } as never,
@@ -479,7 +479,7 @@ describe("runTenantAiAutoReply", () => {
         id: "t1",
         phoneNumberId: "p",
         displayPhoneNumber: "",
-        accessToken: "t",
+        accessToken: "tok",
         channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
       },
       message: { id: "same-wam", from: "5511", type: "text", text: { body: "x" } } as never,
@@ -530,7 +530,7 @@ describe("runTenantAiAutoReply", () => {
         id: "t1",
         phoneNumberId: "p",
         displayPhoneNumber: "",
-        accessToken: "t",
+        accessToken: "tok",
         channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
       },
       message: {
@@ -585,7 +585,7 @@ describe("runTenantAiAutoReply", () => {
         id: "t1",
         phoneNumberId: "p",
         displayPhoneNumber: "",
-        accessToken: "t",
+        accessToken: "tok",
         channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
       },
       message: {
@@ -657,7 +657,7 @@ describe("runTenantAiAutoReply", () => {
         id: "t1",
         phoneNumberId: "p",
         displayPhoneNumber: "",
-        accessToken: "t",
+        accessToken: "tok",
         channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
       },
       message: { id: "wam-err", from: "5511999999999", type: "text", text: { body: "?" } } as never,
@@ -687,7 +687,7 @@ describe("runTenantAiAutoReply", () => {
         id: "t1",
         phoneNumberId: "p",
         displayPhoneNumber: "",
-        accessToken: "t",
+        accessToken: "tok",
         channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
       },
       message: {
@@ -737,7 +737,7 @@ describe("runTenantAiAutoReply", () => {
         id: "t1",
         phoneNumberId: "p",
         displayPhoneNumber: "",
-        accessToken: "t",
+        accessToken: "tok",
         channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
       },
       message: {

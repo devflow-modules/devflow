@@ -215,7 +215,6 @@ export async function checkTenantAiAutomationReady(
         where: { tenantId, phoneNumberId: bizForLine },
         select: {
           status: true,
-          accessToken: true,
           accessTokenEncrypted: true,
           autoReplyEnabled: true,
           aiProfileOverride: true,

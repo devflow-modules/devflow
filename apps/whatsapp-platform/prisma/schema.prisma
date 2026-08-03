@@ -58,8 +58,7 @@ model WhatsappPhoneNumber {
   phoneNumberId       String                   @unique @map("phone_number_id")
   displayPhoneNumber  String?                  @map("display_phone_number")
   wabaId              String?                  @map("waba_id")
-  accessToken         String?                  @map("access_token")
-  /** AES-256-GCM payload (SEC-1a). Prefer over accessToken on read; dual-write keeps plaintext temporarily. */
+  /** AES-256-GCM payload (SEC-1-final). Null while PENDING_ACTIVATION without credential. */
   accessTokenEncrypted String?                 @map("access_token_encrypted") @db.Text
   businessId          String?                  @map("business_id")
   status              WhatsappPhoneNumberStatus @default(PENDING_ACTIVATION) @map("status")

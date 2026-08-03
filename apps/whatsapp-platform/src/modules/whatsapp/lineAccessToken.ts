@@ -1,8 +1,8 @@
 /**
- * Dual-read / dual-write helpers for WhatsAppPhoneNumber Meta access tokens (SEC-1a).
+ * Encrypt-only helpers for WhatsAppPhoneNumber Meta access tokens (SEC-1-final).
  *
- * Dual-write still stores plaintext temporarily for rollback compatibility — it does NOT
- * eliminate at-rest risk until SEC-1c/d remove the legacy field.
+ * Tokens at rest exist only as AES-256-GCM payloads in `accessTokenEncrypted`.
+ * There is no plaintext column and no legacy fallback.
  */
 
 import {
@@ -15,11 +15,10 @@ import {
 import { getTokenEncryptionKeyring } from "@/lib/secrets/tokenEncryptionKeyring";
 
 export type LineAccessTokenFields = {
-  accessToken: string | null;
   accessTokenEncrypted: string | null;
 };
 
-export type LineAccessTokenSource = "encrypted" | "legacy_plaintext";
+export type LineAccessTokenSource = "encrypted";
 
 export type ResolveLineAccessTokenSuccess = {
   ok: true;
@@ -43,59 +42,54 @@ export type ResolveLineAccessTokenResult =
 
 /** Presence check without decryption (safe for hasToken / admin lists). */
 export function hasStoredLineAccessToken(row: LineAccessTokenFields): boolean {
-  return Boolean(row.accessTokenEncrypted?.trim() || row.accessToken?.trim());
+  return Boolean(row.accessTokenEncrypted?.trim());
 }
 
 /**
- * Prefer encrypted payload. Fallback to plaintext ONLY when encrypted is absent.
- * If encrypted is present and decrypt fails → fail-closed (never fall back to plaintext).
+ * Decrypt stored credential. Missing encrypted → unavailable.
+ * Decrypt failure → fail-closed (no plaintext fallback).
  */
 export function resolveLineAccessToken(
   row: LineAccessTokenFields,
   keyring: TokenKeyring | null = getTokenEncryptionKeyring()
 ): ResolveLineAccessTokenResult {
   const encrypted = row.accessTokenEncrypted?.trim() || null;
-  const legacy = row.accessToken?.trim() || null;
 
-  if (encrypted) {
-    try {
-      const token = decryptSecret(encrypted, keyring);
-      if (!token.trim()) {
-        return { ok: false, code: "CREDENTIAL_DECRYPT_FAILED" };
+  if (!encrypted) {
+    return { ok: false, code: "CREDENTIAL_UNAVAILABLE" };
+  }
+
+  try {
+    const token = decryptSecret(encrypted, keyring);
+    if (!token.trim()) {
+      return { ok: false, code: "CREDENTIAL_DECRYPT_FAILED" };
+    }
+    return { ok: true, token, source: "encrypted" };
+  } catch (e) {
+    if (e instanceof TokenEncryptionError) {
+      if (e.code === "ENCRYPTION_KEY_MISSING") {
+        return { ok: false, code: "ENCRYPTION_KEY_MISSING" };
       }
-      return { ok: true, token, source: "encrypted" };
-    } catch (e) {
-      if (e instanceof TokenEncryptionError) {
-        if (e.code === "ENCRYPTION_KEY_MISSING") {
-          return { ok: false, code: "ENCRYPTION_KEY_MISSING" };
-        }
-        if (e.code === "UNSUPPORTED_CREDENTIAL_VERSION") {
-          return { ok: false, code: "UNSUPPORTED_CREDENTIAL_VERSION" };
-        }
-        if (e.code === "INVALID_ENCRYPTED_CREDENTIAL") {
-          return { ok: false, code: "INVALID_ENCRYPTED_CREDENTIAL" };
-        }
-        return { ok: false, code: "CREDENTIAL_DECRYPT_FAILED" };
+      if (e.code === "UNSUPPORTED_CREDENTIAL_VERSION") {
+        return { ok: false, code: "UNSUPPORTED_CREDENTIAL_VERSION" };
+      }
+      if (e.code === "INVALID_ENCRYPTED_CREDENTIAL") {
+        return { ok: false, code: "INVALID_ENCRYPTED_CREDENTIAL" };
       }
       return { ok: false, code: "CREDENTIAL_DECRYPT_FAILED" };
     }
+    return { ok: false, code: "CREDENTIAL_DECRYPT_FAILED" };
   }
-
-  if (legacy) {
-    return { ok: true, token: legacy, source: "legacy_plaintext" };
-  }
-
-  return { ok: false, code: "CREDENTIAL_UNAVAILABLE" };
 }
 
 /**
- * Dual-write fields for a new/replaced Meta access token.
- * Requires encryption keyring — fails closed without writing plaintext-only.
+ * Persist fields for a new/replaced Meta access token (encrypt-only).
+ * Requires encryption keyring — fails closed without writing plaintext.
  */
-export function buildDualWriteAccessTokenFields(
+export function buildEncryptedAccessTokenFields(
   plaintext: string,
   keyring: TokenKeyring | null = getTokenEncryptionKeyring()
-): { accessToken: string; accessTokenEncrypted: string } {
+): { accessTokenEncrypted: string } {
   const token = plaintext.trim();
   if (!token) {
     throw new TokenEncryptionError("CREDENTIAL_ENCRYPT_FAILED", "Access token is empty");
@@ -104,10 +98,7 @@ export function buildDualWriteAccessTokenFields(
   if (!isEncryptedSecret(accessTokenEncrypted)) {
     throw new TokenEncryptionError("CREDENTIAL_ENCRYPT_FAILED", "Encrypt produced invalid payload");
   }
-  return {
-    accessToken: token,
-    accessTokenEncrypted,
-  };
+  return { accessTokenEncrypted };
 }
 
 export function lineAccessTokenErrorMessage(code: ResolveLineAccessTokenFailure["code"]): string {

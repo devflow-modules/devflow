@@ -7,7 +7,7 @@ import { WaInboxThreadStatus, WhatsappPhoneNumberStatus } from "@/generated/pris
 
 const activeLineRow = {
   status: WhatsappPhoneNumberStatus.ACTIVE,
-  accessToken: "tok",
+  accessTokenEncrypted: "dfwa1.k.a.b.c",
 };
 
 const sendWebhookAutoReply = vi.hoisted(() =>

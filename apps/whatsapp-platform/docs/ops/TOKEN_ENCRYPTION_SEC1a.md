@@ -1,13 +1,13 @@
-# Token encryption at rest — SEC-1a
+# Token encryption at rest — SEC-1-final
 
-**Status:** implemented (foundation)
-**Scope:** dual-read + dual-write temporary; **no** production backfill; **no** plaintext null-out.
+**Status:** encrypt-only (plaintext column removed)
+**Scope:** AES-256-GCM at rest; no dual-read; no dual-write; no legacy `access_token`.
 
 ## Purpose
 
 Protect Meta access tokens stored on `WhatsappPhoneNumber` using AES-256-GCM in the application, with a key held outside the database.
 
-SEC-1a still **dual-writes plaintext** into `access_token` so an old deploy can roll back and keep sending. Dual-write does **not** end at-rest risk; it only enables a safe migration path.
+SEC-1-final **does not** store plaintext. New and replaced tokens write only `access_token_encrypted`. Rows without a credential (e.g. `PENDING_ACTIVATION`) keep `access_token_encrypted` **NULL**.
 
 ## Key format
 
@@ -38,55 +38,44 @@ Compact versioned payload:
 
 Stored in `whatsapp_phone_numbers.access_token_encrypted` (nullable).
 
-## Dual-read
+## Read / write
 
-1. If `access_token_encrypted` is present → decrypt; on failure **fail closed** (never fall back to plaintext).
-2. If encrypted is absent → use legacy `access_token`.
-3. If both absent → credential unavailable (same as before).
+1. Write: encrypt plaintext from the request/OAuth exchange → store only `access_token_encrypted`.
+2. Read: decrypt `access_token_encrypted`; on failure **fail closed**.
+3. Missing encrypted → credential unavailable.
+4. Presence checks (`hasToken`) use the encrypted field **without** decryption.
 
-Presence checks (`hasToken`) use either field **without** decryption.
-
-## Dual-write (temporary)
-
-Every new/replaced token write sets **both**:
-
-- `access_token_encrypted` = AES-GCM payload
-- `access_token` = plaintext (rollback compatibility)
-
-If encryption fails (missing/invalid key), the **entire write fails** — plaintext-only writes are not allowed in SEC-1a.
-
-Production must provision the encryption key **before** operators activate or connect new channels after this deploy.
+If encryption fails (missing/invalid key), the **entire write fails**.
 
 ## Behaviour without key
 
 | Operation | Behaviour |
 |-----------|-----------|
-| Read legacy plaintext rows | Works |
-| Read encrypted rows | Fail closed for that line (no Graph send) |
+| Read encrypted rows | Fail closed for that line |
 | New token write | Fail closed (`ENCRYPTION_KEY_MISSING`) |
-| App startup | Remains available (no fail-fast in SEC-1a) |
+| PENDING without credential | OK (`access_token_encrypted` null) |
+| App startup | Remains available (no fail-fast) |
 
 ## Invalid ciphertext
 
-Tampering, wrong key, unknown key id, or corrupt payload → decrypt error. Outbound for that line stops. Legacy plaintext on the same row is **ignored** when encrypted is present.
+Tampering, wrong key, unknown key id, or corrupt payload → decrypt error. Outbound for that line stops.
 
-## Rollback of SEC-1a deploy
+## Rollback notes
 
-1. Redeploy previous application version.
-2. Old code reads `access_token` only (still populated by dual-write).
-3. Leave `access_token_encrypted` column in place (ignored).
-4. Do **not** reverse the additive migration.
-5. Do **not** delete ciphertext or re-run data mutations.
+- Restoring an old deploy that expected `access_token` requires recreating that column (not a one-command rollback).
+- Prefer reconnecting channels via the application after restore.
+- Do **not** reverse additive history lightly; treat backup as emergency recovery.
 
-## Future sequence
+## Production cutover (wipe path)
 
-1. Provision encryption key in each environment.
-2. Deploy SEC-1a (this slice).
-3. Validate staging (activate + send with dual-write).
-4. Soak production.
-5. **SEC-1b:** backfill encrypt existing plaintext (idempotent batches; dry-run default).
-6. **SEC-1c:** stop writing plaintext.
-7. **SEC-1d:** null-out / drop legacy column after stability.
+When disposable connections may be discarded:
+
+1. Backup + inventory IDs/counts.
+2. Transactional wipe of phone rows and line-scoped inbox dependents.
+3. Deploy encrypt-only code + `DROP COLUMN access_token`.
+4. Reconnect one channel via the app; validate encrypted-only.
+
+There is **no** SEC-1b backfill on this path.
 
 ## Code map
 
@@ -94,7 +83,7 @@ Tampering, wrong key, unknown key id, or corrupt payload → decrypt error. Outb
 |---------|------|
 | Crypto | `src/lib/secrets/tokenEncryption.ts` |
 | Keyring env | `src/lib/secrets/tokenEncryptionKeyring.ts` |
-| Dual-read/write | `src/modules/whatsapp/lineAccessToken.ts` |
+| Encrypt-only helpers | `src/modules/whatsapp/lineAccessToken.ts` |
 | Writes | `whatsappChannelLifecycle`, `PATCH /api/tenants/me`, `onboard/callback` |
 | Reads | `whatsappPhoneResolution`, auto-heal, outbound via `ResolvedTenant` |
 

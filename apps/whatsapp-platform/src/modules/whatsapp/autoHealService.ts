@@ -167,7 +167,6 @@ export async function attemptAutoHeal(channelId: string): Promise<void> {
 async function attemptTokenAutoHeal(row: {
   id: string;
   phoneNumberId: string;
-  accessToken: string | null;
   accessTokenEncrypted: string | null;
   autoHealAttempts: number;
 }): Promise<void> {

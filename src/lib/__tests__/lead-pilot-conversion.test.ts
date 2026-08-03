@@ -67,7 +67,7 @@ describe("lead-pilot-conversion", () => {
     expect(note).not.toMatch(/accessToken/i);
   });
 
-  it("loadWhatsappPilotTenantSummary descarta accessToken do select", async () => {
+  it("loadWhatsappPilotTenantSummary não inclui credenciais de canal", async () => {
     mockWa.tenant.findUnique.mockResolvedValue({
       id: "tenant-1",
       name: "Piloto",
@@ -79,7 +79,6 @@ describe("lead-pilot-conversion", () => {
           wabaId: "waba-x",
           phoneNumberId: "pn-y",
           status: "ACTIVE",
-          accessToken: "EAA-secret-token",
         },
       ],
     });
@@ -93,7 +92,7 @@ describe("lead-pilot-conversion", () => {
       phoneNumberId: "pn-y",
       status: "ACTIVE",
     });
-    expect(JSON.stringify(result.tenant)).not.toContain("EAA-secret-token");
+    expect(JSON.stringify(result.tenant)).not.toMatch(/accessToken|access_token|dfwa1\./i);
   });
 
   it("convertLeadToWhatsappPilot associa convertedToRef e notes", async () => {

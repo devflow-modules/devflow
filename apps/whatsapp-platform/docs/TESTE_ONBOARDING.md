@@ -86,7 +86,7 @@ FROM whatsapp_phone_numbers
 ORDER BY created_at DESC;
 ```
 
-Esperado: `status = 'ACTIVE'`, `access_token` preenchido.
+Esperado: `status = 'ACTIVE'`, `access_token_encrypted` preenchido (sem coluna plaintext).
 
 ### 3.6 Teste inbound (webhook)
 

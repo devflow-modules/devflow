@@ -201,7 +201,7 @@ describe("PATCH /api/tenants/me (aiDriver)", () => {
 
 const TEST_KEY_B64 = Buffer.alloc(32, 13).toString("base64");
 
-describe("PATCH /api/tenants/me (SEC-1a dual-write WhatsApp)", () => {
+describe("PATCH /api/tenants/me (SEC-1-final encrypt-only WhatsApp)", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.unstubAllEnvs();
@@ -226,7 +226,7 @@ describe("PATCH /api/tenants/me (SEC-1a dual-write WhatsApp)", () => {
     vi.unstubAllEnvs();
   });
 
-  it("grava accessToken + accessTokenEncrypted no upsert Prisma", async () => {
+  it("grava somente accessTokenEncrypted no upsert Prisma", async () => {
     const { PATCH } = await import("../route");
     const { resolveLineAccessToken } = await import("@/modules/whatsapp/lineAccessToken");
     const { loadTokenEncryptionKeyringFromEnv } = await import(
@@ -250,26 +250,23 @@ describe("PATCH /api/tenants/me (SEC-1a dual-write WhatsApp)", () => {
 
     expect(mockPrisma.whatsappPhoneNumber.upsert).toHaveBeenCalledTimes(1);
     const upsertArg = mockPrisma.whatsappPhoneNumber.upsert.mock.calls[0][0] as {
-      create: { accessToken: string; accessTokenEncrypted: string };
-      update: { accessToken: string; accessTokenEncrypted: string };
+      create: { accessTokenEncrypted: string; accessToken?: unknown };
+      update: { accessTokenEncrypted: string; accessToken?: unknown };
     };
-    expect(upsertArg.create.accessToken).toBe("1234567890abcdef");
+    expect(upsertArg.create).not.toHaveProperty("accessToken");
     expect(upsertArg.create.accessTokenEncrypted).toMatch(/^dfwa1\./);
-    expect(upsertArg.update.accessToken).toBe("1234567890abcdef");
+    expect(upsertArg.update).not.toHaveProperty("accessToken");
     expect(upsertArg.update.accessTokenEncrypted).toMatch(/^dfwa1\./);
 
     const ring = loadTokenEncryptionKeyringFromEnv();
     const roundTrip = resolveLineAccessToken(
-      {
-        accessToken: upsertArg.create.accessToken,
-        accessTokenEncrypted: upsertArg.create.accessTokenEncrypted,
-      },
+      { accessTokenEncrypted: upsertArg.create.accessTokenEncrypted },
       ring
     );
     expect(roundTrip.ok && roundTrip.token).toBe("1234567890abcdef");
   });
 
-  it("sem chave de criptografia não chama upsert (sem plaintext isolado)", async () => {
+  it("sem chave de criptografia não chama upsert", async () => {
     delete process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY;
     delete process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY_ID;
     const { PATCH } = await import("../route");

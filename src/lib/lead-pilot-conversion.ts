@@ -93,7 +93,6 @@ function mapTenantRow(tenant: {
     wabaId: string | null;
     phoneNumberId: string;
     status: string;
-    accessToken: string | null;
   }>;
 }): WhatsappPilotTenantSummary {
   return {
@@ -101,11 +100,7 @@ function mapTenantRow(tenant: {
     name: tenant.name,
     gtmLifecycle: tenant.gtmLifecycle,
     whatsappPhone: tenant.whatsappPhone,
-    channels: tenant.whatsappPhoneNumbers.map((row) => {
-      const { accessToken, ...channel } = row;
-      void accessToken;
-      return channel;
-    }),
+    channels: tenant.whatsappPhoneNumbers.map((row) => ({ ...row })),
   };
 }
 
@@ -132,7 +127,6 @@ export async function loadWhatsappPilotTenantSummary(
             wabaId: true,
             phoneNumberId: true,
             status: true,
-            accessToken: true,
           },
           orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
           take: 5,

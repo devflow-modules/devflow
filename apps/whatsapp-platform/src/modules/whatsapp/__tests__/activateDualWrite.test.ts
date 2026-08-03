@@ -7,7 +7,7 @@ import {
 } from "@/lib/secrets/tokenEncryption";
 import { loadTokenEncryptionKeyringFromEnv } from "@/lib/secrets/tokenEncryptionKeyring";
 import {
-  buildDualWriteAccessTokenFields,
+  buildEncryptedAccessTokenFields,
   resolveLineAccessToken,
 } from "../lineAccessToken";
 
@@ -47,7 +47,7 @@ vi.mock("@/modules/whatsapp/validateWhatsappCloudCredentials", () => ({
   validateWhatsappCloudCredentials: vi.fn(async () => ({ ok: true, displayPhoneNumber: "+5511" })),
 }));
 
-describe("activateWhatsappChannel dual-write", () => {
+describe("activateWhatsappChannel encrypt-only", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY = TEST_KEY_B64;
@@ -59,7 +59,6 @@ describe("activateWhatsappChannel dual-write", () => {
       displayPhoneNumber: null,
       activatedAt: null,
       status: "PENDING_ACTIVATION",
-      accessToken: null,
       accessTokenEncrypted: null,
     });
     mockUpdate.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
@@ -68,7 +67,6 @@ describe("activateWhatsappChannel dual-write", () => {
       phoneNumberId: "pn1",
       status: data.status,
       activatedAt: data.activatedAt ?? new Date(),
-      accessToken: data.accessToken,
       accessTokenEncrypted: data.accessTokenEncrypted,
     }));
   });
@@ -78,7 +76,7 @@ describe("activateWhatsappChannel dual-write", () => {
     delete process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY_ID;
   });
 
-  it("grava accessToken e accessTokenEncrypted atomicamente", async () => {
+  it("grava somente accessTokenEncrypted", async () => {
     const { activateWhatsappChannel } = await import("../whatsappChannelLifecycle");
     await activateWhatsappChannel({
       channelId: "chan-1",
@@ -88,28 +86,24 @@ describe("activateWhatsappChannel dual-write", () => {
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          accessToken: "12345678901",
           accessTokenEncrypted: expect.stringMatching(/^dfwa1\./),
           status: "ACTIVE",
         }),
       })
     );
     const updateData = mockUpdate.mock.calls[0][0].data as {
-      accessToken: string;
       accessTokenEncrypted: string;
+      accessToken?: unknown;
     };
-    expect(updateData.accessTokenEncrypted).not.toBe(updateData.accessToken);
+    expect(updateData).not.toHaveProperty("accessToken");
     const resolved = resolveLineAccessToken(
-      {
-        accessToken: updateData.accessToken,
-        accessTokenEncrypted: updateData.accessTokenEncrypted,
-      },
+      { accessTokenEncrypted: updateData.accessTokenEncrypted },
       testRing()
     );
     expect(resolved.ok && resolved.token).toBe("12345678901");
   });
 
-  it("sem chave não persiste plaintext isolado", async () => {
+  it("sem chave não persiste", async () => {
     delete process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY;
     delete process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY_ID;
     vi.resetModules();
@@ -133,7 +127,7 @@ describe("loadTokenEncryptionKeyringFromEnv", () => {
     });
     expect(ring?.current.keyId).toBe("k1");
     expect(ring?.current.key.length).toBe(32);
-    const fields = buildDualWriteAccessTokenFields("x", ring);
+    const fields = buildEncryptedAccessTokenFields("x", ring);
     expect(fields.accessTokenEncrypted.startsWith("dfwa1.")).toBe(true);
   });
 
@@ -147,8 +141,8 @@ describe("loadTokenEncryptionKeyringFromEnv", () => {
   });
 });
 
-describe("prefer encrypted over stale plaintext", () => {
-  it("whatsappRowToResolvedTenant não usa plaintext quando encrypted falha", async () => {
+describe("fail-closed decrypt for resolved tenant", () => {
+  it("whatsappRowToResolvedTenant null quando encrypted falha", async () => {
     process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY = TEST_KEY_B64;
     process.env.WHATSAPP_TOKEN_ENCRYPTION_KEY_ID = "lifecycle-k1";
     const keyring = testRing();
@@ -159,7 +153,6 @@ describe("prefer encrypted over stale plaintext", () => {
       tenantId: "t1",
       phoneNumberId: "pn",
       displayPhoneNumber: "+1",
-      accessToken: "stale-plaintext-must-not-win",
       accessTokenEncrypted: bad,
       status: "ACTIVE",
     } as never);
