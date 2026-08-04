@@ -1,7 +1,7 @@
 # WhatsApp Platform — Architecture (cross-cutting)
 
-**Status:** current  
-**Last updated:** 2026-07-20  
+**Status:** current
+**Last updated:** 2026-07-20
 **Complements:** `apps/whatsapp-platform/docs/ARCHITECTURE.md` (app layers), root `ARCHITECTURE.md` (monorepo), [CURRENT-SCOPE.md](./CURRENT-SCOPE.md), [DOCUMENTATION-MAP.md](./DOCUMENTATION-MAP.md).
 
 This document is the **ownership and boundary** map for agents and humans. Prefer extending existing modules over inventing parallel paths.
@@ -48,7 +48,7 @@ Legacy (do not grow):
 | `packages/ai-core` | Shared AI contracts: intent helpers, LLM provider abstractions, fallback/format utilities | **shared** |
 | `packages/analytics-core` | Shared metrics/event helpers | **shared** |
 | `src/` (portal) | Public site, acquisition, commercial pages, demo mock, internal CRM leads | **active** (non-ops) |
-| `apps/whatsapp-webhook-api` | Legacy Express inbound pipeline; reference / isolated scenarios only | **legacy-compatible** |
+| `apps/whatsapp-webhook-api` | Legacy Express inbound; **PREPARE-RETIREMENT** — `notifyCrmIfLead` **SUNSET ACCEPTED** (no migrate). See [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md). Not SAFE-TO-RETIRE | **legacy-compatible** / prepare-retirement |
 
 ### App module map (canonical)
 
