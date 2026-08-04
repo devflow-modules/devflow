@@ -86,4 +86,5 @@ Payload histórico (referência apenas): `source: "devflow_whatsapp"` via `build
 - Detalhe operacional leads portal: [`LEADS-CRM.md`](./LEADS-CRM.md)
 - Playbook prospecção inbox (**canónico**): [`../whatsapp/PROSPECT_CRM_PLAYBOOK.md`](../whatsapp/PROSPECT_CRM_PLAYBOOK.md)
 - Narrativa commercial (secundário): [`../commercial/PROSPECTING_CRM_PLAYBOOK.md`](../commercial/PROSPECTING_CRM_PLAYBOOK.md)
+- Dono do lead: [`LEAD-OWNERSHIP.md`](./LEAD-OWNERSHIP.md)
 - Registo pureza / SUNSET CRM externo: [`../whatsapp-platform/REPOSITORY-PURITY-STATUS.md`](../whatsapp-platform/REPOSITORY-PURITY-STATUS.md)
