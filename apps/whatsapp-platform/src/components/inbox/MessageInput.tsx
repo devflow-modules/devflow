@@ -8,6 +8,8 @@ import {
   logFollowUpUse,
   fetchTenantWhatsappLines,
   isWhatsappOutboundEnabledForThread,
+  assignConversation,
+  updateConversationStatus,
   type SendInboxMessageError,
 } from "./inboxFetch";
 import { INBOX_QK, type WaInboxMessageRow, type WaInboxThreadRow } from "./inboxTypes";
@@ -18,6 +20,10 @@ import { markFirstReplySent } from "@/lib/activationStorage";
 import { INBOX_CHAT_GUTTER_X, INBOX_CHAT_GUTTER_X_COMPACT } from "./inboxChatLayout";
 import { InboxComposerTextField, type InboxComposerHandle } from "./InboxComposerTextField";
 import { Button } from "@/components/ui/button";
+import { useSessionRole } from "@/components/navigation/SessionRoleContext";
+import { resolveComposerAuthorshipLock } from "./composerAuthorshipLock";
+import { readVerifyPayload } from "@/lib/api-json-client";
+import { fetchProtected } from "@/lib/protected-fetch";
 
 const OUTBOUND_LOCKED_HINT = "Disponível após ativação do número";
 
@@ -67,8 +73,22 @@ function MessageInputInner({
   const [failureMessage, setFailureMessage] = useState<string | null>(null);
   const [aiPreview, setAiPreview] = useState<string | null>(null);
   const [assistPanel, setAssistPanel] = useState<AssistPanel>(null);
+  const [authorshipBusy, setAuthorshipBusy] = useState(false);
+  const [authorshipError, setAuthorshipError] = useState<string | null>(null);
+  const [authorshipOk, setAuthorshipOk] = useState<string | null>(null);
   const qc = useQueryClient();
   const composerRef = useRef<InboxComposerHandle>(null);
+  const { role: sessionRole, loading: sessionLoading } = useSessionRole();
+
+  const { data: sessionUser, isError: sessionUserError, isFetched: sessionUserFetched } = useQuery({
+    queryKey: ["inbox-composer-auth-user"],
+    queryFn: async () => {
+      const res = await fetchProtected("/api/auth/verify");
+      const raw = await res.json();
+      return readVerifyPayload(raw)?.user ?? null;
+    },
+    staleTime: 60_000,
+  });
 
   const { data: waLines = [] } = useQuery({
     queryKey: INBOX_QK.phoneLines,
@@ -79,7 +99,74 @@ function MessageInputInner({
     () => isWhatsappOutboundEnabledForThread(waLines, thread?.businessPhoneNumberId),
     [waLines, thread?.businessPhoneNumberId]
   );
-  const composerLocked = Boolean(threadId && thread && !outboundEnabled);
+
+  const authorshipLock = useMemo(
+    () =>
+      resolveComposerAuthorshipLock({
+        thread,
+        outboundEnabled,
+        sessionRole,
+        sessionLoading: sessionLoading || (!sessionUserFetched && !sessionUserError),
+        sessionKnown: Boolean(sessionUser?.id) && !sessionUserError,
+      }),
+    [
+      thread,
+      outboundEnabled,
+      sessionRole,
+      sessionLoading,
+      sessionUserFetched,
+      sessionUserError,
+      sessionUser?.id,
+    ]
+  );
+  const composerLocked = Boolean(authorshipLock);
+
+  const invalidateAfterAuthorship = useCallback(async () => {
+    await qc.invalidateQueries({ queryKey: ["inbox-conversations"], exact: false });
+    if (threadId) {
+      await qc.invalidateQueries({ queryKey: INBOX_QK.thread(threadId) });
+    }
+  }, [qc, threadId]);
+
+  const handleReopen = useCallback(async () => {
+    if (!threadId) return;
+    setAuthorshipError(null);
+    setAuthorshipOk(null);
+    setAuthorshipBusy(true);
+    try {
+      await updateConversationStatus(threadId, "OPEN");
+      setAuthorshipOk("Conversa reaberta.");
+      await invalidateAfterAuthorship();
+    } catch (err) {
+      setAuthorshipError(
+        err instanceof Error && err.message.trim()
+          ? err.message
+          : "Não foi possível reabrir a conversa."
+      );
+    } finally {
+      setAuthorshipBusy(false);
+    }
+  }, [threadId, invalidateAfterAuthorship]);
+
+  const handleAssume = useCallback(async () => {
+    if (!threadId) return;
+    setAuthorshipError(null);
+    setAuthorshipOk(null);
+    setAuthorshipBusy(true);
+    try {
+      await assignConversation(threadId, "me");
+      setAuthorshipOk("Conversa assumida.");
+      await invalidateAfterAuthorship();
+    } catch (err) {
+      setAuthorshipError(
+        err instanceof Error && err.message.trim()
+          ? err.message
+          : "Não foi possível assumir a conversa."
+      );
+    } finally {
+      setAuthorshipBusy(false);
+    }
+  }, [threadId, invalidateAfterAuthorship]);
 
   const { data: typingUsers } = useQuery({
     queryKey: threadId ? INBOX_QK.typing(threadId) : (["inbox-typing", "none"] as const),
@@ -172,23 +259,23 @@ function MessageInputInner({
   const { mutate: sendMessage } = mutation;
   const handleComposerSend = useCallback(
     (body: string) => {
-      if (!threadId) return;
+      if (!threadId || composerLocked) return;
       sendMessage({ tid: threadId, body, clientRequestId: newClientRequestId() });
     },
-    [threadId, sendMessage]
+    [threadId, sendMessage, composerLocked]
   );
 
   const handleRetrySameAttempt = useCallback(() => {
-    if (!threadId || !retryText || !activeClientRequestId) return;
+    if (!threadId || !retryText || !activeClientRequestId || composerLocked) return;
     mutation.reset();
     sendMessage({ tid: threadId, body: retryText, clientRequestId: activeClientRequestId });
-  }, [threadId, retryText, activeClientRequestId, mutation, sendMessage]);
+  }, [threadId, retryText, activeClientRequestId, mutation, sendMessage, composerLocked]);
 
   const handleForceNewAttempt = useCallback(() => {
-    if (!threadId || !retryText) return;
+    if (!threadId || !retryText || composerLocked) return;
     mutation.reset();
     sendMessage({ tid: threadId, body: retryText, clientRequestId: newClientRequestId() });
-  }, [threadId, retryText, mutation, sendMessage]);
+  }, [threadId, retryText, mutation, sendMessage, composerLocked]);
 
   const toggleAssist = useCallback((panel: Exclude<AssistPanel, null>) => {
     setAssistPanel((prev) => (prev === panel ? null : panel));
@@ -248,13 +335,49 @@ function MessageInputInner({
         mutation.isPending ? "sending" : failureKind ? "failed" : mutation.isSuccess ? "sent" : "idle"
       }
     >
-      {composerLocked ? (
-        <p
-          className="df-feedback-warning mb-2 rounded-lg px-3 py-2 text-xs"
-          title={OUTBOUND_LOCKED_HINT}
+      {authorshipLock ? (
+        <div
+          className="df-feedback-warning mb-2 flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 text-xs"
+          role="status"
+          data-testid="composer-authorship-lock"
+          data-lock-kind={authorshipLock.kind}
         >
-          Envio e sugestões com IA ficam disponíveis quando o canal WhatsApp estiver ativo na Meta.
-        </p>
+          <span className="font-medium">{authorshipLock.message}</span>
+          {authorshipLock.action === "reopen" ? (
+            <Button
+              variant="secondary"
+              type="button"
+              className={`${buttonClassName("secondary")} shrink-0 text-xs`}
+              disabled={authorshipBusy}
+              onClick={() => void handleReopen()}
+              data-testid="composer-reopen"
+            >
+              {authorshipBusy ? "A reabrir…" : "Reabrir conversa"}
+            </Button>
+          ) : null}
+          {authorshipLock.action === "assume" ? (
+            <Button
+              variant="primary"
+              type="button"
+              className={`${buttonClassName("primary")} shrink-0 text-xs`}
+              disabled={authorshipBusy}
+              onClick={() => void handleAssume()}
+              data-testid="composer-assume"
+            >
+              {authorshipBusy ? "A assumir…" : "Assumir conversa"}
+            </Button>
+          ) : null}
+          {authorshipOk ? (
+            <span className="text-[var(--df-success)]" data-testid="composer-authorship-ok">
+              {authorshipOk}
+            </span>
+          ) : null}
+          {authorshipError ? (
+            <span className="text-[var(--df-danger)]" role="alert" data-testid="composer-authorship-error">
+              {authorshipError}
+            </span>
+          ) : null}
+        </div>
       ) : null}
 
       {typingList.length > 0 && (

@@ -14,6 +14,10 @@ import {
   markSendPersistFailed,
   type OutboundSendLedgerRow,
 } from "@/modules/inbox/outboundSendRequestService";
+import {
+  evaluateSendAuthorship,
+  shouldEnforceSendAuthorship,
+} from "@/modules/inbox/sendAuthorshipGate";
 import { prisma } from "@/lib/prisma";
 import { resolveMessagingTenantForOutbound } from "@/modules/whatsapp/whatsappPhoneResolution";
 import { assertWhatsappPhoneNumberSendable } from "@/modules/whatsapp/whatsappChannelGuards";
@@ -237,6 +241,28 @@ export async function POST(
     }
     if (ledger.status === "SENDING") {
       return inProgressResponse(clientRequestId);
+    }
+  }
+
+  if (shouldEnforceSendAuthorship(ledger?.status)) {
+    const authorship = evaluateSendAuthorship({
+      status: thread.status,
+      assignedToUserId: thread.assignedToUserId,
+      callerUserId: auth.payload.sub,
+    });
+    if (!authorship.ok) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: authorship.code,
+            message: authorship.message,
+            clientRequestId,
+            retryableMeta: false,
+          },
+        },
+        { status: 409 }
+      );
     }
   }
 
