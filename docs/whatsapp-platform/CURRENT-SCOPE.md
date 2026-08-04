@@ -1,8 +1,8 @@
 # WhatsApp Platform — Current Scope
 
-**Status:** current  
-**Last updated:** 2026-07-20  
-**Evidence base:** code in `apps/whatsapp-platform` + packages; [WHATSAPP-PLATFORM-AUDIT.md](./WHATSAPP-PLATFORM-AUDIT.md); [WHATSAPP-PLATFORM-P0-BACKLOG.md](./WHATSAPP-PLATFORM-P0-BACKLOG.md); [PILOT-RUNBOOK.md](./PILOT-RUNBOOK.md).  
+**Status:** current
+**Last updated:** 2026-07-20
+**Evidence base:** code in `apps/whatsapp-platform` + packages; [WHATSAPP-PLATFORM-AUDIT.md](./WHATSAPP-PLATFORM-AUDIT.md); [WHATSAPP-PLATFORM-P0-BACKLOG.md](./WHATSAPP-PLATFORM-P0-BACKLOG.md); [PILOT-RUNBOOK.md](./PILOT-RUNBOOK.md).
 **Supersedes for “what is in product now”:** commercial decks, portal `/demo` copy, and historical sprint notes when they conflict.
 
 This document answers: what is the active product, for whom, what works, what is partial/mock, and what is explicitly deferred.
@@ -19,8 +19,8 @@ This document answers: what is the active product, for whom, what works, what is
 - Stripe billing / entitlements (SAAS mode)
 - Platform admin for channel provisioning and ops
 
-**Canonical runtime:** `apps/whatsapp-platform` (Next.js App Router).  
-**Canonical public host:** `NEXT_PUBLIC_WHATSAPP_APP_URL` (webhook + OAuth must match this host).  
+**Canonical runtime:** `apps/whatsapp-platform` (Next.js App Router).
+**Canonical public host:** `NEXT_PUBLIC_WHATSAPP_APP_URL` (webhook + OAuth must match this host).
 **Portal (`src/`):** marketing, acquisition, CRM leads — **not** the operational runtime. Cutover via `packages/whatsapp-routes` + portal proxy (308).
 
 ---
@@ -86,7 +86,7 @@ Implemented in the canonical app (require correct env/Meta/Stripe config in each
 | Portal landing metrics / ACME dashboards | Static marketing | Yes — mock |
 | `NEXT_PUBLIC_DEMO_MODE` showcase fixtures | Local showcase | Distinct from real demo tenant |
 | Commercial HTML decks / proposals | Narrative | May overstate readiness |
-| `apps/whatsapp-webhook-api` | Legacy / experimental | Not the target for new features |
+| `apps/whatsapp-webhook-api` | Legacy / **PREPARE-RETIREMENT** | DORMANT nos ambientes verificados; `notifyCrmIfLead` = **SUNSET ACCEPTED** — ver [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md). Not SAFE-TO-RETIRE; no new features |
 
 **Real demo path:** [REAL-APP-DEMO.md](./REAL-APP-DEMO.md) — tenant demo on the canonical app with clearly labeled fictitious data.
 
@@ -133,7 +133,7 @@ Before real consumer traffic: sign [LGPD-PILOT-CHECKLIST.md](./LGPD-PILOT-CHECKL
 | Shared AI helpers | `packages/ai-core` | **shared** |
 | Shared analytics helpers | `packages/analytics-core` | **shared** |
 | Portal marketing + CRM | `src/` | **active** (acquisition; not WhatsApp ops DB) |
-| Express webhook API | `apps/whatsapp-webhook-api` | **legacy-compatible** — no new product features |
+| Express webhook API | `apps/whatsapp-webhook-api` | **PREPARE-RETIREMENT** (legacy; `notifyCrmIfLead` SUNSET ACCEPTED — [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md)); not SAFE-TO-RETIRE |
 
 Status vocabulary (also in ARCHITECTURE.md):
 

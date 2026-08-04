@@ -58,6 +58,7 @@ When two documents disagree:
 | Ownership, packages, flows, trust boundaries | [ARCHITECTURE.md](./ARCHITECTURE.md) |
 | Pilot go-live procedure | [PILOT-RUNBOOK.md](./PILOT-RUNBOOK.md) |
 | **Client implantation pack (piloto assistido v1)** | [CLIENT-IMPLANTATION-PACK-v1.md](./CLIENT-IMPLANTATION-PACK-v1.md) |
+| **Repository Purity status (legado / SUNSET)** | [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md) |
 | App deploy / webhook host | `apps/whatsapp-platform/docs/DEPLOY_APP_SUBDOMAIN.md` |
 | App runtime layers | `apps/whatsapp-platform/docs/ARCHITECTURE.md` |
 | Portal â†” app cutover | `docs/architecture/WHATSAPP_PORTAL_APP_PARITY.md`, `packages/whatsapp-routes` |
@@ -79,6 +80,7 @@ When two documents disagree:
 | [WHATSAPP-CLIENT-1-READINESS-PLAN.md](./WHATSAPP-CLIENT-1-READINESS-PLAN.md) | `current` / `backlog` | Approved pilot decisions, Inbox UX roadmap, and first test-hardening issue |
 | [PILOT-RUNBOOK.md](./PILOT-RUNBOOK.md) | `runbook` | Primary pilot procedure |
 | [CLIENT-IMPLANTATION-PACK-v1.md](./CLIENT-IMPLANTATION-PACK-v1.md) | `current` / `runbook` | Pacote v1.1: checklist comercial/Meta, Signup A padrão, smoke, handout ({LOGIN_URL}/{CONTACTO_DEVFLOW}), GO/HOLD/BLOCKED acionáveis, evidências; limites Admin Master = intervenção manual |
+| [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md) | `current` | Matriz RP: `notifyCrmIfLead` SUNSET ACCEPTED; webhook-api PREPARE-RETIREMENT; gate antes de RP-3 / SAFE-TO-RETIRE |
 | [SMOKE-TEST-INBOUND-OUTBOUND.md](./SMOKE-TEST-INBOUND-OUTBOUND.md) | `runbook` | E2E smoke for pilot |
 | [LEAD-TO-TENANT-PILOT.md](./LEAD-TO-TENANT-PILOT.md) | `runbook` | CRM lead â†’ tenant assisted flow |
 | [LGPD-PILOT-CHECKLIST.md](./LGPD-PILOT-CHECKLIST.md) | `runbook` | Operational privacy checklist (not legal opinion) |
