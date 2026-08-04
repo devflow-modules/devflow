@@ -1,0 +1,1 @@
+ALTER TYPE "WaInboxSendRequestStatus" ADD VALUE 'UNKNOWN_OUTCOME';

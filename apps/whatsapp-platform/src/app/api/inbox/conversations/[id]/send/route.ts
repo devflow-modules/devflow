@@ -242,6 +242,9 @@ export async function POST(
     if (ledger.status === "SENDING") {
       return inProgressResponse(clientRequestId);
     }
+    if (ledger.status === "UNKNOWN_OUTCOME") {
+      return unknownResponse(clientRequestId);
+    }
   }
 
   if (shouldEnforceSendAuthorship(ledger?.status)) {

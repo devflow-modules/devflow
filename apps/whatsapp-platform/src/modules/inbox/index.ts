@@ -87,6 +87,14 @@ export {
 } from "./outboundSendRequestService";
 export type { OutboundSendLedgerRow } from "./outboundSendRequestService";
 export {
+  SENDING_STALE_AFTER_MS,
+  runOutboundSendReconcileJob,
+  claimSendingToUnknownOutcome,
+  acknowledgeUnknownOutcome,
+  listSendLedgerForAdmin,
+} from "./outboundSendReconcileService";
+export type { SendReconcileCounts, SendReconcileOptions } from "./outboundSendReconcileService";
+export {
   SEND_AUTHORSHIP_CODES,
   evaluateSendAuthorship,
   shouldEnforceSendAuthorship,

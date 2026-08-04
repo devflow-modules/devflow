@@ -485,6 +485,24 @@ describe("POST /api/inbox/conversations/[id]/send", () => {
     expect(mocks.claimSendForMeta).not.toHaveBeenCalled();
   });
 
+  it("UNKNOWN_OUTCOME: fail-closed 409 SEND_STATUS_UNKNOWN sem Meta", async () => {
+    mocks.findSendRequest.mockResolvedValue({
+      ...pendingLedger,
+      status: "UNKNOWN_OUTCOME",
+      waMessageId: null,
+      lastError: "UNKNOWN_OUTCOME:no_conclusive_meta_evidence",
+    });
+
+    const response = await post();
+    const json = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(json.error.code).toBe("SEND_STATUS_UNKNOWN");
+    expect(json.error.retryableMeta).toBe(false);
+    expect(mocks.adapterSendText).not.toHaveBeenCalled();
+    expect(mocks.claimSendForMeta).not.toHaveBeenCalled();
+  });
+
   it("CLOSED: 409 THREAD_CLOSED sem Meta", async () => {
     mocks.findThread.mockResolvedValue({ ...thread, status: "CLOSED" });
 
