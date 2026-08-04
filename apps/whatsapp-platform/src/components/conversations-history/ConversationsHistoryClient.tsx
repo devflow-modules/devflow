@@ -394,17 +394,41 @@ export function ConversationsHistoryClient() {
                 ref={searchInputRef}
                 key={searchParamsString}
                 type="search"
+                name="history-search"
+                autoComplete="off"
+                spellCheck={false}
+                maxLength={120}
                 placeholder="Nome, telefone ou mensagem…"
                 className="min-w-0 flex-1 rounded-xl border df-border-brand bg-[var(--df-bg-elevated)] px-3 py-2 text-sm text-[var(--df-text-primary)] placeholder:text-[var(--df-text-muted)]"
                 defaultValue={parsed.search}
+                aria-label="Buscar no histórico por nome, telefone ou mensagem"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") applySearch();
+                  if (e.key === "Escape" && (searchInputRef.current?.value || searchApplied)) {
+                    e.preventDefault();
+                    if (searchInputRef.current) searchInputRef.current.value = "";
+                    commitHistoryUrl({ search: "" });
+                  }
                 }}
                 data-testid="history-search-input"
               />
-              <Button type="button" variant="secondary" onClick={applySearch}>
+              <Button type="button" variant="secondary" onClick={applySearch} data-testid="history-search-submit">
                 Buscar
               </Button>
+              {searchApplied ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  data-testid="history-search-clear"
+                  aria-label="Limpar busca"
+                  onClick={() => {
+                    if (searchInputRef.current) searchInputRef.current.value = "";
+                    commitHistoryUrl({ search: "" });
+                  }}
+                >
+                  Limpar
+                </Button>
+              ) : null}
             </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useMemo } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ConversationItem } from "./ConversationItem";
 import {
@@ -36,6 +36,7 @@ import { formatInboxLineFilterOptionLabel } from "./inboxLineFilterLabel";
 
 const POLL_INTERVAL_REALTIME_MS = 10_000;
 const POLL_INTERVAL_FALLBACK_MS = 5_000;
+const SEARCH_DEBOUNCE_MS = 300;
 
 const FILTER_LABELS: Record<InboxConversationsFilter, string> = {
   all: "Todas",
@@ -89,6 +90,8 @@ export function ConversationsList({
   prospectUiEnabled = false,
   tenantThreadTotal,
   hideProspectMetrics = false,
+  searchQuery = "",
+  onSearchQueryChange,
 }: {
   selectedId: string | null;
   onSelect: (id: string) => void;
@@ -111,10 +114,29 @@ export function ConversationsList({
   tenantThreadTotal?: number;
   /** Modo foco inbox — esconde chips/métricas de prospecto para dar prioridade à lista. */
   hideProspectMetrics?: boolean;
+  /** Termo aplicado (URL / servidor), max 120. */
+  searchQuery?: string;
+  onSearchQueryChange?: (q: string) => void;
 }) {
   const qc = useQueryClient();
   const { connected: realtimeConnected } = useInboxRealtime();
   const pollInterval = realtimeConnected ? POLL_INTERVAL_REALTIME_MS : POLL_INTERVAL_FALLBACK_MS;
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [draftSearch, setDraftSearch] = useState(searchQuery);
+  const appliedSearch = searchQuery.trim().slice(0, 120);
+
+  useEffect(() => {
+    setDraftSearch(searchQuery);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (!onSearchQueryChange) return;
+    const handle = window.setTimeout(() => {
+      const next = draftSearch.trim().slice(0, 120);
+      if (next !== appliedSearch) onSearchQueryChange(next);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(handle);
+  }, [draftSearch, appliedSearch, onSearchQueryChange]);
 
   const invalidateConversations = () =>
     void qc.invalidateQueries({ queryKey: ["inbox-conversations"], exact: false });
@@ -139,17 +161,18 @@ export function ConversationsList({
   }, [assumeMut.isPending, assumeMut.variables, closeMut.isPending, closeMut.variables]);
 
   const hasLineFilter = Boolean(lineFilter);
-  const hasSecondaryRefinement = hasLineFilter || queueFilter !== null;
+  const hasSecondaryRefinement = hasLineFilter || queueFilter !== null || Boolean(appliedSearch);
 
   const effectiveProspectLens = prospectUiEnabled ? (prospectLens ?? null) : null;
 
-  const { data, isLoading, isError, error, refetch } = useQuery({
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: INBOX_QK.conversations(
       filter,
       lineFilter,
       queueFilter,
       priorityFilter ?? null,
-      effectiveProspectLens
+      effectiveProspectLens,
+      appliedSearch
     ),
     queryFn: () =>
       fetchInboxConversations(
@@ -157,21 +180,80 @@ export function ConversationsList({
         lineFilter,
         queueFilter,
         priorityFilter ?? null,
-        effectiveProspectLens
+        effectiveProspectLens,
+        appliedSearch
       ),
     refetchInterval: pollInterval,
   });
 
+  const commitSearchNow = (value: string) => {
+    const next = value.trim().slice(0, 120);
+    setDraftSearch(next);
+    onSearchQueryChange?.(next);
+  };
+
+  const searchEnabled = Boolean(onSearchQueryChange);
+  const searchChrome = searchEnabled ? (
+    <div className="border-b df-border-brand bg-[var(--df-bg-elevated)] px-2 py-1.5">
+      <div className="flex items-center gap-1.5">
+        <input
+          ref={searchInputRef}
+          id="inbox-search-input"
+          type="search"
+          name="inbox-search"
+          autoComplete="off"
+          spellCheck={false}
+          maxLength={120}
+          value={draftSearch}
+          placeholder="Nome, telefone ou mensagem…"
+          aria-label="Buscar conversas por nome, telefone ou mensagem"
+          data-testid="inbox-search-input"
+          aria-busy={isFetching && Boolean(appliedSearch)}
+          className="min-w-0 flex-1 rounded-md border df-border-brand bg-[var(--df-bg-app)] px-2 py-1.5 text-[11px] text-[var(--df-text-primary)] placeholder:text-[var(--df-text-muted)]"
+          onChange={(e) => setDraftSearch(e.target.value.slice(0, 120))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commitSearchNow(draftSearch);
+            }
+            if (e.key === "Escape" && (draftSearch || appliedSearch)) {
+              e.preventDefault();
+              commitSearchNow("");
+            }
+          }}
+        />
+        {draftSearch || appliedSearch ? (
+          <Button
+            type="button"
+            variant="secondary"
+            className="shrink-0 px-2 py-1 text-[10px]"
+            data-testid="inbox-search-clear"
+            aria-label="Limpar busca"
+            onClick={() => commitSearchNow("")}
+          >
+            Limpar
+          </Button>
+        ) : null}
+      </div>
+      {appliedSearch && isFetching ? (
+        <p className="mt-1 text-[9px] font-medium df-text-muted" data-testid="inbox-search-loading">
+          A pesquisar…
+        </p>
+      ) : null}
+    </div>
+  ) : null;
+
   if (isLoading) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col p-3" data-testid="conversations-list-skeleton">
-        <div className="space-y-2 rounded-xl border df-border-brand bg-[var(--df-bg-elevated)]/90 p-3 shadow-sm">
+      <div className="flex min-h-0 flex-1 flex-col" data-testid="conversations-list-skeleton">
+        {searchChrome}
+        <div className="space-y-2 p-3">
           <div className="h-8 w-3/5 max-w-[12rem] animate-pulse rounded-lg bg-muted/80" />
           <div className="h-8 w-full animate-pulse rounded-lg bg-muted/90" />
           <div className="h-8 w-full animate-pulse rounded-lg bg-muted/90" />
-          <div className="h-8 w-4/5 animate-pulse rounded-lg bg-muted/90" />
-          <div className="h-8 w-full animate-pulse rounded-lg bg-muted/90" />
-          <p className="pt-2 text-center text-[11px] font-medium df-text-muted">A carregar conversas…</p>
+          <p className="pt-2 text-center text-[11px] font-medium df-text-muted">
+            {appliedSearch ? "A pesquisar conversas…" : "A carregar conversas…"}
+          </p>
         </div>
       </div>
     );
@@ -179,12 +261,15 @@ export function ConversationsList({
 
   if (isError) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col p-3">
-        <StateError
-          title="Não foi possível carregar as conversas"
-          message={error instanceof Error ? error.message : "Tente outra vez dentro de momentos."}
-          onRetry={() => void refetch()}
-        />
+      <div className="flex min-h-0 flex-1 flex-col">
+        {searchChrome}
+        <div className="flex min-h-0 flex-1 flex-col p-3">
+          <StateError
+            title="Não foi possível carregar as conversas"
+            message={error instanceof Error ? error.message : "Tente outra vez dentro de momentos."}
+            onRetry={() => void refetch()}
+          />
+        </div>
       </div>
     );
   }
@@ -206,7 +291,8 @@ export function ConversationsList({
     tenantThreadTotal === 0 &&
     threads.length === 0 &&
     (lineFilter === null || lineFilter === "") &&
-    queueFilter === null;
+    queueFilter === null &&
+    !appliedSearch;
 
   /** Uma única linha: sem ruído visual. Várias linhas ou filas: barra de refinamento. */
   const showLineFilterUi = lines.length > 1;
@@ -214,6 +300,7 @@ export function ConversationsList({
 
   const filterChrome = (
     <>
+      {searchChrome}
       {prospectUiEnabled && onProspectLensChange && !hideProspectMetrics ? (
         <InboxProspectMetricsBar
           metrics={prospectMetrics}
@@ -335,6 +422,7 @@ export function ConversationsList({
           <InboxFilterEmpty
             filter={filter}
             hasSecondaryRefinement={hasSecondaryRefinement}
+            searchActive={Boolean(appliedSearch)}
             onSelectNeedsResponse={() => onFilterChange("needs_response")}
           />
         </div>

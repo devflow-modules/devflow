@@ -44,12 +44,12 @@ export type WaInboxThreadFilters = {
   lastMessageAtGte?: string;
   /** ISO 8601 — `last_message_at <=` */
   lastMessageAtLte?: string;
-  /** Busca em nome, telefone e texto de mensagens (histórico; inbox não envia). */
+  /** Busca em nome, telefone e texto de mensagens (Inbox e Histórico via `q`). */
   search?: string;
 };
 
 /** Padrão ILIKE seguro: sem `%`/`_` literais vindos do utilizador. */
-function inboxSearchIlikePattern(raw: string): string | null {
+export function inboxSearchIlikePattern(raw: string): string | null {
   const t = raw.trim().slice(0, 120).replace(/[%_\\]/g, " ");
   if (!t.trim()) return null;
   return `%${t.trim()}%`;

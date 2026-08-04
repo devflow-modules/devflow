@@ -135,7 +135,8 @@ export const INBOX_QK = {
     lineFilter?: string | null,
     queueFilter?: string | null,
     priorityFilter?: string | null,
-    prospectLens?: InboxProspectLens | null
+    prospectLens?: InboxProspectLens | null,
+    search?: string | null
   ) =>
     [
       "inbox-conversations",
@@ -144,6 +145,7 @@ export const INBOX_QK = {
       queueFilter ?? "all-queues",
       priorityFilter ?? "all-priority",
       prospectLens ?? "all-prospect",
+      (search ?? "").trim().slice(0, 120) || "no-search",
     ] as const,
   thread: (threadId: string) => ["inbox-thread", threadId] as const,
   messages: (threadId: string) => ["inbox-messages", threadId] as const,

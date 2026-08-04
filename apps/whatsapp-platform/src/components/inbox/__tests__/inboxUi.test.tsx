@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConversationsList } from "../ConversationsList";
@@ -1163,5 +1163,135 @@ describe("Inbox UI", () => {
     expect(bubble).toHaveTextContent("Resposta");
     expect(bubble).toHaveTextContent("Lida");
     expect(bubble.textContent).toMatch(/✓✓/);
+  });
+
+  it("busca Inbox: server-side q, limpar, vazio e nome acessível", async () => {
+    const user = userEvent.setup();
+    const onSearch = vi.fn();
+    let lastConversationsUrl = "";
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (
+        url.includes("/api/inbox/conversations") &&
+        !url.includes("/messages") &&
+        !url.match(/\/conversations\/[^/?]+/)
+      ) {
+        lastConversationsUrl = url;
+        const q = new URL(url, "http://localhost").searchParams.get("q");
+        const threads: WaInboxThreadRow[] =
+          q === "Maria"
+            ? [
+                {
+                  id: "thread-maria",
+                  phoneNumber: "5511888777666",
+                  businessPhoneNumberId: "pn-meta-1",
+                  contactName: "Maria Silva",
+                  lastMessageAt: new Date().toISOString(),
+                  unreadCount: 0,
+                  unansweredInboundCount: 0,
+                  conversationState: "awaiting_agent",
+                  lastResponderType: null,
+                  responseDelayMs: null,
+                  slaLevel: null,
+                  isUnassigned: true,
+                  isAssignedToMe: false,
+                  lastUnansweredInboundAt: null,
+                  lastMessagePreview: "oi",
+                  status: "OPEN",
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                },
+              ]
+            : q
+              ? []
+              : [
+                  {
+                    id: "thread-1",
+                    phoneNumber: "5511999999999",
+                    businessPhoneNumberId: "pn-meta-1",
+                    contactName: "Cliente",
+                    lastMessageAt: new Date().toISOString(),
+                    unreadCount: 2,
+                    unansweredInboundCount: 2,
+                    conversationState: "awaiting_agent",
+                    lastResponderType: null,
+                    responseDelayMs: 120_000,
+                    slaLevel: "low",
+                    isUnassigned: true,
+                    isAssignedToMe: false,
+                    lastUnansweredInboundAt: new Date().toISOString(),
+                    lastMessagePreview: "última msg",
+                    status: "OPEN",
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  },
+                ];
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: { threads, pagination: { limit: 100, offset: 0, total: threads.length } },
+          }),
+        } as Response);
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({ success: true, data: {} }),
+      } as Response);
+    });
+
+    const listProps = {
+      selectedId: null as string | null,
+      onSelect: vi.fn(),
+      filter: "needs_response" as const,
+      onFilterChange: vi.fn(),
+      lineFilter: null as string | null,
+      lines: [] as [],
+      onLineFilterChange: vi.fn(),
+      queueFilter: null as string | null,
+      queues: [] as [],
+      onQueueFilterChange: vi.fn(),
+      onSearchQueryChange: onSearch,
+    };
+
+    const { rerender } = render(<ConversationsList {...listProps} searchQuery="Maria" />, {
+      wrapper: createWrapper(),
+    });
+
+    const input = await screen.findByTestId("inbox-search-input");
+    expect(input).toHaveAttribute(
+      "aria-label",
+      "Buscar conversas por nome, telefone ou mensagem"
+    );
+    expect(input).toHaveValue("Maria");
+
+    await waitFor(() => {
+      expect(lastConversationsUrl).toContain("q=Maria");
+      expect(screen.getByText("Maria Silva")).toBeInTheDocument();
+    });
+
+    const liveInput = screen.getByTestId("inbox-search-input");
+    fireEvent.change(liveInput, { target: { value: "Pedro" } });
+    fireEvent.keyDown(liveInput, { key: "Enter", code: "Enter" });
+    expect(onSearch).toHaveBeenCalledWith("Pedro");
+
+    await user.click(screen.getByTestId("inbox-search-clear"));
+    expect(onSearch).toHaveBeenCalledWith("");
+
+    rerender(<ConversationsList {...listProps} searchQuery="zzz-nenhum" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("conversations-empty")).toBeInTheDocument();
+      expect(screen.getByText(/Nenhum resultado para esta busca/i)).toBeInTheDocument();
+    });
+  });
+
+  it("INBOX_QK.conversations inclui search para evitar resposta obsoleta", () => {
+    expect(INBOX_QK.conversations("needs_response", null, null, null, null, "a")).not.toEqual(
+      INBOX_QK.conversations("needs_response", null, null, null, null, "b")
+    );
+    expect(INBOX_QK.conversations("needs_response", null, null, null, null, "")).toEqual(
+      INBOX_QK.conversations("needs_response", null, null, null, null, null)
+    );
   });
 });

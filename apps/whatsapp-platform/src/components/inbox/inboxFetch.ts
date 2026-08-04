@@ -29,7 +29,8 @@ function buildConversationsUrl(
   businessPhoneNumberId?: string | null,
   queueId?: string | null,
   priority?: string | null,
-  prospectLens?: InboxProspectLens | null
+  prospectLens?: InboxProspectLens | null,
+  search?: string | null
 ): string {
   const params = new URLSearchParams({ limit: "100" });
   if (filter === "all") {
@@ -49,6 +50,10 @@ function buildConversationsUrl(
   if (prospectLens) {
     params.set("prospectLens", prospectLens);
   }
+  const q = search?.trim().slice(0, 120);
+  if (q) {
+    params.set("q", q);
+  }
   return `/api/inbox/conversations?${params.toString()}`;
 }
 
@@ -57,13 +62,14 @@ export async function fetchInboxConversations(
   businessPhoneNumberId?: string | null,
   queueId?: string | null,
   priority?: string | null,
-  prospectLens?: InboxProspectLens | null
+  prospectLens?: InboxProspectLens | null,
+  search?: string | null
 ): Promise<{
   threads: WaInboxThreadRow[];
   pagination: { limit: number; offset: number; total: number };
 }> {
   const res = await fetchProtected(
-    buildConversationsUrl(filter, businessPhoneNumberId, queueId, priority, prospectLens)
+    buildConversationsUrl(filter, businessPhoneNumberId, queueId, priority, prospectLens, search)
   );
   if (!res.ok) throw new Error(await inboxFailMessage(res));
   const json = (await res.json()) as {

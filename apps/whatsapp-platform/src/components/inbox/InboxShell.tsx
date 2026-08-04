@@ -84,6 +84,7 @@ function InboxShellContent() {
   const [queueFilter, setQueueFilter] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
   const [prospectLens, setProspectLens] = useState<InboxProspectLens | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [inboxFocusMode, setInboxFocusMode] = useState(false);
   const { connected: realtimeConnected } = useInboxRealtime();
   const { role: sessionRole, loading: roleLoading } = useSessionRole();
@@ -164,6 +165,13 @@ function InboxShellContent() {
     });
   }, [searchParams]);
 
+  useEffect(() => {
+    const qParam = (searchParams.get("q") ?? "").trim().slice(0, 120);
+    queueMicrotask(() => {
+      setSearchQuery(qParam);
+    });
+  }, [searchParams]);
+
   const setLineFilterAndUrl = useCallback(
     (id: string | null) => {
       setLineFilter(id);
@@ -172,6 +180,21 @@ function InboxShellContent() {
         params.set("businessPhoneNumberId", id.trim());
       } else {
         params.delete("businessPhoneNumberId");
+      }
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
+  const setSearchQueryAndUrl = useCallback(
+    (q: string) => {
+      const next = q.trim().slice(0, 120);
+      setSearchQuery(next);
+      const params = new URLSearchParams(searchParams.toString());
+      if (next) {
+        params.set("q", next);
+      } else {
+        params.delete("q");
       }
       router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     },
@@ -239,10 +262,26 @@ function InboxShellContent() {
     enabled: prospectingEnabled && !roleLoading,
   });
 
+  const appliedSearch = searchQuery.trim().slice(0, 120);
+
   const { data: convData } = useQuery({
-    queryKey: INBOX_QK.conversations(filter, lineFilter, queueFilter, priorityFilter, effectiveProspectLens),
+    queryKey: INBOX_QK.conversations(
+      filter,
+      lineFilter,
+      queueFilter,
+      priorityFilter,
+      effectiveProspectLens,
+      appliedSearch
+    ),
     queryFn: () =>
-      fetchInboxConversations(filter, lineFilter, queueFilter, priorityFilter, effectiveProspectLens),
+      fetchInboxConversations(
+        filter,
+        lineFilter,
+        queueFilter,
+        priorityFilter,
+        effectiveProspectLens,
+        appliedSearch
+      ),
     refetchInterval: pollInterval,
   });
 
@@ -530,6 +569,8 @@ function InboxShellContent() {
               prospectUiEnabled={prospectingEnabled}
               tenantThreadTotal={tenantThreadTotal}
               hideProspectMetrics={inboxFocusMode}
+              searchQuery={appliedSearch}
+              onSearchQueryChange={setSearchQueryAndUrl}
             />
           </aside>
         )}

@@ -12,6 +12,7 @@ export {
   waInboxCountThreads,
   waInboxGetThread,
   fetchWhatsappLineSummaries,
+  inboxSearchIlikePattern,
 } from "./waInboxQueries";
 export {
   countInboxThreadsTotal,
