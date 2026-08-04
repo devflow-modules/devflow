@@ -1,7 +1,7 @@
-# WhatsApp Platform — Documentation Map
+﻿# WhatsApp Platform â€” Documentation Map
 
-**Status:** current  
-**Last updated:** 2026-07-20  
+**Status:** current
+**Last updated:** 2026-08-04
 **Purpose:** classify WhatsApp documentation across the monorepo, declare sources of truth, and resolve conflicts.
 
 This map does **not** move files. It records the intended division of ownership so agents and humans know which document wins.
@@ -13,9 +13,9 @@ This map does **not** move files. It records the intended division of ownership 
 | Tree | Responsibility | Status |
 |------|----------------|--------|
 | `docs/whatsapp/` | Ecosystem positioning, portal/CRM integration, Meta ops playbooks shared with commercial/ops | **active** (mixed ages; classify per file) |
-| `docs/whatsapp-platform/` | Product scope, cross-cutting architecture, pilot, billing/inbox product docs, governance | **active** — canonical product index |
-| `apps/whatsapp-platform/docs/` | Runtime-specific architecture, deploy, security, billing implementation, testing, design system | **active** — canonical for app runtime |
-| `docs/architecture/WHATSAPP-*` | Platform cutover, auth/billing validation, webhook hardening, portal↔app parity | **active** for platform boundaries |
+| `docs/whatsapp-platform/` | Product scope, cross-cutting architecture, pilot, billing/inbox product docs, governance | **active** â€” canonical product index |
+| `apps/whatsapp-platform/docs/` | Runtime-specific architecture, deploy, security, billing implementation, testing, design system | **active** â€” canonical for app runtime |
+| `docs/architecture/WHATSAPP-*` | Platform cutover, auth/billing validation, webhook hardening, portalâ†”app parity | **active** for platform boundaries |
 | `.cursor/rules/05-whatsapp-platform.mdc` + `.cursor/skills/whatsapp-platform-safe-change/SKILL.md` | Agent governance (ownership, impact map, gates) | **active** |
 
 ### Conflict resolution
@@ -31,7 +31,7 @@ When two documents disagree:
    5. Domain product notes in `docs/whatsapp-platform/` (inbox, billing, AI)
    6. Ecosystem / commercial notes in `docs/whatsapp/`
 3. Documents marked **historical**, **audit**, or **completed backlog** never override current scope/architecture unless explicitly promoted.
-4. If still ambiguous: stop and ask — do not invent a product rule.
+4. If still ambiguous: stop and ask â€” do not invent a product rule.
 
 ---
 
@@ -42,7 +42,7 @@ When two documents disagree:
 | `current` | Describes the intended present state; keep updated with code changes |
 | `runbook` | Operational procedure (env, Meta, smoke, incident) |
 | `audit` | Point-in-time assessment; evidence, not living product spec |
-| `backlog` | Planned work; status fields may be stale — verify in code |
+| `backlog` | Planned work; status fields may be stale â€” verify in code |
 | `historical` | Sprint notes, migration inventory, closed cutovers; do not implement from these alone |
 | `commercial` | Sales/demo/proposal narrative; may overstate runtime readiness |
 | `completed` | Work finished; retained for traceability |
@@ -57,9 +57,10 @@ When two documents disagree:
 | What the product is / is not today | [CURRENT-SCOPE.md](./CURRENT-SCOPE.md) |
 | Ownership, packages, flows, trust boundaries | [ARCHITECTURE.md](./ARCHITECTURE.md) |
 | Pilot go-live procedure | [PILOT-RUNBOOK.md](./PILOT-RUNBOOK.md) |
+| **Client implantation pack (piloto assistido v1)** | [CLIENT-IMPLANTATION-PACK-v1.md](./CLIENT-IMPLANTATION-PACK-v1.md) |
 | App deploy / webhook host | `apps/whatsapp-platform/docs/DEPLOY_APP_SUBDOMAIN.md` |
 | App runtime layers | `apps/whatsapp-platform/docs/ARCHITECTURE.md` |
-| Portal ↔ app cutover | `docs/architecture/WHATSAPP_PORTAL_APP_PARITY.md`, `packages/whatsapp-routes` |
+| Portal â†” app cutover | `docs/architecture/WHATSAPP_PORTAL_APP_PARITY.md`, `packages/whatsapp-routes` |
 | Webhook hardening | `docs/architecture/WHATSAPP-WEBHOOK-HARDENING.md` |
 | Design system | `apps/whatsapp-platform/docs/DESIGN_SYSTEM.md` |
 | Agent rules | `.cursor/rules/05-whatsapp-platform.mdc` |
@@ -67,7 +68,7 @@ When two documents disagree:
 
 ---
 
-## 4. `docs/whatsapp-platform/` — product & pilot
+## 4. `docs/whatsapp-platform/` â€” product & pilot
 
 | Document | Class | Notes |
 |----------|-------|-------|
@@ -77,8 +78,9 @@ When two documents disagree:
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | `current` | Cross-cutting architecture & ownership |
 | [WHATSAPP-CLIENT-1-READINESS-PLAN.md](./WHATSAPP-CLIENT-1-READINESS-PLAN.md) | `current` / `backlog` | Approved pilot decisions, Inbox UX roadmap, and first test-hardening issue |
 | [PILOT-RUNBOOK.md](./PILOT-RUNBOOK.md) | `runbook` | Primary pilot procedure |
+| [CLIENT-IMPLANTATION-PACK-v1.md](./CLIENT-IMPLANTATION-PACK-v1.md) | `current` / `runbook` | Pacote v1.1: checklist comercial/Meta, Signup A padrão, smoke, handout ({LOGIN_URL}/{CONTACTO_DEVFLOW}), GO/HOLD/BLOCKED acionáveis, evidências; limites Admin Master = intervenção manual |
 | [SMOKE-TEST-INBOUND-OUTBOUND.md](./SMOKE-TEST-INBOUND-OUTBOUND.md) | `runbook` | E2E smoke for pilot |
-| [LEAD-TO-TENANT-PILOT.md](./LEAD-TO-TENANT-PILOT.md) | `runbook` | CRM lead → tenant assisted flow |
+| [LEAD-TO-TENANT-PILOT.md](./LEAD-TO-TENANT-PILOT.md) | `runbook` | CRM lead â†’ tenant assisted flow |
 | [LGPD-PILOT-CHECKLIST.md](./LGPD-PILOT-CHECKLIST.md) | `runbook` | Operational privacy checklist (not legal opinion) |
 | [OBSERVABILITY-PILOT.md](./OBSERVABILITY-PILOT.md) | `runbook` / `current` | Minimum pilot logging events |
 | [REAL-APP-DEMO.md](./REAL-APP-DEMO.md) | `runbook` / `commercial` | Demo on real app (not portal mock) |
@@ -99,12 +101,12 @@ When two documents disagree:
 | [IMPLEMENTATION_MODE_LOCKDOWN.md](./IMPLEMENTATION_MODE_LOCKDOWN.md) | `current` | Implementation mode constraints |
 | [UNIFICACAO_APP_RAIZ.md](./UNIFICACAO_APP_RAIZ.md) | `historical` | Unification narrative; cutover already in packages/routes |
 | [WHATSAPP-PLATFORM-AUDIT.md](./WHATSAPP-PLATFORM-AUDIT.md) | `audit` | Maturity audit (2026-06-09); evidence base for CURRENT-SCOPE |
-| [WHATSAPP-PLATFORM-P0-BACKLOG.md](./WHATSAPP-PLATFORM-P0-BACKLOG.md) | `backlog` / `completed` | P0 items mostly completed — verify status fields |
+| [WHATSAPP-PLATFORM-P0-BACKLOG.md](./WHATSAPP-PLATFORM-P0-BACKLOG.md) | `backlog` / `completed` | P0 items mostly completed â€” verify status fields |
 | [PRODUCT-UI-AUDIT.md](./PRODUCT-UI-AUDIT.md) | `audit` | Visual audit vs Product UI System |
 
 ---
 
-## 5. `docs/whatsapp/` — ecosystem, commercial, Meta ops
+## 5. `docs/whatsapp/` â€” ecosystem, commercial, Meta ops
 
 | Document | Class | Notes |
 |----------|-------|-------|
@@ -141,11 +143,11 @@ When two documents disagree:
 | [WHATSAPP_PLATFORM_MIGRATION_INVENTORY.md](../whatsapp/WHATSAPP_PLATFORM_MIGRATION_INVENTORY.md) | `historical` | Inventory |
 | [WHATSAPP_PLATFORM_REAL_INTEGRATION.md](../whatsapp/WHATSAPP_PLATFORM_REAL_INTEGRATION.md) | `historical` / `audit` | Integration notes |
 | [RELEASE_NOTES.md](../whatsapp/RELEASE_NOTES.md) | `historical` | Release notes |
-| [MIGRATION_CONSOLIDATED.sql](../whatsapp/MIGRATION_CONSOLIDATED.sql) | `historical` | Consolidated SQL — prefer Prisma migrations in app |
+| [MIGRATION_CONSOLIDATED.sql](../whatsapp/MIGRATION_CONSOLIDATED.sql) | `historical` | Consolidated SQL â€” prefer Prisma migrations in app |
 
 ---
 
-## 6. `apps/whatsapp-platform/docs/` — runtime & deploy
+## 6. `apps/whatsapp-platform/docs/` â€” runtime & deploy
 
 | Document / area | Class | Notes |
 |-----------------|-------|-------|
@@ -170,11 +172,11 @@ When two documents disagree:
 
 ---
 
-## 7. `docs/architecture/` — platform boundaries (WhatsApp)
+## 7. `docs/architecture/` â€” platform boundaries (WhatsApp)
 
 | Document | Class | Notes |
 |----------|-------|-------|
-| [WHATSAPP_PORTAL_APP_PARITY.md](../architecture/WHATSAPP_PORTAL_APP_PARITY.md) | `current` | Portal ↔ app parity |
+| [WHATSAPP_PORTAL_APP_PARITY.md](../architecture/WHATSAPP_PORTAL_APP_PARITY.md) | `current` | Portal â†” app parity |
 | [WHATSAPP-ARCHITECTURE-GUARDRAILS.md](../architecture/WHATSAPP-ARCHITECTURE-GUARDRAILS.md) | `current` | CI boundary guard |
 | [WHATSAPP-WEBHOOK-HARDENING.md](../architecture/WHATSAPP-WEBHOOK-HARDENING.md) | `current` | Webhook security contract |
 | [CUTOVER-WHATSAPP-RUNBOOK-MAIN.md](../architecture/CUTOVER-WHATSAPP-RUNBOOK-MAIN.md) | `runbook` / `historical` | Cutover main |
@@ -190,12 +192,12 @@ When two documents disagree:
 
 ## 8. Update rules
 
-1. **New product capability** → update `CURRENT-SCOPE.md` in the same PR (or immediately after).
-2. **New ownership / package / boundary** → update `ARCHITECTURE.md` and `.cursor/rules/05-whatsapp-platform.mdc`.
-3. **New or renamed doc** → add a row here with a classification label.
-4. **Closing a backlog item** → mark backlog status; do not delete historical evidence.
+1. **New product capability** â†’ update `CURRENT-SCOPE.md` in the same PR (or immediately after).
+2. **New ownership / package / boundary** â†’ update `ARCHITECTURE.md` and `.cursor/rules/05-whatsapp-platform.mdc`.
+3. **New or renamed doc** â†’ add a row here with a classification label.
+4. **Closing a backlog item** â†’ mark backlog status; do not delete historical evidence.
 5. **Do not** treat commercial decks or portal `/demo` copy as acceptance criteria for runtime work.
-6. **Do not** implement new features in `apps/whatsapp-webhook-api` — see surface status in ARCHITECTURE.md.
+6. **Do not** implement new features in `apps/whatsapp-webhook-api` â€” see surface status in ARCHITECTURE.md.
 
 ---
 
