@@ -4,17 +4,40 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { InboxShell } from "../InboxShell";
+import { Button } from "@/components/ui/button";
 
 const replace = vi.fn();
-const searchParamsGet = vi.fn((_key: string) => null);
+const searchParamsStore = vi.hoisted(() => {
+  let query = "";
+  return {
+    getQuery: () => query,
+    setQuery: (q: string) => {
+      query = q.startsWith("?") ? q.slice(1) : q;
+    },
+    clear: () => {
+      query = "";
+    },
+  };
+});
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/inbox",
-  useRouter: () => ({ replace, push: vi.fn(), refresh: vi.fn() }),
-  useSearchParams: () => ({
-    get: (key: string) => searchParamsGet(key),
-    toString: () => "",
+  useRouter: () => ({
+    replace: (href: string) => {
+      const i = href.indexOf("?");
+      searchParamsStore.setQuery(i >= 0 ? href.slice(i + 1) : "");
+      replace(href);
+    },
+    push: vi.fn(),
+    refresh: vi.fn(),
   }),
+  useSearchParams: () => {
+    const params = new URLSearchParams(searchParamsStore.getQuery());
+    return {
+      get: (key: string) => params.get(key),
+      toString: () => params.toString(),
+    };
+  },
 }));
 
 vi.mock("next/link", () => ({
@@ -90,7 +113,30 @@ vi.mock("../inboxFetch", () => ({
 }));
 
 vi.mock("../ConversationsList", () => ({
-  ConversationsList: () => <div data-testid="conversations-list-stub">lista</div>,
+  ConversationsList: (props: {
+    searchQuery?: string;
+    onSearchQueryChange?: (q: string) => void;
+  }) => (
+    <div data-testid="conversations-list-stub">
+      <span data-testid="shell-search-query">{props.searchQuery ?? ""}</span>
+      <Button
+        type="button"
+        variant="secondary"
+        data-testid="shell-search-trigger"
+        onClick={() => props.onSearchQueryChange?.("Maria")}
+      >
+        buscar
+      </Button>
+      <Button
+        type="button"
+        variant="secondary"
+        data-testid="shell-search-clear"
+        onClick={() => props.onSearchQueryChange?.("")}
+      >
+        limpar
+      </Button>
+    </div>
+  ),
 }));
 
 vi.mock("../ChatWindow", () => ({
@@ -119,7 +165,7 @@ function renderShell() {
 describe("InboxShell Fatia 6", () => {
   beforeEach(() => {
     localStorage.clear();
-    searchParamsGet.mockReturnValue(null);
+    searchParamsStore.clear();
     replace.mockClear();
   });
 
@@ -154,5 +200,34 @@ describe("InboxShell Fatia 6", () => {
     expect(toggle).toHaveAttribute("aria-pressed", "true");
     expect(screen.queryByTestId("inbox-metrics-details")).not.toBeInTheDocument();
     expect(localStorage.getItem("df-inbox-focus-mode")).toBe("1");
+  });
+
+  it("busca: escreve q na URL e limpar remove o termo", async () => {
+    const user = userEvent.setup();
+    renderShell();
+    await waitFor(() => {
+      expect(screen.getByTestId("conversations-list-stub")).toBeInTheDocument();
+    });
+    await user.click(screen.getByTestId("shell-search-trigger"));
+    await waitFor(() => {
+      expect(replace).toHaveBeenCalled();
+      const href = String(replace.mock.calls.at(-1)?.[0] ?? "");
+      expect(href).toContain("q=Maria");
+      expect(screen.getByTestId("shell-search-query")).toHaveTextContent("Maria");
+    });
+    await user.click(screen.getByTestId("shell-search-clear"));
+    await waitFor(() => {
+      const href = String(replace.mock.calls.at(-1)?.[0] ?? "");
+      expect(href).not.toContain("q=");
+      expect(screen.getByTestId("shell-search-query")).toHaveTextContent("");
+    });
+  });
+
+  it("busca: lê q da query string no refresh", async () => {
+    searchParamsStore.setQuery("q=Pedro");
+    renderShell();
+    await waitFor(() => {
+      expect(screen.getByTestId("shell-search-query")).toHaveTextContent("Pedro");
+    });
   });
 });

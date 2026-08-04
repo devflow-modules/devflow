@@ -179,7 +179,7 @@ describe("ConversationsHistoryClient", () => {
     });
   });
 
-  it("mostra chip de linha na lista e no painel ao seleccionar", async () => {
+  it("mostra chip de linha no painel ao seleccionar (lista densificada sem badge de linha)", async () => {
     const user = userEvent.setup();
     const t = threadRow({
       whatsappLine: {
@@ -208,7 +208,7 @@ describe("ConversationsHistoryClient", () => {
     await waitFor(() => {
       expect(screen.getByTestId("history-thread-list")).toBeInTheDocument();
     });
-    expect(screen.getByTestId("whatsapp-line-badge")).toHaveTextContent("Prospecção");
+    expect(screen.queryByTestId("whatsapp-line-badge")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /Cliente A|\+351910000000/ }));
 
@@ -586,6 +586,36 @@ describe("ConversationsHistoryClient", () => {
     const lastCall = nav.replaceMock.mock.calls.at(-1)?.[0] as string;
     expect(lastCall).not.toMatch(/search=/);
     expect(lastCall).toMatch(/phase=in_attendance/);
+  });
+
+  it("botão Limpar remove search da URL e restaura listagem", async () => {
+    const user = userEvent.setup();
+    nav.setQuery("search=maria");
+    const spy = vi.spyOn(protectedFetch, "fetchProtected").mockImplementation((input: RequestInfo | URL) => {
+      const u = requestUrl(input);
+      if (u.includes("/api/inbox/conversations")) {
+        return jsonThreads([], 0);
+      }
+      if (u.includes("/api/whatsapp/phone-numbers")) {
+        return jsonLines([]);
+      }
+      return jsonThreads([], 0);
+    });
+    renderHistory();
+    await waitFor(() => {
+      expect(screen.getByTestId("history-search-clear")).toBeInTheDocument();
+    });
+    expect(screen.getByTestId("history-search-input")).toHaveAttribute(
+      "aria-label",
+      "Buscar no histórico por nome, telefone ou mensagem"
+    );
+    nav.replaceMock.mockClear();
+    await user.click(screen.getByTestId("history-search-clear"));
+    await waitFor(() => {
+      const lastCall = nav.replaceMock.mock.calls.at(-1)?.[0] as string;
+      expect(lastCall).not.toMatch(/search=/);
+    });
+    expect(spy).toHaveBeenCalled();
   });
 
   it("marca vista rápida activa conforme a URL", async () => {

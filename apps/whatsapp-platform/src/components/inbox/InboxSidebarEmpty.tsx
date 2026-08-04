@@ -8,34 +8,41 @@ import { Button } from "@/components/ui/button";
 export function InboxFilterEmpty({
   filter,
   hasSecondaryRefinement,
+  searchActive = false,
   onSelectNeedsResponse,
 }: {
   filter: InboxConversationsFilter;
   hasSecondaryRefinement: boolean;
+  /** Busca server-side ativa (`q`); mensagem específica sem misturar com filtros de linha/fila. */
+  searchActive?: boolean;
   onSelectNeedsResponse: () => void;
 }) {
   const allClear =
-    filter === "needs_response" && !hasSecondaryRefinement;
+    filter === "needs_response" && !hasSecondaryRefinement && !searchActive;
 
-  const title = allClear
-    ? "Tudo em dia"
-    : hasSecondaryRefinement
-      ? "Nenhum resultado com estes filtros"
-      : "Nada por aqui neste filtro";
+  const title = searchActive
+    ? "Nenhum resultado para esta busca"
+    : allClear
+      ? "Tudo em dia"
+      : hasSecondaryRefinement
+        ? "Nenhum resultado com estes filtros"
+        : "Nada por aqui neste filtro";
 
-  const body = allClear
-    ? "Nenhuma conversa aguarda resposta neste momento. Quando chegar mensagem nova, aparece aqui."
-    : hasSecondaryRefinement
-      ? "Alargue em «Mais filtros» (linha) ou mude a fila, ou volte a um filtro de fase acima."
-      : "Ajuste o filtro de fase acima ou volte a «Precisa de resposta» para priorizar o atendimento.";
+  const body = searchActive
+    ? "Tente outro nome, telefone ou trecho de mensagem, ou limpe a busca para voltar à listagem."
+    : allClear
+      ? "Nenhuma conversa aguarda resposta neste momento. Quando chegar mensagem nova, aparece aqui."
+      : hasSecondaryRefinement
+        ? "Alargue em «Mais filtros» (linha) ou mude a fila, ou volte a um filtro de fase acima."
+        : "Ajuste o filtro de fase acima ou volte a «Precisa de resposta» para priorizar o atendimento.";
 
-  const eyebrow = allClear ? "Fila operacional" : "Filtro ativo";
+  const eyebrow = allClear ? "Fila operacional" : searchActive ? "Busca ativa" : "Filtro ativo";
   const cardTone = allClear
     ? "df-inbox-filter-empty-card--clear"
     : "df-inbox-filter-empty-card--filtered";
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col p-4" data-testid="conversations-empty">
+    <div className="flex min-h-0 flex-1 flex-col p-4" data-testid="inbox-filter-empty">
       <div
         className={`df-inbox-filter-empty-card ${cardTone}`}
         role="status"
