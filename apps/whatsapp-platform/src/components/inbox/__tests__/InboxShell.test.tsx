@@ -4,6 +4,7 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { InboxShell } from "../InboxShell";
+import { Button } from "@/components/ui/button";
 
 const replace = vi.fn();
 const searchParamsStore = vi.hoisted(() => {
@@ -118,12 +119,22 @@ vi.mock("../ConversationsList", () => ({
   }) => (
     <div data-testid="conversations-list-stub">
       <span data-testid="shell-search-query">{props.searchQuery ?? ""}</span>
-      <button type="button" data-testid="shell-search-trigger" onClick={() => props.onSearchQueryChange?.("Maria")}>
+      <Button
+        type="button"
+        variant="secondary"
+        data-testid="shell-search-trigger"
+        onClick={() => props.onSearchQueryChange?.("Maria")}
+      >
         buscar
-      </button>
-      <button type="button" data-testid="shell-search-clear" onClick={() => props.onSearchQueryChange?.("")}>
+      </Button>
+      <Button
+        type="button"
+        variant="secondary"
+        data-testid="shell-search-clear"
+        onClick={() => props.onSearchQueryChange?.("")}
+      >
         limpar
-      </button>
+      </Button>
     </div>
   ),
 }));
