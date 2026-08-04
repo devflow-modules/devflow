@@ -10,7 +10,7 @@ Documento oficial de alinhamento: **fonte de verdade**, camadas auxiliares e int
 |--------|-----------|----------|----------------|-------------------|
 | **CRM operacional (Inbox)** | `apps/whatsapp-platform` — `WaInboxThread` (`leadScore`, `leadData`, `priority`, `status`), `modules/inbox/leadCrm.ts`, UI (`LeadDataPanel`, `ConversationItem`, `ChatWindow`, `DashboardAiClient`) | `operator`, `manager`, `platform_admin` (operação tenant); prospecção DevFlow extra só `platform_admin` quando `NEXT_PUBLIC_DEVFLOW_PROSPECTING_ENABLED` | BD **WhatsApp Platform** (Prisma `apps/whatsapp-platform/prisma`) | **Sim** — estado operacional do cliente e da conversa |
 | **CRM outbound interno (Portal)** | `src/app/admin/leads/**`, `src/app/api/admin/leads/**`, `src/lib/outbound-lead-origins.ts`, `src/lib/lead-operator-service.ts`, `src/lib/crm-sync.ts` | **Apenas equipa DevFlow** (`platform_admin` + segredo admin em prod para automação legada) | BD **portal** (`Lead` / `outbound_leads` no `prisma/schema.prisma` raiz) | **Não** — pipeline comercial interno; ponte via `conversationRef` → `thread.id` |
-| **Integração CRM externa (Webhook)** | `apps/whatsapp-webhook-api` — `notifyCrmIfLead` (payload via `@devflow/whatsapp-core` `buildExternalCrmLeadEventPayload`) | Tenant configura `crmWebhookUrl` | Nenhuma no DevFlow (HTTP outbound) | **Não** — opcional; não escreve inbox nem leads |
+| **Integração CRM externa (Webhook)** | Payload: `@devflow/whatsapp-core` `buildExternalCrmLeadEventPayload`. Disparo legado ainda em `apps/whatsapp-webhook-api` (`notifyCrmIfLead`) — **não** implementar ops novas nesse app. Platform: CRM operacional na Inbox; portal: `src/lib/crm-sync.ts` (`notifyExternalCrm`) para outbound interno | Tenant / config externa | Nenhuma no DevFlow (HTTP outbound) | **Não** — opcional; não escreve inbox nem leads |
 
 ---
 
@@ -39,26 +39,26 @@ Documento oficial de alinhamento: **fonte de verdade**, camadas auxiliares e int
 
 ## 3. Regras de sincronização
 
-1. **Lead ↔ conversa (bidirecional)**  
-   - Portal: `Lead.conversationRef` = `wa_inbox_threads.id`.  
-   - WhatsApp Platform: `WaInboxThread.outboundLeadId` = `Lead.id` (referência **cross-BD**, sem FK; ver migração `20260430190000_wa_thread_outbound_lead_id`).  
+1. **Lead ↔ conversa (bidirecional)**
+   - Portal: `Lead.conversationRef` = `wa_inbox_threads.id`.
+   - WhatsApp Platform: `WaInboxThread.outboundLeadId` = `Lead.id` (referência **cross-BD**, sem FK; ver migração `20260430190000_wa_thread_outbound_lead_id`).
    - Helpers: `linkLeadToThread` e `createLeadFromConversation` em `src/lib/crm-sync.ts` atualizam **os dois lados** quando a BD WhatsApp está configurada.
 
-2. **Conversa sem lead outbound**  
-   - Hoje: criação manual / `createLeadFromConversation` sob demanda.  
+2. **Conversa sem lead outbound**
+   - Hoje: criação manual / `createLeadFromConversation` sob demanda.
    - **Futuro:** inbound → dedupe → create/update — ver [CRM-DEDUPE-AND-PORTAL-LINK.md](./CRM-DEDUPE-AND-PORTAL-LINK.md) (política e pré-requisito `tenantId` em `Lead`).
 
-3. **Webhook externo**  
+3. **Webhook externo**
    - Apenas `notifyExternalCrm` / `notifyCrmIfLead`: envio HTTP; sem side-effects na BD DevFlow.
 
 ---
 
 ## 4. Modelo mínimo comum (conceitual)
 
-**Lead (portal)**  
+**Lead (portal)**
 `id`, `name`, `phone`, `origin`, `status`, `assignedOperatorId` (owner), `notes`, `conversationRef?` (thread id)
 
-**Conversation / thread (WhatsApp Platform)**  
+**Conversation / thread (WhatsApp Platform)**
 `id`, `phoneNumber`, `leadScore`, `leadData`, `status` (OPEN/PENDING/CLOSED), `assignedToUserId` (owner operacional)
 
 ---
@@ -75,6 +75,7 @@ Documento oficial de alinhamento: **fonte de verdade**, camadas auxiliares e int
 
 ## 6. Referências
 
-- Detalhe operacional leads portal: [`LEADS-CRM.md`](./LEADS-CRM.md)  
-- Playbook prospecção inbox (interno): [`../commercial/PROSPECTING_CRM_PLAYBOOK.md`](../commercial/PROSPECTING_CRM_PLAYBOOK.md)  
+- Detalhe operacional leads portal: [`LEADS-CRM.md`](./LEADS-CRM.md)
+- Playbook prospecção inbox (**canónico**): [`../whatsapp/PROSPECT_CRM_PLAYBOOK.md`](../whatsapp/PROSPECT_CRM_PLAYBOOK.md)
+- Narrativa commercial (secundário): [`../commercial/PROSPECTING_CRM_PLAYBOOK.md`](../commercial/PROSPECTING_CRM_PLAYBOOK.md)
 - Dono do lead: [`LEAD-OWNERSHIP.md`](./LEAD-OWNERSHIP.md)

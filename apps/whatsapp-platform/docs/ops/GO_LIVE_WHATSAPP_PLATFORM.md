@@ -41,5 +41,5 @@ Ou manualmente:
 
 ## Referências
 
-- `docs/architecture/LEGACY-CLEANUP.md`
+- `apps/whatsapp-platform/docs/architecture/LEGACY-CLEANUP.md`
 - `docs/TESTE_ONBOARDING.md`

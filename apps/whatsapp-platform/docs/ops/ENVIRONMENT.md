@@ -40,4 +40,4 @@ Ver `.env.example` na raiz de `apps/whatsapp-platform` para:
 ## Referências
 
 - `DEPLOY_APP_SUBDOMAIN.md`
-- `docs/architecture/LEGACY-CLEANUP.md`
+- `apps/whatsapp-platform/docs/architecture/LEGACY-CLEANUP.md`

@@ -1,131 +1,96 @@
 # Checklist de Produção — WhatsApp Platform
 
-Use este checklist antes do deploy e para validar o ambiente. Referência de variáveis: `docs/whatsapp/.env.production.example`. Release notes: `docs/whatsapp/RELEASE_NOTES.md`.
+Use este checklist antes do deploy e para validar o ambiente.
+
+**Runtime canónico:** `apps/whatsapp-platform` (host típico: `https://whatsapp.devflowlabs.com.br`).
+**Não usar para ops novas:** `apps/whatsapp-webhook-api` (legado — `ARCHIVE/BLOCKED` até verificação de tráfego/infra; ver Repository Purity).
+
+Referências: `apps/whatsapp-platform/.env.example` · [WEBHOOK_META_CHECKLIST.md](./WEBHOOK_META_CHECKLIST.md) · [PILOT-RUNBOOK.md](../whatsapp-platform/PILOT-RUNBOOK.md) · [OPERATIONAL_PLAYBOOK.md](./OPERATIONAL_PLAYBOOK.md).
+O ficheiro [`.env.production.example`](./.env.production.example) nesta pasta é **legado/histórico**; preferir o `.env.example` do app.
 
 ---
 
-## 1. Variáveis de ambiente obrigatórias
-
-### whatsapp-webhook-api
+## 1. Variáveis de ambiente obrigatórias (`whatsapp-platform`)
 
 | Variável | Descrição |
 |----------|-----------|
-| `WHATSAPP_DATABASE_URL` | URL PostgreSQL (pooler, ex.: `?pgbouncer=true` no Supabase) |
-| `WHATSAPP_DIRECT_URL` | URL direta para migrations |
+| `WHATSAPP_DATABASE_URL` | PostgreSQL (pooler, ex.: `?pgbouncer=true`) |
+| `WHATSAPP_DIRECT_URL` | URL direta para migrations Prisma |
 | `WHATSAPP_VERIFY_TOKEN` | Token de verificação do webhook Meta (GET) |
+| `META_APP_SECRET` | App Secret Meta — HMAC do POST (`X-Hub-Signature-256`) |
+| `JWT_SECRET` | Chave JWT (mín. 32 caracteres) |
+| `NEXT_PUBLIC_WHATSAPP_APP_URL` | **Base URL canónica** do app (ex.: `https://whatsapp.devflowlabs.com.br`) |
 
-Opcionais: `OPENAI_API_KEY` ou `ANTHROPIC_API_KEY` para LLM; `WHATSAPP_PHONE_NUMBER_ID` e `WHATSAPP_ACCESS_TOKEN` para single-tenant sem DB.
-
-### whatsapp-platform (Next.js)
-
-| Variável | Descrição |
-|----------|-----------|
-| `WHATSAPP_DATABASE_URL` | Mesmo PostgreSQL do webhook-api |
-| `WHATSAPP_DIRECT_URL` | Mesmo que no webhook-api |
-| `JWT_SECRET` | Chave para JWT (mín. 32 caracteres) |
-| `NEXT_PUBLIC_WHATSAPP_APP_URL` | URL base do app (ex.: `https://wa.seudominio.com`) |
-| `META_APP_SECRET` | App Secret Meta — validação HMAC do POST webhook (`X-Hub-Signature-256`); também usado no Embedded Signup |
-
-Para Supabase (filas/agentes/conversações no painel): `WHATSAPP_SUPABASE_URL`, `WHATSAPP_SUPABASE_SERVICE_ROLE_KEY`.
-
-Para /admin em produção: `WHATSAPP_ADMIN_METRICS_SECRET` (cookie ou header para métricas).  
-Para Stripe: `WHATSAPP_STRIPE_SECRET_KEY`, `WHATSAPP_STRIPE_WEBHOOK_SECRET`, `WHATSAPP_STRIPE_PRICE_PRO`, `NEXT_PUBLIC_WHATSAPP_APP_URL` (ou variantes _TEST).
+Produção / admin: `WHATSAPP_ADMIN_METRICS_SECRET` (ou equivalentes documentados no app).
+Stripe: `WHATSAPP_STRIPE_*` conforme `.env.example` do app.
+Keyring de token de canal: `WHATSAPP_TOKEN_ENCRYPTION_*` conforme docs de segurança do app.
 
 ---
 
 ## 2. Setup do banco
 
-1. Rodar a migration consolidada (idempotente):
+1. Migrations Prisma **só** no runtime canónico:
    ```bash
-   psql "$WHATSAPP_DATABASE_URL" -f docs/whatsapp/MIGRATION_CONSOLIDATED.sql
+   cd apps/whatsapp-platform && pnpm db:migrate
+   # ou pnpm db:migrate:deploy em CI/prod
    ```
-   Ou usar as migrations do Prisma no webhook-api:
+2. Gerar o client:
    ```bash
-   cd apps/whatsapp-webhook-api && pnpm db:migrate
-   ```
-
-2. Garantir que o schema Prisma do **whatsapp-webhook-api** e do **whatsapp-platform** estão alinhados (mesmas tabelas `whatsapp_*`).
-
-3. Gerar o client:
-   ```bash
-   cd apps/whatsapp-webhook-api && pnpm db:generate
    cd apps/whatsapp-platform && pnpm db:generate
    ```
+3. **Não** aplicar `docs/whatsapp/MIGRATION_CONSOLIDATED.sql` como caminho operacional (candidato a ARCHIVE; preferir Prisma do platform).
+4. **Não** correr `db:*` em `apps/whatsapp-webhook-api` para deploy de produto.
 
 ---
 
 ## 3. Configuração do webhook Meta
 
-1. No Meta for Developers → seu app → WhatsApp → Configuration:
-   - **Callback URL**: `https://seu-dominio.com/webhook` (ou a URL do whatsapp-webhook-api).
-   - **Verify Token**: o mesmo valor de `WHATSAPP_VERIFY_TOKEN`.
-
+1. Meta for Developers → app → WhatsApp → Configuration:
+   - **Callback URL:** `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp`
+     (ou `{NEXT_PUBLIC_WHATSAPP_APP_URL}/api/webhook/whatsapp`)
+   - **Verify Token:** o mesmo valor de `WHATSAPP_VERIFY_TOKEN` no **whatsapp-platform**.
 2. Assinar o evento **messages**.
+3. Tenant resolve por `phone_number_id` no payload (canal provisionado/activado no ACC).
 
-3. Após onboarding no painel, cada tenant terá `phone_number_id` e `access_token`; o webhook resolve o tenant pelo `phone_number_id` do payload.
+Detalhe: [WEBHOOK_META_CHECKLIST.md](./WEBHOOK_META_CHECKLIST.md).
 
 ---
 
 ## 4. Stripe (billing)
 
-1. Criar produto e preço no Stripe (ex.: plano Pro).
-2. Configurar webhook no Stripe apontando para:
-   `https://seu-dominio.com/api/stripe/webhook`
-3. Definir no app: `WHATSAPP_STRIPE_WEBHOOK_SECRET`, `WHATSAPP_STRIPE_SECRET_KEY`, `WHATSAPP_STRIPE_PRICE_PRO`, `NEXT_PUBLIC_WHATSAPP_APP_URL` (ou variantes _TEST).
-4. Após checkout, o usuário é redirecionado para `/onboarding?session_id=...` e o tenant recebe `plan` e `activeUntil`.
+1. Produto/preço no Stripe.
+2. Webhook Stripe → `{NEXT_PUBLIC_WHATSAPP_APP_URL}/api/stripe/webhook`.
+3. Vars `WHATSAPP_STRIPE_*` + `NEXT_PUBLIC_WHATSAPP_APP_URL` no projeto Vercel do **platform**.
 
 ---
 
 ## 5. LLM (OpenAI / Anthropic)
 
-- No **whatsapp-webhook-api**: definir `OPENAI_API_KEY` e/ou `ANTHROPIC_API_KEY` conforme o driver.
-- No painel, em **Configurações** (`/settings`), o tenant pode escolher o motor: **Apenas regras**, **OpenAI** ou **Claude**.
-- Respostas por LLM e fallback são registradas nos logs estruturados (`responseSource`: `ai` ou `ruleBased`).
+- Definir `OPENAI_API_KEY` e/ou `ANTHROPIC_API_KEY` no ambiente do **whatsapp-platform** (não no webhook-api legado).
+- No painel: **Configurações** (`/settings`) — motor `ruleBased` / `openAI` / `claude`.
+- Ver [OPENAI_ENV_AND_FLOW.md](./OPENAI_ENV_AND_FLOW.md) e [AI_AUTOMATION.md](../whatsapp-platform/AI_AUTOMATION.md).
 
 ---
 
-## 6. RLS (Supabase)
+## 6. Ativação de canal (ops)
 
-Se o painel usar Supabase para filas/agentes/conversas e você usar Supabase Auth, aplique RLS e políticas por tenant. Exemplo de policy (ajustar nome da tabela e claim):
+Caminho canónico: **`/admin/whatsapp`** (Activation Control Center) — provision → `PENDING_ACTIVATION` → Ativar com token → `ACTIVE`.
+Playbook: [OPERATIONAL_PLAYBOOK.md](./OPERATIONAL_PLAYBOOK.md).
+Pacote piloto: [CLIENT-IMPLANTATION-PACK-v1.md](../whatsapp-platform/CLIENT-IMPLANTATION-PACK-v1.md).
 
-```sql
--- Exemplo: usuário só vê conversas do próprio tenant
-CREATE POLICY "tenant_conversations"
-ON public.conversations
-FOR ALL
-USING (tenant_id = (auth.jwt() ->> 'tenant_id'));
-```
-
-Com JWT do app (não Supabase Auth), as rotas já filtram por `auth.payload.tenantId`; o RLS no Supabase pode ficar permissivo para o service role e restrito por aplicação.
+Rotas históricas `/api/admin/whatsapp/onboarding/*` **não existem** no runtime actual — ver banner em [WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md](./WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md).
 
 ---
 
-## 7. Como testar o fluxo completo
+## 7. Fluxo de teste mínimo pós-deploy
 
-1. **Webhook**
-   - Enviar POST para `/webhook` com payload de teste (objeto `whatsapp_business_account`, `entry[].changes[].value.messages`).
-   - Verificar logs: `webhook.inbound`, `webhook.response`, e, se escalar, `webhook.escalated`, `webhook.enqueue`, `webhook.assign`.
-
-2. **Fila e agente**
-   - Criar agente (Supabase ou API) e marcar status `available` (Prisma: `AgentStatus`).
-   - Disparar mensagem que gere `escalate: true`; conferir se a conversa entra na fila e, se houver agente disponível, é atribuída.
-
-3. **Painel**
-   - Login em `/login` → acessar `/admin/conversations`, `/admin/distribuir`, `/queues`, `/agents`.
-   - Em **Distribuir**, clicar em “Pegar próxima conversa” e validar redirecionamento para a conversa.
-   - Enviar mensagem na conversa e marcar como **Resolved** (rota `PATCH .../resolve`).
-
-4. **Exportação**
-   - Com usuário autenticado, acessar links de export CSV (dashboard de métricas) ou `GET /api/admin/export/conversations` e `GET /api/admin/export/messages` com cookie de sessão.
-
-5. **Smoke script**
-   - Com `WHATSAPP_DATABASE_URL` e `WHATSAPP_DIRECT_URL` definidos: `cd apps/whatsapp-platform && pnpm run smoke`. Para E2E completo, subir o platform em outra aba e rodar o smoke (login + queue/next + resolve).
+1. GET verify do webhook (challenge).
+2. Login no app (`{NEXT_PUBLIC_WHATSAPP_APP_URL}`).
+3. Canal `ACTIVE` no ACC (se aplicável).
+4. Smoke autorizado: [SMOKE-TEST-INBOUND-OUTBOUND.md](../whatsapp-platform/SMOKE-TEST-INBOUND-OUTBOUND.md).
 
 ---
 
-## 8. Resumo de segurança
+## 8. Nota sobre `apps/whatsapp-webhook-api`
 
-- **Middleware**: rotas `/admin/*` (exceto `/admin/login`) exigem JWT válido em cookie.
-- **APIs**: rotas de queue, agents, conversations, export e resolve usam `getAuthFromRequest` e escopo por `tenantId`.
-- **PATCH/DELETE** em `/api/queues/[id]` e `/api/agents/[id]`: apenas role `admin`.
-- **Métricas admin**: em produção, exige `ADMIN_METRICS_SECRET` (cookie ou header) ou JWT válido.
+Mencionado apenas para **evitar** uso operacional. Status documental: legado / experimental. Qualquer referência antiga a `cd apps/whatsapp-webhook-api`, Callback `/webhook` nesse serviço, ou Prisma paralelo, trata-se de **drift** — seguir este checklist e o PILOT-RUNBOOK.

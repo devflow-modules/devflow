@@ -1,5 +1,10 @@
 # Playbook — CRM de prospecção (WhatsApp Platform / DevFlow)
 
+> **Documento secundário (narrativa comercial + capability).**
+> **Fonte canónica operacional / modelo de dados:**
+> [`docs/whatsapp/PROSPECT_CRM_PLAYBOOK.md`](../whatsapp/PROSPECT_CRM_PLAYBOOK.md).
+> Em caso de conflito de campos, etapas ou API, prevalece o playbook em `docs/whatsapp/`.
+
 ## Uso interno DevFlow (não exposto ao tenant cliente por padrão)
 
 O CRM de **prospecção comercial DevFlow** (barra de métricas, filtro `prospectLens`, painel **Prospecção DevFlow** com formulário e templates, chips **FU hoje** / etapa na lista, `PATCH` e métricas dedicadas) existe para **DevFlow Labs** e equipa **platform_admin** fazerem prospecção própria. **Não é feature white-label para o cliente final**: utilizadores `manager` / `operator` continuam com o Inbox operacional normal (prioridade, SLA, `leadScore`, contexto de lead, estados de conversa).

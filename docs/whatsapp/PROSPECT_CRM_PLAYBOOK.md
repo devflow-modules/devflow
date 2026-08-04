@@ -1,8 +1,14 @@
 # Playbook — CRM leve de prospecção (Inbox)
 
+> **Fonte canónica** do CRM de prospecção na Inbox WhatsApp Platform (`leadData.prospect`).
+> Narrativa comercial / kill-switch / capability futura: documento **secundário**
+> [`docs/commercial/PROSPECTING_CRM_PLAYBOOK.md`](../commercial/PROSPECTING_CRM_PLAYBOOK.md) — não divergir do modelo de dados aqui.
+
 Documento operacional para usar o CRM de prospecção já existente na WhatsApp Platform. Os dados ficam em **`leadData.prospect`** (campo JSON `lead_data` no thread da inbox), **sem migração de schema**.
 
 **Público:** equipa DevFlow que opera canal de prospecção (`platform_admin` com CRM ativo).
+
+**Kill-switch (resumo):** `NEXT_PUBLIC_DEVFLOW_PROSPECTING_ENABLED=false` desliga UI/API mesmo para `platform_admin`. Detalhe: playbook commercial.
 
 ---
 
