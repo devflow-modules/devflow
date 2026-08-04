@@ -12,6 +12,7 @@ import { ChatHeader } from "../ChatHeader";
 import { InternalNotesPanel } from "../InternalNotesPanel";
 import { INBOX_QK, type WaInboxMessageRow, type WaInboxThreadRow } from "../inboxTypes";
 import { SupportProvider } from "@/components/support/SupportProvider";
+import { SessionRoleProvider } from "@/components/navigation/SessionRoleContext";
 
 function createQueryClient() {
   return new QueryClient({
@@ -23,7 +24,9 @@ function createWrapper(qc = createQueryClient()) {
   return function Wrapper({ children }: { children: React.ReactNode }) {
     return (
       <QueryClientProvider client={qc}>
-        <SupportProvider>{children}</SupportProvider>
+        <SessionRoleProvider>
+          <SupportProvider>{children}</SupportProvider>
+        </SessionRoleProvider>
       </QueryClientProvider>
     );
   };
@@ -35,6 +38,18 @@ describe("Inbox UI", () => {
       "fetch",
       vi.fn((input: RequestInfo, init?: RequestInit) => {
         const url = String(input);
+        if (url.includes("/api/auth/verify")) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: {
+                valid: true,
+                user: { id: "u1", role: "operator", name: "Agente", tenantId: "tenant-1" },
+              },
+            }),
+          } as Response);
+        }
         if (url.includes("/api/whatsapp/phone-numbers")) {
           return Promise.resolve({
             ok: true,
@@ -977,6 +992,154 @@ describe("Inbox UI", () => {
       expect(screen.queryByTestId("send-status-failed")).not.toBeInTheDocument();
     });
     expect(clientRequestIds[0]).toBe(clientRequestIds[1]);
+  });
+
+  it("MessageInput CLOSED: bloqueia envio e Reabrir conversa chama status OPEN", async () => {
+    const user = userEvent.setup();
+    const originalFetch = vi.mocked(fetch).getMockImplementation();
+    let statusBody: unknown;
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/status") && init?.method === "POST") {
+        statusBody = JSON.parse(String(init.body ?? "{}"));
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { status: "OPEN" } }),
+        } as Response);
+      }
+      if (url.includes("/send") && init?.method === "POST") {
+        throw new Error("send não deve ser chamado com composer CLOSED");
+      }
+      return originalFetch!(input, init);
+    });
+
+    const closedThread: WaInboxThreadRow = {
+      id: "thread-1",
+      phoneNumber: "5511999999999",
+      businessPhoneNumberId: "pn-meta-1",
+      contactName: "Cliente",
+      lastMessageAt: new Date().toISOString(),
+      unreadCount: 0,
+      lastMessagePreview: null,
+      status: "CLOSED",
+      isUnassigned: true,
+      isAssignedToMe: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    render(<MessageInput threadId="thread-1" thread={closedThread} />, {
+      wrapper: createWrapper(),
+    });
+
+    const lock = await screen.findByTestId("composer-authorship-lock");
+    expect(lock).toHaveAttribute("data-lock-kind", "closed");
+    expect(screen.getByTestId("send-button")).toBeDisabled();
+    await user.click(screen.getByTestId("composer-reopen"));
+    await waitFor(() => {
+      expect(statusBody).toEqual({ status: "OPEN" });
+      expect(screen.getByTestId("composer-authorship-ok")).toHaveTextContent("Conversa reaberta.");
+    });
+  });
+
+  it("MessageInput Reabrir: falha do servidor mantém lock e mostra erro", async () => {
+    const user = userEvent.setup();
+    const originalFetch = vi.mocked(fetch).getMockImplementation();
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/status") && init?.method === "POST") {
+        return Promise.resolve({
+          ok: false,
+          status: 403,
+          json: async () => ({ error: "Sem permissão para reabrir" }),
+        } as Response);
+      }
+      return originalFetch!(input, init);
+    });
+
+    const closedThread: WaInboxThreadRow = {
+      id: "thread-1",
+      phoneNumber: "5511999999999",
+      businessPhoneNumberId: "pn-meta-1",
+      contactName: "Cliente",
+      lastMessageAt: new Date().toISOString(),
+      unreadCount: 0,
+      lastMessagePreview: null,
+      status: "CLOSED",
+      isUnassigned: true,
+      isAssignedToMe: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    render(<MessageInput threadId="thread-1" thread={closedThread} />, {
+      wrapper: createWrapper(),
+    });
+    await user.click(await screen.findByTestId("composer-reopen"));
+    expect(await screen.findByTestId("composer-authorship-error")).toBeInTheDocument();
+    expect(screen.getByTestId("composer-authorship-lock")).toHaveAttribute("data-lock-kind", "closed");
+    expect(screen.getByTestId("send-button")).toBeDisabled();
+  });
+
+  it("MessageInput outro assignee: manager pode Assumir; send bloqueado", async () => {
+    const user = userEvent.setup();
+    const originalFetch = vi.mocked(fetch).getMockImplementation();
+    let assignCalled = false;
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/api/auth/verify")) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: {
+              valid: true,
+              user: { id: "mgr-1", role: "manager", name: "Mgr", tenantId: "tenant-1" },
+            },
+          }),
+        } as Response);
+      }
+      if (url.includes("/assign") && init?.method === "POST") {
+        assignCalled = true;
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { assignedTo: "mgr-1", changed: true } }),
+        } as Response);
+      }
+      if (url.includes("/send") && init?.method === "POST") {
+        throw new Error("send não deve ser chamado com outro assignee");
+      }
+      return originalFetch!(input, init);
+    });
+
+    const otherThread: WaInboxThreadRow = {
+      id: "thread-1",
+      phoneNumber: "5511999999999",
+      businessPhoneNumberId: "pn-meta-1",
+      contactName: "Cliente",
+      lastMessageAt: new Date().toISOString(),
+      unreadCount: 0,
+      lastMessagePreview: null,
+      status: "OPEN",
+      isUnassigned: false,
+      isAssignedToMe: false,
+      assignedToUser: { id: "op-2", name: "Outro", email: "o@x.com" },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    render(<MessageInput threadId="thread-1" thread={otherThread} />, {
+      wrapper: createWrapper(),
+    });
+
+    const lock = await screen.findByTestId("composer-authorship-lock");
+    expect(lock).toHaveAttribute("data-lock-kind", "other_assignee");
+    expect(screen.getByTestId("send-button")).toBeDisabled();
+    await user.click(await screen.findByTestId("composer-assume"));
+    await waitFor(() => {
+      expect(assignCalled).toBe(true);
+      expect(screen.getByTestId("composer-authorship-ok")).toHaveTextContent("Conversa assumida.");
+    });
   });
 
   it("MessageBubble outbound mostra status read", () => {

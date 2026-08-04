@@ -135,7 +135,8 @@ const auth = {
 const thread = {
   id: "thread-1",
   tenantId: "tenant-1",
-  assignedToUserId: "operator-2",
+  status: "OPEN",
+  assignedToUserId: "operator-1",
   businessPhoneNumberId: "phone-id-1",
   phoneNumber: "+55 (11) 99999-0000",
 };
@@ -482,5 +483,58 @@ describe("POST /api/inbox/conversations/[id]/send", () => {
     expect(json.error.code).toBe("SEND_IN_PROGRESS");
     expect(mocks.adapterSendText).not.toHaveBeenCalled();
     expect(mocks.claimSendForMeta).not.toHaveBeenCalled();
+  });
+
+  it("CLOSED: 409 THREAD_CLOSED sem Meta", async () => {
+    mocks.findThread.mockResolvedValue({ ...thread, status: "CLOSED" });
+
+    const response = await post();
+    const json = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(json.error.code).toBe("THREAD_CLOSED");
+    expect(mocks.adapterSendText).not.toHaveBeenCalled();
+    expect(mocks.claimSendForMeta).not.toHaveBeenCalled();
+  });
+
+  it("outro assignee: 409 THREAD_ASSIGNED_TO_OTHER sem Meta", async () => {
+    mocks.findThread.mockResolvedValue({ ...thread, assignedToUserId: "operator-2" });
+
+    const response = await post();
+    const json = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(json.error.code).toBe("THREAD_ASSIGNED_TO_OTHER");
+    expect(mocks.adapterSendText).not.toHaveBeenCalled();
+  });
+
+  it("COMPLETED replay ignora CLOSED (já entregue à Meta)", async () => {
+    mocks.findThread.mockResolvedValue({ ...thread, status: "CLOSED" });
+    mocks.findSendRequest.mockResolvedValue({
+      ...pendingLedger,
+      status: "COMPLETED",
+      waMessageId: "wamid.outbound-1",
+    });
+
+    const response = await post();
+    const json = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(json.data.replayed).toBe(true);
+    expect(mocks.adapterSendText).not.toHaveBeenCalled();
+  });
+
+  it("META_ACCEPTED reconcile ignora outro assignee", async () => {
+    mocks.findThread.mockResolvedValue({ ...thread, assignedToUserId: "operator-2" });
+    mocks.findSendRequest.mockResolvedValue({
+      ...pendingLedger,
+      status: "META_ACCEPTED",
+      waMessageId: "wamid.outbound-1",
+    });
+
+    const response = await post();
+    expect(response.status).toBe(200);
+    expect(mocks.adapterSendText).not.toHaveBeenCalled();
+    expect(mocks.waInboxCreateOutbound).toHaveBeenCalled();
   });
 });

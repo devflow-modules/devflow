@@ -85,6 +85,16 @@ export {
   markSendPersistFailed,
 } from "./outboundSendRequestService";
 export type { OutboundSendLedgerRow } from "./outboundSendRequestService";
+export {
+  SEND_AUTHORSHIP_CODES,
+  evaluateSendAuthorship,
+  shouldEnforceSendAuthorship,
+} from "./sendAuthorshipGate";
+export type {
+  SendAuthorshipCode,
+  SendAuthorshipInput,
+  SendAuthorshipResult,
+} from "./sendAuthorshipGate";
 export { suggestInboxPlaybook } from "./inboxPlaybookService";
 export type { InboxPlaybookResult } from "./inboxPlaybookService";
 export { findNextUnassignedQueueThread, listPendingQueueThreads } from "./waInboxQueueService";
