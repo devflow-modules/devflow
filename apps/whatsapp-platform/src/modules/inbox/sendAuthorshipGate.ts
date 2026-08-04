@@ -76,8 +76,13 @@ export function evaluateSendAuthorship(input: SendAuthorshipInput): SendAuthorsh
   return { ok: true };
 }
 
-/** Ledger já na Meta ou completo: não reaplicar gate de autoria (evita bloquear reconcile). */
+/** Ledger já na Meta, completo, em curso ou resultado desconhecido: não reaplicar gate de autoria no replay. */
 export function shouldEnforceSendAuthorship(ledgerStatus: string | null | undefined): boolean {
   if (!ledgerStatus) return true;
-  return ledgerStatus !== "COMPLETED" && ledgerStatus !== "META_ACCEPTED" && ledgerStatus !== "SENDING";
+  return (
+    ledgerStatus !== "COMPLETED" &&
+    ledgerStatus !== "META_ACCEPTED" &&
+    ledgerStatus !== "SENDING" &&
+    ledgerStatus !== "UNKNOWN_OUTCOME"
+  );
 }

@@ -722,6 +722,8 @@ enum WaInboxSendRequestStatus {
   META_ACCEPTED
   COMPLETED
   FAILED_PRE_META
+  /** SENDING abandonado sem prova de resultado Meta — revisão manual; nunca reenvia. */
+  UNKNOWN_OUTCOME
 }
 
 model WaInboxSendRequest {

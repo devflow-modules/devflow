@@ -52,12 +52,13 @@ describe("sendAuthorshipGate", () => {
     ).toBe(false);
   });
 
-  it("shouldEnforceSendAuthorship salta COMPLETED/META_ACCEPTED/SENDING", () => {
+  it("shouldEnforceSendAuthorship salta COMPLETED/META_ACCEPTED/SENDING/UNKNOWN_OUTCOME", () => {
     expect(shouldEnforceSendAuthorship(null)).toBe(true);
     expect(shouldEnforceSendAuthorship("PENDING")).toBe(true);
     expect(shouldEnforceSendAuthorship("FAILED_PRE_META")).toBe(true);
     expect(shouldEnforceSendAuthorship("COMPLETED")).toBe(false);
     expect(shouldEnforceSendAuthorship("META_ACCEPTED")).toBe(false);
     expect(shouldEnforceSendAuthorship("SENDING")).toBe(false);
+    expect(shouldEnforceSendAuthorship("UNKNOWN_OUTCOME")).toBe(false);
   });
 });
