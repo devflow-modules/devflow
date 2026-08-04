@@ -1,7 +1,7 @@
 # WhatsApp Platform — Documentation Map
 
 **Status:** current  
-**Last updated:** 2026-07-20  
+**Last updated:** 2026-08-04  
 **Purpose:** classify WhatsApp documentation across the monorepo, declare sources of truth, and resolve conflicts.
 
 This map does **not** move files. It records the intended division of ownership so agents and humans know which document wins.
@@ -57,6 +57,7 @@ When two documents disagree:
 | What the product is / is not today | [CURRENT-SCOPE.md](./CURRENT-SCOPE.md) |
 | Ownership, packages, flows, trust boundaries | [ARCHITECTURE.md](./ARCHITECTURE.md) |
 | Pilot go-live procedure | [PILOT-RUNBOOK.md](./PILOT-RUNBOOK.md) |
+| **Client implantation pack (piloto assistido v1)** | [CLIENT-IMPLANTATION-PACK-v1.md](./CLIENT-IMPLANTATION-PACK-v1.md) |
 | App deploy / webhook host | `apps/whatsapp-platform/docs/DEPLOY_APP_SUBDOMAIN.md` |
 | App runtime layers | `apps/whatsapp-platform/docs/ARCHITECTURE.md` |
 | Portal ↔ app cutover | `docs/architecture/WHATSAPP_PORTAL_APP_PARITY.md`, `packages/whatsapp-routes` |
@@ -77,6 +78,7 @@ When two documents disagree:
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | `current` | Cross-cutting architecture & ownership |
 | [WHATSAPP-CLIENT-1-READINESS-PLAN.md](./WHATSAPP-CLIENT-1-READINESS-PLAN.md) | `current` / `backlog` | Approved pilot decisions, Inbox UX roadmap, and first test-hardening issue |
 | [PILOT-RUNBOOK.md](./PILOT-RUNBOOK.md) | `runbook` | Primary pilot procedure |
+| [CLIENT-IMPLANTATION-PACK-v1.md](./CLIENT-IMPLANTATION-PACK-v1.md) | `current` / `runbook` | Pacote v1: checklist comercial/Meta, tenant+activate, smoke, handout cliente, GO/HOLD/BLOCKED, evidências; limitações Admin Master = intervenção manual |
 | [SMOKE-TEST-INBOUND-OUTBOUND.md](./SMOKE-TEST-INBOUND-OUTBOUND.md) | `runbook` | E2E smoke for pilot |
 | [LEAD-TO-TENANT-PILOT.md](./LEAD-TO-TENANT-PILOT.md) | `runbook` | CRM lead → tenant assisted flow |
 | [LGPD-PILOT-CHECKLIST.md](./LGPD-PILOT-CHECKLIST.md) | `runbook` | Operational privacy checklist (not legal opinion) |
