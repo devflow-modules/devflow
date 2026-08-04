@@ -15,7 +15,7 @@ Este documento alinha labels do repositório com o monorepo (portal na raiz, `ap
 | `area:portal` | Next.js na raiz (`src/`), marketing, middleware partilhado, hub `devflowlabs.com.br`. |
 | `area:whatsapp-platform` | App `apps/whatsapp-platform` (inbox, webhook Meta, Stripe, auth do produto). |
 | `area:financeiro` | App `apps/financeiro` e rotas/cutover do Financeiro. |
-| `area:healthsafe-rpa` | Alinhamento HealthSafe × RPA (sobretudo `docs/healthsafe-rpa/` e contratos). |
+| `area:healthsafe-rpa` | Alinhamento HealthSafe × RPA (regra Cursor `.cursor/rules/06-healthsafe-rpa.mdc`; **não** existe `docs/healthsafe-rpa/`). |
 | `area:packages` | `packages/*` (billing-core, ui, whatsapp-routes, etc.). |
 | `area:docs` | Documentação em `docs/` sem código de produto. |
 | `area:infra` | Deploy, DNS, Vercel, observabilidade, scripts de ops (sem alterar código de app). |
@@ -149,29 +149,29 @@ done
 
 ## Exemplos de issues bem rotuladas
 
-1. **Bug no webhook (tenant incorrecto)**  
+1. **Bug no webhook (tenant incorrecto)**
    `area:whatsapp-platform`, `type:bug`, `risk:webhook`, `risk:tenant-isolation`, `risk:production`, `cursor:ready`, `cursor:requires-tests`, `needs:security-review`
 
-2. **Feature de UI na inbox**  
+2. **Feature de UI na inbox**
    `area:whatsapp-platform`, `type:feature`, `risk:ui-regression`, `cursor:small-diff`, `cursor:requires-tests`, `needs:smoke-routes`
 
-3. **Refactor de módulo interno sem mudar API**  
+3. **Refactor de módulo interno sem mudar API**
    `area:packages`, `type:refactor`, `cursor:needs-plan`, `cursor:small-diff`, `cursor:do-not-touch-db`
 
-4. **Revisão de PR que toca Stripe**  
+4. **Revisão de PR que toca Stripe**
    `area:whatsapp-platform`, `type:chore`, `cursor:review-only`, `risk:billing`, `risk:webhook`, `needs:security-review`
 
-5. **Actualização de doc HealthSafe × RPA**  
+5. **Actualização de doc HealthSafe × RPA**
    `area:healthsafe-rpa`, `type:docs`, `needs:docs-update` (sem `risk:*` se não houver mudança de runtime)
 
 ---
 
 ## Ficheiros relacionados
 
-- [`.github/ISSUE_TEMPLATE/cursor-feature.yml`](../../.github/ISSUE_TEMPLATE/cursor-feature.yml) — funcionalidades  
-- [`.github/ISSUE_TEMPLATE/cursor-bugfix.yml`](../../.github/ISSUE_TEMPLATE/cursor-bugfix.yml) — bugs  
-- [`.github/ISSUE_TEMPLATE/cursor-refactor.yml`](../../.github/ISSUE_TEMPLATE/cursor-refactor.yml) — refactors  
-- [`.github/ISSUE_TEMPLATE/cursor-review.yml`](../../.github/ISSUE_TEMPLATE/cursor-review.yml) — revisão de PR  
-- [`.github/ISSUE_TEMPLATE/config.yml`](../../.github/ISSUE_TEMPLATE/config.yml) — issues em branco permitidas  
+- [`.github/ISSUE_TEMPLATE/cursor-feature.yml`](../../.github/ISSUE_TEMPLATE/cursor-feature.yml) — funcionalidades
+- [`.github/ISSUE_TEMPLATE/cursor-bugfix.yml`](../../.github/ISSUE_TEMPLATE/cursor-bugfix.yml) — bugs
+- [`.github/ISSUE_TEMPLATE/cursor-refactor.yml`](../../.github/ISSUE_TEMPLATE/cursor-refactor.yml) — refactors
+- [`.github/ISSUE_TEMPLATE/cursor-review.yml`](../../.github/ISSUE_TEMPLATE/cursor-review.yml) — revisão de PR
+- [`.github/ISSUE_TEMPLATE/config.yml`](../../.github/ISSUE_TEMPLATE/config.yml) — issues em branco permitidas
 
 Após criar labels na org/repo, pode-se opcionalmente acrescentar `labels:` nos YAML dos templates para pré-preencher (cuidado: labels inexistentes falham na criação do issue).

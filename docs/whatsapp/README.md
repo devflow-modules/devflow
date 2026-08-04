@@ -1,7 +1,9 @@
 # WhatsApp Platform — Status
 
-**Apps:** `whatsapp-platform` (Next.js), `whatsapp-webhook-api` (Node)  
-**Banco:** Supabase dedicado (xhtsgqvdqpfuotctaqow)
+**Runtime canónico:** `apps/whatsapp-platform` (Next.js)
+**Base URL típica:** `https://whatsapp.devflowlabs.com.br` (`NEXT_PUBLIC_WHATSAPP_APP_URL`)
+**Legado (não ops novas):** `apps/whatsapp-webhook-api` — ver [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)
+**Fonte de produto:** [CURRENT-SCOPE.md](../whatsapp-platform/CURRENT-SCOPE.md) · [DOCUMENTATION-MAP.md](../whatsapp-platform/DOCUMENTATION-MAP.md)
 
 ---
 
@@ -9,11 +11,11 @@
 
 | Item | Status |
 |------|--------|
-| Migration DB | **COMPLETE** |
+| Migration DB (platform Prisma) | **COMPLETE** |
 | Signup / Login / Tenants | **PASS** |
-| Onboarding | **PASS** |
-| Health (platform, webhook-api) | **PASS** |
-| Testes unitários | **PASS** |
+| Onboarding assistido (ACC) | **PASS** (ver OPERATIONAL_PLAYBOOK) |
+| Health (platform + webhook Meta) | Validar no host canónico |
+| Testes unitários (platform) | **PASS** |
 
 ---
 

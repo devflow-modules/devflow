@@ -8,7 +8,7 @@
 
 O hub **`devflowlabs.com.br`** posiciona-se hoje em torno de:
 
-1. **WhatsApp Platform** — automação de atendimento no WhatsApp, demo e páginas de produto.  
+1. **WhatsApp Platform** — automação de atendimento no WhatsApp, demo e páginas de produto.
 2. **Financeiro** — app de controle financeiro em `/ferramentas/financeiro`.
 
 **CRM interno** (equipa comercial DevFlow): `/admin/leads` e `/admin/lead-finder` — ver pasta [**crm/**](./crm/). Playbook comercial (ICP, outbound, funil, demo): [**GO-TO-MARKET.md**](./GO-TO-MARKET.md).
@@ -40,8 +40,10 @@ Outros apps no repositório (**ApplyFlow** como case de portfólio local-first, 
 | [**architecture/**](./architecture/) | Cutover, guardrails, políticas |
 | [**brand/**](./brand/) | Marca, sistema visual e guidelines do portal |
 | [**products/**](./products/) | Governança, inventário e critérios de priorização dos produtos DevFlow |
-| [**healthsafe-rpa/**](./healthsafe-rpa/) | Referência HealthSafe × RPA |
+| [**operations/**](./operations/) | Redirect safety, Cursor automations, labels GitHub |
 | [**_archive/**](./_archive/) | Migrações e relatórios históricos |
+
+> **HealthSafe × RPA:** não existe pasta `docs/healthsafe-rpa/`. Governança do agente: [`.cursor/rules/06-healthsafe-rpa.mdc`](../.cursor/rules/06-healthsafe-rpa.mdc). Label GitHub `area:healthsafe-rpa` permanece em [operations/GITHUB_LABELS.md](./operations/GITHUB_LABELS.md).
 
 ---
 
@@ -108,14 +110,14 @@ Outros apps no repositório (**ApplyFlow** como case de portfólio local-first, 
 
 ## READMEs por área
 
-- [crm/README.md](./crm/README.md)  
-- [financeiro/README.md](./financeiro/README.md)  
-- [whatsapp/README.md](./whatsapp/README.md)  
-- [applyflow/](./applyflow/) (índice em `docs/applyflow/` — ver também [ARCHITECTURE.md](./applyflow/ARCHITECTURE.md))  
-- [career-suite/README.md](./career-suite/README.md) (ApplyFlow + Interview Lab, CareerBundle)  
-- [DevFlow Career Suite — public case](./public-cases/CAREER-SUITE.md) (portfólio / LinkedIn / demo script)  
-- [apps/applyflow/README.md](../apps/applyflow/README.md) (dashboard Next.js)  
-- [apps/applyflow-extension/README.md](../apps/applyflow-extension/README.md) (extensão Chrome MV3)  
-- [investigamais/README.md](./investigamais/README.md) (produto / app separado)  
-- [shared/README.md](./shared/README.md)  
-- [backlinks/README.md](./backlinks/README.md)  
+- [crm/README.md](./crm/README.md)
+- [financeiro/README.md](./financeiro/README.md)
+- [whatsapp/README.md](./whatsapp/README.md)
+- [applyflow/](./applyflow/) (índice em `docs/applyflow/` — ver também [ARCHITECTURE.md](./applyflow/ARCHITECTURE.md))
+- [career-suite/README.md](./career-suite/README.md) (ApplyFlow + Interview Lab, CareerBundle)
+- [DevFlow Career Suite — public case](./public-cases/CAREER-SUITE.md) (portfólio / LinkedIn / demo script)
+- [apps/applyflow/README.md](../apps/applyflow/README.md) (dashboard Next.js)
+- [apps/applyflow-extension/README.md](../apps/applyflow-extension/README.md) (extensão Chrome MV3)
+- [investigamais/README.md](./investigamais/README.md) (produto / app separado)
+- [shared/README.md](./shared/README.md)
+- [backlinks/README.md](./backlinks/README.md)

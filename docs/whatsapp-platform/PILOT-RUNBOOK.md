@@ -1,7 +1,7 @@
 # WhatsApp Platform — Pilot Runbook
 
-**Versão:** 1.0 · **Data:** 2026-06-09  
-**App canónico:** `apps/whatsapp-platform`  
+**Versão:** 1.0 · **Data:** 2026-06-09
+**App canónico:** `apps/whatsapp-platform`
 **Base:** [WHATSAPP-PLATFORM-P0-BACKLOG.md](./WHATSAPP-PLATFORM-P0-BACKLOG.md) · [WHATSAPP-PLATFORM-AUDIT.md](./WHATSAPP-PLATFORM-AUDIT.md)
 
 Runbook operacional para configurar e validar **1 piloto real**: 1 cliente, 1 tenant, 1 número WhatsApp Cloud API, inbox, webhook e envio outbound com suporte assistido DevFlow.
@@ -84,7 +84,7 @@ Não substitui runbooks especializados — referencia-os onde aplicável.
 | Tema | Documento |
 |------|-----------|
 | Setup Cloud API | [WHATSAPP-SETUP.md](../whatsapp/WHATSAPP-SETUP.md) |
-| Ativação número (admin API) | [WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md](../whatsapp/WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md) |
+| Ativação número (admin) | [OPERATIONAL_PLAYBOOK.md](../whatsapp/OPERATIONAL_PLAYBOOK.md) (ACC `/admin/whatsapp`). Histórico curls: [WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md](../whatsapp/WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md) — **não executar** onboarding/* |
 | Onboarding assistido (painel) | [OPERATIONAL_PLAYBOOK.md](../whatsapp/OPERATIONAL_PLAYBOOK.md) |
 | Go-live deploy | [GO_LIVE_WHATSAPP_PLATFORM.md](../../apps/whatsapp-platform/docs/ops/GO_LIVE_WHATSAPP_PLATFORM.md) |
 | Variáveis | [ENVIRONMENT.md](../../apps/whatsapp-platform/docs/ops/ENVIRONMENT.md) |
@@ -227,7 +227,7 @@ pnpm exec prisma generate
 
 1. Painel interno: `/admin/whatsapp` — provisionar canal manualmente ([OPERATIONAL_PLAYBOOK.md](../whatsapp/OPERATIONAL_PLAYBOOK.md)).
 2. Ou Embedded Signup: cliente em `/dashboard/whatsapp` (requer `META_APP_*` configurado).
-3. Ativação pós-aprovação Meta: botão **Ativar** + token, ou runbook [WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md](../whatsapp/WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md).
+3. Ativação pós-aprovação Meta: botão **Ativar** + token no ACC (`/admin/whatsapp`) — [OPERATIONAL_PLAYBOOK.md](../whatsapp/OPERATIONAL_PLAYBOOK.md).
 
 **Ponte comercial CRM → tenant:** UI modal + API em `/admin/leads` grava `convertedToRef=<tenantId>` e trilha em `notes` — [LEAD-TO-TENANT-PILOT.md](./LEAD-TO-TENANT-PILOT.md). Criação de tenant e canal Meta continuam manuais.
 
@@ -303,7 +303,7 @@ Não copiar payloads webhook completos para tickets — contêm telefone e texto
 
 ## 11. Smoke test operacional
 
-**Procedimento detalhado (fluxos A–D, critérios de aceite, registro de resultado):**  
+**Procedimento detalhado (fluxos A–D, critérios de aceite, registro de resultado):**
 → **[SMOKE-TEST-INBOUND-OUTBOUND.md](./SMOKE-TEST-INBOUND-OUTBOUND.md)**
 
 Resumo checklist assinável pré go-live (complementa o documento acima):
@@ -342,7 +342,7 @@ Após execução, preencher **Registro de resultado** em [SMOKE-TEST-INBOUND-OUT
 | Mensagem não aparece no inbox | `phone_number_id` não resolve tenant | Verificar registo em `WhatsappPhoneNumber`; alinhar ID Meta ↔ BD |
 | Mensagem não aparece no inbox | Canal não `ACTIVE` ou sem `accessToken` | Activar canal `/admin/whatsapp`; validar token |
 | Outbound falha | Token expirado ou revogado | Regenerar token Meta; actualizar BD |
-| Outbound falha | Número não registado na Cloud API | Seguir [WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md](../whatsapp/WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md) |
+| Outbound falha | Número não registado / canal não `ACTIVE` | [OPERATIONAL_PLAYBOOK.md](../whatsapp/OPERATIONAL_PLAYBOOK.md) + ACC; não usar curls onboarding históricos |
 | Token expirado | Token temporário da API Setup | Usar System User ou re-autorizar Embedded Signup |
 | Phone Number ID errado | ID de outro número/WABA | `GET` phone-numbers na Meta; corrigir provisionamento |
 | WABA ID errado | WABA de outro BM | Confirmar BM do cliente; corrigir `wabaId` |

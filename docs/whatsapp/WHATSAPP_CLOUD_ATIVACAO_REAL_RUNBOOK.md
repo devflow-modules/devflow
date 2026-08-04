@@ -1,15 +1,42 @@
 # Runbook — Ativação real do número (WhatsApp Cloud API)
 
-Execução operacional no DevFlow Labs usando apenas as rotas admin internas. **Não** colar token, OTP ou PIN em tickets; usar gestor de segredos.
+> **RP-1 (2026-08-04) — estado documental**
+> **Caminho operacional canónico:** Activation Control Center em
+> `{NEXT_PUBLIC_WHATSAPP_APP_URL}/admin/whatsapp`
+> (produção típica: `https://whatsapp.devflowlabs.com.br/admin/whatsapp`).
+> Playbooks vivos: [OPERATIONAL_PLAYBOOK.md](./OPERATIONAL_PLAYBOOK.md),
+> [PILOT-RUNBOOK.md](../whatsapp-platform/PILOT-RUNBOOK.md),
+> [CLIENT-IMPLANTATION-PACK-v1.md](../whatsapp-platform/CLIENT-IMPLANTATION-PACK-v1.md).
+>
+> **Base URL canónica (ativação / admin / webhook):**
+> `NEXT_PUBLIC_WHATSAPP_APP_URL`
+> - Produção DevFlow: `https://whatsapp.devflowlabs.com.br`
+> - Local: URL do `pnpm dev` de **`apps/whatsapp-platform`** (não o portal `devflowlabs.com.br`)
+>
+> **Não usar:** portal `https://devflowlabs.com.br` como Base URL de ativação.
+> **Não usar:** `apps/whatsapp-webhook-api` para ativação ou webhook de produto.
+>
+> As secções abaixo (rotas `/api/admin/whatsapp/onboarding/*`, curls `request-code` / `verify-code` / `register`) são **HISTÓRICAS** — essas rotas **não existem** no runtime actual. Manter o texto para rastreabilidade; **não executar**.
 
-**Base URL local:** `http://localhost:3000` · **produção:** `https://devflowlabs.com.br` (ajuste conforme deploy).
+Execução operacional no DevFlow Labs. **Não** colar token, OTP ou PIN em tickets; usar gestor de segredos.
 
-**Header obrigatório (produção):** `x-admin-whatsapp-secret: <ADMIN_WHATSAPP_ONBOARDING_SECRET ou ADMIN_METRICS_SECRET>`  
-**Dev:** se nenhum secret estiver definido, rotas podem responder sem header.
+**Base URL canónica:** `{NEXT_PUBLIC_WHATSAPP_APP_URL}` · **produção típica:** `https://whatsapp.devflowlabs.com.br` · **local:** host do `apps/whatsapp-platform`.
 
 ---
 
-## 1) Checklist operacional (ordem exata)
+## 0) Fluxo actual (usar isto)
+
+1. Sessão `platform_admin` no app canónico.
+2. `/admin/whatsapp` → **Provisionar** → `PENDING_ACTIVATION`.
+3. Meta: número Cloud API + webhook no host do platform (ver [WEBHOOK_META_CHECKLIST.md](./WEBHOOK_META_CHECKLIST.md)).
+4. Mesmo painel → **Ativar** + token (cofre) → `ACTIVE`.
+5. Evidência + smoke: pacote de implantação / [SMOKE-TEST-INBOUND-OUTBOUND.md](../whatsapp-platform/SMOKE-TEST-INBOUND-OUTBOUND.md).
+
+Fallback HTTP documentado no [OPERATIONAL_PLAYBOOK.md](./OPERATIONAL_PLAYBOOK.md) (`/api/admin/whatsapp/channel/manual`, `/channel/activate`) — **não** as rotas `onboarding/*` abaixo.
+
+---
+
+## 1) Checklist operacional HISTÓRICO (não executar — ordem antiga)
 
 | # | Etapa | Comando / ação |
 |---|--------|----------------|
@@ -87,9 +114,9 @@ Preencha mentalmente. Resultado único: **READY** | **NOT READY** | **BLOCKED**.
 ## 4) Requests prontos (curl)
 
 Substitua:
-- `$BASE` — URL do app  
-- `$SECRET` — valor do header admin  
-- `$PID` — `phoneNumberId`  
+- `$BASE` — URL do app
+- `$SECRET` — valor do header admin
+- `$PID` — `phoneNumberId`
 
 ```bash
 export BASE="http://localhost:3000"

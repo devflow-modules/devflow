@@ -61,6 +61,6 @@ A distribuição automática de conversas para agentes (round-robin, carga) deve
 
 ## Referências cruzadas
 
-- `docs/architecture/LEGACY-CLEANUP.md` — secção de filas e remoção do módulo legado.
+- [`LEGACY-CLEANUP.md`](./LEGACY-CLEANUP.md) — secção de filas e remoção do módulo legado.
 - `docs/architecture/CONVERSATION_OWNERSHIP_AND_HANDOFF.md` — quem trata a conversa (`assignedToUserId`) vs fila (`queueId`).
 - `docs/whatsapp/WHATSAPP_QUEUES_AND_AGENTS.md` — visão histórica + ponte para este documento.

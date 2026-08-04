@@ -1,4 +1,4 @@
-﻿# WhatsApp Platform â€” Documentation Map
+# WhatsApp Platform â€” Documentation Map
 
 **Status:** current
 **Last updated:** 2026-08-04
@@ -89,6 +89,7 @@ When two documents disagree:
 | [INBOX_COLLABORATION.md](./INBOX_COLLABORATION.md) | `current` | Multi-agent collaboration |
 | [INBOX_REALTIME.md](./INBOX_REALTIME.md) | `current` | SSE / realtime |
 | [INBOX_PORT_MULTI_TENANT.md](./INBOX_PORT_MULTI_TENANT.md) | `current` / `historical` | Port notes; prefer CURRENT-SCOPE + app docs if drift |
+| [INBOX_SEND_RECONCILE.md](./INBOX_SEND_RECONCILE.md) | `current` / `runbook` | Reconcile `wa_inbox_send_requests` / `UNKNOWN_OUTCOME` (cron + admin acknowledge) |
 | [AI_AUTOMATION.md](./AI_AUTOMATION.md) | `current` | AI automation product behavior |
 | [AUTOMATION_ENGINE.md](./AUTOMATION_ENGINE.md) | `current` | Rules engine |
 | [BILLING.md](./BILLING.md) | `current` | Billing product overview |
@@ -113,12 +114,13 @@ When two documents disagree:
 | [README.md](../whatsapp/README.md) | `current` (partial) | Local status table; prefer CURRENT-SCOPE for product truth |
 | [WHATSAPP-PLATFORM-OVERVIEW.md](../whatsapp/WHATSAPP-PLATFORM-OVERVIEW.md) | `commercial` / `current` | Positioning |
 | [DEMO_AND_CLIENT_READINESS_PLAYBOOK.md](../whatsapp/DEMO_AND_CLIENT_READINESS_PLAYBOOK.md) | `commercial` / `runbook` | Sales demo readiness |
-| [PROSPECT_CRM_PLAYBOOK.md](../whatsapp/PROSPECT_CRM_PLAYBOOK.md) | `current` | Portal CRM prospecting on inbox |
+| [PROSPECT_CRM_PLAYBOOK.md](../whatsapp/PROSPECT_CRM_PLAYBOOK.md) | `current` | **Canónico** CRM prospecting Inbox (`leadData.prospect`); commercial twin is secondary |
+| [PROSPECTING_CRM_PLAYBOOK.md](../commercial/PROSPECTING_CRM_PLAYBOOK.md) | `commercial` / `current` | Secondary: kill-switch / capability narrative — defer to PROSPECT_CRM for data model |
 | [MANUAL_OUTREACH_20_LEADS.md](../whatsapp/MANUAL_OUTREACH_20_LEADS.md) | `commercial` / `runbook` | Outbound campaign |
 | [OPERATIONAL_PLAYBOOK.md](../whatsapp/OPERATIONAL_PLAYBOOK.md) | `runbook` | Assisted onboarding (complement PILOT-RUNBOOK) |
 | [WHATSAPP-SETUP.md](../whatsapp/WHATSAPP-SETUP.md) | `runbook` | Meta / Cloud API setup |
 | [WHATSAPP_CLOUD_ONBOARDING_SPRINT.md](../whatsapp/WHATSAPP_CLOUD_ONBOARDING_SPRINT.md) | `historical` / `runbook` | Graph registration sprint |
-| [WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md](../whatsapp/WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md) | `runbook` | Real activation curls / checklist |
+| [WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md](../whatsapp/WHATSAPP_CLOUD_ATIVACAO_REAL_RUNBOOK.md) | `historical` / `runbook` | Onboarding curls **removed from runtime**; use ACC + OPERATIONAL_PLAYBOOK. Base URL = `NEXT_PUBLIC_WHATSAPP_APP_URL` |
 | [GRAPH_API_DIAGNOSTIC.md](../whatsapp/GRAPH_API_DIAGNOSTIC.md) | `runbook` | WABA / phone diagnostics |
 | [WEBHOOK_META_CHECKLIST.md](../whatsapp/WEBHOOK_META_CHECKLIST.md) | `runbook` | Meta Dashboard checklist |
 | [WEBHOOK_SUBSCRIPTION_FIX.md](../whatsapp/WEBHOOK_SUBSCRIPTION_FIX.md) | `historical` / `runbook` | `subscribed_apps` fix |
