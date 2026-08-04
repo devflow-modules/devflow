@@ -78,7 +78,7 @@ When two documents disagree:
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | `current` | Cross-cutting architecture & ownership |
 | [WHATSAPP-CLIENT-1-READINESS-PLAN.md](./WHATSAPP-CLIENT-1-READINESS-PLAN.md) | `current` / `backlog` | Approved pilot decisions, Inbox UX roadmap, and first test-hardening issue |
 | [PILOT-RUNBOOK.md](./PILOT-RUNBOOK.md) | `runbook` | Primary pilot procedure |
-| [CLIENT-IMPLANTATION-PACK-v1.md](./CLIENT-IMPLANTATION-PACK-v1.md) | `current` / `runbook` | Pacote v1: checklist comercial/Meta, tenant+activate, smoke, handout cliente, GO/HOLD/BLOCKED, evidÃªncias; limitaÃ§Ãµes Admin Master = intervenÃ§Ã£o manual |
+| [CLIENT-IMPLANTATION-PACK-v1.md](./CLIENT-IMPLANTATION-PACK-v1.md) | `current` / `runbook` | Pacote v1.1: checklist comercial/Meta, Signup A padrão, smoke, handout ({LOGIN_URL}/{CONTACTO_DEVFLOW}), GO/HOLD/BLOCKED acionáveis, evidências; limites Admin Master = intervenção manual |
 | [SMOKE-TEST-INBOUND-OUTBOUND.md](./SMOKE-TEST-INBOUND-OUTBOUND.md) | `runbook` | E2E smoke for pilot |
 | [LEAD-TO-TENANT-PILOT.md](./LEAD-TO-TENANT-PILOT.md) | `runbook` | CRM lead â†’ tenant assisted flow |
 | [LGPD-PILOT-CHECKLIST.md](./LGPD-PILOT-CHECKLIST.md) | `runbook` | Operational privacy checklist (not legal opinion) |
