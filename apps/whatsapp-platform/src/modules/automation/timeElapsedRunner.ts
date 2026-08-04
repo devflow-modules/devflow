@@ -1,5 +1,7 @@
 /**
- * Executa regras com trigger TIME_ELAPSED (cron / POST run-rules).
+ * Executa regras com trigger TIME_ELAPSED.
+ * Chamado por POST `/api/automation/run-rules` (cron Bearer = all/explicit;
+ * sessão manager|platform_admin = sempre `tenantId` da sessão).
  */
 
 import { prisma } from "@/lib/prisma";
