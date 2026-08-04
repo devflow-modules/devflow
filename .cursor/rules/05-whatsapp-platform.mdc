@@ -7,7 +7,6 @@ globs:
   - "packages/billing-core/**/*"
   - "packages/ai-core/**/*"
   - "packages/analytics-core/**/*"
-  - "apps/whatsapp-webhook-api/**/*"
 alwaysApply: false
 ---
 
@@ -28,11 +27,11 @@ UI: `.cursor/rules/whatsapp-platform-design.mdc`.
 | `packages/ai-core` | Shared AI contracts / mechanisms | **shared** |
 | `packages/analytics-core` | Shared metrics / events | **shared** |
 | `src/` (portal) | Public acquisition, commercial pages, demo mock, internal CRM | **active** (non-ops) |
-| `apps/whatsapp-webhook-api` | Legacy Express surface — keep compatible; **no new product features** | **legacy-compatible** |
+| `apps/whatsapp-webhook-api` | Legacy Express — **RETIRED** (RP-3); do not reintroduce without a new decision | **historical** |
 
 Status: `active` | `shared` | `legacy-compatible` | `migration-source` | `deprecated` | `historical`.
 
-Prefer packages for reusable pure logic; compose in the app. Do not implement new ops features in the portal or `whatsapp-webhook-api`.
+Prefer packages for reusable pure logic; compose in the app. Do not implement new ops features in the portal. Do not revive `whatsapp-webhook-api`.
 
 ## Boundaries (forbidden)
 

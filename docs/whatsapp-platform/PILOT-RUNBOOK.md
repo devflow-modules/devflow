@@ -6,7 +6,7 @@
 
 Runbook operacional para configurar e validar **1 piloto real**: 1 cliente, 1 tenant, 1 número WhatsApp Cloud API, inbox, webhook e envio outbound com suporte assistido DevFlow.
 
-**Runtime canónico:** o webhook, inbox e auth vivem no app `whatsapp-platform` (deploy dedicado, ex. `NEXT_PUBLIC_WHATSAPP_APP_URL`). O portal raiz (`devflowlabs.com.br`) redirecciona UI operacional via cutover — **não** usar `apps/whatsapp-webhook-api` (legado).
+**Runtime canónico:** o webhook, inbox e auth vivem no app `whatsapp-platform` (deploy dedicado, ex. `NEXT_PUBLIC_WHATSAPP_APP_URL`). O portal raiz (`devflowlabs.com.br`) redirecciona UI operacional via cutover — o Express `apps/whatsapp-webhook-api` foi **RETIRED** (RP-3).
 
 ---
 

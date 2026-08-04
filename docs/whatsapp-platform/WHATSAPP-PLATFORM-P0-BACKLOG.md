@@ -170,7 +170,7 @@ Não entra neste backlog P0 (remeter para P1+ ou backlog de produto):
 - White-label / hostname customizado
 - Integração FAQ → IA (CRUD existe; ligação é P1)
 - Correção de métricas stub (`avgResponseTimeMs: 0`, intents vazios)
-- Arquivar `apps/whatsapp-webhook-api` legado
+- Arquivar `apps/whatsapp-webhook-api` legado — **feito (RP-3 RETIRED)**
 - Migrações destrutivas ou alterações de schema sem aprovação explícita
 
 ---

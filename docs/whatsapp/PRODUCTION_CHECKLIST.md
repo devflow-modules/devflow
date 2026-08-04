@@ -3,7 +3,7 @@
 Use este checklist antes do deploy e para validar o ambiente.
 
 **Runtime canónico:** `apps/whatsapp-platform` (host típico: `https://whatsapp.devflowlabs.com.br`).
-**Não usar para ops novas:** `apps/whatsapp-webhook-api` (legado — `ARCHIVE/BLOCKED` até verificação de tráfego/infra; ver Repository Purity).
+**Não usar para ops novas:** `apps/whatsapp-webhook-api` (**RETIRED**, RP-3 — ver [REPOSITORY-PURITY-STATUS.md](../whatsapp-platform/REPOSITORY-PURITY-STATUS.md)).
 
 Referências: `apps/whatsapp-platform/.env.example` · [WEBHOOK_META_CHECKLIST.md](./WEBHOOK_META_CHECKLIST.md) · [PILOT-RUNBOOK.md](../whatsapp-platform/PILOT-RUNBOOK.md) · [OPERATIONAL_PLAYBOOK.md](./OPERATIONAL_PLAYBOOK.md).
 O ficheiro [`.env.production.example`](./.env.production.example) nesta pasta é **legado/histórico**; preferir o `.env.example` do app.
@@ -93,4 +93,4 @@ Rotas históricas `/api/admin/whatsapp/onboarding/*` **não existem** no runtime
 
 ## 8. Nota sobre `apps/whatsapp-webhook-api`
 
-Mencionado apenas para **evitar** uso operacional. Status documental: legado / experimental. Qualquer referência antiga a `cd apps/whatsapp-webhook-api`, Callback `/webhook` nesse serviço, ou Prisma paralelo, trata-se de **drift** — seguir este checklist e o PILOT-RUNBOOK.
+App Express **RETIRED** (RP-3). Não correr `db:*` nesse path (já removido). Callback e ops: `apps/whatsapp-platform`. Migrations históricas documentais: `docs/_archive/whatsapp-webhook-api-migrations/`.

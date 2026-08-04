@@ -201,7 +201,7 @@ When two documents disagree:
 3. **New or renamed doc** â†’ add a row here with a classification label.
 4. **Closing a backlog item** â†’ mark backlog status; do not delete historical evidence.
 5. **Do not** treat commercial decks or portal `/demo` copy as acceptance criteria for runtime work.
-6. **Do not** implement new features in `apps/whatsapp-webhook-api` â€” see surface status in ARCHITECTURE.md.
+6. **Do not** reintroduce `apps/whatsapp-webhook-api` (**RETIRED**, RP-3) — see [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md).
 
 ---
 

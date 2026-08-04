@@ -10,7 +10,7 @@ Documento oficial de alinhamento: **fonte de verdade**, camadas auxiliares e int
 |--------|-----------|----------|----------------|-------------------|
 | **CRM operacional (Inbox)** | `apps/whatsapp-platform` — `WaInboxThread` (`leadScore`, `leadData`, `priority`, `status`), `modules/inbox/leadCrm.ts`, UI (`LeadDataPanel`, `ConversationItem`, `ChatWindow`, `DashboardAiClient`) | `operator`, `manager`, `platform_admin` (operação tenant); prospecção DevFlow extra só `platform_admin` quando `NEXT_PUBLIC_DEVFLOW_PROSPECTING_ENABLED` | BD **WhatsApp Platform** (Prisma `apps/whatsapp-platform/prisma`) | **Sim** — estado operacional do cliente e da conversa |
 | **CRM outbound interno (Portal)** | `src/app/admin/leads/**`, `src/app/api/admin/leads/**`, `src/lib/outbound-lead-origins.ts`, `src/lib/lead-operator-service.ts`, `src/lib/crm-sync.ts` | **Apenas equipa DevFlow** (`platform_admin` + segredo admin em prod para automação legada) | BD **portal** (`Lead` / `outbound_leads` no `prisma/schema.prisma` raiz) | **Não** — pipeline comercial interno; ponte via `conversationRef` → `thread.id` |
-| **Integração CRM externa (Webhook)** | **SUNSET ACCEPTED (RP-2f).** Código legado: `notifyCrmIfLead` só em `apps/whatsapp-webhook-api`. Payload histórico: `@devflow/whatsapp-core` `buildExternalCrmLeadEventPayload`. **Não** migrar para platform; **não** tratar `notifyExternalCrm` (portal, sem callers de produto) como substituto. CRM canónico = Inbox/prospect + leads portal | — | — | **Não** — fora da arquitectura canónica; ver [REPOSITORY-PURITY-STATUS.md](../whatsapp-platform/REPOSITORY-PURITY-STATUS.md) |
+| **Integração CRM externa (Webhook)** | **SUNSET ACCEPTED (RP-2f) + RETIRED (RP-3).** Código `notifyCrmIfLead` removido com `apps/whatsapp-webhook-api`. Payload histórico: `@devflow/whatsapp-core` `buildExternalCrmLeadEventPayload`. **Não** migrar para platform; **não** tratar `notifyExternalCrm` (portal, sem callers de produto) como substituto. CRM canónico = Inbox/prospect + leads portal | — | — | **Não** — fora da arquitectura canónica; ver [REPOSITORY-PURITY-STATUS.md](../whatsapp-platform/REPOSITORY-PURITY-STATUS.md) |
 
 ---
 
@@ -33,12 +33,12 @@ Documento oficial de alinhamento: **fonte de verdade**, camadas auxiliares e int
 
 **Decisão (2026-08-04, RP-2f):** **SUNSET ACCEPTED** — sem migração para `whatsapp-platform`.
 
-- O POST externo (`notifyCrmIfLead`, intent `SALES` + `crmWebhookUrl`) existia **apenas** no pipeline Express (`apps/whatsapp-webhook-api`).
-- Callback Meta canónico: `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp` → **platform**; o Express **não** recebe esse tráfego nos ambientes verificados.
+- O POST externo (`notifyCrmIfLead`, intent `SALES` + `crmWebhookUrl`) existia **apenas** no pipeline Express (`apps/whatsapp-webhook-api`), **retirado na RP-3**.
+- Callback Meta canónico: `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp` → **platform**.
 - **Perda aceita:** esse POST CRM externo do pipeline legado.
 - **Não afectado:** mensagens WhatsApp no path canónico; Inbox/prospect; leads portal.
 - `notifyExternalCrm` no portal **não** substitui esta capacidade (helper sem callers de produto).
-- Código legado **ainda não removido**; retirada física do app = **PREPARE-RETIREMENT**, gate em [REPOSITORY-PURITY-STATUS.md](../whatsapp-platform/REPOSITORY-PURITY-STATUS.md) antes de RP-3.
+- App Express: **RETIRED** — ver [REPOSITORY-PURITY-STATUS.md](../whatsapp-platform/REPOSITORY-PURITY-STATUS.md); migrations históricas em `docs/_archive/whatsapp-webhook-api-migrations/`.
 
 Payload histórico (referência apenas): `source: "devflow_whatsapp"` via `buildExternalCrmLeadEventPayload`. **Não** altera threads, leads nem mensagens internas.
 

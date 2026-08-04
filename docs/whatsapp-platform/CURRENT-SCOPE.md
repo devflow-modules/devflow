@@ -86,7 +86,7 @@ Implemented in the canonical app (require correct env/Meta/Stripe config in each
 | Portal landing metrics / ACME dashboards | Static marketing | Yes — mock |
 | `NEXT_PUBLIC_DEMO_MODE` showcase fixtures | Local showcase | Distinct from real demo tenant |
 | Commercial HTML decks / proposals | Narrative | May overstate readiness |
-| `apps/whatsapp-webhook-api` | Legacy / **PREPARE-RETIREMENT** | DORMANT nos ambientes verificados; `notifyCrmIfLead` = **SUNSET ACCEPTED** — ver [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md). Not SAFE-TO-RETIRE; no new features |
+| `apps/whatsapp-webhook-api` | **RETIRED** (RP-3) | Removido do monorepo; `notifyCrmIfLead` SUNSET — ver [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md) |
 
 **Real demo path:** [REAL-APP-DEMO.md](./REAL-APP-DEMO.md) — tenant demo on the canonical app with clearly labeled fictitious data.
 
@@ -101,7 +101,7 @@ Do not implement these unless the task explicitly expands scope:
 - Marketplace of message templates
 - Autonomous AI without human supervision defaults
 - Large visual rebrand of portal marketing
-- New features on `apps/whatsapp-webhook-api`
+- Reintroducing `apps/whatsapp-webhook-api` without a new product decision
 - Destructive Prisma migrations without human approval
 
 Pilot “out of scope” list remains authoritative in [PILOT-RUNBOOK.md](./PILOT-RUNBOOK.md) §2 and [WHATSAPP-PLATFORM-P0-BACKLOG.md](./WHATSAPP-PLATFORM-P0-BACKLOG.md) §2.
@@ -133,7 +133,7 @@ Before real consumer traffic: sign [LGPD-PILOT-CHECKLIST.md](./LGPD-PILOT-CHECKL
 | Shared AI helpers | `packages/ai-core` | **shared** |
 | Shared analytics helpers | `packages/analytics-core` | **shared** |
 | Portal marketing + CRM | `src/` | **active** (acquisition; not WhatsApp ops DB) |
-| Express webhook API | `apps/whatsapp-webhook-api` | **PREPARE-RETIREMENT** (legacy; `notifyCrmIfLead` SUNSET ACCEPTED — [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md)); not SAFE-TO-RETIRE |
+| Express webhook API (histórico) | `apps/whatsapp-webhook-api` | **RETIRED** (RP-3) — archive migrations em `docs/_archive/whatsapp-webhook-api-migrations/`; ver [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md) |
 
 Status vocabulary (also in ARCHITECTURE.md):
 

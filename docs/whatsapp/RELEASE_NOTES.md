@@ -84,7 +84,7 @@ pnpm start
 
 ## Nota histórica — `whatsapp-webhook-api`
 
-Release Candidate antiga descrevia deploy paralelo do Express `apps/whatsapp-webhook-api` (porta 3005, Callback `/webhook`). Esse caminho **não é** o runtime de produto. Manter o app no monorepo até verificação de tráfego/infra (Purity); **não** documentar como passo de deploy.
+Release Candidate antiga descrevia deploy paralelo do Express `apps/whatsapp-webhook-api` (porta 3005, Callback `/webhook`). Esse caminho **não é** o runtime de produto. O app foi **RETIRED** na RP-3; ver [REPOSITORY-PURITY-STATUS.md](../whatsapp-platform/REPOSITORY-PURITY-STATUS.md).
 
 ---
 

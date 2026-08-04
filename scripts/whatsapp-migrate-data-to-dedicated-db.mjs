@@ -6,7 +6,8 @@
  * Uso:
  *   SOURCE_DATABASE_URL="postgresql://..." WHATSAPP_DATABASE_URL="postgresql://..." node scripts/whatsapp-migrate-data-to-dedicated-db.mjs
  *
- * Pré-requisito: schema já aplicado no destino (prisma migrate deploy no whatsapp-webhook-api com WHATSAPP_*).
+ * Pré-requisito histórico: schema aplicado no destino via Prisma do WhatsApp
+ * (canónico: apps/whatsapp-platform; o path whatsapp-webhook-api foi RETIRED na RP-3).
  * Instalar pg se necessário: pnpm add -D pg
  */
 

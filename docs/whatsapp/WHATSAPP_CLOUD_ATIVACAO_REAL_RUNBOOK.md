@@ -14,7 +14,7 @@
 > - Local: URL do `pnpm dev` de **`apps/whatsapp-platform`** (não o portal `devflowlabs.com.br`)
 >
 > **Não usar:** portal `https://devflowlabs.com.br` como Base URL de ativação.
-> **Não usar:** `apps/whatsapp-webhook-api` para ativação ou webhook de produto.
+> **Não usar:** o Express `apps/whatsapp-webhook-api` (**RETIRED**, RP-3) para ativação ou webhook de produto.
 >
 > As secções abaixo (rotas `/api/admin/whatsapp/onboarding/*`, curls `request-code` / `verify-code` / `register`) são **HISTÓRICAS** — essas rotas **não existem** no runtime actual. Manter o texto para rastreabilidade; **não executar**.
 
