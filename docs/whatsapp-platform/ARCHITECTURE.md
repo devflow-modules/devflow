@@ -31,8 +31,8 @@ This document is the **ownership and boundary** map for agents and humans. Prefe
 Shared packages (no Next pages, no WhatsApp Prisma ownership):
   whatsapp-core · whatsapp-routes · billing-core · ai-core · analytics-core
 
-Legacy (do not grow):
-  apps/whatsapp-webhook-api  →  legacy-compatible
+Retired (RP-3 — do not reintroduce without a new decision):
+  apps/whatsapp-webhook-api  →  RETIRED (historical archive only)
 ```
 
 ---
@@ -48,7 +48,7 @@ Legacy (do not grow):
 | `packages/ai-core` | Shared AI contracts: intent helpers, LLM provider abstractions, fallback/format utilities | **shared** |
 | `packages/analytics-core` | Shared metrics/event helpers | **shared** |
 | `src/` (portal) | Public site, acquisition, commercial pages, demo mock, internal CRM leads | **active** (non-ops) |
-| `apps/whatsapp-webhook-api` | Legacy Express inbound; **PREPARE-RETIREMENT** — `notifyCrmIfLead` **SUNSET ACCEPTED** (no migrate). See [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md). Not SAFE-TO-RETIRE | **legacy-compatible** / prepare-retirement |
+| `apps/whatsapp-webhook-api` | Legacy Express inbound — **RETIRED** (RP-3). `notifyCrmIfLead` SUNSET. Migrations históricas: `docs/_archive/whatsapp-webhook-api-migrations/`. See [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md) | **historical** / retired |
 
 ### App module map (canonical)
 
@@ -103,9 +103,8 @@ src/ (portal)
   ✗ apps/whatsapp-platform imports
   ✗ WhatsApp app Prisma / @wa aliases (CI guard)
 
-apps/whatsapp-webhook-api
-  → may use whatsapp-core / ai-core for legacy compatibility
-  ✗ new product features (implement in whatsapp-platform instead)
+(retired) apps/whatsapp-webhook-api
+  → removed in RP-3; do not add dependencies on it
 ```
 
 Apps **must not** import other apps. Share only via `packages/*`.

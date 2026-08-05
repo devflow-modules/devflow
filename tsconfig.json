@@ -49,7 +49,6 @@
     "apps/funklab",
     "apps/investigamais",
     "apps/ops",
-    "apps/whatsapp-webhook-api",
     "apps/whatsapp-platform"
   ]
 }

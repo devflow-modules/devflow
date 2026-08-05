@@ -2,7 +2,7 @@
 
 **Runtime canónico:** `apps/whatsapp-platform` (Next.js)
 **Base URL típica:** `https://whatsapp.devflowlabs.com.br` (`NEXT_PUBLIC_WHATSAPP_APP_URL`)
-**Legado (não ops novas):** `apps/whatsapp-webhook-api` — ver [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)
+**Legado Express:** `apps/whatsapp-webhook-api` — **RETIRED** (RP-3); ver [REPOSITORY-PURITY-STATUS.md](../whatsapp-platform/REPOSITORY-PURITY-STATUS.md)
 **Fonte de produto:** [CURRENT-SCOPE.md](../whatsapp-platform/CURRENT-SCOPE.md) · [DOCUMENTATION-MAP.md](../whatsapp-platform/DOCUMENTATION-MAP.md)
 
 ---

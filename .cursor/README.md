@@ -105,7 +105,6 @@ Não inventar ownership. Resumo alinhado a [`ARCHITECTURE.md`](../ARCHITECTURE.m
 |------------|--------------|--------|
 | Portal raiz (`src/`) | Portal / marketing + hub | `devflowlabs.com.br`; redirects/cutover |
 | WhatsApp Platform | `apps/whatsapp-platform` | Runtime canónico (auth, Stripe, inbox, webhook Meta no app) |
-| WhatsApp webhook API | `apps/whatsapp-webhook-api` | **legacy-compatible** — não adicionar features de produto |
 | Financeiro | `apps/financeiro` (+ rotas portal documentadas) | Cutover: docs Financial + `@devflow/financeiro-routes` |
 | Packages | `packages/*` | Partilha só via packages; apps não importam apps |
 | HealthSafe × RPA | docs + regra `06-healthsafe-rpa.mdc` | Contratos em `docs/healthsafe-rpa/` |

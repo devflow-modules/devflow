@@ -1,11 +1,11 @@
 # Repository Purity — Status (WhatsApp / CRM legado)
 
 **Status:** `current`
-**Última actualização:** 2026-08-04
-**Base de código:** `main` @ `899dcb98e1bef345b9d8f985a456f212aea66955`
+**Última actualização:** 2026-08-04 (RP-3)
+**Base de código (pré-RP-3 / SHA-base):** `main` @ `1154229974459b168db37f1accda04975b7de721`
 **Audiência:** arquitectura, ops, agentes
 
-Registo formal das decisões de pureza do repositório (passagens RP-1 → RP-2f). **Não** autoriza exclusão física nem RP-3.
+Registo formal das decisões de pureza do repositório (passagens RP-1 → RP-3).
 
 ---
 
@@ -15,10 +15,11 @@ Registo formal das decisões de pureza do repositório (passagens RP-1 → RP-2f
 |------|---------------|--------|
 | Portal `src/`, `apps/whatsapp-platform`, `apps/financeiro` | **ACTIVE / RETAIN** | Deploys Vercel confirmados (RP-2b) |
 | Callback Meta | **ACTIVE / RETAIN** | `https://whatsapp.devflowlabs.com.br/api/webhook/whatsapp` (RP-2c-ext) |
-| `notifyCrmIfLead` | **SUNSET ACCEPTED** | Decisão humana RP-2e/f — sem migração; ver §2 |
-| `apps/whatsapp-webhook-api` | **PREPARE-RETIREMENT** | DORMANT nos ambientes verificados; **não** SAFE-TO-RETIRE |
-| `apps/site` | **LEGACY / FREEZE / BLOCKED** | Fora das fatias RP-2e/f; DORMANT neste team Vercel |
-| Qualquer alvo **SAFE-TO-RETIRE** | **nenhum** | RP-3 não autorizada |
+| `notifyCrmIfLead` | **SUNSET ACCEPTED** | Removido com o app Express (RP-3); sem migração |
+| `apps/whatsapp-webhook-api` | **RETIRED** | Remoção física no monorepo (RP-3 Draft); migrations históricas em archive |
+| `apps/site` | **LEGACY / FREEZE / BLOCKED** | Fora das fatias RP; DORMANT neste team Vercel |
+| DNS residual (subdomínios órfãos) | **PENDÊNCIA SEPARADA** | Aceite RP-2i; limpeza futura fora desta fatia |
+| Banco / dados / migrations históricas | **PRESERVADOS** | Sem DROP; archive não executável |
 
 ---
 
@@ -26,14 +27,14 @@ Registo formal das decisões de pureza do repositório (passagens RP-1 → RP-2f
 
 ### Texto da decisão
 
-O POST externo de leads ao CRM executado por `notifyCrmIfLead` **não** faz parte da arquitectura canónica actual e **não** será migrado para `apps/whatsapp-platform` nem substituído por `notifyExternalCrm` (portal). A capacidade fica em **SUNSET**: permanece no código do runtime Express apenas até à **retirada controlada futura** de `apps/whatsapp-webhook-api`, após verificação das restantes dependências.
+O POST externo de leads ao CRM executado por `notifyCrmIfLead` **não** faz parte da arquitectura canónica actual e **não** foi migrado para `apps/whatsapp-platform` nem substituído por `notifyExternalCrm` (portal). A capacidade ficou em **SUNSET** e o código foi retirado com o runtime Express na **RP-3**.
 
 ### Fundamentos (evidência)
 
 1. Callback Meta aponta para o **whatsapp-platform** canónico (não para o Express).
-2. `apps/whatsapp-webhook-api` está **DORMANT** nos ambientes inventariados (sem projeto Vercel neste team; path Express 404 no host WA).
-3. `notifyCrmIfLead` existe **somente** no pipeline Express legado (`WebhookController.ts`).
-4. CRM canónico actual: **Inbox / prospect** (platform) + **leads do portal** — não o POST externo do Express.
+2. `apps/whatsapp-webhook-api` estava **DORMANT** nos ambientes inventariados (sem projeto Vercel neste team; nunca hospedado noutro provider — RP-2i).
+3. `notifyCrmIfLead` existia **somente** no pipeline Express legado.
+4. CRM canónico actual: **Inbox / prospect** (platform) + **leads do portal**.
 5. `notifyExternalCrm` **não** é substituto: helper sem callers de produto.
 6. Migrar recriaria integração frágil **sem** necessidade comercial comprovada.
 
@@ -47,36 +48,28 @@ O POST externo de leads ao CRM executado por `notifyCrmIfLead` **não** faz part
 - Inbox, prospect, leads portal, auth, billing e restantes superfícies canónicas.
 - Nenhuma alteração ao Callback Meta nesta fatia.
 
-### O que ainda **não** foi feito
+---
 
-- Remoção do código `notifyCrmIfLead`.
-- Remoção, archive físico ou freeze Turbo de `apps/whatsapp-webhook-api`.
-- Queries a `crm_webhook_url` na base.
-- Inventário de outros provedores/hosts/teams.
+## 3. RP-2g / RP-2h / RP-2i (resumo)
+
+| Passagem | Resultado |
+|----------|-----------|
+| RP-2g | 0 callers internos; 0 CI/cron; schema Express desatualizado vs platform |
+| RP-2h | 0 project Vercel Express no team verificado; DNS residual documentado; sem novas sondagens |
+| RP-2i | CLOSED — operador único; host externo N/A; DNS residual aceite; DB preserve; rollback por PR |
 
 ---
 
-## 3. Evidência ainda ausente (bloqueios a SAFE-TO-RETIRE)
+## 4. RP-3 — RETIRED (implementação)
 
-Antes de classificar `apps/whatsapp-webhook-api` como **SAFE-TO-RETIRE** ou autorizar RP-3:
-
-| Lacuna | Porquê importa |
-|--------|----------------|
-| Outros teams Vercel / contas | Pode existir projecto não inventariado |
-| Outros provedores (Railway, Render, Fly, VM) | Express pode estar fora do Vercel |
-| Jobs / consumidores externos | Cron ou clientes HTTP ao legado |
-| Dependências internas do app | Prisma paralelo, scripts, docs, testes, workspace |
-| Aceite explícito pós-checklist | Gate humano final de retirada |
-
----
-
-## 4. Gate antes de RP-3
-
-1. Completar inventário das lacunas §3 (fatia de verificação dedicada).
-2. Confirmar que **nenhuma** dependência activa resta no Express.
-3. Autorização humana explícita: `AUTORIZADO RP-3` com alvos e critérios SAFE-TO-RETIRE.
-
-Até lá: **PREPARE-RETIREMENT** apenas — planear, documentar, **não** apagar.
+| Campo | Valor |
+|-------|--------|
+| Estado RP-3 | **IMPLEMENTED** (Draft PR — aguarda CI/revisão; **sem merge** nesta autorização) |
+| App | `apps/whatsapp-webhook-api` → **RETIRED** |
+| Migrations históricas | `docs/_archive/whatsapp-webhook-api-migrations/` (não executar) |
+| Banco / dados | **Não** alterados; sem Prisma do legado; sem DROP |
+| DNS / Meta / produção deploy | **Não** alterados |
+| Rollback | Restaurar por PR a partir do SHA anterior à RP-3 (`11542299…`) |
 
 ---
 
@@ -87,7 +80,9 @@ Até lá: **PREPARE-RETIREMENT** apenas — planear, documentar, **não** apagar
 | RP-1 | KEEP — repair documental canónico |
 | RP-2 / 2b / 2c / 2c-ext | KEEP — inventário + Callback Meta confirmada |
 | RP-2e | KEEP — gate SUNSET vs MIGRATE (recomendação SUNSET) |
-| RP-2f | Registo formal SUNSET ACCEPTED (este documento) |
+| RP-2f | Registo formal SUNSET ACCEPTED |
+| RP-2g / 2h / 2i | Inventário + gates solo → SAFE-TO-RETIRE |
+| RP-3 | Remoção física do app (Draft; merge separado) |
 
 ---
 
@@ -96,4 +91,5 @@ Até lá: **PREPARE-RETIREMENT** apenas — planear, documentar, **não** apagar
 - [CRM-ARCHITECTURE.md](../crm/CRM-ARCHITECTURE.md) §2.3
 - [CURRENT-SCOPE.md](./CURRENT-SCOPE.md)
 - [ARCHITECTURE.md](./ARCHITECTURE.md)
-- Payload: `packages/whatsapp-core` `buildExternalCrmLeadEventPayload` (contrato histórico; sem novos disparos canónicos)
+- Archive migrations: [docs/_archive/whatsapp-webhook-api-migrations/README.md](../_archive/whatsapp-webhook-api-migrations/README.md)
+- Payload histórico: `packages/whatsapp-core` `buildExternalCrmLeadEventPayload` (contrato histórico; sem disparos canónicos)
