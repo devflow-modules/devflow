@@ -86,7 +86,7 @@ Implemented in the canonical app (require correct env/Meta/Stripe config in each
 | Portal landing metrics / ACME dashboards | Static marketing | Yes — mock |
 | `NEXT_PUBLIC_DEMO_MODE` showcase fixtures | Local showcase | Distinct from real demo tenant |
 | Commercial HTML decks / proposals | Narrative | May overstate readiness |
-| `apps/whatsapp-webhook-api` | **RETIRED** (RP-3) | Removido do monorepo; `notifyCrmIfLead` SUNSET — ver [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md) |
+| `apps/whatsapp-webhook-api` | **RETIRED** (RP-3 CLOSED) | Removido do monorepo (#221); DNS residual N/A; `notifyCrmIfLead` SUNSET — ver [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md) |
 
 **Real demo path:** [REAL-APP-DEMO.md](./REAL-APP-DEMO.md) — tenant demo on the canonical app with clearly labeled fictitious data.
 
@@ -133,7 +133,7 @@ Before real consumer traffic: sign [LGPD-PILOT-CHECKLIST.md](./LGPD-PILOT-CHECKL
 | Shared AI helpers | `packages/ai-core` | **shared** |
 | Shared analytics helpers | `packages/analytics-core` | **shared** |
 | Portal marketing + CRM | `src/` | **active** (acquisition; not WhatsApp ops DB) |
-| Express webhook API (histórico) | `apps/whatsapp-webhook-api` | **RETIRED** (RP-3) — archive migrations em `docs/_archive/whatsapp-webhook-api-migrations/`; ver [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md) |
+| Express webhook API (histórico) | `apps/whatsapp-webhook-api` | **RETIRED** (RP-3 CLOSED) — archive em `docs/_archive/whatsapp-webhook-api-migrations/`; DNS residual N/A; ver [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md) |
 
 Status vocabulary (also in ARCHITECTURE.md):
 
