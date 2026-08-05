@@ -133,7 +133,7 @@ Before real consumer traffic: sign [LGPD-PILOT-CHECKLIST.md](./LGPD-PILOT-CHECKL
 | Shared AI helpers | `packages/ai-core` | **shared** |
 | Shared analytics helpers | `packages/analytics-core` | **shared** |
 | Portal marketing + CRM | `src/` | **active** (acquisition; not WhatsApp ops DB) |
-| Express webhook API (histórico) | `apps/whatsapp-webhook-api` | **RETIRED** (RP-3) — archive migrations em `docs/_archive/whatsapp-webhook-api-migrations/`; ver [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md) |
+| Express webhook API (histórico) | `apps/whatsapp-webhook-api` | **RETIRED** (RP-3 CLOSED) — archive em `docs/_archive/whatsapp-webhook-api-migrations/`; DNS residual N/A; ver [REPOSITORY-PURITY-STATUS.md](./REPOSITORY-PURITY-STATUS.md) |
 
 Status vocabulary (also in ARCHITECTURE.md):
 
