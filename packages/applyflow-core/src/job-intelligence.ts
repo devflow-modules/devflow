@@ -48,6 +48,8 @@ const SKILL_PATTERNS: { pattern: RegExp; canonical: string }[] = [
   { pattern: /\.net\b|\bdot\s*net\b|\basp\.net\b/i, canonical: ".NET" },
   { pattern: /\bc#\b|\bcsharp\b/i, canonical: "C#" },
   { pattern: /\bjava\b(?![a-z])/i, canonical: "Java" },
+  { pattern: /\belixir\b/i, canonical: "Elixir" },
+  { pattern: /\bruby\b/i, canonical: "Ruby" },
   { pattern: /\bpython\b/i, canonical: "Python" },
   { pattern: /\baws\b|\bamazon\s+web\s+services\b/i, canonical: "AWS" },
   { pattern: /\bazure\b|\bmicrosoft\s+azure\b/i, canonical: "Azure" },

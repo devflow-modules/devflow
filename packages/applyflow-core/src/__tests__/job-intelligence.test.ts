@@ -82,6 +82,13 @@ describe("extractJobIntelligence", () => {
     expect(new Set(x.detectedSkills).size).toBe(x.detectedSkills.length);
   });
 
+  it("reconhece Java, Elixir e Ruby sem colapsar Java em JavaScript", () => {
+    const x = extractJobIntelligence(
+      "Looking for Java, Elixir and Ruby specialists. Mainframe experience is a plus.",
+    );
+    expect(x.detectedSkills).toEqual(["Elixir", "Java", "Ruby"]);
+  });
+
   it("junior SR token não sobe para senior quando só JR junior", () => {
     expect(extractJobIntelligence("Vaga junior para estagiário").seniority).toBe("junior");
   });

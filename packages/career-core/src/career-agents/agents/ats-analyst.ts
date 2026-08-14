@@ -1,3 +1,5 @@
+import { evaluateJobMatch, extractJobIntelligence } from "@devflow/applyflow-core";
+
 import type {
   AtsAnalysis,
   AtsRequirementCoverage,
@@ -9,10 +11,10 @@ import type {
 } from "../types.js";
 
 /**
- * Deterministic ATS compatibility analysis. The compatibility score is computed by a
- * documented, bounded (0..100) rubric over token overlap between the sanitized resume
- * snapshot and the job snapshot. No LLM is used to compute the score; an LLM may only
- * explain results that are already computed here.
+ * Deterministic ATS compatibility analysis. The compatibility **score** is owned by
+ * `evaluateJobMatch` (same engine as ApplyFlow Job Match / `calculateFitScore`).
+ * Token overlap, structure and stuffing remain explanatory — they must not produce
+ * a second score.
  */
 
 const STOPWORDS = new Set([
@@ -98,10 +100,6 @@ function tokenFrequency(tokens: string[]): Map<string, number> {
   return frequency;
 }
 
-function clampScore(value: number): number {
-  return Math.max(0, Math.min(100, Math.round(value)));
-}
-
 export type AtsAnalystOutput = {
   summary: string;
   findings: CareerAgentFinding[];
@@ -141,27 +139,19 @@ export function runAtsAnalyst(context: CareerAgentContext): AtsAnalystOutput {
     },
   );
 
-  const coveredScoreFor = (status: AtsRequirementCoverage["status"]): number =>
-    status === "covered" ? 1 : status === "partial" ? 0.5 : 0;
-  const requiredScore =
-    requiredRequirementCoverage.length === 0
-      ? keywords.length === 0
-        ? 0.5
-        : matchedKeywords.length / keywords.length
-      : requiredRequirementCoverage.reduce((sum, item) => sum + coveredScoreFor(item.status), 0) /
-        requiredRequirementCoverage.length;
-
-  const keywordScore = keywords.length === 0 ? requiredScore : matchedKeywords.length / keywords.length;
-
   const hasSummary = Boolean(resume.summary && resume.summary.trim().length > 0);
   const hasSkills = resume.skills.length > 0;
   const hasExperience = resume.experiences.length > 0;
-  const structurePresent = [hasSummary, hasSkills, hasExperience].filter(Boolean).length;
-  const structureScore = structurePresent / 3;
 
-  const compatibilityScore = clampScore(
-    (requiredScore * 0.7 + keywordScore * 0.2 + structureScore * 0.1) * 100,
-  );
+  const jobSkillBlob = [
+    job.title,
+    job.roleSummary ?? "",
+    ...job.requiredRequirements,
+    ...(job.preferredRequirements ?? []),
+    ...keywords,
+  ].join("\n");
+  const jobSkills = extractJobIntelligence(jobSkillBlob).detectedSkills;
+  const compatibilityScore = evaluateJobMatch(resume.skills, { skills: jobSkills }).score;
 
   const parsingRisks: string[] = [];
   if (!hasSkills) parsingRisks.push("No skills section detected; ATS keyword matching is weakened.");

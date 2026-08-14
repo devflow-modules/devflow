@@ -24,6 +24,7 @@ export { buildAiPrompt } from "./ai-prompt-builder.js";
 export type { AiPromptInput, AiTextTask } from "./ai-prompt-builder.js";
 export type {
   ApplyFlowApplication,
+  ApplyFlowApplicationSource,
   ApplyFlowApplicationStatus,
   ApplyFlowJobMeta,
   SaveApplicationInput,
@@ -39,6 +40,38 @@ export {
 export type { ApplicationMetrics, ApplicationsPeriodFilter } from "./application-metrics.js";
 export { parseApplyFlowApplicationsImport, parseApplyFlowImportJsonString } from "./imported-application-schema.js";
 export type { ParsedApplyFlowImportResult } from "./imported-application-schema.js";
+export { evaluateJobMatch, profileSkillLabels } from "./evaluate-job-match.js";
+export {
+  JOB_MATCH_THRESHOLDS_V1,
+  decideJobMatchV1,
+  statusFromJobMatchDecision,
+} from "./job-match-thresholds.js";
+export { JOB_MATCH_SCORING_VERSION } from "./job-match-types.js";
+export type {
+  ApplyFlowJob,
+  ApplyFlowJobContext,
+  ApplyFlowJobMatch,
+  ApplyFlowJobSource,
+  JobMatchDecision,
+  JobMatchScoringVersion,
+  NormalizedJobSkills,
+} from "./job-match-types.js";
+export {
+  JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS,
+  hashJobDescription,
+  snapshotJobDescription,
+} from "./job-description-snapshot.js";
+export { ingestApplyFlowJob, projectJobForFunnel } from "./ingest-applyflow-job.js";
+export type { IngestApplyFlowJobInput } from "./ingest-applyflow-job.js";
+export { mergeApplyFlowJobs } from "./merge-applyflow-jobs.js";
+export {
+  isApplyFlowJobsImportV2,
+  parseApplyFlowJobsImport,
+  parseApplyFlowJobsImportJsonString,
+} from "./imported-job-schema.js";
+export type { ParsedApplyFlowJobsImportResult } from "./imported-job-schema.js";
+export { parseApplyFlowDashboardImportJsonString } from "./imported-dashboard-schema.js";
+export type { ParsedApplyFlowDashboardImport } from "./imported-dashboard-schema.js";
 export type { DashboardImportSummary, DashboardStoredImport, DashboardTableFilters } from "./dashboard-types.js";
 export {
   applyDashboardTableFilters,

@@ -19,6 +19,7 @@
     "pilot:curator": "tsx src/research/cli/index.ts"
   },
   "dependencies": {
+    "@devflow/applyflow-core": "workspace:*",
     "@devflow/career-sync": "workspace:*",
     "zod": "^3.23.0"
   },

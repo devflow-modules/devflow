@@ -1,3 +1,4 @@
+import { evaluateJobMatch, extractJobIntelligence } from "@devflow/applyflow-core";
 import { describe, expect, it } from "vitest";
 import { orchestrateCareerAgents } from "../orchestrator.js";
 import { parseCareerAgentOrchestrationBody } from "../schemas.js";
@@ -141,6 +142,16 @@ describe("ats_analyst", () => {
     expect(ats?.matchedKeywords).toContain("typescript");
     expect(ats?.missingKeywords).toContain("kubernetes");
     expect(result.reviewProposal?.proposalTool).toBe("career.prepare_ats_review");
+    const jobSkills = extractJobIntelligence(
+      [
+        JOB.jobSnapshot?.title,
+        ...(JOB.jobSnapshot?.requiredRequirements ?? []),
+        ...(JOB.jobSnapshot?.keywords ?? []),
+      ].join("\n"),
+    ).detectedSkills;
+    expect(ats?.compatibilityScore).toBe(
+      evaluateJobMatch(JOB.resumeSnapshot?.skills ?? [], { skills: jobSkills }).score,
+    );
   });
 
   it("produces the same score for the same input", () => {

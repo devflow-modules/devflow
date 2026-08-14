@@ -10,6 +10,7 @@ import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import { ApplyFlowEmptyState } from "@/components/ui/ApplyFlowEmptyState";
 import { ApplyFlowPrivacyNotice } from "@/components/ui/ApplyFlowPrivacyNotice";
 import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
+import { JobInboxPanel } from "@/components/dashboard/job-inbox-panel";
 import {
   APPLYFLOW_APPLICATION_STATUS_LABELS_PT,
   applyDashboardTableFilters,
@@ -18,12 +19,18 @@ import {
   computeApplicationMetrics,
   computeCreatedAtRange,
   FUNNEL_STATUS_ORDER,
+  gustavoProfile,
+  ingestApplyFlowJob,
+  mergeApplyFlowJobs,
+  parseApplyFlowDashboardImportJsonString,
   parseApplyFlowImportJsonString,
+  projectJobForFunnel,
   type ApplyFlowApplication,
   type ApplyFlowApplicationStatus,
+  type ApplyFlowJob,
   type DashboardTableFilters,
 } from "@devflow/applyflow-core";
-import { useCallback, useEffect, useMemo, useState, startTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from "react";
 import type { ReactNode } from "react";
 import {
   Bar,
@@ -45,6 +52,11 @@ import {
   loadDashboardImport,
   persistDashboardImport,
 } from "@/lib/local-import-storage";
+import {
+  clearPersistedDashboardJobs,
+  loadDashboardJobs,
+  persistDashboardJobs,
+} from "@/lib/local-job-storage";
 import {
   buildInterviewLabCareerBundle,
   buildInterviewLabCareerBundleForExport,
@@ -84,7 +96,7 @@ const defaultFilters: DashboardTableFilters = {
   englishRequired: "all",
 };
 
-type FeedbackKind = "import" | "demo" | "restored";
+type FeedbackKind = "import" | "jobs" | "demo" | "restored";
 
 type ImportFeedback = {
   loaded: number;
@@ -172,6 +184,14 @@ function feedbackSummary(f: ImportFeedback | null): ReactNode {
       </>
     );
   }
+  if (f.kind === "jobs") {
+    return (
+      <>
+        <strong className="text-emerald-300">Vagas avaliadas:</strong> {f.loaded} no inbox
+        {f.ignored > 0 ? ` · ${f.ignored} ignoradas (duplicado ou inválido)` : null}
+      </>
+    );
+  }
   return (
     <>
       <strong className="text-emerald-300">Dados restaurados</strong> deste navegador: {f.loaded} candidaturas.
@@ -181,6 +201,8 @@ function feedbackSummary(f: ImportFeedback | null): ReactNode {
 
 export function DashboardClient() {
   const [applications, setApplications] = useState<ApplyFlowApplication[]>([]);
+  const [jobs, setJobs] = useState<ApplyFlowJob[]>([]);
+  const [jobInboxError, setJobInboxError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [importFeedback, setImportFeedback] = useState<ImportFeedback | null>(null);
@@ -190,11 +212,18 @@ export function DashboardClient() {
 
   useEffect(() => {
     const stored = loadDashboardImport();
+    const storedJobs = loadDashboardJobs();
     startTransition(() => {
       if (stored?.applications?.length) {
         setApplications(stored.applications);
+      }
+      if (storedJobs.length) {
+        setJobs(storedJobs);
+      }
+      const restoredCount = (stored?.applications?.length ?? 0) + storedJobs.length;
+      if (restoredCount > 0) {
         setImportFeedback({
-          loaded: stored.applications.length,
+          loaded: restoredCount,
           ignored: 0,
           kind: "restored",
         });
@@ -205,9 +234,14 @@ export function DashboardClient() {
 
   const now = useMemo(() => new Date(), []);
 
+  const recordsForFunnel = useMemo(
+    () => [...applications, ...jobs.map(projectJobForFunnel)],
+    [applications, jobs],
+  );
+
   const filtered = useMemo(
-    () => applyDashboardTableFilters(applications, filters, now),
-    [applications, filters, now],
+    () => applyDashboardTableFilters(recordsForFunnel, filters, now),
+    [recordsForFunnel, filters, now],
   );
 
   const metrics = useMemo(() => computeApplicationMetrics(filtered, now), [filtered, now]);
@@ -394,25 +428,69 @@ export function DashboardClient() {
     [metrics.skillsTop],
   );
 
-  const skillOptions = useMemo(() => collectDetectedSkills(applications), [applications]);
+  const skillOptions = useMemo(() => collectDetectedSkills(recordsForFunnel), [recordsForFunnel]);
+
+  const jobsRef = useRef(jobs);
+  jobsRef.current = jobs;
+
+  const commitJobs = useCallback((incoming: ApplyFlowJob[]) => {
+    const merged = mergeApplyFlowJobs(jobsRef.current, incoming);
+    persistDashboardJobs(merged.jobs);
+    setJobs(merged.jobs);
+    setImportFeedback({
+      loaded: merged.added,
+      ignored: merged.skipped,
+      kind: "jobs",
+    });
+    if (merged.added === 0 && merged.skipped > 0) {
+      setJobInboxError("Esta vaga já está no inbox (mesmo conteúdo ou mesmo id).");
+    } else {
+      setJobInboxError(null);
+    }
+  }, []);
+
+  const onEvaluatePaste = useCallback(
+    (input: { description: string; title: string; company: string; url: string }) => {
+      const description = input.description.trim();
+      if (!description) {
+        setJobInboxError("Cola o texto da vaga para avaliar.");
+        return;
+      }
+      const job = ingestApplyFlowJob({
+        description,
+        source: "paste",
+        title: input.title,
+        company: input.company,
+        url: input.url,
+        profile: gustavoProfile,
+      });
+      commitJobs([job]);
+    },
+    [commitJobs],
+  );
 
   const processJsonText = useCallback((text: string) => {
     setImportError(null);
-    const r = parseApplyFlowImportJsonString(text);
+    const r = parseApplyFlowDashboardImportJsonString(text, { profile: gustavoProfile });
     if (!r.ok) {
       setImportError(r.error);
       setImportFeedback(null);
       return;
     }
-    setApplications(r.applications);
-    persistDashboardImport(r.applications);
+    if (r.kind === "jobs") {
+      commitJobs(r.result.jobs);
+      setImportError(null);
+      return;
+    }
+    setApplications(r.result.applications);
+    persistDashboardImport(r.result.applications);
     setImportFeedback({
-      loaded: r.applications.length,
-      ignored: r.ignoredCount,
+      loaded: r.result.applications.length,
+      ignored: r.result.ignoredCount,
       kind: "import",
     });
     setImportError(null);
-  }, []);
+  }, [commitJobs]);
 
   const onFile = useCallback(
     (file: File | null) => {
@@ -461,7 +539,7 @@ export function DashboardClient() {
     }
   }, [applications.length]);
 
-  const hasData = applications.length > 0;
+  const hasData = applications.length > 0 || jobs.length > 0;
   const tableEmpty = hasData && filtered.length === 0;
   const pilotMode = isCareerPilotModeClient();
 
@@ -556,13 +634,17 @@ export function DashboardClient() {
           </ApplyFlowCard>
         ) : null}
 
+        <div className="mt-8">
+          <JobInboxPanel jobs={jobs} error={jobInboxError} onEvaluatePaste={onEvaluatePaste} />
+        </div>
+
         {!hasData && !importError ? (
           <ApplyFlowEmptyState
             title="Nenhum dado carregado"
             description={
               <>
-                Importa o JSON gerado na extensão (Opções › Histórico) ou usa <strong>Carregar demo</strong> para ver funil,
-                gráficos e tabela com dados fictícios — ideal para portefólio ou ensaio sem PII.
+                Importa o JSON gerado na extensão (Opções › Histórico), cola uma vaga no inbox, ou usa{" "}
+                <strong>Carregar demo</strong> para ver funil, gráficos e tabela com dados fictícios.
               </>
             }
             primaryLabel="Ir para importar ou demo"
@@ -734,7 +816,10 @@ export function DashboardClient() {
               className="px-0 py-0 font-medium"
               onClick={() => {
                 clearPersistedDashboardImport();
+                clearPersistedDashboardJobs();
                 setApplications([]);
+                setJobs([]);
+                setJobInboxError(null);
                 setImportFeedback(null);
                 setImportError(null);
                 setFilters(defaultFilters);

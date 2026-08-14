@@ -18,11 +18,13 @@ export type ApplyFlowJobMeta = {
   salaryMentioned?: boolean;
 };
 
+export type ApplyFlowApplicationSource = "linkedin" | "paste" | "json";
+
 export type ApplyFlowApplication = {
   id: string;
   createdAt: string;
   updatedAt: string;
-  source: "linkedin";
+  source: ApplyFlowApplicationSource;
   jobTitle?: string;
   companyName?: string;
   jobUrl?: string;

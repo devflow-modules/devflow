@@ -77,7 +77,7 @@ const SKILL_ZERO: Record<ApplyflowSkillKey, number> = Object.fromEntries(
 
 /** Mapeia entradas livres (ex.: import JSON) para chave canónica. */
 export function resolveSkillCanonicalKey(raw: string): ApplyflowSkillKey | null {
-  const compact = raw.trim().toLowerCase().replace(/\s+/g, "");
+  const compact = raw.trim().toLowerCase().replace(/[\s.]+/g, "");
   const aliases: Record<string, ApplyflowSkillKey> = {
     react: "React",
     nextjs: "Nextjs",
