@@ -72,6 +72,29 @@ export {
 export type { ParsedApplyFlowJobsImportResult } from "./imported-job-schema.js";
 export { parseApplyFlowDashboardImportJsonString } from "./imported-dashboard-schema.js";
 export type { ParsedApplyFlowDashboardImport } from "./imported-dashboard-schema.js";
+export {
+  LEGACY_RESUME_VARIANT_ID,
+  LEGACY_RESUME_VARIANT_NAME,
+  RESUME_LIBRARY_IMPORT_KIND,
+  RESUME_LIBRARY_SCHEMA_VERSION,
+} from "./resume-library-types.js";
+export type { ResumeLibrary, ResumeVariant, ResumeVariantSource } from "./resume-library-types.js";
+export {
+  addResumeVariant,
+  createResumeLibraryFromProfile,
+  createResumeVariantId,
+  deleteResumeVariant,
+  duplicateResumeVariant,
+  getDefaultResumeVariant,
+  renameResumeVariant,
+  setDefaultResumeVariant,
+} from "./resume-library.js";
+export type { ResumeLibraryOpResult } from "./resume-library.js";
+export { isResumeLibraryImportV1, parseResumeLibrary } from "./resume-library-schema.js";
+export { ensureResumeLibrary } from "./migrate-resume-library.js";
+export type { EnsureResumeLibraryResult } from "./migrate-resume-library.js";
+export { parseResumeLibraryImport, serializeResumeLibraryImport } from "./imported-resume-library-schema.js";
+export type { ParsedResumeLibraryImport } from "./imported-resume-library-schema.js";
 export type { DashboardImportSummary, DashboardStoredImport, DashboardTableFilters } from "./dashboard-types.js";
 export {
   applyDashboardTableFilters,

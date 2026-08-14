@@ -11,6 +11,7 @@ import { ApplyFlowEmptyState } from "@/components/ui/ApplyFlowEmptyState";
 import { ApplyFlowPrivacyNotice } from "@/components/ui/ApplyFlowPrivacyNotice";
 import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
 import { JobInboxPanel } from "@/components/dashboard/job-inbox-panel";
+import { ResumeLibraryPanel } from "@/components/dashboard/resume-library-panel";
 import {
   APPLYFLOW_APPLICATION_STATUS_LABELS_PT,
   applyDashboardTableFilters,
@@ -25,10 +26,17 @@ import {
   parseApplyFlowDashboardImportJsonString,
   parseApplyFlowImportJsonString,
   projectJobForFunnel,
+  addResumeVariant,
+  deleteResumeVariant,
+  duplicateResumeVariant,
+  getDefaultResumeVariant,
+  renameResumeVariant,
+  setDefaultResumeVariant,
   type ApplyFlowApplication,
   type ApplyFlowApplicationStatus,
   type ApplyFlowJob,
   type DashboardTableFilters,
+  type ResumeLibrary,
 } from "@devflow/applyflow-core";
 import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from "react";
 import type { ReactNode } from "react";
@@ -57,6 +65,7 @@ import {
   loadDashboardJobs,
   persistDashboardJobs,
 } from "@/lib/local-job-storage";
+import { loadResumeLibrary, persistResumeLibrary } from "@/lib/local-resume-library-storage";
 import {
   buildInterviewLabCareerBundle,
   buildInterviewLabCareerBundleForExport,
@@ -202,6 +211,8 @@ function feedbackSummary(f: ImportFeedback | null): ReactNode {
 export function DashboardClient() {
   const [applications, setApplications] = useState<ApplyFlowApplication[]>([]);
   const [jobs, setJobs] = useState<ApplyFlowJob[]>([]);
+  const [resumeLibrary, setResumeLibrary] = useState<ResumeLibrary | null>(null);
+  const [resumeLibraryError, setResumeLibraryError] = useState<string | null>(null);
   const [jobInboxError, setJobInboxError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
@@ -213,6 +224,7 @@ export function DashboardClient() {
   useEffect(() => {
     const stored = loadDashboardImport();
     const storedJobs = loadDashboardJobs();
+    const storedLibrary = loadResumeLibrary();
     startTransition(() => {
       if (stored?.applications?.length) {
         setApplications(stored.applications);
@@ -220,6 +232,7 @@ export function DashboardClient() {
       if (storedJobs.length) {
         setJobs(storedJobs);
       }
+      setResumeLibrary(storedLibrary);
       const restoredCount = (stored?.applications?.length ?? 0) + storedJobs.length;
       if (restoredCount > 0) {
         setImportFeedback({
@@ -432,6 +445,8 @@ export function DashboardClient() {
 
   const jobsRef = useRef(jobs);
   jobsRef.current = jobs;
+  const resumeLibraryRef = useRef(resumeLibrary);
+  resumeLibraryRef.current = resumeLibrary;
 
   const commitJobs = useCallback((incoming: ApplyFlowJob[]) => {
     const merged = mergeApplyFlowJobs(jobsRef.current, incoming);
@@ -449,6 +464,18 @@ export function DashboardClient() {
     }
   }, []);
 
+  const commitResumeLibrary = useCallback((library: ResumeLibrary) => {
+    persistResumeLibrary(library);
+    setResumeLibrary(library);
+    setResumeLibraryError(null);
+  }, []);
+
+  const matchProfile = useCallback(() => {
+    const library = resumeLibraryRef.current;
+    if (!library) return gustavoProfile;
+    return getDefaultResumeVariant(library).profile;
+  }, []);
+
   const onEvaluatePaste = useCallback(
     (input: { description: string; title: string; company: string; url: string }) => {
       const description = input.description.trim();
@@ -462,16 +489,16 @@ export function DashboardClient() {
         title: input.title,
         company: input.company,
         url: input.url,
-        profile: gustavoProfile,
+        profile: matchProfile(),
       });
       commitJobs([job]);
     },
-    [commitJobs],
+    [commitJobs, matchProfile],
   );
 
   const processJsonText = useCallback((text: string) => {
     setImportError(null);
-    const r = parseApplyFlowDashboardImportJsonString(text, { profile: gustavoProfile });
+    const r = parseApplyFlowDashboardImportJsonString(text, { profile: matchProfile() });
     if (!r.ok) {
       setImportError(r.error);
       setImportFeedback(null);
@@ -479,6 +506,32 @@ export function DashboardClient() {
     }
     if (r.kind === "jobs") {
       commitJobs(r.result.jobs);
+      setImportError(null);
+      return;
+    }
+    if (r.kind === "resume-library") {
+      commitResumeLibrary(r.library);
+      setImportFeedback({ loaded: r.library.variants.length, ignored: 0, kind: "import" });
+      setImportError(null);
+      return;
+    }
+    if (r.kind === "resume-profile") {
+      const library = resumeLibraryRef.current;
+      if (!library) {
+        setResumeLibraryError("A biblioteca de currículos ainda não carregou.");
+        return;
+      }
+      const added = addResumeVariant(library, {
+        profile: r.profile,
+        name: r.profile.roles[0]?.trim() || "Currículo importado",
+        source: "import",
+      });
+      if (!added.ok) {
+        setResumeLibraryError(added.error);
+        return;
+      }
+      commitResumeLibrary(added.library);
+      setImportFeedback({ loaded: 1, ignored: 0, kind: "import" });
       setImportError(null);
       return;
     }
@@ -490,7 +543,7 @@ export function DashboardClient() {
       kind: "import",
     });
     setImportError(null);
-  }, [commitJobs]);
+  }, [commitJobs, commitResumeLibrary, matchProfile]);
 
   const onFile = useCallback(
     (file: File | null) => {
@@ -635,7 +688,57 @@ export function DashboardClient() {
         ) : null}
 
         <div className="mt-8">
-          <JobInboxPanel jobs={jobs} error={jobInboxError} onEvaluatePaste={onEvaluatePaste} />
+          {resumeLibrary ? (
+            <ResumeLibraryPanel
+              library={resumeLibrary}
+              error={resumeLibraryError}
+              onSetDefault={(id) => {
+                const result = setDefaultResumeVariant(resumeLibrary, id);
+                if (!result.ok) {
+                  setResumeLibraryError(result.error);
+                  return;
+                }
+                commitResumeLibrary(result.library);
+              }}
+              onRename={(id, name) => {
+                const result = renameResumeVariant(resumeLibrary, id, name);
+                if (!result.ok) {
+                  setResumeLibraryError(result.error);
+                  return;
+                }
+                commitResumeLibrary(result.library);
+              }}
+              onDelete={(id) => {
+                const result = deleteResumeVariant(resumeLibrary, id);
+                if (!result.ok) {
+                  setResumeLibraryError(result.error);
+                  return;
+                }
+                commitResumeLibrary(result.library);
+              }}
+              onDuplicate={(name) => {
+                const result = duplicateResumeVariant(resumeLibrary, resumeLibrary.defaultVariantId, { name });
+                if (!result.ok) {
+                  setResumeLibraryError(result.error);
+                  return;
+                }
+                commitResumeLibrary(result.library);
+              }}
+              onImportProfileFile={(file) => {
+                if (!file) return;
+                void file.text().then((text) => processJsonText(text));
+              }}
+            />
+          ) : null}
+        </div>
+
+        <div className="mt-8">
+          <JobInboxPanel
+            jobs={jobs}
+            error={jobInboxError}
+            evaluatedWithName={resumeLibrary ? getDefaultResumeVariant(resumeLibrary).name : "Perfil principal"}
+            onEvaluatePaste={onEvaluatePaste}
+          />
         </div>
 
         {!hasData && !importError ? (

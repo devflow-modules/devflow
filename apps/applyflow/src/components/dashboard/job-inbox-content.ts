@@ -10,6 +10,7 @@ export const JOB_INBOX_PASTE_LABEL = "Texto da vaga";
 export const JOB_INBOX_TITLE_LABEL = "Título (opcional)";
 export const JOB_INBOX_COMPANY_LABEL = "Empresa (opcional)";
 export const JOB_INBOX_URL_LABEL = "URL (opcional, não é descarregada)";
+export const JOB_INBOX_EVALUATED_WITH_PREFIX = "Avaliado com:";
 
 export const JOB_MATCH_DECISION_LABELS: Record<JobMatchDecision, string> = {
   apply: "APPLY",

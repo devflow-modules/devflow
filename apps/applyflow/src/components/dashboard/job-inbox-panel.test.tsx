@@ -40,12 +40,19 @@ describe("job-inbox-content", () => {
 describe("JobInboxPanel", () => {
   it("mostra o recorte F1 e a decisão da vaga avaliada", () => {
     const html = renderToStaticMarkup(
-      <JobInboxPanel jobs={[stretchJob]} error={null} onEvaluatePaste={() => undefined} />,
+      <JobInboxPanel
+        jobs={[stretchJob]}
+        error={null}
+        evaluatedWithName="Product Engineer"
+        onEvaluatePaste={() => undefined}
+      />,
     );
     expect(html).toContain(JOB_INBOX_TITLE);
     expect(html).toContain(JOB_INBOX_SUBMIT_LABEL);
     expect(html).toContain(JOB_MATCH_DECISION_LABELS.stretch);
     expect(html).toContain("67/100");
     expect(html).toContain("Backend Engineer");
+    expect(html).toContain("Avaliado com:");
+    expect(html).toContain("Product Engineer");
   });
 });

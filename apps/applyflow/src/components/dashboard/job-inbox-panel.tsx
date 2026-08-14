@@ -7,6 +7,7 @@ import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
 import {
   JOB_INBOX_COMPANY_LABEL,
   JOB_INBOX_DESCRIPTION,
+  JOB_INBOX_EVALUATED_WITH_PREFIX,
   JOB_INBOX_EYEBROW,
   JOB_INBOX_PASTE_LABEL,
   JOB_INBOX_SUBMIT_LABEL,
@@ -30,10 +31,12 @@ const fieldClass = cn(
 export function JobInboxPanel({
   jobs,
   error,
+  evaluatedWithName,
   onEvaluatePaste,
 }: {
   jobs: ApplyFlowJob[];
   error: string | null;
+  evaluatedWithName: string;
   onEvaluatePaste: (input: { description: string; title: string; company: string; url: string }) => void;
 }) {
   const [description, setDescription] = useState("");
@@ -90,6 +93,9 @@ export function JobInboxPanel({
           <ApplyFlowButton type="submit" variant="primary" size="md">
             {JOB_INBOX_SUBMIT_LABEL}
           </ApplyFlowButton>
+          <p className="mt-2 text-xs text-[color:var(--af-text-muted)]">
+            {JOB_INBOX_EVALUATED_WITH_PREFIX} {evaluatedWithName}
+          </p>
         </div>
       </form>
 
