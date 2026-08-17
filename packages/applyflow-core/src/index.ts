@@ -46,16 +46,32 @@ export {
   decideJobMatchV1,
   statusFromJobMatchDecision,
 } from "./job-match-thresholds.js";
-export { JOB_MATCH_SCORING_VERSION } from "./job-match-types.js";
+export {
+  CURRICULUM_ROUTER_CONFIDENCE,
+  CURRICULUM_ROUTER_DELTA_BANDS_V1,
+  CURRICULUM_ROUTER_VERSION,
+  JOB_MATCH_SCORING_VERSION,
+} from "./job-match-types.js";
 export type {
   ApplyFlowJob,
   ApplyFlowJobContext,
+  ApplyFlowJobEvaluatedWith,
   ApplyFlowJobMatch,
   ApplyFlowJobSource,
+  CurriculumRecommendation,
+  CurriculumRouterConfidence,
+  CurriculumRouterVersion,
   JobMatchDecision,
   JobMatchScoringVersion,
   NormalizedJobSkills,
+  ResumeMatchCandidate,
 } from "./job-match-types.js";
+export {
+  classifyCurriculumRouterConfidence,
+  compareResumeMatchCandidates,
+  rankResumeMatchCandidates,
+  recommendCurriculum,
+} from "./curriculum-router.js";
 export {
   JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS,
   hashJobDescription,

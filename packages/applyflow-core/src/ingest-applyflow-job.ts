@@ -1,10 +1,17 @@
 import type { ApplyFlowApplication } from "./application-types.js";
+import { recommendCurriculum } from "./curriculum-router.js";
 import type { CandidateProfile } from "./profile-schema.js";
 import { extractJobIntelligence } from "./job-intelligence.js";
 import { evaluateJobMatch } from "./evaluate-job-match.js";
 import { hashJobDescription, snapshotJobDescription } from "./job-description-snapshot.js";
 import { statusFromJobMatchDecision } from "./job-match-thresholds.js";
-import type { ApplyFlowJob, ApplyFlowJobSource } from "./job-match-types.js";
+import type {
+  ApplyFlowJob,
+  ApplyFlowJobEvaluatedWith,
+  ApplyFlowJobSource,
+} from "./job-match-types.js";
+import { getDefaultResumeVariant } from "./resume-library.js";
+import type { ResumeLibrary } from "./resume-library-types.js";
 
 export type IngestApplyFlowJobInput = {
   description: string;
@@ -14,9 +21,26 @@ export type IngestApplyFlowJobInput = {
   location?: string;
   url?: string;
   profile: CandidateProfile;
+  /** When present, Job Match uses the default variant; Router ranks all variants. */
+  resumeLibrary?: ResumeLibrary;
   now?: Date;
   id?: string;
 };
+
+function resolveEvaluatedProfile(input: IngestApplyFlowJobInput): {
+  profile: CandidateProfile;
+  evaluatedWith?: ApplyFlowJobEvaluatedWith;
+} {
+  const library = input.resumeLibrary;
+  if (!library || library.variants.length === 0) {
+    return { profile: input.profile };
+  }
+  const variant = getDefaultResumeVariant(library);
+  return {
+    profile: variant.profile,
+    evaluatedWith: { variantId: variant.id, variantName: variant.name },
+  };
+}
 
 function inferTitle(description: string, explicit?: string): string {
   const given = explicit?.trim();
@@ -40,8 +64,13 @@ export function ingestApplyFlowJob(input: IngestApplyFlowJobInput): ApplyFlowJob
   const iso = now.toISOString();
   const description = input.description.trim();
   const intel = extractJobIntelligence(description);
-  const jobMatch = evaluateJobMatch(input.profile, { skills: intel.detectedSkills }, { now });
+  const skills = { skills: intel.detectedSkills };
+  const { profile, evaluatedWith } = resolveEvaluatedProfile(input);
+  const jobMatch = evaluateJobMatch(profile, skills, { now });
   const snapshot = snapshotJobDescription(description);
+  const curriculumRecommendation = input.resumeLibrary
+    ? recommendCurriculum(skills, input.resumeLibrary, { now })
+    : undefined;
 
   return {
     id: input.id ?? `job_${now.getTime().toString(36)}_${Math.random().toString(36).slice(2, 10)}`,
@@ -60,6 +89,8 @@ export function ingestApplyFlowJob(input: IngestApplyFlowJobInput): ApplyFlowJob
     descriptionSnapshot: snapshot.length > 0 ? snapshot : undefined,
     descriptionHash: description.length > 0 ? hashJobDescription(description) : undefined,
     jobMatch,
+    ...(evaluatedWith ? { evaluatedWith } : {}),
+    ...(curriculumRecommendation ? { curriculumRecommendation } : {}),
     createdAt: iso,
     updatedAt: iso,
   };

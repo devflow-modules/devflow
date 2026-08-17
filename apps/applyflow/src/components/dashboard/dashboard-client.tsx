@@ -490,6 +490,7 @@ export function DashboardClient() {
         company: input.company,
         url: input.url,
         profile: matchProfile(),
+        resumeLibrary: resumeLibraryRef.current ?? undefined,
       });
       commitJobs([job]);
     },
@@ -498,7 +499,10 @@ export function DashboardClient() {
 
   const processJsonText = useCallback((text: string) => {
     setImportError(null);
-    const r = parseApplyFlowDashboardImportJsonString(text, { profile: matchProfile() });
+    const r = parseApplyFlowDashboardImportJsonString(text, {
+      profile: matchProfile(),
+      resumeLibrary: resumeLibraryRef.current ?? undefined,
+    });
     if (!r.ok) {
       setImportError(r.error);
       setImportFeedback(null);

@@ -16,7 +16,7 @@ export type ParsedApplyFlowDashboardImport =
 
 export function parseApplyFlowDashboardImportJsonString(
   text: string,
-  options: { profile: CandidateProfile; now?: Date },
+  options: { profile: CandidateProfile; resumeLibrary?: ResumeLibrary; now?: Date },
 ): ParsedApplyFlowDashboardImport {
   let data: unknown;
   try {

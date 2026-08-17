@@ -9,6 +9,46 @@ export type JobMatchDecision = (typeof JOB_MATCH_DECISIONS)[number];
 export const JOB_MATCH_SCORING_VERSION = "v1" as const;
 export type JobMatchScoringVersion = typeof JOB_MATCH_SCORING_VERSION;
 
+/** Ranking / confidence version — independent from `jobMatch.scoringVersion`. */
+export const CURRICULUM_ROUTER_VERSION = "curriculum-router-v1" as const;
+export type CurriculumRouterVersion = typeof CURRICULUM_ROUTER_VERSION;
+
+/** Integer score gaps. Recalibration must bump `CURRICULUM_ROUTER_VERSION`. */
+export const CURRICULUM_ROUTER_DELTA_BANDS_V1 = {
+  clear: 10,
+  moderate: 5,
+} as const;
+
+export const CURRICULUM_ROUTER_CONFIDENCE = ["clear", "moderate", "equivalent"] as const;
+export type CurriculumRouterConfidence = (typeof CURRICULUM_ROUTER_CONFIDENCE)[number];
+
+export type ResumeMatchCandidate = {
+  variantId: string;
+  variantName: string;
+  score: number;
+  decision: JobMatchDecision;
+  matchedSkills: string[];
+  missingSkills: string[];
+};
+
+export type CurriculumRecommendation = {
+  recommendedVariantId: string;
+  recommendedVariantName: string;
+  evaluatedAt: string;
+  scoringVersion: JobMatchScoringVersion;
+  routerVersion: CurriculumRouterVersion;
+  confidence: CurriculumRouterConfidence;
+  scoreDelta: number;
+  runnerUpVariantId?: string;
+  runnerUpVariantName?: string;
+  candidates: ResumeMatchCandidate[];
+};
+
+export type ApplyFlowJobEvaluatedWith = {
+  variantId: string;
+  variantName: string;
+};
+
 export type ApplyFlowJobMatch = {
   score: number;
   decision: JobMatchDecision;
@@ -37,6 +77,10 @@ export type ApplyFlowJob = {
   descriptionSnapshot?: string;
   descriptionHash?: string;
   jobMatch: ApplyFlowJobMatch;
+  /** Snapshot of the default variant used for `jobMatch` at ingest. Absent on F1 jobs. */
+  evaluatedWith?: ApplyFlowJobEvaluatedWith;
+  /** Present only when the library had 2+ variants at ingest. Never recomputed on load. */
+  curriculumRecommendation?: CurriculumRecommendation;
   createdAt: string;
   updatedAt: string;
 };
