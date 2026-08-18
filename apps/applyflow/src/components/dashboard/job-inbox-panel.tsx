@@ -1,10 +1,29 @@
 "use client";
 
 import { ApplyFlowBadge } from "@/components/ui/ApplyFlowBadge";
-import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
+import { ApplyFlowButton, applyFlowButtonClass } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
 import {
+  APPLICATION_PACK_ANSWER_LABELS,
+  APPLICATION_PACK_ANSWERS_HINT,
+  APPLICATION_PACK_ANSWERS_LABEL,
+  APPLICATION_PACK_CHECKLIST_LABEL,
+  APPLICATION_PACK_CHECKLIST_LABELS,
+  APPLICATION_PACK_FACTS_LABEL,
+  APPLICATION_PACK_FIT_LABEL,
+  APPLICATION_PACK_GAPS_LABEL,
+  APPLICATION_PACK_HIGHLIGHTS_LABEL,
+  APPLICATION_PACK_HINT,
+  APPLICATION_PACK_MARK_APPLIED_LABEL,
+  APPLICATION_PACK_OPEN_JOB_LABEL,
+  APPLICATION_PACK_OPEN_LABEL,
+  APPLICATION_PACK_PREPARE_LABEL,
+  APPLICATION_PACK_RESUME_LABEL,
+  APPLICATION_PACK_ROUTER_HINT,
+  APPLICATION_PACK_SALARY_LABELS,
+  APPLICATION_PACK_SELECT_LABEL,
+  APPLICATION_PACK_TITLE,
   CURRICULUM_ROUTER_COMPARE_LABEL,
   CURRICULUM_ROUTER_EQUIVALENT_HINT,
   CURRICULUM_ROUTER_NOT_AN_ACTION,
@@ -27,8 +46,14 @@ import {
 } from "@/components/dashboard/job-inbox-content";
 import {
   APPLYFLOW_APPLICATION_STATUS_LABELS_PT,
+  canCreateApplicationPack,
+  isOpenableJobUrl,
+  resolveApplicationPackResume,
+  type ApplicationPack,
+  type ApplicationPackChecklistId,
   type ApplyFlowJob,
   type CurriculumRecommendation,
+  type ResumeLibrary,
 } from "@devflow/applyflow-core";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
@@ -150,7 +175,268 @@ function CurriculumRouterBlock({
   );
 }
 
-function JobInboxCard({ job }: { job: ApplyFlowJob }) {
+function ApplicationPackFacts({ pack }: { pack: ApplicationPack }) {
+  const facts = pack.candidateFacts;
+  const rows: string[] = [];
+  if (facts.name) rows.push(facts.name);
+  if (facts.location) rows.push(facts.location);
+  if (facts.englishLevel) rows.push(`Inglês: ${facts.englishLevel}`);
+  if (typeof facts.comfortableInEnglish === "boolean") {
+    rows.push(`Confortável em inglês: ${facts.comfortableInEnglish ? "sim" : "não"}`);
+  }
+  if (facts.roles && facts.roles.length > 0) rows.push(facts.roles.join(", "));
+  if (facts.salary) {
+    (Object.keys(APPLICATION_PACK_SALARY_LABELS) as Array<keyof typeof APPLICATION_PACK_SALARY_LABELS>).forEach(
+      (key) => {
+        const value = facts.salary?.[key]?.trim();
+        if (value) rows.push(`${APPLICATION_PACK_SALARY_LABELS[key]}: ${value}`);
+      },
+    );
+  }
+  const answers = facts.answerBank
+    ? (Object.keys(APPLICATION_PACK_ANSWER_LABELS) as Array<keyof typeof APPLICATION_PACK_ANSWER_LABELS>)
+        .map((key) => {
+          const value = facts.answerBank?.[key]?.trim();
+          return value ? { key, value } : null;
+        })
+        .filter((item): item is { key: keyof typeof APPLICATION_PACK_ANSWER_LABELS; value: string } => item !== null)
+    : [];
+
+  if (rows.length === 0 && answers.length === 0) return null;
+
+  return (
+    <div className="mt-3">
+      {rows.length > 0 ? (
+        <>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+            {APPLICATION_PACK_FACTS_LABEL}
+          </p>
+          <ul className="mt-1.5 grid gap-1 text-xs text-[color:var(--af-text)]">
+            {rows.map((row) => (
+              <li key={row}>{row}</li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+      {answers.length > 0 ? (
+        <div className={rows.length > 0 ? "mt-3" : undefined}>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+            {APPLICATION_PACK_ANSWERS_LABEL}
+          </p>
+          <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">{APPLICATION_PACK_ANSWERS_HINT}</p>
+          <dl className="mt-1.5 grid gap-2">
+            {answers.map((item) => (
+              <div key={item.key}>
+                <dt className="text-xs font-medium text-[color:var(--af-text)]">
+                  {APPLICATION_PACK_ANSWER_LABELS[item.key]}
+                </dt>
+                <dd className="mt-0.5 whitespace-pre-wrap text-xs text-[color:var(--af-text-muted)]">{item.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ApplicationPackView({
+  job,
+  onTogglePackChecklist,
+  onMarkJobApplied,
+}: {
+  job: ApplyFlowJob;
+  onTogglePackChecklist?: (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => void;
+  onMarkJobApplied?: (jobId: string) => void;
+}) {
+  const pack = job.applicationPack;
+  if (!pack) return null;
+  const openable = isOpenableJobUrl(job.url);
+
+  return (
+    <details className="mt-3 border-t border-[color:var(--af-border)] pt-3">
+      <summary
+        className={cn(
+          "cursor-pointer text-sm font-medium text-[color:var(--af-text)]",
+          "rounded-[var(--af-radius-sm)] focus-visible:outline focus-visible:outline-2",
+          "focus-visible:outline-offset-2 focus-visible:outline-[var(--af-brand)]",
+        )}
+      >
+        {APPLICATION_PACK_OPEN_LABEL}
+      </summary>
+      <div className="mt-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+          {APPLICATION_PACK_TITLE}
+        </p>
+        <p className="mt-1 text-sm font-medium text-[color:var(--af-text)]">
+          {job.title}
+          {job.company ? ` · ${job.company}` : ""}
+        </p>
+        {job.location ? <p className="text-xs text-[color:var(--af-text-muted)]">{job.location}</p> : null}
+        <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+          {APPLICATION_PACK_RESUME_LABEL}
+        </p>
+        <p className="mt-1 text-sm text-[color:var(--af-text)]">{pack.resume.variantName}</p>
+        {pack.resume.recommendedByRouter ? (
+          <p className="text-xs text-[color:var(--af-text-muted)]">{APPLICATION_PACK_ROUTER_HINT}</p>
+        ) : null}
+        <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+          {APPLICATION_PACK_FIT_LABEL}
+        </p>
+        <p className="mt-1 tabular-nums text-sm text-[color:var(--af-text)]">
+          {JOB_MATCH_DECISION_LABELS[pack.match.decision]} · {pack.match.score}/100
+        </p>
+        {pack.highlights.length > 0 ? (
+          <div className="mt-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+              {APPLICATION_PACK_HIGHLIGHTS_LABEL}
+            </p>
+            <ul className="mt-1.5 grid gap-1 text-xs text-[color:var(--af-text)]">
+              {pack.highlights.map((skill) => (
+                <li key={skill}>✓ {skill}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        {pack.gaps.length > 0 ? (
+          <div className="mt-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+              {APPLICATION_PACK_GAPS_LABEL}
+            </p>
+            <ul className="mt-1.5 grid gap-1 text-xs text-[color:var(--af-text)]">
+              {pack.gaps.map((skill) => (
+                <li key={skill}>△ {skill}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        <ApplicationPackFacts pack={pack} />
+        <div className="mt-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+            {APPLICATION_PACK_CHECKLIST_LABEL}
+          </p>
+          <ul className="mt-1.5 grid gap-1.5">
+            {pack.checklist.map((item) => (
+              <li key={item.id}>
+                <label className="flex items-start gap-2 text-xs text-[color:var(--af-text)]">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={item.done}
+                    disabled={!onTogglePackChecklist}
+                    onChange={(event) => onTogglePackChecklist?.(job.id, item.id, event.target.checked)}
+                  />
+                  {APPLICATION_PACK_CHECKLIST_LABELS[item.id]}
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <p className="mt-3 text-xs text-[color:var(--af-text-muted)]">{APPLICATION_PACK_HINT}</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {openable && job.url ? (
+            <a
+              href={job.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={applyFlowButtonClass({ variant: "secondary", size: "sm" })}
+            >
+              {APPLICATION_PACK_OPEN_JOB_LABEL}
+            </a>
+          ) : null}
+          {job.status !== "applied" && onMarkJobApplied ? (
+            <ApplyFlowButton variant="outlineBrand" size="sm" onClick={() => onMarkJobApplied(job.id)}>
+              {APPLICATION_PACK_MARK_APPLIED_LABEL}
+            </ApplyFlowButton>
+          ) : null}
+        </div>
+      </div>
+    </details>
+  );
+}
+
+function ApplicationPackPrepare({
+  job,
+  resumeLibrary,
+  onCreateApplicationPack,
+}: {
+  job: ApplyFlowJob;
+  resumeLibrary: ResumeLibrary;
+  onCreateApplicationPack: (jobId: string, variantId?: string) => void;
+}) {
+  const fallbackId = resumeLibrary.variants[0]?.id ?? "";
+  let preselected = fallbackId;
+  try {
+    preselected = resolveApplicationPackResume(job, resumeLibrary).variant.id;
+  } catch {
+    preselected = fallbackId;
+  }
+  const [variantId, setVariantId] = useState(preselected);
+  if (!preselected) return null;
+  const selected = resumeLibrary.variants.find((variant) => variant.id === variantId);
+  const recommended = selected && job.curriculumRecommendation?.recommendedVariantId === selected.id;
+
+  return (
+    <div className="mt-3 border-t border-[color:var(--af-border)] pt-3">
+      {resumeLibrary.variants.length > 1 ? (
+        <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
+          {APPLICATION_PACK_SELECT_LABEL}
+          <select
+            value={variantId}
+            onChange={(event) => setVariantId(event.target.value)}
+            className={fieldClass}
+          >
+            {resumeLibrary.variants.map((variant) => (
+              <option key={variant.id} value={variant.id}>
+                {variant.name}
+                {job.curriculumRecommendation?.recommendedVariantId === variant.id
+                  ? ` · ${APPLICATION_PACK_ROUTER_HINT}`
+                  : ""}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : (
+        <p className="text-xs text-[color:var(--af-text-muted)]">
+          {APPLICATION_PACK_RESUME_LABEL}: {selected?.name ?? resumeLibrary.variants[0]?.name}
+        </p>
+      )}
+      {recommended ? <p className="mt-1.5 text-xs text-[color:var(--af-text-muted)]">{APPLICATION_PACK_ROUTER_HINT}</p> : null}
+      <div className="mt-3">
+        <ApplyFlowButton
+          variant="secondary"
+          size="sm"
+          onClick={() => onCreateApplicationPack(job.id, resumeLibrary.variants.length > 1 ? variantId : undefined)}
+        >
+          {APPLICATION_PACK_PREPARE_LABEL}
+        </ApplyFlowButton>
+      </div>
+    </div>
+  );
+}
+
+function JobInboxCard({
+  job,
+  resumeLibrary,
+  onCreateApplicationPack,
+  onTogglePackChecklist,
+  onMarkJobApplied,
+}: {
+  job: ApplyFlowJob;
+  resumeLibrary?: ResumeLibrary | null;
+  onCreateApplicationPack?: (jobId: string, variantId?: string) => void;
+  onTogglePackChecklist?: (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => void;
+  onMarkJobApplied?: (jobId: string) => void;
+}) {
+  const showPrepare =
+    Boolean(
+      resumeLibrary &&
+        resumeLibrary.variants.length > 0 &&
+        onCreateApplicationPack &&
+        canCreateApplicationPack(job) &&
+        !job.applicationPack,
+    );
+
   return (
     <ApplyFlowCard padding="md">
       <div className="flex flex-wrap items-center gap-2">
@@ -175,6 +461,20 @@ function JobInboxCard({ job }: { job: ApplyFlowJob }) {
       {job.curriculumRecommendation ? (
         <CurriculumRouterBlock job={job} recommendation={job.curriculumRecommendation} />
       ) : null}
+      {showPrepare && resumeLibrary && onCreateApplicationPack ? (
+        <ApplicationPackPrepare
+          job={job}
+          resumeLibrary={resumeLibrary}
+          onCreateApplicationPack={onCreateApplicationPack}
+        />
+      ) : null}
+      {job.applicationPack ? (
+        <ApplicationPackView
+          job={job}
+          onTogglePackChecklist={onTogglePackChecklist}
+          onMarkJobApplied={onMarkJobApplied}
+        />
+      ) : null}
     </ApplyFlowCard>
   );
 }
@@ -184,11 +484,19 @@ export function JobInboxPanel({
   error,
   evaluatedWithName,
   onEvaluatePaste,
+  resumeLibrary = null,
+  onCreateApplicationPack,
+  onTogglePackChecklist,
+  onMarkJobApplied,
 }: {
   jobs: ApplyFlowJob[];
   error: string | null;
   evaluatedWithName: string;
   onEvaluatePaste: (input: { description: string; title: string; company: string; url: string }) => void;
+  resumeLibrary?: ResumeLibrary | null;
+  onCreateApplicationPack?: (jobId: string, variantId?: string) => void;
+  onTogglePackChecklist?: (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => void;
+  onMarkJobApplied?: (jobId: string) => void;
 }) {
   const [description, setDescription] = useState("");
   const [title, setTitle] = useState("");
@@ -260,7 +568,13 @@ export function JobInboxPanel({
         <ul className="mt-5 grid gap-3">
           {jobs.map((job) => (
             <li key={job.id}>
-              <JobInboxCard job={job} />
+              <JobInboxCard
+                job={job}
+                resumeLibrary={resumeLibrary}
+                onCreateApplicationPack={onCreateApplicationPack}
+                onTogglePackChecklist={onTogglePackChecklist}
+                onMarkJobApplied={onMarkJobApplied}
+              />
             </li>
           ))}
         </ul>

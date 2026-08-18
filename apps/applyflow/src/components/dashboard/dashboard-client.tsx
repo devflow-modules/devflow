@@ -26,6 +26,10 @@ import {
   parseApplyFlowDashboardImportJsonString,
   parseApplyFlowImportJsonString,
   projectJobForFunnel,
+  createApplicationPack,
+  markApplyFlowJobApplied,
+  replaceApplyFlowJob,
+  setApplicationPackChecklistItem,
   addResumeVariant,
   deleteResumeVariant,
   duplicateResumeVariant,
@@ -35,6 +39,7 @@ import {
   type ApplyFlowApplication,
   type ApplyFlowApplicationStatus,
   type ApplyFlowJob,
+  type ApplicationPackChecklistId,
   type DashboardTableFilters,
   type ResumeLibrary,
 } from "@devflow/applyflow-core";
@@ -497,6 +502,46 @@ export function DashboardClient() {
     [commitJobs, matchProfile],
   );
 
+  const replaceJob = useCallback((next: ApplyFlowJob) => {
+    const nextJobs = replaceApplyFlowJob(jobsRef.current, next);
+    persistDashboardJobs(nextJobs);
+    setJobs(nextJobs);
+    setJobInboxError(null);
+  }, []);
+
+  const onCreateApplicationPack = useCallback((jobId: string, variantId?: string) => {
+    const library = resumeLibraryRef.current;
+    const job = jobsRef.current.find((item) => item.id === jobId);
+    if (!job || !library) {
+      setJobInboxError("Não foi possível preparar a candidatura.");
+      return;
+    }
+    const result = createApplicationPack({ job, library, variantId });
+    if (!result.ok) {
+      setJobInboxError(result.error);
+      return;
+    }
+    replaceJob(result.job);
+  }, [replaceJob]);
+
+  const onTogglePackChecklist = useCallback(
+    (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => {
+      const job = jobsRef.current.find((item) => item.id === jobId);
+      if (!job?.applicationPack) return;
+      replaceJob(setApplicationPackChecklistItem({ job, itemId, done }));
+    },
+    [replaceJob],
+  );
+
+  const onMarkJobApplied = useCallback(
+    (jobId: string) => {
+      const job = jobsRef.current.find((item) => item.id === jobId);
+      if (!job) return;
+      replaceJob(markApplyFlowJobApplied(job));
+    },
+    [replaceJob],
+  );
+
   const processJsonText = useCallback((text: string) => {
     setImportError(null);
     const r = parseApplyFlowDashboardImportJsonString(text, {
@@ -741,7 +786,11 @@ export function DashboardClient() {
             jobs={jobs}
             error={jobInboxError}
             evaluatedWithName={resumeLibrary ? getDefaultResumeVariant(resumeLibrary).name : "Perfil principal"}
+            resumeLibrary={resumeLibrary}
             onEvaluatePaste={onEvaluatePaste}
+            onCreateApplicationPack={onCreateApplicationPack}
+            onTogglePackChecklist={onTogglePackChecklist}
+            onMarkJobApplied={onMarkJobApplied}
           />
         </div>
 

@@ -4,6 +4,11 @@ import type { ApplyFlowApplicationStatus } from "./application-types.js";
 import { ingestApplyFlowJob } from "./ingest-applyflow-job.js";
 import { JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS } from "./job-description-snapshot.js";
 import {
+  APPLICATION_PACK_CHECKLIST_IDS,
+  APPLICATION_PACK_SCHEMA_VERSION,
+  APPLICATION_PACK_VERSION,
+} from "./application-pack-types.js";
+import {
   APPLYFLOW_JOB_SOURCES,
   CURRICULUM_ROUTER_CONFIDENCE,
   CURRICULUM_ROUTER_VERSION,
@@ -62,6 +67,58 @@ const evaluatedWithSchema = z.object({
   variantName: z.string().min(1).max(80),
 });
 
+const applicationPackSchema = z.object({
+  version: z.literal(APPLICATION_PACK_SCHEMA_VERSION),
+  packVersion: z.literal(APPLICATION_PACK_VERSION),
+  createdAt: z.string().min(1),
+  updatedAt: z.string().min(1),
+  jobId: z.string().min(1),
+  resume: z.object({
+    variantId: z.string().min(1).max(80),
+    variantName: z.string().min(1).max(80),
+    recommendedByRouter: z.boolean(),
+  }),
+  match: z.object({
+    score: z.number().finite().min(0).max(100),
+    decision: z.enum(JOB_MATCH_DECISIONS),
+    matchedSkills: z.array(z.string()),
+    missingSkills: z.array(z.string()),
+    scoringVersion: z.literal(JOB_MATCH_SCORING_VERSION),
+  }),
+  highlights: z.array(z.string()),
+  gaps: z.array(z.string()),
+  candidateFacts: z.object({
+    name: z.string().optional(),
+    location: z.string().optional(),
+    englishLevel: z.enum(["Basic", "Intermediate", "Advanced", "Fluent"]).optional(),
+    comfortableInEnglish: z.boolean().optional(),
+    roles: z.array(z.string()).optional(),
+    salary: z
+      .object({
+        cltPleno: z.string().optional(),
+        cltSenior: z.string().optional(),
+        pjSenior: z.string().optional(),
+        usdMonthly: z.string().optional(),
+        usdHourly: z.string().optional(),
+      })
+      .optional(),
+    answerBank: z
+      .object({
+        professionalSummary: z.string().optional(),
+        tellUsAboutYourself: z.string().optional(),
+        whyGoodFit: z.string().optional(),
+        availability: z.string().optional(),
+      })
+      .optional(),
+  }),
+  checklist: z.array(
+    z.object({
+      id: z.enum(APPLICATION_PACK_CHECKLIST_IDS),
+      done: z.boolean(),
+    }),
+  ),
+});
+
 const jobRecordSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1).max(200),
@@ -81,6 +138,7 @@ const jobRecordSchema = z.object({
   jobMatch: jobMatchSchema,
   evaluatedWith: evaluatedWithSchema.optional(),
   curriculumRecommendation: curriculumRecommendationSchema.optional(),
+  applicationPack: applicationPackSchema.optional(),
   createdAt: z.string().min(1),
   updatedAt: z.string().min(1),
 });
@@ -153,6 +211,7 @@ function normalizeStoredJob(parsed: z.infer<typeof jobRecordSchema>): ApplyFlowJ
     ...(parsed.curriculumRecommendation
       ? { curriculumRecommendation: parsed.curriculumRecommendation }
       : {}),
+    ...(parsed.applicationPack ? { applicationPack: parsed.applicationPack } : {}),
     createdAt: parsed.createdAt,
     updatedAt: parsed.updatedAt,
   };
