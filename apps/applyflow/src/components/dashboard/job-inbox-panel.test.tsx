@@ -3,6 +3,13 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { JobInboxPanel } from "./job-inbox-panel";
 import {
+  APPLICATION_PACK_ANSWERS_HINT,
+  APPLICATION_PACK_ANSWERS_LABEL,
+  APPLICATION_PACK_HINT,
+  APPLICATION_PACK_OPEN_LABEL,
+  APPLICATION_PACK_PREPARE_LABEL,
+  APPLICATION_PACK_ROUTER_HINT,
+  APPLICATION_PACK_SELECT_LABEL,
   CURRICULUM_ROUTER_COMPARE_LABEL,
   CURRICULUM_ROUTER_SKIP_HINT,
   CURRICULUM_ROUTER_TITLE,
@@ -11,7 +18,14 @@ import {
   JOB_MATCH_DECISION_LABELS,
   jobMatchDecisionTone,
 } from "./job-inbox-content";
-import type { ApplyFlowJob, CurriculumRecommendation } from "@devflow/applyflow-core";
+import {
+  addResumeVariant,
+  createResumeLibraryFromProfile,
+  gustavoProfile,
+  type ApplyFlowJob,
+  type CurriculumRecommendation,
+  type ResumeLibrary,
+} from "@devflow/applyflow-core";
 
 const stretchJob: ApplyFlowJob = {
   id: "job_stretch",
@@ -91,6 +105,57 @@ const skipRoutedJob: ApplyFlowJob = {
   },
 };
 
+function twoVariantLibrary(): ResumeLibrary {
+  const seeded = createResumeLibraryFromProfile(gustavoProfile, {
+    name: "Product Engineer",
+    id: "rv_product",
+  });
+  const added = addResumeVariant(seeded, {
+    profile: gustavoProfile,
+    name: "Frontend React/Next.js",
+    id: "rv_frontend",
+  });
+  if (!added.ok) throw new Error(added.error);
+  return added.library;
+}
+
+const packedJob: ApplyFlowJob = {
+  ...routedJob,
+  id: "job_packed",
+  url: "https://example.com/jobs/backend",
+  applicationPack: {
+    version: 1,
+    packVersion: "application-pack-v1",
+    createdAt: "2026-08-18T15:00:00.000Z",
+    updatedAt: "2026-08-18T15:00:00.000Z",
+    jobId: "job_packed",
+    resume: { variantId: "rv_product", variantName: "Product Engineer", recommendedByRouter: true },
+    match: {
+      score: 92,
+      decision: "apply",
+      matchedSkills: ["Node.js", "PostgreSQL"],
+      missingSkills: ["AWS"],
+      scoringVersion: "v1",
+    },
+    highlights: ["Node.js", "PostgreSQL"],
+    gaps: ["AWS"],
+    candidateFacts: {
+      name: "Gustavo Marques",
+      location: "Brazil",
+      englishLevel: "Advanced",
+      answerBank: { professionalSummary: "I am a Senior Frontend / Full-Stack Software Engineer." },
+    },
+    checklist: [
+      { id: "review-resume", done: false },
+      { id: "review-highlights", done: false },
+      { id: "review-gaps", done: false },
+      { id: "review-answers", done: false },
+      { id: "open-job", done: false },
+      { id: "mark-applied", done: false },
+    ],
+  },
+};
+
 describe("job-inbox-content", () => {
   it("mapeia decisões para tons distintos", () => {
     expect(jobMatchDecisionTone("apply")).toBe("success");
@@ -151,5 +216,68 @@ describe("JobInboxPanel", () => {
     expect(html).not.toContain(CURRICULUM_ROUTER_TITLE);
     expect(html).toContain(CURRICULUM_ROUTER_COMPARE_LABEL);
     expect(html).toContain(CURRICULUM_ROUTER_SKIP_HINT);
+  });
+
+  it("mostra Preparar candidatura em APPLY/STRETCH e pré-seleciona o currículo recomendado", () => {
+    const html = renderToStaticMarkup(
+      <JobInboxPanel
+        jobs={[routedJob]}
+        error={null}
+        evaluatedWithName="Frontend React/Next.js"
+        resumeLibrary={twoVariantLibrary()}
+        onEvaluatePaste={() => undefined}
+        onCreateApplicationPack={() => undefined}
+      />,
+    );
+    expect(html).toContain(APPLICATION_PACK_PREPARE_LABEL);
+    expect(html).toContain(APPLICATION_PACK_SELECT_LABEL);
+    expect(html).toContain(APPLICATION_PACK_ROUTER_HINT);
+    expect(html).toContain('value="rv_product"');
+    expect(html).not.toContain(APPLICATION_PACK_OPEN_LABEL);
+  });
+
+  it("não mostra o CTA principal em SKIP mesmo com biblioteca e handler", () => {
+    const html = renderToStaticMarkup(
+      <JobInboxPanel
+        jobs={[skipRoutedJob]}
+        error={null}
+        evaluatedWithName="Product Engineer"
+        resumeLibrary={twoVariantLibrary()}
+        onEvaluatePaste={() => undefined}
+        onCreateApplicationPack={() => undefined}
+      />,
+    );
+    expect(html).toContain(JOB_MATCH_DECISION_LABELS.skip);
+    expect(html).not.toContain(APPLICATION_PACK_PREPARE_LABEL);
+    expect(html).not.toContain(APPLICATION_PACK_OPEN_LABEL);
+  });
+
+  it("depois de criado, abre o Pack histórico sem regenerar", () => {
+    const html = renderToStaticMarkup(
+      <JobInboxPanel
+        jobs={[packedJob]}
+        error={null}
+        evaluatedWithName="Frontend React/Next.js"
+        resumeLibrary={twoVariantLibrary()}
+        onEvaluatePaste={() => undefined}
+        onCreateApplicationPack={() => undefined}
+        onTogglePackChecklist={() => undefined}
+        onMarkJobApplied={() => undefined}
+      />,
+    );
+    expect(html).not.toContain(APPLICATION_PACK_PREPARE_LABEL);
+    expect(html).toContain(APPLICATION_PACK_OPEN_LABEL);
+    expect(html).toContain("Product Engineer");
+    expect(html).toContain("APPLY · 92/100");
+    expect(html).toContain("✓ Node.js");
+    expect(html).toContain("△ AWS");
+    expect(html).toContain(APPLICATION_PACK_HINT);
+    expect(html).toContain(APPLICATION_PACK_ANSWERS_LABEL);
+    expect(html).toContain(APPLICATION_PACK_ANSWERS_HINT);
+    expect(html).not.toContain("respostas geradas");
+    expect(html).toContain("https://example.com/jobs/backend");
+    expect(html).toContain('target="_blank"');
+    expect(html).toContain('rel="noopener noreferrer"');
+    expect(html).toContain("Marcar como aplicada");
   });
 });

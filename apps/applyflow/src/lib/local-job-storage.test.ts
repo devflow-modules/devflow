@@ -44,6 +44,33 @@ describe("local-job-storage", () => {
     persistDashboardJobs([job]);
     expect(loadDashboardJobs()).toHaveLength(1);
     expect(loadDashboardJobs()[0]?.id).toBe("job_1");
+    expect(loadDashboardJobs()[0]?.applicationPack).toBeUndefined();
+
+    const packed: ApplyFlowJob = {
+      ...job,
+      applicationPack: {
+        version: 1,
+        packVersion: "application-pack-v1",
+        createdAt: "2026-08-18T15:00:00.000Z",
+        updatedAt: "2026-08-18T15:00:00.000Z",
+        jobId: job.id,
+        resume: { variantId: "rv_product", variantName: "Product Engineer", recommendedByRouter: true },
+        match: {
+          score: 100,
+          decision: "apply",
+          matchedSkills: ["React"],
+          missingSkills: ["AWS"],
+          scoringVersion: "v1",
+        },
+        highlights: ["React"],
+        gaps: ["AWS"],
+        candidateFacts: { name: "Gustavo Marques" },
+        checklist: [{ id: "review-resume", done: true }],
+      },
+    };
+    persistDashboardJobs([packed]);
+    expect(loadDashboardJobs()[0]?.applicationPack?.resume.variantName).toBe("Product Engineer");
+    expect(loadDashboardJobs()[0]?.applicationPack?.checklist[0]?.done).toBe(true);
     clearPersistedDashboardJobs();
     expect(storage[APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]).toBeUndefined();
   });

@@ -1,3 +1,4 @@
+import type { ApplicationPack } from "./application-pack-types.js";
 import type { ApplyFlowApplicationStatus } from "./application-types.js";
 
 export const APPLYFLOW_JOB_SOURCES = ["linkedin", "paste", "json"] as const;
@@ -81,6 +82,8 @@ export type ApplyFlowJob = {
   evaluatedWith?: ApplyFlowJobEvaluatedWith;
   /** Present only when the library had 2+ variants at ingest. Never recomputed on load. */
   curriculumRecommendation?: CurriculumRecommendation;
+  /** Historical preparation snapshot. Absent on F1/F1b/F2 jobs until the user creates one. */
+  applicationPack?: ApplicationPack;
   createdAt: string;
   updatedAt: string;
 };

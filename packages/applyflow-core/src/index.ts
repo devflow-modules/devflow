@@ -81,6 +81,32 @@ export { ingestApplyFlowJob, projectJobForFunnel } from "./ingest-applyflow-job.
 export type { IngestApplyFlowJobInput } from "./ingest-applyflow-job.js";
 export { mergeApplyFlowJobs } from "./merge-applyflow-jobs.js";
 export {
+  APPLICATION_PACK_CHECKLIST_IDS,
+  APPLICATION_PACK_SCHEMA_VERSION,
+  APPLICATION_PACK_VERSION,
+} from "./application-pack-types.js";
+export type {
+  ApplicationPack,
+  ApplicationPackCandidateFacts,
+  ApplicationPackChecklistId,
+  ApplicationPackChecklistItem,
+  ApplicationPackMatchSnapshot,
+  ApplicationPackResumeRef,
+  ApplicationPackResumeSource,
+  ApplicationPackVersion,
+} from "./application-pack-types.js";
+export {
+  canCreateApplicationPack,
+  createApplicationPack,
+  isOpenableJobUrl,
+  markApplyFlowJobApplied,
+  replaceApplyFlowJob,
+  resolveApplicationPackResume,
+  setApplicationPackChecklistItem,
+  snapshotCandidateFacts,
+} from "./application-pack.js";
+export type { ApplicationPackOpResult } from "./application-pack.js";
+export {
   isApplyFlowJobsImportV2,
   parseApplyFlowJobsImport,
   parseApplyFlowJobsImportJsonString,
