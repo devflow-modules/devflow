@@ -69,6 +69,6 @@ Interseção parcial; **não** duplicação integral. Lacuna coberta: direção 
 1. **ADAPT** — skill confiável `.cursor/skills/frontend-design/` (este PR).
 2. Aplicação controlada numa tela real (PR de produto separado).
 3. Medir ganho visual, a11y e manutenção.
-4. Só então considerar `mcp-builder` (auditoria técnica mais profunda).
+4. ~~Só então considerar `mcp-builder`~~ — evidência Inbox **KEEP** (#161); auditoria `mcp-builder` aberta em [../mcp-builder/AUDIT.md](../mcp-builder/AUDIT.md).
 
-Baseline: atualizar inventário para **14** skills por decisão explícita deste piloto (ver `BASELINE.md` no mesmo PR).
+Baseline: inventário **14** skills (este piloto). `mcp-builder` ainda fora do catálogo até ADAPT.
