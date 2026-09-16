@@ -96,6 +96,88 @@ export function ingestApplyFlowJob(input: IngestApplyFlowJobInput): ApplyFlowJob
   };
 }
 
+const TERMINAL_JOB_STATUSES = new Set<ApplyFlowApplication["status"]>([
+  "applied",
+  "interview",
+  "technical_test",
+  "rejected",
+  "accepted",
+]);
+
+export function isJobMatchStale(job: ApplyFlowJob, library?: ResumeLibrary | null): boolean {
+  if (!library || library.variants.length === 0) return false;
+  const variant = getDefaultResumeVariant(library);
+  if (job.evaluatedWith && job.evaluatedWith.variantId !== variant.id) return true;
+  const evaluatedAt = Date.parse(job.jobMatch.evaluatedAt);
+  const variantUpdated = Date.parse(variant.updatedAt);
+  return Number.isFinite(evaluatedAt) && Number.isFinite(variantUpdated) && variantUpdated > evaluatedAt;
+}
+
+export function reevaluateApplyFlowJobMatch(
+  job: ApplyFlowJob,
+  profile: CandidateProfile,
+  library?: ResumeLibrary,
+  now: Date = new Date(),
+): ApplyFlowJob {
+  const { profile: evalProfile, evaluatedWith } = resolveEvaluatedProfile({
+    description: job.descriptionSnapshot ?? "",
+    source: job.source,
+    profile,
+    resumeLibrary: library,
+  });
+  const snapshot = job.descriptionSnapshot?.trim() ?? "";
+  const intel = snapshot ? extractJobIntelligence(snapshot) : undefined;
+  const detectedSkills = intel?.detectedSkills ?? job.jobContext.skills;
+  const skills = { skills: detectedSkills };
+  const jobMatch = evaluateJobMatch(evalProfile, skills, { now });
+  const curriculumRecommendation =
+    library && library.variants.length >= 2 ? recommendCurriculum(skills, library, { now }) : job.curriculumRecommendation;
+  const status = TERMINAL_JOB_STATUSES.has(job.status) ? job.status : statusFromJobMatchDecision(jobMatch.decision);
+  const skillsUnchanged =
+    detectedSkills.length === job.jobContext.skills.length &&
+    detectedSkills.every((item, index) => item === job.jobContext.skills[index]);
+  const sameDecision =
+    job.jobMatch.score === jobMatch.score &&
+    job.jobMatch.decision === jobMatch.decision &&
+    job.status === status &&
+    skillsUnchanged &&
+    job.evaluatedWith?.variantId === evaluatedWith?.variantId &&
+    job.evaluatedWith?.variantName === evaluatedWith?.variantName;
+  if (sameDecision && !isJobMatchStale(job, library ?? null)) {
+    return job;
+  }
+  return {
+    ...job,
+    status,
+    jobContext: {
+      ...job.jobContext,
+      skills: detectedSkills,
+      seniority: intel && intel.seniority !== "unknown" ? intel.seniority : job.jobContext.seniority,
+      workModel: intel && intel.workModel !== "unknown" ? intel.workModel : job.jobContext.workModel,
+      employmentType: intel && intel.contractType !== "unknown" ? intel.contractType : job.jobContext.employmentType,
+    },
+    jobMatch,
+    ...(evaluatedWith ? { evaluatedWith } : { evaluatedWith: undefined }),
+    ...(curriculumRecommendation ? { curriculumRecommendation } : {}),
+    updatedAt: now.toISOString(),
+  };
+}
+
+export function reevaluateApplyFlowJobs(
+  jobs: readonly ApplyFlowJob[],
+  profile: CandidateProfile,
+  library?: ResumeLibrary,
+  now: Date = new Date(),
+): ApplyFlowJob[] {
+  let changed = false;
+  const next = jobs.map((job) => {
+    const refreshed = reevaluateApplyFlowJobMatch(job, profile, library, now);
+    if (refreshed !== job) changed = true;
+    return refreshed;
+  });
+  return changed ? next : [...jobs];
+}
+
 export function projectJobForFunnel(job: ApplyFlowJob): ApplyFlowApplication {
   return {
     id: job.id,

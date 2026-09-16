@@ -1,10 +1,13 @@
 export type Confidence = "high" | "medium" | "low";
 
+export type SuggestionSource = "candidate_fact" | "answer_bank" | "heuristic" | "ai" | "unknown";
+
 export type SuggestedAnswer = {
   label: string;
   value: string;
   confidence: Confidence;
   warning?: string;
+  source?: SuggestionSource;
 };
 
 export type SalaryContext =

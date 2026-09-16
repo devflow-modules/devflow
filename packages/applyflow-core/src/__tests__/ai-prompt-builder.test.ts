@@ -43,7 +43,14 @@ const baseProfile: CandidateProfile = {
     tellUsAboutYourself: "",
     whyGoodFit: "",
     availability: "",
+    hardestChallenge: "",
+    productCase: "",
+    frontendCase: "",
+    backendCase: "",
+    automationCase: "",
+    leadershipCase: "",
   },
+  facts: {},
 };
 
 describe("buildAiPrompt", () => {

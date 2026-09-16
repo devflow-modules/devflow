@@ -12,14 +12,33 @@ export type JobRoleType =
 export type JobWorkModel = "remote" | "hybrid" | "onsite" | "unknown";
 export type JobContractType = "clt" | "pj" | "contractor" | "internship" | "unknown";
 
+export type JobEnglishBar = "none" | "required" | "professional" | "advanced" | "fluent";
+export type JobCompensationPeriodicity = "unknown" | "annual" | "monthly" | "hourly";
+
+export type JobScheduleWindow = {
+  extractedText: string;
+  timezoneLabel?: string;
+  dstAmbiguous: boolean;
+};
+
+export type JobCompensationMention = {
+  extractedText: string;
+  periodicity: JobCompensationPeriodicity;
+};
+
 export type JobIntelligence = {
   seniority: JobSeniority;
   roleType: JobRoleType;
   workModel: JobWorkModel;
   contractType: JobContractType;
   englishRequired: boolean;
+  englishBar: JobEnglishBar;
+  englishExtractedText?: string;
   detectedSkills: string[];
   salaryMentioned: boolean;
+  mentionedLocations: string[];
+  schedule?: JobScheduleWindow;
+  compensation?: JobCompensationMention;
 };
 
 /** Padrões mais específicos primeiro. */
@@ -55,8 +74,104 @@ const SKILL_PATTERNS: { pattern: RegExp; canonical: string }[] = [
   { pattern: /\bazure\b|\bmicrosoft\s+azure\b/i, canonical: "Azure" },
   { pattern: /\bgcp\b|\bgoogle\s+cloud\b/i, canonical: "GCP" },
   { pattern: /\brest(?:ful)?(?:\s+api)?\b/i, canonical: "REST" },
+  { pattern: /\bopenapi\b|\bswagger\b/i, canonical: "OpenAPI" },
+  { pattern: /\bsupabase\s+edge\s+functions?\b/i, canonical: "Supabase Edge Functions" },
+  { pattern: /\bsupabase\b/i, canonical: "Supabase" },
   { pattern: /\breact(?:\.js)?\b/i, canonical: "React" },
 ];
+
+const LOCATION_PATTERNS: { pattern: RegExp; canonical: string }[] = [
+  { pattern: /\bbrazil\b|\bbrasil\b/, canonical: "Brazil" },
+  { pattern: /\bargentina\b/, canonical: "Argentina" },
+  { pattern: /\bindia\b/, canonical: "India" },
+  { pattern: /\bphilippines\b/, canonical: "Philippines" },
+  { pattern: /\bunited states\b|\bu\.s\.a?\.?\b|\busa\b/, canonical: "United States" },
+  { pattern: /\bportugal\b/, canonical: "Portugal" },
+  { pattern: /\bunited kingdom\b|\buk\b/, canonical: "United Kingdom" },
+];
+
+const DST_TIMEZONES = new Set(["est", "edt", "et"]);
+
+export function extractMentionedLocations(text: string): string[] {
+  const folded = normalizeJobTextForIntel(text);
+  const found: string[] = [];
+  for (const { pattern, canonical } of LOCATION_PATTERNS) {
+    if (pattern.test(folded) && !found.includes(canonical)) found.push(canonical);
+  }
+  return found;
+}
+
+export function extractEnglishBar(text: string): { bar: JobEnglishBar; extractedText?: string } {
+  const folded = normalizeJobTextForIntel(text);
+  const fluent = folded.match(
+    /fluent(?:ly)? in english(?:\s*\([^)]+\))?|english\s*\([^)]*fluent[^)]*\)|fluent english|ingles fluente|fluente em ingles/,
+  );
+  if (fluent) return { bar: "fluent", extractedText: fluent[0] };
+  const advanced = folded.match(/advanced english|ingles avanc|english avancado|ingles avancado/);
+  if (advanced) return { bar: "advanced", extractedText: advanced[0] };
+  const professional = folded.match(
+    /professional english|comfortable communicating in english|ingles profissional/,
+  );
+  if (professional) return { bar: "professional", extractedText: professional[0] };
+  if (
+    /\bingles\b|\benglish\b|\benglish\s+required\b|\b(required|fluent)\s*,?\s*english\b/.test(folded)
+  ) {
+    const mention = folded.match(/[^.]*\b(?:ingles|english)\b[^.!]*/);
+    return { bar: "required", extractedText: mention?.[0]?.trim() };
+  }
+  return { bar: "none" };
+}
+
+export function extractScheduleWindow(text: string): JobScheduleWindow | undefined {
+  const match = text.match(
+    /(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s*[-–—to]+\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s*(EST|EDT|ET|UTC|GMT|BRT|PT|PST|PDT)\b/i,
+  );
+  if (!match) return undefined;
+  const timezoneLabel = match[3]?.toUpperCase();
+  return {
+    extractedText: match[0].replace(/\s+/g, " ").trim(),
+    ...(timezoneLabel ? { timezoneLabel } : {}),
+    dstAmbiguous: Boolean(timezoneLabel && DST_TIMEZONES.has(timezoneLabel.toLowerCase())),
+  };
+}
+
+export function extractCompensationMention(text: string): JobCompensationMention | undefined {
+  const folded = normalizeJobTextForIntel(text);
+  const amount = text.match(
+    /(?:starting salary of\s*)?\$\s*\d{1,3}(?:,\d{3})+(?:\s*usd)?(?:\s+with the opportunity to increase to\s*\$\s*\d{1,3}(?:,\d{3})+(?:\s*usd)?)?|(?:compensation(?:\s+is)?\s*)?\$\s*\d{1,3}(?:,\d{3})+\s*usd(?:\s+per\s+(?:year|month|hour))?/i,
+  );
+  if (!amount && !/\bsalary\b|\bcompensation\b|\bsalario\b|\bfaixa\s+salar|\busd\b/.test(folded)) {
+    return undefined;
+  }
+  if (!amount && !/\bsalary\b|\bcompensation\b|\bsalario\b|\bfaixa\s+salar/.test(folded)) {
+    return undefined;
+  }
+  let periodicity: JobCompensationPeriodicity = "unknown";
+  if (/\b(per\s+year|\/\s*year|annual(?:ly)?|\bano\b)\b/.test(folded)) periodicity = "annual";
+  else if (/\b(per\s+month|\/\s*month|monthly|mensal)\b/.test(folded)) periodicity = "monthly";
+  else if (/\b(per\s+hour|\/\s*hour|hourly|hora)\b/.test(folded)) periodicity = "hourly";
+  return {
+    extractedText: (amount?.[0] ?? "salary mentioned").replace(/\s+/g, " ").trim(),
+    periodicity,
+  };
+}
+
+export function locationMentionsMatch(candidateLocation: string, mentioned: readonly string[]): boolean {
+  const cand = normalizeJobTextForIntel(candidateLocation);
+  const synonyms: Record<string, string[]> = {
+    brazil: ["brazil", "brasil"],
+    argentina: ["argentina"],
+    india: ["india"],
+    philippines: ["philippines", "filipinas"],
+    "united states": ["united states", "usa", "u.s", "us"],
+    portugal: ["portugal"],
+    "united kingdom": ["united kingdom", "uk", "england"],
+  };
+  return mentioned.some((item) => {
+    const keys = synonyms[normalizeJobTextForIntel(item)] ?? [normalizeJobTextForIntel(item)];
+    return keys.some((key) => key.length >= 2 && cand.includes(key));
+  });
+}
 
 function uniqSkills(map: Map<string, string>): string[] {
   return [...map.values()].sort((a, b) => a.localeCompare(b));
@@ -132,6 +247,7 @@ export function extractJobIntelligence(text: string): JobIntelligence {
   } else if (
     /\b100\s*%?\s*remot/i.test(text) ||
     /\b(remote\s+first|work\s+from\s+home|totalmente\s+remoto|home\s+office|trabalho\s+remoto)\b/i.test(text) ||
+    /\bremote\b/i.test(text) ||
     /\b(remoto\b|remota\b)/i.test(text)
   ) {
     workModel = "remote";
@@ -150,12 +266,10 @@ export function extractJobIntelligence(text: string): JobIntelligence {
     contractType = "internship";
   }
 
-  const englishRequired =
-    /\bingles\b|\benglish\b|\bfluent\s+english\b|\badvanced\s+english\b|\bprofessional\s+english\b|\benglish\s+required\b|\b(required|fluent)\s*,?\s*english\b|\bingles\s+\(obrig|ingles\s+avan|be\s+fluent\s+in\s+english/i.test(
-      folded + " " + text.toLowerCase().replace(/\s+/g, " "),
-    );
-
-  const salaryMentioned =
+  const english = extractEnglishBar(text);
+  const englishRequired = english.bar !== "none";
+  const compensation = extractCompensationMention(text);
+  const salaryMentioned = Boolean(compensation) ||
     /\bsalary\b|\bsalari\w*\b|\bsalario\b|\bcompensation\b|\bpretens\w*\b|\bpretensao\b|\bbaixa\s+salarial\b|\bfaixa\s+salar|\bbenefits?\s+(?:and\s+)?comp|\bbudget\b|\busd\b|\bbrl\b|\br\s*\$/i.test(
       folded + " " + text.toLowerCase().replace(/\s+/g, " "),
     );
@@ -166,8 +280,13 @@ export function extractJobIntelligence(text: string): JobIntelligence {
       skillMap.set(canonical.toLowerCase(), canonical);
     }
   }
+  if (/\bsupabase\b/.test(folded) && /\bedge\s+functions?\b/.test(folded)) {
+    skillMap.set("supabase edge functions", "Supabase Edge Functions");
+  }
 
   const detectedSkills = uniqSkills(skillMap).slice(0, 48);
+  const schedule = extractScheduleWindow(text);
+  const mentionedLocations = extractMentionedLocations(text);
 
   return {
     seniority,
@@ -175,7 +294,12 @@ export function extractJobIntelligence(text: string): JobIntelligence {
     workModel,
     contractType,
     englishRequired,
+    englishBar: english.bar,
+    ...(english.extractedText ? { englishExtractedText: english.extractedText } : {}),
     detectedSkills,
     salaryMentioned,
+    mentionedLocations,
+    ...(schedule ? { schedule } : {}),
+    ...(compensation ? { compensation } : {}),
   };
 }

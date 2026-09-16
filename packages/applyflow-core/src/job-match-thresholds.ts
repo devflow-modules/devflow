@@ -12,7 +12,23 @@ export function decideJobMatchV1(score: number): JobMatchDecision {
   return "skip";
 }
 
-/** APPLY/STRETCH enter the existing funnel as reviewing; SKIP as ignored. */
+/** Score-only threshold, then UNKNOWN vs explicit gaps. */
+export function decideJobMatchV1WithCoverage(input: {
+  score: number;
+  unknownCount: number;
+  missingCount: number;
+  jobSkillCount: number;
+}): JobMatchDecision {
+  const scored = decideJobMatchV1(input.score);
+  if (scored === "apply") return "apply";
+  const unknownRatio = input.jobSkillCount > 0 ? input.unknownCount / input.jobSkillCount : 0;
+  if (input.missingCount === 0 && input.unknownCount > 0 && (input.unknownCount === input.jobSkillCount || unknownRatio >= 0.5 || scored === "skip")) {
+    return "needs_info";
+  }
+  return scored;
+}
+
+/** APPLY/STRETCH/NEEDS_INFO enter the funnel as reviewing; SKIP as ignored. */
 export function statusFromJobMatchDecision(
   decision: JobMatchDecision,
 ): "reviewing" | "ignored" {

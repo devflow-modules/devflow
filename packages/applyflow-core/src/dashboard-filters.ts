@@ -57,18 +57,27 @@ export function filterApplicationsByEnglishRequired(
 }
 
 /** Aplica todos os filtros de tabela na ordem: período → status → skill → modelo → contrato → inglês. */
-export function applyDashboardTableFilters(
-  apps: ApplyFlowApplication[],
+export function applyDashboardTableFilters<T extends ApplyFlowApplication>(
+  apps: readonly T[],
   filters: DashboardTableFilters,
   now: Date = new Date(),
-): ApplyFlowApplication[] {
-  let out = filterApplicationsByPeriod(apps, filters.period, now);
-  out = filterApplicationsByStatus(out, filters.status);
-  out = filterApplicationsBySkill(out, filters.skill);
-  out = filterApplicationsByWorkModel(out, filters.workModel);
-  out = filterApplicationsByContract(out, filters.contractType);
-  out = filterApplicationsByEnglishRequired(out, filters.englishRequired);
-  return out;
+): T[] {
+  const keptIds = new Set(
+    filterApplicationsByEnglishRequired(
+      filterApplicationsByContract(
+        filterApplicationsByWorkModel(
+          filterApplicationsBySkill(
+            filterApplicationsByStatus(filterApplicationsByPeriod([...apps], filters.period, now), filters.status),
+            filters.skill,
+          ),
+          filters.workModel,
+        ),
+        filters.contractType,
+      ),
+      filters.englishRequired,
+    ).map((item) => item.id),
+  );
+  return apps.filter((item) => keptIds.has(item.id));
 }
 
 export function countStaleApplications(apps: ApplyFlowApplication[], now: Date = new Date()): number {
@@ -104,6 +113,7 @@ export const FUNNEL_STATUS_ORDER: ApplyFlowApplicationStatus[] = [
   "interview",
   "technical_test",
   "accepted",
+  "hired",
   "rejected",
   "ignored",
 ];

@@ -33,6 +33,9 @@ export function createResumeVariantId(now: Date = new Date(), entropy = Math.ran
 }
 
 export function getDefaultResumeVariant(library: ResumeLibrary): ResumeVariant {
+  if (!library || !Array.isArray(library.variants)) {
+    throw new Error("Biblioteca de currículos sem variantes.");
+  }
   const found = library.variants.find((variant) => variant.id === library.defaultVariantId);
   if (!found) {
     throw new Error("Biblioteca de currículos sem variante padrão.");
@@ -182,6 +185,37 @@ export function addResumeVariant(
     defaultVariantId: input.makeDefault ? id : library.defaultVariantId,
   };
   return { ok: true, library: withSyncedDefaults(next) };
+}
+
+export function updateResumeVariant(
+  library: ResumeLibrary,
+  variantId: string,
+  input: { profile: CandidateProfile; name?: string; now?: Date },
+): ResumeLibraryOpResult {
+  const target = library.variants.find((variant) => variant.id === variantId);
+  if (!target) {
+    return fail(library, "Currículo não encontrado.");
+  }
+  const nextName = input.name !== undefined ? normalizeName(input.name) : target.name;
+  if (input.name !== undefined && !nextName) {
+    return fail(library, "O nome do currículo não pode ficar vazio.");
+  }
+  return {
+    ok: true,
+    library: withSyncedDefaults({
+      ...library,
+      variants: library.variants.map((variant) =>
+        variant.id === variantId
+          ? {
+              ...variant,
+              profile: cloneProfile(input.profile),
+              name: nextName ?? variant.name,
+              updatedAt: iso(input.now ?? new Date()),
+            }
+          : variant,
+      ),
+    }),
+  };
 }
 
 export function duplicateResumeVariant(

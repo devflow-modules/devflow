@@ -1,7 +1,7 @@
 import type { CandidateProfile } from "./profile-schema.js";
-import { APPLYFLOW_SKILL_KEYS, resolveSkillCanonicalKey } from "./profile-schema.js";
+import { APPLYFLOW_SKILL_KEYS, declaredSkillYears, isSkillClaimed, resolveSkillCanonicalKey } from "./profile-schema.js";
 import { normalizeJobTextForIntel } from "./job-intelligence.js";
-import { decideJobMatchV1 } from "./job-match-thresholds.js";
+import { decideJobMatchV1WithCoverage } from "./job-match-thresholds.js";
 import {
   JOB_MATCH_SCORING_VERSION,
   type ApplyFlowJobMatch,
@@ -18,7 +18,7 @@ function skillIdentity(label: string): string {
 }
 
 export function profileSkillLabels(profile: CandidateProfile): string[] {
-  return APPLYFLOW_SKILL_KEYS.filter((key) => profile.skills[key] > 0);
+  return APPLYFLOW_SKILL_KEYS.filter((key) => isSkillClaimed(profile.skills, key));
 }
 
 function profileIdentities(profile: CandidateProfile | readonly string[]): Set<string> {
@@ -62,7 +62,7 @@ export function evaluateJobMatch(
   if (jobSkills.length === 0) {
     return {
       score: 0,
-      decision: "skip",
+      decision: "needs_info",
       matchedSkills: [],
       missingSkills: [],
       evaluatedAt,
@@ -72,18 +72,34 @@ export function evaluateJobMatch(
 
   const matchedSkills: string[] = [];
   const missingSkills: string[] = [];
+  const unknownSkills: string[] = [];
+  const profileRecord = Array.isArray(profile) ? undefined : (profile as CandidateProfile);
+
   for (const skill of jobSkills) {
-    if (owned.has(skillIdentity(skill))) matchedSkills.push(skill);
-    else missingSkills.push(skill);
+    if (owned.has(skillIdentity(skill))) {
+      matchedSkills.push(skill);
+      continue;
+    }
+    const key = resolveSkillCanonicalKey(skill);
+    const explicitZero =
+      profileRecord && key ? declaredSkillYears(profileRecord.skills, key) === 0 : false;
+    if (explicitZero) missingSkills.push(skill);
+    else unknownSkills.push(skill);
   }
 
   const score = Math.max(0, Math.min(100, Math.round((matchedSkills.length / jobSkills.length) * 100)));
 
   return {
     score,
-    decision: decideJobMatchV1(score),
+    decision: decideJobMatchV1WithCoverage({
+      score,
+      unknownCount: unknownSkills.length,
+      missingCount: missingSkills.length,
+      jobSkillCount: jobSkills.length,
+    }),
     matchedSkills,
     missingSkills,
+    ...(unknownSkills.length > 0 ? { unknownSkills } : {}),
     evaluatedAt,
     scoringVersion: JOB_MATCH_SCORING_VERSION,
   };

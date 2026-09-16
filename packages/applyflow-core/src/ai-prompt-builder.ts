@@ -1,4 +1,9 @@
-import { APPLYFLOW_SKILL_KEYS } from "./profile-schema.js";
+import {
+  APPLYFLOW_SKILL_KEYS,
+  declaredSkillYears,
+  profileEnglishLevel,
+  profileLocation,
+} from "./profile-schema.js";
 import type { CandidateProfile } from "./profile-schema.js";
 import type { JobIntelligence } from "./job-intelligence.js";
 
@@ -22,15 +27,19 @@ export type AiPromptInput = {
 };
 
 const ANTI_PT = `Regras absolutas:
-- Não inventar experiência profissional, empregadores, projetos nem anos de experiência em tecnologias.
-- Para cada skill, usar apenas os anos indicados no perfil. Se anos = 0, não afirmar domínio nem experiência prática prolongada; usar formulações honestas como "familiaridade", "exposição limitada", "aprendizado rápido" ou "interesse em aprofundar".
+- Não inventar experiência profissional, empregadores, projetos, tecnologias, anos, certificações, salário, idioma nem experiência.
+- Usar apenas CandidateFacts conhecidos, NarrativeBank e o perfil. Se um fato estiver ausente, não o complete.
+- Para cada skill, usar apenas os anos indicados no perfil ou em CandidateFacts. Se anos = 0 ou unknown, não afirmar domínio nem experiência prática prolongada.
 - Não exagerar senioridade nem atribuir certificações ou resultado de entrevistas inexistentes.
+- Se não houver evidência suficiente para a pergunta, não inventar: diga de forma breve que o perfil não contém essa informação.
 - Priorizar tecnologias e papéis que o candidato realmente declara no perfil.`;
 
 const ANTI_EN = `Absolute rules:
-- Do not invent work experience, employers, projects, or years with any technology.
-- For each skill, use only the years given in the profile. If years = 0, do not claim proficiency or long practice; use honest wording such as "some exposure", "familiarity", "quick to learn", or "keen to deepen".
+- Do not invent work experience, employers, projects, technologies, years, certifications, salary, language, or experience.
+- Use only known CandidateFacts, NarrativeBank, and the profile. If a fact is missing, do not fill it in.
+- For each skill, use only the years given in the profile or CandidateFacts. If years = 0 or unknown, do not claim proficiency or long practice.
 - Do not exaggerate seniority or claim certifications or interview outcomes that are not in the profile.
+- If there is not enough evidence for the question, do not invent: briefly state that the profile does not contain that information.
 - Prioritize technologies and roles the candidate actually declares.`;
 
 function antiBlock(lang: "pt" | "en"): string {
@@ -39,23 +48,28 @@ function antiBlock(lang: "pt" | "en"): string {
 
 function profilePayloadForPrompt(p: CandidateProfile): {
   name: string;
-  location: string;
-  englishLevel: string;
-  comfortableInEnglish: boolean;
+  location?: string;
+  englishLevel?: string;
+  comfortableInEnglish?: boolean;
   roles: string[];
   skillsYears: Record<string, number>;
+  facts: CandidateProfile["facts"];
+  narrativeBank: CandidateProfile["answerBank"];
 } {
   const skills: Record<string, number> = {};
   for (const k of APPLYFLOW_SKILL_KEYS) {
-    skills[k] = p.skills[k] ?? 0;
+    const years = declaredSkillYears(p.skills, k);
+    if (years !== undefined) skills[k] = years;
   }
   return {
     name: p.name,
-    location: p.location,
-    englishLevel: p.englishLevel,
+    location: profileLocation(p),
+    englishLevel: profileEnglishLevel(p),
     comfortableInEnglish: p.comfortableInEnglish,
     roles: p.roles,
     skillsYears: skills,
+    facts: p.facts,
+    narrativeBank: p.answerBank,
   };
 }
 
@@ -121,7 +135,7 @@ export function buildAiPrompt(input: AiPromptInput): { system: string; user: str
   const userParts: string[] = [
     `Tarefa: ${input.task}`,
     taskUserInstructions(input.task, lang),
-    `\nPerfil do candidato (JSON — não inventar além disto; skills têm anos de experiência declarados):\n${profileJson}`,
+    `\nPerfil do candidato (JSON — não inventar além disto; skills têm anos de experiência declarados; facts omissos = unknown):\n${profileJson}`,
   ];
 
   if (input.jobTitle || input.companyName) {

@@ -1,6 +1,10 @@
-import { gustavoProfile } from "./candidate-profile.js";
-import type { ApplyflowSkillKey } from "./profile-schema.js";
-import type { CandidateProfile } from "./profile-schema.js";
+import {
+  declaredSkillYears,
+  profileEnglishLevel,
+  profileLocation,
+  type ApplyflowSkillKey,
+  type CandidateProfile,
+} from "./profile-schema.js";
 import { getSalarySuggestion } from "./salary-rules.js";
 import type { SalaryContext, SuggestedAnswer } from "./types.js";
 
@@ -21,6 +25,7 @@ const SKILL_ALIASES: { key: ApplyflowSkillKey; matchers: RegExp[] }[] = [
   { key: "AWS", matchers: [/\baws\b/i, /amazon web services/i] },
   { key: "Java", matchers: [/\bjava\b/i] },
   { key: "Elixir", matchers: [/\belixir\b/i] },
+  { key: "Python", matchers: [/\bpython\b/i] },
 ];
 
 const ANCILLARY: Set<ApplyflowSkillKey> = new Set(["AWS", "Java"]);
@@ -70,8 +75,10 @@ function inferSalaryContext(normalized: string): SalaryContext | null {
   return null;
 }
 
-function inferBrazilPresenceAnswer(profile: CandidateProfile): string {
-  return /\b(brazil|brasil)\b/i.test(profile.location.trim()) ? "Yes" : "No";
+function inferBrazilPresenceAnswer(profile: CandidateProfile): string | undefined {
+  const location = profileLocation(profile);
+  if (!location) return undefined;
+  return /\b(brazil|brasil)\b/i.test(location) ? "Yes" : "No";
 }
 
 /**
@@ -241,21 +248,96 @@ function pickAnswerBankText(label: string, value: string): SuggestedAnswer | nul
     label,
     value: v,
     confidence: "high",
+    source: "answer_bank",
   };
 }
 
+function factYearsForSkill(profile: CandidateProfile, skill: ApplyflowSkillKey): number | undefined {
+  const facts = profile.facts;
+  if (skill === "React") return facts.reactYears;
+  if (skill === "Nextjs") return facts.nextYears;
+  if (skill === "Nodejs") return facts.nodeYears;
+  if (skill === "TypeScript") return facts.typescriptYears;
+  if (skill === "Python") return facts.pythonYears;
+  return undefined;
+}
+
+function matchNarrativeHardest(n: string): boolean {
+  return (
+    /\bhardest\s+challenge\b/i.test(n) ||
+    /\bbiggest\s+challenge\b/i.test(n) ||
+    /\bmost\s+difficult\b/i.test(n) ||
+    /\bdesafio\s+mais\s+dif[ií]cil\b/i.test(n) ||
+    /\bmaior\s+desafio\b/i.test(n)
+  );
+}
+
+function matchNarrativeProduct(n: string): boolean {
+  return (
+    /\bproduct\s+case\b/i.test(n) ||
+    /\bproduct\s+discovery\b/i.test(n) ||
+    /\bend[\s-]?to[\s-]?end\s+(ownership|example|case)\b/i.test(n) ||
+    /\bcaso\s+de\s+produto\b/i.test(n)
+  );
+}
+
+function matchNarrativeFrontend(n: string): boolean {
+  return /\bfrontend\s+(case|example|project)\b/i.test(n) || /\bcaso\s+de\s+frontend\b/i.test(n);
+}
+
+function matchNarrativeBackend(n: string): boolean {
+  return /\bbackend\s+(case|example|project)\b/i.test(n) || /\bcaso\s+de\s+backend\b/i.test(n);
+}
+
+function matchNarrativeAutomation(n: string): boolean {
+  return (
+    /\bautomation\s+(case|example)\b/i.test(n) ||
+    /\brpa\s+(case|example)\b/i.test(n) ||
+    /\bcaso\s+de\s+automa/i.test(n)
+  );
+}
+
+function matchNarrativeLeadership(n: string): boolean {
+  return (
+    /\bleadership\s+(case|example)\b/i.test(n) ||
+    /\bmentorship\b/i.test(n) ||
+    /\bcaso\s+de\s+lideran/i.test(n)
+  );
+}
+
 export function getSuggestedAnswer(questionLabel: string, profile?: CandidateProfile): SuggestedAnswer {
-  const p = profile ?? gustavoProfile;
   const label = questionLabel.trim();
+  if (!profile) {
+    return {
+      label,
+      value: "",
+      confidence: "low",
+      source: "unknown",
+      warning: "Nenhum perfil configurado. Não inventar uma resposta pessoal.",
+    };
+  }
+  const p = profile;
   const n = squeeze(label);
 
   const skill = inferSkillKey(n);
-  if (skill && (looksLikeYearsQuestion(n) || /\b(react|next|node|typescript|aws|java|elixir)\b/i.test(n))) {
-    const years = p.skills[skill];
+    if (skill && (looksLikeYearsQuestion(n) || /\b(react|next|node|typescript|aws|java|elixir|python)\b/i.test(n))) {
+    const factYears = factYearsForSkill(p, skill);
+    const years = factYears ?? declaredSkillYears(p.skills, skill);
+    if (years === undefined) {
+      return {
+        label,
+        value: "",
+        confidence: "low",
+        source: "unknown",
+        warning: "Anos nesta stack não estão no perfil. Não inventar um número.",
+      };
+    }
+    const source = factYears !== undefined ? "candidate_fact" : "heuristic";
     const base: SuggestedAnswer = {
       label,
       value: String(years),
       confidence: years > 0 ? "high" : "medium",
+      source,
     };
     if (ANCILLARY.has(skill)) {
       return {
@@ -267,7 +349,7 @@ export function getSuggestedAnswer(questionLabel: string, profile?: CandidatePro
     if (years === 0) {
       return {
         ...base,
-        confidence: "high",
+        confidence: "medium",
         warning: "Sem experiência profissional declarada nesta stack; ajuste se tiver exposição informal.",
       };
     }
@@ -293,10 +375,20 @@ export function getSuggestedAnswer(questionLabel: string, profile?: CandidatePro
     !/\bte\s+sientes\s+comoda\s+trabajando\s+en\s+ingles\b/i.test(n);
 
   if (isComfortableEnglishYesNo) {
+    if (p.comfortableInEnglish === undefined) {
+      return {
+        label,
+        value: "",
+        confidence: "low",
+        source: "unknown",
+        warning: "Conforto em inglês não está no perfil. Não responder Sim nem Não.",
+      };
+    }
     return {
       label,
       value: p.comfortableInEnglish ? "Yes" : "No",
       confidence: "high",
+      source: "candidate_fact",
     };
   }
 
@@ -304,10 +396,21 @@ export function getSuggestedAnswer(questionLabel: string, profile?: CandidatePro
     /\benglish\b|\bingles\b/i.test(n) &&
     /(level|proficiency|fluen|how well|qual seu|nivel)/i.test(n)
   ) {
+    const level = profileEnglishLevel(p);
+    if (!level) {
+      return {
+        label,
+        value: "",
+        confidence: "low",
+        source: "unknown",
+        warning: "Nível de inglês não está no perfil. Não inventar fluência.",
+      };
+    }
     return {
       label,
-      value: p.englishLevel,
+      value: level,
       confidence: "high",
+      source: "candidate_fact",
     };
   }
 
@@ -315,10 +418,21 @@ export function getSuggestedAnswer(questionLabel: string, profile?: CandidatePro
     (/(live|reside|currently|mora|moras|reside|localiza)/i.test(n) && /brazil|brasil/i.test(n)) ||
     /(atualmente voce mora no brasil|voce mora no brasil)/i.test(n)
   ) {
+    const brazil = inferBrazilPresenceAnswer(p);
+    if (!brazil) {
+      return {
+        label,
+        value: "",
+        confidence: "low",
+        source: "unknown",
+        warning: "Localização não está no perfil. Não afirmar Brasil ou outro país.",
+      };
+    }
     return {
       label,
-      value: inferBrazilPresenceAnswer(p),
+      value: brazil,
       confidence: "high",
+      source: "candidate_fact",
     };
   }
 
@@ -330,6 +444,7 @@ export function getSuggestedAnswer(questionLabel: string, profile?: CandidatePro
       value: s.display,
       confidence: s.confidence,
       warning: s.warning,
+      source: "candidate_fact",
     };
   }
 
@@ -348,10 +463,53 @@ export function getSuggestedAnswer(questionLabel: string, profile?: CandidatePro
     return profHit;
   }
 
+  const hardestHit = pickAnswerBankText(label, bank.hardestChallenge);
+  if (matchNarrativeHardest(n) && hardestHit) {
+    return hardestHit;
+  }
+  const productHit = pickAnswerBankText(label, bank.productCase);
+  if (matchNarrativeProduct(n) && productHit) {
+    return productHit;
+  }
+  const frontendHit = pickAnswerBankText(label, bank.frontendCase);
+  if (matchNarrativeFrontend(n) && frontendHit) {
+    return frontendHit;
+  }
+  const backendHit = pickAnswerBankText(label, bank.backendCase);
+  if (matchNarrativeBackend(n) && backendHit) {
+    return backendHit;
+  }
+  const automationHit = pickAnswerBankText(label, bank.automationCase);
+  if (matchNarrativeAutomation(n) && automationHit) {
+    return automationHit;
+  }
+  const leadershipHit = pickAnswerBankText(label, bank.leadershipCase);
+  if (matchNarrativeLeadership(n) && leadershipHit) {
+    return leadershipHit;
+  }
+
+  if (
+    matchNarrativeHardest(n) ||
+    matchNarrativeProduct(n) ||
+    matchNarrativeFrontend(n) ||
+    matchNarrativeBackend(n) ||
+    matchNarrativeAutomation(n) ||
+    matchNarrativeLeadership(n)
+  ) {
+    return {
+      label,
+      value: "",
+      confidence: "low",
+      source: "unknown",
+      warning: "Não há narrativa cadastrada para esta pergunta — não inventar.",
+    };
+  }
+
   return {
     label,
     value: "",
     confidence: "low",
+    source: "unknown",
     warning: "Não foi possível inferir uma resposta segura a partir do rótulo — preencha manualmente.",
   };
 }

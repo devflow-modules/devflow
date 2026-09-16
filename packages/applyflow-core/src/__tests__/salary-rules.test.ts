@@ -4,37 +4,43 @@ import { getSalarySuggestion } from "../salary-rules.js";
 import type { CandidateProfile } from "../profile-schema.js";
 
 describe("getSalarySuggestion", () => {
+  it("sem perfil não inventa pretensão", () => {
+    const r = getSalarySuggestion({ kind: "clt_senior" });
+    expect(r.display).toBe("");
+    expect(r.confidence).toBe("low");
+  });
+
   it("CLT pleno usa texto do perfil", () => {
-    const r = getSalarySuggestion({ kind: "clt_pleno" });
+    const r = getSalarySuggestion({ kind: "clt_pleno" }, gustavoProfile);
     expect(r.display).toContain("10.000");
     expect(r.display).toContain("CLT");
   });
 
   it("CLT senior usa texto do perfil", () => {
-    const r = getSalarySuggestion({ kind: "clt_senior" });
+    const r = getSalarySuggestion({ kind: "clt_senior" }, gustavoProfile);
     expect(r.display).toContain("14.500");
     expect(r.display).toContain("CLT");
   });
 
   it("PJ senior usa texto do perfil", () => {
-    const r = getSalarySuggestion({ kind: "pj_senior" });
+    const r = getSalarySuggestion({ kind: "pj_senior" }, gustavoProfile);
     expect(r.display).toContain("17.500");
     expect(r.display).toContain("PJ");
   });
 
   it("USD mensal", () => {
-    const r = getSalarySuggestion({ kind: "usd_monthly" });
+    const r = getSalarySuggestion({ kind: "usd_monthly" }, gustavoProfile);
     expect(r.display).toContain("4,500");
     expect(r.warning).toBeDefined();
   });
 
   it("USD hourly", () => {
-    const r = getSalarySuggestion({ kind: "usd_hourly" });
+    const r = getSalarySuggestion({ kind: "usd_hourly" }, gustavoProfile);
     expect(r.display.toLowerCase()).toContain("hour");
   });
 
   it("genérico retorna baixa confiança", () => {
-    const r = getSalarySuggestion({ kind: "generic" });
+    const r = getSalarySuggestion({ kind: "generic" }, gustavoProfile);
     expect(r.confidence).toBe("low");
     expect(r.warning).toBeDefined();
   });

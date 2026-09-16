@@ -12,12 +12,19 @@ describe("calculateFitScore", () => {
     expect(r.matchedSkills).toEqual([]);
   });
 
+  it("sem perfil não usa dados de referência", () => {
+    const r = calculateFitScore("React TypeScript Next.js Node.js");
+    expect(r.score).toBe(0);
+    expect(r.matchedSkills).toEqual([]);
+    expect(r.confidence).toBe("low");
+  });
+
   it("delega para evaluateJobMatch", () => {
     const text = `
       We need React, Next.js, TypeScript, Node.js, PostgreSQL, Docker and Git.
       Tailwind and Prisma are a plus.
     `;
-    const r = calculateFitScore(text);
+    const r = calculateFitScore(text, gustavoProfile);
     const intel = extractJobIntelligence(text);
     const match = evaluateJobMatch(gustavoProfile, { skills: intel.detectedSkills });
     expect(r.score).toBe(match.score);
@@ -27,7 +34,7 @@ describe("calculateFitScore", () => {
   });
 
   it("texto curto reduz confiança", () => {
-    const r = calculateFitScore("react");
+    const r = calculateFitScore("react", gustavoProfile);
     expect(r.confidence).toBe("low");
   });
 });
