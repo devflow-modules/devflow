@@ -112,6 +112,9 @@ Decisão **pragmática** alinhada ao diagnóstico de sobreposição raiz ↔ app
 | `/career-system/readyz` (GET, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — readiness; app init + required config valid + boundaries loaded + DB (if configured); `503` when not ready; no generation/agent/tool/automation; `POST` → 405 |
 | `/career-feedback` (POST, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — explicit consent-gated pilot feedback; stores only with `consentToStore:true` (default repository `discard`); bounded comment; no resume/job/provider payload/email/fingerprint/hidden analytics; client-safe result; `GET` → 405 |
 | `/dashboard/system-status` (page, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — internal diagnostic page; development-only or gated by `CAREER_SYSTEM_STATUS_ENABLED` in production; shows environment/version/aggregated status/flags (no secrets)/components/errorCodes/in-memory metrics; no sensitive payload |
+| `/dashboard/analytics` (page, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Career OS analytics UI; reads dashboard jobs/applications/outcomes from **browser localStorage after client hydration**; no portal duplicate; **no server session/auth** (same local-first model as `/dashboard`); does not call Gmail/Nango; does not mutate candidaturas on load (Closed Loop backfill persist is client-side after paint) |
+| `/dashboard/jobs/[id]` (page, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Career OS v2 decision UI for one local job id; same local-first/hydration model as `/dashboard`; no portal duplicate; **no server session/auth**; no Gmail scan on this page |
+| `/provider-runtime/nango/inbound-responses` (POST, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — server-side Gmail closed-loop inbound **metadata** scan; client-safe JSON (`emails` with id/receivedAt/senderDomain/optional subject/snippet only); `explicitConsent: true` required (else 403); feature flags + Gmail Nango verification server-side (client connection state not trusted); blocked when runtime flags or `NANGO_SECRET_KEY` missing; `need_account_selection` when multiple mailboxes (no mix); **no Gmail writes**, no raw payload/body/HTML retention, no OAuth token in the response, no CareerBundle mutation, no server persistence of scan results; `GET` → 405 |
 | Sitemaps | Raiz | Raiz | ok | **manter** |
 
 ---
@@ -148,4 +151,4 @@ Sem esta matriz atualizada no PR de cada mudança, o risco continua **organizaci
 
 ---
 
-*Última atualização: cutover WhatsApp (308 + raiz sem runtime WA); raiz = portal + Financeiro; apps = produtos canónicos.*
+*Última atualização: 2026-09-16 — ApplyFlow `/dashboard/analytics`, `/dashboard/jobs/[id]`, `POST /provider-runtime/nango/inbound-responses` (só `apps/applyflow`; local-first nas páginas; inbound Gmail metadata, flags + consentimento).*
