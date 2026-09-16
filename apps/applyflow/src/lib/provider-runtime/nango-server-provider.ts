@@ -1,20 +1,30 @@
 // Server-only Nango provider boundary.
 // Do not import this file from client components.
 
+import { createHash } from "node:crypto";
 import { Nango } from "@nangohq/node";
 import type { NangoOAuthUrlProvider, ProviderKind } from "@devflow/career-sync";
+import { NANGO_CALLER_NONCE_PATTERN } from "./nango-caller-session";
 
 export const NANGO_INTEGRATION_BY_PROVIDER: Record<ProviderKind, string> = {
   gmail: "google-mail",
   calendar: "google-calendar",
 };
 
-export function buildApplyFlowNangoEndUserId(provider: ProviderKind): string {
-  return `applyflow-${provider}-runtime-boundary`;
+export function hashNangoCallerScope(callerNonce: string): string {
+  return createHash("sha256").update(`applyflow-nango-caller:${callerNonce}`).digest("hex").slice(0, 32);
+}
+
+export function buildApplyFlowNangoEndUserId(provider: ProviderKind, callerNonce: string): string {
+  if (!NANGO_CALLER_NONCE_PATTERN.test(callerNonce)) {
+    throw new Error("invalid_nango_caller");
+  }
+  return `applyflow-${provider}-${hashNangoCallerScope(callerNonce)}`;
 }
 
 export type NangoServerOAuthUrlProviderConfig = {
   secretKey: string;
+  callerNonce: string;
   connectLauncherBasePath?: string;
 };
 
@@ -54,7 +64,7 @@ async function createNangoConnectSessionOnServer(
 
   const { data } = await nango.createConnectSession({
     tags: {
-      end_user_id: buildApplyFlowNangoEndUserId(input.provider),
+      end_user_id: buildApplyFlowNangoEndUserId(input.provider, config.callerNonce),
     },
     allowed_integrations: [integrationId],
   });

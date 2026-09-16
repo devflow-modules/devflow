@@ -9,6 +9,7 @@ import {
   resolveProviderDerivedRuntimePreviewHttpStatus,
 } from "@/lib/provider-runtime/provider-derived-runtime-preview-boundary";
 import { createEmptyProviderDerivedSignalSummary } from "@devflow/career-sync";
+import { resolveNangoRouteCaller } from "@/lib/provider-runtime/nango-route-caller";
 
 /**
  * Server-side provider-derived runtime preview boundary.
@@ -38,14 +39,48 @@ export async function POST(request: NextRequest) {
 
   try {
     const env = readApplyFlowNangoConnectSessionEnv();
+    const caller = resolveNangoRouteCaller({ request, env, mintIfMissing: false });
+    if (caller.required && !caller.ok) {
+      return NextResponse.json(
+        {
+          runtime: "nango",
+          status: "blocked",
+          safeForClient: true,
+          readOnly: true,
+          userReviewRequired: true,
+          gmailStatus: "blocked",
+          calendarStatus: "blocked",
+          processedMessageCount: 0,
+          processedEventCount: 0,
+          importedRawProviderData: false,
+          retainedRawPayload: false,
+          retainedBodies: false,
+          retainedSnippets: false,
+          retainedDescriptions: false,
+          retainedLocations: false,
+          retainedMeetingLinks: false,
+          retainedProviderIdentifiers: false,
+          retainedAttendeeAddresses: false,
+          hasToken: false,
+          signals: [],
+          summary: createEmptyProviderDerivedSignalSummary(),
+          warnings: ["missing_caller_session"],
+          messages: ["A caller session is required before provider preview."],
+        },
+        { status: 401 },
+      );
+    }
+
     const requestedAt = new Date().toISOString();
-    const verificationDeps = env.NANGO_SECRET_KEY?.trim()
-      ? {
-          verificationProvider: createNangoConnectionVerificationProvider({
-            secretKey: env.NANGO_SECRET_KEY,
-          }),
-        }
-      : {};
+    const verificationDeps =
+      env.NANGO_SECRET_KEY?.trim() && caller.required && caller.ok
+        ? {
+            verificationProvider: createNangoConnectionVerificationProvider({
+              secretKey: env.NANGO_SECRET_KEY,
+              callerNonce: caller.callerNonce,
+            }),
+          }
+        : {};
 
     const verifiers = createApplyFlowProviderDerivedRuntimePreviewVerifiers({
       env,
@@ -56,6 +91,7 @@ export async function POST(request: NextRequest) {
     const result = await handleProviderDerivedRuntimePreview(parsed.request, {
       env,
       requestedAt,
+      ...(caller.required && caller.ok ? { callerNonce: caller.callerNonce } : {}),
       ...verifiers,
     });
 

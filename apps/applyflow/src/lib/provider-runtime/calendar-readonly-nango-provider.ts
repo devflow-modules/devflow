@@ -4,7 +4,6 @@
 import { Nango } from "@nangohq/node";
 import type { CalendarEphemeralEventMetadata } from "@devflow/career-sync";
 import {
-  buildApplyFlowNangoEndUserId,
   NANGO_INTEGRATION_BY_PROVIDER,
 } from "./nango-server-provider";
 import {
@@ -123,10 +122,10 @@ export function createCalendarNangoRuntimeSdk(secretKey: string): CalendarNangoR
 
 export function createCalendarNangoRuntimeMetadataProvider(input: {
   secretKey: string;
-  endUserId?: string;
+  endUserId: string;
   sdk?: CalendarNangoRuntimeSdk;
 }): CalendarNangoRuntimeMetadataProvider {
-  const endUserId = input.endUserId ?? buildApplyFlowNangoEndUserId("calendar");
+  const endUserId = input.endUserId;
   const sdk = input.sdk ?? createCalendarNangoRuntimeSdk(input.secretKey);
 
   return {

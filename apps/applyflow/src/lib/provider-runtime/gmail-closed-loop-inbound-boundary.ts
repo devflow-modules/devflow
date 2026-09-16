@@ -5,6 +5,7 @@ import {
   type GmailClosedLoopInboundEmail,
   type GmailNangoRuntimeMetadataProvider,
 } from "./gmail-readonly-nango-provider";
+import { buildApplyFlowNangoEndUserId } from "./nango-server-provider";
 import {
   envToProviderRuntimeFlags,
   type ApplyFlowNangoConnectSessionEnv,
@@ -107,6 +108,7 @@ export async function handleGmailClosedLoopInboundScan(input: {
   limit: number;
   explicitConsent: true;
   accountScope?: string;
+  callerNonce?: string;
   verificationDeps?: ApplyFlowNangoConnectionVerificationDeps;
   metadataProvider?: GmailNangoRuntimeMetadataProvider;
 }): Promise<GmailClosedLoopInboundResult> {
@@ -136,7 +138,15 @@ export async function handleGmailClosedLoopInboundScan(input: {
 
   const provider =
     input.metadataProvider ??
-    createGmailNangoRuntimeMetadataProvider({ secretKey: input.env.NANGO_SECRET_KEY });
+    (input.callerNonce
+      ? createGmailNangoRuntimeMetadataProvider({
+          secretKey: input.env.NANGO_SECRET_KEY,
+          endUserId: buildApplyFlowNangoEndUserId("gmail", input.callerNonce),
+        })
+      : undefined);
+  if (!provider) {
+    return blocked(["missing_caller_session"], ["A caller session is required before reading Gmail."]);
+  }
   if (!provider.listInboundEmails) {
     return blocked(["inbound_scan_unavailable"], ["Closed-loop Gmail scan is unavailable."]);
   }

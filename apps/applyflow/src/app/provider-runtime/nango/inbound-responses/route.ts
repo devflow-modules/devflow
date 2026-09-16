@@ -5,6 +5,7 @@ import {
   handleGmailClosedLoopInboundScan,
   parseGmailClosedLoopInboundRequest,
 } from "@/lib/provider-runtime/gmail-closed-loop-inbound-boundary";
+import { resolveNangoRouteCaller } from "@/lib/provider-runtime/nango-route-caller";
 
 export async function POST(request: NextRequest) {
   let body: unknown = null;
@@ -27,14 +28,30 @@ export async function POST(request: NextRequest) {
 
   try {
     const env = readApplyFlowNangoConnectSessionEnv();
+    const caller = resolveNangoRouteCaller({ request, env, mintIfMissing: false });
+    if (caller.required && !caller.ok) {
+      return NextResponse.json(
+        {
+          status: "blocked",
+          emails: [],
+          accountScopes: [],
+          warnings: ["missing_caller_session"],
+          readOnly: true,
+          safeForClient: true,
+        },
+        { status: 401 },
+      );
+    }
+
     const result = await handleGmailClosedLoopInboundScan({
       env,
       requestedAt: new Date().toISOString(),
       limit: parsed.limit,
       explicitConsent: true,
       ...(parsed.accountScope ? { accountScope: parsed.accountScope } : {}),
-      verificationDeps: env.NANGO_SECRET_KEY?.trim()
-        ? { verificationProvider: createNangoConnectionVerificationProvider({ secretKey: env.NANGO_SECRET_KEY }) }
+      ...(caller.required && caller.ok ? { callerNonce: caller.callerNonce } : {}),
+      verificationDeps: env.NANGO_SECRET_KEY?.trim() && caller.required && caller.ok
+        ? { verificationProvider: createNangoConnectionVerificationProvider({ secretKey: env.NANGO_SECRET_KEY, callerNonce: caller.callerNonce }) }
         : {},
     });
     const httpStatus = result.status === "blocked" ? 200 : result.status === "error" ? 500 : 200;

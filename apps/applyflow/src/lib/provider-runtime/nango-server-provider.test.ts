@@ -12,7 +12,9 @@ vi.mock("@nangohq/node", () => ({
   }),
 }));
 
-import { createNangoServerConnectSessionProvider, createNangoServerOAuthUrlProvider } from "./nango-server-provider.js";
+import { createNangoServerConnectSessionProvider, createNangoServerOAuthUrlProvider, buildApplyFlowNangoEndUserId } from "./nango-server-provider.js";
+
+const CALLER_NONCE = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
 describe("createNangoServerOAuthUrlProvider", () => {
   beforeEach(() => {
@@ -22,6 +24,7 @@ describe("createNangoServerOAuthUrlProvider", () => {
   it("creates a Nango connect session server-side and returns a launcher URL only", async () => {
     const provider = createNangoServerOAuthUrlProvider({
       secretKey: "server-only-secret",
+      callerNonce: CALLER_NONCE,
       connectLauncherBasePath: "/provider-runtime/nango/connect",
     });
 
@@ -32,7 +35,7 @@ describe("createNangoServerOAuthUrlProvider", () => {
 
     expect(createConnectSession).toHaveBeenCalledWith({
       tags: {
-        end_user_id: "applyflow-gmail-runtime-boundary",
+        end_user_id: buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE),
       },
       allowed_integrations: ["google-mail"],
     });
@@ -45,6 +48,7 @@ describe("createNangoServerOAuthUrlProvider", () => {
   it("returns client-safe connect session token from connect session provider", async () => {
     const provider = createNangoServerConnectSessionProvider({
       secretKey: "server-only-secret",
+      callerNonce: CALLER_NONCE,
     });
 
     const session = await provider.createConnectSession({ provider: "gmail" });
@@ -58,15 +62,24 @@ describe("createNangoServerOAuthUrlProvider", () => {
   it("maps calendar provider to google-calendar integration", async () => {
     const provider = createNangoServerOAuthUrlProvider({
       secretKey: "server-only-secret",
+      callerNonce: CALLER_NONCE,
     });
 
     await provider.createAuthorizationUrl({ provider: "calendar" });
 
     expect(createConnectSession).toHaveBeenCalledWith({
       tags: {
-        end_user_id: "applyflow-calendar-runtime-boundary",
+        end_user_id: buildApplyFlowNangoEndUserId("calendar", CALLER_NONCE),
       },
       allowed_integrations: ["google-calendar"],
     });
+  });
+
+  it("scopes Gmail and Calendar connections to the caller nonce, not a shared boundary", async () => {
+    const otherNonce = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+    expect(buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE)).not.toBe(
+      buildApplyFlowNangoEndUserId("gmail", otherNonce),
+    );
+    expect(buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE)).not.toBe("applyflow-gmail-runtime-boundary");
   });
 });

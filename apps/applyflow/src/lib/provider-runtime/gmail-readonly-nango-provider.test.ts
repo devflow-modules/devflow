@@ -153,6 +153,7 @@ describe("createGmailNangoRuntimeMetadataProvider", () => {
 
     const provider = createGmailNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: "applyflow-gmail-runtime-boundary",
       sdk,
     });
 
@@ -171,6 +172,7 @@ describe("createGmailNangoRuntimeMetadataProvider", () => {
 
     const provider = createGmailNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: "applyflow-gmail-runtime-boundary",
       sdk,
     });
 
@@ -217,6 +219,7 @@ describe("createGmailNangoRuntimeMetadataProvider", () => {
 
     const provider = createGmailNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: "applyflow-gmail-runtime-boundary",
       sdk,
     });
 
@@ -257,6 +260,7 @@ describe("createGmailNangoRuntimeMetadataProvider", () => {
 
     const provider = createGmailNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: "applyflow-gmail-runtime-boundary",
       sdk,
     });
 
@@ -298,6 +302,7 @@ describe("createGmailNangoRuntimeMetadataProvider", () => {
 
     const provider = createGmailNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: "applyflow-gmail-runtime-boundary",
       sdk,
     });
 
@@ -344,6 +349,7 @@ describe("listInboundEmails closed-loop extension", () => {
 
     const provider = createGmailNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: "applyflow-gmail-runtime-boundary",
       sdk,
     });
 
@@ -386,6 +392,7 @@ describe("listInboundEmails closed-loop extension", () => {
     });
     const provider = createGmailNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: "applyflow-gmail-runtime-boundary",
       sdk,
     });
     const listed = await provider.listInboundEmails?.({ limit: 5 });
@@ -421,6 +428,7 @@ describe("listInboundEmails closed-loop extension", () => {
 
     const provider = createGmailNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: "applyflow-gmail-runtime-boundary",
       sdk,
     });
     const listedB = await provider.listInboundEmails?.({

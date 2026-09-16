@@ -3,6 +3,7 @@ import { handleApplyFlowNangoConnectionDisconnect } from "@/lib/provider-runtime
 import { createNangoConnectionDisconnectProvider } from "@/lib/provider-runtime/nango-connection-disconnect-provider";
 import { readApplyFlowNangoConnectSessionEnv } from "@/lib/provider-runtime/nango-connect-session-launcher";
 import { parseConnectionVerificationProvider } from "@/lib/provider-runtime/nango-connection-verification-boundary";
+import { resolveNangoRouteCaller } from "@/lib/provider-runtime/nango-route-caller";
 
 /**
  * Server-side Nango provider disconnect boundary.
@@ -29,26 +30,44 @@ export async function POST(request: NextRequest) {
       body.explicitConfirmation === "true"
     );
 
-  const disconnectDeps = env.NANGO_SECRET_KEY?.trim()
-    ? {
-        disconnectProvider: createNangoConnectionDisconnectProvider({
-          secretKey: env.NANGO_SECRET_KEY,
-        }),
-      }
-    : {};
+  if (hasInvalidProvider || (provider == null && body.provider == null) || missingConfirmation) {
+    const result = await handleApplyFlowNangoConnectionDisconnect(body, { env, disconnectDeps: {} });
+    const statusCode =
+      hasInvalidProvider || (provider == null && body.provider == null) ? 400 : 403;
+    return NextResponse.json(result, { status: statusCode });
+  }
+
+  const caller = resolveNangoRouteCaller({ request, env, mintIfMissing: false });
+  if (caller.required && !caller.ok) {
+    return NextResponse.json(
+      {
+        runtime: "nango",
+        status: "blocked",
+        safeForClient: true,
+        hasToken: false,
+        warnings: ["missing_caller_session"],
+        messages: ["A caller session is required before disconnecting a Nango connection."],
+      },
+      { status: 401 },
+    );
+  }
+
+  const disconnectDeps =
+    env.NANGO_SECRET_KEY?.trim() && caller.required && caller.ok
+      ? {
+          disconnectProvider: createNangoConnectionDisconnectProvider({
+            secretKey: env.NANGO_SECRET_KEY,
+            callerNonce: caller.callerNonce,
+          }),
+        }
+      : {};
 
   const result = await handleApplyFlowNangoConnectionDisconnect(body, {
     env,
     disconnectDeps,
   });
 
-  const statusCode = hasInvalidProvider || (provider == null && body.provider == null)
-    ? 400
-    : missingConfirmation
-      ? 403
-      : 200;
-
-  return NextResponse.json(result, { status: statusCode });
+  return NextResponse.json(result, { status: 200 });
 }
 
 export async function GET() {

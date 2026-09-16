@@ -130,6 +130,7 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     const provider = createCalendarNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: "applyflow-calendar-runtime-boundary",
       sdk,
     });
 
@@ -158,6 +159,7 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     const provider = createCalendarNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: "applyflow-calendar-runtime-boundary",
       sdk,
     });
 
@@ -184,6 +186,7 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     const provider = createCalendarNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: "applyflow-calendar-runtime-boundary",
       sdk,
     });
 
@@ -213,6 +216,7 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     const provider = createCalendarNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: "applyflow-calendar-runtime-boundary",
       sdk,
     });
 
@@ -243,6 +247,7 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     const provider = createCalendarNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: "applyflow-calendar-runtime-boundary",
       sdk,
     });
 
@@ -279,6 +284,7 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     const provider = createCalendarNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: "applyflow-calendar-runtime-boundary",
       sdk,
     });
 
@@ -298,6 +304,7 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     const provider = createCalendarNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: "applyflow-calendar-runtime-boundary",
       sdk,
     });
 

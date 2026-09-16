@@ -5,7 +5,6 @@ import { createHash } from "node:crypto";
 import { Nango } from "@nangohq/node";
 import type { GmailEphemeralMessageMetadata } from "@devflow/career-sync";
 import {
-  buildApplyFlowNangoEndUserId,
   NANGO_INTEGRATION_BY_PROVIDER,
 } from "./nango-server-provider";
 import {
@@ -240,10 +239,10 @@ export function createGmailNangoRuntimeSdk(secretKey: string): GmailNangoRuntime
 
 export function createGmailNangoRuntimeMetadataProvider(input: {
   secretKey: string;
-  endUserId?: string;
+  endUserId: string;
   sdk?: GmailNangoRuntimeSdk;
 }): GmailNangoRuntimeMetadataProvider {
-  const endUserId = input.endUserId ?? buildApplyFlowNangoEndUserId("gmail");
+  const endUserId = input.endUserId;
   const sdk = input.sdk ?? createGmailNangoRuntimeSdk(input.secretKey);
 
   return {

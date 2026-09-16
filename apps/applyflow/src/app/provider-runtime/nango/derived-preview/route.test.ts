@@ -58,10 +58,18 @@ function completedResult() {
   };
 }
 
-function makePostRequest(body: unknown) {
+import { mintNangoCallerSession } from "@/lib/provider-runtime/nango-caller-session";
+
+const TEST_SECRET = "nango-secret-test";
+
+function callerCookieHeader(): string {
+  return mintNangoCallerSession(TEST_SECRET, { secure: false }).cookieHeader;
+}
+
+function makePostRequest(body: unknown, cookie = callerCookieHeader()) {
   return new Request("http://localhost/provider-runtime/nango/derived-preview", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", cookie },
     body: JSON.stringify(body),
   });
 }
@@ -89,6 +97,16 @@ describe("POST /provider-runtime/nango/derived-preview", () => {
       makePostRequest({ ...validBody, explicitConsent: false }) as never,
     );
     expect(response.status).toBe(403);
+    expect(handlePreview).not.toHaveBeenCalled();
+  });
+
+  it("rejects authenticated runtime calls without a caller session", async () => {
+    const response = await POST(
+      makePostRequest(validBody, "") as never,
+    );
+    expect(response.status).toBe(401);
+    const body = await response.json();
+    expect(body.warnings).toContain("missing_caller_session");
     expect(handlePreview).not.toHaveBeenCalled();
   });
 
