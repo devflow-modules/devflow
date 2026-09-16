@@ -58,7 +58,7 @@ describe("createGmailReadOnlyNangoRuntimeAdapter", () => {
       listMessageMetadata: vi.fn(async () => [
         {
           occurredAt: "2026-06-20T14:00:00.000Z",
-          direction: "inbound",
+          direction: "inbound" as const,
           senderDomain: "jobs.example",
           recipientDomains: ["candidate.example"],
           hasAttachment: false,
@@ -128,7 +128,7 @@ describe("createGmailReadOnlyNangoRuntimeAdapter", () => {
       listMessageMetadata: vi.fn(async () => [
         {
           occurredAt: "2026-06-20T14:00:00.000Z",
-          direction: "unknown",
+          direction: "unknown" as const,
           senderDomain: "acme.example",
           recipientDomains: ["candidate.example"],
           hasAttachment: false,

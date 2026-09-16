@@ -36,6 +36,10 @@ import { CareerAgentWorkspace } from "./career-agent-workspace";
 import { CareerChatWorkspace } from "./career-chat-workspace";
 import { CareerAiDraft } from "./career-ai-draft";
 import { ApprovedAutomationReview } from "./approved-automation-review";
+import { InboundApplicationResponsePanel } from "./inbound-application-response-panel";
+import { inboundEmailsFromProviderPreview } from "./inbound-signals-from-preview";
+import { loadDashboardImport } from "@/lib/local-import-storage";
+import { loadDashboardAnalytics } from "@/lib/local-analytics-storage";
 
 export type { ProviderDerivedRuntimePreviewUiState } from "./provider-derived-runtime-preview-client";
 
@@ -330,6 +334,14 @@ export function ProviderDerivedRuntimePreviewPanel({
           isPreviewLoading={uiState === "loading"}
           onReviewStateChange={setReviewState}
         />
+
+        {previewResult && (previewResult.status === "completed" || previewResult.status === "partial") ? (
+          <InboundApplicationResponsePanel
+            applications={loadDashboardImport()?.applications ?? []}
+            outcomes={loadDashboardAnalytics().outcomes}
+            emails={inboundEmailsFromProviderPreview(previewResult.signals)}
+          />
+        ) : null}
 
         <ProviderInsightsTimeline
           previewUiState={uiState}
