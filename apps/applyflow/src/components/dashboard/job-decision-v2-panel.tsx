@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { ApplyFlowBadge, type ApplyFlowBadgeTone } from "@/components/ui/ApplyFlowBadge";
+import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
 import { loadDashboardContacts, persistDashboardContacts } from "@/lib/local-contact-storage";
@@ -252,20 +253,22 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
         <div className="mt-5 grid gap-4">
           <div className="flex flex-wrap gap-2" role="tablist" aria-label="Career OS V2">
             {(Object.keys(JOB_DECISION_V2_TABS) as JobV2Tab[]).map((key) => (
-              <button
+              <ApplyFlowButton
                 key={key}
                 type="button"
                 role="tab"
+                variant={tab === key ? "outlineBrand" : "ghost"}
+                size="sm"
                 aria-selected={tab === key}
                 onClick={() => setTab(key)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium ${
+                className={`rounded-full px-3 py-1 text-xs font-medium ${
                   tab === key
                     ? "border-emerald-400/60 bg-emerald-400/10 text-emerald-100"
                     : "border-[color:var(--af-border)] text-[color:var(--af-text-muted)]"
                 }`}
               >
                 {JOB_DECISION_V2_TABS[key]}
-              </button>
+              </ApplyFlowButton>
             ))}
           </div>
 
@@ -288,13 +291,15 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
                 {application.status === "reviewing" ? (
                   <>
                     <p className="text-xs text-[color:var(--af-text)]">{JOB_DECISION_V2_MARK_SENT_HINT}</p>
-                    <button
+                    <ApplyFlowButton
                       type="button"
+                      variant="outlineBrand"
+                      size="sm"
                       onClick={markApplicationSent}
-                      className="w-fit rounded-md border border-emerald-400/50 px-3 py-1 text-xs text-emerald-100"
+                      className="w-fit rounded-md border-emerald-400/50 px-3 py-1 text-xs text-emerald-100"
                     >
                       {JOB_DECISION_V2_MARK_SENT}
-                    </button>
+                    </ApplyFlowButton>
                   </>
                 ) : currentPipeline === "applied" ? (
                   <p className="text-xs text-emerald-200/90">{JOB_DECISION_V2_MARKED_SENT}</p>
@@ -304,14 +309,16 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
               <div className="mt-3 grid gap-2">
                 <p className="text-xs text-[color:var(--af-text)]">{JOB_DECISION_V2_NEED_APPLICATION}</p>
                 <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_DECISION_V2_CREATE_HINT}</p>
-                <button
+                <ApplyFlowButton
                   type="button"
+                  variant="outlineBrand"
+                  size="sm"
                   disabled={!decision}
                   onClick={createApplicationRecord}
-                  className="w-fit rounded-md border border-emerald-400/50 px-3 py-1 text-xs text-emerald-100 disabled:opacity-50"
+                  className="w-fit rounded-md border-emerald-400/50 px-3 py-1 text-xs text-emerald-100"
                 >
                   {JOB_DECISION_V2_CREATE_APPLICATION}
-                </button>
+                </ApplyFlowButton>
               </div>
             )}
             <div className="mt-3 flex flex-wrap gap-2">
@@ -330,15 +337,17 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
                 const enabled =
                   Boolean(application && currentPipeline && canTransitionApplicationStatus(currentPipeline, status));
                 return (
-                  <button
+                  <ApplyFlowButton
                     key={status}
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => recordStatus(status)}
                     disabled={!enabled}
                     className="rounded-md border border-[color:var(--af-border)] px-2 py-1 text-xs text-[color:var(--af-text)] disabled:opacity-40"
                   >
                     {label}
-                  </button>
+                  </ApplyFlowButton>
                 );
               })}
             </div>
@@ -618,9 +627,14 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
                     <option value="cto">CTO</option>
                     <option value="employee">Employee</option>
                   </select>
-                  <button type="submit" className="rounded-md border border-emerald-400/50 px-3 py-1 text-xs text-emerald-100">
+                  <ApplyFlowButton
+                    type="submit"
+                    variant="outlineBrand"
+                    size="sm"
+                    className="rounded-md border-emerald-400/50 px-3 py-1 text-xs text-emerald-100"
+                  >
                     Guardar local
-                  </button>
+                  </ApplyFlowButton>
                 </form>
               </ApplyFlowCard>
               <ApplyFlowCard padding="md">

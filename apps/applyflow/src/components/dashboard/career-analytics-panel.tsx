@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { ApplyFlowBadge } from "@/components/ui/ApplyFlowBadge";
+import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
 import { loadCareerAnalyticsSnapshot } from "@/lib/career-analytics-snapshot";
@@ -69,20 +70,22 @@ export function CareerAnalyticsPanel() {
 
       <div className="mt-5 flex flex-wrap gap-2" role="tablist" aria-label="Career analytics">
         {(Object.keys(CAREER_ANALYTICS_TABS) as AnalyticsTab[]).map((key) => (
-          <button
+          <ApplyFlowButton
             key={key}
             type="button"
             role="tab"
+            variant={tab === key ? "outlineBrand" : "ghost"}
+            size="sm"
             aria-selected={tab === key}
             onClick={() => setTab(key)}
-            className={`rounded-full border px-3 py-1 text-xs font-medium ${
+            className={`rounded-full px-3 py-1 text-xs font-medium ${
               tab === key
                 ? "border-emerald-400/60 bg-emerald-400/10 text-emerald-100"
                 : "border-[color:var(--af-border)] text-[color:var(--af-text-muted)]"
             }`}
           >
             {CAREER_ANALYTICS_TABS[key]}
-          </button>
+          </ApplyFlowButton>
         ))}
       </div>
 

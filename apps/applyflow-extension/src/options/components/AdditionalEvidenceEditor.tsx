@@ -8,6 +8,7 @@ import {
   type EvidenceOrigin,
 } from "@devflow/applyflow-core";
 import { useState } from "react";
+import { ExtensionButton } from "../../components/ExtensionButton.js";
 
 function updateEvidence(profile: CandidateProfile, evidence: Evidence[]): CandidateProfile {
   return { ...profile, evidence };
@@ -50,13 +51,13 @@ export function AdditionalEvidenceEditor(props: {
                 {item.periodStart ? ` · ${item.periodStart}–${item.periodEnd ?? "present"}` : ""}
                 {item.relatedJobId ? ` · ${item.relatedJobId}` : ""}
               </span>
-              <button
+              <ExtensionButton
                 type="button"
                 className="af-opt-linkish"
                 onClick={() => onChange(updateEvidence(profile, evidence.filter((fact) => fact.id !== item.id)))}
               >
                 Remover
-              </button>
+              </ExtensionButton>
             </li>
           ))}
         </ul>
@@ -128,7 +129,7 @@ export function AdditionalEvidenceEditor(props: {
           {error}
         </p>
       ) : null}
-      <button
+      <ExtensionButton
         type="button"
         className="af-opt-linkish"
         onClick={() => {
@@ -173,7 +174,7 @@ export function AdditionalEvidenceEditor(props: {
         }}
       >
         Adicionar fato
-      </button>
+      </ExtensionButton>
     </section>
   );
 }

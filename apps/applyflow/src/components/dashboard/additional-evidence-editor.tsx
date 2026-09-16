@@ -13,6 +13,7 @@ import {
   type EvidenceStance,
 } from "@devflow/applyflow-core";
 import { useState } from "react";
+import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { cn } from "@/lib/cn";
 
 import {
@@ -136,13 +137,15 @@ export function AdditionalEvidenceEditor({
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <p className="text-sm text-[color:var(--af-text)]">{item.label}</p>
-                  <button
+                  <ApplyFlowButton
                     type="button"
-                    className="text-xs text-red-200 hover:text-red-100"
+                    variant="dangerGhost"
+                    size="sm"
+                    className="px-0 py-0 text-xs text-red-200 hover:text-red-100"
                     onClick={() => onChange(evidence.filter((fact) => fact.id !== item.id))}
                   >
                     {PROFILE_FORM_EVIDENCE_REMOVE}
-                  </button>
+                  </ApplyFlowButton>
                 </div>
                 <p className="text-xs text-[color:var(--af-text-muted)]">
                   {originLabel(item.origin, item.source)}
@@ -304,9 +307,11 @@ export function AdditionalEvidenceEditor({
               {localError}
             </p>
           ) : null}
-          <button
+          <ApplyFlowButton
             type="button"
-            className="justify-self-start text-sm font-medium text-emerald-300 hover:text-emerald-200"
+            variant="ghost"
+            size="sm"
+            className="justify-self-start px-0 text-sm font-medium text-emerald-300 hover:text-emerald-200"
             onClick={() => {
               try {
                 const fact = buildRecordedFact({
@@ -343,7 +348,7 @@ export function AdditionalEvidenceEditor({
             }}
           >
             {PROFILE_FORM_EVIDENCE_ADD}
-          </button>
+          </ApplyFlowButton>
         </div>
       </div>
     </details>
