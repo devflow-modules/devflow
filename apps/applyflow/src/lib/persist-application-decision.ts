@@ -12,6 +12,7 @@ import {
   prepareResponseDetectionConfirmation,
   transitionApplicationStatus,
   type ApplicationCareerEvent,
+  type ApplicationEffort,
   type ApplicationLifecycleSource,
   type ApplicationOutcome,
   type ApplyFlowApplication,
@@ -142,9 +143,15 @@ export function persistApplicationSubmitted(
   return persistApplicationStatusTransition({ application, toStatus: "applied", source: "user" });
 }
 
-export function persistClosedLoopV1Backfill(
-  now = new Date(),
-): { ok: true; changed: boolean } | { ok: false; error: string } {
+export function computeClosedLoopV1Backfill(now = new Date()):
+  | {
+      ok: true;
+      changed: boolean;
+      outcomes: ApplicationOutcome[];
+      events: ApplicationCareerEvent[];
+      efforts: ApplicationEffort[];
+    }
+  | { ok: false; error: string } {
   const applications = loadDashboardImport()?.applications ?? [];
   const analytics = loadDashboardAnalytics();
   if (analytics.status === "unreadable") {
@@ -157,9 +164,23 @@ export function persistClosedLoopV1Backfill(
     efforts: analytics.efforts,
     now,
   });
-  if (!next.changed) return { ok: true, changed: false };
+  return {
+    ok: true,
+    changed: next.changed,
+    outcomes: next.outcomes,
+    events: next.events,
+    efforts: next.efforts,
+  };
+}
+
+export function persistClosedLoopV1Backfill(
+  now = new Date(),
+): { ok: true; changed: boolean } | { ok: false; error: string } {
+  const computed = computeClosedLoopV1Backfill(now);
+  if (!computed.ok) return computed;
+  if (!computed.changed) return { ok: true, changed: false };
   try {
-    persistDashboardAnalytics(next.outcomes, next.events, next.efforts);
+    persistDashboardAnalytics(computed.outcomes, computed.events, computed.efforts);
   } catch {
     return { ok: false, error: "Falha ao gravar backfill Closed Loop V1." };
   }

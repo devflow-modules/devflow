@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ApplyFlowBadge, type ApplyFlowBadgeTone } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
@@ -96,9 +96,13 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
   const [storageEpoch, setStorageEpoch] = useState(0);
   const snapshot = useMemo(() => {
     if (!hydrated) return null;
-    persistClosedLoopV1Backfill();
     return loadJobDecisionV2Snapshot(jobId, storageEpoch);
   }, [hydrated, jobId, storageEpoch]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    persistClosedLoopV1Backfill();
+  }, [hydrated, jobId]);
   const job = snapshot?.job;
   const decision = snapshot?.decision ?? null;
   const pack = snapshot?.pack ?? null;

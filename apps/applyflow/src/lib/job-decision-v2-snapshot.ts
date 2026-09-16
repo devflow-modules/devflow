@@ -1,6 +1,7 @@
 import { loadDashboardAnalytics } from "@/lib/local-analytics-storage";
 import { loadDashboardContacts } from "@/lib/local-contact-storage";
 import { loadDashboardImport } from "@/lib/local-import-storage";
+import { computeClosedLoopV1Backfill } from "@/lib/persist-application-decision";
 import { resolveV2CandidateContext } from "@/lib/v2-candidate-context";
 import { loadDashboardJobs } from "@/lib/local-job-storage";
 import {
@@ -59,7 +60,17 @@ export function loadJobDecisionV2Snapshot(jobId: string, revision = 0): JobDecis
   }
 
   const foundApp = findApplicationForJob(loadDashboardImport()?.applications ?? [], found) ?? null;
-  const analytics = loadDashboardAnalytics();
+  const storedAnalytics = loadDashboardAnalytics();
+  const computedBackfill = computeClosedLoopV1Backfill();
+  const analytics =
+    computedBackfill.ok
+      ? {
+          outcomes: computedBackfill.outcomes,
+          events: computedBackfill.events,
+          efforts: computedBackfill.efforts,
+          status: storedAnalytics.status,
+        }
+      : storedAnalytics;
   const storedOutcome = foundApp
     ? analytics.outcomes.find((item) => item.applicationId === foundApp.id)
     : undefined;

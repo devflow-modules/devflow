@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { APPLYFLOW_DASHBOARD_ANALYTICS_STORAGE_KEY } from "./local-analytics-storage";
 import { APPLYFLOW_DASHBOARD_STORAGE_KEY } from "./local-import-storage";
 import {
+  computeClosedLoopV1Backfill,
   persistApplicationStatusTransition,
   persistApplicationSubmitted,
   persistApplicationWithOutcome,
@@ -202,6 +203,24 @@ describe("persistClosedLoopV1Backfill", () => {
     expect(second.ok).toBe(true);
     if (!second.ok) return;
     expect(second.changed).toBe(false);
+  });
+
+  it("calcula o backfill sem gravar analytics", () => {
+    stubStorage();
+    const applied = {
+      ...application,
+      status: "applied" as const,
+      updatedAt: "2026-09-15T03:04:24.620Z",
+    };
+    expect(persistApplicationWithOutcome({ application: applied, outcome }).ok).toBe(true);
+    const before = window.localStorage.getItem(APPLYFLOW_DASHBOARD_ANALYTICS_STORAGE_KEY);
+    const computed = computeClosedLoopV1Backfill(new Date("2026-09-15T12:00:00.000Z"));
+    expect(computed.ok).toBe(true);
+    if (!computed.ok) return;
+    expect(computed.changed).toBe(true);
+    expect(computed.outcomes[0]?.appliedAt).toBe("2026-09-15T03:04:24.620Z");
+    expect(computed.outcomes[0]?.snapshot?.overallFit).toBe(70);
+    expect(window.localStorage.getItem(APPLYFLOW_DASHBOARD_ANALYTICS_STORAGE_KEY)).toBe(before);
   });
 });
 
