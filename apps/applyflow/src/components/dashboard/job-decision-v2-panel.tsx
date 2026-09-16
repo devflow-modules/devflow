@@ -1,46 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { ApplyFlowBadge, type ApplyFlowBadgeTone } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
-import { loadDashboardAnalytics } from "@/lib/local-analytics-storage";
 import { loadDashboardContacts, persistDashboardContacts } from "@/lib/local-contact-storage";
-import { loadDashboardImport } from "@/lib/local-import-storage";
+import { loadJobDecisionV2Snapshot } from "@/lib/job-decision-v2-snapshot";
 import {
   persistApplicationStatusTransition,
   persistApplicationSubmitted,
   persistApplicationWithOutcome,
   persistClosedLoopV1Backfill,
 } from "@/lib/persist-application-decision";
-import { resolveV2CandidateContext } from "@/lib/v2-candidate-context";
-import { loadDashboardJobs } from "@/lib/local-job-storage";
 import { getInterviewLabImportHandoffUrl } from "@/lib/interview-lab-handoff";
+import { useClientHydrated } from "@/lib/use-client-hydrated";
 import {
   APPLYFLOW_PIPELINE_STATUS_V2_LABELS_PT,
   canRecordApplicationOutcome,
   canTransitionApplicationStatus,
   createApplicationFromJob,
-  createApplicationPackV2,
-  evaluateJobDecisionV2,
-  findApplicationForJob,
   formatLifecycleEventDate,
-  getApplicationLifecycleView,
   getDueFollowUps,
   groupDueFollowUps,
   resolvePipelineStatus,
-  type ApplicationCareerEvent,
-  type ApplicationDecision,
-  type ApplicationDecisionSnapshot,
-  type ApplyFlowApplicationV2Envelope,
   type ApplyFlowPipelineStatusV2,
-  type ApplicationPackV2,
-  type ApplyFlowJob,
   type Contact,
   type ContactType,
-  type JobDecisionV2,
+  type ApplicationDecision,
 } from "@devflow/applyflow-core";
 
 import {
@@ -86,6 +74,8 @@ import {
 
 type JobV2Tab = keyof typeof JOB_DECISION_V2_TABS;
 
+const EMPTY_CONTACTS: Contact[] = [];
+
 function decisionTone(decision: ApplicationDecision): ApplyFlowBadgeTone {
   if (decision === "apply_high") return "success";
   if (decision === "apply_normal") return "brand";
@@ -101,98 +91,28 @@ function matchTone(status: string): ApplyFlowBadgeTone {
   return "neutral";
 }
 
-function jobTextFrom(job: ApplyFlowJob): string {
-  if (job.descriptionSnapshot?.trim()) return job.descriptionSnapshot;
-  return [job.title, job.company, job.jobContext.skills.join(", ")].filter(Boolean).join("\n");
-}
-
 export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
-  const [job, setJob] = useState<ApplyFlowJob | null | undefined>(undefined);
-  const [decision, setDecision] = useState<JobDecisionV2 | null>(null);
-  const [pack, setPack] = useState<ApplicationPackV2 | null>(null);
+  const hydrated = useClientHydrated();
+  const [storageEpoch, setStorageEpoch] = useState(0);
+  const snapshot = useMemo(() => {
+    if (!hydrated) return null;
+    persistClosedLoopV1Backfill();
+    return loadJobDecisionV2Snapshot(jobId, storageEpoch);
+  }, [hydrated, jobId, storageEpoch]);
+  const job = snapshot?.job;
+  const decision = snapshot?.decision ?? null;
+  const pack = snapshot?.pack ?? null;
+  const contacts = snapshot?.contacts ?? EMPTY_CONTACTS;
+  const application = snapshot?.application ?? null;
+  const registeredSnapshot = snapshot?.registeredSnapshot ?? null;
+  const lifecycleEvents = snapshot?.lifecycleEvents ?? [];
+  const pipelineStatus = snapshot?.pipelineStatus ?? null;
+  const needsResume = snapshot?.needsResume ?? false;
   const [tab, setTab] = useState<JobV2Tab>("overview");
-  const [contacts, setContacts] = useState<Contact[]>([]);
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState<ContactType>("engineering_manager");
   const [feedbackNote, setFeedbackNote] = useState<string>("");
-  const [application, setApplication] = useState<ApplyFlowApplicationV2Envelope | null>(null);
-  const [registeredSnapshot, setRegisteredSnapshot] = useState<ApplicationDecisionSnapshot | null>(null);
-  const [lifecycleEvents, setLifecycleEvents] = useState<ApplicationCareerEvent[]>([]);
-  const [pipelineStatus, setPipelineStatus] = useState<ApplyFlowPipelineStatusV2 | null>(null);
-  const [needsResume, setNeedsResume] = useState(false);
   const [persistError, setPersistError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const found = loadDashboardJobs().jobs.find((item) => item.id === jobId) ?? null;
-    setJob(found);
-    const stored = loadDashboardContacts();
-    setContacts(stored.contacts.filter((item) => !item.jobId || item.jobId === jobId));
-    if (!found) {
-      setDecision(null);
-      setPack(null);
-      setApplication(null);
-      setRegisteredSnapshot(null);
-      setLifecycleEvents([]);
-      setPipelineStatus(null);
-      setNeedsResume(false);
-      return;
-    }
-    persistClosedLoopV1Backfill();
-    const foundApp = findApplicationForJob(loadDashboardImport()?.applications ?? [], found) ?? null;
-    setApplication(foundApp);
-    const analytics = loadDashboardAnalytics();
-    const storedOutcome = foundApp
-      ? analytics.outcomes.find((item) => item.applicationId === foundApp.id)
-      : undefined;
-    setRegisteredSnapshot(storedOutcome?.snapshot ?? null);
-    if (foundApp) {
-      const view = getApplicationLifecycleView({
-        application: foundApp,
-        outcome: storedOutcome,
-        events: analytics.events,
-      });
-      setLifecycleEvents(view.events);
-      setPipelineStatus(view.status);
-    } else {
-      setLifecycleEvents([]);
-      setPipelineStatus(null);
-    }
-    const text = jobTextFrom(found);
-    if (!text.trim()) {
-      setDecision(null);
-      setPack(null);
-      setNeedsResume(false);
-      return;
-    }
-    const ctx = resolveV2CandidateContext();
-    if (!ctx.ok) {
-      setDecision(null);
-      setPack(null);
-      setNeedsResume(true);
-      return;
-    }
-    setNeedsResume(false);
-    const nextDecision = evaluateJobDecisionV2({
-      jobText: text,
-      evidence: ctx.evidence,
-      profile: ctx.profile,
-      jobId: found.id,
-    });
-    setDecision(nextDecision);
-    setPack(
-      createApplicationPackV2({
-        jobId: found.id,
-        jobText: text,
-        jobTitle: found.title,
-        companyName: found.company,
-        source: found.source,
-        profile: ctx.profile,
-        evidence: ctx.evidence,
-        decision: nextDecision,
-        resumeLibrary: ctx.library,
-      }),
-    );
-  }, [jobId]);
 
   const dimensions = useMemo(() => {
     if (!decision) return [];
@@ -235,22 +155,11 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
       return;
     }
     setPersistError(null);
-    setApplication(created.application);
-    setRegisteredSnapshot(created.outcome.snapshot ?? null);
-    refreshLifecycle(created.application);
+    refreshAfterPersist();
   }
 
-  function refreshLifecycle(nextApplication: ApplyFlowApplicationV2Envelope) {
-    const analytics = loadDashboardAnalytics();
-    const storedOutcome = analytics.outcomes.find((item) => item.applicationId === nextApplication.id);
-    setRegisteredSnapshot(storedOutcome?.snapshot ?? null);
-    const view = getApplicationLifecycleView({
-      application: nextApplication,
-      outcome: storedOutcome,
-      events: analytics.events,
-    });
-    setLifecycleEvents(view.events);
-    setPipelineStatus(view.status);
+  function refreshAfterPersist() {
+    setStorageEpoch((epoch) => epoch + 1);
   }
 
   function markApplicationSent() {
@@ -261,8 +170,7 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
       return;
     }
     setPersistError(null);
-    setApplication(persisted.application);
-    refreshLifecycle(persisted.application);
+    refreshAfterPersist();
   }
 
   function recordStatus(toStatus: ApplyFlowPipelineStatusV2) {
@@ -279,8 +187,7 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
       return;
     }
     setPersistError(null);
-    setApplication(persisted.application);
-    refreshLifecycle(persisted.application);
+    refreshAfterPersist();
     setFeedbackNote(toStatus === "rejected" && !feedbackNote.trim() ? "Rejection recorded without an explicit reason (unknown)." : "");
   }
 
@@ -296,7 +203,7 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
     );
   }, [contacts, pack]);
 
-  if (job === undefined) {
+  if (!snapshot) {
     return <p className="text-sm text-[color:var(--af-text-muted)]">A carregar…</p>;
   }
 
@@ -686,7 +593,7 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
                     const stored = loadDashboardContacts();
                     const merged = [...stored.contacts.filter((item) => item.id !== next.id), next];
                     persistDashboardContacts(merged, stored.interactions);
-                    setContacts(merged.filter((item) => !item.jobId || item.jobId === jobId));
+                    setStorageEpoch((epoch) => epoch + 1);
                     setNewName("");
                   }}
                 >

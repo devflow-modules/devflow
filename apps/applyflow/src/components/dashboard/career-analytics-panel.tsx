@@ -1,32 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { ApplyFlowBadge } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
-import { buildCareerAnalyticsInput } from "@/lib/career-analytics-dataset";
-import { loadDashboardAnalytics } from "@/lib/local-analytics-storage";
-import { loadDashboardContacts } from "@/lib/local-contact-storage";
-import { loadDashboardImport } from "@/lib/local-import-storage";
-import { loadDashboardJobs } from "@/lib/local-job-storage";
-import {
-  buildCareerScorecard,
-  computeFunnelMetrics,
-  computeGapFrequency,
-  computeGapMap,
-  computeNetworkingPerformance,
-  computeResumePerformance,
-  computeRolePerformance,
-  computeSourcePerformance,
-  computeWeeklyOperatingMetrics,
-  generateCareerInsights,
-  type ApplyFlowApplication,
-  type CareerInsight,
-  type CareerScorecard,
-} from "@devflow/applyflow-core";
+import { loadCareerAnalyticsSnapshot } from "@/lib/career-analytics-snapshot";
+import { useClientHydrated } from "@/lib/use-client-hydrated";
 
 import {
   CAREER_ANALYTICS_DISCLAIMER,
@@ -48,67 +30,35 @@ function pct(value: number): string {
 }
 
 export function CareerAnalyticsPanel() {
-  const [ready, setReady] = useState(false);
+  const hydrated = useClientHydrated();
+  const snapshot = useMemo(
+    () => (hydrated ? loadCareerAnalyticsSnapshot() : null),
+    [hydrated],
+  );
   const [tab, setTab] = useState<AnalyticsTab>("overview");
-  const [scorecard, setScorecard] = useState<CareerScorecard | null>(null);
-  const [insights, setInsights] = useState<CareerInsight[]>([]);
-  const [funnelBars, setFunnelBars] = useState<{ name: string; count: number }[]>([]);
-  const [roles, setRoles] = useState<{ name: string; screeningRate: number; applications: number }[]>([]);
-  const [sources, setSources] = useState<{ name: string; applications: number }[]>([]);
-  const [resumes, setResumes] = useState<{ name: string; screeningRate: number; confidence: string; sampleSize: number }[]>([]);
-  const [networking, setNetworking] = useState<{ name: string; responseRate: number }[]>([]);
-  const [gaps, setGaps] = useState<{ name: string; frequency: number }[]>([]);
-  const [gapMap, setGapMap] = useState<{ label: string; action: string }[]>([]);
-  const [weekly, setWeekly] = useState<{ applications: number; screenings: number; previous?: number } | null>(null);
-  const [historyApplications, setHistoryApplications] = useState<ApplyFlowApplication[]>([]);
-  const [disclaimer, setDisclaimer] = useState(CAREER_ANALYTICS_DISCLAIMER);
 
-  useEffect(() => {
-    const applications = loadDashboardImport()?.applications ?? [];
-    setHistoryApplications(applications);
-    const jobs = loadDashboardJobs().jobs;
-    const analytics = loadDashboardAnalytics();
-    const contacts = loadDashboardContacts();
-    const input = buildCareerAnalyticsInput({
-      applications,
-      jobs,
-      outcomes: analytics.outcomes,
-      events: analytics.events,
-      efforts: analytics.efforts,
-      contacts: contacts.contacts,
-      interactions: contacts.interactions,
-    });
-    const funnel = computeFunnelMetrics(input);
-    setScorecard(buildCareerScorecard(input, "all"));
-    setInsights(generateCareerInsights(input));
-    setFunnelBars(
-      Object.entries(funnel.counts).map(([name, count]) => ({ name, count })),
-    );
-    setRoles(computeRolePerformance(input).map((item) => ({ name: item.roleType, screeningRate: item.screeningRate, applications: item.applications })));
-    setSources(computeSourcePerformance(input).map((item) => ({ name: item.source, applications: item.applications })));
-    setResumes(
-      computeResumePerformance(input).map((item) => ({
-        name: item.resumeVariant,
-        screeningRate: item.screeningRate,
-        confidence: item.confidence,
-        sampleSize: item.sampleSize,
-      })),
-    );
-    const net = computeNetworkingPerformance(input);
-    setNetworking(net.map((item) => ({ name: item.cohort, responseRate: item.responseRate })));
-    setDisclaimer(net[0]?.disclaimer ?? CAREER_ANALYTICS_DISCLAIMER);
-    setGaps(computeGapFrequency(input).map((item) => ({ name: item.label, frequency: item.highPriorityFrequency })));
-    setGapMap(computeGapMap(input).map((item) => ({ label: item.label, action: item.suggestedAction })));
-    const week = computeWeeklyOperatingMetrics(input, "7d");
-    setWeekly({ applications: week.applications, screenings: week.screenings, previous: week.previous?.applications });
-    setReady(true);
-  }, []);
+  const empty = Boolean(
+    snapshot && (snapshot.scorecard?.applications ?? 0) === 0 && (snapshot.scorecard?.jobsFound ?? 0) === 0,
+  );
 
-  const empty = useMemo(() => ready && (scorecard?.applications ?? 0) === 0 && (scorecard?.jobsFound ?? 0) === 0, [ready, scorecard]);
-
-  if (!ready) {
+  if (!snapshot) {
     return <p className="text-sm text-[color:var(--af-text-muted)]">A carregar…</p>;
   }
+
+  const {
+    historyApplications,
+    scorecard,
+    insights,
+    funnelBars,
+    roles,
+    sources,
+    resumes,
+    networking,
+    gaps,
+    gapMap,
+    weekly,
+    disclaimer,
+  } = snapshot;
 
   return (
     <ApplyFlowSection eyebrow={CAREER_ANALYTICS_EYEBROW} title={CAREER_ANALYTICS_TITLE} description={CAREER_ANALYTICS_HINT}>
