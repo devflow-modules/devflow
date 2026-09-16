@@ -72,6 +72,17 @@ export function createInitialProviderDerivedRuntimeReviewState(): ProviderDerive
   };
 }
 
+export function isInitialProviderDerivedRuntimeReviewState(
+  state: ProviderDerivedRuntimeReviewState,
+): boolean {
+  return (
+    state.sourcePreviewFingerprint == null &&
+    state.selectedSignalIds.length === 0 &&
+    state.dismissedSignalIds.length === 0 &&
+    state.reviewStatus === "idle"
+  );
+}
+
 export function initializeProviderDerivedRuntimeReview(
   result: ProviderDerivedRuntimeReviewablePreviewResult,
 ): ProviderDerivedRuntimeReviewState {
@@ -97,11 +108,15 @@ export function syncReviewStateWithPreview(
   },
 ): ProviderDerivedRuntimeReviewState {
   if (input.isPreviewLoading) {
-    return createInitialProviderDerivedRuntimeReviewState();
+    return isInitialProviderDerivedRuntimeReviewState(previous)
+      ? previous
+      : createInitialProviderDerivedRuntimeReviewState();
   }
 
   if (!input.result || input.result.status === "blocked" || input.result.status === "error") {
-    return createInitialProviderDerivedRuntimeReviewState();
+    return isInitialProviderDerivedRuntimeReviewState(previous)
+      ? previous
+      : createInitialProviderDerivedRuntimeReviewState();
   }
 
   const fingerprint = createProviderDerivedPreviewFingerprint(input.result);

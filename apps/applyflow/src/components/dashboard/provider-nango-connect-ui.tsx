@@ -73,6 +73,13 @@ export function resolveNangoConnectUiAvailability(input: {
   return "unavailable";
 }
 
+export function nangoConnectInteractionResetKey(
+  provider: ProviderKind,
+  explicitConsentChecked: boolean,
+): string {
+  return `${provider}:${explicitConsentChecked ? "1" : "0"}`;
+}
+
 export function ProviderNangoConnectUi({
   provider,
   explicitConsentChecked,
@@ -92,6 +99,16 @@ export function ProviderNangoConnectUi({
   });
   const [interactionStatus, setInteractionStatus] = useState<NangoConnectUiInteractionStatus>("idle");
   const [connectUiError, setConnectUiError] = useState<string | null>(null);
+  const interactionResetKey = nangoConnectInteractionResetKey(provider, explicitConsentChecked);
+  const [seenInteractionResetKey, setSeenInteractionResetKey] = useState(interactionResetKey);
+
+  if (seenInteractionResetKey !== interactionResetKey) {
+    setSeenInteractionResetKey(interactionResetKey);
+    if (explicitConsentChecked) {
+      setInteractionStatus("idle");
+      setConnectUiError(null);
+    }
+  }
 
   function publishConnectionStatus(event: Parameters<typeof createProviderRuntimeConnectionStatusFromConnectEvent>[0]["event"]) {
     const status = createProviderRuntimeConnectionStatusFromConnectEvent({
@@ -109,8 +126,6 @@ export function ProviderNangoConnectUi({
     }
 
     publishConnectionStatus("idle");
-    setInteractionStatus("idle");
-    setConnectUiError(null);
   }, [provider, explicitConsentChecked]);
 
   if (!explicitConsentChecked || !launcherResult) {

@@ -31,7 +31,7 @@ import {
   PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_TITLE,
 } from "./provider-derived-enrichment-proposal-content";
 import type { ProviderDerivedRuntimeReviewState } from "./provider-derived-runtime-review-state";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ProviderDerivedEnrichmentChangePreviewPanel } from "./provider-derived-enrichment-change-preview-panel";
 import type { CareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
 import type { CareerBundleSyncEnrichmentSourceKind } from "@/lib/career-bundle-sync-enrichment-source";
@@ -264,9 +264,6 @@ export function ProviderDerivedEnrichmentProposalPanel({
   currentSyncEnrichment = null,
   baselineSourceKind = "none",
 }: ProviderDerivedEnrichmentProposalPanelProps) {
-  const [exportStatus, setExportStatus] =
-    useState<ProviderDerivedEnrichmentProposalExportUiStatus>("idle");
-
   const isProposalStale = isEnrichmentProposalStale(proposal, {
     previewResult,
     reviewState,
@@ -284,9 +281,32 @@ export function ProviderDerivedEnrichmentProposalPanel({
     isProposalStale,
   });
 
-  useEffect(() => {
+  const [exportStatus, setExportStatus] =
+    useState<ProviderDerivedEnrichmentProposalExportUiStatus>("idle");
+  const [exportResetSource, setExportResetSource] = useState({
+    proposal,
+    previewResult,
+    reviewState,
+    isPreviewLoading,
+    isProposalStale,
+  });
+
+  if (
+    exportResetSource.proposal !== proposal ||
+    exportResetSource.previewResult !== previewResult ||
+    exportResetSource.reviewState !== reviewState ||
+    exportResetSource.isPreviewLoading !== isPreviewLoading ||
+    exportResetSource.isProposalStale !== isProposalStale
+  ) {
+    setExportResetSource({
+      proposal,
+      previewResult,
+      reviewState,
+      isPreviewLoading,
+      isProposalStale,
+    });
     setExportStatus("idle");
-  }, [proposal, previewResult, reviewState, isPreviewLoading, isProposalStale]);
+  }
 
   return (
     <ProviderDerivedEnrichmentProposalPanelView

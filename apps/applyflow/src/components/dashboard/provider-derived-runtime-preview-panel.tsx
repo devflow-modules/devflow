@@ -55,6 +55,20 @@ function isCalendarServerVerified(
   return verification?.state === "connected";
 }
 
+export function createProviderRuntimePreviewSessionKey(input: {
+  explicitConsentChecked: boolean;
+  gmailVerification: ProviderConnectionVerificationResult | null;
+  calendarVerification: ProviderConnectionVerificationResult | null;
+}): string {
+  return [
+    input.explicitConsentChecked ? "1" : "0",
+    input.gmailVerification?.state ?? "",
+    input.gmailVerification?.checkedAt ?? "",
+    input.calendarVerification?.state ?? "",
+    input.calendarVerification?.checkedAt ?? "",
+  ].join("|");
+}
+
 function mapResultToUiState(
   result: ProviderDerivedRuntimePreviewClientResult,
 ): Exclude<ProviderDerivedRuntimePreviewUiState, "idle" | "loading"> {
@@ -119,6 +133,20 @@ export function ProviderDerivedRuntimePreviewPanel({
   );
   const [enrichmentProposal, setEnrichmentProposal] =
     useState<ProviderDerivedEnrichmentProposal | null>(null);
+  const previewSessionKey = createProviderRuntimePreviewSessionKey({
+    explicitConsentChecked,
+    gmailVerification,
+    calendarVerification,
+  });
+  const [previewSession, setPreviewSession] = useState(previewSessionKey);
+
+  if (previewSession !== previewSessionKey) {
+    setPreviewSession(previewSessionKey);
+    setPreviewResult(null);
+    setUiState("idle");
+    setReviewState(createInitialProviderDerivedRuntimeReviewState());
+    setEnrichmentProposal(null);
+  }
 
   const gmailVerified = isGmailServerVerified(gmailVerification);
   const calendarVerified = isCalendarServerVerified(calendarVerification);
@@ -126,30 +154,16 @@ export function ProviderDerivedRuntimePreviewPanel({
   const previewEnabled =
     explicitConsentChecked && gmailVerified && calendarVerified && uiState !== "loading";
 
-  useEffect(() => {
-    setPreviewResult(null);
-    setUiState("idle");
-    setReviewState(createInitialProviderDerivedRuntimeReviewState());
+  if (
+    enrichmentProposal &&
+    isEnrichmentProposalStale(enrichmentProposal, {
+      previewResult,
+      reviewState,
+      isPreviewLoading: uiState === "loading",
+    })
+  ) {
     setEnrichmentProposal(null);
-  }, [
-    explicitConsentChecked,
-    gmailVerification?.state,
-    gmailVerification?.checkedAt,
-    calendarVerification?.state,
-    calendarVerification?.checkedAt,
-  ]);
-
-  useEffect(() => {
-    if (
-      isEnrichmentProposalStale(enrichmentProposal, {
-        previewResult,
-        reviewState,
-        isPreviewLoading: uiState === "loading",
-      })
-    ) {
-      setEnrichmentProposal(null);
-    }
-  }, [enrichmentProposal, previewResult, reviewState, uiState]);
+  }
 
   useEffect(() => {
     if (!onEligibleProviderEnrichmentChange) {
