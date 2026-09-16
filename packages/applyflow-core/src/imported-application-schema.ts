@@ -1,19 +1,16 @@
 import { z } from "zod";
 
 import type { ApplyFlowApplication, ApplyFlowApplicationStatus, ApplyFlowJobMeta } from "./application-types.js";
+import { coerceImportedApplicationStatus } from "./pipeline-status.js";
 
-const STATUS_VALUES = [
-  "reviewing",
-  "applied",
-  "ignored",
-  "waiting_response",
-  "interview",
-  "technical_test",
-  "rejected",
-  "accepted",
-] as const satisfies readonly ApplyFlowApplicationStatus[];
-
-const statusSchema = z.enum(STATUS_VALUES);
+const statusSchema = z.string().min(1).transform((raw, ctx) => {
+  const status = coerceImportedApplicationStatus(raw);
+  if (!status) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "status inválido" });
+    return z.NEVER;
+  }
+  return status;
+});
 
 const jobMetaSchema = z
   .object({
@@ -45,6 +42,19 @@ const applicationRecordSchema = z
     failedCount: z.number().int().nonnegative().optional(),
     notes: z.string().optional(),
     jobMeta: jobMetaSchema.optional(),
+    matchDecision: z.enum(["apply", "review", "needs_info", "skip"]).optional(),
+    resumeTrack: z.string().max(64).optional(),
+    strengthsSummary: z.array(z.string()).optional(),
+    gapsSummary: z.array(z.string()).optional(),
+    preparationStatus: z
+      .object({
+        total: z.number().int().nonnegative().optional(),
+        ready: z.number().int().nonnegative().optional(),
+        needsReview: z.number().int().nonnegative().optional(),
+        missing: z.number().int().nonnegative().optional(),
+        blocked: z.number().int().nonnegative().optional(),
+      })
+      .optional(),
   })
   .passthrough();
 
@@ -80,8 +90,36 @@ function normalizeJobMeta(raw: z.infer<typeof jobMetaSchema>): ApplyFlowJobMeta 
   return Object.keys(out).length ? out : undefined;
 }
 
+function clipSummaryList(raw: unknown, maxItems = 8, maxLen = 48): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const item of raw) {
+    if (typeof item !== "string") continue;
+    const t = item.trim().replace(/\s+/g, " ").slice(0, maxLen);
+    if (!t) continue;
+    const k = t.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(t);
+    if (out.length >= maxItems) break;
+  }
+  return out.length ? out : undefined;
+}
+
 function normalizeRecord(parsed: z.infer<typeof applicationRecordSchema>): ApplyFlowApplication {
   const jobMeta = parsed.jobMeta ? normalizeJobMeta(parsed.jobMeta) : undefined;
+  const preparationStatus = parsed.preparationStatus
+    ? {
+        ...(typeof parsed.preparationStatus.total === "number" ? { total: parsed.preparationStatus.total } : {}),
+        ...(typeof parsed.preparationStatus.ready === "number" ? { ready: parsed.preparationStatus.ready } : {}),
+        ...(typeof parsed.preparationStatus.needsReview === "number"
+          ? { needsReview: parsed.preparationStatus.needsReview }
+          : {}),
+        ...(typeof parsed.preparationStatus.missing === "number" ? { missing: parsed.preparationStatus.missing } : {}),
+        ...(typeof parsed.preparationStatus.blocked === "number" ? { blocked: parsed.preparationStatus.blocked } : {}),
+      }
+    : undefined;
   return {
     id: parsed.id,
     createdAt: parsed.createdAt,
@@ -98,6 +136,11 @@ function normalizeRecord(parsed: z.infer<typeof applicationRecordSchema>): Apply
     failedCount: parsed.failedCount,
     notes: parsed.notes,
     jobMeta,
+    matchDecision: parsed.matchDecision,
+    resumeTrack: parsed.resumeTrack?.trim() || undefined,
+    strengthsSummary: clipSummaryList(parsed.strengthsSummary),
+    gapsSummary: clipSummaryList(parsed.gapsSummary),
+    preparationStatus: preparationStatus && Object.keys(preparationStatus).length ? preparationStatus : undefined,
   };
 }
 

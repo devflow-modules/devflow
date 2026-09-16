@@ -4,7 +4,11 @@ import { gustavoProfile } from "../candidate-profile.js";
 import { parseApplyFlowDashboardImportJsonString } from "../imported-dashboard-schema.js";
 import { parseApplyFlowApplicationsImport } from "../imported-application-schema.js";
 import { ingestApplyFlowJob } from "../ingest-applyflow-job.js";
-import { parseApplyFlowJobsImport, parseApplyFlowJobsImportJsonString } from "../imported-job-schema.js";
+import {
+  parseApplyFlowJobsImport,
+  parseApplyFlowJobsImportJsonString,
+  parseStoredApplyFlowJob,
+} from "../imported-job-schema.js";
 
 const NOW = new Date("2026-08-13T12:00:00.000Z");
 const profile = gustavoProfile;
@@ -73,6 +77,69 @@ describe("parseApplyFlowJobsImport", () => {
     const r = parseApplyFlowJobsImport({ version: 2, jobs: [{ id: "x" }] }, { profile, now: NOW });
     expect(r.ok).toBe(false);
   });
+
+  it("listings sem currículo válido falham fechado", () => {
+    const r = parseApplyFlowJobsImport(
+      { version: 2, listings: [{ description: "React TypeScript Next.js Node.js" }] },
+      { now: NOW },
+    );
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.error).toMatch(/currículo/i);
+  });
+});
+
+describe("parseStoredApplyFlowJob", () => {
+  it("hidrata um ApplyFlowJob válido", () => {
+    const stored = ingestApplyFlowJob({
+      description: "React TypeScript Node.js Next.js",
+      source: "paste",
+      title: "Stored",
+      profile,
+      now: NOW,
+      id: "job_valid",
+    });
+    expect(parseStoredApplyFlowJob(stored)?.id).toBe("job_valid");
+  });
+
+  it("isola um job sem jobMatch em vez de o tratar como válido", () => {
+    expect(parseStoredApplyFlowJob({ id: "no-match", title: "Broken" })).toBeNull();
+  });
+
+  it("isola um job com applicationPack.checklist inválido", () => {
+    const stored = ingestApplyFlowJob({
+      description: "React TypeScript Node.js Next.js",
+      source: "paste",
+      title: "Packed",
+      profile,
+      now: NOW,
+      id: "job_bad_pack",
+    });
+    expect(
+      parseStoredApplyFlowJob({
+        ...stored,
+        applicationPack: {
+          version: 1,
+          packVersion: "application-pack-v1",
+          createdAt: NOW.toISOString(),
+          updatedAt: NOW.toISOString(),
+          jobId: stored.id,
+          resume: { variantId: "rv_a", variantName: "A", recommendedByRouter: false },
+          match: {
+            score: 80,
+            decision: "apply",
+            matchedSkills: ["React"],
+            missingSkills: [],
+            scoringVersion: "v1",
+          },
+          highlights: [],
+          gaps: [],
+          candidateFacts: {},
+          checklist: [{ id: "not-a-real-id", done: true }],
+        },
+      }),
+    ).toBeNull();
+  });
 });
 
 describe("parseApplyFlowDashboardImportJsonString", () => {
@@ -91,6 +158,27 @@ describe("parseApplyFlowDashboardImportJsonString", () => {
   it("o parser v1 isolado continua a aceitar array directo", () => {
     const r = parseApplyFlowApplicationsImport([validApp]);
     expect(r.ok).toBe(true);
+  });
+
+  it("encaminha Career Bundle V2 sem tratar como jobs import", () => {
+    const r = parseApplyFlowDashboardImportJsonString(
+      JSON.stringify({
+        version: 2,
+        applications: [validApp],
+        contacts: [],
+        interactions: [],
+        evidence: [],
+        candidateInputs: [],
+        futureNote: "keep",
+      }),
+      { profile, now: NOW },
+    );
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.kind).toBe("career-bundle-v2");
+    if (r.kind !== "career-bundle-v2") return;
+    expect(r.bundle.applications[0]?.id).toBe("1");
+    expect(r.bundle.extras?.futureNote).toBe("keep");
   });
 
   it("encaminha version 2 para jobs", () => {

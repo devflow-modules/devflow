@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { ApplyFlowApplicationStatus } from "./application-types.js";
+import { coerceImportedApplicationStatus } from "./pipeline-status.js";
 import { ingestApplyFlowJob } from "./ingest-applyflow-job.js";
 import { JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS } from "./job-description-snapshot.js";
 import {
@@ -20,22 +20,21 @@ import {
 import type { CandidateProfile } from "./profile-schema.js";
 import type { ResumeLibrary } from "./resume-library-types.js";
 
-const STATUS_VALUES = [
-  "reviewing",
-  "applied",
-  "ignored",
-  "waiting_response",
-  "interview",
-  "technical_test",
-  "rejected",
-  "accepted",
-] as const satisfies readonly ApplyFlowApplicationStatus[];
+const statusSchema = z.string().min(1).transform((raw, ctx) => {
+  const status = coerceImportedApplicationStatus(raw);
+  if (!status) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "status inválido" });
+    return z.NEVER;
+  }
+  return status;
+});
 
 const jobMatchSchema = z.object({
   score: z.number().finite().min(0).max(100),
   decision: z.enum(JOB_MATCH_DECISIONS),
   matchedSkills: z.array(z.string()),
   missingSkills: z.array(z.string()),
+  unknownSkills: z.array(z.string()).optional(),
   evaluatedAt: z.string().min(1),
   scoringVersion: z.literal(JOB_MATCH_SCORING_VERSION),
 });
@@ -47,6 +46,7 @@ const resumeMatchCandidateSchema = z.object({
   decision: z.enum(JOB_MATCH_DECISIONS),
   matchedSkills: z.array(z.string()),
   missingSkills: z.array(z.string()),
+  unknownSkills: z.array(z.string()).optional(),
 });
 
 const curriculumRecommendationSchema = z.object({
@@ -83,6 +83,7 @@ const applicationPackSchema = z.object({
     decision: z.enum(JOB_MATCH_DECISIONS),
     matchedSkills: z.array(z.string()),
     missingSkills: z.array(z.string()),
+    unknownSkills: z.array(z.string()).optional(),
     scoringVersion: z.literal(JOB_MATCH_SCORING_VERSION),
   }),
   highlights: z.array(z.string()),
@@ -108,7 +109,14 @@ const applicationPackSchema = z.object({
         tellUsAboutYourself: z.string().optional(),
         whyGoodFit: z.string().optional(),
         availability: z.string().optional(),
+        hardestChallenge: z.string().optional(),
+        productCase: z.string().optional(),
+        frontendCase: z.string().optional(),
+        backendCase: z.string().optional(),
+        automationCase: z.string().optional(),
+        leadershipCase: z.string().optional(),
       })
+      .passthrough()
       .optional(),
   }),
   checklist: z.array(
@@ -126,7 +134,7 @@ const jobRecordSchema = z.object({
   location: z.string().max(200).optional(),
   url: z.string().max(500).optional(),
   source: z.enum(APPLYFLOW_JOB_SOURCES),
-  status: z.enum(STATUS_VALUES),
+  status: statusSchema,
   jobContext: z.object({
     seniority: z.string().optional(),
     employmentType: z.string().optional(),
@@ -172,10 +180,16 @@ export type ParsedApplyFlowJobsImportResult =
     };
 
 export type IngestJobsImportOptions = {
-  profile: CandidateProfile;
+  profile?: CandidateProfile;
   resumeLibrary?: ResumeLibrary;
   now?: Date;
 };
+
+export function parseStoredApplyFlowJob(raw: unknown): ApplyFlowJob | null {
+  const parsed = jobRecordSchema.safeParse(raw);
+  if (!parsed.success) return null;
+  return normalizeStoredJob(parsed.data);
+}
 
 function optionalTrim(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
@@ -225,6 +239,7 @@ function ingestListing(
   const parsed = listingSchema.safeParse(raw);
   if (!parsed.success) return null;
   const source: ApplyFlowJobSource = parsed.data.source ?? "json";
+  if (!options.profile) return null;
   return ingestApplyFlowJob({
     description: parsed.data.description,
     source,
@@ -273,11 +288,19 @@ export function parseApplyFlowJobsImport(
 
   if (hasJobs) {
     for (const item of envelope.data.jobs ?? []) {
-      const parsed = jobRecordSchema.safeParse(item);
-      if (parsed.success) jobs.push(normalizeStoredJob(parsed.data));
+      const job = parseStoredApplyFlowJob(item);
+      if (job) jobs.push(job);
       else ignoredCount += 1;
     }
   } else {
+    if (!options.profile) {
+      return {
+        ok: false,
+        error: "Importa um currículo válido antes de avaliar listings.",
+        jobs: [],
+        ignoredCount: 0,
+      };
+    }
     (envelope.data.listings ?? []).forEach((item, index) => {
       const job = ingestListing(item, options, index);
       if (job) jobs.push(job);
@@ -316,5 +339,7 @@ export function parseApplyFlowJobsImportJsonString(
 }
 
 export function isApplyFlowJobsImportV2(raw: unknown): boolean {
-  return version2Schema.safeParse(raw).success;
+  const parsed = version2Schema.safeParse(raw);
+  if (!parsed.success) return false;
+  return Array.isArray(parsed.data.jobs) || Array.isArray(parsed.data.listings);
 }
