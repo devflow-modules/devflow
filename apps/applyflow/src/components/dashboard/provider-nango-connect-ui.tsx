@@ -8,7 +8,7 @@ import {
   type ProviderKind,
   type ProviderRuntimeConnectionStatus,
 } from "@devflow/career-sync";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   type NangoConnectUiEvent,
   type OpenNangoConnectUiFn,
@@ -97,18 +97,23 @@ export function ProviderNangoConnectUi({
     explicitConsentChecked,
     launcherResult,
   });
-  const [interactionStatus, setInteractionStatus] = useState<NangoConnectUiInteractionStatus>("idle");
-  const [connectUiError, setConnectUiError] = useState<string | null>(null);
   const interactionResetKey = nangoConnectInteractionResetKey(provider, explicitConsentChecked);
-  const [seenInteractionResetKey, setSeenInteractionResetKey] = useState(interactionResetKey);
+  const [connectSession, setConnectSession] = useState(() => ({
+    resetKey: interactionResetKey,
+    interactionStatus: "idle" as NangoConnectUiInteractionStatus,
+    connectUiError: null as string | null,
+  }));
 
-  if (seenInteractionResetKey !== interactionResetKey) {
-    setSeenInteractionResetKey(interactionResetKey);
-    if (explicitConsentChecked) {
-      setInteractionStatus("idle");
-      setConnectUiError(null);
-    }
+  if (connectSession.resetKey !== interactionResetKey) {
+    setConnectSession({
+      resetKey: interactionResetKey,
+      interactionStatus: explicitConsentChecked ? "idle" : connectSession.interactionStatus,
+      connectUiError: explicitConsentChecked ? null : connectSession.connectUiError,
+    });
   }
+
+  const { interactionStatus, connectUiError } = connectSession;
+  const resetKeyRef = useRef(interactionResetKey);
 
   function publishConnectionStatus(event: Parameters<typeof createProviderRuntimeConnectionStatusFromConnectEvent>[0]["event"]) {
     const status = createProviderRuntimeConnectionStatusFromConnectEvent({
@@ -119,6 +124,10 @@ export function ProviderNangoConnectUi({
     onConnectionStatusChange?.(status);
     return status;
   }
+
+  useEffect(() => {
+    resetKeyRef.current = interactionResetKey;
+  }, [interactionResetKey]);
 
   useEffect(() => {
     if (!explicitConsentChecked) {
@@ -142,8 +151,12 @@ export function ProviderNangoConnectUi({
       return;
     }
 
-    setInteractionStatus("starting");
-    setConnectUiError(null);
+    const sessionAtStart = interactionResetKey;
+    setConnectSession((current) =>
+      current.resetKey !== sessionAtStart
+        ? current
+        : { ...current, interactionStatus: "starting", connectUiError: null },
+    );
     publishConnectionStatus("connect_start");
 
     try {
@@ -151,17 +164,37 @@ export function ProviderNangoConnectUi({
         sessionToken: launcherResult.connectSessionToken,
         onEvent: (event) => {
           const nextInteractionStatus = mapNangoConnectUiEventToStatus(event, "starting");
-          setInteractionStatus(nextInteractionStatus);
-          publishConnectionStatus(mapNangoInteractionToConnectEvent(nextInteractionStatus));
-          if (event.type === "error") {
-            setConnectUiError("Nango Connect UI reported an error. No provider data was stored.");
+          setConnectSession((current) =>
+            current.resetKey !== sessionAtStart
+              ? current
+              : {
+                  ...current,
+                  interactionStatus: nextInteractionStatus,
+                  connectUiError:
+                    event.type === "error"
+                      ? "Nango Connect UI reported an error. No provider data was stored."
+                      : current.connectUiError,
+                },
+          );
+          if (resetKeyRef.current !== sessionAtStart) {
+            return;
           }
+          publishConnectionStatus(mapNangoInteractionToConnectEvent(nextInteractionStatus));
         },
       });
     } catch {
-      setInteractionStatus("error");
-      publishConnectionStatus("connect_error");
-      setConnectUiError("Could not open Nango Connect UI. No provider data was stored.");
+      setConnectSession((current) =>
+        current.resetKey !== sessionAtStart
+          ? current
+          : {
+              ...current,
+              interactionStatus: "error",
+              connectUiError: "Could not open Nango Connect UI. No provider data was stored.",
+            },
+      );
+      if (resetKeyRef.current === sessionAtStart) {
+        publishConnectionStatus("connect_error");
+      }
     }
   }
 
