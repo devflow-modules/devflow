@@ -76,7 +76,7 @@ describe("copyCareerBundleJsonToClipboard", () => {
   });
 
   it("returns error when clipboard API is missing", async () => {
-    vi.stubGlobal("navigator", { clipboard: undefined } as Navigator);
+    vi.stubGlobal("navigator", { clipboard: undefined } as unknown as Navigator);
     const r = await copyCareerBundleJsonToClipboard("{}");
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.error).toContain("Export JSON");

@@ -106,7 +106,7 @@ describe("ProviderInsightsTimelineView", () => {
   it("renders zero signals state", () => {
     const html = renderToStaticMarkup(
       <ProviderInsightsTimelineView
-        previewUiState="ready"
+        previewUiState="completed"
         previewResult={completedResult([])}
         isPreviewLoading={false}
         activeFilter="all"
@@ -120,7 +120,7 @@ describe("ProviderInsightsTimelineView", () => {
   it("renders filter empty state and filtered count", () => {
     const html = renderToStaticMarkup(
       <ProviderInsightsTimelineView
-        previewUiState="ready"
+        previewUiState="completed"
         previewResult={completedResult([createSignal({ id: "gmail-only" })])}
         isPreviewLoading={false}
         activeFilter="calendar"
@@ -147,7 +147,7 @@ describe("ProviderInsightsTimelineView", () => {
 
     const html = renderToStaticMarkup(
       <ProviderInsightsTimelineView
-        previewUiState="ready"
+        previewUiState="completed"
         previewResult={completedResult(signals, {
           totalSignals: 2,
           gmailSignalCount: 1,
@@ -174,7 +174,7 @@ describe("ProviderInsightsTimelineView", () => {
 
     const html = renderToStaticMarkup(
       <ProviderInsightsTimelineView
-        previewUiState="ready"
+        previewUiState="completed"
         previewResult={completedResult([signal])}
         isPreviewLoading={false}
         activeFilter="all"
@@ -201,7 +201,7 @@ describe("ProviderInsightsTimelineView", () => {
 
     const html = renderToStaticMarkup(
       <ProviderInsightsTimelineView
-        previewUiState="ready"
+        previewUiState="completed"
         previewResult={completedResult([signal])}
         isPreviewLoading={false}
         activeFilter="all"
@@ -215,7 +215,7 @@ describe("ProviderInsightsTimelineView", () => {
   it("does not render forbidden provider fields", () => {
     const html = renderToStaticMarkup(
       <ProviderInsightsTimelineView
-        previewUiState="ready"
+        previewUiState="completed"
         previewResult={completedResult([createSignal({ id: "safe-signal" })])}
         isPreviewLoading={false}
         activeFilter="all"
@@ -231,7 +231,7 @@ describe("ProviderInsightsTimelineView", () => {
   it("exposes keyboard-accessible filter tabs with aria attributes", () => {
     const html = renderToStaticMarkup(
       <ProviderInsightsTimelineView
-        previewUiState="ready"
+        previewUiState="completed"
         previewResult={completedResult([createSignal({ id: "signal-1" })])}
         isPreviewLoading={false}
         activeFilter="all"
@@ -259,7 +259,7 @@ describe("ProviderInsightsTimelineView", () => {
 
     const html = renderToStaticMarkup(
       <ProviderInsightsTimelineView
-        previewUiState="ready"
+        previewUiState="completed"
         previewResult={completedResult(signals)}
         isPreviewLoading={false}
         activeFilter="gmail"

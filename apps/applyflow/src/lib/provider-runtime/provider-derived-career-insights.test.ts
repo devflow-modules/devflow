@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import type { ProviderDerivedSignal } from "@devflow/career-sync";
+import { createEmptyProviderDerivedSignalSummary, type ProviderDerivedSignal } from "@devflow/career-sync";
 import { createProviderDerivedSignalId } from "@devflow/career-sync";
+import type { ProviderDerivedRuntimePreviewClientResult } from "@/components/dashboard/provider-derived-runtime-preview-client";
 import {
   createInitialProviderDerivedRuntimeReviewState,
   initializeProviderDerivedRuntimeReview,
   markProviderDerivedSelectionReady,
   toggleProviderDerivedSignalSelection,
-  type ProviderDerivedRuntimeReviewablePreviewResult,
 } from "@/components/dashboard/provider-derived-runtime-review-state";
 import { buildProviderDerivedEnrichmentProposal } from "./provider-derived-enrichment-proposal";
 import {
@@ -56,28 +56,56 @@ const calendarSignalId =
     sequence: 1,
   }) ?? "calendar-id";
 
-function createPreviewResult(): ProviderDerivedRuntimeReviewablePreviewResult {
+function createPreviewClientResult(
+  overrides: Partial<ProviderDerivedRuntimePreviewClientResult> = {},
+): ProviderDerivedRuntimePreviewClientResult {
+  const signals = overrides.signals ?? [
+    createSignal({
+      id: gmailSignalId,
+      source: "gmail",
+      kind: "follow_up_required",
+      occurredAt: "2026-06-12T10:00:00.000Z",
+      company: "Acme",
+    }),
+    createSignal({
+      id: calendarSignalId,
+      source: "calendar",
+      kind: "interview_scheduled",
+      occurredAt: "2026-06-20T14:00:00.000Z",
+      company: "Beta",
+    }),
+  ];
+
   return {
+    runtime: "nango",
     status: "completed",
+    safeForClient: true,
+    readOnly: true,
+    userReviewRequired: true,
+    gmailStatus: "completed",
+    calendarStatus: "completed",
     processedMessageCount: 2,
     processedEventCount: 1,
-    signals: [
-      createSignal({
-        id: gmailSignalId,
-        source: "gmail",
-        kind: "follow_up_required",
-        occurredAt: "2026-06-12T10:00:00.000Z",
-        company: "Acme",
-      }),
-      createSignal({
-        id: calendarSignalId,
-        source: "calendar",
-        kind: "interview_scheduled",
-        occurredAt: "2026-06-20T14:00:00.000Z",
-        company: "Beta",
-      }),
-    ],
+    importedRawProviderData: false,
+    retainedRawPayload: false,
+    retainedBodies: false,
+    retainedSnippets: false,
+    retainedDescriptions: false,
+    retainedLocations: false,
+    retainedMeetingLinks: false,
+    retainedProviderIdentifiers: false,
+    retainedAttendeeAddresses: false,
+    hasToken: false,
+    signals,
+    summary: createEmptyProviderDerivedSignalSummary(),
+    warnings: [],
+    messages: [],
+    ...overrides,
   };
+}
+
+function createPreviewResult(): ProviderDerivedRuntimePreviewClientResult {
+  return createPreviewClientResult();
 }
 
 function baseInput(overrides: Partial<Parameters<typeof deriveProviderCareerInsights>[0]> = {}) {
@@ -116,12 +144,11 @@ describe("deriveProviderCareerInsights", () => {
   it("returns preview_without_signals when preview has no reviewable signals", () => {
     const viewModel = deriveProviderCareerInsights(
       baseInput({
-        previewResult: {
-          status: "completed",
+        previewResult: createPreviewClientResult({
           processedMessageCount: 0,
           processedEventCount: 0,
           signals: [],
-        },
+        }),
         reviewState: initializeProviderDerivedRuntimeReview({
           status: "completed",
           processedMessageCount: 0,

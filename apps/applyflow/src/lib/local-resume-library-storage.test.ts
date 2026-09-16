@@ -1,10 +1,16 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { gustavoProfile, LEGACY_RESUME_VARIANT_ID, parseResumeLibrary } from "@devflow/applyflow-core";
+import {
+  createResumeLibraryFromProfile,
+  gustavoProfile,
+  LEGACY_RESUME_VARIANT_ID,
+  parseResumeLibrary,
+} from "@devflow/applyflow-core";
 
 import {
   APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY,
   clearPersistedResumeLibrary,
+  hydrateResumeLibraryState,
   loadResumeLibrary,
   persistResumeLibrary,
 } from "./local-resume-library-storage.js";
@@ -25,23 +31,38 @@ function stubStorage(initial?: Record<string, string>) {
   return storage;
 }
 
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
 describe("local-resume-library-storage", () => {
-  it("migra ausência de chave para Perfil principal e persiste", () => {
+  it("primeira visita sem chave fica vazia e não persiste um perfil fictício", () => {
     const storage = stubStorage();
-    const library = loadResumeLibrary();
-    expect(library.variants).toHaveLength(1);
-    expect(library.defaultVariantId).toBe(LEGACY_RESUME_VARIANT_ID);
-    expect(library.variants[0]?.profile).toEqual(gustavoProfile);
-    const stored = parseResumeLibrary(JSON.parse(storage[APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY]!));
-    expect(stored.ok).toBe(true);
+    const loaded = loadResumeLibrary();
+    expect(loaded.status).toBe("empty");
+    expect(loaded.library).toBeNull();
+    expect(storage[APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY]).toBeUndefined();
+    expect(JSON.stringify(loaded)).not.toMatch(/Gustavo/i);
+  });
+
+  it("hydrate expõe library|null — nunca o envelope { library, status } como ResumeLibrary", () => {
+    stubStorage();
+    const envelope = loadResumeLibrary();
+    const state = hydrateResumeLibraryState();
+    expect(envelope.status).toBe("empty");
+    expect("variants" in envelope).toBe(false);
+    expect(state.library).toBeNull();
+    expect(state.status).toBe("empty");
+    expect(state.library).toBe(envelope.library);
   });
 
   it("reload preserva duas variantes e o default escolhido", () => {
     const storage = stubStorage();
-    const first = loadResumeLibrary();
-    const next = {
+    const first = createResumeLibraryFromProfile(gustavoProfile, {
+      now: new Date("2026-08-14T12:00:00.000Z"),
+    });
+    persistResumeLibrary({
       ...first,
-      defaultVariantId: first.defaultVariantId,
       variants: [
         ...first.variants,
         {
@@ -51,20 +72,71 @@ describe("local-resume-library-storage", () => {
           isDefault: false,
         },
       ],
-    };
-    persistResumeLibrary(next);
+    });
     const reloaded = loadResumeLibrary();
-    expect(reloaded.variants).toHaveLength(2);
-    expect(reloaded.defaultVariantId).toBe(LEGACY_RESUME_VARIANT_ID);
-    expect(reloaded.variants.map((variant) => variant.name)).toContain("Frontend React/Next.js");
+    expect(reloaded.status).toBe("ok");
+    expect(reloaded.library?.variants).toHaveLength(2);
+    expect(reloaded.library?.defaultVariantId).toBe(LEGACY_RESUME_VARIANT_ID);
+    expect(reloaded.library?.variants.map((variant) => variant.name)).toContain("Frontend React/Next.js");
     clearPersistedResumeLibrary();
     expect(storage[APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY]).toBeUndefined();
   });
 
-  it("dados corrompidos não rebentam o load", () => {
-    stubStorage({ [APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY]: "{not-json" });
-    const library = loadResumeLibrary();
-    expect(library.variants).toHaveLength(1);
-    expect(library.defaultVariantId).toBe(LEGACY_RESUME_VARIANT_ID);
+  it("migra um CandidateProfile legado do próprio utilizador sem seed fictício extra", () => {
+    const storage = stubStorage({
+      [APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY]: JSON.stringify(gustavoProfile),
+    });
+    const loaded = loadResumeLibrary();
+    expect(loaded.status).toBe("ok");
+    expect(loaded.migrated).toBe(true);
+    expect(loaded.library?.variants).toHaveLength(1);
+    expect(loaded.library?.variants[0]?.profile.name).toBe(gustavoProfile.name);
+    const stored = parseResumeLibrary(JSON.parse(storage[APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY]!));
+    expect(stored.ok).toBe(true);
+  });
+
+  it("JSON corrompido não reescreve o blob nem apresenta Gustavo", () => {
+    const raw = "{not-json";
+    const storage = stubStorage({ [APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY]: raw });
+    const loaded = loadResumeLibrary();
+    expect(loaded.status).toBe("unreadable");
+    expect(loaded.library).toBeNull();
+    expect(storage[APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY]).toBe(raw);
+    expect(JSON.stringify(loaded)).not.toMatch(/Gustavo/i);
+  });
+
+  it("falha de gravação não substitui o blob existente", () => {
+    const first = createResumeLibraryFromProfile(gustavoProfile, {
+      now: new Date("2026-08-14T12:00:00.000Z"),
+    });
+    const storage = stubStorage({
+      [APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY]: JSON.stringify(first),
+    });
+    vi.stubGlobal("window", {
+      localStorage: {
+        getItem: (k: string) => (k in storage ? storage[k]! : null),
+        setItem: () => {
+          throw new Error("quota");
+        },
+        removeItem: (k: string) => {
+          delete storage[k];
+        },
+      },
+    } as Window & typeof globalThis);
+    const result = persistResumeLibrary({
+      ...first,
+      variants: first.variants.map((variant) => ({ ...variant, name: "Não gravar" })),
+    });
+    expect(result.ok).toBe(false);
+    expect(storage[APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY]).toBe(JSON.stringify(first));
+  });
+
+  it("biblioteca inválida existente não é tratada como primeira visita", () => {
+    const raw = JSON.stringify({ version: 1, defaultVariantId: "x", variants: [{ id: "x" }] });
+    const storage = stubStorage({ [APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY]: raw });
+    const loaded = loadResumeLibrary();
+    expect(loaded.status).toBe("unreadable");
+    expect(loaded.library).toBeNull();
+    expect(storage[APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY]).toBe(raw);
   });
 });

@@ -13,6 +13,8 @@ import {
   CURRICULUM_ROUTER_COMPARE_LABEL,
   CURRICULUM_ROUTER_SKIP_HINT,
   CURRICULUM_ROUTER_TITLE,
+  JOB_DECISION_V2_LINK,
+  JOB_INBOX_NEEDS_RESUME,
   JOB_INBOX_SUBMIT_LABEL,
   JOB_INBOX_TITLE,
   JOB_MATCH_DECISION_LABELS,
@@ -161,10 +163,21 @@ describe("job-inbox-content", () => {
     expect(jobMatchDecisionTone("apply")).toBe("success");
     expect(jobMatchDecisionTone("stretch")).toBe("warning");
     expect(jobMatchDecisionTone("skip")).toBe("danger");
+    expect(jobMatchDecisionTone("needs_info")).toBe("warning");
   });
 });
 
 describe("JobInboxPanel", () => {
+  it("desativa avaliar vaga sem currículo e não promete um perfil seed", () => {
+    const html = renderToStaticMarkup(
+      <JobInboxPanel jobs={[]} error={null} matchAvailable={false} onEvaluatePaste={() => undefined} />,
+    );
+    expect(html).toContain(JOB_INBOX_NEEDS_RESUME);
+    expect(html).toContain("disabled");
+    expect(html).not.toMatch(/Gustavo/i);
+    expect(html).not.toContain("Perfil principal");
+  });
+
   it("mostra o recorte F1 e a decisão da vaga avaliada", () => {
     const html = renderToStaticMarkup(
       <JobInboxPanel
@@ -179,6 +192,8 @@ describe("JobInboxPanel", () => {
     expect(html).toContain(JOB_MATCH_DECISION_LABELS.stretch);
     expect(html).toContain("67/100");
     expect(html).toContain("Backend Engineer");
+    expect(html).toContain(JOB_DECISION_V2_LINK);
+    expect(html).toContain("/dashboard/jobs/job_stretch");
     expect(html).toContain("Avaliado com:");
     expect(html).toContain("Product Engineer");
     expect(html).not.toContain(CURRICULUM_ROUTER_TITLE);

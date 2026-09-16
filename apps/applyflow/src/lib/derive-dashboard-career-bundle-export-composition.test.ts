@@ -6,10 +6,10 @@ import { deriveDashboardCareerBundleExportComposition } from "./derive-dashboard
 function app(overrides: Partial<ApplyFlowApplication> = {}): ApplyFlowApplication {
   return {
     id: "app-1",
-    company: "Acme",
-    role: "Engineer",
-    status: "saved",
-    source: "manual",
+    companyName: "Acme",
+    jobTitle: "Engineer",
+    status: "reviewing",
+    source: "paste",
     createdAt: "2026-06-01T10:00:00.000Z",
     updatedAt: "2026-06-01T10:00:00.000Z",
     ...overrides,
@@ -41,7 +41,7 @@ describe("deriveDashboardCareerBundleExportComposition", () => {
     expect(result.sourceKind).toBe("demo");
     expect(result.syncEnrichment).not.toBeNull();
     expect(result.bundle).not.toBeNull();
-    expect(result.bundle?.syncEnrichment).toBeDefined();
+    expect(result.bundle && "syncEnrichment" in result.bundle ? result.bundle.syncEnrichment : undefined).toBeDefined();
   });
 
   it("uses provider-derived source when eligible enrichment is present", () => {

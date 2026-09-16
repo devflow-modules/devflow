@@ -80,15 +80,17 @@ describe("career-llm health status", () => {
   });
 
   it("probe performs a single lightweight model lookup for configured openai", async () => {
-    const fetchImpl = vi.fn(() => Promise.resolve(okResponse(true)));
+    const fetchImpl = vi.fn<typeof fetch>(() => Promise.resolve(okResponse(true)));
     const reachable = await probeCareerLlmReachable(
       { CAREER_LLM_PROVIDER: "openai", OPENAI_API_KEY: "sk", CAREER_LLM_MODEL: "m" },
-      fetchImpl as never,
+      fetchImpl,
     );
     expect(reachable).toBe(true);
     expect(fetchImpl).toHaveBeenCalledTimes(1);
-    const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    const firstCall = fetchImpl.mock.calls[0];
+    expect(firstCall).toBeDefined();
+    const [url, init] = firstCall ?? [];
     expect(url).toContain("/v1/models/");
-    expect(init.method).toBe("GET");
+    expect(init?.method).toBe("GET");
   });
 });

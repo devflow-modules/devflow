@@ -64,12 +64,12 @@ describe("OpenAiCareerLlmProvider (Responses API)", () => {
   });
 
   it("calls the Responses API with structured outputs, store:false and stream:false, no tools", async () => {
-    const fetchImpl = vi.fn(() => Promise.resolve(httpResponse(responsesPayload(validOutput))));
+    const fetchImpl = vi.fn<typeof fetch>(() => Promise.resolve(httpResponse(responsesPayload(validOutput))));
     const provider = createOpenAiCareerLlmProvider({
       apiKey: "sk-test",
       model: "gpt-x",
       modelAlias: "career-openai-1",
-      fetchImpl: fetchImpl as unknown as typeof fetch,
+      fetchImpl,
     });
 
     const response = await provider.generate(sampleRequest());
@@ -78,9 +78,11 @@ describe("OpenAiCareerLlmProvider (Responses API)", () => {
     expect(response.usage).toEqual({ inputUnits: 10, outputUnits: 5 });
     expect(response.retryCount).toBe(0);
 
-    const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    const firstCall = fetchImpl.mock.calls[0];
+    expect(firstCall).toBeDefined();
+    const [url, init] = firstCall ?? [];
     expect(url).toBe("https://api.openai.com/v1/responses");
-    const body = JSON.parse(String(init.body));
+    const body = JSON.parse(String(init?.body));
     expect(body.model).toBe("gpt-x");
     expect(body.store).toBe(false);
     expect(body.stream).toBe(false);

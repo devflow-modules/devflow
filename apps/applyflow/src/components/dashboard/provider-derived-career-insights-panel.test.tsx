@@ -88,6 +88,8 @@ describe("ProviderDerivedCareerInsightsPanel render", () => {
           totalSignals: 1,
           gmailSignalCount: 1,
           calendarSignalCount: 0,
+          correlationSignalCount: 0,
+          lowConfidenceSignalCount: 0,
           reviewRequiredCount: 1,
           companies: ["Acme"],
           kinds: ["follow_up_required"],

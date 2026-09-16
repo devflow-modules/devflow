@@ -172,9 +172,16 @@ describe("config validation", () => {
   });
 });
 
+function testEnv(overrides: Partial<NodeJS.ProcessEnv> = {}): NodeJS.ProcessEnv {
+  return {
+    NODE_ENV: "test",
+    ...overrides,
+  };
+}
+
 describe("health, livez, readyz", () => {
   it("aggregates healthy state with no probe by default", async () => {
-    const health = await resolveCareerSystemHealth({ env: {} as NodeJS.ProcessEnv });
+    const health = await resolveCareerSystemHealth({ env: testEnv() });
     expect(health.status).toBe("healthy");
     expect(health.components.every((c) => c.reachable === null)).toBe(true);
   });
@@ -182,7 +189,7 @@ describe("health, livez, readyz", () => {
   it("probes only enabled+configured components when requested", async () => {
     const health = await resolveCareerSystemHealth({
       probe: true,
-      env: { CAREER_LLM_ENABLED: "true", CAREER_LLM_PROVIDER: "mock" } as NodeJS.ProcessEnv,
+      env: testEnv({ CAREER_LLM_ENABLED: "true", CAREER_LLM_PROVIDER: "mock" }),
     });
     const llm = health.components.find((c) => c.name === "career_llm");
     expect(llm?.reachable).toBe(true);
@@ -190,10 +197,10 @@ describe("health, livez, readyz", () => {
 
   it("reports unhealthy when a required component is unhealthy (prod misconfigured strict)", async () => {
     const health = await resolveCareerSystemHealth({
-      env: {
+      env: testEnv({
         NODE_ENV: "production",
         CAREER_AGENTS_ENABLED: "false",
-      } as NodeJS.ProcessEnv,
+      }),
     });
     // agents disabled -> not unhealthy by itself (disabled), so status should be degraded/healthy.
     expect(["healthy", "degraded"]).toContain(health.status);
@@ -204,12 +211,14 @@ describe("health, livez, readyz", () => {
   });
 
   it("readyz is ready by default and not_ready when production config is invalid", () => {
-    expect(resolveCareerReadiness({} as NodeJS.ProcessEnv).status).toBe("ready");
-    const notReady = resolveCareerReadiness({
-      NODE_ENV: "production",
-      CAREER_LLM_ENABLED: "true",
-      CAREER_LLM_PROVIDER: "openai",
-    } as NodeJS.ProcessEnv);
+    expect(resolveCareerReadiness(testEnv()).status).toBe("ready");
+    const notReady = resolveCareerReadiness(
+      testEnv({
+        NODE_ENV: "production",
+        CAREER_LLM_ENABLED: "true",
+        CAREER_LLM_PROVIDER: "openai",
+      }),
+    );
     expect(notReady.status).toBe("not_ready");
     expect(notReady.blockers).toContain("career_llm");
   });

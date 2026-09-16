@@ -5,6 +5,7 @@ import { ResumeLibraryPanel } from "./resume-library-panel";
 import {
   RESUME_LIBRARY_ADD_LABEL,
   RESUME_LIBRARY_DEFAULT_BADGE,
+  RESUME_LIBRARY_MANAGE_LABEL,
   RESUME_LIBRARY_TITLE,
 } from "./resume-library-content";
 import { createResumeLibraryFromProfile, gustavoProfile } from "@devflow/applyflow-core";
@@ -23,12 +24,14 @@ describe("ResumeLibraryPanel", () => {
         onDelete={() => undefined}
         onDuplicate={() => undefined}
         onImportProfileFile={() => undefined}
+        onSaveProfile={() => ({ ok: true })}
       />,
     );
     expect(html).toContain(RESUME_LIBRARY_TITLE);
     expect(html).toContain(RESUME_LIBRARY_DEFAULT_BADGE);
     expect(html).toContain("Perfil principal");
     expect(html).toContain(RESUME_LIBRARY_ADD_LABEL);
+    expect(html).toContain(RESUME_LIBRARY_MANAGE_LABEL);
     expect(html).not.toContain("melhor currículo");
     expect(html).not.toContain("Currículo recomendado");
   });

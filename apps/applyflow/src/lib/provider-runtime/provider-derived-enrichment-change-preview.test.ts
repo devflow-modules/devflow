@@ -40,10 +40,10 @@ function previewWithSignals(): ProviderDerivedRuntimeReviewablePreviewResult {
 function app(overrides: Partial<ApplyFlowApplication> = {}): ApplyFlowApplication {
   return {
     id: "app-1",
-    company: "Acme",
-    role: "Engineer",
-    status: "saved",
-    source: "manual",
+    companyName: "Acme",
+    jobTitle: "Engineer",
+    status: "reviewing",
+    source: "paste",
     createdAt: "2026-06-01T10:00:00.000Z",
     updatedAt: "2026-06-01T10:00:00.000Z",
     ...overrides,
