@@ -65,6 +65,28 @@ export function ExtensionPreview() {
             </section>
 
             <section className="af-card">
+              <p className="af-panel-header">Preparar candidatura</p>
+              <p className="af-title" style={{ marginTop: 0, fontSize: "15px" }}>
+                Staff Engineer (exemplo)
+              </p>
+              <p className="af-sub">Acme Demo Ltda.</p>
+              <div className="af-match-decision af-match-decision--apply" role="status">
+                <span className="af-prepare-kicker">MATCH</span>
+                <strong>92% — APPLY</strong>
+              </div>
+              <p className="af-prepare-kicker">Pontos fortes</p>
+              <ul className="af-prepare-list af-prepare-list--ok">
+                <li>✓ React</li>
+                <li>✓ TypeScript</li>
+              </ul>
+              <p className="af-prepare-kicker">CURRÍCULO</p>
+              <p className="af-field-value">Full Stack · high confidence</p>
+              <p className="af-muted" style={{ marginBottom: 0 }}>
+                Campos seguros só após clique explícito. Sem auto-submit.
+              </p>
+            </section>
+
+            <section className="af-card">
               <p className="af-panel-header">Copiloto assistido</p>
               <h2 className="af-title" style={{ marginTop: 0, fontSize: "14px" }}>
                 Sugestões para campos longos

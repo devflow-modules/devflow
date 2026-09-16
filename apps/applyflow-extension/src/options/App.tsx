@@ -1,8 +1,15 @@
 import type { CandidateProfile } from "@devflow/applyflow-core";
-import { gustavoProfile, validateCandidateProfile } from "@devflow/applyflow-core";
+import { validateCandidateProfile } from "@devflow/applyflow-core";
 import { useEffect, useRef, useState } from "react";
-import { getStoredCandidateProfile, resetCandidateProfile, saveCandidateProfile } from "../storage/profile-storage.js";
+import {
+  blankUnsavedCandidateProfile,
+  getStoredCandidateProfile,
+  resetCandidateProfile,
+  saveCandidateProfile,
+} from "../storage/profile-storage.js";
 import { AnswerBankEditor } from "./components/AnswerBankEditor";
+import { AdditionalEvidenceEditor } from "./components/AdditionalEvidenceEditor";
+import { CandidateFactsEditor } from "./components/CandidateFactsEditor";
 import { AiSettingsPanel } from "./components/AiSettingsPanel";
 import { ApplicationsHistoryPanel } from "./components/ApplicationsHistoryPanel";
 import { DefaultsPanel } from "./components/DefaultsPanel";
@@ -18,22 +25,35 @@ type OptionsTab = "profile" | "history" | "ai" | "preview";
 export function OptionsApp() {
   const [tab, setTab] = useState<OptionsTab>("profile");
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<CandidateProfile>(gustavoProfile);
+  const [profile, setProfile] = useState<CandidateProfile>(blankUnsavedCandidateProfile);
+  const [hasStoredProfile, setHasStoredProfile] = useState(false);
   const [savedMsg, setSavedMsg] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
 
+  function copyProfile(p: CandidateProfile): CandidateProfile {
+    return {
+      ...p,
+      skills: { ...p.skills },
+      salary: { ...p.salary },
+      answerBank: { ...p.answerBank },
+      facts: { ...p.facts },
+      roles: [...p.roles],
+      evidence: p.evidence ? [...p.evidence] : undefined,
+    };
+  }
+
   useEffect(() => {
     void getStoredCandidateProfile()
-      .then((p) =>
-        setProfile({
-          ...p,
-          skills: { ...p.skills },
-          salary: { ...p.salary },
-          answerBank: { ...p.answerBank },
-          roles: [...p.roles],
-        }),
-      )
+      .then((p) => {
+        if (!p) {
+          setHasStoredProfile(false);
+          setProfile(blankUnsavedCandidateProfile());
+          return;
+        }
+        setHasStoredProfile(true);
+        setProfile(copyProfile(p));
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -48,13 +68,8 @@ export function OptionsApp() {
     try {
       const v = validateCandidateProfile(profile);
       await saveCandidateProfile(v);
-      setProfile({
-        ...v,
-        skills: { ...v.skills },
-        salary: { ...v.salary },
-        answerBank: { ...v.answerBank },
-        roles: [...v.roles],
-      });
+      setHasStoredProfile(true);
+      setProfile(copyProfile(v));
       showSaved("Perfil válido — guardado com sucesso.");
     } catch (e) {
       setSavedMsg("");
@@ -63,21 +78,16 @@ export function OptionsApp() {
   }
 
   async function handleReset() {
-    if (!confirm("Repôr perfil inicial de referência ApplyFlow neste dispositivo?")) return;
+    if (!confirm("Limpar o perfil local desta extensão? Isto não restaura dados de referência.")) return;
     setErrorMsg("");
     try {
-      const p = await resetCandidateProfile();
-      setProfile({
-        ...p,
-        skills: { ...p.skills },
-        salary: { ...p.salary },
-        answerBank: { ...p.answerBank },
-        roles: [...p.roles],
-      });
-      showSaved("Perfil reposto — alterações locais foram descartadas; em uso está o padrão de referência.");
+      await resetCandidateProfile();
+      setHasStoredProfile(false);
+      setProfile(blankUnsavedCandidateProfile());
+      showSaved("Perfil local limpo. Configure o perfil para a extensão sugerir respostas.");
     } catch (e) {
       setSavedMsg("");
-      setErrorMsg(e instanceof Error ? e.message : "Erro ao repor perfil.");
+      setErrorMsg(e instanceof Error ? e.message : "Erro ao limpar perfil.");
     }
   }
 
@@ -124,14 +134,9 @@ export function OptionsApp() {
 
     try {
       const v = validateCandidateProfile(raw);
-      setProfile({
-        ...v,
-        skills: { ...v.skills },
-        salary: { ...v.salary },
-        answerBank: { ...v.answerBank },
-        roles: [...v.roles],
-      });
+      setProfile(copyProfile(v));
       await saveCandidateProfile(v);
+      setHasStoredProfile(true);
       showSaved("Import válido — perfil guardado em chrome.storage.local.");
     } catch (e) {
       setSavedMsg("");
@@ -214,10 +219,18 @@ export function OptionsApp() {
               Edição do perfil usada apenas na extensão — sem backend nem envio ao LinkedIn. As sugestões no painel
               continuam apenas informativas; o envio da candidatura é sempre seu.
             </p>
+            {!hasStoredProfile ? (
+              <p className="af-opt-err" role="status">
+                Nenhum perfil configurado neste browser. Preenche e guarda para a extensão sugerir respostas. Sem
+                perfil, o painel não preenche campos nem gera respostas pessoais.
+              </p>
+            ) : null}
 
             <DefaultsPanel />
 
             <ProfileForm profile={profile} onChange={setProfile} />
+            <CandidateFactsEditor profile={profile} onChange={setProfile} />
+            <AdditionalEvidenceEditor profile={profile} onChange={setProfile} />
             <SkillsEditor profile={profile} onChange={setProfile} />
             <SalaryEditor profile={profile} onChange={setProfile} />
             <AnswerBankEditor profile={profile} onChange={setProfile} />
@@ -235,7 +248,7 @@ export function OptionsApp() {
                   Salvar perfil
                 </ExtensionButton>
                 <ExtensionButton type="button" className="af-opt-btn-secondary" onClick={() => void handleReset()}>
-                  Restaurar padrão de referência
+                  Limpar perfil local
                 </ExtensionButton>
                 <div className="af-opt-action-group">
                   <span className="af-opt-action-group-label">Backup local</span>

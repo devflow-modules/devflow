@@ -1,7 +1,9 @@
 import { ExtensionButton } from "../components/ExtensionButton.js";
 import type { CandidateProfile } from "@devflow/applyflow-core";
+import { prepareApplication } from "@devflow/applyflow-core";
 import type { SuggestedAnswer } from "@devflow/applyflow-core";
 import type { ApplyProvider, FieldClassification, JobContext } from "@devflow/applyflow-linkedin";
+import { useMemo } from "react";
 
 import {
   fieldIdFromApplyFlowLabel,
@@ -12,10 +14,10 @@ import type { AutofillSessionCounters } from "../content/autofill/autofill-sessi
 import type { ApplyFlowApplication, SaveApplicationInput } from "../storage/application-storage.js";
 import type { PanelDockSide } from "../storage/panel-ui-storage.js";
 import { FieldSuggestionCard } from "./components/FieldSuggestionCard";
-import { FitScoreCard } from "./components/FitScoreCard";
 import { JobIntelligenceCard } from "./components/JobIntelligenceCard";
 import { JobSummaryCard } from "./components/JobSummaryCard";
-import type { PanelAiBundle } from "./panel/panel-ai.js";
+import { PrepareApplicationCard } from "./components/PrepareApplicationCard";
+import type { PanelAiBundle } from "./panel-ai.js";
 import { openApplyFlowOptions } from "../runtime/open-options-page.js";
 import { PanelHistorySection } from "./components/PanelHistorySection";
 
@@ -80,7 +82,7 @@ export function App(props: {
   fields: PanelField[];
   jobText: string;
   jobContext: JobContext;
-  profile: CandidateProfile;
+  profile: CandidateProfile | null;
   applyProvider?: ApplyProvider;
   attemptAutofill?: (target: AutofillFieldTarget) => Promise<AutofillResult>;
   autofillSession?: AutofillSessionCounters;
@@ -90,6 +92,8 @@ export function App(props: {
   existingApplicationRecord: ApplyFlowApplication | null;
   buildApplicationsHistoryDraft: () => SaveApplicationInput;
   applicationsHistoryAllowSave: boolean;
+  onSavePreparation?: () => Promise<void> | void;
+  historyBusy?: boolean;
   panelAi?: PanelAiBundle;
   panelDock: PanelDockSide;
   panelMinimized: boolean;
@@ -98,6 +102,22 @@ export function App(props: {
   onMinimizePanel: () => void;
   onRestorePanel: () => void;
 }) {
+  const preparation = useMemo(() => {
+    if (!props.profile || props.panelPhase !== "fields" || props.fields.length === 0) return null;
+    return prepareApplication({
+      profile: props.profile,
+      jobText: props.jobText,
+      fields: props.fields.map((f) => ({
+        fieldId: fieldIdFromApplyFlowLabel(f.label),
+        label: f.label,
+        classificationType: f.classification.skill
+          ? `${f.classification.type}:${f.classification.skill}`
+          : f.classification.type,
+        classificationConfidence: f.classification.confidence,
+      })),
+    });
+  }, [props.panelPhase, props.fields, props.jobText, props.profile]);
+
   if (props.panelMinimized) {
     return (
       <div className="af-root af-panel-minimized-shell">
@@ -193,6 +213,12 @@ export function App(props: {
           <p className="af-muted">
             Esta extensão nunca envia a candidatura, não resolve CAPTCHA nem ignora políticas da plataforma.
           </p>
+          {!props.profile ? (
+            <p className="af-warning" role="status" style={{ marginBottom: 0 }}>
+              Nenhum perfil configurado. Abre as opções da extensão e guarda o teu perfil. Sem perfil, não há
+              sugestões nem preenchimento automático.
+            </p>
+          ) : null}
         </section>
 
         <section className="af-card af-card-muted">
@@ -222,19 +248,28 @@ export function App(props: {
 
         {props.panelPhase === "fields" ? (
           <>
-            <FitScoreCard jobText={props.jobText} profile={props.profile} panelAi={props.panelAi} />
+            {preparation ? (
+              <PrepareApplicationCard
+                jobTitle={props.jobContext.title}
+                companyName={props.jobContext.company}
+                preparation={preparation}
+                attemptAutofill={props.attemptAutofill}
+                onSavePreparation={props.onSavePreparation}
+                historyBusy={props.historyBusy}
+              />
+            ) : null}
             <JobIntelligenceCard jobText={props.jobText} />
             <JobSummaryCard ctx={props.jobContext} />
           </>
         ) : (
           <section className="af-card af-card-muted">
             <p className="af-muted">
-              Fit e resumo da vaga aparecem quando houver campos detetados no passo atual do Easy Apply.
+              Match, currículo e preparação aparecem quando houver campos detetados no passo atual do Easy Apply.
             </p>
           </section>
         )}
 
-        {props.panelPhase === "fields" ? (
+        {props.panelPhase === "fields" && props.profile ? (
           <div className="af-field-stack">
             {props.fields.map((f, i) => (
               <FieldSuggestionCard

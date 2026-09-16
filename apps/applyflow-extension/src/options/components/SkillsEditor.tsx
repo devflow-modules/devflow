@@ -14,6 +14,8 @@ const SKILL_LABEL: Record<ApplyflowSkillKey, string> = {
   Jest: "Jest",
   Playwright: "Playwright",
   Tailwind: "Tailwind CSS",
+  REST: "REST",
+  OpenAPI: "OpenAPI / Swagger",
   AWS: "AWS",
   Java: "Java",
   Elixir: "Elixir",
@@ -31,9 +33,21 @@ export function SkillsEditor(props: {
 }) {
   const { profile, onChange } = props;
 
-  const setYears = (key: ApplyflowSkillKey, v: number) => {
-    const n = Number.isFinite(v) ? Math.min(80, Math.max(0, Math.round(v))) : 0;
-    onChange({ ...profile, skills: { ...profile.skills, [key]: n } });
+  const setYears = (key: ApplyflowSkillKey, raw: string) => {
+    const nextSkills = { ...profile.skills };
+    if (!raw.trim()) {
+      delete nextSkills[key];
+      onChange({ ...profile, skills: nextSkills });
+      return;
+    }
+    const n = Number.parseInt(raw, 10);
+    if (!Number.isFinite(n)) {
+      delete nextSkills[key];
+      onChange({ ...profile, skills: nextSkills });
+      return;
+    }
+    nextSkills[key] = Math.min(80, Math.max(0, Math.round(n)));
+    onChange({ ...profile, skills: nextSkills });
   };
 
   return (
@@ -58,11 +72,8 @@ export function SkillsEditor(props: {
                 type="number"
                 min={0}
                 max={80}
-                value={profile.skills[k]}
-                onChange={(e) => {
-                  const n = Number.parseInt(e.target.value, 10);
-                  setYears(k, Number.isFinite(n) ? n : 0);
-                }}
+                value={profile.skills[k] === undefined || profile.skills[k] === null ? "" : profile.skills[k]}
+                onChange={(e) => setYears(k, e.target.value)}
                 aria-label={`Anos de experiência em ${SKILL_LABEL[k]}`}
               />
               <span className="af-opt-skill-suffix" aria-hidden="true">

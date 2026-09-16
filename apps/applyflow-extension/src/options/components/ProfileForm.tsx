@@ -32,8 +32,14 @@ export function ProfileForm(props: {
           <span className="af-opt-label-text">Localização (texto livre)</span>
           <input
             className="af-input"
-            value={profile.location}
-            onChange={(e) => onChange({ ...profile, location: e.target.value })}
+            value={profile.location ?? ""}
+            onChange={(e) => {
+              const location = e.target.value;
+              const next = { ...profile };
+              if (location.trim()) next.location = location;
+              else delete next.location;
+              onChange(next);
+            }}
             autoComplete="off"
           />
         </label>
@@ -41,9 +47,16 @@ export function ProfileForm(props: {
           <span className="af-opt-label-text">Nível de inglês para candidaturas</span>
           <select
             className="af-input"
-            value={profile.englishLevel}
-            onChange={(e) => onChange({ ...profile, englishLevel: e.target.value as EnglishLevel })}
+            value={profile.englishLevel ?? ""}
+            onChange={(e) => {
+              const value = e.target.value;
+              const next = { ...profile };
+              if (value) next.englishLevel = value as EnglishLevel;
+              else delete next.englishLevel;
+              onChange(next);
+            }}
           >
+            <option value="">Não informado</option>
             {LEVELS.map((l) => (
               <option key={l} value={l}>
                 {l}
@@ -51,13 +64,24 @@ export function ProfileForm(props: {
             ))}
           </select>
         </label>
-        <label className="af-opt-label af-opt-label--row">
-          <input
-            type="checkbox"
-            checked={profile.comfortableInEnglish}
-            onChange={(e) => onChange({ ...profile, comfortableInEnglish: e.target.checked })}
-          />
-          <span className="af-opt-label-text">À vontade a trabalhar em inglês (respostas sim/não)</span>
+        <label className="af-opt-label">
+          <span className="af-opt-label-text">À vontade a trabalhar em inglês</span>
+          <select
+            className="af-input"
+            value={profile.comfortableInEnglish === true ? "yes" : profile.comfortableInEnglish === false ? "no" : ""}
+            onChange={(e) => {
+              const value = e.target.value;
+              const next = { ...profile };
+              if (value === "yes") next.comfortableInEnglish = true;
+              else if (value === "no") next.comfortableInEnglish = false;
+              else delete next.comfortableInEnglish;
+              onChange(next);
+            }}
+          >
+            <option value="">Não informado</option>
+            <option value="yes">Sim</option>
+            <option value="no">Não</option>
+          </select>
         </label>
         <label className="af-opt-label af-opt-label--full">
           <span className="af-opt-label-text">Roles principais — uma por linha</span>

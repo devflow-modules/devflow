@@ -31,8 +31,14 @@ export function SalaryEditor(props: {
             <span className="af-opt-label-hint">{f.label}</span>
             <input
               className="af-input"
-              value={profile.salary[f.key]}
-              onChange={(e) => onChange({ ...profile, salary: { ...profile.salary, [f.key]: e.target.value } })}
+              value={profile.salary[f.key] ?? ""}
+              onChange={(e) => {
+                const salary = { ...profile.salary };
+                const value = e.target.value;
+                if (value.trim()) salary[f.key] = value;
+                else delete salary[f.key];
+                onChange({ ...profile, salary });
+              }}
               autoComplete="off"
             />
           </label>

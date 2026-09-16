@@ -4,7 +4,7 @@ ApplyFlow é um **copiloto assistido** para o fluxo **LinkedIn Easy Apply**, cri
 
 ## Garantia importante
 
-ApplyFlow **não clica em Submit**, **não envia** a candidatura, **não avança** passos automaticamente (**Next**/continuar é sempre manual no LinkedIn) e **não** preenche em massa. O envio final é sempre decisão sua no próprio formulário Easy Apply.
+ApplyFlow **não clica em Submit**, **não envia** a candidatura e **não avança** passos automaticamente (**Next**/continuar é sempre manual no LinkedIn). Há preenchimento em lote **apenas de campos seguros**, depois de um clique explícito em «Preencher campos seguros» — nunca Submit, Next, unknown ou factos em falta.
 
 ## Dashboard web (métricas no browser)
 

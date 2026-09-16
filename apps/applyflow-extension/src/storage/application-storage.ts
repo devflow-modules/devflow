@@ -114,6 +114,38 @@ function clampFitScore(n: unknown): number | undefined {
   return Math.max(-1_000_000, Math.min(1_000_000, Math.round(n)));
 }
 
+const MATCH_DECISIONS = new Set(["apply", "review", "skip"]);
+const RESUME_TRACKS = new Set(["ats_master", "fullstack", "frontend", "product_engineer", "automation_rpa"]);
+
+function sanitizeSummaryList(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const item of raw) {
+    if (typeof item !== "string") continue;
+    const t = sanitizeMeta(item, 48);
+    if (!t) continue;
+    const k = t.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(t);
+    if (out.length >= 8) break;
+  }
+  return out.length ? out : undefined;
+}
+
+function sanitizePreparationStatus(raw: SaveApplicationInput["preparationStatus"]): SaveApplicationInput["preparationStatus"] {
+  if (!raw) return undefined;
+  const out = {
+    total: clampOptionalNonNegativeInt(raw.total),
+    ready: clampOptionalNonNegativeInt(raw.ready),
+    needsReview: clampOptionalNonNegativeInt(raw.needsReview),
+    missing: clampOptionalNonNegativeInt(raw.missing),
+    blocked: clampOptionalNonNegativeInt(raw.blocked),
+  };
+  return Object.values(out).some((v) => v !== undefined) ? out : undefined;
+}
+
 function normalizeInput(input: SaveApplicationInput): Omit<ApplyFlowApplication, "id" | "createdAt" | "updatedAt"> {
   const base: Omit<ApplyFlowApplication, "id" | "createdAt" | "updatedAt"> = {
     source: input.source ?? "linkedin",
@@ -132,6 +164,18 @@ function normalizeInput(input: SaveApplicationInput): Omit<ApplyFlowApplication,
     const jm = sanitizeApplyFlowJobMeta(input.jobMeta);
     if (jm) base.jobMeta = jm;
   }
+  if (input.matchDecision && MATCH_DECISIONS.has(input.matchDecision)) {
+    base.matchDecision = input.matchDecision;
+  }
+  if (input.resumeTrack && RESUME_TRACKS.has(input.resumeTrack)) {
+    base.resumeTrack = input.resumeTrack;
+  }
+  const strengths = sanitizeSummaryList(input.strengthsSummary);
+  if (strengths) base.strengthsSummary = strengths;
+  const gaps = sanitizeSummaryList(input.gapsSummary);
+  if (gaps) base.gapsSummary = gaps;
+  const prep = sanitizePreparationStatus(input.preparationStatus);
+  if (prep) base.preparationStatus = prep;
   return base;
 }
 

@@ -30,6 +30,42 @@ const FIELDS: {
     hint: "Disponibilidade, remoto, equipas internacionais, ambiente anglófono.",
     rows: 5,
   },
+  {
+    key: "hardestChallenge",
+    label: "Hardest challenge",
+    hint: "Desafio mais difícil — só o que realmente aconteceu.",
+    rows: 6,
+  },
+  {
+    key: "productCase",
+    label: "Product case",
+    hint: "Ownership, SaaS, discovery, entrega end-to-end.",
+    rows: 6,
+  },
+  {
+    key: "frontendCase",
+    label: "Frontend case",
+    hint: "Exemplo concreto de UI / React / Next.js.",
+    rows: 6,
+  },
+  {
+    key: "backendCase",
+    label: "Backend case",
+    hint: "APIs, Node.js, dados — sem inventar stack.",
+    rows: 6,
+  },
+  {
+    key: "automationCase",
+    label: "Automation / RPA case",
+    hint: "Python, RPA, Selenium/Playwright, fluxos operacionais.",
+    rows: 6,
+  },
+  {
+    key: "leadershipCase",
+    label: "Leadership case",
+    hint: "Liderança, mentoria, ownership de time — só se tiveres.",
+    rows: 6,
+  },
 ];
 
 export function AnswerBankEditor(props: {

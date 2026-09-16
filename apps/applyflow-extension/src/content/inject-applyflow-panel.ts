@@ -1,5 +1,6 @@
 import type { AiTextTask, CandidateProfile } from "@devflow/applyflow-core";
-import { getSuggestedAnswer, gustavoProfile } from "@devflow/applyflow-core";
+import { copilotSnapshotForHistory, getSuggestedAnswer, prepareApplication } from "@devflow/applyflow-core";
+import type { SuggestedAnswer } from "@devflow/applyflow-core";
 import type { ApplyProvider, JobContext } from "@devflow/applyflow-linkedin";
 import { classifyLinkedInField } from "@devflow/applyflow-linkedin";
 import { createElement } from "react";
@@ -7,13 +8,13 @@ import { createRoot, type Root } from "react-dom/client";
 import { generateAiText } from "../ai/generate-ai-text.js";
 import panelCss from "../styles/globals.css?inline";
 import { addAutofillAuditEntry } from "../storage/autofill-audit-storage.js";
-import { findApplicationByNormalizedJobUrl, normalizeStoredJobUrl, type ApplyFlowApplication } from "../storage/application-storage.js";
+import { saveApplication, findApplicationByNormalizedJobUrl, normalizeStoredJobUrl, type ApplyFlowApplication } from "../storage/application-storage.js";
 import { getStoredCandidateProfile } from "../storage/profile-storage.js";
 import { getApplyFlowSettings, mergeAiSettings } from "../storage/applyflow-storage.js";
 import { getPanelUiPrefs, savePanelDock, type PanelDockSide } from "../storage/panel-ui-storage.js";
 import { App, type PanelField } from "../panel/App";
 import type { PanelAiBundle } from "../panel/panel-ai.js";
-import type { AutofillFieldTarget, AutofillResult } from "./autofill/autofill-types.js";
+import { fieldIdFromApplyFlowLabel, type AutofillFieldTarget, type AutofillResult } from "./autofill/autofill-types.js";
 import { linkedInEasyApplyAutofill } from "./autofill/linkedin-field-autofill.js";
 import { bumpAutofillSession, emptyAutofillSession, type AutofillSessionCounters } from "./autofill/autofill-session.js";
 import { applyFlowDebugLog } from "./applyflow-debug.js";
@@ -79,13 +80,23 @@ function ensureHost(): Root {
   return root;
 }
 
-function mapPayloadToProps(payload: PanelPayload, profile: CandidateProfile): {
+function emptySuggestion(label: string): SuggestedAnswer {
+  return {
+    label,
+    value: "",
+    confidence: "low",
+    source: "unknown",
+    warning: "Configure o perfil nas opções da extensão. Sem perfil, não há sugestão.",
+  };
+}
+
+function mapPayloadToProps(payload: PanelPayload, profile: CandidateProfile | null): {
   panelPhase: "waiting" | "modal_empty" | "fields";
   fieldCount: number;
   fields: PanelField[];
   jobText: string;
   jobContext: JobContext;
-  profile: CandidateProfile;
+  profile: CandidateProfile | null;
   applyProvider?: ApplyProvider;
 } {
   if (payload.phase === "waiting") {
@@ -112,11 +123,12 @@ function mapPayloadToProps(payload: PanelPayload, profile: CandidateProfile): {
 
   const fields: PanelField[] = payload.labels.map((label) => {
     const classification = classifyLinkedInField(label);
-    const suggestion = getSuggestedAnswer(label, profile);
+    const suggestion = profile ? getSuggestedAnswer(label, profile) : emptySuggestion(label);
     applyFlowDebugLog("sugestão gerada", {
       label,
       classification: classification.type,
       confidence: suggestion.confidence,
+      hasProfile: Boolean(profile),
     });
     return { label, classification, suggestion };
   });
@@ -138,12 +150,12 @@ function mapPayloadToProps(payload: PanelPayload, profile: CandidateProfile): {
   };
 }
 
-async function resolveProfile(): Promise<CandidateProfile> {
+async function resolveProfile(): Promise<CandidateProfile | null> {
   try {
     return await getStoredCandidateProfile();
   } catch (e) {
-    applyFlowDebugLog("falha ao ler chrome.storage.local — fallback gustavoProfile", e);
-    return gustavoProfile;
+    applyFlowDebugLog("falha ao ler chrome.storage.local — sem perfil", e);
+    return null;
   }
 }
 
@@ -156,14 +168,21 @@ function resolvePanelLanguage(): "pt" | "en" {
   }
 }
 
-async function createPanelAiBundle(profile: CandidateProfile): Promise<PanelAiBundle> {
+async function createPanelAiBundle(profile: CandidateProfile | null): Promise<PanelAiBundle> {
   const settings = await getApplyFlowSettings();
   const ai = mergeAiSettings(settings.ai);
   let availability: PanelAiBundle["availability"] = "ok";
-  if (!ai.enabled) availability = "disabled";
+  if (!profile || !ai.enabled) availability = "disabled";
   else if (!ai.apiKey?.trim()) availability = "no_key";
 
   const language = resolvePanelLanguage();
+  if (!profile) {
+    return {
+      availability,
+      language,
+      runTask: async () => ({ ok: false, reason: "no_profile" }),
+    };
+  }
 
   const runTask = async (task: AiTextTask, ctx: { questionLabel?: string; visibleQuestionText?: string }) => {
     const fresh = await getApplyFlowSettings();
@@ -281,6 +300,54 @@ function handlePanelRestore(): void {
   void paintApplyFlowPanel();
 }
 
+function buildPreparationFromPayload(profile: CandidateProfile | null) {
+  if (!profile || lastPayload.phase !== "ready") return null;
+  return prepareApplication({
+    profile,
+    jobText: lastPayload.jobText,
+    fields: lastPayload.labels.map((label) => {
+      const classification = classifyLinkedInField(label);
+      return {
+        fieldId: fieldIdFromApplyFlowLabel(label),
+        label,
+        classificationType: classification.skill ? `${classification.type}:${classification.skill}` : classification.type,
+        classificationConfidence: classification.confidence,
+      };
+    }),
+  });
+}
+
+async function handleSavePreparation(): Promise<void> {
+  const profile = await resolveProfile();
+  if (!profile) return;
+  const prep = buildPreparationFromPayload(profile);
+  const session = autofillSession;
+  const copilot = prep ? copilotSnapshotForHistory(prep) : undefined;
+  const draft =
+    lastPayload.phase === "ready"
+      ? computeJobSnapshotForHistory({
+          jobContext: lastPayload.jobContext,
+          jobText: lastPayload.jobText,
+          profile,
+          fieldsDetectedCount: lastPayload.labels.length,
+          session,
+          locationHref: typeof location !== "undefined" ? location.href : "",
+          copilot,
+        })
+      : computeJobSnapshotForHistory({
+          jobContext: {},
+          jobText: undefined,
+          profile,
+          fieldsDetectedCount: 0,
+          session,
+          locationHref: typeof location !== "undefined" ? location.href : "",
+          copilot,
+        });
+  const existing = typeof location !== "undefined" ? await findApplicationByNormalizedJobUrl(location.href) : null;
+  await saveApplication({ ...draft, status: existing?.status ?? "reviewing" });
+  await paintApplyFlowPanel();
+}
+
 async function paintApplyFlowPanel(): Promise<void> {
   if (!hasValidExtensionContext()) return;
 
@@ -325,6 +392,8 @@ async function paintApplyFlowPanel(): Promise<void> {
 
   function buildApplicationsHistoryDraft() {
     const session = autofillSession;
+    const prep = lastPayload.phase === "ready" ? buildPreparationFromPayload(profile) : null;
+    const copilot = prep ? copilotSnapshotForHistory(prep) : undefined;
     if (lastPayload.phase === "ready") {
       return computeJobSnapshotForHistory({
         jobContext: lastPayload.jobContext,
@@ -333,6 +402,7 @@ async function paintApplyFlowPanel(): Promise<void> {
         fieldsDetectedCount: lastPayload.labels.length,
         session,
         locationHref: typeof location !== "undefined" ? location.href : "",
+        copilot,
       });
     }
     return computeJobSnapshotForHistory({
@@ -350,13 +420,14 @@ async function paintApplyFlowPanel(): Promise<void> {
 
   const props = {
     ...mapPayloadToProps(lastPayload, profile),
-    attemptAutofill,
+    attemptAutofill: profile ? attemptAutofill : undefined,
     autofillSession,
     onClearAutofillSession: handleClearSession,
     applicationsHistoryFingerprint: historyFp,
     existingApplicationRecord: existingApp,
     buildApplicationsHistoryDraft,
     applicationsHistoryAllowSave: historyAllowSave,
+    onSavePreparation: historyAllowSave ? () => void handleSavePreparation() : undefined,
     panelAi,
     panelDock: panelPrefs.dock,
     panelMinimized,

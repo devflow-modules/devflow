@@ -70,10 +70,11 @@ export function currentPageJobUrl(href?: string): string | undefined {
 export function computeJobSnapshotForHistory(args: {
   jobContext: JobContext;
   jobText?: string;
-  profile: CandidateProfile;
+  profile?: CandidateProfile | null;
   fieldsDetectedCount: number;
   session: AutofillSessionCounters;
   locationHref?: string;
+  copilot?: Partial<SaveApplicationInput>;
 }): SaveApplicationInput {
   const domHints = typeof document !== "undefined" ? extractDomJobHints(document) : {};
   const title = args.jobContext.title?.trim() || domHints.jobTitle?.trim();
@@ -81,7 +82,7 @@ export function computeJobSnapshotForHistory(args: {
   const textForFit =
     args.jobText?.trim() ||
     (typeof document !== "undefined" ? scrapeJobPageTextLite(document) : "");
-  const fit = calculateFitScore(textForFit, args.profile);
+  const fit = args.profile ? calculateFitScore(textForFit, args.profile) : { score: 0 };
   const href = args.locationHref ?? (typeof window !== "undefined" ? window.location.href : "");
   const jobMeta = buildJobMetaFromTextSlice(textForFit, 16_000);
 
@@ -89,11 +90,16 @@ export function computeJobSnapshotForHistory(args: {
     jobTitle: title,
     companyName: company,
     jobUrl: normalizeStoredJobUrl(href),
-    fitScore: fit.score,
+    fitScore: args.copilot?.fitScore ?? fit.score,
     fieldsDetected: Math.max(0, Math.round(args.fieldsDetectedCount)),
     fieldsFilled: args.session.filled,
     blockedCount: args.session.blocked,
     failedCount: args.session.failed,
     ...(jobMeta ? { jobMeta } : {}),
+    ...(args.copilot?.matchDecision ? { matchDecision: args.copilot.matchDecision } : {}),
+    ...(args.copilot?.resumeTrack ? { resumeTrack: args.copilot.resumeTrack } : {}),
+    ...(args.copilot?.strengthsSummary ? { strengthsSummary: args.copilot.strengthsSummary } : {}),
+    ...(args.copilot?.gapsSummary ? { gapsSummary: args.copilot.gapsSummary } : {}),
+    ...(args.copilot?.preparationStatus ? { preparationStatus: args.copilot.preparationStatus } : {}),
   };
 }
