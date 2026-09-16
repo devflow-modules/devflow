@@ -40,6 +40,22 @@ Itens hipotéticos (todos **opt-in** face ao modo local-first):
 
 Qualquer evolução com conta cloud exigiria redefinição explícita de modelo de dados, **bases legais** (LGPD/GDPR), **termos do LinkedIn** e **transparência** sobre o que deixa de ser apenas local. Ideias adicionais: sincronização **opt-in** cifrada, workspace multi-dispositivo, ou vertente B2B — produto possivelmente distinto do foco no candidato individual.
 
+## Career Operating System V2
+
+P0, P1 and P2 live in `@devflow/applyflow-core`. They do **not** replace the local-first copiloto, V1 fit, V1 Application Pack, or persisted JSON.
+
+| Priority | Scope | Status |
+|----------|--------|--------|
+| **P0** | Decision Engine — evidence, job requirements, matching, claim safety, multidimensional fit, gates, candidate input, pipeline adapters | Implemented (additive) |
+| **P1** | Application Copilot + Networking — pack V2, resume router V2, CV plan, answers, binary knockouts, compensation structure, contacts, follow-up queue, interview brief | Implemented (additive) |
+| **P2** | Career Analytics — outcomes/events, funnel, cohorts, gaps, insights, scorecard (deterministic, observational) | Implemented (additive) |
+
+Spec: [`V2_SPEC.md`](./V2_SPEC.md). Model: [`ANALYTICS_MODEL.md`](./ANALYTICS_MODEL.md).
+
+Pre-dogfooding hardening: immutable application-time snapshot + Outcome keyed by `applicationId`. **FEATURE FREEZE** for Career OS V2 — no new features until dogfooding feedback.
+
+Still out of scope: opaque ML, cloud sync, required login, automatic send, and causal claims.
+
 ## Not planned for MVP
 
 - **Auto-submit** — a extensão não envia nem finaliza candidaturas.
