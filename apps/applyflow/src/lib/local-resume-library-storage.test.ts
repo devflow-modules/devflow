@@ -15,19 +15,24 @@ import {
   persistResumeLibrary,
 } from "./local-resume-library-storage.js";
 
-function stubStorage(initial?: Record<string, string>) {
+type DashboardLocalStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+
+function stubStorage(
+  initial?: Record<string, string>,
+  localStorageOverrides?: Partial<DashboardLocalStorage>,
+): Record<string, string> {
   const storage: Record<string, string> = { ...initial };
-  vi.stubGlobal("window", {
-    localStorage: {
-      getItem: (k: string) => (k in storage ? storage[k]! : null),
-      setItem: (k: string, v: string) => {
-        storage[k] = v;
-      },
-      removeItem: (k: string) => {
-        delete storage[k];
-      },
+  const localStorage: DashboardLocalStorage = {
+    getItem: (key: string) => (key in storage ? storage[key]! : null),
+    setItem: (key: string, value: string) => {
+      storage[key] = value;
     },
-  } as Window & typeof globalThis);
+    removeItem: (key: string) => {
+      delete storage[key];
+    },
+    ...localStorageOverrides,
+  };
+  vi.stubGlobal("window", { localStorage });
   return storage;
 }
 
@@ -109,20 +114,16 @@ describe("local-resume-library-storage", () => {
     const first = createResumeLibraryFromProfile(gustavoProfile, {
       now: new Date("2026-08-14T12:00:00.000Z"),
     });
-    const storage = stubStorage({
-      [APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY]: JSON.stringify(first),
-    });
-    vi.stubGlobal("window", {
-      localStorage: {
-        getItem: (k: string) => (k in storage ? storage[k]! : null),
+    const storage = stubStorage(
+      {
+        [APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY]: JSON.stringify(first),
+      },
+      {
         setItem: () => {
           throw new Error("quota");
         },
-        removeItem: (k: string) => {
-          delete storage[k];
-        },
       },
-    } as Window & typeof globalThis);
+    );
     const result = persistResumeLibrary({
       ...first,
       variants: first.variants.map((variant) => ({ ...variant, name: "Não gravar" })),
