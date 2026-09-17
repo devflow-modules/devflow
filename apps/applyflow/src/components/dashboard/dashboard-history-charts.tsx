@@ -54,7 +54,7 @@ function DashboardMetricCard({ label, value, hint }: { label: string; value: str
     <ApplyFlowCard variant="default" padding="md" className="shadow-sm ring-1 ring-white/[0.03]">
       <p className="text-xs font-medium uppercase tracking-wide text-[color:var(--af-text-muted)]">{label}</p>
       <p className="mt-1.5 text-2xl font-semibold tabular-nums text-[color:var(--af-text)]">{value}</p>
-      {hint ? <p className="mt-1 text-[11px] leading-snug text-zinc-500">{hint}</p> : null}
+      {hint ? <p className="mt-1 text-[11px] leading-snug text-[color:var(--af-text-muted)]">{hint}</p> : null}
     </ApplyFlowCard>
   );
 }
