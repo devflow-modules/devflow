@@ -17,6 +17,8 @@ export type ApplyFlowNangoConnectSessionEnv = {
   NODE_ENV?: string;
   VERCEL_ENV?: string;
   CAREER_RUNTIME_ENVIRONMENT?: string;
+  NEXT_PUBLIC_APPLYFLOW_URL?: string;
+  VERCEL_URL?: string;
 };
 
 export type ApplyFlowNangoConnectSessionResult = {

@@ -8,14 +8,13 @@ import { mintNangoCallerSession, parseNangoCallerCookie } from "./nango-caller-s
 import {
   evaluateNangoRequestOrigin,
   nangoGuardHttpStatus,
+  resolveAllowedNangoOrigins,
   resolveNangoCookieTransport,
   type NangoRequestGuardReason,
-  type NangoRequestUrl,
 } from "./nango-request-guard";
 
 export type NangoRouteCallerRequest = {
   headers: { get(name: string): string | null };
-  nextUrl: NangoRequestUrl;
 };
 
 export type NangoRouteCallerResolution =
@@ -42,22 +41,19 @@ export function resolveNangoRouteCaller(input: {
     return { required: false };
   }
 
-  const transport = resolveNangoCookieTransport({
-    env: input.env,
-    requestUrl: input.request.nextUrl,
-  });
-  if (!transport.ok) {
+  const allowed = resolveAllowedNangoOrigins(input.env);
+  if (!allowed.ok) {
     return {
       required: true,
       ok: false,
-      reason: transport.reason,
-      httpStatus: nangoGuardHttpStatus(transport.reason),
+      reason: allowed.reason,
+      httpStatus: nangoGuardHttpStatus(allowed.reason),
     };
   }
 
   const origin = evaluateNangoRequestOrigin({
     originHeader: input.request.headers.get("origin"),
-    requestOrigin: input.request.nextUrl.origin,
+    allowedOrigins: allowed.origins,
   });
   if (!origin.ok) {
     return {
@@ -65,6 +61,16 @@ export function resolveNangoRouteCaller(input: {
       ok: false,
       reason: origin.reason,
       httpStatus: nangoGuardHttpStatus(origin.reason),
+    };
+  }
+
+  const transport = resolveNangoCookieTransport({ origin: origin.origin });
+  if (!transport.ok) {
+    return {
+      required: true,
+      ok: false,
+      reason: transport.reason,
+      httpStatus: nangoGuardHttpStatus(transport.reason),
     };
   }
 

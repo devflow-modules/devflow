@@ -5,6 +5,7 @@ import { NANGO_CALLER_COOKIE_MAX_AGE_SECONDS } from "./nango-caller-session";
 import {
   CALLER_NONCE_A,
   enabledNangoTestEnv,
+  gmailOnlyNangoTestEnv,
   hostedHttpsNangoTestEnv,
   mintCaller,
   nangoRequest,
@@ -14,6 +15,7 @@ import { nangoRuntimeNeedsCaller, resolveNangoRouteCaller } from "./nango-route-
 const NOW = 1_700_000_000;
 const LOCAL_CONNECT = "http://localhost/provider-runtime/nango/connect";
 const HOSTED_CONNECT = "https://applyflow.example/provider-runtime/nango/connect";
+const SPOOFED_CONNECT = "https://evil.example/provider-runtime/nango/connect";
 
 describe("nango route caller", () => {
   it("does not require a caller when runtime flags are off", () => {
@@ -26,6 +28,13 @@ describe("nango route caller", () => {
         mintIfMissing: false,
       }),
     ).toEqual({ required: false });
+  });
+
+  it("requires a caller when Gmail runtime is on and Calendar stays off", () => {
+    expect(nangoRuntimeNeedsCaller(gmailOnlyNangoTestEnv)).toBe(true);
+    expect(evaluateProviderRuntimeFlags(envToProviderRuntimeFlags(gmailOnlyNangoTestEnv)).canUseCalendarProvider).toBe(
+      false,
+    );
   });
 
   it("requires a valid cookie when runtime is enabled", () => {
@@ -138,9 +147,83 @@ describe("nango route caller", () => {
     });
   });
 
-  it("sets Secure when minting on hosted HTTPS", () => {
+  it("rejects an invalid Origin", () => {
+    expect(
+      resolveNangoRouteCaller({
+        request: nangoRequest({ url: LOCAL_CONNECT, origin: "not-a-url" }),
+        env: enabledNangoTestEnv,
+        mintIfMissing: true,
+        now: NOW,
+      }),
+    ).toEqual({
+      required: true,
+      ok: false,
+      reason: "missing_request_origin",
+      httpStatus: 403,
+    });
+  });
+
+  it("does not treat Origin matching a spoofed Host/nextUrl as authorized", () => {
+    /**
+     * Unit NextRequest uses the constructor URL for nextUrl; this case also sets
+     * Host / X-Forwarded-* to the attacker origin to document that those headers
+     * must not expand the allowlist. This does not simulate Vercel overwriting them.
+     */
     const resolved = resolveNangoRouteCaller({
-      request: nangoRequest({ url: HOSTED_CONNECT }),
+      request: nangoRequest({
+        url: SPOOFED_CONNECT,
+        origin: "https://evil.example",
+        extraHeaders: {
+          Host: "evil.example",
+          "x-forwarded-host": "evil.example",
+          "x-forwarded-proto": "https",
+        },
+      }),
+      env: hostedHttpsNangoTestEnv,
+      mintIfMissing: true,
+      now: NOW,
+    });
+    expect(resolved).toEqual({
+      required: true,
+      ok: false,
+      reason: "cross_origin_forbidden",
+      httpStatus: 403,
+    });
+  });
+
+  it("ignores forwarded proto/host when deciding HTTPS and the allowlist", () => {
+    const resolved = resolveNangoRouteCaller({
+      request: nangoRequest({
+        url: LOCAL_CONNECT,
+        origin: "http://localhost",
+        extraHeaders: {
+          Host: "applyflow.example",
+          "x-forwarded-host": "applyflow.example",
+          "x-forwarded-proto": "https",
+        },
+      }),
+      env: hostedHttpsNangoTestEnv,
+      mintIfMissing: true,
+      now: NOW,
+    });
+    expect(resolved).toEqual({
+      required: true,
+      ok: false,
+      reason: "cross_origin_forbidden",
+      httpStatus: 403,
+    });
+  });
+
+  it("does not drop HTTPS because X-Forwarded-Proto is http", () => {
+    const resolved = resolveNangoRouteCaller({
+      request: nangoRequest({
+        url: HOSTED_CONNECT,
+        extraHeaders: {
+          Host: "applyflow.example",
+          "x-forwarded-host": "applyflow.example",
+          "x-forwarded-proto": "http",
+        },
+      }),
       env: hostedHttpsNangoTestEnv,
       mintIfMissing: true,
       now: NOW,
@@ -152,19 +235,33 @@ describe("nango route caller", () => {
     expect(resolved.setCookie).toContain("Secure");
   });
 
-  it("fails closed on hosted HTTP instead of minting an insecure cookie", () => {
+  it("fails closed when hosted runtime has no trusted origin configuration", () => {
     expect(
       resolveNangoRouteCaller({
-        request: nangoRequest({ url: LOCAL_CONNECT }),
-        env: hostedHttpsNangoTestEnv,
+        request: nangoRequest({ url: HOSTED_CONNECT }),
+        env: { ...enabledNangoTestEnv, VERCEL_ENV: "preview" },
         mintIfMissing: true,
         now: NOW,
       }),
     ).toEqual({
       required: true,
       ok: false,
-      reason: "insecure_transport",
+      reason: "missing_allowed_origin",
       httpStatus: 403,
     });
+  });
+
+  it("sets Secure when minting for an allowlisted hosted origin", () => {
+    const resolved = resolveNangoRouteCaller({
+      request: nangoRequest({ url: HOSTED_CONNECT }),
+      env: hostedHttpsNangoTestEnv,
+      mintIfMissing: true,
+      now: NOW,
+    });
+    expect(resolved.required && resolved.ok).toBe(true);
+    if (!resolved.required || !resolved.ok) {
+      return;
+    }
+    expect(resolved.setCookie).toContain("Secure");
   });
 });

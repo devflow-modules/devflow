@@ -5,7 +5,6 @@ const enabledEnv = {
   CAREER_PROVIDER_RUNTIME_ENABLED: "true",
   NANGO_RUNTIME_ENABLED: "true",
   GMAIL_PROVIDER_ENABLED: "true",
-  CALENDAR_PROVIDER_ENABLED: "true",
   NANGO_SECRET_KEY: "nango-secret-test",
   NODE_ENV: "test",
 };

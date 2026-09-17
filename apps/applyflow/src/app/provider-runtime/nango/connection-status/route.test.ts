@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   CALLER_NONCE_A,
   CALLER_NONCE_B,
-  enabledNangoTestEnv,
+  gmailOnlyNangoTestEnv,
   mintCaller,
   nangoRequest,
 } from "@/lib/provider-runtime/nango-route-test-fixtures";
@@ -22,7 +22,7 @@ vi.mock("@/lib/provider-runtime/nango-connect-session-launcher", async () => {
   >("@/lib/provider-runtime/nango-connect-session-launcher");
   return {
     ...actual,
-    readApplyFlowNangoConnectSessionEnv: () => enabledNangoTestEnv,
+    readApplyFlowNangoConnectSessionEnv: () => gmailOnlyNangoTestEnv,
   };
 });
 

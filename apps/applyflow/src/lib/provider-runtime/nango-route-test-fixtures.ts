@@ -14,9 +14,18 @@ export const enabledNangoTestEnv = {
   NODE_ENV: "test",
 };
 
+export const gmailOnlyNangoTestEnv = {
+  CAREER_PROVIDER_RUNTIME_ENABLED: "true",
+  NANGO_RUNTIME_ENABLED: "true",
+  GMAIL_PROVIDER_ENABLED: "true",
+  NANGO_SECRET_KEY: NANGO_TEST_SECRET,
+  NODE_ENV: "test",
+};
+
 export const hostedHttpsNangoTestEnv = {
   ...enabledNangoTestEnv,
   VERCEL_ENV: "preview",
+  VERCEL_URL: "applyflow.example",
 };
 
 export function mintCaller(

@@ -18,7 +18,7 @@ describe("gmail closed-loop inbound boundary", () => {
     });
   });
 
-  it("scans read-only metadata and never calls modify", async () => {
+  it("scans read-only Gmail metadata without Calendar flags and never calls modify", async () => {
     const listInboundEmails = vi.fn(async () => ({
       accountScopes: ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
       needsAccountSelection: false,

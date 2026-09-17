@@ -105,6 +105,10 @@ Document in Nango dashboard — **do not fill real values in this repo:**
 | `GMAIL_PROVIDER_ENABLED` | No | Server | `true` | No | Gmail runtime | Missing → Gmail blocked |
 | `CALENDAR_PROVIDER_ENABLED` | No | Server | `true` | No | Calendar runtime | Missing → Calendar blocked |
 | `NANGO_SECRET_KEY` | Yes when runtime on | Server | `replace_me` | **Yes** | `@nangohq/node` in server providers | Missing → `nango_secret_missing`, OAuth blocked |
+| `NEXT_PUBLIC_APPLYFLOW_URL` | Recommended when runtime on | Server+client | `http://localhost:3010` | No | Canonical origin allowlist for Nango routes | Hosted: missing with no `VERCEL_URL` → routes fail closed |
+| `VERCEL_URL` | Injected on Vercel | Platform | (deployment host) | No | Extra exact https origin for **this** preview/production deployment | Not a request header; not a `*.vercel.app` wildcard |
+
+**Gmail hosted enablement (future, still off):** `CAREER_PROVIDER_RUNTIME_ENABLED`, `NANGO_RUNTIME_ENABLED`, `GMAIL_PROVIDER_ENABLED`, `NANGO_SECRET_KEY`. Do **not** turn on `CALENDAR_PROVIDER_ENABLED` for Gmail-only. Also set `NEXT_PUBLIC_APPLYFLOW_URL` to the public https origin of the ApplyFlow host; preview may rely on platform `VERCEL_URL` for the current deployment host.
 
 **Not in code (documented only):** `NANGO_WEBHOOK_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
 
@@ -127,8 +131,8 @@ Copy template: [`apps/applyflow/.env.example`](../../../apps/applyflow/.env.exam
 |------|---------|------------|--------|
 | `CAREER_PROVIDER_RUNTIME_ENABLED` | off | Server | Global kill switch |
 | `NANGO_RUNTIME_ENABLED` | off | Server | Requires global |
-| `GMAIL_PROVIDER_ENABLED` | off | Server | Requires global + Nango |
-| `CALENDAR_PROVIDER_ENABLED` | off | Server | Requires global + Nango |
+| `GMAIL_PROVIDER_ENABLED` | off | Server | Requires global + Nango; **does not** require Calendar |
+| `CALENDAR_PROVIDER_ENABLED` | off | Server | Requires global + Nango; leave off when Calendar is out of scope |
 
 **Hierarchy:** provider flags cannot bypass global or Nango gates.  
 **Failure mode:** fail closed — blocked JSON with `safeForClient: true`.  

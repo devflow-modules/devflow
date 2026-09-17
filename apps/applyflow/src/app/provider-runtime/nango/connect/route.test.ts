@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   CALLER_NONCE_A,
   CALLER_NONCE_B,
-  enabledNangoTestEnv,
+  gmailOnlyNangoTestEnv,
   mintCaller,
   nangoRequest,
 } from "@/lib/provider-runtime/nango-route-test-fixtures";
@@ -24,7 +24,7 @@ vi.mock("@/lib/provider-runtime/nango-connect-session-launcher", async () => {
   >("@/lib/provider-runtime/nango-connect-session-launcher");
   return {
     ...actual,
-    readApplyFlowNangoConnectSessionEnv: () => enabledNangoTestEnv,
+    readApplyFlowNangoConnectSessionEnv: () => gmailOnlyNangoTestEnv,
   };
 });
 
@@ -58,6 +58,7 @@ describe("POST /provider-runtime/nango/connect", () => {
     expect(response.status).toBe(403);
     expect((await response.json()).reasons).toContain("cross_origin_forbidden");
     expect(createConnectSession).not.toHaveBeenCalled();
+    expect(response.headers.get("set-cookie")).toBeNull();
   });
 
   it("rejects a missing Origin", async () => {
@@ -71,6 +72,7 @@ describe("POST /provider-runtime/nango/connect", () => {
     expect(response.status).toBe(403);
     expect((await response.json()).reasons).toContain("missing_request_origin");
     expect(createConnectSession).not.toHaveBeenCalled();
+    expect(response.headers.get("set-cookie")).toBeNull();
   });
 
   it("reuses a valid caller cookie and tags the Connect Session to that caller", async () => {
