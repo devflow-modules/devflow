@@ -9,7 +9,7 @@ import {
 export type ApplyFlowNangoConnectLauncherQuery = {
   provider?: string | null;
   redirectUri?: string | null;
-  explicitConsent?: string | null;
+  explicitConsent?: string | boolean | null;
 };
 
 export type ApplyFlowNangoConnectLauncherResponse = {
@@ -43,6 +43,9 @@ export function readApplyFlowNangoConnectSessionEnv(
     GMAIL_PROVIDER_ENABLED: env.GMAIL_PROVIDER_ENABLED,
     CALENDAR_PROVIDER_ENABLED: env.CALENDAR_PROVIDER_ENABLED,
     NANGO_SECRET_KEY: env.NANGO_SECRET_KEY,
+    NODE_ENV: env.NODE_ENV,
+    VERCEL_ENV: env.VERCEL_ENV,
+    CAREER_RUNTIME_ENVIRONMENT: env.CAREER_RUNTIME_ENVIRONMENT,
   };
 }
 
@@ -57,11 +60,11 @@ export function parseConnectLauncherProvider(
 }
 
 export function parseConnectLauncherExplicitConsent(
-  explicitConsent: string | null | undefined,
+  explicitConsent: string | boolean | null | undefined,
   provider: ProviderKind,
   requestedAt: string,
 ): NangoOAuthBoundaryRequest["consent"] {
-  if (explicitConsent === "1" || explicitConsent === "true") {
+  if (explicitConsent === true || explicitConsent === "1" || explicitConsent === "true") {
     return {
       hasExplicitConsent: true,
       consentedAt: requestedAt,
@@ -120,7 +123,7 @@ export async function handleApplyFlowNangoConnectSessionLauncher(
     return blockedLauncherResponse({
       reasons: ["missing_provider"],
       messages: [
-        "Provider query parameter is required.",
+        "Provider is required.",
         "Launcher requires explicit consent before Connect UI can start.",
       ],
     });
@@ -132,7 +135,7 @@ export async function handleApplyFlowNangoConnectSessionLauncher(
     return blockedLauncherResponse({
       reasons: ["invalid_provider"],
       messages: [
-        "Provider query parameter must be gmail or calendar.",
+        "Provider must be gmail or calendar.",
         "Launcher requires explicit consent before Connect UI can start.",
       ],
     });

@@ -1,10 +1,13 @@
-import type { ApplyFlowNangoConnectLauncherResponse } from "@/lib/provider-runtime/nango-connect-session-launcher";
 import type { ProviderKind } from "@devflow/career-sync";
+import type { ApplyFlowNangoConnectLauncherResponse } from "@/lib/provider-runtime/nango-connect-session-launcher";
 
 /**
  * Client-safe launcher fetch helper.
  * Sends explicit consent signal only — no secrets, OAuth tokens, or provider payloads.
+ * Uses POST so Connect Session creation is an explicit same-origin mutation.
  */
+
+export const PROVIDER_CONSENT_LAUNCHER_URL = "/provider-runtime/nango/connect";
 
 export function buildProviderConsentLauncherUrl(
   provider: ProviderKind,
@@ -15,7 +18,7 @@ export function buildProviderConsentLauncherUrl(
     params.set("explicit_consent", "1");
   }
 
-  return `/provider-runtime/nango/connect?${params.toString()}`;
+  return `${PROVIDER_CONSENT_LAUNCHER_URL}?${params.toString()}`;
 }
 
 export async function fetchProviderConsentLauncher(
@@ -23,9 +26,14 @@ export async function fetchProviderConsentLauncher(
   explicitConsentChecked: boolean,
   fetchImpl: typeof fetch = fetch,
 ): Promise<ApplyFlowNangoConnectLauncherResponse> {
-  const response = await fetchImpl(
-    buildProviderConsentLauncherUrl(provider, explicitConsentChecked),
-  );
+  const response = await fetchImpl(PROVIDER_CONSENT_LAUNCHER_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      provider,
+      explicitConsent: explicitConsentChecked,
+    }),
+  });
 
   if (!response.ok && response.status >= 500) {
     throw new Error(`Launcher request failed with status ${response.status}`);

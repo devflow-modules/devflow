@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { buildApplyFlowNangoEndUserId } from "./nango-server-provider.js";
 import {
   buildGmailClosedLoopMetadataRequestParams,
   buildGmailMessageMetadataRequestParams,
@@ -12,6 +13,8 @@ import {
   hashClosedLoopEmailId,
   type GmailNangoRuntimeSdk,
 } from "./gmail-readonly-nango-provider.js";
+
+const GMAIL_END_USER_ID = buildApplyFlowNangoEndUserId("gmail", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
 const listConnections = vi.fn();
 const get = vi.fn();
@@ -80,7 +83,7 @@ describe("createGmailNangoRuntimeMetadataProvider", () => {
 
     const provider = createGmailNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
-      endUserId: "applyflow-gmail-runtime-boundary",
+      endUserId: GMAIL_END_USER_ID,
       sdk,
     });
 
@@ -88,7 +91,7 @@ describe("createGmailNangoRuntimeMetadataProvider", () => {
 
     expect(listConnections).toHaveBeenCalledWith({
       integrationId: GMAIL_RUNTIME_INTEGRATION_ID,
-      tags: { end_user_id: "applyflow-gmail-runtime-boundary" },
+      tags: { end_user_id: GMAIL_END_USER_ID },
       limit: 1,
     });
     expect(get).toHaveBeenNthCalledWith(1, {
@@ -153,7 +156,7 @@ describe("createGmailNangoRuntimeMetadataProvider", () => {
 
     const provider = createGmailNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
-      endUserId: "applyflow-gmail-runtime-boundary",
+      endUserId: GMAIL_END_USER_ID,
       sdk,
     });
 
@@ -172,7 +175,7 @@ describe("createGmailNangoRuntimeMetadataProvider", () => {
 
     const provider = createGmailNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
-      endUserId: "applyflow-gmail-runtime-boundary",
+      endUserId: GMAIL_END_USER_ID,
       sdk,
     });
 
@@ -219,7 +222,7 @@ describe("createGmailNangoRuntimeMetadataProvider", () => {
 
     const provider = createGmailNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
-      endUserId: "applyflow-gmail-runtime-boundary",
+      endUserId: GMAIL_END_USER_ID,
       sdk,
     });
 
@@ -260,7 +263,7 @@ describe("createGmailNangoRuntimeMetadataProvider", () => {
 
     const provider = createGmailNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
-      endUserId: "applyflow-gmail-runtime-boundary",
+      endUserId: GMAIL_END_USER_ID,
       sdk,
     });
 
@@ -302,7 +305,7 @@ describe("createGmailNangoRuntimeMetadataProvider", () => {
 
     const provider = createGmailNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
-      endUserId: "applyflow-gmail-runtime-boundary",
+      endUserId: GMAIL_END_USER_ID,
       sdk,
     });
 
@@ -349,7 +352,7 @@ describe("listInboundEmails closed-loop extension", () => {
 
     const provider = createGmailNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
-      endUserId: "applyflow-gmail-runtime-boundary",
+      endUserId: GMAIL_END_USER_ID,
       sdk,
     });
 
@@ -361,7 +364,7 @@ describe("listInboundEmails closed-loop extension", () => {
     expect(listConnections).toHaveBeenCalledWith(
       expect.objectContaining({
         integrationId: GMAIL_RUNTIME_INTEGRATION_ID,
-        tags: { end_user_id: "applyflow-gmail-runtime-boundary" },
+        tags: { end_user_id: GMAIL_END_USER_ID },
         limit: 10,
       }),
     );
@@ -392,7 +395,7 @@ describe("listInboundEmails closed-loop extension", () => {
     });
     const provider = createGmailNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
-      endUserId: "applyflow-gmail-runtime-boundary",
+      endUserId: GMAIL_END_USER_ID,
       sdk,
     });
     const listed = await provider.listInboundEmails?.({ limit: 5 });
@@ -428,7 +431,7 @@ describe("listInboundEmails closed-loop extension", () => {
 
     const provider = createGmailNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
-      endUserId: "applyflow-gmail-runtime-boundary",
+      endUserId: GMAIL_END_USER_ID,
       sdk,
     });
     const listedB = await provider.listInboundEmails?.({
@@ -469,5 +472,9 @@ describe("hashClosedLoopEmailId", () => {
     expect(scopedB).not.toBe(legacy);
     expect(scopedA).not.toBe(scopedB);
     expect(hashClosedLoopEmailId("18sameid", accountA)).toBe(scopedA);
+  });
+
+  it("does not use the retired shared runtime-boundary tag", () => {
+    expect(GMAIL_END_USER_ID).not.toBe("applyflow-gmail-runtime-boundary");
   });
 });

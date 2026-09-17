@@ -7,11 +7,35 @@ import { resolveNangoRouteCaller } from "@/lib/provider-runtime/nango-route-call
 
 /**
  * Server-side Nango provider disconnect boundary.
- * Removes the tagged connection server-side only — never accepts client connection IDs.
+ * Removes the tagged connection for the validated caller session only.
+ * Client connection IDs, tags, and end_user_id overrides are ignored.
  */
+
+function blockedDisconnect(reason: string, messages: string[], status: number) {
+  return NextResponse.json(
+    {
+      runtime: "nango",
+      status: "blocked",
+      safeForClient: true,
+      hasToken: false,
+      warnings: [reason],
+      messages,
+    },
+    { status },
+  );
+}
 
 export async function POST(request: NextRequest) {
   const env = readApplyFlowNangoConnectSessionEnv();
+  const caller = resolveNangoRouteCaller({ request, env, mintIfMissing: false });
+  if (caller.required && !caller.ok) {
+    return blockedDisconnect(
+      caller.reason,
+      ["A same-origin caller session is required before disconnecting a Nango connection."],
+      caller.httpStatus,
+    );
+  }
+
   let body: { provider?: string; explicitConfirmation?: boolean | string } = {};
 
   try {
@@ -35,21 +59,6 @@ export async function POST(request: NextRequest) {
     const statusCode =
       hasInvalidProvider || (provider == null && body.provider == null) ? 400 : 403;
     return NextResponse.json(result, { status: statusCode });
-  }
-
-  const caller = resolveNangoRouteCaller({ request, env, mintIfMissing: false });
-  if (caller.required && !caller.ok) {
-    return NextResponse.json(
-      {
-        runtime: "nango",
-        status: "blocked",
-        safeForClient: true,
-        hasToken: false,
-        warnings: ["missing_caller_session"],
-        messages: ["A caller session is required before disconnecting a Nango connection."],
-      },
-      { status: 401 },
-    );
   }
 
   const disconnectDeps =

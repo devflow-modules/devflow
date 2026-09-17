@@ -64,10 +64,10 @@ export async function POST(request: NextRequest) {
           hasToken: false,
           signals: [],
           summary: createEmptyProviderDerivedSignalSummary(),
-          warnings: ["missing_caller_session"],
-          messages: ["A caller session is required before provider preview."],
+          warnings: [caller.reason],
+          messages: ["A same-origin caller session is required before provider preview."],
         },
-        { status: 401 },
+        { status: caller.httpStatus },
       );
     }
 

@@ -8,33 +8,54 @@ import { createNangoServerConnectSessionProvider } from "@/lib/provider-runtime/
 
 /**
  * Server-side Nango connect session launcher.
- * Returns client-safe JSON including short-lived connect session token when allowed.
+ * POST creates a caller-scoped Connect Session. GET is rejected.
+ * The af_nango_caller cookie is an anonymous browser session, not a user login.
  * Never returns NANGO_SECRET_KEY or OAuth access/refresh tokens.
  */
 
-export async function GET(request: NextRequest) {
+type ConnectBody = {
+  provider?: string;
+  redirectUri?: string;
+  explicitConsent?: boolean | string;
+  endUserId?: unknown;
+  connectionId?: unknown;
+};
+
+function blockedConnect(reason: string, messages: string[], status: number) {
+  return NextResponse.json(
+    {
+      safeForClient: true,
+      status: "blocked",
+      runtime: "nango",
+      canStartOAuth: false,
+      messages,
+      reasons: [reason],
+    },
+    { status },
+  );
+}
+
+export async function POST(request: NextRequest) {
   const env = readApplyFlowNangoConnectSessionEnv();
-  const provider = request.nextUrl.searchParams.get("provider");
-  const redirectUri = request.nextUrl.searchParams.get("redirect_uri");
-  const explicitConsent = request.nextUrl.searchParams.get("explicit_consent");
+  let body: ConnectBody = {};
+
+  try {
+    body = (await request.json()) as ConnectBody;
+  } catch {
+    body = {};
+  }
+
   const caller = resolveNangoRouteCaller({
     request,
     env,
     mintIfMissing: true,
-    secureCookie: request.nextUrl.protocol === "https:",
   });
 
   if (caller.required && !caller.ok) {
-    return NextResponse.json(
-      {
-        safeForClient: true,
-        status: "blocked",
-        runtime: "nango",
-        canStartOAuth: false,
-        messages: ["A caller session is required before Nango connect can start."],
-        reasons: ["missing_caller_session"],
-      },
-      { status: 401 },
+    return blockedConnect(
+      caller.reason,
+      ["A same-origin caller session is required before Nango connect can start."],
+      caller.httpStatus,
     );
   }
 
@@ -50,7 +71,11 @@ export async function GET(request: NextRequest) {
       : {};
 
   const result = await handleApplyFlowNangoConnectSessionLauncher(
-    { provider, redirectUri, explicitConsent },
+    {
+      provider: typeof body.provider === "string" ? body.provider : undefined,
+      redirectUri: typeof body.redirectUri === "string" ? body.redirectUri : undefined,
+      explicitConsent: body.explicitConsent,
+    },
     { env, sessionDeps },
   );
 
@@ -61,5 +86,18 @@ export async function GET(request: NextRequest) {
         ? 200
         : 403;
 
-  return attachNangoCallerCookie(NextResponse.json(result, { status: statusCode }), caller.required && caller.ok ? caller.setCookie : undefined);
+  return attachNangoCallerCookie(
+    NextResponse.json(result, { status: statusCode }),
+    caller.required && caller.ok ? caller.setCookie : undefined,
+  );
+}
+
+export async function GET() {
+  return blockedConnect(
+    "method_not_allowed",
+    [
+      "Nango connect must be requested with POST. GET does not mint a caller session or create a Connect Session.",
+    ],
+    405,
+  );
 }

@@ -98,6 +98,11 @@ describe("provider consent launcher client", () => {
       expect(outcome.result.status).toBe("blocked");
       expect(outcome.result.reasons).toContain("career_provider_runtime_disabled");
     }
+    expect(fetchImpl).toHaveBeenCalledWith("/provider-runtime/nango/connect", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider: "gmail", explicitConsent: true }),
+    });
     expect(fetchImpl).toHaveBeenCalledOnce();
   });
 

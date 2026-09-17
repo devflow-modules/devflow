@@ -10,11 +10,35 @@ import { resolveNangoRouteCaller } from "@/lib/provider-runtime/nango-route-call
 
 /**
  * Server-side Nango connection verification boundary.
+ * Lists only connections tagged to the validated caller session.
  * Returns client-safe verification snapshot only — never secrets, OAuth tokens, or raw connections.
  */
 
+function blockedVerification(reason: string, messages: string[], status: number) {
+  return NextResponse.json(
+    {
+      runtime: "nango",
+      status: "blocked",
+      safeForClient: true,
+      hasToken: false,
+      warnings: [reason],
+      messages,
+    },
+    { status },
+  );
+}
+
 export async function POST(request: NextRequest) {
   const env = readApplyFlowNangoConnectSessionEnv();
+  const caller = resolveNangoRouteCaller({ request, env, mintIfMissing: false });
+  if (caller.required && !caller.ok) {
+    return blockedVerification(
+      caller.reason,
+      ["A same-origin caller session is required before verifying a Nango connection."],
+      caller.httpStatus,
+    );
+  }
+
   let body: { provider?: string; explicitConsent?: boolean | string } = {};
 
   try {
@@ -43,21 +67,6 @@ export async function POST(request: NextRequest) {
       { env, verificationDeps: {} },
     );
     return NextResponse.json(result, { status: 403 });
-  }
-
-  const caller = resolveNangoRouteCaller({ request, env, mintIfMissing: false });
-  if (caller.required && !caller.ok) {
-    return NextResponse.json(
-      {
-        runtime: "nango",
-        status: "blocked",
-        safeForClient: true,
-        hasToken: false,
-        warnings: ["missing_caller_session"],
-        messages: ["A caller session is required before verifying a Nango connection."],
-      },
-      { status: 401 },
-    );
   }
 
   const verificationDeps =

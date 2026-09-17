@@ -35,11 +35,11 @@ export async function POST(request: NextRequest) {
           status: "blocked",
           emails: [],
           accountScopes: [],
-          warnings: ["missing_caller_session"],
+          warnings: [caller.reason],
           readOnly: true,
           safeForClient: true,
         },
-        { status: 401 },
+        { status: caller.httpStatus },
       );
     }
 

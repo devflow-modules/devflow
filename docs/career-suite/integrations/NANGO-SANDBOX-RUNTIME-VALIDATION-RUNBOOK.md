@@ -112,8 +112,10 @@ Document in Nango dashboard — **do not fill real values in this repo:**
 
 | Provider | Nango integration ID | End-user tag |
 |----------|---------------------|--------------|
-| gmail | `google-mail` | `applyflow-gmail-runtime-boundary` |
-| calendar | `google-calendar` | `applyflow-calendar-runtime-boundary` |
+| gmail | `google-mail` | `applyflow-gmail-{sha256(callerNonce)[0:32]}` — per anonymous browser session, not a shared singleton |
+| calendar | `google-calendar` | `applyflow-calendar-{sha256(callerNonce)[0:32]}` — same caller-session rule |
+
+The retired tags `applyflow-gmail-runtime-boundary` and `applyflow-calendar-runtime-boundary` are not queried. Losing or expiring `af_nango_caller` creates a new identity; old connections remain in Nango but are not listed, read, or disconnected from the new cookie. `af_nango_caller` is **not** a user login.
 
 Copy template: [`apps/applyflow/.env.example`](../../../apps/applyflow/.env.example)
 
@@ -175,7 +177,7 @@ pnpm check:career-provider-runtime          # no env → ready, all disabled
 | Nango SDK initialization | **implemented** | `nango-server-provider.ts` | `NANGO_SECRET_KEY` | High if leaked | External sandbox secret |
 | Server secret handling | **implemented** | Server-only imports | `NANGO_SECRET_KEY` | Critical | None (code) |
 | Public key handling | **not found** | No `NANGO_PUBLIC_KEY` in code | — | — | N/A |
-| Connect session | **implemented** | `GET /provider-runtime/nango/connect` | Flags + secret + consent | Medium | Sandbox credentials |
+| Connect session | **implemented** | `POST /provider-runtime/nango/connect` | Flags + secret + consent + same-origin caller cookie | Medium | Sandbox credentials |
 | Gmail connection | **partially implemented** | Gmail nango provider + adapter | Gmail flags + secret | High | Sandbox account |
 | Calendar connection | **partially implemented** | Calendar nango provider | Calendar flags + secret | High | Sandbox account |
 | Connection lookup | **implemented** | `listConnections` verification | Secret + tags | Medium | Sandbox |
@@ -291,10 +293,11 @@ pnpm check:career-provider-runtime          # no env → ready, all disabled
 
 | Method | Path |
 |--------|------|
-| GET | `/provider-runtime/nango/connect` |
+| POST | `/provider-runtime/nango/connect` (`GET` → 405) |
 | POST | `/provider-runtime/nango/connection-status` |
 | POST | `/provider-runtime/nango/disconnect` |
 | POST | `/provider-runtime/nango/derived-preview` |
+| POST | `/provider-runtime/nango/inbound-responses` |
 
 **Disconnect API key permission:** the dedicated sandbox key (`applyflow-career-sandbox-local`) must include **Connections → delete** in addition to list/read. Do not grant `with_credentials`, admin, deploy, syncs, records, or MCP. If delete is missing, the endpoint returns a safe blocked response (`nango_connection_delete_failed`) — treat as an operational blocker, not a reason to enable Full access.
 
