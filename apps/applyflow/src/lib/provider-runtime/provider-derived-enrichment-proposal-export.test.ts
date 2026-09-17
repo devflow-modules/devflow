@@ -208,29 +208,15 @@ describe("buildProviderDerivedEnrichmentProposalExport", () => {
     expect(result.warnings).toContain("proposal_has_no_signals");
   });
 
-  it("returns invalid for unsafe proposal flags", () => {
-    const base = readyProposal();
-    const persisted = buildProviderDerivedEnrichmentProposalExport({
-      proposal: { ...base, persisted: true } as ProviderDerivedEnrichmentProposal,
-      exportedAt,
-    });
-    const appliedBundle = buildProviderDerivedEnrichmentProposalExport({
-      proposal: { ...base, appliedToCareerBundle: true } as ProviderDerivedEnrichmentProposal,
-      exportedAt,
-    });
-    const appliedApps = buildProviderDerivedEnrichmentProposalExport({
-      proposal: { ...base, appliedToApplications: true } as ProviderDerivedEnrichmentProposal,
-      exportedAt,
-    });
-    const reviewOff = buildProviderDerivedEnrichmentProposalExport({
-      proposal: { ...base, userReviewRequired: false } as ProviderDerivedEnrichmentProposal,
-      exportedAt,
-    });
+  it("keeps exportable proposals on the persisted=false review-required contract", () => {
+    const proposal = readyProposal();
+    expect(proposal.persisted).toBe(false);
+    expect(proposal.appliedToCareerBundle).toBe(false);
+    expect(proposal.appliedToApplications).toBe(false);
+    expect(proposal.userReviewRequired).toBe(true);
 
-    expect(persisted.warnings).toContain("proposal_unsafe_flags");
-    expect(appliedBundle.warnings).toContain("proposal_unsafe_flags");
-    expect(appliedApps.warnings).toContain("proposal_unsafe_flags");
-    expect(reviewOff.warnings).toContain("proposal_unsafe_flags");
+    const result = buildProviderDerivedEnrichmentProposalExport({ proposal, exportedAt });
+    expect(result.warnings).not.toContain("proposal_unsafe_flags");
   });
 
   it("returns invalid for invalid timestamps", () => {

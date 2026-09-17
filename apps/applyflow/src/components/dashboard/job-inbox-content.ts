@@ -2,16 +2,21 @@ import type { CurriculumRecommendation, JobMatchDecision } from "@devflow/applyf
 import type { ApplyFlowBadgeTone } from "@/components/ui/ApplyFlowBadge";
 
 export const JOB_INBOX_EYEBROW = "AF-JOBS-F1";
-export const JOB_INBOX_TITLE = "Inbox de vagas";
+export const JOB_INBOX_TITLE = "Vagas";
 export const JOB_INBOX_DESCRIPTION =
-  "Cola o texto da vaga ou importa JSON v2. O score é determinístico, sem LLM e sem ir à rede. APPLY e STRETCH entram como Revisando; SKIP como Ignorada. O anúncio completo não é guardado — só um recorte truncado e um hash local.";
+  "Cola o anúncio completo. A avaliação é local e não envia a candidatura.";
 export const JOB_INBOX_SUBMIT_LABEL = "Avaliar vaga";
+export const JOB_INBOX_NEEDS_RESUME =
+  "Job Match precisa de um currículo válido. Cadastra um perfil ou importa JSON primeiro.";
 export const JOB_INBOX_PASTE_LABEL = "Texto da vaga";
 export const JOB_INBOX_TITLE_LABEL = "Título (opcional)";
 export const JOB_INBOX_COMPANY_LABEL = "Empresa (opcional)";
 export const JOB_INBOX_URL_LABEL = "URL (opcional, não é descarregada)";
+export const JOB_INBOX_DUPLICATE_URL = "Esta URL já está cadastrada. A vaga existente não foi sobrescrita.";
+export const JOB_INBOX_OPEN_EXISTING = "Abrir vaga existente";
 export const JOB_INBOX_EVALUATED_WITH_PREFIX = "Avaliado com:";
 export const JOB_INBOX_MATCHED_WITH_PREFIX = "Match com";
+export { JOB_DECISION_V2_LINK } from "./job-decision-v2-content";
 export const CURRICULUM_ROUTER_TITLE = "Currículo recomendado";
 export const CURRICULUM_ROUTER_EQUIVALENT_TITLE = "Currículos com aderência semelhante";
 export const CURRICULUM_ROUTER_COMPARE_LABEL = "Comparar currículos";
@@ -61,15 +66,23 @@ export const APPLICATION_PACK_SALARY_LABELS = {
   usdHourly: "USD hora",
 } as const;
 
+export const JOB_INBOX_STALE_LABEL = "Avaliação desatualizada";
+export const JOB_INBOX_REEVALUATE_LABEL = "Reavaliar match";
+export const JOB_INBOX_INCOMPLETE_HINT = "Complete seu perfil para concluir a análise";
+export const JOB_INBOX_AT_APPLY_ANALYSIS = "Análise no envio";
+export const JOB_INBOX_CURRENT_ANALYSIS = "Análise atual";
+
 export const JOB_MATCH_DECISION_LABELS: Record<JobMatchDecision, string> = {
   apply: "APPLY",
   stretch: "STRETCH",
+  needs_info: "INCONCLUSIVA",
   skip: "SKIP",
 };
 
 export function jobMatchDecisionTone(decision: JobMatchDecision): ApplyFlowBadgeTone {
   if (decision === "apply") return "success";
   if (decision === "stretch") return "warning";
+  if (decision === "needs_info") return "warning";
   return "danger";
 }
 

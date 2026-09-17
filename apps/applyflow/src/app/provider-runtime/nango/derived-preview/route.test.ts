@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { NextRequest } from "next/server";
 import { createEmptyProviderDerivedSignalSummary } from "@devflow/career-sync";
 import { GET, POST } from "./route";
 
@@ -58,11 +59,22 @@ function completedResult() {
   };
 }
 
-function makePostRequest(body: unknown) {
-  return new Request("http://localhost/provider-runtime/nango/derived-preview", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+import { mintCaller, nangoRequest } from "@/lib/provider-runtime/nango-route-test-fixtures";
+
+function callerCookieHeader(): string {
+  return mintCaller("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").cookieHeader;
+}
+
+function makePostRequest(
+  body: unknown,
+  cookie = callerCookieHeader(),
+  origin?: string | null | "omit",
+) {
+  return nangoRequest({
+    url: "http://localhost/provider-runtime/nango/derived-preview",
+    body,
+    cookie: cookie || undefined,
+    origin,
   });
 }
 
@@ -73,13 +85,13 @@ describe("POST /provider-runtime/nango/derived-preview", () => {
   });
 
   it("rejects invalid JSON with 400", async () => {
-    const request = new Request("http://localhost/provider-runtime/nango/derived-preview", {
+    const request = new NextRequest("http://localhost/provider-runtime/nango/derived-preview", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", origin: "http://localhost" },
       body: "{",
     });
 
-    const response = await POST(request as never);
+    const response = await POST(request);
     expect(response.status).toBe(400);
     expect(handlePreview).not.toHaveBeenCalled();
   });
@@ -89,6 +101,25 @@ describe("POST /provider-runtime/nango/derived-preview", () => {
       makePostRequest({ ...validBody, explicitConsent: false }) as never,
     );
     expect(response.status).toBe(403);
+    expect(handlePreview).not.toHaveBeenCalled();
+  });
+
+  it("rejects authenticated runtime calls without a caller session", async () => {
+    const response = await POST(
+      makePostRequest(validBody, "") as never,
+    );
+    expect(response.status).toBe(401);
+    const body = await response.json();
+    expect(body.warnings).toContain("missing_caller_session");
+    expect(handlePreview).not.toHaveBeenCalled();
+  });
+
+  it("rejects a foreign Origin before previewing", async () => {
+    const response = await POST(
+      makePostRequest(validBody, callerCookieHeader(), "https://evil.example") as never,
+    );
+    expect(response.status).toBe(403);
+    expect((await response.json()).warnings).toContain("cross_origin_forbidden");
     expect(handlePreview).not.toHaveBeenCalled();
   });
 

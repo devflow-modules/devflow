@@ -260,6 +260,22 @@ describe("syncReviewStateWithPreview", () => {
     ).toEqual(createInitialProviderDerivedRuntimeReviewState());
   });
 
+  it("preserves the previous idle state by reference when there is still no preview", () => {
+    const idle = createInitialProviderDerivedRuntimeReviewState();
+    expect(
+      syncReviewStateWithPreview(idle, {
+        result: null,
+        isPreviewLoading: false,
+      }),
+    ).toBe(idle);
+    expect(
+      syncReviewStateWithPreview(idle, {
+        result: createPreviewResult(),
+        isPreviewLoading: true,
+      }),
+    ).toBe(idle);
+  });
+
   it("reinitializes when fingerprint changes", () => {
     const preview = createPreviewResult();
     const current = toggleProviderDerivedSignalSelection(

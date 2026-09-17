@@ -4,7 +4,7 @@ import type { ApplyFlowApplicationStatus } from "./application-types.js";
 export const APPLYFLOW_JOB_SOURCES = ["linkedin", "paste", "json"] as const;
 export type ApplyFlowJobSource = (typeof APPLYFLOW_JOB_SOURCES)[number];
 
-export const JOB_MATCH_DECISIONS = ["apply", "stretch", "skip"] as const;
+export const JOB_MATCH_DECISIONS = ["apply", "stretch", "needs_info", "skip"] as const;
 export type JobMatchDecision = (typeof JOB_MATCH_DECISIONS)[number];
 
 export const JOB_MATCH_SCORING_VERSION = "v1" as const;
@@ -30,6 +30,7 @@ export type ResumeMatchCandidate = {
   decision: JobMatchDecision;
   matchedSkills: string[];
   missingSkills: string[];
+  unknownSkills?: string[];
 };
 
 export type CurriculumRecommendation = {
@@ -55,6 +56,7 @@ export type ApplyFlowJobMatch = {
   decision: JobMatchDecision;
   matchedSkills: string[];
   missingSkills: string[];
+  unknownSkills?: string[];
   evaluatedAt: string;
   scoringVersion: JobMatchScoringVersion;
 };

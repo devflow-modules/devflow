@@ -113,6 +113,26 @@ describe("application-storage", () => {
     await expect(getApplications()).resolves.toEqual([]);
   });
 
+  it("saveApplication guarda match/resume resumidos sem marcar applied", async () => {
+    const a = await saveApplication({
+      jobUrl: "https://linkedin.com/jobs/view/copilot",
+      status: "reviewing",
+      fitScore: 92,
+      matchDecision: "apply",
+      resumeTrack: "fullstack",
+      strengthsSummary: ["React", "TypeScript"],
+      gapsSummary: ["Kubernetes"],
+      preparationStatus: { total: 11, ready: 8, needsReview: 2, missing: 1, blocked: 0 },
+    });
+    expect(a.status).toBe("reviewing");
+    expect(a.matchDecision).toBe("apply");
+    expect(a.resumeTrack).toBe("fullstack");
+    expect(a.strengthsSummary).toEqual(["React", "TypeScript"]);
+    const persisted = JSON.stringify(chromeStorageBag.get(STORAGE_APPLICATIONS_KEY));
+    expect(persisted).not.toContain("suggestedValue");
+    expect(persisted).not.toContain("cover letter");
+  });
+
   it("saveApplication persiste jobMeta (dedupe skills)", async () => {
     await saveApplication({
       jobUrl: "https://linkedin.com/jobs/meta",

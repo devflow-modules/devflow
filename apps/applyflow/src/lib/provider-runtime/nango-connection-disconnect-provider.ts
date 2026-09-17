@@ -50,6 +50,7 @@ export function createNangoConnectionDisconnectSdk(secretKey: string): NangoConn
 
 export function createNangoConnectionDisconnectProvider(input: {
   secretKey: string;
+  callerNonce: string;
   sdk?: NangoConnectionDisconnectSdk;
 }): NangoConnectionDisconnectProvider {
   const sdk = input.sdk ?? createNangoConnectionDisconnectSdk(input.secretKey);
@@ -57,7 +58,7 @@ export function createNangoConnectionDisconnectProvider(input: {
   return {
     async disconnectProvider({ provider }) {
       const integrationId = NANGO_INTEGRATION_BY_PROVIDER[provider];
-      const endUserId = buildApplyFlowNangoEndUserId(provider);
+      const endUserId = buildApplyFlowNangoEndUserId(provider, input.callerNonce);
 
       let connections: Array<Record<string, unknown>> = [];
 

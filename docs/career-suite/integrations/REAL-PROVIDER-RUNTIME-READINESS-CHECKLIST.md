@@ -126,9 +126,9 @@ All real runtime behavior must require:
 
 - `CAREER_PROVIDER_RUNTIME_ENABLED=true`
 - `NANGO_RUNTIME_ENABLED=true`
-- provider-specific flag:
-  - `GMAIL_PROVIDER_ENABLED=true`
-  - `CALENDAR_PROVIDER_ENABLED=true`
+- the flag for the provider being used:
+  - Gmail: `GMAIL_PROVIDER_ENABLED=true` (does not require Calendar)
+  - Calendar: `CALENDAR_PROVIDER_ENABLED=true` (leave off when Calendar is out of scope)
 
 Missing flags must behave as disabled.
 

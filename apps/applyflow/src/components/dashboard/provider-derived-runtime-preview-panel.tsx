@@ -36,6 +36,10 @@ import { CareerAgentWorkspace } from "./career-agent-workspace";
 import { CareerChatWorkspace } from "./career-chat-workspace";
 import { CareerAiDraft } from "./career-ai-draft";
 import { ApprovedAutomationReview } from "./approved-automation-review";
+import { InboundApplicationResponsePanel } from "./inbound-application-response-panel";
+import { inboundEmailsFromProviderPreview } from "./inbound-signals-from-preview";
+import { loadDashboardImport } from "@/lib/local-import-storage";
+import { loadDashboardAnalytics } from "@/lib/local-analytics-storage";
 
 export type { ProviderDerivedRuntimePreviewUiState } from "./provider-derived-runtime-preview-client";
 
@@ -49,6 +53,20 @@ function isCalendarServerVerified(
   verification: ProviderConnectionVerificationResult | null,
 ): boolean {
   return verification?.state === "connected";
+}
+
+export function createProviderRuntimePreviewSessionKey(input: {
+  explicitConsentChecked: boolean;
+  gmailVerification: ProviderConnectionVerificationResult | null;
+  calendarVerification: ProviderConnectionVerificationResult | null;
+}): string {
+  return [
+    input.explicitConsentChecked ? "1" : "0",
+    input.gmailVerification?.state ?? "",
+    input.gmailVerification?.checkedAt ?? "",
+    input.calendarVerification?.state ?? "",
+    input.calendarVerification?.checkedAt ?? "",
+  ].join("|");
 }
 
 function mapResultToUiState(
@@ -83,6 +101,22 @@ function uiMessageForState(state: ProviderDerivedRuntimePreviewUiState): string 
   }
 }
 
+function createIdleProviderPreviewSession(sessionKey: string): {
+  sessionKey: string;
+  uiState: ProviderDerivedRuntimePreviewUiState;
+  previewResult: ProviderDerivedRuntimePreviewClientResult | null;
+  reviewState: ProviderDerivedRuntimeReviewState;
+  enrichmentProposal: ProviderDerivedEnrichmentProposal | null;
+} {
+  return {
+    sessionKey,
+    uiState: "idle",
+    previewResult: null,
+    reviewState: createInitialProviderDerivedRuntimeReviewState(),
+    enrichmentProposal: null,
+  };
+}
+
 /**
  * Explicitly triggered read-only runtime preview panel.
  * Client-side connection state controls button availability only.
@@ -107,14 +141,20 @@ export function ProviderDerivedRuntimePreviewPanel({
   onEligibleProviderEnrichmentChange?: (enrichment: CareerBundleUnifiedSyncEnrichment | null) => void;
   careerBundle?: CareerBundle | null;
 }) {
-  const [uiState, setUiState] = useState<ProviderDerivedRuntimePreviewUiState>("idle");
-  const [previewResult, setPreviewResult] =
-    useState<ProviderDerivedRuntimePreviewClientResult | null>(null);
-  const [reviewState, setReviewState] = useState<ProviderDerivedRuntimeReviewState>(
-    createInitialProviderDerivedRuntimeReviewState,
+  const previewSessionKey = createProviderRuntimePreviewSessionKey({
+    explicitConsentChecked,
+    gmailVerification,
+    calendarVerification,
+  });
+  const [previewSession, setPreviewSession] = useState(() =>
+    createIdleProviderPreviewSession(previewSessionKey),
   );
-  const [enrichmentProposal, setEnrichmentProposal] =
-    useState<ProviderDerivedEnrichmentProposal | null>(null);
+
+  if (previewSession.sessionKey !== previewSessionKey) {
+    setPreviewSession(createIdleProviderPreviewSession(previewSessionKey));
+  }
+
+  const { uiState, previewResult, reviewState, enrichmentProposal } = previewSession;
 
   const gmailVerified = isGmailServerVerified(gmailVerification);
   const calendarVerified = isCalendarServerVerified(calendarVerification);
@@ -122,30 +162,20 @@ export function ProviderDerivedRuntimePreviewPanel({
   const previewEnabled =
     explicitConsentChecked && gmailVerified && calendarVerified && uiState !== "loading";
 
-  useEffect(() => {
-    setPreviewResult(null);
-    setUiState("idle");
-    setReviewState(createInitialProviderDerivedRuntimeReviewState());
-    setEnrichmentProposal(null);
-  }, [
-    explicitConsentChecked,
-    gmailVerification?.state,
-    gmailVerification?.checkedAt,
-    calendarVerification?.state,
-    calendarVerification?.checkedAt,
-  ]);
-
-  useEffect(() => {
-    if (
-      isEnrichmentProposalStale(enrichmentProposal, {
-        previewResult,
-        reviewState,
-        isPreviewLoading: uiState === "loading",
-      })
-    ) {
-      setEnrichmentProposal(null);
-    }
-  }, [enrichmentProposal, previewResult, reviewState, uiState]);
+  if (
+    enrichmentProposal &&
+    isEnrichmentProposalStale(enrichmentProposal, {
+      previewResult,
+      reviewState,
+      isPreviewLoading: uiState === "loading",
+    })
+  ) {
+    setPreviewSession((current) =>
+      current.sessionKey !== previewSessionKey || !current.enrichmentProposal
+        ? current
+        : { ...current, enrichmentProposal: null },
+    );
+  }
 
   useEffect(() => {
     if (!onEligibleProviderEnrichmentChange) {
@@ -173,9 +203,17 @@ export function ProviderDerivedRuntimePreviewPanel({
       return;
     }
 
-    setUiState("loading");
-    setPreviewResult(null);
-    setEnrichmentProposal(null);
+    const sessionAtStart = previewSessionKey;
+    setPreviewSession((current) =>
+      current.sessionKey !== sessionAtStart
+        ? current
+        : {
+            ...current,
+            uiState: "loading",
+            previewResult: null,
+            enrichmentProposal: null,
+          },
+    );
 
     const outcome = await runProviderDerivedRuntimePreview({
       explicitConsentChecked,
@@ -183,13 +221,19 @@ export function ProviderDerivedRuntimePreviewPanel({
       calendarConnectionVerified: calendarVerified,
     });
 
-    if (!outcome.ok) {
-      setUiState("error");
-      return;
-    }
-
-    setPreviewResult(outcome.result);
-    setUiState(mapResultToUiState(outcome.result));
+    setPreviewSession((current) => {
+      if (current.sessionKey !== sessionAtStart) {
+        return current;
+      }
+      if (!outcome.ok) {
+        return { ...current, uiState: "error" };
+      }
+      return {
+        ...current,
+        previewResult: outcome.result,
+        uiState: mapResultToUiState(outcome.result),
+      };
+    });
   }
 
   return (
@@ -328,8 +372,22 @@ export function ProviderDerivedRuntimePreviewPanel({
         <ProviderDerivedRuntimeReviewPanel
           result={previewResult}
           isPreviewLoading={uiState === "loading"}
-          onReviewStateChange={setReviewState}
+          onReviewStateChange={(nextReviewState) => {
+            setPreviewSession((current) => {
+              if (current.sessionKey !== previewSessionKey) return current;
+              if (current.reviewState === nextReviewState) return current;
+              return { ...current, reviewState: nextReviewState };
+            });
+          }}
         />
+
+        {previewResult && (previewResult.status === "completed" || previewResult.status === "partial") ? (
+          <InboundApplicationResponsePanel
+            applications={loadDashboardImport()?.applications ?? []}
+            outcomes={loadDashboardAnalytics().outcomes}
+            emails={inboundEmailsFromProviderPreview(previewResult.signals)}
+          />
+        ) : null}
 
         <ProviderInsightsTimeline
           previewUiState={uiState}
@@ -366,7 +424,13 @@ export function ProviderDerivedRuntimePreviewPanel({
           reviewState={reviewState}
           isPreviewLoading={uiState === "loading"}
           proposal={enrichmentProposal}
-          onProposalChange={setEnrichmentProposal}
+          onProposalChange={(nextProposal) => {
+            setPreviewSession((current) => {
+              if (current.sessionKey !== previewSessionKey) return current;
+              if (current.enrichmentProposal === nextProposal) return current;
+              return { ...current, enrichmentProposal: nextProposal };
+            });
+          }}
           currentSyncEnrichment={currentSyncEnrichment}
           baselineSourceKind={baselineSourceKind}
         />

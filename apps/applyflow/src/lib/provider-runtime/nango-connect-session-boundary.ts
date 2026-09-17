@@ -14,6 +14,11 @@ export type ApplyFlowNangoConnectSessionEnv = {
   GMAIL_PROVIDER_ENABLED?: string;
   CALENDAR_PROVIDER_ENABLED?: string;
   NANGO_SECRET_KEY?: string;
+  NODE_ENV?: string;
+  VERCEL_ENV?: string;
+  CAREER_RUNTIME_ENVIRONMENT?: string;
+  NEXT_PUBLIC_APPLYFLOW_URL?: string;
+  VERCEL_URL?: string;
 };
 
 export type ApplyFlowNangoConnectSessionResult = {

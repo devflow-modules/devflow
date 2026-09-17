@@ -5,7 +5,7 @@ import {
 } from "./provider-derived-enrichment-proposal-download";
 
 function createDependencies(overrides: Partial<DownloadTextFileDependencies> = {}) {
-  const createObjectURL = vi.fn(() => "blob:proposal");
+  const createObjectURL = vi.fn<(blob: Blob) => string>(() => "blob:proposal");
   const revokeObjectURL = vi.fn();
   const click = vi.fn();
   const anchor = {
@@ -52,8 +52,9 @@ describe("downloadProviderDerivedEnrichmentProposal", () => {
     downloadProviderDerivedEnrichmentProposal(downloadInput, dependencies);
 
     expect(createObjectURL).toHaveBeenCalledTimes(1);
-    const blob = createObjectURL.mock.calls[0]?.[0] as Blob;
-    expect(blob.type).toBe("application/json");
+    const blob = createObjectURL.mock.calls[0]?.[0];
+    expect(blob).toBeInstanceOf(Blob);
+    expect(blob?.type).toBe("application/json");
     expect(createAnchor).toHaveBeenCalledTimes(1);
     expect(anchor.download).toBe(downloadInput.filename);
     expect(anchor.href).toBe("blob:proposal");
@@ -68,8 +69,9 @@ describe("downloadProviderDerivedEnrichmentProposal", () => {
 
     downloadProviderDerivedEnrichmentProposal(downloadInput, dependencies);
 
-    const blob = createObjectURL.mock.calls[0]?.[0] as Blob;
-    expect(await blob.text()).toBe(downloadInput.json);
+    const blob = createObjectURL.mock.calls[0]?.[0];
+    expect(blob).toBeInstanceOf(Blob);
+    expect(await blob?.text()).toBe(downloadInput.json);
   });
 
   it("revokes object URL when click throws", () => {

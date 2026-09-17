@@ -6,7 +6,10 @@ import {
 } from "./provider-derived-runtime-preview-content";
 import { PROVIDER_DERIVED_RUNTIME_REVIEW_TITLE } from "./provider-derived-runtime-review-content";
 import { PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_TITLE } from "./provider-derived-enrichment-proposal-content";
-import { ProviderDerivedRuntimePreviewPanel } from "./provider-derived-runtime-preview-panel";
+import {
+  createProviderRuntimePreviewSessionKey,
+  ProviderDerivedRuntimePreviewPanel,
+} from "./provider-derived-runtime-preview-panel";
 
 const connectedVerification = (provider: "gmail" | "calendar") => ({
   provider,
@@ -78,6 +81,44 @@ describe("ProviderDerivedRuntimePreviewPanel render", () => {
     );
 
     expect(html).toContain('disabled=""');
+  });
+});
+
+describe("createProviderRuntimePreviewSessionKey", () => {
+  it("muda quando o consentimento ou a verificação do servidor mudam", () => {
+    const idle = createProviderRuntimePreviewSessionKey({
+      explicitConsentChecked: false,
+      gmailVerification: null,
+      calendarVerification: null,
+    });
+    const consented = createProviderRuntimePreviewSessionKey({
+      explicitConsentChecked: true,
+      gmailVerification: null,
+      calendarVerification: null,
+    });
+    const gmailConnected = createProviderRuntimePreviewSessionKey({
+      explicitConsentChecked: true,
+      gmailVerification: connectedVerification("gmail"),
+      calendarVerification: null,
+    });
+    const bothConnected = createProviderRuntimePreviewSessionKey({
+      explicitConsentChecked: true,
+      gmailVerification: connectedVerification("gmail"),
+      calendarVerification: connectedVerification("calendar"),
+    });
+    const gmailRechecked = createProviderRuntimePreviewSessionKey({
+      explicitConsentChecked: true,
+      gmailVerification: {
+        ...connectedVerification("gmail"),
+        checkedAt: "2026-06-16T12:00:00.000Z",
+      },
+      calendarVerification: connectedVerification("calendar"),
+    });
+
+    expect(idle).not.toBe(consented);
+    expect(consented).not.toBe(gmailConnected);
+    expect(gmailConnected).not.toBe(bothConnected);
+    expect(bothConnected).not.toBe(gmailRechecked);
   });
 });
 

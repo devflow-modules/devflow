@@ -23,6 +23,7 @@ describe("createNangoConnectionDisconnectProvider", () => {
 
     const provider = createNangoConnectionDisconnectProvider({
       secretKey: "test-secret",
+      callerNonce: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       sdk,
     });
 
@@ -42,6 +43,7 @@ describe("createNangoConnectionDisconnectProvider", () => {
 
     const provider = createNangoConnectionDisconnectProvider({
       secretKey: "test-secret",
+      callerNonce: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       sdk,
     });
 
@@ -59,6 +61,7 @@ describe("createNangoConnectionDisconnectProvider", () => {
 
     const provider = createNangoConnectionDisconnectProvider({
       secretKey: "test-secret",
+      callerNonce: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       sdk,
     });
 
@@ -77,6 +80,7 @@ describe("createNangoConnectionDisconnectProvider", () => {
 
     const provider = createNangoConnectionDisconnectProvider({
       secretKey: "test-secret",
+      callerNonce: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       sdk,
     });
 
@@ -97,6 +101,7 @@ describe("createNangoConnectionDisconnectProvider", () => {
 
     const provider = createNangoConnectionDisconnectProvider({
       secretKey: "test-secret",
+      callerNonce: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       sdk,
     });
 

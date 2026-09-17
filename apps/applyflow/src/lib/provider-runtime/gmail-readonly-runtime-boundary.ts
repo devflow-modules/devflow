@@ -6,6 +6,7 @@ import {
 import { createGmailReadOnlyNangoRuntimeAdapter } from "./gmail-readonly-nango-adapter";
 import type { GmailNangoRuntimeMetadataProvider } from "./gmail-readonly-nango-provider";
 import { createGmailNangoRuntimeMetadataProvider } from "./gmail-readonly-nango-provider";
+import { buildApplyFlowNangoEndUserId } from "./nango-server-provider";
 import {
   envToProviderRuntimeFlags,
   type ApplyFlowNangoConnectSessionEnv,
@@ -78,6 +79,7 @@ export async function executeApplyFlowGmailReadOnlyRuntimeBoundary(
       maxMessages?: number;
     };
     runtimeDeps?: ApplyFlowGmailReadOnlyRuntimeDeps;
+    callerNonce?: string;
   },
 ): Promise<GmailReadOnlyAdapterResult> {
   const requestedAt = deps.requestedAt;
@@ -117,10 +119,19 @@ export async function executeApplyFlowGmailReadOnlyRuntimeBoundary(
     });
   }
 
+  if (!deps.runtimeDeps?.metadataProvider && !deps.callerNonce) {
+    return blockedRuntimeResult({
+      connectionVerified: deps.connectionVerified,
+      requestedAt,
+      warnings: ["blocked:missing_caller_session"],
+    });
+  }
+
   const metadataProvider =
     deps.runtimeDeps?.metadataProvider ??
     createGmailNangoRuntimeMetadataProvider({
       secretKey: deps.env.NANGO_SECRET_KEY,
+      endUserId: buildApplyFlowNangoEndUserId("gmail", deps.callerNonce as string),
     });
 
   const adapter = createGmailReadOnlyNangoRuntimeAdapter({ metadataProvider });

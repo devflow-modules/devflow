@@ -9,18 +9,38 @@ import {
   type ApplicationPackResumeSource,
   type ApplicationPackSalaryFacts,
 } from "./application-pack-types.js";
+import { INCOMPLETE_ANALYSIS_MESSAGE } from "./application-decision-types.js";
 import { evaluateJobMatch } from "./evaluate-job-match.js";
-import type { ApplyFlowJob } from "./job-match-types.js";
+import { presentInboxJobAnalysis } from "./inbox-analysis-presentation.js";
+import type { ApplyFlowJob, JobMatchDecision } from "./job-match-types.js";
 import type { CandidateProfile } from "./profile-schema.js";
 import { getDefaultResumeVariant } from "./resume-library.js";
 import type { ResumeLibrary, ResumeVariant } from "./resume-library-types.js";
+
+/** Skill-coverage V1 only. Not a final apply recommendation. */
+export function isV1TechnicalApplyOrStretch(decision: JobMatchDecision): boolean {
+  return decision === "apply" || decision === "stretch";
+}
 
 export type ApplicationPackOpResult =
   | { ok: true; job: ApplyFlowJob; library: ResumeLibrary }
   | { ok: false; error: string; job: ApplyFlowJob; library: ResumeLibrary };
 
-export function canCreateApplicationPack(job: ApplyFlowJob): boolean {
-  return job.jobMatch.decision === "apply" || job.jobMatch.decision === "stretch";
+export function canCreateApplicationPack(
+  job: ApplyFlowJob,
+  library?: ResumeLibrary | null,
+  variantId?: string,
+): boolean {
+  if (!isV1TechnicalApplyOrStretch(job.jobMatch.decision)) return false;
+  if (!library?.variants.length || !job.descriptionSnapshot?.trim()) {
+    return true;
+  }
+  try {
+    const profile = resolveApplicationPackResume(job, library, variantId).variant.profile;
+    return presentInboxJobAnalysis(job, profile).allowPack;
+  } catch {
+    return false;
+  }
 }
 
 export function isOpenableJobUrl(url: string | undefined): boolean {
@@ -40,12 +60,18 @@ function optionalText(value: string | undefined): string | undefined {
 
 export function snapshotCandidateFacts(profile: CandidateProfile): ApplicationPackCandidateFacts {
   const roles = profile.roles.map((role) => role.trim()).filter(Boolean);
+  const cltPleno = optionalText(profile.salary.cltPleno);
+  const cltSenior = optionalText(profile.salary.cltSenior);
+  const pjSenior = optionalText(profile.salary.pjSenior);
+  const usdMonthly = optionalText(profile.salary.usdMonthly);
+  const usdHourly = optionalText(profile.salary.usdHourly);
+  const location = optionalText(profile.location);
   const salary: ApplicationPackSalaryFacts = {
-    ...(optionalText(profile.salary.cltPleno) ? { cltPleno: profile.salary.cltPleno.trim() } : {}),
-    ...(optionalText(profile.salary.cltSenior) ? { cltSenior: profile.salary.cltSenior.trim() } : {}),
-    ...(optionalText(profile.salary.pjSenior) ? { pjSenior: profile.salary.pjSenior.trim() } : {}),
-    ...(optionalText(profile.salary.usdMonthly) ? { usdMonthly: profile.salary.usdMonthly.trim() } : {}),
-    ...(optionalText(profile.salary.usdHourly) ? { usdHourly: profile.salary.usdHourly.trim() } : {}),
+    ...(cltPleno ? { cltPleno } : {}),
+    ...(cltSenior ? { cltSenior } : {}),
+    ...(pjSenior ? { pjSenior } : {}),
+    ...(usdMonthly ? { usdMonthly } : {}),
+    ...(usdHourly ? { usdHourly } : {}),
   };
   const answerBank = {
     ...(optionalText(profile.answerBank.professionalSummary)
@@ -56,13 +82,27 @@ export function snapshotCandidateFacts(profile: CandidateProfile): ApplicationPa
       : {}),
     ...(optionalText(profile.answerBank.whyGoodFit) ? { whyGoodFit: profile.answerBank.whyGoodFit.trim() } : {}),
     ...(optionalText(profile.answerBank.availability) ? { availability: profile.answerBank.availability.trim() } : {}),
+    ...(optionalText(profile.answerBank.hardestChallenge)
+      ? { hardestChallenge: profile.answerBank.hardestChallenge.trim() }
+      : {}),
+    ...(optionalText(profile.answerBank.productCase) ? { productCase: profile.answerBank.productCase.trim() } : {}),
+    ...(optionalText(profile.answerBank.frontendCase) ? { frontendCase: profile.answerBank.frontendCase.trim() } : {}),
+    ...(optionalText(profile.answerBank.backendCase) ? { backendCase: profile.answerBank.backendCase.trim() } : {}),
+    ...(optionalText(profile.answerBank.automationCase)
+      ? { automationCase: profile.answerBank.automationCase.trim() }
+      : {}),
+    ...(optionalText(profile.answerBank.leadershipCase)
+      ? { leadershipCase: profile.answerBank.leadershipCase.trim() }
+      : {}),
   };
 
   return {
     ...(optionalText(profile.name) ? { name: profile.name.trim() } : {}),
-    ...(optionalText(profile.location) ? { location: profile.location.trim() } : {}),
-    englishLevel: profile.englishLevel,
-    comfortableInEnglish: profile.comfortableInEnglish,
+    ...(location ? { location } : {}),
+    ...(profile.englishLevel ? { englishLevel: profile.englishLevel } : {}),
+    ...(typeof profile.comfortableInEnglish === "boolean"
+      ? { comfortableInEnglish: profile.comfortableInEnglish }
+      : {}),
     ...(roles.length > 0 ? { roles } : {}),
     ...(Object.keys(salary).length > 0 ? { salary } : {}),
     ...(Object.keys(answerBank).length > 0 ? { answerBank } : {}),
@@ -147,7 +187,21 @@ export function createApplicationPack(input: {
   now?: Date;
 }): ApplicationPackOpResult {
   const { job, library } = input;
-  if (!canCreateApplicationPack(job)) {
+  if (!canCreateApplicationPack(job, library, input.variantId)) {
+    let presentedDecision: ReturnType<typeof presentInboxJobAnalysis>["decision"] | undefined;
+    try {
+      if (job.descriptionSnapshot?.trim()) {
+        presentedDecision = presentInboxJobAnalysis(
+          job,
+          resolveApplicationPackResume(job, library, input.variantId).variant.profile,
+        ).decision;
+      }
+    } catch {
+      presentedDecision = undefined;
+    }
+    if (presentedDecision === "needs_info") {
+      return { ok: false, error: `${INCOMPLETE_ANALYSIS_MESSAGE}. Pack V1 não está pronto.`, job, library };
+    }
     return { ok: false, error: "Application Pack só está disponível para APPLY ou STRETCH.", job, library };
   }
   if (job.applicationPack) {

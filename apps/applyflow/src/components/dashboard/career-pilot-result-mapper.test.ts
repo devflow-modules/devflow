@@ -1,7 +1,28 @@
-import { orchestrateCareerAgents } from "@devflow/career-core";
+import { createCareerBundle, orchestrateCareerAgents, type CareerChatResponse } from "@devflow/career-core";
 import { describe, expect, it } from "vitest";
 import { buildCareerPilotResultModel, takeTopUnique } from "./career-pilot-result-mapper";
-import { createCareerBundle } from "@devflow/career-core";
+
+const CONVERSATION_ID = "conv-pilot-test";
+
+function chatResponse(
+  overrides: Pick<CareerChatResponse, "intent" | "agentResult"> &
+    Partial<Pick<CareerChatResponse, "trace">>,
+): CareerChatResponse {
+  return {
+    status: "completed",
+    provider: "librechat",
+    conversationId: CONVERSATION_ID,
+    reviewRequired: true,
+    safeForClient: true,
+    hasToken: false,
+    persisted: false,
+    executedExternally: false,
+    warnings: [],
+    toolProposals: [],
+    trace: overrides.trace ?? { conversationId: CONVERSATION_ID, steps: [] },
+    ...overrides,
+  };
+}
 
 const bundle = createCareerBundle([
   {
@@ -47,19 +68,21 @@ describe("buildCareerPilotResultModel", () => {
       "2026-06-21T12:00:00.000Z",
     );
 
-    const response = {
-      status: "completed" as const,
-      intent: "analyze_resume" as const,
-      reviewRequired: true,
-      safeForClient: true,
-      hasToken: false,
-      persisted: false,
-      executedExternally: false,
-      warnings: [],
-      toolProposals: [],
-      trace: { steps: [{ code: "review_required", message: "Human review", timestamp: "t" }] },
+    const response = chatResponse({
+      intent: "analyze_resume",
+      trace: {
+        conversationId: CONVERSATION_ID,
+        steps: [
+          {
+            timestamp: "t",
+            status: "completed",
+            code: "human_review_required",
+            message: "Human review",
+          },
+        ],
+      },
       agentResult,
-    };
+    });
 
     const model = buildCareerPilotResultModel({ intent: "analyze_resume", response });
     expect(model?.flowTitle).toBe("Análise do currículo");
@@ -97,19 +120,21 @@ describe("buildCareerPilotResultModel", () => {
       "2026-06-21T12:00:00.000Z",
     );
 
-    const response = {
-      status: "completed" as const,
-      intent: "analyze_resume" as const,
-      reviewRequired: true,
-      safeForClient: true,
-      hasToken: false,
-      persisted: false,
-      executedExternally: false,
-      warnings: [],
-      toolProposals: [],
-      trace: { steps: [{ code: "review_required", message: "Human review", timestamp: "t" }] },
+    const response = chatResponse({
+      intent: "analyze_resume",
+      trace: {
+        conversationId: CONVERSATION_ID,
+        steps: [
+          {
+            timestamp: "t",
+            status: "completed",
+            code: "human_review_required",
+            message: "Human review",
+          },
+        ],
+      },
       agentResult,
-    };
+    });
 
     const model = buildCareerPilotResultModel({
       intent: "analyze_resume",
@@ -146,19 +171,10 @@ describe("buildCareerPilotResultModel", () => {
 
     const model = buildCareerPilotResultModel({
       intent: "analyze_ats_compatibility",
-      response: {
-        status: "completed",
+      response: chatResponse({
         intent: "analyze_ats_compatibility",
-        reviewRequired: true,
-        safeForClient: true,
-        hasToken: false,
-        persisted: false,
-        executedExternally: false,
-        warnings: [],
-        toolProposals: [],
-        trace: { steps: [] },
         agentResult,
-      },
+      }),
     });
 
     expect(model?.flowTitle).toBe("Compatibilidade com a vaga");

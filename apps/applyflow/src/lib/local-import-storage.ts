@@ -22,6 +22,11 @@ export function loadDashboardImport(): DashboardStoredImport | null {
   }
 }
 
+export function upsertDashboardApplication(application: ApplyFlowApplication): void {
+  const current = loadDashboardImport()?.applications ?? [];
+  persistDashboardImport([...current.filter((item) => item.id !== application.id), application]);
+}
+
 export function persistDashboardImport(applications: ApplyFlowApplication[]): void {
   if (typeof window === "undefined") return;
   const doc: DashboardStoredImport = {

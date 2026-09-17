@@ -92,5 +92,11 @@ export function isResumeLibraryImportV1(raw: unknown): boolean {
 }
 
 export function looksLikeCandidateProfile(raw: unknown): boolean {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return false;
+  const data = raw as { name?: unknown; roles?: unknown; skills?: unknown };
+  if (typeof data.name !== "string" || !data.name.trim()) return false;
+  const hasRoles = Array.isArray(data.roles);
+  const hasSkills = data.skills != null && typeof data.skills === "object" && !Array.isArray(data.skills);
+  if (!hasRoles && !hasSkills) return false;
   return candidateProfileSchema.safeParse(raw).success;
 }

@@ -5,6 +5,7 @@ import {
   clearPersistedDashboardImport,
   loadDashboardImport,
   persistDashboardImport,
+  upsertDashboardApplication,
 } from "./local-import-storage.js";
 
 describe("local-import-storage", () => {
@@ -36,5 +37,31 @@ describe("local-import-storage", () => {
 
     clearPersistedDashboardImport();
     expect(storage[APPLYFLOW_DASHBOARD_STORAGE_KEY]).toBeUndefined();
+  });
+
+  it("upsert adiciona candidatura sem reutilizar job id como identidade estrutural", () => {
+    const storage: Record<string, string> = {};
+    vi.stubGlobal("window", {
+      localStorage: {
+        getItem: (k: string) => (k in storage ? storage[k]! : null),
+        setItem: (k: string, v: string) => {
+          storage[k] = v;
+        },
+        removeItem: (k: string) => {
+          delete storage[k];
+        },
+      },
+    } as Window & typeof globalThis);
+
+    upsertDashboardApplication({
+      id: "app-1",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-02T00:00:00.000Z",
+      source: "linkedin",
+      status: "reviewing",
+      jobUrl: "https://jobs.example/acme",
+    });
+    expect(loadDashboardImport()?.applications[0]?.id).toBe("app-1");
+    expect(loadDashboardImport()?.applications[0]?.id).not.toBe("job-1");
   });
 });

@@ -32,8 +32,9 @@ Conhecimento em tecnologia.`;
 
 function sampleContext(input: CareerAnalysisInput): CareerAgentContext {
   return {
+    requestId: "fixture-req",
     intent: "analyze_resume",
-    analysisInput: input,
+    explicitConsent: true,
     careerBundle: createCareerBundle(
       [
         {
@@ -48,8 +49,11 @@ function sampleContext(input: CareerAnalysisInput): CareerAgentContext {
       { mainStack: [], targetRole: "Dev" },
     ),
     selectedSignalIds: [],
-    availableSignals: [],
-    explicitConsent: true,
+    selectedSignals: [],
+    analysisInput: input,
+    sanitized: true,
+    rawProviderData: false,
+    hasToken: false,
   };
 }
 

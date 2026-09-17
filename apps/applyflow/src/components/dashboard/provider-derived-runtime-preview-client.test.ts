@@ -63,11 +63,11 @@ describe("buildProviderDerivedRuntimePreviewRequest", () => {
 
 describe("fetchProviderDerivedRuntimePreview", () => {
   it("uses POST with explicit consent and safe limits only", async () => {
-    const fetchImpl = vi.fn(async () => ({
+    const fetchImpl = vi.fn<typeof fetch>(async () => ({
       ok: true,
       status: 200,
       json: async () => completedResult,
-    })) as unknown as typeof fetch;
+    } as Response));
 
     const outcome = await fetchProviderDerivedRuntimePreview(
       {
@@ -89,7 +89,9 @@ describe("fetchProviderDerivedRuntimePreview", () => {
       }),
     );
 
-    const body = JSON.parse(String((fetchImpl.mock.calls[0]?.[1] as RequestInit).body));
+    const firstCall = fetchImpl.mock.calls[0];
+    expect(firstCall).toBeDefined();
+    const body = JSON.parse(String((firstCall?.[1] as RequestInit | undefined)?.body));
     expect(body).not.toHaveProperty("gmailConnectionVerified");
     expect(body).not.toHaveProperty("calendarConnectionVerified");
     expect(body).not.toHaveProperty("access_token");
@@ -99,7 +101,7 @@ describe("fetchProviderDerivedRuntimePreview", () => {
   });
 
   it("handles blocked responses", async () => {
-    const fetchImpl = vi.fn(async () => ({
+    const fetchImpl = vi.fn<typeof fetch>(async () => ({
       ok: true,
       status: 200,
       json: async () => ({
@@ -107,7 +109,7 @@ describe("fetchProviderDerivedRuntimePreview", () => {
         status: "blocked",
         warnings: ["gmail_connection_not_verified"],
       }),
-    })) as unknown as typeof fetch;
+    } as Response));
 
     const outcome = await fetchProviderDerivedRuntimePreview(
       {
@@ -124,11 +126,11 @@ describe("fetchProviderDerivedRuntimePreview", () => {
   });
 
   it("rejects invalid response shape", async () => {
-    const fetchImpl = vi.fn(async () => ({
+    const fetchImpl = vi.fn<typeof fetch>(async () => ({
       ok: true,
       status: 200,
       json: async () => ({ unsafe: true, access_token: "secret" }),
-    })) as unknown as typeof fetch;
+    } as Response));
 
     const outcome = await fetchProviderDerivedRuntimePreview(
       {

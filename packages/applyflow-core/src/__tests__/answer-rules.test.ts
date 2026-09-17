@@ -1,8 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { getSuggestedAnswer } from "../answer-rules.js";
+import { getSuggestedAnswer as suggestFromProfile } from "../answer-rules.js";
 import { gustavoProfile } from "../candidate-profile.js";
 
+function getSuggestedAnswer(label: string, profile = gustavoProfile) {
+  return suggestFromProfile(label, profile);
+}
+
 describe("getSuggestedAnswer", () => {
+  it("sem perfil não inventa resposta pessoal", () => {
+    const r = suggestFromProfile("How many years of experience do you have with React?");
+    expect(r.value).toBe("");
+    expect(r.source).toBe("unknown");
+    expect(r.warning).toMatch(/perfil/i);
+  });
+
   it("anos com React → valor do perfil padrão", () => {
     const r = getSuggestedAnswer("How many years of experience do you have with React?");
     expect(r.value).toBe("5");
@@ -100,6 +111,7 @@ describe("getSuggestedAnswer", () => {
     const emptyBank = {
       ...gustavoProfile,
       answerBank: {
+        ...gustavoProfile.answerBank,
         professionalSummary: "",
         tellUsAboutYourself: "",
         whyGoodFit: "",

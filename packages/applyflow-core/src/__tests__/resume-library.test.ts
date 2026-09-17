@@ -9,6 +9,7 @@ import type { CandidateProfile } from "../profile-schema.js";
 import { validateCandidateProfile } from "../profile-schema.js";
 import {
   addResumeVariant,
+  updateResumeVariant,
   createResumeLibraryFromProfile,
   deleteResumeVariant,
   duplicateResumeVariant,
@@ -100,6 +101,12 @@ describe("ResumeLibrary operations", () => {
     expect(getDefaultResumeVariant(library).id).toBe(library.defaultVariantId);
   });
 
+  it("rejects a storage load envelope that is not a ResumeLibrary", () => {
+    expect(() => getDefaultResumeVariant({ library: null, status: "empty" } as never)).toThrow(
+      /sem variantes/i,
+    );
+  });
+
   it("cria uma segunda variante e troca o default", () => {
     const seeded = createResumeLibraryFromProfile(gustavoProfile, { now: NOW });
     const added = addResumeVariant(seeded, {
@@ -177,6 +184,34 @@ describe("ResumeLibrary operations", () => {
     if (!deleted.ok) return;
     expect(deleted.library.variants).toHaveLength(1);
     expect(deleted.library.defaultVariantId).toBe(LEGACY_RESUME_VARIANT_ID);
+  });
+
+  it("edita o perfil sem perder variantes nem o default", () => {
+    const seeded = createResumeLibraryFromProfile(gustavoProfile, { now: NOW });
+    const added = addResumeVariant(seeded, {
+      profile: frontendOnlyProfile(),
+      name: "Frontend React/Next.js",
+      now: LATER,
+      id: "rv_frontend",
+    });
+    expect(added.ok).toBe(true);
+    if (!added.ok) return;
+    const edited = updateResumeVariant(added.library, LEGACY_RESUME_VARIANT_ID, {
+      profile: validateCandidateProfile({
+        name: "Ana Costa",
+        roles: ["Product Engineer"],
+        skills: { React: 3 },
+      }),
+      now: new Date("2026-08-14T14:00:00.000Z"),
+    });
+    expect(edited.ok).toBe(true);
+    if (!edited.ok) return;
+    expect(edited.library.variants).toHaveLength(2);
+    expect(edited.library.defaultVariantId).toBe(LEGACY_RESUME_VARIANT_ID);
+    expect(edited.library.variants[0]?.profile.name).toBe("Ana Costa");
+    expect(edited.library.variants[0]?.profile.salary).toEqual({});
+    expect(edited.library.variants[1]?.id).toBe("rv_frontend");
+    expect(edited.library.variants[1]?.profile).toEqual(frontendOnlyProfile());
   });
 
   it("duplica o perfil actual sem o tornar default", () => {

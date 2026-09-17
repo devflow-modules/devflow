@@ -125,13 +125,13 @@ The boundary never imports Gmail or Calendar data, never stores tokens in the cl
 
 ## Gate hierarchy
 
-Real provider behavior must require all relevant gates.
+Real provider behavior must require all gates **for that provider**. Gmail and Calendar are independent; enabling Gmail does not require Calendar, and Calendar stays off unless its own flag is exactly `true`.
 
 ```txt
 CAREER_PROVIDER_RUNTIME_ENABLED=true
   → NANGO_RUNTIME_ENABLED=true
-    → GMAIL_PROVIDER_ENABLED=true
-    → CALENDAR_PROVIDER_ENABLED=true
+    → GMAIL_PROVIDER_ENABLED=true      # Gmail only
+    → CALENDAR_PROVIDER_ENABLED=true   # Calendar only; not a Gmail prerequisite
 ```
 
 A provider-specific flag must **never** bypass the global runtime flag.

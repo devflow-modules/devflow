@@ -16,7 +16,7 @@ const metadataProvider: GmailNangoRuntimeMetadataProvider = {
   listMessageMetadata: vi.fn(async () => [
     {
       occurredAt: "2026-06-20T14:00:00.000Z",
-      direction: "unknown",
+      direction: "unknown" as const,
       senderDomain: "jobs.example",
       recipientDomains: ["candidate.example"],
       hasAttachment: false,

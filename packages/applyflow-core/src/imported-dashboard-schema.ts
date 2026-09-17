@@ -1,5 +1,10 @@
 import { parseApplyFlowApplicationsImport } from "./imported-application-schema.js";
 import type { ParsedApplyFlowImportResult } from "./imported-application-schema.js";
+import {
+  isApplyFlowCareerBundleV2,
+  parseApplyFlowCareerBundle,
+  type ApplyFlowCareerBundleV2,
+} from "./career-bundle-v2.js";
 import { isApplyFlowJobsImportV2, parseApplyFlowJobsImport } from "./imported-job-schema.js";
 import type { ParsedApplyFlowJobsImportResult } from "./imported-job-schema.js";
 import { parseResumeLibraryImport } from "./imported-resume-library-schema.js";
@@ -12,11 +17,12 @@ export type ParsedApplyFlowDashboardImport =
   | { ok: true; kind: "jobs"; result: Extract<ParsedApplyFlowJobsImportResult, { ok: true }> }
   | { ok: true; kind: "resume-library"; library: ResumeLibrary }
   | { ok: true; kind: "resume-profile"; profile: CandidateProfile }
+  | { ok: true; kind: "career-bundle-v2"; bundle: ApplyFlowCareerBundleV2 }
   | { ok: false; error: string };
 
 export function parseApplyFlowDashboardImportJsonString(
   text: string,
-  options: { profile: CandidateProfile; resumeLibrary?: ResumeLibrary; now?: Date },
+  options: { profile?: CandidateProfile; resumeLibrary?: ResumeLibrary; now?: Date },
 ): ParsedApplyFlowDashboardImport {
   let data: unknown;
   try {
@@ -32,6 +38,12 @@ export function parseApplyFlowDashboardImportJsonString(
       return { ok: true, kind: "resume-library", library: resumes.library };
     }
     return { ok: false, error: "Import de currículos inválido." };
+  }
+
+  if (isApplyFlowCareerBundleV2(data)) {
+    const bundle = parseApplyFlowCareerBundle(data);
+    if (!bundle.ok) return { ok: false, error: bundle.error };
+    return { ok: true, kind: "career-bundle-v2", bundle: bundle.bundle };
   }
 
   if (isApplyFlowJobsImportV2(data)) {

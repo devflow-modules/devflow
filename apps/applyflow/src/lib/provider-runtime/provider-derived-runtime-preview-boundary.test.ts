@@ -368,6 +368,7 @@ describe("handleProviderDerivedRuntimePreview", () => {
     await handleProviderDerivedRuntimePreview(parsed.request, {
       env: allFlagsOnEnv,
       requestedAt,
+      callerNonce: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       verifyGmailConnection,
       verifyCalendarConnection,
       executeComposition,
@@ -441,6 +442,7 @@ describe("handleProviderDerivedRuntimePreview", () => {
     await handleProviderDerivedRuntimePreview(parsed.request, {
       env: allFlagsOnEnv,
       requestedAt,
+      callerNonce: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       verifyGmailConnection,
       verifyCalendarConnection,
       executeComposition,

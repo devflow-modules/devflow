@@ -105,6 +105,10 @@ Document in Nango dashboard — **do not fill real values in this repo:**
 | `GMAIL_PROVIDER_ENABLED` | No | Server | `true` | No | Gmail runtime | Missing → Gmail blocked |
 | `CALENDAR_PROVIDER_ENABLED` | No | Server | `true` | No | Calendar runtime | Missing → Calendar blocked |
 | `NANGO_SECRET_KEY` | Yes when runtime on | Server | `replace_me` | **Yes** | `@nangohq/node` in server providers | Missing → `nango_secret_missing`, OAuth blocked |
+| `NEXT_PUBLIC_APPLYFLOW_URL` | Recommended when runtime on | Server+client | `http://localhost:3010` | No | Canonical origin allowlist for Nango routes | Hosted: missing with no `VERCEL_URL` → routes fail closed |
+| `VERCEL_URL` | Injected on Vercel | Platform | (deployment host) | No | Extra exact https origin for **this** preview/production deployment | Not a request header; not a `*.vercel.app` wildcard |
+
+**Gmail hosted enablement (future, still off):** `CAREER_PROVIDER_RUNTIME_ENABLED`, `NANGO_RUNTIME_ENABLED`, `GMAIL_PROVIDER_ENABLED`, `NANGO_SECRET_KEY`. Do **not** turn on `CALENDAR_PROVIDER_ENABLED` for Gmail-only. Also set `NEXT_PUBLIC_APPLYFLOW_URL` to the public https origin of the ApplyFlow host; preview may rely on platform `VERCEL_URL` for the current deployment host.
 
 **Not in code (documented only):** `NANGO_WEBHOOK_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
 
@@ -112,8 +116,10 @@ Document in Nango dashboard — **do not fill real values in this repo:**
 
 | Provider | Nango integration ID | End-user tag |
 |----------|---------------------|--------------|
-| gmail | `google-mail` | `applyflow-gmail-runtime-boundary` |
-| calendar | `google-calendar` | `applyflow-calendar-runtime-boundary` |
+| gmail | `google-mail` | `applyflow-gmail-{sha256(callerNonce)[0:32]}` — per anonymous browser session, not a shared singleton |
+| calendar | `google-calendar` | `applyflow-calendar-{sha256(callerNonce)[0:32]}` — same caller-session rule |
+
+The retired tags `applyflow-gmail-runtime-boundary` and `applyflow-calendar-runtime-boundary` are not queried. Losing or expiring `af_nango_caller` creates a new identity; old connections remain in Nango but are not listed, read, or disconnected from the new cookie. `af_nango_caller` is **not** a user login.
 
 Copy template: [`apps/applyflow/.env.example`](../../../apps/applyflow/.env.example)
 
@@ -125,8 +131,8 @@ Copy template: [`apps/applyflow/.env.example`](../../../apps/applyflow/.env.exam
 |------|---------|------------|--------|
 | `CAREER_PROVIDER_RUNTIME_ENABLED` | off | Server | Global kill switch |
 | `NANGO_RUNTIME_ENABLED` | off | Server | Requires global |
-| `GMAIL_PROVIDER_ENABLED` | off | Server | Requires global + Nango |
-| `CALENDAR_PROVIDER_ENABLED` | off | Server | Requires global + Nango |
+| `GMAIL_PROVIDER_ENABLED` | off | Server | Requires global + Nango; **does not** require Calendar |
+| `CALENDAR_PROVIDER_ENABLED` | off | Server | Requires global + Nango; leave off when Calendar is out of scope |
 
 **Hierarchy:** provider flags cannot bypass global or Nango gates.  
 **Failure mode:** fail closed — blocked JSON with `safeForClient: true`.  
@@ -175,7 +181,7 @@ pnpm check:career-provider-runtime          # no env → ready, all disabled
 | Nango SDK initialization | **implemented** | `nango-server-provider.ts` | `NANGO_SECRET_KEY` | High if leaked | External sandbox secret |
 | Server secret handling | **implemented** | Server-only imports | `NANGO_SECRET_KEY` | Critical | None (code) |
 | Public key handling | **not found** | No `NANGO_PUBLIC_KEY` in code | — | — | N/A |
-| Connect session | **implemented** | `GET /provider-runtime/nango/connect` | Flags + secret + consent | Medium | Sandbox credentials |
+| Connect session | **implemented** | `POST /provider-runtime/nango/connect` | Flags + secret + consent + same-origin caller cookie | Medium | Sandbox credentials |
 | Gmail connection | **partially implemented** | Gmail nango provider + adapter | Gmail flags + secret | High | Sandbox account |
 | Calendar connection | **partially implemented** | Calendar nango provider | Calendar flags + secret | High | Sandbox account |
 | Connection lookup | **implemented** | `listConnections` verification | Secret + tags | Medium | Sandbox |
@@ -291,10 +297,11 @@ pnpm check:career-provider-runtime          # no env → ready, all disabled
 
 | Method | Path |
 |--------|------|
-| GET | `/provider-runtime/nango/connect` |
+| POST | `/provider-runtime/nango/connect` (`GET` → 405) |
 | POST | `/provider-runtime/nango/connection-status` |
 | POST | `/provider-runtime/nango/disconnect` |
 | POST | `/provider-runtime/nango/derived-preview` |
+| POST | `/provider-runtime/nango/inbound-responses` |
 
 **Disconnect API key permission:** the dedicated sandbox key (`applyflow-career-sandbox-local`) must include **Connections → delete** in addition to list/read. Do not grant `with_credentials`, admin, deploy, syncs, records, or MCP. If delete is missing, the endpoint returns a safe blocked response (`nango_connection_delete_failed`) — treat as an operational blocker, not a reason to enable Full access.
 

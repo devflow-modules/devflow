@@ -17,7 +17,7 @@ const metadataProvider: CalendarNangoRuntimeMetadataProvider = {
     {
       startsAt: "2026-06-20T14:00:00.000Z",
       endsAt: "2026-06-20T15:00:00.000Z",
-      status: "confirmed",
+      status: "confirmed" as const,
       isAllDay: false,
       attendeeCount: 2,
       externalAttendeeCount: 0,

@@ -6,6 +6,7 @@ import {
 import { createCalendarReadOnlyNangoRuntimeAdapter } from "./calendar-readonly-nango-adapter";
 import type { CalendarNangoRuntimeMetadataProvider } from "./calendar-readonly-nango-provider";
 import { createCalendarNangoRuntimeMetadataProvider } from "./calendar-readonly-nango-provider";
+import { buildApplyFlowNangoEndUserId } from "./nango-server-provider";
 import {
   envToProviderRuntimeFlags,
   type ApplyFlowNangoConnectSessionEnv,
@@ -78,6 +79,7 @@ export async function executeApplyFlowCalendarReadOnlyRuntimeBoundary(
       maxEvents?: number;
     };
     runtimeDeps?: ApplyFlowCalendarReadOnlyRuntimeDeps;
+    callerNonce?: string;
   },
 ): Promise<CalendarReadOnlyAdapterResult> {
   if (!parseConnectionVerificationExplicitConsent(query.explicitConsent)) {
@@ -111,10 +113,18 @@ export async function executeApplyFlowCalendarReadOnlyRuntimeBoundary(
     });
   }
 
+  if (!deps.runtimeDeps?.metadataProvider && !deps.callerNonce) {
+    return blockedRuntimeResult({
+      connectionVerified: deps.connectionVerified,
+      warnings: ["blocked:missing_caller_session"],
+    });
+  }
+
   const metadataProvider =
     deps.runtimeDeps?.metadataProvider ??
     createCalendarNangoRuntimeMetadataProvider({
       secretKey: deps.env.NANGO_SECRET_KEY,
+      endUserId: buildApplyFlowNangoEndUserId("calendar", deps.callerNonce as string),
     });
 
   const adapter = createCalendarReadOnlyNangoRuntimeAdapter({ metadataProvider });

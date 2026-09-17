@@ -1,0 +1,143 @@
+import type { Evidence } from "./evidence-types.js";
+
+const STAMP = "2026-09-01T00:00:00.000Z";
+
+/**
+ * Person-specific seed facts. Domain matching must not import this file.
+ * Same split as `gustavoProfile` vs the scoring engine.
+ */
+export const gustavoEvidenceSeed: Evidence[] = [
+  {
+    id: "seed-investigamais",
+    subject: "project",
+    label: "Investiga+ SaaS (company intelligence)",
+    description:
+      "Shipped a production SaaS for company intelligence and CNPJ analysis: product ownership, auth, webhook fallbacks, Next.js, TypeScript, APIs, and operational dashboards.",
+    source: "project",
+    sourceRef: "seed.investigamais",
+    company: "DevFlow Labs",
+    project: "Investiga+",
+    technologies: ["Next.js", "TypeScript", "React", "Node.js", "PostgreSQL"],
+    confidence: "strong",
+    usableForClaims: true,
+    createdAt: STAMP,
+    updatedAt: STAMP,
+  },
+  {
+    id: "seed-whatsapp-platform",
+    subject: "project",
+    label: "WhatsApp operational platform",
+    description:
+      "Built a multi-tenant WhatsApp operations product with inbox, billing foundations, ownership of architecture, and third-party integrations.",
+    source: "project",
+    sourceRef: "seed.whatsapp-platform",
+    company: "DevFlow Labs",
+    project: "WhatsApp Platform",
+    technologies: ["Next.js", "TypeScript", "Node.js", "PostgreSQL", "Prisma"],
+    confidence: "strong",
+    usableForClaims: true,
+    createdAt: STAMP,
+    updatedAt: STAMP,
+  },
+  {
+    id: "seed-product-ownership",
+    subject: "experience",
+    label: "End-to-end product engineering",
+    description:
+      "Owns 0-to-1 SaaS products: discovery, implementation, testing, deployment, and iteration. Not a people-manager title.",
+    source: "resume",
+    sourceRef: "seed.product-ownership",
+    technologies: ["React", "Next.js", "TypeScript", "Node.js"],
+    confidence: "strong",
+    usableForClaims: true,
+    createdAt: STAMP,
+    updatedAt: STAMP,
+  },
+  {
+    id: "seed-python-automation",
+    subject: "skill",
+    label: "Python automation / scripting",
+    description:
+      "Professional Python used for automation, integrations, and operational scripts. Includes some FastAPI usage. This is not senior Python backend, not 5 years of Python services, and not a data/ML platform claim.",
+    source: "resume",
+    sourceRef: "seed.python-automation",
+    technologies: ["Python", "FastAPI"],
+    confidence: "partial",
+    usableForClaims: true,
+    createdAt: STAMP,
+    updatedAt: STAMP,
+  },
+  {
+    id: "seed-aws-limited",
+    subject: "skill",
+    label: "Limited AWS exposure",
+    description:
+      "About one year of light AWS contact. Not professional AWS architecture, not 3+ years architecting AWS, and not a cloud-platform claim.",
+    source: "candidate_input",
+    sourceRef: "seed.aws-limited",
+    technologies: ["AWS"],
+    confidence: "partial",
+    usableForClaims: false,
+    createdAt: STAMP,
+    updatedAt: STAMP,
+  },
+  {
+    id: "seed-no-kafka",
+    subject: "skill",
+    label: "No professional Kafka",
+    description: "No professional Kafka or event-streaming platform experience is recorded.",
+    source: "candidate_input",
+    sourceRef: "seed.no-kafka",
+    technologies: ["Kafka"],
+    confidence: "verified",
+    usableForClaims: false,
+    createdAt: STAMP,
+    updatedAt: STAMP,
+  },
+  {
+    id: "seed-no-genai-prod",
+    subject: "skill",
+    label: "No production GenAI / LLM system",
+    description:
+      "No production LLM, RAG, or GenAI system is recorded. Optional AI features in a product are not a production model platform.",
+    source: "candidate_input",
+    sourceRef: "seed.no-genai-prod",
+    technologies: ["LLM", "GenAI"],
+    confidence: "verified",
+    usableForClaims: false,
+    createdAt: STAMP,
+    updatedAt: STAMP,
+  },
+  {
+    id: "seed-nabraza",
+    subject: "project",
+    label: "Na Braza client product",
+    description:
+      "Delivered a user-facing product for a real client with an external integration, not an internal sandbox.",
+    source: "project",
+    sourceRef: "seed.nabraza",
+    company: "Na Braza",
+    project: "Na Braza",
+    technologies: ["React", "TypeScript", "Node.js"],
+    confidence: "strong",
+    usableForClaims: true,
+    createdAt: STAMP,
+    updatedAt: STAMP,
+  },
+  {
+    id: "seed-mavvitech",
+    subject: "project",
+    label: "Mavvitech automation",
+    description:
+      "Python automation with failure handling on operational workflows. This is not production AI Agents.",
+    source: "project",
+    sourceRef: "seed.mavvitech",
+    company: "Mavvitech",
+    project: "Mavvitech",
+    technologies: ["Python"],
+    confidence: "strong",
+    usableForClaims: true,
+    createdAt: STAMP,
+    updatedAt: STAMP,
+  },
+];

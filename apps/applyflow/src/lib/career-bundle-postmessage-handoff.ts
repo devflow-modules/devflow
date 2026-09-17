@@ -38,13 +38,15 @@ export async function sendCareerBundleViaPostMessageWithRetry(opts: {
   return new Promise((resolve) => {
     let settled = false;
     let clipboardFallbackStarted = false;
-    let tick: ReturnType<typeof setInterval> | undefined;
-    let timer: ReturnType<typeof setTimeout> | undefined;
+    const handles: {
+      tick?: ReturnType<typeof setInterval>;
+      timer?: ReturnType<typeof setTimeout>;
+    } = {};
 
     const cleanup = () => {
       window.removeEventListener("message", onAck);
-      if (tick !== undefined) clearInterval(tick);
-      if (timer !== undefined) clearTimeout(timer);
+      if (handles.tick !== undefined) clearInterval(handles.tick);
+      if (handles.timer !== undefined) clearTimeout(handles.timer);
     };
 
     const finish = (r: CareerPostMessageHandoffResult) => {
@@ -89,7 +91,7 @@ export async function sendCareerBundleViaPostMessageWithRetry(opts: {
     };
 
     post();
-    tick = setInterval(post, intervalMs);
-    timer = setTimeout(() => void runClipboardFallback(), totalWaitMs);
+    handles.tick = setInterval(post, intervalMs);
+    handles.timer = setTimeout(() => void runClipboardFallback(), totalWaitMs);
   });
 }

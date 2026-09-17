@@ -1,0 +1,71 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { persistDashboardImport } from "./local-import-storage.js";
+import { persistDashboardJobs } from "./local-job-storage.js";
+import { loadCareerAnalyticsSnapshot } from "./career-analytics-snapshot.js";
+import type { ApplyFlowJob } from "@devflow/applyflow-core";
+
+function stubStorage(initial?: Record<string, string>) {
+  const storage: Record<string, string> = { ...initial };
+  vi.stubGlobal("window", {
+    localStorage: {
+      getItem: (key: string) => (key in storage ? storage[key]! : null),
+      setItem: (key: string, value: string) => {
+        storage[key] = value;
+      },
+      removeItem: (key: string) => {
+        delete storage[key];
+      },
+    },
+  });
+  return storage;
+}
+
+const job: ApplyFlowJob = {
+  id: "job_analytics",
+  title: "Product Engineer",
+  source: "paste",
+  status: "reviewing",
+  jobContext: { skills: ["React"] },
+  jobMatch: {
+    score: 100,
+    decision: "apply",
+    matchedSkills: ["React"],
+    missingSkills: [],
+    evaluatedAt: "2026-08-13T12:00:00.000Z",
+    scoringVersion: "v1",
+  },
+  createdAt: "2026-08-13T12:00:00.000Z",
+  updatedAt: "2026-08-13T12:00:00.000Z",
+};
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+describe("loadCareerAnalyticsSnapshot", () => {
+  it("devolve scorecard vazio sem dados locais", () => {
+    stubStorage();
+    const snapshot = loadCareerAnalyticsSnapshot();
+    expect(snapshot.scorecard?.applications ?? 0).toBe(0);
+    expect(snapshot.scorecard?.jobsFound ?? 0).toBe(0);
+    expect(snapshot.historyApplications).toEqual([]);
+  });
+
+  it("inclui candidaturas e vagas persistidas", () => {
+    stubStorage();
+    persistDashboardImport([
+      {
+        id: "app_1",
+        createdAt: "2026-08-13T12:00:00.000Z",
+        updatedAt: "2026-08-13T12:00:00.000Z",
+        source: "linkedin",
+        status: "applied",
+      },
+    ]);
+    persistDashboardJobs([job]);
+    const snapshot = loadCareerAnalyticsSnapshot();
+    expect(snapshot.historyApplications).toHaveLength(1);
+    expect(snapshot.scorecard?.jobsFound).toBe(1);
+  });
+});

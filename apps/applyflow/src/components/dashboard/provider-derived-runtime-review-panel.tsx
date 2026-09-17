@@ -249,19 +249,20 @@ export function ProviderDerivedRuntimeReviewPanel({
     ),
   );
 
-  useEffect(() => {
-    setReviewState((previous) => syncReviewStateWithPreview(previous, { result, isPreviewLoading }));
-  }, [result, isPreviewLoading]);
+  const syncedReviewState = syncReviewStateWithPreview(reviewState, { result, isPreviewLoading });
+  if (syncedReviewState !== reviewState) {
+    setReviewState(syncedReviewState);
+  }
 
   useEffect(() => {
-    onReviewStateChange?.(reviewState);
-  }, [onReviewStateChange, reviewState]);
+    onReviewStateChange?.(syncedReviewState);
+  }, [onReviewStateChange, syncedReviewState]);
 
   return (
     <ProviderDerivedRuntimeReviewPanelView
       result={result}
       isPreviewLoading={isPreviewLoading}
-      reviewState={reviewState}
+      reviewState={syncedReviewState}
       onToggleSelection={(signalId) => {
         setReviewState((previous) =>
           toggleProviderDerivedSignalSelection(previous, signalId, result?.signals ?? []),

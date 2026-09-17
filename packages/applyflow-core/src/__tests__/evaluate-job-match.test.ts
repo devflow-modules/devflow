@@ -21,6 +21,7 @@ describe("statusFromJobMatchDecision", () => {
     expect(statusFromJobMatchDecision("apply")).toBe("reviewing");
     expect(statusFromJobMatchDecision("stretch")).toBe("reviewing");
     expect(statusFromJobMatchDecision("skip")).toBe("ignored");
+    expect(statusFromJobMatchDecision("needs_info")).toBe("reviewing");
   });
 });
 
@@ -55,7 +56,8 @@ describe("evaluateJobMatch", () => {
     expect(match.score).toBe(67);
     expect(match.decision).toBe("stretch");
     expect(match.matchedSkills).toEqual(["React", "TypeScript"]);
-    expect(match.missingSkills).toEqual(["Kubernetes"]);
+    expect(match.missingSkills).toEqual([]);
+    expect(match.unknownSkills).toEqual(["Kubernetes"]);
   });
 
   it("SKIP quando a aderência é baixa", () => {
@@ -66,10 +68,10 @@ describe("evaluateJobMatch", () => {
     expect(match.missingSkills).toEqual(["Elixir", "Ruby"]);
   });
 
-  it("score 0 e SKIP quando a vaga não tem skills", () => {
+  it("score 0 e NEEDS_INFO quando a vaga não tem skills avaliáveis", () => {
     const match = evaluateJobMatch(gustavoProfile, { skills: [] }, { now: NOW });
     expect(match.score).toBe(0);
-    expect(match.decision).toBe("skip");
+    expect(match.decision).toBe("needs_info");
     expect(match.matchedSkills).toEqual([]);
     expect(match.missingSkills).toEqual([]);
   });

@@ -6,7 +6,7 @@
 |---------|--------|
 | `apps/applyflow-extension` | Extensão Chrome MV3: content script (IIFE), painel/UI, página de opções, service worker mínimo; estado em **`chrome.storage.local`**; export manual de JSON. |
 | `apps/applyflow` | Next.js 16 (App Router): landing (`/`), dashboard (`/dashboard`), índice **`/documentacao`**; import/demo; Recharts; **`localStorage`**. |
-| `packages/applyflow-core` | Perfil, fit, job intelligence, sugestões; **tipos de candidaturas**; **métricas**; **`parseApplyFlowImportJsonString`**; **filtros** do dashboard. Build **`dist/`** via `tsc` para consumo estável pelo Next. |
+| `packages/applyflow-core` | Perfil, fit, job intelligence, sugestões; **tipos de candidaturas**; **métricas**; **`parseApplyFlowImportJsonString`**; **filtros** do dashboard; camada aditiva **Career OS V2** (P0 Decision Engine + P1 Application Pack / networking local). Build **`dist/`** via `tsc` para consumo estável pelo Next. |
 | `packages/applyflow-linkedin` | Classificação/parser de campos **LinkedIn Easy Apply**; fixtures e testes; consumo principal pela extensão. |
 
 ## Local-first by default
@@ -114,6 +114,20 @@ flowchart TD
 - Reduz risco de violação de termos e de fricção com recrutadores (qualidade vs. volume).
 - Mantém o utilizador **no controlo** da revisão final antes de cada envio.
 - Alinha o produto com “**copiloto**”, não com bot de candidatura.
+
+## Career OS V2 (P0 + P1)
+
+Camada aditiva em `@devflow/applyflow-core`. Fit V1, Application Pack V1, JSON persistido V1, extensão e Interview Lab (CareerBundle `1.0`) continuam o caminho estável.
+
+```
+Evidence → Claim Audit → Final Output
+Job Decision → Application Pack V2 → Networking local → Interview brief
+Raw outcomes → Metrics → Observed patterns → Insights → Human decision
+```
+
+Contactos e interacções ficam em `localStorage` (`APPLYFLOW_DASHBOARD_CONTACTS_V1`). Outcomes/eventos em `APPLYFLOW_DASHBOARD_ANALYTICS_V1`. Outcome usa `applicationId`; `v2.sourceJobId` só liga a vaga da inbox. No momento da candidatura persiste-se um snapshot imutável (fit, dimensões, decision, requisitos + status, resumeVariant, IDs de evidência/caso) — sem o pack V2 nem textos gerados. A fila de follow-up é determinística e **não envia** mensagens. UI experimental: `/dashboard/jobs/[id]` e `/dashboard/analytics`. Career OS V2 está em **FEATURE FREEZE** para dogfooding.
+
+Analytics é observacional. Não estabelece causalidade. Ver [`ANALYTICS_MODEL.md`](./ANALYTICS_MODEL.md).
 
 ## Limites adicionais
 

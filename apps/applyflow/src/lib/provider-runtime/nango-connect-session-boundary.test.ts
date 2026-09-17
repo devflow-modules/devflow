@@ -188,6 +188,28 @@ describe("createApplyFlowNangoConnectSessionBoundary", () => {
     expect(connectSessionProvider.createConnectSession).toHaveBeenCalledOnce();
   });
 
+  it("allows Gmail when Calendar provider flag is absent", async () => {
+    const gmailOnlyEnv = {
+      CAREER_PROVIDER_RUNTIME_ENABLED: "true",
+      NANGO_RUNTIME_ENABLED: "true",
+      GMAIL_PROVIDER_ENABLED: "true",
+      NANGO_SECRET_KEY: "nango-secret-test",
+    };
+    const provider = {
+      createConnectSession: vi.fn(async () => ({
+        connectSessionUrl: "/provider-runtime/nango/connect?provider=gmail",
+        connectSessionToken: "client-safe-connect-session-token",
+      })),
+    };
+
+    const result = await createApplyFlowNangoConnectSessionBoundary(baseRequest, gmailOnlyEnv, {
+      connectSessionProvider: provider,
+    });
+
+    expect(result.status).toBe("oauth_start_ready");
+    expect(provider.createConnectSession).toHaveBeenCalledOnce();
+  });
+
   it("does not call oauthUrlProvider when blocked", async () => {
     const provider = {
       createAuthorizationUrl: vi.fn(async () => "/provider-runtime/nango/connect?provider=gmail"),

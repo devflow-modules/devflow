@@ -36,7 +36,7 @@ We need React, Next.js, TypeScript and Node.js to ship product integrations.
 const STRETCH_POSTING = `Backend Engineer
 Hybrid
 
-Stack: React, TypeScript and Kubernetes. PostgreSQL is a plus.
+Stack: React and TypeScript. Kubernetes is a plus.
 `;
 
 const SKIP_POSTING = `Legacy Engineer
@@ -108,7 +108,7 @@ describe("createApplicationPack", () => {
     expect(created.job.status).toBe("reviewing");
   });
 
-  it("2. STRETCH pode gerar Pack", () => {
+  it("2. STRETCH V1 sem evidência V2 suficiente não gera Pack", () => {
     const library = createResumeLibraryFromProfile(gustavoProfile, { now: NOW, id: "rv_only" });
     const job = ingestApplyFlowJob({
       description: STRETCH_POSTING,
@@ -120,8 +120,9 @@ describe("createApplicationPack", () => {
     });
     expect(job.jobMatch.decision).toBe("stretch");
     expect(canCreateApplicationPack(job)).toBe(true);
+    expect(canCreateApplicationPack(job, library)).toBe(false);
     const created = createApplicationPack({ job, library, now: NOW });
-    expect(created.ok).toBe(true);
+    expect(created.ok).toBe(false);
   });
 
   it("3. SKIP não pode gerar Pack", () => {
@@ -196,7 +197,7 @@ describe("createApplicationPack", () => {
     expect(resolved.variant.id).toBe("rv_only");
   });
 
-  it("7. usuário pode escolher outra variante antes de criar", () => {
+  it("7. variante incompleta escolhida não gera Pack", () => {
     const library = twoVariantLibrary({ defaultId: "rv_frontend" });
     const job = ingestApplyFlowJob({
       description: APPLY_POSTING,
@@ -207,11 +208,9 @@ describe("createApplicationPack", () => {
       id: "job_choice",
     });
     const created = createApplicationPack({ job, library, variantId: "rv_frontend", now: NOW });
-    expect(created.ok).toBe(true);
-    if (!created.ok) return;
-    expect(created.job.applicationPack?.resume.variantId).toBe("rv_frontend");
-    expect(created.job.applicationPack?.resume.recommendedByRouter).toBe(false);
-    expect(created.job.applicationPack?.match.score).toBe(job.jobMatch.score);
+    expect(created.ok).toBe(false);
+    if (created.ok) return;
+    expect(created.error).toMatch(/Complete seu perfil|APPLY ou STRETCH/i);
   });
 
   it("8. criar Pack não muda default", () => {

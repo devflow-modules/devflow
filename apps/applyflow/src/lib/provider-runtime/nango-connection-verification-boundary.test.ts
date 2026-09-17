@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handleApplyFlowNangoConnectionVerification } from "./nango-connection-verification-boundary.js";
+import type { NangoConnectionVerificationProviderResult } from "./nango-connection-verification-provider.js";
 
 const allFlagsOnEnv = {
   CAREER_PROVIDER_RUNTIME_ENABLED: "true",
@@ -10,7 +11,12 @@ const allFlagsOnEnv = {
 };
 
 const verificationProvider = {
-  verifyConnection: vi.fn(async () => ({ exists: true, state: "connected" as const })),
+  verifyConnection: vi.fn(
+    async (): Promise<NangoConnectionVerificationProviderResult> => ({
+      exists: true,
+      state: "connected",
+    }),
+  ),
 };
 
 describe("handleApplyFlowNangoConnectionVerification", () => {

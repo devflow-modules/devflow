@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { buildApplyFlowNangoEndUserId } from "./nango-server-provider.js";
 import {
   CALENDAR_EVENTS_LIST_ENDPOINT,
   CALENDAR_EVENTS_LIST_FIELDS,
@@ -6,6 +7,11 @@ import {
   createCalendarNangoRuntimeMetadataProvider,
   type CalendarNangoRuntimeSdk,
 } from "./calendar-readonly-nango-provider.js";
+
+const CALENDAR_END_USER_ID = buildApplyFlowNangoEndUserId(
+  "calendar",
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+);
 
 const listConnections = vi.fn();
 const get = vi.fn();
@@ -53,7 +59,7 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     const provider = createCalendarNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
-      endUserId: "applyflow-calendar-runtime-boundary",
+      endUserId: CALENDAR_END_USER_ID,
       sdk,
     });
 
@@ -65,7 +71,7 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     expect(listConnections).toHaveBeenCalledWith({
       integrationId: CALENDAR_RUNTIME_INTEGRATION_ID,
-      tags: { end_user_id: "applyflow-calendar-runtime-boundary" },
+      tags: { end_user_id: CALENDAR_END_USER_ID },
       limit: 1,
     });
     expect(get).toHaveBeenCalledWith({
@@ -130,6 +136,7 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     const provider = createCalendarNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: CALENDAR_END_USER_ID,
       sdk,
     });
 
@@ -158,6 +165,7 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     const provider = createCalendarNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: CALENDAR_END_USER_ID,
       sdk,
     });
 
@@ -184,6 +192,7 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     const provider = createCalendarNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: CALENDAR_END_USER_ID,
       sdk,
     });
 
@@ -213,6 +222,7 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     const provider = createCalendarNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: CALENDAR_END_USER_ID,
       sdk,
     });
 
@@ -243,6 +253,7 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     const provider = createCalendarNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: CALENDAR_END_USER_ID,
       sdk,
     });
 
@@ -279,6 +290,7 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     const provider = createCalendarNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: CALENDAR_END_USER_ID,
       sdk,
     });
 
@@ -298,6 +310,7 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     const provider = createCalendarNangoRuntimeMetadataProvider({
       secretKey: "test-secret",
+      endUserId: CALENDAR_END_USER_ID,
       sdk,
     });
 
@@ -305,5 +318,9 @@ describe("createCalendarNangoRuntimeMetadataProvider", () => {
 
     expect(metadata).toEqual([]);
     expect(get).not.toHaveBeenCalled();
+  });
+
+  it("does not use the retired shared runtime-boundary tag", () => {
+    expect(CALENDAR_END_USER_ID).not.toBe("applyflow-calendar-runtime-boundary");
   });
 });

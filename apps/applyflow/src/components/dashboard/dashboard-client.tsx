@@ -1,8 +1,6 @@
 "use client";
 
 import { CareerPilotExperience } from "@/components/dashboard/career-pilot-experience";
-import { ProviderConsentConfirmationPanel } from "@/components/dashboard/provider-consent-confirmation-panel";
-import { ProviderConsentMockPanel } from "@/components/dashboard/provider-consent-mock-panel";
 import { isCareerPilotModeClient } from "@/lib/career-system/feature-flags";
 import { ApplyFlowBadge, type ApplyFlowBadgeTone } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton, applyFlowButtonClass } from "@/components/ui/ApplyFlowButton";
@@ -10,27 +8,63 @@ import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import { ApplyFlowEmptyState } from "@/components/ui/ApplyFlowEmptyState";
 import { ApplyFlowPrivacyNotice } from "@/components/ui/ApplyFlowPrivacyNotice";
 import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
+import Link from "next/link";
+
 import { JobInboxPanel } from "@/components/dashboard/job-inbox-panel";
+import { JOB_INBOX_NEEDS_RESUME } from "@/components/dashboard/job-inbox-content";
 import { ResumeLibraryPanel } from "@/components/dashboard/resume-library-panel";
+import { DashboardJobUrlCell } from "@/components/dashboard/dashboard-job-url-cell";
+import { InboundApplicationResponsePanel } from "@/components/dashboard/inbound-application-response-panel";
+import { ProviderConsentConfirmationPanel } from "@/components/dashboard/provider-consent-confirmation-panel";
+import {
+  shouldShowInterviewLabExport,
+  shouldShowProviderConsentOnDashboard,
+} from "@/components/dashboard/dashboard-lab-surfaces";
+import { DashboardNextStep } from "@/components/dashboard/dashboard-next-step";
+import {
+  DASHBOARD_ANALYTICS_HINT,
+  DASHBOARD_APPLICATIONS_DESCRIPTION,
+  DASHBOARD_APPLICATIONS_TITLE,
+  DASHBOARD_DATA_DESCRIPTION,
+  DASHBOARD_DATA_TITLE,
+  DASHBOARD_PREPARE_INTERVIEW,
+  DASHBOARD_PREPARE_INTERVIEW_HINT,
+  DASHBOARD_OPEN_INTERVIEW_LAB_HINT,
+  DASHBOARD_MARK_SENT,
+} from "@/components/dashboard/dashboard-work-content";
+import {
+  dashboardAnalyzeHref,
+  dashboardNextStepId,
+  dashboardWorkFlags,
+  shouldShowApplicationsList,
+} from "@/components/dashboard/dashboard-work-state";
+import {
+  JobsStorageRecoveryBanner,
+  ResumeLibraryRecoveryBanner,
+} from "@/components/dashboard/dashboard-storage-recovery";
+import { resolveInboxMatchProfile } from "@/lib/resolve-inbox-match-profile";
 import {
   APPLYFLOW_APPLICATION_STATUS_LABELS_PT,
   applyDashboardTableFilters,
-  bucketApplicationsByWeek,
   collectDetectedSkills,
-  computeApplicationMetrics,
   computeCreatedAtRange,
-  FUNNEL_STATUS_ORDER,
-  gustavoProfile,
   ingestApplyFlowJob,
+  findJobByCanonicalUrl,
+  reevaluateApplyFlowJobMatch,
+  reevaluateApplyFlowJobs,
   mergeApplyFlowJobs,
   parseApplyFlowDashboardImportJsonString,
   parseApplyFlowImportJsonString,
-  projectJobForFunnel,
+  stripApplicationV2Meta,
   createApplicationPack,
+  findApplicationForJob,
   markApplyFlowJobApplied,
   replaceApplyFlowJob,
   setApplicationPackChecklistItem,
   addResumeVariant,
+  updateResumeVariant,
+  createResumeLibraryFromProfile,
+  validateSavableCandidateProfile,
   deleteResumeVariant,
   duplicateResumeVariant,
   getDefaultResumeVariant,
@@ -38,6 +72,7 @@ import {
   setDefaultResumeVariant,
   type ApplyFlowApplication,
   type ApplyFlowApplicationStatus,
+  type ApplyFlowApplicationV2Envelope,
   type ApplyFlowJob,
   type ApplicationPackChecklistId,
   type DashboardTableFilters,
@@ -45,19 +80,6 @@ import {
 } from "@devflow/applyflow-core";
 import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from "react";
 import type { ReactNode } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 
 import { DEMO_APPLICATIONS_PUBLIC_PATH } from "@/lib/demo-dataset";
 import {
@@ -65,12 +87,22 @@ import {
   loadDashboardImport,
   persistDashboardImport,
 } from "@/lib/local-import-storage";
+import { persistApplicationSubmitted, persistClosedLoopV1Backfill } from "@/lib/persist-application-decision";
 import {
   clearPersistedDashboardJobs,
   loadDashboardJobs,
   persistDashboardJobs,
+  type DashboardJobsLoadStatus,
+  type DashboardJobsUnreadableReason,
 } from "@/lib/local-job-storage";
-import { loadResumeLibrary, persistResumeLibrary } from "@/lib/local-resume-library-storage";
+import {
+  clearPersistedResumeLibrary,
+  hydrateResumeLibraryState,
+  persistResumeLibrary,
+  type ResumeLibraryLoadStatus,
+} from "@/lib/local-resume-library-storage";
+import { persistDashboardContacts } from "@/lib/local-contact-storage";
+import { loadDashboardAnalytics, persistDashboardAnalytics } from "@/lib/local-analytics-storage";
 import {
   buildInterviewLabCareerBundle,
   buildInterviewLabCareerBundleForExport,
@@ -92,14 +124,7 @@ import {
 } from "@/lib/interview-lab-handoff";
 import { cn } from "@/lib/cn";
 import { createCareerBundle, getInterviewReadyApplications } from "@devflow/career-core";
-
-const CHART_COLORS = ["#34d399", "#2dd4bf", "#22d3ee", "#a78bfa", "#fb923c", "#f472b6", "#94a3b8"];
-
-const CHART_TOOLTIP = {
-  background: "rgba(24, 24, 27, 0.96)",
-  border: "1px solid rgba(63, 63, 70, 0.85)",
-  borderRadius: "8px",
-} as const;
+import { CAREER_ANALYTICS_LINK } from "@/components/dashboard/career-analytics-content";
 
 const defaultFilters: DashboardTableFilters = {
   period: "all",
@@ -118,13 +143,10 @@ type ImportFeedback = {
   kind: FeedbackKind;
 };
 
-function formatPct(n: number): string {
-  return `${Math.round(n * 100)}%`;
-}
-
 function statusTone(status: ApplyFlowApplicationStatus): ApplyFlowBadgeTone {
   switch (status) {
     case "accepted":
+    case "hired":
       return "success";
     case "rejected":
     case "ignored":
@@ -147,36 +169,6 @@ const filterSelectClass = cn(
   "bg-[color:var(--af-bg-soft)] px-3 py-2.5 text-sm text-[color:var(--af-text)]",
   "focus:border-emerald-500/50 focus:outline-none",
 );
-
-function DashboardMetricCard({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
-  return (
-    <ApplyFlowCard variant="default" padding="md" className="shadow-sm ring-1 ring-white/[0.03]">
-      <p className="text-xs font-medium uppercase tracking-wide text-[color:var(--af-text-muted)]">{label}</p>
-      <p className="mt-1.5 text-2xl font-semibold tabular-nums text-[color:var(--af-text)]">{value}</p>
-      {hint ? <p className="mt-1 text-[11px] leading-snug text-zinc-500">{hint}</p> : null}
-    </ApplyFlowCard>
-  );
-}
-
-function ChartPanel({
-  title,
-  hint,
-  tall,
-  children,
-}: {
-  title: string;
-  hint: string;
-  tall?: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <ApplyFlowCard variant="muted" padding="md">
-      <h3 className="text-sm font-semibold text-[color:var(--af-text)]">{title}</h3>
-      <p className="mt-1 text-xs leading-relaxed text-[color:var(--af-text-muted)]">{hint}</p>
-      <div className={tall ? "mt-4 h-56 min-h-[14rem] sm:h-60" : "mt-4 h-64 min-h-[16rem]"}>{children}</div>
-    </ApplyFlowCard>
-  );
-}
 
 function feedbackSummary(f: ImportFeedback | null): ReactNode {
   if (!f) return null;
@@ -214,11 +206,17 @@ function feedbackSummary(f: ImportFeedback | null): ReactNode {
 }
 
 export function DashboardClient() {
-  const [applications, setApplications] = useState<ApplyFlowApplication[]>([]);
+  const [applications, setApplications] = useState<ApplyFlowApplicationV2Envelope[]>([]);
   const [jobs, setJobs] = useState<ApplyFlowJob[]>([]);
   const [resumeLibrary, setResumeLibrary] = useState<ResumeLibrary | null>(null);
   const [resumeLibraryError, setResumeLibraryError] = useState<string | null>(null);
+  const [resumeLibraryStatus, setResumeLibraryStatus] = useState<ResumeLibraryLoadStatus>("empty");
   const [jobInboxError, setJobInboxError] = useState<string | null>(null);
+  const [jobsStorageStatus, setJobsStorageStatus] = useState<DashboardJobsLoadStatus>("empty");
+  const [jobsIgnoredCount, setJobsIgnoredCount] = useState(0);
+  const [jobsUnreadableReason, setJobsUnreadableReason] = useState<DashboardJobsUnreadableReason | undefined>(
+    undefined,
+  );
   const [hydrated, setHydrated] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [importFeedback, setImportFeedback] = useState<ImportFeedback | null>(null);
@@ -227,18 +225,36 @@ export function DashboardClient() {
   const [demoLoading, setDemoLoading] = useState(false);
 
   useEffect(() => {
+    persistClosedLoopV1Backfill();
     const stored = loadDashboardImport();
     const storedJobs = loadDashboardJobs();
-    const storedLibrary = loadResumeLibrary();
+    const storedLibrary = hydrateResumeLibraryState();
     startTransition(() => {
       if (stored?.applications?.length) {
         setApplications(stored.applications);
       }
-      if (storedJobs.length) {
-        setJobs(storedJobs);
+      if (storedJobs.jobs.length) {
+        const library = storedLibrary.library;
+        if (library) {
+          const refreshed = reevaluateApplyFlowJobs(
+            storedJobs.jobs,
+            getDefaultResumeVariant(library).profile,
+            library,
+          );
+          if (refreshed.some((job, index) => job !== storedJobs.jobs[index])) {
+            persistDashboardJobs(refreshed);
+          }
+          setJobs(refreshed);
+        } else {
+          setJobs(storedJobs.jobs);
+        }
       }
-      setResumeLibrary(storedLibrary);
-      const restoredCount = (stored?.applications?.length ?? 0) + storedJobs.length;
+      setJobsStorageStatus(storedJobs.status);
+      setJobsIgnoredCount(storedJobs.ignoredCount);
+      setJobsUnreadableReason(storedJobs.reason);
+      setResumeLibrary(storedLibrary.library);
+      setResumeLibraryStatus(storedLibrary.status);
+      const restoredCount = (stored?.applications?.length ?? 0) + storedJobs.jobs.length;
       if (restoredCount > 0) {
         setImportFeedback({
           loaded: restoredCount,
@@ -252,17 +268,24 @@ export function DashboardClient() {
 
   const now = useMemo(() => new Date(), []);
 
-  const recordsForFunnel = useMemo(
-    () => [...applications, ...jobs.map(projectJobForFunnel)],
-    [applications, jobs],
+  const workFlags = useMemo(
+    () =>
+      dashboardWorkFlags({
+        resumeCount: resumeLibrary?.variants.length ?? 0,
+        jobCount: jobs.length,
+        applicationCount: applications.length,
+      }),
+    [resumeLibrary?.variants.length, jobs.length, applications.length],
   );
+  const nextStep = dashboardNextStepId(workFlags);
+  const nextStepHref = nextStep === "analyze" ? dashboardAnalyzeHref(jobs) : undefined;
+  const showApplications = shouldShowApplicationsList(workFlags);
+  const showLabExport = shouldShowInterviewLabExport(applications.length);
 
   const filtered = useMemo(
-    () => applyDashboardTableFilters(recordsForFunnel, filters, now),
-    [recordsForFunnel, filters, now],
+    () => applyDashboardTableFilters(applications, filters, now),
+    [applications, filters, now],
   );
-
-  const metrics = useMemo(() => computeApplicationMetrics(filtered, now), [filtered, now]);
 
   const careerExportPreview = useMemo(() => {
     const mapped = applications.map(mapApplyFlowApplicationToCareer);
@@ -275,19 +298,10 @@ export function DashboardClient() {
     };
   }, [applications]);
 
-  const careerBundleForAgents = useMemo(() => {
-    if (applications.length === 0) {
-      return null;
-    }
-
-    return buildInterviewLabCareerBundle(applications);
-  }, [applications]);
-
   const [careerCopyFeedback, setCareerCopyFeedback] = useState<"idle" | "success" | "error">("idle");
   const [careerCopyMessage, setCareerCopyMessage] = useState<string | null>(null);
   const [includeDemoSyncEnrichment, setIncludeDemoSyncEnrichment] = useState(false);
-  const [eligibleProviderEnrichment, setEligibleProviderEnrichment] =
-    useState<CareerBundleUnifiedSyncEnrichment | null>(null);
+  const [eligibleProviderEnrichment] = useState<CareerBundleUnifiedSyncEnrichment | null>(null);
 
   const exportComposition = useMemo(
     () =>
@@ -402,54 +416,12 @@ export function DashboardClient() {
     }, 10000);
   }, []);
 
-  const funnelData = useMemo(
-    () =>
-      FUNNEL_STATUS_ORDER.map((status) => ({
-        name: APPLYFLOW_APPLICATION_STATUS_LABELS_PT[status],
-        key: status,
-        count: metrics.byStatus[status] ?? 0,
-      })).filter((d) => d.count > 0),
-    [metrics.byStatus],
-  );
-
-  const weekBuckets = useMemo(() => bucketApplicationsByWeek(filtered), [filtered]);
-
-  const workChart = useMemo(
-    () =>
-      Object.entries(metrics.byWorkModel).map(([name, count]) => ({
-        name: name === "unknown" ? "desconhecido" : name,
-        count,
-      })),
-    [metrics.byWorkModel],
-  );
-
-  const contractChart = useMemo(
-    () =>
-      Object.entries(metrics.byContractType).map(([name, count]) => ({
-        name: name === "unknown" ? "desconhecido" : name,
-        count,
-      })),
-    [metrics.byContractType],
-  );
-
-  const englishChart = useMemo(() => {
-    const t = metrics.total;
-    const yes = metrics.englishRequiredCount;
-    return [
-      { name: "Inglês exigido", count: yes },
-      { name: "Não / não indicado", count: Math.max(0, t - yes) },
-    ];
-  }, [metrics.englishRequiredCount, metrics.total]);
-
-  const skillsChart = useMemo(
-    () => (metrics.skillsTop ?? []).slice(0, 8).map((x) => ({ name: x.skill, count: x.count })),
-    [metrics.skillsTop],
-  );
-
-  const skillOptions = useMemo(() => collectDetectedSkills(recordsForFunnel), [recordsForFunnel]);
+  const skillOptions = useMemo(() => collectDetectedSkills(applications), [applications]);
 
   const jobsRef = useRef(jobs);
   jobsRef.current = jobs;
+  const applicationsRef = useRef(applications);
+  applicationsRef.current = applications;
   const resumeLibraryRef = useRef(resumeLibrary);
   resumeLibraryRef.current = resumeLibrary;
 
@@ -467,26 +439,43 @@ export function DashboardClient() {
     } else {
       setJobInboxError(null);
     }
+    return merged;
   }, []);
 
   const commitResumeLibrary = useCallback((library: ResumeLibrary) => {
-    persistResumeLibrary(library);
+    const persisted = persistResumeLibrary(library);
+    if (!persisted.ok) {
+      setResumeLibraryError(persisted.error);
+      return;
+    }
     setResumeLibrary(library);
     setResumeLibraryError(null);
+    const currentJobs = jobsRef.current;
+    if (currentJobs.length === 0) return;
+    const nextJobs = reevaluateApplyFlowJobs(currentJobs, getDefaultResumeVariant(library).profile, library);
+    if (nextJobs.some((job, index) => job !== currentJobs[index])) {
+      persistDashboardJobs(nextJobs);
+      setJobs(nextJobs);
+    }
   }, []);
 
-  const matchProfile = useCallback(() => {
-    const library = resumeLibraryRef.current;
-    if (!library) return gustavoProfile;
-    return getDefaultResumeVariant(library).profile;
-  }, []);
+  const matchProfile = useCallback(() => resolveInboxMatchProfile(resumeLibraryRef.current), []);
 
   const onEvaluatePaste = useCallback(
     (input: { description: string; title: string; company: string; url: string }) => {
       const description = input.description.trim();
       if (!description) {
         setJobInboxError("Cola o texto da vaga para avaliar.");
-        return;
+        return "error" as const;
+      }
+      const profile = matchProfile();
+      if (!profile) {
+        setJobInboxError(JOB_INBOX_NEEDS_RESUME);
+        return "error" as const;
+      }
+      if (findJobByCanonicalUrl(jobsRef.current, input.url)) {
+        setJobInboxError(null);
+        return "duplicate_url" as const;
       }
       const job = ingestApplyFlowJob({
         description,
@@ -494,10 +483,12 @@ export function DashboardClient() {
         title: input.title,
         company: input.company,
         url: input.url,
-        profile: matchProfile(),
+        profile,
         resumeLibrary: resumeLibraryRef.current ?? undefined,
       });
-      commitJobs([job]);
+      const merged = commitJobs([job]);
+      if (merged.added === 0 && merged.skipped > 0) return "duplicate_content" as const;
+      return "added" as const;
     },
     [commitJobs, matchProfile],
   );
@@ -508,6 +499,19 @@ export function DashboardClient() {
     setJobs(nextJobs);
     setJobInboxError(null);
   }, []);
+
+  const onReevaluateJob = useCallback(
+    (jobId: string) => {
+      const library = resumeLibraryRef.current;
+      const job = jobsRef.current.find((item) => item.id === jobId);
+      if (!job || !library) {
+        setJobInboxError(JOB_INBOX_NEEDS_RESUME);
+        return;
+      }
+      replaceJob(reevaluateApplyFlowJobMatch(job, getDefaultResumeVariant(library).profile, library));
+    },
+    [replaceJob],
+  );
 
   const onCreateApplicationPack = useCallback((jobId: string, variantId?: string) => {
     const library = resumeLibraryRef.current;
@@ -533,24 +537,57 @@ export function DashboardClient() {
     [replaceJob],
   );
 
+  const commitApplicationSubmitted = useCallback((application: ApplyFlowApplication) => {
+    const persisted = persistApplicationSubmitted(application);
+    if (!persisted.ok) {
+      setImportError(persisted.error);
+      return;
+    }
+    setApplications((prev) => [...prev.filter((item) => item.id !== persisted.application.id), persisted.application]);
+    const nextJobs = loadDashboardJobs();
+    if (nextJobs.jobs.length) setJobs(nextJobs.jobs);
+  }, []);
+
   const onMarkJobApplied = useCallback(
     (jobId: string) => {
       const job = jobsRef.current.find((item) => item.id === jobId);
       if (!job) return;
+      const linked = findApplicationForJob(applicationsRef.current, job);
+      if (linked) {
+        commitApplicationSubmitted(linked);
+        return;
+      }
       replaceJob(markApplyFlowJobApplied(job));
     },
-    [replaceJob],
+    [commitApplicationSubmitted, replaceJob],
   );
 
   const processJsonText = useCallback((text: string) => {
     setImportError(null);
     const r = parseApplyFlowDashboardImportJsonString(text, {
-      profile: matchProfile(),
+      profile: matchProfile() ?? undefined,
       resumeLibrary: resumeLibraryRef.current ?? undefined,
     });
     if (!r.ok) {
       setImportError(r.error);
       setImportFeedback(null);
+      return;
+    }
+    if (r.kind === "career-bundle-v2") {
+      if (r.bundle.jobs.length) commitJobs(r.bundle.jobs);
+      if (r.bundle.applications.length) {
+        const applications = r.bundle.applications.map(stripApplicationV2Meta);
+        setApplications(applications);
+        persistDashboardImport(applications);
+      }
+      persistDashboardContacts(r.bundle.contacts, r.bundle.interactions);
+      persistDashboardAnalytics(r.bundle.outcomes ?? [], r.bundle.events ?? [], r.bundle.efforts ?? []);
+      setImportFeedback({
+        loaded: r.bundle.applications.length || r.bundle.jobs.length || r.bundle.contacts.length,
+        ignored: 0,
+        kind: "import",
+      });
+      setImportError(null);
       return;
     }
     if (r.kind === "jobs") {
@@ -567,7 +604,9 @@ export function DashboardClient() {
     if (r.kind === "resume-profile") {
       const library = resumeLibraryRef.current;
       if (!library) {
-        setResumeLibraryError("A biblioteca de currículos ainda não carregou.");
+        commitResumeLibrary(createResumeLibraryFromProfile(r.profile, { source: "import" }));
+        setImportFeedback({ loaded: 1, ignored: 0, kind: "import" });
+        setImportError(null);
         return;
       }
       const added = addResumeVariant(library, {
@@ -641,8 +680,8 @@ export function DashboardClient() {
     }
   }, [applications.length]);
 
-  const hasData = applications.length > 0 || jobs.length > 0;
-  const tableEmpty = hasData && filtered.length === 0;
+  const tableEmpty = showApplications && filtered.length === 0;
+  const showJobsRecovery = jobsStorageStatus === "partial" || jobsStorageStatus === "unreadable";
   const pilotMode = isCareerPilotModeClient();
 
   if (!hydrated) {
@@ -659,474 +698,165 @@ export function DashboardClient() {
 
       {pilotMode ? <CareerPilotExperience /> : null}
 
-      <ApplyFlowSection
-        id="como-importar"
-        title="Dashboard"
-        description="Importa um backup JSON da extensão (Opções › Histórico) ou carrega o conjunto de demo para explorar métricas sem dados reais. Com dados carregados, podes exportar um **CareerBundle** para o Interview Lab (JSON local). Tudo é processado neste dispositivo."
-      >
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-stretch">
-          <ApplyFlowCard
-            variant="muted"
-            padding="lg"
-            className={cn(
-              "grow border-dashed transition-colors sm:min-w-[220px]",
-              dragOver ? "border-emerald-500/55 bg-emerald-950/20" : "border-[color:var(--af-border-strong)]",
-            )}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragOver(true);
-            }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setDragOver(false);
-              const f = e.dataTransfer.files[0];
-              onFile(f ?? null);
-            }}
-          >
-            <div className="text-center">
-              <input
-                id="af-json"
-                type="file"
-                accept=".json,application/json"
-                className="hidden"
-                onChange={(e) => onFile(e.target.files?.[0] ?? null)}
-              />
-              <label
-                htmlFor="af-json"
-                className={applyFlowButtonClass({
-                  variant: "primary",
-                  size: "md",
-                  className: "cursor-pointer",
-                })}
-              >
-                Importar JSON
-              </label>
-              <p className="mt-3 text-xs text-[color:var(--af-text-muted)]">
-                Arrasta um ficheiro para aqui — processado só no teu dispositivo.
-              </p>
-            </div>
-          </ApplyFlowCard>
+      {showJobsRecovery ? (
+        <JobsStorageRecoveryBanner
+          status={jobsStorageStatus}
+          ignoredCount={jobsIgnoredCount}
+          reason={jobsUnreadableReason}
+          onDiscard={() => {
+            clearPersistedDashboardJobs();
+            setJobs([]);
+            setJobsStorageStatus("empty");
+            setJobsIgnoredCount(0);
+            setJobsUnreadableReason(undefined);
+            setJobInboxError(null);
+          }}
+        />
+      ) : null}
 
-          <div id="carregar-demo" className="flex scroll-mt-24 flex-col items-stretch justify-center gap-2 sm:w-auto">
-            <ApplyFlowButton
-              type="button"
-              variant="outlineBrand"
-              size="md"
-              disabled={demoLoading}
-              className="w-full min-w-[180px] sm:w-auto"
-              onClick={() => void loadDemo()}
-            >
-              {demoLoading ? "A carregar demo…" : "Carregar demo"}
-            </ApplyFlowButton>
-            <p className="text-center text-[11px] text-[color:var(--af-text-muted)] sm:text-left">
-              ~20 vagas fictícias · sem PII
-            </p>
-          </div>
-        </div>
+      {resumeLibraryStatus === "unreadable" ? (
+        <ResumeLibraryRecoveryBanner
+          onDiscard={() => {
+            clearPersistedResumeLibrary();
+            setResumeLibrary(null);
+            setResumeLibraryStatus("empty");
+            setResumeLibraryError(null);
+          }}
+          onImportProfileFile={(file) => {
+            if (!file) return;
+            void file.text().then((text) => processJsonText(text));
+          }}
+        />
+      ) : null}
 
-        {importError ? (
-          <ApplyFlowCard variant="danger" padding="md" role="alert">
-            <p className="font-medium text-red-200">Não foi possível usar este ficheiro</p>
-            <p className="mt-1 text-sm text-red-100/90">{importError}</p>
-            <p className="mt-3 text-xs text-red-200/85">
-              Confirma que exportaste o backup a partir da extensão ou experimenta a <strong>demo</strong> para ver o painel
-              com dados fictícios.
-            </p>
-          </ApplyFlowCard>
-        ) : null}
+      <DashboardNextStep step={nextStep} href={nextStepHref} />
 
-        <div className="mt-8">
-          {resumeLibrary ? (
-            <ResumeLibraryPanel
-              library={resumeLibrary}
-              error={resumeLibraryError}
-              onSetDefault={(id) => {
-                const result = setDefaultResumeVariant(resumeLibrary, id);
-                if (!result.ok) {
-                  setResumeLibraryError(result.error);
-                  return;
-                }
-                commitResumeLibrary(result.library);
-              }}
-              onRename={(id, name) => {
-                const result = renameResumeVariant(resumeLibrary, id, name);
-                if (!result.ok) {
-                  setResumeLibraryError(result.error);
-                  return;
-                }
-                commitResumeLibrary(result.library);
-              }}
-              onDelete={(id) => {
-                const result = deleteResumeVariant(resumeLibrary, id);
-                if (!result.ok) {
-                  setResumeLibraryError(result.error);
-                  return;
-                }
-                commitResumeLibrary(result.library);
-              }}
-              onDuplicate={(name) => {
-                const result = duplicateResumeVariant(resumeLibrary, resumeLibrary.defaultVariantId, { name });
-                if (!result.ok) {
-                  setResumeLibraryError(result.error);
-                  return;
-                }
-                commitResumeLibrary(result.library);
-              }}
-              onImportProfileFile={(file) => {
-                if (!file) return;
-                void file.text().then((text) => processJsonText(text));
-              }}
-            />
-          ) : null}
-        </div>
-
-        <div className="mt-8">
-          <JobInboxPanel
-            jobs={jobs}
-            error={jobInboxError}
-            evaluatedWithName={resumeLibrary ? getDefaultResumeVariant(resumeLibrary).name : "Perfil principal"}
-            resumeLibrary={resumeLibrary}
-            onEvaluatePaste={onEvaluatePaste}
-            onCreateApplicationPack={onCreateApplicationPack}
-            onTogglePackChecklist={onTogglePackChecklist}
-            onMarkJobApplied={onMarkJobApplied}
-          />
-        </div>
-
-        {!hasData && !importError ? (
-          <ApplyFlowEmptyState
-            title="Nenhum dado carregado"
-            description={
-              <>
-                Importa o JSON gerado na extensão (Opções › Histórico), cola uma vaga no inbox, ou usa{" "}
-                <strong>Carregar demo</strong> para ver funil, gráficos e tabela com dados fictícios.
-              </>
+      {resumeLibraryStatus !== "unreadable" ? (
+        <ResumeLibraryPanel
+          library={resumeLibrary}
+          error={resumeLibraryError}
+          jobScopes={jobs.map((job) => ({
+            id: job.id,
+            label: [job.title, job.company].filter(Boolean).join(" · ") || job.id,
+          }))}
+          onSetDefault={(id) => {
+            if (!resumeLibrary) return;
+            const result = setDefaultResumeVariant(resumeLibrary, id);
+            if (!result.ok) {
+              setResumeLibraryError(result.error);
+              return;
             }
-            primaryLabel="Ir para importar ou demo"
-            onPrimary={() => document.getElementById("como-importar")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-          />
-        ) : null}
+            commitResumeLibrary(result.library);
+          }}
+          onRename={(id, name) => {
+            if (!resumeLibrary) return;
+            const result = renameResumeVariant(resumeLibrary, id, name);
+            if (!result.ok) {
+              setResumeLibraryError(result.error);
+              return;
+            }
+            commitResumeLibrary(result.library);
+          }}
+          onDelete={(id) => {
+            if (!resumeLibrary) return;
+            const result = deleteResumeVariant(resumeLibrary, id);
+            if (!result.ok) {
+              setResumeLibraryError(result.error);
+              return;
+            }
+            commitResumeLibrary(result.library);
+          }}
+          onDuplicate={(name) => {
+            if (!resumeLibrary) return;
+            const result = duplicateResumeVariant(resumeLibrary, resumeLibrary.defaultVariantId, { name });
+            if (!result.ok) {
+              setResumeLibraryError(result.error);
+              return;
+            }
+            commitResumeLibrary(result.library);
+          }}
+          onImportProfileFile={(file) => {
+            if (!file) return;
+            void file.text().then((text) => processJsonText(text));
+          }}
+          onSaveProfile={(profile, options) => {
+            try {
+              const validated = validateSavableCandidateProfile(profile);
+              const current = resumeLibraryRef.current;
+              const variantName = options.variantName ?? validated.roles[0] ?? validated.name;
+              if (!current) {
+                commitResumeLibrary(
+                  createResumeLibraryFromProfile(validated, {
+                    name: variantName,
+                    source: "manual",
+                  }),
+                );
+                return { ok: true };
+              }
+              if (options.variantId) {
+                const result = updateResumeVariant(current, options.variantId, {
+                  profile: validated,
+                  ...(options.variantName ? { name: options.variantName } : {}),
+                });
+                if (!result.ok) return { ok: false, error: result.error };
+                commitResumeLibrary(result.library);
+                return { ok: true };
+              }
+              const added = addResumeVariant(current, {
+                profile: validated,
+                name: variantName,
+                source: "manual",
+              });
+              if (!added.ok) return { ok: false, error: added.error };
+              commitResumeLibrary(added.library);
+              return { ok: true };
+            } catch (err) {
+              return {
+                ok: false,
+                error: err instanceof Error ? err.message : "Não foi possível guardar o perfil.",
+              };
+            }
+          }}
+        />
+      ) : null}
 
-        {importFeedback && hasData ? (
-          <ApplyFlowCard variant="success" padding="md" className="text-sm text-emerald-100/95">
-            {feedbackSummary(importFeedback)}
-            {importFeedback.kind !== "demo"
-              ? (() => {
-                  const r = computeCreatedAtRange(applications);
-                  if (!r.oldest || !r.newest) return null;
-                  return (
-                    <span className="mt-1 block text-xs text-emerald-200/75">
-                      Período (criação): {new Date(r.oldest).toLocaleDateString("pt-BR")} —{" "}
-                      {new Date(r.newest).toLocaleDateString("pt-BR")}
-                    </span>
-                  );
-                })()
-              : null}
-            {importFeedback.kind === "demo" ? (
-              <span className="mt-1 block text-xs text-emerald-200/70">
-                Empresas e vagas são inteiramente fictícias (demonstração de portefólio).
-              </span>
-            ) : null}
-          </ApplyFlowCard>
-        ) : null}
+      <JobInboxPanel
+        jobs={jobs}
+        error={jobInboxError}
+        evaluatedWithName={resumeLibrary ? getDefaultResumeVariant(resumeLibrary).name : null}
+        matchAvailable={Boolean(resumeLibrary)}
+        resumeLibrary={resumeLibrary}
+        onEvaluatePaste={onEvaluatePaste}
+        onCreateApplicationPack={onCreateApplicationPack}
+        onTogglePackChecklist={onTogglePackChecklist}
+        onMarkJobApplied={onMarkJobApplied}
+        onReevaluateJob={onReevaluateJob}
+      />
 
-        {hasData ? (
-          <ApplyFlowCard variant="muted" padding="md" className="border border-[color:var(--af-border-strong)]/80">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="max-w-xl space-y-2">
-                <h3 className="text-sm font-semibold text-[color:var(--af-text)]">Interview Lab · exportação local</h3>
-                <p className="text-xs leading-relaxed text-[color:var(--af-text-muted)]">
-                  <span className="text-[color:var(--af-text)]">
-                    Export your selected applications as a CareerBundle and import them into Interview Lab for
-                    role-specific interview practice.
-                  </span>{" "}
-                  O ficheiro JSON é gerado <strong className="text-[color:var(--af-text)]">só neste browser</strong>{" "}
-                  (sem upload para servidores ApplyFlow ou Interview Lab).
-                </p>
-                <p className="text-[11px] leading-snug text-zinc-500">
-                  Este export usa as candidaturas carregadas no dashboard (histórico importado ou demo), com regras de
-                  prioridade do <code className="rounded bg-zinc-800/80 px-1 py-0.5 text-zinc-300">@devflow/career-core</code>{" "}
-                  (entrevista → aplicadas/revisão → restantes).
-                </p>
-                <p className="text-[11px] leading-snug text-zinc-500">
-                  <strong className="font-medium text-zinc-400">Handoff rápido:</strong>{" "}
-                  <span className="text-zinc-500">Prepare in Interview Lab</span> abre o Interview Lab na lista de importação e envia o bundle por{" "}
-                  <code className="rounded bg-zinc-800/80 px-1 py-0.5 text-zinc-300">postMessage</code> (sem dados na URL). Na tabela,{" "}
-                  <span className="text-zinc-500">Practice this role</span> envia uma linha e abre a prática directamente.{" "}
-                  <span className="text-zinc-500">Copy CareerBundle</span> / <span className="text-zinc-500">Open Interview Lab</span>{" "}
-                  / export JSON continuam como fallback.
-                </p>
-                {careerExportPreview.interviewReadyInHistory === 0 ? (
-                  <ApplyFlowCard variant="warning" padding="sm" className="text-xs text-amber-100/95">
-                    <strong className="font-medium text-amber-100">Sem vagas em fase de entrevista</strong> neste
-                    conjunto (mapeadas como &quot;interview requested&quot; / &quot;scheduled&quot;). O export continua
-                    disponível e incluirá candidaturas em <strong>applied</strong>/<strong>saved</strong> ou o conjunto
-                    completo, conforme as regras do bundle.
-                  </ApplyFlowCard>
-                ) : (
-                  <p className="text-[11px] text-emerald-200/80">
-                    {careerExportPreview.interviewReadyInHistory} candidatura(s) mapeada(s) para fase de entrevista no
-                    histórico actual — o export prioriza essas linhas.
-                  </p>
-                )}
-                <DashboardCareerExportCompositionSource sourceKind={exportComposition.sourceKind} />
-                <p className="text-[11px] leading-snug text-[color:var(--af-text-muted)]">
-                  {DASHBOARD_CAREER_EXPORT_READ_ONLY_NOTICE}
-                </p>
-                <label className="mt-2 flex cursor-pointer items-start gap-2.5 rounded-lg border border-[color:var(--af-border-strong)]/60 bg-[color:var(--af-surface)]/40 p-3">
-                  <input
-                    type="checkbox"
-                    className="mt-0.5 size-4 shrink-0 accent-emerald-500"
-                    checked={includeDemoSyncEnrichment}
-                    onChange={(e) => setIncludeDemoSyncEnrichment(e.target.checked)}
-                  />
-                  <span className="text-left text-[11px] leading-snug text-[color:var(--af-text-muted)]">
-                    <span className="font-medium text-[color:var(--af-text)]">Demo sync enrichment</span>
-                    {" — "}
-                    Adds fake/sandbox derived signals to the exported CareerBundle so Interview Lab can show the
-                    read-only sync enrichment preview. No Gmail or Calendar connection is made.
-                  </span>
-                </label>
-              </div>
-              <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
-                <ApplyFlowButton
-                  type="button"
-                  variant="primary"
-                  size="md"
-                  className="w-full font-semibold sm:w-auto"
-                  disabled={careerExportPreview.exportRowCount === 0}
-                  onClick={() => void onPrepareInInterviewLab()}
-                >
-                  Prepare in Interview Lab
-                </ApplyFlowButton>
-                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
-                  <ApplyFlowButton
-                    type="button"
-                    variant="outlineBrand"
-                    size="md"
-                    className="font-medium"
-                    disabled={careerExportPreview.exportRowCount === 0}
-                    onClick={() => void onCopyCareerBundleForInterviewLab()}
-                  >
-                    Copy CareerBundle
-                  </ApplyFlowButton>
-                  <ApplyFlowButton type="button" variant="outlineBrand" size="md" className="font-medium" onClick={onOpenInterviewLabImport}>
-                    Open Interview Lab
-                  </ApplyFlowButton>
-                  <ApplyFlowButton
-                    type="button"
-                    variant="outlineBrand"
-                    size="md"
-                    className="font-medium"
-                    disabled={careerExportPreview.exportRowCount === 0}
-                    onClick={() => {
-                      downloadCareerBundleJson(buildExportCareerBundle());
-                    }}
-                  >
-                    Exportar para Interview Lab
-                  </ApplyFlowButton>
-                </div>
-                {prepareHandoffHint === "ack" && prepareHandoffMessage ? (
-                  <p className="text-center text-[11px] font-medium text-emerald-300 sm:text-right">{prepareHandoffMessage}</p>
-                ) : null}
-                {prepareHandoffHint === "clipboard" && prepareHandoffMessage ? (
-                  <p className="max-w-xs text-center text-[11px] leading-snug text-amber-200/95 sm:text-right">{prepareHandoffMessage}</p>
-                ) : null}
-                {prepareHandoffHint === "error" && prepareHandoffMessage ? (
-                  <p className="max-w-xs text-center text-[11px] leading-snug text-red-200/95 sm:text-right">{prepareHandoffMessage}</p>
-                ) : null}
-                {careerCopyFeedback === "success" ? (
-                  <p className="text-center text-[11px] font-medium text-emerald-300 sm:text-right">CareerBundle copied.</p>
-                ) : null}
-                {careerCopyFeedback === "error" && careerCopyMessage ? (
-                  <p className="max-w-xs text-center text-[11px] leading-snug text-amber-200/95 sm:text-right">{careerCopyMessage}</p>
-                ) : null}
-                <span className="text-center text-[10px] text-[color:var(--af-text-muted)] sm:text-right">
-                  ~{careerExportPreview.exportRowCount} vaga(s) no JSON
-                </span>
-              </div>
-            </div>
-          </ApplyFlowCard>
-        ) : null}
+      {shouldShowProviderConsentOnDashboard() ? <ProviderConsentConfirmationPanel /> : null}
 
-        {!pilotMode ? (
-          <>
-            <ProviderConsentMockPanel />
-
-            <ProviderConsentConfirmationPanel
-              currentSyncEnrichment={exportComposition.syncEnrichment}
-              baselineSourceKind={exportComposition.sourceKind}
-              onEligibleProviderEnrichmentChange={setEligibleProviderEnrichment}
-              careerBundle={careerBundleForAgents}
-            />
-          </>
-        ) : null}
-
-        {hasData ? (
-          <div className="flex flex-wrap items-center gap-4">
-            <ApplyFlowButton
-              type="button"
-              variant="dangerGhost"
-              size="sm"
-              className="px-0 py-0 font-medium"
-              onClick={() => {
-                clearPersistedDashboardImport();
-                clearPersistedDashboardJobs();
-                setApplications([]);
-                setJobs([]);
-                setJobInboxError(null);
-                setImportFeedback(null);
-                setImportError(null);
-                setFilters(defaultFilters);
-              }}
-            >
-              Limpar dados do navegador
-            </ApplyFlowButton>
-          </div>
-        ) : null}
-      </ApplyFlowSection>
-
-      {hasData ? (
+      {showApplications ? (
         <>
+          <InboundApplicationResponsePanel
+            applications={applications}
+            outcomes={loadDashboardAnalytics().outcomes}
+            onApplicationUpdated={(application) => {
+              setApplications((prev) => [...prev.filter((item) => item.id !== application.id), application]);
+            }}
+          />
           <ApplyFlowSection
-            title="Resumo numérico"
-            description={
-              <>
-                Valores refletem os <strong>filtros ativos</strong> abaixo (período, estado, skills, etc.).
-              </>
-            }
+            id="applications"
+            title={DASHBOARD_APPLICATIONS_TITLE}
+            description={DASHBOARD_APPLICATIONS_DESCRIPTION}
           >
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              <DashboardMetricCard label="Total visível" value={metrics.total} hint="Candidaturas após filtros" />
-              <DashboardMetricCard label="Aplicadas" value={metrics.byStatus.applied ?? 0} />
-              <DashboardMetricCard label="Aguardando resposta" value={metrics.byStatus.waiting_response ?? 0} />
-              <DashboardMetricCard label="Entrevistas" value={metrics.byStatus.interview ?? 0} />
-              <DashboardMetricCard label="Testes técnicos" value={metrics.byStatus.technical_test ?? 0} />
-              <DashboardMetricCard label="Recusadas" value={metrics.byStatus.rejected ?? 0} />
-              <DashboardMetricCard label="Aprovadas" value={metrics.byStatus.accepted ?? 0} />
-              <DashboardMetricCard
-                label="Taxa de entrevista"
-                value={formatPct(metrics.interviewRate)}
-                hint="Entrevistas ÷ total visível"
-              />
-              <DashboardMetricCard
-                label="Paradas 7+ dias"
-                value={metrics.staleCount}
-                hint="Revisão / aplicada / aguardando sem actualização há 7+ dias"
-              />
-              <DashboardMetricCard
-                label="Média de fit"
-                value={metrics.averageFitScore ?? "—"}
-                hint="Só entradas com fit numérico"
-              />
-            </div>
-          </ApplyFlowSection>
-
-          <section>
-            <h2 className="text-lg font-semibold text-[color:var(--af-text)] sm:text-xl">Visualizações</h2>
-            <p className="mt-1 max-w-2xl text-xs text-[color:var(--af-text-muted)] sm:text-sm">
-              Gráficos baseados na mesma lista filtrada que a tabela.
+            <p className="mb-3 text-xs text-[color:var(--af-text-muted)]">
+              {applications.length} candidatura{applications.length === 1 ? "" : "s"} registada{applications.length === 1 ? "" : "s"}.{" "}
+              <Link href="/dashboard/analytics" className="font-medium text-emerald-300 hover:text-emerald-200">
+                {CAREER_ANALYTICS_LINK}
+              </Link>
+              {" — "}
+              {DASHBOARD_ANALYTICS_HINT}
             </p>
-            <div className="mt-4 grid gap-4 sm:mt-6 sm:gap-5 lg:grid-cols-2">
-              <ChartPanel title="Funil por estado" hint="Distribuição das candidaturas visíveis por fase do processo.">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={funnelData} layout="vertical" margin={{ left: 8, right: 16 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(63,63,70,0.6)" />
-                    <XAxis type="number" stroke="#71717a" />
-                    <YAxis type="category" dataKey="name" width={118} stroke="#71717a" tick={{ fontSize: 11 }} />
-                    <Tooltip contentStyle={CHART_TOOLTIP} />
-                    <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                      {funnelData.map((_, i) => (
-                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartPanel>
-
-              <ChartPanel
-                title="Novas candidaturas por semana"
-                hint="Contagem por semana de calendário (data de criação do registo)."
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={weekBuckets}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(63,63,70,0.6)" />
-                    <XAxis dataKey="label" stroke="#71717a" tick={{ fontSize: 10 }} />
-                    <YAxis stroke="#71717a" allowDecimals={false} />
-                    <Tooltip contentStyle={CHART_TOOLTIP} />
-                    <Bar dataKey="count" fill="#34d399" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartPanel>
-
-              <ChartPanel
-                title="Skills mais frequentes"
-                hint="Extraídas do jobMeta das candidaturas filtradas (heurística da extensão)."
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={skillsChart} layout="vertical" margin={{ left: 8, right: 16 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(63,63,70,0.6)" />
-                    <XAxis type="number" stroke="#71717a" />
-                    <YAxis type="category" dataKey="name" width={96} stroke="#71717a" tick={{ fontSize: 10 }} />
-                    <Tooltip contentStyle={CHART_TOOLTIP} />
-                    <Bar dataKey="count" fill="#2dd4bf" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartPanel>
-
-              <ChartPanel title="Modelo de trabalho" hint="Remoto, híbrido, presencial ou desconhecido." tall>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={workChart} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={72} label>
-                      {workChart.map((_, i) => (
-                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Legend wrapperStyle={{ fontSize: 12 }} />
-                    <Tooltip contentStyle={CHART_TOOLTIP} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartPanel>
-
-              <ChartPanel title="Tipo de contratação" hint="CLT, PJ, contractor, estágio, etc." tall>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={contractChart} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={72} label>
-                      {contractChart.map((_, i) => (
-                        <Cell key={i} fill={CHART_COLORS[(i + 2) % CHART_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Legend wrapperStyle={{ fontSize: 12 }} />
-                    <Tooltip contentStyle={CHART_TOOLTIP} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartPanel>
-
-              <ChartPanel
-                title="Inglês exigido no anúncio"
-                hint="Com base na meta heurística; «não indicado» inclui anúncios sem menção clara."
-                tall
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={englishChart} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={72} label>
-                      {englishChart.map((_, i) => (
-                        <Cell key={i} fill={CHART_COLORS[(i + 4) % CHART_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Legend wrapperStyle={{ fontSize: 12 }} />
-                    <Tooltip contentStyle={CHART_TOOLTIP} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartPanel>
-            </div>
-          </section>
-
-          <ApplyFlowSection
-            title="Tabela de candidaturas"
-            description="Filtra por período e critérios; em ecrãs pequenos usa scroll horizontal na grelha."
-          >
             <ApplyFlowCard variant="muted" padding="md" className="flex flex-wrap gap-2 sm:gap-3">
               <select
                 className={cn(filterSelectClass, "sm:max-w-[200px]")}
@@ -1231,7 +961,7 @@ export function DashboardClient() {
                     <th className="px-3 py-3.5">Inglês</th>
                     <th className="px-3 py-3.5">Skills</th>
                     <th className="px-3 py-3.5">Notas</th>
-                    <th className="whitespace-nowrap px-3 py-3.5">Interview Lab</th>
+                    <th className="whitespace-nowrap px-3 py-3.5">Entrevista</th>
                     <th className="px-3 py-3.5">Link</th>
                   </tr>
                 </thead>
@@ -1257,9 +987,22 @@ export function DashboardClient() {
                         {a.jobTitle ?? "—"}
                       </td>
                       <td className="whitespace-nowrap px-3 py-3">
-                        <ApplyFlowBadge tone={statusTone(a.status)}>
-                          {APPLYFLOW_APPLICATION_STATUS_LABELS_PT[a.status]}
-                        </ApplyFlowBadge>
+                        <div className="grid gap-1">
+                          <ApplyFlowBadge tone={statusTone(a.status)}>
+                            {APPLYFLOW_APPLICATION_STATUS_LABELS_PT[a.status]}
+                          </ApplyFlowBadge>
+                          {a.status === "reviewing" ? (
+                            <ApplyFlowButton
+                              type="button"
+                              variant="outlineBrand"
+                              size="sm"
+                              className="w-fit text-[11px]"
+                              onClick={() => commitApplicationSubmitted(a)}
+                            >
+                              {DASHBOARD_MARK_SENT}
+                            </ApplyFlowButton>
+                          ) : null}
+                        </div>
                       </td>
                       <td className="px-3 py-3 tabular-nums text-[color:var(--af-text-muted)]">{a.fitScore ?? "—"}</td>
                       <td className="whitespace-nowrap px-3 py-3 text-[color:var(--af-text-muted)]">
@@ -1296,24 +1039,24 @@ export function DashboardClient() {
                           size="sm"
                           className="max-w-[140px] whitespace-normal text-center text-[11px] leading-tight sm:max-w-none"
                           disabled={practiceHandoffBusy}
+                          title={DASHBOARD_PREPARE_INTERVIEW_HINT}
                           onClick={() => void onPracticeThisRole(a)}
                         >
-                          Practice this role
+                          {DASHBOARD_PREPARE_INTERVIEW}
                         </ApplyFlowButton>
                       </td>
                       <td className="whitespace-nowrap px-3 py-3">
-                        {a.jobUrl ? (
-                          <a
-                            href={a.jobUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="font-medium text-emerald-400 hover:text-emerald-300 hover:underline"
-                          >
-                            abrir
-                          </a>
-                        ) : (
-                          "—"
-                        )}
+                        <div className="grid gap-1">
+                          <DashboardJobUrlCell url={a.jobUrl} />
+                          {a.v2?.sourceJobId ? (
+                            <Link
+                              href={`/dashboard/jobs/${encodeURIComponent(a.v2.sourceJobId)}`}
+                              className="text-[11px] font-medium text-emerald-400 hover:text-emerald-300 hover:underline"
+                            >
+                              Ver análise
+                            </Link>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1332,6 +1075,257 @@ export function DashboardClient() {
           </ApplyFlowSection>
         </>
       ) : null}
+
+      <ApplyFlowSection
+        id="como-importar"
+        title={DASHBOARD_DATA_TITLE}
+        description={DASHBOARD_DATA_DESCRIPTION}
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-stretch">
+          <ApplyFlowCard
+            variant="muted"
+            padding="lg"
+            className={cn(
+              "grow border-dashed transition-colors sm:min-w-[220px]",
+              dragOver ? "border-emerald-500/55 bg-emerald-950/20" : "border-[color:var(--af-border-strong)]",
+            )}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+              const f = e.dataTransfer.files[0];
+              onFile(f ?? null);
+            }}
+          >
+            <div className="text-center">
+              <input
+                id="af-json"
+                type="file"
+                accept=".json,application/json"
+                className="hidden"
+                onChange={(e) => onFile(e.target.files?.[0] ?? null)}
+              />
+              <label
+                htmlFor="af-json"
+                className={applyFlowButtonClass({
+                  variant: "primary",
+                  size: "md",
+                  className: "cursor-pointer",
+                })}
+              >
+                Importar JSON
+              </label>
+              <p className="mt-3 text-xs text-[color:var(--af-text-muted)]">
+                Arrasta um ficheiro para aqui — processado só no teu dispositivo.
+              </p>
+            </div>
+          </ApplyFlowCard>
+
+          <div id="carregar-demo" className="flex scroll-mt-24 flex-col items-stretch justify-center gap-2 sm:w-auto">
+            <ApplyFlowButton
+              type="button"
+              variant="outlineBrand"
+              size="md"
+              disabled={demoLoading}
+              className="w-full min-w-[180px] sm:w-auto"
+              onClick={() => void loadDemo()}
+            >
+              {demoLoading ? "A carregar demo…" : "Carregar demo"}
+            </ApplyFlowButton>
+            <p className="text-center text-[11px] text-[color:var(--af-text-muted)] sm:text-left">
+              ~20 vagas fictícias · sem PII
+            </p>
+          </div>
+        </div>
+
+        {importError ? (
+          <ApplyFlowCard variant="danger" padding="md" role="alert">
+            <p className="font-medium text-red-200">Não foi possível usar este ficheiro</p>
+            <p className="mt-1 text-sm text-red-100/90">{importError}</p>
+            <p className="mt-3 text-xs text-red-200/85">
+              Confirma que exportaste o backup a partir da extensão ou experimenta a <strong>demo</strong> para ver o painel
+              com dados fictícios.
+            </p>
+          </ApplyFlowCard>
+        ) : null}
+
+        {importFeedback ? (
+          <ApplyFlowCard variant="success" padding="md" className="text-sm text-emerald-100/95">
+            {feedbackSummary(importFeedback)}
+            {importFeedback.kind !== "demo"
+              ? (() => {
+                  const r = computeCreatedAtRange(applications);
+                  if (!r.oldest || !r.newest) return null;
+                  return (
+                    <span className="mt-1 block text-xs text-emerald-200/75">
+                      Período (criação): {new Date(r.oldest).toLocaleDateString("pt-BR")} —{" "}
+                      {new Date(r.newest).toLocaleDateString("pt-BR")}
+                    </span>
+                  );
+                })()
+              : null}
+            {importFeedback.kind === "demo" ? (
+              <span className="mt-1 block text-xs text-emerald-200/70">
+                Empresas e vagas são inteiramente fictícias (demonstração de portefólio).
+              </span>
+            ) : null}
+          </ApplyFlowCard>
+        ) : null}
+
+        {showLabExport ? (
+          <ApplyFlowCard variant="muted" padding="md" className="border border-[color:var(--af-border-strong)]/80">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="max-w-xl space-y-2">
+                <h3 className="text-sm font-semibold text-[color:var(--af-text)]">Interview Lab · exportação local</h3>
+                <p className="text-xs leading-relaxed text-[color:var(--af-text-muted)]">
+                  <span className="text-[color:var(--af-text)]">
+                    Export your selected applications as a CareerBundle and import them into Interview Lab for
+                    role-specific interview practice.
+                  </span>{" "}
+                  O ficheiro JSON é gerado <strong className="text-[color:var(--af-text)]">só neste browser</strong>{" "}
+                  (sem upload para servidores ApplyFlow ou Interview Lab).
+                </p>
+                <p className="text-[11px] leading-snug text-zinc-500">
+                  Este export usa as candidaturas carregadas no dashboard (histórico importado ou demo), com regras de
+                  prioridade do <code className="rounded bg-zinc-800/80 px-1 py-0.5 text-zinc-300">@devflow/career-core</code>{" "}
+                  (entrevista → aplicadas/revisão → restantes).
+                </p>
+                <p className="text-[11px] leading-snug text-zinc-500">
+                  <strong className="font-medium text-zinc-400">Handoff rápido:</strong>{" "}
+                  <span className="text-zinc-500">Prepare in Interview Lab</span> abre o Interview Lab na lista de importação e envia o bundle por{" "}
+                  <code className="rounded bg-zinc-800/80 px-1 py-0.5 text-zinc-300">postMessage</code> (sem dados na URL). Na tabela,{" "}
+                  <span className="text-zinc-500">{DASHBOARD_PREPARE_INTERVIEW}</span> envia uma linha e abre a prática directamente.{" "}
+                  <span className="text-zinc-500">Copy CareerBundle</span> / <span className="text-zinc-500">Open Interview Lab</span>{" "}
+                  / export JSON continuam como fallback.
+                </p>
+                {careerExportPreview.interviewReadyInHistory === 0 ? (
+                  <ApplyFlowCard variant="warning" padding="sm" className="text-xs text-amber-100/95">
+                    <strong className="font-medium text-amber-100">Sem vagas em fase de entrevista</strong> neste
+                    conjunto (mapeadas como &quot;interview requested&quot; / &quot;scheduled&quot;). O export continua
+                    disponível e incluirá candidaturas em <strong>applied</strong>/<strong>saved</strong> ou o conjunto
+                    completo, conforme as regras do bundle.
+                  </ApplyFlowCard>
+                ) : (
+                  <p className="text-[11px] text-emerald-200/80">
+                    {careerExportPreview.interviewReadyInHistory} candidatura(s) mapeada(s) para fase de entrevista no
+                    histórico actual — o export prioriza essas linhas.
+                  </p>
+                )}
+                <DashboardCareerExportCompositionSource sourceKind={exportComposition.sourceKind} />
+                <p className="text-[11px] leading-snug text-[color:var(--af-text-muted)]">
+                  {DASHBOARD_CAREER_EXPORT_READ_ONLY_NOTICE}
+                </p>
+                <label className="mt-2 flex cursor-pointer items-start gap-2.5 rounded-lg border border-[color:var(--af-border-strong)]/60 bg-[color:var(--af-surface)]/40 p-3">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 size-4 shrink-0 accent-emerald-500"
+                    checked={includeDemoSyncEnrichment}
+                    onChange={(e) => setIncludeDemoSyncEnrichment(e.target.checked)}
+                  />
+                  <span className="text-left text-[11px] leading-snug text-[color:var(--af-text-muted)]">
+                    <span className="font-medium text-[color:var(--af-text)]">Demo sync enrichment</span>
+                    {" — "}
+                    Adds fake/sandbox derived signals to the exported CareerBundle so Interview Lab can show the
+                    read-only sync enrichment preview. No Gmail or Calendar connection is made.
+                  </span>
+                </label>
+              </div>
+              <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
+                <ApplyFlowButton
+                  type="button"
+                  variant="primary"
+                  size="md"
+                  className="w-full font-semibold sm:w-auto"
+                  disabled={careerExportPreview.exportRowCount === 0}
+                  onClick={() => void onPrepareInInterviewLab()}
+                >
+                  Prepare in Interview Lab
+                </ApplyFlowButton>
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+                  <ApplyFlowButton
+                    type="button"
+                    variant="outlineBrand"
+                    size="md"
+                    className="font-medium"
+                    disabled={careerExportPreview.exportRowCount === 0}
+                    onClick={() => void onCopyCareerBundleForInterviewLab()}
+                  >
+                    Copy CareerBundle
+                  </ApplyFlowButton>
+                  <ApplyFlowButton
+                    type="button"
+                    variant="outlineBrand"
+                    size="md"
+                    className="font-medium"
+                    title={DASHBOARD_OPEN_INTERVIEW_LAB_HINT}
+                    onClick={onOpenInterviewLabImport}
+                  >
+                    Open Interview Lab
+                  </ApplyFlowButton>
+                  <ApplyFlowButton
+                    type="button"
+                    variant="outlineBrand"
+                    size="md"
+                    className="font-medium"
+                    disabled={careerExportPreview.exportRowCount === 0}
+                    onClick={() => {
+                      downloadCareerBundleJson(buildExportCareerBundle());
+                    }}
+                  >
+                    Exportar para Interview Lab
+                  </ApplyFlowButton>
+                </div>
+                {prepareHandoffHint === "ack" && prepareHandoffMessage ? (
+                  <p className="text-center text-[11px] font-medium text-emerald-300 sm:text-right">{prepareHandoffMessage}</p>
+                ) : null}
+                {prepareHandoffHint === "clipboard" && prepareHandoffMessage ? (
+                  <p className="max-w-xs text-center text-[11px] leading-snug text-amber-200/95 sm:text-right">{prepareHandoffMessage}</p>
+                ) : null}
+                {prepareHandoffHint === "error" && prepareHandoffMessage ? (
+                  <p className="max-w-xs text-center text-[11px] leading-snug text-red-200/95 sm:text-right">{prepareHandoffMessage}</p>
+                ) : null}
+                {careerCopyFeedback === "success" ? (
+                  <p className="text-center text-[11px] font-medium text-emerald-300 sm:text-right">CareerBundle copied.</p>
+                ) : null}
+                {careerCopyFeedback === "error" && careerCopyMessage ? (
+                  <p className="max-w-xs text-center text-[11px] leading-snug text-amber-200/95 sm:text-right">{careerCopyMessage}</p>
+                ) : null}
+                <span className="text-center text-[10px] text-[color:var(--af-text-muted)] sm:text-right">
+                  ~{careerExportPreview.exportRowCount} vaga(s) no JSON
+                </span>
+              </div>
+            </div>
+          </ApplyFlowCard>
+        ) : null}
+
+        {workFlags.hasApplications || workFlags.hasJobs ? (
+          <div className="flex flex-wrap items-center gap-4">
+            <ApplyFlowButton
+              type="button"
+              variant="dangerGhost"
+              size="sm"
+              className="px-0 py-0 font-medium"
+              onClick={() => {
+                clearPersistedDashboardImport();
+                clearPersistedDashboardJobs();
+                setApplications([]);
+                setJobs([]);
+                setJobInboxError(null);
+                setImportFeedback(null);
+                setImportError(null);
+                setFilters(defaultFilters);
+              }}
+            >
+              Limpar dados do navegador
+            </ApplyFlowButton>
+          </div>
+        ) : null}
+      </ApplyFlowSection>
+
     </div>
   );
 }

@@ -31,7 +31,9 @@ This document defines the environment and secrets boundary required before Caree
 
 The ApplyFlow Nango connect session boundary must keep Nango secrets server-side and return only client-safe session/redirect information.
 
-The ApplyFlow Nango connect session launcher route (`GET /provider-runtime/nango/connect?provider=gmail|calendar&explicit_consent=1`) reads runtime flags and secrets server-side only, delegates to the connect session boundary, and returns client-safe JSON including a short-lived Nango connect session token when allowed. It never returns `NANGO_SECRET_KEY`, OAuth access tokens, or refresh tokens. Connect session tokens are passed to `@nangohq/frontend` only in memory and are not stored in browser storage or CareerBundle.
+The ApplyFlow Nango connect session launcher route (`POST /provider-runtime/nango/connect`) reads runtime flags and secrets server-side only, delegates to the connect session boundary, and returns client-safe JSON including a short-lived Nango connect session token when allowed. It never returns `NANGO_SECRET_KEY`, OAuth access tokens, or refresh tokens. Connect session tokens are passed to `@nangohq/frontend` only in memory and are not stored in browser storage or CareerBundle. `GET` is rejected (405) and does not mint a caller cookie. The `af_nango_caller` cookie is an anonymous browser session used to tag Nango `end_user_id` values; it is not a user login. Expired cookies are rejected on the server; Connect may mint a new identity, and previous connections stay unreachable (no fallback to `applyflow-*-runtime-boundary`).
+
+When the Nango runtime is on, these routes require a browser `Origin` that exactly matches a server-side allowlist: `NEXT_PUBLIC_APPLYFLOW_URL` (canonical public origin of this host) and, on Vercel, the platform-injected `VERCEL_URL` for **this** deployment (https, exact host — not `*.vercel.app`). Host, `X-Forwarded-Host`, and `X-Forwarded-Proto` are not used to build that list. Missing or invalid allowlist configuration fails closed. `request.nextUrl.origin` is not the trusted origin: Next.js can derive it from request Host / forwarded proto, which is not a substitute for configured origins. Unit tests do not simulate Vercel overwriting those headers.
 
 The ApplyFlow Nango connection verification route (`POST /provider-runtime/nango/connection-status`) reads runtime flags and secrets server-side only, calls `@nangohq/node` `listConnections` (no credentials) with stable `end_user_id` tag matching the connect session boundary, and returns a client-safe verification snapshot (`ProviderConnectionVerificationResult`). It never returns `NANGO_SECRET_KEY`, OAuth access tokens, refresh tokens, raw connection objects, or provider payloads. Verification requires explicit consent and cannot bypass consent gates.
 
@@ -53,6 +55,8 @@ The following flags are required and must default to disabled:
 | `CALENDAR_PROVIDER_ENABLED` | `false` | Server/runtime only |
 
 Missing flags must behave as disabled.
+
+Gmail enablement is `CAREER_PROVIDER_RUNTIME_ENABLED` + `NANGO_RUNTIME_ENABLED` + `GMAIL_PROVIDER_ENABLED` + `NANGO_SECRET_KEY`. `CALENDAR_PROVIDER_ENABLED` is **not** required for Gmail and should remain unset/off when Calendar is out of scope.
 
 Provider-specific flags must never bypass the global provider runtime flag.
 

@@ -50,10 +50,10 @@ export function OptionsProfileSummary(props: { profile: CandidateProfile }) {
             Roles configuradas
           </li>
           <li className={skillsOk ? "af-opt-checklist__item af-opt-checklist__item--ok" : "af-opt-checklist__item"}>
-            Pelo menos uma skill com anos declarados
+            Skills com anos (opcional)
           </li>
           <li className={salaryOk ? "af-opt-checklist__item af-opt-checklist__item--ok" : "af-opt-checklist__item"}>
-            Pretensões (pelo menos um campo)
+            Pretensões (opcional)
           </li>
           <li className="af-opt-checklist__item af-opt-checklist__item--ok">Dados locais (sem envio remoto)</li>
           <li className="af-opt-checklist__item af-opt-checklist__item--ok">Sem auto-submit</li>

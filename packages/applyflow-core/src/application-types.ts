@@ -6,7 +6,8 @@ export type ApplyFlowApplicationStatus =
   | "interview"
   | "technical_test"
   | "rejected"
-  | "accepted";
+  | "accepted"
+  | "hired";
 
 export type ApplyFlowJobMeta = {
   seniority?: string;
@@ -19,6 +20,16 @@ export type ApplyFlowJobMeta = {
 };
 
 export type ApplyFlowApplicationSource = "linkedin" | "paste" | "json";
+
+export type CopilotHistoryDecision = "apply" | "review" | "needs_info" | "skip";
+
+export type ApplyFlowPreparationStatusSnapshot = {
+  total?: number;
+  ready?: number;
+  needsReview?: number;
+  missing?: number;
+  blocked?: number;
+};
 
 export type ApplyFlowApplication = {
   id: string;
@@ -36,6 +47,12 @@ export type ApplyFlowApplication = {
   failedCount?: number;
   notes?: string;
   jobMeta?: ApplyFlowJobMeta;
+  /** Copilot decision (não altera `status`; applied continua explícito). */
+  matchDecision?: CopilotHistoryDecision;
+  resumeTrack?: string;
+  strengthsSummary?: string[];
+  gapsSummary?: string[];
+  preparationStatus?: ApplyFlowPreparationStatusSnapshot;
 };
 
 export type SaveApplicationInput = {
@@ -51,6 +68,11 @@ export type SaveApplicationInput = {
   failedCount?: number;
   notes?: string;
   jobMeta?: ApplyFlowJobMeta;
+  matchDecision?: CopilotHistoryDecision;
+  resumeTrack?: string;
+  strengthsSummary?: string[];
+  gapsSummary?: string[];
+  preparationStatus?: ApplyFlowPreparationStatusSnapshot;
 };
 
 export const APPLYFLOW_APPLICATION_STATUS_LABELS_PT: Record<ApplyFlowApplicationStatus, string> = {
@@ -62,4 +84,5 @@ export const APPLYFLOW_APPLICATION_STATUS_LABELS_PT: Record<ApplyFlowApplication
   technical_test: "Teste técnico",
   rejected: "Recusada",
   accepted: "Aprovada",
+  hired: "Contratado",
 };

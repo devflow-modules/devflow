@@ -31,13 +31,21 @@ import {
   JOB_INBOX_COMPANY_LABEL,
   JOB_INBOX_DESCRIPTION,
   JOB_INBOX_EVALUATED_WITH_PREFIX,
-  JOB_INBOX_EYEBROW,
+  JOB_DECISION_V2_LINK,
   JOB_INBOX_MATCHED_WITH_PREFIX,
+  JOB_INBOX_NEEDS_RESUME,
   JOB_INBOX_PASTE_LABEL,
   JOB_INBOX_SUBMIT_LABEL,
   JOB_INBOX_TITLE,
   JOB_INBOX_TITLE_LABEL,
   JOB_INBOX_URL_LABEL,
+  JOB_INBOX_DUPLICATE_URL,
+  JOB_INBOX_OPEN_EXISTING,
+  JOB_INBOX_STALE_LABEL,
+  JOB_INBOX_REEVALUATE_LABEL,
+  JOB_INBOX_INCOMPLETE_HINT,
+  JOB_INBOX_AT_APPLY_ANALYSIS,
+  JOB_INBOX_CURRENT_ANALYSIS,
   JOB_MATCH_DECISION_LABELS,
   curriculumRouterAdvantageLabel,
   curriculumRouterDivergenceLabel,
@@ -46,7 +54,13 @@ import {
 } from "@/components/dashboard/job-inbox-content";
 import {
   APPLYFLOW_APPLICATION_STATUS_LABELS_PT,
+  analysisAtApplyFromOutcome,
   canCreateApplicationPack,
+  findApplicationForJob,
+  getDefaultResumeVariant,
+  isJobMatchStale,
+  presentInboxJobAnalysis,
+  findJobByCanonicalUrl,
   isOpenableJobUrl,
   resolveApplicationPackResume,
   type ApplicationPack,
@@ -56,7 +70,16 @@ import {
   type ResumeLibrary,
 } from "@devflow/applyflow-core";
 import { useState } from "react";
+import Link from "next/link";
 import { cn } from "@/lib/cn";
+import { JOB_DECISION_V2_LABELS } from "@/components/dashboard/job-decision-v2-content";
+import { loadDashboardAnalytics } from "@/lib/local-analytics-storage";
+import { loadDashboardImport } from "@/lib/local-import-storage";
+import {
+  jobAnalysisPath,
+  nextInboxDraftAfterEvaluate,
+  type InboxEvaluateStatus,
+} from "@/components/dashboard/job-inbox-evaluate";
 
 const fieldClass = cn(
   "w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)]",
@@ -71,6 +94,9 @@ function JobMatchSkillLine({ job }: { job: ApplyFlowJob }) {
       Match: {job.jobMatch.matchedSkills.slice(0, 8).join(", ") || "—"}
       {job.jobMatch.missingSkills.length > 0
         ? ` · Gaps: ${job.jobMatch.missingSkills.slice(0, 6).join(", ")}`
+        : ""}
+      {job.jobMatch.unknownSkills && job.jobMatch.unknownSkills.length > 0
+        ? ` · Não informado: ${job.jobMatch.unknownSkills.slice(0, 6).join(", ")}`
         : ""}
     </p>
   );
@@ -421,43 +447,87 @@ function JobInboxCard({
   onCreateApplicationPack,
   onTogglePackChecklist,
   onMarkJobApplied,
+  onReevaluateJob,
 }: {
   job: ApplyFlowJob;
   resumeLibrary?: ResumeLibrary | null;
   onCreateApplicationPack?: (jobId: string, variantId?: string) => void;
   onTogglePackChecklist?: (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => void;
   onMarkJobApplied?: (jobId: string) => void;
+  onReevaluateJob?: (jobId: string) => void;
 }) {
+  const analysis = presentInboxJobAnalysis(
+    job,
+    resumeLibrary?.variants.length ? getDefaultResumeVariant(resumeLibrary).profile : null,
+  );
+  const linkedApplication = findApplicationForJob(loadDashboardImport()?.applications ?? [], job);
+  const atApply = analysisAtApplyFromOutcome(
+    linkedApplication
+      ? loadDashboardAnalytics().outcomes.find((item) => item.applicationId === linkedApplication.id)
+      : undefined,
+  );
+  const liveRecommendation = analysis.v2Decision;
+  const showDivergentAnalyses = Boolean(
+    atApply &&
+      liveRecommendation &&
+      (atApply.score !== analysis.score || atApply.recommendation !== liveRecommendation),
+  );
   const showPrepare =
     Boolean(
       resumeLibrary &&
         resumeLibrary.variants.length > 0 &&
         onCreateApplicationPack &&
-        canCreateApplicationPack(job) &&
+        canCreateApplicationPack(job, resumeLibrary) &&
         !job.applicationPack,
     );
 
   return (
     <ApplyFlowCard padding="md">
       <div className="flex flex-wrap items-center gap-2">
-        <ApplyFlowBadge tone={jobMatchDecisionTone(job.jobMatch.decision)}>
-          {JOB_MATCH_DECISION_LABELS[job.jobMatch.decision]}
+        <ApplyFlowBadge tone={jobMatchDecisionTone(analysis.decision)}>
+          {JOB_MATCH_DECISION_LABELS[analysis.decision]}
         </ApplyFlowBadge>
+        {isJobMatchStale(job, resumeLibrary) ? (
+          <ApplyFlowBadge tone="warning">{JOB_INBOX_STALE_LABEL}</ApplyFlowBadge>
+        ) : null}
         <ApplyFlowBadge tone="neutral">{APPLYFLOW_APPLICATION_STATUS_LABELS_PT[job.status]}</ApplyFlowBadge>
         <span className="text-sm font-medium text-[color:var(--af-text)]">
           {job.title}
           {job.company ? ` · ${job.company}` : ""}
         </span>
         <span className="ml-auto tabular-nums text-sm text-[color:var(--af-text-muted)]">
-          {job.jobMatch.score}/100
+          {analysis.score}/100
         </span>
       </div>
+      {showDivergentAnalyses && atApply && liveRecommendation ? (
+        <div className="mt-2 grid gap-1 text-xs text-[color:var(--af-text)]">
+          <p>
+            {JOB_INBOX_AT_APPLY_ANALYSIS}: {atApply.score} · {JOB_DECISION_V2_LABELS[atApply.recommendation]}
+          </p>
+          <p>
+            {JOB_INBOX_CURRENT_ANALYSIS}: {analysis.score} · {JOB_DECISION_V2_LABELS[liveRecommendation]}
+          </p>
+        </div>
+      ) : null}
       {job.evaluatedWith ? (
         <p className="mt-2 text-xs text-[color:var(--af-text-muted)]">
           {JOB_INBOX_MATCHED_WITH_PREFIX} {job.evaluatedWith.variantName}
         </p>
       ) : null}
       <JobMatchSkillLine job={job} />
+      {analysis.decision === "needs_info" ? (
+        <p className="mt-2 text-xs text-[color:var(--af-text)]">{JOB_INBOX_INCOMPLETE_HINT}</p>
+      ) : null}
+      <p className="mt-3 flex flex-wrap items-center gap-2">
+        <Link href={jobAnalysisPath(job.id)} className={applyFlowButtonClass({ variant: "primary", size: "sm" })}>
+          {JOB_DECISION_V2_LINK}
+        </Link>
+        {onReevaluateJob && isJobMatchStale(job, resumeLibrary) ? (
+          <ApplyFlowButton variant="secondary" size="sm" onClick={() => onReevaluateJob(job.id)}>
+            {JOB_INBOX_REEVALUATE_LABEL}
+          </ApplyFlowButton>
+        ) : null}
+      </p>
       {job.curriculumRecommendation ? (
         <CurriculumRouterBlock job={job} recommendation={job.curriculumRecommendation} />
       ) : null}
@@ -483,30 +553,39 @@ export function JobInboxPanel({
   jobs,
   error,
   evaluatedWithName,
+  matchAvailable = true,
   onEvaluatePaste,
   resumeLibrary = null,
   onCreateApplicationPack,
   onTogglePackChecklist,
   onMarkJobApplied,
+  onReevaluateJob,
 }: {
   jobs: ApplyFlowJob[];
   error: string | null;
-  evaluatedWithName: string;
-  onEvaluatePaste: (input: { description: string; title: string; company: string; url: string }) => void;
+  evaluatedWithName?: string | null;
+  matchAvailable?: boolean;
+  onEvaluatePaste: (input: {
+    description: string;
+    title: string;
+    company: string;
+    url: string;
+  }) => InboxEvaluateStatus | void;
   resumeLibrary?: ResumeLibrary | null;
   onCreateApplicationPack?: (jobId: string, variantId?: string) => void;
   onTogglePackChecklist?: (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => void;
   onMarkJobApplied?: (jobId: string) => void;
+  onReevaluateJob?: (jobId: string) => void;
 }) {
   const [description, setDescription] = useState("");
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
   const [url, setUrl] = useState("");
+  const [duplicateJob, setDuplicateJob] = useState<ApplyFlowJob | null>(null);
 
   return (
     <ApplyFlowSection
       id="job-inbox"
-      eyebrow={JOB_INBOX_EYEBROW}
       title={JOB_INBOX_TITLE}
       description={JOB_INBOX_DESCRIPTION}
     >
@@ -514,7 +593,23 @@ export function JobInboxPanel({
         className="grid gap-3"
         onSubmit={(event) => {
           event.preventDefault();
-          onEvaluatePaste({ description, title, company, url });
+          if (!matchAvailable) return;
+          const existing = findJobByCanonicalUrl(jobs, url);
+          if (existing) {
+            setDuplicateJob(existing);
+            return;
+          }
+          setDuplicateJob(null);
+          const status = onEvaluatePaste({ description, title, company, url });
+          if (!status) return;
+          const next = nextInboxDraftAfterEvaluate(status, { description, title, company, url });
+          setDescription(next.description);
+          setTitle(next.title);
+          setCompany(next.company);
+          setUrl(next.url);
+          if (status === "duplicate_url") {
+            setDuplicateJob(findJobByCanonicalUrl(jobs, url) ?? null);
+          }
         }}
       >
         <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
@@ -549,14 +644,28 @@ export function JobInboxPanel({
           </label>
         </div>
         <div>
-          <ApplyFlowButton type="submit" variant="primary" size="md">
+          <ApplyFlowButton type="submit" variant="primary" size="md" disabled={!matchAvailable}>
             {JOB_INBOX_SUBMIT_LABEL}
           </ApplyFlowButton>
           <p className="mt-2 text-xs text-[color:var(--af-text-muted)]">
-            {JOB_INBOX_EVALUATED_WITH_PREFIX} {evaluatedWithName}
+            {matchAvailable && evaluatedWithName
+              ? `${JOB_INBOX_EVALUATED_WITH_PREFIX} ${evaluatedWithName}`
+              : JOB_INBOX_NEEDS_RESUME}
           </p>
         </div>
       </form>
+
+      {duplicateJob ? (
+        <ApplyFlowCard variant="muted" padding="md" className="mt-4">
+          <p className="text-sm text-[color:var(--af-text)]">{JOB_INBOX_DUPLICATE_URL}</p>
+          <Link
+            href={jobAnalysisPath(duplicateJob.id)}
+            className={`${applyFlowButtonClass({ variant: "primary", size: "sm" })} mt-3`}
+          >
+            {JOB_INBOX_OPEN_EXISTING}
+          </Link>
+        </ApplyFlowCard>
+      ) : null}
 
       {error ? (
         <ApplyFlowCard variant="danger" padding="md" role="alert" className="mt-4">
@@ -574,6 +683,7 @@ export function JobInboxPanel({
                 onCreateApplicationPack={onCreateApplicationPack}
                 onTogglePackChecklist={onTogglePackChecklist}
                 onMarkJobApplied={onMarkJobApplied}
+                onReevaluateJob={onReevaluateJob}
               />
             </li>
           ))}

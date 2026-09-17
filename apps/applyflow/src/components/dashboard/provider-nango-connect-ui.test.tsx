@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   mapNangoConnectUiEventToStatus,
+  nangoConnectInteractionResetKey,
   PROVIDER_NANGO_CONNECT_START_LABEL,
   ProviderNangoConnectUi,
   resolveNangoConnectUiAvailability,
@@ -63,6 +64,17 @@ describe("mapNangoConnectUiEventToStatus", () => {
     expect(mapNangoConnectUiEventToStatus({ type: "connect" }, "starting")).toBe("completed");
     expect(mapNangoConnectUiEventToStatus({ type: "close" }, "starting")).toBe("cancelled");
     expect(mapNangoConnectUiEventToStatus({ type: "error" }, "starting")).toBe("error");
+  });
+});
+
+describe("nangoConnectInteractionResetKey", () => {
+  it("muda ao trocar de provider ou de consentimento", () => {
+    expect(nangoConnectInteractionResetKey("gmail", true)).not.toBe(
+      nangoConnectInteractionResetKey("calendar", true),
+    );
+    expect(nangoConnectInteractionResetKey("gmail", true)).not.toBe(
+      nangoConnectInteractionResetKey("gmail", false),
+    );
   });
 });
 

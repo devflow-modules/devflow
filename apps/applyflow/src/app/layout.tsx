@@ -48,19 +48,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav className="flex flex-wrap items-center justify-end gap-x-1 gap-y-1 text-sm sm:gap-x-5">
               <Link
                 href="/"
-                className="rounded-md px-2 py-1.5 text-[color:var(--af-text-muted)] transition-colors hover:bg-white/[0.04] hover:text-[color:var(--af-text)]"
+                className="rounded-md px-2 py-1.5 text-[color:var(--af-text-muted)] transition-colors hover:bg-[color:var(--af-surface-muted)] hover:text-[color:var(--af-text)]"
               >
                 Início
               </Link>
               <Link
                 href="/dashboard"
-                className="rounded-md px-2 py-1.5 text-[color:var(--af-text-muted)] transition-colors hover:bg-white/[0.04] hover:text-[color:var(--af-text)]"
+                className="rounded-md px-2 py-1.5 text-[color:var(--af-text-muted)] transition-colors hover:bg-[color:var(--af-surface-muted)] hover:text-[color:var(--af-text)]"
               >
                 Dashboard
               </Link>
               <Link
+                href="/dashboard/analytics"
+                className="rounded-md px-2 py-1.5 text-[color:var(--af-text-muted)] transition-colors hover:bg-[color:var(--af-surface-muted)] hover:text-[color:var(--af-text)]"
+              >
+                Analytics
+              </Link>
+              <Link
                 href="/documentacao"
-                className="rounded-md px-2 py-1.5 text-[color:var(--af-text-muted)] transition-colors hover:bg-white/[0.04] hover:text-[color:var(--af-text)]"
+                className="rounded-md px-2 py-1.5 text-[color:var(--af-text-muted)] transition-colors hover:bg-[color:var(--af-surface-muted)] hover:text-[color:var(--af-text)]"
               >
                 Documentação
               </Link>

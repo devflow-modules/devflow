@@ -19,6 +19,7 @@ export type NangoConnectionVerificationProvider = {
 
 export type NangoConnectionVerificationProviderConfig = {
   secretKey: string;
+  callerNonce: string;
 };
 
 type NangoListConnectionRow = {
@@ -32,7 +33,7 @@ export function createNangoConnectionVerificationProvider(
     async verifyConnection(input) {
       const nango = new Nango({ secretKey: config.secretKey });
       const integrationId = NANGO_INTEGRATION_BY_PROVIDER[input.provider];
-      const endUserId = buildApplyFlowNangoEndUserId(input.provider);
+      const endUserId = buildApplyFlowNangoEndUserId(input.provider, config.callerNonce);
 
       try {
         const { connections } = await nango.listConnections({
