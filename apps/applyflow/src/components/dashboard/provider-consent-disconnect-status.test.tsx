@@ -52,7 +52,7 @@ vi.mock("./provider-connection-disconnect-panel", () => ({
 
 describe("ProviderConsentConfirmationPanel disconnect status", () => {
   it("returns the selected provider to not_connected and clears launcher state after disconnect", async () => {
-    render(<ProviderConsentConfirmationPanel />);
+    render(<ProviderConsentConfirmationPanel gmailRuntimeEnabled />);
 
     fireEvent.click(screen.getByTestId("provider-consent-explicit-checkbox"));
     fireEvent.click(screen.getByTestId("provider-consent-start-button"));
