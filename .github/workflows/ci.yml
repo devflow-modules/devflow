@@ -1,4 +1,4 @@
-# Portal lint/test/quality/build plus targeted Financeiro and ApplyFlow jobs.
+# Portal lint/test/quality/build plus targeted Financeiro, ApplyFlow and WhatsApp jobs.
 # This is not `test:workspace` or `eslint .` — see docs/shared/GOVERNANCE_SUMMARY.md.
 name: CI
 
@@ -97,6 +97,28 @@ jobs:
 
       - name: Test ApplyFlow
         run: pnpm --filter applyflow test
+
+  test-whatsapp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate WhatsApp Prisma client
+        run: pnpm --filter @devflow/app-whatsapp-platform db:generate
+
+      - name: Test WhatsApp
+        run: pnpm --filter @devflow/app-whatsapp-platform test
 
   quality:
     runs-on: ubuntu-latest

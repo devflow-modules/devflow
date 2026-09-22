@@ -19,6 +19,8 @@ import {
 } from "./inbox-e2e-recovery";
 
 const DATABASE_URL = "postgresql://secret-user:secret-pass@db.example.test:5432/fixture";
+/** PID that is not init and is absent on Windows and Linux CI. PID 1 is EPERM on ubuntu. */
+const ABSENT_LOCK_PID = "2000000001\n";
 const tempDirs: string[] = [];
 
 function tempDir(): string {
@@ -32,7 +34,7 @@ afterEach(() => {
   for (const dir of tempDirs.splice(0)) fs.rmSync(dir, { recursive: true, force: true });
 });
 
-function createMarkers(dir: string, lockBody = "2000000001\n") {
+function createMarkers(dir: string, lockBody = ABSENT_LOCK_PID) {
   const identity = buildIdentity("abcdef0123456789abcdef0123456789");
   const receipt = receiptFor(identity, targetFingerprint(DATABASE_URL));
   const receiptPath = path.join(dir, "inbox-e2e-fixture.json");
@@ -199,7 +201,7 @@ describe("parseLegacyRecoveryArgs", () => {
 describe("legacy pid-lock recovery", () => {
   it("aborts on digest mismatch before cleanup", async () => {
     const dir = tempDir();
-    const { receiptPath, lockPath, identity } = createMarkers(dir, "2000000001\n");
+    const { receiptPath, lockPath, identity } = createMarkers(dir);
     const receiptDigest = snapshotMarker(receiptPath).digest;
     const cleanup = vi.fn();
     await expect(
@@ -255,6 +257,43 @@ describe("legacy pid-lock recovery", () => {
     ).rejects.toThrow(/ainda está ativo/);
   });
 
+  it("treats EPERM on the lock pid as still active", async () => {
+    const dir = tempDir();
+    const { receiptPath, lockPath, identity } = createMarkers(dir);
+    const receiptDigest = snapshotMarker(receiptPath).digest;
+    const lockDigest = snapshotMarker(lockPath).digest;
+    const originalKill = process.kill.bind(process);
+    const spy = vi.spyOn(process, "kill").mockImplementation((pid, signal) => {
+      if (Number(pid) === 2_000_000_001) {
+        const err = new Error("kill EPERM") as NodeJS.ErrnoException;
+        err.code = "EPERM";
+        throw err;
+      }
+      return originalKill(pid as number, signal);
+    });
+    await expect(
+      recoverLegacyPidLockOnce({
+        args: {
+          recoverLegacyPidLock: true,
+          expectedReceiptDigest: receiptDigest,
+          expectedLockDigest: lockDigest,
+          expectedHead: "a".repeat(40),
+          acceptUnprovableLegacyLink: true,
+        },
+        receiptPath,
+        lockPath,
+        claimPath: path.join(dir, "claim"),
+        committedPath: path.join(dir, "committed"),
+        takeoverPath: path.join(dir, "takeover"),
+        getRepoGate: () => ({ branch: REQUIRED_BRANCH, head: "a".repeat(40), clean: true }),
+        resolveDatasourceUrl: () => DATABASE_URL,
+        createClient: () => fakeClient(identity),
+        isPortFree: async () => true,
+      })
+    ).rejects.toThrow(/ainda está ativo/);
+    spy.mockRestore();
+  });
+
   it("rejects structured lock format on exceptional path", async () => {
     const dir = tempDir();
     const structured = `${JSON.stringify({ version: 1, pid: 1, runId: "a".repeat(32), receiptDigest: "b".repeat(64) })}\n`;
@@ -285,7 +324,7 @@ describe("legacy pid-lock recovery", () => {
 
   it("rejects second concurrent claim", async () => {
     const dir = tempDir();
-    const { receiptPath, lockPath, identity } = createMarkers(dir, "1\n");
+    const { receiptPath, lockPath, identity } = createMarkers(dir);
     const receiptDigest = snapshotMarker(receiptPath).digest;
     const lockDigest = snapshotMarker(lockPath).digest;
     fs.writeFileSync(
@@ -322,7 +361,7 @@ describe("legacy pid-lock recovery", () => {
 
   it("rejects fingerprint mismatch before client", async () => {
     const dir = tempDir();
-    const { receiptPath, lockPath, identity } = createMarkers(dir, "1\n");
+    const { receiptPath, lockPath, identity } = createMarkers(dir);
     const receiptDigest = snapshotMarker(receiptPath).digest;
     const lockDigest = snapshotMarker(lockPath).digest;
     const createClient = vi.fn(() => fakeClient(identity));
@@ -352,7 +391,7 @@ describe("legacy pid-lock recovery", () => {
 
   it("rejects unexpected head", async () => {
     const dir = tempDir();
-    const { receiptPath, lockPath, identity } = createMarkers(dir, "1\n");
+    const { receiptPath, lockPath, identity } = createMarkers(dir);
     const receiptDigest = snapshotMarker(receiptPath).digest;
     const lockDigest = snapshotMarker(lockPath).digest;
     await expect(
@@ -379,7 +418,7 @@ describe("legacy pid-lock recovery", () => {
 
   it("preserves markers when cleanup fails", async () => {
     const dir = tempDir();
-    const { receiptPath, lockPath, identity } = createMarkers(dir, "1\n");
+    const { receiptPath, lockPath, identity } = createMarkers(dir);
     const receiptDigest = snapshotMarker(receiptPath).digest;
     const lockDigest = snapshotMarker(lockPath).digest;
     await expect(
@@ -412,7 +451,7 @@ describe("legacy pid-lock recovery", () => {
 
   it("removes markers only after successful cleanup", async () => {
     const dir = tempDir();
-    const { receiptPath, lockPath, identity } = createMarkers(dir, "1\n");
+    const { receiptPath, lockPath, identity } = createMarkers(dir);
     const receiptDigest = snapshotMarker(receiptPath).digest;
     const lockDigest = snapshotMarker(lockPath).digest;
     const info = vi.spyOn(console, "info").mockImplementation(() => {});
@@ -451,7 +490,7 @@ describe("legacy pid-lock recovery", () => {
 
   it("resumes from committed marker without cleanup", async () => {
     const dir = tempDir();
-    const { receiptPath, lockPath, identity } = createMarkers(dir, "1\n");
+    const { receiptPath, lockPath, identity } = createMarkers(dir);
     const receiptDigest = snapshotMarker(receiptPath).digest;
     const lockDigest = snapshotMarker(lockPath).digest;
     const ownerNonce = "abcd".repeat(8);
@@ -503,7 +542,7 @@ describe("legacy pid-lock recovery", () => {
 
   it("aborts when marker mutates after claim", async () => {
     const dir = tempDir();
-    const { receiptPath, lockPath, identity } = createMarkers(dir, "1\n");
+    const { receiptPath, lockPath, identity } = createMarkers(dir);
     const receiptDigest = snapshotMarker(receiptPath).digest;
     const lockDigest = snapshotMarker(lockPath).digest;
     let mutated = false;
