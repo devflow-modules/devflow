@@ -184,15 +184,21 @@ export function defaultRepoGate(repoRoot: string): RepoGate {
   return { branch, head, clean: porcelain.trim().length === 0 };
 }
 
-function assertProcessAbsent(pid: number): void {
+function assertSignalProbeAbsent(pid: number, stillActiveMessage: string): void {
   try {
     process.kill(pid, 0);
-    fail("PID do lock ainda está ativo");
+    fail(stillActiveMessage);
   } catch (error) {
     const err = error as NodeJS.ErrnoException;
-    if (err.message === "PID do lock ainda está ativo") throw error;
+    if (err.message === stillActiveMessage) throw error;
+    // EPERM: process exists but this user cannot signal it (e.g. PID 1 on Linux CI).
+    if (err.code === "EPERM") fail(stillActiveMessage);
     if (err.code !== "ESRCH") throw error;
   }
+}
+
+function assertProcessAbsent(pid: number): void {
+  assertSignalProbeAbsent(pid, "PID do lock ainda está ativo");
 }
 
 export function parseLegacyPidOnlyLock(raw: Buffer): number {
@@ -331,14 +337,7 @@ function acquireClaim(options: {
   }
 
   const existing = readClaim(options.claimPath);
-  try {
-    process.kill(existing.pid, 0);
-    fail("Claim de recovery já está ativo");
-  } catch (error) {
-    const err = error as NodeJS.ErrnoException;
-    if (err.message === "Claim de recovery já está ativo") throw error;
-    if (err.code !== "ESRCH") throw error;
-  }
+  assertSignalProbeAbsent(existing.pid, "Claim de recovery já está ativo");
 
   let takeoverFd: number | undefined;
   try {
