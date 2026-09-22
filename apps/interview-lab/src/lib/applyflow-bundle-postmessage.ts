@@ -19,6 +19,7 @@ export type EvaluateApplyflowBundlePostMessageResult =
       syncPreview: InterviewLabSyncEnrichmentPreview;
       intent: CareerBundleHandoffIntent;
       selectedApplicationId?: string;
+      applyflowV2?: { schemaVersion: "applyflow-v2-sidecar" };
     };
 
 /**
@@ -49,12 +50,21 @@ export function evaluateApplyflowBundlePostMessage(
     return { action: "invalid_bundle", error: imported.error };
   }
 
+  const sidecar =
+    event.data != null &&
+    typeof event.data === "object" &&
+    "applyflowV2" in event.data &&
+    (event.data as { applyflowV2?: { schemaVersion?: string } }).applyflowV2?.schemaVersion === "applyflow-v2-sidecar"
+      ? { schemaVersion: "applyflow-v2-sidecar" as const }
+      : undefined;
+
   return {
     action: "accept",
     bundle: imported.bundle,
     syncPreview: imported.preview,
     intent: r.intent,
     selectedApplicationId: r.selectedApplicationId,
+    ...(sidecar ? { applyflowV2: sidecar } : {}),
   };
 }
 
@@ -65,4 +75,27 @@ export function getApplyflowAckTargetOrigin(): string {
     return normalizeWebOrigin(raw) ?? "http://localhost:3010";
   }
   return normalizeWebOrigin(`http://${raw}`) ?? "http://localhost:3010";
+}
+
+/** Aligns with ApplyFlow sender default `totalWaitMs` in career-bundle-postmessage-handoff. */
+export const APPLYFLOW_POSTMESSAGE_HANDOFF_WAIT_MS = 8500;
+
+export const APPLYFLOW_POSTMESSAGE_UNCONFIRMED_COPY =
+  "Transfer was not confirmed. Paste or import the CareerBundle copied from ApplyFlow (use Import from clipboard if you used Copy CareerBundle on the dashboard).";
+
+export function applyflowPostMessageHandoffStatus(input: {
+  received: boolean;
+  waitExpired: boolean;
+  practiceIntent: boolean;
+}): { title: string; detail: string } {
+  if (input.received) {
+    return { title: "CareerBundle received from ApplyFlow.", detail: "" };
+  }
+  if (input.waitExpired) {
+    return { title: "ApplyFlow handoff detected.", detail: APPLYFLOW_POSTMESSAGE_UNCONFIRMED_COPY };
+  }
+  return {
+    title: "ApplyFlow handoff detected.",
+    detail: input.practiceIntent ? "Opening practice for selected role…" : "Waiting for CareerBundle…",
+  };
 }

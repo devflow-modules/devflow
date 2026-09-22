@@ -11,7 +11,12 @@ import {
   type CareerApplication,
   type CareerBundle,
 } from "@devflow/career-core";
-import { evaluateApplyflowBundlePostMessage, getApplyflowAckTargetOrigin } from "@/lib/applyflow-bundle-postmessage";
+import {
+  APPLYFLOW_POSTMESSAGE_HANDOFF_WAIT_MS,
+  applyflowPostMessageHandoffStatus,
+  evaluateApplyflowBundlePostMessage,
+  getApplyflowAckTargetOrigin,
+} from "@/lib/applyflow-bundle-postmessage";
 import {
   parseCareerBundleFromClipboardTextWithSyncPreview,
 } from "@/lib/applyflow-clipboard-import";
@@ -192,6 +197,7 @@ export function ApplyflowImportClient({
   );
   const [clipboardBusy, setClipboardBusy] = useState(false);
   const [postMessageReceived, setPostMessageReceived] = useState(false);
+  const [postMessageWaitExpired, setPostMessageWaitExpired] = useState(false);
 
   const applications = bundle?.applications ?? [];
 
@@ -271,6 +277,14 @@ export function ApplyflowImportClient({
     return () => window.removeEventListener("message", onMessage);
   }, [expectPostMessageHandoff, ingestValidatedBundle, router]);
 
+  useEffect(() => {
+    if (!expectPostMessageHandoff || postMessageReceived) return;
+    const id = window.setTimeout(() => {
+      setPostMessageWaitExpired(true);
+    }, APPLYFLOW_POSTMESSAGE_HANDOFF_WAIT_MS);
+    return () => window.clearTimeout(id);
+  }, [expectPostMessageHandoff, postMessageReceived]);
+
   const importFromClipboard = useCallback(async () => {
     setError(null);
     setClipboardBusy(true);
@@ -348,6 +362,11 @@ export function ApplyflowImportClient({
   const isEmptyStart = !bundle && !error && !text.trim() && !expectPostMessageHandoff;
   const hasValidBundle = Boolean(bundle);
   const hasRoles = applications.length > 0;
+  const postMessageStatus = applyflowPostMessageHandoffStatus({
+    received: postMessageReceived,
+    waitExpired: postMessageWaitExpired,
+    practiceIntent: expectPracticeIntentFromUrl,
+  });
 
   return (
     <div className="mx-auto flex min-h-screen max-w-4xl flex-col gap-10 px-4 py-10 md:px-8">
@@ -371,18 +390,10 @@ export function ApplyflowImportClient({
           role="status"
           className="rounded-xl border border-emerald-500/35 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100/95"
         >
-          {!postMessageReceived ? (
-            <>
-              <p className="font-medium text-emerald-200">ApplyFlow handoff detected.</p>
-              <p className="mt-1 text-xs leading-relaxed text-emerald-100/85">
-                {expectPracticeIntentFromUrl
-                  ? "Opening practice for selected role…"
-                  : "Waiting for CareerBundle…"}
-              </p>
-            </>
-          ) : (
-            <p className="font-medium text-emerald-200">CareerBundle received from ApplyFlow.</p>
-          )}
+          <p className="font-medium text-emerald-200">{postMessageStatus.title}</p>
+          {postMessageStatus.detail ? (
+            <p className="mt-1 text-xs leading-relaxed text-emerald-100/85">{postMessageStatus.detail}</p>
+          ) : null}
         </div>
       ) : fromApplyflowHandoff ? (
         <div
