@@ -23,6 +23,7 @@ import {
   PROVIDER_CONSENT_CONFIRMATION_RESULT_TITLE,
   PROVIDER_CONSENT_CONFIRMATION_RUNTIME,
   PROVIDER_CONSENT_CONFIRMATION_SCOPES,
+  PROVIDER_CONSENT_CONFIRMATION_GMAIL_DISABLED,
   PROVIDER_CONSENT_CONFIRMATION_START_BUTTON_LABEL,
   PROVIDER_CONSENT_CONFIRMATION_TITLE,
 } from "./provider-consent-confirmation-content";
@@ -97,11 +98,13 @@ export function ProviderConsentConfirmationPanel({
   baselineSourceKind = "none",
   onEligibleProviderEnrichmentChange,
   careerBundle = null,
+  gmailRuntimeEnabled = false,
 }: {
   currentSyncEnrichment?: CareerBundleUnifiedSyncEnrichment | null;
   baselineSourceKind?: CareerBundleSyncEnrichmentSourceKind;
   onEligibleProviderEnrichmentChange?: (enrichment: CareerBundleUnifiedSyncEnrichment | null) => void;
   careerBundle?: CareerBundle | null;
+  gmailRuntimeEnabled?: boolean;
 }) {
   const [selectedProvider, setSelectedProvider] = useState<ProviderKind>("gmail");
   const [explicitConsentChecked, setExplicitConsentChecked] = useState(false);
@@ -129,7 +132,8 @@ export function ProviderConsentConfirmationPanel({
 
   const scopesPreview = PROVIDER_CONSENT_CONFIRMATION_SCOPES[selectedProvider].join(", ");
   const neverStored = PROVIDER_CONSENT_CONFIRMATION_NEVER_STORED[selectedProvider];
-  const startDisabled = !explicitConsentChecked || isLoading;
+  const gmailActionsDisabled = selectedProvider === "gmail" && !gmailRuntimeEnabled;
+  const startDisabled = !explicitConsentChecked || isLoading || gmailActionsDisabled;
 
   async function handleVerifyConnection() {
     if (!explicitConsentChecked || connectionStatus.state !== "connected") {
@@ -161,7 +165,7 @@ export function ProviderConsentConfirmationPanel({
   }
 
   async function handleStartConnectionCheck() {
-    if (!explicitConsentChecked) {
+    if (!explicitConsentChecked || gmailActionsDisabled) {
       return;
     }
 
@@ -309,6 +313,12 @@ export function ProviderConsentConfirmationPanel({
         >
           {isLoading ? "Checking launcher…" : PROVIDER_CONSENT_CONFIRMATION_START_BUTTON_LABEL}
         </ApplyFlowButton>
+
+        {gmailActionsDisabled ? (
+          <p className="text-[11px] text-amber-200/90" data-testid="provider-consent-gmail-disabled">
+            {PROVIDER_CONSENT_CONFIRMATION_GMAIL_DISABLED}
+          </p>
+        ) : null}
 
         {errorMessage ? (
           <p className="text-[11px] text-amber-200/90" data-testid="provider-consent-launcher-error">

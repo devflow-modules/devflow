@@ -68,6 +68,7 @@ import {
   INBOUND_RESPONSE_NO_AUTO,
   INBOUND_RESPONSE_PENDING_BADGE,
   INBOUND_RESPONSE_SCAN_BLOCKED,
+  INBOUND_RESPONSE_SCAN_DISABLED,
   INBOUND_RESPONSE_SCAN_GMAIL_LABEL,
   INBOUND_RESPONSE_STATUS_LABEL,
   INBOUND_RESPONSE_SUBJECT_LABEL,
@@ -101,6 +102,7 @@ export function InboundApplicationResponsePanelView({
   notice,
   hasAppliedApplications,
   isScanning,
+  gmailRuntimeEnabled = false,
   onClassify,
   onScanGmail,
   onConfirm,
@@ -125,6 +127,7 @@ export function InboundApplicationResponsePanelView({
   notice: string | null;
   hasAppliedApplications: boolean;
   isScanning: boolean;
+  gmailRuntimeEnabled?: boolean;
   onClassify: () => void;
   onScanGmail: () => void;
   onConfirm: (detectionId: string) => void;
@@ -152,7 +155,9 @@ export function InboundApplicationResponsePanelView({
       <div className="grid gap-4">
         <ApplyFlowCard variant="muted" padding="md">
           <p className="text-xs text-[color:var(--af-text-muted)]">{INBOUND_RESPONSE_NO_AUTO}</p>
-          <p className="mt-2 text-xs text-[color:var(--af-text-muted)]">{INBOUND_RESPONSE_GMAIL_HINT}</p>
+          <p className="mt-2 text-xs text-[color:var(--af-text-muted)]">
+            {gmailRuntimeEnabled ? INBOUND_RESPONSE_GMAIL_HINT : INBOUND_RESPONSE_SCAN_DISABLED}
+          </p>
           <form
             className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto_auto] lg:items-end"
             onSubmit={(event) => {
@@ -185,7 +190,13 @@ export function InboundApplicationResponsePanelView({
             <ApplyFlowButton type="submit" variant="primary" size="md" disabled={!senderDomain.trim()}>
               {INBOUND_RESPONSE_CLASSIFY_LABEL}
             </ApplyFlowButton>
-            <ApplyFlowButton type="button" variant="outlineBrand" size="md" disabled={isScanning} onClick={onScanGmail}>
+            <ApplyFlowButton
+              type="button"
+              variant="outlineBrand"
+              size="md"
+              disabled={isScanning || !gmailRuntimeEnabled}
+              onClick={onScanGmail}
+            >
               {isScanning ? "A ler Gmail…" : INBOUND_RESPONSE_SCAN_GMAIL_LABEL}
             </ApplyFlowButton>
           </form>
@@ -369,11 +380,13 @@ export function InboundApplicationResponsePanel({
   applications,
   outcomes = [],
   emails = [],
+  gmailRuntimeEnabled = false,
   onApplicationUpdated,
 }: {
   applications: readonly ApplyFlowApplication[];
   outcomes?: readonly ApplicationOutcome[];
   emails?: readonly InboundEmail[];
+  gmailRuntimeEnabled?: boolean;
   onApplicationUpdated?: (application: ApplyFlowApplication) => void;
 }) {
   const [senderDomain, setSenderDomain] = useState("");
@@ -421,6 +434,7 @@ export function InboundApplicationResponsePanel({
   }
 
   async function scanGmail() {
+    if (!gmailRuntimeEnabled) return;
     setIsScanning(true);
     setPersistError(null);
     const outcome = await fetchGmailClosedLoopInboundEmails({
@@ -532,6 +546,7 @@ export function InboundApplicationResponsePanel({
       notice={notice}
       hasAppliedApplications={hasAppliedApplications}
       isScanning={isScanning}
+      gmailRuntimeEnabled={gmailRuntimeEnabled}
       onClassify={classifyLocal}
       onScanGmail={() => {
         void scanGmail();

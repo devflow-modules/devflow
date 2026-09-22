@@ -29,6 +29,8 @@ export const JOB_DECISION_V2_GATES = "Gates";
 export const JOB_DECISION_V2_REQUIREMENTS = "Requisitos × evidência";
 export const JOB_DECISION_V2_DIMENSIONS = "Dimensões";
 export const JOB_DECISION_V2_CLAIMS = "Claims recomendadas";
+export const JOB_DECISION_V2_CLAIMS_EMPTY =
+  "Nenhuma claim recomendada com as evidências gravadas. Requisitos em falta ficam unknown — esta tela não inventa experiência."
 export const JOB_DECISION_V2_TABS = {
   overview: "Overview",
   requirements: "Requirements",

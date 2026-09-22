@@ -349,8 +349,6 @@ function defaultToolInput(
 
 export function CareerChatWorkspaceView({
   careerBundle,
-  selectedSignalIds,
-  availableSignals,
   action,
   message,
   explicitConsent,

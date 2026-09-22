@@ -4,6 +4,7 @@ import {
   PROVIDER_CONSENT_CONFIRMATION_BOUNDARIES,
   PROVIDER_CONSENT_CONFIRMATION_SCOPES,
   PROVIDER_CONSENT_CONFIRMATION_NEVER_STORED,
+  PROVIDER_CONSENT_CONFIRMATION_GMAIL_DISABLED,
   PROVIDER_CONSENT_CONFIRMATION_START_BUTTON_LABEL,
   PROVIDER_CONSENT_CONFIRMATION_TITLE,
 } from "./provider-consent-confirmation-content";
@@ -132,6 +133,7 @@ describe("ProviderConsentConfirmationPanel render", () => {
     expect(html).toContain("raw body, thread ID");
     expect(PROVIDER_CONSENT_CONFIRMATION_NEVER_STORED.calendar).toContain("meeting links");
     expect(html).toContain("This does not import Gmail or Calendar data.");
+    expect(html).toContain(PROVIDER_CONSENT_CONFIRMATION_GMAIL_DISABLED);
     expect(html).not.toContain("Connect UI not enabled");
   });
 

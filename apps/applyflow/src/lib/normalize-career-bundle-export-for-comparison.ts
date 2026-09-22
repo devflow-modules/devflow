@@ -7,7 +7,8 @@ import type { CareerBundle, CareerBundleWithSyncEnrichment } from "@devflow/care
 export function normalizeCareerBundleExportForComparison(
   bundle: CareerBundle | CareerBundleWithSyncEnrichment,
 ): Record<string, unknown> {
-  const { exportedAt: _exportedAt, ...rest } = bundle;
+  const { exportedAt, ...rest } = bundle;
+  void exportedAt;
   return JSON.parse(JSON.stringify(rest)) as Record<string, unknown>;
 }
 

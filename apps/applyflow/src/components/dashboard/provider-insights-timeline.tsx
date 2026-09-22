@@ -80,7 +80,7 @@ export function ProviderInsightsTimelineView({
   activeFilter: ProviderInsightsTimelineFilter;
   onFilterChange: (filter: ProviderInsightsTimelineFilter) => void;
 }) {
-  const signals = previewResult?.signals ?? [];
+  const signals = useMemo(() => previewResult?.signals ?? [], [previewResult?.signals]);
   const filteredSignals = useMemo(
     () => filterProviderInsightsSignals(signals, activeFilter),
     [signals, activeFilter],

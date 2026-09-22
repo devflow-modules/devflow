@@ -3,7 +3,6 @@
 import { ApplyFlowBadge } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
-import type { ProviderDerivedSignal } from "@devflow/career-sync";
 import { useEffect, useState } from "react";
 import type { ProviderDerivedRuntimePreviewClientResult } from "./provider-derived-runtime-preview-client";
 import {

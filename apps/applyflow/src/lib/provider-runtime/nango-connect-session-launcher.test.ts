@@ -14,12 +14,6 @@ const allFlagsOnEnv = {
   NANGO_SECRET_KEY: "nango-secret-test",
 };
 
-const explicitConsent = {
-  hasExplicitConsent: true,
-  consentedAt: "2026-06-12T10:00:00.000Z",
-  scopes: ["gmail.metadata.read"],
-};
-
 const oauthUrlProvider: NangoOAuthUrlProvider = {
   createAuthorizationUrl: vi.fn(
     async () => "/provider-runtime/nango/connect?provider=gmail",

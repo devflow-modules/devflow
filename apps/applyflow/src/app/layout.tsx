@@ -24,6 +24,9 @@ export const metadata: Metadata = {
     title: "ApplyFlow — DevFlow Labs",
     description: "Copiloto local-first para LinkedIn Easy Apply — sem backend ApplyFlow obrigatório.",
   },
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export const viewport: Viewport = {

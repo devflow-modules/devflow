@@ -8,6 +8,7 @@ import {
   JOB_DECISION_V2_CURRENT_ANALYSIS,
   JOB_DECISION_V2_AT_APPLY_ANALYSIS,
   JOB_DECISION_V2_CURRENT_HINT,
+  JOB_DECISION_V2_CLAIMS_EMPTY,
   JOB_DECISION_V2_HINT,
   JOB_DECISION_V2_INPUTS_HINT,
   JOB_DECISION_V2_LABELS,
@@ -26,6 +27,11 @@ describe("job-decision-v2-content", () => {
     expect(JOB_DECISION_V2_HINT.toLowerCase()).toContain("não envia");
     expect(JOB_DECISION_V2_LABELS.skip).toBe("SKIP");
     expect(JOB_DECISION_V2_LABELS.needs_info).toBe("INCONCLUSIVA");
+  });
+
+  it("explica Evidence vazio sem inventar claims", () => {
+    expect(JOB_DECISION_V2_CLAIMS_EMPTY.toLowerCase()).toContain("nenhuma claim");
+    expect(JOB_DECISION_V2_CLAIMS_EMPTY.toLowerCase()).toContain("não inventa");
   });
 
   it("exige Application antes de Outcome", () => {
