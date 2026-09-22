@@ -20,9 +20,9 @@ Merge to `main` can redeploy portal, Financeiro, and WhatsApp. It must **not** m
 
 | Ref | SHA (12) | Notes |
 | --- | --- | --- |
-| `origin/main` | `3468b41f3bd3` | a11y ephemeral Postgres + routing-governance added-only merged |
+| `origin/main` | `1065e21d14f9` | WhatsApp Vitest on default CI merged (#236) |
 | `origin/production` | `530e98b8e44b` | `feat(applyflow): add application preparation pack (#224)` |
-| Delta | 47 commits | `origin/production..origin/main` — **do not fast-forward** until authorized |
+| Delta | 50 commits | `origin/production..origin/main` — **do not fast-forward** until authorized |
 
 Safe promotion (only after explicit approval) remains the runbook in [`docs/career-suite/DEPLOYMENT.md`](../career-suite/DEPLOYMENT.md): fast-forward `production` to `main`, never `vercel deploy --prod` during the pilot.
 
@@ -93,7 +93,7 @@ Copy when requesting a go-ahead:
 
 - [ ] Confirm ApplyFlow Production branch is still `production`
 - [ ] Inventory live Vercel **names only** (Preview vs Production) against the tables above
-- [ ] Fast-forward `production` to an agreed SHA (currently would include 47 commits from Career OS v2 onward)
+- [ ] Fast-forward `production` to an agreed SHA (currently would include 50 commits from Career OS v2 onward)
 - [ ] Smoke Preview of that SHA before promotion
 - [ ] Decide Gmail flags + `NANGO_SECRET_KEY` (fail-closed if any missing)
 - [ ] Decide whether the real classifier may run after Gmail is on
