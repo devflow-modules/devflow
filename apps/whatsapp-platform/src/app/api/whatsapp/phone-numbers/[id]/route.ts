@@ -4,7 +4,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getAuthFromRequest } from "@/modules/auth";
+import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 import {
   setWhatsappLineAsDefaultOutbound,
@@ -24,10 +24,10 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   const auth = await getAuthFromRequest(request);
-  if (!auth) {
-    return NextResponse.json({ success: false, error: "Não autorizado" }, { status: 401 });
-  }
-  const tenantId = auth.payload.tenantId;
+  const denied = requireRole(auth, ROLES_MANAGER_PLUS, request);
+  if (denied) return denied;
+
+  const tenantId = auth!.payload.tenantId;
   if (!tenantId) {
     return NextResponse.json({ success: false, error: "Tenant não identificado" }, { status: 400 });
   }
