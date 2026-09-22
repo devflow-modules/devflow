@@ -324,7 +324,7 @@ E2E_WHATSAPP_ADMIN_PASSWORD=
 
 Session is reused via `tests/setup/global-auth.setup.mts` → `tests/.auth/` (gitignored).
 
-Define both in `.env.local` or in the process environment.
+Define both in `.env.local` or in the process environment. CI Fatia 5 (`inbox-mobile-revenue`) provisions an ephemeral manager against service Postgres instead of GitHub admin/DB secrets.
 
 For axe coverage on `/admin/whatsapp`, the user must be `platform_admin`.
 

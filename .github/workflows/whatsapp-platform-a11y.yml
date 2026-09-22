@@ -1,6 +1,6 @@
 # Gate opcional: a11y automatizado + checagens leves do monorepo na app WhatsApp Platform.
-# Segredos opcionais E2E_WHATSAPP_* desbloqueiam fluxos autenticados (sem eles: /login + skips).
-# E2E_WHATSAPP_BASE_URL (secret opcional): aponta para staging — desactiva webServer local no Playwright.
+# test:a11y (axe) corre sem banco. Fatia 5 (inbox-mobile-revenue) usa Postgres de serviço
+# + tenant/manager efémeros — sem secrets.WHATSAPP_DATABASE_URL nem E2E_WHATSAPP_ADMIN_*.
 
 name: WhatsApp Platform A11y
 
@@ -20,6 +20,21 @@ jobs:
     defaults:
       run:
         working-directory: apps/whatsapp-platform
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: whatsapp_a11y
+          POSTGRES_PASSWORD: whatsapp_a11y_ci
+          POSTGRES_DB: whatsapp_a11y
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -50,20 +65,25 @@ jobs:
       - name: test:a11y (axe + Playwright)
         env:
           CI: "1"
-          # Sem E2E_WHATSAPP_* aqui: fluxos autenticados ficam skipped (matriz estável pré-secrets).
-          # Smoke autenticado Fatia 5 corre no step seguinte com base local + mocks.
+          # Sem credenciais e sem DB: fluxos autenticados ficam skipped.
         run: pnpm test:a11y
 
-      # Fatia 5: iPhone 12 + 360 + DealClose. Mocks exigem base local; credenciais via secrets.
+      # Fatia 5: iPhone 12 + 360 + DealClose. Inbox mockada; login real contra Postgres local.
+      - name: Configure ephemeral WhatsApp Postgres
+        run: |
+          echo "WHATSAPP_DATABASE_URL=postgresql://whatsapp_a11y:whatsapp_a11y_ci@127.0.0.1:5432/whatsapp_a11y" >> "$GITHUB_ENV"
+          echo "WHATSAPP_DIRECT_URL=postgresql://whatsapp_a11y:whatsapp_a11y_ci@127.0.0.1:5432/whatsapp_a11y" >> "$GITHUB_ENV"
+          echo "JWT_SECRET=ci-whatsapp-a11y-dummy-secret-min-32-chars" >> "$GITHUB_ENV"
+
+      - name: Guard local Postgres for Fatia 5
+        run: pnpm exec tsx scripts/e2e/assert-local-datasource.ts
+
+      - name: Migrate WhatsApp schema on service Postgres
+        run: pnpm exec prisma migrate deploy
+
       - name: test:e2e inbox-mobile-revenue
         env:
           CI: "1"
-          E2E_WHATSAPP_ADMIN_EMAIL: ${{ secrets.E2E_WHATSAPP_ADMIN_EMAIL }}
-          E2E_WHATSAPP_ADMIN_PASSWORD: ${{ secrets.E2E_WHATSAPP_ADMIN_PASSWORD }}
           E2E_WHATSAPP_BASE_URL: http://127.0.0.1:3099
           E2E_BASE_URL: http://127.0.0.1:3099
-          WHATSAPP_DATABASE_URL: ${{ secrets.WHATSAPP_DATABASE_URL }}
-          DATABASE_URL: ${{ secrets.WHATSAPP_DATABASE_URL }}
-          DIRECT_URL: ${{ secrets.WHATSAPP_DATABASE_URL }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        run: pnpm exec playwright test tests/e2e/inbox-mobile-revenue.spec.ts
+        run: pnpm exec tsx scripts/e2e/run-a11y-inbox-mobile.ts
