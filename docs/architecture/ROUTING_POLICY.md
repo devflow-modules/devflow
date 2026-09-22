@@ -69,14 +69,14 @@ Novas exceções: adicionar **tabela nesta seção** + linha na `MATRIZ-DECISAO-
 
 - **`src/lib/routing-governance.ts`** — registro das rotas da **raiz** com `owner`, `phase`, notas de migração.  
 - **`src/proxy.ts`** — em **desenvolvimento**, avisos no console para rotas em Fase 2/3 (sem alterar resposta em produção por padrão).  
-- **CI (enforce):** workflow **Routing governance** (`.github/workflows/routing-governance-check.yml`) — em todo PR que alterar `src/app/**/page.tsx`, `src/app/**/route.ts` ou `apps/**/src/app/**/{page.tsx,route.ts}`, o diff precisa incluir ao menos uma mudança em `routing-governance.ts`, `MATRIZ-DECISAO-ROTAS.md` ou `ROUTING_POLICY.md`. Rode localmente: `bash scripts/ci/check-routing-governance.sh origin/main HEAD`.  
+- **CI (enforce):** workflow **Routing governance** (`.github/workflows/routing-governance-check.yml`) — em todo PR que **adicionar** `page.tsx` ou `route.ts` em `src/app/**` ou `apps/**/src/app/**`, o diff precisa incluir ao menos uma mudança em `routing-governance.ts`, `MATRIZ-DECISAO-ROTAS.md` ou `ROUTING_POLICY.md`. O gate usa `git diff --diff-filter=A`; edições de authz/UX/contrato em ficheiros **existentes** não disparam. Rode localmente: `bash scripts/ci/check-routing-governance.sh origin/main HEAD`. Teste dos diffs fictícios: `bash scripts/ci/check-routing-governance.test.sh`.  
 - Evolução futura (Fase 2+): redirects via `next.config` ou env (`NEXT_PUBLIC_*`) quando URLs canônicas estiverem fixas.
 
 ---
 
 ## Notas de governança
 
-Alterações cosméticas em `page.tsx` ou `route.ts` (sem mudança de path, ownership ou contrato) ainda disparam o gate de CI; registre aqui o motivo quando o diff for apenas conformidade de design system ou lint.
+O gate de CI dispara só quando um `page.tsx` ou `route.ts` é **adicionado**. Edições em rotas existentes (authz, UX, contrato interno, design system) não exigem stamp nesta policy.
 
 - **2026-07-30** — PR #186 (settings-ai **F2** / #185): `apps/whatsapp-platform/src/app/settings/ai/page.tsx` — remove `PricingContextHint` da página (capacidade fica em `AiStatusBanner`; upgrade avançado só dentro de `<details>`). Sem mudança de path/ownership/auth/contrato. Chrome F1 intacto.
 - **2026-07-30** — PR #184 (settings-ai **F1** / #183): `apps/whatsapp-platform/src/app/settings/ai/page.tsx` — chrome apenas: descrição curta do PageHeader, quickActions = Salvar + ≤2 links (`aiSettingsQuickActions.ts`), remoção do cartão «IA por canal». Sem mudança de path, ownership, auth, contrato HTTP ou formulário. F0 (#182) permanece o CTA de teste.

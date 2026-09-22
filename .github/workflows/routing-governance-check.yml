@@ -1,4 +1,4 @@
-# Gate: mudança em rotas Next (page.tsx / route.ts) exige atualização de governança.
+# Gate: adição de page.tsx / route.ts exige atualização de governança (edits em existentes não disparam).
 # Marque este job como required em Settings → Branches → branch protection.
 name: Routing governance
 
