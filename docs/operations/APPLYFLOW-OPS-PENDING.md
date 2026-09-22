@@ -2,9 +2,11 @@
 
 This file is the Fase 6 hold. It inventories **environment variable names** from repo contracts and records what must not start without a human go-ahead.
 
-**Not done from this program:** Vercel dashboard mutation, secret create/rotate, `git push origin production`, `vercel --prod`, Gmail/Nango enablement, or the real inbound classifier on customer mail.
+**Done (Gate A, 2026-09-22):** fast-forward `production` → `main` @ `23d8c8de7e02` after Preview smoke. Vercel Production deployed from the `production` branch (not `vercel --prod`).
 
-Live Vercel env **values** were **not** pulled (`vercel env ls` shows `Encrypted` only). Names below are a snapshot, not a go-ahead to enable Gmail or promote.
+**Not done from this program:** Vercel dashboard mutation, secret create/rotate, `vercel --prod`, Gmail/Nango enablement, or the real inbound classifier on customer mail.
+
+Live Vercel env **values** were **not** pulled (`vercel env ls` shows `Encrypted` only). Names below are a snapshot, not a go-ahead to enable Gmail.
 
 ## Hosts (redacted)
 
@@ -20,11 +22,15 @@ Merge to `main` can redeploy portal, Financeiro, and WhatsApp. It must **not** m
 
 | Ref | SHA (12) | Notes |
 | --- | --- | --- |
-| `origin/main` | `1065e21d14f9` | WhatsApp Vitest on default CI merged (#236) |
-| `origin/production` | `530e98b8e44b` | `feat(applyflow): add application preparation pack (#224)` |
-| Delta | 50 commits | `origin/production..origin/main` — **do not fast-forward** until authorized |
+| `origin/main` | `23d8c8de7e02` | Merge #238 (eslint inventory) after #237 |
+| `origin/production` | `23d8c8de7e02` | Gate A: ff-only from `530e98b8e44b` |
+| Delta | 0 commits | `origin/production` matches `origin/main` |
 
-Safe promotion (only after explicit approval) remains the runbook in [`docs/career-suite/DEPLOYMENT.md`](../career-suite/DEPLOYMENT.md): fast-forward `production` to `main`, never `vercel deploy --prod` during the pilot.
+Preview smoke (`dpl_Fz1xcSn6szcgCNdeeRLSt59wHBib`, SHA `23d8c8de7e02`): `livez` alive; `readyz` `200 ready`; `health` and `health?probe=true` `healthy`; `provider_metadata` / `career_llm` / `database` disabled.
+
+Production smoke (`dpl_Cx1akRXFEZfspHT3Df2kV25gHCfw`, branch `production`, alias `https://devflow-applyflow.vercel.app`): `readyz` `200 ready` (`environment=production`); `health` `healthy`; `provider_metadata` / `career_llm` / `database` disabled. Career Chat remains disabled on Production.
+
+Safe follow-up promotions stay the runbook in [`docs/career-suite/DEPLOYMENT.md`](../career-suite/DEPLOYMENT.md): fast-forward `production` to `main`, never `vercel deploy --prod` during the pilot.
 
 ## Env names — Preview (expected)
 
@@ -98,7 +104,7 @@ Same name set as Preview. Production must stay fail-closed for providers:
 
 **Absent from the list (fail-closed for real Gmail):** `NANGO_SECRET_KEY`, `DATABASE_URL`, `OPENAI_API_KEY`, `LIBRECHAT_API_KEY`, `LIBRECHAT_BASE_URL`, `OPENCLAW_API_KEY`, `OPENCLAW_BASE_URL`, `NEXT_PUBLIC_COMMIT_SHA`.
 
-**Drift vs name contract:** the four provider flags are **present** on Preview and Production. The contract still says keep them absent / not `true` until Gate B. Values were not read. This snapshot does **not** authorize enabling Gmail, Calendar, or promotion. Do not `vercel env rm` from this program without a separate order.
+**Drift vs name contract:** the four provider flags are **present** on Preview and Production. The contract still says keep them absent / not `true` until Gate B. Values were not read. Gate A does **not** authorize enabling Gmail or Calendar. Do not `vercel env rm` from this program without a separate order.
 
 ## Gmail enablement (blocked)
 
@@ -121,9 +127,9 @@ The Gmail metadata classifier (`gmail-runtime-classifier.ts`, Rule A `provider_e
 
 Copy when requesting a go-ahead:
 
-- [ ] Confirm ApplyFlow Production branch is still `production`
+- [x] Confirm ApplyFlow Production branch is still `production`
 - [x] Inventory live Vercel **names only** (Preview vs Production) against the tables above (2026-09-22 snapshot; flags present, `NANGO_SECRET_KEY` absent)
-- [ ] Fast-forward `production` to an agreed SHA (currently would include 50 commits from Career OS v2 onward)
-- [ ] Smoke Preview of that SHA before promotion
+- [x] Fast-forward `production` to `23d8c8de7e02` (Gate A)
+- [x] Smoke Preview of that SHA before promotion
 - [ ] Decide Gmail flags + `NANGO_SECRET_KEY` (fail-closed if any missing)
 - [ ] Decide whether the real classifier may run after Gmail is on
