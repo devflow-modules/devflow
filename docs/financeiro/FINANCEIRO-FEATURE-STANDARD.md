@@ -92,6 +92,7 @@ financeLogger.info("finance.expense.archived", {
 - [ ] Rota (ou page) valida auth e input e chama apenas o service.
 - [ ] Teste(s) em `__tests__/services/<domínio>/` com Prisma (e auth, se aplicável) mockados.
 - [ ] Evento de domínio registrado com `financeLogger` quando a operação for relevante (criação, atualização, exclusão, ações críticas).
+- [ ] Toda FK enviada no body (`sourceId`, `accountId`, `categoryId`, `cycleId`, `paidByParticipantId`, listas em rules) passa por `assertHouseholdRefs` no service antes de `connect`/`create`/`update`. A rota mapeia a negação com `sendHouseholdRefNotFound` (404 genérico, sem distinguir id inexistente de id de outra casa).
 
 ---
 

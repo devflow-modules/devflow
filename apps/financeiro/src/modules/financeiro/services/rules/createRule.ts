@@ -3,6 +3,10 @@ import { AUDIT_ACTIONS, AUDIT_ENTITY, createAuditLog } from "@/lib/audit";
 import { trackFirstRuleCreated } from "@/analytics/growth";
 import { trackFeatureUsage, trackFunnelFirst } from "@/modules/financeiro/adapters/productAnalytics";
 import { emit } from "@/modules/financeiro/events";
+import {
+  assertHouseholdRefs,
+  type HouseholdRefDenied,
+} from "@/modules/financeiro/services/_shared/assertHouseholdRefs";
 
 export type CreateRuleInput = {
   name: string;
@@ -24,13 +28,19 @@ export async function createRule(
   householdId: string,
   data: CreateRuleInput,
   auditContext: AuditContext
-) {
+): Promise<HouseholdRefDenied | Awaited<ReturnType<PrismaClient["rule"]["create"]>>> {
+  const sourceCheck = await assertHouseholdRefs(prisma, householdId, {
+    sourceIds: data.sourceIds,
+  });
+  if (!sourceCheck.ok) return sourceCheck;
+
   const { sourceIds, ...rulePayload } = data;
   const rule = await prisma.rule.create({
     data: {
       ...rulePayload,
       householdId,
       ruleSources: {
+        // sourceIds already asserted against householdId
         create: sourceIds.map((sourceId) => ({ source: { connect: { id: sourceId } } })),
       },
     } as Parameters<PrismaClient["rule"]["create"]>[0]["data"],

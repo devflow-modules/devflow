@@ -5,6 +5,10 @@ import { trackFirstExpenseCreated } from "@/analytics/growth";
 import { trackFunnelFirst, trackToolUsage } from "@/modules/financeiro/adapters/productAnalytics";
 import { emit } from "@/modules/financeiro/events";
 import { calculateAndPersistExpenseSplit } from "@/modules/financeiro/services/accounts";
+import {
+  assertHouseholdRefs,
+  type HouseholdRefDenied,
+} from "@/modules/financeiro/services/_shared/assertHouseholdRefs";
 
 export type CreateExpenseInput = {
   categoryId?: string;
@@ -33,14 +37,22 @@ export async function createExpense(
   householdId: string,
   data: CreateExpenseInput,
   auditContext: AuditContext
-) {
+): Promise<HouseholdRefDenied | Awaited<ReturnType<PrismaClient["expense"]["create"]>>> {
+  const refs = await assertHouseholdRefs(prisma, householdId, {
+    sourceIds: data.sourceId ? [data.sourceId] : undefined,
+    accountId: data.accountId,
+    categoryId: data.categoryId,
+    paidByParticipantId: data.paidByParticipantId,
+  });
+  if (!refs.ok) return refs;
+
   let categoryName = data.category?.trim();
   if (data.categoryId && !categoryName) {
     const cat = await prisma.category.findFirst({
       where: { id: data.categoryId, householdId },
       select: { name: true },
     });
-    categoryName = cat?.name ?? "Outros";
+    categoryName = cat?.name;
   }
   if (!categoryName) categoryName = "Outros";
 

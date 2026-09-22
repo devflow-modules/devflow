@@ -159,4 +159,15 @@ export async function requireSessionOnly(
   };
 }
 
+/** Call after requireHouseholdMembership. MEMBER receives 403 OWNER_REQUIRED. */
+export function requireOwner(
+  context: AuthContext,
+  message = "Apenas OWNER pode realizar esta operação"
+): NextResponse | null {
+  if (context.membershipRole !== "OWNER") {
+    return sendError(message, 403, undefined, "OWNER_REQUIRED");
+  }
+  return null;
+}
+
 export { getActiveHouseholdCookieName };

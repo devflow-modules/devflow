@@ -4,6 +4,10 @@ import { dateInputToDate } from "@/lib/dates";
 import { trackFirstIncomeCreated } from "@/analytics/growth";
 import { trackFunnelFirst, trackToolUsage } from "@/modules/financeiro/adapters/productAnalytics";
 import { emit } from "@/modules/financeiro/events";
+import {
+  assertHouseholdRefs,
+  type HouseholdRefDenied,
+} from "@/modules/financeiro/services/_shared/assertHouseholdRefs";
 
 export type CreateIncomeInput = {
   sourceId?: string;
@@ -25,7 +29,12 @@ export async function createIncome(
   householdId: string,
   data: CreateIncomeInput,
   auditContext: AuditContext
-) {
+): Promise<HouseholdRefDenied | Awaited<ReturnType<PrismaClient["income"]["create"]>>> {
+  const refs = await assertHouseholdRefs(prisma, householdId, {
+    sourceIds: data.sourceId ? [data.sourceId] : undefined,
+  });
+  if (!refs.ok) return refs;
+
   const { sourceId, ...rest } = data;
   const income = await prisma.income.create({
     data: {

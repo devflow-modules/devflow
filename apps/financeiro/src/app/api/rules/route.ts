@@ -7,6 +7,8 @@ import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
 import { listRules } from "@/modules/financeiro/services/rules/listRules";
 import { createRule } from "@/modules/financeiro/services/rules/createRule";
+import { isHouseholdRefDenied } from "@/modules/financeiro/services/_shared/assertHouseholdRefs";
+import { sendHouseholdRefNotFound } from "@/app/api/_helpers/householdRef";
 
 export async function GET(request: NextRequest) {
   const auth = await requireHouseholdMembership(request);
@@ -46,6 +48,7 @@ export async function POST(request: NextRequest) {
       );
     }
     const rule = await createRule(prisma, householdId, parseResult.data, { userId, householdId });
+    if (isHouseholdRefDenied(rule)) return sendHouseholdRefNotFound();
     return sendSuccess(rule, 201);
   } catch (error) {
     console.error(error);

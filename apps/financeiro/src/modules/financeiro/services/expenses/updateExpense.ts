@@ -2,6 +2,10 @@ import type { PrismaClient } from "@prisma/client";
 import { AUDIT_ACTIONS, AUDIT_ENTITY, createAuditLog } from "@/lib/audit";
 import { dateInputToDate } from "@/lib/dates";
 import { emit } from "@/modules/financeiro/events";
+import {
+  assertHouseholdRefs,
+  type HouseholdRefDenied,
+} from "@/modules/financeiro/services/_shared/assertHouseholdRefs";
 
 export type UpdateExpenseInput = {
   categoryId?: string | null;
@@ -9,12 +13,14 @@ export type UpdateExpenseInput = {
   amount?: number;
   dueDate?: string;
   status?: "PENDING" | "PAID" | "SCHEDULED";
-  sourceId?: string;
+  sourceId?: string | null;
   isRecurring?: boolean;
   paidAmount?: number;
   paidAt?: string;
   note?: string;
   context?: "PERSONAL" | "BUSINESS" | "SHARED";
+  accountId?: string | null;
+  paidByParticipantId?: string | null;
 };
 
 export type AuditContext = {
@@ -28,7 +34,24 @@ export async function updateExpense(
   householdId: string,
   data: UpdateExpenseInput,
   auditContext: AuditContext
-) {
+): Promise<HouseholdRefDenied | Awaited<ReturnType<PrismaClient["expense"]["findUnique"]>>> {
+  let accountIdForRefs = data.accountId;
+  if (data.paidByParticipantId && !accountIdForRefs) {
+    const existing = await prisma.expense.findFirst({
+      where: { id: expenseId, householdId },
+      select: { accountId: true },
+    });
+    accountIdForRefs = existing?.accountId ?? undefined;
+  }
+
+  const refs = await assertHouseholdRefs(prisma, householdId, {
+    sourceIds: data.sourceId ? [data.sourceId] : undefined,
+    accountId: accountIdForRefs,
+    categoryId: data.categoryId ? data.categoryId : undefined,
+    paidByParticipantId: data.paidByParticipantId,
+  });
+  if (!refs.ok) return refs;
+
   let categoryName: string | undefined;
   if (data.categoryId !== undefined) {
     if (data.categoryId) {
@@ -36,7 +59,7 @@ export async function updateExpense(
         where: { id: data.categoryId, householdId },
         select: { name: true },
       });
-      categoryName = cat?.name ?? "Outros";
+      categoryName = cat?.name ?? data.category;
     } else {
       categoryName = data.category ?? "Outros";
     }
@@ -56,6 +79,10 @@ export async function updateExpense(
     ...(categoryName !== undefined && { category: categoryName }),
     ...(data.note !== undefined && { note: data.note }),
     ...(data.context !== undefined && { context: data.context }),
+    ...(data.accountId !== undefined && { accountId: data.accountId ?? null }),
+    ...(data.paidByParticipantId !== undefined && {
+      paidByParticipantId: data.paidByParticipantId ?? null,
+    }),
   };
 
   if (data.status && data.status !== "PAID") {

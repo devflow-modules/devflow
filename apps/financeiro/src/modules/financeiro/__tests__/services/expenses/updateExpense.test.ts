@@ -28,7 +28,10 @@ describe("updateExpense", () => {
     );
 
     expect(result).not.toBeNull();
-    expect(result?.amount).toBe(80);
+    if (!result || "error" in result) {
+      throw new Error("update sem FK não deve ser rejeitado");
+    }
+    expect(result.amount).toBe(80);
     expect(prisma.expense.updateMany).toHaveBeenCalledWith({
       where: { id: "exp-1", householdId: "h1" },
       data: expect.any(Object),

@@ -6,6 +6,8 @@ import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
 import { updatePaymentDay } from "@/modules/financeiro/services/payment-days/updatePaymentDay";
 import { deletePaymentDay } from "@/modules/financeiro/services/payment-days/deletePaymentDay";
+import { HOUSEHOLD_REF_NOT_FOUND } from "@/modules/financeiro/services/_shared/assertHouseholdRefs";
+import { sendHouseholdRefNotFound } from "@/app/api/_helpers/householdRef";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ paymentDayId: string }> }) {
   const sameOrigin = assertSameOrigin(request);
@@ -23,7 +25,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
     const result = await updatePaymentDay(prisma, paymentDayId, householdId, parseResult.data);
     if ("error" in result) {
-      if (result.error === "CYCLE_NOT_FOUND") return sendError("Ciclo não encontrado ou não pertence à sua casa", 404);
+      if (result.error === HOUSEHOLD_REF_NOT_FOUND) return sendHouseholdRefNotFound();
       return sendError("Dia de recebimento não encontrado", 404);
     }
     return sendSuccess(result.data);

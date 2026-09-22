@@ -1,9 +1,13 @@
 import type { PrismaClient } from "@prisma/client";
 import { AUDIT_ACTIONS, AUDIT_ENTITY, createAuditLog } from "@/lib/audit";
 import { dateInputToDate } from "@/lib/dates";
+import {
+  assertHouseholdRefs,
+  type HouseholdRefDenied,
+} from "@/modules/financeiro/services/_shared/assertHouseholdRefs";
 
 export type UpdateIncomeInput = {
-  sourceId?: string;
+  sourceId?: string | null;
   amount?: number;
   receivedAt?: string;
   isRecurring?: boolean;
@@ -23,7 +27,12 @@ export async function updateIncome(
   householdId: string,
   data: UpdateIncomeInput,
   auditContext: AuditContext
-) {
+): Promise<HouseholdRefDenied | Awaited<ReturnType<PrismaClient["income"]["findUnique"]>>> {
+  const refs = await assertHouseholdRefs(prisma, householdId, {
+    sourceIds: data.sourceId ? [data.sourceId] : undefined,
+  });
+  if (!refs.ok) return refs;
+
   const updateData = {
     ...data,
     ...(data.receivedAt ? { receivedAt: dateInputToDate(data.receivedAt) } : {}),

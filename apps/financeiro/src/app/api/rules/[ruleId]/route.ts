@@ -6,6 +6,8 @@ import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
 import { updateRule } from "@/modules/financeiro/services/rules/updateRule";
 import { deleteRule } from "@/modules/financeiro/services/rules/deleteRule";
+import { isHouseholdRefDenied } from "@/modules/financeiro/services/_shared/assertHouseholdRefs";
+import { sendHouseholdRefNotFound } from "@/app/api/_helpers/householdRef";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ ruleId: string }> }) {
   const sameOrigin = assertSameOrigin(request);
@@ -22,6 +24,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return sendError(parseResult.error.message, 400, parseResult.error.format());
     }
     const updated = await updateRule(prisma, ruleId, householdId, parseResult.data, { userId, householdId });
+    if (isHouseholdRefDenied(updated)) return sendHouseholdRefNotFound();
     if (!updated) return sendError("Regra não encontrada", 404);
     return sendSuccess(updated);
   } catch (error) {
