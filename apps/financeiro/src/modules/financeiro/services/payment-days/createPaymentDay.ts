@@ -1,4 +1,8 @@
 import type { PrismaClient } from "@prisma/client";
+import {
+  assertHouseholdRefs,
+  HOUSEHOLD_REF_NOT_FOUND,
+} from "@/modules/financeiro/services/_shared/assertHouseholdRefs";
 
 export type CreatePaymentDayInput = {
   dayOfMonth: number;
@@ -12,17 +16,11 @@ export async function createPaymentDay(
   householdId: string,
   data: CreatePaymentDayInput
 ) {
-  const source = await prisma.source.findFirst({
-    where: { id: data.sourceId, householdId },
+  const refs = await assertHouseholdRefs(prisma, householdId, {
+    sourceIds: [data.sourceId],
+    cycleId: data.cycleId,
   });
-  if (!source) return { error: "SOURCE_NOT_FOUND" as const };
-
-  if (data.cycleId) {
-    const cycle = await prisma.cycle.findFirst({
-      where: { id: data.cycleId, householdId },
-    });
-    if (!cycle) return { error: "CYCLE_NOT_FOUND" as const };
-  }
+  if (!refs.ok) return { error: HOUSEHOLD_REF_NOT_FOUND };
 
   const { sourceId, cycleId, ...dayPayload } = data;
   const day = await prisma.paymentDay.create({

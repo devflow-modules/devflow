@@ -2,6 +2,10 @@ import type { PrismaClient } from "@prisma/client";
 import { AUDIT_ACTIONS, AUDIT_ENTITY, createAuditLog } from "@/lib/audit";
 import { trackFeatureUsage } from "@/modules/financeiro/adapters/productAnalytics";
 import { emit } from "@/modules/financeiro/events";
+import {
+  assertHouseholdRefs,
+  type HouseholdRefDenied,
+} from "@/modules/financeiro/services/_shared/assertHouseholdRefs";
 
 export type UpdateRuleInput = {
   name?: string;
@@ -24,17 +28,25 @@ export async function updateRule(
   householdId: string,
   data: UpdateRuleInput,
   auditContext: AuditContext
-) {
+): Promise<HouseholdRefDenied | Awaited<ReturnType<PrismaClient["rule"]["update"]>> | null> {
   const existingRule = await prisma.rule.findFirst({
     where: { id: ruleId, householdId },
   });
   if (!existingRule) return null;
+
+  if (data.sourceIds) {
+    const sourceCheck = await assertHouseholdRefs(prisma, householdId, {
+      sourceIds: data.sourceIds,
+    });
+    if (!sourceCheck.ok) return sourceCheck;
+  }
 
   const payload: Record<string, unknown> = { ...data };
   if (payload.sourceIds) {
     (payload as { ruleSources: { deleteMany: object; create: { source: { connect: { id: string } } }[] } }).ruleSources = {
       deleteMany: {},
       create: (data.sourceIds as string[]).map((sourceId: string) => ({
+        // sourceIds already asserted against householdId
         source: { connect: { id: sourceId } },
       })),
     };

@@ -5,6 +5,8 @@ import { budgetCreateSchema } from "@/modules/financeiro/schemas";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
 import { listBudgets, createBudget } from "@/modules/financeiro/services/budgets";
+import { isHouseholdRefDenied } from "@/modules/financeiro/services/_shared/assertHouseholdRefs";
+import { sendHouseholdRefNotFound } from "@/app/api/_helpers/householdRef";
 
 export async function GET(request: NextRequest) {
   const auth = await requireHouseholdMembership(request);
@@ -30,6 +32,7 @@ export async function POST(request: NextRequest) {
       return sendError(parsed.error.message, 400, parsed.error.format());
     }
     const budget = await createBudget(prisma, auth.context.householdId, parsed.data);
+    if (isHouseholdRefDenied(budget)) return sendHouseholdRefNotFound();
     return sendSuccess(budget, 201);
   } catch (error) {
     console.error(error);

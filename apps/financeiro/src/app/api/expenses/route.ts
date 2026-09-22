@@ -6,6 +6,8 @@ import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
 import { listExpenses, createExpense } from "@/modules/financeiro/services/expenses";
 import { logFinanceEvent } from "@/modules/financeiro/lib/finance-logger";
+import { isHouseholdRefDenied } from "@/modules/financeiro/services/_shared/assertHouseholdRefs";
+import { sendHouseholdRefNotFound } from "@/app/api/_helpers/householdRef";
 
 export async function GET(request: NextRequest) {
   const auth = await requireHouseholdMembership(request);
@@ -60,6 +62,7 @@ export async function POST(request: NextRequest) {
       userId,
       householdId,
     });
+    if (isHouseholdRefDenied(expense)) return sendHouseholdRefNotFound();
 
     logFinanceEvent({
       action: "expense_created",

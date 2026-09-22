@@ -7,7 +7,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/modules/financeiro/adapters/prisma/prismaFinanceiro";
 import { sendError, sendSuccess } from "@/modules/financeiro/lib/api-response";
-import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
+import { requireHouseholdMembership, requireOwner } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
 import { z } from "zod";
 
@@ -40,6 +40,8 @@ export async function POST(request: NextRequest) {
 
   const auth = await requireHouseholdMembership(request);
   if (!auth.ok) return auth.response;
+  const ownerDenied = requireOwner(auth.context, "Apenas OWNER pode fechar o mês");
+  if (ownerDenied) return ownerDenied;
   const { householdId } = auth.context;
 
   try {

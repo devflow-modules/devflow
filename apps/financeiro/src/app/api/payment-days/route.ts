@@ -6,6 +6,8 @@ import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
 import { listPaymentDays } from "@/modules/financeiro/services/payment-days/listPaymentDays";
 import { createPaymentDay } from "@/modules/financeiro/services/payment-days/createPaymentDay";
+import { HOUSEHOLD_REF_NOT_FOUND } from "@/modules/financeiro/services/_shared/assertHouseholdRefs";
+import { sendHouseholdRefNotFound } from "@/app/api/_helpers/householdRef";
 
 export async function GET(request: NextRequest) {
   const auth = await requireHouseholdMembership(request);
@@ -36,8 +38,8 @@ export async function POST(request: NextRequest) {
     }
     const result = await createPaymentDay(prisma, householdId, parseResult.data);
     if ("error" in result) {
-      if (result.error === "SOURCE_NOT_FOUND") return sendError("Fonte não encontrada ou não pertence à sua casa", 404);
-      return sendError("Ciclo não encontrado ou não pertence à sua casa", 404);
+      if (result.error === HOUSEHOLD_REF_NOT_FOUND) return sendHouseholdRefNotFound();
+      return sendError("Não foi possível criar o dia de recebimento", 400);
     }
     return sendSuccess(result.data, 201);
   } catch (error) {

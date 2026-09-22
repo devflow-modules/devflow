@@ -5,6 +5,8 @@ import { incomeCreateSchema } from "@/modules/financeiro/schemas";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
 import { listIncomes, createIncome } from "@/modules/financeiro/services/incomes";
+import { isHouseholdRefDenied } from "@/modules/financeiro/services/_shared/assertHouseholdRefs";
+import { sendHouseholdRefNotFound } from "@/app/api/_helpers/householdRef";
 
 export async function GET(request: NextRequest) {
   const auth = await requireHouseholdMembership(request);
@@ -48,6 +50,7 @@ export async function POST(request: NextRequest) {
       userId,
       householdId,
     });
+    if (isHouseholdRefDenied(income)) return sendHouseholdRefNotFound();
 
     return sendSuccess(income, 201);
   } catch (error) {

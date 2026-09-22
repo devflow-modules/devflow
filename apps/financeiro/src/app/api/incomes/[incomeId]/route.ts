@@ -5,6 +5,8 @@ import { incomeUpdateSchema } from "@/modules/financeiro/schemas";
 import { requireHouseholdMembership } from "@/app/api/_helpers/auth";
 import { assertSameOrigin } from "@/app/api/_helpers/sameOrigin";
 import { updateIncome, deleteIncome } from "@/modules/financeiro/services/incomes";
+import { isHouseholdRefDenied } from "@/modules/financeiro/services/_shared/assertHouseholdRefs";
+import { sendHouseholdRefNotFound } from "@/app/api/_helpers/householdRef";
 
 export async function PATCH(
   request: NextRequest,
@@ -33,6 +35,7 @@ export async function PATCH(
       { userId, householdId }
     );
 
+    if (isHouseholdRefDenied(updated)) return sendHouseholdRefNotFound();
     if (!updated) return sendError("Receita não encontrada", 404);
     return sendSuccess(updated);
   } catch (error) {
