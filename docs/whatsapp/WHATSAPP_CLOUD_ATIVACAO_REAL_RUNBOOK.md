@@ -182,7 +182,7 @@ curl -sS -X POST "$BASE/api/admin/whatsapp/onboarding/verify-code" \
 ```bash
 curl -sS -X POST "$BASE/api/admin/whatsapp/onboarding/register" \
   -H "$H" -H "Content-Type: application/json" \
-  -d "{\"pin\":\"123456\",\"phoneNumberId\":\"$PID\"}"
+  -d "{\"pin\":\"$PIN_2FA\",\"phoneNumberId\":\"$PID\"}"
 ```
 
 **Esperado:** `data.success: true`, `alreadyRegistered: false` **ou** idempotente `alreadyRegistered: true` se já registrado.

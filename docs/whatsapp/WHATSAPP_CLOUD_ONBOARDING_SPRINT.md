@@ -17,7 +17,7 @@ Operacionalizar o onboarding técnico via **Graph API** (sem BSP): solicitar có
 2. **Listar números** — `GET /{WABA_ID}/phone_numbers` (campos oficiais).
 3. **Verificação por SMS/voz** — `POST /{PHONE_NUMBER_ID}/request_code?code_method=SMS|VOICE|IVR&language=pt_BR`.
 4. **Confirmar código** — `POST /{PHONE_NUMBER_ID}/verify_code?code=XXXXX`.
-5. **Registrar na Cloud API** — `POST /{PHONE_NUMBER_ID}/register` body `{ "messaging_product": "whatsapp", "pin": "123456" }` (PIN de **duas etapas** que você define; não é o SMS).
+5. **Registrar na Cloud API** — `POST /{PHONE_NUMBER_ID}/register` body `{ "messaging_product": "whatsapp", "pin": "<PIN_2FA>" }` (PIN de **duas etapas** que você define; sem default; não é o SMS).
 
 Referências Meta:
 

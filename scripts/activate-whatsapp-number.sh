@@ -21,12 +21,27 @@ GRAPH_VERSION="${META_API_VERSION:-${WHATSAPP_API_VERSION:-v21.0}}"
 # ====== PREENCHA (ou via env) ======
 ACCESS_TOKEN="${ACCESS_TOKEN:-SEU_ACCESS_TOKEN_AQUI}"
 PHONE_NUMBER_ID="${PHONE_NUMBER_ID:-1027838990414844}"
-PIN_2FA="${PIN_2FA:-123456}"          # PIN de confirmação em duas etapas
+PIN_2FA="${PIN_2FA:-}"                # PIN de confirmação em duas etapas (obrigatório)
 CODE_METHOD="${CODE_METHOD:-SMS}"     # SMS ou VOICE
 # ======================
 
 if [[ "${ACCESS_TOKEN}" == "SEU_ACCESS_TOKEN_AQUI" ]] || [[ -z "${ACCESS_TOKEN}" ]]; then
   echo "Erro: defina ACCESS_TOKEN ou WHATSAPP_ACCESS_TOKEN no .env.local ou via variável de ambiente."
+  exit 1
+fi
+
+if [[ -z "${PIN_2FA}" ]]; then
+  echo "Erro: defina PIN_2FA (PIN de duas etapas da Cloud API). Sem default."
+  exit 1
+fi
+
+if [[ "${PIN_2FA}" == "123456" ]]; then
+  echo "Erro: PIN_2FA recusado — não use o default fraco documentado no Git."
+  exit 1
+fi
+
+if [[ ! "${PIN_2FA}" =~ ^[0-9]{6}$ ]]; then
+  echo "Erro: PIN_2FA deve ter exactamente 6 dígitos."
   exit 1
 fi
 
