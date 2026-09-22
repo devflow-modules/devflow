@@ -91,6 +91,7 @@ Outros apps no repositório (**ApplyFlow** como case de portfólio local-first, 
 | Build Vercel | [VERCEL_BUILD.md](./VERCEL_BUILD.md) |
 | Variáveis de ambiente | [ENV_STRUCTURE.md](./ENV_STRUCTURE.md) |
 | Revalidação audit F1–F16 | [architecture/SECURITY-AUDIT-F1-F16-REVALIDATION.md](./architecture/SECURITY-AUDIT-F1-F16-REVALIDATION.md) |
+| ApplyFlow ops (hold) | [operations/APPLYFLOW-OPS-PENDING.md](./operations/APPLYFLOW-OPS-PENDING.md) |
 | Stripe / billing | [shared/DEVFLOW-PAYMENTS.md](./shared/DEVFLOW-PAYMENTS.md) |
 | Métricas dashboard | [shared/DEVFLOW-METRICS-DASHBOARD.md](./shared/DEVFLOW-METRICS-DASHBOARD.md) |
 
