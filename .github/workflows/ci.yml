@@ -1,3 +1,5 @@
+# Portal lint/test/quality/build plus targeted Financeiro and ApplyFlow jobs.
+# This is not `test:workspace` or `eslint .` — see docs/shared/GOVERNANCE_SUMMARY.md.
 name: CI
 
 on:
@@ -45,6 +47,56 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+  test-financeiro:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Financeiro Prisma client
+        run: pnpm --filter @devflow/app-financeiro db:generate
+
+      - name: Test Financeiro
+        run: pnpm --filter @devflow/app-financeiro test
+
+  test-applyflow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build ApplyFlow workspace packages
+        run: |
+          pnpm --filter @devflow/applyflow-core build
+          pnpm --filter @devflow/career-sync build
+          pnpm --filter @devflow/career-core build
+
+      - name: Lint ApplyFlow
+        run: pnpm --filter applyflow exec eslint "src/**/*.{ts,tsx}"
+
+      - name: Test ApplyFlow
+        run: pnpm --filter applyflow test
 
   quality:
     runs-on: ubuntu-latest
