@@ -1,6 +1,6 @@
 # ESLint inventory (`eslint .`)
 
-Snapshot from `origin/main` `1065e21d` on **2026-09-22**. Command: `pnpm exec eslint .` (JSON format). This is **not** a CI job. Do **not** treat a green `lint:ci` (Financeiro only) as coverage of this table.
+Snapshot updated **2026-09-22** after clearing the 6 product errors (base `origin/main` `1c4878e5`). Command used for the original count: `pnpm exec eslint .` (JSON format). This is **not** a CI job. Do **not** treat a green `lint:ci` (Financeiro only) as coverage of this table.
 
 Local `docs/security-audit/.venv` was linted in the raw run (matplotlib JS). Those findings are **noise** and are excluded from the product totals below. `eslint.config.mjs` now ignores `**/.venv/**`.
 
@@ -8,9 +8,11 @@ Local `docs/security-audit/.venv` was linted in the raw run (matplotlib JS). Tho
 
 | | Count |
 | --- | ---: |
-| Files with findings | 56 |
-| Errors | 6 |
+| Files with findings | 54 |
+| Errors | 0 |
 | Warnings | 66 |
+
+Product errors cleared in this pass: WhatsApp admin `<a href>` page links, Interview Lab `set-state-in-effect`, portal `src/lib/audit.ts` `any`. File count drops by the two files that had **only** errors (`interview-briefing-client.tsx`, `src/lib/audit.ts`).
 
 ## By area
 
@@ -18,9 +20,9 @@ Local `docs/security-audit/.venv` was linted in the raw run (matplotlib JS). Tho
 | --- | ---: | ---: | ---: | --- |
 | `apps/financeiro` | 0 | 0 | 0 | Already in `lint:ci` |
 | `apps/applyflow` | 0 | 0 | 0 | App linted in `test-applyflow` |
-| `apps/whatsapp-platform` | 6 | 2 | 7 | Errors: `@next/next/no-html-link-for-pages` in admin billing/metrics clients |
-| `apps/interview-lab` | 1 | 3 | 0 | `react-hooks/set-state-in-effect` in `interview-briefing-client.tsx` |
-| `src` (portal) | 8 | 1 | 10 | Error: `@typescript-eslint/no-explicit-any` in `src/lib/audit.ts` |
+| `apps/whatsapp-platform` | 6 | 0 | 7 | Admin billing/metrics page links now use `next/link` |
+| `apps/interview-lab` | 0 | 0 | 0 | Briefing client no longer sets state in effects |
+| `src` (portal) | 7 | 0 | 10 | `src/lib/audit.ts` typed as `PrismaClient` |
 | `apps/site` (legacy) | 13 | 0 | 16 | Warnings only |
 | `apps/applyflow-extension` | 1 | 0 | 1 | |
 | `apps/funklab` | 1 | 0 | 1 | |
@@ -34,17 +36,13 @@ Local `docs/security-audit/.venv` was linted in the raw run (matplotlib JS). Tho
 
 ## Error locations (product)
 
-| Rule | Path |
-| --- | --- |
-| `react-hooks/set-state-in-effect` | `apps/interview-lab/src/components/interview-briefing-client.tsx` (3) |
-| `@next/next/no-html-link-for-pages` | `apps/whatsapp-platform` admin `BillingDashboardClient.tsx`, `MetricsDashboardClient.tsx` |
-| `@typescript-eslint/no-explicit-any` | `src/lib/audit.ts` |
+None remaining. Warnings (66) are out of band.
 
 ## CI posture
 
 - Keep [`ci.yml`](../../.github/workflows/ci.yml) `lint` as `pnpm lint:ci` (Financeiro).
-- Do **not** add `eslint .` or `test:workspace` as required jobs until errors are 0 and a scoped job is proven green alone.
-- Next scoped candidate after this inventory: WhatsApp `src/` (2 errors) or portal `src/lib/audit.ts` (1 error) — separate PRs.
+- Do **not** add `eslint .` or `test:workspace` as required jobs until a scoped job is proven green alone.
+- Next scoped candidate: WhatsApp `src/` warnings or portal `src/` warnings — separate PRs.
 
 ## Out of band
 

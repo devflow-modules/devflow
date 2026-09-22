@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import {
   BillingSummaryCards,
@@ -67,12 +68,12 @@ export function BillingDashboardClient({ initialData }: Props) {
           Billing e receita — Admin
         </h1>
         <div className="flex gap-2 items-center">
-          <a
+          <Link
             href="/admin/metrics"
             className="rounded-lg border df-border-dark px-3 py-2 text-sm font-medium df-text-secondary hover:bg-muted/60"
           >
             ← Métricas
-          </a>
+          </Link>
           <Button variant="disabled"
             type="button"
             onClick={refresh}
