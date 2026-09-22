@@ -28,6 +28,8 @@ const eslintConfig = defineConfig([
     ".turbo/**",
     /** Prisma client gerado (CommonJS / tipos com `any` internos). */
     "apps/whatsapp-platform/src/generated/**",
+    /** Local Python venv (security-audit charts); never lint vendor JS. */
+    "**/.venv/**",
   ]),
   // Boundary: no one may import from app packages (apps are not published).
   {
