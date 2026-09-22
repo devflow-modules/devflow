@@ -82,10 +82,14 @@ This document summarizes the governance, boundaries, and templates added to the 
 
 ## 5. Validation results
 
-- **Workspace build:** `pnpm run build:workspace` — **passed** (7 tasks: root + 6 apps).
-- **Tests:** `pnpm run test:workspace` — **passed** (3 packages with tests: devflow, app-financeiro, billing-core; 130 + 130 + 13 tests).
-- **Imports:** No new cross-boundary imports; existing code uses packages via `@devflow/*` or relative paths within the same app.
-- **Apps:** All apps (site, financeiro, investigamais, funklab, whatsapp-platform, ops) and root build successfully.
+GitHub CI on `main` (`ci.yml`) is **not** the full workspace:
+
+- `pnpm test` covers **portal `src/` only**.
+- `pnpm lint:ci` covers **Financeiro** (`apps/financeiro` + `src/modules/financeiro`) with `--max-warnings 0`.
+- Additional jobs run Financeiro Vitest and ApplyFlow lint+test. They do **not** run `pnpm test:workspace` or `eslint .`.
+- WhatsApp architecture boundary is a separate workflow. WhatsApp a11y is path-filtered / scheduled.
+
+`pnpm run test:workspace` and `pnpm run lint:all` remain local/pre-merge commands. `eslint .` still has monorepo debt outside Financeiro; do not treat a green portal `test` job as coverage of ApplyFlow, Financeiro, or WhatsApp.
 
 ---
 
