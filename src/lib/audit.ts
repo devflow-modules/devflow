@@ -1,3 +1,5 @@
+import type { Prisma, PrismaClient } from "@prisma/client";
+
 export const AUDIT_ENTITY = {
   INVITE: "INVITE",
   HOUSEHOLD: "HOUSEHOLD",
@@ -40,10 +42,7 @@ type AuditLogInput = {
   metadata?: Record<string, unknown>;
 };
 
-export async function createAuditLog(
-  prisma: any,
-  input: AuditLogInput
-) {
+export async function createAuditLog(prisma: PrismaClient, input: AuditLogInput) {
   try {
     await prisma.auditLog.create({
       data: {
@@ -52,7 +51,9 @@ export async function createAuditLog(
         action: input.action,
         entityType: input.entityType,
         entityId: input.entityId ?? null,
-        ...(input.metadata ? { metadata: input.metadata } : {}),
+        ...(input.metadata
+          ? { metadata: input.metadata as Prisma.InputJsonValue }
+          : {}),
       },
     });
   } catch (error) {

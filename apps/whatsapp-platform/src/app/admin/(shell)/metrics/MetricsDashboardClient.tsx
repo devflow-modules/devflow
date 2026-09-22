@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { MetricsCard, MetricsSection, FunnelVisualization } from "@devflow/ui";
@@ -119,12 +120,12 @@ export function MetricsDashboardClient({ initialData }: Props) {
         className="mb-8 !pb-6 sm:!pb-8"
         actions={
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <a
+            <Link
               href="/admin/billing"
               className="rounded-lg border df-border-dark px-3 py-2 text-sm font-medium df-text-secondary hover:bg-muted/60"
             >
               Faturação e receita
-            </a>
+            </Link>
             <a
               href={exportConversationsUrl}
               target="_blank"

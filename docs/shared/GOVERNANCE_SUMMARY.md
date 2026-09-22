@@ -89,7 +89,7 @@ GitHub CI on `main` (`ci.yml`) is **not** the full workspace:
 - Additional jobs run Financeiro (`prisma generate` + Vitest), ApplyFlow (build `@devflow/applyflow-core`, `@devflow/career-sync`, `@devflow/career-core`, then lint+test), and WhatsApp (`prisma generate` + Vitest). They do **not** run `pnpm test:workspace` or `eslint .`.
 - WhatsApp architecture boundary is a separate workflow. WhatsApp a11y is path-filtered / scheduled.
 
-`pnpm run test:workspace` and `pnpm run lint:all` remain local/pre-merge commands. `eslint .` still has monorepo debt outside Financeiro (snapshot: [`ESLINT-INVENTORY.md`](./ESLINT-INVENTORY.md)); do not treat a green portal `test` job as coverage of ApplyFlow, Financeiro, or WhatsApp. Do **not** make `eslint .` required in CI until that inventory is cleared.
+`pnpm run test:workspace` and `pnpm run lint:all` remain local/pre-merge commands. `eslint .` still has warning-level debt outside Financeiro (snapshot: [`ESLINT-INVENTORY.md`](./ESLINT-INVENTORY.md)); do not treat a green portal `test` job as coverage of ApplyFlow, Financeiro, or WhatsApp. Do **not** make `eslint .` required in CI until a scoped job is proven green alone.
 
 ---
 

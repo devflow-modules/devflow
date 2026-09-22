@@ -2,7 +2,7 @@
 
 import { InterviewLabButton } from "@/components/ui/InterviewLabButton";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 import type { CareerApplication } from "@devflow/career-core";
 import { loadApplyFlowCareerBundle } from "@/lib/applyflow-bundle-storage";
@@ -44,6 +44,55 @@ function downloadMarkdown(filename: string, body: string): void {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+const LOCAL_STORE_EVENT = "interview-lab:local-store-changed";
+
+function subscribeLocalStore(onStoreChange: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const onChange = () => onStoreChange();
+  window.addEventListener("storage", onChange);
+  window.addEventListener(LOCAL_STORE_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(LOCAL_STORE_EVENT, onChange);
+  };
+}
+
+function notifyLocalStoreChanged(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(LOCAL_STORE_EVENT));
+}
+
+const EMPTY_IMPORTED_APPS: CareerApplication[] = [];
+const EMPTY_BRIEFINGS: InterviewBriefingRecord[] = [];
+
+let importedAppsSnapshot: CareerApplication[] = EMPTY_IMPORTED_APPS;
+let briefingsSnapshot: InterviewBriefingRecord[] = EMPTY_BRIEFINGS;
+
+function sameAppIds(a: CareerApplication[], b: CareerApplication[]): boolean {
+  return a.length === b.length && a.every((app, i) => app.id === b[i]?.id);
+}
+
+function sameBriefings(a: InterviewBriefingRecord[], b: InterviewBriefingRecord[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every((row, i) => row.id === b[i]?.id && row.updatedAt === b[i]?.updatedAt)
+  );
+}
+
+function readImportedApps(): CareerApplication[] {
+  const next = loadApplyFlowCareerBundle()?.applications ?? EMPTY_IMPORTED_APPS;
+  if (sameAppIds(next, importedAppsSnapshot)) return importedAppsSnapshot;
+  importedAppsSnapshot = next.length === 0 ? EMPTY_IMPORTED_APPS : next;
+  return importedAppsSnapshot;
+}
+
+function readSavedBriefings(): InterviewBriefingRecord[] {
+  const next = loadInterviewBriefings();
+  if (sameBriefings(next, briefingsSnapshot)) return briefingsSnapshot;
+  briefingsSnapshot = next.length === 0 ? EMPTY_BRIEFINGS : next;
+  return briefingsSnapshot;
 }
 
 function skillsFromComma(text: string): string[] {
@@ -176,7 +225,11 @@ function BriefingPreview({ content }: { content: InterviewBriefingContent }) {
 
 export function InterviewBriefingClient() {
   const [sourceMode, setSourceMode] = useState<"imported" | "manual">("manual");
-  const [importedApps, setImportedApps] = useState<CareerApplication[]>([]);
+  const importedApps = useSyncExternalStore(
+    subscribeLocalStore,
+    readImportedApps,
+    () => EMPTY_IMPORTED_APPS,
+  );
   const [selectedAppId, setSelectedAppId] = useState("");
 
   const [company, setCompany] = useState("");
@@ -189,25 +242,19 @@ export function InterviewBriefingClient() {
   const [preview, setPreview] = useState<InterviewBriefingContent | null>(null);
   const [previewInput, setPreviewInput] = useState<BriefingInput | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [saved, setSaved] = useState<InterviewBriefingRecord[]>([]);
+  const saved = useSyncExternalStore(
+    subscribeLocalStore,
+    readSavedBriefings,
+    () => EMPTY_BRIEFINGS,
+  );
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const refreshSaved = useCallback(() => {
-    setSaved(loadInterviewBriefings());
+    notifyLocalStoreChanged();
   }, []);
 
-  useEffect(() => {
-    const bundle = loadApplyFlowCareerBundle();
-    setImportedApps(bundle?.applications ?? []);
-  }, []);
-
-  useEffect(() => {
-    refreshSaved();
-  }, [refreshSaved]);
-
-  useEffect(() => {
-    if (sourceMode !== "imported" || !selectedAppId) return;
-    const app = importedApps.find((a) => a.id === selectedAppId);
+  const applyImportedApp = useCallback((appId: string, apps: CareerApplication[]) => {
+    const app = apps.find((a) => a.id === appId);
     if (!app) return;
     const base = briefingInputFromCareerApplication(app);
     setCompany(base.company);
@@ -216,7 +263,7 @@ export function InterviewBriefingClient() {
     setSkillsComma(base.requiredSkills.join(", "));
     setInterviewType(base.interviewType);
     setLanguage(base.language);
-  }, [sourceMode, selectedAppId, importedApps]);
+  }, []);
 
   const buildInput = useCallback((): BriefingInput => {
     return {
@@ -353,7 +400,10 @@ export function InterviewBriefingClient() {
                     name="src"
                     checked={sourceMode === "imported"}
                     disabled={!hasImport}
-                    onChange={() => setSourceMode("imported")}
+                    onChange={() => {
+                      setSourceMode("imported");
+                      if (selectedAppId) applyImportedApp(selectedAppId, importedApps);
+                    }}
                   />
                   Imported ApplyFlow job {!hasImport ? "(import a bundle first)" : null}
                 </label>
@@ -374,7 +424,11 @@ export function InterviewBriefingClient() {
                 <span className="text-xs text-neutral-500">Select application</span>
                 <select
                   value={selectedAppId}
-                  onChange={(e) => setSelectedAppId(e.target.value)}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setSelectedAppId(id);
+                    applyImportedApp(id, importedApps);
+                  }}
                   className="w-full rounded-xl border border-neutral-800 bg-neutral-950 px-3 py-2 text-sm text-neutral-100"
                 >
                   <option value="">— Choose —</option>
