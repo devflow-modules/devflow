@@ -79,7 +79,7 @@ Objetivo: complementar `pnpm test:a11y` (axe + Playwright) com verificação hum
 
 **Com credenciais:** `globalSetup` faz login uma vez → `tests/.auth/whatsapp-admin.json` (gitignored) → specs reutilizam `storageState`.
 
-**CI:** GitHub Actions `WhatsApp Platform A11y` — secrets `E2E_WHATSAPP_ADMIN_EMAIL`, `E2E_WHATSAPP_ADMIN_PASSWORD`, opcional `E2E_WHATSAPP_BASE_URL` para staging (sem webServer local).
+**CI:** GitHub Actions `WhatsApp Platform A11y` — axe sem banco; Fatia 5 provisiona tenant/manager efémeros contra `postgres:16` local. Sem `secrets.WHATSAPP_DATABASE_URL` nem `secrets.E2E_WHATSAPP_ADMIN_*`.
 
 **Local:** definir variáveis em `.env.local` (app ou raiz do monorepo); ver `.env.example`.
 

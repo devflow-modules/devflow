@@ -147,7 +147,7 @@ Session reuse: `tests/setup/global-auth.setup.mts` saves `tests/.auth/whatsapp-a
 
 For axe coverage on `/admin/whatsapp`, the user must be `platform_admin`.
 
-CI: `.github/workflows/whatsapp-platform-a11y.yml` with GitHub secrets `E2E_WHATSAPP_*`.
+CI: `.github/workflows/whatsapp-platform-a11y.yml` — `pnpm test:a11y` (axe) without a database. Fatia 5 (`inbox-mobile-revenue`) uses a service `postgres:16` plus an ephemeral tenant/manager from `scripts/e2e/provision-inbox-e2e.ts`. It does **not** use `secrets.WHATSAPP_DATABASE_URL` or `secrets.E2E_WHATSAPP_ADMIN_*`. Hosts other than `localhost` / `127.0.0.1` are refused.
 
 ## Main Commands
 
