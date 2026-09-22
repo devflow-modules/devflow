@@ -46,8 +46,8 @@ function buildSafeSyncEnrichment(): CareerBundleUnifiedSyncEnrichment {
 
 function withPrivacyOverride(
   enrichment: CareerBundleUnifiedSyncEnrichment,
-  privacy: Partial<CareerBundleUnifiedSyncEnrichment["privacy"]>,
-): CareerBundleUnifiedSyncEnrichment {
+  privacy: Record<string, boolean>,
+): unknown {
   return {
     ...enrichment,
     privacy: {
@@ -87,26 +87,44 @@ describe("buildInterviewLabSyncEnrichmentPreview", () => {
 
   it("marks invalid enrichment when rawRetained is true", () => {
     const invalid = withPrivacyOverride(buildSafeSyncEnrichment(), { rawRetained: true });
-    const preview = buildInterviewLabSyncEnrichmentPreview(invalid);
-    expect(preview.available).toBe(false);
-    expect(preview.status).toBe("invalid");
-    expect(preview.warnings.length).toBeGreaterThan(0);
+    const parsed = parseCareerBundleImportWithSyncPreview({
+      ...createCareerBundle([]),
+      syncEnrichment: invalid,
+    });
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.preview.available).toBe(false);
+      expect(parsed.preview.status).toBe("invalid");
+      expect(parsed.preview.warnings.length).toBeGreaterThan(0);
+    }
   });
 
   it("marks invalid enrichment when providerPayloadRetained is true", () => {
     const invalid = withPrivacyOverride(buildSafeSyncEnrichment(), {
       providerPayloadRetained: true,
     });
-    const preview = buildInterviewLabSyncEnrichmentPreview(invalid);
-    expect(preview.status).toBe("invalid");
+    const parsed = parseCareerBundleImportWithSyncPreview({
+      ...createCareerBundle([]),
+      syncEnrichment: invalid,
+    });
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.preview.status).toBe("invalid");
+    }
   });
 
   it("marks invalid enrichment when meetingLinksRemoved is false", () => {
     const invalid = withPrivacyOverride(buildSafeSyncEnrichment(), {
       meetingLinksRemoved: false,
     });
-    const preview = buildInterviewLabSyncEnrichmentPreview(invalid);
-    expect(preview.status).toBe("invalid");
+    const parsed = parseCareerBundleImportWithSyncPreview({
+      ...createCareerBundle([]),
+      syncEnrichment: invalid,
+    });
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.preview.status).toBe("invalid");
+    }
   });
 });
 
