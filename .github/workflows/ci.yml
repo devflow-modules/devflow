@@ -87,7 +87,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build ApplyFlow workspace packages
-        run: pnpm --filter @devflow/career-core --filter @devflow/career-sync build
+        run: |
+          pnpm --filter @devflow/applyflow-core build
+          pnpm --filter @devflow/career-sync build
+          pnpm --filter @devflow/career-core build
 
       - name: Lint ApplyFlow
         run: pnpm --filter applyflow exec eslint "src/**/*.{ts,tsx}"

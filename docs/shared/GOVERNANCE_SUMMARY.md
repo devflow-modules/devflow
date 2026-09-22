@@ -86,7 +86,7 @@ GitHub CI on `main` (`ci.yml`) is **not** the full workspace:
 
 - `pnpm test` covers **portal `src/` only**.
 - `pnpm lint:ci` covers **Financeiro** (`apps/financeiro` + `src/modules/financeiro`) with `--max-warnings 0`.
-- Additional jobs run Financeiro (`prisma generate` + Vitest) and ApplyFlow (build `@devflow/career-core` + `@devflow/career-sync`, then lint+test). They do **not** run `pnpm test:workspace` or `eslint .`.
+- Additional jobs run Financeiro (`prisma generate` + Vitest) and ApplyFlow (build `@devflow/applyflow-core`, `@devflow/career-sync`, `@devflow/career-core`, then lint+test). They do **not** run `pnpm test:workspace` or `eslint .`.
 - WhatsApp architecture boundary is a separate workflow. WhatsApp a11y is path-filtered / scheduled.
 
 `pnpm run test:workspace` and `pnpm run lint:all` remain local/pre-merge commands. `eslint .` still has monorepo debt outside Financeiro; do not treat a green portal `test` job as coverage of ApplyFlow, Financeiro, or WhatsApp.
