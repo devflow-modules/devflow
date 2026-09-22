@@ -73,6 +73,12 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# --- Local preview / capture dumps (never commit) ---
+/preview-*.png
+/f3-*.png
+/preview-dashboard.yml
+/harden-crash-invalid-jobs.yml
+
 # --- Misc ---
 *.pem
 *.key
