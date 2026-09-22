@@ -135,6 +135,8 @@ export function ProviderNangoConnectUi({
     }
 
     publishConnectionStatus("idle");
+    // Connection status is published from this effect only; the helper is recreated each render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [provider, explicitConsentChecked]);
 
   if (!explicitConsentChecked || !launcherResult) {

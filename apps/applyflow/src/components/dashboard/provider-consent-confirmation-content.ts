@@ -44,5 +44,7 @@ export const PROVIDER_CONSENT_CONFIRMATION_CHECKBOX_LABEL =
   "I understand and explicitly consent to start the provider connection flow.";
 
 export const PROVIDER_CONSENT_CONFIRMATION_START_BUTTON_LABEL = "Start provider connection check";
+export const PROVIDER_CONSENT_CONFIRMATION_GMAIL_DISABLED =
+  "Gmail runtime is disabled on this deployment. The start button stays off until the server flags are enabled."
 
 export const PROVIDER_CONSENT_CONFIRMATION_RESULT_TITLE = "Connection launcher result";

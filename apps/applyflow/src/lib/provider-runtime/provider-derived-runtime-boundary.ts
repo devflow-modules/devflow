@@ -1,7 +1,6 @@
 // Server-only provider-derived runtime boundary.
 // Do not import this file from client components.
 
-import type { CalendarReadOnlyAdapterResult, GmailReadOnlyAdapterResult } from "@devflow/career-sync";
 import {
   executeProviderDerivedRuntimeComposition,
   type ProviderDerivedRuntimeCompositionDependencies,

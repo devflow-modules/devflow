@@ -23,7 +23,6 @@ export type { ParsedResumeExperience } from "./career-pilot-resume-line-parser";
 export type { ResumeParseConfidence } from "./career-pilot-resume-section-parser";
 
 const MAX_LINES = 50;
-const MAX_LINE_LENGTH = 500;
 const MAX_SUMMARY_LENGTH = 500;
 
 const SECTION_HEADER_PATTERN =
@@ -146,34 +145,17 @@ function extractRoleFromIdentityLine(line: string): string | null {
   return identity.role.slice(0, MAX_SUMMARY_LENGTH);
 }
 
-function lineMatchesSummary(line: string, summary: string): boolean {
-  const lowered = line.trim().toLowerCase();
-  const summaryNorm = summary.trim().toLowerCase();
-  if (!summaryNorm) {
-    return false;
-  }
-  if (lowered === summaryNorm) {
-    return true;
-  }
-  if (summaryNorm.includes(lowered) || lowered.includes(summaryNorm)) {
-    return true;
-  }
-  const identity = parseIdentityLine(line);
-  if (identity && identity.role.toLowerCase() === summaryNorm) {
-    return true;
-  }
-  return false;
-}
-
 export function parseResumeFromText(resumeText: string) {
   return parseResumeDocument(normalizeResumeText(resumeText));
 }
 
-export function extractResumeExperiences(resumeText: string, _summaryToExclude?: string): ParsedResumeExperience[] {
+export function extractResumeExperiences(resumeText: string, summaryToExclude?: string): ParsedResumeExperience[] {
+  void summaryToExclude;
   return mapParsedResumeToLineExperiences(parseResumeFromText(resumeText));
 }
 
-export function extractResumeBulletLines(resumeText: string, _summaryToExclude?: string): string[] {
+export function extractResumeBulletLines(resumeText: string, summaryToExclude?: string): string[] {
+  void summaryToExclude;
   return extractResumeBulletsFromDocument(parseResumeFromText(resumeText));
 }
 

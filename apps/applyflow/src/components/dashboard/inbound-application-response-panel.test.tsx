@@ -9,6 +9,7 @@ import {
   INBOUND_RESPONSE_CONFIRM_LABEL,
   INBOUND_RESPONSE_DESCRIPTION,
   INBOUND_RESPONSE_EMPTY,
+  INBOUND_RESPONSE_SCAN_DISABLED,
   INBOUND_RESPONSE_NO_AUTO,
   INBOUND_RESPONSE_TITLE,
   formatInboundAccountLabel,
@@ -75,6 +76,7 @@ describe("InboundApplicationResponsePanelView", () => {
         notice={null}
         hasAppliedApplications
         isScanning={false}
+        gmailRuntimeEnabled={false}
         onClassify={noop}
         onScanGmail={noop}
         onConfirm={noop}
@@ -107,6 +109,7 @@ describe("InboundApplicationResponsePanelView", () => {
         notice={null}
         hasAppliedApplications
         isScanning={false}
+        gmailRuntimeEnabled={false}
         onClassify={noop}
         onScanGmail={noop}
         onConfirm={noop}
@@ -120,6 +123,7 @@ describe("InboundApplicationResponsePanelView", () => {
       />,
     );
     expect(html).toContain(INBOUND_RESPONSE_EMPTY);
+    expect(html).toContain(INBOUND_RESPONSE_SCAN_DISABLED);
     expect(html).not.toContain(INBOUND_RESPONSE_CONFIRM_LABEL);
   });
 
@@ -134,6 +138,7 @@ describe("InboundApplicationResponsePanelView", () => {
         notice={null}
         hasAppliedApplications
         isScanning={false}
+        gmailRuntimeEnabled={false}
         onClassify={noop}
         onScanGmail={noop}
         onConfirm={noop}

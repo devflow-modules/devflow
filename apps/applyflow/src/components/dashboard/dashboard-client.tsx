@@ -205,7 +205,11 @@ function feedbackSummary(f: ImportFeedback | null): ReactNode {
   );
 }
 
-export function DashboardClient() {
+export function DashboardClient({
+  gmailRuntimeEnabled = false,
+}: {
+  gmailRuntimeEnabled?: boolean;
+} = {}) {
   const [applications, setApplications] = useState<ApplyFlowApplicationV2Envelope[]>([]);
   const [jobs, setJobs] = useState<ApplyFlowJob[]>([]);
   const [resumeLibrary, setResumeLibrary] = useState<ResumeLibrary | null>(null);
@@ -833,13 +837,16 @@ export function DashboardClient() {
         onReevaluateJob={onReevaluateJob}
       />
 
-      {shouldShowProviderConsentOnDashboard() ? <ProviderConsentConfirmationPanel /> : null}
+      {shouldShowProviderConsentOnDashboard() ? (
+        <ProviderConsentConfirmationPanel gmailRuntimeEnabled={gmailRuntimeEnabled} />
+      ) : null}
 
       {showApplications ? (
         <>
           <InboundApplicationResponsePanel
             applications={applications}
             outcomes={loadDashboardAnalytics().outcomes}
+            gmailRuntimeEnabled={gmailRuntimeEnabled}
             onApplicationUpdated={(application) => {
               setApplications((prev) => [...prev.filter((item) => item.id !== application.id), application]);
             }}

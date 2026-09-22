@@ -25,8 +25,6 @@ import { runCareerToolInvoke } from "./career-tool-permission-review-client";
 export function CareerToolPermissionReviewView({
   toolName,
   agentResult,
-  orchestration,
-  agentRequestId,
   toolResult,
   approvedOnce,
   isRunning,

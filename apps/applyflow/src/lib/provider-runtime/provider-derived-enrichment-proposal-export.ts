@@ -1,6 +1,5 @@
 import type { CareerBundleUnifiedSyncEnrichment, CareerSyncSignal } from "@devflow/career-sync";
 import {
-  PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_DOCUMENT_KEYS,
   PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_SCHEMA,
   PROVIDER_DERIVED_ENRICHMENT_PROPOSAL_EXPORT_VERSION,
   collectForbiddenKeysInDocument,

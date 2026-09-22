@@ -148,7 +148,6 @@ export function createCareerLogger(options?: {
   const sink: CareerLoggerSink =
     options?.sink ??
     ((line) => {
-      // eslint-disable-next-line no-console
       console.log(line);
     });
   const env = options?.env ?? process.env;

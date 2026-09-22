@@ -32,6 +32,8 @@ export const INBOUND_RESPONSE_UNMATCHED = "Sem candidatura correspondente";
 export const INBOUND_RESPONSE_AMBIGUOUS = "Ambígua — escolhe a vaga";
 export const INBOUND_RESPONSE_SCAN_BLOCKED =
   "Leitura Gmail bloqueada. Confirma consentimento e a ligação Gmail; podes classificar localmente na mesma.";
+export const INBOUND_RESPONSE_SCAN_DISABLED =
+  "Leitura Gmail desligada neste ambiente. Classifica localmente pelo domínio; o servidor não inicia OAuth nem scan.";
 export const INBOUND_RESPONSE_ACCOUNT_LABEL = "Conta Gmail alvo";
 export const INBOUND_RESPONSE_NEED_ACCOUNT =
   "Seleciona a conta Gmail a ler. O ApplyFlow não mistura caixas no mesmo painel.";

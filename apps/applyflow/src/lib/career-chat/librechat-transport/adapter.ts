@@ -11,11 +11,9 @@ import {
 } from "./security";
 import type {
   LibreChatTransportConfig,
-  LibreChatTransportDeliveryResult,
   LibreChatTransportError,
   LibreChatTransportHealthStatus,
   LibreChatTransportOpenAiEnvelope,
-  LibreChatTransportRequest,
   LibreChatTransportResponse,
 } from "./types";
 

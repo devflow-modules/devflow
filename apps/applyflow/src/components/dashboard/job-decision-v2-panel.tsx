@@ -35,6 +35,7 @@ import {
 import {
   JOB_DECISION_V2_BACK,
   JOB_DECISION_V2_CLAIMS,
+  JOB_DECISION_V2_CLAIMS_EMPTY,
   JOB_DECISION_V2_DIMENSIONS,
   JOB_DECISION_V2_EYEBROW,
   JOB_DECISION_V2_GATES,
@@ -464,13 +465,17 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
               <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
                 {JOB_DECISION_V2_CLAIMS}
               </p>
-              <ul className="mt-2 grid gap-1 text-sm text-[color:var(--af-text)]">
-                {decision.recommendedClaims.map((item) => (
-                  <li key={item.claim}>
-                    {item.status}: {item.claim}
-                  </li>
-                ))}
-              </ul>
+              {decision.recommendedClaims.length === 0 ? (
+                <p className="mt-2 text-sm text-[color:var(--af-text-muted)]">{JOB_DECISION_V2_CLAIMS_EMPTY}</p>
+              ) : (
+                <ul className="mt-2 grid gap-1 text-sm text-[color:var(--af-text)]">
+                  {decision.recommendedClaims.map((item) => (
+                    <li key={item.claim}>
+                      {item.status}: {item.claim}
+                    </li>
+                  ))}
+                </ul>
+              )}
               {decision.candidateInputRequests.length > 0 ? (
                 <div className="mt-4">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
