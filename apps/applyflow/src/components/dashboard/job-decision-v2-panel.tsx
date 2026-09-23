@@ -7,7 +7,6 @@ import { ApplyFlowBadge, type ApplyFlowBadgeTone } from "@/components/ui/ApplyFl
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
-import { loadDashboardContacts, persistDashboardContacts } from "@/lib/local-contact-storage";
 import { loadJobDecisionV2Snapshot } from "@/lib/job-decision-v2-snapshot";
 import {
   persistApplicationStatusTransition,
@@ -23,12 +22,9 @@ import {
   canTransitionApplicationStatus,
   createApplicationFromJob,
   formatLifecycleEventDate,
-  getDueFollowUps,
-  groupDueFollowUps,
   resolvePipelineStatus,
   type ApplyFlowPipelineStatusV2,
   type Contact,
-  type ContactType,
   type ApplicationDecision,
 } from "@devflow/applyflow-core";
 
@@ -44,7 +40,6 @@ import {
   JOB_DECISION_V2_INPUTS,
   JOB_DECISION_V2_LABELS,
   JOB_DECISION_V2_MISSING,
-  JOB_DECISION_V2_NO_SEND,
   JOB_DECISION_V2_NO_TEXT,
   JOB_DECISION_V2_NEED_APPLICATION,
   JOB_DECISION_V2_NEED_RESUME,
@@ -73,6 +68,7 @@ import {
   analysesDivergeOnPage,
   registeredAnalysisFromSnapshot,
 } from "./job-decision-v2-content";
+import { JobDecisionV2NetworkingTab } from "./job-decision-v2-networking-tab";
 
 type JobV2Tab = keyof typeof JOB_DECISION_V2_TABS;
 
@@ -115,8 +111,6 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
   const pipelineStatus = snapshot?.pipelineStatus ?? null;
   const needsResume = snapshot?.needsResume ?? false;
   const [tab, setTab] = useState<JobV2Tab>("overview");
-  const [newName, setNewName] = useState("");
-  const [newType, setNewType] = useState<ContactType>("engineering_manager");
   const [feedbackNote, setFeedbackNote] = useState<string>("");
   const [persistError, setPersistError] = useState<string | null>(null);
 
@@ -196,18 +190,6 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
     refreshAfterPersist();
     setFeedbackNote(toStatus === "rejected" && !feedbackNote.trim() ? "Rejection recorded without an explicit reason (unknown)." : "");
   }
-
-  const followUps = useMemo(() => {
-    if (!pack?.followUpPlan) return { today: [], upcoming: [], overdue: [] };
-    return groupDueFollowUps(
-      getDueFollowUps({
-        now: new Date(),
-        contacts,
-        interactions: loadDashboardContacts().interactions,
-        plan: pack.followUpPlan,
-      }),
-    );
-  }, [contacts, pack]);
 
   if (!snapshot) {
     return <p className="text-sm text-[color:var(--af-text-muted)]">A carregar…</p>;
@@ -571,86 +553,14 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
           ) : null}
 
           {tab === "networking" && pack ? (
-            <div className="grid gap-4">
-              <ApplyFlowCard padding="md">
-                <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_DECISION_V2_NO_SEND}</p>
-                <p className="mt-2 text-sm text-[color:var(--af-text)]">
-                  First contact: {pack.networkingPlan?.firstContact ?? "—"}
-                </p>
-                <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">{pack.networkingPlan?.reason}</p>
-                {pack.networkingPlan?.connectionRequest ? (
-                  <p className="mt-3 text-sm text-[color:var(--af-text)]">{pack.networkingPlan.connectionRequest}</p>
-                ) : null}
-              </ApplyFlowCard>
-              <ApplyFlowCard padding="md">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
-                  Contacts
-                </p>
-                <ul className="mt-2 grid gap-1 text-sm text-[color:var(--af-text)]">
-                  {contacts.map((item) => (
-                    <li key={item.id}>
-                      {item.name} · {item.type} · {item.status}
-                    </li>
-                  ))}
-                </ul>
-                <form
-                  className="mt-3 flex flex-wrap gap-2"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    if (!newName.trim()) return;
-                    const now = new Date().toISOString();
-                    const next: Contact = {
-                      id: `contact-${now}`,
-                      jobId,
-                      name: newName.trim(),
-                      type: newType,
-                      status: "not_contacted",
-                      createdAt: now,
-                      updatedAt: now,
-                    };
-                    const stored = loadDashboardContacts();
-                    const merged = [...stored.contacts.filter((item) => item.id !== next.id), next];
-                    persistDashboardContacts(merged, stored.interactions);
-                    setStorageEpoch((epoch) => epoch + 1);
-                    setNewName("");
-                  }}
-                >
-                  <input
-                    value={newName}
-                    onChange={(event) => setNewName(event.target.value)}
-                    placeholder="Nome do contacto"
-                    className="min-w-[12rem] flex-1 rounded-md border border-[color:var(--af-border)] bg-transparent px-2 py-1 text-sm"
-                  />
-                  <select
-                    value={newType}
-                    onChange={(event) => setNewType(event.target.value as ContactType)}
-                    className="rounded-md border border-[color:var(--af-border)] bg-transparent px-2 py-1 text-sm"
-                  >
-                    <option value="engineering_manager">Engineering manager</option>
-                    <option value="recruiter">Recruiter</option>
-                    <option value="head_of_engineering">Head of engineering</option>
-                    <option value="cto">CTO</option>
-                    <option value="employee">Employee</option>
-                  </select>
-                  <ApplyFlowButton
-                    type="submit"
-                    variant="outlineBrand"
-                    size="sm"
-                    className="rounded-md border-emerald-400/50 px-3 py-1 text-xs text-emerald-100"
-                  >
-                    Guardar local
-                  </ApplyFlowButton>
-                </form>
-              </ApplyFlowCard>
-              <ApplyFlowCard padding="md">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
-                  Follow-up
-                </p>
-                <p className="mt-2 text-sm">Today: {followUps.today.length}</p>
-                <p className="text-sm">Upcoming: {followUps.upcoming.length}</p>
-                <p className="text-sm">Overdue: {followUps.overdue.length}</p>
-              </ApplyFlowCard>
-            </div>
+            <JobDecisionV2NetworkingTab
+              applicationId={application?.id}
+              jobId={jobId}
+              company={job.company}
+              contacts={contacts}
+              networkingPlan={pack.networkingPlan}
+              onPersist={refreshAfterPersist}
+            />
           ) : null}
 
           {tab === "interview" && pack ? (
