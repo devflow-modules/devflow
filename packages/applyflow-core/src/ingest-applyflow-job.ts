@@ -164,7 +164,7 @@ export function reevaluateApplyFlowJobMatch(
 }
 
 export function reevaluateApplyFlowJobs(
-  jobs: readonly ApplyFlowJob[],
+  jobs: ApplyFlowJob[],
   profile: CandidateProfile,
   library?: ResumeLibrary,
   now: Date = new Date(),
