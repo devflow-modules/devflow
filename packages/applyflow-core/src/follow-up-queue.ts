@@ -41,7 +41,16 @@ function lastInteractionAt(contact: Contact, interactions: readonly ContactInter
 }
 
 function shouldStop(contact: Contact, application?: ApplyFlowApplication): boolean {
-  if (contact.status === "closed" || contact.status === "replied") return true;
+  if (
+    contact.repliedAt ||
+    contact.status === "closed" ||
+    contact.status === "replied" ||
+    contact.status === "REPLIED" ||
+    contact.status === "CONVERSATION" ||
+    contact.status === "CLOSED"
+  ) {
+    return true;
+  }
   if (application?.status === "rejected" || application?.status === "accepted") return true;
   return false;
 }
@@ -60,7 +69,12 @@ export function getDueFollowUps(input: {
   const out: DueFollowUp[] = [];
 
   for (const contact of input.contacts) {
-    if (shouldStop(contact, contact.jobId ? apps.get(contact.jobId) : undefined)) continue;
+    const application = contact.applicationId
+      ? apps.get(contact.applicationId)
+      : contact.jobId
+        ? apps.get(contact.jobId)
+        : undefined;
+    if (shouldStop(contact, application)) continue;
     const origin = lastInteractionAt(contact, input.interactions);
     const base = origin ?? Date.parse(contact.createdAt);
     if (!Number.isFinite(base)) continue;
@@ -76,8 +90,9 @@ export function getDueFollowUps(input: {
     if (!used) continue;
 
     const due = new Date(base + used.offsetDays * DAY_MS);
-    if (contact.nextActionAt) {
-      const explicit = new Date(contact.nextActionAt);
+    const explicitFollowUp = contact.followUpAt ?? contact.nextActionAt;
+    if (explicitFollowUp) {
+      const explicit = new Date(explicitFollowUp);
       if (Number.isFinite(explicit.getTime())) {
         out.push({
           contactId: contact.id,

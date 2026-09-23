@@ -4,7 +4,13 @@ import type { ApplicationCareerEvent, ApplicationEffort, ApplicationOutcome } fr
 import { CAREER_EVENT_TYPES, CAREER_SOURCES, REJECTION_REASON_CATEGORIES, REJECTION_REASON_SOURCES } from "./career-analytics-types.js";
 import type { CandidateInputRequest } from "./candidate-input.js";
 import type { Contact, ContactInteraction } from "./contact-types.js";
-import { CONTACT_INTERACTION_TYPES, CONTACT_STATUSES, CONTACT_TYPES } from "./contact-types.js";
+import {
+  CONTACT_INTERACTION_TYPES,
+  CONTACT_STATUSES,
+  CONTACT_TYPES,
+  OUTREACH_CHANNELS,
+  OUTREACH_LANGUAGES,
+} from "./contact-types.js";
 import type { Evidence } from "./evidence-types.js";
 import { parseEvidence } from "./evidence-schema.js";
 import { parseApplyFlowApplicationsImport } from "./imported-application-schema.js";
@@ -74,13 +80,32 @@ function parseContact(raw: unknown): Contact | null {
     status: raw.status as Contact["status"],
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
+    ...(typeof raw.applicationId === "string" ? { applicationId: raw.applicationId } : {}),
     ...(typeof raw.companyId === "string" ? { companyId: raw.companyId } : {}),
+    ...(typeof raw.company === "string" ? { company: raw.company } : {}),
     ...(typeof raw.jobId === "string" ? { jobId: raw.jobId } : {}),
     ...(typeof raw.role === "string" ? { role: raw.role } : {}),
+    ...(OUTREACH_CHANNELS.includes(raw.channel as (typeof OUTREACH_CHANNELS)[number])
+      ? { channel: raw.channel as Contact["channel"] }
+      : {}),
+    ...(OUTREACH_LANGUAGES.includes(raw.language as (typeof OUTREACH_LANGUAGES)[number])
+      ? { language: raw.language as Contact["language"] }
+      : {}),
     ...(typeof raw.linkedinUrl === "string" ? { linkedinUrl: raw.linkedinUrl } : {}),
+    ...(typeof raw.email === "string" ? { email: raw.email } : {}),
+    ...(typeof raw.subject === "string" ? { subject: raw.subject } : {}),
+    ...(typeof raw.messageContent === "string" ? { messageContent: raw.messageContent } : {}),
+    ...(typeof raw.sentAt === "string" ? { sentAt: raw.sentAt } : {}),
+    ...(typeof raw.repliedAt === "string" ? { repliedAt: raw.repliedAt } : {}),
+    ...(typeof raw.followUpAt === "string" ? { followUpAt: raw.followUpAt } : {}),
+    ...(typeof raw.inMailCreditConsumed === "boolean"
+      ? { inMailCreditConsumed: raw.inMailCreditConsumed }
+      : {}),
+    ...(typeof raw.inMailCredits === "number" ? { inMailCredits: raw.inMailCredits } : {}),
     ...(typeof raw.lastContactAt === "string" ? { lastContactAt: raw.lastContactAt } : {}),
     ...(typeof raw.nextActionAt === "string" ? { nextActionAt: raw.nextActionAt } : {}),
     ...(typeof raw.notes === "string" ? { notes: raw.notes } : {}),
+    ...(typeof raw.archivedAt === "string" ? { archivedAt: raw.archivedAt } : {}),
   };
 }
 
@@ -93,7 +118,12 @@ function parseInteraction(raw: unknown): ContactInteraction | null {
     contactId: raw.contactId,
     type: raw.type as ContactInteraction["type"],
     occurredAt: raw.occurredAt,
+    ...(typeof raw.applicationId === "string" ? { applicationId: raw.applicationId } : {}),
     ...(typeof raw.jobId === "string" ? { jobId: raw.jobId } : {}),
+    ...(OUTREACH_CHANNELS.includes(raw.channel as (typeof OUTREACH_CHANNELS)[number])
+      ? { channel: raw.channel as ContactInteraction["channel"] }
+      : {}),
+    ...(typeof raw.subject === "string" ? { subject: raw.subject } : {}),
     ...(typeof raw.content === "string" ? { content: raw.content } : {}),
     ...(typeof raw.outcome === "string" ? { outcome: raw.outcome } : {}),
   };

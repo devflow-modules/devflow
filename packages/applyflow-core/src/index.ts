@@ -322,8 +322,35 @@ export { recommendBinaryAnswer, applyBinaryKnockouts } from "./binary-answers.js
 export type { BinaryAnswer, BinaryAnswerRecommendation } from "./binary-answers.js";
 export { recommendCompensation } from "./compensation.js";
 export type { CompensationRecommendation } from "./compensation.js";
-export { CONTACT_TYPES, CONTACT_STATUSES, CONTACT_INTERACTION_TYPES } from "./contact-types.js";
-export type { Contact, ContactInteraction, ContactStatus, ContactType, ContactInteractionType } from "./contact-types.js";
+export {
+  CONTACT_TYPES,
+  CONTACT_STATUSES,
+  CONTACT_INTERACTION_TYPES,
+  OUTREACH_CHANNELS,
+  OUTREACH_LANGUAGES,
+  OUTREACH_STATUSES,
+} from "./contact-types.js";
+export type {
+  Contact,
+  ContactInteraction,
+  ContactStatus,
+  ContactType,
+  ContactInteractionType,
+  OutreachChannel,
+  OutreachLanguage,
+  OutreachStatus,
+} from "./contact-types.js";
+export {
+  computeOutreachMetrics,
+  effectiveOutreachStatus,
+  isOutreachFollowUpDue,
+  markOutreachSent,
+  normalizeOutreachStatus,
+  recordOutreachReply,
+  updateOutreachContact,
+  validateOutreachProfileUrl,
+} from "./outreach-lifecycle.js";
+export type { OutreachContactPatch, OutreachMetrics } from "./outreach-lifecycle.js";
 export { buildNetworkingPlan, sortContactsForPlan } from "./networking-plan.js";
 export type { NetworkingPlan } from "./networking-plan.js";
 export { buildFollowUpPlan, DEFAULT_FOLLOW_UP_STRATEGY, FOLLOW_UP_ACTIONS } from "./follow-up-plan.js";
