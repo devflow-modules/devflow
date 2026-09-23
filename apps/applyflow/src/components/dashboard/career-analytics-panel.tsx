@@ -55,6 +55,7 @@ export function CareerAnalyticsPanel() {
     sources,
     resumes,
     networking,
+    outreach,
     gaps,
     gapMap,
     weekly,
@@ -188,7 +189,13 @@ export function CareerAnalyticsPanel() {
 
       {tab === "networking" ? (
         <ApplyFlowCard padding="md" className="mt-4">
-          <p className="text-xs text-[color:var(--af-text-muted)]">{disclaimer}</p>
+          <div className="grid gap-2 text-sm sm:grid-cols-4">
+            <p>Outreaches enviados: {outreach.sent}</p>
+            <p>Respostas recebidas: {outreach.replied}</p>
+            <p>Follow-ups pendentes: {outreach.followUpsPending}</p>
+            <p>Response rate: {pct(outreach.responseRate)}</p>
+          </div>
+          <p className="mt-3 text-xs text-[color:var(--af-text-muted)]">{disclaimer}</p>
           <ul className="mt-3 grid gap-2 text-sm">
             {networking.map((item) => (
               <li key={item.name}>

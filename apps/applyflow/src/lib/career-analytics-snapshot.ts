@@ -9,6 +9,7 @@ import {
   computeGapFrequency,
   computeGapMap,
   computeNetworkingPerformance,
+  computeOutreachMetrics,
   computeResumePerformance,
   computeRolePerformance,
   computeSourcePerformance,
@@ -17,6 +18,7 @@ import {
   type ApplyFlowApplication,
   type CareerInsight,
   type CareerScorecard,
+  type OutreachMetrics,
 } from "@devflow/applyflow-core";
 
 import { CAREER_ANALYTICS_DISCLAIMER } from "@/components/dashboard/career-analytics-content";
@@ -30,6 +32,7 @@ export type CareerAnalyticsSnapshot = {
   sources: { name: string; applications: number }[];
   resumes: { name: string; screeningRate: number; confidence: string; sampleSize: number }[];
   networking: { name: string; responseRate: number }[];
+  outreach: OutreachMetrics;
   gaps: { name: string; frequency: number }[];
   gapMap: { label: string; action: string }[];
   weekly: { applications: number; screenings: number; previous?: number } | null;
@@ -75,6 +78,7 @@ export function loadCareerAnalyticsSnapshot(): CareerAnalyticsSnapshot {
       sampleSize: item.sampleSize,
     })),
     networking: net.map((item) => ({ name: item.cohort, responseRate: item.responseRate })),
+    outreach: computeOutreachMetrics(contacts.contacts),
     disclaimer: net[0]?.disclaimer ?? CAREER_ANALYTICS_DISCLAIMER,
     gaps: computeGapFrequency(input).map((item) => ({
       name: item.label,

@@ -4,9 +4,12 @@ import type { Contact } from "@devflow/applyflow-core";
 
 import {
   APPLYFLOW_DASHBOARD_CONTACTS_STORAGE_KEY,
+  archiveDashboardOutreach,
   clearPersistedDashboardContacts,
+  loadApplicationOutreach,
   loadDashboardContacts,
   persistDashboardContacts,
+  saveDashboardOutreach,
 } from "./local-contact-storage.js";
 
 const contact: Contact = {
@@ -55,5 +58,58 @@ describe("local-contact-storage", () => {
     clearPersistedDashboardContacts();
     expect(storage[APPLYFLOW_DASHBOARD_CONTACTS_STORAGE_KEY]).toBeUndefined();
     expect(loadDashboardContacts().status).toBe("empty");
+  });
+
+  it("cria contacto associado à candidatura", () => {
+    stubStorage();
+    const scoped = {
+      ...contact,
+      applicationId: "application-a",
+      jobId: "job-a",
+      status: "IDENTIFIED" as const,
+      channel: "linkedin" as const,
+      language: "EN" as const,
+    };
+    expect(
+      saveDashboardOutreach(
+        { applicationId: "application-a", jobId: "job-a" },
+        scoped,
+      ).ok,
+    ).toBe(true);
+    expect(loadApplicationOutreach({ applicationId: "application-a", jobId: "job-a" }).contacts).toEqual([scoped]);
+  });
+
+  it("impede alteração de contacto pertencente a outra candidatura", () => {
+    stubStorage();
+    const original = {
+      ...contact,
+      applicationId: "application-a",
+      jobId: "job-a",
+      status: "IDENTIFIED" as const,
+    };
+    persistDashboardContacts([original], []);
+    const result = saveDashboardOutreach(
+      { applicationId: "application-b", jobId: "job-b" },
+      { ...original, applicationId: "application-b", jobId: "job-b", notes: "cross-scope" },
+    );
+    expect(result).toEqual({ ok: false, error: "outreach_scope_mismatch" });
+    expect(loadDashboardContacts().contacts[0]?.notes).toBeUndefined();
+  });
+
+  it("edita e arquiva contacto dentro da mesma candidatura", () => {
+    stubStorage();
+    const scope = { applicationId: "application-a", jobId: "job-a" };
+    const original = {
+      ...contact,
+      applicationId: scope.applicationId,
+      jobId: scope.jobId,
+      status: "IDENTIFIED" as const,
+    };
+    persistDashboardContacts([original], []);
+    expect(saveDashboardOutreach(scope, { ...original, notes: "Updated" }).ok).toBe(true);
+    expect(loadApplicationOutreach(scope).contacts[0]?.notes).toBe("Updated");
+    expect(archiveDashboardOutreach(scope, original.id, new Date("2026-09-23T12:00:00.000Z")).ok).toBe(true);
+    expect(loadApplicationOutreach(scope).contacts).toHaveLength(0);
+    expect(loadDashboardContacts().contacts[0]?.archivedAt).toBe("2026-09-23T12:00:00.000Z");
   });
 });
