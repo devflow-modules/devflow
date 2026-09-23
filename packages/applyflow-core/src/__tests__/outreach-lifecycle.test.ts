@@ -91,6 +91,17 @@ describe("outreach lifecycle", () => {
     expect(isOutreachFollowUpDue(replied, NOW)).toBe(false);
   });
 
+  it("compara follow-up pelo instante ISO inclusive próximo à meia-noite", () => {
+    const nearMidnight = contact({
+      status: "SENT",
+      sentAt: "2026-09-23T20:00:00.000Z",
+      followUpAt: "2026-09-24T02:00:00.000Z",
+    });
+
+    expect(isOutreachFollowUpDue(nearMidnight, new Date("2026-09-24T01:59:59.999Z"))).toBe(false);
+    expect(isOutreachFollowUpDue(nearMidnight, new Date("2026-09-24T02:00:00.000Z"))).toBe(true);
+  });
+
   it("calcula response rate sem divisão por zero e sem double counting", () => {
     expect(computeOutreachMetrics([], NOW).responseRate).toBe(0);
     const metrics = computeOutreachMetrics(
@@ -121,6 +132,53 @@ describe("outreach lifecycle", () => {
     expect(updated.notes).toBe("Met at conference");
     expect(updated.updatedAt).toBe(NOW.toISOString());
     expect(updated.applicationId).toBe("application-1");
+  });
+
+  it("preserva campos opcionais em patches parciais do lifecycle", () => {
+    const original = contact({
+      linkedinUrl: "https://www.linkedin.com/in/example",
+      messageContent: "Draft",
+      notes: "Keep me",
+    });
+    const prepared = updateOutreachContact(original, { status: "MESSAGE_PREPARED" }, NOW);
+    const sent = markOutreachSent(prepared, {}, NOW).contact;
+    const replied = recordOutreachReply(sent, {}, NOW).contact;
+
+    for (const updated of [prepared, sent, replied]) {
+      expect(updated.role).toBe(original.role);
+      expect(updated.company).toBe(original.company);
+      expect(updated.linkedinUrl).toBe(original.linkedinUrl);
+      expect(updated.messageContent).toBe(original.messageContent);
+      expect(updated.notes).toBe(original.notes);
+    }
+  });
+
+  it("normaliza estados inconsistentes a partir dos timestamps para não sobrepor métricas", () => {
+    const sentButPrepared = contact({
+      status: "MESSAGE_PREPARED",
+      sentAt: "2026-09-22T12:00:00.000Z",
+    });
+    const repliedButSent = contact({
+      id: "replied",
+      status: "SENT",
+      sentAt: "2026-09-21T12:00:00.000Z",
+      repliedAt: "2026-09-22T12:00:00.000Z",
+    });
+    const futurePersistedDue = contact({
+      id: "future-due",
+      status: "FOLLOW_UP_DUE",
+      sentAt: "2026-09-22T12:00:00.000Z",
+      followUpAt: "2026-09-24T12:00:00.000Z",
+    });
+
+    expect(effectiveOutreachStatus(sentButPrepared, NOW)).toBe("SENT");
+    expect(effectiveOutreachStatus(repliedButSent, NOW)).toBe("REPLIED");
+    expect(effectiveOutreachStatus(futurePersistedDue, NOW)).toBe("SENT");
+
+    const metrics = computeOutreachMetrics([sentButPrepared, repliedButSent, futurePersistedDue], NOW);
+    expect(metrics.prepared).toBe(0);
+    expect(metrics.sent).toBe(3);
+    expect(metrics.replied).toBe(1);
   });
 
   it("valida URL LinkedIn conforme o canal", () => {

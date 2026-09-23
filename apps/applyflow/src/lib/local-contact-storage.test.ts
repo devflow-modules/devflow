@@ -112,4 +112,105 @@ describe("local-contact-storage", () => {
     expect(loadApplicationOutreach(scope).contacts).toHaveLength(0);
     expect(loadDashboardContacts().contacts[0]?.archivedAt).toBe("2026-09-23T12:00:00.000Z");
   });
+
+  it("normaliza crédito InMail omitido e rejeita combinações inválidas", () => {
+    stubStorage();
+    const scope = { applicationId: "application-a", jobId: "job-a" };
+    const inMail = {
+      ...contact,
+      applicationId: scope.applicationId,
+      jobId: scope.jobId,
+      status: "SENT" as const,
+      sentAt: "2026-09-23T12:00:00.000Z",
+      channel: "linkedin_inmail" as const,
+      inMailCreditConsumed: true,
+    };
+
+    expect(saveDashboardOutreach(scope, inMail).ok).toBe(true);
+    expect(loadDashboardContacts().contacts[0]?.inMailCredits).toBe(1);
+    expect(
+      saveDashboardOutreach(scope, {
+        ...inMail,
+        id: "zero",
+        inMailCredits: 0,
+      }).ok,
+    ).toBe(true);
+    expect(loadDashboardContacts().contacts.find((item) => item.id === "zero")?.inMailCredits).toBe(1);
+
+    expect(
+      saveDashboardOutreach(scope, {
+        ...inMail,
+        id: "negative",
+        inMailCredits: -1,
+      }),
+    ).toEqual({ ok: false, error: "invalid_outreach" });
+    expect(
+      saveDashboardOutreach(scope, {
+        ...inMail,
+        id: "wrong-channel",
+        channel: "linkedin",
+      }),
+    ).toEqual({ ok: false, error: "invalid_outreach" });
+  });
+
+  it("rejeita timestamps e estados V1 inconsistentes", () => {
+    stubStorage();
+    const scope = { applicationId: "application-a", jobId: "job-a" };
+    const base = {
+      ...contact,
+      applicationId: scope.applicationId,
+      jobId: scope.jobId,
+      channel: "linkedin" as const,
+    };
+
+    expect(
+      saveDashboardOutreach(scope, {
+        ...base,
+        status: "SENT",
+      }),
+    ).toEqual({ ok: false, error: "invalid_outreach" });
+    expect(
+      saveDashboardOutreach(scope, {
+        ...base,
+        status: "REPLIED",
+        sentAt: "2026-09-23T12:00:00.000Z",
+      }),
+    ).toEqual({ ok: false, error: "invalid_outreach" });
+    expect(
+      saveDashboardOutreach(scope, {
+        ...base,
+        status: "REPLIED",
+        sentAt: "2026-09-23T12:00:00.000Z",
+        repliedAt: "2026-09-23T11:00:00.000Z",
+      }),
+    ).toEqual({ ok: false, error: "invalid_outreach" });
+  });
+
+  it("rejeita regressão de status que contradiz timestamps existentes", () => {
+    stubStorage();
+    const scope = { applicationId: "application-a", jobId: "job-a" };
+    const replied = {
+      ...contact,
+      applicationId: scope.applicationId,
+      jobId: scope.jobId,
+      status: "REPLIED" as const,
+      sentAt: "2026-09-23T10:00:00.000Z",
+      repliedAt: "2026-09-23T11:00:00.000Z",
+      channel: "linkedin" as const,
+    };
+    persistDashboardContacts([replied], []);
+
+    expect(
+      saveDashboardOutreach(scope, {
+        ...replied,
+        status: "SENT",
+      }),
+    ).toEqual({ ok: false, error: "invalid_outreach" });
+    expect(
+      saveDashboardOutreach(scope, {
+        ...replied,
+        status: "MESSAGE_PREPARED",
+      }),
+    ).toEqual({ ok: false, error: "invalid_outreach" });
+  });
 });

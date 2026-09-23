@@ -182,7 +182,7 @@ export function JobDecisionV2NetworkingTab({
           !contact.archivedAt &&
           (applicationId
             ? contact.applicationId === applicationId || (!contact.applicationId && contact.jobId === jobId)
-            : contact.jobId === jobId),
+            : !contact.applicationId && contact.jobId === jobId),
       ),
     [applicationId, contacts, jobId],
   );
@@ -213,6 +213,15 @@ export function JobDecisionV2NetworkingTab({
     setError(null);
     onPersist();
     return true;
+  }
+
+  function contactInScope(contact: Contact): Contact {
+    if (!scope) return contact;
+    return {
+      ...contact,
+      applicationId: scope.applicationId,
+      jobId: scope.jobId,
+    };
   }
 
   function saveDraft() {
@@ -272,33 +281,49 @@ export function JobDecisionV2NetworkingTab({
       }, now);
       next = sent.contact;
       interaction = sent.interaction;
-    } else if (draft.status === "REPLIED" && !next.repliedAt) {
+    } else if (
+      (draft.status === "REPLIED" || draft.status === "CONVERSATION") &&
+      !next.repliedAt
+    ) {
+      if (!next.sentAt) {
+        next.sentAt = now.toISOString();
+      }
       const replied = recordOutreachReply(next, { interactionId: newId("interaction") }, now);
-      next = replied.contact;
+      next = {
+        ...replied.contact,
+        status: draft.status,
+      };
       interaction = replied.interaction;
     }
     if (persist(next, interaction)) resetForm();
   }
 
   function markPrepared(contact: Contact) {
-    persist(updateOutreachContact(contact, { status: "MESSAGE_PREPARED" }));
+    persist(updateOutreachContact(contactInScope(contact), { status: "MESSAGE_PREPARED" }));
   }
 
   function markSent(contact: Contact) {
+    const scopedContact = contactInScope(contact);
     const result = markOutreachSent(
-      contact,
+      scopedContact,
       {
-        content: contact.messageContent,
-        subject: contact.subject,
-        followUpAt: contact.followUpAt,
-        interactionId: newId("interaction"),
+        content: scopedContact.messageContent,
+        subject: scopedContact.subject,
+        followUpAt: scopedContact.followUpAt,
+        interactionId: `interaction-${scopedContact.id}-sent`,
       },
     );
     persist(result.contact, result.interaction);
   }
 
   function markReply(contact: Contact) {
-    const result = recordOutreachReply(contact, { interactionId: newId("interaction") });
+    const scopedContact = contactInScope(contact);
+    const replySource = scopedContact.sentAt
+      ? scopedContact
+      : { ...scopedContact, sentAt: new Date().toISOString() };
+    const result = recordOutreachReply(replySource, {
+      interactionId: `interaction-${scopedContact.id}-reply`,
+    });
     persist(result.contact, result.interaction);
   }
 

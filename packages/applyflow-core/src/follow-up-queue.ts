@@ -42,6 +42,7 @@ function lastInteractionAt(contact: Contact, interactions: readonly ContactInter
 
 function shouldStop(contact: Contact, application?: ApplyFlowApplication): boolean {
   if (
+    contact.archivedAt ||
     contact.repliedAt ||
     contact.status === "closed" ||
     contact.status === "replied" ||

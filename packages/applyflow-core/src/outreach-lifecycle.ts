@@ -93,13 +93,17 @@ export function updateOutreachContact(contact: Contact, patch: OutreachContactPa
     ...contact,
     ...patch,
     name: patch.name?.trim() || contact.name,
-    role: patch.role?.trim() || undefined,
-    company: patch.company?.trim() || undefined,
-    linkedinUrl: patch.linkedinUrl?.trim() || undefined,
-    email: patch.email?.trim() || undefined,
-    subject: patch.subject?.trim() || undefined,
-    messageContent: patch.messageContent?.trim() || undefined,
-    notes: patch.notes?.trim() || undefined,
+    role: patch.role === undefined ? contact.role : patch.role.trim() || undefined,
+    company: patch.company === undefined ? contact.company : patch.company.trim() || undefined,
+    linkedinUrl:
+      patch.linkedinUrl === undefined ? contact.linkedinUrl : patch.linkedinUrl.trim() || undefined,
+    email: patch.email === undefined ? contact.email : patch.email.trim() || undefined,
+    subject: patch.subject === undefined ? contact.subject : patch.subject.trim() || undefined,
+    messageContent:
+      patch.messageContent === undefined
+        ? contact.messageContent
+        : patch.messageContent.trim() || undefined,
+    notes: patch.notes === undefined ? contact.notes : patch.notes.trim() || undefined,
     updatedAt: now.toISOString(),
   };
 }
@@ -188,8 +192,12 @@ export function isOutreachFollowUpDue(contact: Contact, now = new Date()): boole
 }
 
 export function effectiveOutreachStatus(contact: Contact, now = new Date()): OutreachStatus {
+  const normalized = normalizeOutreachStatus(contact.status);
+  if (normalized === "CLOSED") return "CLOSED";
   if (isOutreachFollowUpDue(contact, now)) return "FOLLOW_UP_DUE";
-  return normalizeOutreachStatus(contact.status);
+  if (hasReply(contact)) return normalized === "CONVERSATION" ? "CONVERSATION" : "REPLIED";
+  if (hasBeenSent(contact)) return "SENT";
+  return normalized;
 }
 
 export function computeOutreachMetrics(contacts: readonly Contact[], now = new Date()): OutreachMetrics {
