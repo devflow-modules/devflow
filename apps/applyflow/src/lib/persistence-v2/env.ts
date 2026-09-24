@@ -2,7 +2,8 @@ import { isApplyFlowPersistenceV2Enabled, type ApplyFlowPersistenceEnv } from ".
 
 export type ApplyFlowSupabasePublicConfig = {
   url: string;
-  anonKey: string;
+  /** Public publishable key (`sb_publishable_...`). Never a secret/service_role key. */
+  publishableKey: string;
 };
 
 export type ApplyFlowPersistenceConfig = {
@@ -13,11 +14,8 @@ export type ApplyFlowPersistenceConfig = {
   missing: string[];
 };
 
-function resolveSupabaseAnonKey(env: ApplyFlowPersistenceEnv): string | undefined {
-  const key =
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-    env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-    env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+function resolveSupabasePublishableKey(env: ApplyFlowPersistenceEnv): string | undefined {
+  const key = env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   return typeof key === "string" && key.length > 0 ? key : undefined;
 }
 
@@ -25,9 +23,9 @@ export function resolveApplyFlowSupabasePublicConfig(
   env: ApplyFlowPersistenceEnv = process.env,
 ): ApplyFlowSupabasePublicConfig | null {
   const url = env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const anonKey = resolveSupabaseAnonKey(env);
-  if (!url || !anonKey) return null;
-  return { url, anonKey };
+  const publishableKey = resolveSupabasePublishableKey(env);
+  if (!url || !publishableKey) return null;
+  return { url, publishableKey };
 }
 
 export function isApplyFlowDatabaseConfigured(env: ApplyFlowPersistenceEnv = process.env): boolean {
@@ -54,7 +52,7 @@ export function resolveApplyFlowPersistenceConfig(
 
   const missing: string[] = [];
   if (!resolveApplyFlowSupabasePublicConfig(env)) {
-    missing.push("NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    missing.push("NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
   }
   if (!isApplyFlowDatabaseConfigured(env)) {
     missing.push("DATABASE_URL");

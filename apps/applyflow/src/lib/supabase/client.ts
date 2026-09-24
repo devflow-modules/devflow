@@ -11,5 +11,5 @@ export function createSupabaseBrowserClient() {
   if (!config) {
     throw new Error("Supabase is not configured for this ApplyFlow deployment.");
   }
-  return createBrowserClient(config.url, config.anonKey);
+  return createBrowserClient(config.url, config.publishableKey);
 }

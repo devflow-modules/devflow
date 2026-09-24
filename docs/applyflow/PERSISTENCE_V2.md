@@ -14,7 +14,7 @@ Durante a migração, V1 continua suportada atrás da feature flag. `localStorag
 
 ## F1 — Foundation (implementado)
 
-- Supabase Auth SSR (cookies httpOnly)
+- Supabase Auth SSR (cookies httpOnly); public client key: `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (never secret/service_role)
 - Prisma + tabela `applyflow_accounts`
 - `requireApplyFlowAccount()` — sessão → `auth_provider_sub` → upsert idempotente
 - Feature flag `APPLYFLOW_PERSISTENCE_V2` (default **OFF**)

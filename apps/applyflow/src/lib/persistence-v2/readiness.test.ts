@@ -23,7 +23,7 @@ describe("resolveCareerReadinessWithPersistence", () => {
     const result = await resolveCareerReadinessWithPersistence({
       APPLYFLOW_PERSISTENCE_V2: "true",
       NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon",
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test",
       DATABASE_URL: "postgresql://localhost:5432/applyflow",
     });
 
