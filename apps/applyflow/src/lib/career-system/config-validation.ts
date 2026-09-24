@@ -18,6 +18,8 @@ import {
   resolveCareerRuntimeEnvironment,
   type CareerRuntimeEnvironment,
 } from "./environment";
+import { isApplyFlowPersistenceV2Enabled } from "../persistence-v2/feature-flag";
+import { resolveApplyFlowPersistenceConfig } from "../persistence-v2/env";
 import { resolveCareerFeatureFlags } from "./feature-flags";
 
 /**
@@ -160,15 +162,19 @@ export function resolveCareerComponentStatuses(
     misconfiguredCode: "provider_metadata_not_configured",
   });
 
-  // Database — optional for the local-first Career Suite. Considered configured only when a
-  // connection string is present; otherwise it stays disabled (career suite runs in-memory).
+  // Database — optional for V1 (Gate A). When Persistence V2 is ON, PostgreSQL + Supabase public
+  // config are required for readiness.
+  const persistenceV2 = isApplyFlowPersistenceV2Enabled(env);
+  const persistenceConfig = resolveApplyFlowPersistenceConfig(env);
   const databasePresent = typeof env.DATABASE_URL === "string" && env.DATABASE_URL.length > 0;
   const database = buildComponent({
     component: "database",
-    enabled: databasePresent,
-    configured: databasePresent,
-    required: false,
-    misconfiguredCode: "database_not_configured",
+    enabled: persistenceV2 ? true : databasePresent,
+    configured: persistenceV2 ? persistenceConfig.readyForFoundation : databasePresent,
+    required: persistenceV2,
+    misconfiguredCode: persistenceV2
+      ? "applyflow_persistence_v2_not_configured"
+      : "database_not_configured",
   });
 
   return [agents, chat, llm, automation, providerMetadata, database];

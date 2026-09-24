@@ -133,6 +133,14 @@ describe("config validation", () => {
     expect(byName.database.status).toBe("disabled");
   });
 
+  it("requires database when Persistence V2 is enabled", () => {
+    const statuses = resolveCareerComponentStatuses({ APPLYFLOW_PERSISTENCE_V2: "true" });
+    const database = statuses.find((s) => s.component === "database");
+    expect(database?.enabled).toBe(true);
+    expect(database?.required).toBe(true);
+    expect(database?.status).toBe("misconfigured");
+  });
+
   it("marks an enabled-but-misconfigured openai LLM as misconfigured", () => {
     const statuses = resolveCareerComponentStatuses({
       CAREER_LLM_ENABLED: "true",
