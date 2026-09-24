@@ -52,12 +52,22 @@ describe("requireApplyFlowAccount", () => {
     });
 
     const { requireApplyFlowAccount } = await import("./require-applyflow-account");
-    const account = await requireApplyFlowAccount();
-    expect(account.id).toBe("acc-1");
-    expect(upsert).toHaveBeenCalledWith(
+    const first = await requireApplyFlowAccount();
+    const second = await requireApplyFlowAccount();
+    expect(first.id).toBe("acc-1");
+    expect(second.id).toBe("acc-1");
+    expect(upsert).toHaveBeenCalledTimes(2);
+    expect(upsert).toHaveBeenNthCalledWith(
+      1,
       expect.objectContaining({
         where: { authProviderSub: "sub-123" },
         create: { authProviderSub: "sub-123", email: "user@example.com" },
+      }),
+    );
+    expect(upsert).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        where: { authProviderSub: "sub-123" },
       }),
     );
   });

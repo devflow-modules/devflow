@@ -73,6 +73,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               >
                 Documentação
               </Link>
+              <Link
+                href="/login"
+                className="rounded-md px-2 py-1.5 text-[color:var(--af-text-muted)] transition-colors hover:bg-[color:var(--af-surface-muted)] hover:text-[color:var(--af-text)]"
+              >
+                Sign in
+              </Link>
             </nav>
           </div>
         </header>
