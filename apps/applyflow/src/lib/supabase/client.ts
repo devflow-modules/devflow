@@ -7,7 +7,11 @@ import { resolveApplyFlowSupabasePublicConfig } from "@/lib/persistence-v2/env";
  * Never use service-role or DATABASE credentials here.
  */
 export function createSupabaseBrowserClient() {
-  const config = resolveApplyFlowSupabasePublicConfig();
+  // Pass static NEXT_PUBLIC_* reads so webpack/Next can inline them for the browser.
+  const config = resolveApplyFlowSupabasePublicConfig({
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  });
   if (!config) {
     throw new Error("Supabase is not configured for this ApplyFlow deployment.");
   }

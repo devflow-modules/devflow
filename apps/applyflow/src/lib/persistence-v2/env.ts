@@ -19,8 +19,16 @@ function resolveSupabasePublishableKey(env: ApplyFlowPersistenceEnv): string | u
   return typeof key === "string" && key.length > 0 ? key : undefined;
 }
 
+/**
+ * Resolves public Supabase config for browser + server.
+ * Default args use static `process.env.NEXT_PUBLIC_*` reads so Next.js can inline
+ * them into the client bundle (dynamic `process.env[name]` is empty in the browser).
+ */
 export function resolveApplyFlowSupabasePublicConfig(
-  env: ApplyFlowPersistenceEnv = process.env,
+  env: ApplyFlowPersistenceEnv = {
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  },
 ): ApplyFlowSupabasePublicConfig | null {
   const url = env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const publishableKey = resolveSupabasePublishableKey(env);
