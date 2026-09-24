@@ -1,6 +1,6 @@
 # ADR — ApplyFlow Local-First vs Serverless
 
-**Status:** Accepted for MVP  
+**Status:** Accepted for MVP (V1 default); amended by [ADR-PERSISTENCE_V2_LOCAL_AND_CLOUD.md](./ADR-PERSISTENCE_V2_LOCAL_AND_CLOUD.md) for signed-in cloud mode.  
 **Data:** 2026-05-07
 
 ## Contexto
