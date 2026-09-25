@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import { createApplyFlowApplicationRepository } from "./applications-repository";
 import { createApplyFlowJobRepository } from "./jobs-repository";
-import type { ApplyFlowApplication, ApplyFlowJob, ApplyFlowPersistenceDb } from "./types";
+import { createApplyFlowMigrationSessionRepository } from "./migration-session-repository";
+import type {
+  ApplyFlowApplication,
+  ApplyFlowJob,
+  ApplyFlowMigrationSession,
+  ApplyFlowPersistenceDb,
+} from "./types";
 
 function key(accountId: string, id: string): string {
   return `${accountId}::${id}`;
@@ -159,15 +165,98 @@ function createMemoryDb(): ApplyFlowPersistenceDb {
     },
   };
 
+  const sessions = new Map<string, ApplyFlowMigrationSession>();
+  let sessionSeq = 0;
+
+  const migrationSessionDelegate = {
+    create: async ({ data }: { data: Record<string, unknown> }) => {
+      const fingerprintKey = `${data.accountId}::${data.sourceVersion}::${data.bundleFingerprint}`;
+      for (const existing of sessions.values()) {
+        if (
+          existing.accountId === data.accountId &&
+          existing.sourceVersion === data.sourceVersion &&
+          existing.bundleFingerprint === data.bundleFingerprint
+        ) {
+          const err = Object.assign(new Error("unique"), { code: "P2002" });
+          throw err;
+        }
+      }
+      const id = `session-${++sessionSeq}`;
+      const record = {
+        id,
+        ...data,
+        processedJobs: data.processedJobs ?? 0,
+        processedApplications: data.processedApplications ?? 0,
+        conflictSummary: data.conflictSummary ?? null,
+        startedAt: new Date("2026-01-01T00:00:00.000Z"),
+        updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+        completedAt: null,
+      } as ApplyFlowMigrationSession;
+      sessions.set(id, record);
+      void fingerprintKey;
+      return record;
+    },
+    findUnique: async ({
+      where,
+    }: {
+      where:
+        | { id: string }
+        | {
+            accountId_sourceVersion_bundleFingerprint: {
+              accountId: string;
+              sourceVersion: number;
+              bundleFingerprint: string;
+            };
+          };
+    }) => {
+      if ("id" in where) {
+        return sessions.get(where.id) ?? null;
+      }
+      const keyParts = where.accountId_sourceVersion_bundleFingerprint;
+      return (
+        [...sessions.values()].find(
+          (row) =>
+            row.accountId === keyParts.accountId &&
+            row.sourceVersion === keyParts.sourceVersion &&
+            row.bundleFingerprint === keyParts.bundleFingerprint,
+        ) ?? null
+      );
+    },
+    update: async ({
+      where,
+      data,
+    }: {
+      where: { id: string };
+      data: Record<string, unknown>;
+    }) => {
+      const existing = sessions.get(where.id);
+      if (!existing) throw new Error("not found");
+      const next = {
+        ...existing,
+        ...data,
+        updatedAt: new Date("2026-01-03T00:00:00.000Z"),
+      } as ApplyFlowMigrationSession;
+      sessions.set(where.id, next);
+      return next;
+    },
+  };
+
   const db = {
     applyFlowJob: jobDelegate,
     applyFlowApplication: applicationDelegate,
+    applyFlowMigrationSession: migrationSessionDelegate,
     $transaction: async <T>(
       fn: (tx: {
         applyFlowJob: typeof jobDelegate;
         applyFlowApplication: typeof applicationDelegate;
+        applyFlowMigrationSession: typeof migrationSessionDelegate;
       }) => Promise<T>,
-    ) => fn({ applyFlowJob: jobDelegate, applyFlowApplication: applicationDelegate }),
+    ) =>
+      fn({
+        applyFlowJob: jobDelegate,
+        applyFlowApplication: applicationDelegate,
+        applyFlowMigrationSession: migrationSessionDelegate,
+      }),
   };
 
   return db as unknown as ApplyFlowPersistenceDb;
@@ -428,5 +517,51 @@ describe("ApplyFlow job/application repositories", () => {
         jobMatch: emptyJobMatch,
       }),
     ).rejects.toThrow(/accountId is required/);
+  });
+});
+
+describe("ApplyFlow migration session repository", () => {
+  it("creates, finds by fingerprint, updates state, and isolates accounts", async () => {
+    const db = createMemoryDb();
+    const sessions = createApplyFlowMigrationSessionRepository(db);
+    const accountA = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+    const accountB = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
+
+    const created = await sessions.create({
+      accountId: accountA,
+      sourceVersion: 1,
+      bundleFingerprint: "fp-1",
+      status: "pending",
+      expectedJobs: 1,
+      expectedApplications: 0,
+    });
+    expect(created.status).toBe("pending");
+
+    const found = await sessions.findByFingerprint(accountA, 1, "fp-1");
+    expect(found?.id).toBe(created.id);
+    expect(await sessions.findByFingerprint(accountB, 1, "fp-1")).toBeNull();
+    expect(await sessions.findById(accountB, created.id)).toBeNull();
+
+    const importing = await sessions.update(accountA, created.id, { status: "importing" });
+    expect(importing?.status).toBe("importing");
+
+    const completed = await sessions.update(accountA, created.id, {
+      status: "completed",
+      processedJobs: 1,
+      completedAt: new Date("2026-09-25T20:00:00.000Z"),
+    });
+    expect(completed?.status).toBe("completed");
+    expect(completed?.completedAt?.toISOString()).toBe("2026-09-25T20:00:00.000Z");
+
+    await expect(
+      sessions.create({
+        accountId: accountA,
+        sourceVersion: 1,
+        bundleFingerprint: "fp-1",
+        status: "pending",
+        expectedJobs: 1,
+        expectedApplications: 0,
+      }),
+    ).rejects.toMatchObject({ code: "P2002" });
   });
 });

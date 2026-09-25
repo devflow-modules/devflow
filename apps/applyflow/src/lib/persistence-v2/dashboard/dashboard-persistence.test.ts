@@ -4,6 +4,12 @@ import { APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY } from "@/lib/local-job-storage";
 import { APPLYFLOW_DASHBOARD_STORAGE_KEY } from "@/lib/local-import-storage";
 import type { ApplyFlowApplicationV2Envelope, ApplyFlowJob } from "@devflow/applyflow-core";
 
+import { fingerprintApplyFlowAccountId } from "../migration/migration-fingerprint";
+import {
+  APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY,
+  type MigrationMarkerRecord,
+} from "../migration/migration-marker";
+import { prepareMigrationBundle } from "../migration/migration-prepare";
 import {
   assessDashboardMigrationGate,
   selectDashboardPersistenceMode,
@@ -11,6 +17,34 @@ import {
 import { openDashboardPersistence } from "./open-dashboard-persistence";
 import { createV1DashboardPersistence } from "./v1-local-dashboard-persistence";
 import { createV2DashboardPersistence } from "./v2-remote-dashboard-persistence";
+
+const ACCOUNT_ID = "acc-gate-1";
+const OTHER_ACCOUNT_ID = "acc-gate-other";
+
+function completedMarker(accountId = ACCOUNT_ID, fingerprint = "aabbccdd"): MigrationMarkerRecord {
+  return {
+    version: 1,
+    v1ToV2Complete: true,
+    accountIdFingerprint: fingerprintApplyFlowAccountId(accountId),
+    sessionId: "session_gate_1",
+    completedAt: "2026-09-25T20:00:00.000Z",
+    fingerprint,
+  };
+}
+
+function meResponse(accountId = ACCOUNT_ID) {
+  return jsonResponse(200, { authenticated: true, account: { id: accountId } });
+}
+
+function emptyV2Lists(fetchImpl: ReturnType<typeof vi.fn>) {
+  fetchImpl.mockImplementation(async (input: RequestInfo | URL) => {
+    const url = String(input);
+    if (url.endsWith("/me")) return meResponse();
+    if (url.endsWith("/jobs")) return jsonResponse(200, { jobs: [] });
+    if (url.endsWith("/applications")) return jsonResponse(200, { applications: [] });
+    return jsonResponse(500, { error: "unexpected" });
+  });
+}
 
 const job: ApplyFlowJob = {
   id: "job_client_fixed",
@@ -145,7 +179,10 @@ describe("dashboard persistence mode", () => {
         jobs: [job],
       }),
     });
-    const fetchImpl = vi.fn();
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).endsWith("/me")) return meResponse();
+      return jsonResponse(500, { error: "unexpected" });
+    });
     expect(
       assessDashboardMigrationGate({
         mode: "v2",
@@ -155,8 +192,176 @@ describe("dashboard persistence mode", () => {
     ).toBe("migration_required");
     const opened = await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl });
     expect(opened.kind).toBe("migration_required");
-    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(fetchImpl).toHaveBeenCalledWith(
+      "/api/applyflow/v2/me",
+      expect.objectContaining({ method: "GET" }),
+    );
     expect(storage[APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]).toContain("job_client_fixed");
+  });
+
+  it("requires auth before migration when legacy exists and /me is unauthenticated", async () => {
+    stubStorage({
+      [APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]: JSON.stringify({
+        version: 1,
+        savedAt: "2026-09-25T12:00:00.000Z",
+        jobs: [job],
+      }),
+    });
+    const fetchImpl = vi.fn(async () => jsonResponse(401, { error: "unauthenticated" }));
+    const opened = await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl });
+    expect(opened).toMatchObject({ kind: "auth_required", code: "unauthenticated" });
+  });
+
+  it("keeps V1 on flag off even with legacy jobs present", async () => {
+    stubStorage({
+      [APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]: JSON.stringify({
+        version: 1,
+        savedAt: "2026-09-25T12:00:00.000Z",
+        jobs: [job],
+      }),
+    });
+    const fetchImpl = vi.fn();
+    const opened = await openDashboardPersistence({ persistenceV2Enabled: false, fetchImpl });
+    expect(opened.kind).toBe("v1");
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("requires migration for jobs-only, apps-only, both, and partial legacy", async () => {
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).endsWith("/me")) return meResponse();
+      return jsonResponse(500, { error: "unexpected" });
+    });
+
+    stubStorage({
+      [APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]: JSON.stringify({
+        version: 1,
+        savedAt: "2026-09-25T12:00:00.000Z",
+        jobs: [job],
+      }),
+    });
+    expect((await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl })).kind).toBe(
+      "migration_required",
+    );
+
+    stubStorage({
+      [APPLYFLOW_DASHBOARD_STORAGE_KEY]: JSON.stringify({
+        version: 1,
+        importedAt: "2026-09-25T12:00:00.000Z",
+        applications: [application],
+      }),
+    });
+    expect((await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl })).kind).toBe(
+      "migration_required",
+    );
+
+    stubStorage({
+      [APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]: JSON.stringify({
+        version: 1,
+        savedAt: "2026-09-25T12:00:00.000Z",
+        jobs: [job],
+      }),
+      [APPLYFLOW_DASHBOARD_STORAGE_KEY]: JSON.stringify({
+        version: 1,
+        importedAt: "2026-09-25T12:00:00.000Z",
+        applications: [application],
+      }),
+    });
+    expect((await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl })).kind).toBe(
+      "migration_required",
+    );
+
+    stubStorage({
+      [APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]: "{not-json",
+    });
+    expect((await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl })).kind).toBe(
+      "migration_required",
+    );
+  });
+
+  it("rejects incomplete, malformed, and other-account markers", async () => {
+    const legacyJobs = JSON.stringify({
+      version: 1,
+      savedAt: "2026-09-25T12:00:00.000Z",
+      jobs: [job],
+    });
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).endsWith("/me")) return meResponse();
+      return jsonResponse(500, { error: "unexpected" });
+    });
+
+    stubStorage({
+      [APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]: legacyJobs,
+      [APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY]: JSON.stringify({
+        ...completedMarker(),
+        v1ToV2Complete: false,
+      }),
+    });
+    expect((await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl })).kind).toBe(
+      "migration_required",
+    );
+
+    stubStorage({
+      [APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]: legacyJobs,
+      [APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY]: "{broken",
+    });
+    expect((await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl })).kind).toBe(
+      "migration_required",
+    );
+
+    stubStorage({
+      [APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]: legacyJobs,
+      [APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY]: JSON.stringify(completedMarker(OTHER_ACCOUNT_ID)),
+    });
+    expect((await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl })).kind).toBe(
+      "migration_required",
+    );
+  });
+
+  it("unlocks V2 with a valid same-account marker without rewriting V1 data", async () => {
+    const legacyJobs = JSON.stringify({
+      version: 1,
+      savedAt: "2026-09-25T12:00:00.000Z",
+      jobs: [job],
+    });
+    const legacyApps = JSON.stringify({
+      version: 1,
+      importedAt: "2026-09-25T12:00:00.000Z",
+      applications: [application],
+    });
+    const storage = stubStorage({
+      [APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]: legacyJobs,
+      [APPLYFLOW_DASHBOARD_STORAGE_KEY]: legacyApps,
+    });
+    const prep = prepareMigrationBundle();
+    expect(prep.ok).toBe(true);
+    if (!prep.ok) return;
+    storage[APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY] = JSON.stringify(
+      completedMarker(ACCOUNT_ID, prep.bundle.fingerprint),
+    );
+    const fetchImpl = vi.fn();
+    emptyV2Lists(fetchImpl);
+    const opened = await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl });
+    expect(opened.kind).toBe("ready");
+    expect(storage[APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]).toBe(legacyJobs);
+    expect(storage[APPLYFLOW_DASHBOARD_STORAGE_KEY]).toBe(legacyApps);
+    expect(storage[APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY]).toContain("session_gate_1");
+  });
+
+  it("keeps migration_required when marker fingerprint is stale vs current V1", async () => {
+    stubStorage({
+      [APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]: JSON.stringify({
+        version: 1,
+        savedAt: "2026-09-25T12:00:00.000Z",
+        jobs: [job],
+      }),
+      [APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY]: JSON.stringify(completedMarker(ACCOUNT_ID, "stale000")),
+    });
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).endsWith("/me")) return meResponse();
+      return jsonResponse(500, { error: "unexpected" });
+    });
+    const opened = await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl });
+    expect(opened.kind).toBe("migration_required");
   });
 });
 

@@ -9,6 +9,7 @@ import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
 import { loadJobDecisionV2Snapshot } from "@/lib/job-decision-v2-snapshot";
 import { DashboardPersistenceNotice, dashboardPersistenceFailureMessage } from "@/components/dashboard/dashboard-persistence-notice";
+import { DashboardMigrationPanel } from "@/components/dashboard/dashboard-migration-panel";
 import type { ApplyFlowDashboardPersistence } from "@/lib/persistence-v2/dashboard/dashboard-persistence";
 import { openDashboardPersistence } from "@/lib/persistence-v2/dashboard/open-dashboard-persistence";
 import {
@@ -283,6 +284,37 @@ export function JobDecisionV2Panel({
     setPersistError(null);
     refreshAfterPersist();
     setFeedbackNote(toStatus === "rejected" && !feedbackNote.trim() ? "Rejection recorded without an explicit reason (unknown)." : "");
+  }
+
+  if (remoteGate === "migration_required") {
+    return (
+      <DashboardMigrationPanel
+        onComplete={() => {
+          void openDashboardPersistence({ persistenceV2Enabled: true }).then((opened) => {
+            if (opened.kind !== "ready") {
+              persistenceRef.current = null;
+              if (
+                opened.kind === "migration_required" ||
+                opened.kind === "auth_required" ||
+                opened.kind === "error"
+              ) {
+                setRemoteGate(opened.kind);
+              }
+              return;
+            }
+            persistenceRef.current = opened.persistence;
+            const jobRecord = opened.jobs.find((item) => item.id === jobId) ?? null;
+            setRemoteRecords({
+              job: jobRecord,
+              application: jobRecord
+                ? (findApplicationForJob(opened.applications, jobRecord) ?? null)
+                : null,
+            });
+            setRemoteGate(null);
+          });
+        }}
+      />
+    );
   }
 
   if (remoteGate) {

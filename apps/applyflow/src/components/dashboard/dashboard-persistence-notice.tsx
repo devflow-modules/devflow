@@ -7,14 +7,14 @@ export function DashboardPersistenceNotice({
 }: {
   kind: "migration_required" | "auth_required" | "error";
 }) {
+  // Primary migration UX lives in DashboardMigrationPanel; this is a safe fallback.
   if (kind === "migration_required") {
     return (
       <ApplyFlowCard variant="muted" padding="lg">
         <p className="text-sm font-medium text-[color:var(--af-text)]">Migração necessária</p>
         <p className="mt-2 text-sm leading-relaxed text-[color:var(--af-text-muted)]">
-          A persistência na conta está ativa, mas este navegador ainda tem vagas ou candidaturas locais.
-          Esses dados não foram migrados, então o painel não troca o histórico local por uma lista vazia.
-          Nada foi apagado deste navegador e nada foi enviado para a conta.
+          Foram detectados dados locais. Use o fluxo de migração para copiar vagas e candidaturas para a
+          conta. Nada foi apagado deste navegador.
         </p>
       </ApplyFlowCard>
     );

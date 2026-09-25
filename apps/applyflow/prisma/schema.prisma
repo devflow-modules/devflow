@@ -16,8 +16,9 @@ model ApplyFlowAccount {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
-  jobs         ApplyFlowJob[]
-  applications ApplyFlowApplication[]
+  jobs              ApplyFlowJob[]
+  applications      ApplyFlowApplication[]
+  migrationSessions ApplyFlowMigrationSession[]
 
   @@map("applyflow_accounts")
 }
@@ -82,4 +83,28 @@ model ApplyFlowApplication {
   @@id([accountId, id])
   @@index([accountId, sourceJobId])
   @@map("applyflow_applications")
+}
+
+/// Durable V1→V2 migration session. Idempotent on (account, sourceVersion, fingerprint).
+/// Browser local marker is NOT authoritative — this session is server completion proof.
+model ApplyFlowMigrationSession {
+  id                    String    @id @default(uuid()) @db.Uuid
+  accountId             String    @map("account_id") @db.Uuid
+  sourceVersion         Int       @map("source_version")
+  bundleFingerprint     String    @map("bundle_fingerprint")
+  status                String
+  expectedJobs          Int       @map("expected_jobs")
+  expectedApplications  Int       @map("expected_applications")
+  processedJobs         Int       @default(0) @map("processed_jobs")
+  processedApplications Int       @default(0) @map("processed_applications")
+  conflictSummary       Json?     @map("conflict_summary")
+  startedAt             DateTime  @default(now()) @map("started_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  completedAt           DateTime? @map("completed_at")
+
+  account ApplyFlowAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@unique([accountId, sourceVersion, bundleFingerprint], map: "applyflow_migration_sessions_account_source_fp_key")
+  @@index([accountId, status])
+  @@map("applyflow_migration_sessions")
 }

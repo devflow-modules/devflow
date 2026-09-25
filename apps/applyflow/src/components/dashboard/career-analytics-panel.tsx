@@ -11,6 +11,7 @@ import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
 import { loadCareerAnalyticsSnapshot } from "@/lib/career-analytics-snapshot";
 import { useClientHydrated } from "@/lib/use-client-hydrated";
 import { DashboardPersistenceNotice } from "@/components/dashboard/dashboard-persistence-notice";
+import { DashboardMigrationPanel } from "@/components/dashboard/dashboard-migration-panel";
 import { openDashboardPersistence } from "@/lib/persistence-v2/dashboard/open-dashboard-persistence";
 import type { ApplyFlowApplicationV2Envelope, ApplyFlowJob } from "@devflow/applyflow-core";
 
@@ -72,6 +73,25 @@ export function CareerAnalyticsPanel({ persistenceV2Enabled = false }: { persist
   const empty = Boolean(
     snapshot && (snapshot.scorecard?.applications ?? 0) === 0 && (snapshot.scorecard?.jobsFound ?? 0) === 0,
   );
+
+  if (persistenceV2Enabled && remoteGate === "migration_required") {
+    return (
+      <DashboardMigrationPanel
+        onComplete={() => {
+          void openDashboardPersistence({ persistenceV2Enabled: true }).then((opened) => {
+            if (opened.kind === "ready") {
+              setRemoteDomain({ jobs: opened.jobs, applications: opened.applications });
+              setRemoteGate(null);
+              return;
+            }
+            if (opened.kind === "migration_required" || opened.kind === "auth_required" || opened.kind === "error") {
+              setRemoteGate(opened.kind);
+            }
+          });
+        }}
+      />
+    );
+  }
 
   if (persistenceV2Enabled && remoteGate) {
     return <DashboardPersistenceNotice kind={remoteGate} />;
