@@ -16,5 +16,70 @@ model ApplyFlowAccount {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
+  jobs         ApplyFlowJob[]
+  applications ApplyFlowApplication[]
+
   @@map("applyflow_accounts")
+}
+
+/// Canonical inbox Job. Client-stable `id` (V1 `job_…`) scoped by account.
+///
+/// Job→Application link is application-owned via `ApplyFlowApplication.sourceJobId`
+/// (soft reference). A composite Prisma FK `(accountId, sourceJobId) → Job` with
+/// `onDelete: SetNull` is unsafe in PostgreSQL because SET NULL would also null
+/// `accountId` and destroy ownership. Repository delete nulls `sourceJobId` only.
+model ApplyFlowJob {
+  accountId                String   @map("account_id") @db.Uuid
+  id                       String
+  title                    String
+  company                  String?
+  location                 String?
+  url                      String?
+  canonicalUrl             String?  @map("canonical_url")
+  source                   String
+  status                   String
+  jobContext               Json     @map("job_context")
+  descriptionSnapshot      String?  @map("description_snapshot")
+  descriptionHash          String?  @map("description_hash")
+  jobMatch                 Json     @map("job_match")
+  evaluatedWith            Json?    @map("evaluated_with")
+  curriculumRecommendation Json?    @map("curriculum_recommendation")
+  applicationPack          Json?    @map("application_pack")
+  version                  Int      @default(1)
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+
+  account ApplyFlowAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@id([accountId, id])
+  @@index([accountId, canonicalUrl])
+  @@index([accountId, descriptionHash])
+  @@map("applyflow_jobs")
+}
+
+/// Canonical Application (separate entity). Optional soft link to Job via sourceJobId.
+model ApplyFlowApplication {
+  accountId   String    @map("account_id") @db.Uuid
+  id          String
+  sourceJobId String?   @map("source_job_id")
+  source      String
+  status      String
+  jobTitle    String?   @map("job_title")
+  companyName String?   @map("company_name")
+  jobUrl      String?   @map("job_url")
+  fitScore    Float?    @map("fit_score")
+  notes       String?
+  jobMeta     Json?     @map("job_meta")
+  v2Meta      Json?     @map("v2_meta")
+  extras      Json?
+  appliedAt   DateTime? @map("applied_at")
+  version     Int       @default(1)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  account ApplyFlowAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@id([accountId, id])
+  @@index([accountId, sourceJobId])
+  @@map("applyflow_applications")
 }
