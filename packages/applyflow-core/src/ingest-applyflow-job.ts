@@ -59,6 +59,11 @@ function optionalText(value: string | undefined, max: number): string | undefine
   return trimmed.slice(0, max);
 }
 
+/** Same id shape V1 ingest uses when the caller does not supply one. */
+export function createApplyFlowJobId(now: Date = new Date()): string {
+  return `job_${now.getTime().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export function ingestApplyFlowJob(input: IngestApplyFlowJobInput): ApplyFlowJob {
   const now = input.now ?? new Date();
   const iso = now.toISOString();
@@ -73,7 +78,7 @@ export function ingestApplyFlowJob(input: IngestApplyFlowJobInput): ApplyFlowJob
     : undefined;
 
   return {
-    id: input.id ?? `job_${now.getTime().toString(36)}_${Math.random().toString(36).slice(2, 10)}`,
+    id: input.id ?? createApplyFlowJobId(now),
     title: inferTitle(description, input.title),
     company: optionalText(input.company, 200),
     location: optionalText(input.location, 200),

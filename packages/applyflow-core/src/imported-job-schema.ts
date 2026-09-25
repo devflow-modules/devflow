@@ -127,7 +127,7 @@ const applicationPackSchema = z.object({
   ),
 });
 
-const jobRecordSchema = z.object({
+export const applyFlowStoredJobSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1).max(200),
   company: z.string().max(200).optional(),
@@ -186,7 +186,7 @@ export type IngestJobsImportOptions = {
 };
 
 export function parseStoredApplyFlowJob(raw: unknown): ApplyFlowJob | null {
-  const parsed = jobRecordSchema.safeParse(raw);
+  const parsed = applyFlowStoredJobSchema.safeParse(raw);
   if (!parsed.success) return null;
   return normalizeStoredJob(parsed.data);
 }
@@ -196,7 +196,7 @@ function optionalTrim(value: string | undefined): string | undefined {
   return trimmed ? trimmed : undefined;
 }
 
-function normalizeStoredJob(parsed: z.infer<typeof jobRecordSchema>): ApplyFlowJob {
+function normalizeStoredJob(parsed: z.infer<typeof applyFlowStoredJobSchema>): ApplyFlowJob {
   return {
     id: parsed.id,
     title: parsed.title.trim(),
