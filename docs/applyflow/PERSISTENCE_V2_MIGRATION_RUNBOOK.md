@@ -71,14 +71,31 @@ With `APPLYFLOW_PERSISTENCE_V2` off (or unset):
 - V2 server rows are **not** automatically deleted.
 - Markers/sessions are not a reason to destroy V1.
 
+## Database topology (mandatory)
+
+| Surface | Target |
+| --- | --- |
+| **Production** | Supabase project `qygwhuwvilkekfkgoizb` — **PROTECTED**. Never used for DEV/E2E/cleanup. |
+| **Local development** | Docker PostgreSQL via `apps/applyflow/docker-compose.yml` (`pnpm db:up` / `pnpm db:migrate`) |
+| **CI real DB** | Ephemeral PostgreSQL only (never Production credentials) |
+
+Destructive tools/tests use a structural fail-closed guard (`db-target-guard.ts`):
+
+- Production project → **DENY**
+- Any `*.supabase.co` / `*.supabase.com` → **DENY**
+- Unknown remotes → **DENY**
+- `localhost` / `127.0.0.1` → **ALLOW**
+
+`APPLYFLOW_F3_5_E2E=1` does **not** bypass Production denial.
+
 ## What NOT to delete
 
 - Production or unknown customer data
-- `ApplyFlowAccount` / `auth.users` used by the dedicated environment (unless explicitly provisioning a disposable account)
+- Production `ApplyFlowAccount` / `auth.users` (never part of E2E)
 - Schema/migrations
 - Broad `DELETE` without ID/fingerprint filters
 
-Surgical cleanup of test fixtures must target deterministic IDs (e.g. `e2e_f35_*`) and known migration fingerprints only.
+Surgical cleanup of test fixtures must target deterministic IDs (e.g. `e2e_f35_*`) and known migration fingerprints only, and only after the DB target guard allows the connection.
 
 ## Inspect a migration session safely
 
@@ -88,7 +105,7 @@ Read-only checks (Prisma or SQL) scoped by account:
 - status, expected/processed counts, `completedAt`
 - matching `ApplyFlowJob` / `ApplyFlowApplication` IDs
 
-Never log connection strings, tokens, or PII. Prefer host/db fingerprints already used in F3.2/F3.5 guards.
+Never log connection strings, tokens, or PII. Prefer host classification from `classifyApplyFlowDbTarget` / `pnpm db:audit`.
 
 ## Dataset limits
 
@@ -111,20 +128,37 @@ Multi-chunk is deferred.
 9. Extension sync — **separate future slice**.
 10. Inbound V2 confirmation — **separate future slice**.
 
-## Automated validation
-
-Opt-in suite (mutates only dedicated DEV fixtures):
+## Local PostgreSQL workflow
 
 ```bash
-# from apps/applyflow, with dedicated .env.local present
+cd apps/applyflow
+pnpm db:up          # docker compose up -d (host port 5434)
+pnpm db:migrate     # prisma migrate deploy (LOCAL only)
+pnpm db:status      # migration status
+pnpm db:audit       # host classification + aggregate counts (no secrets)
+pnpm db:down        # stop container (volume retained)
+```
+
+Point `apps/applyflow/.env.local` at Docker only (gitignored). Do not load Production Supabase URLs into auto-loaded local env.
+
+## Automated validation
+
+Opt-in suite (mutates only local/ephemeral fixtures):
+
+```bash
+# from apps/applyflow, with LOCAL Docker .env.local
 # Windows PowerShell:
 $env:APPLYFLOW_F3_5_E2E = "1"
 pnpm exec vitest run src/lib/persistence-v2/migration/f3-5-migration-e2e.test.tsx
 
-# Read-only env/DB fingerprint audit (no secrets printed):
-pnpm exec node scripts/persistence-v2/f3-5-env-audit.mjs
+# Read-only env/DB classification audit (no secrets printed):
+pnpm db:audit
 ```
 
-Without `APPLYFLOW_F3_5_E2E=1`, the DEV-mutating cases are skipped; offline invariants still run.
+Without `APPLYFLOW_F3_5_E2E=1`, mutating cases are skipped; offline invariants (including Production denial) still run.
 
-Environment guard refuses non-allowlisted Supabase/DB hosts.
+Production migration / Auth URL / Vercel env changes belong to **explicit production rollout gates**, not this E2E suite.
+
+## Production backup (pre-rollout)
+
+Supabase Free does not imply PITR. Before Production schema/ops windows, take a logical dump with operator credentials held outside `.env.local`, e.g. `pg_dump` against Production `DIRECT_URL` — never commit dump files.

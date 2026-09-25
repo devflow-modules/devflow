@@ -1,20 +1,37 @@
+/**
+ * F3.5 environment helpers — destructive targets must be local/ephemeral only.
+ *
+ * The former "dedicated DEV" Supabase project (qygwhuwvilkekfkgoizb) is now
+ * ApplyFlow PRODUCTION and is structurally denylisted.
+ */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-/** Dedicated ApplyFlow Persistence V2 development Supabase project (F3.2). */
-export const APPLYFLOW_DEDICATED_DEV_SUPABASE_HOST = "qygwhuwvilkekfkgoizb.supabase.co";
+import {
+  APPLYFLOW_PRODUCTION_SUPABASE_HOST,
+  APPLYFLOW_PRODUCTION_SUPABASE_PROJECT_REF,
+  assertApplyFlowDestructiveDbTargetAllowed,
+  classifyApplyFlowDbTarget,
+  type ApplyFlowDbTargetClassification,
+  type ApplyFlowDevEnvironmentReport,
+  assertApplyFlowDedicatedDevEnvironment,
+} from "../db-target-guard";
+
+/** @deprecated Production host — kept only for denylist tests/documentation. */
+export const APPLYFLOW_DEDICATED_DEV_SUPABASE_HOST = APPLYFLOW_PRODUCTION_SUPABASE_HOST;
+/** @deprecated Production pooler host — never an allowlisted destructive target. */
 export const APPLYFLOW_DEDICATED_DEV_DB_HOST = "aws-0-sa-east-1.pooler.supabase.com";
 
-export type ApplyFlowDevEnvironmentReport = {
-  ok: boolean;
-  supabaseHost: string;
-  dbHost: string;
-  dbName: string;
-  persistenceV2: boolean;
-  requiredVarNamesPresent: Record<string, boolean>;
+export {
+  APPLYFLOW_PRODUCTION_SUPABASE_HOST,
+  APPLYFLOW_PRODUCTION_SUPABASE_PROJECT_REF,
+  assertApplyFlowDestructiveDbTargetAllowed,
+  classifyApplyFlowDbTarget,
+  assertApplyFlowDedicatedDevEnvironment,
 };
+export type { ApplyFlowDbTargetClassification, ApplyFlowDevEnvironmentReport };
 
-function loadEnvLocalIfPresent(): void {
+export function loadApplyFlowEnvLocalIfPresent(): void {
   const candidates = [
     resolve(process.cwd(), ".env.local"),
     resolve(process.cwd(), "apps/applyflow/.env.local"),
@@ -34,9 +51,8 @@ function loadEnvLocalIfPresent(): void {
         ) {
           value = value.slice(1, -1);
         }
-        if (process.env[key] == null || process.env[key] === "") {
-          process.env[key] = value;
-        }
+        // Prefer .env.local over inherited shell/user env so Production URLs cannot leak in.
+        process.env[key] = value;
       }
       return;
     } catch {
@@ -45,56 +61,11 @@ function loadEnvLocalIfPresent(): void {
   }
 }
 
-function hostnameOf(raw: string | undefined): string {
-  if (!raw) return "missing";
-  try {
-    return new URL(raw).hostname;
-  } catch {
-    return "unparseable";
-  }
-}
-
-function dbNameOf(raw: string | undefined): string {
-  if (!raw) return "missing";
-  try {
-    return new URL(raw).pathname.replace(/^\//, "") || "?";
-  } catch {
-    return "unparseable";
-  }
-}
-
 /**
- * Prove the configured DATABASE_URL / Supabase URL match the dedicated
- * development project. Never logs secrets or full connection strings.
+ * Loads .env.local (if present) then asserts the DB target is safe for destructive F3.5 work.
+ * Production / Supabase remotes / unknown remotes fail closed before any mutation.
  */
-export function assertApplyFlowDedicatedDevEnvironment(): ApplyFlowDevEnvironmentReport {
-  loadEnvLocalIfPresent();
-  const supabaseHost = hostnameOf(process.env.NEXT_PUBLIC_SUPABASE_URL);
-  const dbHost = hostnameOf(process.env.DATABASE_URL);
-  const dbName = dbNameOf(process.env.DATABASE_URL);
-  const requiredVarNamesPresent = {
-    NEXT_PUBLIC_SUPABASE_URL: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
-    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: Boolean(
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-    ),
-    DATABASE_URL: Boolean(process.env.DATABASE_URL),
-    DIRECT_URL: Boolean(process.env.DIRECT_URL),
-    APPLYFLOW_PERSISTENCE_V2: Boolean(process.env.APPLYFLOW_PERSISTENCE_V2),
-  };
-  const ok =
-    supabaseHost === APPLYFLOW_DEDICATED_DEV_SUPABASE_HOST &&
-    dbHost === APPLYFLOW_DEDICATED_DEV_DB_HOST &&
-    requiredVarNamesPresent.NEXT_PUBLIC_SUPABASE_URL &&
-    requiredVarNamesPresent.DATABASE_URL &&
-    requiredVarNamesPresent.DIRECT_URL &&
-    process.env.APPLYFLOW_PERSISTENCE_V2 === "true";
-
-  return {
-    ok,
-    supabaseHost,
-    dbHost,
-    dbName,
-    persistenceV2: process.env.APPLYFLOW_PERSISTENCE_V2 === "true",
-    requiredVarNamesPresent,
-  };
+export function assertApplyFlowF35DestructiveEnvironment(): ApplyFlowDbTargetClassification {
+  loadApplyFlowEnvLocalIfPresent();
+  return assertApplyFlowDestructiveDbTargetAllowed();
 }

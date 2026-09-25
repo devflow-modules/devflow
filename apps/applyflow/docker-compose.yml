@@ -1,0 +1,24 @@
+# ApplyFlow local PostgreSQL — NEVER use Production Supabase (qygwhuwvilkekfkgoizb).
+# Credentials are non-sensitive local-dev defaults only.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: applyflow-postgres-local
+    ports:
+      # 5433 is commonly taken by other local stacks on this machine.
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: applyflow
+      POSTGRES_PASSWORD: applyflow_local_dev
+      POSTGRES_DB: applyflow
+    volumes:
+      - applyflow_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U applyflow -d applyflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+volumes:
+  applyflow_pg_data:

@@ -1,9 +1,12 @@
 // @vitest-environment jsdom
 /**
- * F3.5 end-to-end + recovery validation against dedicated DEV Supabase.
+ * F3.5 end-to-end + recovery validation against LOCAL / ephemeral PostgreSQL only.
  *
  * Opt-in: APPLYFLOW_F3_5_E2E=1
  * Mutates only e2e_f35_* fixtures; never deletes ApplyFlowAccount / auth.users.
+ *
+ * Production Supabase (qygwhuwvilkekfkgoizb) is structurally denylisted — even with
+ * APPLYFLOW_F3_5_E2E=1 the suite aborts before the first DB mutation.
  */
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -21,7 +24,14 @@ import { applyFlowApplicationService } from "@/lib/persistence-v2/applications/a
 import { applyflowPrisma } from "@/lib/persistence-v2/db";
 import { applyFlowJobService } from "@/lib/persistence-v2/jobs/job-service";
 
-import { assertApplyFlowDedicatedDevEnvironment } from "./f3-5-dev-environment";
+import {
+  assertApplyFlowF35DestructiveEnvironment,
+} from "./f3-5-dev-environment";
+import {
+  ApplyFlowDestructiveDbTargetDeniedError,
+  APPLYFLOW_PRODUCTION_SUPABASE_HOST,
+  assertApplyFlowDestructiveDbTargetAllowed,
+} from "../db-target-guard";
 import {
   F35_APP_LINKED,
   F35_APP_STANDALONE,
@@ -33,6 +43,9 @@ import {
   cleanupAllF35ForAccount,
   seedF35BrowserV1Fixture,
 } from "./f3-5-e2e-fixture";
+
+/** Disposable local-only account used when no ApplyFlowAccount exists yet. */
+const F35_LOCAL_AUTH_SUB = "e2e_f35_local_auth_sub";
 import {
   prepareMigration,
   resumeMigration,
@@ -66,7 +79,7 @@ import {
 import { POST as migrationPost } from "@/app/api/applyflow/v2/migration/route";
 
 describe.skipIf(!RUN)(
-  "F3.5 persistence v2 migration E2E (dedicated DEV)",
+  "F3.5 persistence v2 migration E2E (local PostgreSQL)",
   () => {
   const fingerprints = new Set<string>();
   let accountId = "";
@@ -79,17 +92,19 @@ describe.skipIf(!RUN)(
   } | null = null;
 
   beforeAll(async () => {
-    const env = assertApplyFlowDedicatedDevEnvironment();
-    expect(env.ok, JSON.stringify(env)).toBe(true);
-    expect(env.supabaseHost).toBe("qygwhuwvilkekfkgoizb.supabase.co");
-    expect(env.dbHost).toBe("aws-0-sa-east-1.pooler.supabase.com");
+    // Must run before any Prisma mutation. Production / remote Supabase → throw.
+    const env = assertApplyFlowF35DestructiveEnvironment();
+    expect(env.allowedForDestructiveTests).toBe(true);
+    expect(env.kind).toBe("safe_local");
 
-    const account = await applyflowPrisma.applyFlowAccount.findFirst({
+    const account = await applyflowPrisma.applyFlowAccount.upsert({
+      where: { authProviderSub: F35_LOCAL_AUTH_SUB },
+      create: { authProviderSub: F35_LOCAL_AUTH_SUB, email: null },
+      update: {},
       select: { id: true, authProviderSub: true, email: true, createdAt: true, updatedAt: true },
     });
-    expect(account).toBeTruthy();
-    accountId = account!.id;
-    accountRecord = account!;
+    accountId = account.id;
+    accountRecord = account;
     vi.mocked(requireApplyFlowAccount).mockResolvedValue(accountRecord);
     vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(true);
 
@@ -580,7 +595,27 @@ describe.skipIf(!RUN)(
   60_000,
 );
 
-describe("F3.5 offline invariants (no DEV mutation)", () => {
+describe("F3.5 offline invariants (no Production mutation)", () => {
+  it("Production target is denied even when APPLYFLOW_F3_5_E2E=1", () => {
+    const previous = process.env.APPLYFLOW_F3_5_E2E;
+    process.env.APPLYFLOW_F3_5_E2E = "1";
+    let cleanupCalled = false;
+    try {
+      assertApplyFlowDestructiveDbTargetAllowed({
+        NEXT_PUBLIC_SUPABASE_URL: `https://${APPLYFLOW_PRODUCTION_SUPABASE_HOST}`,
+        DATABASE_URL: `postgresql://u:p@${APPLYFLOW_PRODUCTION_SUPABASE_HOST}:5432/postgres`,
+        DIRECT_URL: `postgresql://u:p@${APPLYFLOW_PRODUCTION_SUPABASE_HOST}:5432/postgres`,
+      });
+      cleanupCalled = true;
+    } catch (error) {
+      expect(error).toBeInstanceOf(ApplyFlowDestructiveDbTargetDeniedError);
+    } finally {
+      if (previous === undefined) delete process.env.APPLYFLOW_F3_5_E2E;
+      else process.env.APPLYFLOW_F3_5_E2E = previous;
+    }
+    expect(cleanupCalled).toBe(false);
+  });
+
   it("migration modules do not reference chrome.storage", async () => {
     const fs = await import("node:fs");
     const path = await import("node:path");
