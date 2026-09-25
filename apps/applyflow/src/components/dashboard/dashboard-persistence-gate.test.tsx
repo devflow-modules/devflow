@@ -56,7 +56,8 @@ describe("DashboardClient persistence gate", () => {
     });
     vi.stubGlobal("fetch", fetchImpl);
     render(<DashboardClient persistenceV2Enabled />);
-    expect(await screen.findByText("Migração necessária")).toBeTruthy();
+    expect(await screen.findByText("Migrar dados para a conta")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Migrar dados para V2" })).toBeTruthy();
     expect(fetchImpl).toHaveBeenCalledWith(
       "/api/applyflow/v2/me",
       expect.objectContaining({ method: "GET" }),
@@ -72,6 +73,7 @@ describe("DashboardClient persistence gate", () => {
       expect(screen.queryByText("A preparar o painel e ler o armazenamento local…")).toBeNull();
     });
     expect(screen.queryByText("Entre na conta para continuar")).toBeNull();
+    expect(screen.queryByText("Migrar dados para a conta")).toBeNull();
     expect(screen.queryByText("Migração necessária")).toBeNull();
     expect(fetchImpl).not.toHaveBeenCalled();
   });
@@ -105,7 +107,7 @@ describe("DashboardClient persistence gate", () => {
     vi.stubGlobal("fetch", fetchImpl);
     render(<DashboardClient persistenceV2Enabled />);
     await waitFor(() => {
-      expect(screen.queryByText("Migração necessária")).toBeNull();
+      expect(screen.queryByText("Migrar dados para a conta")).toBeNull();
       expect(screen.queryByText("Entre na conta para continuar")).toBeNull();
     });
     expect(window.localStorage.getItem(APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY)).toBe(raw);

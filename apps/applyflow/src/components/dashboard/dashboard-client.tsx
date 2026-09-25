@@ -100,6 +100,7 @@ import {
   V2_LOCAL_IMPORT_BLOCKED,
   dashboardPersistenceFailureMessage,
 } from "@/components/dashboard/dashboard-persistence-notice";
+import { DashboardMigrationPanel } from "@/components/dashboard/dashboard-migration-panel";
 import type { ApplyFlowDashboardPersistence } from "@/lib/persistence-v2/dashboard/dashboard-persistence";
 import { openDashboardPersistence } from "@/lib/persistence-v2/dashboard/open-dashboard-persistence";
 import {
@@ -237,26 +238,34 @@ export function DashboardClient({
   const [dragOver, setDragOver] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
   const [remoteGate, setRemoteGate] = useState<"migration_required" | "auth_required" | "error" | null>(null);
+  const [migrationSuccessNotice, setMigrationSuccessNotice] = useState(false);
   const persistenceRef = useRef<ApplyFlowDashboardPersistence | null>(null);
+
+  const applyOpenedPersistence = useCallback(
+    (opened: Awaited<ReturnType<typeof openDashboardPersistence>>) => {
+      if (opened.kind === "ready") {
+        persistenceRef.current = opened.persistence;
+        setJobs(opened.jobs);
+        setApplications(opened.applications);
+        setRemoteGate(null);
+        setHydrated(true);
+        return;
+      }
+      persistenceRef.current = null;
+      if (opened.kind === "migration_required") setRemoteGate("migration_required");
+      else if (opened.kind === "auth_required") setRemoteGate("auth_required");
+      else if (opened.kind === "error") setRemoteGate("error");
+      setHydrated(true);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (persistenceV2Enabled) {
       let cancelled = false;
       void openDashboardPersistence({ persistenceV2Enabled: true }).then((opened) => {
         if (cancelled) return;
-        if (opened.kind === "ready") {
-          persistenceRef.current = opened.persistence;
-          setJobs(opened.jobs);
-          setApplications(opened.applications);
-          setRemoteGate(null);
-          setHydrated(true);
-          return;
-        }
-        persistenceRef.current = null;
-        if (opened.kind === "migration_required") setRemoteGate("migration_required");
-        else if (opened.kind === "auth_required") setRemoteGate("auth_required");
-        else if (opened.kind === "error") setRemoteGate("error");
-        setHydrated(true);
+        applyOpenedPersistence(opened);
       });
       return () => {
         cancelled = true;
@@ -302,7 +311,7 @@ export function DashboardClient({
       }
       setHydrated(true);
     });
-  }, [persistenceV2Enabled]);
+  }, [persistenceV2Enabled, applyOpenedPersistence]);
 
   const now = useMemo(() => new Date(), []);
 
@@ -808,12 +817,33 @@ export function DashboardClient({
     );
   }
 
+  if (remoteGate === "migration_required") {
+    return (
+      <DashboardMigrationPanel
+        onComplete={() => {
+          setMigrationSuccessNotice(true);
+          void openDashboardPersistence({ persistenceV2Enabled: true }).then(applyOpenedPersistence);
+        }}
+      />
+    );
+  }
+
   if (remoteGate) {
     return <DashboardPersistenceNotice kind={remoteGate} />;
   }
 
   return (
     <div className="mx-auto max-w-6xl space-y-10 overflow-x-hidden pb-12 sm:space-y-12">
+      {migrationSuccessNotice ? (
+        <p
+          className="text-sm text-emerald-200"
+          role="status"
+          aria-live="polite"
+          data-testid="migration-success-notice"
+        >
+          Dados migrados com sucesso.
+        </p>
+      ) : null}
       <ApplyFlowPrivacyNotice />
 
       {pilotMode ? <CareerPilotExperience /> : null}
