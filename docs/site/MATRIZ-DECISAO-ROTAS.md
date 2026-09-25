@@ -115,6 +115,10 @@ Decisão **pragmática** alinhada ao diagnóstico de sobreposição raiz ↔ app
 | `/dashboard/analytics` (page, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Career OS analytics UI; reads dashboard jobs/applications/outcomes from **browser localStorage after client hydration**; no portal duplicate; **no server session/auth** (same local-first model as `/dashboard`); does not call Gmail/Nango; does not mutate candidaturas on load (Closed Loop backfill persist is client-side after paint) |
 | `/dashboard/jobs/[id]` (page, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Career OS v2 decision UI for one local job id; same local-first/hydration model as `/dashboard`; no portal duplicate; **no server session/auth**; no Gmail scan on this page |
 | `/provider-runtime/nango/inbound-responses` (POST, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — server-side Gmail closed-loop inbound **metadata** scan; client-safe JSON (`emails` with id/receivedAt/senderDomain/optional subject/snippet only); `explicitConsent: true` required (else 403); feature flags + Gmail Nango verification server-side (client connection state not trusted); blocked when runtime flags or `NANGO_SECRET_KEY` missing; `need_account_selection` when multiple mailboxes (no mix); **no Gmail writes**, no raw payload/body/HTML retention, no OAuth token in the response, no CareerBundle mutation, no server persistence of scan results; `GET` → 405 |
+| `/login` (page, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Persistence V2 minimal email/password Auth UI (sign up / sign in via Supabase browser client); not portal `/login`; does **not** gate V1 dashboard; feature-flagged cloud account path |
+| `/account` (page, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — authenticated Persistence V2 account probe UI; calls `GET /api/applyflow/v2/me` with SSR cookies; masks account id; never displays tokens/cookies |
+| `/auth/callback` (GET, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Supabase PKCE callback; `exchangeCodeForSession`; sets SSR cookies; safe internal `next` only (rejects `//`, absolute URLs); no portal duplicate |
+| `/api/applyflow/v2/me` (GET, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Persistence V2 authenticated account boundary; `APPLYFLOW_PERSISTENCE_V2` default OFF → 404; unauthenticated → 401; authenticated → upsert idempotent `ApplyFlowAccount` via Prisma; client-safe `{ authenticated, account: { id } }`; no Jobs/Applications persistence |
 | Sitemaps | Raiz | Raiz | ok | **manter** |
 
 ---
@@ -151,4 +155,4 @@ Sem esta matriz atualizada no PR de cada mudança, o risco continua **organizaci
 
 ---
 
-*Última atualização: 2026-09-16 — ApplyFlow `/dashboard/analytics`, `/dashboard/jobs/[id]`, `POST /provider-runtime/nango/inbound-responses` (só `apps/applyflow`; local-first nas páginas; inbound Gmail metadata, flags + consentimento).*
+*Última atualização: 2026-09-25 — ApplyFlow Persistence V2 `/login`, `/account`, `/auth/callback`, `GET /api/applyflow/v2/me` (só `apps/applyflow`; V1 local-first permanece sem login obrigatório; flag `APPLYFLOW_PERSISTENCE_V2` default OFF).*
