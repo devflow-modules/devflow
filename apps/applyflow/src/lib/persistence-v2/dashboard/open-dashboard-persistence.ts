@@ -10,6 +10,7 @@ import {
   type MigrationMarker,
 } from "./dashboard-persistence";
 import { loadMigrationMarker } from "../migration/migration-marker";
+import { prepareMigrationBundle } from "../migration/migration-prepare";
 import { createV1DashboardPersistence } from "./v1-local-dashboard-persistence";
 import { createV2DashboardPersistence } from "./v2-remote-dashboard-persistence";
 
@@ -35,9 +36,17 @@ function failureCode(error: unknown): DashboardPersistenceFailureCode {
   return "network";
 }
 
+/**
+ * Marker unlocks V2 only when it matches the current logical V1 dataset fingerprint.
+ * Stale markers (dataset changed) or unreadable V1 keep migration_required.
+ */
 function migrationProofFromMarker(accountId: string): MigrationMarker {
   const marker = loadMigrationMarker(accountId);
   if (!marker) return noMigrationProof;
+  const prep = prepareMigrationBundle();
+  if (!prep.ok) return noMigrationProof;
+  if (prep.empty) return { v1ToV2Complete: true };
+  if (prep.bundle.fingerprint !== marker.fingerprint) return noMigrationProof;
   return { v1ToV2Complete: true };
 }
 

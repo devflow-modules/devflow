@@ -11,7 +11,7 @@ export const MIGRATION_SOURCE_VERSION = 1 as const;
 export const MIGRATION_MAX_JOBS = 50;
 export const MIGRATION_MAX_APPLICATIONS = 50;
 
-const migrationJobSchema = applyFlowStoredJobSchema
+export const migrationJobSchema = applyFlowStoredJobSchema
   .omit({
     createdAt: true,
     updatedAt: true,
@@ -81,7 +81,7 @@ const v2MetaSchema = z
   })
   .strict();
 
-const migrationApplicationSchema = z
+export const migrationApplicationSchema = z
   .object({
     id: z.string().trim().min(1).max(200),
     source: z.enum(["linkedin", "paste", "json"]),

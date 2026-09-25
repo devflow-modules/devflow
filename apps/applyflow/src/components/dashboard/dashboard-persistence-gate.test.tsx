@@ -7,6 +7,7 @@ import type { ApplyFlowJob } from "@devflow/applyflow-core";
 
 import { fingerprintApplyFlowAccountId } from "@/lib/persistence-v2/migration/migration-fingerprint";
 import { APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY } from "@/lib/persistence-v2/migration/migration-marker";
+import { prepareMigrationBundle } from "@/lib/persistence-v2/migration/migration-prepare";
 
 import { DashboardClient } from "./dashboard-client";
 
@@ -78,6 +79,9 @@ describe("DashboardClient persistence gate", () => {
   it("unlocks with a valid marker without deleting V1 jobs", async () => {
     persistDashboardJobs([job]);
     const raw = window.localStorage.getItem(APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY);
+    const prep = prepareMigrationBundle();
+    expect(prep.ok).toBe(true);
+    if (!prep.ok) return;
     window.localStorage.setItem(
       APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY,
       JSON.stringify({
@@ -86,7 +90,7 @@ describe("DashboardClient persistence gate", () => {
         accountIdFingerprint: fingerprintApplyFlowAccountId(ACCOUNT_ID),
         sessionId: "session_ui_1",
         completedAt: "2026-09-25T20:00:00.000Z",
-        fingerprint: "aabbccdd",
+        fingerprint: prep.bundle.fingerprint,
       }),
     );
     const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {

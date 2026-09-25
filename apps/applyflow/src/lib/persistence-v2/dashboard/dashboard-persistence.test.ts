@@ -9,6 +9,7 @@ import {
   APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY,
   type MigrationMarkerRecord,
 } from "../migration/migration-marker";
+import { prepareMigrationBundle } from "../migration/migration-prepare";
 import {
   assessDashboardMigrationGate,
   selectDashboardPersistenceMode,
@@ -20,14 +21,14 @@ import { createV2DashboardPersistence } from "./v2-remote-dashboard-persistence"
 const ACCOUNT_ID = "acc-gate-1";
 const OTHER_ACCOUNT_ID = "acc-gate-other";
 
-function completedMarker(accountId = ACCOUNT_ID): MigrationMarkerRecord {
+function completedMarker(accountId = ACCOUNT_ID, fingerprint = "aabbccdd"): MigrationMarkerRecord {
   return {
     version: 1,
     v1ToV2Complete: true,
     accountIdFingerprint: fingerprintApplyFlowAccountId(accountId),
     sessionId: "session_gate_1",
     completedAt: "2026-09-25T20:00:00.000Z",
-    fingerprint: "aabbccdd",
+    fingerprint,
   };
 }
 
@@ -330,8 +331,13 @@ describe("dashboard persistence mode", () => {
     const storage = stubStorage({
       [APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]: legacyJobs,
       [APPLYFLOW_DASHBOARD_STORAGE_KEY]: legacyApps,
-      [APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY]: JSON.stringify(completedMarker()),
     });
+    const prep = prepareMigrationBundle();
+    expect(prep.ok).toBe(true);
+    if (!prep.ok) return;
+    storage[APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY] = JSON.stringify(
+      completedMarker(ACCOUNT_ID, prep.bundle.fingerprint),
+    );
     const fetchImpl = vi.fn();
     emptyV2Lists(fetchImpl);
     const opened = await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl });
@@ -339,6 +345,23 @@ describe("dashboard persistence mode", () => {
     expect(storage[APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]).toBe(legacyJobs);
     expect(storage[APPLYFLOW_DASHBOARD_STORAGE_KEY]).toBe(legacyApps);
     expect(storage[APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY]).toContain("session_gate_1");
+  });
+
+  it("keeps migration_required when marker fingerprint is stale vs current V1", async () => {
+    stubStorage({
+      [APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]: JSON.stringify({
+        version: 1,
+        savedAt: "2026-09-25T12:00:00.000Z",
+        jobs: [job],
+      }),
+      [APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY]: JSON.stringify(completedMarker(ACCOUNT_ID, "stale000")),
+    });
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).endsWith("/me")) return meResponse();
+      return jsonResponse(500, { error: "unexpected" });
+    });
+    const opened = await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl });
+    expect(opened.kind).toBe("migration_required");
   });
 });
 
