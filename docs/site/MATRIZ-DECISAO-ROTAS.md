@@ -161,4 +161,4 @@ Sem esta matriz atualizada no PR de cada mudança, o risco continua **organizaci
 
 ---
 
-*Última atualização: 2026-09-25 — ApplyFlow Persistence V2 migration API `POST /api/applyflow/v2/migration` e `GET /api/applyflow/v2/migration/[sessionId]` (só `apps/applyflow`; flag default OFF; sem coordinator/browser marker/UX; sem cutover produção).*
+*Última atualização: 2026-09-25 — ApplyFlow Persistence V2 F3 migration path: API `POST /api/applyflow/v2/migration` e `GET /api/applyflow/v2/migration/[sessionId]`, coordinator + marker + UX controlada (só `apps/applyflow`; flag default OFF; sem cutover produção).*
