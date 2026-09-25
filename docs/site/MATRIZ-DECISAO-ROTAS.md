@@ -121,6 +121,8 @@ Decisão **pragmática** alinhada ao diagnóstico de sobreposição raiz ↔ app
 | `/api/applyflow/v2/me` (GET, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Persistence V2 authenticated account boundary; `APPLYFLOW_PERSISTENCE_V2` default OFF → 404; unauthenticated → 401; authenticated → upsert idempotent `ApplyFlowAccount` via Prisma; client-safe `{ authenticated, account: { id } }`; no Applications persistence |
 | `/api/applyflow/v2/jobs` (GET, POST, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Persistence V2 Jobs list/create; flag default OFF → 404; unauthenticated → 401; account from `requireApplyFlowAccount()` only; list is the full account set (no pagination) ordered `updatedAt` DESC then `id` ASC; POST preserves client id or generates the V1 `job_` id; duplicate `(account, id)` → 409; dashboard V1 remains local-first and does not call this route |
 | `/api/applyflow/v2/jobs/[id]` (GET, PATCH, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Persistence V2 Job read/partial update; lookup is `accountId + id`; missing and cross-account both 404; PATCH requires `If-Match: "<version>"`; stale version → 409; no DELETE in F2.2 |
+| `/api/applyflow/v2/applications` (GET, POST, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Persistence V2 Applications list/create; flag default OFF → 404; account from `requireApplyFlowAccount()` only; `sourceJobId` optional and same-account; ordinary create-from-job returns 409 if that job already has an application; no pagination; dashboard V1 does not call this route |
+| `/api/applyflow/v2/applications/[id]` (GET, PATCH, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Persistence V2 Application read/partial update; missing and cross-account 404; PATCH `If-Match: "<version>"`; status transitions follow the existing V1/pipeline graph and persist only V1 status; `sourceJobId` is not relinked; no DELETE |
 | Sitemaps | Raiz | Raiz | ok | **manter** |
 
 ---
@@ -157,4 +159,4 @@ Sem esta matriz atualizada no PR de cada mudança, o risco continua **organizaci
 
 ---
 
-*Última atualização: 2026-09-25 — ApplyFlow Persistence V2 Jobs API `GET/POST /api/applyflow/v2/jobs` e `GET/PATCH /api/applyflow/v2/jobs/[id]` (só `apps/applyflow`; flag default OFF; dashboard V1 local-first inalterado; sem DELETE).*
+*Última atualização: 2026-09-25 — ApplyFlow Persistence V2 Applications API `GET/POST /api/applyflow/v2/applications` e `GET/PATCH /api/applyflow/v2/applications/[id]` (só `apps/applyflow`; flag default OFF; dashboard V1 local-first inalterado; sem DELETE).*
