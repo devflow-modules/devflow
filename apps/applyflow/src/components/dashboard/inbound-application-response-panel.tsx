@@ -65,6 +65,7 @@ import {
   INBOUND_RESPONSE_MATCH_STATUS_LABELS,
   INBOUND_RESPONSE_NEED_ACCOUNT,
   INBOUND_RESPONSE_NEED_APPLICATION,
+  INBOUND_RESPONSE_V2_CONFIRM_BLOCKED,
   INBOUND_RESPONSE_NO_AUTO,
   INBOUND_RESPONSE_PENDING_BADGE,
   INBOUND_RESPONSE_SCAN_BLOCKED,
@@ -381,12 +382,14 @@ export function InboundApplicationResponsePanel({
   outcomes = [],
   emails = [],
   gmailRuntimeEnabled = false,
+  persistenceV2Enabled = false,
   onApplicationUpdated,
 }: {
   applications: readonly ApplyFlowApplication[];
   outcomes?: readonly ApplicationOutcome[];
   emails?: readonly InboundEmail[];
   gmailRuntimeEnabled?: boolean;
+  persistenceV2Enabled?: boolean;
   onApplicationUpdated?: (application: ApplyFlowApplication) => void;
 }) {
   const [senderDomain, setSenderDomain] = useState("");
@@ -501,6 +504,11 @@ export function InboundApplicationResponsePanel({
   }
 
   function confirmDetection(detectionId: string) {
+    if (persistenceV2Enabled) {
+      setPersistError(INBOUND_RESPONSE_V2_CONFIRM_BLOCKED);
+      setNotice(null);
+      return;
+    }
     const detection = detections.find((item) => item.id === detectionId);
     if (!detection) return;
     const applicationId = selectedApplicationById[detection.id] ?? detection.applicationId;

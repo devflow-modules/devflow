@@ -16,6 +16,7 @@ import {
   computeWeeklyOperatingMetrics,
   generateCareerInsights,
   type ApplyFlowApplication,
+  type ApplyFlowJob,
   type CareerInsight,
   type CareerScorecard,
   type OutreachMetrics,
@@ -39,9 +40,12 @@ export type CareerAnalyticsSnapshot = {
   disclaimer: string;
 };
 
-export function loadCareerAnalyticsSnapshot(): CareerAnalyticsSnapshot {
-  const applications = loadDashboardImport()?.applications ?? [];
-  const jobs = loadDashboardJobs().jobs;
+export function loadCareerAnalyticsSnapshot(source?: {
+  jobs: ApplyFlowJob[];
+  applications: ApplyFlowApplication[];
+}): CareerAnalyticsSnapshot {
+  const applications = source?.applications ?? loadDashboardImport()?.applications ?? [];
+  const jobs = source?.jobs ?? loadDashboardJobs().jobs;
   const analytics = loadDashboardAnalytics();
   const contacts = loadDashboardContacts();
   const input = buildCareerAnalyticsInput({

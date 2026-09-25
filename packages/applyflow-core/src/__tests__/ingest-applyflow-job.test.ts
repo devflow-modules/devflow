@@ -6,7 +6,7 @@ import {
   hashJobDescription,
   snapshotJobDescription,
 } from "../job-description-snapshot.js";
-import { ingestApplyFlowJob, projectJobForFunnel } from "../ingest-applyflow-job.js";
+import { createApplyFlowJobId, ingestApplyFlowJob, projectJobForFunnel } from "../ingest-applyflow-job.js";
 import { extractJobIntelligence } from "../job-intelligence.js";
 import { evaluateJobMatch } from "../evaluate-job-match.js";
 
@@ -29,6 +29,14 @@ Onsite
 
 Looking for Java, Elixir and Ruby specialists. Mainframe experience is a plus.
 `;
+
+describe("createApplyFlowJobId", () => {
+  it("uses the V1 job_<time36>_<random> shape", () => {
+    const id = createApplyFlowJobId(NOW);
+    expect(id.startsWith(`job_${NOW.getTime().toString(36)}_`)).toBe(true);
+    expect(id).toMatch(/^job_[0-9a-z]+_[0-9a-z]+$/);
+  });
+});
 
 describe("snapshotJobDescription", () => {
   it("trunca em 4000 caracteres", () => {

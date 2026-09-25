@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ApplyFlowBadge, type ApplyFlowBadgeTone } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
 import { loadJobDecisionV2Snapshot } from "@/lib/job-decision-v2-snapshot";
+import { DashboardPersistenceNotice, dashboardPersistenceFailureMessage } from "@/components/dashboard/dashboard-persistence-notice";
+import type { ApplyFlowDashboardPersistence } from "@/lib/persistence-v2/dashboard/dashboard-persistence";
+import { openDashboardPersistence } from "@/lib/persistence-v2/dashboard/open-dashboard-persistence";
 import {
   persistApplicationStatusTransition,
   persistApplicationSubmitted,
@@ -21,8 +24,12 @@ import {
   canRecordApplicationOutcome,
   canTransitionApplicationStatus,
   createApplicationFromJob,
+  findApplicationForJob,
   formatLifecycleEventDate,
+  fromPipelineStatusV2,
   resolvePipelineStatus,
+  type ApplyFlowApplicationV2Envelope,
+  type ApplyFlowJob,
   type ApplyFlowPipelineStatusV2,
   type Contact,
   type ApplicationDecision,
@@ -89,18 +96,59 @@ function matchTone(status: string): ApplyFlowBadgeTone {
   return "neutral";
 }
 
-export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
+export function JobDecisionV2Panel({
+  jobId,
+  persistenceV2Enabled = false,
+}: {
+  jobId: string;
+  persistenceV2Enabled?: boolean;
+}) {
   const hydrated = useClientHydrated();
   const [storageEpoch, setStorageEpoch] = useState(0);
+  const [remoteGate, setRemoteGate] = useState<"migration_required" | "auth_required" | "error" | null>(null);
+  const [remoteRecords, setRemoteRecords] = useState<{
+    job: ApplyFlowJob | null;
+    application: ApplyFlowApplicationV2Envelope | null;
+  } | null>(null);
+  const persistenceRef = useRef<ApplyFlowDashboardPersistence | null>(null);
   const snapshot = useMemo(() => {
     if (!hydrated) return null;
+    if (persistenceV2Enabled) {
+      if (!remoteRecords) return null;
+      return loadJobDecisionV2Snapshot(jobId, storageEpoch, remoteRecords);
+    }
     return loadJobDecisionV2Snapshot(jobId, storageEpoch);
-  }, [hydrated, jobId, storageEpoch]);
+  }, [hydrated, jobId, persistenceV2Enabled, remoteRecords, storageEpoch]);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || persistenceV2Enabled) return;
     persistClosedLoopV1Backfill();
-  }, [hydrated, jobId]);
+  }, [hydrated, jobId, persistenceV2Enabled]);
+
+  useEffect(() => {
+    if (!hydrated || !persistenceV2Enabled) return;
+    let cancelled = false;
+    void openDashboardPersistence({ persistenceV2Enabled: true }).then((opened) => {
+      if (cancelled) return;
+      if (opened.kind !== "ready") {
+        persistenceRef.current = null;
+        if (opened.kind === "migration_required" || opened.kind === "auth_required" || opened.kind === "error") {
+          setRemoteGate(opened.kind);
+        }
+        return;
+      }
+      persistenceRef.current = opened.persistence;
+      const job = opened.jobs.find((item) => item.id === jobId) ?? null;
+      setRemoteRecords({
+        job,
+        application: job ? (findApplicationForJob(opened.applications, job) ?? null) : null,
+      });
+      setRemoteGate(null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrated, jobId, persistenceV2Enabled]);
   const job = snapshot?.job;
   const decision = snapshot?.decision ?? null;
   const pack = snapshot?.pack ?? null;
@@ -149,6 +197,19 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
       decision,
       pack: pack && pack.status === "ready" ? pack : undefined,
     });
+    if (persistenceV2Enabled) {
+      const persistence = persistenceRef.current;
+      if (!persistence) return;
+      void persistence.createApplication(created.application).then((result) => {
+        if (!result.ok) {
+          setPersistError(dashboardPersistenceFailureMessage(result.code));
+          return;
+        }
+        setPersistError(null);
+        setRemoteRecords({ job, application: result.data });
+      });
+      return;
+    }
     const persisted = persistApplicationWithOutcome(created);
     if (!persisted.ok) {
       setPersistError(persisted.error);
@@ -164,6 +225,19 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
 
   function markApplicationSent() {
     if (!application) return;
+    if (persistenceV2Enabled) {
+      const persistence = persistenceRef.current;
+      if (!persistence) return;
+      void persistence.updateApplication({ ...application, status: "applied" }).then((result) => {
+        if (!result.ok) {
+          setPersistError(dashboardPersistenceFailureMessage(result.code));
+          return;
+        }
+        setPersistError(null);
+        setRemoteRecords({ job: job ?? null, application: result.data });
+      });
+      return;
+    }
     const persisted = persistApplicationSubmitted(application);
     if (!persisted.ok) {
       setPersistError(persisted.error);
@@ -175,6 +249,26 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
 
   function recordStatus(toStatus: ApplyFlowPipelineStatusV2) {
     if (!application || !canRecordApplicationOutcome(application.id, [application])) return;
+    if (persistenceV2Enabled) {
+      const persistence = persistenceRef.current;
+      if (!persistence) return;
+      void persistence
+        .updateApplication({
+          ...application,
+          status: fromPipelineStatusV2(toStatus),
+          ...(feedbackNote.trim() ? { notes: feedbackNote.trim() } : {}),
+        })
+        .then((result) => {
+          if (!result.ok) {
+            setPersistError(dashboardPersistenceFailureMessage(result.code));
+            return;
+          }
+          setPersistError(null);
+          setRemoteRecords({ job: job ?? null, application: result.data });
+          setFeedbackNote(toStatus === "rejected" && !feedbackNote.trim() ? "Rejection recorded without an explicit reason (unknown)." : "");
+        });
+      return;
+    }
     const persisted = persistApplicationStatusTransition({
       application,
       toStatus,
@@ -189,6 +283,10 @@ export function JobDecisionV2Panel({ jobId }: { jobId: string }) {
     setPersistError(null);
     refreshAfterPersist();
     setFeedbackNote(toStatus === "rejected" && !feedbackNote.trim() ? "Rejection recorded without an explicit reason (unknown)." : "");
+  }
+
+  if (remoteGate) {
+    return <DashboardPersistenceNotice kind={remoteGate} />;
   }
 
   if (!snapshot) {

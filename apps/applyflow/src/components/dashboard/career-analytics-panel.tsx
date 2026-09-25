@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { ApplyFlowBadge } from "@/components/ui/ApplyFlowBadge";
@@ -10,6 +10,9 @@ import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
 import { loadCareerAnalyticsSnapshot } from "@/lib/career-analytics-snapshot";
 import { useClientHydrated } from "@/lib/use-client-hydrated";
+import { DashboardPersistenceNotice } from "@/components/dashboard/dashboard-persistence-notice";
+import { openDashboardPersistence } from "@/lib/persistence-v2/dashboard/open-dashboard-persistence";
+import type { ApplyFlowApplicationV2Envelope, ApplyFlowJob } from "@devflow/applyflow-core";
 
 import {
   CAREER_ANALYTICS_DISCLAIMER,
@@ -30,17 +33,49 @@ function pct(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
 
-export function CareerAnalyticsPanel() {
+export function CareerAnalyticsPanel({ persistenceV2Enabled = false }: { persistenceV2Enabled?: boolean }) {
   const hydrated = useClientHydrated();
-  const snapshot = useMemo(
-    () => (hydrated ? loadCareerAnalyticsSnapshot() : null),
-    [hydrated],
-  );
+  const [remoteGate, setRemoteGate] = useState<"migration_required" | "auth_required" | "error" | null>(null);
+  const [remoteDomain, setRemoteDomain] = useState<{
+    jobs: ApplyFlowJob[];
+    applications: ApplyFlowApplicationV2Envelope[];
+  } | null>(null);
+  useEffect(() => {
+    if (!hydrated || !persistenceV2Enabled) return;
+    let cancelled = false;
+    void openDashboardPersistence({ persistenceV2Enabled: true }).then((opened) => {
+      if (cancelled) return;
+      if (opened.kind === "ready") {
+        setRemoteDomain({ jobs: opened.jobs, applications: opened.applications });
+        setRemoteGate(null);
+        return;
+      }
+      if (opened.kind === "migration_required" || opened.kind === "auth_required" || opened.kind === "error") {
+        setRemoteGate(opened.kind);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrated, persistenceV2Enabled]);
+  const snapshot = useMemo(() => {
+    if (!hydrated) return null;
+    if (!persistenceV2Enabled) return loadCareerAnalyticsSnapshot();
+    if (!remoteDomain) return null;
+    return loadCareerAnalyticsSnapshot({
+      jobs: remoteDomain.jobs,
+      applications: remoteDomain.applications,
+    });
+  }, [hydrated, persistenceV2Enabled, remoteDomain]);
   const [tab, setTab] = useState<AnalyticsTab>("overview");
 
   const empty = Boolean(
     snapshot && (snapshot.scorecard?.applications ?? 0) === 0 && (snapshot.scorecard?.jobsFound ?? 0) === 0,
   );
+
+  if (persistenceV2Enabled && remoteGate) {
+    return <DashboardPersistenceNotice kind={remoteGate} />;
+  }
 
   if (!snapshot) {
     return <p className="text-sm text-[color:var(--af-text-muted)]">A carregar…</p>;

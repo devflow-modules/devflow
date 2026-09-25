@@ -1,4 +1,5 @@
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
+import { isApplyFlowPersistenceV2Enabled } from "@/lib/persistence-v2/feature-flag";
 import { isApplyFlowGmailRuntimeEnabled } from "@/lib/provider-runtime/gmail-runtime-ui-enabled";
 
 export default function DashboardPage() {
@@ -6,7 +7,10 @@ export default function DashboardPage() {
     <main className="relative border-b border-[color:var(--af-border)]/80">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(52,211,153,0.06),transparent_50%)]" />
       <div className="relative mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-12">
-        <DashboardClient gmailRuntimeEnabled={isApplyFlowGmailRuntimeEnabled()} />
+        <DashboardClient
+          gmailRuntimeEnabled={isApplyFlowGmailRuntimeEnabled()}
+          persistenceV2Enabled={isApplyFlowPersistenceV2Enabled()}
+        />
       </div>
     </main>
   );

@@ -220,6 +220,7 @@ export {
   snapshotJobDescription,
 } from "./job-description-snapshot.js";
 export {
+  createApplyFlowJobId,
   ingestApplyFlowJob,
   isJobMatchStale,
   projectJobForFunnel,
@@ -257,6 +258,7 @@ export {
 } from "./application-pack.js";
 export type { ApplicationPackOpResult } from "./application-pack.js";
 export {
+  applyFlowStoredJobSchema,
   isApplyFlowJobsImportV2,
   parseApplyFlowJobsImport,
   parseApplyFlowJobsImportJsonString,
