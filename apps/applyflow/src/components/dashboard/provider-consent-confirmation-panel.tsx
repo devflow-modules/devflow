@@ -10,6 +10,7 @@ import {
   createProviderRuntimeConnectionStatusFromConnectEvent,
 } from "@devflow/career-sync";
 import type { ProviderConnectionVerificationResult } from "@devflow/career-sync";
+import type { ApplyFlowApplication } from "@devflow/applyflow-core";
 import type { CareerBundle } from "@devflow/career-core";
 import type { CareerBundleUnifiedSyncEnrichment } from "@devflow/career-sync";
 import type { CareerBundleSyncEnrichmentSourceKind } from "@/lib/career-bundle-sync-enrichment-source";
@@ -99,12 +100,16 @@ export function ProviderConsentConfirmationPanel({
   onEligibleProviderEnrichmentChange,
   careerBundle = null,
   gmailRuntimeEnabled = false,
+  applications = [],
+  persistenceV2Enabled = false,
 }: {
   currentSyncEnrichment?: CareerBundleUnifiedSyncEnrichment | null;
   baselineSourceKind?: CareerBundleSyncEnrichmentSourceKind;
   onEligibleProviderEnrichmentChange?: (enrichment: CareerBundleUnifiedSyncEnrichment | null) => void;
   careerBundle?: CareerBundle | null;
   gmailRuntimeEnabled?: boolean;
+  applications?: readonly ApplyFlowApplication[];
+  persistenceV2Enabled?: boolean;
 }) {
   const [selectedProvider, setSelectedProvider] = useState<ProviderKind>("gmail");
   const [explicitConsentChecked, setExplicitConsentChecked] = useState(false);
@@ -375,6 +380,8 @@ export function ProviderConsentConfirmationPanel({
             baselineSourceKind={baselineSourceKind}
             onEligibleProviderEnrichmentChange={onEligibleProviderEnrichmentChange}
             careerBundle={careerBundle}
+            applications={applications}
+            persistenceV2Enabled={persistenceV2Enabled}
           />
         ) : null}
       </div>

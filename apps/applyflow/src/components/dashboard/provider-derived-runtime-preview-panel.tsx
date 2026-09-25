@@ -36,9 +36,9 @@ import { CareerAgentWorkspace } from "./career-agent-workspace";
 import { CareerChatWorkspace } from "./career-chat-workspace";
 import { CareerAiDraft } from "./career-ai-draft";
 import { ApprovedAutomationReview } from "./approved-automation-review";
+import type { ApplyFlowApplication } from "@devflow/applyflow-core";
 import { InboundApplicationResponsePanel } from "./inbound-application-response-panel";
 import { inboundEmailsFromProviderPreview } from "./inbound-signals-from-preview";
-import { loadDashboardImport } from "@/lib/local-import-storage";
 import { loadDashboardAnalytics } from "@/lib/local-analytics-storage";
 
 export type { ProviderDerivedRuntimePreviewUiState } from "./provider-derived-runtime-preview-client";
@@ -132,10 +132,14 @@ export function ProviderDerivedRuntimePreviewPanel({
   baselineSourceKind = "none",
   onEligibleProviderEnrichmentChange,
   careerBundle = null,
+  applications = [],
+  persistenceV2Enabled = false,
 }: {
   explicitConsentChecked: boolean;
   gmailVerification: ProviderConnectionVerificationResult | null;
   calendarVerification: ProviderConnectionVerificationResult | null;
+  applications?: readonly ApplyFlowApplication[];
+  persistenceV2Enabled?: boolean;
   currentSyncEnrichment?: CareerBundleUnifiedSyncEnrichment | null;
   baselineSourceKind?: CareerBundleSyncEnrichmentSourceKind;
   onEligibleProviderEnrichmentChange?: (enrichment: CareerBundleUnifiedSyncEnrichment | null) => void;
@@ -383,7 +387,8 @@ export function ProviderDerivedRuntimePreviewPanel({
 
         {previewResult && (previewResult.status === "completed" || previewResult.status === "partial") ? (
           <InboundApplicationResponsePanel
-            applications={loadDashboardImport()?.applications ?? []}
+            applications={applications}
+            persistenceV2Enabled={persistenceV2Enabled}
             outcomes={loadDashboardAnalytics().outcomes}
             emails={inboundEmailsFromProviderPreview(previewResult.signals)}
           />

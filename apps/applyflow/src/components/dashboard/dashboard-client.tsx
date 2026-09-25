@@ -955,7 +955,11 @@ export function DashboardClient({
       />
 
       {shouldShowProviderConsentOnDashboard() ? (
-        <ProviderConsentConfirmationPanel gmailRuntimeEnabled={gmailRuntimeEnabled} />
+        <ProviderConsentConfirmationPanel
+          gmailRuntimeEnabled={gmailRuntimeEnabled}
+          applications={applications}
+          persistenceV2Enabled={persistenceV2Enabled}
+        />
       ) : null}
 
       {showApplications ? (
@@ -964,6 +968,7 @@ export function DashboardClient({
             applications={applications}
             outcomes={loadDashboardAnalytics().outcomes}
             gmailRuntimeEnabled={gmailRuntimeEnabled}
+            persistenceV2Enabled={persistenceV2Enabled}
             onApplicationUpdated={(application) => {
               setApplications((prev) => [...prev.filter((item) => item.id !== application.id), application]);
             }}

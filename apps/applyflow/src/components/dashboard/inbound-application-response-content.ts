@@ -25,6 +25,8 @@ export const INBOUND_RESPONSE_GMAIL_HINT =
 export const INBOUND_RESPONSE_CONFIRMED_PREFIX = "Confirmado — candidatura actualizada para";
 export const INBOUND_RESPONSE_CONFIRMED_NOTE = "Confirmado — registado no histórico, sem mudança de estágio.";
 export const INBOUND_RESPONSE_NEED_APPLICATION = "Escolhe a candidatura antes de confirmar.";
+export const INBOUND_RESPONSE_V2_CONFIRM_BLOCKED =
+  "A confirmação de respostas ainda não está disponível com a persistência da conta. A candidatura não foi alterada.";
 export const INBOUND_RESPONSE_DISMISSED_HINT = "Detecção ignorada. A candidatura não foi alterada.";
 export const INBOUND_RESPONSE_LOCAL_ONLY = "O assunto cola-se só para classificar agora. Não fica no armazenamento.";
 export const INBOUND_RESPONSE_PENDING_BADGE = "Pendente de revisão";
