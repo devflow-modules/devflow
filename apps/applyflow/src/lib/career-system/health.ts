@@ -9,6 +9,8 @@ import {
   resolveCareerRuntimeEnvironment,
   type CareerRuntimeEnvironment,
 } from "./environment";
+import { isApplyFlowPersistenceV2Enabled } from "../persistence-v2/feature-flag";
+import { probeApplyFlowDatabaseReachable } from "../persistence-v2/db-health";
 import { resolveCareerBuildMetadata } from "./version";
 
 export type CareerSystemHealthStatus = "healthy" | "degraded" | "unhealthy";
@@ -176,5 +178,42 @@ export function resolveCareerReadiness(env: NodeJS.ProcessEnv = process.env): Ca
     },
     blockers: blockers.map((component) => component.component),
     timestamp: new Date().toISOString(),
+  };
+}
+
+/**
+ * When Persistence V2 is enabled, performs a minimal DB probe for readiness.
+ * V1 (flag OFF) keeps the synchronous Gate A behavior.
+ */
+export async function resolveCareerReadinessWithPersistence(
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<CareerReadinessResult> {
+  const base = resolveCareerReadiness(env);
+  if (!isApplyFlowPersistenceV2Enabled(env)) {
+    return base;
+  }
+
+  const reachable = await probeApplyFlowDatabaseReachable(env);
+  if (!reachable) {
+    const blockers: CareerComponentName[] = base.blockers.includes("database")
+      ? base.blockers
+      : [...base.blockers, "database"];
+    return {
+      ...base,
+      status: "not_ready",
+      checks: {
+        ...base.checks,
+        databaseReachable: false,
+      },
+      blockers,
+    };
+  }
+
+  return {
+    ...base,
+    checks: {
+      ...base.checks,
+      databaseReachable: true,
+    },
   };
 }

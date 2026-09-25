@@ -92,6 +92,9 @@ jobs:
           pnpm --filter @devflow/career-sync build
           pnpm --filter @devflow/career-core build
 
+      - name: Generate ApplyFlow Prisma client
+        run: pnpm --filter applyflow db:generate
+
       - name: Lint ApplyFlow
         run: pnpm --filter applyflow exec eslint "src/**/*.{ts,tsx}"
 

@@ -3,7 +3,7 @@ import { GET, POST } from "./route";
 
 describe("GET /career-system/readyz", () => {
   it("returns readiness checks", async () => {
-    const res = GET();
+    const res = await GET();
     expect([200, 503]).toContain(res.status);
     const body = await res.json();
     expect(["ready", "not_ready"]).toContain(body.status);
