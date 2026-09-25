@@ -49,9 +49,16 @@ function emptySnapshot(partial: Partial<JobDecisionV2Snapshot> & { job: ApplyFlo
   };
 }
 
-export function loadJobDecisionV2Snapshot(jobId: string, revision = 0): JobDecisionV2Snapshot {
+export function loadJobDecisionV2Snapshot(
+  jobId: string,
+  revision = 0,
+  records?: {
+    job: ApplyFlowJob | null;
+    application: ApplyFlowApplicationV2Envelope | null;
+  },
+): JobDecisionV2Snapshot {
   void revision;
-  const found = loadDashboardJobs().jobs.find((item) => item.id === jobId) ?? null;
+  const found = records ? records.job : (loadDashboardJobs().jobs.find((item) => item.id === jobId) ?? null);
   const stored = loadDashboardContacts();
   const contacts = stored.contacts.filter((item) => !item.jobId || item.jobId === jobId);
 
@@ -59,7 +66,9 @@ export function loadJobDecisionV2Snapshot(jobId: string, revision = 0): JobDecis
     return emptySnapshot({ job: null, contacts });
   }
 
-  const foundApp = findApplicationForJob(loadDashboardImport()?.applications ?? [], found) ?? null;
+  const foundApp = records
+    ? records.application
+    : (findApplicationForJob(loadDashboardImport()?.applications ?? [], found) ?? null);
   const storedAnalytics = loadDashboardAnalytics();
   const computedBackfill = computeClosedLoopV1Backfill();
   const analytics =

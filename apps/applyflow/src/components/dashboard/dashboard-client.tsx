@@ -96,6 +96,13 @@ import {
   type DashboardJobsUnreadableReason,
 } from "@/lib/local-job-storage";
 import {
+  DashboardPersistenceNotice,
+  V2_LOCAL_IMPORT_BLOCKED,
+  dashboardPersistenceFailureMessage,
+} from "@/components/dashboard/dashboard-persistence-notice";
+import type { ApplyFlowDashboardPersistence } from "@/lib/persistence-v2/dashboard/dashboard-persistence";
+import { openDashboardPersistence } from "@/lib/persistence-v2/dashboard/open-dashboard-persistence";
+import {
   clearPersistedResumeLibrary,
   hydrateResumeLibraryState,
   persistResumeLibrary,
@@ -207,8 +214,10 @@ function feedbackSummary(f: ImportFeedback | null): ReactNode {
 
 export function DashboardClient({
   gmailRuntimeEnabled = false,
+  persistenceV2Enabled = false,
 }: {
   gmailRuntimeEnabled?: boolean;
+  persistenceV2Enabled?: boolean;
 } = {}) {
   const [applications, setApplications] = useState<ApplyFlowApplicationV2Envelope[]>([]);
   const [jobs, setJobs] = useState<ApplyFlowJob[]>([]);
@@ -227,8 +236,33 @@ export function DashboardClient({
   const [filters, setFilters] = useState<DashboardTableFilters>(defaultFilters);
   const [dragOver, setDragOver] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
+  const [remoteGate, setRemoteGate] = useState<"migration_required" | "auth_required" | "error" | null>(null);
+  const persistenceRef = useRef<ApplyFlowDashboardPersistence | null>(null);
 
   useEffect(() => {
+    if (persistenceV2Enabled) {
+      let cancelled = false;
+      void openDashboardPersistence({ persistenceV2Enabled: true }).then((opened) => {
+        if (cancelled) return;
+        if (opened.kind === "ready") {
+          persistenceRef.current = opened.persistence;
+          setJobs(opened.jobs);
+          setApplications(opened.applications);
+          setRemoteGate(null);
+          setHydrated(true);
+          return;
+        }
+        persistenceRef.current = null;
+        if (opened.kind === "migration_required") setRemoteGate("migration_required");
+        else if (opened.kind === "auth_required") setRemoteGate("auth_required");
+        else if (opened.kind === "error") setRemoteGate("error");
+        setHydrated(true);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+
     persistClosedLoopV1Backfill();
     const stored = loadDashboardImport();
     const storedJobs = loadDashboardJobs();
@@ -268,7 +302,7 @@ export function DashboardClient({
       }
       setHydrated(true);
     });
-  }, []);
+  }, [persistenceV2Enabled]);
 
   const now = useMemo(() => new Date(), []);
 
@@ -430,6 +464,10 @@ export function DashboardClient({
   resumeLibraryRef.current = resumeLibrary;
 
   const commitJobs = useCallback((incoming: ApplyFlowJob[]) => {
+    if (persistenceV2Enabled) {
+      setImportError(V2_LOCAL_IMPORT_BLOCKED);
+      return { jobs: jobsRef.current, added: 0, skipped: incoming.length };
+    }
     const merged = mergeApplyFlowJobs(jobsRef.current, incoming);
     persistDashboardJobs(merged.jobs);
     setJobs(merged.jobs);
@@ -444,7 +482,7 @@ export function DashboardClient({
       setJobInboxError(null);
     }
     return merged;
-  }, []);
+  }, [persistenceV2Enabled]);
 
   const commitResumeLibrary = useCallback((library: ResumeLibrary) => {
     const persisted = persistResumeLibrary(library);
@@ -457,16 +495,31 @@ export function DashboardClient({
     const currentJobs = jobsRef.current;
     if (currentJobs.length === 0) return;
     const nextJobs = reevaluateApplyFlowJobs(currentJobs, getDefaultResumeVariant(library).profile, library);
-    if (nextJobs.some((job, index) => job !== currentJobs[index])) {
-      persistDashboardJobs(nextJobs);
-      setJobs(nextJobs);
+    if (!nextJobs.some((job, index) => job !== currentJobs[index])) return;
+    if (persistenceV2Enabled) {
+      const persistence = persistenceRef.current;
+      if (!persistence) return;
+      const changed = nextJobs.filter((job, index) => job !== currentJobs[index]);
+      void Promise.all(changed.map((job) => persistence.updateJob(job))).then((results) => {
+        const failed = results.find((result) => !result.ok);
+        if (failed && !failed.ok) {
+          setJobInboxError(dashboardPersistenceFailureMessage(failed.code));
+          return;
+        }
+        setJobs((prev) =>
+          results.reduce((jobs, result) => (result.ok ? replaceApplyFlowJob(jobs, result.data) : jobs), prev),
+        );
+      });
+      return;
     }
-  }, []);
+    persistDashboardJobs(nextJobs);
+    setJobs(nextJobs);
+  }, [persistenceV2Enabled]);
 
   const matchProfile = useCallback(() => resolveInboxMatchProfile(resumeLibraryRef.current), []);
 
   const onEvaluatePaste = useCallback(
-    (input: { description: string; title: string; company: string; url: string }) => {
+    async (input: { description: string; title: string; company: string; url: string }) => {
       const description = input.description.trim();
       if (!description) {
         setJobInboxError("Cola o texto da vaga para avaliar.");
@@ -490,19 +543,44 @@ export function DashboardClient({
         profile,
         resumeLibrary: resumeLibraryRef.current ?? undefined,
       });
+      if (persistenceV2Enabled) {
+        const persistence = persistenceRef.current;
+        if (!persistence) return "error" as const;
+        const created = await persistence.createJob(job);
+        if (!created.ok) {
+          setJobInboxError(dashboardPersistenceFailureMessage(created.code));
+          return created.code === "job_already_exists" ? ("duplicate_content" as const) : ("error" as const);
+        }
+        setJobs((prev) => [...prev.filter((item) => item.id !== created.data.id), created.data]);
+        setJobInboxError(null);
+        return "added" as const;
+      }
       const merged = commitJobs([job]);
       if (merged.added === 0 && merged.skipped > 0) return "duplicate_content" as const;
       return "added" as const;
     },
-    [commitJobs, matchProfile],
+    [commitJobs, matchProfile, persistenceV2Enabled],
   );
 
   const replaceJob = useCallback((next: ApplyFlowJob) => {
+    if (persistenceV2Enabled) {
+      const persistence = persistenceRef.current;
+      if (!persistence) return;
+      void persistence.updateJob(next).then((result) => {
+        if (!result.ok) {
+          setJobInboxError(dashboardPersistenceFailureMessage(result.code));
+          return;
+        }
+        setJobs((prev) => replaceApplyFlowJob(prev, result.data));
+        setJobInboxError(null);
+      });
+      return;
+    }
     const nextJobs = replaceApplyFlowJob(jobsRef.current, next);
     persistDashboardJobs(nextJobs);
     setJobs(nextJobs);
     setJobInboxError(null);
-  }, []);
+  }, [persistenceV2Enabled]);
 
   const onReevaluateJob = useCallback(
     (jobId: string) => {
@@ -542,6 +620,28 @@ export function DashboardClient({
   );
 
   const commitApplicationSubmitted = useCallback((application: ApplyFlowApplication) => {
+    if (persistenceV2Enabled) {
+      const persistence = persistenceRef.current;
+      if (!persistence) return;
+      const envelope = application as ApplyFlowApplicationV2Envelope;
+      void persistence.updateApplication({ ...envelope, status: "applied" }).then(async (result) => {
+        if (!result.ok) {
+          setImportError(dashboardPersistenceFailureMessage(result.code));
+          return;
+        }
+        setApplications((prev) => [...prev.filter((item) => item.id !== result.data.id), result.data]);
+        const sourceJobId = result.data.v2?.sourceJobId;
+        const linked = sourceJobId ? jobsRef.current.find((job) => job.id === sourceJobId) : undefined;
+        if (!linked || linked.status === "applied") return;
+        const jobResult = await persistence.updateJob(markApplyFlowJobApplied(linked));
+        if (!jobResult.ok) {
+          setJobInboxError(dashboardPersistenceFailureMessage(jobResult.code));
+          return;
+        }
+        setJobs((prev) => replaceApplyFlowJob(prev, jobResult.data));
+      });
+      return;
+    }
     const persisted = persistApplicationSubmitted(application);
     if (!persisted.ok) {
       setImportError(persisted.error);
@@ -550,7 +650,7 @@ export function DashboardClient({
     setApplications((prev) => [...prev.filter((item) => item.id !== persisted.application.id), persisted.application]);
     const nextJobs = loadDashboardJobs();
     if (nextJobs.jobs.length) setJobs(nextJobs.jobs);
-  }, []);
+  }, [persistenceV2Enabled]);
 
   const onMarkJobApplied = useCallback(
     (jobId: string) => {
@@ -567,6 +667,11 @@ export function DashboardClient({
   );
 
   const processJsonText = useCallback((text: string) => {
+    if (persistenceV2Enabled) {
+      setImportError(V2_LOCAL_IMPORT_BLOCKED);
+      setImportFeedback(null);
+      return;
+    }
     setImportError(null);
     const r = parseApplyFlowDashboardImportJsonString(text, {
       profile: matchProfile() ?? undefined,
@@ -635,7 +740,7 @@ export function DashboardClient({
       kind: "import",
     });
     setImportError(null);
-  }, [commitJobs, commitResumeLibrary, matchProfile]);
+  }, [commitJobs, commitResumeLibrary, matchProfile, persistenceV2Enabled]);
 
   const onFile = useCallback(
     (file: File | null) => {
@@ -646,6 +751,11 @@ export function DashboardClient({
   );
 
   const loadDemo = useCallback(async () => {
+    if (persistenceV2Enabled) {
+      setImportError(V2_LOCAL_IMPORT_BLOCKED);
+      setImportFeedback(null);
+      return;
+    }
     if (applications.length > 0) {
       const ok = window.confirm(
         "Já existem dados no dashboard. Substituir pelo conjunto de demonstração fictício?",
@@ -682,7 +792,7 @@ export function DashboardClient({
     } finally {
       setDemoLoading(false);
     }
-  }, [applications.length]);
+  }, [applications.length, persistenceV2Enabled]);
 
   const tableEmpty = showApplications && filtered.length === 0;
   const showJobsRecovery = jobsStorageStatus === "partial" || jobsStorageStatus === "unreadable";
@@ -691,9 +801,15 @@ export function DashboardClient({
   if (!hydrated) {
     return (
       <ApplyFlowCard variant="muted" padding="lg" className="text-center">
-        <p className="text-sm text-[color:var(--af-text-muted)]">A preparar o painel e ler o armazenamento local…</p>
+        <p className="text-sm text-[color:var(--af-text-muted)]">
+          {persistenceV2Enabled ? "A carregar os dados da conta…" : "A preparar o painel e ler o armazenamento local…"}
+        </p>
       </ApplyFlowCard>
     );
+  }
+
+  if (remoteGate) {
+    return <DashboardPersistenceNotice kind={remoteGate} />;
   }
 
   return (
@@ -835,6 +951,7 @@ export function DashboardClient({
         onTogglePackChecklist={onTogglePackChecklist}
         onMarkJobApplied={onMarkJobApplied}
         onReevaluateJob={onReevaluateJob}
+        applications={applications}
       />
 
       {shouldShowProviderConsentOnDashboard() ? (
@@ -1310,6 +1427,7 @@ export function DashboardClient({
         ) : null}
 
         {workFlags.hasApplications || workFlags.hasJobs ? (
+          persistenceV2Enabled ? null : (
           <div className="flex flex-wrap items-center gap-4">
             <ApplyFlowButton
               type="button"
@@ -1330,6 +1448,7 @@ export function DashboardClient({
               Limpar dados do navegador
             </ApplyFlowButton>
           </div>
+          )
         ) : null}
       </ApplyFlowSection>
 

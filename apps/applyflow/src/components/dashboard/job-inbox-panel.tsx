@@ -65,6 +65,7 @@ import {
   resolveApplicationPackResume,
   type ApplicationPack,
   type ApplicationPackChecklistId,
+  type ApplyFlowApplicationV2Envelope,
   type ApplyFlowJob,
   type CurriculumRecommendation,
   type ResumeLibrary,
@@ -443,6 +444,7 @@ function ApplicationPackPrepare({
 
 function JobInboxCard({
   job,
+  applications,
   resumeLibrary,
   onCreateApplicationPack,
   onTogglePackChecklist,
@@ -450,6 +452,7 @@ function JobInboxCard({
   onReevaluateJob,
 }: {
   job: ApplyFlowJob;
+  applications?: readonly ApplyFlowApplicationV2Envelope[];
   resumeLibrary?: ResumeLibrary | null;
   onCreateApplicationPack?: (jobId: string, variantId?: string) => void;
   onTogglePackChecklist?: (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => void;
@@ -460,7 +463,10 @@ function JobInboxCard({
     job,
     resumeLibrary?.variants.length ? getDefaultResumeVariant(resumeLibrary).profile : null,
   );
-  const linkedApplication = findApplicationForJob(loadDashboardImport()?.applications ?? [], job);
+  const linkedApplication = findApplicationForJob(
+    applications ?? loadDashboardImport()?.applications ?? [],
+    job,
+  );
   const atApply = analysisAtApplyFromOutcome(
     linkedApplication
       ? loadDashboardAnalytics().outcomes.find((item) => item.applicationId === linkedApplication.id)
@@ -560,6 +566,7 @@ export function JobInboxPanel({
   onTogglePackChecklist,
   onMarkJobApplied,
   onReevaluateJob,
+  applications,
 }: {
   jobs: ApplyFlowJob[];
   error: string | null;
@@ -570,12 +577,13 @@ export function JobInboxPanel({
     title: string;
     company: string;
     url: string;
-  }) => InboxEvaluateStatus | void;
+  }) => InboxEvaluateStatus | void | Promise<InboxEvaluateStatus | void>;
   resumeLibrary?: ResumeLibrary | null;
   onCreateApplicationPack?: (jobId: string, variantId?: string) => void;
   onTogglePackChecklist?: (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => void;
   onMarkJobApplied?: (jobId: string) => void;
   onReevaluateJob?: (jobId: string) => void;
+  applications?: readonly ApplyFlowApplicationV2Envelope[];
 }) {
   const [description, setDescription] = useState("");
   const [title, setTitle] = useState("");
@@ -600,7 +608,8 @@ export function JobInboxPanel({
             return;
           }
           setDuplicateJob(null);
-          const status = onEvaluatePaste({ description, title, company, url });
+          void (async () => {
+            const status = await Promise.resolve(onEvaluatePaste({ description, title, company, url }));
           if (!status) return;
           const next = nextInboxDraftAfterEvaluate(status, { description, title, company, url });
           setDescription(next.description);
@@ -610,6 +619,7 @@ export function JobInboxPanel({
           if (status === "duplicate_url") {
             setDuplicateJob(findJobByCanonicalUrl(jobs, url) ?? null);
           }
+          })();
         }}
       >
         <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
@@ -684,6 +694,7 @@ export function JobInboxPanel({
                 onTogglePackChecklist={onTogglePackChecklist}
                 onMarkJobApplied={onMarkJobApplied}
                 onReevaluateJob={onReevaluateJob}
+                applications={applications}
               />
             </li>
           ))}
