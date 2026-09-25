@@ -1,13 +1,25 @@
-import type { ApplyFlowApplication, ApplyFlowJob, Prisma, PrismaClient } from "@prisma/client";
+import type {
+  ApplyFlowApplication,
+  ApplyFlowJob,
+  ApplyFlowMigrationSession,
+  Prisma,
+  PrismaClient,
+} from "@prisma/client";
 
 type JobDelegate = PrismaClient["applyFlowJob"];
 type ApplicationDelegate = PrismaClient["applyFlowApplication"];
+type MigrationSessionDelegate = PrismaClient["applyFlowMigrationSession"];
 
 export type ApplyFlowPersistenceDb = {
   applyFlowJob: JobDelegate;
   applyFlowApplication: ApplicationDelegate;
+  applyFlowMigrationSession: MigrationSessionDelegate;
   $transaction: <T>(
-    fn: (tx: { applyFlowJob: JobDelegate; applyFlowApplication: ApplicationDelegate }) => Promise<T>,
+    fn: (tx: {
+      applyFlowJob: JobDelegate;
+      applyFlowApplication: ApplicationDelegate;
+      applyFlowMigrationSession: MigrationSessionDelegate;
+    }) => Promise<T>,
   ) => Promise<T>;
 };
 
@@ -83,4 +95,28 @@ export type ApplyFlowApplicationUpdateInput = {
   appliedAt?: Date | null;
 };
 
-export type { ApplyFlowApplication, ApplyFlowJob };
+export type ApplyFlowMigrationSessionCreateInput = {
+  accountId: string;
+  sourceVersion: number;
+  bundleFingerprint: string;
+  status: string;
+  expectedJobs: number;
+  expectedApplications: number;
+  processedJobs?: number;
+  processedApplications?: number;
+  conflictSummary?: Prisma.InputJsonValue | null;
+};
+
+export type ApplyFlowMigrationSessionUpdateInput = {
+  status?: string;
+  processedJobs?: number;
+  processedApplications?: number;
+  conflictSummary?: Prisma.InputJsonValue | null;
+  completedAt?: Date | null;
+};
+
+export type {
+  ApplyFlowApplication,
+  ApplyFlowJob,
+  ApplyFlowMigrationSession,
+};

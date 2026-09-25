@@ -5,6 +5,9 @@ export type {
   ApplyFlowJob,
   ApplyFlowJobCreateInput,
   ApplyFlowJobUpdateInput,
+  ApplyFlowMigrationSession,
+  ApplyFlowMigrationSessionCreateInput,
+  ApplyFlowMigrationSessionUpdateInput,
   ApplyFlowPersistenceDb,
   OptimisticUpdateResult,
 } from "./types";
@@ -22,3 +25,9 @@ export {
   type ApplicationListOptions,
   type ApplyFlowApplicationRepository,
 } from "./applications-repository";
+
+export {
+  applyFlowMigrationSessionRepository,
+  createApplyFlowMigrationSessionRepository,
+  type ApplyFlowMigrationSessionRepository,
+} from "./migration-session-repository";
