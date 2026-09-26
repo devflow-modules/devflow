@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    setupFiles: ["./src/lib/persistence-v2/migration/f3-5-vitest-env-setup.ts"],
   },
   resolve: {
     alias: {

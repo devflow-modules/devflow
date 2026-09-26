@@ -4,6 +4,7 @@ import { persistDashboardAnalytics } from "@/lib/local-analytics-storage";
 import { persistDashboardImport } from "@/lib/local-import-storage";
 import { persistDashboardJobs } from "@/lib/local-job-storage";
 
+import { assertApplyFlowDestructiveDbTargetAllowed } from "../db-target-guard";
 import type { ApplyFlowPersistenceDb } from "../repositories/types";
 
 /** Deterministic, identifiable F3.5 E2E ids — surgical cleanup only. */
@@ -121,6 +122,9 @@ export async function cleanupAllF35ForAccount(
   accountId: string,
   fingerprints: string[] = [],
 ): Promise<void> {
+  // Fail closed before any mutation — Production / remote Supabase never reach deletes.
+  assertApplyFlowDestructiveDbTargetAllowed();
+
   await db.applyFlowApplication.deleteMany({
     where: { accountId, id: { startsWith: "e2e_f35_" } },
   });

@@ -6,6 +6,11 @@
     "dev": "next dev --port 3010 --webpack",
     "build": "prisma generate && next build --webpack",
     "db:generate": "prisma generate",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:migrate": "node ./scripts/persistence-v2/run-prisma.cjs migrate deploy",
+    "db:status": "node ./scripts/persistence-v2/run-prisma.cjs migrate status",
+    "db:audit": "node scripts/persistence-v2/f3-5-env-audit.mjs",
     "start": "next start --port 3010",
     "lint": "eslint",
     "test": "vitest run"
