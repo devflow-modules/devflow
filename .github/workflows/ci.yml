@@ -73,6 +73,27 @@ jobs:
   test-applyflow:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Matches apps/applyflow/docker-compose.yml local Persistence V2 contract.
+    # Required by AF-REL-001 PostgreSQL concurrency suite (fail-closed if unreachable).
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: applyflow
+          POSTGRES_PASSWORD: applyflow_local_dev
+          POSTGRES_DB: applyflow
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd "pg_isready -U applyflow -d applyflow"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # CI-only non-secret credentials aligned with apps/applyflow/.env.example + docker-compose.yml
+      DATABASE_URL: postgresql://applyflow:applyflow_local_dev@localhost:5434/applyflow
+      DIRECT_URL: postgresql://applyflow:applyflow_local_dev@localhost:5434/applyflow
+      APPLYFLOW_DB_TARGET: local
     steps:
       - uses: actions/checkout@v4
 
@@ -94,6 +115,27 @@ jobs:
 
       - name: Generate ApplyFlow Prisma client
         run: pnpm --filter applyflow db:generate
+
+      - name: Migrate ApplyFlow schema on service Postgres
+        working-directory: apps/applyflow
+        run: pnpm exec prisma migrate deploy
+
+      - name: Verify AF-REL-001 unique index
+        working-directory: apps/applyflow
+        run: |
+          pnpm exec prisma db execute --schema prisma/schema.prisma --stdin <<'SQL'
+          DO $$
+          BEGIN
+            IF NOT EXISTS (
+              SELECT 1
+              FROM pg_indexes
+              WHERE tablename = 'applyflow_applications'
+                AND indexname = 'applyflow_applications_account_id_source_job_id_uidx'
+            ) THEN
+              RAISE EXCEPTION 'AF-REL-001 unique index missing after migrate deploy';
+            END IF;
+          END $$;
+          SQL
 
       - name: Lint ApplyFlow
         run: pnpm --filter applyflow exec eslint "src/**/*.{ts,tsx}"
