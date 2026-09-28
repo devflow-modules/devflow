@@ -20,6 +20,7 @@ import {
   saveLastAiAnswerReview,
 } from "@/lib/ai-answer-review-storage";
 import { resolveAnswerReviewProvider } from "@/lib/ai-provider";
+import { toUserFacingReviewError } from "@/lib/provider-error";
 
 const btn =
   "rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-1.5 text-xs font-medium text-neutral-200 transition hover:border-emerald-500/50 hover:text-white";
@@ -94,7 +95,7 @@ export function AiAnswerReviewClient() {
       setResult(out);
       saveLastAiAnswerReview(out);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Review failed.");
+      setError(toUserFacingReviewError(e));
     } finally {
       setLoading(false);
     }
