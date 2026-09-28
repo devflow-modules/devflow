@@ -61,6 +61,25 @@ pnpm exec tsx ./scripts/persistence-v2/source-job-uniqueness-preflight.ts
 
 If duplicates already exist, the migration refuses to create the unique index until an operator remediates manually.
 
+## Migration contract (AF-REL-002)
+
+**Decision:** [ADR — Partial-Resumable Migration with Atomic Canonical Promotion](./ADR-PERSISTENCE_V2_PARTIAL_RESUMABLE_MIGRATION.md).
+
+| Layer | Guarantee |
+| --- | --- |
+| Job / Application import | **Partial + resumable** — durable noncanonical staging rows may exist before success |
+| Authority | **Atomic** — session `completed` and `canonicalPersistence → v2_cloud` share one transaction |
+
+### Migration SUCCEEDED
+
+All expected material for the fingerprint is verified, `ApplyFlowMigrationSession.status = completed`, and `canonicalPersistence = v2_cloud`.
+
+### Migration FAILED / INTERRUPTED
+
+Canonical authority remains **V1** (`v1_local`). V1 data stays intact. Noncanonical V2 staging **may** exist; retry with the **same** fingerprint resumes idempotently. Failure does **not** mean “zero durable cloud writes” and does **not** roll back staging rows automatically.
+
+Abandoned staging may remain (no GC in this slice). Safeguards: canonical stays V1; normal V2 writes denied in offering; empty activation refuses non-empty cloud; conflicting material fails closed.
+
 ## Rollout / rollback
 
 - Ops: [`PERSISTENCE_V2_FIRST_PRODUCTION_PILOT_RUNBOOK.md`](./PERSISTENCE_V2_FIRST_PRODUCTION_PILOT_RUNBOOK.md)
@@ -79,4 +98,5 @@ If duplicates already exist, the migration refuses to create the unique index un
 - [Closeout](./PERSISTENCE_V2_CLOSEOUT.md)
 - [ADR — Local-first vs Serverless](./ADR-LOCAL_FIRST_VS_SERVERLESS.md)
 - [ADR — Persistence V2 local + cloud](./ADR-PERSISTENCE_V2_LOCAL_AND_CLOUD.md)
+- [ADR — Partial-resumable migration + atomic promote](./ADR-PERSISTENCE_V2_PARTIAL_RESUMABLE_MIGRATION.md)
 - [ARCHITECTURE.md](./ARCHITECTURE.md)

@@ -14,6 +14,37 @@ No secrets or environment-specific credentials belong in this document.
 6. F3.3 coordinator: prepare → `POST /api/applyflow/v2/migration` → validate completion proof → persist F3.1 marker.
 7. Gate re-evaluates → `v2_ready` → dashboard reads via V2 adapter/APIs.
 
+## Migration success and failure (AF-REL-002)
+
+Authoritative contract: [ADR-PERSISTENCE_V2_PARTIAL_RESUMABLE_MIGRATION.md](./ADR-PERSISTENCE_V2_PARTIAL_RESUMABLE_MIGRATION.md).
+
+### SUCCEEDED
+
+Server verified the full fingerprint-matched bundle, `ApplyFlowMigrationSession.status === "completed"`, and `canonicalPersistence === "v2_cloud"` (complete + promote are one transaction). Client marker is written only after proof validation.
+
+### FAILED / INTERRUPTED
+
+Canonical remains `v1_local`. V1 browser data remains intact and authoritative for the product dashboard. Durable **noncanonical** cloud Jobs/Applications **may** already exist from the interrupted import. Retry the **same** fingerprint — do not expect automatic rollback of staging rows. Session statuses `pending` / `importing` / `failed` are **not** canonical V2 authority.
+
+### Session state machine
+
+| Status | Meaning | Canonical |
+| --- | --- | --- |
+| `pending` | Session opened | `v1_local` |
+| `importing` | Incremental Job then Application writes | `v1_local` |
+| `failed` | Conflicts recorded; no promotion | `v1_local` |
+| `completed` | Verified + promoted (atomic) | `v2_cloud` |
+
+`completed → importing` is forbidden. Response-loss after commit: retry same fingerprint returns idempotent proof; no duplicate rows.
+
+### Observability note
+
+`processedJobs` / `processedApplications` are reset when a non-completed session resumes importing and are written on fail/complete. They are **not** reliable mid-loop progress telemetry.
+
+### Abandoned staging
+
+Partial cloud rows may remain indefinitely. No automatic GC in this protocol. Empty activation refuses non-empty cloud; conflicting IDs fail closed without overwrite. Explicit cleanup is a **future** slice.
+
 ## How completion is proven
 
 Authoritative proof is the **server completion payload** from F3.2:
@@ -37,10 +68,11 @@ Post-cutover: complete-backup-retained until a future explicit cleanup slice.
 
 ## Retry semantics
 
-- Unchanged V1 dataset → same fingerprint → F3.2 reuses the same completed session.
-- Safe to retry after network/API/proof/marker failures.
+- Unchanged V1 dataset → same fingerprint → F3.2 reuses the same session (resume or completed idempotent path).
+- Safe to retry after network/API/proof/marker failures **and** after mid-import crashes (equivalent rows skipped).
 - Completed sessions never return to `importing`.
 - Do not invent a parallel migration protocol in ops tooling.
+- Do **not** claim all-or-nothing physical storage or automatic staging cleanup.
 
 ## Marker failure recovery
 

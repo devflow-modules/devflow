@@ -226,7 +226,37 @@ export function createMemoryPersistenceDb(seedAccounts: MemoryAccount[] = []): {
 
   const db = {
     ...txSurface,
-    $transaction: async <T>(fn: (tx: ApplyFlowPersistenceTx) => Promise<T>) => fn(txSurface),
+    /**
+     * Snapshot + rollback on throw so complete+promote atomicity can be proven in unit tests.
+     * Mirrors PostgreSQL transaction abort semantics for in-memory maps (shallow clone of entries).
+     */
+    $transaction: async <T>(fn: (tx: ApplyFlowPersistenceTx) => Promise<T>) => {
+      const snapAccounts = new Map(
+        [...accounts.entries()].map(([id, row]) => [id, { ...row }]),
+      );
+      const snapJobs = new Map([...jobs.entries()].map(([k, row]) => [k, { ...row }]));
+      const snapApps = new Map(
+        [...applications.entries()].map(([k, row]) => [k, { ...row }]),
+      );
+      const snapSessions = new Map(
+        [...sessions.entries()].map(([k, row]) => [k, { ...row }]),
+      );
+      const snapSeq = sessionSeq;
+      try {
+        return await fn(txSurface);
+      } catch (error) {
+        accounts.clear();
+        for (const [id, row] of snapAccounts) accounts.set(id, row);
+        jobs.clear();
+        for (const [k, row] of snapJobs) jobs.set(k, row);
+        applications.clear();
+        for (const [k, row] of snapApps) applications.set(k, row);
+        sessions.clear();
+        for (const [k, row] of snapSessions) sessions.set(k, row);
+        sessionSeq = snapSeq;
+        throw error;
+      }
+    },
   } as ApplyFlowPersistenceDb;
 
   return { db, accounts, jobs, applications, sessions };
