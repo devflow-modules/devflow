@@ -6,22 +6,21 @@
 
 ## Career Suite — product & engineering case
 
-**One-liner:** Local-first career workflow — organize applications, review provider-derived signals, compose a typed `CareerBundle`, and hand off to Interview Lab — human-reviewed, privacy-first, no auto-apply.
+**One-liner:** Local-first career workflow — organize applications, review provider-derived signals, compose a typed `CareerBundle`, and hand off to Interview Lab — human-reviewed, no auto-apply.
 
 [![ApplyFlow dashboard — Career Suite demo](./docs/career-suite/assets/01-applyflow-dashboard.png)](docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md)
 
 | | |
 |--|--|
-| **Full case** | [`docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md`](docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md) |
-| **Launch package** | [`docs/career-suite/CAREER-SUITE-PORTFOLIO-LAUNCH-PACKAGE.md`](docs/career-suite/CAREER-SUITE-PORTFOLIO-LAUNCH-PACKAGE.md) |
+| **ApplyFlow product README** | [`apps/applyflow/README.md`](apps/applyflow/README.md) |
+| **ApplyFlow engineering case** | [`docs/applyflow/APPLYFLOW_ENGINEERING_CASE.md`](docs/applyflow/APPLYFLOW_ENGINEERING_CASE.md) |
+| **Career Suite case** | [`docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md`](docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md) |
 | **Landing** | [`docs/career-suite/README.md`](docs/career-suite/README.md) |
 | **Public narrative** | [`docs/public-cases/CAREER-SUITE.md`](docs/public-cases/CAREER-SUITE.md) |
 
 **Modules:** ApplyFlow · Interview Lab · `@devflow/career-core` · `@devflow/career-sync` · ApplyFlow Extension
 
-**Agent layer (PRs #114–#118):** deterministic, policy-gated stack — `metadata → signals → timeline → orchestrator → tool permission → chat adapter → controlled LLM → approved automation`. See [`docs/career-suite/ARCHITECTURE.md`](docs/career-suite/ARCHITECTURE.md) and the demo [`docs/career-suite/DEMO.md`](docs/career-suite/DEMO.md). Principles: deterministic-first · server-authoritative · human-in-the-loop · no auto-apply · no silent persistence · temporary approvals · LLM without authority · automation without permanent autonomy.
-
-**Trust:** read-only provider-derived lifecycle complete · export/handoff explicit · **Apply deferred** (ADR-003) · **import deferred** (ADR-002)
+**Principles:** local-first default · human-in-the-loop · no auto-apply · LLM without product authority · Persistence V2 / Nango as **pilot** depth (see engineering case). **Production readiness is not claimed.**
 
 ```bash
 pnpm install
@@ -29,8 +28,6 @@ pnpm --filter @devflow/career-core build && pnpm --filter @devflow/career-sync b
 pnpm --filter applyflow dev                    # http://localhost:3010/dashboard
 pnpm --filter @devflow/app-interview-lab dev   # http://localhost:3015
 ```
-
-**Tests:** 1,045 Vitest tests across Career Suite packages (`career-sync` 443 · `career-core` 54 · `applyflow` 396 · `interview-lab` 152). No ApplyFlow Playwright E2E — see case doc.
 
 ---
 
@@ -164,18 +161,16 @@ Documentação: [`docs/crm/README.md`](docs/crm/README.md)
 
 ## Case de portfólio — ApplyFlow
 
-**ApplyFlow** é um copiloto **local-first** / **privacy-first** para candidaturas no **LinkedIn Easy Apply**, com **dashboard Next.js**, **extensão Chrome MV3**, histórico local, import/export JSON, métricas, documentação e **IA opt-in**. É um **case de produto autoral** dentro deste monorepo — **não** faz parte do go-to-market público actual do hub `devflowlabs.com.br` (WhatsApp + Financeiro acima).
-
-- **Sem backend ApplyFlow obrigatório** no MVP · **sem auto-submit** · dados no **navegador** (`chrome.storage.local` na extensão, `localStorage` no dashboard após import).
-
-**Onde aprofundar**
+**ApplyFlow** é um copiloto **local-first** para **LinkedIn Easy Apply** (extensão Chrome MV3 + dashboard Next.js): autofill humano, **sem auto-submit**, histórico local por defeito. Inclui um **engineering case** (Persistence V2 pilot, concorrência, migração resumível, boundaries de AI/provider) — **não** faz parte do go-to-market público actual do hub `devflowlabs.com.br` (WhatsApp + Financeiro).
 
 | | |
 |--|--|
-| Dashboard | [`apps/applyflow/README.md`](apps/applyflow/README.md) |
+| Product README | [`apps/applyflow/README.md`](apps/applyflow/README.md) |
+| Engineering case | [`docs/applyflow/APPLYFLOW_ENGINEERING_CASE.md`](docs/applyflow/APPLYFLOW_ENGINEERING_CASE.md) |
 | Extensão | [`apps/applyflow-extension/README.md`](apps/applyflow-extension/README.md) |
-| Documentação de produto | [`docs/applyflow/`](docs/applyflow/) |
-| Screenshots oficiais | [`docs/applyflow/assets/README.md`](docs/applyflow/assets/README.md) |
+| Screenshots | [`docs/applyflow/assets/README.md`](docs/applyflow/assets/README.md) |
+
+**Status:** engineering case **READY** · Production readiness **not claimed**.
 
 ### DevFlow Career Suite
 
@@ -195,8 +190,8 @@ Provider-derived enrichment: read-only até export/handoff. Apply e import **exp
 
 O repositório inclui, além do **ApplyFlow** (case de portfólio — ver secção anterior), apps e documentação para **Investigamais** (CNPJ / BI, produto com repositório próprio) e **FunkLab** (experiências musicais). Mantêm utilidade técnica e histórico; **não** entram na mensagem principal de go-to-market do hub neste momento.
 
-- ApplyFlow: [`docs/applyflow/ARCHITECTURE.md`](docs/applyflow/ARCHITECTURE.md) · pacotes `packages/applyflow-core`, `packages/applyflow-linkedin`  
-- Investigamais: [`docs/investigamais/README.md`](docs/investigamais/README.md)  
+- ApplyFlow: [`docs/applyflow/ARCHITECTURE.md`](docs/applyflow/ARCHITECTURE.md) · pacotes `packages/applyflow-core`, `packages/applyflow-linkedin`
+- Investigamais: [`docs/investigamais/README.md`](docs/investigamais/README.md)
 - FunkLab (`apps/funklab`): [`apps/funklab/README.md`](apps/funklab/README.md)
 
 ---

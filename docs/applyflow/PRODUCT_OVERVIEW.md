@@ -6,43 +6,51 @@ Candidaturas em massa no LinkedIn Easy Apply são repetitivas, fáceis de desorg
 
 ## Solução
 
-**ApplyFlow** (DevFlow Labs) é um copiloto **local-first**: extensão Chrome que sugere respostas e assiste o preenchimento **campo a campo**, com gate de segurança e **sem** enviar a candidatura automaticamente. Complementado por um **dashboard web** que lê apenas um export JSON gerado no próprio dispositivo para métricas e funil.
+**ApplyFlow** (DevFlow Labs) é um copiloto **local-first**: extensão Chrome que sugere respostas e assiste o preenchimento **campo a campo**, com gate de segurança e **sem** enviar a candidatura automaticamente. Complementado por um **dashboard web** que lê um export JSON (ou demo fictícia) para métricas e funil.
 
 ## Público-alvo
 
 - Candidatos técnicos que usam LinkedIn Easy Apply com frequência.
-- Profissionais que valorizam privacidade e controlo dos próprios dados.
-- Visitantes de portefólio que querem ver uma peça de produto autoral (extensão + dashboard).
+- Profissionais que valorizam controlo dos próprios dados no dispositivo.
+- Visitantes de portefólio que querem ver produto + engenharia (não só UI).
 
 ## Principais features
 
 | Área | O que faz |
 |------|------------|
-| Extensão | Parser Easy Apply, perfil local (Zod), **Answer Bank** (textos longos reutilizáveis, só no dispositivo), sugestões heurísticas, autofill assistido, safety gate. |
-| Job intelligence | Heurísticas locais sobre o anúncio (senioridade, modelo de trabalho, skills, inglês…). |
-| Histórico | Registos em `chrome.storage.local`, dedupe por URL, estados e notas. |
-| IA (opt-in) | Textos longos via API OpenAI configurada pelo utilizador; sem backend DevFlow. |
-| Dashboard | Import JSON ou demo; Recharts; filtros; `localStorage`. |
+| Extensão | Parser Easy Apply, perfil local (Zod), Answer Bank, sugestões, autofill assistido, safety gate |
+| Job intelligence | Heurísticas locais sobre o anúncio |
+| Histórico | `chrome.storage.local`, dedupe por URL |
+| IA (opt-in) | Textos longos via OpenAI; credential no **service worker** |
+| Dashboard | Import JSON / demo; métricas; handoff Interview Lab |
 
 ## Fluxo de uso
 
-1. Instalar e configurar a extensão (perfil, skills, salários e **Respostas abertas** / Answer Bank); opcionalmente IA nas opções.
-2. Abrir uma vaga Easy Apply; consultar o painel e usar Copiar / Preencher com confirmações.
-3. Guardar no histórico local conforme necessário.
-4. Exportar backup JSON nas opções carregar no dashboard para análise visual.
+1. Configurar extensão (perfil; IA opcional).
+2. Easy Apply → Copiar / Preencher com confirmações.
+3. Histórico local → export JSON.
+4. Dashboard: import ou demo.
 
-## Privacidade
+## Local-first (default) vs Persistence V2 (pilot)
 
-- Dados sensíveis e histórico **no dispositivo** (extensão) ou **no browser** (dashboard).
-- Sem login DevFlow neste produto isolado.
-- IA só se o utilizador activar e fornecer chave; o conteúdo gerado não é persistido no histórico de candidaturas.
+| Camada | Papel |
+|--------|--------|
+| **Local-first default** | Ciclo Easy Apply → JSON → dashboard **sem** cloud obrigatória |
+| **Persistence V2 pilot** | Conta autenticada, Jobs/Applications em PostgreSQL, migração resumível, OCC |
 
-## Local-first positioning
+O pilot **não** substitui o posicionamento local-first do produto base. **Production readiness não é reivindicada.**
 
-ApplyFlow is local-first by default. The extension and dashboard are designed to work without accounts, backend, or mandatory cloud sync. This keeps the MVP private, portable, low-cost, and easy to demo. A future optional cloud layer may add sync, accounts, and integrated AI for users who explicitly opt in.
+Detalhe: [`APPLYFLOW_ENGINEERING_CASE.md`](./APPLYFLOW_ENGINEERING_CASE.md) · [`PERSISTENCE_V2.md`](./PERSISTENCE_V2.md).
 
-## Status actual
+## Dados no dispositivo
 
-Produto em evolução dentro do monorepo DevFlow Labs, com foco em demonstração de arquitetura limpa, TypeScript, Zod e UX responsável (sem mass apply).
+- Histórico default na extensão / browser após import.
+- IA só com activação explícita.
+- Tratar exports reais como dados sensíveis.
 
-Narrativa estendida para portefólio: [`CASE_STUDY.md`](./CASE_STUDY.md).
+## Status
+
+Produto e case de engenharia em evolução no monorepo DevFlow Labs.
+
+- Produto público: [`PUBLIC_CASE_STUDY.md`](./PUBLIC_CASE_STUDY.md)
+- README: [`apps/applyflow/README.md`](../../apps/applyflow/README.md)
