@@ -48,6 +48,8 @@
 
 ## Referências
 
+- [Persistence V2 engineering case study](./PERSISTENCE_V2_CASE_STUDY.md)
+- [Closeout](./PERSISTENCE_V2_CLOSEOUT.md)
 - [ADR — Local-first vs Serverless](./ADR-LOCAL_FIRST_VS_SERVERLESS.md)
 - [ADR — Persistence V2 local + cloud](./ADR-PERSISTENCE_V2_LOCAL_AND_CLOUD.md)
 - [ARCHITECTURE.md](./ARCHITECTURE.md)
