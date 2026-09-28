@@ -1,6 +1,7 @@
 /**
  * R2.2.1 — account pilot state schema defaults + constraints.
  * Mutates disposable local Docker rows only. Production / Supabase denylisted.
+ * Skips in CI when DATABASE_URL / .env.local are absent (no Docker Postgres).
  */
 import { randomUUID } from "node:crypto";
 
@@ -17,12 +18,14 @@ import { loadApplyFlowEnvLocalIfPresent } from "@/lib/persistence-v2/migration/f
 
 const FIXTURE_AUTH_PREFIX = "r221_pilot_state_";
 
-describe("R2.2.1 ApplyFlowAccount pilot state schema", () => {
+loadApplyFlowEnvLocalIfPresent();
+const localDbAvailable = classifyApplyFlowDbTarget().kind === "safe_local";
+
+describe.skipIf(!localDbAvailable)("R2.2.1 ApplyFlowAccount pilot state schema", () => {
   const createdAccountIds: string[] = [];
   let dbReady = false;
 
   beforeAll(async () => {
-    loadApplyFlowEnvLocalIfPresent();
     const classification = classifyApplyFlowDbTarget();
     expect(classification.kind).toBe("safe_local");
     expect(classification.allowedForDestructiveTests).toBe(true);

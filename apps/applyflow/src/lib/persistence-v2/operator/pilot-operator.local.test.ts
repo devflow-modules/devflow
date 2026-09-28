@@ -1,6 +1,7 @@
 /**
  * R2.2.6 — local Docker validation of pilot operator grant/revoke.
  * Mutates disposable local rows only. Production / Supabase denylisted.
+ * Skips in CI when DATABASE_URL / .env.local are absent (no Docker Postgres).
  */
 import { randomUUID } from "node:crypto";
 
@@ -22,12 +23,14 @@ import {
 
 const FIXTURE_AUTH_PREFIX = "r226_pilot_ops_";
 
-describe("R2.2.6 local Docker pilot operator", () => {
+loadApplyFlowEnvLocalIfPresent();
+const localDbAvailable = classifyApplyFlowDbTarget().kind === "safe_local";
+
+describe.skipIf(!localDbAvailable)("R2.2.6 local Docker pilot operator", () => {
   const createdAccountIds: string[] = [];
   let dbReady = false;
 
   beforeAll(async () => {
-    loadApplyFlowEnvLocalIfPresent();
     const classification = classifyApplyFlowDbTarget();
     expect(classification.kind).toBe("safe_local");
     expect(() => assertApplyFlowDestructiveDbTargetAllowed()).not.toThrow(
