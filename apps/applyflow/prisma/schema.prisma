@@ -8,13 +8,25 @@ generator client {
   provider = "prisma-client-js"
 }
 
+/// Canonical source of truth for an ApplyFlow account's dashboard data.
+/// Independent of pilot eligibility and of MigrationSession lifecycle.
+enum ApplyFlowCanonicalPersistence {
+  v1_local
+  v2_cloud
+}
+
 /// ApplyFlow cloud account (B2C). Scoped by authenticated Supabase user subject.
 model ApplyFlowAccount {
-  id              String   @id @default(uuid()) @db.Uuid
-  authProviderSub String   @unique @map("auth_provider_sub")
-  email           String?
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  id                     String                         @id @default(uuid()) @db.Uuid
+  authProviderSub        String                         @unique @map("auth_provider_sub")
+  email                  String?
+  /// When true (and GLOBAL V2 flag ON), account may enter Persistence V2 pilot.
+  /// Default false — never auto-grant.
+  pilotEligible          Boolean                        @default(false) @map("pilot_eligible")
+  /// What is canonical for this account. Default v1_local. Never auto v2_cloud.
+  canonicalPersistence   ApplyFlowCanonicalPersistence  @default(v1_local) @map("canonical_persistence")
+  createdAt              DateTime                       @default(now()) @map("created_at")
+  updatedAt              DateTime                       @updatedAt @map("updated_at")
 
   jobs              ApplyFlowJob[]
   applications      ApplyFlowApplication[]
