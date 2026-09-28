@@ -13,7 +13,13 @@ Related engineering reference: [`PERSISTENCE_V2_MIGRATION_RUNBOOK.md`](./PERSIST
 - After revoke:
   - `v1_local` + `pilot=false` → mode `v1`
   - `v2_cloud` + `pilot=false` + GLOBAL=`true` → mode `v2_read_only`
-  - `v2_cloud` + GLOBAL=`false` → mode `v2_paused`
+  - `v2_cloud` + GLOBAL=`false` → mode `v2_paused` (regardless of pilot)
+
+Recovery target (first pilot):
+
+`GLOBAL=true` + `pilotEligible=true` + `canonicalPersistence=v2_cloud` → `v2_active`
+
+Closeout reference: [`PERSISTENCE_V2_CLOSEOUT.md`](./PERSISTENCE_V2_CLOSEOUT.md).
 
 ## Operator CLI (local only)
 

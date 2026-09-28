@@ -1,49 +1,50 @@
 # ApplyFlow Persistence V2
 
-**Status:** F1 foundation (opt-in)  
-**Baseline production V1:** `7ca5594b` — local-first unchanged while `APPLYFLOW_PERSISTENCE_V2` is OFF.
+**Status:** Migration implementation **COMPLETE** for the first Production pilot (see [`PERSISTENCE_V2_CLOSEOUT.md`](./PERSISTENCE_V2_CLOSEOUT.md)).  
+**Baseline:** authenticated pilot on `canonicalPersistence=v2_cloud` / `v2_active` with account-scoped `pilotEligible` and GLOBAL `APPLYFLOW_PERSISTENCE_V2`.
 
 ## Decisão de produto
 
-| Modo | Source of truth |
+| Modo efectivo | Source of truth |
 |------|-----------------|
-| **Anonymous / V1 (default)** | Browser: `localStorage` (dashboard) + `chrome.storage.local` (extensão) |
-| **Signed-in / V2 (flag ON)** | PostgreSQL dedicado ApplyFlow, scoped por utilizador autenticado (Supabase Auth) |
+| **`v1`** | Browser: `localStorage` (dashboard) + `chrome.storage.local` (extensão) |
+| **`v2_offering`** | Still `v1_local` until migration or empty activation promotes canonical |
+| **`v2_active`** | PostgreSQL ApplyFlow (Jobs/Applications) |
+| **`v2_read_only`** | PostgreSQL (reads); writes denied |
+| **`v2_paused`** | Canonical remains `v2_cloud`; V2 HTTP paused — **no V1 fallback** |
 
-Durante a migração, V1 continua suportada atrás da feature flag. `localStorage` pode permanecer como cache, draft e backup temporário pós-import — **não** como canonical após cutover (F5).
+`localStorage` may remain as cache/draft/backup — **never** as canonical after `v2_cloud`.
 
-## F1 — Foundation (implementado)
+## Effective mode matrix
 
-- Supabase Auth SSR (cookies httpOnly); public client key: `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (never secret/service_role)
-- Prisma + tabela `applyflow_accounts`
-- `requireApplyFlowAccount()` — sessão → `auth_provider_sub` → upsert idempotente
-- Feature flag `APPLYFLOW_PERSISTENCE_V2` (default **OFF**)
-- Probe `GET /api/applyflow/v2/me`
-- Readiness: com flag ON, PostgreSQL + config Supabase pública são obrigatórios; probe `SELECT 1` quando configurado
+| GLOBAL | pilotEligible | canonical | mode |
+| --- | --- | --- | --- |
+| false | * | `v1_local` | `v1` |
+| true | false | `v1_local` | `v1` |
+| true | true | `v1_local` | `v2_offering` |
+| false | * | `v2_cloud` | `v2_paused` |
+| true | false | `v2_cloud` | `v2_read_only` |
+| true | true | `v2_cloud` | `v2_active` |
 
-**Fora de F1:** jobs, applications, outreach, profile, analytics, import V1→V2, sync extensão.
+**One-way:** `v1_local` → `v2_cloud`. Operator CLI never downgrades canonical.
 
-## Fases planeadas
+## PATCH concurrency
 
-| Fase | Conteúdo |
-|------|----------|
-| **F1** | Auth + account + Prisma foundation + flag + health + `/me` |
-| **F2** | Jobs + applications persistence |
-| **F3** | Outreach contacts + interactions |
-| **F4** | Import idempotente V1 localStorage → PostgreSQL |
-| **F5** | Cutover (DB canonical, localStorage cache-only) |
-| **F6** | Cleanup + optional extension cloud sync |
+- Body field `expectedVersion` (positive int) — **required**
+- Success → **2xx**; stale → **409** `version_conflict`
+- `ETag` informational; do **not** send HTTP `If-Match` (Production observed Vercel `412` split-brain with origin commit)
 
 ## Rollout / rollback
 
-- **First Production pilot (ops):** see [`PERSISTENCE_V2_FIRST_PRODUCTION_PILOT_RUNBOOK.md`](./PERSISTENCE_V2_FIRST_PRODUCTION_PILOT_RUNBOOK.md) (gates A–L + emergency). Operator CLI: `pnpm pilot:status|grant|revoke` in `apps/applyflow`.
-- **Rollout:** deploy with flag OFF → configure Supabase + DB → migrate schema → staging with flag ON → validate `/me` + readyz → cutover gradual.
-- **Rollback:** flag OFF → accounts with `canonical=v1_local` stay on V1; accounts with `canonical=v2_cloud` become `v2_paused` (no silent V1 fallback). Cloud data remains until retention policy.
+- Ops: [`PERSISTENCE_V2_FIRST_PRODUCTION_PILOT_RUNBOOK.md`](./PERSISTENCE_V2_FIRST_PRODUCTION_PILOT_RUNBOOK.md)
+- Migration recovery: [`PERSISTENCE_V2_MIGRATION_RUNBOOK.md`](./PERSISTENCE_V2_MIGRATION_RUNBOOK.md)
+- Closeout: [`PERSISTENCE_V2_CLOSEOUT.md`](./PERSISTENCE_V2_CLOSEOUT.md)
+- **Rollback GLOBAL off** with `canonical=v2_cloud` → `v2_paused` (cloud data retained; no silent V1)
 
 ## Ownership
 
-- B2C single-user: cada row scoped por `ApplyFlowAccount.id` derivado da sessão Supabase.
-- Nunca autorizar por `accountId` / `userId` enviado pelo client.
+- B2C: rows scoped by `ApplyFlowAccount.id` from server session.
+- Never authorize by client-supplied `accountId`.
 
 ## Referências
 
