@@ -78,7 +78,7 @@ All expected material for the fingerprint is verified, `ApplyFlowMigrationSessio
 
 Canonical authority remains **V1** (`v1_local`). V1 data stays intact. Noncanonical V2 staging **may** exist; retry with the **same** fingerprint resumes idempotently. Failure does **not** mean “zero durable cloud writes” and does **not** roll back staging rows automatically.
 
-Abandoned staging may remain (no GC in this slice). Safeguards: canonical stays V1; normal V2 writes denied in offering; empty activation refuses non-empty cloud; conflicting material fails closed.
+Abandoned staging may remain (no GC in this slice). Safeguards: canonical stays V1; normal V2 product reads **and** writes are denied in offering (AF-REL-003); migration/session/activation remain available; empty activation refuses non-empty cloud; conflicting material fails closed. Physical staging existence does **not** imply product GET readability.
 
 ## Rollout / rollback
 

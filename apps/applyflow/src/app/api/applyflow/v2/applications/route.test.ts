@@ -105,6 +105,30 @@ describe("Application collection routes", () => {
     await expect(response.json()).resolves.toEqual({ error: "persistence_v2_migration_required" });
   });
 
+  it("denies product GET list for offering accounts (AF-REL-003)", async () => {
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue({
+      ...account,
+      pilotEligible: true,
+      canonicalPersistence: "v1_local",
+    });
+    const response = await GET();
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "persistence_v2_migration_required" });
+    expect(applyFlowApplicationService.list).not.toHaveBeenCalled();
+  });
+
+  it("allows product GET list for read_only cloud accounts", async () => {
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue({
+      ...account,
+      pilotEligible: false,
+      canonicalPersistence: "v2_cloud",
+    });
+    vi.mocked(applyFlowApplicationService.list).mockResolvedValue([application]);
+    const response = await GET();
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ applications: [application] });
+  });
+
   it("returns 401 when unauthenticated", async () => {
     vi.mocked(requireApplyFlowAccount).mockRejectedValue(
       new ApplyFlowAuthError("unauthenticated", "Authentication required."),

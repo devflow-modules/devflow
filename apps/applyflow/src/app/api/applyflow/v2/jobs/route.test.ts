@@ -131,6 +131,30 @@ describe("Jobs collection routes", () => {
     expect(applyFlowJobService.create).not.toHaveBeenCalled();
   });
 
+  it("denies product GET list for offering accounts (AF-REL-003)", async () => {
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue({
+      ...account,
+      pilotEligible: true,
+      canonicalPersistence: "v1_local",
+    });
+    const response = await GET();
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "persistence_v2_migration_required" });
+    expect(applyFlowJobService.list).not.toHaveBeenCalled();
+  });
+
+  it("allows product GET list for read_only cloud accounts", async () => {
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue({
+      ...account,
+      pilotEligible: false,
+      canonicalPersistence: "v2_cloud",
+    });
+    vi.mocked(applyFlowJobService.list).mockResolvedValue([job]);
+    const response = await GET();
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ jobs: [job] });
+  });
+
   it("denies write for read_only accounts", async () => {
     vi.mocked(requireApplyFlowAccount).mockResolvedValue({
       ...account,

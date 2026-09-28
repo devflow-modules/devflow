@@ -57,16 +57,17 @@ describe("assertApplyFlowV2HttpCapability", () => {
     expectDeny(input, "read", "persistence_v2_not_eligible", 403);
   });
 
-  it("offering: allows read + migration; denies write", () => {
+  it("offering: denies product read/write; allows migration/session/activation (AF-REL-003)", () => {
     const input: ApplyFlowPersistenceModeInput = {
       globalEnabled: true,
       pilotEligible: true,
       canonicalPersistence: "v1_local",
     };
-    expectAllow(input, "read");
+    expectDeny(input, "read", "persistence_v2_migration_required", 403);
+    expectDeny(input, "write", "persistence_v2_migration_required", 403);
     expectAllow(input, "migration");
     expectAllow(input, "migration_session_read");
-    expectDeny(input, "write", "persistence_v2_migration_required", 403);
+    expectAllow(input, "activation");
   });
 
   it("active: allows read/write/session; denies new migration", () => {
@@ -140,7 +141,7 @@ describe("HTTP policy security matrix (direct bypass)", () => {
     expectDeny(input, "migration", "persistence_v2_not_eligible", 403);
   });
 
-  it("pilot=true v1_local can migrate/activate but not write normal CRUD", () => {
+  it("pilot=true v1_local can migrate/activate but not product read/write CRUD (AF-REL-003)", () => {
     const input: ApplyFlowPersistenceModeInput = {
       globalEnabled: true,
       pilotEligible: true,
@@ -148,6 +149,7 @@ describe("HTTP policy security matrix (direct bypass)", () => {
     };
     expectAllow(input, "migration");
     expectAllow(input, "activation");
+    expectDeny(input, "read", "persistence_v2_migration_required", 403);
     expectDeny(input, "write", "persistence_v2_migration_required", 403);
   });
 

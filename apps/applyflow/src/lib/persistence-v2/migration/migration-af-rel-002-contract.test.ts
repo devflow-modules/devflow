@@ -413,8 +413,8 @@ describe("AF-REL-002 partial-resumable migration contract", () => {
   });
 });
 
-describe("AF-REL-002 partial GET characterization (offering)", () => {
-  it("L. v2_offering allows HTTP read + migration; denies write (staging readable, not writable as canonical CRUD)", () => {
+describe("AF-REL-003 block noncanonical product reads (offering)", () => {
+  it("L. v2_offering denies product read/write; allows migration/session/activation", () => {
     const mode = resolveApplyFlowPersistenceMode({
       globalEnabled: true,
       pilotEligible: true,
@@ -422,20 +422,54 @@ describe("AF-REL-002 partial GET characterization (offering)", () => {
     });
     expect(mode.mode).toBe("v2_offering");
 
-    const allow: ApplyFlowV2HttpCapability[] = ["read", "migration", "migration_session_read", "activation"];
+    const allow: ApplyFlowV2HttpCapability[] = ["migration", "migration_session_read", "activation"];
     for (const capability of allow) {
       expect(() => assertApplyFlowV2HttpCapability(mode, capability)).not.toThrow();
     }
-    expect(() => assertApplyFlowV2HttpCapability(mode, "write")).toThrow(
-      expect.objectContaining({ code: "persistence_v2_migration_required", status: 403 }),
-    );
+    for (const capability of ["read", "write"] as const) {
+      expect(() => assertApplyFlowV2HttpCapability(mode, capability)).toThrow(
+        expect.objectContaining({ code: "persistence_v2_migration_required", status: 403 }),
+      );
+    }
   });
 
-  it("L. classifies offering GET of staging as PRODUCT_CONTRACT_GAP (no silent fix in R4)", () => {
-    // GET /api/applyflow/v2/jobs and /applications use capability "read" (allowed in offering).
-    // Dashboard openDashboardPersistence keeps V1 as SoT until promotion.
-    // External HTTP callers with offering access CAN list noncanonical staging rows.
-    const classification = "PRODUCT_CONTRACT_GAP" as const;
-    expect(classification).toBe("PRODUCT_CONTRACT_GAP");
+  it("L. classifies offering product GET as BLOCK_NONCANONICAL_PRODUCT_READS (AF-REL-003)", async () => {
+    // Physical staging may exist while canonical stays v1_local (R4 partial-resumable).
+    // Product Jobs/Applications GET capability "read" is DENY until promotion.
+    // Migration resume remains ALLOW — see crash/retry suites in this file.
+    const memory = createMemoryPersistenceDb([memoryPilotAccount(ACCOUNT)]);
+    const jobs = createApplyFlowJobRepository(memory.db);
+    await jobs.create({
+      accountId: ACCOUNT,
+      id: "job_staging_only",
+      title: "Staged",
+      source: "paste",
+      status: "reviewing",
+      jobContext: { skills: ["React"] },
+      jobMatch: {
+        score: 80,
+        decision: "apply",
+        matchedSkills: ["React"],
+        missingSkills: [],
+        evaluatedAt: "2026-09-25T12:00:00.000Z",
+        scoringVersion: "v1",
+      },
+    });
+    expect(await jobs.findById(ACCOUNT, "job_staging_only")).not.toBeNull();
+    expect(memory.accounts.get(ACCOUNT)?.canonicalPersistence).toBe("v1_local");
+
+    const mode = resolveApplyFlowPersistenceMode({
+      globalEnabled: true,
+      pilotEligible: true,
+      canonicalPersistence: "v1_local",
+    });
+    expect(() => assertApplyFlowV2HttpCapability(mode, "read")).toThrow(
+      expect.objectContaining({ code: "persistence_v2_migration_required", status: 403 }),
+    );
+    expect(() => assertApplyFlowV2HttpCapability(mode, "migration")).not.toThrow();
+
+    const classification = "BLOCK_NONCANONICAL_PRODUCT_READS" as const;
+    expect(classification).toBe("BLOCK_NONCANONICAL_PRODUCT_READS");
+    // Historical R4 label PRODUCT_CONTRACT_GAP is resolved by AF-REL-003.
   });
 });

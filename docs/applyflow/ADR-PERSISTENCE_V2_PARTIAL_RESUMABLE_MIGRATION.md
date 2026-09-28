@@ -100,9 +100,13 @@ Rejected because:
 - Case study / protocol already chose session-backed resumable import over a single fragile fire-and-forget POST.
 - Authority safety is already provided by atomic complete+promote; all-or-nothing storage would not improve the product success definition.
 
-## Partial HTTP read note
+## Partial HTTP read note (AF-REL-003)
 
-While mode is `v2_offering`, HTTP capability `read` may allow GET of Jobs/Applications even though canonical remains `v1_local`. Dashboard product flows treat V1 as source of truth until promotion. Whether offering GET of staging is intentional diagnostic visibility vs a product contract gap is characterized in tests — changing it requires explicit approval (not part of this ADR’s behavioral change).
+Physical staging existence ≠ product readability.
+
+While mode is `v2_offering`, HTTP capability `read` for normal Jobs/Applications product GET routes is **DENY** (`persistence_v2_migration_required`, 403). Noncanonical staging rows may still physically exist under `v1_local`; migration, migration-session GET, and activation remain **ALLOW**. Dashboard product flows treat V1 as source of truth until promotion. Successful canonical promotion (`v2_cloud` → `v2_active` / `v2_read_only`) enables cloud product reads.
+
+Resolved classification: **BLOCK_NONCANONICAL_PRODUCT_READS** (historical R4 label `PRODUCT_CONTRACT_GAP` is closed by AF-REL-003). R4 architecture `OPTION_B_PARTIAL_RESUMABLE` / `AF_REL_002_ACCEPTED_BY_DESIGN` is unchanged.
 
 ## References
 
