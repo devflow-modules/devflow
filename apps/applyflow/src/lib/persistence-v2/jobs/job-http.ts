@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 
-import { isApplyFlowPersistenceV2Enabled } from "../feature-flag";
 import {
-  ApplyFlowAuthError,
-  ApplyFlowPersistenceDisabledError,
-  requireApplyFlowAccount,
-  type ApplyFlowAccountRecord,
-} from "../require-applyflow-account";
+  applyFlowAuthErrorResponse,
+  applyFlowV2HttpAccessErrorResponse,
+  withApplyFlowV2HttpAccess,
+  type ApplyFlowV2HttpCapability,
+} from "../http-access";
+import type { ApplyFlowAccountRecord } from "../require-applyflow-account";
 import { ApplyFlowJobServiceError } from "./job-errors";
 import { jobVersionEtag, type JobResponse } from "./job-dto";
 
@@ -18,15 +18,10 @@ export function jobJson(job: JobResponse, status: number): NextResponse {
 }
 
 export function jobErrorResponse(error: unknown): NextResponse {
-  if (error instanceof ApplyFlowPersistenceDisabledError) {
-    return NextResponse.json({ error: "persistence_v2_disabled" }, { status: 404 });
-  }
-  if (error instanceof ApplyFlowAuthError) {
-    if (error.code === "auth_not_configured") {
-      return NextResponse.json({ error: "auth_not_configured" }, { status: 503 });
-    }
-    return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
-  }
+  const access = applyFlowV2HttpAccessErrorResponse(error);
+  if (access) return access;
+  const auth = applyFlowAuthErrorResponse(error);
+  if (auth) return auth;
   if (error instanceof ApplyFlowJobServiceError) {
     switch (error.code) {
       case "invalid_payload":
@@ -49,17 +44,10 @@ export function jobErrorResponse(error: unknown): NextResponse {
 }
 
 export async function withApplyFlowJobsAccount(
+  capability: Extract<ApplyFlowV2HttpCapability, "read" | "write">,
   action: (account: ApplyFlowAccountRecord) => Promise<NextResponse>,
 ): Promise<NextResponse> {
-  if (!isApplyFlowPersistenceV2Enabled()) {
-    return NextResponse.json({ error: "persistence_v2_disabled" }, { status: 404 });
-  }
-  try {
-    const account = await requireApplyFlowAccount();
-    return await action(account);
-  } catch (error) {
-    return jobErrorResponse(error);
-  }
+  return withApplyFlowV2HttpAccess(capability, async (account) => action(account), jobErrorResponse);
 }
 
 export async function readJsonBody(request: Request): Promise<unknown> {

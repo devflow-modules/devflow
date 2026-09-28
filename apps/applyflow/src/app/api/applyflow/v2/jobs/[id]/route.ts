@@ -12,14 +12,14 @@ async function jobId(context: JobRouteContext): Promise<string> {
 }
 
 export async function GET(_request: Request, context: JobRouteContext) {
-  return withApplyFlowJobsAccount(async (account) => {
+  return withApplyFlowJobsAccount("read", async (account) => {
     const job = await applyFlowJobService.get(account.id, await jobId(context));
     return jobJson(job, 200);
   });
 }
 
 export async function PATCH(request: Request, context: JobRouteContext) {
-  return withApplyFlowJobsAccount(async (account) => {
+  return withApplyFlowJobsAccount("write", async (account) => {
     const expectedVersion = parseJobIfMatch(request.headers.get("if-match"));
     const body = parsePatchJobBody(await readJsonBody(request));
     const job = await applyFlowJobService.patch(account.id, await jobId(context), expectedVersion, body);

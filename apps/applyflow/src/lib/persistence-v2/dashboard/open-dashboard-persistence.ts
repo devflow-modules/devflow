@@ -1,29 +1,41 @@
 import type { ApplyFlowApplicationV2Envelope, ApplyFlowJob } from "@devflow/applyflow-core";
 
 import {
-  assessDashboardMigrationGate,
+  assessOfferingMigrationGate,
   localV1DashboardHasLegacyData,
   noMigrationProof,
-  selectDashboardPersistenceMode,
   type ApplyFlowDashboardPersistence,
   type DashboardPersistenceFailureCode,
   type MigrationMarker,
 } from "./dashboard-persistence";
+import type { ApplyFlowClientPersistenceBootstrap } from "./client-persistence-bootstrap";
 import { loadMigrationMarker } from "../migration/migration-marker";
 import { prepareMigrationBundle } from "../migration/migration-prepare";
 import { createV1DashboardPersistence } from "./v1-local-dashboard-persistence";
 import { createV2DashboardPersistence } from "./v2-remote-dashboard-persistence";
+import { createReadOnlyV2DashboardPersistence } from "./v2-readonly-dashboard-persistence";
 
 export type DashboardPersistenceOpenResult =
   | { kind: "v1"; persistence: ApplyFlowDashboardPersistence }
+  | {
+      kind: "v2_offering_empty_pending";
+      persistence: ApplyFlowDashboardPersistence;
+    }
+  | {
+      kind: "migration_complete_pending_activation";
+      persistence: ApplyFlowDashboardPersistence;
+    }
   | { kind: "migration_required" }
   | { kind: "auth_required"; code: "unauthenticated" | "auth_not_configured" }
   | { kind: "error"; code: "network" | "server" | DashboardPersistenceFailureCode }
+  | { kind: "paused" }
+  | { kind: "bootstrap_unavailable" }
   | {
       kind: "ready";
       persistence: ApplyFlowDashboardPersistence;
       jobs: ApplyFlowJob[];
       applications: ApplyFlowApplicationV2Envelope[];
+      writeCapability: "full" | "read_only";
     };
 
 type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
@@ -37,8 +49,8 @@ function failureCode(error: unknown): DashboardPersistenceFailureCode {
 }
 
 /**
- * Marker unlocks V2 only when it matches the current logical V1 dataset fingerprint.
- * Stale markers (dataset changed) or unreadable V1 keep migration_required.
+ * Marker unlocks migration UX only when it matches the current logical V1 dataset.
+ * Marker never upgrades client authority above the server bootstrap mode.
  */
 function migrationProofFromMarker(accountId: string): MigrationMarker {
   const marker = loadMigrationMarker(accountId);
@@ -74,33 +86,40 @@ async function resolveAccountId(fetchImpl: FetchLike): Promise<
   }
 }
 
-export async function openDashboardPersistence(input: {
-  persistenceV2Enabled: boolean;
-  /**
-   * Optional override for tests. Production callers omit this so the durable
-   * local marker is loaded for the authenticated account.
-   */
-  migration?: MigrationMarker;
-  /** Optional account id when the caller already resolved GET /me. */
-  accountId?: string;
-  fetchImpl?: typeof fetch;
-  legacyData?: boolean;
-}): Promise<DashboardPersistenceOpenResult> {
-  const mode = selectDashboardPersistenceMode(input.persistenceV2Enabled);
-  if (mode === "v1") {
-    return { kind: "v1", persistence: createV1DashboardPersistence() };
+async function openCloudLists(
+  persistence: ApplyFlowDashboardPersistence,
+  writeCapability: "full" | "read_only",
+): Promise<DashboardPersistenceOpenResult> {
+  try {
+    const [jobs, applications] = await Promise.all([persistence.listJobs(), persistence.listApplications()]);
+    return { kind: "ready", persistence, jobs, applications, writeCapability };
+  } catch (error) {
+    const code = failureCode(error);
+    if (code === "unauthenticated" || code === "auth_not_configured") {
+      return { kind: "auth_required", code };
+    }
+    return { kind: "error", code };
   }
+}
 
-  const fetchImpl = input.fetchImpl ?? fetch;
-  const legacyData = input.legacyData ?? localV1DashboardHasLegacyData();
-
+async function resolveOfferingMigration(
+  input: {
+    bootstrap: Extract<ApplyFlowClientPersistenceBootstrap, { mode: "v2_offering" }>;
+    migration?: MigrationMarker;
+    accountId?: string;
+    fetchImpl: FetchLike;
+    legacyData: boolean;
+  },
+): Promise<DashboardPersistenceOpenResult> {
   let migration = input.migration;
   if (!migration) {
-    if (legacyData) {
+    if (input.legacyData) {
       const account =
         input.accountId && input.accountId.trim().length > 0
           ? { ok: true as const, accountId: input.accountId.trim() }
-          : await resolveAccountId(fetchImpl);
+          : input.bootstrap.accountId
+            ? { ok: true as const, accountId: input.bootstrap.accountId }
+            : await resolveAccountId(input.fetchImpl);
       if (!account.ok) {
         if (account.code === "unauthenticated" || account.code === "auth_not_configured") {
           return { kind: "auth_required", code: account.code };
@@ -113,24 +132,77 @@ export async function openDashboardPersistence(input: {
     }
   }
 
-  const gate = assessDashboardMigrationGate({
-    mode,
-    legacyData,
+  const gate = assessOfferingMigrationGate({
+    legacyData: input.legacyData,
     migration,
   });
+
   if (gate === "migration_required") {
     return { kind: "migration_required" };
   }
 
-  const persistence = createV2DashboardPersistence(fetchImpl);
-  try {
-    const [jobs, applications] = await Promise.all([persistence.listJobs(), persistence.listApplications()]);
-    return { kind: "ready", persistence, jobs, applications };
-  } catch (error) {
-    const code = failureCode(error);
-    if (code === "unauthenticated" || code === "auth_not_configured") {
-      return { kind: "auth_required", code };
+  const persistence = createV1DashboardPersistence();
+  if (gate === "migration_complete_pending_activation") {
+    // R2.2.5 will perform server canonical transition. Until then, V1 remains
+    // canonical even with a completed local marker.
+    return { kind: "migration_complete_pending_activation", persistence };
+  }
+
+  // Empty V1 under offering: keep V1 local; do NOT open writable V2 / first-write.
+  return { kind: "v2_offering_empty_pending", persistence };
+}
+
+/**
+ * Canonical client entry for dashboard persistence.
+ *
+ * Exhaustively handles all five server-authoritative modes.
+ * No default branch silently selects V1 when cloud may be canonical.
+ */
+export async function openDashboardPersistence(input: {
+  bootstrap: ApplyFlowClientPersistenceBootstrap;
+  /**
+   * Optional override for tests. Production callers omit this so the durable
+   * local marker is loaded for the authenticated account.
+   */
+  migration?: MigrationMarker;
+  /** Optional account id when the caller already resolved GET /me. */
+  accountId?: string;
+  fetchImpl?: typeof fetch;
+  legacyData?: boolean;
+}): Promise<DashboardPersistenceOpenResult> {
+  const fetchImpl = input.fetchImpl ?? fetch;
+  const legacyData = input.legacyData ?? localV1DashboardHasLegacyData();
+  const { bootstrap } = input;
+
+  switch (bootstrap.mode) {
+    case "v1": {
+      // Local marker cannot escalate above server v1.
+      return { kind: "v1", persistence: createV1DashboardPersistence() };
     }
-    return { kind: "error", code };
+
+    case "v2_offering": {
+      return resolveOfferingMigration({
+        bootstrap,
+        migration: input.migration,
+        accountId: input.accountId,
+        fetchImpl,
+        legacyData,
+      });
+    }
+
+    case "v2_active": {
+      const persistence = createV2DashboardPersistence(fetchImpl);
+      return openCloudLists(persistence, "full");
+    }
+
+    case "v2_read_only": {
+      const persistence = createReadOnlyV2DashboardPersistence(createV2DashboardPersistence(fetchImpl));
+      return openCloudLists(persistence, "read_only");
+    }
+
+    case "v2_paused": {
+      // CRITICAL: never open V1 localStorage as canonical when cloud is paused.
+      return { kind: "paused" };
+    }
   }
 }

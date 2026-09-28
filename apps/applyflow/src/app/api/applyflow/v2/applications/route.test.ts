@@ -42,6 +42,8 @@ const account = {
   id: "account-server",
   authProviderSub: "sub-1",
   email: null,
+  pilotEligible: true,
+  canonicalPersistence: "v2_cloud" as const,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -73,12 +75,34 @@ describe("Application collection routes", () => {
     vi.mocked(applyFlowApplicationService.create).mockReset();
   });
 
-  it("returns 404 when Persistence V2 is disabled", async () => {
+  it("returns 404 when Persistence V2 is disabled for v1_local accounts", async () => {
     vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(false);
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue({
+      ...account,
+      pilotEligible: false,
+      canonicalPersistence: "v1_local",
+    });
     const response = await GET();
     expect(response.status).toBe(404);
     await expect(response.json()).resolves.toEqual({ error: "persistence_v2_disabled" });
-    expect(requireApplyFlowAccount).not.toHaveBeenCalled();
+    expect(requireApplyFlowAccount).toHaveBeenCalled();
+  });
+
+  it("denies write for offering accounts", async () => {
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue({
+      ...account,
+      pilotEligible: true,
+      canonicalPersistence: "v1_local",
+    });
+    const response = await POST(
+      new Request("http://localhost/api/applyflow/v2/applications", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ id: "app_client", jobTitle: "Role" }),
+      }),
+    );
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "persistence_v2_migration_required" });
   });
 
   it("returns 401 when unauthenticated", async () => {

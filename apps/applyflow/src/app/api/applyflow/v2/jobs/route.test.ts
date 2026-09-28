@@ -42,6 +42,8 @@ const account = {
   id: "account-server",
   authProviderSub: "sub-1",
   email: null,
+  pilotEligible: true,
+  canonicalPersistence: "v2_cloud" as const,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -104,12 +106,52 @@ describe("Jobs collection routes", () => {
     vi.mocked(applyFlowJobService.create).mockReset();
   });
 
-  it("returns 404 when Persistence V2 is disabled", async () => {
+  it("returns 404 when Persistence V2 is disabled for v1_local accounts", async () => {
     vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(false);
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue({
+      ...account,
+      pilotEligible: false,
+      canonicalPersistence: "v1_local",
+    });
     const response = await GET();
     expect(response.status).toBe(404);
     await expect(response.json()).resolves.toEqual({ error: "persistence_v2_disabled" });
-    expect(requireApplyFlowAccount).not.toHaveBeenCalled();
+    expect(requireApplyFlowAccount).toHaveBeenCalled();
+  });
+
+  it("denies write for offering accounts (migration required)", async () => {
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue({
+      ...account,
+      pilotEligible: true,
+      canonicalPersistence: "v1_local",
+    });
+    const response = await POST(postRequest(validBody()));
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "persistence_v2_migration_required" });
+    expect(applyFlowJobService.create).not.toHaveBeenCalled();
+  });
+
+  it("denies write for read_only accounts", async () => {
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue({
+      ...account,
+      pilotEligible: false,
+      canonicalPersistence: "v2_cloud",
+    });
+    const response = await POST(postRequest(validBody()));
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "persistence_v2_read_only" });
+  });
+
+  it("returns 503 paused for GLOBAL=false + v2_cloud", async () => {
+    vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(false);
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue({
+      ...account,
+      pilotEligible: true,
+      canonicalPersistence: "v2_cloud",
+    });
+    const response = await GET();
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toEqual({ error: "persistence_v2_paused" });
   });
 
   it("returns 401 when unauthenticated", async () => {

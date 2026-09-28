@@ -10,8 +10,13 @@ type RouteContext = {
   params: Promise<{ sessionId: string }>;
 };
 
+/**
+ * Own-account migration session recovery/proof read.
+ * Allowed in offering / active / read_only; denied in v1 and paused.
+ * Ownership is enforced by the service via account.id from the session.
+ */
 export async function GET(_request: Request, context: RouteContext) {
-  return withApplyFlowMigrationAccount(async (account) => {
+  return withApplyFlowMigrationAccount("migration_session_read", async (account) => {
     try {
       const { sessionId } = await context.params;
       if (!sessionId || typeof sessionId !== "string" || sessionId.trim().length === 0) {

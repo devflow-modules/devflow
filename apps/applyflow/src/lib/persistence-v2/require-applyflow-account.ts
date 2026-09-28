@@ -1,28 +1,38 @@
-import type { ApplyFlowAccount } from "@prisma/client";
+import type { ApplyFlowAccount, ApplyFlowCanonicalPersistence } from "@prisma/client";
 
 import { getAuthenticatedApplyFlowUser, ApplyFlowAuthError } from "./auth/get-authenticated-user";
 import { applyflowPrisma } from "./db";
-import { isApplyFlowPersistenceV2Enabled } from "./feature-flag";
 
 export { ApplyFlowAuthError };
 
+/** @deprecated Prefer ApplyFlowV2HttpAccessError from http-access.ts (R2.2.3). */
 export class ApplyFlowPersistenceDisabledError extends Error {
   constructor() {
     super("ApplyFlow Persistence V2 is disabled.");
   }
 }
 
-export type ApplyFlowAccountRecord = Pick<ApplyFlowAccount, "id" | "authProviderSub" | "email" | "createdAt" | "updatedAt">;
+export type ApplyFlowAccountRecord = Pick<
+  ApplyFlowAccount,
+  | "id"
+  | "authProviderSub"
+  | "email"
+  | "pilotEligible"
+  | "canonicalPersistence"
+  | "createdAt"
+  | "updatedAt"
+>;
 
 /**
  * Requires an authenticated Supabase session and returns the ApplyFlow account row.
- * Creates the account idempotently on first sign-in.
+ * Creates the account idempotently on first sign-in with schema defaults:
+ *   pilotEligible=false, canonicalPersistence=v1_local
+ *
+ * Does NOT require APPLYFLOW_PERSISTENCE_V2=true (bootstrap / pilot grant path).
+ * Does NOT accept caller-supplied accountId or authProviderSub.
+ * Does NOT reset pilotEligible / canonicalPersistence on update.
  */
 export async function requireApplyFlowAccount(): Promise<ApplyFlowAccountRecord> {
-  if (!isApplyFlowPersistenceV2Enabled()) {
-    throw new ApplyFlowPersistenceDisabledError();
-  }
-
   const user = await getAuthenticatedApplyFlowUser();
 
   const account = await applyflowPrisma.applyFlowAccount.upsert({
@@ -30,6 +40,8 @@ export async function requireApplyFlowAccount(): Promise<ApplyFlowAccountRecord>
     create: {
       authProviderSub: user.authProviderSub,
       email: user.email,
+      pilotEligible: false,
+      canonicalPersistence: "v1_local" satisfies ApplyFlowCanonicalPersistence,
     },
     update: {
       ...(user.email ? { email: user.email } : {}),
@@ -38,6 +50,8 @@ export async function requireApplyFlowAccount(): Promise<ApplyFlowAccountRecord>
       id: true,
       authProviderSub: true,
       email: true,
+      pilotEligible: true,
+      canonicalPersistence: true,
       createdAt: true,
       updatedAt: true,
     },

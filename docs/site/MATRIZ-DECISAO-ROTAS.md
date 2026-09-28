@@ -125,6 +125,7 @@ Decisão **pragmática** alinhada ao diagnóstico de sobreposição raiz ↔ app
 | `/api/applyflow/v2/applications/[id]` (GET, PATCH, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Persistence V2 Application read/partial update; missing and cross-account 404; PATCH `If-Match: "<version>"`; status transitions follow the existing V1/pipeline graph and persist only V1 status; `sourceJobId` is not relinked; no DELETE |
 | `/api/applyflow/v2/migration` (POST, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Persistence V2 V1→V2 migration import; flag default OFF → 404; account from `requireApplyFlowAccount()` only; payload ≤50 jobs and ≤50 applications; server recomputes bundle fingerprint; returns completion proof or structured conflicts; does not write browser localStorage |
 | `/api/applyflow/v2/migration/[sessionId]` (GET, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Persistence V2 migration session read; missing and cross-account both 404 (`migration_session_not_found`); no account enumeration |
+| `/api/applyflow/v2/activate` (POST, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Persistence V2 explicit empty-V1 → `v2_cloud` activation; flag/access matrix via `withApplyFlowV2HttpAccess("activation")`; account from `requireApplyFlowAccount()` only; does **not** accept client `canonicalPersistence`; does **not** activate via normal Job/Application CRUD; empty fingerprint/attestation required; promotes canonical only through domain `promoteApplyFlowCanonicalPersistenceToV2`; `GET` → 405 |
 | Sitemaps | Raiz | Raiz | ok | **manter** |
 
 ---
@@ -161,4 +162,4 @@ Sem esta matriz atualizada no PR de cada mudança, o risco continua **organizaci
 
 ---
 
-*Última atualização: 2026-09-25 — ApplyFlow Persistence V2 F3 migration path: API `POST /api/applyflow/v2/migration` e `GET /api/applyflow/v2/migration/[sessionId]`, coordinator + marker + UX controlada (só `apps/applyflow`; flag default OFF; sem cutover produção).*
+*Última atualização: 2026-09-28 — ApplyFlow Persistence V2 R2.2 empty activation: API `POST /api/applyflow/v2/activate` (só `apps/applyflow`; flag/access matrix; sem cutover produção).*

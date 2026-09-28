@@ -10,6 +10,7 @@ import { persistDashboardJobs } from "@/lib/local-job-storage";
 import { persistApplicationWithOutcome } from "@/lib/persist-application-decision";
 
 import { JobDecisionV2Panel } from "./job-decision-v2-panel";
+import { testBootstrapV1 } from "./test-persistence-bootstrap";
 import { JOB_DECISION_V2_MISSING, JOB_DECISION_V2_TITLE } from "./job-decision-v2-content";
 
 const jobA: ApplyFlowJob = {
@@ -45,24 +46,24 @@ afterEach(() => {
 
 describe("JobDecisionV2Panel", () => {
   it("renderiza o estado de carregamento no servidor", () => {
-    const html = renderToStaticMarkup(<JobDecisionV2Panel jobId="missing" />);
+    const html = renderToStaticMarkup(<JobDecisionV2Panel jobId="missing" persistenceBootstrap={testBootstrapV1} />);
     expect(html).toContain("A carregar");
     expect(html).not.toContain(JOB_DECISION_V2_TITLE);
   });
 
   it("mostra vaga em falta depois da hidratação", () => {
-    render(<JobDecisionV2Panel jobId="missing" />);
+    render(<JobDecisionV2Panel jobId="missing" persistenceBootstrap={testBootstrapV1} />);
     expect(screen.getByText(JOB_DECISION_V2_MISSING)).toBeTruthy();
     expect(screen.queryByText("A carregar…")).toBeNull();
   });
 
   it("atualiza a vaga quando o jobId muda", () => {
     persistDashboardJobs([jobA, jobB]);
-    const { rerender } = render(<JobDecisionV2Panel jobId={jobA.id} />);
+    const { rerender } = render(<JobDecisionV2Panel jobId={jobA.id} persistenceBootstrap={testBootstrapV1} />);
     expect(screen.getByText(/Product Engineer/)).toBeTruthy();
     expect(screen.queryByText(/Staff Engineer/)).toBeNull();
 
-    rerender(<JobDecisionV2Panel jobId={jobB.id} />);
+    rerender(<JobDecisionV2Panel jobId={jobB.id} persistenceBootstrap={testBootstrapV1} />);
     expect(screen.getByText(/Staff Engineer/)).toBeTruthy();
     expect(screen.queryByText(/Product Engineer/)).toBeNull();
   });
@@ -107,7 +108,7 @@ describe("JobDecisionV2Panel", () => {
 
     render(
       <StrictMode>
-        <JobDecisionV2Panel jobId={jobA.id} />
+        <JobDecisionV2Panel jobId={jobA.id} persistenceBootstrap={testBootstrapV1} />
       </StrictMode>,
     );
 

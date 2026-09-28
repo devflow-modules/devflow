@@ -97,12 +97,17 @@ import {
 } from "@/lib/local-job-storage";
 import {
   DashboardPersistenceNotice,
+  DashboardPersistenceReadOnlyBanner,
   V2_LOCAL_IMPORT_BLOCKED,
+  V2_READ_ONLY_BLOCKED,
   dashboardPersistenceFailureMessage,
 } from "@/components/dashboard/dashboard-persistence-notice";
 import { DashboardMigrationPanel } from "@/components/dashboard/dashboard-migration-panel";
+import type { ApplyFlowClientPersistenceBootstrapResult } from "@/lib/persistence-v2/dashboard/client-persistence-bootstrap";
 import type { ApplyFlowDashboardPersistence } from "@/lib/persistence-v2/dashboard/dashboard-persistence";
+import { fetchAuthoritativePersistenceBootstrap } from "@/lib/persistence-v2/dashboard/fetch-authoritative-bootstrap";
 import { openDashboardPersistence } from "@/lib/persistence-v2/dashboard/open-dashboard-persistence";
+import { requestEmptyLegacyActivation } from "@/lib/persistence-v2/dashboard/request-empty-activation";
 import {
   clearPersistedResumeLibrary,
   hydrateResumeLibraryState,
@@ -213,13 +218,65 @@ function feedbackSummary(f: ImportFeedback | null): ReactNode {
   );
 }
 
+function hydrateLocalDashboardState(setters: {
+  setApplications: (value: ApplyFlowApplicationV2Envelope[]) => void;
+  setJobs: (value: ApplyFlowJob[]) => void;
+  setJobsStorageStatus: (value: DashboardJobsLoadStatus) => void;
+  setJobsIgnoredCount: (value: number) => void;
+  setJobsUnreadableReason: (value: DashboardJobsUnreadableReason | undefined) => void;
+  setResumeLibrary: (value: ResumeLibrary | null) => void;
+  setResumeLibraryStatus: (value: ResumeLibraryLoadStatus) => void;
+  setImportFeedback: (value: ImportFeedback | null) => void;
+  setHydrated: (value: boolean) => void;
+}) {
+  persistClosedLoopV1Backfill();
+  const stored = loadDashboardImport();
+  const storedJobs = loadDashboardJobs();
+  const storedLibrary = hydrateResumeLibraryState();
+  startTransition(() => {
+    if (stored?.applications?.length) {
+      setters.setApplications(stored.applications);
+    }
+    if (storedJobs.jobs.length) {
+      const library = storedLibrary.library;
+      if (library) {
+        const refreshed = reevaluateApplyFlowJobs(
+          storedJobs.jobs,
+          getDefaultResumeVariant(library).profile,
+          library,
+        );
+        if (refreshed.some((job, index) => job !== storedJobs.jobs[index])) {
+          persistDashboardJobs(refreshed);
+        }
+        setters.setJobs(refreshed);
+      } else {
+        setters.setJobs(storedJobs.jobs);
+      }
+    }
+    setters.setJobsStorageStatus(storedJobs.status);
+    setters.setJobsIgnoredCount(storedJobs.ignoredCount);
+    setters.setJobsUnreadableReason(storedJobs.reason);
+    setters.setResumeLibrary(storedLibrary.library);
+    setters.setResumeLibraryStatus(storedLibrary.status);
+    const restoredCount = (stored?.applications?.length ?? 0) + storedJobs.jobs.length;
+    if (restoredCount > 0) {
+      setters.setImportFeedback({
+        loaded: restoredCount,
+        ignored: 0,
+        kind: "restored",
+      });
+    }
+    setters.setHydrated(true);
+  });
+}
+
 export function DashboardClient({
   gmailRuntimeEnabled = false,
-  persistenceV2Enabled = false,
+  persistenceBootstrap,
 }: {
   gmailRuntimeEnabled?: boolean;
-  persistenceV2Enabled?: boolean;
-} = {}) {
+  persistenceBootstrap: ApplyFlowClientPersistenceBootstrapResult;
+}) {
   const [applications, setApplications] = useState<ApplyFlowApplicationV2Envelope[]>([]);
   const [jobs, setJobs] = useState<ApplyFlowJob[]>([]);
   const [resumeLibrary, setResumeLibrary] = useState<ResumeLibrary | null>(null);
@@ -237,9 +294,33 @@ export function DashboardClient({
   const [filters, setFilters] = useState<DashboardTableFilters>(defaultFilters);
   const [dragOver, setDragOver] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
-  const [remoteGate, setRemoteGate] = useState<"migration_required" | "auth_required" | "error" | null>(null);
+  const [usesCloudPersistence, setUsesCloudPersistence] = useState(false);
+  const [writeCapability, setWriteCapability] = useState<"full" | "read_only">("full");
+  const [remoteGate, setRemoteGate] = useState<
+    "migration_required" | "auth_required" | "error" | "paused" | "bootstrap_unavailable" | null
+  >(null);
   const [migrationSuccessNotice, setMigrationSuccessNotice] = useState(false);
+  const [activationPendingNotice, setActivationPendingNotice] = useState(false);
+  const [emptyActivationEligible, setEmptyActivationEligible] = useState(false);
+  const [activationBusy, setActivationBusy] = useState(false);
+  const [activationError, setActivationError] = useState<string | null>(null);
   const persistenceRef = useRef<ApplyFlowDashboardPersistence | null>(null);
+  const bootstrapRef = useRef(persistenceBootstrap);
+  bootstrapRef.current = persistenceBootstrap;
+
+  const hydrateLocal = useCallback(() => {
+    hydrateLocalDashboardState({
+      setApplications,
+      setJobs,
+      setJobsStorageStatus,
+      setJobsIgnoredCount,
+      setJobsUnreadableReason,
+      setResumeLibrary,
+      setResumeLibraryStatus,
+      setImportFeedback,
+      setHydrated,
+    });
+  }, []);
 
   const applyOpenedPersistence = useCallback(
     (opened: Awaited<ReturnType<typeof openDashboardPersistence>>) => {
@@ -247,71 +328,81 @@ export function DashboardClient({
         persistenceRef.current = opened.persistence;
         setJobs(opened.jobs);
         setApplications(opened.applications);
+        setUsesCloudPersistence(true);
+        setWriteCapability(opened.writeCapability);
         setRemoteGate(null);
+        setActivationPendingNotice(false);
+        setEmptyActivationEligible(false);
+        setActivationError(null);
         setHydrated(true);
         return;
       }
+      if (
+        opened.kind === "v1" ||
+        opened.kind === "v2_offering_empty_pending" ||
+        opened.kind === "migration_complete_pending_activation"
+      ) {
+        persistenceRef.current = opened.persistence;
+        setUsesCloudPersistence(false);
+        setWriteCapability("full");
+        setRemoteGate(null);
+        setActivationPendingNotice(opened.kind === "migration_complete_pending_activation");
+        setEmptyActivationEligible(opened.kind === "v2_offering_empty_pending");
+        hydrateLocal();
+        return;
+      }
       persistenceRef.current = null;
+      setUsesCloudPersistence(false);
+      setEmptyActivationEligible(false);
       if (opened.kind === "migration_required") setRemoteGate("migration_required");
       else if (opened.kind === "auth_required") setRemoteGate("auth_required");
       else if (opened.kind === "error") setRemoteGate("error");
+      else if (opened.kind === "paused") setRemoteGate("paused");
+      else if (opened.kind === "bootstrap_unavailable") setRemoteGate("bootstrap_unavailable");
       setHydrated(true);
     },
-    [],
+    [hydrateLocal],
   );
 
-  useEffect(() => {
-    if (persistenceV2Enabled) {
-      let cancelled = false;
-      void openDashboardPersistence({ persistenceV2Enabled: true }).then((opened) => {
-        if (cancelled) return;
-        applyOpenedPersistence(opened);
-      });
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    persistClosedLoopV1Backfill();
-    const stored = loadDashboardImport();
-    const storedJobs = loadDashboardJobs();
-    const storedLibrary = hydrateResumeLibraryState();
-    startTransition(() => {
-      if (stored?.applications?.length) {
-        setApplications(stored.applications);
-      }
-      if (storedJobs.jobs.length) {
-        const library = storedLibrary.library;
-        if (library) {
-          const refreshed = reevaluateApplyFlowJobs(
-            storedJobs.jobs,
-            getDefaultResumeVariant(library).profile,
-            library,
-          );
-          if (refreshed.some((job, index) => job !== storedJobs.jobs[index])) {
-            persistDashboardJobs(refreshed);
-          }
-          setJobs(refreshed);
-        } else {
-          setJobs(storedJobs.jobs);
-        }
-      }
-      setJobsStorageStatus(storedJobs.status);
-      setJobsIgnoredCount(storedJobs.ignoredCount);
-      setJobsUnreadableReason(storedJobs.reason);
-      setResumeLibrary(storedLibrary.library);
-      setResumeLibraryStatus(storedLibrary.status);
-      const restoredCount = (stored?.applications?.length ?? 0) + storedJobs.jobs.length;
-      if (restoredCount > 0) {
-        setImportFeedback({
-          loaded: restoredCount,
-          ignored: 0,
-          kind: "restored",
-        });
+  const refreshAuthoritativeAndOpen = useCallback(async () => {
+    const refreshed = await fetchAuthoritativePersistenceBootstrap();
+    if (!refreshed.ok) {
+      if (refreshed.code === "unauthenticated" || refreshed.code === "auth_not_configured") {
+        setRemoteGate("auth_required");
+      } else if (refreshed.code === "bootstrap_unavailable") {
+        setRemoteGate("bootstrap_unavailable");
+      } else {
+        setRemoteGate("error");
       }
       setHydrated(true);
+      return;
+    }
+    bootstrapRef.current = { ok: true, bootstrap: refreshed.bootstrap };
+    const opened = await openDashboardPersistence({ bootstrap: refreshed.bootstrap });
+    applyOpenedPersistence(opened);
+  }, [applyOpenedPersistence]);
+
+  const reopenPersistence = useCallback(() => {
+    void refreshAuthoritativeAndOpen();
+  }, [refreshAuthoritativeAndOpen]);
+
+  useEffect(() => {
+    if (!persistenceBootstrap.ok) {
+      return;
+    }
+
+    let cancelled = false;
+    void openDashboardPersistence({ bootstrap: persistenceBootstrap.bootstrap }).then((opened) => {
+      if (cancelled) return;
+      applyOpenedPersistence(opened);
     });
-  }, [persistenceV2Enabled, applyOpenedPersistence]);
+    return () => {
+      cancelled = true;
+    };
+  }, [persistenceBootstrap, applyOpenedPersistence]);
+
+  const effectiveRemoteGate =
+    !persistenceBootstrap.ok ? ("bootstrap_unavailable" as const) : remoteGate;
 
   const now = useMemo(() => new Date(), []);
 
@@ -473,7 +564,11 @@ export function DashboardClient({
   resumeLibraryRef.current = resumeLibrary;
 
   const commitJobs = useCallback((incoming: ApplyFlowJob[]) => {
-    if (persistenceV2Enabled) {
+    if (writeCapability === "read_only") {
+      setImportError(V2_READ_ONLY_BLOCKED);
+      return { jobs: jobsRef.current, added: 0, skipped: incoming.length };
+    }
+    if (usesCloudPersistence) {
       setImportError(V2_LOCAL_IMPORT_BLOCKED);
       return { jobs: jobsRef.current, added: 0, skipped: incoming.length };
     }
@@ -491,7 +586,7 @@ export function DashboardClient({
       setJobInboxError(null);
     }
     return merged;
-  }, [persistenceV2Enabled]);
+  }, [usesCloudPersistence, writeCapability]);
 
   const commitResumeLibrary = useCallback((library: ResumeLibrary) => {
     const persisted = persistResumeLibrary(library);
@@ -505,7 +600,7 @@ export function DashboardClient({
     if (currentJobs.length === 0) return;
     const nextJobs = reevaluateApplyFlowJobs(currentJobs, getDefaultResumeVariant(library).profile, library);
     if (!nextJobs.some((job, index) => job !== currentJobs[index])) return;
-    if (persistenceV2Enabled) {
+    if (usesCloudPersistence) {
       const persistence = persistenceRef.current;
       if (!persistence) return;
       const changed = nextJobs.filter((job, index) => job !== currentJobs[index]);
@@ -523,7 +618,7 @@ export function DashboardClient({
     }
     persistDashboardJobs(nextJobs);
     setJobs(nextJobs);
-  }, [persistenceV2Enabled]);
+  }, [usesCloudPersistence]);
 
   const matchProfile = useCallback(() => resolveInboxMatchProfile(resumeLibraryRef.current), []);
 
@@ -552,9 +647,13 @@ export function DashboardClient({
         profile,
         resumeLibrary: resumeLibraryRef.current ?? undefined,
       });
-      if (persistenceV2Enabled) {
+      if (usesCloudPersistence) {
         const persistence = persistenceRef.current;
         if (!persistence) return "error" as const;
+        if (writeCapability === "read_only") {
+          setJobInboxError(V2_READ_ONLY_BLOCKED);
+          return "error" as const;
+        }
         const created = await persistence.createJob(job);
         if (!created.ok) {
           setJobInboxError(dashboardPersistenceFailureMessage(created.code));
@@ -568,11 +667,11 @@ export function DashboardClient({
       if (merged.added === 0 && merged.skipped > 0) return "duplicate_content" as const;
       return "added" as const;
     },
-    [commitJobs, matchProfile, persistenceV2Enabled],
+    [commitJobs, matchProfile, usesCloudPersistence, writeCapability],
   );
 
   const replaceJob = useCallback((next: ApplyFlowJob) => {
-    if (persistenceV2Enabled) {
+    if (usesCloudPersistence) {
       const persistence = persistenceRef.current;
       if (!persistence) return;
       void persistence.updateJob(next).then((result) => {
@@ -589,7 +688,7 @@ export function DashboardClient({
     persistDashboardJobs(nextJobs);
     setJobs(nextJobs);
     setJobInboxError(null);
-  }, [persistenceV2Enabled]);
+  }, [usesCloudPersistence]);
 
   const onReevaluateJob = useCallback(
     (jobId: string) => {
@@ -629,7 +728,7 @@ export function DashboardClient({
   );
 
   const commitApplicationSubmitted = useCallback((application: ApplyFlowApplication) => {
-    if (persistenceV2Enabled) {
+    if (usesCloudPersistence) {
       const persistence = persistenceRef.current;
       if (!persistence) return;
       const envelope = application as ApplyFlowApplicationV2Envelope;
@@ -659,7 +758,7 @@ export function DashboardClient({
     setApplications((prev) => [...prev.filter((item) => item.id !== persisted.application.id), persisted.application]);
     const nextJobs = loadDashboardJobs();
     if (nextJobs.jobs.length) setJobs(nextJobs.jobs);
-  }, [persistenceV2Enabled]);
+  }, [usesCloudPersistence]);
 
   const onMarkJobApplied = useCallback(
     (jobId: string) => {
@@ -676,7 +775,7 @@ export function DashboardClient({
   );
 
   const processJsonText = useCallback((text: string) => {
-    if (persistenceV2Enabled) {
+    if (usesCloudPersistence) {
       setImportError(V2_LOCAL_IMPORT_BLOCKED);
       setImportFeedback(null);
       return;
@@ -749,7 +848,7 @@ export function DashboardClient({
       kind: "import",
     });
     setImportError(null);
-  }, [commitJobs, commitResumeLibrary, matchProfile, persistenceV2Enabled]);
+  }, [commitJobs, commitResumeLibrary, matchProfile, usesCloudPersistence]);
 
   const onFile = useCallback(
     (file: File | null) => {
@@ -760,7 +859,7 @@ export function DashboardClient({
   );
 
   const loadDemo = useCallback(async () => {
-    if (persistenceV2Enabled) {
+    if (usesCloudPersistence) {
       setImportError(V2_LOCAL_IMPORT_BLOCKED);
       setImportFeedback(null);
       return;
@@ -801,35 +900,49 @@ export function DashboardClient({
     } finally {
       setDemoLoading(false);
     }
-  }, [applications.length, persistenceV2Enabled]);
+  }, [applications.length, usesCloudPersistence]);
 
   const tableEmpty = showApplications && filtered.length === 0;
   const showJobsRecovery = jobsStorageStatus === "partial" || jobsStorageStatus === "unreadable";
   const pilotMode = isCareerPilotModeClient();
 
-  if (!hydrated) {
+  if (!hydrated && persistenceBootstrap.ok) {
     return (
       <ApplyFlowCard variant="muted" padding="lg" className="text-center">
         <p className="text-sm text-[color:var(--af-text-muted)]">
-          {persistenceV2Enabled ? "A carregar os dados da conta…" : "A preparar o painel e ler o armazenamento local…"}
+          {usesCloudPersistence ? "A carregar os dados da conta…" : "A preparar o painel e ler o armazenamento local…"}
         </p>
       </ApplyFlowCard>
     );
   }
 
-  if (remoteGate === "migration_required") {
+  if (effectiveRemoteGate === "migration_required") {
     return (
       <DashboardMigrationPanel
         onComplete={() => {
           setMigrationSuccessNotice(true);
-          void openDashboardPersistence({ persistenceV2Enabled: true }).then(applyOpenedPersistence);
+          void refreshAuthoritativeAndOpen();
         }}
       />
     );
   }
 
-  if (remoteGate) {
-    return <DashboardPersistenceNotice kind={remoteGate} />;
+  if (effectiveRemoteGate) {
+    return (
+      <DashboardPersistenceNotice
+        kind={effectiveRemoteGate}
+        onRetry={
+          effectiveRemoteGate === "paused" ||
+          effectiveRemoteGate === "bootstrap_unavailable" ||
+          effectiveRemoteGate === "error"
+            ? () => {
+                setHydrated(false);
+                reopenPersistence();
+              }
+            : undefined
+        }
+      />
+    );
   }
 
   return (
@@ -844,6 +957,57 @@ export function DashboardClient({
           Dados migrados com sucesso.
         </p>
       ) : null}
+      {activationPendingNotice ? (
+        <p className="text-sm text-amber-200" role="status" data-testid="activation-pending-notice">
+          Migração concluída no servidor, mas a conta ainda não está ativa na nuvem. Atualize o painel.
+        </p>
+      ) : null}
+      {emptyActivationEligible ? (
+        <ApplyFlowCard variant="muted" padding="lg" data-testid="empty-activation-panel">
+          <p className="text-sm font-medium text-[color:var(--af-text)]">Sincronização na nuvem</p>
+          <p className="mt-2 text-sm leading-relaxed text-[color:var(--af-text-muted)]">
+            Este navegador não tem dados locais para migrar. Ative a sincronização na nuvem para passar a
+            gravar vagas e candidaturas na conta.
+          </p>
+          {activationError ? (
+            <p className="mt-2 text-sm text-amber-200" role="alert">
+              {activationError}
+            </p>
+          ) : null}
+          <ApplyFlowButton
+            type="button"
+            className="mt-4"
+            disabled={activationBusy}
+            onClick={() => {
+              setActivationBusy(true);
+              setActivationError(null);
+              void requestEmptyLegacyActivation().then(async (result) => {
+                if (!result.ok) {
+                  setActivationBusy(false);
+                  if (result.code === "legacy_not_empty" || result.code === "fingerprint_changed") {
+                    setActivationError(
+                      "Foram detetados dados locais entretanto. Use a migração em vez da ativação vazia.",
+                    );
+                    return;
+                  }
+                  if (result.code === "auth_required") {
+                    setRemoteGate("auth_required");
+                    return;
+                  }
+                  setActivationError("Não foi possível ativar a sincronização. Tente de novo.");
+                  return;
+                }
+                setMigrationSuccessNotice(true);
+                await refreshAuthoritativeAndOpen();
+                setActivationBusy(false);
+              });
+            }}
+          >
+            {activationBusy ? "A ativar…" : "Ativar sincronização na nuvem"}
+          </ApplyFlowButton>
+        </ApplyFlowCard>
+      ) : null}
+      {writeCapability === "read_only" ? <DashboardPersistenceReadOnlyBanner /> : null}
       <ApplyFlowPrivacyNotice />
 
       {pilotMode ? <CareerPilotExperience /> : null}
@@ -988,7 +1152,7 @@ export function DashboardClient({
         <ProviderConsentConfirmationPanel
           gmailRuntimeEnabled={gmailRuntimeEnabled}
           applications={applications}
-          persistenceV2Enabled={persistenceV2Enabled}
+          persistenceV2Enabled={usesCloudPersistence}
         />
       ) : null}
 
@@ -998,7 +1162,7 @@ export function DashboardClient({
             applications={applications}
             outcomes={loadDashboardAnalytics().outcomes}
             gmailRuntimeEnabled={gmailRuntimeEnabled}
-            persistenceV2Enabled={persistenceV2Enabled}
+            persistenceV2Enabled={usesCloudPersistence}
             onApplicationUpdated={(application) => {
               setApplications((prev) => [...prev.filter((item) => item.id !== application.id), application]);
             }}
@@ -1462,7 +1626,7 @@ export function DashboardClient({
         ) : null}
 
         {workFlags.hasApplications || workFlags.hasJobs ? (
-          persistenceV2Enabled ? null : (
+          usesCloudPersistence ? null : (
           <div className="flex flex-wrap items-center gap-4">
             <ApplyFlowButton
               type="button"

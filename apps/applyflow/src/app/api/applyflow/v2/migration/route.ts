@@ -9,7 +9,7 @@ import {
 import { applyFlowMigrationService } from "@/lib/persistence-v2/migration/migration-service";
 
 export async function POST(request: Request) {
-  return withApplyFlowMigrationAccount(async (account) => {
+  return withApplyFlowMigrationAccount("migration", async (account) => {
     try {
       const body = parseMigrationImportBody(await readMigrationJsonBody(request));
       const result = await applyFlowMigrationService.importBundle(account.id, body);

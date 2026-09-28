@@ -1,24 +1,19 @@
 import { NextResponse } from "next/server";
 
-import { isApplyFlowPersistenceV2Enabled } from "../feature-flag";
 import {
-  ApplyFlowAuthError,
-  ApplyFlowPersistenceDisabledError,
-  requireApplyFlowAccount,
-  type ApplyFlowAccountRecord,
-} from "../require-applyflow-account";
+  applyFlowAuthErrorResponse,
+  applyFlowV2HttpAccessErrorResponse,
+  withApplyFlowV2HttpAccess,
+  type ApplyFlowV2HttpCapability,
+} from "../http-access";
+import type { ApplyFlowAccountRecord } from "../require-applyflow-account";
 import { ApplyFlowMigrationServiceError } from "./migration-errors";
 
 export function migrationErrorResponse(error: unknown): NextResponse {
-  if (error instanceof ApplyFlowPersistenceDisabledError) {
-    return NextResponse.json({ error: "persistence_v2_disabled" }, { status: 404 });
-  }
-  if (error instanceof ApplyFlowAuthError) {
-    if (error.code === "auth_not_configured") {
-      return NextResponse.json({ error: "auth_not_configured" }, { status: 503 });
-    }
-    return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
-  }
+  const access = applyFlowV2HttpAccessErrorResponse(error);
+  if (access) return access;
+  const auth = applyFlowAuthErrorResponse(error);
+  if (auth) return auth;
   if (error instanceof ApplyFlowMigrationServiceError) {
     switch (error.code) {
       case "invalid_migration_payload":
@@ -51,6 +46,8 @@ export function migrationErrorResponse(error: unknown): NextResponse {
           },
           { status: 409 },
         );
+      case "migration_activation_not_eligible":
+        return NextResponse.json({ error: "persistence_v2_activation_not_eligible" }, { status: 403 });
       default:
         return NextResponse.json({ error: "internal_error" }, { status: 500 });
     }
@@ -59,17 +56,14 @@ export function migrationErrorResponse(error: unknown): NextResponse {
 }
 
 export async function withApplyFlowMigrationAccount(
+  capability: Extract<ApplyFlowV2HttpCapability, "migration" | "migration_session_read">,
   action: (account: ApplyFlowAccountRecord) => Promise<NextResponse>,
 ): Promise<NextResponse> {
-  if (!isApplyFlowPersistenceV2Enabled()) {
-    return NextResponse.json({ error: "persistence_v2_disabled" }, { status: 404 });
-  }
-  try {
-    const account = await requireApplyFlowAccount();
-    return await action(account);
-  } catch (error) {
-    return migrationErrorResponse(error);
-  }
+  return withApplyFlowV2HttpAccess(
+    capability,
+    async (account) => action(account),
+    migrationErrorResponse,
+  );
 }
 
 export async function readMigrationJsonBody(request: Request): Promise<unknown> {

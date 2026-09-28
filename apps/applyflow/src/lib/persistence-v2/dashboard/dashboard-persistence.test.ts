@@ -147,19 +147,28 @@ describe("dashboard persistence mode", () => {
     const fetchImpl = vi.fn();
     stubStorage();
     expect(selectDashboardPersistenceMode(false)).toBe("v1");
-    const opened = await openDashboardPersistence({ persistenceV2Enabled: false, fetchImpl });
+    const opened = await openDashboardPersistence({ bootstrap: { mode: "v1", reason: "global_disabled", canonicalPersistence: "v1_local", pilotEligible: false, accountId: ACCOUNT_ID }, fetchImpl });
     expect(opened.kind).toBe("v1");
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
-  it("selects V2 when the server flag is on and the browser has no legacy data", async () => {
+  it("selects V2 when server mode is v2_active and the browser has no legacy data", async () => {
     stubStorage();
     const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/jobs")) return jsonResponse(200, { jobs: [] });
       return jsonResponse(200, { applications: [] });
     });
-    const opened = await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl });
+    const opened = await openDashboardPersistence({
+      bootstrap: {
+        mode: "v2_active",
+        reason: "canonical_v2",
+        canonicalPersistence: "v2_cloud",
+        pilotEligible: true,
+        accountId: ACCOUNT_ID,
+      },
+      fetchImpl,
+    });
     expect(opened.kind).toBe("ready");
     expect(fetchImpl).toHaveBeenCalled();
   });
@@ -167,7 +176,16 @@ describe("dashboard persistence mode", () => {
   it("requires authentication when V2 list returns 401", async () => {
     stubStorage();
     const fetchImpl = vi.fn(async () => jsonResponse(401, { error: "unauthenticated" }));
-    const opened = await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl });
+    const opened = await openDashboardPersistence({
+      bootstrap: {
+        mode: "v2_active",
+        reason: "canonical_v2",
+        canonicalPersistence: "v2_cloud",
+        pilotEligible: true,
+        accountId: ACCOUNT_ID,
+      },
+      fetchImpl,
+    });
     expect(opened).toMatchObject({ kind: "auth_required", code: "unauthenticated" });
   });
 
@@ -190,16 +208,21 @@ describe("dashboard persistence mode", () => {
         migration: { v1ToV2Complete: false },
       }),
     ).toBe("migration_required");
-    const opened = await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl });
+    const opened = await openDashboardPersistence({
+      bootstrap: {
+        mode: "v2_offering",
+        reason: "pilot_eligible",
+        canonicalPersistence: "v1_local",
+        pilotEligible: true,
+        accountId: ACCOUNT_ID,
+      },
+      fetchImpl,
+    });
     expect(opened.kind).toBe("migration_required");
-    expect(fetchImpl).toHaveBeenCalledWith(
-      "/api/applyflow/v2/me",
-      expect.objectContaining({ method: "GET" }),
-    );
     expect(storage[APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]).toContain("job_client_fixed");
   });
 
-  it("requires auth before migration when legacy exists and /me is unauthenticated", async () => {
+  it("requires auth before migration when legacy exists and accountId is not in bootstrap", async () => {
     stubStorage({
       [APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]: JSON.stringify({
         version: 1,
@@ -208,7 +231,17 @@ describe("dashboard persistence mode", () => {
       }),
     });
     const fetchImpl = vi.fn(async () => jsonResponse(401, { error: "unauthenticated" }));
-    const opened = await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl });
+    const opened = await openDashboardPersistence({
+      bootstrap: {
+        mode: "v2_offering",
+        reason: "pilot_eligible",
+        canonicalPersistence: "v1_local",
+        pilotEligible: true,
+        // Empty forces /me resolution for marker proof
+        accountId: "",
+      },
+      fetchImpl,
+    });
     expect(opened).toMatchObject({ kind: "auth_required", code: "unauthenticated" });
   });
 
@@ -221,7 +254,7 @@ describe("dashboard persistence mode", () => {
       }),
     });
     const fetchImpl = vi.fn();
-    const opened = await openDashboardPersistence({ persistenceV2Enabled: false, fetchImpl });
+    const opened = await openDashboardPersistence({ bootstrap: { mode: "v1", reason: "global_disabled", canonicalPersistence: "v1_local", pilotEligible: false, accountId: ACCOUNT_ID }, fetchImpl });
     expect(opened.kind).toBe("v1");
     expect(fetchImpl).not.toHaveBeenCalled();
   });
@@ -239,7 +272,7 @@ describe("dashboard persistence mode", () => {
         jobs: [job],
       }),
     });
-    expect((await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl })).kind).toBe(
+    expect((await openDashboardPersistence({ bootstrap: { mode: "v2_offering", reason: "pilot_eligible", canonicalPersistence: "v1_local", pilotEligible: true, accountId: ACCOUNT_ID }, fetchImpl })).kind).toBe(
       "migration_required",
     );
 
@@ -250,7 +283,7 @@ describe("dashboard persistence mode", () => {
         applications: [application],
       }),
     });
-    expect((await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl })).kind).toBe(
+    expect((await openDashboardPersistence({ bootstrap: { mode: "v2_offering", reason: "pilot_eligible", canonicalPersistence: "v1_local", pilotEligible: true, accountId: ACCOUNT_ID }, fetchImpl })).kind).toBe(
       "migration_required",
     );
 
@@ -266,14 +299,14 @@ describe("dashboard persistence mode", () => {
         applications: [application],
       }),
     });
-    expect((await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl })).kind).toBe(
+    expect((await openDashboardPersistence({ bootstrap: { mode: "v2_offering", reason: "pilot_eligible", canonicalPersistence: "v1_local", pilotEligible: true, accountId: ACCOUNT_ID }, fetchImpl })).kind).toBe(
       "migration_required",
     );
 
     stubStorage({
       [APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]: "{not-json",
     });
-    expect((await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl })).kind).toBe(
+    expect((await openDashboardPersistence({ bootstrap: { mode: "v2_offering", reason: "pilot_eligible", canonicalPersistence: "v1_local", pilotEligible: true, accountId: ACCOUNT_ID }, fetchImpl })).kind).toBe(
       "migration_required",
     );
   });
@@ -296,7 +329,7 @@ describe("dashboard persistence mode", () => {
         v1ToV2Complete: false,
       }),
     });
-    expect((await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl })).kind).toBe(
+    expect((await openDashboardPersistence({ bootstrap: { mode: "v2_offering", reason: "pilot_eligible", canonicalPersistence: "v1_local", pilotEligible: true, accountId: ACCOUNT_ID }, fetchImpl })).kind).toBe(
       "migration_required",
     );
 
@@ -304,7 +337,7 @@ describe("dashboard persistence mode", () => {
       [APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]: legacyJobs,
       [APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY]: "{broken",
     });
-    expect((await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl })).kind).toBe(
+    expect((await openDashboardPersistence({ bootstrap: { mode: "v2_offering", reason: "pilot_eligible", canonicalPersistence: "v1_local", pilotEligible: true, accountId: ACCOUNT_ID }, fetchImpl })).kind).toBe(
       "migration_required",
     );
 
@@ -312,12 +345,12 @@ describe("dashboard persistence mode", () => {
       [APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]: legacyJobs,
       [APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY]: JSON.stringify(completedMarker(OTHER_ACCOUNT_ID)),
     });
-    expect((await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl })).kind).toBe(
+    expect((await openDashboardPersistence({ bootstrap: { mode: "v2_offering", reason: "pilot_eligible", canonicalPersistence: "v1_local", pilotEligible: true, accountId: ACCOUNT_ID }, fetchImpl })).kind).toBe(
       "migration_required",
     );
   });
 
-  it("unlocks V2 with a valid same-account marker without rewriting V1 data", async () => {
+  it("keeps V1 pending activation when marker is valid under offering (R2.2.5 transition not yet live)", async () => {
     const legacyJobs = JSON.stringify({
       version: 1,
       savedAt: "2026-09-25T12:00:00.000Z",
@@ -340,11 +373,12 @@ describe("dashboard persistence mode", () => {
     );
     const fetchImpl = vi.fn();
     emptyV2Lists(fetchImpl);
-    const opened = await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl });
-    expect(opened.kind).toBe("ready");
+    const opened = await openDashboardPersistence({ bootstrap: { mode: "v2_offering", reason: "pilot_eligible", canonicalPersistence: "v1_local", pilotEligible: true, accountId: ACCOUNT_ID }, fetchImpl });
+    expect(opened.kind).toBe("migration_complete_pending_activation");
     expect(storage[APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]).toBe(legacyJobs);
     expect(storage[APPLYFLOW_DASHBOARD_STORAGE_KEY]).toBe(legacyApps);
     expect(storage[APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY]).toContain("session_gate_1");
+    expect(fetchImpl).not.toHaveBeenCalled();
   });
 
   it("keeps migration_required when marker fingerprint is stale vs current V1", async () => {
@@ -360,7 +394,7 @@ describe("dashboard persistence mode", () => {
       if (String(input).endsWith("/me")) return meResponse();
       return jsonResponse(500, { error: "unexpected" });
     });
-    const opened = await openDashboardPersistence({ persistenceV2Enabled: true, fetchImpl });
+    const opened = await openDashboardPersistence({ bootstrap: { mode: "v2_offering", reason: "pilot_eligible", canonicalPersistence: "v1_local", pilotEligible: true, accountId: ACCOUNT_ID }, fetchImpl });
     expect(opened.kind).toBe("migration_required");
   });
 });

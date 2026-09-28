@@ -11,6 +11,9 @@
     "db:migrate": "node ./scripts/persistence-v2/run-prisma.cjs migrate deploy",
     "db:status": "node ./scripts/persistence-v2/run-prisma.cjs migrate status",
     "db:audit": "node scripts/persistence-v2/f3-5-env-audit.mjs",
+    "pilot:status": "tsx ./scripts/persistence-v2/pilot-cli.ts status",
+    "pilot:grant": "tsx ./scripts/persistence-v2/pilot-cli.ts grant",
+    "pilot:revoke": "tsx ./scripts/persistence-v2/pilot-cli.ts revoke",
     "start": "next start --port 3010",
     "lint": "eslint",
     "test": "vitest run"
@@ -40,6 +43,7 @@
     "eslint-config-next": "16.1.6",
     "prisma": "^6.0.0",
     "tailwindcss": "^4",
+    "tsx": "4.21.0",
     "typescript": "^5",
     "vitest": "^4.1.0"
   }

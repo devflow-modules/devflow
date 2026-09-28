@@ -12,6 +12,7 @@ import { loadCareerAnalyticsSnapshot } from "@/lib/career-analytics-snapshot";
 import { useClientHydrated } from "@/lib/use-client-hydrated";
 import { DashboardPersistenceNotice } from "@/components/dashboard/dashboard-persistence-notice";
 import { DashboardMigrationPanel } from "@/components/dashboard/dashboard-migration-panel";
+import type { ApplyFlowClientPersistenceBootstrapResult } from "@/lib/persistence-v2/dashboard/client-persistence-bootstrap";
 import { openDashboardPersistence } from "@/lib/persistence-v2/dashboard/open-dashboard-persistence";
 import type { ApplyFlowApplicationV2Envelope, ApplyFlowJob } from "@devflow/applyflow-core";
 
@@ -34,57 +35,106 @@ function pct(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
 
-export function CareerAnalyticsPanel({ persistenceV2Enabled = false }: { persistenceV2Enabled?: boolean }) {
+export function CareerAnalyticsPanel({
+  persistenceBootstrap,
+}: {
+  persistenceBootstrap: ApplyFlowClientPersistenceBootstrapResult;
+}) {
   const hydrated = useClientHydrated();
-  const [remoteGate, setRemoteGate] = useState<"migration_required" | "auth_required" | "error" | null>(null);
+  const [usesCloudPersistence, setUsesCloudPersistence] = useState(false);
+  const [remoteGate, setRemoteGate] = useState<
+    "migration_required" | "auth_required" | "error" | "paused" | "bootstrap_unavailable" | null
+  >(null);
   const [remoteDomain, setRemoteDomain] = useState<{
     jobs: ApplyFlowJob[];
     applications: ApplyFlowApplicationV2Envelope[];
   } | null>(null);
   useEffect(() => {
-    if (!hydrated || !persistenceV2Enabled) return;
+    if (!hydrated) return;
+    if (!persistenceBootstrap.ok) return;
     let cancelled = false;
-    void openDashboardPersistence({ persistenceV2Enabled: true }).then((opened) => {
+    void openDashboardPersistence({ bootstrap: persistenceBootstrap.bootstrap }).then((opened) => {
       if (cancelled) return;
       if (opened.kind === "ready") {
+        setUsesCloudPersistence(true);
         setRemoteDomain({ jobs: opened.jobs, applications: opened.applications });
         setRemoteGate(null);
         return;
       }
-      if (opened.kind === "migration_required" || opened.kind === "auth_required" || opened.kind === "error") {
-        setRemoteGate(opened.kind);
+      if (
+        opened.kind === "v1" ||
+        opened.kind === "v2_offering_empty_pending" ||
+        opened.kind === "migration_complete_pending_activation"
+      ) {
+        setUsesCloudPersistence(false);
+        setRemoteDomain(null);
+        setRemoteGate(null);
+        return;
       }
+      setUsesCloudPersistence(false);
+      if (opened.kind === "migration_required") setRemoteGate("migration_required");
+      else if (opened.kind === "auth_required") setRemoteGate("auth_required");
+      else if (opened.kind === "error") setRemoteGate("error");
+      else if (opened.kind === "paused") setRemoteGate("paused");
+      else if (opened.kind === "bootstrap_unavailable") setRemoteGate("bootstrap_unavailable");
     });
     return () => {
       cancelled = true;
     };
-  }, [hydrated, persistenceV2Enabled]);
+  }, [hydrated, persistenceBootstrap]);
   const snapshot = useMemo(() => {
     if (!hydrated) return null;
-    if (!persistenceV2Enabled) return loadCareerAnalyticsSnapshot();
-    if (!remoteDomain) return null;
-    return loadCareerAnalyticsSnapshot({
-      jobs: remoteDomain.jobs,
-      applications: remoteDomain.applications,
-    });
-  }, [hydrated, persistenceV2Enabled, remoteDomain]);
+    if (usesCloudPersistence) {
+      if (!remoteDomain) return null;
+      return loadCareerAnalyticsSnapshot({
+        jobs: remoteDomain.jobs,
+        applications: remoteDomain.applications,
+      });
+    }
+    return loadCareerAnalyticsSnapshot();
+  }, [hydrated, usesCloudPersistence, remoteDomain]);
   const [tab, setTab] = useState<AnalyticsTab>("overview");
 
   const empty = Boolean(
     snapshot && (snapshot.scorecard?.applications ?? 0) === 0 && (snapshot.scorecard?.jobsFound ?? 0) === 0,
   );
 
-  if (persistenceV2Enabled && remoteGate === "migration_required") {
+  if (!persistenceBootstrap.ok) {
+    return <DashboardPersistenceNotice kind="bootstrap_unavailable" />;
+  }
+
+  if (remoteGate === "migration_required") {
     return (
       <DashboardMigrationPanel
         onComplete={() => {
-          void openDashboardPersistence({ persistenceV2Enabled: true }).then((opened) => {
+          if (!persistenceBootstrap.ok) {
+            setRemoteGate("bootstrap_unavailable");
+            return;
+          }
+          void openDashboardPersistence({ bootstrap: persistenceBootstrap.bootstrap }).then((opened) => {
             if (opened.kind === "ready") {
+              setUsesCloudPersistence(true);
               setRemoteDomain({ jobs: opened.jobs, applications: opened.applications });
               setRemoteGate(null);
               return;
             }
-            if (opened.kind === "migration_required" || opened.kind === "auth_required" || opened.kind === "error") {
+            if (
+              opened.kind === "v1" ||
+              opened.kind === "v2_offering_empty_pending" ||
+              opened.kind === "migration_complete_pending_activation"
+            ) {
+              setUsesCloudPersistence(false);
+              setRemoteDomain(null);
+              setRemoteGate(null);
+              return;
+            }
+            if (
+              opened.kind === "migration_required" ||
+              opened.kind === "auth_required" ||
+              opened.kind === "error" ||
+              opened.kind === "paused" ||
+              opened.kind === "bootstrap_unavailable"
+            ) {
               setRemoteGate(opened.kind);
             }
           });
@@ -93,7 +143,7 @@ export function CareerAnalyticsPanel({ persistenceV2Enabled = false }: { persist
     );
   }
 
-  if (persistenceV2Enabled && remoteGate) {
+  if (remoteGate) {
     return <DashboardPersistenceNotice kind={remoteGate} />;
   }
 

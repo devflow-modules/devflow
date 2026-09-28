@@ -8,12 +8,28 @@
  * Never logs credentials or full connection strings.
  */
 
+import { createHash } from "node:crypto";
+
 /** Canonical ApplyFlow Production Supabase project — never a DEV/E2E target. */
 export const APPLYFLOW_PRODUCTION_SUPABASE_PROJECT_REF = "qygwhuwvilkekfkgoizb";
 export const APPLYFLOW_PRODUCTION_SUPABASE_HOST = `${APPLYFLOW_PRODUCTION_SUPABASE_PROJECT_REF}.supabase.co`;
 
+/** Known Production pooler host (sa-east-1). Fingerprint is a non-secret identity proof. */
+export const APPLYFLOW_PRODUCTION_POOLER_HOST = "aws-0-sa-east-1.pooler.supabase.com";
+
+/**
+ * Previously recorded SHA-256(host).slice(0, 16) for APPLYFLOW_PRODUCTION_POOLER_HOST.
+ * Used as the operator `--confirm-production` target when DATABASE_URL uses the pooler.
+ */
+export const APPLYFLOW_PRODUCTION_POOLER_HOST_FINGERPRINT = "3c193d95207920e0";
+
 /** Hosts allowed for destructive DB tests (local Docker / ephemeral CI). */
 export const APPLYFLOW_SAFE_DESTRUCTIVE_DB_HOSTS = ["localhost", "127.0.0.1"] as const;
+
+/** Non-reversible host fingerprint for sanitized operator output / Production confirm. */
+export function computeApplyFlowDbHostFingerprint(host: string): string {
+  return createHash("sha256").update(host).digest("hex").slice(0, 16);
+}
 
 export type ApplyFlowDbTargetKind =
   | "production"
@@ -210,6 +226,103 @@ export function assertApplyFlowDestructiveDbTargetAllowed(
     throw new ApplyFlowDestructiveDbTargetDeniedError(classification);
   }
   return classification;
+}
+
+/**
+ * Narrow options for the pilot operator CLI only.
+ * Never wire this into generic destructive scripts — Production stays DENY there.
+ */
+export type ApplyFlowOperatorMutationTargetOptions = {
+  /** Explicit `--production` on this CLI invocation. */
+  allowProductionMutation: boolean;
+  /**
+   * Must equal `computeApplyFlowDbHostFingerprint(classification.dbHost)`.
+   * Required when mutating Production; ignored for safe_local.
+   */
+  productionHostConfirm?: string;
+};
+
+export class ApplyFlowOperatorDbTargetDeniedError extends Error {
+  readonly classification: ApplyFlowDbTargetClassification;
+  readonly code: string;
+
+  constructor(classification: ApplyFlowDbTargetClassification, code: string, message: string) {
+    super(message);
+    this.name = "ApplyFlowOperatorDbTargetDeniedError";
+    this.classification = classification;
+    this.code = code;
+  }
+}
+
+/**
+ * Target gate for pilot operator mutations (grant/revoke).
+ *
+ * - safe_local → ALLOW (and `--production` must NOT be set)
+ * - production → ALLOW only with `--production` + matching host fingerprint confirm
+ * - everything else → DENY
+ *
+ * Does NOT weaken `assertApplyFlowDestructiveDbTargetAllowed` (still always denies Production).
+ */
+export function assertApplyFlowOperatorMutationTargetAllowed(
+  env: ApplyFlowDbTargetEnv | undefined,
+  options: ApplyFlowOperatorMutationTargetOptions,
+): ApplyFlowDbTargetClassification {
+  const classification = classifyApplyFlowDbTarget(env);
+
+  if (classification.kind === "safe_local") {
+    if (options.allowProductionMutation) {
+      throw new ApplyFlowOperatorDbTargetDeniedError(
+        classification,
+        "production_flag_on_local",
+        "ApplyFlow operator: --production is not valid for a safe_local target.",
+      );
+    }
+    return classification;
+  }
+
+  if (classification.kind === "production") {
+    if (!options.allowProductionMutation) {
+      throw new ApplyFlowOperatorDbTargetDeniedError(
+        classification,
+        "production_requires_explicit_flag",
+        "ApplyFlow operator: Production target requires explicit --production on this invocation.",
+      );
+    }
+    const hostFingerprint = computeApplyFlowDbHostFingerprint(classification.dbHost);
+    if (!options.productionHostConfirm || options.productionHostConfirm !== hostFingerprint) {
+      throw new ApplyFlowOperatorDbTargetDeniedError(
+        classification,
+        "production_host_confirm_mismatch",
+        "ApplyFlow operator: Production mutation requires --confirm-production matching the DB host fingerprint.",
+      );
+    }
+    return classification;
+  }
+
+  throw new ApplyFlowOperatorDbTargetDeniedError(
+    classification,
+    "operator_target_denied",
+    `ApplyFlow operator: DB target denied (${classification.kind}: ${classification.reason}).`,
+  );
+}
+
+/** Sanitized target identity for operator JSON output (never includes credentials). */
+export function sanitizeApplyFlowDbTargetForOperator(
+  classification: ApplyFlowDbTargetClassification,
+): {
+  kind: ApplyFlowDbTargetKind;
+  reason: string;
+  dbHost: string;
+  dbName: string;
+  hostFingerprint: string;
+} {
+  return {
+    kind: classification.kind,
+    reason: classification.reason,
+    dbHost: classification.dbHost,
+    dbName: classification.dbName,
+    hostFingerprint: computeApplyFlowDbHostFingerprint(classification.dbHost),
+  };
 }
 
 /**
