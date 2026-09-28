@@ -456,7 +456,9 @@ describe("V2 dashboard persistence", () => {
       if (url.endsWith("/jobs") && method === "GET") return jsonResponse(200, { jobs: [jobResponse(jobVersion)] });
       if (url.endsWith("/jobs") && method === "POST") return jsonResponse(201, jobResponse(1), "\"1\"");
       if (url.includes("/jobs/") && method === "PATCH") {
-        expect(init?.headers).toMatchObject({ "if-match": "\"1\"" });
+        const headers = new Headers(init?.headers);
+        expect(headers.has("if-match")).toBe(false);
+        expect(JSON.parse(String(init?.body))).toMatchObject({ expectedVersion: 1, title: "Staff Engineer" });
         jobVersion = 2;
         return jsonResponse(200, jobResponse(2, { title: "Staff Engineer" }), "\"2\"");
       }
@@ -467,7 +469,9 @@ describe("V2 dashboard persistence", () => {
         return jsonResponse(201, applicationResponse(1), "\"1\"");
       }
       if (url.includes("/applications/") && method === "PATCH") {
-        expect(init?.headers).toMatchObject({ "if-match": "\"1\"" });
+        const headers = new Headers(init?.headers);
+        expect(headers.has("if-match")).toBe(false);
+        expect(JSON.parse(String(init?.body))).toMatchObject({ expectedVersion: 1 });
         return jsonResponse(200, applicationResponse(2, "applied"), "\"2\"");
       }
       return jsonResponse(500, { error: "internal_error" });

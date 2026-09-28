@@ -5,7 +5,7 @@ import {
 } from "@devflow/applyflow-core";
 import { z } from "zod";
 
-import { parseJobIfMatch, jobVersionEtag } from "../jobs/job-dto";
+import { jobVersionEtag } from "../jobs/job-dto";
 import { ApplyFlowApplicationServiceError } from "./application-errors";
 
 const statusSchema = z.string().trim().min(1).transform((raw, ctx) => {
@@ -90,10 +90,23 @@ export const createApplicationBodySchema = z
   })
   .strict();
 
-export const patchApplicationBodySchema = z.object(applicationFields).strict();
+/**
+ * PATCH body. Optimistic concurrency uses application-level `expectedVersion`
+ * (NOT HTTP If-Match) so Vercel/CDN cannot rewrite successful mutations as 412.
+ */
+export const patchApplicationBodySchema = z
+  .object({
+    ...applicationFields,
+    expectedVersion: z.number().int().positive(),
+  })
+  .strict();
 
 export type CreateApplicationBody = z.infer<typeof createApplicationBodySchema>;
-export type PatchApplicationBody = z.infer<typeof patchApplicationBodySchema>;
+export type PatchApplicationBody = Omit<z.infer<typeof patchApplicationBodySchema>, "expectedVersion">;
+export type ApplicationPatchRequest = {
+  expectedVersion: number;
+  patch: PatchApplicationBody;
+};
 
 export type ApplicationResponse = {
   id: string;
@@ -120,23 +133,29 @@ export function parseCreateApplicationBody(raw: unknown): CreateApplicationBody 
   return parsed.data;
 }
 
-export function parsePatchApplicationBody(raw: unknown): PatchApplicationBody {
+export function parseApplicationPatchRequest(raw: unknown): ApplicationPatchRequest {
   const parsed = patchApplicationBodySchema.safeParse(raw);
-  if (!parsed.success) throw new ApplyFlowApplicationServiceError("invalid_payload");
-  if (Object.keys(parsed.data).length === 0) {
+  if (!parsed.success) {
+    const issues = parsed.error.issues;
+    const expectedVersionIssue = issues.some((issue) => issue.path[0] === "expectedVersion");
+    if (expectedVersionIssue && issues.every((issue) => issue.path[0] === "expectedVersion")) {
+      throw new ApplyFlowApplicationServiceError("invalid_expected_version");
+    }
+    throw new ApplyFlowApplicationServiceError("invalid_payload");
+  }
+  const { expectedVersion, ...patch } = parsed.data;
+  if (Object.keys(patch).length === 0) {
     throw new ApplyFlowApplicationServiceError("empty_patch");
   }
-  return parsed.data;
+  return { expectedVersion, patch };
 }
 
-export function parseApplicationIfMatch(header: string | null): number {
-  try {
-    return parseJobIfMatch(header);
-  } catch {
-    throw new ApplyFlowApplicationServiceError("invalid_if_match");
-  }
+/** @deprecated Prefer parseApplicationPatchRequest. */
+export function parsePatchApplicationBody(raw: unknown): PatchApplicationBody {
+  return parseApplicationPatchRequest(raw).patch;
 }
 
+/** Informational ETag only — not the concurrency transport. */
 export function applicationVersionEtag(version: number): string {
   return jobVersionEtag(version);
 }

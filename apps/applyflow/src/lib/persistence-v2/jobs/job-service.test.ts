@@ -2,7 +2,7 @@ import { hashJobDescription } from "@devflow/applyflow-core";
 import { describe, expect, it } from "vitest";
 
 import type { ApplyFlowJobRepository } from "../repositories";
-import { parseCreateJobBody, parseJobIfMatch, parsePatchJobBody } from "./job-dto";
+import { parseCreateJobBody, parseJobPatchRequest, parsePatchJobBody } from "./job-dto";
 import { ApplyFlowJobServiceError } from "./job-errors";
 import { createApplyFlowJobService } from "./job-service";
 
@@ -102,22 +102,33 @@ describe("Jobs DTO", () => {
   });
 
   it("rejects an empty patch and identity mutation", () => {
-    expect(() => parsePatchJobBody({})).toThrow(ApplyFlowJobServiceError);
+    expect(() => parsePatchJobBody({ expectedVersion: 1 })).toThrow(ApplyFlowJobServiceError);
     try {
-      parsePatchJobBody({});
+      parsePatchJobBody({ expectedVersion: 1 });
     } catch (error) {
       expect(error).toMatchObject({ code: "empty_patch" });
     }
-    expect(() => parsePatchJobBody({ id: "job_other", title: "Next" })).toThrow(ApplyFlowJobServiceError);
-    expect(() => parsePatchJobBody({ accountId: ACCOUNT_B, title: "Next" })).toThrow(ApplyFlowJobServiceError);
+    expect(() => parsePatchJobBody({ id: "job_other", title: "Next", expectedVersion: 1 })).toThrow(
+      ApplyFlowJobServiceError,
+    );
+    expect(() => parsePatchJobBody({ accountId: ACCOUNT_B, title: "Next", expectedVersion: 1 })).toThrow(
+      ApplyFlowJobServiceError,
+    );
   });
 
-  it("accepts only a quoted positive If-Match version", () => {
-    expect(parseJobIfMatch('"3"')).toBe(3);
-    expect(() => parseJobIfMatch(null)).toThrow(ApplyFlowJobServiceError);
-    expect(() => parseJobIfMatch("3")).toThrow(ApplyFlowJobServiceError);
-    expect(() => parseJobIfMatch('"0"')).toThrow(ApplyFlowJobServiceError);
-    expect(() => parseJobIfMatch('"1", "2"')).toThrow(ApplyFlowJobServiceError);
+  it("requires a positive integer expectedVersion in the PATCH body", () => {
+    expect(parseJobPatchRequest({ title: "Next", expectedVersion: 3 })).toEqual({
+      expectedVersion: 3,
+      patch: { title: "Next" },
+    });
+    expect(() => parseJobPatchRequest({ title: "Next" })).toThrow(ApplyFlowJobServiceError);
+    try {
+      parseJobPatchRequest({ title: "Next" });
+    } catch (error) {
+      expect(error).toMatchObject({ code: "invalid_expected_version" });
+    }
+    expect(() => parseJobPatchRequest({ title: "Next", expectedVersion: 0 })).toThrow(ApplyFlowJobServiceError);
+    expect(() => parseJobPatchRequest({ title: "Next", expectedVersion: 1.5 })).toThrow(ApplyFlowJobServiceError);
   });
 });
 
@@ -193,15 +204,20 @@ describe("Jobs service", () => {
     await expect(service.get(ACCOUNT_B, "job_private")).rejects.toMatchObject({ code: "not_found" });
   });
 
-  it("increments version and rejects a stale If-Match version", async () => {
+  it("increments version and rejects a stale expectedVersion", async () => {
     const { repository } = memoryRepository();
     const service = createApplyFlowJobService(repository);
     await service.create(ACCOUNT_A, parseCreateJobBody(validBody({ id: "job_patch" })));
-    const updated = await service.patch(ACCOUNT_A, "job_patch", 1, parsePatchJobBody({ title: "Updated title" }));
+    const updated = await service.patch(
+      ACCOUNT_A,
+      "job_patch",
+      1,
+      parsePatchJobBody({ title: "Updated title", expectedVersion: 1 }),
+    );
     expect(updated.version).toBe(2);
     expect(updated.title).toBe("Updated title");
     await expect(
-      service.patch(ACCOUNT_A, "job_patch", 1, parsePatchJobBody({ title: "Stale" })),
+      service.patch(ACCOUNT_A, "job_patch", 1, parsePatchJobBody({ title: "Stale", expectedVersion: 1 })),
     ).rejects.toMatchObject({ code: "version_conflict" });
     const current = await service.get(ACCOUNT_A, "job_patch");
     expect(current.title).toBe("Updated title");
@@ -212,7 +228,7 @@ describe("Jobs service", () => {
     const { repository } = memoryRepository();
     const service = createApplyFlowJobService(repository);
     await expect(
-      service.patch(ACCOUNT_A, "job_missing", 1, parsePatchJobBody({ title: "Nope" })),
+      service.patch(ACCOUNT_A, "job_missing", 1, parsePatchJobBody({ title: "Nope", expectedVersion: 1 })),
     ).rejects.toMatchObject({ code: "not_found" });
   });
 });

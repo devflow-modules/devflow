@@ -75,12 +75,10 @@ const job = {
 
 const context = { params: Promise.resolve({ id: "job_client_fixed" }) };
 
-function patchRequest(body: unknown, ifMatch: string | null) {
-  const headers = new Headers({ "content-type": "application/json" });
-  if (ifMatch != null) headers.set("if-match", ifMatch);
+function patchRequest(body: unknown) {
   return new Request("http://localhost/api/applyflow/v2/jobs/job_client_fixed?accountId=attacker", {
     method: "PATCH",
-    headers,
+    headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
   });
 }
@@ -108,9 +106,9 @@ describe("Job item routes", () => {
     await expect(response.json()).resolves.toEqual({ error: "not_found" });
   });
 
-  it("patches with If-Match and returns the incremented version", async () => {
+  it("patches with expectedVersion and returns the incremented version", async () => {
     vi.mocked(applyFlowJobService.patch).mockResolvedValue(job);
-    const response = await PATCH(patchRequest({ title: "Updated title" }, '"1"'), context);
+    const response = await PATCH(patchRequest({ title: "Updated title", expectedVersion: 1 }), context);
     expect(response.status).toBe(200);
     expect(response.headers.get("ETag")).toBe('"2"');
     expect(applyFlowJobService.patch).toHaveBeenCalledWith(
@@ -122,38 +120,43 @@ describe("Job item routes", () => {
     const patchBody = vi.mocked(applyFlowJobService.patch).mock.calls[0][3];
     expect(patchBody).not.toHaveProperty("id");
     expect(patchBody).not.toHaveProperty("accountId");
+    expect(patchBody).not.toHaveProperty("expectedVersion");
   });
 
   it("returns 409 for a stale version and 404 when the job is missing", async () => {
     vi.mocked(applyFlowJobService.patch).mockRejectedValueOnce(new ApplyFlowJobServiceError("version_conflict"));
-    const stale = await PATCH(patchRequest({ title: "Stale" }, '"1"'), context);
+    const stale = await PATCH(patchRequest({ title: "Stale", expectedVersion: 1 }), context);
     expect(stale.status).toBe(409);
     await expect(stale.json()).resolves.toEqual({ error: "version_conflict" });
 
     vi.mocked(applyFlowJobService.patch).mockRejectedValueOnce(new ApplyFlowJobServiceError("not_found"));
-    const missing = await PATCH(patchRequest({ title: "Missing" }, '"1"'), context);
+    const missing = await PATCH(patchRequest({ title: "Missing", expectedVersion: 1 }), context);
     expect(missing.status).toBe(404);
     await expect(missing.json()).resolves.toEqual({ error: "not_found" });
   });
 
   it("returns 400 for an invalid body, an empty patch, and an id mutation", async () => {
-    const invalid = await PATCH(patchRequest({ title: "" }, '"1"'), context);
+    const invalid = await PATCH(patchRequest({ title: "", expectedVersion: 1 }), context);
     expect(invalid.status).toBe(400);
     await expect(invalid.json()).resolves.toEqual({ error: "invalid_payload" });
 
-    const empty = await PATCH(patchRequest({}, '"1"'), context);
+    const empty = await PATCH(patchRequest({ expectedVersion: 1 }), context);
     expect(empty.status).toBe(400);
     await expect(empty.json()).resolves.toEqual({ error: "empty_patch" });
 
-    const identity = await PATCH(patchRequest({ id: "job_other", title: "Nope" }, '"1"'), context);
+    const identity = await PATCH(patchRequest({ id: "job_other", title: "Nope", expectedVersion: 1 }), context);
     expect(identity.status).toBe(400);
     expect(applyFlowJobService.patch).not.toHaveBeenCalled();
   });
 
-  it("returns 400 when If-Match is missing or ambiguous", async () => {
-    const missing = await PATCH(patchRequest({ title: "Next" }, null), context);
+  it("returns 400 when expectedVersion is missing or invalid", async () => {
+    const missing = await PATCH(patchRequest({ title: "Next" }), context);
     expect(missing.status).toBe(400);
-    await expect(missing.json()).resolves.toEqual({ error: "invalid_if_match" });
+    await expect(missing.json()).resolves.toEqual({ error: "invalid_expected_version" });
     expect(applyFlowJobService.patch).not.toHaveBeenCalled();
+
+    const zero = await PATCH(patchRequest({ title: "Next", expectedVersion: 0 }), context);
+    expect(zero.status).toBe(400);
+    await expect(zero.json()).resolves.toEqual({ error: "invalid_expected_version" });
   });
 });

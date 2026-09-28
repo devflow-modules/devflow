@@ -129,7 +129,12 @@ describe("Application DTO", () => {
     );
     expect(() => parseCreateApplicationBody({ version: 2, jobTitle: "Role" })).toThrow(ApplyFlowApplicationServiceError);
     expect(() => parseCreateApplicationBody({ extras: { id: "nope" } })).toThrow(ApplyFlowApplicationServiceError);
-    expect(() => parsePatchApplicationBody({})).toThrow(ApplyFlowApplicationServiceError);
+    expect(() => parsePatchApplicationBody({ expectedVersion: 1 })).toThrow(ApplyFlowApplicationServiceError);
+    try {
+      parsePatchApplicationBody({ jobTitle: "Role" });
+    } catch (error) {
+      expect(error).toMatchObject({ code: "invalid_expected_version" });
+    }
   });
 });
 
@@ -219,7 +224,7 @@ describe("Application service", () => {
       ACCOUNT_A,
       "app_apply",
       1,
-      parsePatchApplicationBody({ status: "applied" }),
+      parsePatchApplicationBody({ status: "applied", expectedVersion: 1 }),
       NOW,
     );
     expect(updated.status).toBe("applied");
@@ -230,7 +235,7 @@ describe("Application service", () => {
         ACCOUNT_A,
         "app_apply",
         2,
-        parsePatchApplicationBody({ appliedAt: "2026-01-01T00:00:00.000Z" }),
+        parsePatchApplicationBody({ appliedAt: "2026-01-01T00:00:00.000Z", expectedVersion: 2 }),
         NOW,
       ),
     ).rejects.toMatchObject({ code: "invalid_payload" });
@@ -242,10 +247,22 @@ describe("Application service", () => {
     await seedJob(target, ACCOUNT_A, "job_b");
     await target.service.create(ACCOUNT_A, parseCreateApplicationBody({ id: "app_flow", sourceJobId: "job_a" }), NOW);
     await expect(
-      target.service.patch(ACCOUNT_A, "app_flow", 1, parsePatchApplicationBody({ status: "interview" }), NOW),
+      target.service.patch(
+        ACCOUNT_A,
+        "app_flow",
+        1,
+        parsePatchApplicationBody({ status: "interview", expectedVersion: 1 }),
+        NOW,
+      ),
     ).rejects.toMatchObject({ code: "invalid_status_transition" });
     await expect(
-      target.service.patch(ACCOUNT_A, "app_flow", 1, parsePatchApplicationBody({ sourceJobId: "job_b" }), NOW),
+      target.service.patch(
+        ACCOUNT_A,
+        "app_flow",
+        1,
+        parsePatchApplicationBody({ sourceJobId: "job_b", expectedVersion: 1 }),
+        NOW,
+      ),
     ).rejects.toMatchObject({ code: "invalid_payload" });
     const current = await target.service.get(ACCOUNT_A, "app_flow");
     expect(current.status).toBe("reviewing");
@@ -260,15 +277,27 @@ describe("Application service", () => {
       ACCOUNT_A,
       "app_patch",
       1,
-      parsePatchApplicationBody({ notes: "updated" }),
+      parsePatchApplicationBody({ notes: "updated", expectedVersion: 1 }),
       NOW,
     );
     expect(updated.version).toBe(2);
     await expect(
-      target.service.patch(ACCOUNT_A, "app_patch", 1, parsePatchApplicationBody({ notes: "stale" }), NOW),
+      target.service.patch(
+        ACCOUNT_A,
+        "app_patch",
+        1,
+        parsePatchApplicationBody({ notes: "stale", expectedVersion: 1 }),
+        NOW,
+      ),
     ).rejects.toMatchObject({ code: "version_conflict" });
     await expect(
-      target.service.patch(ACCOUNT_A, "app_missing", 1, parsePatchApplicationBody({ notes: "nope" }), NOW),
+      target.service.patch(
+        ACCOUNT_A,
+        "app_missing",
+        1,
+        parsePatchApplicationBody({ notes: "nope", expectedVersion: 1 }),
+        NOW,
+      ),
     ).rejects.toMatchObject({ code: "not_found" });
   });
 });

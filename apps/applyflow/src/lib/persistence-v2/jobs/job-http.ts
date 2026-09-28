@@ -26,8 +26,8 @@ export function jobErrorResponse(error: unknown): NextResponse {
     switch (error.code) {
       case "invalid_payload":
         return NextResponse.json({ error: "invalid_payload" }, { status: 400 });
-      case "invalid_if_match":
-        return NextResponse.json({ error: "invalid_if_match" }, { status: 400 });
+      case "invalid_expected_version":
+        return NextResponse.json({ error: "invalid_expected_version" }, { status: 400 });
       case "empty_patch":
         return NextResponse.json({ error: "empty_patch" }, { status: 400 });
       case "not_found":

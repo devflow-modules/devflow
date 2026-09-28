@@ -1,4 +1,4 @@
-import { parseApplicationIfMatch, parsePatchApplicationBody } from "@/lib/persistence-v2/applications/application-dto";
+import { parseApplicationPatchRequest } from "@/lib/persistence-v2/applications/application-dto";
 import {
   applicationJson,
   readApplicationJsonBody,
@@ -21,9 +21,9 @@ export async function GET(_request: Request, context: ApplicationRouteContext) {
 export async function PATCH(request: Request, context: ApplicationRouteContext) {
   return withApplyFlowApplicationsAccount("write", async (account) => {
     const { id } = await context.params;
-    const expectedVersion = parseApplicationIfMatch(request.headers.get("if-match"));
-    const body = parsePatchApplicationBody(await readApplicationJsonBody(request));
-    const application = await applyFlowApplicationService.patch(account.id, id, expectedVersion, body);
+    // Concurrency token is body.expectedVersion — never HTTP If-Match (Vercel 412 risk).
+    const { expectedVersion, patch } = parseApplicationPatchRequest(await readApplicationJsonBody(request));
+    const application = await applyFlowApplicationService.patch(account.id, id, expectedVersion, patch);
     return applicationJson(application, 200);
   });
 }

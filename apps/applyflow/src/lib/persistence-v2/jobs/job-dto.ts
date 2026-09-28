@@ -28,15 +28,24 @@ export const createJobBodySchema = mutableJobSchema
   })
   .strict();
 
+/**
+ * PATCH body. Optimistic concurrency uses application-level `expectedVersion`
+ * (NOT HTTP If-Match) so Vercel/CDN cannot rewrite successful mutations as 412.
+ */
 export const patchJobBodySchema = mutableJobSchema
   .partial()
   .extend({
     title: titleSchema.optional(),
+    expectedVersion: z.number().int().positive(),
   })
   .strict();
 
 export type CreateJobBody = z.infer<typeof createJobBodySchema>;
-export type PatchJobBody = z.infer<typeof patchJobBodySchema>;
+export type PatchJobBody = Omit<z.infer<typeof patchJobBodySchema>, "expectedVersion">;
+export type JobPatchRequest = {
+  expectedVersion: number;
+  patch: PatchJobBody;
+};
 
 export type JobResponse = {
   id: string;
@@ -67,38 +76,32 @@ export function parseCreateJobBody(raw: unknown): CreateJobBody {
   return parsed.data;
 }
 
-export function parsePatchJobBody(raw: unknown): PatchJobBody {
+export function parseJobPatchRequest(raw: unknown): JobPatchRequest {
   const parsed = patchJobBodySchema.safeParse(raw);
   if (!parsed.success) {
+    const issues = parsed.error.issues;
+    const expectedVersionIssue = issues.some((issue) => issue.path[0] === "expectedVersion");
+    if (expectedVersionIssue && issues.every((issue) => issue.path[0] === "expectedVersion")) {
+      throw new ApplyFlowJobServiceError("invalid_expected_version");
+    }
     throw new ApplyFlowJobServiceError("invalid_payload");
   }
-  if (Object.keys(parsed.data).length === 0) {
+  const { expectedVersion, ...patch } = parsed.data;
+  if (Object.keys(patch).length === 0) {
     throw new ApplyFlowJobServiceError("empty_patch");
   }
-  return parsed.data;
+  return { expectedVersion, patch };
+}
+
+/** @deprecated Prefer parseJobPatchRequest — retained only for informational ETag formatting. */
+export function parsePatchJobBody(raw: unknown): PatchJobBody {
+  return parseJobPatchRequest(raw).patch;
 }
 
 /**
- * Canonical If-Match for a Job version. Exactly one quoted positive integer.
- * Example: If-Match: "3"
+ * Informational ETag for Job responses. Not used as the concurrency transport.
+ * Example: ETag: "3"
  */
-const IF_MATCH_VERSION = /^"([1-9]\d*)"$/;
-
-export function parseJobIfMatch(header: string | null): number {
-  if (header == null) {
-    throw new ApplyFlowJobServiceError("invalid_if_match");
-  }
-  const match = IF_MATCH_VERSION.exec(header.trim());
-  if (!match) {
-    throw new ApplyFlowJobServiceError("invalid_if_match");
-  }
-  const version = Number(match[1]);
-  if (!Number.isSafeInteger(version)) {
-    throw new ApplyFlowJobServiceError("invalid_if_match");
-  }
-  return version;
-}
-
 export function jobVersionEtag(version: number): string {
   return `"${version}"`;
 }

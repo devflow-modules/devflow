@@ -1,4 +1,4 @@
-import { parseJobIfMatch, parsePatchJobBody } from "@/lib/persistence-v2/jobs/job-dto";
+import { parseJobPatchRequest } from "@/lib/persistence-v2/jobs/job-dto";
 import { jobJson, readJsonBody, withApplyFlowJobsAccount } from "@/lib/persistence-v2/jobs/job-http";
 import { applyFlowJobService } from "@/lib/persistence-v2/jobs/job-service";
 
@@ -20,9 +20,9 @@ export async function GET(_request: Request, context: JobRouteContext) {
 
 export async function PATCH(request: Request, context: JobRouteContext) {
   return withApplyFlowJobsAccount("write", async (account) => {
-    const expectedVersion = parseJobIfMatch(request.headers.get("if-match"));
-    const body = parsePatchJobBody(await readJsonBody(request));
-    const job = await applyFlowJobService.patch(account.id, await jobId(context), expectedVersion, body);
+    // Concurrency token is body.expectedVersion — never HTTP If-Match (Vercel 412 risk).
+    const { expectedVersion, patch } = parseJobPatchRequest(await readJsonBody(request));
+    const job = await applyFlowJobService.patch(account.id, await jobId(context), expectedVersion, patch);
     return jobJson(job, 200);
   });
 }
