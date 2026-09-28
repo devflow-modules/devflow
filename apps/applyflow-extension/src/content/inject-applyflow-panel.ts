@@ -5,15 +5,16 @@ import type { ApplyProvider, JobContext } from "@devflow/applyflow-linkedin";
 import { classifyLinkedInField } from "@devflow/applyflow-linkedin";
 import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { generateAiText } from "../ai/generate-ai-text.js";
 import panelCss from "../styles/globals.css?inline";
 import { addAutofillAuditEntry } from "../storage/autofill-audit-storage.js";
 import { saveApplication, findApplicationByNormalizedJobUrl, normalizeStoredJobUrl, type ApplyFlowApplication } from "../storage/application-storage.js";
 import { getStoredCandidateProfile } from "../storage/profile-storage.js";
-import { getApplyFlowSettings, mergeAiSettings } from "../storage/applyflow-storage.js";
+import { getApplyFlowPublicSettings } from "../storage/applyflow-storage-public.js";
+import { requestPublicSettings } from "../runtime/request-public-settings.js";
 import { getPanelUiPrefs, savePanelDock, type PanelDockSide } from "../storage/panel-ui-storage.js";
 import { App, type PanelField } from "../panel/App";
 import type { PanelAiBundle } from "../panel/panel-ai.js";
+import { requestGenerateAi } from "../runtime/request-generate-ai.js";
 import { fieldIdFromApplyFlowLabel, type AutofillFieldTarget, type AutofillResult } from "./autofill/autofill-types.js";
 import { linkedInEasyApplyAutofill } from "./autofill/linkedin-field-autofill.js";
 import { bumpAutofillSession, emptyAutofillSession, type AutofillSessionCounters } from "./autofill/autofill-session.js";
@@ -169,11 +170,15 @@ function resolvePanelLanguage(): "pt" | "en" {
 }
 
 async function createPanelAiBundle(profile: CandidateProfile | null): Promise<PanelAiBundle> {
-  const settings = await getApplyFlowSettings();
-  const ai = mergeAiSettings(settings.ai);
+  // Prefer SW public settings (triggers privileged migrate; avoids content reading legacy apiKey).
+  let settings = await requestPublicSettings();
+  if (!settings.ai) {
+    settings = await getApplyFlowPublicSettings();
+  }
+  const ai = settings.ai;
   let availability: PanelAiBundle["availability"] = "ok";
-  if (!profile || !ai.enabled) availability = "disabled";
-  else if (!ai.apiKey?.trim()) availability = "no_key";
+  if (!profile || !ai?.enabled) availability = "disabled";
+  else if (!ai.keyConfigured) availability = "no_key";
 
   const language = resolvePanelLanguage();
   if (!profile) {
@@ -185,7 +190,6 @@ async function createPanelAiBundle(profile: CandidateProfile | null): Promise<Pa
   }
 
   const runTask = async (task: AiTextTask, ctx: { questionLabel?: string; visibleQuestionText?: string }) => {
-    const fresh = await getApplyFlowSettings();
     const jobTitle =
       lastPayload.phase === "ready" ? lastPayload.jobContext.title : auditJobSnap.jobTitle;
     const companyName =
@@ -195,17 +199,24 @@ async function createPanelAiBundle(profile: CandidateProfile | null): Promise<Pa
         ? lastPayload.jobText.slice(0, 12_000)
         : undefined;
 
-    return generateAiText({
-      settings: fresh,
+    const response = await requestGenerateAi({
+      task,
+      language,
       profile,
       jobTitle: jobTitle ?? auditJobSnap.jobTitle,
       companyName: companyName ?? auditJobSnap.companyName,
       jobTextSlice,
-      task,
       questionLabel: ctx.questionLabel,
       visibleQuestionText: ctx.visibleQuestionText,
-      language,
     });
+
+    if (response.ok) {
+      return { ok: true, text: response.text };
+    }
+    return {
+      ok: false,
+      reason: response.reason ?? response.error,
+    };
   };
 
   return { availability, language, runTask };

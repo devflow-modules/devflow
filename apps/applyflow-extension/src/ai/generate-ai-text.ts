@@ -2,7 +2,7 @@ import { buildAiPrompt, type AiTextTask, extractJobIntelligence } from "@devflow
 import type { CandidateProfile } from "@devflow/applyflow-core";
 import type { JobIntelligence } from "@devflow/applyflow-core";
 
-import { applyFlowDebugLog } from "../content/applyflow-debug.js";
+import { applyFlowDebugLog } from "../runtime/applyflow-debug.js";
 import { addAiAuditEntry } from "../storage/ai-audit-storage.js";
 import type { ApplyFlowSettings } from "../storage/storage-types.js";
 import { mergeAiSettings } from "../storage/applyflow-storage.js";
