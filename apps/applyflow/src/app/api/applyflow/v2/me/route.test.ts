@@ -50,6 +50,8 @@ describe("GET /api/applyflow/v2/me", () => {
       id: "acc-1",
       authProviderSub: "sub-1",
       email: null,
+      pilotEligible: false,
+      canonicalPersistence: "v1_local",
       createdAt: new Date(),
       updatedAt: new Date(),
     });
