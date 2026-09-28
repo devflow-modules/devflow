@@ -62,14 +62,25 @@ If a preserved ID already exists in V2 with materially divergent content:
 - No marker.
 - F3.4 UX has no force-overwrite.
 
-## Flag OFF rollback
+## Flag OFF / GLOBAL=false
 
 With `APPLYFLOW_PERSISTENCE_V2` off (or unset):
 
-- Dashboard uses the V1 persistence path.
-- Retained V1 data remains usable.
+- Accounts still on `canonicalPersistence=v1_local` use the V1 persistence path.
+- Accounts already on `canonicalPersistence=v2_cloud` resolve to **`v2_paused`** — **no silent V1 fallback**.
+- Retained browser data may exist as backup/cache but is not promoted to canonical authority.
 - V2 server rows are **not** automatically deleted.
-- Markers/sessions are not a reason to destroy V1.
+
+## Empty V1 activation
+
+When the authenticated pilot has empty V1 Jobs/Applications:
+
+1. Mode `v2_offering` (GLOBAL on + pilot eligible + `v1_local`).
+2. Explicit empty activation (`POST /api/applyflow/v2/activate`) with server empty-state proof.
+3. Durable completed audit `ApplyFlowMigrationSession`.
+4. Canonical promotion to `v2_cloud` → `v2_active`.
+
+This path does **not** invent Jobs/Applications and does not use client-supplied canonical flags.
 
 ## Database topology (mandatory)
 

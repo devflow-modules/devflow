@@ -107,6 +107,7 @@ import type { ApplyFlowClientPersistenceBootstrapResult } from "@/lib/persistenc
 import type { ApplyFlowDashboardPersistence } from "@/lib/persistence-v2/dashboard/dashboard-persistence";
 import { fetchAuthoritativePersistenceBootstrap } from "@/lib/persistence-v2/dashboard/fetch-authoritative-bootstrap";
 import { openDashboardPersistence } from "@/lib/persistence-v2/dashboard/open-dashboard-persistence";
+import { resolveDashboardPrivacyMode } from "@/lib/persistence-v2/dashboard/persistence-privacy-copy";
 import { requestEmptyLegacyActivation } from "@/lib/persistence-v2/dashboard/request-empty-activation";
 import {
   clearPersistedResumeLibrary,
@@ -905,6 +906,12 @@ export function DashboardClient({
   const tableEmpty = showApplications && filtered.length === 0;
   const showJobsRecovery = jobsStorageStatus === "partial" || jobsStorageStatus === "unreadable";
   const pilotMode = isCareerPilotModeClient();
+  const privacyMode = resolveDashboardPrivacyMode({
+    usesCloudPersistence,
+    writeCapability,
+    emptyActivationEligible,
+    activationPendingNotice,
+  });
 
   if (!hydrated && persistenceBootstrap.ok) {
     return (
@@ -1008,7 +1015,7 @@ export function DashboardClient({
         </ApplyFlowCard>
       ) : null}
       {writeCapability === "read_only" ? <DashboardPersistenceReadOnlyBanner /> : null}
-      <ApplyFlowPrivacyNotice />
+      <ApplyFlowPrivacyNotice mode={privacyMode} />
 
       {pilotMode ? <CareerPilotExperience /> : null}
 
