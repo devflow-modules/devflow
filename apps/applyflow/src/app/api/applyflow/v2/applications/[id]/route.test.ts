@@ -66,12 +66,10 @@ const application = {
 
 const context = { params: Promise.resolve({ id: "app_client" }) };
 
-function patchRequest(body: unknown, ifMatch: string | null) {
-  const headers = new Headers({ "content-type": "application/json" });
-  if (ifMatch != null) headers.set("if-match", ifMatch);
+function patchRequest(body: unknown) {
   return new Request("http://localhost/api/applyflow/v2/applications/app_client", {
     method: "PATCH",
-    headers,
+    headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
   });
 }
@@ -99,43 +97,53 @@ describe("Application item routes", () => {
     await expect(response.json()).resolves.toEqual({ error: "not_found" });
   });
 
-  it("patches with If-Match and maps stale and missing results", async () => {
+  it("patches with expectedVersion and maps stale and missing results", async () => {
     vi.mocked(applyFlowApplicationService.patch).mockResolvedValueOnce(application);
-    const ok = await PATCH(patchRequest({ notes: "next" }, '"1"'), context);
+    const ok = await PATCH(patchRequest({ notes: "next", expectedVersion: 1 }), context);
     expect(ok.status).toBe(200);
     expect(ok.headers.get("ETag")).toBe('"2"');
+    expect(applyFlowApplicationService.patch).toHaveBeenCalledWith(
+      "account-server",
+      "app_client",
+      1,
+      expect.objectContaining({ notes: "next" }),
+    );
 
     vi.mocked(applyFlowApplicationService.patch).mockRejectedValueOnce(
       new ApplyFlowApplicationServiceError("version_conflict"),
     );
-    const stale = await PATCH(patchRequest({ notes: "stale" }, '"1"'), context);
+    const stale = await PATCH(patchRequest({ notes: "stale", expectedVersion: 1 }), context);
     expect(stale.status).toBe(409);
 
     vi.mocked(applyFlowApplicationService.patch).mockRejectedValueOnce(new ApplyFlowApplicationServiceError("not_found"));
-    const missing = await PATCH(patchRequest({ notes: "missing" }, '"1"'), context);
+    const missing = await PATCH(patchRequest({ notes: "missing", expectedVersion: 1 }), context);
     expect(missing.status).toBe(404);
   });
 
-  it("returns 400 for an empty patch, an immutable id, and a bad If-Match", async () => {
-    const empty = await PATCH(patchRequest({}, '"1"'), context);
+  it("returns 400 for an empty patch, an immutable id, and a bad expectedVersion", async () => {
+    const empty = await PATCH(patchRequest({ expectedVersion: 1 }), context);
     expect(empty.status).toBe(400);
     await expect(empty.json()).resolves.toEqual({ error: "empty_patch" });
 
-    const identity = await PATCH(patchRequest({ id: "app_other", notes: "x" }, '"1"'), context);
+    const identity = await PATCH(patchRequest({ id: "app_other", notes: "x", expectedVersion: 1 }), context);
     expect(identity.status).toBe(400);
     await expect(identity.json()).resolves.toEqual({ error: "invalid_payload" });
 
-    const header = await PATCH(patchRequest({ notes: "x" }, "1"), context);
-    expect(header.status).toBe(400);
-    await expect(header.json()).resolves.toEqual({ error: "invalid_if_match" });
+    const missingVersion = await PATCH(patchRequest({ notes: "x" }), context);
+    expect(missingVersion.status).toBe(400);
+    await expect(missingVersion.json()).resolves.toEqual({ error: "invalid_expected_version" });
     expect(applyFlowApplicationService.patch).not.toHaveBeenCalled();
+
+    const zero = await PATCH(patchRequest({ notes: "x", expectedVersion: 0 }), context);
+    expect(zero.status).toBe(400);
+    await expect(zero.json()).resolves.toEqual({ error: "invalid_expected_version" });
   });
 
   it("maps an illegal status transition", async () => {
     vi.mocked(applyFlowApplicationService.patch).mockRejectedValue(
       new ApplyFlowApplicationServiceError("invalid_status_transition"),
     );
-    const response = await PATCH(patchRequest({ status: "interview" }, '"1"'), context);
+    const response = await PATCH(patchRequest({ status: "interview", expectedVersion: 1 }), context);
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toEqual({ error: "invalid_status_transition" });
   });

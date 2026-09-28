@@ -5,7 +5,7 @@ export type ApplyFlowApplicationServiceCode =
   | "application_already_exists_for_job"
   | "version_conflict"
   | "invalid_payload"
-  | "invalid_if_match"
+  | "invalid_expected_version"
   | "invalid_status_transition"
   | "empty_patch";
 

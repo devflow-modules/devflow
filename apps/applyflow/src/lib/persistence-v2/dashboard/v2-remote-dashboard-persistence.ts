@@ -249,10 +249,10 @@ export function createV2DashboardPersistence(fetchImpl: FetchLike = fetch): Appl
     async updateJob(job) {
       const version = await currentJobVersion(job.id);
       if (typeof version !== "number") return failure(version);
+      // expectedVersion in JSON body — never If-Match (Vercel PRECONDITION_FAILED 412).
       const patched = await send(`${JOBS_PATH}/${encodeURIComponent(job.id)}`, {
         method: "PATCH",
-        headers: { "if-match": `"${version}"` },
-        body: JSON.stringify(jobToBody(job, false)),
+        body: JSON.stringify({ ...jobToBody(job, false), expectedVersion: version }),
       });
       if (!patched.ok) return patched;
       const row = patched.body as JobResponse;
@@ -283,10 +283,10 @@ export function createV2DashboardPersistence(fetchImpl: FetchLike = fetch): Appl
       delete body.extras;
       delete body.v2Meta;
       delete body.jobMeta;
+      // expectedVersion in JSON body — never If-Match (Vercel PRECONDITION_FAILED 412).
       const patched = await send(`${APPLICATIONS_PATH}/${encodeURIComponent(application.id)}`, {
         method: "PATCH",
-        headers: { "if-match": `"${version}"` },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ ...body, expectedVersion: version }),
       });
       if (!patched.ok) return patched;
       const row = patched.body as ApplicationResponse;

@@ -3,7 +3,7 @@ export type ApplyFlowJobServiceCode =
   | "job_already_exists"
   | "version_conflict"
   | "invalid_payload"
-  | "invalid_if_match"
+  | "invalid_expected_version"
   | "empty_patch";
 
 export class ApplyFlowJobServiceError extends Error {
