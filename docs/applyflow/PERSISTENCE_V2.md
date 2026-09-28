@@ -36,8 +36,9 @@ Durante a migração, V1 continua suportada atrás da feature flag. `localStorag
 
 ## Rollout / rollback
 
-- **Rollout:** deploy com flag OFF → configurar Supabase + DB → migrar schema → staging com flag ON → validar `/me` + readyz → cutover gradual.
-- **Rollback:** flag OFF → V1 local-first imediato; dados cloud permanecem no DB até política de retenção.
+- **First Production pilot (ops):** see [`PERSISTENCE_V2_FIRST_PRODUCTION_PILOT_RUNBOOK.md`](./PERSISTENCE_V2_FIRST_PRODUCTION_PILOT_RUNBOOK.md) (gates A–L + emergency). Operator CLI: `pnpm pilot:status|grant|revoke` in `apps/applyflow`.
+- **Rollout:** deploy with flag OFF → configure Supabase + DB → migrate schema → staging with flag ON → validate `/me` + readyz → cutover gradual.
+- **Rollback:** flag OFF → accounts with `canonical=v1_local` stay on V1; accounts with `canonical=v2_cloud` become `v2_paused` (no silent V1 fallback). Cloud data remains until retention policy.
 
 ## Ownership
 
