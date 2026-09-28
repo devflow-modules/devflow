@@ -105,7 +105,9 @@ import {
 import { DashboardMigrationPanel } from "@/components/dashboard/dashboard-migration-panel";
 import type { ApplyFlowClientPersistenceBootstrapResult } from "@/lib/persistence-v2/dashboard/client-persistence-bootstrap";
 import type { ApplyFlowDashboardPersistence } from "@/lib/persistence-v2/dashboard/dashboard-persistence";
+import { fetchAuthoritativePersistenceBootstrap } from "@/lib/persistence-v2/dashboard/fetch-authoritative-bootstrap";
 import { openDashboardPersistence } from "@/lib/persistence-v2/dashboard/open-dashboard-persistence";
+import { requestEmptyLegacyActivation } from "@/lib/persistence-v2/dashboard/request-empty-activation";
 import {
   clearPersistedResumeLibrary,
   hydrateResumeLibraryState,
@@ -299,6 +301,9 @@ export function DashboardClient({
   >(null);
   const [migrationSuccessNotice, setMigrationSuccessNotice] = useState(false);
   const [activationPendingNotice, setActivationPendingNotice] = useState(false);
+  const [emptyActivationEligible, setEmptyActivationEligible] = useState(false);
+  const [activationBusy, setActivationBusy] = useState(false);
+  const [activationError, setActivationError] = useState<string | null>(null);
   const persistenceRef = useRef<ApplyFlowDashboardPersistence | null>(null);
   const bootstrapRef = useRef(persistenceBootstrap);
   bootstrapRef.current = persistenceBootstrap;
@@ -327,6 +332,8 @@ export function DashboardClient({
         setWriteCapability(opened.writeCapability);
         setRemoteGate(null);
         setActivationPendingNotice(false);
+        setEmptyActivationEligible(false);
+        setActivationError(null);
         setHydrated(true);
         return;
       }
@@ -340,11 +347,13 @@ export function DashboardClient({
         setWriteCapability("full");
         setRemoteGate(null);
         setActivationPendingNotice(opened.kind === "migration_complete_pending_activation");
+        setEmptyActivationEligible(opened.kind === "v2_offering_empty_pending");
         hydrateLocal();
         return;
       }
       persistenceRef.current = null;
       setUsesCloudPersistence(false);
+      setEmptyActivationEligible(false);
       if (opened.kind === "migration_required") setRemoteGate("migration_required");
       else if (opened.kind === "auth_required") setRemoteGate("auth_required");
       else if (opened.kind === "error") setRemoteGate("error");
@@ -355,15 +364,27 @@ export function DashboardClient({
     [hydrateLocal],
   );
 
-  const reopenPersistence = useCallback(() => {
-    const current = bootstrapRef.current;
-    if (!current.ok) {
-      setRemoteGate("bootstrap_unavailable");
+  const refreshAuthoritativeAndOpen = useCallback(async () => {
+    const refreshed = await fetchAuthoritativePersistenceBootstrap();
+    if (!refreshed.ok) {
+      if (refreshed.code === "unauthenticated" || refreshed.code === "auth_not_configured") {
+        setRemoteGate("auth_required");
+      } else if (refreshed.code === "bootstrap_unavailable") {
+        setRemoteGate("bootstrap_unavailable");
+      } else {
+        setRemoteGate("error");
+      }
       setHydrated(true);
       return;
     }
-    void openDashboardPersistence({ bootstrap: current.bootstrap }).then(applyOpenedPersistence);
+    bootstrapRef.current = { ok: true, bootstrap: refreshed.bootstrap };
+    const opened = await openDashboardPersistence({ bootstrap: refreshed.bootstrap });
+    applyOpenedPersistence(opened);
   }, [applyOpenedPersistence]);
+
+  const reopenPersistence = useCallback(() => {
+    void refreshAuthoritativeAndOpen();
+  }, [refreshAuthoritativeAndOpen]);
 
   useEffect(() => {
     if (!persistenceBootstrap.ok) {
@@ -900,7 +921,7 @@ export function DashboardClient({
       <DashboardMigrationPanel
         onComplete={() => {
           setMigrationSuccessNotice(true);
-          reopenPersistence();
+          void refreshAuthoritativeAndOpen();
         }}
       />
     );
@@ -934,10 +955,57 @@ export function DashboardClient({
           data-testid="migration-success-notice"
         >
           Dados migrados com sucesso.
-          {activationPendingNotice
-            ? " A ativação canónica na nuvem ainda depende do servidor (R2.2.5)."
-            : null}
         </p>
+      ) : null}
+      {activationPendingNotice ? (
+        <p className="text-sm text-amber-200" role="status" data-testid="activation-pending-notice">
+          Migração concluída no servidor, mas a conta ainda não está ativa na nuvem. Atualize o painel.
+        </p>
+      ) : null}
+      {emptyActivationEligible ? (
+        <ApplyFlowCard variant="muted" padding="lg" data-testid="empty-activation-panel">
+          <p className="text-sm font-medium text-[color:var(--af-text)]">Sincronização na nuvem</p>
+          <p className="mt-2 text-sm leading-relaxed text-[color:var(--af-text-muted)]">
+            Este navegador não tem dados locais para migrar. Ative a sincronização na nuvem para passar a
+            gravar vagas e candidaturas na conta.
+          </p>
+          {activationError ? (
+            <p className="mt-2 text-sm text-amber-200" role="alert">
+              {activationError}
+            </p>
+          ) : null}
+          <ApplyFlowButton
+            type="button"
+            className="mt-4"
+            disabled={activationBusy}
+            onClick={() => {
+              setActivationBusy(true);
+              setActivationError(null);
+              void requestEmptyLegacyActivation().then(async (result) => {
+                if (!result.ok) {
+                  setActivationBusy(false);
+                  if (result.code === "legacy_not_empty" || result.code === "fingerprint_changed") {
+                    setActivationError(
+                      "Foram detetados dados locais entretanto. Use a migração em vez da ativação vazia.",
+                    );
+                    return;
+                  }
+                  if (result.code === "auth_required") {
+                    setRemoteGate("auth_required");
+                    return;
+                  }
+                  setActivationError("Não foi possível ativar a sincronização. Tente de novo.");
+                  return;
+                }
+                setMigrationSuccessNotice(true);
+                await refreshAuthoritativeAndOpen();
+                setActivationBusy(false);
+              });
+            }}
+          >
+            {activationBusy ? "A ativar…" : "Ativar sincronização na nuvem"}
+          </ApplyFlowButton>
+        </ApplyFlowCard>
       ) : null}
       {writeCapability === "read_only" ? <DashboardPersistenceReadOnlyBanner /> : null}
       <ApplyFlowPrivacyNotice />

@@ -244,7 +244,7 @@ describe("DashboardClient migration cutover", () => {
     expect(screen.getByRole("button", { name: "Migrar dados para V2" })).toBeTruthy();
   });
 
-  it("successful migration keeps V1 canonical pending R2.2.5 activation and keeps V1 keys", async () => {
+  it("successful migration refreshes authoritative bootstrap to v2_active and keeps V1 keys", async () => {
     seedLegacy();
     const jobsRaw = window.localStorage.getItem(APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY);
     const appsRaw = window.localStorage.getItem(APPLYFLOW_DASHBOARD_STORAGE_KEY);
@@ -252,12 +252,35 @@ describe("DashboardClient migration cutover", () => {
     expect(prep.ok).toBe(true);
     if (!prep.ok) return;
 
+    let migrationDone = false;
     const fetchImpl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith("/me")) {
-        return jsonResponse(200, { authenticated: true, account: { id: ACCOUNT_ID } });
+        if (migrationDone) {
+          return jsonResponse(200, {
+            authenticated: true,
+            account: { id: ACCOUNT_ID },
+            persistence: {
+              mode: "v2_active",
+              reason: "canonical_v2",
+              pilotEligible: true,
+              canonicalPersistence: "v2_cloud",
+            },
+          });
+        }
+        return jsonResponse(200, {
+          authenticated: true,
+          account: { id: ACCOUNT_ID },
+          persistence: {
+            mode: "v2_offering",
+            reason: "pilot_eligible",
+            pilotEligible: true,
+            canonicalPersistence: "v1_local",
+          },
+        });
       }
       if (url.endsWith("/migration") && init?.method === "POST") {
+        migrationDone = true;
         return jsonResponse(200, {
           sessionId: "session_ux_ok",
           status: "completed",
@@ -288,15 +311,14 @@ describe("DashboardClient migration cutover", () => {
     const marker = loadMigrationMarker(ACCOUNT_ID);
     expect(marker?.v1ToV2Complete).toBe(true);
     expect(marker?.accountIdFingerprint).toBe(fingerprintApplyFlowAccountId(ACCOUNT_ID));
-    // Until R2.2.5, server mode remains v2_offering — client must not open cloud as canonical.
-    expect(fetchImpl).not.toHaveBeenCalledWith(
-      "/api/applyflow/v2/jobs",
-      expect.objectContaining({ method: "GET" }),
-    );
-    expect(screen.getByTestId("migration-success-notice").textContent).toMatch(/R2\.2\.5/);
+    await waitFor(() => {
+      expect(fetchImpl).toHaveBeenCalledWith(
+        "/api/applyflow/v2/jobs",
+        expect.objectContaining({ method: "GET" }),
+      );
+    });
   });
-
-  it("retry after API failure recovers without premature success", async () => {
+  it("retry after API failure recovers and converges to cloud", async () => {
     seedLegacy();
     const prep = prepareMigrationBundle();
     expect(prep.ok).toBe(true);
@@ -305,7 +327,28 @@ describe("DashboardClient migration cutover", () => {
     const fetchImpl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith("/me")) {
-        return jsonResponse(200, { authenticated: true, account: { id: ACCOUNT_ID } });
+        if (migrationCalls >= 2) {
+          return jsonResponse(200, {
+            authenticated: true,
+            account: { id: ACCOUNT_ID },
+            persistence: {
+              mode: "v2_active",
+              reason: "canonical_v2",
+              pilotEligible: true,
+              canonicalPersistence: "v2_cloud",
+            },
+          });
+        }
+        return jsonResponse(200, {
+          authenticated: true,
+          account: { id: ACCOUNT_ID },
+          persistence: {
+            mode: "v2_offering",
+            reason: "pilot_eligible",
+            pilotEligible: true,
+            canonicalPersistence: "v1_local",
+          },
+        });
       }
       if (url.endsWith("/migration") && init?.method === "POST") {
         migrationCalls += 1;

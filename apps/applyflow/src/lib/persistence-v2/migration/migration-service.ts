@@ -9,13 +9,18 @@ import {
   applyFlowApplicationRepository,
   applyFlowJobRepository,
   applyFlowMigrationSessionRepository,
+  createApplyFlowMigrationSessionRepository,
   type ApplyFlowApplicationCreateInput,
   type ApplyFlowApplicationRepository,
   type ApplyFlowJobCreateInput,
   type ApplyFlowJobRepository,
   type ApplyFlowMigrationSession,
   type ApplyFlowMigrationSessionRepository,
+  type ApplyFlowPersistenceDb,
 } from "../repositories";
+import { applyflowPrisma } from "../db";
+import { isApplyFlowPersistenceV2Enabled } from "../feature-flag";
+import { promoteApplyFlowCanonicalPersistenceToV2 } from "../promote-canonical-persistence";
 import {
   canonicalizeForFingerprint,
   fingerprintMigrationBundle,
@@ -377,13 +382,101 @@ export type MigrationImportResult =
   | { kind: "failed"; response: MigrationConflictResponse };
 
 export function createApplyFlowMigrationService(deps?: {
+  db?: ApplyFlowPersistenceDb;
   jobs?: ApplyFlowJobRepository;
   applications?: ApplyFlowApplicationRepository;
   sessions?: ApplyFlowMigrationSessionRepository;
 }) {
+  const db = deps?.db ?? (applyflowPrisma as unknown as ApplyFlowPersistenceDb);
   const jobs = deps?.jobs ?? applyFlowJobRepository;
   const applications = deps?.applications ?? applyFlowApplicationRepository;
   const sessions = deps?.sessions ?? applyFlowMigrationSessionRepository;
+
+  async function assertCommitAuthorization(
+    accountId: string,
+    tx: {
+      applyFlowAccount: {
+        findUnique(args: {
+          where: { id: string };
+          select?: { id?: boolean; canonicalPersistence?: boolean; pilotEligible?: boolean };
+        }): Promise<{
+          id: string;
+          canonicalPersistence: "v1_local" | "v2_cloud";
+          pilotEligible: boolean;
+        } | null>;
+      };
+    },
+  ): Promise<{
+    id: string;
+    canonicalPersistence: "v1_local" | "v2_cloud";
+    pilotEligible: boolean;
+  }> {
+    if (!isApplyFlowPersistenceV2Enabled()) {
+      throw new ApplyFlowMigrationServiceError("migration_activation_not_eligible");
+    }
+    const account = await tx.applyFlowAccount.findUnique({
+      where: { id: accountId },
+      select: { id: true, canonicalPersistence: true, pilotEligible: true },
+    });
+    if (!account) {
+      throw new ApplyFlowMigrationServiceError("migration_session_failed");
+    }
+    if (!account.pilotEligible) {
+      throw new ApplyFlowMigrationServiceError("migration_activation_not_eligible");
+    }
+    return account;
+  }
+
+  /**
+   * Atomically mark MigrationSession completed AND promote canonicalPersistence
+   * to v2_cloud. Impossible to commit one without the other for the success path.
+   */
+  async function completeSessionAndPromoteCanonical(
+    accountId: string,
+    sessionId: string,
+    processedJobs: number,
+    processedApplications: number,
+  ): Promise<ApplyFlowMigrationSession> {
+    return db.$transaction(async (tx) => {
+      const account = await assertCommitAuthorization(accountId, tx);
+
+      const sessionRepo = createApplyFlowMigrationSessionRepository(tx as ApplyFlowPersistenceDb);
+      const existing = await sessionRepo.findById(accountId, sessionId);
+      if (!existing) {
+        throw new ApplyFlowMigrationServiceError("migration_session_not_found");
+      }
+
+      if (existing.status === MIGRATION_SESSION_STATUS.completed && existing.completedAt) {
+        if (account.canonicalPersistence === "v1_local") {
+          await promoteApplyFlowCanonicalPersistenceToV2(tx, accountId);
+        }
+        return existing;
+      }
+
+      if (
+        existing.status !== MIGRATION_SESSION_STATUS.importing &&
+        existing.status !== MIGRATION_SESSION_STATUS.pending &&
+        existing.status !== MIGRATION_SESSION_STATUS.failed
+      ) {
+        throw new ApplyFlowMigrationServiceError("migration_session_failed");
+      }
+
+      const completedAt = new Date();
+      const completed = await sessionRepo.update(accountId, sessionId, {
+        status: MIGRATION_SESSION_STATUS.completed,
+        processedJobs,
+        processedApplications,
+        conflictSummary: null,
+        completedAt,
+      });
+      if (!completed || completed.status !== MIGRATION_SESSION_STATUS.completed) {
+        throw new ApplyFlowMigrationServiceError("migration_session_failed");
+      }
+
+      await promoteApplyFlowCanonicalPersistenceToV2(tx, accountId);
+      return completed;
+    });
+  }
 
   async function failSession(
     accountId: string,
@@ -499,7 +592,14 @@ export function createApplyFlowMigrationService(deps?: {
         if (verification.length > 0) {
           throw new ApplyFlowMigrationServiceError("migration_session_failed", verification);
         }
-        return { kind: "completed", proof: toCompletionProof(session) };
+        // Response-loss / retry: ensure canonical is v2_cloud (idempotent promote).
+        const completed = await completeSessionAndPromoteCanonical(
+          accountId,
+          session.id,
+          session.processedJobs,
+          session.processedApplications,
+        );
+        return { kind: "completed", proof: toCompletionProof(completed) };
       }
 
       // pending | importing | failed → resume as importing (never completed → importing)
@@ -609,17 +709,12 @@ export function createApplyFlowMigrationService(deps?: {
         return failSession(accountId, session, verification, processedJobs, processedApplications);
       }
 
-      const completedAt = new Date();
-      const completed = await sessions.update(accountId, session.id, {
-        status: MIGRATION_SESSION_STATUS.completed,
+      const completed = await completeSessionAndPromoteCanonical(
+        accountId,
+        session.id,
         processedJobs,
         processedApplications,
-        conflictSummary: null,
-        completedAt,
-      });
-      if (!completed || completed.status !== MIGRATION_SESSION_STATUS.completed) {
-        throw new ApplyFlowMigrationServiceError("migration_session_failed");
-      }
+      );
       return { kind: "completed", proof: toCompletionProof(completed) };
     },
 

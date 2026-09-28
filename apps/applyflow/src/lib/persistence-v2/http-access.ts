@@ -20,7 +20,8 @@ export type ApplyFlowV2HttpCapability =
   | "read"
   | "write"
   | "migration"
-  | "migration_session_read";
+  | "migration_session_read"
+  | "activation";
 
 export type ApplyFlowV2HttpAccessErrorCode =
   | "persistence_v2_disabled"
@@ -28,7 +29,8 @@ export type ApplyFlowV2HttpAccessErrorCode =
   | "persistence_v2_read_only"
   | "persistence_v2_paused"
   | "persistence_v2_migration_required"
-  | "persistence_v2_migration_not_applicable";
+  | "persistence_v2_migration_not_applicable"
+  | "persistence_v2_activation_not_eligible";
 
 export class ApplyFlowV2HttpAccessError extends Error {
   readonly code: ApplyFlowV2HttpAccessErrorCode;
@@ -60,12 +62,12 @@ function deny(
 /**
  * Maps resolver mode → HTTP capability. Single source of truth for V2 routes.
  *
- * MODE             READ     WRITE                MIGRATION   SESSION_GET
- * v1               DENY     DENY                 DENY        DENY
- * v2_offering      ALLOW    DENY (migration req) ALLOW       ALLOW
- * v2_active        ALLOW    ALLOW                DENY        ALLOW
- * v2_read_only     ALLOW    DENY                 DENY        ALLOW
- * v2_paused        DENY     DENY                 DENY        DENY
+ * MODE             READ     WRITE                MIGRATION   SESSION_GET   ACTIVATION
+ * v1               DENY     DENY                 DENY        DENY          DENY
+ * v2_offering      ALLOW    DENY (migration req) ALLOW       ALLOW         ALLOW
+ * v2_active        ALLOW    ALLOW                DENY        ALLOW         ALLOW (idempotent)
+ * v2_read_only     ALLOW    DENY                 DENY        ALLOW         DENY
+ * v2_paused        DENY     DENY                 DENY        DENY          DENY
  */
 export function assertApplyFlowV2HttpCapability(
   access: ApplyFlowPersistenceAccess,
@@ -84,19 +86,30 @@ export function assertApplyFlowV2HttpCapability(
     case "v2_read_only":
       if (capability === "read" || capability === "migration_session_read") return;
       if (capability === "write") deny("persistence_v2_read_only", 403, access);
+      if (capability === "activation") deny("persistence_v2_activation_not_eligible", 403, access);
       deny("persistence_v2_migration_not_applicable", 403, access);
 
     case "v2_active":
-      if (capability === "read" || capability === "write" || capability === "migration_session_read") {
+      if (
+        capability === "read" ||
+        capability === "write" ||
+        capability === "migration_session_read" ||
+        capability === "activation"
+      ) {
         return;
       }
       deny("persistence_v2_migration_not_applicable", 403, access);
 
     case "v2_offering":
-      if (capability === "migration" || capability === "migration_session_read" || capability === "read") {
+      if (
+        capability === "migration" ||
+        capability === "migration_session_read" ||
+        capability === "read" ||
+        capability === "activation"
+      ) {
         return;
       }
-      // write: fail-closed — no authoritative empty-V1 proof on server yet
+      // write: fail-closed — use migration or empty activation, not normal CRUD
       deny("persistence_v2_migration_required", 403, access);
 
     default: {

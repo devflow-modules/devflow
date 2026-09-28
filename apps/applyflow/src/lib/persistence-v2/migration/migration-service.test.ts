@@ -1,163 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { createApplyFlowApplicationRepository } from "../repositories/applications-repository";
 import { createApplyFlowJobRepository } from "../repositories/jobs-repository";
 import { createApplyFlowMigrationSessionRepository } from "../repositories/migration-session-repository";
-import type {
-  ApplyFlowApplication,
-  ApplyFlowJob,
-  ApplyFlowMigrationSession,
-  ApplyFlowPersistenceDb,
-} from "../repositories/types";
+import { createMemoryPersistenceDb, memoryPilotAccount } from "../test-memory-db";
 import { fingerprintMigrationBundle } from "./migration-fingerprint";
 import { createApplyFlowMigrationService } from "./migration-service";
 import type { MigrationImportBody } from "./migration-dto";
-
-function key(accountId: string, id: string): string {
-  return `${accountId}::${id}`;
-}
-
-function createMemoryDb(): ApplyFlowPersistenceDb {
-  const jobs = new Map<string, ApplyFlowJob>();
-  const applications = new Map<string, ApplyFlowApplication>();
-  const sessions = new Map<string, ApplyFlowMigrationSession>();
-  let sessionSeq = 0;
-
-  const jobDelegate = {
-    create: async ({ data }: { data: Record<string, unknown> }) => {
-      const k = key(String(data.accountId), String(data.id));
-      if (jobs.has(k)) {
-        throw Object.assign(new Error("unique"), { code: "P2002" });
-      }
-      const record = {
-        ...data,
-        version: 1,
-        createdAt: new Date("2026-01-01T00:00:00.000Z"),
-        updatedAt: new Date("2026-01-01T00:00:00.000Z"),
-      } as ApplyFlowJob;
-      jobs.set(k, record);
-      return record;
-    },
-    findUnique: async ({ where }: { where: { accountId_id: { accountId: string; id: string } } }) => {
-      return jobs.get(key(where.accountId_id.accountId, where.accountId_id.id)) ?? null;
-    },
-    findMany: async ({ where }: { where: Record<string, unknown> }) => {
-      return [...jobs.values()].filter((job) => {
-        if (where.accountId && job.accountId !== where.accountId) return false;
-        return true;
-      });
-    },
-  };
-
-  const applicationDelegate = {
-    create: async ({ data }: { data: Record<string, unknown> }) => {
-      const k = key(String(data.accountId), String(data.id));
-      if (applications.has(k)) {
-        throw Object.assign(new Error("unique"), { code: "P2002" });
-      }
-      const record = {
-        ...data,
-        version: 1,
-        createdAt: new Date("2026-01-01T00:00:00.000Z"),
-        updatedAt: new Date("2026-01-01T00:00:00.000Z"),
-      } as ApplyFlowApplication;
-      applications.set(k, record);
-      return record;
-    },
-    findUnique: async ({ where }: { where: { accountId_id: { accountId: string; id: string } } }) => {
-      return applications.get(key(where.accountId_id.accountId, where.accountId_id.id)) ?? null;
-    },
-    findMany: async ({ where }: { where: Record<string, unknown> }) => {
-      return [...applications.values()]
-        .filter((app) => {
-          if (where.accountId && app.accountId !== where.accountId) return false;
-          if ("sourceJobId" in where && app.sourceJobId !== where.sourceJobId) return false;
-          return true;
-        })
-        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-    },
-  };
-
-  const migrationSessionDelegate = {
-    create: async ({ data }: { data: Record<string, unknown> }) => {
-      for (const existing of sessions.values()) {
-        if (
-          existing.accountId === data.accountId &&
-          existing.sourceVersion === data.sourceVersion &&
-          existing.bundleFingerprint === data.bundleFingerprint
-        ) {
-          throw Object.assign(new Error("unique"), { code: "P2002" });
-        }
-      }
-      const id = `11111111-1111-1111-1111-${String(++sessionSeq).padStart(12, "0")}`;
-      const record = {
-        id,
-        accountId: data.accountId,
-        sourceVersion: data.sourceVersion,
-        bundleFingerprint: data.bundleFingerprint,
-        status: data.status,
-        expectedJobs: data.expectedJobs,
-        expectedApplications: data.expectedApplications,
-        processedJobs: data.processedJobs ?? 0,
-        processedApplications: data.processedApplications ?? 0,
-        conflictSummary: data.conflictSummary ?? null,
-        startedAt: new Date("2026-01-01T00:00:00.000Z"),
-        updatedAt: new Date("2026-01-01T00:00:00.000Z"),
-        completedAt: null,
-      } as ApplyFlowMigrationSession;
-      sessions.set(id, record);
-      return record;
-    },
-    findUnique: async ({
-      where,
-    }: {
-      where:
-        | { id: string }
-        | {
-            accountId_sourceVersion_bundleFingerprint: {
-              accountId: string;
-              sourceVersion: number;
-              bundleFingerprint: string;
-            };
-          };
-    }) => {
-      if ("id" in where) return sessions.get(where.id) ?? null;
-      const parts = where.accountId_sourceVersion_bundleFingerprint;
-      return (
-        [...sessions.values()].find(
-          (row) =>
-            row.accountId === parts.accountId &&
-            row.sourceVersion === parts.sourceVersion &&
-            row.bundleFingerprint === parts.bundleFingerprint,
-        ) ?? null
-      );
-    },
-    update: async ({ where, data }: { where: { id: string }; data: Record<string, unknown> }) => {
-      const existing = sessions.get(where.id);
-      if (!existing) throw new Error("not found");
-      const next = {
-        ...existing,
-        ...data,
-        updatedAt: new Date("2026-01-03T00:00:00.000Z"),
-      } as ApplyFlowMigrationSession;
-      sessions.set(where.id, next);
-      return next;
-    },
-  };
-
-  return {
-    applyFlowJob: jobDelegate,
-    applyFlowApplication: applicationDelegate,
-    applyFlowMigrationSession: migrationSessionDelegate,
-    $transaction: async <T>(fn: (tx: ApplyFlowPersistenceDb) => Promise<T>) =>
-      fn({
-        applyFlowJob: jobDelegate as never,
-        applyFlowApplication: applicationDelegate as never,
-        applyFlowMigrationSession: migrationSessionDelegate as never,
-        $transaction: async <U>(inner: (tx: ApplyFlowPersistenceDb) => Promise<U>) => inner(db),
-      } as ApplyFlowPersistenceDb),
-  } as unknown as ApplyFlowPersistenceDb;
-}
 
 const ACCOUNT = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
 const OTHER = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
@@ -204,23 +53,33 @@ function bundle(
   };
 }
 
-function createService(db = createMemoryDb()) {
+function createService() {
+  const memory = createMemoryPersistenceDb([memoryPilotAccount(ACCOUNT), memoryPilotAccount(OTHER)]);
   return {
-    db,
+    ...memory,
     service: createApplyFlowMigrationService({
-      jobs: createApplyFlowJobRepository(db),
-      applications: createApplyFlowApplicationRepository(db),
-      sessions: createApplyFlowMigrationSessionRepository(db),
+      db: memory.db,
+      jobs: createApplyFlowJobRepository(memory.db),
+      applications: createApplyFlowApplicationRepository(memory.db),
+      sessions: createApplyFlowMigrationSessionRepository(memory.db),
     }),
-    jobs: createApplyFlowJobRepository(db),
-    applications: createApplyFlowApplicationRepository(db),
-    sessions: createApplyFlowMigrationSessionRepository(db),
+    jobs: createApplyFlowJobRepository(memory.db),
+    applications: createApplyFlowApplicationRepository(memory.db),
+    sessions: createApplyFlowMigrationSessionRepository(memory.db),
   };
 }
 
 describe("ApplyFlow migration service", () => {
+  const previous = process.env.APPLYFLOW_PERSISTENCE_V2;
+  beforeEach(() => {
+    process.env.APPLYFLOW_PERSISTENCE_V2 = "true";
+  });
+  afterEach(() => {
+    if (previous === undefined) delete process.env.APPLYFLOW_PERSISTENCE_V2;
+    else process.env.APPLYFLOW_PERSISTENCE_V2 = previous;
+  });
   it("creates a session and imports jobs before applications with completion proof", async () => {
-    const { service, jobs, applications } = createService();
+    const { service, jobs, applications, accounts } = createService();
     const body = bundle(
       [sampleJob("job_1"), sampleJob("job_2", "Other")],
       [
@@ -241,6 +100,7 @@ describe("ApplyFlow migration service", () => {
     });
     expect(result.proof.sessionId).toBeTruthy();
     expect(result.proof.completedAt).toBeTruthy();
+    expect(accounts.get(ACCOUNT)?.canonicalPersistence).toBe("v2_cloud");
     expect(await jobs.findById(ACCOUNT, "job_1")).not.toBeNull();
     expect(await applications.findById(ACCOUNT, "app_1")).toMatchObject({ sourceJobId: "job_1" });
     expect(await applications.findById(ACCOUNT, "app_standalone")).toMatchObject({

@@ -46,6 +46,8 @@ export function migrationErrorResponse(error: unknown): NextResponse {
           },
           { status: 409 },
         );
+      case "migration_activation_not_eligible":
+        return NextResponse.json({ error: "persistence_v2_activation_not_eligible" }, { status: 403 });
       default:
         return NextResponse.json({ error: "internal_error" }, { status: 500 });
     }

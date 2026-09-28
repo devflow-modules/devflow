@@ -9,18 +9,17 @@ import type {
 type JobDelegate = PrismaClient["applyFlowJob"];
 type ApplicationDelegate = PrismaClient["applyFlowApplication"];
 type MigrationSessionDelegate = PrismaClient["applyFlowMigrationSession"];
+type AccountDelegate = PrismaClient["applyFlowAccount"];
 
-export type ApplyFlowPersistenceDb = {
+export type ApplyFlowPersistenceTx = {
   applyFlowJob: JobDelegate;
   applyFlowApplication: ApplicationDelegate;
   applyFlowMigrationSession: MigrationSessionDelegate;
-  $transaction: <T>(
-    fn: (tx: {
-      applyFlowJob: JobDelegate;
-      applyFlowApplication: ApplicationDelegate;
-      applyFlowMigrationSession: MigrationSessionDelegate;
-    }) => Promise<T>,
-  ) => Promise<T>;
+  applyFlowAccount: AccountDelegate;
+};
+
+export type ApplyFlowPersistenceDb = ApplyFlowPersistenceTx & {
+  $transaction: <T>(fn: (tx: ApplyFlowPersistenceTx) => Promise<T>) => Promise<T>;
 };
 
 export type OptimisticUpdateResult<T> =

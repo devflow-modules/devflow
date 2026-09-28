@@ -292,7 +292,7 @@ describe("R2.2.4 authoritative client persistence bootstrap", () => {
     }
   });
 
-  it("marker completed under offering does not open canonical V2 (pending R2.2.5)", async () => {
+  it("marker completed under offering does not open canonical V2 without server promote", async () => {
     const storage = stubStorage({
       [APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]: JSON.stringify({
         version: 1,
@@ -313,6 +313,17 @@ describe("R2.2.4 authoritative client persistence bootstrap", () => {
     if (opened.kind !== "migration_complete_pending_activation") return;
     expect(opened.persistence.mode).toBe("v1");
     expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("18. server v2_active with no local marker opens V2 (new device)", async () => {
+    stubStorage();
+    const fetchImpl = vi.fn();
+    emptyCloudLists(fetchImpl);
+    const opened = await openDashboardPersistence({ bootstrap: bootstrap("v2_active"), fetchImpl });
+    expect(opened.kind).toBe("ready");
+    if (opened.kind !== "ready") return;
+    expect(opened.writeCapability).toBe("full");
+    expect(fetchImpl).toHaveBeenCalled();
   });
 
   it("TypeScript exhaustiveness helper rejects unknown modes at runtime", () => {

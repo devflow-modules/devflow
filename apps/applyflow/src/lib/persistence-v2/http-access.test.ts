@@ -140,13 +140,14 @@ describe("HTTP policy security matrix (direct bypass)", () => {
     expectDeny(input, "migration", "persistence_v2_not_eligible", 403);
   });
 
-  it("pilot=true v1_local can migrate but not write normal CRUD", () => {
+  it("pilot=true v1_local can migrate/activate but not write normal CRUD", () => {
     const input: ApplyFlowPersistenceModeInput = {
       globalEnabled: true,
       pilotEligible: true,
       canonicalPersistence: "v1_local",
     };
     expectAllow(input, "migration");
+    expectAllow(input, "activation");
     expectDeny(input, "write", "persistence_v2_migration_required", 403);
   });
 

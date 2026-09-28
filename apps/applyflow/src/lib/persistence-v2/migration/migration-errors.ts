@@ -4,7 +4,8 @@ export type ApplyFlowMigrationServiceErrorCode =
   | "migration_conflict"
   | "migration_session_not_found"
   | "migration_session_failed"
-  | "payload_too_large";
+  | "payload_too_large"
+  | "migration_activation_not_eligible";
 
 export class ApplyFlowMigrationServiceError extends Error {
   readonly code: ApplyFlowMigrationServiceErrorCode;
