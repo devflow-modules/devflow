@@ -2,7 +2,7 @@
 
 **Status:** COMPLETE (first Production pilot active on V2 cloud)  
 **Closeout gate:** R2.10  
-**Production source SHA (closeout baseline):** `8ccaae6da0e2b557006e5fff9cfd223081dc996c`
+**Production source SHA (closeout baseline):** `3251cc28b263d6097ba72c631da27d881fee6c15`
 
 This document closes the Persistence V2 **migration implementation**. It does **not** authorize broad rollout or removal of pilot gating.
 
@@ -116,6 +116,7 @@ Recovery target for the first pilot:
 
 ## References
 
+- [`PERSISTENCE_V2_CASE_STUDY.md`](./PERSISTENCE_V2_CASE_STUDY.md) — engineering case study (portfolio / maintainers)
 - [`PERSISTENCE_V2.md`](./PERSISTENCE_V2.md)
 - [`PERSISTENCE_V2_FIRST_PRODUCTION_PILOT_RUNBOOK.md`](./PERSISTENCE_V2_FIRST_PRODUCTION_PILOT_RUNBOOK.md)
 - [`PERSISTENCE_V2_MIGRATION_RUNBOOK.md`](./PERSISTENCE_V2_MIGRATION_RUNBOOK.md)

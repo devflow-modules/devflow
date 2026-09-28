@@ -215,6 +215,9 @@ Narrativa completa (fluxo, privacidade, demo script): [`docs/career-suite/README
 | [`LINKEDIN_POST.md`](../../docs/applyflow/LINKEDIN_POST.md) | Copy de lançamento (LinkedIn + bloco técnico GitHub) |
 | [`ISSUE_28_CLOSE.md`](../../docs/applyflow/ISSUE_28_CLOSE.md) | Texto sugerido para fechar a issue #28 no GitHub |
 | [`DEMO_SCRIPT.md`](../../docs/applyflow/DEMO_SCRIPT.md) | Roteiro de vídeo 60–90 s (demo, import, preview, fecho) |
+| [`CASE_STUDY.md`](../../docs/applyflow/CASE_STUDY.md) | Case study do MVP local-first (produto / portefólio) |
+| [`PERSISTENCE_V2_CASE_STUDY.md`](../../docs/applyflow/PERSISTENCE_V2_CASE_STUDY.md) | Case study de engenharia — Persistence V2 (auth, PostgreSQL, migração, Production) |
+| [`PERSISTENCE_V2.md`](../../docs/applyflow/PERSISTENCE_V2.md) | Resumo Persistence V2 + matriz de modos |
 | [`docs/career-suite/README.md`](../../docs/career-suite/README.md) | Ponte JSON ApplyFlow ↔ Interview Lab (local-first) |
 | [`docs/public-cases/CAREER-SUITE.md`](../../docs/public-cases/CAREER-SUITE.md) | Case público — portfólio, LinkedIn, demo script |
 
