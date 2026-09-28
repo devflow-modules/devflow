@@ -39,6 +39,8 @@ const account = {
   id: "account-server",
   authProviderSub: "sub-1",
   email: null,
+  pilotEligible: true,
+  canonicalPersistence: "v2_cloud" as const,
   createdAt: new Date(),
   updatedAt: new Date(),
 };

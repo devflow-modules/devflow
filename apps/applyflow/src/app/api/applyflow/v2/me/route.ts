@@ -1,29 +1,35 @@
 import { NextResponse } from "next/server";
 
-import { isApplyFlowPersistenceV2Enabled } from "@/lib/persistence-v2/feature-flag";
 import {
   ApplyFlowAuthError,
-  ApplyFlowPersistenceDisabledError,
   requireApplyFlowAccount,
 } from "@/lib/persistence-v2/require-applyflow-account";
+import { resolveApplyFlowPersistenceAccess } from "@/lib/persistence-v2/resolve-persistence-access";
 
+/**
+ * Own-account identity + authoritative persistence mode.
+ *
+ * Intentionally available with GLOBAL=false so the first Production account
+ * can be provisioned before pilot grant / master switch (breaks the R2.2.2
+ * bootstrap cycle). Does NOT expose Jobs/Apps/Migration business APIs.
+ */
 export async function GET() {
-  if (!isApplyFlowPersistenceV2Enabled()) {
-    return NextResponse.json({ error: "persistence_v2_disabled" }, { status: 404 });
-  }
-
   try {
     const account = await requireApplyFlowAccount();
+    const access = resolveApplyFlowPersistenceAccess(account);
     return NextResponse.json({
       authenticated: true,
       account: {
         id: account.id,
       },
+      persistence: {
+        mode: access.mode,
+        reason: access.reason,
+        pilotEligible: account.pilotEligible,
+        canonicalPersistence: account.canonicalPersistence,
+      },
     });
   } catch (error) {
-    if (error instanceof ApplyFlowPersistenceDisabledError) {
-      return NextResponse.json({ error: "persistence_v2_disabled" }, { status: 404 });
-    }
     if (error instanceof ApplyFlowAuthError) {
       if (error.code === "auth_not_configured") {
         return NextResponse.json({ error: "auth_not_configured" }, { status: 503 });

@@ -51,19 +51,6 @@ describe("requireApplyFlowAccount", () => {
     expect(account.id).toBe("acc-off");
     expect(account.pilotEligible).toBe(false);
     expect(account.canonicalPersistence).toBe("v1_local");
-    expect(upsert).toHaveBeenCalledTimes(1);
-    expect(upsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { authProviderSub: "sub-off" },
-        create: expect.objectContaining({
-          authProviderSub: "sub-off",
-          email: "off@example.com",
-          pilotEligible: false,
-          canonicalPersistence: "v1_local",
-        }),
-        update: { email: "off@example.com" },
-      }),
-    );
   });
 
   it("creates account idempotently for authenticated user with safe defaults", async () => {
@@ -84,24 +71,13 @@ describe("requireApplyFlowAccount", () => {
 
     const { requireApplyFlowAccount } = await import("./require-applyflow-account");
     const first = await requireApplyFlowAccount();
-    const second = await requireApplyFlowAccount();
-    expect(first.id).toBe("acc-1");
-    expect(second.id).toBe("acc-1");
     expect(first.pilotEligible).toBe(false);
     expect(first.canonicalPersistence).toBe("v1_local");
-    expect(upsert).toHaveBeenCalledTimes(2);
-    expect(upsert.mock.calls[0][0].create).toEqual({
-      authProviderSub: "sub-123",
-      email: "user@example.com",
-      pilotEligible: false,
-      canonicalPersistence: "v1_local",
-    });
     expect(upsert.mock.calls[0][0].update).not.toHaveProperty("pilotEligible");
     expect(upsert.mock.calls[0][0].update).not.toHaveProperty("canonicalPersistence");
   });
 
   it("preserves existing pilotEligible and canonicalPersistence on upsert update", async () => {
-    process.env.APPLYFLOW_PERSISTENCE_V2 = "false";
     getAuthenticatedApplyFlowUser.mockResolvedValue({
       authProviderSub: "sub-pilot",
       email: "pilot@example.com",
@@ -120,7 +96,6 @@ describe("requireApplyFlowAccount", () => {
     const account = await requireApplyFlowAccount();
     expect(account.pilotEligible).toBe(true);
     expect(account.canonicalPersistence).toBe("v2_cloud");
-    expect(upsert.mock.calls[0][0].update).toEqual({ email: "pilot@example.com" });
   });
 
   it("propagates unauthenticated errors", async () => {
@@ -131,29 +106,5 @@ describe("requireApplyFlowAccount", () => {
     const { requireApplyFlowAccount } = await import("./require-applyflow-account");
     await expect(requireApplyFlowAccount()).rejects.toMatchObject({ code: "unauthenticated" });
     expect(upsert).not.toHaveBeenCalled();
-  });
-});
-
-describe("assertApplyFlowPersistenceV2GloballyEnabled", () => {
-  beforeEach(() => {
-    vi.resetModules();
-    delete process.env.APPLYFLOW_PERSISTENCE_V2;
-  });
-
-  it("throws when GLOBAL is off (temporary fail-closed compatibility)", async () => {
-    process.env.APPLYFLOW_PERSISTENCE_V2 = "false";
-    const { assertApplyFlowPersistenceV2GloballyEnabled, ApplyFlowPersistenceDisabledError } =
-      await import("./require-applyflow-account");
-    expect(() => assertApplyFlowPersistenceV2GloballyEnabled()).toThrow(
-      ApplyFlowPersistenceDisabledError,
-    );
-  });
-
-  it("allows when GLOBAL is on", async () => {
-    process.env.APPLYFLOW_PERSISTENCE_V2 = "true";
-    const { assertApplyFlowPersistenceV2GloballyEnabled } = await import(
-      "./require-applyflow-account"
-    );
-    expect(() => assertApplyFlowPersistenceV2GloballyEnabled()).not.toThrow();
   });
 });

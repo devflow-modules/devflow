@@ -1,8 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("@/lib/persistence-v2/feature-flag", () => ({
-  isApplyFlowPersistenceV2Enabled: vi.fn(),
-}));
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/persistence-v2/require-applyflow-account", () => {
   class ApplyFlowAuthError extends Error {
@@ -12,13 +8,15 @@ vi.mock("@/lib/persistence-v2/require-applyflow-account", () => {
       this.code = code;
     }
   }
-  class ApplyFlowPersistenceDisabledError extends Error {}
   return {
     requireApplyFlowAccount: vi.fn(),
     ApplyFlowAuthError,
-    ApplyFlowPersistenceDisabledError,
   };
 });
+
+vi.mock("@/lib/persistence-v2/feature-flag", () => ({
+  isApplyFlowPersistenceV2Enabled: vi.fn(),
+}));
 
 import { isApplyFlowPersistenceV2Enabled } from "@/lib/persistence-v2/feature-flag";
 import {
@@ -27,15 +25,26 @@ import {
 } from "@/lib/persistence-v2/require-applyflow-account";
 import { GET } from "./route";
 
+function account(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "acc-1",
+    authProviderSub: "sub-1",
+    email: null,
+    pilotEligible: false,
+    canonicalPersistence: "v1_local" as const,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  };
+}
+
 describe("GET /api/applyflow/v2/me", () => {
-  it("returns 404 when Persistence V2 is disabled", async () => {
-    vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(false);
-    const res = await GET();
-    expect(res.status).toBe(404);
+  beforeEach(() => {
+    vi.mocked(requireApplyFlowAccount).mockReset();
+    vi.mocked(isApplyFlowPersistenceV2Enabled).mockReset();
   });
 
-  it("returns 401 when enabled and unauthenticated", async () => {
-    vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(true);
+  it("returns 401 when unauthenticated", async () => {
     vi.mocked(requireApplyFlowAccount).mockRejectedValue(
       new ApplyFlowAuthError("unauthenticated", "Authentication required."),
     );
@@ -44,21 +53,77 @@ describe("GET /api/applyflow/v2/me", () => {
     await expect(res.json()).resolves.toEqual({ error: "unauthenticated" });
   });
 
-  it("returns account when enabled and authenticated", async () => {
-    vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(true);
-    vi.mocked(requireApplyFlowAccount).mockResolvedValue({
-      id: "acc-1",
-      authProviderSub: "sub-1",
-      email: null,
-      pilotEligible: false,
-      canonicalPersistence: "v1_local",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
+  it("provisions with GLOBAL=false and returns mode v1", async () => {
+    vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(false);
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue(account());
     const res = await GET();
     expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body).toEqual({ authenticated: true, account: { id: "acc-1" } });
+    await expect(res.json()).resolves.toEqual({
+      authenticated: true,
+      account: { id: "acc-1" },
+      persistence: {
+        mode: "v1",
+        reason: "global_disabled",
+        pilotEligible: false,
+        canonicalPersistence: "v1_local",
+      },
+    });
+  });
+
+  it("GLOBAL=false + pilot true + v1_local → mode v1", async () => {
+    vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(false);
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue(
+      account({ pilotEligible: true, canonicalPersistence: "v1_local" }),
+    );
+    const body = await (await GET()).json();
+    expect(body.persistence.mode).toBe("v1");
+  });
+
+  it("GLOBAL=true + pilot false + v1_local → mode v1", async () => {
+    vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(true);
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue(account());
+    const body = await (await GET()).json();
+    expect(body.persistence).toEqual({
+      mode: "v1",
+      reason: "not_eligible",
+      pilotEligible: false,
+      canonicalPersistence: "v1_local",
+    });
+  });
+
+  it("GLOBAL=true + pilot true + v1_local → v2_offering", async () => {
+    vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(true);
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue(
+      account({ pilotEligible: true, canonicalPersistence: "v1_local" }),
+    );
+    const body = await (await GET()).json();
+    expect(body.persistence.mode).toBe("v2_offering");
+  });
+
+  it("GLOBAL=false + v2_cloud → v2_paused", async () => {
+    vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(false);
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue(
+      account({ pilotEligible: true, canonicalPersistence: "v2_cloud" }),
+    );
+    const body = await (await GET()).json();
+    expect(body.persistence.mode).toBe("v2_paused");
+  });
+
+  it("GLOBAL=true + pilot false + v2_cloud → v2_read_only", async () => {
+    vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(true);
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue(
+      account({ pilotEligible: false, canonicalPersistence: "v2_cloud" }),
+    );
+    const body = await (await GET()).json();
+    expect(body.persistence.mode).toBe("v2_read_only");
+  });
+
+  it("GLOBAL=true + pilot true + v2_cloud → v2_active", async () => {
+    vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(true);
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue(
+      account({ pilotEligible: true, canonicalPersistence: "v2_cloud" }),
+    );
+    const body = await (await GET()).json();
+    expect(body.persistence.mode).toBe("v2_active");
   });
 });
