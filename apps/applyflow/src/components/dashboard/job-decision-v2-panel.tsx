@@ -10,6 +10,7 @@ import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
 import { loadJobDecisionV2Snapshot } from "@/lib/job-decision-v2-snapshot";
 import { DashboardPersistenceNotice, dashboardPersistenceFailureMessage } from "@/components/dashboard/dashboard-persistence-notice";
 import { DashboardMigrationPanel } from "@/components/dashboard/dashboard-migration-panel";
+import type { ApplyFlowClientPersistenceBootstrapResult } from "@/lib/persistence-v2/dashboard/client-persistence-bootstrap";
 import type { ApplyFlowDashboardPersistence } from "@/lib/persistence-v2/dashboard/dashboard-persistence";
 import { openDashboardPersistence } from "@/lib/persistence-v2/dashboard/open-dashboard-persistence";
 import {
@@ -99,14 +100,18 @@ function matchTone(status: string): ApplyFlowBadgeTone {
 
 export function JobDecisionV2Panel({
   jobId,
-  persistenceV2Enabled = false,
+  persistenceBootstrap,
 }: {
   jobId: string;
-  persistenceV2Enabled?: boolean;
+  persistenceBootstrap: ApplyFlowClientPersistenceBootstrapResult;
 }) {
   const hydrated = useClientHydrated();
   const [storageEpoch, setStorageEpoch] = useState(0);
-  const [remoteGate, setRemoteGate] = useState<"migration_required" | "auth_required" | "error" | null>(null);
+  const [usesCloudPersistence, setUsesCloudPersistence] = useState(false);
+  const [writeCapability, setWriteCapability] = useState<"full" | "read_only">("full");
+  const [remoteGate, setRemoteGate] = useState<
+    "migration_required" | "auth_required" | "error" | "paused" | "bootstrap_unavailable" | null
+  >(null);
   const [remoteRecords, setRemoteRecords] = useState<{
     job: ApplyFlowJob | null;
     application: ApplyFlowApplicationV2Envelope | null;
@@ -114,42 +119,60 @@ export function JobDecisionV2Panel({
   const persistenceRef = useRef<ApplyFlowDashboardPersistence | null>(null);
   const snapshot = useMemo(() => {
     if (!hydrated) return null;
-    if (persistenceV2Enabled) {
+    if (usesCloudPersistence) {
       if (!remoteRecords) return null;
       return loadJobDecisionV2Snapshot(jobId, storageEpoch, remoteRecords);
     }
     return loadJobDecisionV2Snapshot(jobId, storageEpoch);
-  }, [hydrated, jobId, persistenceV2Enabled, remoteRecords, storageEpoch]);
+  }, [hydrated, jobId, usesCloudPersistence, remoteRecords, storageEpoch]);
 
   useEffect(() => {
-    if (!hydrated || persistenceV2Enabled) return;
+    if (!hydrated || usesCloudPersistence) return;
     persistClosedLoopV1Backfill();
-  }, [hydrated, jobId, persistenceV2Enabled]);
+  }, [hydrated, jobId, usesCloudPersistence]);
 
   useEffect(() => {
-    if (!hydrated || !persistenceV2Enabled) return;
+    if (!hydrated) return;
+    if (!persistenceBootstrap.ok) return;
     let cancelled = false;
-    void openDashboardPersistence({ persistenceV2Enabled: true }).then((opened) => {
+    void openDashboardPersistence({ bootstrap: persistenceBootstrap.bootstrap }).then((opened) => {
       if (cancelled) return;
-      if (opened.kind !== "ready") {
-        persistenceRef.current = null;
-        if (opened.kind === "migration_required" || opened.kind === "auth_required" || opened.kind === "error") {
-          setRemoteGate(opened.kind);
-        }
+      if (opened.kind === "ready") {
+        persistenceRef.current = opened.persistence;
+        setUsesCloudPersistence(true);
+        setWriteCapability(opened.writeCapability);
+        const job = opened.jobs.find((item) => item.id === jobId) ?? null;
+        setRemoteRecords({
+          job,
+          application: job ? (findApplicationForJob(opened.applications, job) ?? null) : null,
+        });
+        setRemoteGate(null);
         return;
       }
-      persistenceRef.current = opened.persistence;
-      const job = opened.jobs.find((item) => item.id === jobId) ?? null;
-      setRemoteRecords({
-        job,
-        application: job ? (findApplicationForJob(opened.applications, job) ?? null) : null,
-      });
-      setRemoteGate(null);
+      if (
+        opened.kind === "v1" ||
+        opened.kind === "v2_offering_empty_pending" ||
+        opened.kind === "migration_complete_pending_activation"
+      ) {
+        persistenceRef.current = opened.persistence;
+        setUsesCloudPersistence(false);
+        setWriteCapability("full");
+        setRemoteRecords(null);
+        setRemoteGate(null);
+        return;
+      }
+      persistenceRef.current = null;
+      setUsesCloudPersistence(false);
+      if (opened.kind === "migration_required") setRemoteGate("migration_required");
+      else if (opened.kind === "auth_required") setRemoteGate("auth_required");
+      else if (opened.kind === "error") setRemoteGate("error");
+      else if (opened.kind === "paused") setRemoteGate("paused");
+      else if (opened.kind === "bootstrap_unavailable") setRemoteGate("bootstrap_unavailable");
     });
     return () => {
       cancelled = true;
     };
-  }, [hydrated, jobId, persistenceV2Enabled]);
+  }, [hydrated, jobId, persistenceBootstrap]);
   const job = snapshot?.job;
   const decision = snapshot?.decision ?? null;
   const pack = snapshot?.pack ?? null;
@@ -193,12 +216,16 @@ export function JobDecisionV2Panel({
 
   function createApplicationRecord() {
     if (!job || !decision) return;
+    if (writeCapability === "read_only") {
+      setPersistError(dashboardPersistenceFailureMessage("read_only"));
+      return;
+    }
     const created = createApplicationFromJob({
       job,
       decision,
       pack: pack && pack.status === "ready" ? pack : undefined,
     });
-    if (persistenceV2Enabled) {
+    if (usesCloudPersistence) {
       const persistence = persistenceRef.current;
       if (!persistence) return;
       void persistence.createApplication(created.application).then((result) => {
@@ -226,7 +253,11 @@ export function JobDecisionV2Panel({
 
   function markApplicationSent() {
     if (!application) return;
-    if (persistenceV2Enabled) {
+    if (writeCapability === "read_only") {
+      setPersistError(dashboardPersistenceFailureMessage("read_only"));
+      return;
+    }
+    if (usesCloudPersistence) {
       const persistence = persistenceRef.current;
       if (!persistence) return;
       void persistence.updateApplication({ ...application, status: "applied" }).then((result) => {
@@ -250,7 +281,11 @@ export function JobDecisionV2Panel({
 
   function recordStatus(toStatus: ApplyFlowPipelineStatusV2) {
     if (!application || !canRecordApplicationOutcome(application.id, [application])) return;
-    if (persistenceV2Enabled) {
+    if (writeCapability === "read_only") {
+      setPersistError(dashboardPersistenceFailureMessage("read_only"));
+      return;
+    }
+    if (usesCloudPersistence) {
       const persistence = persistenceRef.current;
       if (!persistence) return;
       void persistence
@@ -286,31 +321,56 @@ export function JobDecisionV2Panel({
     setFeedbackNote(toStatus === "rejected" && !feedbackNote.trim() ? "Rejection recorded without an explicit reason (unknown)." : "");
   }
 
+  if (!persistenceBootstrap.ok) {
+    return <DashboardPersistenceNotice kind="bootstrap_unavailable" />;
+  }
+
   if (remoteGate === "migration_required") {
     return (
       <DashboardMigrationPanel
         onComplete={() => {
-          void openDashboardPersistence({ persistenceV2Enabled: true }).then((opened) => {
-            if (opened.kind !== "ready") {
-              persistenceRef.current = null;
-              if (
-                opened.kind === "migration_required" ||
-                opened.kind === "auth_required" ||
-                opened.kind === "error"
-              ) {
-                setRemoteGate(opened.kind);
-              }
+          if (!persistenceBootstrap.ok) {
+            setRemoteGate("bootstrap_unavailable");
+            return;
+          }
+          void openDashboardPersistence({ bootstrap: persistenceBootstrap.bootstrap }).then((opened) => {
+            if (opened.kind === "ready") {
+              persistenceRef.current = opened.persistence;
+              setUsesCloudPersistence(true);
+              setWriteCapability(opened.writeCapability);
+              const jobRecord = opened.jobs.find((item) => item.id === jobId) ?? null;
+              setRemoteRecords({
+                job: jobRecord,
+                application: jobRecord
+                  ? (findApplicationForJob(opened.applications, jobRecord) ?? null)
+                  : null,
+              });
+              setRemoteGate(null);
               return;
             }
-            persistenceRef.current = opened.persistence;
-            const jobRecord = opened.jobs.find((item) => item.id === jobId) ?? null;
-            setRemoteRecords({
-              job: jobRecord,
-              application: jobRecord
-                ? (findApplicationForJob(opened.applications, jobRecord) ?? null)
-                : null,
-            });
-            setRemoteGate(null);
+            if (
+              opened.kind === "v1" ||
+              opened.kind === "v2_offering_empty_pending" ||
+              opened.kind === "migration_complete_pending_activation"
+            ) {
+              persistenceRef.current = opened.persistence;
+              setUsesCloudPersistence(false);
+              setWriteCapability("full");
+              setRemoteRecords(null);
+              setRemoteGate(null);
+              setStorageEpoch((epoch) => epoch + 1);
+              return;
+            }
+            persistenceRef.current = null;
+            if (
+              opened.kind === "migration_required" ||
+              opened.kind === "auth_required" ||
+              opened.kind === "error" ||
+              opened.kind === "paused" ||
+              opened.kind === "bootstrap_unavailable"
+            ) {
+              setRemoteGate(opened.kind);
+            }
           });
         }}
       />

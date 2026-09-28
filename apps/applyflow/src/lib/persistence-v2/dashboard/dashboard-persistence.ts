@@ -4,12 +4,12 @@ import { APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY, loadDashboardJobs } from "@/lib/l
 import { APPLYFLOW_DASHBOARD_STORAGE_KEY, loadDashboardImport } from "@/lib/local-import-storage";
 
 /**
- * Mode comes from the server env `APPLYFLOW_PERSISTENCE_V2` passed as a boolean
- * prop by the dashboard server pages. The client does not read that env and
- * does not receive DATABASE_URL, DIRECT_URL, or a second public flag.
+ * Adapter backend kind. Authoritative *account* mode comes from
+ * ApplyFlowClientPersistenceBootstrap (server-resolved), not from a global
+ * boolean prop. Adapter mode here only labels V1 localStorage vs V2 API.
  *
- * Extension and JSON import stay on the V1 dashboard boundary. V2 mode blocks
- * those writes instead of storing them only in localStorage.
+ * Extension and JSON import stay on the V1 dashboard boundary. Cloud modes
+ * block those writes instead of storing them only in localStorage.
  * There is no storage-event listener in the current dashboard, so neither
  * adapter invents cross-tab sync.
  */
@@ -26,7 +26,8 @@ export type DashboardPersistenceFailureCode =
   | "application_already_exists"
   | "application_already_exists_for_job"
   | "invalid_status_transition"
-  | "unsupported_in_v2";
+  | "unsupported_in_v2"
+  | "read_only";
 
 export type DashboardPersistenceResult<T> =
   | { ok: true; data: T }
@@ -62,6 +63,10 @@ export type MigrationMarker = {
 
 export const noMigrationProof: MigrationMarker = { v1ToV2Complete: false };
 
+/**
+ * @deprecated R2.2.4 — client must not select adapters from a global boolean.
+ * Kept only for transitional unit tests of the old boolean matrix.
+ */
 export function selectDashboardPersistenceMode(persistenceV2Enabled: boolean): DashboardPersistenceMode {
   return persistenceV2Enabled ? "v2" : "v1";
 }
@@ -79,6 +84,24 @@ export function localV1DashboardHasLegacyData(): boolean {
   return false;
 }
 
+/**
+ * Offering-only migration gate. Marker proves UX/recovery evidence only —
+ * it never upgrades the client to v2_active while server mode is v2_offering.
+ */
+export function assessOfferingMigrationGate(input: {
+  legacyData: boolean;
+  migration: MigrationMarker;
+}): "v1_local" | "migration_required" | "migration_complete_pending_activation" {
+  if (!input.legacyData) return "v1_local";
+  if (!input.migration.v1ToV2Complete) return "migration_required";
+  // Until R2.2.5 canonical transition: stay on V1 even with a completed marker.
+  return "migration_complete_pending_activation";
+}
+
+/**
+ * @deprecated Prefer assessOfferingMigrationGate with server mode v2_offering.
+ * Legacy boolean-mode gate used by older tests.
+ */
 export function assessDashboardMigrationGate(input: {
   mode: DashboardPersistenceMode;
   legacyData: boolean;

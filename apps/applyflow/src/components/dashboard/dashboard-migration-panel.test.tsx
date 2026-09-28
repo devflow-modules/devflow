@@ -16,8 +16,9 @@ import * as coordinator from "@/lib/persistence-v2/migration/migration-coordinat
 
 import { DashboardMigrationPanel } from "./dashboard-migration-panel";
 import { DashboardClient } from "./dashboard-client";
+import { testBootstrapOffering, TEST_PERSISTENCE_ACCOUNT_ID } from "./test-persistence-bootstrap";
 
-const ACCOUNT_ID = "acc-migration-ux-1";
+const ACCOUNT_ID = TEST_PERSISTENCE_ACCOUNT_ID;
 
 const job: ApplyFlowJob = {
   id: "job_ux_1",
@@ -238,12 +239,12 @@ describe("DashboardClient migration cutover", () => {
       return jsonResponse(500, { error: "unexpected" });
     });
     vi.stubGlobal("fetch", fetchImpl);
-    render(<DashboardClient persistenceV2Enabled />);
+    render(<DashboardClient persistenceBootstrap={testBootstrapOffering} />);
     expect(await screen.findByText("Migrar dados para a conta")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Migrar dados para V2" })).toBeTruthy();
   });
 
-  it("successful migration re-evaluates persistence to v2_ready and keeps V1 keys", async () => {
+  it("successful migration keeps V1 canonical pending R2.2.5 activation and keeps V1 keys", async () => {
     seedLegacy();
     const jobsRaw = window.localStorage.getItem(APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY);
     const appsRaw = window.localStorage.getItem(APPLYFLOW_DASHBOARD_STORAGE_KEY);
@@ -275,7 +276,7 @@ describe("DashboardClient migration cutover", () => {
     });
     vi.stubGlobal("fetch", fetchImpl);
 
-    render(<DashboardClient persistenceV2Enabled />);
+    render(<DashboardClient persistenceBootstrap={testBootstrapOffering} />);
     fireEvent.click(await screen.findByRole("button", { name: "Migrar dados para V2" }));
 
     await waitFor(() => {
@@ -287,10 +288,12 @@ describe("DashboardClient migration cutover", () => {
     const marker = loadMigrationMarker(ACCOUNT_ID);
     expect(marker?.v1ToV2Complete).toBe(true);
     expect(marker?.accountIdFingerprint).toBe(fingerprintApplyFlowAccountId(ACCOUNT_ID));
-    expect(fetchImpl).toHaveBeenCalledWith(
+    // Until R2.2.5, server mode remains v2_offering — client must not open cloud as canonical.
+    expect(fetchImpl).not.toHaveBeenCalledWith(
       "/api/applyflow/v2/jobs",
       expect.objectContaining({ method: "GET" }),
     );
+    expect(screen.getByTestId("migration-success-notice").textContent).toMatch(/R2\.2\.5/);
   });
 
   it("retry after API failure recovers without premature success", async () => {
@@ -326,7 +329,7 @@ describe("DashboardClient migration cutover", () => {
       return jsonResponse(500, { error: "unexpected" });
     });
     vi.stubGlobal("fetch", fetchImpl);
-    render(<DashboardClient persistenceV2Enabled />);
+    render(<DashboardClient persistenceBootstrap={testBootstrapOffering} />);
     fireEvent.click(await screen.findByRole("button", { name: "Migrar dados para V2" }));
     expect(await screen.findByRole("button", { name: "Tentar novamente" })).toBeTruthy();
     expect(screen.queryByTestId("migration-success-notice")).toBeNull();

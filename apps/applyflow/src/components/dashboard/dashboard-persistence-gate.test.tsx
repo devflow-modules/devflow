@@ -10,8 +10,9 @@ import { APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY } from "@/lib/persistence-v2/m
 import { prepareMigrationBundle } from "@/lib/persistence-v2/migration/migration-prepare";
 
 import { DashboardClient } from "./dashboard-client";
+import { testBootstrapOffering, testBootstrapV1, TEST_PERSISTENCE_ACCOUNT_ID } from "./test-persistence-bootstrap";
 
-const ACCOUNT_ID = "acc-ui-gate-1";
+const ACCOUNT_ID = TEST_PERSISTENCE_ACCOUNT_ID;
 
 const job: ApplyFlowJob = {
   id: "job_legacy",
@@ -55,20 +56,17 @@ describe("DashboardClient persistence gate", () => {
       return jsonResponse(500, { error: "unexpected" });
     });
     vi.stubGlobal("fetch", fetchImpl);
-    render(<DashboardClient persistenceV2Enabled />);
+    render(<DashboardClient persistenceBootstrap={testBootstrapOffering} />);
     expect(await screen.findByText("Migrar dados para a conta")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Migrar dados para V2" })).toBeTruthy();
-    expect(fetchImpl).toHaveBeenCalledWith(
-      "/api/applyflow/v2/me",
-      expect.objectContaining({ method: "GET" }),
-    );
+    // accountId is already in the server bootstrap — no need to re-fetch /me for the marker.
     expect(window.localStorage.getItem(APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY)).toBe(raw);
   });
 
   it("does not require authentication while V2 is off", async () => {
     const fetchImpl = vi.fn();
     vi.stubGlobal("fetch", fetchImpl);
-    render(<DashboardClient persistenceV2Enabled={false} />);
+    render(<DashboardClient persistenceBootstrap={testBootstrapV1} />);
     await waitFor(() => {
       expect(screen.queryByText("A preparar o painel e ler o armazenamento local…")).toBeNull();
     });
@@ -105,7 +103,7 @@ describe("DashboardClient persistence gate", () => {
       return jsonResponse(500, { error: "unexpected" });
     });
     vi.stubGlobal("fetch", fetchImpl);
-    render(<DashboardClient persistenceV2Enabled />);
+    render(<DashboardClient persistenceBootstrap={testBootstrapOffering} />);
     await waitFor(() => {
       expect(screen.queryByText("Migrar dados para a conta")).toBeNull();
       expect(screen.queryByText("Entre na conta para continuar")).toBeNull();
