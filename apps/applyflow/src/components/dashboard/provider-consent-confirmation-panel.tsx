@@ -20,6 +20,7 @@ import {
   PROVIDER_CONSENT_CONFIRMATION_BOUNDARIES,
   PROVIDER_CONSENT_CONFIRMATION_CHECKBOX_LABEL,
   PROVIDER_CONSENT_CONFIRMATION_NEVER_STORED,
+  PROVIDER_CONSENT_CONFIRMATION_OWNERSHIP_NOTICE,
   PROVIDER_CONSENT_CONFIRMATION_PROVIDER_OPTIONS,
   PROVIDER_CONSENT_CONFIRMATION_RESULT_TITLE,
   PROVIDER_CONSENT_CONFIRMATION_RUNTIME,
@@ -221,6 +222,9 @@ export function ProviderConsentConfirmationPanel({
               {PROVIDER_CONSENT_CONFIRMATION_TITLE}
             </h3>
             <ApplyFlowBadge tone="warning">{PROVIDER_CONSENT_CONFIRMATION_BADGE}</ApplyFlowBadge>
+            <p className="max-w-2xl text-[11px] leading-relaxed text-[color:var(--af-text-muted)]">
+              {PROVIDER_CONSENT_CONFIRMATION_OWNERSHIP_NOTICE}
+            </p>
           </div>
           <p className="shrink-0 text-[11px] text-[color:var(--af-text-muted)]">
             Runtime:{" "}

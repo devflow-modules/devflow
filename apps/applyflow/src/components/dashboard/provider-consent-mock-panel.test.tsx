@@ -93,8 +93,8 @@ describe("ProviderConsentMockPanel render", () => {
 
   it("renders preview action buttons and safety boundaries", () => {
     const html = renderToStaticMarkup(<ProviderConsentMockPanel />);
-    expect(html).toContain("Connect Gmail — Preview only");
-    expect(html).toContain("Connect Calendar — Preview only");
+    expect(html).toContain("Connect Gmail in this browser — Preview only");
+    expect(html).toContain("Connect Calendar in this browser — Preview only");
     expect(html).toContain("Revoke access — Preview only");
     expect(html).toContain("Delete derived data — Preview only");
     expect(html).toContain("Preview actions · Local simulation only");

@@ -106,7 +106,7 @@ describe("ProviderNangoConnectUi render", () => {
     expect(html).not.toContain(PROVIDER_NANGO_CONNECT_START_LABEL);
   });
 
-  it("shows Start Nango Connect when launcher is oauth_start_ready", () => {
+  it("shows Connect in this browser when launcher is oauth_start_ready", () => {
     const html = renderToStaticMarkup(
       <ProviderNangoConnectUi
         provider="gmail"

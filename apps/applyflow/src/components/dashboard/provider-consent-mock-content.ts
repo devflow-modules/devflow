@@ -10,20 +10,20 @@ export const PROVIDER_CONSENT_MOCK_TITLE = "Provider consent preview";
 export const PROVIDER_CONSENT_MOCK_BADGE = "Mock · Read-only · No provider connection";
 
 export const PROVIDER_CONSENT_MOCK_DESCRIPTION =
-  "This preview shows the future consent flow for Gmail and Calendar enrichment. No OAuth, Nango runtime, Gmail API, or Calendar API is active.";
+  "This preview shows the future consent flow for Gmail and Calendar enrichment. Connections in the pilot runtime are browser/device-scoped and are not linked to your ApplyFlow account. No OAuth, Nango runtime, Gmail API, or Calendar API is active in this mock.";
 
 export const PROVIDER_CONSENT_MOCK_RUNTIME = "Future Nango adapter";
 
 export const PROVIDER_CONSENT_MOCK_ACTIONS = [
   {
     id: "preview-connect-gmail",
-    label: "Connect Gmail — Preview only",
+    label: "Connect Gmail in this browser — Preview only",
     action: "connect" satisfies ProviderConnectionActionKind,
     provider: "gmail" satisfies ProviderKind,
   },
   {
     id: "preview-connect-calendar",
-    label: "Connect Calendar — Preview only",
+    label: "Connect Calendar in this browser — Preview only",
     action: "connect" satisfies ProviderConnectionActionKind,
     provider: "calendar" satisfies ProviderKind,
   },
