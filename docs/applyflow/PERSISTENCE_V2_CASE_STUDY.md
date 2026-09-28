@@ -157,10 +157,13 @@ Conceptual flow:
 
 Properties validated in code/tests:
 
-- Idempotent retries on the same fingerprint  
-- Conflict when a preserved ID already exists with divergent content (`migration_conflict`) — no force overwrite  
-- Chunked / session-backed import rather than a single fragile fire-and-forget POST  
+- Idempotent retries on the same fingerprint
+- Conflict when a preserved ID already exists with divergent content (`migration_conflict`) — no force overwrite
+- **Partial-resumable import** (session-backed; mid-import durable staging allowed) rather than a single giant all-or-nothing storage transaction — see [ADR-PERSISTENCE_V2_PARTIAL_RESUMABLE_MIGRATION.md](./ADR-PERSISTENCE_V2_PARTIAL_RESUMABLE_MIGRATION.md) (AF-REL-002)
+- Multi-chunk request protocol deferred (≤50 Jobs / ≤50 Applications per POST)
 - Legacy local keys retained; not deleted as part of promotion
+- **Atomic** session completion + canonical promotion (`completed` ↔ `v2_cloud`)
+- Failure / interrupt leaves `canonicalPersistence = v1_local`; does **not** imply zero cloud writes
 
 ### Empty V1 → cloud (activation)
 

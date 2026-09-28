@@ -63,10 +63,31 @@ export function createMemoryPersistenceDb(seedAccounts: MemoryAccount[] = []): {
 
   const applicationDelegate = {
     create: async ({ data }: { data: Record<string, unknown> }) => {
-      const k = key(String(data.accountId), String(data.id));
-      if (applications.has(k)) throw Object.assign(new Error("unique"), { code: "P2002" });
+      const accountId = String(data.accountId);
+      const id = String(data.id);
+      const k = key(accountId, id);
+      if (applications.has(k)) {
+        throw Object.assign(new Error("unique"), {
+          code: "P2002",
+          meta: { target: ["accountId", "id"] },
+        });
+      }
+      const sourceJobId =
+        data.sourceJobId === undefined || data.sourceJobId === null ? null : String(data.sourceJobId);
+      if (
+        sourceJobId &&
+        [...applications.values()].some(
+          (row) => row.accountId === accountId && row.sourceJobId === sourceJobId,
+        )
+      ) {
+        throw Object.assign(new Error("unique"), {
+          code: "P2002",
+          meta: { target: ["applyflow_applications_account_id_source_job_id_uidx"] },
+        });
+      }
       const record = {
         ...data,
+        sourceJobId,
         version: 1,
         createdAt: new Date("2026-01-01T00:00:00.000Z"),
         updatedAt: new Date("2026-01-01T00:00:00.000Z"),
@@ -205,7 +226,37 @@ export function createMemoryPersistenceDb(seedAccounts: MemoryAccount[] = []): {
 
   const db = {
     ...txSurface,
-    $transaction: async <T>(fn: (tx: ApplyFlowPersistenceTx) => Promise<T>) => fn(txSurface),
+    /**
+     * Snapshot + rollback on throw so complete+promote atomicity can be proven in unit tests.
+     * Mirrors PostgreSQL transaction abort semantics for in-memory maps (shallow clone of entries).
+     */
+    $transaction: async <T>(fn: (tx: ApplyFlowPersistenceTx) => Promise<T>) => {
+      const snapAccounts = new Map(
+        [...accounts.entries()].map(([id, row]) => [id, { ...row }]),
+      );
+      const snapJobs = new Map([...jobs.entries()].map(([k, row]) => [k, { ...row }]));
+      const snapApps = new Map(
+        [...applications.entries()].map(([k, row]) => [k, { ...row }]),
+      );
+      const snapSessions = new Map(
+        [...sessions.entries()].map(([k, row]) => [k, { ...row }]),
+      );
+      const snapSeq = sessionSeq;
+      try {
+        return await fn(txSurface);
+      } catch (error) {
+        accounts.clear();
+        for (const [id, row] of snapAccounts) accounts.set(id, row);
+        jobs.clear();
+        for (const [k, row] of snapJobs) jobs.set(k, row);
+        applications.clear();
+        for (const [k, row] of snapApps) applications.set(k, row);
+        sessions.clear();
+        for (const [k, row] of snapSessions) sessions.set(k, row);
+        sessionSeq = snapSeq;
+        throw error;
+      }
+    },
   } as ApplyFlowPersistenceDb;
 
   return { db, accounts, jobs, applications, sessions };

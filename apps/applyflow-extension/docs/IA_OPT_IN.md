@@ -4,18 +4,37 @@
 
 Permitir **geração assistida** de textos longos (carta de apresentação, respostas abertas, mensagem a recrutador, resumo de fit, explicação de lacunas) usando um **modelo OpenAI** configurado pelo utilizador, **sem backend DevFlow**, **sem login** e **sempre com clique explícito** em «Gerar com IA».
 
-## Arquitetura
+## Arquitetura (AF-AI-001)
 
 | Peça | Local |
 |------|--------|
-| Definições (`enabled`, `apiKey`, `model`, `maxTokens`, `temperature`) | `chrome.storage.local` → `APPLYFLOW_SETTINGS_V1` (`ai`) |
-| Construção de prompts anti-alucinação | `packages/applyflow-core/src/ai-prompt-builder.ts` — `buildAiPrompt` |
-| Cliente HTTP | `apps/applyflow-extension/src/ai/openai-client.ts` — `fetch` para `v1/chat/completions` |
-| Orquestração + auditoria | `apps/applyflow-extension/src/ai/generate-ai-text.ts` |
-| UI | `AiSuggestionBox` + Opções › **IA** (`AiSettingsPanel`) |
-| Trilho de auditoria | `APPLYFLOW_AI_AUDIT_V1` — até 100 eventos |
+| Definições públicas (`enabled`, `model`, `keyConfigured`, …) | `chrome.storage.local` → `APPLYFLOW_SETTINGS_V1` |
+| Credencial OpenAI (`apiKey`) | `chrome.storage.local` → `APPLYFLOW_AI_CREDENTIAL_V1` (**só** service worker / opções) — **não cifrado em repouso** |
+| Leitura pública (content / painel) | `getApplyFlowPublicSettings()` em `applyflow-storage-public.ts` |
+| Leitura privada (service worker / opções) | `getApplyFlowPrivateSettings()` |
+| Mensagem de capacidade | `applyflow:generate-ai` (content → service worker) |
+| Cliente HTTP OpenAI | `openai-client.ts` — só no **service worker** (`https://api.openai.com/v1/chat/completions` fixo) |
+| Orquestração + auditoria | `generate-ai-text.ts` (SW) + `APPLYFLOW_AI_AUDIT_V1` |
+| UI opções | `AiSettingsPanel` — estado `keyConfigured`; não reapresenta a chave após gravar |
+| UI painel | `AiSuggestionBox` via `PanelAiBundle.runTask` → `requestGenerateAi` |
 
-Fluxo: painel obtém `PanelAiBundle` (`availability`, `language`, `runTask`) no content script; `runTask` chama `generateAiText` com settings frescos, perfil e contexto de vaga já presente em memória no passo actual.
+Fluxo:
+
+```
+content script / panel
+  → typed GENERATE_AI (sem credenciais)
+  → MV3 service worker
+  → carrega chave privada do storage
+  → OpenAI (endpoint allowlisted)
+  → texto seguro / erro estável
+  → content script
+```
+
+**Invariante:** o content script e o page world **nunca** recebem a API key em claro.
+
+Afirmação correcta após remediação: *«A chave OpenAI do utilizador está isolada dos caminhos de execução de IA do content script ApplyFlow.»*
+
+Não afirmar: cifragem de `chrome.storage.local`, impossibilidade absoluta de roubo, ou protecção contra outras extensões.
 
 ## Privacidade
 
@@ -62,9 +81,11 @@ Ou `result: "failed"` com `reason` curto. **Não** há `prompt`, `output` nem `a
 3. Verificar que **Preencher** com texto IA ainda exige confirmação de segurança quando aplicável (baixa confiança / unknown).
 4. Confirmar que o **histórico de candidaturas** e exports de perfil **não** contêm o texto gerado nem a chave.
 5. Opcional: inspeccionar `APPLYFLOW_AI_AUDIT_V1` no DevTools da extensão.
+6. Confirmar que DevTools do content script / `getApplyFlowPublicSettings` **não** expõe `apiKey`.
 
 ## Limitações
 
 - Dependência da disponibilidade e **custos** da OpenAI.
 - Qualidade varia com modelo e contexto; o utilizador deve rever sempre o texto antes de enviar no LinkedIn.
 - Não substitui leitura da política de privacidade da OpenAI nem revisão humana das candidaturas.
+- `chrome.storage.local` **não** é cifrado em repouso pelo browser.

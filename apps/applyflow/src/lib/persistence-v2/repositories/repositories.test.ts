@@ -95,13 +95,36 @@ function createMemoryDb(): ApplyFlowPersistenceDb {
 
   const applicationDelegate = {
     create: async ({ data }: { data: Record<string, unknown> }) => {
+      const accountId = String(data.accountId);
+      const id = String(data.id);
+      const k = key(accountId, id);
+      if (applications.has(k)) {
+        throw Object.assign(new Error("unique"), {
+          code: "P2002",
+          meta: { target: ["accountId", "id"] },
+        });
+      }
+      const sourceJobId =
+        data.sourceJobId === undefined || data.sourceJobId === null ? null : String(data.sourceJobId);
+      if (
+        sourceJobId &&
+        [...applications.values()].some(
+          (row) => row.accountId === accountId && row.sourceJobId === sourceJobId,
+        )
+      ) {
+        throw Object.assign(new Error("unique"), {
+          code: "P2002",
+          meta: { target: ["applyflow_applications_account_id_source_job_id_uidx"] },
+        });
+      }
       const record = {
         ...data,
+        sourceJobId,
         version: 1,
         createdAt: new Date("2026-01-01T00:00:00.000Z"),
         updatedAt: new Date("2026-01-01T00:00:00.000Z"),
       } as ApplyFlowApplication;
-      applications.set(key(record.accountId, record.id), record);
+      applications.set(k, record);
       return record;
     },
     upsert: async ({
@@ -404,7 +427,7 @@ describe("ApplyFlow job/application repositories", () => {
     expect(stale).toEqual({ ok: false, reason: "conflict" });
   });
 
-  it("allows 0..N Applications for the same sourceJobId and null sourceJobId", async () => {
+  it("enforces ≤1 Application per sourceJobId per account; allows multiple NULL sourceJobId", async () => {
     const db = createMemoryDb();
     const apps = createApplyFlowApplicationRepository(db);
     const accountId = "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee";
@@ -416,24 +439,37 @@ describe("ApplyFlow job/application repositories", () => {
       status: "reviewing",
       sourceJobId: "job_x",
     });
-    await apps.create({
-      accountId,
-      id: "app_two_job_x",
-      source: "paste",
-      status: "applied",
-      sourceJobId: "job_x",
+    await expect(
+      apps.create({
+        accountId,
+        id: "app_two_job_x",
+        source: "paste",
+        status: "applied",
+        sourceJobId: "job_x",
+      }),
+    ).rejects.toMatchObject({
+      code: "P2002",
+      meta: { target: ["applyflow_applications_account_id_source_job_id_uidx"] },
     });
     await apps.create({
       accountId,
-      id: "app_orphan",
+      id: "app_orphan_a",
+      source: "paste",
+      status: "reviewing",
+      sourceJobId: null,
+    });
+    await apps.create({
+      accountId,
+      id: "app_orphan_b",
       source: "paste",
       status: "reviewing",
       sourceJobId: null,
     });
 
     const linked = await apps.findBySourceJobId(accountId, "job_x");
-    expect(linked.map((item) => item.id)).toEqual(["app_one_job_x", "app_two_job_x"]);
-    expect((await apps.findById(accountId, "app_orphan"))?.sourceJobId).toBeNull();
+    expect(linked.map((item) => item.id)).toEqual(["app_one_job_x"]);
+    expect((await apps.findById(accountId, "app_orphan_a"))?.sourceJobId).toBeNull();
+    expect((await apps.findById(accountId, "app_orphan_b"))?.sourceJobId).toBeNull();
   });
 
   it("on Job delete, Applications survive and sourceJobId becomes null", async () => {

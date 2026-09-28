@@ -142,7 +142,7 @@ describe("ProviderConsentConfirmationPanel render", () => {
 
     expect(html).toContain(PROVIDER_CONSENT_CONFIRMATION_START_BUTTON_LABEL);
     expect(html).toMatch(/disabled/);
-    expect(html).toContain("I understand and explicitly consent");
+    expect(html).toContain("I understand this is a browser-scoped pilot connection");
   });
 
   it("does not include secrets, tokens, provider payloads, or raw provider content", () => {

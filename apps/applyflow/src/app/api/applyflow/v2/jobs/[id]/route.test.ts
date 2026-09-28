@@ -99,6 +99,30 @@ describe("Job item routes", () => {
     expect(applyFlowJobService.get).toHaveBeenCalledWith("account-server", "job_client_fixed");
   });
 
+  it("denies product GET for offering accounts (AF-REL-003)", async () => {
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue({
+      ...account,
+      pilotEligible: true,
+      canonicalPersistence: "v1_local",
+    });
+    const response = await GET(new Request("http://localhost/api/applyflow/v2/jobs/job_client_fixed"), context);
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "persistence_v2_migration_required" });
+    expect(applyFlowJobService.get).not.toHaveBeenCalled();
+  });
+
+  it("allows product GET for read_only cloud accounts", async () => {
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue({
+      ...account,
+      pilotEligible: false,
+      canonicalPersistence: "v2_cloud",
+    });
+    vi.mocked(applyFlowJobService.get).mockResolvedValue(job);
+    const response = await GET(new Request("http://localhost/api/applyflow/v2/jobs/job_client_fixed"), context);
+    expect(response.status).toBe(200);
+    expect(applyFlowJobService.get).toHaveBeenCalledWith("account-server", "job_client_fixed");
+  });
+
   it("returns 404 for a missing or cross-account job", async () => {
     vi.mocked(applyFlowJobService.get).mockRejectedValue(new ApplyFlowJobServiceError("not_found"));
     const response = await GET(new Request("http://localhost/api/applyflow/v2/jobs/job_client_fixed"), context);

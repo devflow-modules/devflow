@@ -116,10 +116,23 @@ Document in Nango dashboard — **do not fill real values in this repo:**
 
 | Provider | Nango integration ID | End-user tag |
 |----------|---------------------|--------------|
-| gmail | `google-mail` | `applyflow-gmail-{sha256(callerNonce)[0:32]}` — per anonymous browser session, not a shared singleton |
+| gmail | `google-mail` | `applyflow-gmail-{sha256(callerNonce)[0:32]}` — per **anonymous browser session**, not a shared singleton and **not** an ApplyFlow account id |
 | calendar | `google-calendar` | `applyflow-calendar-{sha256(callerNonce)[0:32]}` — same caller-session rule |
 
-The retired tags `applyflow-gmail-runtime-boundary` and `applyflow-calendar-runtime-boundary` are not queried. Losing or expiring `af_nango_caller` creates a new identity; old connections remain in Nango but are not listed, read, or disconnected from the new cookie. `af_nango_caller` is **not** a user login.
+The retired tags `applyflow-gmail-runtime-boundary` and `applyflow-calendar-runtime-boundary` are not queried. Losing or expiring `af_nango_caller` creates a new identity; old connections remain in Nango but are not listed, read, or disconnected from the new cookie. `af_nango_caller` is **not** a user login and is **not** bound to `ApplyFlowAccount`.
+
+### Browser-scoped ownership (AF-NANGO-001)
+
+Contract: [ADR-NANGO-BROWSER_SCOPED_PROVIDER_IDENTITY.md](../../applyflow/ADR-NANGO-BROWSER_SCOPED_PROVIDER_IDENTITY.md).
+
+| Topic | Behavior |
+| --- | --- |
+| ApplyFlow logout | Does **not** disconnect provider or revoke Google OAuth |
+| Account switch (same browser) | Same provider caller identity remains |
+| Multi-device | Laptop connection does **not** appear on Desktop automatically |
+| Cookie loss | New identity; previous Nango connections may be orphaned |
+| Disconnect vs revoke | ApplyFlow Disconnect ≠ Google third-party revoke |
+| Secret coupling | Cookie HMAC currently uses `NANGO_SECRET_KEY` — dedicated signing secret is a **future** hardening candidate (not in this contract) |
 
 Copy template: [`apps/applyflow/.env.example`](../../../apps/applyflow/.env.example)
 

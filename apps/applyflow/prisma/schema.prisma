@@ -71,6 +71,14 @@ model ApplyFlowJob {
 }
 
 /// Canonical Application (separate entity). Optional soft link to Job via sourceJobId.
+///
+/// AF-REL-001 invariant (DB-enforced): at most one Application per
+/// (accountId, sourceJobId) when sourceJobId IS NOT NULL.
+/// Prisma 6 cannot express partial unique indexes in-schema; the authoritative
+/// constraint is migration `20260928180000_application_source_job_unique`
+/// (`applyflow_applications_account_id_source_job_id_uidx`).
+/// Multiple rows with sourceJobId = NULL remain allowed. Uniqueness is peri-account,
+/// not global on sourceJobId alone.
 model ApplyFlowApplication {
   accountId   String    @map("account_id") @db.Uuid
   id          String
@@ -93,7 +101,6 @@ model ApplyFlowApplication {
   account ApplyFlowAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
 
   @@id([accountId, id])
-  @@index([accountId, sourceJobId])
   @@map("applyflow_applications")
 }
 

@@ -26,13 +26,17 @@ export type NangoConnectUiStatus =
 
 export type NangoConnectUiInteractionStatus = "idle" | "starting" | "completed" | "cancelled" | "error";
 
-export const PROVIDER_NANGO_CONNECT_START_LABEL = "Start Nango Connect";
+export const PROVIDER_NANGO_CONNECT_START_LABEL = "Connect in this browser (Nango)";
+
+export const PROVIDER_NANGO_CONNECT_OWNERSHIP_HINT =
+  "Uses this browser’s provider session. Not linked to your ApplyFlow account login.";
 
 export const PROVIDER_NANGO_CONNECT_COMPLETED_LINES = [
-  "Connection flow completed",
+  "Connection flow completed for this browser",
   "No Gmail/Calendar data imported",
   "No sync started",
   "No provider payload stored",
+  "ApplyFlow logout does not disconnect this provider",
 ] as const;
 
 export function mapNangoConnectUiEventToStatus(
@@ -228,18 +232,23 @@ export function ProviderNangoConnectUi({
         ) : null}
 
         {availability === "available" && openNangoConnectUi ? (
-          <ApplyFlowButton
-            type="button"
-            variant="primary"
-            size="sm"
-            disabled={interactionStatus === "starting" || interactionStatus === "completed"}
-            onClick={() => {
-              void handleStartNangoConnect();
-            }}
-            data-testid="provider-nango-connect-start-button"
-          >
-            {interactionStatus === "starting" ? "Opening Nango Connect…" : PROVIDER_NANGO_CONNECT_START_LABEL}
-          </ApplyFlowButton>
+          <div className="space-y-2">
+            <p className="text-[11px] leading-relaxed text-[color:var(--af-text-muted)]">
+              {PROVIDER_NANGO_CONNECT_OWNERSHIP_HINT}
+            </p>
+            <ApplyFlowButton
+              type="button"
+              variant="primary"
+              size="sm"
+              disabled={interactionStatus === "starting" || interactionStatus === "completed"}
+              onClick={() => {
+                void handleStartNangoConnect();
+              }}
+              data-testid="provider-nango-connect-start-button"
+            >
+              {interactionStatus === "starting" ? "Opening Nango Connect…" : PROVIDER_NANGO_CONNECT_START_LABEL}
+            </ApplyFlowButton>
+          </div>
         ) : null}
 
         {connectUiError ? (

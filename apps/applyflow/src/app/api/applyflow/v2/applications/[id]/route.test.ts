@@ -90,6 +90,30 @@ describe("Application item routes", () => {
     expect(applyFlowApplicationService.get).toHaveBeenCalledWith("account-server", "app_client");
   });
 
+  it("denies product GET for offering accounts (AF-REL-003)", async () => {
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue({
+      ...account,
+      pilotEligible: true,
+      canonicalPersistence: "v1_local",
+    });
+    const response = await GET(new Request("http://localhost/api/applyflow/v2/applications/app_client"), context);
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "persistence_v2_migration_required" });
+    expect(applyFlowApplicationService.get).not.toHaveBeenCalled();
+  });
+
+  it("allows product GET for read_only cloud accounts", async () => {
+    vi.mocked(requireApplyFlowAccount).mockResolvedValue({
+      ...account,
+      pilotEligible: false,
+      canonicalPersistence: "v2_cloud",
+    });
+    vi.mocked(applyFlowApplicationService.get).mockResolvedValue(application);
+    const response = await GET(new Request("http://localhost/api/applyflow/v2/applications/app_client"), context);
+    expect(response.status).toBe(200);
+    expect(applyFlowApplicationService.get).toHaveBeenCalledWith("account-server", "app_client");
+  });
+
   it("returns 404 when the application is missing", async () => {
     vi.mocked(applyFlowApplicationService.get).mockRejectedValue(new ApplyFlowApplicationServiceError("not_found"));
     const response = await GET(new Request("http://localhost/api/applyflow/v2/applications/app_client"), context);

@@ -1,4 +1,4 @@
-import { applyFlowDebugLog } from "../content/applyflow-debug.js";
+import { applyFlowDebugLog } from "../runtime/applyflow-debug.js";
 import { STORAGE_AI_AUDIT_KEY } from "./storage-types.js";
 
 const MAX_ENTRIES = 100;

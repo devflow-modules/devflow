@@ -31,7 +31,7 @@ describe("ProviderConnectionDisconnectPanel", () => {
     );
 
     expect(html).toContain("Disconnect Gmail");
-    expect(PROVIDER_CONNECTION_DISCONNECT_CONFIRM_TITLE).toMatch(/Disconnect this provider from ApplyFlow/i);
+    expect(PROVIDER_CONNECTION_DISCONNECT_CONFIRM_TITLE).toMatch(/Disconnect this provider from this browser/i);
     expect(PROVIDER_CONNECTION_DISCONNECT_CONFIRM_BODY).toMatch(
       /does not necessarily revoke the app directly in your Google Account/i,
     );

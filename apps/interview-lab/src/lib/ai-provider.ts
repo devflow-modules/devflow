@@ -6,6 +6,7 @@ import {
   runMockAnswerReview,
 } from "./ai-answer-review";
 import { postOpenAiChatJsonCompletion } from "./openai-chat-json";
+import { ProviderError } from "./provider-error";
 
 export type AiAnswerReviewProviderId = "mock" | "openai";
 
@@ -43,7 +44,8 @@ export function createOpenAiAnswerReviewProvider(apiKey: string): AiAnswerReview
 
       const parsed = parseReviewJsonResponse(content);
       if (!parsed.ok) {
-        throw new Error(parsed.error);
+        // Do not forward parseReviewJsonResponse.error strings (may echo model text).
+        throw new ProviderError("provider_invalid_response");
       }
       return parsed.data;
     },

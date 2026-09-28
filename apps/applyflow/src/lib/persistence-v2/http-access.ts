@@ -64,10 +64,14 @@ function deny(
  *
  * MODE             READ     WRITE                MIGRATION   SESSION_GET   ACTIVATION
  * v1               DENY     DENY                 DENY        DENY          DENY
- * v2_offering      ALLOW    DENY (migration req) ALLOW       ALLOW         ALLOW
+ * v2_offering      DENY*    DENY (migration req) ALLOW       ALLOW         ALLOW
  * v2_active        ALLOW    ALLOW                DENY        ALLOW         ALLOW (idempotent)
  * v2_read_only     ALLOW    DENY                 DENY        ALLOW         DENY
  * v2_paused        DENY     DENY                 DENY        DENY          DENY
+ *
+ * *AF-REL-003: offering product Jobs/Applications GET uses capability "read" and is DENY
+ * (`persistence_v2_migration_required`). Physical noncanonical staging may still exist;
+ * migration/session/activation remain the supported surfaces until canonical promotion.
  */
 export function assertApplyFlowV2HttpCapability(
   access: ApplyFlowPersistenceAccess,
@@ -104,12 +108,11 @@ export function assertApplyFlowV2HttpCapability(
       if (
         capability === "migration" ||
         capability === "migration_session_read" ||
-        capability === "read" ||
         capability === "activation"
       ) {
         return;
       }
-      // write: fail-closed — use migration or empty activation, not normal CRUD
+      // product read + write: fail-closed until canonical promotion (AF-REL-003)
       deny("persistence_v2_migration_required", 403, access);
 
     default: {

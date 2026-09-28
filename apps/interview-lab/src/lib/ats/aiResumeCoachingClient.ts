@@ -1,6 +1,7 @@
 import { extractJsonObject } from "@/lib/ai-answer-review";
 import type { AiAnswerReviewStoredSettings } from "@/lib/ai-answer-review-storage";
 import { postOpenAiChatJsonCompletion } from "@/lib/openai-chat-json";
+import { isProviderError, providerErrorUserMessage, toUserFacingReviewError } from "@/lib/provider-error";
 import { buildAiResumeCoachingSystemPrompt, buildAiResumeCoachingUserPrompt } from "./aiResumeCoachingPrompt";
 import { coachingUnavailableMessage } from "./aiResumeCoachingFallback";
 import {
@@ -55,11 +56,18 @@ export async function generateAiResumeCoaching(
 
     const parsed = parseAiResumeCoachingResponse(content);
     if (!parsed.ok) {
-      return { ok: false, code: "parse", message: parsed.error };
+      // Controlled UI copy — do not forward Zod/model text that may echo provider content.
+      return {
+        ok: false,
+        code: "parse",
+        message: providerErrorUserMessage("provider_invalid_response"),
+      };
     }
     return { ok: true, data: parsed.data };
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Request failed";
-    return { ok: false, code: "network", message: msg };
+    if (isProviderError(e)) {
+      return { ok: false, code: "network", message: providerErrorUserMessage(e.code) };
+    }
+    return { ok: false, code: "network", message: toUserFacingReviewError(e) };
   }
 }

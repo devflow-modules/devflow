@@ -4,8 +4,11 @@ import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
  * Anonymous browser caller session for Nango routes.
  *
  * This cookie isolates connections per browser session. It is not a user login,
- * SSO proof, or account identity. Connect may mint it; other routes only accept
- * a valid existing cookie.
+ * SSO proof, or account identity (AF-NANGO-001 / ADR-NANGO-BROWSER_SCOPED_PROVIDER_IDENTITY).
+ * Connect may mint it; other routes only accept a valid existing cookie.
+ *
+ * ApplyFlow logout does not clear this cookie. Account switch in the same browser
+ * does not rotate provider identity.
  *
  * Payload: `v1.{nonce}.{expiresAt}.{hmac}` where hmac = HMAC-SHA256(secret, `v1:{nonce}:{expiresAt}`).
  * `expiresAt` is a unix-seconds integer. Expired or malformed cookies are rejected

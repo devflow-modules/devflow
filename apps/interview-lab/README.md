@@ -44,6 +44,7 @@ Rota **`/ai-review`**: revisão de **respostas escritas** pelo candidato, **opt-
 
 - **Modo local (mock):** predefinido, sem chave, sem rede; útil para demo e testes.
 - **OpenAI (opcional):** só se ativares a opção e guardares a **tua** API key neste browser (`localStorage`); a key não é enviada para servidores DevFlow, apenas para a API OpenAI quando pedes uma revisão.
+- **Erros do provedor (AF-AI-002):** falhas HTTP/timeout/JSON inválido mapeiam para códigos estáveis (`provider_*`); a UI mostra mensagens controladas — **nunca** o corpo bruto da resposta OpenAI.
 
 Após um review bem-sucedido, **Export Markdown** gera um `.md` local (nome com empresa/role sanitizados + data) com a resposta original, contexto opcional, score, bullets e versão melhorada — útil para revisão offline ou notas.
 
