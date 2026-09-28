@@ -18,6 +18,10 @@ import {
 } from "../repositories";
 import type { ApplicationResponse, CreateApplicationBody, PatchApplicationBody } from "./application-dto";
 import { ApplyFlowApplicationServiceError } from "./application-errors";
+import {
+  classifyApplicationUniqueViolation,
+  isUniqueViolation,
+} from "./application-unique-violation";
 
 type ApplicationRecord = Awaited<ReturnType<ApplyFlowApplicationRepository["create"]>>;
 
@@ -30,12 +34,6 @@ const POST_APPLY_STATUSES = new Set<ApplyFlowApplicationStatus>([
   "accepted",
   "hired",
 ]);
-
-function isUniqueViolation(error: unknown): boolean {
-  return Boolean(
-    error && typeof error === "object" && "code" in error && (error as { code?: unknown }).code === "P2002",
-  );
-}
 
 function optionalText(value: string | null | undefined): string | null {
   if (value == null) return null;
@@ -131,9 +129,12 @@ export function createApplyFlowApplicationService(
 ) {
   return {
     /**
-     * Product rule: one Application per sourceJobId for ordinary create-from-job.
-     * The database still allows 0..N. Two concurrent creates can both pass the
-     * pre-check; F2 does not add a unique constraint or lock to close that race.
+     * Product rule: ≤1 Application per (accountId, sourceJobId) when sourceJobId is set.
+     *
+     * findBySourceJobId is a UX / fast-path conflict only. Correctness under
+     * concurrency is owned by the PostgreSQL partial unique index
+     * `applyflow_applications_account_id_source_job_id_uidx` (AF-REL-001).
+     * Losing racers map P2002 on that index to application_already_exists_for_job.
      */
     async create(accountId: string, body: CreateApplicationBody, now = new Date()): Promise<ApplicationResponse> {
       const sourceJobId = body.sourceJobId ?? null;
@@ -191,8 +192,28 @@ export function createApplyFlowApplicationService(
       try {
         return toApplicationResponse(await applications.create(input));
       } catch (error) {
-        if (isUniqueViolation(error)) {
+        const uniqueKind = classifyApplicationUniqueViolation(error);
+        if (uniqueKind === "source_job") {
+          throw new ApplyFlowApplicationServiceError("application_already_exists_for_job");
+        }
+        if (uniqueKind === "primary_key") {
           throw new ApplyFlowApplicationServiceError("application_already_exists");
+        }
+        if (uniqueKind === "unknown" || isUniqueViolation(error)) {
+          // Ambiguous P2002 (raw adapter metadata): resolve by post-check, never 500.
+          if (sourceJobId) {
+            const linked = await applications.findBySourceJobId(accountId, sourceJobId);
+            if (linked.some((row) => row.id !== id)) {
+              throw new ApplyFlowApplicationServiceError("application_already_exists_for_job");
+            }
+          }
+          const sameId = await applications.findById(accountId, id);
+          if (sameId) {
+            throw new ApplyFlowApplicationServiceError("application_already_exists");
+          }
+          if (isUniqueViolation(error)) {
+            throw new ApplyFlowApplicationServiceError("application_already_exists");
+          }
         }
         throw error;
       }

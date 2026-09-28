@@ -4,6 +4,7 @@ import type { ApplyFlowApplicationRepository, ApplyFlowJobRepository } from "../
 import { parseCreateApplicationBody, parsePatchApplicationBody } from "./application-dto";
 import { ApplyFlowApplicationServiceError } from "./application-errors";
 import { createApplyFlowApplicationService } from "./application-service";
+import { createMemoryUniqueViolation } from "./application-unique-violation";
 
 const ACCOUNT_A = "account-a";
 const ACCOUNT_B = "account-b";
@@ -18,13 +19,20 @@ function memory() {
   const applicationRepository = {
     async create(input: Parameters<ApplyFlowApplicationRepository["create"]>[0]) {
       if (applications.some((row) => row.accountId === input.accountId && row.id === input.id)) {
-        const error = new Error("unique");
-        Object.assign(error, { code: "P2002" });
-        throw error;
+        throw createMemoryUniqueViolation("primary_key");
+      }
+      const sourceJobId = input.sourceJobId ?? null;
+      if (
+        sourceJobId &&
+        applications.some(
+          (row) => row.accountId === input.accountId && row.sourceJobId === sourceJobId,
+        )
+      ) {
+        throw createMemoryUniqueViolation("source_job");
       }
       const record = {
         ...input,
-        sourceJobId: input.sourceJobId ?? null,
+        sourceJobId,
         jobTitle: input.jobTitle ?? null,
         companyName: input.companyName ?? null,
         jobUrl: input.jobUrl ?? null,

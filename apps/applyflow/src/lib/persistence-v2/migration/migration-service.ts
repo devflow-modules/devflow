@@ -18,6 +18,7 @@ import {
   type ApplyFlowMigrationSessionRepository,
   type ApplyFlowPersistenceDb,
 } from "../repositories";
+import { classifyApplicationUniqueViolation } from "../applications/application-unique-violation";
 import { applyflowPrisma } from "../db";
 import { isApplyFlowPersistenceV2Enabled } from "../feature-flag";
 import { promoteApplyFlowCanonicalPersistenceToV2 } from "../promote-canonical-persistence";
@@ -679,8 +680,28 @@ export function createApplyFlowMigrationService(deps?: {
         const input = toApplicationCreateInput(accountId, application);
         const existing = await applications.findById(accountId, application.id);
         if (!existing) {
-          await applications.create(input);
-          processedApplications += 1;
+          try {
+            await applications.create(input);
+            processedApplications += 1;
+          } catch (error) {
+            // DB partial unique (AF-REL-001) may win a race the pre-check missed.
+            // Never silently drop — report deterministic source_job_already_linked.
+            const uniqueKind = classifyApplicationUniqueViolation(error);
+            if (uniqueKind === "source_job" || (sourceJobId && uniqueKind === "unknown")) {
+              const linked = sourceJobId
+                ? await applications.findBySourceJobId(accountId, sourceJobId)
+                : [];
+              if (uniqueKind === "source_job" || linked.some((row) => row.id !== application.id)) {
+                applicationConflicts.push({
+                  entityType: "application",
+                  entityId: application.id,
+                  reason: "source_job_already_linked",
+                });
+                continue;
+              }
+            }
+            throw error;
+          }
           continue;
         }
         if (existingApplicationMaterialCanonical(existing) === applicationMaterialCanonical(input)) {

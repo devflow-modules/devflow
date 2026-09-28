@@ -63,10 +63,31 @@ export function createMemoryPersistenceDb(seedAccounts: MemoryAccount[] = []): {
 
   const applicationDelegate = {
     create: async ({ data }: { data: Record<string, unknown> }) => {
-      const k = key(String(data.accountId), String(data.id));
-      if (applications.has(k)) throw Object.assign(new Error("unique"), { code: "P2002" });
+      const accountId = String(data.accountId);
+      const id = String(data.id);
+      const k = key(accountId, id);
+      if (applications.has(k)) {
+        throw Object.assign(new Error("unique"), {
+          code: "P2002",
+          meta: { target: ["accountId", "id"] },
+        });
+      }
+      const sourceJobId =
+        data.sourceJobId === undefined || data.sourceJobId === null ? null : String(data.sourceJobId);
+      if (
+        sourceJobId &&
+        [...applications.values()].some(
+          (row) => row.accountId === accountId && row.sourceJobId === sourceJobId,
+        )
+      ) {
+        throw Object.assign(new Error("unique"), {
+          code: "P2002",
+          meta: { target: ["applyflow_applications_account_id_source_job_id_uidx"] },
+        });
+      }
       const record = {
         ...data,
+        sourceJobId,
         version: 1,
         createdAt: new Date("2026-01-01T00:00:00.000Z"),
         updatedAt: new Date("2026-01-01T00:00:00.000Z"),
