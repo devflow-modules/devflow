@@ -66,7 +66,13 @@ export default function AdminConversationChatPage() {
       const res = await fetchProtected(`/api/admin/conversations/${id}/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({
+          text,
+          clientRequestId:
+            typeof crypto !== "undefined" && "randomUUID" in crypto
+              ? crypto.randomUUID()
+              : `admin-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(protectedApiUserMessage(res.status, data));

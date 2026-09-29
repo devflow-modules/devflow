@@ -134,6 +134,7 @@ model Tenant {
   waInboxThreads       WaInboxThread[]
   waInboxMessages      WaInboxMessage[]
   waInboxStatusHistory WaInboxStatusHistory[]
+  waInboxPendingStatuses WaInboxPendingStatus[]
   waInboxTags          WaInboxTag[]
   waInboxAuditLogs     WaInboxAuditLog[]
   waInboxInternalNotes WaInboxInternalNote[]
@@ -302,12 +303,19 @@ model BillingSubscription {
 }
 
 model StripeWebhookEvent {
-  id         String   @id @default(cuid())
-  stripeEventId String @unique @map("stripe_event_id")
-  eventType  String   @map("event_type") @db.VarChar(128)
-  processedAt DateTime @default(now()) @map("processed_at")
+  id            String    @id @default(cuid())
+  stripeEventId String    @unique @map("stripe_event_id")
+  eventType     String    @map("event_type") @db.VarChar(128)
+  /** RECEIVED | PROCESSING | PROCESSED | FAILED */
+  status        String    @default("RECEIVED") @map("status") @db.VarChar(32)
+  attemptCount  Int       @default(0) @map("attempt_count")
+  lastError     String?   @map("last_error") @db.VarChar(2000)
+  processedAt   DateTime? @map("processed_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
 
   @@index([stripeEventId])
+  @@index([status, updatedAt])
   @@map("stripe_webhook_events")
 }
 
@@ -787,6 +795,25 @@ model WaInboxStatusHistory {
 
   @@index([tenantId, messageId, ts])
   @@map("wa_inbox_status_history")
+}
+
+/**
+ * Status Meta chegados antes da mensagem correspondente existir.
+ * Aplicados quando o inbound/outbound com o mesmo waMessageId é persistido.
+ */
+model WaInboxPendingStatus {
+  id          String   @id @default(cuid())
+  tenantId    String   @map("tenant_id")
+  waMessageId String   @map("wa_message_id")
+  /** Meta status string: sent | delivered | read | failed | … */
+  metaStatus  String   @map("meta_status") @db.VarChar(64)
+  payload     Json     @map("payload")
+  createdAt   DateTime @default(now()) @map("created_at")
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, waMessageId, metaStatus])
+  @@index([tenantId, waMessageId])
+  @@map("wa_inbox_pending_statuses")
 }
 
 model WaInboxAuditLog {

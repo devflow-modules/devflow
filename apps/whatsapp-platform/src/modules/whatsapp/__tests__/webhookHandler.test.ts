@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
+import { WhatsappPhoneNumberStatus } from "@/generated/prisma-whatsapp";
+import * as webhookProcessing from "@/modules/messaging/webhookProcessingService";
+import * as aiAutomation from "@/modules/ai/aiAutomationService";
+import { prisma } from "@/lib/prisma";
 import {
   clearWebhookSignatureTestEnv,
   enableWebhookSignatureBypassForTests,
@@ -7,7 +11,20 @@ import {
   setProcessEnvNodeEnv,
 } from "./webhookTestHelpers";
 
-const mockResolveTenant = vi.fn();
+const { mockResolveTenant, mockAfter, mockPersist } = vi.hoisted(() => ({
+  mockResolveTenant: vi.fn(),
+  mockPersist: vi.fn().mockResolvedValue(undefined),
+  /** Captures deferred work; does not run unless the test invokes the callback. */
+  mockAfter: vi.fn((_task: () => unknown) => undefined),
+}));
+
+vi.mock("next/server", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("next/server")>();
+  return {
+    ...actual,
+    after: (...args: unknown[]) => mockAfter(...args),
+  };
+});
 
 vi.mock("@/modules/whatsapp/tenantResolutionService", () => ({
   resolveTenantByPhoneNumberId: (...args: unknown[]) => mockResolveTenant(...args),
@@ -22,7 +39,11 @@ vi.mock("@/lib/supabase-server", () => ({
 }));
 
 vi.mock("@/modules/inbox", () => ({
-  persistWaInboxFromWebhook: vi.fn().mockResolvedValue(undefined),
+  persistWaInboxFromWebhook: (...args: unknown[]) => mockPersist(...args),
+}));
+
+vi.mock("@/modules/operations/webhookHealthService", () => ({
+  recordWebhookProcessingSuccess: vi.fn().mockResolvedValue(undefined),
 }));
 
 describe("webhookHandler", () => {
@@ -31,10 +52,12 @@ describe("webhookHandler", () => {
     clearWebhookSignatureTestEnv();
     enableWebhookSignatureBypassForTests();
     process.env.WHATSAPP_VERIFY_TOKEN = "verify-secret";
+    delete process.env.WHATSAPP_WEBHOOK_SYNC_PIPELINE;
   });
 
   afterEach(() => {
     clearWebhookSignatureTestEnv();
+    delete process.env.WHATSAPP_WEBHOOK_SYNC_PIPELINE;
   });
 
   describe("GET /api/webhook/whatsapp (route)", () => {
@@ -226,6 +249,95 @@ describe("webhookHandler", () => {
       expect(res.status).toBe(403);
       const j = (await res.json()) as { error?: { code: string } };
       expect(j.error?.code).toBe("WEBHOOK_APP_SECRET_MISSING");
+    });
+  });
+
+  describe("handleWebhookEvents — after() defers AI pipeline", () => {
+    const textPayload = {
+      object: "whatsapp_business_account",
+      entry: [
+        {
+          id: "waba",
+          changes: [
+            {
+              field: "messages",
+              value: {
+                messaging_product: "whatsapp",
+                metadata: {
+                  phone_number_id: "pnid_test",
+                  display_phone_number: "+55 11",
+                },
+                messages: [
+                  {
+                    id: "wam_after_defer_1",
+                    from: "5511999999999",
+                    timestamp: "1700000000",
+                    type: "text",
+                    text: { body: "Oi" },
+                  },
+                ],
+                statuses: [],
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    it("chama after com pipeline adiado quando WHATSAPP_WEBHOOK_SYNC_PIPELINE não está set", async () => {
+      delete process.env.WHATSAPP_WEBHOOK_SYNC_PIPELINE;
+      mockResolveTenant.mockResolvedValue({
+        id: "tenant-1",
+        phoneNumberId: "pnid_test",
+        displayPhoneNumber: "+5511",
+        accessToken: "token",
+        channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
+      });
+      mockPersist.mockResolvedValue(undefined);
+
+      const findFirstSpy = vi.spyOn(prisma.whatsappPhoneNumber, "findFirst").mockResolvedValue({
+        id: "line-test-1",
+      } as Awaited<ReturnType<typeof prisma.whatsappPhoneNumber.findFirst>>);
+      const countSpy = vi.spyOn(prisma.aiMessageLog, "count").mockResolvedValue(0);
+      const prepareSpy = vi
+        .spyOn(webhookProcessing, "prepareInboundConversation")
+        .mockResolvedValue({ inboxThreadId: "th-1", textBody: "Oi" });
+      vi.spyOn(aiAutomation, "checkTenantAiAutomationReady").mockResolvedValue({
+        ready: true,
+        reason: "test",
+      });
+      const aiSpy = vi.spyOn(aiAutomation, "runTenantAiAutoReply").mockResolvedValue(undefined);
+
+      try {
+        const { handleWebhookEvents } = await import("../webhookHandler");
+        const body = JSON.stringify(textPayload);
+        const res = await handleWebhookEvents(
+          new Request("http://localhost/api/webhook/whatsapp", {
+            method: "POST",
+            body,
+            headers: { "Content-Type": "application/json" },
+          })
+        );
+
+        expect(res.status).toBe(200);
+        expect((await res.json()).ok).toBe(true);
+        expect(mockPersist).toHaveBeenCalledTimes(1);
+        expect(mockAfter).toHaveBeenCalledTimes(1);
+        expect(typeof mockAfter.mock.calls[0]?.[0]).toBe("function");
+        // Pipeline must not run until after() callback executes.
+        expect(prepareSpy).not.toHaveBeenCalled();
+        expect(aiSpy).not.toHaveBeenCalled();
+
+        const deferred = mockAfter.mock.calls[0][0] as () => Promise<void>;
+        await deferred();
+        expect(prepareSpy).toHaveBeenCalledTimes(1);
+        expect(aiSpy).toHaveBeenCalledTimes(1);
+      } finally {
+        findFirstSpy.mockRestore();
+        countSpy.mockRestore();
+        prepareSpy.mockRestore();
+        vi.restoreAllMocks();
+      }
     });
   });
 });

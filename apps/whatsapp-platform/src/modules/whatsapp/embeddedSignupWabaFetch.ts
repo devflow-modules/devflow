@@ -14,7 +14,7 @@ import {
   getMetaGraphBase,
 } from "./embeddedSignupGraphQueries";
 import type { EmbeddedSignupUserAccessToken } from "./embeddedSignupUserAccessToken";
-import { maskAccessTokenForLog } from "./embeddedSignupLogRedact";
+import { maskAccessTokenForLog, safeOAuthBodySummary } from "./embeddedSignupLogRedact";
 
 export type EmbeddedSignupPhoneRow = {
   phoneNumberId: string;
@@ -87,7 +87,7 @@ export async function fetchWabaUsingEmbeddedSignupUserToken(args: {
         error_subcode: graphErrFromBody?.error_subcode ?? null,
         fbtrace_id: graphErrFromBody?.fbtrace_id ?? null,
         diagnosis,
-        bodyPreview: wabaRaw.slice(0, 4000),
+        body: safeOAuthBodySummary(wabaRaw),
       })
     );
     const hint = graphErrFromBody?.fbtrace_id
@@ -110,7 +110,15 @@ export async function fetchWabaUsingEmbeddedSignupUserToken(args: {
       tokenSource: "oauth_user_token",
       tokenFingerprint: maskAccessTokenForLog(userAccessToken),
       httpStatus: wabasRes.status,
-      bodyPreview: wabaRaw.slice(0, 8000),
+      body: safeOAuthBodySummary(wabaRaw),
+      wabaCountHint: (() => {
+        try {
+          const p = JSON.parse(wabaRaw) as { data?: unknown[] };
+          return Array.isArray(p.data) ? p.data.length : undefined;
+        } catch {
+          return undefined;
+        }
+      })(),
     })
   );
 

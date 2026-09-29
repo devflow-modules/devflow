@@ -9,6 +9,7 @@
 | [DOCUMENTATION-MAP.md](./DOCUMENTATION-MAP.md) | Classificação de docs, fontes de verdade, resolução de conflitos |
 | [CURRENT-SCOPE.md](./CURRENT-SCOPE.md) | Escopo ativo, personas, capabilities, mocks, deferidos, piloto |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Ownership app/packages, fronteiras, fluxos, tenancy |
+| [CLAIM_REGISTRY.md](./CLAIM_REGISTRY.md) | Claims de engenharia/carreira com evidência e classificação (audit) |
 
 ## Divisão das árvores de documentação
 

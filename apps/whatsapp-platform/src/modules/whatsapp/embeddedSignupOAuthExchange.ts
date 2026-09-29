@@ -5,7 +5,11 @@
 
 import type { EmbeddedSignupUserAccessToken } from "./embeddedSignupUserAccessToken";
 import { getEmbeddedSignupMetaAppConfig } from "./embeddedSignupMetaEnv";
-import { maskAccessTokenForLog } from "./embeddedSignupLogRedact";
+import {
+  maskAccessTokenForLog,
+  oauthExchangeFailureMessage,
+  safeOAuthBodySummary,
+} from "./embeddedSignupLogRedact";
 import { getWhatsAppEmbeddedSignupRedirectUri } from "./whatsappEmbeddedSignupRedirectUri";
 import { getMetaGraphBase } from "./embeddedSignupGraphQueries";
 
@@ -56,7 +60,7 @@ async function logOAuthTokenDebugSnapshot(args: {
         JSON.stringify({
           stage: "oauth_token_debug_snapshot",
           error: "invalid_json",
-          bodyPreview: raw.slice(0, 800),
+          body: safeOAuthBodySummary(raw),
         })
       );
       return;
@@ -68,7 +72,7 @@ async function logOAuthTokenDebugSnapshot(args: {
         JSON.stringify({
           stage: "oauth_token_debug_snapshot",
           tokenFingerprint: maskAccessTokenForLog(userAccessTokenPlain),
-          graphError: parsed.error,
+          graphError: { message: parsed.error.message.slice(0, 200) },
           httpStatus: res.status,
         })
       );
@@ -142,13 +146,17 @@ export async function getEmbeddedSignupUserAccessTokenFromCode(
       stage: "oauth_token_exchange",
       tokenSource: "oauth_user_token",
       httpStatus: tokenRes.status,
-      bodyPreview: tokenRaw.slice(0, 4000),
+      body: safeOAuthBodySummary(tokenRaw),
     })
   );
 
   if (!tokenRes.ok) {
-    console.error("[WHATSAPP][EmbeddedSignup] token exchange failed:", tokenRaw);
-    throw new Error(`Falha ao trocar code por token: ${tokenRaw}`);
+    const safeMsg = oauthExchangeFailureMessage(tokenRes.status, tokenRaw);
+    console.error("[WHATSAPP][EmbeddedSignup] token exchange failed", {
+      httpStatus: tokenRes.status,
+      body: safeOAuthBodySummary(tokenRaw),
+    });
+    throw new Error(safeMsg);
   }
 
   let tokenData: { access_token?: string; error?: { message?: string } };
