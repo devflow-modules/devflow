@@ -42,6 +42,8 @@ describe("handleWebhookEvents — idempotência inbound", () => {
     vi.clearAllMocks();
     clearWebhookSignatureTestEnv();
     enableWebhookSignatureBypassForTests();
+    // Sync pipeline so assertions observe prepare/AI without depending on next/server `after`.
+    process.env.WHATSAPP_WEBHOOK_SYNC_PIPELINE = "1";
     findFirstSpy = vi.spyOn(prisma.whatsappPhoneNumber, "findFirst").mockResolvedValue({
       id: "line-test-1",
     } as Awaited<ReturnType<typeof prisma.whatsappPhoneNumber.findFirst>>);
@@ -74,6 +76,7 @@ describe("handleWebhookEvents — idempotência inbound", () => {
   });
 
   afterEach(() => {
+    delete process.env.WHATSAPP_WEBHOOK_SYNC_PIPELINE;
     countSpy.mockRestore();
     findFirstSpy.mockRestore();
     vi.restoreAllMocks();

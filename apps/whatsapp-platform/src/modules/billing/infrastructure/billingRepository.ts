@@ -163,19 +163,102 @@ export async function upsertBillingSubscription(
   });
 }
 
+export type StripeWebhookProcessStatus = "RECEIVED" | "PROCESSING" | "PROCESSED" | "FAILED";
+
+export type ClaimStripeWebhookResult =
+  | { action: "process"; rowId: string }
+  | { action: "skip_duplicate" }
+  | { action: "skip_in_progress" };
+
+/**
+ * Claim ou re-claim de evento Stripe para processamento.
+ * - Novo → RECEIVED→PROCESSING, process
+ * - PROCESSED → skip
+ * - PROCESSING recente → skip_in_progress (outro worker)
+ * - FAILED ou PROCESSING stale → re-claim e process
+ */
+export async function claimStripeWebhookEvent(
+  stripeEventId: string,
+  eventType: string,
+  opts?: { staleProcessingMs?: number }
+): Promise<ClaimStripeWebhookResult> {
+  const staleMs = opts?.staleProcessingMs ?? 5 * 60 * 1000;
+
+  try {
+    const created = await prisma.stripeWebhookEvent.create({
+      data: {
+        stripeEventId,
+        eventType,
+        status: "PROCESSING",
+        attemptCount: 1,
+        processedAt: null,
+      },
+    });
+    return { action: "process", rowId: created.id };
+  } catch {
+    const existing = await prisma.stripeWebhookEvent.findUnique({
+      where: { stripeEventId },
+    });
+    if (!existing) {
+      return { action: "skip_duplicate" };
+    }
+    if (existing.status === "PROCESSED") {
+      return { action: "skip_duplicate" };
+    }
+    if (existing.status === "PROCESSING") {
+      const age = Date.now() - new Date(existing.updatedAt).getTime();
+      if (age < staleMs) {
+        return { action: "skip_in_progress" };
+      }
+    }
+    // FAILED or stale PROCESSING → reclaim
+    const updated = await prisma.stripeWebhookEvent.updateMany({
+      where: {
+        id: existing.id,
+        status: { in: ["FAILED", "PROCESSING", "RECEIVED"] },
+      },
+      data: {
+        status: "PROCESSING",
+        eventType,
+        attemptCount: { increment: 1 },
+        lastError: null,
+      },
+    });
+    if (updated.count !== 1) {
+      return { action: "skip_in_progress" };
+    }
+    return { action: "process", rowId: existing.id };
+  }
+}
+
+export async function markStripeWebhookProcessed(rowId: string): Promise<void> {
+  await prisma.stripeWebhookEvent.update({
+    where: { id: rowId },
+    data: {
+      status: "PROCESSED",
+      processedAt: new Date(),
+      lastError: null,
+    },
+  });
+}
+
+export async function markStripeWebhookFailed(rowId: string, error: unknown): Promise<void> {
+  const msg = (error instanceof Error ? error.message : String(error)).slice(0, 2000);
+  await prisma.stripeWebhookEvent.update({
+    where: { id: rowId },
+    data: {
+      status: "FAILED",
+      lastError: msg,
+      processedAt: null,
+    },
+  });
+}
+
+/** @deprecated Prefer claimStripeWebhookEvent — retained for transitional callers/tests. */
 export async function ensureWebhookIdempotency(
   stripeEventId: string,
   eventType: string
 ): Promise<boolean> {
-  try {
-    await prisma.stripeWebhookEvent.create({
-      data: {
-        stripeEventId,
-        eventType,
-      },
-    });
-    return true;
-  } catch {
-    return false;
-  }
+  const claim = await claimStripeWebhookEvent(stripeEventId, eventType);
+  return claim.action === "process";
 }

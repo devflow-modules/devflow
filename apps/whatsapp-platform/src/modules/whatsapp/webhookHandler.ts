@@ -1,16 +1,22 @@
 /**
  * Handler do webhook WhatsApp Cloud API.
  * GET  — Verificação Meta (hub.mode, hub.verify_token, hub.challenge).
- * POST — Eventos: normalizar → resolver tenant → persistir → IA/legado.
+ * POST — Eventos: normalizar → resolver tenant → persistir → health → ACK 200
+ *        → IA/legado via after() (não bloqueia a resposta).
  *
  * Usado por /api/webhook/whatsapp e /api/webhooks/whatsapp.
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { normalizeWebhookPayload, type IncomingTextMessage } from "@devflow/whatsapp-core";
+import { after, NextRequest, NextResponse } from "next/server";
+import {
+  normalizeWebhookPayload,
+  type IncomingMessage,
+  type IncomingTextMessage,
+} from "@devflow/whatsapp-core";
 import { jsonError, newTraceId, withTraceHeaders } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
 import { resolveTenantByPhoneNumberId } from "@/modules/whatsapp/tenantResolutionService";
+import type { ResolvedTenant } from "@/modules/whatsapp/resolvedTenant";
 import {
   prepareInboundConversation,
   processLegacyInboundAutoReply,
@@ -66,6 +72,166 @@ function extractRawWebhookStructure(payload: unknown): Record<string, unknown> |
     };
   });
   return { changes };
+}
+
+/**
+ * AI / legacy auto-reply loop for inbound text messages.
+ * Intended to run after HTTP ACK (via next/server `after`), or awaited when
+ * WHATSAPP_WEBHOOK_SYNC_PIPELINE=1 (unit-test hook).
+ */
+async function runInboundAutoReplyPipeline(params: {
+  tenant: ResolvedTenant;
+  messages: IncomingMessage[];
+  traceId: string;
+}): Promise<void> {
+  const { tenant, messages, traceId } = params;
+  const seenConversations = new Set<string>();
+
+  if (messages.length === 0) {
+    logWhatsappWebhookDebug("[WHATSAPP][DEBUG] no text messages in payload (only statuses or non-text)");
+  } else {
+    logWhatsappWebhookDebug("[WHATSAPP][DEBUG] messages to process", messages.length);
+    for (let i = 0; i < messages.length; i++) {
+      const m = messages[i];
+      logWhatsappWebhookDebug("[WHATSAPP][DEBUG] message", i + 1, {
+        type: m.type,
+        from: m.from ? `${m.from.slice(0, 4)}***` : "(empty)",
+        msgId: m.id,
+        hasText: !!(m as { text?: { body?: string } }).text?.body,
+      });
+    }
+  }
+
+  for (const msg of messages) {
+    if (msg.type !== "text") {
+      logWhatsappWebhookDebug("[WHATSAPP][DEBUG] skip non-text message", { type: msg.type, msgId: msg.id });
+      continue;
+    }
+    const textBody = (msg as IncomingTextMessage).text?.body;
+    if (!textBody?.trim()) {
+      logWhatsappWebhookDebug("[WHATSAPP][DEBUG] skip empty text", { msgId: msg.id });
+      continue;
+    }
+
+    const outboundPipelineReady =
+      tenant.channelStatus === WhatsappPhoneNumberStatus.ACTIVE &&
+      Boolean(tenant.accessToken?.trim());
+    if (!outboundPipelineReady) {
+      logEvent(
+        "info",
+        "webhook",
+        "inbound_pipeline_skipped_channel_not_active",
+        { inbound_wa_message_id: msg.id },
+        { trace_id: traceId, tenant_id: tenant.id }
+      );
+      continue;
+    }
+
+    if (await hasInboundPipelineAudit(tenant.id, msg.id)) {
+      bumpMetric("webhook_pipeline_skipped_duplicate");
+      logEvent(
+        "info",
+        "webhook",
+        "inbound_pipeline_skipped_duplicate",
+        { inbound_wa_message_id: msg.id },
+        { trace_id: traceId, tenant_id: tenant.id }
+      );
+      continue;
+    }
+
+    logWhatsappWebhookDebug("[WHATSAPP][DEBUG] processing text message — about to prepare/reply", {
+      msgId: msg.id,
+      from: msg.from,
+      tenantId: tenant.id,
+    });
+
+    const key = `${tenant.id}:${msg.from}:${tenant.phoneNumberId}`;
+    const isNewConversation = !seenConversations.has(key);
+    seenConversations.add(key);
+
+    let prep;
+    try {
+      prep = await prepareInboundConversation({
+        tenant,
+        message: msg,
+        isNewConversation,
+      });
+    } catch (prepErr) {
+      logError(
+        "webhook",
+        prepErr,
+        { phase: "prepare_inbound_conversation", meta_message_id: msg.id },
+        { trace_id: traceId, tenant_id: tenant.id }
+      );
+      continue;
+    }
+    if (!prep) {
+      logWhatsappWebhookDebug("[WHATSAPP][DEBUG] prepareInboundConversation returned null", { msgId: msg.id });
+      continue;
+    }
+
+    try {
+      const aiReady = await checkTenantAiAutomationReady(tenant.id, msg.from, tenant.phoneNumberId);
+      if (aiReady.ready) {
+        logWhatsappWebhookDebug("[WHATSAPP][DEBUG] using AI path", { msgId: msg.id, reason: aiReady.reason });
+        try {
+          await runTenantAiAutoReply({
+            tenant,
+            message: msg,
+            inboxThreadId: prep.inboxThreadId,
+            textBody: prep.textBody,
+            traceId,
+          });
+        } catch (aiErr) {
+          bumpMetric("ai_auto_reply_failed");
+          logError(
+            "webhook",
+            aiErr,
+            { phase: "ai_auto_reply", inbound_wa_message_id: msg.id },
+            { trace_id: traceId, tenant_id: tenant.id }
+          );
+          if (!(await isOperationalAutomationEnabled(tenant.id))) {
+            continue;
+          }
+          try {
+            await processLegacyInboundAutoReply(tenant, msg, prep.inboxThreadId, prep.textBody);
+          } catch (legErr) {
+            logError(
+              "webhook",
+              legErr,
+              { phase: "legacy_reply_after_ai_error", meta_message_id: msg.id },
+              { trace_id: traceId, tenant_id: tenant.id }
+            );
+          }
+        }
+      } else {
+        logWhatsappWebhookDebug("[WHATSAPP][DEBUG] using legacy path", { msgId: msg.id, reason: aiReady.reason });
+        if (!(await isOperationalAutomationEnabled(tenant.id))) {
+          logWhatsappWebhookDebug("[WHATSAPP][DEBUG] skip legacy auto-reply — automação pausada", {
+            tenantId: tenant.id,
+          });
+          continue;
+        }
+        try {
+          await processLegacyInboundAutoReply(tenant, msg, prep.inboxThreadId, prep.textBody);
+        } catch (legErr) {
+          logError(
+            "webhook",
+            legErr,
+            { phase: "legacy_reply", meta_message_id: msg.id },
+            { trace_id: traceId, tenant_id: tenant.id }
+          );
+        }
+      }
+    } catch (pipeErr) {
+      logError(
+        "webhook",
+        pipeErr,
+        { phase: "inbound_pipeline", meta_message_id: msg.id },
+        { trace_id: traceId, tenant_id: tenant.id }
+      );
+    }
+  }
 }
 
 export async function handleWebhookVerification(request: NextRequest): Promise<NextResponse> {
@@ -271,152 +437,6 @@ async function handleWebhookEventsBody(body: unknown, traceId: string): Promise<
   );
   // Alias legado mantido; evento canónico é webhook_post_received (acima).
 
-  const seenConversations = new Set<string>();
-  if (normalized.messages.length === 0) {
-    logWhatsappWebhookDebug("[WHATSAPP][DEBUG] no text messages in payload (only statuses or non-text)");
-  } else {
-    logWhatsappWebhookDebug("[WHATSAPP][DEBUG] messages to process", normalized.messages.length);
-    for (let i = 0; i < normalized.messages.length; i++) {
-      const m = normalized.messages[i];
-      logWhatsappWebhookDebug("[WHATSAPP][DEBUG] message", i + 1, {
-        type: m.type,
-        from: m.from ? `${m.from.slice(0, 4)}***` : "(empty)",
-        msgId: m.id,
-        hasText: !!(m as { text?: { body?: string } }).text?.body,
-      });
-    }
-  }
-  for (const msg of normalized.messages) {
-    if (msg.type !== "text") {
-      logWhatsappWebhookDebug("[WHATSAPP][DEBUG] skip non-text message", { type: msg.type, msgId: msg.id });
-      continue;
-    }
-    const textBody = (msg as IncomingTextMessage).text?.body;
-    if (!textBody?.trim()) {
-      logWhatsappWebhookDebug("[WHATSAPP][DEBUG] skip empty text", { msgId: msg.id });
-      continue;
-    }
-
-    const outboundPipelineReady =
-      tenant.channelStatus === WhatsappPhoneNumberStatus.ACTIVE &&
-      Boolean(tenant.accessToken?.trim());
-    if (!outboundPipelineReady) {
-      logEvent(
-        "info",
-        "webhook",
-        "inbound_pipeline_skipped_channel_not_active",
-        { inbound_wa_message_id: msg.id },
-        { trace_id: traceId, tenant_id: tenant.id }
-      );
-      continue;
-    }
-
-    if (await hasInboundPipelineAudit(tenant.id, msg.id)) {
-      bumpMetric("webhook_pipeline_skipped_duplicate");
-      logEvent(
-        "info",
-        "webhook",
-        "inbound_pipeline_skipped_duplicate",
-        { inbound_wa_message_id: msg.id },
-        { trace_id: traceId, tenant_id: tenant.id }
-      );
-      continue;
-    }
-
-    logWhatsappWebhookDebug("[WHATSAPP][DEBUG] processing text message — about to prepare/reply", {
-      msgId: msg.id,
-      from: msg.from,
-      tenantId: tenant.id,
-    });
-
-    const key = `${tenant.id}:${msg.from}:${tenant.phoneNumberId}`;
-    const isNewConversation = !seenConversations.has(key);
-    seenConversations.add(key);
-
-    let prep;
-    try {
-      prep = await prepareInboundConversation({
-        tenant,
-        message: msg,
-        isNewConversation,
-      });
-    } catch (prepErr) {
-      logError(
-        "webhook",
-        prepErr,
-        { phase: "prepare_inbound_conversation", meta_message_id: msg.id },
-        { trace_id: traceId, tenant_id: tenant.id }
-      );
-      continue;
-    }
-    if (!prep) {
-      logWhatsappWebhookDebug("[WHATSAPP][DEBUG] prepareInboundConversation returned null", { msgId: msg.id });
-      continue;
-    }
-
-    try {
-      const aiReady = await checkTenantAiAutomationReady(tenant.id, msg.from, tenant.phoneNumberId);
-      if (aiReady.ready) {
-        logWhatsappWebhookDebug("[WHATSAPP][DEBUG] using AI path", { msgId: msg.id, reason: aiReady.reason });
-        try {
-          await runTenantAiAutoReply({
-            tenant,
-            message: msg,
-            inboxThreadId: prep.inboxThreadId,
-            textBody: prep.textBody,
-            traceId,
-          });
-        } catch (aiErr) {
-          bumpMetric("ai_auto_reply_failed");
-          logError(
-            "webhook",
-            aiErr,
-            { phase: "ai_auto_reply", inbound_wa_message_id: msg.id },
-            { trace_id: traceId, tenant_id: tenant.id }
-          );
-          if (!(await isOperationalAutomationEnabled(tenant.id))) {
-            continue;
-          }
-          try {
-            await processLegacyInboundAutoReply(tenant, msg, prep.inboxThreadId, prep.textBody);
-          } catch (legErr) {
-            logError(
-              "webhook",
-              legErr,
-              { phase: "legacy_reply_after_ai_error", meta_message_id: msg.id },
-              { trace_id: traceId, tenant_id: tenant.id }
-            );
-          }
-        }
-      } else {
-        logWhatsappWebhookDebug("[WHATSAPP][DEBUG] using legacy path", { msgId: msg.id, reason: aiReady.reason });
-        if (!(await isOperationalAutomationEnabled(tenant.id))) {
-          logWhatsappWebhookDebug("[WHATSAPP][DEBUG] skip legacy auto-reply — automação pausada", {
-            tenantId: tenant.id,
-          });
-          continue;
-        }
-        try {
-          await processLegacyInboundAutoReply(tenant, msg, prep.inboxThreadId, prep.textBody);
-        } catch (legErr) {
-          logError(
-            "webhook",
-            legErr,
-            { phase: "legacy_reply", meta_message_id: msg.id },
-            { trace_id: traceId, tenant_id: tenant.id }
-          );
-        }
-      }
-    } catch (pipeErr) {
-      logError(
-        "webhook",
-        pipeErr,
-        { phase: "inbound_pipeline", meta_message_id: msg.id },
-        { trace_id: traceId, tenant_id: tenant.id }
-      );
-    }
-  }
-
   await recordWebhookProcessingSuccess(tenant.id).catch((err) =>
     logError(
       "webhook",
@@ -425,6 +445,30 @@ async function handleWebhookEventsBody(body: unknown, traceId: string): Promise<
       { trace_id: traceId, tenant_id: tenant.id }
     )
   );
+
+  const pipelineArgs = {
+    tenant,
+    messages: normalized.messages,
+    traceId,
+  };
+
+  // after() is NOT a durable queue — crash after ACK may skip AI until Meta retry; inbound already persisted.
+  if (process.env.WHATSAPP_WEBHOOK_SYNC_PIPELINE === "1") {
+    await runInboundAutoReplyPipeline(pipelineArgs);
+  } else {
+    after(async () => {
+      try {
+        await runInboundAutoReplyPipeline(pipelineArgs);
+      } catch (err) {
+        logError(
+          "webhook",
+          err,
+          { phase: "inbound_auto_reply_after" },
+          { trace_id: traceId, tenant_id: tenant.id }
+        );
+      }
+    });
+  }
 
   logWhatsappWebhookDebug("[WHATSAPP][DEBUG] webhook POST completed successfully");
   return withTraceHeaders(NextResponse.json({ ok: true, trace_id: traceId }, { status: 200 }), traceId);

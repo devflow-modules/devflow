@@ -1,29 +1,93 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockCreate = vi.fn();
+const mockFindUnique = vi.fn();
+const mockUpdateMany = vi.fn();
+const mockUpdate = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     stripeWebhookEvent: {
-      create: (...args: unknown[]) => mockCreate(...args),
+      create: (...a: unknown[]) => mockCreate(...a),
+      findUnique: (...a: unknown[]) => mockFindUnique(...a),
+      updateMany: (...a: unknown[]) => mockUpdateMany(...a),
+      update: (...a: unknown[]) => mockUpdate(...a),
     },
   },
 }));
 
-describe("ensureWebhookIdempotency", () => {
+describe("claimStripeWebhookEvent state machine", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.resetModules();
   });
 
-  it("primeiro evento retorna true; segundo (mesmo stripeEventId) retorna false", async () => {
-    mockCreate
-      .mockResolvedValueOnce({ id: "1" })
-      .mockRejectedValueOnce(new Error("Unique constraint failed"));
+  it("primeiro evento → process", async () => {
+    mockCreate.mockResolvedValueOnce({ id: "row1" });
+    const { claimStripeWebhookEvent } = await import("../billingRepository");
+    await expect(claimStripeWebhookEvent("evt_1", "invoice.paid")).resolves.toEqual({
+      action: "process",
+      rowId: "row1",
+    });
+  });
 
-    const { ensureWebhookIdempotency } = await import("../billingRepository");
+  it("PROCESSED → skip_duplicate", async () => {
+    mockCreate.mockRejectedValueOnce(new Error("Unique"));
+    mockFindUnique.mockResolvedValueOnce({
+      id: "row1",
+      status: "PROCESSED",
+      updatedAt: new Date(),
+    });
+    const { claimStripeWebhookEvent } = await import("../billingRepository");
+    await expect(claimStripeWebhookEvent("evt_1", "invoice.paid")).resolves.toEqual({
+      action: "skip_duplicate",
+    });
+  });
 
-    await expect(ensureWebhookIdempotency("evt_123", "invoice.paid")).resolves.toBe(true);
-    await expect(ensureWebhookIdempotency("evt_123", "invoice.paid")).resolves.toBe(false);
-    expect(mockCreate).toHaveBeenCalledTimes(2);
+  it("FAILED → reclaim process", async () => {
+    mockCreate.mockRejectedValueOnce(new Error("Unique"));
+    mockFindUnique.mockResolvedValueOnce({
+      id: "row1",
+      status: "FAILED",
+      updatedAt: new Date(),
+    });
+    mockUpdateMany.mockResolvedValueOnce({ count: 1 });
+    const { claimStripeWebhookEvent } = await import("../billingRepository");
+    await expect(claimStripeWebhookEvent("evt_1", "invoice.paid")).resolves.toEqual({
+      action: "process",
+      rowId: "row1",
+    });
+  });
+
+  it("PROCESSING recente → skip_in_progress", async () => {
+    mockCreate.mockRejectedValueOnce(new Error("Unique"));
+    mockFindUnique.mockResolvedValueOnce({
+      id: "row1",
+      status: "PROCESSING",
+      updatedAt: new Date(),
+    });
+    const { claimStripeWebhookEvent } = await import("../billingRepository");
+    await expect(claimStripeWebhookEvent("evt_1", "invoice.paid")).resolves.toEqual({
+      action: "skip_in_progress",
+    });
+  });
+
+  it("markProcessed / markFailed", async () => {
+    mockUpdate.mockResolvedValue({});
+    const { markStripeWebhookProcessed, markStripeWebhookFailed } = await import(
+      "../billingRepository"
+    );
+    await markStripeWebhookProcessed("row1");
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ status: "PROCESSED" }),
+      })
+    );
+    await markStripeWebhookFailed("row1", new Error("boom"));
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ status: "FAILED" }),
+      })
+    );
   });
 });

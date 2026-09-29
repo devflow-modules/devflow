@@ -1,12 +1,18 @@
 /**
  * Obtém o plano efetivo do tenant.
- * Prioridade: TenantSubscription > BillingSubscription > Tenant.plan > FREE
+ * Prioridade: TenantSubscription (entitled) > BillingSubscription (entitled) > Tenant.plan > FREE
+ *
+ * Política: docs/whatsapp-platform/ENTITLEMENT_STATUS_POLICY.md
  */
 
 import { prisma } from "@/lib/prisma";
 import { normalizePlan } from "./plans";
 import type { PlanKey } from "./plans";
 import { getTenantPlanCapabilities, type PlanCapabilities } from "./planCapabilities";
+import {
+  isBillingSubscriptionStatusEntitled,
+  isTenantSubscriptionStatusEntitled,
+} from "./entitlementStatusPolicy";
 
 export async function getTenantPlan(tenantId: string): Promise<PlanKey> {
   const [tenantSub, billingSub, tenant] = await Promise.all([
@@ -24,10 +30,12 @@ export async function getTenantPlan(tenantId: string): Promise<PlanKey> {
     }),
   ]);
 
-  if (tenantSub?.status && !["CANCELED", "PAST_DUE"].includes(tenantSub.status)) {
+  if (tenantSub && isTenantSubscriptionStatusEntitled(tenantSub.status)) {
     return normalizePlan(tenantSub.plan) as PlanKey;
   }
-  if (billingSub?.plan) return normalizePlan(billingSub.plan) as PlanKey;
+  if (billingSub?.plan && isBillingSubscriptionStatusEntitled(billingSub.status)) {
+    return normalizePlan(billingSub.plan) as PlanKey;
+  }
   return normalizePlan(tenant?.plan) as PlanKey;
 }
 

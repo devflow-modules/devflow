@@ -70,79 +70,99 @@ export async function waInboxCreateInbound(
   const preview =
     textBody != null ? previewText(textBody) : `[${mtype.toLowerCase()}]`;
 
-  const result = await prisma.$transaction(async (tx) => {
-    const existing = await tx.waInboxMessage.findUnique({
-      where: { tenantId_waMessageId: { tenantId, waMessageId: p.waMessageId } },
-    });
-    if (existing) return null;
+  let result: {
+    thread: Awaited<ReturnType<typeof prisma.waInboxThread.findUnique>> extends infer T ? NonNullable<T> : never;
+    row: Awaited<ReturnType<typeof prisma.waInboxMessage.findUnique>> extends infer T ? NonNullable<T> : never;
+    wasNewConversation: boolean;
+  } | null;
 
-    const existedThread = await tx.waInboxThread.findUnique({
-      where: {
-        tenantId_phoneNumber_businessPhoneNumberId: {
+  try {
+    result = await prisma.$transaction(async (tx) => {
+      const existing = await tx.waInboxMessage.findUnique({
+        where: { tenantId_waMessageId: { tenantId, waMessageId: p.waMessageId } },
+      });
+      if (existing) return null;
+
+      const existedThread = await tx.waInboxThread.findUnique({
+        where: {
+          tenantId_phoneNumber_businessPhoneNumberId: {
+            tenantId,
+            phoneNumber: customer,
+            businessPhoneNumberId,
+          },
+        },
+      });
+      const thread = await tx.waInboxThread.upsert({
+        where: {
+          tenantId_phoneNumber_businessPhoneNumberId: {
+            tenantId,
+            phoneNumber: customer,
+            businessPhoneNumberId,
+          },
+        },
+        create: {
           tenantId,
           phoneNumber: customer,
           businessPhoneNumberId,
+          contactName: p.contactName ?? null,
+          lastMessageAt: ts,
+          lastMessagePreview: preview,
+          unreadCount: 1,
+          lastCustomerMessageAt: ts,
         },
-      },
-    });
-    const thread = await tx.waInboxThread.upsert({
-      where: {
-        tenantId_phoneNumber_businessPhoneNumberId: {
+        update: {
+          ...(p.contactName ? { contactName: p.contactName } : {}),
+          lastMessageAt: ts,
+          lastMessagePreview: preview,
+          unreadCount: { increment: 1 },
+          lastCustomerMessageAt: ts,
+        },
+      });
+
+      const row = await tx.waInboxMessage.create({
+        data: {
           tenantId,
-          phoneNumber: customer,
+          threadId: thread.id,
           businessPhoneNumberId,
+          waMessageId: p.waMessageId,
+          direction: WaInboxDirection.INBOUND,
+          fromNumber: customer,
+          toNumber: toBiz || "0",
+          messageType: mtype,
+          contentText: textBody,
+          contentJson:
+            mtype !== WaInboxMsgType.TEXT ? (p.raw as Prisma.InputJsonValue) : undefined,
+          ts,
+          status: WaInboxDeliveryStatus.RECEIVED,
+          rawPayload: p.raw as Prisma.InputJsonValue,
         },
-      },
-      create: {
-        tenantId,
-        phoneNumber: customer,
-        businessPhoneNumberId,
-        contactName: p.contactName ?? null,
-        lastMessageAt: ts,
-        lastMessagePreview: preview,
-        unreadCount: 1,
-        lastCustomerMessageAt: ts,
-      },
-      update: {
-        ...(p.contactName ? { contactName: p.contactName } : {}),
-        lastMessageAt: ts,
-        lastMessagePreview: preview,
-        unreadCount: { increment: 1 },
-        lastCustomerMessageAt: ts,
-      },
-    });
+      });
 
-    const row = await tx.waInboxMessage.create({
-      data: {
-        tenantId,
-        threadId: thread.id,
-        businessPhoneNumberId,
-        waMessageId: p.waMessageId,
-        direction: WaInboxDirection.INBOUND,
-        fromNumber: customer,
-        toNumber: toBiz || "0",
-        messageType: mtype,
-        contentText: textBody,
-        contentJson:
-          mtype !== WaInboxMsgType.TEXT ? (p.raw as Prisma.InputJsonValue) : undefined,
-        ts,
-        status: WaInboxDeliveryStatus.RECEIVED,
-        rawPayload: p.raw as Prisma.InputJsonValue,
-      },
+      await tx.waInboxStatusHistory.create({
+        data: {
+          tenantId,
+          messageId: row.id,
+          status: WaInboxDeliveryStatus.RECEIVED,
+          ts,
+          rawPayload: { source: "webhook_inbound" } as Prisma.InputJsonValue,
+        },
+      });
+      return { thread, row, wasNewConversation: !existedThread };
     });
+  } catch (err) {
+    // Concurrent create of same waMessageId → unique race; converge as idempotent duplicate.
+    const code =
+      err && typeof err === "object" && "code" in err ? String((err as { code: unknown }).code) : "";
+    if (code === "P2002") {
+      return null;
+    }
+    throw err;
+  }
 
-    await tx.waInboxStatusHistory.create({
-      data: {
-        tenantId,
-        messageId: row.id,
-        status: WaInboxDeliveryStatus.RECEIVED,
-        ts,
-        rawPayload: { source: "webhook_inbound" } as Prisma.InputJsonValue,
-      },
-    });
-    return { thread, row, wasNewConversation: !existedThread };
-  });
   if (result) {
+    await applyPendingStatusesForMessage(tenantId, p.waMessageId).catch((e) =>
+      console.error("[wa-inbox] apply pending statuses", e)
+    );
     const { thread, row, wasNewConversation } = result;
     const { refreshThreadLeadCrmAfterInbound } = await import("./leadCrm");
     const crm = await refreshThreadLeadCrmAfterInbound({
@@ -319,6 +339,9 @@ export async function waInboxCreateOutbound(params: {
   });
   if (result) {
     const { thread, row } = result;
+    await applyPendingStatusesForMessage(tenantId, waMessageId).catch((e) =>
+      console.error("[wa-inbox] apply pending statuses outbound", e)
+    );
     const { getWaInboxThreadInboxMetrics } = await import("./waInboxThreadMetrics");
     const inboxMetrics = await getWaInboxThreadInboxMetrics(tenantId, thread.id);
     const { publishInboxEvent, eventMessageCreated } = await import("@/modules/realtime/realtime.service");
@@ -363,7 +386,37 @@ export async function waInboxApplyStatus(
   const msg = await prisma.waInboxMessage.findUnique({
     where: { tenantId_waMessageId: { tenantId, waMessageId: p.waMessageId } },
   });
-  if (!msg) return false;
+  if (!msg) {
+    await prisma.waInboxPendingStatus.upsert({
+      where: {
+        tenantId_waMessageId_metaStatus: {
+          tenantId,
+          waMessageId: p.waMessageId,
+          metaStatus: p.status.toLowerCase(),
+        },
+      },
+      create: {
+        tenantId,
+        waMessageId: p.waMessageId,
+        metaStatus: p.status.toLowerCase(),
+        payload: {
+          status: p.status,
+          timestamp: p.timestamp,
+          recipientId: p.recipientId,
+          raw: p.raw,
+        } as Prisma.InputJsonValue,
+      },
+      update: {
+        payload: {
+          status: p.status,
+          timestamp: p.timestamp,
+          recipientId: p.recipientId,
+          raw: p.raw,
+        } as Prisma.InputJsonValue,
+      },
+    });
+    return false;
+  }
 
   const ts = metaTsToDate(p.timestamp);
 
@@ -400,6 +453,35 @@ export async function waInboxApplyStatus(
     status: String(st),
   }));
   return true;
+}
+
+/** Aplica statuses Meta bufferizados quando a mensagem finalmente existe. */
+export async function applyPendingStatusesForMessage(
+  tenantId: string,
+  waMessageId: string
+): Promise<number> {
+  const pending = await prisma.waInboxPendingStatus.findMany({
+    where: { tenantId, waMessageId },
+    orderBy: { createdAt: "asc" },
+  });
+  let applied = 0;
+  for (const row of pending) {
+    const payload = row.payload as Record<string, unknown>;
+    const ok = await waInboxApplyStatus(tenantId, {
+      waMessageId,
+      status: typeof payload.status === "string" ? payload.status : row.metaStatus,
+      timestamp: typeof payload.timestamp === "string" ? payload.timestamp : undefined,
+      recipientId: typeof payload.recipientId === "string" ? payload.recipientId : undefined,
+      raw: (typeof payload.raw === "object" && payload.raw !== null
+        ? payload.raw
+        : payload) as Record<string, unknown>,
+    });
+    if (ok) {
+      applied += 1;
+      await prisma.waInboxPendingStatus.delete({ where: { id: row.id } }).catch(() => undefined);
+    }
+  }
+  return applied;
 }
 
 export async function waInboxListMessages(

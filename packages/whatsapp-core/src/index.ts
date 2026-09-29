@@ -9,6 +9,7 @@ export const WHATSAPP_CORE_VERSION = "0.0.1";
 export * from "./types";
 export * from "./normalize";
 export * from "./retry";
+export * from "./metaErrors";
 export * from "./adapter";
 export * from "./status";
 export * from "./externalCrmPayload";
