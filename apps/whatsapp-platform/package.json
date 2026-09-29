@@ -26,7 +26,8 @@
         "ops:check-channel": "tsx ../../scripts/ops/check-whatsapp-channel.ts",
         "ops:promote-admin": "tsx scripts/promote-platform-admin.ts",
         "ops:provision-devflow-sales": "tsx scripts/provision-devflow-sales-tenant.ts",
-        "test:meter": "tsx scripts/test-meter-usage.ts"
+        "test:meter": "tsx scripts/test-meter-usage.ts",
+        "test:pg-evidence": "tsx scripts/test/run-pg-evidence-labs.ts"
     },
     "dependencies": {
         "@devflow/ai-core": "workspace:*",

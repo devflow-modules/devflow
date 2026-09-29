@@ -10,6 +10,8 @@
 | [CURRENT-SCOPE.md](./CURRENT-SCOPE.md) | Escopo ativo, personas, capabilities, mocks, deferidos, piloto |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Ownership app/packages, fronteiras, fluxos, tenancy |
 | [CLAIM_REGISTRY.md](./CLAIM_REGISTRY.md) | Claims de engenharia/carreira com evidência e classificação (audit) |
+| [PG_EVIDENCE_LABS.md](./PG_EVIDENCE_LABS.md) | Labs opt-in PostgreSQL (concorrência, migration, tenant negativo) |
+| [WHATSAPP_PLATFORM_ENGINEERING_CASE.md](./WHATSAPP_PLATFORM_ENGINEERING_CASE.md) | Narrativa de engenharia limitada à evidência |
 
 ## Divisão das árvores de documentação
 

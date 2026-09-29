@@ -1,10 +1,10 @@
 # WhatsApp Platform — Claim Registry
 
-**Status:** audit + Phase 2 remediation  
+**Status:** audit + Phase 2 remediation + Phase 3 evidence closure  
 **Audit commit:** `6145f3fc589ad0034ad382b8f62f5dee205a56d0`  
 **Remediation branch:** `rem/whatsapp-platform-remediation-p0-p1`  
 **Canonical runtime:** `apps/whatsapp-platform`  
-**Updated:** 2026-09-29  
+**Updated:** 2026-09-29 (Phase 3)  
 
 Classification legend: `PUBLIC_REPRODUCIBLE` | `PUBLIC_DOCUMENTED` | `LOCAL_REPRODUCIBLE` | `LOCAL_LAB_ONLY` | `CI_VERIFIED` | `UNVERIFIED`
 
@@ -46,18 +46,20 @@ Classification legend: `PUBLIC_REPRODUCIBLE` | `PUBLIC_DOCUMENTED` | `LOCAL_REPR
 - **CLASSIFICATION:** `LOCAL_REPRODUCIBLE`
 - **CAREER_SAFE:** yes
 
-### CLAIM-06 — Tenant scoping pattern (partial negative tests)
+### CLAIM-06 — Tenant scoping pattern (targeted two-tenant negative tests)
 
-- **EVIDENCE:** existing cross-tenant tests (automation, search, handoff); not a full matrix
-- **CLASSIFICATION:** `LOCAL_REPRODUCIBLE` (narrow)
-- **LIMITATION:** Do not claim complete isolation proof
-- **CAREER_SAFE:** yes if narrow
+- **EVIDENCE:** automation/search/handoff unit tests + Phase 3 `pgEvidence.realpostgres.test.ts` (A↔B read/assign/ledger/phone line; service layer)
+- **CLASSIFICATION:** `LOCAL_REPRODUCIBLE` (narrow; PG labs opt-in)
+- **LIMITATION:** Not full API matrix; platform_admin intentional cross-tenant admin routes out of scope
+- **CAREER_SAFE:** yes if labeled “targeted two-tenant negative tests for canonical inbox/send paths”
 
 ### CLAIM-07 — Stripe webhook state machine + entitlement status gate
 
 - **EVIDENCE:** `claimStripeWebhookEvent` PROCESSING→PROCESSED|FAILED; `ENTITLEMENT_STATUS_POLICY.md`; `getTenantPlan.entitlement.test.ts`; billingRepository claim tests
 - **CLASSIFICATION:** `LOCAL_REPRODUCIBLE`
-- **LIMITATION:** Real Stripe/Postgres concurrency labs = `LOCAL_LAB_ONLY` / `NOT_VERIFIED` this phase; production billing readiness still pilot-scoped
+- **LIMITATION:** Real Stripe concurrency lab is **local PostgreSQL only** (no live Stripe); production billing readiness still pilot-scoped
+- **EVIDENCE (Phase 3):** `pnpm run test:pg-evidence` — concurrent claim + fail→retry→PROCESSED on PG 16
+- **CLASSIFICATION (Phase 3):** `LOCAL_REPRODUCIBLE` for state machine under concurrent PG writes; not `CI_VERIFIED`
 - **CAREER_SAFE:** yes for “fail-closed past_due/canceled + retryable Stripe failures”; no for “production billing at scale”
 
 ### CLAIM-08 — OAuth/token logging scrubbed
@@ -80,7 +82,7 @@ Classification legend: `PUBLIC_REPRODUCIBLE` | `PUBLIC_DOCUMENTED` | `LOCAL_REPR
 
 - **EVIDENCE:** `WaInboxPendingStatus` + `waInboxApplyStatus` upsert + `applyPendingStatusesForMessage`; unit test orphan buffer
 - **CLASSIFICATION:** `LOCAL_REPRODUCIBLE`
-- **LIMITATION:** Full status→message integration on real Postgres = `LOCAL_LAB_ONLY` this phase
+- **LIMITATION:** Phase 3 PG lab did not re-run full status→message integration on real Postgres (unit coverage remains)
 - **CAREER_SAFE:** yes
 
 ### CLAIM-12 — Meta retry classification (no blind timeout resend)
@@ -101,7 +103,7 @@ Classification legend: `PUBLIC_REPRODUCIBLE` | `PUBLIC_DOCUMENTED` | `LOCAL_REPR
 |----|--------|
 | WA-SEC-001 | **FIXED** |
 | WA-BILL-001 | **FIXED** |
-| WA-BILL-002 | **FIXED** (code + unit); real concurrent Stripe lab **NOT_VERIFIED** |
+| WA-BILL-002 | **FIXED** (code + unit + PG concurrent claim lab) |
 | Webhook ACK | **MITIGATED** (`after()`; durability limitation documented) |
 | Orphan status | **FIXED** (pending table; unit) |
 | Inbound P2002 | **FIXED** (converge null; unit) |
@@ -111,15 +113,23 @@ Classification legend: `PUBLIC_REPRODUCIBLE` | `PUBLIC_DOCUMENTED` | `LOCAL_REPR
 
 ---
 
-## Local test evidence (Phase 2)
+## Local test evidence (Phase 2 + 3)
 
 | Suite | Result |
 |-------|--------|
 | Focused remediation suites (signature, auth, ledger, entitlement, redact, stripe claim, meta retry, webhook idempotency, …) | **passed** |
-| `vitest run --project node` | **225 files / 1214 tests passed** (LOCAL_REPRODUCIBLE) |
-| `vitest run --project ui` | pending / see remediation report |
-| Real PostgreSQL concurrency labs | **NOT_VERIFIED** (no dedicated test DB wired this session) |
-| CI on remediation branch | see report (`CI_VERIFIED` only after Actions URL) |
+| `vitest run --project node` | **225 files / 1214 passed**, **13 skipped** (PG labs unless `WHATSAPP_PG_INTEGRATION=1`) |
+| `vitest run --project ui` | **35 files / 166 passed** |
+| `pnpm run test:pg-evidence` (PG 16 Docker localhost:5435) | **13 passed** — inbound c2/c5/c10/c20, thread race, Stripe claim/retry, send ledger, tenant matrix |
+| Migration `20260929190000` | **fresh deploy OK**; **upgrade sim OK** (legacy `stripe_webhook_events` row preserved, status backfill `PROCESSED`) |
+| CI on remediation branch | **CI_VERIFIED** on commit `3f2bb37d` (Phase 2); re-run required after Phase 3 push |
+
+### CLAIM-02 supplement — DB inbound idempotency under PG concurrency
+
+- **EVIDENCE:** `pgEvidence.realpostgres.test.ts` + `PG_EVIDENCE_LABS.md`
+- **CLASSIFICATION:** `LOCAL_REPRODUCIBLE` (not default CI)
+- **LIMITATION:** Lab DB only; does not prove production load
+- **CAREER_SAFE:** yes (idempotent/convergent wording)
 
 ---
 

@@ -12,17 +12,21 @@ Human outbound sends (inbox and admin) use a `WaInboxSendRequest` ledger keyed b
 
 Out-of-order delivery statuses are buffered in `WaInboxPendingStatus` until the message row exists. Stripe webhooks use a PROCESSING → PROCESSED | FAILED state machine so handler failures remain retryable. Paid entitlements require entitled subscription statuses (`active`/`trialing`); `past_due`/`canceled`/`unpaid` fail closed to FREE capabilities.
 
-## Verified locally (Phase 2)
+## Verified locally (Phase 2 + 3)
 
-- Vitest `--project node`: 225 files, 1214 tests passed after remediation
-- Focused suites for OAuth log scrub, entitlement table, Stripe claim SM, Meta retry classification, webhook idempotency, assignment CAS, outbound ledger
+- Vitest `--project node`: 225 files, 1214 tests passed (13 PG tests skipped unless opt-in env)
+- Vitest `--project ui`: 35 files, 166 tests passed
+- Opt-in PostgreSQL 16 labs: `pnpm run test:pg-evidence` (see `PG_EVIDENCE_LABS.md`) — inbound idempotency c2–c20, thread upsert race, Stripe claim/retry, send ledger, targeted two-tenant negatives
+- Migration `20260929190000`: fresh deploy + simulated pre-migration Stripe table upgrade with data preserved
+- Phase 2 CI green on `3f2bb37d` (test-whatsapp, lint, build, architecture guard, a11y/tsc)
 
 ## Limitations (must stay visible)
 
 - Assisted pilot posture (CURRENT-SCOPE): not unattended multi-tenant scale
 - `after()` is not Redis/Bull durability
-- Real PostgreSQL concurrency labs and live Meta/Stripe production runs were not executed in this remediation session
-- P2: Ops metrics cookie, in-memory rate limit, FAQ RBAC, MessageFeedback tenant column
+- PG labs are localhost/disposable only; not CI-default; no live Meta/Stripe production proof
+- Tenant evidence = targeted service-layer matrix, not formal isolation proof
+- P2 open: WA-OPS-001, WA-SEC-002, WA-AUTHZ-001, WA-DATA-001
 
 ## Differentiation
 
