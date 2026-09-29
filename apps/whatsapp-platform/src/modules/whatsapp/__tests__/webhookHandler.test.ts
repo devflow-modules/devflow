@@ -22,7 +22,9 @@ vi.mock("next/server", async (importOriginal) => {
   const actual = await importOriginal<typeof import("next/server")>();
   return {
     ...actual,
-    after: (...args: unknown[]) => mockAfter(...args),
+    after: (task: () => void | Promise<void>) => {
+      mockAfter(task);
+    },
   };
 });
 

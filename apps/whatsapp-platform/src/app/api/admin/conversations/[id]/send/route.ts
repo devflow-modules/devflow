@@ -236,6 +236,13 @@ export async function POST(
       );
     }
 
+    if (!messagingTenant.accessToken?.trim()) {
+      return NextResponse.json(
+        { error: "WhatsApp not configured for this tenant" },
+        { status: 503 }
+      );
+    }
+
     const adapter = new WhatsAppCloudAdapter({ accessToken: messagingTenant.accessToken });
     let waMessageId: string;
     try {
