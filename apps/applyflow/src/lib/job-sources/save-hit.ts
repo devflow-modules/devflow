@@ -1,15 +1,26 @@
 import { ingestApplyFlowJob, type ApplyFlowJob, type CandidateProfile, type ResumeLibrary } from "@devflow/applyflow-core";
 
-import type { JobSearchHit } from "./types";
+import type { JobSearchHit, JobSourceId } from "./types";
 
-const JOB_JG_PREFIX = "job_jg_";
+const SOURCE_ID_PREFIX: Record<JobSourceId, string> = {
+  jobgether: "jg",
+  theirstack: "ts",
+};
 
-export function applyFlowJobIdFromExternalId(externalId: string): string | null {
+/** Provider-neutral deterministic ApplyFlow job id: job_jg_<id> | job_ts_<id>. */
+export function createExternalJobId(source: JobSourceId, externalId: string): string | null {
+  const prefix = SOURCE_ID_PREFIX[source];
   const safe = externalId.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
-  if (!safe) return null;
-  const id = `${JOB_JG_PREFIX}${safe}`.slice(0, 200);
-  if (!id.startsWith(JOB_JG_PREFIX) || id.length <= JOB_JG_PREFIX.length) return null;
+  if (!safe || !prefix) return null;
+  const id = `job_${prefix}_${safe}`.slice(0, 200);
+  const expected = `job_${prefix}_`;
+  if (!id.startsWith(expected) || id.length <= expected.length) return null;
   return id;
+}
+
+/** @deprecated Prefer createExternalJobId(source, externalId). Kept for Jobgether tests/callers. */
+export function applyFlowJobIdFromExternalId(externalId: string): string | null {
+  return createExternalJobId("jobgether", externalId);
 }
 
 export function hasAnalyzableJobDescription(description: string | undefined): boolean {
@@ -36,13 +47,13 @@ export function ingestDiscoveredJobHit(
   if (!hasAnalyzableJobDescription(hit.description)) {
     return { ok: false, reason: "missing_description" };
   }
-  const id = applyFlowJobIdFromExternalId(hit.externalId);
+  const id = createExternalJobId(hit.source, hit.externalId);
   if (!id) return { ok: false, reason: "invalid_external_id" };
   const description = hit.description?.trim() ?? "";
   const job = ingestApplyFlowJob({
     id,
     description,
-    source: "jobgether",
+    source: hit.source,
     title: hit.title,
     company: hit.company,
     location: hit.location,

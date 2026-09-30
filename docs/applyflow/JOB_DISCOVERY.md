@@ -1,85 +1,121 @@
-# Job discovery — Jobgether (phase 1)
+# Job discovery — multi-provider
 
-ApplyFlow can search Jobgether from the existing **Vagas** section and, only after an explicit save, run the current local match pipeline.
+ApplyFlow searches external job boards from **Vagas → Procurar oportunidades**, then runs the local match pipeline only after an explicit save.
 
-## Why this exists
+## Providers
 
-The inbox previously accepted only pasted text, JSON import, or a job already evaluated in the browser. Phase 1 adds one external source so a later provider can follow the same boundary. Adzuna and Remotive are not implemented.
+### Jobgether
+
+- Default provider
+- Free / rapid discovery
+- Description may be absent in live responses
+- When description is missing, the UI offers **Adicionar descrição e analisar** so the candidate pastes the listing text
+- Default limit 10, maximum 25
+- Cache TTL 10 minutes (process-local)
+
+### TheirStack
+
+- Explicit / on-demand richer discovery
+- Requires server-side `THEIRSTACK_API_KEY` (Bearer); the key never reaches the browser
+- Full job descriptions are generally available → **Guardar e analisar**
+- API credits are consumed per returned job
+- Default limit 5, maximum 10 (enforced server-side; the browser cannot raise the cap)
+- Stronger cache TTL 30 minutes (process-local)
+- Manual pagination only (**Carregar mais**); no prefetch, no auto page fetch
+- Never queried automatically alongside Jobgether
+- Changing filters or the provider alone does not start a search
+
+One search action queries exactly one selected provider. There is no silent fallback and no dual `Promise.all` search.
 
 ## Flow
 
 ```text
-Vagas search form
-  -> POST /api/applyflow/job-sources/search   (same origin, no V2 session)
-  -> JobgetherProvider
+Provider selector (default: Jobgether)
+  -> explicit Buscar
+  -> POST /api/applyflow/job-sources/search   (same origin)
+  -> allowlisted provider adapter
   -> Zod validation of the provider JSON
   -> JobSearchHit
-  -> UI
+  -> discovery UI
 
-If the hit already has a usable description:
-  -> user chooses Guardar e analisar
+If the hit has a usable description:
+  -> Guardar e analisar
   -> ingestApplyFlowJob
 
-If the hit has no description (current Jobgether live payload):
-  -> user chooses Adicionar descrição e analisar
-  -> user pastes the real listing text
+If the hit has no description:
+  -> Adicionar descrição e analisar
+  -> paste listing text
   -> ingestApplyFlowJob
 
 Then:
-  -> existing intelligence, match, dedupe, localStorage or V2 persistence
+  -> existing intelligence, Match Engine, dedupe, localStorage or V2
 ```
 
 A search hit is not an `ApplyFlowJob`. Saving does not create an `ApplyFlowApplication`.
 
-The curriculum stays in the browser. The search request body is only the filter object. The server does not score jobs.
+The curriculum stays in the browser. Search request bodies contain only filter fields. The server does not score jobs and does not receive CV data.
 
-ApplyFlow does not scrape the Jobgether listing page and does not invent a description.
+## Source, id, and URL semantics
 
-## Source and URL
+| Provider   | `source`       | Deterministic id   |
+|------------|----------------|--------------------|
+| Jobgether  | `jobgether`    | `job_jg_<id>`      |
+| TheirStack | `theirstack`   | `job_ts_<id>`      |
 
-Saved jobs use `source: "jobgether"`. The id is `job_jg_` plus the sanitized Jobgether id. There is no `externalId` column.
+`sourceUrl` is the board/listing URL and is stored in the existing `ApplyFlowJob.url` field.
 
-`sourceUrl` from Jobgether is the Jobgether listing. It is stored in the existing `url` field. It is not an employer application URL. The discovery UI labels the link as the Jobgether listing.
+TheirStack may also expose `final_url` as optional transient `directApplyUrl` on the search hit. Phase 2 does **not** persist `directApplyUrl` (no migration). The UI shows **Candidatura direta** only when that URL is present.
 
-`ApplyFlowApplicationSource` is unchanged. If a candidatura is created later, the existing mapper still stores `paste` unless the job source is `linkedin` or `json`. Career analytics can still recognize a Jobgether host on `jobUrl`.
+`ApplyFlowApplicationSource` is unchanged. Later candidaturas still use `applicationSourceFromJob` (`paste` unless `linkedin` / `json`).
 
-## Description availability
-
-`GET https://jobgether.com/api/v1/jobs` is the only endpoint. The host is fixed in the server provider. The browser cannot pass a provider URL.
-
-Description is optional in the validated provider schema. The live payload observed for phase 1 does not currently include description text. When it is missing, the UI offers **Adicionar descrição e analisar** so the candidate can paste the real text after opening the listing. When a future response includes description text, **Guardar e analisar** remains available.
+Provider `technology_slugs` / salary fields are discovery metadata only. Persisted skills and compensation intelligence still come from description analysis in `ingestApplyFlowJob`.
 
 ## Pagination and cache
 
-The UI requests page 1, then the next page only from **Carregar mais**. `page` is 1–10 and `limit` is 1–25. `hasMore` does not trigger another request.
-
-Successful pages are cached in process memory for 10 minutes. The key is `jobgether`, a hash of the normalized filters, and the page. Errors are not cached. The map keeps at most 50 entries. Each server instance has its own map. A serverless deployment does not share this cache.
+- Page 1 on Buscar; next page only from **Carregar mais**
+- Cache key includes provider, normalized criteria, page, and limit
+- Errors are not cached
+- Bounded in-memory map (instance-local). Serverless instances do not share cache
+- Identical queries reuse cache and do not spend TheirStack credits
 
 ## Failures
 
-Provider calls use an 8 second timeout and `AbortController`. Timeout and HTTP 5xx are retried once. HTTP 400, 404, and 429 are not retried. RFC 9457 `code` values are mapped to a short internal error code. The UI shows a fixed sentence for that code, not the provider `detail`.
+Public error classes: `invalid_criteria`, `provider_rejected`, `provider_timeout`, `provider_rate_limited`, `provider_unavailable`, `invalid_provider_response`, `provider_not_configured`.
 
-Logs are one JSON line with provider, criteria hash, page, result count, cache hit or miss, duration, and error code. They do not include the keyword, description, CV, or raw body.
+TheirStack:
+
+- Missing API key → `provider_not_configured` (Jobgether still works)
+- No retry on 400 / 401 / 402 / 403 / 404 / 422 / 429
+- At most one retry on timeout or 5xx (credits are tied to successful returned jobs)
+
+Logs are one JSON line with provider, criteria hash, page, result count, cache hit/miss, duration, and error code. They never include keywords, descriptions, CV text, Authorization headers, or API keys.
 
 ## Deduplication
 
-Save reuses `mergeApplyFlowJobs` / canonical URL checks:
+Save reuses existing id / canonical URL / description hash:
 
-- same Jobgether id -> same `job_jg_` id
-- same canonical listing URL
-- same description hash
+- same TheirStack id → same `job_ts_` id
+- same listing URL → canonical URL dedupe
+- identical normalized description → description hash can catch cross-provider duplicates
+- no fuzzy merge by company + title
 
-Company plus title is not a merge key. Uncertain duplicates stay as separate jobs.
+## Security
+
+- Provider allowlist: `jobgether` | `theirstack` only
+- Fixed hosts and methods inside each adapter (not a generic HTTP proxy)
+- Secrets stay server-side
+- The anonymous dashboard search route can still be invoked; TheirStack cost is mitigated by small limits, cache, and no auto-search. There is no Redis rate limiter in Phase 2.
 
 ## Known limitations
 
-- No shared rate limit. The route is reachable without a V2 session, by product decision, so a caller can still spend Jobgether's edge quota up to the page cap, the 25-item limit, the timeout, and the 10-minute cache. There was no existing rate-limit helper to reuse. Redis was not added.
-- Cache is instance-local.
-- Current Jobgether responses omit description; analysis requires the candidate to paste the listing text.
-- A saved Jobgether job is not refreshed if the listing changes; the existing merge skips the same id.
-- V2 `create` still enforces uniqueness on id only. The client checks URL and description hash against the jobs already loaded.
-- No migration and no new SQL index.
+- Cache is instance-local
+- TheirStack credit balance is not shown in product UI
+- No migration; no new SQL columns for provider metadata
+- Remote filters are geographic when the provider says so — remote ≠ worldwide
+- A saved job is not refreshed if the remote listing changes
 
-## Adding another provider later
+## Environment
 
-Implement `JobSourceProvider.search` behind the same criteria type and return `JobSearchHit` values. Translate that provider's enums inside the adapter. Keep secrets on the server. Do not pass provider payloads into `ApplyFlowJob`.
+Server only:
+
+- `THEIRSTACK_API_KEY` — required for TheirStack searches; absent → controlled unavailable state

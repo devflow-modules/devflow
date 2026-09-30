@@ -108,6 +108,23 @@ describe("parseStoredApplyFlowJob", () => {
     expect(parsed?.jobMatch.score).toBe(stored.jobMatch.score);
   });
 
+  it("aceita source theirstack no roundtrip sem recalcular o match", () => {
+    const stored = ingestApplyFlowJob({
+      description: "Remote senior role. React, TypeScript, Node.js and PostgreSQL.",
+      source: "theirstack",
+      title: "Senior Software Engineer",
+      company: "Example",
+      url: "https://www.linkedin.com/jobs/view/example",
+      profile,
+      now: NOW,
+      id: "job_ts_example",
+    });
+    const parsed = parseStoredApplyFlowJob(stored);
+    expect(parsed?.source).toBe("theirstack");
+    expect(parsed?.id).toBe("job_ts_example");
+    expect(parsed?.jobMatch.score).toBe(stored.jobMatch.score);
+  });
+
   it("hidrata um ApplyFlowJob válido", () => {
     const stored = ingestApplyFlowJob({
       description: "React TypeScript Node.js Next.js",

@@ -1,7 +1,8 @@
-import { hashJobSearchCriteria, jobSearchCacheKey, type JobSearchCache } from "./cache";
-import type { JobSearchLogger } from "./log";
+import { hashJobSearchCriteria, jobSearchCacheKey, providerCacheTtlMs, type JobSearchCache } from "./cache";
 import { parseJobSearchCriteria } from "./criteria";
-import type { JobSearchPage, JobSourceErrorCode, JobSourceProvider } from "./types";
+import type { JobSearchLogger } from "./log";
+import type { JobSearchPage, JobSourceErrorCode, JobSourceId, JobSourceProvider } from "./types";
+import { isJobSourceId } from "./types";
 
 export type JobSearchExecution =
   | { ok: true; page: JobSearchPage; cached: boolean }
@@ -16,6 +17,7 @@ function httpStatusFor(error: JobSourceErrorCode): number {
     case "provider_timeout":
       return 504;
     case "provider_unavailable":
+    case "provider_not_configured":
       return 503;
     case "provider_rejected":
     case "invalid_provider_response":
@@ -29,21 +31,34 @@ export function jobSearchHttpStatus(error: JobSourceErrorCode): number {
   return httpStatusFor(error);
 }
 
-export async function executeJobSearch(
-  raw: unknown,
-  deps: {
-    provider: JobSourceProvider;
-    cache: JobSearchCache;
-    log?: JobSearchLogger;
-    now?: () => number;
-  },
-): Promise<JobSearchExecution> {
+export type ExecuteJobSearchDeps = {
+  /** Single provider — used when providers map is absent (Jobgether Phase 1 compat). */
+  provider?: JobSourceProvider;
+  /** Multi-provider registry keyed by JobSourceId. */
+  providers?: Partial<Record<JobSourceId, JobSourceProvider>>;
+  cache: JobSearchCache;
+  log?: JobSearchLogger;
+  now?: () => number;
+};
+
+function resolveProvider(criteriaProvider: JobSourceId, deps: ExecuteJobSearchDeps): JobSourceProvider | null {
+  if (deps.providers?.[criteriaProvider]) return deps.providers[criteriaProvider]!;
+  if (deps.provider && deps.provider.id === criteriaProvider) return deps.provider;
+  if (deps.provider && !deps.providers) return deps.provider;
+  return null;
+}
+
+export async function executeJobSearch(raw: unknown, deps: ExecuteJobSearchDeps): Promise<JobSearchExecution> {
   const started = deps.now?.() ?? Date.now();
   const criteria = parseJobSearchCriteria(raw);
   if (!criteria) {
+    const guessed =
+      raw && typeof raw === "object" && "provider" in raw && isJobSourceId((raw as { provider: unknown }).provider)
+        ? (raw as { provider: JobSourceId }).provider
+        : "unknown";
     deps.log?.({
       event: "job_search_failed",
-      provider: "jobgether",
+      provider: guessed,
       criteriaHash: "invalid",
       page: 0,
       cache: "miss",
@@ -53,13 +68,27 @@ export async function executeJobSearch(
     return { ok: false, error: "invalid_criteria" };
   }
 
+  const provider = resolveProvider(criteria.provider, deps);
+  if (!provider) {
+    deps.log?.({
+      event: "job_search_failed",
+      provider: criteria.provider,
+      criteriaHash: hashJobSearchCriteria({ ...criteria, page: 1 }),
+      page: criteria.page,
+      cache: "miss",
+      durationMs: Math.max(0, (deps.now?.() ?? Date.now()) - started),
+      errorCode: "provider_unavailable",
+    });
+    return { ok: false, error: "provider_unavailable" };
+  }
+
   const key = jobSearchCacheKey(criteria);
   const criteriaHash = hashJobSearchCriteria({ ...criteria, page: 1 });
   const cached = deps.cache.get(key);
   if (cached) {
     deps.log?.({
       event: "job_search_completed",
-      provider: "jobgether",
+      provider: criteria.provider,
       criteriaHash,
       page: criteria.page,
       resultCount: cached.hits.length,
@@ -69,12 +98,12 @@ export async function executeJobSearch(
     return { ok: true, page: cached, cached: true };
   }
 
-  const result = await deps.provider.search(criteria);
+  const result = await provider.search(criteria);
   const durationMs = Math.max(0, (deps.now?.() ?? Date.now()) - started);
   if (!result.ok) {
     deps.log?.({
       event: "job_search_failed",
-      provider: "jobgether",
+      provider: criteria.provider,
       criteriaHash,
       page: criteria.page,
       cache: "miss",
@@ -84,10 +113,10 @@ export async function executeJobSearch(
     return result;
   }
 
-  deps.cache.set(key, result.page);
+  deps.cache.set(key, result.page, providerCacheTtlMs(criteria.provider));
   deps.log?.({
     event: "job_search_completed",
-    provider: "jobgether",
+    provider: criteria.provider,
     criteriaHash,
     page: criteria.page,
     resultCount: result.page.hits.length,

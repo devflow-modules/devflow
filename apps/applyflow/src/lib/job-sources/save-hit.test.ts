@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   applyFlowJobIdFromExternalId,
+  createExternalJobId,
   hasAnalyzableJobDescription,
   ingestDiscoveredJobHit,
   withHitDescription,
@@ -105,13 +106,39 @@ describe("save discovered Jobgether hit", () => {
     expect(merged.skipped).toBe(1);
   });
 
-  it("ignores a duplicate description hash", () => {
+  it("builds a deterministic job_ts_ id for TheirStack hits", () => {
+    const tsHit: JobSearchHit = {
+      externalId: "424242",
+      source: "theirstack",
+      title: "Senior Software Engineer",
+      company: "Acme",
+      description,
+      location: "Brazil",
+      sourceUrl: "https://www.linkedin.com/jobs/view/424242",
+      directApplyUrl: "https://boards.greenhouse.io/acme/jobs/1",
+    };
+    expect(createExternalJobId("theirstack", "424242")).toBe("job_ts_424242");
+    const saved = ingestDiscoveredJobHit(tsHit, { profile: gustavoProfile, now: NOW });
+    expect(saved.ok).toBe(true);
+    if (!saved.ok) return;
+    expect(saved.job.id).toBe("job_ts_424242");
+    expect(saved.job.source).toBe("theirstack");
+    expect(saved.job.url).toBe(tsHit.sourceUrl);
+    expect(JSON.stringify(saved)).not.toContain("directApplyUrl");
+    expect(JSON.stringify(saved)).not.toContain('"application"');
+  });
+
+  it("dedupes identical description hash across Jobgether and TheirStack", () => {
     const first = ingestDiscoveredJobHit(hit(), { profile: gustavoProfile, now: NOW });
     const second = ingestDiscoveredJobHit(
-      hit({
-        externalId: "bbbbbbbbbbbbbbbbbbbbbbbb",
-        sourceUrl: "https://jobgether.com/offer/another-listing",
-      }),
+      {
+        externalId: "999999",
+        source: "theirstack",
+        title: "Other title",
+        company: "Other Co",
+        description,
+        sourceUrl: "https://example.com/other-listing",
+      },
       { profile: gustavoProfile, now: NOW },
     );
     expect(first.ok && second.ok).toBe(true);

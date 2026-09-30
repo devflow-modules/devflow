@@ -29,7 +29,7 @@ describe("requestJobSearch", () => {
     expect(allowed.ok).toBe(true);
     const init = fetchImpl.mock.calls[0]?.[1];
     const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
-    expect(body).toEqual({ keyword: "react", page: 1, limit: 10 });
+    expect(body).toEqual({ provider: "jobgether", keyword: "react", page: 1, limit: 10 });
     expect(JSON.stringify(body)).not.toMatch(/cv|resume|profile/i);
     expect(fetchImpl.mock.calls[0]?.[0]).toBe("/api/applyflow/job-sources/search");
   });

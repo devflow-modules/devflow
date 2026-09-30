@@ -1,6 +1,8 @@
+import type { JobSourceId } from "./types";
+
 export type JobSearchLogEvent = {
   event: "job_search_completed" | "job_search_failed";
-  provider: "jobgether";
+  provider: JobSourceId | "unknown";
   criteriaHash: string;
   page: number;
   resultCount?: number;

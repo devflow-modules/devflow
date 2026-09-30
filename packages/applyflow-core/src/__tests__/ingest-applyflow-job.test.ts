@@ -160,4 +160,15 @@ describe("ingestApplyFlowJob", () => {
     });
     expect(projectJobForFunnel(job).source).toBe("paste");
   });
+
+  it("projeta source theirstack como paste na candidatura de funil", () => {
+    const job = ingestApplyFlowJob({
+      description: APPLY_POSTING,
+      source: "theirstack",
+      profile: gustavoProfile,
+      now: NOW,
+      id: "job_ts_funnel",
+    });
+    expect(projectJobForFunnel(job).source).toBe("paste");
+  });
 });

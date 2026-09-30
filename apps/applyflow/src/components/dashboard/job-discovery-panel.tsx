@@ -14,6 +14,7 @@ import {
   JOB_DISCOVERY_DESCRIPTION_EMPTY,
   JOB_DISCOVERY_DESCRIPTION_HINT,
   JOB_DISCOVERY_DESCRIPTION_LABEL,
+  JOB_DISCOVERY_DIRECT_APPLY,
   JOB_DISCOVERY_DUPLICATE,
   JOB_DISCOVERY_EMPTY,
   JOB_DISCOVERY_ERROR_MESSAGES,
@@ -23,6 +24,11 @@ import {
   JOB_DISCOVERY_LOADING,
   JOB_DISCOVERY_LOCATION,
   JOB_DISCOVERY_MISSING_DESCRIPTION,
+  JOB_DISCOVERY_PROVIDER,
+  JOB_DISCOVERY_PROVIDER_JOBGETHER,
+  JOB_DISCOVERY_PROVIDER_JOBGETHER_HINT,
+  JOB_DISCOVERY_PROVIDER_THEIRSTACK,
+  JOB_DISCOVERY_PROVIDER_THEIRSTACK_HINT,
   JOB_DISCOVERY_REMOTE,
   JOB_DISCOVERY_SALARY_MAX,
   JOB_DISCOVERY_SALARY_MIN,
@@ -32,24 +38,29 @@ import {
   JOB_DISCOVERY_SEARCH,
   JOB_DISCOVERY_SORT,
   JOB_DISCOVERY_SOURCE,
+  JOB_DISCOVERY_SOURCE_THEIRSTACK,
+  JOB_DISCOVERY_THEIRSTACK_NOTE,
   JOB_DISCOVERY_TITLE,
   JOB_DISCOVERY_VIEW_LISTING,
+  JOB_DISCOVERY_VIEW_LISTING_GENERIC,
   JOB_INBOX_NEEDS_RESUME,
 } from "@/components/dashboard/job-inbox-content";
 import { hasAnalyzableJobDescription, withHitDescription } from "@/lib/job-sources/save-hit";
 import { requestJobSearch } from "@/lib/job-sources/search-client";
 import {
+  DEFAULT_JOB_SOURCE_ID,
   JOB_SEARCH_CONTRACT,
-  JOB_SEARCH_DEFAULT_LIMIT,
   JOB_SEARCH_EXPERIENCE,
   JOB_SEARCH_REMOTE,
   JOB_SEARCH_SORT,
+  providerDefaultLimit,
   type DiscoveredJobSaveStatus,
   type JobSearchContract,
   type JobSearchExperience,
   type JobSearchHit,
   type JobSearchRemote,
   type JobSearchSort,
+  type JobSourceId,
 } from "@/lib/job-sources/types";
 import { isOpenableJobUrl } from "@devflow/applyflow-core";
 import { useId, useState } from "react";
@@ -91,6 +102,7 @@ const SORT_LABELS: Record<JobSearchSort, string> = {
 };
 
 type Draft = {
+  provider: JobSourceId;
   keyword: string;
   location: string;
   experience: "" | JobSearchExperience;
@@ -103,6 +115,7 @@ type Draft = {
 };
 
 const EMPTY_DRAFT: Draft = {
+  provider: DEFAULT_JOB_SOURCE_ID,
   keyword: "",
   location: "",
   experience: "",
@@ -125,13 +138,22 @@ function optionalSalary(value: string): number | undefined {
   return Number(trimmed);
 }
 
+function sourceBadge(source: JobSourceId): string {
+  return source === "theirstack" ? JOB_DISCOVERY_SOURCE_THEIRSTACK : JOB_DISCOVERY_SOURCE;
+}
+
+function listingLabel(source: JobSourceId): string {
+  return source === "theirstack" ? JOB_DISCOVERY_VIEW_LISTING_GENERIC : JOB_DISCOVERY_VIEW_LISTING;
+}
+
 export function buildDiscoveryCriteria(draft: Draft, page: number): Record<string, unknown> | "invalid_salary" {
   const salaryMin = optionalSalary(draft.salaryMin);
   const salaryMax = optionalSalary(draft.salaryMax);
   if (Number.isNaN(salaryMin) || Number.isNaN(salaryMax)) return "invalid_salary";
   return {
+    provider: draft.provider,
     page,
-    limit: JOB_SEARCH_DEFAULT_LIMIT,
+    limit: providerDefaultLimit(draft.provider),
     ...(draft.keyword.trim() ? { keyword: draft.keyword.trim() } : {}),
     ...(draft.location.trim() ? { location: draft.location.trim() } : {}),
     ...(optionalEnum(draft.experience) ? { experience: draft.experience } : {}),
@@ -169,6 +191,8 @@ export function JobDiscoveryHitCard({
   const [draftDescription, setDraftDescription] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const badge = sourceBadge(hit.source);
+  const hasDirectApply = Boolean(hit.directApplyUrl && isOpenableJobUrl(hit.directApplyUrl));
 
   function closeEditor() {
     setEditorOpen(false);
@@ -197,12 +221,15 @@ export function JobDiscoveryHitCard({
     <ApplyFlowCard variant="muted" padding="md">
       <div className="flex flex-wrap items-center gap-2">
         <h4 className="text-sm font-semibold text-[color:var(--af-text)]">{hit.title}</h4>
-        <ApplyFlowBadge tone="intel">{JOB_DISCOVERY_SOURCE}</ApplyFlowBadge>
+        <ApplyFlowBadge tone="intel">{badge}</ApplyFlowBadge>
       </div>
       {hit.company ? <p className="mt-1 text-sm text-[color:var(--af-text)]">{hit.company}</p> : null}
       <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">
         {[hit.location, hit.remote, hit.experience, hit.contractType, hit.salaryRange].filter(Boolean).join(" · ") || "—"}
       </p>
+      {hit.technologies && hit.technologies.length > 0 ? (
+        <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">{hit.technologies.slice(0, 8).join(" · ")}</p>
+      ) : null}
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {isOpenableJobUrl(hit.sourceUrl) ? (
           <a
@@ -211,7 +238,17 @@ export function JobDiscoveryHitCard({
             rel="noopener noreferrer"
             className={applyFlowButtonClass({ variant: "secondary", size: "sm" })}
           >
-            {JOB_DISCOVERY_VIEW_LISTING}
+            {listingLabel(hit.source)}
+          </a>
+        ) : null}
+        {hasDirectApply ? (
+          <a
+            href={hit.directApplyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={applyFlowButtonClass({ variant: "secondary", size: "sm" })}
+          >
+            {JOB_DISCOVERY_DIRECT_APPLY}
           </a>
         ) : null}
         {hasDescription ? (
@@ -258,7 +295,7 @@ export function JobDiscoveryHitCard({
         >
           <p className="text-xs text-[color:var(--af-text-muted)]">
             {hit.title}
-            {hit.company ? ` · ${hit.company}` : ""} · {JOB_DISCOVERY_SOURCE}
+            {hit.company ? ` · ${hit.company}` : ""} · {badge}
           </p>
           <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]" htmlFor={descriptionFieldId}>
             {JOB_DISCOVERY_DESCRIPTION_LABEL}
@@ -337,8 +374,11 @@ export function JobDiscoveryPanel({
     setHasMore(result.page.hasMore);
     setHits((current) => {
       if (!append) return result.page.hits;
-      const seen = new Set(current.map((item) => item.externalId));
-      return [...current, ...result.page.hits.filter((item) => !seen.has(item.externalId))];
+      const seen = new Set(current.map((item) => `${item.source}:${item.externalId}`));
+      return [
+        ...current,
+        ...result.page.hits.filter((item) => !seen.has(`${item.source}:${item.externalId}`)),
+      ];
     });
   }
 
@@ -354,6 +394,58 @@ export function JobDiscoveryPanel({
           void runSearch(1, false);
         }}
       >
+        <fieldset className="grid gap-2">
+          <legend className="text-sm text-[color:var(--af-text)]">{JOB_DISCOVERY_PROVIDER}</legend>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label className="flex cursor-pointer items-start gap-2 rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface-muted)] px-3 py-2 text-sm">
+              <input
+                type="radio"
+                name="job-source-provider"
+                className="mt-1"
+                checked={draft.provider === "jobgether"}
+                onChange={() => {
+                  setDraft((current) => ({ ...current, provider: "jobgether" }));
+                  setHits([]);
+                  setHasMore(false);
+                  setSearched(false);
+                  setError(null);
+                  setStatuses({});
+                }}
+              />
+              <span>
+                <span className="block font-medium text-[color:var(--af-text)]">{JOB_DISCOVERY_PROVIDER_JOBGETHER}</span>
+                <span className="block text-xs text-[color:var(--af-text-muted)]">
+                  {JOB_DISCOVERY_PROVIDER_JOBGETHER_HINT}
+                </span>
+              </span>
+            </label>
+            <label className="flex cursor-pointer items-start gap-2 rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface-muted)] px-3 py-2 text-sm">
+              <input
+                type="radio"
+                name="job-source-provider"
+                className="mt-1"
+                checked={draft.provider === "theirstack"}
+                onChange={() => {
+                  setDraft((current) => ({ ...current, provider: "theirstack" }));
+                  setHits([]);
+                  setHasMore(false);
+                  setSearched(false);
+                  setError(null);
+                  setStatuses({});
+                }}
+              />
+              <span>
+                <span className="block font-medium text-[color:var(--af-text)]">{JOB_DISCOVERY_PROVIDER_THEIRSTACK}</span>
+                <span className="block text-xs text-[color:var(--af-text-muted)]">
+                  {JOB_DISCOVERY_PROVIDER_THEIRSTACK_HINT}
+                </span>
+              </span>
+            </label>
+          </div>
+          {draft.provider === "theirstack" ? (
+            <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_DISCOVERY_THEIRSTACK_NOTE}</p>
+          ) : null}
+        </fieldset>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
             {JOB_DISCOVERY_KEYWORD}
@@ -370,7 +462,7 @@ export function JobDiscoveryPanel({
               value={draft.location}
               onChange={(event) => setDraft((current) => ({ ...current, location: event.target.value }))}
               className={fieldClass}
-              placeholder="brazil"
+              placeholder="Brazil"
               autoComplete="off"
             />
           </label>
@@ -485,15 +577,18 @@ export function JobDiscoveryPanel({
       {hits.length > 0 ? (
         <ul className="mt-4 grid gap-3">
           {hits.map((item) => (
-            <li key={item.externalId}>
+            <li key={`${item.source}:${item.externalId}`}>
               <JobDiscoveryHitCard
                 hit={item}
                 matchAvailable={matchAvailable}
-                status={statuses[item.externalId]}
+                status={statuses[`${item.source}:${item.externalId}`]}
                 onSave={async (selected) => {
                   if (!onSave) return;
                   const nextStatus = await onSave(selected);
-                  setStatuses((current) => ({ ...current, [selected.externalId]: nextStatus }));
+                  setStatuses((current) => ({
+                    ...current,
+                    [`${selected.source}:${selected.externalId}`]: nextStatus,
+                  }));
                 }}
               />
             </li>

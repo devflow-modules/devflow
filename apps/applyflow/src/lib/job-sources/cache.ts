@@ -1,12 +1,15 @@
 import { createHash } from "node:crypto";
 
-import type { JobSearchCriteria, JobSearchPage } from "./types";
+import type { JobSearchCriteria, JobSearchPage, JobSourceId } from "./types";
 
-export const JOB_SEARCH_CACHE_TTL_MS = 10 * 60 * 1000;
+export const JOBGETHER_CACHE_TTL_MS = 10 * 60 * 1000;
+export const THEIRSTACK_CACHE_TTL_MS = 30 * 60 * 1000;
+export const JOB_SEARCH_CACHE_TTL_MS = JOBGETHER_CACHE_TTL_MS;
 export const JOB_SEARCH_CACHE_MAX_ENTRIES = 50;
 
 function normalizedCriteriaPayload(criteria: JobSearchCriteria): Record<string, string | number> {
   const payload: Record<string, string | number> = {
+    provider: criteria.provider,
     page: criteria.page,
     limit: criteria.limit,
   };
@@ -28,20 +31,25 @@ export function hashJobSearchCriteria(criteria: JobSearchCriteria): string {
   return createHash("sha256").update(JSON.stringify(normalizedCriteriaPayload(criteria))).digest("hex").slice(0, 16);
 }
 
-/** Provider + normalized criteria + page. Page is outside the hash payload's identity only via this suffix. */
+export function providerCacheTtlMs(provider: JobSourceId): number {
+  return provider === "theirstack" ? THEIRSTACK_CACHE_TTL_MS : JOBGETHER_CACHE_TTL_MS;
+}
+
+/** Provider + normalized criteria + page + limit. */
 export function jobSearchCacheKey(criteria: JobSearchCriteria): string {
   const withoutPage: JobSearchCriteria = { ...criteria, page: 1 };
-  return `jobgether:${hashJobSearchCriteria(withoutPage)}:page:${criteria.page}`;
+  return `${criteria.provider}:${hashJobSearchCriteria(withoutPage)}:page:${criteria.page}:limit:${criteria.limit}`;
 }
 
 type CacheEntry = {
   value: JobSearchPage;
   storedAt: number;
+  ttlMs: number;
 };
 
 export type JobSearchCache = {
   get(key: string): JobSearchPage | undefined;
-  set(key: string, value: JobSearchPage): void;
+  set(key: string, value: JobSearchPage, ttlMs?: number): void;
   size(): number;
 };
 
@@ -50,14 +58,14 @@ export function createJobSearchCache(options?: {
   maxEntries?: number;
   now?: () => number;
 }): JobSearchCache {
-  const ttlMs = options?.ttlMs ?? JOB_SEARCH_CACHE_TTL_MS;
+  const defaultTtlMs = options?.ttlMs ?? JOB_SEARCH_CACHE_TTL_MS;
   const maxEntries = options?.maxEntries ?? JOB_SEARCH_CACHE_MAX_ENTRIES;
   const now = options?.now ?? Date.now;
   const entries = new Map<string, CacheEntry>();
 
   function purgeExpired(at: number) {
     for (const [key, entry] of entries) {
-      if (at - entry.storedAt >= ttlMs) entries.delete(key);
+      if (at - entry.storedAt >= entry.ttlMs) entries.delete(key);
     }
   }
 
@@ -66,17 +74,17 @@ export function createJobSearchCache(options?: {
       const at = now();
       const entry = entries.get(key);
       if (!entry) return undefined;
-      if (at - entry.storedAt >= ttlMs) {
+      if (at - entry.storedAt >= entry.ttlMs) {
         entries.delete(key);
         return undefined;
       }
       return entry.value;
     },
-    set(key, value) {
+    set(key, value, ttlMs = defaultTtlMs) {
       const at = now();
       purgeExpired(at);
       if (entries.has(key)) entries.delete(key);
-      entries.set(key, { value, storedAt: at });
+      entries.set(key, { value, storedAt: at, ttlMs });
       while (entries.size > maxEntries) {
         const oldest = entries.keys().next().value;
         if (oldest === undefined) break;

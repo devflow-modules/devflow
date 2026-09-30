@@ -4,18 +4,23 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { JobDiscoveryHitCard, buildDiscoveryCriteria } from "./job-discovery-panel";
+import { JobDiscoveryHitCard, JobDiscoveryPanel, buildDiscoveryCriteria } from "./job-discovery-panel";
 import {
   JOB_DISCOVERY_ADD_DESCRIPTION,
   JOB_DISCOVERY_ANALYZE,
   JOB_DISCOVERY_CANCEL,
   JOB_DISCOVERY_DESCRIPTION_EMPTY,
   JOB_DISCOVERY_DESCRIPTION_LABEL,
+  JOB_DISCOVERY_DIRECT_APPLY,
+  JOB_DISCOVERY_KEYWORD,
   JOB_DISCOVERY_MISSING_DESCRIPTION,
   JOB_DISCOVERY_SAVE,
+  JOB_DISCOVERY_SEARCH,
   JOB_DISCOVERY_SOURCE,
+  JOB_DISCOVERY_SOURCE_THEIRSTACK,
   JOB_DISCOVERY_TITLE,
   JOB_DISCOVERY_VIEW_LISTING,
+  JOB_DISCOVERY_VIEW_LISTING_GENERIC,
   JOB_INBOX_SUBMIT_LABEL,
 } from "./job-inbox-content";
 import { JobInboxPanel } from "./job-inbox-panel";
@@ -116,6 +121,7 @@ describe("Job discovery UI", () => {
     expect(
       buildDiscoveryCriteria(
         {
+          provider: "jobgether",
           keyword: "full stack",
           location: "Brazil",
           experience: "senior",
@@ -129,12 +135,30 @@ describe("Job discovery UI", () => {
         1,
       ),
     ).toMatchObject({
+      provider: "jobgether",
       keyword: "full stack",
       experience: "senior",
       remote: "full_remote",
       page: 1,
       limit: 10,
     });
+    expect(
+      buildDiscoveryCriteria(
+        {
+          provider: "theirstack",
+          keyword: "react",
+          location: "",
+          experience: "",
+          remote: "",
+          contract: "",
+          salaryMin: "",
+          salaryMax: "",
+          currency: "",
+          sort: "",
+        },
+        1,
+      ),
+    ).toMatchObject({ provider: "theirstack", limit: 5, page: 1 });
   });
 
   it("withHitDescription rejects blank input and preserves provider metadata", () => {
@@ -143,5 +167,78 @@ describe("Job discovery UI", () => {
       ...hit(undefined),
       description: sampleDescription,
     });
+  });
+
+  it("defaults to Jobgether and does not search when only the provider changes", async () => {
+    const onSearch = vi.fn(async () => ({
+      ok: true as const,
+      cached: false,
+      page: { provider: "jobgether" as const, page: 1, limit: 10, hasMore: false, hits: [] },
+    }));
+    render(<JobDiscoveryPanel matchAvailable onSearch={onSearch} />);
+    const jobgether = screen.getByRole("radio", { name: /Jobgether/i }) as HTMLInputElement;
+    expect(jobgether.checked).toBe(true);
+    fireEvent.click(screen.getByRole("radio", { name: /TheirStack/i }));
+    expect(onSearch).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByLabelText(JOB_DISCOVERY_KEYWORD), { target: { value: "react" } });
+    expect(onSearch).not.toHaveBeenCalled();
+  });
+
+  it("searches only the selected provider after explicit Buscar", async () => {
+    const onSearch = vi.fn(async (criteria: Record<string, unknown>) => ({
+      ok: true as const,
+      cached: false,
+      page: {
+        provider: (criteria.provider as "jobgether" | "theirstack") ?? "jobgether",
+        page: 1,
+        limit: Number(criteria.limit ?? 10),
+        hasMore: false,
+        hits: [],
+      },
+    }));
+    render(<JobDiscoveryPanel matchAvailable onSearch={onSearch} />);
+    fireEvent.click(screen.getByRole("radio", { name: /TheirStack/i }));
+    fireEvent.click(screen.getByRole("button", { name: JOB_DISCOVERY_SEARCH }));
+    await waitFor(() => expect(onSearch).toHaveBeenCalledTimes(1));
+    expect(onSearch.mock.calls[0]?.[0]).toMatchObject({ provider: "theirstack", limit: 5, page: 1 });
+  });
+
+  it("shows Guardar e analisar for TheirStack description and Candidatura direta only with final_url", () => {
+    const tsHit: JobSearchHit = {
+      externalId: "1",
+      source: "theirstack",
+      title: "Engineer",
+      description: sampleDescription,
+      sourceUrl: "https://example.com/listing",
+      directApplyUrl: "https://boards.greenhouse.io/acme/jobs/1",
+    };
+    const html = renderToStaticMarkup(<JobDiscoveryHitCard hit={tsHit} matchAvailable />);
+    expect(html).toContain(JOB_DISCOVERY_SOURCE_THEIRSTACK);
+    expect(html).toContain(JOB_DISCOVERY_SAVE);
+    expect(html).toContain(JOB_DISCOVERY_DIRECT_APPLY);
+    expect(html).toContain(JOB_DISCOVERY_VIEW_LISTING_GENERIC);
+    expect(html).not.toContain(JOB_DISCOVERY_ADD_DESCRIPTION);
+
+    const withoutDirect = renderToStaticMarkup(
+      <JobDiscoveryHitCard hit={{ ...tsHit, directApplyUrl: undefined }} matchAvailable />,
+    );
+    expect(withoutDirect).not.toContain(JOB_DISCOVERY_DIRECT_APPLY);
+  });
+
+  it("falls back to description completion when TheirStack omits description", () => {
+    const html = renderToStaticMarkup(
+      <JobDiscoveryHitCard
+        hit={{
+          externalId: "2",
+          source: "theirstack",
+          title: "Engineer",
+          sourceUrl: "https://example.com/listing",
+        }}
+        matchAvailable
+      />,
+    );
+    expect(html).toContain(JOB_DISCOVERY_ADD_DESCRIPTION);
+    expect(html).not.toContain(JOB_DISCOVERY_SAVE);
+    expect(html).not.toContain(JOB_DISCOVERY_DIRECT_APPLY);
   });
 });

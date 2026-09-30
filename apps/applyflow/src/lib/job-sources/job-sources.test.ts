@@ -42,6 +42,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 const baseCriteria: JobSearchCriteria = {
+  provider: "jobgether",
   keyword: "full stack",
   experience: "senior",
   page: 1,
@@ -109,6 +110,7 @@ describe("Jobgether validation and normalization", () => {
 describe("Jobgether criteria translation", () => {
   it("maps senior to senior-5-10-years and keeps page and limit", () => {
     const params = translateJobSearchCriteria({
+      provider: "jobgether",
       keyword: "full stack",
       location: "São Paulo",
       experience: "senior",
@@ -134,7 +136,7 @@ describe("Jobgether criteria translation", () => {
   });
 
   it("sends includeHybrid without a Jobgether remote enum", () => {
-    const params = translateJobSearchCriteria({ remote: "include_hybrid", page: 1, limit: 10 });
+    const params = translateJobSearchCriteria({ provider: "jobgether", remote: "include_hybrid", page: 1, limit: 10 });
     expect(params.get("includeHybrid")).toBe("true");
     expect(params.get("remoteType")).toBeNull();
   });

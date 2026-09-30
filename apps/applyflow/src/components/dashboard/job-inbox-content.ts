@@ -7,7 +7,13 @@ export const JOB_INBOX_DESCRIPTION =
   "Procura oportunidades ou cola um anúncio. A avaliação é local e não envia a candidatura.";
 export const JOB_DISCOVERY_TITLE = "Procurar oportunidades";
 export const JOB_DISCOVERY_DESCRIPTION =
-  "A busca consulta o Jobgether no servidor. O currículo não sai do browser. Um resultado só entra na inbox quando escolhes guardar.";
+  "Escolhe uma fonte e busca. O currículo não sai do browser. Um resultado só entra na inbox quando escolhes guardar.";
+export const JOB_DISCOVERY_PROVIDER = "Fonte";
+export const JOB_DISCOVERY_PROVIDER_JOBGETHER = "Jobgether";
+export const JOB_DISCOVERY_PROVIDER_JOBGETHER_HINT = "Busca rápida";
+export const JOB_DISCOVERY_PROVIDER_THEIRSTACK = "TheirStack";
+export const JOB_DISCOVERY_PROVIDER_THEIRSTACK_HINT = "Descrição completa para análise";
+export const JOB_DISCOVERY_THEIRSTACK_NOTE = "Resultados completos para análise";
 export const JOB_DISCOVERY_KEYWORD = "Palavra-chave";
 export const JOB_DISCOVERY_LOCATION = "Localização";
 export const JOB_DISCOVERY_EXPERIENCE = "Experiência";
@@ -21,20 +27,24 @@ export const JOB_DISCOVERY_SEARCH = "Buscar";
 export const JOB_DISCOVERY_LOADING = "Buscando…";
 export const JOB_DISCOVERY_LOAD_MORE = "Carregar mais";
 export const JOB_DISCOVERY_EMPTY = "Nenhuma oportunidade com estes filtros.";
+/** Default badge copy for Jobgether hits (legacy constant used by tests). */
 export const JOB_DISCOVERY_SOURCE = "Fonte: Jobgether";
+export const JOB_DISCOVERY_SOURCE_THEIRSTACK = "Fonte: TheirStack";
 export const JOB_DISCOVERY_VIEW_LISTING = "Ver anúncio no Jobgether";
+export const JOB_DISCOVERY_VIEW_LISTING_GENERIC = "Ver anúncio";
+export const JOB_DISCOVERY_DIRECT_APPLY = "Candidatura direta";
 export const JOB_DISCOVERY_SAVE = "Guardar e analisar";
 export const JOB_DISCOVERY_ADD_DESCRIPTION = "Adicionar descrição e analisar";
 export const JOB_DISCOVERY_DESCRIPTION_LABEL = "Descrição da vaga";
 export const JOB_DISCOVERY_DESCRIPTION_HINT =
-  "Abre o anúncio no Jobgether, copia o texto completo e cola aqui. O ApplyFlow não descarrega a página.";
+  "Abre o anúncio, copia o texto completo e cola aqui. O ApplyFlow não descarrega a página.";
 export const JOB_DISCOVERY_DESCRIPTION_EMPTY = "Cola a descrição da vaga para analisar.";
 export const JOB_DISCOVERY_ANALYZE = "Analisar vaga";
 export const JOB_DISCOVERY_CANCEL = "Cancelar";
 export const JOB_DISCOVERY_SAVED = "Guardada na inbox.";
 export const JOB_DISCOVERY_DUPLICATE = "Esta vaga já está na inbox.";
 export const JOB_DISCOVERY_MISSING_DESCRIPTION =
-  "O Jobgether não enviou a descrição desta vaga. Abre o anúncio, copia o texto e usa Adicionar descrição e analisar.";
+  "A fonte não enviou a descrição desta vaga. Abre o anúncio, copia o texto e usa Adicionar descrição e analisar.";
 export const JOB_DISCOVERY_SAVE_ERROR = "Não foi possível guardar esta vaga.";
 export const JOB_DISCOVERY_ANY = "Qualquer";
 export const JOB_DISCOVERY_PASTE_HEADING = "Colar anúncio";
@@ -45,6 +55,7 @@ export const JOB_DISCOVERY_ERROR_MESSAGES: Record<string, string> = {
   provider_timeout: "A fonte demorou demais. Tenta de novo.",
   provider_rate_limited: "A fonte limitou as consultas. Espera alguns minutos.",
   provider_unavailable: "A fonte está indisponível.",
+  provider_not_configured: "Esta fonte não está disponível neste ambiente.",
   invalid_provider_response: "A fonte devolveu uma resposta que não foi aceite.",
 };
 export const JOB_INBOX_SUBMIT_LABEL = "Avaliar vaga";

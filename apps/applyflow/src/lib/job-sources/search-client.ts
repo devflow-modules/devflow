@@ -2,28 +2,30 @@ import { z } from "zod";
 
 import { parseJobSearchCriteria } from "./criteria";
 import type { JobSearchHit, JobSearchPage, JobSourceErrorCode } from "./types";
-import { JOB_SOURCE_ERROR_CODES } from "./types";
+import { JOB_SOURCE_ERROR_CODES, JOB_SOURCE_IDS } from "./types";
 
 const hitSchema = z
   .object({
     externalId: z.string().min(1),
-    source: z.literal("jobgether"),
+    source: z.enum(JOB_SOURCE_IDS),
     title: z.string().min(1),
     company: z.string().optional(),
     description: z.string().optional(),
     location: z.string().optional(),
     sourceUrl: z.string().min(1),
+    directApplyUrl: z.string().optional(),
     remote: z.string().optional(),
     contractType: z.string().optional(),
     experience: z.string().optional(),
     salaryRange: z.string().optional(),
+    technologies: z.array(z.string()).optional(),
     postedAt: z.string().optional(),
   })
   .strict();
 
 const responseSchema = z
   .object({
-    provider: z.literal("jobgether"),
+    provider: z.enum(JOB_SOURCE_IDS),
     page: z.number().int(),
     limit: z.number().int(),
     hasMore: z.boolean(),
@@ -69,7 +71,7 @@ export async function requestJobSearch(
     ok: true,
     cached: parsed.data.cached,
     page: {
-      provider: "jobgether",
+      provider: parsed.data.provider,
       page: parsed.data.page,
       limit: parsed.data.limit,
       hasMore: parsed.data.hasMore,
