@@ -180,7 +180,7 @@ export function reevaluateApplyFlowJobs(
     if (refreshed !== job) changed = true;
     return refreshed;
   });
-  return changed ? next : [...jobs];
+  return changed ? next : jobs;
 }
 
 export function projectJobForFunnel(job: ApplyFlowJob): ApplyFlowApplication {

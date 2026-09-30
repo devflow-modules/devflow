@@ -6,7 +6,12 @@ import {
   hashJobDescription,
   snapshotJobDescription,
 } from "../job-description-snapshot.js";
-import { createApplyFlowJobId, ingestApplyFlowJob, projectJobForFunnel } from "../ingest-applyflow-job.js";
+import {
+  createApplyFlowJobId,
+  ingestApplyFlowJob,
+  projectJobForFunnel,
+  reevaluateApplyFlowJobs,
+} from "../ingest-applyflow-job.js";
 import { extractJobIntelligence } from "../job-intelligence.js";
 import { evaluateJobMatch } from "../evaluate-job-match.js";
 
@@ -94,6 +99,41 @@ describe("ingestApplyFlowJob", () => {
         evaluateJobMatch(gustavoProfile, { skills: intel.detectedSkills }, { now: NOW }),
       );
     }
+  });
+
+  it("devolve a mesma lista quando a reavaliação não muda nenhuma vaga", () => {
+    const job = ingestApplyFlowJob({
+      description: APPLY_POSTING,
+      source: "paste",
+      profile: gustavoProfile,
+      now: NOW,
+      id: "job_stable",
+    });
+    const jobs = [job];
+    expect(reevaluateApplyFlowJobs(jobs, gustavoProfile, undefined, NOW)).toBe(jobs);
+  });
+
+  it("devolve uma lista nova quando a reavaliação altera pelo menos uma vaga", () => {
+    const job = ingestApplyFlowJob({
+      description: APPLY_POSTING,
+      source: "paste",
+      profile: gustavoProfile,
+      now: NOW,
+      id: "job_changed",
+    });
+    const stale = {
+      ...job,
+      jobMatch: {
+        ...job.jobMatch,
+        score: Math.max(0, job.jobMatch.score - 1),
+      },
+    };
+    const jobs = [stale];
+    const refreshed = reevaluateApplyFlowJobs(jobs, gustavoProfile, undefined, NOW);
+    expect(refreshed).not.toBe(jobs);
+    expect(refreshed).toHaveLength(1);
+    expect(refreshed[0]).not.toBe(stale);
+    expect(refreshed[0]?.jobMatch.score).toBe(job.jobMatch.score);
   });
 
   it("projeta a vaga para o funil atual sem inventar backend", () => {
