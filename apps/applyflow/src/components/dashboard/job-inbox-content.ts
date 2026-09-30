@@ -4,7 +4,49 @@ import type { ApplyFlowBadgeTone } from "@/components/ui/ApplyFlowBadge";
 export const JOB_INBOX_EYEBROW = "AF-JOBS-F1";
 export const JOB_INBOX_TITLE = "Vagas";
 export const JOB_INBOX_DESCRIPTION =
-  "Cola o anúncio completo. A avaliação é local e não envia a candidatura.";
+  "Procura oportunidades ou cola um anúncio. A avaliação é local e não envia a candidatura.";
+export const JOB_DISCOVERY_TITLE = "Procurar oportunidades";
+export const JOB_DISCOVERY_DESCRIPTION =
+  "A busca consulta o Jobgether no servidor. O currículo não sai do browser. Um resultado só entra na inbox quando escolhes guardar.";
+export const JOB_DISCOVERY_KEYWORD = "Palavra-chave";
+export const JOB_DISCOVERY_LOCATION = "Localização";
+export const JOB_DISCOVERY_EXPERIENCE = "Experiência";
+export const JOB_DISCOVERY_REMOTE = "Remoto";
+export const JOB_DISCOVERY_CONTRACT = "Contrato";
+export const JOB_DISCOVERY_SALARY_MIN = "Salário mínimo";
+export const JOB_DISCOVERY_SALARY_MAX = "Salário máximo";
+export const JOB_DISCOVERY_CURRENCY = "Moeda";
+export const JOB_DISCOVERY_SORT = "Ordenação";
+export const JOB_DISCOVERY_SEARCH = "Buscar";
+export const JOB_DISCOVERY_LOADING = "Buscando…";
+export const JOB_DISCOVERY_LOAD_MORE = "Carregar mais";
+export const JOB_DISCOVERY_EMPTY = "Nenhuma oportunidade com estes filtros.";
+export const JOB_DISCOVERY_SOURCE = "Fonte: Jobgether";
+export const JOB_DISCOVERY_VIEW_LISTING = "Ver anúncio no Jobgether";
+export const JOB_DISCOVERY_SAVE = "Guardar e analisar";
+export const JOB_DISCOVERY_ADD_DESCRIPTION = "Adicionar descrição e analisar";
+export const JOB_DISCOVERY_DESCRIPTION_LABEL = "Descrição da vaga";
+export const JOB_DISCOVERY_DESCRIPTION_HINT =
+  "Abre o anúncio no Jobgether, copia o texto completo e cola aqui. O ApplyFlow não descarrega a página.";
+export const JOB_DISCOVERY_DESCRIPTION_EMPTY = "Cola a descrição da vaga para analisar.";
+export const JOB_DISCOVERY_ANALYZE = "Analisar vaga";
+export const JOB_DISCOVERY_CANCEL = "Cancelar";
+export const JOB_DISCOVERY_SAVED = "Guardada na inbox.";
+export const JOB_DISCOVERY_DUPLICATE = "Esta vaga já está na inbox.";
+export const JOB_DISCOVERY_MISSING_DESCRIPTION =
+  "O Jobgether não enviou a descrição desta vaga. Abre o anúncio, copia o texto e usa Adicionar descrição e analisar.";
+export const JOB_DISCOVERY_SAVE_ERROR = "Não foi possível guardar esta vaga.";
+export const JOB_DISCOVERY_ANY = "Qualquer";
+export const JOB_DISCOVERY_PASTE_HEADING = "Colar anúncio";
+
+export const JOB_DISCOVERY_ERROR_MESSAGES: Record<string, string> = {
+  invalid_criteria: "Ajusta os filtros e tenta de novo.",
+  provider_rejected: "A fonte recusou estes filtros.",
+  provider_timeout: "A fonte demorou demais. Tenta de novo.",
+  provider_rate_limited: "A fonte limitou as consultas. Espera alguns minutos.",
+  provider_unavailable: "A fonte está indisponível.",
+  invalid_provider_response: "A fonte devolveu uma resposta que não foi aceite.",
+};
 export const JOB_INBOX_SUBMIT_LABEL = "Avaliar vaga";
 export const JOB_INBOX_NEEDS_RESUME =
   "Job Match precisa de um currículo válido. Cadastra um perfil ou importa JSON primeiro.";

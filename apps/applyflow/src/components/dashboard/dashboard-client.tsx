@@ -11,7 +11,7 @@ import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
 import Link from "next/link";
 
 import { JobInboxPanel } from "@/components/dashboard/job-inbox-panel";
-import { JOB_INBOX_NEEDS_RESUME } from "@/components/dashboard/job-inbox-content";
+import { JOB_INBOX_NEEDS_RESUME, JOB_DISCOVERY_MISSING_DESCRIPTION, JOB_DISCOVERY_SAVE_ERROR } from "@/components/dashboard/job-inbox-content";
 import { ResumeLibraryPanel } from "@/components/dashboard/resume-library-panel";
 import { DashboardJobUrlCell } from "@/components/dashboard/dashboard-job-url-cell";
 import { InboundApplicationResponsePanel } from "@/components/dashboard/inbound-application-response-panel";
@@ -43,6 +43,8 @@ import {
   ResumeLibraryRecoveryBanner,
 } from "@/components/dashboard/dashboard-storage-recovery";
 import { resolveInboxMatchProfile } from "@/lib/resolve-inbox-match-profile";
+import { ingestDiscoveredJobHit } from "@/lib/job-sources/save-hit";
+import type { DiscoveredJobSaveStatus, JobSearchHit } from "@/lib/job-sources/types";
 import {
   APPLYFLOW_APPLICATION_STATUS_LABELS_PT,
   applyDashboardTableFilters,
@@ -671,6 +673,53 @@ export function DashboardClient({
     [commitJobs, matchProfile, usesCloudPersistence, writeCapability],
   );
 
+  const onSaveDiscoveredJob = useCallback(
+    async (hit: JobSearchHit): Promise<DiscoveredJobSaveStatus> => {
+      const profile = matchProfile();
+      if (!profile) {
+        setJobInboxError(JOB_INBOX_NEEDS_RESUME);
+        return "needs_resume";
+      }
+      const prepared = ingestDiscoveredJobHit(hit, {
+        profile,
+        resumeLibrary: resumeLibraryRef.current ?? undefined,
+      });
+      if (!prepared.ok) {
+        if (prepared.reason === "missing_description") {
+          setJobInboxError(JOB_DISCOVERY_MISSING_DESCRIPTION);
+          return "missing_description";
+        }
+        setJobInboxError(JOB_DISCOVERY_SAVE_ERROR);
+        return "error";
+      }
+      const job = prepared.job;
+      if (findJobByCanonicalUrl(jobsRef.current, job.url) || mergeApplyFlowJobs(jobsRef.current, [job]).added === 0) {
+        setJobInboxError(null);
+        return "duplicate";
+      }
+      if (usesCloudPersistence) {
+        const persistence = persistenceRef.current;
+        if (!persistence) return "error";
+        if (writeCapability === "read_only") {
+          setJobInboxError(V2_READ_ONLY_BLOCKED);
+          return "error";
+        }
+        const created = await persistence.createJob(job);
+        if (!created.ok) {
+          setJobInboxError(dashboardPersistenceFailureMessage(created.code));
+          return created.code === "job_already_exists" ? "duplicate" : "error";
+        }
+        setJobs((prev) => [...prev.filter((item) => item.id !== created.data.id), created.data]);
+        setJobInboxError(null);
+        return "added";
+      }
+      const merged = commitJobs([job]);
+      if (merged.added === 0) return "duplicate";
+      return "added";
+    },
+    [commitJobs, matchProfile, usesCloudPersistence, writeCapability],
+  );
+
   const replaceJob = useCallback((next: ApplyFlowJob) => {
     if (usesCloudPersistence) {
       const persistence = persistenceRef.current;
@@ -1148,6 +1197,7 @@ export function DashboardClient({
         matchAvailable={Boolean(resumeLibrary)}
         resumeLibrary={resumeLibrary}
         onEvaluatePaste={onEvaluatePaste}
+        onSaveDiscoveredJob={onSaveDiscoveredJob}
         onCreateApplicationPack={onCreateApplicationPack}
         onTogglePackChecklist={onTogglePackChecklist}
         onMarkJobApplied={onMarkJobApplied}

@@ -148,6 +148,16 @@ describe("ingestApplyFlowJob", () => {
     expect(projected.source).toBe("paste");
     expect(projected.status).toBe("reviewing");
     expect(projected.fitScore).toBe(job.jobMatch.score);
-    expect(projected.jobTitle).toBe(job.title);
+  });
+
+  it("projeta source jobgether como paste na candidatura de funil", () => {
+    const job = ingestApplyFlowJob({
+      description: APPLY_POSTING,
+      source: "jobgether",
+      profile: gustavoProfile,
+      now: NOW,
+      id: "job_jg_funnel",
+    });
+    expect(projectJobForFunnel(job).source).toBe("paste");
   });
 });

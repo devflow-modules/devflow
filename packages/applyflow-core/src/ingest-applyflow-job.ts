@@ -1,4 +1,5 @@
 import type { ApplyFlowApplication } from "./application-types.js";
+import { applicationSourceFromJob } from "./application-identity.js";
 import { recommendCurriculum } from "./curriculum-router.js";
 import type { CandidateProfile } from "./profile-schema.js";
 import { extractJobIntelligence } from "./job-intelligence.js";
@@ -188,7 +189,7 @@ export function projectJobForFunnel(job: ApplyFlowJob): ApplyFlowApplication {
     id: job.id,
     createdAt: job.createdAt,
     updatedAt: job.updatedAt,
-    source: job.source,
+    source: applicationSourceFromJob(job),
     status: job.status,
     jobTitle: job.title,
     companyName: job.company,

@@ -28,6 +28,7 @@ import {
   CURRICULUM_ROUTER_EQUIVALENT_HINT,
   CURRICULUM_ROUTER_NOT_AN_ACTION,
   CURRICULUM_ROUTER_SKIP_HINT,
+  JOB_DISCOVERY_PASTE_HEADING,
   JOB_INBOX_COMPANY_LABEL,
   JOB_INBOX_DESCRIPTION,
   JOB_INBOX_EVALUATED_WITH_PREFIX,
@@ -81,6 +82,8 @@ import {
   nextInboxDraftAfterEvaluate,
   type InboxEvaluateStatus,
 } from "@/components/dashboard/job-inbox-evaluate";
+import { JobDiscoveryPanel } from "@/components/dashboard/job-discovery-panel";
+import type { DiscoveredJobSaveStatus, JobSearchHit } from "@/lib/job-sources/types";
 
 const fieldClass = cn(
   "w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)]",
@@ -561,6 +564,7 @@ export function JobInboxPanel({
   evaluatedWithName,
   matchAvailable = true,
   onEvaluatePaste,
+  onSaveDiscoveredJob,
   resumeLibrary = null,
   onCreateApplicationPack,
   onTogglePackChecklist,
@@ -578,6 +582,7 @@ export function JobInboxPanel({
     company: string;
     url: string;
   }) => InboxEvaluateStatus | void | Promise<InboxEvaluateStatus | void>;
+  onSaveDiscoveredJob?: (hit: JobSearchHit) => Promise<DiscoveredJobSaveStatus>;
   resumeLibrary?: ResumeLibrary | null;
   onCreateApplicationPack?: (jobId: string, variantId?: string) => void;
   onTogglePackChecklist?: (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => void;
@@ -597,6 +602,8 @@ export function JobInboxPanel({
       title={JOB_INBOX_TITLE}
       description={JOB_INBOX_DESCRIPTION}
     >
+      <JobDiscoveryPanel matchAvailable={matchAvailable} onSave={onSaveDiscoveredJob} />
+      <h3 className="mb-3 text-base font-semibold text-[color:var(--af-text)]">{JOB_DISCOVERY_PASTE_HEADING}</h3>
       <form
         className="grid gap-3"
         onSubmit={(event) => {

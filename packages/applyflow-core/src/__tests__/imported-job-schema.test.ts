@@ -90,6 +90,24 @@ describe("parseApplyFlowJobsImport", () => {
 });
 
 describe("parseStoredApplyFlowJob", () => {
+  it("aceita source jobgether no roundtrip sem recalcular o match", () => {
+    const stored = ingestApplyFlowJob({
+      description: "Remote senior role. React, TypeScript, Node.js and PostgreSQL.",
+      source: "jobgether",
+      title: "Senior Full Stack Engineer",
+      company: "Example",
+      url: "https://jobgether.com/offer/example-role",
+      profile,
+      now: NOW,
+      id: "job_jg_example",
+    });
+    const parsed = parseStoredApplyFlowJob(stored);
+    expect(parsed?.source).toBe("jobgether");
+    expect(parsed?.id).toBe("job_jg_example");
+    expect(parsed?.url).toBe("https://jobgether.com/offer/example-role");
+    expect(parsed?.jobMatch.score).toBe(stored.jobMatch.score);
+  });
+
   it("hidrata um ApplyFlowJob válido", () => {
     const stored = ingestApplyFlowJob({
       description: "React TypeScript Node.js Next.js",
