@@ -350,6 +350,10 @@ export function DashboardClient({
         setActivationPendingNotice(false);
         setEmptyActivationEligible(false);
         setActivationError(null);
+        // Candidate profile / resume library remain browser-local in V2 cloud.
+        const storedLibrary = hydrateResumeLibraryState();
+        setResumeLibrary(storedLibrary.library);
+        setResumeLibraryStatus(storedLibrary.status);
         setHydrated(true);
         return;
       }
@@ -861,11 +865,6 @@ export function DashboardClient({
   );
 
   const processJsonText = useCallback((text: string) => {
-    if (usesCloudPersistence) {
-      setImportError(V2_LOCAL_IMPORT_BLOCKED);
-      setImportFeedback(null);
-      return;
-    }
     setImportError(null);
     const r = parseApplyFlowDashboardImportJsonString(text, {
       profile: matchProfile() ?? undefined,
@@ -876,28 +875,8 @@ export function DashboardClient({
       setImportFeedback(null);
       return;
     }
-    if (r.kind === "career-bundle-v2") {
-      if (r.bundle.jobs.length) commitJobs(r.bundle.jobs);
-      if (r.bundle.applications.length) {
-        const applications = r.bundle.applications.map(stripApplicationV2Meta);
-        setApplications(applications);
-        persistDashboardImport(applications);
-      }
-      persistDashboardContacts(r.bundle.contacts, r.bundle.interactions);
-      persistDashboardAnalytics(r.bundle.outcomes ?? [], r.bundle.events ?? [], r.bundle.efforts ?? []);
-      setImportFeedback({
-        loaded: r.bundle.applications.length || r.bundle.jobs.length || r.bundle.contacts.length,
-        ignored: 0,
-        kind: "import",
-      });
-      setImportError(null);
-      return;
-    }
-    if (r.kind === "jobs") {
-      commitJobs(r.result.jobs);
-      setImportError(null);
-      return;
-    }
+
+    // Resume profile/library stay local even when Jobs/Applications are V2 cloud.
     if (r.kind === "resume-library") {
       commitResumeLibrary(r.library);
       setImportFeedback({ loaded: r.library.variants.length, ignored: 0, kind: "import" });
@@ -923,6 +902,35 @@ export function DashboardClient({
       }
       commitResumeLibrary(added.library);
       setImportFeedback({ loaded: 1, ignored: 0, kind: "import" });
+      setImportError(null);
+      return;
+    }
+
+    if (usesCloudPersistence) {
+      setImportError(V2_LOCAL_IMPORT_BLOCKED);
+      setImportFeedback(null);
+      return;
+    }
+
+    if (r.kind === "career-bundle-v2") {
+      if (r.bundle.jobs.length) commitJobs(r.bundle.jobs);
+      if (r.bundle.applications.length) {
+        const applications = r.bundle.applications.map(stripApplicationV2Meta);
+        setApplications(applications);
+        persistDashboardImport(applications);
+      }
+      persistDashboardContacts(r.bundle.contacts, r.bundle.interactions);
+      persistDashboardAnalytics(r.bundle.outcomes ?? [], r.bundle.events ?? [], r.bundle.efforts ?? []);
+      setImportFeedback({
+        loaded: r.bundle.applications.length || r.bundle.jobs.length || r.bundle.contacts.length,
+        ignored: 0,
+        kind: "import",
+      });
+      setImportError(null);
+      return;
+    }
+    if (r.kind === "jobs") {
+      commitJobs(r.result.jobs);
       setImportError(null);
       return;
     }

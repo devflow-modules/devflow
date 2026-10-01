@@ -55,6 +55,21 @@ export type ApplyFlowDashboardPersistence = {
   replaceApplications(
     applications: readonly ApplyFlowApplicationV2Envelope[],
   ): Promise<DashboardPersistenceResult<ApplyFlowApplicationV2Envelope[]>>;
+  /**
+   * Optional atomic Application + linked Job lifecycle transition (V2 cloud).
+   * When present, prefer over separate updateApplication + updateJob.
+   */
+  transitionApplicationLifecycle?(input: {
+    application: ApplyFlowApplicationV2Envelope;
+    status: ApplyFlowApplicationV2Envelope["status"];
+    notes?: string;
+  }): Promise<
+    DashboardPersistenceResult<{
+      application: ApplyFlowApplicationV2Envelope;
+      job: ApplyFlowJob | null;
+      jobSynced: boolean;
+    }>
+  >;
 };
 
 export type MigrationMarker = {

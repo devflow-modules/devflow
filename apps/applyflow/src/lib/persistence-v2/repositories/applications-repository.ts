@@ -5,7 +5,7 @@ import type {
   ApplyFlowApplication,
   ApplyFlowApplicationCreateInput,
   ApplyFlowApplicationUpdateInput,
-  ApplyFlowPersistenceDb,
+  ApplyFlowPersistenceTx,
   OptimisticUpdateResult,
 } from "./types";
 
@@ -30,7 +30,7 @@ function jsonOrDbNull(
 }
 
 export function createApplyFlowApplicationRepository(
-  db: ApplyFlowPersistenceDb = applyflowPrisma,
+  db: ApplyFlowPersistenceTx = applyflowPrisma as unknown as ApplyFlowPersistenceTx,
 ) {
   return {
     async create(input: ApplyFlowApplicationCreateInput): Promise<ApplyFlowApplication> {

@@ -6,6 +6,7 @@ import type {
   ApplyFlowJobCreateInput,
   ApplyFlowJobUpdateInput,
   ApplyFlowPersistenceDb,
+  ApplyFlowPersistenceTx,
   OptimisticUpdateResult,
 } from "./types";
 
@@ -29,7 +30,9 @@ function jsonOrDbNull(
   return value;
 }
 
-export function createApplyFlowJobRepository(db: ApplyFlowPersistenceDb = applyflowPrisma) {
+export function createApplyFlowJobRepository(
+  db: ApplyFlowPersistenceTx = applyflowPrisma as unknown as ApplyFlowPersistenceTx,
+) {
   return {
     async create(input: ApplyFlowJobCreateInput): Promise<ApplyFlowJob> {
       const accountId = requireAccountId(input.accountId);
@@ -178,7 +181,8 @@ export function createApplyFlowJobRepository(db: ApplyFlowPersistenceDb = applyf
      */
     async deleteById(accountId: string, id: string): Promise<{ deleted: boolean; unlinkedApplications: number }> {
       const scopedAccountId = requireAccountId(accountId);
-      return db.$transaction(async (tx) => {
+      const fullDb = db as ApplyFlowPersistenceDb;
+      return fullDb.$transaction(async (tx) => {
         const existing = await tx.applyFlowJob.findUnique({
           where: { accountId_id: { accountId: scopedAccountId, id } },
         });

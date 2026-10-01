@@ -223,4 +223,31 @@ describe("transitionCloudApplicationLifecycle", () => {
       expect(result.job?.status).toBe(jobStatus);
     }
   });
+
+  it("prefers atomic transitionApplicationLifecycle when available", async () => {
+    const transitionApplicationLifecycle = vi.fn(async () => ({
+      ok: true as const,
+      data: {
+        application: application({ status: "interview" }),
+        job: job({ status: "interview" }),
+        jobSynced: true,
+      },
+    }));
+    const updateApplication = vi.fn();
+    const updateJob = vi.fn();
+    const result = await transitionCloudApplicationLifecycle({
+      persistence: {
+        ...persistenceMock({ updateApplication, updateJob }),
+        transitionApplicationLifecycle,
+      },
+      application: application(),
+      linkedJob: job(),
+      toStatus: "screening",
+      now: NOW,
+    });
+    expect(result.ok).toBe(true);
+    expect(transitionApplicationLifecycle).toHaveBeenCalledTimes(1);
+    expect(updateApplication).not.toHaveBeenCalled();
+    expect(updateJob).not.toHaveBeenCalled();
+  });
 });

@@ -293,6 +293,43 @@ export function createV2DashboardPersistence(fetchImpl: FetchLike = fetch): Appl
       const row = patched.body as ApplicationResponse;
       return { ok: true, data: rememberApplication(row, applicationFromResponse(row)) };
     },
+    async transitionApplicationLifecycle(input) {
+      const version = await currentApplicationVersion(input.application.id);
+      if (typeof version !== "number") return failure(version);
+      const transitioned = await send(
+        `${APPLICATIONS_PATH}/${encodeURIComponent(input.application.id)}/lifecycle`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            expectedVersion: version,
+            status: input.status,
+            ...(input.notes ? { notes: input.notes } : {}),
+          }),
+        },
+      );
+      if (!transitioned.ok) return transitioned;
+      const body = transitioned.body as {
+        application?: ApplicationResponse;
+        job?: JobResponse | null;
+        jobSynced?: boolean;
+      };
+      if (!body.application) return failure("server");
+      const application = rememberApplication(body.application, applicationFromResponse(body.application));
+      let job: ApplyFlowJob | null = null;
+      if (body.job) {
+        const parsed = jobFromResponse(body.job);
+        if (!parsed) return failure("server");
+        job = rememberJob(body.job, parsed);
+      }
+      return {
+        ok: true,
+        data: {
+          application,
+          job,
+          jobSynced: Boolean(body.jobSynced),
+        },
+      };
+    },
     async replaceApplications() {
       return failure("unsupported_in_v2");
     },

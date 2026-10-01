@@ -24,5 +24,6 @@ export function createReadOnlyV2DashboardPersistence(
     createApplication: async () => readOnlyDeny(),
     updateApplication: async () => readOnlyDeny(),
     replaceApplications: async () => readOnlyDeny(),
+    transitionApplicationLifecycle: async () => readOnlyDeny(),
   };
 }

@@ -1,3 +1,4 @@
+import { enforceSameOriginMutatingRequest } from "@/lib/http/same-origin-guard";
 import { parseJobPatchRequest } from "@/lib/persistence-v2/jobs/job-dto";
 import { jobJson, readJsonBody, withApplyFlowJobsAccount } from "@/lib/persistence-v2/jobs/job-http";
 import { applyFlowJobService } from "@/lib/persistence-v2/jobs/job-service";
@@ -19,6 +20,9 @@ export async function GET(_request: Request, context: JobRouteContext) {
 }
 
 export async function PATCH(request: Request, context: JobRouteContext) {
+  const originBlock = enforceSameOriginMutatingRequest(request);
+  if (originBlock) return originBlock;
+
   return withApplyFlowJobsAccount("write", async (account) => {
     // Concurrency token is body.expectedVersion — never HTTP If-Match (Vercel 412 risk).
     const { expectedVersion, patch } = parseJobPatchRequest(await readJsonBody(request));

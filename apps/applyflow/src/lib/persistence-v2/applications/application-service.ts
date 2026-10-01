@@ -8,20 +8,32 @@ import {
 } from "@devflow/applyflow-core";
 import type { Prisma } from "@prisma/client";
 
+import { applyflowPrisma } from "../db";
 import {
   applyFlowApplicationRepository,
   applyFlowJobRepository,
+  createApplyFlowApplicationRepository,
+  createApplyFlowJobRepository,
   type ApplyFlowApplicationCreateInput,
   type ApplyFlowApplicationRepository,
   type ApplyFlowApplicationUpdateInput,
   type ApplyFlowJobRepository,
+  type ApplyFlowPersistenceDb,
 } from "../repositories";
+import { toJobResponse } from "../jobs/job-service";
+import type { JobResponse } from "../jobs/job-dto";
 import type { ApplicationResponse, CreateApplicationBody, PatchApplicationBody } from "./application-dto";
 import { ApplyFlowApplicationServiceError } from "./application-errors";
 import {
   classifyApplicationUniqueViolation,
   isUniqueViolation,
 } from "./application-unique-violation";
+
+export type ApplicationLifecycleTransitionResult = {
+  application: ApplicationResponse;
+  job: JobResponse | null;
+  jobSynced: boolean;
+};
 
 type ApplicationRecord = Awaited<ReturnType<ApplyFlowApplicationRepository["create"]>>;
 
@@ -126,6 +138,7 @@ function compareApplications(left: ApplicationRecord, right: ApplicationRecord):
 export function createApplyFlowApplicationService(
   applications: ApplyFlowApplicationRepository = applyFlowApplicationRepository,
   jobs: ApplyFlowJobRepository = applyFlowJobRepository,
+  db: ApplyFlowPersistenceDb = applyflowPrisma as unknown as ApplyFlowPersistenceDb,
 ) {
   return {
     /**
@@ -278,6 +291,95 @@ export function createApplyFlowApplicationService(
         throw new ApplyFlowApplicationServiceError(result.reason === "conflict" ? "version_conflict" : "not_found");
       }
       return toApplicationResponse(result.record);
+    },
+
+    /**
+     * Atomic Application status transition + linked Job status sync (same tenant).
+     * Uses Prisma $transaction so partial Job sync cannot leave a false "full success".
+     * Missing / foreign-tenant linked Job → Application commits, jobSynced=false.
+     */
+    async transitionLifecycle(
+      accountId: string,
+      id: string,
+      expectedVersion: number,
+      body: Pick<PatchApplicationBody, "status" | "notes">,
+      now = new Date(),
+    ): Promise<ApplicationLifecycleTransitionResult> {
+      if (body.status == null) {
+        throw new ApplyFlowApplicationServiceError("invalid_payload");
+      }
+
+      return db.$transaction(async (tx) => {
+        const txApps = createApplyFlowApplicationRepository(tx);
+        const txJobs = createApplyFlowJobRepository(tx);
+
+        const current = await txApps.findById(accountId, id);
+        if (!current) throw new ApplyFlowApplicationServiceError("not_found");
+
+        const nextStatus = body.status as ApplyFlowApplicationStatus;
+        assertStatusTransition(current.status as ApplyFlowApplicationStatus, nextStatus);
+
+        const patch: ApplyFlowApplicationUpdateInput = { status: nextStatus };
+        if (body.notes !== undefined) patch.notes = optionalText(body.notes);
+
+        const appliedAt = resolvePatchAppliedAt(
+          nextStatus,
+          undefined,
+          current.appliedAt,
+          nextStatus === "applied" && current.status !== "applied" && current.appliedAt == null,
+          now,
+        );
+        if (appliedAt !== undefined) patch.appliedAt = appliedAt;
+
+        const appResult = await txApps.updateWithVersion(accountId, id, expectedVersion, patch);
+        if (!appResult.ok) {
+          throw new ApplyFlowApplicationServiceError(
+            appResult.reason === "conflict" ? "version_conflict" : "not_found",
+          );
+        }
+
+        const sourceJobId = appResult.record.sourceJobId;
+        if (!sourceJobId) {
+          return {
+            application: toApplicationResponse(appResult.record),
+            job: null,
+            jobSynced: false,
+          };
+        }
+
+        const linked = await txJobs.findById(accountId, sourceJobId);
+        if (!linked) {
+          return {
+            application: toApplicationResponse(appResult.record),
+            job: null,
+            jobSynced: false,
+          };
+        }
+
+        if (linked.status === nextStatus) {
+          return {
+            application: toApplicationResponse(appResult.record),
+            job: toJobResponse(linked),
+            jobSynced: false,
+          };
+        }
+
+        const jobResult = await txJobs.updateWithVersion(accountId, linked.id, linked.version, {
+          status: nextStatus,
+        });
+        if (!jobResult.ok) {
+          // Surface as conflict so the whole transaction rolls back — no false success.
+          throw new ApplyFlowApplicationServiceError(
+            jobResult.reason === "conflict" ? "version_conflict" : "not_found",
+          );
+        }
+
+        return {
+          application: toApplicationResponse(appResult.record),
+          job: toJobResponse(jobResult.record),
+          jobSynced: true,
+        };
+      });
     },
   };
 }

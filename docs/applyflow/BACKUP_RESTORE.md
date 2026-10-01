@@ -70,18 +70,45 @@ Validate at least:
 - unique index `applyflow_applications_account_id_source_job_id_uidx` after migrate
 - row counts / checksums for known pilot fixtures
 
-## Closed-beta cadence (recommended)
+## Closed-beta cadence (10–50 invite-only)
+
+**Owned by operator** (manual is acceptable for this cohort):
 
 1. Backup **before** any schema/deploy change on the V2 pilot DB
-2. Daily logical dump while multi-user cloud pilot is active
-3. Store dumps **outside** git; record SHA-256
+2. **Daily** logical dump while multi-user cloud pilot is active
+3. Retention: keep at least **7 daily** dumps while beta is active
+4. Store dumps **outside** git; record SHA-256 + UTC timestamp
+5. Re-run restore drill after tooling/Postgres client changes
 
-No automated cron is required in Phase 9C if operators follow this cadence.
+No automated cron is required in Phase 9D if operators follow this cadence.
 
-## Managed backup / PITR
+### GO / NO-GO for 10–50 beta
 
-Supabase Free does **not** imply PITR. Continuous managed backups:
+One of the following must be true:
 
-**Operator verification required** — cannot be proven from the repository alone.
+**A.** Managed backup / PITR verified by operator (checklist below)
 
-Public/paid production needs stronger assurance than this closed-beta drill.
+**OR**
+
+**B.** This recurring manual backup process is accepted and executable  
+**AND** restore procedure has been proven (`pnpm backup:drill` or equivalent)
+
+Phase 9C proved restore mechanics locally. Phase 9D requires operational ownership.
+
+## Managed backup / PITR — operator checklist
+
+Repository alone **cannot** prove managed PITR. Operator must verify on the hosting console:
+
+- [ ] Managed automatic backups enabled for the pilot Postgres
+- [ ] Retention window recorded (dates)
+- [ ] PITR / point-in-time available? (yes/no + earliest restore point)
+- [ ] Verification date/time (UTC) and verifier name
+- [ ] Restore target process documented (new instance vs overwrite — prefer new)
+
+No credentials in this document.
+
+If hosting connector is unavailable: treat as **not verified** and rely on path **B**.
+
+## Public / paid SaaS
+
+Stronger automation (scheduled managed backups + verified PITR + alerting) is required before public/paid production. Deferred.

@@ -156,6 +156,28 @@ jobs:
           CI: "1"
         run: pnpm test:e2e
 
+      - name: ApplyFlow V2 cloud E2E
+        working-directory: apps/applyflow
+        env:
+          APPLYFLOW_E2E: "1"
+          APPLYFLOW_E2E_SECRET: applyflow-e2e-ci-only-secret
+          APPLYFLOW_E2E_PROVIDER_FIXTURES: "1"
+          APPLYFLOW_E2E_IGNORE_SUPABASE: "1"
+          APPLYFLOW_PERSISTENCE_V2: "true"
+          APPLYFLOW_THEIRSTACK_ENABLED: "false"
+          APPLYFLOW_DB_TARGET: "local"
+          NEXT_PUBLIC_APPLYFLOW_URL: "http://127.0.0.1:3012"
+          CI: "1"
+        run: pnpm test:e2e:v2
+
+      - name: ApplyFlow closed-beta check
+        working-directory: apps/applyflow
+        env:
+          APPLYFLOW_PERSISTENCE_V2: "true"
+          APPLYFLOW_THEIRSTACK_ENABLED: "false"
+          NEXT_PUBLIC_APPLYFLOW_URL: "http://127.0.0.1:3012"
+        run: pnpm beta:check
+
   test-whatsapp:
     runs-on: ubuntu-latest
     timeout-minutes: 15

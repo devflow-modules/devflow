@@ -38,6 +38,8 @@ const BLOCKED_MESSAGE_FRAGMENTS = [
   "resume",
   "curriculum",
   "cv text",
+  "database_url",
+  "application notes",
 ] as const;
 
 let sink: Sink | null = null;
@@ -78,7 +80,15 @@ function sanitizeMessage(message: string): string {
 
 function isExpectedProductStatus(statusCode: number | undefined): boolean {
   if (statusCode == null) return false;
-  return statusCode === 400 || statusCode === 401 || statusCode === 403 || statusCode === 404 || statusCode === 409 || statusCode === 429;
+  return (
+    statusCode === 400 ||
+    statusCode === 401 ||
+    statusCode === 403 ||
+    statusCode === 404 ||
+    statusCode === 409 ||
+    statusCode === 422 ||
+    statusCode === 429
+  );
 }
 
 /**

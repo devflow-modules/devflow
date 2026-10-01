@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { enforceSameOriginMutatingRequest } from "@/lib/http/same-origin-guard";
 import { parseMigrationImportBody } from "@/lib/persistence-v2/migration/migration-dto";
 import {
   migrationErrorResponse,
@@ -9,6 +10,9 @@ import {
 import { applyFlowMigrationService } from "@/lib/persistence-v2/migration/migration-service";
 
 export async function POST(request: Request) {
+  const originBlock = enforceSameOriginMutatingRequest(request);
+  if (originBlock) return originBlock;
+
   return withApplyFlowMigrationAccount("migration", async (account) => {
     try {
       const body = parseMigrationImportBody(await readMigrationJsonBody(request));

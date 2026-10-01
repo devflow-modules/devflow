@@ -8,7 +8,7 @@
     "db:generate": "prisma generate",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
-    "db:migrate": "node ./scripts/persistence-v2/run-prisma.cjs migrate deploy",
+    "db:migrate": "node ./scripts/persistence-v2/run-prisma.cjs --force-local migrate deploy",
     "db:status": "node ./scripts/persistence-v2/run-prisma.cjs migrate status",
     "db:audit": "node scripts/persistence-v2/f3-5-env-audit.mjs",
     "pilot:status": "tsx ./scripts/persistence-v2/pilot-cli.ts status",
@@ -18,6 +18,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:e2e": "playwright test -c playwright.config.cjs",
+    "test:e2e:v2": "playwright test -c playwright.v2.config.cjs",
+    "beta:check": "node ./scripts/persistence-v2/beta-check.cjs",
     "backup:drill": "node ./scripts/persistence-v2/backup-restore-drill.cjs"
   },
   "dependencies": {

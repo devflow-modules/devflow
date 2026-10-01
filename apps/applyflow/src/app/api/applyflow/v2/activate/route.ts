@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { enforceSameOriginMutatingRequest } from "@/lib/http/same-origin-guard";
 import {
   applyFlowAuthErrorResponse,
   applyFlowV2HttpAccessErrorResponse,
@@ -44,6 +45,9 @@ function activationErrorResponse(error: unknown): NextResponse {
  * Does NOT accept client canonicalPersistence. Does NOT activate via normal CRUD.
  */
 export async function POST(request: Request) {
+  const originBlock = enforceSameOriginMutatingRequest(request);
+  if (originBlock) return originBlock;
+
   return withApplyFlowV2HttpAccess(
     "activation",
     async (account) => {

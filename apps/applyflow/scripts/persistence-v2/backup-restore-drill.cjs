@@ -52,9 +52,9 @@ function run(cmd, args, env, options = {}) {
 }
 
 function main() {
+  // Prefer explicit local override; never use remote DATABASE_URL from .env.local.
   const sourceUrl =
     process.env.APPLYFLOW_BACKUP_SOURCE_URL ||
-    process.env.DATABASE_URL ||
     "postgresql://applyflow:applyflow_local_dev@127.0.0.1:5434/applyflow";
   const restoreDbName = process.env.APPLYFLOW_BACKUP_RESTORE_DB || "applyflow_restore_drill";
 

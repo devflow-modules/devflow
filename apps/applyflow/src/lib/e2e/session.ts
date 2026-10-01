@@ -6,10 +6,17 @@ import { assertE2ESecretMatches, isApplyFlowE2ERuntimeAllowed } from "./runtime-
 export const APPLYFLOW_E2E_SESSION_COOKIE = "af_e2e_session";
 export const APPLYFLOW_E2E_AUTH_SUB = "e2e_applyflow_auth_sub";
 
+/** Allowed E2E auth subjects: fixed default or e2e_applyflow_<slug>. */
+const E2E_AUTH_SUB_RE = /^e2e_applyflow_[a-z0-9_]{1,48}$/;
+
 type E2ESessionPayload = {
   sub: string;
   exp: number;
 };
+
+export function isAllowedE2EAuthSub(sub: string): boolean {
+  return sub === APPLYFLOW_E2E_AUTH_SUB || E2E_AUTH_SUB_RE.test(sub);
+}
 
 function signPayload(payload: E2ESessionPayload, secret: string): string {
   const body = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
@@ -29,6 +36,7 @@ function verifySigned(token: string, secret: string): E2ESessionPayload | null {
   try {
     const parsed = JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as E2ESessionPayload;
     if (!parsed?.sub || typeof parsed.exp !== "number") return null;
+    if (!isAllowedE2EAuthSub(parsed.sub)) return null;
     if (Date.now() > parsed.exp) return null;
     return parsed;
   } catch {
@@ -36,12 +44,16 @@ function verifySigned(token: string, secret: string): E2ESessionPayload | null {
   }
 }
 
-export function createE2ESessionToken(env: NodeJS.ProcessEnv = process.env): string | null {
+export function createE2ESessionToken(
+  env: NodeJS.ProcessEnv = process.env,
+  authSub: string = APPLYFLOW_E2E_AUTH_SUB,
+): string | null {
   if (!isApplyFlowE2ERuntimeAllowed(env)) return null;
+  if (!isAllowedE2EAuthSub(authSub)) return null;
   const secret = env.APPLYFLOW_E2E_SECRET?.trim();
   if (!secret) return null;
   return signPayload(
-    { sub: APPLYFLOW_E2E_AUTH_SUB, exp: Date.now() + 60 * 60 * 1000 },
+    { sub: authSub, exp: Date.now() + 60 * 60 * 1000 },
     secret,
   );
 }

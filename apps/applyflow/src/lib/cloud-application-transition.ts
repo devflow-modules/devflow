@@ -48,7 +48,11 @@ export type CloudApplicationLifecycleInput = {
  * Cloud/V2 Application lifecycle transition with domain parity to local:
  * validate → persist Application → sync linked Job via sourceJobId.
  *
- * Does not fabricate career events. Partial Job sync failure is reported honestly.
+ * When persistence exposes `transitionApplicationLifecycle`, both writes run
+ * in one server-side Postgres transaction (no false full success).
+ * Otherwise falls back to two-step persistence with honest partial failure.
+ *
+ * Does not fabricate career events.
  */
 export async function transitionCloudApplicationLifecycle(
   input: CloudApplicationLifecycleInput,
@@ -77,6 +81,30 @@ export async function transitionCloudApplicationLifecycle(
   }
 
   const nextV1 = fromPipelineStatusV2(toStatus);
+
+  if (typeof input.persistence.transitionApplicationLifecycle === "function") {
+    const atomic = await input.persistence.transitionApplicationLifecycle({
+      application: input.application,
+      status: nextV1,
+      ...(input.notes ? { notes: input.notes } : {}),
+    });
+    if (!atomic.ok) {
+      return {
+        ok: false,
+        reason: "application_update_failed",
+        code: atomic.code,
+        fromStatus,
+        toStatus,
+      };
+    }
+    return {
+      ok: true,
+      application: atomic.data.application,
+      job: atomic.data.job,
+      jobSynced: atomic.data.jobSynced,
+    };
+  }
+
   const appResult: DashboardPersistenceResult<ApplyFlowApplicationV2Envelope> =
     await input.persistence.updateApplication({
       ...input.application,
