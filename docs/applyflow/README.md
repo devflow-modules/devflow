@@ -11,6 +11,9 @@ Authoritative docs for the ApplyFlow product in this monorepo.
 | Document | Purpose |
 |----------|---------|
 | [`../apps/applyflow/README.md`](../../apps/applyflow/README.md) | Project entry (3–5 minutes) |
+| [`CASE_STUDY.md`](./CASE_STUDY.md) | Portfolio case study (~6 min) |
+| [`DEMO_SCRIPT.md`](./DEMO_SCRIPT.md) | ~3 minute demo script |
+| [`assets/README.md`](./assets/README.md) | Screenshots + architecture diagram |
 | [`PRODUCT_FLOW.md`](./PRODUCT_FLOW.md) | Discovery → lifecycle semantics |
 | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | System design, local-first vs V2 |
 | [`JOB_DISCOVERY.md`](./JOB_DISCOVERY.md) | Providers, Match Engine, queue, readiness |

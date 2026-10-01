@@ -2,9 +2,11 @@
 
 Local-first career workflow for discovering opportunities, evaluating fit, prioritizing jobs, preparing applications, and tracking their lifecycle — with optional authenticated V2 cloud persistence for invite-only closed beta.
 
-**Release status:** invite-only **10–50 user closed beta** (V2 pilot-gated). **Public signup is not approved.** Paid production SaaS is not claimed.
+**Status:** Closed Beta — Invite Only · **Public signup is not approved.** Paid production SaaS is not claimed. Capacity technically approved for **10–50** invitees (not a claim of that many active users).
 
-Start here. Deep links: [Documentation index](../../docs/applyflow/README.md).
+Start here (~3 minutes). Case study: [`docs/applyflow/CASE_STUDY.md`](../../docs/applyflow/CASE_STUDY.md) · Docs index: [`docs/applyflow/README.md`](../../docs/applyflow/README.md).
+
+![ApplyFlow landing](../../docs/applyflow/assets/applyflow-landing.png)
 
 ---
 
@@ -41,6 +43,14 @@ Discovery → Match Preview → Explicit Save → Opportunity Queue
 
 Full detail: [`PRODUCT_FLOW.md`](../../docs/applyflow/PRODUCT_FLOW.md).
 
+![Discovery + match preview](../../docs/applyflow/assets/applyflow-discovery.png)
+
+![Opportunity queue](../../docs/applyflow/assets/applyflow-queue.png)
+
+![Application lifecycle](../../docs/applyflow/assets/applyflow-lifecycle.png)
+
+More surfaces (readiness, applications table, architecture): [`docs/applyflow/assets/`](../../docs/applyflow/assets/) · [`CASE_STUDY.md`](../../docs/applyflow/CASE_STUDY.md).
+
 ---
 
 ## Why it exists
@@ -70,6 +80,8 @@ Browser
  ├─ Local persistence (default)
  └─ V2 API (pilot) → PostgreSQL (tenant-scoped, OCC)
 ```
+
+![Architecture](../../docs/applyflow/assets/applyflow-architecture.svg)
 
 Canonical design: [`ARCHITECTURE.md`](../../docs/applyflow/ARCHITECTURE.md).
 
@@ -114,17 +126,17 @@ V2 is a **persistence mode**, not “sync everything.”
 
 ## Quality / testing
 
-Latest validated baseline (**commit `5636feef`**, Phase 9D):
+Latest cited baseline (**commit `f599ea03`** — UI consolidation; product semantics aligned with prior closed-beta gate):
 
 | Layer | Result |
 |-------|--------|
-| `@devflow/applyflow-core` | 39 files / 475 passed |
-| ApplyFlow Vitest | 196 files / 1415 passed (30 skipped) |
+| `@devflow/applyflow-core` | 475 passed |
+| ApplyFlow Vitest | 1419 passed (30 skipped) |
 | Local Playwright E2E | 2 passed |
 | V2 Playwright E2E | 2 passed (Account A persistence, B isolation, pilot gate, TheirStack off) |
 | Typecheck / lint / build | PASS |
 
-See [`TESTING.md`](../../docs/applyflow/TESTING.md).
+Re-validate after material code changes. See [`TESTING.md`](../../docs/applyflow/TESTING.md).
 
 ---
 
@@ -139,14 +151,13 @@ Ops: [`CLOSED_BETA_RUNBOOK.md`](../../docs/applyflow/CLOSED_BETA_RUNBOOK.md) · 
 
 ## Engineering highlights
 
-- Local-first architecture with optional authenticated Postgres persistence
-- Deterministic privacy-preserving Match Engine
-- Multi-provider discovery adapter layer
-- Server-side tenant isolation + cross-tenant E2E
-- Optimistic concurrency (`expectedVersion`)
-- Transactional Job/Application lifecycle on V2 path
-- Playwright E2E for local-first and V2 modes
-- Fail-safe TheirStack cost control (shared disable)
+- Local-first privacy boundary (CV not on discovery provider payloads)
+- Multi-provider discovery adapter architecture
+- Deterministic Match Engine (not an LLM)
+- Tenant-scoped V2 persistence + cross-tenant E2E
+- OCC + transactional Application↔Job lifecycle
+- Playwright local / V2 E2E
+- TheirStack shared-host fail-safe
 - Backup/restore drill + closed-beta release gates
 
 ---
@@ -203,9 +214,19 @@ See [`apps/applyflow-extension/README.md`](../applyflow-extension/README.md).
 
 ---
 
-## Screenshots
+## Screenshots & demo
 
-Canonical asset names are listed in [`docs/applyflow/assets/README.md`](../../docs/applyflow/assets/README.md). Capture checklist: [`SCREENSHOTS_CHECKLIST.md`](../../docs/applyflow/SCREENSHOTS_CHECKLIST.md). Prefer demo/fictional data only.
+| Asset | Surface |
+|-------|---------|
+| [`applyflow-landing.png`](../../docs/applyflow/assets/applyflow-landing.png) | Landing |
+| [`applyflow-discovery.png`](../../docs/applyflow/assets/applyflow-discovery.png) | Discovery + match |
+| [`applyflow-queue.png`](../../docs/applyflow/assets/applyflow-queue.png) | Opportunity queue |
+| [`applyflow-readiness.png`](../../docs/applyflow/assets/applyflow-readiness.png) | Readiness |
+| [`applyflow-lifecycle.png`](../../docs/applyflow/assets/applyflow-lifecycle.png) | Lifecycle |
+| [`applyflow-applications.png`](../../docs/applyflow/assets/applyflow-applications.png) | Applications |
+| [`applyflow-architecture.svg`](../../docs/applyflow/assets/applyflow-architecture.svg) | Architecture |
+
+Asset index: [`docs/applyflow/assets/README.md`](../../docs/applyflow/assets/README.md) · demo script: [`DEMO_SCRIPT.md`](../../docs/applyflow/DEMO_SCRIPT.md).
 
 ---
 
@@ -214,6 +235,7 @@ Canonical asset names are listed in [`docs/applyflow/assets/README.md`](../../do
 | Doc | Purpose |
 |-----|---------|
 | [`docs/applyflow/README.md`](../../docs/applyflow/README.md) | Index |
+| [`CASE_STUDY.md`](../../docs/applyflow/CASE_STUDY.md) | Portfolio case study |
 | [`PRODUCT_FLOW.md`](../../docs/applyflow/PRODUCT_FLOW.md) | End-to-end domain flow |
 | [`ARCHITECTURE.md`](../../docs/applyflow/ARCHITECTURE.md) | System design |
 | [`JOB_DISCOVERY.md`](../../docs/applyflow/JOB_DISCOVERY.md) | Providers, match, queue, readiness |

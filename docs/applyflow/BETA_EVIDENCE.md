@@ -2,7 +2,9 @@
 
 **Do not fabricate metrics.** Leave fields blank until measured.
 
-Baseline SHA: `5636feef` (docs sprint may update the SHA when evidence is collected).
+**No real-user beta metrics yet.**
+
+Baseline SHA for engineering evidence (not beta outcomes): `f599ea03`.
 
 ---
 

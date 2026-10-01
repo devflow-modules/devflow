@@ -2,9 +2,13 @@
 
 Objetivo: **pacote de mídia pública** alinhado ao [`PUBLICATION_CHECKLIST.md`](./PUBLICATION_CHECKLIST.md), sem PII, sem segredos e sem prometer produtos que ainda não existem.
 
+**Portfolio Tier-1 (current):** `applyflow-landing.png` · `applyflow-discovery.png` · `applyflow-queue.png` · `applyflow-readiness.png` · `applyflow-lifecycle.png` · `applyflow-applications.png` · `applyflow-architecture.svg` — see [`assets/README.md`](./assets/README.md). Recapture: `apps/applyflow/scripts/capture-portfolio-screenshots.cjs`.
+
+Legacy `01`–`06` PNGs remain on disk for historical checklists; prefer the `applyflow-*` set for recruiter/README packaging.
+
 Preferir **1080p** ou superior; cropar barras de sistema ou UI sensível quando necessário.
 
-**Case público:** [`PUBLIC_CASE_STUDY.md`](./PUBLIC_CASE_STUDY.md) · **Smoke extensão (2026-05-18):** [`smoke/SMOKE_MANUAL_2026-05-18.md`](./smoke/SMOKE_MANUAL_2026-05-18.md).
+**Case público:** [`CASE_STUDY.md`](./CASE_STUDY.md) · **Demo:** [`DEMO_SCRIPT.md`](./DEMO_SCRIPT.md).
 
 ---
 

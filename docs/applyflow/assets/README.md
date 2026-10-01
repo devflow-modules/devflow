@@ -1,34 +1,45 @@
-# ApplyFlow — assets oficiais (screenshots)
+# ApplyFlow — portfolio assets
 
-Esta pasta contém o **conjunto canónico de 6 PNG** referenciado pelo [`apps/applyflow/README.md`](../../../apps/applyflow/README.md) (caminhos relativos `../../docs/applyflow/assets/` a partir desse README). Os mesmos nomes são usados em posts, portefólio e GitHub.
+Canonical screenshots and architecture diagram for README / case study / demos.
 
-## Nomes canónicos (obrigatórios para o README do dashboard)
+**Privacy:** fictional / E2E fixture data only. Never commit real CV content, emails, tokens, or beta-user screenshots.
 
-| Ficheiro | Conteúdo esperado |
-|----------|-------------------|
-| `01-applyflow-hero.png` | Landing `/` — hero ApplyFlow |
-| `02-applyflow-dashboard-overview.png` | `/dashboard` — visão geral (idealmente com **demo** carregada) |
-| `03-applyflow-analytics.png` | `/dashboard` — gráficos / analytics |
-| `04-applyflow-applications-table.png` | `/dashboard` — tabela de candidaturas |
-| `05-applyflow-documentation-hub.png` | `/documentacao` — hub de documentação |
-| `06-applyflow-chrome-extension-preview.png` | Extensão — **Opções → Preview (captura)** (sem DOM do LinkedIn) |
+**Capture (local):** from `apps/applyflow`:
 
-**Verificação de existência** dos ficheiros no disco: comando em [`SCREENSHOTS_CHECKLIST.md`](../SCREENSHOTS_CHECKLIST.md) (secção *Comando rápido de verificação*). Os nomes coincidem com `apps/applyflow/README.md` e com a tabela do checklist. O **`05-applyflow-documentation-hub.png`** foi **substituído em 2026-05-12** por captura headless da rota `/documentacao` em `next start` (ver registo no `SCREENSHOTS_CHECKLIST.md`).
+```bash
+pnpm exec node ./scripts/capture-portfolio-screenshots.cjs
+```
 
-**Não renomeies** estes ficheiros ao actualizar imagens: mantém o nome e substitui o conteúdo para não partir links em README, issues ou sites em markdown.
+Uses E2E provider fixtures + `public/demo/portfolio-candidate-profile.json`.
 
-## Orientação de privacidade e segurança (mídia pública)
+---
 
-- **Não uses dados reais** de candidaturas, perfil ou conversas na captura destinada a repositório público, LinkedIn ou deck.
-- **Não expor:** e-mails, empresas reais identificáveis, URLs de convites privados, tokens, **API keys** (incl. OpenAI), passwords ou notas com PII.
-- **Dashboard:** preferir **Carregar demo** (`public/demo/`). Se precisares de mostrar import, usa JSON **fictício** ou anonimizado.
-- **Print 06:** obtém sempre via **Preview (captura)** nas opções — evita mensagens e contactos reais do LinkedIn no enquadramento.
-- **Substituição:** ao trocar uma imagem antiga, **mantém o nome canónico** e faz commit do novo PNG (revisão de tamanho/LFS conforme política do repo).
+## Tier-1 product screenshots (16:9 desktop, 1440×900)
 
-## Checklists relacionados
+| File | Surface | Demonstrates |
+|------|---------|--------------|
+| `applyflow-landing.png` | Landing `/` | Positioning, workflow framing, primary CTA |
+| `applyflow-discovery.png` | Discovery + match | Multi-provider hit, decision, score, matched skills |
+| `applyflow-queue.png` | Opportunity queue | Saved jobs ≠ applications; derived active queue |
+| `applyflow-readiness.png` | Analysis + readiness | Job context + readiness checklist |
+| `applyflow-lifecycle.png` | Lifecycle | Screening state, transitions, next action |
+| `applyflow-applications.png` | Applications | Multi-status table, age, next-action cues |
 
-- Captura passo a passo: [`SCREENSHOTS_CHECKLIST.md`](../SCREENSHOTS_CHECKLIST.md)
-- **Selecção para portfólio / LinkedIn:** secção *Pacote portfólio controlado* no checklist acima
-- Case público: [`PUBLIC_CASE_STUDY.md`](../PUBLIC_CASE_STUDY.md)
-- Antes de tornar o caso público: [`PUBLICATION_CHECKLIST.md`](../PUBLICATION_CHECKLIST.md)
-- Roteiro de vídeo: [`DEMO_SCRIPT.md`](../DEMO_SCRIPT.md)
+## Architecture
+
+| File | Notes |
+|------|-------|
+| `applyflow-architecture.svg` | Browser local-first + Match Engine + optional V2/Postgres; providers without CV |
+
+---
+
+## Status
+
+| Asset | Classification |
+|-------|----------------|
+| New `applyflow-*.png` / `.svg` | **KEEP** (current Tier-1 set) |
+| Legacy `01-applyflow-*.png` … `06-*.png` | **OUTDATED** for current product story (kept for historical doc links) |
+
+Do not duplicate trees. Prefer replacing files in this folder.
+
+Related: [`../CASE_STUDY.md`](../CASE_STUDY.md) · [`../DEMO_SCRIPT.md`](../DEMO_SCRIPT.md) · [`../SCREENSHOTS_CHECKLIST.md`](../SCREENSHOTS_CHECKLIST.md).

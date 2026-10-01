@@ -1,8 +1,8 @@
 # ApplyFlow — testing & CI
 
-Latest validated baseline: commit **`5636feef`** (Phase 9D closed-beta operationalization).
+Latest cited baseline: commit **`f599ea03`** (UI/design-system consolidation on top of closed-beta ops).
 
-Re-validate after material code changes; do not treat these counts as eternally current without a date/SHA.
+Earlier closed-beta ops baseline: `5636feef`. Re-validate after material code changes; do not treat counts as eternally current without a date/SHA.
 
 ---
 
@@ -19,18 +19,19 @@ Re-validate after material code changes; do not treat these counts as eternally 
 
 ---
 
-## Baseline (5636feef)
+## Baseline (f599ea03)
 
 | Suite | Result |
 |-------|--------|
-| `@devflow/applyflow-core` | 39 files / **475 passed** |
-| ApplyFlow Vitest | 196 files / **1415 passed** / 30 skipped |
+| `@devflow/applyflow-core` | **475 passed** |
+| ApplyFlow Vitest | **1419 passed** / 30 skipped |
 | Local E2E | **2 passed** |
 | V2 E2E | **2 passed** |
 | Typecheck | PASS |
 | Lint | PASS |
 | Production build | PASS |
-| Backup drill | PASS |
+
+Prior Phase 9D snapshot (`5636feef`) also recorded backup drill **PASS** and ApplyFlow Vitest **1415** passed — prefer the newer SHA above when quoting portfolio evidence.
 
 ---
 

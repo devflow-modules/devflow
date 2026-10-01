@@ -18,7 +18,7 @@ Related public entry: [`apps/applyflow/README.md`](../../apps/applyflow/README.m
 - Playwright E2E for local-first and multi-account V2 isolation
 - Backup/restore drill and closed-beta operator runbooks
 
-Baseline tests: see [`TESTING.md`](./TESTING.md) (SHA `5636feef`).
+Baseline tests: see [`TESTING.md`](./TESTING.md) (SHA `f599ea03`). Portfolio narrative: [`CASE_STUDY.md`](./CASE_STUDY.md).
 
 ---
 
