@@ -59,6 +59,11 @@ export async function seedE2EApplyFlowAccount(options: E2EAccountSeedOptions): P
     },
   });
 
+  // Idempotent V2 E2E: wipe leftover Jobs/Applications so dirty local Postgres
+  // cannot poison Active-queue / discovery-save assertions across runs.
+  await applyflowPrisma.applyFlowApplication.deleteMany({ where: { accountId: account.id } });
+  await applyflowPrisma.applyFlowJob.deleteMany({ where: { accountId: account.id } });
+
   return {
     accountId: account.id,
     authProviderSub: account.authProviderSub,

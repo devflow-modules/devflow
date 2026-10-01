@@ -3,10 +3,17 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { ApplyFlowBadge, type ApplyFlowBadgeTone } from "@/components/ui/ApplyFlowBadge";
+import { ApplyFlowBadge } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
+import { ApplyFlowLoadingState } from "@/components/ui/ApplyFlowLoadingState";
 import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
+import { applyFlowControlClass } from "@/components/ui/apply-flow-control-classes";
+import {
+  applicationDecisionTone,
+  evidenceMatchTone,
+  readinessTone,
+} from "@/components/ui/status-tones";
 import { loadJobDecisionV2Snapshot } from "@/lib/job-decision-v2-snapshot";
 import { DashboardPersistenceNotice, dashboardPersistenceFailureMessage } from "@/components/dashboard/dashboard-persistence-notice";
 import { DashboardMigrationPanel } from "@/components/dashboard/dashboard-migration-panel";
@@ -25,6 +32,7 @@ import { getInterviewLabImportHandoffUrl } from "@/lib/interview-lab-handoff";
 import { useClientHydrated } from "@/lib/use-client-hydrated";
 import {
   APPLYFLOW_PIPELINE_STATUS_V2_LABELS_PT,
+  APPLYFLOW_APPLICATION_STATUS_LABELS_PT,
   canRecordApplicationOutcome,
   canTransitionApplicationStatus,
   collectApplicationAgeCopies,
@@ -41,7 +49,6 @@ import {
   type ApplyFlowJob,
   type ApplyFlowPipelineStatusV2,
   type Contact,
-  type ApplicationDecision,
   type JobDecisionV2,
 } from "@devflow/applyflow-core";
 import {
@@ -110,27 +117,6 @@ type JobV2Tab = keyof typeof JOB_DECISION_V2_TABS;
 
 const EMPTY_CONTACTS: Contact[] = [];
 
-function decisionTone(decision: ApplicationDecision): ApplyFlowBadgeTone {
-  if (decision === "apply_high") return "success";
-  if (decision === "apply_normal") return "brand";
-  if (decision === "apply_stretch") return "warning";
-  if (decision === "needs_info") return "warning";
-  return "danger";
-}
-
-function matchTone(status: string): ApplyFlowBadgeTone {
-  if (status === "proven") return "success";
-  if (status === "partial") return "warning";
-  if (status === "gap") return "danger";
-  return "neutral";
-}
-
-function readinessStateTone(state: ApplicationReadinessItem["state"]): ApplyFlowBadgeTone {
-  if (state === "ready") return "success";
-  if (state === "attention") return "warning";
-  return "neutral";
-}
-
 function readinessItemLabel(item: ApplicationReadinessItem): string {
   const base = JOB_READINESS_ITEM_LABELS[item.id];
   const reason = JOB_READINESS_REASON_LABELS[item.reason] ?? item.reason;
@@ -155,7 +141,7 @@ function ApplicationReadinessBlock({
       <ul className="mt-3 grid gap-2" aria-label={JOB_READINESS_TITLE}>
         {readiness.items.map((item) => (
           <li key={item.id} className="flex flex-wrap items-center gap-2 text-sm text-[color:var(--af-text)]">
-            <ApplyFlowBadge tone={readinessStateTone(item.state)}>
+            <ApplyFlowBadge tone={readinessTone(item.state)}>
               {JOB_READINESS_STATE_LABELS[item.state]}
             </ApplyFlowBadge>
             <span>{readinessItemLabel(item)}</span>
@@ -228,33 +214,46 @@ function ApplicationOutcomeCard({
   decision: JobDecisionV2 | null;
 }) {
   return (
-    <ApplyFlowCard padding="md">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
-        Outcome manual
+    <ApplyFlowCard padding="md" data-testid="application-outcome-card">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-400/85">
+        Candidatura
       </p>
       <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">
         Não infere rejection reason a partir de GAP. Sem motivo explícito, a categoria fica unknown.
       </p>
-      {persistError ? <p className="mt-2 text-xs text-red-200">{persistError}</p> : null}
+      {persistError ? <p className="mt-2 text-xs text-red-200" role="alert">{persistError}</p> : null}
       {application ? (
-        <div className="mt-2 grid gap-2">
-          <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_DECISION_V2_APPLICATION_READY}</p>
-          {currentPipeline ? (
-            <p className="text-xs text-[color:var(--af-text)]">
-              {JOB_DECISION_V2_STATUS}: {APPLYFLOW_PIPELINE_STATUS_V2_LABELS_PT[currentPipeline]}
+        <div className="mt-4 grid gap-4">
+          <div
+            className="rounded-[var(--af-radius-sm)] border border-emerald-500/25 bg-emerald-950/20 px-3 py-3"
+            data-testid="application-current-state"
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+              {JOB_DECISION_V2_STATUS}
             </p>
-          ) : null}
+            <p className="mt-1 text-base font-semibold tracking-tight text-[color:var(--af-text)]">
+              {currentPipeline
+                ? APPLYFLOW_PIPELINE_STATUS_V2_LABELS_PT[currentPipeline]
+                : APPLYFLOW_APPLICATION_STATUS_LABELS_PT[application.status]}
+            </p>
+            <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">{JOB_DECISION_V2_APPLICATION_READY}</p>
+          </div>
+
           {nextActionGuidance && nextActionGuidance.kind !== "none" ? (
-            <div className="rounded-md border border-[color:var(--af-border)] px-2 py-1.5" data-testid="application-next-action">
+            <div
+              className="rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] px-3 py-2.5"
+              data-testid="application-next-action"
+            >
               <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
                 {JOB_DECISION_V2_NEXT_STEP}
               </p>
-              <p className="text-xs text-[color:var(--af-text)]">{nextActionGuidance.label}</p>
+              <p className="mt-1 text-sm font-medium text-[color:var(--af-text)]">{nextActionGuidance.label}</p>
               {nextActionGuidance.detail ? (
-                <p className="text-[11px] text-[color:var(--af-text-muted)]">{nextActionGuidance.detail}</p>
+                <p className="mt-0.5 text-xs text-[color:var(--af-text-muted)]">{nextActionGuidance.detail}</p>
               ) : null}
             </div>
           ) : null}
+
           {applicationAgeCopies.length > 0 ? (
             <div data-testid="application-age-copy">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
@@ -267,72 +266,82 @@ function ApplicationOutcomeCard({
               </ul>
             </div>
           ) : null}
+
           {application.status === "reviewing" ? (
-            <>
+            <div className="grid gap-2">
               <p className="text-xs text-[color:var(--af-text)]">{JOB_DECISION_V2_MARK_SENT_HINT}</p>
               <ApplyFlowButton
                 type="button"
-                variant="outlineBrand"
+                variant="primary"
                 size="sm"
                 onClick={markApplicationSent}
                 data-testid="mark-application-sent"
-                className="w-fit rounded-md border-emerald-400/50 px-3 py-1 text-xs text-emerald-100"
+                className="w-fit"
               >
                 {JOB_DECISION_V2_MARK_SENT}
               </ApplyFlowButton>
-            </>
+            </div>
           ) : currentPipeline === "applied" ? (
             <p className="text-xs text-emerald-200/90">{JOB_DECISION_V2_MARKED_SENT}</p>
           ) : null}
         </div>
       ) : canCreate ? (
-        <div className="mt-3 grid gap-2">
+        <div className="mt-4 grid gap-2">
           <p className="text-xs text-[color:var(--af-text)]">{JOB_DECISION_V2_NEED_APPLICATION}</p>
           <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_DECISION_V2_CREATE_HINT}</p>
           <ApplyFlowButton
             type="button"
-            variant="outlineBrand"
+            variant="primary"
             size="sm"
             disabled={!decision}
             data-testid="register-application"
             onClick={createApplicationRecord}
-            className="w-fit rounded-md border-emerald-400/50 px-3 py-1 text-xs text-emerald-100"
+            className="w-fit"
           >
             {JOB_DECISION_V2_CREATE_APPLICATION}
           </ApplyFlowButton>
         </div>
       ) : null}
-      <div className="mt-3 flex flex-wrap gap-2">
-        {(
-          [
-            ["recruiter_contacted", "Response"],
-            ["screening", "Screening"],
-            ["technical", "Technical"],
-            ["final", "Final"],
-            ["offer", "Offer"],
-            ["hired", JOB_DECISION_V2_HIRED],
-            ["rejected", "Rejection"],
-            ["withdrawn", "Withdrawal"],
-          ] as const
-        ).map(([status, label]) => {
-          const enabled =
-            Boolean(application && currentPipeline && canTransitionApplicationStatus(currentPipeline, status));
-          return (
-            <ApplyFlowButton
-              key={status}
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => recordStatus(status)}
-              disabled={!enabled}
-              data-testid={`lifecycle-${status}`}
-              className="rounded-md border border-[color:var(--af-border)] px-2 py-1 text-xs text-[color:var(--af-text)] disabled:opacity-40"
-            >
-              {label}
-            </ApplyFlowButton>
-          );
-        })}
-      </div>
+
+      {application ? (
+        <div className="mt-5 border-t border-[color:var(--af-border)] pt-4">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+            Transições disponíveis
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {(
+              [
+                ["recruiter_contacted", "Response"],
+                ["screening", "Screening"],
+                ["technical", "Technical"],
+                ["final", "Final"],
+                ["offer", "Offer"],
+                ["hired", JOB_DECISION_V2_HIRED],
+                ["rejected", "Rejection"],
+                ["withdrawn", "Withdrawal"],
+              ] as const
+            ).map(([status, label]) => {
+              const enabled =
+                Boolean(application && currentPipeline && canTransitionApplicationStatus(currentPipeline, status));
+              const danger = status === "rejected" || status === "withdrawn";
+              return (
+                <ApplyFlowButton
+                  key={status}
+                  type="button"
+                  variant={danger ? "dangerGhost" : "secondary"}
+                  size="sm"
+                  onClick={() => recordStatus(status)}
+                  disabled={!enabled}
+                  data-testid={`lifecycle-${status}`}
+                >
+                  {label}
+                </ApplyFlowButton>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
       {lifecycleEvents.length > 0 ? (
         <div className="mt-4" data-testid="application-lifecycle-timeline">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
@@ -356,7 +365,7 @@ function ApplicationOutcomeCard({
         value={feedbackNote}
         onChange={(event) => setFeedbackNote(event.target.value)}
         placeholder="Motivo explícito / nota (opcional)"
-        className="mt-3 w-full rounded-md border border-[color:var(--af-border)] bg-transparent px-2 py-1 text-sm"
+        className={`${applyFlowControlClass} mt-3`}
       />
     </ApplyFlowCard>
   );
@@ -724,7 +733,7 @@ export function JobDecisionV2Panel({
   }
 
   if (!snapshot) {
-    return <p className="text-sm text-[color:var(--af-text-muted)]">A carregar…</p>;
+    return <ApplyFlowLoadingState label="A carregar…" />;
   }
 
   if (!job) {
@@ -856,7 +865,7 @@ export function JobDecisionV2Panel({
                 <p className="mt-3 text-sm text-[color:var(--af-text)]">{JOB_DECISION_V2_INCOMPLETE}</p>
               ) : null}
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <ApplyFlowBadge tone={decisionTone(decision.decision)}>
+                <ApplyFlowBadge tone={applicationDecisionTone(decision.decision)}>
                   {JOB_DECISION_V2_LABELS[decision.decision]}
                 </ApplyFlowBadge>
                 <ApplyFlowBadge tone="intel">fit {decision.overall}/100</ApplyFlowBadge>
@@ -911,7 +920,7 @@ export function JobDecisionV2Panel({
                 {decision.matches.map((match) => (
                   <li key={match.requirement.id} className="text-sm text-[color:var(--af-text)]">
                     <div className="flex flex-wrap items-center gap-2">
-                      <ApplyFlowBadge tone={matchTone(match.status)}>{match.status}</ApplyFlowBadge>
+                      <ApplyFlowBadge tone={evidenceMatchTone(match.status)}>{match.status}</ApplyFlowBadge>
                       <span>{match.requirement.label}</span>
                     </div>
                     <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">{match.reason}</p>

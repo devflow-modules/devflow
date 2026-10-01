@@ -100,7 +100,9 @@ test.describe("ApplyFlow V2 cloud critical funnel + tenant isolation", () => {
 
     await page.getByTestId("discovery-provider-remoteok").check();
     await page.getByTestId("discovery-search").click();
-    await expect(page.getByText("E2E Fixture Remote Engineer")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("discovery-hit").filter({ hasText: "E2E Fixture Remote Engineer" })).toBeVisible({
+      timeout: 30_000,
+    });
     await expect(page.getByTestId("discovery-match-preview")).toBeVisible({ timeout: 15_000 });
 
     await page.getByTestId("discovery-save").click();

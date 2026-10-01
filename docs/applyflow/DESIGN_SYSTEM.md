@@ -8,7 +8,7 @@ Documento curto para manter **dashboard** (`apps/applyflow`), **painel** (Shadow
 - **Marca única**: acento **esmeralda** (`--af-brand`, ~`#34d399`) em CTAs, chips de sucesso e realces de confiança.
 - **Legibilidade**: texto principal claro (`--af-text`), secundário atenuado (`--af-text-muted`).
 - **Confiança / privacidade**: blocos de aviso com bordo esmeralda suave (dashboard: `ApplyFlowPrivacyNotice`).
-- **Animações**: evitar animações novas; apenas hover/filter ligeiro em botões.
+- **Animações**: evitar animações novas; apenas hover/filter ligeiro em botões + spinner CSS com `motion-safe` / `motion-reduce`.
 
 ## Tokens CSS (`apps/applyflow`)
 
@@ -27,11 +27,7 @@ Definidos em `src/app/globals.css` (`:root`):
 | `--af-radius`, `--af-radius-sm` | Raio de cartão / controlo |
 | `--af-shadow` | Sombra de cartão |
 
-No dashboard, componentes em `src/components/ui/` consomem estes tokens via `var(--af-*)` e utilitários Tailwind adjacentes (ex. `emerald-*` onde o token não é necessário).
-
-## Tokens CSS (`apps/applyflow-extension`)
-
-O ficheiro `src/styles/globals.css` define **os mesmos nomes de variáveis** (`--af-*`) com valores calibrados para o painel (gradiente em cartões, sombras). A **options page** importa `globals.css` + `options.css`; tokens garantem paridade com o site.
+Utilitários Tailwind `emerald-*` são aceites como extensão da marca quando alinhados ao brand.
 
 ## Componentes React (dashboard)
 
@@ -40,61 +36,73 @@ Local: `apps/applyflow/src/components/ui/`
 | Componente | Função |
 |-------------|--------|
 | `ApplyFlowCard` | Superfície base: variantes `default`, `muted`, `highlight`, `danger`, `success`, `warning` |
-| `ApplyFlowButton` / `applyFlowButtonClass` | Botão ou classes para `<Link>` (primário, secundário, outline marca, ghost, texto de perigo) |
-| `ApplyFlowBadge` | Chips discretos (`tone`: neutral, brand, success, warning, danger, intel) |
-| `ApplyFlowSection` | Secção com `eyebrow`, `title`, `description`, `children` |
-| `ApplyFlowEmptyState` | Estado voluto / filtros sem resultado (card + CTA opcional) |
-| `ApplyFlowPrivacyNotice` | Bloco de confiança (localStorage, sem envio de JSON) |
+| `ApplyFlowButton` / `applyFlowButtonClass` | Botão ou classes para `<Link>` |
+| `ApplyFlowBadge` | Chips (`tone`: neutral, brand, success, warning, danger, intel) |
+| `ApplyFlowSection` | Secção com `eyebrow`, `title`, `description` |
+| `ApplyFlowEmptyState` | Empty state (`compact` opcional) — Tier-1 Discovery/Queue/Applications |
+| `ApplyFlowLoadingState` | Loading section/compact + spinner CSS |
+| `ApplyFlowTabs` | Tablist semântico (`role="tab"`) — allowlisted no `check:buttons` |
+| `ApplyFlowSiteHeader` | Shell de navegação (active state + Account/Sign in) |
+| `ApplyFlowPrivacyNotice` | Bloco de confiança |
 
-## Estados e hierarquia de botões
+### Forms
 
-**Dashboard / landing**
+Classes partilhadas em `apply-flow-control-classes.ts`:
 
-- **Primário**: `applyFlowButtonClass({ variant: "primary" })` — acção principal (Abrir dashboard, Importar como label styled).
-- **Outline marca**: demo, realces ApplyFlow.
-- **Secundário**: documentação, import alternativo.
-- **Perigo (ghost)**: limpar dados.
+- `applyFlowControlClass` — input/select/textarea
+- `applyFlowFilterSelectClass` — filtros de toolbar
+- `applyFlowTextareaClass` — textarea base
 
-**Painel (Shadow DOM)**
+`careerPolishInput` reutiliza estas classes.
 
-- **Primário** `.af-btn` — Copiar, Gerar com IA.
-- **Secundário** `.af-btn-secondary` — Preencher, Confirmar, Copiar texto IA, área IA.
-- **Linha de acções** `.af-action-row` — `flex-wrap`, botões com `min-width` equilibrada.
+### Status tones (por domínio)
 
-**Options**
+`status-tones.ts` — **não** misturar conceitos:
 
-- **Primário** `.af-opt-btn-primary` — Salvar perfil, Guardar IA.
-- **Secundário** `.af-opt-btn-secondary` — exportar, repor, testar, importar.
+| Helper | Domínio |
+|--------|---------|
+| `matchDecisionTone` | Match Engine advisory |
+| `applicationStatusTone` | Application lifecycle |
+| `readinessTone` | Checklist ready/attention/**missing** |
+| `applicationDecisionTone` | Job Decision V2 recommendation |
+| `evidenceMatchTone` | Evidence rows |
+| `networkingStatusTone` | Outreach |
 
-## Badges
+Match `apply` ≠ Application `applied` (cores/copy distintas de propósito).
 
-- **Painel**: `.af-badge-high|medium|low` (confiança sugestão/classificação).
-- **Dashboard (tabela)**: `ApplyFlowBadge` por estado da candidatura (`statusTone`).
-- **Histórico (options)**: `.af-intel-chip`, `.af-intel-chip-skill`, `.af-stale-chip`.
+### Tabs
 
-## Empty states
+Usar `ApplyFlowTabs` para tablists. Native `<button role="tab">` só neste primitive (governance `check:buttons`).
 
-- Dashboard sem dados: `ApplyFlowEmptyState` (sem CTA primário obrigatório).
-- JSON inválido: `ApplyFlowCard` `danger`.
-- Filtros sem linhas: `ApplyFlowEmptyState` `warning` + «Repor filtros».
+### Applications responsive
 
-## Guidelines para novas telas (ApplyFlow)
+- **&lt; md:** cards (`ApplicationMobileCard`) — company, role, status, age, next action, CTAs
+- **≥ md:** tabela densa (`min-w-[1080px]` dentro de scroll shell)
 
-1. Preferir **tokens** `var(--af-*)` antes de cores hex soltas.
-2. Manter **contraste** de foco visível (`focus-visible` nos botões do dashboard).
+## Shell / navegação
+
+Header sticky no root layout. Active state subtil. Autenticado → **Account**; senão → **Sign in**.
+
+Dashboard activo em `/dashboard` e `/dashboard/jobs/*` (Analytics continua link separado).
+
+## Empty / loading
+
+Preferir `ApplyFlowEmptyState` e `ApplyFlowLoadingState` nas superfícies Tier-1. Loading de botão continua via label no próprio botão.
+
+## Guidelines
+
+1. Preferir tokens `var(--af-*)` antes de hex soltos.
+2. Manter `focus-visible` nos controlos interactivos.
 3. **Nunca** mover lógica de negócio para componentes UI — só apresentação.
-4. Na extensão, **não** depender de estilos globais do host — todo o painel via CSS inlinado no Shadow root.
+4. Na extensão, estilos via Shadow DOM (tokens `--af-*` paralelos).
 
-## Diferenças: dashboard vs Shadow DOM
+## Governance
 
-| Aspeto | Dashboard (Next.js) | Painel (extensão) |
-|--------|----------------------|-------------------|
-| CSS | Tailwind v4 + tokens `:root` | Folha única inlinada (`?inline`), classes `.af-*` |
-| Tipografia | `font-sans` do tema | `.af-root` system stack |
-| Portal | Links internos `/`, `/dashboard` | Só UI; sem rotas |
-| Empacotamento | `ApplyFlow*` em TSX | HTML semântico + classes string |
+- Root: `pnpm check:buttons`, `pnpm lint:design-system`
+- ApplyFlow tabs primitive está na allowlist de botões nativos
 
 ## Limitações
 
-- Recharts mantém cores hex no JS para `Cell`/`stroke`; alinhar manualmente com `--af-brand` quando mudar tokens.
-- O painel não usa Tailwind; mudanças visuais exigem editar `globals.css` / `options.css`.
+- Recharts mantém cores hex no JS.
+- Sem light mode.
+- Toast global deferido — feedback inline preferido.

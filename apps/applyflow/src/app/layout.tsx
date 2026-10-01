@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import Link from "next/link";
+
+import { ApplyFlowSiteHeader } from "@/components/ui/ApplyFlowSiteHeader";
+import { getAuthenticatedApplyFlowUser } from "@/lib/persistence-v2/auth/get-authenticated-user";
 
 import "./globals.css";
 
@@ -9,20 +11,20 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "ApplyFlow — Copiloto local-first (DevFlow Labs)",
+  title: "ApplyFlow — Local-first career workflow (DevFlow Labs)",
   description:
-    "Produto DevFlow Labs: extensão Chrome e dashboard Next.js para candidaturas no LinkedIn Easy Apply — local-first, sem backend ApplyFlow obrigatório, IA opt-in.",
+    "Discover jobs, evaluate fit with a deterministic Match Engine, prioritize opportunities, prepare applications, and track lifecycle — local-first with optional V2 cloud persistence.",
   openGraph: {
     title: "ApplyFlow — DevFlow Labs",
     description:
-      "Copiloto local-first e privacy-first para LinkedIn Easy Apply — métricas, histórico e autofill assistido sem enviar dados a um backend ApplyFlow.",
+      "Local-first career workflow: discovery, match preview, opportunity queue, readiness, and application lifecycle tracking. No auto-apply.",
     type: "website",
     locale: "pt_BR",
   },
   twitter: {
     card: "summary_large_image",
     title: "ApplyFlow — DevFlow Labs",
-    description: "Copiloto local-first para LinkedIn Easy Apply — sem backend ApplyFlow obrigatório.",
+    description: "Local-first career workflow for discovering, evaluating, and tracking job opportunities.",
   },
   icons: {
     icon: "/icon.svg",
@@ -35,53 +37,22 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+async function resolveSignedIn(): Promise<boolean> {
+  try {
+    await getAuthenticatedApplyFlowUser();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const signedIn = await resolveSignedIn();
+
   return (
     <html lang="pt-BR">
       <body className="min-h-screen font-sans">
-        <header className="sticky top-0 z-20 border-b border-[color:var(--af-border)] bg-[color:var(--af-bg)]/88 backdrop-blur-xl backdrop-saturate-150">
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-emerald-500/35 to-transparent" />
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5 sm:px-5 sm:py-4">
-            <Link
-              href="/"
-              className="text-base font-semibold tracking-tight text-emerald-400 transition-colors hover:text-emerald-300 sm:text-lg"
-            >
-              ApplyFlow
-            </Link>
-            <nav className="flex flex-wrap items-center justify-end gap-x-1 gap-y-1 text-sm sm:gap-x-5">
-              <Link
-                href="/"
-                className="rounded-md px-2 py-1.5 text-[color:var(--af-text-muted)] transition-colors hover:bg-[color:var(--af-surface-muted)] hover:text-[color:var(--af-text)]"
-              >
-                Início
-              </Link>
-              <Link
-                href="/dashboard"
-                className="rounded-md px-2 py-1.5 text-[color:var(--af-text-muted)] transition-colors hover:bg-[color:var(--af-surface-muted)] hover:text-[color:var(--af-text)]"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/dashboard/analytics"
-                className="rounded-md px-2 py-1.5 text-[color:var(--af-text-muted)] transition-colors hover:bg-[color:var(--af-surface-muted)] hover:text-[color:var(--af-text)]"
-              >
-                Analytics
-              </Link>
-              <Link
-                href="/documentacao"
-                className="rounded-md px-2 py-1.5 text-[color:var(--af-text-muted)] transition-colors hover:bg-[color:var(--af-surface-muted)] hover:text-[color:var(--af-text)]"
-              >
-                Documentação
-              </Link>
-              <Link
-                href="/login"
-                className="rounded-md px-2 py-1.5 text-[color:var(--af-text-muted)] transition-colors hover:bg-[color:var(--af-surface-muted)] hover:text-[color:var(--af-text)]"
-              >
-                Sign in
-              </Link>
-            </nav>
-          </div>
-        </header>
+        <ApplyFlowSiteHeader signedIn={signedIn} />
         {children}
       </body>
     </html>

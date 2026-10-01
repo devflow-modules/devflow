@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
+import { applyFlowControlClass } from "@/components/ui/apply-flow-control-classes";
 import {
   AUTH_CONFIRM_EMAIL_MESSAGE,
   mapAuthFormError,
@@ -127,7 +128,7 @@ export function LoginForm() {
             required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-bg)] px-3 py-2 text-[color:var(--af-text)] outline-none focus-visible:border-emerald-500/50"
+            className={applyFlowControlClass}
           />
         </label>
         <label className="block space-y-1.5 text-sm">
@@ -139,7 +140,7 @@ export function LoginForm() {
             required
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-bg)] px-3 py-2 text-[color:var(--af-text)] outline-none focus-visible:border-emerald-500/50"
+            className={applyFlowControlClass}
           />
         </label>
 

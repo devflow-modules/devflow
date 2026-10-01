@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { ApplyFlowBadge, type ApplyFlowBadgeTone } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
+import { networkingStatusTone } from "@/components/ui/status-tones";
 import {
   archiveDashboardOutreach,
   saveDashboardOutreach,
@@ -142,11 +143,7 @@ function draftFrom(contact: Contact): OutreachDraft {
 }
 
 function statusTone(status: OutreachStatus): ApplyFlowBadgeTone {
-  if (status === "REPLIED" || status === "CONVERSATION") return "success";
-  if (status === "SENT") return "brand";
-  if (status === "FOLLOW_UP_DUE") return "warning";
-  if (status === "CLOSED") return "neutral";
-  return "intel";
+  return networkingStatusTone(status);
 }
 
 function formatDate(value: string | undefined): string | null {

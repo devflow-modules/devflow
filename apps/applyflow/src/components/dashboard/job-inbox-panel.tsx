@@ -3,7 +3,11 @@
 import { ApplyFlowBadge } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton, applyFlowButtonClass } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
+import { ApplyFlowEmptyState } from "@/components/ui/ApplyFlowEmptyState";
 import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
+import { ApplyFlowTabs } from "@/components/ui/ApplyFlowTabs";
+import { applyFlowControlClass } from "@/components/ui/apply-flow-control-classes";
+import { matchDecisionTone } from "@/components/ui/status-tones";
 import {
   APPLICATION_PACK_ANSWER_LABELS,
   APPLICATION_PACK_ANSWERS_HINT,
@@ -71,7 +75,6 @@ import {
   curriculumRouterAdvantageLabel,
   curriculumRouterDivergenceLabel,
   curriculumRouterHeading,
-  jobMatchDecisionTone,
 } from "@/components/dashboard/job-inbox-content";
 import {
   APPLYFLOW_APPLICATION_STATUS_LABELS_PT,
@@ -113,12 +116,7 @@ import {
 import { JobDiscoveryPanel } from "@/components/dashboard/job-discovery-panel";
 import type { DiscoveredJobSaveStatus, JobSearchHit } from "@/lib/job-sources/types";
 
-const fieldClass = cn(
-  "w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)]",
-  "bg-[color:var(--af-surface-muted)] px-3 py-2 text-sm text-[color:var(--af-text)]",
-  "placeholder:text-[color:var(--af-text-muted)] focus-visible:outline focus-visible:outline-2",
-  "focus-visible:outline-offset-2 focus-visible:outline-[var(--af-brand)]",
-);
+const fieldClass = applyFlowControlClass;
 
 function JobMatchSkillLine({ job }: { job: ApplyFlowJob }) {
   return (
@@ -526,7 +524,7 @@ function JobInboxCard({
   return (
     <ApplyFlowCard padding="md" data-testid={`job-inbox-card-${job.id}`}>
       <div className="flex flex-wrap items-center gap-2">
-        <ApplyFlowBadge tone={jobMatchDecisionTone(analysis.decision)}>
+        <ApplyFlowBadge tone={matchDecisionTone(analysis.decision)}>
           {JOB_MATCH_DECISION_LABELS[analysis.decision]}
         </ApplyFlowBadge>
         {isJobMatchStale(job, resumeLibrary) ? (
@@ -814,37 +812,31 @@ export function JobInboxPanel({
 
       {jobs.length > 0 ? (
         <div className="mt-5 grid gap-3" data-testid="job-opportunity-queue">
-          <div
-            role="tablist"
-            aria-label={JOB_QUEUE_VIEW_LABEL}
-            className="flex flex-wrap gap-2"
-          >
-            {(
-              [
-                ["active", JOB_QUEUE_VIEW_ACTIVE, queueCounts.active],
-                ["all", JOB_QUEUE_VIEW_ALL, queueCounts.all],
-                ["ignored", JOB_QUEUE_VIEW_IGNORED, queueCounts.ignored],
-              ] as const
-            ).map(([view, label, count]) => {
-              const selected = queueView === view;
-              return (
-                <button
-                  key={view}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  data-testid={`job-queue-view-${view}`}
-                  className={applyFlowButtonClass({
-                    variant: selected ? "primary" : "secondary",
-                    size: "sm",
-                  })}
-                  onClick={() => setQueueView(view)}
-                >
-                  {label} ({count})
-                </button>
-              );
-            })}
-          </div>
+          <ApplyFlowTabs
+            label={JOB_QUEUE_VIEW_LABEL}
+            value={queueView}
+            onChange={setQueueView}
+            items={[
+              {
+                id: "active",
+                label: `${JOB_QUEUE_VIEW_ACTIVE} (${queueCounts.active})`,
+                panelId: "job-queue-panel",
+                testId: "job-queue-view-active",
+              },
+              {
+                id: "all",
+                label: `${JOB_QUEUE_VIEW_ALL} (${queueCounts.all})`,
+                panelId: "job-queue-panel",
+                testId: "job-queue-view-all",
+              },
+              {
+                id: "ignored",
+                label: `${JOB_QUEUE_VIEW_IGNORED} (${queueCounts.ignored})`,
+                panelId: "job-queue-panel",
+                testId: "job-queue-view-ignored",
+              },
+            ]}
+          />
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
               {JOB_QUEUE_SORT_LABEL}
@@ -898,10 +890,11 @@ export function JobInboxPanel({
           {queueView === "ignored" ? (
             <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_QUEUE_HISTORICAL_NOTE}</p>
           ) : null}
+          <div id="job-queue-panel" role="tabpanel">
           {emptyMessage ? (
-            <p className="text-sm text-[color:var(--af-text-muted)]" data-testid="job-queue-empty">
-              {emptyMessage}
-            </p>
+            <div data-testid="job-queue-empty">
+              <ApplyFlowEmptyState compact title="Fila vazia" description={emptyMessage} />
+            </div>
           ) : (
             <ul className="grid gap-3">
               {visibleJobs.map((job) => (
@@ -921,6 +914,7 @@ export function JobInboxPanel({
               ))}
             </ul>
           )}
+          </div>
         </div>
       ) : null}
     </ApplyFlowSection>

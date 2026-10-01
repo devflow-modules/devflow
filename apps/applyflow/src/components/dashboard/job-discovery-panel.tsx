@@ -5,6 +5,10 @@ import Link from "next/link";
 import { ApplyFlowBadge } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton, applyFlowButtonClass } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
+import { ApplyFlowEmptyState } from "@/components/ui/ApplyFlowEmptyState";
+import { ApplyFlowLoadingState } from "@/components/ui/ApplyFlowLoadingState";
+import { applyFlowControlClass } from "@/components/ui/apply-flow-control-classes";
+import { matchDecisionTone } from "@/components/ui/status-tones";
 import {
   JOB_DISCOVERY_ANY,
   JOB_DISCOVERY_ADD_DESCRIPTION,
@@ -63,7 +67,6 @@ import {
   JOB_DISCOVERY_VIEW_LISTING_REMOTEOK,
   JOB_INBOX_NEEDS_RESUME,
   JOB_MATCH_DECISION_LABELS,
-  jobMatchDecisionTone,
 } from "@/components/dashboard/job-inbox-content";
 import {
   discoveryHitKey,
@@ -95,14 +98,8 @@ import {
 } from "@/lib/job-sources/types";
 import { isOpenableJobUrl, type ResumeLibrary } from "@devflow/applyflow-core";
 import { useId, useMemo, useState } from "react";
-import { cn } from "@/lib/cn";
 
-const fieldClass = cn(
-  "w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)]",
-  "bg-[color:var(--af-surface-muted)] px-3 py-2 text-sm text-[color:var(--af-text)]",
-  "placeholder:text-[color:var(--af-text-muted)] focus-visible:outline focus-visible:outline-2",
-  "focus-visible:outline-offset-2 focus-visible:outline-[var(--af-brand)]",
-);
+const fieldClass = applyFlowControlClass;
 
 const EXPERIENCE_LABELS: Record<JobSearchExperience, string> = {
   entry: "Entrada",
@@ -270,7 +267,7 @@ export function DiscoveryMatchPreviewBlock({
       data-score={preview.score}
     >
       <div className="flex flex-wrap items-center gap-2">
-        <ApplyFlowBadge tone={jobMatchDecisionTone(preview.decision)}>
+        <ApplyFlowBadge tone={matchDecisionTone(preview.decision)}>
           {JOB_MATCH_DECISION_LABELS[preview.decision]}
         </ApplyFlowBadge>
         <span className="tabular-nums text-sm font-medium text-[color:var(--af-text)]">
@@ -329,7 +326,7 @@ export function JobDiscoveryHitCard({
   }
 
   return (
-    <ApplyFlowCard variant="muted" padding="md">
+    <ApplyFlowCard variant="muted" padding="md" data-testid="discovery-hit">
       <div className="flex flex-wrap items-center gap-2">
         <h4 className="text-sm font-semibold text-[color:var(--af-text)]">{hit.title}</h4>
         {showRemoteOkAttribution ? (
@@ -869,6 +866,7 @@ export function JobDiscoveryPanel({
           ))}
         </ul>
       ) : null}
+      {loading ? <ApplyFlowLoadingState compact label={JOB_DISCOVERY_LOADING} className="mt-4" /> : null}
       <DiscoveryEmpty visible={searched && !loading && !error && displayedHits.length === 0} />
       {hasMore ? (
         <div className="mt-4">
@@ -889,7 +887,11 @@ export function JobDiscoveryPanel({
 
 function DiscoveryEmpty({ visible }: { visible: boolean }) {
   if (!visible) return null;
-  return <p className="mt-4 text-sm text-[color:var(--af-text-muted)]">{JOB_DISCOVERY_EMPTY}</p>;
+  return (
+    <div className="mt-4" data-testid="discovery-empty">
+      <ApplyFlowEmptyState compact title="Sem resultados" description={JOB_DISCOVERY_EMPTY} />
+    </div>
+  );
 }
 
 export type { JobMatchPreview };

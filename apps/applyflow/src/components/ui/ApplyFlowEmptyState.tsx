@@ -1,5 +1,6 @@
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
+import { cn } from "@/lib/cn";
 import type { ReactNode } from "react";
 
 export function ApplyFlowEmptyState({
@@ -9,6 +10,8 @@ export function ApplyFlowEmptyState({
   onPrimary,
   secondary,
   variant = "default",
+  compact = false,
+  className,
 }: {
   title: string;
   description: ReactNode;
@@ -16,19 +19,37 @@ export function ApplyFlowEmptyState({
   onPrimary?: () => void;
   secondary?: ReactNode;
   variant?: "default" | "warning";
+  compact?: boolean;
+  className?: string;
 }) {
   return (
-    <ApplyFlowCard variant={variant === "warning" ? "warning" : "muted"} padding="lg" className="text-center">
-      <p className="text-sm font-medium text-[color:var(--af-text)]">{title}</p>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-[color:var(--af-text-muted)]">{description}</p>
+    <ApplyFlowCard
+      variant={variant === "warning" ? "warning" : "muted"}
+      padding={compact ? "md" : "lg"}
+      className={cn(compact ? "text-left" : "text-center", className)}
+      data-testid="applyflow-empty-state"
+    >
+      <p className={cn("font-medium text-[color:var(--af-text)]", compact ? "text-sm" : "text-sm")}>{title}</p>
+      <p
+        className={cn(
+          "mt-2 text-sm leading-relaxed text-[color:var(--af-text-muted)]",
+          compact ? "max-w-none" : "mx-auto max-w-md",
+        )}
+      >
+        {description}
+      </p>
       {primaryLabel && onPrimary ? (
-        <div className="mt-5 flex flex-wrap justify-center gap-3">
-          <ApplyFlowButton type="button" variant="outlineBrand" onClick={onPrimary}>
+        <div className={cn("mt-4 flex flex-wrap gap-3", compact ? "justify-start" : "mt-5 justify-center")}>
+          <ApplyFlowButton type="button" variant="outlineBrand" size={compact ? "sm" : "md"} onClick={onPrimary}>
             {primaryLabel}
           </ApplyFlowButton>
         </div>
       ) : null}
-      {secondary ? <div className="mt-4 flex flex-wrap justify-center gap-2">{secondary}</div> : null}
+      {secondary ? (
+        <div className={cn("mt-3 flex flex-wrap gap-2", compact ? "justify-start" : "mt-4 justify-center")}>
+          {secondary}
+        </div>
+      ) : null}
     </ApplyFlowCard>
   );
 }

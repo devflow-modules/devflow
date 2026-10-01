@@ -213,7 +213,7 @@ describe("JobDecisionV2Panel", () => {
     render(<JobDecisionV2Panel jobId={jobA.id} persistenceBootstrap={testBootstrapV1} />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Estado:/)).toBeTruthy();
+      expect(screen.getByTestId("application-current-state")).toBeTruthy();
     });
     expect(screen.queryByTestId("application-lifecycle-timeline")).toBeNull();
   });

@@ -2,14 +2,18 @@
 
 import { CareerPilotExperience } from "@/components/dashboard/career-pilot-experience";
 import { isCareerPilotModeClient } from "@/lib/career-system/feature-flags";
-import { ApplyFlowBadge, type ApplyFlowBadgeTone } from "@/components/ui/ApplyFlowBadge";
+import { ApplyFlowBadge } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton, applyFlowButtonClass } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import { ApplyFlowEmptyState } from "@/components/ui/ApplyFlowEmptyState";
+import { ApplyFlowLoadingState } from "@/components/ui/ApplyFlowLoadingState";
 import { ApplyFlowPrivacyNotice } from "@/components/ui/ApplyFlowPrivacyNotice";
 import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
+import { applyFlowFilterSelectClass } from "@/components/ui/apply-flow-control-classes";
+import { applicationStatusTone } from "@/components/ui/status-tones";
 import Link from "next/link";
 
+import { ApplicationMobileCard } from "@/components/dashboard/application-mobile-card";
 import { JobInboxPanel } from "@/components/dashboard/job-inbox-panel";
 import { JOB_INBOX_NEEDS_RESUME, JOB_DISCOVERY_MISSING_DESCRIPTION, JOB_DISCOVERY_SAVE_ERROR } from "@/components/dashboard/job-inbox-content";
 import { ResumeLibraryPanel } from "@/components/dashboard/resume-library-panel";
@@ -94,6 +98,7 @@ import {
   JOB_DISCOVERY_SOURCE_REMOTEOK,
 } from "@/components/dashboard/job-inbox-content";
 import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from "react";
+import { useMdUp } from "@/lib/use-md-up";
 import type { ReactNode } from "react";
 
 import { DEMO_APPLICATIONS_PUBLIC_PATH } from "@/lib/demo-dataset";
@@ -172,32 +177,7 @@ type ImportFeedback = {
   kind: FeedbackKind;
 };
 
-function statusTone(status: ApplyFlowApplicationStatus): ApplyFlowBadgeTone {
-  switch (status) {
-    case "accepted":
-    case "hired":
-      return "success";
-    case "rejected":
-    case "ignored":
-      return "danger";
-    case "interview":
-      return "brand";
-    case "technical_test":
-      return "intel";
-    case "waiting_response":
-      return "warning";
-    case "applied":
-      return "neutral";
-    default:
-      return "neutral";
-  }
-}
-
-const filterSelectClass = cn(
-  "min-w-[130px] grow rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)]",
-  "bg-[color:var(--af-bg-soft)] px-3 py-2.5 text-sm text-[color:var(--af-text)]",
-  "focus:border-emerald-500/50 focus:outline-none",
-);
+const filterSelectClass = applyFlowFilterSelectClass;
 
 function feedbackSummary(f: ImportFeedback | null): ReactNode {
   if (!f) return null;
@@ -999,6 +979,7 @@ export function DashboardClient({
   const tableEmpty = showApplications && filtered.length === 0;
   const showJobsRecovery = jobsStorageStatus === "partial" || jobsStorageStatus === "unreadable";
   const pilotMode = isCareerPilotModeClient();
+  const mdUp = useMdUp();
   const privacyMode = resolveDashboardPrivacyMode({
     usesCloudPersistence,
     writeCapability,
@@ -1008,10 +989,14 @@ export function DashboardClient({
 
   if (!hydrated && persistenceBootstrap.ok) {
     return (
-      <ApplyFlowCard variant="muted" padding="lg" className="text-center">
-        <p className="text-sm text-[color:var(--af-text-muted)]">
-          {usesCloudPersistence ? "A carregar os dados da conta…" : "A preparar o painel e ler o armazenamento local…"}
-        </p>
+      <ApplyFlowCard variant="muted" padding="lg">
+        <ApplyFlowLoadingState
+          label={
+            usesCloudPersistence
+              ? "A carregar os dados da conta…"
+              : "A preparar o painel e ler o armazenamento local…"
+          }
+        />
       </ApplyFlowCard>
     );
   }
@@ -1369,9 +1354,34 @@ export function DashboardClient({
                 primaryLabel="Repor filtros"
                 onPrimary={() => setFilters(defaultFilters)}
               />
-            ) : null}
-
-            <div className="-mx-4 overflow-x-auto rounded-[var(--af-radius)] border border-[color:var(--af-border)] sm:mx-0">
+            ) : (
+              <>
+            {!mdUp ? (
+            <ul className="mt-4 grid gap-3" data-testid="applications-mobile-list">
+              {filtered.map((a) => {
+                const envelope = a as ApplyFlowApplicationV2Envelope;
+                const linkedJob = envelope.v2?.sourceJobId
+                  ? jobs.find((item) => item.id === envelope.v2?.sourceJobId)
+                  : undefined;
+                return (
+                  <li key={a.id}>
+                    <ApplicationMobileCard
+                      application={a}
+                      linkedJob={linkedJob}
+                      markSentLabel={DASHBOARD_MARK_SENT}
+                      prepareInterviewLabel={DASHBOARD_PREPARE_INTERVIEW}
+                      prepareInterviewHint={DASHBOARD_PREPARE_INTERVIEW_HINT}
+                      analysisLabel="Ver análise"
+                      practiceBusy={practiceHandoffBusy}
+                      onMarkSent={() => commitApplicationSubmitted(a)}
+                      onPractice={() => void onPracticeThisRole(a)}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+            ) : (
+            <div className="-mx-4 mt-4 overflow-x-auto rounded-[var(--af-radius)] border border-[color:var(--af-border)] sm:mx-0" data-testid="applications-desktop-table">
               <table className="w-full min-w-[1080px] text-left text-sm">
                 <thead className="border-b border-[color:var(--af-border)] bg-[color:var(--af-bg-soft)] text-[11px] uppercase tracking-wide text-[color:var(--af-text-muted)] sm:text-xs">
                   <tr>
@@ -1448,7 +1458,7 @@ export function DashboardClient({
                       </td>
                       <td className="whitespace-nowrap px-3 py-3">
                         <div className="grid gap-1">
-                          <ApplyFlowBadge tone={statusTone(a.status)}>
+                          <ApplyFlowBadge tone={applicationStatusTone(a.status)}>
                             {APPLYFLOW_APPLICATION_STATUS_LABELS_PT[a.status]}
                           </ApplyFlowBadge>
                           {nextHint.kind !== "terminal" && nextHint.kind !== "none" ? (
@@ -1533,6 +1543,7 @@ export function DashboardClient({
                 </tbody>
               </table>
             </div>
+            )}
             {practiceRowHandoffHint === "ack" && practiceRowHandoffMessage ? (
               <p className="mt-3 text-center text-[11px] font-medium text-emerald-300 sm:text-left">{practiceRowHandoffMessage}</p>
             ) : null}
@@ -1542,6 +1553,8 @@ export function DashboardClient({
             {practiceRowHandoffHint === "error" && practiceRowHandoffMessage ? (
               <p className="mt-3 max-w-xl text-center text-[11px] leading-snug text-red-200/95 sm:text-left">{practiceRowHandoffMessage}</p>
             ) : null}
+              </>
+            )}
           </ApplyFlowSection>
         </>
       ) : null}

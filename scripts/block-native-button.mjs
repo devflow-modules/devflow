@@ -9,6 +9,10 @@ const ALLOWED_SNIPPETS = [
   `${path.sep}components${path.sep}ui${path.sep}button.tsx`,
   // ApplyFlow local button primitive — native <button> only here (see ApplyFlowButton.tsx).
   `${path.sep}apps${path.sep}applyflow${path.sep}src${path.sep}components${path.sep}ui${path.sep}ApplyFlowButton.tsx`,
+  // ApplyFlow semantic tabs — native <button role="tab"> (not generic Button).
+  `${path.sep}apps${path.sep}applyflow${path.sep}src${path.sep}components${path.sep}ui${path.sep}ApplyFlowTabs.tsx`,
+  // Next.js global-error replaces root layout — no DS CSS/providers; native button required.
+  `${path.sep}apps${path.sep}applyflow${path.sep}src${path.sep}app${path.sep}global-error.tsx`,
   // ApplyFlow extension (MV3) button primitive — isolated CSS, not portal Button.
   `${path.sep}apps${path.sep}applyflow-extension${path.sep}src${path.sep}components${path.sep}ExtensionButton.tsx`,
   // Interview Lab local button primitive — native <button> only here.

@@ -1,5 +1,4 @@
 import type { CurriculumRecommendation, JobMatchDecision } from "@devflow/applyflow-core";
-import type { ApplyFlowBadgeTone } from "@/components/ui/ApplyFlowBadge";
 
 export const JOB_INBOX_EYEBROW = "AF-JOBS-F1";
 export const JOB_INBOX_TITLE = "Vagas";
@@ -182,12 +181,7 @@ export const JOB_MATCH_DECISION_LABELS: Record<JobMatchDecision, string> = {
   skip: "SKIP",
 };
 
-export function jobMatchDecisionTone(decision: JobMatchDecision): ApplyFlowBadgeTone {
-  if (decision === "apply") return "success";
-  if (decision === "stretch") return "warning";
-  if (decision === "needs_info") return "warning";
-  return "danger";
-}
+export { matchDecisionTone as jobMatchDecisionTone } from "@/components/ui/status-tones";
 
 export function curriculumRouterHeading(recommendation: CurriculumRecommendation): string {
   return recommendation.confidence === "equivalent" ? CURRICULUM_ROUTER_EQUIVALENT_TITLE : CURRICULUM_ROUTER_TITLE;
