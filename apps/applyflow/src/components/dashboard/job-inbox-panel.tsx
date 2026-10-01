@@ -626,7 +626,11 @@ export function JobInboxPanel({
       title={JOB_INBOX_TITLE}
       description={JOB_INBOX_DESCRIPTION}
     >
-      <JobDiscoveryPanel matchAvailable={matchAvailable} onSave={onSaveDiscoveredJob} />
+      <JobDiscoveryPanel
+        matchAvailable={matchAvailable}
+        onSave={onSaveDiscoveredJob}
+        resumeLibrary={resumeLibrary}
+      />
       <h3 className="mb-3 text-base font-semibold text-[color:var(--af-text)]">{JOB_DISCOVERY_PASTE_HEADING}</h3>
       <form
         className="grid gap-3"

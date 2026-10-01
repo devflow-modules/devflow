@@ -9,7 +9,7 @@ ApplyFlow searches external job boards from **Vagas → Procurar oportunidades**
 - Default provider
 - Free / rapid discovery
 - Description may be absent in live responses
-- When description is missing, the UI offers **Adicionar descrição e analisar** so the candidate pastes the listing text
+- When description is missing, the UI offers **Adicionar descrição** → **Analisar compatibilidade** (preview) → optional **Guardar e analisar**
 - Default limit 10, maximum 25
 - Cache TTL 10 minutes (process-local)
 
@@ -51,23 +51,35 @@ Provider selector (default: Jobgether)
   -> Zod validation of the provider JSON
   -> JobSearchHit
   -> discovery UI
+  -> LOCAL Match Preview (browser only; no persistence)
 
 If the hit has a usable description:
-  -> Guardar e analisar
-  -> ingestApplyFlowJob
+  -> automatic transient Match Preview
+  -> optional Guardar e analisar
+  -> ingestApplyFlowJob (again) + dedupe + persistence
 
-If the hit has no description:
-  -> Adicionar descrição e analisar
-  -> paste listing text
-  -> ingestApplyFlowJob
-
-Then:
-  -> existing intelligence, Match Engine, dedupe, localStorage or V2
+If the hit has no description (typical Jobgether):
+  -> Adicionar descrição
+  -> Analisar compatibilidade (preview only)
+  -> optional Guardar e analisar
 ```
 
-A search hit is not an `ApplyFlowJob`. Saving does not create an `ApplyFlowApplication`.
+A search hit is not an `ApplyFlowJob`. Preview does not create an `ApplyFlowJob` in storage. Saving does not create an `ApplyFlowApplication`.
 
 The curriculum stays in the browser. Search request bodies contain only filter fields. The server does not score jobs and does not receive CV data.
+
+## Match Preview
+
+- Browser/local only — reuses `ingestDiscoveredJobHit` → `ingestApplyFlowJob` → `evaluateJobMatch`
+- No second scoring system; provider has zero effect on score
+- No provider refetch; TheirStack spends no extra credits for preview
+- No persistence, dedupe, application creation, or funnel/analytics impact until explicit save
+- Description required — Jobgether without description shows `needs_description` (no title-only match)
+- TheirStack / Remote OK normally preview immediately when description is present
+- Save recomputes through the normal ingest + dedupe + persistence path (duplicate CPU is intentional and cheap)
+- Optional **Maior aderência** sort applies only to currently loaded/evaluated results — not the full provider catalog
+- CV/profile changes (default variant id / `updatedAt`) invalidate preview state
+- Remoto OK attribution and TheirStack `directApplyUrl` semantics are unchanged
 
 ## Source, id, and URL semantics
 

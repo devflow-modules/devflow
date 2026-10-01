@@ -42,7 +42,8 @@ export const JOB_DISCOVERY_VIEW_LISTING_GENERIC = "Ver anúncio";
 export const JOB_DISCOVERY_VIEW_LISTING_REMOTEOK = "Ver anúncio no Remote OK";
 export const JOB_DISCOVERY_DIRECT_APPLY = "Candidatura direta";
 export const JOB_DISCOVERY_SAVE = "Guardar e analisar";
-export const JOB_DISCOVERY_ADD_DESCRIPTION = "Adicionar descrição e analisar";
+export const JOB_DISCOVERY_ADD_DESCRIPTION = "Adicionar descrição";
+export const JOB_DISCOVERY_PREVIEW_ANALYZE = "Analisar compatibilidade";
 export const JOB_DISCOVERY_DESCRIPTION_LABEL = "Descrição da vaga";
 export const JOB_DISCOVERY_DESCRIPTION_HINT =
   "Abre o anúncio, copia o texto completo e cola aqui. O ApplyFlow não descarrega a página.";
@@ -52,7 +53,17 @@ export const JOB_DISCOVERY_CANCEL = "Cancelar";
 export const JOB_DISCOVERY_SAVED = "Guardada na inbox.";
 export const JOB_DISCOVERY_DUPLICATE = "Esta vaga já está na inbox.";
 export const JOB_DISCOVERY_MISSING_DESCRIPTION =
-  "A fonte não enviou a descrição desta vaga. Abre o anúncio, copia o texto e usa Adicionar descrição e analisar.";
+  "A fonte não enviou a descrição desta vaga. Cola o texto para ver a aderência e, se quiseres, guarda depois.";
+export const JOB_DISCOVERY_PREVIEW_SCORE_SUFFIX = "% de aderência";
+export const JOB_DISCOVERY_PREVIEW_MATCHED = "Compatíveis";
+export const JOB_DISCOVERY_PREVIEW_MISSING = "Lacunas";
+export const JOB_DISCOVERY_PREVIEW_UNKNOWN = "Não informado";
+export const JOB_DISCOVERY_PREVIEW_NEEDS_DESCRIPTION = "Descrição necessária para analisar";
+export const JOB_DISCOVERY_PREVIEW_ERROR = "Não foi possível calcular a aderência desta vaga.";
+export const JOB_DISCOVERY_PREVIEW_SORT = "Ordenar resultados";
+export const JOB_DISCOVERY_PREVIEW_SORT_DEFAULT = "Ordem da busca";
+export const JOB_DISCOVERY_PREVIEW_SORT_MATCH = "Maior aderência";
+export const JOB_DISCOVERY_PREVIEW_SORT_HINT = "Ordena apenas os resultados carregados.";
 export const JOB_DISCOVERY_SAVE_ERROR = "Não foi possível guardar esta vaga.";
 export const JOB_DISCOVERY_ANY = "Qualquer";
 export const JOB_DISCOVERY_PASTE_HEADING = "Colar anúncio";

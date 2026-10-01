@@ -4,16 +4,27 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { JobDiscoveryHitCard, JobDiscoveryPanel, buildDiscoveryCriteria } from "./job-discovery-panel";
+import {
+  DiscoveryMatchPreviewBlock,
+  JobDiscoveryHitCard,
+  JobDiscoveryPanel,
+  buildDiscoveryCriteria,
+} from "./job-discovery-panel";
 import {
   JOB_DISCOVERY_ADD_DESCRIPTION,
-  JOB_DISCOVERY_ANALYZE,
   JOB_DISCOVERY_CANCEL,
   JOB_DISCOVERY_DESCRIPTION_EMPTY,
   JOB_DISCOVERY_DESCRIPTION_LABEL,
   JOB_DISCOVERY_DIRECT_APPLY,
   JOB_DISCOVERY_KEYWORD,
   JOB_DISCOVERY_MISSING_DESCRIPTION,
+  JOB_DISCOVERY_PREVIEW_ANALYZE,
+  JOB_DISCOVERY_PREVIEW_MATCHED,
+  JOB_DISCOVERY_PREVIEW_NEEDS_DESCRIPTION,
+  JOB_DISCOVERY_PREVIEW_SCORE_SUFFIX,
+  JOB_DISCOVERY_PREVIEW_SORT_HINT,
+  JOB_DISCOVERY_PREVIEW_SORT_MATCH,
+  JOB_DISCOVERY_PREVIEW_UNKNOWN,
   JOB_DISCOVERY_SAVE,
   JOB_DISCOVERY_SEARCH,
   JOB_DISCOVERY_SOURCE,
@@ -24,10 +35,13 @@ import {
   JOB_DISCOVERY_VIEW_LISTING_GENERIC,
   JOB_DISCOVERY_VIEW_LISTING_REMOTEOK,
   JOB_INBOX_SUBMIT_LABEL,
+  JOB_MATCH_DECISION_LABELS,
 } from "./job-inbox-content";
 import { JobInboxPanel } from "./job-inbox-panel";
 import type { JobSearchHit } from "@/lib/job-sources/types";
 import { withHitDescription } from "@/lib/job-sources/save-hit";
+import { createResumeLibraryFromProfile, gustavoProfile } from "@devflow/applyflow-core";
+
 
 const listing = "https://jobgether.com/offer/abc123-senior-full-stack";
 const sampleDescription = "Senior full stack role. React, TypeScript, Node.js and PostgreSQL. Remote.";
@@ -83,28 +97,35 @@ describe("Job discovery UI", () => {
     expect(html).toContain("80000-120000 USD");
   });
 
-  it("pastes a real description into ingestion without inventing content", async () => {
+  it("pastes a description for preview without saving", async () => {
     const onSave = vi.fn(async () => undefined);
-    render(<JobDiscoveryHitCard hit={hit(undefined)} matchAvailable onSave={onSave} />);
+    const onApplyDescription = vi.fn();
+    render(
+      <JobDiscoveryHitCard
+        hit={hit(undefined)}
+        matchAvailable
+        onSave={onSave}
+        onApplyDescription={onApplyDescription}
+      />,
+    );
 
     fireEvent.click(screen.getByRole("button", { name: JOB_DISCOVERY_ADD_DESCRIPTION }));
     fireEvent.change(screen.getByLabelText(JOB_DISCOVERY_DESCRIPTION_LABEL), {
       target: { value: "   " },
     });
-    fireEvent.click(screen.getByRole("button", { name: JOB_DISCOVERY_ANALYZE }));
+    fireEvent.click(screen.getByRole("button", { name: JOB_DISCOVERY_PREVIEW_ANALYZE }));
     expect(await screen.findByText(JOB_DISCOVERY_DESCRIPTION_EMPTY)).toBeTruthy();
     expect(onSave).not.toHaveBeenCalled();
+    expect(onApplyDescription).not.toHaveBeenCalled();
 
     fireEvent.change(screen.getByLabelText(JOB_DISCOVERY_DESCRIPTION_LABEL), {
       target: { value: sampleDescription },
     });
-    fireEvent.click(screen.getByRole("button", { name: JOB_DISCOVERY_ANALYZE }));
+    fireEvent.click(screen.getByRole("button", { name: JOB_DISCOVERY_PREVIEW_ANALYZE }));
 
-    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
-    expect(onSave.mock.calls[0]?.[0]).toEqual({
-      ...hit(undefined),
-      description: sampleDescription,
-    });
+    await waitFor(() => expect(onApplyDescription).toHaveBeenCalledTimes(1));
+    expect(onSave).not.toHaveBeenCalled();
+    expect(onApplyDescription.mock.calls[0]?.[1]).toBe(sampleDescription);
   });
 
   it("cancels the description editor without saving", async () => {
@@ -289,5 +310,86 @@ describe("Job discovery UI", () => {
     expect(onSearch.mock.calls[0]?.[0]).toMatchObject({ provider: "remoteok", limit: 10, page: 1, keyword: "react" });
     expect(onSearch.mock.calls[0]?.[0]).not.toHaveProperty("salaryMin");
     expect(onSearch.mock.calls[0]?.[0]).not.toHaveProperty("contract");
+  });
+
+  it("renders compact match preview from existing engine fields", () => {
+    const html = renderToStaticMarkup(
+      <JobDiscoveryHitCard
+        hit={hit(sampleDescription)}
+        matchAvailable
+        previewState={{
+          status: "ready",
+          preview: {
+            score: 92,
+            decision: "apply",
+            matchedSkills: ["React", "TypeScript", "Node.js", "Extra"],
+            missingSkills: ["AWS", "Docker", "K8s"],
+            unknownSkills: ["GraphQL", "Redis", "Kafka"],
+            scoringVersion: "v1",
+          },
+        }}
+      />,
+    );
+    expect(html).toContain('data-testid="discovery-match-preview"');
+    expect(html).toContain("92");
+    expect(html).toContain(JOB_DISCOVERY_PREVIEW_SCORE_SUFFIX);
+    expect(html).toContain(JOB_MATCH_DECISION_LABELS.apply);
+    expect(html).toContain(JOB_DISCOVERY_PREVIEW_MATCHED);
+    expect(html).toContain("React · TypeScript · Node.js");
+    expect(html).toContain("+1");
+    expect(html).toContain("AWS · Docker · K8s");
+    expect(html).toContain(JOB_DISCOVERY_PREVIEW_UNKNOWN);
+    expect(html).toContain(JOB_DISCOVERY_SAVE);
+  });
+
+  it("shows needs_description preview state without fabricating score", () => {
+    const html = renderToStaticMarkup(
+      <DiscoveryMatchPreviewBlock state={{ status: "needs_description" }} />,
+    );
+    expect(html).toContain(JOB_DISCOVERY_PREVIEW_NEEDS_DESCRIPTION);
+    expect(html).not.toContain(JOB_DISCOVERY_PREVIEW_SCORE_SUFFIX);
+  });
+
+  it("auto-previews loaded TheirStack hits without extra search calls and supports loaded-only sort", async () => {
+    const library = createResumeLibraryFromProfile(gustavoProfile, {
+      now: new Date("2026-09-30T12:00:00.000Z"),
+    });
+    const onSearch = vi.fn(async () => ({
+      ok: true as const,
+      cached: false,
+      page: {
+        provider: "theirstack" as const,
+        page: 1,
+        limit: 5,
+        hasMore: false,
+        hits: [
+          {
+            externalId: "1",
+            source: "theirstack" as const,
+            title: "Engineer",
+            description: sampleDescription,
+            sourceUrl: "https://example.com/1",
+          },
+          {
+            externalId: "2",
+            source: "theirstack" as const,
+            title: "No desc",
+            sourceUrl: "https://example.com/2",
+          },
+        ],
+      },
+    }));
+    const onSave = vi.fn(async () => "added" as const);
+    render(
+      <JobDiscoveryPanel matchAvailable resumeLibrary={library} onSearch={onSearch} onSave={onSave} />,
+    );
+    fireEvent.click(screen.getByRole("radio", { name: /TheirStack/i }));
+    fireEvent.click(screen.getByRole("button", { name: JOB_DISCOVERY_SEARCH }));
+    await waitFor(() => expect(screen.getByTestId("discovery-match-preview")).toBeTruthy());
+    expect(onSearch).toHaveBeenCalledTimes(1);
+    expect(screen.getByText(JOB_DISCOVERY_PREVIEW_NEEDS_DESCRIPTION)).toBeTruthy();
+    expect(screen.getByText(JOB_DISCOVERY_PREVIEW_SORT_HINT)).toBeTruthy();
+    expect(screen.getByRole("option", { name: JOB_DISCOVERY_PREVIEW_SORT_MATCH })).toBeTruthy();
+    expect(onSave).not.toHaveBeenCalled();
   });
 });

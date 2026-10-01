@@ -6,7 +6,6 @@ import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import {
   JOB_DISCOVERY_ANY,
   JOB_DISCOVERY_ADD_DESCRIPTION,
-  JOB_DISCOVERY_ANALYZE,
   JOB_DISCOVERY_CANCEL,
   JOB_DISCOVERY_CONTRACT,
   JOB_DISCOVERY_CURRENCY,
@@ -24,6 +23,17 @@ import {
   JOB_DISCOVERY_LOADING,
   JOB_DISCOVERY_LOCATION,
   JOB_DISCOVERY_MISSING_DESCRIPTION,
+  JOB_DISCOVERY_PREVIEW_ANALYZE,
+  JOB_DISCOVERY_PREVIEW_ERROR,
+  JOB_DISCOVERY_PREVIEW_MATCHED,
+  JOB_DISCOVERY_PREVIEW_MISSING,
+  JOB_DISCOVERY_PREVIEW_NEEDS_DESCRIPTION,
+  JOB_DISCOVERY_PREVIEW_SCORE_SUFFIX,
+  JOB_DISCOVERY_PREVIEW_SORT,
+  JOB_DISCOVERY_PREVIEW_SORT_DEFAULT,
+  JOB_DISCOVERY_PREVIEW_SORT_HINT,
+  JOB_DISCOVERY_PREVIEW_SORT_MATCH,
+  JOB_DISCOVERY_PREVIEW_UNKNOWN,
   JOB_DISCOVERY_PROVIDER,
   JOB_DISCOVERY_PROVIDER_JOBGETHER,
   JOB_DISCOVERY_PROVIDER_JOBGETHER_HINT,
@@ -50,9 +60,22 @@ import {
   JOB_DISCOVERY_VIEW_LISTING_GENERIC,
   JOB_DISCOVERY_VIEW_LISTING_REMOTEOK,
   JOB_INBOX_NEEDS_RESUME,
+  JOB_MATCH_DECISION_LABELS,
+  jobMatchDecisionTone,
 } from "@/components/dashboard/job-inbox-content";
+import {
+  discoveryHitKey,
+  evaluateDiscoveredJobHitPreview,
+  matchProfileFingerprint,
+  previewInputFingerprint,
+  sortDiscoveryHitsByMatch,
+  type DiscoveryHitPreviewState,
+  type DiscoveryResultSort,
+  type JobMatchPreview,
+} from "@/lib/job-sources/preview-hit";
 import { hasAnalyzableJobDescription, withHitDescription } from "@/lib/job-sources/save-hit";
 import { requestJobSearch } from "@/lib/job-sources/search-client";
+import { resolveInboxMatchProfile } from "@/lib/resolve-inbox-match-profile";
 import {
   DEFAULT_JOB_SOURCE_ID,
   JOB_SEARCH_CONTRACT,
@@ -68,8 +91,8 @@ import {
   type JobSearchSort,
   type JobSourceId,
 } from "@/lib/job-sources/types";
-import { isOpenableJobUrl } from "@devflow/applyflow-core";
-import { useId, useState } from "react";
+import { isOpenableJobUrl, type ResumeLibrary } from "@devflow/applyflow-core";
+import { useId, useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
 
 const fieldClass = cn(
@@ -132,6 +155,10 @@ const EMPTY_DRAFT: Draft = {
   currency: "",
   sort: "",
 };
+
+const MATCHED_CAP = 3;
+const MISSING_CAP = 3;
+const UNKNOWN_CAP = 2;
 
 function optionalEnum<T extends string>(value: "" | T): T | undefined {
   return value ? value : undefined;
@@ -196,16 +223,81 @@ function saveMessage(status: DiscoveredJobSaveStatus): string {
   return JOB_DISCOVERY_SAVE_ERROR;
 }
 
+function skillLine(label: string, skills: readonly string[], cap: number) {
+  if (skills.length === 0) return null;
+  const visible = skills.slice(0, cap);
+  const rest = skills.length - visible.length;
+  return (
+    <p className="text-xs text-[color:var(--af-text-muted)]">
+      <span className="font-medium text-[color:var(--af-text)]">{label}:</span> {visible.join(" · ")}
+      {rest > 0 ? ` · +${rest}` : ""}
+    </p>
+  );
+}
+
+export function DiscoveryMatchPreviewBlock({
+  state,
+}: {
+  state?: DiscoveryHitPreviewState;
+}) {
+  if (!state || state.status === "idle") return null;
+  if (state.status === "needs_description") {
+    return (
+      <p className="mt-3 text-xs text-[color:var(--af-text-muted)]" data-testid="discovery-preview-needs-description">
+        {JOB_DISCOVERY_PREVIEW_NEEDS_DESCRIPTION}
+      </p>
+    );
+  }
+  if (state.status === "error") {
+    return (
+      <p className="mt-3 text-xs text-red-200" role="alert" data-testid="discovery-preview-error">
+        {JOB_DISCOVERY_PREVIEW_ERROR}
+      </p>
+    );
+  }
+  if (state.status === "evaluating") {
+    return null;
+  }
+  const preview = state.preview;
+  if (!preview) return null;
+  return (
+    <div
+      className="mt-3 grid gap-1.5 border-t border-[color:var(--af-border)] pt-3"
+      data-testid="discovery-match-preview"
+      data-decision={preview.decision}
+      data-score={preview.score}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <ApplyFlowBadge tone={jobMatchDecisionTone(preview.decision)}>
+          {JOB_MATCH_DECISION_LABELS[preview.decision]}
+        </ApplyFlowBadge>
+        <span className="tabular-nums text-sm font-medium text-[color:var(--af-text)]">
+          {preview.score}
+          {JOB_DISCOVERY_PREVIEW_SCORE_SUFFIX}
+        </span>
+      </div>
+      {skillLine(JOB_DISCOVERY_PREVIEW_MATCHED, preview.matchedSkills, MATCHED_CAP)}
+      {skillLine(JOB_DISCOVERY_PREVIEW_MISSING, preview.missingSkills, MISSING_CAP)}
+      {skillLine(JOB_DISCOVERY_PREVIEW_UNKNOWN, preview.unknownSkills ?? [], UNKNOWN_CAP)}
+    </div>
+  );
+}
+
 export function JobDiscoveryHitCard({
   hit,
   matchAvailable,
   status,
+  previewState,
   onSave,
+  onApplyDescription,
 }: {
   hit: JobSearchHit;
   matchAvailable: boolean;
   status?: DiscoveredJobSaveStatus;
+  previewState?: DiscoveryHitPreviewState;
   onSave?: (hit: JobSearchHit) => void | Promise<void>;
+  /** Attach pasted description for local preview — does not persist. */
+  onApplyDescription?: (hit: JobSearchHit, description: string) => void;
 }) {
   const descriptionFieldId = useId();
   const hasDescription = hasAnalyzableJobDescription(hit.description);
@@ -224,21 +316,14 @@ export function JobDiscoveryHitCard({
     setLocalError(null);
   }
 
-  async function submitWithDescription() {
+  function submitDescriptionForPreview() {
     const completed = withHitDescription(hit, draftDescription);
     if (!completed) {
       setLocalError(JOB_DISCOVERY_DESCRIPTION_EMPTY);
       return;
     }
-    if (!onSave) return;
-    setSaving(true);
-    setLocalError(null);
-    try {
-      await onSave(completed);
-      closeEditor();
-    } finally {
-      setSaving(false);
-    }
+    onApplyDescription?.(completed, completed.description ?? "");
+    closeEditor();
   }
 
   return (
@@ -268,6 +353,7 @@ export function JobDiscoveryHitCard({
       {hit.technologies && hit.technologies.length > 0 ? (
         <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">{hit.technologies.slice(0, 6).join(" · ")}</p>
       ) : null}
+      <DiscoveryMatchPreviewBlock state={previewState} />
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {listingOpenable ? (
           <a
@@ -298,7 +384,8 @@ export function JobDiscoveryHitCard({
             disabled={!matchAvailable || saving}
             onClick={() => {
               if (!onSave) return;
-              void Promise.resolve(onSave(hit));
+              setSaving(true);
+              void Promise.resolve(onSave(hit)).finally(() => setSaving(false));
             }}
           >
             {JOB_DISCOVERY_SAVE}
@@ -329,7 +416,7 @@ export function JobDiscoveryHitCard({
           className="mt-4 grid gap-3 border-t border-[color:var(--af-border)] pt-4"
           onSubmit={(event) => {
             event.preventDefault();
-            void submitWithDescription();
+            submitDescriptionForPreview();
           }}
         >
           <p className="text-xs text-[color:var(--af-text-muted)]">
@@ -358,10 +445,10 @@ export function JobDiscoveryHitCard({
             </p>
           ) : null}
           <div className="flex flex-wrap gap-2">
-            <ApplyFlowButton type="submit" variant="primary" size="sm" disabled={saving || !matchAvailable}>
-              {JOB_DISCOVERY_ANALYZE}
+            <ApplyFlowButton type="submit" variant="primary" size="sm" disabled={!matchAvailable}>
+              {JOB_DISCOVERY_PREVIEW_ANALYZE}
             </ApplyFlowButton>
-            <ApplyFlowButton type="button" variant="secondary" size="sm" disabled={saving} onClick={closeEditor}>
+            <ApplyFlowButton type="button" variant="secondary" size="sm" onClick={closeEditor}>
               {JOB_DISCOVERY_CANCEL}
             </ApplyFlowButton>
           </div>
@@ -376,23 +463,105 @@ export function JobDiscoveryHitCard({
   );
 }
 
+function computePreviewMap(
+  hits: readonly JobSearchHit[],
+  resumeLibrary: ResumeLibrary | null | undefined,
+  previous: Record<string, DiscoveryHitPreviewState>,
+): Record<string, DiscoveryHitPreviewState> {
+  const profile = resolveInboxMatchProfile(resumeLibrary);
+  const profileFp = matchProfileFingerprint(resumeLibrary);
+  const next: Record<string, DiscoveryHitPreviewState> = {};
+
+  for (const hit of hits) {
+    const key = discoveryHitKey(hit);
+    if (!profile || !profileFp) {
+      next[key] = { status: "idle" };
+      continue;
+    }
+    if (!hasAnalyzableJobDescription(hit.description)) {
+      next[key] = { status: "needs_description" };
+      continue;
+    }
+    const fingerprint = previewInputFingerprint(hit, profileFp);
+    const existing = previous[key];
+    if (
+      existing &&
+      existing.status === "ready" &&
+      existing.fingerprint === fingerprint &&
+      existing.preview
+    ) {
+      next[key] = existing;
+      continue;
+    }
+    const evaluated = evaluateDiscoveredJobHitPreview(hit, {
+      profile,
+      resumeLibrary: resumeLibrary ?? undefined,
+    });
+    if (!evaluated.ok) {
+      next[key] = {
+        status: evaluated.reason === "missing_description" ? "needs_description" : "error",
+        fingerprint: fingerprint ?? undefined,
+      };
+      continue;
+    }
+    next[key] = {
+      status: "ready",
+      preview: evaluated.preview,
+      fingerprint: fingerprint ?? undefined,
+    };
+  }
+  return next;
+}
+
 export function JobDiscoveryPanel({
   matchAvailable,
   onSave,
   onSearch = requestJobSearch,
+  resumeLibrary = null,
 }: {
   matchAvailable: boolean;
   onSave?: (hit: JobSearchHit) => Promise<DiscoveredJobSaveStatus>;
   onSearch?: typeof requestJobSearch;
+  resumeLibrary?: ResumeLibrary | null;
 }) {
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [hits, setHits] = useState<JobSearchHit[]>([]);
+  const [descriptionOverrides, setDescriptionOverrides] = useState<Record<string, string>>({});
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statuses, setStatuses] = useState<Record<string, DiscoveredJobSaveStatus>>({});
+  const [resultSort, setResultSort] = useState<DiscoveryResultSort>("default");
+
+  const effectiveHits = useMemo(
+    () =>
+      hits.map((hit) => {
+        const override = descriptionOverrides[discoveryHitKey(hit)];
+        return override ? { ...hit, description: override } : hit;
+      }),
+    [hits, descriptionOverrides],
+  );
+
+  const previews = useMemo(
+    () => computePreviewMap(effectiveHits, resumeLibrary, {}),
+    [effectiveHits, resumeLibrary],
+  );
+
+  const displayedHits = useMemo(() => {
+    if (resultSort !== "match") return effectiveHits;
+    return sortDiscoveryHitsByMatch(effectiveHits, previews);
+  }, [effectiveHits, previews, resultSort]);
+
+  function clearDiscoveryState() {
+    setHits([]);
+    setDescriptionOverrides({});
+    setHasMore(false);
+    setSearched(false);
+    setError(null);
+    setStatuses({});
+  }
 
   async function runSearch(nextPage: number, append: boolean) {
     const criteria = buildDiscoveryCriteria(draft, nextPage);
@@ -412,11 +581,14 @@ export function JobDiscoveryPanel({
     setPage(result.page.page);
     setHasMore(result.page.hasMore);
     setHits((current) => {
-      if (!append) return result.page.hits;
-      const seen = new Set(current.map((item) => `${item.source}:${item.externalId}`));
+      if (!append) {
+        setDescriptionOverrides({});
+        return result.page.hits;
+      }
+      const seen = new Set(current.map((item) => discoveryHitKey(item)));
       return [
         ...current,
-        ...result.page.hits.filter((item) => !seen.has(`${item.source}:${item.externalId}`)),
+        ...result.page.hits.filter((item) => !seen.has(discoveryHitKey(item))),
       ];
     });
   }
@@ -444,11 +616,7 @@ export function JobDiscoveryPanel({
                 checked={draft.provider === "jobgether"}
                 onChange={() => {
                   setDraft((current) => ({ ...current, ...resetProviderDraft("jobgether") }));
-                  setHits([]);
-                  setHasMore(false);
-                  setSearched(false);
-                  setError(null);
-                  setStatuses({});
+                  clearDiscoveryState();
                 }}
               />
               <span>
@@ -466,11 +634,7 @@ export function JobDiscoveryPanel({
                 checked={draft.provider === "theirstack"}
                 onChange={() => {
                   setDraft((current) => ({ ...current, ...resetProviderDraft("theirstack") }));
-                  setHits([]);
-                  setHasMore(false);
-                  setSearched(false);
-                  setError(null);
-                  setStatuses({});
+                  clearDiscoveryState();
                 }}
               />
               <span>
@@ -488,11 +652,7 @@ export function JobDiscoveryPanel({
                 checked={draft.provider === "remoteok"}
                 onChange={() => {
                   setDraft((current) => ({ ...current, ...resetProviderDraft("remoteok") }));
-                  setHits([]);
-                  setHasMore(false);
-                  setSearched(false);
-                  setError(null);
-                  setStatuses({});
+                  clearDiscoveryState();
                 }}
               />
               <span>
@@ -645,20 +805,44 @@ export function JobDiscoveryPanel({
           {error}
         </p>
       ) : null}
-      {hits.length > 0 ? (
+      {displayedHits.length > 0 ? (
+        <div className="mt-4 grid gap-2">
+          <label className="grid max-w-xs gap-1.5 text-sm text-[color:var(--af-text)]">
+            {JOB_DISCOVERY_PREVIEW_SORT}
+            <select
+              value={resultSort}
+              onChange={(event) => setResultSort(event.target.value as DiscoveryResultSort)}
+              className={fieldClass}
+              data-testid="discovery-result-sort"
+            >
+              <option value="default">{JOB_DISCOVERY_PREVIEW_SORT_DEFAULT}</option>
+              <option value="match">{JOB_DISCOVERY_PREVIEW_SORT_MATCH}</option>
+            </select>
+          </label>
+          <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_DISCOVERY_PREVIEW_SORT_HINT}</p>
+        </div>
+      ) : null}
+      {displayedHits.length > 0 ? (
         <ul className="mt-4 grid gap-3">
-          {hits.map((item) => (
-            <li key={`${item.source}:${item.externalId}`}>
+          {displayedHits.map((item) => (
+            <li key={discoveryHitKey(item)}>
               <JobDiscoveryHitCard
                 hit={item}
                 matchAvailable={matchAvailable}
-                status={statuses[`${item.source}:${item.externalId}`]}
+                status={statuses[discoveryHitKey(item)]}
+                previewState={previews[discoveryHitKey(item)]}
+                onApplyDescription={(selected, description) => {
+                  setDescriptionOverrides((current) => ({
+                    ...current,
+                    [discoveryHitKey(selected)]: description,
+                  }));
+                }}
                 onSave={async (selected) => {
                   if (!onSave) return;
                   const nextStatus = await onSave(selected);
                   setStatuses((current) => ({
                     ...current,
-                    [`${selected.source}:${selected.externalId}`]: nextStatus,
+                    [discoveryHitKey(selected)]: nextStatus,
                   }));
                 }}
               />
@@ -666,7 +850,7 @@ export function JobDiscoveryPanel({
           ))}
         </ul>
       ) : null}
-      <DiscoveryEmpty visible={searched && !loading && !error && hits.length === 0} />
+      <DiscoveryEmpty visible={searched && !loading && !error && displayedHits.length === 0} />
       {hasMore ? (
         <div className="mt-4">
           <ApplyFlowButton
@@ -688,3 +872,5 @@ function DiscoveryEmpty({ visible }: { visible: boolean }) {
   if (!visible) return null;
   return <p className="mt-4 text-sm text-[color:var(--af-text-muted)]">{JOB_DISCOVERY_EMPTY}</p>;
 }
+
+export type { JobMatchPreview };
