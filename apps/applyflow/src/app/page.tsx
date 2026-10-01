@@ -1,40 +1,47 @@
-import { applyFlowButtonClass } from "@/components/ui/ApplyFlowButton";
-import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
-import { ApplyFlowPrivacyNotice } from "@/components/ui/ApplyFlowPrivacyNotice";
-import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
-import { HeroProductVisual } from "@/components/landing/hero-product-visual";
 import Link from "next/link";
 
-const heroBullets = [
-  "Descobre vagas via providers (Jobgether, Remote OK; TheirStack só com opt-in).",
-  "Avalia fit com Match Engine determinístico — local, sem LLM.",
-  "Guarda oportunidades numa fila derivada (sem entidade Shortlist).",
-  "Prepara a candidatura com checklist de orientação (não é um gate).",
-  "Regista e acompanha o lifecycle — Mark Sent só após envio externo real.",
-  "Local-first por defeito; V2/Postgres opcional no closed beta.",
-];
-
-const featureCards = [
-  {
-    title: "Discovery + Match",
-    body: "Adapters de providers no servidor, preview de fit no browser. CV/perfil não vão nos pedidos de discovery.",
-  },
-  {
-    title: "Fila + preparação",
-    body: "Save cria Job, não Application. Readiness e next-action são derivados — orientação, não automação.",
-  },
-  {
-    title: "Lifecycle + privacidade",
-    body: "Registar ≠ enviar. Sem auto-apply. Persistência local ou V2 autenticada com isolamento por conta.",
-  },
-];
+import { applyFlowButtonClass } from "@/components/ui/ApplyFlowButton";
+import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
+import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
+import { HeroProductVisual } from "@/components/landing/hero-product-visual";
+import { ApplyFlowSiteFooter } from "@/components/ui/ApplyFlowSiteFooter";
 
 const workflowSteps = [
-  { title: "Discover", body: "Pesquisa providers e cola anúncios." },
-  { title: "Evaluate", body: "Preview de match — score e decisão advisory." },
-  { title: "Prioritize", body: "Save explícito entra na opportunity queue." },
-  { title: "Prepare", body: "Checklist de readiness e análise da vaga." },
-  { title: "Track", body: "Regista candidatura, Mark Sent, lifecycle." },
+  {
+    title: "Descobrir",
+    body: "Pesquisa providers ou cola um anúncio. O currículo não vai nos pedidos de busca.",
+  },
+  {
+    title: "Avaliar",
+    body: "Vê um Match explicável — score e decisão de orientação, não uma caixa negra.",
+  },
+  {
+    title: "Priorizar",
+    body: "Guarda só o que merece tempo. Uma vaga salva ainda não é uma candidatura.",
+  },
+  {
+    title: "Preparar",
+    body: "Checklist de prontidão antes de registar. Sem envio automático.",
+  },
+  {
+    title: "Acompanhar",
+    body: "Marca o envio real e segue o estado (triagem, entrevista, oferta…).",
+  },
+];
+
+const valueCards = [
+  {
+    title: "Um fluxo em vez de abas soltas",
+    body: "Descoberta, fit, fila e acompanhamento no mesmo produto — sem misturar salvar com candidatar.",
+  },
+  {
+    title: "Match que podes entender",
+    body: "Motor determinístico de cobertura de skills. Recomendação é advisory; a decisão é tua.",
+  },
+  {
+    title: "Os teus dados sob o teu controlo",
+    body: "O perfil fica no browser na descoberta. Não há auto-apply. Conta autenticada é opcional para sync.",
+  },
 ];
 
 const sectionShell =
@@ -42,169 +49,186 @@ const sectionShell =
 
 export default function HomePage() {
   return (
-    <main className="text-[color:var(--af-text)]">
-      <section className="relative overflow-hidden border-b border-[color:var(--af-border)]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_50%_-30%,var(--af-glow-hero),transparent_55%)]" />
-        <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-16 sm:px-6 sm:pb-28 sm:pt-20 lg:pt-24">
-          <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(280px,440px)] lg:gap-16 xl:gap-20">
-            <div className="text-center lg:text-left">
-              <div className="flex flex-wrap items-center justify-center gap-2 lg:justify-start">
-                <span className="rounded-full border border-emerald-500/35 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-300/95">
-                  DevFlow Labs
-                </span>
-                <span className="rounded-full border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] px-3 py-1 text-[11px] font-medium text-[color:var(--af-text-muted)]">
-                  Local-first
-                </span>
-                <span className="rounded-full border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] px-3 py-1 text-[11px] font-medium text-[color:var(--af-text-muted)]">
-                  Closed beta
-                </span>
-              </div>
+    <>
+      <main className="text-[color:var(--af-text)]">
+        <section className="relative overflow-hidden border-b border-[color:var(--af-border)]">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_50%_-30%,var(--af-glow-hero),transparent_55%)]" />
+          <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-14 sm:px-6 sm:pb-24 sm:pt-20 lg:pt-24">
+            <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(280px,440px)] lg:gap-16 xl:gap-20">
+              <div className="text-center lg:text-left">
+                <div className="flex flex-wrap items-center justify-center gap-2 lg:justify-start">
+                  <span className="rounded-full border border-emerald-500/35 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-300/95">
+                    Fluxo de carreira
+                  </span>
+                  <span className="rounded-full border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] px-3 py-1 text-[11px] font-medium text-[color:var(--af-text-muted)]">
+                    Sem auto-envio
+                  </span>
+                  <span className="rounded-full border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] px-3 py-1 text-[11px] font-medium text-[color:var(--af-text-muted)]">
+                    Beta por convite
+                  </span>
+                </div>
 
-              <h1 className="mt-8 text-5xl font-semibold tracking-tight text-[color:var(--af-text)] sm:text-6xl lg:text-7xl">
-                ApplyFlow
-              </h1>
+                <h1 className="mt-7 text-5xl font-semibold tracking-tight text-[color:var(--af-text)] sm:text-6xl lg:text-7xl">
+                  ApplyFlow
+                </h1>
 
-              <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-[color:var(--af-text-muted)] sm:text-xl lg:mx-0 lg:max-w-xl">
-                A local-first workflow for <strong className="text-[color:var(--af-text)]">finding, evaluating and tracking</strong>{" "}
-                job opportunities.
-              </p>
-
-              <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-[color:var(--af-text-muted)] sm:text-[15px] lg:mx-0 lg:max-w-2xl">
-                Discovery, deterministic Match Engine, opportunity queue, application readiness and lifecycle tracking —
-                with optional authenticated V2 cloud persistence. No auto-apply. No public signup.
-              </p>
-
-              <p className="mx-auto mt-4 max-w-xl text-xs font-medium uppercase tracking-[0.12em] text-[color:var(--af-text-muted)] sm:text-[13px] lg:mx-0">
-                Privacy-first · Human intent · Invite-only beta
-              </p>
-
-              <ul className="mx-auto mt-10 grid max-w-2xl list-none gap-x-6 gap-y-3 text-left text-sm text-[color:var(--af-text-muted)] sm:grid-cols-2 sm:text-[15px] lg:mx-0 lg:max-w-3xl">
-                {heroBullets.map((line) => (
-                  <li key={line} className="flex gap-3">
-                    <span
-                      className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--af-brand)] shadow-[0_0_8px_rgba(52,211,153,0.65)]"
-                      aria-hidden
-                    />
-                    <span className="leading-snug">{line}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mx-auto mt-11 flex max-w-2xl flex-col gap-3 sm:flex-row sm:flex-wrap lg:mx-0 lg:max-w-none">
-                <Link
-                  href="/dashboard"
-                  className={applyFlowButtonClass({
-                    variant: "primary",
-                    size: "lg",
-                    className: "w-full min-h-[48px] sm:min-w-[200px] sm:flex-1 sm:shrink-0",
-                  })}
-                >
-                  Open Dashboard
-                </Link>
-                <Link
-                  href="/login"
-                  className={applyFlowButtonClass({
-                    variant: "outlineBrand",
-                    size: "lg",
-                    className: "w-full min-h-[48px] sm:min-w-[160px] sm:flex-1 sm:shrink-0",
-                  })}
-                >
-                  Sign in
-                </Link>
-                <Link
-                  href="/documentacao"
-                  className={applyFlowButtonClass({
-                    variant: "secondary",
-                    size: "lg",
-                    className: "w-full min-h-[48px] sm:min-w-[160px] sm:flex-1 sm:shrink-0",
-                  })}
-                >
-                  Documentation
-                </Link>
-              </div>
-            </div>
-
-            <div className="flex justify-center lg:justify-end">
-              <HeroProductVisual />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="mx-auto max-w-6xl space-y-10 px-4 py-16 sm:space-y-12 sm:px-6 sm:py-20">
-        <ApplyFlowSection
-          className={sectionShell}
-          eyebrow="Workflow"
-          title="How it works"
-          description="Human-controlled steps from discovery to lifecycle — recommendation never replaces intent."
-        >
-          <ol className="mt-6 grid list-none gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            {workflowSteps.map((step, index) => (
-              <li
-                key={step.title}
-                className="rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] px-3 py-3"
-              >
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-400/85">
-                  {index + 1}. {step.title}
+                <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-[color:var(--af-text-muted)] sm:text-xl lg:mx-0 lg:max-w-xl">
+                  Organiza a tua busca por vagas — do{" "}
+                  <strong className="text-[color:var(--af-text)]">descobrimento ao acompanhamento</strong>.
                 </p>
-                <p className="mt-1 text-sm text-[color:var(--af-text-muted)]">{step.body}</p>
+
+                <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-[color:var(--af-text-muted)] sm:text-[15px] lg:mx-0 lg:max-w-xl">
+                  Descobre oportunidades em vários providers, entende o fit, prioriza onde investir tempo, prepara a
+                  candidatura e acompanha o estado depois de enviares tu — fora do ApplyFlow.
+                </p>
+
+                <p className="mx-auto mt-4 max-w-xl text-sm font-medium text-emerald-200/90 lg:mx-0">
+                  O teu currículo não é enviado aos provedores de busca.
+                </p>
+
+                <div className="mx-auto mt-10 flex max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:flex-wrap lg:mx-0">
+                  <Link
+                    href="/dashboard"
+                    className={applyFlowButtonClass({
+                      variant: "primary",
+                      size: "lg",
+                      className: "w-full min-h-[48px] sm:w-auto sm:min-w-[200px]",
+                    })}
+                    data-testid="home-primary-cta"
+                  >
+                    Começar
+                  </Link>
+                  <Link
+                    href="/login"
+                    className={applyFlowButtonClass({
+                      variant: "outlineBrand",
+                      size: "lg",
+                      className: "w-full min-h-[48px] sm:w-auto sm:min-w-[140px]",
+                    })}
+                  >
+                    Entrar
+                  </Link>
+                  <a
+                    href="#como-funciona"
+                    className="inline-flex min-h-[48px] items-center justify-center px-2 text-sm font-medium text-emerald-400/90 underline-offset-4 hover:text-emerald-300 hover:underline sm:min-w-0"
+                  >
+                    Ver como funciona
+                  </a>
+                </div>
+              </div>
+
+              <div className="flex justify-center lg:justify-end">
+                <HeroProductVisual />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="mx-auto max-w-6xl space-y-10 px-4 py-14 sm:space-y-12 sm:px-6 sm:py-20">
+          <ApplyFlowSection
+            id="como-funciona"
+            className={sectionShell}
+            eyebrow="Fluxo"
+            title="Como o ApplyFlow funciona"
+            description="Passos com controlo humano — a recomendação nunca substitui a tua intenção."
+          >
+            <ol className="mt-6 grid list-none gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              {workflowSteps.map((step, index) => (
+                <li
+                  key={step.title}
+                  className="rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] px-3 py-3"
+                >
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-400/85">
+                    {index + 1}. {step.title}
+                  </p>
+                  <p className="mt-1 text-sm text-[color:var(--af-text-muted)]">{step.body}</p>
+                </li>
+              ))}
+            </ol>
+          </ApplyFlowSection>
+
+          <section className={sectionShell}>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-400/90">Porquê</p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[color:var(--af-text)] sm:text-3xl">
+              Menos fragmentação, mais clareza
+            </h2>
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
+              {valueCards.map((f) => (
+                <ApplyFlowCard key={f.title} variant="muted" padding="md" className="h-full">
+                  <h3 className="text-base font-semibold tracking-tight text-[color:var(--af-text)]">{f.title}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-[color:var(--af-text-muted)]">{f.body}</p>
+                </ApplyFlowCard>
+              ))}
+            </div>
+          </section>
+
+          <section id="privacidade" className={sectionShell}>
+            <h2 className="text-2xl font-semibold tracking-tight text-[color:var(--af-text)] sm:text-3xl">
+              Privacidade no dia a dia
+            </h2>
+            <ul className="mt-6 grid list-none gap-3 text-sm text-[color:var(--af-text-muted)] sm:grid-cols-2">
+              <li className="rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] px-4 py-3">
+                O perfil e o currículo ficam no teu browser durante a descoberta e o Match.
               </li>
-            ))}
-          </ol>
-        </ApplyFlowSection>
+              <li className="rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] px-4 py-3">
+                O ApplyFlow não envia candidaturas por ti — o envio é sempre externo e explícito.
+              </li>
+              <li className="rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] px-4 py-3 sm:col-span-2">
+                Podes usar só neste dispositivo. Entrar com conta é opcional para sincronizar vagas e candidaturas.
+              </li>
+            </ul>
+          </section>
 
-        <section className={sectionShell}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-400/90">Capabilities</p>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[color:var(--af-text)] sm:text-3xl">
-            What you get
-          </h2>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
-            {featureCards.map((f) => (
-              <ApplyFlowCard key={f.title} variant="muted" padding="md" className="h-full">
-                <h3 className="text-base font-semibold tracking-tight text-[color:var(--af-text)]">{f.title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-[color:var(--af-text-muted)]">{f.body}</p>
-              </ApplyFlowCard>
-            ))}
+          <section className={sectionShell}>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-400/90">Pré-visualização</p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[color:var(--af-text)] sm:text-3xl">
+              O produto em ecrã
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm text-[color:var(--af-text-muted)]">
+              Capturas com dados fictícios — Discovery, fila e lifecycle do produto atual.
+            </p>
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              {(
+                [
+                  ["applyflow-discovery.png", "Discovery + Match"],
+                  ["applyflow-queue.png", "Fila de oportunidades"],
+                  ["applyflow-lifecycle.png", "Lifecycle"],
+                ] as const
+              ).map(([file, label]) => (
+                <figure key={file} className="overflow-hidden rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/portfolio/${file}`}
+                    alt={label}
+                    className="aspect-video w-full object-cover object-top bg-zinc-950"
+                    loading="lazy"
+                  />
+                  <figcaption className="border-t border-[color:var(--af-border)] px-3 py-2 text-xs text-[color:var(--af-text-muted)]">
+                    {label}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-[color:var(--af-text-muted)]">
+              Assets canónicos também em{" "}
+              <code className="rounded bg-zinc-900 px-1 py-0.5 text-[11px]">docs/applyflow/assets/</code> no repositório.
+            </p>
+          </section>
+
+          <div className="flex flex-col items-center gap-3 border-t border-[color:var(--af-border)] pt-12 text-center">
+            <p className="max-w-lg text-sm text-[color:var(--af-text-muted)]">
+              Pronto para organizar a próxima vaga — sem auto-envio e com Match que consegues explicar.
+            </p>
+            <Link
+              href="/dashboard"
+              className={applyFlowButtonClass({ variant: "primary", size: "lg", className: "min-h-[48px] justify-center" })}
+            >
+              Começar no ApplyFlow
+            </Link>
           </div>
-        </section>
-
-        <section id="privacidade" className={sectionShell}>
-          <h2 className="text-2xl font-semibold tracking-tight text-[color:var(--af-text)] sm:text-3xl">
-            Privacy model
-          </h2>
-          <div className="mt-6">
-            <ApplyFlowPrivacyNotice />
-          </div>
-          <ul className="mt-6 grid list-disc gap-3 pl-5 text-sm text-[color:var(--af-text-muted)] marker:text-[color:var(--af-text-muted)] sm:grid-cols-2">
-            <li>CV/profile stay local for discovery and matching by default.</li>
-            <li>Provider secrets stay server-only; TheirStack remains off on shared hosts.</li>
-            <li className="sm:col-span-2">Chrome extension companion for LinkedIn Easy Apply assist remains available — still no auto-submit.</li>
-          </ul>
-        </section>
-
-        <ApplyFlowSection
-          className={sectionShell}
-          eyebrow="Docs"
-          title="Architecture & ops"
-          description="Entry point for engineers and operators: product flow, lifecycle, testing, closed-beta runbook."
-        >
-          <Link href="/documentacao" className="mt-2 inline-flex text-sm font-medium text-emerald-400 hover:text-emerald-300">
-            Open documentation hub →
-          </Link>
-        </ApplyFlowSection>
-
-        <div className="flex flex-col gap-3 border-t border-[color:var(--af-border)] pt-12 sm:flex-row sm:flex-wrap sm:justify-center">
-          <Link href="/dashboard" className={applyFlowButtonClass({ variant: "primary", size: "lg", className: "min-h-[48px] justify-center" })}>
-            Open Dashboard
-          </Link>
-          <Link href="/login" className={applyFlowButtonClass({ variant: "outlineBrand", size: "lg", className: "min-h-[48px] justify-center" })}>
-            Sign in
-          </Link>
-          <Link href="/documentacao" className={applyFlowButtonClass({ variant: "secondary", size: "lg", className: "min-h-[48px] justify-center" })}>
-            Documentation
-          </Link>
         </div>
-      </div>
-    </main>
+      </main>
+      <ApplyFlowSiteFooter />
+    </>
   );
 }

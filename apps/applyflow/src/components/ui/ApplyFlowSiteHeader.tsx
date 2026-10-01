@@ -16,14 +16,15 @@ function navLinkClass(active: boolean): string {
   );
 }
 
-function isDashboardActive(pathname: string): boolean {
-  if (pathname === "/dashboard") return true;
-  if (pathname.startsWith("/dashboard/jobs")) return true;
-  return false;
+function isPath(pathname: string, href: string): boolean {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function ApplyFlowSiteHeader({ signedIn }: { signedIn: boolean }) {
   const pathname = usePathname() ?? "/";
+  const showPublicNav =
+    pathname === "/" || pathname.startsWith("/documentacao") || pathname.startsWith("/login");
 
   return (
     <header className="sticky top-0 z-20 border-b border-[color:var(--af-border)] bg-[color:var(--af-bg)]/88 backdrop-blur-xl backdrop-saturate-150">
@@ -37,50 +38,97 @@ export function ApplyFlowSiteHeader({ signedIn }: { signedIn: boolean }) {
         </Link>
         <nav
           aria-label="Principal"
-          className="flex max-w-[min(100%,28rem)] flex-wrap items-center justify-end gap-x-1 gap-y-1 text-sm sm:max-w-none sm:gap-x-4"
+          className="flex max-w-[min(100%,34rem)] flex-wrap items-center justify-end gap-x-1 gap-y-1 text-sm sm:max-w-none sm:gap-x-3"
         >
-          <Link href="/" className={navLinkClass(pathname === "/")} aria-current={pathname === "/" ? "page" : undefined}>
-            Início
-          </Link>
-          <Link
-            href="/dashboard"
-            className={navLinkClass(isDashboardActive(pathname))}
-            aria-current={isDashboardActive(pathname) ? "page" : undefined}
-          >
-            Dashboard
-          </Link>
-          <Link
-            href="/dashboard/analytics"
-            className={navLinkClass(pathname.startsWith("/dashboard/analytics"))}
-            aria-current={pathname.startsWith("/dashboard/analytics") ? "page" : undefined}
-          >
-            Analytics
-          </Link>
-          <Link
-            href="/documentacao"
-            className={navLinkClass(pathname.startsWith("/documentacao"))}
-            aria-current={pathname.startsWith("/documentacao") ? "page" : undefined}
-          >
-            Documentação
-          </Link>
-          {signedIn ? (
-            <Link
-              href="/account"
-              className={navLinkClass(pathname.startsWith("/account"))}
-              aria-current={pathname.startsWith("/account") ? "page" : undefined}
-              data-testid="nav-account"
-            >
-              Account
-            </Link>
+          {showPublicNav ? (
+            <>
+              <Link href="/" className={navLinkClass(pathname === "/")} aria-current={pathname === "/" ? "page" : undefined}>
+                Início
+              </Link>
+              <a href="/#como-funciona" className={navLinkClass(false)}>
+                Como funciona
+              </a>
+              {signedIn ? (
+                <Link
+                  href="/dashboard"
+                  className={navLinkClass(pathname.startsWith("/dashboard"))}
+                  data-testid="nav-open-product"
+                >
+                  Abrir ApplyFlow
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className={navLinkClass(pathname.startsWith("/login"))}
+                    aria-current={pathname.startsWith("/login") ? "page" : undefined}
+                    data-testid="nav-sign-in"
+                  >
+                    Entrar
+                  </Link>
+                  <Link
+                    href="/dashboard"
+                    className={cn(navLinkClass(false), "font-medium text-emerald-300 hover:text-emerald-200")}
+                    data-testid="nav-start"
+                  >
+                    Começar
+                  </Link>
+                </>
+              )}
+            </>
           ) : (
-            <Link
-              href="/login"
-              className={navLinkClass(pathname.startsWith("/login"))}
-              aria-current={pathname.startsWith("/login") ? "page" : undefined}
-              data-testid="nav-sign-in"
-            >
-              Sign in
-            </Link>
+            <>
+              <Link
+                href="/dashboard"
+                className={navLinkClass(pathname === "/dashboard")}
+                aria-current={pathname === "/dashboard" ? "page" : undefined}
+              >
+                Visão geral
+              </Link>
+              <Link
+                href="/dashboard/discover"
+                className={navLinkClass(isPath(pathname, "/dashboard/discover"))}
+                aria-current={isPath(pathname, "/dashboard/discover") ? "page" : undefined}
+                data-testid="nav-discover"
+              >
+                Descobrir
+              </Link>
+              <Link
+                href="/dashboard/opportunities"
+                className={navLinkClass(isPath(pathname, "/dashboard/opportunities"))}
+                aria-current={isPath(pathname, "/dashboard/opportunities") ? "page" : undefined}
+                data-testid="nav-opportunities"
+              >
+                Oportunidades
+              </Link>
+              <Link
+                href="/dashboard/applications"
+                className={navLinkClass(isPath(pathname, "/dashboard/applications"))}
+                aria-current={isPath(pathname, "/dashboard/applications") ? "page" : undefined}
+                data-testid="nav-applications"
+              >
+                Candidaturas
+              </Link>
+              {signedIn ? (
+                <Link
+                  href="/account"
+                  className={navLinkClass(pathname.startsWith("/account"))}
+                  aria-current={pathname.startsWith("/account") ? "page" : undefined}
+                  data-testid="nav-account"
+                >
+                  Conta
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  className={navLinkClass(pathname.startsWith("/login"))}
+                  aria-current={pathname.startsWith("/login") ? "page" : undefined}
+                  data-testid="nav-sign-in"
+                >
+                  Entrar
+                </Link>
+              )}
+            </>
           )}
         </nav>
       </div>

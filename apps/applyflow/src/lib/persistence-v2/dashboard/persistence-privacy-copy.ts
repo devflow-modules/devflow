@@ -19,9 +19,9 @@ export type ApplyFlowPersistencePrivacyCopy = {
 
 const COPY: Record<ApplyFlowPersistencePrivacyMode, ApplyFlowPersistencePrivacyCopy> = {
   v1: {
-    title: "Privacidade local-first",
-    body: "Os teus dados ficam neste navegador. O ApplyFlow não envia o JSON importado nem o histórico para servidores do produto. Importações e a demo gravam em localStorage até limpares o site ou os dados do browser.",
-    storageLabel: "localStorage",
+    title: "Os teus dados ficam neste browser",
+    body: "Perfil, vagas e candidaturas locais ficam neste dispositivo durante a descoberta. O ApplyFlow não envia o teu currículo aos provedores de busca. Importações e a demo ficam guardadas localmente até limpares os dados do site.",
+    storageLabel: undefined,
   },
   v2_offering: {
     title: "Conta pronta para sincronização",

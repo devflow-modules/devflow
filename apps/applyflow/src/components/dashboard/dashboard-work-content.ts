@@ -31,18 +31,18 @@ export const DASHBOARD_NEXT_STEPS: Record<
     href: "#resume-library",
   },
   job: {
-    body: "Cola o anúncio da vaga. Ainda não estás a candidatar-te.",
-    action: "Adicionar vaga",
-    href: "#job-inbox",
+    body: "Pesquisa ou cola o anúncio da vaga. Ainda não estás a candidatar-te.",
+    action: "Descobrir vagas",
+    href: "/dashboard/discover",
   },
   analyze: {
     body: "Tens uma vaga salva e nenhuma candidatura. Analisa a vaga antes de registar o envio.",
-    action: "Analisar vaga",
-    href: "#job-inbox",
+    action: "Ver oportunidades",
+    href: "/dashboard/opportunities",
   },
   track: {
     body: "Regista só o que aconteceu de verdade e acompanha as candidaturas.",
     action: "Ver candidaturas",
-    href: "#applications",
+    href: "/dashboard/applications",
   },
 };

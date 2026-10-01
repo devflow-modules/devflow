@@ -11,20 +11,20 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "ApplyFlow — Local-first career workflow (DevFlow Labs)",
+  title: "ApplyFlow — fluxo de carreira (DevFlow Labs)",
   description:
-    "Discover jobs, evaluate fit with a deterministic Match Engine, prioritize opportunities, prepare applications, and track lifecycle — local-first with optional V2 cloud persistence.",
+    "Descobre vagas, avalia fit com Match determinístico, prioriza oportunidades, prepara candidaturas e acompanha o lifecycle — local no browser, com sync opcional. Sem auto-envio.",
   openGraph: {
     title: "ApplyFlow — DevFlow Labs",
     description:
-      "Local-first career workflow: discovery, match preview, opportunity queue, readiness, and application lifecycle tracking. No auto-apply.",
+      "Fluxo de carreira: discovery, Match, fila de oportunidades, readiness e lifecycle. Sem auto-apply.",
     type: "website",
     locale: "pt_BR",
   },
   twitter: {
     card: "summary_large_image",
     title: "ApplyFlow — DevFlow Labs",
-    description: "Local-first career workflow for discovering, evaluating, and tracking job opportunities.",
+    description: "Organiza a busca por vagas do descobrimento ao acompanhamento — sem auto-envio.",
   },
   icons: {
     icon: "/icon.svg",

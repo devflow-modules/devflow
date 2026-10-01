@@ -23,7 +23,7 @@ async function e2eLogout(request: APIRequestContext) {
 }
 
 async function seedLocalResume(page: Page) {
-  await page.goto("/dashboard");
+  await page.goto("/dashboard/discover");
   await expect(page.getByText("Procurar oportunidades")).toBeVisible();
   const fileInput = page.locator('input[type="file"][accept*="json"]').first();
   await fileInput.setInputFiles(resolve(__dirname, "../../public/demo/e2e-candidate-profile.json"));
@@ -31,10 +31,16 @@ async function seedLocalResume(page: Page) {
 }
 
 test.describe("ApplyFlow closed-beta critical funnel", () => {
-  test("auth · discovery fixtures · save · queue · readiness · application · reload · TheirStack off · logout", async ({
+  test("home · discover · save · queue · readiness · application · reload · TheirStack off · logout", async ({
     page,
   }) => {
     const api = page.request;
+
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "ApplyFlow", exact: true })).toBeVisible();
+    await expect(page.getByTestId("home-primary-cta")).toBeVisible();
+    await page.getByTestId("home-primary-cta").click();
+    await expect(page).toHaveURL(/\/dashboard/);
 
     await e2eLogin(api);
     await seedLocalResume(page);
@@ -73,6 +79,8 @@ test.describe("ApplyFlow closed-beta critical funnel", () => {
     await page.getByTestId("discovery-save").click();
     await expect(page.getByText(/Guardada|já está/i).first()).toBeVisible({ timeout: 15_000 });
 
+    await page.getByTestId("nav-opportunities").click();
+    await expect(page).toHaveURL(/\/dashboard\/opportunities/);
     await page.getByTestId("job-queue-view-active").click();
     await expect(page.getByTestId("job-inbox-card-job_ro_e2e-ro-1")).toBeVisible();
     await page.getByRole("link", { name: "Analisar vaga" }).first().click();
@@ -99,9 +107,12 @@ test.describe("ApplyFlow closed-beta critical funnel", () => {
     await expect(page.getByTestId("application-readiness")).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText(/Screening|Triagem/i).first()).toBeVisible();
 
-    await page.goto("/dashboard");
+    await page.goto("/dashboard/opportunities");
     await page.getByTestId("job-queue-view-active").click();
     await expect(page.getByTestId("job-inbox-card-job_ro_e2e-ro-1")).toHaveCount(0);
+
+    await page.getByTestId("nav-applications").click();
+    await expect(page).toHaveURL(/\/dashboard\/applications/);
 
     const theirStack = await api.post("/api/applyflow/job-sources/search", {
       headers: {

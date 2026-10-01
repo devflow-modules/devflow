@@ -25,6 +25,8 @@ import {
   shouldShowProviderConsentOnDashboard,
 } from "@/components/dashboard/dashboard-lab-surfaces";
 import { DashboardNextStep } from "@/components/dashboard/dashboard-next-step";
+import { DashboardOverviewShortcuts } from "@/components/dashboard/dashboard-overview-shortcuts";
+import type { DashboardWorkspace } from "@/components/dashboard/dashboard-workspace";
 import {
   DASHBOARD_ANALYTICS_HINT,
   DASHBOARD_APPLICATIONS_DESCRIPTION,
@@ -40,7 +42,6 @@ import {
   dashboardAnalyzeHref,
   dashboardNextStepId,
   dashboardWorkFlags,
-  shouldShowApplicationsList,
 } from "@/components/dashboard/dashboard-work-state";
 import {
   JobsStorageRecoveryBanner,
@@ -54,6 +55,7 @@ import {
   applyDashboardTableFilters,
   collectDetectedSkills,
   computeCreatedAtRange,
+  countOpportunityQueueViews,
   ingestApplyFlowJob,
   findJobByCanonicalUrl,
   reevaluateApplyFlowJobMatch,
@@ -269,10 +271,31 @@ function hydrateLocalDashboardState(setters: {
 export function DashboardClient({
   gmailRuntimeEnabled = false,
   persistenceBootstrap,
+  workspace = "overview",
 }: {
   gmailRuntimeEnabled?: boolean;
   persistenceBootstrap: ApplyFlowClientPersistenceBootstrapResult;
+  workspace?: DashboardWorkspace;
 }) {
+  const showOverview = workspace === "overview";
+  const showDiscoverWorkspace = workspace === "discover";
+  const showOpportunitiesWorkspace = workspace === "opportunities";
+  const showApplicationsWorkspace = workspace === "applications";
+  const showInbox = showDiscoverWorkspace || showOpportunitiesWorkspace;
+  const inboxFocus = showOpportunitiesWorkspace ? "queue" : showDiscoverWorkspace ? "discover" : "all";
+
+  useEffect(() => {
+    if (typeof window === "undefined" || workspace !== "overview") return;
+    const hash = window.location.hash.replace(/^#/, "");
+    if (hash === "applications") {
+      window.location.replace("/dashboard/applications");
+      return;
+    }
+    if (hash === "job-inbox") {
+      window.location.replace("/dashboard/discover");
+    }
+  }, [workspace]);
+
   const [applications, setApplications] = useState<ApplyFlowApplicationV2Envelope[]>([]);
   const [jobs, setJobs] = useState<ApplyFlowJob[]>([]);
   const [resumeLibrary, setResumeLibrary] = useState<ResumeLibrary | null>(null);
@@ -417,7 +440,8 @@ export function DashboardClient({
   );
   const nextStep = dashboardNextStepId(workFlags);
   const nextStepHref = nextStep === "analyze" ? dashboardAnalyzeHref(jobs) : undefined;
-  const showApplications = shouldShowApplicationsList(workFlags);
+  const showApplications = showApplicationsWorkspace;
+  const queueCounts = countOpportunityQueueViews(jobs);
   const showLabExport = shouldShowInterviewLabExport(applications.length);
 
   const filtered = useMemo(
@@ -1095,7 +1119,7 @@ export function DashboardClient({
       {writeCapability === "read_only" ? <DashboardPersistenceReadOnlyBanner /> : null}
       <ApplyFlowPrivacyNotice mode={privacyMode} />
 
-      {pilotMode ? <CareerPilotExperience /> : null}
+      {pilotMode && showOverview ? <CareerPilotExperience /> : null}
 
       {showJobsRecovery ? (
         <JobsStorageRecoveryBanner
@@ -1128,9 +1152,19 @@ export function DashboardClient({
         />
       ) : null}
 
-      <DashboardNextStep step={nextStep} href={nextStepHref} />
+      {showOverview ? (
+        <>
+          <DashboardNextStep step={nextStep} href={nextStepHref} />
+          <DashboardOverviewShortcuts
+            activeOpportunityCount={queueCounts.active}
+            applicationCount={applications.length}
+            hasResume={Boolean(resumeLibrary)}
+          />
+        </>
+      ) : null}
 
-      {resumeLibraryStatus !== "unreadable" ? (
+      {(showOverview || showDiscoverWorkspace || showOpportunitiesWorkspace) &&
+      resumeLibraryStatus !== "unreadable" ? (
         <ResumeLibraryPanel
           library={resumeLibrary}
           error={resumeLibraryError}
@@ -1219,12 +1253,14 @@ export function DashboardClient({
         />
       ) : null}
 
+      {showInbox ? (
       <JobInboxPanel
         jobs={jobs}
         error={jobInboxError}
         evaluatedWithName={resumeLibrary ? getDefaultResumeVariant(resumeLibrary).name : null}
         matchAvailable={Boolean(resumeLibrary)}
         resumeLibrary={resumeLibrary}
+        focus={inboxFocus}
         onEvaluatePaste={onEvaluatePaste}
         onSaveDiscoveredJob={onSaveDiscoveredJob}
         onCreateApplicationPack={onCreateApplicationPack}
@@ -1235,8 +1271,9 @@ export function DashboardClient({
         onRestoreJob={onRestoreJob}
         applications={applications}
       />
+      ) : null}
 
-      {shouldShowProviderConsentOnDashboard() ? (
+      {shouldShowProviderConsentOnDashboard() && (showOverview || showDiscoverWorkspace) ? (
         <ProviderConsentConfirmationPanel
           gmailRuntimeEnabled={gmailRuntimeEnabled}
           applications={applications}
@@ -1260,6 +1297,21 @@ export function DashboardClient({
             title={DASHBOARD_APPLICATIONS_TITLE}
             description={DASHBOARD_APPLICATIONS_DESCRIPTION}
           >
+            {applications.length === 0 ? (
+              <ApplyFlowEmptyState
+                title="Ainda sem candidaturas"
+                description="Regista uma candidatura a partir da análise de uma oportunidade. Guardar uma vaga na fila ainda não cria candidatura."
+                secondary={
+                  <Link
+                    href="/dashboard/opportunities"
+                    className={applyFlowButtonClass({ variant: "primary", size: "md" })}
+                  >
+                    Ver oportunidades
+                  </Link>
+                }
+              />
+            ) : (
+            <>
             <p className="mb-3 text-xs text-[color:var(--af-text-muted)]">
               {applications.length} candidatura{applications.length === 1 ? "" : "s"} registada{applications.length === 1 ? "" : "s"}.{" "}
               <Link href="/dashboard/analytics" className="font-medium text-emerald-300 hover:text-emerald-200">
@@ -1555,10 +1607,13 @@ export function DashboardClient({
             ) : null}
               </>
             )}
+            </>
+            )}
           </ApplyFlowSection>
         </>
       ) : null}
 
+      {showOverview ? (
       <ApplyFlowSection
         id="como-importar"
         title={DASHBOARD_DATA_TITLE}
@@ -1811,6 +1866,7 @@ export function DashboardClient({
           )
         ) : null}
       </ApplyFlowSection>
+      ) : null}
 
     </div>
   );

@@ -6,11 +6,12 @@ import {
 } from "./persistence-privacy-copy";
 
 describe("persistencePrivacyCopyForMode", () => {
-  it("keeps local-first messaging only for v1", () => {
+  it("keeps browser-local messaging for v1 without forcing jargon", () => {
     const copy = persistencePrivacyCopyForMode("v1");
-    expect(copy.title.toLowerCase()).toContain("local-first");
-    expect(copy.body.toLowerCase()).toContain("navegador");
-    expect(copy.storageLabel).toBe("localStorage");
+    expect(copy.title.toLowerCase()).toMatch(/browser|navegador|dados/);
+    expect(copy.body.toLowerCase()).toMatch(/browser|dispositivo|navegador/);
+    expect(copy.body.toLowerCase()).toMatch(/currículo|curriculo/);
+    expect(copy.storageLabel).toBeUndefined();
   });
 
   it("v2_active must not claim browser-only canonical storage", () => {

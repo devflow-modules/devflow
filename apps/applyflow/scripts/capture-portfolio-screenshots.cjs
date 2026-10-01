@@ -71,7 +71,7 @@ async function e2eLogin(request) {
 }
 
 async function seedResume(page) {
-  await page.goto("/dashboard");
+  await page.goto("/dashboard/discover");
   await expect(page.getByText("Procurar oportunidades")).toBeVisible({ timeout: 60_000 });
   const fileInput = page.locator('input[type="file"][accept*="json"]').first();
   await fileInput.setInputFiles(join(APP, "public/demo/portfolio-candidate-profile.json"));
@@ -145,7 +145,7 @@ async function main() {
 
     // 1) Landing
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "ApplyFlow" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "ApplyFlow", exact: true })).toBeVisible();
     await shot(page, "applyflow-landing.png");
 
     await e2eLogin(page.request);
@@ -183,6 +183,7 @@ async function main() {
     await expect(page.getByText(/Guardada|já está/i).first()).toBeVisible({ timeout: 20_000 });
 
     // 3) Opportunity Queue
+    await page.goto("/dashboard/opportunities");
     await page.getByTestId("job-queue-view-active").click();
     await expect(page.getByTestId("job-inbox-card-job_ro_e2e-ro-1")).toBeVisible();
     await page.getByTestId("job-opportunity-queue").scrollIntoViewIfNeeded();
@@ -206,8 +207,9 @@ async function main() {
 
     // 6) Applications — fictional demo dataset (multiple statuses)
     await page.goto("/dashboard");
-    await expect(page.getByText("Procurar oportunidades")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("button", { name: /Carregar demo/i })).toBeVisible({ timeout: 30_000 });
     await page.getByRole("button", { name: /Carregar demo/i }).click();
+    await page.goto("/dashboard/applications");
     await expect(page.getByRole("heading", { name: /Candidaturas/i })).toBeVisible({ timeout: 30_000 });
     await page.locator("#applications").scrollIntoViewIfNeeded();
     await page.waitForTimeout(600);

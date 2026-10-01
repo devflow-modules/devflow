@@ -58,7 +58,7 @@ async function e2eLogout(request: APIRequestContext) {
  * Seed library storage directly so V2 E2E focuses on Job/Application cloud persistence.
  */
 async function seedLocalResume(page: Page) {
-  await page.goto("/dashboard");
+  await page.goto("/dashboard/discover");
   await expect(page.getByText("Procurar oportunidades")).toBeVisible({ timeout: 30_000 });
   // Raw CandidateProfile — loadResumeLibrary migrates to ResumeLibrary on hydrate.
   await page.evaluate((profile) => {

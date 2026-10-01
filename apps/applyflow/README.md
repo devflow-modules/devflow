@@ -76,14 +76,14 @@ Aggressive job tools push volume and auto-submit. ApplyFlow separates **recommen
 ```text
 Browser
  ├─ Resume / profile (local)
- ├─ Discovery UI + Match Engine
+ ├─ Overview · Discover · Opportunities · Applications
  ├─ Local persistence (default)
  └─ V2 API (pilot) → PostgreSQL (tenant-scoped, OCC)
 ```
 
 ![Architecture](../../docs/applyflow/assets/applyflow-architecture.svg)
 
-Canonical design: [`ARCHITECTURE.md`](../../docs/applyflow/ARCHITECTURE.md).
+Canonical design: [`ARCHITECTURE.md`](../../docs/applyflow/ARCHITECTURE.md) · UX/IA: [`PRODUCT_UX_IA.md`](../../docs/applyflow/PRODUCT_UX_IA.md).
 
 ---
 

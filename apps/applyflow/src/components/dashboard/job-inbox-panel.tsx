@@ -656,6 +656,7 @@ export function JobInboxPanel({
   onIgnoreJob,
   onRestoreJob,
   applications,
+  focus = "all",
 }: {
   jobs: ApplyFlowJob[];
   error: string | null;
@@ -676,7 +677,18 @@ export function JobInboxPanel({
   onIgnoreJob?: (jobId: string) => void;
   onRestoreJob?: (jobId: string) => void;
   applications?: readonly ApplyFlowApplicationV2Envelope[];
+  /** discover = search + paste (+ queue after save); queue = opportunity queue first; all = legacy combined. */
+  focus?: "all" | "discover" | "queue";
 }) {
+  const showDiscover = focus === "all" || focus === "discover";
+  const showQueue = focus === "all" || focus === "queue" || focus === "discover";
+  const sectionTitle = focus === "queue" ? "Oportunidades" : JOB_INBOX_TITLE;
+  const sectionDescription =
+    focus === "queue"
+      ? "Vagas salvas sob consideração. Salvar não envia candidatura."
+      : focus === "discover"
+        ? "Pesquisa providers ou cola um anúncio. Avaliar e guardar não candidata por ti."
+        : JOB_INBOX_DESCRIPTION;
   const [description, setDescription] = useState("");
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
@@ -715,9 +727,19 @@ export function JobInboxPanel({
   return (
     <ApplyFlowSection
       id="job-inbox"
-      title={JOB_INBOX_TITLE}
-      description={JOB_INBOX_DESCRIPTION}
+      title={sectionTitle}
+      description={sectionDescription}
     >
+      {focus === "queue" ? (
+        <p className="mb-4 text-sm text-[color:var(--af-text-muted)]">
+          Precisas de mais vagas?{" "}
+          <Link href="/dashboard/discover" className="font-medium text-emerald-300 hover:text-emerald-200">
+            Ir para Descobrir
+          </Link>
+        </p>
+      ) : null}
+      {showDiscover ? (
+        <>
       <JobDiscoveryPanel
         matchAvailable={matchAvailable}
         onSave={onSaveDiscoveredJob}
@@ -809,8 +831,29 @@ export function JobInboxPanel({
           <p className="text-sm text-red-100/90">{error}</p>
         </ApplyFlowCard>
       ) : null}
+        </>
+      ) : null}
 
-      {jobs.length > 0 ? (
+      {showQueue && jobs.length === 0 ? (
+        <div className="mt-5" data-testid="job-opportunity-queue">
+          <ApplyFlowEmptyState
+            title="Ainda sem oportunidades"
+            description="Guarda uma vaga a partir de Descobrir. Salvar não envia candidatura."
+            secondary={
+              focus === "queue" ? (
+                <Link
+                  href="/dashboard/discover"
+                  className={applyFlowButtonClass({ variant: "primary", size: "md" })}
+                >
+                  Descobrir vagas
+                </Link>
+              ) : undefined
+            }
+          />
+        </div>
+      ) : null}
+
+      {showQueue && jobs.length > 0 ? (
         <div className="mt-5 grid gap-3" data-testid="job-opportunity-queue">
           <ApplyFlowTabs
             label={JOB_QUEUE_VIEW_LABEL}
