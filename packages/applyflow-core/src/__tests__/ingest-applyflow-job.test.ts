@@ -171,4 +171,15 @@ describe("ingestApplyFlowJob", () => {
     });
     expect(projectJobForFunnel(job).source).toBe("paste");
   });
+
+  it("projeta source remoteok como paste na candidatura de funil", () => {
+    const job = ingestApplyFlowJob({
+      description: APPLY_POSTING,
+      source: "remoteok",
+      profile: gustavoProfile,
+      now: NOW,
+      id: "job_ro_funnel",
+    });
+    expect(projectJobForFunnel(job).source).toBe("paste");
+  });
 });

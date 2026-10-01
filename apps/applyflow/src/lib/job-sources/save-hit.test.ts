@@ -128,6 +128,25 @@ describe("save discovered Jobgether hit", () => {
     expect(JSON.stringify(saved)).not.toContain('"application"');
   });
 
+  it("builds a deterministic job_ro_ id for Remote OK hits", () => {
+    const roHit: JobSearchHit = {
+      externalId: "1137001",
+      source: "remoteok",
+      title: "Senior Software Engineer",
+      company: "Acme",
+      description,
+      location: "Worldwide",
+      sourceUrl: "https://remoteok.com/remote-jobs/remote-software-engineer-acme-1137001",
+    };
+    expect(createExternalJobId("remoteok", "1137001")).toBe("job_ro_1137001");
+    const saved = ingestDiscoveredJobHit(roHit, { profile: gustavoProfile, now: NOW });
+    expect(saved.ok).toBe(true);
+    if (!saved.ok) return;
+    expect(saved.job.id).toBe("job_ro_1137001");
+    expect(saved.job.source).toBe("remoteok");
+    expect(saved.job.url).toBe(roHit.sourceUrl);
+  });
+
   it("dedupes identical description hash across Jobgether and TheirStack", () => {
     const first = ingestDiscoveredJobHit(hit(), { profile: gustavoProfile, now: NOW });
     const second = ingestDiscoveredJobHit(

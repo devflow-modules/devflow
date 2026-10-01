@@ -27,9 +27,13 @@ import {
   JOB_DISCOVERY_PROVIDER,
   JOB_DISCOVERY_PROVIDER_JOBGETHER,
   JOB_DISCOVERY_PROVIDER_JOBGETHER_HINT,
+  JOB_DISCOVERY_PROVIDER_REMOTEOK,
+  JOB_DISCOVERY_PROVIDER_REMOTEOK_HINT,
   JOB_DISCOVERY_PROVIDER_THEIRSTACK,
   JOB_DISCOVERY_PROVIDER_THEIRSTACK_HINT,
   JOB_DISCOVERY_REMOTE,
+  JOB_DISCOVERY_REMOTEOK_NOTE,
+  JOB_DISCOVERY_REMOTEOK_UNSUPPORTED_FILTERS,
   JOB_DISCOVERY_SALARY_MAX,
   JOB_DISCOVERY_SALARY_MIN,
   JOB_DISCOVERY_SAVE,
@@ -38,11 +42,13 @@ import {
   JOB_DISCOVERY_SEARCH,
   JOB_DISCOVERY_SORT,
   JOB_DISCOVERY_SOURCE,
+  JOB_DISCOVERY_SOURCE_REMOTEOK,
   JOB_DISCOVERY_SOURCE_THEIRSTACK,
   JOB_DISCOVERY_THEIRSTACK_NOTE,
   JOB_DISCOVERY_TITLE,
   JOB_DISCOVERY_VIEW_LISTING,
   JOB_DISCOVERY_VIEW_LISTING_GENERIC,
+  JOB_DISCOVERY_VIEW_LISTING_REMOTEOK,
   JOB_INBOX_NEEDS_RESUME,
 } from "@/components/dashboard/job-inbox-content";
 import { hasAnalyzableJobDescription, withHitDescription } from "@/lib/job-sources/save-hit";
@@ -139,16 +145,32 @@ function optionalSalary(value: string): number | undefined {
 }
 
 function sourceBadge(source: JobSourceId): string {
-  return source === "theirstack" ? JOB_DISCOVERY_SOURCE_THEIRSTACK : JOB_DISCOVERY_SOURCE;
+  if (source === "theirstack") return JOB_DISCOVERY_SOURCE_THEIRSTACK;
+  if (source === "remoteok") return JOB_DISCOVERY_SOURCE_REMOTEOK;
+  return JOB_DISCOVERY_SOURCE;
 }
 
 function listingLabel(source: JobSourceId): string {
-  return source === "theirstack" ? JOB_DISCOVERY_VIEW_LISTING_GENERIC : JOB_DISCOVERY_VIEW_LISTING;
+  if (source === "remoteok") return JOB_DISCOVERY_VIEW_LISTING_REMOTEOK;
+  if (source === "theirstack") return JOB_DISCOVERY_VIEW_LISTING_GENERIC;
+  return JOB_DISCOVERY_VIEW_LISTING;
+}
+
+function resetProviderDraft(provider: JobSourceId): Partial<Draft> {
+  if (provider !== "remoteok") return { provider };
+  return {
+    provider,
+    contract: "",
+    salaryMin: "",
+    salaryMax: "",
+    currency: "",
+  };
 }
 
 export function buildDiscoveryCriteria(draft: Draft, page: number): Record<string, unknown> | "invalid_salary" {
-  const salaryMin = optionalSalary(draft.salaryMin);
-  const salaryMax = optionalSalary(draft.salaryMax);
+  const remoteOk = draft.provider === "remoteok";
+  const salaryMin = remoteOk ? undefined : optionalSalary(draft.salaryMin);
+  const salaryMax = remoteOk ? undefined : optionalSalary(draft.salaryMax);
   if (Number.isNaN(salaryMin) || Number.isNaN(salaryMax)) return "invalid_salary";
   return {
     provider: draft.provider,
@@ -158,10 +180,10 @@ export function buildDiscoveryCriteria(draft: Draft, page: number): Record<strin
     ...(draft.location.trim() ? { location: draft.location.trim() } : {}),
     ...(optionalEnum(draft.experience) ? { experience: draft.experience } : {}),
     ...(optionalEnum(draft.remote) ? { remote: draft.remote } : {}),
-    ...(optionalEnum(draft.contract) ? { contract: draft.contract } : {}),
-    ...(salaryMin != null ? { salaryMin } : {}),
-    ...(salaryMax != null ? { salaryMax } : {}),
-    ...(draft.currency.trim() ? { currency: draft.currency.trim() } : {}),
+    ...(!remoteOk && optionalEnum(draft.contract) ? { contract: draft.contract } : {}),
+    ...(!remoteOk && salaryMin != null ? { salaryMin } : {}),
+    ...(!remoteOk && salaryMax != null ? { salaryMax } : {}),
+    ...(!remoteOk && draft.currency.trim() ? { currency: draft.currency.trim() } : {}),
     ...(optionalEnum(draft.sort) ? { sort: draft.sort } : {}),
   };
 }
@@ -193,6 +215,8 @@ export function JobDiscoveryHitCard({
   const [saving, setSaving] = useState(false);
   const badge = sourceBadge(hit.source);
   const hasDirectApply = Boolean(hit.directApplyUrl && isOpenableJobUrl(hit.directApplyUrl));
+  const listingOpenable = isOpenableJobUrl(hit.sourceUrl);
+  const showRemoteOkAttribution = hit.source === "remoteok" && listingOpenable;
 
   function closeEditor() {
     setEditorOpen(false);
@@ -221,22 +245,37 @@ export function JobDiscoveryHitCard({
     <ApplyFlowCard variant="muted" padding="md">
       <div className="flex flex-wrap items-center gap-2">
         <h4 className="text-sm font-semibold text-[color:var(--af-text)]">{hit.title}</h4>
-        <ApplyFlowBadge tone="intel">{badge}</ApplyFlowBadge>
+        {showRemoteOkAttribution ? (
+          <a
+            href={hit.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center rounded-full border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface)] px-2.5 py-0.5 text-xs font-medium text-[color:var(--af-text)] underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--af-brand)]"
+            data-testid="remoteok-attribution"
+          >
+            {JOB_DISCOVERY_SOURCE_REMOTEOK}
+          </a>
+        ) : (
+          <ApplyFlowBadge tone="intel">{badge}</ApplyFlowBadge>
+        )}
       </div>
       {hit.company ? <p className="mt-1 text-sm text-[color:var(--af-text)]">{hit.company}</p> : null}
       <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">
-        {[hit.location, hit.remote, hit.experience, hit.contractType, hit.salaryRange].filter(Boolean).join(" · ") || "—"}
+        {[hit.location, hit.remote, hit.experience, hit.contractType, hit.salaryRange, hit.postedAt?.slice(0, 10)]
+          .filter(Boolean)
+          .join(" · ") || "—"}
       </p>
       {hit.technologies && hit.technologies.length > 0 ? (
-        <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">{hit.technologies.slice(0, 8).join(" · ")}</p>
+        <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">{hit.technologies.slice(0, 6).join(" · ")}</p>
       ) : null}
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        {isOpenableJobUrl(hit.sourceUrl) ? (
+        {listingOpenable ? (
           <a
             href={hit.sourceUrl}
             target="_blank"
             rel="noopener noreferrer"
             className={applyFlowButtonClass({ variant: "secondary", size: "sm" })}
+            data-testid={hit.source === "remoteok" ? "remoteok-listing-link" : undefined}
           >
             {listingLabel(hit.source)}
           </a>
@@ -396,7 +435,7 @@ export function JobDiscoveryPanel({
       >
         <fieldset className="grid gap-2">
           <legend className="text-sm text-[color:var(--af-text)]">{JOB_DISCOVERY_PROVIDER}</legend>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-2 sm:grid-cols-3">
             <label className="flex cursor-pointer items-start gap-2 rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface-muted)] px-3 py-2 text-sm">
               <input
                 type="radio"
@@ -404,7 +443,7 @@ export function JobDiscoveryPanel({
                 className="mt-1"
                 checked={draft.provider === "jobgether"}
                 onChange={() => {
-                  setDraft((current) => ({ ...current, provider: "jobgether" }));
+                  setDraft((current) => ({ ...current, ...resetProviderDraft("jobgether") }));
                   setHits([]);
                   setHasMore(false);
                   setSearched(false);
@@ -426,7 +465,7 @@ export function JobDiscoveryPanel({
                 className="mt-1"
                 checked={draft.provider === "theirstack"}
                 onChange={() => {
-                  setDraft((current) => ({ ...current, provider: "theirstack" }));
+                  setDraft((current) => ({ ...current, ...resetProviderDraft("theirstack") }));
                   setHits([]);
                   setHasMore(false);
                   setSearched(false);
@@ -441,9 +480,34 @@ export function JobDiscoveryPanel({
                 </span>
               </span>
             </label>
+            <label className="flex cursor-pointer items-start gap-2 rounded-[var(--af-radius-sm)] border border-[color:var(--af-border-strong)] bg-[color:var(--af-surface-muted)] px-3 py-2 text-sm">
+              <input
+                type="radio"
+                name="job-source-provider"
+                className="mt-1"
+                checked={draft.provider === "remoteok"}
+                onChange={() => {
+                  setDraft((current) => ({ ...current, ...resetProviderDraft("remoteok") }));
+                  setHits([]);
+                  setHasMore(false);
+                  setSearched(false);
+                  setError(null);
+                  setStatuses({});
+                }}
+              />
+              <span>
+                <span className="block font-medium text-[color:var(--af-text)]">{JOB_DISCOVERY_PROVIDER_REMOTEOK}</span>
+                <span className="block text-xs text-[color:var(--af-text-muted)]">
+                  {JOB_DISCOVERY_PROVIDER_REMOTEOK_HINT}
+                </span>
+              </span>
+            </label>
           </div>
           {draft.provider === "theirstack" ? (
             <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_DISCOVERY_THEIRSTACK_NOTE}</p>
+          ) : null}
+          {draft.provider === "remoteok" ? (
+            <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_DISCOVERY_REMOTEOK_NOTE}</p>
           ) : null}
         </fieldset>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -504,6 +568,7 @@ export function JobDiscoveryPanel({
             {JOB_DISCOVERY_CONTRACT}
             <select
               value={draft.contract}
+              disabled={draft.provider === "remoteok"}
               onChange={(event) =>
                 setDraft((current) => ({ ...current, contract: event.target.value as Draft["contract"] }))
               }
@@ -518,11 +583,15 @@ export function JobDiscoveryPanel({
             </select>
           </label>
         </div>
+        {draft.provider === "remoteok" ? (
+          <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_DISCOVERY_REMOTEOK_UNSUPPORTED_FILTERS}</p>
+        ) : null}
         <div className="grid gap-3 sm:grid-cols-4">
           <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
             {JOB_DISCOVERY_SALARY_MIN}
             <input
               value={draft.salaryMin}
+              disabled={draft.provider === "remoteok"}
               onChange={(event) => setDraft((current) => ({ ...current, salaryMin: event.target.value }))}
               className={fieldClass}
               inputMode="numeric"
@@ -532,6 +601,7 @@ export function JobDiscoveryPanel({
             {JOB_DISCOVERY_SALARY_MAX}
             <input
               value={draft.salaryMax}
+              disabled={draft.provider === "remoteok"}
               onChange={(event) => setDraft((current) => ({ ...current, salaryMax: event.target.value }))}
               className={fieldClass}
               inputMode="numeric"
@@ -541,6 +611,7 @@ export function JobDiscoveryPanel({
             {JOB_DISCOVERY_CURRENCY}
             <input
               value={draft.currency}
+              disabled={draft.provider === "remoteok"}
               onChange={(event) => setDraft((current) => ({ ...current, currency: event.target.value }))}
               className={fieldClass}
               maxLength={3}

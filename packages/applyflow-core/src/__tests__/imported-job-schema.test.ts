@@ -125,6 +125,24 @@ describe("parseStoredApplyFlowJob", () => {
     expect(parsed?.jobMatch.score).toBe(stored.jobMatch.score);
   });
 
+  it("aceita source remoteok no roundtrip sem recalcular o match", () => {
+    const stored = ingestApplyFlowJob({
+      description: "Remote senior role. React, TypeScript, Node.js and PostgreSQL.",
+      source: "remoteok",
+      title: "Senior Software Engineer",
+      company: "Example",
+      url: "https://remoteok.com/remote-jobs/remote-software-engineer-example-1",
+      profile,
+      now: NOW,
+      id: "job_ro_example",
+    });
+    const parsed = parseStoredApplyFlowJob(stored);
+    expect(parsed?.source).toBe("remoteok");
+    expect(parsed?.id).toBe("job_ro_example");
+    expect(parsed?.url).toBe("https://remoteok.com/remote-jobs/remote-software-engineer-example-1");
+    expect(parsed?.jobMatch.score).toBe(stored.jobMatch.score);
+  });
+
   it("hidrata um ApplyFlowJob válido", () => {
     const stored = ingestApplyFlowJob({
       description: "React TypeScript Node.js Next.js",

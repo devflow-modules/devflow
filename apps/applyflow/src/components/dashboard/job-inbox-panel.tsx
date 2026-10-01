@@ -29,6 +29,8 @@ import {
   CURRICULUM_ROUTER_NOT_AN_ACTION,
   CURRICULUM_ROUTER_SKIP_HINT,
   JOB_DISCOVERY_PASTE_HEADING,
+  JOB_DISCOVERY_SOURCE_REMOTEOK,
+  JOB_DISCOVERY_VIEW_LISTING_REMOTEOK,
   JOB_INBOX_COMPANY_LABEL,
   JOB_INBOX_DESCRIPTION,
   JOB_INBOX_EVALUATED_WITH_PREFIX,
@@ -508,6 +510,28 @@ function JobInboxCard({
           {analysis.score}/100
         </span>
       </div>
+      {job.source === "remoteok" && isOpenableJobUrl(job.url) ? (
+        <p className="mt-2 text-xs text-[color:var(--af-text-muted)]">
+          <a
+            href={job.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--af-brand)]"
+            data-testid="remoteok-saved-attribution"
+          >
+            {JOB_DISCOVERY_SOURCE_REMOTEOK}
+          </a>
+          {" · "}
+          <a
+            href={job.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--af-brand)]"
+          >
+            {JOB_DISCOVERY_VIEW_LISTING_REMOTEOK}
+          </a>
+        </p>
+      ) : null}
       {showDivergentAnalyses && atApply && liveRecommendation ? (
         <div className="mt-2 grid gap-1 text-xs text-[color:var(--af-text)]">
           <p>

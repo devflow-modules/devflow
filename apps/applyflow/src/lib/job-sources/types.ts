@@ -1,15 +1,17 @@
-export const JOB_SOURCE_IDS = ["jobgether", "theirstack"] as const;
+export const JOB_SOURCE_IDS = ["jobgether", "theirstack", "remoteok"] as const;
 export type JobSourceId = (typeof JOB_SOURCE_IDS)[number];
 
 export const DEFAULT_JOB_SOURCE_ID: JobSourceId = "jobgether";
 
 export type JobSourceCapabilities = {
   fullDescription: boolean;
+  attributionRequired: boolean;
 };
 
 export const JOB_SOURCE_CAPABILITIES: Record<JobSourceId, JobSourceCapabilities> = {
-  jobgether: { fullDescription: false },
-  theirstack: { fullDescription: true },
+  jobgether: { fullDescription: false, attributionRequired: false },
+  theirstack: { fullDescription: true, attributionRequired: false },
+  remoteok: { fullDescription: true, attributionRequired: true },
 };
 
 export const JOB_SEARCH_EXPERIENCE = ["entry", "junior", "mid", "senior", "expert"] as const;
@@ -43,6 +45,10 @@ export const JOBGETHER_MAX_LIMIT = 25;
 export const THEIRSTACK_DEFAULT_LIMIT = 5;
 export const THEIRSTACK_MAX_LIMIT = 10;
 export const THEIRSTACK_POSTED_AT_MAX_AGE_DAYS = 30;
+
+export const REMOTEOK_DEFAULT_LIMIT = 10;
+export const REMOTEOK_MAX_LIMIT = 25;
+export const REMOTEOK_CATALOG_TTL_MS = 30 * 60 * 1000;
 
 export const JOB_SEARCH_DEFAULT_LIMIT = JOBGETHER_DEFAULT_LIMIT;
 
@@ -126,9 +132,13 @@ export function isJobSourceId(value: unknown): value is JobSourceId {
 }
 
 export function providerDefaultLimit(provider: JobSourceId): number {
-  return provider === "theirstack" ? THEIRSTACK_DEFAULT_LIMIT : JOBGETHER_DEFAULT_LIMIT;
+  if (provider === "theirstack") return THEIRSTACK_DEFAULT_LIMIT;
+  if (provider === "remoteok") return REMOTEOK_DEFAULT_LIMIT;
+  return JOBGETHER_DEFAULT_LIMIT;
 }
 
 export function providerMaxLimit(provider: JobSourceId): number {
-  return provider === "theirstack" ? THEIRSTACK_MAX_LIMIT : JOBGETHER_MAX_LIMIT;
+  if (provider === "theirstack") return THEIRSTACK_MAX_LIMIT;
+  if (provider === "remoteok") return REMOTEOK_MAX_LIMIT;
+  return JOBGETHER_MAX_LIMIT;
 }

@@ -1,7 +1,7 @@
 import type { ApplicationPack } from "./application-pack-types.js";
 import type { ApplyFlowApplicationStatus } from "./application-types.js";
 
-export const APPLYFLOW_JOB_SOURCES = ["linkedin", "paste", "json", "jobgether", "theirstack"] as const;
+export const APPLYFLOW_JOB_SOURCES = ["linkedin", "paste", "json", "jobgether", "theirstack", "remoteok"] as const;
 export type ApplyFlowJobSource = (typeof APPLYFLOW_JOB_SOURCES)[number];
 
 export const JOB_MATCH_DECISIONS = ["apply", "stretch", "needs_info", "skip"] as const;

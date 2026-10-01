@@ -13,7 +13,13 @@ export const JOB_DISCOVERY_PROVIDER_JOBGETHER = "Jobgether";
 export const JOB_DISCOVERY_PROVIDER_JOBGETHER_HINT = "Busca rápida";
 export const JOB_DISCOVERY_PROVIDER_THEIRSTACK = "TheirStack";
 export const JOB_DISCOVERY_PROVIDER_THEIRSTACK_HINT = "Descrição completa para análise";
+export const JOB_DISCOVERY_PROVIDER_REMOTEOK = "Remote OK";
+export const JOB_DISCOVERY_PROVIDER_REMOTEOK_HINT = "Vagas remotas de tecnologia";
 export const JOB_DISCOVERY_THEIRSTACK_NOTE = "Resultados completos para análise";
+export const JOB_DISCOVERY_REMOTEOK_NOTE =
+  "Vagas remotas de tecnologia. Restrições geográficas usam Localização. Remoto não significa mundial.";
+export const JOB_DISCOVERY_REMOTEOK_UNSUPPORTED_FILTERS =
+  "Com Remote OK, salário e tipo de contrato não estão disponíveis nesta fonte.";
 export const JOB_DISCOVERY_KEYWORD = "Palavra-chave";
 export const JOB_DISCOVERY_LOCATION = "Localização";
 export const JOB_DISCOVERY_EXPERIENCE = "Experiência";
@@ -30,8 +36,10 @@ export const JOB_DISCOVERY_EMPTY = "Nenhuma oportunidade com estes filtros.";
 /** Default badge copy for Jobgether hits (legacy constant used by tests). */
 export const JOB_DISCOVERY_SOURCE = "Fonte: Jobgether";
 export const JOB_DISCOVERY_SOURCE_THEIRSTACK = "Fonte: TheirStack";
+export const JOB_DISCOVERY_SOURCE_REMOTEOK = "Fonte: Remote OK";
 export const JOB_DISCOVERY_VIEW_LISTING = "Ver anúncio no Jobgether";
 export const JOB_DISCOVERY_VIEW_LISTING_GENERIC = "Ver anúncio";
+export const JOB_DISCOVERY_VIEW_LISTING_REMOTEOK = "Ver anúncio no Remote OK";
 export const JOB_DISCOVERY_DIRECT_APPLY = "Candidatura direta";
 export const JOB_DISCOVERY_SAVE = "Guardar e analisar";
 export const JOB_DISCOVERY_ADD_DESCRIPTION = "Adicionar descrição e analisar";

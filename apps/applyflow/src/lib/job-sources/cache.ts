@@ -4,6 +4,7 @@ import type { JobSearchCriteria, JobSearchPage, JobSourceId } from "./types";
 
 export const JOBGETHER_CACHE_TTL_MS = 10 * 60 * 1000;
 export const THEIRSTACK_CACHE_TTL_MS = 30 * 60 * 1000;
+export const REMOTEOK_PAGE_CACHE_TTL_MS = 30 * 60 * 1000;
 export const JOB_SEARCH_CACHE_TTL_MS = JOBGETHER_CACHE_TTL_MS;
 export const JOB_SEARCH_CACHE_MAX_ENTRIES = 50;
 
@@ -32,7 +33,9 @@ export function hashJobSearchCriteria(criteria: JobSearchCriteria): string {
 }
 
 export function providerCacheTtlMs(provider: JobSourceId): number {
-  return provider === "theirstack" ? THEIRSTACK_CACHE_TTL_MS : JOBGETHER_CACHE_TTL_MS;
+  if (provider === "theirstack") return THEIRSTACK_CACHE_TTL_MS;
+  if (provider === "remoteok") return REMOTEOK_PAGE_CACHE_TTL_MS;
+  return JOBGETHER_CACHE_TTL_MS;
 }
 
 /** Provider + normalized criteria + page + limit. */

@@ -25,6 +25,20 @@ ApplyFlow searches external job boards from **Vagas → Procurar oportunidades**
 - Never queried automatically alongside Jobgether
 - Changing filters or the provider alone does not start a search
 
+### Remote OK
+
+- Explicit / on-demand
+- Free public remote-tech JSON feed (`https://remoteok.com/api`) — no API key
+- Descriptions arrive as HTML and are normalized server-side to **plain text** before hits or persistence
+- Full descriptions after normalization → **Guardar e analisar**
+- Uses a **30-minute process-local catalog snapshot** (normalized jobs). Keyword / location / experience / page changes reuse the warm snapshot and do **not** call Remote OK again
+- Local filtering and local pagination (default limit 10, maximum 25)
+- Remote does **not** imply worldwide — empty location is not treated as worldwide
+- Salary / contract filters are disabled in the UI for this source (currency is not reliably structured)
+- **Attribution required:** discovery and saved Remote OK jobs show credit and a link back to the Remote OK listing (`rel` may include `noopener`/`noreferrer`, never `nofollow`)
+- `apply_url` is **not** mapped to `directApplyUrl` (current feed: identical to the listing URL)
+- No Remote OK logo / trademark artwork
+
 One search action queries exactly one selected provider. There is no silent fallback and no dual `Promise.all` search.
 
 ## Flow
@@ -61,22 +75,27 @@ The curriculum stays in the browser. Search request bodies contain only filter f
 |------------|----------------|--------------------|
 | Jobgether  | `jobgether`    | `job_jg_<id>`      |
 | TheirStack | `theirstack`   | `job_ts_<id>`      |
+| Remote OK  | `remoteok`     | `job_ro_<id>`      |
 
 `sourceUrl` is the board/listing URL and is stored in the existing `ApplyFlowJob.url` field.
 
-TheirStack may also expose `final_url` as optional transient `directApplyUrl` on the search hit. Phase 2 does **not** persist `directApplyUrl` (no migration). The UI shows **Candidatura direta** only when that URL is present.
+TheirStack may also expose `final_url` as optional transient `directApplyUrl` on the search hit. Phase 2/4 does **not** persist `directApplyUrl` (no migration). The UI shows **Candidatura direta** only when that URL is present.
+
+Remote OK never sets `directApplyUrl` from the current feed.
 
 `ApplyFlowApplicationSource` is unchanged. Later candidaturas still use `applicationSourceFromJob` (`paste` unless `linkedin` / `json`).
 
-Provider `technology_slugs` / salary fields are discovery metadata only. Persisted skills and compensation intelligence still come from description analysis in `ingestApplyFlowJob`.
+Provider tags / salary fields are discovery metadata only. Persisted skills and compensation intelligence still come from description analysis in `ingestApplyFlowJob`. The Match Engine is unchanged.
 
 ## Pagination and cache
 
 - Page 1 on Buscar; next page only from **Carregar mais**
-- Cache key includes provider, normalized criteria, page, and limit
+- Jobgether / TheirStack: cache key includes provider, normalized criteria, page, and limit
+- Remote OK: provider-level catalog snapshot (TTL 30 minutes) plus the shared page cache; **no upstream call** when criteria or page change while the catalog is warm
 - Errors are not cached
-- Bounded in-memory map (instance-local). Serverless instances do not share cache
-- Identical queries reuse cache and do not spend TheirStack credits
+- Bounded in-memory maps (instance-local). Serverless instances do not share cache
+- Identical TheirStack queries reuse cache and do not spend credits
+- No auto-refresh on filter keystrokes or provider selection
 
 ## Failures
 
@@ -84,9 +103,16 @@ Public error classes: `invalid_criteria`, `provider_rejected`, `provider_timeout
 
 TheirStack:
 
-- Missing API key → `provider_not_configured` (Jobgether still works)
+- Missing API key → `provider_not_configured` (Jobgether / Remote OK still work)
 - No retry on 400 / 401 / 402 / 403 / 404 / 422 / 429
 - At most one retry on timeout or 5xx (credits are tied to successful returned jobs)
+
+Remote OK:
+
+- No retry on 400 / 403 / 404 / 429
+- At most one retry on timeout or 5xx
+- Concurrent catalog misses in the same process coalesce to a single upstream request
+- Individual malformed jobs are skipped; zero valid jobs after parse → `invalid_provider_response`
 
 Logs are one JSON line with provider, criteria hash, page, result count, cache hit/miss, duration, and error code. They never include keywords, descriptions, CV text, Authorization headers, or API keys.
 
@@ -94,17 +120,18 @@ Logs are one JSON line with provider, criteria hash, page, result count, cache h
 
 Save reuses existing id / canonical URL / description hash:
 
-- same TheirStack id → same `job_ts_` id
+- same Remote OK id → same `job_ro_` id
 - same listing URL → canonical URL dedupe
 - identical normalized description → description hash can catch cross-provider duplicates
 - no fuzzy merge by company + title
 
 ## Security
 
-- Provider allowlist: `jobgether` | `theirstack` only
+- Provider allowlist: `jobgether` | `theirstack` | `remoteok` only
 - Fixed hosts and methods inside each adapter (not a generic HTTP proxy)
-- Secrets stay server-side
-- The anonymous dashboard search route can still be invoked; TheirStack cost is mitigated by small limits, cache, and no auto-search. There is no Redis rate limiter in Phase 2.
+- Remote OK HTML is never rendered and never persisted as HTML — only plain text after sanitize
+- Secrets stay server-side (Remote OK needs none)
+- The anonymous dashboard search route can still be invoked; TheirStack cost is mitigated by small limits, cache, and no auto-search. There is no Redis rate limiter.
 
 ## Known limitations
 
@@ -112,6 +139,7 @@ Save reuses existing id / canonical URL / description hash:
 - TheirStack credit balance is not shown in product UI
 - No migration; no new SQL columns for provider metadata
 - Remote filters are geographic when the provider says so — remote ≠ worldwide
+- Remote OK catalog can include jobs older than 30 days; posted dates are preserved
 - A saved job is not refreshed if the remote listing changes
 
 ## Environment
@@ -119,3 +147,4 @@ Save reuses existing id / canonical URL / description hash:
 Server only:
 
 - `THEIRSTACK_API_KEY` — required for TheirStack searches; absent → controlled unavailable state
+- Remote OK — no environment variables

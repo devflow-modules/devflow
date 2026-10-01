@@ -5,9 +5,10 @@ import type { JobSearchHit, JobSourceId } from "./types";
 const SOURCE_ID_PREFIX: Record<JobSourceId, string> = {
   jobgether: "jg",
   theirstack: "ts",
+  remoteok: "ro",
 };
 
-/** Provider-neutral deterministic ApplyFlow job id: job_jg_<id> | job_ts_<id>. */
+/** Provider-neutral deterministic ApplyFlow job id: job_jg_<id> | job_ts_<id> | job_ro_<id>. */
 export function createExternalJobId(source: JobSourceId, externalId: string): string | null {
   const prefix = SOURCE_ID_PREFIX[source];
   const safe = externalId.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");

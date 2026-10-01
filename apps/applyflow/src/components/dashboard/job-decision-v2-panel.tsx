@@ -35,8 +35,13 @@ import {
   type ApplyFlowPipelineStatusV2,
   type Contact,
   type ApplicationDecision,
+  isOpenableJobUrl,
 } from "@devflow/applyflow-core";
 
+import {
+  JOB_DISCOVERY_SOURCE_REMOTEOK,
+  JOB_DISCOVERY_VIEW_LISTING_REMOTEOK,
+} from "@/components/dashboard/job-inbox-content";
 import {
   JOB_DECISION_V2_BACK,
   JOB_DECISION_V2_CLAIMS,
@@ -402,6 +407,23 @@ export function JobDecisionV2Panel({
         {job.title}
         {job.company ? ` · ${job.company}` : ""}
       </p>
+      {job.source === "remoteok" && isOpenableJobUrl(job.url) ? (
+        <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">
+          <a
+            href={job.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline-offset-2 hover:underline"
+            data-testid="remoteok-analysis-attribution"
+          >
+            {JOB_DISCOVERY_SOURCE_REMOTEOK}
+          </a>
+          {" · "}
+          <a href={job.url} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">
+            {JOB_DISCOVERY_VIEW_LISTING_REMOTEOK}
+          </a>
+        </p>
+      ) : null}
       <div className="mt-2 flex flex-wrap gap-3 text-xs">
         <Link href="/dashboard" className="text-emerald-300 hover:text-emerald-200">
           {JOB_DECISION_V2_BACK}
