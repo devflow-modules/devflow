@@ -74,6 +74,10 @@ import {
   getDefaultResumeVariant,
   renameResumeVariant,
   setDefaultResumeVariant,
+  deriveApplicationNextAction,
+  formatApplicationUpdatedAge,
+  formatApplicationStaleUpdateAge,
+  isOpenableJobUrl,
   type ApplyFlowApplication,
   type ApplyFlowApplicationStatus,
   type ApplyFlowApplicationV2Envelope,
@@ -82,6 +86,13 @@ import {
   type DashboardTableFilters,
   type ResumeLibrary,
 } from "@devflow/applyflow-core";
+import {
+  cloudLifecycleFailureMessage,
+  transitionCloudApplicationLifecycle,
+} from "@/lib/cloud-application-transition";
+import {
+  JOB_DISCOVERY_SOURCE_REMOTEOK,
+} from "@/components/dashboard/job-inbox-content";
 import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from "react";
 import type { ReactNode } from "react";
 
@@ -802,21 +813,26 @@ export function DashboardClient({
       const persistence = persistenceRef.current;
       if (!persistence) return;
       const envelope = application as ApplyFlowApplicationV2Envelope;
-      void persistence.updateApplication({ ...envelope, status: "applied" }).then(async (result) => {
+      const sourceJobId = envelope.v2?.sourceJobId;
+      const linked = sourceJobId ? jobsRef.current.find((item) => item.id === sourceJobId) : undefined;
+      void transitionCloudApplicationLifecycle({
+        persistence,
+        application: envelope,
+        linkedJob: linked ?? null,
+        toStatus: "applied",
+      }).then((result) => {
         if (!result.ok) {
-          setImportError(dashboardPersistenceFailureMessage(result.code));
+          setImportError(cloudLifecycleFailureMessage(result));
+          if (result.application) {
+            setApplications((prev) => [...prev.filter((item) => item.id !== result.application!.id), result.application!]);
+          }
           return;
         }
-        setApplications((prev) => [...prev.filter((item) => item.id !== result.data.id), result.data]);
-        const sourceJobId = result.data.v2?.sourceJobId;
-        const linked = sourceJobId ? jobsRef.current.find((job) => job.id === sourceJobId) : undefined;
-        if (!linked || linked.status === "applied") return;
-        const jobResult = await persistence.updateJob(markApplyFlowJobApplied(linked));
-        if (!jobResult.ok) {
-          setJobInboxError(dashboardPersistenceFailureMessage(jobResult.code));
-          return;
+        setImportError(null);
+        setApplications((prev) => [...prev.filter((item) => item.id !== result.application.id), result.application]);
+        if (result.job) {
+          setJobs((prev) => replaceApplyFlowJob(prev, result.job!));
         }
-        setJobs((prev) => replaceApplyFlowJob(prev, jobResult.data));
       });
       return;
     }
@@ -1368,13 +1384,34 @@ export function DashboardClient({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[color:var(--af-border)]">
-                  {filtered.map((a) => (
+                  {filtered.map((a) => {
+                    const envelope = a as ApplyFlowApplicationV2Envelope;
+                    const linkedJob = envelope.v2?.sourceJobId
+                      ? jobs.find((item) => item.id === envelope.v2?.sourceJobId)
+                      : undefined;
+                    const nextHint = deriveApplicationNextAction({
+                      status: a.status,
+                      jobId: envelope.v2?.sourceJobId,
+                    });
+                    const ageHint =
+                      formatApplicationStaleUpdateAge(a.updatedAt) ?? formatApplicationUpdatedAge(a.updatedAt);
+                    const showRemoteOk =
+                      linkedJob?.source === "remoteok" && isOpenableJobUrl(linkedJob.url ?? a.jobUrl);
+                    const remoteOkUrl = linkedJob?.url ?? a.jobUrl;
+                    return (
                     <tr
                       key={a.id}
                       className="bg-[color:var(--af-bg)]/80 transition-colors hover:bg-[color:var(--af-surface-muted)]"
                     >
                       <td className="whitespace-nowrap px-3 py-3 text-[color:var(--af-text-muted)]">
-                        {new Date(a.createdAt).toLocaleDateString("pt-BR")}
+                        <div className="grid gap-0.5">
+                          <span>{new Date(a.createdAt).toLocaleDateString("pt-BR")}</span>
+                          {ageHint ? (
+                            <span className="text-[10px] text-[color:var(--af-text-muted)]" data-testid="application-row-age">
+                              {ageHint.label}
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
                       <td
                         className="max-w-[130px] truncate px-3 py-3 text-[color:var(--af-text)] sm:max-w-[160px]"
@@ -1386,13 +1423,35 @@ export function DashboardClient({
                         className="max-w-[150px] truncate px-3 py-3 font-medium text-[color:var(--af-text)] sm:max-w-[180px]"
                         title={a.jobTitle}
                       >
-                        {a.jobTitle ?? "—"}
+                        <div className="grid gap-0.5">
+                          <span>{a.jobTitle ?? "—"}</span>
+                          {showRemoteOk && remoteOkUrl ? (
+                            <a
+                              href={remoteOkUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="truncate text-[10px] font-normal text-[color:var(--af-text-muted)] underline-offset-2 hover:underline"
+                              data-testid="remoteok-applications-attribution"
+                            >
+                              {JOB_DISCOVERY_SOURCE_REMOTEOK}
+                            </a>
+                          ) : null}
+                        </div>
                       </td>
                       <td className="whitespace-nowrap px-3 py-3">
                         <div className="grid gap-1">
                           <ApplyFlowBadge tone={statusTone(a.status)}>
                             {APPLYFLOW_APPLICATION_STATUS_LABELS_PT[a.status]}
                           </ApplyFlowBadge>
+                          {nextHint.kind !== "terminal" && nextHint.kind !== "none" ? (
+                            <span
+                              className="max-w-[140px] truncate text-[10px] text-[color:var(--af-text-muted)]"
+                              data-testid="application-row-next-action"
+                              title={nextHint.label}
+                            >
+                              {nextHint.label}
+                            </span>
+                          ) : null}
                           {a.status === "reviewing" ? (
                             <ApplyFlowButton
                               type="button"
@@ -1461,7 +1520,8 @@ export function DashboardClient({
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

@@ -25,6 +25,7 @@ export type JobDecisionV2Snapshot = {
   application: ApplyFlowApplicationV2Envelope | null;
   registeredSnapshot: ApplicationDecisionSnapshot | null;
   lifecycleEvents: ApplicationCareerEvent[];
+  lifecycleAppliedAt: string | null;
   pipelineStatus: ApplyFlowPipelineStatusV2 | null;
   needsResume: boolean;
   decision: JobDecisionV2 | null;
@@ -41,6 +42,7 @@ function emptySnapshot(partial: Partial<JobDecisionV2Snapshot> & { job: ApplyFlo
     application: null,
     registeredSnapshot: null,
     lifecycleEvents: [],
+    lifecycleAppliedAt: null,
     pipelineStatus: null,
     needsResume: false,
     decision: null,
@@ -85,6 +87,7 @@ export function loadJobDecisionV2Snapshot(
     : undefined;
   const registeredSnapshot = storedOutcome?.snapshot ?? null;
   let lifecycleEvents: ApplicationCareerEvent[] = [];
+  let lifecycleAppliedAt: string | null = null;
   let pipelineStatus: ApplyFlowPipelineStatusV2 | null = null;
   if (foundApp) {
     const view = getApplicationLifecycleView({
@@ -93,6 +96,7 @@ export function loadJobDecisionV2Snapshot(
       events: analytics.events,
     });
     lifecycleEvents = view.events;
+    lifecycleAppliedAt = view.appliedAt ?? foundApp.appliedAt ?? null;
     pipelineStatus = view.status;
   }
 
@@ -102,6 +106,7 @@ export function loadJobDecisionV2Snapshot(
     application: foundApp,
     registeredSnapshot,
     lifecycleEvents,
+    lifecycleAppliedAt,
     pipelineStatus,
   });
 

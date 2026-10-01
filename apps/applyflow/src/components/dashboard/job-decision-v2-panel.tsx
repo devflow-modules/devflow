@@ -27,12 +27,12 @@ import {
   APPLYFLOW_PIPELINE_STATUS_V2_LABELS_PT,
   canRecordApplicationOutcome,
   canTransitionApplicationStatus,
+  collectApplicationAgeCopies,
+  deriveApplicationNextAction,
   deriveApplicationReadiness,
   findApplicationForJob,
   formatLifecycleEventDate,
-  fromPipelineStatusV2,
   isOpenableJobUrl,
-  markApplyFlowJobApplied,
   resolveApplicationRegistration,
   resolvePipelineStatus,
   type ApplicationReadiness,
@@ -42,7 +42,12 @@ import {
   type ApplyFlowPipelineStatusV2,
   type Contact,
   type ApplicationDecision,
+  type JobDecisionV2,
 } from "@devflow/applyflow-core";
+import {
+  cloudLifecycleFailureMessage,
+  transitionCloudApplicationLifecycle,
+} from "@/lib/cloud-application-transition";
 
 import {
   JOB_DISCOVERY_SOURCE_REMOTEOK,
@@ -78,6 +83,9 @@ import {
   JOB_DECISION_V2_MARK_SENT,
   JOB_DECISION_V2_MARK_SENT_HINT,
   JOB_DECISION_V2_MARKED_SENT,
+  JOB_DECISION_V2_NEXT_STEP,
+  JOB_DECISION_V2_AGE,
+  JOB_DECISION_V2_HISTORY_UNAVAILABLE,
   JOB_DECISION_V2_CURRENT_ANALYSIS,
   JOB_DECISION_V2_AT_APPLY_ANALYSIS,
   JOB_DECISION_V2_CURRENT_HINT,
@@ -184,6 +192,169 @@ function ApplicationReadinessBlock({
           </a>
         </p>
       ) : null}
+    </ApplyFlowCard>
+  );
+}
+
+function ApplicationOutcomeCard({
+  application,
+  currentPipeline,
+  nextActionGuidance,
+  applicationAgeCopies,
+  persistError,
+  feedbackNote,
+  setFeedbackNote,
+  markApplicationSent,
+  recordStatus,
+  lifecycleEvents,
+  usesCloudPersistence,
+  canCreate,
+  createApplicationRecord,
+  decision,
+}: {
+  application: ApplyFlowApplicationV2Envelope | null;
+  currentPipeline: ApplyFlowPipelineStatusV2 | null;
+  nextActionGuidance: ReturnType<typeof deriveApplicationNextAction> | null;
+  applicationAgeCopies: ReturnType<typeof collectApplicationAgeCopies>;
+  persistError: string | null;
+  feedbackNote: string;
+  setFeedbackNote: (value: string) => void;
+  markApplicationSent: () => void;
+  recordStatus: (status: ApplyFlowPipelineStatusV2) => void;
+  lifecycleEvents: import("@devflow/applyflow-core").ApplicationCareerEvent[];
+  usesCloudPersistence: boolean;
+  canCreate: boolean;
+  createApplicationRecord: () => void;
+  decision: JobDecisionV2 | null;
+}) {
+  return (
+    <ApplyFlowCard padding="md">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+        Outcome manual
+      </p>
+      <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">
+        Não infere rejection reason a partir de GAP. Sem motivo explícito, a categoria fica unknown.
+      </p>
+      {persistError ? <p className="mt-2 text-xs text-red-200">{persistError}</p> : null}
+      {application ? (
+        <div className="mt-2 grid gap-2">
+          <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_DECISION_V2_APPLICATION_READY}</p>
+          {currentPipeline ? (
+            <p className="text-xs text-[color:var(--af-text)]">
+              {JOB_DECISION_V2_STATUS}: {APPLYFLOW_PIPELINE_STATUS_V2_LABELS_PT[currentPipeline]}
+            </p>
+          ) : null}
+          {nextActionGuidance && nextActionGuidance.kind !== "none" ? (
+            <div className="rounded-md border border-[color:var(--af-border)] px-2 py-1.5" data-testid="application-next-action">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+                {JOB_DECISION_V2_NEXT_STEP}
+              </p>
+              <p className="text-xs text-[color:var(--af-text)]">{nextActionGuidance.label}</p>
+              {nextActionGuidance.detail ? (
+                <p className="text-[11px] text-[color:var(--af-text-muted)]">{nextActionGuidance.detail}</p>
+              ) : null}
+            </div>
+          ) : null}
+          {applicationAgeCopies.length > 0 ? (
+            <div data-testid="application-age-copy">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+                {JOB_DECISION_V2_AGE}
+              </p>
+              <ul className="mt-1 grid gap-0.5 text-[11px] text-[color:var(--af-text-muted)]">
+                {applicationAgeCopies.map((item) => (
+                  <li key={item.kind}>{item.label}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {application.status === "reviewing" ? (
+            <>
+              <p className="text-xs text-[color:var(--af-text)]">{JOB_DECISION_V2_MARK_SENT_HINT}</p>
+              <ApplyFlowButton
+                type="button"
+                variant="outlineBrand"
+                size="sm"
+                onClick={markApplicationSent}
+                className="w-fit rounded-md border-emerald-400/50 px-3 py-1 text-xs text-emerald-100"
+              >
+                {JOB_DECISION_V2_MARK_SENT}
+              </ApplyFlowButton>
+            </>
+          ) : currentPipeline === "applied" ? (
+            <p className="text-xs text-emerald-200/90">{JOB_DECISION_V2_MARKED_SENT}</p>
+          ) : null}
+        </div>
+      ) : canCreate ? (
+        <div className="mt-3 grid gap-2">
+          <p className="text-xs text-[color:var(--af-text)]">{JOB_DECISION_V2_NEED_APPLICATION}</p>
+          <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_DECISION_V2_CREATE_HINT}</p>
+          <ApplyFlowButton
+            type="button"
+            variant="outlineBrand"
+            size="sm"
+            disabled={!decision}
+            onClick={createApplicationRecord}
+            className="w-fit rounded-md border-emerald-400/50 px-3 py-1 text-xs text-emerald-100"
+          >
+            {JOB_DECISION_V2_CREATE_APPLICATION}
+          </ApplyFlowButton>
+        </div>
+      ) : null}
+      <div className="mt-3 flex flex-wrap gap-2">
+        {(
+          [
+            ["recruiter_contacted", "Response"],
+            ["screening", "Screening"],
+            ["technical", "Technical"],
+            ["final", "Final"],
+            ["offer", "Offer"],
+            ["hired", JOB_DECISION_V2_HIRED],
+            ["rejected", "Rejection"],
+            ["withdrawn", "Withdrawal"],
+          ] as const
+        ).map(([status, label]) => {
+          const enabled =
+            Boolean(application && currentPipeline && canTransitionApplicationStatus(currentPipeline, status));
+          return (
+            <ApplyFlowButton
+              key={status}
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => recordStatus(status)}
+              disabled={!enabled}
+              className="rounded-md border border-[color:var(--af-border)] px-2 py-1 text-xs text-[color:var(--af-text)] disabled:opacity-40"
+            >
+              {label}
+            </ApplyFlowButton>
+          );
+        })}
+      </div>
+      {lifecycleEvents.length > 0 ? (
+        <div className="mt-4" data-testid="application-lifecycle-timeline">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+            {JOB_DECISION_V2_HISTORY}
+          </p>
+          <ul className="mt-2 grid gap-1 text-xs text-[color:var(--af-text)]">
+            {lifecycleEvents.map((item) => (
+              <li key={item.id}>
+                {formatLifecycleEventDate(item.occurredAt)} —{" "}
+                {item.toStatus ? APPLYFLOW_PIPELINE_STATUS_V2_LABELS_PT[item.toStatus] : item.type}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : application && usesCloudPersistence ? (
+        <p className="mt-4 text-[11px] text-[color:var(--af-text-muted)]" data-testid="application-lifecycle-history-unavailable">
+          {JOB_DECISION_V2_HISTORY_UNAVAILABLE}
+        </p>
+      ) : null}
+      <input
+        value={feedbackNote}
+        onChange={(event) => setFeedbackNote(event.target.value)}
+        placeholder="Motivo explícito / nota (opcional)"
+        className="mt-3 w-full rounded-md border border-[color:var(--af-border)] bg-transparent px-2 py-1 text-sm"
+      />
     </ApplyFlowCard>
   );
 }
@@ -313,6 +484,24 @@ export function JobDecisionV2Panel({
   const currentPipeline = application
     ? pipelineStatus ?? resolvePipelineStatus({ application, outcome: undefined })
     : null;
+  const nextActionGuidance = useMemo(() => {
+    if (!application || !currentPipeline) return null;
+    return deriveApplicationNextAction({
+      status: currentPipeline,
+      jobId: job?.id ?? application.v2?.sourceJobId,
+    });
+  }, [application, currentPipeline, job?.id]);
+  const applicationAgeCopies = useMemo(() => {
+    if (!application) return [];
+    const appliedAt =
+      application.appliedAt ??
+      (snapshot?.lifecycleAppliedAt ? snapshot.lifecycleAppliedAt : undefined);
+    return collectApplicationAgeCopies({
+      createdAt: application.createdAt,
+      updatedAt: application.updatedAt,
+      appliedAt: appliedAt ?? null,
+    });
+  }, [application, snapshot?.lifecycleAppliedAt]);
 
   function createApplicationRecord() {
     if (!job || !decision) return;
@@ -387,23 +576,27 @@ export function JobDecisionV2Panel({
     if (usesCloudPersistence) {
       const persistence = persistenceRef.current;
       if (!persistence) return;
-      void persistence.updateApplication({ ...application, status: "applied" }).then(async (result) => {
+      void transitionCloudApplicationLifecycle({
+        persistence,
+        application,
+        linkedJob: job ?? null,
+        toStatus: "applied",
+      }).then((result) => {
         if (!result.ok) {
-          setPersistError(dashboardPersistenceFailureMessage(result.code));
+          setPersistError(cloudLifecycleFailureMessage(result));
+          if (result.application) {
+            setRemoteRecords({
+              job: result.job ?? job ?? null,
+              application: result.application,
+            });
+          }
           return;
         }
-        let nextJob = job ?? null;
-        if (job && job.status !== "applied") {
-          const jobResult = await persistence.updateJob(markApplyFlowJobApplied(job));
-          if (!jobResult.ok) {
-            setPersistError(dashboardPersistenceFailureMessage(jobResult.code));
-            setRemoteRecords({ job, application: result.data });
-            return;
-          }
-          nextJob = jobResult.data;
-        }
         setPersistError(null);
-        setRemoteRecords({ job: nextJob, application: result.data });
+        setRemoteRecords({
+          job: result.job ?? job ?? null,
+          application: result.application,
+        });
       });
       return;
     }
@@ -425,21 +618,30 @@ export function JobDecisionV2Panel({
     if (usesCloudPersistence) {
       const persistence = persistenceRef.current;
       if (!persistence) return;
-      void persistence
-        .updateApplication({
-          ...application,
-          status: fromPipelineStatusV2(toStatus),
-          ...(feedbackNote.trim() ? { notes: feedbackNote.trim() } : {}),
-        })
-        .then((result) => {
-          if (!result.ok) {
-            setPersistError(dashboardPersistenceFailureMessage(result.code));
-            return;
+      void transitionCloudApplicationLifecycle({
+        persistence,
+        application,
+        linkedJob: job ?? null,
+        toStatus,
+        notes: feedbackNote.trim() || undefined,
+      }).then((result) => {
+        if (!result.ok) {
+          setPersistError(cloudLifecycleFailureMessage(result));
+          if (result.application) {
+            setRemoteRecords({
+              job: result.job ?? job ?? null,
+              application: result.application,
+            });
           }
-          setPersistError(null);
-          setRemoteRecords({ job: job ?? null, application: result.data });
-          setFeedbackNote(toStatus === "rejected" && !feedbackNote.trim() ? "Rejection recorded without an explicit reason (unknown)." : "");
+          return;
+        }
+        setPersistError(null);
+        setRemoteRecords({
+          job: result.job ?? job ?? null,
+          application: result.application,
         });
+        setFeedbackNote(toStatus === "rejected" && !feedbackNote.trim() ? "Rejection recorded without an explicit reason (unknown)." : "");
+      });
       return;
     }
     const persisted = persistApplicationStatusTransition({
@@ -576,7 +778,30 @@ export function JobDecisionV2Panel({
             </Link>
           ) : null}
         </ApplyFlowCard>
-      ) : (
+      ) : null}
+
+      {!decision && application ? (
+        <div className="mt-5 grid gap-4">
+          <ApplicationOutcomeCard
+            application={application}
+            currentPipeline={currentPipeline}
+            nextActionGuidance={nextActionGuidance}
+            applicationAgeCopies={applicationAgeCopies}
+            persistError={persistError}
+            feedbackNote={feedbackNote}
+            setFeedbackNote={setFeedbackNote}
+            markApplicationSent={markApplicationSent}
+            recordStatus={recordStatus}
+            lifecycleEvents={lifecycleEvents}
+            usesCloudPersistence={usesCloudPersistence}
+            canCreate={false}
+            createApplicationRecord={createApplicationRecord}
+            decision={null}
+          />
+        </div>
+      ) : null}
+
+      {decision ? (
         <div className="mt-5 grid gap-4">
           <div className="flex flex-wrap gap-2" role="tablist" aria-label="Career OS V2">
             {(Object.keys(JOB_DECISION_V2_TABS) as JobV2Tab[]).map((key) => (
@@ -601,107 +826,22 @@ export function JobDecisionV2Panel({
 
           {readiness ? <ApplicationReadinessBlock readiness={readiness} job={job} /> : null}
 
-          <ApplyFlowCard padding="md">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
-              Outcome manual
-            </p>
-            <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">
-              Não infere rejection reason a partir de GAP. Sem motivo explícito, a categoria fica unknown.
-            </p>
-            {persistError ? <p className="mt-2 text-xs text-red-200">{persistError}</p> : null}
-            {application ? (
-              <div className="mt-2 grid gap-2">
-                <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_DECISION_V2_APPLICATION_READY}</p>
-                {currentPipeline ? (
-                  <p className="text-xs text-[color:var(--af-text)]">
-                    {JOB_DECISION_V2_STATUS}: {APPLYFLOW_PIPELINE_STATUS_V2_LABELS_PT[currentPipeline]}
-                  </p>
-                ) : null}
-                {application.status === "reviewing" ? (
-                  <>
-                    <p className="text-xs text-[color:var(--af-text)]">{JOB_DECISION_V2_MARK_SENT_HINT}</p>
-                    <ApplyFlowButton
-                      type="button"
-                      variant="outlineBrand"
-                      size="sm"
-                      onClick={markApplicationSent}
-                      className="w-fit rounded-md border-emerald-400/50 px-3 py-1 text-xs text-emerald-100"
-                    >
-                      {JOB_DECISION_V2_MARK_SENT}
-                    </ApplyFlowButton>
-                  </>
-                ) : currentPipeline === "applied" ? (
-                  <p className="text-xs text-emerald-200/90">{JOB_DECISION_V2_MARKED_SENT}</p>
-                ) : null}
-              </div>
-            ) : (
-              <div className="mt-3 grid gap-2">
-                <p className="text-xs text-[color:var(--af-text)]">{JOB_DECISION_V2_NEED_APPLICATION}</p>
-                <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_DECISION_V2_CREATE_HINT}</p>
-                <ApplyFlowButton
-                  type="button"
-                  variant="outlineBrand"
-                  size="sm"
-                  disabled={!decision}
-                  onClick={createApplicationRecord}
-                  className="w-fit rounded-md border-emerald-400/50 px-3 py-1 text-xs text-emerald-100"
-                >
-                  {JOB_DECISION_V2_CREATE_APPLICATION}
-                </ApplyFlowButton>
-              </div>
-            )}
-            <div className="mt-3 flex flex-wrap gap-2">
-              {(
-                [
-                  ["recruiter_contacted", "Response"],
-                  ["screening", "Screening"],
-                  ["technical", "Technical"],
-                  ["final", "Final"],
-                  ["offer", "Offer"],
-                  ["hired", JOB_DECISION_V2_HIRED],
-                  ["rejected", "Rejection"],
-                  ["withdrawn", "Withdrawal"],
-                ] as const
-              ).map(([status, label]) => {
-                const enabled =
-                  Boolean(application && currentPipeline && canTransitionApplicationStatus(currentPipeline, status));
-                return (
-                  <ApplyFlowButton
-                    key={status}
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => recordStatus(status)}
-                    disabled={!enabled}
-                    className="rounded-md border border-[color:var(--af-border)] px-2 py-1 text-xs text-[color:var(--af-text)] disabled:opacity-40"
-                  >
-                    {label}
-                  </ApplyFlowButton>
-                );
-              })}
-            </div>
-            {lifecycleEvents.length > 0 ? (
-              <div className="mt-4">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
-                  {JOB_DECISION_V2_HISTORY}
-                </p>
-                <ul className="mt-2 grid gap-1 text-xs text-[color:var(--af-text)]">
-                  {lifecycleEvents.map((item) => (
-                    <li key={item.id}>
-                      {formatLifecycleEventDate(item.occurredAt)} —{" "}
-                      {item.toStatus ? APPLYFLOW_PIPELINE_STATUS_V2_LABELS_PT[item.toStatus] : item.type}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-            <input
-              value={feedbackNote}
-              onChange={(event) => setFeedbackNote(event.target.value)}
-              placeholder="Motivo explícito / nota (opcional)"
-              className="mt-3 w-full rounded-md border border-[color:var(--af-border)] bg-transparent px-2 py-1 text-sm"
-            />
-          </ApplyFlowCard>
+          <ApplicationOutcomeCard
+            application={application}
+            currentPipeline={currentPipeline}
+            nextActionGuidance={nextActionGuidance}
+            applicationAgeCopies={applicationAgeCopies}
+            persistError={persistError}
+            feedbackNote={feedbackNote}
+            setFeedbackNote={setFeedbackNote}
+            markApplicationSent={markApplicationSent}
+            recordStatus={recordStatus}
+            lifecycleEvents={lifecycleEvents}
+            usesCloudPersistence={usesCloudPersistence}
+            canCreate={!application}
+            createApplicationRecord={createApplicationRecord}
+            decision={decision}
+          />
 
           {tab === "overview" ? (
             <ApplyFlowCard padding="md">
@@ -950,7 +1090,7 @@ export function JobDecisionV2Panel({
             </ApplyFlowCard>
           ) : null}
         </div>
-      )}
+      ) : null}
     </ApplyFlowSection>
   );
 }

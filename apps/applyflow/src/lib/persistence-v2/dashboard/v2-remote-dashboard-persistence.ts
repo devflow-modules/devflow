@@ -101,6 +101,7 @@ export function applicationFromResponse(row: ApplicationResponse): ApplyFlowAppl
     updatedAt: row.updatedAt,
     source: row.source,
     status: row.status,
+    ...(row.appliedAt ? { appliedAt: row.appliedAt } : {}),
     ...(row.jobTitle ? { jobTitle: row.jobTitle } : {}),
     ...(row.companyName ? { companyName: row.companyName } : {}),
     ...(row.jobUrl ? { jobUrl: row.jobUrl } : {}),

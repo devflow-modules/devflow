@@ -475,6 +475,24 @@ export type {
   TransitionApplicationStatusResult,
 } from "./application-lifecycle.js";
 export {
+  applyPipelineStatusToLinkedJob,
+  applicationSourceJobId,
+  collectApplicationAgeCopies,
+  deriveApplicationNextAction,
+  formatApplicationAppliedAge,
+  formatApplicationRegisteredAge,
+  formatApplicationStaleUpdateAge,
+  formatApplicationUpdatedAge,
+  jobStatusForPipelineTransition,
+  resolveCanonicalPipelineStatus,
+} from "./application-next-action.js";
+export type {
+  ApplicationAgeCopy,
+  ApplicationAgeKind,
+  ApplicationNextActionGuidance,
+  ApplicationNextActionKind,
+} from "./application-next-action.js";
+export {
   INBOUND_DETECTION_STATES,
   INBOUND_DISCARD_REASONS,
   INBOUND_MATCH_STATUSES,

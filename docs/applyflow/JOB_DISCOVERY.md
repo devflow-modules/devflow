@@ -124,6 +124,16 @@ On the job analysis page (`/dashboard/jobs/[id]`), ApplyFlow shows a **derived**
 - **Known limitation:** TheirStack `directApplyUrl` is not persisted after save — only the listing URL remains
 - Zero provider requests; CV is not sent to providers
 
+## Application Lifecycle parity (Phase 8)
+
+See [`APPLICATION_LIFECYCLE.md`](./APPLICATION_LIFECYCLE.md).
+
+- Local and cloud transitions share `canTransitionApplicationStatus`
+- Cloud updates also sync the linked Job via `sourceJobId` + `fromPipelineStatusV2`
+- Next-action guidance is derived-only (not persisted, not a task/reminder)
+- Cloud does not fabricate timeline events; local keeps real career events
+- Applications table may show Remote OK attribution from the **linked job** (`job.source`), not from collapsed `application.source`
+
 ## Source, id, and URL semantics
 
 | Provider   | `source`       | Deterministic id   |

@@ -40,6 +40,11 @@ export type ApplyFlowApplication = {
   companyName?: string;
   jobUrl?: string;
   status: ApplyFlowApplicationStatus;
+  /**
+   * External submission timestamp when the backend actually has one (cloud appliedAt).
+   * Local mode typically keeps this on ApplicationOutcome — do not invent from updatedAt.
+   */
+  appliedAt?: string;
   fitScore?: number;
   fieldsDetected?: number;
   fieldsFilled?: number;

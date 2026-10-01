@@ -56,6 +56,10 @@ export const JOB_DECISION_V2_MARK_SENT = "Marcar como enviada";
 export const JOB_DECISION_V2_MARK_SENT_HINT =
   "Usa isto depois de enviares tu ao empregador. Actualiza o estágio desta candidatura. Não cria outro registo e não mexe na análise congelada.";
 export const JOB_DECISION_V2_MARKED_SENT = "Candidatura marcada como enviada neste browser.";
+export const JOB_DECISION_V2_NEXT_STEP = "Próximo passo";
+export const JOB_DECISION_V2_AGE = "Datas";
+export const JOB_DECISION_V2_HISTORY_UNAVAILABLE =
+  "Histórico de eventos não disponível neste modo — só o estado actual é mostrado.";
 
 export const JOB_READINESS_TITLE = "Preparação da candidatura";
 export const JOB_READINESS_OPEN_SOURCE = "Abrir anúncio";

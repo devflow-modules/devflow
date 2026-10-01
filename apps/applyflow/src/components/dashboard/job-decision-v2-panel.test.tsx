@@ -122,4 +122,99 @@ describe("JobDecisionV2Panel", () => {
       expect(applied).toHaveLength(1);
     });
   });
+
+  it("shows derived next-action and factual age copy without fabricating employer silence", async () => {
+    persistDashboardJobs([jobA]);
+    const applied: ApplyFlowApplicationV2Envelope = {
+      id: "app-next",
+      createdAt: "2026-09-09T12:00:00.000Z",
+      updatedAt: "2026-09-15T03:04:24.620Z",
+      source: "paste",
+      status: "applied",
+      appliedAt: "2026-09-15T03:04:24.620Z",
+      v2: { sourceJobId: jobA.id },
+    };
+    expect(
+      persistApplicationWithOutcome({
+        application: applied,
+        outcome: {
+          applicationId: "app-next",
+          createdAt: "2026-09-09T12:00:00.000Z",
+          updatedAt: "2026-09-15T03:04:24.620Z",
+          appliedAt: "2026-09-15T03:04:24.620Z",
+          snapshot: {
+            capturedAt: "2026-09-09T12:00:00.000Z",
+            overallFit: 70,
+            dimensions: {
+              overall: 70,
+              coreEngineering: 70,
+              stack: 70,
+              specialization: 70,
+              seniority: 70,
+              product: 70,
+            },
+            decision: "apply_normal",
+            priority: 60,
+            requirements: [],
+            supportingEvidenceIds: [],
+            primaryCaseIds: [],
+          },
+        },
+      }).ok,
+    ).toBe(true);
+
+    render(<JobDecisionV2Panel jobId={jobA.id} persistenceBootstrap={testBootstrapV1} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("application-next-action").textContent).toMatch(/follow-up/i);
+      expect(screen.getByTestId("application-age-copy").textContent).toMatch(/Registrada|Atualizada|Aplicada/);
+      expect(screen.getByTestId("application-age-copy").textContent?.toLowerCase()).not.toContain("respondeu");
+    });
+  });
+
+  it("renders current status without inventing a timeline when no events exist", async () => {
+    persistDashboardJobs([jobA]);
+    const reviewing: ApplyFlowApplicationV2Envelope = {
+      id: "app-hist",
+      createdAt: "2026-09-09T12:00:00.000Z",
+      updatedAt: "2026-09-09T12:00:00.000Z",
+      source: "paste",
+      status: "reviewing",
+      v2: { sourceJobId: jobA.id },
+    };
+    expect(
+      persistApplicationWithOutcome({
+        application: reviewing,
+        outcome: {
+          applicationId: "app-hist",
+          createdAt: "2026-09-09T12:00:00.000Z",
+          updatedAt: "2026-09-09T12:00:00.000Z",
+          snapshot: {
+            capturedAt: "2026-09-09T12:00:00.000Z",
+            overallFit: 70,
+            dimensions: {
+              overall: 70,
+              coreEngineering: 70,
+              stack: 70,
+              specialization: 70,
+              seniority: 70,
+              product: 70,
+            },
+            decision: "apply_normal",
+            priority: 60,
+            requirements: [],
+            supportingEvidenceIds: [],
+            primaryCaseIds: [],
+          },
+        },
+      }).ok,
+    ).toBe(true);
+
+    render(<JobDecisionV2Panel jobId={jobA.id} persistenceBootstrap={testBootstrapV1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Estado:/)).toBeTruthy();
+    });
+    expect(screen.queryByTestId("application-lifecycle-timeline")).toBeNull();
+  });
 });

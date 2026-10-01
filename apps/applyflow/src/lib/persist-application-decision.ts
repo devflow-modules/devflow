@@ -1,10 +1,9 @@
 import {
+  applyPipelineStatusToLinkedJob,
   backfillClosedLoopV1,
   emptyOutcome,
   formatInboundConfirmationNotes,
-  fromPipelineStatusV2,
   lifecycleEventId,
-  markApplyFlowJobApplied,
   markResponseDetectionConfirmed,
   markResponseDetectionDismissed,
   mergeInboundResponseDetections,
@@ -326,15 +325,9 @@ function syncLinkedJobStatus(
   if (!sourceJobId) return;
   const linked = jobs.find((job) => job.id === sourceJobId);
   if (!linked) return;
-  const nextStatus = fromPipelineStatusV2(toStatus);
-  if (linked.status === nextStatus) return;
-  persistDashboardJobs(
-    jobs.map((job) => {
-      if (job.id !== sourceJobId) return job;
-      if (toStatus === "applied") return markApplyFlowJobApplied(job);
-      return { ...job, status: nextStatus, updatedAt: new Date().toISOString() };
-    }),
-  );
+  const next = applyPipelineStatusToLinkedJob(linked, toStatus);
+  if (next.status === linked.status && next.updatedAt === linked.updatedAt) return;
+  persistDashboardJobs(jobs.map((job) => (job.id === sourceJobId ? next : job)));
 }
 
 function restorePrevious(
