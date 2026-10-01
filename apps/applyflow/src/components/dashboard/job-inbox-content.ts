@@ -102,7 +102,7 @@ export const APPLICATION_PACK_PREPARE_LABEL = "Preparar candidatura";
 export const APPLICATION_PACK_OPEN_LABEL = "Candidatura preparada";
 export const APPLICATION_PACK_TITLE = "Candidatura preparada";
 export const APPLICATION_PACK_HINT =
-  "Isto é um pacote de preparação local. Não envia a candidatura por ti.";
+  "Pacote de preparação local (checklist e currículo). Não cria candidatura e não envia nada ao empregador.";
 export const APPLICATION_PACK_RESUME_LABEL = "Currículo";
 export const APPLICATION_PACK_SELECT_LABEL = "Currículo para esta candidatura";
 export const APPLICATION_PACK_ROUTER_HINT = "Recomendado pelo Router";

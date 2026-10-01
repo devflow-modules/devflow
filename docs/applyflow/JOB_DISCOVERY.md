@@ -107,6 +107,23 @@ Saved jobs form a **derived** pre-application opportunity queue — not a Shortl
 
 Jobs already persisted as `ignored` (including older algorithm-mapped `skip → ignored`) are **not** auto-reclassified. They stay under **Ignoradas** until the user restores them.
 
+## Application Readiness
+
+On the job analysis page (`/dashboard/jobs/[id]`), ApplyFlow shows a **derived** preparation checklist — not a readiness score and not a new entity.
+
+- Derived from existing `ApplyFlowJob`, `jobMatch`, ResumeLibrary, optional V1 pack, and existing Application
+- No persistence of readiness itself; no DB migration
+- Reuses Match Engine evidence (`score`, `decision`, skills) without a second scorer
+- Shows curriculum recommendation vs user-selected pack resume when they differ
+- Opening analysis / preparing V1 pack / ephemeral V2 pack **do not** create an Application
+- **Registrar candidatura** creates a tracking record only (`application.status = reviewing`); job stays `reviewing`
+- Duplicate registration is prevented via `findApplicationForJob` / `resolveApplicationRegistration` (local + V2)
+- **Marcar como enviada** means the user submitted externally → Application and linked Job become `applied` (local and V2)
+- Applied jobs leave Fila ativa via Phase 6 membership (`status === reviewing`)
+- Remote OK attribution remains on the analysis surface; source link uses `job.url`
+- **Known limitation:** TheirStack `directApplyUrl` is not persisted after save — only the listing URL remains
+- Zero provider requests; CV is not sent to providers
+
 ## Source, id, and URL semantics
 
 | Provider   | `source`       | Deterministic id   |

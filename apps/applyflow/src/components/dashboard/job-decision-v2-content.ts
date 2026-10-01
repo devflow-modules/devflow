@@ -57,6 +57,44 @@ export const JOB_DECISION_V2_MARK_SENT_HINT =
   "Usa isto depois de enviares tu ao empregador. Actualiza o estágio desta candidatura. Não cria outro registo e não mexe na análise congelada.";
 export const JOB_DECISION_V2_MARKED_SENT = "Candidatura marcada como enviada neste browser.";
 
+export const JOB_READINESS_TITLE = "Preparação da candidatura";
+export const JOB_READINESS_OPEN_SOURCE = "Abrir anúncio";
+export const JOB_READINESS_MATCH_EVALUATED_WITH = "Match avaliado com";
+export const JOB_READINESS_RECOMMENDED_RESUME = "Currículo recomendado";
+export const JOB_READINESS_SELECTED_RESUME = "Currículo selecionado";
+export const JOB_READINESS_ITEM_LABELS = {
+  analyzed: "Vaga analisada",
+  curriculum: "Currículo",
+  gaps: "Lacunas de skills",
+  source: "Anúncio disponível",
+  application: "Candidatura registada",
+  submission: "Envio externo",
+} as const;
+export const JOB_READINESS_REASON_LABELS: Record<string, string> = {
+  match_present: "Análise local disponível",
+  stale_match: "A análise pode estar desatualizada",
+  no_resume: "Nenhum currículo na biblioteca",
+  resume_available: "Currículo disponível",
+  resume_selected: "Currículo selecionado no pacote",
+  selected_resume_missing: "Currículo selecionado já não está na biblioteca",
+  no_explicit_gaps: "Sem lacunas explícitas",
+  missing_skills: "Rever lacunas explícitas",
+  unknown_skills: "Há skills não informadas na vaga",
+  needs_info: "Informações insuficientes na análise",
+  source_url_available: "Link do anúncio disponível",
+  source_url_missing: "Sem link de anúncio guardado",
+  application_registered: "Registo de candidatura presente",
+  application_not_registered: "Candidatura ainda não registada",
+  not_submitted: "Envio externo ainda não confirmado",
+  tracking_only: "Registada — envio externo ainda não marcado",
+  externally_submitted: "Envio externo confirmado",
+};
+export const JOB_READINESS_STATE_LABELS = {
+  ready: "Pronto",
+  attention: "Atenção",
+  missing: "Pendente",
+} as const;
+
 export const JOB_DECISION_V2_GATE_RESULT_LABELS = {
   pass: "pass",
   fail: "fail",

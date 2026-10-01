@@ -19,23 +19,29 @@ import {
   persistApplicationWithOutcome,
   persistClosedLoopV1Backfill,
 } from "@/lib/persist-application-decision";
+import { loadDashboardImport } from "@/lib/local-import-storage";
+import { resolveV2CandidateContext } from "@/lib/v2-candidate-context";
 import { getInterviewLabImportHandoffUrl } from "@/lib/interview-lab-handoff";
 import { useClientHydrated } from "@/lib/use-client-hydrated";
 import {
   APPLYFLOW_PIPELINE_STATUS_V2_LABELS_PT,
   canRecordApplicationOutcome,
   canTransitionApplicationStatus,
-  createApplicationFromJob,
+  deriveApplicationReadiness,
   findApplicationForJob,
   formatLifecycleEventDate,
   fromPipelineStatusV2,
+  isOpenableJobUrl,
+  markApplyFlowJobApplied,
+  resolveApplicationRegistration,
   resolvePipelineStatus,
+  type ApplicationReadiness,
+  type ApplicationReadinessItem,
   type ApplyFlowApplicationV2Envelope,
   type ApplyFlowJob,
   type ApplyFlowPipelineStatusV2,
   type Contact,
   type ApplicationDecision,
-  isOpenableJobUrl,
 } from "@devflow/applyflow-core";
 
 import {
@@ -79,6 +85,14 @@ import {
   JOB_DECISION_V2_HISTORY,
   JOB_DECISION_V2_STATUS,
   JOB_DECISION_V2_HIRED,
+  JOB_READINESS_TITLE,
+  JOB_READINESS_OPEN_SOURCE,
+  JOB_READINESS_MATCH_EVALUATED_WITH,
+  JOB_READINESS_RECOMMENDED_RESUME,
+  JOB_READINESS_SELECTED_RESUME,
+  JOB_READINESS_ITEM_LABELS,
+  JOB_READINESS_REASON_LABELS,
+  JOB_READINESS_STATE_LABELS,
   analysesDivergeOnPage,
   registeredAnalysisFromSnapshot,
 } from "./job-decision-v2-content";
@@ -101,6 +115,77 @@ function matchTone(status: string): ApplyFlowBadgeTone {
   if (status === "partial") return "warning";
   if (status === "gap") return "danger";
   return "neutral";
+}
+
+function readinessStateTone(state: ApplicationReadinessItem["state"]): ApplyFlowBadgeTone {
+  if (state === "ready") return "success";
+  if (state === "attention") return "warning";
+  return "neutral";
+}
+
+function readinessItemLabel(item: ApplicationReadinessItem): string {
+  const base = JOB_READINESS_ITEM_LABELS[item.id];
+  const reason = JOB_READINESS_REASON_LABELS[item.reason] ?? item.reason;
+  if (item.detail && (item.id === "gaps" || item.id === "analyzed" || item.id === "curriculum")) {
+    return `${base}: ${reason}${item.detail ? ` (${item.detail})` : ""}`;
+  }
+  return `${base}: ${reason}`;
+}
+
+function ApplicationReadinessBlock({
+  readiness,
+  job,
+}: {
+  readiness: ApplicationReadiness;
+  job: ApplyFlowJob;
+}) {
+  return (
+    <ApplyFlowCard padding="md" data-testid="application-readiness">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+        {JOB_READINESS_TITLE}
+      </p>
+      <ul className="mt-3 grid gap-2" aria-label={JOB_READINESS_TITLE}>
+        {readiness.items.map((item) => (
+          <li key={item.id} className="flex flex-wrap items-center gap-2 text-sm text-[color:var(--af-text)]">
+            <ApplyFlowBadge tone={readinessStateTone(item.state)}>
+              {JOB_READINESS_STATE_LABELS[item.state]}
+            </ApplyFlowBadge>
+            <span>{readinessItemLabel(item)}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3 grid gap-1 text-xs text-[color:var(--af-text-muted)]">
+        {readiness.evaluatedWithVariantName ? (
+          <p>
+            {JOB_READINESS_MATCH_EVALUATED_WITH}: {readiness.evaluatedWithVariantName}
+          </p>
+        ) : null}
+        {readiness.recommendedResumeVariantName ? (
+          <p>
+            {JOB_READINESS_RECOMMENDED_RESUME}: {readiness.recommendedResumeVariantName}
+          </p>
+        ) : null}
+        {readiness.selectedResumeVariantName ? (
+          <p>
+            {JOB_READINESS_SELECTED_RESUME}: {readiness.selectedResumeVariantName}
+          </p>
+        ) : null}
+      </div>
+      {readiness.hasSourceUrl && job.url ? (
+        <p className="mt-3">
+          <a
+            href={job.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-emerald-300 underline-offset-2 hover:underline hover:text-emerald-200"
+            data-testid="application-readiness-open-source"
+          >
+            {JOB_READINESS_OPEN_SOURCE}
+          </a>
+        </p>
+      ) : null}
+    </ApplyFlowCard>
+  );
 }
 
 export function JobDecisionV2Panel({
@@ -207,6 +292,16 @@ export function JobDecisionV2Panel({
     ].filter((row): row is [string, number] => typeof row[1] === "number");
   }, [decision]);
 
+  const readiness = useMemo(() => {
+    if (!job) return null;
+    const ctx = resolveV2CandidateContext();
+    return deriveApplicationReadiness({
+      job,
+      resumeLibrary: ctx.ok ? ctx.library : null,
+      application,
+    });
+  }, [job, application]);
+
   const registeredAnalysis = useMemo(
     () => registeredAnalysisFromSnapshot(registeredSnapshot),
     [registeredSnapshot],
@@ -225,31 +320,58 @@ export function JobDecisionV2Panel({
       setPersistError(dashboardPersistenceFailureMessage("read_only"));
       return;
     }
-    const created = createApplicationFromJob({
-      job,
-      decision,
-      pack: pack && pack.status === "ready" ? pack : undefined,
-    });
-    if (usesCloudPersistence) {
-      const persistence = persistenceRef.current;
-      if (!persistence) return;
-      void persistence.createApplication(created.application).then((result) => {
+    if (application) return;
+
+    void (async () => {
+      const packForCreate = pack && pack.status === "ready" ? pack : undefined;
+      if (usesCloudPersistence) {
+        const persistence = persistenceRef.current;
+        if (!persistence) return;
+        const apps = await persistence.listApplications();
+        const resolved = resolveApplicationRegistration({
+          applications: apps,
+          job,
+          decision,
+          pack: packForCreate,
+        });
+        if (resolved.kind === "existing") {
+          setPersistError(null);
+          setRemoteRecords({ job, application: resolved.application });
+          return;
+        }
+        const result = await persistence.createApplication(resolved.application);
         if (!result.ok) {
           setPersistError(dashboardPersistenceFailureMessage(result.code));
           return;
         }
         setPersistError(null);
         setRemoteRecords({ job, application: result.data });
+        return;
+      }
+
+      const localApps = (loadDashboardImport()?.applications ?? []) as ApplyFlowApplicationV2Envelope[];
+      const resolved = resolveApplicationRegistration({
+        applications: localApps,
+        job,
+        decision,
+        pack: packForCreate,
       });
-      return;
-    }
-    const persisted = persistApplicationWithOutcome(created);
-    if (!persisted.ok) {
-      setPersistError(persisted.error);
-      return;
-    }
-    setPersistError(null);
-    refreshAfterPersist();
+      if (resolved.kind === "existing") {
+        setPersistError(null);
+        refreshAfterPersist();
+        return;
+      }
+      const persisted = persistApplicationWithOutcome({
+        application: resolved.application,
+        outcome: resolved.outcome,
+      });
+      if (!persisted.ok) {
+        setPersistError(persisted.error);
+        return;
+      }
+      setPersistError(null);
+      refreshAfterPersist();
+    })();
   }
 
   function refreshAfterPersist() {
@@ -265,13 +387,23 @@ export function JobDecisionV2Panel({
     if (usesCloudPersistence) {
       const persistence = persistenceRef.current;
       if (!persistence) return;
-      void persistence.updateApplication({ ...application, status: "applied" }).then((result) => {
+      void persistence.updateApplication({ ...application, status: "applied" }).then(async (result) => {
         if (!result.ok) {
           setPersistError(dashboardPersistenceFailureMessage(result.code));
           return;
         }
+        let nextJob = job ?? null;
+        if (job && job.status !== "applied") {
+          const jobResult = await persistence.updateJob(markApplyFlowJobApplied(job));
+          if (!jobResult.ok) {
+            setPersistError(dashboardPersistenceFailureMessage(jobResult.code));
+            setRemoteRecords({ job, application: result.data });
+            return;
+          }
+          nextJob = jobResult.data;
+        }
         setPersistError(null);
-        setRemoteRecords({ job: job ?? null, application: result.data });
+        setRemoteRecords({ job: nextJob, application: result.data });
       });
       return;
     }
@@ -466,6 +598,8 @@ export function JobDecisionV2Panel({
               </ApplyFlowButton>
             ))}
           </div>
+
+          {readiness ? <ApplicationReadinessBlock readiness={readiness} job={job} /> : null}
 
           <ApplyFlowCard padding="md">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">

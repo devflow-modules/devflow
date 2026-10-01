@@ -90,6 +90,30 @@ export function createApplicationFromJob(input: {
   return { application, outcome };
 }
 
+/**
+ * Idempotent registration: return the existing Application for this job when present.
+ * Prefer sourceJobId, then jobUrl (see findApplicationForJob).
+ */
+export function resolveApplicationRegistration(input: {
+  applications: readonly ApplyFlowApplicationV2Envelope[];
+  job: ApplyFlowJob;
+  decision: JobDecisionV2;
+  pack?: ApplicationPackV2;
+  now?: Date;
+}):
+  | { kind: "existing"; application: ApplyFlowApplicationV2Envelope }
+  | { kind: "created"; application: ApplyFlowApplicationV2Envelope; outcome: ApplicationOutcome } {
+  const existing = findApplicationForJob(input.applications, input.job);
+  if (existing) return { kind: "existing", application: existing };
+  const created = createApplicationFromJob({
+    job: input.job,
+    decision: input.decision,
+    pack: input.pack,
+    now: input.now,
+  });
+  return { kind: "created", application: created.application, outcome: created.outcome };
+}
+
 const ALREADY_SUBMITTED: readonly ApplyFlowApplicationStatus[] = [
   "applied",
   "waiting_response",

@@ -444,7 +444,17 @@ export {
   canRecordApplicationOutcome,
   outcomeBelongsToApplication,
   applicationSourceFromJob,
+  resolveApplicationRegistration,
 } from "./application-identity.js";
+export {
+  deriveApplicationReadiness,
+} from "./application-readiness.js";
+export type {
+  ApplicationReadiness,
+  ApplicationReadinessItem,
+  ApplicationReadinessItemId,
+  ApplicationReadinessItemState,
+} from "./application-readiness.js";
 export {
   APPLICATION_LIFECYCLE_TRANSITIONS,
   analysisAtApplyFromOutcome,
