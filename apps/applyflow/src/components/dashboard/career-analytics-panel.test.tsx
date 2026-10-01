@@ -23,6 +23,7 @@ describe("CareerAnalyticsPanel", () => {
     render(<CareerAnalyticsPanel persistenceBootstrap={testBootstrapV1} />);
     expect(screen.getByText(CAREER_ANALYTICS_TITLE)).toBeTruthy();
     expect(screen.getByText(CAREER_ANALYTICS_EMPTY)).toBeTruthy();
+    expect(screen.getByTestId("analytics-empty-cta")).toBeTruthy();
     expect(screen.queryByText("A carregar…")).toBeNull();
   });
 });

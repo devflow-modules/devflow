@@ -1,9 +1,9 @@
 import type { ApplicationDecisionSnapshot } from "@devflow/applyflow-core";
 
-export const JOB_DECISION_V2_EYEBROW = "AF-COS-P1";
-export const JOB_DECISION_V2_TITLE = "Análise da vaga";
+export const JOB_DECISION_V2_EYEBROW = "Oportunidade";
+export const JOB_DECISION_V2_TITLE = "Espaço da oportunidade";
 export const JOB_DECISION_V2_HINT =
-  "Análise local da vaga. Não envia a candidatura e não chama rede.";
+  "Análise local. Guardar ou registar não envia a candidatura ao empregador.";
 export const JOB_DECISION_V2_CURRENT_ANALYSIS = "Análise atual";
 export const JOB_DECISION_V2_AT_APPLY_ANALYSIS = "Análise no envio";
 export const JOB_DECISION_V2_CURRENT_HINT =
@@ -12,15 +12,27 @@ export const JOB_DECISION_V2_REGISTERED_PRESERVED =
   "A análise registrada na candidatura foi preservada.";
 export const JOB_DECISION_V2_HISTORY = "Histórico da candidatura";
 export const JOB_DECISION_V2_STATUS = "Estado";
-export const JOB_DECISION_V2_HIRED = "Hired";
-export const JOB_DECISION_V2_BACK = "Voltar ao dashboard";
+export const JOB_DECISION_V2_HIRED = "Contratado";
+export const JOB_DECISION_V2_BACK = "Voltar às oportunidades";
+export const JOB_DECISION_V2_BACK_HREF = "/dashboard/opportunities";
+export const JOB_DECISION_V2_OTHER_TRANSITIONS = "Outras atualizações de status";
+export const JOB_DECISION_V2_MATCH_LABEL = "Match";
+export const JOB_DECISION_V2_APPLICATION_LABEL = "Candidatura";
+export const JOB_DECISION_V2_NOT_REGISTERED = "Ainda não registada";
+export const JOB_DECISION_V2_READINESS_SUMMARY = "Preparação";
+export const JOB_DECISION_V2_READINESS_DETAILS = "Ver checklist completo";
+export const JOB_DECISION_V2_READINESS_DETAILS_HIDE = "Ocultar checklist";
+export const JOB_DECISION_V2_DIMENSIONS_DETAILS = "Ver dimensões do Match";
+export const JOB_DECISION_V2_DIMENSIONS_HIDE = "Ocultar dimensões";
+export const JOB_DECISION_V2_OUTCOME_NOTE =
+  "O motivo de rejeição só muda quando você regista um motivo explícito.";
 export const JOB_DECISION_V2_MISSING = "Esta vaga não está no armazenamento local deste browser.";
 export const JOB_DECISION_V2_NO_TEXT =
-  "Sem texto da vaga não há requisitos V2. Cola o anúncio na inbox e avalia de novo.";
+  "Sem texto da vaga não há requisitos. Cola o anúncio em Descobrir e avalia de novo.";
 export const JOB_DECISION_V2_LINK = "Analisar vaga";
 export const JOB_DECISION_V2_INPUTS = "Perguntas pendentes";
 export const JOB_DECISION_V2_INPUTS_HINT =
-  "Orientação apenas — esta tela não grava respostas. Atualiza o currículo no dashboard se quiseres fechar um UNKNOWN.";
+  "Orientação apenas — esta tela não grava respostas. Atualiza o currículo se quiseres fechar um UNKNOWN.";
 export const JOB_DECISION_V2_NEED_RESUME =
   "A análise precisa de um currículo válido. Cadastra ou define um currículo padrão antes de continuar.";
 export const JOB_DECISION_V2_LAB_HANDOFF =
@@ -32,13 +44,17 @@ export const JOB_DECISION_V2_CLAIMS = "Claims recomendadas";
 export const JOB_DECISION_V2_CLAIMS_EMPTY =
   "Nenhuma claim recomendada com as evidências gravadas. Requisitos em falta ficam unknown — esta tela não inventa experiência."
 export const JOB_DECISION_V2_TABS = {
-  overview: "Overview",
-  requirements: "Requirements",
-  evidence: "Evidence",
-  application: "Application",
+  overview: "Visão geral",
+  requirements: "Preparação",
+  evidence: "Evidências",
+  application: "Pack",
   networking: "Networking",
-  interview: "Interview",
+  interview: "Entrevista",
 } as const;
+/** Primary task tabs; evidence + interview stay under “Mais”. */
+export const JOB_DECISION_V2_PRIMARY_TABS = ["overview", "requirements", "application", "networking"] as const;
+export const JOB_DECISION_V2_MORE_TABS = ["evidence", "interview"] as const;
+export const JOB_DECISION_V2_MORE_LABEL = "Mais detalhes";
 export const JOB_DECISION_V2_PACK_BLOCKED = "Pack bloqueado — SKIP não gera candidatura recomendada.";
 export const JOB_DECISION_V2_INCOMPLETE = "Complete seu perfil para concluir a análise";
 export const JOB_DECISION_V2_PACK_INCOMPLETE =

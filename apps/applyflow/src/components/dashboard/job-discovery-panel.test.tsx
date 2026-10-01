@@ -16,6 +16,7 @@ import {
   JOB_DISCOVERY_DESCRIPTION_EMPTY,
   JOB_DISCOVERY_DESCRIPTION_LABEL,
   JOB_DISCOVERY_DIRECT_APPLY,
+  JOB_DISCOVERY_EXPERIENCE,
   JOB_DISCOVERY_KEYWORD,
   JOB_DISCOVERY_MISSING_DESCRIPTION,
   JOB_DISCOVERY_PREVIEW_ANALYZE,
@@ -72,7 +73,16 @@ describe("Job discovery UI", () => {
     );
     expect(html.indexOf(JOB_DISCOVERY_TITLE)).toBeGreaterThan(-1);
     expect(html.indexOf(JOB_DISCOVERY_TITLE)).toBeLessThan(html.indexOf(JOB_INBOX_SUBMIT_LABEL));
+    expect(html).toContain("discovery-paste-toggle");
     expect(html).not.toContain("Direct Apply");
+  });
+
+  it("keeps advanced filters collapsed until toggled", () => {
+    render(<JobDiscoveryPanel matchAvailable onSearch={async () => ({ ok: false, error: "provider_unavailable" })} />);
+    expect(screen.getByTestId("discovery-search")).toBeTruthy();
+    expect(screen.queryByLabelText(JOB_DISCOVERY_EXPERIENCE)).toBeNull();
+    fireEvent.click(screen.getByTestId("discovery-advanced-toggle"));
+    expect(screen.getByLabelText(JOB_DISCOVERY_EXPERIENCE)).toBeTruthy();
   });
 
   it("offers description completion when the provider omits description", () => {
@@ -284,7 +294,8 @@ describe("Job discovery UI", () => {
     expect(html).not.toContain(JOB_DISCOVERY_DIRECT_APPLY);
     expect(html).not.toContain("nofollow");
     expect(html).toContain('rel="noopener noreferrer"');
-    expect(html).toContain("react · node · typescript · aws · docker · k8s");
+    // Secondary tech tags stay off the primary card to reduce mobile density.
+    expect(html).not.toContain("react · node · typescript");
     expect(html).not.toContain("extra");
   });
 

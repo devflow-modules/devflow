@@ -147,6 +147,7 @@ test.describe("ApplyFlow V2 cloud critical funnel + tenant isolation", () => {
     await expect(page.getByTestId("mark-application-sent")).toBeVisible({ timeout: 30_000 });
 
     await page.getByTestId("mark-application-sent").click();
+    await page.getByTestId("lifecycle-other-toggle").click();
     await expect(page.getByTestId("lifecycle-screening")).toBeEnabled({ timeout: 15_000 });
 
     await page.getByTestId("lifecycle-screening").click();

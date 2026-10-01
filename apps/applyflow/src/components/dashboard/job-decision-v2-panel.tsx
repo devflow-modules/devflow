@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { ApplyFlowBadge } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
@@ -62,9 +62,11 @@ import {
 } from "@/components/dashboard/job-inbox-content";
 import {
   JOB_DECISION_V2_BACK,
+  JOB_DECISION_V2_BACK_HREF,
   JOB_DECISION_V2_CLAIMS,
   JOB_DECISION_V2_CLAIMS_EMPTY,
   JOB_DECISION_V2_DIMENSIONS,
+  JOB_DECISION_V2_DIMENSIONS_DETAILS,
   JOB_DECISION_V2_EYEBROW,
   JOB_DECISION_V2_GATES,
   JOB_DECISION_V2_GATE_RESULT_LABELS,
@@ -72,25 +74,33 @@ import {
   JOB_DECISION_V2_INPUTS,
   JOB_DECISION_V2_LABELS,
   JOB_DECISION_V2_MISSING,
+  JOB_DECISION_V2_MORE_LABEL,
+  JOB_DECISION_V2_MORE_TABS,
   JOB_DECISION_V2_NO_TEXT,
   JOB_DECISION_V2_NEED_APPLICATION,
   JOB_DECISION_V2_NEED_RESUME,
   JOB_DECISION_V2_OPEN_LAB,
   JOB_DECISION_V2_INPUTS_HINT,
   JOB_DECISION_V2_LAB_HANDOFF,
+  JOB_DECISION_V2_OUTCOME_NOTE,
   JOB_DECISION_V2_PACK_BLOCKED,
   JOB_DECISION_V2_PACK_INCOMPLETE,
   JOB_DECISION_V2_INCOMPLETE,
+  JOB_DECISION_V2_PRIMARY_TABS,
   JOB_DECISION_V2_REQUIREMENTS,
   JOB_DECISION_V2_TABS,
   JOB_DECISION_V2_TITLE,
   JOB_DECISION_V2_CREATE_APPLICATION,
   JOB_DECISION_V2_CREATE_HINT,
   JOB_DECISION_V2_APPLICATION_READY,
+  JOB_DECISION_V2_APPLICATION_LABEL,
   JOB_DECISION_V2_MARK_SENT,
   JOB_DECISION_V2_MARK_SENT_HINT,
   JOB_DECISION_V2_MARKED_SENT,
+  JOB_DECISION_V2_MATCH_LABEL,
   JOB_DECISION_V2_NEXT_STEP,
+  JOB_DECISION_V2_NOT_REGISTERED,
+  JOB_DECISION_V2_OTHER_TRANSITIONS,
   JOB_DECISION_V2_AGE,
   JOB_DECISION_V2_HISTORY_UNAVAILABLE,
   JOB_DECISION_V2_CURRENT_ANALYSIS,
@@ -100,6 +110,9 @@ import {
   JOB_DECISION_V2_HISTORY,
   JOB_DECISION_V2_STATUS,
   JOB_DECISION_V2_HIRED,
+  JOB_DECISION_V2_READINESS_SUMMARY,
+  JOB_DECISION_V2_READINESS_DETAILS,
+  JOB_DECISION_V2_READINESS_DETAILS_HIDE,
   JOB_READINESS_TITLE,
   JOB_READINESS_OPEN_SOURCE,
   JOB_READINESS_MATCH_EVALUATED_WITH,
@@ -133,50 +146,89 @@ function ApplicationReadinessBlock({
   readiness: ApplicationReadiness;
   job: ApplyFlowJob;
 }) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const detailsId = useId();
+  const pending = readiness.items.filter((item) => item.state !== "ready").length;
+  const overallState: ApplicationReadinessItem["state"] = readiness.items.some((item) => item.state === "missing")
+    ? "missing"
+    : readiness.items.some((item) => item.state === "attention")
+      ? "attention"
+      : "ready";
+  const summaryTone = readinessTone(overallState);
+  const summaryText =
+    pending === 0
+      ? "Pronto para avançar"
+      : pending === 1
+        ? "1 ponto a rever"
+        : `${pending} pontos a rever`;
+
   return (
     <ApplyFlowCard padding="md" data-testid="application-readiness">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
-        {JOB_READINESS_TITLE}
-      </p>
-      <ul className="mt-3 grid gap-2" aria-label={JOB_READINESS_TITLE}>
-        {readiness.items.map((item) => (
-          <li key={item.id} className="flex flex-wrap items-center gap-2 text-sm text-[color:var(--af-text)]">
-            <ApplyFlowBadge tone={readinessTone(item.state)}>
-              {JOB_READINESS_STATE_LABELS[item.state]}
-            </ApplyFlowBadge>
-            <span>{readinessItemLabel(item)}</span>
-          </li>
-        ))}
-      </ul>
-      <div className="mt-3 grid gap-1 text-xs text-[color:var(--af-text-muted)]">
-        {readiness.evaluatedWithVariantName ? (
-          <p>
-            {JOB_READINESS_MATCH_EVALUATED_WITH}: {readiness.evaluatedWithVariantName}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+            {JOB_DECISION_V2_READINESS_SUMMARY}
           </p>
-        ) : null}
-        {readiness.recommendedResumeVariantName ? (
-          <p>
-            {JOB_READINESS_RECOMMENDED_RESUME}: {readiness.recommendedResumeVariantName}
-          </p>
-        ) : null}
-        {readiness.selectedResumeVariantName ? (
-          <p>
-            {JOB_READINESS_SELECTED_RESUME}: {readiness.selectedResumeVariantName}
-          </p>
-        ) : null}
+          <p className="mt-1 text-sm font-medium text-[color:var(--af-text)]">{summaryText}</p>
+        </div>
+        <ApplyFlowBadge tone={summaryTone}>{JOB_READINESS_STATE_LABELS[overallState]}</ApplyFlowBadge>
       </div>
-      {readiness.hasSourceUrl && job.url ? (
-        <p className="mt-3">
-          <a
-            href={job.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-emerald-300 underline-offset-2 hover:underline hover:text-emerald-200"
-            data-testid="application-readiness-open-source"
-          >
-            {JOB_READINESS_OPEN_SOURCE}
-          </a>
-        </p>
+      <ApplyFlowButton
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="mt-3 px-0 text-xs font-medium text-emerald-300 underline-offset-2 hover:underline"
+        aria-expanded={detailsOpen}
+        aria-controls={detailsId}
+        data-testid="application-readiness-toggle"
+        onClick={() => setDetailsOpen((value) => !value)}
+      >
+        {detailsOpen ? JOB_DECISION_V2_READINESS_DETAILS_HIDE : JOB_DECISION_V2_READINESS_DETAILS}
+      </ApplyFlowButton>
+      {detailsOpen ? (
+        <div id={detailsId} className="mt-3">
+          <p className="sr-only">{JOB_READINESS_TITLE}</p>
+          <ul className="grid gap-2" aria-label={JOB_READINESS_TITLE}>
+            {readiness.items.map((item) => (
+              <li key={item.id} className="flex flex-wrap items-center gap-2 text-sm text-[color:var(--af-text)]">
+                <ApplyFlowBadge tone={readinessTone(item.state)}>
+                  {JOB_READINESS_STATE_LABELS[item.state]}
+                </ApplyFlowBadge>
+                <span>{readinessItemLabel(item)}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-3 grid gap-1 text-xs text-[color:var(--af-text-muted)]">
+            {readiness.evaluatedWithVariantName ? (
+              <p>
+                {JOB_READINESS_MATCH_EVALUATED_WITH}: {readiness.evaluatedWithVariantName}
+              </p>
+            ) : null}
+            {readiness.recommendedResumeVariantName ? (
+              <p>
+                {JOB_READINESS_RECOMMENDED_RESUME}: {readiness.recommendedResumeVariantName}
+              </p>
+            ) : null}
+            {readiness.selectedResumeVariantName ? (
+              <p>
+                {JOB_READINESS_SELECTED_RESUME}: {readiness.selectedResumeVariantName}
+              </p>
+            ) : null}
+          </div>
+          {readiness.hasSourceUrl && job.url ? (
+            <p className="mt-3">
+              <a
+                href={job.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-emerald-300 underline-offset-2 hover:underline hover:text-emerald-200"
+                data-testid="application-readiness-open-source"
+              >
+                {JOB_READINESS_OPEN_SOURCE}
+              </a>
+            </p>
+          ) : null}
+        </div>
       ) : null}
     </ApplyFlowCard>
   );
@@ -213,14 +265,27 @@ function ApplicationOutcomeCard({
   createApplicationRecord: () => void;
   decision: JobDecisionV2 | null;
 }) {
+  const [otherOpen, setOtherOpen] = useState(false);
+  const otherId = useId();
+  const secondaryTransitions = (
+    [
+      ["recruiter_contacted", "Resposta"],
+      ["screening", "Triagem"],
+      ["technical", "Técnica"],
+      ["final", "Final"],
+      ["offer", "Oferta"],
+      ["hired", JOB_DECISION_V2_HIRED],
+      ["rejected", "Rejeição"],
+      ["withdrawn", "Desistência"],
+    ] as const
+  ).filter(([status]) => Boolean(application && currentPipeline && canTransitionApplicationStatus(currentPipeline, status)));
+
   return (
     <ApplyFlowCard padding="md" data-testid="application-outcome-card">
       <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-400/85">
-        Candidatura
+        {JOB_DECISION_V2_APPLICATION_LABEL}
       </p>
-      <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">
-        Não infere rejection reason a partir de GAP. Sem motivo explícito, a categoria fica unknown.
-      </p>
+      <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">{JOB_DECISION_V2_OUTCOME_NOTE}</p>
       {persistError ? <p className="mt-2 text-xs text-red-200" role="alert">{persistError}</p> : null}
       {application ? (
         <div className="mt-4 grid gap-4">
@@ -303,42 +368,39 @@ function ApplicationOutcomeCard({
         </div>
       ) : null}
 
-      {application ? (
+      {application && secondaryTransitions.length > 0 ? (
         <div className="mt-5 border-t border-[color:var(--af-border)] pt-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
-            Transições disponíveis
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {(
-              [
-                ["recruiter_contacted", "Response"],
-                ["screening", "Screening"],
-                ["technical", "Technical"],
-                ["final", "Final"],
-                ["offer", "Offer"],
-                ["hired", JOB_DECISION_V2_HIRED],
-                ["rejected", "Rejection"],
-                ["withdrawn", "Withdrawal"],
-              ] as const
-            ).map(([status, label]) => {
-              const enabled =
-                Boolean(application && currentPipeline && canTransitionApplicationStatus(currentPipeline, status));
-              const danger = status === "rejected" || status === "withdrawn";
-              return (
-                <ApplyFlowButton
-                  key={status}
-                  type="button"
-                  variant={danger ? "dangerGhost" : "secondary"}
-                  size="sm"
-                  onClick={() => recordStatus(status)}
-                  disabled={!enabled}
-                  data-testid={`lifecycle-${status}`}
-                >
-                  {label}
-                </ApplyFlowButton>
-              );
-            })}
-          </div>
+          <ApplyFlowButton
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="px-0 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)] underline-offset-2 hover:underline"
+            aria-expanded={otherOpen}
+            aria-controls={otherId}
+            data-testid="lifecycle-other-toggle"
+            onClick={() => setOtherOpen((value) => !value)}
+          >
+            {JOB_DECISION_V2_OTHER_TRANSITIONS}
+          </ApplyFlowButton>
+          {otherOpen ? (
+            <div id={otherId} className="mt-2 flex flex-wrap gap-2">
+              {secondaryTransitions.map(([status, label]) => {
+                const danger = status === "rejected" || status === "withdrawn";
+                return (
+                  <ApplyFlowButton
+                    key={status}
+                    type="button"
+                    variant={danger ? "dangerGhost" : "secondary"}
+                    size="sm"
+                    onClick={() => recordStatus(status)}
+                    data-testid={`lifecycle-${status}`}
+                  >
+                    {label}
+                  </ApplyFlowButton>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -740,19 +802,29 @@ export function JobDecisionV2Panel({
     return (
       <ApplyFlowCard variant="muted" padding="md">
         <p className="text-sm text-[color:var(--af-text)]">{JOB_DECISION_V2_MISSING}</p>
-        <Link href="/dashboard" className="mt-3 inline-block text-sm text-emerald-300 hover:text-emerald-200">
+        <Link href={JOB_DECISION_V2_BACK_HREF} className="mt-3 inline-block text-sm text-emerald-300 hover:text-emerald-200">
           {JOB_DECISION_V2_BACK}
         </Link>
       </ApplyFlowCard>
     );
   }
 
+  const applicationStatusLabel = application
+    ? currentPipeline
+      ? APPLYFLOW_PIPELINE_STATUS_V2_LABELS_PT[currentPipeline]
+      : APPLYFLOW_APPLICATION_STATUS_LABELS_PT[application.status]
+    : JOB_DECISION_V2_NOT_REGISTERED;
+  const locationLine = [job.location, job.jobContext.workModel, job.source].filter(Boolean).join(" · ");
+
   return (
     <ApplyFlowSection eyebrow={JOB_DECISION_V2_EYEBROW} title={JOB_DECISION_V2_TITLE} description={JOB_DECISION_V2_HINT}>
-      <p className="text-sm font-medium text-[color:var(--af-text)]">
-        {job.title}
-        {job.company ? ` · ${job.company}` : ""}
-      </p>
+      <div className="grid gap-1" data-testid="job-workspace-header">
+        <p className="text-lg font-semibold tracking-tight text-[color:var(--af-text)]">
+          {job.title}
+        </p>
+        {job.company ? <p className="text-sm text-[color:var(--af-text)]">{job.company}</p> : null}
+        {locationLine ? <p className="text-xs text-[color:var(--af-text-muted)]">{locationLine}</p> : null}
+      </div>
       {job.source === "remoteok" && isOpenableJobUrl(job.url) ? (
         <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">
           <a
@@ -771,11 +843,8 @@ export function JobDecisionV2Panel({
         </p>
       ) : null}
       <div className="mt-2 flex flex-wrap gap-3 text-xs">
-        <Link href="/dashboard" className="text-emerald-300 hover:text-emerald-200">
+        <Link href={JOB_DECISION_V2_BACK_HREF} className="text-emerald-300 hover:text-emerald-200">
           {JOB_DECISION_V2_BACK}
-        </Link>
-        <Link href="/dashboard/analytics" className="text-emerald-300 hover:text-emerald-200">
-          Analytics
         </Link>
       </div>
 
@@ -815,26 +884,34 @@ export function JobDecisionV2Panel({
 
       {decision ? (
         <div className="mt-5 grid gap-4">
-          <div className="flex flex-wrap gap-2" role="tablist" aria-label="Career OS V2">
-            {(Object.keys(JOB_DECISION_V2_TABS) as JobV2Tab[]).map((key) => (
-              <ApplyFlowButton
-                key={key}
-                type="button"
-                role="tab"
-                variant={tab === key ? "outlineBrand" : "ghost"}
-                size="sm"
-                aria-selected={tab === key}
-                onClick={() => setTab(key)}
-                className={`rounded-full px-3 py-1 text-xs font-medium ${
-                  tab === key
-                    ? "border-emerald-400/60 bg-emerald-400/10 text-emerald-100"
-                    : "border-[color:var(--af-border)] text-[color:var(--af-text-muted)]"
-                }`}
-              >
-                {JOB_DECISION_V2_TABS[key]}
-              </ApplyFlowButton>
-            ))}
-          </div>
+          <ApplyFlowCard padding="md" data-testid="job-workspace-status-strip">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div data-testid="job-workspace-match">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+                  {JOB_DECISION_V2_MATCH_LABEL}
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <ApplyFlowBadge tone={applicationDecisionTone(decision.decision)}>
+                    {JOB_DECISION_V2_LABELS[decision.decision]}
+                  </ApplyFlowBadge>
+                  <span className="tabular-nums text-sm font-medium text-[color:var(--af-text)]">
+                    {decision.overall}/100
+                  </span>
+                </div>
+              </div>
+              <div data-testid="job-workspace-application-status">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+                  {JOB_DECISION_V2_APPLICATION_LABEL}
+                </p>
+                <p className="mt-2 text-sm font-semibold text-[color:var(--af-text)]">{applicationStatusLabel}</p>
+                {nextActionGuidance && nextActionGuidance.kind !== "none" ? (
+                  <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">
+                    {JOB_DECISION_V2_NEXT_STEP}: {nextActionGuidance.label}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          </ApplyFlowCard>
 
           {readiness ? <ApplicationReadinessBlock readiness={readiness} job={job} /> : null}
 
@@ -854,6 +931,52 @@ export function JobDecisionV2Panel({
             createApplicationRecord={createApplicationRecord}
             decision={decision}
           />
+
+          <div className="flex flex-wrap gap-2" role="tablist" aria-label="Espaço da oportunidade">
+            {JOB_DECISION_V2_PRIMARY_TABS.map((key) => (
+              <ApplyFlowButton
+                key={key}
+                type="button"
+                role="tab"
+                variant={tab === key ? "outlineBrand" : "ghost"}
+                size="sm"
+                aria-selected={tab === key}
+                onClick={() => setTab(key)}
+                className={`rounded-full px-3 py-1 text-xs font-medium ${
+                  tab === key
+                    ? "border-emerald-400/60 bg-emerald-400/10 text-emerald-100"
+                    : "border-[color:var(--af-border)] text-[color:var(--af-text-muted)]"
+                }`}
+              >
+                {JOB_DECISION_V2_TABS[key]}
+              </ApplyFlowButton>
+            ))}
+            <details className="relative">
+              <summary className="cursor-pointer list-none rounded-full border border-[color:var(--af-border)] px-3 py-1 text-xs font-medium text-[color:var(--af-text-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--af-brand)]">
+                {JOB_DECISION_V2_MORE_LABEL}
+              </summary>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {JOB_DECISION_V2_MORE_TABS.map((key) => (
+                  <ApplyFlowButton
+                    key={key}
+                    type="button"
+                    role="tab"
+                    variant={tab === key ? "outlineBrand" : "ghost"}
+                    size="sm"
+                    aria-selected={tab === key}
+                    onClick={() => setTab(key)}
+                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                      tab === key
+                        ? "border-emerald-400/60 bg-emerald-400/10 text-emerald-100"
+                        : "border-[color:var(--af-border)] text-[color:var(--af-text-muted)]"
+                    }`}
+                  >
+                    {JOB_DECISION_V2_TABS[key]}
+                  </ApplyFlowButton>
+                ))}
+              </div>
+            </details>
+          </div>
 
           {tab === "overview" ? (
             <ApplyFlowCard padding="md">
@@ -878,17 +1001,22 @@ export function JobDecisionV2Panel({
                   <li key={reason}>{reason}</li>
                 ))}
               </ul>
-              <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
-                {JOB_DECISION_V2_DIMENSIONS}
-              </p>
-              <ul className="mt-2 grid gap-1 text-sm text-[color:var(--af-text)]">
-                {dimensions.map(([label, value]) => (
-                  <li key={label} className="flex justify-between gap-4">
-                    <span>{label}</span>
-                    <span className="tabular-nums text-[color:var(--af-text-muted)]">{value}</span>
-                  </li>
-                ))}
-              </ul>
+              <details className="mt-3">
+                <summary className="cursor-pointer text-xs font-medium text-emerald-300 underline-offset-2 hover:underline">
+                  {JOB_DECISION_V2_DIMENSIONS_DETAILS}
+                </summary>
+                <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+                  {JOB_DECISION_V2_DIMENSIONS}
+                </p>
+                <ul className="mt-2 grid gap-1 text-sm text-[color:var(--af-text)]">
+                  {dimensions.map(([label, value]) => (
+                    <li key={label} className="flex justify-between gap-4">
+                      <span>{label}</span>
+                      <span className="tabular-nums text-[color:var(--af-text-muted)]">{value}</span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
               {showDivergentAnalyses && registeredAnalysis ? (
                 <div className="mt-4 border-t border-[color:var(--af-border)] pt-3">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">

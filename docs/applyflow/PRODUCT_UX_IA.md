@@ -61,6 +61,26 @@ Documentação → footer.
 
 ---
 
+## Job workspace UX contract (Phase 11B)
+
+Above the fold on `/dashboard/jobs/[id]`:
+
+1. Company / role / location·work model·source  
+2. Match (algorithm) vs Candidatura (human lifecycle) — visually separate  
+3. Readiness summary (guidance, expandable checklist)  
+4. Current status → next step → **one** primary lifecycle CTA  
+5. Secondary transitions under “Outras atualizações de status”
+
+Tabs: Visão geral · Preparação · Pack · Networking; Evidências/Entrevista under “Mais detalhes”.
+
+## Analytics UX contract (Phase 11B)
+
+Framing + empty CTA to Discover. Primary tabs: Pipeline · Fontes · Resumo · Histórico. Secondary under “Mais detalhes”. No fake demo numbers.
+
+## Discovery mobile (Phase 11B)
+
+Primary: keyword · location · provider · Buscar. Optional filters under “Mais filtros”. Manual paste under disclosure after search.
+
 ## Domain / backend
 
 No Match Engine, lifecycle, Prisma, auth semantics, or provider algorithm changes.

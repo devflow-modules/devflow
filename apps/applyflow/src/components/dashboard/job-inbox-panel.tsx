@@ -33,6 +33,8 @@ import {
   CURRICULUM_ROUTER_NOT_AN_ACTION,
   CURRICULUM_ROUTER_SKIP_HINT,
   JOB_DISCOVERY_PASTE_HEADING,
+  JOB_DISCOVERY_PASTE_TOGGLE,
+  JOB_DISCOVERY_PASTE_TOGGLE_HINT,
   JOB_DISCOVERY_SOURCE_REMOTEOK,
   JOB_DISCOVERY_VIEW_LISTING_REMOTEOK,
   JOB_INBOX_COMPANY_LABEL,
@@ -745,9 +747,17 @@ export function JobInboxPanel({
         onSave={onSaveDiscoveredJob}
         resumeLibrary={resumeLibrary}
       />
-      <h3 className="mb-3 text-base font-semibold text-[color:var(--af-text)]">{JOB_DISCOVERY_PASTE_HEADING}</h3>
+      <details className="mb-6 rounded-[var(--af-radius-md)] border border-[color:var(--af-border)] bg-[color:var(--af-surface)] p-4">
+        <summary
+          className="cursor-pointer text-base font-semibold text-[color:var(--af-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--af-brand)]"
+          data-testid="discovery-paste-toggle"
+        >
+          {JOB_DISCOVERY_PASTE_TOGGLE}
+        </summary>
+        <p className="mt-2 text-xs text-[color:var(--af-text-muted)]">{JOB_DISCOVERY_PASTE_TOGGLE_HINT}</p>
+        <h3 className="sr-only">{JOB_DISCOVERY_PASTE_HEADING}</h3>
       <form
-        className="grid gap-3"
+        className="mt-3 grid gap-3"
         onSubmit={(event) => {
           event.preventDefault();
           if (!matchAvailable) return;
@@ -775,7 +785,7 @@ export function JobInboxPanel({
           {JOB_INBOX_PASTE_LABEL}
           <textarea
             required
-            rows={8}
+            rows={6}
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             className={fieldClass}
@@ -813,6 +823,7 @@ export function JobInboxPanel({
           </p>
         </div>
       </form>
+      </details>
 
       {duplicateJob ? (
         <ApplyFlowCard variant="muted" padding="md" className="mt-4">

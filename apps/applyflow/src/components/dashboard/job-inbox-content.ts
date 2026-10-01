@@ -7,6 +7,11 @@ export const JOB_INBOX_DESCRIPTION =
 export const JOB_DISCOVERY_TITLE = "Procurar oportunidades";
 export const JOB_DISCOVERY_DESCRIPTION =
   "Escolhe uma fonte e busca. O currículo não sai do browser. Um resultado só entra na inbox quando escolhes guardar.";
+export const JOB_DISCOVERY_ADVANCED_FILTERS = "Mais filtros";
+export const JOB_DISCOVERY_ADVANCED_FILTERS_HIDE = "Ocultar filtros";
+export const JOB_DISCOVERY_PASTE_TOGGLE = "Colar anúncio manualmente";
+export const JOB_DISCOVERY_PASTE_TOGGLE_HINT =
+  "Use quando a fonte não traz descrição ou quiser avaliar um anúncio copiado.";
 export const JOB_DISCOVERY_PROVIDER = "Fonte";
 export const JOB_DISCOVERY_PROVIDER_JOBGETHER = "Jobgether";
 export const JOB_DISCOVERY_PROVIDER_JOBGETHER_HINT = "Busca rápida";

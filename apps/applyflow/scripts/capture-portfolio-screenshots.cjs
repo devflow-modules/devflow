@@ -198,6 +198,7 @@ async function main() {
     await page.getByTestId("register-application").click();
     await expect(page.getByTestId("mark-application-sent")).toBeVisible({ timeout: 20_000 });
     await page.getByTestId("mark-application-sent").click();
+    await page.getByTestId("lifecycle-other-toggle").click();
     await expect(page.getByTestId("lifecycle-screening")).toBeEnabled({ timeout: 20_000 });
     await page.getByTestId("lifecycle-screening").click();
     await expect(page.getByTestId("application-current-state")).toBeVisible();

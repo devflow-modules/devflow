@@ -12,6 +12,8 @@ import { matchDecisionTone } from "@/components/ui/status-tones";
 import {
   JOB_DISCOVERY_ANY,
   JOB_DISCOVERY_ADD_DESCRIPTION,
+  JOB_DISCOVERY_ADVANCED_FILTERS,
+  JOB_DISCOVERY_ADVANCED_FILTERS_HIDE,
   JOB_DISCOVERY_CANCEL,
   JOB_DISCOVERY_CONTRACT,
   JOB_DISCOVERY_CURRENCY,
@@ -345,13 +347,8 @@ export function JobDiscoveryHitCard({
       </div>
       {hit.company ? <p className="mt-1 text-sm text-[color:var(--af-text)]">{hit.company}</p> : null}
       <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">
-        {[hit.location, hit.remote, hit.experience, hit.contractType, hit.salaryRange, hit.postedAt?.slice(0, 10)]
-          .filter(Boolean)
-          .join(" · ") || "—"}
+        {[hit.location, hit.remote, hit.salaryRange].filter(Boolean).join(" · ") || "—"}
       </p>
-      {hit.technologies && hit.technologies.length > 0 ? (
-        <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">{hit.technologies.slice(0, 6).join(" · ")}</p>
-      ) : null}
       <DiscoveryMatchPreviewBlock state={previewState} />
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {listingOpenable ? (
@@ -535,6 +532,8 @@ export function JobDiscoveryPanel({
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [statuses, setStatuses] = useState<Record<string, DiscoveredJobSaveStatus>>({});
   const [resultSort, setResultSort] = useState<DiscoveryResultSort>("default");
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const advancedId = useId();
 
   const effectiveHits = useMemo(
     () =>
@@ -610,6 +609,28 @@ export function JobDiscoveryPanel({
           void runSearch(1, false);
         }}
       >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
+            {JOB_DISCOVERY_KEYWORD}
+            <input
+              value={draft.keyword}
+              onChange={(event) => setDraft((current) => ({ ...current, keyword: event.target.value }))}
+              className={fieldClass}
+              autoComplete="off"
+              data-testid="discovery-keyword"
+            />
+          </label>
+          <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
+            {JOB_DISCOVERY_LOCATION}
+            <input
+              value={draft.location}
+              onChange={(event) => setDraft((current) => ({ ...current, location: event.target.value }))}
+              className={fieldClass}
+              placeholder="Brazil"
+              autoComplete="off"
+            />
+          </label>
+        </div>
         <fieldset className="grid gap-2">
           <legend className="text-sm text-[color:var(--af-text)]">{JOB_DISCOVERY_PROVIDER}</legend>
           <div className="grid gap-2 sm:grid-cols-3">
@@ -678,135 +699,132 @@ export function JobDiscoveryPanel({
             <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_DISCOVERY_REMOTEOK_NOTE}</p>
           ) : null}
         </fieldset>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
-            {JOB_DISCOVERY_KEYWORD}
-            <input
-              value={draft.keyword}
-              onChange={(event) => setDraft((current) => ({ ...current, keyword: event.target.value }))}
-              className={fieldClass}
-              autoComplete="off"
-            />
-          </label>
-          <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
-            {JOB_DISCOVERY_LOCATION}
-            <input
-              value={draft.location}
-              onChange={(event) => setDraft((current) => ({ ...current, location: event.target.value }))}
-              className={fieldClass}
-              placeholder="Brazil"
-              autoComplete="off"
-            />
-          </label>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
-            {JOB_DISCOVERY_EXPERIENCE}
-            <select
-              value={draft.experience}
-              onChange={(event) =>
-                setDraft((current) => ({ ...current, experience: event.target.value as Draft["experience"] }))
-              }
-              className={fieldClass}
-            >
-              <option value="">{JOB_DISCOVERY_ANY}</option>
-              {JOB_SEARCH_EXPERIENCE.map((value) => (
-                <option key={value} value={value}>
-                  {EXPERIENCE_LABELS[value]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
-            {JOB_DISCOVERY_REMOTE}
-            <select
-              value={draft.remote}
-              onChange={(event) => setDraft((current) => ({ ...current, remote: event.target.value as Draft["remote"] }))}
-              className={fieldClass}
-            >
-              <option value="">{JOB_DISCOVERY_ANY}</option>
-              {JOB_SEARCH_REMOTE.map((value) => (
-                <option key={value} value={value}>
-                  {REMOTE_LABELS[value]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
-            {JOB_DISCOVERY_CONTRACT}
-            <select
-              value={draft.contract}
-              disabled={draft.provider === "remoteok"}
-              onChange={(event) =>
-                setDraft((current) => ({ ...current, contract: event.target.value as Draft["contract"] }))
-              }
-              className={fieldClass}
-            >
-              <option value="">{JOB_DISCOVERY_ANY}</option>
-              {JOB_SEARCH_CONTRACT.map((value) => (
-                <option key={value} value={value}>
-                  {CONTRACT_LABELS[value]}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        {draft.provider === "remoteok" ? (
-          <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_DISCOVERY_REMOTEOK_UNSUPPORTED_FILTERS}</p>
-        ) : null}
-        <div className="grid gap-3 sm:grid-cols-4">
-          <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
-            {JOB_DISCOVERY_SALARY_MIN}
-            <input
-              value={draft.salaryMin}
-              disabled={draft.provider === "remoteok"}
-              onChange={(event) => setDraft((current) => ({ ...current, salaryMin: event.target.value }))}
-              className={fieldClass}
-              inputMode="numeric"
-            />
-          </label>
-          <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
-            {JOB_DISCOVERY_SALARY_MAX}
-            <input
-              value={draft.salaryMax}
-              disabled={draft.provider === "remoteok"}
-              onChange={(event) => setDraft((current) => ({ ...current, salaryMax: event.target.value }))}
-              className={fieldClass}
-              inputMode="numeric"
-            />
-          </label>
-          <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
-            {JOB_DISCOVERY_CURRENCY}
-            <input
-              value={draft.currency}
-              disabled={draft.provider === "remoteok"}
-              onChange={(event) => setDraft((current) => ({ ...current, currency: event.target.value }))}
-              className={fieldClass}
-              maxLength={3}
-              placeholder="USD"
-            />
-          </label>
-          <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
-            {JOB_DISCOVERY_SORT}
-            <select
-              value={draft.sort}
-              onChange={(event) => setDraft((current) => ({ ...current, sort: event.target.value as Draft["sort"] }))}
-              className={fieldClass}
-            >
-              <option value="">{JOB_DISCOVERY_ANY}</option>
-              {JOB_SEARCH_SORT.map((value) => (
-                <option key={value} value={value}>
-                  {SORT_LABELS[value]}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
         <div>
           <ApplyFlowButton type="submit" variant="primary" size="md" disabled={loading} data-testid="discovery-search">
             {loading ? JOB_DISCOVERY_LOADING : JOB_DISCOVERY_SEARCH}
           </ApplyFlowButton>
         </div>
+        <div>
+          <ApplyFlowButton
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="px-0 text-xs font-medium text-emerald-300 underline-offset-2 hover:underline"
+            aria-expanded={advancedOpen}
+            aria-controls={advancedId}
+            data-testid="discovery-advanced-toggle"
+            onClick={() => setAdvancedOpen((value) => !value)}
+          >
+            {advancedOpen ? JOB_DISCOVERY_ADVANCED_FILTERS_HIDE : JOB_DISCOVERY_ADVANCED_FILTERS}
+          </ApplyFlowButton>
+        </div>
+        {advancedOpen ? (
+          <div id={advancedId} className="grid gap-3 border-t border-[color:var(--af-border)] pt-3">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
+                {JOB_DISCOVERY_EXPERIENCE}
+                <select
+                  value={draft.experience}
+                  onChange={(event) =>
+                    setDraft((current) => ({ ...current, experience: event.target.value as Draft["experience"] }))
+                  }
+                  className={fieldClass}
+                >
+                  <option value="">{JOB_DISCOVERY_ANY}</option>
+                  {JOB_SEARCH_EXPERIENCE.map((value) => (
+                    <option key={value} value={value}>
+                      {EXPERIENCE_LABELS[value]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
+                {JOB_DISCOVERY_REMOTE}
+                <select
+                  value={draft.remote}
+                  onChange={(event) => setDraft((current) => ({ ...current, remote: event.target.value as Draft["remote"] }))}
+                  className={fieldClass}
+                >
+                  <option value="">{JOB_DISCOVERY_ANY}</option>
+                  {JOB_SEARCH_REMOTE.map((value) => (
+                    <option key={value} value={value}>
+                      {REMOTE_LABELS[value]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
+                {JOB_DISCOVERY_CONTRACT}
+                <select
+                  value={draft.contract}
+                  disabled={draft.provider === "remoteok"}
+                  onChange={(event) =>
+                    setDraft((current) => ({ ...current, contract: event.target.value as Draft["contract"] }))
+                  }
+                  className={fieldClass}
+                >
+                  <option value="">{JOB_DISCOVERY_ANY}</option>
+                  {JOB_SEARCH_CONTRACT.map((value) => (
+                    <option key={value} value={value}>
+                      {CONTRACT_LABELS[value]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            {draft.provider === "remoteok" ? (
+              <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_DISCOVERY_REMOTEOK_UNSUPPORTED_FILTERS}</p>
+            ) : null}
+            <div className="grid gap-3 sm:grid-cols-4">
+              <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
+                {JOB_DISCOVERY_SALARY_MIN}
+                <input
+                  value={draft.salaryMin}
+                  disabled={draft.provider === "remoteok"}
+                  onChange={(event) => setDraft((current) => ({ ...current, salaryMin: event.target.value }))}
+                  className={fieldClass}
+                  inputMode="numeric"
+                />
+              </label>
+              <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
+                {JOB_DISCOVERY_SALARY_MAX}
+                <input
+                  value={draft.salaryMax}
+                  disabled={draft.provider === "remoteok"}
+                  onChange={(event) => setDraft((current) => ({ ...current, salaryMax: event.target.value }))}
+                  className={fieldClass}
+                  inputMode="numeric"
+                />
+              </label>
+              <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
+                {JOB_DISCOVERY_CURRENCY}
+                <input
+                  value={draft.currency}
+                  disabled={draft.provider === "remoteok"}
+                  onChange={(event) => setDraft((current) => ({ ...current, currency: event.target.value }))}
+                  className={fieldClass}
+                  maxLength={3}
+                  placeholder="USD"
+                />
+              </label>
+              <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
+                {JOB_DISCOVERY_SORT}
+                <select
+                  value={draft.sort}
+                  onChange={(event) => setDraft((current) => ({ ...current, sort: event.target.value as Draft["sort"] }))}
+                  className={fieldClass}
+                >
+                  <option value="">{JOB_DISCOVERY_ANY}</option>
+                  {JOB_SEARCH_SORT.map((value) => (
+                    <option key={value} value={value}>
+                      {SORT_LABELS[value]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </div>
+        ) : null}
       </form>
       {error ? (
         <p className="mt-3 text-sm text-red-200" role="alert" data-testid="discovery-error">
