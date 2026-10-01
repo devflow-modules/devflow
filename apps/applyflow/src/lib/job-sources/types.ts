@@ -103,9 +103,12 @@ export const JOB_SOURCE_ERROR_CODES = [
   "provider_rejected",
   "provider_timeout",
   "provider_rate_limited",
+  "app_rate_limited",
+  "auth_required",
   "provider_unavailable",
   "invalid_provider_response",
   "provider_not_configured",
+  "provider_not_available",
 ] as const;
 
 export type JobSourceErrorCode = (typeof JOB_SOURCE_ERROR_CODES)[number];

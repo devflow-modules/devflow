@@ -17,13 +17,17 @@ ApplyFlow searches external job boards from **Vagas → Procurar oportunidades**
 
 - Explicit / on-demand richer discovery
 - Requires server-side `THEIRSTACK_API_KEY` (Bearer); the key never reaches the browser
+- **Disabled by default on shared Vercel production/preview** until a distributed rate limiter exists (Option D / Phase 9B). Opt-in: `APPLYFLOW_THEIRSTACK_ENABLED=true` (single-tenant / personal only)
+- Requires an authenticated ApplyFlow session (never anonymous paid search)
 - Full job descriptions are generally available → **Guardar e analisar**
 - API credits are consumed per returned job
 - Default limit 5, maximum 10 (enforced server-side; the browser cannot raise the cap)
-- Stronger cache TTL 30 minutes (process-local)
+- Process-local account quota (10 upstream searches / hour) as defense-in-depth when enabled — **not** multi-instance safe alone
+- Stronger cache TTL 30 minutes (process-local); warm-cache hits do not consume quota or credits
 - Manual pagination only (**Carregar mais**); no prefetch, no auto page fetch
 - Never queried automatically alongside Jobgether
 - Changing filters or the provider alone does not start a search
+- No retry on 402 / 429
 
 ### Remote OK
 
@@ -164,11 +168,22 @@ Provider tags / salary fields are discovery metadata only. Persisted skills and 
 
 ## Failures
 
-Public error classes: `invalid_criteria`, `provider_rejected`, `provider_timeout`, `provider_rate_limited`, `provider_unavailable`, `invalid_provider_response`, `provider_not_configured`.
+Public error classes: `invalid_criteria`, `auth_required`, `provider_not_available`, `app_rate_limited`, `provider_rejected`, `provider_timeout`, `provider_rate_limited`, `provider_unavailable`, `invalid_provider_response`, `provider_not_configured`.
+
+HTTP mapping (stable product codes):
+
+| Code | HTTP |
+|------|------|
+| `auth_required` | 401 |
+| `provider_not_available` | 403 |
+| `app_rate_limited` / `provider_rate_limited` | 429 |
 
 TheirStack:
 
 - Missing API key → `provider_not_configured` (Jobgether / Remote OK still work)
+- Shared deploy / gate off → `provider_not_available` (403)
+- Account upstream quota exceeded → `app_rate_limited` (429); denied requests never call TheirStack
+- Provider 429 → `provider_rate_limited` (distinct UX from app quota)
 - No retry on 400 / 401 / 402 / 403 / 404 / 422 / 429
 - At most one retry on timeout or 5xx (credits are tied to successful returned jobs)
 
@@ -179,7 +194,7 @@ Remote OK:
 - Concurrent catalog misses in the same process coalesce to a single upstream request
 - Individual malformed jobs are skipped; zero valid jobs after parse → `invalid_provider_response`
 
-Logs are one JSON line with provider, criteria hash, page, result count, cache hit/miss, duration, and error code. They never include keywords, descriptions, CV text, Authorization headers, or API keys.
+Logs are one JSON line with provider, criteria hash, page, result count, cache hit/miss, duration, `upstream`, optional `quota`, and error code. They never include keywords, descriptions, CV text, Authorization headers, account cookies, or API keys.
 
 ## Deduplication
 
@@ -190,26 +205,72 @@ Save reuses existing id / canonical URL / description hash:
 - identical normalized description → description hash can catch cross-provider duplicates
 - no fuzzy merge by company + title
 
-## Security
+## Discovery Security (Phase 9B)
 
-- Provider allowlist: `jobgether` | `theirstack` | `remoteok` only
-- Fixed hosts and methods inside each adapter (not a generic HTTP proxy)
-- Remote OK HTML is never rendered and never persisted as HTML — only plain text after sanitize
-- Secrets stay server-side (Remote OK needs none)
-- The anonymous dashboard search route can still be invoked; TheirStack cost is mitigated by small limits, cache, and no auto-search. There is no Redis rate limiter.
+### Authentication policy
+
+- When Supabase public config is present, `POST /api/applyflow/job-sources/search` requires an authenticated ApplyFlow session (cookie SSR). Unauthenticated → `auth_required` (401).
+- When auth is **not** configured (local-first / personal without Supabase), Jobgether and Remote OK may run anonymously. TheirStack never does.
+- Session identity comes from `getAuthenticatedApplyFlowUser()` / `authProviderSub`. Request body must not carry `accountId` / `userId` / `tenantId` (Zod `.strict()` rejects them).
+- Client uses `credentials: "same-origin"`. Expired session → 401; UI shows login recovery copy (no anonymous paid fallback).
+
+### Paid provider authorization
+
+- TheirStack requires: authenticated session **and** `THEIRSTACK_API_KEY` **and** `isTheirStackSearchEnabled()`.
+- Shared Vercel `production` / `preview`: TheirStack **disabled by default** (`provider_not_available`).
+- Explicit opt-in `APPLYFLOW_THEIRSTACK_ENABLED=true` is for single-tenant personal use only and acknowledges process-local quota is not multi-user cost safety.
+
+### Rate-limit / quota
+
+- Monorepo audit: no Redis/KV/Upstash shared limiter suitable for Vercel multi-instance (Option D).
+- Process-local fixed-window quota: **10 TheirStack upstream searches / account / hour** when TheirStack is enabled.
+- Quota identity = server-derived `authProviderSub` (not IP alone, not a global `"theirstack"` key).
+- Order: authenticate → validate → authorize provider → cache lookup → **if miss** enforce quota → upstream → cache write.
+- Warm-cache reuse does **not** consume quota. Criteria/page changes that miss cache do consume quota and cannot evade the account limit.
+- Process-local Maps may cache for performance; they are **not** the sole security barrier on shared deploy (TheirStack stays off instead).
+
+### Concurrency
+
+- In-process Map increment is not atomic across Vercel instances. Concurrent abuse across instances is why shared deploy keeps TheirStack disabled. Single-process parallel requests are best-effort only — do not claim distributed race safety.
+
+### No CV outbound
+
+- Search body = filter fields only. Curriculum / resume / profile never leave the browser for provider search.
+
+### Logout
+
+- Account shell (`/account`) exposes **Sair** via Supabase `signOut` → `/login`. No token display.
+
+### CSRF
+
+- Broad CSRF hardening is deferred (Phase 9C). Search uses same-origin cookies; Origin validation reuse is out of scope for 9B.
+
+## TheirStack Cost Safety
+
+- Explicit search only (no auto-query, no dual provider search, no preview credits)
+- Result cap (max 10)
+- Process-local response cache (TTL 30m)
+- Account quota when enabled (upstream misses only)
+- No retry on 402 / 429
+- Shared deploy: disabled until distributed limiter exists
 
 ## Known limitations
 
 - Cache is instance-local
+- TheirStack disabled on shared deploy by default (no distributed rate limiter yet)
+- Process-local quota is defense-in-depth only, not multi-instance cost control
 - TheirStack credit balance is not shown in product UI
 - No migration; no new SQL columns for provider metadata
 - Remote filters are geographic when the provider says so — remote ≠ worldwide
 - Remote OK catalog can include jobs older than 30 days; posted dates are preserved
 - A saved job is not refreshed if the remote listing changes
+- Remaining production gaps (deferred): E2E, error tracking, backup drill, security headers, CSRF broad hardening, data deletion, transactional App+Job sync
 
 ## Environment
 
 Server only:
 
-- `THEIRSTACK_API_KEY` — required for TheirStack searches; absent → controlled unavailable state
+- `THEIRSTACK_API_KEY` — required for TheirStack searches; absent → `provider_not_configured`
+- `APPLYFLOW_THEIRSTACK_ENABLED` — optional; `true`/`1` opts in (needs key); `false`/`0` forces off; default off on Vercel production/preview
 - Remote OK — no environment variables
+- Never `NEXT_PUBLIC_THEIRSTACK_*`

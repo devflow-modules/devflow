@@ -30,6 +30,8 @@ const eslintConfig = defineConfig([
     "apps/whatsapp-platform/src/generated/**",
     /** Local Python venv (security-audit charts); never lint vendor JS. */
     "**/.venv/**",
+    /** ApplyFlow CommonJS tooling scripts (node:require). */
+    "apps/applyflow/scripts/**/*.cjs",
   ]),
   // Boundary: no one may import from app packages (apps are not published).
   {

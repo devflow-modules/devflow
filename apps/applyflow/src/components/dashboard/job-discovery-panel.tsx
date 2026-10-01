@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { ApplyFlowBadge } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton, applyFlowButtonClass } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
@@ -532,6 +534,7 @@ export function JobDiscoveryPanel({
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [statuses, setStatuses] = useState<Record<string, DiscoveredJobSaveStatus>>({});
   const [resultSort, setResultSort] = useState<DiscoveryResultSort>("default");
 
@@ -560,6 +563,7 @@ export function JobDiscoveryPanel({
     setHasMore(false);
     setSearched(false);
     setError(null);
+    setErrorCode(null);
     setStatuses({});
   }
 
@@ -567,14 +571,17 @@ export function JobDiscoveryPanel({
     const criteria = buildDiscoveryCriteria(draft, nextPage);
     if (criteria === "invalid_salary") {
       setError(JOB_DISCOVERY_ERROR_MESSAGES.invalid_criteria ?? null);
+      setErrorCode("invalid_criteria");
       return;
     }
     setLoading(true);
     setError(null);
+    setErrorCode(null);
     const result = await onSearch(criteria);
     setLoading(false);
     if (!result.ok) {
       setError(JOB_DISCOVERY_ERROR_MESSAGES[result.error] ?? JOB_DISCOVERY_ERROR_MESSAGES.provider_unavailable ?? null);
+      setErrorCode(result.error);
       return;
     }
     setSearched(true);
@@ -803,6 +810,14 @@ export function JobDiscoveryPanel({
       {error ? (
         <p className="mt-3 text-sm text-red-200" role="alert">
           {error}
+          {errorCode === "auth_required" ? (
+            <>
+              {" "}
+              <Link href="/login" className="underline underline-offset-2">
+                Entrar
+              </Link>
+            </>
+          ) : null}
         </p>
       ) : null}
       {displayedHits.length > 0 ? (

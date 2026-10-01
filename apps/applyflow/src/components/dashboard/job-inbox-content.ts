@@ -73,8 +73,11 @@ export const JOB_DISCOVERY_ERROR_MESSAGES: Record<string, string> = {
   provider_rejected: "A fonte recusou estes filtros.",
   provider_timeout: "A fonte demorou demais. Tenta de novo.",
   provider_rate_limited: "A fonte limitou as consultas. Espera alguns minutos.",
+  app_rate_limited: "Limite temporário de buscas desta fonte atingido.",
+  auth_required: "Faça login para pesquisar esta fonte.",
   provider_unavailable: "A fonte está indisponível.",
   provider_not_configured: "Esta fonte não está disponível neste ambiente.",
+  provider_not_available: "Esta fonte paga não está disponível neste ambiente.",
   invalid_provider_response: "A fonte devolveu uma resposta que não foi aceite.",
 };
 export const JOB_INBOX_SUBMIT_LABEL = "Avaliar vaga";

@@ -50,6 +50,7 @@ export async function requestJobSearch(
   if (!criteria) return { ok: false, error: "invalid_criteria" };
   const response = await fetchImpl("/api/applyflow/job-sources/search", {
     method: "POST",
+    credentials: "same-origin",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify(criteria),
   });

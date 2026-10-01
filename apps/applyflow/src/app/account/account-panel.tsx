@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { ApplyFlowButton, applyFlowButtonClass } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type MePayload = {
   authenticated?: boolean;
@@ -24,7 +26,10 @@ function maskAccountId(id: string): string {
 }
 
 export function AccountPanel() {
+  const router = useRouter();
   const [probe, setProbe] = useState<ProbeState>({ status: "idle" });
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState<string | null>(null);
 
   async function runProbe() {
     setProbe({ status: "loading" });
@@ -59,6 +64,25 @@ export function AccountPanel() {
         httpStatus: 0,
         error: "network_error",
       });
+    }
+  }
+
+  async function handleSignOut() {
+    setSignOutError(null);
+    setSigningOut(true);
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        setSignOutError("Não foi possível terminar a sessão.");
+        return;
+      }
+      router.replace("/login");
+      router.refresh();
+    } catch {
+      setSignOutError("Não foi possível terminar a sessão.");
+    } finally {
+      setSigningOut(false);
     }
   }
 
@@ -120,6 +144,12 @@ export function AccountPanel() {
         </div>
       ) : null}
 
+      {signOutError ? (
+        <p className="text-sm text-red-200" role="alert">
+          {signOutError}
+        </p>
+      ) : null}
+
       <div className="flex flex-wrap gap-2">
         <ApplyFlowButton
           type="button"
@@ -127,6 +157,15 @@ export function AccountPanel() {
           disabled={probe.status === "loading"}
         >
           {probe.status === "idle" ? "Probe /me" : "Refresh /me"}
+        </ApplyFlowButton>
+        <ApplyFlowButton
+          type="button"
+          variant="secondary"
+          data-testid="applyflow-logout"
+          onClick={() => void handleSignOut()}
+          disabled={signingOut}
+        >
+          {signingOut ? "A sair…" : "Sair"}
         </ApplyFlowButton>
         <Link href="/login" className={applyFlowButtonClass({ variant: "secondary" })}>
           Back to login

@@ -9,6 +9,10 @@ export type JobSearchLogEvent = {
   cache: "hit" | "miss";
   durationMs: number;
   errorCode?: string;
+  /** Whether an upstream provider HTTP call was made. */
+  upstream?: "yes" | "no";
+  /** Paid-provider quota outcome when applicable. */
+  quota?: "allow" | "deny" | "skip_cache";
 };
 
 const ALLOWED_KEYS = [
@@ -20,6 +24,8 @@ const ALLOWED_KEYS = [
   "cache",
   "durationMs",
   "errorCode",
+  "upstream",
+  "quota",
 ] as const;
 
 export type JobSearchLogger = (event: JobSearchLogEvent) => void;
