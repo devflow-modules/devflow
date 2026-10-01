@@ -1,5 +1,7 @@
 # ApplyFlow — camada serverless futura (opcional)
 
+> Exploratory only. **Authoritative release:** invite-only **10–50 closed beta** — [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md).
+
 **Estado:** exploratório — **não implementado** no repositório atual.
 
 ## Objetivo

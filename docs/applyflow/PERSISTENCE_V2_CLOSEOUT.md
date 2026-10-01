@@ -1,7 +1,10 @@
 # ApplyFlow Persistence V2 — Migration Closeout
 
-**Status:** COMPLETE (first Production pilot active on V2 cloud)  
-**Closeout gate:** R2.10  
+> **Historical closeout.** Current release: invite-only **10–50 closed beta** — [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md).
+> This file does **not** authorize public signup or paid SaaS.
+
+**Status:** COMPLETE (first Production pilot active on V2 cloud)
+**Closeout gate:** R2.10
 **Production source SHA (closeout baseline):** `3251cc28b263d6097ba72c631da27d881fee6c15`
 
 This document closes the Persistence V2 **migration implementation**. It does **not** authorize broad rollout or removal of pilot gating.
@@ -53,28 +56,28 @@ The browser does **not** query ApplyFlow DB directly. Account identity is server
 
 **Non-empty V1**
 
-1. Browser bundle → deterministic fingerprint  
-2. Durable migration session  
-3. Chunked server import  
-4. Completion proof  
+1. Browser bundle → deterministic fingerprint
+2. Durable migration session
+3. Chunked server import
+4. Completion proof
 5. Canonical promotion to `v2_cloud`
 
 **Empty V1**
 
-1. Explicit empty activation  
-2. Server empty-state proof  
-3. Completed audit `ApplyFlowMigrationSession`  
+1. Explicit empty activation
+2. Server empty-state proof
+3. Completed audit `ApplyFlowMigrationSession`
 4. Canonical promotion to `v2_cloud`
 
 After `canonical=v2_cloud`, retained local data may exist as backup/cache but is **never** authoritative fallback.
 
 ## Concurrency (PATCH)
 
-- Transport: JSON body `expectedVersion` (positive integer)  
-- Success: **2xx**, version advances  
-- Stale: **409** `version_conflict`, no mutation  
-- Response `ETag`: informational only  
-- HTTP `If-Match`: **not** the ApplyFlow concurrency transport  
+- Transport: JSON body `expectedVersion` (positive integer)
+- Success: **2xx**, version advances
+- Stale: **409** `version_conflict`, no mutation
+- Response `ETag`: informational only
+- HTTP `If-Match`: **not** the ApplyFlow concurrency transport
 
 During Production validation (R2.8), `If-Match` could surface Vercel `412 PRECONDITION_FAILED` while the origin still committed — observed ApplyFlow Production behavior, not claimed as universal Vercel policy.
 

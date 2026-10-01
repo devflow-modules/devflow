@@ -1,5 +1,8 @@
 # ApplyFlow — roadmap
 
+> Historical / aspirational notes. **Authoritative release status:** invite-only **10–50 closed beta** — [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md).
+> Do not treat this file as the current product backlog of record.
+
 ## Concluído (resumo)
 
 - Parser e classificação LinkedIn Easy Apply (`applyflow-linkedin` + fixtures).

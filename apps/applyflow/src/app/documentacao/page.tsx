@@ -26,25 +26,50 @@ const DOCS: DocItem[] = [
     category: "Design & UX",
   },
   {
-    file: "PRODUCT_OVERVIEW.md",
-    title: "Visão de produto",
-    desc: "Problema, solução, público, features e privacidade.",
+    file: "PRODUCT_FLOW.md",
+    title: "Product flow",
+    desc: "Discovery → match → save → queue → readiness → application lifecycle.",
     category: "Produto",
     priority: "Essencial",
   },
   {
     file: "ARCHITECTURE.md",
     title: "Arquitetura",
-    desc: "Extensão, dashboard, pacotes partilhados, fluxo de dados e limites de segurança.",
+    desc: "Local-first vs V2, providers, Match Engine, tenant boundary.",
     category: "Arquitetura",
     priority: "Essencial",
+  },
+  {
+    file: "PRODUCTION_READINESS.md",
+    title: "Production readiness",
+    desc: "Closed beta 10–50 controls, blockers for public/paid release.",
+    category: "Arquitetura",
+    priority: "Essencial",
+  },
+  {
+    file: "PRIVACY_SECURITY.md",
+    title: "Privacy / security",
+    desc: "Engineering data-flow matrix (CV, providers, DB) — not a legal policy.",
+    category: "Arquitetura",
+    priority: "Essencial",
+  },
+  {
+    file: "JOB_DISCOVERY.md",
+    title: "Job discovery",
+    desc: "Providers, Match Engine, opportunity queue, readiness.",
+    category: "Produto",
+  },
+  {
+    file: "APPLICATION_LIFECYCLE.md",
+    title: "Application lifecycle",
+    desc: "Canonical states, Job sync, OCC, cloud history limitation.",
+    category: "Produto",
   },
   {
     file: "ADR-LOCAL_FIRST_VS_SERVERLESS.md",
     title: "ADR — Local-first vs serverless",
     desc: "Decisão do MVP: produto local-first; cloud como camada futura opcional.",
     category: "Arquitetura",
-    priority: "Essencial",
   },
   {
     file: "SERVERLESS_FUTURE.md",
@@ -55,14 +80,13 @@ const DOCS: DocItem[] = [
   {
     file: "CASE_STUDY.md",
     title: "Case study",
-    desc: "Contexto, decisões de produto e técnicas, desafios e o que o projeto demonstra.",
+    desc: "Contexto, decisões de produto e técnicas (histórico; prefer README actual).",
     category: "Produto",
-    priority: "Essencial",
   },
   {
     file: "ROADMAP.md",
     title: "Roadmap",
-    desc: "Concluído, próximos passos, futuro e fora de escopo proposital.",
+    desc: "Notas históricas; release status em PRODUCTION_READINESS.md.",
     category: "Produto",
   },
   {
@@ -180,10 +204,10 @@ export default function DocumentacaoPage() {
             Documentação do produto
           </h1>
           <p className="mt-4 max-w-4xl text-sm leading-relaxed text-[color:var(--af-text-muted)] sm:text-[15px]">
-            Arquitetura, decisões técnicas, roadmap e materiais de publicação do ApplyFlow — um copiloto local-first para candidaturas no LinkedIn Easy Apply. Os ficheiros Markdown completos abrem no GitHub (novo separador); o dashboard não envia os teus dados ao seguir estes atalhos.
+            Arquitetura, fluxo de produto, readiness e materiais de publicação do ApplyFlow — career workflow local-first com persistência V2 opcional (closed beta). Os ficheiros Markdown completos abrem no GitHub (novo separador); o dashboard não envia os teus dados ao seguir estes atalhos.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
-            {["Local-first", "Privacy-first", "Chrome Extension", "Next.js Dashboard", "TypeScript Monorepo"].map((badge) => (
+            {["Local-first", "V2 pilot", "Deterministic Match", "Next.js", "Closed beta 10–50"].map((badge) => (
               <span
                 key={badge}
                 className="rounded-full border border-[color:var(--af-border)] bg-black/25 px-3 py-1 text-[11px] font-medium text-zinc-300"
@@ -222,8 +246,8 @@ export default function DocumentacaoPage() {
           </ApplyFlowCard>
           <ApplyFlowCard variant="muted" padding="sm">
             <p className="text-xs uppercase tracking-wide text-zinc-500">Dashboard</p>
-            <p className="mt-1 text-sm font-medium text-[color:var(--af-text)]">Next.js estático</p>
-            <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">Cloud apenas como camada futura opcional.</p>
+            <p className="mt-1 text-sm font-medium text-[color:var(--af-text)]">Next.js App Router</p>
+            <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">V2 Postgres opcional (pilot-gated closed beta).</p>
           </ApplyFlowCard>
         </div>
       </section>

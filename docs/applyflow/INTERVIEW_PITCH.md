@@ -1,8 +1,10 @@
 # ApplyFlow — pitch para entrevistas
 
+> **Release status (authoritative):** invite-only **10–50 user closed beta**. Prefer [`CAREER_EVIDENCE.md`](./CAREER_EVIDENCE.md) for safe claims.
+
 Material para **entrevistas** e networking técnico. Valor do case: **arquitectura**, **ética de plataforma**, **failure modes** e **evidência** — não métricas de adopção inventadas.
 
-Companion: [`APPLYFLOW_ENGINEERING_CASE.md`](./APPLYFLOW_ENGINEERING_CASE.md)
+Companion: [`APPLYFLOW_ENGINEERING_CASE.md`](./APPLYFLOW_ENGINEERING_CASE.md) · [`CAREER_EVIDENCE.md`](./CAREER_EVIDENCE.md)
 
 ---
 

@@ -1,7 +1,10 @@
 # ApplyFlow — Engineering Case
 
+> **Release status (authoritative):** invite-only **10–50 user closed beta**. Public signup **not** approved.
+> Start: [`apps/applyflow/README.md`](../../apps/applyflow/README.md) · Gate: [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md) · Index: [`README.md`](./README.md)
+
 **Author:** Gustavo Marques · Senior Full Stack / Product Engineer · DevFlow Labs
-**Status:** Engineering case **READY** · Production readiness **not claimed**
+**Engineering case:** useful historical depth · **not** a substitute for current release docs
 
 Deep technical companion to [`apps/applyflow/README.md`](../../apps/applyflow/README.md). Product narrative: [`PUBLIC_CASE_STUDY.md`](./PUBLIC_CASE_STUDY.md).
 

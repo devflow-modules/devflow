@@ -1,243 +1,231 @@
 # ApplyFlow
 
-**Local-first Career copiloto for LinkedIn Easy Apply** — Chrome MV3 extension + Next.js dashboard (DevFlow Labs). Human-gated autofill, no mass-apply, no auto-submit. Persistence V2, AI, and provider integrations are documented as an evidence-backed **engineering case**, not as Production readiness.
+Local-first career workflow for discovering opportunities, evaluating fit, prioritizing jobs, preparing applications, and tracking their lifecycle — with optional authenticated V2 cloud persistence for invite-only closed beta.
 
-![ApplyFlow dashboard overview](../../docs/applyflow/assets/02-applyflow-dashboard-overview.png)
+**Release status:** invite-only **10–50 user closed beta** (V2 pilot-gated). **Public signup is not approved.** Paid production SaaS is not claimed.
 
-*Demo data · local-first by default · engineering depth in concurrency, migration, and trust boundaries.*
-
-**Deep dive:** [`docs/applyflow/APPLYFLOW_ENGINEERING_CASE.md`](../../docs/applyflow/APPLYFLOW_ENGINEERING_CASE.md)
+Start here. Deep links: [Documentation index](../../docs/applyflow/README.md).
 
 ---
 
-## What it solves
+## What it does
 
-Easy Apply repeats the same fields. History scatters across tabs and notes. Aggressive tools push mass-apply and auto-submit.
+ApplyFlow helps a candidate:
 
-ApplyFlow is a **copilot**, not a bot: suggest and fill **field by field** after your action, keep history on-device by default, and analyze a JSON export (or fictional demo) in the browser.
+1. Search job providers (Jobgether, Remote OK; TheirStack only when explicitly enabled and never by default on shared deploy)
+2. Preview fit with a **deterministic, local Match Engine** (not an LLM)
+3. Explicitly save a job into an opportunity queue
+4. Check application readiness (derived guidance)
+5. Register an application, mark it sent after a real external submit, then track lifecycle
+
+It does **not** auto-apply, auto-submit, or send CV/profile to discovery providers.
 
 ---
 
-## Product workflow
-
-1. Configure the extension profile (optional opt-in AI key in options).
-2. Open a LinkedIn Easy Apply modal → panel suggests / assists fill → **you** submit.
-3. Save history locally; export JSON when you want analytics.
-4. Import JSON (or **Load demo**) on `/dashboard` → funnel, filters, CareerBundle handoff to Interview Lab.
+## Product flow
 
 ```text
-Extension (local)  --JSON export-->  Dashboard (browser)
-        |                                    |
-   chrome.storage.local                 localStorage / demo
+Discovery → Match Preview → Explicit Save → Opportunity Queue
+  → Application Readiness → Register Application → Mark Sent
+  → Application Lifecycle → Derived Next Action
 ```
 
----
+| Step | Meaning |
+|------|---------|
+| Preview | Transient fit only — **does not persist** |
+| Save | Creates/updates **Job**, not Application |
+| Match decision | Advisory (`apply` / `stretch` / `needs_info` / `skip`) — not user intent |
+| Register | Creates **Application** locally/cloud — does **not** submit externally |
+| Mark sent | User asserts external submission happened |
+| Next action | Derived UI guidance — **not persisted**, not a task/scheduler |
 
-## Architecture
-
-```mermaid
-flowchart LR
-  subgraph Browser
-    EXT[Extension]
-    SW[Service Worker]
-    DASH[Dashboard]
-    V1[V1 local storage]
-  end
-  subgraph Next["Next.js ApplyFlow"]
-    V2[Persistence V2 API]
-    AI[Career / AI]
-    PR[Nango runtime]
-  end
-  PG[(PostgreSQL)]
-  SB[Supabase Auth]
-  OAI[OpenAI]
-  NG[Nango]
-
-  EXT --> SW
-  SW --> OAI
-  EXT --> V1
-  DASH --> V1
-  DASH --> V2
-  V2 --> SB
-  V2 --> PG
-  AI --> OAI
-  PR --> NG
-```
-
-| Path | Role |
-|------|------|
-| **V1 local-first** | Default product SoT for extension/dashboard without mandatory cloud |
-| **V2 pilot** | Authenticated Jobs/Applications, migration, OCC — see Engineering Case |
+Full detail: [`PRODUCT_FLOW.md`](../../docs/applyflow/PRODUCT_FLOW.md).
 
 ---
 
-## Engineering Challenges
+## Why it exists
 
-| Challenge | Essence |
-|-----------|---------|
-| **Concurrent Applications** | “Check then create” races; invariant enforced by PostgreSQL partial unique index on `(accountId, sourceJobId)` — local `c2`–`c20` verification |
-| **Optimistic concurrency** | `expectedVersion` on PATCH → success or `version_conflict` (no silent lost update in tested paths) |
-| **Resumable migration** | Partial durable staging allowed; **V1 stays canonical** until verified promotion; product GET blocked while offering |
-| **Extension AI boundary** | Content script requests capability; **service worker** owns OpenAI credential |
-| **Account / trust isolation** | Server-derived account; scoped repositories (HTTP auth often mocked in unit tests — see Engineering Case) |
-
-Nango Gmail/Calendar identity is a **browser/device-scoped pilot** (not account sync). Details in the Engineering Case.
+Aggressive job tools push volume and auto-submit. ApplyFlow separates **recommendation** from **human intent**, keeps sensitive resume data local by default, and treats Jobs and Applications as different domain objects.
 
 ---
 
-## Key Architecture Decisions
+## Core capabilities
 
-| Decision | Why | Trade-off |
-|----------|-----|-----------|
-| Local-first default | Sensitive career data; low friction demo | Manual JSON handoff, not realtime sync |
-| DB-enforced `sourceJobId` uniqueness | Survive concurrent creates | Index/migration discipline |
-| Partial-resumable migration | Short transactions + resume | Staging may remain (no automatic GC yet) |
-| SW-owned OpenAI key | Shrink content-script surface | Storage not claimed encrypted |
-| Browser-scoped Nango caller | Honest pilot semantics | No multi-device provider continuity |
-
-ADRs: [partial-resumable migration](../../docs/applyflow/ADR-PERSISTENCE_V2_PARTIAL_RESUMABLE_MIGRATION.md) · [Nango browser-scoped identity](../../docs/applyflow/ADR-NANGO-BROWSER_SCOPED_PROVIDER_IDENTITY.md) · [local-first](../../docs/applyflow/ADR-LOCAL_FIRST_VS_SERVERLESS.md)
+- Multi-provider discovery adapters (server-side secrets only)
+- Deterministic Match Engine (`@devflow/applyflow-core`)
+- Derived opportunity queue (`Job.status === reviewing`) — no Shortlist entity
+- Application readiness checklist (guidance, not a hard gate)
+- Canonical application lifecycle + Job sync
+- Local-first persistence **and** V2/Postgres (pilot)
+- Chrome extension path for LinkedIn Easy Apply assist (companion; no auto-submit)
 
 ---
 
-## Security & Trust Boundaries
-
-- Server-derived ApplyFlow account (never trust client `accountId`)
-- Account-scoped repositories / composite ownership
-- Offering mode: normal V2 Jobs/Applications **product reads denied** until promotion
-- Extension: content ≠ credential owner
-- Nango: HttpOnly caller cookie, Origin allowlist; logout ≠ disconnect ≠ Google revoke
-- LLM: structured outputs; model output is not product authority
-
-No “zero vulnerabilities” or “Production secure” claim.
-
----
-
-## AI Engineering
-
-- **Extension:** opt-in user key; SW-owned fetch; fixed provider destination
-- **Career path (verified):** structured outputs, no provider tools, server-owned instructions where applicable
-- **Interview Lab:** sanitized provider errors (stable taxonomy; no raw upstream body in UI)
-
-Not claimed here: RAG, embeddings, or vector databases.
-
----
-
-## Validation
-
-| Concern | Evidence |
-|---------|----------|
-| Concurrent uniqueness | Local PostgreSQL race suite |
-| OCC | Service + concurrent patch tests |
-| Migration crash/retry | Contract suite |
-| Offering authority | HTTP capability + route tests |
-| Extension credentials | Content isolation tests |
-| Nango caller isolation | Provider-runtime tests |
-| LLM / provider errors | Career + Interview Lab suites |
-
-ApplyFlow Vitest (engineering closure measurement): **1283 passed / 22 skipped** — secondary context only.
-
-```bash
-pnpm --filter applyflow test
-pnpm --filter applyflow-extension test
-```
-
----
-
-## Tech Stack
-
-| Area | Tech |
-|------|------|
-| Frontend | Next.js (App Router), React, TypeScript, Tailwind, Recharts |
-| Extension | Chrome MV3, Vite, content script + service worker |
-| Backend | Next.js route handlers, service + repository layers |
-| Persistence | Prisma, PostgreSQL (V2 pilot); local storage (V1 default) |
-| Auth | Supabase Auth (V2 / account paths) |
-| AI | OpenAI (opt-in / Career paths) |
-| Integrations | Nango → Gmail/Calendar (pilot) |
-| Testing | Vitest |
-| Tooling | pnpm workspaces, Turborepo monorepo |
-
----
-
-## Repository Structure
+## Architecture (short)
 
 ```text
-apps/applyflow/              # Next.js dashboard + Persistence V2 API
-apps/applyflow-extension/    # Chrome MV3 extension
-apps/interview-lab/          # Interview practice (CareerBundle consumer)
-packages/applyflow-core/     # Shared types, validation, metrics
-packages/career-core/        # CareerBundle contracts
-packages/career-sync/        # Sync / provider-derived contracts
-docs/applyflow/              # Product + engineering case + ADRs + screenshots
+Browser
+ ├─ Resume / profile (local)
+ ├─ Discovery UI + Match Engine
+ ├─ Local persistence (default)
+ └─ V2 API (pilot) → PostgreSQL (tenant-scoped, OCC)
 ```
+
+Canonical design: [`ARCHITECTURE.md`](../../docs/applyflow/ARCHITECTURE.md).
 
 ---
 
-## Running Locally
+## Tech stack
 
-From the monorepo root:
+Next.js App Router · React · TypeScript · Tailwind · Prisma/PostgreSQL (V2) · Supabase Auth (V2) · Vitest · Playwright · pnpm monorepo.
+
+---
+
+## Privacy model
+
+CV/profile stay in the browser for discovery and matching. Search requests carry filters only — **not** resume text. Provider API keys are server-only. See [`PRIVACY_SECURITY.md`](../../docs/applyflow/PRIVACY_SECURITY.md).
+
+---
+
+## Providers
+
+| Provider | Closed-beta posture |
+|----------|---------------------|
+| Jobgether | Default free discovery |
+| Remote OK | Cached catalog; attribution required |
+| TheirStack | Credit-based; **disabled on shared Vercel** without distributed limiter |
+
+Details: [`JOB_DISCOVERY.md`](../../docs/applyflow/JOB_DISCOVERY.md).
+
+---
+
+## Local-first vs V2
+
+| | Local-first | V2 / cloud |
+|--|-------------|------------|
+| Auth | Optional for many flows | Required; server-derived account |
+| Jobs / Applications | Browser storage | PostgreSQL, tenant-scoped |
+| Resume / profile | Local | Still local (browser) |
+| Gate | Default | `APPLYFLOW_PERSISTENCE_V2` + `pilotEligible` + activation |
+
+V2 is a **persistence mode**, not “sync everything.”
+
+---
+
+## Quality / testing
+
+Latest validated baseline (**commit `5636feef`**, Phase 9D):
+
+| Layer | Result |
+|-------|--------|
+| `@devflow/applyflow-core` | 39 files / 475 passed |
+| ApplyFlow Vitest | 196 files / 1415 passed (30 skipped) |
+| Local Playwright E2E | 2 passed |
+| V2 Playwright E2E | 2 passed (Account A persistence, B isolation, pilot gate, TheirStack off) |
+| Typecheck / lint / build | PASS |
+
+See [`TESTING.md`](../../docs/applyflow/TESTING.md).
+
+---
+
+## Closed-beta status
+
+- **Approved:** invite-only 10–50 users (operator-owned backups, TheirStack OFF shared, pilot gate, error DSN operator action)
+- **Not approved:** public signup, paid production
+
+Ops: [`CLOSED_BETA_RUNBOOK.md`](../../docs/applyflow/CLOSED_BETA_RUNBOOK.md) · readiness: [`PRODUCTION_READINESS.md`](../../docs/applyflow/PRODUCTION_READINESS.md).
+
+---
+
+## Engineering highlights
+
+- Local-first architecture with optional authenticated Postgres persistence
+- Deterministic privacy-preserving Match Engine
+- Multi-provider discovery adapter layer
+- Server-side tenant isolation + cross-tenant E2E
+- Optimistic concurrency (`expectedVersion`)
+- Transactional Job/Application lifecycle on V2 path
+- Playwright E2E for local-first and V2 modes
+- Fail-safe TheirStack cost control (shared disable)
+- Backup/restore drill + closed-beta release gates
+
+---
+
+## Trade-offs
+
+| Decision | Why | Cost |
+|----------|-----|------|
+| Local CV by default | Privacy / low friction | Cloud convenience limited for resume |
+| TheirStack OFF shared | Avoid multi-instance credit burn without Redis | Richer discovery unavailable on shared hosts |
+| Derived queue / readiness | Fewer entities, clearer Job vs Application | No persisted Shortlist/Preparation |
+| Match ≠ intent | Humans control lifecycle | Extra UI education |
+| Current-state cloud lifecycle | Smaller schema | No server event timeline yet |
+| Explicit Mark Sent | No auto-apply | User must confirm external submit |
+| Provider-specific URLs | Honest contracts | `directApplyUrl` not always available |
+
+---
+
+## Running locally
+
+### Quick start (local-first)
 
 ```bash
 pnpm install
 pnpm --filter @devflow/applyflow-core build
 pnpm --filter @devflow/career-core build
+pnpm --filter @devflow/career-sync build
 pnpm --filter applyflow dev          # http://localhost:3010
 ```
 
-**Tests / build**
+Copy `apps/applyflow/.env.example` → `.env.local` as needed. Discovery fixtures for E2E are separate from day-to-day use.
+
+### Tests
 
 ```bash
+pnpm --filter @devflow/applyflow-core test
 pnpm --filter applyflow test
-pnpm --filter applyflow build
-pnpm --filter applyflow-extension build
-pnpm --filter applyflow-extension test
+pnpm --filter applyflow test:e2e
 ```
 
-**Persistence V2 (optional pilot)** — see `apps/applyflow/.env.example` (`DATABASE_URL`, `DIRECT_URL`, `APPLYFLOW_PERSISTENCE_V2`, Supabase, `NANGO_SECRET_KEY`, `OPENAI_API_KEY`). Local DB helpers: `pnpm --filter applyflow db:up`, `db:migrate`, `db:generate`. Never point destructive tests at Production.
+### V2 / Postgres (optional)
 
-**Extension:** [`apps/applyflow-extension/README.md`](../applyflow-extension/README.md)
+```bash
+pnpm --filter applyflow db:up
+pnpm --filter applyflow db:migrate   # force-local Docker 127.0.0.1:5434
+pnpm --filter applyflow test:e2e:v2
+```
+
+Never point destructive scripts at production databases.
+
+### Extension
+
+See [`apps/applyflow-extension/README.md`](../applyflow-extension/README.md).
 
 ---
 
 ## Screenshots
 
-| | |
-|--|--|
-| Landing | ![hero](../../docs/applyflow/assets/01-applyflow-hero.png) |
-| Dashboard | ![overview](../../docs/applyflow/assets/02-applyflow-dashboard-overview.png) |
-| Analytics | ![analytics](../../docs/applyflow/assets/03-applyflow-analytics.png) |
-| Applications | ![table](../../docs/applyflow/assets/04-applyflow-applications-table.png) |
-| Extension preview | ![ext](../../docs/applyflow/assets/06-applyflow-chrome-extension-preview.png) |
-
-Use **Options → Preview (captura)** for extension shots — no real LinkedIn DOM / API keys. Index: [`docs/applyflow/assets/README.md`](../../docs/applyflow/assets/README.md).
+Canonical asset names are listed in [`docs/applyflow/assets/README.md`](../../docs/applyflow/assets/README.md). Capture checklist: [`SCREENSHOTS_CHECKLIST.md`](../../docs/applyflow/SCREENSHOTS_CHECKLIST.md). Prefer demo/fictional data only.
 
 ---
 
-## Current Limitations
+## Documentation index
 
-- No exactly-once / all-or-nothing migration guarantee
-- Staging GC not implemented
-- Nango pilot is browser/device-scoped (not multi-device account Gmail)
-- Multi-replica behavior not established
-- Real Nango sandbox / dual-session Supabase isolation not part of the published case evidence
-- Dependency and operational hardening = **Production Readiness backlog**
-- **Production readiness is not claimed**
-
----
-
-## Engineering Case Status
-
-| | |
-|--|--|
-| **Engineering case** | **READY** |
-| **Production readiness** | **Not claimed** |
-
-Architecture ADRs, automated tests, and local PostgreSQL concurrency evidence support the engineering narrative. Shipping as operated Production SaaS is a separate backlog.
+| Doc | Purpose |
+|-----|---------|
+| [`docs/applyflow/README.md`](../../docs/applyflow/README.md) | Index |
+| [`PRODUCT_FLOW.md`](../../docs/applyflow/PRODUCT_FLOW.md) | End-to-end domain flow |
+| [`ARCHITECTURE.md`](../../docs/applyflow/ARCHITECTURE.md) | System design |
+| [`JOB_DISCOVERY.md`](../../docs/applyflow/JOB_DISCOVERY.md) | Providers, match, queue, readiness |
+| [`APPLICATION_LIFECYCLE.md`](../../docs/applyflow/APPLICATION_LIFECYCLE.md) | Lifecycle + Job sync |
+| [`PRIVACY_SECURITY.md`](../../docs/applyflow/PRIVACY_SECURITY.md) | Engineering privacy model |
+| [`TESTING.md`](../../docs/applyflow/TESTING.md) | Tests / E2E / CI |
+| [`PRODUCTION_READINESS.md`](../../docs/applyflow/PRODUCTION_READINESS.md) | Release gate |
+| [`CLOSED_BETA_RUNBOOK.md`](../../docs/applyflow/CLOSED_BETA_RUNBOOK.md) | Operator runbook |
+| [`BACKUP_RESTORE.md`](../../docs/applyflow/BACKUP_RESTORE.md) | Backup drill + cadence |
 
 ---
 
 ## Author
 
-**Gustavo Marques** · Senior Full Stack / Product Engineer · **DevFlow Labs**
-
-ApplyFlow lives in the DevFlow monorepo ([root README](../../README.md)): product ownership, architecture trade-offs, failure modes, and validation—not “another CRUD demo.”
+**Gustavo Marques** · DevFlow Labs · Monorepo: [root README](../../README.md)

@@ -6,13 +6,12 @@
 
 ## Career Suite — product & engineering case
 
-**One-liner:** Local-first career workflow — organize applications, review provider-derived signals, compose a typed `CareerBundle`, and hand off to Interview Lab — human-reviewed, no auto-apply.
-
-[![ApplyFlow dashboard — Career Suite demo](./docs/career-suite/assets/01-applyflow-dashboard.png)](docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md)
+**One-liner:** Local-first career workflow — discover and evaluate jobs, prepare applications, track lifecycle, and optionally hand off a typed `CareerBundle` to Interview Lab — human-reviewed, no auto-apply.
 
 | | |
 |--|--|
 | **ApplyFlow product README** | [`apps/applyflow/README.md`](apps/applyflow/README.md) |
+| **ApplyFlow docs index** | [`docs/applyflow/README.md`](docs/applyflow/README.md) |
 | **ApplyFlow engineering case** | [`docs/applyflow/APPLYFLOW_ENGINEERING_CASE.md`](docs/applyflow/APPLYFLOW_ENGINEERING_CASE.md) |
 | **Career Suite case** | [`docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md`](docs/career-suite/CAREER-SUITE-PRODUCT-AND-ARCHITECTURE-CASE.md) |
 | **Landing** | [`docs/career-suite/README.md`](docs/career-suite/README.md) |
@@ -20,7 +19,9 @@
 
 **Modules:** ApplyFlow · Interview Lab · `@devflow/career-core` · `@devflow/career-sync` · ApplyFlow Extension
 
-**Principles:** local-first default · human-in-the-loop · no auto-apply · LLM without product authority · Persistence V2 / Nango as **pilot** depth (see engineering case). **Production readiness is not claimed.**
+**ApplyFlow release status:** invite-only **10–50 user closed beta** (V2 pilot). **Public signup not approved.** See [`docs/applyflow/PRODUCTION_READINESS.md`](docs/applyflow/PRODUCTION_READINESS.md).
+
+**Principles:** local-first default · human-in-the-loop · no auto-apply · deterministic Match Engine (not LLM) · Persistence V2 as **pilot** depth.
 
 ```bash
 pnpm install

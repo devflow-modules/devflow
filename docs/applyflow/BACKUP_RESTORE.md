@@ -1,7 +1,9 @@
-# ApplyFlow Persistence V2 — Backup & Restore
+# ApplyFlow — Backup & Restore
 
-**Non-production drill and closed-beta runbook.**  
+**Non-production drill and closed-beta runbook.**
 Never commit dump files. Never target Production from local automation without explicit dual-confirm operator gates.
+
+Related: [`CLOSED_BETA_RUNBOOK.md`](./CLOSED_BETA_RUNBOOK.md) · [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md)
 
 ## Safety
 
@@ -90,7 +92,7 @@ One of the following must be true:
 
 **OR**
 
-**B.** This recurring manual backup process is accepted and executable  
+**B.** This recurring manual backup process is accepted and executable
 **AND** restore procedure has been proven (`pnpm backup:drill` or equivalent)
 
 Phase 9C proved restore mechanics locally. Phase 9D requires operational ownership.

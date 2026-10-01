@@ -1,94 +1,123 @@
-# Application Lifecycle (Phase 8)
+# Application Lifecycle
 
-## Canonical V2 state machine
+Canonical V2 application lifecycle for ApplyFlow.
 
-Authority lives in `@devflow/applyflow-core`:
-
-- `APPLICATION_LIFECYCLE_TRANSITIONS`
-- `canTransitionApplicationStatus`
-- `transitionApplicationStatus` (local: events + outcomes)
+Authority: `@devflow/applyflow-core` (`APPLICATION_LIFECYCLE_TRANSITIONS`, `canTransitionApplicationStatus`, `transitionApplicationStatus`).
 
 Do **not** add a second transition table in the app layer.
+
+Related: [`PRODUCT_FLOW.md`](./PRODUCT_FLOW.md) · [`ARCHITECTURE.md`](./ARCHITECTURE.md)
+
+---
+
+## Pipeline states (V2)
+
+| Status | Terminal? |
+|--------|-----------|
+| `found` | No |
+| `qualified` | No |
+| `applying` | No |
+| `skipped` | Yes |
+| `applied` | No |
+| `recruiter_contacted` | No |
+| `screening` | No |
+| `technical` | No |
+| `final` | No |
+| `offer` | No |
+| `hired` | Yes |
+| `rejected` | Yes |
+| `withdrawn` | Yes |
+
+Allowed edges are defined in `APPLICATION_LIFECYCLE_TRANSITIONS` (e.g. `applied → screening|technical|…`, `offer → hired|rejected|withdrawn`). Same-status is allowed (no-op).
+
+---
+
+## V1 ↔ V2 mapping
+
+Persisted Application rows use V1 funnel statuses; UI/pipeline uses V2.
+
+Reuse `toPipelineStatusV2` / `fromPipelineStatusV2` only.
+
+Lossy examples:
+
+- V2 `screening` and `final` both persist as V1 `interview`
+- V2 `offer` ↔ V1 `accepted`
+- V2 `found` / `qualified` / `applying` ↔ V1 `reviewing`
+
+---
 
 ## Local vs cloud
 
 | Concern | Local | Cloud / Persistence V2 |
-|--------|--------|-------------------------|
-| Transition legality | `canTransitionApplicationStatus` | Same helper (client) + `assertStatusTransition` in application service |
-| Persist Application | localStorage + analytics | Prefer `POST .../applications/:id/lifecycle` (transactional) |
-| Linked Job sync | `sourceJobId` → mapped V1 status | Same mapping inside the transaction when Job exists |
-| Career event timeline | Real `ApplicationCareerEvent` rows | **Not available** — no server event table |
-| Outcome timestamps | Real outcome fields | Cloud may expose `appliedAt` when the API has it |
+|---------|-------|-------------------------|
+| Transition legality | `canTransitionApplicationStatus` | Same + server `assertStatusTransition` |
+| Persist Application | localStorage + analytics | Prefer transactional lifecycle route |
+| Linked Job sync | `sourceJobId` → mapped status | Same mapping inside `$transaction` |
+| Career event timeline | Real local events possible | **Not available** on server |
+| OCC | N/A / local semantics | `expectedVersion` |
 
-Parity means **same domain rules**, not identical historical evidence.
+### Transactional cloud path
 
-## App ↔ Job transactional policy (Phase 9D)
-
-Canonical cloud path:
+`POST /api/applyflow/v2/applications/:id/lifecycle`
 
 1. Validate transition
-2. `$transaction`: OCC update Application → resolve linked Job by `sourceJobId` + account → OCC update Job status
+2. `$transaction`: OCC update Application → resolve linked Job by `sourceJobId` + account → OCC update Job
 3. Return `{ application, job, jobSynced }`
 
-Missing / foreign-tenant linked Job → Application commits, `jobSynced=false` (no cross-account mutation).
+Missing / foreign-tenant Job → Application may commit with `jobSynced=false`. Job OCC conflict rolls back the transaction (`version_conflict`) — no false full success.
 
-Job OCC conflict → whole transaction rolls back (`version_conflict`) — no false full success.
-
-Fallback two-step adapters still report `job_sync_incomplete` honestly when Job sync fails after Application success.
+---
 
 ## Concurrent transitions
 
-Optimistic concurrency (`expectedVersion`) serializes writers. Stale concurrent transitions fail with `version_conflict` — not last-write-wins.
+Optimistic concurrency serializes writers. Stale `expectedVersion` → `version_conflict` (not last-write-wins).
+
+---
 
 ## Job synchronization
 
-Primary link: `application.v2.sourceJobId`.
+Primary link: `application` ↔ `sourceJobId` / `v2.sourceJobId`.
 
 No company/title/URL fuzzy matching.
 
-If the linked Job is missing, the Application transition may still succeed; UI reports incomplete sync when applicable.
+---
 
 ## Mark sent
 
-Register → Application `reviewing` / Job `reviewing`  
-Mark sent → Application `applied` / Job `applied`  
-No duplicate Application.
+Register → Application reviewing-side · Job reviewing
+Mark sent → Application applied · Job applied
+No duplicate Application for the same `sourceJobId` (DB unique index when set).
+
+---
 
 ## History policy
 
-- If real events exist → render timeline
-- If not (typical cloud) → show current status only; do **not** synthesize events from `updatedAt` / status / notes
+- Real local events → may render timeline
+- Typical cloud → **current status only**
+- Do **not** synthesize a fake timeline from `updatedAt` / notes
 
 **Closed beta accepts:** current state reliable; historical transition timeline not server-authoritative.
 
+---
+
 ## Next-action guidance
 
-`deriveApplicationNextAction(...)` is **pure derived UI guidance**:
+`deriveApplicationNextAction(...)` is pure derived UI:
 
-- not persisted (`nextAction` / `nextActionAt` are not Application workflow fields)
-- not a task, reminder, or scheduler
-- never auto-transitions, never sends follow-up, never creates contacts
-- human decides whether to act
+- not persisted
+- not a task / reminder / calendar item
+- never auto-transitions or sends messages
 
-Note: `application.v2.nextActionAt` may exist for networking contacts metadata — it is **not** Phase 8 Application next-action guidance.
-
-## Date semantics
-
-- `createdAt` → “Registrada há X dias”
-- `updatedAt` → “Atualizada há X dias” / stale “Sem atualização há X dias”
-- `appliedAt` → “Aplicada há X dias” **only** when a real applied timestamp exists
-- Never label `updatedAt` as applied or as employer non-response
+---
 
 ## Privacy
 
-Zero provider requests for lifecycle transitions. No CV / notes / status / next-action leave the existing privacy boundary to Jobgether, TheirStack, or Remote OK.
+Lifecycle transitions make **zero** provider requests. CV/notes/status do not leave the privacy boundary to Jobgether / TheirStack / Remote OK.
+
+---
 
 ## Deferred
 
-- persisted nextAction / nextActionAt workflow
-- server lifecycle event history
-- automatic read-time mutation repair (detect/report only if added later)
-- reminders / cron / calendar
-- server-side lifecycle event history
-- Phase 9 analytics expansions
-- V1 enum expansion for lossless `final` vs `screening`
+- Persisted nextAction workflow fields
+- Server lifecycle event history table
+- Automatic repair mutations on page render

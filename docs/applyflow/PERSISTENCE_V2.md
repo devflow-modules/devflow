@@ -1,6 +1,8 @@
 # ApplyFlow Persistence V2
 
-**Status:** Migration implementation **COMPLETE** for the first Production pilot (see [`PERSISTENCE_V2_CLOSEOUT.md`](./PERSISTENCE_V2_CLOSEOUT.md)).  
+> Current **release** status: invite-only **10–50 closed beta** — [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md). This file is the V2 persistence deep reference.
+
+**Status:** Migration implementation **COMPLETE** for the first Production pilot (see [`PERSISTENCE_V2_CLOSEOUT.md`](./PERSISTENCE_V2_CLOSEOUT.md)).
 **Baseline:** authenticated pilot on `canonicalPersistence=v2_cloud` / `v2_active` with account-scoped `pilotEligible` and GLOBAL `APPLYFLOW_PERSISTENCE_V2`.
 
 ## Decisão de produto

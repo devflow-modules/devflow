@@ -1,112 +1,109 @@
-# ApplyFlow — Production Readiness (Closed Beta Gate)
+# ApplyFlow — Production Readiness
 
-**Status:** Phase 9D — 10–50 user closed beta operationalization.  
-**Not a claim of public signup or paid production readiness.**
+**Current approved release level:** invite-only **closed beta (10–50 users)** via V2 pilot gate.
 
-Related:
+**Not approved:** public signup · paid multi-tenant production SaaS.
 
-- [`CLOSED_BETA_RUNBOOK.md`](./CLOSED_BETA_RUNBOOK.md) — operator tasks
-- [`JOB_DISCOVERY.md`](./JOB_DISCOVERY.md) — discovery security / TheirStack cost safety
-- [`BACKUP_RESTORE.md`](./BACKUP_RESTORE.md) — backup drill + cadence
-- [`APPLICATION_LIFECYCLE.md`](./APPLICATION_LIFECYCLE.md) — App↔Job consistency
-- [`PERSISTENCE_V2_FIRST_PRODUCTION_PILOT_RUNBOOK.md`](./PERSISTENCE_V2_FIRST_PRODUCTION_PILOT_RUNBOOK.md) — pilot ops
+Related: [`CLOSED_BETA_RUNBOOK.md`](./CLOSED_BETA_RUNBOOK.md) · [`BACKUP_RESTORE.md`](./BACKUP_RESTORE.md) · [`TESTING.md`](./TESTING.md) · [`PRIVACY_SECURITY.md`](./PRIVACY_SECURITY.md)
 
-## Release classification
+---
+
+## Current release level
 
 | Cohort | Status |
 |--------|--------|
-| 2–5 trusted users | READY (local-first + ops baseline) |
-| 10–50 invite-only closed beta (V2/cloud) | Gate outcome of Phase 9D |
-| Public signup | NOT READY |
+| Local-first personal use | Supported |
+| Invite-only closed beta **10–50** (V2/cloud) | **APPROVED** (Phase 9D) |
+| Public signup / open beta | **NOT APPROVED** |
+| Paid production SaaS | **NOT APPROVED** |
 
-## Closed Beta Environment
+Conditions for 10–50 closed beta:
 
-| Control | Policy |
+- V2 pilot eligibility is server-authoritative
+- TheirStack **OFF** on shared hosted deploy
+- Operator-owned backup cadence (or verified managed PITR)
+- Error tracking DSN configured by operator before inviting (or accepted warn)
+- No public signup funnel
+
+---
+
+## Closed-beta controls
+
+| Control | Status |
 |---------|--------|
-| TheirStack | **OFF** on shared Vercel `production` / `preview` |
-| Search auth | Required when Supabase configured; E2E may force local-first via `APPLYFLOW_E2E_IGNORE_SUPABASE` (local/CI only) |
-| V2 cloud | `APPLYFLOW_PERSISTENCE_V2` + server `pilotEligible` + `canonicalPersistence` — not client-only |
-| Provider fixtures | `APPLYFLOW_E2E_PROVIDER_FIXTURES=1` only when E2E runtime gate is open |
-| E2E auth bypass | Signed cookie via `/api/applyflow/e2e/session` — refused when `VERCEL=1` or `VERCEL_ENV=production` |
-| Mutating Origin | Search + V2 mutating routes reuse centralized Origin allowlist |
+| Auth + server-derived account | Yes |
+| Tenant-scoped Jobs/Applications | Yes (+ V2 E2E) |
+| OCC (`expectedVersion`) | Yes |
+| Transactional App↔Job lifecycle | Yes (`…/lifecycle`) |
+| Origin allowlist (search + V2 mutations) | Yes |
+| Security headers baseline | Yes |
+| TheirStack shared disable | Yes |
+| Provider secrets server-only | Yes |
+| Error redaction | Yes |
+| E2E production-target guards | Yes |
+| Backup/restore drill (local) | Yes |
+| Broad CSRF tokens | Deferred |
+| Strict CSP | Deferred |
+| Self-service deletion | Deferred |
+| Managed PITR verified | Operator checklist only |
 
-## E2E
+---
 
-Local-first critical funnel:
+## Required operator configuration
 
-```bash
-cd apps/applyflow
-pnpm exec playwright install chromium
-pnpm test:e2e
-```
+Names only (never paste values into docs/issues):
 
-V2 cloud critical funnel (isolated Postgres required):
+| Variable | Role |
+|----------|------|
+| `DATABASE_URL` / `DIRECT_URL` | V2 Postgres (local Docker for drills) |
+| `APPLYFLOW_PERSISTENCE_V2` | Enable V2 mode |
+| `NEXT_PUBLIC_APPLYFLOW_URL` | Origin allowlist (required hosted) |
+| `APPLYFLOW_THEIRSTACK_ENABLED` | Must stay false/off on shared |
+| `THEIRSTACK_API_KEY` | Server-only; unused when disabled |
+| `APPLYFLOW_SENTRY_DSN` or `SENTRY_DSN` | Operator action for observability |
+| Supabase public + auth vars | Real user sessions |
 
-```bash
-pnpm db:up
-pnpm db:migrate
-pnpm test:e2e:v2
-```
+E2E-only (never on Vercel platform): `APPLYFLOW_E2E`, `APPLYFLOW_E2E_SECRET`, `APPLYFLOW_E2E_PROVIDER_FIXTURES`, `APPLYFLOW_E2E_IGNORE_SUPABASE`.
 
-Requirements:
+Preflight: `pnpm --filter applyflow beta:check`
 
-- Local base URL only (`127.0.0.1` / `localhost`) — config refuses remote hosts
-- Fixture providers — zero live Jobgether / Remote OK / TheirStack calls
-- Isolated from Production Supabase (`qygwhuwvilkekfkgoizb`)
-- V2 suite proves: Account A persistence across reload, Account B isolation, cross-tenant mutation blocked, pilot gate, TheirStack off
+---
 
-## Error Tracking
+## Known accepted risks (closed beta)
 
-Optional DSN: `APPLYFLOW_SENTRY_DSN` or `SENTRY_DSN`.
+- TheirStack unavailable on shared hosts (intentional)
+- No server-authoritative lifecycle event timeline
+- Resume/profile largely local-first even in V2
+- Manual backup ownership if PITR not verified
+- Process-local TheirStack quota is not multi-instance safe (when enabled personally)
+- Invite-only Origin/SameSite posture vs full CSRF tokens
 
-- Missing DSN: **OPERATOR ACTION REQUIRED** — app runs with no-op sink
-- Mock transport tests cover capture / redact / expected 4xx ignore
-- Release/environment: `VERCEL_GIT_COMMIT_SHA`, `VERCEL_ENV` / `NODE_ENV` when present
-- Expected product errors (401/403/409/422/429) generally not fatal captures
-- Unexpected 500 / uncaught exceptions should be captured
-- Messages with Authorization / cookie / resume / CV / DB URL fragments are redacted
+---
 
-## Security headers
+## Public beta blockers
 
-Baseline on ApplyFlow `next.config.ts` unchanged from Phase 9C:
+- Public signup / abuse controls
+- Broad CSRF (beyond Origin) and/or strict CSP as required by threat model
+- Self-service data deletion
+- Managed backup/PITR verified (or stronger automation)
+- Distributed TheirStack limiter **or** permanent product disable
+- Stronger observability (DSN + triage runbooks at scale)
+- Account lifecycle / support tooling
 
-- `X-Frame-Options: SAMEORIGIN`
-- `X-Content-Type-Options: nosniff`
-- `Referrer-Policy: strict-origin-when-cross-origin`
-- `Permissions-Policy` (camera/mic/geo disabled)
-- Minimal CSP: `frame-ancestors 'self'; base-uri 'self'` only
+---
 
-Strict CSP deferred to public beta.
+## Paid production blockers
 
-## CSRF Status
+All public-beta blockers, plus billing, SLAs, multi-region ops, formal compliance program (out of scope here), and production change management beyond closed-beta runbooks.
 
-- Origin allowlist on search + V2 mutating POST/PATCH (activate, migration, jobs, applications, lifecycle)
-- SameSite=Lax cookies for auth / E2E session
-- Broad token-based CSRF: **deferred to public beta** (invite-only risk accepted)
+---
 
-## App ↔ Job consistency
+## Validation baseline
 
-Server transactional lifecycle: `POST /api/applyflow/v2/applications/:id/lifecycle`.
+See [`TESTING.md`](./TESTING.md) — baseline SHA `5636feef`.
 
-Dashboard V2 adapter prefers this path. Residual two-step client path remains for non-atomic adapters and reports `job_sync_incomplete` honestly.
+---
 
-Cloud lifecycle **history** (event timeline) is still not server-authoritative.
+## Answer in one line
 
-## Known Closed Beta Limitations
-
-- No server lifecycle event history DB
-- No account/data deletion self-serve (operator process only)
-- TheirStack disabled on shared deploy
-- Limited mobile polish
-- No strict CSP
-- Managed PITR: operator verification required (not proven from repo alone)
-- Process-local TheirStack quota is **not** multi-instance cost safety
-- Public signup / billing / abuse controls deferred
-
-## Operator checklist
-
-```bash
-pnpm beta:check
-```
-
-See CLOSED_BETA_RUNBOOK.md for invite, backup, restore, rollback, deletion.
+**Yes — safely for invite-only 10–50 closed-beta users under the controls above. Not for public signup.**

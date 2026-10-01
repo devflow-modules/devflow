@@ -1,5 +1,8 @@
 # ApplyFlow — case study
 
+> **Release status (authoritative):** invite-only **10–50 user closed beta**. Public signup **not** approved.
+> Current entry: [`apps/applyflow/README.md`](../../apps/applyflow/README.md)
+
 **Nota de integridade:** este documento **não** declara utilizadores activos, receita, taxas de conversão nem adopção medida. Os “resultados” são **técnicos e demonstráveis** (código, testes, builds, documentação).
 
 ---
@@ -88,9 +91,9 @@ Diagrama e detalhes: [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 
 ## Fluxo do utilizador
 
-1. Configurar perfil (e opcionalmente IA) na extensão.  
-2. Abrir vaga Easy Apply; painel sugere e assiste o preenchimento.  
-3. Registar no histórico local; exportar JSON quando quiser métricas no dashboard.  
+1. Configurar perfil (e opcionalmente IA) na extensão.
+2. Abrir vaga Easy Apply; painel sugere e assiste o preenchimento.
+3. Registar no histórico local; exportar JSON quando quiser métricas no dashboard.
 4. Importar no site ApplyFlow ou carregar demo.
 
 ---

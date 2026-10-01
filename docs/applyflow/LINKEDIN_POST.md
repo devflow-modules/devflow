@@ -1,5 +1,7 @@
 # Posts ApplyFlow — LinkedIn e GitHub
 
+> **Release status (authoritative):** invite-only **10–50 user closed beta**. Prefer [`apps/applyflow/README.md`](../../apps/applyflow/README.md) for current claims.
+
 Materiais de lançamento público. **Não** afirmar Chrome Web Store, Production SaaS, utilizadores/receita, exactly-once, ou “Gmail da conta”.
 
 Deep link: [`APPLYFLOW_ENGINEERING_CASE.md`](./APPLYFLOW_ENGINEERING_CASE.md) · produto: [`apps/applyflow/README.md`](../../apps/applyflow/README.md)

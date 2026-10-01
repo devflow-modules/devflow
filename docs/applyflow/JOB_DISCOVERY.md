@@ -72,6 +72,20 @@ A search hit is not an `ApplyFlowJob`. Preview does not create an `ApplyFlowJob`
 
 The curriculum stays in the browser. Search request bodies contain only filter fields. The server does not score jobs and does not receive CV data.
 
+## Match Engine
+
+Deterministic, **local**, skill-coverage based. Single scoring authority in `@devflow/applyflow-core` (`evaluateJobMatch`).
+
+**Not an LLM / not “AI matching.”** Career LLM features elsewhere in the suite are separate and default-off.
+
+Output includes:
+
+- `score`
+- `decision` — `apply` | `stretch` | `needs_info` | `skip`
+- matched / missing / unknown skills
+
+Match result is **advisory**. User intent (save, ignore, register, mark sent, lifecycle) controls the product state machine.
+
 ## Match Preview
 
 - Browser/local only — reuses `ingestDiscoveredJobHit` → `ingestApplyFlowJob` → `evaluateJobMatch`
@@ -128,14 +142,14 @@ On the job analysis page (`/dashboard/jobs/[id]`), ApplyFlow shows a **derived**
 - **Known limitation:** TheirStack `directApplyUrl` is not persisted after save — only the listing URL remains
 - Zero provider requests; CV is not sent to providers
 
-## Application Lifecycle parity (Phase 8)
+## Application Lifecycle parity
 
 See [`APPLICATION_LIFECYCLE.md`](./APPLICATION_LIFECYCLE.md).
 
 - Local and cloud transitions share `canTransitionApplicationStatus`
-- Cloud updates also sync the linked Job via `sourceJobId` + `fromPipelineStatusV2`
+- Cloud prefers transactional `POST …/applications/:id/lifecycle` (App + linked Job)
 - Next-action guidance is derived-only (not persisted, not a task/reminder)
-- Cloud does not fabricate timeline events; local keeps real career events
+- Cloud does not fabricate timeline events; local may keep real career events
 - Applications table may show Remote OK attribution from the **linked job** (`job.source`), not from collapsed `application.source`
 
 ## Source, id, and URL semantics
@@ -241,9 +255,10 @@ Save reuses existing id / canonical URL / description hash:
 
 - Account shell (`/account`) exposes **Sair** via Supabase `signOut` → `/login`. No token display.
 
-### CSRF
+## CSRF / Origin
 
-- Broad CSRF hardening is deferred (Phase 9C). Search uses same-origin cookies; Origin validation reuse is out of scope for 9B.
+- Search and V2 mutating routes use a shared Origin allowlist helper
+- Broad CSRF **tokens** remain deferred to public beta (invite-only Origin + SameSite posture)
 
 ## TheirStack Cost Safety
 
@@ -260,11 +275,11 @@ Save reuses existing id / canonical URL / description hash:
 - TheirStack disabled on shared deploy by default (no distributed rate limiter yet)
 - Process-local quota is defense-in-depth only, not multi-instance cost control
 - TheirStack credit balance is not shown in product UI
-- No migration; no new SQL columns for provider metadata
 - Remote filters are geographic when the provider says so — remote ≠ worldwide
 - Remote OK catalog can include jobs older than 30 days; posted dates are preserved
 - A saved job is not refreshed if the remote listing changes
-- Remaining production gaps (deferred): CSRF broad hardening, data deletion, transactional App+Job sync, strict CSP, managed PITR proof, public signup readiness
+- Deferred to public beta: broader CSRF tokens, self-service deletion, strict CSP, managed PITR proof, public signup readiness
+- App↔Job cloud lifecycle is transactional on the V2 `…/lifecycle` path (legacy two-step adapters remain honest about partial failure)
 - Closed-beta ops: see [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md) and [`BACKUP_RESTORE.md`](./BACKUP_RESTORE.md)
 
 ## Environment

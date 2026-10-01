@@ -1,5 +1,8 @@
 # ApplyFlow — checklist de publicação
 
+> **Release status (authoritative):** invite-only **10–50 user closed beta**. Public signup **not** approved.
+> Prefer [`apps/applyflow/README.md`](../../apps/applyflow/README.md) and [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md).
+
 Usar antes de tornar um **repo**, **post**, **vídeo** ou **deploy** público visível a terceiros.
 
 ---
@@ -132,7 +135,7 @@ pnpm build
 **Observações**
 
 - **Segurança / grep:** sem API keys reais, `.env` commitado ou PII óbvia nos caminhos ApplyFlow revistos; demo JSON usa entidades fictícias (ex. Contoso). Chaves `sk-*` em testes são placeholders de Vitest.
-- **Alterações nesta revisão:** metadata em `apps/applyflow/src/app/layout.tsx` (marca DevFlow Labs + copy MVP); `docs/applyflow/PRODUCT_OVERVIEW.md` (marca na solução); `docs/applyflow/PUBLICATION_CHECKLIST.md` e `SCREENSHOTS_CHECKLIST.md` (tamanho do `05`); `apps/applyflow-extension/README.md` (privacidade job intelligence vs IA opt-in).
+- **Alterações nesta revisão:** metadata em `apps/applyflow/src/app/layout.tsx` (marca DevFlow Labs + copy MVP); product narrative now lives in `apps/applyflow/README.md` / `PRODUCT_FLOW.md` (former `PRODUCT_OVERVIEW.md` removed); `docs/applyflow/PUBLICATION_CHECKLIST.md` e `SCREENSHOTS_CHECKLIST.md` (tamanho do `05`); `apps/applyflow-extension/README.md` (privacidade job intelligence vs IA opt-in).
 - **Pendências reais antes de divulgação alargada** (checklist mestre acima): validação visual da **landing**; confirmação **demo JSON** / posts sem PII; **vídeo** opcional; decisão **repo público** / **deploy**; **revisão humana** ortografia/go-no-go.
 
 **Veredito**

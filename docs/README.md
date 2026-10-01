@@ -27,7 +27,7 @@ Outros apps no repositório (**ApplyFlow** como case de portfólio local-first, 
 | [**whatsapp/**](./whatsapp/) | Cloud API, webhooks, onboarding, visão de produto |
 | [**whatsapp-platform/**](./whatsapp-platform/) | Inbox multi-tenant (`apps/whatsapp-platform`) |
 | [**financeiro/**](./financeiro/) | App controle financeiro (`apps/financeiro` + módulo site) |
-| [**applyflow/**](./applyflow/) | ApplyFlow: dashboard local-first, extensão Chrome, arquitectura, publicação e screenshots |
+| [**applyflow/**](./applyflow/) | ApplyFlow: product flow, architecture, discovery, lifecycle, closed-beta ops — start at [applyflow/README.md](./applyflow/README.md) and [apps/applyflow/README.md](../apps/applyflow/README.md) |
 | [**career-suite/**](./career-suite/) | DevFlow Career Suite: ponte ApplyFlow ↔ Interview Lab (CareerBundle, privacidade, demo) |
 | [**public-cases/**](./public-cases/) | Cases públicos de portfólio (narrativa para recrutadores / LinkedIn) |
 | [**investigamais/**](./investigamais/) | Investiga+ (referência técnica; produto separado) |
@@ -116,11 +116,12 @@ Outros apps no repositório (**ApplyFlow** como case de portfólio local-first, 
 - [crm/README.md](./crm/README.md)
 - [financeiro/README.md](./financeiro/README.md)
 - [whatsapp/README.md](./whatsapp/README.md)
-- [applyflow/](./applyflow/) (índice em `docs/applyflow/` — ver também [ARCHITECTURE.md](./applyflow/ARCHITECTURE.md))
+- [applyflow/README.md](./applyflow/README.md) (índice ApplyFlow)
+- [apps/applyflow/README.md](../apps/applyflow/README.md) (entry point do produto)
+- [applyflow/PRODUCTION_READINESS.md](./applyflow/PRODUCTION_READINESS.md) (closed beta 10–50; public signup não aprovado)
+- [apps/applyflow-extension/README.md](../apps/applyflow-extension/README.md) (extensão Chrome MV3)
 - [career-suite/README.md](./career-suite/README.md) (ApplyFlow + Interview Lab, CareerBundle)
 - [DevFlow Career Suite — public case](./public-cases/CAREER-SUITE.md) (portfólio / LinkedIn / demo script)
-- [apps/applyflow/README.md](../apps/applyflow/README.md) (dashboard Next.js)
-- [apps/applyflow-extension/README.md](../apps/applyflow-extension/README.md) (extensão Chrome MV3)
 - [investigamais/README.md](./investigamais/README.md) (produto / app separado)
 - [shared/README.md](./shared/README.md)
 - [backlinks/README.md](./backlinks/README.md)

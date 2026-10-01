@@ -1,135 +1,118 @@
-# ApplyFlow — arquitetura
+# ApplyFlow — architecture
 
-## Componentes
+Current system design (not a chronological build log).
 
-| Caminho | Papel |
-|---------|--------|
-| `apps/applyflow-extension` | Extensão Chrome MV3: content script (IIFE), painel/UI, página de opções, service worker mínimo; estado em **`chrome.storage.local`**; export manual de JSON. |
-| `apps/applyflow` | Next.js 16 (App Router): landing (`/`), dashboard (`/dashboard`), índice **`/documentacao`**; import/demo; Recharts; **`localStorage`**. |
-| `packages/applyflow-core` | Perfil, fit, job intelligence, sugestões; **tipos de candidaturas**; **métricas**; **`parseApplyFlowImportJsonString`**; **filtros** do dashboard; camada aditiva **Career OS V2** (P0 Decision Engine + P1 Application Pack / networking local). Build **`dist/`** via `tsc` para consumo estável pelo Next. |
-| `packages/applyflow-linkedin` | Classificação/parser de campos **LinkedIn Easy Apply**; fixtures e testes; consumo principal pela extensão. |
+Entry: [`apps/applyflow/README.md`](../../apps/applyflow/README.md) · Flow: [`PRODUCT_FLOW.md`](./PRODUCT_FLOW.md)
 
-## Local-first by default
+---
 
-Decisão formal: [**ADR — Local-first vs Serverless**](./ADR-LOCAL_FIRST_VS_SERVERLESS.md).
+## Context diagram
 
-- A **extensão** persiste perfil, histórico, auditoria e definições em **`chrome.storage.local`** — sem servidor ApplyFlow no MVP.
-- O **dashboard** persiste o último conjunto importado ou demo em **`localStorage`** (`APPLYFLOW_DASHBOARD_IMPORT_V1`); os dados chegam por **ficheiro JSON** exportado pelo utilizador ou pela **demo** estática no mesmo host.
-- **Nenhum histórico de candidaturas** é enviado por defeito a um backend ApplyFlow; processamento do import é só no browser.
-- **IA** é **opt-in** no cliente (opções da extensão); não há “IA gerida” obrigatória nem gateway central no MVP.
-- **Serverless não é necessário** para entregar valor no MVP: métricas, funil e histórico funcionam offline do ponto de vista ApplyFlow.
+```text
+Browser
+ ├─ Resume / profile (local ResumeLibrary)
+ ├─ Discovery UI
+ ├─ Deterministic Match Engine (@devflow/applyflow-core)
+ ├─ Local-first Jobs / Applications (default)
+ └─ Optional V2 client adapter
+      └─ Next.js ApplyFlow API
+           ├─ Auth (Supabase session / E2E test-only gate)
+           ├─ Tenant-scoped repositories (accountId)
+           ├─ Provider adapters (Jobgether / Remote OK / TheirStack*)
+           └─ PostgreSQL (Prisma)
 
-> Local-first is a product and architecture decision, not a technical limitation.
-
-## Visão geral do fluxo (Mermaid)
-
-```mermaid
-flowchart TD
-  LinkedIn[LinkedIn Easy Apply]
-  Extension[applyflow-extension]
-  ChromeStorage[(chrome.storage.local)]
-  ExportJSON[Ficheiro JSON exportado]
-  Dashboard[applyflow dashboard Next.js]
-  LocalStorage[(localStorage browser)]
-  Core[@devflow/applyflow-core]
-  LinkedInPkg[@devflow/applyflow-linkedin]
-
-  LinkedIn --> Extension
-  Extension --> ChromeStorage
-  Extension --> ExportJSON
-  ExportJSON --> Dashboard
-  Dashboard --> LocalStorage
-  Core --> Extension
-  Core --> Dashboard
-  LinkedInPkg --> Extension
+* TheirStack disabled by default on shared Vercel hosts
 ```
 
-## Fluxo de dados (detalhe)
+Provider search path:
 
-- A extensão **não** envia o histórico ao dashboard por rede: o utilizador **exporta** um ficheiro e o dashboard **importa** localmente (ou usa a **demo** estática servida pelo próprio host Next).
-- O único `fetch` típico no dashboard é para **`/demo/applications-demo.json`** (asset em `public/demo/`), ou seja, mesmo origem que a app.
-- Pacotes **`applyflow-core`** e **`applyflow-linkedin`** centralizam regras e evitam duplicar lógica entre extensão e site.
-
-## Armazenamento
-
-| Chave / contexto | Conteúdo (exemplos) |
-|------------------|---------------------|
-| `chrome.storage.local` (extensão) | Perfil, definições, histórico de candidaturas, auditoria, IA opt-in. |
-| `localStorage` (`APPLYFLOW_DASHBOARD_IMPORT_V1`) | Último conjunto importado ou carregado como demo no web app. |
-| Ficheiro JSON | Backup portável; deve ser tratado como dado sensível se for real. |
-
-## JSON export/import
-
-- Formato validado no core (array de candidaturas ou envelope com versão); registos inválidos são **ignorados** com contagem.
-- O dashboard **não** persiste em servidor; apenas memória do browser + `localStorage`.
-
-## IA opt-in
-
-- Configuração na **página de opções** da extensão; chamadas no **cliente** com credencial fornecida pelo utilizador.
-- Não substitui o fluxo core quando desligada; texto gerado **não** entra no histórico de candidaturas como persistência de IA.
-
-## Boundaries de segurança
-
-| Área | Decisão |
-|------|---------|
-| Login LinkedIn | Mantido no site oficial; a extensão não simula login. |
-| CAPTCHA / gates da plataforma | Não são contornados. |
-| Submit / “Enviar candidatura” | **Não automatizado** pela extensão (*sem auto-submit*). |
-| Backend ApplyFlow | Inexistente neste desenho: não há ingestão central de PII. |
-| Dados importados no dashboard | Processamento só no browser; sem upload para APIs DevFlow. |
-
-## Por que local-first
-
-- Menor superfície de confiança: não há servidor ApplyFlow a armazenar histórico de candidaturas.
-- Coerência com **responsabilidade de plataforma** (LinkedIn): posicionamento explícito **contra** mass apply e submissão automática.
-- Demo e portefólio **sem conta** nem backend.
-
-## Optional serverless future
-
-Uma camada **cloud opcional** (Pro/sync/IA gerida) poderia existir **sem substituir** o modo local-first como narrativa por defeito. Visão exploratória: [`SERVERLESS_FUTURE.md`](./SERVERLESS_FUTURE.md).
-
-```mermaid
-flowchart TD
-  Extension[Chrome Extension]
-  LocalStorage[chrome.storage.local]
-  ExportJSON[JSON Export]
-  Dashboard[Local-first Dashboard]
-  BrowserStorage[localStorage]
-
-  Extension --> LocalStorage
-  Extension --> ExportJSON
-  ExportJSON --> Dashboard
-  Dashboard --> BrowserStorage
-
-  Extension -. future opt-in sync .-> API[Serverless API]
-  API -.-> DB[(PostgreSQL)]
-  API -.-> AIGateway[AI Gateway]
-  Dashboard -. future cloud mode .-> API
+```text
+Browser → POST /api/applyflow/job-sources/search
+       → Origin allowlist
+       → Auth / provider policy
+       → Adapter
+       → Provider network (or E2E fixtures)
+       → JobSearchHit (no CV in request)
 ```
 
-**Nota:** linhas tracejadas representam **roadmap opcional**, não componentes do MVP actual.
+---
 
-## Por que sem auto-submit
+## Packages and apps
 
-- Reduz risco de violação de termos e de fricção com recrutadores (qualidade vs. volume).
-- Mantém o utilizador **no controlo** da revisão final antes de cada envio.
-- Alinha o produto com “**copiloto**”, não com bot de candidatura.
+| Path | Role |
+|------|------|
+| `apps/applyflow` | Next.js product: dashboard, discovery, V2 API, ops scripts |
+| `apps/applyflow-extension` | Chrome MV3 Easy Apply assist (local storage; no auto-submit) |
+| `packages/applyflow-core` | Domain: match, lifecycle, readiness, types |
+| `packages/career-core` / `career-sync` | CareerBundle / sync contracts (suite bridge) |
+| `apps/interview-lab` | Downstream consumer of CareerBundle |
 
-## Career OS V2 (P0 + P1)
+Apps do not import other apps — only `packages/*`.
 
-Camada aditiva em `@devflow/applyflow-core`. Fit V1, Application Pack V1, JSON persistido V1, extensão e Interview Lab (CareerBundle `1.0`) continuam o caminho estável.
+---
 
-```
-Evidence → Claim Audit → Final Output
-Job Decision → Application Pack V2 → Networking local → Interview brief
-Raw outcomes → Metrics → Observed patterns → Insights → Human decision
-```
+## Local-first vs V2 / cloud
 
-Contactos e interacções ficam em `localStorage` (`APPLYFLOW_DASHBOARD_CONTACTS_V1`). Outcomes/eventos em `APPLYFLOW_DASHBOARD_ANALYTICS_V1`. Outcome usa `applicationId`; `v2.sourceJobId` só liga a vaga da inbox. No momento da candidatura persiste-se um snapshot imutável (fit, dimensões, decision, requisitos + status, resumeVariant, IDs de evidência/caso) — sem o pack V2 nem textos gerados. A fila de follow-up é determinística e **não envia** mensagens. UI experimental: `/dashboard/jobs/[id]` e `/dashboard/analytics`. Career OS V2 está em **FEATURE FREEZE** para dogfooding.
+### Local-first (default)
 
-Analytics é observacional. Não estabelece causalidade. Ver [`ANALYTICS_MODEL.md`](./ANALYTICS_MODEL.md).
+- Jobs/Applications in browser storage
+- Resume library in browser
+- Works without Postgres
+- Durability limited by the browser profile
 
-## Limites adicionais
+### V2 / cloud (pilot)
 
-- O content script só observa o DOM das páginas permitidas pela extensão; não “raspa” a rede agressivamente além do necessário ao Easy Apply.
-- Chave de API (IA) no dispositivo: risco se o equipamento estiver comprometido — documentar nas opções/`IA_OPT_IN.md`.
+- Requires `APPLYFLOW_PERSISTENCE_V2=true`
+- Server-derived account (`authProviderSub` → `ApplyFlowAccount`)
+- `pilotEligible` + `canonicalPersistence=v2_cloud` (activation / migration)
+- Jobs/Applications in PostgreSQL with composite ownership
+- OCC via `expectedVersion` on PATCH
+- Transactional lifecycle: `POST /api/applyflow/v2/applications/:id/lifecycle`
+- Resume/profile remain browser-local even when Jobs/Apps are cloud
+
+V2 is **not** “sync all local state.” It is an authenticated persistence mode for Jobs/Applications (and related account records).
+
+Deep reference: [`PERSISTENCE_V2.md`](./PERSISTENCE_V2.md).
+
+---
+
+## Auth and tenancy
+
+- Account identity is server-derived — never trust client `accountId`
+- Repositories scope by `accountId`
+- Cross-tenant reads/mutations return `not_found` (or capability denies) — proven in V2 E2E
+- E2E auth bypass: signed cookie only when fail-closed E2E runtime allows (never on `VERCEL=1` / production)
+
+---
+
+## Observability
+
+Optional `APPLYFLOW_SENTRY_DSN` / `SENTRY_DSN`. Missing DSN → no-op. Payloads redact cookies, Authorization, resume/CV fragments, DB URL fragments. Expected product 4xx are generally not fatal captures.
+
+---
+
+## Security controls (closed beta)
+
+- Origin allowlist on search + V2 mutating routes
+- Security headers baseline (frame, nosniff, referrer, permissions, minimal CSP)
+- Provider secrets server-only
+- TheirStack shared-disable without distributed limiter
+- Playwright refuses non-local base URLs
+- Prisma mutate scripts refuse non-local DB hosts (`db:migrate` force-local)
+
+Not claimed: “fully secure,” GDPR/LGPD compliance, encryption-at-rest guarantees beyond host defaults.
+
+---
+
+## ADRs (major)
+
+- [`ADR-LOCAL_FIRST_VS_SERVERLESS.md`](./ADR-LOCAL_FIRST_VS_SERVERLESS.md)
+- [`ADR-PERSISTENCE_V2_LOCAL_AND_CLOUD.md`](./ADR-PERSISTENCE_V2_LOCAL_AND_CLOUD.md)
+- [`ADR-PERSISTENCE_V2_PARTIAL_RESUMABLE_MIGRATION.md`](./ADR-PERSISTENCE_V2_PARTIAL_RESUMABLE_MIGRATION.md)
+- [`ADR-NANGO-BROWSER_SCOPED_PROVIDER_IDENTITY.md`](./ADR-NANGO-BROWSER_SCOPED_PROVIDER_IDENTITY.md)
+
+---
+
+## Related Career Suite paths
+
+Gmail/Calendar Nango, LibreChat, and controlled LLM boundaries live under `docs/career-suite/`. They are **adjacent** pilots — not the core Match Engine and not required for the discovery → lifecycle funnel.

@@ -1,8 +1,11 @@
 # ApplyFlow — case study (portfólio público)
 
-**ApplyFlow** is a **local-first** copiloto for **LinkedIn Easy Apply**: a **Chrome MV3** extension + **Next.js** dashboard. Default product data stays on the user’s device; the workflow is human-gated (**no auto-submit**, **no mass-apply**).
+> **Release status (authoritative):** invite-only **10–50 user closed beta**. Public signup **not** approved.
+> Prefer [`apps/applyflow/README.md`](../../apps/applyflow/README.md) and [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md) for current claims.
 
-This document is the **public product narrative**. For concurrency, migration, trust boundaries, and validation evidence, see [`APPLYFLOW_ENGINEERING_CASE.md`](./APPLYFLOW_ENGINEERING_CASE.md).
+**ApplyFlow** is a **local-first** career workflow (discovery → match → applications) with a **Chrome MV3** extension companion for LinkedIn Easy Apply assist. Default product data for resume/profile stays on the user’s device; the workflow is human-gated (**no auto-submit**, **no mass-apply**).
+
+This document is a **public product narrative** (may lag). For concurrency, migration, trust boundaries, and validation evidence, see [`APPLYFLOW_ENGINEERING_CASE.md`](./APPLYFLOW_ENGINEERING_CASE.md) and [`TESTING.md`](./TESTING.md).
 
 ---
 
