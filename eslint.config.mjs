@@ -33,6 +33,7 @@ const eslintConfig = defineConfig([
     /** ApplyFlow CommonJS tooling scripts (node:require). */
     "apps/applyflow/scripts/**/*.{cjs,mjs}",
     "apps/applyflow/playwright.config.cjs",
+    "apps/applyflow/playwright.v2.config.cjs",
   ]),
   // Boundary: no one may import from app packages (apps are not published).
   {

@@ -45,9 +45,9 @@ export function ApplyFlowSiteHeader({ signedIn }: { signedIn: boolean }) {
               <Link href="/" className={navLinkClass(pathname === "/")} aria-current={pathname === "/" ? "page" : undefined}>
                 Início
               </Link>
-              <a href="/#como-funciona" className={navLinkClass(false)}>
+              <Link href="/#como-funciona" className={navLinkClass(false)}>
                 Como funciona
-              </a>
+              </Link>
               {signedIn ? (
                 <Link
                   href="/dashboard"
