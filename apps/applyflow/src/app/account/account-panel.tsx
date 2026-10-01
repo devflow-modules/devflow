@@ -71,11 +71,26 @@ export function AccountPanel() {
     setSignOutError(null);
     setSigningOut(true);
     try {
-      const supabase = createSupabaseBrowserClient();
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        setSignOutError("Não foi possível terminar a sessão.");
-        return;
+      // Clear E2E session when present (no-op / 404 outside E2E runtime).
+      await fetch("/api/applyflow/e2e/session", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ action: "logout" }),
+      }).catch(() => null);
+
+      try {
+        const supabase = createSupabaseBrowserClient();
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          setSignOutError("Não foi possível terminar a sessão.");
+          return;
+        }
+      } catch {
+        // Supabase may be absent in local-first / E2E fixture mode.
       }
       router.replace("/login");
       router.refresh();

@@ -16,7 +16,9 @@
     "pilot:revoke": "tsx ./scripts/persistence-v2/pilot-cli.ts revoke",
     "start": "next start --port 3010",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test -c playwright.config.cjs",
+    "backup:drill": "node ./scripts/persistence-v2/backup-restore-drill.cjs"
   },
   "dependencies": {
     "@devflow/applyflow-core": "workspace:*",
@@ -42,6 +44,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "@playwright/test": "^1.51.0",
     "prisma": "^6.0.0",
     "tailwindcss": "^4",
     "tsx": "4.21.0",

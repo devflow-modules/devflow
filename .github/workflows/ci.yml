@@ -143,6 +143,19 @@ jobs:
       - name: Test ApplyFlow
         run: pnpm --filter applyflow test
 
+      - name: Install Playwright Chromium
+        run: pnpm --filter applyflow exec playwright install chromium --with-deps
+
+      - name: ApplyFlow critical E2E
+        working-directory: apps/applyflow
+        env:
+          APPLYFLOW_E2E: "1"
+          APPLYFLOW_E2E_SECRET: applyflow-e2e-ci-only-secret
+          APPLYFLOW_E2E_PROVIDER_FIXTURES: "1"
+          APPLYFLOW_E2E_IGNORE_SUPABASE: "1"
+          CI: "1"
+        run: pnpm test:e2e
+
   test-whatsapp:
     runs-on: ubuntu-latest
     timeout-minutes: 15

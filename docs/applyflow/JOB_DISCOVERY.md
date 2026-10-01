@@ -264,7 +264,8 @@ Save reuses existing id / canonical URL / description hash:
 - Remote filters are geographic when the provider says so — remote ≠ worldwide
 - Remote OK catalog can include jobs older than 30 days; posted dates are preserved
 - A saved job is not refreshed if the remote listing changes
-- Remaining production gaps (deferred): E2E, error tracking, backup drill, security headers, CSRF broad hardening, data deletion, transactional App+Job sync
+- Remaining production gaps (deferred): CSRF broad hardening, data deletion, transactional App+Job sync, strict CSP, managed PITR proof, public signup readiness
+- Closed-beta ops: see [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md) and [`BACKUP_RESTORE.md`](./BACKUP_RESTORE.md)
 
 ## Environment
 

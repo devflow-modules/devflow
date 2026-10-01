@@ -275,6 +275,7 @@ function ApplicationOutcomeCard({
                 variant="outlineBrand"
                 size="sm"
                 onClick={markApplicationSent}
+                data-testid="mark-application-sent"
                 className="w-fit rounded-md border-emerald-400/50 px-3 py-1 text-xs text-emerald-100"
               >
                 {JOB_DECISION_V2_MARK_SENT}
@@ -293,6 +294,7 @@ function ApplicationOutcomeCard({
             variant="outlineBrand"
             size="sm"
             disabled={!decision}
+            data-testid="register-application"
             onClick={createApplicationRecord}
             className="w-fit rounded-md border-emerald-400/50 px-3 py-1 text-xs text-emerald-100"
           >
@@ -323,6 +325,7 @@ function ApplicationOutcomeCard({
               size="sm"
               onClick={() => recordStatus(status)}
               disabled={!enabled}
+              data-testid={`lifecycle-${status}`}
               className="rounded-md border border-[color:var(--af-border)] px-2 py-1 text-xs text-[color:var(--af-text)] disabled:opacity-40"
             >
               {label}

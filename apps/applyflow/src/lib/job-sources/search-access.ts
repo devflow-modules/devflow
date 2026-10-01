@@ -1,5 +1,7 @@
 import { ApplyFlowAuthError, getAuthenticatedApplyFlowUser } from "@/lib/persistence-v2/auth/get-authenticated-user";
 import { resolveApplyFlowSupabasePublicConfig } from "@/lib/persistence-v2/env";
+import { isApplyFlowE2ERuntimeAllowed } from "@/lib/e2e/runtime-guard";
+import { readE2ESessionAuthSub } from "@/lib/e2e/session";
 
 import { isTheirStackSearchEnabled } from "./theirstack-access";
 import type { JobSourceErrorCode, JobSourceId } from "./types";
@@ -13,13 +15,20 @@ export type JobSearchAccessDecision =
   | { ok: false; error: Extract<JobSourceErrorCode, "auth_required" | "provider_not_available" | "provider_not_configured"> };
 
 /**
- * Resolves authoritative search caller from the Supabase session.
+ * Resolves authoritative search caller from the Supabase session (or E2E session when gated).
  * Never reads accountId/userId from the request body.
  */
 export async function resolveJobSearchCaller(): Promise<
   | { ok: true; caller: JobSearchCaller }
   | { ok: false; error: "auth_required" | "auth_not_configured" }
 > {
+  if (isApplyFlowE2ERuntimeAllowed()) {
+    const e2eSub = await readE2ESessionAuthSub();
+    if (e2eSub) {
+      return { ok: true, caller: { kind: "authenticated", authProviderSub: e2eSub } };
+    }
+  }
+
   if (!resolveApplyFlowSupabasePublicConfig()) {
     return { ok: true, caller: { kind: "anonymous_local", reason: "auth_not_configured" } };
   }

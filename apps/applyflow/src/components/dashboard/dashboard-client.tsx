@@ -1594,6 +1594,7 @@ export function DashboardClient({
               size="md"
               disabled={demoLoading}
               className="w-full min-w-[180px] sm:w-auto"
+              data-testid="load-demo"
               onClick={() => void loadDemo()}
             >
               {demoLoading ? "A carregar demo…" : "Carregar demo"}

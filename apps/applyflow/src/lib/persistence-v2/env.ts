@@ -30,6 +30,15 @@ export function resolveApplyFlowSupabasePublicConfig(
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   },
 ): ApplyFlowSupabasePublicConfig | null {
+  // E2E local/CI may force local-first auth isolation even if developer .env.local has Supabase.
+  // Fail-closed: never on real Vercel platform (VERCEL=1) or Vercel production env.
+  const e2eIgnore =
+    process.env.APPLYFLOW_E2E === "1" &&
+    process.env.APPLYFLOW_E2E_IGNORE_SUPABASE === "1" &&
+    process.env.VERCEL !== "1" &&
+    process.env.VERCEL_ENV !== "production";
+  if (e2eIgnore) return null;
+
   const url = env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const publishableKey = resolveSupabasePublishableKey(env);
   if (!url || !publishableKey) return null;

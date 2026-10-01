@@ -9,10 +9,13 @@ const LOCAL_HTTP_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 const LOCAL_DEVELOPMENT_ORIGINS = [
   "http://localhost",
   "http://localhost:3010",
+  "http://localhost:3011",
   "http://127.0.0.1",
   "http://127.0.0.1:3010",
+  "http://127.0.0.1:3011",
   "http://[::1]",
   "http://[::1]:3010",
+  "http://[::1]:3011",
 ] as const;
 
 export type NangoRequestGuardReason =

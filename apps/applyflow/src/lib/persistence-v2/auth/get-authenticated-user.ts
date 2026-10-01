@@ -1,4 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { readE2ESessionAuthSub } from "@/lib/e2e/session";
+import { isApplyFlowE2ERuntimeAllowed } from "@/lib/e2e/runtime-guard";
 
 import { resolveApplyFlowSupabasePublicConfig } from "../env";
 
@@ -19,8 +21,17 @@ export class ApplyFlowAuthError extends Error {
 /**
  * Resolves the authenticated Supabase user from the server session (cookies).
  * Never accepts user id from the client.
+ *
+ * E2E-only signed session is accepted solely when the fail-closed E2E runtime gate is open.
  */
 export async function getAuthenticatedApplyFlowUser(): Promise<AuthenticatedApplyFlowUser> {
+  if (isApplyFlowE2ERuntimeAllowed()) {
+    const e2eSub = await readE2ESessionAuthSub();
+    if (e2eSub) {
+      return { authProviderSub: e2eSub, email: "e2e@applyflow.local" };
+    }
+  }
+
   if (!resolveApplyFlowSupabasePublicConfig()) {
     throw new ApplyFlowAuthError("auth_not_configured", "Supabase auth is not configured.");
   }

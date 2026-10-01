@@ -31,7 +31,8 @@ const eslintConfig = defineConfig([
     /** Local Python venv (security-audit charts); never lint vendor JS. */
     "**/.venv/**",
     /** ApplyFlow CommonJS tooling scripts (node:require). */
-    "apps/applyflow/scripts/**/*.cjs",
+    "apps/applyflow/scripts/**/*.{cjs,mjs}",
+    "apps/applyflow/playwright.config.cjs",
   ]),
   // Boundary: no one may import from app packages (apps are not published).
   {

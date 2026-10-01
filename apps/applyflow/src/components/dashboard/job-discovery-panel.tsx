@@ -384,6 +384,7 @@ export function JobDiscoveryHitCard({
             variant="primary"
             size="sm"
             disabled={!matchAvailable || saving}
+            data-testid="discovery-save"
             onClick={() => {
               if (!onSave) return;
               setSaving(true);
@@ -620,6 +621,7 @@ export function JobDiscoveryPanel({
                 type="radio"
                 name="job-source-provider"
                 className="mt-1"
+                data-testid="discovery-provider-jobgether"
                 checked={draft.provider === "jobgether"}
                 onChange={() => {
                   setDraft((current) => ({ ...current, ...resetProviderDraft("jobgether") }));
@@ -638,6 +640,7 @@ export function JobDiscoveryPanel({
                 type="radio"
                 name="job-source-provider"
                 className="mt-1"
+                data-testid="discovery-provider-theirstack"
                 checked={draft.provider === "theirstack"}
                 onChange={() => {
                   setDraft((current) => ({ ...current, ...resetProviderDraft("theirstack") }));
@@ -656,6 +659,7 @@ export function JobDiscoveryPanel({
                 type="radio"
                 name="job-source-provider"
                 className="mt-1"
+                data-testid="discovery-provider-remoteok"
                 checked={draft.provider === "remoteok"}
                 onChange={() => {
                   setDraft((current) => ({ ...current, ...resetProviderDraft("remoteok") }));
@@ -802,13 +806,13 @@ export function JobDiscoveryPanel({
           </label>
         </div>
         <div>
-          <ApplyFlowButton type="submit" variant="primary" size="md" disabled={loading}>
+          <ApplyFlowButton type="submit" variant="primary" size="md" disabled={loading} data-testid="discovery-search">
             {loading ? JOB_DISCOVERY_LOADING : JOB_DISCOVERY_SEARCH}
           </ApplyFlowButton>
         </div>
       </form>
       {error ? (
-        <p className="mt-3 text-sm text-red-200" role="alert">
+        <p className="mt-3 text-sm text-red-200" role="alert" data-testid="discovery-error">
           {error}
           {errorCode === "auth_required" ? (
             <>
