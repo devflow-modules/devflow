@@ -189,9 +189,11 @@ export {
   statusFromJobMatchDecision,
 } from "./job-match-thresholds.js";
 export {
+  APPLYFLOW_JOB_SOURCES,
   CURRICULUM_ROUTER_CONFIDENCE,
   CURRICULUM_ROUTER_DELTA_BANDS_V1,
   CURRICULUM_ROUTER_VERSION,
+  JOB_MATCH_DECISIONS,
   JOB_MATCH_SCORING_VERSION,
 } from "./job-match-types.js";
 export type {
@@ -228,6 +230,18 @@ export {
   reevaluateApplyFlowJobs,
 } from "./ingest-applyflow-job.js";
 export type { IngestApplyFlowJobInput } from "./ingest-applyflow-job.js";
+export {
+  INITIAL_SAVED_JOB_STATUS,
+  countOpportunityQueueViews,
+  filterJobsByQueueView,
+  filterOpportunityJobs,
+  ignoreApplyFlowJob,
+  isActiveOpportunityJob,
+  restoreApplyFlowJobToQueue,
+  selectOpportunityQueueJobs,
+  sortOpportunityJobs,
+} from "./opportunity-queue.js";
+export type { OpportunityQueueSort, OpportunityQueueView } from "./opportunity-queue.js";
 export { mergeApplyFlowJobs } from "./merge-applyflow-jobs.js";
 export { canonicalizeJobUrl, findJobByCanonicalUrl } from "./job-url-identity.js";
 export {

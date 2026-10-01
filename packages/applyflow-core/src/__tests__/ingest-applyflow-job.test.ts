@@ -10,10 +10,13 @@ import {
   createApplyFlowJobId,
   ingestApplyFlowJob,
   projectJobForFunnel,
+  reevaluateApplyFlowJobMatch,
   reevaluateApplyFlowJobs,
 } from "../ingest-applyflow-job.js";
 import { extractJobIntelligence } from "../job-intelligence.js";
 import { evaluateJobMatch } from "../evaluate-job-match.js";
+import { ignoreApplyFlowJob } from "../opportunity-queue.js";
+import { markApplyFlowJobApplied } from "../application-pack.js";
 
 const NOW = new Date("2026-08-13T12:00:00.000Z");
 
@@ -86,7 +89,7 @@ describe("ingestApplyFlowJob", () => {
     expect(stretchJob.jobMatch.decision).toBe("stretch");
     expect(stretchJob.status).toBe("reviewing");
     expect(skipJob.jobMatch.decision).toBe("skip");
-    expect(skipJob.status).toBe("ignored");
+    expect(skipJob.status).toBe("reviewing");
 
     for (const job of [applyJob, stretchJob, skipJob]) {
       expect(job.descriptionSnapshot?.length ?? 0).toBeLessThanOrEqual(JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS);
@@ -181,5 +184,71 @@ describe("ingestApplyFlowJob", () => {
       id: "job_ro_funnel",
     });
     expect(projectJobForFunnel(job).source).toBe("paste");
+  });
+
+  it("preserves user status on reevaluation (reviewing stays reviewing under skip)", () => {
+    const reviewing = ingestApplyFlowJob({
+      description: APPLY_POSTING,
+      source: "paste",
+      profile: gustavoProfile,
+      now: NOW,
+      id: "job_agency_review",
+    });
+    const forcedSkipMatch = {
+      ...reviewing,
+      descriptionSnapshot: SKIP_POSTING,
+      jobContext: { ...reviewing.jobContext, skills: extractJobIntelligence(SKIP_POSTING).detectedSkills },
+    };
+    const refreshed = reevaluateApplyFlowJobMatch(forcedSkipMatch, gustavoProfile, undefined, NOW);
+    expect(refreshed.jobMatch.decision).toBe("skip");
+    expect(refreshed.status).toBe("reviewing");
+  });
+
+  it("preserves ignored status when reevaluation would recommend apply", () => {
+    const applyJob = ingestApplyFlowJob({
+      description: APPLY_POSTING,
+      source: "paste",
+      profile: gustavoProfile,
+      now: NOW,
+      id: "job_agency_ignored",
+    });
+    const ignored = ignoreApplyFlowJob(applyJob, NOW);
+    expect(ignored.status).toBe("ignored");
+    const refreshed = reevaluateApplyFlowJobMatch(ignored, gustavoProfile, undefined, NOW);
+    expect(refreshed.jobMatch.decision).toBe("apply");
+    expect(refreshed.status).toBe("ignored");
+  });
+
+  it("preserves applied status on reevaluation", () => {
+    const job = markApplyFlowJobApplied(
+      ingestApplyFlowJob({
+        description: APPLY_POSTING,
+        source: "paste",
+        profile: gustavoProfile,
+        now: NOW,
+        id: "job_agency_applied",
+      }),
+      NOW,
+    );
+    expect(job.status).toBe("applied");
+    const refreshed = reevaluateApplyFlowJobMatch(job, gustavoProfile, undefined, NOW);
+    expect(refreshed.status).toBe("applied");
+  });
+
+  it("loads historical ignored+skip records without coercing to reviewing", () => {
+    const historical = {
+      ...ingestApplyFlowJob({
+        description: SKIP_POSTING,
+        source: "paste",
+        profile: gustavoProfile,
+        now: NOW,
+        id: "job_historical_ignored",
+      }),
+      status: "ignored" as const,
+    };
+    expect(historical.jobMatch.decision).toBe("skip");
+    expect(historical.status).toBe("ignored");
+    const refreshed = reevaluateApplyFlowJobMatch(historical, gustavoProfile, undefined, NOW);
+    expect(refreshed.status).toBe("ignored");
   });
 });

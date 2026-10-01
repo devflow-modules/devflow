@@ -16,8 +16,8 @@ describe("decideJobMatchV1", () => {
   });
 });
 
-describe("statusFromJobMatchDecision", () => {
-  it("APPLY/STRETCH → reviewing e SKIP → ignored", () => {
+describe("statusFromJobMatchDecision (legacy mapping)", () => {
+  it("documents historical skip→ignored mapping; not used for new user-saved jobs", () => {
     expect(statusFromJobMatchDecision("apply")).toBe("reviewing");
     expect(statusFromJobMatchDecision("stretch")).toBe("reviewing");
     expect(statusFromJobMatchDecision("skip")).toBe("ignored");

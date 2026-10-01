@@ -81,6 +81,32 @@ The curriculum stays in the browser. Search request bodies contain only filter f
 - CV/profile changes (default variant id / `updatedAt`) invalidate preview state
 - Remoto OK attribution and TheirStack `directApplyUrl` semantics are unchanged
 
+## Opportunity Queue
+
+Saved jobs form a **derived** pre-application opportunity queue — not a Shortlist entity, not a new status, and not a second Kanban.
+
+- **Active queue** = `ApplyFlowJob` with `status === "reviewing"`
+- **Todas** = all persisted jobs
+- **Ignoradas** = `status === "ignored"`
+- Membership uses **user intent status**, never `jobMatch.decision`
+- Explicit **Guardar e analisar** / paste evaluate enters the queue as `reviewing`
+- Match Preview never enters the queue and never auto-saves
+- Match Engine recommendation stays in `jobMatch` (score / decision / skills)
+- Newly saved jobs always start as `reviewing`, even when `jobMatch.decision === "skip"`
+- **Ignorar** sets `ignored` without deleting the job
+- **Voltar à fila** restores `ignored` → `reviewing` without recomputing match
+- Reevaluation updates match evidence only — it does **not** override user status
+- Applied / terminal jobs leave the active queue but remain in **Todas**
+- Sorting: Maior aderência | Mais recentes (loaded saved jobs only)
+- Filters: match decision + source (persisted fields only)
+- No priority field, notes, reminders, or DB migration
+- Queue actions make **no** provider requests and do not send CV data
+- Application creation remains the existing analysis → `createApplicationFromJob` path
+
+### Historical compatibility
+
+Jobs already persisted as `ignored` (including older algorithm-mapped `skip → ignored`) are **not** auto-reclassified. They stay under **Ignoradas** until the user restores them.
+
 ## Source, id, and URL semantics
 
 | Provider   | `source`       | Deterministic id   |

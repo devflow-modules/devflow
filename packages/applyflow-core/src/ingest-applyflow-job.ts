@@ -5,12 +5,12 @@ import type { CandidateProfile } from "./profile-schema.js";
 import { extractJobIntelligence } from "./job-intelligence.js";
 import { evaluateJobMatch } from "./evaluate-job-match.js";
 import { hashJobDescription, snapshotJobDescription } from "./job-description-snapshot.js";
-import { statusFromJobMatchDecision } from "./job-match-thresholds.js";
 import type {
   ApplyFlowJob,
   ApplyFlowJobEvaluatedWith,
   ApplyFlowJobSource,
 } from "./job-match-types.js";
+import { INITIAL_SAVED_JOB_STATUS } from "./opportunity-queue.js";
 import { getDefaultResumeVariant } from "./resume-library.js";
 import type { ResumeLibrary } from "./resume-library-types.js";
 
@@ -85,7 +85,8 @@ export function ingestApplyFlowJob(input: IngestApplyFlowJobInput): ApplyFlowJob
     location: optionalText(input.location, 200),
     url: optionalText(input.url, 500),
     source: input.source,
-    status: statusFromJobMatchDecision(jobMatch.decision),
+    /** User-intent status: explicit save always starts reviewing; Match decision stays in jobMatch. */
+    status: INITIAL_SAVED_JOB_STATUS,
     jobContext: {
       seniority: intel.seniority === "unknown" ? undefined : intel.seniority,
       employmentType: intel.contractType === "unknown" ? undefined : intel.contractType,
@@ -101,14 +102,6 @@ export function ingestApplyFlowJob(input: IngestApplyFlowJobInput): ApplyFlowJob
     updatedAt: iso,
   };
 }
-
-const TERMINAL_JOB_STATUSES = new Set<ApplyFlowApplication["status"]>([
-  "applied",
-  "interview",
-  "technical_test",
-  "rejected",
-  "accepted",
-]);
 
 export function isJobMatchStale(job: ApplyFlowJob, library?: ResumeLibrary | null): boolean {
   if (!library || library.variants.length === 0) return false;
@@ -138,14 +131,14 @@ export function reevaluateApplyFlowJobMatch(
   const jobMatch = evaluateJobMatch(evalProfile, skills, { now });
   const curriculumRecommendation =
     library && library.variants.length >= 2 ? recommendCurriculum(skills, library, { now }) : job.curriculumRecommendation;
-  const status = TERMINAL_JOB_STATUSES.has(job.status) ? job.status : statusFromJobMatchDecision(jobMatch.decision);
+  /** Preserve user-intent status — reevaluation must never auto-ignore or restore. */
+  const status = job.status;
   const skillsUnchanged =
     detectedSkills.length === job.jobContext.skills.length &&
     detectedSkills.every((item, index) => item === job.jobContext.skills[index]);
   const sameDecision =
     job.jobMatch.score === jobMatch.score &&
     job.jobMatch.decision === jobMatch.decision &&
-    job.status === status &&
     skillsUnchanged &&
     job.evaluatedWith?.variantId === evaluatedWith?.variantId &&
     job.evaluatedWith?.variantName === evaluatedWith?.variantName;

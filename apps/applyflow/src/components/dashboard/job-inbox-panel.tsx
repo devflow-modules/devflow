@@ -50,6 +50,24 @@ import {
   JOB_INBOX_AT_APPLY_ANALYSIS,
   JOB_INBOX_CURRENT_ANALYSIS,
   JOB_MATCH_DECISION_LABELS,
+  JOB_QUEUE_EMPTY_ACTIVE,
+  JOB_QUEUE_EMPTY_FILTERED,
+  JOB_QUEUE_EMPTY_IGNORED,
+  JOB_QUEUE_FILTER_ALL,
+  JOB_QUEUE_FILTER_DECISION,
+  JOB_QUEUE_FILTER_SOURCE,
+  JOB_QUEUE_HISTORICAL_NOTE,
+  JOB_QUEUE_IGNORE_LABEL,
+  JOB_QUEUE_OPEN_SOURCE_LABEL,
+  JOB_QUEUE_RESTORE_LABEL,
+  JOB_QUEUE_SORT_LABEL,
+  JOB_QUEUE_SORT_MATCH,
+  JOB_QUEUE_SORT_RECENCY,
+  JOB_QUEUE_SOURCE_LABELS,
+  JOB_QUEUE_VIEW_ACTIVE,
+  JOB_QUEUE_VIEW_ALL,
+  JOB_QUEUE_VIEW_IGNORED,
+  JOB_QUEUE_VIEW_LABEL,
   curriculumRouterAdvantageLabel,
   curriculumRouterDivergenceLabel,
   curriculumRouterHeading,
@@ -57,23 +75,31 @@ import {
 } from "@/components/dashboard/job-inbox-content";
 import {
   APPLYFLOW_APPLICATION_STATUS_LABELS_PT,
+  APPLYFLOW_JOB_SOURCES,
   analysisAtApplyFromOutcome,
   canCreateApplicationPack,
+  countOpportunityQueueViews,
   findApplicationForJob,
   getDefaultResumeVariant,
   isJobMatchStale,
+  JOB_MATCH_DECISIONS,
   presentInboxJobAnalysis,
   findJobByCanonicalUrl,
   isOpenableJobUrl,
   resolveApplicationPackResume,
+  selectOpportunityQueueJobs,
   type ApplicationPack,
   type ApplicationPackChecklistId,
   type ApplyFlowApplicationV2Envelope,
   type ApplyFlowJob,
+  type ApplyFlowJobSource,
   type CurriculumRecommendation,
+  type JobMatchDecision,
+  type OpportunityQueueSort,
+  type OpportunityQueueView,
   type ResumeLibrary,
 } from "@devflow/applyflow-core";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { JOB_DECISION_V2_LABELS } from "@/components/dashboard/job-decision-v2-content";
@@ -455,6 +481,8 @@ function JobInboxCard({
   onTogglePackChecklist,
   onMarkJobApplied,
   onReevaluateJob,
+  onIgnoreJob,
+  onRestoreJob,
 }: {
   job: ApplyFlowJob;
   applications?: readonly ApplyFlowApplicationV2Envelope[];
@@ -463,6 +491,8 @@ function JobInboxCard({
   onTogglePackChecklist?: (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => void;
   onMarkJobApplied?: (jobId: string) => void;
   onReevaluateJob?: (jobId: string) => void;
+  onIgnoreJob?: (jobId: string) => void;
+  onRestoreJob?: (jobId: string) => void;
 }) {
   const analysis = presentInboxJobAnalysis(
     job,
@@ -491,9 +521,10 @@ function JobInboxCard({
         canCreateApplicationPack(job, resumeLibrary) &&
         !job.applicationPack,
     );
+  const sourceOpenable = isOpenableJobUrl(job.url);
 
   return (
-    <ApplyFlowCard padding="md">
+    <ApplyFlowCard padding="md" data-testid={`job-inbox-card-${job.id}`}>
       <div className="flex flex-wrap items-center gap-2">
         <ApplyFlowBadge tone={jobMatchDecisionTone(analysis.decision)}>
           {JOB_MATCH_DECISION_LABELS[analysis.decision]}
@@ -510,7 +541,7 @@ function JobInboxCard({
           {analysis.score}/100
         </span>
       </div>
-      {job.source === "remoteok" && isOpenableJobUrl(job.url) ? (
+      {job.source === "remoteok" && sourceOpenable ? (
         <p className="mt-2 text-xs text-[color:var(--af-text-muted)]">
           <a
             href={job.url}
@@ -555,9 +586,39 @@ function JobInboxCard({
         <Link href={jobAnalysisPath(job.id)} className={applyFlowButtonClass({ variant: "primary", size: "sm" })}>
           {JOB_DECISION_V2_LINK}
         </Link>
+        {sourceOpenable && job.url ? (
+          <a
+            href={job.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={applyFlowButtonClass({ variant: "secondary", size: "sm" })}
+          >
+            {JOB_QUEUE_OPEN_SOURCE_LABEL}
+          </a>
+        ) : null}
         {onReevaluateJob && isJobMatchStale(job, resumeLibrary) ? (
           <ApplyFlowButton variant="secondary" size="sm" onClick={() => onReevaluateJob(job.id)}>
             {JOB_INBOX_REEVALUATE_LABEL}
+          </ApplyFlowButton>
+        ) : null}
+        {job.status === "reviewing" && onIgnoreJob ? (
+          <ApplyFlowButton
+            variant="secondary"
+            size="sm"
+            data-testid={`job-queue-ignore-${job.id}`}
+            onClick={() => onIgnoreJob(job.id)}
+          >
+            {JOB_QUEUE_IGNORE_LABEL}
+          </ApplyFlowButton>
+        ) : null}
+        {job.status === "ignored" && onRestoreJob ? (
+          <ApplyFlowButton
+            variant="secondary"
+            size="sm"
+            data-testid={`job-queue-restore-${job.id}`}
+            onClick={() => onRestoreJob(job.id)}
+          >
+            {JOB_QUEUE_RESTORE_LABEL}
           </ApplyFlowButton>
         ) : null}
       </p>
@@ -594,6 +655,8 @@ export function JobInboxPanel({
   onTogglePackChecklist,
   onMarkJobApplied,
   onReevaluateJob,
+  onIgnoreJob,
+  onRestoreJob,
   applications,
 }: {
   jobs: ApplyFlowJob[];
@@ -612,6 +675,8 @@ export function JobInboxPanel({
   onTogglePackChecklist?: (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => void;
   onMarkJobApplied?: (jobId: string) => void;
   onReevaluateJob?: (jobId: string) => void;
+  onIgnoreJob?: (jobId: string) => void;
+  onRestoreJob?: (jobId: string) => void;
   applications?: readonly ApplyFlowApplicationV2Envelope[];
 }) {
   const [description, setDescription] = useState("");
@@ -619,6 +684,35 @@ export function JobInboxPanel({
   const [company, setCompany] = useState("");
   const [url, setUrl] = useState("");
   const [duplicateJob, setDuplicateJob] = useState<ApplyFlowJob | null>(null);
+  const [queueView, setQueueView] = useState<OpportunityQueueView>("active");
+  const [queueSort, setQueueSort] = useState<OpportunityQueueSort>("match");
+  const [decisionFilter, setDecisionFilter] = useState<JobMatchDecision | "all">("all");
+  const [sourceFilter, setSourceFilter] = useState<ApplyFlowJobSource | "all">("all");
+
+  const queueCounts = useMemo(() => countOpportunityQueueViews(jobs), [jobs]);
+  const visibleJobs = useMemo(
+    () =>
+      selectOpportunityQueueJobs(jobs, {
+        view: queueView,
+        sort: queueSort,
+        decision: decisionFilter,
+        source: sourceFilter,
+      }),
+    [jobs, queueView, queueSort, decisionFilter, sourceFilter],
+  );
+
+  const emptyMessage =
+    visibleJobs.length === 0
+      ? jobs.length === 0
+        ? null
+        : decisionFilter !== "all" || sourceFilter !== "all"
+          ? JOB_QUEUE_EMPTY_FILTERED
+          : queueView === "ignored"
+            ? JOB_QUEUE_EMPTY_IGNORED
+            : queueView === "active"
+              ? JOB_QUEUE_EMPTY_ACTIVE
+              : JOB_QUEUE_EMPTY_FILTERED
+      : null;
 
   return (
     <ApplyFlowSection
@@ -719,21 +813,115 @@ export function JobInboxPanel({
       ) : null}
 
       {jobs.length > 0 ? (
-        <ul className="mt-5 grid gap-3">
-          {jobs.map((job) => (
-            <li key={job.id}>
-              <JobInboxCard
-                job={job}
-                resumeLibrary={resumeLibrary}
-                onCreateApplicationPack={onCreateApplicationPack}
-                onTogglePackChecklist={onTogglePackChecklist}
-                onMarkJobApplied={onMarkJobApplied}
-                onReevaluateJob={onReevaluateJob}
-                applications={applications}
-              />
-            </li>
-          ))}
-        </ul>
+        <div className="mt-5 grid gap-3" data-testid="job-opportunity-queue">
+          <div
+            role="tablist"
+            aria-label={JOB_QUEUE_VIEW_LABEL}
+            className="flex flex-wrap gap-2"
+          >
+            {(
+              [
+                ["active", JOB_QUEUE_VIEW_ACTIVE, queueCounts.active],
+                ["all", JOB_QUEUE_VIEW_ALL, queueCounts.all],
+                ["ignored", JOB_QUEUE_VIEW_IGNORED, queueCounts.ignored],
+              ] as const
+            ).map(([view, label, count]) => {
+              const selected = queueView === view;
+              return (
+                <button
+                  key={view}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  data-testid={`job-queue-view-${view}`}
+                  className={applyFlowButtonClass({
+                    variant: selected ? "primary" : "secondary",
+                    size: "sm",
+                  })}
+                  onClick={() => setQueueView(view)}
+                >
+                  {label} ({count})
+                </button>
+              );
+            })}
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
+              {JOB_QUEUE_SORT_LABEL}
+              <select
+                className={fieldClass}
+                value={queueSort}
+                data-testid="job-queue-sort"
+                onChange={(event) => setQueueSort(event.target.value as OpportunityQueueSort)}
+              >
+                <option value="match">{JOB_QUEUE_SORT_MATCH}</option>
+                <option value="recency">{JOB_QUEUE_SORT_RECENCY}</option>
+              </select>
+            </label>
+            <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
+              {JOB_QUEUE_FILTER_DECISION}
+              <select
+                className={fieldClass}
+                value={decisionFilter}
+                data-testid="job-queue-filter-decision"
+                onChange={(event) =>
+                  setDecisionFilter(event.target.value as JobMatchDecision | "all")
+                }
+              >
+                <option value="all">{JOB_QUEUE_FILTER_ALL}</option>
+                {JOB_MATCH_DECISIONS.map((decision) => (
+                  <option key={decision} value={decision}>
+                    {JOB_MATCH_DECISION_LABELS[decision]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-1.5 text-sm text-[color:var(--af-text)]">
+              {JOB_QUEUE_FILTER_SOURCE}
+              <select
+                className={fieldClass}
+                value={sourceFilter}
+                data-testid="job-queue-filter-source"
+                onChange={(event) =>
+                  setSourceFilter(event.target.value as ApplyFlowJobSource | "all")
+                }
+              >
+                <option value="all">{JOB_QUEUE_FILTER_ALL}</option>
+                {APPLYFLOW_JOB_SOURCES.map((source) => (
+                  <option key={source} value={source}>
+                    {JOB_QUEUE_SOURCE_LABELS[source] ?? source}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          {queueView === "ignored" ? (
+            <p className="text-xs text-[color:var(--af-text-muted)]">{JOB_QUEUE_HISTORICAL_NOTE}</p>
+          ) : null}
+          {emptyMessage ? (
+            <p className="text-sm text-[color:var(--af-text-muted)]" data-testid="job-queue-empty">
+              {emptyMessage}
+            </p>
+          ) : (
+            <ul className="grid gap-3">
+              {visibleJobs.map((job) => (
+                <li key={job.id}>
+                  <JobInboxCard
+                    job={job}
+                    resumeLibrary={resumeLibrary}
+                    onCreateApplicationPack={onCreateApplicationPack}
+                    onTogglePackChecklist={onTogglePackChecklist}
+                    onMarkJobApplied={onMarkJobApplied}
+                    onReevaluateJob={onReevaluateJob}
+                    onIgnoreJob={onIgnoreJob}
+                    onRestoreJob={onRestoreJob}
+                    applications={applications}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       ) : null}
     </ApplyFlowSection>
   );

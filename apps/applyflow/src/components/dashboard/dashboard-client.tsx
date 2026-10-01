@@ -62,6 +62,8 @@ import {
   findApplicationForJob,
   markApplyFlowJobApplied,
   replaceApplyFlowJob,
+  ignoreApplyFlowJob,
+  restoreApplyFlowJobToQueue,
   setApplicationPackChecklistItem,
   addResumeVariant,
   updateResumeVariant,
@@ -753,6 +755,24 @@ export function DashboardClient({
     [replaceJob],
   );
 
+  const onIgnoreJob = useCallback(
+    (jobId: string) => {
+      const job = jobsRef.current.find((item) => item.id === jobId);
+      if (!job || job.status !== "reviewing") return;
+      replaceJob(ignoreApplyFlowJob(job));
+    },
+    [replaceJob],
+  );
+
+  const onRestoreJob = useCallback(
+    (jobId: string) => {
+      const job = jobsRef.current.find((item) => item.id === jobId);
+      if (!job || job.status !== "ignored") return;
+      replaceJob(restoreApplyFlowJobToQueue(job));
+    },
+    [replaceJob],
+  );
+
   const onCreateApplicationPack = useCallback((jobId: string, variantId?: string) => {
     const library = resumeLibraryRef.current;
     const job = jobsRef.current.find((item) => item.id === jobId);
@@ -1202,6 +1222,8 @@ export function DashboardClient({
         onTogglePackChecklist={onTogglePackChecklist}
         onMarkJobApplied={onMarkJobApplied}
         onReevaluateJob={onReevaluateJob}
+        onIgnoreJob={onIgnoreJob}
+        onRestoreJob={onRestoreJob}
         applications={applications}
       />
 

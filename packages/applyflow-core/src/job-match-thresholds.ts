@@ -28,7 +28,12 @@ export function decideJobMatchV1WithCoverage(input: {
   return scored;
 }
 
-/** APPLY/STRETCH/NEEDS_INFO enter the funnel as reviewing; SKIP as ignored. */
+/**
+ * Legacy mapping of Match decision → status (skip → ignored).
+ * Kept for historical callers/tests only.
+ * User-saved jobs use `INITIAL_SAVED_JOB_STATUS` (`reviewing`) and explicit ignore/restore.
+ * Do not use this for new ingest or reevaluation.
+ */
 export function statusFromJobMatchDecision(
   decision: JobMatchDecision,
 ): "reviewing" | "ignored" {

@@ -144,6 +144,34 @@ export const JOB_INBOX_INCOMPLETE_HINT = "Complete seu perfil para concluir a an
 export const JOB_INBOX_AT_APPLY_ANALYSIS = "Análise no envio";
 export const JOB_INBOX_CURRENT_ANALYSIS = "Análise atual";
 
+export const JOB_QUEUE_VIEW_LABEL = "Fila de oportunidades";
+export const JOB_QUEUE_VIEW_ACTIVE = "Fila ativa";
+export const JOB_QUEUE_VIEW_ALL = "Todas";
+export const JOB_QUEUE_VIEW_IGNORED = "Ignoradas";
+export const JOB_QUEUE_SORT_LABEL = "Ordenar";
+export const JOB_QUEUE_SORT_MATCH = "Maior aderência";
+export const JOB_QUEUE_SORT_RECENCY = "Mais recentes";
+export const JOB_QUEUE_FILTER_DECISION = "Recomendação";
+export const JOB_QUEUE_FILTER_SOURCE = "Fonte";
+export const JOB_QUEUE_FILTER_ALL = "Todas";
+export const JOB_QUEUE_EMPTY_ACTIVE = "Nenhuma vaga na fila ativa. Guarda uma oportunidade a partir da busca ou do anúncio colado.";
+export const JOB_QUEUE_EMPTY_IGNORED = "Nenhuma vaga ignorada.";
+export const JOB_QUEUE_EMPTY_FILTERED = "Nenhuma vaga com estes filtros.";
+export const JOB_QUEUE_IGNORE_LABEL = "Ignorar";
+export const JOB_QUEUE_RESTORE_LABEL = "Voltar à fila";
+export const JOB_QUEUE_OPEN_SOURCE_LABEL = "Abrir anúncio";
+export const JOB_QUEUE_HISTORICAL_NOTE =
+  "Vagas ignoradas antigas (antes da fila) permanecem em Ignoradas até as restaurares.";
+
+export const JOB_QUEUE_SOURCE_LABELS: Record<string, string> = {
+  jobgether: "Jobgether",
+  theirstack: "TheirStack",
+  remoteok: "Remote OK",
+  paste: "Colado",
+  linkedin: "LinkedIn",
+  json: "JSON",
+};
+
 export const JOB_MATCH_DECISION_LABELS: Record<JobMatchDecision, string> = {
   apply: "APPLY",
   stretch: "STRETCH",

@@ -14,10 +14,19 @@ import {
   CURRICULUM_ROUTER_SKIP_HINT,
   CURRICULUM_ROUTER_TITLE,
   JOB_DECISION_V2_LINK,
+  JOB_DISCOVERY_SOURCE_REMOTEOK,
   JOB_INBOX_NEEDS_RESUME,
+  JOB_INBOX_STALE_LABEL,
   JOB_INBOX_SUBMIT_LABEL,
   JOB_INBOX_TITLE,
   JOB_MATCH_DECISION_LABELS,
+  JOB_QUEUE_EMPTY_ACTIVE,
+  JOB_QUEUE_IGNORE_LABEL,
+  JOB_QUEUE_RESTORE_LABEL,
+  JOB_QUEUE_SORT_MATCH,
+  JOB_QUEUE_VIEW_ACTIVE,
+  JOB_QUEUE_VIEW_ALL,
+  JOB_QUEUE_VIEW_IGNORED,
   jobMatchDecisionTone,
 } from "./job-inbox-content";
 import {
@@ -88,7 +97,7 @@ const routedJob: ApplyFlowJob = {
 const skipRoutedJob: ApplyFlowJob = {
   ...stretchJob,
   id: "job_skip_routed",
-  status: "ignored",
+  status: "reviewing",
   jobMatch: {
     ...stretchJob.jobMatch,
     score: 33,
@@ -104,6 +113,48 @@ const skipRoutedJob: ApplyFlowJob = {
       { ...recommendation.candidates[0]!, score: 33, decision: "skip" },
       { ...recommendation.candidates[1]!, score: 0, decision: "skip" },
     ],
+  },
+};
+
+const ignoredJob: ApplyFlowJob = {
+  ...stretchJob,
+  id: "job_ignored",
+  status: "ignored",
+  title: "Ignored Role",
+  jobMatch: {
+    ...stretchJob.jobMatch,
+    score: 20,
+    decision: "skip",
+  },
+};
+
+const appliedJob: ApplyFlowJob = {
+  ...stretchJob,
+  id: "job_applied",
+  status: "applied",
+  title: "Applied Role",
+  jobMatch: {
+    ...stretchJob.jobMatch,
+    score: 95,
+    decision: "apply",
+  },
+};
+
+const remoteOkJob: ApplyFlowJob = {
+  ...stretchJob,
+  id: "job_ro_1",
+  source: "remoteok",
+  url: "https://remoteok.com/remote-jobs/1",
+  title: "Remote Engineer",
+};
+
+const staleJob: ApplyFlowJob = {
+  ...stretchJob,
+  id: "job_stale",
+  evaluatedWith: { variantId: "rv_old", variantName: "Old" },
+  jobMatch: {
+    ...stretchJob.jobMatch,
+    evaluatedAt: "2026-01-01T00:00:00.000Z",
   },
 };
 
@@ -294,5 +345,77 @@ describe("JobInboxPanel", () => {
     expect(html).toContain('target="_blank"');
     expect(html).toContain('rel="noopener noreferrer"');
     expect(html).toContain("Marcar como aplicada");
+  });
+});
+
+describe("JobInboxPanel opportunity queue", () => {
+  const mixed = [stretchJob, ignoredJob, appliedJob, skipRoutedJob, remoteOkJob];
+
+  it("defaults to active queue with counts and hides ignored/applied", () => {
+    const html = renderToStaticMarkup(
+      <JobInboxPanel jobs={mixed} error={null} onEvaluatePaste={() => undefined} />,
+    );
+    expect(html).toContain(`${JOB_QUEUE_VIEW_ACTIVE} (3)`);
+    expect(html).toContain(`${JOB_QUEUE_VIEW_ALL} (5)`);
+    expect(html).toContain(`${JOB_QUEUE_VIEW_IGNORED} (1)`);
+    expect(html).toContain(JOB_QUEUE_SORT_MATCH);
+    expect(html).toContain("Backend Engineer");
+    expect(html).toContain("Remote Engineer");
+    expect(html).not.toContain("Ignored Role");
+    expect(html).not.toContain("Applied Role");
+    expect(html).not.toContain(JOB_QUEUE_EMPTY_ACTIVE);
+  });
+
+  it("shows ignore action on active cards", () => {
+    const html = renderToStaticMarkup(
+      <JobInboxPanel
+        jobs={[stretchJob]}
+        error={null}
+        onEvaluatePaste={() => undefined}
+        onIgnoreJob={() => undefined}
+        onRestoreJob={() => undefined}
+      />,
+    );
+    expect(html).toContain(JOB_QUEUE_IGNORE_LABEL);
+    expect(html).toContain(`job-queue-ignore-${stretchJob.id}`);
+    expect(html).not.toContain(JOB_QUEUE_RESTORE_LABEL);
+  });
+
+  it("preserves Remote OK attribution on active queue cards", () => {
+    const html = renderToStaticMarkup(
+      <JobInboxPanel jobs={[remoteOkJob]} error={null} onEvaluatePaste={() => undefined} />,
+    );
+    expect(html).toContain(JOB_DISCOVERY_SOURCE_REMOTEOK);
+    expect(html).toContain('data-testid="remoteok-saved-attribution"');
+    expect(html).toContain("https://remoteok.com/remote-jobs/1");
+    expect(html).not.toContain("nofollow");
+  });
+
+  it("keeps stale badge when match is outdated", () => {
+    const library = twoVariantLibrary();
+    const html = renderToStaticMarkup(
+      <JobInboxPanel
+        jobs={[staleJob]}
+        error={null}
+        resumeLibrary={library}
+        onEvaluatePaste={() => undefined}
+        onReevaluateJob={() => undefined}
+      />,
+    );
+    expect(html).toContain(JOB_INBOX_STALE_LABEL);
+  });
+
+  it("keeps skip recommendation visible while status is reviewing", () => {
+    const html = renderToStaticMarkup(
+      <JobInboxPanel
+        jobs={[skipRoutedJob]}
+        error={null}
+        onEvaluatePaste={() => undefined}
+        onIgnoreJob={() => undefined}
+      />,
+    );
+    expect(html).toContain(JOB_MATCH_DECISION_LABELS.skip);
+    expect(html).toContain("Revisando");
+    expect(html).toContain(JOB_QUEUE_IGNORE_LABEL);
   });
 });

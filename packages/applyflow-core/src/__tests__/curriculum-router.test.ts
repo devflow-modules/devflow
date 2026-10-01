@@ -377,7 +377,7 @@ describe("recommendCurriculum", () => {
       id: "job_skip",
     });
     expect(job.jobMatch.decision).toBe("skip");
-    expect(job.status).toBe("ignored");
+    expect(job.status).toBe("reviewing");
     expect(job.curriculumRecommendation).toBeDefined();
     expect(job.curriculumRecommendation?.recommendedVariantId).toBeTruthy();
   });
