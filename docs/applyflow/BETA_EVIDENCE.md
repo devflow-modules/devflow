@@ -2,7 +2,34 @@
 
 **Do not fabricate metrics.** Leave fields blank until measured.
 
-**No Cohort 1 invite metrics yet** (Phase 12C production release only).
+**No Cohort 1 invite metrics yet** (Phase 12D dual-account Production smoke complete; invites still paused).
+
+---
+
+## Phase 12D — dual-account Production tenant isolation smoke
+
+| Field | Value |
+|-------|-------|
+| Date (UTC) | 2026-10-02 |
+| Production SHA | `18cf6620` |
+| Repository | `main` @ `3413caba` (docs evidence commit follows) |
+| Two-account smoke | **PASS** |
+| Non-pilot gate | **PASS** — authenticated Account B received `403 persistence_v2_not_eligible` on V2 Jobs/Applications before grant |
+| Cross-tenant Job read | **404** `not_found` — no Account A fields |
+| Cross-tenant Application read | **404** `not_found` — no Account A fields |
+| Cross-tenant Job mutation | **404** `not_found` — mutation did not succeed |
+| Cross-tenant Application mutation | **404** `not_found` — mutation did not succeed |
+| Account A integrity after denials | **PASS** — applied Job/Application + Northstar reviewing unchanged |
+| Session isolation | **PASS** — Account B lists empty; no stale A company/role/ids |
+| Unexpected Production errors | none observed in operator log sample |
+| Sentry | Production DSN set; privacy posture unchanged from Phase 12B |
+| TheirStack | SHARED OFF / not configured on Production (`provider_not_configured`) |
+| Backup retained | YES — pre-deploy dump + checksum still present locally |
+| `beta:check --strict` | WARN tooling/operator evidence mismatch (local env ≠ Production Sensitive) — P3 |
+| Deployments this phase | NONE |
+| Migrations this phase | NONE |
+| Pilot accounts | keep two dedicated operator smoke accounts (A + B) |
+| Cohort invites | **NOT started** |
 
 ---
 
@@ -42,7 +69,7 @@
 | Dashboard / Discover / Opportunities / Applications / Analytics / Account | HTTP 200; no crash shell |
 | Discovery UI | PASS — providers + manual paste; TheirStack option present but shared OFF |
 | Cloud persistence banner | Observed on authenticated/cloud session in operator browser |
-| Two-account Production tenant probe | **DEFERRED** — no Account B credentials in session; covered by V2 E2E |
+| Two-account Production tenant probe | **PASS** — see Phase 12D |
 
 ### Rollback
 
@@ -92,7 +119,7 @@
 | Incidents | |
 | P0 count | 0 (this release) |
 | P1 count | 0 systemic (this release) |
-| Cross-tenant issues | none observed; Production dual-account deferred |
+| Cross-tenant issues | none — Production dual-account smoke PASS (Phase 12D) |
 | Provider cost anomalies | none (TheirStack OFF; no paid search in smoke) |
 
 ---
@@ -104,7 +131,7 @@
 | User friction themes | |
 | Validated value | |
 | Rejected assumptions | |
-| Next product decisions | Phase 13 cohort invites after dual-account Production smoke if desired |
+| Next product decisions | Phase 13 cohort invites may proceed under closed-beta controls |
 
 ---
 
@@ -112,7 +139,7 @@
 
 | Option | Chosen? |
 |--------|---------|
-| Continue closed beta | pending Phase 13 |
-| Pause invites | **YES** until cohort checklist |
+| Continue closed beta | **YES** — dual-account gate PASS |
+| Pause invites | until explicit Cohort 1 checklist (gate no longer blocked on tenant smoke) |
 | Iterate product | |
 | Block public signup (expected until separate audit) | **YES** |
