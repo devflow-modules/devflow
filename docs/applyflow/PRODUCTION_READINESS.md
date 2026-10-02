@@ -25,6 +25,8 @@ Conditions for 10–50 closed beta:
 - Error tracking DSN configured by operator before inviting (or accepted warn)
 - No public signup funnel
 
+**Production baseline (Phase 12C):** SHA `18cf6620` on `devflow-applyflow` (2026-10-02 UTC). Pre-deploy logical backup validated. Cohort invites remain Phase 13.
+
 ---
 
 ## Closed-beta controls

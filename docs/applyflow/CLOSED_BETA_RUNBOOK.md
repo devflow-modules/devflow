@@ -82,15 +82,15 @@ Production mutations require explicit dual gates (`--production` + host fingerpr
 
 ## Deploy checklist
 
-- [ ] Vitest green (core + applyflow)
-- [ ] `pnpm test:e2e` green
-- [ ] `pnpm test:e2e:v2` green (isolated Postgres)
-- [ ] TheirStack OFF
-- [ ] `pnpm beta:check` acceptable
-- [ ] Backup confirmed
-- [ ] Pilot accounts explicit
-- [ ] Commit SHA noted
-- [ ] Rollback target known
+- [x] Vitest green (core + applyflow) — pre-release gates
+- [x] `pnpm test:e2e` green
+- [x] `pnpm test:e2e:v2` green (isolated Postgres)
+- [x] TheirStack OFF
+- [x] `pnpm beta:check` acceptable (strict still warns backup cadence by design on `18cf6620`; pre-deploy dump validated separately)
+- [x] Backup confirmed (Phase 12C pre-deploy custom dump + SHA-256)
+- [ ] Pilot accounts explicit (Cohort 1 — Phase 13)
+- [x] Commit SHA noted — Production `18cf6620`
+- [x] Rollback target known — `d9e88981`
 
 ---
 
