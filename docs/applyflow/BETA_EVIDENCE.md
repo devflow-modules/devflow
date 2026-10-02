@@ -2,7 +2,25 @@
 
 **Do not fabricate metrics.** Leave fields blank until measured.
 
-**No Cohort 1 invite metrics yet** (Phase 12D dual-account Production smoke complete; invites still paused).
+**No Cohort 1 invite metrics yet** (Phase 13 opened; wave-1 invites not yet executed).
+
+---
+
+## Phase 13 — Cohort 1 kickoff (operator)
+
+| Field | Value |
+|-------|-------|
+| Opened (UTC) | 2026-10-02 |
+| Production SHA (frozen) | `18cf6620` |
+| Repository `main` | `569255f3` pushed to `origin/main` (docs only; **not** promoted to Production) |
+| Wave 1 target | 5 real users (expand toward 10 only if P0=0 / no systemic P1) |
+| Real Cohort invites | **0** |
+| Activated Cohort users | **0** |
+| Operator smoke accounts | 2 pilots + 1 non-cohort row (not Cohort evidence) |
+| Invite log | [`COHORT1_OPERATOR_LOG.md`](./COHORT1_OPERATOR_LOG.md) |
+| Feature development | none (observe first) |
+| TheirStack | SHARED OFF |
+| Decision | invites **authorized**; evidence collection **not started** |
 
 ---
 
@@ -80,12 +98,12 @@
 
 ---
 
-## Meta (Cohort 1 — blank until Phase 13)
+## Meta (Cohort 1)
 
 | Field | Value |
 |-------|-------|
 | Beta baseline SHA | `18cf6620` |
-| Period (UTC) | |
+| Period (UTC) | opened 2026-10-02 — **in progress** |
 | Operator | |
 | Environment | Production `devflow-applyflow` |
 
@@ -95,9 +113,9 @@
 
 | Field | Value |
 |-------|-------|
-| Invited users | |
-| Activated V2 pilots | |
-| Active users (definition: ) | |
+| Invited users | 0 |
+| Activated V2 pilots | 0 (cohort); 2 operator smoke only |
+| Active users (definition: completed ≥1 meaningful action) | 0 |
 
 ---
 
@@ -140,6 +158,6 @@
 | Option | Chosen? |
 |--------|---------|
 | Continue closed beta | **YES** — dual-account gate PASS |
-| Pause invites | until explicit Cohort 1 checklist (gate no longer blocked on tenant smoke) |
-| Iterate product | |
+| Pause invites | **NO** — Cohort 1 wave 1 authorized; execute via operator log |
+| Iterate product | **NO** until observed friction (default) |
 | Block public signup (expected until separate audit) | **YES** |

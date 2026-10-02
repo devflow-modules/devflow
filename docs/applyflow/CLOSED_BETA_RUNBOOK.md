@@ -88,7 +88,7 @@ Production mutations require explicit dual gates (`--production` + host fingerpr
 - [x] TheirStack OFF
 - [x] `pnpm beta:check` acceptable (strict still warns backup cadence by design on `18cf6620`; pre-deploy dump validated separately)
 - [x] Backup confirmed (Phase 12C pre-deploy custom dump + SHA-256)
-- [ ] Pilot accounts explicit (Cohort 1 — Phase 13)
+- [ ] Pilot accounts explicit (Cohort 1 — Phase 13 wave 1; see `COHORT1_OPERATOR_LOG.md`)
 - [x] Commit SHA noted — Production `18cf6620`
 - [x] Rollback target known — `d9e88981`
 
