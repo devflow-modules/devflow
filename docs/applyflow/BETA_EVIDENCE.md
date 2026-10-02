@@ -2,7 +2,7 @@
 
 **Do not fabricate metrics.** Leave fields blank until measured.
 
-**No Cohort 1 invite metrics yet** (Phase 13 opened; wave-1 invites not yet executed).
+**No Cohort 1 invite metrics yet** (Phase 13A recruitment pack ready; operator must contact participants).
 
 ---
 
@@ -12,15 +12,18 @@
 |-------|-------|
 | Opened (UTC) | 2026-10-02 |
 | Production SHA (frozen) | `18cf6620` |
-| Repository `main` | `569255f3` pushed to `origin/main` (docs only; **not** promoted to Production) |
-| Wave 1 target | 5 real users (expand toward 10 only if P0=0 / no systemic P1) |
+| Repository `main` | docs commits on `main` only (**not** promoted to Production) |
+| Wave 1 target | 5 real users (`BETA-01`…`BETA-05`) |
+| Recruitment copy (WhatsApp / LinkedIn / follow-up) | READY in [`COHORT1_OPERATOR_LOG.md`](./COHORT1_OPERATOR_LOG.md) |
+| Outreach sent | operator-manual only (agent did not send) |
+| People contacted / Interested / Accepted | **0 / 0 / 0** |
 | Real Cohort invites | **0** |
 | Activated Cohort users | **0** |
-| Operator smoke accounts | 2 pilots + 1 non-cohort row (not Cohort evidence) |
-| Invite log | [`COHORT1_OPERATOR_LOG.md`](./COHORT1_OPERATOR_LOG.md) |
-| Feature development | none (observe first) |
+| First sessions observed | **0** |
+| Operator smoke accounts | excluded from cohort counts |
+| Feature development | none |
 | TheirStack | SHARED OFF |
-| Decision | invites **authorized**; evidence collection **not started** |
+| Decision | recruitment **ready** — operator contacts candidates next |
 
 ---
 
