@@ -87,7 +87,15 @@ Deep reference: [`PERSISTENCE_V2.md`](./PERSISTENCE_V2.md).
 
 ## Observability
 
-Optional `APPLYFLOW_SENTRY_DSN` / `SENTRY_DSN`. Missing DSN → no-op. Payloads redact cookies, Authorization, resume/CV fragments, DB URL fragments. Expected product 4xx are generally not fatal captures.
+Canonical env: `APPLYFLOW_SENTRY_DSN` (fallback `SENTRY_DSN` / `NEXT_PUBLIC_APPLYFLOW_SENTRY_DSN`).
+
+Missing DSN → no-op. With DSN → minimal Sentry **envelope** transport behind `captureApplyFlowException` only (no `@sentry/nextjs` auto-instrumentation).
+
+Payloads redact cookies, Authorization, resume/CV/profile fragments, DB URL fragments, provider-key fragments, and job-description fragments. Expected product 4xx (400/401/403/404/409/422/429) are not captured.
+
+Intentionally **not** enabled: source-map upload, performance tracing, session replay, profiling, user PII identity.
+
+Operator proof: `pnpm sentry:verify` (never a public throw route).
 
 ---
 

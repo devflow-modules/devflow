@@ -20,6 +20,7 @@
     "test:e2e": "playwright test -c playwright.config.cjs",
     "test:e2e:v2": "playwright test -c playwright.v2.config.cjs",
     "beta:check": "node ./scripts/persistence-v2/beta-check.cjs",
+    "sentry:verify": "tsx ./scripts/persistence-v2/sentry-verify.ts",
     "backup:drill": "node ./scripts/persistence-v2/backup-restore-drill.cjs"
   },
   "dependencies": {

@@ -60,7 +60,8 @@ Names only (never paste values into docs/issues):
 | `NEXT_PUBLIC_APPLYFLOW_URL` | Origin allowlist (required hosted) |
 | `APPLYFLOW_THEIRSTACK_ENABLED` | Must stay false/off on shared |
 | `THEIRSTACK_API_KEY` | Server-only; unused when disabled |
-| `APPLYFLOW_SENTRY_DSN` or `SENTRY_DSN` | Operator action for observability |
+| `APPLYFLOW_SENTRY_DSN` or `SENTRY_DSN` | Minimal Sentry envelope transport (project `applyflow`). DSN is ingest-only / public-safe. Live proof: `pnpm sentry:verify` |
+| `NEXT_PUBLIC_APPLYFLOW_SENTRY_DSN` | Optional alias; `next.config` also inlines `APPLYFLOW_SENTRY_DSN` for client boundaries |
 | Supabase public + auth vars | Real user sessions |
 
 E2E-only (never on Vercel platform): `APPLYFLOW_E2E`, `APPLYFLOW_E2E_SECRET`, `APPLYFLOW_E2E_PROVIDER_FIXTURES`, `APPLYFLOW_E2E_IGNORE_SUPABASE`.
@@ -87,7 +88,7 @@ Preflight: `pnpm --filter applyflow beta:check`
 - Self-service data deletion
 - Managed backup/PITR verified (or stronger automation)
 - Distributed TheirStack limiter **or** permanent product disable
-- Stronger observability (DSN + triage runbooks at scale)
+- Stronger observability at scale (source maps, triage SLAs) — closed beta uses minimal error ingest only
 - Account lifecycle / support tooling
 
 ---

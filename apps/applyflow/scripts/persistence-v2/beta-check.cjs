@@ -56,8 +56,17 @@ function main() {
     failures.push("APPLYFLOW_PERSISTENCE_V2=true requires DATABASE_URL");
   }
 
-  if (!has("APPLYFLOW_SENTRY_DSN") && !has("SENTRY_DSN")) {
-    warnings.push("Error tracking DSN not configured (OPERATOR ACTION REQUIRED)");
+  // Observability: DSN presence enables the compiled minimal Sentry transport.
+  // A live ingest proof remains an operator step (`pnpm sentry:verify`).
+  if (!has("APPLYFLOW_SENTRY_DSN") && !has("NEXT_PUBLIC_APPLYFLOW_SENTRY_DSN") && !has("SENTRY_DSN")) {
+    warnings.push(
+      "Error tracking DSN not configured — APPLYFLOW_SENTRY_DSN required for closed-beta observability (OPERATOR ACTION REQUIRED)",
+    );
+  } else if (hosted) {
+    // Hosted with DSN: transport is wired in app code; remind operator to prove ingest once per release.
+    warnings.push(
+      "Error tracking DSN present — confirm one sanitized event via pnpm sentry:verify (or hosted smoke) before inviting users",
+    );
   }
 
   if (isTrue("APPLYFLOW_PERSISTENCE_V2") && !isTrue("APPLYFLOW_E2E")) {

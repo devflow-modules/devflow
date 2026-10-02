@@ -16,8 +16,21 @@ const securityHeaders = [
   },
 ];
 
+const sentryDsnForClient =
+  process.env.APPLYFLOW_SENTRY_DSN?.trim() ||
+  process.env.NEXT_PUBLIC_APPLYFLOW_SENTRY_DSN?.trim() ||
+  process.env.SENTRY_DSN?.trim() ||
+  "";
+
 const nextConfig: NextConfig = {
   transpilePackages: ["@devflow/applyflow-core", "@devflow/career-core"],
+  // DSN is public (ingest-only). Inline so client error boundaries can report.
+  env: sentryDsnForClient
+    ? {
+        APPLYFLOW_SENTRY_DSN: sentryDsnForClient,
+        NEXT_PUBLIC_APPLYFLOW_SENTRY_DSN: sentryDsnForClient,
+      }
+    : {},
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

@@ -32,11 +32,22 @@ Shared/hosted: search with `provider: theirstack` must return `provider_not_avai
 
 ## Error tracker verification
 
-1. `pnpm beta:check` (DSN presence warning if missing)
-2. Operator UI: filter environment + release (`VERCEL_ENV`, `VERCEL_GIT_COMMIT_SHA`)
-3. Expected 4xx should not page as fatal; unexpected 500 / uncaught should appear
+1. Configure `APPLYFLOW_SENTRY_DSN` on Vercel project `devflow-applyflow` (Production required; Preview optional under Production-controlled smoke).
+2. `pnpm beta:check` — warns if DSN missing; with DSN reminds to prove ingest.
+3. Local/operator proof (never prints DSN):
+
+```bash
+cd apps/applyflow
+# Load DSN into the shell env without committing it
+pnpm sentry:verify
+```
+
+4. Confirm one event in Sentry project **applyflow**: message `applyflow_sentry_verify`, environment + release tags present, no secrets/CV/cookies.
+5. Expected 4xx should not page as fatal; unexpected 500 / uncaught should appear via the ApplyFlow boundary.
 
 No public “throw error” production route.
+
+Intentionally deferred: source maps, tracing, session replay, profiling.
 
 ---
 
