@@ -81,9 +81,20 @@ export async function POST(
     }),
   ]);
 
+  const { groundMessageWithTenantFaq } = await import("@/modules/ai/faqGroundingService");
+  const lastInbound =
+    [...contextMessages].reverse().find((m) => m.role === "user")?.content ?? "";
+  const faqGrounding = await groundMessageWithTenantFaq({
+    tenantId,
+    messageText: lastInbound || " ",
+  });
+
   const instruction =
     "Com base no histórico acima, escreva somente o texto da próxima mensagem de WhatsApp para o cliente (português do Brasil). " +
-    "Seja objetivo e cordial. Não use Markdown nem envolva a resposta em aspas.";
+    "Seja objetivo e cordial. Não use Markdown nem envolva a resposta em aspas." +
+    (faqGrounding.supported
+      ? " Prefira a base FAQ aprovada quando cobrir a dúvida; se não cobrir, sugira pedir intervenção humana."
+      : " Não invente factos clínicos ou comerciais não presentes no contexto.");
 
   try {
     const gen = await generateReply({
@@ -91,7 +102,9 @@ export async function POST(
       conversationId: threadId,
       messageText: instruction,
       contextMessages,
-      systemPrompt: buildAgentSystemPrompt(agentPromptInputFromConfig(config)),
+      systemPrompt: buildAgentSystemPrompt(agentPromptInputFromConfig(config), {
+        faqGroundingBlock: faqGrounding.promptBlock,
+      }),
       model: config.model ?? openAiConfig.model,
       maxTokens: Math.min(config.maxTokens ?? openAiConfig.maxTokens, 400),
       temperature: config.temperature,

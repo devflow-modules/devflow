@@ -34,7 +34,7 @@ const minimalSnapshot = {
     totalReceived: 1,
     totalErrors: 0,
   },
-  operationalControls: { aiEnabled: true, automationEnabled: true },
+  operationalControls: { aiEnabled: true, automationEnabled: true, automaticDistributionEnabled: false },
   automationStatus: {
     aiActive: true,
     aiPausedByAdmin: false,
