@@ -126,6 +126,13 @@ Decisão **pragmática** alinhada ao diagnóstico de sobreposição raiz ↔ app
 | `/api/applyflow/v2/migration` (POST, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Persistence V2 V1→V2 migration import; flag default OFF → 404; account from `requireApplyFlowAccount()` only; payload ≤50 jobs and ≤50 applications; server recomputes bundle fingerprint; returns completion proof or structured conflicts; does not write browser localStorage |
 | `/api/applyflow/v2/migration/[sessionId]` (GET, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Persistence V2 migration session read; missing and cross-account both 404 (`migration_session_not_found`); no account enumeration |
 | `/api/applyflow/v2/activate` (POST, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — Persistence V2 explicit empty-V1 → `v2_cloud` activation; flag/access matrix via `withApplyFlowV2HttpAccess("activation")`; account from `requireApplyFlowAccount()` only; does **not** accept client `canonicalPersistence`; does **not** activate via normal Job/Application CRUD; empty fingerprint/attestation required; promotes canonical only through domain `promoteApplyFlowCanonicalPersistenceToV2`; `GET` → 405 |
+| `/api/applyflow/v2/profile` (GET, PUT, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — account personal resume library; `accountId` from session/grant only (Contract A); OCC via `expectedVersion`; flag/access matrix; no client ownership claims |
+| `/api/applyflow/v2/contacts` (GET, PUT, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — account-scoped networking contacts; server-derived ownership; OCC; no cross-account read/write |
+| `/api/applyflow/v2/responses` (GET, PUT, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — account-scoped inbound application responses; server-derived ownership; OCC |
+| `/api/applyflow/v2/analytics` (GET, PUT, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — account-scoped career analytics document; server-derived ownership; OCC |
+| `/api/applyflow/v2/personal-import` (POST, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — explicit human-confirmed local→cloud personal import; no silent overwrite; account from session only |
+| `/api/applyflow/v2/extension/session` (GET, POST, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — mint/resolve opaque extension grant; POST same-origin + cookie session; GET bearer-only; logout revokes; no HttpOnly cookie copy to extension |
+| `/extension-fixture` (page, host ApplyFlow) | `apps/applyflow` | Só app | ok | **manter** — local-only Easy Apply–shaped fixture for extension assistance E2E; no real employer submit; not for production LinkedIn |
 | Sitemaps | Raiz | Raiz | ok | **manter** |
 
 ---
@@ -162,4 +169,4 @@ Sem esta matriz atualizada no PR de cada mudança, o risco continua **organizaci
 
 ---
 
-*Última atualização: 2026-09-28 — ApplyFlow Persistence V2 R2.2 empty activation: API `POST /api/applyflow/v2/activate` (só `apps/applyflow`; flag/access matrix; sem cutover produção).*
+*Última atualização: 2026-10-06 — ApplyFlow account personal persistence + extension cloud sync: APIs personal/`extension/session` + página `/extension-fixture` (só `apps/applyflow`; Contract A; sem migrate/deploy remoto neste PR).*

@@ -1,3 +1,5 @@
+import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
+
 /**
  * Local-only Easy Apply–shaped fixture for extension assistance E2E.
  * No real employer submission. Do not use with production LinkedIn accounts.
@@ -40,9 +42,9 @@ export default function ExtensionFixturePage() {
             </label>
             <textarea id="fixture-about" name="about" rows={4} defaultValue="" />
           </div>
-          <button type="button" disabled title="Submit permanece bloqueado nesta fixture">
+          <ApplyFlowButton type="button" disabled title="Submit permanece bloqueado nesta fixture">
             Submit (disabled — ApplyFlow never clicks this)
-          </button>
+          </ApplyFlowButton>
         </form>
       </article>
     </main>
