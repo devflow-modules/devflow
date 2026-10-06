@@ -79,7 +79,7 @@ export function PersonalImportConfirm({ accountId }: { accountId: string }) {
   }
 
   return (
-    <section className="space-y-3 border-t border-zinc-800 pt-4">
+    <section className="space-y-3 border-t border-[color:var(--af-border)] pt-4">
       <h2 className="text-sm font-semibold text-[color:var(--af-text)]">Importar dados locais</h2>
       <p className="text-sm text-[color:var(--af-text-muted)]">
         Destino: conta <span data-testid="personal-import-account">{visibleId}</span>. A cópia neste navegador
