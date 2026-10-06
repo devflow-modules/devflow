@@ -10,7 +10,7 @@
 
 **Objetivo desta v1:** um processo **repetível e assistido** para o primeiro cliente real (número sob controlo do cliente), com limites do Admin Master tratados como **intervenção manual DevFlow**, não como falhas do cliente.
 
-**Caminho mínimo do piloto:** **1 manager + 1 número + Activation Control Center (`/admin/whatsapp`)**. Convite de `operator` fica fora desta fatia (não resolver por banco aqui).
+**Caminho mínimo do piloto:** **1 manager + operadores via Equipe (`/agents`) + 1 número + Activation Control Center (`/admin/whatsapp`)**. Provisionamento de operadores é **self-service do manager** (activação por link); não requer edição de base de dados no onboarding normal.
 
 ---
 
@@ -76,7 +76,7 @@ Ordem canónica. Detalhe de UI: [OPERATIONAL_PLAYBOOK.md](../whatsapp/OPERATIONA
 - [ ] Preencher `{SIGNUP_URL}` no registo §6 / handoff interno
 - [ ] Anotar `tenantId` (opaco) e e-mail do manager
 - [ ] Opcional: associar lead CRM (`convertedToRef`) — [LEAD-TO-TENANT-PILOT.md](./LEAD-TO-TENANT-PILOT.md)
-- [ ] **Não** criar `operator` adicional nesta fatia (piloto = 1 manager)
+- [ ] Manager adiciona operadores em `/agents` → **Adicionar membro** (activação por link; sem SQL)
 
 ### 2.2 Provisionar canal (PENDING_ACTIVATION)
 
@@ -112,7 +112,7 @@ Ordem canónica. Detalhe de UI: [OPERATIONAL_PLAYBOOK.md](../whatsapp/OPERATIONA
 | Necessidade | No produto hoje | Acção DevFlow |
 |-------------|-----------------|---------------|
 | Criar tenant | Sem botão admin | **Signup (A)** em `{SIGNUP_URL}`; B/C só contingência |
-| Convidar operator | Sem invite | **Fora do caminho mínimo do piloto** — não resolver por banco nesta fatia |
+| Convidar operator | Manager em `/agents` → Adicionar membro + link `/activate` | Sem SQL; e-mail Resend se configurado, senão URL one-shot ao manager (piloto assistido) |
 | Transição GTM na UI | Só leitura | API `gtm-lifecycle` ou processo comercial pós-GO |
 | Revogar/desativar canal | Sem soft-deactivate | DELETE linha (manager) + re-provision **ou** re-work assistido no ACC |
 | Suporte inbox de **outro** tenant | `/admin/conversations` = tenant-casa do PA | Login no tenant do cliente (manager) |
@@ -220,7 +220,7 @@ Preencher **um** registo por cliente. **Sem** tokens, OTP, passwords, PII desnec
 | Autorizador do ambiente (smoke/GO) | quem autorizou staging/prod |
 | Smoke | data, inbound OK, outbound OK, `trace_id` / waMessageId opacos |
 | Incidentes | sanitisados |
-| Limitações aceites | ex.: 1 manager; 1 número; IA off |
+| Limitações aceites | ex.: 1 número; IA assisted (`autoReply=false`); distribuição opt-in |
 | Veredito | GO / HOLD / BLOCKED |
 | Data do veredito | |
 | Responsável pelo veredito | |
