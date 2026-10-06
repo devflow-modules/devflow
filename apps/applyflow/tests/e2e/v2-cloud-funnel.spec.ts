@@ -54,17 +54,30 @@ async function e2eLogout(request: APIRequestContext) {
 }
 
 /**
- * Candidate profile remains local-browser even in V2 cloud mode.
- * Seed library storage directly so V2 E2E focuses on Job/Application cloud persistence.
+ * Cloud mode reads the account profile. The legacy local key is not the authority.
  */
-async function seedLocalResume(page: Page) {
+async function seedAccountResume(page: Page) {
+  const saved = await page.request.put("/api/applyflow/v2/profile", {
+    data: {
+      library: {
+        version: 1,
+        defaultVariantId: "rv_principal",
+        variants: [
+          {
+            id: "rv_principal",
+            name: "Perfil principal",
+            profile: E2E_PROFILE,
+            isDefault: true,
+            source: "manual",
+            createdAt: "2026-10-05T12:00:00.000Z",
+            updatedAt: "2026-10-05T12:00:00.000Z",
+          },
+        ],
+      },
+    },
+  });
+  expect(saved.status()).toBe(200);
   await page.goto("/dashboard/discover");
-  await expect(page.getByText("Procurar oportunidades")).toBeVisible({ timeout: 30_000 });
-  // Raw CandidateProfile — loadResumeLibrary migrates to ResumeLibrary on hydrate.
-  await page.evaluate((profile) => {
-    window.localStorage.setItem("APPLYFLOW_RESUME_LIBRARY_V1", JSON.stringify(profile));
-  }, E2E_PROFILE);
-  await page.reload();
   await expect(page.getByText("Procurar oportunidades")).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole("button", { name: "Editar perfil" })).toBeVisible({ timeout: 20_000 });
 }
@@ -96,7 +109,7 @@ test.describe("ApplyFlow V2 cloud critical funnel + tenant isolation", () => {
     expect(meABody.persistence?.pilotEligible).toBe(true);
     expect(meABody.persistence?.mode).toBe("v2_active");
 
-    await seedLocalResume(page);
+    await seedAccountResume(page);
 
     await page.getByTestId("discovery-provider-remoteok").check();
     await page.getByTestId("discovery-search").click();

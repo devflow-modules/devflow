@@ -28,9 +28,16 @@ model ApplyFlowAccount {
   createdAt              DateTime                       @default(now()) @map("created_at")
   updatedAt              DateTime                       @updatedAt @map("updated_at")
 
-  jobs              ApplyFlowJob[]
-  applications      ApplyFlowApplication[]
-  migrationSessions ApplyFlowMigrationSession[]
+  jobs                   ApplyFlowJob[]
+  applications           ApplyFlowApplication[]
+  migrationSessions      ApplyFlowMigrationSession[]
+  profileDocument        ApplyFlowProfileDocument?
+  contacts               ApplyFlowContactRecord[]
+  contactInteractions    ApplyFlowContactInteractionRecord[]
+  inboundResponses       ApplyFlowInboundResponseRecord[]
+  careerEvents           ApplyFlowCareerEventRecord[]
+  personalImportSessions ApplyFlowPersonalImportSession[]
+  extensionGrants        ApplyFlowExtensionGrant[]
 
   @@map("applyflow_accounts")
 }
@@ -126,4 +133,134 @@ model ApplyFlowMigrationSession {
   @@unique([accountId, sourceVersion, bundleFingerprint], map: "applyflow_migration_sessions_account_source_fp_key")
   @@index([accountId, status])
   @@map("applyflow_migration_sessions")
+}
+
+/// Account-owned resume library. One document per account. OCC via version.
+/// Binary files are not stored here; the domain library is private JSON, never a public URL.
+model ApplyFlowProfileDocument {
+  accountId   String   @id @map("account_id") @db.Uuid
+  library     Json
+  version     Int      @default(1)
+  fingerprint String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  account ApplyFlowAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@map("applyflow_profile_documents")
+}
+
+model ApplyFlowContactRecord {
+  accountId     String   @map("account_id") @db.Uuid
+  id            String
+  applicationId String?  @map("application_id")
+  jobId         String?  @map("job_id")
+  payload       Json
+  version       Int      @default(1)
+  fingerprint   String
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  account ApplyFlowAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@id([accountId, id])
+  @@index([accountId, applicationId])
+  @@index([accountId, jobId])
+  @@map("applyflow_contacts")
+}
+
+model ApplyFlowContactInteractionRecord {
+  accountId     String   @map("account_id") @db.Uuid
+  id            String
+  contactId     String   @map("contact_id")
+  applicationId String?  @map("application_id")
+  jobId         String?  @map("job_id")
+  payload       Json
+  fingerprint   String
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  account ApplyFlowAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@id([accountId, id])
+  @@index([accountId, contactId])
+  @@map("applyflow_contact_interactions")
+}
+
+/// Human-confirmed response detections.
+/// Dedup identity is (account, provider, message id). Sender domain is not the key.
+model ApplyFlowInboundResponseRecord {
+  accountId     String   @map("account_id") @db.Uuid
+  id            String
+  provider      String
+  emailId       String   @map("email_id")
+  applicationId String?  @map("application_id")
+  state         String
+  payload       Json
+  version       Int      @default(1)
+  fingerprint   String
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  account ApplyFlowAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@id([accountId, id])
+  @@unique([accountId, provider, emailId], map: "applyflow_inbound_responses_account_provider_email_key")
+  @@index([accountId, applicationId])
+  @@map("applyflow_inbound_responses")
+}
+
+/// Real transition events. Not derived from updatedAt or notes.
+model ApplyFlowCareerEventRecord {
+  accountId     String   @map("account_id") @db.Uuid
+  id            String
+  applicationId String   @map("application_id")
+  jobId         String?  @map("job_id")
+  eventType     String   @map("event_type")
+  occurredAt    DateTime @map("occurred_at")
+  dedupeKey     String   @map("dedupe_key")
+  payload       Json
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  account ApplyFlowAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@id([accountId, id])
+  @@unique([accountId, dedupeKey], map: "applyflow_career_events_account_dedupe_key")
+  @@index([accountId, applicationId, occurredAt])
+  @@map("applyflow_career_events")
+}
+
+/// Resumable import of personal modules. Does not change canonicalPersistence.
+model ApplyFlowPersonalImportSession {
+  id                String    @id @default(uuid()) @db.Uuid
+  accountId         String    @map("account_id") @db.Uuid
+  module            String
+  bundleFingerprint String    @map("bundle_fingerprint")
+  status            String
+  expectedCount     Int       @map("expected_count")
+  processedCount    Int       @default(0) @map("processed_count")
+  conflictSummary   Json?     @map("conflict_summary")
+  startedAt         DateTime  @default(now()) @map("started_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  completedAt       DateTime? @map("completed_at")
+
+  account ApplyFlowAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@unique([accountId, module, bundleFingerprint], map: "applyflow_personal_import_account_module_fp_key")
+  @@index([accountId, status])
+  @@map("applyflow_personal_import_sessions")
+}
+
+/// Opaque extension grant. Only the hash is stored. Logout revokes; Nango disconnect does not.
+model ApplyFlowExtensionGrant {
+  id        String    @id @default(uuid()) @db.Uuid
+  accountId String    @map("account_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  account ApplyFlowAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@index([accountId, revokedAt])
+  @@map("applyflow_extension_grants")
 }

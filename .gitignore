@@ -20,6 +20,11 @@ out/
 build/
 dist/
 *.tsbuildinfo
+
+# ApplyFlow extension — local Chrome / production zip (not CWS publish artifacts)
+.tmp/
+apps/applyflow-extension/dist-production/
+apps/applyflow-extension/applyflow-extension-*-production.zip
 next-env.d.ts
 
 # --- Environment (secrets) ---

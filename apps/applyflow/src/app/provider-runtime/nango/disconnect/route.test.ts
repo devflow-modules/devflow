@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   CALLER_NONCE_A,
-  CALLER_NONCE_B,
   gmailOnlyNangoTestEnv,
   mintCaller,
   nangoRequest,
 } from "@/lib/provider-runtime/nango-route-test-fixtures";
-import { buildApplyFlowNangoEndUserId } from "@/lib/provider-runtime/nango-server-provider";
+import { buildApplyFlowNangoAccountEndUserId } from "@/lib/provider-runtime/nango-account-identity";
+import { NANGO_ROUTE_ACCOUNT_ID, nangoRouteAuth } from "@/lib/provider-runtime/nango-route-account-mock";
 
 const listConnections = vi.fn();
 const deleteConnection = vi.fn();
@@ -27,17 +27,23 @@ vi.mock("@/lib/provider-runtime/nango-connect-session-launcher", async () => {
   };
 });
 
+vi.mock("@/lib/persistence-v2/require-applyflow-account", () =>
+  import("@/lib/provider-runtime/nango-route-account-mock"),
+);
+
 import { POST } from "./route";
 
 const URL = "http://localhost/provider-runtime/nango/disconnect";
 
 describe("POST /provider-runtime/nango/disconnect", () => {
   beforeEach(() => {
+    nangoRouteAuth.signedIn = true;
     listConnections.mockReset();
     deleteConnection.mockReset();
   });
 
-  it("rejects a missing caller session before listing or deleting", async () => {
+  it("rejects an unauthenticated account before listing or deleting", async () => {
+    nangoRouteAuth.signedIn = false;
     const response = await POST(
       nangoRequest({ url: URL, body: { provider: "gmail", explicitConfirmation: true } }),
     );
@@ -63,7 +69,7 @@ describe("POST /provider-runtime/nango/disconnect", () => {
 
   it("does not let session A delete session B connections", async () => {
     listConnections.mockImplementation(async (input: { tags: { end_user_id: string } }) => {
-      if (input.tags.end_user_id === buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE_B)) {
+      if (input.tags.end_user_id === buildApplyFlowNangoAccountEndUserId("gmail", "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb")) {
         return { connections: [{ connection_id: "conn-b" }] };
       }
       return { connections: [] };
@@ -88,7 +94,7 @@ describe("POST /provider-runtime/nango/disconnect", () => {
     expect(deleteConnection).not.toHaveBeenCalled();
     expect(listConnections).toHaveBeenCalledWith({
       integrationId: "google-mail",
-      tags: { end_user_id: buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE_A) },
+      tags: { end_user_id: buildApplyFlowNangoAccountEndUserId("gmail", NANGO_ROUTE_ACCOUNT_ID) },
       limit: 10,
     });
   });

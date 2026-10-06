@@ -24,7 +24,9 @@ export function buildApplyFlowNangoEndUserId(provider: ProviderKind, callerNonce
 
 export type NangoServerOAuthUrlProviderConfig = {
   secretKey: string;
-  callerNonce: string;
+  callerNonce?: string;
+  /** Server-derived account owner. When set, the browser caller nonce is not used. */
+  endUserId?: string;
   connectLauncherBasePath?: string;
 };
 
@@ -62,9 +64,16 @@ async function createNangoConnectSessionOnServer(
   const connectLauncherBasePath =
     config.connectLauncherBasePath ?? "/provider-runtime/nango/connect";
 
+  const endUserId =
+    config.endUserId ??
+    (config.callerNonce ? buildApplyFlowNangoEndUserId(input.provider, config.callerNonce) : "");
+  if (!endUserId) {
+    throw new Error("missing_nango_owner");
+  }
+
   const { data } = await nango.createConnectSession({
     tags: {
-      end_user_id: buildApplyFlowNangoEndUserId(input.provider, config.callerNonce),
+      end_user_id: endUserId,
     },
     allowed_integrations: [integrationId],
   });

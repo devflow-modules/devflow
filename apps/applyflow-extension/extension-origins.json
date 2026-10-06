@@ -1,0 +1,10 @@
+{
+  "extensionId": "mjigahpnpgcopnjfofcpopkaehohfknh",
+  "productionOrigins": ["https://devflow-applyflow.vercel.app"],
+  "localOrigins": [
+    "http://127.0.0.1:3010",
+    "http://127.0.0.1:3012",
+    "http://localhost:3010",
+    "http://localhost:3012"
+  ]
+}

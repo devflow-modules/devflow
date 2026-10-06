@@ -109,6 +109,7 @@ export async function handleGmailClosedLoopInboundScan(input: {
   explicitConsent: true;
   accountScope?: string;
   callerNonce?: string;
+  endUserId?: string;
   verificationDeps?: ApplyFlowNangoConnectionVerificationDeps;
   metadataProvider?: GmailNangoRuntimeMetadataProvider;
 }): Promise<GmailClosedLoopInboundResult> {
@@ -138,10 +139,11 @@ export async function handleGmailClosedLoopInboundScan(input: {
 
   const provider =
     input.metadataProvider ??
-    (input.callerNonce
+    (input.endUserId || input.callerNonce
       ? createGmailNangoRuntimeMetadataProvider({
           secretKey: input.env.NANGO_SECRET_KEY,
-          endUserId: buildApplyFlowNangoEndUserId("gmail", input.callerNonce),
+          endUserId:
+            input.endUserId ?? buildApplyFlowNangoEndUserId("gmail", input.callerNonce as string),
         })
       : undefined);
   if (!provider) {

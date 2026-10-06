@@ -28,11 +28,17 @@ import {
   classifyApplicationUniqueViolation,
   isUniqueViolation,
 } from "./application-unique-violation";
+import { buildLifecycleEventRecord } from "../personal/lifecycle-event";
 
 export type ApplicationLifecycleTransitionResult = {
   application: ApplicationResponse;
   job: JobResponse | null;
   jobSynced: boolean;
+  event: {
+    id: string;
+    type: string;
+    occurredAt: string;
+  };
 };
 
 type ApplicationRecord = Awaited<ReturnType<ApplyFlowApplicationRepository["create"]>>;
@@ -338,12 +344,37 @@ export function createApplyFlowApplicationService(
           );
         }
 
+        const recordEvent = async (jobId: string | null) => {
+          const data = buildLifecycleEventRecord({
+            accountId,
+            applicationId: id,
+            jobId,
+            fromStatus: current.status,
+            toStatus: nextStatus,
+            expectedVersion,
+            occurredAt: now,
+          });
+          const writer = tx as unknown as {
+            applyFlowCareerEventRecord?: { create(args: { data: typeof data }): Promise<unknown> };
+          };
+          if (!writer.applyFlowCareerEventRecord?.create) {
+            throw new ApplyFlowApplicationServiceError("invalid_payload");
+          }
+          await writer.applyFlowCareerEventRecord.create({ data });
+          return {
+            id: data.id,
+            type: data.eventType,
+            occurredAt: data.payload.occurredAt,
+          };
+        };
+
         const sourceJobId = appResult.record.sourceJobId;
         if (!sourceJobId) {
           return {
             application: toApplicationResponse(appResult.record),
             job: null,
             jobSynced: false,
+            event: await recordEvent(null),
           };
         }
 
@@ -353,6 +384,7 @@ export function createApplyFlowApplicationService(
             application: toApplicationResponse(appResult.record),
             job: null,
             jobSynced: false,
+            event: await recordEvent(sourceJobId),
           };
         }
 
@@ -361,6 +393,7 @@ export function createApplyFlowApplicationService(
             application: toApplicationResponse(appResult.record),
             job: toJobResponse(linked),
             jobSynced: false,
+            event: await recordEvent(sourceJobId),
           };
         }
 
@@ -378,6 +411,7 @@ export function createApplyFlowApplicationService(
           application: toApplicationResponse(appResult.record),
           job: toJobResponse(jobResult.record),
           jobSynced: true,
+          event: await recordEvent(sourceJobId),
         };
       });
     },

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { createEmptyProviderDerivedSignalSummary } from "@devflow/career-sync";
+import { nangoRouteAuth } from "@/lib/provider-runtime/nango-route-account-mock";
 import { GET, POST } from "./route";
 
 const handlePreview = vi.fn();
@@ -25,6 +26,10 @@ vi.mock("@/lib/provider-runtime/provider-derived-runtime-preview-boundary", asyn
     handleProviderDerivedRuntimePreview: (...args: unknown[]) => handlePreview(...args),
   };
 });
+
+vi.mock("@/lib/persistence-v2/require-applyflow-account", () =>
+  import("@/lib/provider-runtime/nango-route-account-mock"),
+);
 
 const validBody = {
   explicitConsent: true,
@@ -80,6 +85,7 @@ function makePostRequest(
 
 describe("POST /provider-runtime/nango/derived-preview", () => {
   beforeEach(() => {
+    nangoRouteAuth.signedIn = true;
     handlePreview.mockReset();
     handlePreview.mockResolvedValue(completedResult());
   });
@@ -104,13 +110,14 @@ describe("POST /provider-runtime/nango/derived-preview", () => {
     expect(handlePreview).not.toHaveBeenCalled();
   });
 
-  it("rejects authenticated runtime calls without a caller session", async () => {
+  it("rejects provider preview without an ApplyFlow session", async () => {
+    nangoRouteAuth.signedIn = false;
     const response = await POST(
       makePostRequest(validBody, "") as never,
     );
     expect(response.status).toBe(401);
     const body = await response.json();
-    expect(body.warnings).toContain("missing_caller_session");
+    expect(body.warnings).toContain("unauthenticated");
     expect(handlePreview).not.toHaveBeenCalled();
   });
 

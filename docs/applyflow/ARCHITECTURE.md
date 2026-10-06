@@ -68,7 +68,9 @@ Apps do not import other apps — only `packages/*`.
 - Jobs/Applications in PostgreSQL with composite ownership
 - OCC via `expectedVersion` on PATCH
 - Transactional lifecycle: `POST /api/applyflow/v2/applications/:id/lifecycle`
-- Resume/profile remain browser-local even when Jobs/Apps are cloud
+- Resume/profile, contacts, inbound responses, and career events are account-owned when `canonicalPersistence=v2_cloud` (`v2_active` / `v2_read_only`). Local mode keeps the existing browser stores. Cloud writes do not fall back to those stores.
+- Analytics for cloud accounts are derived from applications, recorded transition events, contacts, and response states. Queue, readiness, and next-action tables are not stored.
+- Nango Gmail/Calendar ownership is the ApplyFlow account. See the Nango ADR.
 
 V2 is **not** “sync all local state.” It is an authenticated persistence mode for Jobs/Applications (and related account records).
 

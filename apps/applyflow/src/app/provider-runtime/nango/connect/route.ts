@@ -3,13 +3,16 @@ import {
   handleApplyFlowNangoConnectSessionLauncher,
   readApplyFlowNangoConnectSessionEnv,
 } from "@/lib/provider-runtime/nango-connect-session-launcher";
-import { attachNangoCallerCookie, resolveNangoRouteCaller } from "@/lib/provider-runtime/nango-route-caller";
+import {
+  buildApplyFlowNangoAccountEndUserId,
+  resolveNangoPersonalRoute,
+} from "@/lib/provider-runtime/nango-account-identity";
 import { createNangoServerConnectSessionProvider } from "@/lib/provider-runtime/nango-server-provider";
 
 /**
  * Server-side Nango connect session launcher.
- * POST creates a caller-scoped Connect Session. GET is rejected.
- * The af_nango_caller cookie is an anonymous browser session, not a user login.
+ * Ownership is the authenticated ApplyFlow account. Browser caller cookies and
+ * client end_user_id values are ignored. Logout does not call this route.
  * Never returns NANGO_SECRET_KEY or OAuth access/refresh tokens.
  */
 
@@ -19,6 +22,7 @@ type ConnectBody = {
   explicitConsent?: boolean | string;
   endUserId?: unknown;
   connectionId?: unknown;
+  adoptLegacyBrowserConnection?: boolean;
 };
 
 function blockedConnect(reason: string, messages: string[], status: number) {
@@ -45,26 +49,26 @@ export async function POST(request: NextRequest) {
     body = {};
   }
 
-  const caller = resolveNangoRouteCaller({
+  const owner = await resolveNangoPersonalRoute({
     request,
     env,
-    mintIfMissing: true,
+    adoptLegacyBrowserConnection: body.adoptLegacyBrowserConnection === true,
   });
-
-  if (caller.required && !caller.ok) {
+  if (!owner.ok) {
     return blockedConnect(
-      caller.reason,
-      ["A same-origin caller session is required before Nango connect can start."],
-      caller.httpStatus,
+      owner.reason,
+      ["An authenticated ApplyFlow account is required before Nango connect can start."],
+      owner.httpStatus,
     );
   }
 
+  const provider = body.provider === "gmail" || body.provider === "calendar" ? body.provider : null;
   const sessionDeps =
-    env.NANGO_SECRET_KEY?.trim() && caller.required && caller.ok
+    env.NANGO_SECRET_KEY?.trim() && provider
       ? {
           connectSessionProvider: createNangoServerConnectSessionProvider({
             secretKey: env.NANGO_SECRET_KEY,
-            callerNonce: caller.callerNonce,
+            endUserId: buildApplyFlowNangoAccountEndUserId(provider, owner.accountId),
             connectLauncherBasePath: "/provider-runtime/nango/connect",
           }),
         }
@@ -86,9 +90,13 @@ export async function POST(request: NextRequest) {
         ? 200
         : 403;
 
-  return attachNangoCallerCookie(
-    NextResponse.json(result, { status: statusCode }),
-    caller.required && caller.ok ? caller.setCookie : undefined,
+  return NextResponse.json(
+    {
+      ...result,
+      ownership: "applyflow_account",
+      legacyBrowserIdentityIgnored: owner.legacyBrowserCookiePresent,
+    },
+    { status: statusCode },
   );
 }
 

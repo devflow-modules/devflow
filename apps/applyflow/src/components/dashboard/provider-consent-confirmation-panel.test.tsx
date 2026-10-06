@@ -4,6 +4,7 @@ import {
   PROVIDER_CONSENT_CONFIRMATION_BOUNDARIES,
   PROVIDER_CONSENT_CONFIRMATION_SCOPES,
   PROVIDER_CONSENT_CONFIRMATION_NEVER_STORED,
+  PROVIDER_CONSENT_CONFIRMATION_CHECKBOX_LABEL,
   PROVIDER_CONSENT_CONFIRMATION_GMAIL_DISABLED,
   PROVIDER_CONSENT_CONFIRMATION_START_BUTTON_LABEL,
   PROVIDER_CONSENT_CONFIRMATION_TITLE,
@@ -142,7 +143,7 @@ describe("ProviderConsentConfirmationPanel render", () => {
 
     expect(html).toContain(PROVIDER_CONSENT_CONFIRMATION_START_BUTTON_LABEL);
     expect(html).toMatch(/disabled/);
-    expect(html).toContain("I understand this is a browser-scoped pilot connection");
+    expect(html).toContain(PROVIDER_CONSENT_CONFIRMATION_CHECKBOX_LABEL);
   });
 
   it("does not include secrets, tokens, provider payloads, or raw provider content", () => {

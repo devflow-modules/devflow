@@ -7,10 +7,19 @@ import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import { networkingStatusTone } from "@/components/ui/status-tones";
 import {
-  archiveDashboardOutreach,
+  APPLYFLOW_DASHBOARD_CONTACTS_STORAGE_KEY,
+  loadDashboardContacts,
   saveDashboardOutreach,
   type ApplicationOutreachScope,
 } from "@/lib/local-contact-storage";
+import {
+  currentPersonalClientScope,
+  isStalePersonalGeneration,
+  personalLocalWritesAllowed,
+  rememberedContactVersion,
+  rememberContactVersion,
+  writeAccountScopedCache,
+} from "@/lib/persistence-v2/personal/client-scope";
 import {
   computeOutreachMetrics,
   effectiveOutreachStatus,
@@ -20,6 +29,7 @@ import {
   updateOutreachContact,
   validateOutreachProfileUrl,
   type Contact,
+  type ContactInteraction,
   type ContactType,
   type NetworkingPlan,
   type OutreachChannel,
@@ -196,14 +206,78 @@ export function JobDecisionV2NetworkingTab({
     setError(null);
   }
 
-  function persist(contact: Contact, interaction?: Parameters<typeof saveDashboardOutreach>[2]): boolean {
+  async function persist(contact: Contact, interaction?: Parameters<typeof saveDashboardOutreach>[2]): Promise<boolean> {
     if (!scope) return false;
+    if (!personalLocalWritesAllowed()) {
+      const generation = currentPersonalClientScope().generation;
+      const response = await fetch("/api/applyflow/v2/contacts", {
+        method: "PUT",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          contact,
+          expectedVersion: rememberedContactVersion(contact.id),
+        }),
+      });
+      if (isStalePersonalGeneration(generation)) return false;
+      if (!response.ok) {
+        setError(
+          response.status === 409
+            ? "Este contato mudou em outro dispositivo. Recarregue antes de gravar."
+            : "Não foi possível gravar o contato na conta.",
+        );
+        return false;
+      }
+      const saved = (await response.json()) as { version?: number };
+      if (typeof saved.version === "number") rememberContactVersion(contact.id, saved.version);
+      if (interaction) {
+        const interactionResponse = await fetch("/api/applyflow/v2/contacts", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ interaction }),
+        });
+        if (isStalePersonalGeneration(generation) || !interactionResponse.ok) {
+          setError("O contato foi gravado, mas a interação não.");
+          return false;
+        }
+      }
+      const listed = await fetch("/api/applyflow/v2/contacts", {
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+      });
+      if (!isStalePersonalGeneration(generation) && listed.ok) {
+        const body = (await listed.json()) as {
+          contacts?: Contact[];
+          interactions?: ContactInteraction[];
+          versions?: Record<string, number>;
+        };
+        for (const [id, version] of Object.entries(body.versions ?? {})) {
+          if (typeof version === "number") rememberContactVersion(id, version);
+        }
+        writeAccountScopedCache(
+          APPLYFLOW_DASHBOARD_CONTACTS_STORAGE_KEY,
+          JSON.stringify({
+            version: 1,
+            savedAt: new Date().toISOString(),
+            contacts: body.contacts ?? [],
+            interactions: body.interactions ?? [],
+          }),
+        );
+      }
+      if (isStalePersonalGeneration(generation)) return true;
+      setError(null);
+      onPersist();
+      return true;
+    }
     const result = saveDashboardOutreach(scope, contact, interaction);
     if (!result.ok) {
       setError(
         result.error === "outreach_scope_mismatch"
           ? "Este contato pertence a outra candidatura."
-          : "Revise os campos do contato antes de guardar.",
+          : result.error === "cloud_authority"
+            ? "Este contato pertence à conta e não foi gravado localmente."
+            : "Revise os campos do contato antes de guardar.",
       );
       return false;
     }
@@ -221,7 +295,7 @@ export function JobDecisionV2NetworkingTab({
     };
   }
 
-  function saveDraft() {
+  async function saveDraft() {
     if (!scope || !draft.name.trim()) {
       setError("Nome e candidatura são obrigatórios.");
       return;
@@ -292,14 +366,14 @@ export function JobDecisionV2NetworkingTab({
       };
       interaction = replied.interaction;
     }
-    if (persist(next, interaction)) resetForm();
+    if (await persist(next, interaction)) resetForm();
   }
 
-  function markPrepared(contact: Contact) {
-    persist(updateOutreachContact(contactInScope(contact), { status: "MESSAGE_PREPARED" }));
+  async function markPrepared(contact: Contact) {
+    await persist(updateOutreachContact(contactInScope(contact), { status: "MESSAGE_PREPARED" }));
   }
 
-  function markSent(contact: Contact) {
+  async function markSent(contact: Contact) {
     const scopedContact = contactInScope(contact);
     const result = markOutreachSent(
       scopedContact,
@@ -313,7 +387,7 @@ export function JobDecisionV2NetworkingTab({
     persist(result.contact, result.interaction);
   }
 
-  function markReply(contact: Contact) {
+  async function markReply(contact: Contact) {
     const scopedContact = contactInScope(contact);
     const replySource = scopedContact.sentAt
       ? scopedContact
@@ -321,18 +395,27 @@ export function JobDecisionV2NetworkingTab({
     const result = recordOutreachReply(replySource, {
       interactionId: `interaction-${scopedContact.id}-reply`,
     });
-    persist(result.contact, result.interaction);
+    await persist(result.contact, result.interaction);
   }
 
-  function archive(contact: Contact) {
+  async function archive(contact: Contact) {
     if (!scope) return;
-    const result = archiveDashboardOutreach(scope, contact.id);
-    if (!result.ok) {
+    const stored = loadDashboardContacts();
+    const current = stored.contacts.find((item) => item.id === contact.id);
+    if (!current) {
+      setError("Não foi possível arquivar este contato.");
+      return;
+    }
+    const archived = {
+      ...contactInScope(current),
+      archivedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    if (!(await persist(archived))) {
       setError("Não foi possível arquivar este contato.");
       return;
     }
     if (editingId === contact.id) resetForm();
-    onPersist();
   }
 
   return (

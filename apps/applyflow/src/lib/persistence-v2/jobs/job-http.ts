@@ -46,8 +46,14 @@ export function jobErrorResponse(error: unknown): NextResponse {
 export async function withApplyFlowJobsAccount(
   capability: Extract<ApplyFlowV2HttpCapability, "read" | "write">,
   action: (account: ApplyFlowAccountRecord) => Promise<NextResponse>,
+  request?: Request,
 ): Promise<NextResponse> {
-  return withApplyFlowV2HttpAccess(capability, async (account) => action(account), jobErrorResponse);
+  return withApplyFlowV2HttpAccess(
+    capability,
+    async (account) => action(account),
+    jobErrorResponse,
+    request,
+  );
 }
 
 export async function readJsonBody(request: Request): Promise<unknown> {

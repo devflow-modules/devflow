@@ -6,6 +6,8 @@ import {
   type ResumeLibrary,
 } from "@devflow/applyflow-core";
 
+import { personalLocalWritesAllowed, personalStorageKey } from "@/lib/persistence-v2/personal/client-scope";
+
 export const APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY = "APPLYFLOW_RESUME_LIBRARY_V1" as const;
 
 export type ResumeLibraryLoadStatus = "empty" | "ok" | "unreadable";
@@ -32,7 +34,7 @@ export function hydrateResumeLibraryState(): {
 export function loadResumeLibrary(): ResumeLibraryLoadResult {
   if (typeof window === "undefined") return emptyResult();
 
-  const raw = window.localStorage.getItem(APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY);
+  const raw = window.localStorage.getItem(personalStorageKey(APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY));
   if (raw == null) return emptyResult();
 
   let data: unknown;
@@ -67,8 +69,17 @@ export function persistResumeLibrary(library: ResumeLibrary): { ok: true } | { o
   if (!parsed.ok) {
     return { ok: false, error: parsed.error };
   }
+  if (!personalLocalWritesAllowed()) {
+    return {
+      ok: false,
+      error: "O perfil desta conta é gravado no servidor. A cópia local não foi usada.",
+    };
+  }
   try {
-    window.localStorage.setItem(APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY, JSON.stringify(parsed.library));
+    window.localStorage.setItem(
+      personalStorageKey(APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY),
+      JSON.stringify(parsed.library),
+    );
     return { ok: true };
   } catch {
     return { ok: false, error: "Não foi possível gravar a biblioteca de currículos. O perfil em memória não foi substituído." };
@@ -77,5 +88,5 @@ export function persistResumeLibrary(library: ResumeLibrary): { ok: true } | { o
 
 export function clearPersistedResumeLibrary(): void {
   if (typeof window === "undefined") return;
-  window.localStorage.removeItem(APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY);
+  window.localStorage.removeItem(personalStorageKey(APPLYFLOW_RESUME_LIBRARY_STORAGE_KEY));
 }

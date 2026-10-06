@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mintCaller, nangoRequest } from "@/lib/provider-runtime/nango-route-test-fixtures";
+import { buildApplyFlowNangoAccountEndUserId } from "@/lib/provider-runtime/nango-account-identity";
+import { NANGO_ROUTE_ACCOUNT_ID, nangoRouteAuth } from "@/lib/provider-runtime/nango-route-account-mock";
 
 const enabledEnv = {
   CAREER_PROVIDER_RUNTIME_ENABLED: "true",
@@ -25,6 +27,10 @@ vi.mock("@/lib/provider-runtime/gmail-closed-loop-inbound-boundary", async () =>
   };
 });
 
+vi.mock("@/lib/persistence-v2/require-applyflow-account", () =>
+  import("@/lib/provider-runtime/nango-route-account-mock"),
+);
+
 import { POST } from "./route";
 
 const URL = "http://localhost/provider-runtime/nango/inbound-responses";
@@ -43,6 +49,7 @@ function post(
 
 describe("POST /provider-runtime/nango/inbound-responses", () => {
   beforeEach(() => {
+    nangoRouteAuth.signedIn = true;
     handleScan.mockReset();
   });
 
@@ -52,11 +59,12 @@ describe("POST /provider-runtime/nango/inbound-responses", () => {
     expect(handleScan).not.toHaveBeenCalled();
   });
 
-  it("rejects runtime-enabled scans without a caller session", async () => {
+  it("rejects runtime-enabled scans without an ApplyFlow session", async () => {
+    nangoRouteAuth.signedIn = false;
     const response = await POST(post({ explicitConsent: true, limit: 1 }));
     expect(response.status).toBe(401);
     const body = await response.json();
-    expect(body.warnings).toContain("missing_caller_session");
+    expect(body.warnings).toContain("unauthenticated");
     expect(handleScan).not.toHaveBeenCalled();
   });
 
@@ -73,7 +81,7 @@ describe("POST /provider-runtime/nango/inbound-responses", () => {
     expect(handleScan).not.toHaveBeenCalled();
   });
 
-  it("forwards the caller nonce when the session cookie is valid", async () => {
+  it("forwards the account-derived end user id and ignores the browser cookie", async () => {
     handleScan.mockResolvedValue({
       status: "blocked",
       emails: [],
@@ -90,9 +98,9 @@ describe("POST /provider-runtime/nango/inbound-responses", () => {
     );
     expect(response.status).toBe(200);
     expect(handleScan).toHaveBeenCalledOnce();
-    expect(handleScan.mock.calls[0]?.[0]).toMatchObject({ callerNonce: minted.nonce });
-    expect(handleScan.mock.calls[0]?.[0]).not.toMatchObject({
-      callerNonce: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    expect(handleScan.mock.calls[0]?.[0]).toMatchObject({
+      endUserId: buildApplyFlowNangoAccountEndUserId("gmail", NANGO_ROUTE_ACCOUNT_ID),
     });
+    expect(handleScan.mock.calls[0]?.[0]).not.toMatchObject({ callerNonce: minted.nonce });
   });
 });

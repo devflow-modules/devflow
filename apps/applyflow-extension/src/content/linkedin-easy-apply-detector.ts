@@ -13,7 +13,7 @@ import {
   findEasyApplyModal,
   findEasyApplyModalWithMeta,
 } from "./easy-apply-modal.js";
-import { isApplyFlowSupportedLinkedInPage } from "./linkedin-page-guard.js";
+import { isApplyFlowAssistancePage } from "./linkedin-page-guard.js";
 import { renderApplyFlowPanel } from "./inject-applyflow-panel.js";
 
 export { findEasyApplyModal, findEasyApplyModalWithMeta, debugScanEasyApplyModals };
@@ -61,7 +61,7 @@ export function startApplyFlowObserver(options: StartApplyFlowObserverOptions = 
 
   const scan = async (): Promise<void> => {
     if (stopped) return;
-    if (!isApplyFlowSupportedLinkedInPage() || !hasValidExtensionContext()) {
+    if (!isApplyFlowAssistancePage() || !hasValidExtensionContext()) {
       deactivate();
       return;
     }

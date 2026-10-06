@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { ExtensionButton } from "../../components/ExtensionButton.js";
 import {
   APPLYFLOW_APPLICATION_STATUS_LABELS_PT,
+  type ApplyFlowApplication,
   type ApplyFlowApplicationStatus,
   saveApplication,
   updateApplicationStatus,
@@ -55,13 +56,68 @@ export function PanelHistorySection(props: {
     setErr("");
     try {
       const draft = props.buildDraftBase();
+      const cloud = await new Promise<{
+        ok?: boolean;
+        error?: string;
+        status?: number;
+        reused?: boolean;
+        reconnect?: string;
+      } | undefined>((resolve) => {
+        try {
+          chrome.runtime.sendMessage(
+            { type: "APPLYFLOW_REGISTER_CLOUD_APPLICATION", draft: { ...draft, status } },
+            (response) => {
+              void chrome.runtime.lastError;
+              resolve(response as { ok?: boolean; error?: string; status?: number; reused?: boolean; reconnect?: string });
+            },
+          );
+        } catch {
+          resolve(undefined);
+        }
+      });
+
+      if (cloud?.ok) {
+        const app = await saveApplication({ ...draft, status });
+        setPersistedId(app.id);
+        setStatus(app.status);
+        setSavedMsg(cloud.reused ? "Já registado na conta (sem duplicar)" : "Registado na conta ApplyFlow");
+        window.setTimeout(() => setSavedMsg(""), 5200);
+        return;
+      }
+
+      if (cloud && (cloud.status === 401 || cloud.error === "signed_out")) {
+        setErr(cloud.reconnect ?? "Sessão da extensão ausente. Reconecte em /account.");
+        return;
+      }
+
+      if (cloud && cloud.error && cloud.error !== "signed_out") {
+        const conflictHint =
+          cloud.error === "version_conflict"
+            ? "Conflito de versão (OCC). Recarregue o dashboard e revise antes de gravar de novo — a versão no servidor prevalece."
+            : cloud.error === "conflict_incompatible"
+              ? "Registo existente incompatível com esta vaga. Não foi reutilizado automaticamente."
+              : cloud.error === "conflict_unknown"
+                ? "Conflito 409 desconhecido. Não tratado como sucesso."
+                : cloud.status === 409
+                  ? "Conflito ao gravar na conta. Recarregue o dashboard e tente de novo."
+                  : null;
+        setErr(
+          conflictHint ??
+            (cloud.status === 403
+              ? "Conta sem escrita cloud (read-only, paused ou migração pendente)."
+              : `Não foi possível gravar na conta (${cloud.error}). O histórico local não foi usado como fallback cloud.`),
+        );
+        return;
+      }
+
+      // Modo local (sem grant): histórico só no browser.
       const app = await saveApplication({ ...draft, status });
       setPersistedId(app.id);
       setStatus(app.status);
-      setSavedMsg("Salvo no histórico");
+      setSavedMsg("Salvo no histórico local");
       window.setTimeout(() => setSavedMsg(""), 5200);
     } catch {
-      setErr("Falha ao guardar histórico local.");
+      setErr("Falha ao guardar.");
     } finally {
       setBusy(false);
     }
@@ -70,13 +126,13 @@ export function PanelHistorySection(props: {
   const statusSelectId = `af-history-status-${props.fingerprint}`;
 
   return (
-    <section className="af-card af-card-muted" aria-label="Histórico local de candidaturas">
+    <section className="af-card af-card-muted" aria-label="Histórico de candidaturas">
       <p className="af-meta" style={{ marginBottom: "8px" }}>
-        Histórico local
+        Histórico
       </p>
       <p className="af-muted" style={{ marginTop: 0 }}>
-        Registo manual na extensão (sem backend). O estado inicial não marca candidatura como «Aplicada» — você escolhe o
-        estado.
+        Registo manual. Com a extensão ligada à conta, Job e Application vão para o ApplyFlow cloud. Sem ligação, fica só
+        no browser. Registar aqui não submete a candidatura ao empregador.
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "10px" }}>
         <label className="af-muted" htmlFor={statusSelectId} style={{ fontSize: "12px", marginBottom: "-4px" }}>

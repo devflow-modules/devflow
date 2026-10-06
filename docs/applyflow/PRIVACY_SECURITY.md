@@ -8,8 +8,8 @@ Related: [`ARCHITECTURE.md`](./ARCHITECTURE.md) · [`JOB_DISCOVERY.md`](./JOB_DI
 
 ## Principles
 
-1. CV / resume / profile stay in the browser for discovery and matching.
-2. Discovery providers never receive CV/profile bodies.
+1. CV / resume / profile stay out of discovery provider payloads.
+2. In local mode they stay in the browser. In V2 cloud they are private account rows, never public file URLs.
 3. Provider API keys never reach the browser (`THEIRSTACK_API_KEY` server-only).
 4. No auto-application and no auto-submit to employer ATS.
 5. Application notes/status are not sent to job providers.
@@ -21,8 +21,8 @@ Related: [`ARCHITECTURE.md`](./ARCHITECTURE.md) · [`JOB_DISCOVERY.md`](./JOB_DI
 
 | Data | Browser | ApplyFlow server | DB (V2) | Job providers |
 |------|---------|------------------|---------|---------------|
-| CV / resume text | Yes | No (not on discovery path) | No | **No** |
-| Candidate profile / skills | Yes | No (discovery) | No | **No** |
+| CV / resume text | Yes (local mode) | Yes, private JSON on the account when V2 cloud is canonical. Not a public URL. | Yes (`applyflow_profile_documents`) | **No** |
+| Candidate profile / skills | Yes (local mode) | Same as CV. Discovery requests still omit profile bodies. | Yes | **No** |
 | Search filters (keyword, location, …) | Yes | Yes (search API) | No | Yes (as query) |
 | Job description (hit / saved) | Yes | Yes (search/normalize; save via V2) | Yes (Job) | Source of truth upstream |
 | Job match score / decision | Yes (computed locally) | No scoring of CV on search | Optional on Job | **No** |

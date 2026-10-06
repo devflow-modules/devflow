@@ -26,13 +26,13 @@ export type NangoConnectUiStatus =
 
 export type NangoConnectUiInteractionStatus = "idle" | "starting" | "completed" | "cancelled" | "error";
 
-export const PROVIDER_NANGO_CONNECT_START_LABEL = "Connect in this browser (Nango)";
+export const PROVIDER_NANGO_CONNECT_START_LABEL = "Connect for this account (Nango)";
 
 export const PROVIDER_NANGO_CONNECT_OWNERSHIP_HINT =
-  "Uses this browser’s provider session. Not linked to your ApplyFlow account login.";
+  "Uses the signed-in ApplyFlow account. A previous browser-only connection is not reused.";
 
 export const PROVIDER_NANGO_CONNECT_COMPLETED_LINES = [
-  "Connection flow completed for this browser",
+  "Connection flow completed for this account",
   "No Gmail/Calendar data imported",
   "No sync started",
   "No provider payload stored",

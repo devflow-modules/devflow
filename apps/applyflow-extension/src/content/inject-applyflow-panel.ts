@@ -151,11 +151,36 @@ function mapPayloadToProps(payload: PanelPayload, profile: CandidateProfile | nu
   };
 }
 
+async function resolveAccountAssistProfile(): Promise<CandidateProfile | null> {
+  return await new Promise((resolve) => {
+    try {
+      chrome.runtime.sendMessage({ type: "APPLYFLOW_GET_ASSIST_PROFILE" }, (response) => {
+        void chrome.runtime.lastError;
+        if (
+          response &&
+          typeof response === "object" &&
+          (response as { ok?: unknown }).ok === true &&
+          (response as { profile?: unknown }).profile &&
+          typeof (response as { profile: unknown }).profile === "object"
+        ) {
+          resolve((response as { profile: CandidateProfile }).profile);
+          return;
+        }
+        resolve(null);
+      });
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
 async function resolveProfile(): Promise<CandidateProfile | null> {
   try {
+    const accountProfile = await resolveAccountAssistProfile();
+    if (accountProfile) return accountProfile;
     return await getStoredCandidateProfile();
   } catch (e) {
-    applyFlowDebugLog("falha ao ler chrome.storage.local — sem perfil", e);
+    applyFlowDebugLog("falha ao ler perfil da conta/local — sem perfil", e);
     return null;
   }
 }
@@ -355,7 +380,28 @@ async function handleSavePreparation(): Promise<void> {
           copilot,
         });
   const existing = typeof location !== "undefined" ? await findApplicationByNormalizedJobUrl(location.href) : null;
-  await saveApplication({ ...draft, status: existing?.status ?? "reviewing" });
+  const status = existing?.status ?? "reviewing";
+  const cloud = await new Promise<{ ok?: boolean; status?: number; error?: string } | undefined>((resolve) => {
+    try {
+      chrome.runtime.sendMessage(
+        { type: "APPLYFLOW_REGISTER_CLOUD_APPLICATION", draft: { ...draft, status } },
+        (response) => {
+          void chrome.runtime.lastError;
+          resolve(response as { ok?: boolean; status?: number; error?: string });
+        },
+      );
+    } catch {
+      resolve(undefined);
+    }
+  });
+  // Cloud failure must not silently fall back as success; local history only when disconnected.
+  if (!cloud || cloud.error === "signed_out" || cloud.status === 401) {
+    await saveApplication({ ...draft, status });
+  } else if (cloud.ok) {
+    await saveApplication({ ...draft, status });
+  } else {
+    applyFlowDebugLog("registo cloud falhou — sem fallback legado como sucesso", cloud);
+  }
   await paintApplyFlowPanel();
 }
 

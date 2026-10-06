@@ -6,7 +6,8 @@ import {
   mintCaller,
   nangoRequest,
 } from "@/lib/provider-runtime/nango-route-test-fixtures";
-import { buildApplyFlowNangoEndUserId } from "@/lib/provider-runtime/nango-server-provider";
+import { buildApplyFlowNangoAccountEndUserId } from "@/lib/provider-runtime/nango-account-identity";
+import { NANGO_ROUTE_ACCOUNT_ID } from "@/lib/provider-runtime/nango-route-account-mock";
 
 const createConnectSession = vi.fn(async () => ({
   data: { token: "nango-session-token" },
@@ -27,6 +28,10 @@ vi.mock("@/lib/provider-runtime/nango-connect-session-launcher", async () => {
     readApplyFlowNangoConnectSessionEnv: () => gmailOnlyNangoTestEnv,
   };
 });
+
+vi.mock("@/lib/persistence-v2/require-applyflow-account", () =>
+  import("@/lib/provider-runtime/nango-route-account-mock"),
+);
 
 import { GET, POST } from "./route";
 
@@ -75,7 +80,7 @@ describe("POST /provider-runtime/nango/connect", () => {
     expect(response.headers.get("set-cookie")).toBeNull();
   });
 
-  it("reuses a valid caller cookie and tags the Connect Session to that caller", async () => {
+  it("tags the Connect Session to the authenticated account and ignores client identity", async () => {
     const minted = mintCaller(CALLER_NONCE_A);
     const response = await POST(
       nangoRequest({
@@ -87,18 +92,16 @@ describe("POST /provider-runtime/nango/connect", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("set-cookie")).toBeNull();
     expect(createConnectSession).toHaveBeenCalledWith({
-      tags: { end_user_id: buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE_A) },
+      tags: { end_user_id: buildApplyFlowNangoAccountEndUserId("gmail", NANGO_ROUTE_ACCOUNT_ID) },
       allowed_integrations: ["google-mail"],
     });
-    expect(buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE_A)).not.toBe(
-      buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE_B),
-    );
-    expect(buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE_A)).not.toBe(
+    expect(buildApplyFlowNangoAccountEndUserId("gmail", NANGO_ROUTE_ACCOUNT_ID)).not.toBe(
       "applyflow-gmail-runtime-boundary",
     );
+    expect((await response.json()).ownership).toBe("applyflow_account");
   });
 
-  it("does not let session A create a session tagged as session B", async () => {
+  it("does not adopt a browser caller nonce supplied by the client", async () => {
     const mintedA = mintCaller(CALLER_NONCE_A);
     await POST(
       nangoRequest({
@@ -108,7 +111,7 @@ describe("POST /provider-runtime/nango/connect", () => {
       }),
     );
     expect(createConnectSession).toHaveBeenCalledWith({
-      tags: { end_user_id: buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE_A) },
+      tags: { end_user_id: buildApplyFlowNangoAccountEndUserId("gmail", NANGO_ROUTE_ACCOUNT_ID) },
       allowed_integrations: ["google-mail"],
     });
   });

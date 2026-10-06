@@ -12,21 +12,32 @@ async function jobId(context: JobRouteContext): Promise<string> {
   return id;
 }
 
-export async function GET(_request: Request, context: JobRouteContext) {
-  return withApplyFlowJobsAccount("read", async (account) => {
-    const job = await applyFlowJobService.get(account.id, await jobId(context));
-    return jobJson(job, 200);
-  });
+export async function GET(request: Request, context: JobRouteContext) {
+  return withApplyFlowJobsAccount(
+    "read",
+    async (account) => {
+      const job = await applyFlowJobService.get(account.id, await jobId(context));
+      return jobJson(job, 200);
+    },
+    request,
+  );
 }
 
 export async function PATCH(request: Request, context: JobRouteContext) {
-  const originBlock = enforceSameOriginMutatingRequest(request);
-  if (originBlock) return originBlock;
+  const hasBearer = Boolean(request.headers.get("authorization")?.startsWith("Bearer "));
+  if (!hasBearer) {
+    const originBlock = enforceSameOriginMutatingRequest(request);
+    if (originBlock) return originBlock;
+  }
 
-  return withApplyFlowJobsAccount("write", async (account) => {
-    // Concurrency token is body.expectedVersion — never HTTP If-Match (Vercel 412 risk).
-    const { expectedVersion, patch } = parseJobPatchRequest(await readJsonBody(request));
-    const job = await applyFlowJobService.patch(account.id, await jobId(context), expectedVersion, patch);
-    return jobJson(job, 200);
-  });
+  return withApplyFlowJobsAccount(
+    "write",
+    async (account) => {
+      // Concurrency token is body.expectedVersion — never HTTP If-Match (Vercel 412 risk).
+      const { expectedVersion, patch } = parseJobPatchRequest(await readJsonBody(request));
+      const job = await applyFlowJobService.patch(account.id, await jobId(context), expectedVersion, patch);
+      return jobJson(job, 200);
+    },
+    request,
+  );
 }

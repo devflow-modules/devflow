@@ -137,6 +137,12 @@ import {
   persistResumeLibrary,
   type ResumeLibraryLoadStatus,
 } from "@/lib/local-resume-library-storage";
+import {
+  beginPersonalRequest,
+  bindPersonalClientScope,
+  isStalePersonalGeneration,
+} from "@/lib/persistence-v2/personal/client-scope";
+import { hydrateAccountPersonalCaches } from "@/lib/persistence-v2/personal/hydrate-account-caches";
 import { persistDashboardContacts } from "@/lib/local-contact-storage";
 import { loadDashboardAnalytics, persistDashboardAnalytics } from "@/lib/local-analytics-storage";
 import {
@@ -324,6 +330,7 @@ export function DashboardClient({
   const [activationBusy, setActivationBusy] = useState(false);
   const [activationError, setActivationError] = useState<string | null>(null);
   const persistenceRef = useRef<ApplyFlowDashboardPersistence | null>(null);
+  const resumeVersionRef = useRef<number | undefined>(undefined);
   const bootstrapRef = useRef(persistenceBootstrap);
   bootstrapRef.current = persistenceBootstrap;
 
@@ -353,11 +360,31 @@ export function DashboardClient({
         setActivationPendingNotice(false);
         setEmptyActivationEligible(false);
         setActivationError(null);
-        // Candidate profile / resume library remain browser-local in V2 cloud.
-        const storedLibrary = hydrateResumeLibraryState();
-        setResumeLibrary(storedLibrary.library);
-        setResumeLibraryStatus(storedLibrary.status);
+        const accountId = bootstrapRef.current.ok ? bootstrapRef.current.bootstrap.accountId : null;
+        const generation = bindPersonalClientScope({
+          accountId,
+          authority: opened.writeCapability === "read_only" ? "cloud_read" : "cloud_write",
+        });
+        setResumeLibrary(null);
+        setResumeLibraryStatus("empty");
         setHydrated(true);
+        void fetch("/api/applyflow/v2/profile", { credentials: "same-origin", headers: { Accept: "application/json" } })
+          .then(async (response) => {
+            if (isStalePersonalGeneration(generation) || !response.ok) return null;
+            return (await response.json()) as { profile: { library: ResumeLibrary; version: number } | null };
+          })
+          .then((body) => {
+            if (isStalePersonalGeneration(generation) || !body) return;
+            resumeVersionRef.current = body.profile?.version;
+            setResumeLibrary(body.profile?.library ?? null);
+            setResumeLibraryStatus(body.profile ? "ok" : "empty");
+          })
+          .catch(() => {
+            if (!isStalePersonalGeneration(generation)) {
+              setResumeLibraryError("Não foi possível carregar o perfil da conta.");
+            }
+          });
+        void hydrateAccountPersonalCaches(generation);
         return;
       }
       if (
@@ -371,12 +398,17 @@ export function DashboardClient({
         setRemoteGate(null);
         setActivationPendingNotice(opened.kind === "migration_complete_pending_activation");
         setEmptyActivationEligible(opened.kind === "v2_offering_empty_pending");
+        bindPersonalClientScope({
+          accountId: bootstrapRef.current.ok ? bootstrapRef.current.bootstrap.accountId : null,
+          authority: "local",
+        });
         hydrateLocal();
         return;
       }
       persistenceRef.current = null;
       setUsesCloudPersistence(false);
       setEmptyActivationEligible(false);
+      bindPersonalClientScope({ accountId: null, authority: opened.kind === "paused" ? "cloud_paused" : "local" });
       if (opened.kind === "migration_required") setRemoteGate("migration_required");
       else if (opened.kind === "auth_required") setRemoteGate("auth_required");
       else if (opened.kind === "error") setRemoteGate("error");
@@ -613,6 +645,64 @@ export function DashboardClient({
   }, [usesCloudPersistence, writeCapability]);
 
   const commitResumeLibrary = useCallback((library: ResumeLibrary) => {
+    if (usesCloudPersistence) {
+      if (writeCapability === "read_only") {
+        setResumeLibraryError("Esta conta está em leitura. O perfil local não foi gravado.");
+        return;
+      }
+      const request = beginPersonalRequest();
+      const generation = request.generation;
+      void fetch("/api/applyflow/v2/profile", {
+        method: "PUT",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ library, expectedVersion: resumeVersionRef.current }),
+        signal: request.signal,
+      })
+        .then(async (response) => {
+          if (isStalePersonalGeneration(generation) || request.signal.aborted) return;
+          if (response.status === 409) {
+            setResumeLibraryError("O perfil mudou em outro dispositivo. Recarregue antes de gravar.");
+            return;
+          }
+          if (!response.ok) {
+            setResumeLibraryError("Não foi possível gravar o perfil na conta.");
+            return;
+          }
+          const body = (await response.json()) as { version?: number };
+          if (isStalePersonalGeneration(generation) || request.signal.aborted) return;
+          resumeVersionRef.current = body.version;
+          setResumeLibrary(library);
+          setResumeLibraryError(null);
+          const currentJobs = jobsRef.current;
+          if (currentJobs.length === 0) return;
+          const nextJobs = reevaluateApplyFlowJobs(currentJobs, getDefaultResumeVariant(library).profile, library);
+          if (!nextJobs.some((job, index) => job !== currentJobs[index])) return;
+          const persistence = persistenceRef.current;
+          if (!persistence) return;
+          const changed = nextJobs.filter((job, index) => job !== currentJobs[index]);
+          void Promise.all(changed.map((job) => persistence.updateJob(job))).then((results) => {
+            if (isStalePersonalGeneration(generation) || request.signal.aborted) return;
+            const failed = results.find((result) => !result.ok);
+            if (failed && !failed.ok) {
+              setJobInboxError(dashboardPersistenceFailureMessage(failed.code));
+              return;
+            }
+            setJobs((prev) =>
+              results.reduce((jobs, result) => (result.ok ? replaceApplyFlowJob(jobs, result.data) : jobs), prev),
+            );
+          });
+        })
+        .catch((error: unknown) => {
+          if (request.signal.aborted || isStalePersonalGeneration(generation)) {
+            // Abort after account switch is not a false success; server may still commit the original auth.
+            return;
+          }
+          void error;
+          setResumeLibraryError("Não foi possível gravar o perfil na conta.");
+        });
+      return;
+    }
     const persisted = persistResumeLibrary(library);
     if (!persisted.ok) {
       setResumeLibraryError(persisted.error);
@@ -642,7 +732,7 @@ export function DashboardClient({
     }
     persistDashboardJobs(nextJobs);
     setJobs(nextJobs);
-  }, [usesCloudPersistence]);
+  }, [usesCloudPersistence, writeCapability]);
 
   const matchProfile = useCallback(() => resolveInboxMatchProfile(resumeLibraryRef.current), []);
 

@@ -11,25 +11,27 @@ import {
 } from "./open-options-page.js";
 
 function stubValidExtensionContext(
-  overrides: Partial<{
-    sendMessage: typeof chrome.runtime.sendMessage;
-    openOptionsPage: typeof chrome.runtime.openOptionsPage;
-    getURL: typeof chrome.runtime.getURL;
-    tabsCreate: typeof chrome.tabs.create;
-  }> = {},
+  overrides: {
+    sendMessage?: unknown;
+    openOptionsPage?: unknown;
+    getURL?: unknown;
+    tabsCreate?: unknown;
+  } = {},
 ) {
   const optionsUrl = "chrome-extension://abcdefghij/options.html";
   vi.stubGlobal("chrome", {
     runtime: {
       id: "abcdefghij",
-      sendMessage: overrides.sendMessage,
-      openOptionsPage: overrides.openOptionsPage,
+      sendMessage: overrides.sendMessage as typeof chrome.runtime.sendMessage,
+      openOptionsPage: overrides.openOptionsPage as typeof chrome.runtime.openOptionsPage,
       getManifest: vi.fn().mockReturnValue({ manifest_version: 3 }),
-      getURL: overrides.getURL ?? vi.fn().mockReturnValue(optionsUrl),
+      getURL: (overrides.getURL ?? vi.fn().mockReturnValue(optionsUrl)) as typeof chrome.runtime.getURL,
       lastError: undefined,
     },
-    tabs: { create: overrides.tabsCreate ?? vi.fn() },
-  } as typeof chrome);
+    tabs: {
+      create: (overrides.tabsCreate ?? vi.fn()) as typeof chrome.tabs.create,
+    },
+  } as unknown as typeof chrome);
 }
 
 describe("open-options-page", () => {
@@ -103,7 +105,7 @@ describe("open-options-page", () => {
         getURL: vi.fn().mockReturnValue("chrome-extension://invalid/options.html"),
       },
       tabs: { create: tabsCreate },
-    } as typeof chrome);
+    } as unknown as typeof chrome);
 
     await expect(openOptionsViaExtensionTab()).resolves.toBe(false);
     expect(tabsCreate).not.toHaveBeenCalled();
@@ -134,7 +136,7 @@ describe("open-options-page", () => {
           throw new Error("Extension context invalidated.");
         }),
       },
-    } as typeof chrome);
+    } as unknown as typeof chrome);
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     await openApplyFlowOptions();

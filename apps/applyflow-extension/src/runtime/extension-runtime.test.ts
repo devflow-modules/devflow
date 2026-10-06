@@ -33,7 +33,7 @@ describe("extension-runtime", () => {
             throw new Error("Extension context invalidated.");
           }),
         },
-      } as typeof chrome);
+      } as unknown as typeof chrome);
       expect(hasValidExtensionContext()).toBe(false);
     });
 
@@ -43,7 +43,7 @@ describe("extension-runtime", () => {
           id: "abcdefghij",
           getManifest: vi.fn().mockReturnValue({ manifest_version: 3 }),
         },
-      } as typeof chrome);
+      } as unknown as typeof chrome);
       expect(hasValidExtensionContext()).toBe(true);
     });
   });
@@ -58,7 +58,7 @@ describe("extension-runtime", () => {
           }),
           getURL: vi.fn().mockReturnValue("chrome-extension://invalid/options.html"),
         },
-      } as typeof chrome);
+      } as unknown as typeof chrome);
       expect(safeExtensionUrl("options.html")).toBeUndefined();
     });
 
@@ -70,7 +70,7 @@ describe("extension-runtime", () => {
           getManifest: vi.fn().mockReturnValue({ manifest_version: 3 }),
           getURL: vi.fn().mockReturnValue(url),
         },
-      } as typeof chrome);
+      } as unknown as typeof chrome);
       expect(safeExtensionUrl("options.html")).toBe(url);
     });
   });

@@ -6,12 +6,15 @@ import {
 } from "@/lib/provider-runtime/nango-connection-verification-boundary";
 import { readApplyFlowNangoConnectSessionEnv } from "@/lib/provider-runtime/nango-connect-session-launcher";
 import { createNangoConnectionVerificationProvider } from "@/lib/provider-runtime/nango-connection-verification-provider";
-import { resolveNangoRouteCaller } from "@/lib/provider-runtime/nango-route-caller";
+import {
+  buildApplyFlowNangoAccountEndUserId,
+  resolveNangoPersonalRoute,
+} from "@/lib/provider-runtime/nango-account-identity";
 
 /**
- * Server-side Nango connection verification boundary.
- * Lists only connections tagged to the validated caller session.
- * Returns client-safe verification snapshot only — never secrets, OAuth tokens, or raw connections.
+ * Server-side Nango connection verification.
+ * Lists only connections tagged to the authenticated ApplyFlow account.
+ * A leftover browser caller cookie is ignored and does not adopt old connections.
  */
 
 function blockedVerification(reason: string, messages: string[], status: number) {
@@ -30,21 +33,25 @@ function blockedVerification(reason: string, messages: string[], status: number)
 
 export async function POST(request: NextRequest) {
   const env = readApplyFlowNangoConnectSessionEnv();
-  const caller = resolveNangoRouteCaller({ request, env, mintIfMissing: false });
-  if (caller.required && !caller.ok) {
-    return blockedVerification(
-      caller.reason,
-      ["A same-origin caller session is required before verifying a Nango connection."],
-      caller.httpStatus,
-    );
-  }
-
-  let body: { provider?: string; explicitConsent?: boolean | string } = {};
+  let body: { provider?: string; explicitConsent?: boolean | string; adoptLegacyBrowserConnection?: boolean } = {};
 
   try {
     body = (await request.json()) as typeof body;
   } catch {
     body = {};
+  }
+
+  const owner = await resolveNangoPersonalRoute({
+    request,
+    env,
+    adoptLegacyBrowserConnection: body.adoptLegacyBrowserConnection === true,
+  });
+  if (!owner.ok) {
+    return blockedVerification(
+      owner.reason,
+      ["An authenticated ApplyFlow account is required before verifying a Nango connection."],
+      owner.httpStatus,
+    );
   }
 
   const provider = parseConnectionVerificationProvider(body.provider);
@@ -70,11 +77,11 @@ export async function POST(request: NextRequest) {
   }
 
   const verificationDeps =
-    env.NANGO_SECRET_KEY?.trim() && caller.required && caller.ok
+    env.NANGO_SECRET_KEY?.trim() && provider
       ? {
           verificationProvider: createNangoConnectionVerificationProvider({
             secretKey: env.NANGO_SECRET_KEY,
-            callerNonce: caller.callerNonce,
+            endUserId: buildApplyFlowNangoAccountEndUserId(provider, owner.accountId),
           }),
         }
       : {};
@@ -87,5 +94,12 @@ export async function POST(request: NextRequest) {
     { env, verificationDeps },
   );
 
-  return NextResponse.json(result, { status: 200 });
+  return NextResponse.json(
+    {
+      ...result,
+      ownership: "applyflow_account",
+      legacyBrowserIdentityIgnored: owner.legacyBrowserCookiePresent,
+    },
+    { status: 200 },
+  );
 }

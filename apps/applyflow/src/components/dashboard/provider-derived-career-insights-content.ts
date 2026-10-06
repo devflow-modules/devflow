@@ -21,7 +21,7 @@ export const PROVIDER_DERIVED_CAREER_INSIGHTS_NO_PERSISTENCE =
 
 export const PROVIDER_DERIVED_CAREER_INSIGHTS_PHASE_MESSAGES = {
   no_valid_connection:
-    "Connect Gmail and Calendar in this browser with explicit consent before insights can be derived. Connections are not linked to your ApplyFlow account.",
+    "Connect Gmail and Calendar for this ApplyFlow account with explicit consent before insights can be derived.",
   connected_idle: "Connections are ready. Run the read-only preview to derive insights.",
   preview_loading: "Deriving client-safe signals…",
   preview_blocked: "Preview was blocked. Insights are unavailable until the runtime gate passes.",

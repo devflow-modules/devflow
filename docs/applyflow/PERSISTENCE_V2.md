@@ -15,7 +15,15 @@
 | **`v2_read_only`** | PostgreSQL (reads); writes denied |
 | **`v2_paused`** | Canonical remains `v2_cloud`; V2 HTTP paused — **no V1 fallback** |
 
-`localStorage` may remain as cache/draft/backup — **never** as canonical after `v2_cloud`.
+`localStorage` may remain as cache/draft/backup for local mode — **never** as canonical after `v2_cloud`. Cloud profile, contacts, responses, and events follow the same rule: a failed cloud write is not stored as the account copy.
+
+## Personal modules
+
+When canonical persistence is `v2_cloud`, profile, contacts, interactions, inbound responses, and career events are rows owned by `ApplyFlowAccount.id`. Analytics are calculated from those rows plus Jobs/Applications. Personal import is explicit, resumable, and does not promote or demote `canonicalPersistence`. It reports fingerprint conflicts instead of last-write-wins.
+
+RLS is enabled on the new tables without `FORCE`. Prisma uses the database role and does not send the Supabase user JWT, so API scoping remains the enforcement path. Policies are versioned in `20261005170000_account_personal_persistence` and are not claimed as applied in production until an operator runs the migration on the ApplyFlow database.
+
+**DB contract (A):** account isolation is enforced by ApplyFlow HTTP APIs + `accountId` repository scoping. Local Docker role `applyflow` is superuser/owner/`BYPASSRLS`, so RLS is **not** effective for Prisma queries. See [`ACCOUNT_PERSISTENCE_PUBLICATION_PREP.md`](./ACCOUNT_PERSISTENCE_PUBLICATION_PREP.md) and `pnpm db:role:inspect` / `pnpm db:role:rehearse-runtime` (local only).
 
 ## Effective mode matrix
 

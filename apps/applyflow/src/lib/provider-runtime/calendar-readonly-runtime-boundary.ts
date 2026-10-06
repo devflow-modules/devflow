@@ -80,6 +80,7 @@ export async function executeApplyFlowCalendarReadOnlyRuntimeBoundary(
     };
     runtimeDeps?: ApplyFlowCalendarReadOnlyRuntimeDeps;
     callerNonce?: string;
+    endUserId?: string;
   },
 ): Promise<CalendarReadOnlyAdapterResult> {
   if (!parseConnectionVerificationExplicitConsent(query.explicitConsent)) {
@@ -113,7 +114,7 @@ export async function executeApplyFlowCalendarReadOnlyRuntimeBoundary(
     });
   }
 
-  if (!deps.runtimeDeps?.metadataProvider && !deps.callerNonce) {
+  if (!deps.runtimeDeps?.metadataProvider && !deps.callerNonce && !deps.endUserId) {
     return blockedRuntimeResult({
       connectionVerified: deps.connectionVerified,
       warnings: ["blocked:missing_caller_session"],
@@ -124,7 +125,7 @@ export async function executeApplyFlowCalendarReadOnlyRuntimeBoundary(
     deps.runtimeDeps?.metadataProvider ??
     createCalendarNangoRuntimeMetadataProvider({
       secretKey: deps.env.NANGO_SECRET_KEY,
-      endUserId: buildApplyFlowNangoEndUserId("calendar", deps.callerNonce as string),
+      endUserId: deps.endUserId ?? buildApplyFlowNangoEndUserId("calendar", deps.callerNonce as string),
     });
 
   const adapter = createCalendarReadOnlyNangoRuntimeAdapter({ metadataProvider });

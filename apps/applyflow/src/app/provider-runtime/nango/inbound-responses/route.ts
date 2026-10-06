@@ -5,7 +5,7 @@ import {
   handleGmailClosedLoopInboundScan,
   parseGmailClosedLoopInboundRequest,
 } from "@/lib/provider-runtime/gmail-closed-loop-inbound-boundary";
-import { resolveNangoRouteCaller } from "@/lib/provider-runtime/nango-route-caller";
+import { resolveNangoPersonalRoute, buildApplyFlowNangoAccountEndUserId } from "@/lib/provider-runtime/nango-account-identity";
 
 export async function POST(request: NextRequest) {
   let body: unknown = null;
@@ -28,30 +28,36 @@ export async function POST(request: NextRequest) {
 
   try {
     const env = readApplyFlowNangoConnectSessionEnv();
-    const caller = resolveNangoRouteCaller({ request, env, mintIfMissing: false });
-    if (caller.required && !caller.ok) {
+    const owner = await resolveNangoPersonalRoute({ request, env });
+    if (!owner.ok) {
       return NextResponse.json(
         {
           status: "blocked",
           emails: [],
           accountScopes: [],
-          warnings: [caller.reason],
+          warnings: [owner.reason],
           readOnly: true,
           safeForClient: true,
         },
-        { status: caller.httpStatus },
+        { status: owner.httpStatus },
       );
     }
 
+    const endUserId = buildApplyFlowNangoAccountEndUserId("gmail", owner.accountId);
     const result = await handleGmailClosedLoopInboundScan({
       env,
       requestedAt: new Date().toISOString(),
       limit: parsed.limit,
       explicitConsent: true,
+      endUserId,
       ...(parsed.accountScope ? { accountScope: parsed.accountScope } : {}),
-      ...(caller.required && caller.ok ? { callerNonce: caller.callerNonce } : {}),
-      verificationDeps: env.NANGO_SECRET_KEY?.trim() && caller.required && caller.ok
-        ? { verificationProvider: createNangoConnectionVerificationProvider({ secretKey: env.NANGO_SECRET_KEY, callerNonce: caller.callerNonce }) }
+      verificationDeps: env.NANGO_SECRET_KEY?.trim()
+        ? {
+            verificationProvider: createNangoConnectionVerificationProvider({
+              secretKey: env.NANGO_SECRET_KEY,
+              endUserId,
+            }),
+          }
         : {},
     });
     const httpStatus = result.status === "blocked" ? 200 : result.status === "error" ? 500 : 200;

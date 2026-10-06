@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   CALLER_NONCE_A,
-  CALLER_NONCE_B,
   gmailOnlyNangoTestEnv,
   mintCaller,
   nangoRequest,
 } from "@/lib/provider-runtime/nango-route-test-fixtures";
-import { buildApplyFlowNangoEndUserId } from "@/lib/provider-runtime/nango-server-provider";
+import { buildApplyFlowNangoAccountEndUserId } from "@/lib/provider-runtime/nango-account-identity";
+import { NANGO_ROUTE_ACCOUNT_ID, nangoRouteAuth } from "@/lib/provider-runtime/nango-route-account-mock";
 
 const listConnections = vi.fn();
 
@@ -26,22 +26,28 @@ vi.mock("@/lib/provider-runtime/nango-connect-session-launcher", async () => {
   };
 });
 
+vi.mock("@/lib/persistence-v2/require-applyflow-account", () =>
+  import("@/lib/provider-runtime/nango-route-account-mock"),
+);
+
 import { POST } from "./route";
 
 const URL = "http://localhost/provider-runtime/nango/connection-status";
 
 describe("POST /provider-runtime/nango/connection-status", () => {
   beforeEach(() => {
+    nangoRouteAuth.signedIn = true;
     listConnections.mockReset();
     listConnections.mockResolvedValue({ connections: [{ errors: [] }] });
   });
 
-  it("rejects a missing caller session before listing connections", async () => {
+  it("rejects an unauthenticated account before listing connections", async () => {
+    nangoRouteAuth.signedIn = false;
     const response = await POST(
       nangoRequest({ url: URL, body: { provider: "gmail", explicitConsent: true } }),
     );
     expect(response.status).toBe(401);
-    expect((await response.json()).warnings).toContain("missing_caller_session");
+    expect((await response.json()).warnings).toContain("unauthenticated");
     expect(listConnections).not.toHaveBeenCalled();
   });
 
@@ -59,7 +65,7 @@ describe("POST /provider-runtime/nango/connection-status", () => {
     expect(listConnections).not.toHaveBeenCalled();
   });
 
-  it("lists only the caller A tag, not caller B or the retired shared id", async () => {
+  it("lists only the authenticated account tag, not a client end user id", async () => {
     const minted = mintCaller(CALLER_NONCE_A);
     const response = await POST(
       nangoRequest({
@@ -68,19 +74,18 @@ describe("POST /provider-runtime/nango/connection-status", () => {
         body: {
           provider: "gmail",
           explicitConsent: true,
-          endUserId: buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE_B),
+          endUserId: buildApplyFlowNangoAccountEndUserId("gmail", "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"),
         },
       }),
     );
     expect(response.status).toBe(200);
-    expect((await response.json()).state).toBe("connected");
+    const body = await response.json();
+    expect(body.state).toBe("connected");
     expect(listConnections).toHaveBeenCalledWith({
       integrationId: "google-mail",
-      tags: { end_user_id: buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE_A) },
+      tags: { end_user_id: buildApplyFlowNangoAccountEndUserId("gmail", NANGO_ROUTE_ACCOUNT_ID) },
       limit: 10,
     });
-    expect(buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE_A)).not.toBe(
-      "applyflow-gmail-runtime-boundary",
-    );
+    expect(body.legacyBrowserIdentityIgnored).toBe(true);
   });
 });

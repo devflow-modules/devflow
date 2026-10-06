@@ -42,7 +42,7 @@ describe("ProviderDerivedCareerInsightsPanel render", () => {
 
     expect(html).toContain(PROVIDER_DERIVED_CAREER_INSIGHTS_TITLE);
     expect(html).toContain(PROVIDER_DERIVED_CAREER_INSIGHTS_NO_CAREER_BUNDLE);
-    expect(html).toContain("Connect Gmail and Calendar in this browser");
+    expect(html).toContain("Connect Gmail and Calendar for this ApplyFlow account");
     expect(html).not.toMatch(/access_token|connectionId|providerPayload/i);
   });
 

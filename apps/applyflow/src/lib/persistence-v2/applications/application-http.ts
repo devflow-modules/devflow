@@ -52,11 +52,13 @@ export function applicationErrorResponse(error: unknown): NextResponse {
 export async function withApplyFlowApplicationsAccount(
   capability: Extract<ApplyFlowV2HttpCapability, "read" | "write">,
   action: (account: ApplyFlowAccountRecord) => Promise<NextResponse>,
+  request?: Request,
 ): Promise<NextResponse> {
   return withApplyFlowV2HttpAccess(
     capability,
     async (account) => action(account),
     applicationErrorResponse,
+    request,
   );
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ApplyFlowBadge, type ApplyFlowBadgeTone } from "@/components/ui/ApplyFlowBadge";
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
@@ -29,9 +29,19 @@ import {
   confirmLegacyClosedLoopAccountOwnership,
 } from "@/lib/closed-loop-email-identity";
 import {
+  APPLYFLOW_INBOUND_RESPONSES_STORAGE_KEY,
   loadDashboardInboundResponses,
   persistDashboardInboundResponses,
 } from "@/lib/local-inbound-response-storage";
+import {
+  currentPersonalClientScope,
+  isStalePersonalGeneration,
+  personalLocalWritesAllowed,
+  rememberedResponseVersions,
+  rememberResponseVersion,
+  writeAccountScopedCache,
+} from "@/lib/persistence-v2/personal/client-scope";
+import { hydrateAccountPersonalCaches } from "@/lib/persistence-v2/personal/hydrate-account-caches";
 import { fetchGmailClosedLoopInboundEmails } from "./gmail-closed-loop-inbound-client";
 import { cn } from "@/lib/cn";
 
@@ -396,6 +406,18 @@ export function InboundApplicationResponsePanel({
   const [subjectHint, setSubjectHint] = useState("");
   const [localEmails, setLocalEmails] = useState<InboundEmail[]>([]);
   const [detections, setDetections] = useState<ResponseDetection[]>(() => loadDashboardInboundResponses().detections);
+  useEffect(() => {
+    if (personalLocalWritesAllowed()) return;
+    const generation = currentPersonalClientScope().generation;
+    let cancelled = false;
+    void hydrateAccountPersonalCaches(generation).then((ok) => {
+      if (cancelled || !ok || isStalePersonalGeneration(generation)) return;
+      setDetections(loadDashboardInboundResponses().detections);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [selectedStatusById, setSelectedStatusById] = useState<Record<string, ApplyFlowPipelineStatusV2 | "">>({});
   const [selectedApplicationById, setSelectedApplicationById] = useState<Record<string, string>>({});
   const [persistError, setPersistError] = useState<string | null>(null);
@@ -408,6 +430,61 @@ export function InboundApplicationResponsePanel({
   const hasAppliedApplications = applications.some((item) => item.status !== "reviewing" && item.status !== "ignored");
 
   const pendingSourceEmails = useMemo(() => [...emails, ...localEmails], [emails, localEmails]);
+
+  function persistDetections(
+    next: ResponseDetection[],
+    persistOptions?: { legacyClosedLoopAccountScope?: string | null },
+  ) {
+    if (!personalLocalWritesAllowed()) {
+      const generation = currentPersonalClientScope().generation;
+      void fetch("/api/applyflow/v2/responses", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          detections: next.map((detection) => {
+            const provider = (detection as { provider?: unknown }).provider;
+            return {
+              ...detection,
+              provider: provider === "gmail" || provider === "manual"
+                ? provider
+                : /^[a-f0-9]{32}$/.test(detection.emailId)
+                  ? "gmail"
+                  : "manual",
+            };
+          }),
+          versions: rememberedResponseVersions(),
+        }),
+      })
+        .then(async (response) => {
+          if (isStalePersonalGeneration(generation)) return;
+          if (!response.ok) {
+            setPersistError("Não foi possível gravar as respostas na conta. A cópia local não foi usada.");
+            return;
+          }
+          const body = (await response.json()) as {
+            responses?: Array<{ detection?: { id?: string }; version?: number }>;
+          };
+          for (const item of body.responses ?? []) {
+            if (item.detection?.id && typeof item.version === "number") {
+              rememberResponseVersion(item.detection.id, item.version);
+            }
+          }
+          writeAccountScopedCache(
+            APPLYFLOW_INBOUND_RESPONSES_STORAGE_KEY,
+            JSON.stringify({ version: 1, savedAt: new Date().toISOString(), detections: next }),
+          );
+          setPersistError(null);
+        })
+        .catch(() => {
+          if (!isStalePersonalGeneration(generation)) {
+            setPersistError("Não foi possível gravar as respostas na conta. A cópia local não foi usada.");
+          }
+        });
+      return;
+    }
+    persistDashboardInboundResponses(next, persistOptions);
+  }
 
   function rebuild(
     nextEmails: InboundEmail[],
@@ -422,7 +499,7 @@ export function InboundApplicationResponsePanel({
     });
     const next = mergeInboundResponseDetections(existing, analysis.detections);
     setDetections(next);
-    persistDashboardInboundResponses(next, persistOptions);
+    persistDetections(next, persistOptions);
     setNotice(formatInboundAnalysisNotice(summarizeInboundResponseAnalysis(analysis, existing)));
     return next;
   }
@@ -495,7 +572,7 @@ export function InboundApplicationResponsePanel({
       setPersistError(INBOUND_RESPONSE_NEED_ACCOUNT);
       return;
     }
-    persistDashboardInboundResponses(stored.detections, {
+    persistDetections(stored.detections, {
       legacyClosedLoopAccountScope: confirmed.legacyOwnerScope,
     });
     setPendingLegacyBindScope(undefined);

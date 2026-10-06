@@ -31,9 +31,9 @@ describe("ProviderConnectionDisconnectPanel", () => {
     );
 
     expect(html).toContain("Disconnect Gmail");
-    expect(PROVIDER_CONNECTION_DISCONNECT_CONFIRM_TITLE).toMatch(/Disconnect this provider from this browser/i);
+    expect(PROVIDER_CONNECTION_DISCONNECT_CONFIRM_TITLE).toMatch(/Disconnect this provider from this account/i);
     expect(PROVIDER_CONNECTION_DISCONNECT_CONFIRM_BODY).toMatch(
-      /does not necessarily revoke the app directly in your Google Account/i,
+      /does not revoke the app in your Google Account/i,
     );
     expect(html).not.toMatch(/connectionId|access_token|refresh_token|NANGO_SECRET_KEY/i);
   });

@@ -14,6 +14,8 @@ import { DashboardPersistenceNotice } from "@/components/dashboard/dashboard-per
 import { DashboardMigrationPanel } from "@/components/dashboard/dashboard-migration-panel";
 import type { ApplyFlowClientPersistenceBootstrapResult } from "@/lib/persistence-v2/dashboard/client-persistence-bootstrap";
 import { openDashboardPersistence } from "@/lib/persistence-v2/dashboard/open-dashboard-persistence";
+import { bindPersonalClientScope } from "@/lib/persistence-v2/personal/client-scope";
+import { hydrateAccountPersonalCaches } from "@/lib/persistence-v2/personal/hydrate-account-caches";
 import type { ApplyFlowApplicationV2Envelope, ApplyFlowJob } from "@devflow/applyflow-core";
 
 import {
@@ -59,6 +61,7 @@ export function CareerAnalyticsPanel({
     jobs: ApplyFlowJob[];
     applications: ApplyFlowApplicationV2Envelope[];
   } | null>(null);
+  const [personalCacheEpoch, setPersonalCacheEpoch] = useState(0);
   useEffect(() => {
     if (!hydrated) return;
     if (!persistenceBootstrap.ok) return;
@@ -66,9 +69,16 @@ export function CareerAnalyticsPanel({
     void openDashboardPersistence({ bootstrap: persistenceBootstrap.bootstrap }).then((opened) => {
       if (cancelled) return;
       if (opened.kind === "ready") {
+        const generation = bindPersonalClientScope({
+          accountId: persistenceBootstrap.bootstrap.accountId,
+          authority: opened.writeCapability === "read_only" ? "cloud_read" : "cloud_write",
+        });
         setUsesCloudPersistence(true);
         setRemoteDomain({ jobs: opened.jobs, applications: opened.applications });
         setRemoteGate(null);
+        void hydrateAccountPersonalCaches(generation).then((ok) => {
+          if (!cancelled && ok) setPersonalCacheEpoch((epoch) => epoch + 1);
+        });
         return;
       }
       if (
@@ -76,12 +86,20 @@ export function CareerAnalyticsPanel({
         opened.kind === "v2_offering_empty_pending" ||
         opened.kind === "migration_complete_pending_activation"
       ) {
+        bindPersonalClientScope({
+          accountId: persistenceBootstrap.bootstrap.accountId,
+          authority: "local",
+        });
         setUsesCloudPersistence(false);
         setRemoteDomain(null);
         setRemoteGate(null);
         return;
       }
       setUsesCloudPersistence(false);
+      bindPersonalClientScope({
+        accountId: persistenceBootstrap.bootstrap.accountId,
+        authority: opened.kind === "paused" ? "cloud_paused" : "local",
+      });
       if (opened.kind === "migration_required") setRemoteGate("migration_required");
       else if (opened.kind === "auth_required") setRemoteGate("auth_required");
       else if (opened.kind === "error") setRemoteGate("error");
@@ -93,7 +111,7 @@ export function CareerAnalyticsPanel({
     };
   }, [hydrated, persistenceBootstrap]);
   const snapshot = useMemo(() => {
-    if (!hydrated) return null;
+    if (!hydrated || personalCacheEpoch < 0) return null;
     if (usesCloudPersistence) {
       if (!remoteDomain) return null;
       return loadCareerAnalyticsSnapshot({
@@ -102,7 +120,7 @@ export function CareerAnalyticsPanel({
       });
     }
     return loadCareerAnalyticsSnapshot();
-  }, [hydrated, usesCloudPersistence, remoteDomain]);
+  }, [hydrated, usesCloudPersistence, remoteDomain, personalCacheEpoch]);
   const [tab, setTab] = useState<AnalyticsTab>("funnel");
   const [moreOpen, setMoreOpen] = useState(false);
   const moreId = useId();

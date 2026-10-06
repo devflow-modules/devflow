@@ -50,29 +50,37 @@ function parseLifecycleBody(raw: unknown): {
  * Atomic Application ↔ linked Job lifecycle transition (same Postgres transaction).
  */
 export async function POST(request: Request, context: ApplicationRouteContext) {
-  const originBlock = enforceSameOriginMutatingRequest(request);
-  if (originBlock) return originBlock;
+  const hasBearer = Boolean(request.headers.get("authorization")?.startsWith("Bearer "));
+  if (!hasBearer) {
+    const originBlock = enforceSameOriginMutatingRequest(request);
+    if (originBlock) return originBlock;
+  }
 
-  return withApplyFlowApplicationsAccount("write", async (account) => {
-    const { id } = await context.params;
-    const body = parseLifecycleBody(await readApplicationJsonBody(request));
-    const result = await applyFlowApplicationService.transitionLifecycle(
-      account.id,
-      id,
-      body.expectedVersion,
-      { status: body.status, notes: body.notes },
-    );
+  return withApplyFlowApplicationsAccount(
+    "write",
+    async (account) => {
+      const { id } = await context.params;
+      const body = parseLifecycleBody(await readApplicationJsonBody(request));
+      const result = await applyFlowApplicationService.transitionLifecycle(
+        account.id,
+        id,
+        body.expectedVersion,
+        { status: body.status, notes: body.notes },
+      );
 
-    return NextResponse.json(
-      {
-        application: result.application,
-        job: result.job,
-        jobSynced: result.jobSynced,
-      },
-      {
-        status: 200,
-        headers: { ETag: applicationVersionEtag(result.application.version) },
-      },
-    );
-  });
+      return NextResponse.json(
+        {
+          application: result.application,
+          job: result.job,
+          jobSynced: result.jobSynced,
+          event: result.event,
+        },
+        {
+          status: 200,
+          headers: { ETag: applicationVersionEtag(result.application.version) },
+        },
+      );
+    },
+    request,
+  );
 }
