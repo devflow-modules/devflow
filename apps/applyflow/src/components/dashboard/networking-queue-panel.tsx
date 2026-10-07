@@ -90,7 +90,16 @@ export function NetworkingQueuePanel({
                 const text = await file.text();
                 const result = await applyOpportunityPipelineJson(text);
                 if (!result.ok) {
-                  setImportError(result.error);
+                  const partial = result.partial;
+                  setImportError(
+                    partial && (partial.jobsAdded > 0 || partial.jobsSkipped > 0)
+                      ? `${result.error} (jobs partial: added ${partial.jobsAdded}, skipped ${partial.jobsSkipped}; contacts not completed — not a full success; retry skips existing jobs)`
+                      : result.error,
+                  );
+                  if (partial && (partial.jobsAdded > 0 || partial.jobsSkipped > 0)) {
+                    setContacts(loadDashboardContacts().contacts);
+                    onImported?.();
+                  }
                   return;
                 }
                 setImportOk(
@@ -139,6 +148,9 @@ export function NetworkingQueuePanel({
                     <span className="text-sm tabular-nums text-[color:var(--af-text)]">
                       {item.matchScore}%
                     </span>
+                    {item.manualMatchOverride ? (
+                      <ApplyFlowBadge tone="neutral">Manual score</ApplyFlowBadge>
+                    ) : null}
                     <ApplyFlowBadge
                       tone={
                         item.outreachStatus

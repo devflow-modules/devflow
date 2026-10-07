@@ -12,11 +12,13 @@ import {
   markOutreachSent,
   networkingIndicatorLabel,
   outreachNeverAutoSends,
+  reevaluateApplyFlowJobMatch,
   recordOutreachReply,
   selectNetworkingQueue,
   type ApplyFlowJob,
   type Contact,
 } from "../index.js";
+import { gustavoProfile } from "../candidate-profile.js";
 
 const NOW = new Date("2026-10-07T12:00:00.000Z");
 
@@ -273,6 +275,14 @@ describe("networking / outreach domain", () => {
     expect(result.contacts).toHaveLength(1);
     expect(result.contacts[0]?.status).toBe("MESSAGE_PREPARED");
     expect(result.contacts[0]?.contactConfidence).toBe("very_high");
+
+    const queueItem = selectNetworkingQueue(result.jobs, result.contacts, { now: NOW })[0];
+    expect(queueItem?.manualMatchOverride).toBe(true);
+    expect(queueItem?.matchScore).toBe(96);
+
+    const refreshed = reevaluateApplyFlowJobMatch(result.jobs[0]!, gustavoProfile, undefined, NOW);
+    expect(refreshed.jobMatch.score).toBe(96);
+    expect(refreshed.jobContext.networking?.manualMatchOverride).toBe(true);
   });
 
   it("legacy contact sem novos campos continua válido", () => {

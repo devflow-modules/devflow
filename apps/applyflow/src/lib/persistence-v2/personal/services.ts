@@ -136,14 +136,19 @@ export function createPersonalContactsService(store: PersonalStore) {
     ): Promise<{ contact: Contact; version: number }> {
       const applicationId = contact.applicationId ?? null;
       const jobId = contact.jobId ?? null;
-      if ((applicationId == null) !== (jobId == null)) {
+      // applicationId requires jobId; jobId-only is allowed (networking before Application).
+      if (applicationId && !jobId) {
         throw new PersonalServiceError("invalid_payload");
       }
       if (applicationId && jobId) {
         if (!isValidDashboardContact({ applicationId, jobId }, contact)) {
           throw new PersonalServiceError("invalid_payload");
         }
-      } else if (!contact.name.trim()) {
+      } else if (
+        !contact.name.trim() ||
+        !CONTACT_TYPES.includes(contact.type) ||
+        !CONTACT_STATUSES.includes(contact.status)
+      ) {
         throw new PersonalServiceError("invalid_payload");
       }
       await assertOwnedRefs(store, accountId, { applicationId, jobId });

@@ -20,6 +20,8 @@ export type NetworkingQueueItem = {
   company?: string;
   title: string;
   matchScore: number;
+  /** True when match score must not be overwritten by hydrate/reevaluate. */
+  manualMatchOverride: boolean;
   priority: number;
   strategy?: NetworkingStrategy;
   contact?: Contact;
@@ -96,6 +98,7 @@ export function selectNetworkingQueue(
       company: job.company,
       title: job.title,
       matchScore: job.jobMatch.score,
+      manualMatchOverride: networking?.manualMatchOverride === true,
       priority: networking?.priority ?? Number.POSITIVE_INFINITY,
       strategy: networking?.strategy,
       contact,

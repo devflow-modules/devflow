@@ -110,6 +110,35 @@ describe("account personal persistence", () => {
     ).resolves.toMatchObject({ id: "i1" });
   });
 
+  it("accepts job-scoped contacts without applicationId (networking before Application)", async () => {
+    const store = createMemoryPersonalStore();
+    store.jobs.add(`${ACCOUNT_A}::job-pipeline`);
+    const contacts = createPersonalContactsService(store);
+    const saved = await contacts.saveContact(
+      ACCOUNT_A,
+      contact({
+        id: "c-pipeline",
+        jobId: "job-pipeline",
+        status: "MESSAGE_PREPARED",
+        messageContent: "Synthetic outreach",
+        language: "EN",
+        channel: "linkedin",
+      }),
+    );
+    expect(saved.version).toBe(1);
+    expect(saved.contact.jobId).toBe("job-pipeline");
+    expect(saved.contact.applicationId).toBeUndefined();
+  });
+
+  it("rejects applicationId without jobId", async () => {
+    const store = createMemoryPersonalStore();
+    store.applications.add(`${ACCOUNT_A}::app-a`);
+    const contacts = createPersonalContactsService(store);
+    await expect(
+      contacts.saveContact(ACCOUNT_A, contact({ applicationId: "app-a" })),
+    ).rejects.toMatchObject({ code: "invalid_payload" });
+  });
+
   it("does not overwrite a profile when the version conflicts", async () => {
     const store = createMemoryPersonalStore();
     const profiles = createPersonalProfileService(store);

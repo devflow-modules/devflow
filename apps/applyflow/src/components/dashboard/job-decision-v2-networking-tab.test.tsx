@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { useState } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   loadApplicationOutreach,
@@ -31,9 +31,14 @@ function Harness() {
 afterEach(() => {
   window.localStorage.clear();
   cleanup();
+  vi.restoreAllMocks();
 });
 
 describe("JobDecisionV2NetworkingTab", () => {
+  beforeEach(() => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+  });
+
   it("registra contato, prepara, envia e marca resposta", () => {
     render(<Harness />);
 
@@ -164,7 +169,27 @@ describe("JobDecisionV2NetworkingTab", () => {
     expect(loadDashboardContacts().interactions.filter((item) => item.type === "message")).toHaveLength(1);
   });
 
-  it("copia a mensagem atual exatamente", async () => {
+  it("não marca Sent quando a confirmação humana é cancelada", () => {
+    vi.spyOn(window, "confirm").mockReturnValue(false);
+    const contact: Contact = {
+      id: "confirm-contact",
+      applicationId: scope.applicationId,
+      jobId: scope.jobId,
+      name: "Confirm Contact",
+      type: "recruiter",
+      status: "MESSAGE_PREPARED",
+      messageContent: "Ready to send",
+      createdAt: "2026-09-20T12:00:00.000Z",
+      updatedAt: "2026-09-20T12:00:00.000Z",
+    };
+    persistDashboardContacts([contact], []);
+    render(<Harness />);
+    fireEvent.click(screen.getByRole("button", { name: "Mark as sent" }));
+    expect(loadDashboardContacts().contacts[0]?.status).toBe("MESSAGE_PREPARED");
+    expect(loadDashboardContacts().contacts[0]?.sentAt).toBeUndefined();
+  });
+
+  it("copia a mensagem atual exatamente sem alterar status para Sent", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
@@ -187,6 +212,8 @@ describe("JobDecisionV2NetworkingTab", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Copy message" }));
     expect(writeText).toHaveBeenCalledWith("Exact outreach copy");
+    expect(loadDashboardContacts().contacts[0]?.status).toBe("MESSAGE_PREPARED");
+    expect(loadDashboardContacts().contacts[0]?.sentAt).toBeUndefined();
   });
 
   it("registra timestamps coerentes ao criar uma conversa em andamento", () => {

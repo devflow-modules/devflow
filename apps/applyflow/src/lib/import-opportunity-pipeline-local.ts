@@ -17,6 +17,14 @@ import {
 } from "@/lib/persistence-v2/personal/client-scope";
 import { createV2DashboardPersistence } from "@/lib/persistence-v2/dashboard/v2-remote-dashboard-persistence";
 
+export type OpportunityPipelinePartialProgress = {
+  /** Jobs successfully created in this attempt (not including skipped duplicates). */
+  jobsAdded: number;
+  /** Jobs skipped because they already existed on the account. */
+  jobsSkipped: number;
+  contactsImported: number;
+};
+
 export type OpportunityPipelineApplyResult =
   | (Extract<OpportunityPipelineImportResult, { ok: true }> & {
       mergedJobs?: ApplyFlowJob[];
@@ -24,6 +32,8 @@ export type OpportunityPipelineApplyResult =
     })
   | (Extract<OpportunityPipelineImportResult, { ok: false }> & {
       storage?: never;
+      partial?: OpportunityPipelinePartialProgress;
+      mergedJobs?: ApplyFlowJob[];
     })
   | {
       ok: false;
@@ -37,6 +47,9 @@ export type OpportunityPipelineApplyResult =
       jobs: ApplyFlowJob[];
       contacts: Contact[];
       ignoredCount: number;
+      /** Present when Jobs may already have been written before Contacts failed. Never implies full success. */
+      partial?: OpportunityPipelinePartialProgress;
+      mergedJobs?: ApplyFlowJob[];
     };
 
 /**
@@ -124,13 +137,20 @@ async function applyOpportunityPipelineToAccount(
       ignoredCount: 0,
     };
   }
+  const jobsPartial: OpportunityPipelinePartialProgress = {
+    jobsAdded: jobsMerge.data.added,
+    jobsSkipped: jobsMerge.data.skipped,
+    contactsImported: 0,
+  };
   if (isStalePersonalGeneration(generation)) {
     return {
       ok: false,
       error: "stale_account_scope",
-      jobs: [],
+      jobs: jobsMerge.data.jobs,
       contacts: [],
       ignoredCount: 0,
+      partial: jobsPartial,
+      mergedJobs: jobsMerge.data.jobs,
     };
   }
 
@@ -150,27 +170,33 @@ async function applyOpportunityPipelineToAccount(
       return {
         ok: false,
         error: "stale_account_scope",
-        jobs: [],
+        jobs: jobsMerge.data.jobs,
         contacts: [],
         ignoredCount: 0,
+        partial: jobsPartial,
+        mergedJobs: jobsMerge.data.jobs,
       };
     }
     if (contactsResponse.status === 409) {
       return {
         ok: false,
         error: "cloud_contacts_conflict",
-        jobs: [],
+        jobs: jobsMerge.data.jobs,
         contacts: [],
         ignoredCount: 0,
+        partial: jobsPartial,
+        mergedJobs: jobsMerge.data.jobs,
       };
     }
     if (!contactsResponse.ok) {
       return {
         ok: false,
         error: "cloud_contacts_failed",
-        jobs: [],
+        jobs: jobsMerge.data.jobs,
         contacts: [],
         ignoredCount: 0,
+        partial: jobsPartial,
+        mergedJobs: jobsMerge.data.jobs,
       };
     }
 

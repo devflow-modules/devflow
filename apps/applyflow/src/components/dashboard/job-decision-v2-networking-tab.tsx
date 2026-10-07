@@ -191,6 +191,8 @@ export function JobDecisionV2NetworkingTab({
   contacts,
   networkingPlan,
   networkingStrategy,
+  manualMatchOverride = false,
+  matchScore,
   onPersist,
 }: {
   applicationId?: string;
@@ -199,6 +201,8 @@ export function JobDecisionV2NetworkingTab({
   contacts: Contact[];
   networkingPlan?: NetworkingPlan;
   networkingStrategy?: NetworkingStrategy;
+  manualMatchOverride?: boolean;
+  matchScore?: number;
   onPersist: () => void;
 }) {
   const activeContacts = useMemo(
@@ -421,6 +425,14 @@ export function JobDecisionV2NetworkingTab({
   }
 
   async function markSent(contact: Contact) {
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(
+        "Confirm you already sent this message outside ApplyFlow? ApplyFlow never sends DMs.",
+      )
+    ) {
+      return;
+    }
     const scopedContact = contactInScope(contact);
     const result = markOutreachSent(scopedContact, {
       content: scopedContact.messageContent,
@@ -481,6 +493,12 @@ export function JobDecisionV2NetworkingTab({
         {networkingStrategy ? (
           <p className="mt-2 text-sm text-[color:var(--af-text)]">
             Strategy: {NETWORKING_STRATEGY_LABELS[networkingStrategy]}
+          </p>
+        ) : null}
+        {typeof matchScore === "number" ? (
+          <p className="mt-2 text-sm text-[color:var(--af-text)]">
+            Match: {matchScore}/100
+            {manualMatchOverride ? " · Manual score (hydrate will not overwrite)" : ""}
           </p>
         ) : null}
         <p className="mt-2 text-sm text-[color:var(--af-text)]">

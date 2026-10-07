@@ -179,4 +179,110 @@ describe("opportunity pipeline import locality", () => {
     expect(result).toMatchObject({ error: "cloud_read_only" });
     expect(window.localStorage.getItem(APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY)).toBeNull();
   });
+
+  it("reports partial jobs progress when contacts fail after jobs succeed (never full success)", async () => {
+    bindPersonalClientScope({ accountId: ACCOUNT_A, authority: "cloud_write" });
+    const createdJobs: unknown[] = [];
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = init?.method ?? "GET";
+      if (url.includes("/api/applyflow/v2/jobs") && method === "GET") {
+        return new Response(JSON.stringify({ jobs: createdJobs }), { status: 200 });
+      }
+      if (url.includes("/api/applyflow/v2/jobs") && method === "POST") {
+        const body = JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown>;
+        const row = {
+          ...body,
+          version: 1,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        createdJobs.push(row);
+        return new Response(JSON.stringify(row), { status: 201 });
+      }
+      if (url.includes("/api/applyflow/v2/personal-import") && method === "POST") {
+        return new Response(JSON.stringify({ error: "server" }), { status: 500 });
+      }
+      return new Response(JSON.stringify({ error: "unexpected" }), { status: 500 });
+    });
+
+    const result = await applyOpportunityPipeline(pipelineDoc(), { fetchImpl: fetchImpl as typeof fetch });
+    expect(result.ok).toBe(false);
+    expect(result).toMatchObject({
+      error: "cloud_contacts_failed",
+      partial: { jobsAdded: 1, jobsSkipped: 0, contactsImported: 0 },
+    });
+    if (!result.ok) {
+      expect(result.mergedJobs?.length).toBe(1);
+    }
+  });
+
+  it("retry after partial jobs success skips duplicate jobs via job_already_exists", async () => {
+    bindPersonalClientScope({ accountId: ACCOUNT_A, authority: "cloud_write" });
+    let postCount = 0;
+    const existingId = "existing-job-id";
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = init?.method ?? "GET";
+      if (url.includes("/api/applyflow/v2/jobs") && method === "GET") {
+        return new Response(JSON.stringify({ jobs: [] }), { status: 200 });
+      }
+      if (url.includes("/api/applyflow/v2/jobs") && method === "POST") {
+        postCount += 1;
+        if (postCount === 1) {
+          const body = JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown>;
+          return new Response(
+            JSON.stringify({
+              ...body,
+              id: existingId,
+              version: 1,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            }),
+            { status: 201 },
+          );
+        }
+        return new Response(JSON.stringify({ error: "job_already_exists" }), {
+          status: 409,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url.includes("/api/applyflow/v2/personal-import") && method === "POST") {
+        return new Response(
+          JSON.stringify({
+            module: "contacts",
+            status: "completed",
+            processedCount: 1,
+            expectedCount: 1,
+            conflicts: [],
+            resumed: false,
+            accountId: ACCOUNT_A,
+          }),
+          { status: 200 },
+        );
+      }
+      if (url.includes("/api/applyflow/v2/contacts") && method === "GET") {
+        return new Response(JSON.stringify({ contacts: [], interactions: [], versions: {} }), {
+          status: 200,
+        });
+      }
+      return new Response(JSON.stringify({ error: "unexpected" }), { status: 500 });
+    });
+
+    // First attempt: jobs ok, contacts fail
+    const firstFetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/personal-import")) {
+        return new Response(JSON.stringify({ error: "server" }), { status: 500 });
+      }
+      return fetchImpl(input, init);
+    });
+    const first = await applyOpportunityPipeline(pipelineDoc(), { fetchImpl: firstFetch as typeof fetch });
+    expect(first.ok).toBe(false);
+
+    // Retry: job POST returns already_exists (skipped), contacts succeed
+    const second = await applyOpportunityPipeline(pipelineDoc(), { fetchImpl: fetchImpl as typeof fetch });
+    expect(second.ok).toBe(true);
+    if (second.ok) expect(second.storage).toBe("account");
+  });
 });
