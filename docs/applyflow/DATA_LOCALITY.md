@@ -115,6 +115,18 @@ Prior inventory that claimed “CV / contacts / extension never use cloud” des
 | Does outreach change Application lifecycle? | Must not; core rule keeps outreach separate from candidacy lifecycle. |
 | Logout / account A→B | B: `KEY::accountId` + generation fence; residual anonymous legacy risk if UI falls back to local path. A+WIP: anonymous keys → **same-browser contact bleed risk**. |
 
+## Integration branch (post-audit)
+
+Branch `feat/applyflow-networking-on-account-persistence` (base `a014072e`, tip includes networking WIP + cloud import routing):
+
+| Concern | Status on integration branch |
+| --- | --- |
+| Networking tab cloud persist (`/v2/contacts`) | Preserved from B |
+| Account namespacing / generation fence | Preserved from B |
+| Private pipeline import | Routes to V2 jobs + `/v2/personal-import` when `cloud_write`; refuses anonymous local orphan copy |
+| `manualMatchOverride` / networking queue | Present (from A WIP) |
+| Real local flags / shared activation / production | Still **NÃO COMPROVADO** / **PENDENTE** |
+
 ## Gaps and recommended corrections (not implemented here)
 
 1. Rebase networking WIP onto #253 so contact dual-write is not lost.
