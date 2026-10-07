@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { useState } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   loadApplicationOutreach,
@@ -40,20 +40,23 @@ describe("JobDecisionV2NetworkingTab", () => {
     fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Alex Morgan" } });
     fireEvent.change(screen.getByLabelText("Cargo / headline"), { target: { value: "Talent Partner" } });
     fireEvent.change(screen.getByLabelText("Canal"), { target: { value: "linkedin_inmail" } });
+    fireEvent.change(screen.getByLabelText("Edit message"), {
+      target: { value: "Hello Alex" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Adicionar contato" }));
 
     expect(screen.getByText("Alex Morgan")).toBeTruthy();
     expect(screen.getAllByText("Identificado")).toHaveLength(2);
 
-    fireEvent.click(screen.getByRole("button", { name: "Marcar preparada" }));
-    expect(screen.getAllByText("Preparada")).toHaveLength(2);
+    fireEvent.click(screen.getByRole("button", { name: "Mark ready" }));
+    expect(screen.getAllByText("Ready")).toHaveLength(2);
     expect(loadDashboardContacts().contacts[0]?.sentAt).toBeUndefined();
 
-    fireEvent.click(screen.getByRole("button", { name: "Marcar enviada" }));
+    fireEvent.click(screen.getByRole("button", { name: "Mark as sent" }));
     expect(screen.getAllByText("Enviada")).toHaveLength(2);
     expect(screen.getByText("1 LinkedIn InMail credit")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Registrar resposta" }));
+    fireEvent.click(screen.getByRole("button", { name: "Mark as replied" }));
     expect(screen.getAllByText("Respondida")).toHaveLength(2);
 
     const stored = loadDashboardContacts();
@@ -64,7 +67,7 @@ describe("JobDecisionV2NetworkingTab", () => {
     expect(stored.interactions.map((item) => item.type)).toEqual(["message", "reply"]);
   });
 
-  it("bloqueia criação sem candidatura associada", () => {
+  it("permite networking job-scoped sem candidatura", () => {
     render(
       <JobDecisionV2NetworkingTab
         jobId={scope.jobId}
@@ -73,11 +76,10 @@ describe("JobDecisionV2NetworkingTab", () => {
         onPersist={() => undefined}
       />,
     );
-    expect(screen.getByText(/Registe a candidatura/)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Adicionar contato" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Adicionar contato" })).toBeTruthy();
   });
 
-  it("não exibe contatos scoped quando a vaga ainda não tem candidatura", () => {
+  it("exibe contatos da vaga mesmo sem applicationId no viewer", () => {
     const scopedContact: Contact = {
       id: "contact-scoped",
       applicationId: scope.applicationId,
@@ -98,8 +100,7 @@ describe("JobDecisionV2NetworkingTab", () => {
       />,
     );
 
-    expect(screen.queryByText("Scoped Contact")).toBeNull();
-    expect(screen.getByText("0 contatos")).toBeTruthy();
+    expect(screen.getByText("Scoped Contact")).toBeTruthy();
   });
 
   it("migra contato legado para o escopo ao usar ação rápida", () => {
@@ -110,13 +111,14 @@ describe("JobDecisionV2NetworkingTab", () => {
       role: "Recruiter",
       type: "recruiter",
       status: "not_contacted",
+      messageContent: "Hi legacy",
       createdAt: "2026-09-20T12:00:00.000Z",
       updatedAt: "2026-09-20T12:00:00.000Z",
     };
     persistDashboardContacts([legacyContact], []);
     render(<Harness />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Marcar preparada" }));
+    fireEvent.click(screen.getByRole("button", { name: "Mark ready" }));
 
     const stored = loadDashboardContacts().contacts[0];
     expect(stored?.applicationId).toBe(scope.applicationId);
@@ -138,7 +140,7 @@ describe("JobDecisionV2NetworkingTab", () => {
     persistDashboardContacts([legacyContact], []);
     render(<Harness />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Registrar resposta" }));
+    fireEvent.click(screen.getByRole("button", { name: "Mark as replied" }));
 
     const stored = loadDashboardContacts().contacts[0];
     expect(stored?.applicationId).toBe(scope.applicationId);
@@ -151,14 +153,40 @@ describe("JobDecisionV2NetworkingTab", () => {
   it("mantém uma única interação quando marcar enviada é acionado duas vezes", () => {
     render(<Harness />);
     fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Double Click Contact" } });
+    fireEvent.change(screen.getByLabelText("Edit message"), { target: { value: "Draft message" } });
     fireEvent.change(screen.getByLabelText("Status"), { target: { value: "MESSAGE_PREPARED" } });
     fireEvent.click(screen.getByRole("button", { name: "Adicionar contato" }));
 
-    const markSent = screen.getByRole("button", { name: "Marcar enviada" });
+    const markSent = screen.getByRole("button", { name: "Mark as sent" });
     fireEvent.click(markSent);
     fireEvent.click(markSent);
 
     expect(loadDashboardContacts().interactions.filter((item) => item.type === "message")).toHaveLength(1);
+  });
+
+  it("copia a mensagem atual exatamente", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    const contact: Contact = {
+      id: "copy-contact",
+      applicationId: scope.applicationId,
+      jobId: scope.jobId,
+      name: "Copy Contact",
+      type: "recruiter",
+      status: "MESSAGE_PREPARED",
+      messageContent: "Exact outreach copy",
+      createdAt: "2026-09-20T12:00:00.000Z",
+      updatedAt: "2026-09-20T12:00:00.000Z",
+    };
+    persistDashboardContacts([contact], []);
+    render(<Harness />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Copy message" }));
+    expect(writeText).toHaveBeenCalledWith("Exact outreach copy");
   });
 
   it("registra timestamps coerentes ao criar uma conversa em andamento", () => {

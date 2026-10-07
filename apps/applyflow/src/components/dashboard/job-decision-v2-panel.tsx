@@ -1202,6 +1202,7 @@ export function JobDecisionV2Panel({
               company={job.company}
               contacts={contacts}
               networkingPlan={pack.networkingPlan}
+              networkingStrategy={job.jobContext.networking?.strategy}
               onPersist={refreshAfterPersist}
             />
           ) : null}

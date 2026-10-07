@@ -14,6 +14,8 @@ Related: [`ARCHITECTURE.md`](./ARCHITECTURE.md) · [`JOB_DISCOVERY.md`](./JOB_DI
 4. No auto-application and no auto-submit to employer ATS.
 5. Application notes/status are not sent to job providers.
 6. Tenant data is scoped by server-derived account (V2).
+7. Networking contacts, LinkedIn URLs and outreach drafts stay browser-local; they are not sent to discovery providers and are outside Persistence V2 Job/Application sync.
+8. No auto-DM / no LinkedIn automation — outreach is human-in-the-loop only.
 
 ---
 
@@ -28,6 +30,7 @@ Related: [`ARCHITECTURE.md`](./ARCHITECTURE.md) · [`JOB_DISCOVERY.md`](./JOB_DI
 | Job match score / decision | Yes (computed locally) | No scoring of CV on search | Optional on Job | **No** |
 | Application record | Yes (local) / yes (V2 client) | Yes (V2 API) | Yes | **No** |
 | Application notes | Yes / V2 | Yes (V2) | Yes | **No** |
+| Contacts / outreach messages | Yes (local) | **No** | **No** | **No** |
 | Provider API keys | No | Yes (env) | No | Auth to provider |
 | Auth session | Cookies | Validates session | Account row | No |
 

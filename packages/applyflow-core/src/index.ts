@@ -342,33 +342,90 @@ export {
   CONTACT_TYPES,
   CONTACT_STATUSES,
   CONTACT_INTERACTION_TYPES,
+  CONTACT_CONFIDENCE_LEVELS,
+  CONTACT_CONFIDENCE_LABELS,
+  CONTACT_TYPE_LABELS,
+  OPPORTUNITY_EVIDENCE_SOURCE_TYPES,
   OUTREACH_CHANNELS,
   OUTREACH_LANGUAGES,
   OUTREACH_STATUSES,
+  OUTREACH_STATUS_ALIASES,
+  isContactConfidence,
+  isOpportunityEvidenceSourceType,
+  outreachAliasFromStatus,
+  outreachStatusFromAlias,
 } from "./contact-types.js";
 export type {
   Contact,
   ContactInteraction,
   ContactStatus,
   ContactType,
+  ContactRelation,
+  ContactConfidence,
   ContactInteractionType,
+  OpportunityContact,
+  OpportunityEvidence,
+  OpportunityEvidenceSourceType,
   OutreachChannel,
   OutreachLanguage,
   OutreachStatus,
+  OutreachStatusAlias,
 } from "./contact-types.js";
 export {
   computeOutreachMetrics,
+  DEFAULT_OUTREACH_FOLLOW_UP_DAYS,
+  canMarkOutreachReady,
+  defaultFollowUpAt,
+  dismissOutreachFollowUp,
   effectiveOutreachStatus,
+  hasOutreachMessage,
   isOutreachFollowUpDue,
+  markOutreachReady,
   markOutreachSent,
   normalizeOutreachStatus,
+  outreachNeverAutoSends,
   recordOutreachReply,
+  scheduleOutreachFollowUp,
   updateOutreachContact,
   validateOutreachProfileUrl,
 } from "./outreach-lifecycle.js";
 export type { OutreachContactPatch, OutreachMetrics } from "./outreach-lifecycle.js";
 export { buildNetworkingPlan, sortContactsForPlan } from "./networking-plan.js";
 export type { NetworkingPlan } from "./networking-plan.js";
+export {
+  NETWORKING_STRATEGIES,
+  NETWORKING_STRATEGY_LABELS,
+  OPPORTUNITY_AVAILABILITY_STATUSES,
+  isNetworkingStrategy,
+  isOpportunityAvailabilityStatus,
+  readJobNetworkingMeta,
+  withJobNetworkingMeta,
+} from "./networking-strategy.js";
+export type {
+  JobNetworkingMeta,
+  NetworkingStrategy,
+  OpportunityAvailabilityStatus,
+} from "./networking-strategy.js";
+export {
+  NETWORKING_QUEUE_FILTERS,
+  networkingIndicatorLabel,
+  selectNetworkingQueue,
+} from "./networking-queue.js";
+export type { NetworkingQueueFilter, NetworkingQueueItem } from "./networking-queue.js";
+export { RECOMMENDED_CASE_IDS, normalizeRecommendedCases } from "./recommended-cases.js";
+export type { RecommendedCaseId } from "./recommended-cases.js";
+export {
+  OPPORTUNITY_PIPELINE_IMPORT_KIND,
+  OPPORTUNITY_PIPELINE_IMPORT_VERSION,
+  importOpportunityPipeline,
+  parseOpportunityPipelineImportJson,
+} from "./opportunity-pipeline-import.js";
+export type {
+  OpportunityPipelineContactSeed,
+  OpportunityPipelineImportDocument,
+  OpportunityPipelineImportResult,
+  OpportunityPipelineSeed,
+} from "./opportunity-pipeline-import.js";
 export { buildFollowUpPlan, DEFAULT_FOLLOW_UP_STRATEGY, FOLLOW_UP_ACTIONS } from "./follow-up-plan.js";
 export type { FollowUpPlan, FollowUpStep, FollowUpStrategy, FollowUpAction } from "./follow-up-plan.js";
 export { getDueFollowUps, groupDueFollowUps } from "./follow-up-queue.js";

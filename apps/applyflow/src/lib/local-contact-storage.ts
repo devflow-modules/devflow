@@ -1,8 +1,10 @@
 import {
+  CONTACT_CONFIDENCE_LEVELS,
   CONTACT_STATUSES,
   CONTACT_TYPES,
   OUTREACH_CHANNELS,
   OUTREACH_LANGUAGES,
+  canMarkOutreachReady,
   validateOutreachProfileUrl,
   type Contact,
   type ContactInteraction,
@@ -26,9 +28,10 @@ export type DashboardContactsLoadResult = {
   status: "empty" | "ok" | "unreadable";
 };
 
+/** Job-scoped outreach; applicationId optional until candidacy is registered. */
 export type ApplicationOutreachScope = {
-  applicationId: string;
   jobId: string;
+  applicationId?: string;
 };
 
 export type DashboardOutreachWriteResult =
@@ -72,17 +75,23 @@ export function persistDashboardContacts(contacts: Contact[], interactions: Cont
 
 export function loadApplicationOutreach(scope: ApplicationOutreachScope): DashboardContactsLoadResult {
   const stored = loadDashboardContacts();
-  const contacts = stored.contacts.filter(
-    (contact) =>
-      !contact.archivedAt &&
-      (contact.applicationId === scope.applicationId ||
-        (!contact.applicationId && contact.jobId === scope.jobId)),
-  );
+  const contacts = stored.contacts.filter((contact) => {
+    if (contact.archivedAt || contact.jobId !== scope.jobId) return false;
+    if (scope.applicationId) {
+      return (
+        contact.applicationId === scope.applicationId ||
+        (!contact.applicationId && contact.jobId === scope.jobId)
+      );
+    }
+    return true;
+  });
   const contactIds = new Set(contacts.map((contact) => contact.id));
   const interactions = stored.interactions.filter(
     (interaction) =>
       contactIds.has(interaction.contactId) &&
-      (!interaction.applicationId || interaction.applicationId === scope.applicationId),
+      (!scope.applicationId ||
+        !interaction.applicationId ||
+        interaction.applicationId === scope.applicationId),
   );
   return { contacts, interactions, status: stored.status };
 }
@@ -97,11 +106,17 @@ export function isValidDashboardContact(scope: ApplicationOutreachScope, contact
   const repliedAt = parsed(contact.repliedAt);
   const followUpAt = parsed(contact.followUpAt);
   if (
-    contact.applicationId !== scope.applicationId ||
     contact.jobId !== scope.jobId ||
+    (scope.applicationId != null && contact.applicationId !== scope.applicationId) ||
     !contact.name.trim() ||
     !CONTACT_TYPES.includes(contact.type) ||
     !CONTACT_STATUSES.includes(contact.status)
+  ) {
+    return false;
+  }
+  if (
+    contact.contactConfidence &&
+    !CONTACT_CONFIDENCE_LEVELS.includes(contact.contactConfidence)
   ) {
     return false;
   }
@@ -111,6 +126,7 @@ export function isValidDashboardContact(scope: ApplicationOutreachScope, contact
   if (contact.email && !contact.email.includes("@")) return false;
   if ([sentAt, repliedAt, followUpAt].some((value) => Number.isNaN(value))) return false;
   if (sentAt != null && repliedAt != null && repliedAt < sentAt) return false;
+  if (contact.status === "MESSAGE_PREPARED" && !canMarkOutreachReady(contact)) return false;
   if (
     (contact.status === "IDENTIFIED" || contact.status === "MESSAGE_PREPARED") &&
     (sentAt != null || repliedAt != null)
@@ -171,16 +187,20 @@ export function saveDashboardOutreach(
   const current = stored.contacts.find((item) => item.id === normalizedContact.id);
   if (
     current &&
-    ((current.applicationId && current.applicationId !== scope.applicationId) ||
-      (current.jobId && current.jobId !== scope.jobId))
+    (current.jobId !== scope.jobId ||
+      (scope.applicationId &&
+        current.applicationId &&
+        current.applicationId !== scope.applicationId))
   ) {
     return { ok: false, error: "outreach_scope_mismatch" };
   }
   if (
     interaction &&
     (interaction.contactId !== normalizedContact.id ||
-      (interaction.applicationId && interaction.applicationId !== scope.applicationId) ||
-      (interaction.jobId && interaction.jobId !== scope.jobId))
+      (interaction.jobId && interaction.jobId !== scope.jobId) ||
+      (scope.applicationId &&
+        interaction.applicationId &&
+        interaction.applicationId !== scope.applicationId))
   ) {
     return { ok: false, error: "outreach_scope_mismatch" };
   }
@@ -205,14 +225,14 @@ export function archiveDashboardOutreach(
   const contact = stored.contacts.find((item) => item.id === contactId);
   if (!contact) return { ok: false, error: "outreach_not_found" };
   if (
-    (contact.applicationId && contact.applicationId !== scope.applicationId) ||
-    (contact.jobId && contact.jobId !== scope.jobId)
+    contact.jobId !== scope.jobId ||
+    (scope.applicationId && contact.applicationId && contact.applicationId !== scope.applicationId)
   ) {
     return { ok: false, error: "outreach_scope_mismatch" };
   }
   return saveDashboardOutreach(scope, {
     ...contact,
-    applicationId: scope.applicationId,
+    ...(scope.applicationId ? { applicationId: scope.applicationId } : {}),
     jobId: scope.jobId,
     archivedAt: now.toISOString(),
     updatedAt: now.toISOString(),
@@ -222,4 +242,27 @@ export function archiveDashboardOutreach(
 export function clearPersistedDashboardContacts(): void {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(personalStorageKey(APPLYFLOW_DASHBOARD_CONTACTS_STORAGE_KEY));
+}
+
+/**
+ * Merge imported pipeline contacts by id.
+ * Local authority only — under cloud_write this returns cloud_authority so callers
+ * must use `/api/applyflow/v2/personal-import` instead of anonymous localStorage.
+ */
+export function mergeDashboardContacts(
+  incoming: Contact[],
+  interactions: ContactInteraction[] = [],
+): DashboardOutreachWriteResult {
+  if (!personalLocalWritesAllowed()) return { ok: false, error: "cloud_authority" };
+  const stored = loadDashboardContacts();
+  const byId = new Map(stored.contacts.map((item) => [item.id, item]));
+  for (const contact of incoming) {
+    byId.set(contact.id, contact);
+  }
+  const interactionById = new Map(stored.interactions.map((item) => [item.id, item]));
+  for (const interaction of interactions) {
+    interactionById.set(interaction.id, interaction);
+  }
+  persistDashboardContacts([...byId.values()], [...interactionById.values()]);
+  return { ok: true };
 }
