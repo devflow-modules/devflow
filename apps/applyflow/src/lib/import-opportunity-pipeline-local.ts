@@ -50,9 +50,6 @@ export function applyOpportunityPipelineLocal(
 ): OpportunityPipelineImportResult & { mergedJobs?: ApplyFlowJob[] } {
   const result = importOpportunityPipeline(raw, options);
   if (!result.ok) return result;
-  if (typeof window === "undefined") {
-    return { ...result, mergedJobs: result.jobs };
-  }
   if (!personalLocalWritesAllowed()) {
     return {
       ok: false,
@@ -61,6 +58,9 @@ export function applyOpportunityPipelineLocal(
       contacts: [],
       ignoredCount: 0,
     };
+  }
+  if (typeof window === "undefined") {
+    return { ...result, mergedJobs: result.jobs };
   }
   const existing = loadDashboardJobs().jobs;
   const merged = mergeApplyFlowJobs(existing, result.jobs);
