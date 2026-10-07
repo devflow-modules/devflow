@@ -145,6 +145,32 @@ describe("Jobs service", () => {
     expect(created).not.toHaveProperty("accountId");
   });
 
+  it("preserves jobContext.networking including manualMatchOverride", async () => {
+    const { repository } = memoryRepository();
+    const service = createApplyFlowJobService(repository);
+    const created = await service.create(
+      ACCOUNT_A,
+      parseCreateJobBody(
+        validBody({
+          id: "job_net_meta",
+          jobContext: {
+            skills: ["React"],
+            networking: {
+              strategy: "message_first",
+              priority: 2,
+              manualMatchOverride: true,
+            },
+          },
+        }),
+      ),
+    );
+    expect(created.jobContext.networking).toEqual({
+      strategy: "message_first",
+      priority: 2,
+      manualMatchOverride: true,
+    });
+  });
+
   it("generates a V1 job id when the client omits one", async () => {
     const { repository } = memoryRepository();
     const service = createApplyFlowJobService(repository);

@@ -92,6 +92,8 @@ import {
   findJobByCanonicalUrl,
   isOpenableJobUrl,
   resolveApplicationPackResume,
+  networkingIndicatorLabel,
+  selectNetworkingQueue,
   selectOpportunityQueueJobs,
   type ApplicationPack,
   type ApplicationPackChecklistId,
@@ -109,6 +111,7 @@ import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { JOB_DECISION_V2_LABELS } from "@/components/dashboard/job-decision-v2-content";
 import { loadDashboardAnalytics } from "@/lib/local-analytics-storage";
+import { loadDashboardContacts } from "@/lib/local-contact-storage";
 import { loadDashboardImport } from "@/lib/local-import-storage";
 import {
   jobAnalysisPath,
@@ -116,6 +119,7 @@ import {
   type InboxEvaluateStatus,
 } from "@/components/dashboard/job-inbox-evaluate";
 import { JobDiscoveryPanel } from "@/components/dashboard/job-discovery-panel";
+import { NetworkingQueuePanel } from "@/components/dashboard/networking-queue-panel";
 import type { DiscoveredJobSaveStatus, JobSearchHit } from "@/lib/job-sources/types";
 
 const fieldClass = applyFlowControlClass;
@@ -522,6 +526,8 @@ function JobInboxCard({
         !job.applicationPack,
     );
   const sourceOpenable = isOpenableJobUrl(job.url);
+  const networkingItem = selectNetworkingQueue([job], loadDashboardContacts().contacts)[0];
+  const networkingLabel = networkingItem ? networkingIndicatorLabel(networkingItem) : "No contact";
 
   return (
     <ApplyFlowCard padding="md" data-testid={`job-inbox-card-${job.id}`}>
@@ -533,6 +539,7 @@ function JobInboxCard({
           <ApplyFlowBadge tone="warning">{JOB_INBOX_STALE_LABEL}</ApplyFlowBadge>
         ) : null}
         <ApplyFlowBadge tone="neutral">{APPLYFLOW_APPLICATION_STATUS_LABELS_PT[job.status]}</ApplyFlowBadge>
+        <ApplyFlowBadge tone="intel">Networking: {networkingLabel}</ApplyFlowBadge>
         <span className="text-sm font-medium text-[color:var(--af-text)]">
           {job.title}
           {job.company ? ` · ${job.company}` : ""}
@@ -657,6 +664,7 @@ export function JobInboxPanel({
   onReevaluateJob,
   onIgnoreJob,
   onRestoreJob,
+  onNetworkingImported,
   applications,
   focus = "all",
 }: {
@@ -664,6 +672,7 @@ export function JobInboxPanel({
   error: string | null;
   evaluatedWithName?: string | null;
   matchAvailable?: boolean;
+  onNetworkingImported?: () => void;
   onEvaluatePaste: (input: {
     description: string;
     title: string;
@@ -843,6 +852,12 @@ export function JobInboxPanel({
         </ApplyFlowCard>
       ) : null}
         </>
+      ) : null}
+
+      {showQueue ? (
+        <div className="mt-5">
+          <NetworkingQueuePanel jobs={jobs} onImported={onNetworkingImported} />
+        </div>
       ) : null}
 
       {showQueue && jobs.length === 0 ? (

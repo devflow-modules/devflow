@@ -1202,6 +1202,9 @@ export function JobDecisionV2Panel({
               company={job.company}
               contacts={contacts}
               networkingPlan={pack.networkingPlan}
+              networkingStrategy={job.jobContext.networking?.strategy}
+              manualMatchOverride={job.jobContext.networking?.manualMatchOverride === true}
+              matchScore={job.jobMatch.score}
               onPersist={refreshAfterPersist}
             />
           ) : null}

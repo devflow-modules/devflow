@@ -18,6 +18,13 @@ Discovery
   → Mark Sent
   → Application Lifecycle
   → Derived Next Action
+
+Parallel (independent):
+  Networking / Outreach (human-in-the-loop)
+    → Identify contact + evidence/confidence
+    → Prepare message
+    → Open LinkedIn / Copy message
+    → Mark sent / replied / follow-up due
 ```
 
 ---
@@ -27,10 +34,13 @@ Discovery
 | Object | Role |
 |--------|------|
 | **Candidate / resume context** | Profile + resume variants in the browser (`ResumeLibrary`). Used for local match and readiness. Not sent to discovery providers. |
-| **ApplyFlowJob** | Saved opportunity: title, company, URL, `jobMatch`, status (`reviewing` / `ignored` / applied-side statuses after sync). |
+| **ApplyFlowJob** | Saved opportunity: title, company, URL, `jobMatch`, status (`reviewing` / `ignored` / applied-side statuses after sync). Optional `jobContext.networking` (strategy, priority, availability). |
 | **ApplyFlowApplication** | Candidacy record linked by `sourceJobId` when present. Lifecycle status is user-owned intent. |
+| **Contact** (opportunity contact) | Local-first outreach person linked by `jobId` / optional `applicationId`. Relation, confidence, evidence note, message, outreach status. |
 
 **Job ≠ Application.** Saving a job never creates an application. Registering an application never submits to an employer ATS.
+
+**Application lifecycle ≠ Outreach lifecycle.** Marking outreach `SENT` never marks an Application as applied, and applying never auto-sends LinkedIn DMs.
 
 ---
 
@@ -68,7 +78,17 @@ Derived view — **no Shortlist entity**.
 - Ignore → `ignored` (retained)
 - Restore → back to `reviewing`
 - Applied / later statuses leave the active queue naturally
-- No priority field today
+- Optional `jobContext.networking.priority` for networking queue sort (manual import / edit)
+
+### 4b. Networking queue (parallel)
+
+Derived view over Jobs + local Contacts — not a CRM.
+
+- Filters: All / Ready / Sent / Replied / Follow-up / No contact
+- Sort: priority → match score → contact confidence
+- Actions are HITL only: Open LinkedIn, Copy message, Mark sent/replied, Schedule follow-up
+- Private pipeline import: local JSON (`apps/applyflow/private/*.local.json`, gitignored) — never public demo fixtures
+- Default follow-up window after mark-sent: **5 days** (display only; no auto-send)
 
 ### 5. Application Readiness
 

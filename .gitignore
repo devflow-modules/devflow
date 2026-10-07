@@ -84,6 +84,15 @@ yarn-error.log*
 /preview-dashboard.yml
 /harden-crash-invalid-jobs.yml
 
+# --- ApplyFlow private personal pipelines (real contacts / outreach) ---
+apps/applyflow/private/**/*.local.json
+apps/applyflow/private/**/*real*
+!apps/applyflow/private/**/*.example
+!apps/applyflow/private/README.md
+apps/applyflow/public/demo/**/*.local.json
+apps/applyflow/public/demo/_private*
+.tmp/applyflow-pipeline-browser-seed.json
+
 # --- Misc ---
 *.pem
 *.key

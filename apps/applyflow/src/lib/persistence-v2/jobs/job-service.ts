@@ -40,6 +40,8 @@ function normalizeContext(context: ApplyFlowJob["jobContext"]): Prisma.InputJson
       ? { employmentType: optionalText(context.employmentType) }
       : {}),
     ...(optionalText(context.workModel) ? { workModel: optionalText(context.workModel) } : {}),
+    // Preserve opportunity-pipeline networking metadata (strategy, manualMatchOverride, …).
+    ...(context.networking ? { networking: context.networking } : {}),
   };
 }
 

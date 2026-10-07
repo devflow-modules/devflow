@@ -1,5 +1,6 @@
 import type { ApplicationPack } from "./application-pack-types.js";
 import type { ApplyFlowApplicationStatus } from "./application-types.js";
+import type { JobNetworkingMeta } from "./networking-strategy.js";
 
 export const APPLYFLOW_JOB_SOURCES = ["linkedin", "paste", "json", "jobgether", "theirstack", "remoteok"] as const;
 export type ApplyFlowJobSource = (typeof APPLYFLOW_JOB_SOURCES)[number];
@@ -66,6 +67,8 @@ export type ApplyFlowJobContext = {
   employmentType?: string;
   workModel?: string;
   skills: string[];
+  /** Opportunity networking metadata (persists via jobContext JSON in cloud). */
+  networking?: JobNetworkingMeta;
 };
 
 export type ApplyFlowJob = {

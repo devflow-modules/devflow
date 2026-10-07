@@ -30,6 +30,12 @@ Related: [`PRODUCT_FLOW.md`](./PRODUCT_FLOW.md) · [`ARCHITECTURE.md`](./ARCHITE
 
 Allowed edges are defined in `APPLICATION_LIFECYCLE_TRANSITIONS` (e.g. `applied → screening|technical|…`, `offer → hired|rejected|withdrawn`). Same-status is allowed (no-op).
 
+### Networking / outreach (separate domain)
+
+Outreach uses `Contact.status` / `OUTREACH_STATUSES` in `@devflow/applyflow-core` (`IDENTIFIED` → `MESSAGE_PREPARED` → `SENT` → `REPLIED` / `FOLLOW_UP_DUE` → `CLOSED`).
+
+Do **not** merge into a single mega-status such as `applied_and_message_sent_waiting`. Application transitions and outreach transitions stay independent.
+
 ---
 
 ## V1 ↔ V2 mapping

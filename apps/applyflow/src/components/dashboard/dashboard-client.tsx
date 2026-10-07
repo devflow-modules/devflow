@@ -1359,6 +1359,13 @@ export function DashboardClient({
         onReevaluateJob={onReevaluateJob}
         onIgnoreJob={onIgnoreJob}
         onRestoreJob={onRestoreJob}
+        onNetworkingImported={() => {
+          const storedJobs = loadDashboardJobs();
+          setJobs(storedJobs.jobs);
+          setJobsStorageStatus(storedJobs.status);
+          setJobsIgnoredCount(storedJobs.ignoredCount);
+          setJobsUnreadableReason(storedJobs.reason);
+        }}
         applications={applications}
       />
       ) : null}

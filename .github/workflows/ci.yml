@@ -72,7 +72,8 @@ jobs:
 
   test-applyflow:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Extra headroom: Playwright apt deps can stall on flaky Azure mirrors.
+    timeout-minutes: 30
     # Matches apps/applyflow/docker-compose.yml local Persistence V2 contract.
     # Required by AF-REL-001 PostgreSQL concurrency suite (fail-closed if unreachable).
     services:
@@ -143,8 +144,36 @@ jobs:
       - name: Test ApplyFlow
         run: pnpm --filter applyflow test
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-chromium-${{ hashFiles('pnpm-lock.yaml') }}
+
       - name: Install Playwright Chromium
-        run: pnpm --filter applyflow exec playwright install chromium --with-deps
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          set -euo pipefail
+          # --with-deps can hang for 15+ minutes on azure.archive.ubuntu.com (Ign → stall).
+          # Prefer archive.ubuntu.com, download browser separately, then bound apt deps.
+          if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
+            sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|http://archive.ubuntu.com/ubuntu|g' \
+              /etc/apt/sources.list.d/ubuntu.sources || true
+          fi
+          if [ -f /etc/apt/sources.list ]; then
+            sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|http://archive.ubuntu.com/ubuntu|g' \
+              /etc/apt/sources.list || true
+          fi
+          pnpm --filter applyflow exec playwright install chromium
+          set +e
+          timeout 240 pnpm --filter applyflow exec playwright install-deps chromium
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            echo "playwright install-deps failed or timed out (exit=$status); retrying once..."
+            timeout 240 pnpm --filter applyflow exec playwright install-deps chromium
+          fi
 
       - name: ApplyFlow critical E2E
         working-directory: apps/applyflow

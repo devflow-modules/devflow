@@ -5,11 +5,13 @@ import { CAREER_EVENT_TYPES, CAREER_SOURCES, REJECTION_REASON_CATEGORIES, REJECT
 import type { CandidateInputRequest } from "./candidate-input.js";
 import type { Contact, ContactInteraction } from "./contact-types.js";
 import {
+  CONTACT_CONFIDENCE_LEVELS,
   CONTACT_INTERACTION_TYPES,
   CONTACT_STATUSES,
   CONTACT_TYPES,
   OUTREACH_CHANNELS,
   OUTREACH_LANGUAGES,
+  isOpportunityEvidenceSourceType,
 } from "./contact-types.js";
 import type { Evidence } from "./evidence-types.js";
 import { parseEvidence } from "./evidence-schema.js";
@@ -73,6 +75,23 @@ function parseContact(raw: unknown): Contact | null {
   if (typeof raw.createdAt !== "string" || typeof raw.updatedAt !== "string") return null;
   if (!CONTACT_TYPES.includes(raw.type as Contact["type"])) return null;
   if (!CONTACT_STATUSES.includes(raw.status as Contact["status"])) return null;
+  const contactEvidence =
+    isRecord(raw.contactEvidence) && isOpportunityEvidenceSourceType(raw.contactEvidence.sourceType)
+      ? {
+          sourceType: raw.contactEvidence.sourceType,
+          ...(typeof raw.contactEvidence.sourceUrl === "string"
+            ? { sourceUrl: raw.contactEvidence.sourceUrl }
+            : {}),
+          ...(typeof raw.contactEvidence.note === "string" ? { note: raw.contactEvidence.note } : {}),
+          ...(typeof raw.contactEvidence.verifiedAt === "string"
+            ? { verifiedAt: raw.contactEvidence.verifiedAt }
+            : {}),
+        }
+      : undefined;
+  const recommendedCases = Array.isArray(raw.recommendedCases)
+    ? raw.recommendedCases.filter((item): item is string => typeof item === "string" && Boolean(item.trim()))
+    : undefined;
+
   return {
     id: raw.id,
     name: raw.name,
@@ -85,6 +104,13 @@ function parseContact(raw: unknown): Contact | null {
     ...(typeof raw.company === "string" ? { company: raw.company } : {}),
     ...(typeof raw.jobId === "string" ? { jobId: raw.jobId } : {}),
     ...(typeof raw.role === "string" ? { role: raw.role } : {}),
+    ...(typeof raw.relationDescription === "string" ? { relationDescription: raw.relationDescription } : {}),
+    ...(CONTACT_CONFIDENCE_LEVELS.includes(raw.contactConfidence as (typeof CONTACT_CONFIDENCE_LEVELS)[number])
+      ? { contactConfidence: raw.contactConfidence as Contact["contactConfidence"] }
+      : {}),
+    ...(typeof raw.evidenceNote === "string" ? { evidenceNote: raw.evidenceNote } : {}),
+    ...(contactEvidence ? { contactEvidence } : {}),
+    ...(recommendedCases?.length ? { recommendedCases } : {}),
     ...(OUTREACH_CHANNELS.includes(raw.channel as (typeof OUTREACH_CHANNELS)[number])
       ? { channel: raw.channel as Contact["channel"] }
       : {}),
@@ -104,6 +130,7 @@ function parseContact(raw: unknown): Contact | null {
     ...(typeof raw.inMailCredits === "number" ? { inMailCredits: raw.inMailCredits } : {}),
     ...(typeof raw.lastContactAt === "string" ? { lastContactAt: raw.lastContactAt } : {}),
     ...(typeof raw.nextActionAt === "string" ? { nextActionAt: raw.nextActionAt } : {}),
+    ...(typeof raw.nextAction === "string" ? { nextAction: raw.nextAction } : {}),
     ...(typeof raw.notes === "string" ? { notes: raw.notes } : {}),
     ...(typeof raw.archivedAt === "string" ? { archivedAt: raw.archivedAt } : {}),
   };

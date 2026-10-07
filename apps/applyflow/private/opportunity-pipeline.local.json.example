@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "kind": "applyflow-opportunity-pipeline",
+  "opportunities": [
+    {
+      "company": "Northwind Fiction Labs",
+      "role": "Product Engineer",
+      "matchScore": 91,
+      "decision": "apply",
+      "availabilityStatus": "confirmed_open",
+      "priority": 1,
+      "networkingStrategy": "apply_and_message",
+      "recommendedCase": "ApplyFlow",
+      "contact": {
+        "name": "Alex Fiction",
+        "linkedinUrl": "https://www.linkedin.com/in/alex-fiction-example",
+        "relation": "hiring_manager",
+        "relationDescription": "Hiring-side contact",
+        "confidence": "very_high",
+        "evidence": "Publicly stated that this fictional Product Engineer role is for their team.",
+        "outreachLanguage": "en",
+        "outreachMessage": "Hi Alex — this is a fictional outreach seed for local import tests."
+      }
+    },
+    {
+      "company": "Contoso Remote Co",
+      "role": "Senior Frontend Engineer",
+      "matchScore": 88,
+      "decision": "apply",
+      "availabilityStatus": "probable_open",
+      "priority": 2,
+      "networkingStrategy": "apply_only",
+      "recommendedCase": "ApplyFlow",
+      "contact": null
+    }
+  ]
+}

@@ -140,6 +140,33 @@ export const applyFlowStoredJobSchema = z.object({
     employmentType: z.string().optional(),
     workModel: z.string().optional(),
     skills: z.array(z.string()),
+    networking: z
+      .object({
+        strategy: z
+          .enum([
+            "apply_and_message",
+            "apply_first_then_message",
+            "message_first",
+            "apply_only",
+            "networking_only",
+          ])
+          .optional(),
+        priority: z.number().finite().optional(),
+        availabilityStatus: z
+          .enum(["confirmed_open", "confirmed_or_probable_open", "probable_open"])
+          .optional(),
+        recommendedCases: z.array(z.string()).optional(),
+        manualMatchOverride: z.boolean().optional(),
+        evidence: z
+          .object({
+            sourceType: z.enum(["linkedin", "company_careers", "ats", "manual", "other"]),
+            sourceUrl: z.string().optional(),
+            note: z.string().optional(),
+            verifiedAt: z.string().optional(),
+          })
+          .optional(),
+      })
+      .optional(),
   }),
   descriptionSnapshot: z.string().max(JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS).optional(),
   descriptionHash: z.string().max(32).optional(),
@@ -210,6 +237,34 @@ function normalizeStoredJob(parsed: z.infer<typeof applyFlowStoredJobSchema>): A
       employmentType: optionalTrim(parsed.jobContext.employmentType),
       workModel: optionalTrim(parsed.jobContext.workModel),
       skills: parsed.jobContext.skills.map((s) => s.trim()).filter(Boolean),
+      ...(parsed.jobContext.networking
+        ? {
+            networking: {
+              ...(parsed.jobContext.networking.strategy
+                ? { strategy: parsed.jobContext.networking.strategy }
+                : {}),
+              ...(parsed.jobContext.networking.priority != null
+                ? { priority: parsed.jobContext.networking.priority }
+                : {}),
+              ...(parsed.jobContext.networking.availabilityStatus
+                ? { availabilityStatus: parsed.jobContext.networking.availabilityStatus }
+                : {}),
+              ...(parsed.jobContext.networking.recommendedCases?.length
+                ? {
+                    recommendedCases: parsed.jobContext.networking.recommendedCases
+                      .map((item) => item.trim())
+                      .filter(Boolean),
+                  }
+                : {}),
+              ...(parsed.jobContext.networking.evidence
+                ? { evidence: parsed.jobContext.networking.evidence }
+                : {}),
+              ...(parsed.jobContext.networking.manualMatchOverride
+                ? { manualMatchOverride: true }
+                : {}),
+            },
+          }
+        : {}),
     },
     descriptionSnapshot: optionalTrim(parsed.descriptionSnapshot),
     descriptionHash: optionalTrim(parsed.descriptionHash),

@@ -118,6 +118,9 @@ export function reevaluateApplyFlowJobMatch(
   library?: ResumeLibrary,
   now: Date = new Date(),
 ): ApplyFlowJob {
+  if (job.jobContext.networking?.manualMatchOverride) {
+    return job;
+  }
   const { profile: evalProfile, evaluatedWith } = resolveEvaluatedProfile({
     description: job.descriptionSnapshot ?? "",
     source: job.source,
