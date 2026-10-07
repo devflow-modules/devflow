@@ -9,7 +9,7 @@ import {
   resolveProviderDerivedRuntimePreviewHttpStatus,
 } from "@/lib/provider-runtime/provider-derived-runtime-preview-boundary";
 import { createEmptyProviderDerivedSignalSummary } from "@devflow/career-sync";
-import { resolveNangoRouteCaller } from "@/lib/provider-runtime/nango-route-caller";
+import { resolveNangoPersonalRoute, buildApplyFlowNangoAccountEndUserId } from "@/lib/provider-runtime/nango-account-identity";
 
 /**
  * Server-side provider-derived runtime preview boundary.
@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const env = readApplyFlowNangoConnectSessionEnv();
-    const caller = resolveNangoRouteCaller({ request, env, mintIfMissing: false });
-    if (caller.required && !caller.ok) {
+    const owner = await resolveNangoPersonalRoute({ request, env });
+    if (!owner.ok) {
       return NextResponse.json(
         {
           runtime: "nango",
@@ -64,23 +64,24 @@ export async function POST(request: NextRequest) {
           hasToken: false,
           signals: [],
           summary: createEmptyProviderDerivedSignalSummary(),
-          warnings: [caller.reason],
-          messages: ["A same-origin caller session is required before provider preview."],
+          warnings: [owner.reason],
+          messages: ["An authenticated ApplyFlow account is required before provider preview."],
         },
-        { status: caller.httpStatus },
+        { status: owner.httpStatus },
       );
     }
 
     const requestedAt = new Date().toISOString();
-    const verificationDeps =
-      env.NANGO_SECRET_KEY?.trim() && caller.required && caller.ok
-        ? {
-            verificationProvider: createNangoConnectionVerificationProvider({
-              secretKey: env.NANGO_SECRET_KEY,
-              callerNonce: caller.callerNonce,
-            }),
-          }
-        : {};
+    const gmailEndUserId = buildApplyFlowNangoAccountEndUserId("gmail", owner.accountId);
+    const calendarEndUserId = buildApplyFlowNangoAccountEndUserId("calendar", owner.accountId);
+    const verificationDeps = env.NANGO_SECRET_KEY?.trim()
+      ? {
+          verificationProvider: createNangoConnectionVerificationProvider({
+            secretKey: env.NANGO_SECRET_KEY,
+            accountId: owner.accountId,
+          }),
+        }
+      : {};
 
     const verifiers = createApplyFlowProviderDerivedRuntimePreviewVerifiers({
       env,
@@ -91,7 +92,8 @@ export async function POST(request: NextRequest) {
     const result = await handleProviderDerivedRuntimePreview(parsed.request, {
       env,
       requestedAt,
-      ...(caller.required && caller.ok ? { callerNonce: caller.callerNonce } : {}),
+      gmailEndUserId,
+      calendarEndUserId,
       ...verifiers,
     });
 

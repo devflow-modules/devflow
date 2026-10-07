@@ -20,6 +20,8 @@ import { DashboardMigrationPanel } from "@/components/dashboard/dashboard-migrat
 import type { ApplyFlowClientPersistenceBootstrapResult } from "@/lib/persistence-v2/dashboard/client-persistence-bootstrap";
 import type { ApplyFlowDashboardPersistence } from "@/lib/persistence-v2/dashboard/dashboard-persistence";
 import { openDashboardPersistence } from "@/lib/persistence-v2/dashboard/open-dashboard-persistence";
+import { bindPersonalClientScope } from "@/lib/persistence-v2/personal/client-scope";
+import { hydrateAccountPersonalCaches } from "@/lib/persistence-v2/personal/hydrate-account-caches";
 import {
   persistApplicationStatusTransition,
   persistApplicationSubmitted,
@@ -474,6 +476,10 @@ export function JobDecisionV2Panel({
       if (cancelled) return;
       if (opened.kind === "ready") {
         persistenceRef.current = opened.persistence;
+        const generation = bindPersonalClientScope({
+          accountId: persistenceBootstrap.bootstrap.accountId,
+          authority: opened.writeCapability === "read_only" ? "cloud_read" : "cloud_write",
+        });
         setUsesCloudPersistence(true);
         setWriteCapability(opened.writeCapability);
         const job = opened.jobs.find((item) => item.id === jobId) ?? null;
@@ -482,6 +488,9 @@ export function JobDecisionV2Panel({
           application: job ? (findApplicationForJob(opened.applications, job) ?? null) : null,
         });
         setRemoteGate(null);
+        void hydrateAccountPersonalCaches(generation).then((ok) => {
+          if (!cancelled && ok) setStorageEpoch((epoch) => epoch + 1);
+        });
         return;
       }
       if (
@@ -490,6 +499,10 @@ export function JobDecisionV2Panel({
         opened.kind === "migration_complete_pending_activation"
       ) {
         persistenceRef.current = opened.persistence;
+        bindPersonalClientScope({
+          accountId: persistenceBootstrap.bootstrap.accountId,
+          authority: "local",
+        });
         setUsesCloudPersistence(false);
         setWriteCapability("full");
         setRemoteRecords(null);
@@ -497,6 +510,10 @@ export function JobDecisionV2Panel({
         return;
       }
       persistenceRef.current = null;
+      bindPersonalClientScope({
+        accountId: persistenceBootstrap.bootstrap.accountId,
+        authority: opened.kind === "paused" ? "cloud_paused" : "local",
+      });
       setUsesCloudPersistence(false);
       if (opened.kind === "migration_required") setRemoteGate("migration_required");
       else if (opened.kind === "auth_required") setRemoteGate("auth_required");

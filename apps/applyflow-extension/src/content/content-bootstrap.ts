@@ -1,7 +1,9 @@
 import { hasValidExtensionContext } from "../runtime/extension-runtime.js";
 import { initApplyFlowPanel, teardownApplyFlowPanel } from "./inject-applyflow-panel.js";
 import { startApplyFlowObserver } from "./linkedin-easy-apply-detector.js";
-import { isApplyFlowSupportedLinkedInPage } from "./linkedin-page-guard.js";
+import {
+  isApplyFlowAssistancePage,
+} from "./linkedin-page-guard.js";
 import { hookSpaNavigation } from "./spa-navigation.js";
 
 let running = false;
@@ -9,7 +11,8 @@ let stopObserver: (() => void) | null = null;
 let unhookHistory: (() => void) | null = null;
 
 export function shouldActivateApplyFlowOnPage(href?: string): boolean {
-  return isApplyFlowSupportedLinkedInPage(href) && hasValidExtensionContext();
+  const pageHref = href ?? (typeof location !== "undefined" ? location.href : "");
+  return isApplyFlowAssistancePage(pageHref) && hasValidExtensionContext();
 }
 
 export function stopApplyFlowContentScript(): void {

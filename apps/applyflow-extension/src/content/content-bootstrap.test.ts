@@ -28,12 +28,15 @@ describe("content-bootstrap", () => {
   });
 
   it("shouldActivateApplyFlowOnPage é false em /notifications", () => {
-    vi.stubGlobal("chrome", {
-      runtime: {
-        id: "abcdefghij",
-        getManifest: vi.fn().mockReturnValue({ manifest_version: 3 }),
-      },
-    } as typeof chrome);
+    vi.stubGlobal(
+      "chrome",
+      {
+        runtime: {
+          id: "abcdefghij",
+          getManifest: vi.fn().mockReturnValue({ manifest_version: 3 }),
+        },
+      } as unknown as typeof chrome,
+    );
 
     expect(
       shouldActivateApplyFlowOnPage("https://www.linkedin.com/notifications/?filter=all"),
@@ -41,12 +44,15 @@ describe("content-bootstrap", () => {
   });
 
   it("syncApplyFlowContentScript não inicia painel em /notifications", () => {
-    vi.stubGlobal("chrome", {
-      runtime: {
-        id: "abcdefghij",
-        getManifest: vi.fn().mockReturnValue({ manifest_version: 3 }),
-      },
-    } as typeof chrome);
+    vi.stubGlobal(
+      "chrome",
+      {
+        runtime: {
+          id: "abcdefghij",
+          getManifest: vi.fn().mockReturnValue({ manifest_version: 3 }),
+        },
+      } as unknown as typeof chrome,
+    );
 
     syncApplyFlowContentScript("https://www.linkedin.com/notifications/?filter=all");
     expect(initApplyFlowPanel).not.toHaveBeenCalled();
@@ -54,12 +60,15 @@ describe("content-bootstrap", () => {
   });
 
   it("syncApplyFlowContentScript inicia em /jobs/view", () => {
-    vi.stubGlobal("chrome", {
-      runtime: {
-        id: "abcdefghij",
-        getManifest: vi.fn().mockReturnValue({ manifest_version: 3 }),
-      },
-    } as typeof chrome);
+    vi.stubGlobal(
+      "chrome",
+      {
+        runtime: {
+          id: "abcdefghij",
+          getManifest: vi.fn().mockReturnValue({ manifest_version: 3 }),
+        },
+      } as unknown as typeof chrome,
+    );
 
     syncApplyFlowContentScript("https://www.linkedin.com/jobs/view/1/");
     expect(initApplyFlowPanel).toHaveBeenCalledOnce();
@@ -67,12 +76,15 @@ describe("content-bootstrap", () => {
   });
 
   it("stopApplyFlowContentScript desmonta painel e observer", () => {
-    vi.stubGlobal("chrome", {
-      runtime: {
-        id: "abcdefghij",
-        getManifest: vi.fn().mockReturnValue({ manifest_version: 3 }),
-      },
-    } as typeof chrome);
+    vi.stubGlobal(
+      "chrome",
+      {
+        runtime: {
+          id: "abcdefghij",
+          getManifest: vi.fn().mockReturnValue({ manifest_version: 3 }),
+        },
+      } as unknown as typeof chrome,
+    );
 
     startApplyFlowContentScript("https://www.linkedin.com/jobs/view/1/");
     stopApplyFlowContentScript();

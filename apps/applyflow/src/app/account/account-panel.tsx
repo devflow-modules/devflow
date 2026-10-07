@@ -7,6 +7,11 @@ import { useRouter } from "next/navigation";
 import { ApplyFlowButton, applyFlowButtonClass } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { PersonalImportConfirm } from "@/components/dashboard/personal-import-confirm";
+import {
+  clearInstalledExtensionGrant,
+  deliverExtensionGrant,
+} from "@/lib/persistence-v2/personal/extension-handoff";
 
 type MePayload = {
   authenticated?: boolean;
@@ -67,10 +72,29 @@ export function AccountPanel() {
     }
   }
 
+  async function linkExtension() {
+    const response = await fetch("/api/applyflow/v2/extension/session", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) return;
+    const body = (await response.json()) as { accountId?: string; token?: string; expiresAt?: string };
+    if (!body.accountId || !body.token || !body.expiresAt) return;
+    deliverExtensionGrant({ accountId: body.accountId, token: body.token, expiresAt: body.expiresAt });
+  }
+
   async function handleSignOut() {
     setSignOutError(null);
     setSigningOut(true);
     try {
+      clearInstalledExtensionGrant();
+      await fetch("/api/applyflow/v2/extension/session", {
+        method: "DELETE",
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+      }).catch(() => null);
+
       // Clear E2E session when present (no-op / 404 outside E2E runtime).
       await fetch("/api/applyflow/e2e/session", {
         method: "POST",
@@ -159,6 +183,8 @@ export function AccountPanel() {
         </div>
       ) : null}
 
+      {probe.status === "ok" ? <PersonalImportConfirm accountId={probe.accountId} /> : null}
+
       {signOutError ? (
         <p className="text-sm text-red-200" role="alert">
           {signOutError}
@@ -172,6 +198,15 @@ export function AccountPanel() {
           disabled={probe.status === "loading"}
         >
           {probe.status === "idle" ? "Probe /me" : "Refresh /me"}
+        </ApplyFlowButton>
+        <ApplyFlowButton
+          type="button"
+          variant="secondary"
+          data-testid="applyflow-link-extension"
+          onClick={() => void linkExtension()}
+          disabled={probe.status !== "ok"}
+        >
+          Ligar extensão
         </ApplyFlowButton>
         <ApplyFlowButton
           type="button"

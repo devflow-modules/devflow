@@ -17,3 +17,27 @@ export function isApplyFlowSupportedLinkedInPage(
     return false;
   }
 }
+
+/**
+ * Local-only assistance fixture on the ApplyFlow dashboard origin.
+ * Never enabled for production LinkedIn hosts.
+ */
+export function isApplyFlowLocalAssistanceFixture(
+  href: string = typeof location !== "undefined" ? location.href : "",
+): boolean {
+  try {
+    const url = new URL(href);
+    const host = url.hostname.toLowerCase();
+    if (host !== "127.0.0.1" && host !== "localhost") return false;
+    if (url.port !== "3010" && url.port !== "3012") return false;
+    return url.pathname === "/extension-fixture" || url.pathname.startsWith("/extension-fixture/");
+  } catch {
+    return false;
+  }
+}
+
+export function isApplyFlowAssistancePage(
+  href: string = typeof location !== "undefined" ? location.href : "",
+): boolean {
+  return isApplyFlowSupportedLinkedInPage(href) || isApplyFlowLocalAssistanceFixture(href);
+}

@@ -3,12 +3,15 @@ import { handleApplyFlowNangoConnectionDisconnect } from "@/lib/provider-runtime
 import { createNangoConnectionDisconnectProvider } from "@/lib/provider-runtime/nango-connection-disconnect-provider";
 import { readApplyFlowNangoConnectSessionEnv } from "@/lib/provider-runtime/nango-connect-session-launcher";
 import { parseConnectionVerificationProvider } from "@/lib/provider-runtime/nango-connection-verification-boundary";
-import { resolveNangoRouteCaller } from "@/lib/provider-runtime/nango-route-caller";
+import {
+  buildApplyFlowNangoAccountEndUserId,
+  resolveNangoPersonalRoute,
+} from "@/lib/provider-runtime/nango-account-identity";
 
 /**
- * Server-side Nango provider disconnect boundary.
- * Removes the tagged connection for the validated caller session only.
- * Client connection IDs, tags, and end_user_id overrides are ignored.
+ * Removes the Nango connection owned by the authenticated ApplyFlow account.
+ * Does not sign the user out and does not revoke the Google Account OAuth grant.
+ * Client connection IDs and browser caller cookies are ignored.
  */
 
 function blockedDisconnect(reason: string, messages: string[], status: number) {
@@ -27,21 +30,29 @@ function blockedDisconnect(reason: string, messages: string[], status: number) {
 
 export async function POST(request: NextRequest) {
   const env = readApplyFlowNangoConnectSessionEnv();
-  const caller = resolveNangoRouteCaller({ request, env, mintIfMissing: false });
-  if (caller.required && !caller.ok) {
-    return blockedDisconnect(
-      caller.reason,
-      ["A same-origin caller session is required before disconnecting a Nango connection."],
-      caller.httpStatus,
-    );
-  }
-
-  let body: { provider?: string; explicitConfirmation?: boolean | string } = {};
+  let body: {
+    provider?: string;
+    explicitConfirmation?: boolean | string;
+    adoptLegacyBrowserConnection?: boolean;
+  } = {};
 
   try {
     body = (await request.json()) as typeof body;
   } catch {
     body = {};
+  }
+
+  const owner = await resolveNangoPersonalRoute({
+    request,
+    env,
+    adoptLegacyBrowserConnection: body.adoptLegacyBrowserConnection === true,
+  });
+  if (!owner.ok) {
+    return blockedDisconnect(
+      owner.reason,
+      ["An authenticated ApplyFlow account is required before disconnecting a Nango connection."],
+      owner.httpStatus,
+    );
   }
 
   const provider = parseConnectionVerificationProvider(body.provider);
@@ -62,11 +73,11 @@ export async function POST(request: NextRequest) {
   }
 
   const disconnectDeps =
-    env.NANGO_SECRET_KEY?.trim() && caller.required && caller.ok
+    env.NANGO_SECRET_KEY?.trim() && provider
       ? {
           disconnectProvider: createNangoConnectionDisconnectProvider({
             secretKey: env.NANGO_SECRET_KEY,
-            callerNonce: caller.callerNonce,
+            endUserId: buildApplyFlowNangoAccountEndUserId(provider, owner.accountId),
           }),
         }
       : {};
@@ -76,7 +87,15 @@ export async function POST(request: NextRequest) {
     disconnectDeps,
   });
 
-  return NextResponse.json(result, { status: 200 });
+  return NextResponse.json(
+    {
+      ...result,
+      ownership: "applyflow_account",
+      revokedGoogleOAuth: false,
+      signedOut: false,
+    },
+    { status: 200 },
+  );
 }
 
 export async function GET() {

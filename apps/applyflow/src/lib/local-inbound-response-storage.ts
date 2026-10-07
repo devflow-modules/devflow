@@ -1,5 +1,7 @@
 import type { ResponseDetection } from "@devflow/applyflow-core";
 
+import { personalLocalWritesAllowed, personalStorageKey } from "@/lib/persistence-v2/personal/client-scope";
+
 export const APPLYFLOW_INBOUND_RESPONSES_STORAGE_KEY = "APPLYFLOW_INBOUND_RESPONSES_V1" as const;
 export const DASHBOARD_INBOUND_RESPONSES_STORAGE_VERSION = 1 as const;
 
@@ -31,7 +33,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function sanitizeDetection(raw: unknown): ResponseDetection | null {
+export type ParsedResponseDetection = ResponseDetection & { provider?: "gmail" | "manual" };
+
+export function parseResponseDetection(raw: unknown): ParsedResponseDetection | null {
   if (!isRecord(raw) || typeof raw.id !== "string" || typeof raw.emailId !== "string") return null;
   if (typeof raw.headline !== "string" || typeof raw.receivedAt !== "string") return null;
   if (typeof raw.senderDomain !== "string" || typeof raw.classification !== "string") return null;
@@ -57,6 +61,7 @@ function sanitizeDetection(raw: unknown): ResponseDetection | null {
     senderDomain: raw.senderDomain,
     autoApply: false,
     reviewRequired: true,
+    ...(raw.provider === "gmail" || raw.provider === "manual" ? { provider: raw.provider } : {}),
     ...(typeof raw.applicationId === "string" ? { applicationId: raw.applicationId } : {}),
     ...(Array.isArray(raw.alternateApplicationIds)
       ? { alternateApplicationIds: raw.alternateApplicationIds.filter((item) => typeof item === "string") }
@@ -70,7 +75,7 @@ function sanitizeDetection(raw: unknown): ResponseDetection | null {
 
 export function loadDashboardInboundResponses(): DashboardInboundResponsesLoadResult {
   if (typeof window === "undefined") return empty();
-  const raw = window.localStorage.getItem(APPLYFLOW_INBOUND_RESPONSES_STORAGE_KEY);
+  const raw = window.localStorage.getItem(personalStorageKey(APPLYFLOW_INBOUND_RESPONSES_STORAGE_KEY));
   if (!raw) return empty();
   try {
     const data = JSON.parse(raw) as DashboardStoredInboundResponses;
@@ -78,7 +83,7 @@ export function loadDashboardInboundResponses(): DashboardInboundResponsesLoadRe
       return { detections: [], status: "unreadable" };
     }
     const detections = Array.isArray(data.detections)
-      ? data.detections.map(sanitizeDetection).filter((item): item is ResponseDetection => item != null)
+      ? data.detections.map(parseResponseDetection).filter((item): item is ResponseDetection => item != null)
       : [];
     const legacyClosedLoopAccountScope = sanitizeAccountScope(data.legacyClosedLoopAccountScope);
     return {
@@ -107,5 +112,6 @@ export function persistDashboardInboundResponses(
     detections,
     ...(owner ? { legacyClosedLoopAccountScope: owner } : {}),
   };
-  window.localStorage.setItem(APPLYFLOW_INBOUND_RESPONSES_STORAGE_KEY, JSON.stringify(doc));
+  if (!personalLocalWritesAllowed()) return;
+  window.localStorage.setItem(personalStorageKey(APPLYFLOW_INBOUND_RESPONSES_STORAGE_KEY), JSON.stringify(doc));
 }

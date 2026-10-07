@@ -6,6 +6,8 @@ import {
   type ApplicationOutcome,
 } from "@devflow/applyflow-core";
 
+import { personalLocalWritesAllowed, personalStorageKey } from "@/lib/persistence-v2/personal/client-scope";
+
 export const APPLYFLOW_DASHBOARD_ANALYTICS_STORAGE_KEY = "APPLYFLOW_DASHBOARD_ANALYTICS_V1" as const;
 export const DASHBOARD_ANALYTICS_STORAGE_VERSION = 1 as const;
 
@@ -111,7 +113,7 @@ function sanitizeList<T>(raw: unknown, parse: (item: unknown) => T | null): T[] 
 
 export function loadDashboardAnalytics(): DashboardAnalyticsLoadResult {
   if (typeof window === "undefined") return empty();
-  const raw = window.localStorage.getItem(APPLYFLOW_DASHBOARD_ANALYTICS_STORAGE_KEY);
+  const raw = window.localStorage.getItem(personalStorageKey(APPLYFLOW_DASHBOARD_ANALYTICS_STORAGE_KEY));
   if (!raw) return empty();
   try {
     const data = JSON.parse(raw) as DashboardStoredAnalytics;
@@ -143,7 +145,8 @@ export function persistDashboardAnalytics(
     events,
     efforts,
   };
-  window.localStorage.setItem(APPLYFLOW_DASHBOARD_ANALYTICS_STORAGE_KEY, JSON.stringify(doc));
+  if (!personalLocalWritesAllowed()) return;
+  window.localStorage.setItem(personalStorageKey(APPLYFLOW_DASHBOARD_ANALYTICS_STORAGE_KEY), JSON.stringify(doc));
 }
 
 export function upsertAnalyticsOutcome(outcome: ApplicationOutcome, event?: ApplicationCareerEvent): void {

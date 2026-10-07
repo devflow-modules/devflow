@@ -7,6 +7,7 @@ import {
   buildApplyFlowNangoEndUserId,
   NANGO_INTEGRATION_BY_PROVIDER,
 } from "./nango-server-provider";
+import { buildApplyFlowNangoAccountEndUserId } from "./nango-account-identity";
 
 export type NangoConnectionVerificationProviderResult = {
   exists: boolean;
@@ -19,7 +20,10 @@ export type NangoConnectionVerificationProvider = {
 
 export type NangoConnectionVerificationProviderConfig = {
   secretKey: string;
-  callerNonce: string;
+  callerNonce?: string;
+  endUserId?: string;
+  /** When set, end_user_id is derived per provider from this server account id. */
+  accountId?: string;
 };
 
 type NangoListConnectionRow = {
@@ -33,7 +37,13 @@ export function createNangoConnectionVerificationProvider(
     async verifyConnection(input) {
       const nango = new Nango({ secretKey: config.secretKey });
       const integrationId = NANGO_INTEGRATION_BY_PROVIDER[input.provider];
-      const endUserId = buildApplyFlowNangoEndUserId(input.provider, config.callerNonce);
+      const endUserId = config.accountId
+        ? buildApplyFlowNangoAccountEndUserId(input.provider, config.accountId)
+        : (config.endUserId ??
+          (config.callerNonce ? buildApplyFlowNangoEndUserId(input.provider, config.callerNonce) : ""));
+      if (!endUserId) {
+        return { exists: false, state: "error" };
+      }
 
       try {
         const { connections } = await nango.listConnections({

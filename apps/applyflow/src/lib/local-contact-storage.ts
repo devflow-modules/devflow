@@ -8,6 +8,8 @@ import {
   type ContactInteraction,
 } from "@devflow/applyflow-core";
 
+import { personalLocalWritesAllowed, personalStorageKey } from "@/lib/persistence-v2/personal/client-scope";
+
 export const APPLYFLOW_DASHBOARD_CONTACTS_STORAGE_KEY = "APPLYFLOW_DASHBOARD_CONTACTS_V1" as const;
 export const DASHBOARD_CONTACTS_STORAGE_VERSION = 1 as const;
 
@@ -31,7 +33,7 @@ export type ApplicationOutreachScope = {
 
 export type DashboardOutreachWriteResult =
   | { ok: true }
-  | { ok: false; error: "invalid_outreach" | "outreach_scope_mismatch" | "outreach_not_found" };
+  | { ok: false; error: "invalid_outreach" | "outreach_scope_mismatch" | "outreach_not_found" | "cloud_authority" };
 
 function emptyResult(): DashboardContactsLoadResult {
   return { contacts: [], interactions: [], status: "empty" };
@@ -39,7 +41,7 @@ function emptyResult(): DashboardContactsLoadResult {
 
 export function loadDashboardContacts(): DashboardContactsLoadResult {
   if (typeof window === "undefined") return emptyResult();
-  const raw = window.localStorage.getItem(APPLYFLOW_DASHBOARD_CONTACTS_STORAGE_KEY);
+  const raw = window.localStorage.getItem(personalStorageKey(APPLYFLOW_DASHBOARD_CONTACTS_STORAGE_KEY));
   if (!raw) return emptyResult();
   try {
     const data = JSON.parse(raw) as DashboardStoredContacts;
@@ -64,7 +66,8 @@ export function persistDashboardContacts(contacts: Contact[], interactions: Cont
     contacts,
     interactions,
   };
-  window.localStorage.setItem(APPLYFLOW_DASHBOARD_CONTACTS_STORAGE_KEY, JSON.stringify(doc));
+  if (!personalLocalWritesAllowed()) return;
+  window.localStorage.setItem(personalStorageKey(APPLYFLOW_DASHBOARD_CONTACTS_STORAGE_KEY), JSON.stringify(doc));
 }
 
 export function loadApplicationOutreach(scope: ApplicationOutreachScope): DashboardContactsLoadResult {
@@ -84,7 +87,7 @@ export function loadApplicationOutreach(scope: ApplicationOutreachScope): Dashbo
   return { contacts, interactions, status: stored.status };
 }
 
-function validContact(scope: ApplicationOutreachScope, contact: Contact): boolean {
+export function isValidDashboardContact(scope: ApplicationOutreachScope, contact: Contact): boolean {
   const parsed = (value: string | undefined) => {
     if (!value) return undefined;
     const timestamp = Date.parse(value);
@@ -161,8 +164,9 @@ export function saveDashboardOutreach(
   contact: Contact,
   interaction?: ContactInteraction,
 ): DashboardOutreachWriteResult {
+  if (!personalLocalWritesAllowed()) return { ok: false, error: "cloud_authority" };
   const normalizedContact = normalizeOutreachForStorage(contact);
-  if (!validContact(scope, normalizedContact)) return { ok: false, error: "invalid_outreach" };
+  if (!isValidDashboardContact(scope, normalizedContact)) return { ok: false, error: "invalid_outreach" };
   const stored = loadDashboardContacts();
   const current = stored.contacts.find((item) => item.id === normalizedContact.id);
   if (
@@ -217,5 +221,5 @@ export function archiveDashboardOutreach(
 
 export function clearPersistedDashboardContacts(): void {
   if (typeof window === "undefined") return;
-  window.localStorage.removeItem(APPLYFLOW_DASHBOARD_CONTACTS_STORAGE_KEY);
+  window.localStorage.removeItem(personalStorageKey(APPLYFLOW_DASHBOARD_CONTACTS_STORAGE_KEY));
 }

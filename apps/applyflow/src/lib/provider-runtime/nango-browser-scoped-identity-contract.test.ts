@@ -1,9 +1,11 @@
 /**
- * AF-NANGO-001 — Browser-scoped Nango identity contract characterization.
- * No real Nango/Gmail calls. Ownership is callerNonce-derived only.
+ * AF-NANGO-001 — provider identity contract.
+ * Browser nonce ids remain distinct from account ids and are not authorization.
+ * No real Nango/Gmail calls.
  */
 import { describe, expect, it } from "vitest";
 
+import { buildApplyFlowNangoAccountEndUserId } from "./nango-account-identity";
 import { buildApplyFlowNangoEndUserId } from "./nango-server-provider";
 import { CALLER_NONCE_A, CALLER_NONCE_B } from "./nango-route-test-fixtures";
 import {
@@ -13,7 +15,7 @@ import {
 import { PROVIDER_CONNECTION_DISCONNECT_CONFIRM_TITLE } from "@/components/dashboard/provider-connection-disconnect-content";
 import { PROVIDER_DERIVED_CAREER_INSIGHTS_PHASE_MESSAGES } from "@/components/dashboard/provider-derived-career-insights-content";
 
-describe("AF-NANGO-001 browser-scoped identity contract", () => {
+describe("AF-NANGO-001 account provider identity contract", () => {
   it("A. Caller X derives a deterministic provider end_user_id", () => {
     const first = buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE_A);
     const second = buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE_A);
@@ -33,17 +35,14 @@ describe("AF-NANGO-001 browser-scoped identity contract", () => {
     );
   });
 
-  it("I. fictional ApplyFlow account ids are not inputs to ownership (same-caller characterization)", () => {
-    // Account A vs Account B cannot appear in the derivation function — only (provider, nonce).
-    const ownerForConceptualAccountA = buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE_A);
-    const ownerForConceptualAccountB = buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE_A);
-    expect(ownerForConceptualAccountA).toBe(ownerForConceptualAccountB);
-
-    const derivationArityEvidence = buildApplyFlowNangoEndUserId.length;
-    expect(derivationArityEvidence).toBe(2); // provider + callerNonce only
+  it("I. account ids and browser nonces produce different provider identities", () => {
+    const account = buildApplyFlowNangoAccountEndUserId("gmail", "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+    const browser = buildApplyFlowNangoEndUserId("gmail", CALLER_NONCE_A);
+    expect(account).not.toBe(browser);
+    expect(buildApplyFlowNangoEndUserId.length).toBe(2);
   });
 
-  it("J. product copy does not claim ApplyFlow account ownership", () => {
+  it("J. product copy states account ownership and keeps logout distinct from disconnect", () => {
     const surfaces = [
       PROVIDER_CONSENT_CONFIRMATION_OWNERSHIP_NOTICE,
       ...PROVIDER_CONSENT_CONFIRMATION_BOUNDARIES,
@@ -51,13 +50,10 @@ describe("AF-NANGO-001 browser-scoped identity contract", () => {
       PROVIDER_DERIVED_CAREER_INSIGHTS_PHASE_MESSAGES.no_valid_connection,
     ].join("\n");
 
-    expect(surfaces.toLowerCase()).toContain("browser");
-    expect(surfaces.toLowerCase()).not.toMatch(/linked to your applyflow account login/);
-    expect(surfaces).toMatch(/not linked to your ApplyFlow account/i);
-    expect(surfaces).not.toMatch(/available on all devices/i);
-    expect(surfaces).not.toMatch(/follows your login/i);
+    expect(surfaces).toMatch(/ApplyFlow account/i);
+    expect(surfaces).toMatch(/not attached automatically|not reused/i);
     expect(surfaces).not.toMatch(/logout disconnects gmail/i);
-    expect(surfaces).not.toMatch(/account-bound/i);
+    expect(surfaces).toMatch(/logout does not disconnect/i);
   });
 
   it("K. no real provider calls in this contract suite (characterization only)", () => {

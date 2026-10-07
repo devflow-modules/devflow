@@ -30,6 +30,7 @@ export async function getAuthenticatedApplyFlowUser(): Promise<AuthenticatedAppl
     if (e2eSub) {
       return { authProviderSub: e2eSub, email: "e2e@applyflow.local" };
     }
+    throw new ApplyFlowAuthError("unauthenticated", "Authentication required.");
   }
 
   if (!resolveApplyFlowSupabasePublicConfig()) {

@@ -14,6 +14,7 @@ import { AiSettingsPanel } from "./components/AiSettingsPanel";
 import { ApplicationsHistoryPanel } from "./components/ApplicationsHistoryPanel";
 import { DefaultsPanel } from "./components/DefaultsPanel";
 import { ExtensionPreview } from "./components/ExtensionPreview";
+import { OptionsAccountConnection } from "./components/OptionsAccountConnection";
 import { OptionsProfileSummary } from "./components/OptionsProfileSummary";
 import { ProfileForm } from "./components/ProfileForm";
 import { SalaryEditor } from "./components/SalaryEditor";
@@ -162,6 +163,7 @@ export function OptionsApp() {
             Copiloto <strong>local-first</strong> no dispositivo — sem backend obrigatório, sem auto-submit. Sugestões
             informativas; o envio de candidaturas é sempre teu no LinkedIn.
           </p>
+          <OptionsAccountConnection />
         </div>
         <div className="af-opt-header-pills" aria-hidden="true">
           <span className="af-opt-pill af-opt-pill--outline">MV3</span>

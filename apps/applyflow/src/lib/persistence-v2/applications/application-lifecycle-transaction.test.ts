@@ -212,6 +212,9 @@ function memoryLifecycleDb(seed: {
             return { count: 1 };
           },
         },
+        applyFlowCareerEventRecord: {
+          create: async ({ data }: { data: { id: string } }) => data,
+        },
       } as unknown as ApplyFlowPersistenceDb;
       return fn(tx);
     },
@@ -231,6 +234,8 @@ describe("application transitionLifecycle (atomic App↔Job)", () => {
     expect(result.application.status).toBe("interview");
     expect(result.job?.status).toBe("interview");
     expect(result.jobSynced).toBe(true);
+    expect(result.event.type).toBe("screening");
+    expect(result.event.id).toContain("app-1");
   });
 
   it("maps applied/screening/technical/offer/hired/rejected onto linked Job", async () => {

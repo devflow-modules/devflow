@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build --config vite.config.content.ts && vite build",
+    "build": "node scripts/write-extension-manifest.mjs && vite build --config vite.config.content.ts && vite build",
     "dev": "vite build --watch",
     "test": "vitest run",
     "test:watch": "vitest"

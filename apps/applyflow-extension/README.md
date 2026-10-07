@@ -10,13 +10,34 @@ ApplyFlow **não clica em Submit**, **não envia** a candidatura e **não avanç
 
 Existe uma app **Next.js** em `apps/applyflow` que importa o JSON exportado (ex.: backup completo em **Opções › Histórico**) e mostra métricas, funil e tabela — **sem backend ApplyFlow**, apenas no navegador. Inclui **dados de demo** fictícios para apresentação. Ver `apps/applyflow/README.md` e `docs/applyflow/` (inclui **case study**, roteiro de vídeo, checklist de publicação e posts).
 
-## Local-first e evolução cloud (documentada, não implementada)
+## Conta autenticada (cloud V2)
 
-- **Armazenamento:** perfil (inclui **Answer Bank** — textos para perguntas abertas do Easy Apply), histórico e definições em **`chrome.storage.local`** no dispositivo — sem servidor ApplyFlow no MVP.
-- **Export:** backups JSON (perfil, histórico) para ficheiro; partilha só quando tu quiseres.
-- **Dashboard:** importação do JSON no site `apps/applyflow`; métricas e funil **no browser**.
-- **IA:** opt-in no cliente com a tua chave; sem backend ApplyFlow para texto gerado.
-- **Sync cloud:** **não existe** na versão atual; qualquer sincronização automática num futuro **Pro** seria **opt-in**, com termos e modelo de dados explícitos — ver `docs/applyflow/ADR-LOCAL_FIRST_VS_SERVERLESS.md` e `docs/applyflow/SERVERLESS_FUTURE.md`.
+O perfil legado em `chrome.storage.local` **não** é copiado automaticamente para a conta.
+
+Com a extensão **ligada** (grant opaco mintado em `/account` → **Ligar extensão**):
+
+| Operação | Como |
+| --- | --- |
+| Perfil / CV da conta | Service worker chama `GET /api/applyflow/v2/profile` com Bearer; o painel recebe só o `CandidateProfile` da variante selecionada (não a biblioteca completa) |
+| Registar preparação | Service worker cria Job + Application via `POST /api/applyflow/v2/jobs` e `…/applications` (ids estáveis por conta+URL; 409 = reutilização idempotente) |
+| Marcar enviada | Só com confirmação explícita de envio externo → `POST …/applications/:id/lifecycle` (`status: applied`) |
+| Falha cloud | Não é sucesso; não há fallback silencioso para chaves legadas como autoridade da conta |
+| Logout / 401 | Revoga grants no servidor, limpa `chrome.storage.session`, descarta cache da conta (generation fence) |
+
+Sem grant: modo local (perfil e histórico só no browser), como antes.
+
+A extensão **não** sincroniza contatos nem respostas inbound (módulos do dashboard).
+
+Matriz completa e isolamento: [`docs/ACCOUNT_CLOUD_SYNC.md`](docs/ACCOUNT_CLOUD_SYNC.md). Publicação / checklist Chrome: `docs/applyflow/ACCOUNT_PERSISTENCE_PUBLICATION_PREP.md`.
+
+**Permissões de host:** build local (`APPLYFLOW_EXTENSION_TARGET` omitido) = `127.0.0.1` / `localhost` nas portas 3010 e 3012. Produção = `https://devflow-applyflow.vercel.app`. Bearer só no service worker (`chrome.storage.session`); content scripts não o recebem.
+
+## Local-first (modo desligado)
+
+- **Armazenamento local:** perfil (Answer Bank), histórico e definições em `chrome.storage.local`.
+- **Export / dashboard import:** JSON no browser quando não há conta cloud.
+- **IA:** opt-in com chave no cliente.
+- Conta cloud é **opt-in** via Ligar extensão — ver `docs/applyflow/ACCOUNT_PERSISTENCE_PUBLICATION_PREP.md`.
 
 ## Segurança do autofill (safety gate)
 
@@ -98,9 +119,11 @@ localStorage.removeItem("APPLYFLOW_DEBUG");
 
 ## O que não faz
 
-- Backend próprio DevFlow, base remota ou login nesta extensão.
+- Login/password na extensão (usa grant opaco mintado pelo dashboard).
 - Burlar login, CAPTCHA ou limitações do LinkedIn.
 - Preencher sem clique seu em **Preencher / Confirmar**, nem campos não visíveis.
+- Clicar em Submit / enviar candidaturas automaticamente.
+- Sincronizar contatos ou respostas inbound.
 
 ## Answer Bank (Sprint 7.2) — respostas abertas locais
 

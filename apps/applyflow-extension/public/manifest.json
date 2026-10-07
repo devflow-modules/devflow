@@ -3,11 +3,26 @@
   "name": "ApplyFlow",
   "version": "0.2.0",
   "description": "Copiloto assistido para LinkedIn Easy Apply (DevFlow Labs). Não envia candidaturas automaticamente.",
-  "permissions": ["storage"],
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqfkOvqR9+3GCs6XHjpkoVy9WZ5WmdGWCc/zu/5k2y2lU0yvVR+1kEaxuGQeXOd1cm8rrz17PYb+VmtvDV+Ct0xuHqaiU5H/SDcLI9GyV28Spk9LXNaCsFJTxDv4e3N3F0etRe0QE+i28eC3hYAZJ7sR7EIH7bd4mraUvBGezKnu9U/UWSJo/9nrcOtGPAU4gDsZ3JHKi4+otBZq6kt1uFYcfoujNMQdu4VvitBadALZZlFKulaTUtXgOnfrAkWFvunn2s7nthsvzVKFPd+uKOpSfT0sW+vwAJhPHZE7URcl0U6yx59wiZdx5a7g2gmFxanD8YE0AH9frAk0DqHChgQIDAQAB",
+  "permissions": [
+    "storage"
+  ],
   "host_permissions": [
+    "http://127.0.0.1:3010/*",
+    "http://127.0.0.1:3012/*",
+    "http://localhost:3010/*",
+    "http://localhost:3012/*",
     "https://www.linkedin.com/*",
     "https://api.openai.com/*"
   ],
+  "externally_connectable": {
+    "matches": [
+      "http://127.0.0.1:3010/*",
+      "http://127.0.0.1:3012/*",
+      "http://localhost:3010/*",
+      "http://localhost:3012/*"
+    ]
+  },
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true
@@ -18,8 +33,16 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.linkedin.com/*"],
-      "js": ["content.js"],
+      "matches": [
+        "https://www.linkedin.com/*",
+        "http://127.0.0.1:3010/extension-fixture*",
+        "http://127.0.0.1:3012/extension-fixture*",
+        "http://localhost:3010/extension-fixture*",
+        "http://localhost:3012/extension-fixture*"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ]

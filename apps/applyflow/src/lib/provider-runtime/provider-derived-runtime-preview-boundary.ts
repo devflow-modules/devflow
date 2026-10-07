@@ -232,6 +232,8 @@ export async function handleProviderDerivedRuntimePreview(
     gmailRuntimeDeps?: ApplyFlowGmailReadOnlyRuntimeDeps;
     calendarRuntimeDeps?: ApplyFlowCalendarReadOnlyRuntimeDeps;
     callerNonce?: string;
+    gmailEndUserId?: string;
+    calendarEndUserId?: string;
     executeComposition?: typeof executeApplyFlowProviderDerivedRuntimeBoundary;
   },
 ): Promise<ProviderDerivedRuntimeCompositionResult> {
@@ -264,7 +266,9 @@ export async function handleProviderDerivedRuntimePreview(
         deps.gmailRuntimeDeps?.metadataProvider ??
         createGmailNangoRuntimeMetadataProvider({
           secretKey: deps.env.NANGO_SECRET_KEY ?? "",
-          endUserId: buildApplyFlowNangoEndUserId("gmail", deps.callerNonce as string),
+          endUserId:
+            deps.gmailEndUserId ??
+            buildApplyFlowNangoEndUserId("gmail", deps.callerNonce as string),
         });
 
       return executeGmailReadOnlyNangoRuntime({
@@ -286,7 +290,9 @@ export async function handleProviderDerivedRuntimePreview(
         deps.calendarRuntimeDeps?.metadataProvider ??
         createCalendarNangoRuntimeMetadataProvider({
           secretKey: deps.env.NANGO_SECRET_KEY ?? "",
-          endUserId: buildApplyFlowNangoEndUserId("calendar", deps.callerNonce as string),
+          endUserId:
+            deps.calendarEndUserId ??
+            buildApplyFlowNangoEndUserId("calendar", deps.callerNonce as string),
         });
 
       return executeCalendarReadOnlyNangoRuntime({

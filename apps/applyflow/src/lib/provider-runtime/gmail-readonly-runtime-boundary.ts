@@ -80,6 +80,7 @@ export async function executeApplyFlowGmailReadOnlyRuntimeBoundary(
     };
     runtimeDeps?: ApplyFlowGmailReadOnlyRuntimeDeps;
     callerNonce?: string;
+    endUserId?: string;
   },
 ): Promise<GmailReadOnlyAdapterResult> {
   const requestedAt = deps.requestedAt;
@@ -119,7 +120,7 @@ export async function executeApplyFlowGmailReadOnlyRuntimeBoundary(
     });
   }
 
-  if (!deps.runtimeDeps?.metadataProvider && !deps.callerNonce) {
+  if (!deps.runtimeDeps?.metadataProvider && !deps.callerNonce && !deps.endUserId) {
     return blockedRuntimeResult({
       connectionVerified: deps.connectionVerified,
       requestedAt,
@@ -131,7 +132,7 @@ export async function executeApplyFlowGmailReadOnlyRuntimeBoundary(
     deps.runtimeDeps?.metadataProvider ??
     createGmailNangoRuntimeMetadataProvider({
       secretKey: deps.env.NANGO_SECRET_KEY,
-      endUserId: buildApplyFlowNangoEndUserId("gmail", deps.callerNonce as string),
+      endUserId: deps.endUserId ?? buildApplyFlowNangoEndUserId("gmail", deps.callerNonce as string),
     });
 
   const adapter = createGmailReadOnlyNangoRuntimeAdapter({ metadataProvider });

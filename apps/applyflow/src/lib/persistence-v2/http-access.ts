@@ -4,11 +4,8 @@ import {
   resolveApplyFlowPersistenceAccess,
   type ApplyFlowPersistenceAccess,
 } from "./resolve-persistence-access";
-import {
-  ApplyFlowAuthError,
-  requireApplyFlowAccount,
-  type ApplyFlowAccountRecord,
-} from "./require-applyflow-account";
+import { resolveApplyFlowAccountFromRequest } from "./auth/resolve-account-from-request";
+import { ApplyFlowAuthError, type ApplyFlowAccountRecord } from "./require-applyflow-account";
 
 /**
  * HTTP capability enforced after account + resolver.
@@ -160,7 +157,8 @@ export function applyFlowAuthErrorResponse(error: unknown): NextResponse | null 
 
 /**
  * Authenticate → load account → resolve mode → enforce capability → run action.
- * Account identity always comes from the Supabase session, never from the request.
+ * Account identity comes from a validated extension grant (Bearer) or the
+ * Supabase cookie session — never from a client-supplied accountId.
  */
 export async function withApplyFlowV2HttpAccess(
   capability: ApplyFlowV2HttpCapability,
@@ -169,9 +167,10 @@ export async function withApplyFlowV2HttpAccess(
     access: ApplyFlowPersistenceAccess,
   ) => Promise<NextResponse>,
   mapError: (error: unknown) => NextResponse,
+  request?: Request,
 ): Promise<NextResponse> {
   try {
-    const account = await requireApplyFlowAccount();
+    const account = await resolveApplyFlowAccountFromRequest(request);
     const access = resolveApplyFlowPersistenceAccess(account);
     assertApplyFlowV2HttpCapability(access, capability);
     return await action(account, access);
