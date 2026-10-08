@@ -16,7 +16,7 @@ describe("header-product-access", () => {
     delete process.env.NEXT_PUBLIC_WHATSAPP_APP_URL;
     delete process.env.NEXT_PUBLIC_FINANCEIRO_APP_URL;
 
-    expect(ACCESS_PRODUCTS_LABEL).toBe("Acessar produtos");
+    expect(ACCESS_PRODUCTS_LABEL).toBe("Acessar");
     const targets = getHeaderProductAccessTargets();
     expect(targets.map((t) => t.id)).toEqual(["whatsapp", "financeiro"]);
     expect(targets[0]).toMatchObject({

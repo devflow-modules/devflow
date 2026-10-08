@@ -43,7 +43,7 @@ const faqItems = [
   {
     question: "O que eu ganho além de respostas automáticas?",
     answer:
-      "Você ganha operação: fila, prioridade, handoff humano, histórico, dashboard, SLA e clareza sobre onde o atendimento trava e onde a venda pode estar sendo perdida.",
+      "Você ganha operação: fila, responsáveis, handoff humano, histórico e clareza sobre o que precisa de resposta.",
   },
 ];
 

@@ -1,7 +1,7 @@
 const items = [
   "API oficial da Meta",
-  "Webhooks",
-  "Multiatendimento",
+  "Inbox multiatendente",
+  "Responsáveis e filas",
   "Handoff humano",
 ] as const;
 

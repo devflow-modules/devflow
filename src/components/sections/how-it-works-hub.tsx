@@ -20,13 +20,13 @@ const steps = [
     number: "02",
     title: "Desenho dos fluxos",
     description:
-      "Definimos o que a IA responde sozinha, quando o atendimento vai para uma pessoa, quais filas existem e quais regras de prioridade/SLA fazem sentido.",
+      "Definimos o que a IA responde sozinha, quando o atendimento vai para uma pessoa, quais filas existem e quais regras de prioridade e atendimento fazem sentido.",
   },
   {
     number: "03",
     title: "Implementação técnica",
     description:
-      "Configuramos WhatsApp Cloud API oficial, webhooks, inbox multiatendente, automações, handoff humano, tags, fila priorizada e dashboard operacional.",
+      "Configuramos WhatsApp Cloud API oficial, inbox multiatendente, automações, handoff humano, tags, filas, responsáveis e acompanhamento operacional.",
   },
   {
     number: "04",

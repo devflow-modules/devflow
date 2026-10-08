@@ -20,7 +20,7 @@ const ogImage = `${baseUrl}/og-devflow.png`;
 
 const homeTitle = "DevFlow Labs | Automação WhatsApp com IA, Inbox e Handoff Humano";
 const homeDescription =
-  "Transforme seu WhatsApp em uma operação previsível de atendimento e vendas com IA no repetitivo, inbox multiatendente, handoff humano, SLA e dashboard operacional.";
+  "Transforme seu WhatsApp em uma operação de atendimento e vendas com inbox compartilhada, responsáveis, filas e handoff humano.";
 
 export const metadata: Metadata = {
   title: homeTitle,
@@ -37,8 +37,8 @@ export const metadata: Metadata = {
     "WhatsApp Cloud API",
     "chatbot WhatsApp",
     "handoff humano",
-    "SLA atendimento",
-    "dashboard atendimento",
+    "fila de atendimento",
+    "inbox compartilhada",
   ],
   openGraph: {
     type: "website",

@@ -72,6 +72,14 @@ describe("home conversion cleanup", () => {
 
     expect(text).toContain("Dados ilustrativos");
     expect(text).toContain("Demonstração da plataforma");
+    expect(text).not.toContain("SLA");
+    expect(text).not.toContain("dashboard operacional");
+    expect(text).not.toContain("Próximo produto");
+    expect(text).not.toContain("Quero saber");
+    expect(text).toContain("API oficial da Meta");
+    expect(text).toContain("Inbox multiatendente");
+    expect(text).toContain("Responsáveis e filas");
+    expect(text).toContain("Handoff humano");
     expect(text).toContain("Quer entender como essa operação funcionaria na sua empresa?");
     expect(screen.getByRole("heading", { name: "O que entra na operação" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Como sua operação de WhatsApp sai do improviso" })).toBeTruthy();
