@@ -4,9 +4,9 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { trackFunnelCtaClick } from "@/lib/analytics";
 import {
+  HOME_DEMO_CTA_LABEL,
   PRIMARY_CONVERT_CTA_LABEL,
   PRIMARY_CONVERT_HREF,
-  PRIMARY_DEMO_CTA_LABEL,
   PRIMARY_DEMO_HREF,
 } from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
@@ -33,17 +33,11 @@ export function FinalCtaV2() {
             id="final-cta-v2-heading"
             className="df-text-primary text-2xl font-bold tracking-tight sm:text-3xl"
           >
-            Menos mensagem perdida. Mais venda preservada.
+            Quer entender como isso funcionaria na sua operação?
           </h2>
           <p className="df-text-secondary mt-4 text-base leading-relaxed sm:text-lg">
-            Agende um diagnóstico para transformar atendimento e vendas no WhatsApp em rotina previsível.
-          </p>
-          <p className="df-text-secondary mt-3 text-sm leading-relaxed">
-            IA no repetitivo, humano no que importa — com WhatsApp Cloud API oficial, fila, handoff e dashboard.
-          </p>
-
-          <p className="mt-2 text-xs font-medium df-status-brand">
-            Operações reais em produção · implementação consultiva ponta a ponta
+            Em uma conversa rápida, analisamos como sua equipe usa o WhatsApp hoje e mostramos onde a DevFlow pode
+            organizar atendimento, distribuição e acompanhamento.
           </p>
 
           <div className="mt-6 flex flex-col items-stretch gap-3 sm:mt-8 sm:items-center sm:gap-4">
@@ -70,11 +64,11 @@ export function FinalCtaV2() {
               }
               className="df-btn-secondary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold transition-colors"
             >
-              {PRIMARY_DEMO_CTA_LABEL}
+              {HOME_DEMO_CTA_LABEL}
             </Link>
           </div>
           <p className="df-text-muted mt-6 text-xs leading-relaxed">
-            Oferta principal: implementação de operação de atendimento e vendas no WhatsApp
+            O próximo passo é o diagnóstico da operação no WhatsApp.
           </p>
         </div>
       </div>

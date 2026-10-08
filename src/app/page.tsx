@@ -5,22 +5,14 @@ import { ScrollTracker } from "@/components/shared/scroll-tracker";
 import { HeroV2 } from "@/components/sections/hero-v2";
 import { TechnicalTrustStrip } from "@/components/sections/technical-trust-strip";
 import { ProblemSolutionSection } from "@/components/sections/problem-solution-section";
-import { WhatsAppProductSection } from "@/components/sections/whatsapp-product-section";
-import { AuthorityRealOpsSection } from "@/components/sections/authority-real-ops-section";
 import { HowItWorksHub } from "@/components/sections/how-it-works-hub";
-import { ResultsSocialProofSection } from "@/components/sections/results-social-proof-section";
+import { WhatsAppProductSection } from "@/components/sections/whatsapp-product-section";
+import { Faq } from "@/components/sections/faq";
 import { FinalCtaV2 } from "@/components/sections/final-cta-v2";
 
-// Ecossistema secundário — abaixo da oferta principal
-import { HubPillarsSection } from "@/components/sections/hub-pillars-section";
-import { WhereToStartSection } from "@/components/sections/where-to-start-section";
+// Ecossistema secundário — só depois da decisão de conversão
 import { ToolsSection } from "@/components/sections/tools-section";
 import { ProductsSection } from "@/components/sections/products-section";
-
-// Seções existentes reaproveitadas
-import { Metrics } from "@/components/sections/metrics";
-import { ProofSocial } from "@/components/sections/proof-social";
-import { Faq } from "@/components/sections/faq";
 
 const baseUrl = "https://devflowlabs.com.br";
 const ogImage = `${baseUrl}/og-devflow.png`;
@@ -91,31 +83,19 @@ export default function Home() {
 
       <ProblemSolutionSection />
 
-      <WhatsAppProductSection />
-
-      <AuthorityRealOpsSection />
-
       <HowItWorksHub />
 
-      <ResultsSocialProofSection />
-
-      <Metrics />
-
-      <ProofSocial />
+      <WhatsAppProductSection />
 
       <Faq />
+
+      <FinalCtaV2 />
 
       <HomeEcosystemStack>
         <ToolsSection />
 
         <ProductsSection />
-
-        <HubPillarsSection />
-
-        <WhereToStartSection />
       </HomeEcosystemStack>
-
-      <FinalCtaV2 />
     </>
   );
 }
