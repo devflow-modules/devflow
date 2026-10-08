@@ -1,181 +1,66 @@
 "use client";
 
 import Link from "next/link";
-import {
-  ArrowRight,
-  MessageCircle,
-  Check,
-  AlertTriangle,
-  Bot,
-  UserRound,
-  Clock,
-  BarChart3,
-} from "lucide-react";
-import { trackFunnelCtaClick, trackHomeCta } from "@/lib/analytics";
+import { ArrowRight, MessageCircle, BarChart3, Bot, UserRound } from "lucide-react";
+import { trackCtaWhatsAppClick, trackFunnelCtaClick, trackHomeCta } from "@/lib/analytics";
 import {
   HERO_TRUST_SIGNALS,
+  HOME_DEMO_CTA_LABEL,
   PRIMARY_CONVERT_CTA_LABEL,
   PRIMARY_CONVERT_HREF,
-  PRIMARY_DEMO_CTA_LABEL,
   PRIMARY_DEMO_HREF,
   PRODUCT_LIVE_HINT,
   QUICK_WHATSAPP_CTA_LABEL,
 } from "@/lib/conversion-copy";
-import { WhatsAppCta } from "@/components/shared/whatsapp-cta";
+import { getWhatsAppOrMailtoUrl, isWhatsAppNumberConfigured } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 
-const bullets = [
-  "Menos mensagem perdida — fila priorizada e SLA visível no dashboard",
-  "IA no repetitivo, humano no que importa — handoff quando o cliente precisa",
-  "WhatsApp Cloud API oficial, sem número espelhado — diagnóstico e operação acompanhada",
+const HERO_WHATSAPP_TEXT =
+  "Olá, vim pelo site. Quero falar sobre atendimento e vendas no WhatsApp com a DevFlow.";
+
+const illustrativeQueue = [
+  { label: "Fila", status: "Aguardando responsável", icon: UserRound },
+  { label: "Automação", status: "Dúvida frequente", icon: Bot },
+  { label: "Handoff", status: "Com a equipe", icon: MessageCircle },
 ];
 
-function OperationalDashboardMock() {
-  const metrics = [
-    { label: "Msg 24h", value: "1.247", color: "df-status-brand" },
-    { label: "Bot resolve", value: "74%", color: "df-status-info" },
-    { label: "Com humano", value: "23", color: "df-status-warning" },
-    { label: "TMR médio", value: "2m12s", color: "df-status-success" },
-  ];
-
-  const queue = [
-    {
-      name: "Cliente B — Pedido #1042",
-      status: "SLA em risco",
-      time: "8 min",
-      dot: "df-dot-danger",
-      badge: "df-bg-danger-soft df-status-danger",
-      icon: AlertTriangle,
-    },
-    {
-      name: "Cliente A — Status entrega",
-      status: "Resolvido pelo bot",
-      time: "agora",
-      dot: "df-dot-brand",
-      badge: "df-bg-brand-soft df-status-brand",
-      icon: Bot,
-    },
-    {
-      name: "Cliente C — Reclamação",
-      status: "Handoff → Ana",
-      time: "2 min",
-      dot: "df-dot-warning",
-      badge: "df-bg-warning-soft df-status-warning",
-      icon: UserRound,
-    },
-  ];
-
+function IllustrativeQueue() {
   return (
-    <div className="df-surface-elevated rounded-xl p-4 shadow-[0_8px_30px_rgba(0,0,0,0.25)] transition-shadow hover:shadow-[0_12px_40px_rgba(0,0,0,0.32)]">
+    <div className="df-surface-elevated rounded-xl p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <BarChart3 className="size-4 shrink-0 df-status-brand" aria-hidden />
-          <span className="df-text-secondary truncate text-xs font-medium">Painel operacional</span>
+          <span className="df-text-secondary truncate text-xs font-medium">Demonstração da plataforma</span>
         </div>
-        <span className="shrink-0 rounded-full df-bg-brand-soft px-2 py-0.5 text-[10px] font-semibold df-status-brand">
-          LIVE
+        <span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold df-text-secondary">
+          Dados ilustrativos
         </span>
       </div>
-
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {metrics.map((m) => (
-          <div key={m.label} className="min-w-0 rounded-lg bg-muted/50 p-2.5 text-center">
-            <p className={cn("text-sm font-bold", m.color)}>{m.value}</p>
-            <p className="df-text-secondary mt-0.5 text-[10px]">{m.label}</p>
+      <p className="df-text-muted mb-3 text-[11px] leading-relaxed">
+        Estrutura da fila. Não representa uma operação de cliente.
+      </p>
+      <div className="space-y-1.5">
+        {illustrativeQueue.map((item) => (
+          <div
+            key={item.label}
+            className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/25 px-2.5 py-2"
+          >
+            <item.icon className="size-3.5 shrink-0 df-status-brand" aria-hidden />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[11px] font-semibold df-text-primary">{item.label}</p>
+              <p className="df-text-secondary truncate text-[10px]">{item.status}</p>
+            </div>
           </div>
         ))}
-      </div>
-
-      <div className="mt-4">
-        <p className="df-text-secondary mb-2 text-[10px] font-bold uppercase tracking-wide">
-          Fila priorizada
-        </p>
-        <div className="space-y-1.5">
-          {queue.map((item) => (
-            <div
-              key={item.name}
-              className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/25 px-2.5 py-2"
-            >
-              <span className={cn("size-2 shrink-0 rounded-full", item.dot)} aria-hidden />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[11px] font-semibold df-text-primary">{item.name}</p>
-                <span className={cn("inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[9px] font-semibold", item.badge)}>
-                  <item.icon className="size-2.5" aria-hidden />
-                  {item.status}
-                </span>
-              </div>
-              <span className="df-text-muted flex shrink-0 items-center gap-0.5 text-[10px] font-medium">
-                <Clock className="size-2.5" aria-hidden />
-                {item.time}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function HandoffChatMock() {
-  return (
-    <div className="df-surface-elevated rounded-xl p-4 shadow-[0_8px_30px_rgba(0,0,0,0.25)] transition-shadow hover:shadow-[0_12px_40px_rgba(0,0,0,0.32)]">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-full df-bg-brand-soft">
-            <MessageCircle className="size-4 df-status-brand" aria-hidden />
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-semibold df-text-primary">Cliente C — Handoff</p>
-            <p className="flex items-center gap-1 text-[10px] df-status-warning">
-              <UserRound className="size-2.5" aria-hidden />
-              Ana · atendente humano
-            </p>
-          </div>
-        </div>
-        <span className="shrink-0 rounded-full df-bg-warning-soft px-2 py-0.5 text-[9px] font-semibold df-status-warning">
-          Handoff
-        </span>
-      </div>
-      <div className="space-y-2">
-        <div className="max-w-[85%] rounded-2xl rounded-tl-md border df-border-brand bg-muted/30 px-3 py-2 text-xs df-text-primary">
-          <span className="mb-0.5 block text-[9px] font-semibold df-status-brand">Bot</span>
-          Entendi. Vou transferir para nossa equipe agora.
-        </div>
-        <div className="mx-auto w-fit rounded-full bg-muted px-2 py-0.5 text-[9px] font-medium df-text-muted">
-          ↓ Handoff para atendente
-        </div>
-        <div className="max-w-[85%] rounded-2xl rounded-tl-md border df-bg-warning-soft px-3 py-2 text-xs df-text-primary">
-          <span className="mb-0.5 block text-[9px] font-semibold df-status-warning">Ana</span>
-          Olá! Vi sua reclamação sobre o pedido #1042. Já estou verificando.
-        </div>
-        <div className="ml-auto max-w-[85%] rounded-2xl rounded-tr-md bg-muted px-3 py-2 text-xs df-text-primary">
-          Obrigado, preciso de uma solução rápida
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function BotResolvedMock() {
-  return (
-    <div className="rounded-xl border df-bg-success-soft p-4 shadow-sm">
-      <div className="flex items-center gap-2">
-        <Bot className="size-4 df-status-success" aria-hidden />
-        <p className="text-xs font-semibold df-status-success">Conversa resolvida pelo bot</p>
-      </div>
-      <p className="df-text-secondary mt-2 text-[11px] leading-relaxed">
-        Cliente A consultou status do pedido #1042 — resposta automática em 12s, sem escalar para humano.
-      </p>
-      <div className="mt-2 flex items-center gap-3 text-[10px] font-medium">
-        <span className="df-status-success">✓ Resolvido</span>
-        <span className="df-text-muted">·</span>
-        <span className="df-text-secondary">12s de resposta</span>
       </div>
     </div>
   );
 }
 
 export function HeroV2() {
+  const whatsAppHref = getWhatsAppOrMailtoUrl(HERO_WHATSAPP_TEXT);
+  const whatsAppOpensChat = isWhatsAppNumberConfigured();
+
   return (
     <section
       id="hero"
@@ -198,8 +83,7 @@ export function HeroV2() {
               <span className="text-primary">WhatsApp Platform</span>
               <span className="df-text-secondary hidden sm:inline">·</span>
               <span className="df-text-secondary w-full sm:w-auto sm:truncate">
-                <span className="sm:hidden">API oficial Meta · inbox · IA</span>
-                <span className="hidden sm:inline">Cloud API oficial · inbox multiatendente · IA no repetitivo</span>
+                Cloud API oficial · inbox da equipe
               </span>
             </div>
 
@@ -211,28 +95,10 @@ export function HeroV2() {
                 Menos mensagem perdida. Mais resposta no tempo certo. Mais venda preservada.
               </h1>
               <p className="df-text-secondary text-base leading-relaxed sm:text-lg lg:text-xl">
-                Transformamos seu WhatsApp em operação previsível com{" "}
-                <strong className="font-semibold text-foreground">inbox multiatendente, IA no repetitivo</strong>{" "}
-                e handoff humano quando importa.{" "}
-                <span className="df-text-primary">
-                  Diagnóstico, implementação guiada e operação acompanhada — ponta a ponta.
-                </span>
+                O WhatsApp da equipe deixa de ficar espalhado no celular. A DevFlow organiza o fluxo e passa a
+                conversa para uma pessoa quando ela precisa de contexto.
               </p>
             </div>
-
-            <ul className="grid grid-cols-1 gap-2.5 sm:gap-2.5" role="list">
-              {bullets.map((bullet, i) => (
-                <li
-                  key={i}
-                  className="df-text-primary flex items-start gap-2.5 text-sm font-medium sm:gap-3 sm:text-base sm:leading-snug"
-                >
-                  <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-lg bg-primary/12">
-                    <Check className="size-3.5 text-primary" aria-hidden />
-                  </span>
-                  <span className="min-w-0 leading-snug">{bullet}</span>
-                </li>
-              ))}
-            </ul>
 
             <div className="space-y-3 pt-0.5 sm:pt-1">
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-stretch sm:gap-4">
@@ -264,22 +130,29 @@ export function HeroV2() {
                     "shadow-sm transition-transform duration-200 ease-out hover:border-primary/35 hover:bg-muted/30"
                   )}
                 >
-                  <span className="text-balance">{PRIMARY_DEMO_CTA_LABEL}</span>
+                  <span className="text-balance">{HOME_DEMO_CTA_LABEL}</span>
                 </Link>
-                <WhatsAppCta
-                  label={QUICK_WHATSAPP_CTA_LABEL}
-                  ariaLabel="Falar no WhatsApp com a DevFlow Labs"
-                  text="Olá, vim pelo site. Quero falar sobre atendimento e vendas no WhatsApp com a DevFlow."
-                  variant="secondary"
-                  size="lg"
-                  trackingSource="hero_whatsapp"
-                  trackFunnel
-                  className={cn(
-                    "w-full min-h-[3rem] justify-center shadow-sm sm:w-auto sm:min-w-[min(100%,17rem)]",
-                    "border-2"
-                  )}
-                />
               </div>
+              <p className="text-center sm:text-left">
+                <a
+                  href={whatsAppHref}
+                  target={whatsAppOpensChat ? "_blank" : undefined}
+                  rel={whatsAppOpensChat ? "noopener noreferrer" : undefined}
+                  aria-label={
+                    whatsAppOpensChat
+                      ? "Falar no WhatsApp com a DevFlow Labs"
+                      : "Falar no WhatsApp: abrir cliente de e-mail"
+                  }
+                  onClick={() => {
+                    trackCtaWhatsAppClick("hero_whatsapp");
+                    trackHomeCta("hero_whatsapp");
+                    trackFunnelCtaClick({ cta: "falar_whatsapp", surface: "hero_whatsapp" });
+                  }}
+                  className="text-sm font-medium text-primary underline-offset-2 hover:underline"
+                >
+                  {QUICK_WHATSAPP_CTA_LABEL}
+                </a>
+              </p>
               <p className="df-text-secondary text-center text-[11px] font-medium leading-snug sm:text-left sm:text-xs">
                 {PRODUCT_LIVE_HINT}
               </p>
@@ -290,14 +163,6 @@ export function HeroV2() {
                   className="font-semibold text-primary underline-offset-2 hover:underline"
                 >
                   Como funciona
-                </Link>
-                <span className="text-muted-foreground"> · </span>
-                <Link
-                  href="/produtos/whatsapp-platform"
-                  onClick={() => trackHomeCta("hero_whatsapp_platform")}
-                  className="font-semibold text-primary underline-offset-2 hover:underline"
-                >
-                  WhatsApp Platform
                 </Link>
               </p>
             </div>
@@ -317,22 +182,8 @@ export function HeroV2() {
             </ul>
           </div>
 
-          {/* Mobile / tablet: composição operacional WhatsApp */}
-          <div className="mx-auto w-full max-w-md space-y-3 lg:hidden">
-            <OperationalDashboardMock />
-            <HandoffChatMock />
-            <BotResolvedMock />
-          </div>
-
-          {/* Desktop: grid operacional WhatsApp */}
-          <div className="relative hidden lg:block">
-            <div className="space-y-4">
-              <OperationalDashboardMock />
-              <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-                <HandoffChatMock />
-                <BotResolvedMock />
-              </div>
-            </div>
+          <div className="mx-auto w-full max-w-md lg:max-w-none">
+            <IllustrativeQueue />
           </div>
         </div>
       </div>

@@ -3,6 +3,8 @@
 /** Demo guiada no portal (`/demo`). */
 export const PRIMARY_DEMO_HREF = "/demo";
 export const PRIMARY_DEMO_CTA_LABEL = "Ver demo guiada";
+/** Home: secundário mais curto. As outras páginas mantêm `PRIMARY_DEMO_CTA_LABEL`. */
+export const HOME_DEMO_CTA_LABEL = "Ver demo";
 
 /** WhatsApp — baixa fricção quando o bloco já tem demo como primário. */
 export const QUICK_WHATSAPP_CTA_LABEL = "Falar no WhatsApp";
@@ -14,8 +16,6 @@ export const SPECIALIST_WHATSAPP_CTA_LABEL = "Falar com especialista";
 export const VER_COMO_FUNCIONA_CTA_LABEL = "Ver como funciona";
 export const PLATFORM_IN_ACTION_CTA_LABEL = "Ver a plataforma em ação";
 export const ENTENDER_APLICAR_NEGOCIO_CTA_LABEL = "Entender como aplicar no meu negócio";
-export const VER_EXEMPLO_REAL_CTA_LABEL = "Ver exemplo real";
-
 /** Landings de nicho — copy fixa do funil. */
 export const NICHE_VER_NA_PRATICA_CTA_LABEL = "Ver como funciona na prática";
 export const NICHE_RESOLVER_NEGOCIO_CTA_LABEL = "Resolver isso no meu negócio";
@@ -30,7 +30,7 @@ export const PRIMARY_CONVERT_HREF = "/contato";
 export const HEADER_CTA_LABEL = PRIMARY_CONVERT_CTA_LABEL;
 
 export const TECH_TRUST_STRIP =
-  "Integrações reais · APIs oficiais · Automações em produção";
+  "WhatsApp Cloud API oficial · Webhooks · Fila e handoff humano";
 
 export const PRODUCT_LIVE_HINT =
   "Diagnóstico, implementação guiada e operação acompanhada";
@@ -44,12 +44,12 @@ export const ECOSYSTEM_PRODUCTS_HEADING = "Outros produtos do ecossistema";
 export const ECOSYSTEM_PRODUCTS_DESCRIPTION =
   "Quando precisar ir além do atendimento no WhatsApp, conheça as soluções complementares.";
 
-/** Prova social segura no hero — sem números mock. */
+/** Sinais técnicos do hero — capacidades da oferta, sem resultado de cliente. */
 export const HERO_TRUST_SIGNALS = [
-  "Operações reais em produção",
-  "API oficial Meta",
-  "Fluxos com fila, handoff e dashboard",
-  "Implementação consultiva ponta a ponta",
+  "WhatsApp Cloud API oficial",
+  "Inbox para a equipe",
+  "Handoff para uma pessoa",
+  "Implementação acompanhada",
 ] as const;
 
 /** Página `/contato` — diagnóstico da operação WhatsApp. */

@@ -28,7 +28,7 @@ const faqItems = [
   {
     question: "Vocês só entregam o sistema ou ajudam a implementar?",
     answer:
-      "A entrega é consultiva: diagnóstico da operação, desenho dos fluxos, implementação guiada, treinamento e acompanhamento inicial com base nas métricas reais.",
+      "A entrega é consultiva: diagnóstico da operação, desenho dos fluxos, implementação guiada, treinamento e acompanhamento inicial com base no que a operação mostrar.",
   },
   {
     question: "Para quais negócios isso faz sentido?",
@@ -104,7 +104,10 @@ export function Faq() {
             <WhatsAppCta
               label={QUICK_WHATSAPP_CTA_LABEL}
               ariaLabel="Falar no WhatsApp com a DevFlow Labs"
+              variant="secondary"
               size="default"
+              trackingSource="faq_whatsapp"
+              trackFunnel
               text="Olá, tenho dúvidas sobre implementar atendimento e vendas no WhatsApp com a DevFlow."
             />
           </div>

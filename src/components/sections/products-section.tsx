@@ -144,9 +144,7 @@ export function ProductsSection() {
                   "transition-all duration-200",
                   product.disabled
                     ? "df-text-secondary cursor-default border border-dashed border-border bg-muted/20 pointer-events-none"
-                    : product.featured
-                      ? "df-btn-primary df-shadow-cta-soft"
-                      : "df-surface-elevated border border-border text-foreground hover:bg-muted/20"
+                    : "df-btn-secondary"
                 )}
                 tabIndex={product.disabled ? -1 : undefined}
                 aria-disabled={product.disabled}

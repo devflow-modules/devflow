@@ -1,9 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, ClipboardList, GitBranch, Settings2, LineChart } from "lucide-react";
+import { trackFunnelCtaClick } from "@/lib/analytics";
 import {
+  HOME_DEMO_CTA_LABEL,
   PRIMARY_CONVERT_CTA_LABEL,
   PRIMARY_CONVERT_HREF,
-  PRIMARY_DEMO_CTA_LABEL,
   PRIMARY_DEMO_HREF,
 } from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
@@ -35,7 +38,7 @@ const steps = [
     number: "04",
     title: "Operação acompanhada",
     description:
-      "Com a operação rodando, acompanhamos métricas reais, ajustamos fluxos, treinamos a equipe e melhoramos o atendimento com base nos dados.",
+      "Com a operação rodando, acompanhamos o que ela mostra, ajustamos fluxos, treinamos a equipe e melhoramos o atendimento com base nesses dados.",
   },
 ];
 
@@ -100,6 +103,9 @@ export function HowItWorksHub() {
           <Link
             href={PRIMARY_CONVERT_HREF}
             aria-label="Agendar diagnóstico da operação no WhatsApp"
+            onClick={() =>
+              trackFunnelCtaClick({ cta: "agendar_diagnostico", surface: "how_it_works_primary" })
+            }
             className={cn(
               "df-btn-primary inline-flex max-w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-center text-sm font-bold leading-snug",
               "df-shadow-cta-soft transition-all hover:scale-[1.02] sm:px-7 sm:text-base"
@@ -111,9 +117,12 @@ export function HowItWorksHub() {
           <Link
             href={PRIMARY_DEMO_HREF}
             aria-label="Ver demonstração guiada de atendimento no WhatsApp"
+            onClick={() =>
+              trackFunnelCtaClick({ cta: "ver_demo_guiada", surface: "how_it_works_demo" })
+            }
             className="df-btn-secondary inline-flex max-w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-center text-sm font-semibold leading-snug transition-colors sm:px-7 sm:text-base"
           >
-            {PRIMARY_DEMO_CTA_LABEL}
+            {HOME_DEMO_CTA_LABEL}
           </Link>
         </div>
       </div>
