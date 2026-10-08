@@ -143,13 +143,12 @@ export function Header() {
     };
   }, [ecosystemOpen]);
 
+  const lightChrome =
+    pathname === "/" || pathname === "/contato" || pathname.startsWith("/demo");
+
   const headerCtaClass = cn(
-    "df-btn-primary min-h-11 shrink-0 rounded-xl font-bold",
-    "df-shadow-cta-soft",
-    "px-3 text-xs min-[380px]:px-4 min-[380px]:text-sm",
-    "transition-all duration-200 ease-out",
-    "hover:scale-[1.04]",
-    "active:scale-[0.98]"
+    "df-btn-primary min-h-11 shrink-0 rounded-xl font-semibold",
+    "px-3 text-xs min-[380px]:px-4 min-[380px]:text-sm"
   );
 
   const secondaryBtnClass =
@@ -190,9 +189,10 @@ export function Header() {
     <header
       className={cn(
         "sticky top-0 z-50 w-full max-w-[100vw] border-b transition-[box-shadow,background-color] duration-200",
+        lightChrome && "df-header-v2",
         scrolled
-          ? "border df-border-brand bg-background/95 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-md supports-[backdrop-filter]:bg-background/90"
-          : "border df-border-brand bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/80"
+          ? "border bg-background/95 shadow-[0_8px_24px_rgba(15,23,42,0.06)] backdrop-blur-md supports-[backdrop-filter]:bg-background/90"
+          : "border bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/80"
       )}
     >
       <div className="mx-auto flex min-h-[3.25rem] max-w-[1200px] items-center justify-between gap-2 px-3 min-[400px]:gap-3 min-[400px]:px-4 sm:min-h-[4rem] sm:px-6 lg:px-8">
@@ -206,7 +206,7 @@ export function Header() {
             DevFlow Labs
           </Link>
           <p className="df-text-secondary mt-0.5 hidden max-w-[22rem] truncate text-xs leading-snug xl:block">
-            WhatsApp Platform · IA no repetitivo · Handoff humano
+            Operação de conversas no WhatsApp
           </p>
         </div>
 

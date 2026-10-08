@@ -1,93 +1,52 @@
-import { X, Check, AlertTriangle } from "lucide-react";
-
-const problems = [
-  "Mensagens importantes se perdem no volume",
-  "Cliente espera resposta e procura outro fornecedor",
-  "Equipe responde manualmente as mesmas dúvidas todos os dias",
-  "Ninguém sabe exatamente o que está parado, atrasado ou em risco",
-  "Falta histórico, fila e responsável",
+const before = [
+  "Conversas sem dono claro",
+  "Contexto espalhado no celular",
+  "Retorno dependente da memória de quem atendeu",
 ];
 
-const changes = [
-  "O repetitivo deixa de depender de alguém no celular",
-  "A conversa que pede uma pessoa segue para a equipe com contexto",
-  "Dá para ver o que está parado e quem responde",
-  "O histórico não fica só na memória de quem atendeu",
-  "A implantação começa pelo diagnóstico da operação atual",
+const after = [
+  "Responsável visível",
+  "Fila e contexto compartilhados",
+  "Handoff com histórico da conversa",
 ];
 
 export function ProblemSolutionSection() {
   return (
-    <section
-      id="problema-solucao"
-      className="border-y df-border-brand bg-[var(--devflow-surface)] py-24 sm:py-28"
-      aria-labelledby="problem-solution-heading"
-    >
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
-          <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
-          <h2
-            id="problem-solution-heading"
-            className="df-text-primary text-2xl font-semibold tracking-tight sm:text-3xl"
-          >
-            Seu WhatsApp não precisa depender do improviso
+    <section id="problema-solucao" className="df-v2-section" aria-labelledby="problem-solution-heading">
+      <div className="df-v2-container grid gap-10 lg:grid-cols-12 lg:gap-16">
+        <div className="lg:col-span-5">
+          <h2 id="problem-solution-heading" className="df-v2-h2 text-balance">
+            Quando todo mundo atende, quem é responsável pela conversa?
           </h2>
-          <p className="df-text-secondary mt-3 text-base leading-relaxed sm:text-lg">
-            Quando tudo fica no celular, na memória da equipe ou em conversas soltas, o atendimento atrasa e a
-            venda esfria.
-          </p>
         </div>
-
-        <div className="mt-14 grid gap-8 lg:grid-cols-2 lg:gap-10">
-          <article
-            className="rounded-2xl border df-bg-danger-soft p-6 sm:p-8"
-            aria-labelledby="problem-block-heading"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl df-bg-danger-soft">
-                <AlertTriangle className="size-5 df-status-danger" aria-hidden />
-              </div>
-              <h3 id="problem-block-heading" className="df-text-primary text-lg font-bold">
-                O problema
+        <div className="lg:col-span-7">
+          <p className="df-v2-lead">
+            Sem um dono, a mensagem fica no volume. A DevFlow trata isso como operação: alguém assume, a fila mostra
+            o que está parado e o histórico não fica só com uma pessoa.
+          </p>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2">
+            <div>
+              <h3 id="problem-block-heading" className="text-sm font-semibold uppercase tracking-[0.08em] text-[var(--df-v2-muted)]">
+                Antes
               </h3>
+              <ul className="mt-3 space-y-2 text-sm leading-relaxed text-[var(--df-v2-ink-soft)]" role="list">
+                {before.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
             </div>
-            <p className="df-text-secondary mt-3 text-sm leading-relaxed">
-              WhatsApp desorganizado gera demora, mensagem perdida e equipe sobrecarregada.
-            </p>
-            <ul className="mt-5 space-y-3" role="list">
-              {problems.map((item) => (
-                <li key={item} className="flex items-start gap-2.5">
-                  <X className="mt-0.5 size-4 shrink-0 df-status-danger" aria-hidden />
-                  <span className="df-text-primary text-sm leading-relaxed">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </article>
-
-          <article
-            className="rounded-2xl border df-bg-brand-soft p-6 sm:p-8"
-            aria-labelledby="solution-block-heading"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl df-bg-brand-soft">
-                <Check className="size-5 df-status-brand" aria-hidden />
-              </div>
-              <h3 id="solution-block-heading" className="df-text-primary text-lg font-bold">
-                O que muda
+            <div>
+              <h3 id="solution-block-heading" className="text-sm font-semibold uppercase tracking-[0.08em] text-[var(--df-v2-brand)]">
+                Com a DevFlow
               </h3>
+              <ul className="mt-3 space-y-2 text-sm leading-relaxed text-[var(--df-v2-ink)]" role="list">
+                {after.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
             </div>
-            <p className="df-text-secondary mt-3 text-sm leading-relaxed">
-              A operação passa a ter dono, contexto e um caminho claro até uma pessoa.
-            </p>
-            <ul className="mt-5 space-y-3" role="list">
-              {changes.map((item) => (
-                <li key={item} className="flex items-start gap-2.5">
-                  <Check className="mt-0.5 size-4 shrink-0 df-status-success" aria-hidden />
-                  <span className="df-text-primary text-sm leading-relaxed">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </article>
+          </div>
+          <p className="mt-6 text-xs text-[var(--df-v2-muted)]">Modelo de operação. Não é um caso de cliente.</p>
         </div>
       </div>
     </section>

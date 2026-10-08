@@ -62,38 +62,27 @@ const faqSchema = {
 
 export function Faq() {
   return (
-    <section id="faq" className="py-24" aria-labelledby="faq-heading">
+    <section id="faq" className="df-v2-section bg-[var(--df-v2-surface)]" aria-labelledby="faq-heading">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
-          <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-primary" aria-hidden />
-          <h2
-            id="faq-heading"
-            className="df-text-primary text-2xl font-semibold tracking-tight sm:text-3xl"
-          >
-            Perguntas frequentes
-          </h2>
-          <p className="df-text-secondary mt-3 leading-relaxed">
-            Objeções comuns sobre operação de atendimento e vendas no WhatsApp com a DevFlow Labs.
-          </p>
-        </div>
+      <div className="df-v2-container">
+        <h2 id="faq-heading" className="df-v2-h2">
+          Perguntas frequentes
+        </h2>
+        <p className="df-v2-lead mt-4 max-w-2xl">
+          Objeções comuns sobre operação de atendimento e vendas no WhatsApp com a DevFlow Labs.
+        </p>
 
-        <div className="mx-auto mt-12 max-w-2xl space-y-2">
+        <div className="mt-10 max-w-3xl border-t border-[var(--df-v2-border)]">
           {faqItems.map((item) => (
-            <details
-              key={item.question}
-              className="group rounded-xl border border-border bg-card [&[open]]:border-primary/30"
-            >
-              <summary className="df-text-primary flex cursor-pointer list-none items-center justify-between rounded-xl px-4 py-4 font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background [&::-webkit-details-marker]:hidden">
+            <details key={item.question} className="group border-b border-[var(--df-v2-border)]">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 text-base font-semibold text-[var(--df-v2-ink)] [&::-webkit-details-marker]:hidden">
                 {item.question}
-                <ChevronDown className="df-text-secondary size-5 shrink-0 transition-transform group-open:rotate-180" />
+                <ChevronDown className="size-4 shrink-0 text-[var(--df-v2-muted)] group-open:rotate-180" />
               </summary>
-              <p className="df-text-secondary border-t border-border px-4 py-3 leading-relaxed">
-                {item.answer}
-              </p>
+              <p className="pb-5 text-sm leading-relaxed text-[var(--df-v2-ink-soft)]">{item.answer}</p>
             </details>
           ))}
         </div>

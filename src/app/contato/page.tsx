@@ -52,11 +52,7 @@ const sidebarCard =
 
 export default function ContatoPage() {
   return (
-    <main className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 -z-10 opacity-40" aria-hidden>
-        <div className="df-decor-radial-brand-soft absolute -top-40 right-0 h-96 w-96 rounded-full blur-3xl" />
-        <div className="df-decor-radial-ink-soft absolute -bottom-32 left-0 h-80 w-80 rounded-full blur-3xl" />
-      </div>
+    <main className="df-brand-v2 relative">
 
       <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
         <header className="mx-auto max-w-3xl text-center">

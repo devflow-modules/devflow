@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Manrope } from "next/font/google";
 import { BodyChrome } from "@/components/layout/body-chrome";
 import { Analytics } from "@vercel/analytics/next";
 import { MetaPixel } from "@/components/analytics/meta-pixel";
@@ -9,6 +9,13 @@ const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
+});
+
+const manrope = Manrope({
+  variable: "--font-manrope",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["600", "700", "800"],
 });
 
 const baseUrl = "https://devflowlabs.com.br";
@@ -89,7 +96,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" data-theme={themeMode}>
       <body
-        className={`${inter.variable} df-page font-sans flex min-h-screen flex-col antialiased`}
+        className={`${inter.variable} ${manrope.variable} df-page font-sans flex min-h-screen flex-col antialiased`}
       >
         <script
           type="application/ld+json"

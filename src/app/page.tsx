@@ -5,6 +5,7 @@ import { ScrollTracker } from "@/components/shared/scroll-tracker";
 import { HeroV2 } from "@/components/sections/hero-v2";
 import { TechnicalTrustStrip } from "@/components/sections/technical-trust-strip";
 import { ProblemSolutionSection } from "@/components/sections/problem-solution-section";
+import { ProductStories } from "@/components/sections/product-stories";
 import { HowItWorksHub } from "@/components/sections/how-it-works-hub";
 import { WhatsAppProductSection } from "@/components/sections/whatsapp-product-section";
 import { Faq } from "@/components/sections/faq";
@@ -77,11 +78,14 @@ export default function Home() {
     <>
       <ScrollTracker />
 
+      <main className="df-brand-v2">
       <HeroV2 />
 
       <TechnicalTrustStrip />
 
       <ProblemSolutionSection />
+
+      <ProductStories />
 
       <HowItWorksHub />
 
@@ -96,6 +100,7 @@ export default function Home() {
 
         <ProductsSection />
       </HomeEcosystemStack>
+      </main>
     </>
   );
 }

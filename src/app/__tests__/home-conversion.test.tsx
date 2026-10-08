@@ -18,6 +18,9 @@ vi.mock("@/lib/analytics", () => ({
 const SECTION_ORDER = [
   "hero-heading",
   "problem-solution-heading",
+  "ownership-heading",
+  "routing-heading",
+  "handoff-heading",
   "how-it-works-hub-heading",
   "whatsapp-product-heading",
   "faq-heading",
@@ -69,7 +72,7 @@ describe("home conversion cleanup", () => {
 
     expect(text).toContain("Dados ilustrativos");
     expect(text).toContain("Demonstração da plataforma");
-    expect(text).toContain("Quer entender como isso funcionaria na sua operação?");
+    expect(text).toContain("Quer entender como essa operação funcionaria na sua empresa?");
     expect(screen.getByRole("heading", { name: "O que entra na operação" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Como sua operação de WhatsApp sai do improviso" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Perguntas frequentes" })).toBeTruthy();
@@ -77,7 +80,7 @@ describe("home conversion cleanup", () => {
 
   it("separa CTA primário, demo e WhatsApp no hero", () => {
     render(<Home />);
-    const hero = screen.getByRole("region", { name: /Menos mensagem perdida/i });
+    const hero = screen.getByRole("region", { name: /Organize cada conversa/i });
 
     const primary = within(hero).getByRole("link", {
       name: "Agendar diagnóstico da operação no WhatsApp",
@@ -115,7 +118,7 @@ describe("home conversion cleanup", () => {
   it("mantém o CTA final imediatamente relevante e rastreado", () => {
     render(<Home />);
     const finalCta = screen.getByRole("region", {
-      name: "Quer entender como isso funcionaria na sua operação?",
+      name: "Quer entender como essa operação funcionaria na sua empresa?",
     });
 
     const primary = within(finalCta).getByRole("link", {

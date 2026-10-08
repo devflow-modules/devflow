@@ -35,4 +35,32 @@
   --devflow-card-gap: 1.5rem;
   --devflow-shadow-card: 0 16px 40px rgba(0, 0, 0, 0.35);
   --devflow-shadow-hero: 0 24px 72px rgba(0, 0, 0, 0.45);
+
+  /*
+   * Brand V2 — portal home and light chrome only (.df-brand-v2 / .df-header-v2).
+   * Button green #087A59 on white = 5.33:1 (WCAG AA).
+   * Accent #13A66A on white = 3.14:1 — accent marks only, not body text or buttons.
+   * Muted #667085 on white = 4.97:1.
+   */
+  --df-v2-ink: #0b1220;
+  --df-v2-ink-soft: #344054;
+  --df-v2-muted: #667085;
+  --df-v2-canvas: #f7faf9;
+  --df-v2-surface: #ffffff;
+  --df-v2-surface-muted: #f1f5f3;
+  --df-v2-border: #e2e8e5;
+  --df-v2-border-strong: #cad5d0;
+  --df-v2-accent: #13a66a;
+  --df-v2-brand: #087a59;
+  --df-v2-brand-hover: #065e45;
+  --df-v2-dark: #071a14;
+  --df-v2-on-dark: #f4f7f6;
+  --df-v2-on-dark-muted: #c5d1cb;
+  --df-v2-info: #2563eb;
+  --df-v2-whatsapp: #25d366;
+  --df-v2-radius-btn: 12px;
+  --df-v2-radius-card: 16px;
+  --df-v2-radius-panel: 20px;
+  --df-v2-shadow-panel: 0 24px 80px rgba(15, 23, 42, 0.1);
+  --df-v2-container: 1240px;
 }

@@ -649,3 +649,186 @@ html[data-theme="client_branded"] {
     box-shadow: 0 6px 22px rgba(0, 208, 132, 0.42);
   }
 }
+
+/* Brand V2 — scoped. Does not restyle ApplyFlow, Financeiro or WhatsApp apps. */
+.df-brand-v2 {
+  background: var(--df-v2-canvas);
+  color: var(--df-v2-ink);
+  --df-text-primary-current: var(--df-v2-ink);
+  --df-text-secondary-current: var(--df-v2-ink-soft);
+  --df-text-muted-current: var(--df-v2-muted);
+  --df-link-current: var(--df-v2-brand);
+  --df-link-hover-current: var(--df-v2-brand-hover);
+  --background: var(--df-v2-canvas);
+  --foreground: var(--df-v2-ink);
+  --card: var(--df-v2-surface);
+  --card-foreground: var(--df-v2-ink);
+  --primary: var(--df-v2-brand);
+  --primary-foreground: #ffffff;
+  --muted: var(--df-v2-surface-muted);
+  --muted-foreground: var(--df-v2-muted);
+  --border: var(--df-v2-border);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+.df-brand-v2 h1,
+.df-brand-v2 h2,
+.df-brand-v2 h3,
+.df-header-v2 {
+  font-family: var(--font-manrope), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+.df-v2-container {
+  width: min(100% - 2rem, var(--df-v2-container));
+  margin-inline: auto;
+}
+
+.df-v2-section {
+  padding-block: 4rem;
+}
+
+@media (min-width: 1024px) {
+  .df-v2-section {
+    padding-block: 6.5rem;
+  }
+}
+
+.df-brand-v2 .df-v2-h1 {
+  font-size: clamp(2.5rem, 4.6vw, 4.25rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  color: var(--df-v2-ink);
+}
+
+.df-brand-v2 .df-v2-h2 {
+  font-size: clamp(1.875rem, 3vw, 3rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--df-v2-ink);
+}
+
+.df-brand-v2 .df-v2-h3 {
+  font-size: clamp(1.3125rem, 1.6vw, 1.625rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--df-v2-ink);
+}
+
+.df-brand-v2 .df-v2-lead {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--df-v2-ink-soft);
+}
+
+@media (min-width: 1024px) {
+  .df-brand-v2 .df-v2-lead {
+    font-size: 1.25rem;
+  }
+}
+
+.df-brand-v2 .df-btn-primary,
+.df-header-v2 .df-btn-primary {
+  border-radius: var(--df-v2-radius-btn);
+  background: var(--df-v2-brand);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.df-brand-v2 .df-btn-primary:hover,
+.df-header-v2 .df-btn-primary:hover {
+  background: var(--df-v2-brand-hover);
+  transform: none;
+}
+
+.df-brand-v2 .df-btn-secondary,
+.df-header-v2 .df-btn-secondary {
+  border-radius: var(--df-v2-radius-btn);
+  border-color: var(--df-v2-border-strong);
+  background: var(--df-v2-surface);
+  color: var(--df-v2-ink);
+}
+
+.df-brand-v2 .df-btn-secondary:hover,
+.df-header-v2 .df-btn-secondary:hover {
+  background: var(--df-v2-surface-muted);
+}
+
+.df-brand-v2 .df-btn-primary:focus-visible,
+.df-brand-v2 .df-btn-secondary:focus-visible,
+.df-header-v2 .df-btn-primary:focus-visible,
+.df-header-v2 .df-btn-secondary:focus-visible,
+.df-brand-v2 a:focus-visible,
+.df-header-v2 a:focus-visible,
+.df-brand-v2 summary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--df-v2-canvas), 0 0 0 4px var(--df-v2-brand);
+}
+
+.df-v2-fill {
+  background: var(--df-v2-surface);
+}
+
+.df-v2-panel {
+  border-radius: var(--df-v2-radius-panel);
+  border: 1px solid var(--df-v2-border);
+  background: var(--df-v2-surface);
+  box-shadow: var(--df-v2-shadow-panel);
+}
+
+.df-v2-dark {
+  background: var(--df-v2-dark);
+  color: var(--df-v2-on-dark);
+  --df-text-primary-current: var(--df-v2-on-dark);
+  --df-text-secondary-current: var(--df-v2-on-dark-muted);
+  --df-text-muted-current: var(--df-v2-on-dark-muted);
+}
+
+.df-v2-dark .df-v2-h2 {
+  color: var(--df-v2-on-dark);
+}
+
+.df-v2-dark .df-btn-secondary {
+  border-color: rgba(244, 247, 246, 0.28);
+  background: transparent;
+  color: var(--df-v2-on-dark);
+}
+
+.df-v2-dark .df-btn-secondary:hover {
+  background: rgba(244, 247, 246, 0.08);
+}
+
+.df-header-v2 {
+  background: rgba(247, 250, 249, 0.94);
+  border-color: var(--df-v2-border);
+  color: var(--df-v2-ink);
+  box-shadow: none;
+  --df-text-primary-current: var(--df-v2-ink);
+  --df-text-secondary-current: var(--df-v2-ink-soft);
+  --foreground: var(--df-v2-ink);
+  --background: var(--df-v2-canvas);
+  --border: var(--df-v2-border);
+  --primary: var(--df-v2-brand);
+}
+
+.df-v2-timeline {
+  display: grid;
+  gap: 0;
+}
+
+@media (min-width: 1024px) {
+  .df-v2-timeline {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .df-brand-v2 *,
+  .df-header-v2 * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
