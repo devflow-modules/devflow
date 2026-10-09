@@ -9,6 +9,7 @@ import { createHash } from "node:crypto";
 import type { ApplyFlowCanonicalPersistence } from "@prisma/client";
 
 import { isApplyFlowPersistenceV2Enabled, type ApplyFlowPersistenceEnv } from "../feature-flag";
+import { classifyApplyFlowAccountRollout } from "../rollout-selection";
 import {
   resolveApplyFlowPersistenceMode,
   type ApplyFlowPersistenceAccess,
@@ -196,6 +197,19 @@ function utcNow(): string {
   return new Date().toISOString();
 }
 
+function modeForAccount(
+  account: { id: string; pilotEligible: boolean; canonicalPersistence: ApplyFlowCanonicalPersistence },
+  globalEnabled: boolean,
+  env: ApplyFlowPersistenceEnv,
+) {
+  return resolveApplyFlowPersistenceMode({
+    globalEnabled,
+    pilotEligible: account.pilotEligible,
+    canonicalPersistence: account.canonicalPersistence,
+    rollout: globalEnabled ? classifyApplyFlowAccountRollout(account.id, env) : undefined,
+  });
+}
+
 function summarizeSessions(
   rows: Array<{ id: string; status: string }>,
 ): PilotMigrationSessionSummary {
@@ -251,6 +265,7 @@ export async function getPilotOperatorStatus(
     globalEnabled,
     pilotEligible: account.pilotEligible,
     canonicalPersistence: account.canonicalPersistence,
+    rollout: globalEnabled ? classifyApplyFlowAccountRollout(account.id, env) : undefined,
   });
 
   return {
@@ -282,7 +297,8 @@ async function mutatePilotEligible(input: {
   operation: "grant" | "revoke";
   env?: ApplyFlowPersistenceEnv;
 }): Promise<PilotOperatorMutationResult> {
-  const globalEnabled = isApplyFlowPersistenceV2Enabled(input.env ?? process.env);
+  const operatorEnv = input.env ?? process.env;
+  const globalEnabled = isApplyFlowPersistenceV2Enabled(operatorEnv);
   const empty = (
     result: PilotOperatorMutationResult["result"],
   ): PilotOperatorMutationResult => ({
@@ -327,11 +343,7 @@ async function mutatePilotEligible(input: {
         pilotEligible: account.pilotEligible,
         canonicalPersistence: account.canonicalPersistence,
       },
-      effectiveModeAfter: resolveApplyFlowPersistenceMode({
-        globalEnabled,
-        pilotEligible: account.pilotEligible,
-        canonicalPersistence: account.canonicalPersistence,
-      }).mode,
+      effectiveModeAfter: modeForAccount(account, globalEnabled, operatorEnv).mode,
       globalEnabled,
       timestamp: utcNow(),
     };
@@ -353,11 +365,7 @@ async function mutatePilotEligible(input: {
         pilotEligible: account.pilotEligible,
         canonicalPersistence: account.canonicalPersistence,
       },
-      effectiveModeAfter: resolveApplyFlowPersistenceMode({
-        globalEnabled,
-        pilotEligible: account.pilotEligible,
-        canonicalPersistence: account.canonicalPersistence,
-      }).mode,
+      effectiveModeAfter: modeForAccount(account, globalEnabled, operatorEnv).mode,
       globalEnabled,
       timestamp: utcNow(),
     };
@@ -388,11 +396,7 @@ async function mutatePilotEligible(input: {
         canonicalPersistence: refreshed?.canonicalPersistence ?? null,
       },
       effectiveModeAfter: refreshed
-        ? resolveApplyFlowPersistenceMode({
-            globalEnabled,
-            pilotEligible: refreshed.pilotEligible,
-            canonicalPersistence: refreshed.canonicalPersistence,
-          }).mode
+        ? modeForAccount(refreshed, globalEnabled, operatorEnv).mode
         : null,
       globalEnabled,
       timestamp: utcNow(),
@@ -415,11 +419,11 @@ async function mutatePilotEligible(input: {
       pilotEligible: afterEligible,
       canonicalPersistence: afterCanonical,
     },
-    effectiveModeAfter: resolveApplyFlowPersistenceMode({
+    effectiveModeAfter: modeForAccount(
+      { id: account.id, pilotEligible: afterEligible, canonicalPersistence: afterCanonical },
       globalEnabled,
-      pilotEligible: afterEligible,
-      canonicalPersistence: afterCanonical,
-    }).mode,
+      operatorEnv,
+    ).mode,
     globalEnabled,
     timestamp: utcNow(),
   };

@@ -70,6 +70,18 @@ function deny(
  * (`persistence_v2_migration_required`). Physical noncanonical staging may still exist;
  * migration/session/activation remain the supported surfaces until canonical promotion.
  */
+/**
+ * Extension grant mint/probe. Cloud product routes still use
+ * {@link assertApplyFlowV2HttpCapability}. A paused or non-rollout account
+ * cannot mint or confirm a grant. Offering, active, and read-only can.
+ */
+export function assertApplyFlowExtensionGrantMint(access: ApplyFlowPersistenceAccess): void {
+  if (access.mode === "v2_offering" || access.mode === "v2_active" || access.mode === "v2_read_only") {
+    return;
+  }
+  assertApplyFlowV2HttpCapability(access, "read");
+}
+
 export function assertApplyFlowV2HttpCapability(
   access: ApplyFlowPersistenceAccess,
   capability: ApplyFlowV2HttpCapability,

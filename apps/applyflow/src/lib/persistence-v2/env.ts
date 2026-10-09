@@ -1,4 +1,5 @@
 import { isApplyFlowPersistenceV2Enabled, type ApplyFlowPersistenceEnv } from "./feature-flag";
+import { parseApplyFlowRolloutSelection } from "./rollout-selection";
 
 export type ApplyFlowSupabasePublicConfig = {
   url: string;
@@ -73,6 +74,9 @@ export function resolveApplyFlowPersistenceConfig(
   }
   if (!isApplyFlowDatabaseConfigured(env)) {
     missing.push("DATABASE_URL");
+  }
+  if (parseApplyFlowRolloutSelection(env).ok === false) {
+    missing.push("APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS");
   }
 
   const supabaseConfigured = resolveApplyFlowSupabasePublicConfig(env) != null;

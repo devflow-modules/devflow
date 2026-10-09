@@ -58,7 +58,11 @@ export async function fetchAuthoritativePersistenceBootstrap(
           bootstrap: {
             mode: "v1",
             reason:
-              persistence.reason === "not_eligible" ? "not_eligible" : "global_disabled",
+              persistence.reason === "not_eligible" ||
+              persistence.reason === "rollout_closed" ||
+              persistence.reason === "rollout_excluded"
+                ? persistence.reason
+                : "global_disabled",
             canonicalPersistence: "v1_local",
             pilotEligible: persistence.pilotEligible,
             accountId: id,
@@ -102,7 +106,10 @@ export async function fetchAuthoritativePersistenceBootstrap(
           ok: true,
           bootstrap: {
             mode: "v2_paused",
-            reason: "global_disabled_canonical_v2",
+            reason:
+              persistence.reason === "rollout_closed" || persistence.reason === "rollout_excluded"
+                ? persistence.reason
+                : "global_disabled_canonical_v2",
             canonicalPersistence: "v2_cloud",
             pilotEligible: persistence.pilotEligible,
             accountId: id,

@@ -131,6 +131,7 @@ describe("AF-REL-002 partial-resumable migration contract", () => {
   const previous = process.env.APPLYFLOW_PERSISTENCE_V2;
   beforeEach(() => {
     process.env.APPLYFLOW_PERSISTENCE_V2 = "true";
+    process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS = `${ACCOUNT},${OTHER}`;
   });
   afterEach(() => {
     if (previous === undefined) delete process.env.APPLYFLOW_PERSISTENCE_V2;
@@ -419,6 +420,7 @@ describe("AF-REL-003 block noncanonical product reads (offering)", () => {
       globalEnabled: true,
       pilotEligible: true,
       canonicalPersistence: "v1_local",
+      rollout: "selected",
     });
     expect(mode.mode).toBe("v2_offering");
 
@@ -462,6 +464,7 @@ describe("AF-REL-003 block noncanonical product reads (offering)", () => {
       globalEnabled: true,
       pilotEligible: true,
       canonicalPersistence: "v1_local",
+      rollout: "selected",
     });
     expect(() => assertApplyFlowV2HttpCapability(mode, "read")).toThrow(
       expect.objectContaining({ code: "persistence_v2_migration_required", status: 403 }),

@@ -27,7 +27,7 @@ import { GET } from "./route";
 
 function account(overrides: Record<string, unknown> = {}) {
   return {
-    id: "acc-1",
+    id: "11111111-1111-4111-8111-111111111111",
     authProviderSub: "sub-1",
     email: null,
     pilotEligible: false,
@@ -40,6 +40,7 @@ function account(overrides: Record<string, unknown> = {}) {
 
 describe("GET /api/applyflow/v2/me", () => {
   beforeEach(() => {
+    process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS = "11111111-1111-4111-8111-111111111111";
     vi.mocked(requireApplyFlowAccount).mockReset();
     vi.mocked(isApplyFlowPersistenceV2Enabled).mockReset();
   });
@@ -60,7 +61,7 @@ describe("GET /api/applyflow/v2/me", () => {
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({
       authenticated: true,
-      account: { id: "acc-1" },
+      account: { id: "11111111-1111-4111-8111-111111111111" },
       persistence: {
         mode: "v1",
         reason: "global_disabled",

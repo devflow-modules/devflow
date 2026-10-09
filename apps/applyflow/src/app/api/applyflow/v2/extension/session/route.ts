@@ -1,17 +1,15 @@
 import { NextResponse } from "next/server";
 
 import { enforceSameOriginMutatingRequest } from "@/lib/http/same-origin-guard";
-import { applyFlowAuthErrorResponse } from "@/lib/persistence-v2/http-access";
+import { resolveApplyFlowAccountFromRequest } from "@/lib/persistence-v2/auth/resolve-account-from-request";
+import {
+  applyFlowAuthErrorResponse,
+  applyFlowV2HttpAccessErrorResponse,
+  assertApplyFlowExtensionGrantMint,
+} from "@/lib/persistence-v2/http-access";
 import { applyFlowExtensionGrants } from "@/lib/persistence-v2/personal/extension-grants";
 import { ApplyFlowAuthError, requireApplyFlowAccount } from "@/lib/persistence-v2/require-applyflow-account";
-
-function bearerToken(request: Request): string | null {
-  const header = request.headers.get("authorization");
-  if (!header) return null;
-  const [scheme, token] = header.split(" ");
-  if (scheme !== "Bearer" || !token) return null;
-  return token;
-}
+import { resolveApplyFlowPersistenceAccess } from "@/lib/persistence-v2/resolve-persistence-access";
 
 /**
  * Extension session grant.
@@ -24,6 +22,7 @@ export async function POST(request: Request) {
   if (originBlock) return originBlock;
   try {
     const account = await requireApplyFlowAccount();
+    assertApplyFlowExtensionGrantMint(resolveApplyFlowPersistenceAccess(account));
     const minted = await applyFlowExtensionGrants.mint(account.id);
     return NextResponse.json({
       accountId: minted.accountId,
@@ -32,6 +31,8 @@ export async function POST(request: Request) {
       autoSubmit: false,
     });
   } catch (error) {
+    const access = applyFlowV2HttpAccessErrorResponse(error);
+    if (access) return access;
     const auth = applyFlowAuthErrorResponse(error);
     if (auth) return auth;
     if (error instanceof ApplyFlowAuthError) {
@@ -42,11 +43,17 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const resolved = await applyFlowExtensionGrants.resolve(bearerToken(request));
-  if (!resolved) {
+  try {
+    const account = await resolveApplyFlowAccountFromRequest(request);
+    assertApplyFlowExtensionGrantMint(resolveApplyFlowPersistenceAccess(account));
+    return NextResponse.json({ accountId: account.id, autoSubmit: false });
+  } catch (error) {
+    const access = applyFlowV2HttpAccessErrorResponse(error);
+    if (access) return access;
+    const auth = applyFlowAuthErrorResponse(error);
+    if (auth) return auth;
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
   }
-  return NextResponse.json({ accountId: resolved.accountId, autoSubmit: false });
 }
 
 export async function DELETE(request: Request) {

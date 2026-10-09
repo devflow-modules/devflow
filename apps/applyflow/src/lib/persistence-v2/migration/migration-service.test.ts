@@ -73,10 +73,14 @@ describe("ApplyFlow migration service", () => {
   const previous = process.env.APPLYFLOW_PERSISTENCE_V2;
   beforeEach(() => {
     process.env.APPLYFLOW_PERSISTENCE_V2 = "true";
+    process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS = `${ACCOUNT},${OTHER}`;
   });
+  const previousRollout = process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS;
   afterEach(() => {
     if (previous === undefined) delete process.env.APPLYFLOW_PERSISTENCE_V2;
     else process.env.APPLYFLOW_PERSISTENCE_V2 = previous;
+    if (previousRollout === undefined) delete process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS;
+    else process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS = previousRollout;
   });
   it("creates a session and imports jobs before applications with completion proof", async () => {
     const { service, jobs, applications, accounts } = createService();

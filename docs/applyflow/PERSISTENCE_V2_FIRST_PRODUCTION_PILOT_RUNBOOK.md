@@ -15,9 +15,53 @@ Related engineering reference: [`PERSISTENCE_V2_MIGRATION_RUNBOOK.md`](./PERSIST
   - `v2_cloud` + `pilot=false` + GLOBAL=`true` → mode `v2_read_only`
   - `v2_cloud` + GLOBAL=`false` → mode `v2_paused` (regardless of pilot)
 
-Recovery target (first pilot):
+Recovery target for an account that is **selected** in the rollout allowlist:
 
-`GLOBAL=true` + `pilotEligible=true` + `canonicalPersistence=v2_cloud` → `v2_active`
+`GLOBAL=true` + selected + `pilotEligible=true` + `canonicalPersistence=v2_cloud` → `v2_active`
+
+## Account rollout selection
+
+Server env `APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS` is a comma-separated list of `ApplyFlowAccount.id` UUIDs. It is not `NEXT_PUBLIC_*`. The client cannot supply the id. Do not log the list.
+
+| GLOBAL | Selection | pilotEligible | canonical | mode |
+|--------|-----------|---------------|-----------|------|
+| false | ignored | * | `v1_local` | `v1` |
+| false | ignored | * | `v2_cloud` | `v2_paused` |
+| true | absent, empty, or invalid | * | `v1_local` | `v1` (`rollout_closed`) |
+| true | absent, empty, or invalid | * | `v2_cloud` | `v2_paused` (`rollout_closed`) |
+| true | not listed | * | `v1_local` | `v1` (`rollout_excluded`) |
+| true | not listed | * | `v2_cloud` | `v2_paused` (`rollout_excluded`) |
+| true | listed | false | `v1_local` | `v1` |
+| true | listed | true | `v1_local` | `v2_offering` |
+| true | listed | false | `v2_cloud` | `v2_read_only` |
+| true | listed | true | `v2_cloud` | `v2_active` |
+
+`v2_cloud` never resolves to `v1`. Pause does not change `canonicalPersistence` and does not copy cloud rows into anonymous local keys. Offering, migration, activation, and product writes stay denied for accounts outside the list. Existing production accounts `6e18b24e-7bec-4cf4-a52d-f89739deef42` and `85c8bebd-ca31-452c-83c7-6ba7dd59df5f` are already `v2_cloud` and must stay **out** of the list until a separate authorization. With the flag on and the list omitting them, they remain `v2_paused`.
+
+Identify the pilot only from the owner's authenticated session: `GET /api/applyflow/v2/me` returns the server-derived `account.id`. Do not use `8469b3a6-5f50-4486-9861-d5144347d009` (synthetic subject, not designated) and do not ask for a password or token in chat.
+
+Containment while canonical stays `v2_cloud`: set `APPLYFLOW_PERSISTENCE_V2=false` and redeploy the same SHA. That returns every cloud account to `v2_paused`. Do not revoke canonical and do not delete rows.
+
+## Ignored Build Step
+
+`npx turbo-ignore applyflow` (turbo-ignore 2.11.7) leaves `VERCEL_GIT_PREVIOUS_SHA` set and also passes that SHA in `--filter=applyflow...[SHA]`. turbo 2.8.17 then reports no affected packages, so a real ApplyFlow change can be skipped. Reproduced locally: the same filter without that variable selects `applyflow`; with the variable set to the same SHA it selects nothing. A comparison against `be7a346cbcb76db9c9afa17ebc2bf11ba72d809d` from a later portal-only tree still selects nothing, so portal-only skips remain possible.
+
+`scripts/applyflow-vercel-ignore.mjs` unsets that variable for the child turbo process and does not set `TURBO_FORCE`. The Vercel project command is unchanged in this change. Proposed command, only after a separate config authorization:
+
+`cd ../.. && node scripts/applyflow-vercel-ignore.mjs`
+
+The cancel of `6f8b4e75` was a portal-only diff and stays a valid skip.
+
+## Validation recorded with this change
+
+Local only. Production flag, grants, accounts, and data were not modified.
+
+- Vitest: rollout parser, mode matrix, HTTP capabilities (including excluded cloud and v1), migration, empty activation, operator grant/revoke, and Jobs/Applications/`/me` route tests. 166 tests passed in those files.
+- `node --test scripts/applyflow-vercel-ignore.test.mjs` passed.
+- On a clean checkout, with `VERCEL=1`, the script exits 1 against `18cf66203510e0f3d37917833b5fd41a601fba6a` and exits 0 against `be7a346cbcb76db9c9afa17ebc2bf11ba72d809d`.
+- ApplyFlow `tsc --noEmit`, eslint on the touched gate files, and `pnpm --filter applyflow build` passed.
+- Browser runtime of active, read-only, and paused was not executed. It needs the local ApplyFlow app on isolated Postgres (`127.0.0.1:5434/applyflow`), `APPLYFLOW_E2E_*` only for that database, and the local `POST /api/applyflow/e2e/session` login. Do not use `.env.local` for that run.
+- Authenticated production smoke is still pending. Do not describe cloud as validated in production.
 
 Closeout reference: [`PERSISTENCE_V2_CLOSEOUT.md`](./PERSISTENCE_V2_CLOSEOUT.md).
 
@@ -151,16 +195,19 @@ pnpm pilot:grant -- --account <id> --confirm <token> \
 
 ## Gate F — Enable GLOBAL
 
-Only after the pilot account is granted:
+Only after the pilot account id is known and, when it is still `v1_local`, granted:
 
-1. Change `APPLYFLOW_PERSISTENCE_V2`: `false` → `true` (Production env).
-2. Redeploy per established Vercel workflow.
-3. Verify:
-   - Pilot account effective mode: `v2_offering`
-   - Non-pilot account: `v1`
-4. Confirm no broad accidental V2 access.
+1. Set `APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS` to that single account id.
+2. Change `APPLYFLOW_PERSISTENCE_V2`: `false` → `true` (Production env).
+3. Redeploy per established Vercel workflow. Do not persist `TURBO_FORCE`.
+4. Verify:
+   - Selected `v1_local` + eligible account: `v2_offering`
+   - Selected `v2_cloud` + eligible account: `v2_active` (do not migrate again)
+   - Existing cloud accounts omitted from the list: `v2_paused`
+   - Other `v1_local` accounts: `v1`
+5. Confirm no omitted account is offering, active, or read-only.
 
-**Stop if non-pilot accounts see V2 offering/active.**
+**Stop if any omitted account leaves `v1` or `v2_paused`.**
 
 ---
 

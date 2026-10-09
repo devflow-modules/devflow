@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  assertApplyFlowExtensionGrantMint,
   assertApplyFlowV2HttpCapability,
   ApplyFlowV2HttpAccessError,
   type ApplyFlowV2HttpCapability,
@@ -49,6 +50,7 @@ describe("assertApplyFlowV2HttpCapability", () => {
   it("denies all capabilities for v1 not_eligible", () => {
     const input: ApplyFlowPersistenceModeInput = {
       globalEnabled: true,
+      rollout: "selected",
       pilotEligible: false,
       canonicalPersistence: "v1_local",
     };
@@ -60,6 +62,7 @@ describe("assertApplyFlowV2HttpCapability", () => {
   it("offering: denies product read/write; allows migration/session/activation (AF-REL-003)", () => {
     const input: ApplyFlowPersistenceModeInput = {
       globalEnabled: true,
+      rollout: "selected",
       pilotEligible: true,
       canonicalPersistence: "v1_local",
     };
@@ -73,6 +76,7 @@ describe("assertApplyFlowV2HttpCapability", () => {
   it("active: allows read/write/session; denies new migration", () => {
     const input: ApplyFlowPersistenceModeInput = {
       globalEnabled: true,
+      rollout: "selected",
       pilotEligible: true,
       canonicalPersistence: "v2_cloud",
     };
@@ -85,6 +89,7 @@ describe("assertApplyFlowV2HttpCapability", () => {
   it("read_only: allows read/session; denies write/migration", () => {
     const input: ApplyFlowPersistenceModeInput = {
       globalEnabled: true,
+      rollout: "selected",
       pilotEligible: false,
       canonicalPersistence: "v2_cloud",
     };
@@ -113,6 +118,7 @@ describe("assertApplyFlowV2HttpCapability", () => {
       assertApplyFlowV2HttpCapability(
         access({
           globalEnabled: true,
+      rollout: "selected",
           pilotEligible: false,
           canonicalPersistence: "v2_cloud",
         }),
@@ -134,6 +140,7 @@ describe("HTTP policy security matrix (direct bypass)", () => {
   it("pilot=false v1_local cannot write jobs/apps/migration", () => {
     const input: ApplyFlowPersistenceModeInput = {
       globalEnabled: true,
+      rollout: "selected",
       pilotEligible: false,
       canonicalPersistence: "v1_local",
     };
@@ -144,6 +151,7 @@ describe("HTTP policy security matrix (direct bypass)", () => {
   it("pilot=true v1_local can migrate/activate but not product read/write CRUD (AF-REL-003)", () => {
     const input: ApplyFlowPersistenceModeInput = {
       globalEnabled: true,
+      rollout: "selected",
       pilotEligible: true,
       canonicalPersistence: "v1_local",
     };
@@ -156,11 +164,40 @@ describe("HTTP policy security matrix (direct bypass)", () => {
   it("read_only can read but not mutate", () => {
     const input: ApplyFlowPersistenceModeInput = {
       globalEnabled: true,
+      rollout: "selected",
       pilotEligible: false,
       canonicalPersistence: "v2_cloud",
     };
     expectAllow(input, "read");
     expectDeny(input, "write", "persistence_v2_read_only", 403);
+  });
+
+  it("excluded cloud account is paused and cannot read, write, migrate, or activate", () => {
+    const input: ApplyFlowPersistenceModeInput = {
+      globalEnabled: true,
+      rollout: "excluded",
+      pilotEligible: true,
+      canonicalPersistence: "v2_cloud",
+    };
+    const resolved = access(input);
+    expect(resolved.mode).toBe("v2_paused");
+    expect(resolved.canonicalPersistence).toBe("v2_cloud");
+    for (const capability of ["read", "write", "migration", "migration_session_read", "activation"] as const) {
+      expectDeny(input, capability, "persistence_v2_paused", 503);
+    }
+  });
+
+  it("excluded v1 account cannot migrate or activate", () => {
+    const input: ApplyFlowPersistenceModeInput = {
+      globalEnabled: true,
+      rollout: "excluded",
+      pilotEligible: true,
+      canonicalPersistence: "v1_local",
+    };
+    expect(access(input).mode).toBe("v1");
+    expectDeny(input, "migration", "persistence_v2_not_eligible", 403);
+    expectDeny(input, "activation", "persistence_v2_not_eligible", 403);
+    expectDeny(input, "write", "persistence_v2_not_eligible", 403);
   });
 
   it("paused cannot read or write", () => {
@@ -171,5 +208,38 @@ describe("HTTP policy security matrix (direct bypass)", () => {
     };
     expectDeny(input, "read", "persistence_v2_paused", 503);
     expectDeny(input, "write", "persistence_v2_paused", 503);
+  });
+
+  it("denies extension grant mint for paused and excluded accounts", () => {
+    expect(() =>
+      assertApplyFlowExtensionGrantMint(
+        access({
+          globalEnabled: true,
+          rollout: "excluded",
+          pilotEligible: true,
+          canonicalPersistence: "v2_cloud",
+        }),
+      ),
+    ).toThrow(ApplyFlowV2HttpAccessError);
+    expect(() =>
+      assertApplyFlowExtensionGrantMint(
+        access({
+          globalEnabled: true,
+          rollout: "selected",
+          pilotEligible: true,
+          canonicalPersistence: "v2_cloud",
+        }),
+      ),
+    ).not.toThrow();
+    expect(() =>
+      assertApplyFlowExtensionGrantMint(
+        access({
+          globalEnabled: true,
+          rollout: "selected",
+          pilotEligible: true,
+          canonicalPersistence: "v1_local",
+        }),
+      ),
+    ).not.toThrow();
   });
 });

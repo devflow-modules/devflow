@@ -113,10 +113,14 @@ describe.skipIf(!localDbAvailable)("R2.2.6 local Docker pilot operator", () => {
     expect(dbReady).toBe(true);
     const account = await seedAccount({ pilotEligible: true, canonicalPersistence: "v2_cloud" });
 
+    const rolloutEnv = {
+      APPLYFLOW_PERSISTENCE_V2: "true",
+      APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS: account.id,
+    };
     const before = await getPilotOperatorStatus(
       applyflowPrisma,
       { kind: "accountId", value: account.id },
-      { APPLYFLOW_PERSISTENCE_V2: "true" },
+      rolloutEnv,
     );
     expect(before.effectiveMode).toBe("v2_active");
 
@@ -124,7 +128,7 @@ describe.skipIf(!localDbAvailable)("R2.2.6 local Docker pilot operator", () => {
       applyflowPrisma,
       { kind: "accountId", value: account.id },
       before.confirmToken!,
-      { APPLYFLOW_PERSISTENCE_V2: "true" },
+      rolloutEnv,
     );
     expect(revoked.after.pilotEligible).toBe(false);
     expect(revoked.after.canonicalPersistence).toBe("v2_cloud");
@@ -133,13 +137,13 @@ describe.skipIf(!localDbAvailable)("R2.2.6 local Docker pilot operator", () => {
     const mid = await getPilotOperatorStatus(
       applyflowPrisma,
       { kind: "accountId", value: account.id },
-      { APPLYFLOW_PERSISTENCE_V2: "true" },
+      rolloutEnv,
     );
     const granted = await grantPilotEligible(
       applyflowPrisma,
       { kind: "accountId", value: account.id },
       mid.confirmToken!,
-      { APPLYFLOW_PERSISTENCE_V2: "true" },
+      rolloutEnv,
     );
     expect(granted.after.pilotEligible).toBe(true);
     expect(granted.after.canonicalPersistence).toBe("v2_cloud");
