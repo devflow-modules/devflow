@@ -76,6 +76,6 @@ export const CONTACT_ANALYSIS_ITEMS = [
   "Gargalos de resposta",
   "Perguntas repetitivas que podem ser automatizadas",
   "Quando o atendimento precisa ir para humano",
-  "Como organizar fila, SLA e dashboard",
+  "Como organizar fila, responsáveis e acompanhamento",
   "Próximo passo para um piloto guiado",
 ] as const;

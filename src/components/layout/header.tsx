@@ -9,7 +9,6 @@ import {
   trackFunnelCtaClick,
   trackHeaderCtaClicked,
   trackHeaderNavClicked,
-  trackHeaderProductsOpened,
 } from "@/lib/analytics";
 import { HEADER_CTA_LABEL, PRIMARY_DEMO_HREF } from "@/lib/conversion-copy";
 import { PRODUTOS_HUB_PATH } from "@/lib/devflow-product-catalog";
@@ -103,13 +102,8 @@ export function Header() {
   const comoFuncionaActive = isComoFuncionaActive(pathname);
   const demoActive = isDemoActive(pathname);
 
-  const openEcosystemMenu = useCallback(() => {
+  const openResourcesMenu = useCallback(() => {
     setEcosystemOpen(true);
-    if (typeof sessionStorage === "undefined") return;
-    const k = "header_ecosystem_opened_session";
-    if (sessionStorage.getItem(k) === "1") return;
-    sessionStorage.setItem(k, "1");
-    trackHeaderProductsOpened({ surface: "header_desktop_ecosystem" });
   }, []);
 
   useEffect(() => {
@@ -143,13 +137,12 @@ export function Header() {
     };
   }, [ecosystemOpen]);
 
+  const lightChrome =
+    pathname === "/" || pathname === "/contato" || pathname.startsWith("/demo");
+
   const headerCtaClass = cn(
-    "df-btn-primary min-h-11 shrink-0 rounded-xl font-bold",
-    "df-shadow-cta-soft",
-    "px-3 text-xs min-[380px]:px-4 min-[380px]:text-sm",
-    "transition-all duration-200 ease-out",
-    "hover:scale-[1.04]",
-    "active:scale-[0.98]"
+    "df-btn-primary min-h-11 shrink-0 rounded-xl font-semibold",
+    "px-3 text-xs min-[380px]:px-4 min-[380px]:text-sm"
   );
 
   const secondaryBtnClass =
@@ -190,9 +183,10 @@ export function Header() {
     <header
       className={cn(
         "sticky top-0 z-50 w-full max-w-[100vw] border-b transition-[box-shadow,background-color] duration-200",
+        lightChrome && "df-header-v2",
         scrolled
-          ? "border df-border-brand bg-background/95 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-md supports-[backdrop-filter]:bg-background/90"
-          : "border df-border-brand bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/80"
+          ? "border bg-background/95 shadow-[0_8px_24px_rgba(15,23,42,0.06)] backdrop-blur-md supports-[backdrop-filter]:bg-background/90"
+          : "border bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/80"
       )}
     >
       <div className="mx-auto flex min-h-[3.25rem] max-w-[1200px] items-center justify-between gap-2 px-3 min-[400px]:gap-3 min-[400px]:px-4 sm:min-h-[4rem] sm:px-6 lg:px-8">
@@ -206,7 +200,7 @@ export function Header() {
             DevFlow Labs
           </Link>
           <p className="df-text-secondary mt-0.5 hidden max-w-[22rem] truncate text-xs leading-snug xl:block">
-            WhatsApp Platform · IA no repetitivo · Handoff humano
+            Operação de conversas no WhatsApp
           </p>
         </div>
 
@@ -216,15 +210,7 @@ export function Header() {
             className={cn("px-2 py-1.5", navText(whatsappPlatformActive), navUnderline(whatsappPlatformActive))}
             onClick={() => onNav("whatsapp_platform")}
           >
-            WhatsApp Platform
-          </Link>
-
-          <Link
-            href={PRIMARY_DEMO_HREF}
-            className={cn("px-2 py-1.5", navText(demoActive), navUnderline(demoActive))}
-            onClick={() => onDemoNav("desktop")}
-          >
-            Demo
+            Produto
           </Link>
 
           <Link
@@ -235,32 +221,24 @@ export function Header() {
             Como funciona
           </Link>
 
-          <Link
-            href={FAQ_PATH}
-            className={cn("px-2 py-1.5", navText(false), navUnderline(false))}
-            onClick={() => onNav("faq")}
-          >
-            FAQ
-          </Link>
-
           <div ref={ecosystemWrapRef} className="relative px-2 py-1">
             <Button
               type="button"
               variant="ghost"
               className={cn(
                 "inline-flex items-center gap-1 rounded-lg px-1 py-1.5 shadow-none",
-                navText(ecosystemActive || ecosystemOpen),
-                navUnderline(ecosystemActive && !ecosystemOpen)
+                navText(demoActive || ecosystemActive || ecosystemOpen),
+                navUnderline((demoActive || ecosystemActive) && !ecosystemOpen)
               )}
-              aria-label="Ecossistema DevFlow Labs — abrir menu"
+              aria-label="Recursos — abrir menu"
               aria-expanded={ecosystemOpen}
               aria-haspopup="true"
               onClick={() => {
                 if (ecosystemOpen) setEcosystemOpen(false);
-                else openEcosystemMenu();
+                else openResourcesMenu();
               }}
             >
-              Ecossistema
+              Recursos
               <ChevronDown
                 className={cn("size-4 transition-transform", ecosystemOpen && "rotate-180")}
                 aria-hidden
@@ -268,11 +246,27 @@ export function Header() {
             </Button>
             {ecosystemOpen ? (
               <div
-                className="absolute right-0 top-full z-50 mt-1 w-[min(calc(100vw-2rem),18rem)] rounded-xl border border-border bg-background p-2 shadow-lg"
+                className="absolute left-0 top-full z-50 mt-1 w-[min(calc(100vw-2rem),18rem)] rounded-xl border border-border bg-background p-2 shadow-lg"
                 role="menu"
               >
-                <p className="df-text-muted px-2 pb-1 text-[10px] font-bold uppercase tracking-wider">
-                  Ferramentas gratuitas
+                <Link
+                  href={PRIMARY_DEMO_HREF}
+                  role="menuitem"
+                  className={ecosystemDropdownLinkClass}
+                  onClick={() => onDemoNav("desktop")}
+                >
+                  Demo
+                </Link>
+                <Link
+                  href={FAQ_PATH}
+                  role="menuitem"
+                  className={ecosystemDropdownLinkClass}
+                  onClick={() => onNav("faq")}
+                >
+                  FAQ
+                </Link>
+                <p className="df-text-muted mt-2 px-2 pb-1 text-[10px] font-bold uppercase tracking-wider">
+                  Explore também
                 </p>
                 {ECOSYSTEM_FERRAMENTAS.map((link) => (
                   <Link
@@ -285,9 +279,6 @@ export function Header() {
                     {link.label}
                   </Link>
                 ))}
-                <p className="df-text-muted mt-2 px-2 pb-1 text-[10px] font-bold uppercase tracking-wider">
-                  Produtos complementares
-                </p>
                 {ECOSYSTEM_PRODUTOS.map((link) => (
                   <Link
                     key={link.href}
@@ -299,9 +290,6 @@ export function Header() {
                     {link.label}
                   </Link>
                 ))}
-                <p className="df-text-muted mt-2 px-2 pb-1 text-[10px] font-bold uppercase tracking-wider">
-                  Mais
-                </p>
                 {ECOSYSTEM_OUTROS.map((link) => (
                   <Link
                     key={link.href}
@@ -337,7 +325,7 @@ export function Header() {
             type="button"
             variant="ghost"
             onClick={() => setMobileOpen((o) => !o)}
-            className="df-text-secondary size-11 min-h-11 min-w-11 rounded-xl border border-border bg-transparent shadow-none transition-colors hover:bg-muted lg:hidden"
+            className="df-text-secondary size-11 min-h-11 min-w-11 rounded-xl border border-border bg-transparent shadow-none transition-colors hover:bg-muted lg:!hidden"
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav"
             aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
@@ -379,9 +367,6 @@ export function Header() {
           </div>
 
           <nav aria-label="Navegação mobile">
-            <p className="df-text-muted mb-1 text-[10px] font-bold uppercase tracking-wider">
-              WhatsApp Platform
-            </p>
             <ul className="flex flex-col gap-0.5 border-b border-border pb-3" role="list">
               <li>
                 <Link
@@ -389,16 +374,7 @@ export function Header() {
                   className="flex min-h-12 items-center rounded-xl px-3 py-3 text-base font-semibold text-foreground hover:bg-primary/5 hover:text-primary"
                   onClick={() => onNav("whatsapp_platform", "mobile")}
                 >
-                  WhatsApp Platform
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href={PRIMARY_DEMO_HREF}
-                  className="flex min-h-12 items-center rounded-xl px-3 py-3 text-base font-semibold text-foreground hover:bg-primary/5 hover:text-primary"
-                  onClick={() => onDemoNav("mobile")}
-                >
-                  Demo
+                  Produto
                 </Link>
               </li>
               <li>
@@ -412,8 +388,17 @@ export function Header() {
               </li>
               <li>
                 <Link
+                  href={PRIMARY_DEMO_HREF}
+                  className="flex min-h-12 items-center rounded-xl px-3 py-3 text-base font-medium text-foreground hover:bg-primary/5 hover:text-primary"
+                  onClick={() => onDemoNav("mobile")}
+                >
+                  Demo
+                </Link>
+              </li>
+              <li>
+                <Link
                   href={FAQ_PATH}
-                  className="flex min-h-12 items-center rounded-xl px-3 py-3 text-base font-semibold text-foreground hover:bg-primary/5 hover:text-primary"
+                  className="flex min-h-12 items-center rounded-xl px-3 py-3 text-base font-medium text-foreground hover:bg-primary/5 hover:text-primary"
                   onClick={() => onNav("faq", "mobile")}
                 >
                   FAQ
@@ -422,14 +407,14 @@ export function Header() {
             </ul>
 
             <p className="df-text-muted mb-1 mt-3 text-[10px] font-bold uppercase tracking-wider">
-              Ecossistema
+              Explore também
             </p>
             <ul className="flex flex-col gap-0.5" role="list">
               {[...ECOSYSTEM_FERRAMENTAS, ...ECOSYSTEM_PRODUTOS, ...ECOSYSTEM_OUTROS].map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="flex min-h-11 items-center rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted/40 hover:text-primary"
+                    className="flex min-h-11 items-center rounded-xl px-3 py-2.5 text-sm font-medium df-text-secondary hover:bg-muted/40 hover:text-primary"
                     onClick={() => onEcosystemNavigate(link.item, "mobile")}
                   >
                     {link.label}

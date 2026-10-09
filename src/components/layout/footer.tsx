@@ -86,7 +86,7 @@ export function Footer() {
             </Link>
             <p className="df-text-on-dark-secondary max-w-md text-sm leading-relaxed">
               DevFlow Labs implementa operações de atendimento e vendas no WhatsApp com IA no repetitivo, inbox
-              multiatendente, handoff humano, SLA e dashboard operacional.
+              multiatendente, responsáveis, filas e handoff humano.
             </p>
             <div className="flex flex-col gap-3 pt-1">
               <Link

@@ -22,18 +22,16 @@ export function FloatingWhatsAppCta() {
       rel={usesMailto ? undefined : "noopener noreferrer"}
       onClick={handleClick}
       className={cn(
-        "fixed z-40 flex items-center gap-2 rounded-full px-4 py-3 shadow-lg",
+        "fixed z-40 flex size-11 items-center justify-center rounded-full",
         "bottom-[max(1rem,env(safe-area-inset-bottom,0px))] right-[max(1rem,env(safe-area-inset-right,0px))]",
-        "bg-[#25D366] text-white font-semibold text-sm",
-        "transition-all duration-200 hover:bg-[#20BD5A] hover:scale-105",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]/50 focus-visible:ring-offset-2"
+        "bg-[var(--df-v2-whatsapp,#25D366)] text-white",
+        "shadow-[0_8px_24px_rgba(15,23,42,0.16)]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--df-v2-brand)] focus-visible:ring-offset-2"
       )}
       aria-label={usesMailto ? "Enviar email para contato" : "Quero ver como organizar meu WhatsApp"}
     >
       <MessageCircle className="size-5 shrink-0" aria-hidden />
-      <span className="hidden sm:inline">
-        {usesMailto ? "Falar por email" : "Organizar WhatsApp"}
-      </span>
+      <span className="sr-only">{usesMailto ? "Falar por email" : "WhatsApp"}</span>
     </a>
   );
 }

@@ -5,6 +5,7 @@ import { ScrollTracker } from "@/components/shared/scroll-tracker";
 import { HeroV2 } from "@/components/sections/hero-v2";
 import { TechnicalTrustStrip } from "@/components/sections/technical-trust-strip";
 import { ProblemSolutionSection } from "@/components/sections/problem-solution-section";
+import { ProductStories } from "@/components/sections/product-stories";
 import { HowItWorksHub } from "@/components/sections/how-it-works-hub";
 import { WhatsAppProductSection } from "@/components/sections/whatsapp-product-section";
 import { Faq } from "@/components/sections/faq";
@@ -19,7 +20,7 @@ const ogImage = `${baseUrl}/og-devflow.png`;
 
 const homeTitle = "DevFlow Labs | Automação WhatsApp com IA, Inbox e Handoff Humano";
 const homeDescription =
-  "Transforme seu WhatsApp em uma operação previsível de atendimento e vendas com IA no repetitivo, inbox multiatendente, handoff humano, SLA e dashboard operacional.";
+  "Transforme seu WhatsApp em uma operação de atendimento e vendas com inbox compartilhada, responsáveis, filas e handoff humano.";
 
 export const metadata: Metadata = {
   title: homeTitle,
@@ -36,8 +37,8 @@ export const metadata: Metadata = {
     "WhatsApp Cloud API",
     "chatbot WhatsApp",
     "handoff humano",
-    "SLA atendimento",
-    "dashboard atendimento",
+    "fila de atendimento",
+    "inbox compartilhada",
   ],
   openGraph: {
     type: "website",
@@ -77,11 +78,14 @@ export default function Home() {
     <>
       <ScrollTracker />
 
+      <main className="df-brand-v2">
       <HeroV2 />
 
       <TechnicalTrustStrip />
 
       <ProblemSolutionSection />
+
+      <ProductStories />
 
       <HowItWorksHub />
 
@@ -96,6 +100,7 @@ export default function Home() {
 
         <ProductsSection />
       </HomeEcosystemStack>
+      </main>
     </>
   );
 }

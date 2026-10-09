@@ -3,7 +3,7 @@ import { financeiroAppHref } from "@/lib/financeiro-app-href";
 import { whatsappAppUrl } from "@/lib/whatsapp-app-url";
 
 /** Label do controlo no Header (substitui «Entrar»). */
-export const ACCESS_PRODUCTS_LABEL = "Acessar produtos";
+export const ACCESS_PRODUCTS_LABEL = "Acessar";
 
 export type HeaderProductAccessCta = "acessar_whatsapp" | "acessar_financeiro";
 

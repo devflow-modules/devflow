@@ -35,11 +35,11 @@ describe("HeaderAccessProducts", () => {
     delete process.env.NEXT_PUBLIC_FINANCEIRO_APP_URL;
   });
 
-  it("desktop: Escape fecha o menu e devolve o foco ao botão Acessar produtos", async () => {
+  it("desktop: Escape fecha o menu e devolve o foco ao botão Acessar", async () => {
     const user = userEvent.setup();
     render(<HeaderAccessProducts surface="desktop" triggerClassName="test-trigger" />);
 
-    const trigger = screen.getByRole("button", { name: /Acessar produtos/i });
+    const trigger = screen.getByRole("button", { name: /Acessar/i });
     expect(trigger).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("menu")).toBeNull();
 
@@ -72,7 +72,7 @@ describe("HeaderAccessProducts", () => {
       <HeaderAccessProducts surface="desktop" triggerClassName="t" onNavigate={onNavigate} />
     );
 
-    await user.click(screen.getByRole("button", { name: /Acessar produtos/i }));
+    await user.click(screen.getByRole("button", { name: /Acessar/i }));
     await user.click(screen.getByRole("menuitem", { name: "WhatsApp Platform" }));
 
     expect(trackHeaderCtaClicked).toHaveBeenCalledWith({
@@ -95,7 +95,7 @@ describe("HeaderAccessProducts", () => {
     );
 
     expect(screen.getByTestId("header-access-products-mobile")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /Acessar produtos/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Acessar/i })).toBeNull();
 
     const wa = screen.getByRole("link", { name: "WhatsApp Platform" });
     const fin = screen.getByRole("link", { name: "Financeiro" });
@@ -115,7 +115,7 @@ describe("HeaderAccessProducts", () => {
     render(<HeaderAccessProducts surface="desktop" triggerClassName="t" />);
 
     await user.tab();
-    const trigger = screen.getByRole("button", { name: /Acessar produtos/i });
+    const trigger = screen.getByRole("button", { name: /Acessar/i });
     expect(trigger).toHaveFocus();
 
     await user.keyboard("{Enter}");
