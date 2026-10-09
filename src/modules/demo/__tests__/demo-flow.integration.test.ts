@@ -37,7 +37,7 @@ describe("demo flow integration", () => {
     const afterHandoff = { ...after2, ...reply2.opsPatch } as typeof after2;
     const queued = applyHandoffQueueVisual(afterHandoff);
     expect(queued.status).toBe("na_fila");
-    expect(queued.queueHint).toContain("Posição");
+    expect(queued.queueHint).toContain("aguardando responsável");
   });
 
   it("loja: fluxo mínimo até defaultReply", () => {

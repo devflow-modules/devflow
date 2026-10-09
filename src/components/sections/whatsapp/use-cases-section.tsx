@@ -5,32 +5,32 @@ const useCases = [
   {
     icon: Headset,
     segment: "Suporte",
-    result: "Resposta imediata no óbvio. Humano só no caso que queima.",
+    result: "Dúvidas repetidas podem ser automatizadas. O restante segue para a equipe, com histórico.",
   },
   {
     icon: ShoppingBag,
     segment: "Vendas",
-    result: "Deal quente no topo. Follow-up não morre no esquecimento.",
+    result: "A conversa fica com um responsável e pode ser transferida sem perder o contexto.",
   },
   {
     icon: HeartPulse,
     segment: "Clínicas",
-    result: "Confirmação e triagem no automático. Recepção respira.",
+    result: "Informação e encaminhamento. A equipe assume quando a conversa exige contexto.",
   },
   {
     icon: Wrench,
     segment: "Serviços",
-    result: "Pico vira fila organizada — não tumulto no WhatsApp.",
+    result: "A fila mostra o que ainda precisa de resposta, em vez de mensagens soltas no celular.",
   },
   {
     icon: GraduationCap,
     segment: "Infoprodutos",
-    result: "Lançamento aguenta volume sem queimar time nem lead.",
+    result: "A equipe vê quem está com cada conversa e o que ainda está aguardando.",
   },
   {
     icon: BriefcaseBusiness,
-    segment: "Agências",
-    result: "Multi-conta com padrão. Cliente vê performance, não improviso.",
+    segment: "Equipes",
+    result: "Mais de uma pessoa atende, com papéis de operação e gestão na implantação acompanhada.",
   },
 ];
 
@@ -43,7 +43,7 @@ export function UseCasesSection() {
           id="use-cases-section-heading"
           className="mt-3 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
         >
-          Mesma plataforma. Cenários diferentes. Mesmo ganho: velocidade + controle
+          O mesmo tipo de operação, em contextos diferentes
         </h2>
       </div>
 

@@ -45,7 +45,7 @@ export function buildOpsAfterUserMessage(
     threadPreview: preview,
     lastClientMessage: userText,
     status: previous.status === "nova" ? "bot_ativo" : previous.status,
-    queueHint: previous.status === "nova" ? "Bot respondendo — SLA em segundos" : previous.queueHint,
+    queueHint: previous.status === "nova" ? "Automação respondendo o roteiro permitido" : previous.queueHint,
   };
 }
 
@@ -63,11 +63,11 @@ export function resolveDemoUserMessage(
   if (isHandoffIntent(userText)) {
     return {
       botText:
-        "Handoff humano ativado.\n\nNa operação real esta conversa sai do bot, aparece na fila / inbox com contexto completo, e um agente assume com histórico e tags de triagem.\n\nO cliente vê algo como: “Estamos te conectando com alguém da equipe.”",
+        "Handoff nesta simulação.\n\nA conversa sai da automação e aparece na fila, com o histórico, para alguém da equipe assumir.\n\nO cliente vê algo como: “Estamos te conectando com alguém da equipe.”",
       kind: "handoff",
       opsPatch: {
         status: "aguardando_humano",
-        queueHint: "Conversa na fila — próximo agente disponível",
+        queueHint: "Na fila — aguardando responsável",
         threadPreview: opsBeforeReply.lastClientMessage ?? opsBeforeReply.threadPreview,
       },
     };
@@ -103,6 +103,6 @@ export function applyHandoffQueueVisual(ops: DemoOpsState): DemoOpsState {
   return {
     ...ops,
     status: "na_fila",
-    queueHint: "Posição estimada: 1 — agente notificado",
+    queueHint: "Na fila — aguardando responsável",
   };
 }

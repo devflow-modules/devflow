@@ -215,7 +215,7 @@ export function DemoGuidedExperience() {
             Veja como uma operação WhatsApp organizada funciona
           </h1>
           <p className="df-text-secondary mt-4 max-w-3xl text-base leading-relaxed sm:text-lg">
-            Simule o fluxo de IA, handoff humano, fila e dashboard antes de agendar o diagnóstico.
+            Simulação para apresentar o fluxo do produto: automação, handoff e fila. Dados ilustrativos.
           </p>
           <div className="mt-8 flex max-w-2xl flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <Link
@@ -242,8 +242,8 @@ export function DemoGuidedExperience() {
             />
           </div>
           <p className="df-text-secondary mt-6 max-w-2xl text-sm leading-relaxed">
-            IA no repetitivo, humano no que importa — WhatsApp Cloud API oficial, fila priorizada, SLA e dashboard
-            operacional. Diagnóstico consultivo antes da implementação.
+            Automação no repetitivo e pessoa quando precisa. WhatsApp Cloud API oficial, responsáveis e filas.
+            Demonstração da plataforma, com dados ilustrativos.
           </p>
         </div>
       </section>
@@ -266,8 +266,8 @@ export function DemoGuidedExperience() {
                 Teste com um cenário do seu segmento
               </h2>
               <p className="df-text-secondary mt-3 leading-relaxed">
-                Simulação interativa: envie mensagens como cliente e veja triagem, resposta automática e handoff
-                humano — o mesmo tipo de fluxo que implementamos na operação real.
+                Simulação interativa: envie mensagens como cliente e veja resposta automática e handoff.
+                Dados ilustrativos, não uma operação de cliente.
               </p>
             </div>
             <Button
@@ -289,8 +289,7 @@ export function DemoGuidedExperience() {
                 Próximo passo: diagnóstico da sua operação
               </h3>
               <p className="df-text-secondary mt-2 text-sm leading-relaxed">
-                Você viu IA, handoff, fila e dashboard em ação. Agende o diagnóstico para mapear volume, gargalos e
-                o piloto guiado no seu WhatsApp.
+                Você viu uma simulação de automação, handoff e fila. O próximo passo é o diagnóstico da sua operação.
               </p>
               <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
                 <Link
@@ -377,8 +376,7 @@ export function DemoGuidedExperience() {
                       <div>
                         <p className="font-semibold">Handoff humano ativo</p>
                         <p className="mt-0.5 df-text-secondary">
-                          A IA encerrou a automação neste ponto. Na operação real, a conversa entra na fila com SLA,
-                          prioridade e histórico completo para o atendente assumir.
+                          A automação para neste ponto da simulação. A conversa segue para a equipe, na fila, com o histórico.
                         </p>
                       </div>
                     </div>
@@ -539,8 +537,7 @@ export function DemoGuidedExperience() {
             Pronto para organizar sua operação no WhatsApp?
           </h2>
           <p className="df-text-secondary mt-3 text-sm leading-relaxed sm:text-base">
-            Agende o diagnóstico consultivo ou fale no WhatsApp — mapeamos volume, gargalos, handoff, SLA e dashboard
-            antes de implementar.
+            Agende o diagnóstico ou fale no WhatsApp. Mapeamos volume, fila, responsáveis e handoff antes de implantar.
           </p>
           <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap">
             <Link

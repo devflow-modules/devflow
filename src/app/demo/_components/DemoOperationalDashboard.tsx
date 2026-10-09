@@ -3,7 +3,7 @@
 import { AlertTriangle, Bot, Clock, MessageCircle, TrendingUp, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type DashboardHighlight = "bot" | "human" | "sla" | "waiting" | "opportunity" | null;
+type DashboardHighlight = "bot" | "human" | "queue" | "waiting" | "opportunity" | null;
 
 type DemoOperationalDashboardProps = {
   highlight?: DashboardHighlight;
@@ -13,49 +13,48 @@ type DemoOperationalDashboardProps = {
 const metrics = [
   {
     id: "messages" as const,
-    label: "Msg 24h",
-    value: "847",
+    label: "Inbox",
+    value: "Compartilhado",
     icon: MessageCircle,
     color: "df-status-brand",
     highlightKey: null,
   },
   {
     id: "bot" as const,
-    label: "Resolvidas pelo bot",
-    value: "612",
-    sub: "72%",
+    label: "Automação",
+    value: "No repetitivo",
     icon: Bot,
     color: "df-status-info",
     highlightKey: "bot" as const,
   },
   {
     id: "human" as const,
-    label: "Em atendimento humano",
-    value: "18",
+    label: "Em atendimento",
+    value: "Com Bruno",
     icon: Users,
     color: "df-status-warning",
     highlightKey: "human" as const,
   },
   {
-    id: "sla" as const,
-    label: "SLA em risco",
-    value: "3",
+    id: "queue" as const,
+    label: "Precisa resposta",
+    value: "Sem responsável",
     icon: AlertTriangle,
     color: "df-status-danger",
-    highlightKey: "sla" as const,
+    highlightKey: "queue" as const,
   },
   {
     id: "waiting" as const,
     label: "Aguardando",
-    value: "7",
+    value: "Na fila",
     icon: Clock,
     color: "df-status-warning",
     highlightKey: "waiting" as const,
   },
   {
     id: "opportunity" as const,
-    label: "Oportunidades preservadas",
-    value: "5",
+    label: "Transferido",
+    value: "Para Carla",
     icon: TrendingUp,
     color: "df-status-success",
     highlightKey: "opportunity" as const,
@@ -72,18 +71,18 @@ export function DemoOperationalDashboard({
         "df-surface-elevated rounded-xl p-4 shadow-sm sm:p-5",
         className
       )}
-      aria-label="Dashboard operacional simulado"
+      aria-label="Painel ilustrativo da operação"
     >
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-semibold uppercase tracking-wide df-text-muted">
-          Dashboard operacional
+          Demonstração da plataforma
         </p>
         <span className="rounded-full df-bg-brand-soft px-2 py-0.5 text-[10px] font-semibold df-status-brand">
-          Simulação
+          Dados ilustrativos
         </span>
       </div>
       <p className="df-text-secondary mt-1 text-xs leading-relaxed">
-        Visão em tempo real — fila, SLA, bot vs humano e oportunidades comerciais.
+        Simulação do estado das conversas: responsável, fila e handoff. Não é uma operação de cliente.
       </p>
 
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -101,8 +100,7 @@ export function DemoOperationalDashboard({
                 <m.icon className={cn("size-3.5 shrink-0", m.color)} aria-hidden />
                 <p className="df-text-secondary truncate text-[10px] font-medium">{m.label}</p>
               </div>
-              <p className={cn("mt-1 text-lg font-bold leading-none", m.color)}>{m.value}</p>
-              {m.sub && <p className="df-text-muted mt-0.5 text-[10px]">{m.sub}</p>}
+              <p className={cn("mt-1 text-sm font-bold leading-snug", m.color)}>{m.value}</p>
             </div>
           );
         })}
@@ -111,7 +109,7 @@ export function DemoOperationalDashboard({
       <div className="mt-4 rounded-lg border df-bg-brand-soft px-3 py-2.5">
         <p className="text-[11px] font-semibold df-status-brand">WhatsApp Cloud API oficial</p>
         <p className="df-text-secondary mt-0.5 text-[10px] leading-relaxed">
-          IA no repetitivo · handoff humano · fila priorizada · SLA rastreável
+          IA no repetitivo · handoff para uma pessoa · fila · histórico
         </p>
       </div>
     </aside>

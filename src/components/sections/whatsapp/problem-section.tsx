@@ -19,8 +19,8 @@ const problems = [
   },
   {
     icon: AlertTriangle,
-    title: "Gestão no escuro",
-    description: "Sem SLA, score e conversão visíveis, você gerencia no improviso.",
+    title: "Ninguém sabe quem responde",
+    description: "Sem responsável e sem fila, a conversa fica no celular de alguém e o restante da equipe não vê o contexto.",
   },
   {
     icon: Users,

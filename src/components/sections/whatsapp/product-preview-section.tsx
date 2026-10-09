@@ -1,71 +1,70 @@
 import Link from "next/link";
-import { ArrowRight, BarChart3, Bot, Clock3, Search, Users2 } from "lucide-react";
+import { ArrowRight, Bot, Search, Users2 } from "lucide-react";
 import { Section } from "@/components/layout/Section";
 import { PRIMARY_DEMO_CTA_LABEL } from "@/lib/conversion-copy";
 import { cn } from "@/lib/utils";
 
 const inboxRows = [
   {
-    initials: "AC",
-    contact: "ACME · Upgrade anual",
-    meta: "Digitando resposta… · SLA 6m",
-    score: "94",
+    initials: "MA",
+    contact: "Mariana",
+    meta: "Precisa resposta · Sem responsável",
+    state: "Fila",
+    tone: "df-bg-warning-soft",
+  },
+  {
+    initials: "JO",
+    contact: "João",
+    meta: "Com Bruno · Fila Comercial",
+    state: "Bruno",
     tone: "df-bg-success-soft",
   },
   {
-    initials: "CH",
-    contact: "Clínica Horizonte",
-    meta: "Fluxo disparado há 9s · PDF enviado",
-    score: "81",
+    initials: "AN",
+    contact: "Ana",
+    meta: "Transferido para Carla",
+    state: "Carla",
     tone: "df-bg-info-soft",
-  },
-  {
-    initials: "SN",
-    contact: "Studio North · Proposta",
-    meta: "Carla assumiu há 1m · deal quente",
-    score: "88",
-    tone: "df-bg-warning-soft",
   },
 ];
 
 const automationRuns = [
   {
-    name: "Qualificação B2B",
-    status: "14/min",
+    name: "Dúvidas frequentes",
+    status: "Quando ativa",
     tone: "df-bg-success-soft df-status-success",
   },
   {
-    name: "Suporte nível 1",
-    status: "Ativo",
+    name: "Encaminhar para a equipe",
+    status: "Handoff",
     tone: "df-bg-info-soft df-status-info",
   },
   {
-    name: "Pós-venda D+7",
-    status: "Disparou agora",
+    name: "Aguardando pessoa",
+    status: "Na fila",
     tone: "df-text-secondary bg-muted/25 border-border",
   },
 ];
 
-const metricBars = [
-  { label: "1ª resposta", value: "42s", pct: 78, hint: "meta batida" },
-  { label: "Bot fecha", value: "71%", pct: 71, hint: "hoje" },
-  { label: "Lead → MQL", value: "18%", pct: 52, hint: "vs ontem" },
+const conversationStates = [
+  { label: "Precisa resposta", value: "Sem responsável" },
+  { label: "Em atendimento", value: "Com Bruno" },
+  { label: "Transferido", value: "Para Carla" },
 ];
 
 export function ProductPreviewSection() {
   return (
     <Section aria-labelledby="product-preview-heading" className="py-20 sm:py-24">
       <div className="mx-auto max-w-3xl text-center">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] df-status-brand sm:text-sm">Isso roda agora</p>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] df-status-brand sm:text-sm">Demonstração da plataforma</p>
         <h2
           id="product-preview-heading"
           className="mt-3 text-balance text-3xl font-bold tracking-tight df-text-primary sm:text-4xl"
         >
-          Sua fila respondendo sozinha enquanto o comercial fecha no timing certo
+          A fila deixa claro o que ainda precisa de resposta
         </h2>
         <p className="df-text-secondary mx-auto mt-4 max-w-2xl text-base font-semibold leading-snug sm:text-lg">
-          Veja ação no painel: mensagens entrando, automação disparando, SLA apertando e o lead certo subindo — sem
-          planilha, sem caos no celular.
+          Dados ilustrativos. A equipe vê quem está com a conversa, o que está na fila e quando a automação encaminha para uma pessoa.
         </p>
       </div>
 
@@ -82,20 +81,20 @@ export function ProductPreviewSection() {
                 DevFlow WhatsApp Platform
               </p>
               <span className="shrink-0 rounded-full df-bg-brand-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide df-status-brand">
-                Produção
+                Dados ilustrativos
               </span>
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-2 border-b df-border-brand bg-[var(--devflow-surface-elevated)] px-3 py-2 sm:px-4">
               <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wide df-text-secondary sm:text-[11px]">
                 <span className="inline-flex items-center gap-1 rounded-full df-bg-brand-soft px-2 py-0.5 df-status-brand">
-                  <span className="size-1.5 animate-pulse rounded-full df-dot-brand" aria-hidden />
-                  14 msgs/min
+                  <span className="size-1.5 rounded-full df-dot-brand" aria-hidden />
+                  Precisa resposta
                 </span>
-                <span className="rounded-full bg-muted/50 px-2 py-0.5 df-text-primary ring-1 ring-border">3 fluxos ativos</span>
-                <span className="rounded-full df-bg-warning-soft px-2 py-0.5 df-status-warning">2 SLA críticos</span>
+                <span className="rounded-full bg-muted/50 px-2 py-0.5 df-text-primary ring-1 ring-border">Fila Comercial</span>
+                <span className="rounded-full df-bg-warning-soft px-2 py-0.5 df-status-warning">Sem responsável</span>
               </div>
-              <span className="df-text-secondary text-[10px] font-semibold sm:text-[11px]">Último evento há 3s</span>
+              <span className="df-text-secondary text-[10px] font-semibold sm:text-[11px]">Simulação</span>
             </div>
 
             <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:divide-x lg:divide-border">
@@ -110,7 +109,7 @@ export function ProductPreviewSection() {
                   <span className="text-xs font-medium text-muted-foreground">Buscar deal, tag ou ticket…</span>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {["Todas", "SLA em risco", "Minha fila"].map((tab, i) => (
+                  {["Todas", "Precisa resposta", "Minha fila"].map((tab, i) => (
                     <span
                       key={tab}
                       className={cn(
@@ -138,8 +137,8 @@ export function ProductPreviewSection() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-2">
                             <p className="truncate text-xs font-bold text-foreground">{row.contact}</p>
-                            <span className="shrink-0 rounded-md bg-muted/40 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-foreground ring-1 ring-border">
-                              {row.score}
+                            <span className="shrink-0 rounded-md bg-muted/40 px-1.5 py-0.5 text-[10px] font-bold text-foreground ring-1 ring-border">
+                              {row.state}
                             </span>
                           </div>
                           <p className="df-text-secondary mt-1 text-[11px] font-medium leading-snug">{row.meta}</p>
@@ -156,22 +155,21 @@ export function ProductPreviewSection() {
                   <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/80 pb-3">
                     <div className="min-w-0">
                       <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Conversa ativa</p>
-                      <p className="mt-1 truncate text-sm font-bold text-foreground">ACME · Upgrade anual</p>
+                      <p className="mt-1 truncate text-sm font-bold text-foreground">João · Fila Comercial</p>
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         <span className="rounded-md df-bg-success-soft px-2 py-0.5 text-[10px] font-bold df-status-success">
-                          Score 94
+                          Com Bruno
                         </span>
                         <span className="rounded-md bg-muted/35 px-2 py-0.5 text-[10px] font-semibold df-text-primary">
-                          SLA 8m
+                          Em atendimento
                         </span>
                         <span className="rounded-md df-bg-info-soft px-2 py-0.5 text-[10px] font-bold df-status-info">
-                          Vendas
+                          Fila Comercial
                         </span>
                       </div>
                     </div>
                     <div className="flex shrink-0 items-center gap-1.5 rounded-full df-bg-warning-soft px-2.5 py-1 text-[10px] font-bold df-status-warning shadow-sm">
-                      <Clock3 className="size-3.5" aria-hidden />
-                      SLA 6m · fila quente
+                      Aguardando responsável
                     </div>
                   </div>
 
@@ -180,26 +178,26 @@ export function ProductPreviewSection() {
                       <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                         Automação · agora
                       </span>
-                      Vi renovação anual. Confirmo 42 licenças e já mando link de pagamento?
+                      Posso confirmar o horário de entrega para o centro?
                     </div>
                     <div className="ml-auto max-w-[88%] rounded-2xl rounded-tr-md bg-muted px-3.5 py-2.5 text-xs leading-relaxed df-text-primary shadow-md">
                       <span className="df-text-secondary mb-1 block text-[10px] font-semibold uppercase tracking-wide">
-                        Cliente · agora
+                        Cliente
                       </span>
-                      São 42 licenças. Preciso falar com alguém sobre desconto progressivo.
+                      Preciso falar com alguém sobre uma exceção nesse pedido.
                     </div>
                     <div className="max-w-[88%] rounded-2xl rounded-tl-md border df-bg-success-soft px-3.5 py-2.5 text-xs font-medium leading-relaxed df-text-primary shadow-sm">
                       <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide df-status-success">
-                        Sistema · +1s
+                        Equipe
                       </span>
-                      Carla já entrou com score, histórico e última proposta — zero retrabalho.
+                      Conversa transferida para Carla, com o histórico preservado.
                     </div>
                   </div>
 
                   <div className="mt-4 rounded-xl border border-dashed border-border/90 bg-muted/20 px-3 py-2.5">
-                    <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Regras ativas</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">O que a equipe vê</p>
                     <p className="mt-1 text-[11px] font-semibold leading-snug text-foreground">
-                      Score mexe na fila · SLA grita antes de estourar · handoff manda contexto · zero msg duplicada
+                      Responsável da conversa · fila · histórico compartilhado · encaminhamento para uma pessoa
                     </p>
                   </div>
                 </article>
@@ -228,25 +226,14 @@ export function ProductPreviewSection() {
 
                   <article className="rounded-2xl border border-border bg-muted/15 p-4 shadow-sm sm:p-5">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-bold text-foreground">Resultado hoje</p>
-                      <BarChart3 className="size-4 df-status-brand" aria-hidden />
+                      <p className="text-sm font-bold text-foreground">Estado da conversa</p>
+                      <Users2 className="size-4 df-status-brand" aria-hidden />
                     </div>
                     <div className="mt-4 space-y-3">
-                      {metricBars.map((m) => (
-                        <div key={m.label}>
-                          <div className="flex items-baseline justify-between gap-2">
-                            <p className="text-[11px] font-bold text-muted-foreground">
-                              {m.label}{" "}
-                              <span className="font-semibold df-status-success">· {m.hint}</span>
-                            </p>
-                            <p className="text-sm font-bold tabular-nums text-foreground">{m.value}</p>
-                          </div>
-                          <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-muted/50">
-                            <div
-                              className="h-full rounded-full bg-[linear-gradient(to_right,var(--devflow-brand),var(--devflow-info))]"
-                              style={{ width: `${m.pct}%` }}
-                            />
-                          </div>
+                      {conversationStates.map((m) => (
+                        <div key={m.label} className="flex items-baseline justify-between gap-2">
+                          <p className="text-[11px] font-bold text-muted-foreground">{m.label}</p>
+                          <p className="text-sm font-bold text-foreground">{m.value}</p>
                         </div>
                       ))}
                     </div>
@@ -259,8 +246,7 @@ export function ProductPreviewSection() {
 
         <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-center sm:flex-row sm:text-left">
           <p className="df-text-secondary max-w-md text-sm font-semibold leading-snug">
-            Em 2 minutos você vê a fila, a automação e o SLA — o mesmo gatilho que o time sente quando o produto
-            trabalha por ele.
+            A demonstração mostra fila, responsável e handoff. Dados ilustrativos, não uma operação de cliente.
           </p>
           <Link
             href="/demo"

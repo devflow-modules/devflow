@@ -6,23 +6,23 @@ import { PRIMARY_DEMO_CTA_LABEL } from "@/lib/conversion-copy";
 const solutions = [
   {
     icon: Layers3,
-    title: "Um cockpit só",
-    description: "Tudo que importa num inbox: contexto, dono e histórico — sem dispersão.",
+    title: "Inbox compartilhado",
+    description: "A equipe atende no mesmo inbox, com o histórico da conversa, em vez do celular de cada pessoa.",
   },
   {
     icon: Gauge,
-    title: "Prioridade = ticket",
-    description: "Score e regras empurram o deal quente pra cima. O resto espera na fila certa.",
+    title: "Responsável e fila",
+    description: "Cada conversa pode ter um responsável. A equipe assume, transfere ou devolve para a fila.",
   },
   {
     icon: Bot,
-    title: "IA que trabalha pesado",
-    description: "Responde o repetitivo na hora. Só chama humano quando tem peixe grande.",
+    title: "Automação no repetitivo",
+    description: "A automação responde o que foi permitido. Exceção e contexto seguem para uma pessoa.",
   },
   {
     icon: ArrowRightLeft,
-    title: "Handoff sem drama",
-    description: "Passa pro humano com contexto completo. Zero “me explica de novo”.",
+    title: "Handoff para a equipe",
+    description: "A conversa segue para uma pessoa com o contexto que já estava no histórico.",
   },
 ];
 
@@ -36,10 +36,10 @@ export function SolutionSection() {
             id="solution-section-heading"
             className="mt-3 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
           >
-            Troca improviso por máquina de receita no WhatsApp
+            Uma camada operacional para as conversas do WhatsApp
           </h2>
           <p className="df-text-secondary mt-4 max-w-2xl text-base font-semibold leading-snug sm:text-lg">
-            Menos heroísmo, mais processo: fila organizada, automação no lugar certo e número na mesa pra decidir rápido.
+            Inbox, responsável, fila e handoff. A implantação é acompanhada: diagnóstico, desenho dos fluxos e configuração da equipe.
           </p>
           <p className="mt-6 text-sm font-bold text-foreground">
             <Link

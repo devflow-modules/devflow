@@ -11,44 +11,44 @@ const ogImage = `${baseUrl}/og-devflow.png`;
 const faqItems = [
   {
     q: "Automação substitui atendente?",
-    a: "Substitui tarefas repetitivas e primeiro contato. Quando o cliente pede humano, há exceção ou venda complexa, o handoff deve ser imediato — com histórico e contexto na fila.",
+    a: "Não. Ela responde o que foi permitido. Quando a conversa exige contexto, exceção ou uma pessoa, ela segue para a equipe, com o histórico na fila.",
   },
   {
     q: "Preciso de API oficial da Meta?",
-    a: "Para operação séria com múltiplos agentes, filas e métricas, o caminho é integração sobre a infraestrutura oficial. Veja o guia em WhatsApp Business API e como isso se conecta ao produto.",
+    a: "Sim. A operação usa a WhatsApp Cloud API oficial, com inbox, responsáveis e filas. A ativação do número é acompanhada.",
   },
   {
     q: "Quanto tempo leva para ver valor?",
-    a: "A demo guiada mostra o fluxo em minutos. Piloto comercial depende do seu volume e canais; o importante é medir tempo de primeira resposta e taxa de conversão antes e depois.",
+    a: "A demo é uma simulação do fluxo. O diagnóstico define o que entra na implantação acompanhada.",
   },
 ];
 
 const heroBullets = [
-  "Automação que responde 24/7 sem perder qualidade",
-  "Métricas em tempo real e handoff para equipe humana",
-  "Operação confiável para escalar o atendimento",
+  "Automatize o repetitivo e leve exceções para a equipe",
+  "Acompanhe responsáveis, filas e o estado das conversas",
+  "A configuração inicial é acompanhada pela DevFlow",
 ];
 
 const features = [
   {
     title: "Respostas automáticas",
     description:
-      "O sistema responde sozinho perguntas frequentes, 24/7, sem ocupar a equipe.",
+      "Pode responder automaticamente fluxos permitidos quando a automação está ativa.",
   },
   {
-    title: "Handoff inteligente",
+    title: "Handoff para uma pessoa",
     description:
-      "Quando o cliente pede atendente ou o fluxo exige, a conversa vai para humano na hora.",
+      "Quando o cliente pede atendente ou o fluxo exige, a conversa segue para a equipe.",
   },
   {
-    title: "Métricas por intent e horário",
+    title: "Estado da conversa",
     description:
-      "Veja o que foi automatizado e o que virou atendimento, em tempo real.",
+      "Acompanhe responsáveis, filas e o que ainda precisa de resposta.",
   },
   {
-    title: "Visão operacional",
+    title: "Histórico compartilhado",
     description:
-      "Dashboards simples para acompanhar performance e volume da operação.",
+      "Quem assume a conversa vê o contexto que já estava no inbox.",
   },
 ];
 
@@ -64,13 +64,13 @@ const howItWorksSteps = [
     icon: MessageCircle,
     title: "Cliente envia mensagem no WhatsApp",
     description:
-      "O cliente manda a primeira mensagem. O sistema recebe e identifica a intenção.",
+      "O cliente manda a primeira mensagem. Se a automação estiver ativa, o fluxo permitido pode responder.",
   },
   {
     icon: Zap,
-    title: "O sistema responde automaticamente",
+    title: "A automação responde o que foi permitido",
     description:
-      "Conforme a intenção, a resposta é enviada na hora — sem fila, sem espera.",
+      "Dúvidas do roteiro configurado podem ser respondidas automaticamente. O restante fica com a equipe.",
   },
   {
     icon: UserRound,
@@ -83,7 +83,7 @@ const howItWorksSteps = [
 export const metadata: Metadata = {
   title: "Automação de WhatsApp para Empresas | DevFlow Labs",
   description:
-    "Automatize atendimento no WhatsApp com IA, métricas e controle da operação. Sistema de automação para empresas. Piloto grátis.",
+    "Automatize o repetitivo no WhatsApp e encaminhe exceções para a equipe. Implantação acompanhada.",
   keywords: [
     "automação whatsapp empresa",
     "automação whatsapp atendimento",
@@ -99,7 +99,7 @@ export const metadata: Metadata = {
     siteName: "DevFlow Labs",
     title: "Automação de WhatsApp para Empresas | DevFlow Labs",
     description:
-      "Automatize atendimento no WhatsApp com IA, métricas e controle da operação.",
+      "Automação supervisionada no WhatsApp: o repetitivo pode ser respondido e a exceção segue para a equipe.",
     url: `${baseUrl}/automacao-whatsapp`,
     images: [
       {
@@ -114,7 +114,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Automação WhatsApp para Empresas | DevFlow Labs",
     description:
-      "Automatize atendimento no WhatsApp com IA, métricas e controle da operação.",
+      "Automação no repetitivo, com handoff para a equipe. Implantação acompanhada.",
     images: [ogImage],
   },
 };
@@ -135,8 +135,7 @@ export default function AutomacaoWhatsAppPage() {
               Automação de WhatsApp para Empresas
             </h1>
             <p className="mt-4 text-lg text-muted-foreground">
-              Automatize atendimento, organize conversas e nunca deixe um cliente
-              sem retorno. IA + métricas + handoff humano.
+              Automatize o repetitivo e leve exceções para a equipe. Inbox, responsáveis e handoff.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
               <Link
@@ -206,7 +205,7 @@ export default function AutomacaoWhatsAppPage() {
             O que a automação entrega
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
-            Recursos para automatizar, medir e controlar o atendimento.
+            Automação supervisionada dentro da operação de conversas.
           </p>
           <div className="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
             {features.map((feature) => (
@@ -304,7 +303,7 @@ export default function AutomacaoWhatsAppPage() {
             Automação por segmento
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
-            Soluções prontas para o seu tipo de negócio.
+            Páginas de exemplo por segmento. O desenho do fluxo entra no diagnóstico.
           </p>
           <div className="mx-auto mt-12 flex max-w-2xl flex-wrap justify-center gap-3">
             {segmentLinks.map((item) => (
@@ -341,7 +340,7 @@ export default function AutomacaoWhatsAppPage() {
               Quer automatizar seu WhatsApp?
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Piloto de 7 dias para testar. Sem compromisso.
+              O próximo passo é o diagnóstico. A demo é uma simulação, com dados ilustrativos.
             </p>
             <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
               <Link
