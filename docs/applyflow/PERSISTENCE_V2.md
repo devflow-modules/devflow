@@ -22,22 +22,26 @@
 
 When canonical persistence is `v2_cloud`, profile, contacts, interactions, inbound responses, and career events are rows owned by `ApplyFlowAccount.id`. Analytics are calculated from those rows plus Jobs/Applications. Personal import is explicit, resumable, and does not promote or demote `canonicalPersistence`. It reports fingerprint conflicts instead of last-write-wins.
 
-RLS is enabled on the new tables without `FORCE`. Prisma uses the database role and does not send the Supabase user JWT, so API scoping remains the enforcement path. Policies are versioned in `20261005170000_account_personal_persistence` and are not claimed as applied in production until an operator runs the migration on the ApplyFlow database.
+RLS is enabled on the new tables without `FORCE`. Prisma uses the database role and does not send the Supabase user JWT, so API scoping remains the enforcement path. `20261005170000_account_personal_persistence` was applied on the ApplyFlow production database before the `be7a346c` deployment. Authenticated production smoke of those personal rows is still pending. Role `applyflow_runtime` is the production runtime role; `BYPASSRLS` means API scoping, not RLS, is the tenant boundary.
 
 **DB contract (A):** account isolation is enforced by ApplyFlow HTTP APIs + `accountId` repository scoping. Local Docker role `applyflow` is superuser/owner/`BYPASSRLS`, so RLS is **not** effective for Prisma queries. See [`ACCOUNT_PERSISTENCE_PUBLICATION_PREP.md`](./ACCOUNT_PERSISTENCE_PUBLICATION_PREP.md) and `pnpm db:role:inspect` / `pnpm db:role:rehearse-runtime` (local only).
 
 ## Effective mode matrix
 
-| GLOBAL | pilotEligible | canonical | mode |
-| --- | --- | --- | --- |
-| false | * | `v1_local` | `v1` |
-| true | false | `v1_local` | `v1` |
-| true | true | `v1_local` | `v2_offering` |
-| false | * | `v2_cloud` | `v2_paused` |
-| true | false | `v2_cloud` | `v2_read_only` |
-| true | true | `v2_cloud` | `v2_active` |
+When `APPLYFLOW_PERSISTENCE_V2=true`, the rows below apply only to accounts listed in server env `APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS`. Absent, empty, or invalid selection fails closed. An unlisted `v2_cloud` account stays `v2_paused` (no local fallback, no new offering). An unlisted `v1_local` account stays `v1`. Flag `false` ignores the list. Operational steps: [`PERSISTENCE_V2_FIRST_PRODUCTION_PILOT_RUNBOOK.md`](./PERSISTENCE_V2_FIRST_PRODUCTION_PILOT_RUNBOOK.md).
 
-**One-way:** `v1_local` → `v2_cloud`. Operator CLI never downgrades canonical.
+| GLOBAL | rollout | pilotEligible | canonical | mode |
+| --- | --- | --- | --- | --- |
+| false | ignored | * | `v1_local` | `v1` |
+| false | ignored | * | `v2_cloud` | `v2_paused` |
+| true | closed or unlisted | * | `v1_local` | `v1` |
+| true | closed or unlisted | * | `v2_cloud` | `v2_paused` |
+| true | listed | false | `v1_local` | `v1` |
+| true | listed | true | `v1_local` | `v2_offering` |
+| true | listed | false | `v2_cloud` | `v2_read_only` |
+| true | listed | true | `v2_cloud` | `v2_active` |
+
+**One-way:** `v1_local` → `v2_cloud`. Operator CLI never downgrades canonical. Pause is not a canonical write.
 
 ## PATCH concurrency
 

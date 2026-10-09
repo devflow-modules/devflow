@@ -36,7 +36,7 @@ import { requireApplyFlowAccount } from "@/lib/persistence-v2/require-applyflow-
 import { GET, PATCH } from "./route";
 
 const account = {
-  id: "account-server",
+  id: "11111111-1111-4111-8111-111111111111",
   authProviderSub: "sub-1",
   email: null,
   pilotEligible: true,
@@ -85,6 +85,7 @@ function patchRequest(body: unknown) {
 
 describe("Job item routes", () => {
   beforeEach(() => {
+    process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS = "11111111-1111-4111-8111-111111111111";
     vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(true);
     vi.mocked(requireApplyFlowAccount).mockResolvedValue(account);
     vi.mocked(applyFlowJobService.get).mockReset();
@@ -96,7 +97,7 @@ describe("Job item routes", () => {
     const response = await GET(new Request("http://localhost/api/applyflow/v2/jobs/job_client_fixed"), context);
     expect(response.status).toBe(200);
     expect(response.headers.get("ETag")).toBe('"2"');
-    expect(applyFlowJobService.get).toHaveBeenCalledWith("account-server", "job_client_fixed");
+    expect(applyFlowJobService.get).toHaveBeenCalledWith("11111111-1111-4111-8111-111111111111", "job_client_fixed");
   });
 
   it("denies product GET for offering accounts (AF-REL-003)", async () => {
@@ -120,7 +121,7 @@ describe("Job item routes", () => {
     vi.mocked(applyFlowJobService.get).mockResolvedValue(job);
     const response = await GET(new Request("http://localhost/api/applyflow/v2/jobs/job_client_fixed"), context);
     expect(response.status).toBe(200);
-    expect(applyFlowJobService.get).toHaveBeenCalledWith("account-server", "job_client_fixed");
+    expect(applyFlowJobService.get).toHaveBeenCalledWith("11111111-1111-4111-8111-111111111111", "job_client_fixed");
   });
 
   it("returns 404 for a missing or cross-account job", async () => {
@@ -136,7 +137,7 @@ describe("Job item routes", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("ETag")).toBe('"2"');
     expect(applyFlowJobService.patch).toHaveBeenCalledWith(
-      "account-server",
+      "11111111-1111-4111-8111-111111111111",
       "job_client_fixed",
       1,
       expect.objectContaining({ title: "Updated title" }),

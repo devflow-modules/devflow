@@ -39,7 +39,7 @@ import { applyFlowApplicationService } from "@/lib/persistence-v2/applications/a
 import { GET, POST } from "./route";
 
 const account = {
-  id: "account-server",
+  id: "11111111-1111-4111-8111-111111111111",
   authProviderSub: "sub-1",
   email: null,
   pilotEligible: true,
@@ -69,6 +69,7 @@ const application = {
 
 describe("Application collection routes", () => {
   beforeEach(() => {
+    process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS = "11111111-1111-4111-8111-111111111111";
     vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(true);
     vi.mocked(requireApplyFlowAccount).mockResolvedValue(account);
     vi.mocked(applyFlowApplicationService.list).mockReset();
@@ -142,7 +143,7 @@ describe("Application collection routes", () => {
     const response = await GET();
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ applications: [application] });
-    expect(applyFlowApplicationService.list).toHaveBeenCalledWith("account-server");
+    expect(applyFlowApplicationService.list).toHaveBeenCalledWith("11111111-1111-4111-8111-111111111111");
   });
 
   it("creates with the server account and preserves the client id", async () => {
@@ -157,7 +158,7 @@ describe("Application collection routes", () => {
     expect(response.status).toBe(201);
     expect(response.headers.get("ETag")).toBe('"1"');
     expect(applyFlowApplicationService.create).toHaveBeenCalledWith(
-      "account-server",
+      "11111111-1111-4111-8111-111111111111",
       expect.objectContaining({ id: "app_client" }),
     );
   });

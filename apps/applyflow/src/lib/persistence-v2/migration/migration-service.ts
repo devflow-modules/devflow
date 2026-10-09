@@ -20,7 +20,7 @@ import {
 } from "../repositories";
 import { classifyApplicationUniqueViolation } from "../applications/application-unique-violation";
 import { applyflowPrisma } from "../db";
-import { isApplyFlowPersistenceV2Enabled } from "../feature-flag";
+import { resolveApplyFlowPersistenceAccess } from "../resolve-persistence-access";
 import { promoteApplyFlowCanonicalPersistenceToV2 } from "../promote-canonical-persistence";
 import {
   canonicalizeForFingerprint,
@@ -412,9 +412,6 @@ export function createApplyFlowMigrationService(deps?: {
     canonicalPersistence: "v1_local" | "v2_cloud";
     pilotEligible: boolean;
   }> {
-    if (!isApplyFlowPersistenceV2Enabled()) {
-      throw new ApplyFlowMigrationServiceError("migration_activation_not_eligible");
-    }
     const account = await tx.applyFlowAccount.findUnique({
       where: { id: accountId },
       select: { id: true, canonicalPersistence: true, pilotEligible: true },
@@ -422,7 +419,8 @@ export function createApplyFlowMigrationService(deps?: {
     if (!account) {
       throw new ApplyFlowMigrationServiceError("migration_session_failed");
     }
-    if (!account.pilotEligible) {
+    const access = resolveApplyFlowPersistenceAccess(account);
+    if (access.mode !== "v2_offering" && access.mode !== "v2_active") {
       throw new ApplyFlowMigrationServiceError("migration_activation_not_eligible");
     }
     return account;

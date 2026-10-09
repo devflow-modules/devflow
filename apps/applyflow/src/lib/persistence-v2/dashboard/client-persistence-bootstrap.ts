@@ -22,7 +22,7 @@ export type ApplyFlowClientCanonicalPersistence = "v1_local" | "v2_cloud";
 export type ApplyFlowClientPersistenceBootstrap =
   | {
       mode: "v1";
-      reason: "global_disabled" | "not_eligible" | "anonymous";
+      reason: "global_disabled" | "not_eligible" | "rollout_closed" | "rollout_excluded" | "anonymous";
       canonicalPersistence: "v1_local";
       pilotEligible: boolean;
       accountId: string | null;
@@ -50,7 +50,7 @@ export type ApplyFlowClientPersistenceBootstrap =
     }
   | {
       mode: "v2_paused";
-      reason: "global_disabled_canonical_v2";
+      reason: "global_disabled_canonical_v2" | "rollout_closed" | "rollout_excluded";
       canonicalPersistence: "v2_cloud";
       pilotEligible: boolean;
       accountId: string;

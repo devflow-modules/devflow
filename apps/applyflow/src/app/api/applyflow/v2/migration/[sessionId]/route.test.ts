@@ -37,7 +37,7 @@ import {
 import { GET } from "./route";
 
 const account = {
-  id: "account-server",
+  id: "11111111-1111-4111-8111-111111111111",
   authProviderSub: "sub-1",
   email: null,
   pilotEligible: true,
@@ -49,6 +49,7 @@ const account = {
 describe("Migration session route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS = "11111111-1111-4111-8111-111111111111";
     vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(true);
     vi.mocked(requireApplyFlowAccount).mockResolvedValue(account);
   });
@@ -70,7 +71,7 @@ describe("Migration session route", () => {
     });
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({ status: "completed", sessionId: "session-1" });
-    expect(applyFlowMigrationService.getSession).toHaveBeenCalledWith("account-server", "session-1");
+    expect(applyFlowMigrationService.getSession).toHaveBeenCalledWith("11111111-1111-4111-8111-111111111111", "session-1");
   });
 
   it("returns not found for missing or cross-account sessions", async () => {

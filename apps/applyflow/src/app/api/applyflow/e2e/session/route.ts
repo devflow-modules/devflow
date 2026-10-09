@@ -22,6 +22,8 @@ type SessionBody = {
   seedPilot?: boolean;
   /** Force non-pilot v1_local (explicit closed-beta gate assertion). */
   seedNonPilot?: boolean;
+  /** Selected cloud account with pilot revoked: v2_read_only. */
+  seedReadOnly?: boolean;
 };
 
 /**
@@ -71,12 +73,13 @@ export async function POST(request: Request) {
   }
 
   let seeded: Awaited<ReturnType<typeof seedE2EApplyFlowAccount>> | null = null;
-  if (body.seedV2 || body.seedPilot || body.seedNonPilot) {
+  if (body.seedV2 || body.seedPilot || body.seedNonPilot || body.seedReadOnly) {
     try {
       seeded = await seedE2EApplyFlowAccount({
         authProviderSub: authSub,
-        pilotEligible: body.seedNonPilot ? false : true,
-        v2Cloud: Boolean(body.seedV2) && !body.seedNonPilot,
+        pilotEligible: body.seedReadOnly || body.seedNonPilot ? false : true,
+        v2Cloud: Boolean(body.seedV2 || body.seedReadOnly) && !body.seedNonPilot,
+        allowCloudWithoutPilot: Boolean(body.seedReadOnly),
       });
     } catch {
       return NextResponse.json({ error: "seed_failed" }, { status: 500 });

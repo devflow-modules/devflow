@@ -69,6 +69,7 @@ describe("empty activation", () => {
   const previous = process.env.APPLYFLOW_PERSISTENCE_V2;
   beforeEach(() => {
     process.env.APPLYFLOW_PERSISTENCE_V2 = "true";
+    process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS = ACCOUNT;
   });
   afterEach(() => {
     if (previous === undefined) delete process.env.APPLYFLOW_PERSISTENCE_V2;
@@ -103,17 +104,16 @@ describe("empty activation", () => {
     ).rejects.toMatchObject({ code: "persistence_v2_activation_not_eligible" });
   });
 
-  it("denies GLOBAL=false when already v2_cloud via paused short-circuit is not needed — already_active", async () => {
+  it("denies GLOBAL=false when already v2_cloud without claiming active", async () => {
     process.env.APPLYFLOW_PERSISTENCE_V2 = "false";
     const memory = createMemoryPersistenceDb([
       memoryPilotAccount(ACCOUNT, { canonicalPersistence: "v2_cloud" }),
     ]);
     const service = createApplyFlowEmptyActivationService({ db: memory.db });
-    const proof = await service.activate(
-      asRecord(memory.accounts.get(ACCOUNT)!),
-      parseEmptyActivationBody(emptyBody()),
-    );
-    expect(proof.status).toBe("already_active");
+    await expect(
+      service.activate(asRecord(memory.accounts.get(ACCOUNT)!), parseEmptyActivationBody(emptyBody())),
+    ).rejects.toMatchObject({ code: "persistence_v2_activation_paused" });
+    expect(memory.accounts.get(ACCOUNT)?.canonicalPersistence).toBe("v2_cloud");
   });
 
   it("denies when Job already exists", async () => {

@@ -82,8 +82,15 @@ export function createApplyFlowEmptyActivationService(deps?: { db?: ApplyFlowPer
         throw new ApplyFlowEmptyActivationError("persistence_v2_activation_not_empty");
       }
 
-      // Idempotent short-circuit when already canonical V2 (any mode: active/read_only/paused).
+      // Already canonical V2. Only a selected active account returns already_active.
       if (account.canonicalPersistence === "v2_cloud") {
+        const current = resolveApplyFlowPersistenceAccess(account);
+        if (current.mode !== "v2_active") {
+          if (current.mode === "v2_paused") {
+            throw new ApplyFlowEmptyActivationError("persistence_v2_activation_paused");
+          }
+          throw new ApplyFlowEmptyActivationError("persistence_v2_activation_not_eligible");
+        }
         const existing = await db.applyFlowMigrationSession.findUnique({
           where: {
             accountId_sourceVersion_bundleFingerprint: {
@@ -118,9 +125,6 @@ export function createApplyFlowEmptyActivationService(deps?: { db?: ApplyFlowPer
         const txDb = tx as ApplyFlowPersistenceDb;
 
         // Re-check authorization inside the transaction (pilot/global race).
-        if (!isApplyFlowPersistenceV2Enabled()) {
-          throw new ApplyFlowEmptyActivationError("persistence_v2_activation_paused");
-        }
         const locked = await txDb.applyFlowAccount.findUnique({
           where: { id: account.id },
           select: { id: true, canonicalPersistence: true, pilotEligible: true, updatedAt: true },
@@ -128,7 +132,14 @@ export function createApplyFlowEmptyActivationService(deps?: { db?: ApplyFlowPer
         if (!locked) {
           throw new ApplyFlowEmptyActivationError("persistence_v2_activation_not_eligible");
         }
+        const lockedAccess = resolveApplyFlowPersistenceAccess(locked);
+        if (lockedAccess.mode === "v2_paused") {
+          throw new ApplyFlowEmptyActivationError("persistence_v2_activation_paused");
+        }
         if (locked.canonicalPersistence === "v2_cloud") {
+          if (lockedAccess.mode !== "v2_active") {
+            throw new ApplyFlowEmptyActivationError("persistence_v2_activation_not_eligible");
+          }
           const existing = await txDb.applyFlowMigrationSession.findUnique({
             where: {
               accountId_sourceVersion_bundleFingerprint: {
@@ -147,7 +158,7 @@ export function createApplyFlowEmptyActivationService(deps?: { db?: ApplyFlowPer
             completedAt: (existing?.completedAt ?? locked.updatedAt).toISOString(),
           };
         }
-        if (!locked.pilotEligible || locked.canonicalPersistence !== "v1_local") {
+        if (lockedAccess.mode !== "v2_offering") {
           throw new ApplyFlowEmptyActivationError("persistence_v2_activation_not_eligible");
         }
 

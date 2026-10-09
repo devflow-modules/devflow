@@ -40,7 +40,7 @@ import {
 import { GET, POST } from "./route";
 
 const account = {
-  id: "account-server",
+  id: "11111111-1111-4111-8111-111111111111",
   authProviderSub: "sub-1",
   email: null,
   pilotEligible: true,
@@ -88,6 +88,7 @@ function postRequest(body: unknown) {
 describe("Migration import route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS = "11111111-1111-4111-8111-111111111111";
     vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(true);
     vi.mocked(requireApplyFlowAccount).mockResolvedValue(account);
   });
@@ -194,7 +195,7 @@ describe("Migration import route", () => {
       sessionId: "session-1",
       status: "completed",
     });
-    expect(applyFlowMigrationService.importBundle).toHaveBeenCalledWith("account-server", body);
+    expect(applyFlowMigrationService.importBundle).toHaveBeenCalledWith("11111111-1111-4111-8111-111111111111", body);
   });
 
   it("returns conflict payload without overwriting semantics", async () => {

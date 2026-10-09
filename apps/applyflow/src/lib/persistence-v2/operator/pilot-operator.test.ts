@@ -184,7 +184,7 @@ describe("pilot operator status / grant / revoke", () => {
     const status = await getPilotOperatorStatus(
       db,
       { kind: "accountId", value: ID_V2 },
-      { APPLYFLOW_PERSISTENCE_V2: "true" },
+      { APPLYFLOW_PERSISTENCE_V2: "true", APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS: `${ID_V1},${ID_V2}` },
     );
     expect(status.effectiveMode).toBe("v2_active");
 
@@ -192,7 +192,7 @@ describe("pilot operator status / grant / revoke", () => {
       db,
       { kind: "accountId", value: ID_V2 },
       status.confirmToken!,
-      { APPLYFLOW_PERSISTENCE_V2: "true" },
+      { APPLYFLOW_PERSISTENCE_V2: "true", APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS: `${ID_V1},${ID_V2}` },
     );
     expect(revoked.result).toBe("changed");
     expect(revoked.after.pilotEligible).toBe(false);
@@ -206,7 +206,7 @@ describe("pilot operator status / grant / revoke", () => {
     const status = await getPilotOperatorStatus(
       db,
       { kind: "accountId", value: ID_V2 },
-      { APPLYFLOW_PERSISTENCE_V2: "true" },
+      { APPLYFLOW_PERSISTENCE_V2: "true", APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS: `${ID_V1},${ID_V2}` },
     );
     expect(status.effectiveMode).toBe("v2_read_only");
 
@@ -214,7 +214,7 @@ describe("pilot operator status / grant / revoke", () => {
       db,
       { kind: "accountId", value: ID_V2 },
       status.confirmToken!,
-      { APPLYFLOW_PERSISTENCE_V2: "true" },
+      { APPLYFLOW_PERSISTENCE_V2: "true", APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS: `${ID_V1},${ID_V2}` },
     );
     expect(granted.result).toBe("changed");
     expect(granted.after.pilotEligible).toBe(true);
@@ -309,7 +309,7 @@ describe("pilot operator status / grant / revoke", () => {
     const status = await getPilotOperatorStatus(
       db,
       { kind: "accountId", value: ID_V2 },
-      { APPLYFLOW_PERSISTENCE_V2: "true" },
+      { APPLYFLOW_PERSISTENCE_V2: "true", APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS: `${ID_V1},${ID_V2}` },
     );
     const revoked = await revokePilotEligible(
       db,

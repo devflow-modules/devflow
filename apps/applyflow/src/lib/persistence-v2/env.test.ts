@@ -41,6 +41,7 @@ describe("resolveApplyFlowPersistenceConfig", () => {
     expect(config.missing).toContain("NEXT_PUBLIC_SUPABASE_URL");
     expect(config.missing).toContain("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
     expect(config.missing).toContain("DATABASE_URL");
+    expect(config.missing).toContain("APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS");
   });
 
   it("does not accept legacy NEXT_PUBLIC_SUPABASE_ANON_KEY", () => {
@@ -60,6 +61,7 @@ describe("resolveApplyFlowPersistenceConfig", () => {
       NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test",
       DATABASE_URL: "postgresql://localhost:5432/applyflow",
+      APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS: "11111111-1111-4111-8111-111111111111",
     });
     expect(config.readyForFoundation).toBe(true);
     expect(config.missing).toEqual([]);

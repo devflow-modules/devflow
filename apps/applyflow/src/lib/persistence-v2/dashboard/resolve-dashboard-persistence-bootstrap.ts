@@ -83,7 +83,7 @@ export async function resolveDashboardPersistenceBootstrap(): Promise<ApplyFlowC
           ok: true,
           bootstrap: {
             mode: "v2_paused",
-            reason: "global_disabled_canonical_v2",
+            reason: access.reason,
             canonicalPersistence: "v2_cloud",
             pilotEligible: account.pilotEligible,
             accountId: account.id,

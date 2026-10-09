@@ -24,12 +24,12 @@ const MATRIX: Array<{
   },
   {
     name: "GLOBAL true | pilot false | v1_local → v1",
-    input: { globalEnabled: true, pilotEligible: false, canonicalPersistence: "v1_local" },
+    input: { globalEnabled: true, pilotEligible: false, canonicalPersistence: "v1_local", rollout: "selected" },
     expected: { mode: "v1", reason: "not_eligible", canonicalPersistence: "v1_local" },
   },
   {
     name: "GLOBAL true | pilot true | v1_local → v2_offering",
-    input: { globalEnabled: true, pilotEligible: true, canonicalPersistence: "v1_local" },
+    input: { globalEnabled: true, pilotEligible: true, canonicalPersistence: "v1_local", rollout: "selected" },
     expected: { mode: "v2_offering", reason: "pilot_eligible", canonicalPersistence: "v1_local" },
   },
   {
@@ -52,12 +52,12 @@ const MATRIX: Array<{
   },
   {
     name: "GLOBAL true | pilot false | v2_cloud → v2_read_only",
-    input: { globalEnabled: true, pilotEligible: false, canonicalPersistence: "v2_cloud" },
+    input: { globalEnabled: true, pilotEligible: false, canonicalPersistence: "v2_cloud", rollout: "selected" },
     expected: { mode: "v2_read_only", reason: "pilot_revoked", canonicalPersistence: "v2_cloud" },
   },
   {
     name: "GLOBAL true | pilot true | v2_cloud → v2_active",
-    input: { globalEnabled: true, pilotEligible: true, canonicalPersistence: "v2_cloud" },
+    input: { globalEnabled: true, pilotEligible: true, canonicalPersistence: "v2_cloud", rollout: "selected" },
     expected: { mode: "v2_active", reason: "canonical_v2", canonicalPersistence: "v2_cloud" },
   },
 ];
@@ -71,8 +71,10 @@ describe("resolveApplyFlowPersistenceMode", () => {
     const cases: ApplyFlowPersistenceModeInput[] = [
       { globalEnabled: false, pilotEligible: false, canonicalPersistence: "v2_cloud" },
       { globalEnabled: false, pilotEligible: true, canonicalPersistence: "v2_cloud" },
-      { globalEnabled: true, pilotEligible: false, canonicalPersistence: "v2_cloud" },
-      { globalEnabled: true, pilotEligible: true, canonicalPersistence: "v2_cloud" },
+      { globalEnabled: true, pilotEligible: false, canonicalPersistence: "v2_cloud", rollout: "selected" },
+      { globalEnabled: true, pilotEligible: true, canonicalPersistence: "v2_cloud", rollout: "selected" },
+      { globalEnabled: true, pilotEligible: true, canonicalPersistence: "v2_cloud", rollout: "excluded" },
+      { globalEnabled: true, pilotEligible: true, canonicalPersistence: "v2_cloud", rollout: "closed" },
     ];
     for (const input of cases) {
       const access = resolveApplyFlowPersistenceMode(input);
@@ -105,29 +107,69 @@ describe("resolveApplyFlowPersistenceMode", () => {
     ).toBe("v2_paused");
   });
 
-  it("GLOBAL true + v2_cloud + pilot false → read_only", () => {
+  it("GLOBAL true + v2_cloud + pilot false + selected → read_only", () => {
     expect(
       resolveApplyFlowPersistenceMode({
         globalEnabled: true,
         pilotEligible: false,
         canonicalPersistence: "v2_cloud",
+        rollout: "selected",
       }).mode,
     ).toBe("v2_read_only");
+  });
+
+  it("GLOBAL true + not selected + v2_cloud stays paused even when eligible", () => {
+    expect(
+      resolveApplyFlowPersistenceMode({
+        globalEnabled: true,
+        pilotEligible: true,
+        canonicalPersistence: "v2_cloud",
+        rollout: "excluded",
+      }),
+    ).toEqual({
+      mode: "v2_paused",
+      reason: "rollout_excluded",
+      canonicalPersistence: "v2_cloud",
+    });
+  });
+
+  it("GLOBAL true + closed rollout does not offer or activate", () => {
+    expect(
+      resolveApplyFlowPersistenceMode({
+        globalEnabled: true,
+        pilotEligible: true,
+        canonicalPersistence: "v1_local",
+      }).reason,
+    ).toBe("rollout_closed");
+    expect(
+      resolveApplyFlowPersistenceMode({
+        globalEnabled: true,
+        pilotEligible: true,
+        canonicalPersistence: "v2_cloud",
+        rollout: "closed",
+      }).mode,
+    ).toBe("v2_paused");
   });
 });
 
 describe("resolveApplyFlowPersistenceAccess", () => {
   const previous = process.env.APPLYFLOW_PERSISTENCE_V2;
+  const previousRollout = process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS;
+  const accountId = "11111111-1111-4111-8111-111111111111";
 
   afterEach(() => {
     if (previous === undefined) delete process.env.APPLYFLOW_PERSISTENCE_V2;
     else process.env.APPLYFLOW_PERSISTENCE_V2 = previous;
+    if (previousRollout === undefined) delete process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS;
+    else process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS = previousRollout;
   });
 
   it("reads GLOBAL flag via feature-flag helper", () => {
     process.env.APPLYFLOW_PERSISTENCE_V2 = "true";
+    process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS = accountId;
     expect(
       resolveApplyFlowPersistenceAccess({
+        id: accountId,
         pilotEligible: true,
         canonicalPersistence: "v1_local",
       }),
@@ -140,6 +182,7 @@ describe("resolveApplyFlowPersistenceAccess", () => {
     process.env.APPLYFLOW_PERSISTENCE_V2 = "false";
     expect(
       resolveApplyFlowPersistenceAccess({
+        id: accountId,
         pilotEligible: true,
         canonicalPersistence: "v1_local",
       }),

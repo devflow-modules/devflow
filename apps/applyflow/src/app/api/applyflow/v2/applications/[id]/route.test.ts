@@ -36,7 +36,7 @@ import { requireApplyFlowAccount } from "@/lib/persistence-v2/require-applyflow-
 import { GET, PATCH } from "./route";
 
 const account = {
-  id: "account-server",
+  id: "11111111-1111-4111-8111-111111111111",
   authProviderSub: "sub-1",
   email: null,
   pilotEligible: true,
@@ -76,6 +76,7 @@ function patchRequest(body: unknown) {
 
 describe("Application item routes", () => {
   beforeEach(() => {
+    process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS = "11111111-1111-4111-8111-111111111111";
     vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(true);
     vi.mocked(requireApplyFlowAccount).mockResolvedValue(account);
     vi.mocked(applyFlowApplicationService.get).mockReset();
@@ -87,7 +88,7 @@ describe("Application item routes", () => {
     const response = await GET(new Request("http://localhost/api/applyflow/v2/applications/app_client"), context);
     expect(response.status).toBe(200);
     expect(response.headers.get("ETag")).toBe('"2"');
-    expect(applyFlowApplicationService.get).toHaveBeenCalledWith("account-server", "app_client");
+    expect(applyFlowApplicationService.get).toHaveBeenCalledWith("11111111-1111-4111-8111-111111111111", "app_client");
   });
 
   it("denies product GET for offering accounts (AF-REL-003)", async () => {
@@ -111,7 +112,7 @@ describe("Application item routes", () => {
     vi.mocked(applyFlowApplicationService.get).mockResolvedValue(application);
     const response = await GET(new Request("http://localhost/api/applyflow/v2/applications/app_client"), context);
     expect(response.status).toBe(200);
-    expect(applyFlowApplicationService.get).toHaveBeenCalledWith("account-server", "app_client");
+    expect(applyFlowApplicationService.get).toHaveBeenCalledWith("11111111-1111-4111-8111-111111111111", "app_client");
   });
 
   it("returns 404 when the application is missing", async () => {
@@ -127,7 +128,7 @@ describe("Application item routes", () => {
     expect(ok.status).toBe(200);
     expect(ok.headers.get("ETag")).toBe('"2"');
     expect(applyFlowApplicationService.patch).toHaveBeenCalledWith(
-      "account-server",
+      "11111111-1111-4111-8111-111111111111",
       "app_client",
       1,
       expect.objectContaining({ notes: "next" }),
