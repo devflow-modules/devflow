@@ -1,4 +1,5 @@
 const { defineConfig, devices } = require("@playwright/test");
+const { selectedAccountIds } = require("./src/lib/e2e/rollout-account-ids.cjs");
 
 const E2E_SECRET = process.env.APPLYFLOW_E2E_SECRET || "applyflow-e2e-local-only-secret";
 const baseURL =
@@ -48,6 +49,7 @@ const v2WebServerEnv = {
   APPLYFLOW_E2E_IGNORE_SUPABASE: "1",
   APPLYFLOW_THEIRSTACK_ENABLED: "false",
   APPLYFLOW_PERSISTENCE_V2: "true",
+  APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS: selectedAccountIds().join(","),
   APPLYFLOW_DB_TARGET: "local",
   NODE_ENV: "development",
   THEIRSTACK_API_KEY: "should-not-be-used",

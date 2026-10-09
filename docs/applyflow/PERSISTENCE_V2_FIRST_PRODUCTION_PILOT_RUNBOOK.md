@@ -60,7 +60,7 @@ Local only. Production flag, grants, accounts, and data were not modified.
 - `node --test scripts/applyflow-vercel-ignore.test.mjs` passed.
 - On a clean checkout, with `VERCEL=1`, the script exits 1 against `18cf66203510e0f3d37917833b5fd41a601fba6a` and exits 0 against `be7a346cbcb76db9c9afa17ebc2bf11ba72d809d`.
 - ApplyFlow `tsc --noEmit`, eslint on the touched gate files, and `pnpm --filter applyflow build` passed.
-- Browser runtime of active, read-only, and paused was not executed. It needs the local ApplyFlow app on isolated Postgres (`127.0.0.1:5434/applyflow`), `APPLYFLOW_E2E_*` only for that database, and the local `POST /api/applyflow/e2e/session` login. Do not use `.env.local` for that run.
+- Browser, local only (`127.0.0.1:5434/applyflow`, Playwright `playwright.v2.config.cjs`, E2E session, no `.env.local`): active, read-only, paused, and A→B late responses passed in `v2-cloud-rollout-modes.spec.ts` and `v2-cloud-account-switch-stale.spec.ts`. Synthetic account ids are pinned in `rollout-account-ids.json`. The paused id stays out of the allowlist.
 - Authenticated production smoke is still pending. Do not describe cloud as validated in production.
 
 Closeout reference: [`PERSISTENCE_V2_CLOSEOUT.md`](./PERSISTENCE_V2_CLOSEOUT.md).
