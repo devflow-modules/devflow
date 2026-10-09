@@ -15,7 +15,7 @@ const baseUrl = "https://devflowlabs.com.br";
 const ogImage = `${baseUrl}/og-devflow.png`;
 
 const contactDescription =
-  "Solicite um diagnóstico da sua operação de atendimento e vendas no WhatsApp. Mapeamos gargalos, automações possíveis, handoff humano, SLA e dashboard operacional.";
+  "Solicite um diagnóstico da sua operação de atendimento e vendas no WhatsApp. Mapeamos gargalos, automações possíveis, handoff humano, fila e responsáveis.";
 
 export const metadata: Metadata = {
   title: "Agendar Diagnóstico WhatsApp | DevFlow Labs",
@@ -64,7 +64,7 @@ export default function ContatoPage() {
           </h1>
           <p className="df-text-secondary mx-auto mt-4 max-w-2xl text-base leading-relaxed sm:text-lg">
             Entenda onde sua operação perde mensagens, tempo e vendas — e veja como organizar atendimento com IA,
-            humano e dashboard.
+            responsáveis e handoff humano.
           </p>
         </header>
 
@@ -114,7 +114,7 @@ export default function ContatoPage() {
                 <Link href="/demo" className="font-semibold text-primary underline-offset-2 hover:underline">
                   {PRIMARY_DEMO_CTA_LABEL}
                 </Link>{" "}
-                mostra fila, handoff e dashboard em poucos minutos.
+                mostra fila, responsáveis e handoff em poucos minutos.
               </p>
               <Link
                 href="/demo"
@@ -131,8 +131,8 @@ export default function ContatoPage() {
         </div>
 
         <p className="df-text-secondary mx-auto mt-10 max-w-xl text-center text-xs font-medium leading-relaxed sm:text-sm">
-          Diagnóstico consultivo focado em atendimento e vendas no WhatsApp — IA no repetitivo, handoff humano, SLA e
-          dashboard operacional.
+          Diagnóstico consultivo focado em atendimento e vendas no WhatsApp — IA no repetitivo, handoff humano, fila e
+          responsáveis.
         </p>
 
         <p className="mt-10 text-center">
