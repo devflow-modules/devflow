@@ -14,57 +14,41 @@ const ogImage = `${baseUrl}/og-devflow.png`;
 
 const plans = [
   {
-    name: "Starter",
-    description: "Para negócios que querem sair do atendimento manual",
-    price: "Implantação guiada + mensalidade",
+    name: "Implantação acompanhada",
+    description: "Diagnóstico, desenho dos fluxos e configuração inicial com a DevFlow",
+    price: "Projeto de implantação",
     features: [
-      "Até 1.000 mensagens/mês",
-      "1 número WhatsApp",
-      "Respostas automáticas essenciais",
-      "Inbox com handoff humano",
-      "Suporte por e-mail",
+      "Diagnóstico da operação",
+      "Desenho dos fluxos",
+      "Apoio na configuração do WhatsApp Cloud API",
+      "Configuração da equipe",
+      "Treinamento inicial",
     ],
     cta: "Agendar diagnóstico",
-    ctaText: "Quero agendar diagnóstico para avaliar implantação guiada e mensalidade da operação.",
+    ctaText: "Quero agendar um diagnóstico para implantar a operação de conversas no WhatsApp.",
     featured: false,
   },
   {
-    name: "Pro",
-    description: "Para negócios com equipe e maior volume de atendimento",
-    price: "Implantação guiada + mensalidade",
+    name: "Operação mensal",
+    description: "A equipe segue atendendo no inbox depois da implantação",
+    price: "Mensalidade da plataforma",
     features: [
-      "Mensagens ilimitadas*",
-      "Múltiplos números",
-      "Métricas avançadas",
-      "Integrações",
-      "Suporte prioritário",
+      "Inbox compartilhado",
+      "Responsáveis e filas",
+      "Histórico da conversa",
+      "Handoff para uma pessoa",
+      "Automação no repetitivo, quando configurada",
     ],
-    badgeLabel: "Mais recomendado",
-    cta: "Montar plano Pro",
-    ctaText: "Quero montar um plano Pro com implantação guiada para meu volume de atendimento.",
+    cta: "Agendar diagnóstico",
+    ctaText: "Quero entender a operação mensal da WhatsApp Platform depois da implantação acompanhada.",
     featured: true,
-  },
-  {
-    name: "Enterprise",
-    description: "Para operações com múltiplas unidades, SLA e personalização",
-    price: "Projeto sob medida",
-    features: [
-      "Operação personalizada",
-      "SLA dedicado",
-      "Onboarding assistido",
-      "Treinamento da equipe",
-      "Suporte 24/7",
-    ],
-    cta: "Falar sobre escala",
-    ctaText: "Quero falar sobre escala com projeto sob medida, implantação e evolução contínua.",
-    featured: false,
   },
 ];
 
 export const metadata: Metadata = {
-  title: "Preços | Automação WhatsApp | DevFlow Labs",
+  title: "Preços | Operação de conversas no WhatsApp | DevFlow Labs",
   description:
-    "Planos de automação de atendimento no WhatsApp. Starter, Pro e Enterprise. Piloto grátis para testar.",
+    "Implantação acompanhada e operação mensal da WhatsApp Platform. O escopo é definido no diagnóstico.",
   alternates: {
     canonical: `${baseUrl}/precos`,
   },
@@ -74,7 +58,7 @@ export const metadata: Metadata = {
     siteName: "DevFlow Labs",
     title: "Preços | DevFlow Labs",
     description:
-      "Planos de automação WhatsApp. Piloto grátis para testar.",
+      "Implantação acompanhada e mensalidade da operação de conversas no WhatsApp.",
     url: `${baseUrl}/precos`,
     images: [
       {
@@ -88,7 +72,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Preços | DevFlow Labs",
-    description: "Planos Starter, Pro e Enterprise — veja a demo antes da proposta.",
+    description: "Implantação acompanhada e operação mensal. Veja a demo antes do diagnóstico.",
     images: [ogImage],
   },
 };
@@ -102,10 +86,10 @@ export default function PrecosPage() {
             id="precos-heading"
             className="df-text-primary text-4xl font-bold tracking-tight sm:text-5xl"
           >
-            Planos para operar seu WhatsApp com automação, inbox e atendimento humano
+            Implantação acompanhada e operação mensal
           </h1>
           <p className="df-text-secondary mt-4 text-lg">
-            A DevFlow Labs configura sua operação, ativa o número, organiza sua equipe e deixa o WhatsApp pronto para vender com controle.
+            O escopo e o valor saem do diagnóstico. Não há tabela pública de cotas, nem preço fechado nesta página.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
@@ -127,7 +111,7 @@ export default function PrecosPage() {
           </div>
         </div>
 
-        <div className="mx-auto mt-16 grid max-w-5xl gap-8 sm:grid-cols-3">
+        <div className="mx-auto mt-16 grid max-w-5xl gap-8 sm:grid-cols-2">
           {plans.map((plan) => (
             <article
               key={plan.name}
@@ -140,7 +124,7 @@ export default function PrecosPage() {
             >
               {plan.featured && (
                 <span className="mb-4 inline-block w-fit rounded-full df-bg-brand-soft px-3 py-1 text-xs font-medium df-status-brand">
-                  {plan.badgeLabel}
+                  Depois da implantação
                 </span>
               )}
               <h2 className="text-xl font-semibold df-text-primary">
@@ -178,7 +162,7 @@ export default function PrecosPage() {
             Antes de falar com vendas, veja a plataforma funcionando
           </p>
           <p className="df-text-secondary mt-2 text-sm">
-            Veja a inbox, automações, handoff humano e métricas em uma demonstração guiada.
+            Veja uma simulação de inbox, responsáveis, fila e handoff. Dados ilustrativos.
           </p>
           <Link
             href={PRIMARY_DEMO_HREF}
@@ -193,7 +177,7 @@ export default function PrecosPage() {
         </div>
 
         <p className="df-text-secondary mt-8 text-center text-sm">
-          * O plano final depende do volume de mensagens, quantidade de números, integrações e nível de implantação. Projetos podem incluir setup inicial + mensalidade recorrente.
+          O combinado depende do volume, da quantidade de números e do desenho da operação. Não publicamos cota de mensagens nem suporte contínuo fora do horário combinado no diagnóstico.
         </p>
 
         <section className="mx-auto mt-12 max-w-5xl" aria-labelledby="como-funciona-contratacao">
@@ -213,7 +197,7 @@ export default function PrecosPage() {
             <article className="df-surface-elevated rounded-2xl p-5">
               <h3 className="text-base font-semibold df-text-primary">Implantação guiada</h3>
               <p className="df-text-secondary mt-2 text-sm">
-                Configuramos número, inbox, automações iniciais, handoff e métricas.
+                Configuramos número, inbox, automações iniciais, responsáveis e handoff.
               </p>
             </article>
             <article className="df-surface-elevated rounded-2xl p-5">

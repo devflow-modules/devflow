@@ -5,7 +5,7 @@ const ogImage = `${baseUrl}/og-devflow.png`;
 
 const demoTitle = "Demo WhatsApp Platform | DevFlow Labs";
 const demoDescription =
-  "Veja na prática como a DevFlow organiza atendimento e vendas no WhatsApp com IA, handoff humano, fila, SLA e dashboard operacional.";
+  "Demonstração da plataforma: simulação com dados ilustrativos de inbox, responsáveis, filas e handoff humano.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),

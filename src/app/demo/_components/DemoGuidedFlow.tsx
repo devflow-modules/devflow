@@ -18,7 +18,7 @@ const STEPS: {
   id: number;
   title: string;
   summary: string;
-  dashboardHighlight: "bot" | "human" | "sla" | "waiting" | "opportunity" | null;
+  dashboardHighlight: "bot" | "human" | "queue" | "waiting" | "opportunity" | null;
 }[] = [
   {
     id: 1,
@@ -28,27 +28,27 @@ const STEPS: {
   },
   {
     id: 2,
-    title: "IA entende a intenção",
-    summary: "Triagem automática classifica o pedido antes de responder ou escalar.",
+    title: "A automação lê o pedido",
+    summary: "Quando a automação está ativa, o fluxo permitido pode responder antes de encaminhar.",
     dashboardHighlight: "bot",
   },
   {
     id: 3,
-    title: "IA responde o repetitivo",
-    summary: "Dúvidas frequentes saem do caminho da equipe — 24h, com contexto.",
+    title: "Automação no repetitivo",
+    summary: "Dúvidas permitidas podem ser respondidas automaticamente. O contexto permanece na conversa.",
     dashboardHighlight: "bot",
   },
   {
     id: 4,
-    title: "Caso exige humano",
-    summary: "Negociação, exceção ou oportunidade comercial → handoff imediato.",
+    title: "A conversa segue para a equipe",
+    summary: "Exceção ou pedido de uma pessoa vira handoff, com o histórico na fila.",
     dashboardHighlight: "human",
   },
   {
     id: 5,
-    title: "Operação acompanha",
-    summary: "Inbox, fila, SLA e dashboard mostram quem responde e o que está em risco.",
-    dashboardHighlight: "sla",
+    title: "A equipe acompanha",
+    summary: "Inbox, responsável e fila mostram quem está com a conversa e o que ainda precisa de resposta.",
+    dashboardHighlight: "queue",
   },
 ];
 
@@ -105,7 +105,7 @@ function StepContent({ stepId }: { stepId: number }) {
           Entregamos hoje até 22h. Para calcular o prazo, me envie seu bairro.
         </div>
         <p className="df-text-secondary text-xs leading-relaxed">
-          Repetitivo resolvido sem escalar — equipe livre para o que importa.
+          Repetitivo tratado pela automação. A equipe fica nos casos que precisam de contexto.
         </p>
       </div>
     );
@@ -144,12 +144,12 @@ function StepContent({ stepId }: { stepId: number }) {
       </p>
       <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
         {[
-          ["Status", "Com atendente"],
-          ["SLA", "8 min restantes"],
-          ["Prioridade", "Alta"],
-          ["Responsável", "Equipe comercial"],
+          ["Status", "Em atendimento"],
+          ["Fila", "Fila Comercial"],
+          ["Estado", "Precisa resposta"],
+          ["Responsável", "Bruno"],
           ["Origem", "WhatsApp"],
-          ["Próxima ação", "Responder proposta"],
+          ["Histórico", "Preservado na conversa"],
         ].map(([label, value]) => (
           <div key={label} className="flex flex-col gap-0.5 rounded-lg bg-card px-3 py-2">
             <dt className="df-text-secondary text-[10px] font-medium uppercase tracking-wide">{label}</dt>
@@ -183,10 +183,10 @@ export function DemoGuidedFlow() {
             id="demo-guided-flow-heading"
             className="mt-4 text-balance text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
           >
-            Fluxo guiado: da mensagem ao dashboard
+            Fluxo guiado: da mensagem à fila
           </h2>
           <p className="df-text-secondary mt-3 text-sm leading-relaxed sm:text-base">
-            Cinco etapas mostram como IA, handoff humano, fila e SLA funcionam juntos numa operação real.
+            Simulação para apresentar o fluxo do produto. Dados ilustrativos de automação, handoff e fila.
           </p>
         </div>
         <p className="df-text-muted text-sm font-medium lg:pt-6">

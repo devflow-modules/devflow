@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  BarChart3,
   CheckCircle2,
   MessageCircleMore,
   Radio,
@@ -14,29 +13,29 @@ import { whatsappAppUrl } from "@/lib/whatsapp-app-url";
 import { cn } from "@/lib/utils";
 
 const heroPoints = [
-  "Diagnóstico da operação atual para priorizar gargalos de atendimento e vendas",
-  "Implementação guiada da IA no repetitivo com handoff para o time certo",
-  "Gestão diária com SLA, fila priorizada e dashboard operacional",
+  "Diagnóstico da operação e desenho dos fluxos, com implantação acompanhada",
+  "Automação no repetitivo, com a conversa seguindo para uma pessoa quando precisa",
+  "Responsáveis, filas e histórico para acompanhar quem está com cada conversa",
 ];
 
 const queueItems = [
   {
-    name: "ACME · Upgrade anual",
-    status: "Score 94 · respondendo agora · SLA 6m restantes",
-    dot: "df-dot-success",
-    tag: "Vendas",
-  },
-  {
-    name: "Clínica Horizonte",
-    status: "Automação disparada há 9s · doc no ar",
-    dot: "df-dot-info",
-    tag: "Suporte",
-  },
-  {
-    name: "Studio North",
-    status: "Handoff p/ Carla · deal quente preservado",
+    name: "Mariana",
+    status: "Precisa resposta · Sem responsável",
     dot: "df-dot-warning",
-    tag: "Prioridade",
+    tag: "Fila Comercial",
+  },
+  {
+    name: "João",
+    status: "Com Bruno · Em atendimento",
+    dot: "df-dot-success",
+    tag: "Fila Comercial",
+  },
+  {
+    name: "Ana",
+    status: "Transferido para Carla",
+    dot: "df-dot-info",
+    tag: "Fila Suporte",
   },
 ];
 
@@ -63,7 +62,7 @@ export function HeroSection() {
               <span className="df-text-muted hidden sm:inline" aria-hidden>
                 ·
               </span>
-              <span className="df-text-secondary w-full pl-5 sm:w-auto sm:pl-0">API oficial · inbox · IA · score · SLA</span>
+              <span className="df-text-secondary w-full pl-5 sm:w-auto sm:pl-0">API oficial · inbox · responsáveis · filas</span>
             </span>
 
             <div className="space-y-5">
@@ -71,11 +70,11 @@ export function HeroSection() {
                 id="whatsapp-hero-heading"
                 className="df-text-primary text-balance text-[1.65rem] font-bold leading-[1.15] tracking-tight sm:text-4xl sm:leading-[1.12] lg:text-[2.65rem] lg:leading-[1.08]"
               >
-                Implementamos sua operação de WhatsApp para responder rápido e vender com previsibilidade
+                Organize o WhatsApp da equipe com responsável, fila e histórico
               </h1>
               <p className="df-text-secondary max-w-xl text-base font-semibold leading-snug sm:text-lg sm:leading-snug">
-                Da arquitetura de atendimento ao painel operacional, a DevFlow configura o fluxo completo com
-                inbox multiatendente, automação e IA aplicada ao repetitivo.
+                A DevFlow implanta a operação de conversas: inbox compartilhado, mais de uma pessoa atendendo,
+                automação no repetitivo e handoff para a equipe.
               </p>
             </div>
 
@@ -144,39 +143,39 @@ export function HeroSection() {
                   <span className="size-2.5 rounded-full df-dot-brand opacity-90" />
                 </span>
                 <p className="df-text-secondary ml-2 min-w-0 flex-1 truncate text-center text-[11px] font-medium">
-                  Operações · agora
+                  Demonstração da plataforma
                 </p>
                 <span className="rounded-full df-bg-brand-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide df-status-brand">
-                  Ao vivo
+                  Dados ilustrativos
                 </span>
               </div>
 
               <div className="space-y-5 p-4 sm:p-6">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-semibold tracking-tight df-text-primary">Painel operacional</p>
-                  <span className="text-[11px] font-semibold df-status-brand">Atualizado agora</span>
+                  <p className="text-sm font-semibold tracking-tight df-text-primary">Estado das conversas</p>
+                  <span className="text-[11px] font-semibold df-status-brand">Simulação</span>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-3">
                   <article className="rounded-2xl border border-border bg-muted/20 p-4 shadow-sm">
                     <MessageCircleMore className="size-4 df-status-brand" aria-hidden />
-                    <p className="df-text-primary mt-2.5 text-2xl font-bold tabular-nums tracking-tight">1.284</p>
+                    <p className="df-text-primary mt-2.5 text-sm font-bold tracking-tight">Precisa resposta</p>
                     <p className="df-text-secondary mt-0.5 text-[11px] font-medium leading-tight">
-                      Mensagens · últimas 24h
+                      Sem responsável
                     </p>
                   </article>
                   <article className="rounded-2xl border border-border bg-muted/20 p-4 shadow-sm">
                     <Users2 className="size-4 df-status-info" aria-hidden />
-                    <p className="df-text-primary mt-2.5 text-2xl font-bold tabular-nums tracking-tight">74%</p>
+                    <p className="df-text-primary mt-2.5 text-sm font-bold tracking-tight">Com Bruno</p>
                     <p className="df-text-secondary mt-0.5 text-[11px] font-medium leading-tight">
-                      Fechadas sem humano
+                      Fila Comercial
                     </p>
                   </article>
                   <article className="rounded-2xl border border-border bg-muted/20 p-4 shadow-sm">
-                    <BarChart3 className="size-4 df-status-success" aria-hidden />
-                    <p className="df-text-primary mt-2.5 text-2xl font-bold tabular-nums tracking-tight">+31%</p>
+                    <Users2 className="size-4 df-status-success" aria-hidden />
+                    <p className="df-text-primary mt-2.5 text-sm font-bold tracking-tight">Transferido</p>
                     <p className="df-text-secondary mt-0.5 text-[11px] font-medium leading-tight">
-                      Lead → venda · vs. semana passada
+                      Para Carla
                     </p>
                   </article>
                 </div>
@@ -184,9 +183,9 @@ export function HeroSection() {
                 <div className="rounded-2xl border border-border bg-muted/25 p-4">
                   <div className="flex items-center justify-between gap-2">
                     <p className="df-text-secondary text-[11px] font-bold uppercase tracking-wider">
-                      Fila priorizada
+                      Fila
                     </p>
-                    <span className="text-[10px] font-bold df-status-warning">2 SLA no limite</span>
+                    <span className="text-[10px] font-bold df-status-warning">Aguardando responsável</span>
                   </div>
                   <div className="mt-3 space-y-2.5">
                     {queueItems.map((item) => (

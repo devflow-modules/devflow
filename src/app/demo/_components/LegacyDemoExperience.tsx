@@ -19,7 +19,7 @@ const BOT_RESPONSES: Record<string, string> = {
   pagamento: "Aceitamos PIX, cartão e dinheiro. No delivery, PIX ou cartão.",
   "quero ver preços": "Os preços variam por item. Qual produto ou prato te interessa? Ou prefere que eu conecte você com nossa equipe para uma proposta?",
   "quero falar com humano": "Sem problemas! Conectando você com nossa equipe agora. Um atendente deve responder em instantes.",
-  "quero testar automação": "Esta conversa já é a demonstração! O bot respondeu automaticamente. Na operação real, sua equipe recebe o handoff quando o cliente pede. Quer ver o site completo? https://devflowlabs.com.br",
+  "quero testar automação": "Esta conversa já é a demonstração. A automação respondeu o que este roteiro permite. Quando o cliente pede uma pessoa, a conversa segue para a equipe. Quer ver o site completo? https://devflowlabs.com.br",
   default: "Ótima pergunta! Nossa equipe pode te ajudar com isso. Quer que eu conecte você com um atendente?",
 };
 
@@ -198,7 +198,7 @@ export function LegacyDemoExperience() {
             </div>
 
             <p className="mt-4 text-center text-sm df-text-secondary">
-              Esta é uma demonstração. Na operação real, o bot usa IA e se integra ao seu atendimento.
+              Demonstração da plataforma. Dados ilustrativos: a automação responde o que foi permitido e a conversa segue para a equipe quando precisa.
             </p>
           </div>
 

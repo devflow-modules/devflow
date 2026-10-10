@@ -43,6 +43,17 @@ describe("P0 — Landing /produtos/whatsapp-platform", () => {
     expect(contact[0]).toHaveAttribute("href", "/contato");
   });
 
+  it("não vende SLA, score nem garantia de mensagem duplicada", () => {
+    render(<WhatsAppPlatformPage />);
+    const text = document.body.textContent ?? "";
+    expect(text).not.toMatch(/SLA/i);
+    expect(text).not.toContain("Score 94");
+    expect(text).not.toMatch(/zero mensagem duplicada/i);
+    expect(text).not.toMatch(/zero msg duplicada/i);
+    expect(text).not.toMatch(/dashboard operacional/i);
+    expect(text).toMatch(/Dados ilustrativos/i);
+  });
+
   it("secção final inclui CTA WhatsApp e link para demo", () => {
     render(<WhatsAppPlatformPage />);
     const final = screen.getByRole("region", { name: /Quer sair da conversa com um plano/i });

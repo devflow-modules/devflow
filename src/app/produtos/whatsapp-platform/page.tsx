@@ -21,14 +21,14 @@ export const metadata: Metadata = {
     canonical: `${baseUrl}/produtos/whatsapp-platform`,
   },
   description:
-    "Oferta consultiva de implementação da operação de atendimento e vendas no WhatsApp com IA, inbox multiatendente, automação e dashboard operacional.",
+    "Implantação acompanhada da operação de conversas no WhatsApp: inbox compartilhado, responsáveis, filas, histórico e automação supervisionada.",
   openGraph: {
     type: "website",
     locale: "pt_BR",
     siteName: "DevFlow Labs",
-    title: "WhatsApp Platform | Atendimento e Vendas com Escala",
+    title: "WhatsApp Platform | Operação de conversas | DevFlow Labs",
     description:
-      "Diagnóstico inicial, implementação guiada e operação acompanhada para transformar o WhatsApp em um canal previsível de atendimento e vendas.",
+      "Diagnóstico, desenho dos fluxos e implantação acompanhada. Inbox compartilhado, responsáveis, filas e handoff humano.",
     url: `${baseUrl}/produtos/whatsapp-platform`,
     images: [
       {
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "WhatsApp Platform | DevFlow Labs",
     description:
-      "Implementação consultiva de atendimento e vendas no WhatsApp com IA aplicada ao repetitivo e foco em resultado operacional.",
+      "Operação de conversas no WhatsApp com inbox compartilhado, responsáveis, filas e automação no repetitivo.",
     images: [ogImage],
   },
 };

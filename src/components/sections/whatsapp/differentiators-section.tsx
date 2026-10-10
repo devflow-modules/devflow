@@ -4,28 +4,28 @@ import { Section } from "@/components/layout/Section";
 const differentiators = [
   {
     icon: LineChart,
-    title: "Score manda na fila",
-    description: "Comercial fala primeiro com quem paga — não com quem grita mais alto.",
+    title: "A equipe distribui a fila",
+    description: "A conversa entra na fila. Alguém assume, transfere ou devolve. Sem roteamento por presença, carga ou IA.",
   },
   {
     icon: Bot,
-    title: "Pico vira lucro, não caos",
-    description: "IA + regras engolem volume repetitivo sem você contratar às pressas.",
+    title: "IA supervisionada",
+    description: "Automatize o repetitivo quando a automação está ativa. A equipe fica nos casos que precisam de contexto.",
   },
   {
     icon: Users,
-    title: "Time alinhado, sem herói",
-    description: "Mesmo padrão de resposta em escala — zero dependência de celular pessoal.",
+    title: "Mais de uma pessoa atendendo",
+    description: "Papéis de operação e gestão. A configuração inicial é acompanhada pela DevFlow.",
   },
   {
     icon: Gauge,
-    title: "Painel manda na operação",
-    description: "SLA, gargalo, conversão: ajuste com dado, não com feeling.",
+    title: "Visibilidade da operação",
+    description: "Veja quem está com a conversa e o que ainda precisa de resposta.",
   },
   {
     icon: ShieldCheck,
-    title: "Escala com trilho",
-    description: "Governança que comprador B2B exige antes de assinar cheque.",
+    title: "API oficial da Meta",
+    description: "WhatsApp Cloud API, sem automação baseada em QR Code ou celular espelhado.",
   },
 ];
 
@@ -33,16 +33,15 @@ export function DifferentiatorsSection() {
   return (
     <Section alternate aria-labelledby="differentiators-section-heading" className="border-y border-border py-20 sm:py-24">
       <div className="mx-auto max-w-3xl text-center">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary/90 sm:text-sm">Não é chat. É caixa.</p>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary/90 sm:text-sm">O que a operação faz</p>
         <h2
           id="differentiators-section-heading"
           className="mt-3 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
         >
-          Operação que imprime ticket: escala, controle e performance no mesmo lugar
+          Inbox, responsável, fila e handoff no mesmo lugar
         </h2>
         <p className="df-text-secondary mx-auto mt-4 max-w-2xl text-base font-semibold leading-snug sm:text-lg">
-          Você não compra “mensagem bonita”. Compra velocidade de resposta, prioridade certa e número que sustenta
-          meta.
+          A equipe atende junto, vê o contexto e encaminha a conversa quando ela precisa de uma pessoa.
         </p>
       </div>
 

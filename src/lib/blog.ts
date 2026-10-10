@@ -105,7 +105,7 @@ export const blogArticles: BlogArticle[] = [
       <p>Mensagens perdidas, ninguém sabe quem respondeu o quê. Use uma plataforma que centralize e organize.</p>
       <h2>5. Bot sem handoff</h2>
       <p>Bot que não encaminha para humano frustra. O cliente pede atendente e continua falando com máquina? Péssimo.</p>
-      <p><a href="/automacao-whatsapp">Conheça a automação DevFlow</a> com handoff inteligente.</p>
+      <p><a href="/automacao-whatsapp">Conheça a automação DevFlow</a> com handoff para a equipe.</p>
     `,
   },
   {
@@ -166,15 +166,15 @@ export const blogArticles: BlogArticle[] = [
       <p>Custo operacional sobe quando muita gente faz a mesma coisa manualmente: responder "qual o horário?", "tem em estoque?", "qual o prazo?". Automação no WhatsApp tira parte desse peso e deixa a equipe para o que realmente precisa de humano.</p>
       <h2>Onde a automação corta custo</h2>
       <ul>
-        <li><strong>Respostas repetidas</strong> — bot responde 24h sem aumentar headcount</li>
+        <li><strong>Respostas repetidas</strong> — a automação pode responder o que foi permitido, quando está ativa</li>
         <li><strong>Triagem</strong> — cliente já chega com contexto quando é passado para humano</li>
         <li><strong>Menos erro</strong> — resposta padronizada evita informação errada ou esquecida</li>
       </ul>
       <h2>Não é "trocar gente por bot"</h2>
-      <p>É realocar tempo. Quem atendia 50 mensagens iguais por dia passa a cuidar de 20 conversas que exigem decisão e empatia. A empresa atende mais e gasta melhor.</p>
+      <p>É realocar tempo. A equipe deixa de repetir as mesmas respostas e fica com as conversas que exigem contexto.</p>
       <h2>Por onde começar</h2>
-      <p>Liste as perguntas que mais se repetem. Automatize essas. Mantenha handoff rápido para humano. Meça tempo de resposta e satisfação antes e depois.</p>
-      <p><a href="/automacao-whatsapp">Automação WhatsApp DevFlow</a> — em produção em operações reais. <a href="/planilha-vs-app-financeiro">Leia também: planilha vs app financeiro</a> para organizar custos do dia a dia.</p>
+      <p>Liste as perguntas que mais se repetem. Automatize essas. Mantenha o encaminhamento para a equipe quando a conversa exigir contexto.</p>
+      <p><a href="/automacao-whatsapp">Automação WhatsApp DevFlow</a> — a arquitetura foi desenvolvida para organizar operações de atendimento via WhatsApp. <a href="/planilha-vs-app-financeiro">Leia também: planilha vs app financeiro</a> para organizar custos do dia a dia.</p>
     `,
   },
 ];

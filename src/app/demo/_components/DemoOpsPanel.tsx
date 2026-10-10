@@ -41,7 +41,7 @@ export function DemoOpsPanel(props: DemoOpsPanelVariant) {
         <p className="text-sm font-medium text-foreground">Painel operacional (simulado)</p>
         <p className="mt-2 text-sm text-muted-foreground">
           Nenhuma conversa na fila ainda. Avance o fluxo guiado acima ou escolha um segmento abaixo para ver status,
-          handoff e fila em tempo real — tudo local, sem API externa.
+          handoff e fila nesta simulação — tudo local, sem API externa.
         </p>
       </aside>
     );
@@ -55,7 +55,7 @@ export function DemoOpsPanel(props: DemoOpsPanelVariant) {
       aria-label="Prévia operacional da demonstração"
     >
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Evidência operacional (simulada)
+        Estado ilustrativo
       </p>
       <p className="mt-1 text-sm text-foreground">
         O que sua equipe veria no painel — sem dados reais nem rede.

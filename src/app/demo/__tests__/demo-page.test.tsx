@@ -22,9 +22,12 @@ describe("P1 — Demo /demo", () => {
         name: /Veja como uma operação WhatsApp organizada funciona/i,
       })
     ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /Fluxo guiado: da mensagem ao dashboard/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Fluxo guiado: da mensagem à fila/i })).toBeInTheDocument();
     expect(screen.getAllByText(/Cliente chama no WhatsApp/i).length).toBeGreaterThan(0);
-    expect(screen.getByLabelText(/Dashboard operacional simulado/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Dados ilustrativos/i).length).toBeGreaterThan(0);
+    expect(screen.getByLabelText(/Painel ilustrativo da operação/i)).toBeInTheDocument();
+    expect(screen.queryByText(/SLA/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/operação real/i)).not.toBeInTheDocument();
 
     const diagnoseLinks = screen.getAllByRole("link", { name: /Agendar diagnóstico/i });
     expect(diagnoseLinks[0]).toHaveAttribute("href", "/contato");

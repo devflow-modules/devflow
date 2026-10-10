@@ -1,7 +1,7 @@
 import type { DemoScenarioDefinition, DemoScenarioId } from "./types";
 
 const VALUE_PREFIX =
-  "Resposta instantânea 24/7: você captura o lead, qualifica no chat e só chama humano quando faz sentido.\n\n";
+  "Simulação com dados ilustrativos. A automação responde o que este roteiro permite e encaminha a conversa para a equipe quando precisa.\n\n";
 
 export const DEMO_SCENARIOS: Record<DemoScenarioId, DemoScenarioDefinition> = {
   restaurante: {
@@ -17,7 +17,7 @@ export const DEMO_SCENARIOS: Record<DemoScenarioId, DemoScenarioDefinition> = {
     ],
     keywordReplies: {
       reserva:
-        "Perfeito — triagem automática: anotei interesse em mesa para sábado. Na operação real isso cai no painel com prioridade e sua equipe confirma horário e lugares.\n\nQuer incluir observação (aniversário, criança)?",
+        "Anotei interesse em mesa para sábado nesta simulação. A equipe confirma horário e lugares.\n\nQuer incluir observação (aniversário, criança)?",
       mesa: "Consigo registrar o pedido de mesa e avisar a equipe na hora. Prefere almoço ou jantar?",
       vegan:
         "Sim — temos opções vegetarianas e veganas no cardápio. Quer que eu liste os pratos ou já encaminhe para o chef confirmar disponibilidade do dia?",
@@ -58,9 +58,9 @@ export const DEMO_SCENARIOS: Record<DemoScenarioId, DemoScenarioDefinition> = {
       morango:
         "Temos essência de morango (clássica e com notas extras). Quer saber marca disponível ou já separar retirada?",
       essência:
-        "Temos linha variada de essências. Diga o sabor ou marca que busco disponibilidade em tempo real no estoque integrado.",
+        "Nesta simulação, diga o sabor ou a marca para eu encaminhar a pergunta de disponibilidade à equipe.",
       essencia:
-        "Temos linha variada de essências. Diga o sabor ou marca que busco disponibilidade em tempo real no estoque integrado.",
+        "Nesta simulação, diga o sabor ou a marca para eu encaminhar a pergunta de disponibilidade à equipe.",
       menta: "Menta em estoque. Quer 50g, 100g ou outro formato?",
       entrega:
         "Fazemos entrega na região (motoboy / parceiros). Informe bairro para eu confirmar cobertura e prazo.",
@@ -72,7 +72,7 @@ export const DEMO_SCENARIOS: Record<DemoScenarioId, DemoScenarioDefinition> = {
         "Preços mudam por marca e peso. Posso dar faixa ou transferir para o balcão com seu interesse já resumido.",
       carvão: "Carvão e acessórios — temos pacotes P e G. Quer retirada ou entrega?",
       pedido:
-        "Pedido registrado na fila interna. Na operação real o balcão vê o resumo e só confirma pagamento.",
+        "Pedido anotado nesta simulação. A equipe vê o resumo na fila e confirma o pagamento.",
     },
     defaultReply:
       "Posso ajudar com estoque, sabores ou entrega. Se for algo muito específico, o handoff para o balcão é um toque — quer que eu faça isso?",
