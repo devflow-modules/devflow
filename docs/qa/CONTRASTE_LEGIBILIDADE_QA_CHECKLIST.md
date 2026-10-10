@@ -37,7 +37,6 @@ Objetivo: garantir leitura confortável em uso real, sem zoom, mantendo identida
 ### Seções reutilizáveis da home
 
 - [ ] `HubPillarsSection`: títulos, descrições e CTAs legíveis em todos os cards.
-- [ ] `WhereToStartSection`: ícones/labels não “somem” em fundos acentuados.
 - [ ] `ProductsSection`: descrição + bullets legíveis em cards ativos e desabilitados.
 - [ ] `ProblemSolutionSection`: coluna problema/solução com contraste claro de texto.
 - [ ] `ConnectedProductsSection` e `WhyUseSection` (light): texto escuro confortável.

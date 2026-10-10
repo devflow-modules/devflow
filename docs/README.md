@@ -34,6 +34,7 @@ Outros apps no repositório (**ApplyFlow** como case de portfólio local-first, 
 | [**shared/**](./shared/) | Monorepo, deploy, Prisma, monetização, ADRs |
 | [**ecossistema/**](./ecossistema/) | Rotas, URLs e visão do hub |
 | [**site/**](./site/) | Inventário de rotas e decisões de routing |
+| [**portal/**](./portal/README.md) | Portal canónico: terminologia comercial, guardrails e status de `apps/site` |
 | [**seo/**](./seo/) | Pilares, clusters, indexação |
 | [**backlinks/**](./backlinks/) | Rascunhos de artigos / link building |
 | [**ai-ops/**](./ai-ops/) | Workflow de IA, checklists de demo |
