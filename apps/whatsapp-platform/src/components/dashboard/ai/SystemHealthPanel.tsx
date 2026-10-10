@@ -74,7 +74,11 @@ export function SystemHealthPanel({
   const controlsBusy = actionBusy !== null;
 
   const patchOperations = useCallback(
-    async (body: { aiEnabled?: boolean; automationEnabled?: boolean }) => {
+    async (body: {
+      aiEnabled?: boolean;
+      automationEnabled?: boolean;
+      automaticDistributionEnabled?: boolean;
+    }) => {
       if (inFlightRef.current) return;
       inFlightRef.current = true;
       setActionBusy("patch");
@@ -352,6 +356,26 @@ export function SystemHealthPanel({
                 onClick={() => void patchOperations({ automationEnabled: true })}
               >
                 Ativar automação
+              </Button>
+              <Button
+                variant="secondary"
+                type="button"
+                disabled={controlsBusy || !!op.automaticDistributionEnabled}
+                className={buttonClassName("secondary", "text-xs")}
+                data-testid="health-control-enable-distribution"
+                onClick={() => void patchOperations({ automaticDistributionEnabled: true })}
+              >
+                Ativar distribuição automática
+              </Button>
+              <Button
+                variant="secondary"
+                type="button"
+                disabled={controlsBusy || !op.automaticDistributionEnabled}
+                className={buttonClassName("secondary", "text-xs")}
+                data-testid="health-control-disable-distribution"
+                onClick={() => void patchOperations({ automaticDistributionEnabled: false })}
+              >
+                Pausar distribuição automática
               </Button>
             </div>
           ) : null}

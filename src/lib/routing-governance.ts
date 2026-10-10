@@ -77,12 +77,15 @@ export function getRouteGovernance(pathname: string): RouteGovernanceEntry | nul
     path.startsWith("/forgot-password") ||
     path.startsWith("/reset-password") ||
     path === "/signup" ||
-    path.startsWith("/signup/")
+    path.startsWith("/signup/") ||
+    path === "/activate" ||
+    path.startsWith("/activate/")
   ) {
     return {
       owner: "whatsapp-app",
       phase: 3,
-      migrationNote: "308 para app WhatsApp quando env definida; implementação só no app",
+      migrationNote:
+        "308 para app WhatsApp quando env definida; implementação só no app (/activate = activação one-shot de membro provisionado)",
     };
   }
 

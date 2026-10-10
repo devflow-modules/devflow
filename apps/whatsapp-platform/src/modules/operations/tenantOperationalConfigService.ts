@@ -5,6 +5,8 @@ export type TenantOperationalConfigRow = {
   tenantId: string;
   aiEnabled: boolean;
   automationEnabled: boolean;
+  automaticDistributionEnabled: boolean;
+  routingRoundRobinCursor: number;
   updatedAt: Date;
   updatedByUserId: string | null;
 };
@@ -25,7 +27,12 @@ export async function getOrCreateTenantOperationalConfig(
   });
 }
 
-export type OperationalPatch = Partial<Pick<TenantOperationalConfigRow, "aiEnabled" | "automationEnabled">>;
+export type OperationalPatch = Partial<
+  Pick<
+    TenantOperationalConfigRow,
+    "aiEnabled" | "automationEnabled" | "automaticDistributionEnabled"
+  >
+>;
 
 export async function updateTenantOperationalConfig(
   tenantId: string,
@@ -38,6 +45,9 @@ export async function updateTenantOperationalConfig(
     data: {
       ...(patch.aiEnabled !== undefined ? { aiEnabled: patch.aiEnabled } : {}),
       ...(patch.automationEnabled !== undefined ? { automationEnabled: patch.automationEnabled } : {}),
+      ...(patch.automaticDistributionEnabled !== undefined
+        ? { automaticDistributionEnabled: patch.automaticDistributionEnabled }
+        : {}),
       ...(updatedByUserId !== undefined ? { updatedByUserId } : {}),
     },
   });
@@ -53,4 +63,10 @@ export async function isOperationalAiEnabled(tenantId: string): Promise<boolean>
 export async function isOperationalAutomationEnabled(tenantId: string): Promise<boolean> {
   const row = await getOrCreateTenantOperationalConfig(tenantId);
   return row.automationEnabled;
+}
+
+/** Distribuição automática round-robin (Client 1). */
+export async function isAutomaticDistributionEnabled(tenantId: string): Promise<boolean> {
+  const row = await getOrCreateTenantOperationalConfig(tenantId);
+  return row.automaticDistributionEnabled;
 }

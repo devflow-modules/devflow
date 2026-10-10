@@ -41,7 +41,7 @@ const snapshot: SystemHealthSnapshot = {
     totalReceived: 0,
     totalErrors: 0,
   },
-  operationalControls: { aiEnabled: true, automationEnabled: true },
+  operationalControls: { aiEnabled: true, automationEnabled: true, automaticDistributionEnabled: false },
   automationStatus: {
     aiActive: true,
     aiPausedByAdmin: false,

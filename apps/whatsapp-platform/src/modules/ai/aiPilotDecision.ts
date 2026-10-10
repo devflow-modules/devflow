@@ -70,6 +70,42 @@ const PILOT_SAFE_HANDOFF_TOPICS = [
   "advogado",
 ] as const;
 
+/**
+ * Limites clínicos dentários (Client 1) — handoff estrutural, não só prompt.
+ * Não tentar diagnosticar / medicar / triar emergência via IA.
+ */
+const DENTAL_CLINICAL_HANDOFF_TOPICS = [
+  "diagnóstico",
+  "diagnostico",
+  "medicamento",
+  "remédio",
+  "remedio",
+  "antibiótico",
+  "antibiotico",
+  "analgésico",
+  "analgesico",
+  "dor de dente forte",
+  "inchaço",
+  "inchaco",
+  "sangramento",
+  "emergência",
+  "emergencia",
+  "pronto-socorro",
+  "pronto socorro",
+  "extração",
+  "extracao",
+  "canal",
+  "implante falhou",
+  "infecção",
+  "infeccao",
+  "pus",
+  "febre",
+  "tratamento que você recomenda",
+  "tratamento que voce recomenda",
+  "qual tratamento",
+  "preciso de receita",
+] as const;
+
 const SENSITIVE_INTENTS = new Set(["suporte"]);
 
 export function evaluatePilotSafePreLlm(input: {
@@ -78,6 +114,14 @@ export function evaluatePilotSafePreLlm(input: {
 }): AiDecision | null {
   if (!input.safeMode) return null;
   const lower = (input.messageText ?? "").toLowerCase();
+  for (const topic of DENTAL_CLINICAL_HANDOFF_TOPICS) {
+    if (lower.includes(topic)) {
+      return {
+        action: "handoff",
+        reason: `pilot_clinical_topic:${topic}`,
+      };
+    }
+  }
   for (const topic of PILOT_SAFE_HANDOFF_TOPICS) {
     if (lower.includes(topic)) {
       return {

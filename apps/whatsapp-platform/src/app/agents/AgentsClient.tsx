@@ -19,6 +19,12 @@ const STATUS_OPTIONS = ["available", "busy", "offline"] as const;
 
 const QUEUE_PREVIEW_MAX = 3;
 
+const ACCOUNT_STATUS_LABEL: Record<string, string> = {
+  active: "Activo",
+  pending: "Pendente",
+  disabled: "Desactivado",
+};
+
 type TeamFilter = "all" | TeamRoleSegment;
 
 type Viewer = {
@@ -82,6 +88,12 @@ export function AgentsClient({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editStatus, setEditStatus] = useState<string>("offline");
   const [segment, setSegment] = useState<TeamFilter>("all");
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addName, setAddName] = useState("");
+  const [addEmail, setAddEmail] = useState("");
+  const [addRole, setAddRole] = useState<"operator" | "manager">("operator");
+  const [addResultUrl, setAddResultUrl] = useState<string | null>(null);
+  const [addSuccess, setAddSuccess] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     if (segment === "all") return agents;
@@ -123,18 +135,92 @@ export function AgentsClient({
     }
   }
 
+  async function handleAddMember(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setAddSuccess(null);
+    setAddResultUrl(null);
+    setLoading(true);
+    try {
+      const res = await fetchProtected("/api/agents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: addName, email: addEmail, role: addRole }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        data?: {
+          user: {
+            id: string;
+            name: string;
+            email: string;
+            role: string;
+            status: string;
+          };
+          emailSent?: boolean;
+          activationUrl?: string | null;
+        };
+      };
+      if (!res.ok) {
+        throw new Error(protectedApiUserMessage(res.status, data));
+      }
+      const created = data.data?.user;
+      if (created) {
+        setAgents((prev) => [
+          ...prev,
+          {
+            userId: created.id,
+            name: created.name,
+            email: created.email,
+            role: created.role,
+            accountStatus: created.status,
+            status: "offline",
+            activeThreadCount: 0,
+            queues: [],
+            lastActivityAt: null,
+          },
+        ]);
+      }
+      if (data.data?.activationUrl) {
+        setAddResultUrl(data.data.activationUrl);
+        setAddSuccess(
+          "Membro criado. O e-mail não foi enviado — partilhe o link de activação com o operador (uso único)."
+        );
+      } else {
+        setAddSuccess("Membro criado. Foi enviado um e-mail com o link de activação.");
+      }
+      setAddName("");
+      setAddEmail("");
+      setAddRole("operator");
+      setShowAddForm(false);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao adicionar membro");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="mx-auto min-w-0 max-w-5xl space-y-6">
       <PageHeader
         eyebrow="Operação"
         title="Equipe e agentes"
-        description="Quem está no tenant, que papel desempenha, estado operacional e filas. O estado (Livre, Em atendimento, Offline) sincroniza com a Inbox. Para criar utilizadores, use Configurações."
+        description="Quem está no tenant, papel, estado da conta, disponibilidade na Inbox e filas."
         layout="split"
         showDivider
         actions={
-          <Link href="/settings" className={`${buttonClassName("secondary")} text-sm`}>
-            Configurações
-          </Link>
+          <Button
+            type="button"
+            variant="primary"
+            className="text-sm"
+            onClick={() => {
+              setShowAddForm((v) => !v);
+              setError(null);
+            }}
+          >
+            {showAddForm ? "Cancelar" : "Adicionar membro"}
+          </Button>
         }
       />
 
@@ -160,6 +246,76 @@ export function AgentsClient({
         </section>
       ) : null}
 
+      {showAddForm ? (
+        <form
+          onSubmit={handleAddMember}
+          className="space-y-3 rounded-xl border border-border/80 bg-card p-4 shadow-sm"
+          aria-label="Adicionar membro à equipe"
+        >
+          <p className="text-sm font-medium df-text-primary">Novo membro</p>
+          <p className="text-xs df-text-muted">
+            O operador define a própria senha no link de activação. O tenant é o da sua sessão.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label htmlFor="add-member-name" className="mb-1 block text-xs font-medium df-text-secondary">
+                Nome
+              </label>
+              <input
+                id="add-member-name"
+                required
+                minLength={2}
+                value={addName}
+                onChange={(e) => setAddName(e.target.value)}
+                className="df-field-compact w-full rounded-lg border border-border bg-card px-2 py-1.5 text-sm"
+                disabled={loading}
+              />
+            </div>
+            <div>
+              <label htmlFor="add-member-email" className="mb-1 block text-xs font-medium df-text-secondary">
+                E-mail
+              </label>
+              <input
+                id="add-member-email"
+                type="email"
+                required
+                value={addEmail}
+                onChange={(e) => setAddEmail(e.target.value)}
+                className="df-field-compact w-full rounded-lg border border-border bg-card px-2 py-1.5 text-sm"
+                disabled={loading}
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="add-member-role" className="mb-1 block text-xs font-medium df-text-secondary">
+              Papel
+            </label>
+            <select
+              id="add-member-role"
+              value={addRole}
+              onChange={(e) => setAddRole(e.target.value as "operator" | "manager")}
+              className="df-field-compact max-w-xs rounded-lg border border-border bg-card px-2 py-1.5 text-sm"
+              disabled={loading}
+            >
+              <option value="operator">Operador</option>
+              <option value="manager">Gestor</option>
+            </select>
+          </div>
+          <Button type="submit" variant="primary" size="sm" disabled={loading}>
+            {loading ? "A criar…" : "Criar e gerar activação"}
+          </Button>
+        </form>
+      ) : null}
+
+      {addSuccess ? (
+        <div className="df-feedback-success rounded-xl text-sm" role="status">
+          <p>{addSuccess}</p>
+          {addResultUrl ? (
+            <p className="mt-2 break-all font-mono text-xs opacity-90">{addResultUrl}</p>
+          ) : null}
+        </div>
+      ) : null}
+
       {error ? (
         <div className="df-feedback-error rounded-xl text-sm" role="alert">
           {error}
@@ -169,13 +325,13 @@ export function AgentsClient({
       {agents.length === 0 ? (
         <StateEmpty
           title="Ainda não há membros na equipe"
-          description="Quando adicionar utilizadores ao tenant em Configurações, eles aparecem aqui com papel, estado na Inbox e filas."
-          nextStep="Comece por Configurações para convidar ou criar utilizadores com perfil de Operador ou Admin."
+          description="Adicione operadores para partilhar a Inbox sem editar a base de dados."
+          nextStep="Use «Adicionar membro» para convidar um operador."
           action={
             <div className="flex flex-wrap items-center justify-center gap-2">
-              <Link href="/settings" className={`${buttonClassName("primary")} text-sm`}>
-                Abrir configurações
-              </Link>
+              <Button type="button" variant="primary" className="text-sm" onClick={() => setShowAddForm(true)}>
+                Adicionar membro
+              </Button>
               <Link href="/queues" className={`${buttonClassName("secondary")} text-sm`}>
                 Ver filas operacionais
               </Link>
@@ -198,14 +354,16 @@ export function AgentsClient({
               <Button variant="secondary" type="button" className={filterClass(segment === "all")} onClick={() => setSegment("all")}>
                 Todos
               </Button>
-              <Button variant="secondary"
+              <Button
+                variant="secondary"
                 type="button"
                 className={filterClass(segment === "gestao")}
                 onClick={() => setSegment("gestao")}
               >
                 Gestão
               </Button>
-              <Button variant="secondary"
+              <Button
+                variant="secondary"
                 type="button"
                 className={filterClass(segment === "operacao")}
                 onClick={() => setSegment("operacao")}
@@ -237,7 +395,6 @@ export function AgentsClient({
                     key={a.userId}
                     className="flex flex-col gap-2 rounded-xl border border-border/80 bg-card p-3 shadow-sm df-ring-elevated"
                   >
-                    {/* 1 — Nome + role (badge menor) */}
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <span className="min-w-0 truncate text-base font-semibold tracking-tight df-text-primary">
                         {a.name}
@@ -248,9 +405,11 @@ export function AgentsClient({
                         </span>
                       ) : null}
                       <AgentRoleBadge role={a.role} size="compact" className="shrink-0" />
+                      <span className="shrink-0 rounded-md border border-border/80 px-1.5 py-0.5 text-[10px] font-medium df-text-muted">
+                        {ACCOUNT_STATUS_LABEL[a.accountStatus] ?? a.accountStatus}
+                      </span>
                     </div>
 
-                    {/* 2 — Estado operacional (separado da role) */}
                     <div className="flex flex-wrap items-center gap-2">
                       {editing ? (
                         <select
@@ -271,11 +430,8 @@ export function AgentsClient({
                     </div>
 
                     <p className="df-text-muted truncate text-sm">{a.email}</p>
-
-                    {/* 3 — Função */}
                     <p className="text-xs leading-relaxed df-text-secondary">{roleScopeLine(a.role)}</p>
 
-                    {/* 4–6 — Métricas */}
                     <div className="space-y-2 border-t border-border/90 pt-2">
                       <div className="flex items-baseline justify-between gap-2">
                         <span className="text-xs df-text-muted">Conversas abertas ou pendentes</span>
@@ -289,16 +445,12 @@ export function AgentsClient({
                       </div>
                       <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-2">
                         <span className="shrink-0 text-xs df-text-muted">Última atividade</span>
-                        <span
-                          className="text-xs df-text-muted sm:min-w-0 sm:flex-1"
-                          title={activityTitle}
-                        >
+                        <span className="text-xs df-text-muted sm:min-w-0 sm:flex-1" title={activityTitle}>
                           {a.lastActivityAt ? lastLabel : "Sem registo recente de presença ou conversa."}
                         </span>
                       </div>
                     </div>
 
-                    {/* 7 — Ações */}
                     <div className="flex flex-wrap gap-2 border-t border-border/90 pt-2">
                       <span className="sr-only">Ações</span>
                       {editing ? (
@@ -329,16 +481,10 @@ export function AgentsClient({
                           >
                             Alterar estado
                           </Button>
-                          <Link
-                            href="/inbox"
-                            className={`${buttonClassName("ghost")} inline-flex items-center text-sm`}
-                          >
+                          <Link href="/inbox" className={`${buttonClassName("ghost")} inline-flex items-center text-sm`}>
                             Abrir inbox
                           </Link>
-                          <Link
-                            href="/queues"
-                            className={`${buttonClassName("ghost")} inline-flex items-center text-sm`}
-                          >
+                          <Link href="/queues" className={`${buttonClassName("ghost")} inline-flex items-center text-sm`}>
                             Ver filas
                           </Link>
                         </>

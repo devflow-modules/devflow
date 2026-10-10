@@ -75,7 +75,7 @@ Decisão **pragmática** alinhada ao diagnóstico de sobreposição raiz ↔ app
 | `/upgrade` | `apps/financeiro` | Raiz | ambígua | **migrar** com billing |
 | Landings `/automacao-whatsapp*`, `/chatbot-whatsapp`, `/software-atendimento-whatsapp` | Raiz | Raiz (+ parte em `apps/site`) | duplicada | **manter** (raiz); **depreciar** `apps/site` |
 | `(seo)/[slug]` | Raiz | Raiz | ok | **manter** |
-| `/login`, `/forgot-password`, `/reset-password` (JWT) | `apps/whatsapp-platform` **no host do produto** | Raiz + `whatsapp-platform` + `investigamais` | duplicada | **308** para app quando `NEXT_PUBLIC_WHATSAPP_APP_URL`; canónico no app após cutover |
+| `/login`, `/forgot-password`, `/reset-password`, `/activate` (JWT / activação membro) | `apps/whatsapp-platform` **no host do produto** | Raiz + `whatsapp-platform` (+ `/activate` só no app) | parcial | **308** auth canónica para app quando `NEXT_PUBLIC_WHATSAPP_APP_URL`; `/activate` só no app (Client 1 team provisioning) |
 | `/dashboard/whatsapp`, `/dashboard/whatsapp/callback` | `apps/whatsapp-platform` | Raiz + `apps/whatsapp-platform` | duplicada | **308** / remoção na raiz após cutover |
 | `/admin/metrics` (contexto misto) | Definir (WhatsApp vs portal) | Raiz | ambígua | **migrar** para app dono do dado ou proteger por produto; evitar “admin genérico” na raiz |
 | `/projetos` | Raiz | Raiz | ok | **manter** |
