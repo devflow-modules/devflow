@@ -10,7 +10,7 @@ const ogImage = `${baseUrl}/og-devflow.png`;
 export const metadata: Metadata = {
   title: "Sobre a DevFlow Labs",
   description:
-    "Engenharia de produto na intersecção de CRM, prospecção, WhatsApp e demo — sistemas para gerar lead, operar conversa e fechar com controle.",
+    "Engenharia de produto para a operação de conversas no WhatsApp, com inbox, responsáveis, filas e implantação acompanhada.",
   alternates: {
     canonical: `${baseUrl}/sobre`,
   },
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     siteName: "DevFlow Labs",
     title: "Sobre a DevFlow Labs | Produto, operação e WhatsApp",
     description:
-      "Construímos software onde geração de lead, CRM, follow-up, automação no WhatsApp e venda demo-driven trabalham no mesmo loop.",
+      "Construímos a operação de atendimento no WhatsApp e as ferramentas do ecossistema. O CRM interno é só o funil comercial da DevFlow.",
     url: `${baseUrl}/sobre`,
     images: [
       {
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Sobre a DevFlow Labs",
     description:
-      "Sistemas que conectam prospecção, CRM, follow-up e WhatsApp Platform — foco atual em atendimento com escala.",
+      "WhatsApp Platform como camada operacional das conversas, com implantação acompanhada.",
     images: [ogImage],
   },
 };
@@ -73,8 +73,7 @@ export default function SobrePage() {
           </h2>
           <div className={body}>
             <p>
-              Somos um time enxuto de engenharia e produto, baseado no Brasil, focado em sistemas que sobrevivem à operação real:
-              fila, handoff, prioridade comercial e métricas que importam para quem responde cliente.
+              Somos um time enxuto de engenharia e produto, baseado no Brasil, focado em inbox, responsável, fila e handoff.
             </p>
             <p>
               Não vendemos “site institucional” nem escopo genérico: entregamos plataformas e ferramentas que você usa no dia a dia para responder mais rápido e com menos caos.
@@ -90,7 +89,7 @@ export default function SobrePage() {
             <p>
               Hoje o foco público é a{" "}
               <strong className="font-semibold text-foreground">WhatsApp Platform</strong>
-              : inbox multiatendente, automação com controle humano e narrativa alinhada a venda e suporte em escala.
+              : inbox compartilhado, responsáveis, filas, handoff e automação no repetitivo.
             </p>
             <p>
               Em paralelo mantemos o{" "}
@@ -116,7 +115,7 @@ export default function SobrePage() {
               Começamos pelo gargalo: onde a conversa morre, onde o comercial perde contexto, onde a automação vira risco em vez de alavanca.
             </p>
             <p>
-              Projetamos para handoff explícito, fila visível e decisões comerciais — IA entra onde acelera, nunca onde esconde risco de marca ou de receita.
+              A conversa pode ter um responsável e seguir para outra pessoa com o histórico. A automação fica no que foi permitido.
             </p>
             <p>
               Linguagem, ritmo de demo e onboarding seguem a mesma regra: menos slide, mais sistema em uso.

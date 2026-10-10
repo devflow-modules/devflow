@@ -198,7 +198,7 @@ export const AUTOMACAO_WHATSAPP_RESTAURANTE: NicheAutomationPageConfig = {
       "Fluxo pensado para cardápio do dia, delivery e handoff para o salão — linguagem de cozinha e pico, não de TI.",
     steps: [
       {
-        title: "Entrada por intenção: cardápio, delivery ou status",
+        title: "Entrada pelo fluxo: cardápio, delivery ou status",
         description:
           "Cliente escolhe se quer cardápio do dia, taxa de entrega por CEP ou status do pedido: cada ramo segue roteiro próprio sem travar a fila de pedidos.",
       },
@@ -215,7 +215,7 @@ export const AUTOMACAO_WHATSAPP_RESTAURANTE: NicheAutomationPageConfig = {
     ],
   },
   exampleChat: {
-    sectionTitle: "Exemplo real de uso",
+    sectionTitle: "Simulação de uso",
     intro:
       "Cliente → sistema → cliente → sistema → handoff para o salão: conversa com ritmo de rush do almoço, cardápio do dia e delivery no meio.",
     messages: [
@@ -246,7 +246,7 @@ export const AUTOMACAO_WHATSAPP_RESTAURANTE: NicheAutomationPageConfig = {
       },
       {
         type: "bot",
-        text: "Salão assumindo: te chamamos aqui no WhatsApp em 1–2 min com o pedido anotado e o tempo de preparo.",
+        text: "Salão assume nesta simulação, com o pedido anotado. O tempo de preparo a equipe confirma.",
         time: "12:12",
       },
     ],
@@ -254,7 +254,7 @@ export const AUTOMACAO_WHATSAPP_RESTAURANTE: NicheAutomationPageConfig = {
   benefits: {
     sectionTitle: "Benefícios para o seu restaurante",
     intro:
-      "Menos caos na fila de pedidos, mais previsibilidade no delivery e cardápio do dia sempre alinhado ao que a cozinha pode cumprir.",
+      "A fila de pedidos, o cardápio do dia e a área de entrega saem do que a casa configurou no fluxo.",
     items: [
       {
         title: "Fila de pedidos que não trava no rush do almoço",
@@ -279,14 +279,14 @@ export const AUTOMACAO_WHATSAPP_RESTAURANTE: NicheAutomationPageConfig = {
     ],
   },
   results: {
-    sectionTitle: "Resultados típicos",
+    sectionTitle: "O que a operação organiza",
     intro:
-      "Padrões observados em operações que organizam o WhatsApp como fila de pedidos — sem métricas inventadas.",
+      "Cenário de uso. Não é resultado medido de cliente.",
     items: [
-      "Primeira resposta no repetitivo (cardápio do dia, taxa de entrega, status) muito mais rápida do que fila 100% manual.",
-      "Menos mensagens repetidas ocupando o time no rush do almoço — o básico sai do caminho da cozinha e do salão.",
-      "Fluxo mais organizado entre delivery, retirada no balcão e salão, com handoff quando o ticket exige humano.",
-      "Melhor conversão no canal: cliente com dúvida de pedido recebe resposta na hora e avança em vez de desistir no silêncio.",
+      "Cardápio do dia, taxa de entrega e status podem ser respondidos pela automação, quando o fluxo está ativo.",
+      "Menos repetição manual no rush: o básico sai do caminho da cozinha e do salão.",
+      "Fila entre delivery, retirada e salão, com handoff quando o pedido exige uma pessoa.",
+      "A conversa segue com histórico, em vez de ficar no celular de alguém.",
     ],
   },
   faq: [
@@ -298,12 +298,12 @@ export const AUTOMACAO_WHATSAPP_RESTAURANTE: NicheAutomationPageConfig = {
     {
       question: "Cardápio do dia muda no meio do serviço?",
       answer:
-        "Sim. Atualização reflete no fluxo para o time não responder versão antiga no rush.",
+        "O roteiro é revisto na implantação e quando a equipe atualiza o fluxo. Não é um cardápio que se sincroniza sozinho.",
     },
     {
-      question: "Consigo enxergar fila de pedidos e prioridade?",
+      question: "Consigo enxergar a fila de pedidos?",
       answer:
-        "Sim — desenho alinhado à WhatsApp Platform: fila, prioridade e handoff visíveis para gestão e operação.",
+        "Sim. A equipe vê a fila, o responsável e o handoff. Não há roteamento por intenção nem por carga.",
     },
   ],
   finalCta: {
@@ -337,7 +337,7 @@ export const AUTOMACAO_WHATSAPP_CLINICA: NicheAutomationPageConfig = {
   meta: {
     title: "Automação de WhatsApp para clínicas | DevFlow Labs",
     description:
-      "Agendamento de consulta, triagem no WhatsApp, convênio e preparo para exame com resposta imediata e handoff para recepção quando o caso exige humano.",
+      "Informações de agenda, convênio e preparo que a clínica definiu, com encaminhamento para a recepção. A automação não faz diagnóstico.",
     keywords: [
       "automação whatsapp para clínicas",
       "automação whatsapp clínica",
@@ -347,7 +347,7 @@ export const AUTOMACAO_WHATSAPP_CLINICA: NicheAutomationPageConfig = {
     ],
     ogTitle: "Automação WhatsApp para clínicas | DevFlow",
     ogDescription:
-      "Fila de paciente no WhatsApp sem roteiro vira erro de agenda e recepção sob pressão — automação com LGPD e handoff.",
+      "Fila de agenda no WhatsApp, com informações previamente definidas e handoff para a recepção.",
   },
   hero: {
     h1: "Automação de WhatsApp para clínicas",
@@ -362,7 +362,7 @@ export const AUTOMACAO_WHATSAPP_CLINICA: NicheAutomationPageConfig = {
   problems: {
     sectionTitle: "Problemas típicos de clínica no WhatsApp",
     intro:
-      "Agenda, convênio e preparo para exame chegam misturados — sem separar intenção, a recepção perde o fio da jornada do paciente.",
+      "Agenda, convênio e preparo para exame chegam misturados. Sem uma fila, a recepção perde o fio da conversa.",
     items: [
       {
         title: "Agendamento de consulta cai no meio de 12 conversas abertas",
@@ -370,9 +370,9 @@ export const AUTOMACAO_WHATSAPP_CLINICA: NicheAutomationPageConfig = {
           "Paciente manda \"tem horário?\" enquanto outro pede preparo para exame e um terceiro quer remarcação: sem fila, alguém fica sem horário liberado confirmado.",
       },
       {
-        title: "Triagem no WhatsApp improvisada vira risco e retrabalho",
+        title: "Pergunta de saúde no chat não pode virar avaliação",
         description:
-          "Sintoma ou medo aparece no chat e a recepção tenta classificar no improviso — ou ignora. Os dois prejudicam a jornada do paciente e a operação.",
+          "Sintoma ou dúvida clínica no WhatsApp precisa ir para a equipe. A automação não avalia, não orienta conduta e não faz diagnóstico.",
       },
       {
         title: "Convênio e documentos para consulta repetidos o dia inteiro",
@@ -389,10 +389,10 @@ export const AUTOMACAO_WHATSAPP_CLINICA: NicheAutomationPageConfig = {
   howItWorks: {
     sectionTitle: "Como funciona na sua clínica",
     intro:
-      "Automação para informação e encaminhamento — não diagnóstico. LGPD e bom senso clínico no centro.",
+      "Automação para informação e encaminhamento. Não faz diagnóstico. A implantação segue um checklist de privacidade.",
     steps: [
       {
-        title: "Primeiro contato com intenção clara",
+        title: "Primeiro contato com o motivo da mensagem",
         description:
           "Paciente escolhe agendamento de consulta, remarcação, preparo para exame ou dúvida de convênio — cada caminho tem próximo passo certo.",
       },
@@ -409,7 +409,7 @@ export const AUTOMACAO_WHATSAPP_CLINICA: NicheAutomationPageConfig = {
     ],
   },
   exampleChat: {
-    sectionTitle: "Exemplo real de uso",
+    sectionTitle: "Simulação de uso",
     intro:
       "Paciente → sistema → paciente → sistema → handoff para recepção: agendamento de consulta com convênio e preparo para exame no mesmo fio.",
     messages: [
@@ -430,7 +430,7 @@ export const AUTOMACAO_WHATSAPP_CLINICA: NicheAutomationPageConfig = {
       },
       {
         type: "bot",
-        text: "Para retorno de rotina com a Dra. Marina, em geral não há jejum obrigatório — mas posso registrar observação e passar você para recepção confirmar no prontuário.",
+        text: "Preparo e jejum a recepção confirma. Posso encaminhar você agora, com o histórico desta conversa.",
         time: "08:48",
       },
       {
@@ -466,20 +466,20 @@ export const AUTOMACAO_WHATSAPP_CLINICA: NicheAutomationPageConfig = {
           "Menos cópia de documentos para consulta no chat; mais tempo para paciente na mesa e casos sensíveis.",
       },
       {
-        title: "LGPD na prática do canal",
+        title: "Privacidade na implantação",
         description:
-          "Coleta mínima e encaminhamento consciente — narrativa alinhada ao que a clínica pode automatizar com segurança.",
+          "Os dados ficam separados por organização e a implantação segue um checklist de privacidade. Isso não é certificação.",
       },
     ],
   },
   results: {
-    sectionTitle: "Resultados típicos",
-    intro: "Padrões de operação quando agendamento de consulta e triagem no WhatsApp deixam de ser improviso.",
+    sectionTitle: "O que a operação organiza",
+    intro: "Cenário de uso. A automação não avalia sintoma nem recomenda conduta.",
     items: [
-      "Resposta inicial em dúvidas repetidas (convênio, preparo para exame, documentos) bem mais rápida que fila só humana.",
-      "Menos mensagens repetidas na recepção — o protocolável some do caminho da agenda.",
-      "Fluxo mais organizado entre retorno, primeiro agendamento de consulta e remarcação, com handoff explícito.",
-      "Melhor conversão de contato em horário liberado: paciente entende próximo passo e confirma em vez de abandonar no silêncio.",
+      "Convênio, documentos e preparo previamente definidos podem ser respondidos pela automação.",
+      "Menos repetição na recepção: o que já está no roteiro sai do caminho da agenda.",
+      "Fila entre retorno, primeiro agendamento e remarcação, com handoff explícito.",
+      "A recepção assume a conversa com o histórico, quando o caso sai do roteiro.",
     ],
   },
   faq: [
@@ -491,12 +491,12 @@ export const AUTOMACAO_WHATSAPP_CLINICA: NicheAutomationPageConfig = {
     {
       question: "Paciente consegue remarcação dentro de regra?",
       answer:
-        "Sim, com confirmação para a agenda não conflitar — integração detalhada alinhamos na implementação.",
+        "O desenho da agenda entra na implantação acompanhada. A automação não altera o prontuário sozinha.",
     },
     {
       question: "E LGPD no triagem no WhatsApp?",
       answer:
-        "Coleta mínima, finalidade clara e handoff documentado no fluxo — desenho conversado com a clínica antes de publicar.",
+        "A implantação segue um checklist de privacidade e separa os dados por organização. Não é uma certificação formal.",
     },
   ],
   finalCta: {
@@ -530,7 +530,7 @@ export const AUTOMACAO_WHATSAPP_LOJA: NicheAutomationPageConfig = {
   meta: {
     title: "Automação de WhatsApp para lojas | DevFlow Labs",
     description:
-      "Estoque na loja, preço e parcelamento e retirada no balcão no WhatsApp com resposta imediata e handoff para o vendedor para fechar vendas pelo WhatsApp.",
+      "Preço, parcelamento e retirada no WhatsApp, com o que foi configurado no fluxo e handoff para o vendedor.",
     keywords: [
       "automação whatsapp para lojas",
       "automação whatsapp loja",
@@ -545,7 +545,7 @@ export const AUTOMACAO_WHATSAPP_LOJA: NicheAutomationPageConfig = {
   hero: {
     h1: "Automação de WhatsApp para lojas",
     subheadline:
-      "O WhatsApp virou vitrine digital: cliente pergunta estoque na loja, preço e parcelamento e retirada no balcão no mesmo fio. Se a resposta demora, a conversão vai para o concorrente. Automatize SKU e política e faça handoff para o vendedor só na hora de fechar vendas pelo WhatsApp.",
+      "Cliente pergunta estoque, preço e retirada no mesmo fio. A automação responde o que a loja definiu e a conversa segue para o vendedor quando precisa fechar.",
   },
   heroWhatsApp: {
     label: "Falar com vendas",
@@ -575,7 +575,7 @@ export const AUTOMACAO_WHATSAPP_LOJA: NicheAutomationPageConfig = {
       {
         title: "Vendedor vira buscador de estoque em vez de closer",
         description:
-          "80% do tempo em \"deixa eu ver na prateleira\" no WhatsApp — quem deveria fazer upsell fica preso em SKU básico.",
+          "Boa parte do tempo vai em \"deixa eu ver na prateleira\" no WhatsApp, em vez de fechar a conversa.",
       },
     ],
   },
@@ -587,12 +587,12 @@ export const AUTOMACAO_WHATSAPP_LOJA: NicheAutomationPageConfig = {
       {
         title: "Catálogo e estoque na loja no automático",
         description:
-          "SKU, preço e parcelamento e retirada no balcão vêm do cadastro — resposta imediata mesmo fora do horário da loja física.",
+          "Preço e retirada saem do que foi configurado no fluxo. Fora do horário, a conversa fica na fila para a equipe.",
       },
       {
         title: "Qualificação antes do vendedor",
         description:
-          "Cliente informa modelo, tamanho ou uso; sistema confirma estoque na loja — handoff para o vendedor com contexto para fechar.",
+          "A pessoa informa modelo ou tamanho. A resposta usa o que a loja configurou. Estoque ao vivo não é consultado. O vendedor entra quando a conversa precisa fechar.",
       },
       {
         title: "Troca e garantia e cupom no script oficial",
@@ -602,7 +602,7 @@ export const AUTOMACAO_WHATSAPP_LOJA: NicheAutomationPageConfig = {
     ],
   },
   exampleChat: {
-    sectionTitle: "Exemplo real de uso",
+    sectionTitle: "Simulação de uso",
     intro:
       "Cliente → sistema → cliente → sistema → handoff para o vendedor: estoque na loja, preço e parcelamento e retirada no balcão.",
     messages: [
@@ -613,7 +613,7 @@ export const AUTOMACAO_WHATSAPP_LOJA: NicheAutomationPageConfig = {
       },
       {
         type: "bot",
-        text: "Olá! SKU AirRun 42 preto disponível na loja Centro. Retirada no balcão a partir das 10h. Quer preço e parcelamento em 3x ou prefere PIX com desconto?",
+        text: "Olá! Nesta simulação, o fluxo responde o preço e a retirada que a loja configurou. Não consulto estoque ao vivo. Quer parcelamento em 3x ou PIX com desconto?",
         time: "19:52",
       },
       {
@@ -623,7 +623,7 @@ export const AUTOMACAO_WHATSAPP_LOJA: NicheAutomationPageConfig = {
       },
       {
         type: "bot",
-        text: "Consigo registrar intenção e política de reserva até 12h para retirada no balcão. Para travar 3x no cartão, preciso do handoff para o vendedor confirmar máquina e cupom.",
+        text: "A política de reserva desta simulação pede confirmação da equipe. Vou passar a conversa para o vendedor, com o horário e o pedido de parcelamento.",
         time: "19:53",
       },
       {
@@ -641,12 +641,12 @@ export const AUTOMACAO_WHATSAPP_LOJA: NicheAutomationPageConfig = {
   benefits: {
     sectionTitle: "Benefícios para a sua loja",
     intro:
-      "Vitrine digital com estoque na loja e preço e parcelamento coerentes — mais conversão e menos atrito na retirada no balcão.",
+      "Preço e retirada saem do fluxo configurado. A conversa segue para o vendedor quando precisa fechar.",
     items: [
       {
-        title: "Vendas pelo WhatsApp com resposta na velocidade do varejo",
+        title: "Informação de produto no fluxo permitido",
         description:
-          "Cliente com intenção não fica preso esperando alguém \"ver na prateleira\" — SKU e política saem na hora.",
+          "Preço e política saem do que foi configurado. Estoque ao vivo não é consultado automaticamente.",
       },
       {
         title: "Handoff para o vendedor só no fechamento",
@@ -659,20 +659,20 @@ export const AUTOMACAO_WHATSAPP_LOJA: NicheAutomationPageConfig = {
           "Uma fonte de verdade para vitrine digital e balcão — menos erro e menos cliente irritado na porta.",
       },
       {
-        title: "Pico de campanha sem multiplicar headcount",
+        title: "Pico de mensagem no mesmo inbox",
         description:
-          "Black Friday e saldão aumentam mensagem — automação absorve repetitivo e prioriza quente.",
+          "A automação cobre o repetitivo. A equipe assume, transfere ou devolve a conversa na fila.",
       },
     ],
   },
   results: {
-    sectionTitle: "Resultados típicos",
-    intro: "Padrões de lojas que tratam WhatsApp como canal de vendas, não só inbox.",
+    sectionTitle: "O que a operação organiza",
+    intro: "Cenário de uso. Sem número de conversão e sem consulta automática de estoque.",
     items: [
-      "Resposta no repetitivo (estoque na loja, preço e parcelamento, retirada no balcão) muito mais rápida que fila 100% manual.",
-      "Menos mensagens repetidas ocupando vendedor — SKU básico deixa de roubar ciclo de fechamento.",
-      "Fluxo mais organizado entre curioso e comprador quente, com handoff para o vendedor no momento certo.",
-      "Melhor conversão: cliente com intenção recebe confirmação e próximo passo em vez de silêncio.",
+      "Preço, parcelamento e retirada podem ser respondidos pelo fluxo permitido.",
+      "Menos repetição para o vendedor no que já está no roteiro.",
+      "Fila compartilhada, com handoff quando a conversa precisa de uma pessoa.",
+      "O histórico fica na conversa, não no celular de alguém.",
     ],
   },
   faq: [
@@ -684,7 +684,7 @@ export const AUTOMACAO_WHATSAPP_LOJA: NicheAutomationPageConfig = {
     {
       question: "Consigo priorizar retirada no balcão hoje?",
       answer:
-        "Sim — regra de prioridade faz parte do desenho para quente não ficar atrás de curioso.",
+        "A equipe pode separar filas, por exemplo retirada e dúvida. Não há distribuição automática por intenção de compra.",
     },
     {
       question: "Catálogo grande demais?",
@@ -693,7 +693,7 @@ export const AUTOMACAO_WHATSAPP_LOJA: NicheAutomationPageConfig = {
     },
   ],
   finalCta: {
-    title: "Quer vender mais pelo WhatsApp sem multiplicar atendentes?",
+    title: "Quer organizar o atendimento da loja no WhatsApp?",
     subtitle: "Demo ou conversa com especialista.",
     whatsappLabel: "Quero automação para loja",
     whatsappPrefill:
@@ -723,7 +723,7 @@ export const AUTOMACAO_WHATSAPP_TABACARIA: NicheAutomationPageConfig = {
   meta: {
     title: "Automação de WhatsApp para tabacarias | DevFlow Labs",
     description:
-      "Essências e linhas, delivery da tabacaria e área de entrega no WhatsApp com respostas rápidas e handoff para o balcão na hora do pedido para separação.",
+      "Essências, delivery e área de entrega no WhatsApp, com o roteiro permitido e handoff para o balcão.",
     keywords: [
       "automação whatsapp para tabacarias",
       "automação whatsapp tabacaria",
@@ -795,7 +795,7 @@ export const AUTOMACAO_WHATSAPP_TABACARIA: NicheAutomationPageConfig = {
     ],
   },
   exampleChat: {
-    sectionTitle: "Exemplo real de uso",
+    sectionTitle: "Simulação de uso",
     intro:
       "Cliente → sistema → cliente → sistema → handoff para o balcão: essências e linhas, taxa por CEP e pedido para separação.",
     messages: [
@@ -806,7 +806,7 @@ export const AUTOMACAO_WHATSAPP_TABACARIA: NicheAutomationPageConfig = {
       },
       {
         type: "bot",
-        text: "Olá! Frutas vermelhas e cereja na linha X disponíveis. Delivery da tabacaria até 21h — calculo taxa por CEP e opções de PIX na entrega ou pagamento no balcão na retirada.",
+        text: "Nesta simulação, frutas vermelhas e cereja estão no roteiro. A equipe confirma taxa e forma de pagamento no handoff.",
         time: "18:04",
       },
       {
@@ -816,7 +816,7 @@ export const AUTOMACAO_WHATSAPP_TABACARIA: NicheAutomationPageConfig = {
       },
       {
         type: "bot",
-        text: "Taxa por CEP para 01310-100: R$8. Para fechar PIX na entrega e separação no balcão com conferência de idade na política da loja, faço handoff para o balcão agora.",
+        text: "A taxa e o pagamento ficam com o balcão, junto com a conferência de idade da política da loja. Encaminho esta conversa.",
         time: "18:05",
       },
       {
@@ -826,7 +826,7 @@ export const AUTOMACAO_WHATSAPP_TABACARIA: NicheAutomationPageConfig = {
       },
       {
         type: "bot",
-        text: "Balcão assumindo: confirmação de pedido para separação e entrega no mesmo fio — 1–2 min.",
+        text: "Balcão assume nesta simulação, com o histórico do pedido. Sem prazo prometido.",
         time: "18:05",
       },
     ],
@@ -847,9 +847,9 @@ export const AUTOMACAO_WHATSAPP_TABACARIA: NicheAutomationPageConfig = {
           "Cliente entende delivery da tabacaria antes do motorista sair — menos cancelamento em cima da hora.",
       },
       {
-        title: "Prioridade para quem fecha pedido para separação",
+        title: "Fila para o pedido que já tem contexto",
         description:
-          "Fila comercial separa curioso de quem já definiu sabor e pagamento — conversão no canal melhora.",
+          "A equipe vê o que ainda precisa de resposta e pode transferir o pedido para o balcão.",
       },
       {
         title: "Handoff para o balcão com contexto de PIX na entrega",
@@ -859,14 +859,13 @@ export const AUTOMACAO_WHATSAPP_TABACARIA: NicheAutomationPageConfig = {
     ],
   },
   results: {
-    sectionTitle: "Resultados típicos",
-    intro:
-      "Padrões de operação em tabacarias que organizam o WhatsApp como fila comercial, não caixa de perguntas soltas.",
+    sectionTitle: "O que a operação organiza",
+    intro: "Cenário de uso. Sem prazo de resposta e sem taxa calculada automaticamente.",
     items: [
-      "Resposta inicial em perguntas repetidas (disponibilidade, área de entrega, taxa por CEP) bem mais rápida que atendimento só manual.",
-      "Menos mensagens repetidas no turno no pico — o básico não compete com separação no balcão.",
-      "Fluxo mais organizado entre delivery da tabacaria e retirada, com handoff para o balcão quando o pedido exige humano.",
-      "Melhor conversão: cliente com intenção recebe confirmação e próximo passo em vez de esperar o balcão \"só um minuto\".",
+      "Disponibilidade do roteiro, área de entrega e handoff para confirmar a taxa.",
+      "Menos repetição no turno: o básico não compete com a separação no balcão.",
+      "Fila entre delivery e retirada, com handoff quando o pedido exige uma pessoa.",
+      "O balcão recebe o histórico, em vez de a conversa recomeçar.",
     ],
   },
   faq: [
@@ -883,7 +882,7 @@ export const AUTOMACAO_WHATSAPP_TABACARIA: NicheAutomationPageConfig = {
     {
       question: "Promoção de essências e linhas?",
       answer:
-        "Combos e ofertas entram no mesmo mecanismo de atualização — cliente vê promo certa na hora do pico.",
+        "Combos entram quando a equipe atualiza o fluxo. A oferta não se publica sozinha.",
     },
   ],
   finalCta: {
