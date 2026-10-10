@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils";
 const baseUrl = "https://devflowlabs.com.br";
 
 const benefits = [
-  "Respostas 24 horas, 7 dias por semana",
-  "Handoff para atendente humano quando preciso",
-  "Integração oficial com Meta/WhatsApp",
-  "Métricas e relatórios em tempo real",
+  "Automação no repetitivo, quando o fluxo está ativo",
+  "A conversa segue para uma pessoa quando precisa de contexto",
+  "WhatsApp Cloud API oficial da Meta",
+  "Responsáveis, filas e histórico da conversa",
 ];
 
 const useCases = [
@@ -24,7 +24,7 @@ const useCases = [
 export const metadata: Metadata = {
   title: "Chatbot para WhatsApp | Bot de Atendimento | DevFlow Labs",
   description:
-    "Chatbot WhatsApp para empresas. Automatize atendimento com bot inteligente, handoff humano e métricas. Piloto grátis.",
+    "Chatbot WhatsApp dentro de uma operação de atendimento: automação no repetitivo, handoff para a equipe e implantação acompanhada.",
   keywords: [
     "chatbot whatsapp",
     "bot para whatsapp atendimento",
@@ -37,13 +37,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Chatbot para WhatsApp | DevFlow Labs",
     description:
-      "Chatbot WhatsApp para empresas. Automatize atendimento com bot inteligente e handoff humano.",
+      "Chatbot WhatsApp como parte da operação: automação no repetitivo e handoff para a equipe.",
     url: `${baseUrl}/chatbot-whatsapp`,
   },
   twitter: {
     title: "Chatbot para WhatsApp | DevFlow Labs",
     description:
-      "Chatbot WhatsApp para empresas. Automatize atendimento com bot inteligente e handoff humano.",
+      "Chatbot WhatsApp como parte da operação: automação no repetitivo e handoff para a equipe.",
   },
 };
 
@@ -64,11 +64,11 @@ export default function ChatbotWhatsAppPage() {
               id="hero-heading"
               className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
             >
-              Chatbot para WhatsApp
+              Mais do que um chatbot: organize o atendimento no WhatsApp
             </h1>
             <p className="mt-4 text-lg df-text-secondary">
-              Bot de atendimento que responde clientes automaticamente e transfere
-              para humano quando precisa. Vale a pena? Sim — quando feito direito.
+              Dá para buscar por chatbot WhatsApp. O produto é a operação: a automação responde o que foi
+              permitido e a conversa segue para uma pessoa quando precisa de contexto.
             </p>
             <div className="mt-8">
               <WhatsAppCta
@@ -90,8 +90,7 @@ export default function ChatbotWhatsAppPage() {
             Por que usar um chatbot no WhatsApp?
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-center df-text-secondary">
-            Clientes esperam resposta rápida. Um bot entrega isso sem sobrecarregar
-            sua equipe.
+            O repetitivo sai do caminho da equipe. Quem precisa de contexto continua com uma pessoa.
           </p>
           <ul className="mx-auto mt-12 grid max-w-2xl gap-4 sm:grid-cols-2" role="list">
             {benefits.map((item) => (
@@ -118,7 +117,7 @@ export default function ChatbotWhatsAppPage() {
             O que o chatbot pode fazer
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-center df-text-secondary">
-            Casos de uso que automatizam a maior parte do atendimento.
+            Exemplos do que um fluxo permitido pode cobrir. O restante fica com a equipe.
           </p>
           <div className="mx-auto mt-12 flex max-w-2xl flex-wrap justify-center gap-3">
             {useCases.map((item) => (
@@ -146,7 +145,7 @@ export default function ChatbotWhatsAppPage() {
               Quer um chatbot para seu WhatsApp?
             </h2>
             <p className="mt-4 df-text-secondary">
-              Piloto de 7 dias para testar. Sem compromisso.
+              O próximo passo é o diagnóstico. A demo é uma simulação.
             </p>
             <div className="mt-8">
               <WhatsAppCta

@@ -21,7 +21,7 @@ const canonical = `${baseUrl}/cases`;
 
 const ogTitle = "Cases e exemplos de operação WhatsApp | DevFlow Labs";
 const ogDescription =
-  "Veja exemplos de como a WhatsApp Platform da DevFlow Labs pode organizar atendimento, automação, handoff humano e métricas em diferentes nichos.";
+  "Cenários de como a WhatsApp Platform organiza atendimento, automação supervisionada, responsáveis e handoff. Os exemplos são simulações.";
 
 export const metadata: Metadata = {
   title: ogTitle,
@@ -79,11 +79,11 @@ export default function CasesPage() {
             id="cases-hero-heading"
             className="df-text-primary mt-5 max-w-4xl text-balance text-3xl font-bold tracking-tight sm:text-4xl lg:text-[2.65rem] lg:leading-[1.12]"
           >
-            Veja como a WhatsApp Platform se aplica em negócios reais
+            Veja cenários de como a WhatsApp Platform organiza o atendimento
           </h1>
           <p className="df-text-secondary mt-5 max-w-3xl text-pretty text-lg leading-relaxed sm:text-xl">
-            Modelos baseados em cenários comuns de atendimento no WhatsApp: mensagens perdidas, demora na
-            resposta, falta de controle e ausência de métricas.
+            Simulações de uso com problemas comuns: mensagens sem dono, fila misturada e a equipe sem o
+            histórico da conversa.
           </p>
           <p className="df-text-muted mt-6 max-w-3xl rounded-xl border df-border-brand df-surface-elevated px-4 py-3 text-sm leading-relaxed backdrop-blur-sm sm:text-[0.9375rem]">
             {CASES_TRANSPARENCY_NOTE}
@@ -230,7 +230,7 @@ export default function CasesPage() {
             id="simulation-steps-heading"
             className="df-text-primary text-2xl font-bold tracking-tight sm:text-3xl"
           >
-            Como transformamos simulação em operação real
+            Como a simulação vira implantação acompanhada
           </h2>
           <ol className="mt-10 grid gap-6 sm:grid-cols-3" role="list">
             {operationSteps.map((step, i) => (

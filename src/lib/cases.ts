@@ -19,7 +19,7 @@ export const whyExamplesExist = {
     },
     {
       title: "Sem visibilidade",
-      description: "Gestor não sabe tempo de resposta, fila, gargalos ou conversas críticas.",
+      description: "Gestor não sabe quem está com a conversa, o que está na fila ou o que ainda precisa de resposta.",
     },
   ] as const,
 };
@@ -48,11 +48,11 @@ export const nicheExamples: readonly CasesNicheExample[] = [
       "Inbox para separar conversas pendentes e respondidas",
       "Respostas automáticas para dúvidas frequentes",
       "Handoff humano quando o cliente quer comprar",
-      "Priorização de mensagens com intenção comercial",
-      "Métricas de tempo de resposta",
+      "Um responsável por conversa",
+      "Histórico compartilhado entre quem atende",
     ],
     expectedOutcome:
-      "Mais controle sobre a fila, menos repetição manual e atendimento mais rápido nos momentos de maior demanda.",
+      "Mais clareza sobre a fila e menos repetição manual no horário de pico.",
     featured: true,
     ctaHref: "/automacao-whatsapp-tabacaria",
     ctaLabel: "Ver exemplo para tabacaria",
@@ -64,7 +64,7 @@ export const nicheExamples: readonly CasesNicheExample[] = [
     scenario:
       "Pedidos, alterações, dúvidas sobre cardápio e status de entrega chegam ao mesmo tempo.",
     platformHelps: [
-      "Respostas rápidas para cardápio, horário e entrega",
+      "Respostas automáticas para cardápio, horário e entrega, quando o fluxo está ativo",
       "Organização da fila por pedido, dúvida ou reclamação",
       "Encaminhamento para humano em casos sensíveis",
       "Controle de atendimento em horários de pico",
@@ -82,8 +82,8 @@ export const nicheExamples: readonly CasesNicheExample[] = [
     scenario:
       "Pacientes chamam para horários, valores, confirmação, remarcação e dúvidas recorrentes.",
     platformHelps: [
-      "Triagem inicial automática",
-      "Separação entre novos pacientes e retornos",
+      "Informações de agenda e preparo que a clínica definiu antes",
+      "Separação entre novos pacientes e retornos na fila",
       "Handoff humano para negociação e confirmação",
       "Histórico centralizado da conversa",
     ],
@@ -100,8 +100,8 @@ export const nicheExamples: readonly CasesNicheExample[] = [
     scenario:
       "Clientes perguntam se tem produto, preço, formas de pagamento e retirada. A venda pode depender de resposta rápida.",
     platformHelps: [
-      "Priorização de conversas com intenção de compra",
-      "Respostas automáticas para informações básicas",
+      "Fila para o que ainda precisa de resposta",
+      "Respostas automáticas para informações básicas, quando o fluxo está ativo",
       "Atendimento humano para fechar venda",
       "Visão gerencial da fila",
     ],
@@ -121,7 +121,7 @@ export const operationSteps = [
   },
   {
     title: "Modelo de operação",
-    description: "Desenhamos como a inbox, automações, handoff e métricas entram no fluxo.",
+    description: "Desenhamos como a inbox, os responsáveis, as filas e o handoff entram no fluxo.",
   },
   {
     title: "Implantação guiada",
@@ -131,12 +131,12 @@ export const operationSteps = [
 
 export const authenticCaseSection = {
   title: "O case real nasce depois da operação rodando",
-  body: "Depois da implantação, acompanhamos os indicadores e, com autorização do cliente, transformamos os aprendizados em um case público.",
+  body: "Um case público só entra aqui depois da implantação e com autorização de quem operou. Até lá, esta página mostra cenários.",
   bullets: [
-    "Antes e depois do fluxo",
-    "Tempo de resposta",
-    "Volume de conversas",
-    "Gargalos removidos",
+    "Como a fila foi desenhada",
+    "Quem ficou responsável",
+    "O que a automação podia responder",
+    "Quando a conversa foi para uma pessoa",
     "Aprendizados da operação",
   ] as const,
 };

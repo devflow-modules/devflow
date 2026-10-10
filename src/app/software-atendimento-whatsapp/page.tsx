@@ -15,27 +15,27 @@ const features = [
   },
   {
     icon: BarChart3,
-    title: "Métricas e relatórios",
+    title: "Fila e responsável",
     description:
-      "Volume, tempo de resposta, taxa de automação. Dados para decidir.",
+      "Dá para ver quem está com a conversa e o que ainda precisa de resposta.",
   },
   {
     icon: Users,
     title: "Equipe e handoff",
     description:
-      "Distribua conversas entre atendentes. Handoff automático quando o bot não resolve.",
+      "Mais de uma pessoa atende. A conversa pode ser transferida com o histórico.",
   },
 ];
 
 const comparisons = [
-  "WhatsApp comum: sem filas, sem métricas, sem organização",
-  "Software de atendimento: tudo centralizado, mensurável e escalável",
+  "WhatsApp comum: a conversa fica no celular de alguém",
+  "Inbox compartilhado: fila, responsável e histórico no mesmo lugar",
 ];
 
 export const metadata: Metadata = {
   title: "Software de Atendimento no WhatsApp | Plataforma | DevFlow Labs",
   description:
-    "Plataforma de atendimento no WhatsApp com automação, métricas e equipe. Centralize conversas e escale o suporte.",
+    "Operação de atendimento no WhatsApp: inbox compartilhado, responsáveis, filas e automação no repetitivo.",
   keywords: [
     "software atendimento whatsapp",
     "plataforma atendimento whatsapp",
@@ -48,13 +48,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Software de Atendimento no WhatsApp | DevFlow Labs",
     description:
-      "Plataforma de atendimento no WhatsApp com automação, métricas e equipe.",
+      "Inbox compartilhado, responsáveis, filas e automação supervisionada no WhatsApp.",
     url: `${baseUrl}/software-atendimento-whatsapp`,
   },
   twitter: {
     title: "Software Atendimento WhatsApp | DevFlow Labs",
     description:
-      "Plataforma de atendimento no WhatsApp com automação, métricas e equipe.",
+      "Inbox compartilhado, responsáveis, filas e automação supervisionada no WhatsApp.",
   },
 };
 
@@ -78,8 +78,7 @@ export default function SoftwareAtendimentoWhatsAppPage() {
               Software de Atendimento no WhatsApp
             </h1>
             <p className="mt-4 text-lg df-text-secondary">
-              Plataforma completa: automação, central de conversas, métricas e equipe.
-              Para quem precisa de controle real da operação.
+              Inbox compartilhado, responsáveis, filas e automação no que foi permitido.
             </p>
             <div className="mt-8">
               <WhatsAppCta
@@ -101,7 +100,7 @@ export default function SoftwareAtendimentoWhatsAppPage() {
             Por que um software em vez do WhatsApp comum?
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-center df-text-secondary">
-            Quando o volume cresce, organização e métricas fazem a diferença.
+            Quando o volume cresce, fila e responsável fazem a diferença.
           </p>
           <div className="mx-auto mt-12 max-w-2xl space-y-4">
             {comparisons.map((item, i) => (

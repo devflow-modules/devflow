@@ -13,7 +13,7 @@ const ogImage = `${baseUrl}/og-devflow.png`;
 export const metadata: Metadata = {
   title: "WhatsApp Multi-canal para atendimento e prospecção | DevFlow Labs",
   description:
-    "Separe atendimento, suporte e prospecção no WhatsApp com Inbox unificada, IA assistida, dashboard por canal e operação gerenciada pela DevFlow Labs.",
+    "Organize filas e responsáveis para atendimento, suporte e prospecção no WhatsApp. Mais de um número entra na implantação acompanhada.",
   alternates: {
     canonical: pageUrl,
   },
@@ -23,14 +23,14 @@ export const metadata: Metadata = {
     siteName: "DevFlow Labs",
     title: "WhatsApp Multi-canal para atendimento e prospecção | DevFlow Labs",
     description:
-      "Separe atendimento, suporte e prospecção no WhatsApp com gestão por canal, IA assistida e operação gerenciada.",
+      "Filas e responsáveis para diferentes fluxos no WhatsApp, com automação supervisionada e implantação acompanhada.",
     url: pageUrl,
     images: [
       {
         url: ogImage,
         width: 1200,
         height: 630,
-        alt: "DevFlow Labs — operação WhatsApp multi-canal",
+        alt: "DevFlow Labs — filas de atendimento no WhatsApp",
       },
     ],
   },
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "WhatsApp Multi-canal | DevFlow Labs",
     description:
-      "Operação WhatsApp com canais separados, Inbox unificada, IA assistida e gestão por perfil.",
+      "Filas separadas no WhatsApp, inbox compartilhado e papéis de operação e gestão.",
     images: [ogImage],
   },
   robots: {
@@ -50,17 +50,17 @@ export const metadata: Metadata = {
 const pains = [
   "Tudo cai no mesmo WhatsApp e a operação perde prioridade.",
   "Lead de prospecção se mistura com suporte e atendimento.",
-  "O gestor não consegue ler performance por canal.",
+  "O gestor não vê quem está em cada fila.",
   "O operador responde sem contexto e sem padrão claro.",
-  "O histórico vira conversa perdida em vez de inteligência operacional.",
+  "O histórico fica no celular de alguém, em vez de na conversa compartilhada.",
   "IA sem governança cria insegurança para o negócio.",
 ];
 
 const solutionPillars = [
-  "Canais separados por objetivo operacional",
-  "Inbox unificada para o time trabalhar com fluidez",
-  "Leitura por linha com recorte gerencial",
-  "Histórico auditável por canal e por responsável",
+  "Filas de WhatsApp separadas por objetivo operacional",
+  "Inbox compartilhado para a equipe atender com contexto",
+  "Cada fluxo pode ter a própria fila",
+  "Histórico da conversa fica com o responsável",
   "IA assistida com controle humano",
   "Permissões por perfil para proteger gestão e operação",
 ];
@@ -72,11 +72,11 @@ const implementationSteps = [
   },
   {
     title: "Configuração dos canais",
-    description: "Organizamos linha principal e canal de prospecção com regras e contextos próprios.",
+    description: "Se fizer sentido ter mais de um número, a DevFlow configura isso na implantação. Não é um cadastro self-service.",
   },
   {
     title: "Ativação do WhatsApp",
-    description: "Conduzimos o setup técnico e a validação operacional para entrada em produção segura.",
+    description: "Apoiamos o setup do WhatsApp Cloud API e a validação do fluxo com a equipe.",
   },
   {
     title: "Configuração de IA assistida",
@@ -84,11 +84,11 @@ const implementationSteps = [
   },
   {
     title: "Treinamento da equipe",
-    description: "Capacitamos operador e gestor com fluxo prático e leitura dos indicadores principais.",
+    description: "Mostramos à equipe como assumir, transferir e devolver uma conversa.",
   },
   {
     title: "Acompanhamento mensal",
-    description: "Evoluímos a operação continuamente com suporte e revisão de resultados por canal.",
+    description: "Depois da ativação, a operação mensal segue com a equipe no inbox.",
   },
 ];
 
@@ -99,19 +99,19 @@ const faqItems: FaqItem[] = [
   },
   {
     q: "Serve para equipe pequena?",
-    a: "Sim. Equipes pequenas ganham clareza, prioridade e padrão operacional mais rápido quando atendimento e prospecção são separados.",
+    a: "Sim. Uma equipe pequena já ganha clareza quando atendimento e prospecção ficam em filas diferentes.",
   },
   {
     q: "A IA responde sozinha?",
-    a: "A IA apoia a operação e pode atuar em fluxos definidos, sempre com controle humano e regras de segurança.",
+    a: "Só no que foi permitido, e só quando a automação está ativa. Exceção e contexto seguem para uma pessoa.",
   },
   {
     q: "Dá para separar vendas e suporte?",
-    a: "Sim. Esse é um dos pilares do modelo multi-canal: cada frente com objetivo, contexto e leitura próprios.",
+    a: "Sim. Vendas e suporte podem ficar em filas diferentes, no mesmo inbox, cada conversa com um responsável.",
   },
   {
     q: "Consigo ver resultados por canal?",
-    a: "Sim. A gestão acompanha indicadores por canal, compara desempenho e identifica gargalos com muito mais precisão.",
+    a: "Dá para ver quem está com a conversa e o que ainda precisa de resposta em cada fila. Não há relatório de tempo médio nem funil por canal.",
   },
   {
     q: "O operador vê dados de gestão?",
@@ -119,7 +119,7 @@ const faqItems: FaqItem[] = [
   },
   {
     q: "Como funciona a implantação?",
-    a: "Começamos com diagnóstico, configuramos canais e IA, ativamos a operação e seguimos com acompanhamento mensal.",
+    a: "Começamos com diagnóstico, desenhamos as filas de WhatsApp e a automação permitida, ativamos com a equipe e seguimos o acompanhamento.",
   },
   {
     q: "É produto pronto ou projeto sob medida?",
@@ -146,11 +146,11 @@ export default function WhatsAppMultiCanalPage() {
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-              Separe atendimento e prospecção no WhatsApp sem perder o controle da operação.
+              Separe atendimento e prospecção em filas no WhatsApp.
             </h1>
             <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
-              Uma operação multi-canal para equipes que vendem, atendem e acompanham leads pelo WhatsApp — com Inbox unificada,
-              IA assistida, dashboard por canal e permissões por perfil.
+              Aqui, multi-canal quer dizer fluxos e, quando a implantação pedir, mais de um número de WhatsApp.
+              Não é inbox de Instagram, Messenger ou e-mail. A equipe atende no mesmo inbox, com responsável e histórico.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
@@ -172,7 +172,7 @@ export default function WhatsAppMultiCanalPage() {
               />
             </div>
             <p className="mt-6 text-sm text-muted-foreground">
-              Implantação gerenciada · Multi-canal · IA assistida · Gestão por perfil
+              Implantação acompanhada · Filas no WhatsApp · Automação no repetitivo · Papéis de operação e gestão
             </p>
           </div>
         </div>
@@ -198,7 +198,7 @@ export default function WhatsAppMultiCanalPage() {
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <SectionTitle
             title="Solução DevFlow Labs"
-            description="Uma operação white-label para separar canais, dar previsibilidade ao gestor e ritmo ao time."
+            description="Filas e responsáveis no WhatsApp, para separar atendimento, suporte e prospecção."
           />
           <div className="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {solutionPillars.map((item) => (
@@ -217,7 +217,7 @@ export default function WhatsAppMultiCanalPage() {
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <SectionTitle
             title="Canal principal vs canal de prospecção"
-            description="Cada canal com papel claro para reduzir ruído operacional e melhorar conversão."
+            description="Atendimento e prospecção em filas diferentes, no mesmo inbox de WhatsApp."
           />
           <div className="mx-auto mt-12 grid max-w-5xl gap-5 md:grid-cols-2">
             <article className="rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -233,12 +233,12 @@ export default function WhatsAppMultiCanalPage() {
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                 <li>- Leads de campanhas e captação</li>
                 <li>- Follow-up comercial estruturado</li>
-                <li>- Gestão de oportunidades</li>
+                <li>- Follow-up na fila, com responsável</li>
               </ul>
             </article>
           </div>
           <p className="mx-auto mt-6 max-w-4xl text-center text-sm font-medium text-foreground">
-            Cada canal pode ter contexto, objetivo e leitura gerencial própria.
+            Cada fila fica no WhatsApp. Não é inbox de Instagram, Messenger ou e-mail.
           </p>
         </div>
       </section>
@@ -246,17 +246,17 @@ export default function WhatsAppMultiCanalPage() {
       <section className="border-b border-border py-16 sm:py-20">
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <SectionTitle
-            title="Dashboard por canal para decidir com clareza"
-            description="A gestão alterna visão geral e recorte por canal para agir com prioridade."
+            title="O que a equipe acompanha"
+            description="Responsáveis, filas e o que ainda precisa de resposta. Sem tempo médio e sem funil por canal."
           />
           <div className="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              "Visão geral da operação em tempo real",
-              "Filtro por canal para comparar frentes",
-              "SLA e tempo médio por contexto de atendimento",
-              "Leitura de equipe e carga operacional",
-              "Funil e evolução por canal",
-              "Indicadores de IA para gestão contínua",
+              "Quem está com a conversa",
+              "O que ainda precisa de resposta",
+              "Fila de atendimento e fila de prospecção",
+              "Histórico compartilhado",
+              "Handoff para outra pessoa",
+              "Automação só no que foi permitido",
             ].map((item) => (
               <article key={item} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
                 <div className="flex items-start gap-2">
@@ -273,13 +273,13 @@ export default function WhatsAppMultiCanalPage() {
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <SectionTitle
             title="IA assistida com controle humano"
-            description="A IA acelera resposta e padronização, enquanto o time mantém decisão final em pontos críticos."
+            description="A automação responde o que foi permitido. Exceção e contexto seguem para uma pessoa."
           />
           <div className="mx-auto mt-12 grid max-w-5xl gap-4 md:grid-cols-3">
             {[
               "IA apoia respostas e mantém padrão de comunicação",
               "Contexto pode ser ajustado por canal operacional",
-              "Gestor acompanha qualidade e uso da IA",
+              "Com alguém atribuído, a resposta automática fica bloqueada",
             ].map((item) => (
               <article key={item} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
                 <div className="flex items-start gap-2">
@@ -301,7 +301,7 @@ export default function WhatsAppMultiCanalPage() {
           <div className="mx-auto mt-12 grid max-w-5xl gap-4 md:grid-cols-2">
             {[
               "Operador foca na Inbox e rotina de atendimento",
-              "Gestor acessa dashboard e configurações de gestão",
+              "Gestor acompanha responsáveis, filas e a configuração da equipe",
               "Admin da plataforma mantém governança operacional",
               "Filtros e dados respeitam o tenant autenticado",
             ].map((item) => (
@@ -320,7 +320,7 @@ export default function WhatsAppMultiCanalPage() {
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <SectionTitle
             title="Modelo de implantação gerenciada"
-            description="Da estratégia ao acompanhamento mensal, com foco em operação real e resultado."
+            description="Diagnóstico, desenho dos fluxos e implantação acompanhada."
           />
           <ol className="mx-auto mt-12 grid max-w-5xl gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {implementationSteps.map((step, index) => (

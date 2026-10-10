@@ -23,7 +23,7 @@ const pillars = [
   },
   {
     icon: Shield,
-    title: "Conformidade e reputação do número",
+    title: "Regras da Meta e reputação do número",
     description:
       "Opt-in, templates para mensagens proativas e limites de qualidade existem por um motivo: proteger o número da empresa e a experiência do cliente. Quem ignora isso paga em bloqueio ou fila.",
   },
@@ -32,11 +32,11 @@ const pillars = [
 const faqItems = [
   {
     q: "WhatsApp Business App e API oficial são a mesma coisa?",
-    a: "Não. O app no celular atende micro negócios; a API (Cloud API) integra sistemas, filas, CRM e operação multiagente. Se você precisa de inbox compartilhado, métricas e automação estável, o caminho é API + produto em cima dela.",
+    a: "Não. O app no celular atende um negócio pequeno no aparelho de alguém. A Cloud API liga o número a uma operação com inbox compartilhado, responsáveis e filas. A ativação do número é acompanhada e a Meta continua dona da aprovação.",
   },
   {
     q: "Preciso de BSP para usar a API?",
-    a: "A Cloud API pode ser acessada diretamente pela Meta ou via parceiros certificados, conforme seu modelo de contrato e suporte. O ponto importante é: quem opera precisa domínio técnico de webhooks, tokens e políticas de mensagem.",
+    a: "A Cloud API pode ser acessada pela Meta ou por um parceiro, conforme o contrato. A DevFlow acompanha webhooks, tokens e as regras de mensagem. Isso não garante aprovação da conta.",
   },
   {
     q: "O que são message templates?",
@@ -44,7 +44,7 @@ const faqItems = [
   },
   {
     q: "Como a DevFlow Labs se encaixa?",
-    a: "O foco do produto é operação: inbox, automação, triagem e visão do que está acontecendo no WhatsApp. A demo guiada mostra o fluxo; a página do produto detalha posicionamento e próximos passos comerciais.",
+    a: "O produto é a operação das conversas: inbox, responsáveis, filas, histórico e automação no repetitivo. A demo é uma simulação. A implantação é acompanhada.",
   },
 ];
 
@@ -98,7 +98,7 @@ export default function WhatsappBusinessApiPage() {
             </h1>
             <p className="mt-4 text-lg text-muted-foreground">
               Esta página é um mapa rápido para quem pesquisa &quot;API oficial&quot;, &quot;Cloud API&quot; ou &quot;integrar
-              WhatsApp&quot; e precisa alinhar expectativa técnica com atendimento real — fila, SLA e time humano.
+              WhatsApp&quot; e precisa alinhar a API oficial com a operação: inbox, responsáveis, filas e time humano.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
               <Link
@@ -162,9 +162,8 @@ export default function WhatsappBusinessApiPage() {
               parte do produto.
             </p>
             <p>
-              Se o seu gargalo é <strong className="text-foreground">tempo de primeira resposta</strong>, perda de lead
-              fora do horário ou falta de visão do que a equipe está respondendo, a API resolve a camada de transporte;
-              quem resolve a operação é o conjunto inbox + regras + métricas — é aí que entra o{" "}
+              Se o gargalo é a equipe sem dono da conversa, a API resolve o transporte das mensagens.
+              A operação é inbox, responsáveis e filas — é aí que entra o{" "}
               <Link href="/produtos/whatsapp-platform" className="font-medium text-primary underline-offset-4 hover:underline">
                 WhatsApp Platform
               </Link>

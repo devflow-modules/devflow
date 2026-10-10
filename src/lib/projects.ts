@@ -11,10 +11,10 @@ export const projects = [
   {
     id: "whatsapp-platform",
     title: "WhatsApp Platform",
-    tagline: "A central onde atendimento vira receita",
+    tagline: "Camada operacional das conversas no WhatsApp",
     description:
-      "Inbox oficial multiatendente, priorização por valor, automação com handoff humano e SLA visível — o produto que a DevFlow posiciona como núcleo comercial hoje.",
-    badges: ["Produto principal", "API oficial", "Operação + vendas"],
+      "Inbox compartilhado com responsáveis, filas, histórico, handoff e automação supervisionada.",
+    badges: ["Produto principal", "API oficial", "Implantação acompanhada"],
     url: "/produtos/whatsapp-platform",
     theme: "whatsapp" as const,
     highlight: true,
@@ -27,7 +27,7 @@ export const projects = [
     tagline: "Fluxo de caixa com disciplina, sem planilha frágil",
     description:
       "Segundo produto ativo no ecossistema: despesas, cenários e visão mensal para PME e uso pessoal — mesma barra de engenharia, fora do epicentro de GTM atual.",
-    badges: ["SaaS", "Em produção", "Ecossistema"],
+    badges: ["SaaS", "Produto ativo", "Ecossistema"],
     url: "/ferramentas/financeiro",
     theme: "finance" as const,
     highlight: false,
