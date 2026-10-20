@@ -594,6 +594,10 @@ export async function saveCloudContact(input: {
       reused: false,
     };
   }
+  // Never reconcile aborts into success — caller must not treat cancelled ops as confirmed.
+  if (result.error === "aborted") {
+    return { ok: false, error: "aborted", status: 0 };
+  }
   if (result.status === 0 && result.error === "network") {
     const listed = await listCloudContacts({
       origin: input.origin,
@@ -643,6 +647,9 @@ export async function saveCloudInteraction(input: {
   });
   if (result.ok) {
     return { ok: true, interaction: result.body.interaction, reused: false };
+  }
+  if (result.error === "aborted") {
+    return { ok: false, error: "aborted", status: 0 };
   }
   if (result.status === 0 && result.error === "network") {
     const listed = await listCloudContacts({

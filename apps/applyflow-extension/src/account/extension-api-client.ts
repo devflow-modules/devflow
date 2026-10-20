@@ -49,7 +49,12 @@ export async function extensionApiFetch<T>(input: {
       body: input.body !== undefined ? JSON.stringify(input.body) : undefined,
     });
   } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") {
+    // Chrome uses DOMException; Node/undici may use Error with name AbortError.
+    const name =
+      error && typeof error === "object" && "name" in error
+        ? String((error as { name?: unknown }).name ?? "")
+        : "";
+    if (name === "AbortError") {
       return { ok: false, status: 0, error: "aborted" };
     }
     return { ok: false, status: 0, error: "network" };

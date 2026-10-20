@@ -216,6 +216,13 @@ export function PanelContactsSection() {
       await refresh();
       return;
     }
+    if (result?.error === "aborted") {
+      setOp({
+        kind: "error",
+        detail: "Operação cancelada (troca de conta). Não confirmada.",
+      });
+      return;
+    }
     if (result?.error === "network" || result?.status === 0) {
       setOp({
         kind: "network",
@@ -289,6 +296,13 @@ export function PanelContactsSection() {
     }
     if (result?.status === 409) {
       setOp({ kind: "conflict", detail: "Conflito na interação. Recarregue e revise." });
+      return;
+    }
+    if (result?.error === "aborted") {
+      setOp({
+        kind: "error",
+        detail: "Operação cancelada (troca de conta). Não confirmada.",
+      });
       return;
     }
     if (result?.error === "network" || result?.status === 0) {

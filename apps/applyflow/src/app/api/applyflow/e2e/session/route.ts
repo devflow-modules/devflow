@@ -9,6 +9,7 @@ import {
 } from "@/lib/e2e/session";
 import { isApplyFlowE2ERuntimeAllowed } from "@/lib/e2e/runtime-guard";
 import { seedE2EApplyFlowAccount } from "@/lib/e2e/v2-seed";
+import { classifyApplyFlowDbTarget } from "@/lib/persistence-v2/db-target-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,6 +27,13 @@ type SessionBody = {
   seedReadOnly?: boolean;
 };
 
+type SessionAction = "login" | "logout" | "preflight";
+
+function parseSessionAction(raw: unknown): SessionAction | null {
+  if (raw === "login" || raw === "logout" || raw === "preflight") return raw;
+  return null;
+}
+
 /**
  * E2E-only session bootstrap. Fail-closed outside local/CI E2E runtime.
  * Never available on real Vercel production/preview (VERCEL=1).
@@ -42,7 +50,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
 
-  const action = body.action === "logout" ? "logout" : body.action === "login" ? "login" : null;
+  const action = parseSessionAction(body.action);
   if (!action) {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
@@ -62,6 +70,21 @@ export async function POST(request: Request) {
   const secret = request.headers.get("x-applyflow-e2e-secret");
   if (!authorizeE2ESessionMutation(secret)) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
+  // Non-mutating preflight: harness must pass this before any seed/login write.
+  if (action === "preflight") {
+    const classification = classifyApplyFlowDbTarget();
+    return NextResponse.json({
+      ok: true,
+      action: "preflight",
+      e2eAllowed: true,
+      dbKind: classification.kind,
+      dbHost: classification.dbHost,
+      dbName: classification.dbName,
+      allowedForDestructiveTests: classification.allowedForDestructiveTests,
+      reason: classification.reason,
+    });
   }
 
   const authSub =

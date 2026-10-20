@@ -42,6 +42,40 @@ describe("extension cloud contacts sync", () => {
     }
   });
 
+  it("does not reconcile abort into success even if server already has the contact", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const fetchImpl = vi.fn().mockImplementation(async (_url: string, init?: RequestInit) => {
+      if (init?.signal?.aborted) {
+        const error = new Error("aborted");
+        error.name = "AbortError";
+        throw error;
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          contacts: [CONTACT],
+          interactions: [],
+          versions: { [CONTACT.id]: 1 },
+        }),
+      };
+    });
+
+    const result = await saveCloudContact({
+      origin: "http://127.0.0.1:3010",
+      token: "t".repeat(64),
+      contact: CONTACT,
+      signal: controller.signal,
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBe("aborted");
+      expect(result.status).toBe(0);
+    }
+  });
+
   it("returns version_conflict when listed contact differs after network loss", async () => {
     const diverged = { ...CONTACT, name: "Other Name" };
     const fetchImpl = vi.fn().mockImplementation(async (_url: string, init?: RequestInit) => {

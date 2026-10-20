@@ -52,25 +52,38 @@ type AccountRuntimeState = {
   generation: number;
   snapshot: AccountProfileSnapshot | null;
   preferredVariantId: string | null;
-  inflight: AbortController | null;
+  /** Independent ops keep their own controllers; only account switches abort the set. */
+  inflight: Set<AbortController>;
 };
 
 let accountRuntime: AccountRuntimeState = {
   generation: 0,
   snapshot: null,
   preferredVariantId: null,
-  inflight: null,
+  inflight: new Set(),
 };
 
 function bumpAccountRuntime(): number {
-  accountRuntime.inflight?.abort();
+  for (const controller of accountRuntime.inflight) {
+    controller.abort();
+  }
   accountRuntime = {
     generation: accountRuntime.generation + 1,
     snapshot: null,
     preferredVariantId: null,
-    inflight: null,
+    inflight: new Set(),
   };
   return accountRuntime.generation;
+}
+
+function beginInflight(): AbortController {
+  const controller = new AbortController();
+  accountRuntime.inflight.add(controller);
+  return controller;
+}
+
+function endInflight(controller: AbortController): void {
+  accountRuntime.inflight.delete(controller);
 }
 
 async function readStoredGrant(): Promise<StoredExtensionGrant | null> {
@@ -106,35 +119,37 @@ async function ensureAccountSnapshot(generation: number): Promise<
     return { ok: true, snapshot: accountRuntime.snapshot };
   }
 
-  const controller = new AbortController();
-  accountRuntime.inflight?.abort();
-  accountRuntime.inflight = controller;
-  const loaded = await loadAccountResumeLibrary({
-    origin: grant.origin,
-    token: grant.token,
-    signal: controller.signal,
-  });
-  if (accountRuntime.generation !== generation) {
-    return { ok: false, error: "aborted", status: 0 };
-  }
-  if (!loaded.ok) {
-    if (loaded.status === 401) {
-      await writeStoredGrant(null);
-      bumpAccountRuntime();
+  const controller = beginInflight();
+  try {
+    const loaded = await loadAccountResumeLibrary({
+      origin: grant.origin,
+      token: grant.token,
+      signal: controller.signal,
+    });
+    if (accountRuntime.generation !== generation || (!loaded.ok && loaded.error === "aborted")) {
+      return { ok: false, error: "aborted", status: 0 };
     }
-    return { ok: false, error: loaded.error, status: loaded.status };
+    if (!loaded.ok) {
+      if (loaded.status === 401) {
+        await writeStoredGrant(null);
+        bumpAccountRuntime();
+      }
+      return { ok: false, error: loaded.error, status: loaded.status };
+    }
+    const picked = pickAccountProfile(loaded.library, accountRuntime.preferredVariantId);
+    if (!picked) return { ok: false, error: "profile_empty", status: 404 };
+    const snapshot: AccountProfileSnapshot = {
+      accountId: grant.accountId,
+      generation,
+      library: loaded.library,
+      selectedVariantId: picked.selectedVariantId,
+      profile: picked.profile,
+    };
+    accountRuntime.snapshot = snapshot;
+    return { ok: true, snapshot };
+  } finally {
+    endInflight(controller);
   }
-  const picked = pickAccountProfile(loaded.library, accountRuntime.preferredVariantId);
-  if (!picked) return { ok: false, error: "profile_empty", status: 404 };
-  const snapshot: AccountProfileSnapshot = {
-    accountId: grant.accountId,
-    generation,
-    library: loaded.library,
-    selectedVariantId: picked.selectedVariantId,
-    profile: picked.profile,
-  };
-  accountRuntime.snapshot = snapshot;
-  return { ok: true, snapshot };
 }
 
 function statusPayload(grant: StoredExtensionGrant | null) {
@@ -236,28 +251,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return;
       }
       const generation = accountRuntime.generation;
-      const controller = new AbortController();
-      accountRuntime.inflight?.abort();
-      accountRuntime.inflight = controller;
-      const selectedVariantId =
-        accountRuntime.snapshot?.selectedVariantId ?? accountRuntime.preferredVariantId ?? undefined;
-      const result = await registerCloudJobAndApplication({
-        origin: grant.origin,
-        token: grant.token,
-        accountId: grant.accountId,
-        draft,
-        selectedVariantId: selectedVariantId ?? undefined,
-        signal: controller.signal,
-      });
-      if (accountRuntime.generation !== generation) {
-        sendResponse({ ok: false, error: "aborted", status: 0 });
-        return;
+      const controller = beginInflight();
+      try {
+        const selectedVariantId =
+          accountRuntime.snapshot?.selectedVariantId ?? accountRuntime.preferredVariantId ?? undefined;
+        const result = await registerCloudJobAndApplication({
+          origin: grant.origin,
+          token: grant.token,
+          accountId: grant.accountId,
+          draft,
+          selectedVariantId: selectedVariantId ?? undefined,
+          signal: controller.signal,
+        });
+        if (accountRuntime.generation !== generation || (!result.ok && result.error === "aborted")) {
+          sendResponse({ ok: false, error: "aborted", status: 0 });
+          return;
+        }
+        if (!result.ok && result.status === 401) {
+          await writeStoredGrant(null);
+          bumpAccountRuntime();
+        }
+        sendResponse(result);
+      } finally {
+        endInflight(controller);
       }
-      if (!result.ok && result.status === 401) {
-        await writeStoredGrant(null);
-        bumpAccountRuntime();
-      }
-      sendResponse(result);
     })();
     return true;
   }
@@ -315,23 +332,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return;
       }
       const generation = accountRuntime.generation;
-      const controller = new AbortController();
-      accountRuntime.inflight?.abort();
-      accountRuntime.inflight = controller;
-      const result = await listCloudContacts({
-        origin: grant.origin,
-        token: grant.token,
-        signal: controller.signal,
-      });
-      if (accountRuntime.generation !== generation) {
-        sendResponse({ ok: false, error: "aborted", status: 0 });
-        return;
+      const controller = beginInflight();
+      try {
+        const result = await listCloudContacts({
+          origin: grant.origin,
+          token: grant.token,
+          signal: controller.signal,
+        });
+        if (accountRuntime.generation !== generation || (!result.ok && result.error === "aborted")) {
+          sendResponse({ ok: false, error: "aborted", status: 0 });
+          return;
+        }
+        if (!result.ok && result.status === 401) {
+          await writeStoredGrant(null);
+          bumpAccountRuntime();
+        }
+        sendResponse(result);
+      } finally {
+        endInflight(controller);
       }
-      if (!result.ok && result.status === 401) {
-        await writeStoredGrant(null);
-        bumpAccountRuntime();
-      }
-      sendResponse(result);
     })();
     return true;
   }
@@ -365,25 +384,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const expectedVersion =
         typeof message.expectedVersion === "number" ? message.expectedVersion : undefined;
       const generation = accountRuntime.generation;
-      const controller = new AbortController();
-      accountRuntime.inflight?.abort();
-      accountRuntime.inflight = controller;
-      const result = await saveCloudContact({
-        origin: grant.origin,
-        token: grant.token,
-        contact,
-        expectedVersion,
-        signal: controller.signal,
-      });
-      if (accountRuntime.generation !== generation) {
-        sendResponse({ ok: false, error: "aborted", status: 0 });
-        return;
+      const controller = beginInflight();
+      try {
+        const result = await saveCloudContact({
+          origin: grant.origin,
+          token: grant.token,
+          contact,
+          expectedVersion,
+          signal: controller.signal,
+        });
+        if (accountRuntime.generation !== generation || (!result.ok && result.error === "aborted")) {
+          sendResponse({ ok: false, error: "aborted", status: 0 });
+          return;
+        }
+        if (!result.ok && result.status === 401) {
+          await writeStoredGrant(null);
+          bumpAccountRuntime();
+        }
+        sendResponse(result);
+      } finally {
+        endInflight(controller);
       }
-      if (!result.ok && result.status === 401) {
-        await writeStoredGrant(null);
-        bumpAccountRuntime();
-      }
-      sendResponse(result);
     })();
     return true;
   }
@@ -415,24 +436,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return;
       }
       const generation = accountRuntime.generation;
-      const controller = new AbortController();
-      accountRuntime.inflight?.abort();
-      accountRuntime.inflight = controller;
-      const result = await saveCloudInteraction({
-        origin: grant.origin,
-        token: grant.token,
-        interaction,
-        signal: controller.signal,
-      });
-      if (accountRuntime.generation !== generation) {
-        sendResponse({ ok: false, error: "aborted", status: 0 });
-        return;
+      const controller = beginInflight();
+      try {
+        const result = await saveCloudInteraction({
+          origin: grant.origin,
+          token: grant.token,
+          interaction,
+          signal: controller.signal,
+        });
+        if (accountRuntime.generation !== generation || (!result.ok && result.error === "aborted")) {
+          sendResponse({ ok: false, error: "aborted", status: 0 });
+          return;
+        }
+        if (!result.ok && result.status === 401) {
+          await writeStoredGrant(null);
+          bumpAccountRuntime();
+        }
+        sendResponse(result);
+      } finally {
+        endInflight(controller);
       }
-      if (!result.ok && result.status === 401) {
-        await writeStoredGrant(null);
-        bumpAccountRuntime();
-      }
-      sendResponse(result);
     })();
     return true;
   }

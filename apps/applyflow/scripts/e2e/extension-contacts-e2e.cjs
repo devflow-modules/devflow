@@ -144,6 +144,61 @@ async function waitForServiceWorker(context, { timeoutMs = 20_000, wake = false 
   throw new Error(`service worker not available within ${timeoutMs}ms`);
 }
 
+async function assertServerSafeForDestructiveE2E() {
+  const response = await fetch(`${ORIGIN}/api/applyflow/e2e/session`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-applyflow-e2e-secret": E2E_SECRET,
+    },
+    body: JSON.stringify({ action: "preflight" }),
+  }).catch((error) => ({ ok: false, error, status: undefined }));
+  if (!response || response.status === undefined) {
+    evidence.blockers.push({
+      reason: "dashboard_unreachable",
+      detail: "preflight fetch failed before any seed",
+    });
+    console.log(JSON.stringify(evidence, null, 2));
+    process.exit(2);
+  }
+  if (response.status === 404) {
+    evidence.blockers.push({
+      reason: "e2e_runtime_disabled",
+      detail: "server refused E2E session route (not local APPLYFLOW_E2E runtime)",
+    });
+    console.log(JSON.stringify(evidence, null, 2));
+    process.exit(2);
+  }
+  if (response.status !== 200) {
+    evidence.blockers.push({
+      reason: "e2e_preflight_rejected",
+      status: response.status,
+      body: await response.text().catch(() => "").then((text) => text.slice(0, 300)),
+    });
+    console.log(JSON.stringify(evidence, null, 2));
+    process.exit(2);
+  }
+  const body = await response.json();
+  evidence.preflight = {
+    dbKind: body.dbKind,
+    dbHost: body.dbHost,
+    dbName: body.dbName,
+    allowedForDestructiveTests: body.allowedForDestructiveTests,
+    reason: body.reason,
+  };
+  const hostOk = body.dbHost === "127.0.0.1" || body.dbHost === "localhost";
+  if (!body.allowedForDestructiveTests || body.dbKind !== "safe_local" || !hostOk) {
+    evidence.blockers.push({
+      reason: "unsafe_db_target",
+      detail:
+        "Server DATABASE_URL/Supabase env is not a safe local target. Refusing seed/write. Fix process env (not .env.local production) and retry.",
+      preflight: evidence.preflight,
+    });
+    console.log(JSON.stringify(evidence, null, 2));
+    process.exit(2);
+  }
+}
+
 async function main() {
   assertLocalOrigin(ORIGIN);
   if (!fs.existsSync(path.join(EXTENSION_DIST, "manifest.json"))) {
@@ -151,6 +206,9 @@ async function main() {
     console.log(JSON.stringify(evidence, null, 2));
     process.exit(2);
   }
+
+  // Fail closed before Chrome launch or any seed/login mutation.
+  await assertServerSafeForDestructiveE2E();
 
   const health = await fetch(`${ORIGIN}/api/applyflow/e2e/session`, {
     method: "POST",
