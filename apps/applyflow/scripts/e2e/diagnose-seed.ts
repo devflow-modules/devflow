@@ -3,7 +3,9 @@ import { isApplyFlowE2ERuntimeAllowed } from "../../src/lib/e2e/runtime-guard";
 import { seedE2EApplyFlowAccount } from "../../src/lib/e2e/v2-seed";
 
 async function main() {
-  const classification = classifyApplyFlowDbTarget(process.env);
+  // Default env read stays inside the guard (it casts process.env). Passing
+  // Node's ProcessEnv directly fails Next's production typecheck.
+  const classification = classifyApplyFlowDbTarget();
   console.log(
     JSON.stringify({
       e2eAllowed: isApplyFlowE2ERuntimeAllowed(),
