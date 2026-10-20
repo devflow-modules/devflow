@@ -116,7 +116,20 @@ async function main() {
     }
     const loginBody = await login.json();
 
-    const minted = await page.request.post(`${ORIGIN}/api/applyflow/v2/extension/session`);
+    const minted = await page.request.post(`${ORIGIN}/api/applyflow/v2/extension/session`, {
+      data: {
+        scopes: [
+          "profile:read",
+          "profile:write",
+          "jobs:read",
+          "jobs:write",
+          "applications:read",
+          "applications:write",
+          "contacts:read",
+          "contacts:write",
+        ],
+      },
+    });
     if (minted.status() !== 200) {
       throw new Error(`Grant mint failed: ${minted.status()}`);
     }

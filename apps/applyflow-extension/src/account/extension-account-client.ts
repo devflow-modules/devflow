@@ -12,7 +12,7 @@ export function extensionAccountProfileKey(accountId: string): string {
 }
 
 export type ExtensionAccountResult =
-  | { ok: true; accountId: string }
+  | { ok: true; accountId: string; scopes: string[] }
   | { ok: false; reason: "signed_out" | "misconfigured" };
 
 export async function readExtensionAccount(input: {
@@ -33,9 +33,12 @@ export async function readExtensionAccount(input: {
   });
   if (response.status === 401) return { ok: false, reason: "signed_out" };
   if (!response.ok) return { ok: false, reason: "misconfigured" };
-  const body = (await response.json()) as { accountId?: string };
+  const body = (await response.json()) as { accountId?: string; scopes?: unknown };
   if (!body.accountId) return { ok: false, reason: "signed_out" };
-  return { ok: true, accountId: body.accountId };
+  const scopes = Array.isArray(body.scopes)
+    ? body.scopes.filter((item): item is string => typeof item === "string")
+    : [];
+  return { ok: true, accountId: body.accountId, scopes };
 }
 
 export function selectExtensionProfileKey(input: {

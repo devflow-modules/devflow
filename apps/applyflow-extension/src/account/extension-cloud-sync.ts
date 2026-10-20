@@ -2,6 +2,8 @@ import {
   JOB_MATCH_SCORING_VERSION,
   getDefaultResumeVariant,
   type CandidateProfile,
+  type Contact,
+  type ContactInteraction,
   type ResumeLibrary,
   type SaveApplicationInput,
 } from "@devflow/applyflow-core";
@@ -502,6 +504,168 @@ export async function registerCloudJobAndApplication(input: {
   }
 
   return fail(createdApp.error, createdApp.status);
+}
+
+export type ContactCloudResult =
+  | {
+      ok: true;
+      contact: Contact;
+      version: number;
+      reused: boolean;
+    }
+  | {
+      ok: false;
+      error: string;
+      status: number;
+      contact?: Contact;
+      version?: number;
+    };
+
+export type InteractionCloudResult =
+  | { ok: true; interaction: ContactInteraction; reused: boolean }
+  | { ok: false; error: string; status: number };
+
+export type ContactsListCloudResult =
+  | {
+      ok: true;
+      contacts: Contact[];
+      interactions: ContactInteraction[];
+      versions: Record<string, number>;
+    }
+  | { ok: false; error: string; status: number };
+
+export async function listCloudContacts(input: {
+  origin: string;
+  token: string;
+  signal?: AbortSignal;
+  fetchImpl?: typeof fetch;
+}): Promise<ContactsListCloudResult> {
+  const result = await extensionApiFetch<{
+    contacts?: Contact[];
+    interactions?: ContactInteraction[];
+    versions?: Record<string, number>;
+  }>({
+    origin: input.origin,
+    token: input.token,
+    path: "/api/applyflow/v2/contacts",
+    signal: input.signal,
+    fetchImpl: input.fetchImpl,
+  });
+  if (!result.ok) return { ok: false, error: result.error, status: result.status };
+  return {
+    ok: true,
+    contacts: result.body.contacts ?? [],
+    interactions: result.body.interactions ?? [],
+    versions: result.body.versions ?? {},
+  };
+}
+
+/**
+ * Create or update a contact. Same id + same fingerprint is idempotent.
+ * On lost response after commit, caller should list and reconcile by id/fingerprint.
+ */
+export async function saveCloudContact(input: {
+  origin: string;
+  token: string;
+  contact: Contact;
+  expectedVersion?: number;
+  signal?: AbortSignal;
+  fetchImpl?: typeof fetch;
+}): Promise<ContactCloudResult> {
+  const result = await extensionApiFetch<{ contact: Contact; version: number }>({
+    origin: input.origin,
+    token: input.token,
+    path: "/api/applyflow/v2/contacts",
+    method: "PUT",
+    body: {
+      contact: input.contact,
+      ...(typeof input.expectedVersion === "number"
+        ? { expectedVersion: input.expectedVersion }
+        : {}),
+    },
+    signal: input.signal,
+    fetchImpl: input.fetchImpl,
+  });
+  if (result.ok) {
+    return {
+      ok: true,
+      contact: result.body.contact,
+      version: result.body.version,
+      reused: false,
+    };
+  }
+  if (result.status === 0 && result.error === "network") {
+    const listed = await listCloudContacts({
+      origin: input.origin,
+      token: input.token,
+      signal: input.signal,
+      fetchImpl: input.fetchImpl,
+    });
+    if (listed.ok) {
+      const existing = listed.contacts.find((item) => item.id === input.contact.id);
+      const version = listed.versions[input.contact.id];
+      if (existing && version != null && JSON.stringify(existing) === JSON.stringify(input.contact)) {
+        return { ok: true, contact: existing, version, reused: true };
+      }
+      if (existing && version != null) {
+        return {
+          ok: false,
+          error: "version_conflict",
+          status: 409,
+          contact: existing,
+          version,
+        };
+      }
+    }
+    return { ok: false, error: "network", status: 0 };
+  }
+  if (result.status === 409) {
+    return { ok: false, error: result.error || VERSION_CONFLICT, status: 409 };
+  }
+  return { ok: false, error: result.error, status: result.status };
+}
+
+export async function saveCloudInteraction(input: {
+  origin: string;
+  token: string;
+  interaction: ContactInteraction;
+  signal?: AbortSignal;
+  fetchImpl?: typeof fetch;
+}): Promise<InteractionCloudResult> {
+  const result = await extensionApiFetch<{ interaction: ContactInteraction }>({
+    origin: input.origin,
+    token: input.token,
+    path: "/api/applyflow/v2/contacts",
+    method: "POST",
+    body: { interaction: input.interaction },
+    signal: input.signal,
+    fetchImpl: input.fetchImpl,
+  });
+  if (result.ok) {
+    return { ok: true, interaction: result.body.interaction, reused: false };
+  }
+  if (result.status === 0 && result.error === "network") {
+    const listed = await listCloudContacts({
+      origin: input.origin,
+      token: input.token,
+      signal: input.signal,
+      fetchImpl: input.fetchImpl,
+    });
+    if (listed.ok) {
+      const existing = listed.interactions.find((item) => item.id === input.interaction.id);
+      if (existing && JSON.stringify(existing) === JSON.stringify(input.interaction)) {
+        return { ok: true, interaction: existing, reused: true };
+      }
+      if (existing) {
+        return { ok: false, error: "version_conflict", status: 409 };
+      }
+    }
+    return { ok: false, error: "network", status: 0 };
+  }
+  if (result.status === 409) {
+    return { ok: false, error: result.error || VERSION_CONFLICT, status: 409 };
+  }
+  return { ok: false, error: result.error, status: result.status };
 }
 
 export async function markCloudApplicationSent(input: {

@@ -13,6 +13,7 @@ const GRANT = {
   expiresAt: "2026-10-12T12:00:00.000Z",
   token: TOKEN,
   origin: "http://127.0.0.1:3012",
+  scopes: ["profile:read", "contacts:read", "contacts:write"],
 };
 
 describe("extension grant bridge", () => {
@@ -31,8 +32,15 @@ describe("extension grant bridge", () => {
       now: Date.parse("2026-10-05T12:00:00.000Z"),
     });
     expect(accepted.ok).toBe(true);
+    if (accepted.ok) {
+      expect(accepted.grant.scopes).toEqual(GRANT.scopes);
+    }
     const status = extensionAccountStatus(accepted.ok ? accepted.grant : null, Date.parse("2026-10-05T12:00:00.000Z"));
-    expect(status).toEqual({ signedIn: true, accountId: GRANT.accountId });
+    expect(status).toEqual({
+      signedIn: true,
+      accountId: GRANT.accountId,
+      scopes: GRANT.scopes,
+    });
     expect(status).not.toHaveProperty("token");
     expect(
       acceptExternalGrant({
@@ -50,12 +58,14 @@ describe("extension grant bridge", () => {
       expiresAt: GRANT.expiresAt,
       token: "b".repeat(64),
       origin: GRANT.origin,
+      scopes: ["profile:read"],
     });
     expect(next.accountId).not.toBe(GRANT.accountId);
     expect(next.token).not.toBe(GRANT.token);
     expect(extensionAccountStatus(next, Date.parse("2026-10-13T12:00:00.000Z"))).toEqual({
       signedIn: false,
       accountId: null,
+      scopes: [],
     });
   });
 });

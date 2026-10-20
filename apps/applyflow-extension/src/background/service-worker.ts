@@ -31,14 +31,17 @@ import {
 } from "../account/extension-grant-bridge.js";
 import { readExtensionAccount } from "../account/extension-account-client.js";
 import {
+  listCloudContacts,
   loadAccountResumeLibrary,
   markCloudApplicationSent,
   pickAccountProfile,
   profileFieldsForContentScript,
   registerCloudJobAndApplication,
+  saveCloudContact,
+  saveCloudInteraction,
   type AccountProfileSnapshot,
 } from "../account/extension-cloud-sync.js";
-import type { SaveApplicationInput } from "@devflow/applyflow-core";
+import type { Contact, ContactInteraction, SaveApplicationInput } from "@devflow/applyflow-core";
 
 const extensionAllowedOrigins = [
   ...extensionOriginsForTarget("local"),
@@ -74,7 +77,10 @@ async function readStoredGrant(): Promise<StoredExtensionGrant | null> {
   const stored = await chrome.storage.session.get(EXTENSION_GRANT_STORAGE_KEY);
   const grant = stored[EXTENSION_GRANT_STORAGE_KEY] as StoredExtensionGrant | undefined;
   if (!grant?.token || !grant.accountId || !grant.origin) return null;
-  return grant;
+  return {
+    ...grant,
+    scopes: Array.isArray(grant.scopes) ? grant.scopes : [],
+  };
 }
 
 async function writeStoredGrant(grant: StoredExtensionGrant | null): Promise<void> {
@@ -287,6 +293,150 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message?.type === "APPLYFLOW_LIST_CLOUD_CONTACTS") {
+    void (async () => {
+      const grant = await readStoredGrant();
+      if (!grant) {
+        sendResponse({
+          ok: false,
+          error: "signed_out",
+          status: 401,
+          reconnect: "Abra /account e ligue a extensão com permissões de contactos.",
+        });
+        return;
+      }
+      if (!grant.scopes?.includes("contacts:read")) {
+        sendResponse({
+          ok: false,
+          error: "grant_capability_denied",
+          status: 403,
+          reconnect: "Reconecte em /account e confirme contacts:read / contacts:write.",
+        });
+        return;
+      }
+      const generation = accountRuntime.generation;
+      const controller = new AbortController();
+      accountRuntime.inflight?.abort();
+      accountRuntime.inflight = controller;
+      const result = await listCloudContacts({
+        origin: grant.origin,
+        token: grant.token,
+        signal: controller.signal,
+      });
+      if (accountRuntime.generation !== generation) {
+        sendResponse({ ok: false, error: "aborted", status: 0 });
+        return;
+      }
+      if (!result.ok && result.status === 401) {
+        await writeStoredGrant(null);
+        bumpAccountRuntime();
+      }
+      sendResponse(result);
+    })();
+    return true;
+  }
+
+  if (message?.type === "APPLYFLOW_SAVE_CLOUD_CONTACT") {
+    void (async () => {
+      const grant = await readStoredGrant();
+      if (!grant) {
+        sendResponse({
+          ok: false,
+          error: "signed_out",
+          status: 401,
+          reconnect: "Abra /account e ligue a extensão com permissões de contactos.",
+        });
+        return;
+      }
+      if (!grant.scopes?.includes("contacts:write")) {
+        sendResponse({
+          ok: false,
+          error: "grant_capability_denied",
+          status: 403,
+          reconnect: "Reconecte em /account e confirme contacts:write.",
+        });
+        return;
+      }
+      const contact = message.contact as Contact | undefined;
+      if (!contact || typeof contact !== "object") {
+        sendResponse({ ok: false, error: "invalid_payload", status: 400 });
+        return;
+      }
+      const expectedVersion =
+        typeof message.expectedVersion === "number" ? message.expectedVersion : undefined;
+      const generation = accountRuntime.generation;
+      const controller = new AbortController();
+      accountRuntime.inflight?.abort();
+      accountRuntime.inflight = controller;
+      const result = await saveCloudContact({
+        origin: grant.origin,
+        token: grant.token,
+        contact,
+        expectedVersion,
+        signal: controller.signal,
+      });
+      if (accountRuntime.generation !== generation) {
+        sendResponse({ ok: false, error: "aborted", status: 0 });
+        return;
+      }
+      if (!result.ok && result.status === 401) {
+        await writeStoredGrant(null);
+        bumpAccountRuntime();
+      }
+      sendResponse(result);
+    })();
+    return true;
+  }
+
+  if (message?.type === "APPLYFLOW_SAVE_CLOUD_INTERACTION") {
+    void (async () => {
+      const grant = await readStoredGrant();
+      if (!grant) {
+        sendResponse({
+          ok: false,
+          error: "signed_out",
+          status: 401,
+          reconnect: "Abra /account e ligue a extensão com permissões de contactos.",
+        });
+        return;
+      }
+      if (!grant.scopes?.includes("contacts:write")) {
+        sendResponse({
+          ok: false,
+          error: "grant_capability_denied",
+          status: 403,
+          reconnect: "Reconecte em /account e confirme contacts:write.",
+        });
+        return;
+      }
+      const interaction = message.interaction as ContactInteraction | undefined;
+      if (!interaction || typeof interaction !== "object") {
+        sendResponse({ ok: false, error: "invalid_payload", status: 400 });
+        return;
+      }
+      const generation = accountRuntime.generation;
+      const controller = new AbortController();
+      accountRuntime.inflight?.abort();
+      accountRuntime.inflight = controller;
+      const result = await saveCloudInteraction({
+        origin: grant.origin,
+        token: grant.token,
+        interaction,
+        signal: controller.signal,
+      });
+      if (accountRuntime.generation !== generation) {
+        sendResponse({ ok: false, error: "aborted", status: 0 });
+        return;
+      }
+      if (!result.ok && result.status === 401) {
+        await writeStoredGrant(null);
+        bumpAccountRuntime();
+      }
+      sendResponse(result);
+    })();
+    return true;
+  }
+
   if (message?.type === GET_PUBLIC_SETTINGS_MESSAGE) {
     const parsed = parseGetPublicSettingsRequest(message);
     if (!parsed) {
@@ -380,9 +530,18 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
       sendResponse({ ok: false, signedIn: false });
       return;
     }
-    await writeStoredGrant(grant);
+    const withScopes: StoredExtensionGrant = {
+      ...grant,
+      scopes: account.scopes.length > 0 ? account.scopes : grant.scopes,
+    };
+    await writeStoredGrant(withScopes);
     bumpAccountRuntime();
-    sendResponse({ ok: true, accountId: grant.accountId, signedIn: true });
+    sendResponse({
+      ok: true,
+      accountId: withScopes.accountId,
+      signedIn: true,
+      scopes: withScopes.scopes,
+    });
   })();
   return true;
 });

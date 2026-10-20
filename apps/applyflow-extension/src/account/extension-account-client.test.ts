@@ -12,7 +12,14 @@ describe("extension account client", () => {
     const fetchImpl = async (_url: unknown, init?: { headers?: { Authorization?: string } }) => {
       const header = init?.headers?.Authorization ?? "";
       if (header === "Bearer token-a") {
-        return new Response(JSON.stringify({ accountId: "account-a", autoSubmit: false }), { status: 200 });
+        return new Response(
+          JSON.stringify({
+            accountId: "account-a",
+            scopes: ["profile:read", "contacts:read"],
+            autoSubmit: false,
+          }),
+          { status: 200 },
+        );
       }
       return new Response(JSON.stringify({ error: "unauthenticated" }), { status: 401 });
     };
@@ -21,7 +28,11 @@ describe("extension account client", () => {
       token: "token-a",
       fetchImpl: fetchImpl as typeof fetch,
     });
-    expect(active).toEqual({ ok: true, accountId: "account-a" });
+    expect(active).toEqual({
+      ok: true,
+      accountId: "account-a",
+      scopes: ["profile:read", "contacts:read"],
+    });
     const signedOut = await readExtensionAccount({
       origin: "http://127.0.0.1:3010",
       token: "token-a-revoked",

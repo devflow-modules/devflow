@@ -267,7 +267,20 @@ async function main() {
 
     const statusA = await sendExternal(page, EXPECTED_ID, { type: "APPLYFLOW_ACCOUNT_STATUS" });
     if (!statusA?.signedIn || statusA.accountId !== accountA.accountId) {
-      const minted = await page.request.post(`${ORIGIN}/api/applyflow/v2/extension/session`);
+      const minted = await page.request.post(`${ORIGIN}/api/applyflow/v2/extension/session`, {
+        data: {
+          scopes: [
+            "profile:read",
+            "profile:write",
+            "jobs:read",
+            "jobs:write",
+            "applications:read",
+            "applications:write",
+            "contacts:read",
+            "contacts:write",
+          ],
+        },
+      });
       if (minted.status() !== 200) throw new Error(`mint failed ${minted.status()} ${await minted.text()}`);
       const grant = await minted.json();
       const bound = await sendExternal(page, EXPECTED_ID, {
@@ -275,6 +288,7 @@ async function main() {
         accountId: grant.accountId,
         expiresAt: grant.expiresAt,
         token: grant.token,
+        scopes: grant.scopes,
       });
       if (!bound?.ok) throw new Error(`bind failed: ${JSON.stringify(bound)}`);
       const statusBound = await sendExternal(page, EXPECTED_ID, { type: "APPLYFLOW_ACCOUNT_STATUS" });
@@ -457,7 +471,20 @@ async function main() {
     evidence.accountB = accountB.accountId;
     if (accountB.accountId === accountA.accountId) throw new Error("A/B account ids collided");
 
-    const mintedB = await pageB.request.post(`${ORIGIN}/api/applyflow/v2/extension/session`);
+    const mintedB = await pageB.request.post(`${ORIGIN}/api/applyflow/v2/extension/session`, {
+      data: {
+        scopes: [
+          "profile:read",
+          "profile:write",
+          "jobs:read",
+          "jobs:write",
+          "applications:read",
+          "applications:write",
+          "contacts:read",
+          "contacts:write",
+        ],
+      },
+    });
     const grantB = await mintedB.json();
     await pageB.goto(`${ORIGIN}/account`);
     const bindB = await sendExternal(pageB, EXPECTED_ID, {
@@ -465,6 +492,7 @@ async function main() {
       accountId: grantB.accountId,
       expiresAt: grantB.expiresAt,
       token: grantB.token,
+      scopes: grantB.scopes,
     });
     if (!bindB?.ok) throw new Error(`bind B failed: ${JSON.stringify(bindB)}`);
 

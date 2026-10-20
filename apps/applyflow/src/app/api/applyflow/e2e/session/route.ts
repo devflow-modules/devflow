@@ -81,8 +81,17 @@ export async function POST(request: Request) {
         v2Cloud: Boolean(body.seedV2 || body.seedReadOnly) && !body.seedNonPilot,
         allowCloudWithoutPilot: Boolean(body.seedReadOnly),
       });
-    } catch {
-      return NextResponse.json({ error: "seed_failed" }, { status: 500 });
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "unknown";
+      console.error("[applyflow-e2e] seed_failed", detail);
+      return NextResponse.json(
+        {
+          error: "seed_failed",
+          // Local/CI diagnostics only — never includes connection strings.
+          detail: detail.slice(0, 200),
+        },
+        { status: 500 },
+      );
     }
   }
 
