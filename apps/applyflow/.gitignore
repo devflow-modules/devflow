@@ -1,6 +1,7 @@
 .vercel
 .env*
 .tmp/
+.tmp-validation/
 test-results/
 playwright-report/
 blob-report/

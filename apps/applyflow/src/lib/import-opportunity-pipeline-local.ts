@@ -283,22 +283,4 @@ export async function applyOpportunityPipelineJson(
   }
 }
 
-/** @deprecated Prefer {@link applyOpportunityPipelineJson} (authority-aware). */
-export function applyOpportunityPipelineLocalJson(
-  text: string,
-  options: { now?: Date } = {},
-): ReturnType<typeof applyOpportunityPipelineLocal> {
-  try {
-    return applyOpportunityPipelineLocal(JSON.parse(text) as unknown, options);
-  } catch {
-    return {
-      ok: false,
-      error: "invalid_json",
-      jobs: [],
-      contacts: [],
-      ignoredCount: 0,
-    };
-  }
-}
-
 export type { Contact };

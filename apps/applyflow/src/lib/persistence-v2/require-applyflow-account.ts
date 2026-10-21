@@ -5,13 +5,6 @@ import { applyflowPrisma } from "./db";
 
 export { ApplyFlowAuthError };
 
-/** @deprecated Prefer ApplyFlowV2HttpAccessError from http-access.ts (R2.2.3). */
-export class ApplyFlowPersistenceDisabledError extends Error {
-  constructor() {
-    super("ApplyFlow Persistence V2 is disabled.");
-  }
-}
-
 export type ApplyFlowAccountRecord = Pick<
   ApplyFlowAccount,
   | "id"

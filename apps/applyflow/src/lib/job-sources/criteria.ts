@@ -98,6 +98,3 @@ export function parseJobSearchCriteria(raw: unknown): JobSearchCriteria | null {
     ...(parsed.data.sort ? { sort: parsed.data.sort } : {}),
   };
 }
-
-/** @deprecated Prefer parseJobSearchCriteria — retained name for existing imports. */
-export const jobSearchCriteriaSchema = jobSearchRequestSchema;

@@ -12,8 +12,7 @@
  * Exit 0 skips the deployment. Any other status builds.
  * This file does not set `TURBO_FORCE`.
  *
- * The Vercel project command is still `cd ../.. && npx turbo-ignore applyflow`.
- * Switching it is a separate production-config change:
+ * Live Vercel project command:
  *   cd ../.. && node scripts/applyflow-vercel-ignore.mjs
  */
 import { execFileSync } from "node:child_process";
