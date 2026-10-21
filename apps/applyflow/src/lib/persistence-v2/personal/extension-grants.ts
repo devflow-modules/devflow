@@ -75,6 +75,7 @@ export function createExtensionGrantService(store: ExtensionGrantStore, now = ()
       if (!normalized) {
         throw new Error("extension_grant_scopes_required");
       }
+      // Persist the confirmed list. Do not omit `scopes` and do not use the DB default.
       const token = randomBytes(32).toString("hex");
       const expiresAt = new Date(now().getTime() + EXTENSION_GRANT_TTL_MS);
       await store.insert({
