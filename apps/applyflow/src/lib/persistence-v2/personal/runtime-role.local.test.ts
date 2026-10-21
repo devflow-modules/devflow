@@ -212,6 +212,7 @@ describe("applyflow_runtime role service operations (local)", () => {
       },
     });
     createdAccountIds.push(accountA.id, accountB.id);
+    process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS = `${accountA.id},${accountB.id}`;
 
     const library = createResumeLibraryFromProfile(gustavoProfile, {
       now: new Date("2026-10-05T12:00:00.000Z"),
@@ -229,9 +230,22 @@ describe("applyflow_runtime role service operations (local)", () => {
     const { applyFlowExtensionGrants } = await import("./extension-grants");
     const { GET: getProfile } = await import("@/app/api/applyflow/v2/profile/route");
     const { GET: getJobs, POST: postJob } = await import("@/app/api/applyflow/v2/jobs/route");
+    const { GET: getContacts, PUT: putContact } = await import(
+      "@/app/api/applyflow/v2/contacts/route"
+    );
 
-    const grantA = await applyFlowExtensionGrants.mint(accountA.id);
-    const grantB = await applyFlowExtensionGrants.mint(accountB.id);
+    const { EXTENSION_GRANT_LEGACY_SCOPES, EXTENSION_GRANT_REQUESTABLE_SCOPES } = await import(
+      "./extension-grant-scopes"
+    );
+    const grantA = await applyFlowExtensionGrants.mint(
+      accountA.id,
+      EXTENSION_GRANT_REQUESTABLE_SCOPES,
+    );
+    const grantB = await applyFlowExtensionGrants.mint(
+      accountB.id,
+      EXTENSION_GRANT_REQUESTABLE_SCOPES,
+    );
+    const legacyA = await applyFlowExtensionGrants.mint(accountA.id, EXTENSION_GRANT_LEGACY_SCOPES);
 
     const profileA = await getProfile(
       new Request("http://127.0.0.1:3012/api/applyflow/v2/profile", {
@@ -302,6 +316,54 @@ describe("applyflow_runtime role service operations (local)", () => {
     const listB = (await jobsB.json()) as { jobs: unknown[] };
     expect(listA.jobs.length).toBeGreaterThanOrEqual(1);
     expect(listB.jobs).toEqual([]);
+
+    const deniedLegacyContacts = await getContacts(
+      new Request("http://127.0.0.1:3012/api/applyflow/v2/contacts", {
+        headers: { authorization: `Bearer ${legacyA.token}` },
+      }),
+    );
+    expect(deniedLegacyContacts.status).toBe(403);
+    expect(await deniedLegacyContacts.json()).toMatchObject({
+      error: "grant_capability_denied",
+      scope: "contacts:read",
+    });
+
+    const contactPayload = {
+      id: `contact_runtime_${randomUUID().slice(0, 8)}`,
+      name: "Runtime Contact A",
+      type: "recruiter",
+      status: "not_contacted",
+      createdAt: "2026-10-20T12:00:00.000Z",
+      updatedAt: "2026-10-20T12:00:00.000Z",
+    };
+    const savedContact = await putContact(
+      new Request("http://127.0.0.1:3012/api/applyflow/v2/contacts", {
+        method: "PUT",
+        headers: {
+          authorization: `Bearer ${grantA.token}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ contact: contactPayload }),
+      }),
+    );
+    expect(savedContact.status).toBe(200);
+
+    const listedA = await getContacts(
+      new Request("http://127.0.0.1:3012/api/applyflow/v2/contacts", {
+        headers: { authorization: `Bearer ${grantA.token}` },
+      }),
+    );
+    const listedB = await getContacts(
+      new Request("http://127.0.0.1:3012/api/applyflow/v2/contacts", {
+        headers: { authorization: `Bearer ${grantB.token}` },
+      }),
+    );
+    expect(listedA.status).toBe(200);
+    expect(listedB.status).toBe(200);
+    const contactsA = (await listedA.json()) as { contacts: Array<{ id: string }> };
+    const contactsB = (await listedB.json()) as { contacts: Array<{ id: string }> };
+    expect(contactsA.contacts.some((item) => item.id === contactPayload.id)).toBe(true);
+    expect(contactsB.contacts.some((item) => item.id === contactPayload.id)).toBe(false);
 
     const revoked = await getProfile(
       new Request("http://127.0.0.1:3012/api/applyflow/v2/profile", {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -12,6 +12,11 @@ import {
   clearInstalledExtensionGrant,
   deliverExtensionGrant,
 } from "@/lib/persistence-v2/personal/extension-handoff";
+import {
+  EXTENSION_GRANT_REQUESTABLE_SCOPES,
+  EXTENSION_GRANT_SCOPE_LABELS,
+  type ExtensionGrantScope,
+} from "@/lib/persistence-v2/personal/extension-grant-scopes";
 
 type MePayload = {
   authenticated?: boolean;
@@ -35,6 +40,17 @@ export function AccountPanel() {
   const [probe, setProbe] = useState<ProbeState>({ status: "idle" });
   const [signingOut, setSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
+  const [selectedScopes, setSelectedScopes] = useState<ExtensionGrantScope[]>([
+    ...EXTENSION_GRANT_REQUESTABLE_SCOPES,
+  ]);
+  const [permissionsConfirmed, setPermissionsConfirmed] = useState(false);
+  const [linkStatus, setLinkStatus] = useState<string | null>(null);
+  const [linking, setLinking] = useState(false);
+
+  const contactsSelected = useMemo(
+    () => selectedScopes.includes("contacts:read") && selectedScopes.includes("contacts:write"),
+    [selectedScopes],
+  );
 
   async function runProbe() {
     setProbe({ status: "loading" });
@@ -72,16 +88,70 @@ export function AccountPanel() {
     }
   }
 
+  function toggleScope(scope: ExtensionGrantScope) {
+    setSelectedScopes((current) =>
+      current.includes(scope) ? current.filter((item) => item !== scope) : [...current, scope],
+    );
+    setPermissionsConfirmed(false);
+    setLinkStatus(null);
+  }
+
   async function linkExtension() {
-    const response = await fetch("/api/applyflow/v2/extension/session", {
-      method: "POST",
-      credentials: "same-origin",
-      headers: { Accept: "application/json" },
-    });
-    if (!response.ok) return;
-    const body = (await response.json()) as { accountId?: string; token?: string; expiresAt?: string };
-    if (!body.accountId || !body.token || !body.expiresAt) return;
-    deliverExtensionGrant({ accountId: body.accountId, token: body.token, expiresAt: body.expiresAt });
+    setLinkStatus(null);
+    if (!permissionsConfirmed) {
+      setLinkStatus("Confirme as permissões pedidas antes de ligar a extensão.");
+      return;
+    }
+    if (selectedScopes.length === 0) {
+      setLinkStatus("Seleccione pelo menos uma permissão.");
+      return;
+    }
+    setLinking(true);
+    try {
+      const response = await fetch("/api/applyflow/v2/extension/session", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ scopes: selectedScopes }),
+      });
+      const body = (await response.json().catch(() => ({}))) as {
+        accountId?: string;
+        token?: string;
+        expiresAt?: string;
+        scopes?: string[];
+        error?: string;
+      };
+      if (!response.ok) {
+        setLinkStatus(
+          body.error === "scopes_required"
+            ? "O servidor exige permissões explícitas. Recarregue e tente de novo."
+            : "Não foi possível ligar a extensão.",
+        );
+        return;
+      }
+      if (!body.accountId || !body.token || !body.expiresAt) {
+        setLinkStatus("Resposta incompleta do servidor.");
+        return;
+      }
+      deliverExtensionGrant({
+        accountId: body.accountId,
+        token: body.token,
+        expiresAt: body.expiresAt,
+        scopes: body.scopes,
+      });
+      setLinkStatus(
+        contactsSelected
+          ? "Extensão ligada com contactos. Confirmação só depois da resposta do servidor nas operações."
+          : "Extensão ligada sem contactos. Reconecte e marque contactos para sincronizar outreach.",
+      );
+    } catch {
+      setLinkStatus("Falha de rede. A extensão não foi ligada.");
+    } finally {
+      setLinking(false);
+    }
   }
 
   async function handleSignOut() {
@@ -95,7 +165,6 @@ export function AccountPanel() {
         headers: { Accept: "application/json" },
       }).catch(() => null);
 
-      // Clear E2E session when present (no-op / 404 outside E2E runtime).
       await fetch("/api/applyflow/e2e/session", {
         method: "POST",
         credentials: "same-origin",
@@ -185,6 +254,54 @@ export function AccountPanel() {
 
       {probe.status === "ok" ? <PersonalImportConfirm accountId={probe.accountId} /> : null}
 
+      {probe.status === "ok" ? (
+        <section className="space-y-3 border-t border-[color:var(--af-border)] pt-4" data-testid="extension-permissions">
+          <h2 className="text-sm font-semibold text-[color:var(--af-text)]">
+            Permissões da extensão
+          </h2>
+          <p className="text-sm text-[color:var(--af-text-muted)]">
+            Grants antigos não recebem contactos automaticamente. Reconecte e confirme as permissões
+            pedidas. O servidor verifica cada permissão na leitura e na escrita.
+          </p>
+          <ul className="space-y-2">
+            {EXTENSION_GRANT_REQUESTABLE_SCOPES.map((scope) => (
+              <li key={scope}>
+                <label className="flex items-start gap-2 text-sm text-[color:var(--af-text)]">
+                  <input
+                    type="checkbox"
+                    data-testid={`extension-scope-${scope}`}
+                    checked={selectedScopes.includes(scope)}
+                    onChange={() => toggleScope(scope)}
+                  />
+                  <span>
+                    <code className="text-xs">{scope}</code>
+                    <span className="mt-0.5 block text-[color:var(--af-text-muted)]">
+                      {EXTENSION_GRANT_SCOPE_LABELS[scope]}
+                    </span>
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+          <label className="flex items-start gap-2 text-sm text-[color:var(--af-text)]">
+            <input
+              type="checkbox"
+              data-testid="extension-permissions-confirm"
+              checked={permissionsConfirmed}
+              onChange={(event) => setPermissionsConfirmed(event.target.checked)}
+            />
+            <span>
+              Confirmo que a extensão pode usar exactamente estas permissões nesta conta.
+            </span>
+          </label>
+          {linkStatus ? (
+            <p className="text-sm text-[color:var(--af-text-muted)]" role="status" data-testid="extension-link-status">
+              {linkStatus}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
       {signOutError ? (
         <p className="text-sm text-red-200" role="alert">
           {signOutError}
@@ -204,9 +321,9 @@ export function AccountPanel() {
           variant="secondary"
           data-testid="applyflow-link-extension"
           onClick={() => void linkExtension()}
-          disabled={probe.status !== "ok"}
+          disabled={probe.status !== "ok" || linking}
         >
-          Ligar extensão
+          {linking ? "A ligar…" : "Ligar extensão"}
         </ApplyFlowButton>
         <ApplyFlowButton
           type="button"

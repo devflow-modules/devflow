@@ -19,6 +19,7 @@ import { JobSummaryCard } from "./components/JobSummaryCard";
 import { PrepareApplicationCard } from "./components/PrepareApplicationCard";
 import type { PanelAiBundle } from "./panel-ai.js";
 import { openApplyFlowOptions } from "../runtime/open-options-page.js";
+import { PanelContactsSection } from "./components/PanelContactsSection";
 import { PanelHistorySection } from "./components/PanelHistorySection";
 
 export type PanelPhaseView = "waiting" | "modal_empty" | "fields";
@@ -246,6 +247,8 @@ export function App(props: {
           canSaveToHistory={props.applicationsHistoryAllowSave}
         />
 
+        <PanelContactsSection />
+
         {props.panelPhase === "fields" ? (
           <>
             {preparation ? (
@@ -297,7 +300,11 @@ export function App(props: {
       </div>
 
       <footer className="af-panel-footer">
-        <p className="af-footer-line">Os dados permanecem neste browser (chrome.storage.local). Sem backend ApplyFlow.</p>
+        <p className="af-footer-line">
+          Preferências e auditorias podem ficar neste browser. Com grant activo, perfil, vagas,
+          candidaturas e contactos (se autorizados) usam a conta ApplyFlow — confirmação só após
+          resposta do servidor.
+        </p>
         <div className="af-action-row" style={{ marginTop: "6px" }}>
           <ExtensionButton
             type="button"

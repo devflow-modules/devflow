@@ -6,6 +6,7 @@ import {
   withApplyFlowV2HttpAccess,
   type ApplyFlowV2HttpCapability,
 } from "../http-access";
+import { denyIfBearerLacksGrantScope } from "../personal/extension-grant-scope-guard";
 import type { ApplyFlowAccountRecord } from "../require-applyflow-account";
 import { ApplyFlowJobServiceError } from "./job-errors";
 import { jobVersionEtag, type JobResponse } from "./job-dto";
@@ -50,7 +51,16 @@ export async function withApplyFlowJobsAccount(
 ): Promise<NextResponse> {
   return withApplyFlowV2HttpAccess(
     capability,
-    async (account) => action(account),
+    async (account) => {
+      if (request) {
+        const denied = await denyIfBearerLacksGrantScope(
+          request,
+          capability === "read" ? "jobs:read" : "jobs:write",
+        );
+        if (denied) return denied;
+      }
+      return action(account);
+    },
     jobErrorResponse,
     request,
   );

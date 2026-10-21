@@ -55,7 +55,7 @@ export function OptionsProfileSummary(props: { profile: CandidateProfile }) {
           <li className={salaryOk ? "af-opt-checklist__item af-opt-checklist__item--ok" : "af-opt-checklist__item"}>
             Pretensões (opcional)
           </li>
-          <li className="af-opt-checklist__item af-opt-checklist__item--ok">Dados locais (sem envio remoto)</li>
+          <li className="af-opt-checklist__item af-opt-checklist__item--ok">Perfil local disponível offline</li>
           <li className="af-opt-checklist__item af-opt-checklist__item--ok">Sem auto-submit</li>
         </ul>
       </div>
@@ -65,11 +65,12 @@ export function OptionsProfileSummary(props: { profile: CandidateProfile }) {
         <div className="af-opt-pill-row">
           <span className="af-opt-pill">Local-first</span>
           <span className="af-opt-pill">chrome.storage.local</span>
-          <span className="af-opt-pill">Sem backend</span>
+          <span className="af-opt-pill">Conta com grant</span>
           <span className="af-opt-pill">Sem auto-submit</span>
         </div>
         <p className="af-opt-summary-foot">
-          Sugestões no LinkedIn são informativas; o envio da candidatura é sempre seu no site oficial.
+          Com grant activo, a extensão sincroniza dados autorizados com a conta ApplyFlow. Sugestões no
+          LinkedIn são informativas; o envio da candidatura é sempre seu no site oficial.
         </p>
       </div>
     </aside>

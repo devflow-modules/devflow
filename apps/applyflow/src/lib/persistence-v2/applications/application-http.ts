@@ -6,6 +6,7 @@ import {
   withApplyFlowV2HttpAccess,
   type ApplyFlowV2HttpCapability,
 } from "../http-access";
+import { denyIfBearerLacksGrantScope } from "../personal/extension-grant-scope-guard";
 import type { ApplyFlowAccountRecord } from "../require-applyflow-account";
 import { applicationVersionEtag, type ApplicationResponse } from "./application-dto";
 import { ApplyFlowApplicationServiceError } from "./application-errors";
@@ -56,7 +57,16 @@ export async function withApplyFlowApplicationsAccount(
 ): Promise<NextResponse> {
   return withApplyFlowV2HttpAccess(
     capability,
-    async (account) => action(account),
+    async (account) => {
+      if (request) {
+        const denied = await denyIfBearerLacksGrantScope(
+          request,
+          capability === "read" ? "applications:read" : "applications:write",
+        );
+        if (denied) return denied;
+      }
+      return action(account);
+    },
     applicationErrorResponse,
     request,
   );

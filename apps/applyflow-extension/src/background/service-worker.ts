@@ -31,14 +31,17 @@ import {
 } from "../account/extension-grant-bridge.js";
 import { readExtensionAccount } from "../account/extension-account-client.js";
 import {
+  listCloudContacts,
   loadAccountResumeLibrary,
   markCloudApplicationSent,
   pickAccountProfile,
   profileFieldsForContentScript,
   registerCloudJobAndApplication,
+  saveCloudContact,
+  saveCloudInteraction,
   type AccountProfileSnapshot,
 } from "../account/extension-cloud-sync.js";
-import type { SaveApplicationInput } from "@devflow/applyflow-core";
+import type { Contact, ContactInteraction, SaveApplicationInput } from "@devflow/applyflow-core";
 
 const extensionAllowedOrigins = [
   ...extensionOriginsForTarget("local"),
@@ -49,32 +52,48 @@ type AccountRuntimeState = {
   generation: number;
   snapshot: AccountProfileSnapshot | null;
   preferredVariantId: string | null;
-  inflight: AbortController | null;
+  /** Independent ops keep their own controllers; only account switches abort the set. */
+  inflight: Set<AbortController>;
 };
 
 let accountRuntime: AccountRuntimeState = {
   generation: 0,
   snapshot: null,
   preferredVariantId: null,
-  inflight: null,
+  inflight: new Set(),
 };
 
 function bumpAccountRuntime(): number {
-  accountRuntime.inflight?.abort();
+  for (const controller of accountRuntime.inflight) {
+    controller.abort();
+  }
   accountRuntime = {
     generation: accountRuntime.generation + 1,
     snapshot: null,
     preferredVariantId: null,
-    inflight: null,
+    inflight: new Set(),
   };
   return accountRuntime.generation;
+}
+
+function beginInflight(): AbortController {
+  const controller = new AbortController();
+  accountRuntime.inflight.add(controller);
+  return controller;
+}
+
+function endInflight(controller: AbortController): void {
+  accountRuntime.inflight.delete(controller);
 }
 
 async function readStoredGrant(): Promise<StoredExtensionGrant | null> {
   const stored = await chrome.storage.session.get(EXTENSION_GRANT_STORAGE_KEY);
   const grant = stored[EXTENSION_GRANT_STORAGE_KEY] as StoredExtensionGrant | undefined;
   if (!grant?.token || !grant.accountId || !grant.origin) return null;
-  return grant;
+  return {
+    ...grant,
+    scopes: Array.isArray(grant.scopes) ? grant.scopes : [],
+  };
 }
 
 async function writeStoredGrant(grant: StoredExtensionGrant | null): Promise<void> {
@@ -100,35 +119,37 @@ async function ensureAccountSnapshot(generation: number): Promise<
     return { ok: true, snapshot: accountRuntime.snapshot };
   }
 
-  const controller = new AbortController();
-  accountRuntime.inflight?.abort();
-  accountRuntime.inflight = controller;
-  const loaded = await loadAccountResumeLibrary({
-    origin: grant.origin,
-    token: grant.token,
-    signal: controller.signal,
-  });
-  if (accountRuntime.generation !== generation) {
-    return { ok: false, error: "aborted", status: 0 };
-  }
-  if (!loaded.ok) {
-    if (loaded.status === 401) {
-      await writeStoredGrant(null);
-      bumpAccountRuntime();
+  const controller = beginInflight();
+  try {
+    const loaded = await loadAccountResumeLibrary({
+      origin: grant.origin,
+      token: grant.token,
+      signal: controller.signal,
+    });
+    if (accountRuntime.generation !== generation || (!loaded.ok && loaded.error === "aborted")) {
+      return { ok: false, error: "aborted", status: 0 };
     }
-    return { ok: false, error: loaded.error, status: loaded.status };
+    if (!loaded.ok) {
+      if (loaded.status === 401) {
+        await writeStoredGrant(null);
+        bumpAccountRuntime();
+      }
+      return { ok: false, error: loaded.error, status: loaded.status };
+    }
+    const picked = pickAccountProfile(loaded.library, accountRuntime.preferredVariantId);
+    if (!picked) return { ok: false, error: "profile_empty", status: 404 };
+    const snapshot: AccountProfileSnapshot = {
+      accountId: grant.accountId,
+      generation,
+      library: loaded.library,
+      selectedVariantId: picked.selectedVariantId,
+      profile: picked.profile,
+    };
+    accountRuntime.snapshot = snapshot;
+    return { ok: true, snapshot };
+  } finally {
+    endInflight(controller);
   }
-  const picked = pickAccountProfile(loaded.library, accountRuntime.preferredVariantId);
-  if (!picked) return { ok: false, error: "profile_empty", status: 404 };
-  const snapshot: AccountProfileSnapshot = {
-    accountId: grant.accountId,
-    generation,
-    library: loaded.library,
-    selectedVariantId: picked.selectedVariantId,
-    profile: picked.profile,
-  };
-  accountRuntime.snapshot = snapshot;
-  return { ok: true, snapshot };
 }
 
 function statusPayload(grant: StoredExtensionGrant | null) {
@@ -230,28 +251,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return;
       }
       const generation = accountRuntime.generation;
-      const controller = new AbortController();
-      accountRuntime.inflight?.abort();
-      accountRuntime.inflight = controller;
-      const selectedVariantId =
-        accountRuntime.snapshot?.selectedVariantId ?? accountRuntime.preferredVariantId ?? undefined;
-      const result = await registerCloudJobAndApplication({
-        origin: grant.origin,
-        token: grant.token,
-        accountId: grant.accountId,
-        draft,
-        selectedVariantId: selectedVariantId ?? undefined,
-        signal: controller.signal,
-      });
-      if (accountRuntime.generation !== generation) {
-        sendResponse({ ok: false, error: "aborted", status: 0 });
-        return;
+      const controller = beginInflight();
+      try {
+        const selectedVariantId =
+          accountRuntime.snapshot?.selectedVariantId ?? accountRuntime.preferredVariantId ?? undefined;
+        const result = await registerCloudJobAndApplication({
+          origin: grant.origin,
+          token: grant.token,
+          accountId: grant.accountId,
+          draft,
+          selectedVariantId: selectedVariantId ?? undefined,
+          signal: controller.signal,
+        });
+        if (accountRuntime.generation !== generation || (!result.ok && result.error === "aborted")) {
+          sendResponse({ ok: false, error: "aborted", status: 0 });
+          return;
+        }
+        if (!result.ok && result.status === 401) {
+          await writeStoredGrant(null);
+          bumpAccountRuntime();
+        }
+        sendResponse(result);
+      } finally {
+        endInflight(controller);
       }
-      if (!result.ok && result.status === 401) {
-        await writeStoredGrant(null);
-        bumpAccountRuntime();
-      }
-      sendResponse(result);
     })();
     return true;
   }
@@ -283,6 +306,156 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         bumpAccountRuntime();
       }
       sendResponse(result);
+    })();
+    return true;
+  }
+
+  if (message?.type === "APPLYFLOW_LIST_CLOUD_CONTACTS") {
+    void (async () => {
+      const grant = await readStoredGrant();
+      if (!grant) {
+        sendResponse({
+          ok: false,
+          error: "signed_out",
+          status: 401,
+          reconnect: "Abra /account e ligue a extensão com permissões de contactos.",
+        });
+        return;
+      }
+      if (!grant.scopes?.includes("contacts:read")) {
+        sendResponse({
+          ok: false,
+          error: "grant_capability_denied",
+          status: 403,
+          reconnect: "Reconecte em /account e confirme contacts:read / contacts:write.",
+        });
+        return;
+      }
+      const generation = accountRuntime.generation;
+      const controller = beginInflight();
+      try {
+        const result = await listCloudContacts({
+          origin: grant.origin,
+          token: grant.token,
+          signal: controller.signal,
+        });
+        if (accountRuntime.generation !== generation || (!result.ok && result.error === "aborted")) {
+          sendResponse({ ok: false, error: "aborted", status: 0 });
+          return;
+        }
+        if (!result.ok && result.status === 401) {
+          await writeStoredGrant(null);
+          bumpAccountRuntime();
+        }
+        sendResponse(result);
+      } finally {
+        endInflight(controller);
+      }
+    })();
+    return true;
+  }
+
+  if (message?.type === "APPLYFLOW_SAVE_CLOUD_CONTACT") {
+    void (async () => {
+      const grant = await readStoredGrant();
+      if (!grant) {
+        sendResponse({
+          ok: false,
+          error: "signed_out",
+          status: 401,
+          reconnect: "Abra /account e ligue a extensão com permissões de contactos.",
+        });
+        return;
+      }
+      if (!grant.scopes?.includes("contacts:write")) {
+        sendResponse({
+          ok: false,
+          error: "grant_capability_denied",
+          status: 403,
+          reconnect: "Reconecte em /account e confirme contacts:write.",
+        });
+        return;
+      }
+      const contact = message.contact as Contact | undefined;
+      if (!contact || typeof contact !== "object") {
+        sendResponse({ ok: false, error: "invalid_payload", status: 400 });
+        return;
+      }
+      const expectedVersion =
+        typeof message.expectedVersion === "number" ? message.expectedVersion : undefined;
+      const generation = accountRuntime.generation;
+      const controller = beginInflight();
+      try {
+        const result = await saveCloudContact({
+          origin: grant.origin,
+          token: grant.token,
+          contact,
+          expectedVersion,
+          signal: controller.signal,
+        });
+        if (accountRuntime.generation !== generation || (!result.ok && result.error === "aborted")) {
+          sendResponse({ ok: false, error: "aborted", status: 0 });
+          return;
+        }
+        if (!result.ok && result.status === 401) {
+          await writeStoredGrant(null);
+          bumpAccountRuntime();
+        }
+        sendResponse(result);
+      } finally {
+        endInflight(controller);
+      }
+    })();
+    return true;
+  }
+
+  if (message?.type === "APPLYFLOW_SAVE_CLOUD_INTERACTION") {
+    void (async () => {
+      const grant = await readStoredGrant();
+      if (!grant) {
+        sendResponse({
+          ok: false,
+          error: "signed_out",
+          status: 401,
+          reconnect: "Abra /account e ligue a extensão com permissões de contactos.",
+        });
+        return;
+      }
+      if (!grant.scopes?.includes("contacts:write")) {
+        sendResponse({
+          ok: false,
+          error: "grant_capability_denied",
+          status: 403,
+          reconnect: "Reconecte em /account e confirme contacts:write.",
+        });
+        return;
+      }
+      const interaction = message.interaction as ContactInteraction | undefined;
+      if (!interaction || typeof interaction !== "object") {
+        sendResponse({ ok: false, error: "invalid_payload", status: 400 });
+        return;
+      }
+      const generation = accountRuntime.generation;
+      const controller = beginInflight();
+      try {
+        const result = await saveCloudInteraction({
+          origin: grant.origin,
+          token: grant.token,
+          interaction,
+          signal: controller.signal,
+        });
+        if (accountRuntime.generation !== generation || (!result.ok && result.error === "aborted")) {
+          sendResponse({ ok: false, error: "aborted", status: 0 });
+          return;
+        }
+        if (!result.ok && result.status === 401) {
+          await writeStoredGrant(null);
+          bumpAccountRuntime();
+        }
+        sendResponse(result);
+      } finally {
+        endInflight(controller);
+      }
     })();
     return true;
   }
@@ -380,9 +553,18 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
       sendResponse({ ok: false, signedIn: false });
       return;
     }
-    await writeStoredGrant(grant);
+    const withScopes: StoredExtensionGrant = {
+      ...grant,
+      scopes: account.scopes.length > 0 ? account.scopes : grant.scopes,
+    };
+    await writeStoredGrant(withScopes);
     bumpAccountRuntime();
-    sendResponse({ ok: true, accountId: grant.accountId, signedIn: true });
+    sendResponse({
+      ok: true,
+      accountId: withScopes.accountId,
+      signedIn: true,
+      scopes: withScopes.scopes,
+    });
   })();
   return true;
 });

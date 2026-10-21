@@ -204,15 +204,31 @@ test.describe("account personal persistence", () => {
     expect(await page.evaluate((key) => window.localStorage.getItem(key), LEGACY_PROFILE_KEY)).toContain("legacy-a");
     await page.unroute("**/api/applyflow/v2/profile");
 
-    const minted = await api.post("/api/applyflow/v2/extension/session");
+    const minted = await api.post("/api/applyflow/v2/extension/session", {
+      data: {
+        scopes: [
+          "profile:read",
+          "profile:write",
+          "jobs:read",
+          "jobs:write",
+          "applications:read",
+          "applications:write",
+          "contacts:read",
+          "contacts:write",
+        ],
+      },
+    });
     expect(minted.status()).toBe(200);
-    const grant = (await minted.json()) as { token: string; accountId: string };
+    const grant = (await minted.json()) as { token: string; accountId: string; scopes: string[] };
     expect(grant.token).toBeTruthy();
+    expect(grant.scopes).toContain("contacts:write");
     const authed = await api.get("/api/applyflow/v2/extension/session", {
       headers: { authorization: `Bearer ${grant.token}` },
     });
     expect(authed.status()).toBe(200);
-    expect(((await authed.json()) as { accountId: string }).accountId).toBe(accountA.accountId);
+    const sessionBody = (await authed.json()) as { accountId: string; scopes: string[] };
+    expect(sessionBody.accountId).toBe(accountA.accountId);
+    expect(sessionBody.scopes).toContain("contacts:read");
 
     await page.goto("/account");
     await page.getByRole("button", { name: "Probe /me" }).click();
@@ -229,7 +245,9 @@ test.describe("account personal persistence", () => {
 
     await logout(api);
     expect((await api.get("/api/applyflow/v2/profile")).status()).toBe(401);
-    const mintedAfterLogout = await api.post("/api/applyflow/v2/extension/session");
+    const mintedAfterLogout = await api.post("/api/applyflow/v2/extension/session", {
+      data: { scopes: ["profile:read"] },
+    });
     expect(mintedAfterLogout.status()).toBe(401);
 
     const switched = await login(apiB, "e2e_applyflow_personal_b");

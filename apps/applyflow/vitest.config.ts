@@ -8,6 +8,7 @@ export default defineConfig({
     exclude: [
       "src/lib/persistence-v2/personal/personal-persistence.local.test.ts",
       "src/lib/persistence-v2/personal/runtime-role.local.test.ts",
+      "src/lib/persistence-v2/personal/extension-grant-scopes-default.local.test.ts",
     ],
     setupFiles: ["./src/lib/persistence-v2/migration/f3-5-vitest-env-setup.ts"],
   },

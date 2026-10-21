@@ -15,6 +15,7 @@ export function deliverExtensionGrant(grant: {
   accountId: string;
   token: string;
   expiresAt: string;
+  scopes?: string[];
 }): void {
   const runtime = extensionRuntime();
   if (!runtime) return;
@@ -25,6 +26,7 @@ export function deliverExtensionGrant(grant: {
       accountId: grant.accountId,
       expiresAt: grant.expiresAt,
       token: grant.token,
+      ...(grant.scopes ? { scopes: grant.scopes } : {}),
     },
     () => {
       void extensionRuntime()?.lastError;
