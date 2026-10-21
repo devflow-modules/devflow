@@ -12,11 +12,9 @@ vi.mock("@/lib/persistence-v2/require-applyflow-account", () => {
       this.code = code;
     }
   }
-  class ApplyFlowPersistenceDisabledError extends Error {}
   return {
     requireApplyFlowAccount: vi.fn(),
     ApplyFlowAuthError,
-    ApplyFlowPersistenceDisabledError,
   };
 });
 

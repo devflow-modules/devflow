@@ -48,11 +48,6 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-    for (const scope of scopes) {
-      if (!EXTENSION_GRANT_REQUESTABLE_SCOPES.includes(scope)) {
-        return NextResponse.json({ error: "scopes_invalid" }, { status: 400 });
-      }
-    }
 
     const minted = await applyFlowExtensionGrants.mint(account.id, scopes);
     return NextResponse.json({

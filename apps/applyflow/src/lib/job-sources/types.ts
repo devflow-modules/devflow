@@ -36,8 +36,6 @@ export const JOB_SEARCH_MAX_PAGE = 10;
 
 /** Absolute Zod ceiling; provider adapters enforce tighter limits server-side. */
 export const JOB_SEARCH_ABSOLUTE_MAX_LIMIT = 25;
-/** @deprecated Prefer providerMaxLimit(provider) — kept for existing imports. */
-export const JOB_SEARCH_MAX_LIMIT = JOB_SEARCH_ABSOLUTE_MAX_LIMIT;
 
 export const JOBGETHER_DEFAULT_LIMIT = 10;
 export const JOBGETHER_MAX_LIMIT = 25;

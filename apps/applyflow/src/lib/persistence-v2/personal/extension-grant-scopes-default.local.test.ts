@@ -211,7 +211,7 @@ describe.skipIf(!ENABLED)("extension grant scopes DEFAULT on disposable Postgres
     );
     expect(response.status).toBe(400);
     const body = (await response.json()) as { error?: string };
-    expect(body.error === "scopes_invalid" || body.error === "scopes_required").toBe(true);
+    expect(body.error).toBe("scopes_required");
 
     const afterCount = psql(
       `SELECT count(*)::text FROM applyflow_extension_grants WHERE account_id = '${ACCOUNT_ID}'`,
